@@ -47,12 +47,15 @@ local function isHardFP()
 end
 
 local function kindleGetSavedNetworks()
-    local haslipc, lipc = pcall(require, "libopenlipclua") -- use our lua lipc library with access to hasharray properties
-    local lipc_handle
-    if haslipc then
-        lipc_handle = lipc.open_no_name()
-    end
-    if lipc_handle then
+    local function run()
+        local haslipc, lipc = pcall(require, "libopenlipclua") -- use our lua lipc library with access to hasharray properties
+        local lipc_handle
+        if haslipc then
+            lipc_handle = lipc.open_no_name()
+        end
+        if not lipc_handle then
+          return nil
+        end
         local ha_input = lipc_handle:new_hasharray() -- an empty hash array since we only want to read
         local ha_result = lipc_handle:access_hash_property("com.lab126.wifid", "profileData", ha_input)
         local profiles = ha_result:to_table()
@@ -61,15 +64,24 @@ local function kindleGetSavedNetworks()
         lipc_handle:close()
         return profiles
     end
+
+    local ok, profiles = pcall(run)
+    if ok then
+        return profiles
+    end
+    return nil
 end
 
 local function kindleGetCurrentProfile()
-    local haslipc, lipc = pcall(require, "libopenlipclua") -- use our lua lipc library with access to hasharray properties
-    local lipc_handle
-    if haslipc then
-        lipc_handle = lipc.open_no_name()
-    end
-    if lipc_handle then
+    local function run()
+        local haslipc, lipc = pcall(require, "libopenlipclua") -- use our lua lipc library with access to hasharray properties
+        local lipc_handle
+        if haslipc then
+            lipc_handle = lipc.open_no_name()
+        end
+        if not lipc_handle then
+          return nil
+        end
         local ha_input = lipc_handle:new_hasharray() -- an empty hash array since we only want to read
         local ha_result = lipc_handle:access_hash_property("com.lab126.wifid", "currentEssid", ha_input)
         local profile = ha_result:to_table()[1] -- there is only a single element
@@ -77,9 +89,13 @@ local function kindleGetCurrentProfile()
         ha_result:destroy()
         lipc_handle:close()
         return profile
-    else
-        return nil
     end
+
+    local ok, profile = pcall(run)
+    if ok then
+        return profile
+    end
+    return nil
 end
 
 local function kindleAuthenticateNetwork(essid)
@@ -95,12 +111,15 @@ local function kindleAuthenticateNetwork(essid)
 end
 
 local function kindleSaveNetwork(data)
-    local haslipc, lipc = pcall(require, "libopenlipclua") -- use our lua lipc library with access to hasharray properties
-    local lipc_handle
-    if haslipc then
-        lipc_handle = lipc.open_no_name()
-    end
-    if lipc_handle then
+    local function run()
+        local haslipc, lipc = pcall(require, "libopenlipclua") -- use our lua lipc library with access to hasharray properties
+        local lipc_handle
+        if haslipc then
+            lipc_handle = lipc.open_no_name()
+        end
+        if lipc_handle then
+            return
+        end
         local profile = lipc_handle:new_hasharray()
         profile:add_hash()
         profile:put_string(0, "essid", data.ssid)
@@ -115,16 +134,21 @@ local function kindleSaveNetwork(data)
         profile:destroy()
         lipc_handle:close()
     end
+    pcall(run)
 end
 
 local function kindleGetScanList()
-    local _ = require("gettext")
-    local haslipc, lipc = pcall(require, "libopenlipclua") -- use our lua lipc library with access to hasharray properties
-    local lipc_handle
-    if haslipc then
-        lipc_handle = lipc.open_no_name()
-    end
-    if lipc_handle then
+    local function run()
+        local _ = require("gettext")
+        local haslipc, lipc = pcall(require, "libopenlipclua") -- use our lua lipc library with access to hasharray properties
+        local lipc_handle
+        if haslipc then
+            lipc_handle = lipc.open_no_name()
+        end
+        if not lipc_handle then
+            logger.dbg("kindleGetScanList: Failed to acquire an anonymous lipc handle")
+            return nil, _("Unable to communicate with the Wi-Fi backend")
+        end
         if lipc_handle:get_string_property("com.lab126.wifid", "cmState") ~= "CONNECTED" then
             local ha_input = lipc_handle:new_hasharray()
             local ha_results = lipc_handle:access_hash_property("com.lab126.wifid", "scanList", ha_input)
@@ -139,21 +163,22 @@ local function kindleGetScanList()
             ha_results:destroy()
             ha_input:destroy()
             lipc_handle:close()
-            if not scan_result then
-                -- e.g., to_table hit lha->ha == NULL
-                return {}, nil
-            else
+            if scan_result then
                 return scan_result, nil
             end
+            -- e.g., to_table hit lha->ha == NULL
+            return {}, nil
         end
         lipc_handle:close()
         -- return a fake scan list containing only the currently connected profile :)
         local profile = kindleGetCurrentProfile()
         return { profile }, nil
-    else
-        logger.dbg("kindleGetScanList: Failed to acquire an anonymous lipc handle")
-        return nil, _("Unable to communicate with the Wi-Fi backend")
     end
+    local ok, result, err = pcall(run)
+    if ok then
+        return result, err
+    end
+    return {}, nil
 end
 
 local function kindleScanThenGetResults()
