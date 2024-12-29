@@ -10,6 +10,9 @@ if [ "$(dirname "${0}")" != "/var/tmp" ]; then
     exec /var/tmp/koreader.sh "$@"
 fi
 
+# Disable screensaver on kindle only.
+lipc-set-prop com.lab126.blanket unload ad_screensaver || true
+
 export LC_ALL="en_US.UTF-8"
 
 PROC_KEYPAD="/proc/keypad"

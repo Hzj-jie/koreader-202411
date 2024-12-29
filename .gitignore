@@ -1,1 +1,12 @@
 .*.un~
+*.lua.old
+version.log
+crash.log
+koreader/cache/
+koreader/.ash_history
+koreader/data/cr3.ini
+koreader/history.lua
+koreader/settings/battery_stats.lua
+koreader/settings/lookup_history.lua
+*.sqlite3
+*.sqlite3.bkp.*

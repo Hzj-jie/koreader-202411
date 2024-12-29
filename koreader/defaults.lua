@@ -56,7 +56,7 @@ DTAP_ZONE_MENU = {x = 0, y = 0, w = 1, h = 1/8},
 DTAP_ZONE_MENU_EXT = {x = 1/4, y = 0, w = 2/4, h = 1/5}, -- taller, narrower extension
 DTAP_ZONE_CONFIG = {x = 0, y = 7/8, w = 1, h = 1/8},
 DTAP_ZONE_CONFIG_EXT = {x = 1/4, y = 4/5, w = 2/4, h = 1/5}, -- taller, narrower extension
-DTAP_ZONE_MINIBAR = {x = 0, y = 12/13, w = 1, h = 1/13},
+DTAP_ZONE_MINIBAR = {x = 3/4, y = 12/13, w = 1/4, h = 1/13},
 DTAP_ZONE_FORWARD = {x = 1/4, y = 0, w = 3/4, h = 1},
 DTAP_ZONE_BACKWARD = {x = 0, y = 0, w = 1/4, h = 1},
 DTAP_ZONE_TOP_LEFT = {x = 0, y = 0, w = 1/8, h = 1/8},
@@ -94,7 +94,7 @@ DKOPTREADER_CONFIG_DOC_DEFAULT_LANG_CODE = "eng",          -- that have filename
 -- crereader font sizes
 -- feel free to add more entries in this list
 DCREREADER_CONFIG_FONT_SIZES = {12, 16, 20, 22, 24, 26, 28, 30, 34, 38, 44},  -- option range from 12 to 44
-DCREREADER_CONFIG_DEFAULT_FONT_SIZE = 22,    -- default font size
+DCREREADER_CONFIG_DEFAULT_FONT_SIZE = 16,    -- default font size
 
 -- crereader margin sizes
 -- horizontal margins {left, right} in (relative) pixels
