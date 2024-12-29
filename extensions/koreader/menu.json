@@ -51,33 +51,15 @@
 			"internal": "status Start KOReader ASAP"
 		},
 		{
-			"name": "Tools",
-			"priority": 7,
-			"items": [
-			{
-				"name": "Update KOReader",
-				"priority": 1,
-				"action": "./bin/koreader-ext.sh",
-				"params": "update_koreader",
-				"exitmenu": false,
-				"checked": true,
-				"refresh": false,
-				"status": false,
-				"internal": "status Try to update KOReader . . ."
-			},
-			{
-				"name": "Clean Install of KOReader",
-				"priority": 2,
-				"action": "./bin/koreader-ext.sh",
-				"params": "install_koreader",
-				"exitmenu": false,
-				"checked": true,
-				"refresh": false,
-				"status": false,
-				"internal": "status Try to install KOReader from scratch . . ."
-			}
-			]
-		}
+            "name": "Update KOReader",
+            "priority": 7,
+            "action": "./bin/update.sh",
+            "exitmenu": false,
+            "checked": true,
+            "refresh": false,
+            "status": false,
+            "internal": "status Try to update KOReader . . ."
+        }
 		]
 	}
 	]
