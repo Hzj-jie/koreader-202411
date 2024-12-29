@@ -54,7 +54,7 @@ local function backupAndBuildHistory()
         doBuildHistory()
     else
         UIManager:show(ConfirmBox:new{
-            text = T(_("Failed to backup current history view from %1 to %2, still want to proceed?", history_file, history_backup_file)),
+            text = T(_("Failed to backup current history view from %1 to %2, still want to proceed?"), history_file, history_backup_file),
             ok_text = _("Proceed"),
             ok_callback = doBuildHistory,
         })
