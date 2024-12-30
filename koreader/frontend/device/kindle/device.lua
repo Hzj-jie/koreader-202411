@@ -469,13 +469,20 @@ function Kindle:initNetworkManager(NetworkMgr)
                     end
                 end
             end
+            local connected = false
+            if current_profile ~= nil then
+                -- See comment above about netid being unfortunately optional...
+                if current_profile.netid then
+                    connected = current_profile.netid ~= -1 and current_profile.netid == network.netid
+                else
+                    connected = current_profile.essid ~= "" and current_profile.essid == network.essid
+                end
+            end
             table.insert(network_list, {
                 -- signal_level is purely for fun, the widget doesn't do anything with it. The WpaClient backend stores the raw dBa attenuation in it.
                 signal_level = string.format("%d/%d", network.signal, network.signal_max),
                 signal_quality = qualities[network.signal],
-                -- See comment above about netid being unfortunately optional...
-                connected = (current_profile.netid and current_profile.netid ~= -1 and current_profile.netid == network.netid)
-                         or (current_profile.netid == nil and current_profile.essid ~= "" and current_profile.essid == network.essid),
+                connected = connected,
                 flags = network.key_mgmt,
                 ssid = network.essid ~= "" and network.essid,
                 password = password,
