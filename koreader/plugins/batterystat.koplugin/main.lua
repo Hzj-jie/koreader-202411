@@ -9,7 +9,6 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local dbg = require("dbg")
 local time = require("ui/time")
-local util = require("ffi/util")
 local _ = require("gettext")
 local T = require("ffi/util").template
 
@@ -102,7 +101,7 @@ end
 
 local BatteryStat = {
     settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/battery_stats.lua"),
-    dump_file = util.realpath(DataStorage:getDataDir()) .. "/batterystat.log",
+    dump_file = DataStorage:getFullDataDir() .. "/batterystat.log",
     kv_page = nil,
 }
 
