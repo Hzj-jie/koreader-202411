@@ -9,6 +9,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local dbg = require("dbg")
 local time = require("ui/time")
+local util = require("ffi/util")
 local _ = require("gettext")
 local T = require("ffi/util").template
 
@@ -101,6 +102,7 @@ end
 
 local BatteryStat = {
     settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/battery_stats.lua"),
+    dump_file = util.realpath(DataStorage:getDataDir()) .. "/batterystat.log",
     kv_page = nil,
 }
 
@@ -160,6 +162,16 @@ function BatteryStat:accumulate()
     self.charging_state = State:new()
 end
 
+function BatteryStat:dumpOrLog(content)
+    local file = io.open(self.dump_file, "a")
+    if file then
+        file:write(content .. "\n")
+        file:close()
+    else
+        logger.warn("Failed to dump output ", content, " into ", self.dump_file )
+    end
+end
+
 function BatteryStat:onSuspend()
     if not self.was_suspending then
         self:accumulate()
@@ -176,7 +188,7 @@ end
 
 function BatteryStat:onCharging()
     if not self.was_charging then
-        self:reset(true, true)
+        self:reset(true, false)
         self:accumulate()
     end
     self.was_charging = true
@@ -221,6 +233,7 @@ function BatteryStat:showStatistics()
 end
 
 function BatteryStat:reset(withCharging, withDischarging)
+    self:dumpToText()
     self.awake = Usage:new()
     self.sleeping = Usage:new()
 
@@ -243,6 +256,18 @@ function BatteryStat:restart()
     dbg.dassert(self.kv_page ~= nil)
     UIManager:close(self.kv_page)
     self:showStatistics()
+end
+
+function BatteryStat:dumpToText()
+    local kv_pairs = self:dump()
+    local content = T(_("Dump at %1"), os.date("%c"))
+    for _, pair in ipairs(kv_pairs) do
+        content = content .. "\n" .. pair[1]
+        if pair[2] ~= nil and pair[2] ~= "" then
+            content = content .. "\t" .. pair[2]
+        end
+    end
+    self:dumpOrLog(content .. "\n-=-=-=-=-=-\n")
 end
 
 function BatteryStat:dump()
