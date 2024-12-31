@@ -60,6 +60,13 @@ function TermInputText:init()
     self.alternate_buffer = {}
     self.save_buffer = {}
     InputText.init(self)
+    -- Disallow layout change for the same reason.
+    self.keyboard.lang_to_keyboard_layout = {
+      en = "en_keyboard",
+    }
+    -- Force en layout to avoid crashing. Calling this function will
+    -- re-initialize the keyboard and take effect of the above change.
+    self.keyboard:setKeyboardLayout("en")
 end
 
 -- disable positioning cursor by tap in emulator mode
