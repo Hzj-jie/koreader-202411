@@ -7,5 +7,5 @@ fi
 
 ./clean.sh
 
-rsync -acv --no-o --no-g --exclude='.*.un~' extensions/ root@192.168.1.$1:/mnt/us/extensions/
-rsync -acv --no-o --no-g --exclude='.*.un~' koreader/ root@192.168.1.$1:/mnt/us/koreader/
+rsync -acv --no-o --no-g extensions/ root@192.168.1.$1:/mnt/us/extensions/
+rsync -acv --no-o --no-g koreader/ root@192.168.1.$1:/mnt/us/koreader/
