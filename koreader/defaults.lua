@@ -56,7 +56,7 @@ DTAP_ZONE_MENU = {x = 0, y = 0, w = 1, h = 1/8},
 DTAP_ZONE_MENU_EXT = {x = 1/4, y = 0, w = 2/4, h = 1/5}, -- taller, narrower extension
 DTAP_ZONE_CONFIG = {x = 0, y = 7/8, w = 1, h = 1/8},
 DTAP_ZONE_CONFIG_EXT = {x = 1/4, y = 4/5, w = 2/4, h = 1/5}, -- taller, narrower extension
-DTAP_ZONE_MINIBAR = {x = 3/4, y = 12/13, w = 1/4, h = 1/13},
+DTAP_ZONE_MINIBAR = {x = 0, y = 12/13, w = 1, h = 1/13},
 DTAP_ZONE_FORWARD = {x = 1/4, y = 0, w = 3/4, h = 1},
 DTAP_ZONE_BACKWARD = {x = 0, y = 0, w = 1/4, h = 1},
 DTAP_ZONE_TOP_LEFT = {x = 0, y = 0, w = 1/8, h = 1/8},
