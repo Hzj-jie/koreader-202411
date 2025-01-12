@@ -507,7 +507,9 @@ function ReaderCoptListener:getAltStatusBarMenu()
                                 self.battery_percent = 0
                             end
                             self:setAndSave("cre_header_battery", "window.status.battery", self.battery)
-                            self:setAndSave("cre_header_battery_percent", "window.status.battery.percent", self.battery_percent)
+                            self:setAndSave("cre_header_battery_percent",
+                                            "window.status.battery.percent",
+                                            self.battery_percent)
                         end,
                     },
                 },
@@ -515,11 +517,14 @@ function ReaderCoptListener:getAltStatusBarMenu()
             },
             {
                 text_func = function()
-                    return T(_("Font size: %1"), G_reader_settings:readSetting("cre_header_status_font_size") or CRE_HEADER_DEFAULT_SIZE)
+                    return T(_("Font size: %1"),
+                             G_reader_settings:readSetting("cre_header_status_font_size")
+                             or CRE_HEADER_DEFAULT_SIZE)
                 end,
                 callback = function()
                     local SpinWidget = require("ui/widget/spinwidget")
-                    local start_size = G_reader_settings:readSetting("cre_header_status_font_size") or CRE_HEADER_DEFAULT_SIZE
+                    local start_size =
+                        G_reader_settings:readSetting("cre_header_status_font_size") or CRE_HEADER_DEFAULT_SIZE
                     local size_spinner = SpinWidget:new{
                         value = start_size,
                         value_min = 8,

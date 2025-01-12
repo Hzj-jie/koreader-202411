@@ -87,7 +87,7 @@ local Terminal = WidgetContainer:extend{
     name = "terminal",
     history = "",
     is_shell_open = false,
-    buffer_size = 1024 * G_reader_settings:readSetting("terminal_buffer_size") or 16, -- size in kB
+    buffer_size = 1024 * (G_reader_settings:readSetting("terminal_buffer_size") or 16), -- size in kB
     refresh_time = 0.2,
     terminal_data = ".",
 }

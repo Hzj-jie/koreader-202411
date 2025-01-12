@@ -104,17 +104,26 @@ function BookShortcuts:getSubMenuItems()
             end,
         },
         {
-            text_func = function() return T(_("Folder action: %1"), (G_reader_settings:readSetting("BookShortcuts_directory_action") or "FM") == "FM" and FM_text or last_text) end,
+            text_func = function()
+                return T(_("Folder action: %1"),
+                         (G_reader_settings:readSetting("BookShortcuts_directory_action") or "FM") == "FM"
+                          and FM_text
+                          or last_text)
+            end,
             keep_menu_open = true,
             sub_item_table = {
                 {
                     text = last_text,
-                    checked_func = function() return G_reader_settings:readSetting("BookShortcuts_directory_action") == "Last" end,
+                    checked_func = function()
+                        return G_reader_settings:readSetting("BookShortcuts_directory_action") == "Last"
+                    end,
                     callback = function() G_reader_settings:saveSetting("BookShortcuts_directory_action", "Last") end,
                 },
                 {
                     text = FM_text,
-                    checked_func = function() return G_reader_settings:readSetting("BookShortcuts_directory_action") == "FM" end,
+                    checked_func = function()
+                        return G_reader_settings:readSetting("BookShortcuts_directory_action") == "FM"
+                    end,
                     callback = function() G_reader_settings:saveSetting("BookShortcuts_directory_action", "FM") end,
                 },
             },
@@ -123,7 +132,9 @@ function BookShortcuts:getSubMenuItems()
             text = _("Recursively search folders"),
             keep_menu_open = true,
             checked_func = function() return G_reader_settings:isTrue("BookShortcuts_recursive_directory") end,
-            enabled_func = function() return G_reader_settings:readSetting("BookShortcuts_directory_action") == "Last" end,
+            enabled_func = function() return
+                G_reader_settings:readSetting("BookShortcuts_directory_action") == "Last"
+            end,
             callback = function() G_reader_settings:flipNilOrFalse("BookShortcuts_recursive_directory") end,
             separator = true,
         }
