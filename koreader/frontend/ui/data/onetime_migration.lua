@@ -13,7 +13,7 @@ local _ = require("gettext")
 local CURRENT_MIGRATION_DATE = 20240928
 
 -- Retrieve the date of the previous migration, if any
-local last_migration_date = G_reader_settings:readSetting("last_migration_date", 0)
+local last_migration_date = G_reader_settings:readSetting("last_migration_date") or 0
 
 -- If there's nothing new to migrate since the last time, we're done.
 if last_migration_date == CURRENT_MIGRATION_DATE then
@@ -251,7 +251,7 @@ local function readerfooter_defaults(date)
     drop_fontcache()
 
     local ReaderFooter = require("apps/reader/modules/readerfooter")
-    local settings = G_reader_settings:readSetting("footer", ReaderFooter.default_settings)
+    local settings = G_reader_settings:readSetting("footer") or ReaderFooter.default_settings
 
     -- Make sure we have a full set, some of these were historically kept as magic nils...
     for k, v in pairs(ReaderFooter.default_settings) do
@@ -333,7 +333,7 @@ if last_migration_date < 20210720 then
     -- However, the footer previously defaulted to "modern", so users who were used to seeing "classic" in the UI
     -- started seeing the modern format unexpectedly. Therefore, reset everyone back to classic so users go back
     -- to a safe default. Users who use "modern" will need to reselect it in Time and Date settings after this migration.
-    G_reader_settings:saveSetting("duration_format", "classic")
+    G_reader_settings:delSetting("duration_format")
 end
 
 -- 20210831, Clean VirtualKeyboard settings of disabled layouts, https://github.com/koreader/koreader/pull/8159
@@ -739,7 +739,7 @@ if last_migration_date < 20240928 then
     if G_reader_settings:has("autostart_profiles") then
         local profiles = G_reader_settings:readSetting("autostart_profiles")
         if next(profiles) then
-            local autoexec = G_reader_settings:readSetting("profiles_autoexec", {})
+            local autoexec = G_reader_settings:readSetting("profiles_autoexec") or {}
             autoexec.Start = autoexec.Start or {}
             for profile in pairs(profiles) do
                 autoexec.Start[profile] = true
