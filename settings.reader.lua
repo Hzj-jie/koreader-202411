@@ -133,6 +133,7 @@ return {
         ["lock_tap"] = true,
         ["mem_usage"] = false,
         ["page_progress"] = true,
+        ["page_turning_inverted"] = false,
         ["pages_left"] = false,
         ["pages_left_book"] = false,
         ["pages_left_includes_current_page"] = false,
@@ -161,6 +162,10 @@ return {
     ["inertial_scroll"] = false,
     ["keyboard_chinese_pinyin_settings"] = {
         ["show_candi"] = true,
+    },
+    ["keyboard_layouts"] = {
+        [1] = "zh_CN",
+        [2] = "en",
     },
     ["kopt_doc_language"] = "chi_sim",
     ["kopt_forced_ocr"] = 0,
