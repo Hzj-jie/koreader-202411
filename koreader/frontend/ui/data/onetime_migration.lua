@@ -333,7 +333,7 @@ if last_migration_date < 20210720 then
     -- However, the footer previously defaulted to "modern", so users who were used to seeing "classic" in the UI
     -- started seeing the modern format unexpectedly. Therefore, reset everyone back to classic so users go back
     -- to a safe default. Users who use "modern" will need to reselect it in Time and Date settings after this migration.
-    G_reader_settings:saveSetting("duration_format", "classic")
+    G_reader_settings:delSetting("duration_format")
 end
 
 -- 20210831, Clean VirtualKeyboard settings of disabled layouts, https://github.com/koreader/koreader/pull/8159
