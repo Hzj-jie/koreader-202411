@@ -29,7 +29,7 @@ local DEFAULT_KEITAI_TAP_INTERVAL_S = 2
 -- information.
 
 local function getKeitaiTapInterval()
-    return time.s(G_reader_settings:readSetting("keyboard_japanese_keitai_tap_interval", DEFAULT_KEITAI_TAP_INTERVAL_S))
+    return time.s(G_reader_settings:readSetting("keyboard_japanese_keitai_tap_interval") or DEFAULT_KEITAI_TAP_INTERVAL_S)
 end
 
 local function setKeitaiTapInterval(interval)

@@ -510,7 +510,7 @@ function Gestures:addIntervals(menu_items)
                 keep_menu_open = true,
                 callback = function()
                     local default_value = Screen.low_pan_rate and 5.0 or 30.0
-                    local current_value = G_reader_settings:readSetting("hold_pan_rate", default_value)
+                    local current_value = G_reader_settings:readSetting("hold_pan_rate") or default_value
                     local items = SpinWidget:new{
                         title_text = _("Text selection rate"),
                         info_text = _([[
@@ -572,7 +572,7 @@ Any other taps made within this interval after a first tap will be considered ac
 
 The interval value is in milliseconds and can range from 0 (0 seconds) to 2000 (2 seconds).]]),
                         width = math.floor(Screen:getWidth() * 0.75),
-                        value = time.to_ms(G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms", 0)),
+                        value = time.to_ms(G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms") or 0),
                         value_min = 0,
                         value_max = 2000,
                         value_step = 50,

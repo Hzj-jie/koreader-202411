@@ -22,7 +22,7 @@ local HttpInspector = WidgetContainer:extend{
 local should_run = G_reader_settings:isTrue("httpinspector_autostart")
 
 function HttpInspector:init()
-    self.port = G_reader_settings:readSetting("httpinspector_port", "8080")
+    self.port = G_reader_settings:readSetting("httpinspector_port") or "8080"
     if should_run then
         -- Delay this until after all plugins are loaded
         UIManager:nextTick(function()

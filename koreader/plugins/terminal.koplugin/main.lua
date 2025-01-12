@@ -87,7 +87,7 @@ local Terminal = WidgetContainer:extend{
     name = "terminal",
     history = "",
     is_shell_open = false,
-    buffer_size = 1024 * G_reader_settings:readSetting("terminal_buffer_size", 16), -- size in kB
+    buffer_size = 1024 * G_reader_settings:readSetting("terminal_buffer_size") or 16, -- size in kB
     refresh_time = 0.2,
     terminal_data = ".",
 }
@@ -128,8 +128,6 @@ function Terminal:getDefaultShellExecutable()
 end
 
 function Terminal:init()
-    G_reader_settings:readSetting("terminal_shell", self:getDefaultShellExecutable())
-
     self:onDispatcherRegisterActions()
     self.ui.menu:registerToMainMenu(self)
 
@@ -188,7 +186,7 @@ function Terminal:spawnShell(cols, rows)
     end
     local profile_file = "./plugins/terminal.koplugin/profile"
     local rlw = get_readline_wrapper()
-    local shell = G_reader_settings:readSetting("terminal_shell")
+    local shell = G_reader_settings:readSetting("terminal_shell") or self:getDefaultShellExecutable()
     local args = {}
     if shell:find("bash") then
         args = { "--rcfile", profile_file}
@@ -507,7 +505,7 @@ function Terminal:onTerminalStart(touchmenu_instance)
     self.touchmenu_instance = touchmenu_instance
 
     self.input_face = Font:getFace("smallinfont",
-        G_reader_settings:readSetting("terminal_font_size", 14))
+        G_reader_settings:readSetting("terminal_font_size") or 14)
     self.ctrl = false
     self.input_dialog = self:generateInputDialog()
     self.input_widget = self.input_dialog._input_widget
@@ -584,7 +582,7 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             {
                 text_func = function()
                     return T(_("Font size: %1"),
-                        G_reader_settings:readSetting("terminal_font_size", 14))
+                        G_reader_settings:readSetting("terminal_font_size") or 14)
                 end,
                 callback = function(touchmenu_instance)
                     local cur_size = G_reader_settings:readSetting("terminal_font_size")
@@ -607,7 +605,7 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             {
                 text_func = function()
                     return T(_("Buffer size: %1 kB"),
-                        G_reader_settings:readSetting("terminal_buffer_size", 16))
+                        G_reader_settings:readSetting("terminal_buffer_size") or 16)
                 end,
                 callback = function(touchmenu_instance)
                     local cur_buffer = G_reader_settings:readSetting("terminal_buffer_size")

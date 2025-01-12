@@ -104,7 +104,7 @@ function BookShortcuts:getSubMenuItems()
             end,
         },
         {
-            text_func = function() return T(_("Folder action: %1"), G_reader_settings:readSetting("BookShortcuts_directory_action", "FM") == "FM" and FM_text or last_text) end,
+            text_func = function() return T(_("Folder action: %1"), (G_reader_settings:readSetting("BookShortcuts_directory_action") or "FM") == "FM" and FM_text or last_text) end,
             keep_menu_open = true,
             sub_item_table = {
                 {
