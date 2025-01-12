@@ -17,9 +17,9 @@ local ReaderDeviceStatus = WidgetContainer:extend{
 
 function ReaderDeviceStatus:init()
     if Device:hasBattery() then
-        self.battery_interval_m = G_reader_settings:readSetting("device_status_battery_interval_minutes", 10)
-        self.battery_threshold = G_reader_settings:readSetting("device_status_battery_threshold", 20)
-        self.battery_threshold_high = G_reader_settings:readSetting("device_status_battery_threshold_high", 100)
+        self.battery_interval_m = G_reader_settings:readSetting("device_status_battery_interval_minutes") or 10
+        self.battery_threshold = G_reader_settings:readSetting("device_status_battery_threshold") or 20
+        self.battery_threshold_high = G_reader_settings:readSetting("device_status_battery_threshold_high") or 100
         -- `checkLowBatteryLevel` and `checkHighMemoryUsage` are each supposed to start one second past the top of the minute,
         -- as some other periodic activities do (e.g. footer). This means that the processor is woken up less often from standby.
         self.checkLowBatteryLevel = function(sync)
@@ -55,8 +55,8 @@ function ReaderDeviceStatus:init()
     end
 
     if not Device:isAndroid() then
-        self.memory_interval_m = G_reader_settings:readSetting("device_status_memory_interval_minutes", 5)
-        self.memory_threshold = G_reader_settings:readSetting("device_status_memory_threshold", 100)
+        self.memory_interval_m = G_reader_settings:readSetting("device_status_memory_interval_minutes") or 5
+        self.memory_threshold = G_reader_settings:readSetting("device_status_memory_threshold") or 100
         -- `checkLowBatteryLevel` and `checkHighMemoryUsage` are each supposed to start one second past the top of the minute,
         -- as some other periodic activities do (e.g. footer). This means that the processor is woken up less often from standby.
         self.checkHighMemoryUsage = function(sync)

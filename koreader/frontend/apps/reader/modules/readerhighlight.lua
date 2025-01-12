@@ -456,7 +456,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
     })
     table.insert(hl_sub_item_table, {
         text_func = function()
-            return T(_("Gray highlight opacity: %1"), G_reader_settings:readSetting("highlight_lighten_factor", 0.2))
+            return T(_("Gray highlight opacity: %1"), G_reader_settings:readSetting("highlight_lighten_factor") or 0.2)
         end,
         enabled_func = function()
             return self.view.highlight.saved_drawer == "lighten"
@@ -710,7 +710,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
         table.insert(menu_items.long_press.sub_item_table, {
             text = v[1],
             checked_func = function()
-                return G_reader_settings:readSetting("default_highlight_action", "ask") == v[2]
+                return (G_reader_settings:readSetting("default_highlight_action") or "ask") == v[2]
             end,
             radio = true,
             callback = function()
@@ -724,7 +724,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
         table.insert(sub_item_table, {
             text = v[1],
             checked_func = function()
-                return G_reader_settings:readSetting("highlight_dialog_position", "center") == v[2]
+                return (G_reader_settings:readSetting("highlight_dialog_position") or "center") == v[2]
             end,
             callback = function()
                 G_reader_settings:saveSetting("highlight_dialog_position", v[2])
@@ -733,7 +733,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
     end
     table.insert(menu_items.long_press.sub_item_table, {
         text_func = function()
-            local position = G_reader_settings:readSetting("highlight_dialog_position", "center")
+            local position = G_reader_settings:readSetting("highlight_dialog_position") or "center"
             for __, v in ipairs(highlight_dialog_position) do
                 if v[2] == position then
                     return T(_("Highlight dialog position: %1"), v[1]:lower())
@@ -747,7 +747,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
         table.insert(menu_items.long_press.sub_item_table, {
             text_func = function()
                 return T(_("Highlight very-long-press interval: %1 s"),
-                    G_reader_settings:readSetting("highlight_long_hold_threshold_s", 3))
+                    G_reader_settings:readSetting("highlight_long_hold_threshold_s") or 3)
             end,
             keep_menu_open = true,
             callback = function(touchmenu_instance)
@@ -755,7 +755,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
                     title_text = _("Highlight very-long-press interval"),
                     info_text = _("If a long-press is not released in this interval, it is considered a very-long-press. On document text, single word selection will not be triggered."),
                     width = math.floor(self.screen_w * 0.75),
-                    value = G_reader_settings:readSetting("highlight_long_hold_threshold_s", 3),
+                    value = G_reader_settings:readSetting("highlight_long_hold_threshold_s") or 3,
                     value_min = 2.5,
                     value_max = 20,
                     value_step = 0.1,
@@ -1396,7 +1396,7 @@ dbg:guard(ReaderHighlight, "onShowHighlightMenu",
     end)
 
 function ReaderHighlight:_getDialogAnchor(dialog, item)
-    local position = G_reader_settings:readSetting("highlight_dialog_position", "center")
+    local position = G_reader_settings:readSetting("highlight_dialog_position") or "center"
     if position == "center" then return end
     local dialog_box = dialog:getContentSize()
     local anchor_x = math.floor((self.screen_w - dialog_box.w) / 2) -- center by width
@@ -1466,19 +1466,19 @@ function ReaderHighlight:_resetHoldTimer(clear)
             -- If normal-hold is set to use the highlight action, and this action is still "ask",
             -- no need to handle long-hold.
             if G_reader_settings:isTrue("highlight_action_on_single_word") and
-                   G_reader_settings:readSetting("default_highlight_action", "ask") == "ask" then
+                   (G_reader_settings:readSetting("default_highlight_action") or "ask") == "ask" then
                 handle_long_hold = false
             end
         else
             -- Multi words selection uses default_highlight_action, and no need for long-hold
             -- if it is already "ask".
-            if G_reader_settings:readSetting("default_highlight_action", "ask") == "ask" then
+            if (G_reader_settings:readSetting("default_highlight_action") or "ask") == "ask" then
                 handle_long_hold = false
             end
         end
         if handle_long_hold then
             -- (Default delay is 3 seconds as in the menu items)
-            UIManager:scheduleIn(G_reader_settings:readSetting("highlight_long_hold_threshold_s", 3), self.long_hold_reached_action)
+            UIManager:scheduleIn(G_reader_settings:readSetting("highlight_long_hold_threshold_s") or 3, self.long_hold_reached_action)
         end
     end
     -- Unset flag and icon
@@ -1910,7 +1910,7 @@ function ReaderHighlight:onHoldRelease()
     local long_final_hold = self.long_hold_reached
     self:_resetHoldTimer(true) -- clear state
 
-    local default_highlight_action = G_reader_settings:readSetting("default_highlight_action", "ask")
+    local default_highlight_action = G_reader_settings:readSetting("default_highlight_action") or "ask"
 
     if self.select_mode then -- extended highlighting, ending fragment
         if self.selected_text then
@@ -1988,7 +1988,7 @@ function ReaderHighlight:onSetHighlightAction(action_num, no_notification)
 end
 
 function ReaderHighlight:onCycleHighlightAction()
-    local current_action = G_reader_settings:readSetting("default_highlight_action", "ask")
+    local current_action = G_reader_settings:readSetting("default_highlight_action") or "ask"
     local next_action_num
     for i, v in ipairs(long_press_action) do
         if v[2] == current_action then
