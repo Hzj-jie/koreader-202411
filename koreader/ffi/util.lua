@@ -667,7 +667,7 @@ end
 
 function util.orderedPairs(t)
     -- Equivalent of the pairs() function on tables. Allows to iterate in order
-    return require("SortedIteration")(t)
+    return require("ffi/SortedIteration")(t)
 end
 
 --[[--

@@ -12,7 +12,15 @@ local function __genOrderedIndex( t )
     for key in pairs(t) do
         table.insert( orderedIndex, key )
     end
-    table.sort( orderedIndex )
+    table.sort(orderedIndex, function(v1, v2)
+        if type(v1) == type(v2) then
+            -- Assumes said type supports the < comparison operator
+            return v1 < v2
+        else
+            -- Handle type mismatches by squashing to string
+            return tostring(v1) < tostring(v2)
+        end
+    end)
     return orderedIndex
 end
 
@@ -29,7 +37,7 @@ local function orderedNext(t, state)
         key = t.__orderedIndex[1]
     else
         -- fetch the next value
-        for i = 1,table.getn(t.__orderedIndex) do
+        for i = 1, #t.__orderedIndex do
             if t.__orderedIndex[i] == state then
                 key = t.__orderedIndex[i+1]
             end
