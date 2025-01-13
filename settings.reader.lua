@@ -185,7 +185,6 @@ return {
         ["userkey"] = "daa613d5e3c54ac8f088066018276724",
         ["username"] = "Hzj_jie",
     },
-    ["low_battery_threshold"] = 10,
     ["low_pan_rate"] = true,
     ["multiswipes_enabled"] = false,
     ["night_full_refresh_count"] = 0,
