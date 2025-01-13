@@ -79,12 +79,8 @@ end
 function LuaSettings:readSetting(key)
     local r = self.data[key]
     if type(r) ~= 'table' then return r end
-    -- Make a shallow copy.
-    local r2 = {}
-    for k,v in pairs(r) do
-        r2[k] = v
-    end
-    return r2
+    -- Make a copy
+    return {table.unpack(r)}
 end
 
 --- Saves a setting.
