@@ -207,7 +207,7 @@ function ReaderDictionary:updateSdcvDictNamesOptions()
         end
     end
 
-    local dicts_disabled = G_reader_settings:readSetting("dicts_disabled")
+    local dicts_disabled = G_reader_settings:readSetting("dicts_disabled") or {}
     for _, ifo in pairs(available_ifos) do
         if not dicts_disabled[ifo.file] and not preferred_names_already_in[ifo.name] then
             table.insert(self.enabled_dict_names, ifo.name)
