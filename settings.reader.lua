@@ -60,10 +60,6 @@ return {
     ["dev_no_c_blitter"] = false,
     ["device_id"] = "B7572371217E49D6A73B53F280EDD89E",
     ["disable_kobolight"] = true,
-    ["evernote"] = {
-        ["html_export"] = true,
-        ["txt_export"] = false,
-    },
     ["exporter"] = {
         ["html"] = {
             ["enabled"] = false,
