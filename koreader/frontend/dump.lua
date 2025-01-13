@@ -72,4 +72,4 @@ local function dump(data, max_lv, ordered)
     return table.concat(out)
 end
 
-return dumpex
+return dump
