@@ -79,7 +79,7 @@ end
 
 --- Reduces number of history items to the required limit by removing old items.
 function ReadHistory:_reduce()
-    local history_size = G_reader_settings:readSetting("history_size") or 500
+    local history_size = G_reader_settings:readSetting("history_size") or 100000
     while #self.hist > history_size do
         table.remove(self.hist)
     end
@@ -105,17 +105,22 @@ function ReadHistory:_read(force_read)
     if history_file_modification_time == nil then -- no history_file, proceed legacy only
         return true
     end
-    if force_read or (history_file_modification_time > self.last_read_time) then
-        self.last_read_time = history_file_modification_time
-        local ok, data = pcall(dofile, history_file)
-        if ok and data then
-            self.hist = {}
-            for _, v in ipairs(data) do
-                table.insert(self.hist, buildEntry(v.time, v.file))
-            end
-        end
-        return true
+    if not force_read and (history_file_modification_time <= self.last_read_time) then
+        return false
     end
+    self.last_read_time = history_file_modification_time
+    local ok, data = pcall(dofile, history_file)
+    if ok and data then
+        self.hist = {}
+        for _, v in ipairs(data) do
+            table.insert(self.hist, buildEntry(v.time, v.file))
+        end
+        local function sort(a, b)
+            return a.time > b.time
+        end
+        table.sort(self.hist, sort)
+    end
+    return true
 end
 
 --- Reads history from legacy history folder and remove it iff empty.
