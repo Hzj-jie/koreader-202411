@@ -11,5 +11,5 @@ table.sort(local_file)
 
 local file, _  = io.open("/tmp/settings.reader.new.lua", "wb")
 assert(file)
-local dumpex = require("koreader/frontend/dumpex")
-file:write(table.concat({"-- ./settings.reader.lua\nreturn ", dumpex(local_file, nil, require("SortedIteration")), "\n"}))
+local dump = require("koreader/frontend/dump")
+file:write(table.concat({"-- ./settings.reader.lua\nreturn ", dump(local_file, nil, true), "\n"}))
