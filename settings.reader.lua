@@ -88,10 +88,6 @@ return {
     ["disable_kobolight"] = true,
     ["document_metadata_folder"] = "doc",
     ["duration_format"] = "classic",
-    ["evernote"] = {
-        ["html_export"] = true,
-        ["txt_export"] = false,
-    },
     ["exporter"] = {
         ["html"] = {
             ["enabled"] = false,
