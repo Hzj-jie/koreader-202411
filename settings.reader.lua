@@ -175,12 +175,9 @@ return {
     ["kosync"] = {
         ["auto_sync"] = true,
         ["checksum_method"] = 0,
-        ["custom_server"] = "https://hzj-jie-ubuntu.westus.cloudapp.azure.com:7200",
         ["pages_before_update"] = 5,
         ["sync_backward"] = 1,
         ["sync_forward"] = 2,
-        ["userkey"] = "daa613d5e3c54ac8f088066018276724",
-        ["username"] = "Hzj_jie",
     },
     ["low_pan_rate"] = true,
     ["multiswipes_enabled"] = false,
