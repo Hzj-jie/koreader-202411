@@ -3,8 +3,9 @@
 ./compare-settings.sh $1 || { echo 'compare-settings.sh failed' ; exit 1; }
 
 echo '*** WARNING ***'
-echo 'Ensure the above diff is expected, except for certain fields, others'
-echo 'will all be overridden.'
+echo Ensure the above diff is expected, except for certain fields, others
+echo will all be overridden.
+echo Press any key to continue.
 
 read -n 1 -s
 
@@ -14,8 +15,9 @@ echo '< new > device'
 diff /tmp/settings.reader.new.lua /tmp/settings.reader.lua
 
 echo '*** WARNING AGAIN ***'
-echo 'Ensure the above diff is expected, right file will be overridden.'
-echo 'Shutdown koreader now, it overrides the settings.'
+echo Ensure the above diff is expected, right file will be overridden.
+echo And shutdown koreader now, it overrides the settings during rebooting.
+echo Press any key to continue.
 
 read -n 1 -s
 
