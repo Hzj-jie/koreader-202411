@@ -77,7 +77,14 @@ end
 @param key The setting's key
 ]]
 function LuaSettings:readSetting(key)
-    return self.data[key]
+    local r = self.data[key]
+    if type(r) ~= 'table' then return v end
+    -- Make a shallow copy.
+    local r2 = {}
+    for k,v in pairs(r) do
+        r2[k] = v
+    end
+    return r2
 end
 
 --- Saves a setting.
