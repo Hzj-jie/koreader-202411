@@ -11,5 +11,6 @@ table.sort(local_file)
 
 local file, _  = io.open("/tmp/settings.reader.new.lua", "wb")
 assert(file)
-local dump = require("koreader/frontend/dump")
+package.path = "koreader/?.lua;" .. package.path
+local dump = require("frontend/dump")
 file:write(table.concat({"-- ./settings.reader.lua\nreturn ", dump(local_file, nil, true), "\n"}))
