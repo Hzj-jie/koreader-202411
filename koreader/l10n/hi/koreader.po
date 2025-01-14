@@ -10407,7 +10407,7 @@ msgstr ""
 #: frontend/ui/elements/common_info_menu_table.lua:57
 msgid ""
 "Please report bugs to \n"
-"https://github.com/koreader/koreader/issues\n"
+"https://github.com/Hzj-jie/koreader-202411/issues\n"
 "\n"
 "Version:\n"
 "%1\n"
