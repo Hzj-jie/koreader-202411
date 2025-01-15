@@ -244,6 +244,7 @@ function AutoDim:autodim_task()
     if self.isCurrentlyDimming then return end
     if Powerd:isFrontlightOff() then
         self:_schedule_autodim_task()
+        return
     end
     local now = UIManager:getElapsedTimeSinceBoot()
     local idle_duration = now - self.last_action_time
