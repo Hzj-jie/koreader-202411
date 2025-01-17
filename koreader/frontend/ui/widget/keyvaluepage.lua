@@ -812,10 +812,14 @@ function KeyValuePage.flattenArray(base_array, source_array)
               )
           else
               -- Treat it as a new line.
-              table.insert(
-                  base_array,
-                  "---"
-              )
+              if #base_array == 0 or type(base_array[#base_array]) ~= "table" then
+                  table.insert(
+                      base_array,
+                      "---"
+                  )
+              else
+                  base_array[#base_array].separator = true
+              end
           end
       elseif value["callback"] then
           table.insert(
