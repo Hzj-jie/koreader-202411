@@ -298,7 +298,7 @@ function Weather:weeklyForecast(data)
       end
    )
 
-   view_content = self.composer:flattenArray(view_content, vc_weekly)
+   view_content = KeyValuePage.flattenArray(view_content, vc_weekly)
 
    self.kv = KeyValuePage:new{
       title = T(_("Weekly forecast for %1"), data.location.name),
@@ -329,16 +329,16 @@ function Weather:forecastForDay(data)
 
       if (data.current ~= nil) then
          local vc_current = self.composer:createCurrentForecast(data.current)
-         view_content = self.composer:flattenArray(view_content, vc_current)
+         view_content = KeyValuePage.flattenArray(view_content, vc_current)
       end
-      view_content = self.composer:flattenArray(view_content, vc_forecast)
+      view_content = KeyValuePage.flattenArray(view_content, vc_forecast)
    else
       day = "Today"
       local vc_current = self.composer:createCurrentForecast(data.current)
       local vc_forecast = self.composer:createForecastForDay(data.forecast.forecastday[1])
       local location = data.location.name
-      view_content = self.composer:flattenArray(view_content, vc_current)
-      view_content = self.composer:flattenArray(view_content, vc_forecast)
+      view_content = KeyValuePage.flattenArray(view_content, vc_current)
+      view_content = KeyValuePage.flattenArray(view_content, vc_forecast)
    end
 
    -- Add an hourly forecast button to forecast
@@ -429,7 +429,7 @@ function Weather:futureForecast(data)
    local view_content = {}
 
    local vc_forecast = self.composer:createForecastForDay(data)
-   view_content = self.composer:flattenArray(view_content, vc_forecast)
+   view_content = KeyValuePage.flattenArray(view_content, vc_forecast)
 end
 
 function Weather:onFlushSettings()
