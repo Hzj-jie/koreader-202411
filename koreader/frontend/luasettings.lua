@@ -72,30 +72,19 @@ function LuaSettings:child(key)
     return self:wrap(self:readSetting(key))
 end
 
---[[-- Reads a setting, optionally initializing it to a default.
-
-If default is provided, and the key doesn't exist yet, it is initialized to default first.
-This ensures both that the defaults are actually set if necessary,
-and that the returned reference actually belongs to the LuaSettings object straight away,
-without requiring further interaction (e.g., saveSetting) from the caller.
-
-This is mainly useful if the data type you want to retrieve/store is assigned/returned/passed by reference (e.g., a table),
-and you never actually break that reference by assigning another one to the same variable, (by e.g., assigning it a new object).
-c.f., <https://www.lua.org/manual/5.1/manual.html#2.2>.
+--[[-- Reads a setting or nil
 
 @param key The setting's key
-@param default Initialization data (Optional)
 ]]
-function LuaSettings:readSetting(key, default)
-    -- No initialization data: legacy behavior
-    if not default then
-        return self.data[key]
+function LuaSettings:readSetting(key)
+    local r = self.data[key]
+    if type(r) ~= 'table' then return r end
+    -- Make a shallow copy.
+    local r2 = {}
+    for k,v in pairs(r) do
+        r2[k] = v
     end
-
-    if not self:has(key) then
-        self.data[key] = default
-    end
-    return self.data[key]
+    return r2
 end
 
 --- Saves a setting.
@@ -269,6 +258,8 @@ end
 --- Writes settings to disk.
 function LuaSettings:flush()
     if not self.file then return end
+    -- Do not save anything meaningless.
+    if self.data == nil or next(self.data) == nil then return end
     local directory_updated = self:backup()
     util.writeToFile(dump(self.data, nil, true), self.file, true, true, directory_updated)
     return self

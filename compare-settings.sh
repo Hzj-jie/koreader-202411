@@ -7,4 +7,4 @@ fi
 
 scp root@192.168.1.$1:/mnt/us/koreader/settings.reader.lua /tmp/
 echo '< local  > device'
-diff settings.reader.lua /tmp/settings.reader.lua
+diff settings.reader.lua /tmp/settings.reader.lua || exit 0

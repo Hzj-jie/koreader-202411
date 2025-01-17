@@ -99,7 +99,7 @@ function Screensaver:_calcAverageTimeForPages(pages)
 
     -- Compare average_time_per_page against itself to make sure it's not nan
     if average_time_per_page and average_time_per_page == average_time_per_page and pages then
-        local user_duration_format = G_reader_settings:readSetting("duration_format", "classic")
+        local user_duration_format = G_reader_settings:readSetting("duration_format") or "classic"
         sec = datetime.secondsToClockDuration(user_duration_format, pages * average_time_per_page, true)
     end
     return sec
@@ -357,7 +357,7 @@ end
 
 function Screensaver:setStretchLimit(touchmenu_instance)
     UIManager:show(SpinWidget:new{
-        value = G_reader_settings:readSetting("screensaver_stretch_limit_percentage", 8),
+        value = G_reader_settings:readSetting("screensaver_stretch_limit_percentage") or 8,
         value_min = 0,
         value_max = 25,
         default_value = 8,

@@ -737,7 +737,7 @@ function BookMapWidget:init()
     self.reader_toc_font_size = G_reader_settings:readSetting("toc_items_font_size")
             or Menu.getItemFontSize(G_reader_settings:readSetting("toc_items_per_page") or self.ui.toc.toc_items_per_page_default)
 
-    self.ten_pages_markers = G_reader_settings:readSetting("book_map_ten_pages_markers", 0)
+    self.ten_pages_markers = G_reader_settings:readSetting("book_map_ten_pages_markers") or 0
 
     -- Our container of stacked BookMapRows (and TOC titles in flat map mode)
     self.vgroup = VerticalGroup:new{
@@ -854,14 +854,14 @@ function BookMapWidget:update()
 
     -- Flat book map has each TOC item on a new line, and pages graph underneath.
     -- Non-flat book map shows a grid with TOC items following each others.
-    self.flat_map = self.ui.doc_settings:readSetting("book_map_flat", false)
+    self.flat_map = self.ui.doc_settings:isTrue("book_map_flat")
     if self.ui.handmade:isHandmadeTocEnabled() then
         -- We can switch from a custom TOC (max depth of 1) to the regular TOC
         -- (larger depth possible), so we'd rather not replace with 1 the depth
         -- set and saved for a regular TOC. So, use a dedicated setting for each.
         self.toc_depth = self.ui.doc_settings:readSetting("book_map_toc_depth_handmade_toc") or self.max_toc_depth
     else
-        self.toc_depth = self.ui.doc_settings:readSetting("book_map_toc_depth", self.max_toc_depth)
+        self.toc_depth = self.ui.doc_settings:readSetting("book_map_toc_depth") or self.max_toc_depth
     end
     if self.overview_mode then
         -- Restricted to grid mode, fitting on the screen. Only toc depth can be adjusted.
@@ -869,7 +869,7 @@ function BookMapWidget:update()
         if self.ui.handmade:isHandmadeTocEnabled() then
             self.toc_depth = self.ui.doc_settings:readSetting("book_map_overview_toc_depth_handmade_toc") or self.max_toc_depth
         else
-            self.toc_depth = self.ui.doc_settings:readSetting("book_map_overview_toc_depth", self.max_toc_depth)
+            self.toc_depth = self.ui.doc_settings:readSetting("book_map_overview_toc_depth") or self.max_toc_depth
         end
     end
     if self.flat_map then
@@ -944,7 +944,7 @@ function BookMapWidget:update()
     end
 
     -- Show the whole book without scrollbar initially
-    self.pages_per_row = self.ui.doc_settings:readSetting("book_map_pages_per_row", self.fit_pages_per_row)
+    self.pages_per_row = self.ui.doc_settings:readSetting("book_map_pages_per_row") or self.fit_pages_per_row
     if self.overview_mode then
         self.pages_per_row = self.fit_pages_per_row
     end
