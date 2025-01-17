@@ -208,7 +208,8 @@ function FileManagerMenu:setUpdateItemTable()
                         end,
                         callback = function(touchmenu_instance)
                             local current_value = FileChooser.font_size
-                            local default_value = FileChooser.getItemFontSize(G_reader_settings:readSetting("items_per_page")
+                            local default_value =
+                                FileChooser.getItemFontSize(G_reader_settings:readSetting("items_per_page")
                                 or FileChooser.items_per_page_default)
                             local widget = SpinWidget:new{
                                 title_text =  _("Item font size"),
@@ -943,7 +944,8 @@ function FileManagerMenu:exitOrRestart(callback, force)
     -- Only restart sets a callback, which suits us just fine for this check ;)
     if callback and not force and not Device:isStartupScriptUpToDate() then
         UIManager:show(ConfirmBox:new{
-            text = _("KOReader's startup script has been updated. You'll need to completely exit KOReader to finalize the update."),
+            text = _("KOReader's startup script has been updated. You'll need to completely exit KOReader to " ..
+                     "finalize the update."),
             ok_text = _("Restart anyway"),
             ok_callback = function()
                 self:exitOrRestart(callback, true)
