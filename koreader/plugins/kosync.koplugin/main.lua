@@ -80,7 +80,7 @@ function KOSync:init()
         self:updateProgress(false, false)
     end
 
-    self.settings = G_reader_settings:readSetting("kosync", self.default_settings)
+    self.settings = G_reader_settings:readSetting("kosync") or self.default_settings
     self.device_id = G_reader_settings:readSetting("device_id")
 
     -- Disable auto-sync if beforeWifiAction was reset to "prompt" behind our back...

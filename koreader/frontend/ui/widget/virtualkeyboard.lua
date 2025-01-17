@@ -56,7 +56,7 @@ local VirtualKey = InputContainer:extend{
 local ignore_key_release
 
 function VirtualKey:init()
-    local label_font_size = G_reader_settings:readSetting("keyboard_key_font_size", DEFAULT_LABEL_SIZE)
+    local label_font_size = G_reader_settings:readSetting("keyboard_key_font_size") or DEFAULT_LABEL_SIZE
     self.face = Font:getFace("infont", label_font_size)
     self.bold = G_reader_settings:isTrue("keyboard_key_bold")
     if self.keyboard.symbolmode_keys[self.label] ~= nil then
@@ -82,7 +82,7 @@ function VirtualKey:init()
             self.keyboard:onSwitchingKeyboardLayout()
             local current = G_reader_settings:readSetting("keyboard_layout")
             local default = G_reader_settings:readSetting("keyboard_layout_default")
-            local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts", {})
+            local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts") or {}
             local next_layout = nil
             local layout_index = util.arrayContains(keyboard_layouts, current)
             if layout_index then
@@ -337,7 +337,7 @@ function VirtualKey:genKeyboardLayoutKeyChars()
         "northwest",
         "west",
     }
-    local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts", {})
+    local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts") or {}
     local key_chars = {
         { label = "🌐",
         },
@@ -725,7 +725,7 @@ function VirtualKeyPopup:init()
             ges = "tap",
         }
     }
-    self.tap_interval_override = time.ms(G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms", 0))
+    self.tap_interval_override = time.ms(G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms") or 0)
 
     if Device:hasKeys() then
         self.key_events.Close = { { Device.input.group.Back } }
@@ -861,7 +861,7 @@ function VirtualKeyboard:init()
     self.min_layer = keyboard.min_layer
     self.max_layer = keyboard.max_layer
     self:initLayer(self.keyboard_layer)
-    self.tap_interval_override = time.ms(G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms", 0))
+    self.tap_interval_override = time.ms(G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms") or 0)
     if Device:hasKeys() then
         self.key_events.Close = { { "Back" } }
     end
@@ -912,7 +912,7 @@ end
 function VirtualKeyboard:getKeyboardLayout()
     if G_reader_settings:isFalse("keyboard_remember_layout") and not keyboard_state.force_current_layout then
         local lang = G_reader_settings:readSetting("keyboard_layout_default")
-            or G_reader_settings:readSetting("keyboard_layout", "en")
+            or G_reader_settings:readSetting("keyboard_layout") or "en"
         G_reader_settings:saveSetting("keyboard_layout", lang)
     end
     return G_reader_settings:readSetting("keyboard_layout") or G_reader_settings:readSetting("language")

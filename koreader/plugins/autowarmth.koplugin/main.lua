@@ -72,7 +72,7 @@ function AutoWarmth:init()
         or { 90, 90, 80, 60, 20, 20, 20, 60, 80, 90, 90}
 
     self.fl_off_during_day = G_reader_settings:readSetting("autowarmth_fl_off_during_day")
-    self.fl_off_during_day_offset_s = G_reader_settings:readSetting("autowarmth_fl_off_during_day_offset_s", 0)
+    self.fl_off_during_day_offset_s = G_reader_settings:readSetting("autowarmth_fl_off_during_day_offset_s") or 0
     if self.easy_mode then
         self.fl_off_during_day_offset_s = 0
     end
@@ -615,7 +615,7 @@ function AutoWarmth:getSubMenuItems()
                     self.fl_off_during_day_offset_s = 0 -- don't store that value
                 else
                     self.fl_off_during_day_offset_s =
-                        G_reader_settings:readSetting("autowarmth_fl_off_during_day_offset_s", 0)
+                        G_reader_settings:readSetting("autowarmth_fl_off_during_day_offset_s") or 0
                 end
                 self:scheduleMidnightUpdate()
                 if touchmenu_instance then
@@ -677,7 +677,7 @@ function AutoWarmth:getFlOffDuringDayMenu()
   • on before sunset.]],
                     ok_always_enabled = true,
                     -- read the saved setting, as this gets overwritten by toggling easy_mode
-                    value = G_reader_settings:readSetting("autowarmth_fl_off_during_day_offset_s", 0) * (1/60),
+                    value = (G_reader_settings:readSetting("autowarmth_fl_off_during_day_offset_s") or 0) * (1/60),
                     value_min = -15,
                     value_max = 30,
                     wrap = false,
