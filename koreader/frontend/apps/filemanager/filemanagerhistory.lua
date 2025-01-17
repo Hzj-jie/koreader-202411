@@ -269,9 +269,7 @@ function FileManagerHistory:onShowHist(search_info)
         self.statuses_fetched = nil
         UIManager:close(self.hist_menu)
         self.hist_menu = nil
-        if self.filter ~= "all" then
-            G_reader_settings:saveSetting("history_filter", self.filter)
-        end
+        G_reader_settings:saveSetting("history_filter", self.filter)
     end
     UIManager:show(self.hist_menu, "flashui")
     return true
