@@ -298,7 +298,25 @@ local KeyValuePage = FocusManager:extend{
 
 function KeyValuePage:init()
     self.show_parent = self.show_parent or self
-    self.kv_pairs = self.kv_pairs or {}
+    local kv_pairs = self.kv_pairs
+    self.kv_pairs = {}
+    -- deprecated, use separator=true on a regular k/v table
+    -- (kept in case some user plugins would use this)
+    for _, value in pairs(kv_pairs) do
+        if type(value) == "string" then
+            if string.match(value, "^-+$") then
+                -- Never add a separator before the very first item.
+                if #self.kv_pairs > 0 then
+                    self.kv_pairs[#self.kv_pairs].separator = true
+                end
+            else
+                table.insert(self.kv_pairs, {value, "---"})
+            end
+        else
+            assert(type(value) == "table")
+            table.insert(self.kv_pairs, value)
+        end
+    end
     self.dimen = Geom:new{
         x = 0,
         y = 0,
@@ -654,32 +672,28 @@ function KeyValuePage:_populateItems()
         local entry = self.kv_pairs[kv_pairs_idx]
         if entry == nil then break end
 
-        if type(entry) == "table" then
-            local kv_item = KeyValueItem:new{
-                height = self.item_height,
-                width = self.item_width,
-                width_ratio = width_ratio,
-                font_size = self.items_font_size,
-                key = entry[1],
-                value = entry[2],
-                value_lang = self.values_lang,
-                callback = entry.callback,
-                hold_callback = entry.hold_callback,
-                textviewer_width = self.textviewer_width,
-                textviewer_height = self.textviewer_height,
-                value_overflow_align = self.value_overflow_align,
-                value_align = self.value_align,
-                kv_pairs_idx = kv_pairs_idx,
-                kv_page = self,
-                show_parent = self.show_parent,
-            }
-            table.insert(self.main_content, kv_item)
-            table.insert(self.layout, { kv_item })
-        end
-        if (type(entry) == "table" and entry.separator) or
-           -- deprecated, use separator=true on a regular k/v table
-           -- (kept in case some user plugins would use this)
-           (type(entry) == "string" and string.sub(entry, 1,1) == "-") then
+        assert(type(entry) == "table")
+        local kv_item = KeyValueItem:new{
+            height = self.item_height,
+            width = self.item_width,
+            width_ratio = width_ratio,
+            font_size = self.items_font_size,
+            key = entry[1],
+            value = entry[2],
+            value_lang = self.values_lang,
+            callback = entry.callback,
+            hold_callback = entry.hold_callback,
+            textviewer_width = self.textviewer_width,
+            textviewer_height = self.textviewer_height,
+            value_overflow_align = self.value_overflow_align,
+            value_align = self.value_align,
+            kv_pairs_idx = kv_pairs_idx,
+            kv_page = self,
+            show_parent = self.show_parent,
+        }
+        table.insert(self.main_content, kv_item)
+        table.insert(self.layout, { kv_item })
+        if entry.separator then
             table.insert(self.main_content, LineWidget:new{
                 background = Blitbuffer.COLOR_LIGHT_GRAY,
                 dimen = Geom:new{
