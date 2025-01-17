@@ -793,51 +793,11 @@ function KeyValuePage:onReturn()
     end
 end
 
---
--- KeyValuePage doesn't like to get a table with sub tables.
--- This function flattens an array, moving all nested tables
--- up the food chain, so to speak
---
 function KeyValuePage.flattenArray(base_array, source_array)
-   for key, value in pairs(source_array) do
-      if #value == 0 then
-          -- continue
-      elseif #value == 1 or value[2] == nil then
-          if value[1] ~= nil and value[1] ~= "" then
-              table.insert(
-                  base_array,
-                  {
-                      value[1], "---"
-                  }
-              )
-          else
-              -- Treat it as a new line.
-              if #base_array == 0 or type(base_array[#base_array]) ~= "table" then
-                  table.insert(
-                      base_array,
-                      "---"
-                  )
-              else
-                  base_array[#base_array].separator = true
-              end
-          end
-      elseif value["callback"] then
-          table.insert(
-              base_array,
-              {
-                  value[1], value[2], callback = value["callback"]
-              }
-          )
-      else
-          table.insert(
-              base_array,
-              {
-                 value[1], value[2]
-              }
-          )
-       end
-   end
-   return base_array
+    for _, value in pairs(source_array) do
+        table.insert(base_array, value)
+    end
+    return base_array
 end
 
 return KeyValuePage
