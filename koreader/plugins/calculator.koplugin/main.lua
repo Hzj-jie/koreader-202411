@@ -30,12 +30,11 @@ local Calculator = WidgetContainer:new{
     is_doc_only = false,
     calculator_output_path = G_reader_settings:readSetting("calculator_output_path") or
         util.realpath(DataStorage:getDataDir()) .. "/output.calc",
-    calculator_input_path = G_reader_settings:readSetting("calculator_output_path") or
+    calculator_input_path = G_reader_settings:readSetting("calculator_input_path") or
         util.realpath(DataStorage:getDataDir()) .. "/input.calc",
-    init_file = util.realpath(DataStorage:getDataDir()) .. "/plugins/calculator.koplugin/init.calc",
+    init_file = "plugins/calculator.koplugin/init.calc",
     use_init_file = G_reader_settings:readSetting("calculator_use_init_file") or "yes",
-    load_file = G_reader_settings:readSetting("calculator_input_path") or
-        util.realpath(DataStorage:getDataDir()) .. "/init.calc",
+    load_file = G_reader_settings:readSetting("calculator_init_path") or init_file,
     history = "",
     i_num = 1, -- number of next input
     input = {},
