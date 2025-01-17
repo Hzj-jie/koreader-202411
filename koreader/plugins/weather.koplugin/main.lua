@@ -40,12 +40,7 @@ local Weather = WidgetContainer:new{
     kv = {}
 }
 
-function Weather:onDispatcherRegisterActions()
-   --
-end
-
 function Weather:init()
-    self:onDispatcherRegisterActions()
     self.ui.menu:registerToMainMenu(self)
 end
 
@@ -61,10 +56,26 @@ function Weather:loadSettings()
    self.clock_style = self.settings:readSetting("clock_style") or self.default_clock_style
    -- Pollinate the other objects that require settings
    self.composer = Composer:new{
-      temp_scale = self.temp_scale,
-      clock_style = self.clock_style
+      settings = self
    }
 end
+
+function Weather:clock_12()
+    return self.clock_style == "12"
+end
+
+function Weather:clock_24()
+    return self.clock_style == "24"
+end
+
+function Weather:celsius()
+    return self.temp_scale == "C"
+end
+
+function Weather:fahrenheit()
+    return self.temp_scale == "F"
+end
+
 --
 -- Add Weather to the device's menu
 --
@@ -72,7 +83,7 @@ function Weather:addToMainMenu(menu_items)
     menu_items.weather = {
         sorting_hint = "more_tools",
         text = _("Weather"),
-        sub_item_table_func= function()
+        sub_item_table_func = function()
            return self:getSubMenuItems()
         end,
     }
@@ -84,9 +95,7 @@ end
 --
 function Weather:getSubMenuItems()
    self:loadSettings()
-   self.whenDoneFunc = nil
-   local sub_item_table
-   sub_item_table = {
+   local sub_item_table = {
       {
          text = _("Settings"),
          sub_item_table = {
@@ -167,19 +176,14 @@ function Weather:getSubMenuItems()
                end,
             },
             {
-               -- There is a bug here. After the callback fires, and the user leaves
-               -- the sub_item_table, the parent menu doesn't reflect the updated setting
-               -- Try it... you'll see :(
-               text = T(_("Temperature Scale (%1)"), self.temp_scale),
+               text_func = function()
+                   return T(_("Temperature Scale (%1)"), self.temp_scale)
+               end,
                sub_item_table = {
                   {
                      text = _("Celsius"),
                      checked_func = function()
-                        if(string.find(self.temp_scale,"C")) then
-                           return true
-                        else
-                           return false
-                        end
+                         return self:celsius()
                      end,
                      keep_menu_open = true,
                      callback = function()
@@ -189,11 +193,7 @@ function Weather:getSubMenuItems()
                   {
                      text = _("Fahrenheit"),
                      checked_func = function()
-                        if(string.find(self.temp_scale,"F")) then
-                           return true
-                        else
-                           return false
-                        end
+                         return self:fahrenheit()
                      end,
                      keep_menu_open = true,
                      callback = function(touchmenu_instance)
@@ -203,16 +203,14 @@ function Weather:getSubMenuItems()
                }
             },
             {
-               text = T(_("Clock style (%1)"), self.clock_style),
+               text_func = function()
+                   return T(_("Clock style (%1)"), self.clock_style)
+               end,
                sub_item_table = {
                   {
                      text = _("12 hour clock"),
                      checked_func = function()
-                        if(string.find(self.clock_style,"12")) then
-                           return true
-                        else
-                           return false
-                        end
+                         return self:clock_12()
                      end,
                      keep_menu_open = true,
                      callback = function()
@@ -222,11 +220,7 @@ function Weather:getSubMenuItems()
                   {
                      text = _("24 hour clock"),
                      checked_func = function()
-                        if(string.find(self.clock_style,"24")) then
-                           return true
-                        else
-                           return false
-                        end
+                         return self:clock_24()
                      end,
                      keep_menu_open = true,
                      callback = function(touchmenu_instance)
@@ -237,22 +231,6 @@ function Weather:getSubMenuItems()
             }
          },
       },
---[[      {
-         text = _("Today's forecast"),
-         keep_menu_open = true,
-         callback = function()
-            NetworkMgr:turnOnWifiAndWaitForConnection(function()
-                  -- Init the weather API
-                  local api = WeatherApi:new{
-                     api_key = self.api_key
-                  }
-                  -- Fetch the forecast
-                  local result = api:getForecast(1, self.postal_code)
-                  if result == false then return false end
-                  self:forecastForDay(result)
-            end)
-         end,
-   },]]--
       {
          text = _("View weather forecast"),
          keep_menu_open = true,
@@ -419,17 +397,6 @@ function Weather:createForecastForHour(data)
    }
 
    UIManager:show(self.kv)
-end
-
---
--- Accepts a table of data.forecast.forecastDay
---
-function Weather:futureForecast(data)
-   self.kv = {}
-   local view_content = {}
-
-   local vc_forecast = self.composer:createForecastForDay(data)
-   view_content = KeyValuePage.flattenArray(view_content, vc_forecast)
 end
 
 function Weather:onFlushSettings()

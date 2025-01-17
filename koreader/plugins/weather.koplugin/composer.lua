@@ -2,8 +2,7 @@ local logger = require('logger')
 local _ = require('gettext')
 
 local Composer = {
-   temp_scale = "C",
-   clock_style = "12"
+   settings = {}
 }
 
 function Composer:new(o)
@@ -24,7 +23,7 @@ function Composer:createCurrentForecast(data)
    local condition = data.condition.text
    local feelslike
    
-   if(string.find(self.temp_scale, "C")) then
+   if self.settings:celsius() then
       feelslike = data.feelslike_c .. " °C"
    else
       feelslike = data.feelslike_f .. " °F"
@@ -60,7 +59,7 @@ function Composer:createForecastFromDay(data)
    local sunrise = data.astro.sunrise
    local sunset = data.astro.sunset
    
-   if(string.find(self.temp_scale, "C")) then
+   if self.settings:celsius() then
       avg_temp = data.day.avgtemp_c .. " °C"
       max_temp = data.day.maxtemp_c .. " °C"
       min_temp = data.day.mintemp_c .. " °C"
@@ -122,13 +121,13 @@ function Composer:hourlyView(data, callback)
       local cell
       local time
 
-      if(string.find(self.temp_scale, "C")) then
+      if self.settings:celsius() then
          cell = hourly_forecast[i+1].feelslike_c .. "°C, "
       else
          cell = hourly_forecast[i+1].feelslike_f .. "°F, "
       end
 
-      if(string.find(self.clock_style, "12")) then
+      if self.settings:clock_12() then
          local meridiem
          local hour = i  
          if(hour <= 12) then
@@ -178,7 +177,7 @@ function Composer:forecastForHour(data)
    local condition = data.condition.text
    local uv = data.uv
 
-   if(string.find(self.temp_scale,"C")) then
+   if self.settings:celsius() then
       feelslike = data.feelslike_c .. "°C"
       windchill = data.windchill_c .. "°C"
       heatindex = data.heatindex_c .. "°C"
@@ -250,7 +249,7 @@ function Composer:createWeeklyForecast(data, callback)
       local max_temp = nil
       local min_temp = nil
 
-      if(string.find(self.temp_scale,"C")) then
+      if self.settings:celsius() then
           avg_temp = r.day.avgtemp_c .. "°C"
           max_temp = r.day.maxtemp_c .. "°C"
           min_temp = r.day.mintemp_c .. "°C"
