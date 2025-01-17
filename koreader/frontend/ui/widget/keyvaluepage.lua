@@ -430,12 +430,12 @@ function KeyValuePage:init()
     local padding = Size.padding.large
     self.item_width = self.dimen.w - 2 * padding
 
-    local footer = BottomContainer:new{
-        dimen = self.dimen:copy(),
-        self.page_info,
-    }
-    if self.single_page then
-        footer = nil
+    local footer = nil
+    if not self.single_page then
+        footer = BottomContainer:new{
+            dimen = self.dimen:copy(),
+            self.page_info,
+        }
     end
 
     local page_return = BottomContainer:new{
@@ -675,30 +675,19 @@ function KeyValuePage:_populateItems()
             }
             table.insert(self.main_content, kv_item)
             table.insert(self.layout, { kv_item })
-            if entry.separator then
-                table.insert(self.main_content, LineWidget:new{
-                    background = Blitbuffer.COLOR_LIGHT_GRAY,
-                    dimen = Geom:new{
-                        w = self.item_width,
-                        h = Size.line.thick,
-                    },
-                    style = "solid",
-                })
-            end
-        elseif type(entry) == "string" then
-            -- deprecated, use separator=true on a regular k/v table
-            -- (kept in case some user plugins would use this)
-            local c = string.sub(entry, 1, 1)
-            if c == "-" then
-                table.insert(self.main_content, LineWidget:new{
-                    background = Blitbuffer.COLOR_LIGHT_GRAY,
-                    dimen = Geom:new{
-                        w = self.item_width,
-                        h = Size.line.thick,
-                    },
-                    style = "solid",
-                })
-            end
+        end
+        if (type(entry) == "table" and entry.separator) or
+           -- deprecated, use separator=true on a regular k/v table
+           -- (kept in case some user plugins would use this)
+           (type(entry) == "string" and string.sub(entry, 1,1) == "-") then
+            table.insert(self.main_content, LineWidget:new{
+                background = Blitbuffer.COLOR_LIGHT_GRAY,
+                dimen = Geom:new{
+                    w = self.item_width,
+                    h = Size.line.thick,
+                },
+                style = "solid",
+            })
         end
     end
 
