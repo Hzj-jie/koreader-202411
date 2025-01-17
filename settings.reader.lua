@@ -149,6 +149,7 @@ return {
         ["wifi_status"] = false,
     },
     ["full_refresh_count"] = 0,
+    ["history_filter"] = "all",
     ["home_dir"] = "/mnt/us/documents",
     ["hyph_alg_default"] = "@algorithm",
     ["hyph_force_algorithmic"] = true,
