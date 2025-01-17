@@ -1,4 +1,7 @@
--- Copied from http://lua-users.org/wiki/SortedIteration
+-- Copied from http://lua-users.org/wiki/SortedIteration with local changes
+-- originally in
+-- https://github.com/Hzj-jie/koreader-202411/pull/24/commits/73f599d6245ac59ad3a8a43cd4ac3a7c90ee0660#diff-a39fa30a6e29a0ba309eb22400e11ec6dbef5897573e89d5537a42b7c73f0101
+-- Other minor changes include format improvements and comments.
 
 --[[
 Ordered table iterator, allow to iterate on the natural order of the keys of a
@@ -16,10 +19,9 @@ local function __genOrderedIndex( t )
         if type(v1) == type(v2) then
             -- Assumes said type supports the < comparison operator
             return v1 < v2
-        else
-            -- Handle type mismatches by squashing to string
-            return tostring(v1) < tostring(v2)
         end
+        -- Handle type mismatches by squashing to string
+        return tostring(v1) < tostring(v2)
     end)
     return orderedIndex
 end
@@ -30,7 +32,6 @@ local function orderedNext(t, state)
     -- table being iterated.
 
     local key = nil
-    --print("orderedNext: state = "..tostring(state) )
     if state == nil then
         -- the first time, generate the index
         t.__orderedIndex = __genOrderedIndex( t )
