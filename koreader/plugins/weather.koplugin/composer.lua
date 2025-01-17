@@ -13,13 +13,6 @@ function Composer:new(o)
    return o
 end
 
-function Composer:setTempScale(temp_scale)
-   self.temp_scale = temp_scale
-end
-
-function Composer:setClockStyle(clock_style)
-   self.clock_style = clock_style
-end
 --
 -- Takes data.current
 --
@@ -253,9 +246,19 @@ function Composer:createWeeklyForecast(data, callback)
    for _, r in ipairs(data.forecast.forecastday) do
       local date = r.date
       local condition = r.day.condition.text
-      local avg_temp_c = r.day.avgtemp_c
-      local max_c = r.day.maxtemp_c
-      local min_c = r.day.mintemp_c
+      local avg_temp = nil
+      local max_temp = nil
+      local min_temp = nil
+
+      if(string.find(self.temp_scale,"C")) then
+          avg_temp = r.day.avgtemp_c .. "°C"
+          max_temp = r.day.maxtemp_c .. "°C"
+          min_temp = r.day.mintemp_c .. "°C"
+      else
+          avg_temp = r.day.avgtemp_f .. "°F"
+          max_temp = r.day.maxtemp_f .. "°F"
+          min_temp = r.day.mintemp_f .. "°F"
+      end
 
       -- @todo: Figure out why os returns the wrong date!
       -- local day = os.date("%A", r.date_epoch)
@@ -271,10 +274,10 @@ function Composer:createWeeklyForecast(data, callback)
             date, condition
          },
          {
-            "", avg_temp_c
+            "", avg_temp
          },
          {
-            "", "High: " .. max_c .. ", Low: " .. min_c
+            "", "High: " .. max_temp .. ", Low: " .. min_temp
          },
          {
             "",

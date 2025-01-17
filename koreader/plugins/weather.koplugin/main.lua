@@ -262,8 +262,8 @@ function Weather:getSubMenuItems()
                   local api = WeatherApi:new{
                      api_key = self.api_key
                   }
-                  -- Fetch the forecast
-                  local result = api:getForecast(3, self.postal_code)
+                  -- Fetch the forecast, may return results less than 7 days.
+                  local result = api:getForecast(7, self.postal_code)
                   if result == false then return false end
                   if result.error ~= nil then
                      local Screen = require("device").screen
