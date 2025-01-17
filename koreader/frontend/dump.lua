@@ -67,7 +67,7 @@ You can optionally specify a maximum recursion depth in `max_lv`.
 --]]
 local function dump(data, max_lv, ordered)
     local out = {}
-    local pairs_func = ordered and require("ffi/SortedIteration") or pairs
+    local pairs_func = ordered and require("ffi/util").orderedPairs or pairs
     _serialize(data, out, 0, max_lv, nil, pairs_func)
     return table.concat(out)
 end

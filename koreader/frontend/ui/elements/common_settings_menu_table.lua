@@ -88,7 +88,7 @@ common_settings.time = {
         },
         {
             text_func = function ()
-                local duration_format = G_reader_settings:readSetting("duration_format") or "classic"
+                local duration_format = G_reader_settings:readSetting("duration_format", "classic")
                 local text = C_("Time", "Classic")
                 if duration_format == "modern" then
                     text = C_("Time", "Modern")
@@ -383,7 +383,7 @@ local function genGenericMenuEntry(title, setting, value, default, radiomark)
     return {
         text = title,
         checked_func = function()
-            return (G_reader_settings:readSetting(setting) or default) == value
+            return G_reader_settings:readSetting(setting, default) == value
         end,
         radio = radiomark,
         callback = function()
@@ -393,7 +393,7 @@ local function genGenericMenuEntry(title, setting, value, default, radiomark)
 end
 common_settings.back_to_exit = {
     text_func = function()
-        local back_to_exit = G_reader_settings:readSetting("back_to_exit") or "prompt" -- set "back_to_exit" to "prompt"
+        local back_to_exit = G_reader_settings:readSetting("back_to_exit", "prompt") -- set "back_to_exit" to "prompt"
         return T(_("Back to exit: %1"), back_to_exit_str[back_to_exit][2])
     end,
     sub_item_table = {
@@ -405,7 +405,7 @@ common_settings.back_to_exit = {
 common_settings.back_in_filemanager = {
     text_func = function()
         local menu_info = ""
-        local back_in_filemanager = G_reader_settings:readSetting("back_in_filemanager") or "default" -- set "back_in_filemanager" to "default"
+        local back_in_filemanager = G_reader_settings:readSetting("back_in_filemanager", "default") -- set "back_in_filemanager" to "default"
         if back_in_filemanager == "default" then
             menu_info = _("back to exit")
         elseif back_in_filemanager == "parent_folder" then
@@ -416,11 +416,11 @@ common_settings.back_in_filemanager = {
     sub_item_table = {
         {
             text_func = function()
-                local back_to_exit = G_reader_settings:readSetting("back_to_exit") or "prompt"
+                local back_to_exit = G_reader_settings:readSetting("back_to_exit", "prompt")
                 return T(_("Back to exit (%1)"), back_to_exit_str[back_to_exit][2])
             end,
             checked_func = function()
-                return (G_reader_settings:readSetting("back_in_filemanager") or "default") == "default"
+                return G_reader_settings:readSetting("back_in_filemanager", "default") == "default"
             end,
             callback = function()
                 G_reader_settings:saveSetting("back_in_filemanager", "default")
@@ -433,7 +433,7 @@ common_settings.back_in_reader = {
     -- All these options are managed by ReaderBack
     text_func = function()
         local menu_info = ""
-        local back_in_reader = G_reader_settings:readSetting("back_in_reader") or "previous_location" -- set "back_in_reader" to "previous_location"
+        local back_in_reader = G_reader_settings:readSetting("back_in_reader", "previous_location") -- set "back_in_reader" to "previous_location"
         if back_in_reader == "default" then
             menu_info = _("back to exit")
         elseif back_in_reader == "filebrowser" then
@@ -448,7 +448,7 @@ common_settings.back_in_reader = {
     sub_item_table = {
         {
             text_func = function()
-                local back_to_exit = G_reader_settings:readSetting("back_to_exit") or "prompt"
+                local back_to_exit = G_reader_settings:readSetting("back_to_exit", "prompt")
                 return T(_("Back to exit (%1)"), back_to_exit_str[back_to_exit][2])
             end,
             checked_func = function()
@@ -597,7 +597,7 @@ end
 
 common_settings.document_metadata_location = {
     text_func = function()
-        local value = G_reader_settings:readSetting("document_metadata_folder") or "doc"
+        local value = G_reader_settings:readSetting("document_metadata_folder", "doc")
         return T(_("Book metadata location: %1"), metadata_folder_str[value])
     end,
     help_text = metadata_folder_help_text,
@@ -717,7 +717,7 @@ common_settings.font_ui_fallbacks = dofile("frontend/ui/elements/font_ui_fallbac
 
 common_settings.units = {
     text_func = function()
-        local unit = G_reader_settings:readSetting("dimension_units") or "mm"
+        local unit = G_reader_settings:readSetting("dimension_units", "mm")
         return T(_("Dimension units: %1"), unit)
     end,
     sub_item_table = {

@@ -17,7 +17,7 @@ local _ = require("gettext")
 local input_dialog, check_button_bold, check_button_border, check_button_compact
 
 local function getOrderedActivatedKeyboardLayouts()
-    local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts") or {}
+    local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts", {})
     local activated_keyboards = {}
     for _, lang in ipairs(keyboard_layouts) do
         if VirtualKeyboard.lang_to_keyboard_layout[lang] then
@@ -57,11 +57,11 @@ local function genKeyboardLayoutsSubmenu()
                 return text
             end,
             checked_func = function()
-                local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts") or {}
+                local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts", {})
                 return util.arrayContains(keyboard_layouts, lang)
             end,
             callback = function()
-                local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts") or {}
+                local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts", {})
                 local layout_index = util.arrayContains(keyboard_layouts, lang)
                 if layout_index then
                     table.remove(keyboard_layouts, layout_index)
@@ -171,7 +171,7 @@ local sub_item_table = {
             input_dialog = InputDialog:new{
                 title = _("Keyboard font size"),
                 -- do not use input_type = "number" to see letters on the keyboard
-                input = tostring(G_reader_settings:readSetting("keyboard_key_font_size") or VirtualKeyboard.default_label_size),
+                input = tostring(G_reader_settings:readSetting("keyboard_key_font_size", VirtualKeyboard.default_label_size)),
                 input_hint = "(16 - 30)",
                 buttons = {
                     {

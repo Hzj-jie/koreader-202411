@@ -86,7 +86,7 @@ end
 local default_network_timeout_seconds = 5*60
 local max_network_timeout_seconds = 30*60
 -- If autostandby is enabled, shorten the timeouts
-local auto_standby = G_reader_settings:readSetting("auto_standby_timeout_seconds") or -1
+local auto_standby = G_reader_settings:readSetting("auto_standby_timeout_seconds", -1)
 if auto_standby > 0 then
     default_network_timeout_seconds = default_network_timeout_seconds / 2
     max_network_timeout_seconds = max_network_timeout_seconds / 2

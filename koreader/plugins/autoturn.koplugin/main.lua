@@ -85,8 +85,8 @@ end
 
 function AutoTurn:init()
     UIManager.event_hook:registerWidget("InputEvent", self)
-    self.autoturn_sec = G_reader_settings:readSetting("autoturn_timeout_seconds") or 0
-    self.autoturn_distance = G_reader_settings:readSetting("autoturn_distance") or 1
+    self.autoturn_sec = G_reader_settings:readSetting("autoturn_timeout_seconds", 0)
+    self.autoturn_distance = G_reader_settings:readSetting("autoturn_distance", 1)
     self.enabled = G_reader_settings:isTrue("autoturn_enabled")
     self.ui.menu:registerToMainMenu(self)
     self.task = function()
@@ -133,7 +133,7 @@ function AutoTurn:addToMainMenu(menu_items)
         checked_func = function() return self:_enabled() end,
         callback = function(menu)
             local DateTimeWidget = require("ui/widget/datetimewidget")
-            local autoturn_seconds = G_reader_settings:readSetting("autoturn_timeout_seconds") or 30
+            local autoturn_seconds = G_reader_settings:readSetting("autoturn_timeout_seconds", 30)
             local autoturn_minutes = math.floor(autoturn_seconds * (1/60))
             autoturn_seconds = autoturn_seconds % 60
             local autoturn_spin = DateTimeWidget:new {

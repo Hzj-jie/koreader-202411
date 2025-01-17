@@ -23,9 +23,9 @@ local FileChooser = Menu:extend{
     path = lfs.currentdir(),
     show_path = true,
     parent = nil,
-    show_finished    = G_reader_settings:nilOrTrue("show_finished"), -- books marked as finished
-    show_hidden      = G_reader_settings:isTrue("show_hidden"), -- folders/files starting with "."
-    show_unsupported = G_reader_settings:isTrue("show_unsupported"), -- set to true to ignore file_filter
+    show_finished    = G_reader_settings:readSetting("show_finished", true), -- books marked as finished
+    show_hidden      = G_reader_settings:readSetting("show_hidden", false), -- folders/files starting with "."
+    show_unsupported = G_reader_settings:readSetting("show_unsupported", false), -- set to true to ignore file_filter
     file_filter = nil, -- function defined in the caller, returns true for files to be shown
     -- NOTE: Input is *always* a relative entry name
     exclude_dirs = { -- const
@@ -381,7 +381,7 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
 end
 
 function FileChooser:getCollate()
-    local collate_id = G_reader_settings:readSetting("collate") or "strcoll"
+    local collate_id = G_reader_settings:readSetting("collate", "strcoll")
     local collate = self.collates[collate_id]
     if collate ~= nil then
         return collate, collate_id

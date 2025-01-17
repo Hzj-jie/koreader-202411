@@ -831,7 +831,7 @@ function Kindle:ambientBrightnessLevel()
     local value = lipc_handle:get_int_property("com.lab126.powerd", "alsLux")
     lipc_handle:close()
     if type(value) ~= "number" then return 0 end
-    value = value * G_defaults:readSetting("KINDLE_AMBIENT_BRIGHTNESS_MULTIPLIER") or 1
+    value = value * G_defaults:readSetting("KINDLE_AMBIENT_BRIGHTNESS_MULTIPLIER", 1)
     if value < 10 then return 0 end
     if value < 96 then return 1 end
     if value < 192 then return 2 end

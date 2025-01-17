@@ -99,7 +99,7 @@ local function buildCandidates(list)
 end
 
 local function getOrderedLocationCandidates()
-    local preferred_location = G_reader_settings:readSetting("document_metadata_folder") or "doc"
+    local preferred_location = G_reader_settings:readSetting("document_metadata_folder", "doc")
     if preferred_location == "hash" then
         return { "hash", "doc", "dir" }
     end
@@ -118,7 +118,7 @@ end
 function DocSettings:getSidecarDir(doc_path, force_location)
     if doc_path == nil or doc_path == "" then return "" end
     local path = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
-    local location = force_location or G_reader_settings:readSetting("document_metadata_folder") or "doc"
+    local location = force_location or G_reader_settings:readSetting("document_metadata_folder", "doc")
     if location == "dir" then
         path = DOCSETTINGS_DIR .. path
     elseif location == "hash" then
@@ -176,7 +176,7 @@ end
 
 function DocSettings.isSidecarFileNotInPreferredLocation(doc_path)
     local _, location = DocSettings:findSidecarFile(doc_path)
-    return location and location ~= G_reader_settings:readSetting("document_metadata_folder") or "doc"
+    return location and location ~= G_reader_settings:readSetting("document_metadata_folder", "doc")
 end
 
 function DocSettings:getHistoryPath(doc_path)
@@ -317,7 +317,7 @@ end
 function DocSettings:flush(data, no_custom_metadata)
     data = data or self.data
     local sidecar_dirs
-    local preferred_location = G_reader_settings:readSetting("document_metadata_folder") or "doc"
+    local preferred_location = G_reader_settings:readSetting("document_metadata_folder", "doc")
     if preferred_location == "doc" then
         sidecar_dirs = { self.doc_sidecar_dir,  self.dir_sidecar_dir } -- fallback for read-only book storage
     elseif preferred_location == "dir" then
@@ -487,7 +487,7 @@ function DocSettings:getCustomLocationCandidates(doc_path)
         return { sidecar_dir }
     end
     -- new book, create sidecar dir in accordance with sdr location setting
-    local preferred_location = G_reader_settings:readSetting("document_metadata_folder") or "doc"
+    local preferred_location = G_reader_settings:readSetting("document_metadata_folder", "doc")
     if preferred_location ~= "hash" then
         sidecar_dir = self:getSidecarDir(doc_path, "dir")
         if preferred_location == "doc" then

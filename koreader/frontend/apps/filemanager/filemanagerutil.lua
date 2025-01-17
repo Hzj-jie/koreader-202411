@@ -141,7 +141,7 @@ function filemanagerutil.genStatusButtonsRow(doc_settings_or_file, caller_callba
     local file, summary, status
     if type(doc_settings_or_file) == "table" then
         file = doc_settings_or_file:readSetting("doc_path")
-        summary = doc_settings_or_file:readSetting("summary") or {}
+        summary = doc_settings_or_file:readSetting("summary", {})
         status = summary.status
     else
         file = doc_settings_or_file

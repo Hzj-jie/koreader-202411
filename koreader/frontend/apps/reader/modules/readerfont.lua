@@ -48,7 +48,7 @@ function ReaderFont:setupFaceMenuTable()
     table.insert(self.face_table, {
         text_func = function()
             local nb_family_fonts = 0
-            local g_font_family_fonts = G_reader_settings:readSetting("cre_font_family_fonts") or {}
+            local g_font_family_fonts = G_reader_settings:readSetting("cre_font_family_fonts", {})
             for family, name in pairs(g_font_family_fonts) do
                 if self.font_family_fonts[family] then
                     nb_family_fonts = nb_family_fonts + 1
@@ -429,7 +429,7 @@ function ReaderFont:updateFontFamilyFonts()
     -- So, we don't need to insert self.font_face in the list for unset family fonts,
     -- which would otherwise need us to call updateFontFamilyFonts() every time we
     -- change the main font face.
-    local g_font_family_fonts = G_reader_settings:readSetting("cre_font_family_fonts") or {}
+    local g_font_family_fonts = G_reader_settings:readSetting("cre_font_family_fonts", {})
     local family_fonts = {}
     for i, family in ipairs(FONT_FAMILIES) do
         local family_tag = family[1]
@@ -448,7 +448,7 @@ function ReaderFont:updateFontFamilyFonts()
 end
 
 function ReaderFont:getFontFamiliesTable()
-    local g_font_family_fonts = G_reader_settings:readSetting("cre_font_family_fonts") or {}
+    local g_font_family_fonts = G_reader_settings:readSetting("cre_font_family_fonts", {})
     local families_table = {
         {
             text = _("About font-family fonts"),

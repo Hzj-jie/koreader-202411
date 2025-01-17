@@ -90,7 +90,7 @@ function ReaderView:init()
         bbox = nil,
     }
     self.highlight = {
-        lighten_factor = G_reader_settings:readSetting("highlight_lighten_factor") or 0.2,
+        lighten_factor = G_reader_settings:readSetting("highlight_lighten_factor", 0.2),
         note_mark = G_reader_settings:readSetting("highlight_note_marker"),
         temp_drawer = "invert",
         temp = {},
@@ -1207,7 +1207,7 @@ function ReaderView:getTapZones()
     local forward_zone, backward_zone
     local DTAP_ZONE_FORWARD = G_defaults:readSetting("DTAP_ZONE_FORWARD")
     local DTAP_ZONE_BACKWARD = G_defaults:readSetting("DTAP_ZONE_BACKWARD")
-    local tap_zones_type = G_reader_settings:readSetting("page_turns_tap_zones") or "default"
+    local tap_zones_type = G_reader_settings:readSetting("page_turns_tap_zones", "default")
     if tap_zones_type == "default" then
         forward_zone = {
             ratio_x = DTAP_ZONE_FORWARD.x, ratio_y = DTAP_ZONE_FORWARD.y,
@@ -1218,8 +1218,8 @@ function ReaderView:getTapZones()
             ratio_w = DTAP_ZONE_BACKWARD.w, ratio_h = DTAP_ZONE_BACKWARD.h,
         }
     else -- user defined page turns tap zones
-        local tap_zone_forward_w = G_reader_settings:readSetting("page_turns_tap_zone_forward_size_ratio") or DTAP_ZONE_FORWARD.w
-        local tap_zone_backward_w = G_reader_settings:readSetting("page_turns_tap_zone_backward_size_ratio") or DTAP_ZONE_BACKWARD.w
+        local tap_zone_forward_w = G_reader_settings:readSetting("page_turns_tap_zone_forward_size_ratio", DTAP_ZONE_FORWARD.w)
+        local tap_zone_backward_w = G_reader_settings:readSetting("page_turns_tap_zone_backward_size_ratio", DTAP_ZONE_BACKWARD.w)
         if tap_zones_type == "left_right" then
             forward_zone = {
                 ratio_x = 1 - tap_zone_forward_w, ratio_y = 0,

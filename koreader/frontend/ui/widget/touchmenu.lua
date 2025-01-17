@@ -1325,7 +1325,7 @@ function TouchMenu:onShowMenuSearch()
     search_dialog = InputDialog:new{
         title = _("Search menu entry"),
         description = _("Search for a menu entry containing the following text (case insensitive)."),
-        input = G_reader_settings:readSetting("menu_search_string") or _("Help"),
+        input = G_reader_settings:readSetting("menu_search_string", _("Help")),
         buttons = {
             {
                 {

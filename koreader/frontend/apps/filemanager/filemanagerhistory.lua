@@ -253,7 +253,7 @@ function FileManagerHistory:onShowHist(search_info)
         self.search_string = nil
         self.selected_collections = nil
     end
-    self.filter = G_reader_settings:readSetting("history_filter") or "all"
+    self.filter = G_reader_settings:readSetting("history_filter", "all")
     self.is_frozen = G_reader_settings:isTrue("history_freeze_finished_books")
     if self.filter ~= "all" or self.is_frozen then
         self:fetchStatuses(false)
@@ -269,9 +269,7 @@ function FileManagerHistory:onShowHist(search_info)
         self.statuses_fetched = nil
         UIManager:close(self.hist_menu)
         self.hist_menu = nil
-        if self.filter ~= "all" then
-            G_reader_settings:saveSetting("history_filter", self.filter)
-        end
+        G_reader_settings:saveSetting("history_filter", self.filter)
     end
     UIManager:show(self.hist_menu, "flashui")
     return true

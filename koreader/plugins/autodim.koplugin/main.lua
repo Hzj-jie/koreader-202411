@@ -27,9 +27,9 @@ local AutoDim = WidgetContainer:extend{
 }
 
 function AutoDim:init()
-    self.autodim_starttime_m = G_reader_settings:readSetting("autodim_starttime_minutes") or -1
-    self.autodim_duration_s = G_reader_settings:readSetting("autodim_duration_seconds") or DEFAULT_AUTODIM_DURATION_S
-    self.autodim_fraction = G_reader_settings:readSetting("autodim_fraction") or DEFAULT_AUTODIM_FRACTION
+    self.autodim_starttime_m = G_reader_settings:readSetting("autodim_starttime_minutes", -1)
+    self.autodim_duration_s = G_reader_settings:readSetting("autodim_duration_seconds", DEFAULT_AUTODIM_DURATION_S)
+    self.autodim_fraction = G_reader_settings:readSetting("autodim_fraction", DEFAULT_AUTODIM_FRACTION)
 
     self.last_action_time = UIManager:getElapsedTimeSinceBoot()
 
