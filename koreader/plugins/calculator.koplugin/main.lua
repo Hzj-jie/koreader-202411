@@ -14,21 +14,15 @@ local Util = require("util")
 local VirtualKeyboard = require("ui/widget/virtualkeyboard")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local T = require("ffi/util").template
-local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("ffi/util")
 local _ = require("gettext")
 
-local EXTERNAL_PLUGIN = DataStorage:getDataDir() .. "/plugins/calculator.koplugin/formulaparser"
-if lfs.attributes(EXTERNAL_PLUGIN, "mode") == "directory" then
-    package.path = string.format("%s/?.lua;%s", EXTERNAL_PLUGIN, package.path)
-end
-
 local CalculatorSettingsDialog = require("calculatorsettingsdialog")
 local CalculatorConvertDialog = require("calculatorconvertdialog")
-local Parser = require("formulaparser")
+local Parser = require("formulaparser/formulaparser")
 
-local VERSION_FILE = DataStorage:getDataDir() .. "/plugins/calculator.koplugin/VERSION"
+local VERSION_FILE = "plugins/calculator.koplugin/VERSION"
 local LATEST_VERSION = "https://raw.githubusercontent.com/zwim/calculator.koplugin/master/VERSION"
 
 local Calculator = WidgetContainer:new{
