@@ -484,7 +484,7 @@ ReaderFooter.default_settings = {
 }
 
 function ReaderFooter:init()
-    self.settings = G_reader_settings:readSetting("footer") or self.default_settings
+    self.settings = G_reader_settings:readSetting("footer", self.default_settings)
 
     self.additional_footer_content = {} -- array, where additional header content can be inserted.
 
@@ -610,9 +610,9 @@ function ReaderFooter:init()
 
     self.visibility_change = nil
 
-    self.custom_text = G_reader_settings:readSetting("reader_footer_custom_text") or "KOReader"
+    self.custom_text = G_reader_settings:readSetting("reader_footer_custom_text", "KOReader")
     self.custom_text_repetitions =
-        tonumber(G_reader_settings:readSetting("reader_footer_custom_text_repetitions") or "1")
+        tonumber(G_reader_settings:readSetting("reader_footer_custom_text_repetitions", "1"))
 end
 
 function ReaderFooter:set_custom_text(touchmenu_instance)
@@ -1997,7 +1997,7 @@ function ReaderFooter:getAvgTimePerPage() end
 function ReaderFooter:getDataFromStatistics(title, pages)
     local sec = _("N/A")
     local average_time_per_page = self:getAvgTimePerPage()
-    local user_duration_format = G_reader_settings:readSetting("duration_format") or "classic"
+    local user_duration_format = G_reader_settings:readSetting("duration_format", "classic")
     if average_time_per_page then
         sec = datetime.secondsToClockDuration(user_duration_format, pages * average_time_per_page, true)
     end

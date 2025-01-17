@@ -129,7 +129,7 @@ function ReaderStatistics:init()
     end
     self:resetVolatileStats()
 
-    self.settings = G_reader_settings:readSetting("statistics") or self.default_settings
+    self.settings = G_reader_settings:readSetting("statistics", self.default_settings)
 
     self.ui.menu:registerToMainMenu(self)
     self:onDispatcherRegisterActions()
@@ -1669,7 +1669,7 @@ function ReaderStatistics:getCurrentStat()
     local estimate_days_to_read = math.ceil(time_to_read/(book_read_time/tonumber(total_days)))
     local estimate_end_of_read_date = datetime.secondsToDate(tonumber(now_ts + estimate_days_to_read * 86400), true)
     local estimates_valid = time_to_read > 0 -- above values could be 'nan' and 'nil'
-    local user_duration_format = G_reader_settings:readSetting("duration_format") or "classic"
+    local user_duration_format = G_reader_settings:readSetting("duration_format", "classic")
     local avg_page_time_string = datetime.secondsToClockDuration(user_duration_format, self.avg_time, false)
     local avg_day_time_string = datetime.secondsToClockDuration(user_duration_format, book_read_time/tonumber(total_days), false)
     local time_to_read_string = estimates_valid and datetime.secondsToClockDuration(user_duration_format, time_to_read, false) or _("N/A")
@@ -2820,7 +2820,7 @@ function ReaderStatistics:onReadingResumed()
 end
 
 function ReaderStatistics:onReaderReady(config)
-    self.data = config:readSetting("stats") or { performance_in_pages = {} }
+    self.data = config:readSetting("stats", { performance_in_pages = {} })
     self.doc_md5 = config:readSetting("partial_md5_checksum")
     -- we have correct page count now, do the actual initialization work
     self:initData()

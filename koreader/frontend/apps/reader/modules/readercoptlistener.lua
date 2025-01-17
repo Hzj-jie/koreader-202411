@@ -25,16 +25,16 @@ function ReaderCoptListener:onReadSettings(config)
     -- ReaderView is the holder of the view_mode state
     self.view.view_mode = view_mode_name
 
-    self.title = G_reader_settings:readSetting("cre_header_title") or 1
-    self.author = G_reader_settings:readSetting("cre_header_author") or 1
-    self.clock = G_reader_settings:readSetting("cre_header_clock") or 1
-    self.header_auto_refresh = G_reader_settings:readSetting("cre_header_auto_refresh") or 1
-    self.page_number = G_reader_settings:readSetting("cre_header_page_number") or 1
-    self.page_count = G_reader_settings:readSetting("cre_header_page_count") or 1
-    self.reading_percent = G_reader_settings:readSetting("cre_header_reading_percent") or 0
-    self.battery = G_reader_settings:readSetting("cre_header_battery") or 1
-    self.battery_percent = G_reader_settings:readSetting("cre_header_battery_percent") or 0
-    self.chapter_marks = G_reader_settings:readSetting("cre_header_chapter_marks") or 1
+    self.title = G_reader_settings:readSetting("cre_header_title", 1)
+    self.author = G_reader_settings:readSetting("cre_header_author", 1)
+    self.clock = G_reader_settings:readSetting("cre_header_clock", 1)
+    self.header_auto_refresh = G_reader_settings:readSetting("cre_header_auto_refresh", 1)
+    self.page_number = G_reader_settings:readSetting("cre_header_page_number", 1)
+    self.page_count = G_reader_settings:readSetting("cre_header_page_count", 1)
+    self.reading_percent = G_reader_settings:readSetting("cre_header_reading_percent", 0)
+    self.battery = G_reader_settings:readSetting("cre_header_battery", 1)
+    self.battery_percent = G_reader_settings:readSetting("cre_header_battery_percent", 0)
+    self.chapter_marks = G_reader_settings:readSetting("cre_header_chapter_marks", 1)
 
     self.document._document:setIntProperty("window.status.title", self.title)
     self.document._document:setIntProperty("window.status.author", self.author)
@@ -507,9 +507,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
                                 self.battery_percent = 0
                             end
                             self:setAndSave("cre_header_battery", "window.status.battery", self.battery)
-                            self:setAndSave("cre_header_battery_percent",
-                                            "window.status.battery.percent",
-                                            self.battery_percent)
+                            self:setAndSave("cre_header_battery_percent", "window.status.battery.percent", self.battery_percent)
                         end,
                     },
                 },
@@ -517,14 +515,11 @@ function ReaderCoptListener:getAltStatusBarMenu()
             },
             {
                 text_func = function()
-                    return T(_("Font size: %1"),
-                             G_reader_settings:readSetting("cre_header_status_font_size")
-                             or CRE_HEADER_DEFAULT_SIZE)
+                    return T(_("Font size: %1"), G_reader_settings:readSetting("cre_header_status_font_size", CRE_HEADER_DEFAULT_SIZE))
                 end,
                 callback = function()
                     local SpinWidget = require("ui/widget/spinwidget")
-                    local start_size =
-                        G_reader_settings:readSetting("cre_header_status_font_size") or CRE_HEADER_DEFAULT_SIZE
+                    local start_size = G_reader_settings:readSetting("cre_header_status_font_size", CRE_HEADER_DEFAULT_SIZE)
                     local size_spinner = SpinWidget:new{
                         value = start_size,
                         value_min = 8,

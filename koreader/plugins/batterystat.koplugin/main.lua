@@ -79,7 +79,7 @@ local function shorten(number)
 end
 
 local function duration(number)
-    local duration_fmt = G_reader_settings:readSetting("duration_format") or "classic"
+    local duration_fmt = G_reader_settings:readSetting("duration_format", "classic")
     return type(number) ~= "number" and number or
         datetime.secondsToClockDuration(duration_fmt, number, true, true)
 end

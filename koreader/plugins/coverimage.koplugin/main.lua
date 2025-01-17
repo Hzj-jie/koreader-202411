@@ -74,15 +74,17 @@ local default_fallback_path = DataStorage:getDataDir() .. "/"
 
 function CoverImage:init()
     self.cover_image_path = G_reader_settings:readSetting("cover_image_path") or Device:getDefaultCoverPath()
-    self.cover_image_format = G_reader_settings:readSetting("cover_image_format") or "auto"
-    self.cover_image_quality = G_reader_settings:readSetting("cover_image_quality") or 75
+    self.cover_image_format = G_reader_settings:readSetting("cover_image_format", "auto")
+    self.cover_image_quality = G_reader_settings:readSetting("cover_image_quality", 75)
     self.cover_image_grayscale = G_reader_settings:isTrue("cover_image_grayscale")
-    self.cover_image_stretch_limit = G_reader_settings:readSetting("cover_image_stretch_limit") or 8
-    self.cover_image_background = G_reader_settings:readSetting("cover_image_background") or "black"
-    self.cover_image_fallback_path = G_reader_settings:readSetting("cover_image_fallback_path") or default_fallback_path
-    self.cover_image_cache_path = G_reader_settings:readSetting("cover_image_cache_path") or default_cache_path
-    self.cover_image_cache_maxfiles = G_reader_settings:readSetting("cover_image_cache_maxfiles") or 36
-    self.cover_image_cache_maxsize = G_reader_settings:readSetting("cover_image_cache_maxsize") or 5 -- MB
+    self.cover_image_stretch_limit = G_reader_settings:readSetting("cover_image_stretch_limit", 8)
+    self.cover_image_background = G_reader_settings:readSetting("cover_image_background", "black")
+    self.cover_image_fallback_path = G_reader_settings:readSetting("cover_image_fallback_path",
+        default_fallback_path)
+    self.cover_image_cache_path = G_reader_settings:readSetting("cover_image_cache_path",
+       default_cache_path)
+    self.cover_image_cache_maxfiles = G_reader_settings:readSetting("cover_image_cache_maxfiles", 36)
+    self.cover_image_cache_maxsize = G_reader_settings:readSetting("cover_image_cache_maxsize", 5) -- MB
     self.cover_image_cache_prefix = "cover_"
     self.cover = G_reader_settings:isTrue("cover_image_enabled")
     self.fallback = G_reader_settings:isTrue("cover_image_fallback")

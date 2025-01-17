@@ -568,7 +568,7 @@ function TextViewer:handleTextSelection(text, hold_duration, start_idx, end_idx,
 end
 
 function TextViewer:reinit()
-    local text_settings = G_reader_settings:readSetting("textviewer_text_types") or {}
+    local text_settings = G_reader_settings:readSetting("textviewer_text_types", {})
     text_settings[self.text_type] = { monospace_font = self.monospace_font, font_size = self.text_font_size, justified = self.justified }
     local low, high = self.scroll_text_w.text_widget:getVisibleHeightRatios() -- try to keep position
     local ratio = low == 0 and 0 or (low + high) / 2 -- if we are at the beginning, keep the first line visible

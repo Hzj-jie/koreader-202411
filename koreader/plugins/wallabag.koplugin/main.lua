@@ -1204,7 +1204,7 @@ end
 
 function Wallabag:readSettings()
     local wb_settings = LuaSettings:open(DataStorage:getSettingsDir().."/wallabag.lua")
-    wb_settings:saveSetting("wallabag", wb_settings:readSetting("wallabag") or {})
+    wb_settings:readSetting("wallabag", {})
     return wb_settings
 end
 
