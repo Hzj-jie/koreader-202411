@@ -2,10 +2,8 @@
     Helper functions for formulaparser
 
     Author: Martin Zwicknagl
-    Version: 0.9.0
+    Version: 1.1.0
 ]]
-
-math.e = math.exp(1)
 
 local angle_convert = 1 -- use 1 for RAD, pi/180 for Deg, pi/200 for Gon
 
@@ -15,6 +13,7 @@ local err_mixed_comp = "Mixed comparison!"
 local err_no_val = "Value expected!"
 local err_a_val = "No value allowed!"
 local err_domain = "Domain error!"
+local err_bitwise = "Bitoperations only on integer values!"
 
 local ParserHelp = {}
 
@@ -48,14 +47,19 @@ The following operators are supported with increasing priority:
     "?:" ternary like in C
     "&&" logical and, the lua way
     "||" logical or, the lua way
-    "!&" logical nand, the lua way
+    "##" logical nand, the lua way, -> logical not
+    "~~" logical nand, the lua way
+    "&"  bitwise and
+    "|"  bitwise or
+    "#"  bitwise nand -> bitwise not
+    "~"  bitwise nand
     "<="
     "=="
     ">="
     "!="
     ">"
     "<"
-    "+"  sing, add
+    "+"  sign, add
     "-"  sign, subtract
     "*"  multiply
     "/"  divide
@@ -71,11 +75,16 @@ the angular functions can operate on degree, radiant and gon.
     "acos("
     "asin("
     "atan("
+    "avg("      average of multiple parameters
     "bug("      show hints for a bug
+    "c2k("      Celsius to Kelvin
     "cos("
     "exp("
+    "f2k("      Fahrenheit to Kelvin
     "floor("    round down
     "getAngleMode(" Info: degree, radiant, gon; not for calculations
+    "k2c("      Kelvin to Celsius
+    "k2f("      Kelvin to Fahrenheit
     "kill("     delete a variable
     "ld("       logarithmus dualis
     "ln("       logarithmus naturalis
@@ -95,7 +104,7 @@ the angular functions can operate on degree, radiant and gon.
 Examples:
     3+4*5    -> 23
     ld(1024) -> 10
-    3>4      -> true
+    3<4      -> true
     4!=4     -> false
     x=3>4?1:-1 -> -1, set x=-1
     x=2,y=4  -> 4, set x=2 and y=4
@@ -104,9 +113,30 @@ Examples:
 
 ParserHelp.bug_text = [[You have triggered a BUG!
 Please report an issue on
-https://github.com/zwim/formula-parser
+https://github.com/zwim/formulaparser
 Please note the offending formula and the output of 'showvars()'.
 ]]
+
+---------------------- additions to math ------------
+math.e = math.exp(1)
+function math.finite(value)
+	if not value then
+		return nil
+	elseif type(value) == "string" then
+		value = tonumber(value)
+		if value == nil then return nil end
+	elseif type(value) ~= "number" then
+		return nil
+	else
+		local value_str = tostring(value)
+		if value_str:find("inf") or value_str:find("nan") then
+			return nil
+		end
+	end
+    return true
+end
+-----------------------------------------------------
+
 
 function ParserHelp.abs(l)
 	if l == nil then
@@ -117,7 +147,10 @@ function ParserHelp.abs(l)
 	return math.abs(l)
 end
 
-function ParserHelp.identity(l) return l end
+function ParserHelp.identity(...)
+	local retval = {...}
+	return retval[#retval]
+end
 
 function ParserHelp.acos(l)
 	if l == nil then
@@ -150,7 +183,7 @@ function ParserHelp.cos(l)
 	elseif type(l) == "boolean" then
 		return nil, err_bool_arith
 	end
-	return math.cos(l * angle_convert)
+	return ParserHelp.sin(l + math.pi/2/angle_convert)
 end
 function ParserHelp.sin(l)
 	if l == nil then
@@ -158,7 +191,29 @@ function ParserHelp.sin(l)
 	elseif type(l) == "boolean" then
 		return nil, err_bool_arith
 	end
-	return math.sin(l * angle_convert)
+	--bring to unit circle
+	local sign
+	local angle
+	if l > 0 then
+		sign = 1
+		angle = l * angle_convert
+	else
+		sign = -1
+		angle = -l * angle_convert
+	end
+	angle = angle % (2*math.pi) --less error
+	if angle >= math.pi then -- bring to 1st or 2nd quadrant
+		sign = -sign
+		angle = angle - math.pi
+	end
+	if angle >= math.pi/2 then -- bring to 1st quadrand
+		angle = math.pi - angle
+	end
+	if angle > math.pi/4 then
+		return sign * math.cos(angle - math.pi/2)
+	else
+		return sign * math.sin(angle)
+	end
 end
 function ParserHelp.tan(l)
 	if l == nil then
@@ -166,7 +221,12 @@ function ParserHelp.tan(l)
 	elseif type(l) == "boolean" then
 		return nil, err_bool_arith
 	end
-	return math.tan(l * angle_convert)
+
+	if (l * angle_convert) % math.pi == math.pi/2 then
+		return 0/0 -- NAN
+	end
+
+	return ParserHelp.sin(l) / ParserHelp.cos(l)
 end
 
 function ParserHelp.factorial(l, r)
@@ -219,7 +279,7 @@ function ParserHelp.log(l)
 	elseif l <= 0 then
 		return nil, err_domain
 	end
-	return math.log10(l) / math.log(math.e)
+	return math.log10(l)
 end
 
 function ParserHelp.add(l, r)
@@ -354,9 +414,31 @@ function ParserHelp.getAngleMode()
 	end
 end
 
-function ParserHelp.seq(l, r)
-	if l == nil or r == nil then return nil, err_no_val end
-	return r
+function ParserHelp.celsius2kelvin(val)
+	return val + 273.15
+end
+function ParserHelp.kelvin2celsius(val)
+	return val - 273.15
+end
+function ParserHelp.fahrenheit2kelvin(val)
+	return (val-32) * 5/9 + 273.15
+end
+function ParserHelp.kelvin2fahrenheit(val)
+	return (val-273.15) * 9/5 + 32
+end
+
+function ParserHelp.seq(...)
+--	if l == nil or r == nil then return nil, err_no_val end --todo
+	return {...}
+end
+
+-- average
+function ParserHelp.avg(...)
+	local retval = 0
+	for _,v in pairs{...} do
+		retval = retval + v
+	end
+	return retval/#{...}
 end
 
 function ParserHelp.ternary(l, m, r)
@@ -368,6 +450,30 @@ function ParserHelp.ternary(l, m, r)
 	end
 end
 
+function ParserHelp.bitOr(l, r)
+	if l == nil or r == nil then return nil, err_no_val end
+	if math.floor(l) ~= l or math.floor(r) ~= r then return nil, err_bitwise end
+	return bit.bor(l, r)
+end
+function ParserHelp.bitAnd(l, r)
+	if l == nil or r == nil then return nil, err_no_val end
+	if math.floor(l) ~= l or math.floor(r) ~= r then return nil, err_bitwise end
+	return bit.band(l, r)
+end
+function ParserHelp.bitNand(l, r)
+	if l == nil and r == nil then return nil, err_no_val end
+	if l == nil and math.floor(r) == r then
+		return bit.bnot(r)
+	end
+	if math.floor(l) ~= l or math.floor(r) ~= r then return nil, err_bitwise end
+	return bit.bnot(bit.band(l, r))
+end
+function ParserHelp.bitXor(l, r)
+	if l == nil or r == nil then return nil, err_no_val end
+	if math.floor(l) ~= l or math.floor(r) ~= r then return nil, err_bitwise end
+	return bit.bxor(l, r)
+end
+
 function ParserHelp.logOr(l, r)
 	if l == nil or r == nil then return nil, err_no_val end
 	return l or r
@@ -377,8 +483,13 @@ function ParserHelp.logAnd(l, r)
 	return l and r
 end
 function ParserHelp.logNand(l, r)
-	if l == nil or r == nil then return nil, err_no_val end
+	if l == nil and r == nil then return nil, err_no_val end
+	if l == nil then  return not r end
 	return not (l and r)
+end
+function ParserHelp.logXor(l, r)
+	if l == nil or r == nil then return nil, err_no_val end
+	return l ~= r
 end
 
 function ParserHelp.lt(l, r)

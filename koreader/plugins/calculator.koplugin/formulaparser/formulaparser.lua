@@ -1,7 +1,7 @@
 --[[ formulaparser
 
 Author: Martin Zwicknagl
-Version: 0.9.0
+Version: 1.1.0
 Original version from C# (2006; Martin Zwicknagl)
 Converted and optimized for LUA 2021
 
@@ -18,6 +18,30 @@ local Parser = {}
 local ParserHelp = require("parserhelp")
 
 math.randomseed(os.time())
+
+-- thanks and see: http://notebook.kulchenko.com/algorithms/alphanumeric-natural-sorting-for-humans-in-lua
+local function alphanumsort(o)
+   local function conv(s)
+      local res, dot = "", ""
+      for n, m, c in tostring(s):gmatch"(0*(%d*))(.?)" do
+         if n == "" then
+            dot, c = "", dot..c
+         else
+            res = res..(dot == "" and ("%03d%s"):format(#m, m)
+				or "."..n)
+            dot, c = c:match"(%.?)(.*)"
+         end
+         res = res..c:gsub(".", "\0%0")
+      end
+      return res
+   end
+   table.sort(o,
+      function (a, b)
+         local ca, cb = conv(a), conv(b)
+         return ca < cb or ca == cb and a < b
+      end)
+   return o
+end
 
 function Parser.bug()
 	return ParserHelp.bug_text
@@ -41,16 +65,24 @@ function Parser.getVar(var)
 end
 
 function Parser:showvars()
-	local ret = ""
+	local ret = {}
+	local var_str
 	for name, content in pairs(Parser.vars) do
-		ret = ret .. name
 		if content.val then
-			ret = ret .. "=" .. content.val .. "\n"
+			var_str = name .. "=" .. content.val
 		else
-			ret = ret .. ":=" .. Parser:_eval(content) .. "\n"
+			var_str = name .. ":=" .. Parser:eval(content)
 		end
+		if content.comment then
+			var_str = var_str .. " " ..content.comment .. "\n"
+		else
+			var_str = var_str .. "\n"
+		end
+		table.insert(ret, var_str)
 	end
-	return ret, nil
+--	table.sort(ret, function(a,b) return a:lower() < b:lower() end)
+	alphanumsort(ret)
+	return table.concat(ret), nil
 end
 
 function Parser.kill(var)
@@ -64,18 +96,19 @@ function Parser.kill(var)
 	return false
 end
 
-function Parser.storeTree(l, r)
+function Parser.storeTree(l, r, comment)
 	if l == nil or r == nil then return nil, "Nothing to store" end
+	r.comment = comment
 	Parser.setVar(l, r)
 	return Parser:_eval(r)
 end
 
-function Parser.storeVal(l, r)
+function Parser.storeVal(l, r, comment)
 	if l == nil or type(l) ~= "string" then return nil, "No variable" end
 	local rval, err
 	rval, err = Parser:_eval(r)
 	if not rval or err then return nil, err or "Value expected" end
-	local ret = {val = rval}
+	local ret = {val = rval, comment = comment}
 	Parser.setVar(l, ret)
 	return rval
 end
@@ -132,18 +165,37 @@ function Parser.divVal(l, r)
 	return val
 end
 
+function Parser.modVal(l, r)
+	if l == nil or type(l) ~= "string" then return nil, "No variable" end
+	local val, rval, err
+	val, err = Parser:_eval(Parser.getVar(l))
+	if not val or err then return nil, err or "Value expected" end
+	rval, err = Parser:_eval(r)
+	if not rval or err then return nil, err or "Value expected" end
+	val = val % rval
+	local ret = {val = val}
+	Parser.setVar(l, ret)
+	return val
+end
+
 Parser.functions = { -- must be sorted alphabetically
 	{"(", ParserHelp.identity},
 	{"abs(", ParserHelp.abs},
 	{"acos(", ParserHelp.acos},
 	{"asin(", ParserHelp.asin},
 	{"atan(", ParserHelp.atan},
-	{"bug(", ParserHelp.bug}, {"cos(", ParserHelp.cos},
+	{"avg(", ParserHelp.avg},
+	{"bug(", ParserHelp.bug},
+	{"c2k(", ParserHelp.celsius2kelvin},
+	{"cos(", ParserHelp.cos},
 	{"eval(", ParserHelp.eval},
 	{"exp(", ParserHelp.exp},
+	{"f2k(", ParserHelp.fahrenheit2kelvin},
 	{"floor(", ParserHelp.floor},
 	{"getAngleMode(", ParserHelp.getAngleMode},
 	{"help(", Parser.help},
+	{"k2c(", ParserHelp.kelvin2celsius},
+	{"k2f(", ParserHelp.kelvin2fahrenheit},
 	{"kill(", Parser.kill},
 	{"ld(", ParserHelp.log2},
 	{"ln(", ParserHelp.ln},
@@ -168,11 +220,17 @@ Parser.operators = { -- must be sorted by priority, least priority first
 	{"-=", Parser.decVal, 1, 1},
 	{"*=", Parser.mulVal, 1, 1},
 	{"/=", Parser.divVal, 1, 1},
+	{"%=", Parser.modVal, 1, 1},
 	{"=", Parser.storeVal, 1, 1},
 	{"?:", ParserHelp.ternary, 2, -1},
 	{"||", ParserHelp.logOr, 3, 0},
 	{"&&", ParserHelp.logAnd, 4, 0},
-	{"!&", ParserHelp.logNand, 4, 0},
+	{"##", ParserHelp.logNand, 4, 0},
+	{"~~", ParserHelp.logXor, 4, 0},
+	{"|", ParserHelp.bitOr, 3, 0},
+	{"&", ParserHelp.bitAnd, 4, 0},
+	{"#", ParserHelp.bitNand, 4, 0},
+	{"~", ParserHelp.bitXor, 4, 0},
 	{"==", ParserHelp.eq, 8, 0},
 	{"!=", ParserHelp.ne, 8, 0},
 	{"<=", ParserHelp.le, 9, 0},
@@ -196,19 +254,30 @@ local Node = {
 	op = nil,
 	val = nil,
 	name = nil,
-	assoz = nil
+	assoz = nil,
+	comment = nil,
 }
 ]]
 
 Parser.vars = {ans = {val = 42}} -- predefine one variable
 
 function Parser:parse(str)
+	local pos = str:find("%/%/.*$") or str:find("%/%*.*%*%/")
+	local comment
+	if pos then
+		comment = str:sub(pos)
+	end
 	str = str:gsub("%/%*.*%*%/", "") -- remove comments
+	str = str:gsub("%/%/.*$", "") -- remove comments
 	str = str:gsub("%s+", "") -- remove whitespaces
 	str = str:gsub("‒", "-") -- replace emdash with minus
-	str = str:gsub("π", "pi") -- replace emdash with minus
-	str = str:gsub("√", "sqrt") -- replace emdash with minus
-	return self:_parse(str)
+	str = str:gsub("π", "pi") -- replace pi
+	str = str:gsub("√", "sqrt") -- replace sqrt
+	local ret = self:_parse(str)
+	if ret then
+		ret.comment = comment
+	end
+	return ret
 end
 
 function Parser:_parse(str)
@@ -216,7 +285,7 @@ function Parser:_parse(str)
 		return {}
 	end
 
-	-- do this first, heuristically, we have always numbers
+	-- do this first, heuristically, we have many numbers
 	local value = tonumber(str)
 	if value then
 		return {val = value}
@@ -454,7 +523,11 @@ function Parser:eval(node, err)
 	if err then return nil, err end
 	local ret
 	ret, err = self:_eval(node, err)
-	return not err and ret, err
+	if type(ret) ~= "table" then
+		return not err and ret, err
+	else
+		return not err and ret[#ret], err
+	end
 end
 
 function Parser:_eval(node, err)
@@ -465,7 +538,7 @@ function Parser:_eval(node, err)
 	if node.func then
 		if node.assoz == 1 or node.func == Parser.kill then -- if right-left assoziative
 			if node.left then
-				return node.func(node.left.name, node.right)
+				return node.func(node.left.name, node.right, node.comment)
 			else
 				return nil, "wrong variable"
 			end
@@ -485,7 +558,18 @@ function Parser:_eval(node, err)
 				end
 				err = left_err or right_err or err
 				if err then return nil, err end
-				local ret, ret_err = node.func(left_eval, right_eval)
+				local ret, ret_err
+				if type(left_eval) == "table" and type(right_eval) == "table" then
+					ret, ret_err = node.func(unpack(left_eval), unpack(right_eval))
+				elseif type(left_eval) == "table" and type(right_eval) ~= "table" then
+					table.insert(left_eval, right_eval)
+					ret, ret_err = node.func(unpack(left_eval))
+				elseif type(left_eval) ~= "table" and type(right_eval) == "table" then
+					ret, ret_err = node.func(left_eval, unpack(right_eval))
+				else
+					ret, ret_err = node.func(left_eval, right_eval)
+				end
+
 				return ret, ret_err or err
 			end
 		end
@@ -493,7 +577,8 @@ function Parser:_eval(node, err)
 
 	if node.name and not node.touch then -- variablename
 		node.touch = true
-		local ret, err = self:_eval(self.getVar(node.name)) -- xxx
+		local ret
+		ret, err = self:_eval(self.getVar(node.name))
 		node.touch = nil
 		return ret, err
 	elseif node.touch then
@@ -501,7 +586,7 @@ function Parser:_eval(node, err)
 		return nil, "Recursive definition detected"
 	end
 
-	return nil, err -- todo check if error nec
+	return nil, err -- todo check if error recognized
 end
 
 function Parser:greek2text(str)
