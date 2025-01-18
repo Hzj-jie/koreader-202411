@@ -918,7 +918,7 @@ function FileManagerMenu:getStartWithMenuTable()
         table.insert(sub_item_table, {
             text = v[1],
             checked_func = function()
-                return v[2] == G_reader_settings:readSetting("start_with") or "filemanager"
+                return v[2] == (G_reader_settings:readSetting("start_with") or "filemanager")
             end,
             callback = function()
                 G_reader_settings:saveSetting("start_with", v[2])
