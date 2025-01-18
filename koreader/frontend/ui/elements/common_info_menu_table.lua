@@ -13,11 +13,6 @@ local T = require("ffi/util").template
 
 local common_info = {}
 
--- tools tab
-common_info.more_tools = {
-    text = _("More tools"),
-}
-
 -- main tab
 if Device:hasOTAUpdates() then
     local OTAManager = require("ui/otamanager")

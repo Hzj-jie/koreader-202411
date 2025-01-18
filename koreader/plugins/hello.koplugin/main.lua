@@ -33,7 +33,7 @@ function Hello:addToMainMenu(menu_items)
     menu_items.hello_world = {
         text = _("Hello World"),
         -- in which menu this should be appended
-        sorting_hint = "more_tools",
+        sorting_hint = "tools",
         -- a callback when tapping
         callback = function()
             UIManager:show(InfoMessage:new{

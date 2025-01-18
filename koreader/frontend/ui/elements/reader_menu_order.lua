@@ -71,6 +71,7 @@ local order = {
         -- those that don't exist will simply be skipped during menu gen
         "frontlight", -- if Device:hasFrontlight()
         "night_mode",
+        "auto_frontlight",
         "----------------------------",
         "network",
         "screen",
@@ -98,12 +99,14 @@ local order = {
         "font_ui_fallbacks",
         "----------------------------",
         "time",
+        "synchronize_time",
         "units",
         "device_status_alarm",
         "charging_led", -- if Device:canToggleChargingLED()
         "autostandby",
         "autosuspend",
         "autoshutdown",
+        "battery_statistics",
         "ignore_sleepcover",
         "ignore_open_sleepcover",
         "cover_events",
@@ -143,6 +146,7 @@ local order = {
         "screensaver",
         "coverimage",
         "autodim",
+        "keep_alive",
         "----------------------------",
         "screen_rotation",
         "----------------------------",
@@ -183,19 +187,14 @@ local order = {
         "profiles",
         "qrclipboard",
         "----------------------------",
-        "more_tools",
-    },
-    more_tools = {
-        "auto_frontlight",
-        "battery_statistics",
         "book_shortcuts",
-        "synchronize_time",
-        "keep_alive",
         "doc_setting_tweak",
         "terminal",
         "----------------------------",
         "plugin_management",
         "patch_management",
+        "----------------------------",
+        -- For more tools with sorting_hint.
     },
     search = {
         "search_settings",

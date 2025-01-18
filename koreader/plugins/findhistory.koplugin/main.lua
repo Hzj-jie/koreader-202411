@@ -12,7 +12,7 @@ local _ = require("gettext")
 
 local menuItem = {
     text = _("Retrieve reading records"),
-    sorting_hint = "more_tools",
+    sorting_hint = "search",
 }
 
 local history_file = joinPath(DataStorage:getDataDir(), "history.lua")

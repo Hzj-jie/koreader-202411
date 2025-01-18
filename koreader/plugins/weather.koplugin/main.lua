@@ -81,7 +81,7 @@ end
 --
 function Weather:addToMainMenu(menu_items)
     menu_items.weather = {
-        sorting_hint = "more_tools",
+        sorting_hint = "tools",
         text = _("Weather"),
         sub_item_table_func = function()
            return self:getSubMenuItems()

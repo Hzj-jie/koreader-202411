@@ -108,7 +108,7 @@ end
 function Calculator:addToMainMenu(menu_items)
     menu_items.calculator = {
         text = _("Calculator"),
-        sorting_hint = "more_tools",
+        sorting_hint = "tools",
         keep_menu_open = true,
         callback = function()
             self:onCalculatorStart()
