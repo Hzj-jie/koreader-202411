@@ -1224,7 +1224,7 @@ function BookMapWidget:onShowBookMapMenu()
             end,
             align = "left",
             callback = function()
-                G_reader_settings:flipTrue("book_map_alt_theme")
+                G_reader_settings:flipNilOrFalse("book_map_alt_theme")
                 self.editable_stuff_edited = true -- have this change reflected on any lower bookmap & pagebrowser
                 self:update()
             end,

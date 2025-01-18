@@ -151,26 +151,6 @@ function LuaSettings:flipNilOrFalse(key)
     return self
 end
 
---- Flips a setting between `true` and `nil`.
-function LuaSettings:flipTrue(key)
-    if self:isTrue(key) then
-        self:delSetting(key)
-    else
-        self:saveSetting(key, true)
-    end
-    return self
-end
-
---- Flips a setting between `false` and `nil`.
-function LuaSettings:flipFalse(key)
-    if self:isFalse(key) then
-        self:delSetting(key)
-    else
-        self:saveSetting(key, false)
-    end
-    return self
-end
-
 -- Unconditionally makes a boolean setting `true`.
 function LuaSettings:makeTrue(key)
     self:saveSetting(key, true)

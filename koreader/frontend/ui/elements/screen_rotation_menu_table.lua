@@ -113,7 +113,7 @@ When unchecked, the default rotation of the file browser and the default/saved r
                         return G_reader_settings:isTrue("imageviewer_rotate_auto_for_best_fit")
                     end,
                     callback = function()
-                        G_reader_settings:flipTrue("imageviewer_rotate_auto_for_best_fit")
+                        G_reader_settings:flipNilOrFalse("imageviewer_rotate_auto_for_best_fit")
                     end,
                 }
             }

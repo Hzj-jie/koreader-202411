@@ -260,7 +260,7 @@ This is useful:
                     return G_reader_settings:isTrue("translator_from_doc_lang")
                 end,
                 callback = function()
-                    G_reader_settings:flipTrue("translator_from_doc_lang")
+                    G_reader_settings:flipNilOrFalse("translator_from_doc_lang")
                 end,
             },
             {

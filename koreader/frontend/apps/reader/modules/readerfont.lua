@@ -690,7 +690,7 @@ function ReaderFont:getFontSettingsTable()
             return G_reader_settings:isTrue("font_menu_sort_by_recently_selected")
         end,
         callback = function()
-            G_reader_settings:flipTrue("font_menu_sort_by_recently_selected")
+            G_reader_settings:flipNilOrFalse("font_menu_sort_by_recently_selected")
             self.face_table.needs_refresh = true
         end,
         hold_callback = function()

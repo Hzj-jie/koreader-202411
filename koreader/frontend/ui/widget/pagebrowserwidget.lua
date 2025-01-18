@@ -888,7 +888,7 @@ function PageBrowserWidget:showMenu()
             end,
             align = "left",
             callback = function()
-                G_reader_settings:flipTrue("page_browser_preload_thumbnails")
+                G_reader_settings:flipNilOrFalse("page_browser_preload_thumbnails")
                 if G_reader_settings:isTrue("page_browser_preload_thumbnails") then
                     self:preloadNextPrevScreenThumbnails()
                 end
