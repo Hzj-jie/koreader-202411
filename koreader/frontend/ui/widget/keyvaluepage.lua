@@ -693,7 +693,9 @@ function KeyValuePage:_populateItems()
         }
         table.insert(self.main_content, kv_item)
         table.insert(self.layout, { kv_item })
-        if entry.separator then
+        if entry.separator and
+           -- Never add a separator at the end of the page.
+           idx < self.items_per_page and self.kv_pairs[kv_pairs_idx + 1] ~= nil then
             table.insert(self.main_content, LineWidget:new{
                 background = Blitbuffer.COLOR_LIGHT_GRAY,
                 dimen = Geom:new{

@@ -151,11 +151,6 @@ function Composer:hourlyView(data, callback)
             end
          }
       )
-      
-      table.insert(
-         view_content,
-         "---"
-      )
    end
    
    return view_content
