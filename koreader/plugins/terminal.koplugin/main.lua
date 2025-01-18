@@ -531,7 +531,6 @@ end
 function Terminal:addToMainMenu(menu_items)
     menu_items.terminal = {
         text = _("Terminal emulator"),
---        sorting_hint = "more_tools",
         keep_menu_open = true,
         sub_item_table = {
             {

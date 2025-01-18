@@ -326,9 +326,7 @@ function ReaderMenu:setUpdateItemTable()
         end
     }
 
-    -- NOTE: This is cached via require for ui/plugin/insert_menu's sake...
     local order = require("ui/elements/reader_menu_order")
-
     local MenuSorter = require("ui/menusorter")
     self.tab_item_table = MenuSorter:mergeAndSort("reader", self.menu_items, order)
 end

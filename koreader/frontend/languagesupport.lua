@@ -282,7 +282,6 @@ function LanguageSupport:addToMainMenu(menu_items)
     if #sub_table ~= 0 then
         menu_items.language_support = {
             text = _("Language support plugins"),
-            sorting_hint = "document",
             help_text = _([[
 This menu lets you manage KOReader's language support plugins and their associated settings.
 

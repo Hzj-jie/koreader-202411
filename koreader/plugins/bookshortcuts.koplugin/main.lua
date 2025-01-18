@@ -75,7 +75,6 @@ end
 function BookShortcuts:addToMainMenu(menu_items)
     menu_items.book_shortcuts = {
         text = _("Book shortcuts"),
-        sorting_hint = "more_tools",
         sub_item_table_func = function()
             return self:getSubMenuItems()
         end,

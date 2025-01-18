@@ -11,7 +11,8 @@ local lfs = require("libs/libkoreader-lfs")
 local _ = require("gettext")
 
 local menuItem = {
-    text = _("Retrieve reading records")
+    text = _("Retrieve reading records"),
+    sorting_hint = "more_tools",
 }
 
 local history_file = joinPath(DataStorage:getDataDir(), "history.lua")
@@ -111,7 +112,5 @@ end
 function FindHistory:addToMainMenu(menu_items)
     menu_items.findhistory = menuItem
 end
-
-require("insert_menu")
 
 return FindHistory

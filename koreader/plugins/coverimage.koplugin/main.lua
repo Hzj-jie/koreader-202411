@@ -6,7 +6,7 @@ Plugin for saving a cover image to a file and scaling it to fit the screen.
 
 local Device = require("device")
 
-if not (Device.isAndroid() or Device.isEmulator() or Device.isRemarkable() or Device.isPocketBook()) then
+if not (Device.isAndroid() or Device.isEmulator() or Device.isRemarkable() or Device.isPocketBook() or Device.isKindle()) then
     return { disabled = true }
 end
 
@@ -694,7 +694,6 @@ end
 -- CoverImage main menu
 function CoverImage:addToMainMenu(menu_items)
     menu_items.coverimage = {
-        sorting_hint = "screen",
         text = _("Cover image"),
         checked_func = function()
             return self:coverEnabled() or self:fallbackEnabled()

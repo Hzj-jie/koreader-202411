@@ -125,7 +125,6 @@ end
 
 function AutoTurn:addToMainMenu(menu_items)
     menu_items.autoturn = {
-        sorting_hint = "navi",
         text_func = function()
             local time_string = datetime.secondsToClockDuration("letters", self.autoturn_sec, false, true, true)
             return self:_enabled() and T(_("Autoturn: %1"), time_string) or _("Autoturn")
