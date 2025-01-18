@@ -71,7 +71,6 @@ local order = {
         -- those that don't exist will simply be skipped during menu gen
         "frontlight", -- if Device:hasFrontlight()
         "night_mode",
-        "auto_frontlight",
         "----------------------------",
         "network",
         "screen",
@@ -146,6 +145,7 @@ local order = {
         "screensaver",
         "coverimage",
         "autodim",
+        "auto_frontlight",
         "keep_alive",
         "----------------------------",
         "screen_rotation",
