@@ -88,7 +88,12 @@ function LuaSettings:readSetting(key)
 end
 
 --- Saves a setting.
-function LuaSettings:saveSetting(key, value)
+function LuaSettings:saveSetting(key, value, default_value)
+    -- Setting value to nil is same as self.delSetting(key), no reason to
+    -- dump and compare the value in the case.
+    if default_value ~= nil and dump(value, nil, true) == dump(default_value, nil, true) then
+        return self:delSetting(key)
+    end
     self.data[key] = value
     return self
 end
@@ -152,17 +157,18 @@ function LuaSettings:flipNilOrFalse(key)
 end
 
 -- Unconditionally makes a boolean setting `true`.
-function LuaSettings:makeTrue(key)
-    self:saveSetting(key, true)
+function LuaSettings:makeTrue(key, default_value)
+    self:saveSetting(key, true, default_value)
     return self
 end
 
 -- Unconditionally makes a boolean setting `false`.
-function LuaSettings:makeFalse(key)
-    self:saveSetting(key, false)
+function LuaSettings:makeFalse(key, default_value)
+    self:saveSetting(key, false, default_value)
     return self
 end
 
+--- TODO: Remove
 --- Toggles a boolean setting
 function LuaSettings:toggle(key)
     if self:nilOrFalse(key) then
@@ -173,6 +179,7 @@ function LuaSettings:toggle(key)
     return self
 end
 
+--- TODO: Remove
 -- Initializes settings per extension with default values
 function LuaSettings:initializeExtSettings(key, defaults, force_init)
     local curr = self:readSetting(key)
@@ -183,12 +190,14 @@ function LuaSettings:initializeExtSettings(key, defaults, force_init)
     return false
 end
 
+--- TODO: Remove
 -- Returns saved setting for given extension
 function LuaSettings:getSettingForExt(key, ext)
     local saved_settings = self:readSetting(key) or {}
     return saved_settings[ext]
 end
 
+--- TODO: Remove
 -- Sets setting for given extension
 function LuaSettings:saveSettingForExt(key, value, ext)
     local saved_settings = self:readSetting(key) or {}
@@ -196,6 +205,7 @@ function LuaSettings:saveSettingForExt(key, value, ext)
     self:saveSetting(key, saved_settings)
 end
 
+--- TODO: Remove
 --- Adds item to table.
 function LuaSettings:addTableItem(key, value)
     local settings_table = self:has(key) and self:readSetting(key) or {}
@@ -204,6 +214,7 @@ function LuaSettings:addTableItem(key, value)
     return self
 end
 
+--- TODO: Remove
 --- Removes index from table.
 function LuaSettings:removeTableItem(key, index)
     local settings_table = self:has(key) and self:readSetting(key) or {}
