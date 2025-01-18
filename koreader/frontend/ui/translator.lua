@@ -347,14 +347,14 @@ function Translator:getTargetLanguage()
     if not lang then
         -- Fallback to the UI language the user has selected
         lang = G_reader_settings:readSetting("language")
-        if lang and lang ~= "" then
-            -- convert "zh-CN" and "zh-TW" to "zh"
-            lang = lang:match("(.*)-") or lang
-            if lang == "C" then
-                lang="en"
-            end
-            lang = lang:lower()
+    end
+    if lang then
+        -- convert "zh-CN" and "zh-TW" to "zh"
+        lang = lang:match("(.*)-") or lang
+        if lang == "C" then
+            lang = "en"
         end
+        lang = lang:lower()
     end
     return lang or "en"
 end

@@ -915,7 +915,7 @@ function VirtualKeyboard:getKeyboardLayout()
             or G_reader_settings:readSetting("keyboard_layout") or "en"
         G_reader_settings:saveSetting("keyboard_layout", lang)
     end
-    return G_reader_settings:readSetting("keyboard_layout") or G_reader_settings:readSetting("language")
+    return G_reader_settings:readSetting("keyboard_layout") or G_reader_settings:readSetting("language") or en
 end
 
 function VirtualKeyboard:setKeyboardLayout(layout)

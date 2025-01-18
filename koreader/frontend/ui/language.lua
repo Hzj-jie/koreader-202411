@@ -103,7 +103,10 @@ function Language:genLanguageSubItem(lang_locale)
     return {
         text = self:getLanguageName(lang_locale),
         checked_func = function()
-            return G_reader_settings:readSetting("language") == lang_locale
+            if lang_locale == "C" then
+                lang_locale = "en"
+            end
+            return (G_reader_settings:readSetting("language") or "en") == lang_locale
         end,
         callback = function()
             self:changeLanguage(lang_locale)
