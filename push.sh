@@ -5,8 +5,7 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-if [ -z $(git status --porcelain) ]
-then
+if [ -z "$(git status --porcelain)" ]; then
   ./clean.sh
 
   rsync -acv --no-o --no-g extensions/ root@192.168.1.$1:/mnt/us/extensions/
