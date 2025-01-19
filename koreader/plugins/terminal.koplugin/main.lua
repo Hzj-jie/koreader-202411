@@ -627,14 +627,14 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             },
             {
                 text_func = function()
-                    return T(_("Shell executable: %1"), G_reader_settings:readSetting("terminal_shell"))
+                    return T(_("Shell executable: %1"), G_reader_settings:readSetting("terminal_shell") or self:getDefaultShellExecutable())
                 end,
                 callback = function(touchmenu_instance)
                     self.shell_dialog = InputDialog:new{
                         title = _("Shell to use"),
                         description = T(_("Here you can select the startup shell.\nDefault: %1"),
                                       self:getDefaultShellExecutable()),
-                        input = G_reader_settings:readSetting("terminal_shell"),
+                        input = G_reader_settings:readSetting("terminal_shell") or self:getDefaultShellExecutable(),
                         buttons = {{
                             {
                                 text = _("Cancel"),
