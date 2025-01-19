@@ -169,7 +169,7 @@ end
 
 function ReaderStatistics:initData()
     self.is_doc = true
-    self.is_doc_not_finished = self.ui.doc_settings:readSetting("summary").status ~= "complete"
+    self.is_doc_not_finished = (self.ui.doc_settings:readSetting("summary") or {}).status ~= "complete"
     self.is_doc_not_frozen = self.is_doc_not_finished or not self.settings.freeze_finished_books
 
     -- first execution
@@ -1694,7 +1694,7 @@ function ReaderStatistics:getCurrentStat()
         estimated_finish_date = { _("Estimated finish date") .. " ⓘ", estimates_valid and T(N_("(in 1 day) %2", "(in %1 days) %2", estimate_days_to_read), estimate_days_to_read, estimate_end_of_read_date) or _("N/A"), callback = estimated_popup }
     else
         estimated_time_left = { _("Estimated reading time left"), _("finished") }
-        local mark_date = self.ui.doc_settings:readSetting("summary").modified
+        local mark_date = (self.ui.doc_settings:readSetting("summary") or {}).modified
         estimated_finish_date = { _("Book marked as finished"), datetime.secondsToDate(datetime.stringToSeconds(mark_date), true) }
     end
     estimated_time_left.separator = true
