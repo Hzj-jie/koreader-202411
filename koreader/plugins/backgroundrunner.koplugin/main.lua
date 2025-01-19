@@ -139,21 +139,22 @@ function BackgroundRunner:_executeJob(job)
     if type(job.executable) == "string" then
         CommandRunner:start(job)
         return true
-    elseif type(job.executable) == "function" then
+    end
+    if type(job.executable) == "function" then
         job.start_time = UIManager:getTime()
         local status, err = pcall(job.executable)
         if status then
             job.result = 0
         else
+            logger.dbg("BackgroundRunner: _executeJob [", job.executable, "] failed, ", err)
             job.result = 1
             job.exception = err
         end
         job.end_time = time.now()
         self:_finishJob(job)
         return true
-    else
-        return false
     end
+    return false
 end
 
 --- Polls the status of the pending CommandRunner.
@@ -252,12 +253,14 @@ function BackgroundRunner:_insert(job)
     table.insert(self.jobs, job)
 end
 
-BackgroundRunner:_schedule()
-
 local BackgroundRunnerWidget = WidgetContainer:extend{
     name = "backgroundrunner",
     runner = BackgroundRunner,
 }
+
+function BackgroundRunnerWidget:init()
+    BackgroundRunner:_schedule()
+end
 
 function BackgroundRunnerWidget:onSuspend()
     logger.dbg("BackgroundRunnerWidget:onSuspend() @ ", os.time())

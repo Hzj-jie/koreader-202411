@@ -24,9 +24,10 @@ function SwitchPlugin:new(o)
     o = self:extend(o)
     assert(type(o.name) == "string", "name is required")
     o.settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/" .. o.name .. ".lua")
-    o.settings_id = 0
+    -- Impossible to create two instances with the same settings_id.
+    o.settings_id = math.floor(os.clock() * 1000)
     SwitchPlugin._init(o)
-    return o
+    return WidgetContainer.new(o)
 end
 
 function SwitchPlugin:_init()
