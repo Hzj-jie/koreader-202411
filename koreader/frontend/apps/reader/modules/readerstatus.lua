@@ -64,7 +64,7 @@ function ReaderStatus:onEndOfBook()
             {
                 {
                     text_func = function()
-                        local status = self.ui.doc_settings:readSetting("summary").status
+                        local status = (self.ui.doc_settings:readSetting("summary") or {}).status
                         return status == "complete" and _("Mark as reading") or _("Mark as finished")
                     end,
                     callback = function()
@@ -209,9 +209,10 @@ end
 -- If mark_read is true then we change status only from reading/abandoned to complete.
 -- Otherwise we change status from reading/abandoned to complete or from complete to reading.
 function ReaderStatus:markBook(mark_read)
-    local summary = self.ui.doc_settings:readSetting("summary")
+    local summary = self.ui.doc_settings:readSetting("summary") or {}
     summary.status = (not mark_read and summary.status == "complete") and "reading" or "complete"
     summary.modified = os.date("%Y-%m-%d", os.time())
+    self.ui.doc_settings:saveSetting("summary", summary)
     -- If History is called over Reader, it will read the file to get the book status, so flush
     self.ui.doc_settings:flush()
 end

@@ -50,7 +50,7 @@ local BookStatusWidget = FocusManager:extend{
 function BookStatusWidget:init()
     self.updated = nil
     self.layout = {}
-    self.summary = self.ui.doc_settings:readSetting("summary")
+    self.summary = self.ui.doc_settings:readSetting("summary") or {}
     self.total_pages = self.ui.document:getPageCount()
     stats_book = self:getStats()
 
