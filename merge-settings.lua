@@ -7,6 +7,7 @@ local_file["kosync"]["username"] = device_file["kosync"]["username"]
 local_file["last_migration_date"] = device_file["last_migration_date"]
 local_file["lastdir"] = device_file["lastdir"]
 local_file["lastfile"] = device_file["lastfile"]
+local_file["device_id"] = device_file["device_id"]
 
 local file, _  = io.open("/tmp/settings.reader.new.lua", "wb")
 assert(file)
