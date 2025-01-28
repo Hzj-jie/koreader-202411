@@ -1310,8 +1310,8 @@ function KindleOasis:init()
         device = self,
 
         event_map = {
-            [109] = "RPgFwd",
-            [104] = "RPgBack",
+            [104] = "RPgFwd",
+            [109] = "RPgBack",
         }
     }
 
