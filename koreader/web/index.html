@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <style>
+      * {
+        font-size: 30px;
+      }
+      button {
+        height: 3em;
+        width: 80%;
+        margin: 1em 0 0 10%;
+      }
+      #result {
+        margin: 1em 0 0 10%;
+      }
+    </style>
+    <script>
+      function send(action) {
+        var xhtml = new XMLHttpRequest();
+        xhtml.open("GET", "/koreader/event/" + action, false);
+        xhtml.send();
+        document.getElementById("result").innerHTML = xhtml.responseText;
+      }
+    </script>
+  </head>
+  <button type="button" onclick="send('GotoViewRel/-1')">Last page</button>
+  <button type="button" onclick="send('GotoViewRel/1')">Next page</button>
+  <button type="button" onclick="send('ToggleFrontlight')">Toggle front light</button>
+  <!-- TODO: Implement -->
+  <!-- I.e. https://github.com/Hzj-jie/koreader-202411/blob/dbf2ab9cbb060142157680c24e9b4afc3f265014/origin/frontend/ui/widget/trapwidget.lua#L37 -->
+  <button type="button" onclick="send('DismissTrapWidget')">Dismiss Trap / autodim</button>
+  <button type="button" onclick="send('RequestSuspend')">Suspend</button>
+  <button type="button" onclick="send('ExitScreensaver')">Resume - if possible</button>
+  <div id="result">N/A</div>
+</html>

@@ -568,14 +568,15 @@ function HttpInspector:onRequest(data, request_id)
 
     if not util.stringStartsWith(uri, "/koreader/") then
         -- Anything else is static content.
-        -- We allow the user to put anything he'd like to in /koreder/web/ and have
+        -- We allow the user to put anything he'd like to in /koreader/web/ and have
         -- this content served as the main content, which can allow building a web
         -- app with HTML/CSS/JS to interact with the API exposed under /koreader/.
         if uri == "/" then
             uri = "/index.html"
         end
-        -- No security/sanity check for now
-        local filepath = DataStorage:getDataDir() .. "/web" .. uri
+        -- No security/sanity check for now - not using DataStorage:getDataDir(),
+        -- files are always in /koreader/web/.
+        local filepath = "web" .. uri
         if uri == "/favicon.ico" then -- hijack this one to return our icon
             filepath = "resources/koreader.png"
         end
