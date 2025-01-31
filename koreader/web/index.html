@@ -1,34 +1,20 @@
 <html>
   <head>
+    <link href="/default.css" rel="stylesheet" />
     <style>
-      * {
-        font-size: 30px;
-      }
       button {
-        height: 3em;
+        height: 10vh;
         width: 80%;
-        margin: 1em 0 0 10%;
-      }
-      #result {
-        margin: 1em 0 0 10%;
       }
     </style>
-    <script>
-      function send(action) {
-        var xhtml = new XMLHttpRequest();
-        xhtml.open("GET", "/koreader/event/" + action, false);
-        xhtml.send();
-        document.getElementById("result").innerHTML = xhtml.responseText;
-      }
-    </script>
+    <script src="/send.js"></script>
   </head>
-  <button type="button" onclick="send('GotoViewRel/-1')">Last page</button>
-  <button type="button" onclick="send('GotoViewRel/1')">Next page</button>
-  <button type="button" onclick="send('ToggleFrontlight')">Toggle front light</button>
-  <!-- TODO: Implement -->
-  <!-- I.e. https://github.com/Hzj-jie/koreader-202411/blob/dbf2ab9cbb060142157680c24e9b4afc3f265014/origin/frontend/ui/widget/trapwidget.lua#L37 -->
-  <button type="button" onclick="send('DismissTrapWidget')">Dismiss Trap / autodim</button>
-  <button type="button" onclick="send('RequestSuspend')">Suspend</button>
-  <button type="button" onclick="send('ExitScreensaver')">Resume - if possible</button>
+  <button onclick="send('GotoViewRel/-1')">Last page</button>
+  <button onclick="send('GotoViewRel/1')">Next page</button>
+  <button onclick="send('ToggleFrontlight')">Toggle front light</button>
+  <button onclick="send('TapDismiss')">Dismiss Trap / autodim</button>
+  <button onclick="send('RequestSuspend')">Suspend</button>
+  <button onclick="send('ExitScreensaver')">Resume - if possible</button>
   <div id="result">N/A</div>
+  <a href="/huge.html">Page turn only</a>
 </html>

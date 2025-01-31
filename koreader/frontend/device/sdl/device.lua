@@ -446,8 +446,8 @@ if os.getenv("APPIMAGE") then
     return AppImage
 elseif os.getenv("FLATPAK") then
     return Flatpak
-elseif os.getenv("KO_MULTIUSER") then
-    return Desktop
+-- elseif os.getenv("KO_MULTIUSER") then
+--     return Desktop
 elseif os.getenv("UBUNTU_APPLICATION_ISOLATION") then
     return UbuntuTouch
 else

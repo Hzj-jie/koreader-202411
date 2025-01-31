@@ -28,7 +28,7 @@ local Screen = Device.screen
 local TrapWidget = InputContainer:extend{
     modal = true,
     dismiss_callback = function() end,
-    text = nil, -- will be invisible if no message given
+    text = Device.isEmulator() and "TrapWidget" or nil, -- will be invisible if no message given
     face = Font:getFace("infofont"),
     -- Whether to resend the event caught and used for dismissal
     resend_event = false,
