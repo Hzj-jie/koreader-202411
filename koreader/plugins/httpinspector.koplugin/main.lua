@@ -619,10 +619,18 @@ function HttpInspector:onRequest(data, request_id)
         return self:exposeObject(_G, uri, reqinfo)
     elseif fragment == "UIManager" then
         return self:exposeObject(UIManager, uri, reqinfo)
-    elseif fragment == "event" then
-        return self:exposeEvent(uri, reqinfo)
-    elseif fragment == "broadcast" then
-        return self:exposeBroadcastEvent(uri, reqinfo)
+    else
+        -- Events are treated as user inputs.
+        if Device:isKindle() then
+            Device:getPowerDevice():resetT1Timeout()
+        else
+            UIManager.event_hook.execute("InputEvent")
+        end
+        if fragment == "event" then
+            return self:exposeEvent(uri, reqinfo)
+        elseif fragment == "broadcast" then
+            return self:exposeBroadcastEvent(uri, reqinfo)
+        end
     end
 
     return self:sendResponse(reqinfo, 404, CTYPE.TEXT, "Unknown entry point.")
