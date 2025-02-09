@@ -109,7 +109,20 @@ local FileChooser = Menu:extend{
                     return a.attr.access > b.attr.access
                 end, cache
             end,
+            item_func = function(item)
+                -- System returns random time if the file hasn't been accessed
+                -- at all.
+                -- https://github.com/Hzj-jie/koreader-202411/issues/34
+                if item.attr.mode == "file" and
+                   item.attr.access < item.attr.modification then
+                    item.attr.access = item.attr.modification
+                end
+            end,
             mandatory_func = function(item)
+                -- Fat has low resolution of access time.
+                if item.attr.access % 86400 == 0 then
+                    return datetime.secondsToDate(item.attr.access)
+                end
                 return datetime.secondsToDateTime(item.attr.access)
             end,
         },
