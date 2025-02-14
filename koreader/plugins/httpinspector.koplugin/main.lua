@@ -134,7 +134,7 @@ end
 function HttpInspector:addToMainMenu(menu_items)
     menu_items.httpremote = {
         text = _("KOReader HTTP inspector"),
-        sorting_hint = "tools",
+        sorting_hint = "network",
         sub_item_table = {
             {
                 text_func = function()
