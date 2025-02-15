@@ -5,3 +5,6 @@
 body, html {
   margin: 0;
 }
+button {
+  user-select: none;
+}
