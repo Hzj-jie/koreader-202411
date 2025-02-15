@@ -98,17 +98,9 @@ common_info.report_bug = {
         })
     end
 }
-common_info.version = {
-    text = T(_("Version: %1"), Version:getShortVersion()),
-    keep_menu_open = true,
-    callback = function()
-        UIManager:show(InfoMessage:new{
-            text = Version:getCurrentRevision(),
-        })
-    end
-}
 common_info.about = {
-    text = _("About"),
+    -- Concatenation to avoid changing translations.
+    text = _("About") .. " - " .. T(_("Version: %1"), Version:getShortVersion()),
     keep_menu_open = true,
     callback = function()
         UIManager:show(InfoMessage:new{

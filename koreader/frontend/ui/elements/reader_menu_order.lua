@@ -246,7 +246,6 @@ local order = {
         "report_bug",
         "----------------------------",
         "system_statistics",  -- if enabled (Plugin)
-        "version",
         "about",
     },
     exit_menu = {
