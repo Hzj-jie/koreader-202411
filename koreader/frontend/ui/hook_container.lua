@@ -1,22 +1,26 @@
 --[[--
 HookContainer allows listeners to register and unregister a hook for speakers to execute.
 
+Unlike the broadcastEvent and sendEvent in UIManager, this implementation does not broadcast the
+event to all the widgets and should provide a much better performance, hence the reason of this
+implementation.
+
 It's an experimental feature: use with cautions, it can easily pin an object in memory and unblock
 GC from recycling the memory.
 ]]
 
 local HookContainer = {}
 
-function HookContainer:new(o)
-    o = o or {}
+function HookContainer:new(name)
+    assert(type(name) == "string")
+    assert(string.len(name) > 0)
+    local o = {
+        name = name,
+        funcs = {},
+    }
     setmetatable(o, self)
     self.__index = self
     return o
-end
-
-function HookContainer:_assertIsValidName(name)
-    assert(type(name) == "string")
-    assert(string.len(name) > 0)
 end
 
 function HookContainer:_assertIsValidFunction(func)
@@ -28,73 +32,60 @@ function HookContainer:_assertIsValidFunctionOrNil(func)
     self:_assertIsValidFunction(func)
 end
 
---- Register a function to name. Must be called with self.
--- @tparam string name The name of the hook. Can only be an non-empty string.
+--- Register a function. Must be called with self.
+--- Using this function is extremely dangerous, caller needs to unregister the function ref in the
+--- right time.
 -- @tparam function func The function to handle the hook. Can only be a function.
-function HookContainer:register(name, func)
-    self:_assertIsValidName(name)
+function HookContainer:register(func)
     self:_assertIsValidFunction(func)
-    if self[name] == nil then
-        self[name] = {}
-    end
-    table.insert(self[name], func)
+    table.insert(self.funcs, func)
 end
 
---- Register a widget to name. Must be called with self.
--- @tparam string name The name of the hook. Can only be an non-empty string.
+--- Register a widget. Must be called with self.
 -- @tparam table widget The widget to handle the hook. Can only be a table with required functions.
-function HookContainer:registerWidget(name, widget)
-    self:_assertIsValidName(name)
+function HookContainer:registerWidget(widget)
     assert(type(widget) == "table")
     -- *That* is the function we actually register and need to unregister later, so keep a ref to it...
     local hook_func = function(args)
-        local f = widget["on" .. name]
+        local f = widget["on" .. self.name]
         self:_assertIsValidFunction(f)
         f(widget, args)
     end
-    self:register(name, hook_func)
+    self:register(hook_func)
     local original_close_widget = widget.onCloseWidget
     self:_assertIsValidFunctionOrNil(original_close_widget)
     widget.onCloseWidget = function()
         if original_close_widget then original_close_widget(widget) end
-        self:unregister(name, hook_func)
+        self:unregister(hook_func)
     end
 end
 
---- Unregister a function from name. Must be called with self.
--- @tparam string name The name of the hook. Can only be an non-empty string.
+--- Unregister a function. Must be called with self.
 -- @tparam function func The function to handle the hook. Can only be a function.
 -- @treturn boolean Return true if the function is found and removed, otherwise false.
-function HookContainer:unregister(name, func)
-    self:_assertIsValidName(name)
+function HookContainer:unregister(func)
     self:_assertIsValidFunction(func)
-    if self[name] == nil then
-        return false
-    end
-
-    for i, f in ipairs(self[name]) do
+    for i, f in ipairs(self.funcs) do
         if f == func then
-            table.remove(self[name], i)
+            table.remove(self.funcs, i)
             return true
         end
     end
     return false
 end
 
---- Execute all registered functions of name. Must be called with self.
--- @tparam string name The name of the hook. Can only be an non-empty string.
+--- Execute all registered functions. Must be called with self.
 -- @param args Any kind of arguments sending to the functions.
 -- @treturn number The number of functions have been executed.
-function HookContainer:execute(name, args)
-    self:_assertIsValidName(name)
-    if self[name] == nil or #self[name] == 0 then
+function HookContainer:execute(args)
+    if #self.funcs == 0 then
         return 0
     end
 
-    for _, f in ipairs(self[name]) do
+    for _, f in ipairs(self.funcs) do
         f(args)
     end
-    return #self[name]
+    return #self.funcs
 end
 
 return HookContainer

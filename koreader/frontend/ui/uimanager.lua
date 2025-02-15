@@ -44,7 +44,7 @@ local UIManager = {
     _prev_prevent_standby_count = 0,
     _input_gestures_disabled = false,
 
-    event_hook = require("ui/hook_container"):new()
+    event_hook = require("ui/hook_container"):new("InputEvent")
 }
 
 function UIManager:init()
@@ -107,6 +107,13 @@ function UIManager:init()
             else
                 self:quit()
             end
+        end)
+    end
+
+    if Device:isKindle() then
+        -- Always reset the timeout timer when processing input event, even it's fake.
+        self.event_hook:register(function()
+          Device:getPowerDevice():resetT1Timeout()
         end)
     end
 
@@ -1445,7 +1452,7 @@ function UIManager:processZMQs()
     for _, zeromq in ipairs(self._zeromqs) do
         for input_event in zeromq.waitEvent, zeromq do
             if not sent_InputEvent then
-                self.event_hook:execute("InputEvent")
+                self.event_hook:execute()
                 sent_InputEvent = true
             end
             self:handleInputEvent(input_event)
@@ -1531,7 +1538,7 @@ function UIManager:handleInput()
         -- Dispatch event hooks first, as some plugins (*cough* AutoSuspend *cough*)
         -- rely on it to react properly to the actual event...
         if input_events[1] then
-            self.event_hook:execute("InputEvent")
+            self.event_hook:execute()
         end
         -- Handle the full batch of events
         for __, ev in ipairs(input_events) do

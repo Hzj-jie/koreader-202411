@@ -186,7 +186,7 @@ function AutoSuspend:init()
     self.is_standby_scheduled = false
     self.going_to_suspend = false
 
-    UIManager.event_hook:registerWidget("InputEvent", self)
+    UIManager.event_hook:registerWidget(self)
     -- We need an instance-specific function reference to schedule, because in some rare cases,
     -- we may instantiate a new plugin instance *before* tearing down the old one.
     -- If we only cared about accessing the right instance members,

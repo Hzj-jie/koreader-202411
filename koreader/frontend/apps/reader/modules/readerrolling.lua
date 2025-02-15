@@ -1724,7 +1724,7 @@ function ReaderRolling:setupRerenderingAutomation()
         -- https://github.com/koreader/koreader/issues/9087#issuecomment-1419852952
         last_input_event_time = UIManager:getTime()
     end
-    UIManager.event_hook:register("InputEvent", self._watchInputEvent)
+    UIManager.event_hook:register(self._watchInputEvent)
 
     local next_step_not_before
     self._stepRerenderingAutomation = function(next_step)
@@ -1880,7 +1880,7 @@ function ReaderRolling:tearDownRerenderingAutomation()
         UIManager:allowStandby()
     end
     if self._watchInputEvent then
-        UIManager.event_hook:unregister("InputEvent", self._watchInputEvent)
+        UIManager.event_hook:unregister(self._watchInputEvent)
         self._watchInputEvent = nil
     end
     -- Be sure we don't let any zombie

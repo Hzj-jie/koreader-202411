@@ -34,7 +34,7 @@ function AutoDim:init()
     self.last_action_time = UIManager:getElapsedTimeSinceBoot()
 
     self.ui.menu:registerToMainMenu(self)
-    UIManager.event_hook:registerWidget("InputEvent", self)
+    UIManager.event_hook:registerWidget(self)
 
     self:_schedule_autodim_task()
     self.isCurrentlyDimming = false -- true during or after the dimming ramp

@@ -621,11 +621,7 @@ function HttpInspector:onRequest(data, request_id)
         return self:exposeObject(UIManager, uri, reqinfo)
     else
         -- Events are treated as user inputs.
-        if Device:isKindle() then
-            Device:getPowerDevice():resetT1Timeout()
-        else
-            UIManager.event_hook.execute("InputEvent")
-        end
+        UIManager.event_hook:execute()
         if fragment == "event" then
             return self:exposeEvent(uri, reqinfo)
         elseif fragment == "broadcast" then

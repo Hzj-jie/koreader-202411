@@ -84,7 +84,7 @@ function AutoTurn:_start()
 end
 
 function AutoTurn:init()
-    UIManager.event_hook:registerWidget("InputEvent", self)
+    UIManager.event_hook:registerWidget(self)
     self.autoturn_sec = G_reader_settings:readSetting("autoturn_timeout_seconds") or 0
     self.autoturn_distance = G_reader_settings:readSetting("autoturn_distance") or 1
     self.enabled = G_reader_settings:isTrue("autoturn_enabled")
