@@ -59,12 +59,13 @@ function SwitchPlugin:onFlushSettings()
 end
 
 --- Show a ConfirmBox to ask for enabling or disabling this plugin.
-function SwitchPlugin:_showConfirmBox()
+function SwitchPlugin:_showConfirmBox(touchMenu)
     UIManager:show(ConfirmBox:new{
         text = self:_confirmMessage(),
         ok_text = self.enabled and _("Disable") or _("Enable"),
         ok_callback = function()
             self:flipSetting()
+            touchMenu:updateItems()
         end,
     })
 end
@@ -102,8 +103,8 @@ function SwitchPlugin:addToMainMenu(menu_items)
            "Have you forgotten to set \"menu_text\"")
     menu_items[self.menu_item] = {
         text = self.menu_text,
-        callback = function()
-            self:_showConfirmBox()
+        callback = function(touchMenu)
+            self:_showConfirmBox(touchMenu)
         end,
         checked_func = function() return self.enabled end,
     }
