@@ -71,6 +71,11 @@ end
 
 function SwitchPlugin:_confirmMessage()
     local result = ""
+    if type(self.full_confirm_message) == "string" then
+        return self.full_confirm_message
+    elseif type(self.full_confirm_message) == "function" then
+        return self.full_confirm_message()
+    end
     if type(self.confirm_message) == "string" then
         result = self.confirm_message .. "\n"
     elseif type(self.confirm_message) == "function" then

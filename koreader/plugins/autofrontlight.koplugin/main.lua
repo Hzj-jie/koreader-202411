@@ -22,7 +22,10 @@ function AutoFrontlightPlugin:new(o)
   end
   o.menu_item = "auto_frontlight"
   o.menu_text = _("Auto frontlight")
-  o.confirm_message = _("Auto frontlight detects the brightness of the environment and automatically turn on and off the frontlight.\nFrontlight will be turned off to save battery in bright environment, and turned on in dark environment.")
+  o.full_confirm_message = function()
+    return T(_("Auto frontlight detects the brightness of the environment and automatically turn on and off the frontlight.\nFrontlight will be turned off to save battery in bright environment, and turned on in dark environment.\nDo you want to %1 it?"),
+             o.enabled and _("disable") or _("enable"))
+  end
   return BackgroundTaskPlugin.new(self, o)
 end
 
