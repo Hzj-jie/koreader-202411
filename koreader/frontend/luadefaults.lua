@@ -142,8 +142,6 @@ end
 -- NOP unsupported LuaSettings APIs
 function LuaDefaults:wrap() end
 function LuaDefaults:child() end
-function LuaDefaults:addTableItem() end
-function LuaDefaults:removeTableItem() end
 function LuaDefaults:reset() end
 
 --- Writes settings to disk.

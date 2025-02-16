@@ -169,24 +169,6 @@ function LuaSettings:makeFalse(key, default_value)
     return self
 end
 
---- TODO: Remove
---- Adds item to table.
-function LuaSettings:addTableItem(key, value)
-    local settings_table = self:has(key) and self:readSetting(key) or {}
-    table.insert(settings_table, value)
-    self:saveSetting(key, settings_table)
-    return self
-end
-
---- TODO: Remove
---- Removes index from table.
-function LuaSettings:removeTableItem(key, index)
-    local settings_table = self:has(key) and self:readSetting(key) or {}
-    table.remove(settings_table, index)
-    self:saveSetting(key, settings_table)
-    return self
-end
-
 --- Replaces existing settings with table.
 function LuaSettings:reset(table)
     self.data = table

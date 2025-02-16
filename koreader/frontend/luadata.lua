@@ -98,6 +98,8 @@ function LuaData:open(file_path, name)
     return new
 end
 
+-- TODO: Clean up the APIs
+
 --- Saves a setting.
 function LuaData:saveSetting(key, value)
     self.data[key] = value
@@ -118,21 +120,14 @@ function LuaData:delSetting(key)
 end
 
 --- Adds item to table.
-function LuaData:addTableItem(table_name, value)
-    local settings_table = self:has(table_name) and self:readSetting(table_name) or {}
+function LuaData:addTableItem(key, value)
+    local settings_table = self:has(key) and self:readSetting(key) or {}
     table.insert(settings_table, value)
-    self.data[table_name] = settings_table
+    self.data[key] = settings_table
     self:append{
-        index = table_name,
+        index = key,
         data = {[#settings_table] = value},
     }
-end
-
---- Removes index from table.
-function LuaData:removeTableItem(key, index)
-    LuaSettings.removeTableItem(self, key, index)
-    self:flush()
-    return self
 end
 
 --- Appends settings to disk.
