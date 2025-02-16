@@ -68,6 +68,7 @@ end
     child:readSetting("a")
     -- result "b"
 ]]
+-- TODO: Remove, this is very wrong, updating the returned object has no effect.
 function LuaSettings:child(key)
     return self:wrap(self:readSetting(key))
 end
@@ -166,32 +167,6 @@ end
 function LuaSettings:makeFalse(key, default_value)
     self:saveSetting(key, false, default_value)
     return self
-end
-
---- TODO: Remove
--- Initializes settings per extension with default values
-function LuaSettings:initializeExtSettings(key, defaults, force_init)
-    local curr = self:readSetting(key)
-    if not curr or force_init then
-        self:saveSetting(key, defaults)
-        return true
-    end
-    return false
-end
-
---- TODO: Remove
--- Returns saved setting for given extension
-function LuaSettings:getSettingForExt(key, ext)
-    local saved_settings = self:readSetting(key) or {}
-    return saved_settings[ext]
-end
-
---- TODO: Remove
--- Sets setting for given extension
-function LuaSettings:saveSettingForExt(key, value, ext)
-    local saved_settings = self:readSetting(key) or {}
-    saved_settings[ext] = value
-    self:saveSetting(key, saved_settings)
 end
 
 --- TODO: Remove

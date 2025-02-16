@@ -142,9 +142,6 @@ end
 -- NOP unsupported LuaSettings APIs
 function LuaDefaults:wrap() end
 function LuaDefaults:child() end
-function LuaDefaults:initializeExtSettings() end
-function LuaDefaults:getSettingForExt() end
-function LuaDefaults:saveSettingForExt() end
 function LuaDefaults:addTableItem() end
 function LuaDefaults:removeTableItem() end
 function LuaDefaults:reset() end
