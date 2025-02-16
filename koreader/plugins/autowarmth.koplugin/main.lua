@@ -1132,7 +1132,7 @@ function AutoWarmth:getWarmthMenu()
                     end
                 else
                     self.control_nightmode = not self.control_nightmode
-                    G_reader_settings:toggle("autowarmth_control_nightmode")
+                    G_reader_settings:flipNilOrFalse("autowarmth_control_nightmode")
                 end
                 self:scheduleMidnightUpdate()
                 if touchmenu_instance then self:updateItems(touchmenu_instance) end

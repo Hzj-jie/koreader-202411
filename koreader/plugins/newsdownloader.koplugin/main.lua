@@ -135,7 +135,7 @@ function NewsDownloader:getSubMenuItems()
                         return self.settings:isTrue("never_download_images")
                     end,
                     callback = function()
-                        self.settings:toggle("never_download_images")
+                        self.settings:flipNilOrFalse("never_download_images")
                         self.settings:flush()
                     end,
                 },

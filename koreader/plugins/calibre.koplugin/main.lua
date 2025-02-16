@@ -179,7 +179,7 @@ function Calibre:getSearchMenuTable()
                 return G_reader_settings:isTrue("calibre_search_from_reader")
             end,
             callback = function()
-                G_reader_settings:toggle("calibre_search_from_reader")
+                G_reader_settings:flipNilOrFalse("calibre_search_from_reader")
                 UIManager:show(InfoMessage:new{
                     text = _("This will take effect on next restart."),
                 })
@@ -227,7 +227,7 @@ function Calibre:getSearchMenuTable()
                 return G_reader_settings:isTrue("calibre_search_find_by_series")
             end,
             callback = function()
-                G_reader_settings:toggle("calibre_search_find_by_series")
+                G_reader_settings:flipNilOrFalse("calibre_search_find_by_series")
             end,
         },
         {
@@ -236,7 +236,7 @@ function Calibre:getSearchMenuTable()
                 return G_reader_settings:isTrue("calibre_search_find_by_tag")
             end,
             callback = function()
-                G_reader_settings:toggle("calibre_search_find_by_tag")
+                G_reader_settings:flipNilOrFalse("calibre_search_find_by_tag")
             end,
         },
         {
@@ -245,7 +245,7 @@ function Calibre:getSearchMenuTable()
                 return G_reader_settings:isTrue("calibre_search_find_by_path")
             end,
             callback = function()
-                G_reader_settings:toggle("calibre_search_find_by_path")
+                G_reader_settings:flipNilOrFalse("calibre_search_find_by_path")
             end,
         },
     }

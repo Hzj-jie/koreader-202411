@@ -127,7 +127,7 @@ return {
                     return G_reader_settings:isTrue("screensaver_show_message")
                 end,
                 callback = function()
-                    G_reader_settings:toggle("screensaver_show_message")
+                    G_reader_settings:flipNilOrFalse("screensaver_show_message")
                 end,
                 separator = true,
             },
@@ -170,7 +170,7 @@ return {
                     return G_reader_settings:isTrue("screensaver_hide_fallback_msg")
                 end,
                 callback = function()
-                    G_reader_settings:toggle("screensaver_hide_fallback_msg")
+                    G_reader_settings:flipNilOrFalse("screensaver_hide_fallback_msg")
                 end,
             },
         },

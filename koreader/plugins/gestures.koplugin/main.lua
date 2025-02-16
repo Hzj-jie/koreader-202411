@@ -707,7 +707,7 @@ function Gestures:addToMainMenu(menu_items)
                 text = _("Turn on multiswipes"),
                 checked_func = function() return self.multiswipes_enabled end,
                 callback = function()
-                    G_reader_settings:toggle("multiswipes_enabled")
+                    G_reader_settings:flipNilOrFalse("multiswipes_enabled")
                     self.multiswipes_enabled = G_reader_settings:isTrue("multiswipes_enabled")
                 end,
                 help_text = multiswipes_info_text,

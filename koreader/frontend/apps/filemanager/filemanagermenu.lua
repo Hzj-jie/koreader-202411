@@ -777,7 +777,7 @@ To:
                 return G_reader_settings:isTrue("pm_debug_entry_failure")
             end,
             callback = function()
-                G_reader_settings:toggle("pm_debug_entry_failure")
+                G_reader_settings:flipNilOrFalse("pm_debug_entry_failure")
             end,
         })
     end
