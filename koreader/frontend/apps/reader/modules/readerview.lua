@@ -1163,7 +1163,7 @@ function ReaderView:checkAutoSaveSettings()
     if not self.settings_last_save_time then -- reader not yet ready
         return
     end
-    if G_reader_settings:nilOrFalse("auto_save_settings_interval_minutes") then
+    if G_reader_settings:hasNot("auto_save_settings_interval_minutes") then
         -- no auto save
         return
     end

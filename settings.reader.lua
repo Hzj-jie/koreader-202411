@@ -10,6 +10,7 @@ return {
     ["autowarmth_easy_mode"] = true,
     ["bookmarks_items_font_size"] = 19,
     ["bookmarks_items_per_page"] = 14,
+    ["calculator_use_init_file"] = "yes",
     ["closed_rotation_mode"] = 0,
     ["collate"] = "access",
     ["copt_b_page_margin"] = 10,
