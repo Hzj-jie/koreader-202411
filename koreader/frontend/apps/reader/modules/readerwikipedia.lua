@@ -281,7 +281,7 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
                         ok_text = _("Clean"),
                         ok_callback = function()
                             -- empty data table to replace current one
-                            wikipedia_history:reset{}
+                            wikipedia_history:reset()
                             touchmenu_instance:updateItems()
                         end,
                     })

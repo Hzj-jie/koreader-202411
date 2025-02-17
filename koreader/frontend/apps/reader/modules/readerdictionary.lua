@@ -331,7 +331,7 @@ function ReaderDictionary:addToMainMenu(menu_items)
                         ok_text = _("Clean"),
                         ok_callback = function()
                             -- empty data table to replace current one
-                            lookup_history:reset{}
+                            lookup_history:reset()
                             touchmenu_instance:updateItems()
                         end,
                     })

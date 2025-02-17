@@ -2,16 +2,21 @@
 Handles append-mostly data such as KOReader's bookmarks and dictionary search history.
 ]]
 
-local LuaSettings = require("luasettings")
 local dump = require("dump")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
 
-local LuaData = LuaSettings:extend{
-    name = "",
+local LuaData = {
     max_backups = 9,
 }
+
+function LuaData:extend(o)
+    o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
 
 --- Creates a new LuaData instance.
 function LuaData:open(file_path, name)
@@ -39,6 +44,7 @@ function LuaData:open(file_path, name)
     data_env.__index = data_env
     setmetatable(data_env, data_env)
     data_env[new.name.."Entry"] = function(table)
+        -- TODO: Remove the index, it's not used at all.
         if table.index then
             -- We've got a deleted setting, overwrite with nil and be done with it.
             if not table.data then
@@ -98,40 +104,27 @@ function LuaData:open(file_path, name)
     return new
 end
 
--- TODO: Clean up the APIs
-
---- Saves a setting.
-function LuaData:saveSetting(key, value)
-    self.data[key] = value
-    self:append{
-        index = key,
-        data = value,
-    }
-    return self
+function LuaData:has(key)
+    return #self:readSetting(key) > 0
 end
 
---- Deletes a setting.
-function LuaData:delSetting(key)
-    self.data[key] = nil
-    self:append{
-        index = key,
-    }
-    return self
+function LuaData:readSetting(key)
+    return self.data[key] or {}
 end
 
 --- Adds item to table.
 function LuaData:addTableItem(key, value)
-    local settings_table = self:has(key) and self:readSetting(key) or {}
+    local settings_table = self:readSetting(key) or {}
     table.insert(settings_table, value)
     self.data[key] = settings_table
-    self:append{
+    self:_append{
         index = key,
         data = {[#settings_table] = value},
     }
 end
 
 --- Appends settings to disk.
-function LuaData:append(data)
+function LuaData:_append(data)
     if not self.file then return end
     local f_out = io.open(self.file, "a")
     if f_out ~= nil then
@@ -144,17 +137,10 @@ function LuaData:append(data)
     return self
 end
 
---- Replaces existing settings with table.
-function LuaData:reset(table)
-    self.data = table
-    self:flush()
-    return self
-end
-
---- Writes all settings to disk (does not append).
-function LuaData:flush()
+--- Clears the existing data.
+function LuaData:reset()
+    self.data = {}
     if not self.file then return end
-
     if lfs.attributes(self.file, "mode") == "file" then
         for i=1, self.max_backups, 1 do
             if lfs.attributes(self.file..".old."..i, "mode") == "file" then
@@ -171,13 +157,8 @@ function LuaData:flush()
     logger.dbg("LuaData: Write to", self.file)
     local f_out = io.open(self.file, "w")
     if f_out ~= nil then
-        f_out:write("-- we can read Lua syntax here!\n")
-        f_out:write(self.name.."Entry")
-        f_out:write(dump(self.data))
-        f_out:write("\n")
         f_out:close()
     end
-    return self
 end
 
 return LuaData
