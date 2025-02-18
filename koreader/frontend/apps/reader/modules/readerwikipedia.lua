@@ -85,10 +85,10 @@ function ReaderWikipedia:addToMainMenu(menu_items)
     menu_items.wikipedia_history = {
         text = _("Wikipedia history"),
         enabled_func = function()
-            return wikipedia_history:has("wikipedia_history")
+            return wikipedia_history:notEmpty()
         end,
         callback = function()
-            local wikipedia_history_table = wikipedia_history:readSetting("wikipedia_history")
+            local wikipedia_history_table = wikipedia_history:readSetting()
             local kv_pairs = {}
             local previous_title
             self:initLanguages() -- so current lang is set
@@ -272,7 +272,7 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
             {
                 text = _("Clean Wikipedia history"),
                 enabled_func = function()
-                    return wikipedia_history:has("wikipedia_history")
+                    return wikipedia_history:notEmpty()
                 end,
                 keep_menu_open = true,
                 callback = function(touchmenu_instance)
@@ -397,7 +397,7 @@ function ReaderWikipedia:lookupWikipedia(word, is_sane, box, get_fullpage, force
 
     if not self.disable_history then
         local book_title = self.ui.doc_props and self.ui.doc_props.display_title or _("Wikipedia lookup")
-        wikipedia_history:addTableItem("wikipedia_history", {
+        wikipedia_history:addTableItem({
             book_title = book_title,
             time = os.time(),
             word = display_word,

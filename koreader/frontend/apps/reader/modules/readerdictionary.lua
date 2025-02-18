@@ -228,10 +228,10 @@ function ReaderDictionary:addToMainMenu(menu_items)
     menu_items.dictionary_lookup_history = {
         text = _("Dictionary lookup history"),
         enabled_func = function()
-            return lookup_history:has("lookup_history")
+            return lookup_history:notEmpty()
         end,
         callback = function()
-            local lookup_history_table = lookup_history:readSetting("lookup_history")
+            local lookup_history_table = lookup_history:readSetting()
             local kv_pairs = {}
             local previous_title
             for i = #lookup_history_table, 1, -1 do
@@ -322,7 +322,7 @@ function ReaderDictionary:addToMainMenu(menu_items)
             {
                 text = _("Clean dictionary lookup history"),
                 enabled_func = function()
-                    return lookup_history:has("lookup_history")
+                    return lookup_history:notEmpty()
                 end,
                 keep_menu_open = true,
                 callback = function(touchmenu_instance)
@@ -958,7 +958,7 @@ function ReaderDictionary:stardictLookup(word, dict_names, fuzzy_search, boxes, 
     -- Event for plugin to catch lookup with book title
     self.ui:handleEvent(Event:new("WordLookedUp", word, book_title))
     if not self.disable_lookup_history then
-        lookup_history:addTableItem("lookup_history", {
+        lookup_history:addTableItem({
             book_title = book_title,
             time = os.time(),
             word = word,

@@ -5,7 +5,6 @@ Handles append-mostly data such as KOReader's bookmarks and dictionary search hi
 local dump = require("dump")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
-local util = require("util")
 
 local LuaData = {
     max_backups = 9,
@@ -43,33 +42,19 @@ function LuaData:open(file_path, name)
     local data_env = {}
     data_env.__index = data_env
     setmetatable(data_env, data_env)
-    data_env[new.name.."Entry"] = function(table)
-        -- TODO: Remove the index, it's not used at all.
-        if table.index then
-            -- We've got a deleted setting, overwrite with nil and be done with it.
-            if not table.data then
-                new.data[table.index] = nil
-                return
-            end
+    data_env[new.name.."Entry"] = function(t)
+        if not t.data then
+            -- We've got a deleted or currupted setting, ignore it.
+            return
+        end
 
-            if type(table.data) == "table" then
-                new.data[table.index] = new.data[table.index] or {}
-                local size = util.tableSize(table.data)
-                if size == 1 then
-                    -- It's an incremental array element, insert it in the array at its proper index
-                    for key, value in pairs(table.data) do
-                        new.data[table.index][key] = value
-                    end
-                else
-                    -- It's a complex table, just replace the whole thing
-                    new.data[table.index] = table.data
-                end
-            else
-                new.data[table.index] = table.data
+        if type(t.data) == "table" then
+            new.data = new.data or {}
+            for _, value in pairs(t.data) do
+                table.insert(new.data, value)
             end
         else
-            -- It's an untagged blob, use it as-is
-            new.data = table
+            new.data = t.data
         end
     end
 
@@ -104,22 +89,32 @@ function LuaData:open(file_path, name)
     return new
 end
 
-function LuaData:has(key)
-    return #self:readSetting(key) > 0
+function LuaData:notEmpty()
+    return #(self.data or {}) > 0
 end
 
-function LuaData:readSetting(key)
-    return self.data[key] or {}
+function LuaData:readSetting()
+    -- Make a shallow copy.
+    local r = {}
+    for k,v in pairs(self.data) do
+        r[k] = v
+    end
+    return r
 end
 
 --- Adds item to table.
-function LuaData:addTableItem(key, value)
-    local settings_table = self:readSetting(key) or {}
-    table.insert(settings_table, value)
-    self.data[key] = settings_table
+function LuaData:addTableItem(value)
+    self.data = self.data or {}
+    table.insert(self.data, value)
+    -- The key / index is meaningless, but the logic needs to keep compatibility with the original
+    -- data format.
+    -- Note, it's pretty much impossible to tell the difference between
+    -- {[4] = { ["a"] = 1 }}
+    -- and
+    -- { ["a"] = 1}
+    -- without crazily guessing the use cases.
     self:_append{
-        index = key,
-        data = {[#settings_table] = value},
+        data = {[#self.data] = value},
     }
 end
 
