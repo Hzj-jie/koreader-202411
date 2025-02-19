@@ -1635,4 +1635,9 @@ function util.round_decimal(num, points)
     return math.floor(num * op) / op
 end
 
+--- Returns a must-existing directory.
+function util.backup_dir()
+    return require("device").home_dir or "."
+end
+
 return util

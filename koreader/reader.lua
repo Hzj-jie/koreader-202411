@@ -38,6 +38,7 @@ G_defaults = require("luadefaults"):open()
 local DataStorage = require("datastorage")
 G_reader_settings = require("luasettings"):open(
     DataStorage:getDataDir().."/settings.reader.lua")
+G_named_settings = require("named_settings")
 
 -- Apply the JIT opt tweaks ASAP when the C BB is disabled,
 -- because we want to avoid the jit.flush() from bb:enableCBB,
@@ -265,9 +266,8 @@ else
         exit_code = UIManager:run()
     else
         local FileManager = require("apps/filemanager/filemanager")
-        local home_dir = G_reader_settings:readSetting("home_dir") or Device.home_dir or lfs.currentdir()
         -- Instantiate FM
-        FileManager:showFiles(home_dir)
+        FileManager:showFiles(G_named_settings.home_dir())
         -- Always open FM modules on top of filemanager, so closing 'em doesn't result in an exit
         -- because of an empty widget stack, and so they can interact with the FM instance as expected.
         if start_with == "history" then

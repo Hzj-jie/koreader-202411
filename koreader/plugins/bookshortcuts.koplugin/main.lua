@@ -91,7 +91,7 @@ function BookShortcuts:getSubMenuItems()
             keep_menu_open = true,
             callback = function(touchmenu_instance)
                 local path_chooser = PathChooser:new{
-                    path = G_reader_settings:readSetting("home_dir"),
+                    path = G_named_settings.home_dir(),
                     onConfirm = function(path)
                         self:addShortcut(path)
                         touchmenu_instance.item_table = self:getSubMenuItems()

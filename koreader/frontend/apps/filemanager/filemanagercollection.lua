@@ -229,7 +229,7 @@ function FileManagerCollection:showCollDialog()
                 UIManager:close(coll_dialog)
                 local PathChooser = require("ui/widget/pathchooser")
                 local path_chooser = PathChooser:new{
-                    path = G_reader_settings:readSetting("home_dir"),
+                    path = G_named_settings.home_dir(),
                     select_directory = false,
                     onConfirm = function(file)
                         if not ReadCollection:isFileInCollection(file, self.coll_menu.collection_name) then

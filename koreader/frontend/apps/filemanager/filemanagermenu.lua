@@ -337,14 +337,14 @@ function FileManagerMenu:setUpdateItemTable()
                     {
                         text = _("Set home folder"),
                         callback = function()
-                            local title_header = _("Current home folder:")
-                            local current_path = G_reader_settings:readSetting("home_dir")
-                            local default_path = filemanagerutil.getDefaultDir()
-                            local caller_callback = function(path)
-                                G_reader_settings:saveSetting("home_dir", path)
-                                self.ui:updateTitleBarPath()
-                            end
-                            filemanagerutil.showChooseDialog(title_header, caller_callback, current_path, default_path)
+                            filemanagerutil.showChooseDialog(
+                                _("Current home folder:"),
+                                function(path)
+                                    G_reader_settings:saveSetting("home_dir", path)
+                                    self.ui:updateTitleBarPath()
+                                end,
+                                G_reader_settings:readSetting("home_dir"),
+                                require("util").backup_dir())
                         end,
                     },
                     {

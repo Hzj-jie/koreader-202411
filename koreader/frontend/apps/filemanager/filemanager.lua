@@ -1214,7 +1214,7 @@ function FileManager:showFiles(path, focused_file, selected_files)
         FileManager.instance:onClose()
     end
 
-    path = ffiUtil.realpath(path or G_reader_settings:readSetting("lastdir") or filemanagerutil.getDefaultDir())
+    path = ffiUtil.realpath(path or G_named_settings.lastdir())
     G_reader_settings:saveSetting("lastdir", path)
     self:setRotationMode()
     local file_manager = FileManager:new{
@@ -1277,7 +1277,7 @@ function FileManager:onShowFolderMenu()
         }}
     end
 
-    local home_dir = G_reader_settings:readSetting("home_dir") or filemanagerutil.getDefaultDir()
+    local home_dir = G_named_settings.home_dir()
     local home_dir_shortened = G_reader_settings:nilOrTrue("shorten_home_dir")
     local home_dir_not_locked = G_reader_settings:nilOrFalse("lock_home_folder")
     local home_dir_suffix = "  \u{f015}" -- "home" character

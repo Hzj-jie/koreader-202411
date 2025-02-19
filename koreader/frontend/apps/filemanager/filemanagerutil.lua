@@ -15,14 +15,10 @@ local T = ffiutil.template
 
 local filemanagerutil = {}
 
-function filemanagerutil.getDefaultDir()
-    return Device.home_dir or "."
-end
-
 function filemanagerutil.abbreviate(path)
     if not path then return "" end
     if G_reader_settings:nilOrTrue("shorten_home_dir") then
-        local home_dir = G_reader_settings:readSetting("home_dir") or filemanagerutil.getDefaultDir()
+        local home_dir = G_named_settings.home_dir()
         if path == home_dir or path == home_dir .. "/" then
             return _("Home")
         end
@@ -349,7 +345,7 @@ function filemanagerutil.showChooseDialog(title_header, caller_callback, current
                             path = path:match("(.*/)")
                         end
                         if lfs.attributes(path, "mode") ~= "directory" then
-                            path = G_reader_settings:readSetting("home_dir") or filemanagerutil.getDefaultDir()
+                            path = G_named_settings.home_dir()
                         end
                     end
                     local PathChooser = require("ui/widget/pathchooser")

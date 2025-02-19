@@ -66,7 +66,7 @@ local DictQuickLookup = InputContainer:extend{
 }
 
 function DictQuickLookup.getWikiSaveEpubDefaultDir()
-    local dir = G_reader_settings:readSetting("home_dir") or filemanagerutil.getDefaultDir()
+    local dir = G_named_settings.home_dir()
     if dir:sub(-1) ~= "/" then
         dir = dir .. "/"
     end

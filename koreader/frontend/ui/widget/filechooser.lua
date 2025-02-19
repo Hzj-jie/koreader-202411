@@ -299,7 +299,7 @@ end
 function FileChooser:init()
     self.path_items = {}
     if lfs.attributes(self.path, "mode") ~= "directory" then
-        self.path = G_reader_settings:readSetting("home_dir") or filemanagerutil.getDefaultDir()
+        self.path = G_named_settings.home_dir()
     end
     Menu.init(self) -- call parent's init()
     self:refreshPath()
@@ -454,7 +454,7 @@ function FileChooser:genItemTable(dirs, files, path)
 
     if path then -- file browser or PathChooser
         if path ~= "/" and not (G_reader_settings:isTrue("lock_home_folder") and
-                                path == G_reader_settings:readSetting("home_dir")) then
+                                path == G_named_settings.home_dir()) then
             table.insert(item_table, 1, {
                 text = BD.mirroredUILayout() and BD.ltr("../ ⬆") or "⬆ ../",
                 path = path.."/..",
@@ -555,27 +555,25 @@ function FileChooser:changeToPath(path, focused_path)
 end
 
 function FileChooser:goHome()
-    local home_dir = G_reader_settings:readSetting("home_dir")
-    if not home_dir or lfs.attributes(home_dir, "mode") ~= "directory" then
-        -- Try some sane defaults, depending on platform
-        home_dir = Device.home_dir
+    local home_dir = G_named_settings.home_dir()
+    assert(home_dir ~= nil)
+    if lfs.attributes(home_dir, "mode") ~= "directory" then
+        return false
     end
-    if home_dir then
-        -- Jump to the first page if we're already home
-        if self.path and home_dir == self.path then
-            self:onGotoPage(1)
-            -- Also pick up new content, if any.
-            self:refreshPath()
-        else
-            self:changeToPath(home_dir)
-        end
-        return true
+    -- Jump to the first page if we're already home
+    if self.path and home_dir == self.path then
+        self:onGotoPage(1)
+        -- Also pick up new content, if any.
+        self:refreshPath()
+    else
+        self:changeToPath(home_dir)
     end
+    return true
 end
 
 function FileChooser:onFolderUp()
     if not (G_reader_settings:isTrue("lock_home_folder") and
-            self.path == G_reader_settings:readSetting("home_dir")) then
+            self.path == G_named_settings.home_dir()) then
         self:changeToPath(string.format("%s/..", self.path), self.path)
     end
 end

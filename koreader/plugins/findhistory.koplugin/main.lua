@@ -24,11 +24,8 @@ local function getFilePathFromMetadata(file)
 end
 
 local function doBuildHistory()
-    --- home_dir should be returned by some shared logic.
-    local dir = G_reader_settings:readSetting("home_dir")
-                or require("apps/filemanager/filemanagerutil").getDefaultDir()
-                or "."
-    local file = io.popen("find '" .. dir .. "' -name 'metadata.*.lua' -exec stat -c '%N %Y' {} \\;")
+    local file = io.popen("find '" .. G_named_settings.home_dir() .. "' " ..
+                          "-name 'metadata.*.lua' -exec stat -c '%N %Y' {} \\;")
     local records = {}
     for line in file:lines() do
         local f, t = line:match("(.+) (%d+)")

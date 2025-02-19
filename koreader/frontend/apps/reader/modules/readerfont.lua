@@ -875,10 +875,7 @@ function ReaderFont:buildFontsTestDocument()
         html_sample = f:read("*all")
         f:close()
     end
-    local dir = G_reader_settings:readSetting("home_dir")
-             or require("apps/filemanager/filemanagerutil").getDefaultDir()
-             or "."
-    local font_test_final_path = dir .. "/" .. FONT_TEST_FINAL_FILENAME
+    local font_test_final_path = G_named_settings.home_dir() .. "/" .. FONT_TEST_FINAL_FILENAME
     f = io.open(font_test_final_path, "w")
     if not f then return end
     -- Using <section><title>...</title></section> allows for a TOC to be built by crengine
