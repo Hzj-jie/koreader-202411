@@ -1997,7 +1997,7 @@ function ReaderFooter:getAvgTimePerPage() end
 function ReaderFooter:getDataFromStatistics(title, pages)
     local sec = _("N/A")
     local average_time_per_page = self:getAvgTimePerPage()
-    local user_duration_format = G_reader_settings:readSetting("duration_format") or "classic"
+    local user_duration_format = G_named_settings.duration_format()
     if average_time_per_page then
         sec = datetime.secondsToClockDuration(user_duration_format, pages * average_time_per_page, true)
     end

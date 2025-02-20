@@ -1669,7 +1669,7 @@ function ReaderStatistics:getCurrentStat()
     local estimate_days_to_read = math.ceil(time_to_read/(book_read_time/tonumber(total_days)))
     local estimate_end_of_read_date = datetime.secondsToDate(tonumber(now_ts + estimate_days_to_read * 86400), true)
     local estimates_valid = time_to_read > 0 -- above values could be 'nan' and 'nil'
-    local user_duration_format = G_reader_settings:readSetting("duration_format") or "classic"
+    local user_duration_format = G_named_settings.duration_format()
     local avg_page_time_string = datetime.secondsToClockDuration(user_duration_format, self.avg_time, false)
     local avg_day_time_string = datetime.secondsToClockDuration(user_duration_format, book_read_time/tonumber(total_days), false)
     local time_to_read_string = estimates_valid and datetime.secondsToClockDuration(user_duration_format, time_to_read, false) or _("N/A")
@@ -1833,7 +1833,7 @@ function ReaderStatistics:getBookStat(id_book)
     local first_open_days_ago = math.floor(tonumber(now_ts - first_open)/86400)
     local last_open_days_ago = math.floor(tonumber(now_ts - last_open)/86400)
     local avg_time_per_page = book_read_time / book_read_pages
-    local user_duration_format = G_reader_settings:readSetting("duration_format")
+    local user_duration_format = G_named_settings.duration_format()
     local more_arrow = BD.mirroredUILayout() and "◂" or "▸"
     return {
         -- Book metadata
@@ -2026,7 +2026,7 @@ function ReaderStatistics:getDatesFromAll(sdays, ptype, book_mode)
     local now_stamp = os.time()
     local one_day = 86400 -- one day in seconds
     local period_begin = 0
-    local user_duration_format = G_reader_settings:readSetting("duration_format")
+    local user_duration_format = G_named_settings.duration_format()
     if sdays > 0 then
         period_begin = now_stamp - ((sdays-1) * one_day) - from_begin_day
     end
@@ -2138,7 +2138,7 @@ function ReaderStatistics:getDaysFromPeriod(period_begin, period_end)
     if result_book == nil then
         return {}
     end
-    local user_duration_format = G_reader_settings:readSetting("duration_format")
+    local user_duration_format = G_named_settings.duration_format()
     for i=1, #result_book.dates do
         local time_begin = os.time{year=string.sub(result_book[1][i],1,4), month=string.sub(result_book[1][i],6,7),
             day=string.sub(result_book[1][i],9,10), hour=0, min=0, sec=0 }
@@ -2184,7 +2184,7 @@ function ReaderStatistics:getBooksFromPeriod(period_begin, period_end, callback_
     if result_book == nil then
         return {}
     end
-    local user_duration_format = G_reader_settings:readSetting("duration_format")
+    local user_duration_format = G_named_settings.duration_format()
     for i=1, #result_book.title do
         table.insert(results, {
             result_book[1][i],
@@ -2293,7 +2293,7 @@ function ReaderStatistics:getDatesForBook(id_book)
     if result_book == nil then
         return {}
     end
-    local user_duration_format = G_reader_settings:readSetting("duration_format")
+    local user_duration_format = G_named_settings.duration_format()
     for i=1, #result_book.dates do
         table.insert(results, {
             result_book[1][i],
@@ -2379,7 +2379,7 @@ function ReaderStatistics:getTotalStats()
     else
         nr_books = 0
     end
-    local user_duration_format = G_reader_settings:readSetting("duration_format")
+    local user_duration_format = G_named_settings.duration_format()
     for i=1, nr_books do
         local id_book = tonumber(id_book_tbl[1][i])
         sql_stmt = [[
@@ -2477,7 +2477,7 @@ function ReaderStatistics:resetPerBook()
         nr_books = 0
     end
 
-    local user_duration_format = G_reader_settings:readSetting("duration_format")
+    local user_duration_format = G_named_settings.duration_format()
     local total_time_book
     local kv_reset_book
     for i=1, nr_books do

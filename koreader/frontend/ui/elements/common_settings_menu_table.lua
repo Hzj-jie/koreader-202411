@@ -88,7 +88,7 @@ common_settings.time = {
         },
         {
             text_func = function ()
-                local duration_format = G_reader_settings:readSetting("duration_format") or "classic"
+                local duration_format = G_named_settings.duration_format()
                 local text = C_("Time", "Classic")
                 if duration_format == "modern" then
                     text = C_("Time", "Modern")
@@ -106,7 +106,7 @@ common_settings.time = {
                         return T(C_("Time", "Classic (%1)"), duration_format_str)
                     end,
                     checked_func = function()
-                        return G_reader_settings:readSetting("duration_format") == "classic"
+                        return G_named_settings.duration_format() == "classic"
                     end,
                     callback = function()
                         G_reader_settings:saveSetting("duration_format", "classic")
@@ -121,7 +121,7 @@ common_settings.time = {
                         return T(C_("Time", "Modern (%1)"), duration_format_str)
                     end,
                     checked_func = function()
-                        return G_reader_settings:readSetting("duration_format") == "modern"
+                        return G_named_settings.duration_format() == "modern"
                     end,
                     callback = function()
                         G_reader_settings:saveSetting("duration_format", "modern")
@@ -136,7 +136,7 @@ common_settings.time = {
                         return T(C_("Time", "Letters (%1)"), duration_format_str)
                     end,
                     checked_func = function()
-                        return G_reader_settings:readSetting("duration_format") == "letters"
+                        return G_named_settings.duration_format() == "letters"
                     end,
                     callback = function()
                         G_reader_settings:saveSetting("duration_format", "letters")

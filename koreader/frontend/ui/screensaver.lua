@@ -99,7 +99,7 @@ function Screensaver:_calcAverageTimeForPages(pages)
 
     -- Compare average_time_per_page against itself to make sure it's not nan
     if average_time_per_page and average_time_per_page == average_time_per_page and pages then
-        local user_duration_format = G_reader_settings:readSetting("duration_format") or "classic"
+        local user_duration_format = G_named_settings.duration_format()
         sec = datetime.secondsToClockDuration(user_duration_format, pages * average_time_per_page, true)
     end
     return sec

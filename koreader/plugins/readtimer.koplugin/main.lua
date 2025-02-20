@@ -233,7 +233,7 @@ function ReadTimer:addToMainMenu(menu_items)
     menu_items.read_timer = {
         text_func = function()
             if self:scheduled() then
-                local user_duration_format = G_reader_settings:readSetting("duration_format")
+                local user_duration_format = G_named_settings.duration_format()
                 return T(_("Read timer (%1)"),
                     datetime.secondsToClockDuration(user_duration_format, self:remaining(), false))
             else
@@ -267,7 +267,7 @@ function ReadTimer:addToMainMenu(menu_items)
                             local seconds = os.difftime(os.time(then_t), os.time())
                             if seconds > 0 then
                                 self:rescheduleIn(seconds)
-                                local user_duration_format = G_reader_settings:readSetting("duration_format")
+                                local user_duration_format = G_named_settings.duration_format()
                                 UIManager:show(InfoMessage:new{
                                     -- @translators %1:%2 is a clock time (HH:MM), %3 is a duration
                                     text = T(_("Timer set for %1:%2.\n\nThat's %3 from now."),
@@ -314,7 +314,7 @@ function ReadTimer:addToMainMenu(menu_items)
                             if seconds > 0 then
                                 self.last_interval_time = seconds
                                 self:rescheduleIn(seconds)
-                                local user_duration_format = G_reader_settings:readSetting("duration_format")
+                                local user_duration_format = G_named_settings.duration_format()
                                 UIManager:show(InfoMessage:new{
                                     -- @translators This is a duration
                                     text = T(_("Timer will expire in %1."),

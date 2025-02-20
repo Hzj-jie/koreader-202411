@@ -199,7 +199,7 @@ function ReaderProgress:genWeekStats(stats_day)
     local select_day_time
     local diff_time
     local now_time = os.time()
-    local user_duration_format = G_reader_settings:readSetting("duration_format")
+    local user_duration_format = G_named_settings.duration_format()
     local height = Screen:scaleBySize(60)
     local statistics_container = CenterContainer:new{
         dimen = Geom:new{ w = self.screen_width , h = height },
@@ -287,7 +287,7 @@ function ReaderProgress:genSummaryDay(width)
     local statistics_group = VerticalGroup:new{ align = "left" }
     local tile_width = width * (1/4)
     local tile_height = height * (1/3)
-    local user_duration_format = G_reader_settings:readSetting("duration_format")
+    local user_duration_format = G_named_settings.duration_format()
 
     local titles_group = HorizontalGroup:new{
         align = "center",
@@ -382,7 +382,7 @@ function ReaderProgress:genSummaryWeek(width)
     local statistics_group = VerticalGroup:new{ align = "left" }
     local tile_width = width * (1/4)
     local tile_height = height * (1/3)
-    local user_duration_format = G_reader_settings:readSetting("duration_format")
+    local user_duration_format = G_named_settings.duration_format()
     local total_group = HorizontalGroup:new{
         align = "center",
         CenterContainer:new{

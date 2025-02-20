@@ -48,4 +48,8 @@ function named_settings.document_metadata_folder()
   return G_reader_settings:readSetting("document_metadata_folder") or "doc"
 end
 
+function named_settings.duration_format()
+  return G_reader_settings:readSetting("duration_format") or "classic"
+end
+
 return named_settings
