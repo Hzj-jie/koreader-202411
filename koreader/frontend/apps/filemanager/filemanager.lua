@@ -312,6 +312,9 @@ function FileManager:setupLayout()
             table.insert(buttons, {
                 {
                     text = _("Set as HOME folder"),
+                    enabled_func = function()
+                        return folder ~= G_named_settings.home_dir()
+                    end,
                     callback = function()
                         UIManager:close(self.file_dialog)
                         file_manager:setHome(folder)
@@ -638,6 +641,9 @@ function FileManager:tapPlus()
             {
                 {
                     text = _("Set as HOME folder"),
+                    enabled_func = function()
+                        return self.file_chooser.path ~= G_named_settings.home_dir()
+                    end,
                     callback = function()
                         UIManager:close(self.file_dialog)
                         self:setHome()
@@ -647,6 +653,10 @@ function FileManager:tapPlus()
             {
                 {
                     text = _("Go to HOME folder"),
+                    enabled_func = function()
+                        return self.file_chooser.path ~= G_named_settings.home_dir() or
+                               self.file_chooser.page > 1
+                    end,
                     callback = function()
                         UIManager:close(self.file_dialog)
                         self:goHome()
