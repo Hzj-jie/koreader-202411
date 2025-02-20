@@ -180,7 +180,7 @@ function AutoSuspend:init()
     self.auto_suspend_timeout_seconds = G_reader_settings:readSetting("auto_suspend_timeout_seconds",
         default_auto_suspend_timeout_seconds)
     -- Disabled, until the user opts in.
-    self.auto_standby_timeout_seconds = G_reader_settings:readSetting("auto_standby_timeout_seconds", -1)
+    self.auto_standby_timeout_seconds = G_named_settings.auto_standby_timeout_seconds()
 
     -- We only want those to exist as *instance* members
     self.is_standby_scheduled = false

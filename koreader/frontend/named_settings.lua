@@ -20,4 +20,20 @@ function named_settings.activate_menu()
   return G_reader_settings:readSetting("activate_menu") or "swipe_tap"
 end
 
+function named_settings.auto_standby_timeout_seconds()
+  return G_reader_settings:readSetting("auto_standby_timeout_seconds") or -1
+end
+
+function named_settings.back_in_filemanager()
+  return G_reader_settings:readSetting("back_in_filemanager") or "default"
+end
+
+function named_settings.back_in_reader()
+  return G_reader_settings:readSetting("back_in_reader") or "previous_location"
+end
+
+function named_settings.back_to_exit()
+  return G_reader_settings:readSetting("back_to_exit") or "prompt"
+end
+
 return named_settings

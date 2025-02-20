@@ -393,7 +393,7 @@ local function genGenericMenuEntry(title, setting, value, default, radiomark)
 end
 common_settings.back_to_exit = {
     text_func = function()
-        local back_to_exit = G_reader_settings:readSetting("back_to_exit") or "prompt" -- set "back_to_exit" to "prompt"
+        local back_to_exit = G_named_settings.back_to_exit()
         return T(_("Back to exit: %1"), back_to_exit_str[back_to_exit][2])
     end,
     sub_item_table = {
@@ -405,7 +405,7 @@ common_settings.back_to_exit = {
 common_settings.back_in_filemanager = {
     text_func = function()
         local menu_info = ""
-        local back_in_filemanager = G_reader_settings:readSetting("back_in_filemanager") or "default" -- set "back_in_filemanager" to "default"
+        local back_in_filemanager = G_named_settings.back_in_filemanager()
         if back_in_filemanager == "default" then
             menu_info = _("back to exit")
         elseif back_in_filemanager == "parent_folder" then
@@ -416,11 +416,11 @@ common_settings.back_in_filemanager = {
     sub_item_table = {
         {
             text_func = function()
-                local back_to_exit = G_reader_settings:readSetting("back_to_exit") or "prompt"
+                local back_to_exit = G_named_settings.back_to_exit()
                 return T(_("Back to exit (%1)"), back_to_exit_str[back_to_exit][2])
             end,
             checked_func = function()
-                return (G_reader_settings:readSetting("back_in_filemanager") or "default") == "default"
+                return G_named_settings.back_in_filemanager() == "default"
             end,
             callback = function()
                 G_reader_settings:saveSetting("back_in_filemanager", "default")
@@ -433,7 +433,7 @@ common_settings.back_in_reader = {
     -- All these options are managed by ReaderBack
     text_func = function()
         local menu_info = ""
-        local back_in_reader = G_reader_settings:readSetting("back_in_reader") or "previous_location" -- set "back_in_reader" to "previous_location"
+        local back_in_reader = G_named_settings.back_in_reader()
         if back_in_reader == "default" then
             menu_info = _("back to exit")
         elseif back_in_reader == "filebrowser" then
@@ -448,11 +448,11 @@ common_settings.back_in_reader = {
     sub_item_table = {
         {
             text_func = function()
-                local back_to_exit = G_reader_settings:readSetting("back_to_exit") or "prompt"
+                local back_to_exit = G_named_settings.back_to_exit()
                 return T(_("Back to exit (%1)"), back_to_exit_str[back_to_exit][2])
             end,
             checked_func = function()
-                return G_reader_settings:readSetting("back_in_reader") == "default"
+                return G_named_settings.back_in_reader() == "default"
             end,
             callback = function()
                 G_reader_settings:saveSetting("back_in_reader", "default")
