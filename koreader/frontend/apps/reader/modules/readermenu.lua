@@ -59,7 +59,7 @@ function ReaderMenu:init()
 
     self:registerKeyEvents()
 
-    self.activation_menu = G_reader_settings:readSetting("activate_menu") or "swipe_tap"
+    self.activation_menu = G_named_settings.activate_menu()
 
     -- delegate gesture listener to readerui, NOP our own
     self.ges_events = nil

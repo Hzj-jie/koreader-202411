@@ -16,4 +16,8 @@ function named_settings.lastdir()
   return G_reader_settings:readSetting("lastdir") or require("util").backup_dir()
 end
 
+function named_settings.activate_menu()
+  return G_reader_settings:readSetting("activate_menu") or "swipe_tap"
+end
+
 return named_settings

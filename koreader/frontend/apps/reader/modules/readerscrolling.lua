@@ -76,7 +76,7 @@ end
 
 function ReaderScrolling:getDefaultScrollActivationDelay_ms()
     if (self.ui.gestures and self.ui.gestures.multiswipes_enabled)
-                or G_reader_settings:readSetting("activate_menu") ~= "tap" then
+                or G_named_settings.activate_menu() ~= "tap" then
         -- If swipes to show menu or multiswipes are enabled, higher default
         -- scroll activation delay to avoid scrolling and restoring when
         -- doing swipes

@@ -7,10 +7,10 @@ return {
         {
             text = _("With a tap"),
             checked_func = function()
-                return G_reader_settings:readSetting("activate_menu") ~= "swipe"
+                return G_named_settings.activate_menu() ~= "swipe"
             end,
             callback = function()
-                if G_reader_settings:readSetting("activate_menu") ~= "swipe" then
+                if G_named_settings.activate_menu() ~= "swipe" then
                     G_reader_settings:saveSetting("activate_menu", "swipe")
                 else
                     G_reader_settings:saveSetting("activate_menu", "swipe_tap")
@@ -21,10 +21,10 @@ return {
         {
             text = _("With a swipe"),
             checked_func = function()
-                return G_reader_settings:readSetting("activate_menu") ~= "tap"
+                return G_named_settings.activate_menu() ~= "tap"
             end,
             callback = function()
-                if G_reader_settings:readSetting("activate_menu") ~= "tap" then
+                if G_named_settings.activate_menu() ~= "tap" then
                     G_reader_settings:saveSetting("activate_menu", "tap")
                 else
                     G_reader_settings:saveSetting("activate_menu", "swipe_tap")

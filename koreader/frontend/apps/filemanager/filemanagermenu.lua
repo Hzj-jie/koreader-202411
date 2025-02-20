@@ -52,10 +52,7 @@ function FileManagerMenu:init()
 
     self:registerKeyEvents()
 
-    self.activation_menu = G_reader_settings:readSetting("activate_menu")
-    if self.activation_menu == nil then
-        self.activation_menu = "swipe_tap"
-    end
+    self.activation_menu = G_named_settings.activate_menu()
 end
 
 function FileManagerMenu:registerKeyEvents()
