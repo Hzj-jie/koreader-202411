@@ -574,7 +574,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
                     callback = function()
                         if self.document:_checkIfWritable() then
                             self.highlight_write_into_pdf = true
-                            if G_reader_settings:readSetting("document_metadata_folder") == "hash" then
+                            if G_named_settings.document_metadata_folder() == "hash" then
                                 UIManager:show(InfoMessage:new{
                                     text = _("Warning: Book metadata location is set to hash-based storage. Writing highlights into a PDF modifies the file which may change the partial hash, resulting in its metadata (e.g., highlights and progress) being unlinked and lost."),
                                     icon = "notice-warning",

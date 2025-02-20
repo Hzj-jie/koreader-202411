@@ -93,7 +93,7 @@ function DictQuickLookup:canSearch()
 end
 
 function DictQuickLookup:init()
-    self.dict_font_size = G_reader_settings:readSetting("dict_font_size") or 20
+    self.dict_font_size = G_named_settings.dict_font_size()
     self.content_face = Font:getFace("cfont", self.dict_font_size)
     local font_size_alt = self.dict_font_size - 4
     if font_size_alt < 8 then

@@ -92,7 +92,7 @@ end
 
 -- Public wrapper for callers outside of ConfigOption, where we can't pull name_text_unit from option
 function optionsutil.formatFlexSize(value, unit)
-    unit = unit or G_reader_settings:readSetting("dimension_units") or "mm"
+    unit = unit or G_named_settings.dimension_units()
     return formatFlexSize(value, unit)
 end
 
@@ -110,7 +110,7 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
     local value_default, value_current
     unit = unit or option.name_text_unit
     if unit and unit ~= "pt" then
-        unit = G_reader_settings:readSetting("dimension_units") or "mm"
+        unit = G_named_settings.dimension_units()
     end
     if option.toggle and option.values then
         -- build a table so we can see if current/default settings map
@@ -215,7 +215,7 @@ end
 function optionsutil.showValuesHMargins(configurable, option)
     local default = G_reader_settings:readSetting("copt_"..option.name)
     local current = configurable[option.name]
-    local unit = G_reader_settings:readSetting("dimension_units") or "mm"
+    local unit = G_named_settings.dimension_units()
     if not default then
         UIManager:show(InfoMessage:new{
             text = T(_([[

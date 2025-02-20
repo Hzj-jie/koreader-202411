@@ -36,4 +36,16 @@ function named_settings.back_to_exit()
   return G_reader_settings:readSetting("back_to_exit") or "prompt"
 end
 
+function named_settings.dict_font_size()
+  return G_reader_settings:readSetting("dict_font_size") or 20
+end
+
+function named_settings.dimension_units()
+  return G_reader_settings:readSetting("dimension_units") or "mm"
+end
+
+function named_settings.document_metadata_folder()
+  return G_reader_settings:readSetting("document_metadata_folder") or "doc"
+end
+
 return named_settings

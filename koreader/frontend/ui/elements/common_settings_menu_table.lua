@@ -573,10 +573,10 @@ local function genMetadataFolderMenuItem(value)
     return {
         text = metadata_folder_str[value],
         checked_func = function()
-            return G_reader_settings:readSetting("document_metadata_folder") == value
+            return G_named_settings.document_metadata_folder() == value
         end,
         callback = function()
-            local old_value = G_reader_settings:readSetting("document_metadata_folder")
+            local old_value = G_named_settings.document_metadata_folder()
             if value ~= old_value then
                 G_reader_settings:saveSetting("document_metadata_folder", value)
                 if value == "hash" then
@@ -597,7 +597,7 @@ end
 
 common_settings.document_metadata_location = {
     text_func = function()
-        local value = G_reader_settings:readSetting("document_metadata_folder") or "doc"
+        local value = G_named_settings.document_metadata_folder()
         return T(_("Book metadata location: %1"), metadata_folder_str[value])
     end,
     help_text = metadata_folder_help_text,
@@ -618,7 +618,7 @@ common_settings.document_metadata_location = {
                 local hash_text = _("Show documents with hash-based metadata")
                 local no_hash_text = _("No documents with hash-based metadata")
                 if DocSettings.isHashLocationEnabled() then
-                    if G_reader_settings:readSetting("document_metadata_folder") ~= "hash" then
+                    if G_named_settings.document_metadata_folder() ~= "hash" then
                         return  "⚠ " .. hash_text
                     end
                     return  hash_text
@@ -717,7 +717,7 @@ common_settings.font_ui_fallbacks = dofile("frontend/ui/elements/font_ui_fallbac
 
 common_settings.units = {
     text_func = function()
-        local unit = G_reader_settings:readSetting("dimension_units") or "mm"
+        local unit = G_named_settings.dimension_units()
         return T(_("Dimension units: %1"), unit)
     end,
     sub_item_table = {
@@ -727,7 +727,7 @@ common_settings.units = {
                 return G_reader_settings:isTrue("dimension_units_append_px")
             end,
             enabled_func = function()
-                return G_reader_settings:readSetting("dimension_units") ~= "px"
+                return G_named_settings.dimension_units() ~= "px"
             end,
             callback = function()
                 G_reader_settings:flipNilOrFalse("dimension_units_append_px")

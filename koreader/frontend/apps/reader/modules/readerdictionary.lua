@@ -358,12 +358,12 @@ function ReaderDictionary:addToMainMenu(menu_items)
             },
             { -- setting used by dictquicklookup
                 text_func = function()
-                    local font_size = G_reader_settings:readSetting("dict_font_size") or 20
+                    local font_size = G_named_settings.dict_font_size()
                     return T(_("Font size: %1"), font_size)
                 end,
                 callback = function(touchmenu_instance)
                     local SpinWidget = require("ui/widget/spinwidget")
-                    local font_size = G_reader_settings:readSetting("dict_font_size") or 20
+                    local font_size = G_named_settings.dict_font_size()
                     local items_font = SpinWidget:new{
                         value = font_size,
                         value_min = 8,
