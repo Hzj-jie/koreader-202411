@@ -78,6 +78,8 @@ end
 @param key The setting's key
 ]]
 function LuaSettings:readSetting(key)
+    return self.data[key]
+    --[[-- Emmm, some logic relies on changing the returned table directly.
     local r = self.data[key]
     if type(r) ~= 'table' then return r end
     -- Make a shallow copy.
@@ -86,6 +88,7 @@ function LuaSettings:readSetting(key)
         r2[k] = v
     end
     return r2
+    ]]
 end
 
 --- Saves a setting.
