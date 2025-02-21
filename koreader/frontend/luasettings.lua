@@ -92,8 +92,21 @@ end
 function LuaSettings:saveSetting(key, value, default_value)
     -- Setting value to nil is same as self.delSetting(key), no reason to
     -- dump and compare the value in the case.
-    if default_value ~= nil and dump(value, nil, true) == dump(default_value, nil, true) then
+    if value == nil then
         return self:delSetting(key)
+    end
+    if default_value == nil or type(value) ~= type(default_value) then
+        self.data[key] = value
+        return self
+    end
+    if type(value) == "table" then
+        if dump(value, nil, true) == dump(default_value, nil, true) then
+            return self:delSetting(key)
+        end
+    else
+        if value == default_value then
+            return self:delSetting(key)
+        end
     end
     self.data[key] = value
     return self

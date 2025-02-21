@@ -191,7 +191,7 @@ function FileManagerMenu:setUpdateItemTable()
                                 default_value = default_value,
                                 keep_shown_on_apply = true,
                                 callback = function(spin)
-                                    G_reader_settings:saveSetting("items_per_page", spin.value)
+                                    G_reader_settings:saveSetting("items_per_page", spin.value, default_value)
                                     FileChooser:refreshPath()
                                     touchmenu_instance:updateItems()
                                 end,
@@ -216,14 +216,10 @@ function FileManagerMenu:setUpdateItemTable()
                                 default_value = default_value,
                                 keep_shown_on_apply = true,
                                 callback = function(spin)
-                                    if spin.value == default_value then
-                                        -- We can't know if the user has set a size or hit "Use default", but
-                                        -- assume that if it is the default font size, he will prefer to have
-                                        -- our default font size if he later updates per-page
-                                        G_reader_settings:delSetting("items_font_size")
-                                    else
-                                        G_reader_settings:saveSetting("items_font_size", spin.value)
-                                    end
+                                    -- We can't know if the user has set a size or hit "Use default", but
+                                    -- assume that if it is the default font size, he will prefer to have
+                                    -- our default font size if he later updates per-page
+                                    G_reader_settings:saveSetting("items_font_size", spin.value, default_value)
                                     FileChooser:refreshPath()
                                     touchmenu_instance:updateItems()
                                 end,
@@ -245,13 +241,13 @@ function FileManagerMenu:setUpdateItemTable()
                     {
                         text = _("Show opened files in bold"),
                         checked_func = function()
-                            return G_reader_settings:readSetting("show_file_in_bold") == "opened"
+                            return G_named_settings.show_file_in_bold() == "opened"
                         end,
                         callback = function()
-                            if G_reader_settings:readSetting("show_file_in_bold") == "opened" then
-                                G_reader_settings:saveSetting("show_file_in_bold", false)
+                            if G_named_settings.show_file_in_bold() == "opened" then
+                                G_named_settings.set.show_file_in_bold("none")
                             else
-                                G_reader_settings:saveSetting("show_file_in_bold", "opened")
+                                G_named_settings.set.show_file_in_bold("opened")
                             end
                             self.ui:onRefresh()
                         end,
@@ -259,13 +255,13 @@ function FileManagerMenu:setUpdateItemTable()
                     {
                         text = _("Show new (not yet opened) files in bold"),
                         checked_func = function()
-                            return G_reader_settings:hasNot("show_file_in_bold")
+                            return G_named_settings.show_file_in_bold() == "new"
                         end,
                         callback = function()
-                            if G_reader_settings:hasNot("show_file_in_bold") then
-                                G_reader_settings:saveSetting("show_file_in_bold", false)
+                            if G_named_settings.show_file_in_bold() == "new" then
+                                G_named_settings.set.show_file_in_bold("none")
                             else
-                                G_reader_settings:delSetting("show_file_in_bold")
+                                G_named_settings.set.show_file_in_bold("new")
                             end
                             self.ui:onRefresh()
                         end,

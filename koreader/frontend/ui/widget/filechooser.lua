@@ -360,15 +360,14 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
         -- set to false to show all files in regular font
         -- set to "opened" to show opened files in bold
         -- otherwise, show new files in bold
-        local show_file_in_bold = G_reader_settings:readSetting("show_file_in_bold")
+        local show_file_in_bold = G_named_settings.show_file_in_bold()
         item.bidi_wrap_func = BD.filename
         item.is_file = true
-        if show_file_in_bold ~= false then
-            item.opened = DocSettings:hasSidecarFile(fullpath)
+        item.opened = DocSettings:hasSidecarFile(fullpath)
+        if show_file_in_bold == "new" then
+            item.bold = not item.opened
+        elseif show_file_in_bold == "opened" then
             item.bold = item.opened
-            if show_file_in_bold ~= "opened" then
-                item.bold = not item.bold
-            end
         end
         item.dim = self.filemanager and self.filemanager.selected_files
                    and self.filemanager.selected_files[item.path]

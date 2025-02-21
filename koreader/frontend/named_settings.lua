@@ -4,7 +4,9 @@
 --- as well as the preexistent of the value in the G_require("named_settings").
 --- Unless there is a clear reason, functions won't return nil or empty values.
 
-local named_settings = {}
+local named_settings = {
+  set = {}
+}
 
 function named_settings.home_dir()
   -- Use of readSetting("home_dir") should still be possible but very limited, e.g. protected by
@@ -50,6 +52,14 @@ end
 
 function named_settings.duration_format()
   return G_reader_settings:readSetting("duration_format") or "classic"
+end
+
+function named_settings.show_file_in_bold()
+  return G_reader_settings:readSetting("show_file_in_bold") or "new"
+end
+
+function named_settings.set.show_file_in_bold(value)
+  return G_reader_settings:saveSetting("show_file_in_bold", value, "new")
 end
 
 return named_settings
