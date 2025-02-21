@@ -1,3 +1,4 @@
+local CreUtil = require("creutil")
 local Event = require("ui/event")
 local Device = require("device")
 local EventListener = require("ui/widget/eventlistener")
@@ -539,7 +540,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
                                 "cre_header_status_font_size",
                                 "crengine.page.header.font.size",
                                 spin.value,
-                                spin.value * Device:getDeviceScreenDPI() / 160)
+                                CreUtil.font_size(spin.value))
                             -- This will probably needs a re-rendering, so make sure it happens now.
                             self.ui:handleEvent(Event:new("UpdatePos"))
                         end

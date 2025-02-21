@@ -1,5 +1,6 @@
 local Blitbuffer = require("ffi/blitbuffer")
 local CanvasContext = require("document/canvascontext")
+local CreUtil = require("creutil")
 local DataStorage = require("datastorage")
 local Document = require("document/document")
 local FontList = require("fontlist")
@@ -304,7 +305,7 @@ function CreDocument:setupDefaultView()
     -- set top status bar font size
     if G_reader_settings:has("cre_header_status_font_size") then
         self._document:setIntProperty("crengine.page.header.font.size",
-            G_reader_settings:readSetting("cre_header_status_font_size"))
+            CreUtil.font_size(G_reader_settings:readSetting("cre_header_status_font_size")))
     end
 
     -- One can set these to change from white background
