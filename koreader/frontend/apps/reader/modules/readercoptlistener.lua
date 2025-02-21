@@ -333,8 +333,9 @@ function ReaderCoptListener:removeAdditionalHeaderContent(content_func)
     end
 end
 
-function ReaderCoptListener:setAndSave(setting, property, value)
-    self.document._document:setIntProperty(property, value)
+function ReaderCoptListener:setAndSave(setting, property, value, property_value)
+    property_value = property_value or value
+    self.document._document:setIntProperty(property, property_value)
     G_reader_settings:saveSetting(setting, value)
     self:onUpdateHeader()
 end
@@ -534,7 +535,11 @@ function ReaderCoptListener:getAltStatusBarMenu()
                         title_text =  _("Size of top status bar"),
                         ok_text = _("Set size"),
                         callback = function(spin)
-                            self:setAndSave("cre_header_status_font_size", "crengine.page.header.font.size", spin.value)
+                            self:setAndSave(
+                                "cre_header_status_font_size",
+                                "crengine.page.header.font.size",
+                                spin.value,
+                                spin.value * Device:getDeviceScreenDPI() / 160)
                             -- This will probably needs a re-rendering, so make sure it happens now.
                             self.ui:handleEvent(Event:new("UpdatePos"))
                         end
