@@ -49,8 +49,7 @@ local function convertSizeTo(px, format)
     end
 
     -- We want the actual physical screen DPI if available, not a user override
-    local display_dpi = Device:getDeviceScreenDPI() or Screen:getDPI()
-    return Screen:scaleBySize(px) / display_dpi * format_factor
+    return Screen:scaleBySize(px) / Device:getDeviceScreenDPI() * format_factor
 end
 
 local function formatFlexSize(value, unit)
