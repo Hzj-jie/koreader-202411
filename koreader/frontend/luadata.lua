@@ -90,16 +90,15 @@ function LuaData:open(file_path, name)
 end
 
 function LuaData:notEmpty()
-    return #(self.data or {}) > 0
+    return not self:empty()
+end
+
+function LuaData:empty()
+    return #(self.data or {}) == 0
 end
 
 function LuaData:readSetting()
-    -- Make a shallow copy.
-    local r = {}
-    for k,v in pairs(self.data) do
-        r[k] = v
-    end
-    return r
+    return self.data
 end
 
 --- Adds item to table.

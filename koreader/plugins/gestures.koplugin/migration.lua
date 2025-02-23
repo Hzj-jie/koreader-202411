@@ -5,7 +5,7 @@ local Migration = {}
 
 local custom_multiswipes_path = DataStorage:getSettingsDir().."/multiswipes.lua"
 local custom_multiswipes = LuaData:open(custom_multiswipes_path, "MultiSwipes")
-local custom_multiswipes_table = custom_multiswipes:readSetting("multiswipes")
+local custom_multiswipes_table = custom_multiswipes:readSetting()
 
 function Migration:convertAction(location, ges, action)
     local result

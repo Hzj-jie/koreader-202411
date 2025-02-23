@@ -116,35 +116,36 @@ function VocabularyBuilder:insertLookupData(db_conn)
     local file_path = DataStorage:getSettingsDir() .. "/lookup_history.lua"
 
     local lookup_history = LuaData:open(file_path, "LookupHistory")
-    if lookup_history:has("lookup_history") then
-        local lookup_history_table = lookup_history:readSetting("lookup_history")
-        local book_titles = {}
-        local stmt = db_conn:prepare("INSERT INTO title (name) values (?);")
-        for i = #lookup_history_table, 1, -1 do
-            local book_title = lookup_history_table[i].book_title or ""
-            if not book_titles[book_title] then
-                stmt:bind(book_title)
-                stmt:step()
-                stmt:clearbind():reset()
-                book_titles[book_title] = true
-            end
-        end
+    if lookup_history:empty() then
+        return
+    end
 
-        local words = {}
-        local insert_sql = [[INSERT OR REPLACE INTO vocabulary
-                            (word, title_id, create_time, due_time, review_time) values
-                            (?, (SELECT id FROM title WHERE name = ?), ?, ?, ?);]]
-        stmt = db_conn:prepare(insert_sql)
-        for i = #lookup_history_table, 1, -1 do
-            local value = lookup_history_table[i]
-            if not words[value.word] then
-                stmt:bind(value.word, value.book_title or "", value.time, value.time + 5*60, value.time)
-                stmt:step()
-                stmt:clearbind():reset()
-                words[value.word] = true
-            end
+    local lookup_history_table = lookup_history:readSetting()
+    local book_titles = {}
+    local stmt = db_conn:prepare("INSERT INTO title (name) values (?);")
+    for i = #lookup_history_table, 1, -1 do
+        local book_title = lookup_history_table[i].book_title or ""
+        if not book_titles[book_title] then
+            stmt:bind(book_title)
+            stmt:step()
+            stmt:clearbind():reset()
+            book_titles[book_title] = true
         end
+    end
 
+    local words = {}
+    local insert_sql = [[INSERT OR REPLACE INTO vocabulary
+                        (word, title_id, create_time, due_time, review_time) values
+                        (?, (SELECT id FROM title WHERE name = ?), ?, ?, ?);]]
+    stmt = db_conn:prepare(insert_sql)
+    for i = #lookup_history_table, 1, -1 do
+        local value = lookup_history_table[i]
+        if not words[value.word] then
+            stmt:bind(value.word, value.book_title or "", value.time, value.time + 5*60, value.time)
+            stmt:step()
+            stmt:clearbind():reset()
+            words[value.word] = true
+        end
     end
 end
 
