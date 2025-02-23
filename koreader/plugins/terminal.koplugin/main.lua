@@ -584,7 +584,7 @@ Aliases (shortcuts) to frequently used commands can be placed in:
                         G_reader_settings:readSetting("terminal_font_size") or 14)
                 end,
                 callback = function(touchmenu_instance)
-                    local cur_size = G_reader_settings:readSetting("terminal_font_size")
+                    local cur_size = G_reader_settings:readSetting("terminal_font_size") or 14
                     local size_spin = SpinWidget:new{
                         value = cur_size,
                         value_min = 8,
