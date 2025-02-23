@@ -13,7 +13,7 @@ cd "${TERMINAL_DATA}" || exit
 TERMINAL_DATA="$(pwd)"
 HOME="${TERMINAL_DATA}"
 
-PATH="${PATH}:${TERMINAL_DATA}/scripts:${TERMINAL_HOME}/plugins/terminal.koplugin/"
+PATH="${TERMINAL_DATA}/scripts:${TERMINAL_HOME}/plugins/terminal.koplugin/:${PATH}"
 TERM="vt52"
 
 PS1="$ "
