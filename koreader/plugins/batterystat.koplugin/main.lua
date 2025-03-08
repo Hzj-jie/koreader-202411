@@ -207,8 +207,12 @@ function BatteryStat:showStatistics()
             text = _("Are you sure that you want to clear battery statistics?"),
             ok_text = _("Clear"),
             ok_callback = function()
-                self:resetAll()
-                self:restart()
+                self:reset(true, true, true)
+                self.charging_state = State:new()
+                self.awake_state = State:new()
+                dbg.dassert(self.kv_page ~= nil)
+                UIManager:close(self.kv_page)
+                self:showStatistics()
             end,
         })
     end
@@ -231,8 +235,11 @@ function BatteryStat:showStatistics()
     UIManager:show(self.kv_page)
 end
 
-function BatteryStat:reset(withCharging, withDischarging)
+function BatteryStat:reset(withCharging, withDischarging, forceReset)
     self:dumpToText()
+    if G_defaults:isTrue("BATTERY_STAT_DO_NOT_RESET") and not forceReset then
+        return
+    end
     self.awake = Usage:new()
     self.sleeping = Usage:new()
 
@@ -245,19 +252,10 @@ function BatteryStat:reset(withCharging, withDischarging)
     self.awake_state = State:new()
 end
 
-function BatteryStat:resetAll()
-    self:reset(true, true)
-    self.charging_state = State:new()
-    self.awake_state = State:new()
-end
-
-function BatteryStat:restart()
-    dbg.dassert(self.kv_page ~= nil)
-    UIManager:close(self.kv_page)
-    self:showStatistics()
-end
-
 function BatteryStat:dumpToText()
+    if G_defaults:isTrue("BATTERY_STAT_DO_NOT_DUMP") then
+        return
+    end
     local kv_pairs = self:dump()
     local content = T(_("Dump at %1"), os.date("%c"))
     for _, pair in ipairs(kv_pairs) do
