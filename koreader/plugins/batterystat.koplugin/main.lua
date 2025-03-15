@@ -225,10 +225,6 @@ function BatteryStat:showStatistics()
                                 UIManager:setDirty(self.kv_page, "fast")
                                 UIManager:scheduleIn(0.1, askResetData)
                             end})
-    table.insert(kv_pairs, {_("Tap to dump the data."), "",
-                            callback = function()
-                                self:dumpToText(true)
-                            end})
     self.kv_page = KeyValuePage:new{
         title = T(_("Battery statistics (now %1%)"), self.awake_state.percentage),
         kv_pairs = kv_pairs,
@@ -254,8 +250,8 @@ function BatteryStat:reset(withCharging, withDischarging, forceReset)
     self.awake_state = State:new()
 end
 
-function BatteryStat:dumpToText(forceDump)
-    if G_defaults:isTrue("BATTERY_STAT_DO_NOT_DUMP") and not forceDump then
+function BatteryStat:dumpToText()
+    if G_defaults:isTrue("BATTERY_STAT_DO_NOT_DUMP") then
         return
     end
     local kv_pairs = self:dump()
