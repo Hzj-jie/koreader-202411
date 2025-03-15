@@ -68,22 +68,23 @@ end
 function ReaderMenu:onGesture() end
 
 function ReaderMenu:registerKeyEvents()
-    if Device:hasKeys() then
-        if Device:isTouchDevice() then
-            self.key_events.PressMenu = { { "Menu" } }
-            if Device:hasFewKeys() then
-                self.key_events.PressMenu = { { { "Menu", "Right" } } }
-            end
-        else
-            -- Map Menu key to top menu only, because the bottom menu is only designed for touch devices.
-            --- @fixme: Is this still the case?
-            ---         (Swapping between top and bottom might not be implemented, though, so it might still be a good idea).
-            self.key_events.ShowMenu = { { "Menu" } }
-            if Device:hasFewKeys() then
-                self.key_events.ShowMenu = { { { "Menu", "Right" } } }
-            end
-        end
+  if not Device:hasKeys() then return end
+  if Device:isTouchDevice() then
+    self.key_events.PressMenu = { { "Menu" } }
+    if Device:hasFewKeys() then
+        self.key_events.PressMenu = { { { "Menu", "Right" } } }
     end
+  end
+  if not Device:isTouchDevice() or Device:isEmulator() then
+    -- Map Menu key to top menu only, because the bottom menu is only designed for touch devices.
+    --- @fixme: Is this still the case?
+    ---         (Swapping between top and bottom might not be implemented, though, so it might still be a good idea).
+    self.key_events.ShowMenu = { { "Menu" } }
+    if Device:hasFewKeys() then
+        self.key_events.ShowMenu = { { { "Menu", "Right" } } }
+    end
+    self.key_events.ShowKeyboardShortcuts = { { "Shift", "S" } }
+  end
 end
 
 ReaderMenu.onPhysicalKeyboardConnected = ReaderMenu.registerKeyEvents
@@ -505,6 +506,10 @@ end
 function ReaderMenu:onMenuSearch()
     self:onShowMenu()
     self.menu_container[1]:onShowMenuSearch()
+end
+
+function ReaderMenu:onShowKeyboardShortcuts()
+  require("ui/elements/common_info_menu_table").keyboard_shortcuts.callback()
 end
 
 function ReaderMenu:registerToMainMenu(widget)

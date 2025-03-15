@@ -235,6 +235,7 @@ local order = {
         "----------------------------",
         "ota_update", -- if Device:hasOTAUpdates()
         "help",
+        "keyboard_shortcuts", -- explicitly place it here to save key presses
         "----------------------------",
         "exit_menu",
     },

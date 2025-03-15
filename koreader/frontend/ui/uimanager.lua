@@ -1699,5 +1699,38 @@ function UIManager:abort()
     self:quit(1)
 end
 
+--- Goes through all the widgets and collects the key_events. If any key_event is conflict, the
+--- one on the first / top-most widget will be preserved.
+function UIManager:key_events()
+  local key_events = {}
+
+  local function check_widget(w)
+    if not w then return end
+    local function check(w)
+      local c = w.key_events
+      if not c then return end
+      for k, v in pairs(c) do
+        if not v.is_inactive and k ~= "AnyKeyPressed" and k ~= "SelectByShortCut" then
+          key_events[k] = v
+        end
+      end
+    end
+    check(w)
+    for _, widget in ipairs(w) do
+      check_widget(widget)
+    end
+    if w.active_widgets then
+      for _, active_widget in ipairs(w.active_widgets) do
+        check_widget(active_widget)
+      end
+    end
+  end
+
+  for i = 1, #self._window_stack do
+    check_widget(self._window_stack[i].widget)
+  end
+  return require("ffi/SortedIteration")(key_events)
+end
+
 UIManager:init()
 return UIManager

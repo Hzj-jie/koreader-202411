@@ -3,10 +3,12 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
+local KeyValuePage = require("ui/widget/keyvaluepage")
 local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local Version = require("version")
 local dbg = require("dbg")
+local dump = require("dump")
 local lfs = require("libs/libkoreader-lfs")
 local _ = require("gettext")
 local T = require("ffi/util").template
@@ -22,6 +24,29 @@ end
 common_info.help = {
     text = _("Help"),
 }
+if Device:hasKeyboard() then
+  common_info.keyboard_shortcuts = {
+    text = _("Keyboard shortcuts"), -- no localization
+    callback = function()
+      local kv_pairs = {}
+      for k, v in UIManager:key_events() do
+        table.insert(kv_pairs, {k,
+            dump(v[1])
+              :gsub("%s+", "")
+              :gsub("\"", "")
+              :gsub("%[%d+%]=", "")
+              :gsub(",}", "}")
+              :gsub(",", ", ")
+              :gsub("^{", "")
+              :gsub("}$", "")})
+      end
+      UIManager:show(KeyValuePage:new{
+          title = _("Keyboard shortcuts"), -- no localization
+          kv_pairs = kv_pairs,
+      })
+    end
+  }
+end
 common_info.quickstart_guide = {
     text = _("Quickstart guide"),
     callback = function()

@@ -56,12 +56,12 @@ function FileManagerMenu:init()
 end
 
 function FileManagerMenu:registerKeyEvents()
-    if Device:hasKeys() then
-        self.key_events.ShowMenu = { { "Menu" } }
-        if Device:hasScreenKB() then
-            self.key_events.OpenLastDoc = { { "ScreenKB", "Back" } }
-        end
-    end
+  if not Device:hasKeys() then return end
+  self.key_events.ShowMenu = { { "Menu" } }
+  if Device:hasScreenKB() then
+    self.key_events.OpenLastDoc = { { "ScreenKB", "Back" } }
+  end
+  self.key_events.ShowKeyboardShortcuts = { { "Shift", "S" } }
 end
 
 FileManagerMenu.onPhysicalKeyboardConnected = FileManagerMenu.registerKeyEvents
@@ -1056,6 +1056,10 @@ end
 
 function FileManagerMenu:registerToMainMenu(widget)
     table.insert(self.registered_widgets, widget)
+end
+
+function FileManagerMenu:onShowKeyboardShortcuts()
+  require("ui/elements/common_info_menu_table").keyboard_shortcuts.callback()
 end
 
 return FileManagerMenu
