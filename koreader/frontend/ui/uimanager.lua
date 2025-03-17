@@ -110,7 +110,7 @@ function UIManager:init()
     end
 
     -- The first user action is always the one starts koreader.
-    self.updateLastUserActionTime()
+    self:updateLastUserActionTime()
 
     -- Tell Device that we're now available, so that it can setup PM event handlers
     Device:_UIManagerReady(self)
