@@ -43,6 +43,7 @@ local UIManager = {
     _prevent_standby_count = 0,
     _prev_prevent_standby_count = 0,
     _input_gestures_disabled = false,
+    _last_user_action_time = 0,
 
     event_hook = require("ui/hook_container"):new("InputEvent")
 }
@@ -116,6 +117,9 @@ function UIManager:init()
           Device:getPowerDevice():resetT1Timeout()
         end)
     end
+
+    -- The first user action is always the one starts koreader.
+    self.updateLastUserActionTime()
 
     -- Tell Device that we're now available, so that it can setup PM event handlers
     Device:_UIManagerReady(self)
@@ -1058,6 +1062,18 @@ Returns a time (fts) corresponding to the last UI tick plus the time in standby.
 ]]
 function UIManager:getElapsedTimeSinceBoot()
     return self:getTime() + Device.total_standby_time + Device.total_suspend_time
+end
+
+function UIManager:lastUserActionTime()
+  return self._last_user_action_time
+end
+
+function UIManager:updateLastUserActionTime()
+  self._last_user_action_time = self:getElapsedTimeSinceBoot()
+  if Device:isKindle() then
+    -- Always reset the timeout timer when processing input event, even it's fake.
+    Device:getPowerDevice():resetT1Timeout()
+  end
 end
 
 -- precedence of refresh modes:
