@@ -207,7 +207,6 @@ function AutoSuspend:init()
     -- Make sure we only have an AllowStandby handler when we actually want one...
     self:toggleStandbyHandler(self:_enabledStandby())
 
-    UIManager:lastUserActionTime() = UIManager:getElapsedTimeSinceBoot()
     self:_start()
     self:_start_kindle()
     self:_start_standby()
