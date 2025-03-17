@@ -1717,7 +1717,7 @@ end
 
 --- Goes through all the widgets and collects the key_events. If any key_event is conflict, the
 --- one on the first / top-most widget will be preserved.
-function UIManager:key_events()
+function UIManager:keyEvents()
   local key_events = {}
 
   local function check_widget(w)
