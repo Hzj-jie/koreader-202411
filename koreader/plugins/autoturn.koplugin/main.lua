@@ -34,6 +34,8 @@ function AutoTurn:_schedule()
         if top_wg.name == "ReaderUI" then
             logger.dbg("AutoTurn: go to next page")
             self.ui:handleEvent(Event:new("GotoViewRel", self.autoturn_distance))
+            -- Treat it as a user action.
+            UIManager:updateLastUserActionTime()
         end
         logger.dbg("AutoTurn: schedule in", self.autoturn_sec)
         UIManager:scheduleIn(self.autoturn_sec, self.task)
