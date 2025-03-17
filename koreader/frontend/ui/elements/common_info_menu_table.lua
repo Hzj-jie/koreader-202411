@@ -29,7 +29,7 @@ if Device:hasKeyboard() then
     text = _("Keyboard shortcuts"), -- no localization
     callback = function()
       local kv_pairs = {}
-      for k, v in UIManager:key_events() do
+      for k, v in UIManager:keyEvents() do
         table.insert(kv_pairs, {k,
             dump(v[1])
               :gsub("%s+", "")
