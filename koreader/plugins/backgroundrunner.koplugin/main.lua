@@ -146,7 +146,7 @@ function BackgroundRunner:_executeJob(job)
         if status then
             job.result = 0
         else
-            logger.dbg("BackgroundRunner: _executeJob [", job.executable, "] failed, ", err)
+            logger.warn("BackgroundRunner: _executeJob [", job.executable, "] failed, ", err)
             job.result = 1
             job.exception = err
         end
