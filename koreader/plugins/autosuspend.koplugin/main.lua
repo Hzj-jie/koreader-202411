@@ -74,9 +74,9 @@ function AutoSuspend:_schedule(shutdown_only)
         suspend_delay_seconds = self.auto_suspend_timeout_seconds
         shutdown_delay_seconds = self.autoshutdown_timeout_seconds
     else
-        local now = UIManager:getElapsedTimeSinceBoot()
-        suspend_delay_seconds = self.auto_suspend_timeout_seconds - time.to_number(now - UIManager:lastUserActionTime())
-        shutdown_delay_seconds = self.autoshutdown_timeout_seconds - time.to_number(now - UIManager:lastUserActionTime())
+        local idle_time = UIManager:timeSinceLastUserAction()
+        suspend_delay_seconds = self.auto_suspend_timeout_seconds - time.to_number(idle_time)
+        shutdown_delay_seconds = self.autoshutdown_timeout_seconds - time.to_number(idle_time)
     end
 
     -- Try to shutdown first, as we may have been woken up from suspend just for the sole purpose of doing that.
@@ -136,8 +136,7 @@ if Device:isKindle() then
         end
 
         -- NOTE: Unlike us, powerd doesn't care about charging, so we always use the delta since the last user input.
-        local now = UIManager:getElapsedTimeSinceBoot()
-        local kindle_t1_reset_seconds = default_kindle_t1_timeout_reset_seconds - time.to_number(now - UIManager:lastUserActionTime())
+        local kindle_t1_reset_seconds = default_kindle_t1_timeout_reset_seconds - time.to_number(UIManager:timeSinceLastUserAction())
 
         if self:_enabled() and kindle_t1_reset_seconds <= 0 then
             logger.dbg("AutoSuspend: will reset the system's t1 timeout, re-scheduling check")
@@ -274,8 +273,7 @@ function AutoSuspend:_schedule_standby(sleep_in)
         --logger.dbg("AutoSuspend: charging, delaying standby")
         standby_delay_seconds = sleep_in
     else
-        local now = UIManager:getElapsedTimeSinceBoot()
-        standby_delay_seconds = sleep_in - time.to_number(now - UIManager:lastUserActionTime())
+        standby_delay_seconds = sleep_in - time.to_number(UIManager:timeSinceLastUserAction())
 
         -- If we blow past the deadline on the first call of a scheduling cycle,
         -- make sure we don't go straight to allowStandby, as we haven't called preventStandby yet...

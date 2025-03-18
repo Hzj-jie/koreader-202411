@@ -1814,7 +1814,7 @@ function ReaderRolling:setupRerenderingAutomation()
                         -- Not if text selection in progress (to not reload while the user
                         -- is selecting, even if idle)
                         do_reload = false
-                    elseif UIManager:getElapsedTimeSinceBoot() < UIManager:lastUserActionTime() + time.s(5) then
+                    elseif UIManager:timeSinceLastUserAction() < time.s(5) then
                         -- Not idle long enough
                         do_reload = false
                     end

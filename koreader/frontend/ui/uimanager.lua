@@ -1067,6 +1067,10 @@ function UIManager:updateLastUserActionTime()
   end
 end
 
+function UIManager:timeSinceLastUserAction()
+  return self:getElapsedTimeSinceBoot() - self:lastUserActionTime()
+end
+
 -- precedence of refresh modes:
 local refresh_modes = { a2 = 1, fast = 2, ui = 3, partial = 4, ["[ui]"] = 5, ["[partial]"] = 6, flashui = 7, flashpartial = 8, full = 9 }
 -- NOTE: We might want to introduce a "force_a2" that points to fast, but has the highest priority,

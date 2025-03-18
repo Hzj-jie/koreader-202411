@@ -27,7 +27,7 @@ function AutoTurn:_schedule()
         return
     end
 
-    local delay = UIManager:lastUserActionTime() + time.s(self.autoturn_sec) - UIManager:getElapsedTimeSinceBoot()
+    local delay = time.s(self.autoturn_sec) - UIManager:timeSinceLastUserAction()
 
     if delay <= 0 then
         local top_wg = UIManager:getTopmostVisibleWidget() or {}
