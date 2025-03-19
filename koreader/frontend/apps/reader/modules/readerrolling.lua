@@ -1717,15 +1717,6 @@ function ReaderRolling:setupRerenderingAutomation()
     -- we will reload it soon. So, disable standby during the whole steps.
     UIManager:preventStandby()
 
-    -- Some states will step only when the user is idle
-    local last_input_event_time = UIManager:getTime() -- (we got here because of some input)
-    self._watchInputEvent = function()
-        -- :getTime(), although not accurate, should be good enough, see:
-        -- https://github.com/koreader/koreader/issues/9087#issuecomment-1419852952
-        last_input_event_time = UIManager:getTime()
-    end
-    UIManager.event_hook:register(self._watchInputEvent)
-
     local next_step_not_before
     self._stepRerenderingAutomation = function(next_step)
         -- Ensure transitions between partial rerendering steps
@@ -1823,7 +1814,7 @@ function ReaderRolling:setupRerenderingAutomation()
                         -- Not if text selection in progress (to not reload while the user
                         -- is selecting, even if idle)
                         do_reload = false
-                    elseif UIManager:getTime() < last_input_event_time + time.s(5) then
+                    elseif UIManager:timeSinceLastUserAction() < time.s(5) then
                         -- Not idle long enough
                         do_reload = false
                     end
@@ -1878,10 +1869,6 @@ function ReaderRolling:tearDownRerenderingAutomation()
         UIManager:unschedule(self._stepRerenderingAutomation)
         self._stepRerenderingAutomation = nil
         UIManager:allowStandby()
-    end
-    if self._watchInputEvent then
-        UIManager.event_hook:unregister(self._watchInputEvent)
-        self._watchInputEvent = nil
     end
     -- Be sure we don't let any zombie
     self:_waitOrKillCurrentRerenderingSubprocess(true, true)

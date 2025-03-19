@@ -621,7 +621,7 @@ function HttpInspector:onRequest(data, request_id)
         return self:exposeObject(UIManager, uri, reqinfo)
     else
         -- Events are treated as user inputs.
-        UIManager.event_hook:execute()
+        UIManager:updateLastUserActionTime()
         if fragment == "event" then
             return self:exposeEvent(uri, reqinfo)
         elseif fragment == "broadcast" then

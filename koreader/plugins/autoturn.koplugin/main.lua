@@ -14,7 +14,6 @@ local AutoTurn = WidgetContainer:extend{
     autoturn_sec = 0,
     autoturn_distance = 1,
     enabled = false,
-    last_action_time = 0,
     task = nil,
 }
 
@@ -28,14 +27,15 @@ function AutoTurn:_schedule()
         return
     end
 
-    local delay = self.last_action_time + time.s(self.autoturn_sec) - UIManager:getElapsedTimeSinceBoot()
+    local delay = time.s(self.autoturn_sec) - UIManager:timeSinceLastUserAction()
 
     if delay <= 0 then
         local top_wg = UIManager:getTopmostVisibleWidget() or {}
         if top_wg.name == "ReaderUI" then
             logger.dbg("AutoTurn: go to next page")
             self.ui:handleEvent(Event:new("GotoViewRel", self.autoturn_distance))
-            self.last_action_time = UIManager:getElapsedTimeSinceBoot()
+            -- Treat it as a user action.
+            UIManager:updateLastUserActionTime()
         end
         logger.dbg("AutoTurn: schedule in", self.autoturn_sec)
         UIManager:scheduleIn(self.autoturn_sec, self.task)
@@ -59,10 +59,8 @@ end
 
 function AutoTurn:_start()
     if self:_enabled() then
-        local time_since_boot = UIManager:getElapsedTimeSinceBoot()
-        logger.dbg("AutoTurn: start at", time.format_time(time_since_boot))
+        logger.dbg("AutoTurn: start at", time.format_time(UIManager:getElapsedTimeSinceBoot()))
         PluginShare.pause_auto_suspend = true
-        self.last_action_time = time_since_boot
         self:_schedule()
 
         local text
@@ -84,7 +82,6 @@ function AutoTurn:_start()
 end
 
 function AutoTurn:init()
-    UIManager.event_hook:registerWidget(self)
     self.autoturn_sec = G_reader_settings:readSetting("autoturn_timeout_seconds") or 0
     self.autoturn_distance = G_reader_settings:readSetting("autoturn_distance") or 1
     self.enabled = G_reader_settings:isTrue("autoturn_enabled")
@@ -104,11 +101,6 @@ end
 function AutoTurn:onCloseDocument()
     logger.dbg("AutoTurn: onCloseDocument")
     self:_unschedule()
-end
-
-function AutoTurn:onInputEvent()
-    logger.dbg("AutoTurn: onInputEvent")
-    self.last_action_time = UIManager:getElapsedTimeSinceBoot()
 end
 
 -- We do not want autoturn to turn pages during the suspend process.

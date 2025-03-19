@@ -35,7 +35,6 @@ local AutoSuspend = WidgetContainer:extend{
     autoshutdown_timeout_seconds = default_autoshutdown_timeout_seconds,
     auto_suspend_timeout_seconds = default_auto_suspend_timeout_seconds,
     auto_standby_timeout_seconds = default_auto_standby_timeout_seconds,
-    last_action_time = 0,
     is_standby_scheduled = nil,
     task = nil,
     kindle_task = nil,
@@ -75,9 +74,9 @@ function AutoSuspend:_schedule(shutdown_only)
         suspend_delay_seconds = self.auto_suspend_timeout_seconds
         shutdown_delay_seconds = self.autoshutdown_timeout_seconds
     else
-        local now = UIManager:getElapsedTimeSinceBoot()
-        suspend_delay_seconds = self.auto_suspend_timeout_seconds - time.to_number(now - self.last_action_time)
-        shutdown_delay_seconds = self.autoshutdown_timeout_seconds - time.to_number(now - self.last_action_time)
+        local idle_time = UIManager:timeSinceLastUserAction()
+        suspend_delay_seconds = self.auto_suspend_timeout_seconds - time.to_number(idle_time)
+        shutdown_delay_seconds = self.autoshutdown_timeout_seconds - time.to_number(idle_time)
     end
 
     -- Try to shutdown first, as we may have been woken up from suspend just for the sole purpose of doing that.
@@ -108,14 +107,14 @@ end
 
 function AutoSuspend:_start()
     if self:_enabled() or self:_enabledShutdown() then
-        logger.dbg("AutoSuspend: start suspend/shutdown timer at", time.format_time(self.last_action_time))
+        logger.dbg("AutoSuspend: start suspend/shutdown timer at", time.format_time(UIManager:lastUserActionTime()))
         self:_schedule()
     end
 end
 
 function AutoSuspend:_start_standby(sleep_in)
     if self:_enabledStandby() then
-        logger.dbg("AutoSuspend: start standby timer at", time.format_time(self.last_action_time))
+        logger.dbg("AutoSuspend: start standby timer at", time.format_time(UIManager:lastUserActionTime()))
         self:_schedule_standby(sleep_in)
     end
 end
@@ -123,7 +122,7 @@ end
 -- Variant that only re-engages the shutdown timer for onUnexpectedWakeupLimit
 function AutoSuspend:_restart()
     if self:_enabledShutdown() then
-        logger.dbg("AutoSuspend: restart shutdown timer at", time.format_time(self.last_action_time))
+        logger.dbg("AutoSuspend: restart shutdown timer at", time.format_time(UIManager:lastUserActionTime()))
         self:_schedule(true)
     end
 end
@@ -137,8 +136,7 @@ if Device:isKindle() then
         end
 
         -- NOTE: Unlike us, powerd doesn't care about charging, so we always use the delta since the last user input.
-        local now = UIManager:getElapsedTimeSinceBoot()
-        local kindle_t1_reset_seconds = default_kindle_t1_timeout_reset_seconds - time.to_number(now - self.last_action_time)
+        local kindle_t1_reset_seconds = default_kindle_t1_timeout_reset_seconds - time.to_number(UIManager:timeSinceLastUserAction())
 
         if self:_enabled() and kindle_t1_reset_seconds <= 0 then
             logger.dbg("AutoSuspend: will reset the system's t1 timeout, re-scheduling check")
@@ -162,7 +160,7 @@ if Device:isKindle() then
 
     function AutoSuspend:_start_kindle()
         if self:_enabled() then
-            logger.dbg("AutoSuspend: start t1 timeout timer at", time.format_time(self.last_action_time))
+            logger.dbg("AutoSuspend: start t1 timeout timer at", time.format_time(UIManager:lastUserActionTime()))
             self:_schedule_kindle()
         end
     end
@@ -186,7 +184,6 @@ function AutoSuspend:init()
     self.is_standby_scheduled = false
     self.going_to_suspend = false
 
-    UIManager.event_hook:registerWidget(self)
     -- We need an instance-specific function reference to schedule, because in some rare cases,
     -- we may instantiate a new plugin instance *before* tearing down the old one.
     -- If we only cared about accessing the right instance members,
@@ -209,7 +206,6 @@ function AutoSuspend:init()
     -- Make sure we only have an AllowStandby handler when we actually want one...
     self:toggleStandbyHandler(self:_enabledStandby())
 
-    self.last_action_time = UIManager:getElapsedTimeSinceBoot()
     self:_start()
     self:_start_kindle()
     self:_start_standby()
@@ -231,11 +227,6 @@ function AutoSuspend:onCloseWidget()
 
     self:_unschedule_standby()
     self.standby_task = nil
-end
-
-function AutoSuspend:onInputEvent()
-    logger.dbg("AutoSuspend: onInputEvent")
-    self.last_action_time = UIManager:getElapsedTimeSinceBoot()
 end
 
 function AutoSuspend:_unschedule_standby()
@@ -282,8 +273,7 @@ function AutoSuspend:_schedule_standby(sleep_in)
         --logger.dbg("AutoSuspend: charging, delaying standby")
         standby_delay_seconds = sleep_in
     else
-        local now = UIManager:getElapsedTimeSinceBoot()
-        standby_delay_seconds = sleep_in - time.to_number(now - self.last_action_time)
+        standby_delay_seconds = sleep_in - time.to_number(UIManager:timeSinceLastUserAction())
 
         -- If we blow past the deadline on the first call of a scheduling cycle,
         -- make sure we don't go straight to allowStandby, as we haven't called preventStandby yet...
@@ -291,7 +281,7 @@ function AutoSuspend:_schedule_standby(sleep_in)
             -- If this happens, it means we hit LeaveStandby or Resume *before* consuming new input events,
             -- e.g., if there weren't any input events at all (woken up by an alarm),
             -- or if the only input events we consumed did not trigger an InputEvent event (woken up by gyro events),
-            -- meaning self.last_action_time is further in the past than it ought to.
+            -- meaning UIManager:lastUserActionTime() is further in the past than it ought to.
             -- Delay by the full amount to avoid further bad scheduling interactions.
             standby_delay_seconds = sleep_in
         end

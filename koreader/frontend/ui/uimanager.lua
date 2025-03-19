@@ -43,8 +43,7 @@ local UIManager = {
     _prevent_standby_count = 0,
     _prev_prevent_standby_count = 0,
     _input_gestures_disabled = false,
-
-    event_hook = require("ui/hook_container"):new("InputEvent")
+    _last_user_action_time = 0,
 }
 
 function UIManager:init()
@@ -110,12 +109,8 @@ function UIManager:init()
         end)
     end
 
-    if Device:isKindle() then
-        -- Always reset the timeout timer when processing input event, even it's fake.
-        self.event_hook:register(function()
-          Device:getPowerDevice():resetT1Timeout()
-        end)
-    end
+    -- The first user action is always the one starts koreader.
+    self:updateLastUserActionTime()
 
     -- Tell Device that we're now available, so that it can setup PM event handlers
     Device:_UIManagerReady(self)
@@ -1060,6 +1055,22 @@ function UIManager:getElapsedTimeSinceBoot()
     return self:getTime() + Device.total_standby_time + Device.total_suspend_time
 end
 
+function UIManager:lastUserActionTime()
+  return self._last_user_action_time
+end
+
+function UIManager:updateLastUserActionTime()
+  self._last_user_action_time = self:getElapsedTimeSinceBoot()
+  if Device:isKindle() then
+    -- Always reset the timeout timer when processing input event, even it's fake.
+    Device:getPowerDevice():resetT1Timeout()
+  end
+end
+
+function UIManager:timeSinceLastUserAction()
+  return self:getElapsedTimeSinceBoot() - self:lastUserActionTime()
+end
+
 -- precedence of refresh modes:
 local refresh_modes = { a2 = 1, fast = 2, ui = 3, partial = 4, ["[ui]"] = 5, ["[partial]"] = 6, flashui = 7, flashpartial = 8, full = 9 }
 -- NOTE: We might want to introduce a "force_a2" that points to fast, but has the highest priority,
@@ -1452,7 +1463,7 @@ function UIManager:processZMQs()
     for _, zeromq in ipairs(self._zeromqs) do
         for input_event in zeromq.waitEvent, zeromq do
             if not sent_InputEvent then
-                self.event_hook:execute()
+                self:updateLastUserActionTime()
                 sent_InputEvent = true
             end
             self:handleInputEvent(input_event)
@@ -1535,11 +1546,7 @@ function UIManager:handleInput()
 
     -- delegate each input event to handler
     if input_events then
-        -- Dispatch event hooks first, as some plugins (*cough* AutoSuspend *cough*)
-        -- rely on it to react properly to the actual event...
-        if input_events[1] then
-            self.event_hook:execute()
-        end
+        self:updateLastUserActionTime()
         -- Handle the full batch of events
         for __, ev in ipairs(input_events) do
             self:handleInputEvent(ev)

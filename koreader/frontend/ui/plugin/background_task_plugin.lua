@@ -9,28 +9,36 @@ local SwitchPlugin = require("ui/plugin/switch_plugin")
 
 local BackgroundTaskPlugin = SwitchPlugin:extend()
 
-function BackgroundTaskPlugin:_schedule(settings_id)
-    local enabled = function()
-        if not self.enabled then
-            return false
-        end
-        if settings_id ~= self.settings_id then
-            return false
-        end
+function BackgroundTaskPlugin:_start()
+  assert(self.enabled)
 
-        return true
+  local start_settings_id = self.settings_id
+  local enabled = function()
+    if not self.enabled then
+      return false
+    end
+    if start_settings_id ~= self.settings_id then
+      return false
     end
 
-    table.insert(PluginShare.backgroundJobs, {
-        when = self.when,
-        repeated = enabled,
-        executable = self.executable,
-    })
-    require("background_jobs_updated")()
+    return true
+  end
+
+  table.insert(PluginShare.backgroundJobs, {
+    when = self.when,
+    repeated = enabled,
+    executable = self.executable,
+  })
+  require("background_jobs_updated")()
 end
 
-function BackgroundTaskPlugin:_start()
-    self:_schedule(self.settings_id)
+function BackgroundTaskPlugin:onClose()
+  self:onCloseWidget()
+end
+
+function BackgroundTaskPlugin:onCloseWidget()
+  -- Invalid the background job.
+  self.settings_id = self.settings_id + 1
 end
 
 return BackgroundTaskPlugin
