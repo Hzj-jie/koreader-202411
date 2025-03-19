@@ -6,7 +6,6 @@ Plugin for automatic dimming of the frontlight after an idle period.
 
 local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local Device = require("device")
-local PluginShare = require("pluginshare")
 local SpinWidget = require("ui/widget/spinwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -18,7 +17,6 @@ local C_ = _.pgettext
 local Powerd = Device.powerd
 local T = require("ffi/util").template
 
-local DEFAULT_AUTODIM_STARTTIME_M = 5
 local DEFAULT_AUTODIM_DURATION_S = 5
 local DEFAULT_AUTODIM_FRACTION = 20
 
@@ -33,13 +31,19 @@ local AutoDim = WidgetContainer:extend{
 }
 
 function AutoDim:init()
-  self.autodim_starttime_m = G_reader_settings:readSetting("autodim_starttime_minutes") or -1
-  self.autodim_duration_s = G_reader_settings:readSetting("autodim_duration_seconds") or DEFAULT_AUTODIM_DURATION_S
-  self.autodim_fraction = G_reader_settings:readSetting("autodim_fraction") or DEFAULT_AUTODIM_FRACTION
+  self.autodim_starttime_m =
+      G_reader_settings:readSetting("autodim_starttime_minutes") or -1
+  self.autodim_duration_s =
+      G_reader_settings:readSetting("autodim_duration_seconds") or DEFAULT_AUTODIM_DURATION_S
+  self.autodim_fraction =
+      G_reader_settings:readSetting("autodim_fraction") or DEFAULT_AUTODIM_FRACTION
 
   self.ui.menu:registerToMainMenu(self)
 
-  self:_schedule_autodim_task()
+  -- For BackgroundTaskPlugin
+  self.executable = function() self:_executable() end
+
+  self:_scheduleAutoDimTask()
 end
 
 function AutoDim:addToMainMenu(menu_items)
@@ -49,9 +53,14 @@ function AutoDim:addToMainMenu(menu_items)
     sub_item_table = {
       {
         text_func = function()
-          return self.autodim_starttime_m <= 0 and _("Idle time for dimmer") or
-          T(_("Idle time for dimmer: %1"),
-            datetime.secondsToClockDuration("letters", self.autodim_starttime_m * 60, false, false, true))
+          return self.autodim_starttime_m <= 0 and
+                 _("Idle time for dimmer") or
+                 T(_("Idle time for dimmer: %1"),
+                     datetime.secondsToClockDuration("letters",
+                                                     self.autodim_starttime_m * 60,
+                                                     false,
+                                                     false,
+                                                     true))
         end,
         checked_func = function() return self.autodim_starttime_m > 0 end,
         callback = function(menu)
@@ -59,7 +68,7 @@ function AutoDim:addToMainMenu(menu_items)
             title_text = _("Automatic dimmer idle time"),
             info_text = _("Start the dimmer after the designated period of inactivity."),
             value = self.autodim_starttime_m >=0 and self.autodim_starttime_m or 0.5,
-            default_value = DEFAULT_AUTODIM_STARTTIME_M,
+            default_value = 5,
             value_min = 0.5,
             value_max = 60,
             value_step = 0.5,
@@ -71,14 +80,14 @@ function AutoDim:addToMainMenu(menu_items)
               if not spin then return end
               self.autodim_starttime_m = spin.value
               G_reader_settings:saveSetting("autodim_starttime_minutes", spin.value)
-              self:_schedule_autodim_task()
+              self:_scheduleAutoDimTask()
               menu:updateItems()
             end,
             extra_text = _("Disable"),
             extra_callback = function()
               self.autodim_starttime_m = -1
               G_reader_settings:saveSetting("autodim_starttime_minutes", -1)
-              self:_schedule_autodim_task()
+              self:_scheduleAutoDimTask()
               menu:updateItems()
             end,
           }
@@ -89,7 +98,11 @@ function AutoDim:addToMainMenu(menu_items)
       {
         text_func = function()
           return T(_("Dimmer duration: %1"),
-            datetime.secondsToClockDuration("letters", self.autodim_duration_s, false, false, true))
+                   datetime.secondsToClockDuration("letters",
+                                                   self.autodim_duration_s,
+                                                   false,
+                                                   false,
+                                                   true))
         end,
         enabled_func = function() return self.autodim_starttime_m > 0 end,
         callback = function(menu)
@@ -108,7 +121,7 @@ function AutoDim:addToMainMenu(menu_items)
               if not spin then return end
               self.autodim_duration_s = spin.value
               G_reader_settings:saveSetting("autodim_duration_seconds", spin.value)
-              self:_schedule_autodim_task()
+              self:_scheduleAutoDimTask()
               menu:updateItems()
             end,
           }
@@ -134,7 +147,7 @@ function AutoDim:addToMainMenu(menu_items)
             callback = function(spin)
               self.autodim_fraction = spin.value
               G_reader_settings:saveSetting("autodim_fraction", spin.value)
-              self:_schedule_autodim_task()
+              self:_scheduleAutoDimTask()
               menu:updateItems()
             end,
           }
@@ -146,19 +159,17 @@ function AutoDim:addToMainMenu(menu_items)
   }
 end
 
--- Schedules the first idle task, the consecutive ones are scheduled by the `autodim_task` itself.
-function AutoDim:_schedule_autodim_task()
+function AutoDim:_scheduleAutoDimTask()
   self.settings_id = self.settings_id + 1
   -- Technically speaking, it's possible to start the autodim
   -- "as soon as possible".
   if self.autodim_starttime_m >= 0 then
     -- A slightly hacky, but very lua way of running the task.
-    self.executable = function() self:_executable() end
     BackgroundTaskPlugin._start(self)
   end
 end
 
-function AutoDim:restoreFrontlight()
+function AutoDim:_restoreFrontlight()
   if self.origin_fl then
     Powerd:setIntensity(self.origin_fl)
     self.origin_fl = nil
@@ -168,16 +179,15 @@ end
 -- Do not use onSuspend, it may not work on kindle since koreader cannot
 -- reliably receive the suspend signal.
 function AutoDim:onResume()
-  if self.trap_widget then
-    -- But ensure the self.trap_widget flag can be posted to the ramp down
-    -- task.
-    local trap_widget = self.trap_widget
-    self.trap_widget = nil
-    UIManager:nextTick(function()
-      UIManager:close(trap_widget)
-      self:restoreFrontlight()
-    end)
-  end
+  if not self.trap_widget then return end
+  -- But ensure the self.trap_widget flag can be posted to the ramp down
+  -- task.
+  local trap_widget = self.trap_widget
+  self.trap_widget = nil
+  UIManager:nextTick(function()
+    UIManager:close(trap_widget)
+    self:_restoreFrontlight()
+  end)
 end
 
 function AutoDim:onFrontlightTurnedOff()
@@ -221,28 +231,26 @@ function AutoDim:_executable()
   self.trap_widget = TrapWidget:new{
     name = "AutoDim",
     dismiss_callback = function()
-      self:restoreFrontlight()
+      self:_restoreFrontlight()
       self.trap_widget = nil
     end
   }
   UIManager:show(self.trap_widget) -- suppress taps during dimming
 
   -- BackgroundTaskRunner isn't designed to run rapid jobs.
-  self:_rampTask({fl_diff = fl_diff, autodim_end_fl = autodim_end_fl})
+  self:_rampTask(fl_diff, autodim_end_fl, math.max(self.autodim_duration_s / fl_diff, 0.001))
 end
 
-function AutoDim:_rampTask(def)
+function AutoDim:_rampTask(fl_diff, autodim_end_fl, delay)
   -- Something else happened, like resumed, stopping the ramp down.
   if not self.trap_widget then return end
-  -- User actions, likely won't happen, but in case the user action
-  -- was triggered by not dismissing the TrapWidget.
+  -- User actions, likely won't happen, but in case the user action was
+  -- triggered by not dismissing the TrapWidget.
   if self:_shouldNotDim() then return end
   local fl_level = Powerd:frontlightIntensity()
-  if fl_level <= def.autodim_end_fl then
-    -- Well, something else may happened as well, e.g. some other
-    -- logic changed the frontlight level.
-    return
-  end
+  -- Well, something else may happened as well, e.g. some other logic changed
+  -- the frontlight level.
+  if fl_level <= autodim_end_fl then return end
   fl_level = fl_level - 1
   Powerd:setIntensity(fl_level)
   -- Reduce the frequency of firing frontlight level change event on
@@ -250,9 +258,8 @@ function AutoDim:_rampTask(def)
   if not Device:hasEinkScreen() or ((self.origin_fl - fl_level) % 2 == 0) then
     UIManager:broadcastEvent("UpdateFooter")
   end
-  if fl_level > def.autodim_end_fl then
-    local delay = math.max(self.autodim_duration_s / def.fl_diff, 0.001)
-    UIManager:scheduleIn(delay, AutoDim._rampTask, self, def)
+  if fl_level > autodim_end_fl then
+    UIManager:scheduleIn(delay, AutoDim._rampTask, self, fl_diff, autodim_end_fl, delay)
   end
 end
 
