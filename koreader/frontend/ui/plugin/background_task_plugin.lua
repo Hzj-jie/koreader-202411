@@ -32,4 +32,13 @@ function BackgroundTaskPlugin:_start()
   require("background_jobs_updated")()
 end
 
+function BackgroundTaskPlugin:onClose()
+  self:onCloseWidget()
+end
+
+function BackgroundTaskPlugin:onCloseWidget()
+  -- Invalid the background job.
+  self.settings_id = self.settings_id + 1
+end
+
 return BackgroundTaskPlugin

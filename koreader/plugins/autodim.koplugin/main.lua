@@ -190,6 +190,14 @@ function AutoDim:onResume()
   end)
 end
 
+function AutoDim:onClose()
+  BackgroundTaskPlugin.onClose(self)
+end
+
+function AutoDim:onCloseWidget()
+  BackgroundTaskPlugin.onCloseWidget(self)
+end
+
 function AutoDim:onFrontlightTurnedOff()
   -- This might be happening through autowarmth during a ramp down.
   if not self.trap_widget then return end
