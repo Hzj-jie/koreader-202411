@@ -1161,6 +1161,10 @@ function Device:_afterResume(inhibit)
         self.input:inhibitInput(false)
     end
 
+    -- This is a hacky way to ensure the resume can be treated as an input.
+    -- Ideally UIManager should understand the Resume event, but it needs to check every single
+    -- event being processed.
+    UIManager:updateLastUserActionTime()
     UIManager:broadcastEvent(Event:new("Resume"))
 end
 
