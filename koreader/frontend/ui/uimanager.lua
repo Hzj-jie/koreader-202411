@@ -48,9 +48,6 @@ local UIManager = {
 
 function UIManager:init()
     self.event_handlers = {
-        __default__ = function(input_event)
-            self:sendEvent(input_event)
-        end,
         SaveState = function()
             self:flushSettings()
         end,
@@ -1453,7 +1450,7 @@ function UIManager:handleInputEvent(input_event)
     if handler then
         handler(input_event)
     else
-        self.event_handlers.__default__(input_event)
+        self:sendEvent(input_event)
     end
 end
 
