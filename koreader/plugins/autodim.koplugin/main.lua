@@ -67,8 +67,8 @@ function AutoDim:addToMainMenu(menu_items)
           local idle_dialog = SpinWidget:new{
             title_text = _("Automatic dimmer idle time"),
             info_text = _("Start the dimmer after the designated period of inactivity."),
-            value = self.autodim_starttime_m >=0 and self.autodim_starttime_m or 0.5,
-            default_value = 5,
+            value = self.autodim_starttime_m >= 0 and self.autodim_starttime_m or 0.5,
+            default_value = Device:isKindle() and 4 or 5,
             value_min = 0.5,
             value_max = 60,
             value_step = 0.5,
