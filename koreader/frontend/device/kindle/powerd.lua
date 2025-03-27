@@ -248,8 +248,11 @@ function KindlePowerD:readyToSuspend() end
 
 -- Support WakeupMgr on Lipc & supportsScreensaver devices.
 function KindlePowerD:initWakeupMgr()
-    if not self.device:supportsScreensaver() then return end
     if self.lipc_handle == nil then return end
+    if G_defaults:isFalse("ENABLE_WAKEUP_MANAGER") then return end
+    if not self.device:supportsScreensaver() then return end
+
+    self.device.wakeup_mgr = WakeupMgr:new{rtc = require("device/kindle/mockrtc")}
 
     function KindlePowerD:wakeupFromSuspend(ts)
         -- Give the device a few seconds to settle.
@@ -272,8 +275,6 @@ function KindlePowerD:initWakeupMgr()
             end
         end
     end
-
-    self.device.wakeup_mgr = WakeupMgr:new{rtc = require("device/kindle/mockrtc")}
 end
 
 -- Ask powerd to reset the t1 timeout, so that AutoSuspend can do its thing properly

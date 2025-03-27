@@ -193,4 +193,8 @@ DUSE_TURBO_LIB = false,
 -- Absolute path to stardict files (override)
 -- By default they're stored in data/dict under dataDir.
 STARDICT_DATA_DIR = nil,
+
+-- Enable wakeup manager, it detects unexpected wakeup and provides scheduled
+-- wakeup.
+ENABLE_WAKEUP_MANAGER = false,
 }
