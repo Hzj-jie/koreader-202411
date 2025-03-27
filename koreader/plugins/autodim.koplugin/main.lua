@@ -6,10 +6,11 @@ Plugin for automatic dimming of the frontlight after an idle period.
 
 local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local Device = require("device")
+local PluginShare = require("pluginshare")
 local SpinWidget = require("ui/widget/spinwidget")
+local TrapWidget = require("ui/widget/trapwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local TrapWidget = require("ui/widget/trapwidget")
 local datetime = require("datetime")
 local time = require("ui/time")
 local _ = require("gettext")
@@ -185,9 +186,14 @@ function AutoDim:onResume()
   local trap_widget = self.trap_widget
   self.trap_widget = nil
   UIManager:nextTick(function()
-    UIManager:close(trap_widget)
+    self:_clearIdling()
     self:_restoreFrontlight()
+    UIManager:close(trap_widget)
   end)
+end
+
+function AutoDim:_clearIdling()
+  PluginShare.DeviceIdling = nil
 end
 
 function AutoDim:onClose()
@@ -205,6 +211,7 @@ function AutoDim:onFrontlightTurnedOff()
   Powerd.fl_intensity = self.origin_fl or Powerd.fl_intensity
   self.origin_fl = nil
   if self.trap_widget then
+    self:_clearIdling()
     UIManager:close(self.trap_widget) -- don't swallow input events from now
     self.trap_widget = nil
   end
@@ -216,9 +223,9 @@ end
 
 function AutoDim:_executable()
   if self.trap_widget then return end -- already dimmed.
+  if self:_shouldNotDim() then return end
   -- Do not ramp down if the frontlight is off.
   if Powerd:isFrontlightOff() then return end
-  if self:_shouldNotDim() then return end
 
   self.origin_fl = self.origin_fl or Powerd:frontlightIntensity()
   local autodim_end_fl = math.floor(self.origin_fl * self.autodim_fraction * (1/100) + 0.5)
@@ -239,11 +246,13 @@ function AutoDim:_executable()
   self.trap_widget = TrapWidget:new{
     name = "AutoDim",
     dismiss_callback = function()
+      self:_clearIdling()
       self:_restoreFrontlight()
       self.trap_widget = nil
     end
   }
   UIManager:show(self.trap_widget) -- suppress taps during dimming
+  PluginShare.DeviceIdling = true
 
   -- BackgroundTaskRunner isn't designed to run rapid jobs.
   self:_rampTask(fl_diff, autodim_end_fl, math.max(self.autodim_duration_s / fl_diff, 0.001))

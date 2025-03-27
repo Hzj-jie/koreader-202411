@@ -5,6 +5,7 @@ if not (Device.isEmulator() or (Device:isKindle() and Device:hasLightSensor())) 
 end
 
 local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
+local PluginShare = require("pluginshare")
 local logger = require("logger")
 local _ = require("gettext")
 local T = require("ffi/util").template
@@ -30,6 +31,7 @@ function AutoFrontlightPlugin:new(o)
 end
 
 function AutoFrontlightPlugin:_action()
+  if PluginShare.DeviceIdling == true then return end
   local current_level = Device:ambientBrightnessLevel()
   logger.dbg("AutoFrontlight:_action(): Retrieved ambient brightness level: ", current_level)
   if self.last_brightness == current_level then
