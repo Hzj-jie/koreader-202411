@@ -312,11 +312,7 @@ if [ "${FROM_KUAL}" = "yes" ]; then
     eips_print_bottom_centered "Starting KOReader . . ." 1
 fi
 
-# we keep at most 500KB worth of crash log
-if [ -e crash.log ]; then
-    tail -c 500000 crash.log >crash.log.new
-    mv -f crash.log.new crash.log
-fi
+mv -f crash.log crash.prev.log || true
 
 RETURN_VALUE=85
 while [ "${RETURN_VALUE}" -eq 85 ]; do

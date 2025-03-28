@@ -197,4 +197,7 @@ STARDICT_DATA_DIR = nil,
 -- Enable wakeup manager, it detects unexpected wakeup and provides scheduled
 -- wakeup.
 ENABLE_WAKEUP_MANAGER = false,
+
+-- Enable logging
+ENABLE_LOGGING = false,
 }
