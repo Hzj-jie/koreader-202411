@@ -79,7 +79,7 @@ local _ = require("gettext")
 
 local BackgroundRunner = {
   jobs = PluginShare.backgroundJobs,
-  running = false,
+  scheduled = false,
 }
 
 --- Copies required fields from |job|.
@@ -167,6 +167,9 @@ end
 
 function BackgroundRunner:_execute()
   logger.dbg("BackgroundRunner: _execute() @ ", os.time())
+  -- The BackgroundRunner always needs to be rescheduled after running an
+  -- _execute.
+  self.scheduled = false
   if PluginShare.stopBackgroundRunner == true then
     logger.dbg("BackgroundRunnerWidget: skip running @ ", os.time())
     return
@@ -224,26 +227,21 @@ function BackgroundRunner:_execute()
     end
   end
 
-  self.running = false
-  if #self.jobs == 0 and not CommandRunner:pending() then
-    logger.dbg("BackgroundRunnerWidget: no job, stop running @ ", os.time())
-  else
-    self:_schedule()
-  end
+  self:_schedule()
 end
 
 function BackgroundRunner:_schedule()
-  if self.running == false then
+  if self.scheduled == false then
     if #self.jobs == 0 and not CommandRunner:pending() then
       logger.dbg("BackgroundRunnerWidget: no job, not running @ ", os.time())
     else
       logger.dbg("BackgroundRunnerWidget: start running @ ", os.time())
-      self.running = true
+      self.scheduled = true
       UIManager:scheduleIn(2, function() self:_execute() end)
     end
   else
     logger.dbg("BackgroundRunnerWidget: a schedule is pending @ ",
-           os.time())
+               os.time())
   end
 end
 
@@ -254,7 +252,6 @@ end
 
 local BackgroundRunnerWidget = WidgetContainer:extend{
   name = "backgroundrunner",
-  runner = BackgroundRunner,
 }
 
 function BackgroundRunnerWidget:init()
