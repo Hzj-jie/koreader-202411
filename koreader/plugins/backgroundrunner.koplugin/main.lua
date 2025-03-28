@@ -268,13 +268,13 @@ end
 
 function BackgroundRunnerWidget:onResume()
   logger.dbg("BackgroundRunnerWidget:onResume() @ ", os.time())
-  PluginShare.stopBackgroundRunner = nil
+  PluginShare.stopBackgroundRunner = false
   BackgroundRunner:_schedule()
 end
 
 function BackgroundRunnerWidget:onBackgroundJobsUpdated()
   logger.dbg("BackgroundRunnerWidget:onBackgroundJobsUpdated() @ ", os.time())
-  PluginShare.stopBackgroundRunner = nil
+  PluginShare.stopBackgroundRunner = false
   BackgroundRunner:_schedule()
 end
 

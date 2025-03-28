@@ -193,7 +193,7 @@ function AutoDim:onResume()
 end
 
 function AutoDim:_clearIdling()
-  PluginShare.DeviceIdling = nil
+  PluginShare.DeviceIdling = false
 end
 
 function AutoDim:onClose()
