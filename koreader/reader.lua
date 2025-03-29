@@ -38,7 +38,7 @@ G_defaults = require("luadefaults"):open()
 local DataStorage = require("datastorage")
 G_reader_settings = require("luasettings"):open(
   DataStorage:getDataDir().."/settings.reader.lua")
-G_named_settings = require("named_settings")
+G_named_settings = require("namedsettings")
 
 -- Apply the JIT opt tweaks ASAP when the C BB is disabled,
 -- because we want to avoid the jit.flush() from bb:enableCBB,
