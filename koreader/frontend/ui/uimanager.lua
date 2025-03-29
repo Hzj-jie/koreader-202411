@@ -1635,7 +1635,7 @@ end
 
 function UIManager:askForRestart(message_text)
     -- Should always exist, as defined in `generic/device` or overwritten with `setEventHandlers`
-    if self.event_handlers.PowerOff then
+    if self.event_handlers.Restart then
         -- Give the other event handlers a chance to be executed.
         -- 'Restart' event will be sent by the handler
         UIManager:nextTick(self.event_handlers.Restart, message_text)

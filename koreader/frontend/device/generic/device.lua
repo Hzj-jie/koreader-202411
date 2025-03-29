@@ -1084,6 +1084,7 @@ function Device:_setEventHandlers(uimgr)
         UIManager.event_handlers.Reboot = function() end
     end
 
+    -- How stupid this logic is.
     if self:canPowerOff() then
         UIManager.event_handlers.PowerOff = function(message_text)
             local ConfirmBox = require("ui/widget/confirmbox")
