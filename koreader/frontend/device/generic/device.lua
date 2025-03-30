@@ -1059,40 +1059,13 @@ function Device:_UIManagerReady(uimgr)
 
     -- Setup PM event handlers
     -- NOTE: We keep forwarding the uimgr reference because some implementations don't actually have a module-local UIManager ref to update
-    self:_setEventHandlers(uimgr)
+    self:setEventHandlers(uimgr)
 
     -- Returns a self-debouncing scheduling call (~4s to give some leeway to the kernel, and debounce to deal with potential chattering)
     self._updateChargingLED = UIManager:debounce(4, false, function() self:setupChargingLED() end)
 end
 -- In case implementations *also* need a reference to UIManager, *this* is the one to implement!
 function Device:UIManagerReady(uimgr) end
-
--- Set device event handlers common to all devices
-function Device:_setEventHandlers(uimgr)
-    if self:canRestart() then
-        UIManager.event_handlers.Restart = function(message_text)
-            local ConfirmBox = require("ui/widget/confirmbox")
-            UIManager:show(ConfirmBox:new{
-                text = message_text or _("This will take effect on next restart."),
-                ok_text = _("Restart now"),
-                ok_callback = function()
-                    UIManager:broadcastEvent(Event:new("Restart"))
-                end,
-                cancel_text = _("Restart later"),
-            })
-        end
-    else
-        UIManager.event_handlers.Restart = function(message_text)
-            local InfoMessage = require("ui/widget/infomessage")
-            UIManager:show(InfoMessage:new{
-                text = message_text or _("This will take effect on next restart."),
-            })
-        end
-    end
-
-    -- Let implementations expand on that
-    self:setEventHandlers(uimgr)
-end
 
 -- Devices can add additional event handlers by implementing this method.
 function Device:setEventHandlers(uimgr)

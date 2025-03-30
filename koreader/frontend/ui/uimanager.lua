@@ -1648,12 +1648,26 @@ function UIManager:askForPowerOff(message_text)
 end
 
 function UIManager:askForRestart(message_text)
-    -- Should always exist, as defined in `generic/device` or overwritten with `setEventHandlers`
-    if self.event_handlers.Restart then
-        -- Give the other event handlers a chance to be executed.
-        -- 'Restart' event will be sent by the handler
-        UIManager:nextTick(self.event_handlers.Restart, message_text)
-    end
+    -- Give the other event handlers a chance to be executed.
+    -- 'Restart' event will be sent by the handler
+    self:nextTick(function()
+        if Device:canRestart() then
+            local ConfirmBox = require("ui/widget/confirmbox")
+            self:show(ConfirmBox:new{
+                text = message_text or _("This will take effect on next restart."),
+                ok_text = _("Restart now"),
+                ok_callback = function()
+                    self:broadcastEvent(Event:new("Restart"))
+                end,
+                cancel_text = _("Restart later"),
+            })
+        else
+            local InfoMessage = require("ui/widget/infomessage")
+            self:show(InfoMessage:new{
+                text = message_text or _("This will take effect on next restart."),
+            })
+        end
+    end)
 end
 
 --[[--
