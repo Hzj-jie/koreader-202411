@@ -69,24 +69,6 @@ function UIManager:init()
             self:broadcastEvent(Event:new("EvdevInputRemove", path))
         end,
     }
-    self.poweroff_action = function()
-        self._entered_poweroff_stage = true
-        logger.info("Powering off the device...")
-        self:broadcastEvent(Event:new("PowerOff"))
-        self:broadcastEvent(Event:new("Close"))
-        local Screensaver = require("ui/screensaver")
-        Screensaver:setup("poweroff", _("Powered off"))
-        Screensaver:show()
-        self:nextTick(function()
-            Device:saveSettings()
-            Device:powerOff()
-            if Device:isKobo() then
-                self:quit(88)
-            else
-                self:quit()
-            end
-        end)
-    end
     self.reboot_action = function()
         self._entered_poweroff_stage = true
         logger.info("Rebooting the device...")
@@ -98,6 +80,24 @@ function UIManager:init()
         self:nextTick(function()
             Device:saveSettings()
             Device:reboot()
+            if Device:isKobo() then
+                self:quit(88)
+            else
+                self:quit()
+            end
+        end)
+    end
+    self.poweroff_action = function()
+        self._entered_poweroff_stage = true
+        logger.info("Powering off the device...")
+        self:broadcastEvent(Event:new("PowerOff"))
+        self:broadcastEvent(Event:new("Close"))
+        local Screensaver = require("ui/screensaver")
+        Screensaver:setup("poweroff", _("Powered off"))
+        Screensaver:show()
+        self:nextTick(function()
+            Device:saveSettings()
+            Device:powerOff()
             if Device:isKobo() then
                 self:quit(88)
             else
@@ -1616,21 +1616,35 @@ function UIManager:suspend()
 end
 
 function UIManager:askForReboot(message_text)
-    -- Should always exist, as defined in `generic/device` or overwritten with `setEventHandlers`
-    if self.event_handlers.Reboot then
-        -- Give the other event handlers a chance to be executed.
-        -- 'Reboot' event will be sent by the handler
-        UIManager:nextTick(self.event_handlers.Reboot, message_text)
-    end
+    if not Device:canReboot() then return end
+    -- Give the other event handlers a chance to be executed.
+    -- 'Reboot' event will be sent by the handler
+    self:nextTick(function()
+        local ConfirmBox = require("ui/widget/confirmbox")
+        self:show(ConfirmBox:new{
+            text = message_text or _("Are you sure you want to reboot the device?"),
+            ok_text = _("Reboot"),
+            ok_callback = function()
+                self:nextTick(self.reboot_action)
+            end,
+        })
+    end)
 end
 
 function UIManager:askForPowerOff(message_text)
-    -- Should always exist, as defined in `generic/device` or overwritten with `setEventHandlers`
-    if self.event_handlers.PowerOff then
-        -- Give the other event handlers a chance to be executed.
-        -- 'PowerOff' event will be sent by the handler
-        UIManager:nextTick(self.event_handlers.PowerOff, message_text)
-    end
+    if not Device:canPowerOff() then return end
+    -- Give the other event handlers a chance to be executed.
+    -- 'PowerOff' event will be sent by the handler
+    self:nextTick(function()
+        local ConfirmBox = require("ui/widget/confirmbox")
+        self:show(ConfirmBox:new{
+            text = message_text or _("Are you sure you want to power off the device?"),
+            ok_text = _("Power off"),
+            ok_callback = function()
+                self:nextTick(self.poweroff_action)
+            end,
+        })
+    end)
 end
 
 function UIManager:askForRestart(message_text)

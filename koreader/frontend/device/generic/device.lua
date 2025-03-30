@@ -1069,37 +1069,6 @@ function Device:UIManagerReady(uimgr) end
 
 -- Set device event handlers common to all devices
 function Device:_setEventHandlers(uimgr)
-    if self:canReboot() then
-        UIManager.event_handlers.Reboot = function(message_text)
-            local ConfirmBox = require("ui/widget/confirmbox")
-            UIManager:show(ConfirmBox:new{
-                text = message_text or _("Are you sure you want to reboot the device?"),
-                ok_text = _("Reboot"),
-                ok_callback = function()
-                    UIManager:nextTick(UIManager.reboot_action)
-                end,
-            })
-        end
-    else
-        UIManager.event_handlers.Reboot = function() end
-    end
-
-    -- How stupid this logic is.
-    if self:canPowerOff() then
-        UIManager.event_handlers.PowerOff = function(message_text)
-            local ConfirmBox = require("ui/widget/confirmbox")
-            UIManager:show(ConfirmBox:new{
-                text = message_text or _("Are you sure you want to power off the device?"),
-                ok_text = _("Power off"),
-                ok_callback = function()
-                    UIManager:nextTick(UIManager.poweroff_action)
-                end,
-            })
-        end
-    else
-        UIManager.event_handlers.PowerOff = function() end
-    end
-
     if self:canRestart() then
         UIManager.event_handlers.Restart = function(message_text)
             local ConfirmBox = require("ui/widget/confirmbox")
