@@ -675,87 +675,89 @@ local POWERD_EVENT_SOURCES = {
     [6] = "HALL_WAKEUP",    -- outOfScreenSaver 6
 }
 
-function Kindle:intoScreenSaver(source)
-    logger.dbg("Kindle:intoScreenSaver via", POWERD_EVENT_SOURCES[source] or string.format("UNKNOWN_SUSPEND (%d)", source or -1))
-    if not self.screen_saver_mode then
-        if self:supportsScreensaver() then
-            -- NOTE: Meaning this is not a SO device ;)
-            local Screensaver = require("ui/screensaver")
-            Screensaver:setup()
-            Screensaver:show()
-        else
-            -- Let the native system handle screensavers on SO devices...
-            if os.getenv("AWESOME_STOPPED") == "yes" then
-                os.execute("killall -CONT awesome")
-            elseif os.getenv("CVM_STOPPED") == "yes" then
-                os.execute("killall -CONT cvm")
-            end
-
-            -- Don't forget to flag ourselves in ScreenSaver mode like Screensaver:show would,
-            -- so that we do the right thing on resume ;).
-            self.screen_saver_mode = true
-        end
+function Kindle:_intoScreenSaver(source)
+    logger.dbg("Kindle:_intoScreenSaver via", POWERD_EVENT_SOURCES[source] or string.format("UNKNOWN_SUSPEND (%d)", source or -1))
+    if self.screen_saver_mode then
+        return
     end
 
-    self.powerd:beforeSuspend()
+    if self:supportsScreensaver() then
+        -- NOTE: Meaning this is not a SO device ;)
+        local Screensaver = require("ui/screensaver")
+        Screensaver:setup()
+        Screensaver:show()
+        return
+    end
+    -- Let the native system handle screensavers on SO devices...
+    if os.getenv("AWESOME_STOPPED") == "yes" then
+        os.execute("killall -CONT awesome")
+    elseif os.getenv("CVM_STOPPED") == "yes" then
+        os.execute("killall -CONT cvm")
+    end
+
+    -- Don't forget to flag ourselves in ScreenSaver mode like Screensaver:show would,
+    -- so that we do the right thing on resume ;).
+    self.screen_saver_mode = true
 end
 
-function Kindle:outofScreenSaver(source)
-    logger.dbg("Kindle:outofScreenSaver via", POWERD_EVENT_SOURCES[source] or string.format("UNKNOWN_WAKEUP (%d)", source or -1))
-    if self.screen_saver_mode then
-        if self:supportsScreensaver() then
-            local Screensaver = require("ui/screensaver")
-            local widget_was_closed = Screensaver:close()
-            if widget_was_closed then
-                -- And redraw everything in case the framework managed to screw us over...
-                UIManager:nextTick(function() UIManager:setDirty("all", "full") end)
-            end
-
-            -- If the device supports deep sleep, and we woke up from hibernation (which kicks in at the 1H mark),
-            -- chuck an extra tiny refresh to get rid of the "waking up" banner if the above refresh was too early...
-            if self.canDeepSleep and self.last_suspend_time > time.s(self.hibernationDelay) then
-                if lfs.attributes("/var/local/system/powerd/hibernate_session_tracker", "mode") == "file" then
-                    local mtime = lfs.attributes("/var/local/system/powerd/hibernate_session_tracker", "modification")
-                    local now = os.time()
-                    if math.abs(now - mtime) <= 60 then
-                        -- That was less than a minute ago, assume we're golden.
-                        logger.dbg("Kindle: Woke up from hibernation")
-                        -- The banner on a 1236x1648 PW5 is 1235x125; we refresh the bottom 10% of the screen to be safe.
-                        local Geom = require("ui/geometry")
-                        local screen_height = self.screen:getHeight()
-                        local refresh_height = math.ceil(screen_height * (1/10))
-                        local refresh_region = Geom:new{
-                            x = 0,
-                            y = screen_height - 1 - refresh_height,
-                            w = self.screen:getWidth(),
-                            h = refresh_height
-                        }
-                        UIManager:scheduleIn(1.5, function()
-                            UIManager:setDirty("all", "ui", refresh_region)
-                        end)
-                    end
-                end
-            end
-        else
-            -- Stop awesome again if need be...
-            if os.getenv("AWESOME_STOPPED") == "yes" then
-                os.execute("killall -STOP awesome")
-            elseif os.getenv("CVM_STOPPED") == "yes" then
-                os.execute("killall -STOP cvm")
-            end
-            -- NOTE: We redraw after a slightly longer delay to take care of the potentially dynamic ad screen...
-            --       This is obviously brittle as all hell. Tested on a slow-ass PW1.
-            UIManager:scheduleIn(3, function() UIManager:setDirty("all", "full") end)
-            -- Flip the switch again
-            self.screen_saver_mode = false
+function Kindle:_outofScreenSaver(source)
+    logger.dbg("Kindle:_outofScreenSaver via", POWERD_EVENT_SOURCES[source] or string.format("UNKNOWN_WAKEUP (%d)", source or -1))
+    if not self.screen_saver_mode then
+        return
+    end
+    if not self:supportsScreensaver() then
+        -- Stop awesome again if need be...
+        if os.getenv("AWESOME_STOPPED") == "yes" then
+            os.execute("killall -STOP awesome")
+        elseif os.getenv("CVM_STOPPED") == "yes" then
+            os.execute("killall -STOP cvm")
         end
+        -- NOTE: We redraw after a slightly longer delay to take care of the potentially dynamic ad screen...
+        --       This is obviously brittle as all hell. Tested on a slow-ass PW1.
+        UIManager:scheduleIn(3, function() UIManager:setDirty("all", "full") end)
+        -- Flip the switch again
+        self.screen_saver_mode = false
+        return
+    end
+    local Screensaver = require("ui/screensaver")
+    local widget_was_closed = Screensaver:close()
+    if widget_was_closed then
+        -- And redraw everything in case the framework managed to screw us over...
+        UIManager:nextTick(function() UIManager:setDirty("all", "full") end)
     end
 
-    self.powerd:afterResume()
+    -- If the device supports deep sleep, and we woke up from hibernation (which kicks in at the 1H mark),
+    -- chuck an extra tiny refresh to get rid of the "waking up" banner if the above refresh was too early...
+    if not self.canDeepSleep then return end
+    if not self.last_suspend_time <= time.s(self.hibernationDelay) then return end
+    if lfs.attributes("/var/local/system/powerd/hibernate_session_tracker", "mode") ~= "file" then
+        return
+    end
+    local mtime = lfs.attributes("/var/local/system/powerd/hibernate_session_tracker", "modification")
+    local now = os.time()
+    if math.abs(now - mtime) > 60 then
+        return
+    end
+    -- That was less than a minute ago, assume we're golden.
+    logger.dbg("Kindle: Woke up from hibernation")
+    -- The banner on a 1236x1648 PW5 is 1235x125; we refresh the bottom 10% of the screen to be safe.
+    local Geom = require("ui/geometry")
+    local screen_height = self.screen:getHeight()
+    local refresh_height = math.ceil(screen_height * (1/10))
+    local refresh_region = Geom:new{
+        x = 0,
+        y = screen_height - 1 - refresh_height,
+        w = self.screen:getWidth(),
+        h = refresh_height
+    }
+    UIManager:scheduleIn(1.5, function()
+        UIManager:setDirty("all", "ui", refresh_region)
+    end)
 end
 
 -- On stock, there's a distinction between OutOfSS (which *requests* closing the SS) and ExitingSS, which fires once they're *actually* closed...
-function Kindle:exitingScreenSaver() end
+-- Unused yet.
+-- function Kindle:exitingScreenSaver() end
 
 function Kindle:usbPlugOut()
     -- NOTE: See usbPlugIn(), we don't have anything fancy to do here either.
@@ -796,15 +798,18 @@ function Kindle:setEventHandlers(uimgr)
     UIManager.event_handlers.IntoSS = function(input_event)
         -- Retrieve the argument set by Input:handleKeyBoardEv
         local arg = table.remove(self.input.fake_event_args[input_event])
-        self:intoScreenSaver(arg)
+        self:_intoScreenSaver(arg)
+        self.powerd:beforeSuspend()
     end
     UIManager.event_handlers.OutOfSS = function(input_event)
         local arg = table.remove(self.input.fake_event_args[input_event])
-        self:outofScreenSaver(arg)
+        self:_outofScreenSaver(arg)
+        self.powerd:afterResume()
     end
-    UIManager.event_handlers.ExitingSS = function()
-        self:exitingScreenSaver()
-    end
+    -- Unused yet.
+    -- UIManager.event_handlers.ExitingSS = function()
+    --     self:exitingScreenSaver()
+    -- end
     UIManager.event_handlers.Charging = function()
         self:_beforeCharging()
         self:usbPlugIn()
