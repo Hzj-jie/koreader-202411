@@ -69,24 +69,6 @@ function UIManager:init()
             self:broadcastEvent(Event:new("EvdevInputRemove", path))
         end,
     }
-    self.reboot_action = function()
-        self._entered_poweroff_stage = true
-        logger.info("Rebooting the device...")
-        self:broadcastEvent(Event:new("Reboot"))
-        self:broadcastEvent(Event:new("Close"))
-        local Screensaver = require("ui/screensaver")
-        Screensaver:setup("reboot", _("Rebooting…"))
-        Screensaver:show()
-        self:nextTick(function()
-            Device:saveSettings()
-            Device:reboot()
-            if Device:isKobo() then
-                self:quit(88)
-            else
-                self:quit()
-            end
-        end)
-    end
     self.poweroff_action = function()
         self._entered_poweroff_stage = true
         logger.info("Powering off the device...")
@@ -98,6 +80,24 @@ function UIManager:init()
         self:nextTick(function()
             Device:saveSettings()
             Device:powerOff()
+            if Device:isKobo() then
+                self:quit(88)
+            else
+                self:quit()
+            end
+        end)
+    end
+    self.reboot_action = function()
+        self._entered_poweroff_stage = true
+        logger.info("Rebooting the device...")
+        self:broadcastEvent(Event:new("Reboot"))
+        self:broadcastEvent(Event:new("Close"))
+        local Screensaver = require("ui/screensaver")
+        Screensaver:setup("reboot", _("Rebooting…"))
+        Screensaver:show()
+        self:nextTick(function()
+            Device:saveSettings()
+            Device:reboot()
             if Device:isKobo() then
                 self:quit(88)
             else
