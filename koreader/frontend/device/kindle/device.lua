@@ -441,6 +441,7 @@ function Kindle:initNetworkManager(NetworkMgr)
     end
 
     function NetworkMgr:getNetworkList()
+        kindleEnableWifi(1)
         local scan_list, err = kindleScanThenGetResults()
         if not scan_list then
             return nil, err

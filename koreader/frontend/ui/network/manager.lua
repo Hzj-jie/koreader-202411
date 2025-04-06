@@ -170,6 +170,7 @@ function NetworkMgr:isWifiOn()
         return true
     end
 end
+-- This function is expected to be overridden by device.
 function NetworkMgr:isConnected()
     if not Device:hasWifiToggle() then
         return true
@@ -395,28 +396,34 @@ function NetworkMgr:disableWifi(cb, interactive)
 end
 
 function NetworkMgr:toggleWifiOn(complete_callback, long_press, interactive)
+    self.wifi_toggle_long_press = long_press
+
+    if not interactive then
+        self:enableWifi(complete_callback, interactive)
+        return
+    end
+
     local toggle_im = InfoMessage:new{
         text = _("Turning on Wi-Fi…"),
     }
     UIManager:show(toggle_im)
     UIManager:forceRePaint()
-
-    self.wifi_toggle_long_press = long_press
-
     self:enableWifi(complete_callback, interactive)
-
     UIManager:close(toggle_im)
 end
 
 function NetworkMgr:toggleWifiOff(complete_callback, interactive)
+    if not interactive then
+        self:disableWifi(complete_callback, interactive)
+        return
+    end
+
     local toggle_im = InfoMessage:new{
         text = _("Turning off Wi-Fi…"),
     }
     UIManager:show(toggle_im)
     UIManager:forceRePaint()
-
     self:disableWifi(complete_callback, interactive)
-
     UIManager:close(toggle_im)
 end
 
@@ -613,7 +620,6 @@ end
 function NetworkMgr:setConnectionState(bool)
     self.is_connected = bool
 end
-
 
 function NetworkMgr:isNetworkInfoAvailable()
     if Device:isAndroid() then
@@ -935,7 +941,11 @@ function NetworkMgr:getInfoMenuTable()
     return {
         text = _("Network info"),
         keep_menu_open = true,
-        enabled_func = function() return self:isNetworkInfoAvailable() end,
+        enabled_func = function()
+            -- Technically speaking self:isNetworkInfoAvailable() == true means
+            -- self:getWifiState() == true.
+            return self:isNetworkInfoAvailable() or self:getWifiState()
+        end,
         callback = function()
             UIManager:broadcastEvent(Event:new("ShowNetworkInfo"))
         end
@@ -1050,34 +1060,50 @@ function NetworkMgr:getMenuTable(common_settings)
 end
 
 function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive)
-    local info = InfoMessage:new{text = _("Scanning for networks…")}
-    UIManager:show(info)
-    UIManager:forceRePaint()
-
-    local network_list, err = self:getNetworkList()
-    UIManager:close(info)
-    if network_list == nil then
-        UIManager:show(InfoMessage:new{text = err})
+    local function scanNetworkList()
+        -- NOTE: Fairly hackish workaround for #4387,
+        --       rescan if the first scan appeared to yield an empty list.
+        --- @fixme This *might* be an issue better handled in lj-wpaclient...
+        local err
+        for _ = 1, 3 do
+            local network_list
+            network_list, err = self:getNetworkList()
+            if network_list ~= nil and #network_list > 0 then
+                return network_list
+            end
+            -- The last rescanning won't happen, but I doubt even if it matters.
+            logger.warn("Initial Wi-Fi scan yielded no results, rescanning")
+        end
+        if interactive then
+            if err == nil or err == "" then
+                -- Kindle won't return errors.
+                -- Need localization.
+                err = _("No available wifi networks found.")
+            end
+            UIManager:show(InfoMessage:new{text = err})
+        end
         return false
     end
-    -- NOTE: Fairly hackish workaround for #4387,
-    --       rescan if the first scan appeared to yield an empty list.
-    --- @fixme This *might* be an issue better handled in lj-wpaclient...
-    if #network_list == 0 then
-        logger.warn("Initial Wi-Fi scan yielded no results, rescanning")
-        network_list, err = self:getNetworkList()
-        if network_list == nil then
-            UIManager:show(InfoMessage:new{text = err})
-            return false
-        end
+
+    local network_list
+    if interactive then
+        local info = InfoMessage:new{text = _("Scanning for networks…")}
+        UIManager:show(info)
+        UIManager:forceRePaint()
+        network_list = scanNetworkList()
+        UIManager:close(info)
+    else
+        network_list = scanNetworkList()
     end
+    if network_list == false then
+        return false
+    end
+    assert(type(network_list) == "table")
 
     table.sort(network_list,
         function(l, r) return l.signal_quality > r.signal_quality end)
 
-    -- true: we're connected; false: things went kablooey; nil: we don't know yet (e.g., interactive)
-    -- NOTE: false *will* lead enableWifi to kill Wi-Fi via _abortWifiConnection!
-    local success
+    -- ssid indicates the state of the connection; it's nil if not connected.
     local ssid
     -- We need to do two passes, as we may have *both* an already connected network (from the global wpa config),
     -- *and* preferred networks, and if the preferred networks have a better signal quality,
@@ -1088,12 +1114,11 @@ function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive)
     --       and we *need* our complete_callback to run,
     --       which would not be the case if we were to just dismiss the scan list,
     --       especially since it wouldn't show as "connected" in this case...
-    for dummy, network in ipairs(network_list) do
+    for _, network in ipairs(network_list) do
         if network.connected then
             -- On platforms where we use wpa_supplicant (if we're calling this, we probably are),
             -- the invocation will check its global config, and if an AP configured there is reachable,
             -- it'll already have connected to it on its own.
-            success = true
             ssid = network.ssid
             break
         end
@@ -1101,12 +1126,16 @@ function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive)
 
     -- Next, look for our own preferred networks...
     local err_msg = _("Connection failed")
-    if not success then
-        for dummy, network in ipairs(network_list) do
+    -- Only auto connecting when user did not initiate the operation. I.e. when
+    -- user clicks on the "Wi-Fi connection" menu, always prefer showing the
+    -- menu.
+    if ssid == nil and not interactive then
+        for _, network in ipairs(network_list) do
             if network.password then
                 -- If we hit a preferred network and we're not already connected,
                 -- attempt to connect to said preferred network....
                 logger.dbg("NetworkMgr: Attempting to authenticate on preferred network", util.fixUtf8(network.ssid, "�"))
+                local success
                 success, err_msg = self:authenticateNetwork(network)
                 if success then
                     ssid = network.ssid
@@ -1123,24 +1152,23 @@ function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive)
     -- This happens when we break too early from re-scans triggered by wpa_supplicant itself,
     -- which shouldn't really ever happen since https://github.com/koreader/lj-wpaclient/pull/11
     -- c.f., WpaClient:scanThenGetResults in lj-wpaclient for more details.
-    if Device:hasWifiManager() and not success and not ssid then
+    if Device:hasWifiManager() and ssid == nil then
         -- Don't bother if wpa_supplicant doesn't actually have any configured networks...
         local configured_networks = self:getConfiguredNetworks()
         local has_preferred_networks = configured_networks and #configured_networks > 0
 
         local iter = has_preferred_networks and 0 or 60
         -- We wait 15s at most (like the restore-wifi-async script)
-        while not success and iter < 60 do
+        while ssid == nil and iter < 60 do
             -- Check every 250ms
             iter = iter + 1
             ffiutil.usleep(250 * 1e+3)
 
             local nw = self:getCurrentNetwork()
             if nw then
-                success = true
                 ssid = nw.ssid
                 -- Flag it as connected in the list
-                for dummy, network in ipairs(network_list) do
+                for _, network in ipairs(network_list) do
                     if ssid == network.ssid then
                         network.connected = true
                     end
@@ -1150,30 +1178,32 @@ function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive)
         end
     end
 
-    if success then
+    if ssid ~= nil then
         self:obtainIP()
         if complete_callback then
             complete_callback()
         end
-        -- NOTE: On Kindle, we don't have an explicit obtainIP implementation,
-        --       and authenticateNetwork is async,
-        --       so we don't *actually* have a full connection yet,
-        --       we've just *started* connecting to the requested network...
-        UIManager:show(InfoMessage:new{
-            tag = "NetworkMgr", -- for crazy KOSync purposes
-            text = T(_(Device:isKindle() and "Connecting to network %1…" or "Connected to network %1"), BD.wrap(util.fixUtf8(ssid, "�"))),
-            timeout = 3,
-        })
+        if interactive then
+            -- NOTE: On Kindle, we don't have an explicit obtainIP implementation,
+            --       and authenticateNetwork is async,
+            --       so we don't *actually* have a full connection yet,
+            --       we've just *started* connecting to the requested network...
+            UIManager:show(InfoMessage:new{
+                tag = "NetworkMgr", -- for crazy KOSync purposes
+                text = T(Device:isKindle() and _("Connecting to network %1…") or _("Connected to network %1"), BD.wrap(util.fixUtf8(ssid, "�"))),
+                timeout = 3,
+            })
+        end
         logger.dbg("NetworkMgr: Connected to network", util.fixUtf8(ssid, "�"))
-    else
-        UIManager:show(InfoMessage:new{
-            text = err_msg,
-            timeout = 3,
+    elseif self.wifi_toggle_long_press then
+        -- Success, but we asked for the list, show it w/o any callbacks.
+        -- (We *could* potentially setup a pair of callbacks that just send Network* events, but it's probably not worth it).
+        UIManager:show(require("ui/widget/networksetting"):new{
+            network_list = network_list,
         })
-        logger.dbg("NetworkMgr: Failed to connect:", err_msg, "; last attempt on ssid:", ssid and util.fixUtf8(ssid, "�") or "<none>")
-    end
-
-    if not success then
+    else
+        assert(ssid == nil)
+        assert(not self.wifi_toggle_long_press)
         -- NOTE: Also supports a disconnect_callback, should we use it for something?
         --       Tearing down Wi-Fi completely when tapping "disconnect" would feel a bit harsh, though...
         if interactive then
@@ -1182,20 +1212,11 @@ function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive)
                 network_list = network_list,
                 connect_callback = complete_callback,
             })
-        else
-            -- Let enableWifi tear it all down when we're non-interactive
-            success = false
         end
-    elseif self.wifi_toggle_long_press then
-        -- Success, but we asked for the list, show it w/o any callbacks.
-        -- (We *could* potentially setup a pair of callbacks that just send Network* events, but it's probably not worth it).
-        UIManager:show(require("ui/widget/networksetting"):new{
-            network_list = network_list,
-        })
     end
 
     self.wifi_toggle_long_press = nil
-    return success
+    return (ssid ~= nil)
 end
 
 function NetworkMgr:saveNetwork(setting)

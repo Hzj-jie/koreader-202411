@@ -226,6 +226,11 @@ if Device:hasWifiRestore() then
 end
 
 function NetworkListener:onShowNetworkInfo()
+    if not NetworkMgr:isNetworkInfoAvailable() then
+        -- User action, interactive == true.
+        NetworkMgr:reconnectOrShowNetworkMenu(nil, true)
+        return
+    end
     if Device.retrieveNetworkInfo then
         UIManager:show(InfoMessage:new{
             text = Device:retrieveNetworkInfo(),
