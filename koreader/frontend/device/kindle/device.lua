@@ -243,28 +243,28 @@ local function kindleScanThenGetResults()
 end
 
 local function kindleEnableWifi(toggle)
+    if toggle == nil then toggle = 0 end
+    assert(type(toggle) == "number")
     local haslipc, lipc = pcall(require, "liblipclua")
-    local lipc_handle
     if haslipc then
-        lipc_handle = lipc.init("com.github.koreader.networkmgr")
-    end
-    if lipc_handle then
-        -- Be extremely thorough... c.f., #6019
-        -- NOTE: I *assume* this'll also ensure we prefer Wi-Fi over 3G/4G, which is a plus in my book...
-        if toggle == 1 then
-            lipc_handle:set_int_property("com.lab126.cmd", "wirelessEnable", 1)
-            lipc_handle:set_int_property("com.lab126.wifid", "enable", 1)
-        else
-            lipc_handle:set_int_property("com.lab126.wifid", "enable", 0)
-            lipc_handle:set_int_property("com.lab126.cmd", "wirelessEnable", 0)
+        local lipc_handle = lipc.init("com.github.koreader.networkmgr")
+        if lipc_handle then
+            -- Be extremely thorough... c.f., #6019
+            -- NOTE: I *assume* this'll also ensure we prefer Wi-Fi over 3G/4G, which is a plus in my book...
+            lipc_handle:set_int_property("com.lab126.cmd", "wirelessEnable", toggle)
+            lipc_handle:set_int_property("com.lab126.wifid", "enable", toggle)
+            lipc_handle:close()
+            return
         end
-        lipc_handle:close()
+        logger.warn("could not get lipc handle")
     else
-        -- No liblipclua on FW < 5.x ;)
-        -- Always kill 3G first...
-        os.execute("lipc-set-prop -i com.lab126.wan enable 0")
-        os.execute("lipc-set-prop -i com.lab126.wifid enable " .. toggle)
+        logger.warn("could not load liblipclua: ", lipc)
     end
+    -- No liblipclua on FW < 5.x ;)
+    -- Always kill 3G first...
+    os.execute("lipc-set-prop -i com.lab126.wan enable 0")
+    os.execute("lipc-set-prop -i com.lab126.cmd wirelessEnable " .. toggle)
+    os.execute("lipc-set-prop -i com.lab126.wifid enable " .. toggle)
 end
 
 -- Check if wifid thinks that the WiFi is enabled
