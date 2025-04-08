@@ -72,7 +72,7 @@ else
   -- Disable logger after dbg takes effect, dbg sets the log level.
   if G_defaults:isFalse("ENABLE_LOGGING") then
     local logger = require("logger")
-    logger:setLevel(logger.levels.warn)
+    logger:setLevel(logger.levels.err)
   end
 end
 
