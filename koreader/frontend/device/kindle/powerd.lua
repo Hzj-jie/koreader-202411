@@ -1,4 +1,5 @@
 local BasePowerD = require("device/generic/powerd")
+local LibLipcs = require("liblipcs")
 local UIManager
 local WakeupMgr = require("device/wakeupmgr")
 local logger = require("logger")
@@ -8,16 +9,13 @@ local ffiUtil = require("ffi/util")
 local KindlePowerD = BasePowerD:new{
     fl_min = 0, fl_max = 24,
     fl_warmth_min = 0, fl_warmth_max = 24,
-
-    lipc_handle = nil,
 }
 
-function KindlePowerD:init()
-    local haslipc, lipc = pcall(require, "liblipclua")
-    if haslipc then
-        self.lipc_handle = lipc.init("com.github.koreader.kindlepowerd")
-    end
+function KindlePowerD:_lipc()
+    return LibLipcs:of("com.github.koreader.kindlepowerd")
+end
 
+function KindlePowerD:init()
     -- On devices where lipc step 0 is *not* off, we add a synthetic fl level where 0 *is* off,
     -- which allows us to keep being able to use said step 0 as the first "on" step.
     if not self.device:canTurnFrontlightOff() then
@@ -51,36 +49,34 @@ end
 function KindlePowerD:frontlightIntensityHW()
     if not self.device:hasFrontlight() then return 0 end
     -- Kindle stock software does not use intensity file directly, so go through lipc to keep us in sync.
-    if self.lipc_handle ~= nil then
-        -- Handle the step 0 switcheroo on ! canTurnFrontlightOff devices...
-        if self.device:canTurnFrontlightOff() then
-            return self.lipc_handle:get_int_property("com.lab126.powerd", "flIntensity")
-        else
-            local lipc_fl_intensity = self.lipc_handle:get_int_property("com.lab126.powerd", "flIntensity")
-            -- NOTE: If lipc returns 0, compare against what the kernel says,
-            --       to avoid breaking on/off detection on devices where lipc 0 doesn't actually turn it off (<= PW3),
-            --       c.f., #5986
-            if lipc_fl_intensity == self.fl_min then
-                local sysfs_fl_intensity = self:_readFLIntensity()
-                if sysfs_fl_intensity ~= self.fl_min then
-                    -- Return something potentially slightly off (as we can't be sure of the sysfs -> lipc mapping),
-                    -- but, more importantly, something that's not fl_min (0), so we properly detect the light as on,
-                    -- and update fl_intensity accordingly.
-                    -- That's only tripped if it was set to fl_min from the stock UI,
-                    -- as we ourselves *do* really turn it off when we do that.
-                    return self.fl_min + 1
-                else
-                    return self.fl_min
-                end
-            else
-                -- We've added a synthetic step...
-                return lipc_fl_intensity + 1
-            end
-        end
-    else
+    if self:_lipc().fake then
         -- NOTE: This fallback is of dubious use, as it will NOT match our expected [fl_min..fl_max] range,
         --       each model has a specific curve.
         return self:_readFLIntensity()
+    end
+    -- Handle the step 0 switcheroo on ! canTurnFrontlightOff devices...
+    if self.device:canTurnFrontlightOff() then
+        return self:lipc():get_int_property("com.lab126.powerd", "flIntensity")
+    end
+    local lipc_fl_intensity = self:_lipc():get_int_property("com.lab126.powerd", "flIntensity")
+    -- NOTE: If lipc returns 0, compare against what the kernel says,
+    --       to avoid breaking on/off detection on devices where lipc 0 doesn't actually turn it off (<= PW3),
+    --       c.f., #5986
+    if lipc_fl_intensity == self.fl_min then
+        local sysfs_fl_intensity = self:_readFLIntensity()
+        if sysfs_fl_intensity ~= self.fl_min then
+            -- Return something potentially slightly off (as we can't be sure of the sysfs -> lipc mapping),
+            -- but, more importantly, something that's not fl_min (0), so we properly detect the light as on,
+            -- and update fl_intensity accordingly.
+            -- That's only tripped if it was set to fl_min from the stock UI,
+            -- as we ourselves *do* really turn it off when we do that.
+            return self.fl_min + 1
+        else
+            return self.fl_min
+        end
+    else
+        -- We've added a synthetic step...
+        return lipc_fl_intensity + 1
     end
 end
 
@@ -105,10 +101,8 @@ function KindlePowerD:setIntensityHW(intensity)
     end
     -- NOTE: This means we *require* a working lipc handle to set the FL:
     --       it knows what the UI values should map to for the specific hardware much better than us.
-    if self.lipc_handle ~= nil then
-        -- NOTE: We want to bypass setIntensity's shenanigans and simply restore the light as-is
-        self.lipc_handle:set_int_property("com.lab126.powerd", "flIntensity", intensity)
-    end
+    -- NOTE: We want to bypass setIntensity's shenanigans and simply restore the light as-is
+    self:_lipc():set_int_property("com.lab126.powerd", "flIntensity", intensity)
     if turn_it_off then
         -- NOTE: when intensity is 0, we want to *really* kill the light, so do it manually
         -- (asking lipc to set it to 0 would in fact set it to > 0 on ! canTurnFrontlightOff Kindles).
@@ -127,44 +121,39 @@ function KindlePowerD:setIntensityHW(intensity)
 end
 
 function KindlePowerD:frontlightWarmthHW()
-    if self.lipc_handle ~= nil then
-        local nat_warmth = self.lipc_handle:get_int_property("com.lab126.powerd", "currentAmberLevel")
-        if nat_warmth then
-            -- [0...24] -> [0...100]
-            return self:fromNativeWarmth(nat_warmth)
-        else
-            return 0
-        end
+    local nat_warmth = self:_lipc():get_int_property("com.lab126.powerd", "currentAmberLevel")
+    if nat_warmth then
+        -- [0...24] -> [0...100]
+        return self:fromNativeWarmth(nat_warmth)
     end
+    return 0
 end
 
 function KindlePowerD:setWarmthHW(warmth)
-    if self.lipc_handle ~= nil then
-        self.lipc_handle:set_int_property("com.lab126.powerd", "currentAmberLevel", warmth)
-    end
+    self:_lipc():set_int_property("com.lab126.powerd", "currentAmberLevel", warmth)
 end
 
 function KindlePowerD:getCapacityHW()
-    if self.lipc_handle ~= nil then
-        return self.lipc_handle:get_int_property("com.lab126.powerd", "battLevel")
-    elseif self.batt_capacity_file then
+    if not self:_lipc().fake then
+        return self:_lipc():get_int_property("com.lab126.powerd", "battLevel")
+    end
+    if self.batt_capacity_file then
         return self:read_int_file(self.batt_capacity_file)
+    end
+    local std_out = io.popen("gasgauge-info -c 2>/dev/null", "r")
+    if std_out then
+        local result = std_out:read("*number")
+        std_out:close()
+        return result or 0
     else
-        local std_out = io.popen("gasgauge-info -c 2>/dev/null", "r")
-        if std_out then
-            local result = std_out:read("*number")
-            std_out:close()
-            return result or 0
-        else
-            return 0
-        end
+        return 0
     end
 end
 
 function KindlePowerD:isChargingHW()
     local is_charging
-    if self.lipc_handle ~= nil then
-        is_charging = self.lipc_handle:get_int_property("com.lab126.powerd", "isCharging")
+    if not self:_lipc().fake then
+        is_charging = self:_lipc():get_int_property("com.lab126.powerd", "isCharging")
     else
         is_charging = self:read_int_file(self.is_charging_file)
     end
@@ -207,25 +196,21 @@ function KindlePowerD:_readFLIntensity()
 end
 
 function KindlePowerD:toggleSuspend()
-    if self.lipc_handle then
-        self.lipc_handle:set_int_property("com.lab126.powerd", "powerButton", 1)
-    else
+    if self:_lipc().fake then
         os.execute("powerd_test -p")
+    else
+        self:_lipc():set_int_property("com.lab126.powerd", "powerButton", 1)
     end
 end
 
 -- Kindle only allows setting the RTC via lipc during the ReadyToSuspend state
 function KindlePowerD:setRtcWakeup(seconds_from_now)
-    if self.lipc_handle then
-        self.lipc_handle:set_int_property("com.lab126.powerd", "rtcWakeup", seconds_from_now)
-    end
+    self:_lipc():set_int_property("com.lab126.powerd", "rtcWakeup", seconds_from_now)
 end
 
 -- Check the powerd state: are we still in screensaver mode.
 function KindlePowerD:getPowerdState()
-    if self.lipc_handle then
-        return self.lipc_handle:get_string_property("com.lab126.powerd", "state")
-    end
+    return self:_lipc():get_string_property("com.lab126.powerd", "state")
 end
 
 function KindlePowerD:checkUnexpectedWakeup()
@@ -248,7 +233,7 @@ function KindlePowerD:readyToSuspend() end
 
 -- Support WakeupMgr on Lipc & supportsScreensaver devices.
 function KindlePowerD:initWakeupMgr()
-    if self.lipc_handle == nil then return end
+    if self:_lipc().fake then return end
     if G_defaults:isFalse("ENABLE_WAKEUP_MANAGER") then return end
     if not self.device:supportsScreensaver() then return end
 
@@ -282,11 +267,11 @@ function KindlePowerD:resetT1Timeout()
     -- NOTE: powerd will only send a t1TimerReset event every $(kdb get system/daemon/powerd/send_t1_reset_interval) (15s),
     --       which is just fine, as we should only request it at most every 5 minutes ;).
     -- NOTE: This will fail if the device is already showing the screensaver.
-    if self.lipc_handle then
-        -- AFAIK, the value is irrelevant
-        self.lipc_handle:set_int_property("com.lab126.powerd", "touchScreenSaverTimeout", 1)
-    else
+    if self:_lipc().fake then
         os.execute("lipc-set-prop -i com.lab126.powerd touchScreenSaverTimeout 1")
+    else
+        -- AFAIK, the value is irrelevant
+        self:_lipc():set_int_property("com.lab126.powerd", "touchScreenSaverTimeout", 1)
     end
 end
 
@@ -318,14 +303,6 @@ end
 
 function KindlePowerD:UIManagerReadyHW(uimgr)
     UIManager = uimgr
-end
-
---- @fixme: This won't ever fire on its own, as KindlePowerD is already a metatable on a plain table.
-function KindlePowerD:__gc()
-    if self.lipc_handle then
-        self.lipc_handle:close()
-        self.lipc_handle = nil
-    end
 end
 
 return KindlePowerD

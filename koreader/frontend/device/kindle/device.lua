@@ -1,4 +1,5 @@
 local Generic = require("device/generic/device")
+local LibLipcs = require("liblipcs")
 local UIManager
 local time = require("ui/time")
 local lfs = require("libs/libkoreader-lfs")
@@ -48,20 +49,12 @@ end
 
 local function kindleGetSavedNetworks()
     local function run()
-        local haslipc, lipc = pcall(require, "libopenlipclua") -- use our lua lipc library with access to hasharray properties
-        local lipc_handle
-        if haslipc then
-            lipc_handle = lipc.open_no_name()
-        end
-        if not lipc_handle then
-          return nil
-        end
-        local ha_input = lipc_handle:new_hasharray() -- an empty hash array since we only want to read
-        local ha_result = lipc_handle:access_hash_property("com.lab126.wifid", "profileData", ha_input)
+        if LibLipcs:no_name().fake then return nil end
+        local ha_input = LibLipcs:no_name():new_hasharray() -- an empty hash array since we only want to read
+        local ha_result = LibLipcs:no_name():access_hash_property("com.lab126.wifid", "profileData", ha_input)
         local profiles = ha_result:to_table()
         ha_result:destroy()
         ha_input:destroy()
-        lipc_handle:close()
         return profiles
     end
 
@@ -74,20 +67,12 @@ end
 
 local function kindleGetCurrentProfile()
     local function run()
-        local haslipc, lipc = pcall(require, "libopenlipclua") -- use our lua lipc library with access to hasharray properties
-        local lipc_handle
-        if haslipc then
-            lipc_handle = lipc.open_no_name()
-        end
-        if not lipc_handle then
-          return nil
-        end
-        local ha_input = lipc_handle:new_hasharray() -- an empty hash array since we only want to read
-        local ha_result = lipc_handle:access_hash_property("com.lab126.wifid", "currentEssid", ha_input)
+        if LibLipcs:no_name().fake then return nil end
+        local ha_input = LibLipcs:no_name():new_hasharray() -- an empty hash array since we only want to read
+        local ha_result = LibLipcs:no_name():access_hash_property("com.lab126.wifid", "currentEssid", ha_input)
         local profile = ha_result:to_table()[1] -- there is only a single element
         ha_input:destroy()
         ha_result:destroy()
-        lipc_handle:close()
         return profile
     end
 
@@ -99,28 +84,15 @@ local function kindleGetCurrentProfile()
 end
 
 local function kindleAuthenticateNetwork(essid)
-    local haslipc, lipc = pcall(require, "liblipclua")
-    local lipc_handle
-    if haslipc then
-        lipc_handle = lipc.init("com.github.koreader.networkmgr")
-    end
-    if lipc_handle then
-        lipc_handle:set_string_property("com.lab126.cmd", "ensureConnection", "wifi:" .. essid)
-        lipc_handle:close()
-    end
+    local lipc = LibLipcs:of("com.github.koreader.networkmgr")
+    if lipc.fake then return end
+    lipc:set_string_property("com.lab126.cmd", "ensureConnection", "wifi:" .. essid)
 end
 
 local function kindleSaveNetwork(data)
     local function run()
-        local haslipc, lipc = pcall(require, "libopenlipclua") -- use our lua lipc library with access to hasharray properties
-        local lipc_handle
-        if haslipc then
-            lipc_handle = lipc.open_no_name()
-        end
-        if lipc_handle then
-            return
-        end
-        local profile = lipc_handle:new_hasharray()
+        if LibLipcs:no_name().fake then return end
+        local profile = LibLipcs:no_name():new_hasharray()
         profile:add_hash()
         profile:put_string(0, "essid", data.ssid)
         if string.find(data.flags, "WPA") then
@@ -130,46 +102,35 @@ local function kindleSaveNetwork(data)
         else
             profile:put_string(0, "secured", "no")
         end
-        lipc_handle:access_hash_property("com.lab126.wifid", "createProfile", profile):destroy() -- destroy the returned empty ha
+        LibLipcs:no_name():access_hash_property("com.lab126.wifid", "createProfile", profile):destroy() -- destroy the returned empty ha
         profile:destroy()
-        lipc_handle:close()
     end
     pcall(run)
 end
 
 local function kindleGetScanList()
     local function run()
-        local _ = require("gettext")
-        local haslipc, lipc = pcall(require, "libopenlipclua") -- use our lua lipc library with access to hasharray properties
-        local lipc_handle
-        if haslipc then
-            lipc_handle = lipc.open_no_name()
+        if LibLipcs:no_name().fake then
+            return nil, require("gettext")("Unable to communicate with the Wi-Fi backend")
         end
-        if not lipc_handle then
-            logger.dbg("kindleGetScanList: Failed to acquire an anonymous lipc handle")
-            return nil, _("Unable to communicate with the Wi-Fi backend")
-        end
-        if lipc_handle:get_string_property("com.lab126.wifid", "cmState") ~= "CONNECTED" then
-            local ha_input = lipc_handle:new_hasharray()
-            local ha_results = lipc_handle:access_hash_property("com.lab126.wifid", "scanList", ha_input)
+        if LibLipcs:no_name():get_string_property("com.lab126.wifid", "cmState") ~= "CONNECTED" then
+            local ha_input = LibLipcs:no_name():new_hasharray()
+            local ha_results = LibLipcs:no_name():access_hash_property("com.lab126.wifid", "scanList", ha_input)
             if ha_results == nil then
                 -- Shouldn't really happen, access_hash_property will throw if LipcAccessHasharrayProperty failed
                 ha_input:destroy()
-                lipc_handle:close()
                 -- NetworkMgr will ask for a re-scan on seeing an empty table, the second attempt *should* work ;).
                 return {}, nil
             end
             local scan_result = ha_results:to_table()
             ha_results:destroy()
             ha_input:destroy()
-            lipc_handle:close()
             if scan_result then
                 return scan_result, nil
             end
             -- e.g., to_table hit lha->ha == NULL
             return {}, nil
         end
-        lipc_handle:close()
         -- return a fake scan list containing only the currently connected profile :)
         local profile = kindleGetCurrentProfile()
         return { profile }, nil
@@ -183,17 +144,12 @@ end
 
 local function kindleScanThenGetResults()
     local _ = require("gettext")
-    local haslipc, lipc = pcall(require, "liblipclua")
-    local lipc_handle
-    if haslipc then
-        lipc_handle = lipc.init("com.github.koreader.networkmgr")
-    end
-    if not lipc_handle then
-        logger.dbg("kindleScanThenGetResults: Failed to acquire a lipc handle for NetworkMgr")
+    local lipc = LibLipcs:of("com.github.koreader.networkmgr")
+    if lipc.fake then
         return nil, _("Unable to communicate with the Wi-Fi backend")
     end
 
-    lipc_handle:set_string_property("com.lab126.wifid", "scan", "") -- trigger a scan
+    lipc:set_string_property("com.lab126.wifid", "scan", "") -- trigger a scan
 
     -- Mimic WpaClient:scanThenGetResults: block while waiting for the scan to finish.
     -- Ideally, we'd do this via a poll/event workflow, but, eh', this is going to be good enough for now ;p.
@@ -219,7 +175,7 @@ local function kindleScanThenGetResults()
     local done_scanning = false
     local wait_cnt = 80 -- 20s in chunks on 250ms
     while wait_cnt > 0 do
-        local scan_state = lipc_handle:get_string_property("com.lab126.wifid", "scanState")
+        local scan_state = lipc:get_string_property("com.lab126.wifid", "scanState")
 
         if scan_state == "idle" then
             done_scanning = true
@@ -232,7 +188,6 @@ local function kindleScanThenGetResults()
         wait_cnt = wait_cnt - 1
         C.usleep(250 * 1000)
     end
-    lipc_handle:close()
 
     if done_scanning then
         return kindleGetScanList()
@@ -245,26 +200,19 @@ end
 local function kindleEnableWifi(toggle)
     if toggle == nil then toggle = 0 end
     assert(type(toggle) == "number")
-    local haslipc, lipc = pcall(require, "liblipclua")
-    if haslipc then
-        local lipc_handle = lipc.init("com.github.koreader.networkmgr")
-        if lipc_handle then
-            -- Be extremely thorough... c.f., #6019
-            -- NOTE: I *assume* this'll also ensure we prefer Wi-Fi over 3G/4G, which is a plus in my book...
-            lipc_handle:set_int_property("com.lab126.cmd", "wirelessEnable", toggle)
-            lipc_handle:set_int_property("com.lab126.wifid", "enable", toggle)
-            lipc_handle:close()
-            return
-        end
-        logger.warn("could not get lipc handle")
+    local lipc = LibLipcs:of("com.github.koreader.networkmgr")
+    if lipc.fake then
+        -- No liblipclua on FW < 5.x ;)
+        -- Always kill 3G first...
+        os.execute("lipc-set-prop -i com.lab126.wan enable 0")
+        os.execute("lipc-set-prop -i com.lab126.cmd wirelessEnable " .. toggle)
+        os.execute("lipc-set-prop -i com.lab126.wifid enable " .. toggle)
     else
-        logger.warn("could not load liblipclua: ", lipc)
+        -- Be extremely thorough... c.f., #6019
+        -- NOTE: I *assume* this'll also ensure we prefer Wi-Fi over 3G/4G, which is a plus in my book...
+        lipc:set_int_property("com.lab126.cmd", "wirelessEnable", toggle)
+        lipc:set_int_property("com.lab126.wifid", "enable", toggle)
     end
-    -- No liblipclua on FW < 5.x ;)
-    -- Always kill 3G first...
-    os.execute("lipc-set-prop -i com.lab126.wan enable 0")
-    os.execute("lipc-set-prop -i com.lab126.cmd wirelessEnable " .. toggle)
-    os.execute("lipc-set-prop -i com.lab126.wifid enable " .. toggle)
 end
 
 -- Check if wifid thinks that the WiFi is enabled
@@ -303,29 +251,14 @@ Test if a kindle device is flagged as a Special Offers device (i.e., ad supporte
 --]]
 local function isSpecialOffers()
     -- Look at the current blanket modules to see if the SO screensavers are enabled...
-    local haslipc, lipc = pcall(require, "liblipclua")
-    if not haslipc then
-        logger.warn("could not load liblipclua:", lipc)
-        return true
-    end
-    local lipc_handle = lipc.init("com.github.koreader.device")
-    if not lipc_handle then
-        logger.warn("could not get lipc handle")
-        return true
-    end
-    local is_so
-    local loaded_blanket_modules = lipc_handle:get_string_property("com.lab126.blanket", "load")
+    local lipc = LibLipcs:of("com.github.koreader.device")
+    if lipc.fake then return true end
+    local loaded_blanket_modules = lipc:get_string_property("com.lab126.blanket", "load")
     if not loaded_blanket_modules then
         logger.warn("could not get lipc property")
         return true
     end
-    if string.find(loaded_blanket_modules, "ad_screensaver") then
-        is_so = true
-    else
-        is_so = false
-    end
-    lipc_handle:close()
-    return is_so
+    return string.find(loaded_blanket_modules, "ad_screensaver") ~= nil
 end
 
 --[[
@@ -340,23 +273,38 @@ local function hasSpecialOffers()
 end
 
 local function frameworkStopped()
-    if os.getenv("STOP_FRAMEWORK") == "yes" then
-        local haslipc, lipc = pcall(require, "liblipclua")
-        if not haslipc then
-            logger.warn("could not load liblibclua")
-            return
+    if os.getenv("STOP_FRAMEWORK") ~= "yes" then return nil end
+    local lipc = LibLipcs:of("com.lab126.kaf")
+    if lipc.fake then return nil end
+    local frameworkStarted = lipc:register_int_property("frameworkStarted", "r")
+    frameworkStarted.value = 1
+    lipc:set_string_property("com.lab126.blanket", "unload", "splash")
+    lipc:set_string_property("com.lab126.blanket", "unload", "screensaver")
+    return lipc
+end
+
+local function initRotation(screen)
+    local lipc = LibLipcs:of("com.github.koreader.screen")
+    if lipc.fake then return end
+    local orientation_code = lipc:get_string_property(
+        "com.lab126.winmgr", "accelerometer")
+    logger.dbg("orientation_code =", orientation_code)
+    local rotation_mode = 0
+    if orientation_code then
+        if orientation_code == "U" then
+            rotation_mode = self.screen.DEVICE_ROTATED_UPRIGHT
+        elseif orientation_code == "R" then
+            rotation_mode = self.screen.DEVICE_ROTATED_CLOCKWISE
+        elseif orientation_code == "D" then
+            rotation_mode = self.screen.DEVICE_ROTATED_UPSIDE_DOWN
+        elseif orientation_code == "L" then
+            rotation_mode = self.screen.DEVICE_ROTATED_COUNTER_CLOCKWISE
         end
-        local lipc_handle = lipc.init("com.lab126.kaf")
-        if not lipc_handle then
-            logger.warn("could not get lipc handle")
-            return
-        end
-        local frameworkStarted = lipc_handle:register_int_property("frameworkStarted", "r")
-        frameworkStarted.value = 1
-        lipc_handle:set_string_property("com.lab126.blanket", "unload", "splash")
-        lipc_handle:set_string_property("com.lab126.blanket", "unload", "screensaver")
-        return lipc_handle
     end
+    if rotation_mode > 0 then
+        screen.native_rotation_mode = rotation_mode
+    end
+    screen:setRotationMode(rotation_mode)
 end
 
 local Kindle = Generic:extend{
@@ -396,8 +344,7 @@ local Kindle = Generic:extend{
 }
 
 function Kindle:initNetworkManager(NetworkMgr)
-    local haslipc, _ = pcall(require, "liblipclua")
-    if haslipc then
+    if LibLipcs:supported() then
         function NetworkMgr:turnOnWifi(complete_callback, interactive)
             kindleEnableWifi(1)
             return self:reconnectOrShowNetworkMenu(complete_callback, interactive)
@@ -830,12 +777,9 @@ function Kindle:setEventHandlers(uimgr)
 end
 
 function Kindle:ambientBrightnessLevel()
-    local haslipc, lipc = pcall(require, "liblipclua")
-    if not haslipc or lipc == nil then return 0 end
-    local lipc_handle = lipc.init("com.github.koreader.ambientbrightness")
-    if not lipc_handle then return 0 end
-    local value = lipc_handle:get_int_property("com.lab126.powerd", "alsLux")
-    lipc_handle:close()
+    local lipc = LibLipcs:of("com.github.koreader.ambientbrightness")
+    if lipc.fake then return 0 end
+    local value = lipc:get_int_property("com.lab126.powerd", "alsLux")
     if type(value) ~= "number" then return 0 end
     value = value * (G_defaults:readSetting("KINDLE_AMBIENT_BRIGHTNESS_MULTIPLIER") or 1)
     if value < 10 then return 0 end
@@ -1324,32 +1268,7 @@ function KindleOasis:init()
     Kindle.init(self)
 
     --- @note See comments in KindleOasis2:init() for details.
-    local haslipc, lipc = pcall(require, "liblipclua")
-    if haslipc then
-        local lipc_handle = lipc.init("com.github.koreader.screen")
-        if lipc_handle then
-            local orientation_code = lipc_handle:get_string_property(
-                "com.lab126.winmgr", "accelerometer")
-            logger.dbg("orientation_code =", orientation_code)
-            local rotation_mode = 0
-            if orientation_code then
-                if orientation_code == "U" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_UPRIGHT
-                elseif orientation_code == "R" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_CLOCKWISE
-                elseif orientation_code == "D" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_UPSIDE_DOWN
-                elseif orientation_code == "L" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_COUNTER_CLOCKWISE
-                end
-            end
-            if rotation_mode > 0 then
-                self.screen.native_rotation_mode = rotation_mode
-            end
-            self.screen:setRotationMode(rotation_mode)
-            lipc_handle:close()
-        end
-    end
+    initRotation(self.screen)
     -- put awesome back to sleep
     if os.getenv("AWESOME_STOPPED") == "yes" then
         os.execute("killall -STOP awesome")
@@ -1435,32 +1354,7 @@ function KindleOasis2:init()
     --        In no-framework mode, this works as is.
     -- NOTE: It'd take some effort to actually start KOReader while in a LANDSCAPE orientation,
     --       since they're only exposed inside the stock reader, and not the Home/KUAL Booklets.
-    local haslipc, lipc = pcall(require, "liblipclua")
-    if haslipc then
-        local lipc_handle = lipc.init("com.github.koreader.screen")
-        if lipc_handle then
-            local orientation_code = lipc_handle:get_string_property(
-                "com.lab126.winmgr", "accelerometer")
-            logger.dbg("orientation_code =", orientation_code)
-            local rotation_mode = 0
-            if orientation_code then
-                if orientation_code == "U" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_UPRIGHT
-                elseif orientation_code == "R" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_CLOCKWISE
-                elseif orientation_code == "D" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_UPSIDE_DOWN
-                elseif orientation_code == "L" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_COUNTER_CLOCKWISE
-                end
-            end
-            if rotation_mode > 0 then
-                self.screen.native_rotation_mode = rotation_mode
-            end
-            self.screen:setRotationMode(rotation_mode)
-            lipc_handle:close()
-        end
-    end
+    initRotation(self.screen)
     -- put awesome back to sleep
     if os.getenv("AWESOME_STOPPED") == "yes" then
         os.execute("killall -STOP awesome")
@@ -1503,32 +1397,7 @@ function KindleOasis3:init()
     Kindle.init(self)
 
     --- @note The same quirks as on the Oasis 2 apply ;).
-    local haslipc, lipc = pcall(require, "liblipclua")
-    if haslipc then
-        local lipc_handle = lipc.init("com.github.koreader.screen")
-        if lipc_handle then
-            local orientation_code = lipc_handle:get_string_property(
-                "com.lab126.winmgr", "accelerometer")
-            logger.dbg("orientation_code =", orientation_code)
-            local rotation_mode = 0
-            if orientation_code then
-                if orientation_code == "U" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_UPRIGHT
-                elseif orientation_code == "R" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_CLOCKWISE
-                elseif orientation_code == "D" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_UPSIDE_DOWN
-                elseif orientation_code == "L" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_COUNTER_CLOCKWISE
-                end
-            end
-            if rotation_mode > 0 then
-                self.screen.native_rotation_mode = rotation_mode
-            end
-            self.screen:setRotationMode(rotation_mode)
-            lipc_handle:close()
-        end
-    end
+    initRotation(self.screen)
     -- put awesome back to sleep
     if os.getenv("AWESOME_STOPPED") == "yes" then
         os.execute("killall -STOP awesome")
@@ -1647,27 +1516,24 @@ function KindleScribe:init()
     Kindle.init(self)
 
     --- @note The same quirks as on the Oasis 2 and 3 apply ;).
-    local haslipc, lipc = pcall(require, "liblipclua")
-    if haslipc then
-        local lipc_handle = lipc.init("com.github.koreader.screen")
-        if lipc_handle then
-            local orientation_code = lipc_handle:get_string_property(
-                "com.lab126.winmgr", "accelerometer")
-            logger.dbg("orientation_code =", orientation_code)
-            local rotation_mode = 0
-            if orientation_code then
-                if orientation_code == "U" or orientation_code == "L" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_UPRIGHT
-                elseif orientation_code == "D" or orientation_code == "R" then
-                    rotation_mode = self.screen.DEVICE_ROTATED_UPSIDE_DOWN
-                end
+    -- Logic is slightly different, cannot use the initRotation.
+    local lipc = LibLipcs:of("com.github.koreader.screen")
+    if not lipc.fake then
+        local orientation_code = lipc:get_string_property(
+            "com.lab126.winmgr", "accelerometer")
+        logger.dbg("orientation_code =", orientation_code)
+        local rotation_mode = 0
+        if orientation_code then
+            if orientation_code == "U" or orientation_code == "L" then
+                rotation_mode = self.screen.DEVICE_ROTATED_UPRIGHT
+            elseif orientation_code == "D" or orientation_code == "R" then
+                rotation_mode = self.screen.DEVICE_ROTATED_UPSIDE_DOWN
             end
-            if rotation_mode > 0 then
-                self.screen.native_rotation_mode = rotation_mode
-            end
-            self.screen:setRotationMode(rotation_mode)
-            lipc_handle:close()
         end
+        if rotation_mode > 0 then
+            self.screen.native_rotation_mode = rotation_mode
+        end
+        self.screen:setRotationMode(rotation_mode)
     end
     -- put awesome back to sleep
     if os.getenv("AWESOME_STOPPED") == "yes" then
@@ -1696,7 +1562,6 @@ function KindleTouch:exit()
         -- Fixes missing *stock Amazon UI* screensavers on exiting out of "no framework" started KOReader
         -- module was unloaded in frameworkStopped() function but wasn't (re)loaded on KOReader exit
         self.framework_lipc_handle:set_string_property("com.lab126.blanket", "load", "screensaver")
-        self.framework_lipc_handle:close()
     end
 
     self.powerd:__gc()
