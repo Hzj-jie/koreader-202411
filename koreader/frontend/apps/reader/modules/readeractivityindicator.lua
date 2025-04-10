@@ -39,7 +39,7 @@ function ReaderActivityIndicator:_lipc()
 end
 
 function ReaderActivityIndicator:onStartActivityIndicator()
-    if self:_lipc().fake then return true end
+    if LibLipcs:isFake(self:_lipc()) then return true end
     -- check if activity indicator is needed
     if self.document.configurable.text_wrap == 1 then
         -- start indicator depends on pillow being enabled
@@ -55,7 +55,7 @@ function ReaderActivityIndicator:onStartActivityIndicator()
 end
 
 function ReaderActivityIndicator:onStopActivityIndicator()
-    if self:_lipc().fake then return true end
+    if LibLipcs:isFake(self:_lipc()) then return true end
     if self.indicator_started then
         -- stop indicator depends on pillow being enabled
         self:_lipc():set_string_property(

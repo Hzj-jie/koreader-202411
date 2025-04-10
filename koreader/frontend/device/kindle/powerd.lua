@@ -49,7 +49,7 @@ end
 function KindlePowerD:frontlightIntensityHW()
     if not self.device:hasFrontlight() then return 0 end
     -- Kindle stock software does not use intensity file directly, so go through lipc to keep us in sync.
-    if self:_lipc().fake then
+    if LibLipcs:isFake(self:_lipc()) then
         -- NOTE: This fallback is of dubious use, as it will NOT match our expected [fl_min..fl_max] range,
         --       each model has a specific curve.
         return self:_readFLIntensity()
@@ -134,7 +134,7 @@ function KindlePowerD:setWarmthHW(warmth)
 end
 
 function KindlePowerD:getCapacityHW()
-    if not self:_lipc().fake then
+    if not LibLipcs:isFake(self:_lipc()) then
         return self:_lipc():get_int_property("com.lab126.powerd", "battLevel")
     end
     if self.batt_capacity_file then
@@ -152,7 +152,7 @@ end
 
 function KindlePowerD:isChargingHW()
     local is_charging
-    if not self:_lipc().fake then
+    if not LibLipcs:isFake(self:_lipc()) then
         is_charging = self:_lipc():get_int_property("com.lab126.powerd", "isCharging")
     else
         is_charging = self:read_int_file(self.is_charging_file)
@@ -196,7 +196,7 @@ function KindlePowerD:_readFLIntensity()
 end
 
 function KindlePowerD:toggleSuspend()
-    if self:_lipc().fake then
+    if LibLipcs:isFake(self:_lipc()) then
         os.execute("powerd_test -p")
     else
         self:_lipc():set_int_property("com.lab126.powerd", "powerButton", 1)
@@ -233,7 +233,7 @@ function KindlePowerD:readyToSuspend() end
 
 -- Support WakeupMgr on Lipc & supportsScreensaver devices.
 function KindlePowerD:initWakeupMgr()
-    if self:_lipc().fake then return end
+    if LibLipcs:isFake(self:_lipc()) then return end
     if G_defaults:isFalse("ENABLE_WAKEUP_MANAGER") then return end
     if not self.device:supportsScreensaver() then return end
 
@@ -267,7 +267,7 @@ function KindlePowerD:resetT1Timeout()
     -- NOTE: powerd will only send a t1TimerReset event every $(kdb get system/daemon/powerd/send_t1_reset_interval) (15s),
     --       which is just fine, as we should only request it at most every 5 minutes ;).
     -- NOTE: This will fail if the device is already showing the screensaver.
-    if self:_lipc().fake then
+    if LibLipcs:isFake(self:_lipc()) then
         os.execute("lipc-set-prop -i com.lab126.powerd touchScreenSaverTimeout 1")
     else
         -- AFAIK, the value is irrelevant
