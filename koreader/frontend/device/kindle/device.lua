@@ -218,31 +218,22 @@ end
 -- Check if wifid thinks that the WiFi is enabled
 --[[
 local function isWifiUp()
-    local haslipc, lipc = pcall(require, "liblipclua")
-    local lipc_handle
-    if haslipc then
-        lipc_handle = lipc.init("com.github.koreader.networkmgr")
+    local lipc = LibLipcs:of("com.github.koreader.networkmgr")
+    if not lipc.fake then
+        return (lipc:get_int_property("com.lab126.wifid", "enable") or 0) == 1
     end
-    if lipc_handle then
-        local status = lipc_handle:get_int_property("com.lab126.wifid", "enable") or 0
-        lipc_handle:close()
-
-        return status == 1
-    else
-        local std_out = io.popen("lipc-get-prop -i com.lab126.wifid enable", "r")
-        if std_out then
-            local result = std_out:read("*number")
-            std_out:close()
-
-            if not result then
-                return false
-            end
-
-            return result == 1
-        else
-            return false
-        end
+    local std_out = io.popen("lipc-get-prop -i com.lab126.wifid enable", "r")
+    if not std_out then
+        return false
     end
+    local result = std_out:read("*number")
+    std_out:close()
+
+    if not result then
+        return false
+    end
+
+    return result == 1
 end
 --]]
 
