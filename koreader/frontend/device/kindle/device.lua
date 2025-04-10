@@ -1555,8 +1555,6 @@ function KindleTouch:exit()
         self.framework_lipc_handle:set_string_property("com.lab126.blanket", "load", "screensaver")
     end
 
-    self.powerd:__gc()
-
     Generic.exit(self)
 
     if self.isSpecialOffers then
