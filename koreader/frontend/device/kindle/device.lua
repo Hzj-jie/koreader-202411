@@ -48,8 +48,8 @@ local function isHardFP()
 end
 
 local function kindleGetSavedNetworks()
+    if LibLipcs:no_name().fake then return nil end
     local function run()
-        if LibLipcs:no_name().fake then return nil end
         local ha_input = LibLipcs:no_name():new_hasharray() -- an empty hash array since we only want to read
         local ha_result = LibLipcs:no_name():access_hash_property("com.lab126.wifid", "profileData", ha_input)
         local profiles = ha_result:to_table()
@@ -66,8 +66,8 @@ local function kindleGetSavedNetworks()
 end
 
 local function kindleGetCurrentProfile()
+    if LibLipcs:no_name().fake then return nil end
     local function run()
-        if LibLipcs:no_name().fake then return nil end
         local ha_input = LibLipcs:no_name():new_hasharray() -- an empty hash array since we only want to read
         local ha_result = LibLipcs:no_name():access_hash_property("com.lab126.wifid", "currentEssid", ha_input)
         local profile = ha_result:to_table()[1] -- there is only a single element
@@ -76,9 +76,15 @@ local function kindleGetCurrentProfile()
         return profile
     end
 
-    local ok, profile = pcall(run)
-    if ok then
-        return profile
+    local wait_cnt = 80 -- 20s in chunks on 250ms
+    while wait_cnt > 0 do
+        local ok, profile = pcall(run)
+        if ok then
+            return profile
+        end
+
+        wait_cnt = wait_cnt - 1
+        C.usleep(250 * 1000)
     end
     return nil
 end
@@ -90,8 +96,8 @@ local function kindleAuthenticateNetwork(essid)
 end
 
 local function kindleSaveNetwork(data)
+    if LibLipcs:no_name().fake then return end
     local function run()
-        if LibLipcs:no_name().fake then return end
         local profile = LibLipcs:no_name():new_hasharray()
         profile:add_hash()
         profile:put_string(0, "essid", data.ssid)
@@ -109,31 +115,31 @@ local function kindleSaveNetwork(data)
 end
 
 local function kindleGetScanList()
+    if LibLipcs:no_name().fake then
+        return nil, require("gettext")("Unable to communicate with the Wi-Fi backend")
+    end
     local function run()
-        if LibLipcs:no_name().fake then
-            return nil, require("gettext")("Unable to communicate with the Wi-Fi backend")
+        if LibLipcs:no_name():get_string_property("com.lab126.wifid", "cmState") == "CONNECTED" then
+            -- return a fake scan list containing only the currently connected profile :)
+            local profile = kindleGetCurrentProfile()
+            return { profile }, nil
         end
-        if LibLipcs:no_name():get_string_property("com.lab126.wifid", "cmState") ~= "CONNECTED" then
-            local ha_input = LibLipcs:no_name():new_hasharray()
-            local ha_results = LibLipcs:no_name():access_hash_property("com.lab126.wifid", "scanList", ha_input)
-            if ha_results == nil then
-                -- Shouldn't really happen, access_hash_property will throw if LipcAccessHasharrayProperty failed
-                ha_input:destroy()
-                -- NetworkMgr will ask for a re-scan on seeing an empty table, the second attempt *should* work ;).
-                return {}, nil
-            end
-            local scan_result = ha_results:to_table()
-            ha_results:destroy()
+        local ha_input = LibLipcs:no_name():new_hasharray()
+        local ha_results = LibLipcs:no_name():access_hash_property("com.lab126.wifid", "scanList", ha_input)
+        if ha_results == nil then
+            -- Shouldn't really happen, access_hash_property will throw if LipcAccessHasharrayProperty failed
             ha_input:destroy()
-            if scan_result then
-                return scan_result, nil
-            end
-            -- e.g., to_table hit lha->ha == NULL
+            -- NetworkMgr will ask for a re-scan on seeing an empty table, the second attempt *should* work ;).
             return {}, nil
         end
-        -- return a fake scan list containing only the currently connected profile :)
-        local profile = kindleGetCurrentProfile()
-        return { profile }, nil
+        local scan_result = ha_results:to_table()
+        ha_results:destroy()
+        ha_input:destroy()
+        if scan_result then
+            return scan_result, nil
+        end
+        -- e.g., to_table hit lha->ha == NULL
+        return {}, nil
     end
     local ok, result, err = pcall(run)
     if ok then
@@ -191,10 +197,9 @@ local function kindleScanThenGetResults()
 
     if done_scanning then
         return kindleGetScanList()
-    else
-        logger.warn("kindleScanThenGetResults: Timed-out scanning for Wi-Fi networks")
-        return nil, _("Scanning for Wi-Fi networks timed out")
     end
+    logger.warn("kindleScanThenGetResults: Timed-out scanning for Wi-Fi networks")
+    return nil, _("Scanning for Wi-Fi networks timed out")
 end
 
 local function kindleEnableWifi(toggle)
@@ -431,7 +436,9 @@ function Kindle:initNetworkManager(NetworkMgr)
     end
 
     function NetworkMgr:getCurrentNetwork()
-        return { ssid = kindleGetCurrentProfile().essid }
+        local profile = kindleGetCurrentProfile()
+        if profile == nil then return nil end
+        return { ssid = profile.essid }
     end
 
     NetworkMgr.isWifiOn = NetworkMgr.sysfsWifiOn

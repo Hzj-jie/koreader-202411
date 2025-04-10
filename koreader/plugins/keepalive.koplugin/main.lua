@@ -37,7 +37,7 @@ elseif Device:isKindle() then
   local LibLipcs = require("liblipcs")
   local setter = function(v)
     LibLipcs:of("com.github.koreader.keepalive"):set_int_property(
-      "com.lab126.powerd", "preventScreenSaver", v)
+        "com.lab126.powerd", "preventScreenSaver", v)
   end
   disable = function()
     setter(0)
