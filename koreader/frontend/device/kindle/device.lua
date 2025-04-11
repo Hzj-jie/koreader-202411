@@ -173,7 +173,7 @@ local function kindleScanThenGetResults()
     [00:01:35.658710] cmStateChange "NA"
   --]]
   local done_scanning = false
-  for i = 1, 80 do -- 20s in chunks on 250ms
+  for i = 0, 80 do -- 20s in chunks on 250ms
     if lipc:get_string_property("com.lab126.wifid", "scanState") == "idle" then
       done_scanning = true
       logger.dbg("kindleScanThenGetResults: Wi-Fi scan took", i * 0.25, "seconds")
@@ -194,23 +194,20 @@ end
 
 local function kindleEnableWifi(toggle)
   if toggle == nil then toggle = 0 end
+  if toggle ~= 0 then toggle = 1 end
   assert(type(toggle) == "number")
   local lipc = LibLipcs:of("com.github.koreader.networkmgr")
-  -- I think the order of calling these two setters matter, so repeating the
-  -- same commands twice to ensure either can be done before the other.
-  for _ = 0, 1 do
-    if LibLipcs:isFake(lipc) then
-      -- No liblipclua on FW < 5.x ;)
-      -- Always kill 3G first...
-      os.execute("lipc-set-prop -i com.lab126.wan enable 0")
-      os.execute("lipc-set-prop -i com.lab126.cmd wirelessEnable " .. toggle)
-      os.execute("lipc-set-prop -i com.lab126.wifid enable " .. toggle)
-    else
-      -- Be extremely thorough... c.f., #6019
-      -- NOTE: I *assume* this'll also ensure we prefer Wi-Fi over 3G/4G, which is a plus in my book...
-      lipc:set_int_property("com.lab126.cmd", "wirelessEnable", toggle)
-      lipc:set_int_property("com.lab126.wifid", "enable", toggle)
-    end
+  if LibLipcs:isFake(lipc) then
+    -- No liblipclua on FW < 5.x ;)
+    -- Always kill 3G first...
+    os.execute("lipc-set-prop -i com.lab126.wan enable 0")
+    os.execute("lipc-set-prop -i com.lab126.cmd wirelessEnable " .. toggle)
+    os.execute("lipc-set-prop -i com.lab126.wifid enable " .. toggle)
+  else
+    -- Be extremely thorough... c.f., #6019
+    -- NOTE: I *assume* this'll also ensure we prefer Wi-Fi over 3G/4G, which is a plus in my book...
+    lipc:set_int_property("com.lab126.cmd", "wirelessEnable", toggle)
+    lipc:set_int_property("com.lab126.wifid", "enable", toggle)
   end
 end
 
