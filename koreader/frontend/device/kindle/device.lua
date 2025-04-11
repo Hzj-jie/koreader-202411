@@ -335,7 +335,13 @@ function Kindle:initNetworkManager(NetworkMgr)
   if LibLipcs:supported() then
     function NetworkMgr:turnOnWifi(complete_callback, interactive)
       kindleEnableWifi(1)
-      return self:reconnectOrShowNetworkMenu(complete_callback, interactive)
+      if self:reconnectOrShowNetworkMenu(complete_callback, interactive) then
+        return true
+      end
+      -- It's impossible to force a sync wifi connection operation, but can only
+      -- rely on the NetworkMgr:connectivityCheck to verify the state.
+      self:scheduleConnectivityCheck(complete_callback)
+      return EBUSY
     end
   else
     -- If we can't use the lipc Lua bindings, we can't support any kind of interactive Wi-Fi UI...
