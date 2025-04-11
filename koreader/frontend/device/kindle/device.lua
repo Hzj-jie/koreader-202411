@@ -56,7 +56,7 @@ local function _unmanaged_netlipc()
 end
 
 local function kindleGetSavedNetworks()
-  local lipc = self:_unmanaged_netlipc()
+  local lipc = _unmanaged_netlipc()
   if LibLipcs:isFake(lipc) then return nil end
   local ha_input = lipc:new_hasharray() -- an empty hash array since we only want to read
   local ha_result = lipc:access_hash_property("com.lab126.wifid", "profileData", ha_input)
@@ -68,7 +68,7 @@ local function kindleGetSavedNetworks()
 end
 
 local function kindleGetCurrentProfile()
-  local lipc = self:_unmanaged_netlipc()
+  local lipc = _unmanaged_netlipc()
   if LibLipcs:isFake(lipc) then return nil end
   local ha_input = lipc:new_hasharray() -- an empty hash array since we only want to read
   local ha_result = lipc:access_hash_property("com.lab126.wifid", "currentEssid", ha_input)
@@ -86,7 +86,7 @@ local function kindleAuthenticateNetwork(essid)
 end
 
 local function kindleSaveNetwork(data)
-  local lipc = self:_unmanaged_netlipc()
+  local lipc = _unmanaged_netlipc()
   if LibLipcs:isFake(lipc) then return end
   local profile = lipc:new_hasharray()
   profile:add_hash()
@@ -104,7 +104,7 @@ local function kindleSaveNetwork(data)
 end
 
 local function kindleGetScanList()
-  local lipc = self:_unmanaged_netlipc()
+  local lipc = _unmanaged_netlipc()
   if LibLipcs:isFake(lipc) then
     return nil, require("gettext")("Unable to communicate with the Wi-Fi backend")
   end
