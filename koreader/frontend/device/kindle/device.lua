@@ -76,15 +76,9 @@ local function kindleGetCurrentProfile()
         return profile
     end
 
-    local wait_cnt = 80 -- 20s in chunks on 250ms
-    while wait_cnt > 0 do
-        local ok, profile = pcall(run)
-        if ok then
-            return profile
-        end
-
-        wait_cnt = wait_cnt - 1
-        C.usleep(250 * 1000)
+    local ok, profile = pcall(run)
+    if ok then
+        return profile
     end
     return nil
 end
