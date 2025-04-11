@@ -52,9 +52,10 @@ local function _netlipc()
 end
 
 local function kindleGetSavedNetworks()
-  if LibLipcs:isFake(_netlipc()) then return nil end
-  local ha_input = _netlipc():new_hasharray() -- an empty hash array since we only want to read
-  local ha_result = _netlipc():access_hash_property("com.lab126.wifid", "profileData", ha_input)
+  local lipc = LibLipcs:no_name()
+  if LibLipcs:isFake(lipc) then return nil end
+  local ha_input = lipc:new_hasharray() -- an empty hash array since we only want to read
+  local ha_result = lipc:access_hash_property("com.lab126.wifid", "profileData", ha_input)
   local profiles = ha_result:to_table()
   ha_result:destroy()
   ha_input:destroy()
@@ -62,9 +63,10 @@ local function kindleGetSavedNetworks()
 end
 
 local function kindleGetCurrentProfile()
-  if LibLipcs:isFake(_netlipc()) then return nil end
-  local ha_input = _netlipc():new_hasharray() -- an empty hash array since we only want to read
-  local ha_result = _netlipc():access_hash_property("com.lab126.wifid", "currentEssid", ha_input)
+  local lipc = LibLipcs:no_name()
+  if LibLipcs:isFake(lipc) then return nil end
+  local ha_input = lipc:new_hasharray() -- an empty hash array since we only want to read
+  local ha_result = lipc:access_hash_property("com.lab126.wifid", "currentEssid", ha_input)
   local profile = ha_result:to_table()[1] -- there is only a single element
   ha_input:destroy()
   ha_result:destroy()
@@ -78,8 +80,9 @@ local function kindleAuthenticateNetwork(essid)
 end
 
 local function kindleSaveNetwork(data)
-  if LibLipcs:isFake(_netlipc()) then return end
-  local profile = _netlipc():new_hasharray()
+  local lipc = LibLipcs:no_name()
+  if LibLipcs:isFake(lipc) then return end
+  local profile = lipc:new_hasharray()
   profile:add_hash()
   profile:put_string(0, "essid", data.ssid)
   if string.find(data.flags, "WPA") then
@@ -89,12 +92,13 @@ local function kindleSaveNetwork(data)
   else
     profile:put_string(0, "secured", "no")
   end
-  _netlipc():access_hash_property("com.lab126.wifid", "createProfile", profile):destroy() -- destroy the returned empty ha
+  lipc:access_hash_property("com.lab126.wifid", "createProfile", profile):destroy() -- destroy the returned empty ha
   profile:destroy()
 end
 
 local function kindleGetScanList()
-  if LibLipcs:isFake(_netlipc()) then
+  local lipc = LibLipcs:no_name()
+  if LibLipcs:isFake(lipc) then
     return nil, require("gettext")("Unable to communicate with the Wi-Fi backend")
   end
   --[[ This logic is strange :/
@@ -104,8 +108,8 @@ local function kindleGetScanList()
     return { profile }, nil
   end
   --]]
-  local ha_input = _netlipc():new_hasharray()
-  local ha_results = _netlipc():access_hash_property("com.lab126.wifid", "scanList", ha_input)
+  local ha_input = lipc:new_hasharray()
+  local ha_results = lipc:access_hash_property("com.lab126.wifid", "scanList", ha_input)
   ha_input:destroy()
   if ha_results == nil then
     -- Shouldn't really happen, access_hash_property will throw if LipcAccessHasharrayProperty failed
