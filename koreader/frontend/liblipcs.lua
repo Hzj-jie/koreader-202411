@@ -43,7 +43,7 @@ end
 
 function LibLipcs:no_name()
   if not haslipc then return Fake end
-  if not self.no_name then
+  if not self._no_name then
     local v = lipc.open_no_name()
     if v then
       assert(not self:isFake(v))
@@ -52,9 +52,9 @@ function LibLipcs:no_name()
       v = Fake
       assert(self:isFake(v))
     end
-    self.no_name = v
+    self._no_name = v
   end
-  return self.no_name
+  return self._no_name
 end
 
 return LibLipcs

@@ -113,28 +113,30 @@ local function kindleGetScanList()
     return nil, require("gettext")("Unable to communicate with the Wi-Fi backend")
   end
   local function run()
+    --[[ This logic is strange :/
     if LibLipcs:no_name():get_string_property("com.lab126.wifid", "cmState") == "CONNECTED" then
       -- return a fake scan list containing only the currently connected profile :)
       local profile = kindleGetCurrentProfile()
       return { profile }, nil
     end
+    --]]
     local ha_input = LibLipcs:no_name():new_hasharray()
     local ha_results = LibLipcs:no_name():access_hash_property("com.lab126.wifid", "scanList", ha_input)
+    ha_input:destroy()
     if ha_results == nil then
       -- Shouldn't really happen, access_hash_property will throw if LipcAccessHasharrayProperty failed
-      ha_input:destroy()
       -- NetworkMgr will ask for a re-scan on seeing an empty table, the second attempt *should* work ;).
       return {}, nil
     end
     local scan_result = ha_results:to_table()
     ha_results:destroy()
-    ha_input:destroy()
     if scan_result then
       return scan_result, nil
     end
     -- e.g., to_table hit lha->ha == NULL
     return {}, nil
   end
+
   local ok, result, err = pcall(run)
   if ok then
     return result, err
@@ -340,7 +342,6 @@ function Kindle:initNetworkManager(NetworkMgr)
       end
       -- It's impossible to force a sync wifi connection operation, but can only
       -- rely on the NetworkMgr:connectivityCheck to verify the state.
-      self:scheduleConnectivityCheck(complete_callback)
       return EBUSY
     end
   else

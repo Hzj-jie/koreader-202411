@@ -1069,7 +1069,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive)
         --       rescan if the first scan appeared to yield an empty list.
         --- @fixme This *might* be an issue better handled in lj-wpaclient...
         local err
-        for _ = 1, 3 do
+        for _ = 0, 3 do
             local network_list
             network_list, err = self:getNetworkList()
             if network_list ~= nil and #network_list > 0 then
