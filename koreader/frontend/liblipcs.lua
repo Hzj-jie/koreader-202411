@@ -8,6 +8,11 @@ if not haslipc then
   logger.warn("Couldn't load liblipclua: ", lipc)
 end
 
+local openlipc
+if haslipc then
+  openlipc = require("libopenlipclua")
+end
+
 local Fake = {}
 function Fake:get_string_property() end
 function Fake:set_string_property() end
@@ -26,9 +31,7 @@ function LibLipcs:isFake(v)
   return v == Fake
 end
 
-function LibLipcs:_create(serviceName)
-  if not haslipc then return Fake end
-  local v = lipc.init(serviceName)
+function LibLipcs:_check(v)
   if v then
     assert(not self:isFake(v))
   else
@@ -42,16 +45,17 @@ end
 function LibLipcs:of(serviceName)
   if not haslipc then return Fake end
   if not self[serviceName] then
-    self[serviceName] = self:_create(serviceName)
+    self[serviceName] = self:_check(lipc.init(serviceName))
   end
   return self[serviceName]
 end
 
-function LibLipcs:unmanaged(serviceName)
-  -- Only used when new_hasharray is used. Likely this is a bug in openlipclua
-  -- https://github.com/notmarek/openlipclua/issues/8.
-  -- Need to be manually closed.
-  return self:_create(serviceName .. ".unmanaged")
+function LibLipcs:no_name()
+  if not haslipc then return Fake end
+  if not self._no_name then
+    self._no_name = self:_check(openlipc.open_no_name())
+  end
+  return self._no_name
 end
 
 return LibLipcs

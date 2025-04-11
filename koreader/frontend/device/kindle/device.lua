@@ -51,31 +51,25 @@ local function _netlipc()
   return LibLipcs:of("com.github.koreader.networkmgr")
 end
 
-local function _unmanaged_netlipc()
-  return LibLipcs:unmanaged("com.github.koreader.networkmgr")
-end
-
 local function kindleGetSavedNetworks()
-  local lipc = _unmanaged_netlipc()
+  local lipc = LibLipcs:no_name()
   if LibLipcs:isFake(lipc) then return nil end
   local ha_input = lipc:new_hasharray() -- an empty hash array since we only want to read
   local ha_result = lipc:access_hash_property("com.lab126.wifid", "profileData", ha_input)
   local profiles = ha_result:to_table()
   ha_result:destroy()
   ha_input:destroy()
-  lipc:close()
   return profiles
 end
 
 local function kindleGetCurrentProfile()
-  local lipc = _unmanaged_netlipc()
+  local lipc = LibLipcs:no_name()
   if LibLipcs:isFake(lipc) then return nil end
   local ha_input = lipc:new_hasharray() -- an empty hash array since we only want to read
   local ha_result = lipc:access_hash_property("com.lab126.wifid", "currentEssid", ha_input)
   local profile = ha_result:to_table()[1] -- there is only a single element
   ha_input:destroy()
   ha_result:destroy()
-  lipc:close()
   return profile
 end
 
@@ -86,7 +80,7 @@ local function kindleAuthenticateNetwork(essid)
 end
 
 local function kindleSaveNetwork(data)
-  local lipc = _unmanaged_netlipc()
+  local lipc = LibLipcs:no_name()
   if LibLipcs:isFake(lipc) then return end
   local profile = lipc:new_hasharray()
   profile:add_hash()
@@ -100,11 +94,10 @@ local function kindleSaveNetwork(data)
   end
   lipc:access_hash_property("com.lab126.wifid", "createProfile", profile):destroy() -- destroy the returned empty ha
   profile:destroy()
-  lipc:close()
 end
 
 local function kindleGetScanList()
-  local lipc = _unmanaged_netlipc()
+  local lipc = LibLipcs:no_name()
   if LibLipcs:isFake(lipc) then
     return nil, require("gettext")("Unable to communicate with the Wi-Fi backend")
   end
@@ -118,7 +111,6 @@ local function kindleGetScanList()
   local ha_input = lipc:new_hasharray()
   local ha_results = lipc:access_hash_property("com.lab126.wifid", "scanList", ha_input)
   ha_input:destroy()
-  lipc:close()
   if ha_results == nil then
     -- Shouldn't really happen, access_hash_property will throw if LipcAccessHasharrayProperty failed
     -- NetworkMgr will ask for a re-scan on seeing an empty table, the second attempt *should* work ;).
