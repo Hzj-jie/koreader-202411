@@ -47,10 +47,14 @@ local function isHardFP()
   return util.pathExists("/lib/ld-linux-armhf.so.3")
 end
 
+local function _netlipc()
+  return LibLipcs:of("com.github.koreader.networkmgr")
+end
+
 local function kindleGetSavedNetworks()
-  if LibLipcs:isFake(LibLipcs:no_name()) then return nil end
-  local ha_input = LibLipcs:no_name():new_hasharray() -- an empty hash array since we only want to read
-  local ha_result = LibLipcs:no_name():access_hash_property("com.lab126.wifid", "profileData", ha_input)
+  if LibLipcs:isFake(_netlipc()) then return nil end
+  local ha_input = _netlipc():new_hasharray() -- an empty hash array since we only want to read
+  local ha_result = _netlipc():access_hash_property("com.lab126.wifid", "profileData", ha_input)
   local profiles = ha_result:to_table()
   ha_result:destroy()
   ha_input:destroy()
@@ -58,9 +62,9 @@ local function kindleGetSavedNetworks()
 end
 
 local function kindleGetCurrentProfile()
-  if LibLipcs:isFake(LibLipcs:no_name()) then return nil end
-  local ha_input = LibLipcs:no_name():new_hasharray() -- an empty hash array since we only want to read
-  local ha_result = LibLipcs:no_name():access_hash_property("com.lab126.wifid", "currentEssid", ha_input)
+  if LibLipcs:isFake(_netlipc()) then return nil end
+  local ha_input = _netlipc():new_hasharray() -- an empty hash array since we only want to read
+  local ha_result = _netlipc():access_hash_property("com.lab126.wifid", "currentEssid", ha_input)
   local profile = ha_result:to_table()[1] -- there is only a single element
   ha_input:destroy()
   ha_result:destroy()
@@ -68,14 +72,14 @@ local function kindleGetCurrentProfile()
 end
 
 local function kindleAuthenticateNetwork(essid)
-  local lipc = LibLipcs:of("com.github.koreader.networkmgr")
+  local lipc = _netlipc()
   if LibLipcs:isFake(lipc) then return end
   lipc:set_string_property("com.lab126.cmd", "ensureConnection", "wifi:" .. essid)
 end
 
 local function kindleSaveNetwork(data)
-  if LibLipcs:isFake(LibLipcs:no_name()) then return end
-  local profile = LibLipcs:no_name():new_hasharray()
+  if LibLipcs:isFake(_netlipc()) then return end
+  local profile = _netlipc():new_hasharray()
   profile:add_hash()
   profile:put_string(0, "essid", data.ssid)
   if string.find(data.flags, "WPA") then
@@ -85,23 +89,23 @@ local function kindleSaveNetwork(data)
   else
     profile:put_string(0, "secured", "no")
   end
-  LibLipcs:no_name():access_hash_property("com.lab126.wifid", "createProfile", profile):destroy() -- destroy the returned empty ha
+  _netlipc():access_hash_property("com.lab126.wifid", "createProfile", profile):destroy() -- destroy the returned empty ha
   profile:destroy()
 end
 
 local function kindleGetScanList()
-  if LibLipcs:isFake(LibLipcs:no_name()) then
+  if LibLipcs:isFake(_netlipc()) then
     return nil, require("gettext")("Unable to communicate with the Wi-Fi backend")
   end
   --[[ This logic is strange :/
-  if LibLipcs:no_name():get_string_property("com.lab126.wifid", "cmState") == "CONNECTED" then
+  if _netlipc():get_string_property("com.lab126.wifid", "cmState") == "CONNECTED" then
     -- return a fake scan list containing only the currently connected profile :)
     local profile = kindleGetCurrentProfile()
     return { profile }, nil
   end
   --]]
-  local ha_input = LibLipcs:no_name():new_hasharray()
-  local ha_results = LibLipcs:no_name():access_hash_property("com.lab126.wifid", "scanList", ha_input)
+  local ha_input = _netlipc():new_hasharray()
+  local ha_results = _netlipc():access_hash_property("com.lab126.wifid", "scanList", ha_input)
   ha_input:destroy()
   if ha_results == nil then
     -- Shouldn't really happen, access_hash_property will throw if LipcAccessHasharrayProperty failed
@@ -119,7 +123,7 @@ end
 
 local function kindleScanThenGetResults()
   local _ = require("gettext")
-  local lipc = LibLipcs:of("com.github.koreader.networkmgr")
+  local lipc = _netlipc()
   if LibLipcs:isFake(lipc) then
     return nil, _("Unable to communicate with the Wi-Fi backend")
   end
@@ -171,7 +175,7 @@ local function kindleEnableWifi(toggle)
   if toggle == nil then toggle = 0 end
   assert(type(toggle) == "number")
   assert(toggle == 0 or toggle == 1)
-  local lipc = LibLipcs:of("com.github.koreader.networkmgr")
+  local lipc = _netlipc()
   if LibLipcs:isFake(lipc) then
     -- No liblipclua on FW < 5.x ;)
     -- Always kill 3G first...
@@ -190,7 +194,7 @@ end
 -- sysfsInterfaceOperational serves the same purpose.
 --[[
 local function kindleIsWifiUp()
-  local lipc = LibLipcs:of("com.github.koreader.networkmgr")
+  local lipc = _netlipc()
   if not LibLipcs:isFake(lipc) then
     return (lipc:get_int_property("com.lab126.wifid", "enable") or 0) == 1
   end

@@ -41,20 +41,4 @@ function LibLipcs:of(serviceName)
   return self[serviceName]
 end
 
-function LibLipcs:no_name()
-  if not haslipc then return Fake end
-  if not self._no_name then
-    local v = lipc.open_no_name()
-    if v then
-      assert(not self:isFake(v))
-    else
-      logger.warn("Couldn't open no name lipc handle")
-      v = Fake
-      assert(self:isFake(v))
-    end
-    self._no_name = v
-  end
-  return self._no_name
-end
-
 return LibLipcs
