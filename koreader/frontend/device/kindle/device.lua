@@ -173,19 +173,17 @@ local function kindleScanThenGetResults()
         [00:01:35.658710] cmStateChange "NA"
     --]]
     local done_scanning = false
-    local wait_cnt = 80 -- 20s in chunks on 250ms
-    while wait_cnt > 0 do
+    for i = 1, 80 do -- 20s in chunks on 250ms
         local scan_state = lipc:get_string_property("com.lab126.wifid", "scanState")
 
         if scan_state == "idle" then
             done_scanning = true
-            logger.dbg("kindleScanThenGetResults: Wi-Fi scan took", (80 - wait_cnt) * 0.25, "seconds")
+            logger.dbg("kindleScanThenGetResults: Wi-Fi scan took", i * 0.25, "seconds")
             break
         end
 
         -- Whether it's still "scanning" or in whatever other state we don't know about,
         -- try again until it says it's done.
-        wait_cnt = wait_cnt - 1
         C.usleep(250 * 1000)
     end
 
