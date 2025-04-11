@@ -774,6 +774,12 @@ function Device:ping4(ip)
     return true, end_time - start_time
 end
 
+function Device:defaultGatewayPingable()
+    local gw = self:getDefaultRoute()
+    if not gw then return false end
+    return self:ping4(gw)
+end
+
 function Device:getDefaultRoute(interface)
     local fd = io.open("/proc/net/route", "re")
     if not fd then

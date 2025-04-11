@@ -194,8 +194,8 @@ end
 
 local function kindleEnableWifi(toggle)
   if toggle == nil then toggle = 0 end
-  if toggle ~= 0 then toggle = 1 end
   assert(type(toggle) == "number")
+  assert(toggle == 0 or toggle == 1)
   local lipc = LibLipcs:of("com.github.koreader.networkmgr")
   if LibLipcs:isFake(lipc) then
     -- No liblipclua on FW < 5.x ;)
@@ -211,9 +211,10 @@ local function kindleEnableWifi(toggle)
   end
 end
 
--- Check if wifid thinks that the WiFi is enabled
+-- Check if wifid thinks that the WiFi is enabled. Not yet needed,
+-- sysfsInterfaceOperational serves the same purpose.
 --[[
-local function isWifiUp()
+local function kindleIsWifiUp()
   local lipc = LibLipcs:of("com.github.koreader.networkmgr")
   if not LibLipcs:isFake(lipc) then
     return (lipc:get_int_property("com.lab126.wifid", "enable") or 0) == 1
@@ -432,8 +433,8 @@ function Kindle:initNetworkManager(NetworkMgr)
     return { ssid = profile.essid }
   end
 
-  NetworkMgr.isWifiOn = NetworkMgr.sysfsWifiOn
-  NetworkMgr.isConnected = NetworkMgr.ifHasAnAddress
+  NetworkMgr.isWifiOn = NetworkMgr.sysfsInterfaceOperational
+  NetworkMgr.isConnected = NetworkMgr.pingable
 end
 
 function Kindle:supportsScreensaver()
