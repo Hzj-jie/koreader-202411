@@ -51,7 +51,7 @@ function LibLipcs:unmanaged(serviceName)
   -- Only used when new_hasharray is used. Likely this is a bug in openlipclua
   -- https://github.com/notmarek/openlipclua/issues/8.
   -- Need to be manually closed.
-  return self:_create(serviceName .. "." .. math.floor(math.random(100)))
+  return self:_create(serviceName .. ".unmanaged")
 end
 
 return LibLipcs
