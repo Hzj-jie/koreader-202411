@@ -58,7 +58,7 @@ end
 
 -- Attempt to deal with platforms that don't guarantee isConnected when turnOnWifi returns,
 -- so that we only attempt to connect to WiFi *once* when using the beforeWifiAction framework...
-function NetworkMgr:requestToTurnOnWifi(wifi_cb, interactive)
+function NetworkMgr:requestToTurnOnWifi(wifi_cb, interactive) -- bool | EBUSY
     if self.pending_connection then
         -- We've already enabled WiFi, don't try again until the earlier attempt succeeds or fails...
         return EBUSY
@@ -326,7 +326,7 @@ function NetworkMgr:canResolveHostnames()
 end
 
 -- Wrappers around turnOnWifi & turnOffWifi with proper Event signaling
-function NetworkMgr:enableWifi(wifi_cb, interactive)
+function NetworkMgr:enableWifi(wifi_cb, interactive) -- void
     -- NOTE: Let the backend run the wifi_cb via a connectivity check once it's *actually* attempted a connection,
     --       as it knows best when that actually happens (especially reconnectOrShowNetworkMenu), unlike us.
     local connectivity_cb = function()
@@ -346,7 +346,6 @@ function NetworkMgr:enableWifi(wifi_cb, interactive)
     if status == false then
         logger.warn("NetworkMgr:enableWifi: Connection failed!")
         self:_abortWifiConnection()
-        return false
     elseif status == EBUSY then
         -- NOTE: This means turnOnWifi was *not* called (this time).
         logger.warn("NetworkMgr:enableWifi: A previous connection attempt is still ongoing!")
@@ -366,10 +365,7 @@ function NetworkMgr:enableWifi(wifi_cb, interactive)
                 timeout = 3,
             })
         end
-        return
     end
-
-    return true
 end
 
 function NetworkMgr:disableWifi(cb, interactive)
@@ -399,9 +395,7 @@ function NetworkMgr:disableWifi(cb, interactive)
     end
 end
 
-function NetworkMgr:toggleWifiOn(complete_callback, long_press, interactive)
-    self.wifi_toggle_long_press = long_press
-
+function NetworkMgr:toggleWifiOn(complete_callback, interactive) -- void
     if not interactive then
         self:enableWifi(complete_callback, interactive)
         return
@@ -432,7 +426,7 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
 end
 
 -- NOTE: Only used by the beforeWifiAction framework, so, can never be flagged as "interactive" ;).
-function NetworkMgr:promptWifiOn(complete_callback)
+function NetworkMgr:promptWifiOn(complete_callback) -- void
     -- If there's already an ongoing connection attempt, don't even display the ConfirmBox,
     -- as that's just confusing, especially on Android, because you might have seen the one you tapped "Turn on" on disappear,
     -- and be surprised by new ones that popped up out of focus while the system settings were opened...
@@ -461,35 +455,7 @@ function NetworkMgr:promptWifiOff(complete_callback)
     })
 end
 
--- NOTE: Currently only has a single caller, the Menu entry, so it's always flagged as interactive
-function NetworkMgr:promptWifi(complete_callback, long_press, interactive)
-    local text = _("Wi-Fi is enabled, but you're currently not connected to a network.")
-    -- Detail whether there's an attempt and/or a connectivity check in progress.
-    if self.pending_connection then
-        -- NOTE: Incidentally, this means that tapping Connect would yield EBUSY, so we gray it out...
-        text = text .. "\n" .. _("Please note that a connection attempt is currently in progress!")
-    end
-    if self.pending_connectivity_check then
-        text = text .. "\n" .. _("KOReader is currently waiting for connectivity. This may take up to 45s, so you may just want to try again later.")
-    end
-    text = text .. "\n" .. _("How would you like to proceed?")
-    UIManager:show(MultiConfirmBox:new{
-        text = text,
-        -- "Cancel" could be construed as "cancel the current attempt", which is not what this does ;p.
-        cancel_text = _("Dismiss"),
-        choice1_text = _("Turn Wi-Fi off"),
-        choice1_callback = function()
-            self:toggleWifiOff(complete_callback, interactive)
-        end,
-        choice2_text = _("Connect"),
-        choice2_enabled = not self.pending_connection,
-        choice2_callback = function()
-            self:toggleWifiOn(complete_callback, long_press, interactive)
-        end,
-    })
-end
-
-function NetworkMgr:turnOnWifiAndWaitForConnection(callback)
+function NetworkMgr:turnOnWifiAndWaitForConnection(callback) -- false | nil | InfoMessage
     -- Just run the callback if WiFi is already up...
     if self:isWifiOn() and self:isConnected() then
         --- @note: beforeWifiAction only guarantees isConnected, not isOnline.
@@ -531,7 +497,7 @@ function NetworkMgr:turnOnWifiAndWaitForConnection(callback)
 end
 
 -- This is only used on Android, the intent being we assume the system will eventually turn on WiFi on its own in the background...
-function NetworkMgr:doNothingAndWaitForConnection(callback)
+function NetworkMgr:doNothingAndWaitForConnection(callback) -- void
     if self:isWifiOn() and self:isConnected() then
         if callback then
             callback()
@@ -560,7 +526,7 @@ end
 ---        *NOT* isOnline (i.e., WAN), se be careful with recursive callbacks!
 ---        Should only return false on *explicit* failures,
 ---        in which case the backend will already have called _abortWifiConnection
-function NetworkMgr:beforeWifiAction(callback)
+function NetworkMgr:beforeWifiAction(callback) -- false | nil | InfoMessage
     -- Remember that we ran, for afterWifiAction...
     self:setBeforeActionFlag()
 
@@ -854,30 +820,31 @@ function NetworkMgr:getWifiMenuTable()
 end
 
 function NetworkMgr:getWifiToggleMenuTable()
-    local toggleCallback = function(touchmenu_instance, long_press)
-        self:queryNetworkState()
-        local fully_connected = self.is_wifi_on and self.is_connected
-        local complete_callback = function()
-            -- Notify TouchMenu to update item check state
-            touchmenu_instance:updateItems()
-        end -- complete_callback()
-        if fully_connected then
-            self:toggleWifiOff(complete_callback, true)
-        elseif self.is_wifi_on and not self.is_connected then
-            -- ask whether user wants to connect or turn off wifi
-            self:promptWifi(complete_callback, long_press, true)
-        else -- if not connected at all
-            self:toggleWifiOn(complete_callback, long_press, true)
-        end
-    end -- toggleCallback()
-
     return {
         text = _("Wi-Fi connection"),
         enabled_func = function() return Device:hasWifiToggle() end,
         checked_func = function() return self:isWifiOn() end,
-        callback = toggleCallback,
-        hold_callback = function(touchmenu_instance)
-            toggleCallback(touchmenu_instance, true)
+        callback = function(menu)
+                      local complete_callback =
+                          function()
+                              -- Notify TouchMenu to update item check state
+                              menu:updateItems()
+                          end -- complete_callback()
+                      -- interactive
+                      if self:isWifiOn() then
+                          self:toggleWifiOff(complete_callback, true)
+                      else
+                          self:toggleWifiOn(complete_callback, true)
+                      end
+                  end,
+        hold_callback = function(menu)
+            self:reconnectOrShowNetworkMenu(function()
+                                                menu:updateItems()
+                                            end,
+                                            -- interactive
+                                            true,
+                                            -- prefer_list
+                                            true)
         end,
     }
 end
@@ -1063,7 +1030,7 @@ function NetworkMgr:getMenuTable(common_settings)
     end
 end
 
-function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive)
+function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive, prefer_list) -- bool
     local function scanNetworkList()
         -- NOTE: Fairly hackish workaround for #4387,
         --       rescan if the first scan appeared to yield an empty list.
@@ -1182,45 +1149,42 @@ function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive)
         end
     end
 
+    -- Connected, get ip address first anyway.
     if ssid ~= nil then
         self:obtainIP()
-        if complete_callback then
-            complete_callback()
-        end
-        if interactive then
-            -- NOTE: On Kindle, we don't have an explicit obtainIP implementation,
-            --       and authenticateNetwork is async,
-            --       so we don't *actually* have a full connection yet,
-            --       we've just *started* connecting to the requested network...
-            UIManager:show(InfoMessage:new{
-                tag = "NetworkMgr", -- for crazy KOSync purposes
-                text = T(Device:isKindle() and _("Connecting to network %1…") or _("Connected to network %1"), BD.wrap(util.fixUtf8(ssid, "�"))),
-                timeout = 3,
-            })
-        end
-        logger.dbg("NetworkMgr: Connected to network", util.fixUtf8(ssid, "�"))
-    elseif self.wifi_toggle_long_press then
-        -- Success, but we asked for the list, show it w/o any callbacks.
-        -- (We *could* potentially setup a pair of callbacks that just send Network* events, but it's probably not worth it).
-        UIManager:show(require("ui/widget/networksetting"):new{
-            network_list = network_list,
-        })
-    else
-        assert(ssid == nil)
-        assert(not self.wifi_toggle_long_press)
+    end
+
+    if ssid == nil or prefer_list then
         -- NOTE: Also supports a disconnect_callback, should we use it for something?
         --       Tearing down Wi-Fi completely when tapping "disconnect" would feel a bit harsh, though...
-        if interactive then
-            -- We don't want to display the AP list for non-interactive callers (e.g., beforeWifiAction framework)...
+        -- We don't want to display the AP list for non-interactive callers (e.g., beforeWifiAction framework)...
+        if interactive or prefer_list then
             UIManager:show(require("ui/widget/networksetting"):new{
                 network_list = network_list,
                 connect_callback = complete_callback,
+                prefer_list = prefer_list,
             })
         end
+        return (ssid ~= nil)
     end
 
-    self.wifi_toggle_long_press = nil
-    return (ssid ~= nil)
+    if interactive then
+        -- NOTE: On Kindle, we don't have an explicit obtainIP implementation,
+        --       and authenticateNetwork is async,
+        --       so we don't *actually* have a full connection yet,
+        --       we've just *started* connecting to the requested network...
+        UIManager:show(InfoMessage:new{
+            tag = "NetworkMgr", -- for crazy KOSync purposes
+            text = T(Device:isKindle() and _("Connecting to network %1…") or _("Connected to network %1"), BD.wrap(util.fixUtf8(ssid, "�"))),
+            timeout = 3,
+            dismiss_callback = complete_callback,
+        })
+    elseif complete_callback then
+        complete_callback()
+    end
+    logger.dbg("NetworkMgr: Connected to network", util.fixUtf8(ssid, "�"))
+
+    return true
 end
 
 function NetworkMgr:saveNetwork(setting)

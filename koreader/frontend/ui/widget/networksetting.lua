@@ -239,7 +239,8 @@ function NetworkItem:connect()
 
     -- Do what it says on the tin, and only trigger the connect_callback on a *successful* connect.
     -- NOTE: This callback comes from NetworkManager, where it's named complete_callback.
-    if success and self.setting_ui.connect_callback then
+    if success then
+        assert(self.setting_ui.connect_callback)
         self.setting_ui.connect_callback()
     end
 
@@ -399,6 +400,7 @@ local NetworkSetting = InputContainer:extend{
     network_list = nil,
     connect_callback = nil,
     disconnect_callback = nil,
+    prefer_list = false,
 }
 
 function NetworkSetting:init()
@@ -483,28 +485,23 @@ function NetworkSetting:init()
         }
     end
 
-    -- If the backend is already authenticated,
-    -- and NetworkMgr:reconnectOrShowNetworkMenu somehow missed it,
-    -- expedite the process.
-    -- Yes, this is a very old codepath that's hardly ever exercised anymore...
-    if not self.connect_callback then
-        return
-    end
-
-    UIManager:nextTick(function()
-        local connected_item = self:getConnectedItem()
-        if connected_item ~= nil then
-            obtainIP()
-            if G_reader_settings:nilOrTrue("auto_dismiss_wifi_scan") then
-                UIManager:close(self)
+    assert(self.connect_callback)
+    if not self.prefer_list then
+        UIManager:nextTick(function()
+            local connected_item = self:getConnectedItem()
+            if connected_item ~= nil then
+                obtainIP()
+                if G_reader_settings:nilOrTrue("auto_dismiss_wifi_scan") then
+                    UIManager:close(self)
+                end
+                UIManager:show(InfoMessage:new{
+                    text = T(_("Connected to network %1"), BD.wrap(connected_item.display_ssid)),
+                    timeout = 3,
+                })
+                self.connect_callback()
             end
-            UIManager:show(InfoMessage:new{
-                text = T(_("Connected to network %1"), BD.wrap(connected_item.display_ssid)),
-                timeout = 3,
-            })
-            self.connect_callback()
-        end
-    end)
+        end)
+    end
 end
 
 function NetworkSetting:setConnectedItem(item)
