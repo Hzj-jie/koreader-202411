@@ -96,6 +96,12 @@ local function kindleSaveNetwork(data)
   profile:destroy()
 end
 
+local function kindleDeleteNetwork(data)
+  local lipc = _netlipc()
+  if LibLipcs:isFake(lipc) then return end
+  lipc:set_string_property("com.lab126.wifid", "deleteProfile", data.ssid)
+end
+
 local function kindleGetScanList()
   local lipc = LibLipcs:no_name()
   if LibLipcs:isFake(lipc) then
@@ -361,6 +367,10 @@ function Kindle:initNetworkManager(NetworkMgr)
 
   function NetworkMgr:saveNetwork(setting)
     kindleSaveNetwork(setting)
+  end
+
+  function NetworkMgr:deleteNetwork(setting)
+    kindleDeleteNetwork(setting)
   end
 
   function NetworkMgr:getNetworkList()
