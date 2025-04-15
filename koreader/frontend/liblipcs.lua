@@ -44,10 +44,16 @@ end
 
 function LibLipcs:of(serviceName)
   if not haslipc then return Fake end
+  if not self._ins then
+    self._ins = self:_check(lipc.init("com.github.koreader"))
+  end
+  return self._ins
+--[[
   if not self[serviceName] then
     self[serviceName] = self:_check(lipc.init(serviceName))
   end
   return self[serviceName]
+]]--
 end
 
 function LibLipcs:no_name()
