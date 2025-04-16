@@ -52,7 +52,7 @@ function KindlePowerD:frontlightIntensityHW()
     end
     -- Handle the step 0 switcheroo on ! canTurnFrontlightOff devices...
     if self.device:canTurnFrontlightOff() then
-        return self:lipc():get_int_property("com.lab126.powerd", "flIntensity")
+        return LibLipcs:accessor():get_int_property("com.lab126.powerd", "flIntensity")
     end
     local lipc_fl_intensity = LibLipcs:accessor():get_int_property("com.lab126.powerd", "flIntensity")
     -- NOTE: If lipc returns 0, compare against what the kernel says,

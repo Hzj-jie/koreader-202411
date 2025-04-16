@@ -265,13 +265,13 @@ local function initRotation(screen)
   local rotation_mode = 0
   if orientation_code then
     if orientation_code == "U" then
-      rotation_mode = self.screen.DEVICE_ROTATED_UPRIGHT
+      rotation_mode = screen.DEVICE_ROTATED_UPRIGHT
     elseif orientation_code == "R" then
-      rotation_mode = self.screen.DEVICE_ROTATED_CLOCKWISE
+      rotation_mode = screen.DEVICE_ROTATED_CLOCKWISE
     elseif orientation_code == "D" then
-      rotation_mode = self.screen.DEVICE_ROTATED_UPSIDE_DOWN
+      rotation_mode = screen.DEVICE_ROTATED_UPSIDE_DOWN
     elseif orientation_code == "L" then
-      rotation_mode = self.screen.DEVICE_ROTATED_COUNTER_CLOCKWISE
+      rotation_mode = screen.DEVICE_ROTATED_COUNTER_CLOCKWISE
     end
   end
   if rotation_mode > 0 then
@@ -661,7 +661,7 @@ function Kindle:_outofScreenSaver(source)
   -- If the device supports deep sleep, and we woke up from hibernation (which kicks in at the 1H mark),
   -- chuck an extra tiny refresh to get rid of the "waking up" banner if the above refresh was too early...
   if not self.canDeepSleep then return end
-  if not self.last_suspend_time <= time.s(self.hibernationDelay) then return end
+  if self.last_suspend_time <= time.s(self.hibernationDelay) then return end
   if lfs.attributes("/var/local/system/powerd/hibernate_session_tracker", "mode") ~= "file" then
     return
   end
