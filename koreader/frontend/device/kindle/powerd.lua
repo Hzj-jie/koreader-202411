@@ -11,10 +11,6 @@ local KindlePowerD = BasePowerD:new{
     fl_warmth_min = 0, fl_warmth_max = 24,
 }
 
-function KindlePowerD:_lipc()
-    return LibLipcs:of("com.github.koreader.kindlepowerd")
-end
-
 function KindlePowerD:init()
     -- On devices where lipc step 0 is *not* off, we add a synthetic fl level where 0 *is* off,
     -- which allows us to keep being able to use said step 0 as the first "on" step.
@@ -49,7 +45,7 @@ end
 function KindlePowerD:frontlightIntensityHW()
     if not self.device:hasFrontlight() then return 0 end
     -- Kindle stock software does not use intensity file directly, so go through lipc to keep us in sync.
-    if LibLipcs:isFake(self:_lipc()) then
+    if LibLipcs:isFake(LibLipcs:accessor()) then
         -- NOTE: This fallback is of dubious use, as it will NOT match our expected [fl_min..fl_max] range,
         --       each model has a specific curve.
         return self:_readFLIntensity()
@@ -58,7 +54,7 @@ function KindlePowerD:frontlightIntensityHW()
     if self.device:canTurnFrontlightOff() then
         return self:lipc():get_int_property("com.lab126.powerd", "flIntensity")
     end
-    local lipc_fl_intensity = self:_lipc():get_int_property("com.lab126.powerd", "flIntensity")
+    local lipc_fl_intensity = LibLipcs:accessor():get_int_property("com.lab126.powerd", "flIntensity")
     -- NOTE: If lipc returns 0, compare against what the kernel says,
     --       to avoid breaking on/off detection on devices where lipc 0 doesn't actually turn it off (<= PW3),
     --       c.f., #5986
@@ -102,7 +98,7 @@ function KindlePowerD:setIntensityHW(intensity)
     -- NOTE: This means we *require* a working lipc handle to set the FL:
     --       it knows what the UI values should map to for the specific hardware much better than us.
     -- NOTE: We want to bypass setIntensity's shenanigans and simply restore the light as-is
-    self:_lipc():set_int_property("com.lab126.powerd", "flIntensity", intensity)
+    LibLipcs:accessor():set_int_property("com.lab126.powerd", "flIntensity", intensity)
     if turn_it_off then
         -- NOTE: when intensity is 0, we want to *really* kill the light, so do it manually
         -- (asking lipc to set it to 0 would in fact set it to > 0 on ! canTurnFrontlightOff Kindles).
@@ -121,7 +117,7 @@ function KindlePowerD:setIntensityHW(intensity)
 end
 
 function KindlePowerD:frontlightWarmthHW()
-    local nat_warmth = self:_lipc():get_int_property("com.lab126.powerd", "currentAmberLevel")
+    local nat_warmth = LibLipcs:accessor():get_int_property("com.lab126.powerd", "currentAmberLevel")
     if nat_warmth then
         -- [0...24] -> [0...100]
         return self:fromNativeWarmth(nat_warmth)
@@ -130,12 +126,12 @@ function KindlePowerD:frontlightWarmthHW()
 end
 
 function KindlePowerD:setWarmthHW(warmth)
-    self:_lipc():set_int_property("com.lab126.powerd", "currentAmberLevel", warmth)
+    LibLipcs:accessor():set_int_property("com.lab126.powerd", "currentAmberLevel", warmth)
 end
 
 function KindlePowerD:getCapacityHW()
-    if not LibLipcs:isFake(self:_lipc()) then
-        return self:_lipc():get_int_property("com.lab126.powerd", "battLevel")
+    if not LibLipcs:isFake(LibLipcs:accessor()) then
+        return LibLipcs:accessor():get_int_property("com.lab126.powerd", "battLevel")
     end
     if self.batt_capacity_file then
         return self:read_int_file(self.batt_capacity_file)
@@ -152,8 +148,8 @@ end
 
 function KindlePowerD:isChargingHW()
     local is_charging
-    if not LibLipcs:isFake(self:_lipc()) then
-        is_charging = self:_lipc():get_int_property("com.lab126.powerd", "isCharging")
+    if not LibLipcs:isFake(LibLipcs:accessor()) then
+        is_charging = LibLipcs:accessor():get_int_property("com.lab126.powerd", "isCharging")
     else
         is_charging = self:read_int_file(self.is_charging_file)
     end
@@ -196,21 +192,21 @@ function KindlePowerD:_readFLIntensity()
 end
 
 function KindlePowerD:toggleSuspend()
-    if LibLipcs:isFake(self:_lipc()) then
+    if LibLipcs:isFake(LibLipcs:accessor()) then
         os.execute("powerd_test -p")
     else
-        self:_lipc():set_int_property("com.lab126.powerd", "powerButton", 1)
+        LibLipcs:accessor():set_int_property("com.lab126.powerd", "powerButton", 1)
     end
 end
 
 -- Kindle only allows setting the RTC via lipc during the ReadyToSuspend state
 function KindlePowerD:setRtcWakeup(seconds_from_now)
-    self:_lipc():set_int_property("com.lab126.powerd", "rtcWakeup", seconds_from_now)
+    LibLipcs:accessor():set_int_property("com.lab126.powerd", "rtcWakeup", seconds_from_now)
 end
 
 -- Check the powerd state: are we still in screensaver mode.
 function KindlePowerD:getPowerdState()
-    return self:_lipc():get_string_property("com.lab126.powerd", "state")
+    return LibLipcs:accessor():get_string_property("com.lab126.powerd", "state")
 end
 
 function KindlePowerD:checkUnexpectedWakeup()
@@ -233,7 +229,7 @@ function KindlePowerD:readyToSuspend() end
 
 -- Support WakeupMgr on Lipc & supportsScreensaver devices.
 function KindlePowerD:initWakeupMgr()
-    if LibLipcs:isFake(self:_lipc()) then return end
+    if LibLipcs:isFake(LibLipcs:accessor()) then return end
     if G_defaults:isFalse("ENABLE_WAKEUP_MANAGER") then return end
     if not self.device:supportsScreensaver() then return end
 
@@ -267,11 +263,11 @@ function KindlePowerD:resetT1Timeout()
     -- NOTE: powerd will only send a t1TimerReset event every $(kdb get system/daemon/powerd/send_t1_reset_interval) (15s),
     --       which is just fine, as we should only request it at most every 5 minutes ;).
     -- NOTE: This will fail if the device is already showing the screensaver.
-    if LibLipcs:isFake(self:_lipc()) then
+    if LibLipcs:isFake(LibLipcs:accessor()) then
         os.execute("lipc-set-prop -i com.lab126.powerd touchScreenSaverTimeout 1")
     else
         -- AFAIK, the value is irrelevant
-        self:_lipc():set_int_property("com.lab126.powerd", "touchScreenSaverTimeout", 1)
+        LibLipcs:accessor():set_int_property("com.lab126.powerd", "touchScreenSaverTimeout", 1)
     end
 end
 

@@ -47,12 +47,8 @@ local function isHardFP()
   return util.pathExists("/lib/ld-linux-armhf.so.3")
 end
 
-local function _netlipc()
-  return LibLipcs:of("com.github.koreader.networkmgr")
-end
-
 local function kindleGetSavedNetworks()
-  local lipc = LibLipcs:no_name()
+  local lipc = LibLipcs:hash_accessor()
   if LibLipcs:isFake(lipc) then return nil end
   local ha_input = lipc:new_hasharray() -- an empty hash array since we only want to read
   local ha_result = lipc:access_hash_property("com.lab126.wifid", "profileData", ha_input)
@@ -63,7 +59,7 @@ local function kindleGetSavedNetworks()
 end
 
 local function kindleGetCurrentProfile()
-  local lipc = LibLipcs:no_name()
+  local lipc = LibLipcs:hash_accessor()
   if LibLipcs:isFake(lipc) then return nil end
   local ha_input = lipc:new_hasharray() -- an empty hash array since we only want to read
   local ha_result = lipc:access_hash_property("com.lab126.wifid", "currentEssid", ha_input)
@@ -74,13 +70,13 @@ local function kindleGetCurrentProfile()
 end
 
 local function kindleAuthenticateNetwork(essid)
-  local lipc = _netlipc()
+  local lipc = LibLipcs:accessor()
   if LibLipcs:isFake(lipc) then return end
   lipc:set_string_property("com.lab126.cmd", "ensureConnection", "wifi:" .. essid)
 end
 
 local function kindleSaveNetwork(data)
-  local lipc = LibLipcs:no_name()
+  local lipc = LibLipcs:hash_accessor()
   if LibLipcs:isFake(lipc) then return end
   local profile = lipc:new_hasharray()
   profile:add_hash()
@@ -97,18 +93,18 @@ local function kindleSaveNetwork(data)
 end
 
 local function kindleDeleteNetwork(data)
-  local lipc = _netlipc()
+  local lipc = LibLipcs:accessor()
   if LibLipcs:isFake(lipc) then return end
   lipc:set_string_property("com.lab126.wifid", "deleteProfile", data.ssid)
 end
 
 local function kindleGetScanList()
-  local lipc = LibLipcs:no_name()
+  local lipc = LibLipcs:hash_accessor()
   if LibLipcs:isFake(lipc) then
     return nil, require("gettext")("Unable to communicate with the Wi-Fi backend")
   end
   --[[ This logic is strange :/
-  if _netlipc():get_string_property("com.lab126.wifid", "cmState") == "CONNECTED" then
+  if LibLipcs:accessor():get_string_property("com.lab126.wifid", "cmState") == "CONNECTED" then
     -- return a fake scan list containing only the currently connected profile :)
     local profile = kindleGetCurrentProfile()
     return { profile }, nil
@@ -133,7 +129,7 @@ end
 
 local function kindleScanThenGetResults()
   local _ = require("gettext")
-  local lipc = _netlipc()
+  local lipc = LibLipcs:accessor()
   if LibLipcs:isFake(lipc) then
     return nil, _("Unable to communicate with the Wi-Fi backend")
   end
@@ -185,7 +181,7 @@ local function kindleEnableWifi(toggle)
   if toggle == nil then toggle = 0 end
   assert(type(toggle) == "number")
   assert(toggle == 0 or toggle == 1)
-  local lipc = _netlipc()
+  local lipc = LibLipcs:accessor()
   if LibLipcs:isFake(lipc) then
     -- No liblipclua on FW < 5.x ;)
     -- Always kill 3G first...
@@ -204,7 +200,7 @@ end
 -- sysfsInterfaceOperational serves the same purpose.
 --[[
 local function kindleIsWifiUp()
-  local lipc = _netlipc()
+  local lipc = LibLipcs:accessor()
   if not LibLipcs:isFake(lipc) then
     return (lipc:get_int_property("com.lab126.wifid", "enable") or 0) == 1
   end
@@ -228,7 +224,7 @@ Test if a kindle device is flagged as a Special Offers device (i.e., ad supporte
 --]]
 local function isSpecialOffers()
   -- Look at the current blanket modules to see if the SO screensavers are enabled...
-  local lipc = LibLipcs:of("com.github.koreader.device")
+  local lipc = LibLipcs:accessor()
   if LibLipcs:isFake(lipc) then return true end
   local loaded_blanket_modules = lipc:get_string_property("com.lab126.blanket", "load")
   if not loaded_blanket_modules then
@@ -251,7 +247,7 @@ end
 
 local function frameworkStopped()
   if os.getenv("STOP_FRAMEWORK") ~= "yes" then return nil end
-  local lipc = LibLipcs:of("com.lab126.kaf")
+  local lipc = LibLipcs:accessor()
   if LibLipcs:isFake(lipc) then return nil end
   local frameworkStarted = lipc:register_int_property("frameworkStarted", "r")
   frameworkStarted.value = 1
@@ -261,7 +257,7 @@ local function frameworkStopped()
 end
 
 local function initRotation(screen)
-  local lipc = LibLipcs:of("com.github.koreader.screen")
+  local lipc = LibLipcs:accessor()
   if LibLipcs:isFake(lipc) then return end
   local orientation_code = lipc:get_string_property(
     "com.lab126.winmgr", "accelerometer")
@@ -765,7 +761,7 @@ function Kindle:setEventHandlers(uimgr)
 end
 
 function Kindle:ambientBrightnessLevel()
-  local lipc = LibLipcs:of("com.github.koreader.ambientbrightness")
+  local lipc = LibLipcs:accessor()
   if LibLipcs:isFake(lipc) then return 0 end
   local value = lipc:get_int_property("com.lab126.powerd", "alsLux")
   if type(value) ~= "number" then return 0 end
@@ -1505,7 +1501,7 @@ function KindleScribe:init()
 
   --- @note The same quirks as on the Oasis 2 and 3 apply ;).
   -- Logic is slightly different, cannot use the initRotation.
-  local lipc = LibLipcs:of("com.github.koreader.screen")
+  local lipc = LibLipcs:accessor()
   if not LibLipcs:isFake(lipc) then
     local orientation_code = lipc:get_string_property(
       "com.lab126.winmgr", "accelerometer")

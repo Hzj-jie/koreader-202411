@@ -34,16 +34,12 @@ ReaderActivityIndicator = EventListener:extend{
 
 function ReaderActivityIndicator:isStub() return false end
 
-function ReaderActivityIndicator:_lipc()
-    return LibLipcs:of("com.github.koreader.activityindicator")
-end
-
 function ReaderActivityIndicator:onStartActivityIndicator()
-    if LibLipcs:isFake(self:_lipc()) then return true end
+    if LibLipcs:isFake(LibLipcs:accessor()) then return true end
     -- check if activity indicator is needed
     if self.document.configurable.text_wrap == 1 then
         -- start indicator depends on pillow being enabled
-        self:_lipc():set_string_property(
+        LibLipcs:accessor():set_string_property(
             "com.lab126.pillow", "activityIndicator",
             '{"activityIndicator":{ \
                 "action":"start","timeout":10000, \
@@ -55,10 +51,10 @@ function ReaderActivityIndicator:onStartActivityIndicator()
 end
 
 function ReaderActivityIndicator:onStopActivityIndicator()
-    if LibLipcs:isFake(self:_lipc()) then return true end
+    if LibLipcs:isFake(LibLipcs:accessor()) then return true end
     if self.indicator_started then
         -- stop indicator depends on pillow being enabled
-        self:_lipc():set_string_property(
+        LibLipcs:accessor():set_string_property(
             "com.lab126.pillow", "activityIndicator",
             '{"activityIndicator":{ \
                 "action":"stop","timeout":10000, \
