@@ -593,10 +593,11 @@ end
 function ReaderUI:showReader(file, provider, seamless)
     logger.dbg("show reader ui")
 
+    origin_file = file
     file = ffiUtil.realpath(file)
-    if lfs.attributes(file, "mode") ~= "file" then
+    if file == nil or lfs.attributes(file, "mode") ~= "file" then
         UIManager:show(InfoMessage:new{
-             text = T(_("File '%1' does not exist."), BD.filepath(filemanagerutil.abbreviate(file)))
+             text = T(_("File '%1' does not exist."), BD.filepath(filemanagerutil.abbreviate(origin_file)))
         })
         return
     end

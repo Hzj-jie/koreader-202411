@@ -1,7 +1,9 @@
 local BD = require("ui/bidi")
 local ConfirmBox = require("ui/widget/confirmbox")
+local DataStorage = require("datastorage")
 local Device = require("device")
 local Event = require("ui/event")
+local FfiUtil = require("ffi/util")
 local InfoMessage = require("ui/widget/infomessage")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local Notification = require("ui/widget/notification")
@@ -11,7 +13,7 @@ local dbg = require("dbg")
 local dump = require("dump")
 local lfs = require("libs/libkoreader-lfs")
 local _ = require("gettext")
-local T = require("ffi/util").template
+local T = FfiUtil.template
 
 local common_info = {}
 
@@ -31,28 +33,52 @@ if Device:hasKeyboard() then
       local kv_pairs = {}
       for k, v in UIManager:keyEvents() do
         table.insert(kv_pairs, {k,
-            dump(v[1])
-              :gsub("%s+", "")
-              :gsub("\"", "")
-              :gsub("%[%d+%]=", "")
-              :gsub(",}", "}")
-              :gsub(",", ", ")
-              :gsub("^{", "")
-              :gsub("}$", "")})
+                                dump(v[1])
+                                  :gsub("%s+", "")
+                                  :gsub("\"", "")
+                                  :gsub("%[%d+%]=", "")
+                                  :gsub(",}", "}")
+                                  :gsub(",", ", ")
+                                  :gsub("^{", "")
+                                  :gsub("}$", "")})
       end
       UIManager:show(KeyValuePage:new{
-          title = _("Keyboard shortcuts"), -- no localization
-          kv_pairs = kv_pairs,
+        title = _("Keyboard shortcuts"), -- no localization
+        kv_pairs = kv_pairs,
       })
     end
+  }
+end
+if G_defaults:isTrue("DEV_MODE") then
+  local sub_item_table = {}
+  for _, file in ipairs({
+    "batterystat.log",
+    "crash.log",
+    "crash.prev.log",
+  }) do
+    local fullpath = FfiUtil.realpath(DataStorage:getFullDataDir() .. "/" .. file)
+    table.insert(sub_item_table, {
+      text = file,
+      enabled_func = function()
+        return fullpath ~= nil and lfs.attributes(fullpath, "mode") == "file"
+      end,
+      callback = function()
+        require("apps/reader/readerui"):showReader(fullpath)
+      end,
+    })
+  end
+
+  common_info.common_log_files = {
+    -- Need l11n
+    text = _("Common log files"),
+    sub_item_table = sub_item_table,
   }
 end
 common_info.quickstart_guide = {
     text = _("Quickstart guide"),
     callback = function()
-        local QuickStart = require("ui/quickstart")
-        local ReaderUI = require("apps/reader/readerui")
-        ReaderUI:showReader(QuickStart:getQuickStart())
+        require("apps/reader/readerui"):showReader(
+            require("ui/quickstart"):getQuickStart())
     end
 }
 common_info.search_menu = {
@@ -72,7 +98,6 @@ common_info.report_bug = {
     end,
     keep_menu_open = true,
     callback = function(touchmenu_instance)
-        local DataStorage = require("datastorage")
         local log_path = string.format("%s/%s", DataStorage:getDataDir(), "crash.log")
         local common_msg = T(_("Please report bugs to \nhttps://github.com/koreader/koreader/issues\n\nVersion:\n%1\n\nDetected device:\n%2"),
             Version:getCurrentRevision(), Device:info())

@@ -233,6 +233,7 @@ local order = {
         "----------------------------",
         "mass_storage_actions", -- if Device:canToggleMassStorage()
         "----------------------------",
+        "common_log_files",
         "ota_update", -- if Device:hasOTAUpdates()
         "help",
         "keyboard_shortcuts", -- explicitly place it here to save key presses
