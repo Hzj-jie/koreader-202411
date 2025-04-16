@@ -198,6 +198,6 @@ STARDICT_DATA_DIR = nil,
 -- wakeup.
 ENABLE_WAKEUP_MANAGER = false,
 
--- Enable logging
-ENABLE_LOGGING = false,
+-- Enable features for developers, e.g. enable logging.
+DEV_MODE = false,
 }
