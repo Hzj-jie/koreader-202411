@@ -18,33 +18,27 @@ local function no() return false end  -- luacheck: ignore
 
 -- Try to detect WARIO+ Kindle boards (i.MX6 & i.MX7)
 local function isWarioOrMore()
-  local cpu_hw = nil
   -- Parse cpuinfo line by line, until we find the Hardware description
   for line in io.lines("/proc/cpuinfo") do
     if line:find("^Hardware") then
-      cpu_hw = line:match("^Hardware%s*:%s([%g%s]*)$")
-    end
-  end
-  -- NOTE: I couldn't dig up a cpuinfo dump from an Oasis 2 to check the CPU part value,
-  --     but for Wario (Cortex A9), matching that to 0xc09 would work, too.
-  --     On the other hand, I'm already using the Hardware match in MRPI, so, that sealed the deal ;).
+      local cpu_hw = line:match("^Hardware%s*:%s([%g%s]*)$")
+      -- NOTE: I couldn't dig up a cpuinfo dump from an Oasis 2 to check the CPU part value,
+      --     but for Wario (Cortex A9), matching that to 0xc09 would work, too.
+      --     On the other hand, I'm already using the Hardware match in MRPI, so, that sealed the
+      --     deal ;).
 
-  -- If we've got a Hardware string, check if it mentions an i.MX 6 or 7 or a MTK...
-  if cpu_hw then
-    if cpu_hw:find("i%.MX%s?[6-7]") or cpu_hw:find("MT8110") then
-      return true
-    else
-      return false
+      -- If we've got a Hardware string, check if it mentions an i.MX 6 or 7 or a MTK...
+      if cpu_hw:find("i%.MX%s?[6-7]") or cpu_hw:find("MT8110") then
+        return true
+      end
     end
-  else
-    return false
   end
+  return false
 end
 
 -- Try to detect Kindle running hardfp firmware
 local function isHardFP()
-  local util = require("util")
-  return util.pathExists("/lib/ld-linux-armhf.so.3")
+  return require("util").pathExists("/lib/ld-linux-armhf.so.3")
 end
 
 local function kindleGetSavedNetworks()
@@ -570,20 +564,18 @@ function Kindle:setDateTime(year, month, day, hour, min, sec)
 
     local command = string.format("/usr/sbin/setdate '%d'", epoch)
     return os.execute(command) == 0
-  else
-    local command
-    if year and month and day then
-      command = string.format("date -s '%d-%d-%d %d:%d:%d' '+%%Y-%%m-%%d %%H:%%M:%%S'", year, month, day, hour, min, sec)
-    else
-      command = string.format("date -s '%d:%d' '+%%H:%%M'", hour, min)
-    end
-    if os.execute(command) == 0 then
-      os.execute("hwclock -u -w")
-      return true
-    else
-      return false
-    end
   end
+  local command
+  if year and month and day then
+    command = string.format("date -s '%d-%d-%d %d:%d:%d' '+%%Y-%%m-%%d %%H:%%M:%%S'", year, month, day, hour, min, sec)
+  else
+    command = string.format("date -s '%d:%d' '+%%H:%%M'", hour, min)
+  end
+  if os.execute(command) == 0 then
+    os.execute("hwclock -u -w")
+    return true
+  end
+  return false
 end
 
 function Kindle:usbPlugIn()
@@ -652,8 +644,7 @@ function Kindle:_outofScreenSaver(source)
     return
   end
   local Screensaver = require("ui/screensaver")
-  local widget_was_closed = Screensaver:close()
-  if widget_was_closed then
+  if Screensaver:close() then
     -- And redraw everything in case the framework managed to screw us over...
     UIManager:nextTick(function() UIManager:setDirty("all", "full") end)
   end
