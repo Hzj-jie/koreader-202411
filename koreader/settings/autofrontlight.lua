@@ -1,2 +1,0 @@
--- ./settings/autofrontlight.lua
-return {}
