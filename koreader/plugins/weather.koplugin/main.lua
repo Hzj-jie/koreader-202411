@@ -235,7 +235,7 @@ function Weather:getSubMenuItems()
          text = _("View weather forecast"),
          keep_menu_open = true,
          callback = function()
-            NetworkMgr:turnOnWifiAndWaitForConnection(function()
+            NetworkMgr:runWhenOnline(function()
                   -- Init the weather API
                   local api = WeatherApi:new{
                      api_key = self.api_key

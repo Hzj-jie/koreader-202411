@@ -426,7 +426,7 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
 end
 
 -- NOTE: Only used by the beforeWifiAction framework, so, can never be flagged as "interactive" ;).
-function NetworkMgr:promptWifiOn(complete_callback) -- void
+function NetworkMgr:_promptWifiOn(complete_callback) -- void
     -- If there's already an ongoing connection attempt, don't even display the ConfirmBox,
     -- as that's just confusing, especially on Android, because you might have seen the one you tapped "Turn on" on disappear,
     -- and be surprised by new ones that popped up out of focus while the system settings were opened...
@@ -456,7 +456,7 @@ function NetworkMgr:promptWifiOff(complete_callback)
 end
 
 -- TODO: This function should return only false or nil.
-function NetworkMgr:turnOnWifiAndWaitForConnection(callback) -- false | nil | InfoMessage
+function NetworkMgr:_turnOnWifiAndWaitForConnection(callback) -- false | nil | InfoMessage
     -- Just run the callback if WiFi is already up...
     if self:isWifiOn() and self:isConnected() then
         --- @note: beforeWifiAction only guarantees isConnected, not isOnline.
@@ -499,7 +499,7 @@ function NetworkMgr:turnOnWifiAndWaitForConnection(callback) -- false | nil | In
 end
 
 -- This is only used on Android, the intent being we assume the system will eventually turn on WiFi on its own in the background...
-function NetworkMgr:doNothingAndWaitForConnection(callback) -- void
+function NetworkMgr:_doNothingAndWaitForConnection(callback) -- void
     if self:isWifiOn() and self:isConnected() then
         if callback then
             callback()
@@ -534,11 +534,11 @@ function NetworkMgr:_beforeWifiAction(callback) -- false | nil | InfoMessage
 
     local wifi_enable_action = G_reader_settings:readSetting("wifi_enable_action")
     if wifi_enable_action == "turn_on" then
-        return self:turnOnWifiAndWaitForConnection(callback)
+        return self:_turnOnWifiAndWaitForConnection(callback)
     elseif wifi_enable_action == "ignore" then
-        return self:doNothingAndWaitForConnection(callback)
+        return self:_doNothingAndWaitForConnection(callback)
     else
-        return self:promptWifiOn(callback)
+        return self:_promptWifiOn(callback)
     end
 end
 
@@ -671,141 +671,6 @@ function NetworkMgr:willRerunWhenConnected(callback)
     self:_beforeWifiAction(callback)
     return true
 end
-
--- And this one is for when you absolutely *need* to block until we're online to run something (e.g., because it runs in a finalizer).
-function NetworkMgr:goOnlineToRun(callback)
-    if self:isOnline() then
-        callback()
-        return true
-    end
-
-    -- If beforeWifiAction isn't turn_on, we're done.
-    -- We don't want to go behind the user's back by enforcing "turn_on" behavior,
-    -- and we *cannot* use prompt, as we'll block before handling the popup input...
-    -- NOTE: Ignore *technically* works, but unlike doNothingAndWaitForConnection, we *would* be displaying an InfoMessage
-    --       (and block/wait for input as usual). The only difference with turn_on would be the fact that we wouldn't *ever* even try to call turnOnWifi.
-    --       Given that "ignore" is supposed to be silent, and that you wouldn't actually be able to enable WiFi yourself at that point
-    --       (because that requires user input, which would cancel the whole thing), there's probably not much to gain by allowing "ignore" here...
-    if G_reader_settings:readSetting("wifi_enable_action") ~= "turn_on" then
-        logger.warn("NetworkMgr:goOnlineToRun: Cannot run callback because device is offline and wifi_enable_action is not turn_on")
-        return false
-    end
-
-    -- We'll do terrible things with this later...
-    local Input = Device.input
-
-    -- In case we abort before the beforeWifiAction, we won't pass it the callback, but run it ourselves,
-    -- to avoid it firing too late (or at the very least being pinned for too long).
-    local info = self:_beforeWifiAction()
-    -- NOTE: Unlike turnOnWifiAndWaitForConnection, we're not reentrant,
-    --       so if there's already a connection attempt pending,
-    --       we can afford to *try* to wait for its success,
-    --       especially since we can be cancelled.
-    --       The following call *will* murder any and all pending callbacks though,
-    --       which is a *slightly* different behavior than turnOnWifiAndWaitForConnection,
-    --       but a necessity to ensure sane lifecycles...
-
-    -- We'll basically do the same but in a blocking manner...
-    -- NOTE: Since UIManager won't tick, they wouldn't really have a chance to run anyway...
-    --       Given the constraints of our callers, they would very likely affect dead/dying objects anyway,
-    --       so it's much saner to just drop them.
-    self:unscheduleConnectivityCheck()
-
-    -- If connecting just plain failed, we're done
-    if info == false then
-        return false
-    end
-
-    -- Throw in a connectivity check now, for the sake of hasWifiManager platforms,
-    -- where we manage Wi-Fi ourselves, meaning turnOnWifi, and as such beforeWifiAction,
-    -- is *blocking*, so if all went well, we'll already have blocked a while,
-    -- but the connection will be up already.
-    self:queryNetworkState()
-
-    local iter = 0
-    local success = true
-    while not self.is_connected do
-        if iter == 0 then
-            -- Display a slightly more accurate IM while we wait...
-            if info then
-                UIManager:close(info)
-            end
-            info = InfoMessage:new{ text = _("Waiting for network connectivity…") }
-            UIManager:show(info)
-            UIManager:forceRePaint()
-        end
-
-        iter = iter + 1
-        if iter >= 120 then
-            logger.warn("NetworkMgr:goOnlineToRun: Timed out!")
-            success = false
-            break
-        end
-
-        -- NOTE: Here be dragons! We want to be able to abort on user input, so,
-        --       handle the 250ms chunks of waiting via our actual input polling...
-        -- We don't actually let the actual UI loop tick, so `now` will never change,
-        -- which is good, we don't want to disturb the task queue handling.
-        -- (And we actually want a fixed 250ms select anyway).
-        -- NOTE: This *does* mean that multiple bursts of input events *will*
-        --       make this loop run for less than 120 * 250ms, as select could return early.
-        --       Assuming we don't actually abort *because* of said input (e.g., not taps) ;).
-        local now = UIManager:getTime()
-        local input_events = Input:waitEvent(now, now + time.ms(250))
-        if input_events then
-            for __, ev in ipairs(input_events) do
-                -- We'll want to abort on actual single taps only, in case there's extra noise from stuff like a gyro or something...
-                if ev.handler == "onGesture" then
-                    local args = unpack(ev.args, 1, ev.args.n)
-                    if args.ges == "tap" then
-                        logger.warn("NetworkMgr:goOnlineToRun: Aborted by user input!")
-                        success = false
-                        -- No need to check further args
-                        break
-                    end
-                end
-            end
-            -- Break out of the actual loop on abort
-            if not success then
-                break
-            end
-        end
-
-        self:queryNetworkState()
-    end
-
-    -- To make our previous input shenanigans slightly less crazy, reset the whole input state.
-    Input:resetState()
-
-    -- Close the initial "Connecting..." InfoMessage from turnOnWifiAndWaitForConnection via beforeWifiAction,
-    -- or our own "Waiting for network connectivity" one.
-    if info then
-        UIManager:close(info)
-    end
-
-    -- Check whether we connected successfully...
-    if success then
-        -- We're finally connected!
-        logger.info("Successfully connected to Wi-Fi (after", iter * 0.25, "seconds)!")
-        self.wifi_was_on = true
-        G_reader_settings:makeTrue("wifi_was_on")
-        callback()
-        -- Delay this so it won't fire for dead/dying instances in case we're called by a finalizer...
-        UIManager:scheduleIn(2, function()
-            UIManager:broadcastEvent(Event:new("NetworkConnected"))
-        end)
-    else
-        -- We're not connected :(
-        logger.info("Failed to connect to Wi-Fi after", iter * 0.25, "seconds, giving up!")
-        self:_abortWifiConnection()
-        UIManager:show(InfoMessage:new{ text = _("Error connecting to the network") })
-    end
-    -- We're done, reset the pending connection flag, as we don't have any scheduled connectivity check to do it for us.
-    self.pending_connection = false
-
-    return success
-end
-
 
 
 function NetworkMgr:getWifiMenuTable()
