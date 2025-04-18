@@ -322,15 +322,8 @@ review your feed configuration file.]])
             UI:clear()
             self:openDownloadsFolder()
             touchmenu_instance:closeMenu()
-            NetworkMgr:afterWifiAction()
-            return
-        else
-            -- Return to the menu.
-            NetworkMgr:afterWifiAction()
-            return
         end
     end
-    return
 end
 
 function NewsDownloader:loadConfigAndProcessFeedsWithUI(touchmenu_instance)

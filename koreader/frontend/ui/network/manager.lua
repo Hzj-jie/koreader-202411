@@ -29,7 +29,6 @@ local NetworkMgr = {
 
     pending_connectivity_check = false,
     pending_connection = false,
-    _before_action_tripped = nil,
 }
 
 function NetworkMgr:readNWSettings()
@@ -445,16 +444,6 @@ function NetworkMgr:_promptWifiOn(complete_callback) -- void
     })
 end
 
-function NetworkMgr:promptWifiOff(complete_callback)
-    UIManager:show(ConfirmBox:new{
-        text = _("Do you want to turn off Wi-Fi?"),
-        ok_text = _("Turn off"),
-        ok_callback = function()
-            self:toggleWifiOff(complete_callback)
-        end,
-    })
-end
-
 -- TODO: This function should return only false or nil.
 function NetworkMgr:_turnOnWifiAndWaitForConnection(callback) -- false | nil | InfoMessage
     -- Just run the callback if WiFi is already up...
@@ -510,28 +499,12 @@ function NetworkMgr:_doNothingAndWaitForConnection(callback) -- void
     self:scheduleConnectivityCheck(callback)
 end
 
---- This quirky internal flag is used for the rare beforeWifiAction -> afterWifiAction brackets.
-function NetworkMgr:clearBeforeActionFlag()
-    self._before_action_tripped = nil
-end
-
-function NetworkMgr:setBeforeActionFlag()
-    self._before_action_tripped = true
-end
-
-function NetworkMgr:getBeforeActionFlag()
-    return self._before_action_tripped
-end
-
 --- @note: The callback will only run *after* a *successful* network connection.
 ---        The only guarantee it provides is isConnected (i.e., an IP & a local gateway),
 ---        *NOT* isOnline (i.e., WAN), se be careful with recursive callbacks!
 ---        Should only return false on *explicit* failures,
 ---        in which case the backend will already have called _abortWifiConnection
 function NetworkMgr:_beforeWifiAction(callback) -- false | nil | InfoMessage
-    -- Remember that we ran, for afterWifiAction...
-    self:setBeforeActionFlag()
-
     local wifi_enable_action = G_reader_settings:readSetting("wifi_enable_action")
     if wifi_enable_action == "turn_on" then
         return self:_turnOnWifiAndWaitForConnection(callback)
@@ -539,28 +512,6 @@ function NetworkMgr:_beforeWifiAction(callback) -- false | nil | InfoMessage
         return self:_doNothingAndWaitForConnection(callback)
     else
         return self:_promptWifiOn(callback)
-    end
-end
-
--- NOTE: This is actually used very sparingly (newsdownloader/send2ebook),
---       because bracketing a single action in a connect/disconnect session doesn't necessarily make much sense...
-function NetworkMgr:afterWifiAction(callback)
-    -- Don't do anything if beforeWifiAction never actually ran...
-    if not self:getBeforeActionFlag() then
-        return
-    end
-    self:clearBeforeActionFlag()
-
-    local wifi_disable_action = G_reader_settings:readSetting("wifi_disable_action")
-    if wifi_disable_action == "leave_on" then
-        -- NOP :)
-        if callback then
-           callback()
-        end
-    elseif wifi_disable_action == "turn_off" then
-        self:disableWifi(callback)
-    else
-        self:promptWifiOff(callback)
     end
 end
 
@@ -828,39 +779,6 @@ function NetworkMgr:getBeforeWifiActionMenuTable()
     return t
 end
 
-function NetworkMgr:getAfterWifiActionMenuTable()
-    local wifi_disable_action_setting = G_reader_settings:readSetting("wifi_disable_action") or "prompt"
-    local wifi_disable_actions = {
-        leave_on = {_("leave on"), _("Leave on")},
-        turn_off = {_("turn off"), _("Turn off")},
-        prompt = {_("prompt"), _("Prompt")},
-    }
-    local action_table = function(wifi_disable_action)
-    return {
-        text = wifi_disable_actions[wifi_disable_action][2],
-        checked_func = function()
-            return wifi_disable_action_setting == wifi_disable_action
-        end,
-        callback = function()
-            wifi_disable_action_setting = wifi_disable_action
-            G_reader_settings:saveSetting("wifi_disable_action", wifi_disable_action)
-        end,
-    }
-    end
-    return {
-        text_func = function()
-            return T(_("Action when done with Wi-Fi: %1"),
-                wifi_disable_actions[wifi_disable_action_setting][1]
-            )
-        end,
-        sub_item_table = {
-            action_table("leave_on"),
-            action_table("turn_off"),
-            action_table("prompt"),
-        }
-    }
-end
-
 function NetworkMgr:getDismissScanMenuTable()
     return {
         text = _("Dismiss Wi-Fi scan popup after connection"),
@@ -891,7 +809,6 @@ function NetworkMgr:getMenuTable(common_settings)
     end
     if Device:hasWifiToggle() then
         common_settings.network_before_wifi_action = self:getBeforeWifiActionMenuTable()
-        common_settings.network_after_wifi_action = self:getAfterWifiActionMenuTable()
     end
 end
 

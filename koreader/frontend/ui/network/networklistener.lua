@@ -195,8 +195,6 @@ function NetworkListener:onNetworkDisconnected()
     NetworkMgr:setConnectionState(false)
 
     NetworkListener:_unscheduleActivityCheck()
-    -- Reset NetworkMgr's beforeWifiAction marker
-    NetworkMgr:clearBeforeActionFlag()
 end
 
 -- Also unschedule on suspend (and we happen to also kill Wi-Fi to do so, so resetting the stats is also relevant here)
@@ -211,7 +209,6 @@ function NetworkListener:onSuspend()
 
     -- Wi-Fi will be down, unschedule unconditionally
     NetworkListener:_unscheduleActivityCheck()
-    NetworkMgr:clearBeforeActionFlag()
 end
 
 -- If the platform implements NetworkMgr:restoreWifiAsync, run it as needed
