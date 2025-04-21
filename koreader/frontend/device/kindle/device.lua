@@ -422,7 +422,7 @@ function Kindle:initNetworkManager(NetworkMgr)
   end
 
   NetworkMgr._isWifiOn = NetworkMgr.sysfsInterfaceOperational
-  NetworkMgr.isConnected = NetworkMgr.pingable
+  NetworkMgr._isConnected = NetworkMgr.pingable
 end
 
 function Kindle:supportsScreensaver()

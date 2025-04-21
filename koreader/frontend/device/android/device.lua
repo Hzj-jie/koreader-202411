@@ -318,13 +318,13 @@ function Device:initNetworkManager(NetworkMgr)
         android.openWifiSettings()
     end
 
-    function NetworkMgr:isConnected()
+    function NetworkMgr:_isConnected()
         local ok = android.getNetworkInfo()
         ok = tonumber(ok)
         if not ok then return false end
         return ok == 1
     end
-    NetworkMgr._isWifiOn = NetworkMgr.isConnected
+    NetworkMgr._isWifiOn = NetworkMgr._isConnected
 end
 
 function Device:performHapticFeedback(type)

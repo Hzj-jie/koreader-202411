@@ -387,10 +387,10 @@ function PocketBook:initNetworkManager(NetworkMgr)
         end
     end
 
-    function NetworkMgr:isConnected()
+    function NetworkMgr:_isConnected()
         return band(inkview.QueryNetwork(), C.NET_CONNECTED) ~= 0
     end
-    NetworkMgr._isWifiOn = NetworkMgr.isConnected
+    NetworkMgr._isWifiOn = NetworkMgr._isConnected
 
     function NetworkMgr:isOnline()
         -- Fail early if we don't even have a default route, otherwise we're

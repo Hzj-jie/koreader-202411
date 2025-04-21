@@ -381,7 +381,7 @@ end
 
 function Device:initNetworkManager(NetworkMgr)
     function NetworkMgr:_isWifiOn() return true end
-    function NetworkMgr:isConnected()
+    function NetworkMgr:_isConnected()
         if not Device:hasWifiToggle() then
             -- NOTE: This is necessary so as not to confuse NetworkMghr's beforeWifiAction framework.
             --       c.f., the default implementation in `NetworkMgr` itself for more details.
@@ -436,7 +436,7 @@ function Emulator:initNetworkManager(NetworkMgr)
     function NetworkMgr:_isWifiOn()
         return G_reader_settings:nilOrTrue("emulator_fake_wifi_connected")
     end
-    NetworkMgr.isConnected = NetworkMgr._isWifiOn
+    NetworkMgr._isConnected = NetworkMgr._isWifiOn
 end
 
 io.write("Starting SDL in " .. SDL.getBasePath() .. "\n")

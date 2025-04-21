@@ -55,7 +55,7 @@ function NetworkMgr:_abortWifiConnection()
   self.pending_connection = false
 end
 
--- Attempt to deal with platforms that don't guarantee isConnected when turnOnWifi returns,
+-- Attempt to deal with platforms that don't guarantee _isConnected when turnOnWifi returns,
 -- so that we only attempt to connect to WiFi *once* when using the beforeWifiAction framework...
 function NetworkMgr:requestToTurnOnWifi(wifi_cb, interactive) -- bool | EBUSY
   if self.pending_connection then
@@ -170,7 +170,7 @@ function NetworkMgr:_isWifiOn()
   end
 end
 -- This function is expected to be overridden by device.
-function NetworkMgr:isConnected()
+function NetworkMgr:_isConnected()
   if not Device:hasWifiToggle() then
     return true
   end
@@ -449,9 +449,9 @@ end
 
 function NetworkMgr:_turnOnWifiAndWaitForConnection(callback) -- false | nil
   -- Just run the callback if WiFi is already up...
-  if self:_isWifiOn() and self:isConnected() then
-    --- @note: beforeWifiAction only guarantees isConnected, not isOnline.
-    --     In the rare cases we're isConnected but !isOnline, if we're called via a *runWhenOnline wrapper,
+  if self:_isWifiOn() and self:_isConnected() then
+    --- @note: beforeWifiAction only guarantees _isConnected, not isOnline.
+    --     In the rare cases we're _isConnected but !isOnline, if we're called via a *runWhenOnline wrapper,
     --     we don't get a callback at all to avoid infinite recursion, so we need to check it.
     if callback then
       callback()
@@ -492,7 +492,7 @@ end
 
 -- This is only used on Android, the intent being we assume the system will eventually turn on WiFi on its own in the background...
 function NetworkMgr:_doNothingAndWaitForConnection(callback) -- void
-  if self:_isWifiOn() and self:isConnected() then
+  if self:_isWifiOn() and self:_isConnected() then
     if callback then
       callback()
     end
@@ -503,7 +503,7 @@ function NetworkMgr:_doNothingAndWaitForConnection(callback) -- void
 end
 
 --- @note: The callback will only run *after* a *successful* network connection.
----    The only guarantee it provides is isConnected (i.e., an IP & a local gateway),
+---    The only guarantee it provides is _isConnected (i.e., an IP & a local gateway),
 ---    *NOT* isOnline (i.e., WAN), se be careful with recursive callbacks!
 ---    Should only return false on *explicit* failures,
 ---    in which case the backend will already have called _abortWifiConnection
@@ -519,7 +519,7 @@ function NetworkMgr:_beforeWifiAction(callback) -- false | nil
 end
 
 function NetworkMgr:isOnline()
-  -- For the same reasons as _isWifiOn and isConnected above, bypass this on !hasWifiToggle platforms.
+  -- For the same reasons as _isWifiOn and _isConnected above, bypass this on !hasWifiToggle platforms.
   if not Device:hasWifiToggle() then
     return true
   end
@@ -530,7 +530,7 @@ end
 -- Update our cached network status
 function NetworkMgr:queryNetworkState()
   self.is_wifi_on = self:_isWifiOn()
-  self.is_connected = self.is_wifi_on and self:isConnected()
+  self.is_connected = self.is_wifi_on and self:_isConnected()
 end
 
 -- These do not call the actual Device methods, but what we, NetworkMgr, think the state is based on our own behavior.
@@ -546,7 +546,7 @@ function NetworkMgr:isNetworkInfoAvailable()
     -- always available
     return true
   else
-    return self:isConnected()
+    return self:_isConnected()
   end
 end
 
@@ -565,15 +565,15 @@ end
 
 -- Run callback *now* if you're currently online (ie., isOnline),
 -- or attempt to go online and run it *ASAP* without any more user interaction.
--- NOTE: If you're currently connected but without Internet access (i.e., isConnected and not isOnline),
+-- NOTE: If you're currently connected but without Internet access (i.e., _isConnected and not isOnline),
 --     it will just attempt to re-connect, *without* running the callback.
 -- c.f., ReaderWikipedia:onShowWikipediaLookup @ frontend/apps/reader/modules/readerwikipedia.lua
 function NetworkMgr:runWhenOnline(callback)
   if self:isOnline() then
     callback()
   else
-    --- @note: Avoid infinite recursion, beforeWifiAction only guarantees isConnected, not isOnline.
-    if not self:isConnected() then
+    --- @note: Avoid infinite recursion, beforeWifiAction only guarantees _isConnected, not isOnline.
+    if not self:_isConnected() then
       self:_beforeWifiAction(callback)
     else
       self:_beforeWifiAction()
@@ -581,10 +581,10 @@ function NetworkMgr:runWhenOnline(callback)
   end
 end
 
--- This one is for callbacks that only require isConnected, and since that's guaranteed by beforeWifiAction,
+-- This one is for callbacks that only require _isConnected, and since that's guaranteed by beforeWifiAction,
 -- you also have a guarantee that the callback *will* run.
 function NetworkMgr:runWhenConnected(callback)
-  if self:isConnected() then
+  if self:_isConnected() then
     callback()
   else
     self:_beforeWifiAction(callback)
@@ -594,15 +594,15 @@ end
 -- Mild variants that are used for recursive calls at the beginning of a complex function call.
 -- Returns true when not yet online, in which case you should *abort* (i.e., return) the initial call,
 -- and otherwise, go-on as planned.
--- NOTE: If you're currently connected but without Internet access (i.e., isConnected and not isOnline),
+-- NOTE: If you're currently connected but without Internet access (i.e., _isConnected and not isOnline),
 --     it will just attempt to re-connect, *without* running the callback.
 -- c.f., ReaderWikipedia:lookupWikipedia @ frontend/apps/reader/modules/readerwikipedia.lua
 function NetworkMgr:willRerunWhenOnline(callback)
   if self:isOnline() then
     return false
   end
-  --- @note: Avoid infinite recursion, beforeWifiAction only guarantees isConnected, not isOnline.
-  if not self:isConnected() then
+  --- @note: Avoid infinite recursion, beforeWifiAction only guarantees _isConnected, not isOnline.
+  if not self:_isConnected() then
     self:_beforeWifiAction(callback)
   else
     self:_beforeWifiAction()
@@ -610,10 +610,10 @@ function NetworkMgr:willRerunWhenOnline(callback)
   return true
 end
 
--- This one is for callbacks that only require isConnected, and since that's guaranteed by beforeWifiAction,
+-- This one is for callbacks that only require _isConnected, and since that's guaranteed by beforeWifiAction,
 -- you also have a guarantee that the callback *will* run.
 function NetworkMgr:willRerunWhenConnected(callback)
-  if self:isConnected() then
+  if self:_isConnected() then
     return false
   end
   self:_beforeWifiAction(callback)
