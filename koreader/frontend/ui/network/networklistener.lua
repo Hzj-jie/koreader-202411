@@ -177,8 +177,8 @@ end
 function NetworkListener:onNetworkConnected()
     logger.dbg("NetworkListener: onNetworkConnected")
     -- This is for the sake of events that don't emanate from NetworkMgr itself (e.g., the Emu)...
-    NetworkMgr:setWifiState(true)
-    NetworkMgr:setConnectionState(true)
+    NetworkMgr.is_wifi_on = true
+    NetworkMgr.is_connected = true
 
     if not G_reader_settings:isTrue("auto_disable_wifi") then
         return
@@ -191,8 +191,8 @@ end
 
 function NetworkListener:onNetworkDisconnected()
     logger.dbg("NetworkListener: onNetworkDisconnected")
-    NetworkMgr:setWifiState(false)
-    NetworkMgr:setConnectionState(false)
+    NetworkMgr.is_wifi_on = false
+    NetworkMgr.is_connected = false
 
     NetworkListener:_unscheduleActivityCheck()
 end

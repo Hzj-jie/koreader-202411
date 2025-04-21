@@ -370,6 +370,8 @@ end
 function NetworkMgr:disableWifi(cb, interactive)
   local complete_callback = function()
     UIManager:broadcastEvent(Event:new("NetworkDisconnected"))
+    self.is_wifi_on = false
+    self.is_connected = false
     if cb then
       cb()
     end
@@ -534,14 +536,8 @@ end
 function NetworkMgr:getWifiState()
   return self.is_wifi_on
 end
-function NetworkMgr:setWifiState(bool)
-  self.is_wifi_on = bool
-end
 function NetworkMgr:getConnectionState()
   return self.is_connected
-end
-function NetworkMgr:setConnectionState(bool)
-  self.is_connected = bool
 end
 
 function NetworkMgr:isNetworkInfoAvailable()
