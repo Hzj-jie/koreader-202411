@@ -64,7 +64,7 @@ function NetworkListener:onInfoWifiOff()
 end
 
 function NetworkListener:onInfoWifiOn()
-    if not NetworkMgr:isOnline() then
+    if not NetworkMgr:_isOnline() then
         enableWifi()
     else
         local info_text

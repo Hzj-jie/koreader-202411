@@ -127,7 +127,7 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
             return
         end
     else
-        -- NOTE: Align behavior with CloudStorage:openCloudServer, where only Dropbox requires isOnline
+        -- NOTE: Align behavior with CloudStorage:openCloudServer, where only Dropbox requires _isOnline
         if NetworkMgr:willRerunWhenConnected(function() SyncService.sync(server, file_path, sync_cb, is_silent) end) then
             return
         end

@@ -392,7 +392,7 @@ function PocketBook:initNetworkManager(NetworkMgr)
     end
     NetworkMgr._isWifiOn = NetworkMgr._isConnected
 
-    function NetworkMgr:isOnline()
+    function NetworkMgr:_isOnline()
         -- Fail early if we don't even have a default route, otherwise we're
         -- unlikely to be online and canResolveHostnames would never succeed
         -- again because PocketBook's glibc parses /etc/resolv.conf on first
