@@ -75,7 +75,12 @@ local _ = require("gettext")
 -- start_time: number, the time (fts) when the job was started.
 -- end_time: number, the time (fts) when the job was stopped.
 -- insert_time: number, the time (fts) when the job was inserted into queue.
--- (All of them in the monotonic time scale, like the main event loop & task queue).
+-- (All of them in the monotonic time scale, like the main event loop & task
+-- queue).
+--
+-- Since each time, the job table itself will be cloned, querying the results of
+-- the inserted job may return inaccurate results, always use the parameter of
+-- the callback function.
 
 local BackgroundRunner = {
   jobs = PluginShare.backgroundJobs,
@@ -124,7 +129,7 @@ function BackgroundRunner:_finishJob(job)
     self:_insert(self:_clone(job))
   end
   if type(job.callback) == "function" then
-    pcall(job.callback)
+    pcall(job.callback, job)
   end
 end
 
