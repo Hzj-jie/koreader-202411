@@ -231,10 +231,6 @@ function NetworkMgr:sysfsInterfaceOperational()
   return out == "up"
 end
 
-function NetworkMgr:pingable()
-  return Device:defaultGatewayPingable()
-end
-
 -- This relies on the BSD API instead of the Linux ioctls (netdevice(7)), because handling IPv6 is slightly less painful this way...
 function NetworkMgr:ifHasAnAddress()
   -- If the interface isn't operationally up, no need to go any further
