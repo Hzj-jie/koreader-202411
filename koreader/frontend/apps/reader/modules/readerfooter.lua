@@ -352,7 +352,7 @@ local footerTextGeneratorMap = {
         local symbol_type = footer.settings.item_prefix
         local NetworkMgr = require("ui/network/manager")
         if symbol_type == "icons" or symbol_type == "compact_items" then
-            if NetworkMgr:isWifiOn() then
+            if NetworkMgr:getWifiState() then
                 return symbol_prefix.icons.wifi_status
             else
                 if footer.settings.all_at_once and footer.settings.hide_empty_generators then
@@ -363,7 +363,7 @@ local footerTextGeneratorMap = {
             end
         else
             local prefix = symbol_prefix[symbol_type].wifi_status
-            if NetworkMgr:isWifiOn() then
+            if NetworkMgr:getWifiState() then
                 return T(_("%1 On"), prefix)
             else
                 if footer.settings.all_at_once and footer.settings.hide_empty_generators then

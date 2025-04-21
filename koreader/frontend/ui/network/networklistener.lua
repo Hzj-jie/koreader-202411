@@ -52,7 +52,7 @@ local function disableWifi()
 end
 
 function NetworkListener:onToggleWifi()
-    if not NetworkMgr:isWifiOn() then
+    if not NetworkMgr:_isWifiOn() then
         enableWifi()
     else
         disableWifi()
@@ -203,7 +203,7 @@ function NetworkListener:onSuspend()
 
     -- If we haven't already (e.g., via Generic's onPowerEvent), kill Wi-Fi.
     -- Do so only on devices where we have explicit management of Wi-Fi: assume the host system does things properly elsewhere.
-    if Device:hasWifiManager() and NetworkMgr:isWifiOn() then
+    if Device:hasWifiManager() and NetworkMgr:_isWifiOn() then
         NetworkMgr:disableWifi()
     end
 

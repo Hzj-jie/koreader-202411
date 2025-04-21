@@ -1045,14 +1045,14 @@ function Kobo:initNetworkManager(NetworkMgr)
         os.execute("./restore-wifi-async.sh")
     end
 
-    NetworkMgr.isWifiOn = NetworkMgr.sysfsWifiOn
+    NetworkMgr._isWifiOn = NetworkMgr.sysfsWifiOn
     NetworkMgr.isConnected = NetworkMgr.ifHasAnAddress
     -- Usually handled in NetworkMgr:init, but we'll need it *now*
     NetworkMgr.interface = net_if
 
-    -- Kill Wi-Fi if NetworkMgr:isWifiOn() and NOT NetworkMgr:isConnected()
+    -- Kill Wi-Fi if NetworkMgr:_isWifiOn() and NOT NetworkMgr:isConnected()
     -- (i.e., if the launcher left the Wi-Fi in an inconsistent state: modules loaded, but no route to gateway).
-    if NetworkMgr:isWifiOn() and not NetworkMgr:isConnected() then
+    if NetworkMgr:_isWifiOn() and not NetworkMgr:isConnected() then
         logger.info("Kobo Wi-Fi: Left in an inconsistent state by launcher!")
         NetworkMgr:turnOffWifi()
     end
@@ -1263,7 +1263,7 @@ function Kobo:standby(max_duration)
     --[[
     -- On most devices, attempting to PM with a Wi-Fi module loaded will horribly crash the kernel, so, don't?
     -- NOTE: Much like suspend, our caller should ensure this never happens, hence this being commented out ;).
-    if NetworkMgr:isWifiOn() then
+    if NetworkMgr:_isWifiOn() then
         -- AutoSuspend relies on NetworkMgr:getWifiState to prevent this, so, if we ever trip this, it's a bug ;).
         logger.err("Kobo standby: cannot standby with Wi-Fi modules loaded! (NetworkMgr is confused: this is a bug)")
         return
@@ -1347,7 +1347,7 @@ function Kobo:suspend()
     -- Murder Wi-Fi (again, c.f., `Device:onPowerEvent`) if NetworkMgr is attempting to connect or currently connected...
     -- (Most likely because of a rerunWhenOnline in a Suspend handler)
     local network_mgr = require("ui/network/manager")
-    if network_mgr:isWifiOn() then
+    if network_mgr:_isWifiOn() then
         logger.info("Kobo suspend: had to kill Wi-Fi")
         network_mgr:disableWifi()
     end

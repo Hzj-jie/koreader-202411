@@ -130,7 +130,7 @@ local Device = {
     -- For devices that have non-blocking OTA updates, this function will return true if the download is currently running.
     hasOTARunning = no,
 
-    -- set to yes on devices that have a non-blocking isWifiOn implementation
+    -- set to yes on devices that have a non-blocking _isWifiOn implementation
     -- (c.f., https://github.com/koreader/koreader/pull/5211#issuecomment-521304139)
     hasFastWifiStatusQuery = no,
 
@@ -383,10 +383,7 @@ function Device:onPowerEvent(ev)
             -- Much like the real suspend codepath below, in case we got here via screen_saver_lock,
             -- make sure we murder WiFi again (because restore WiFi on resume could have kicked in).
             if self:hasWifiToggle() then
-                local network_manager = require("ui/network/manager")
-                if network_manager:isWifiOn() then
-                    network_manager:disableWifi()
-                end
+                require("ui/network/manager"):disableWifi()
             end
             self:rescheduleSuspend()
         end
@@ -411,15 +408,12 @@ function Device:onPowerEvent(ev)
         UIManager:forceRePaint()
         -- NOTE: This side of the check needs to be laxer, some platforms can handle Wi-Fi without WifiManager ;).
         if self:hasWifiToggle() then
-            local network_manager = require("ui/network/manager")
             -- NOTE: wifi_was_on does not necessarily mean that Wi-Fi is *currently* on! It means *we* enabled it.
             --       This is critical on Kobos (c.f., #3936), where it might still be on from KSM or Nickel,
             --       without us being aware of it (i.e., wifi_was_on still unset or false),
             --       because suspend will at best fail, and at worst deadlock the system if Wi-Fi is on,
             --       regardless of who enabled it!
-            if network_manager:isWifiOn() then
-                network_manager:disableWifi()
-            end
+            require("ui/network/manager"):disableWifi()
         end
         -- Only turn off the frontlight *after* we've displayed the screensaver and dealt with Wi-Fi,
         -- to prevent that from affecting the smoothness of the frontlight ramp down.

@@ -324,7 +324,7 @@ function Device:initNetworkManager(NetworkMgr)
         if not ok then return false end
         return ok == 1
     end
-    NetworkMgr.isWifiOn = NetworkMgr.isConnected
+    NetworkMgr._isWifiOn = NetworkMgr.isConnected
 end
 
 function Device:performHapticFeedback(type)

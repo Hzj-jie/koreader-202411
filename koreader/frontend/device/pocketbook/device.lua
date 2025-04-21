@@ -358,7 +358,7 @@ function PocketBook:initNetworkManager(NetworkMgr)
         -- Make sure only one wifiKeepAlive is scheduled
         UIManager:unschedule(keepWifiAlive)
 
-        if NetworkMgr:isWifiOn() then
+        if NetworkMgr:_isWifiOn() then
             logger.dbg("ping wifi keep alive and reschedule")
 
             inkview.NetMgrPing()
@@ -390,7 +390,7 @@ function PocketBook:initNetworkManager(NetworkMgr)
     function NetworkMgr:isConnected()
         return band(inkview.QueryNetwork(), C.NET_CONNECTED) ~= 0
     end
-    NetworkMgr.isWifiOn = NetworkMgr.isConnected
+    NetworkMgr._isWifiOn = NetworkMgr.isConnected
 
     function NetworkMgr:isOnline()
         -- Fail early if we don't even have a default route, otherwise we're

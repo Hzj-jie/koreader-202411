@@ -164,7 +164,7 @@ function NetworkMgr:turnOffWifi(complete_callback) end
 -- NOTE: On !hasWifiToggle platforms, we assume networking is always available,
 --     so as not to confuse the whole beforeWifiAction framework
 --     (and let it fail with network errors when offline, instead of looping on unimplemented stuff...).
-function NetworkMgr:isWifiOn()
+function NetworkMgr:_isWifiOn()
   if not Device:hasWifiToggle() then
     return true
   end
@@ -368,6 +368,7 @@ function NetworkMgr:enableWifi(wifi_cb, interactive) -- void
 end
 
 function NetworkMgr:disableWifi(cb, interactive)
+  if not self:_isWifiOn() then return end
   local complete_callback = function()
     UIManager:broadcastEvent(Event:new("NetworkDisconnected"))
     self.is_wifi_on = false
@@ -448,7 +449,7 @@ end
 
 function NetworkMgr:_turnOnWifiAndWaitForConnection(callback) -- false | nil
   -- Just run the callback if WiFi is already up...
-  if self:isWifiOn() and self:isConnected() then
+  if self:_isWifiOn() and self:isConnected() then
     --- @note: beforeWifiAction only guarantees isConnected, not isOnline.
     --     In the rare cases we're isConnected but !isOnline, if we're called via a *runWhenOnline wrapper,
     --     we don't get a callback at all to avoid infinite recursion, so we need to check it.
@@ -491,7 +492,7 @@ end
 
 -- This is only used on Android, the intent being we assume the system will eventually turn on WiFi on its own in the background...
 function NetworkMgr:_doNothingAndWaitForConnection(callback) -- void
-  if self:isWifiOn() and self:isConnected() then
+  if self:_isWifiOn() and self:isConnected() then
     if callback then
       callback()
     end
@@ -518,7 +519,7 @@ function NetworkMgr:_beforeWifiAction(callback) -- false | nil
 end
 
 function NetworkMgr:isOnline()
-  -- For the same reasons as isWifiOn and isConnected above, bypass this on !hasWifiToggle platforms.
+  -- For the same reasons as _isWifiOn and isConnected above, bypass this on !hasWifiToggle platforms.
   if not Device:hasWifiToggle() then
     return true
   end
@@ -528,7 +529,7 @@ end
 
 -- Update our cached network status
 function NetworkMgr:queryNetworkState()
-  self.is_wifi_on = self:isWifiOn()
+  self.is_wifi_on = self:_isWifiOn()
   self.is_connected = self.is_wifi_on and self:isConnected()
 end
 
@@ -635,7 +636,7 @@ function NetworkMgr:getWifiToggleMenuTable()
   return {
     text = _("Wi-Fi connection"),
     enabled_func = function() return Device:hasWifiToggle() end,
-    checked_func = function() return self:isWifiOn() end,
+    checked_func = function() return self:_isWifiOn() end,
     callback = function(menu)
             local complete_callback =
               function()
@@ -643,7 +644,7 @@ function NetworkMgr:getWifiToggleMenuTable()
                 menu:updateItems()
               end -- complete_callback()
             -- interactive
-            if self:isWifiOn() then
+            if self:_isWifiOn() then
               self:toggleWifiOff(complete_callback, true)
             else
               self:toggleWifiOn(complete_callback, true)

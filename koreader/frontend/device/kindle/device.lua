@@ -421,7 +421,7 @@ function Kindle:initNetworkManager(NetworkMgr)
     return { ssid = profile.essid }
   end
 
-  NetworkMgr.isWifiOn = NetworkMgr.sysfsInterfaceOperational
+  NetworkMgr._isWifiOn = NetworkMgr.sysfsInterfaceOperational
   NetworkMgr.isConnected = NetworkMgr.pingable
 end
 
