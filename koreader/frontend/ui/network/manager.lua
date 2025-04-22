@@ -733,7 +733,6 @@ function NetworkMgr:getDismissScanMenuTable()
   return {
     text = _("Dismiss Wi-Fi scan popup after connection"),
     checked_func = function() return G_reader_settings:nilOrTrue("auto_dismiss_wifi_scan") end,
-    enabled_func = function() return Device:hasWifiManager() or Device:isEmulator() end,
     callback = function() G_reader_settings:flipNilOrTrue("auto_dismiss_wifi_scan") end,
   }
 end
@@ -754,9 +753,9 @@ function NetworkMgr:getMenuTable(common_settings)
   if Device:hasWifiRestore() or Device:isEmulator() then
     common_settings.network_restore = self:getRestoreMenuTable()
   end
-  if Device:hasWifiManager() or Device:isEmulator() then
-    common_settings.network_dismiss_scan = self:getDismissScanMenuTable()
-  end
+
+  common_settings.network_dismiss_scan = self:getDismissScanMenuTable()
+
   if Device:hasWifiToggle() then
     common_settings.network_before_wifi_action = self:getBeforeWifiActionMenuTable()
   end
