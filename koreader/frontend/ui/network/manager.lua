@@ -344,7 +344,6 @@ function NetworkMgr:toggleWifiOn(wifi_cb) -- false | nil
 
     -- This will handle sending the proper Event, manage wifi_was_on, as well as tearing down Wi-Fi in case of failures.
     self:scheduleConnectivityCheck(function()
-      UIManager:close(info)
       if wifi_cb then
         wifi_cb()
       end
@@ -353,6 +352,9 @@ function NetworkMgr:toggleWifiOn(wifi_cb) -- false | nil
 
   -- Some implementations (usually, hasWifiManager) can report whether they were successful
   local status = self:_requestToTurnOnWifi(connectivity_cb, true)
+  -- Note, when showing the network list, the callback would be heavily delayed, and the info will
+  -- block the list.
+  UIManager:close(info)
   -- If turnOnWifi failed, abort early
   if status == false then
     logger.warn("NetworkMgr:toggleWifiOn: Connection failed!")
@@ -394,9 +396,6 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
     UIManager:broadcastEvent(Event:new("NetworkDisconnected"))
     self.is_wifi_on = false
     self.is_connected = false
-    if interactive then
-      UIManager:close(info)
-    end
     if cb then
       cb()
     end
@@ -416,6 +415,9 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
   self:turnOffWifi(complete_callback)
 
   if interactive then
+    -- Note, similar to the toggleWifiOn, the info will be dismissed before the connection is fully
+    -- dropped.
+    UIManager:close(info)
     self.wifi_was_on = false
     G_reader_settings:makeFalse("wifi_was_on")
   end
@@ -461,7 +463,7 @@ end
 function NetworkMgr:_beforeWifiAction(callback) -- false | nil
   local wifi_enable_action = G_reader_settings:readSetting("wifi_enable_action")
   if wifi_enable_action == "turn_on" then
-    return self:toggleWifiOn(callback, true)
+    return self:toggleWifiOn(callback)
   elseif wifi_enable_action == "ignore" then
     return self:_doNothingAndWaitForConnection(callback)
   else
@@ -598,7 +600,7 @@ function NetworkMgr:getWifiToggleMenuTable()
             if self:_isWifiOn() then
               self:toggleWifiOff(complete_callback, true)
             else
-              self:toggleWifiOn(complete_callback, true)
+              self:toggleWifiOn(complete_callback)
             end
           end,
     hold_callback = function(menu)
