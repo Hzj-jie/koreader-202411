@@ -57,7 +57,7 @@ end
 
 -- Attempt to deal with platforms that don't guarantee _isConnected when turnOnWifi returns,
 -- so that we only attempt to connect to WiFi *once* when using the beforeWifiAction framework...
-function NetworkMgr:requestToTurnOnWifi(wifi_cb, interactive) -- bool | EBUSY
+function NetworkMgr:_requestToTurnOnWifi(wifi_cb, interactive) -- bool | EBUSY
   if self.pending_connection then
     -- We've already enabled WiFi, don't try again until the earlier attempt succeeds or fails...
     return EBUSY
@@ -320,8 +320,19 @@ function NetworkMgr:canResolveHostnames()
   return socket.dns.toip("dns.msftncsi.com") ~= nil
 end
 
--- Wrappers around turnOnWifi & turnOffWifi with proper Event signaling
-function NetworkMgr:enableWifi(wifi_cb, interactive) -- void
+function NetworkMgr:toggleWifiOn(wifi_cb) -- false | nil
+  if self:_isWifiOn() and self:_isConnected() then
+    if wifi_cb then
+      wifi_cb()
+    end
+    return
+  end
+
+  local info = InfoMessage:new{
+    text = _("Turning on Wi-Fi…"),
+  }
+  UIManager:show(info)
+  UIManager:forceRePaint()
   -- NOTE: Let the backend run the wifi_cb via a connectivity check once it's *actually* attempted a connection,
   --     as it knows best when that actually happens (especially reconnectOrShowNetworkMenu), unlike us.
   local connectivity_cb = function()
@@ -332,43 +343,60 @@ function NetworkMgr:enableWifi(wifi_cb, interactive) -- void
     end
 
     -- This will handle sending the proper Event, manage wifi_was_on, as well as tearing down Wi-Fi in case of failures.
-    self:scheduleConnectivityCheck(wifi_cb)
+    self:scheduleConnectivityCheck(function()
+      UIManager:close(info)
+      if wifi_cb then
+        wifi_cb()
+      end
+    end)
   end
 
   -- Some implementations (usually, hasWifiManager) can report whether they were successful
-  local status = self:requestToTurnOnWifi(connectivity_cb, interactive)
+  local status = self:_requestToTurnOnWifi(connectivity_cb, true)
   -- If turnOnWifi failed, abort early
   if status == false then
-    logger.warn("NetworkMgr:enableWifi: Connection failed!")
+    logger.warn("NetworkMgr:toggleWifiOn: Connection failed!")
     self:_abortWifiConnection()
+    return false
   elseif status == EBUSY then
     -- NOTE: This means turnOnWifi was *not* called (this time).
-    logger.warn("NetworkMgr:enableWifi: A previous connection attempt is still ongoing!")
-    -- We don't really have a great way of dealing with the wifi_cb in this case,
-    -- so, much like in turnOnWifiAndWaitForConnection, we'll just drop it...
+    logger.warn("NetworkMgr:toggleWifiOn: A previous connection attempt is still ongoing!")
+    -- We don't really have a great way of dealing with the wifi_cb in this case, we'll just drop
+    -- it...
     -- We don't want to run multiple concurrent connectivity checks,
     -- which means we'd need to unschedule the pending one, which would effectively rewind the timer,
     -- which we don't want, especially if we're non-interactive,
     -- as that would risk rescheduling the same thing over and over again...
     if wifi_cb then
-      logger.warn("NetworkMgr:enableWifi: We've had to drop wifi_cb:", wifi_cb)
+      logger.warn("NetworkMgr:toggleWifiOn: We've had to drop wifi_cb:", wifi_cb)
     end
-    -- Make it more obvious to the user when interactive...
-    if interactive then
-      UIManager:show(InfoMessage:new{
-        text = _("A previous connection attempt is still ongoing, this one will be ignored!"),
-        timeout = 3,
-      })
-    end
+    UIManager:close(info)
+    UIManager:show(InfoMessage:new{
+      text = _("A previous connection attempt is still ongoing, this one will be ignored!"),
+      timeout = 3,
+    })
   end
 end
 
-function NetworkMgr:disableWifi(cb, interactive)
+function NetworkMgr:toggleWifiOff(complete_callback, interactive)
   if not self:_isWifiOn() then return end
+
+  local info
+  if interactive then
+    info = InfoMessage:new{
+      text = _("Turning off Wi-Fi…"),
+    }
+    UIManager:show(info)
+    UIManager:forceRePaint()
+  end
+
   local complete_callback = function()
     UIManager:broadcastEvent(Event:new("NetworkDisconnected"))
     self.is_wifi_on = false
     self.is_connected = false
+    if interactive then
+      UIManager:close(info)
+    end
     if cb then
       cb()
     end
@@ -393,36 +421,6 @@ function NetworkMgr:disableWifi(cb, interactive)
   end
 end
 
-function NetworkMgr:toggleWifiOn(complete_callback, interactive) -- void
-  if not interactive then
-    self:enableWifi(complete_callback, interactive)
-    return
-  end
-
-  local toggle_im = InfoMessage:new{
-    text = _("Turning on Wi-Fi…"),
-  }
-  UIManager:show(toggle_im)
-  UIManager:forceRePaint()
-  self:enableWifi(complete_callback, interactive)
-  UIManager:close(toggle_im)
-end
-
-function NetworkMgr:toggleWifiOff(complete_callback, interactive)
-  if not interactive then
-    self:disableWifi(complete_callback, interactive)
-    return
-  end
-
-  local toggle_im = InfoMessage:new{
-    text = _("Turning off Wi-Fi…"),
-  }
-  UIManager:show(toggle_im)
-  UIManager:forceRePaint()
-  self:disableWifi(complete_callback, interactive)
-  UIManager:close(toggle_im)
-end
-
 -- NOTE: Only used by the beforeWifiAction framework, so, can never be flagged as "interactive" ;).
 function NetworkMgr:_promptWifiOn(complete_callback) -- void
   -- If there's already an ongoing connection attempt, don't even display the ConfirmBox,
@@ -441,49 +439,6 @@ function NetworkMgr:_promptWifiOn(complete_callback) -- void
       self:toggleWifiOn(complete_callback)
     end,
   })
-end
-
-function NetworkMgr:_turnOnWifiAndWaitForConnection(callback) -- false | nil
-  -- Just run the callback if WiFi is already up...
-  if self:_isWifiOn() and self:_isConnected() then
-    --- @note: beforeWifiAction only guarantees _isConnected, not _isOnline.
-    --     In the rare cases we're _isConnected but !_isOnline, if we're called via a *runWhenOnline wrapper,
-    --     we don't get a callback at all to avoid infinite recursion, so we need to check it.
-    if callback then
-      callback()
-    end
-    return
-  end
-
-  local info = InfoMessage:new{ text = _("Connecting to Wi-Fi…") }
-  UIManager:show(info)
-  UIManager:forceRePaint()
-
-  -- NOTE: This is a slightly tweaked variant of enableWifi, in order to handle our info widget...
-  local connectivity_cb = function()
-    if self.pending_connectivity_check then
-      self:unscheduleConnectivityCheck()
-    end
-
-    self:scheduleConnectivityCheck(function()
-      UIManager:close(info)
-      if callback then
-        callback()
-      end
-    end, info)
-  end
-  local status = self:requestToTurnOnWifi(connectivity_cb)
-  if status == false then
-    logger.warn("NetworkMgr:turnOnWifiAndWaitForConnection: Connection failed!")
-    self:_abortWifiConnection()
-    UIManager:close(info)
-    return false
-  elseif status == EBUSY then
-    logger.warn("NetworkMgr:turnOnWifiAndWaitForConnection: A previous connection attempt is still ongoing!")
-    -- We might lose a callback in case the previous attempt wasn't from the same action,
-    -- but it's just plain saner to just abort here, as we'd risk calling the same thing over and over...
-    UIManager:close(info)
-  end
 end
 
 -- This is only used on Android, the intent being we assume the system will eventually turn on WiFi on its own in the background...
@@ -506,7 +461,7 @@ end
 function NetworkMgr:_beforeWifiAction(callback) -- false | nil
   local wifi_enable_action = G_reader_settings:readSetting("wifi_enable_action")
   if wifi_enable_action == "turn_on" then
-    return self:_turnOnWifiAndWaitForConnection(callback)
+    return self:toggleWifiOn(callback, true)
   elseif wifi_enable_action == "ignore" then
     return self:_doNothingAndWaitForConnection(callback)
   else

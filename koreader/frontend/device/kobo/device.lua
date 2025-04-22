@@ -1349,7 +1349,7 @@ function Kobo:suspend()
     local network_mgr = require("ui/network/manager")
     if network_mgr:_isWifiOn() then
         logger.info("Kobo suspend: had to kill Wi-Fi")
-        network_mgr:disableWifi()
+        network_mgr:toggleWifiOff()
     end
 
     logger.info("Kobo suspend: going to sleep . . .")

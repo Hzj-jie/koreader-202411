@@ -698,7 +698,7 @@ function KOSync:updateProgress(ensure_networking, interactive, on_suspend)
         --       because some of our hasWifiManager targets will horribly implode when attempting to suspend with the Wi-Fi chip powered on,
         --       and they'll have attempted to kill Wi-Fi well before *we* run (e.g., in `Device:onPowerEvent`, *before* actually sending the Suspend Event)...
         if Device:hasWifiManager() then
-            NetworkMgr:disableWifi()
+            NetworkMgr:toggleWifiOff()
         end
     end
 

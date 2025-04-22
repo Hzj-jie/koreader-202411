@@ -383,7 +383,7 @@ function Device:onPowerEvent(ev)
             -- Much like the real suspend codepath below, in case we got here via screen_saver_lock,
             -- make sure we murder WiFi again (because restore WiFi on resume could have kicked in).
             if self:hasWifiToggle() then
-                require("ui/network/manager"):disableWifi()
+                require("ui/network/manager"):toggleWifiOff()
             end
             self:rescheduleSuspend()
         end
@@ -413,7 +413,7 @@ function Device:onPowerEvent(ev)
             --       without us being aware of it (i.e., wifi_was_on still unset or false),
             --       because suspend will at best fail, and at worst deadlock the system if Wi-Fi is on,
             --       regardless of who enabled it!
-            require("ui/network/manager"):disableWifi()
+            require("ui/network/manager"):toggleWifiOff()
         end
         -- Only turn off the frontlight *after* we've displayed the screensaver and dealt with Wi-Fi,
         -- to prevent that from affecting the smoothness of the frontlight ramp down.
