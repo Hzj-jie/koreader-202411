@@ -832,12 +832,13 @@ function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive, p
   -- Only auto connecting when user did not initiate the operation. I.e. when
   -- user clicks on the "Wi-Fi connection" menu, always prefer showing the
   -- menu.
-  if ssid == nil and not interactive then
+  if ssid == nil and (not interactive or G_reader_settings:nilOrTrue("auto_dismiss_wifi_scan")) then
     for _, network in ipairs(network_list) do
       if network.password then
         -- If we hit a preferred network and we're not already connected,
         -- attempt to connect to said preferred network....
-        logger.dbg("NetworkMgr: Attempting to authenticate on preferred network", util.fixUtf8(network.ssid, "�"))
+        logger.dbg("NetworkMgr: Attempting to authenticate on preferred network",
+                   util.fixUtf8(network.ssid, "�"))
         local success
         success, err_msg = self:authenticateNetwork(network)
         if success then
@@ -894,7 +895,6 @@ function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive, p
       UIManager:show(require("ui/widget/networksetting"):new{
         network_list = network_list,
         connect_callback = complete_callback,
-        prefer_list = prefer_list,
       })
     end
     return (ssid ~= nil)
