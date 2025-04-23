@@ -421,11 +421,11 @@ function Kindle:initNetworkManager(NetworkMgr)
     return { ssid = profile.essid }
   end
 
-  function NetworkMgr:_isConnected()
+  function NetworkMgr:isConnected()
     return kindleGetCurrentProfile() ~= nil
   end
 
-  NetworkMgr._isWifiOn = NetworkMgr.sysfsInterfaceOperational
+  NetworkMgr.isWifiOn = NetworkMgr.sysfsInterfaceOperational
 end
 
 function Kindle:supportsScreensaver()

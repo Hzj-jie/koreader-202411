@@ -259,8 +259,8 @@ function AutoSuspend:_schedule_standby(sleep_in)
     -- When we're in a state where entering suspend is undesirable, we simply postpone the check by the full delay.
     local standby_delay_seconds
     -- NOTE: As this may fire repeatedly, we don't want to poke the actual Device implementation every few seconds,
-    --       instead, we rely on NetworkMgr's last known status. (i.e., this *should* match NetworkMgr:_isWifiOn).
-    if NetworkMgr:getWifiState() then
+    --       instead, we rely on NetworkMgr's last known status. (i.e., this *should* match NetworkMgr:isWifiOn).
+    if NetworkMgr:isWifiOn() then
         -- Don't enter standby if wifi is on, as this will break in fun and interesting ways (from Wi-Fi issues to kernel deadlocks).
         --logger.dbg("AutoSuspend: WiFi is on, delaying standby")
         standby_delay_seconds = sleep_in

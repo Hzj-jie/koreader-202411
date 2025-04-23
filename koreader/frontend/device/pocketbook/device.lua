@@ -358,7 +358,7 @@ function PocketBook:initNetworkManager(NetworkMgr)
         -- Make sure only one wifiKeepAlive is scheduled
         UIManager:unschedule(keepWifiAlive)
 
-        if NetworkMgr:_isWifiOn() then
+        if NetworkMgr:isWifiOn() then
             logger.dbg("ping wifi keep alive and reschedule")
 
             inkview.NetMgrPing()
@@ -387,12 +387,12 @@ function PocketBook:initNetworkManager(NetworkMgr)
         end
     end
 
-    function NetworkMgr:_isConnected()
+    function NetworkMgr:isConnected()
         return band(inkview.QueryNetwork(), C.NET_CONNECTED) ~= 0
     end
-    NetworkMgr._isWifiOn = NetworkMgr._isConnected
+    NetworkMgr.isWifiOn = NetworkMgr.isConnected
 
-    function NetworkMgr:_isOnline()
+    function NetworkMgr:isOnline()
         -- Fail early if we don't even have a default route, otherwise we're
         -- unlikely to be online and canResolveHostnames would never succeed
         -- again because PocketBook's glibc parses /etc/resolv.conf on first

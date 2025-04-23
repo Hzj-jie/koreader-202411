@@ -169,12 +169,12 @@ function SonyPRSTUX:initNetworkManager(NetworkMgr)
     end
 
     --[[
-    function NetworkMgr:_isWifiOn()
+    function NetworkMgr:isWifiOn()
         return 0 == os.execute("wmiconfig -i wlan0 --wlan query | grep -q enabled")
     end
     --]]
-    NetworkMgr._isWifiOn = NetworkMgr.sysfsWifiOn
-    NetworkMgr._isConnected = NetworkMgr.ifHasAnAddress
+    NetworkMgr.isWifiOn = NetworkMgr.sysfsWifiOn
+    NetworkMgr.isConnected = NetworkMgr.ifHasAnAddress
 end
 
 

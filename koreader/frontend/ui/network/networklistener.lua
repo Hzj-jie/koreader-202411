@@ -21,7 +21,7 @@ if not Device:hasWifiToggle() then
 end
 
 function NetworkListener:onToggleWifi()
-  if not NetworkMgr:_isWifiOn() then
+  if not NetworkMgr:isWifiOn() then
     NetworkMgr:toggleWifiOn()
   else
     NetworkMgr:toggleWifiOff(nil, true) -- flag it as interactive
@@ -33,7 +33,7 @@ function NetworkListener:onInfoWifiOff()
 end
 
 function NetworkListener:onInfoWifiOn()
-  if not NetworkMgr:_isOnline() then
+  if not NetworkMgr:isConnected() then
     enableWifi()
   else
     local info_text
@@ -60,6 +60,8 @@ if G_named_settings.auto_standby_timeout_seconds() > 0 then
   max_network_timeout_seconds = max_network_timeout_seconds / 2
 end
 -- This should be more than enough to catch actual activity vs. noise spread over 5 minutes.
+-- TODO: This does not work on kindle, the origin system makes noticeable
+-- network traffic, ~20 packages in 2 minutes, and very unpredictable.
 local network_activity_noise_margin = 12 -- unscaled_size_check: ignore
 
 -- Read the statistics/tx_packets sysfs entry for the current network interface.
@@ -145,9 +147,6 @@ end
 
 function NetworkListener:onNetworkConnected()
   logger.dbg("NetworkListener: onNetworkConnected")
-  -- This is for the sake of events that don't emanate from NetworkMgr itself (e.g., the Emu)...
-  NetworkMgr.is_wifi_on = true
-  NetworkMgr.is_connected = true
 
   if not G_reader_settings:isTrue("auto_disable_wifi") then
     return
@@ -160,8 +159,6 @@ end
 
 function NetworkListener:onNetworkDisconnected()
   logger.dbg("NetworkListener: onNetworkDisconnected")
-  NetworkMgr.is_wifi_on = false
-  NetworkMgr.is_connected = false
 
   NetworkListener:_unscheduleActivityCheck()
 end
@@ -172,7 +169,7 @@ function NetworkListener:onSuspend()
 
   -- If we haven't already (e.g., via Generic's onPowerEvent), kill Wi-Fi.
   -- Do so only on devices where we have explicit management of Wi-Fi: assume the host system does things properly elsewhere.
-  if Device:hasWifiManager() and NetworkMgr:_isWifiOn() then
+  if Device:hasWifiManager() and NetworkMgr:isWifiOn() then
     NetworkMgr:toggleWifiOff()
   end
 
