@@ -83,7 +83,6 @@ local _ = require("gettext")
 -- the callback function.
 
 local BackgroundRunner = {
-  jobs = PluginShare.backgroundJobs,
   scheduled = false,
 }
 
@@ -183,8 +182,8 @@ function BackgroundRunner:_execute()
     self:_poll()
   else
     local round = 0
-    while #self.jobs > 0 do
-      local job = table.remove(self.jobs, 1)
+    while #PluginShare.backgroundJobs > 0 do
+      local job = table.remove(PluginShare.backgroundJobs, 1)
       if job.insert_time == nil then
         -- Jobs are first inserted to jobs table from external users.
         -- So they may not have an insert field.
@@ -224,7 +223,7 @@ function BackgroundRunner:_execute()
         self:_executeJob(job)
         break
       elseif not should_ignore then
-        table.insert(self.jobs, job)
+        table.insert(PluginShare.backgroundJobs, job)
       end
 
       round = round + 1
@@ -237,7 +236,7 @@ end
 
 function BackgroundRunner:_schedule()
   if self.scheduled == false then
-    if #self.jobs == 0 and not CommandRunner:pending() then
+    if #PluginShare.backgroundJobs == 0 and not CommandRunner:pending() then
       logger.dbg("BackgroundRunnerWidget: no job, not running @ ", os.time())
     else
       logger.dbg("BackgroundRunnerWidget: start running @ ", os.time())
@@ -252,7 +251,7 @@ end
 
 function BackgroundRunner:_insert(job)
   job.insert_time = UIManager:getTime()
-  table.insert(self.jobs, job)
+  table.insert(PluginShare.backgroundJobs, job)
 end
 
 local BackgroundRunnerWidget = WidgetContainer:extend{

@@ -24,12 +24,11 @@ function BackgroundTaskPlugin:_start()
     return true
   end
 
-  table.insert(PluginShare.backgroundJobs, {
+  require("background_jobs").insert({
     when = self.when,
     repeated = enabled,
     executable = self.executable,
   })
-  require("background_jobs_updated")()
 end
 
 function BackgroundTaskPlugin:onClose()
