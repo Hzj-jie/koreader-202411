@@ -52,6 +52,23 @@ local function kindleGetSavedNetworks()
   return profiles
 end
 
+local function kindleIsWifiConnected()
+  local result
+  local lipc = LibLipcs:accessor()
+  if LibLipcs:isFake(lipc) then
+    local std_out = io.popen("lipc-get-prop -i com.lab126.wifid cmState", "r")
+    if not std_out then
+      return false
+    end
+    result = std_out:read("*l")
+    std_out:close()
+  else
+    result = LibLipcs:accessor():get_string_property("com.lab126.wifid", "cmState")
+  end
+
+  return result == "CONNECTED"
+end
+
 local function kindleGetCurrentProfile()
   local lipc = LibLipcs:hash_accessor()
   if LibLipcs:isFake(lipc) then return nil end
@@ -98,7 +115,7 @@ local function kindleGetScanList()
     return nil, require("gettext")("Unable to communicate with the Wi-Fi backend")
   end
   --[[ This logic is strange :/
-  if LibLipcs:accessor():get_string_property("com.lab126.wifid", "cmState") == "CONNECTED" then
+  if kindleIsWifiConnected() then
     -- return a fake scan list containing only the currently connected profile :)
     local profile = kindleGetCurrentProfile()
     return { profile }, nil
@@ -421,11 +438,8 @@ function Kindle:initNetworkManager(NetworkMgr)
     return { ssid = profile.essid }
   end
 
-  function NetworkMgr:isConnected()
-    return kindleGetCurrentProfile() ~= nil
-  end
-
   NetworkMgr.isWifiOn = NetworkMgr.sysfsInterfaceOperational
+  NetworkMgr.isConnected = kindleIsWifiConnected
 end
 
 function Kindle:supportsScreensaver()
