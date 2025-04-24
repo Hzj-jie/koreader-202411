@@ -25,6 +25,8 @@ local EBUSY = 16
 local NetworkMgr = {
   pending_connectivity_check = false,
   pending_connection = false,
+
+  was_online = false,
 }
 
 function NetworkMgr:_readNWSettings()
@@ -136,6 +138,23 @@ function NetworkMgr:init()
   else
     self:restoreWifiAndCheckAsync(
         "NetworkMgr: init will restore Wi-Fi in the background")
+  end
+  if Device:hasWifiToggle() then
+    -- Initial state.
+    self.was_online = self:_isOnline()
+    UIManager:nextTick(function()
+      require("background_jobs").insert({
+        when = 60,
+        repeated = true,
+        executable = function()
+          if NetworkMgr:isConnected() then
+            NetworkMgr.was_online = NetworkMgr:_isOnline()
+          else
+            NetworkMgr.was_online = false
+          end
+        end,
+      })
+    end)
   end
 
   return self
@@ -312,7 +331,7 @@ end
 --
 -- These addresses are from special ranges reserved for documentation
 -- (RFC 5737, RFC 3849) and therefore likely to just use the default route.
-function NetworkMgr:hasDefaultRoute()
+function NetworkMgr:_hasDefaultRoute()
   local socket = require("socket")
 
   local s, ret, err
@@ -342,7 +361,7 @@ function NetworkMgr:hasDefaultRoute()
 end
 
 -- This function costs 100ms on kindle with great wifi connection, it's slow naturally.
-function NetworkMgr:canResolveHostnames()
+function NetworkMgr:_canResolveHostnames()
   local socket = require("socket")
   -- Microsoft uses `dns.msftncsi.com` for Windows, see
   -- <https://technet.microsoft.com/en-us/library/ee126135#BKMK_How> for
@@ -499,15 +518,22 @@ function NetworkMgr:_beforeWifiAction(callback) -- false | nil
   end
 end
 
--- This function should return a cached value from background runner, it's slow naturally,
--- especially on weak internet connections.
+-- This function is slow naturally, especially on weak internet connections.
+-- It's not expected to override this function, it provides platform independent ways of checking
+-- internet access.
+function NetworkMgr:_isOnline()
+  assert(Device:hasWifiToggle())
+  return self:_hasDefaultRoute() and self:_canResolveHostnames()
+end
+
+-- Return a cached online state from the last _isOnline call.
 function NetworkMgr:isOnline()
   -- For the same reasons as isWifiOn and isConnected above, bypass this on !hasWifiToggle platforms.
   if not Device:hasWifiToggle() then
     return true
   end
 
-  return self:canResolveHostnames()
+  return self.was_online
 end
 
 function NetworkMgr:isNetworkInfoAvailable()
