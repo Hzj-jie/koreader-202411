@@ -180,11 +180,8 @@ end
 -- If the platform implements NetworkMgr:restoreWifiAsync, run it as needed
 if Device:hasWifiRestore() then
   function NetworkListener:onResume()
-    if NetworkMgr.wifi_was_on and G_reader_settings:isTrue("auto_restore_wifi") then
-      logger.dbg("NetworkListener: onResume will restore Wi-Fi in the background")
-      NetworkMgr:restoreWifiAsync()
-      NetworkMgr:scheduleConnectivityCheck()
-    end
+    NetworkMgr:restoreWifiAndCHeckAsync(
+        "NetworkListener: onResume will restore Wi-Fi in the background")
   end
 end
 

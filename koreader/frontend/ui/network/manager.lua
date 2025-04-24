@@ -27,16 +27,15 @@ local NetworkMgr = {
   pending_connection = false,
 }
 
-function NetworkMgr:readNWSettings()
+function NetworkMgr:_readNWSettings()
   self.nw_settings = LuaSettings:open(DataStorage:getSettingsDir().."/network.lua")
 end
 
 -- Common chunk of stuff we have to do when aborting a connection attempt
 function NetworkMgr:_abortWifiConnection()
   -- Cancel any pending connectivity check, because it wouldn't achieve anything
-  self:unscheduleConnectivityCheck()
+  self:_unscheduleConnectivityCheck()
 
-  self.wifi_was_on = false
   G_reader_settings:makeFalse("wifi_was_on")
   -- Murder Wi-Fi and the async script (if any) first...
   if Device:hasWifiRestore() and not Device:isKindle() then
@@ -82,7 +81,6 @@ function NetworkMgr:connectivityCheck(iter, callback, interactive)
   end
 
   if self:isWifiOn() and self:isConnected() then
-    self.wifi_was_on = true
     G_reader_settings:makeTrue("wifi_was_on")
     logger.info("Wi-Fi successfully restored (after", iter * 0.25, "seconds)!")
     UIManager:broadcastEvent(Event:new("NetworkConnected"))
@@ -107,31 +105,37 @@ function NetworkMgr:connectivityCheck(iter, callback, interactive)
   end
 end
 
-function NetworkMgr:scheduleConnectivityCheck(callback, interactive)
+function NetworkMgr:_scheduleConnectivityCheck(callback, interactive)
   self.pending_connectivity_check = true
   UIManager:scheduleIn(0.25, self.connectivityCheck, self, 1, callback, interactive)
 end
 
-function NetworkMgr:unscheduleConnectivityCheck()
+function NetworkMgr:_unscheduleConnectivityCheck()
   UIManager:unschedule(self.connectivityCheck)
   self.pending_connectivity_check = false
+end
+
+function NetworkMgr:restoreWifiAndCheckAsync(msg)
+  -- Attempt to restore wifi in the background if necessary
+  if Device:hasWifiRestore() and
+     G_reader_settings:isTrue("wifi_was_on") and
+     G_reader_settings:isTrue("auto_restore_wifi") then
+    if msg then logger.dbg(msg) end
+    self:restoreWifiAsync()
+    self:_scheduleConnectivityCheck()
+  end
 end
 
 function NetworkMgr:init()
   Device:initNetworkManager(self)
 
-  self.wifi_was_on = G_reader_settings:isTrue("wifi_was_on")
   -- Trigger an initial NetworkConnected event if WiFi was already up when we were launched
   if self:isConnected() then
     -- NOTE: This needs to be delayed because we run on require, while NetworkListener gets spun up sliiightly later on FM/ReaderUI init...
     UIManager:nextTick(UIManager.broadcastEvent, UIManager, Event:new("NetworkConnected"))
   else
-    -- Attempt to restore wifi in the background if necessary
-    if Device:hasWifiRestore() and self.wifi_was_on and G_reader_settings:isTrue("auto_restore_wifi") then
-      logger.dbg("NetworkMgr: init will restore Wi-Fi in the background")
-      self:restoreWifiAsync()
-      self:scheduleConnectivityCheck()
-    end
+    self:restoreWifiAndCheckAsync(
+        "NetworkMgr: init will restore Wi-Fi in the background")
   end
 
   return self
@@ -148,6 +152,40 @@ end
 --     which, in turn, is responsible for the Event signaling!
 function NetworkMgr:turnOnWifi(complete_callback, interactive) end
 function NetworkMgr:turnOffWifi(complete_callback) end
+
+--- There are three states of the network.
+--- 1. isWifiOn
+---    wifi is on, not connected.
+--- 2. isConnected
+---    wifi is connected, usually the ip should be assigned via obtainIP, unless
+---    the platform has no way to force obtaining IP address. may or may not
+---    have the internet access.
+--- 3. isOnline
+---    have internet access.
+--- isConnected implies isWifiOn, isOnline implies isConnected and isWifiOn - if
+--- wifi is the only way of network access, i.e. not android.
+--- There are 5 events (4 have been implemented)
+--- Connecting, start connecting the wifi, raised before turning on wifi or
+---             initiate the connection. isWifiOn may be true or false when this
+---             event is raised, but isConnected is guranteed to be false.
+--- Connected, the connection is generated, isConnected is true when this event
+---            is raised.
+--- Disconnecting, start disconnecting and turning off the wifi, raised before
+---                turning off wifi. isConnected is guranteed to be true when
+---                this event is raised.
+--- Disconnected, the connection is dropped and the wifi is turned off, raised
+---               after turning off wifi. isWifiOn is guranteed to be false when
+---               this event is raised.
+--- Onlined, the internet access is verified, raised after isOnline becoming
+---          true.
+--- Note, network access is not a reliable state, so the gurantees above only
+--- indicates the states changes rather than the network state when the event
+--- handles are executing. e.g. if isConnected is true, the logic of enabling
+--- wifi will not be executed at all, thus the onNetworkConnecting event.
+---
+--- The uses of Connecting and Disconnecting events are questionable, and may
+--- be removed sooner or later.
+
 -- This function returns the current status of the WiFi radio
 -- NOTE: On !hasWifiToggle platforms, we assume networking is always available,
 --     so as not to confuse the whole beforeWifiAction framework
@@ -165,6 +203,7 @@ function NetworkMgr:isConnected()
     return true
   end
 end
+
 function NetworkMgr:getNetworkInterfaceName() end
 function NetworkMgr:getConfiguredNetworks() end -- From the *backend*, e.g., wpa_cli list_networks (as opposed to `getAllSavedNetworks`)
 function NetworkMgr:getNetworkList() end
@@ -329,11 +368,11 @@ function NetworkMgr:toggleWifiOn(wifi_cb) -- false | nil
     -- NOTE: We *could* arguably have multiple connectivity checks running concurrently,
     --     but only having a single one running makes things somewhat easier to follow...
     if self.pending_connectivity_check then
-      self:unscheduleConnectivityCheck()
+      self:_unscheduleConnectivityCheck()
     end
 
     -- This will handle sending the proper Event, manage wifi_was_on, as well as tearing down Wi-Fi in case of failures.
-    self:scheduleConnectivityCheck(function()
+    self:_scheduleConnectivityCheck(function()
       if wifi_cb then
         wifi_cb()
       end
@@ -392,7 +431,7 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
 
   -- NOTE: This is a subset of _abortWifiConnection, in case we disable wifi during a connection attempt.
   -- Cancel any pending connectivity check, because it wouldn't achieve anything
-  self:unscheduleConnectivityCheck()
+  self:_unscheduleConnectivityCheck()
   -- Make sure we don't have an async script running...
   if Device:hasWifiRestore() and not Device:isKindle() then
     os.execute("pkill -TERM restore-wifi-async.sh 2>/dev/null")
@@ -406,7 +445,6 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
     -- Note, similar to the toggleWifiOn, the info will be dismissed before the connection is fully
     -- dropped.
     UIManager:close(info)
-    self.wifi_was_on = false
     G_reader_settings:makeFalse("wifi_was_on")
   end
 end
@@ -440,7 +478,7 @@ function NetworkMgr:_doNothingAndWaitForConnection(callback) -- void
     return
   end
 
-  self:scheduleConnectivityCheck(callback)
+  self:_scheduleConnectivityCheck(callback)
 end
 
 --- @note: The callback will only run *after* a *successful* network connection.
@@ -896,7 +934,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive, p
 end
 
 function NetworkMgr:saveNetwork(setting)
-  if not self.nw_settings then self:readNWSettings() end
+  if not self.nw_settings then self:_readNWSettings() end
 
   self.nw_settings:saveSetting(setting.ssid, {
     ssid = setting.ssid,
@@ -908,13 +946,13 @@ function NetworkMgr:saveNetwork(setting)
 end
 
 function NetworkMgr:deleteNetwork(setting)
-  if not self.nw_settings then self:readNWSettings() end
+  if not self.nw_settings then self:_readNWSettings() end
   self.nw_settings:delSetting(setting.ssid)
   self.nw_settings:flush()
 end
 
 function NetworkMgr:getAllSavedNetworks()
-  if not self.nw_settings then self:readNWSettings() end
+  if not self.nw_settings then self:_readNWSettings() end
   return self.nw_settings
 end
 
