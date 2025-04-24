@@ -52,21 +52,23 @@ local function kindleGetSavedNetworks()
   return profiles
 end
 
-local function kindleIsWifiConnected()
-  local result
+local function kindleWifiState()
   local lipc = LibLipcs:accessor()
-  if LibLipcs:isFake(lipc) then
-    local std_out = io.popen("lipc-get-prop -i com.lab126.wifid cmState", "r")
-    if not std_out then
-      return false
-    end
-    result = std_out:read("*l")
-    std_out:close()
-  else
-    result = LibLipcs:accessor():get_string_property("com.lab126.wifid", "cmState")
+  if not LibLipcs:isFake(lipc) then
+    return lipc:get_string_property("com.lab126.wifid", "cmState")
   end
 
-  return result == "CONNECTED"
+  local std_out = io.popen("lipc-get-prop -i com.lab126.wifid cmState", "r")
+  if not std_out then
+    return nil
+  end
+  local result = std_out:read("*l")
+  std_out:close()
+  return result
+end
+
+local function kindleIsWifiConnected()
+  return kindleWifiState() == "CONNECTED"
 end
 
 local function kindleGetCurrentProfile()
@@ -443,11 +445,7 @@ function Kindle:initNetworkManager(NetworkMgr)
 end
 
 function Kindle:supportsScreensaver()
-  if self.isSpecialOffers then
-    return false
-  else
-    return true
-  end
+  return not self.isSpecialOffers
 end
 
 function Kindle:openInputDevices()
