@@ -307,6 +307,7 @@ function NetworkMgr:ifHasAnAddress()
   return ok
 end
 
+-- This function costs 10ms on kindle with great wifi connection, it's slow naturally.
 -- The socket API equivalent of "ip route get 203.0.113.1 || ip route get 2001:db8::1".
 --
 -- These addresses are from special ranges reserved for documentation
@@ -340,6 +341,7 @@ function NetworkMgr:hasDefaultRoute()
   return ret ~= nil
 end
 
+-- This function costs 100ms on kindle with great wifi connection, it's slow naturally.
 function NetworkMgr:canResolveHostnames()
   local socket = require("socket")
   -- Microsoft uses `dns.msftncsi.com` for Windows, see
@@ -497,6 +499,8 @@ function NetworkMgr:_beforeWifiAction(callback) -- false | nil
   end
 end
 
+-- This function should return a cached value from background runner, it's slow naturally,
+-- especially on weak internet connections.
 function NetworkMgr:isOnline()
   -- For the same reasons as isWifiOn and isConnected above, bypass this on !hasWifiToggle platforms.
   if not Device:hasWifiToggle() then
