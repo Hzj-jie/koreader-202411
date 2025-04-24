@@ -533,7 +533,8 @@ function NetworkMgr:isOnline()
     return true
   end
 
-  return self.was_online
+  -- Updating self.was_online may be delayed as long as 1 minute.
+  return self:isConnected() and self.was_online
 end
 
 function NetworkMgr:isNetworkInfoAvailable()
