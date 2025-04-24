@@ -180,7 +180,7 @@ end
 -- If the platform implements NetworkMgr:restoreWifiAsync, run it as needed
 if Device:hasWifiRestore() then
   function NetworkListener:onResume()
-    NetworkMgr:restoreWifiAndCHeckAsync(
+    NetworkMgr:restoreWifiAndCheckAsync(
         "NetworkListener: onResume will restore Wi-Fi in the background")
   end
 end
