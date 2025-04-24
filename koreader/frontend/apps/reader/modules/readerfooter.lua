@@ -81,16 +81,21 @@ local symbol_prefix = {
         time = "⌚",
         pages_left_book = BD.mirroredUILayout() and "↢" or "↣",
         pages_left = BD.mirroredUILayout() and "⇐" or "⇒",
-        battery = "",
+        battery = "\u{E790}",
         bookmark_count = "\u{F097}", -- "empty bookmark" from nerdfont
         percentage = BD.mirroredUILayout() and "⤟" or "⤠",
         book_time_to_read = "⏳",
         chapter_time_to_read = BD.mirroredUILayout() and "⥖" or "⤻",
         frontlight = "☼",
         frontlight_warmth = "💡",
-        mem_usage = "",
-        wifi_status = "",
-        wifi_status_off = "",
+        mem_usage = "\u{EA5A}",
+        wifi_status = "\u{ECA8}",
+        wifi_status_off = "\u{ECA9}",
+        -- airplane mode E71C
+        -- no airplane mode E71D
+        -- Network connected EF3F
+        -- Device with wireless EF13
+        -- Disconnected chain F127
         page_turning_inverted = "⇄",
         page_turning_regular = "⇉",
     },
@@ -98,7 +103,7 @@ local symbol_prefix = {
         time = nil,
         pages_left_book = BD.mirroredUILayout() and "‹" or "›",
         pages_left = BD.mirroredUILayout() and "‹" or "›",
-        battery = "",
+        battery = "\u{E790}",
         bookmark_count = "\u{F097}",
         percentage = nil,
         book_time_to_read = nil,
@@ -107,8 +112,8 @@ local symbol_prefix = {
         frontlight_warmth = "⊛",
         -- @translators This is the footer compact item prefix for memory usage.
         mem_usage = C_("FooterCompactItemsPrefix", "M"),
-        wifi_status = "",
-        wifi_status_off = "",
+        wifi_status = "\u{ECA8}",
+        wifi_status_off = "\u{ECA9}",
         page_turning_inverted = "⇄",
         page_turning_regular = "⇉",
     }
