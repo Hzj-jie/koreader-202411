@@ -9,18 +9,18 @@ function ReaderActivityIndicator:onStopActivityIndicator() end
 local Device = require("device")
 
 if Device:isKindle() then
-    if os.getenv("PILLOW_HARD_DISABLED") or os.getenv("PILLOW_SOFT_DISABLED") then
-        -- Pillow is dead, bye!
-        return ReaderActivityIndicator
-    end
-
-    if not Device:isTouchDevice() then
-        -- No lipc, bye!
-        return ReaderActivityIndicator
-    end
-else
-    -- Not on Kindle, bye!
+  if os.getenv("PILLOW_HARD_DISABLED") or os.getenv("PILLOW_SOFT_DISABLED") then
+    -- Pillow is dead, bye!
     return ReaderActivityIndicator
+  end
+
+  if not Device:isTouchDevice() then
+    -- No lipc, bye!
+    return ReaderActivityIndicator
+  end
+else
+  -- Not on Kindle, bye!
+  return ReaderActivityIndicator
 end
 
 
@@ -29,40 +29,40 @@ local EventListener = require("ui/widget/eventlistener")
 local LibLipcs = require("liblipcs")
 
 ReaderActivityIndicator = EventListener:extend{
-    lipc_handle = nil,
+  lipc_handle = nil,
 }
 
 function ReaderActivityIndicator:isStub() return false end
 
 function ReaderActivityIndicator:onStartActivityIndicator()
-    if LibLipcs:isFake(LibLipcs:accessor()) then return true end
-    -- check if activity indicator is needed
-    if self.document.configurable.text_wrap == 1 then
-        -- start indicator depends on pillow being enabled
-        LibLipcs:accessor():set_string_property(
-            "com.lab126.pillow", "activityIndicator",
-            '{"activityIndicator":{ \
-                "action":"start","timeout":10000, \
-                "clientId":"com.github.koreader.activityindicator", \
-                "priority":true}}')
-        self.indicator_started = true
-    end
-    return true
+  if LibLipcs:isFake(LibLipcs:accessor()) then return true end
+  -- check if activity indicator is needed
+  if self.document.configurable.text_wrap == 1 then
+    -- start indicator depends on pillow being enabled
+    LibLipcs:accessor():set_string_property(
+      "com.lab126.pillow", "activityIndicator",
+      '{"activityIndicator":{ \
+        "action":"start","timeout":10000, \
+        "clientId":"com.github.koreader.activityindicator", \
+        "priority":true}}')
+    self.indicator_started = true
+  end
+  return true
 end
 
 function ReaderActivityIndicator:onStopActivityIndicator()
-    if LibLipcs:isFake(LibLipcs:accessor()) then return true end
-    if self.indicator_started then
-        -- stop indicator depends on pillow being enabled
-        LibLipcs:accessor():set_string_property(
-            "com.lab126.pillow", "activityIndicator",
-            '{"activityIndicator":{ \
-                "action":"stop","timeout":10000, \
-                "clientId":"com.github.koreader.activityindicator", \
-                "priority":true}}')
-        self.indicator_started = false
-    end
-    return true
+  if LibLipcs:isFake(LibLipcs:accessor()) then return true end
+  if self.indicator_started then
+    -- stop indicator depends on pillow being enabled
+    LibLipcs:accessor():set_string_property(
+      "com.lab126.pillow", "activityIndicator",
+      '{"activityIndicator":{ \
+        "action":"stop","timeout":10000, \
+        "clientId":"com.github.koreader.activityindicator", \
+        "priority":true}}')
+    self.indicator_started = false
+  end
+  return true
 end
 
 return ReaderActivityIndicator

@@ -1,7 +1,7 @@
 local Device = require("device")
 
 if not (Device.isEmulator() or (Device:isKindle() and Device:hasLightSensor())) then
-    return { disabled = true, }
+  return { disabled = true, }
 end
 
 local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
@@ -35,16 +35,16 @@ function AutoFrontlightPlugin:_action()
   local current_level = Device:ambientBrightnessLevel()
   logger.dbg("AutoFrontlight:_action(): Retrieved ambient brightness level: ", current_level)
   if self.last_brightness == current_level then
-      logger.dbg("AutoFrontlight:_action(): recorded brightness is same as current level ",
-                 self.last_brightness)
-      return
+    logger.dbg("AutoFrontlight:_action(): recorded brightness is same as current level ",
+               self.last_brightness)
+    return
   end
   if current_level <= 1 then
-      logger.dbg("AutoFrontlight: going to turn on frontlight")
-      Device:getPowerDevice():turnOnFrontlight()
+    logger.dbg("AutoFrontlight: going to turn on frontlight")
+    Device:getPowerDevice():turnOnFrontlight()
   elseif current_level >= 3 then
-      logger.dbg("AutoFrontlight: going to turn off frontlight")
-      Device:getPowerDevice():turnOffFrontlight()
+    logger.dbg("AutoFrontlight: going to turn off frontlight")
+    Device:getPowerDevice():turnOffFrontlight()
   end
   self.last_brightness = current_level
 end
