@@ -124,9 +124,7 @@ function NetworkMgr:restoreWifiAndCheckAsync(msg)
      G_reader_settings:isTrue("wifi_was_on") and
      G_reader_settings:isTrue("auto_restore_wifi") then
     if msg then logger.dbg(msg) end
-    if not self:isConnected() then
-      self:restoreWifiAsync()
-    end
+    self:restoreWifiAsync()
     self:_scheduleConnectivityCheck()
   end
 end
