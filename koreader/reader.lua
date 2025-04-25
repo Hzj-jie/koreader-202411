@@ -246,15 +246,12 @@ local function retryLastFile()
 end
 
 -- Start app
-local exit_code
 if file then
   local ReaderUI = require("apps/reader/readerui")
   ReaderUI:showReader(file)
-  exit_code = UIManager:run()
 elseif directory then
   local FileManager = require("apps/filemanager/filemanager")
   FileManager:showFiles(directory)
-  exit_code = UIManager:run()
 else
   local QuickStart = require("ui/quickstart")
   if not QuickStart:isShown() then
@@ -273,7 +270,6 @@ else
     local ReaderUI = require("apps/reader/readerui")
     -- Instantiate RD
     ReaderUI:showReader(last_file)
-    exit_code = UIManager:run()
   else
     local FileManager = require("apps/filemanager/filemanager")
     -- Instantiate FM
@@ -287,9 +283,9 @@ else
     elseif start_with == "folder_shortcuts" then
       FileManager.instance.folder_shortcuts:onShowFolderShortcutsDialog()
     end
-    exit_code = UIManager:run()
   end
 end
+local exit_code = UIManager:run()
 
 -- Exit
 local function exitReader()
