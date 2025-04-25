@@ -118,11 +118,15 @@ function NetworkMgr:_unscheduleConnectivityCheck()
   self.pending_connectivity_check = false
 end
 
+function NetworkMgr:shouldRestoreWifi()
+  return Device:hasWifiRestore() and
+         G_reader_settings:isTrue("wifi_was_on") and
+         G_reader_settings:isTrue("auto_restore_wifi")
+end
+
 function NetworkMgr:restoreWifiAndCheckAsync(msg)
   -- Attempt to restore wifi in the background if necessary
-  if Device:hasWifiRestore() and
-     G_reader_settings:isTrue("wifi_was_on") and
-     G_reader_settings:isTrue("auto_restore_wifi") then
+  if self:shouldRestoreWifi() then
     if msg then logger.dbg(msg) end
     self:restoreWifiAsync()
     self:_scheduleConnectivityCheck()
