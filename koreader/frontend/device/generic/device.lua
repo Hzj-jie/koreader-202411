@@ -90,6 +90,7 @@ local Device = {
     canReboot = no,
     canPowerOff = no,
     canAssociateFileExtensions = no,
+    canDisconnectWifi = yes,
 
     -- Start and stop text input mode (e.g. open soft keyboard, etc)
     startTextInput = function() end,

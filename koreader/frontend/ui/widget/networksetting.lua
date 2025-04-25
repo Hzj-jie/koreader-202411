@@ -165,7 +165,9 @@ function NetworkItem:init()
             bordersize = 0,
             padding = 0,
             TextWidget:new{
-                text = _("disconnect"),
+                text = (Device:canDisconnectWifi()
+                        and _("disconnect")
+                        or _("connected")),
                 face = Font:getFace("cfont"),
             }
         }
@@ -249,6 +251,7 @@ function NetworkItem:connect()
 end
 
 function NetworkItem:disconnect()
+    if not Device:canDisconnectWifi() then return end
     local info = InfoMessage:new{text = _("Disconnecting…")}
     UIManager:show(info)
     UIManager:forceRePaint()

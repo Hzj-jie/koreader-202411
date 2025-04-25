@@ -323,6 +323,8 @@ local Kindle = Generic:extend{
   -- The time the device went into suspend
   suspend_time = 0,
   framework_lipc_handle = frameworkStopped(),
+  -- Kindle cannot disconnect a wifi, it will reconnect wifi automatically.
+  canDisconnectWifi = no,
 }
 
 function Kindle:initNetworkManager(NetworkMgr)
