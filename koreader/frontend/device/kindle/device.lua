@@ -329,7 +329,7 @@ local Kindle = Generic:extend{
 
 function Kindle:initNetworkManager(NetworkMgr)
   if LibLipcs:supported() then
-    function NetworkMgr:turnOnWifi(complete_callback, interactive)
+    function NetworkMgr:_turnOnWifi(complete_callback, interactive)
       kindleEnableWifi(1)
       if self:reconnectOrShowNetworkMenu(complete_callback, interactive) then
         return true
@@ -340,7 +340,7 @@ function Kindle:initNetworkManager(NetworkMgr)
     end
   else
     -- If we can't use the lipc Lua bindings, we can't support any kind of interactive Wi-Fi UI...
-    function NetworkMgr:turnOnWifi(complete_callback, interactive)
+    function NetworkMgr:_turnOnWifi(complete_callback, interactive)
       kindleEnableWifi(1)
       if complete_callback then
         complete_callback()
@@ -348,7 +348,7 @@ function Kindle:initNetworkManager(NetworkMgr)
     end
   end
 
-  function NetworkMgr:turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi(complete_callback)
     kindleEnableWifi(0)
     -- NOTE: Same here, except disconnect is simpler, so a dumb delay will do...
     if complete_callback then

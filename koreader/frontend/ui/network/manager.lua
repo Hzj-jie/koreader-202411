@@ -46,7 +46,7 @@ function NetworkMgr:_abortWifiConnection()
   -- We were never connected to begin with, so, no disconnecting broadcast required
   if Device:hasSeamlessWifiToggle() then
     -- We only want to actually kill the WiFi on platforms where we can do that seamlessly.
-    self:turnOffWifi()
+    self:_turnOffWifi()
   end
   -- We're obviously done with this connection attempt
   self.pending_connection = false
@@ -64,7 +64,7 @@ function NetworkMgr:_requestToTurnOnWifi(wifi_cb, interactive) -- bool | EBUSY
   UIManager:broadcastEvent(Event:new("NetworkConnecting"))
   self.pending_connection = true
 
-  return self:turnOnWifi(wifi_cb, interactive)
+  return self:_turnOnWifi(wifi_cb, interactive)
 end
 
 -- Used after restoreWifiAsync() and the turn_on beforeWifiAction to make sure we eventually send a NetworkConnected event,
@@ -170,8 +170,8 @@ end
 -- NOTE: These *must* run or appropriately forward complete_callback (e.g., to reconnectOrShowNetworkMenu),
 --     as said callback is responsible for schedulig the connectivity check,
 --     which, in turn, is responsible for the Event signaling!
-function NetworkMgr:turnOnWifi(complete_callback, interactive) end
-function NetworkMgr:turnOffWifi(complete_callback) end
+function NetworkMgr:_turnOnWifi(complete_callback, interactive) end
+function NetworkMgr:_turnOffWifi(complete_callback) end
 
 --- There are three states of the network.
 --- 1. isWifiOn
@@ -461,7 +461,7 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
   -- Can't be connecting since we're killing Wi-Fi ;)
   self.pending_connection = false
 
-  self:turnOffWifi(complete_callback)
+  self:_turnOffWifi(complete_callback)
 
   if interactive then
     -- Note, similar to the toggleWifiOn, the info will be dismissed before the connection is fully
@@ -622,7 +622,7 @@ function NetworkMgr:getWifiMenuTable()
   if Device:isAndroid() then
     return {
       text = _("Wi-Fi settings"),
-      callback = function() self:openSettings() end,
+      callback = function() self:_openSettings() end,
     }
   else
     return self:getWifiToggleMenuTable()

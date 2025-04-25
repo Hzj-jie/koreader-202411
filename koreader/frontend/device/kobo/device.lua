@@ -1013,7 +1013,7 @@ function Kobo:setDateTime(year, month, day, hour, min, sec)
 end
 
 function Kobo:initNetworkManager(NetworkMgr)
-  function NetworkMgr:turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi(complete_callback)
     self:releaseIP()
     koboEnableWifi(false)
     if complete_callback then
@@ -1021,7 +1021,7 @@ function Kobo:initNetworkManager(NetworkMgr)
     end
   end
 
-  function NetworkMgr:turnOnWifi(complete_callback, interactive)
+  function NetworkMgr:_turnOnWifi(complete_callback, interactive)
     koboEnableWifi(true)
     return self:reconnectOrShowNetworkMenu(complete_callback, interactive)
   end
@@ -1052,7 +1052,7 @@ function Kobo:initNetworkManager(NetworkMgr)
   -- (i.e., if the launcher left the Wi-Fi in an inconsistent state: modules loaded, but no route to gateway).
   if NetworkMgr:isWifiOn() and not NetworkMgr:isConnected() then
     logger.info("Kobo Wi-Fi: Left in an inconsistent state by launcher!")
-    NetworkMgr:turnOffWifi()
+    NetworkMgr:_turnOffWifi()
   end
 end
 

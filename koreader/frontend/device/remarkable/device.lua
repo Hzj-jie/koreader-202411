@@ -219,12 +219,12 @@ end
 function Remarkable:supportsScreensaver() return true end
 
 function Remarkable:initNetworkManager(NetworkMgr)
-    function NetworkMgr:turnOnWifi(complete_callback, interactive)
+    function NetworkMgr:_turnOnWifi(complete_callback, interactive)
         os.execute("./enable-wifi.sh")
         return self:reconnectOrShowNetworkMenu(complete_callback, interactive)
     end
 
-    function NetworkMgr:turnOffWifi(complete_callback)
+    function NetworkMgr:_turnOffWifi(complete_callback)
         os.execute("./disable-wifi.sh")
         if complete_callback then
             complete_callback()

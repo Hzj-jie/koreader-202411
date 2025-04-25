@@ -139,7 +139,7 @@ function SonyPRSTUX:usbPluggedIn()
 end
 
 function SonyPRSTUX:initNetworkManager(NetworkMgr)
-    function NetworkMgr:turnOffWifi(complete_callback)
+    function NetworkMgr:_turnOffWifi(complete_callback)
        self:releaseIP()
        os.execute("./set-wifi.sh off")
        if complete_callback then
@@ -147,7 +147,7 @@ function SonyPRSTUX:initNetworkManager(NetworkMgr)
        end
     end
 
-    function NetworkMgr:turnOnWifi(complete_callback, interactive)
+    function NetworkMgr:_turnOnWifi(complete_callback, interactive)
        os.execute("./set-wifi.sh on")
        return self:reconnectOrShowNetworkMenu(complete_callback, interactive)
     end

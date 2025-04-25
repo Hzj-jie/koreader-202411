@@ -301,20 +301,20 @@ function Device:UIManagerReady(uimgr)
 end
 
 function Device:initNetworkManager(NetworkMgr)
-    function NetworkMgr:turnOnWifi(complete_callback)
+    function NetworkMgr:_turnOnWifi(complete_callback)
         android.openWifiSettings()
         if complete_callback then
             complete_callback()
         end
     end
-    function NetworkMgr:turnOffWifi(complete_callback)
+    function NetworkMgr:_turnOffWifi(complete_callback)
         android.openWifiSettings()
         if complete_callback then
             complete_callback()
         end
     end
 
-    function NetworkMgr:openSettings()
+    function NetworkMgr:_openSettings()
         android.openWifiSettings()
     end
 

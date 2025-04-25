@@ -425,11 +425,11 @@ function Emulator:initNetworkManager(NetworkMgr)
       complete_callback()
     end
   end
-  function NetworkMgr:turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi(complete_callback)
     G_reader_settings:flipNilOrTrue("emulator_fake_wifi_connected")
     UIManager:scheduleIn(2, connectionChangedEvent, complete_callback)
   end
-  function NetworkMgr:turnOnWifi(complete_callback)
+  function NetworkMgr:_turnOnWifi(complete_callback)
     G_reader_settings:flipNilOrTrue("emulator_fake_wifi_connected")
     UIManager:scheduleIn(2, connectionChangedEvent, complete_callback)
   end

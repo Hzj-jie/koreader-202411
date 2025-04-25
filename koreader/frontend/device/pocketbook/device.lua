@@ -368,7 +368,7 @@ function PocketBook:initNetworkManager(NetworkMgr)
     end
   end
 
-  function NetworkMgr:turnOnWifi(complete_callback)
+  function NetworkMgr:_turnOnWifi(complete_callback)
     inkview.WiFiPower(1)
     if inkview.NetConnect(nil) == C.NET_OK then
       keepWifiAlive()
@@ -380,7 +380,7 @@ function PocketBook:initNetworkManager(NetworkMgr)
     end
   end
 
-  function NetworkMgr:turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi(complete_callback)
     inkview.NetDisconnect()
     if complete_callback then
       complete_callback()
