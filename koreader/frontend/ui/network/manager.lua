@@ -69,7 +69,7 @@ end
 
 -- Used after restoreWifiAsync() and the turn_on beforeWifiAction to make sure we eventually send a NetworkConnected event,
 -- as quite a few things rely on it (KOSync, c.f. #5109; the network activity check, c.f., #6424).
-function NetworkMgr:connectivityCheck(iter, callback, interactive)
+function NetworkMgr:_connectivityCheck(iter, callback, interactive)
   -- Give up after a while (restoreWifiAsync can take over 45s, so, try to cover that)...
   if iter >= 180 then
     logger.info("Failed to restore Wi-Fi (after", iter * 0.25, "seconds)!")
@@ -83,6 +83,7 @@ function NetworkMgr:connectivityCheck(iter, callback, interactive)
   end
 
   if self:isWifiOn() and self:isConnected() then
+    self.was_online = self:_isOnline()
     G_reader_settings:makeTrue("wifi_was_on")
     logger.info("Wi-Fi successfully restored (after", iter * 0.25, "seconds)!")
     UIManager:broadcastEvent(Event:new("NetworkConnected"))
@@ -103,17 +104,17 @@ function NetworkMgr:connectivityCheck(iter, callback, interactive)
     -- We're done, so we can stop blocking concurrent connection attempts
     self.pending_connection = false
   else
-    UIManager:scheduleIn(0.25, self.connectivityCheck, self, iter + 1, callback, interactive)
+    UIManager:scheduleIn(0.25, self._connectivityCheck, self, iter + 1, callback, interactive)
   end
 end
 
 function NetworkMgr:_scheduleConnectivityCheck(callback, interactive)
   self.pending_connectivity_check = true
-  UIManager:scheduleIn(0.25, self.connectivityCheck, self, 1, callback, interactive)
+  UIManager:scheduleIn(0.25, self._connectivityCheck, self, 1, callback, interactive)
 end
 
 function NetworkMgr:_unscheduleConnectivityCheck()
-  UIManager:unschedule(self.connectivityCheck)
+  UIManager:unschedule(self._connectivityCheck)
   self.pending_connectivity_check = false
 end
 

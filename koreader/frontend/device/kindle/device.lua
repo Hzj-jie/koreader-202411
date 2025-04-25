@@ -83,9 +83,7 @@ local function kindleGetCurrentProfile()
 end
 
 local function kindleAuthenticateNetwork(essid)
-  local lipc = LibLipcs:accessor()
-  if LibLipcs:isFake(lipc) then return end
-  lipc:set_string_property("com.lab126.cmd", "ensureConnection", "wifi:" .. essid)
+  LibLipcs:accessor():set_string_property("com.lab126.cmd", "ensureConnection", "wifi:" .. essid)
 end
 
 local function kindleSaveNetwork(data)
@@ -106,9 +104,7 @@ local function kindleSaveNetwork(data)
 end
 
 local function kindleDeleteNetwork(data)
-  local lipc = LibLipcs:accessor()
-  if LibLipcs:isFake(lipc) then return end
-  lipc:set_string_property("com.lab126.wifid", "deleteProfile", data.ssid)
+  LibLipcs:accessor():set_string_property("com.lab126.wifid", "deleteProfile", data.ssid)
 end
 
 local function kindleGetScanList()
@@ -373,7 +369,8 @@ function Kindle:initNetworkManager(NetworkMgr)
 
   -- NOTE: We don't have a disconnectNetwork & releaseIP implementation,
   --     which means the "disconnect" button in NetworkSetting kind of does nothing ;p.
-
+  -- Kindle connects to the perferred network automatically, and
+  -- wifid/cmDisconnect does not disconnect the wifi.
   function NetworkMgr:saveNetwork(setting)
     kindleSaveNetwork(setting)
   end
