@@ -89,7 +89,7 @@ local symbol_prefix = {
     frontlight = "☼",
     frontlight_warmth = "💡",
     mem_usage = "\u{EA5A}",
-    -- wifi_status = "\u{ECA8}",
+    wifi_status = "\u{ECA8}",
     -- wifi_status_off = "\u{ECA9}",
     page_turning_inverted = "⇄",
     page_turning_regular = "⇉",
@@ -120,7 +120,7 @@ local symbol_prefix = {
     frontlight_warmth = "⊛",
     -- @translators This is the footer compact item prefix for memory usage.
     mem_usage = C_("FooterCompactItemsPrefix", "M"),
-    -- wifi_status = "\u{ECA8}",
+    wifi_status = "\u{ECA8}",
     -- wifi_status_off = "\u{ECA9}",
     page_turning_inverted = "⇄",
     page_turning_regular = "⇉",
