@@ -88,10 +88,12 @@ function NetworkMgr:_connectivityCheck(iter, callback, interactive)
   end
 
   if self:isWifiOn() and self:isConnected() then
-    self:_queryOnlineState()
     G_reader_settings:makeTrue("wifi_was_on")
     logger.info("Wi-Fi successfully restored (after", iter * 0.25, "seconds)!")
     raise_network_event("Connected")
+    UIManager:nextTick(function()
+      NetworkMgr:_queryOnlineState()
+    end)
 
     if callback then
       callback()
@@ -166,9 +168,9 @@ function NetworkMgr:init()
         "NetworkMgr: init will restore Wi-Fi in the background")
   end
   if Device:hasWifiToggle() then
-    -- Initial state.
-    self:_queryOnlineState()
     UIManager:nextTick(function()
+      -- Initial state.
+      self:_queryOnlineState()
       require("background_jobs").insert({
         when = 60,
         repeated = true,
