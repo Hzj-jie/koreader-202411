@@ -900,9 +900,9 @@ function KOSync:_onSuspend()
   self:updateProgress(true, false, true)
 end
 
-function KOSync:_onNetworkConnected()
-  logger.dbg("KOSync: onNetworkConnected")
-  UIManager:scheduleIn(0.5, function()
+function KOSync:_onNetworkOnline()
+  logger.dbg("KOSync: onNetworkOnline")
+  UIManager:nextTick(function()
     -- Network is supposed to be on already, don't wrap this in willRerunWhenOnline
     self:getProgress(false, false)
   end)
@@ -928,14 +928,14 @@ function KOSync:registerEvents()
     self.onPageUpdate = self._onPageUpdate
     self.onResume = self._onResume
     self.onSuspend = self._onSuspend
-    self.onNetworkConnected = self._onNetworkConnected
+    self.onNetworkOnline = self._onNetworkOnline
     self.onNetworkDisconnecting = self._onNetworkDisconnecting
   else
     self.onCloseDocument = nil
     self.onPageUpdate = nil
     self.onResume = nil
     self.onSuspend = nil
-    self.onNetworkConnected = nil
+    self.onNetworkOnline = nil
     self.onNetworkDisconnecting = nil
   end
 end

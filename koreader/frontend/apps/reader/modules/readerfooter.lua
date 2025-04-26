@@ -2455,12 +2455,11 @@ end
 ReaderFooter.onCharging  = ReaderFooter.onFrontlightStateChanged
 ReaderFooter.onNotCharging = ReaderFooter.onFrontlightStateChanged
 
-function ReaderFooter:onNetworkConnected()
+function ReaderFooter:onNetworkStateChanged()
   if self.settings.wifi_status then
     self:maybeUpdateFooter()
   end
 end
-ReaderFooter.onNetworkDisconnected = ReaderFooter.onNetworkConnected
 
 function ReaderFooter:onSwapPageTurnButtons()
   if self.settings.page_turning_inverted then

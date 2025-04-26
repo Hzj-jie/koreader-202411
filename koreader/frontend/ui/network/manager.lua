@@ -29,6 +29,11 @@ local NetworkMgr = {
   was_online = false,
 }
 
+local function raise_network_event(t)
+  UIManager:broadcastEvent(Event:new("Network" .. t))
+  UIManager:broadcastEvent(Event:new("NetworkStateChanged"))
+end
+
 function NetworkMgr:_readNWSettings()
   self.nw_settings = LuaSettings:open(DataStorage:getSettingsDir().."/network.lua")
 end
@@ -61,7 +66,7 @@ function NetworkMgr:_requestToTurnOnWifi(wifi_cb, interactive) -- bool | EBUSY
   end
 
   -- Connecting will take a few seconds, broadcast that information so affected modules/plugins can react.
-  UIManager:broadcastEvent(Event:new("NetworkConnecting"))
+  raise_network_event("Connecting")
   self.pending_connection = true
 
   return self:_turnOnWifi(wifi_cb, interactive)
@@ -83,10 +88,10 @@ function NetworkMgr:_connectivityCheck(iter, callback, interactive)
   end
 
   if self:isWifiOn() and self:isConnected() then
-    self.was_online = self:_isOnline()
+    self:_queryOnlineState()
     G_reader_settings:makeTrue("wifi_was_on")
     logger.info("Wi-Fi successfully restored (after", iter * 0.25, "seconds)!")
-    UIManager:broadcastEvent(Event:new("NetworkConnected"))
+    raise_network_event("Connected")
 
     if callback then
       callback()
@@ -133,30 +138,42 @@ function NetworkMgr:restoreWifiAndCheckAsync(msg)
   end
 end
 
+function NetworkMgr:_queryOnlineState()
+  local last_state = NetworkMgr.was_online
+  if NetworkMgr:isConnected() then
+    NetworkMgr.was_online = NetworkMgr:_isOnline()
+  else
+    NetworkMgr.was_online = false
+  end
+  if last_state ~= NetworkMgr.was_online then
+    if NetworkMgr.was_online then
+      raise_network_event("Online")
+    else
+      raise_network_event("Offline")
+    end
+  end
+end
+
 function NetworkMgr:init()
   Device:initNetworkManager(self)
 
   -- Trigger an initial NetworkConnected event if WiFi was already up when we were launched
   if self:isConnected() then
     -- NOTE: This needs to be delayed because we run on require, while NetworkListener gets spun up sliiightly later on FM/ReaderUI init...
-    UIManager:nextTick(UIManager.broadcastEvent, UIManager, Event:new("NetworkConnected"))
+    UIManager:nextTick(raise_network_event, "Connected")
   else
     self:restoreWifiAndCheckAsync(
         "NetworkMgr: init will restore Wi-Fi in the background")
   end
   if Device:hasWifiToggle() then
     -- Initial state.
-    self.was_online = self:_isOnline()
+    self:_queryOnlineState()
     UIManager:nextTick(function()
       require("background_jobs").insert({
         when = 60,
         repeated = true,
         executable = function()
-          if NetworkMgr:isConnected() then
-            NetworkMgr.was_online = NetworkMgr:_isOnline()
-          else
-            NetworkMgr.was_online = false
-          end
+          NetworkMgr:_queryOnlineState()
         end,
       })
     end)
@@ -448,12 +465,12 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
   end
 
   local complete_callback = function()
-    UIManager:broadcastEvent(Event:new("NetworkDisconnected"))
+    raise_network_event("Disconnected")
     if cb then
       cb()
     end
   end
-  UIManager:broadcastEvent(Event:new("NetworkDisconnecting"))
+  raise_network_event("Disconnecting")
 
   -- NOTE: This is a subset of _abortWifiConnection, in case we disable wifi during a connection attempt.
   -- Cancel any pending connectivity check, because it wouldn't achieve anything
