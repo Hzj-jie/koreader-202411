@@ -1,0 +1,1 @@
+../../../../../../koreader/frontend/ui/data/keyboardlayouts/keypopup/fa_popup.lua

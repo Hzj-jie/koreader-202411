@@ -1,0 +1,1 @@
+../../../koreader/plugins/profiles.koplugin/main.lua

@@ -1,0 +1,1 @@
+../../../koreader/frontend/document/credocument.lua

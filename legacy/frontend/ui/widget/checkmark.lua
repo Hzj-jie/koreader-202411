@@ -1,0 +1,1 @@
+../../../../koreader/frontend/ui/widget/checkmark.lua

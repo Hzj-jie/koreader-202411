@@ -1,0 +1,1 @@
+../../../../../koreader/common/Spore/Middleware/Format/XML.lua

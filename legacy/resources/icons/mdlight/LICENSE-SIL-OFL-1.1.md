@@ -1,0 +1,1 @@
+../../../../koreader/resources/icons/mdlight/LICENSE-SIL-OFL-1.1.md

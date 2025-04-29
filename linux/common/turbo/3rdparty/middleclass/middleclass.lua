@@ -1,0 +1,1 @@
+../../../../../koreader/common/turbo/3rdparty/middleclass/middleclass.lua

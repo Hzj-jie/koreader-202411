@@ -1,0 +1,1 @@
+../../koreader/jit/bc.lua

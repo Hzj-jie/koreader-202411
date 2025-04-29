@@ -1,0 +1,1 @@
+../../../../koreader/frontend/ui/elements/screen_color_menu_table.lua

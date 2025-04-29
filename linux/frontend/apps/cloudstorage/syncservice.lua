@@ -1,0 +1,1 @@
+../../../../koreader/frontend/apps/cloudstorage/syncservice.lua

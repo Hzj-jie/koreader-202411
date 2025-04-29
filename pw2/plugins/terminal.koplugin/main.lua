@@ -1,0 +1,1 @@
+../../../koreader/plugins/terminal.koplugin/main.lua

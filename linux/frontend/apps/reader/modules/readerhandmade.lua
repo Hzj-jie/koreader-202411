@@ -1,0 +1,1 @@
+../../../../../koreader/frontend/apps/reader/modules/readerhandmade.lua

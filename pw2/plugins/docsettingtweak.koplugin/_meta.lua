@@ -1,0 +1,1 @@
+../../../koreader/plugins/docsettingtweak.koplugin/_meta.lua

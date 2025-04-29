@@ -1,0 +1,1 @@
+../../../../koreader/frontend/ui/elements/page_turns.lua

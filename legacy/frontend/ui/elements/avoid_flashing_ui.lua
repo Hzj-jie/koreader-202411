@@ -1,0 +1,1 @@
+../../../../koreader/frontend/ui/elements/avoid_flashing_ui.lua

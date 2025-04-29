@@ -1,0 +1,1 @@
+../../../koreader/l10n/ko_KR/koreader.po

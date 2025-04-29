@@ -1,0 +1,1 @@
+../../../../koreader/frontend/device/kindle/keyboard_layout.lua

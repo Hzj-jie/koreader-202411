@@ -1,0 +1,1 @@
+../../../koreader/plugins/backgroundrunner.koplugin/commandrunner.lua

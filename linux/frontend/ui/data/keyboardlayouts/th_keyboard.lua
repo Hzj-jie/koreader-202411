@@ -1,0 +1,1 @@
+../../../../../koreader/frontend/ui/data/keyboardlayouts/th_keyboard.lua

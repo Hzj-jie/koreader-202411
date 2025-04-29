@@ -1,0 +1,1 @@
+../../koreader/frontend/languagesupport.lua

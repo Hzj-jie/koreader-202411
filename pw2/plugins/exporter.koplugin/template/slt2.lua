@@ -1,0 +1,1 @@
+../../../../koreader/plugins/exporter.koplugin/template/slt2.lua

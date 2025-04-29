@@ -1,0 +1,1 @@
+../../../koreader/common/Spore/GoogleDiscovery.lua

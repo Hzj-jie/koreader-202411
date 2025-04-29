@@ -1,0 +1,1 @@
+../../../../koreader/frontend/ui/elements/screen_rotation_menu_table.lua

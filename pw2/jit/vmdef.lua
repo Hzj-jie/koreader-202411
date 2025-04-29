@@ -1,0 +1,1 @@
+../../koreader/jit/vmdef.lua

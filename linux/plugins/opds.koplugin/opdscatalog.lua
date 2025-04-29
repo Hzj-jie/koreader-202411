@@ -1,0 +1,1 @@
+../../../koreader/plugins/opds.koplugin/opdscatalog.lua

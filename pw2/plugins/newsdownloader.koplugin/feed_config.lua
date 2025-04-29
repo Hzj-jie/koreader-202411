@@ -1,0 +1,1 @@
+../../../koreader/plugins/newsdownloader.koplugin/feed_config.lua

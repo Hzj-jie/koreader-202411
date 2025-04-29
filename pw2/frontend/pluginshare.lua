@@ -1,0 +1,1 @@
+../../koreader/frontend/pluginshare.lua

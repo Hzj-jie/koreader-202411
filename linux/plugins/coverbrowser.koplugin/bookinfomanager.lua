@@ -1,0 +1,1 @@
+../../../koreader/plugins/coverbrowser.koplugin/bookinfomanager.lua

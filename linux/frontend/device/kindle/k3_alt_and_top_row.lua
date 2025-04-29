@@ -1,0 +1,1 @@
+../../../../koreader/frontend/device/kindle/k3_alt_and_top_row.lua

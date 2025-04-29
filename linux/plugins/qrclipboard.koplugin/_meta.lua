@@ -1,0 +1,1 @@
+../../../koreader/plugins/qrclipboard.koplugin/_meta.lua

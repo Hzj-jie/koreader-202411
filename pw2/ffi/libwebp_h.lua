@@ -1,0 +1,1 @@
+../../koreader/ffi/libwebp_h.lua

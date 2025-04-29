@@ -1,0 +1,1 @@
+../../../../koreader/frontend/ui/elements/common_exit_menu_table.lua

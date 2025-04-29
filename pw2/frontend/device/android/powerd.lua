@@ -1,0 +1,1 @@
+../../../../koreader/frontend/device/android/powerd.lua

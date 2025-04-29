@@ -1,0 +1,1 @@
+../../../../koreader/frontend/device/remarkable/event_map.lua

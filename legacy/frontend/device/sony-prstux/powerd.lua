@@ -1,0 +1,1 @@
+../../../../koreader/frontend/device/sony-prstux/powerd.lua

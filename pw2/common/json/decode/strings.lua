@@ -1,0 +1,1 @@
+../../../../koreader/common/json/decode/strings.lua

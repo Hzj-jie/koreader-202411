@@ -1,0 +1,1 @@
+../../../koreader/plugins/readtimer.koplugin/_meta.lua

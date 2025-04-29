@@ -1,0 +1,1 @@
+../../../../koreader/frontend/device/kobo/nickel_conf.lua

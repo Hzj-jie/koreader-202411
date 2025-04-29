@@ -1,0 +1,1 @@
+../../../../koreader/frontend/ui/elements/screen_disable_double_tap_table.lua

@@ -1,0 +1,1 @@
+../../../../koreader/frontend/device/remarkable/device.lua
