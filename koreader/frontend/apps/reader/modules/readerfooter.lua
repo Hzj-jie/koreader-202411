@@ -104,7 +104,7 @@ local symbol_prefix = {
     -- Cached / two spinning arrows E7E7
     network_off = "\u{E71C}",
     network_not_connected = "\u{F127}",
-    network_connected = "\u{E7E7}",
+    network_connected = "\u{F0C1}",
     network_online = "\u{EC87}",
   },
   compact_items = {
@@ -1796,8 +1796,12 @@ function ReaderFooter:genItemSymbolsMenuItems(value)
   return {
     text_func = function()
       local sym_tbl = {}
-      for _, letter in pairs(symbol_prefix[value]) do
-        table.insert(sym_tbl, letter)
+      for name, letter in pairs(symbol_prefix[value]) do
+        if not name:match("^network_") then
+          -- Instead of all the network state icons, only show the wifi icon in
+          -- the menu.
+          table.insert(sym_tbl, letter)
+        end
       end
       return T("%1 (%2)", strings[value], table.concat(sym_tbl, " "))
     end,
