@@ -21,7 +21,9 @@ if not Device:hasWifiToggle() then
 end
 
 function NetworkListener:onToggleWifi()
-  if not NetworkMgr:isWifiOn() then
+  -- This is not a bug, but to allow users connecting to the wifi network if the
+  -- wifi is on but not connected.
+  if not NetworkMgr:isConnected() then
     NetworkMgr:toggleWifiOn()
   else
     NetworkMgr:toggleWifiOff(nil, true) -- flag it as interactive
@@ -33,8 +35,10 @@ function NetworkListener:onInfoWifiOff()
 end
 
 function NetworkListener:onInfoWifiOn()
+  -- This is not a bug, but to allow users connecting to the wifi network if the
+  -- wifi is on but not connected.
   if not NetworkMgr:isConnected() then
-    enableWifi()
+    NetworkMgr:toggleWifiOn()
   else
     local info_text
     local current_network = NetworkMgr:getCurrentNetwork()
@@ -186,7 +190,16 @@ if Device:hasWifiRestore() then
 end
 
 function NetworkListener:onShowNetworkInfo()
-  if not NetworkMgr:isNetworkInfoAvailable() then
+  if not NetworkMgr:isWifiOn() then
+    -- This shouldn't happen, but in case something is very weird happening
+    -- right between showing the network menu and the ShowNetworkInfo event.
+    UIManager:show(InfoMessage:new{
+      text = _("Wi-Fi off."),
+      timeout = 3,
+    })
+    return
+  end
+  if not NetworkMgr:isConnected() then
     -- User action, interactive == true.
     NetworkMgr:reconnectOrShowNetworkMenu(nil, true)
     return

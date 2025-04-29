@@ -29,13 +29,29 @@ local NetworkMgr = {
   was_online = false,
 }
 
-local function raise_network_event(t)
+local function raiseNetworkEvent(t)
   UIManager:broadcastEvent(Event:new("Network" .. t))
   UIManager:broadcastEvent(Event:new("NetworkStateChanged"))
 end
 
+function NetworkMgr:_networkConnected()
+  raiseNetworkEvent("Connected")
+  -- This is a hacky way to ensure the NetworkOnline event can be triggered
+  -- after a NetworkConnected event.
+  self.was_online = false
+  UIManager:nextTick(function()
+    NetworkMgr:_queryOnlineState()
+  end)
+end
+
+function NetworkMgr:_networkDisconnected()
+  -- A less preferred way to allow Emulator raising the events.
+  raiseNetworkEvent("Disconnected")
+end
+
 function NetworkMgr:_readNWSettings()
-  self.nw_settings = LuaSettings:open(DataStorage:getSettingsDir().."/network.lua")
+  self.nw_settings = LuaSettings:open(
+      DataStorage:getSettingsDir() .. "/network.lua")
 end
 
 -- Common chunk of stuff we have to do when aborting a connection attempt
@@ -66,7 +82,7 @@ function NetworkMgr:_requestToTurnOnWifi(wifi_cb, interactive) -- bool | EBUSY
   end
 
   -- Connecting will take a few seconds, broadcast that information so affected modules/plugins can react.
-  raise_network_event("Connecting")
+  raiseNetworkEvent("Connecting")
   self.pending_connection = true
 
   return self:_turnOnWifi(wifi_cb, interactive)
@@ -87,13 +103,10 @@ function NetworkMgr:_connectivityCheck(iter, callback, interactive)
     return
   end
 
-  if self:isWifiOn() and self:isConnected() then
+  if self:_isWifiConnected() then
     G_reader_settings:makeTrue("wifi_was_on")
     logger.info("Wi-Fi successfully restored (after", iter * 0.25, "seconds)!")
-    raise_network_event("Connected")
-    UIManager:nextTick(function()
-      NetworkMgr:_queryOnlineState()
-    end)
+    self:_networkConnected()
 
     if callback then
       callback()
@@ -142,16 +155,16 @@ end
 
 function NetworkMgr:_queryOnlineState()
   local last_state = NetworkMgr.was_online
-  if NetworkMgr:isConnected() then
-    NetworkMgr.was_online = NetworkMgr:_isOnline()
+  if self:_isWifiConnected() then
+    self.was_online = self:_isOnline()
   else
-    NetworkMgr.was_online = false
+    self.was_online = false
   end
   if last_state ~= NetworkMgr.was_online then
-    if NetworkMgr.was_online then
-      raise_network_event("Online")
+    if self.was_online then
+      raiseNetworkEvent("Online")
     else
-      raise_network_event("Offline")
+      raiseNetworkEvent("Offline")
     end
   end
 end
@@ -159,10 +172,14 @@ end
 function NetworkMgr:init()
   Device:initNetworkManager(self)
 
-  -- Trigger an initial NetworkConnected event if WiFi was already up when we were launched
-  if self:isConnected() then
-    -- NOTE: This needs to be delayed because we run on require, while NetworkListener gets spun up sliiightly later on FM/ReaderUI init...
-    UIManager:nextTick(raise_network_event, "Connected")
+  -- Trigger an initial NetworkConnected event if WiFi was already up when we
+  -- were launched
+  if self:_isWifiConnected() then
+    -- NOTE: This needs to be delayed because we run on require, while
+    -- NetworkListener gets spun up sliiightly later on FM/ReaderUI init...
+    UIManager:nextTick(function()
+      NetworkMgr:_networkConnected()
+    end)
   else
     self:restoreWifiAndCheckAsync(
         "NetworkMgr: init will restore Wi-Fi in the background")
@@ -235,16 +252,21 @@ function NetworkMgr:_turnOffWifi(complete_callback) end
 --     (and let it fail with network errors when offline, instead of looping on unimplemented stuff...).
 -- It's expected to be a cheap operation; if the implementation is heavy, use a cache.
 function NetworkMgr:isWifiOn()
-  if not Device:hasWifiToggle() then
-    return true
-  end
+  return not Device:hasWifiToggle()
 end
 -- This function is expected to be overridden by device.
 -- It's expected to be a cheap operation; if the implementation is heavy, use a cache.
 function NetworkMgr:isConnected()
+  return not Device:hasWifiToggle()
+end
+
+-- A shortcut of isWifiOn and isConnected, do not expect to be overridden.
+-- The state of isConnected but !isWifiOn is in general not supported.
+function NetworkMgr:_isWifiConnected()
   if not Device:hasWifiToggle() then
     return true
   end
+  return self:isWifiOn() and self:isConnected()
 end
 
 function NetworkMgr:getNetworkInterfaceName() end
@@ -395,7 +417,7 @@ function NetworkMgr:_canResolveHostnames()
 end
 
 function NetworkMgr:toggleWifiOn(wifi_cb) -- false | nil
-  if self:isWifiOn() and self:isConnected() then
+  if self:_isWifiConnected() then
     if wifi_cb then
       wifi_cb()
     end
@@ -467,12 +489,12 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
   end
 
   local complete_callback = function()
-    raise_network_event("Disconnected")
+    NetworkMgr:_networkDisconnected()
     if cb then
       cb()
     end
   end
-  raise_network_event("Disconnecting")
+  raiseNetworkEvent("Disconnecting")
 
   -- NOTE: This is a subset of _abortWifiConnection, in case we disable wifi during a connection attempt.
   -- Cancel any pending connectivity check, because it wouldn't achieve anything
@@ -516,7 +538,7 @@ end
 
 -- This is only used on Android, the intent being we assume the system will eventually turn on WiFi on its own in the background...
 function NetworkMgr:_doNothingAndWaitForConnection(callback) -- void
-  if self:isWifiOn() and self:isConnected() then
+  if self:_isWifiConnected() then
     if callback then
       callback()
     end
@@ -558,16 +580,7 @@ function NetworkMgr:isOnline()
   end
 
   -- Updating self.was_online may be delayed as long as 1 minute.
-  return self:isConnected() and self.was_online
-end
-
-function NetworkMgr:isNetworkInfoAvailable()
-  if Device:isAndroid() then
-    -- always available
-    return true
-  else
-    return self:isConnected()
-  end
+  return self:_isWifiConnected() and self.was_online
 end
 
 function NetworkMgr:setHTTPProxy(proxy)
@@ -593,18 +606,19 @@ function NetworkMgr:runWhenOnline(callback)
     callback()
   else
     --- @note: Avoid infinite recursion, beforeWifiAction only guarantees isConnected, not isOnline.
-    if not self:isConnected() then
-      self:_beforeWifiAction(callback)
-    else
+    if self:_isWifiConnected() then
       self:_beforeWifiAction()
+    else
+      self:_beforeWifiAction(callback)
     end
   end
 end
 
--- This one is for callbacks that only require isConnected, and since that's guaranteed by beforeWifiAction,
--- you also have a guarantee that the callback *will* run.
+-- This one is for callbacks that only require isConnected, and since that's
+-- guaranteed by beforeWifiAction, you also have a guarantee that the callback
+-- *will* run.
 function NetworkMgr:runWhenConnected(callback)
-  if self:isConnected() then
+  if self:_isWifiConnected() then
     callback()
   else
     self:_beforeWifiAction(callback)
@@ -621,19 +635,21 @@ function NetworkMgr:willRerunWhenOnline(callback)
   if self:isOnline() then
     return false
   end
-  --- @note: Avoid infinite recursion, beforeWifiAction only guarantees isConnected, not isOnline.
-  if not self:isConnected() then
-    self:_beforeWifiAction(callback)
-  else
+  --- @note: Avoid infinite recursion, beforeWifiAction only guarantees
+  --- isConnected, not isOnline.
+  if self:_isWifiConnected() then
     self:_beforeWifiAction()
+  else
+    self:_beforeWifiAction(callback)
   end
   return true
 end
 
--- This one is for callbacks that only require isConnected, and since that's guaranteed by beforeWifiAction,
--- you also have a guarantee that the callback *will* run.
+-- This one is for callbacks that only require isConnected, and since that's
+-- guaranteed by beforeWifiAction, you also have a guarantee that the callback
+-- *will* run.
 function NetworkMgr:willRerunWhenConnected(callback)
-  if self:isConnected() then
+  if self:_isWifiConnected() then
     return false
   end
   self:_beforeWifiAction(callback)
@@ -748,9 +764,9 @@ function NetworkMgr:getInfoMenuTable()
     text = _("Network info"),
     keep_menu_open = true,
     enabled_func = function()
-      -- Technically speaking self:isNetworkInfoAvailable() == true means
+      -- Technically speaking self:isConnected() == true means
       -- self:isWifiOn() == true.
-      return self:isNetworkInfoAvailable() or self:isWifiOn()
+      return Device:isAndroid() or self:isConnected() or self:isWifiOn()
     end,
     callback = function()
       UIManager:broadcastEvent(Event:new("ShowNetworkInfo"))

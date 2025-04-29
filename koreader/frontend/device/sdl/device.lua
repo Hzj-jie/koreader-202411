@@ -417,9 +417,9 @@ end
 function Emulator:initNetworkManager(NetworkMgr)
   local connectionChangedEvent = function(complete_callback)
     if G_reader_settings:nilOrTrue("emulator_fake_wifi_connected") then
-      UIManager:broadcastEvent(Event:new("NetworkConnected"))
+      NetworkMgr:_networkConnected()
     else
-      UIManager:broadcastEvent(Event:new("NetworkDisconnected"))
+      NetworkMgr:_networkDisconnected()
     end
     if complete_callback then
       complete_callback()
