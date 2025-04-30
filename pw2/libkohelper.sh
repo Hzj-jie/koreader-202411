@@ -1,1 +1,1 @@
-../koreader/libkohelper.sh
+../kindle/libkohelper.sh

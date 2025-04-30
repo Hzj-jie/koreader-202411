@@ -1,1 +1,1 @@
-../koreader/koreader.sh
+../kindle/koreader.sh
