@@ -8,8 +8,8 @@ fi
 if [ -z "$(git status --porcelain)" ]; then
   ./clean.sh
 
-  rsync -acv --no-o --no-g extensions/ root@192.168.1.$1:/mnt/us/extensions/
-  rsync -acv --no-o --no-g pw2/ root@192.168.1.$1:/mnt/us/koreader/
+  rsync -acvLK --no-o --no-g extensions/ root@192.168.1.$1:/mnt/us/extensions/
+  rsync -acvLK --no-o --no-g pw2/ root@192.168.1.$1:/mnt/us/koreader/
 else
   echo commit first
   git status
