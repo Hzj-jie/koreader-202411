@@ -548,23 +548,6 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       self.charpos = self.charpos + 1
     elseif chars_list[i] == "\b" then
       self.charpos = self.charpos - 1
-    elseif chars_list[i] == "\t" then
-      -- TODO: This logic may not be right,
-      -- https://github.com/Hzj-jie/koreader-202411/issues/92
-      -- Avoid passing tabstop_nb_space_width deeply into TextBoxWidget.
-      -- TermInputText -> InputText -> ScrollTextWidget -> TextBoxWidget
-      local pos = self.charpos - 1
-      while pos > 0 and self.charlist[pos] ~= "\n" do
-        pos = pos - 1
-      end
-      local tablen = 8
-      for _ = 1, (tablen - ((self.charpos - 1 - pos) % tablen)) do
-        self.charlist[self.charpos] = " "
-        self.charpos = self.charpos + 1
-      end
-      -- Doesn't work, the moved table elements may impact it.
-      -- self.charpos =
-      --     insertSpaces(tablen - ((self.charpos - 1 - pos) % tablen))
     else
       if self.wrap then
         if self.charlist[self.charpos] == "\n" then
