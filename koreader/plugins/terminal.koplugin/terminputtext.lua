@@ -68,6 +68,8 @@ function TermInputText:init()
   self.keyboard.lang_to_keyboard_layout = {
     en = "en_keyboard",
   }
+  -- Disallow long-press popups, they enter non-ascii characters.
+  self.keyboard.ignore_hold_callback = true
   -- Force en layout to avoid crashing. Calling this function will
   -- re-initialize the keyboard and take effect of the above change.
   self.keyboard:setKeyboardLayout("en")
