@@ -554,15 +554,17 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       -- Avoid passing tabstop_nb_space_width deeply into TextBoxWidget.
       -- TermInputText -> InputText -> ScrollTextWidget -> TextBoxWidget
       local pos = self.charpos - 1
-      while pos >= 1 and self.charlist[pos] ~= "\n" do
+      while pos > 0 and self.charlist[pos] ~= "\n" do
         pos = pos - 1
       end
-      for _ = 1, (4 - ((self.charpos - 1 - pos) % 4)) do
+      local tablen = 8
+      for _ = 1, (tablen - ((self.charpos - 1 - pos) % tablen)) do
         self.charlist[self.charpos] = " "
         self.charpos = self.charpos + 1
       end
       -- Doesn't work, the moved table elements may impact it.
-      -- self.charpos = insertSpaces(4 - ((self.charpos - 1 - pos) % 4))
+      -- self.charpos =
+      --     insertSpaces(tablen - ((self.charpos - 1 - pos) % tablen))
     else
       if self.wrap then
         if self.charlist[self.charpos] == "\n" then
