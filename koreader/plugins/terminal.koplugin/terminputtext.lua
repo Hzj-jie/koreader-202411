@@ -223,10 +223,8 @@ function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, param3)
       self.wrap = true
     elseif param2 == 47 then -- save screen
       self:saveBuffer("save_buffer")
-      print("xxxxxxxxxxxx save screen")
     elseif param2 == 1049 then -- enable alternate buffer
       self:saveBuffer("alternate_buffer")
-      print("xxxxxxxxxxxx enable alternate buffer")
     end
     return true
   elseif cmd == "l" and mode == "?" then --
@@ -235,10 +233,8 @@ function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, param3)
       self.wrap = false
     elseif param2 == 47 then -- restore screen
       self:restoreBuffer("save_buffer")
-      print("xxxxxxxxxxxx restore screen")
     elseif param2 == 1049 then -- disable alternate buffer
       self:restoreBuffer("alternate_buffer")
-      print("xxxxxxxxxxxx disable alternate buffer")
     end
     return true
   elseif cmd == "m" then
@@ -557,8 +553,16 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       -- https://github.com/Hzj-jie/koreader-202411/issues/92
       -- Avoid passing tabstop_nb_space_width deeply into TextBoxWidget.
       -- TermInputText -> InputText -> ScrollTextWidget -> TextBoxWidget
-      self.charlist[self.charpos] = " "
-      self.charpos = self.charpos + 1
+      local pos = self.charpos - 1
+      while pos >= 1 and self.charlist[pos] ~= "\n" do
+        pos = pos - 1
+      end
+      for _ = 1, (4 - ((self.charpos - 1 - pos) % 4)) do
+        self.charlist[self.charpos] = " "
+        self.charpos = self.charpos + 1
+      end
+      -- Doesn't work, the moved table elements may impact it.
+      -- self.charpos = insertSpaces(4 - ((self.charpos - 1 - pos) % 4))
     else
       if self.wrap then
         if self.charlist[self.charpos] == "\n" then
