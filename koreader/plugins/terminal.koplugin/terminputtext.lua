@@ -32,7 +32,11 @@ local function isNum(char)
 end
 
 local function isPrintable(ch)
-  return ch:byte() >= 32 or ch == "\010" or ch == "\013"
+  return ch:byte() >= 32 or
+         ch == "\010" or
+         ch == "\013" or
+         ch == "\009" or
+         ch == "\011"
 end
 
 local TermInputText = InputText:extend{
@@ -548,6 +552,13 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       self.charpos = self.charpos + 1
     elseif chars_list[i] == "\b" then
       self.charpos = self.charpos - 1
+    elseif chars_list[i] == "\t" then
+      -- TODO: This logic may not be right,
+      -- https://github.com/Hzj-jie/koreader-202411/issues/92
+      -- Avoid passing tabstop_nb_space_width deeply into TextBoxWidget.
+      -- TermInputText -> InputText -> ScrollTextWidget -> TextBoxWidget
+      self.charlist[self.charpos] = " "
+      self.charpos = self.charpos + 1
     else
       if self.wrap then
         if self.charlist[self.charpos] == "\n" then
