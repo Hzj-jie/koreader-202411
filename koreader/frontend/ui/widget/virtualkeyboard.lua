@@ -804,7 +804,7 @@ local VirtualKeyboard = FocusManager:extend{
   padding = 0,
   key_padding = Size.padding.small,
 
-  ignore_hold_callback = false,
+  tap_only = false,
 
   lang_to_keyboard_layout = {
     ar = "ar_keyboard",
@@ -1094,8 +1094,9 @@ function VirtualKeyboard:addKeys()
       if not virtual_key.key_chars and label ~= "" then
         virtual_key.swipe_callback = nil
       end
-      if self.ignore_hold_callback then
+      if self.tap_only then
         virtual_key.hold_callback = nil
+        virtual_key.swipe_callback = nil
       end
       table.insert(horizontal_group, virtual_key)
       table.insert(layout_horizontal, virtual_key)
