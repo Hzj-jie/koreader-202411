@@ -36,10 +36,10 @@ end
 
 function NetworkMgr:_networkConnected()
   raiseNetworkEvent("Connected")
-  -- This is a hacky way to ensure the NetworkOnline event can be triggered
-  -- after a NetworkConnected event.
-  self.was_online = false
   UIManager:nextTick(function()
+    -- This is a hacky way to ensure the NetworkOnline event can be triggered
+    -- after a NetworkConnected event.
+    self.was_online = false
     NetworkMgr:_queryOnlineState()
   end)
 end
