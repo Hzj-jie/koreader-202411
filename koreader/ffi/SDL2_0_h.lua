@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 typedef uint64_t Uint64;
 typedef int64_t Sint64;
 typedef uint32_t Uint32;
@@ -982,4 +982,4 @@ struct SDL_version {
 };
 void SDL_GetVersion(struct SDL_version *) __attribute__((visibility("default")));
 void SDL_free(void *) __attribute__((visibility("default")));
-]]
+]])

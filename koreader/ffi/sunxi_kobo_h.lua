@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 struct area_info {
   unsigned int x_top;
   unsigned int y_top;
@@ -359,4 +359,4 @@ typedef union {
   sunxi_disp_layer_get_config2 get_layer2;
   sunxi_disp_layer_generic_get get;
 } sunxi_disp_eink_ioctl;
-]]
+]])

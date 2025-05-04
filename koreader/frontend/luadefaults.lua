@@ -9,17 +9,17 @@ local util = require("util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 
-local LuaDefaults = LuaSettings:extend{
+local LuaDefaults = LuaSettings:extend({
   ro = nil, -- will contain the defaults.lua k/v pairs (const)
   rw = nil, -- will only contain non-defaults user-modified k/v pairs
-}
+})
 
 --- Opens a settings file.
 function LuaDefaults:open(path)
   local file_path = path or DataStorage:getDataDir() .. "/defaults.custom.lua"
-  local new = LuaDefaults:extend{
+  local new = LuaDefaults:extend({
     file = file_path,
-  }
+  })
   local ok, stored
 
   -- File being absent and returning an empty table is a use case,
@@ -30,14 +30,28 @@ function LuaDefaults:open(path)
   if ok and stored then
     new.rw = stored
   else
-    if existing then logger.warn("LuaDefaults: Failed reading", new.file, "(probably corrupted).") end
+    if existing then
+      logger.warn(
+        "LuaDefaults: Failed reading",
+        new.file,
+        "(probably corrupted)."
+      )
+    end
     -- Fallback to .old if it exists
-    ok, stored = pcall(dofile, new.file..".old")
+    ok, stored = pcall(dofile, new.file .. ".old")
     if ok and stored then
-      if existing then logger.warn("LuaDefaults: read from backup file", new.file..".old") end
+      if existing then
+        logger.warn("LuaDefaults: read from backup file", new.file .. ".old")
+      end
       new.rw = stored
     else
-      if existing then logger.warn("LuaDefaults: no usable backup file for", new.file, "to read from") end
+      if existing then
+        logger.warn(
+          "LuaDefaults: no usable backup file for",
+          new.file,
+          "to read from"
+        )
+      end
       new.rw = {}
     end
   end
@@ -146,9 +160,17 @@ function LuaDefaults:reset() end
 
 --- Writes settings to disk.
 function LuaDefaults:flush()
-  if not self.file then return end
+  if not self.file then
+    return
+  end
   local directory_updated = self:backup() -- LuaSettings
-  util.writeToFile(dump(self.rw, nil, true), self.file, true, true, directory_updated)
+  util.writeToFile(
+    dump(self.rw, nil, true),
+    self.file,
+    true,
+    true,
+    directory_updated
+  )
   return self
 end
 

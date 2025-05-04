@@ -24,7 +24,7 @@ local N_ = _.ngettext
 local Screen = Device.screen
 local T = require("ffi/util").template
 
-local BookInfo = WidgetContainer:extend{
+local BookInfo = WidgetContainer:extend({
   title = _("Book information"),
   props = {
     "title",
@@ -36,18 +36,18 @@ local BookInfo = WidgetContainer:extend{
     "description",
   },
   prop_text = {
-    cover    = _("Cover image:"),
-    title    = _("Title:"),
-    authors    = _("Author(s):"),
-    series     = _("Series:"),
+    cover = _("Cover image:"),
+    title = _("Title:"),
+    authors = _("Author(s):"),
+    series = _("Series:"),
     series_index = _("Series index:"),
-    language   = _("Language:"),
-    keywords   = _("Keywords:"),
-    description  = _("Description:"),
-    pages    = _("Pages:"),
+    language = _("Language:"),
+    keywords = _("Keywords:"),
+    description = _("Description:"),
+    pages = _("Pages:"),
   },
   rating_max = 5,
-}
+})
 
 function BookInfo:init()
   if self.document then -- only for Reader menu
@@ -72,7 +72,8 @@ function BookInfo:show(doc_settings_or_file, book_props)
 
   -- File section
   local has_sidecar = type(doc_settings_or_file) == "table"
-  local file = has_sidecar and doc_settings_or_file:readSetting("doc_path") or doc_settings_or_file
+  local file = has_sidecar and doc_settings_or_file:readSetting("doc_path")
+    or doc_settings_or_file
   local folder, filename = util.splitFilePathName(file)
   local __, filetype = filemanagerutil.splitFileNameType(filename)
   local attr = lfs.attributes(file)
@@ -81,9 +82,19 @@ function BookInfo:show(doc_settings_or_file, book_props)
   local size_b = util.getFormattedSize(file_size)
   table.insert(kv_pairs, { _("Filename:"), BD.filename(filename) })
   table.insert(kv_pairs, { _("Format:"), filetype:upper() })
-  table.insert(kv_pairs, { _("Size:"), string.format("%s (%s bytes)", size_f, size_b) })
-  table.insert(kv_pairs, { _("File date:"), os.date("%Y-%m-%d %H:%M:%S", attr.modification) })
-  table.insert(kv_pairs, { _("Folder:"), BD.dirpath(filemanagerutil.abbreviate(folder)), separator = true })
+  table.insert(
+    kv_pairs,
+    { _("Size:"), string.format("%s (%s bytes)", size_f, size_b) }
+  )
+  table.insert(
+    kv_pairs,
+    { _("File date:"), os.date("%Y-%m-%d %H:%M:%S", attr.modification) }
+  )
+  table.insert(kv_pairs, {
+    _("Folder:"),
+    BD.dirpath(filemanagerutil.abbreviate(folder)),
+    separator = true,
+  })
 
   -- Book section
   -- book_props may be provided if caller already has them available
@@ -97,7 +108,9 @@ function BookInfo:show(doc_settings_or_file, book_props)
   if self.custom_book_cover then
     key_text = "\u{F040} " .. key_text
   end
-  table.insert(kv_pairs, { key_text, _("Tap to display"),
+  table.insert(kv_pairs, {
+    key_text,
+    _("Tap to display"),
     callback = function()
       self:onShowBookCover(file)
     end,
@@ -110,7 +123,8 @@ function BookInfo:show(doc_settings_or_file, book_props)
   local custom_props
   local custom_metadata_file = DocSettings:findCustomMetadataFile(file)
   if custom_metadata_file then
-    self.custom_doc_settings = DocSettings.openSettingsFile(custom_metadata_file)
+    self.custom_doc_settings =
+      DocSettings.openSettingsFile(custom_metadata_file)
     custom_props = self.custom_doc_settings:readSetting("custom_props")
   end
   local values_lang, callback
@@ -145,7 +159,9 @@ function BookInfo:show(doc_settings_or_file, book_props)
     if custom_props and custom_props[prop_key] then -- customized
       key_text = "\u{F040} " .. key_text
     end
-    table.insert(kv_pairs, { key_text, prop,
+    table.insert(kv_pairs, {
+      key_text,
+      prop,
       callback = callback,
       hold_callback = function()
         self:showCustomDialog(file, book_props, prop_key)
@@ -153,29 +169,42 @@ function BookInfo:show(doc_settings_or_file, book_props)
     })
   end
   -- pages
-  table.insert(kv_pairs, { self.prop_text["pages"], book_props["pages"] or _("N/A"), separator = true })
+  table.insert(kv_pairs, {
+    self.prop_text["pages"],
+    book_props["pages"] or _("N/A"),
+    separator = true,
+  })
 
   -- Current page
   if self.document then
     local lines_nb, words_nb = self.ui.view:getCurrentPageLineWordCounts()
     local text = lines_nb == 0 and _("number of lines and words not available")
-      or T(N_("1 line", "%1 lines", lines_nb), lines_nb) .. ", " .. T(N_("1 word", "%1 words", words_nb), words_nb)
+      or T(N_("1 line", "%1 lines", lines_nb), lines_nb)
+        .. ", "
+        .. T(N_("1 word", "%1 words", words_nb), words_nb)
     table.insert(kv_pairs, { _("Current page:"), text, separator = true })
   end
 
   -- Summary section
-  local summary = has_sidecar and doc_settings_or_file:readSetting("summary") or {}
+  local summary = has_sidecar and doc_settings_or_file:readSetting("summary")
+    or {}
   local rating = summary.rating or 0
   local summary_hold_callback = function()
     self:editSummary(doc_settings_or_file, book_props)
   end
-  table.insert(kv_pairs, { _("Rating:"), ("★"):rep(rating) .. ("☆"):rep(self.rating_max - rating),
-    hold_callback = summary_hold_callback })
-  table.insert(kv_pairs, { _("Review:"), summary.note or _("N/A"),
-    hold_callback = summary_hold_callback })
+  table.insert(kv_pairs, {
+    _("Rating:"),
+    ("★"):rep(rating) .. ("☆"):rep(self.rating_max - rating),
+    hold_callback = summary_hold_callback,
+  })
+  table.insert(kv_pairs, {
+    _("Review:"),
+    summary.note or _("N/A"),
+    hold_callback = summary_hold_callback,
+  })
 
   local KeyValuePage = require("ui/widget/keyvaluepage")
-  self.kvp_widget = KeyValuePage:new{
+  self.kvp_widget = KeyValuePage:new({
     title = self.title,
     value_overflow_align = "right",
     kv_pairs = kv_pairs,
@@ -185,28 +214,34 @@ function BookInfo:show(doc_settings_or_file, book_props)
       self.custom_book_cover = nil
       if self.prop_updated then
         UIManager:broadcastEvent(Event:new("InvalidateMetadataCache", file))
-        UIManager:broadcastEvent(Event:new("BookMetadataChanged", self.prop_updated))
+        UIManager:broadcastEvent(
+          Event:new("BookMetadataChanged", self.prop_updated)
+        )
       end
       if self.summary_updated then -- refresh file browser, sdr folder may appear
         UIManager:broadcastEvent(Event:new("BookMetadataChanged"))
       end
     end,
-  }
+  })
   UIManager:show(self.kvp_widget)
 end
 
 function BookInfo.getCustomProp(prop_key, filepath)
   local custom_metadata_file = DocSettings:findCustomMetadataFile(filepath)
   return custom_metadata_file
-    and DocSettings.openSettingsFile(custom_metadata_file):readSetting("custom_props")[prop_key]
+    and DocSettings.openSettingsFile(custom_metadata_file)
+      :readSetting("custom_props")[prop_key]
 end
 
 -- Returns extended and customized metadata.
 function BookInfo.extendProps(original_props, filepath)
   -- do not customize if filepath is not passed (eg from covermenu)
-  local custom_metadata_file = filepath and DocSettings:findCustomMetadataFile(filepath)
+  local custom_metadata_file = filepath
+    and DocSettings:findCustomMetadataFile(filepath)
   local custom_props = custom_metadata_file
-    and DocSettings.openSettingsFile(custom_metadata_file):readSetting("custom_props") or {}
+      and DocSettings.openSettingsFile(custom_metadata_file)
+        :readSetting("custom_props")
+    or {}
   original_props = original_props or {}
 
   local props = {}
@@ -215,7 +250,8 @@ function BookInfo.extendProps(original_props, filepath)
   end
   props.pages = original_props.pages
   -- if original title is empty, generate it as filename without extension
-  props.display_title = props.title or filemanagerutil.splitFileNameType(filepath)
+  props.display_title = props.title
+    or filemanagerutil.splitFileNameType(filepath)
   return props
 end
 
@@ -251,7 +287,8 @@ function BookInfo.getDocProps(file, book_props, no_open_document)
   if not book_props then
     local custom_metadata_file = DocSettings:findCustomMetadataFile(file)
     if custom_metadata_file then
-      book_props = DocSettings.openSettingsFile(custom_metadata_file):readSetting("doc_props")
+      book_props = DocSettings.openSettingsFile(custom_metadata_file)
+        :readSetting("doc_props")
     end
   end
 
@@ -315,11 +352,11 @@ function BookInfo:onShowBookInfo()
 end
 
 function BookInfo:showBookProp(prop_key, prop_text)
-  UIManager:show(TextViewer:new{
+  UIManager:show(TextViewer:new({
     title = self.prop_text[prop_key],
     text = prop_text,
     text_type = prop_key == "description" and "book_info" or nil,
-  })
+  }))
 end
 
 function BookInfo:onShowBookDescription(description, file)
@@ -333,9 +370,9 @@ function BookInfo:onShowBookDescription(description, file)
   if description then
     self:showBookProp("description", util.htmlToPlainTextIfHtml(description))
   else
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = _("No book description available."),
-    })
+    }))
   end
 end
 
@@ -343,16 +380,16 @@ function BookInfo:onShowBookCover(file, force_orig)
   local cover_bb = self:getCoverImage(self.document, file, force_orig)
   if cover_bb then
     local ImageViewer = require("ui/widget/imageviewer")
-    local imgviewer = ImageViewer:new{
+    local imgviewer = ImageViewer:new({
       image = cover_bb,
       with_title_bar = false,
       fullscreen = true,
-    }
+    })
     UIManager:show(imgviewer)
   else
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = _("No cover image available."),
-    })
+    }))
   end
 end
 
@@ -360,7 +397,8 @@ function BookInfo:getCoverImage(doc, file, force_orig)
   local cover_bb
   -- check for a custom cover (orig cover is forcibly requested in "Book information" only)
   if not force_orig then
-    local custom_cover = DocSettings:findCustomCoverFile(file or (doc and doc.file))
+    local custom_cover =
+      DocSettings:findCustomCoverFile(file or (doc and doc.file))
     if custom_cover then
       local cover_doc = DocumentRegistry:openDocument(custom_cover)
       if cover_doc then
@@ -404,12 +442,14 @@ end
 function BookInfo:setCustomCover(file, book_props)
   if self.custom_book_cover then -- reset custom cover
     if os.remove(self.custom_book_cover) then
-      DocSettings.removeSidecarDir(util.splitFilePathName(self.custom_book_cover))
+      DocSettings.removeSidecarDir(
+        util.splitFilePathName(self.custom_book_cover)
+      )
       self:updateBookInfo(file, book_props, "cover")
     end
   else -- choose an image and set custom cover
     local PathChooser = require("ui/widget/pathchooser")
-    local path_chooser = PathChooser:new{
+    local path_chooser = PathChooser:new({
       select_directory = false,
       file_filter = function(filename)
         return DocumentRegistry:isImageFile(filename)
@@ -419,7 +459,7 @@ function BookInfo:setCustomCover(file, book_props)
           self:updateBookInfo(file, book_props, "cover")
         end
       end,
-    }
+    })
     UIManager:show(path_chooser)
   end
 end
@@ -453,7 +493,9 @@ function BookInfo:setCustomMetadata(file, book_props, prop_key, prop_value)
   custom_props[prop_key] = prop_value -- nil when resetting a custom prop
   if next(custom_props) == nil then -- no more custom metadata
     os.remove(custom_doc_settings.sidecar_file)
-    DocSettings.removeSidecarDir(util.splitFilePathName(custom_doc_settings.sidecar_file))
+    DocSettings.removeSidecarDir(
+      util.splitFilePathName(custom_doc_settings.sidecar_file)
+    )
     no_custom_metadata = true
   else
     if book_props.pages then -- keep a copy of original 'pages' up to date
@@ -464,10 +506,12 @@ function BookInfo:setCustomMetadata(file, book_props, prop_key, prop_value)
   end
   book_props.display_title = book_props.display_title or display_title -- restore
   -- in memory
-  prop_value = prop_value or custom_doc_settings:readSetting("doc_props")[prop_key] -- set custom or restore original
+  prop_value = prop_value
+    or custom_doc_settings:readSetting("doc_props")[prop_key] -- set custom or restore original
   book_props[prop_key] = prop_value
   if prop_key == "title" then -- generate when resetting the customized title and original is empty
-    book_props.display_title = book_props.title or filemanagerutil.splitFileNameType(file)
+    book_props.display_title = book_props.title
+      or filemanagerutil.splitFileNameType(file)
   end
   if self.document and self.document.file == file then -- currently opened document
     self.ui.doc_props[prop_key] = prop_value
@@ -487,11 +531,15 @@ function BookInfo:showCustomEditDialog(file, book_props, prop_key)
     prop = util.htmlToPlainTextIfHtml(prop)
   end
   local input_dialog
-  input_dialog = InputDialog:new{
-    title = _("Edit book metadata:") .. " " .. self.prop_text[prop_key]:gsub(":", ""),
+  input_dialog = InputDialog:new({
+    title = _("Edit book metadata:")
+      .. " "
+      .. self.prop_text[prop_key]:gsub(":", ""),
     input = prop,
     input_type = prop_key == "series_index" and "number",
-    allow_newline = prop_key == "authors" or prop_key == "keywords" or prop_key == "description",
+    allow_newline = prop_key == "authors"
+      or prop_key == "keywords"
+      or prop_key == "description",
     buttons = {
       {
         {
@@ -513,7 +561,7 @@ function BookInfo:showCustomEditDialog(file, book_props, prop_key)
         },
       },
     },
-  }
+  })
   UIManager:show(input_dialog)
   input_dialog:onShowKeyboard()
 end
@@ -522,8 +570,10 @@ function BookInfo:showCustomDialog(file, book_props, prop_key)
   local original_prop, custom_prop, prop_is_cover
   if prop_key then -- metadata
     if self.custom_doc_settings then
-      original_prop = self.custom_doc_settings:readSetting("doc_props")[prop_key]
-      custom_prop = self.custom_doc_settings:readSetting("custom_props")[prop_key]
+      original_prop =
+        self.custom_doc_settings:readSetting("doc_props")[prop_key]
+      custom_prop =
+        self.custom_doc_settings:readSetting("custom_props")[prop_key]
     else
       original_prop = book_props[prop_key]
     end
@@ -562,11 +612,13 @@ function BookInfo:showCustomDialog(file, book_props, prop_key)
     {
       {
         text = _("Reset custom"),
-        enabled = custom_prop ~= nil or (prop_is_cover and self.custom_book_cover ~= nil),
+        enabled = custom_prop ~= nil
+          or (prop_is_cover and self.custom_book_cover ~= nil),
         callback = function()
-          local confirm_box = ConfirmBox:new{
-            text = prop_is_cover and _("Reset custom cover?\nImage file will be deleted.")
-                        or _("Reset custom book metadata field?"),
+          local confirm_box = ConfirmBox:new({
+            text = prop_is_cover
+                and _("Reset custom cover?\nImage file will be deleted.")
+              or _("Reset custom book metadata field?"),
             ok_text = _("Reset"),
             ok_callback = function()
               UIManager:close(button_dialog)
@@ -576,13 +628,14 @@ function BookInfo:showCustomDialog(file, book_props, prop_key)
                 self:setCustomMetadata(file, book_props, prop_key)
               end
             end,
-          }
+          })
           UIManager:show(confirm_box)
         end,
       },
       {
         text = _("Set custom"),
-        enabled = not prop_is_cover or (prop_is_cover and self.custom_book_cover == nil),
+        enabled = not prop_is_cover
+          or (prop_is_cover and self.custom_book_cover == nil),
         callback = function()
           UIManager:close(button_dialog)
           if prop_is_cover then
@@ -594,17 +647,20 @@ function BookInfo:showCustomDialog(file, book_props, prop_key)
       },
     },
   }
-  button_dialog = ButtonDialog:new{
-    title = _("Book metadata:") .. " " .. self.prop_text[prop_key]:gsub(":", ""),
+  button_dialog = ButtonDialog:new({
+    title = _("Book metadata:")
+      .. " "
+      .. self.prop_text[prop_key]:gsub(":", ""),
     title_align = "center",
     buttons = buttons,
-  }
+  })
   UIManager:show(button_dialog)
 end
 
 function BookInfo:editSummary(doc_settings_or_file, book_props)
   local has_sidecar = type(doc_settings_or_file) == "table"
-  local summary = has_sidecar and doc_settings_or_file:readSetting("summary") or {}
+  local summary = has_sidecar and doc_settings_or_file:readSetting("summary")
+    or {}
   local rating = summary.rating or 0
   local input_dialog
   local rating_buttons_row = {}
@@ -624,7 +680,8 @@ function BookInfo:editSummary(doc_settings_or_file, book_props)
           local note = input_dialog:getInputText()
           summary.note = note ~= "" and note or nil
           summary.rating = (i == 1 and summary.rating == 1) and 0 or i
-          doc_settings_or_file = filemanagerutil.saveSummary(doc_settings_or_file, summary)
+          doc_settings_or_file =
+            filemanagerutil.saveSummary(doc_settings_or_file, summary)
           self.summary_updated = true
           self.kvp_widget:onClose()
           self:show(doc_settings_or_file, book_props)
@@ -632,7 +689,7 @@ function BookInfo:editSummary(doc_settings_or_file, book_props)
       })
     end
   end
-  input_dialog = InputDialog:new{
+  input_dialog = InputDialog:new({
     title = _("Edit book review"),
     input = summary.note,
     text_height = Screen:scaleBySize(160),
@@ -653,7 +710,8 @@ function BookInfo:editSummary(doc_settings_or_file, book_props)
             UIManager:close(input_dialog)
             local note = input_dialog:getInputText()
             summary.note = note ~= "" and note or nil
-            doc_settings_or_file = filemanagerutil.saveSummary(doc_settings_or_file, summary)
+            doc_settings_or_file =
+              filemanagerutil.saveSummary(doc_settings_or_file, summary)
             self.summary_updated = true
             self.kvp_widget:onClose()
             self:show(doc_settings_or_file, book_props)
@@ -661,7 +719,7 @@ function BookInfo:editSummary(doc_settings_or_file, book_props)
         },
       },
     },
-  }
+  })
   UIManager:show(input_dialog)
   input_dialog:onShowKeyboard(true)
 end
@@ -671,9 +729,9 @@ function BookInfo:moveBookMetadata()
   local file_chooser = self.ui.file_chooser
   local function scanPath()
     local sys_folders = { -- do not scan sys_folders
-      ["/dev"]  = true,
+      ["/dev"] = true,
       ["/proc"] = true,
-      ["/sys"]  = true,
+      ["/sys"] = true,
     }
     local books_to_move = {}
     local dirs = { file_chooser.path }
@@ -688,12 +746,20 @@ function BookInfo:moveBookMetadata()
               fullpath = d .. fullpath
             end
             local attributes = lfs.attributes(fullpath) or {}
-            if attributes.mode == "directory" and f ~= "." and f ~= ".."
-                and file_chooser:show_dir(f) and not sys_folders[fullpath] then
+            if
+              attributes.mode == "directory"
+              and f ~= "."
+              and f ~= ".."
+              and file_chooser:show_dir(f)
+              and not sys_folders[fullpath]
+            then
               table.insert(new_dirs, fullpath)
-            elseif attributes.mode == "file" and not util.stringStartsWith(f, "._")
-                and file_chooser:show_file(f)
-                and DocSettings.isSidecarFileNotInPreferredLocation(fullpath) then
+            elseif
+              attributes.mode == "file"
+              and not util.stringStartsWith(f, "._")
+              and file_chooser:show_file(f)
+              and DocSettings.isSidecarFileNotInPreferredLocation(fullpath)
+            then
               table.insert(books_to_move, fullpath)
             end
           end
@@ -703,22 +769,32 @@ function BookInfo:moveBookMetadata()
     end
     return books_to_move
   end
-  UIManager:show(ConfirmBox:new{
-    text = _("Scan books in current folder and subfolders for their metadata location?"),
+  UIManager:show(ConfirmBox:new({
+    text = _(
+      "Scan books in current folder and subfolders for their metadata location?"
+    ),
     ok_text = _("Scan"),
     ok_callback = function()
       local books_to_move = scanPath()
       local books_to_move_nb = #books_to_move
       if books_to_move_nb == 0 then
-        UIManager:show(InfoMessage:new{
-          text = _("No books with metadata not in your preferred location found."),
-        })
+        UIManager:show(InfoMessage:new({
+          text = _(
+            "No books with metadata not in your preferred location found."
+          ),
+        }))
       else
-        UIManager:show(ConfirmBox:new{
-          text = T(N_("1 book with metadata not in your preferred location found.",
-                "%1 books with metadata not in your preferred location found.",
-                books_to_move_nb), books_to_move_nb) .. "\n" ..
-                _("Move book metadata to your preferred location?"),
+        UIManager:show(ConfirmBox:new({
+          text = T(
+            N_(
+              "1 book with metadata not in your preferred location found.",
+              "%1 books with metadata not in your preferred location found.",
+              books_to_move_nb
+            ),
+            books_to_move_nb
+          )
+            .. "\n"
+            .. _("Move book metadata to your preferred location?"),
           ok_text = _("Move"),
           ok_callback = function()
             UIManager:close(self.menu_container)
@@ -727,15 +803,19 @@ function BookInfo:moveBookMetadata()
             end
             file_chooser:refreshPath()
           end,
-        })
+        }))
       end
     end,
-  })
+  }))
 end
 
 function BookInfo.showBooksWithHashBasedMetadata()
-  local header = T(_("Hash-based metadata has been saved in %1 for the following documents. Hash-based storage may slow down file browser navigation in large directories. Thus, if not using hash-based metadata storage, it is recommended to open the associated documents in KOReader to automatically migrate their metadata to the preferred storage location, or to delete %1, which will speed up file browser navigation."),
-    DocSettings.getSidecarStorage("hash"))
+  local header = T(
+    _(
+      "Hash-based metadata has been saved in %1 for the following documents. Hash-based storage may slow down file browser navigation in large directories. Thus, if not using hash-based metadata storage, it is recommended to open the associated documents in KOReader to automatically migrate their metadata to the preferred storage location, or to delete %1, which will speed up file browser navigation."
+    ),
+    DocSettings.getSidecarStorage("hash")
+  )
   local file_info = { header .. "\n" }
   local sdrs = DocSettings.findSidecarFilesInHashLocation()
   for i, sdr in ipairs(sdrs) do
@@ -743,20 +823,38 @@ function BookInfo.showBooksWithHashBasedMetadata()
     local doc_settings = DocSettings.openSettingsFile(sidecar_file)
     local doc_props = doc_settings:readSetting("doc_props")
     local custom_props = custom_metadata_file
-      and DocSettings.openSettingsFile(custom_metadata_file):readSetting("custom_props") or {}
+        and DocSettings.openSettingsFile(custom_metadata_file)
+          :readSetting("custom_props")
+      or {}
     local doc_path = doc_settings:readSetting("doc_path")
-    local title = custom_props.title or doc_props.title or filemanagerutil.splitFileNameType(doc_path)
+    local title = custom_props.title
+      or doc_props.title
+      or filemanagerutil.splitFileNameType(doc_path)
     local author = custom_props.authors or doc_props.authors or _("N/A")
-    doc_path = lfs.attributes(doc_path, "mode") == "file" and doc_path or _("N/A")
-    local text = T(_("%1. Title: %2; Author: %3\nDocument: %4"), i, title, author, doc_path)
+    doc_path = lfs.attributes(doc_path, "mode") == "file" and doc_path
+      or _("N/A")
+    local text = T(
+      _("%1. Title: %2; Author: %3\nDocument: %4"),
+      i,
+      title,
+      author,
+      doc_path
+    )
     table.insert(file_info, text)
   end
   local doc_nb = #file_info - 1
-  UIManager:show(TextViewer:new{
-    title = T(N_("1 document with hash-based metadata", "%1 documents with hash-based metadata", doc_nb), doc_nb),
+  UIManager:show(TextViewer:new({
+    title = T(
+      N_(
+        "1 document with hash-based metadata",
+        "%1 documents with hash-based metadata",
+        doc_nb
+      ),
+      doc_nb
+    ),
     title_multilines = true,
     text = table.concat(file_info, "\n"),
-  })
+  }))
 end
 
 return BookInfo

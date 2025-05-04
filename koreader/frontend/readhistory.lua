@@ -19,7 +19,8 @@ local ReadHistory = {
 
 local function getMandatory(date_time)
   return G_reader_settings:isTrue("history_datetime_short")
-    and os.date(C_("Date string", "%y-%m-%d"), date_time) or datetime.secondsToDateTime(date_time)
+      and os.date(C_("Date string", "%y-%m-%d"), date_time)
+    or datetime.secondsToDateTime(date_time)
 end
 
 local function buildEntry(input_time, input_file)
@@ -68,9 +69,11 @@ function ReadHistory:getIndexByTime(item_time, item_file)
   end
   local index = m + d
   if item_file then
-    while index <= #self.hist
-        and self.hist[index].time == item_time
-        and self.hist[index].file:gsub(".*/", "") < item_file do
+    while
+      index <= #self.hist
+      and self.hist[index].time == item_time
+      and self.hist[index].file:gsub(".*/", "") < item_file
+    do
       index = index + 1
     end
   end
@@ -101,11 +104,14 @@ end
 --- Reads history table from file.
 -- @treturn boolean true if the history_file has been updated and reloaded.
 function ReadHistory:_read(force_read)
-  local history_file_modification_time = lfs.attributes(history_file, "modification")
+  local history_file_modification_time =
+    lfs.attributes(history_file, "modification")
   if history_file_modification_time == nil then -- no history_file, proceed legacy only
     return true
   end
-  if not force_read and (history_file_modification_time <= self.last_read_time) then
+  if
+    not force_read and (history_file_modification_time <= self.last_read_time)
+  then
     return false
   end
   self.last_read_time = history_file_modification_time
@@ -127,7 +133,9 @@ end
 -- Legacy history file is deleted when respective book is opened or deleted.
 function ReadHistory:_readLegacyHistory()
   local history_dir = DataStorage:getHistoryDir()
-  if not lfs.attributes(history_dir) then return end
+  if not lfs.attributes(history_dir) then
+    return
+  end
   local history_updated
   for f in lfs.dir(history_dir) do
     local legacy_history_file = joinPath(history_dir, f)
@@ -179,8 +187,11 @@ function ReadHistory:getFileByDirectory(directory, recursive)
   local real_path = realpath(directory)
   for _, v in ipairs(self.hist) do
     local ipath = realpath(ffiutil.dirname(v.file))
-    if ipath == real_path or (recursive and util.stringStartsWith(ipath, real_path)) then
-       return v.file
+    if
+      ipath == real_path
+      or (recursive and util.stringStartsWith(ipath, real_path))
+    then
+      return v.file
     end
   end
 end
@@ -335,7 +346,7 @@ function ReadHistory:_ignoreItem(file)
   if not require("ui/widget/filechooser"):show_dir(ffiutil.basename(path)) then
     return true
   end
-  exclude_files = {  -- const
+  exclude_files = { -- const
     "^batterystat%.log$",
     "^crash%.log$",
     "^crash%.prev%.log$",
@@ -343,7 +354,9 @@ function ReadHistory:_ignoreItem(file)
   }
   filename = ffiutil.basename(file)
   for _, pattern in ipairs(exclude_files) do
-    if filename:match(pattern) then return true end
+    if filename:match(pattern) then
+      return true
+    end
   end
   return false
 end
@@ -352,7 +365,9 @@ end
 -- If item time (ts) is passed, add item to the history list at this time position.
 function ReadHistory:addItem(file, ts, no_flush)
   file = realpath(file)
-  if self:_ignoreItem(file) then return end
+  if self:_ignoreItem(file) then
+    return
+  end
   local index = self:getIndexByFile(file)
   if ts and index and self.hist[index].time == ts then
     return -- legacy item already added

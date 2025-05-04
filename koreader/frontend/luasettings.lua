@@ -19,9 +19,9 @@ end
 
 --- Opens a settings file.
 function LuaSettings:open(file_path)
-  local new = LuaSettings:extend{
+  local new = LuaSettings:extend({
     file = file_path,
-  }
+  })
   local ok, stored
 
   -- File being absent and returning an empty table is a use case,
@@ -32,14 +32,28 @@ function LuaSettings:open(file_path)
   if ok and stored then
     new.data = stored
   else
-    if existing then logger.warn("LuaSettings: Failed reading", new.file, "(probably corrupted).") end
+    if existing then
+      logger.warn(
+        "LuaSettings: Failed reading",
+        new.file,
+        "(probably corrupted)."
+      )
+    end
     -- Fallback to .old if it exists
-    ok, stored = pcall(dofile, new.file..".old")
+    ok, stored = pcall(dofile, new.file .. ".old")
     if ok and stored then
-      if existing then logger.warn("LuaSettings: read from backup file", new.file..".old") end
+      if existing then
+        logger.warn("LuaSettings: read from backup file", new.file .. ".old")
+      end
       new.data = stored
     else
-      if existing then logger.warn("LuaSettings: no usable backup file for", new.file, "to read from") end
+      if existing then
+        logger.warn(
+          "LuaSettings: no usable backup file for",
+          new.file,
+          "to read from"
+        )
+      end
       new.data = {}
     end
   end
@@ -48,9 +62,9 @@ function LuaSettings:open(file_path)
 end
 
 function LuaSettings:wrap(data)
-  return self:extend{
+  return self:extend({
     data = type(data) == "table" and data or {},
-  }
+  })
 end
 
 --[[--Reads child settings.
@@ -217,11 +231,21 @@ end
 
 --- Writes settings to disk.
 function LuaSettings:flush()
-  if not self.file then return end
+  if not self.file then
+    return
+  end
   -- Do not save anything meaningless.
-  if self.data == nil or next(self.data) == nil then return end
+  if self.data == nil or next(self.data) == nil then
+    return
+  end
   local directory_updated = self:backup()
-  util.writeToFile(dump(self.data, nil, true), self.file, true, true, directory_updated)
+  util.writeToFile(
+    dump(self.data, nil, true),
+    self.file,
+    true,
+    true,
+    directory_updated
+  )
   return self
 end
 

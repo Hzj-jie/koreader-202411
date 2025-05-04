@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 enum LodePNGColorType {
   LCT_GREY = 0,
   LCT_RGB = 2,
@@ -158,4 +158,4 @@ void lodepng_state_copy(LodePNGState *, const LodePNGState *);
 unsigned int lodepng_decode(unsigned char **, unsigned int *, unsigned int *, LodePNGState *, const unsigned char *, size_t);
 unsigned int lodepng_inspect(unsigned int *, unsigned int *, LodePNGState *, const unsigned char *, size_t);
 unsigned int lodepng_encode(unsigned char **, size_t *, const unsigned char *, unsigned int, unsigned int, LodePNGState *);
-]]
+]])

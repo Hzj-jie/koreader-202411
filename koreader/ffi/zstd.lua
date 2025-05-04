@@ -16,31 +16,37 @@ local zstd = {}
 
 -- c.f., https://github.com/facebook/zstd/tree/dev/examples
 function zstd.zstd_compress(ptr, size)
-    --print("zstd_compress:", ptr, size)
-    local n = zst.ZSTD_compressBound(size)
-    local cbuff = C.calloc(n, 1)
-    assert(cbuff ~= nil, "Failed to allocate ZSTD compression buffer (" .. tonumber(n) .. " bytes)")
-    -- NOTE: We should be quite all right with the default (3), which will most likely trounce zlib's 9 in every respect...
-    local clen = zst.ZSTD_compress(cbuff, n, ptr, size, zst.ZSTD_CLEVEL_DEFAULT)
-    if zst.ZSTD_isError(clen) ~= 0 then
-        C.free(cbuff)
-        error(ffi.string(zst.ZSTD_getErrorName(clen)))
-    end
-    return cbuff, clen
+  --print("zstd_compress:", ptr, size)
+  local n = zst.ZSTD_compressBound(size)
+  local cbuff = C.calloc(n, 1)
+  assert(
+    cbuff ~= nil,
+    "Failed to allocate ZSTD compression buffer (" .. tonumber(n) .. " bytes)"
+  )
+  -- NOTE: We should be quite all right with the default (3), which will most likely trounce zlib's 9 in every respect...
+  local clen = zst.ZSTD_compress(cbuff, n, ptr, size, zst.ZSTD_CLEVEL_DEFAULT)
+  if zst.ZSTD_isError(clen) ~= 0 then
+    C.free(cbuff)
+    error(ffi.string(zst.ZSTD_getErrorName(clen)))
+  end
+  return cbuff, clen
 end
 
 function zstd.zstd_uncompress(ptr, size)
-    --print("zstd_uncompress:", ptr, size)
-    -- The decompressed size is encoded in the ZST frame header
-    local n = zst.ZSTD_getFrameContentSize(ptr, size)
-    local buff = C.calloc(n, 1)
-    assert(buff ~= nil, "Failed to allocate ZSTD decompression buffer (" .. tonumber(n) .. " bytes)")
-    local ulen = zst.ZSTD_decompress(buff, n, ptr, size)
-    if zst.ZSTD_isError(ulen) ~= 0 then
-        C.free(buff)
-        error(ffi.string(zst.ZSTD_getErrorName(ulen)))
-    end
-    return buff, ulen
+  --print("zstd_uncompress:", ptr, size)
+  -- The decompressed size is encoded in the ZST frame header
+  local n = zst.ZSTD_getFrameContentSize(ptr, size)
+  local buff = C.calloc(n, 1)
+  assert(
+    buff ~= nil,
+    "Failed to allocate ZSTD decompression buffer (" .. tonumber(n) .. " bytes)"
+  )
+  local ulen = zst.ZSTD_decompress(buff, n, ptr, size)
+  if zst.ZSTD_isError(ulen) ~= 0 then
+    C.free(buff)
+    error(ffi.string(zst.ZSTD_getErrorName(ulen)))
+  end
+  return buff, ulen
 end
 
 -- Same idea, but with a re-usable decompression context
@@ -57,25 +63,28 @@ end
 local DCtx
 
 function zstd.zstd_uncompress_ctx(ptr, size)
-    --print("zstd_uncompress_ctx:", ptr, size)
+  --print("zstd_uncompress_ctx:", ptr, size)
 
-    -- Lazy init the decompression context
-    if DCtx == nil then
-        DCtx = ffi.gc(zst.ZSTD_createDCtx(), zst.ZSTD_freeDCtx)
-        assert(DCtx ~= nil, "Failed to allocate ZSTD decompression context")
-    else
-        -- Reset the context
-        local ret = zst.ZSTD_DCtx_reset(DCtx, zst.ZSTD_reset_session_only)
-        assert(zst.ZSTD_isError(ret) == 0, ffi.string(zst.ZSTD_getErrorName(ret)))
-    end
+  -- Lazy init the decompression context
+  if DCtx == nil then
+    DCtx = ffi.gc(zst.ZSTD_createDCtx(), zst.ZSTD_freeDCtx)
+    assert(DCtx ~= nil, "Failed to allocate ZSTD decompression context")
+  else
+    -- Reset the context
+    local ret = zst.ZSTD_DCtx_reset(DCtx, zst.ZSTD_reset_session_only)
+    assert(zst.ZSTD_isError(ret) == 0, ffi.string(zst.ZSTD_getErrorName(ret)))
+  end
 
-    -- The decompressed size is encoded in the ZST frame header
-    local n = zst.ZSTD_getFrameContentSize(ptr, size)
-    local buff = C.calloc(n, 1)
-    assert(buff ~= nil, "Failed to allocate ZSTD decompression buffer (" .. tonumber(n) .. " bytes)")
-    local ulen = zst.ZSTD_decompressDCtx(DCtx, buff, n, ptr, size)
-    assert(zst.ZSTD_isError(ulen) == 0, ffi.string(zst.ZSTD_getErrorName(ulen)))
-    return buff, ulen
+  -- The decompressed size is encoded in the ZST frame header
+  local n = zst.ZSTD_getFrameContentSize(ptr, size)
+  local buff = C.calloc(n, 1)
+  assert(
+    buff ~= nil,
+    "Failed to allocate ZSTD decompression buffer (" .. tonumber(n) .. " bytes)"
+  )
+  local ulen = zst.ZSTD_decompressDCtx(DCtx, buff, n, ptr, size)
+  assert(zst.ZSTD_isError(ulen) == 0, ffi.string(zst.ZSTD_getErrorName(ulen)))
+  return buff, ulen
 end
 
 return zstd

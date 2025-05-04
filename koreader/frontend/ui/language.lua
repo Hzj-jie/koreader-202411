@@ -60,20 +60,20 @@ local Language = {
   -- https://meta.wikimedia.org/wiki/Template:List_of_language_names_ordered_by_code
   -- Not included are those absent or commented out in hb-ot-tag-table.hh.
   languages_rtl = {
-    ar  = true, -- Arabic
+    ar = true, -- Arabic
     arz = true, -- Egyptian Arabic
     ckb = true, -- Sorani (Central Kurdish)
-    dv  = true, -- Divehi
-    fa  = true, -- Persian
-    he  = true, -- Hebrew
-    ks  = true, -- Kashmiri
-    ku  = true, -- Kurdish
-    ps  = true, -- Pashto
-    sd  = true, -- Sindhi
-    ug  = true, -- Uyghur
-    ur  = true, -- Urdu
-    yi  = true, -- Yiddish
-  }
+    dv = true, -- Divehi
+    fa = true, -- Persian
+    he = true, -- Hebrew
+    ks = true, -- Kashmiri
+    ku = true, -- Kurdish
+    ps = true, -- Pashto
+    sd = true, -- Sindhi
+    ug = true, -- Uyghur
+    ur = true, -- Urdu
+    yi = true, -- Yiddish
+  },
 }
 
 function Language:getLanguageName(lang_locale)
@@ -87,7 +87,7 @@ function Language:isLanguageRTL(lang_locale)
   local lang = lang_locale
   local sep = lang:find("_")
   if sep then
-    lang = lang:sub(1, sep-1)
+    lang = lang:sub(1, sep - 1)
   end
   return self.languages_rtl[lang] or false
 end
@@ -96,7 +96,9 @@ function Language:changeLanguage(lang_locale)
   local UIManager = require("ui/uimanager")
   _.changeLang(lang_locale)
   G_reader_settings:saveSetting("language", lang_locale)
-  UIManager:askForRestart(_("Please restart KOReader for the new language setting to take effect."))
+  UIManager:askForRestart(
+    _("Please restart KOReader for the new language setting to take effect.")
+  )
 end
 
 function Language:genLanguageSubItem(lang_locale)
@@ -110,7 +112,7 @@ function Language:genLanguageSubItem(lang_locale)
     end,
     callback = function()
       self:changeLanguage(lang_locale)
-    end
+    end,
   }
 end
 
@@ -168,7 +170,7 @@ function Language:getLangMenuTable()
         self:genLanguageSubItem("zh_CN"),
         self:genLanguageSubItem("zh_TW"),
         --self:genLanguageSubItem("zh_TW.Big5"),
-      }
+      },
     }
   end
   return self.LangMenuTable

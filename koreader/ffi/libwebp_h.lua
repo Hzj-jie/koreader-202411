@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 static const int WEBP_DEMUX_ABI_VERSION = 263;
 enum WEBP_CSP_MODE {
   MODE_RGB = 0,
@@ -46,4 +46,4 @@ int WebPAnimDecoderGetInfo(const WebPAnimDecoder *, WebPAnimInfo *) __attribute_
 int WebPAnimDecoderGetNext(WebPAnimDecoder *, uint8_t **, int *) __attribute__((visibility("default")));
 void WebPAnimDecoderReset(WebPAnimDecoder *) __attribute__((visibility("default")));
 void WebPAnimDecoderDelete(WebPAnimDecoder *) __attribute__((visibility("default")));
-]]
+]])

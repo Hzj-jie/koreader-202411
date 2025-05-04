@@ -54,90 +54,120 @@ local stdout, stderr = io.stdout, io.stderr
 ------------------------------------------------------------------------------
 
 local function ctlsub(c)
-  if c == "\n" then return "\\n"
-  elseif c == "\r" then return "\\r"
-  elseif c == "\t" then return "\\t"
-  else return format("\\%03d", byte(c))
+  if c == "\n" then
+    return "\\n"
+  elseif c == "\r" then
+    return "\\r"
+  elseif c == "\t" then
+    return "\\t"
+  else
+    return format("\\%03d", byte(c))
   end
 end
 
 -- Return one bytecode line.
 local function bcline(func, pc, prefix)
   local ins, m = funcbc(func, pc)
-  if not ins then return end
-  local ma, mb, mc = band(m, 7), band(m, 15*8), band(m, 15*128)
+  if not ins then
+    return
+  end
+  local ma, mb, mc = band(m, 7), band(m, 15 * 8), band(m, 15 * 128)
   local a = band(shr(ins, 8), 0xff)
-  local oidx = 6*band(ins, 0xff)
-  local op = sub(bcnames, oidx+1, oidx+6)
-  local s = format("%04d %s %-6s %3s ",
-    pc, prefix or "  ", op, ma == 0 and "" or a)
+  local oidx = 6 * band(ins, 0xff)
+  local op = sub(bcnames, oidx + 1, oidx + 6)
+  local s =
+    format("%04d %s %-6s %3s ", pc, prefix or "  ", op, ma == 0 and "" or a)
   local d = shr(ins, 16)
-  if mc == 13*128 then -- BCMjump
-    return format("%s=> %04d\n", s, pc+d-0x7fff)
+  if mc == 13 * 128 then -- BCMjump
+    return format("%s=> %04d\n", s, pc + d - 0x7fff)
   end
   if mb ~= 0 then
     d = band(d, 0xff)
   elseif mc == 0 then
-    return s.."\n"
+    return s .. "\n"
   end
   local kc
-  if mc == 10*128 then -- BCMstr
-    kc = funck(func, -d-1)
+  if mc == 10 * 128 then -- BCMstr
+    kc = funck(func, -d - 1)
     kc = format(#kc > 40 and '"%.40s"~' or '"%s"', gsub(kc, "%c", ctlsub))
-  elseif mc == 9*128 then -- BCMnum
+  elseif mc == 9 * 128 then -- BCMnum
     kc = funck(func, d)
-    if op == "TSETM " then kc = kc - 2^52 end
-  elseif mc == 12*128 then -- BCMfunc
-    local fi = funcinfo(funck(func, -d-1))
+    if op == "TSETM " then
+      kc = kc - 2 ^ 52
+    end
+  elseif mc == 12 * 128 then -- BCMfunc
+    local fi = funcinfo(funck(func, -d - 1))
     if fi.ffid then
       kc = vmdef.ffnames[fi.ffid]
     else
       kc = fi.loc
     end
-  elseif mc == 5*128 then -- BCMuv
+  elseif mc == 5 * 128 then -- BCMuv
     kc = funcuvname(func, d)
   end
   if ma == 5 then -- BCMuv
     local ka = funcuvname(func, a)
-    if kc then kc = ka.." ; "..kc else kc = ka end
+    if kc then
+      kc = ka .. " ; " .. kc
+    else
+      kc = ka
+    end
   end
   if mb ~= 0 then
     local b = shr(ins, 24)
-    if kc then return format("%s%3d %3d  ; %s\n", s, b, d, kc) end
+    if kc then
+      return format("%s%3d %3d  ; %s\n", s, b, d, kc)
+    end
     return format("%s%3d %3d\n", s, b, d)
   end
-  if kc then return format("%s%3d      ; %s\n", s, d, kc) end
-  if mc == 7*128 and d > 32767 then d = d - 65536 end -- BCMlits
+  if kc then
+    return format("%s%3d      ; %s\n", s, d, kc)
+  end
+  if mc == 7 * 128 and d > 32767 then
+    d = d - 65536
+  end -- BCMlits
   return format("%s%3d\n", s, d)
 end
 
 -- Collect branch targets of a function.
 local function bctargets(func)
   local target = {}
-  for pc=1,1000000000 do
+  for pc = 1, 1000000000 do
     local ins, m = funcbc(func, pc)
-    if not ins then break end
-    if band(m, 15*128) == 13*128 then target[pc+shr(ins, 16)-0x7fff] = true end
+    if not ins then
+      break
+    end
+    if band(m, 15 * 128) == 13 * 128 then
+      target[pc + shr(ins, 16) - 0x7fff] = true
+    end
   end
   return target
 end
 
 -- Dump bytecode instructions of a function.
 local function bcdump(func, out, all)
-  if not out then out = stdout end
+  if not out then
+    out = stdout
+  end
   local fi = funcinfo(func)
   if all and fi.children then
-    for n=-1,-1000000000,-1 do
+    for n = -1, -1000000000, -1 do
       local k = funck(func, n)
-      if not k then break end
-      if type(k) == "proto" then bcdump(k, out, true) end
+      if not k then
+        break
+      end
+      if type(k) == "proto" then
+        bcdump(k, out, true)
+      end
     end
   end
   out:write(format("-- BYTECODE -- %s-%d\n", fi.loc, fi.lastlinedefined))
   local target = bctargets(func)
-  for pc=1,1000000000 do
+  for pc = 1, 1000000000 do
     local s = bcline(func, pc, target[pc] and "=>")
-    if not s then break end
+    if not s then
+      break
+    end
     out:write(s)
   end
   out:write("\n")
@@ -159,15 +189,21 @@ local function bclistoff()
   if active then
     active = false
     jit.attach(h_list)
-    if out and out ~= stdout and out ~= stderr then out:close() end
+    if out and out ~= stdout and out ~= stderr then
+      out:close()
+    end
     out = nil
   end
 end
 
 -- Open the output file and attach list handler.
 local function bcliston(outfile)
-  if active then bclistoff() end
-  if not outfile then outfile = os.getenv("LUAJIT_LISTFILE") end
+  if active then
+    bclistoff()
+  end
+  if not outfile then
+    outfile = os.getenv("LUAJIT_LISTFILE")
+  end
   if outfile then
     out = outfile == "-" and stdout or assert(io.open(outfile, "w"))
   else
@@ -184,6 +220,5 @@ return {
   targets = bctargets,
   on = bcliston,
   off = bclistoff,
-  start = bcliston -- For -j command line option.
+  start = bcliston, -- For -j command line option.
 }
-

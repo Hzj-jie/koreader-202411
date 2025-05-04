@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 typedef int8_t utf8proc_int8_t;
 typedef uint8_t utf8proc_uint8_t;
 typedef int16_t utf8proc_int16_t;
@@ -184,4 +184,4 @@ utf8proc_uint8_t *utf8proc_NFC(const utf8proc_uint8_t *) __attribute__((visibili
 utf8proc_uint8_t *utf8proc_NFKD(const utf8proc_uint8_t *) __attribute__((visibility("default")));
 utf8proc_uint8_t *utf8proc_NFKC(const utf8proc_uint8_t *) __attribute__((visibility("default")));
 utf8proc_uint8_t *utf8proc_NFKC_Casefold(const utf8proc_uint8_t *) __attribute__((visibility("default")));
-]]
+]])

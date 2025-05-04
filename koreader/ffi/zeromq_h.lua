@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 typedef struct _zmsg_t zmsg_t;
 typedef struct _zhash_t zhash_t;
 typedef struct _zsock_t zsock_t;
@@ -37,4 +37,4 @@ zhash_t *zhash_unpack(zframe_t *);
 void zpoller_destroy(zpoller_t **);
 zpoller_t *zpoller_new(void *, ...);
 void *zpoller_wait(zpoller_t *, int);
-]]
+]])

@@ -15,7 +15,7 @@ local output_utility = require("json.encode.output_utility")
 
 local _ENV = nil
 
-local tableCompositeCache = setmetatable({}, {__mode = 'v'})
+local tableCompositeCache = setmetatable({}, { __mode = "v" })
 
 local TABLE_VALUE_WRITER = [[
 	ret[#ret + 1] = %VALUE%
@@ -28,18 +28,32 @@ local TABLE_INNER_WRITER = ""
 	expected to be called until nil is first return value
 	value separator should either be attached to v1 or in innerValue
 ]]
-local function defaultTableCompositeWriter(nextValues, beginValue, closeValue, innerValue, composite, encode, state)
-	if type(nextValues) == 'string' then
-		local fun = output_utility.prepareEncoder(defaultTableCompositeWriter, nextValues, innerValue, TABLE_VALUE_WRITER, TABLE_INNER_WRITER)
-		local ret = {}
-		fun(composite, ret, encode, state)
-		return beginValue .. table_concat(ret, innerValue) .. closeValue
-	end
+local function defaultTableCompositeWriter(
+  nextValues,
+  beginValue,
+  closeValue,
+  innerValue,
+  composite,
+  encode,
+  state
+)
+  if type(nextValues) == "string" then
+    local fun = output_utility.prepareEncoder(
+      defaultTableCompositeWriter,
+      nextValues,
+      innerValue,
+      TABLE_VALUE_WRITER,
+      TABLE_INNER_WRITER
+    )
+    local ret = {}
+    fun(composite, ret, encode, state)
+    return beginValue .. table_concat(ret, innerValue) .. closeValue
+  end
 end
 
 -- no 'simple' as default action is just to return the value
 local function getDefault()
-	return { composite = defaultTableCompositeWriter }
+  return { composite = defaultTableCompositeWriter }
 end
 
 -- BEGIN IO-WRITER OUTPUT
@@ -53,39 +67,53 @@ local IO_VALUE_WRITER = [[
 ]]
 
 local function buildIoWriter(output)
-	if not output then -- Default to stdout
-		output = io.output()
-	end
-	local function ioWriter(nextValues, beginValue, closeValue, innerValue, composite, encode, state)
-		-- HOOK OUTPUT STATE
-		state.__outputFile = output
-		if type(nextValues) == 'string' then
-			local fun = output_utility.prepareEncoder(ioWriter, nextValues, innerValue, IO_VALUE_WRITER, IO_INNER_WRITER)
-			local ret = {}
-			output:write(beginValue)
-			fun(composite, ret, encode, state)
-			output:write(closeValue)
-			return nil
-		end
-	end
+  if not output then -- Default to stdout
+    output = io.output()
+  end
+  local function ioWriter(
+    nextValues,
+    beginValue,
+    closeValue,
+    innerValue,
+    composite,
+    encode,
+    state
+  )
+    -- HOOK OUTPUT STATE
+    state.__outputFile = output
+    if type(nextValues) == "string" then
+      local fun = output_utility.prepareEncoder(
+        ioWriter,
+        nextValues,
+        innerValue,
+        IO_VALUE_WRITER,
+        IO_INNER_WRITER
+      )
+      local ret = {}
+      output:write(beginValue)
+      fun(composite, ret, encode, state)
+      output:write(closeValue)
+      return nil
+    end
+  end
 
-	local function ioSimpleWriter(encoded)
-		if encoded then
-			output:write(encoded)
-		end
-		return nil
-	end
-	return { composite = ioWriter, simple = ioSimpleWriter }
+  local function ioSimpleWriter(encoded)
+    if encoded then
+      output:write(encoded)
+    end
+    return nil
+  end
+  return { composite = ioWriter, simple = ioSimpleWriter }
 end
 local function getIoWriter(output)
-	return function()
-		return buildIoWriter(output)
-	end
+  return function()
+    return buildIoWriter(output)
+  end
 end
 
 local output = {
-	getDefault = getDefault,
-	getIoWriter = getIoWriter
+  getDefault = getDefault,
+  getIoWriter = getIoWriter,
 }
 
 return output

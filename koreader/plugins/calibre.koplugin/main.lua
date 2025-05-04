@@ -20,10 +20,10 @@ local _ = require("gettext")
 local C_ = _.pgettext
 local T = require("ffi/util").template
 
-local Calibre = WidgetContainer:extend{
+local Calibre = WidgetContainer:extend({
   name = "calibre",
   is_doc_only = false,
-}
+})
 
 function Calibre:onCalibreSearch()
   CalibreSearch:ShowSearch()
@@ -69,13 +69,53 @@ function Calibre:closeWirelessConnection()
 end
 
 function Calibre:onDispatcherRegisterActions()
-  Dispatcher:registerAction("calibre_search", { category="none", event="CalibreSearch", title=_("Calibre metadata search"), general=true,})
-  Dispatcher:registerAction("calibre_browse_tags", { category="none", event="CalibreBrowseBy", arg="tags", title=_("Browse all calibre tags"), general=true,})
-  Dispatcher:registerAction("calibre_browse_series", { category="none", event="CalibreBrowseBy", arg="series", title=_("Browse all calibre series"), general=true,})
-  Dispatcher:registerAction("calibre_browse_authors", { category="none", event="CalibreBrowseBy", arg="authors", title=_("Browse all calibre authors"), general=true,})
-  Dispatcher:registerAction("calibre_browse_titles", { category="none", event="CalibreBrowseBy", arg="title", title=_("Browse all calibre titles"), general=true, separator=true,})
-  Dispatcher:registerAction("calibre_start_connection", { category="none", event="StartWirelessConnection", title=_("Calibre wireless connect"), general=true,})
-  Dispatcher:registerAction("calibre_close_connection", { category="none", event="CloseWirelessConnection", title=_("Calibre wireless disconnect"), general=true,})
+  Dispatcher:registerAction("calibre_search", {
+    category = "none",
+    event = "CalibreSearch",
+    title = _("Calibre metadata search"),
+    general = true,
+  })
+  Dispatcher:registerAction("calibre_browse_tags", {
+    category = "none",
+    event = "CalibreBrowseBy",
+    arg = "tags",
+    title = _("Browse all calibre tags"),
+    general = true,
+  })
+  Dispatcher:registerAction("calibre_browse_series", {
+    category = "none",
+    event = "CalibreBrowseBy",
+    arg = "series",
+    title = _("Browse all calibre series"),
+    general = true,
+  })
+  Dispatcher:registerAction("calibre_browse_authors", {
+    category = "none",
+    event = "CalibreBrowseBy",
+    arg = "authors",
+    title = _("Browse all calibre authors"),
+    general = true,
+  })
+  Dispatcher:registerAction("calibre_browse_titles", {
+    category = "none",
+    event = "CalibreBrowseBy",
+    arg = "title",
+    title = _("Browse all calibre titles"),
+    general = true,
+    separator = true,
+  })
+  Dispatcher:registerAction("calibre_start_connection", {
+    category = "none",
+    event = "StartWirelessConnection",
+    title = _("Calibre wireless connect"),
+    general = true,
+  })
+  Dispatcher:registerAction("calibre_close_connection", {
+    category = "none",
+    event = "CloseWirelessConnection",
+    title = _("Calibre wireless disconnect"),
+    general = true,
+  })
 end
 
 function Calibre:init()
@@ -109,7 +149,8 @@ function Calibre:addToMainMenu(menu_items)
           end
         end,
       },
-      {   text = _("Search settings"),
+      {
+        text = _("Search settings"),
         keep_menu_open = true,
         sub_item_table = self:getSearchMenuTable(),
       },
@@ -118,15 +159,17 @@ function Calibre:addToMainMenu(menu_items)
         keep_menu_open = true,
         sub_item_table = self:getWirelessMenuTable(),
       },
-    }
+    },
   }
   -- insert the metadata search
-  if G_reader_settings:isTrue("calibre_search_from_reader") or not self.ui.view then
+  if
+    G_reader_settings:isTrue("calibre_search_from_reader") or not self.ui.view
+  then
     menu_items.find_book_in_calibre_catalog = {
       text = _("Calibre metadata search"),
       callback = function()
         CalibreSearch:ShowSearch()
-      end
+      end,
     }
   end
 end
@@ -160,7 +203,7 @@ function Calibre:getSearchMenuTable()
         if #result == 0 then
           table.insert(result, {
             text = _("No calibre libraries"),
-            enabled = false
+            enabled = false,
           })
         end
         table.insert(result, 1, {
@@ -180,9 +223,9 @@ function Calibre:getSearchMenuTable()
       end,
       callback = function()
         G_reader_settings:flipNilOrFalse("calibre_search_from_reader")
-        UIManager:show(InfoMessage:new{
+        UIManager:show(InfoMessage:new({
           text = _("This will take effect on next restart."),
-        })
+        }))
       end,
     },
     {
@@ -197,7 +240,9 @@ function Calibre:getSearchMenuTable()
     {
       text = _("Case sensitive search"),
       checked_func = function()
-        return not G_reader_settings:nilOrTrue("calibre_search_case_insensitive")
+        return not G_reader_settings:nilOrTrue(
+          "calibre_search_case_insensitive"
+        )
       end,
       callback = function()
         G_reader_settings:flipNilOrTrue("calibre_search_case_insensitive")
@@ -314,13 +359,14 @@ function Calibre:getWirelessMenuTable()
           callback = function(touchmenu_instance)
             local MultiInputDialog = require("ui/widget/multiinputdialog")
             local url_dialog
-            local calibre_url = G_reader_settings:readSetting("calibre_wireless_url")
+            local calibre_url =
+              G_reader_settings:readSetting("calibre_wireless_url")
             local calibre_url_address, calibre_url_port
             if calibre_url then
               calibre_url_address = calibre_url["address"]
               calibre_url_port = calibre_url["port"]
             end
-            url_dialog = MultiInputDialog:new{
+            url_dialog = MultiInputDialog:new({
               title = _("Set custom calibre address"),
               fields = {
                 {
@@ -334,7 +380,7 @@ function Calibre:getWirelessMenuTable()
                   hint = _("Port"),
                 },
               },
-              buttons =  {
+              buttons = {
                 {
                   {
                     text = _("Cancel"),
@@ -351,17 +397,22 @@ function Calibre:getWirelessMenuTable()
                         local port = tonumber(fields[2])
                         if not port or port < 1 or port > 65355 then
                           --default port
-                           port = 9090
+                          port = 9090
                         end
-                        G_reader_settings:saveSetting("calibre_wireless_url", {address = fields[1], port = port })
+                        G_reader_settings:saveSetting(
+                          "calibre_wireless_url",
+                          { address = fields[1], port = port }
+                        )
                       end
                       UIManager:close(url_dialog)
-                      if touchmenu_instance then touchmenu_instance:updateItems() end
+                      if touchmenu_instance then
+                        touchmenu_instance:updateItems()
+                      end
                     end,
                   },
                 },
               },
-            }
+            })
             UIManager:show(url_dialog)
             url_dialog:onShowKeyboard()
           end,
@@ -381,29 +432,38 @@ function Calibre:getWirelessMenuTable()
             keep_menu_open = true,
             separator = true,
             callback = function()
-              UIManager:show(InfoMessage:new{
-                text = string.format("%s: %s \n\n%s",
-                _("Supported file formats"),
-                CalibreExtensions:getInfo(),
-                _("Unsupported formats will be converted by calibre to the first format of the list."))
-              })
+              UIManager:show(InfoMessage:new({
+                text = string.format(
+                  "%s: %s \n\n%s",
+                  _("Supported file formats"),
+                  CalibreExtensions:getInfo(),
+                  _(
+                    "Unsupported formats will be converted by calibre to the first format of the list."
+                  )
+                ),
+              }))
             end,
-          }
+          },
         }
 
         for i, v in ipairs(CalibreExtensions.outputs) do
           table.insert(submenu, {})
-          submenu[i+1].text = v
-          submenu[i+1].checked_func = function()
+          submenu[i + 1].text = v
+          submenu[i + 1].checked_func = function()
             if v == CalibreExtensions.default_output then
               return true
             end
             return false
           end
-          submenu[i+1].callback = function()
-            if type(v) == "string" and v ~= CalibreExtensions.default_output then
+          submenu[i + 1].callback = function()
+            if
+              type(v) == "string" and v ~= CalibreExtensions.default_output
+            then
               CalibreExtensions.default_output = v
-              G_reader_settings:saveSetting("calibre_wireless_default_format", CalibreExtensions.default_output)
+              G_reader_settings:saveSetting(
+                "calibre_wireless_default_format",
+                CalibreExtensions.default_output
+              )
             end
           end
         end

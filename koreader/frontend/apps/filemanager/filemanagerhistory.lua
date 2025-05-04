@@ -15,17 +15,17 @@ local _ = require("gettext")
 local C_ = _.pgettext
 local T = require("ffi/util").template
 
-local FileManagerHistory = WidgetContainer:extend{
+local FileManagerHistory = WidgetContainer:extend({
   hist_menu_title = _("History"),
-}
+})
 
 local filter_text = {
-  all     = C_("Book status filter", "All"),
-  reading   = C_("Book status filter", "Reading"),
+  all = C_("Book status filter", "All"),
+  reading = C_("Book status filter", "Reading"),
   abandoned = C_("Book status filter", "On hold"),
-  complete  = C_("Book status filter", "Finished"),
-  deleted   = C_("Book status filter", "Deleted"),
-  new     = C_("Book status filter", "New"),
+  complete = C_("Book status filter", "Finished"),
+  deleted = C_("Book status filter", "Deleted"),
+  new = C_("Book status filter", "New"),
 }
 
 function FileManagerHistory:init()
@@ -63,13 +63,21 @@ function FileManagerHistory:fetchStatuses(count)
 end
 
 function FileManagerHistory:updateItemTable()
-  self.count = { all = #require("readhistory").hist,
-    reading = 0, abandoned = 0, complete = 0, deleted = 0, new = 0, }
+  self.count = {
+    all = #require("readhistory").hist,
+    reading = 0,
+    abandoned = 0,
+    complete = 0,
+    deleted = 0,
+    new = 0,
+  }
   local item_table = {}
   for _, v in ipairs(require("readhistory").hist) do
     if self:isItemMatch(v) then
       local item = util.tableDeepCopy(v)
-      if item.select_enabled and ReadCollection:isFileInCollections(item.file) then
+      if
+        item.select_enabled and ReadCollection:isFileInCollections(item.file)
+      then
         item.mandatory = "☆ " .. item.mandatory
       end
       if self.is_frozen and item.status == "complete" then
@@ -87,14 +95,16 @@ function FileManagerHistory:updateItemTable()
   elseif self.selected_collections then
     subtitle = T(_("Filtered by collections (%1)"), #item_table)
   elseif self.filter ~= "all" then
-    subtitle = T(_("Status: %1 (%2)"), filter_text[self.filter]:lower(), #item_table)
+    subtitle =
+      T(_("Status: %1 (%2)"), filter_text[self.filter]:lower(), #item_table)
   end
   self.hist_menu:switchItemTable(nil, item_table, -1, nil, subtitle)
 end
 
 function FileManagerHistory:isItemMatch(item)
   if self.search_string then
-    local filename = self.case_sensitive and item.text or Utf8Proc.lowercase(util.fixUtf8(item.text, "?"))
+    local filename = self.case_sensitive and item.text
+      or Utf8Proc.lowercase(util.fixUtf8(item.text, "?"))
     if not filename:find(self.search_string) then
       local book_props
       if self.ui.coverbrowser then
@@ -103,7 +113,13 @@ function FileManagerHistory:isItemMatch(item)
       if not book_props then
         book_props = self.ui.bookinfo.getDocProps(item.file, nil, true) -- do not open the document
       end
-      if not self.ui.bookinfo:findInProps(book_props, self.search_string, self.case_sensitive) then
+      if
+        not self.ui.bookinfo:findInProps(
+          book_props,
+          self.search_string,
+          self.case_sensitive
+        )
+      then
         return false
       end
     end
@@ -135,7 +151,8 @@ end
 function FileManagerHistory:onMenuHold(item)
   local file = item.file
   self.histfile_dialog = nil
-  self.book_props = self.ui.coverbrowser and self.ui.coverbrowser:getBookInfo(file)
+  self.book_props = self.ui.coverbrowser
+    and self.ui.coverbrowser:getBookInfo(file)
 
   local function close_dialog_callback()
     UIManager:close(self.histfile_dialog)
@@ -157,7 +174,8 @@ function FileManagerHistory:onMenuHold(item)
   local function update_callback()
     self._manager:updateItemTable()
   end
-  local is_currently_opened = file == (self.ui.document and self.ui.document.file)
+  local is_currently_opened = file
+    == (self.ui.document and self.ui.document.file)
 
   local buttons = {}
   local doc_settings_or_file
@@ -180,12 +198,27 @@ function FileManagerHistory:onMenuHold(item)
     end
   end
   if not item.dim then
-    table.insert(buttons, filemanagerutil.genStatusButtonsRow(doc_settings_or_file, close_dialog_update_callback))
+    table.insert(
+      buttons,
+      filemanagerutil.genStatusButtonsRow(
+        doc_settings_or_file,
+        close_dialog_update_callback
+      )
+    )
     table.insert(buttons, {}) -- separator
   end
   table.insert(buttons, {
-    filemanagerutil.genResetSettingsButton(doc_settings_or_file, close_dialog_update_callback, is_currently_opened),
-    self._manager.ui.collections:genAddToCollectionButton(file, close_dialog_callback, update_callback, item.dim),
+    filemanagerutil.genResetSettingsButton(
+      doc_settings_or_file,
+      close_dialog_update_callback,
+      is_currently_opened
+    ),
+    self._manager.ui.collections:genAddToCollectionButton(
+      file,
+      close_dialog_callback,
+      update_callback,
+      item.dim
+    ),
   })
   table.insert(buttons, {
     {
@@ -202,7 +235,11 @@ function FileManagerHistory:onMenuHold(item)
         UIManager:close(self.histfile_dialog)
         -- The item's idx field is tied to the current *view*, so we can only pass it as-is when there's no filtering *at all* involved.
         local index = item.idx
-        if self._manager.search_string or self._manager.selected_collections or self._manager.filter ~= "all" then
+        if
+          self._manager.search_string
+          or self._manager.selected_collections
+          or self._manager.filter ~= "all"
+        then
           index = nil
         end
         require("readhistory"):removeItem(item, index)
@@ -211,25 +248,44 @@ function FileManagerHistory:onMenuHold(item)
     },
   })
   table.insert(buttons, {
-    filemanagerutil.genShowFolderButton(file, close_dialog_menu_callback, item.dim),
-    filemanagerutil.genBookInformationButton(doc_settings_or_file, self.book_props, close_dialog_callback, item.dim),
+    filemanagerutil.genShowFolderButton(
+      file,
+      close_dialog_menu_callback,
+      item.dim
+    ),
+    filemanagerutil.genBookInformationButton(
+      doc_settings_or_file,
+      self.book_props,
+      close_dialog_callback,
+      item.dim
+    ),
   })
   table.insert(buttons, {
-    filemanagerutil.genBookCoverButton(file, self.book_props, close_dialog_callback, item.dim),
-    filemanagerutil.genBookDescriptionButton(file, self.book_props, close_dialog_callback, item.dim),
+    filemanagerutil.genBookCoverButton(
+      file,
+      self.book_props,
+      close_dialog_callback,
+      item.dim
+    ),
+    filemanagerutil.genBookDescriptionButton(
+      file,
+      self.book_props,
+      close_dialog_callback,
+      item.dim
+    ),
   })
 
-  self.histfile_dialog = ButtonDialog:new{
+  self.histfile_dialog = ButtonDialog:new({
     title = BD.filename(item.text),
     title_align = "center",
     buttons = buttons,
-  }
+  })
   UIManager:show(self.histfile_dialog)
   return true
 end
 
 function FileManagerHistory:onShowHist(search_info)
-  self.hist_menu = Menu:new{
+  self.hist_menu = Menu:new({
     ui = self.ui,
     covers_fullscreen = true, -- hint for UIManager:_repaint()
     is_borderless = true,
@@ -239,12 +295,16 @@ function FileManagerHistory:onShowHist(search_info)
     -- must be equal in File manager, History and Collection windows to avoid image scaling
     title_bar_fm_style = true,
     title_bar_left_icon = "appbar.menu",
-    onLeftButtonTap = function() self:showHistDialog() end,
+    onLeftButtonTap = function()
+      self:showHistDialog()
+    end,
     onMenuChoice = self.onMenuChoice,
     onMenuHold = self.onMenuHold,
     _manager = self,
-    _recreate_func = function() self:onShowHist(search_info) end,
-  }
+    _recreate_func = function()
+      self:onShowHist(search_info)
+    end,
+  })
 
   if search_info then
     self.search_string = search_info.search_string
@@ -315,7 +375,11 @@ function FileManagerHistory:showHistDialog()
           self.selected_collections = selected_collections
           self:updateItemTable()
         end
-        self.ui.collections:onShowCollList(self.selected_collections or {}, caller_callback, true) -- no dialog to apply
+        self.ui.collections:onShowCollList(
+          self.selected_collections or {},
+          caller_callback,
+          true
+        ) -- no dialog to apply
       end,
     },
   })
@@ -334,7 +398,7 @@ function FileManagerHistory:showHistDialog()
       {
         text = _("Clear history of deleted files"),
         callback = function()
-          local confirmbox = ConfirmBox:new{
+          local confirmbox = ConfirmBox:new({
             text = _("Clear history of deleted files?"),
             ok_text = _("Clear"),
             ok_callback = function()
@@ -342,23 +406,23 @@ function FileManagerHistory:showHistDialog()
               require("readhistory"):clearMissing()
               self:updateItemTable()
             end,
-          }
+          })
           UIManager:show(confirmbox)
         end,
       },
     })
   end
-  hist_dialog = ButtonDialog:new{
+  hist_dialog = ButtonDialog:new({
     title = _("Filter by book status"),
     title_align = "center",
     buttons = buttons,
-  }
+  })
   UIManager:show(hist_dialog)
 end
 
 function FileManagerHistory:onSearchHistory()
   local search_dialog, check_button_case
-  search_dialog = InputDialog:new{
+  search_dialog = InputDialog:new({
     title = _("Enter text to search history for"),
     input = self.search_string,
     buttons = {
@@ -377,7 +441,8 @@ function FileManagerHistory:onSearchHistory()
             local search_string = search_dialog:getInputText()
             if search_string ~= "" then
               UIManager:close(search_dialog)
-              self.search_string = self.case_sensitive and search_string or search_string:lower()
+              self.search_string = self.case_sensitive and search_string
+                or search_string:lower()
               if self.hist_menu then -- called from History
                 self:updateItemTable()
               else -- called by Dispatcher
@@ -392,15 +457,15 @@ function FileManagerHistory:onSearchHistory()
         },
       },
     },
-  }
-  check_button_case = CheckButton:new{
+  })
+  check_button_case = CheckButton:new({
     text = _("Case sensitive"),
     checked = self.case_sensitive,
     parent = search_dialog,
     callback = function()
       self.case_sensitive = check_button_case.checked
     end,
-  }
+  })
   search_dialog:addWidget(check_button_case)
   UIManager:show(search_dialog)
   search_dialog:onShowKeyboard()

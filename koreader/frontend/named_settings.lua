@@ -5,17 +5,19 @@
 --- Unless there is a clear reason, functions won't return nil or empty values.
 
 local named_settings = {
-  set = {}
+  set = {},
 }
 
 function named_settings.home_dir()
   -- Use of readSetting("home_dir") should still be possible but very limited, e.g. protected by
   -- G_named_settings:has("home_dir") or with another way to provide the backup_dir().
-  return G_reader_settings:readSetting("home_dir") or require("util").backup_dir()
+  return G_reader_settings:readSetting("home_dir")
+    or require("util").backup_dir()
 end
 
 function named_settings.lastdir()
-  return G_reader_settings:readSetting("lastdir") or require("util").backup_dir()
+  return G_reader_settings:readSetting("lastdir")
+    or require("util").backup_dir()
 end
 
 function named_settings.activate_menu()

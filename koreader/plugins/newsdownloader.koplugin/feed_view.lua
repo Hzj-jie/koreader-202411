@@ -7,10 +7,15 @@ local FeedView = {
   DOWNLOAD_FULL_ARTICLE = "download_full_article",
   INCLUDE_IMAGES = "include_images",
   ENABLE_FILTER = "enable_filter",
-  FILTER_ELEMENT = "filter_element"
+  FILTER_ELEMENT = "filter_element",
 }
 
-function FeedView:getList(feed_config, callback, edit_feed_attribute_callback, delete_feed_callback)
+function FeedView:getList(
+  feed_config,
+  callback,
+  edit_feed_attribute_callback,
+  delete_feed_callback
+)
   local view_content = {}
   -- Loop through the feed.
   for idx, feed in ipairs(feed_config) do
@@ -24,34 +29,28 @@ function FeedView:getList(feed_config, callback, edit_feed_attribute_callback, d
     )
 
     if not vc_feed_item then
-      logger.warn('NewsDownloader: invalid feed config entry', feed)
+      logger.warn("NewsDownloader: invalid feed config entry", feed)
     else
       local KeyValuePage = require("ui/widget/keyvaluepage")
-      feed_item_content = KeyValuePage.flattenArray(feed_item_content, vc_feed_item)
+      feed_item_content =
+        KeyValuePage.flattenArray(feed_item_content, vc_feed_item)
       local url = feed[1]
-      table.insert(
-        view_content,
-        {
-          url,
-          "",
-          callback = function()
-            -- Here is where we trigger the single feed item display
-            callback(feed_item_content)
-          end
-        }
-      )
+      table.insert(view_content, {
+        url,
+        "",
+        callback = function()
+          -- Here is where we trigger the single feed item display
+          callback(feed_item_content)
+        end,
+      })
       -- Insert a divider.
-      table.insert(
-        view_content,
-        "---"
-      )
+      table.insert(view_content, "---")
     end
   end
   return view_content
 end
 
 function FeedView:getItem(id, feed, edit_feed_callback, delete_feed_callback)
-
   logger.dbg("NewsDownloader:", feed)
 
   local url = feed[1]
@@ -74,23 +73,15 @@ function FeedView:getItem(id, feed, edit_feed_callback, delete_feed_callback)
       _("URL"),
       url,
       callback = function()
-        edit_feed_callback(
-          id,
-          FeedView.URL,
-          url
-        )
-      end
+        edit_feed_callback(id, FeedView.URL, url)
+      end,
     },
     {
       _("Limit"),
       limit,
       callback = function()
-        edit_feed_callback(
-          id,
-          FeedView.LIMIT,
-          limit
-        )
-      end
+        edit_feed_callback(id, FeedView.LIMIT, limit)
+      end,
     },
     {
       _("Download full article"),
@@ -101,63 +92,42 @@ function FeedView:getItem(id, feed, edit_feed_callback, delete_feed_callback)
           FeedView.DOWNLOAD_FULL_ARTICLE,
           download_full_article
         )
-      end
+      end,
     },
     {
       _("Include images"),
       include_images,
       callback = function()
-        edit_feed_callback(
-          id,
-          FeedView.INCLUDE_IMAGES,
-          include_images
-        )
-      end
+        edit_feed_callback(id, FeedView.INCLUDE_IMAGES, include_images)
+      end,
     },
     {
       _("Enable filter"),
       enable_filter,
       callback = function()
-        edit_feed_callback(
-          id,
-          FeedView.ENABLE_FILTER,
-          enable_filter
-        )
-      end
-
+        edit_feed_callback(id, FeedView.ENABLE_FILTER, enable_filter)
+      end,
     },
     {
       _("Filter element"),
       filter_element,
       callback = function()
-        edit_feed_callback(
-          id,
-          FeedView.FILTER_ELEMENT,
-          filter_element
-        )
-      end
+        edit_feed_callback(id, FeedView.FILTER_ELEMENT, filter_element)
+      end,
     },
   }
 
   -- We don't always display this. For instance: if a feed
   -- is being created, this button is not necessary.
   if delete_feed_callback then
-    table.insert(
-      vc,
-      "---"
-    )
-    table.insert(
-      vc,
-      {
-        _("Delete feed"),
-        "",
-        callback = function()
-          delete_feed_callback(
-            id
-          )
-        end
-      }
-    )
+    table.insert(vc, "---")
+    table.insert(vc, {
+      _("Delete feed"),
+      "",
+      callback = function()
+        delete_feed_callback(id)
+      end,
+    })
   end
 
   return vc

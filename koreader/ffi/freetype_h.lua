@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 static const int FT_FACE_FLAG_EXTERNAL_STREAM = 1024;
 static const int FT_FACE_FLAG_FAST_GLYPHS = 128;
 static const int FT_FACE_FLAG_FIXED_SIZES = 2;
@@ -312,4 +312,4 @@ FT_Long FT_MulFix(FT_Long, FT_Long);
 FT_Error FT_Outline_Embolden(FT_Outline *, FT_Pos);
 void FT_Outline_Translate(const FT_Outline *, FT_Pos, FT_Pos);
 void *FT_Get_Sfnt_Table(FT_Face, FT_Sfnt_Tag);
-]]
+]])

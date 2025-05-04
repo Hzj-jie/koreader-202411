@@ -2,7 +2,7 @@
 -- calling methods, sending events... over HTTP.
 
 local DataStorage = require("datastorage")
-local Device =  require("device")
+local Device = require("device")
 local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -12,9 +12,9 @@ local util = require("util")
 local _ = require("gettext")
 local T = ffiUtil.template
 
-local HttpInspector = WidgetContainer:extend{
+local HttpInspector = WidgetContainer:extend({
   name = "httpinspector",
-}
+})
 
 -- A plugin gets instantiated on each document load and reader/FM switch.
 -- Ensure autostart only on KOReader startup, and keep the running state
@@ -24,7 +24,8 @@ local should_run = G_reader_settings:isTrue("httpinspector_autostart")
 local DEFAULT_PORT = Device:isEmulator() and 8080 or 80
 
 function HttpInspector:init()
-  self.port = G_reader_settings:readSetting("httpinspector_port") or DEFAULT_PORT
+  self.port = G_reader_settings:readSetting("httpinspector_port")
+    or DEFAULT_PORT
   if should_run then
     -- Delay this until after all plugins are loaded
     UIManager:nextTick(function()
@@ -85,23 +86,35 @@ function HttpInspector:start()
 
   -- Make a hole in the Kindle's firewall
   if Device:isKindle() then
-    os.execute(string.format("%s %s %s",
-      "iptables -A INPUT -p tcp --dport", self.port,
-      "-m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"))
-    os.execute(string.format("%s %s %s",
-      "iptables -A OUTPUT -p tcp --sport", self.port,
-      "-m conntrack --ctstate ESTABLISHED -j ACCEPT"))
+    os.execute(
+      string.format(
+        "%s %s %s",
+        "iptables -A INPUT -p tcp --dport",
+        self.port,
+        "-m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
+      )
+    )
+    os.execute(
+      string.format(
+        "%s %s %s",
+        "iptables -A OUTPUT -p tcp --sport",
+        self.port,
+        "-m conntrack --ctstate ESTABLISHED -j ACCEPT"
+      )
+    )
   end
 
   -- Using a simple LuaSocket based TCP server instead of a ZeroMQ based one
   -- seems to solve strange issues with Chrome.
   -- local ServerClass = require("ui/message/streammessagequeueserver")
   local ServerClass = require("ui/message/simpletcpserver")
-  self.http_socket = ServerClass:new{
+  self.http_socket = ServerClass:new({
     host = "*",
     port = self.port,
-    receiveCallback = function(data, id) return self:onRequest(data, id) end,
-  }
+    receiveCallback = function(data, id)
+      return self:onRequest(data, id)
+    end,
+  })
   self.http_socket:start()
   self.http_messagequeue = UIManager:insertZMQ(self.http_socket)
 
@@ -113,12 +126,22 @@ function HttpInspector:stop()
 
   -- Plug the hole in the Kindle's firewall
   if Device:isKindle() then
-    os.execute(string.format("%s %s %s",
-      "iptables -D INPUT -p tcp --dport", self.port,
-      "-m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"))
-    os.execute(string.format("%s %s %s",
-      "iptables -D OUTPUT -p tcp --sport", self.port,
-      "-m conntrack --ctstate ESTABLISHED -j ACCEPT"))
+    os.execute(
+      string.format(
+        "%s %s %s",
+        "iptables -D INPUT -p tcp --dport",
+        self.port,
+        "-m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
+      )
+    )
+    os.execute(
+      string.format(
+        "%s %s %s",
+        "iptables -D OUTPUT -p tcp --sport",
+        self.port,
+        "-m conntrack --ctstate ESTABLISHED -j ACCEPT"
+      )
+    )
   end
 
   if self.http_socket then
@@ -141,9 +164,9 @@ function HttpInspector:addToMainMenu(menu_items)
       {
         text_func = function()
           if self:isRunning() then
-            return _("Stop HTTP server") ..
-                   " - " ..
-                   T(_("Listening on port %1"), self.port)
+            return _("Stop HTTP server")
+              .. " - "
+              .. T(_("Listening on port %1"), self.port)
           end
           return _("Start HTTP server")
         end,
@@ -177,13 +200,15 @@ function HttpInspector:addToMainMenu(menu_items)
         callback = function(touchmenu_instance)
           local InputDialog = require("ui/widget/inputdialog")
           local port_dialog
-          port_dialog = InputDialog:new{
+          port_dialog = InputDialog:new({
             title = _("Set custom port"),
             input = self.port,
             input_type = "number",
-            input_hint = _("Port number (default is 8080)")
-                     :gsub("8080", DEFAULT_PORT),
-            buttons =  {
+            input_hint = _("Port number (default is 8080)"):gsub(
+              "8080",
+              DEFAULT_PORT
+            ),
+            buttons = {
               {
                 {
                   text = _("Cancel"),
@@ -200,7 +225,11 @@ function HttpInspector:addToMainMenu(menu_items)
                     logger.warn("port", port)
                     if port and port >= 1 and port <= 65535 then
                       self.port = port
-                      G_reader_settings:saveSetting("httpinspector_port", port, DEFAULT_PORT)
+                      G_reader_settings:saveSetting(
+                        "httpinspector_port",
+                        port,
+                        DEFAULT_PORT
+                      )
                       if self:isRunning() then
                         self:stop()
                         self:start()
@@ -212,54 +241,67 @@ function HttpInspector:addToMainMenu(menu_items)
                 },
               },
             },
-          }
+          })
           UIManager:show(port_dialog)
           port_dialog:onShowKeyboard()
         end,
-      }
+      },
     },
   }
 end
 
 local HTTP_RESPONSE_CODE = {
-  [200] = 'OK',
-  [201] = 'Created',
-  [202] = 'Accepted',
-  [204] = 'No Content',
-  [301] = 'Moved Permanently',
-  [302] = 'Found',
-  [304] = 'Not Modified',
-  [400] = 'Bad Request',
-  [401] = 'Unauthorized',
-  [403] = 'Forbidden',
-  [404] = 'Not Found',
-  [405] = 'Method Not Allowed',
-  [406] = 'Not Acceptable',
-  [408] = 'Request Timeout',
-  [410] = 'Gone',
-  [500] = 'Internal Server Error',
-  [501] = 'Not Implemented',
-  [503] = 'Service Unavailable',
+  [200] = "OK",
+  [201] = "Created",
+  [202] = "Accepted",
+  [204] = "No Content",
+  [301] = "Moved Permanently",
+  [302] = "Found",
+  [304] = "Not Modified",
+  [400] = "Bad Request",
+  [401] = "Unauthorized",
+  [403] = "Forbidden",
+  [404] = "Not Found",
+  [405] = "Method Not Allowed",
+  [406] = "Not Acceptable",
+  [408] = "Request Timeout",
+  [410] = "Gone",
+  [500] = "Internal Server Error",
+  [501] = "Not Implemented",
+  [503] = "Service Unavailable",
 }
 
 local CTYPE = {
-  CSS   = "text/css",
-  HTML  = "text/html",
-  JS  = "application/javascript",
-  JSON  = "application/json",
-  PNG   = "image/png",
-  TEXT  = "text/plain",
+  CSS = "text/css",
+  HTML = "text/html",
+  JS = "application/javascript",
+  JSON = "application/json",
+  PNG = "image/png",
+  TEXT = "text/plain",
 }
 
 function HttpInspector:sendResponse(reqinfo, http_code, content_type, body)
-  if not http_code then http_code = 400 end
-  if not body then body = "" end
-  if type(body) ~= "string" then body = tostring(body) end
+  if not http_code then
+    http_code = 400
+  end
+  if not body then
+    body = ""
+  end
+  if type(body) ~= "string" then
+    body = tostring(body)
+  end
 
   local response = {}
   -- StreamMessageQueueServer:send() closes the connection, so announce
   -- that with HTTP/1.0 and a "Connection: close" header.
-  table.insert(response, T("HTTP/1.0 %1 %2", http_code, HTTP_RESPONSE_CODE[http_code] or "Unspecified"))
+  table.insert(
+    response,
+    T(
+      "HTTP/1.0 %1 %2",
+      http_code,
+      HTTP_RESPONSE_CODE[http_code] or "Unspecified"
+    )
+  )
   -- If no content type provided, let the browser sniff it
   if content_type then
     -- Advertise all our text as being UTF-8
@@ -318,7 +360,7 @@ local getVariablesFromUri = function(uri)
   local end_idx = #uri
   local quoted
   for i = 1, end_idx do
-    local c = uri:sub(i,i)
+    local c = uri:sub(i, i)
     local skip = false
     if not stop_char then
       if c == "'" or c == '"' then
@@ -336,9 +378,9 @@ local getVariablesFromUri = function(uri)
     end
     if not skip then
       if c == stop_char or i == end_idx then
-        var_end_idx = c == stop_char and i-1 or i
+        var_end_idx = c == stop_char and i - 1 or i
         local text = uri:sub(var_start_idx, var_end_idx)
-          -- (We properly get an empty string if var_end_idx<var_start_idx)
+        -- (We properly get an empty string if var_end_idx<var_start_idx)
         local var
         if quoted then
           var = text -- as string
@@ -392,14 +434,15 @@ local _function_info_cache = {}
 
 -- Get info about a function object
 local getFunctionInfo = function(func, full_code)
-  local info = debug.getinfo( func, "S" )
-  local src, firstline, lastline = info.source, info.linedefined, info.lastlinedefined
+  local info = debug.getinfo(func, "S")
+  local src, firstline, lastline =
+    info.source, info.linedefined, info.lastlinedefined
   if firstline < 0 then
     -- With builtin or C functions, we get: [C] -1 -1
     -- Get something like "function: builtin" or "function: 0x7f5931f03828" instead
     src = string.format("%s", func)
   end
-  local hash = src.."#"..firstline.."#"..lastline
+  local hash = src .. "#" .. firstline .. "#" .. lastline
   if _function_info_cache[hash] and not full_code then
     return _function_info_cache[hash]
   end
@@ -410,7 +453,7 @@ local getFunctionInfo = function(func, full_code)
     if f then
       local num = 1
       while true do
-        local line = f:read('*line')
+        local line = f:read("*line")
         if not line then
           break
         end
@@ -438,20 +481,20 @@ local getFunctionInfo = function(func, full_code)
     info.signature = signature
     -- Try to guess (possibly wrongly) a few info from the signature string
     local dummy, cnt
-    dummy, cnt = signature:gsub("%(%)","") -- check for "()", no arg
+    dummy, cnt = signature:gsub("%(%)", "") -- check for "()", no arg
     if cnt > 0 then
       info.nb_args = 0
     else
-      dummy, cnt = signature:gsub(",","") -- check for nb of commas
+      dummy, cnt = signature:gsub(",", "") -- check for nb of commas
       info.nb_args = cnt and cnt + 1 or 1
     end
-    dummy, cnt = signature:gsub("%.%.%.","") -- check for "...", varargs
+    dummy, cnt = signature:gsub("%.%.%.", "") -- check for "...", varargs
     if cnt > 0 then
       info.nb_args = -1
     end
-    dummy, cnt = signature:gsub("^[^(]*:","")
+    dummy, cnt = signature:gsub("^[^(]*:", "")
     info.is_method = cnt > 0
-    info.classname = signature:gsub(".-(%w+):.*","%1")
+    info.classname = signature:gsub(".-(%w+):.*", "%1")
   else
     -- possibly some Lua builtin function or from some C-module
     lines = {}
@@ -582,7 +625,12 @@ function HttpInspector:onRequest(data, request_id)
       -- / but no /web/index.html created by the user: redirect to our /koreader/
       return self:sendResponse(reqinfo, 302, nil, "/koreader/")
     end
-    return self:sendResponse(reqinfo, 404, CTYPE.TEXT, "Static file not found: koreader/web" .. uri)
+    return self:sendResponse(
+      reqinfo,
+      404,
+      CTYPE.TEXT,
+      "Static file not found: koreader/web" .. uri
+    )
   end
 
   -- Request starts with /koreader/, followed by some predefined entry point
@@ -652,7 +700,12 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
           current_key = fragment
           obj = obj[fragment]
           if obj == nil then
-            return self:sendResponse(reqinfo, 404, CTYPE.TEXT, "No such table/object key: "..fragment)
+            return self:sendResponse(
+              reqinfo,
+              404,
+              CTYPE.TEXT,
+              "No such table/object key: " .. fragment
+            )
           end
           -- continue loop to process this children of our object
         end
@@ -666,9 +719,13 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
           return self:sendResponse(reqinfo, 500, CTYPE.TEXT, json)
         end
       else
-        return self:sendResponse(reqinfo, 400, CTYPE.TEXT, "Invalid request: unexpected token after "..reqinfo.parsed_uri)
+        return self:sendResponse(
+          reqinfo,
+          400,
+          CTYPE.TEXT,
+          "Invalid request: unexpected token after " .. reqinfo.parsed_uri
+        )
       end
-
     elseif obj_type == "function" then
       if ftype == "?" and not fragment then
         -- URI ends with 'function?' : output some documentation about that function
@@ -682,13 +739,23 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
         return self:callFunction(obj, parent, uri, ftype == "?/", reqinfo)
       else
         -- Nothing else accepted
-        return self:sendResponse(reqinfo, 400, CTYPE.TEXT, "Invalid request on function: use a trailing / to call, or ? to get details")
+        return self:sendResponse(
+          reqinfo,
+          400,
+          CTYPE.TEXT,
+          "Invalid request on function: use a trailing / to call, or ? to get details"
+        )
       end
-
-    elseif obj_type == "cdata" or obj_type == "userdata" or obj_type == "thread" then
+    elseif
+      obj_type == "cdata"
+      or obj_type == "userdata"
+      or obj_type == "thread"
+    then
       -- We can't do much on these Lua types.
       -- But try to guess if it's a BlitBuffer, that we can render as PNG !
-      local ok, is_bb = pcall(function() return obj.writePNG ~= nil end)
+      local ok, is_bb = pcall(function()
+        return obj.writePNG ~= nil
+      end)
       if ok and is_bb then
         local tmpfile = DataStorage:getDataDir() .. "/cache/tmp_bb.png"
         ok = pcall(obj.writePNG, obj, tmpfile)
@@ -702,8 +769,12 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
           end
         end
       end
-      return self:sendResponse(reqinfo, 403, CTYPE.TEXT, "Can't act on object of type: "..obj_type)
-
+      return self:sendResponse(
+        reqinfo,
+        403,
+        CTYPE.TEXT,
+        "Can't act on object of type: " .. obj_type
+      )
     else
       -- Simple Lua types: string, number, boolean, nil
       if ftype == "" then
@@ -715,29 +786,74 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
         uri = fragment .. uri -- put back first fragment into uri
         local args, nb_args = getVariablesFromUri(uri)
         if nb_args ~= 1 then
-          return self:sendResponse(reqinfo, 400, CTYPE.TEXT, "Variable assignment needs a single value")
+          return self:sendResponse(
+            reqinfo,
+            400,
+            CTYPE.TEXT,
+            "Variable assignment needs a single value"
+          )
         end
         local value = args[1]
         parent[current_key] = value -- do what is asked: assign it
         if ftype == "=" then
-          return self:sendResponse(reqinfo, 200, CTYPE.TEXT, T("Variable '%1' assigned with: %2", reqinfo.parsed_uri, tostring(value)))
+          return self:sendResponse(
+            reqinfo,
+            200,
+            CTYPE.TEXT,
+            T(
+              "Variable '%1' assigned with: %2",
+              reqinfo.parsed_uri,
+              tostring(value)
+            )
+          )
         else
           value = tostring(value)
           local html = {}
-          local add_html = function(h) table.insert(html, h) end
-          local html_quoted_value = value:gsub("&", "&#38;"):gsub(">", "&gt;"):gsub("<", "&lt;")
-          add_html(T("<title>%1.%2=%3</title>", reqinfo.fragments[2], reqinfo.fragments[1], html_quoted_value))
-          add_html(T("<pre wrap>Variable '%1' assigned with: <span style='color: blue;'>%2</span>", reqinfo.parsed_uri, value))
+          local add_html = function(h)
+            table.insert(html, h)
+          end
+          local html_quoted_value =
+            value:gsub("&", "&#38;"):gsub(">", "&gt;"):gsub("<", "&lt;")
+          add_html(
+            T(
+              "<title>%1.%2=%3</title>",
+              reqinfo.fragments[2],
+              reqinfo.fragments[1],
+              html_quoted_value
+            )
+          )
+          add_html(
+            T(
+              "<pre wrap>Variable '%1' assigned with: <span style='color: blue;'>%2</span>",
+              reqinfo.parsed_uri,
+              value
+            )
+          )
           add_html("")
-          add_html(T("<a href='%1/'>Browse back</a> to container object.", reqinfo.prev_parsed_uri))
+          add_html(
+            T(
+              "<a href='%1/'>Browse back</a> to container object.",
+              reqinfo.prev_parsed_uri
+            )
+          )
           html = table.concat(html, "\n")
           return self:sendResponse(reqinfo, 200, CTYPE.HTML, html)
         end
       elseif ftype == "?" then
-        return self:sendResponse(reqinfo, 400, CTYPE.TEXT, "No documentation available on simple types.")
+        return self:sendResponse(
+          reqinfo,
+          400,
+          CTYPE.TEXT,
+          "No documentation available on simple types."
+        )
       else
         -- Nothing else accepted
-        return self:sendResponse(reqinfo, 400, CTYPE.TEXT, "Invalid request on variable")
+        return self:sendResponse(
+          reqinfo,
+          400,
+          CTYPE.TEXT,
+          "Invalid request on variable"
+        )
       end
     end
   end
@@ -747,15 +863,21 @@ end
 -- Send a HTML page describing all this object's key/values
 function HttpInspector:browseObject(obj, reqinfo)
   local html = {}
-  local add_html = function(h) table.insert(html, h) end
+  local add_html = function(h)
+    table.insert(html, h)
+  end
   -- We want to display keys sorted by value kind
-  local KIND_OTHER  = 1 -- string/number/boolean/nil/cdata...
-  local KIND_TABLE  = 2 -- table/object
+  local KIND_OTHER = 1 -- string/number/boolean/nil/cdata...
+  local KIND_TABLE = 2 -- table/object
   local KIND_FUNCTION = 3 -- function/method
   local KINDS = { KIND_OTHER, KIND_TABLE, KIND_FUNCTION }
   local html_by_obj_kind
-  local reset_html_by_obj_kind = function() html_by_obj_kind = { {}, {}, {} } end
-  local add_html_to_obj_kind = function(kind, h) table.insert(html_by_obj_kind[kind], h) end
+  local reset_html_by_obj_kind = function()
+    html_by_obj_kind = { {}, {}, {} }
+  end
+  local add_html_to_obj_kind = function(kind, h)
+    table.insert(html_by_obj_kind[kind], h)
+  end
 
   local get_html_snippet = function(key, value, uri)
     local href = uri .. key
@@ -766,39 +888,98 @@ function HttpInspector:browseObject(obj, reqinfo)
       if classinfo then
         pad = (" "):rep(32 - #(tostring(key)))
       end
-      return T("<a href='%1' title='get as JSON'>J</a>  <a href='%2/'>%3</a> %4%5", href, href, key, pad, classinfo or ""), KIND_TABLE
+      return T(
+        "<a href='%1' title='get as JSON'>J</a>  <a href='%2/'>%3</a> %4%5",
+        href,
+        href,
+        key,
+        pad,
+        classinfo or ""
+      ),
+        KIND_TABLE
     elseif value_type == "function" then
       local pad = (" "):rep(30 - #key)
       local func_info = getFunctionInfo(value)
-      local siginfo = (func_info.is_method and "M" or "f") .. " " .. (func_info.nb_args >= 0 and func_info.nb_args or "*")
-      return T("   <a href='%1?'>%2</a>() %3%4 <em>%5</em>", href, key, pad, siginfo, func_info.signature), KIND_FUNCTION
-    elseif value_type == "string" or value_type == "number" or value_type == "boolean" or value_type == "nil" then
+      local siginfo = (func_info.is_method and "M" or "f")
+        .. " "
+        .. (func_info.nb_args >= 0 and func_info.nb_args or "*")
+      return T(
+        "   <a href='%1?'>%2</a>() %3%4 <em>%5</em>",
+        href,
+        key,
+        pad,
+        siginfo,
+        func_info.signature
+      ),
+        KIND_FUNCTION
+    elseif
+      value_type == "string"
+      or value_type == "number"
+      or value_type == "boolean"
+      or value_type == "nil"
+    then
       -- This is not totally fullproof (\n will be eaten by Javascript prompt(), other stuff may fail or get corrupted),
       -- but it should be ok for simple strings.
       local quoted_value
       local html_value
       if value_type == "string" then
-        quoted_value = '\\"' .. value:gsub('\\', '\\\\'):gsub('"', '&#x22;'):gsub("'", "&#x27;"):gsub('\n', '\\n'):gsub('<', '&lt;'):gsub('>', '&gt;') .. '\\"'
-        html_value = value:gsub("&", "&amp;"):gsub('"', "&quot;"):gsub(">", "&gt;"):gsub("<", "&lt;")
+        quoted_value = '\\"'
+          .. value
+            :gsub("\\", "\\\\")
+            :gsub('"', "&#x22;")
+            :gsub("'", "&#x27;")
+            :gsub("\n", "\\n")
+            :gsub("<", "&lt;")
+            :gsub(">", "&gt;")
+          .. '\\"'
+        html_value = value
+          :gsub("&", "&amp;")
+          :gsub('"', "&quot;")
+          :gsub(">", "&gt;")
+          :gsub("<", "&lt;")
         if html_value:match("\n") then
           -- Newline in string: make it stand out
-          html_value = T("<span style='display: inline-table; border: 1px dotted blue;'>%1</span>", html_value)
+          html_value = T(
+            "<span style='display: inline-table; border: 1px dotted blue;'>%1</span>",
+            html_value
+          )
         end
       else
         quoted_value = tostring(value)
         html_value = tostring(value)
       end
-      local ondblclick = T([[ondblclick='(function(){
+      local ondblclick = T(
+        [[ondblclick='(function(){
           var t=prompt("Update value of property: %1", "%2");
           if (t!=null) {document.location.href="%3?="+t}
           else {return false;}
-          })(); return false;']], key, quoted_value, href)
-      return T("   <b>%1</b>: <span style='color: blue;' title='Double-click to assign new value' %2>%3</span>", key, ondblclick, html_value), KIND_OTHER
+          })(); return false;']],
+        key,
+        quoted_value,
+        href
+      )
+      return T(
+        "   <b>%1</b>: <span style='color: blue;' title='Double-click to assign new value' %2>%3</span>",
+        key,
+        ondblclick,
+        html_value
+      ),
+        KIND_OTHER
     else
       if value_type == "cdata" then
-        local ok, is_bb = pcall(function() return value.writePNG ~= nil end)
+        local ok, is_bb = pcall(function()
+          return value.writePNG ~= nil
+        end)
         if ok and is_bb then
-          return T("   <a href='%1' title='get BB as PNG'>%2</a>  BlitBuffer %3bpp %4x%5", href, key, value.getBpp(), value.w, value.h), KIND_OTHER
+          return T(
+            "   <a href='%1' title='get BB as PNG'>%2</a>  BlitBuffer %3bpp %4x%5",
+            href,
+            key,
+            value.getBpp(),
+            value.w,
+            value.h
+          ),
+            KIND_OTHER
         end
       end
       return T("   <b>%1</b>: <em>%2</em>", key, value_type), KIND_OTHER
@@ -808,7 +989,12 @@ function HttpInspector:browseObject(obj, reqinfo)
   -- A little header may help noticing the page is updated (the browser url bar
   -- just above is usually updates before the page is loaded)
   add_html(T("<title>%1</title>", reqinfo.parsed_uri))
-  add_html(T("<pre><big style='background-color: #dddddd;'>%1/</big>", reqinfo.parsed_uri))
+  add_html(
+    T(
+      "<pre><big style='background-color: #dddddd;'>%1/</big>",
+      reqinfo.parsed_uri
+    )
+  )
   local classinfo = guessClassName(obj)
   if classinfo then
     add_html(T("  <em>%1</em> instance", classinfo))
@@ -827,7 +1013,10 @@ function HttpInspector:browseObject(obj, reqinfo)
       if not ignore then
         local snippet, kind = get_html_snippet(key, value, reqinfo.uri)
         if seen_names[key] then
-          add_html_to_obj_kind(kind, prelude .. seen_prefix .. snippet .. seen_suffix)
+          add_html_to_obj_kind(
+            kind,
+            prelude .. seen_prefix .. snippet .. seen_suffix
+          )
         else
           add_html_to_obj_kind(kind, prelude .. snippet)
         end
@@ -862,24 +1051,41 @@ end
 -- Send a HTML page describing a function or method
 function HttpInspector:showFunctionDetails(obj, reqinfo)
   local html = {}
-  local add_html = function(h) table.insert(html, h) end
+  local add_html = function(h)
+    table.insert(html, h)
+  end
   local base_uri = reqinfo.parsed_uri
   local func_info = getFunctionInfo(obj, true)
   add_html(T("<title>%1?</title>", reqinfo.fragments[1]))
-  add_html(T("<pre wrap><big style='background-color: #dddddd;'>%1</big>", reqinfo.parsed_uri))
+  add_html(
+    T(
+      "<pre wrap><big style='background-color: #dddddd;'>%1</big>",
+      reqinfo.parsed_uri
+    )
+  )
   add_html(T("  <em>%1</em>", func_info.signature))
   add_html("")
-  add_html(T("This is a <b>%1</b>, <b>accepting or requiring up to %2 arguments</b>.", (func_info.is_method and "method" or "function"), func_info.nb_args >= 0 and func_info.nb_args or "many"))
+  add_html(
+    T(
+      "This is a <b>%1</b>, <b>accepting or requiring up to %2 arguments</b>.",
+      (func_info.is_method and "method" or "function"),
+      func_info.nb_args >= 0 and func_info.nb_args or "many"
+    )
+  )
   add_html("")
-  add_html("We can't tell you more, neither what type of arguments it expects, and what it will do (it may crash or let KOReader in an unusable state).")
-  add_html("Only values of simple type (string, number, boolean, nil) can be provided as arguments and returned as results. Functions expecting tables or objects will most probably fail. <mark>Call at your own risk!</mark>")
+  add_html(
+    "We can't tell you more, neither what type of arguments it expects, and what it will do (it may crash or let KOReader in an unusable state)."
+  )
+  add_html(
+    "Only values of simple type (string, number, boolean, nil) can be provided as arguments and returned as results. Functions expecting tables or objects will most probably fail. <mark>Call at your own risk!</mark>"
+  )
   add_html("")
   local output_sample_uris = function(token)
     local some_uri = base_uri .. token
     local pad = (" "):rep(#base_uri + 25 - #some_uri)
     add_html(T("<a href='%1'>%2</a> %3 without args", some_uri, some_uri, pad))
     local nb_args = func_info.nb_args >= 0 and func_info.nb_args or 4 -- limit to 4 if varargs
-    for i=1, nb_args do
+    for i = 1, nb_args do
       if i > 1 then
         some_uri = some_uri .. "/"
       end
@@ -895,11 +1101,23 @@ function HttpInspector:showFunctionDetails(obj, reqinfo)
   output_sample_uris("/")
   add_html("")
   if func_info.no_source then
-    add_html(T("Builtin function or from a C module: no source code available."))
+    add_html(
+      T("Builtin function or from a C module: no source code available.")
+    )
   else
     local dummy, git_commit = require("version"):getNormalizedCurrentVersion()
-    local github_uri = T("https://github.com/koreader/koreader/blob/%1/%2#L%3", git_commit, func_info.source, func_info.firstline)
-    add_html(T("Here's a snippet of the function code (it can be viewed with syntax coloring and line numbers <a href='%1'>on Github</a>):", github_uri))
+    local github_uri = T(
+      "https://github.com/koreader/koreader/blob/%1/%2#L%3",
+      git_commit,
+      func_info.source,
+      func_info.firstline
+    )
+    add_html(
+      T(
+        "Here's a snippet of the function code (it can be viewed with syntax coloring and line numbers <a href='%1'>on Github</a>):",
+        github_uri
+      )
+    )
     add_html("<div style='background-color: lightgray'>")
     for _, line in ipairs(func_info.lines) do
       add_html(line)
@@ -912,18 +1130,34 @@ function HttpInspector:showFunctionDetails(obj, reqinfo)
 end
 
 -- Call a function or method, send results as JSON or HTML
-function HttpInspector:callFunction(func, instance, args_as_uri, output_html, reqinfo)
+function HttpInspector:callFunction(
+  func,
+  instance,
+  args_as_uri,
+  output_html,
+  reqinfo
+)
   local html = {}
-  local add_html = function(h) table.insert(html, h) end
+  local add_html = function(h)
+    table.insert(html, h)
+  end
   local args, nb_args = getVariablesFromUri(args_as_uri)
   local func_info = getFunctionInfo(func)
   if output_html then
-    add_html(T("<title>%1(%2)</title>", reqinfo.fragments[1], args_as_uri or ""))
-    add_html(T("<pre><big style='background-color: #dddddd;'>%1</big> <big>(%2)</big>", reqinfo.parsed_uri, args_as_uri or ""))
+    add_html(
+      T("<title>%1(%2)</title>", reqinfo.fragments[1], args_as_uri or "")
+    )
+    add_html(
+      T(
+        "<pre><big style='background-color: #dddddd;'>%1</big> <big>(%2)</big>",
+        reqinfo.parsed_uri,
+        args_as_uri or ""
+      )
+    )
     add_html(T("  <em>%1</em>", func_info.signature))
     add_html("")
     add_html(T("Nb args: %1", nb_args))
-    for i=1, nb_args do
+    for i = 1, nb_args do
       local arg = args[i]
       add_html(T("  %1: %2: %3", i, type(arg), tostring(arg)))
     end
@@ -931,7 +1165,9 @@ function HttpInspector:callFunction(func, instance, args_as_uri, output_html, re
   end
   local res, nbr, http_code, json, ok, ok2, err, trace
   if func_info.is_method then
-    res = table.pack(xpcall(func, debug.traceback, instance, unpack(args, 1, nb_args)))
+    res = table.pack(
+      xpcall(func, debug.traceback, instance, unpack(args, 1, nb_args))
+    )
   else
     res = table.pack(xpcall(func, debug.traceback, unpack(args, 1, nb_args)))
   end
@@ -965,7 +1201,7 @@ function HttpInspector:callFunction(func, instance, args_as_uri, output_html, re
     if res[2] then
       err, trace = res[2]:match("^(.-)\n(.*)$")
     end
-    json = getAsJsonString({["error"] = err, ["stacktrace"] = trace})
+    json = getAsJsonString({ ["error"] = err, ["stacktrace"] = trace })
   end
   if output_html then
     local bgcolor = ok and "#bbffbb" or "#ffbbbb"
@@ -973,7 +1209,7 @@ function HttpInspector:callFunction(func, instance, args_as_uri, output_html, re
     add_html(T("<big style='background-color: %1'>%2</big>", bgcolor, status))
     if ok then
       add_html(T("Nb returned values: %1", nbr))
-      for i=1, nbr do
+      for i = 1, nbr do
         local r = res[i]
         add_html(T("  %1: %2: %3", i, type(r), tostring(r)))
       end
@@ -998,7 +1234,10 @@ function HttpInspector:someFunctionForInteractiveTesting(...)
   if select(1, ...) then
     HttpInspector.foo.bar = true -- error
   end
-  return self and self.name or "no self", #(table.pack(...)), "original args follow", ...
+  return self and self.name or "no self",
+    #(table.pack(...)),
+    "original args follow",
+    ...
   -- Copy and append this as args to the url, to get an error:
   -- /true/nil/true/false/"true"/-1.2/"/"/abc/'d"/ef'/
   -- and to get a success:
@@ -1016,7 +1255,9 @@ local getOrderedDispatcherActions = function()
   local n = 1
   while true do
     local name, value = debug.getupvalue(Dispatcher.init, n)
-    if not name then break end
+    if not name then
+      break
+    end
     if name == "settingsList" then
       settings = value
       break
@@ -1025,7 +1266,9 @@ local getOrderedDispatcherActions = function()
   end
   while true do
     local name, value = debug.getupvalue(Dispatcher.registerAction, n)
-    if not name then break end
+    if not name then
+      break
+    end
     if name == "dispatcher_menu_order" then
       order = value
       break
@@ -1034,13 +1277,13 @@ local getOrderedDispatcherActions = function()
   end
   -- Copied and pasted from Dispatcher (we can't reach that the same way as above)
   local section_list = {
-    {"general", _("General")},
-    {"device", _("Device")},
-    {"screen", _("Screen and lights")},
-    {"filemanager", _("File browser")},
-    {"reader", _("Reader")},
-    {"rolling", _("Reflowable documents (epub, fb2, txt…)")},
-    {"paging", _("Fixed layout documents (pdf, djvu, pics…)")},
+    { "general", _("General") },
+    { "device", _("Device") },
+    { "screen", _("Screen and lights") },
+    { "filemanager", _("File browser") },
+    { "reader", _("Reader") },
+    { "rolling", _("Reflowable documents (epub, fb2, txt…)") },
+    { "paging", _("Fixed layout documents (pdf, djvu, pics…)") },
   }
   _dispatcher_actions = {}
   for _, section in ipairs(section_list) do
@@ -1055,7 +1298,13 @@ local getOrderedDispatcherActions = function()
     end
   end
   -- Add a useful one
-  table.insert(_dispatcher_actions, 2, { general=true, separator=true, event="Close", category="none", title="Close top most widget"})
+  table.insert(_dispatcher_actions, 2, {
+    general = true,
+    separator = true,
+    event = "Close",
+    category = "none",
+    title = "Close top most widget",
+  })
   return _dispatcher_actions
 end
 
@@ -1066,10 +1315,10 @@ function HttpInspector:exposeEvent(uri, reqinfo)
     -- Event name and args provided.
     -- We may get multiple events, separated by a dummy arg /&/
     local events = {}
-    local ev_names = {fragment}
-    local cur_ev_args = {fragment}
+    local ev_names = { fragment }
+    local cur_ev_args = { fragment }
     local args, nb_args = getVariablesFromUri(uri)
-    for i=1, nb_args do
+    for i = 1, nb_args do
       local arg = args[i]
       if arg ~= "&" then
         if #cur_ev_args == 0 then
@@ -1092,7 +1341,12 @@ function HttpInspector:exposeEvent(uri, reqinfo)
         UIManager:sendEvent(ev)
       end
     end)
-    return self:sendResponse(reqinfo, 200, CTYPE.TEXT, T("Event sent: %1", table.concat(ev_names, ", ")))
+    return self:sendResponse(
+      reqinfo,
+      200,
+      CTYPE.TEXT,
+      T("Event sent: %1", table.concat(ev_names, ", "))
+    )
   end
 
   -- No event provided.
@@ -1100,16 +1354,28 @@ function HttpInspector:exposeEvent(uri, reqinfo)
   local actions = getOrderedDispatcherActions()
   -- if true then return self:sendResponse(reqinfo, 200, CTYPE.JSON, getAsJsonString(actions)) end
   local html = {}
-  local add_html = function(h) table.insert(html, h) end
+  local add_html = function(h)
+    table.insert(html, h)
+  end
   add_html(T("<title>High-level KOReader events</title>"))
-  add_html(T("<pre><big>List of high-level KOReader events</big>\n(all those available as actions for gestures and profiles)</big>"))
+  add_html(
+    T(
+      "<pre><big>List of high-level KOReader events</big>\n(all those available as actions for gestures and profiles)</big>"
+    )
+  )
   for _, action in ipairs(actions) do
     if type(action) == "string" then
-      add_html(T("<hr size='1' noshade ><big style='background-color: #dddddd;'>%1</big>", action))
+      add_html(
+        T(
+          "<hr size='1' noshade ><big style='background-color: #dddddd;'>%1</big>",
+          action
+        )
+      )
     elseif action.condition == false then
       -- Some bottom menu are just disabled on all devices,
       -- so just don't show any disabled action
-      do end -- luacheck: ignore 541
+      do
+      end -- luacheck: ignore 541
     else
       local active = false
       if action.general or action.device or action.screen then
@@ -1126,20 +1392,31 @@ function HttpInspector:exposeEvent(uri, reqinfo)
 
       local title = action.title
       if not active then
-        title = T("<span style='color: dimgray'>%1</span>  <small>(no effect on current application/document)</small>", title)
+        title = T(
+          "<span style='color: dimgray'>%1</span>  <small>(no effect on current application/document)</small>",
+          title
+        )
       end
       add_html(T("<b>%1</b>", title))
 
       -- Same messy logic as in Dispatcher:execute() (not everything has been tested).
       local get_base_href = function()
-        return reqinfo.parsed_uri .. (action.event and "/"..action.event or "")
+        return reqinfo.parsed_uri
+          .. (action.event and "/" .. action.event or "")
       end
       if action.configurable then
         -- Such actions sends a first (possibly single with KOpt settings) event
         -- to update the setting value for the bottom menu
         -- We'll have to insert it in our single URL which may then carry 2 events
         get_base_href = function(v, is_indice, single)
-          return T("%1/%2/%3/%4%5", reqinfo.parsed_uri, "ConfigChange", action.configurable.name, is_indice and action.configurable.values[v] or v, single and "" or (action.event and "/&/"..action.event or ""))
+          return T(
+            "%1/%2/%3/%4%5",
+            reqinfo.parsed_uri,
+            "ConfigChange",
+            action.configurable.name,
+            is_indice and action.configurable.values[v] or v,
+            single and "" or (action.event and "/&/" .. action.event or "")
+          )
         end
       end
 
@@ -1161,20 +1438,30 @@ function HttpInspector:exposeEvent(uri, reqinfo)
           args, toggle = action.args, action.toggle
         end
         if type(args[1]) == "table" then
-          add_html(T("  %1/... unsupported (table arguments)", get_base_href("...")))
+          add_html(
+            T("  %1/... unsupported (table arguments)", get_base_href("..."))
+          )
         else
-          for i=1, #args do
+          for i = 1, #args do
             local href = T("%1/%2", get_base_href(i, true), tostring(args[i]))
-            local unit = action.unit and " "..action.unit or ""
+            local unit = action.unit and " " .. action.unit or ""
             local default = args[i] == action.default and " (default)" or ""
-            add_html(T("  <a href='%1'>%1</a> \t<b>%2%3%4</b>", href, toggle[i], unit, default))
+            add_html(
+              T(
+                "  <a href='%1'>%1</a> \t<b>%2%3%4</b>",
+                href,
+                toggle[i],
+                unit,
+                default
+              )
+            )
           end
         end
       elseif action.category == "absolutenumber" then
         local suggestions = {}
         if action.configurable and action.configurable.values then
           for num, val in ipairs(action.configurable.values) do
-            local unit = action.unit and " "..action.unit or ""
+            local unit = action.unit and " " .. action.unit or ""
             local default = val == action.default and " (default)" or ""
             table.insert(suggestions, { val, T("%1%2%3", val, unit, default) })
           end
@@ -1189,14 +1476,15 @@ function HttpInspector:exposeEvent(uri, reqinfo)
           if action.dispatcher_id == "page_jmp" then
             table.insert(suggestions, { -1, "-1 page" })
           end
-          table.insert(suggestions, { (min + max)/2, "" })
+          table.insert(suggestions, { (min + max) / 2, "" })
           if action.dispatcher_id == "page_jmp" then
             table.insert(suggestions, { 1, "+1 page" })
           end
           table.insert(suggestions, { max, "max" })
         end
         for _, suggestion in ipairs(suggestions) do
-          local href = T("%1/%2", get_base_href(suggestion[1]), tostring(suggestion[1]))
+          local href =
+            T("%1/%2", get_base_href(suggestion[1]), tostring(suggestion[1]))
           add_html(T("  <a href='%1'>%1</a> \t<b>%2</b>", href, suggestion[2]))
         end
       elseif action.category == "incrementalnumber" then
@@ -1205,25 +1493,30 @@ function HttpInspector:exposeEvent(uri, reqinfo)
         local min, max = action.min, action.max
         table.insert(suggestions, { min, "min" })
         if action.step then
-          for i=1, 5 do
+          for i = 1, 5 do
             min = min + action.step
             table.insert(suggestions, { min, "" })
           end
         else
-          table.insert(suggestions, { (min + max)/2, "" })
+          table.insert(suggestions, { (min + max) / 2, "" })
         end
         table.insert(suggestions, { max, "max" })
         for _, suggestion in ipairs(suggestions) do
-          local href = T("%1/%2", get_base_href(suggestion[1]), tostring(suggestion[1]))
+          local href =
+            T("%1/%2", get_base_href(suggestion[1]), tostring(suggestion[1]))
           add_html(T("  <a href='%1'>%1</a> \t<b>%2</b>", href, suggestion[2]))
         end
       elseif action.category == "arg" then
-        add_html(T("  %1/... unsupported (gesture arguments)", get_base_href("...")))
+        add_html(
+          T("  %1/... unsupported (gesture arguments)", get_base_href("..."))
+        )
       elseif action.category == "configurable" then
         -- No other action event to send
-        for i=1, #action.configurable.values do
+        for i = 1, #action.configurable.values do
           local href = T("%1", get_base_href(i, true))
-          add_html(T("  <a href='%1'>%1</a> \t<b>%2</b>", href, action.toggle[i]))
+          add_html(
+            T("  <a href='%1'>%1</a> \t<b>%2</b>", href, action.toggle[i])
+          )
         end
       else
         -- Should not happen
@@ -1248,10 +1541,10 @@ function HttpInspector:exposeBroadcastEvent(uri, reqinfo)
     -- Event name and args provided.
     -- We may get multiple events, separated by a dummy arg /&/
     local events = {}
-    local ev_names = {fragment}
-    local cur_ev_args = {fragment}
+    local ev_names = { fragment }
+    local cur_ev_args = { fragment }
     local args, nb_args = getVariablesFromUri(uri)
-    for i=1, nb_args do
+    for i = 1, nb_args do
       local arg = args[i]
       if arg ~= "&" then
         if #cur_ev_args == 0 then
@@ -1274,15 +1567,24 @@ function HttpInspector:exposeBroadcastEvent(uri, reqinfo)
         UIManager:broadcastEvent(ev)
       end
     end)
-    return self:sendResponse(reqinfo, 200, CTYPE.TEXT, T("Event broadcasted: %1", table.concat(ev_names, ", ")))
+    return self:sendResponse(
+      reqinfo,
+      200,
+      CTYPE.TEXT,
+      T("Event broadcasted: %1", table.concat(ev_names, ", "))
+    )
   end
 
   -- No event provided.
   local html = {}
-  local add_html = function(h) table.insert(html, h) end
+  local add_html = function(h)
+    table.insert(html, h)
+  end
   add_html(T("<title>Broadcast event</title>"))
   add_html(T("<pre>No suggestion, <mark>use at your own risk</mark>."))
-  add_html(T("Usage: <a href='%1'>%1</a>", "/koreader/broadcast/EventName/arg1/arg2"))
+  add_html(
+    T("Usage: <a href='%1'>%1</a>", "/koreader/broadcast/EventName/arg1/arg2")
+  )
   add_html("</pre>")
   html = table.concat(html, "\n")
   return self:sendResponse(reqinfo, 200, CTYPE.HTML, html)

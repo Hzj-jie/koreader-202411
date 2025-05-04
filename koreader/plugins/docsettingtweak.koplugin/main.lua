@@ -17,12 +17,13 @@ local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
 
-local DocSettingTweak = WidgetContainer:extend{
+local DocSettingTweak = WidgetContainer:extend({
   name = "docsettingtweak",
-}
+})
 
 local directory_defaults_name = "directory_defaults.lua"
-local directory_defaults_path = FFIUtil.joinPath(DataStorage:getSettingsDir(), directory_defaults_name)
+local directory_defaults_path =
+  FFIUtil.joinPath(DataStorage:getSettingsDir(), directory_defaults_name)
 local directory_defaults = nil
 local initialized = false
 
@@ -30,8 +31,10 @@ function DocSettingTweak:init()
   if not initialized then
     -- Make sure our settings file exists
     if not lfs.attributes(directory_defaults_path, "mode") then
-      FFIUtil.copyFile(FFIUtil.joinPath(self.path, "directory_defaults_template.lua"),
-             directory_defaults_path)
+      FFIUtil.copyFile(
+        FFIUtil.joinPath(self.path, "directory_defaults_template.lua"),
+        directory_defaults_path
+      )
     end
     initialized = true
   end
@@ -46,15 +49,20 @@ end
 function DocSettingTweak:addToMainMenu(menu_items)
   menu_items.doc_setting_tweak = {
     text = _("Tweak document settings"),
-    callback = function() DocSettingTweak:editDirectoryDefaults() end,
+    callback = function()
+      DocSettingTweak:editDirectoryDefaults()
+    end,
   }
 end
 
 function DocSettingTweak:editDirectoryDefaults()
   local defaults = util.readFromFile(directory_defaults_path, "rb")
   local config_editor
-  config_editor = InputDialog:new{
-    title = T(_("Directory Defaults: %1"), BD.filepath(directory_defaults_path)),
+  config_editor = InputDialog:new({
+    title = T(
+      _("Directory Defaults: %1"),
+      BD.filepath(directory_defaults_path)
+    ),
     input = defaults,
     input_type = "string",
     para_direction_rtl = false, -- force LTR
@@ -84,7 +92,7 @@ function DocSettingTweak:editDirectoryDefaults()
       end
       return false, _("Defaults empty")
     end,
-  }
+  })
   UIManager:show(config_editor)
   config_editor:onShowKeyboard()
 end
@@ -98,7 +106,8 @@ function DocSettingTweak:onDocSettingsLoad(doc_settings, document)
     while directory:sub(1, #base) == base do
       if directory_defaults:has(directory) then
         local summary = doc_settings.data.summary -- keep status
-        doc_settings.data = util.tableDeepCopy(directory_defaults:readSetting(directory))
+        doc_settings.data =
+          util.tableDeepCopy(directory_defaults:readSetting(directory))
         doc_settings.data.doc_path = document.file
         doc_settings.data.summary = doc_settings.data.summary or summary
         break

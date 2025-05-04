@@ -5,7 +5,8 @@ io.stdout:setvbuf("line")
 -- Enforce a reliable locale for numerical representations
 os.setlocale("C", "numeric")
 
-io.write([[
+io.write(
+  [[
 ---------------------------------------------
                 launching...
   _  _____  ____                _
@@ -16,7 +17,10 @@ io.write([[
 
  It's a scroll... It's a codex... It's KOReader!
 
- [*] Current time: ]], os.date("%x-%X"), "\n")
+ [*] Current time: ]],
+  os.date("%x-%X"),
+  "\n"
+)
 
 -- Set up Lua and ffi search paths
 require("setupkoenv")
@@ -37,7 +41,8 @@ G_defaults = require("luadefaults"):open()
 -- they might call gettext on load
 local DataStorage = require("datastorage")
 G_reader_settings = require("luasettings"):open(
-  DataStorage:getDataDir().."/settings.reader.lua")
+  DataStorage:getDataDir() .. "/settings.reader.lua"
+)
 G_named_settings = require("named_settings")
 
 -- Apply the JIT opt tweaks ASAP when the C BB is disabled,
@@ -50,7 +55,9 @@ end
 
 local lang_locale = G_reader_settings:readSetting("language")
 -- Allow quick switching to Arabic for testing RTL/UI mirroring
-if os.getenv("KO_RTL") then lang_locale = "ar" end
+if os.getenv("KO_RTL") then
+  lang_locale = "ar"
+end
 local _ = require("gettext")
 if lang_locale then
   _.changeLang(lang_locale)
@@ -67,7 +74,9 @@ G_reader_settings:saveSetting("dev_no_c_blitter", not is_cbb_enabled)
 local dbg = require("dbg")
 if G_reader_settings:isTrue("debug") then
   dbg:turnOn()
-  if G_reader_settings:isTrue("debug_verbose") then dbg:setVerbose(true) end
+  if G_reader_settings:isTrue("debug_verbose") then
+    dbg:setVerbose(true)
+  end
 else
   -- Disable logger after dbg takes effect, dbg sets the log level.
   if G_defaults:isFalse("DEV_MODE") then
@@ -108,14 +117,14 @@ local function getPathFromURI(str)
   end
 
   local unescape = function(url)
-     return url:gsub("%%(%x%x)", hexToChar)
+    return url:gsub("%%(%x%x)", hexToChar)
   end
 
   local prefix = "file://"
   if str:sub(1, #prefix) ~= prefix then
     return str
   end
-  return unescape(str):sub(#prefix+1)
+  return unescape(str):sub(#prefix + 1)
 end
 
 local lfs = require("libs/libkoreader-lfs")
@@ -127,11 +136,15 @@ local argidx = 1
 while argidx <= #ARGV do
   local arg = ARGV[argidx]
   argidx = argidx + 1
-  if arg == "--" then break end
+  if arg == "--" then
+    break
+  end
   -- parse longopts
-  if arg:sub(1,2) == "--" then
+  if arg:sub(1, 2) == "--" then
     local opt = longopts[arg:sub(3)]
-    if opt ~= nil then arg = "-"..opt end
+    if opt ~= nil then
+      arg = "-" .. opt
+    end
   end
   -- code for each option
   if arg == "-h" then
@@ -201,16 +214,22 @@ if Device:hasColorScreen() and not G_reader_settings:has("color_rendering") then
   -- enable it to prevent further display of this message
   G_reader_settings:makeTrue("color_rendering")
   local InfoMessage = require("ui/widget/infomessage")
-  UIManager:show(InfoMessage:new{
-    text = _("Documents will be rendered in color on this device.\nIf your device is grayscale, you can disable color rendering in the screen sub-menu for reduced memory usage."),
-  })
+  UIManager:show(InfoMessage:new({
+    text = _(
+      "Documents will be rendered in color on this device.\nIf your device is grayscale, you can disable color rendering in the screen sub-menu for reduced memory usage."
+    ),
+  }))
 end
 
 -- Conversely, if color is enabled on a Grayscale screen (e.g., after importing settings from a color device), warn that it'll break stuff and adversely affect performance.
-if G_reader_settings:isTrue("color_rendering") and not Device:hasColorScreen() then
+if
+  G_reader_settings:isTrue("color_rendering") and not Device:hasColorScreen()
+then
   local ConfirmBox = require("ui/widget/confirmbox")
-  UIManager:show(ConfirmBox:new{
-    text = _("Color rendering is mistakenly enabled on your grayscale device.\nThis will subtly break some features, and adversely affect performance."),
+  UIManager:show(ConfirmBox:new({
+    text = _(
+      "Color rendering is mistakenly enabled on your grayscale device.\nThis will subtly break some features, and adversely affect performance."
+    ),
     cancel_text = _("Ignore"),
     cancel_callback = function()
       return
@@ -222,7 +241,7 @@ if G_reader_settings:isTrue("color_rendering") and not Device:hasColorScreen() t
       CanvasContext:setColorRenderingEnabled(false)
       UIManager:broadcastEvent(Event:new("ColorRenderingUpdate"))
     end,
-  })
+  }))
 end
 
 -- Get which file to start with
@@ -232,8 +251,10 @@ local start_with = G_reader_settings:readSetting("start_with") or "filemanager"
 -- Helpers
 local function retryLastFile()
   local ConfirmBox = require("ui/widget/confirmbox")
-  return ConfirmBox:new{
-    text = _("Cannot open last file.\nThis could be because it was deleted or because external storage is still being mounted.\nDo you want to retry?"),
+  return ConfirmBox:new({
+    text = _(
+      "Cannot open last file.\nThis could be because it was deleted or because external storage is still being mounted.\nDo you want to retry?"
+    ),
     ok_callback = function()
       if lfs.attributes(last_file, "mode") ~= "file" then
         UIManager:show(retryLastFile())
@@ -242,7 +263,7 @@ local function retryLastFile()
     cancel_callback = function()
       start_with = "filemanager"
     end,
-  }
+  })
 end
 
 -- Start app
@@ -259,7 +280,11 @@ else
     last_file = QuickStart:getQuickStart()
   end
 
-  if start_with == "last" and last_file and lfs.attributes(last_file, "mode") ~= "file" then
+  if
+    start_with == "last"
+    and last_file
+    and lfs.attributes(last_file, "mode") ~= "file"
+  then
     UIManager:show(retryLastFile())
     -- We'll want to return from this without actually quitting,
     -- so this is a slightly mangled UIManager:run() call to coerce the main loop into submission...
@@ -292,7 +317,9 @@ local function exitReader()
   -- Shutdown hardware abstraction (it'll also flush G_reader_settings to disk)
   Device:exit()
 
-  if Profiler then Profiler.stop() end
+  if Profiler then
+    Profiler.stop()
+  end
 
   if type(exit_code) == "number" then
     return exit_code

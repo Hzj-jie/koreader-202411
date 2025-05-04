@@ -34,7 +34,7 @@ local util = require("util")
 local _ = require("gettext")
 
 -- BookMapRow (reused by PageBrowserWidget)
-local BookMapRow = WidgetContainer:extend{
+local BookMapRow = WidgetContainer:extend({
   width = nil,
   height = nil,
   pages_frame_border = Size.border.default,
@@ -49,20 +49,22 @@ local BookMapRow = WidgetContainer:extend{
     SMALL = 1,
     MEDIUM = 2,
     LARGE = 3,
-  }
-}
+  },
+})
 
 function BookMapRow:getPageX(page, right_edge)
   local _mirroredUI = BD.mirroredUILayout()
   if right_edge then
-    if (not _mirroredUI and page == self.end_page) or
-         (_mirroredUI and page == self.start_page) then
+    if
+      (not _mirroredUI and page == self.end_page)
+      or (_mirroredUI and page == self.start_page)
+    then
       return self.pages_frame_inner_width
     else
       if _mirroredUI then
-        return self:getPageX(page-1)
+        return self:getPageX(page - 1)
       else
-        return self:getPageX(page+1)
+        return self:getPageX(page + 1)
       end
     end
   end
@@ -80,15 +82,21 @@ end
 function BookMapRow:getPageAtX(x, at_bounds_if_outside)
   x = x - self.pages_frame_offset_x
   if x < 0 then
-    if not at_bounds_if_outside then return end
+    if not at_bounds_if_outside then
+      return
+    end
     x = 0
   end
   if x >= self.pages_frame_inner_width then
-    if not at_bounds_if_outside then return end
+    if not at_bounds_if_outside then
+      return
+    end
     x = self.pages_frame_inner_width - 1
   end
   -- Reverse of the computation in :getPageX():
-  local slot_idx = math.floor(x / (self.page_slot_width + self.page_slot_extra / self.nb_page_slots))
+  local slot_idx = math.floor(
+    x / (self.page_slot_width + self.page_slot_extra / self.nb_page_slots)
+  )
   if BD.mirroredUILayout() then
     return self.end_page - slot_idx
   else
@@ -99,11 +107,16 @@ end
 -- Helper function to be used before instantiating a BookMapRow instance,
 -- to obtain the left_spacing equivalent to not showing nb_pages at start
 -- of a row of pages_per_row items in a width of row_width
-function BookMapRow:getLeftSpacingForNumberOfPageSlots(nb_pages, pages_per_row, row_width)
+function BookMapRow:getLeftSpacingForNumberOfPageSlots(
+  nb_pages,
+  pages_per_row,
+  row_width
+)
   -- Bits of the computation done in :init()
-  local pages_frame_inner_width = row_width - 2*self.pages_frame_border
+  local pages_frame_inner_width = row_width - 2 * self.pages_frame_border
   local page_slot_width = math.floor(pages_frame_inner_width / pages_per_row)
-  local page_slot_extra = pages_frame_inner_width - page_slot_width * pages_per_row
+  local page_slot_extra = pages_frame_inner_width
+    - page_slot_width * pages_per_row
   -- Bits of the computation done in :getPageX()
   local x = nb_pages * page_slot_width
   x = x + math.floor(page_slot_extra * nb_pages / pages_per_row)
@@ -112,27 +125,36 @@ end
 
 function BookMapRow:init()
   local _mirroredUI = BD.mirroredUILayout()
-  self.dimen = Geom:new{ x = 0, y = 0, w = self.width, h = self.height }
+  self.dimen = Geom:new({ x = 0, y = 0, w = self.width, h = self.height })
 
   -- Keep one span_height under baseline (frame bottom border) for indicators (current page, bookmarks)
   self.pages_frame_height = self.height - self.span_height
 
   self.pages_frame_offset_x = self.left_spacing + self.pages_frame_border
   self.pages_frame_width = self.width - self.left_spacing
-  self.pages_frame_inner_width = self.pages_frame_width - 2*self.pages_frame_border
-  self.page_slot_width = math.floor(self.pages_frame_inner_width / self.pages_per_row)
-  self.page_slot_extra = self.pages_frame_inner_width - self.page_slot_width * self.pages_per_row -- will be distributed
+  self.pages_frame_inner_width = self.pages_frame_width
+    - 2 * self.pages_frame_border
+  self.page_slot_width =
+    math.floor(self.pages_frame_inner_width / self.pages_per_row)
+  self.page_slot_extra = self.pages_frame_inner_width
+    - self.page_slot_width * self.pages_per_row -- will be distributed
 
   -- Update the widths if this row contains fewer pages
   self.nb_page_slots = self.end_page - self.start_page + 1
   if self.nb_page_slots ~= self.pages_per_row then
-    self.page_slot_extra = math.floor(self.page_slot_extra * self.nb_page_slots / self.pages_per_row)
-    self.pages_frame_inner_width = self.page_slot_width * self.nb_page_slots + self.page_slot_extra
-    self.pages_frame_width = self.pages_frame_inner_width + 2*self.pages_frame_border
+    self.page_slot_extra =
+      math.floor(self.page_slot_extra * self.nb_page_slots / self.pages_per_row)
+    self.pages_frame_inner_width = self.page_slot_width * self.nb_page_slots
+      + self.page_slot_extra
+    self.pages_frame_width = self.pages_frame_inner_width
+      + 2 * self.pages_frame_border
   end
 
   if _mirroredUI then
-    self.pages_frame_offset_x = self.width - self.pages_frame_width - self.left_spacing + self.pages_frame_border
+    self.pages_frame_offset_x = self.width
+      - self.pages_frame_width
+      - self.left_spacing
+      + self.pages_frame_border
   end
 
   -- We draw a frame container with borders for the book content, with
@@ -140,41 +162,45 @@ function BookMapRow:init()
   -- below the bottom border as spacing before the next row (spacing
   -- that we can use to show current position and hanging bookmarks
   -- and highlights symbols)
-  self.pages_frame = OverlapGroup:new{
-    dimen = Geom:new{
+  self.pages_frame = OverlapGroup:new({
+    dimen = Geom:new({
       w = self.pages_frame_width,
       h = self.pages_frame_height,
-    },
+    }),
     allow_mirroring = false, -- we handle mirroring ourselves below
-    FrameContainer:new{
+    FrameContainer:new({
       overlap_align = _mirroredUI and "right" or "left",
       margin = 0,
       padding = 0,
       bordersize = self.pages_frame_border,
       -- color = Blitbuffer.COLOR_GRAY, -- for debugging positioning
-      Widget:new{ -- empty widget to give dimensions around which to draw borders
-        dimen = Geom:new{
+      Widget:new({ -- empty widget to give dimensions around which to draw borders
+        dimen = Geom:new({
           w = self.pages_frame_inner_width,
-          h = self.pages_frame_height - 2*self.pages_frame_border,
-        }
-      }
-    },
-  }
+          h = self.pages_frame_height - 2 * self.pages_frame_border,
+        }),
+      }),
+    }),
+  })
 
   -- We won't add this margin to the FrameContainer: to be able
   -- to tweak it on some sides, we'll just tweak its overlap
   -- offsets and width to ensure the margins
   local tspan_margin = Size.margin.tiny
   local tspan_padding_h = Size.padding.tiny
-  local tspan_height = self.span_height - 2 * (tspan_margin + self.toc_span_border)
+  local tspan_height = self.span_height
+    - 2 * (tspan_margin + self.toc_span_border)
   if self.toc_items then
     for lvl, items in pairs(self.toc_items) do
-      local offset_y = self.pages_frame_border + self.span_height * (lvl - 1) + tspan_margin
+      local offset_y = self.pages_frame_border
+        + self.span_height * (lvl - 1)
+        + tspan_margin
       local prev_p_start, same_p_start_offset_dx
       for __, item in ipairs(items) do
         local text = item.title
         local p_start, p_end = item.p_start, item.p_end
-        local started_before, continues_after = item.started_before, item.continues_after
+        local started_before, continues_after =
+          item.started_before, item.continues_after
         if _mirroredUI then
           -- Just flip these (beware below, we need to use item.p_start to get
           -- the real start page to account in prev_p_start)
@@ -194,7 +220,8 @@ function BookMapRow:init()
               offset_x = offset_x + same_p_start_offset_dx
             end
             width = width - same_p_start_offset_dx
-            same_p_start_offset_dx = same_p_start_offset_dx + self.toc_span_border * 2
+            same_p_start_offset_dx = same_p_start_offset_dx
+              + self.toc_span_border * 2
           end
         else
           prev_p_start = item.p_start
@@ -216,15 +243,16 @@ function BookMapRow:init()
           -- Add some right margin
           width = width - tspan_margin
         end
-        local text_max_width = width - 2 * (self.toc_span_border + tspan_padding_h)
+        local text_max_width = width
+          - 2 * (self.toc_span_border + tspan_padding_h)
         local text_widget = nil
         if text_max_width > 0 then
-          text_widget = TextWidget:new{
+          text_widget = TextWidget:new({
             text = BD.auto(text),
             max_width = text_max_width,
             face = self.font_face,
             padding = 0,
-          }
+          })
           if text_widget:getWidth() > text_max_width then
             -- May happen with very small max_width when smaller
             -- than the truncation ellipsis
@@ -241,64 +269,71 @@ function BookMapRow:init()
             bgcolor = Blitbuffer.COLOR_GRAY_B
           end
         end
-        local span_w = FrameContainer:new{
-          overlap_offset = {offset_x, offset_y},
+        local span_w = FrameContainer:new({
+          overlap_offset = { offset_x, offset_y },
           margin = 0,
           padding = 0,
           bordersize = self.toc_span_border,
           background = bgcolor,
-          CenterContainer:new{
-            dimen = Geom:new{
+          CenterContainer:new({
+            dimen = Geom:new({
               w = width - 2 * self.toc_span_border,
               h = tspan_height,
-            },
-            text_widget or VerticalSpan:new{ width = 0 },
-          }
-        }
+            }),
+            text_widget or VerticalSpan:new({ width = 0 }),
+          }),
+        })
         table.insert(self.pages_frame, span_w)
       end
     end
   end
 
   -- For page numbers:
-  self.smaller_font_face = Font:getFace(self.font_face.orig_font, self.font_face.orig_size - 4)
+  self.smaller_font_face =
+    Font:getFace(self.font_face.orig_font, self.font_face.orig_size - 4)
   -- For current page triangle
-  self.larger_font_face = Font:getFace(self.font_face.orig_font, self.font_face.orig_size + 6)
+  self.larger_font_face =
+    Font:getFace(self.font_face.orig_font, self.font_face.orig_size + 6)
 
-  self.hgroup = HorizontalGroup:new{
+  self.hgroup = HorizontalGroup:new({
     align = "top",
-  }
+  })
 
   if self.left_spacing > 0 then
     local spacing = Size.padding.small
     local width = self.left_spacing - spacing
-    local widget = TextBoxWidget:new{
+    local widget = TextBoxWidget:new({
       text = self.start_page_text,
       width = width,
       face = self.smaller_font_face,
       line_height = 0, -- no additional line height
       alignment = _mirroredUI and "left" or "right",
       alignment_strict = true,
-    }
+    })
     local text_height = widget:getSize().h
     -- We want the bottom digit aligned on the pages frame baseline if the number is small,
     -- but the top digit at top and overflowing down if it is tall.
     -- (We get better visual alignment by tweaking a bit line_glyph_extra_height.)
-    local shift_y = self.pages_frame_height - text_height + math.ceil(widget.line_glyph_extra_height*2/3)
+    local shift_y = self.pages_frame_height
+      - text_height
+      + math.ceil(widget.line_glyph_extra_height * 2 / 3)
     if shift_y > 0 then
-      widget = VerticalGroup:new{
-        VerticalSpan:new{ width = shift_y },
+      widget = VerticalGroup:new({
+        VerticalSpan:new({ width = shift_y }),
         widget,
-      }
+      })
     end
-    table.insert(self.hgroup, TopContainer:new{
-      dimen = Geom:new{
-        w = width,
-        h = self.pages_frame_height,
-      },
-      widget,
-    })
-    table.insert(self.hgroup, HorizontalSpan:new{ width = spacing })
+    table.insert(
+      self.hgroup,
+      TopContainer:new({
+        dimen = Geom:new({
+          w = width,
+          h = self.pages_frame_height,
+        }),
+        widget,
+      })
+    )
+    table.insert(self.hgroup, HorizontalSpan:new({ width = spacing }))
   end
   table.insert(self.hgroup, self.pages_frame)
 
@@ -319,23 +354,27 @@ function BookMapRow:init()
           w = self:getPageX(r_end, true) - x
         end
         table.insert(self.background_fillers, {
-          x = x, y = 0,
-          w = w, h = self.pages_frame_height,
+          x = x,
+          y = 0,
+          w = w,
+          h = self.pages_frame_height,
           -- Different style depending on alt_theme
-          color = self.alt_theme and Blitbuffer.COLOR_GRAY or Blitbuffer.COLOR_LIGHT_GRAY,
-          stripe_width = self.alt_theme and math.ceil(self.span_height / 10) or nil,
+          color = self.alt_theme and Blitbuffer.COLOR_GRAY
+            or Blitbuffer.COLOR_LIGHT_GRAY,
+          stripe_width = self.alt_theme and math.ceil(self.span_height / 10)
+            or nil,
         })
       end
     end
   end
 
-  self[1] = LeftContainer:new{ -- needed only for auto UI mirroring
-    dimen = Geom:new{
+  self[1] = LeftContainer:new({ -- needed only for auto UI mirroring
+    dimen = Geom:new({
       w = self.dimen.w,
       h = self.hgroup:getSize().h,
-    },
+    }),
     self.hgroup,
-  }
+  })
 
   -- Get read pages markers and other indicators ready to be drawn
   self.pages_markers = {}
@@ -348,7 +387,10 @@ function BookMapRow:init()
     math.ceil(self.span_height * 0.3),
   }
   local unread_marker_h = math.ceil(self.span_height * 0.05)
-  local read_min_h = math.max(math.ceil(self.span_height * 0.1), unread_marker_h+Size.line.thick)
+  local read_min_h = math.max(
+    math.ceil(self.span_height * 0.1),
+    unread_marker_h + Size.line.thick
+  )
   if self.page_slot_width >= 5 * unread_marker_h then
     -- If page slots are large enough, we can make unread markers a bit taller (so they
     -- are noticeable and won't be confused with read page slots)
@@ -375,12 +417,17 @@ function BookMapRow:init()
         end
       end
       local color = Blitbuffer.COLOR_BLACK
-      if self.current_session_duration and self.read_pages[page][2] < self.current_session_duration then
+      if
+        self.current_session_duration
+        and self.read_pages[page][2] < self.current_session_duration
+      then
         color = Blitbuffer.COLOR_GRAY_5
       end
       table.insert(self.pages_markers, {
-        x = x, y = y,
-        w = w, h = h,
+        x = x,
+        y = y,
+        w = w,
+        h = h,
         color = color,
       })
       prev_page_was_read = true
@@ -393,10 +440,15 @@ function BookMapRow:init()
         else
           x = self:getPageX(page)
         end
-        local y = self.pages_frame_height - self.pages_frame_border - unread_marker_h + 1
+        local y = self.pages_frame_height
+          - self.pages_frame_border
+          - unread_marker_h
+          + 1
         table.insert(self.pages_markers, {
-          x = x, y = y,
-          w = w, h = unread_marker_h,
+          x = x,
+          y = y,
+          w = w,
+          h = unread_marker_h,
           color = Blitbuffer.COLOR_BLACK,
         })
       end
@@ -421,8 +473,10 @@ function BookMapRow:init()
       end
       local y = self.pages_frame_height - self.pages_frame_border
       table.insert(self.pages_markers, {
-        x = x, y = y,
-        w = w, h = extended_marker_h[self.extended_sep_pages[page]],
+        x = x,
+        y = y,
+        w = w,
+        h = extended_marker_h[self.extended_sep_pages[page]],
         color = Blitbuffer.COLOR_BLACK,
       })
     end
@@ -430,11 +484,15 @@ function BookMapRow:init()
     -- can more easily associate the (possibly wider) page number to its page slot.
     if self.page_texts and self.page_texts[page] then
       local w = Screen:scaleBySize(1.5)
-      local x = math.floor((self:getPageX(page) + self:getPageX(page, true) + 0.5)/2 - w/2)
+      local x = math.floor(
+        (self:getPageX(page) + self:getPageX(page, true) + 0.5) / 2 - w / 2
+      )
       local y = self.pages_frame_height - self.pages_frame_border + 2
       table.insert(self.pages_markers, {
-        x = x, y = y,
-        w = w, h = w, -- square
+        x = x,
+        y = y,
+        w = w,
+        h = w, -- square
         color = Blitbuffer.COLOR_BLACK,
       })
     end
@@ -443,18 +501,20 @@ function BookMapRow:init()
       local page_bookmark_types = self.bookmarked_pages[page]
       local x = self:getPageX(page)
       local w = self:getPageX(page, true) - x
-      x = x + math.ceil(w/2)
+      x = x + math.ceil(w / 2)
       local y = self.pages_frame_height + 1
       -- These 3 icons overlap quite ok, so no need for any shift
       if page_bookmark_types["highlight"] then
         table.insert(self.indicators, {
-          x = x, y = y,
+          x = x,
+          y = y,
           c = 0x2592, -- medium shade
         })
       end
       if page_bookmark_types["note"] then
         table.insert(self.indicators, {
-          x = x, y = y,
+          x = x,
+          y = y,
           c = 0xF040, -- pencil
           rotation = -90,
           shift_x_pct = 0.2, -- 20% looks a bit better
@@ -465,7 +525,8 @@ function BookMapRow:init()
       end
       if page_bookmark_types["bookmark"] then
         table.insert(self.indicators, {
-          x = x, y = y,
+          x = x,
+          y = y,
           c = 0xF097, -- empty bookmark
         })
       end
@@ -474,47 +535,50 @@ function BookMapRow:init()
     if self.previous_locations[page] and page ~= self.cur_page then
       local x = self:getPageX(page)
       local w = self:getPageX(page, true) - x
-      x = x + math.ceil(w/2)
+      x = x + math.ceil(w / 2)
       local y = self.pages_frame_height + 1
       if self.bookmarked_pages[page] then
         -- Shift it a bit down to keep bookmark glyph(s) readable
-        y = y + math.floor(self.span_height * (1/3))
+        y = y + math.floor(self.span_height * (1 / 3))
       end
       local num = self.previous_locations[page]
       table.insert(self.indicators, {
         c = 0x2775 + (num < 10 and num or 10), -- number in solid black circle
         -- c = 0x245F + (num < 20 and num or 20), -- number in white circle
-        x = x, y = y,
+        x = x,
+        y = y,
       })
     end
     -- Extra indicator
     if self.extra_symbols_pages and self.extra_symbols_pages[page] then
       local x = self:getPageX(page)
       local w = self:getPageX(page, true) - x
-      x = x + math.ceil(w/2)
+      x = x + math.ceil(w / 2)
       local y = self.pages_frame_height + 1
       if self.bookmarked_pages[page] then
         -- Shift it a bit down to keep bookmark glyph(s) readable
-        y = y + math.floor(self.span_height * (1/3))
+        y = y + math.floor(self.span_height * (1 / 3))
       end
       table.insert(self.indicators, {
         c = self.extra_symbols_pages[page],
-        x = x, y = y,
+        x = x,
+        y = y,
       })
     end
     -- Current page indicator
     if page == self.cur_page then
       local x = self:getPageX(page)
       local w = self:getPageX(page, true) - x
-      x = x + math.ceil(w/2)
+      x = x + math.ceil(w / 2)
       local y = self.pages_frame_height + 1
       if self.bookmarked_pages[page] then
         -- Shift it a bit down to keep bookmark glyph(s) readable
-        y = y + math.floor(self.span_height * (1/3))
+        y = y + math.floor(self.span_height * (1 / 3))
       end
       table.insert(self.indicators, {
         c = 0x25B2, -- black up-pointing triangle
-        x = x, y = y,
+        x = x,
+        y = y,
         face = self.larger_font_face,
       })
     end
@@ -538,20 +602,40 @@ function BookMapRow:paintTo(bb, x, y)
   -- Paint background fillers (which are not subwidgets) first
   for _, filler in ipairs(self.background_fillers) do
     if filler.stripe_width then
-      bb:hatchRect(x + self.pages_frame_offset_x + filler.x, y + filler.y, filler.w, filler.h, filler.stripe_width, filler.color)
+      bb:hatchRect(
+        x + self.pages_frame_offset_x + filler.x,
+        y + filler.y,
+        filler.w,
+        filler.h,
+        filler.stripe_width,
+        filler.color
+      )
     else
-      bb:paintRect(x + self.pages_frame_offset_x + filler.x, y + filler.y, filler.w, filler.h, filler.color)
+      bb:paintRect(
+        x + self.pages_frame_offset_x + filler.x,
+        y + filler.y,
+        filler.w,
+        filler.h,
+        filler.color
+      )
     end
   end
   -- Paint regular sub widgets the classic way
   InputContainer.paintTo(self, bb, x, y)
   -- And explicitly paint read pages markers (which are not subwidgets)
   for _, marker in ipairs(self.pages_markers) do
-    bb:paintRect(x + self.pages_frame_offset_x + marker.x, y + marker.y, marker.w, marker.h, marker.color)
+    bb:paintRect(
+      x + self.pages_frame_offset_x + marker.x,
+      y + marker.y,
+      marker.w,
+      marker.h,
+      marker.color
+    )
   end
   -- And explicitly paint indicators (which are not subwidgets)
   for _, indicator in ipairs(self.indicators) do
-    local glyph = RenderText:getGlyph(indicator.face or self.font_face, indicator.c)
+    local glyph =
+      RenderText:getGlyph(indicator.face or self.font_face, indicator.c)
     local alt_bb
     if indicator.rotation then
       alt_bb = glyph.bb:rotatedCopy(indicator.rotation)
@@ -565,20 +649,23 @@ function BookMapRow:paintTo(bb, x, y)
       alt_bb or glyph.bb,
       x + self.pages_frame_offset_x + indicator.x - d_x,
       y + indicator.y,
-      0, 0,
-      glyph.bb:getWidth(), glyph.bb:getHeight(),
-      Blitbuffer.COLOR_BLACK)
+      0,
+      0,
+      glyph.bb:getWidth(),
+      glyph.bb:getHeight(),
+      Blitbuffer.COLOR_BLACK
+    )
     if alt_bb then
       alt_bb:free()
     end
   end
   -- And explicitly paint bottom texts (which are not subwidgets)
   for _, btext in ipairs(self.bottom_texts) do
-    local text_w = TextWidget:new{
+    local text_w = TextWidget:new({
       text = btext.text,
       face = self.smaller_font_face,
       padding = 0,
-    }
+    })
     local d_y = self.height - math.ceil(text_w:getSize().h)
     local d_x
     local text_width = text_w:getWidth()
@@ -602,7 +689,7 @@ function BookMapRow:paintTo(bb, x, y)
 end
 
 -- BookMapWidget: shows a map of content, including TOC, bookmarks, read pages, non-linear flows...
-local BookMapWidget = InputContainer:extend{
+local BookMapWidget = InputContainer:extend({
   -- Focus page: show the BookMapRow containing this page
   -- in the middle of screen
   focus_page = nil,
@@ -615,7 +702,7 @@ local BookMapWidget = InputContainer:extend{
 
   -- Make this local subwidget available for reuse by PageBrowser
   BookMapRow = BookMapRow,
-}
+})
 
 function BookMapWidget:init()
   if self.ui.view:shouldInvertBiDiLayoutMirroring() then
@@ -623,12 +710,12 @@ function BookMapWidget:init()
   end
 
   -- Compute non-settings-dependant sizes and options
-  self.dimen = Geom:new{
+  self.dimen = Geom:new({
     x = 0,
     y = 0,
     w = Screen:getWidth(),
     h = Screen:getHeight(),
-  }
+  })
   self.covers_fullscreen = true -- hint for UIManager:_repaint()
 
   if Device:hasKeys() then
@@ -650,40 +737,40 @@ function BookMapWidget:init()
   if Device:isTouchDevice() then
     self.ges_events = {
       Swipe = {
-        GestureRange:new{
+        GestureRange:new({
           ges = "swipe",
           range = self.dimen,
-        }
+        }),
       },
       MultiSwipe = {
-        GestureRange:new{
+        GestureRange:new({
           ges = "multiswipe",
           range = self.dimen,
-        }
+        }),
       },
       Pan = { -- (for mousewheel scrolling support)
-        GestureRange:new{
+        GestureRange:new({
           ges = "pan",
           range = self.dimen,
-        }
+        }),
       },
       Tap = {
-        GestureRange:new{
+        GestureRange:new({
           ges = "tap",
           range = self.dimen,
-        }
+        }),
       },
       Pinch = {
-        GestureRange:new{
+        GestureRange:new({
           ges = "pinch",
           range = self.dimen,
-        }
+        }),
       },
       Spread = {
-        GestureRange:new{
+        GestureRange:new({
           ges = "spread",
           range = self.dimen,
-        }
+        }),
       },
     }
     -- No need for any long-press handler: page slots may be small and we can't
@@ -705,78 +792,96 @@ function BookMapWidget:init()
   self.swipe_hint_bar_width = Screen:scaleBySize(6)
 
   local title = self.overview_mode and _("Book map (overview)") or _("Book map")
-  self.title_bar = TitleBar:new{
+  self.title_bar = TitleBar:new({
     fullscreen = true,
     title = title,
     left_icon = "appbar.menu",
-    left_icon_tap_callback = function() self:onShowBookMapMenu() end,
+    left_icon_tap_callback = function()
+      self:onShowBookMapMenu()
+    end,
     left_icon_hold_callback = not self.overview_mode and function()
       self:toggleDefaultSettings() -- toggle between user settings and default view
     end,
-    close_callback = function() self:onClose() end,
-    close_hold_callback = function() self:onClose(true) end,
+    close_callback = function()
+      self:onClose()
+    end,
+    close_hold_callback = function()
+      self:onClose(true)
+    end,
     show_parent = self,
-  }
+  })
   self.title_bar_h = self.title_bar:getHeight()
-  self.crop_height = self.dimen.h - self.title_bar_h - Size.margin.small - self.swipe_hint_bar_width
+  self.crop_height = self.dimen.h
+    - self.title_bar_h
+    - Size.margin.small
+    - self.swipe_hint_bar_width
 
   -- Guess grid TOC span height from its font size
   -- (it feels this font size does not need to be configurable: too large and
   -- titles will be too easily truncated, too small and they will be unreadable)
   self.toc_span_font_name = "infofont"
   self.toc_span_font_size = 14
-  self.toc_span_face = Font:getFace(self.toc_span_font_name, self.toc_span_font_size)
-  local test_w = TextWidget:new{
+  self.toc_span_face =
+    Font:getFace(self.toc_span_font_name, self.toc_span_font_size)
+  local test_w = TextWidget:new({
     text = "z",
     face = self.toc_span_face,
-  }
+  })
   self.span_height = test_w:getSize().h + BookMapRow.toc_span_border
   test_w:free()
 
   -- Reference font size for flat TOC items, as set (or default) in ReaderToc
-  self.reader_toc_font_size = G_reader_settings:readSetting("toc_items_font_size")
-      or Menu.getItemFontSize(G_reader_settings:readSetting("toc_items_per_page") or self.ui.toc.toc_items_per_page_default)
+  self.reader_toc_font_size = G_reader_settings:readSetting(
+    "toc_items_font_size"
+  ) or Menu.getItemFontSize(
+    G_reader_settings:readSetting("toc_items_per_page")
+      or self.ui.toc.toc_items_per_page_default
+  )
 
-  self.ten_pages_markers = G_reader_settings:readSetting("book_map_ten_pages_markers") or 0
+  self.ten_pages_markers = G_reader_settings:readSetting(
+    "book_map_ten_pages_markers"
+  ) or 0
 
   -- Our container of stacked BookMapRows (and TOC titles in flat map mode)
-  self.vgroup = VerticalGroup:new{
+  self.vgroup = VerticalGroup:new({
     align = "left",
-  }
+  })
   -- We'll handle all events in this main BookMapWidget: none of the vgroup
   -- children have any handler. Hack into vgroup so it doesn't propagate
   -- events needlessly to its children (the slowness gets noticeable when
   -- we have many TOC items in flat map mode - the also needless :paintTo()
   -- don't seen to cause such a noticeable slowness)
-  self.vgroup.propagateEvent = function() return false end
+  self.vgroup.propagateEvent = function()
+    return false
+  end
 
   -- Our scrollable container needs to be known as widget.cropping_widget in
   -- the widget that is passed to UIManager:show() for UIManager to ensure
   -- proper interception of inner widget self repainting/invert (mostly used
   -- when flashing for UI feedback that we want to limit to the cropped area).
-  self.cropping_widget = ScrollableContainer:new{
-    dimen = Geom:new{
+  self.cropping_widget = ScrollableContainer:new({
+    dimen = Geom:new({
       w = self.dimen.w,
       h = self.crop_height,
-    },
+    }),
     show_parent = self,
-    ignore_events = {"swipe"},
+    ignore_events = { "swipe" },
     self.vgroup,
-  }
+  })
 
-  self[1] = FrameContainer:new{
+  self[1] = FrameContainer:new({
     width = self.dimen.w,
     height = self.dimen.h,
     padding = 0,
     margin = 0,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,
-    VerticalGroup:new{
+    VerticalGroup:new({
       align = "center",
       self.title_bar,
       self.cropping_widget,
-    }
-  }
+    }),
+  })
 
   -- Note: some of these could be cached in ReaderThumbnail, and discarded/updated
   -- on some events (ie. TocUpdated, PageUpdate, AddHhighlight...)
@@ -784,9 +889,12 @@ function BookMapWidget:init()
   self.nb_pages = self.ui.document:getPageCount()
   self.cur_page = self.ui.toc.pageno
   -- Get read page from the statistics plugin if enabled
-  self.statistics_enabled = self.ui.statistics and self.ui.statistics:isEnabled()
-  self.read_pages = self.ui.statistics and self.ui.statistics:getCurrentBookReadPages()
-  self.current_session_duration = self.ui.statistics and (os.time() - self.ui.statistics.start_current_period)
+  self.statistics_enabled = self.ui.statistics
+    and self.ui.statistics:isEnabled()
+  self.read_pages = self.ui.statistics
+    and self.ui.statistics:getCurrentBookReadPages()
+  self.current_session_duration = self.ui.statistics
+    and (os.time() - self.ui.statistics.start_current_period)
   -- Reference page numbers, for first row page display
   self.page_labels = nil
   if self.ui.pagemap and self.ui.pagemap:wantsPageLabels() then
@@ -816,7 +924,7 @@ function BookMapWidget:updateEditableStuff(update_view)
     -- Pick into credocument internal data to build a table
     -- of {first_page_number, last_page_number) for each flow
     for flow, tab in ipairs(self.ui.document.flows) do
-      table.insert(self.hidden_flows, { tab[1], tab[1]+tab[2]-1 })
+      table.insert(self.hidden_flows, { tab[1], tab[1] + tab[2] - 1 })
     end
   end
   -- Keep a flag so we can propagate the fact that editable stuff
@@ -837,9 +945,11 @@ function BookMapWidget:update()
     -- We have a previous focus page: if we have not scrolled around, keep
     -- focusing on this one. Otherwise, use the start_page of the BookMapRow
     -- at the middle of screen as the new focus page.
-    if self.initial_scroll_offset_y ~= self.cropping_widget._scroll_offset_y then
+    if
+      self.initial_scroll_offset_y ~= self.cropping_widget._scroll_offset_y
+    then
       local h = math.min(self.vgroup:getSize().h, self.crop_height)
-      local row = self:getBookMapRowNearY(h/2)
+      local row = self:getBookMapRowNearY(h / 2)
       if row then
         self.focus_page = row.start_page
       end
@@ -859,17 +969,24 @@ function BookMapWidget:update()
     -- We can switch from a custom TOC (max depth of 1) to the regular TOC
     -- (larger depth possible), so we'd rather not replace with 1 the depth
     -- set and saved for a regular TOC. So, use a dedicated setting for each.
-    self.toc_depth = self.ui.doc_settings:readSetting("book_map_toc_depth_handmade_toc") or self.max_toc_depth
+    self.toc_depth = self.ui.doc_settings:readSetting(
+      "book_map_toc_depth_handmade_toc"
+    ) or self.max_toc_depth
   else
-    self.toc_depth = self.ui.doc_settings:readSetting("book_map_toc_depth") or self.max_toc_depth
+    self.toc_depth = self.ui.doc_settings:readSetting("book_map_toc_depth")
+      or self.max_toc_depth
   end
   if self.overview_mode then
     -- Restricted to grid mode, fitting on the screen. Only toc depth can be adjusted.
     self.flat_map = false
     if self.ui.handmade:isHandmadeTocEnabled() then
-      self.toc_depth = self.ui.doc_settings:readSetting("book_map_overview_toc_depth_handmade_toc") or self.max_toc_depth
+      self.toc_depth = self.ui.doc_settings:readSetting(
+        "book_map_overview_toc_depth_handmade_toc"
+      ) or self.max_toc_depth
     else
-      self.toc_depth = self.ui.doc_settings:readSetting("book_map_overview_toc_depth") or self.max_toc_depth
+      self.toc_depth = self.ui.doc_settings:readSetting(
+        "book_map_overview_toc_depth"
+      ) or self.max_toc_depth
     end
   end
   if self.flat_map then
@@ -882,14 +999,17 @@ function BookMapWidget:update()
   if self.flat_map then
     self.flat_toc_depth_faces = {}
     -- Use ReaderToc setting font size for items at the lowest depth
-    self.flat_toc_depth_faces[self.toc_depth] = Font:getFace(self.toc_span_font_name, self.reader_toc_font_size)
-    for lvl=self.toc_depth-1, 1, -1 do
+    self.flat_toc_depth_faces[self.toc_depth] =
+      Font:getFace(self.toc_span_font_name, self.reader_toc_font_size)
+    for lvl = self.toc_depth - 1, 1, -1 do
       -- But increase font size for each upper level
       local inc = 2 * (self.toc_depth - lvl)
-      self.flat_toc_depth_faces[lvl] = Font:getFace(self.toc_span_font_name, self.reader_toc_font_size + inc)
+      self.flat_toc_depth_faces[lvl] =
+        Font:getFace(self.toc_span_font_name, self.reader_toc_font_size + inc)
     end
     -- Use 1.5em with the reference font size for indenting chapters and their BookMapRow
-    self.flat_toc_level_indent = Screen:scaleBySize(self.reader_toc_font_size * 1.5)
+    self.flat_toc_level_indent =
+      Screen:scaleBySize(self.reader_toc_font_size * 1.5)
   end
 
   -- Row will contain: nb_toc_spans + page slots + spacing (+ some borders)
@@ -906,12 +1026,19 @@ function BookMapWidget:update()
       page_slots_height_ratio = 0.2
     end
   end
-  self.row_height = math.ceil((self.nb_toc_spans + page_slots_height_ratio + 1) * self.span_height + 2*BookMapRow.pages_frame_border)
+  self.row_height = math.ceil(
+    (self.nb_toc_spans + page_slots_height_ratio + 1) * self.span_height
+      + 2 * BookMapRow.pages_frame_border
+  )
 
   if self.flat_map then
     -- Max pages per row, when each page slots takes 1px
-    self.max_pages_per_row = math.floor(self.row_width - self.row_left_spacing - 2*Size.border.default
-                        - Size.span.horizontal_default*self.toc_depth)
+    self.max_pages_per_row = math.floor(
+      self.row_width
+        - self.row_left_spacing
+        - 2 * Size.border.default
+        - Size.span.horizontal_default * self.toc_depth
+    )
     -- Find out the length of the largest chapter that we may show
     local len
     local max_len = 0
@@ -919,16 +1046,22 @@ function BookMapWidget:update()
     for _, item in ipairs(self.ui.toc.toc) do
       if item.depth <= self.toc_depth then
         len = item.page - p + 1
-        if len > max_len then max_len = len end
+        if len > max_len then
+          max_len = len
+        end
         p = item.page
       end
     end
     len = self.nb_pages - p + 1 -- last chapter
-    if len > max_len then max_len = len end
+    if len > max_len then
+      max_len = len
+    end
     self.fit_pages_per_row = max_len
   else
     -- Max pages per row, when each page slots takes 1px
-    self.max_pages_per_row = math.floor(self.row_width - self.row_left_spacing - 2*Size.border.default)
+    self.max_pages_per_row = math.floor(
+      self.row_width - self.row_left_spacing - 2 * Size.border.default
+    )
     -- What can fit without scrollbar
     local fit_nb_rows = math.floor(self.crop_height / self.row_height)
     self.fit_pages_per_row = math.ceil(self.nb_pages / fit_nb_rows)
@@ -944,7 +1077,9 @@ function BookMapWidget:update()
   end
 
   -- Show the whole book without scrollbar initially
-  self.pages_per_row = self.ui.doc_settings:readSetting("book_map_pages_per_row") or self.fit_pages_per_row
+  self.pages_per_row = self.ui.doc_settings:readSetting(
+    "book_map_pages_per_row"
+  ) or self.fit_pages_per_row
   if self.overview_mode then
     self.pages_per_row = self.fit_pages_per_row
   end
@@ -971,20 +1106,24 @@ function BookMapWidget:update()
       if item.depth <= self.toc_depth then -- ignore lower levels we won't show
         if self.flat_map then
           if item.page == p_start then
-            cur_left_spacing = self.row_left_spacing + self.flat_toc_level_indent * (item.depth-1)
+            cur_left_spacing = self.row_left_spacing
+              + self.flat_toc_level_indent * (item.depth - 1)
             local txt_max_width = self.row_width - cur_left_spacing
-            table.insert(self.vgroup, HorizontalGroup:new{
-              HorizontalSpan:new{
-                width = cur_left_spacing,
-              },
-              TextBoxWidget:new{
-                text = self.ui.toc:cleanUpTocTitle(item.title, true),
-                width = txt_max_width,
-                face = self.flat_toc_depth_faces[item.depth],
-              },
-              -- Store this TOC item page, so we can tap on it to launch PageBrowser on its page
-              toc_item_page = item.page,
-            })
+            table.insert(
+              self.vgroup,
+              HorizontalGroup:new({
+                HorizontalSpan:new({
+                  width = cur_left_spacing,
+                }),
+                TextBoxWidget:new({
+                  text = self.ui.toc:cleanUpTocTitle(item.title, true),
+                  width = txt_max_width,
+                  face = self.flat_toc_depth_faces[item.depth],
+                }),
+                -- Store this TOC item page, so we can tap on it to launch PageBrowser on its page
+                toc_item_page = item.page,
+              })
+            )
             -- Add a bit more spacing for the BookMapRow(s) underneath this Toc item title
             -- (so the page number painted in this spacing feels included in the indentation)
             cur_left_spacing = cur_left_spacing + Size.span.horizontal_default
@@ -1003,7 +1142,8 @@ function BookMapWidget:update()
             local done_toc_item = cur_toc_items[lvl]
             cur_toc_items[lvl] = nil
             if done_toc_item then
-              done_toc_item.p_end = math.max(item.page - 1, done_toc_item.p_start)
+              done_toc_item.p_end =
+                math.max(item.page - 1, done_toc_item.p_start)
               if done_toc_item.p_end >= p_start then
                 -- Can go into row_toc_items[lvl]
                 if done_toc_item.p_start < p_start then
@@ -1035,7 +1175,9 @@ function BookMapWidget:update()
       local active_toc_item = cur_toc_items[lvl]
       if active_toc_item then
         local copied_toc_item = {}
-        for k,v in next, active_toc_item, nil do copied_toc_item[k] = v end
+        for k, v in next, active_toc_item, nil do
+          copied_toc_item[k] = v
+        end
         if copied_toc_item.p_start < p_start then
           copied_toc_item.p_start = p_start
           copied_toc_item.started_before = true -- no left margin
@@ -1044,7 +1186,11 @@ function BookMapWidget:update()
         copied_toc_item.continues_after = not is_last_row -- no right margin (except if last row)
         -- Look at next TOC item to see if it would close this one
         local coming_up_toc_item = toc[toc_idx]
-        if coming_up_toc_item and coming_up_toc_item.page == p_max+1 and coming_up_toc_item.depth <= lvl then
+        if
+          coming_up_toc_item
+          and coming_up_toc_item.page == p_max + 1
+          and coming_up_toc_item.depth <= lvl
+        then
           copied_toc_item.continues_after = false -- right margin
         end
         if not row_toc_items[lvl] then
@@ -1058,7 +1204,7 @@ function BookMapWidget:update()
     local start_page_text
     if self.page_labels then
       local label
-      for idx=cur_page_label_idx, #self.page_labels do
+      for idx = cur_page_label_idx, #self.page_labels do
         local item = self.page_labels[idx]
         if item.page > p_start then
           break
@@ -1072,7 +1218,8 @@ function BookMapWidget:update()
     elseif self.has_hidden_flows then
       local flow = self.ui.document:getPageFlow(p_start)
       if flow == 0 then
-        start_page_text = tostring(self.ui.document:getPageNumberInFlow(p_start))
+        start_page_text =
+          tostring(self.ui.document:getPageNumberInFlow(p_start))
       else
         -- start_page_text = string.format("[%d]%d", self.ui.document:getPageNumberInFlow(p_start), self.ui.document:getPageFlow(p_start))
         -- start_page_text = string.format("/%d\\", self.ui.document:getPageFlow(p_start))
@@ -1096,7 +1243,9 @@ function BookMapWidget:update()
       -- 3: show medium marker every 10 pages + small every 5 pages
       local show_5 = self.ten_pages_markers == 3
       local extended_sep_pages_every = show_5 and 5 or 10
-      local marker_10 = self.ten_pages_markers == 1 and BookMapRow.extended_marker.SMALL or BookMapRow.extended_marker.MEDIUM
+      local marker_10 = self.ten_pages_markers == 1
+          and BookMapRow.extended_marker.SMALL
+        or BookMapRow.extended_marker.MEDIUM
       local marker_5 = BookMapRow.extended_marker.SMALL
       local start, is_5
       extended_sep_pages = {}
@@ -1118,7 +1267,7 @@ function BookMapWidget:update()
       end
     end
 
-    local row = BookMapRow:new{
+    local row = BookMapRow:new({
       height = self.row_height,
       width = self.row_width,
       show_parent = self,
@@ -1141,7 +1290,7 @@ function BookMapWidget:update()
       read_pages = self.read_pages,
       current_session_duration = self.current_session_duration,
       extended_sep_pages = extended_sep_pages,
-    }
+    })
     table.insert(self.vgroup, row)
     if not self.page_slot_width then
       self.page_slot_width = row.page_slot_width
@@ -1156,11 +1305,15 @@ function BookMapWidget:update()
   self.vgroup:getSize()
 
   -- Scroll so we get the focus page at the middle of screen
-  local row, row_idx, row_y, row_h = self:getMatchingVGroupRow(function(r, r_y, r_h) -- luacheck: no unused
-    return r.start_page and self.focus_page >= r.start_page and self.focus_page <= r.end_page
-  end)
+  local row, row_idx, row_y, row_h = self:getMatchingVGroupRow(
+    function(r, r_y, r_h) -- luacheck: no unused
+      return r.start_page
+        and self.focus_page >= r.start_page
+        and self.focus_page <= r.end_page
+    end
+  )
   if row_y then
-    local top_y = row_y + row_h/2 - self.crop_height/2
+    local top_y = row_y + row_h / 2 - self.crop_height / 2
     -- Align it so that we don't see any truncated BookMapRow at top
     row, row_idx, row_y, row_h = self:getMatchingVGroupRow(function(r, r_y, r_h)
       return r_y < top_y and r_y + r_h > top_y
@@ -1187,66 +1340,82 @@ function BookMapWidget:update()
   end)
 end
 
-
 function BookMapWidget:onShowBookMapMenu()
   local button_dialog
   -- Width of our -/+ buttons, so it looks fine with Button's default font size of 20
   local plus_minus_width = Screen:scaleBySize(60)
   local buttons = {
-    {{
-      text = self.overview_mode and _("About book map (overview)") or _("About book map"),
-      align = "left",
-      callback = function()
-        self:showAbout()
-      end,
-    }},
-    {{
-      text = _("Available gestures"),
-      align = "left",
-      callback = function()
-        self:showGestures()
-      end,
-    }},
-    {{
-      text = _("Page browser on tap"),
-      checked_func = function()
-        return G_reader_settings:nilOrTrue("book_map_tap_to_page_browser")
-      end,
-      align = "left",
-      callback = function()
-        G_reader_settings:flipNilOrTrue("book_map_tap_to_page_browser")
-      end,
-    }},
-    {{
-      text = _("Alternative theme"),
-      checked_func = function()
-        return G_reader_settings:isTrue("book_map_alt_theme")
-      end,
-      align = "left",
-      callback = function()
-        G_reader_settings:flipNilOrFalse("book_map_alt_theme")
-        self.editable_stuff_edited = true -- have this change reflected on any lower bookmap & pagebrowser
-        self:update()
-      end,
-    }},
-    not self.overview_mode and {{
-      text = _("Switch current/initial view"),
-      align = "left",
-      enabled_func = function() return self.toc_depth > 0 end,
-      callback = function()
-        self:toggleDefaultSettings()
-      end,
-    }},
-    not self.overview_mode and {{
-      text = _("Switch grid/flat views"),
-      align = "left",
-      enabled_func = function() return self.toc_depth > 0 end,
-      callback = function()
-        self.flat_map = not self.flat_map
-        self:saveSettings()
-        self:update()
-      end,
-    }},
+    {
+      {
+        text = self.overview_mode and _("About book map (overview)")
+          or _("About book map"),
+        align = "left",
+        callback = function()
+          self:showAbout()
+        end,
+      },
+    },
+    {
+      {
+        text = _("Available gestures"),
+        align = "left",
+        callback = function()
+          self:showGestures()
+        end,
+      },
+    },
+    {
+      {
+        text = _("Page browser on tap"),
+        checked_func = function()
+          return G_reader_settings:nilOrTrue("book_map_tap_to_page_browser")
+        end,
+        align = "left",
+        callback = function()
+          G_reader_settings:flipNilOrTrue("book_map_tap_to_page_browser")
+        end,
+      },
+    },
+    {
+      {
+        text = _("Alternative theme"),
+        checked_func = function()
+          return G_reader_settings:isTrue("book_map_alt_theme")
+        end,
+        align = "left",
+        callback = function()
+          G_reader_settings:flipNilOrFalse("book_map_alt_theme")
+          self.editable_stuff_edited = true -- have this change reflected on any lower bookmap & pagebrowser
+          self:update()
+        end,
+      },
+    },
+    not self.overview_mode and {
+      {
+        text = _("Switch current/initial view"),
+        align = "left",
+        enabled_func = function()
+          return self.toc_depth > 0
+        end,
+        callback = function()
+          self:toggleDefaultSettings()
+        end,
+      },
+    },
+    not self.overview_mode and {
+      {
+        text = _("Switch grid/flat views"),
+        align = "left",
+        enabled_func = function()
+          return self.toc_depth > 0
+        end,
+        callback = function()
+          self.flat_map = not self.flat_map
+          self:saveSettings()
+          self:update()
+        end,
+      },
+    },
     {
       {
         text = _("Chapter levels"),
@@ -1255,7 +1424,9 @@ function BookMapWidget:onShowBookMapMenu()
       },
       {
         text = "\u{2796}", -- Heavy minus sign
-        enabled_func = function() return self.toc_depth > 0 end,
+        enabled_func = function()
+          return self.toc_depth > 0
+        end,
         callback = function()
           if self:updateTocDepth(self.flat_map and 1 or -1, nil) then
             self:update()
@@ -1265,14 +1436,16 @@ function BookMapWidget:onShowBookMapMenu()
       },
       {
         text = "\u{2795}", -- Heavy plus sign
-        enabled_func = function() return self.toc_depth < self.max_toc_depth end,
+        enabled_func = function()
+          return self.toc_depth < self.max_toc_depth
+        end,
         callback = function()
           if self:updateTocDepth(self.flat_map and -1 or 1, nil) then
             self:update()
           end
         end,
         width = plus_minus_width,
-      }
+      },
     },
     not self.overview_mode and {
       {
@@ -1284,7 +1457,9 @@ function BookMapWidget:onShowBookMapMenu()
       },
       {
         text = "\u{2796}", -- Heavy minus sign
-        enabled_func = function() return self.pages_per_row < self.max_pages_per_row end,
+        enabled_func = function()
+          return self.pages_per_row < self.max_pages_per_row
+        end,
         callback = function()
           if self:updatePagesPerRow(10, true) then
             self:update()
@@ -1294,14 +1469,16 @@ function BookMapWidget:onShowBookMapMenu()
       },
       {
         text = "\u{2795}", -- Heavy plus sign
-        enabled_func = function() return self.pages_per_row > self.min_pages_per_row end,
+        enabled_func = function()
+          return self.pages_per_row > self.min_pages_per_row
+        end,
         callback = function()
           if self:updatePagesPerRow(-10, true) then
             self:update()
           end
         end,
         width = plus_minus_width,
-      }
+      },
     },
     {
       {
@@ -1311,24 +1488,34 @@ function BookMapWidget:onShowBookMapMenu()
       },
       {
         text = "\u{2796}", -- Heavy minus sign
-        enabled_func = function() return self.ten_pages_markers > 0 end,
+        enabled_func = function()
+          return self.ten_pages_markers > 0
+        end,
         callback = function()
           self.ten_pages_markers = self.ten_pages_markers - 1
-          G_reader_settings:saveSetting("book_map_ten_pages_markers", self.ten_pages_markers)
+          G_reader_settings:saveSetting(
+            "book_map_ten_pages_markers",
+            self.ten_pages_markers
+          )
           self:update()
         end,
         width = plus_minus_width,
       },
       {
         text = "\u{2795}", -- Heavy plus sign
-        enabled_func = function() return self.ten_pages_markers < 3 end,
+        enabled_func = function()
+          return self.ten_pages_markers < 3
+        end,
         callback = function()
           self.ten_pages_markers = self.ten_pages_markers + 1
-          G_reader_settings:saveSetting("book_map_ten_pages_markers", self.ten_pages_markers)
+          G_reader_settings:saveSetting(
+            "book_map_ten_pages_markers",
+            self.ten_pages_markers
+          )
           self:update()
         end,
         width = plus_minus_width,
-      }
+      },
     },
   }
   -- remove "Page browser on tap" from non-touch devices
@@ -1341,7 +1528,7 @@ function BookMapWidget:onShowBookMapMenu()
       table.remove(buttons, i)
     end
   end
-  button_dialog = ButtonDialog:new{
+  button_dialog = ButtonDialog:new({
     -- width = math.floor(Screen:getWidth() / 2),
     width = math.floor(Screen:getWidth() * 0.9), -- max width, will get smaller
     shrink_unneeded_width = true,
@@ -1349,7 +1536,7 @@ function BookMapWidget:onShowBookMapMenu()
     anchor = function()
       return self.title_bar.left_button.image.dimen
     end,
-  }
+  })
   UIManager:show(button_dialog)
 end
 
@@ -1366,13 +1553,21 @@ Map legend:
 ▢ focused page when coming from Pages browser]])
 
   if self.overview_mode then
-    text = text .. "\n\n" .. _([[
-When in overview mode, the book map is always displayed in grid mode to fit on one screen. The chapter levels can be easily adjusted for the most convenient overview experience.]])
+    text = text
+      .. "\n\n"
+      .. _(
+        [[
+When in overview mode, the book map is always displayed in grid mode to fit on one screen. The chapter levels can be easily adjusted for the most convenient overview experience.]]
+      )
   else
-    text = text .. "\n\n" .. _([[
-When you first open a book, the book map will begin in grid mode, displaying all chapter levels on one screen for a comprehensive overview of the book's content.]])
+    text = text
+      .. "\n\n"
+      .. _(
+        [[
+When you first open a book, the book map will begin in grid mode, displaying all chapter levels on one screen for a comprehensive overview of the book's content.]]
+      )
   end
-  UIManager:show(InfoMessage:new{ text = text })
+  UIManager:show(InfoMessage:new({ text = text }))
 end
 
 function BookMapWidget:showGestures()
@@ -1405,7 +1600,7 @@ Long-press on ≡ to switch between current and initial views.
 
 Any multiswipe will close the book map.]])
   end
-  UIManager:show(InfoMessage:new{ text = text })
+  UIManager:show(InfoMessage:new({ text = text }))
 end
 
 function BookMapWidget:onClose(close_all_parents)
@@ -1451,10 +1646,12 @@ function BookMapWidget:getMatchingVGroupRow(check_func)
   -- Generic Vertical subwidget search function.
   -- We use some of VerticalGroup's internal data, no need
   -- to keep public copies of these data in here
-  for i=1, #self.vgroup do
+  for i = 1, #self.vgroup do
     local row = self.vgroup[i]
     local y = self.vgroup._offsets[i].y
-    local h = (i < #self.vgroup and self.vgroup._offsets[i+1].y or self.vgroup._size.h) - y
+    local h = (
+      i < #self.vgroup and self.vgroup._offsets[i + 1].y or self.vgroup._size.h
+    ) - y
     if check_func(row, y, h) then
       return row, i, y, h
     end
@@ -1531,14 +1728,23 @@ function BookMapWidget:saveSettings(reset)
   end
   if self.overview_mode then
     if self.ui.handmade:isHandmadeTocEnabled() then
-      self.ui.doc_settings:saveSetting("book_map_overview_toc_depth_handmade_toc", self.toc_depth)
+      self.ui.doc_settings:saveSetting(
+        "book_map_overview_toc_depth_handmade_toc",
+        self.toc_depth
+      )
     else
-      self.ui.doc_settings:saveSetting("book_map_overview_toc_depth", self.toc_depth)
+      self.ui.doc_settings:saveSetting(
+        "book_map_overview_toc_depth",
+        self.toc_depth
+      )
     end
     return
   end
   if self.ui.handmade:isHandmadeTocEnabled() then
-    self.ui.doc_settings:saveSetting("book_map_toc_depth_handmade_toc", self.toc_depth)
+    self.ui.doc_settings:saveSetting(
+      "book_map_toc_depth_handmade_toc",
+      self.toc_depth
+    )
   else
     self.ui.doc_settings:saveSetting("book_map_toc_depth", self.toc_depth)
   end
@@ -1547,18 +1753,29 @@ function BookMapWidget:saveSettings(reset)
 end
 
 function BookMapWidget:toggleDefaultSettings()
-  if not self.flat_map and self.toc_depth == self.max_toc_depth
-      and self.pages_per_row == self.fit_pages_per_row then
+  if
+    not self.flat_map
+    and self.toc_depth == self.max_toc_depth
+    and self.pages_per_row == self.fit_pages_per_row
+  then
     -- Still in default/initial view: restore previous settings (if any)
     self.flat_map = self.ui.doc_settings:readSetting("book_map_previous_flat")
-    self.toc_depth = self.ui.doc_settings:readSetting("book_map_previous_toc_depth")
-    self.pages_per_row = self.ui.doc_settings:readSetting("book_map_previous_pages_per_row")
+    self.toc_depth =
+      self.ui.doc_settings:readSetting("book_map_previous_toc_depth")
+    self.pages_per_row =
+      self.ui.doc_settings:readSetting("book_map_previous_pages_per_row")
     self:saveSettings()
   else
     -- Save previous settings and switch to defaults
     self.ui.doc_settings:saveSetting("book_map_previous_flat", self.flat_map)
-    self.ui.doc_settings:saveSetting("book_map_previous_toc_depth", self.toc_depth)
-    self.ui.doc_settings:saveSetting("book_map_previous_pages_per_row", self.pages_per_row)
+    self.ui.doc_settings:saveSetting(
+      "book_map_previous_toc_depth",
+      self.toc_depth
+    )
+    self.ui.doc_settings:saveSetting(
+      "book_map_previous_pages_per_row",
+      self.pages_per_row
+    )
     self:saveSettings(true)
   end
   self:update()
@@ -1577,7 +1794,7 @@ function BookMapWidget:updateTocDepth(depth, flat)
       new_toc_depth = new_toc_depth + depth
     end
     if new_toc_depth < 0 and not self.overview_mode then
-      new_toc_depth = - new_toc_depth
+      new_toc_depth = -new_toc_depth
       new_flat_map = not new_flat_map
     end
   else
@@ -1623,8 +1840,10 @@ end
 function BookMapWidget:onSwipe(arg, ges)
   local _mirroredUI = BD.mirroredUILayout()
   local direction = BD.flipDirectionIfMirroredUILayout(ges.direction)
-  if (not _mirroredUI and ges.pos.x < Screen:getWidth() * 1/8) or
-       (_mirroredUI and ges.pos.x > Screen:getWidth() * 7/8) then
+  if
+    (not _mirroredUI and ges.pos.x < Screen:getWidth() * 1 / 8)
+    or (_mirroredUI and ges.pos.x > Screen:getWidth() * 7 / 8)
+  then
     -- Swipe along the left screen edge: increase/decrease toc levels shown
     if direction == "north" or direction == "south" then
       local rel = direction == "south" and 1 or -1
@@ -1634,7 +1853,7 @@ function BookMapWidget:onSwipe(arg, ges)
       return true
     end
   end
-  if ges.pos.y > Screen:getHeight() * 7/8 then
+  if ges.pos.y > Screen:getHeight() * 7 / 8 then
     if self.overview_mode then
       return true
     end
@@ -1649,8 +1868,16 @@ function BookMapWidget:onSwipe(arg, ges)
         new_pages_per_row = math.floor(self.pages_per_row / (1 + ratio))
       end
       -- If we are crossing the ideal fit_pages_per_row, stop on it
-      if (self.pages_per_row < self.fit_pages_per_row and new_pages_per_row > self.fit_pages_per_row)
-          or (self.pages_per_row > self.fit_pages_per_row and new_pages_per_row < self.fit_pages_per_row) then
+      if
+        (
+          self.pages_per_row < self.fit_pages_per_row
+          and new_pages_per_row > self.fit_pages_per_row
+        )
+        or (
+          self.pages_per_row > self.fit_pages_per_row
+          and new_pages_per_row < self.fit_pages_per_row
+        )
+      then
         new_pages_per_row = self.fit_pages_per_row
       end
       if self:updatePagesPerRow(new_pages_per_row) then
@@ -1659,7 +1886,11 @@ function BookMapWidget:onSwipe(arg, ges)
       return true
     end
   end
-  if self.overview_mode and not self.cropping_widget._is_scrollable and direction == "south" then
+  if
+    self.overview_mode
+    and not self.cropping_widget._is_scrollable
+    and direction == "south"
+  then
     -- Swipe south won't have any effect in overview mode as we fit on the page (except on
     -- really big books, where we can still be scrollable), so allow swipe south to close
     -- as on some other fullscreen widgets.
@@ -1702,8 +1933,16 @@ function BookMapWidget:onPinch(arg, ges)
   local updated = false
   if ges.direction == "horizontal" or ges.direction == "diagonal" then
     local new_pages_per_row = math.ceil(self.pages_per_row * 1.5)
-    if (self.pages_per_row < self.fit_pages_per_row and new_pages_per_row > self.fit_pages_per_row)
-        or (self.pages_per_row > self.fit_pages_per_row and new_pages_per_row < self.fit_pages_per_row) then
+    if
+      (
+        self.pages_per_row < self.fit_pages_per_row
+        and new_pages_per_row > self.fit_pages_per_row
+      )
+      or (
+        self.pages_per_row > self.fit_pages_per_row
+        and new_pages_per_row < self.fit_pages_per_row
+      )
+    then
       new_pages_per_row = self.fit_pages_per_row
     end
     if self:updatePagesPerRow(new_pages_per_row) then
@@ -1712,7 +1951,7 @@ function BookMapWidget:onPinch(arg, ges)
   end
   if ges.direction == "vertical" or ges.direction == "diagonal" then
     -- Keep current flat map mode
-    if self:updateTocDepth(self.toc_depth-1, self.flat_map) then
+    if self:updateTocDepth(self.toc_depth - 1, self.flat_map) then
       updated = true
     else
       -- Already at 0: toggle flat mode, stay at 0 (no visual feedback though...)
@@ -1733,9 +1972,17 @@ function BookMapWidget:onSpread(arg, ges)
   end
   local updated = false
   if ges.direction == "horizontal" or ges.direction == "diagonal" then
-    local new_pages_per_row = math.floor(self.pages_per_row * (2/3))
-    if (self.pages_per_row < self.fit_pages_per_row and new_pages_per_row > self.fit_pages_per_row)
-        or (self.pages_per_row > self.fit_pages_per_row and new_pages_per_row < self.fit_pages_per_row) then
+    local new_pages_per_row = math.floor(self.pages_per_row * (2 / 3))
+    if
+      (
+        self.pages_per_row < self.fit_pages_per_row
+        and new_pages_per_row > self.fit_pages_per_row
+      )
+      or (
+        self.pages_per_row > self.fit_pages_per_row
+        and new_pages_per_row < self.fit_pages_per_row
+      )
+    then
       new_pages_per_row = self.fit_pages_per_row
     end
     if self:updatePagesPerRow(new_pages_per_row) then
@@ -1743,7 +1990,7 @@ function BookMapWidget:onSpread(arg, ges)
     end
   end
   if ges.direction == "vertical" or ges.direction == "diagonal" then
-    if self:updateTocDepth(self.toc_depth+1, self.flat_map) then
+    if self:updateTocDepth(self.toc_depth + 1, self.flat_map) then
       updated = true
     end
   end
@@ -1767,11 +2014,11 @@ function BookMapWidget:onTap(arg, ges)
     return true
   end
   local x, y = ges.pos.x, ges.pos.y
-  local row, row_idx, row_y, row_h = self:getVGroupRowAtY(y-self.title_bar_h) -- luacheck: no unused
+  local row, row_idx, row_y, row_h = self:getVGroupRowAtY(y - self.title_bar_h) -- luacheck: no unused
   if not row then
     return true
   end
-  local page = row.toc_item_page    -- it might be a TOC title
+  local page = row.toc_item_page -- it might be a TOC title
   if not page and row.start_page then -- or a BookMapRow
     if BD.mirroredUILayout() then
       x = x - self.scrollbar_width
@@ -1786,11 +2033,11 @@ function BookMapWidget:onTap(arg, ges)
       return true
     end
     local PageBrowserWidget = require("ui/widget/pagebrowserwidget")
-    UIManager:show(PageBrowserWidget:new{
+    UIManager:show(PageBrowserWidget:new({
       launcher = self,
       ui = self.ui,
       focus_page = page,
-    })
+    }))
   end
   return true
 end
@@ -1819,8 +2066,8 @@ function BookMapWidget:paintLeftVerticalSwipeHint(bb, x, y)
     else
       v.left = 0
     end
-    v.top = self.title_bar_h + math.floor(self.crop_height * 1/6)
-    v.height = math.floor(self.crop_height * 4/6)
+    v.top = self.title_bar_h + math.floor(self.crop_height * 1 / 6)
+    v.height = math.floor(self.crop_height * 4 / 6)
     v.nb_units = self.max_toc_depth * 2 + 1
     if self.overview_mode then
       v.nb_units = self.max_toc_depth + 1
@@ -1845,7 +2092,13 @@ function BookMapWidget:paintLeftVerticalSwipeHint(bb, x, y)
     -- avoid possible rounding error for last unit
     dy = v.height - v.unit_h
   end
-  bb:paintRect(v.left, v.top + dy, v.width, v.unit_h, Blitbuffer.COLOR_DARK_GRAY)
+  bb:paintRect(
+    v.left,
+    v.top + dy,
+    v.width,
+    v.unit_h,
+    Blitbuffer.COLOR_DARK_GRAY
+  )
 end
 
 function BookMapWidget:paintBottomHorizontalSwipeHint(bb, x, y)
@@ -1857,8 +2110,8 @@ function BookMapWidget:paintBottomHorizontalSwipeHint(bb, x, y)
     h = {}
     h.height = self.swipe_hint_bar_width
     h.top = Screen:getHeight() - h.height
-    h.width = math.floor(Screen:getWidth() * 4/6)
-    h.left = math.floor(Screen:getWidth() * 1/6)
+    h.width = math.floor(Screen:getWidth() * 4 / 6)
+    h.left = math.floor(Screen:getWidth() * 1 / 6)
     -- We show a fixed width handle with a granular dx
     h.hint_w = math.floor(h.width / 8)
     h.max_dx = h.width - h.hint_w
@@ -1871,11 +2124,17 @@ function BookMapWidget:paintBottomHorizontalSwipeHint(bb, x, y)
   -- could be related to the increment/ratio we use in onSwipe)
   local cur = self.pages_per_row - self.min_pages_per_row
   local max = self.max_pages_per_row - self.min_pages_per_row
-  local dx = math.floor(h.max_dx*(1-math.log(1+cur)/math.log(1+max)))
+  local dx = math.floor(h.max_dx * (1 - math.log(1 + cur) / math.log(1 + max)))
   if BD.mirroredUILayout() then
     dx = h.max_dx - dx
   end
-  bb:paintRect(h.left + dx, h.top, h.hint_w, h.height, Blitbuffer.COLOR_DARK_GRAY)
+  bb:paintRect(
+    h.left + dx,
+    h.top,
+    h.hint_w,
+    h.height,
+    Blitbuffer.COLOR_DARK_GRAY
+  )
 end
 
 return BookMapWidget

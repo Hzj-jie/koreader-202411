@@ -20,9 +20,9 @@ local optionsutil = {
   },
   rotation_modes = {
     Screen.DEVICE_ROTATED_COUNTER_CLOCKWISE, -- 3
-    Screen.DEVICE_ROTATED_UPRIGHT,       -- 0
-    Screen.DEVICE_ROTATED_CLOCKWISE,     -- 1
-    Screen.DEVICE_ROTATED_UPSIDE_DOWN,     -- 2
+    Screen.DEVICE_ROTATED_UPRIGHT, -- 0
+    Screen.DEVICE_ROTATED_CLOCKWISE, -- 1
+    Screen.DEVICE_ROTATED_UPSIDE_DOWN, -- 2
   },
 }
 
@@ -83,8 +83,14 @@ local function formatFlexSize(value, unit)
 
   if G_reader_settings:isTrue("dimension_units_append_px") and unit ~= "px" then
     local px_str = C_("Pixels", "px")
-    return string.format(fmt .. " [%d %s]", size, convertSizeTo(size, unit), shown_unit,
-                            convertSizeTo(size, "px"), px_str)
+    return string.format(
+      fmt .. " [%d %s]",
+      size,
+      convertSizeTo(size, unit),
+      shown_unit,
+      convertSizeTo(size, "px"),
+      px_str
+    )
   else
     return string.format(fmt, size, convertSizeTo(size, unit), shown_unit)
   end
@@ -105,7 +111,7 @@ end
 -- in which case we append the results of a conversion to that unit in the final string.
 -- It can also be set to `true`, in which case the unit is pulled from user settings ("dimension_units").
 function optionsutil.showValues(configurable, option, prefix, document, unit)
-  local default = G_reader_settings:readSetting(prefix.."_"..option.name)
+  local default = G_reader_settings:readSetting(prefix .. "_" .. option.name)
   local current = configurable[option.name]
   local value_default, value_current
   unit = unit or option.name_text_unit
@@ -116,14 +122,18 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
     -- build a table so we can see if current/default settings map
     -- to a known setting with a name (in option.toggle)
     local arg_table = {}
-    for i=1, #option.values do
+    for i = 1, #option.values do
       local val = option.values[i]
       -- flatten table to a string for easy lookup via arg_table
-      if type(val) == "table" then val = table.concat(val, ",") end
+      if type(val) == "table" then
+        val = table.concat(val, ",")
+      end
       arg_table[val] = option.toggle[i]
     end
     value_current = current
-    if type(current) == "table" then current = table.concat(current, ",") end
+    if type(current) == "table" then
+      current = table.concat(current, ",")
+    end
     current = arg_table[current]
     if not current then
       current = option.name_text_true_values and _("custom") or value_current
@@ -133,7 +143,9 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
     end
     if default then
       value_default = default
-      if type(default) == "table" then default = table.concat(default, ",") end
+      if type(default) == "table" then
+        default = table.concat(default, ",")
+      end
       default = arg_table[default]
       if not default then
         default = option.name_text_true_values and _("custom") or value_default
@@ -151,14 +163,14 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
       end
     else
       if default then
-        for i=1, #option.labels do
+        for i = 1, #option.labels do
           if default == option.values[i] then
             default = option.labels[i]
             break
           end
         end
       end
-      for i=1, #option.labels do
+      for i = 1, #option.labels do
         if current == option.values[i] then
           current = option.labels[i]
           break
@@ -187,48 +199,70 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
   end
   local text
   local name_text = option.name_text_func
-            and option.name_text_func(configurable)
-            or option.name_text
+      and option.name_text_func(configurable)
+    or option.name_text
   if option.name_text_true_values and option.toggle and option.values then
     local nb_current, nb_default = tonumber(current), tonumber(default)
     if nb_current == nil or nb_default == nil then
-      text = T(_("%1\n%2\nCurrent value: %3\nDefault value: %4"), name_text, help_text,
-                      formatFlexSize(value_current or current, unit),
-                      formatFlexSize(value_default or default, unit))
+      text = T(
+        _("%1\n%2\nCurrent value: %3\nDefault value: %4"),
+        name_text,
+        help_text,
+        formatFlexSize(value_current or current, unit),
+        formatFlexSize(value_default or default, unit)
+      )
     elseif value_default then
-      text = T(_("%1\n%2\nCurrent value: %3 (%4)\nDefault value: %5 (%6)"), name_text, help_text,
-                      current, formatFlexSize(value_current, unit),
-                      default, formatFlexSize(value_default, unit))
+      text = T(
+        _("%1\n%2\nCurrent value: %3 (%4)\nDefault value: %5 (%6)"),
+        name_text,
+        help_text,
+        current,
+        formatFlexSize(value_current, unit),
+        default,
+        formatFlexSize(value_default, unit)
+      )
     else
-      text = T(_("%1\n%2\nCurrent value: %3 (%4)\nDefault value: %5"), name_text, help_text,
-                      current, formatFlexSize(value_current, unit),
-                      default)
+      text = T(
+        _("%1\n%2\nCurrent value: %3 (%4)\nDefault value: %5"),
+        name_text,
+        help_text,
+        current,
+        formatFlexSize(value_current, unit),
+        default
+      )
     end
   else
-    text = T(_("%1\n%2\nCurrent value: %3\nDefault value: %4"), name_text, help_text,
-                      formatFlexSize(current, unit),
-                      formatFlexSize(default, unit))
+    text = T(
+      _("%1\n%2\nCurrent value: %3\nDefault value: %4"),
+      name_text,
+      help_text,
+      formatFlexSize(current, unit),
+      formatFlexSize(default, unit)
+    )
   end
-  UIManager:show(InfoMessage:new{ text=text })
+  UIManager:show(InfoMessage:new({ text = text }))
 end
 
 function optionsutil.showValuesHMargins(configurable, option)
-  local default = G_reader_settings:readSetting("copt_"..option.name)
+  local default = G_reader_settings:readSetting("copt_" .. option.name)
   local current = configurable[option.name]
   local unit = G_named_settings.dimension_units()
   if not default then
-    UIManager:show(InfoMessage:new{
-      text = T(_([[
+    UIManager:show(InfoMessage:new({
+      text = T(
+        _([[
 Current margins:
   left: %1
   right: %2
 Default margins: not set]]),
         formatFlexSize(current[1], unit),
-        formatFlexSize(current[2], unit))
-    })
+        formatFlexSize(current[2], unit)
+      ),
+    }))
   else
-    UIManager:show(InfoMessage:new{
-      text = T(_([[
+    UIManager:show(InfoMessage:new({
+      text = T(
+        _([[
 Current margins:
   left: %1
   right: %2
@@ -238,8 +272,9 @@ Default margins:
         formatFlexSize(current[1], unit),
         formatFlexSize(current[2], unit),
         formatFlexSize(default[1], unit),
-        formatFlexSize(default[2], unit))
-    })
+        formatFlexSize(default[2], unit)
+      ),
+    }))
   end
 end
 
@@ -268,11 +303,17 @@ function optionsutil:getOptionText(event, val)
     self:generateOptionText()
   end
   if not event or val == nil then
-    logger.err("[OptionsCatalog:getOptionText] Either event or val not set. This should not happen!")
+    logger.err(
+      "[OptionsCatalog:getOptionText] Either event or val not set. This should not happen!"
+    )
     return ""
   end
   if not self.option_text_table[event] then
-    logger.err("[OptionsCatalog:getOptionText] Event:" .. event .. " not found in option_text_table")
+    logger.err(
+      "[OptionsCatalog:getOptionText] Event:"
+        .. event
+        .. " not found in option_text_table"
+    )
     return ""
   end
 

@@ -19,13 +19,19 @@ local util_IsArray = jsonutil.IsArray
 local _ENV = nil
 
 local defaultOptions = {
-	isArray = util_IsArray
+  isArray = util_IsArray,
 }
 
 local modeOptions = {}
 
 local function mergeOptions(options, mode)
-	jsonutil.doOptionMerge(options, false, 'array', defaultOptions, mode and modeOptions[mode])
+  jsonutil.doOptionMerge(
+    options,
+    false,
+    "array",
+    defaultOptions,
+    mode and modeOptions[mode]
+  )
 end
 
 --[[
@@ -38,33 +44,33 @@ end
 		* It is a contiguous list of values with zero string-based keys
 ]]
 local function isArray(val, options)
-	local externalIsArray = options and options.isArray
+  local externalIsArray = options and options.isArray
 
-	if externalIsArray then
-		local ret = externalIsArray(val)
-		if ret == true or ret == false then
-			return ret
-		end
-	end
-	-- Use the 'n' element if it's a number
-	if type(val.n) == 'number' and math_floor(val.n) == val.n and val.n >= 1 then
-		return true
-	end
-	local len = #val
-	for k,v in pairs(val) do
-		if type(k) ~= 'number' then
-			return false
-		end
-		local _, decim = math_modf(k)
-		if not (decim == 0 and 1<=k) then
-			return false
-		end
-		if k > len then -- Use Lua's length as absolute determiner
-			return false
-		end
-	end
+  if externalIsArray then
+    local ret = externalIsArray(val)
+    if ret == true or ret == false then
+      return ret
+    end
+  end
+  -- Use the 'n' element if it's a number
+  if type(val.n) == "number" and math_floor(val.n) == val.n and val.n >= 1 then
+    return true
+  end
+  local len = #val
+  for k, v in pairs(val) do
+    if type(k) ~= "number" then
+      return false
+    end
+    local _, decim = math_modf(k)
+    if not (decim == 0 and 1 <= k) then
+      return false
+    end
+    if k > len then -- Use Lua's length as absolute determiner
+      return false
+    end
+  end
 
-	return true
+  return true
 end
 
 --[[
@@ -72,20 +78,21 @@ end
 	trailing results
 ]]
 local function unmarkAfterEncode(tab, state, ...)
-	state.already_encoded[tab] = nil
-	return ...
+  state.already_encoded[tab] = nil
+  return ...
 end
 local function getEncoder(options)
-	options = options and jsonutil.merge({}, defaultOptions, options) or defaultOptions
-	local function encodeArray(tab,  state)
-		if not isArray(tab, options) then
-			return false
-		end
-		-- Make sure this value hasn't been encoded yet
-		state.check_unique(tab)
-		local encode = state.encode
-		local compositeEncoder = state.outputEncoder.composite
-		local valueEncoder = [[
+  options = options and jsonutil.merge({}, defaultOptions, options)
+    or defaultOptions
+  local function encodeArray(tab, state)
+    if not isArray(tab, options) then
+      return false
+    end
+    -- Make sure this value hasn't been encoded yet
+    state.check_unique(tab)
+    local encode = state.encode
+    local compositeEncoder = state.outputEncoder.composite
+    local valueEncoder = [[
 		for i = 1, (composite.n or #composite) do
 			local val = composite[i]
 			PUTINNER(i ~= 1)
@@ -96,15 +103,19 @@ local function getEncoder(options)
 			end
 		end
 		]]
-		return unmarkAfterEncode(tab, state, compositeEncoder(valueEncoder, '[', ']', ',', tab, encode, state))
-	end
-	return { table = encodeArray }
+    return unmarkAfterEncode(
+      tab,
+      state,
+      compositeEncoder(valueEncoder, "[", "]", ",", tab, encode, state)
+    )
+  end
+  return { table = encodeArray }
 end
 
 local array = {
-	mergeOptions = mergeOptions,
-	isArray = isArray,
-	getEncoder = getEncoder
+  mergeOptions = mergeOptions,
+  isArray = isArray,
+  getEncoder = getEncoder,
 }
 
 return array

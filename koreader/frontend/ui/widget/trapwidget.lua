@@ -6,7 +6,6 @@ Can optionally display a text message at bottom left of screen
 (ie: "Loading…")
 ]]
 
-
 local Blitbuffer = require("ffi/blitbuffer")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
 local CenterContainer = require("ui/widget/container/centercontainer")
@@ -25,57 +24,58 @@ local UIManager = require("ui/uimanager")
 local Input = Device.input
 local Screen = Device.screen
 
-local TrapWidget = InputContainer:extend{
+local TrapWidget = InputContainer:extend({
   modal = true,
   dismiss_callback = function() end,
   text = Device.isEmulator() and "TrapWidget" or nil, -- will be invisible if no message given
   face = Font:getFace("infofont"),
   -- Whether to resend the event caught and used for dismissal
   resend_event = false,
-}
+})
 
 function TrapWidget:init()
-  local full_screen = Geom:new{
-    x = 0, y = 0,
+  local full_screen = Geom:new({
+    x = 0,
+    y = 0,
     w = Screen:getWidth(),
     h = Screen:getHeight(),
-  }
+  })
   if Device:hasKeys() then
     self.key_events.AnyKeyPressed = { { Input.group.Any } }
   end
   if Device:isTouchDevice() then
     self.ges_events = {
       TapDismiss = {
-        GestureRange:new{ ges = "tap", range = full_screen, }
+        GestureRange:new({ ges = "tap", range = full_screen }),
       },
       HoldDismiss = {
-        GestureRange:new{ ges = "hold", range = full_screen, }
+        GestureRange:new({ ges = "hold", range = full_screen }),
       },
       SwipeDismiss = {
-        GestureRange:new{ ges = "swipe", range = full_screen, }
+        GestureRange:new({ ges = "swipe", range = full_screen }),
       },
       PanReleaseDismiss = { -- emitted on mousewheel event
-        GestureRange:new{ ges = "pan_release", range = full_screen, }
+        GestureRange:new({ ges = "pan_release", range = full_screen }),
       },
     }
   end
   if self.text then
-    local textw = TextWidget:new{
+    local textw = TextWidget:new({
       text = self.text,
       face = self.face,
-    }
+    })
     -- Don't make our message reach full screen width, so
     -- it looks like popping from bottom left corner
     if textw:getWidth() > Screen:getWidth() * 0.9 then
       -- Text too wide: use TextBoxWidget for multi lines display
-      textw = TextBoxWidget:new{
+      textw = TextBoxWidget:new({
         text = self.text,
         face = self.face,
-        width = math.floor(Screen:getWidth() * 0.9)
-      }
+        width = math.floor(Screen:getWidth() * 0.9),
+      })
     end
     local border_size = Size.border.default
-    self.frame = FrameContainer:new{
+    self.frame = FrameContainer:new({
       background = Blitbuffer.COLOR_WHITE,
       bordersize = border_size,
       margin = 0,
@@ -83,26 +83,26 @@ function TrapWidget:init()
       padding_left = Size.padding.default,
       padding_right = Size.padding.default,
       textw,
-    }
+    })
     -- To have our frame message a bit prettier with its left
     -- and bottom borders not displayed, we make use of this
     -- combination of Containers to push them off-screen
-    self[1] = CenterContainer:new{
+    self[1] = CenterContainer:new({
       dimen = full_screen:copy(),
-      BottomContainer:new{
-        dimen = Geom:new{
+      BottomContainer:new({
+        dimen = Geom:new({
           w = full_screen.w,
-          h = full_screen.h + 2*border_size,
-        },
-        LeftContainer:new{
-          dimen = Geom:new{
-            w = full_screen.w + 2*border_size,
+          h = full_screen.h + 2 * border_size,
+        }),
+        LeftContainer:new({
+          dimen = Geom:new({
+            w = full_screen.w + 2 * border_size,
             h = self.frame:getSize().h,
-          },
+          }),
           self.frame,
-        }
-      }
-    }
+        }),
+      }),
+    })
   else
     -- So that UIManager knows no refresh is needed and
     -- avoids some unnecessary refreshes
@@ -121,7 +121,9 @@ function TrapWidget:_dismissAndResend(evtype, ev)
     -- (It happened mostly when I had some bug somewhere, and it was a quite
     -- reliable sign of a bug somewhere, but the stacktrace was unrelated
     -- to the bug location.)
-    UIManager:nextTick(function() UIManager:handleInputEvent(Event:new(evtype, ev)) end)
+    UIManager:nextTick(function()
+      UIManager:handleInputEvent(Event:new(evtype, ev))
+    end)
   end
   return true
 end

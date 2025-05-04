@@ -20,13 +20,13 @@ require("ffi/posix_h")
 require("ffi/linux_input_h")
 
 -- EV_KEY values
-local KEY_PRESS   = 1
-local KEY_REPEAT  = 2
+local KEY_PRESS = 1
+local KEY_REPEAT = 2
 local KEY_RELEASE = 0
 
 -- Based on ABS_MT_TOOL_TYPE values on Elan panels
 local TOOL_TYPE_FINGER = 0
-local TOOL_TYPE_PEN  = 1
+local TOOL_TYPE_PEN = 1
 
 -- For debug logging of ev.type
 local linux_evdev_type_map = {
@@ -115,40 +115,197 @@ local Input = {
     PgBack = { "RPgBack", "LPgBack" },
     Back = { "Back" },
     Alphabet = {
-      "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
-      "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R",
+      "S",
+      "T",
+      "U",
+      "V",
+      "W",
+      "X",
+      "Y",
+      "Z",
     },
     AlphaNumeric = {
-      "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-      "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
-      "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R",
+      "S",
+      "T",
+      "U",
+      "V",
+      "W",
+      "X",
+      "Y",
+      "Z",
     },
     Numeric = {
-      "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
     },
     Text = {
-      " ", ".", "/",
-      "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-      "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
-      "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+      " ",
+      ".",
+      "/",
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R",
+      "S",
+      "T",
+      "U",
+      "V",
+      "W",
+      "X",
+      "Y",
+      "Z",
     },
     Any = {
-      " ", ".", "/",
-      "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-      "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
-      "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
-      "Up", "Down", "Left", "Right", "Press", "Backspace", "End",
-      "Back", "Sym", "AA", "Menu", "Home", "Del", "ScreenKB",
-      "LPgBack", "RPgBack", "LPgFwd", "RPgFwd"
+      " ",
+      ".",
+      "/",
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R",
+      "S",
+      "T",
+      "U",
+      "V",
+      "W",
+      "X",
+      "Y",
+      "Z",
+      "Up",
+      "Down",
+      "Left",
+      "Right",
+      "Press",
+      "Backspace",
+      "End",
+      "Back",
+      "Sym",
+      "AA",
+      "Menu",
+      "Home",
+      "Del",
+      "ScreenKB",
+      "LPgBack",
+      "RPgBack",
+      "LPgFwd",
+      "RPgFwd",
     },
   },
 
   fake_event_set = {
-    IntoSS = true, OutOfSS = true, ExitingSS = true,
-    UsbPlugIn = true, UsbPlugOut = true,
-    Charging = true, NotCharging = true,
-    WakeupFromSuspend = true, ReadyToSuspend = true,
-    UsbDevicePlugIn = true, UsbDevicePlugOut = true,
+    IntoSS = true,
+    OutOfSS = true,
+    ExitingSS = true,
+    UsbPlugIn = true,
+    UsbPlugOut = true,
+    Charging = true,
+    NotCharging = true,
+    WakeupFromSuspend = true,
+    ReadyToSuspend = true,
+    UsbDevicePlugIn = true,
+    UsbDevicePlugOut = true,
   },
   -- Crappy FIFO to forward parameters to UIManager for the subset of fake_event_set that require passing a parameter along
   fake_event_args = {
@@ -205,7 +362,9 @@ function Input:new(o)
   o = o or {}
   setmetatable(o, self)
   self.__index = self
-  if o.init then o:init() end
+  if o.init then
+    o:init()
+  end
   return o
 end
 
@@ -224,8 +383,16 @@ function Input:init()
     self.setClipboardText = function(text)
       return self.input.setClipboardText(text)
     end
-    self.gameControllerRumble = function(left_intensity, right_intensity, duration)
-      return self.input.gameControllerRumble(left_intensity, right_intensity, duration)
+    self.gameControllerRumble = function(
+      left_intensity,
+      right_intensity,
+      duration
+    )
+      return self.input.gameControllerRumble(
+        left_intensity,
+        right_intensity,
+        duration
+      )
     end
   elseif self.device:isAndroid() then
     self.input = require("ffi/input_android")
@@ -253,10 +420,10 @@ function Input:init()
   -- with an extra bit of leeway, since we don't even actually support three finger gestures ;).
   self.pen_slot = self.main_finger_slot + 4
 
-  self.gesture_detector = GestureDetector:new{
+  self.gesture_detector = GestureDetector:new({
     screen = self.device.screen,
     input = self,
-  }
+  })
 
   if not self.event_map then
     self.event_map = {}
@@ -268,10 +435,33 @@ function Input:init()
   -- NOTE: When looking at the device in Portrait mode, that's assuming PgBack is on TOP, and PgFwd on the BOTTOM
   if not self.rotation_map then
     self.rotation_map = {
-      [framebuffer.DEVICE_ROTATED_UPRIGHT]       = {},
-      [framebuffer.DEVICE_ROTATED_CLOCKWISE]     = { Up = "Right", Right = "Down", Down = "Left",  Left = "Up",  LPgBack = "LPgFwd",  LPgFwd  = "LPgBack", RPgBack = "RPgFwd",  RPgFwd  = "RPgBack" },
-      [framebuffer.DEVICE_ROTATED_UPSIDE_DOWN]     = { Up = "Down",  Right = "Left", Down = "Up",  Left = "Right", LPgFwd  = "LPgBack", LPgBack = "LPgFwd",  RPgFwd  = "RPgBack", RPgBack = "RPgFwd" },
-      [framebuffer.DEVICE_ROTATED_COUNTER_CLOCKWISE] = { Up = "Left",  Right = "Up",   Down = "Right", Left = "Down" },
+      [framebuffer.DEVICE_ROTATED_UPRIGHT] = {},
+      [framebuffer.DEVICE_ROTATED_CLOCKWISE] = {
+        Up = "Right",
+        Right = "Down",
+        Down = "Left",
+        Left = "Up",
+        LPgBack = "LPgFwd",
+        LPgFwd = "LPgBack",
+        RPgBack = "RPgFwd",
+        RPgFwd = "RPgBack",
+      },
+      [framebuffer.DEVICE_ROTATED_UPSIDE_DOWN] = {
+        Up = "Down",
+        Right = "Left",
+        Down = "Up",
+        Left = "Right",
+        LPgFwd = "LPgBack",
+        LPgBack = "LPgFwd",
+        RPgFwd = "RPgBack",
+        RPgBack = "RPgFwd",
+      },
+      [framebuffer.DEVICE_ROTATED_COUNTER_CLOCKWISE] = {
+        Up = "Left",
+        Right = "Up",
+        Down = "Right",
+        Left = "Down",
+      },
     }
   end
 
@@ -290,8 +480,8 @@ function Input:init()
   self.event_map[10041] = "UsbDevicePlugOut"
 
   -- user custom event map
-  local custom_event_map_location = string.format(
-    "%s/%s", DataStorage:getSettingsDir(), "event_map.lua")
+  local custom_event_map_location =
+    string.format("%s/%s", DataStorage:getSettingsDir(), "event_map.lua")
   local ok, custom_event_map = pcall(dofile, custom_event_map_location)
   if ok then
     for key, value in pairs(custom_event_map) do
@@ -305,7 +495,9 @@ function Input:init()
   end
 
   -- setup inhibitInputUntil scheduling function
-  self._inhibitInputUntil_func = function() self:inhibitInputUntil() end
+  self._inhibitInputUntil_func = function()
+    self:inhibitInputUntil()
+  end
 end
 
 function Input:UIManagerReady(uimgr)
@@ -317,9 +509,9 @@ Setup a rotation_map that does nothing (for platforms where the events we get ar
 --]]
 function Input:disableRotationMap()
   self.rotation_map = {
-    [framebuffer.DEVICE_ROTATED_UPRIGHT]       = {},
-    [framebuffer.DEVICE_ROTATED_CLOCKWISE]     = {},
-    [framebuffer.DEVICE_ROTATED_UPSIDE_DOWN]     = {},
+    [framebuffer.DEVICE_ROTATED_UPRIGHT] = {},
+    [framebuffer.DEVICE_ROTATED_CLOCKWISE] = {},
+    [framebuffer.DEVICE_ROTATED_UPSIDE_DOWN] = {},
     [framebuffer.DEVICE_ROTATED_COUNTER_CLOCKWISE] = {},
   }
 end
@@ -542,8 +734,8 @@ end
 
 function Input:setTimeout(slot, ges, cb, origin, delay)
   local item = {
-    slot   = slot,
-    gesture  = ges,
+    slot = slot,
+    gesture = ges,
     callback = cb,
   }
 
@@ -568,10 +760,10 @@ function Input:setTimeout(slot, ges, cb, origin, delay)
     timerfd = self.input.setTimer(clock_id, sec, usec)
   end
   if timerfd then
-      -- It worked, tweak the table a bit to make it clear the deadline will be handled by the kernel
-      item.timerfd = timerfd
-      -- We basically only need this for the sorting ;).
-      item.deadline = deadline
+    -- It worked, tweak the table a bit to make it clear the deadline will be handled by the kernel
+    item.timerfd = timerfd
+    -- We basically only need this for the sorting ;).
+    item.deadline = deadline
   else
     -- No timerfd, we'll compute a poll timeout ourselves.
     if clock_id == C.CLOCK_MONOTONIC then
@@ -748,7 +940,11 @@ function Input:handleKeyBoardEv(ev)
   end
 
   -- toggle fullscreen on F11
-  if self:isEvKeyPress(ev) and keycode == "F11" and not self.device:isAlwaysFullscreen() then
+  if
+    self:isEvKeyPress(ev)
+    and keycode == "F11"
+    and not self.device:isAlwaysFullscreen()
+  then
     UIManager:broadcastEvent(Event:new("ToggleFullscreen"))
   end
 
@@ -756,7 +952,9 @@ function Input:handleKeyBoardEv(ev)
   -- this is also emitted by the close event in SDL
   if self:isEvKeyPress(ev) and self.modifiers["Alt"] and keycode == "F4" then
     UIManager:broadcastEvent(Event:new("Close")) -- Tell all widgets to close.
-    UIManager:nextTick(function() UIManager:quit() end) -- Ensure the program closes in case of some lingering dialog.
+    UIManager:nextTick(function()
+      UIManager:quit()
+    end) -- Ensure the program closes in case of some lingering dialog.
   end
 
   -- handle modifier keys
@@ -776,10 +974,12 @@ function Input:handleKeyBoardEv(ev)
   elseif ev.value == KEY_REPEAT then
     -- NOTE: We only care about repeat events from the pageturn buttons...
     --     And we *definitely* don't want to flood the Event queue with useless SleepCover repeats!
-    if keycode == "LPgBack"
-    or keycode == "RPgBack"
-    or keycode == "LPgFwd"
-    or keycode == "RPgFwd" then
+    if
+      keycode == "LPgBack"
+      or keycode == "RPgBack"
+      or keycode == "LPgFwd"
+      or keycode == "RPgFwd"
+    then
       --- @fixme Crappy event staggering!
       --
       -- The Forma & co repeats every 80ms after a 400ms delay, and 500ms roughly corresponds to a flashing update,
@@ -815,8 +1015,12 @@ function Input:handlePowerManagementOnlyEv(ev)
   end
 
   -- Power management synthetic events
-  if keycode == "SleepCoverClosed" or keycode == "SleepCoverOpened"
-  or keycode == "Suspend" or keycode == "Resume" then
+  if
+    keycode == "SleepCoverClosed"
+    or keycode == "SleepCoverOpened"
+    or keycode == "Suspend"
+    or keycode == "Resume"
+  then
     return keycode
   end
 
@@ -940,7 +1144,13 @@ function Input:handleTouchEv(ev)
       local ges_evs = {}
       for _, touch_ges in ipairs(touch_gestures) do
         self:gestureAdjustHook(touch_ges)
-        table.insert(ges_evs, Event:new("Gesture", self.gesture_detector:adjustGesCoordinate(touch_ges)))
+        table.insert(
+          ges_evs,
+          Event:new(
+            "Gesture",
+            self.gesture_detector:adjustGesCoordinate(touch_ges)
+          )
+        )
       end
       return ges_evs
     end
@@ -981,7 +1191,13 @@ function Input:handleMixedTouchEv(ev)
       local ges_evs = {}
       for _, touch_ges in ipairs(touch_gestures) do
         self:gestureAdjustHook(touch_ges)
-        table.insert(ges_evs, Event:new("Gesture", self.gesture_detector:adjustGesCoordinate(touch_ges)))
+        table.insert(
+          ges_evs,
+          Event:new(
+            "Gesture",
+            self.gesture_detector:adjustGesCoordinate(touch_ges)
+          )
+        )
       end
       return ges_evs
     end
@@ -1017,7 +1233,9 @@ function Input:handleTouchEvSnow(ev)
         --     whereas we'd be having the main contact point at a stupidly large slot number
         --     (because it would match ABS_MT_TRACKING_ID, given the lack of ABS_MT_SLOT, at least for the first input frame),
         --     while the second contact would be at slot 1, because it would immediately have required emitting a proper ABS_MT_SLOT event...
-        logger.warn("Input: Disabled snow_protocol quirks because your device's hardware revision doesn't appear to need them!")
+        logger.warn(
+          "Input: Disabled snow_protocol quirks because your device's hardware revision doesn't appear to need them!"
+        )
         self.snow_protocol = false
         self.handleTouchEv = Input.handleTouchEv
       else
@@ -1033,7 +1251,7 @@ function Input:handleTouchEvSnow(ev)
       self:setCurrentMtSlotChecked("x", ev.value)
     elseif ev.code == C.ABS_MT_POSITION_Y then
       self:setCurrentMtSlotChecked("y", ev.value)
-    -- NOTE: Similarly, we can't honor ABS_PRESSURE for the same reason as ABS_X & ABS_Y...
+      -- NOTE: Similarly, we can't honor ABS_PRESSURE for the same reason as ABS_X & ABS_Y...
     end
   elseif ev.type == C.EV_SYN then
     if ev.code == C.SYN_REPORT then
@@ -1046,7 +1264,13 @@ function Input:handleTouchEvSnow(ev)
       local ges_evs = {}
       for _, touch_ges in ipairs(touch_gestures) do
         self:gestureAdjustHook(touch_ges)
-        table.insert(ges_evs, Event:new("Gesture", self.gesture_detector:adjustGesCoordinate(touch_ges)))
+        table.insert(
+          ges_evs,
+          Event:new(
+            "Gesture",
+            self.gesture_detector:adjustGesCoordinate(touch_ges)
+          )
+        )
       end
       return ges_evs
     end
@@ -1106,7 +1330,13 @@ function Input:handleTouchEvPhoenix(ev)
       local ges_evs = {}
       for _, touch_ges in ipairs(touch_gestures) do
         self:gestureAdjustHook(touch_ges)
-        table.insert(ges_evs, Event:new("Gesture", self.gesture_detector:adjustGesCoordinate(touch_ges)))
+        table.insert(
+          ges_evs,
+          Event:new(
+            "Gesture",
+            self.gesture_detector:adjustGesCoordinate(touch_ges)
+          )
+        )
       end
       return ges_evs
     end
@@ -1155,7 +1385,13 @@ function Input:handleTouchEvLegacy(ev)
       local ges_evs = {}
       for _, touch_ges in ipairs(touch_gestures) do
         self:gestureAdjustHook(touch_ges)
-        table.insert(ges_evs, Event:new("Gesture", self.gesture_detector:adjustGesCoordinate(touch_ges)))
+        table.insert(
+          ges_evs,
+          Event:new(
+            "Gesture",
+            self.gesture_detector:adjustGesCoordinate(touch_ges)
+          )
+        )
       end
       return ges_evs
     end
@@ -1186,7 +1422,8 @@ function Input:handleMiscGyroEv(ev)
 
   local old_rotation = self.device.screen:getRotationMode()
   if self.device:isGSensorLocked() then
-    local matching_orientation = bit.band(rotation, 1) == bit.band(old_rotation, 1)
+    local matching_orientation = bit.band(rotation, 1)
+      == bit.band(old_rotation, 1)
     if rotation and rotation ~= old_rotation and matching_orientation then
       -- Cheaper than a full SetRotationMode event, as we don't need to re-layout anything.
       self.device.screen:setRotationMode(rotation)
@@ -1228,7 +1465,7 @@ end
 function Input:initMtSlot(slot)
   if not self.ev_slots[slot] then
     self.ev_slots[slot] = {
-      slot = slot
+      slot = slot,
     }
   end
 end
@@ -1304,7 +1541,6 @@ function Input:isEvKeyRelease(ev)
   return ev.value == KEY_RELEASE
 end
 
-
 --- Main event handling.
 -- `now` corresponds to UIManager:getTime() (an fts time), and it's just been updated by UIManager.
 -- `deadline` (an fts time) is the absolute deadline imposed by UIManager:handleInput() (a.k.a., our main event loop ^^):
@@ -1373,7 +1609,9 @@ function Input:waitEvent(now, deadline)
         local sec, usec = time.split_s_us(poll_timeout)
         ok, ev, timerfd = self.input.waitForEvent(sec, usec)
         -- We got an actual input event, go and process it
-        if ok then break end
+        if ok then
+          break
+        end
 
         -- If we've drained all pending input events, causing waitForEvent to time out, check our timers
         if ok == false and ev == C.ETIME then
@@ -1428,7 +1666,10 @@ function Input:waitEvent(now, deadline)
             if touch_ges then
               self:gestureAdjustHook(touch_ges)
               return {
-                Event:new("Gesture", self.gesture_detector:adjustGesCoordinate(touch_ges))
+                Event:new(
+                  "Gesture",
+                  self.gesture_detector:adjustGesCoordinate(touch_ges)
+                ),
               }
             end -- if touch_ges
           end -- if poll_deadline reached
@@ -1470,11 +1711,16 @@ function Input:waitEvent(now, deadline)
         -- Don't report an error on ETIME, and go back to UIManager
         ev = nil
         break
-      elseif ev == C.EINTR then  -- luacheck: ignore
+      elseif ev == C.EINTR then -- luacheck: ignore
         -- Retry on EINTR
       else
         -- Warn, report, and go back to UIManager
-        logger.warn("Polling for input events returned an error:", ev, "->", ffi.string(C.strerror(ev)))
+        logger.warn(
+          "Polling for input events returned an error:",
+          ev,
+          "->",
+          ffi.string(C.strerror(ev))
+        )
         break
       end
     elseif ok == nil then
@@ -1497,35 +1743,80 @@ function Input:waitEvent(now, deadline)
         --     and we can't conditionally prevent evaluation of function arguments,
         --     so, just hide the whole thing behind a branch ;).
         if event.type == C.EV_KEY then
-          logger.dbg(string.format(
-            "key event => code: %d (%s), value: %s, time: %d.%06d",
-            event.code, self.event_map[event.code] or linux_evdev_key_code_map[event.code], event.value,
-            event.time.sec, event.time.usec))
+          logger.dbg(
+            string.format(
+              "key event => code: %d (%s), value: %s, time: %d.%06d",
+              event.code,
+              self.event_map[event.code] or linux_evdev_key_code_map[event.code],
+              event.value,
+              event.time.sec,
+              event.time.usec
+            )
+          )
         elseif event.type == C.EV_SYN then
-          logger.dbg(string.format(
-            "input event => type: %d (%s), code: %d (%s), value: %s, time: %d.%06d",
-            event.type, linux_evdev_type_map[event.type], event.code, linux_evdev_syn_code_map[event.code], event.value,
-            event.time.sec, event.time.usec))
+          logger.dbg(
+            string.format(
+              "input event => type: %d (%s), code: %d (%s), value: %s, time: %d.%06d",
+              event.type,
+              linux_evdev_type_map[event.type],
+              event.code,
+              linux_evdev_syn_code_map[event.code],
+              event.value,
+              event.time.sec,
+              event.time.usec
+            )
+          )
         elseif event.type == C.EV_ABS then
-          logger.dbg(string.format(
-            "input event => type: %d (%s), code: %d (%s), value: %s, time: %d.%06d",
-            event.type, linux_evdev_type_map[event.type], event.code, linux_evdev_abs_code_map[event.code], event.value,
-            event.time.sec, event.time.usec))
+          logger.dbg(
+            string.format(
+              "input event => type: %d (%s), code: %d (%s), value: %s, time: %d.%06d",
+              event.type,
+              linux_evdev_type_map[event.type],
+              event.code,
+              linux_evdev_abs_code_map[event.code],
+              event.value,
+              event.time.sec,
+              event.time.usec
+            )
+          )
         elseif event.type == C.EV_MSC then
-          logger.dbg(string.format(
-            "input event => type: %d (%s), code: %d (%s), value: %s, time: %d.%06d",
-            event.type, linux_evdev_type_map[event.type], event.code, linux_evdev_msc_code_map[event.code], event.value,
-            event.time.sec, event.time.usec))
+          logger.dbg(
+            string.format(
+              "input event => type: %d (%s), code: %d (%s), value: %s, time: %d.%06d",
+              event.type,
+              linux_evdev_type_map[event.type],
+              event.code,
+              linux_evdev_msc_code_map[event.code],
+              event.value,
+              event.time.sec,
+              event.time.usec
+            )
+          )
         elseif event.type == C.EV_REP then
-          logger.dbg(string.format(
-            "input event => type: %d (%s), code: %d (%s), value: %s, time: %d.%06d",
-            event.type, linux_evdev_type_map[event.type], event.code, linux_evdev_rep_code_map[event.code], event.value,
-            event.time.sec, event.time.usec))
+          logger.dbg(
+            string.format(
+              "input event => type: %d (%s), code: %d (%s), value: %s, time: %d.%06d",
+              event.type,
+              linux_evdev_type_map[event.type],
+              event.code,
+              linux_evdev_rep_code_map[event.code],
+              event.value,
+              event.time.sec,
+              event.time.usec
+            )
+          )
         else
-          logger.dbg(string.format(
-            "input event => type: %d (%s), code: %d, value: %s, time: %d.%06d",
-            event.type, linux_evdev_type_map[event.type], event.code, event.value,
-            event.time.sec, event.time.usec))
+          logger.dbg(
+            string.format(
+              "input event => type: %d (%s), code: %d, value: %s, time: %d.%06d",
+              event.type,
+              linux_evdev_type_map[event.type],
+              event.code,
+              event.value,
+              event.time.sec,
+              event.time.usec
+            )
+          )
         end
       end
       self:eventAdjustHook(event)
@@ -1564,12 +1855,12 @@ function Input:waitEvent(now, deadline)
     return handled
   elseif ok == false and ev then
     return {
-      Event:new("InputError", ev)
+      Event:new("InputError", ev),
     }
   elseif ok == nil then
     -- No ok and no ev? Hu oh...
     return {
-      Event:new("InputError", "Catastrophic")
+      Event:new("InputError", "Catastrophic"),
     }
   end
 end

@@ -246,7 +246,7 @@ local order = {
     "----------------------------",
     "report_bug",
     "----------------------------",
-    "system_statistics",  -- if enabled (Plugin)
+    "system_statistics", -- if enabled (Plugin)
     "about",
   },
   exit_menu = {
@@ -258,7 +258,7 @@ local order = {
     "----------------------------",
     "start_bq", -- if Device:isCervantes()
     "exit",
-  }
+  },
 }
 
 if not Device:hasExitOptions() then

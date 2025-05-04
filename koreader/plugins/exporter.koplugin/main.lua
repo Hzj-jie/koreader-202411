@@ -23,7 +23,8 @@ The parser looks to bookmarks._.text field for edited notes. bookmarks._.notes i
 - Booknotes: Every table in clippings table. clippings = {"title" = booknotes}
 
 @module koplugin.exporter
---]]--
+--]]
+--
 
 local DataStorage = require("datastorage")
 local Device = require("device")
@@ -39,7 +40,6 @@ local T = require("ffi/util").template
 local logger = require("logger")
 local _ = require("gettext")
 
-
 -- migrate settings from old "evernote.koplugin" or from previous (monolithic) "exporter.koplugin"
 local function migrateSettings()
   -- these are for legacy formats. Don't add new targets here.
@@ -52,7 +52,9 @@ local function migrateSettings()
 
   if type(settings) == "table" then
     for _, fmt in ipairs(formats) do
-      if type(settings[fmt]) == "table" then return end
+      if type(settings[fmt]) == "table" then
+        return
+      end
     end
     local new_settings = {}
     for _, fmt in ipairs(formats) do
@@ -71,12 +73,15 @@ local function updateHistoryClippings(clippings, new_clippings)
   for title, booknotes in pairs(new_clippings) do
     for chapter_index, chapternotes in ipairs(booknotes) do
       for note_index, note in ipairs(chapternotes) do
-        if clippings[title] == nil or clippings[title][chapter_index] == nil
+        if
+          clippings[title] == nil
+          or clippings[title][chapter_index] == nil
           or clippings[title][chapter_index][note_index] == nil
           or clippings[title][chapter_index][note_index].page ~= note.page
           or clippings[title][chapter_index][note_index].time ~= note.time
           or clippings[title][chapter_index][note_index].text ~= note.text
-          or clippings[title][chapter_index][note_index].note ~= note.note then
+          or clippings[title][chapter_index][note_index].note ~= note.note
+        then
           logger.dbg("found new notes in history", booknotes.title)
           clippings[title] = booknotes
         end
@@ -99,7 +104,7 @@ local function updateMyClippings(clippings, new_clippings)
   return clippings
 end
 
-local Exporter = WidgetContainer:extend{
+local Exporter = WidgetContainer:extend({
   name = "exporter",
   targets = {
     flomo = require("target/flomo"),
@@ -114,11 +119,11 @@ local Exporter = WidgetContainer:extend{
     text = require("target/text"),
     xmnote = require("target/xmnote"),
   },
-}
+})
 
 function Exporter:init()
   migrateSettings()
-  self.parser = MyClipping:new{}
+  self.parser = MyClipping:new({})
   for _, v in pairs(self.targets) do
     v.path = self.path
   end
@@ -127,10 +132,19 @@ function Exporter:init()
 end
 
 function Exporter:onDispatcherRegisterActions()
-  Dispatcher:registerAction("export_current_notes",
-    {category="none", event="ExportCurrentNotes", title=_("Export all notes in current book"), reader=true,})
-  Dispatcher:registerAction("export_all_notes",
-    {category="none", event="ExportAllNotes", title=_("Export all notes in all books in history"), reader=true, filemanager=true})
+  Dispatcher:registerAction("export_current_notes", {
+    category = "none",
+    event = "ExportCurrentNotes",
+    title = _("Export all notes in current book"),
+    reader = true,
+  })
+  Dispatcher:registerAction("export_all_notes", {
+    category = "none",
+    event = "ExportAllNotes",
+    title = _("Export all notes in all books in history"),
+    reader = true,
+    filemanager = true,
+  })
 end
 
 function Exporter:isReady()
@@ -166,7 +180,9 @@ end
 
 --- Parse and export highlights from the currently opened document.
 function Exporter:onExportCurrentNotes()
-  if not self:isReadyToExport() then return end
+  if not self:isReadyToExport() then
+    return
+  end
   self.ui.annotation:updatePageNumbers(true)
   local clippings = self:getDocumentClippings()
   self:exportClippings(clippings)
@@ -175,7 +191,9 @@ end
 --- Parse and export highlights from all the documents in History
 -- and from the Kindle "My Clippings.txt".
 function Exporter:onExportAllNotes()
-  if not self:isReady() then return end
+  if not self:isReady() then
+    return
+  end
   local clippings = {}
   clippings = updateHistoryClippings(clippings, self.parser:parseHistory())
   if Device:isKindle() then
@@ -204,7 +222,9 @@ function Exporter:exportFilesNotes(files)
 end
 
 function Exporter:exportClippings(clippings)
-  if type(clippings) ~= "table" then return end
+  if type(clippings) ~= "table" then
+    return
+  end
   local exportables = {}
   for _title, booknotes in pairs(clippings) do
     table.insert(exportables, booknotes)
@@ -221,7 +241,10 @@ function Exporter:exportClippings(clippings)
             if v.is_remote then
               table.insert(statuses, T(_("%1: Exported successfully."), v.name))
             else
-              table.insert(statuses, T(_("%1: Exported to %2."), v.name, v:getFilePath(exportables)))
+              table.insert(
+                statuses,
+                T(_("%1: Exported to %2."), v.name, v:getFilePath(exportables))
+              )
             end
           else
             table.insert(statuses, T(_("%1: Failed to export."), v.name))
@@ -229,16 +252,16 @@ function Exporter:exportClippings(clippings)
           v.timestamp = nil
         end
       end
-      UIManager:show(InfoMessage:new{
+      UIManager:show(InfoMessage:new({
         text = table.concat(statuses, "\n"),
         timeout = 3,
-      })
+      }))
     end)
 
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = _("Exporting may take several seconds…"),
       timeout = 1,
-    })
+    }))
   end
   if self:requiresNetwork() then
     NetworkMgr:runWhenOnline(export_callback)
@@ -276,10 +299,16 @@ function Exporter:addToMainMenu(menu_items)
     styles_submenu[i] = {
       text = v[1],
       checked_func = function() -- all styles checked by default
-        return not (settings.highlight_styles and settings.highlight_styles[style] == false)
+        return not (
+          settings.highlight_styles
+          and settings.highlight_styles[style] == false
+        )
       end,
       callback = function()
-        if settings.highlight_styles and settings.highlight_styles[style] == false then
+        if
+          settings.highlight_styles
+          and settings.highlight_styles[style] == false
+        then
           settings.highlight_styles[style] = nil
           if next(settings.highlight_styles) == nil then
             settings.highlight_styles = nil
@@ -364,7 +393,12 @@ function Exporter:chooseFolder()
   local caller_callback = function(path)
     settings.clipping_dir = path
   end
-  filemanagerutil.showChooseDialog(title_header, caller_callback, current_path, default_path)
+  filemanagerutil.showChooseDialog(
+    title_header,
+    caller_callback,
+    current_path,
+    default_path
+  )
 end
 
 return Exporter

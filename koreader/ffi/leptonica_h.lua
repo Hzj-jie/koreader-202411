@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 typedef signed char l_int8;
 typedef unsigned char l_uint8;
 typedef short int l_int16;
@@ -52,4 +52,4 @@ BOXA *pixSplitIntoBoxa(PIX *, l_int32, l_int32, l_int32, l_int32, l_int32, l_int
 PIX *pixThresholdToBinary(PIX *, l_int32);
 int pixWriteMemPng(l_uint8 **, size_t *, PIX *, l_float32);
 int pixWritePng(const char *, PIX *, l_float32);
-]]
+]])

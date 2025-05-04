@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 static const int GIF_OK = 1;
 static const int GIF_ERROR = 0;
 typedef int GifWord;
@@ -77,4 +77,4 @@ static const int DISPOSE_PREVIOUS = 3;
 static const int NO_TRANSPARENT_COLOR = -1;
 typedef int (*InputFunc)(GifFileType *, GifByteType *, int);
 GifFileType *DGifOpen(void *, InputFunc, int *);
-]]
+]])

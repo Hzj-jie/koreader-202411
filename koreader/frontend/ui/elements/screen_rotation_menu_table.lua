@@ -8,7 +8,9 @@ local Screen = Device.screen
 local function genMenuItem(text, mode)
   return {
     text_func = function()
-      return G_reader_settings:readSetting("fm_rotation_mode") == mode and text .. "   ★" or text
+      return G_reader_settings:readSetting("fm_rotation_mode") == mode
+          and text .. "   ★"
+        or text
     end,
     checked_func = function()
       return Screen:getRotationMode() == mode
@@ -33,7 +35,9 @@ return {
     if Device:hasGSensor() then
       table.insert(rotation_table, {
         text = _("Ignore accelerometer rotation events"),
-        help_text = _("This will inhibit automatic rotations triggered by your device's gyro."),
+        help_text = _(
+          "This will inhibit automatic rotations triggered by your device's gyro."
+        ),
         checked_func = function()
           return G_reader_settings:isTrue("input_ignore_gsensor")
         end,
@@ -63,10 +67,12 @@ If you need to do so, you'll have to use the UI toggles.]]),
 
     table.insert(rotation_table, {
       text = _("Keep current rotation across views"),
-      help_text = _([[
+      help_text = _(
+        [[
 When checked, the current rotation will be kept when switching between the file browser and the reader, in both directions, and that no matter what the document's saved rotation or the default reader or file browser rotation may be.
 This means that nothing will ever sneak a rotation behind your back, you choose your device's rotation, and it stays that way.
-When unchecked, the default rotation of the file browser and the default/saved reader rotation will not affect each other (i.e., they will be honored), and may very well be different.]]),
+When unchecked, the default rotation of the file browser and the default/saved reader rotation will not affect each other (i.e., they will be honored), and may very well be different.]]
+      ),
       checked_func = function()
         return G_reader_settings:isTrue("lock_rotation")
       end,
@@ -79,7 +85,10 @@ When unchecked, the default rotation of the file browser and the default/saved r
     if FileManager.instance then
       local optionsutil = require("ui/data/optionsutil")
       for i, mode in ipairs(optionsutil.rotation_modes) do
-        table.insert(rotation_table, genMenuItem(optionsutil.rotation_labels[i], mode))
+        table.insert(
+          rotation_table,
+          genMenuItem(optionsutil.rotation_labels[i], mode)
+        )
       end
     end
 
@@ -90,33 +99,47 @@ When unchecked, the default rotation of the file browser and the default/saved r
         {
           text = _("Invert default rotation in portrait mode"),
           checked_func = function()
-            return G_reader_settings:isTrue("imageviewer_rotation_portrait_invert")
+            return G_reader_settings:isTrue(
+              "imageviewer_rotation_portrait_invert"
+            )
           end,
           callback = function()
-            G_reader_settings:flipNilOrFalse("imageviewer_rotation_portrait_invert")
+            G_reader_settings:flipNilOrFalse(
+              "imageviewer_rotation_portrait_invert"
+            )
           end,
         },
         {
           text = _("Invert default rotation in landscape mode"),
           checked_func = function()
-            return G_reader_settings:isTrue("imageviewer_rotation_landscape_invert")
+            return G_reader_settings:isTrue(
+              "imageviewer_rotation_landscape_invert"
+            )
           end,
           callback = function()
-            G_reader_settings:flipNilOrFalse("imageviewer_rotation_landscape_invert")
+            G_reader_settings:flipNilOrFalse(
+              "imageviewer_rotation_landscape_invert"
+            )
           end,
           separator = true,
         },
         {
           text = _("Auto-rotate for best fit"),
-          help_text = _("Auto-rotate the image to best match screen and image aspect ratios on image viewer launch (ie. if in portrait mode, a landscape image will be rotated).");
+          help_text = _(
+            "Auto-rotate the image to best match screen and image aspect ratios on image viewer launch (ie. if in portrait mode, a landscape image will be rotated)."
+          ),
           checked_func = function()
-            return G_reader_settings:isTrue("imageviewer_rotate_auto_for_best_fit")
+            return G_reader_settings:isTrue(
+              "imageviewer_rotate_auto_for_best_fit"
+            )
           end,
           callback = function()
-            G_reader_settings:flipNilOrFalse("imageviewer_rotate_auto_for_best_fit")
+            G_reader_settings:flipNilOrFalse(
+              "imageviewer_rotate_auto_for_best_fit"
+            )
           end,
-        }
-      }
+        },
+      },
     })
     return rotation_table
   end,

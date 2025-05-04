@@ -53,7 +53,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local turbo = {}  -- turbo main namespace.
+local turbo = {} -- turbo main namespace.
 
 -- The Turbo Web version is of the form A.B.C, where A is the major version,
 -- B is the minor version, and C is the micro version. If the micro version
@@ -70,59 +70,63 @@ turbo.MICRO_VERSION = 3
 -- version 1.2.1 and 0x010300 for version 1.3.
 turbo.VERSION_HEX = 0x020102
 if turbo.MICRO_VERSION then
-    turbo.VERSION = string.format("%d.%d.%d",
-        turbo.MAJOR_VERSION,
-        turbo.MINOR_VERSION,
-        turbo.MICRO_VERSION)
+  turbo.VERSION = string.format(
+    "%d.%d.%d",
+    turbo.MAJOR_VERSION,
+    turbo.MINOR_VERSION,
+    turbo.MICRO_VERSION
+  )
 else
-    turbo.VERSION = string.format("%d.%d",
-        turbo.MAJOR_VERSION,
-        turbo.MINOR_VERSION)
+  turbo.VERSION =
+    string.format("%d.%d", turbo.MAJOR_VERSION, turbo.MINOR_VERSION)
 end
 
 if not jit then
-    _G.__TURBO_NO_JIT__ = true
+  _G.__TURBO_NO_JIT__ = true
 end
 assert(pcall(require, "ffi"), "No FFI or compatible library available.")
-assert(pcall(require, "bit") or pcall(require, "bit32"),
-    "No bit or compatible library available")
-turbo.platform =        require "turbo.platform"
-turbo.log =             require "turbo.log"
+assert(
+  pcall(require, "bit") or pcall(require, "bit32"),
+  "No bit or compatible library available"
+)
+turbo.platform = require("turbo.platform")
+turbo.log = require("turbo.log")
 if not turbo.platform.__LINUX__ then
-    if not pcall(require, "socket") then
-        turbo.log.error("Could not load LuaSocket. Aborting.")
-    end
-    _G.__TURBO_USE_LUASOCKET__ = true
+  if not pcall(require, "socket") then
+    turbo.log.error("Could not load LuaSocket. Aborting.")
+  end
+  _G.__TURBO_USE_LUASOCKET__ = true
 elseif _G.__TURBO_USE_LUASOCKET__ then
-    turbo.log.warning(
-        "_G.__TURBO_USE_LUASOCKET__ set,"..
-        " using LuaSocket (degraded performance).")
+  turbo.log.warning(
+    "_G.__TURBO_USE_LUASOCKET__ set,"
+      .. " using LuaSocket (degraded performance)."
+  )
 end
-turbo.ioloop =          require "turbo.ioloop"
-turbo.escape =          require "turbo.escape"
-turbo.httputil =        require "turbo.httputil"
-turbo.tcpserver =       require "turbo.tcpserver"
-turbo.httpserver =      require "turbo.httpserver"
-turbo.iostream =        require "turbo.iostream"
-turbo.iosimple =		require "turbo.iosimple"
-turbo.crypto =          require "turbo.crypto"
-turbo.async =           require "turbo.async"
-turbo.web =             require "turbo.web"
-turbo.util =            require "turbo.util"
-turbo.coctx =           require "turbo.coctx"
-turbo.websocket =       require "turbo.websocket"
-turbo.socket =          require "turbo.socket_ffi"
-turbo.sockutil =        require "turbo.sockutil"
-turbo.hash =            require "turbo.hash"
+turbo.ioloop = require("turbo.ioloop")
+turbo.escape = require("turbo.escape")
+turbo.httputil = require("turbo.httputil")
+turbo.tcpserver = require("turbo.tcpserver")
+turbo.httpserver = require("turbo.httpserver")
+turbo.iostream = require("turbo.iostream")
+turbo.iosimple = require("turbo.iosimple")
+turbo.crypto = require("turbo.crypto")
+turbo.async = require("turbo.async")
+turbo.web = require("turbo.web")
+turbo.util = require("turbo.util")
+turbo.coctx = require("turbo.coctx")
+turbo.websocket = require("turbo.websocket")
+turbo.socket = require("turbo.socket_ffi")
+turbo.sockutil = require("turbo.sockutil")
+turbo.hash = require("turbo.hash")
 if turbo.platform.__LINUX__ then
-    turbo.inotify =         require "turbo.inotify"
-    turbo.fs =              require "turbo.fs"
-    turbo.signal =          require "turbo.signal"
-    turbo.syscall =         require "turbo.syscall"
-    turbo.thread =          require "turbo.thread"
+  turbo.inotify = require("turbo.inotify")
+  turbo.fs = require("turbo.fs")
+  turbo.signal = require("turbo.signal")
+  turbo.syscall = require("turbo.syscall")
+  turbo.thread = require("turbo.thread")
 end
-turbo.structs =         {}
-turbo.structs.deque =   require "turbo.structs.deque"
-turbo.structs.buffer =  require "turbo.structs.buffer"
+turbo.structs = {}
+turbo.structs.deque = require("turbo.structs.deque")
+turbo.structs.buffer = require("turbo.structs.buffer")
 
 return turbo

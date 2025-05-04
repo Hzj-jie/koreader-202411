@@ -10,10 +10,10 @@ table.
 Example:
 ]]
 
-local function __genOrderedIndex( t )
+local function __genOrderedIndex(t)
   local orderedIndex = {}
   for key in pairs(t) do
-    table.insert( orderedIndex, key )
+    table.insert(orderedIndex, key)
   end
   table.sort(orderedIndex, function(v1, v2)
     if type(v1) == type(v2) then
@@ -34,13 +34,13 @@ local function orderedNext(t, state)
   local key = nil
   if state == nil then
     -- the first time, generate the index
-    t.__orderedIndex = __genOrderedIndex( t )
+    t.__orderedIndex = __genOrderedIndex(t)
     key = t.__orderedIndex[1]
   else
     -- fetch the next value
     for i = 1, #t.__orderedIndex do
       if t.__orderedIndex[i] == state then
-        key = t.__orderedIndex[i+1]
+        key = t.__orderedIndex[i + 1]
       end
     end
   end

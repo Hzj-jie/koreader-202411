@@ -2,7 +2,8 @@
 This plugin processes dictionary word lookups and uses spaced repetition to help you remember new words.
 
 @module koplugin.vocabbuilder
---]]--
+--]]
+--
 
 local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
@@ -57,7 +58,8 @@ local subtitle_face = Font:getFace("cfont", 12)
 local subtitle_italic_face = Font:getFace("NotoSans-Italic.ttf", 12)
 local subtitle_color = Blitbuffer.COLOR_DARK_GRAY
 local dim_color = Blitbuffer.COLOR_GRAY_3
-local settings = G_reader_settings:readSetting("vocabulary_builder") or {enabled = false, with_context = true}
+local settings = G_reader_settings:readSetting("vocabulary_builder")
+  or { enabled = false, with_context = true }
 
 local function saveSettings()
   G_reader_settings:saveSetting("vocabulary_builder", settings)
@@ -65,15 +67,16 @@ end
 
 --[[--
 Menu dialogue widget
---]]--
-local MenuDialog = FocusManager:extend{
+--]]
+--
+local MenuDialog = FocusManager:extend({
   padding = Size.padding.large,
   is_edit_mode = false,
   edit_callback = nil,
   tap_close_callback = nil,
   clean_callback = nil,
   reset_callback = nil,
-}
+})
 
 function MenuDialog:init()
   self.layout = {}
@@ -88,15 +91,15 @@ function MenuDialog:init()
   end
   if Device:isTouchDevice() then
     self.ges_events.Tap = {
-      GestureRange:new {
+      GestureRange:new({
         ges = "tap",
-        range = Geom:new {
+        range = Geom:new({
           x = 0,
           y = 0,
           w = Screen:getWidth(),
           h = Screen:getHeight(),
-        }
-      }
+        }),
+      }),
     }
   end
 end
@@ -106,50 +109,57 @@ function MenuDialog:setupPluginMenu()
   local width = math.floor(size.w * 0.9)
 
   -- Switch text translations could be long
-  local temp_text_widget = TextWidget:new{
+  local temp_text_widget = TextWidget:new({
     text = _("Auto add new words"),
-    face = Font:getFace("xx_smallinfofont")
-  }
+    face = Font:getFace("xx_smallinfofont"),
+  })
   local switch_guide_width = temp_text_widget:getSize().w
   temp_text_widget:setText(_("Save context"))
-  switch_guide_width = math.max(switch_guide_width, temp_text_widget:getSize().w)
-  switch_guide_width = math.min(math.max(switch_guide_width, math.ceil(width*0.39)), math.ceil(width*0.61))
+  switch_guide_width =
+    math.max(switch_guide_width, temp_text_widget:getSize().w)
+  switch_guide_width = math.min(
+    math.max(switch_guide_width, math.ceil(width * 0.39)),
+    math.ceil(width * 0.61)
+  )
   temp_text_widget:free()
 
-  local switch_width = width - switch_guide_width - Size.padding.fullscreen - Size.padding.default
+  local switch_width = width
+    - switch_guide_width
+    - Size.padding.fullscreen
+    - Size.padding.default
 
-  local switch = ToggleSwitch:new{
+  local switch = ToggleSwitch:new({
     width = switch_width,
     default_value = 2,
     name = "vocabulary_builder",
     name_text = nil, --_("Accept new words"),
     event = "ChangeEnableStatus",
-    args = {"off", "on"},
+    args = { "off", "on" },
     default_arg = "on",
     toggle = { _("off"), _("on") },
-    values = {1, 2},
+    values = { 1, 2 },
     alternate = false,
     enabled = true,
     config = self,
     readonly = self.readonly,
-  }
+  })
   switch:setPosition(settings.enabled and 2 or 1)
   self:mergeLayoutInVertical(switch)
 
-  self.context_switch = ToggleSwitch:new{
+  self.context_switch = ToggleSwitch:new({
     width = switch_width,
     default_value = 1,
     name_text = nil,
     event = "ChangeContextStatus",
-    args = {"off", "on"},
+    args = { "off", "on" },
     default_arg = "off",
     toggle = { _("off"), _("on") },
-    values = {1, 2},
+    values = { 1, 2 },
     alternate = false,
     enabled = true,
     config = self,
     readonly = self.readonly,
-  }
+  })
   self.context_switch:setPosition(settings.with_context and 2 or 1)
   self:mergeLayoutInVertical(self.context_switch)
 
@@ -158,17 +168,18 @@ function MenuDialog:setupPluginMenu()
     callback = function()
       self:onClose()
       self.vocabbuilder:onShowFilter()
-    end
+    end,
   }
 
   local reverse_button = {
-    text = settings.reverse and _("Reverse order") or _("Reverse order and show only reviewable"),
+    text = settings.reverse and _("Reverse order")
+      or _("Reverse order and show only reviewable"),
     callback = function()
       self:onClose()
       settings.reverse = not settings.reverse
       saveSettings()
       self.vocabbuilder:reloadItems()
-    end
+    end,
   }
 
   local edit_button = {
@@ -176,42 +187,42 @@ function MenuDialog:setupPluginMenu()
     callback = function()
       self:onClose()
       self.edit_callback()
-    end
+    end,
   }
 
   local reset_button = {
     text = _("Reset all progress"),
     callback = function()
-      UIManager:show(ConfirmBox:new{
+      UIManager:show(ConfirmBox:new({
         text = _("Reset progress of all words?"),
         ok_text = _("Reset"),
         ok_callback = function()
           DB:resetProgress()
           self:onClose()
           self.reset_callback()
-        end
-      })
-    end
+        end,
+      }))
+    end,
   }
 
   local clean_button = {
     text = _("Clean all words"),
     callback = function()
-      UIManager:show(ConfirmBox:new{
+      UIManager:show(ConfirmBox:new({
         text = _("Clean all words including progress?"),
         ok_text = _("Clean"),
         ok_callback = function()
           DB:purge()
           self:onClose()
           self.clean_callback()
-        end
-      })
+        end,
+      }))
     end,
   }
 
   local show_sync_settings = function()
     if not settings.server then
-      local sync_settings = SyncService:new{}
+      local sync_settings = SyncService:new({})
       sync_settings.onClose = function(this)
         UIManager:close(this)
       end
@@ -236,28 +247,30 @@ function MenuDialog:setupPluginMenu()
             settings.server = nil
             SyncService.removeLastSyncDB(DB.path)
             UIManager:close(self.sync_dialogue)
-          end
+          end,
         },
         {
           text = _("Edit"),
           callback = function()
             UIManager:close(self.sync_dialogue)
             UIManager:close(self)
-            local sync_settings = SyncService:new{}
+            local sync_settings = SyncService:new({})
             sync_settings.onClose = function(this)
               UIManager:close(this)
             end
 
             sync_settings.onConfirm = function(chosen_server)
-              if settings.server.type ~= chosen_server.type
+              if
+                settings.server.type ~= chosen_server.type
                 or settings.server.url ~= chosen_server.url
-                or settings.server.address ~= chosen_server.address then
-                  SyncService.removeLastSyncDB(DB.path)
+                or settings.server.address ~= chosen_server.address
+              then
+                SyncService.removeLastSyncDB(DB.path)
               end
               settings.server = chosen_server
             end
             UIManager:show(sync_settings)
-          end
+          end,
         },
         {
           text = _("Synchronize now"),
@@ -267,95 +280,100 @@ function MenuDialog:setupPluginMenu()
             DB:batchUpdateItems(self.vocabbuilder.item_table)
             SyncService.sync(server, DB.path, DB.onSync, false)
             self.vocabbuilder:reloadItems()
-          end
-        }
-      }
+          end,
+        },
+      },
     }
     local type = server.type == "dropbox" and " (DropBox)" or " (WebDAV)"
-    self.sync_dialogue = ButtonDialog:new{
-      title = T(_("Cloud storage:\n%1\n\nFolder path:\n%2\n\nSet up the same cloud folder on each device to sync across your devices."),
-             server.name.." "..type, SyncService.getReadablePath(server)),
+    self.sync_dialogue = ButtonDialog:new({
+      title = T(
+        _(
+          "Cloud storage:\n%1\n\nFolder path:\n%2\n\nSet up the same cloud folder on each device to sync across your devices."
+        ),
+        server.name .. " " .. type,
+        SyncService.getReadablePath(server)
+      ),
       info_face = Font:getFace("smallinfofont"),
       buttons = buttons,
-    }
+    })
     UIManager:show(self.sync_dialogue)
   end
   local sync_button = {
     text = _("Cloud sync"),
     callback = function()
       show_sync_settings()
-    end
+    end,
   }
   local search_button = {
     text = _("Search"),
     callback = function()
       UIManager:close(self)
       self.vocabbuilder:showSearchDialog()
-    end
+    end,
   }
 
-  local buttons = ButtonTable:new{
+  local buttons = ButtonTable:new({
     width = width,
     buttons = {
-      {reverse_button},
-      {sync_button},
-      {search_button},
-      {filter_button, edit_button},
-      {reset_button, clean_button},
+      { reverse_button },
+      { sync_button },
+      { search_button },
+      { filter_button, edit_button },
+      { reset_button, clean_button },
     },
-    show_parent = self
-  }
+    show_parent = self,
+  })
   self:mergeLayoutInVertical(buttons)
 
   self.covers_fullscreen = true
-  self[1] = CenterContainer:new{
+  self[1] = CenterContainer:new({
     dimen = size,
-    FrameContainer:new{
+    FrameContainer:new({
       padding = Size.padding.default,
       padding_top = Size.padding.large,
       padding_bottom = 0,
       background = Blitbuffer.COLOR_WHITE,
       bordersize = Size.border.window,
       radius = Size.radius.window,
-      VerticalGroup:new{
-        HorizontalGroup:new{
-          RightContainer:new{
-            dimen = Geom:new{w = switch_guide_width, h = switch:getSize().h },
-            TextWidget:new{
+      VerticalGroup:new({
+        HorizontalGroup:new({
+          RightContainer:new({
+            dimen = Geom:new({ w = switch_guide_width, h = switch:getSize().h }),
+            TextWidget:new({
               text = _("Auto add new words"),
               face = Font:getFace("xx_smallinfofont"),
-              max_width = switch_guide_width
-            }
-          },
-          HorizontalSpan:new{width = Size.padding.fullscreen},
+              max_width = switch_guide_width,
+            }),
+          }),
+          HorizontalSpan:new({ width = Size.padding.fullscreen }),
           switch,
-        },
-        VerticalSpan:new{ width = Size.padding.default},
-        HorizontalGroup:new{
-          RightContainer:new{
-            dimen = Geom:new{w = switch_guide_width, h = switch:getSize().h},
-            TextWidget:new{
+        }),
+        VerticalSpan:new({ width = Size.padding.default }),
+        HorizontalGroup:new({
+          RightContainer:new({
+            dimen = Geom:new({ w = switch_guide_width, h = switch:getSize().h }),
+            TextWidget:new({
               text = _("Save context"),
               face = Font:getFace("xx_smallinfofont"),
-              max_width = switch_guide_width
-            }
-          },
-          HorizontalSpan:new{width = Size.padding.fullscreen},
+              max_width = switch_guide_width,
+            }),
+          }),
+          HorizontalSpan:new({ width = Size.padding.fullscreen }),
           self.context_switch,
-        },
-        VerticalSpan:new{ width = Size.padding.large},
-        LineWidget:new{
+        }),
+        VerticalSpan:new({ width = Size.padding.large }),
+        LineWidget:new({
           background = Blitbuffer.COLOR_GRAY,
-            dimen = Geom:new{
-              w = width,
-              h = Screen:scaleBySize(1),
-            }
-        },
+          dimen = Geom:new({
+            w = width,
+            h = Screen:scaleBySize(1),
+          }),
+        }),
 
-        buttons
-      }
-    }
-  }
+        buttons,
+      }),
+    }),
+  })
   self:refocusWidget()
 end
 
@@ -368,8 +386,11 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
     callback = function()
       self:onClose()
       -- first show_parent is sortWidget, second is vocabBuilderWidget
-      self.show_parent.show_parent:showChangeBookTitleDialog(sort_item, onSuccess)
-    end
+      self.show_parent.show_parent:showChangeBookTitleDialog(
+        sort_item,
+        onSuccess
+      )
+    end,
   }
   local select_single_button = {
     text = _("Select only this book"),
@@ -385,7 +406,7 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
         end
       end
       self.show_parent:goToPage(self.show_parent.show_page)
-    end
+    end,
   }
   local select_all_button = {
     text = _("Select all books"),
@@ -397,7 +418,7 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
         end
       end
       self.show_parent:goToPage(self.show_parent.show_page)
-    end
+    end,
   }
   local select_page_all_button = {
     text = _("Select all books on this page"),
@@ -409,7 +430,7 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
         end
       end
       self.show_parent:goToPage(self.show_parent.show_page)
-    end
+    end,
   }
   local deselect_page_all_button = {
     text = _("Deselect all books on this page"),
@@ -421,31 +442,31 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
         end
       end
       self.show_parent:goToPage(self.show_parent.show_page)
-    end
+    end,
   }
-  local buttons = ButtonTable:new{
+  local buttons = ButtonTable:new({
     width = width,
     buttons = {
-      {change_title_button},
-      {select_single_button},
-      {select_all_button},
-      {select_page_all_button},
-      {deselect_page_all_button},
+      { change_title_button },
+      { select_single_button },
+      { select_all_button },
+      { select_page_all_button },
+      { deselect_page_all_button },
     },
-    show_parent = self
-  }
+    show_parent = self,
+  })
 
   self.covers_fullscreen = true
-  self[1] = CenterContainer:new{
+  self[1] = CenterContainer:new({
     dimen = size,
-    FrameContainer:new{
+    FrameContainer:new({
       padding = Size.padding.default,
       background = Blitbuffer.COLOR_WHITE,
       bordersize = Size.border.window,
       radius = Size.radius.window,
-      buttons
-    }
-  }
+      buttons,
+    }),
+  })
 end
 
 function MenuDialog:onShow()
@@ -501,8 +522,9 @@ end
 
 --[[--
 Individual word info dialogue widget
---]]--
-local WordInfoDialog = FocusManager:extend{
+--]]
+--
+local WordInfoDialog = FocusManager:extend({
   title = nil,
   highlighted_word = nil,
   book_title = nil,
@@ -513,7 +535,7 @@ local WordInfoDialog = FocusManager:extend{
   remove_callback = nil,
   reset_callback = nil,
   dismissable = true, -- set to false if any button callback is required
-}
+})
 local book_title_triangle = BD.mirroredUILayout() and " ⯇" or " ⯈"
 local word_info_dialog_width
 function WordInfoDialog:init()
@@ -524,29 +546,31 @@ function WordInfoDialog:init()
     end
     if Device:isTouchDevice() then
       self.ges_events.Tap = {
-        GestureRange:new {
+        GestureRange:new({
           ges = "tap",
-          range = Geom:new {
+          range = Geom:new({
             x = 0,
             y = 0,
             w = Screen:getWidth(),
             h = Screen:getHeight(),
-          }
-        }
+          }),
+        }),
       }
     end
   end
 
   if not word_info_dialog_width then
-    local temp_text = TextWidget:new{
+    local temp_text = TextWidget:new({
       text = self.dates,
       padding = Size.padding.fullscreen,
-      face = Font:getFace("cfont", 14)
-    }
+      face = Font:getFace("cfont", 14),
+    })
     local dates_width = temp_text:getSize().w
     temp_text:free()
     local screen_width = math.min(Screen:getWidth(), Screen:getHeight())
-    word_info_dialog_width = math.floor(math.max(screen_width * 0.6, math.min(screen_width * 0.8, dates_width)))
+    word_info_dialog_width = math.floor(
+      math.max(screen_width * 0.6, math.min(screen_width * 0.8, dates_width))
+    )
   end
   local width = word_info_dialog_width
   local reset_button = {
@@ -554,44 +578,46 @@ function WordInfoDialog:init()
     callback = function()
       self.reset_callback()
       UIManager:close(self)
-    end
+    end,
   }
   local remove_button = {
     text = _("Remove word"),
     callback = function()
       self.remove_callback()
       UIManager:close(self)
-    end
+    end,
   }
 
-  local buttons = {{reset_button, remove_button}}
+  local buttons = { { reset_button, remove_button } }
   if self.vocabbuilder.item.last_due_time then
-    table.insert(buttons, {{
-      text = _("Undo study status"),
-      callback = function()
-        self.undo_callback()
-        UIManager:close(self)
-      end
-    }})
+    table.insert(buttons, {
+      {
+        text = _("Undo study status"),
+        callback = function()
+          self.undo_callback()
+          UIManager:close(self)
+        end,
+      },
+    })
   end
 
-  local focus_button = ButtonTable:new{
+  local focus_button = ButtonTable:new({
     width = width,
     buttons = buttons,
-    show_parent = self
-  }
+    show_parent = self,
+  })
 
-  local copy_button = Button:new{
+  local copy_button = Button:new({
     text = "", -- copy in nerdfont,
     callback = function()
       Device.input.setClipboardText(self.title)
-      UIManager:show(Notification:new{
+      UIManager:show(Notification:new({
         text = _("Word copied to clipboard."),
-      })
+      }))
     end,
     bordersize = 0,
-  }
-  self.book_title_button = Button:new{
+  })
+  self.book_title_button = Button:new({
     text = self.book_title .. book_title_triangle,
     width = width,
     text_font_face = "NotoSans-Italic.ttf",
@@ -603,80 +629,91 @@ function WordInfoDialog:init()
     callback = function()
       self.vocabbuilder:onShowBookAssignment(function(new_book_title)
         self.book_title = new_book_title
-        self.book_title_button:setText(new_book_title..book_title_triangle, width)
+        self.book_title_button:setText(
+          new_book_title .. book_title_triangle,
+          width
+        )
       end)
     end,
-    show_parent = self
-  }
+    show_parent = self,
+  })
 
-  table.insert(self.layout, {copy_button})
-  table.insert(self.layout, {self.book_title_button})
+  table.insert(self.layout, { copy_button })
+  table.insert(self.layout, { self.book_title_button })
   self:mergeLayoutInVertical(focus_button)
 
   local has_context = self.prev_context or self.next_context
-  self[1] = CenterContainer:new{
+  self[1] = CenterContainer:new({
     dimen = Screen:getSize(),
-    MovableContainer:new{
-      FrameContainer:new{
-        VerticalGroup:new{
+    MovableContainer:new({
+      FrameContainer:new({
+        VerticalGroup:new({
           align = "center",
-          FrameContainer:new{
+          FrameContainer:new({
             padding = self.padding,
             padding_top = Size.padding.buttontable,
             padding_bottom = Size.padding.buttontable,
             margin = self.margin,
             bordersize = 0,
-            VerticalGroup:new {
+            VerticalGroup:new({
               align = "left",
-              HorizontalGroup:new{
-                TextWidget:new{
+              HorizontalGroup:new({
+                TextWidget:new({
                   text = self.title,
-                  max_width = width - copy_button:getSize().w - Size.padding.default,
+                  max_width = width
+                    - copy_button:getSize().w
+                    - Size.padding.default,
                   face = word_face,
                   bold = true,
                   alignment = self.title_align or "left",
-                },
-                HorizontalSpan:new{ width=Size.padding.default },
+                }),
+                HorizontalSpan:new({ width = Size.padding.default }),
                 copy_button,
-              },
+              }),
               self.book_title_button,
-              VerticalSpan:new{width= Size.padding.default},
-              has_context and
-              TextBoxWidget:new{
-                text = "..." .. (self.prev_context or ""):gsub("\n", " ") .. "【" ..(self.highlighted_word or self.title).."】" .. (self.next_context or ""):gsub("\n", " ") .. "...",
+              VerticalSpan:new({ width = Size.padding.default }),
+              has_context and TextBoxWidget:new({
+                text = "..."
+                  .. (self.prev_context or ""):gsub("\n", " ")
+                  .. "【"
+                  .. (self.highlighted_word or self.title)
+                  .. "】"
+                  .. (self.next_context or ""):gsub("\n", " ")
+                  .. "...",
                 width = width,
                 face = Font:getFace("smallffont"),
                 alignment = self.title_align or "left",
-              }
-              or VerticalSpan:new{ width = Size.padding.default },
-              VerticalSpan:new{ width = has_context and Size.padding.default or 0},
-              TextBoxWidget:new{
+              }) or VerticalSpan:new({
+                width = Size.padding.default,
+              }),
+              VerticalSpan:new({
+                width = has_context and Size.padding.default or 0,
+              }),
+              TextBoxWidget:new({
                 text = self.dates,
                 width = width,
                 face = Font:getFace("cfont", 14),
                 alignment = self.title_align or "left",
-                fgcolor = dim_color
-              },
-            }
-
-          },
-          LineWidget:new{
+                fgcolor = dim_color,
+              }),
+            }),
+          }),
+          LineWidget:new({
             background = Blitbuffer.COLOR_GRAY,
-            dimen = Geom:new{
+            dimen = Geom:new({
               w = width + self.padding + self.margin,
               h = Screen:scaleBySize(1),
-            }
-          },
-          focus_button
-        },
+            }),
+          }),
+          focus_button,
+        }),
         background = Blitbuffer.COLOR_WHITE,
         bordersize = Size.border.window,
         radius = Size.radius.window,
-        padding = 0
-      }
-    }
-  }
-
+        padding = 0,
+      }),
+    }),
+  })
 end
 
 function WordInfoDialog:setTitle(title)
@@ -719,23 +756,22 @@ function WordInfoDialog:paintTo(...)
   self.dimen = self[1][1].dimen -- FrameContainer
 end
 
-
-
 -- values useful for item cells
 local ellipsis_button_width = Screen:scaleBySize(34)
 local star_width = Screen:scaleBySize(25)
 
-local point_widget = TextWidget:new{
+local point_widget = TextWidget:new({
   text = " • ",
   bold = true,
   face = Font:getFace("cfont", 24),
-  fgcolor = dim_color
-}
+  fgcolor = dim_color,
+})
 
 --[[--
 Individual word item widget
---]]--
-local VocabItemWidget = InputContainer:extend{
+--]]
+--
+local VocabItemWidget = InputContainer:extend({
   face = Font:getFace("smallinfofont"),
   width = nil,
   height = nil,
@@ -745,8 +781,8 @@ local VocabItemWidget = InputContainer:extend{
   forgot_button = nil,
   got_it_button = nil,
   more_button = nil,
-  layout = nil
-}
+  layout = nil,
+})
 --[[--
   item: {
     checked_func: Block,
@@ -760,65 +796,77 @@ local VocabItemWidget = InputContainer:extend{
     remove_callback: function
     is_dim: BOOL
   }
---]]--
+--]]
+--
 
 local point_widget_height = point_widget:getSize().h
 local point_widget_width = point_widget:getSize().w
-local word_height = TextWidget:new{text = " ", face = word_face}:getSize().h
-local subtitle_height = TextWidget:new{text = " ", face = subtitle_face}:getSize().h
-
+local word_height = TextWidget:new({ text = " ", face = word_face }):getSize().h
+local subtitle_height = TextWidget:new({ text = " ", face = subtitle_face })
+  :getSize().h
 
 function VocabItemWidget:init()
   self.layout = {}
-  self.dimen = Geom:new{w = self.width, h = self.height}
+  self.dimen = Geom:new({ w = self.width, h = self.height })
   self.ges_events.Tap = {
-    GestureRange:new{
+    GestureRange:new({
       ges = "tap",
       range = self.dimen,
-    }
+    }),
   }
   self.ges_events.Hold = {
-    GestureRange:new{
+    GestureRange:new({
       ges = "hold",
       range = self.dimen,
-    }
+    }),
   }
-  self.v_spacer = VerticalSpan:new{width = math.floor((self.height - word_height - subtitle_height)/2)}
-  self.point_v_spacer = VerticalSpan:new{width = (self.v_spacer.width + word_height/2) - point_widget_height/2 }
-  self.margin_span = HorizontalSpan:new{ width = Size.padding.large }
+  self.v_spacer = VerticalSpan:new({
+    width = math.floor((self.height - word_height - subtitle_height) / 2),
+  })
+  self.point_v_spacer = VerticalSpan:new({
+    width = (self.v_spacer.width + word_height / 2) - point_widget_height / 2,
+  })
+  self.margin_span = HorizontalSpan:new({ width = Size.padding.large })
   self:initItemWidget()
 end
 
 function VocabItemWidget:initItemWidget()
-  for i = 1, #self.layout do self.layout[i] = nil end
+  for i = 1, #self.layout do
+    self.layout[i] = nil
+  end
   if not self.show_parent.is_edit_mode then
-    self.more_button = Button:new{
-      text = (self.item.prev_context or self.item.next_context) and "⋯" or "⋮",
+    self.more_button = Button:new({
+      text = (self.item.prev_context or self.item.next_context) and "⋯"
+        or "⋮",
       padding = Size.padding.button,
-      callback = function() self:showMore() end,
+      callback = function()
+        self:showMore()
+      end,
       width = ellipsis_button_width,
       bordersize = 0,
-      show_parent = self
-    }
+      show_parent = self,
+    })
   else
-    self.more_button = IconButton:new{
+    self.more_button = IconButton:new({
       icon = "exit",
       width = star_width,
       height = star_width,
-      padding = math.floor((ellipsis_button_width - star_width)/2) + Size.padding.button,
+      padding = math.floor((ellipsis_button_width - star_width) / 2)
+        + Size.padding.button,
       callback = function()
         self:remover()
       end,
-    }
+    })
   end
-
 
   local right_side_width
   local right_widget
   if not self.show_parent.is_edit_mode and self.item.due_time <= os.time() then
     self.has_review_buttons = true
-    right_side_width = self.review_button_width * 2 + Size.padding.large * 2 + ellipsis_button_width
-    self.forgot_button = Button:new{
+    right_side_width = self.review_button_width * 2
+      + Size.padding.large * 2
+      + ellipsis_button_width
+    self.forgot_button = Button:new({
       text = _("Forgot"),
       width = self.review_button_width,
       radius = Size.radius.button,
@@ -826,9 +874,9 @@ function VocabItemWidget:initItemWidget()
         self:onForgot()
       end,
       show_parent = self,
-    }
+    })
 
-    self.got_it_button = Button:new{
+    self.got_it_button = Button:new({
       text = _("Got it"),
       radius = Size.radius.button,
       callback = function()
@@ -836,65 +884,68 @@ function VocabItemWidget:initItemWidget()
       end,
       width = self.review_button_width,
       show_parent = self,
-    }
-    right_widget = HorizontalGroup:new{
-      dimen = Geom:new{ w = 0, h = self.height },
+    })
+    right_widget = HorizontalGroup:new({
+      dimen = Geom:new({ w = 0, h = self.height }),
       self.margin_span,
       self.forgot_button,
       self.margin_span,
       self.got_it_button,
       self.more_button,
-    }
+    })
     table.insert(self.layout, self.forgot_button)
     table.insert(self.layout, self.got_it_button)
     table.insert(self.layout, self.more_button)
   else
     self.has_review_buttons = false
-    local star = IconWidget:new{
+    local star = IconWidget:new({
       icon = "check",
       width = star_width,
       height = star_width,
-      dim = true
-    }
+      dim = true,
+    })
 
     if self.item.review_count > 6 then
-      right_side_width =  Size.padding.large * 4 + 9 * (star:getSize().w)
-      right_widget = HorizontalGroup:new {
-        dimen = Geom:new{w=0, h = self.height}
-      }
-      for i=1, 6, 1 do
+      right_side_width = Size.padding.large * 4 + 9 * star:getSize().w
+      right_widget = HorizontalGroup:new({
+        dimen = Geom:new({ w = 0, h = self.height }),
+      })
+      for i = 1, 6, 1 do
         table.insert(right_widget, star)
       end
-      table.insert(right_widget,
-        TextWidget:new {
+      table.insert(
+        right_widget,
+        TextWidget:new({
           text = " + ",
           face = word_face,
-          fgcolor = Blitbuffer.COLOR_DARK_GRAY
-        }
+          fgcolor = Blitbuffer.COLOR_DARK_GRAY,
+        })
       )
       table.insert(right_widget, star)
-      table.insert(right_widget,
-        TextWidget:new {
-          text = "× " .. self.item.review_count-6,
+      table.insert(
+        right_widget,
+        TextWidget:new({
+          text = "× " .. self.item.review_count - 6,
           face = word_face,
-          fgcolor = Blitbuffer.COLOR_DARK_GRAY
-        }
+          fgcolor = Blitbuffer.COLOR_DARK_GRAY,
+        })
       )
     elseif self.item.review_count > 0 then
-      right_side_width =  Size.padding.large * 4 + self.item.review_count * (star:getSize().w)
-      right_widget = HorizontalGroup:new {
-        dimen = Geom:new{w=0, h = self.height}
-      }
-      for i=1, self.item.review_count, 1 do
+      right_side_width = Size.padding.large * 4
+        + self.item.review_count * star:getSize().w
+      right_widget = HorizontalGroup:new({
+        dimen = Geom:new({ w = 0, h = self.height }),
+      })
+      for i = 1, self.item.review_count, 1 do
         table.insert(right_widget, star)
       end
     else
       star:free()
-      right_side_width =  Size.padding.large * 4
-      right_widget = HorizontalGroup:new{
-        dimen = Geom:new{w=0, h = self.height},
-         HorizontalSpan:new {width = Size.padding.default }
-      }
+      right_side_width = Size.padding.large * 4
+      right_widget = HorizontalGroup:new({
+        dimen = Geom:new({ w = 0, h = self.height }),
+        HorizontalSpan:new({ width = Size.padding.default }),
+      })
     end
     table.insert(right_widget, self.margin_span)
     table.insert(right_widget, self.more_button)
@@ -903,79 +954,101 @@ function VocabItemWidget:initItemWidget()
 
   local text_max_width = self.width - point_widget_width - right_side_width
 
-  local subtitle_prefix = TextWidget:new{
+  local subtitle_prefix = TextWidget:new({
     text = self:getTimeSinceDue() .. _("From") .. " ",
     face = subtitle_face,
-    fgcolor = subtitle_color
-  }
+    fgcolor = subtitle_color,
+  })
 
-  local word_widget = Button:new{
+  local word_widget = Button:new({
     text = self.item.word,
     bordersize = 0,
-    callback = function() self.item.callback(self.item) end,
+    callback = function()
+      self.item.callback(self.item)
+    end,
     padding = 0,
-    max_width = math.ceil(math.max(5,text_max_width - Size.padding.fullscreen))
-  }
+    max_width = math.ceil(
+      math.max(5, text_max_width - Size.padding.fullscreen)
+    ),
+  })
 
-  word_widget.label_widget.fgcolor = self.item.is_dim and dim_color or Blitbuffer.COLOR_BLACK
+  word_widget.label_widget.fgcolor = self.item.is_dim and dim_color
+    or Blitbuffer.COLOR_BLACK
 
   table.insert(self.layout, 1, word_widget)
 
-  self[1] = FrameContainer:new{
+  self[1] = FrameContainer:new({
     padding = 0,
     bordersize = 0,
-    HorizontalGroup:new{
-      dimen = Geom:new{
+    HorizontalGroup:new({
+      dimen = Geom:new({
         w = self.width,
         h = self.height,
-      },
-      HorizontalGroup:new{
-        dimen = Geom:new{
+      }),
+      HorizontalGroup:new({
+        dimen = Geom:new({
           w = self.width - right_side_width,
           h = self.height,
-        },
-        VerticalGroup:new{
-          dimen = Geom:new{w = point_widget_width, h = self.height},
+        }),
+        VerticalGroup:new({
+          dimen = Geom:new({ w = point_widget_width, h = self.height }),
           self.point_v_spacer,
           point_widget,
-          VerticalSpan:new { width = self.height - point_widget_height - self.point_v_spacer.width}
-        },
-        VerticalGroup:new{
-          dimen = Geom:new{
+          VerticalSpan:new({
+            width = self.height
+              - point_widget_height
+              - self.point_v_spacer.width,
+          }),
+        }),
+        VerticalGroup:new({
+          dimen = Geom:new({
             w = text_max_width,
             h = self.height,
-          },
+          }),
           self.v_spacer,
-          LeftContainer:new{
-            dimen = Geom:new{w = text_max_width, h = word_height},
-            word_widget
-          },
-          LeftContainer:new{
-            dimen = Geom:new{w = text_max_width, h = math.floor(self.height - word_height - self.v_spacer.width*2.2)},
-            HorizontalGroup:new{
+          LeftContainer:new({
+            dimen = Geom:new({ w = text_max_width, h = word_height }),
+            word_widget,
+          }),
+          LeftContainer:new({
+            dimen = Geom:new({
+              w = text_max_width,
+              h = math.floor(
+                self.height - word_height - self.v_spacer.width * 2.2
+              ),
+            }),
+            HorizontalGroup:new({
               subtitle_prefix,
-              TextWidget:new{
+              TextWidget:new({
                 text = self.item.book_title,
                 face = subtitle_italic_face,
-                max_width = math.ceil(math.max(5,text_max_width - subtitle_prefix:getSize().w - Size.padding.fullscreen)),
-                fgcolor = subtitle_color
-              }
-            }
-          },
-          self.v_spacer
-        }
-
-      },
-      RightContainer:new{
-        dimen = Geom:new{ w = right_side_width+Size.padding.default, h = self.height},
-        right_widget
-      }
-    },
-  }
+                max_width = math.ceil(
+                  math.max(
+                    5,
+                    text_max_width
+                      - subtitle_prefix:getSize().w
+                      - Size.padding.fullscreen
+                  )
+                ),
+                fgcolor = subtitle_color,
+              }),
+            }),
+          }),
+          self.v_spacer,
+        }),
+      }),
+      RightContainer:new({
+        dimen = Geom:new({
+          w = right_side_width + Size.padding.default,
+          h = self.height,
+        }),
+        right_widget,
+      }),
+    }),
+  })
 end
 
 function VocabItemWidget:getTimeSinceDue()
-
   local elapsed = os.time() - self.item.due_time
   local abs = math.abs(elapsed)
   local readable_time
@@ -984,15 +1057,16 @@ function VocabItemWidget:getTimeSinceDue()
   if abs < 60 then
     readable_time = T(C_("Time", "%1s"), abs)
   elseif abs < 3600 then
-    readable_time = T(C_("Time", "%1m"), rounding(abs/60))
+    readable_time = T(C_("Time", "%1m"), rounding(abs / 60))
   elseif abs < 3600 * 24 then
-    readable_time = T(C_("Time", "%1h"), rounding(abs/3600))
+    readable_time = T(C_("Time", "%1h"), rounding(abs / 3600))
   elseif abs < 3600 * 24 * 30 then
-    readable_time = T(C_("Time", "%1d"), rounding(abs/3600/24))
+    readable_time = T(C_("Time", "%1d"), rounding(abs / 3600 / 24))
   elseif abs < 3600 * 24 * 365 then
-    readable_time = T(C_("Time", "%1 mo."), rounding(abs/3600/24/3)/10)
+    readable_time = T(C_("Time", "%1 mo."), rounding(abs / 3600 / 24 / 3) / 10)
   else
-    readable_time = T(C_("Time", "%1 yr."), rounding(abs/3600/24/36.5)/10)
+    readable_time =
+      T(C_("Time", "%1 yr."), rounding(abs / 3600 / 24 / 36.5) / 10)
   end
 
   if elapsed < 0 then
@@ -1016,7 +1090,8 @@ function VocabItemWidget:resetProgress()
   self.item.is_dim = false
   self:initItemWidget()
   UIManager:setDirty(self.show_parent, function()
-    return "ui", self[1].dimen end)
+    return "ui", self[1].dimen
+  end)
 end
 
 function VocabItemWidget:undo()
@@ -1031,7 +1106,8 @@ function VocabItemWidget:undo()
   self.item.is_dim = false
   self:initItemWidget()
   UIManager:setDirty(self.show_parent, function()
-    return "ui", self[1].dimen end)
+    return "ui", self[1].dimen
+  end)
 end
 
 function VocabItemWidget:removeAndClose()
@@ -1040,12 +1116,17 @@ function VocabItemWidget:removeAndClose()
 end
 
 function VocabItemWidget:showMore()
-  local dialogue = WordInfoDialog:new{
+  local dialogue = WordInfoDialog:new({
     title = self.item.word,
     highlighted_word = self.item.highlight,
     book_title = self.item.book_title,
-    dates = _("Added on") .. " " .. os.date("%Y-%m-%d", self.item.create_time) .. " | " ..
-    _("Review scheduled at") .. " " .. os.date("%Y-%m-%d %H:%M", self.item.due_time),
+    dates = _("Added on")
+      .. " "
+      .. os.date("%Y-%m-%d", self.item.create_time)
+      .. " | "
+      .. _("Review scheduled at")
+      .. " "
+      .. os.date("%Y-%m-%d %H:%M", self.item.due_time),
     prev_context = self.item.prev_context,
     next_context = self.item.next_context,
     remove_callback = function()
@@ -1057,26 +1138,39 @@ function VocabItemWidget:showMore()
     undo_callback = function()
       self:undo()
     end,
-    vocabbuilder = self
-  }
+    vocabbuilder = self,
+  })
 
   UIManager:show(dialogue)
 end
 
 function VocabItemWidget:onTap(_, ges)
   if self.has_review_buttons then
-    if ges.pos.x > self.forgot_button.dimen.x and ges.pos.x < self.forgot_button.dimen.x + self.forgot_button.dimen.w then
+    if
+      ges.pos.x > self.forgot_button.dimen.x
+      and ges.pos.x < self.forgot_button.dimen.x + self.forgot_button.dimen.w
+    then
       self:onForgot()
-    elseif ges.pos.x > self.got_it_button.dimen.x and ges.pos.x < self.got_it_button.dimen.x + self.got_it_button.dimen.w then
+    elseif
+      ges.pos.x > self.got_it_button.dimen.x
+      and ges.pos.x < self.got_it_button.dimen.x + self.got_it_button.dimen.w
+    then
       self:onGotIt()
-    elseif ges.pos.x > self.more_button.dimen.x and ges.pos.x < self.more_button.dimen.x + self.more_button.dimen.w then
+    elseif
+      ges.pos.x > self.more_button.dimen.x
+      and ges.pos.x < self.more_button.dimen.x + self.more_button.dimen.w
+    then
       self:showMore()
     elseif self.item.callback then
       self.item.callback(self.item)
     end
   else
     if BD.mirroredUILayout() then
-      if ges.pos.x > self.more_button.dimen.x and ges.pos.x < self.more_button.dimen.x + self.more_button.dimen.w * 2 then
+      if
+        ges.pos.x > self.more_button.dimen.x
+        and ges.pos.x
+          < self.more_button.dimen.x + self.more_button.dimen.w * 2
+      then
         if self.show_parent.is_edit_mode then
           self:remover()
         else
@@ -1086,7 +1180,10 @@ function VocabItemWidget:onTap(_, ges)
         self.item.callback(self.item)
       end
     else
-      if ges.pos.x > self.more_button.dimen.x - self.more_button.dimen.w and ges.pos.x < self.more_button.dimen.x + self.more_button.dimen.w then
+      if
+        ges.pos.x > self.more_button.dimen.x - self.more_button.dimen.w
+        and ges.pos.x < self.more_button.dimen.x + self.more_button.dimen.w
+      then
         if self.show_parent.is_edit_mode then
           self:remover()
         else
@@ -1113,7 +1210,8 @@ function VocabItemWidget:onGotIt()
     self.show_parent.selected.x = 1
   end
   UIManager:setDirty(self.show_parent, function()
-  return "ui", self[1].dimen end)
+    return "ui", self[1].dimen
+  end)
 end
 
 function VocabItemWidget:onForgot(no_lookup)
@@ -1121,12 +1219,12 @@ function VocabItemWidget:onForgot(no_lookup)
   self.item.is_dim = false
   self:initItemWidget()
   UIManager:setDirty(self.show_parent, function()
-    return "ui", self[1].dimen end)
-  if not no_lookup and  self.item.callback then
+    return "ui", self[1].dimen
+  end)
+  if not no_lookup and self.item.callback then
     self.item.callback(self.item)
   end
 end
-
 
 function VocabItemWidget:onShowBookAssignment(title_changed_cb)
   local sort_items = {}
@@ -1153,10 +1251,12 @@ function VocabItemWidget:onShowBookAssignment(title_changed_cb)
               book = sort_item.text
             end
             info.name = sort_item.text
-            if title_changed_cb then title_changed_cb(sort_item.text) end
+            if title_changed_cb then
+              title_changed_cb(sort_item.text)
+            end
           end
         end)
-      end
+      end,
     })
   end
   table.insert(sort_items, {
@@ -1164,7 +1264,7 @@ function VocabItemWidget:onShowBookAssignment(title_changed_cb)
     face = Font:getFace("smallinfofontbold"),
     callback = function()
       local dialog
-      dialog = InputDialog:new{
+      dialog = InputDialog:new({
         title = _("Enter book title:"),
         input = "",
         buttons = {
@@ -1180,7 +1280,9 @@ function VocabItemWidget:onShowBookAssignment(title_changed_cb)
               text = _("Add"),
               is_enter_default = true,
               callback = function()
-                if dialog:getInputText() == "" then return end
+                if dialog:getInputText() == "" then
+                  return
+                end
                 local new_book_title = dialog:getInputText()
                 local ok, new_id = pcall(DB.insertNewBook, DB, new_book_title)
                 if ok then
@@ -1195,28 +1297,31 @@ function VocabItemWidget:onShowBookAssignment(title_changed_cb)
                       return new_book_title == book
                     end,
                     hold_callback = function(sort_item, onSuccess)
-                      self.show_parent:showChangeBookTitleDialog(sort_item, onSuccess)
-                    end
+                      self.show_parent:showChangeBookTitleDialog(
+                        sort_item,
+                        onSuccess
+                      )
+                    end,
                   })
                   sort_widget:goToPage(sort_widget.show_page)
                 else
-                  UIManager:show(require("ui/widget/notification"):new{
+                  UIManager:show(require("ui/widget/notification"):new({
                     text = _("Book title already in use."),
-                    timeout = 3
-                  })
+                    timeout = 3,
+                  }))
                 end
               end,
             },
-          }
+          },
         },
-      }
+      })
       UIManager:show(dialog)
       dialog:onShowKeyboard()
-    end
+    end,
   })
 
-  sort_widget = SortWidget:new{
-    title = T(_("Move \"%1\" to book:"), self.item.word),
+  sort_widget = SortWidget:new({
+    title = T(_('Move "%1" to book:'), self.item.word),
     item_table = sort_items,
     sort_disabled = true,
     callback = function()
@@ -1224,11 +1329,13 @@ function VocabItemWidget:onShowBookAssignment(title_changed_cb)
         self.item.book_title = book
         DB:updateBookIdOfWord(self.item.word, id)
         self:initItemWidget()
-        if title_changed_cb then title_changed_cb(book) end
+        if title_changed_cb then
+          title_changed_cb(book)
+        end
       end
       UIManager:setDirty(nil, "ui")
-    end
-  }
+    end,
+  })
   UIManager:show(sort_widget)
 end
 
@@ -1250,7 +1357,7 @@ function VocabItemWidget:onDictButtonsReady(dict_popup, buttons)
           callback = function()
             self.show_parent:gotItFromDict(self.item.word)
             dict_popup:onClose()
-          end
+          end,
         }
         if tweaked_button_count == 1 then
           early_break = true
@@ -1264,7 +1371,7 @@ function VocabItemWidget:onDictButtonsReady(dict_popup, buttons)
           callback = function()
             self.show_parent:forgotFromDict(self.item.word)
             dict_popup:onClose()
-          end
+          end,
         }
         if tweaked_button_count == 1 then
           early_break = true
@@ -1273,16 +1380,18 @@ function VocabItemWidget:onDictButtonsReady(dict_popup, buttons)
         tweaked_button_count = tweaked_button_count + 1
       end
     end
-    if early_break then break end
+    if early_break then
+      break
+    end
   end
   return true -- we consume the event here!
 end
 
-
 --[[--
 Container widget. Same as sortwidget
---]]--
-local VocabularyBuilderWidget = FocusManager:extend{
+--]]
+--
+local VocabularyBuilderWidget = FocusManager:extend({
   title = "",
   width = nil,
   height = nil,
@@ -1292,55 +1401,57 @@ local VocabularyBuilderWidget = FocusManager:extend{
   item_table = nil, -- mandatory (array)
   is_edit_mode = false,
   callback = nil,
-}
+})
 
 function VocabularyBuilderWidget:init()
   self.item_table = self:getVocabItems()
   self.layout = {}
 
-  self.dimen = Geom:new{
+  self.dimen = Geom:new({
     w = self.width or Screen:getWidth(),
     h = self.height or Screen:getHeight(),
-  }
+  })
 
   if Device:hasKeys() then
     self.key_events.Close = { { Device.input.group.Back } }
     self.key_events.NextPage = { { Device.input.group.PgFwd } }
     self.key_events.PrevPage = { { Device.input.group.PgBack } }
-    self.key_events.ShowMenu = { { "Menu" }}
+    self.key_events.ShowMenu = { { "Menu" } }
   end
   if Device:isTouchDevice() then
     self.ges_events.Swipe = {
-      GestureRange:new{
+      GestureRange:new({
         ges = "swipe",
         range = self.dimen,
-      }
+      }),
     }
     self.ges_events.MultiSwipe = {
-      GestureRange:new{
+      GestureRange:new({
         ges = "multiswipe",
-        range = function() return self.dimen end,
-      }
+        range = function()
+          return self.dimen
+        end,
+      }),
     }
   end
-  self.page_info = HorizontalGroup:new{}
+  self.page_info = HorizontalGroup:new({})
   self:refreshFooter()
 
-  local bottom_line = LineWidget:new{
-    dimen = Geom:new{ w = self.item_width, h = Size.line.thick },
+  local bottom_line = LineWidget:new({
+    dimen = Geom:new({ w = self.item_width, h = Size.line.thick }),
     background = Blitbuffer.COLOR_LIGHT_GRAY,
-  }
-  local vertical_footer = VerticalGroup:new{
+  })
+  local vertical_footer = VerticalGroup:new({
     bottom_line,
     self.page_info,
-  }
+  })
   self.footer_height = vertical_footer:getSize().h
-  local footer = BottomContainer:new{
+  local footer = BottomContainer:new({
     dimen = self.dimen:copy(),
     vertical_footer,
-  }
+  })
   -- setup title bar
-  self.title_bar = TitleBar:new{
+  self.title_bar = TitleBar:new({
     width = self.dimen.w,
     align = "center",
     title_face = Font:getFace("smallinfofontbold"),
@@ -1348,50 +1459,57 @@ function VocabularyBuilderWidget:init()
     with_bottom_line = true,
     bottom_line_h_padding = Size.padding.large,
     left_icon = "appbar.menu",
-    left_icon_tap_callback = function() self:onShowMenu() end,
+    left_icon_tap_callback = function()
+      self:onShowMenu()
+    end,
     title = self.title,
-    close_callback = function() self:onClose() end,
+    close_callback = function()
+      self:onClose()
+    end,
     show_parent = self,
-  }
+  })
 
   self:setupItemHeight()
-  self.main_content = VerticalGroup:new{}
+  self.main_content = VerticalGroup:new({})
 
   -- calculate item's review button width once
-  local temp_button = Button:new{
+  local temp_button = Button:new({
     text = _("Got it"),
-    padding_h = Size.padding.large
-  }
+    padding_h = Size.padding.large,
+  })
   self.review_button_width = temp_button:getSize().w
   temp_button:setText(_("Forgot"))
-  self.review_button_width = math.min(math.max(self.review_button_width, temp_button:getSize().w), Screen:getWidth()/4)
+  self.review_button_width = math.min(
+    math.max(self.review_button_width, temp_button:getSize().w),
+    Screen:getWidth() / 4
+  )
   temp_button:free()
 
   self:_populateItems()
 
-  local frame_content = FrameContainer:new{
+  local frame_content = FrameContainer:new({
     height = self.dimen.h,
     padding = 0,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,
-    VerticalGroup:new{
+    VerticalGroup:new({
       self.title_bar,
       self.main_content,
-    },
-  }
-  local content = OverlapGroup:new{
+    }),
+  })
+  local content = OverlapGroup:new({
     dimen = self.dimen:copy(),
     frame_content,
     footer,
-  }
+  })
   -- assemble page
-  self[1] = FrameContainer:new{
+  self[1] = FrameContainer:new({
     height = self.dimen.h,
     padding = 0,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,
-    content
-  }
+    content,
+  })
   self.vocabbuilder[1] = self
 end
 
@@ -1400,28 +1518,34 @@ function VocabularyBuilderWidget:refreshFooter()
   local has_search = self.search_text_sql
   if self.footer_left ~= nil then -- check whether refresh needed
     local should_refresh = has_sync and self.page_info[1] ~= self.footer_sync
-                 or not has_sync and self.page_info[1] == self.footer_sync
+      or not has_sync and self.page_info[1] == self.footer_sync
     if not should_refresh then
-      should_refresh = has_search and self.page_info[#self.page_info] ~= self.footer_search
-               or not has_search and self.page_info[#self.page_info] == self.footer_search
+      should_refresh = has_search
+          and self.page_info[#self.page_info] ~= self.footer_search
+        or not has_search
+          and self.page_info[#self.page_info] == self.footer_search
     end
-    if not should_refresh then return end
+    if not should_refresh then
+      return
+    end
   end
 
   self.page_info:clear()
   local padding = Size.padding.large
   self.width_widget = self.dimen.w - 2 * padding
   self.item_width = self.dimen.w - 2 * padding
-  self.footer_center_width = math.floor(self.width_widget * (32/100))
-  self.footer_button_width = math.floor(self.width_widget * (12/100))
+  self.footer_center_width = math.floor(self.width_widget * (32 / 100))
+  self.footer_button_width = math.floor(self.width_widget * (12 / 100))
   local left_ratio = 10
   local right_ratio = 10
   if has_sync and not has_search then
     left_ratio = 9
     right_ratio = 11
   end
-  self.footer_left_corner_width = math.floor(self.width_widget * left_ratio/100)
-  self.footer_right_corner_width = math.floor(self.width_widget * right_ratio/100)
+  self.footer_left_corner_width =
+    math.floor(self.width_widget * left_ratio / 100)
+  self.footer_right_corner_width =
+    math.floor(self.width_widget * right_ratio / 100)
   -- group for footer
   local chevron_left = "chevron.left"
   local chevron_right = "chevron.right"
@@ -1431,23 +1555,27 @@ function VocabularyBuilderWidget:refreshFooter()
     chevron_left, chevron_right = chevron_right, chevron_left
     chevron_first, chevron_last = chevron_last, chevron_first
   end
-  self.footer_left = Button:new{
+  self.footer_left = Button:new({
     icon = chevron_left,
     width = self.footer_button_width,
-    callback = function() self:prevPage() end,
+    callback = function()
+      self:prevPage()
+    end,
     bordersize = 0,
     radius = 0,
     show_parent = self,
-  }
-  self.footer_right = Button:new{
+  })
+  self.footer_right = Button:new({
     icon = chevron_right,
     width = self.footer_button_width,
-    callback = function() self:nextPage() end,
+    callback = function()
+      self:nextPage()
+    end,
     bordersize = 0,
     radius = 0,
     show_parent = self,
-  }
-  self.footer_first_up = Button:new{
+  })
+  self.footer_first_up = Button:new({
     icon = chevron_first,
     width = self.footer_button_width,
     callback = function()
@@ -1456,8 +1584,8 @@ function VocabularyBuilderWidget:refreshFooter()
     bordersize = 0,
     radius = 0,
     show_parent = self,
-  }
-  self.footer_last_down = Button:new{
+  })
+  self.footer_last_down = Button:new({
     icon = chevron_last,
     width = self.footer_button_width,
     callback = function()
@@ -1466,10 +1594,14 @@ function VocabularyBuilderWidget:refreshFooter()
     bordersize = 0,
     radius = 0,
     show_parent = self,
-  }
+  })
   local footer_height = self.footer_last_down:getSize().h
-  local sync_size = TextWidget:getFontSizeToFitHeight("cfont", footer_height, Size.padding.buttontable*2)
-  self.footer_sync = Button:new{
+  local sync_size = TextWidget:getFontSizeToFitHeight(
+    "cfont",
+    footer_height,
+    Size.padding.buttontable * 2
+  )
+  self.footer_sync = Button:new({
     text = "⇅",
     width = self.footer_left_corner_width,
     text_font_size = sync_size,
@@ -1482,7 +1614,7 @@ function VocabularyBuilderWidget:refreshFooter()
     show_parent = self,
     callback = function()
       if not settings.server then
-        local sync_settings = SyncService:new{}
+        local sync_settings = SyncService:new({})
         sync_settings.onClose = function(this)
           UIManager:close(this)
         end
@@ -1502,11 +1634,11 @@ function VocabularyBuilderWidget:refreshFooter()
           self:reloadItems()
         end)
       end
-    end
-  }
+    end,
+  })
   self.footer_sync.label_widget.fgcolor = Blitbuffer.COLOR_GRAY_3
 
-  self.footer_search = Button:new{
+  self.footer_search = Button:new({
     icon = "appbar.search",
     width = self.footer_right_corner_width,
     icon_width = math.floor(footer_height - Size.padding.large),
@@ -1517,8 +1649,8 @@ function VocabularyBuilderWidget:refreshFooter()
     bordersize = 0,
     radius = 0,
     show_parent = self,
-  }
-  self.footer_page = Button:new{
+  })
+  self.footer_page = Button:new({
     text = "",
     hold_input = {
       title = _("Enter page number"),
@@ -1541,19 +1673,27 @@ function VocabularyBuilderWidget:refreshFooter()
     text_font_bold = false,
     width = self.footer_center_width,
     show_parent = self,
-  }
-  table.insert(self.page_info, has_sync and self.footer_sync or HorizontalSpan:new{width=self.footer_left_corner_width})
+  })
+  table.insert(
+    self.page_info,
+    has_sync and self.footer_sync
+      or HorizontalSpan:new({ width = self.footer_left_corner_width })
+  )
   table.insert(self.page_info, self.footer_first_up)
   table.insert(self.page_info, self.footer_left)
   table.insert(self.page_info, self.footer_page)
   table.insert(self.page_info, self.footer_right)
   table.insert(self.page_info, self.footer_last_down)
-  table.insert(self.page_info, has_search and self.footer_search or HorizontalSpan:new{ width = self.footer_right_corner_width })
+  table.insert(
+    self.page_info,
+    has_search and self.footer_search
+      or HorizontalSpan:new({ width = self.footer_right_corner_width })
+  )
 end
 
 function VocabularyBuilderWidget:showSearchDialog()
   local dialog
-  dialog = InputDialog:new{
+  dialog = InputDialog:new({
     title = _("Search words"),
     input = self.search_text or "",
     input_hint = _("Search empty content to exit"),
@@ -1569,11 +1709,13 @@ function VocabularyBuilderWidget:showSearchDialog()
         {
           text = _("Info"),
           callback = function()
-            local text_info = _([[You can use two wildcards when searching: the percent sign (%) and the underscore (_).
+            local text_info = _(
+              [[You can use two wildcards when searching: the percent sign (%) and the underscore (_).
 % represents any zero or more number of characters and _ represents any single character.
 
-If no wildcard is used, the searched text will be enclosed with two %'s by default.]])
-            UIManager:show(InfoMessage:new{ text = text_info })
+If no wildcard is used, the searched text will be enclosed with two %'s by default.]]
+            )
+            UIManager:show(InfoMessage:new({ text = text_info }))
           end,
         },
         {
@@ -1583,18 +1725,22 @@ If no wildcard is used, the searched text will be enclosed with two %'s by defau
             self.search_text = dialog:getInputText()
             if self.search_text == "" then
               self.search_text_sql = nil
-            elseif self.search_text:find("%", 1, true) or self.search_text:find("_") then
+            elseif
+              self.search_text:find("%", 1, true) or self.search_text:find("_")
+            then
               self.search_text_sql = self.search_text:gsub("'", "''")
             else
-              self.search_text_sql = "%" .. self.search_text:gsub("'", "''") .. "%"
+              self.search_text_sql = "%"
+                .. self.search_text:gsub("'", "''")
+                .. "%"
             end
             UIManager:close(dialog)
             self:reloadItems()
           end,
         },
-      }
+      },
     },
-  }
+  })
   UIManager:show(dialog)
   dialog:onShowKeyboard()
 end
@@ -1604,9 +1750,15 @@ function VocabularyBuilderWidget:setupItemHeight()
   self.item_height = item_height
   self.item_margin = math.floor(self.item_height / 8)
   local line_height = self.item_height + self.item_margin
-  local content_height = self.dimen.h - self.title_bar:getHeight() - self.footer_height - Size.padding.large
+  local content_height = self.dimen.h
+    - self.title_bar:getHeight()
+    - self.footer_height
+    - Size.padding.large
   self.items_per_page = math.floor(content_height / line_height)
-  self.item_margin = self.item_margin + math.floor((content_height - self.items_per_page * line_height ) / self.items_per_page )
+  self.item_margin = self.item_margin
+    + math.floor(
+      (content_height - self.items_per_page * line_height) / self.items_per_page
+    )
   self.pages = math.ceil(#self.item_table / self.items_per_page)
   self.show_page = math.max(1, math.min(self.pages, self.show_page))
 end
@@ -1637,9 +1789,12 @@ function VocabularyBuilderWidget:moveItem(diff)
 end
 
 function VocabularyBuilderWidget:removeAt(index)
-  if index > #self.item_table then return end
+  if index > #self.item_table then
+    return
+  end
   table.remove(self.item_table, index)
-  self.show_page = math.ceil(math.min(index, #self.item_table) / self.items_per_page)
+  self.show_page =
+    math.ceil(math.min(index, #self.item_table) / self.items_per_page)
   self.pages = math.ceil(#self.item_table / self.items_per_page)
   self:_populateItems()
 end
@@ -1647,7 +1802,7 @@ end
 -- make sure self.item_margin and self.item_height are set before calling this
 function VocabularyBuilderWidget:_populateItems()
   self.main_content:clear()
-  self.layout = {{self.title_bar.left_button, self.title_bar.right_button}} -- title
+  self.layout = { { self.title_bar.left_button, self.title_bar.right_button } } -- title
   local idx_offset = (self.show_page - 1) * self.items_per_page
   local page_last
   if idx_offset + self.items_per_page <= #self.item_table then
@@ -1659,30 +1814,40 @@ function VocabularyBuilderWidget:_populateItems()
   self:selectVocabItems(idx_offset, page_last)
 
   for idx = idx_offset + 1, page_last do
-    table.insert(self.main_content, VerticalSpan:new{ width = self.item_margin / (idx == idx_offset+1 and 2 or 1) })
-    if #self.item_table == 0 or not self.item_table[idx].word then break end
-    local item = VocabItemWidget:new{
+    table.insert(
+      self.main_content,
+      VerticalSpan:new({
+        width = self.item_margin / (idx == idx_offset + 1 and 2 or 1),
+      })
+    )
+    if #self.item_table == 0 or not self.item_table[idx].word then
+      break
+    end
+    local item = VocabItemWidget:new({
       height = self.item_height,
       width = self.item_width,
       review_button_width = self.review_button_width,
       item = self.item_table[idx],
       index = idx,
       show_parent = self,
-    }
+    })
     table.insert(self.layout, #self.layout, item.layout)
-    table.insert(
-      self.main_content,
-      item
-    )
+    table.insert(self.main_content, item)
   end
   self:refreshFooter()
   if settings.server then
-    table.insert(self.layout, #self.layout, {self.footer_sync})
+    table.insert(self.layout, #self.layout, { self.footer_sync })
   end
   if #self.main_content == 0 then
-    table.insert(self.main_content, HorizontalSpan:new{width = self.item_width})
+    table.insert(
+      self.main_content,
+      HorizontalSpan:new({ width = self.item_width })
+    )
   end
-  self.footer_page:setText(T(_("Page %1 of %2"), self.show_page, self.pages), self.footer_center_width)
+  self.footer_page:setText(
+    T(_("Page %1 of %2"), self.show_page, self.pages),
+    self.footer_center_width
+  )
   if self.pages > 1 then
     self.footer_page:enable()
   else
@@ -1694,8 +1859,9 @@ function VocabularyBuilderWidget:_populateItems()
       text = _("Search in effect")
     else
       local has_filtered_book = DB:hasFilteredBook()
-      text = has_filtered_book and _("Filter in effect") or
-        self:check_reverse() and _("No reviewable items") or _("No items")
+      text = has_filtered_book and _("Filter in effect")
+        or self:check_reverse() and _("No reviewable items")
+        or _("No items")
     end
     self.footer_page:setText(text, self.footer_center_width)
     self.footer_first_up:hide()
@@ -1720,8 +1886,11 @@ function VocabularyBuilderWidget:_populateItems()
   self.footer_right:enableDisable(self.show_page < self.pages)
   self.footer_first_up:enableDisable(self.show_page > 1)
   self.footer_last_down:enableDisable(self.show_page < self.pages)
-  if not self.layout[self.selected.y] or not self.layout[self.selected.y][self.selected.x] then
-    self.selected = {x=1, y=1}
+  if
+    not self.layout[self.selected.y]
+    or not self.layout[self.selected.y][self.selected.x]
+  then
+    self.selected = { x = 1, y = 1 }
   end
   UIManager:setDirty(self, function()
     return "ui", self.dimen
@@ -1750,7 +1919,7 @@ function VocabularyBuilderWidget:resetItems()
   for i, item in ipairs(self.item_table) do
     if self.item_table[i].word then -- selected from DB
       self.item_table[i] = {
-        callback = self.item_table[i].callback
+        callback = self.item_table[i].callback,
       }
     end
   end
@@ -1759,7 +1928,7 @@ function VocabularyBuilderWidget:resetItems()
 end
 
 function VocabularyBuilderWidget:onShowMenu()
-  local menu = MenuDialog:new{
+  local menu = MenuDialog:new({
     is_edit_mode = self.is_edit_mode,
     edit_callback = function()
       self.is_edit_mode = not self.is_edit_mode
@@ -1774,8 +1943,8 @@ function VocabularyBuilderWidget:onShowMenu()
     reset_callback = function()
       self:resetItems()
     end,
-    vocabbuilder = self
-  }
+    vocabbuilder = self,
+  })
 
   menu:setupPluginMenu()
   UIManager:show(menu)
@@ -1784,7 +1953,6 @@ end
 function VocabularyBuilderWidget:check_reverse()
   return settings.reverse
 end
-
 
 function VocabularyBuilderWidget:onShowFilter()
   local sort_items = {}
@@ -1806,16 +1974,16 @@ function VocabularyBuilderWidget:onShowFilter()
         return info.filter
       end,
       hold_callback = function(sort_item, onSuccess)
-        local menu = MenuDialog:new{
-          show_parent = sort_widget
-        }
+        local menu = MenuDialog:new({
+          show_parent = sort_widget,
+        })
         menu:setupBookMenu(sort_item, onSuccess)
         UIManager:show(menu)
       end,
     })
   end
 
-  sort_widget = SortWidget:new{
+  sort_widget = SortWidget:new({
     title = _("Filter words from books"),
     item_table = sort_items,
     sort_disabled = true,
@@ -1827,11 +1995,11 @@ function VocabularyBuilderWidget:onShowFilter()
 
       UIManager:setDirty(nil, "ui")
     end,
-    show_parent = self
-  }
+    show_parent = self,
+  })
 
   if Device:hasKeys() then
-    sort_widget.key_events.ShowMenu = { { "Menu" }}
+    sort_widget.key_events.ShowMenu = { { "Menu" } }
     sort_widget.onShowMenu = function(this)
       local item = this:getFocusItem()
       if item and item.onHold then
@@ -1845,7 +2013,7 @@ end
 
 function VocabularyBuilderWidget:showChangeBookTitleDialog(sort_item, onSuccess)
   local dialog
-  dialog = InputDialog:new {
+  dialog = InputDialog:new({
     title = _("Change book title to:"),
     input = sort_item.text,
     buttons = {
@@ -1861,30 +2029,35 @@ function VocabularyBuilderWidget:showChangeBookTitleDialog(sort_item, onSuccess)
           text = _("Change title"),
           is_enter_default = true,
           callback = function()
-            if dialog:getInputText() == "" then return end
+            if dialog:getInputText() == "" then
+              return
+            end
             local new_book_title = dialog:getInputText()
-            local ok = pcall(DB.changeBookTitle, DB, sort_item.text, new_book_title)
+            local ok =
+              pcall(DB.changeBookTitle, DB, sort_item.text, new_book_title)
             if ok then
-              for i=1, #self.item_table do
+              for i = 1, #self.item_table do
                 if self.item_table[i].book_title == sort_item.text then
                   self.item_table[i].book_title = new_book_title
                 end
               end
               sort_item.text = new_book_title
               UIManager:close(dialog)
-              if onSuccess then onSuccess() end
+              if onSuccess then
+                onSuccess()
+              end
               self:_populateItems()
             else
-              UIManager:show(require("ui/widget/notification"):new {
+              UIManager:show(require("ui/widget/notification"):new({
                 text = _("Book title already in use."),
-                timeout = 3
-              })
+                timeout = 3,
+              }))
             end
           end,
         },
-      }
+      },
     },
-  }
+  })
   UIManager:show(dialog)
   dialog:onShowKeyboard()
 end
@@ -1936,14 +2109,25 @@ function VocabularyBuilderWidget:onMultiSwipe(arg, ges_ev)
   local space_count = 0
   for space in ges_ev.multiswipe_directions:gmatch(" ") do
     space_count = space_count + 1
-    if space_count == 2 then break end
+    if space_count == 2 then
+      break
+    end
   end
-  if space_count == 2 and (
-    string.find("east south west north east south west", ges_ev.multiswipe_directions)
-    or string.find("east north west south east north west", ges_ev.multiswipe_directions)
-  ) then
+  if
+    space_count == 2
+    and (
+      string.find(
+        "east south west north east south west",
+        ges_ev.multiswipe_directions
+      )
+      or string.find(
+        "east north west south east north west",
+        ges_ev.multiswipe_directions
+      )
+    )
+  then
     self:reloadItems()
-    UIManager:show(Notification:new{ text = _("Words reloaded") })
+    UIManager:show(Notification:new({ text = _("Words reloaded") }))
   else
     -- For consistency with other fullscreen widgets where swipe south can't be
     -- used to close and where we then allow any multiswipe to close, allow any
@@ -1976,7 +2160,9 @@ function VocabularyBuilderWidget:vocabItemIter()
   return function()
     while true do
       i = i + 1
-      if i > n then return nil end
+      if i > n then
+        return nil
+      end
       if self.main_content[i].item then
         return self.main_content[i]
       end
@@ -1991,8 +2177,10 @@ function VocabularyBuilderWidget:getVocabItems()
     table.insert(vocab_items, {
       callback = function(item)
         self.current_lookup_word = item.word
-        self.ui:handleEvent(Event:new("LookupWord", item.word, true, nil, nil, nil))
-      end
+        self.ui:handleEvent(
+          Event:new("LookupWord", item.word, true, nil, nil, nil)
+        )
+      end,
     })
   end
   return vocab_items
@@ -2004,11 +2192,12 @@ end
 
 --[[--
 Item shown in main menu
---]]--
-local VocabBuilder = WidgetContainer:extend{
+--]]
+--
+local VocabBuilder = WidgetContainer:extend({
   name = "vocabulary_builder",
-  is_doc_only = false
-}
+  is_doc_only = false,
+})
 
 function VocabBuilder:init()
   self.ui.menu:registerToMainMenu(self)
@@ -2020,7 +2209,7 @@ function VocabBuilder:addToMainMenu(menu_items)
     text = _("Vocabulary builder"),
     callback = function()
       self:onShowVocabBuilder()
-    end
+    end,
   }
 end
 
@@ -2032,48 +2221,65 @@ function VocabBuilder:onDictButtonsReady(dict_popup, buttons)
   if dict_popup.is_wiki_fullpage then
     return
   end
-  table.insert(buttons, 1, {{
-    id = "vocabulary",
-    text = _("Add to vocabulary builder"),
-    font_bold = false,
-    callback = function()
-      local book_title = (dict_popup.ui.doc_props and dict_popup.ui.doc_props.display_title) or _("Dictionary lookup")
-      dict_popup.ui:handleEvent(Event:new("WordLookedUp", dict_popup.lookupword, book_title, true)) -- is_manual: true
-      local button = dict_popup.button_table.button_by_id["vocabulary"]
-      if button then
-        button:disable()
-        UIManager:setDirty(dict_popup, function()
-          return "ui", button.dimen
-        end)
-      end
-    end
-  }})
+  table.insert(buttons, 1, {
+    {
+      id = "vocabulary",
+      text = _("Add to vocabulary builder"),
+      font_bold = false,
+      callback = function()
+        local book_title = (
+          dict_popup.ui.doc_props and dict_popup.ui.doc_props.display_title
+        ) or _("Dictionary lookup")
+        dict_popup.ui:handleEvent(
+          Event:new("WordLookedUp", dict_popup.lookupword, book_title, true)
+        ) -- is_manual: true
+        local button = dict_popup.button_table.button_by_id["vocabulary"]
+        if button then
+          button:disable()
+          UIManager:setDirty(dict_popup, function()
+            return "ui", button.dimen
+          end)
+        end
+      end,
+    },
+  })
 end
 
 function VocabBuilder:onDispatcherRegisterActions()
-  Dispatcher:registerAction("show_vocab_builder",
-    {category="none", event="ShowVocabBuilder", title=_("Open vocabulary builder"), general=true, separator=true})
+  Dispatcher:registerAction("show_vocab_builder", {
+    category = "none",
+    event = "ShowVocabBuilder",
+    title = _("Open vocabulary builder"),
+    general = true,
+    separator = true,
+  })
 end
 
 function VocabBuilder:onShowVocabBuilder()
-  self.widget = VocabularyBuilderWidget:new{
+  self.widget = VocabularyBuilderWidget:new({
     title = _("Vocabulary builder"),
     vocabbuilder = self,
-    ui = self.ui
-  }
+    ui = self.ui,
+  })
   UIManager:show(self.widget)
 end
 
 -- Event sent by readerdictionary "WordLookedUp"
 function VocabBuilder:onWordLookedUp(word, title, is_manual)
-  if not settings.enabled and not is_manual then return end
-  if self.widget and self.widget.current_lookup_word == word then return true end
+  if not settings.enabled and not is_manual then
+    return
+  end
+  if self.widget and self.widget.current_lookup_word == word then
+    return true
+  end
   local prev_context
   local next_context
   local highlight
   if settings.with_context and self.ui.highlight then
     prev_context, next_context = self.ui.highlight:getSelectedWordContext(15)
-    if self.ui.highlight.selected_text and self.ui.highlight.selected_text.text then
+    if
+      self.ui.highlight.selected_text and self.ui.highlight.selected_text.text
+    then
       highlight = util.cleanupSelectedText(self.ui.highlight.selected_text.text)
     end
   end
@@ -2083,7 +2289,7 @@ function VocabBuilder:onWordLookedUp(word, title, is_manual)
     word = word,
     prev_context = prev_context,
     next_context = next_context,
-    highlight = highlight ~= word and highlight or nil
+    highlight = highlight ~= word and highlight or nil,
   })
   return true
 end

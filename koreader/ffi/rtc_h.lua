@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 struct rtc_time {
   int tm_sec;
   int tm_min;
@@ -45,4 +45,4 @@ time_t timegm(struct tm *) __attribute__((nothrow, leaf));
 time_t mktime(struct tm *) __attribute__((nothrow, leaf));
 int settimeofday(const struct timeval *, const struct timezone *) __attribute__((nothrow, leaf));
 void tzset(void) __attribute__((nothrow, leaf));
-]]
+]])

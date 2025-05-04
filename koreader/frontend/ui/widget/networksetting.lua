@@ -67,41 +67,49 @@ local band = bit.band
 
 local function obtainIP()
   --- @todo check for DHCP result
-  local info = InfoMessage:new{text = _("Obtaining IP address…")}
+  local info = InfoMessage:new({ text = _("Obtaining IP address…") })
   UIManager:show(info)
   UIManager:forceRePaint()
   NetworkMgr:obtainIP()
   UIManager:close(info)
 end
 
-
-local MinimalPaginator = Widget:extend{
+local MinimalPaginator = Widget:extend({
   width = nil,
   height = nil,
   progress = nil,
-}
+})
 
 function MinimalPaginator:getSize()
-  return Geom:new{w = self.width, h = self.height}
+  return Geom:new({ w = self.width, h = self.height })
 end
 
 function MinimalPaginator:paintTo(bb, x, y)
   self.dimen = self:getSize()
   self.dimen.x, self.dimen.y = x, y
   -- paint background
-  bb:paintRoundedRect(x, y,
-            self.dimen.w, self.dimen.h,
-            Blitbuffer.COLOR_LIGHT_GRAY)
+  bb:paintRoundedRect(
+    x,
+    y,
+    self.dimen.w,
+    self.dimen.h,
+    Blitbuffer.COLOR_LIGHT_GRAY
+  )
   -- paint percentage infill
-  bb:paintRect(x, y,
-         math.ceil(self.dimen.w*self.progress), self.dimen.h,
-         Blitbuffer.COLOR_DARK_GRAY)
+  bb:paintRect(
+    x,
+    y,
+    math.ceil(self.dimen.w * self.progress),
+    self.dimen.h,
+    Blitbuffer.COLOR_DARK_GRAY
+  )
 end
 
-function MinimalPaginator:setProgress(progress) self.progress = progress end
+function MinimalPaginator:setProgress(progress)
+  self.progress = progress
+end
 
-
-local NetworkItem = InputContainer:extend{
+local NetworkItem = InputContainer:extend({
   dimen = nil,
   height = Screen:scaleBySize(44),
   icon_size = Screen:scaleBySize(32),
@@ -109,10 +117,10 @@ local NetworkItem = InputContainer:extend{
   info = nil,
   display_ssid = nil,
   background = Blitbuffer.COLOR_WHITE,
-}
+})
 
 function NetworkItem:init()
-  self.dimen = Geom:new{x = 0, y = 0, w = self.width, h = self.height}
+  self.dimen = Geom:new({ x = 0, y = 0, w = self.width, h = self.height })
   if not self.info.ssid then
     self.info.ssid = "[hidden]"
   end
@@ -138,94 +146,105 @@ function NetworkItem:init()
     wifi_icon = string.format(wifi_icon, 0)
   end
 
-  local horizontal_space = HorizontalSpan:new{width = Size.span.horizontal_default}
-  self.content_container = OverlapGroup:new{
+  local horizontal_space =
+    HorizontalSpan:new({ width = Size.span.horizontal_default })
+  self.content_container = OverlapGroup:new({
     dimen = self.dimen:copy(),
-    LeftContainer:new{
+    LeftContainer:new({
       dimen = self.dimen:copy(),
-      HorizontalGroup:new{
+      HorizontalGroup:new({
         horizontal_space,
-        IconWidget:new{
+        IconWidget:new({
           icon = wifi_icon,
           width = self.icon_size,
           height = self.icon_size,
-        },
+        }),
         horizontal_space,
-        TextWidget:new{
+        TextWidget:new({
           text = self.display_ssid,
           face = Font:getFace("cfont"),
-        },
-      },
-    }
-  }
+        }),
+      }),
+    }),
+  })
   self.btn_disconnect = nil
   self.btn_edit_nw = nil
   if self.info.connected then
-    self.btn_disconnect = FrameContainer:new{
+    self.btn_disconnect = FrameContainer:new({
       bordersize = 0,
       padding = 0,
-      TextWidget:new{
-        text = (Device:canDisconnectWifi()
-            and _("disconnect")
-            or _("connected")),
+      TextWidget:new({
+        text = (Device:canDisconnectWifi() and _("disconnect") or _(
+          "connected"
+        )),
         face = Font:getFace("cfont"),
-      }
-    }
-
-    table.insert(self.content_container, RightContainer:new{
-      dimen = self.dimen:copy(),
-      HorizontalGroup:new{
-        self.btn_disconnect,
-        horizontal_space,
-      }
+      }),
     })
+
+    table.insert(
+      self.content_container,
+      RightContainer:new({
+        dimen = self.dimen:copy(),
+        HorizontalGroup:new({
+          self.btn_disconnect,
+          horizontal_space,
+        }),
+      })
+    )
     self.setting_ui:setConnectedItem(self)
   elseif self.info.password then
-    self.btn_edit_nw = FrameContainer:new{
+    self.btn_edit_nw = FrameContainer:new({
       bordersize = 0,
       padding = 0,
-      TextWidget:new{
+      TextWidget:new({
         text = _("edit"),
         face = Font:getFace("cfont"),
-      }
-    }
-
-    table.insert(self.content_container, RightContainer:new{
-      dimen = self.dimen:copy(),
-      HorizontalGroup:new{
-        self.btn_edit_nw,
-        horizontal_space,
-      }
+      }),
     })
+
+    table.insert(
+      self.content_container,
+      RightContainer:new({
+        dimen = self.dimen:copy(),
+        HorizontalGroup:new({
+          self.btn_edit_nw,
+          horizontal_space,
+        }),
+      })
+    )
   end
 
-  self[1] = FrameContainer:new{
+  self[1] = FrameContainer:new({
     padding = 0,
     margin = 0,
     background = self.background,
     bordersize = 0,
     width = self.width,
     self.content_container,
-  }
+  })
 
   if Device:isTouchDevice() then
     self.ges_events.TapSelect = {
-      GestureRange:new{
+      GestureRange:new({
         ges = "tap",
         range = self.dimen,
-      }
+      }),
     }
   end
 end
 
 function NetworkItem:refresh()
   self:init()
-  UIManager:setDirty(self.setting_ui, function() return "ui", self.dimen end)
+  UIManager:setDirty(self.setting_ui, function()
+    return "ui", self.dimen
+  end)
 end
 
 function NetworkItem:connect()
   local connected_item = self.setting_ui:getConnectedItem()
-  if connected_item then connected_item:disconnect() end
+  if connected_item then
+    connected_item:disconnect()
+  end
 
   local success, err_msg = NetworkMgr:authenticateNetwork(self.info)
 
@@ -247,12 +266,14 @@ function NetworkItem:connect()
   end
 
   self:refresh()
-  UIManager:show(InfoMessage:new{text = text, timeout = 3})
+  UIManager:show(InfoMessage:new({ text = text, timeout = 3 }))
 end
 
 function NetworkItem:disconnect()
-  if not Device:canDisconnectWifi() then return end
-  local info = InfoMessage:new{text = _("Disconnecting…")}
+  if not Device:canDisconnectWifi() then
+    return
+  end
+  local info = InfoMessage:new({ text = _("Disconnecting…") })
   UIManager:show(info)
   UIManager:forceRePaint()
 
@@ -271,10 +292,13 @@ end
 function NetworkItem:saveAndConnectToNetwork(password_input)
   local new_passwd = password_input:getInputText()
   -- Dont set a empty password if WPA encryption, go through if it’s an open AP
-  if (new_passwd == nil or #new_passwd == 0) and string.find(self.info.flags, "WPA") then
-    UIManager:show(InfoMessage:new{
+  if
+    (new_passwd == nil or #new_passwd == 0)
+    and string.find(self.info.flags, "WPA")
+  then
+    UIManager:show(InfoMessage:new({
       text = _("Password cannot be empty."),
-    })
+    }))
   else
     if new_passwd ~= self.info.password then
       self.info.password = new_passwd
@@ -289,7 +313,7 @@ end
 
 function NetworkItem:onEditNetwork()
   local password_input
-  password_input = InputDialog:new{
+  password_input = InputDialog:new({
     title = self.display_ssid,
     input = self.info.password,
     input_hint = _("password (leave empty for open networks)"),
@@ -324,7 +348,7 @@ function NetworkItem:onEditNetwork()
         },
       },
     },
-  }
+  })
   UIManager:show(password_input)
   password_input:onShowKeyboard()
   return true
@@ -332,7 +356,7 @@ end
 
 function NetworkItem:onAddNetwork()
   local password_input
-  password_input = InputDialog:new{
+  password_input = InputDialog:new({
     title = self.display_ssid,
     input = "",
     input_hint = _("password (leave empty for open networks)"),
@@ -356,7 +380,7 @@ function NetworkItem:onAddNetwork()
         },
       },
     },
-  }
+  })
   UIManager:show(password_input)
   password_input:onShowKeyboard()
   return true
@@ -366,9 +390,9 @@ function NetworkItem:onTapSelect(arg, ges_ev)
   -- Open AP dont have specific flag so we can’t include them alongside WPA
   -- so we exclude WEP instead (more encryption to exclude? not really future proof)
   if string.find(self.info.flags, "WEP") then
-    UIManager:show(InfoMessage:new{
-      text = _("Networks with WEP encryption are not supported.")
-    })
+    UIManager:show(InfoMessage:new({
+      text = _("Networks with WEP encryption are not supported."),
+    }))
     return
   end
   if self.btn_disconnect then
@@ -377,7 +401,9 @@ function NetworkItem:onTapSelect(arg, ges_ev)
       self:disconnect()
     end
   elseif self.info.password then
-    if self.btn_edit_nw and ges_ev.pos:intersectWith(self.btn_edit_nw.dimen) then
+    if
+      self.btn_edit_nw and ges_ev.pos:intersectWith(self.btn_edit_nw.dimen)
+    then
       self:onEditNetwork()
     else
       self:connect()
@@ -388,8 +414,7 @@ function NetworkItem:onTapSelect(arg, ges_ev)
   return true
 end
 
-
-local NetworkSetting = InputContainer:extend{
+local NetworkSetting = InputContainer:extend({
   width = nil,
   height = nil,
   -- sample network_list entry: {
@@ -403,7 +428,7 @@ local NetworkSetting = InputContainer:extend{
   network_list = nil,
   connect_callback = nil,
   disconnect_callback = nil,
-}
+})
 
 function NetworkSetting:init()
   self.width = self.width or Screen:getWidth() - Screen:scaleBySize(50)
@@ -411,8 +436,9 @@ function NetworkSetting:init()
 
   local gray_bg = Blitbuffer.COLOR_GRAY_E
   local items = {}
-  table.sort(self.network_list,
-         function(l, r) return l.signal_quality > r.signal_quality end)
+  table.sort(self.network_list, function(l, r)
+    return l.signal_quality > r.signal_quality
+  end)
   for idx, network in ipairs(self.network_list) do
     local bg
     if band(idx, 1) == 0 then
@@ -420,70 +446,74 @@ function NetworkSetting:init()
     else
       bg = Blitbuffer.COLOR_WHITE
     end
-    table.insert(items, NetworkItem:new{
-      width = self.width,
-      info = network,
-      background = bg,
-      setting_ui = self,
-    })
+    table.insert(
+      items,
+      NetworkItem:new({
+        width = self.width,
+        info = network,
+        background = bg,
+        setting_ui = self,
+      })
+    )
   end
 
-  self.status_text = TextWidget:new{
+  self.status_text = TextWidget:new({
     text = "",
     face = Font:getFace("ffont"),
-  }
-  self.page_text = TextWidget:new{
+  })
+  self.page_text = TextWidget:new({
     text = "",
     face = Font:getFace("ffont"),
-  }
+  })
 
-  self.pagination = MinimalPaginator:new{
+  self.pagination = MinimalPaginator:new({
     width = self.width,
     height = Screen:scaleBySize(8),
     percentage = 0,
     progress = 0,
-  }
+  })
 
-  self.height = self.height or math.min(Screen:getHeight()*3/4,
-                      Screen:scaleBySize(800))
-  self.popup = FrameContainer:new{
+  self.height = self.height
+    or math.min(Screen:getHeight() * 3 / 4, Screen:scaleBySize(800))
+  self.popup = FrameContainer:new({
     background = Blitbuffer.COLOR_WHITE,
     padding = 0,
     bordersize = Size.border.window,
-    VerticalGroup:new{
+    VerticalGroup:new({
       align = "left",
       self.pagination,
-      ListView:new{
+      ListView:new({
         padding = 0,
         items = items,
         width = self.width,
-        height = self.height-self.pagination:getSize().h,
+        height = self.height - self.pagination:getSize().h,
         page_update_cb = function(curr_page, total_pages)
-          self.pagination:setProgress(curr_page/total_pages)
+          self.pagination:setProgress(curr_page / total_pages)
           -- self.page_text:setText(curr_page .. "/" .. total_pages)
           UIManager:setDirty(self, function()
             return "ui", self.popup.dimen
           end)
-        end
-      },
-    },
-  }
+        end,
+      }),
+    }),
+  })
 
-  self[1] = CenterContainer:new{
-    dimen = {w = Screen:getWidth(), h = Screen:getHeight()},
+  self[1] = CenterContainer:new({
+    dimen = { w = Screen:getWidth(), h = Screen:getHeight() },
     self.popup,
-  }
+  })
 
   if Device:isTouchDevice() then
     self.ges_events.TapClose = {
-      GestureRange:new{
+      GestureRange:new({
         ges = "tap",
-        range = Geom:new{
-          x = 0, y = 0,
+        range = Geom:new({
+          x = 0,
+          y = 0,
           w = Screen:getWidth(),
           h = Screen:getHeight(),
-        }
-      }
+        }),
+      }),
     }
   end
 end

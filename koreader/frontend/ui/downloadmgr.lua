@@ -42,26 +42,27 @@ function DownloadMgr:chooseDir(dir)
     path = dir
   else
     local download_dir = G_reader_settings:readSetting("download_dir")
-    path = download_dir and util.realpath(download_dir .. "/..") or G_named_settings.lastdir()
+    path = download_dir and util.realpath(download_dir .. "/..")
+      or G_named_settings.lastdir()
   end
-  local path_chooser = PathChooser:new{
+  local path_chooser = PathChooser:new({
     select_file = false,
     show_files = false,
     path = path,
     onConfirm = function(dir_path)
       self.onConfirm(dir_path)
-    end
-  }
+    end,
+  })
   UIManager:show(path_chooser)
 end
 
 function DownloadMgr:chooseCloudDir()
-  local cloud_storage = require("apps/cloudstorage/cloudstorage"):new{
+  local cloud_storage = require("apps/cloudstorage/cloudstorage"):new({
     item = self.item,
     onConfirm = function(dir_path)
       self.onConfirm(dir_path)
     end,
-  }
+  })
   UIManager:show(cloud_storage)
 end
 

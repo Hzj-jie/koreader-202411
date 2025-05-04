@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 enum MencaFileStatus_e {
   kMencaNoStatus = 0,
   kMencaInCloud = 1,
@@ -1820,4 +1820,4 @@ void iv_setup_touchpanel();
 void iv_setup_gsensor();
 void iv_update_orientation(int);
 int hw_get_keylock();
-]]
+]])

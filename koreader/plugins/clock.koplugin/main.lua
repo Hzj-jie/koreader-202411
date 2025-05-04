@@ -21,18 +21,18 @@ local Clock = InputContainer:new({
   dismiss_callback = function(self)
     PluginShare.pause_auto_suspend = false
     self._was_suspending = false
-  end
+  end,
 })
 Clock.init = function(self)
   if Device:hasKeys() then
     self.key_events = {
       AnyKeyPressed = {
         {
-          Input.group.Any
+          Input.group.Any,
         },
         seqtext = "any key",
-        doc = "close dialog"
-      }
+        doc = "close dialog",
+      },
     }
   end
   if Device:isTouchDevice() then
@@ -43,9 +43,9 @@ Clock.init = function(self)
           x = 0,
           y = 0,
           w = Screen:getWidth(),
-          h = Screen:getHeight()
-        })
-      })
+          h = Screen:getHeight(),
+        }),
+      }),
     }
   end
   local width, height
@@ -54,7 +54,7 @@ Clock.init = function(self)
   self[1] = ClockWidget:new({
     width = width,
     height = height,
-    padding = padding
+    padding = padding,
   })
   self.ui.menu:registerToMainMenu(self)
   return self:onDispatcherRegisterAction()
@@ -65,7 +65,7 @@ Clock.addToMainMenu = function(self, menu_items)
     sorting_hint = "tools",
     callback = function()
       return UIManager:show(self)
-    end
+    end,
   }
 end
 Clock.onCloseWidget = function(self)
@@ -82,7 +82,10 @@ Clock.onShow = function(self)
   PluginShare.pause_auto_suspend = true
 end
 Clock.onSuspend = function(self)
-  if G_reader_settings:readSetting("clock_on_suspend") and not self._was_suspending then
+  if
+    G_reader_settings:readSetting("clock_on_suspend")
+    and not self._was_suspending
+  then
     UIManager:show(self)
     self._was_suspending = true
   end
@@ -109,7 +112,7 @@ Clock.onDispatcherRegisterAction = function(self)
     category = "none",
     event = "ClockShow",
     title = _("Show clock"),
-    device = true
+    device = true,
   })
 end
 return Clock

@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 typedef int ion_user_handle_t;
 struct ion_allocation_data {
   size_t len;
@@ -28,4 +28,4 @@ enum ion_heap_mask {
   ION_HEAP_MASK_CUSTOM = 32,
   ION_HEAP_MASK_SECURE = 64,
 };
-]]
+]])

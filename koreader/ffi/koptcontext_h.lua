@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 typedef struct {
   float x0;
   float y0;
@@ -163,4 +163,4 @@ void k2pdfopt_crop_bmp(KOPTContext *);
 void k2pdfopt_optimize_bmp(KOPTContext *);
 void pixmap_to_bmp(WILLUSBITMAP *, unsigned char *, int);
 PIX *bitmap2pix(WILLUSBITMAP *, int, int, int, int);
-]]
+]])

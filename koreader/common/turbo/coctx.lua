@@ -16,7 +16,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-require "turbo.3rdparty.middleclass"
+require("turbo.3rdparty.middleclass")
 
 local coctx = {} -- coctx namespace.
 
@@ -53,48 +53,48 @@ local coctx = {} -- coctx namespace.
 coctx.CoroutineContext = class("CoroutineContext")
 
 coctx.states = {
-     SUSPENDED  = 0x0
-    ,DEAD       = 0x1
-    ,WORKING    = 0x2
-    ,WAIT_COND  = 0x3
-    ,SCHED      = 0x4
+  SUSPENDED = 0x0,
+  DEAD = 0x1,
+  WORKING = 0x2,
+  WAIT_COND = 0x3,
+  SCHED = 0x4,
 }
 
 --- Initialize CoroutineContext class instance.
 -- @param io_loop (IOLoop instance)
 function coctx.CoroutineContext:initialize(io_loop)
-    assert(io_loop, "No IOLoop class given to CoroutineContext.")
-    self.co_args = {}
-    self.co_state = coctx.states.SUSPENDED
-    self.co_data = nil
-    self.io_loop = io_loop
+  assert(io_loop, "No IOLoop class given to CoroutineContext.")
+  self.co_args = {}
+  self.co_state = coctx.states.SUSPENDED
+  self.co_data = nil
+  self.io_loop = io_loop
 end
 
 --- Set arguments to resume yielded context with.
 -- @param args (Table or single type)
 function coctx.CoroutineContext:set_arguments(args)
-    if (type(args) == "table") then
-        self.co_args = args
-    else
-        self.co_args[#self.co_args + 1] = args
-    end
-    return self
+  if type(args) == "table" then
+    self.co_args = args
+  else
+    self.co_args[#self.co_args + 1] = args
+  end
+  return self
 end
 
 function coctx.CoroutineContext:set_state(state)
-    self.co_state = state
-    return self
+  self.co_state = state
+  return self
 end
 function coctx.CoroutineContext:get_state(state)
-    return self.co_state
+  return self.co_state
 end
 
 function coctx.CoroutineContext:finalize_context()
-    self.io_loop:finalize_coroutine_context(self)
+  self.io_loop:finalize_coroutine_context(self)
 end
 
 function coctx.CoroutineContext:get_coroutine_arguments()
-    return self.co_args
+  return self.co_args
 end
 
 return coctx

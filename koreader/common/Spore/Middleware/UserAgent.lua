@@ -2,14 +2,13 @@
 -- lua-Spore : <http://fperrad.github.com/lua-Spore/>
 --
 
-
 local _ENV = nil
 local m = {}
 
-function m:call (req)
-    if self.useragent then
-        req.headers['user-agent'] = self.useragent
-    end
+function m:call(req)
+  if self.useragent then
+    req.headers["user-agent"] = self.useragent
+  end
 end
 
 return m

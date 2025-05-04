@@ -32,11 +32,11 @@ local function _serialize(what, outt, indent, max_lv, history, pairs_func)
     insert(outt, "{")
     for k, v in pairs_func(what) do
       insert(outt, "\n")
-      insert(outt, string.rep(indent_prefix, indent+1))
+      insert(outt, string.rep(indent_prefix, indent + 1))
       insert(outt, "[")
-      _serialize(k, outt, indent+1, max_lv, new_history, pairs_func)
+      _serialize(k, outt, indent + 1, max_lv, new_history, pairs_func)
       insert(outt, "] = ")
-      _serialize(v, outt, indent+1, max_lv, new_history, pairs_func)
+      _serialize(v, outt, indent + 1, max_lv, new_history, pairs_func)
       insert(outt, ",")
       didrun = true
     end

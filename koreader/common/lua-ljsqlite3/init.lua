@@ -29,7 +29,7 @@ function string.gsplit(s, sep, plain)
   local done = false
   local function pass(i, j, ...)
     if i then
-      local seg = s:sub(start, i)  -- NOTE: Original code used i - 1 to skip the separator!
+      local seg = s:sub(start, i) -- NOTE: Original code used i - 1 to skip the separator!
       start = j + 1
       return seg, ...
     else
@@ -41,7 +41,7 @@ function string.gsplit(s, sep, plain)
     if done then
       return
     end
-    if sep == '' then
+    if sep == "" then
       done = true
       return s
     end
@@ -51,7 +51,7 @@ end
 
 -- c.f., http://lua-users.org/wiki/StringTrim
 local function trim(s)
-  local from = s:match"^%s*()"
+  local from = s:match("^%s*()")
   return from > #s and "" or s:match(".*%S", from)
 end
 
@@ -63,44 +63,77 @@ end
 -- Codes -----------------------------------------------------------------------
 local sqlconstants = {} -- SQLITE_* and OPEN_* declarations.
 local codes = {
-  [0] = "OK", "ERROR", "INTERNAL", "PERM", "ABORT", "BUSY", "LOCKED", "NOMEM",
-  "READONLY", "INTERRUPT", "IOERR", "CORRUPT", "NOTFOUND", "FULL", "CANTOPEN",
-  "PROTOCOL", "EMPTY", "SCHEMA", "TOOBIG", "CONSTRAINT", "MISMATCH", "MISUSE",
-  "NOLFS", "AUTH", "FORMAT", "RANGE", "NOTADB", [100] = "ROW", [101] = "DONE"
+  [0] = "OK",
+  "ERROR",
+  "INTERNAL",
+  "PERM",
+  "ABORT",
+  "BUSY",
+  "LOCKED",
+  "NOMEM",
+  "READONLY",
+  "INTERRUPT",
+  "IOERR",
+  "CORRUPT",
+  "NOTFOUND",
+  "FULL",
+  "CANTOPEN",
+  "PROTOCOL",
+  "EMPTY",
+  "SCHEMA",
+  "TOOBIG",
+  "CONSTRAINT",
+  "MISMATCH",
+  "MISUSE",
+  "NOLFS",
+  "AUTH",
+  "FORMAT",
+  "RANGE",
+  "NOTADB",
+  [100] = "ROW",
+  [101] = "DONE",
 } -- From 0 to 26.
 
 do
   local types = { "INTEGER", "FLOAT", "TEXT", "BLOB", "NULL" } -- From 1 to 5.
 
   local opens = {
-    READONLY =        0x00000001,
-    READWRITE =       0x00000002,
-    CREATE =          0x00000004,
-    DELETEONCLOSE =   0x00000008,
-    EXCLUSIVE =       0x00000010,
-    AUTOPROXY =       0x00000020,
-    URI =             0x00000040,
-    MAIN_DB =         0x00000100,
-    TEMP_DB =         0x00000200,
-    TRANSIENT_DB =    0x00000400,
-    MAIN_JOURNAL =    0x00000800,
-    TEMP_JOURNAL =    0x00001000,
-    SUBJOURNAL =      0x00002000,
-    MASTER_JOURNAL =  0x00004000,
-    NOMUTEX =         0x00008000,
-    FULLMUTEX =       0x00010000,
-    SHAREDCACHE =     0x00020000,
-    PRIVATECACHE =    0x00040000,
-    WAL =             0x00080000,
+    READONLY = 0x00000001,
+    READWRITE = 0x00000002,
+    CREATE = 0x00000004,
+    DELETEONCLOSE = 0x00000008,
+    EXCLUSIVE = 0x00000010,
+    AUTOPROXY = 0x00000020,
+    URI = 0x00000040,
+    MAIN_DB = 0x00000100,
+    TEMP_DB = 0x00000200,
+    TRANSIENT_DB = 0x00000400,
+    MAIN_JOURNAL = 0x00000800,
+    TEMP_JOURNAL = 0x00001000,
+    SUBJOURNAL = 0x00002000,
+    MASTER_JOURNAL = 0x00004000,
+    NOMUTEX = 0x00008000,
+    FULLMUTEX = 0x00010000,
+    SHAREDCACHE = 0x00020000,
+    PRIVATECACHE = 0x00040000,
+    WAL = 0x00080000,
   }
 
   local t = sqlconstants
   local pre = "static const int32_t SQLITE_"
-  for i=0,26    do t[#t+1] = pre..codes[i].." = "..i..";\n" end
-  for i=100,101 do t[#t+1] = pre..codes[i].." = "..i..";\n" end
-  for i=1,5     do t[#t+1] = pre..types[i].." = "..i..";\n" end
-  pre = pre.."OPEN_"
-  for k,v in pairs(opens) do t[#t+1] = pre..k.." = "..bit.tobit(v)..";\n" end
+  for i = 0, 26 do
+    t[#t + 1] = pre .. codes[i] .. " = " .. i .. ";\n"
+  end
+  for i = 100, 101 do
+    t[#t + 1] = pre .. codes[i] .. " = " .. i .. ";\n"
+  end
+  for i = 1, 5 do
+    t[#t + 1] = pre .. types[i] .. " = " .. i .. ";\n"
+  end
+  pre = pre .. "OPEN_"
+  for k, v in pairs(opens) do
+    t[#t + 1] = pre .. k .. " = " .. bit.tobit(v) .. ";\n"
+  end
 end
 
 -- Cdef ------------------------------------------------------------------------
@@ -110,7 +143,7 @@ ffi.cdef(table.concat(sqlconstants))
 sqlconstants = nil
 
 -- sqlite3*, ljsqlite3_*
-ffi.cdef[[
+ffi.cdef([[
 // Typedefs.
 typedef struct sqlite3 sqlite3;
 typedef struct sqlite3_stmt sqlite3_stmt;
@@ -197,7 +230,7 @@ int sqlite3_create_function(
   void (*xStep)(sqlite3_context*,int,sqlite3_value**),
   void (*xFinal)(sqlite3_context*)
 );
-]]
+]])
 
 -- --------------------------------------------------------------------------------
 local sql = ffi.loadlib("sqlite3", "0")
@@ -295,16 +328,16 @@ end
 
 -- Environment for setters/getters.
 local sql_env = {
-  sql          = sql,
-  transient    = transient,
-  ffi          = ffi,
-  int64_ct     = int64_ct,
-  blob_mt      = blob_mt,
+  sql = sql,
+  transient = transient,
+  ffi = ffi,
+  int64_ct = int64_ct,
+  blob_mt = blob_mt,
   getmetatable = getmetatable,
-  blob         = blob,
-  free         = C.free,
-  err          = err,
-  type         = type
+  blob = blob,
+  free = C.free,
+  err = err,
+  type = type,
 }
 
 local function sql_format(s, variant, index)
@@ -316,16 +349,16 @@ local function loadcode(s, env)
 end
 
 -- Must always be called from *:_* function due to error level 4.
-local get_column = loadcode(sql_format(sql_get_code, "column", ",i"),   sql_env)
-local get_value  = loadcode(sql_format(sql_get_code, "value" , "  "),   sql_env)
-local set_column = loadcode(sql_format(sql_set_code, "bind"  , ",i"),   sql_env)
-local set_value  = loadcode(sql_format(sql_set_code, "result", "  "),   sql_env)
+local get_column = loadcode(sql_format(sql_get_code, "column", ",i"), sql_env)
+local get_value = loadcode(sql_format(sql_get_code, "value", "  "), sql_env)
+local set_column = loadcode(sql_format(sql_set_code, "bind", ",i"), sql_env)
+local set_value = loadcode(sql_format(sql_set_code, "result", "  "), sql_env)
 
 -- Connection ------------------------------------------------------------------
 local open_modes = {
   ro = sql.SQLITE_OPEN_READONLY,
   rw = sql.SQLITE_OPEN_READWRITE,
-  rwc = bit.bor(sql.SQLITE_OPEN_READWRITE, sql.SQLITE_OPEN_CREATE)
+  rwc = bit.bor(sql.SQLITE_OPEN_READWRITE, sql.SQLITE_OPEN_CREATE),
 }
 
 local function open(str, mode)
@@ -349,13 +382,24 @@ local function open(str, mode)
   return conn
 end
 
-function conn_mt:close() T_open(self)
-   -- Close all stmt linked to conn.
-  for k,_ in pairs(connstmt[self]) do if not k._closed then k:close() end end
-   -- Close all callbacks linked to conn.
-  for _,v in pairs(conncb[self].scalar) do v:free() end
-  for _,v in pairs(conncb[self].step)   do v:free() end
-  for _,v in pairs(conncb[self].final)  do v:free() end
+function conn_mt:close()
+  T_open(self)
+  -- Close all stmt linked to conn.
+  for k, _ in pairs(connstmt[self]) do
+    if not k._closed then
+      k:close()
+    end
+  end
+  -- Close all callbacks linked to conn.
+  for _, v in pairs(conncb[self].scalar) do
+    v:free()
+  end
+  for _, v in pairs(conncb[self].step) do
+    v:free()
+  end
+  for _, v in pairs(conncb[self].final) do
+    v:free()
+  end
   local code = sql.sqlite3_close_v2(self._ptr)
   T_okcode(self._ptr, code)
   connstmt[self] = nil -- Table connstmt is not weak, need to clear manually.
@@ -364,10 +408,13 @@ function conn_mt:close() T_open(self)
 end
 
 function conn_mt:__gc()
-  if not self._closed then self:close() end
+  if not self._closed then
+    self:close()
+  end
 end
 
-function conn_mt:prepare(stmtstr) T_open(self)
+function conn_mt:prepare(stmtstr)
+  T_open(self)
   local aptr = ffi.new("sqlite3_stmt*[1]")
   -- If error code aptr NULL, so no need to close anything.
   local code = sql.sqlite3_prepare_v2(self._ptr, stmtstr, #stmtstr, aptr, nil)
@@ -378,7 +425,8 @@ function conn_mt:prepare(stmtstr) T_open(self)
 end
 
 -- Connection exec, __call, rowexec --------------------------------------------
-function conn_mt:exec(commands, get) T_open(self)
+function conn_mt:exec(commands, get)
+  T_open(self)
   local res, n
   for command in commands:gsplit(";", true) do
     local cmd = trim(command)
@@ -391,7 +439,8 @@ function conn_mt:exec(commands, get) T_open(self)
   return res, n -- Only last record is returned.
 end
 
-function conn_mt:rowexec(command) T_open(self)
+function conn_mt:rowexec(command)
+  T_open(self)
   local stmt = self:prepare(command)
   local res = stmt:_step()
   if stmt:_step() then
@@ -405,8 +454,9 @@ function conn_mt:rowexec(command) T_open(self)
   end
 end
 
-function conn_mt:execsql(commands) T_open(self)
-  local r = {[0] = {}}
+function conn_mt:execsql(commands)
+  T_open(self)
+  local r = { [0] = {} }
   local fn = function(conn, total, data, cols)
     for i = 0, total - 1 do
       local val, col = ffi.string(data[i]), ffi.string(cols[i])
@@ -420,7 +470,7 @@ function conn_mt:execsql(commands) T_open(self)
 
     return 0
   end
-  local cb = ffi.cast('ljsqlite3_cbsql3exec', fn)
+  local cb = ffi.cast("ljsqlite3_cbsql3exec", fn)
   sql.sqlite3_exec(self._ptr, commands, cb, nil, nil)
   return r
 end
@@ -428,12 +478,14 @@ end
 -- We need that if we have multiple processes accessing the same SQLite db for writing
 -- (write locks are exclusive, so waiting & retrying is necessary).
 -- SQLite will retry getting a lock multiple times until at least timeout_ms of sleeping have accumulated.
-function conn_mt:set_busy_timeout(timeout_ms) T_open(self)
+function conn_mt:set_busy_timeout(timeout_ms)
+  T_open(self)
   local code = sql.sqlite3_busy_timeout(self._ptr, timeout_ms)
   T_okcode(self._ptr, code)
 end
 
-function conn_mt:__call(commands, out) T_open(self)
+function conn_mt:__call(commands, out)
+  T_open(self)
   out = out or print
   for command in commands:gsplit(";", true) do
     local cmd = trim(command)
@@ -442,12 +494,14 @@ function conn_mt:__call(commands, out) T_open(self)
       local ret, n = stmt:resultset()
       if ret then -- All the results get handled, not only last one.
         out(unpack(ret[0])) -- Headers are printed.
-        for i=1,n do
+        for i = 1, n do
           local o = {}
-          for j=1,#ret[0] do
+          for j = 1, #ret[0] do
             local v = ret[j][i]
-            if type(v) == "nil" then v = "" end -- Empty strings for NULLs.
-            o[#o+1] = tostring(v)
+            if type(v) == "nil" then
+              v = ""
+            end -- Empty strings for NULLs.
+            o[#o + 1] = tostring(v)
           end
           out(unpack(o))
         end
@@ -472,11 +526,16 @@ local function scalarcb(name, f)
   local values = {} -- Conversion buffer.
   local function sqlf(context, nvalues, pvalues)
     -- Indexing 0,N-1.
-    for i=1,nvalues do values[i] = get_value(pvalues[i - 1]) end
+    for i = 1, nvalues do
+      values[i] = get_value(pvalues[i - 1])
+    end
     -- Throw error via sqlite function if necessary.
     local ok, result = pcall(f, unpack(values, 1, nvalues))
     if not ok then
-      local msg = "Lua registered scalar function "..name.." error: "..result
+      local msg = "Lua registered scalar function "
+        .. name
+        .. " error: "
+        .. result
       sql.sqlite3_result_error(context, msg, #msg)
     else
       set_value(context, result)
@@ -491,7 +550,7 @@ end
 local function getstate(context, initstate, size)
   -- Only pointer address relevant for indexing, size irrelevant.
   local ptr = sql.sqlite3_aggregate_context(context, size)
-  local pid = tonumber(ffi.cast("intptr_t",ptr))
+  local pid = tonumber(ffi.cast("intptr_t", ptr))
   local state = aggregatestate[pid]
   if type(state) == "nil" then
     state = initstate()
@@ -505,12 +564,17 @@ local function stepcb(name, f, initstate)
   local values = {} -- Conversion buffer.
   local function sqlf(context, nvalues, pvalues)
     -- Indexing 0,N-1.
-    for i=1,nvalues do values[i] = get_value(pvalues[i - 1]) end
+    for i = 1, nvalues do
+      values[i] = get_value(pvalues[i - 1])
+    end
     local state = getstate(context, initstate, 1)
     -- Throw error via sqlite function if necessary.
     local ok, result = pcall(f, state, unpack(values, 1, nvalues))
     if not ok then
-      local msg = "Lua registered step function "..name.." error: "..result
+      local msg = "Lua registered step function "
+        .. name
+        .. " error: "
+        .. result
       sql.sqlite3_result_error(context, msg, #msg)
     end
   end
@@ -525,7 +589,10 @@ local function finalcb(name, f, initstate)
     local ok, result = pcall(f, state)
     -- Throw error via sqlite function if necessary.
     if not ok then
-      local msg = "Lua registered final function "..name.." error: "..result
+      local msg = "Lua registered final function "
+        .. name
+        .. " error: "
+        .. result
       sql.sqlite3_result_error(context, msg, #msg)
     else
       set_value(context, result)
@@ -534,21 +601,23 @@ local function finalcb(name, f, initstate)
   return ffi.cast("ljsqlite3_cbfinal", sqlf)
 end
 
-function conn_mt:setscalar(name, f) T_open(self)
+function conn_mt:setscalar(name, f)
+  T_open(self)
   jit.off(stmt_step) -- Necessary to avoid bad calloc in some use cases.
   local cbf = f and scalarcb(name, f) or nil
-  local code = sql.sqlite3_create_function(self._ptr, name, -1, 5, nil,
-    cbf, nil, nil) -- If cbf nil this clears the function is sqlite.
+  local code =
+    sql.sqlite3_create_function(self._ptr, name, -1, 5, nil, cbf, nil, nil) -- If cbf nil this clears the function is sqlite.
   T_okcode(self._ptr, code)
   updatecb(self, "scalar", name, cbf) -- Update and clear old.
 end
 
-function conn_mt:setaggregate(name, initstate, step, final) T_open(self)
+function conn_mt:setaggregate(name, initstate, step, final)
+  T_open(self)
   jit.off(stmt_step) -- Necessary to avoid bad calloc in some use cases.
-  local cbs = step  and stepcb (name, step,  initstate) or nil
+  local cbs = step and stepcb(name, step, initstate) or nil
   local cbf = final and finalcb(name, final, initstate) or nil
-  local code = sql.sqlite3_create_function(self._ptr, name, -1, 5, nil,
-    nil, cbs, cbf) -- If cbs, cbf nil this clears the function is sqlite.
+  local code =
+    sql.sqlite3_create_function(self._ptr, name, -1, 5, nil, nil, cbs, cbf) -- If cbs, cbf nil this clears the function is sqlite.
   T_okcode(self._ptr, code)
   updatecb(self, "step", name, cbs) -- Update and clear old.
   updatecb(self, "final", name, cbf) -- Update and clear old.
@@ -557,7 +626,8 @@ end
 conn_ct = ffi.metatype("struct { sqlite3* _ptr; bool _closed; }", conn_mt)
 
 -- Statement -------------------------------------------------------------------
-function stmt_mt:reset() T_open(self)
+function stmt_mt:reset()
+  T_open(self)
   -- Ignore possible error code, it would be repetition of error raised during
   -- most recent evaluation of statement which would have been raised already.
   sql.sqlite3_reset(self._ptr)
@@ -565,7 +635,8 @@ function stmt_mt:reset() T_open(self)
   return self
 end
 
-function stmt_mt:close() T_open(self)
+function stmt_mt:close()
+  T_open(self)
   -- Ignore possible error code, it would be repetition of error raised during
   -- most recent evaluation of statement which would have been raised already.
   sql.sqlite3_finalize(self._ptr)
@@ -574,7 +645,9 @@ function stmt_mt:close() T_open(self)
 end
 
 function stmt_mt:__gc()
-  if not self._closed then self:close() end
+  if not self._closed then
+    self:close()
+  end
 end
 
 -- Statement step, resultset ---------------------------------------------------
@@ -583,22 +656,26 @@ function stmt_mt:_ncol()
 end
 
 function stmt_mt:_header(h)
-  for i=1,self:_ncol() do -- Here indexing 0,N-1.
+  for i = 1, self:_ncol() do -- Here indexing 0,N-1.
     h[i] = ffi.string(sql.sqlite3_column_name(self._ptr, i - 1))
   end
 end
 
 stmt_step = function(self, row, header)
   -- Must check code ~= SQL_DONE or sqlite3_step --> undefined result.
-  if self._code == sql.SQLITE_DONE then return nil end -- Already finished.
+  if self._code == sql.SQLITE_DONE then
+    return nil
+  end -- Already finished.
   self._code = sql.sqlite3_step(self._ptr)
   if self._code == sql.SQLITE_ROW then
     -- All the sql.* functions called never errors here.
     row = row or {}
-    for i=1,self:_ncol() do
+    for i = 1, self:_ncol() do
       row[i] = get_column(self._ptr, i - 1)
     end
-    if header then self:_header(header) end
+    if header then
+      self:_header(header)
+    end
     return row, header
   elseif self._code == sql.SQLITE_DONE then -- Have finished now.
     return nil
@@ -608,11 +685,13 @@ stmt_step = function(self, row, header)
 end
 stmt_mt._step = stmt_step
 
-function stmt_mt:step(row, header) T_open(self)
+function stmt_mt:step(row, header)
+  T_open(self)
   return self:_step(row, header)
 end
 
-function stmt_mt:resultset(get, maxrecords) T_open(self)
+function stmt_mt:resultset(get, maxrecords)
+  T_open(self)
   get = get or "hik"
   maxrecords = maxrecords or math.huge
   if maxrecords < 1 then
@@ -620,30 +699,41 @@ function stmt_mt:resultset(get, maxrecords) T_open(self)
   end
   local hash, hasi, hask = get:find("h"), get:find("i"), get:find("k")
   local r, h = self:_step({}, {})
-  if not r then return nil, 0 end -- No records case.
+  if not r then
+    return nil, 0
+  end -- No records case.
   -- First record, o is a temporary table used to get records.
   local o = hash and { [0] = h } or {}
-  for i=1,#h do o[i] = { r[i] } end
+  for i = 1, #h do
+    o[i] = { r[i] }
+  end
   -- Other records.
   local n = 1
   while n < maxrecords and self:_step(r) do
     n = n + 1
-    for i=1,#h do o[i][n] = r[i] end
+    for i = 1, #h do
+      o[i][n] = r[i]
+    end
   end
 
   local out = { [0] = o[0] } -- Eventually copy colnames.
   if hasi then -- Use numeric indexes.
-    for i=1,#h do out[i] = o[i] end
+    for i = 1, #h do
+      out[i] = o[i]
+    end
   end
   if hask then -- Use colnames indexes.
-    for i=1,#h do out[h[i]] = o[i] end
+    for i = 1, #h do
+      out[h[i]] = o[i]
+    end
   end
   return out, n
 end
 
 -- iterator over rows
 function stmt_mt:rows()
-  return function() T_open(self)
+  return function()
+    T_open(self)
     local row = self:step()
     if row then
       return row
@@ -661,20 +751,25 @@ function stmt_mt:_bind1(i, v)
   return self
 end
 
-function stmt_mt:bind1(i, v) T_open(self)
+function stmt_mt:bind1(i, v)
+  T_open(self)
   return self:_bind1(i, v)
 end
 
-function stmt_mt:bind(...) T_open(self)
-  for i=1,select("#", ...) do self:_bind1(i, select(i, ...)) end
+function stmt_mt:bind(...)
+  T_open(self)
+  for i = 1, select("#", ...) do
+    self:_bind1(i, select(i, ...))
+  end
   return self
 end
 
-function stmt_mt:bindkv(t, pre) T_open(self)
+function stmt_mt:bindkv(t, pre)
+  T_open(self)
   pre = pre or ":"
-  for k,v in pairs(t) do
+  for k, v in pairs(t) do
     if type(k) == "string" then
-      local param = sql.sqlite3_bind_parameter_index(self._ptr, pre..k)
+      local param = sql.sqlite3_bind_parameter_index(self._ptr, pre .. k)
       if param ~= 0 then
         self:_bind1(param, v)
       end
@@ -683,18 +778,22 @@ function stmt_mt:bindkv(t, pre) T_open(self)
   return self
 end
 
-function stmt_mt:clearbind() T_open(self)
+function stmt_mt:clearbind()
+  T_open(self)
   local code = sql.sqlite3_clear_bindings(self._ptr)
   T_okcode(self._conn, code)
   return self
 end
 
-stmt_ct = ffi.metatype([[struct {
+stmt_ct = ffi.metatype(
+  [[struct {
   sqlite3_stmt* _ptr;
   bool          _closed;
   sqlite3*      _conn;
   int32_t       _code;
-}]], stmt_mt)
+}]],
+  stmt_mt
+)
 
 return {
   open = open,

@@ -3,17 +3,16 @@
 --
 
 local pairs = pairs
-require 'Spore'.early_validate = false
-
+require("Spore").early_validate = false
 
 local _ENV = nil
 local m = {}
 
-function m:call (req)
-    local params = req.env.spore.params
-    for k, v in pairs(self) do
-        params[k] = v
-    end
+function m:call(req)
+  local params = req.env.spore.params
+  for k, v in pairs(self) do
+    params[k] = v
+  end
 end
 
 return m

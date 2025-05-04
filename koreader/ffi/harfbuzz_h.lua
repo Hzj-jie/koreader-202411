@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 typedef uint32_t hb_codepoint_t;
 union _hb_var_int_t {
   uint32_t u32;
@@ -49,4 +49,4 @@ hb_face_t *hb_face_create(hb_blob_t *, unsigned int);
 void hb_blob_destroy(hb_blob_t *);
 unsigned int hb_face_get_glyph_count(const hb_face_t *);
 hb_face_t *hb_ft_face_create_referenced(FT_Face);
-]]
+]])

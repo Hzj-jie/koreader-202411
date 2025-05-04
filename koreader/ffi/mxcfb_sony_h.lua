@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 struct mxcfb_rect {
   unsigned int top;
   unsigned int left;
@@ -43,4 +43,4 @@ static const int EPDC_FLAG_USE_ALT_BUFFER = 256;
 
 static const int MXCFB_SEND_UPDATE = 1078216238;
 static const int MXCFB_WAIT_FOR_UPDATE_COMPLETE = 1074021935;
-]]
+]])

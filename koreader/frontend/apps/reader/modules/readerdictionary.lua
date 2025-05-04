@@ -18,11 +18,11 @@ local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local ffi = require("ffi")
 local C = ffi.C
-local ffiUtil  = require("ffi/util")
+local ffiUtil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
-local util  = require("util")
+local util = require("util")
 local _ = require("gettext")
 local Input = Device.input
 local T = ffiUtil.template
@@ -43,7 +43,7 @@ local function getIfosInDir(path)
   if ok then
     for name in iter, dir_obj do
       if name ~= "." and name ~= ".." and name ~= "res" then
-        local fullpath = path.."/"..name
+        local fullpath = path .. "/" .. name
         local attributes = lfs.attributes(fullpath)
         if attributes ~= nil then
           if attributes.mode == "directory" then
@@ -61,10 +61,10 @@ local function getIfosInDir(path)
   return ifos
 end
 
-local ReaderDictionary = InputContainer:extend{
+local ReaderDictionary = InputContainer:extend({
   data_dir = nil,
   lookup_msg = _("Searching dictionary for:\n%1"),
-}
+})
 
 -- For a HTML dict, one can specify a specific stylesheet
 -- in a file named as the .ifo with a .css extension
@@ -102,17 +102,19 @@ end
 function ReaderDictionary:init()
   self:registerKeyEvents()
 
-  self.disable_lookup_history = G_reader_settings:isTrue("disable_lookup_history")
+  self.disable_lookup_history =
+    G_reader_settings:isTrue("disable_lookup_history")
   self.dicts_order = G_reader_settings:readSetting("dicts_order") or {}
   self.dicts_disabled = G_reader_settings:readSetting("dicts_disabled") or {}
-  self.disable_fuzzy_search_fm = G_reader_settings:isTrue("disable_fuzzy_search")
+  self.disable_fuzzy_search_fm =
+    G_reader_settings:isTrue("disable_fuzzy_search")
 
   if self.ui then
     self.ui.menu:registerToMainMenu(self)
   end
-  self.data_dir = G_defaults:readSetting("STARDICT_DATA_DIR") or
-    os.getenv("STARDICT_DATA_DIR") or
-    DataStorage:getDataDir() .. "/data/dict"
+  self.data_dir = G_defaults:readSetting("STARDICT_DATA_DIR")
+    or os.getenv("STARDICT_DATA_DIR")
+    or DataStorage:getDataDir() .. "/data/dict"
 
   -- Show the "Searching..." InfoMessage after this delay
   self.lookup_msg_delay = 0.5
@@ -126,7 +128,7 @@ function ReaderDictionary:init()
     available_ifos = {}
     logger.dbg("Getting list of dictionaries")
     local ifo_files = getIfosInDir(self.data_dir)
-    local dict_ext = self.data_dir.."_ext"
+    local dict_ext = self.data_dir .. "_ext"
     if lfs.attributes(dict_ext, "mode") == "directory" then
       local extifos = getIfosInDir(dict_ext)
       for _, ifo in pairs(extifos) do
@@ -148,7 +150,9 @@ function ReaderDictionary:init()
             name = dictname,
             is_html = is_html,
             css = readDictionaryCss(ifo_file:gsub("%.ifo$", ".css")),
-            fix_html_func = getDictionaryFixHtmlFunc(ifo_file:gsub("%.ifo$", ".lua")),
+            fix_html_func = getDictionaryFixHtmlFunc(
+              ifo_file:gsub("%.ifo$", ".lua")
+            ),
             lang = lang_in and { lang_in = lang_in, lang_out = lang_out },
           })
         end
@@ -161,7 +165,10 @@ function ReaderDictionary:init()
   self:updateSdcvDictNamesOptions()
 
   if not lookup_history then
-    lookup_history = LuaData:open(DataStorage:getSettingsDir() .. "/lookup_history.lua", "LookupHistory")
+    lookup_history = LuaData:open(
+      DataStorage:getSettingsDir() .. "/lookup_history.lua",
+      "LookupHistory"
+    )
   end
 end
 
@@ -186,7 +193,6 @@ function ReaderDictionary:sortAvailableIfos()
   end)
 end
 
-
 function ReaderDictionary:updateSdcvDictNamesOptions()
   -- We cannot tell sdcv which dictionaries to ignore, but we
   -- can tell it which dictionaries to use, by using multiple
@@ -209,16 +215,19 @@ function ReaderDictionary:updateSdcvDictNamesOptions()
 
   local dicts_disabled = G_reader_settings:readSetting("dicts_disabled") or {}
   for _, ifo in pairs(available_ifos) do
-    if not dicts_disabled[ifo.file] and not preferred_names_already_in[ifo.name] then
+    if
+      not dicts_disabled[ifo.file] and not preferred_names_already_in[ifo.name]
+    then
       table.insert(self.enabled_dict_names, ifo.name)
     end
   end
 end
 
 function ReaderDictionary:addToMainMenu(menu_items)
-  menu_items.search_settings = { -- submenu with Dict, Wiki, Translation settings
-    text = _("Settings"),
-  }
+  menu_items.search_settings =
+    { -- submenu with Dict, Wiki, Translation settings
+      text = _("Settings"),
+    }
   menu_items.dictionary_lookup = {
     text = _("Dictionary lookup"),
     callback = function()
@@ -237,7 +246,7 @@ function ReaderDictionary:addToMainMenu(menu_items)
       for i = #lookup_history_table, 1, -1 do
         local value = lookup_history_table[i]
         if value.book_title ~= previous_title then
-          table.insert(kv_pairs, { value.book_title..":", "" })
+          table.insert(kv_pairs, { value.book_title .. ":", "" })
         end
         previous_title = value.book_title
         table.insert(kv_pairs, {
@@ -246,14 +255,14 @@ function ReaderDictionary:addToMainMenu(menu_items)
           callback = function()
             -- Word had been cleaned before being added to history
             self:onLookupWord(value.word, true)
-          end
+          end,
         })
       end
-      UIManager:show(KeyValuePage:new{
+      UIManager:show(KeyValuePage:new({
         title = _("Dictionary lookup history"),
         value_overflow_align = "right",
         kv_pairs = kv_pairs,
-      })
+      }))
     end,
   }
   menu_items.dictionary_settings = {
@@ -262,7 +271,8 @@ function ReaderDictionary:addToMainMenu(menu_items)
       {
         keep_menu_open = true,
         text_func = function()
-          local nb_available, nb_enabled, nb_disabled = self:getNumberOfDictionaries()
+          local nb_available, nb_enabled, nb_disabled =
+            self:getNumberOfDictionaries()
           local nb_str = nb_available
           if nb_disabled > 0 then
             nb_str = nb_enabled .. "/" .. nb_available
@@ -274,13 +284,17 @@ function ReaderDictionary:addToMainMenu(menu_items)
         end,
         callback = function(touchmenu_instance)
           self:showDictionariesMenu(function()
-            if touchmenu_instance then touchmenu_instance:updateItems() end
+            if touchmenu_instance then
+              touchmenu_instance:updateItems()
+            end
           end)
         end,
       },
       {
         text = _("Download dictionaries"),
-        sub_item_table_func = function() return self:_genDownloadDictionariesMenu() end,
+        sub_item_table_func = function()
+          return self:_genDownloadDictionariesMenu()
+        end,
       },
       {
         text_func = function()
@@ -299,7 +313,10 @@ function ReaderDictionary:addToMainMenu(menu_items)
         callback = function()
           if self.ui.doc_settings then
             self.disable_fuzzy_search = not self.disable_fuzzy_search
-            self.ui.doc_settings:saveSetting("disable_fuzzy_search", self.disable_fuzzy_search)
+            self.ui.doc_settings:saveSetting(
+              "disable_fuzzy_search",
+              self.disable_fuzzy_search
+            )
           else
             self.disable_fuzzy_search_fm = not self.disable_fuzzy_search_fm
           end
@@ -316,7 +333,10 @@ function ReaderDictionary:addToMainMenu(menu_items)
         end,
         callback = function()
           self.disable_lookup_history = not self.disable_lookup_history
-          G_reader_settings:saveSetting("disable_lookup_history", self.disable_lookup_history)
+          G_reader_settings:saveSetting(
+            "disable_lookup_history",
+            self.disable_lookup_history
+          )
         end,
       },
       {
@@ -326,7 +346,7 @@ function ReaderDictionary:addToMainMenu(menu_items)
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
-          UIManager:show(ConfirmBox:new{
+          UIManager:show(ConfirmBox:new({
             text = _("Clean dictionary lookup history?"),
             ok_text = _("Clean"),
             ok_callback = function()
@@ -334,7 +354,7 @@ function ReaderDictionary:addToMainMenu(menu_items)
               lookup_history:reset()
               touchmenu_instance:updateItems()
             end,
-          })
+          }))
         end,
         separator = true,
       },
@@ -364,7 +384,7 @@ function ReaderDictionary:addToMainMenu(menu_items)
         callback = function(touchmenu_instance)
           local SpinWidget = require("ui/widget/spinwidget")
           local font_size = G_named_settings.dict_font_size()
-          local items_font = SpinWidget:new{
+          local items_font = SpinWidget:new({
             value = font_size,
             value_min = 8,
             value_max = 32,
@@ -372,14 +392,16 @@ function ReaderDictionary:addToMainMenu(menu_items)
             title_text = _("Dictionary font size"),
             callback = function(spin)
               G_reader_settings:saveSetting("dict_font_size", spin.value)
-              if touchmenu_instance then touchmenu_instance:updateItems() end
+              if touchmenu_instance then
+                touchmenu_instance:updateItems()
+              end
             end,
-          }
+          })
           UIManager:show(items_font)
         end,
         keep_menu_open = true,
-      }
-    }
+      },
+    },
   }
   if Device:canExternalDictLookup() then
     local function genExternalDictItems()
@@ -391,7 +413,8 @@ function ReaderDictionary:addToMainMenu(menu_items)
         table.insert(items_table, {
           text = dict_name,
           checked_func = function()
-            return setting == G_reader_settings:readSetting("external_dict_lookup_method")
+            return setting
+              == G_reader_settings:readSetting("external_dict_lookup_method")
           end,
           enabled_func = function()
             return is_enabled == true
@@ -415,7 +438,8 @@ function ReaderDictionary:addToMainMenu(menu_items)
     table.insert(menu_items.dictionary_settings.sub_item_table, 2, {
       text_func = function()
         local display_name = _("none")
-        local ext_id = G_reader_settings:readSetting("external_dict_lookup_method")
+        local ext_id =
+          G_reader_settings:readSetting("external_dict_lookup_method")
         for i, v in ipairs(Device:getExternalDictLookupList()) do
           if v[1] == ext_id then
             display_name = v[2]
@@ -449,7 +473,13 @@ function ReaderDictionary:onLookupWord(word, is_sane, boxes, highlight, link)
 
   -- Wrapped through Trapper, as we may be using Trapper:dismissablePopen() in it
   Trapper:wrap(function()
-    self:stardictLookup(word, self.enabled_dict_names, not disable_fuzzy_search, boxes, link)
+    self:stardictLookup(
+      word,
+      self.enabled_dict_names,
+      not disable_fuzzy_search,
+      boxes,
+      link
+    )
   end)
   return true
 end
@@ -463,7 +493,7 @@ function ReaderDictionary:onHtmlDictionaryLinkTapped(dictionary, link)
   -- https://github.com/koreader/koreader/issues/3588#issuecomment-357088125
   local url_prefix = "bword://"
   local word
-  if link.uri:sub(1,url_prefix:len()) == url_prefix then
+  if link.uri:sub(1, url_prefix:len()) == url_prefix then
     word = link.uri:sub(url_prefix:len() + 1)
   elseif link.uri:find("://") then
     return
@@ -475,12 +505,12 @@ function ReaderDictionary:onHtmlDictionaryLinkTapped(dictionary, link)
     return
   end
 
-  local link_box = Geom:new{
+  local link_box = Geom:new({
     x = link.x0,
     y = link.y0,
     w = math.abs(link.x1 - link.x0),
     h = math.abs(link.y1 - link.y0),
-  }
+  })
 
   -- Only the first dictionary window stores the highlight, this way the highlight
   -- is only removed when there are no more dictionary windows open.
@@ -488,7 +518,7 @@ function ReaderDictionary:onHtmlDictionaryLinkTapped(dictionary, link)
 
   -- Wrapped through Trapper, as we may be using Trapper:dismissablePopen() in it
   Trapper:wrap(function()
-    self:stardictLookup(word, {dictionary}, false, {link_box}, nil)
+    self:stardictLookup(word, { dictionary }, false, { link_box }, nil)
   end)
 end
 
@@ -538,14 +568,14 @@ function ReaderDictionary:_genDownloadDictionariesMenu()
   end
 
   -- remove duplicates
-  for lang_key,lang in pairs(languages) do
+  for lang_key, lang in pairs(languages) do
     local hash = {}
     local res = {}
-    for k,v in ipairs(lang) do
-       if not hash[v.name] then
-         res[#res+1] = v
-         hash[v.name] = true
-       end
+    for k, v in ipairs(lang) do
+      if not hash[v.name] then
+        res[#res + 1] = v
+        hash[v.name] = true
+      end
     end
     languages[lang_key] = res
   end
@@ -557,7 +587,7 @@ function ReaderDictionary:_genDownloadDictionariesMenu()
       text = lang_key,
       callback = function()
         self:showDownload(available_langs)
-      end
+      end,
     })
   end
 
@@ -586,7 +616,7 @@ function ReaderDictionary:showDictionariesMenu(changed_callback)
     })
   end
 
-  local sort_widget = SortWidget:new{
+  local sort_widget = SortWidget:new({
     title = _("Manage installed dictionaries"),
     item_table = sort_items,
     callback = function()
@@ -608,8 +638,8 @@ function ReaderDictionary:showDictionariesMenu(changed_callback)
 
       UIManager:setDirty(nil, "ui")
       changed_callback()
-    end
-  }
+    end,
+  })
   UIManager:show(sort_widget)
 end
 
@@ -645,7 +675,8 @@ local function tidyMarkup(results)
       result.css = ifo.css
       if ifo.fix_html_func then
         local dict_path = util.splitFilePathName(ifo.file)
-        local ok, fixed_definition = pcall(ifo.fix_html_func, result.definition, dict_path)
+        local ok, fixed_definition =
+          pcall(ifo.fix_html_func, result.definition, dict_path)
         if ok then
           result.definition = fixed_definition
         else
@@ -686,7 +717,7 @@ function ReaderDictionary:cleanSelection(text, is_sane)
   -- (example: pdf selection "qu’autrefois," will be cleaned to "autrefois")
   --
   -- Replace no-break space with regular space
-  text = text:gsub("\u{00A0}", ' ')
+  text = text:gsub("\u{00A0}", " ")
   -- Trim any space at start or end
   text = text:gsub("^%s+", "")
   text = text:gsub("%s+$", "")
@@ -697,10 +728,10 @@ function ReaderDictionary:cleanSelection(text, is_sane)
     -- Strip punctuation characters around selection
     text = util.stripPunctuation(text)
     -- Strip some common english grammatical construct
-    text = text:gsub("'s$", '') -- english possessive
+    text = text:gsub("'s$", "") -- english possessive
     -- Strip some common french grammatical constructs
-    text = text:gsub("^[LSDMNTlsdmnt]'", '') -- french l' s' t'...
-    text = text:gsub("^[Qq][Uu]'", '') -- french qu'
+    text = text:gsub("^[LSDMNTlsdmnt]'", "") -- french l' s' t'...
+    text = text:gsub("^[Qq][Uu]'", "") -- french qu'
     -- There may be a need to remove some (all?) diacritical marks
     -- https://en.wikipedia.org/wiki/Combining_character#Unicode_ranges
     -- see discussion at https://github.com/koreader/koreader/issues/1649
@@ -717,10 +748,10 @@ end
 
 function ReaderDictionary:showLookupInfo(word, show_delay)
   local text = T(self.lookup_msg, word)
-  self.lookup_progress_msg = InfoMessage:new{
+  self.lookup_progress_msg = InfoMessage:new({
     text = text,
     show_delay = show_delay,
-  }
+  })
   UIManager:show(self.lookup_progress_msg)
 end
 
@@ -732,7 +763,7 @@ function ReaderDictionary:dismissLookupInfo()
 end
 
 function ReaderDictionary:onShowDictionaryLookup()
-  self.dictionary_lookup_dialog = InputDialog:new{
+  self.dictionary_lookup_dialog = InputDialog:new({
     title = _("Enter a word or phrase to look up"),
     input = "",
     input_type = "text",
@@ -749,29 +780,39 @@ function ReaderDictionary:onShowDictionaryLookup()
           text = _("Search dictionary"),
           is_enter_default = true,
           callback = function()
-            if self.dictionary_lookup_dialog:getInputText() == "" then return end
+            if self.dictionary_lookup_dialog:getInputText() == "" then
+              return
+            end
             UIManager:close(self.dictionary_lookup_dialog)
             -- Trust that input text does not need any cleaning (allows querying for "-suffix")
-            self:onLookupWord(self.dictionary_lookup_dialog:getInputText(), true)
+            self:onLookupWord(
+              self.dictionary_lookup_dialog:getInputText(),
+              true
+            )
           end,
         },
-      }
+      },
     },
-  }
+  })
   UIManager:show(self.dictionary_lookup_dialog)
   self.dictionary_lookup_dialog:onShowKeyboard()
   return true
 end
 
-function ReaderDictionary:rawSdcv(words, dict_names, fuzzy_search, lookup_progress_msg)
+function ReaderDictionary:rawSdcv(
+  words,
+  dict_names,
+  fuzzy_search,
+  lookup_progress_msg
+)
   -- Allow for two sdcv calls : one in the classic data/dict, and
   -- another one in data/dict_ext if it exists
   -- We could put in data/dict_ext dictionaries with a great number of words
   -- but poor definitions as a fall back. If these were in data/dict,
   -- they would prevent fuzzy searches in other dictories with better
   -- definitions, and masks such results. This way, we can get both.
-  local dict_dirs = {self.data_dir}
-  local dict_ext = self.data_dir.."_ext"
+  local dict_dirs = { self.data_dir }
+  local dict_ext = self.data_dir .. "_ext"
   if lfs.attributes(dict_ext, "mode") == "directory" then
     table.insert(dict_dirs, dict_ext)
   end
@@ -792,7 +833,8 @@ function ReaderDictionary:rawSdcv(words, dict_names, fuzzy_search, lookup_progre
       "--utf8-output",
       "--json-output",
       "--non-interactive",
-      "--data-dir", dict_dir,
+      "--data-dir",
+      dict_dir,
     }
     if not fuzzy_search then
       table.insert(args, "--exact-search")
@@ -831,7 +873,8 @@ function ReaderDictionary:rawSdcv(words, dict_names, fuzzy_search, lookup_progre
     if android then
       C.setenv("LD_LIBRARY_PATH", android.nativeLibraryDir, 1)
     end
-    local completed, results_str = Trapper:dismissablePopen(cmd, lookup_progress_msg)
+    local completed, results_str =
+      Trapper:dismissablePopen(cmd, lookup_progress_msg)
     if android then
       -- NOTE: It's unset by default, so this is perfectly fine.
       C.unsetenv("LD_LIBRARY_PATH")
@@ -864,7 +907,9 @@ function ReaderDictionary:rawSdcv(words, dict_names, fuzzy_search, lookup_progre
         end
       end
       if result_word_idx ~= #words then
-        logger.warn("sdcv returned a different number of results than the number of words")
+        logger.warn(
+          "sdcv returned a different number of results than the number of words"
+        )
       end
     end
   end
@@ -872,13 +917,17 @@ function ReaderDictionary:rawSdcv(words, dict_names, fuzzy_search, lookup_progre
 end
 
 function ReaderDictionary:startSdcv(word, dict_names, fuzzy_search)
-  local words = {word}
+  local words = { word }
 
-  if self.ui.languagesupport and self.ui.languagesupport:hasActiveLanguagePlugins() then
+  if
+    self.ui.languagesupport
+    and self.ui.languagesupport:hasActiveLanguagePlugins()
+  then
     -- Get any other candidates from any language-specific plugins we have.
     -- We prefer the originally selected word first (in case there is a
     -- dictionary entry for whatever text the user selected).
-    local candidates = self.ui.languagesupport:extraDictionaryFormCandidates(word)
+    local candidates =
+      self.ui.languagesupport:extraDictionaryFormCandidates(word)
     if candidates then
       util.arrayAppend(words, candidates)
     end
@@ -900,14 +949,21 @@ function ReaderDictionary:startSdcv(word, dict_names, fuzzy_search)
     fuzzy_search = false
   end
 
-  local lookup_cancelled, results = self:rawSdcv(words, dict_names, fuzzy_search, self.lookup_progress_msg or false)
+  local lookup_cancelled, results = self:rawSdcv(
+    words,
+    dict_names,
+    fuzzy_search,
+    self.lookup_progress_msg or false
+  )
   if results == nil then -- no dictionaries found
     return {
       {
         dict = "",
         word = word,
-        definition = _([[No dictionaries installed. Please search for "Dictionary support" in the KOReader Wiki to get more information about installing new dictionaries.]]),
-      }
+        definition = _(
+          [[No dictionaries installed. Please search for "Dictionary support" in the KOReader Wiki to get more information about installing new dictionaries.]]
+        ),
+      },
     }
   else -- flatten any possible results
     local flat_results = {}
@@ -934,10 +990,11 @@ function ReaderDictionary:startSdcv(word, dict_names, fuzzy_search)
       {
         dict = _("Not available"),
         word = word,
-        definition = lookup_cancelled and _("Dictionary lookup interrupted.") or _("No results."),
+        definition = lookup_cancelled and _("Dictionary lookup interrupted.")
+          or _("No results."),
         no_result = true,
         lookup_cancelled = lookup_cancelled,
-      }
+      },
     }
   end
   if lookup_cancelled then
@@ -948,12 +1005,19 @@ function ReaderDictionary:startSdcv(word, dict_names, fuzzy_search)
   return results
 end
 
-function ReaderDictionary:stardictLookup(word, dict_names, fuzzy_search, boxes, link)
+function ReaderDictionary:stardictLookup(
+  word,
+  dict_names,
+  fuzzy_search,
+  boxes,
+  link
+)
   if word == "" then
     return
   end
 
-  local book_title = self.ui.doc_props and self.ui.doc_props.display_title or _("Dictionary lookup")
+  local book_title = self.ui.doc_props and self.ui.doc_props.display_title
+    or _("Dictionary lookup")
 
   -- Event for plugin to catch lookup with book title
   self.ui:handleEvent(Event:new("WordLookedUp", word, book_title))
@@ -965,15 +1029,22 @@ function ReaderDictionary:stardictLookup(word, dict_names, fuzzy_search, boxes, 
     })
   end
 
-  if Device:canExternalDictLookup() and G_reader_settings:isTrue("external_dict_lookup") then
-    Device:doExternalDictLookup(word, G_reader_settings:readSetting("external_dict_lookup_method"), function()
-      if self.highlight then
-        local clear_id = self.highlight:getClearId()
-        UIManager:scheduleIn(0.5, function()
-          self.highlight:clear(clear_id)
-        end)
+  if
+    Device:canExternalDictLookup()
+    and G_reader_settings:isTrue("external_dict_lookup")
+  then
+    Device:doExternalDictLookup(
+      word,
+      G_reader_settings:readSetting("external_dict_lookup_method"),
+      function()
+        if self.highlight then
+          local clear_id = self.highlight:getClearId()
+          UIManager:scheduleIn(0.5, function()
+            self.highlight:clear(clear_id)
+          end)
+        end
       end
-    end)
+    )
     return
   end
 
@@ -984,10 +1055,12 @@ function ReaderDictionary:stardictLookup(word, dict_names, fuzzy_search, boxes, 
       {
         dict = _("Not available"),
         word = word,
-        definition = _("There are no enabled dictionaries.\nPlease check the 'Dictionary settings' menu."),
+        definition = _(
+          "There are no enabled dictionaries.\nPlease check the 'Dictionary settings' menu."
+        ),
         no_result = true,
         lookup_cancelled = false,
-      }
+      },
     }
     self:showDict(word, nope, boxes, link)
     return
@@ -997,8 +1070,12 @@ function ReaderDictionary:stardictLookup(word, dict_names, fuzzy_search, boxes, 
 
   self._lookup_start_time = UIManager:getTime()
   local results = self:startSdcv(word, dict_names, fuzzy_search)
-  if results and results.lookup_cancelled
-    and (time.now() - self._lookup_start_time) <= self.quick_dismiss_before_delay then
+  if
+    results
+    and results.lookup_cancelled
+    and (time.now() - self._lookup_start_time)
+      <= self.quick_dismiss_before_delay
+  then
     -- If interrupted quickly just after launch, don't display anything
     -- (this might help avoiding refreshes and the need to dismiss
     -- after accidental long-press when holding a device).
@@ -1013,8 +1090,14 @@ end
 
 function ReaderDictionary:showDict(word, results, boxes, link)
   if results and results[1] then
-    logger.dbg("showing quick lookup window", #DictQuickLookup.window_list+1, ":", word, results)
-    self.dict_window = DictQuickLookup:new{
+    logger.dbg(
+      "showing quick lookup window",
+      #DictQuickLookup.window_list + 1,
+      ":",
+      word,
+      results
+    )
+    self.dict_window = DictQuickLookup:new({
       ui = self.ui,
       highlight = self.highlight,
       dialog = self.dialog,
@@ -1036,7 +1119,7 @@ function ReaderDictionary:showDict(word, results, boxes, link)
       html_dictionary_link_tapped_callback = function(dictionary, html_link)
         self:onHtmlDictionaryLinkTapped(dictionary, html_link)
       end,
-    }
+    })
     if self.lookup_progress_msg then
       -- If we have a lookup InfoMessage that ended up being displayed, make
       -- it *not* refresh on close if it is hidden by our DictQuickLookup
@@ -1054,8 +1137,12 @@ function ReaderDictionary:showDict(word, results, boxes, link)
   self:dismissLookupInfo()
   if results and results[1] then
     UIManager:show(self.dict_window)
-    if not results.lookup_cancelled and self._lookup_start_time
-      and (time.now() - self._lookup_start_time) > self.quick_dismiss_before_delay then
+    if
+      not results.lookup_cancelled
+      and self._lookup_start_time
+      and (time.now() - self._lookup_start_time)
+        > self.quick_dismiss_before_delay
+    then
       -- If the search took more than a few seconds to be done, discard
       -- queued and upcoming input events to avoid a voluntary dismissal
       -- (because the user felt the result would not come) to kill the
@@ -1068,27 +1155,33 @@ end
 function ReaderDictionary:showDownload(downloadable_dicts)
   local kv_pairs = {}
   for dummy, dict in ipairs(downloadable_dicts) do
-    table.insert(kv_pairs, {dict.name, "",
+    table.insert(kv_pairs, {
+      dict.name,
+      "",
       callback = function()
         local connect_callback = function()
           self:downloadDictionaryPrep(dict)
         end
         NetworkMgr:runWhenOnline(connect_callback)
-      end})
+      end,
+    })
     local lang
     if dict.lang_in == dict.lang_out then
       lang = string.format("  %s", dict.lang_in)
     else
       lang = string.format("  %s–%s", dict.lang_in, dict.lang_out)
     end
-    table.insert(kv_pairs, {lang, ""})
-    table.insert(kv_pairs, {"  ".._("License"), dict.license})
-    table.insert(kv_pairs, {"  ".._("Entries"), dict.entries, separator = true})
+    table.insert(kv_pairs, { lang, "" })
+    table.insert(kv_pairs, { "  " .. _("License"), dict.license })
+    table.insert(
+      kv_pairs,
+      { "  " .. _("Entries"), dict.entries, separator = true }
+    )
   end
-  self.download_window = KeyValuePage:new{
+  self.download_window = KeyValuePage:new({
     title = _("Tap dictionary name to download"),
     kv_pairs = kv_pairs,
-  }
+  })
   UIManager:show(self.download_window)
 end
 
@@ -1097,13 +1190,13 @@ function ReaderDictionary:downloadDictionaryPrep(dict, size)
   local download_location = string.format("%s/%s", self.data_dir, filename)
 
   if lfs.attributes(download_location) then
-    UIManager:show(ConfirmBox:new{
-      text =  _("File already exists. Overwrite?"),
-      ok_text =  _("Overwrite"),
+    UIManager:show(ConfirmBox:new({
+      text = _("File already exists. Overwrite?"),
+      ok_text = _("Overwrite"),
       ok_callback = function()
         self:downloadDictionary(dict, download_location)
       end,
-    })
+    }))
   else
     self:downloadDictionary(dict, download_location)
   end
@@ -1120,57 +1213,70 @@ function ReaderDictionary:downloadDictionary(dict, download_location, continue)
     local file_size
     -- Skip body & code args
     socketutil:set_timeout()
-    local headers = socket.skip(2, http.request{
-      method  = "HEAD",
-      url   = dict.url,
-      --redirect = true,
-    })
+    local headers = socket.skip(
+      2,
+      http.request({
+        method = "HEAD",
+        url = dict.url,
+        --redirect = true,
+      })
+    )
     socketutil:reset_timeout()
     --logger.dbg(headers)
     file_size = headers and headers["content-length"]
 
     if file_size then
-      UIManager:show(ConfirmBox:new{
-        text =  T(_("Dictionary filesize is %1 (%2 bytes). Continue with download?"), util.getFriendlySize(file_size), util.getFormattedSize(file_size)),
-        ok_text =  _("Download"),
+      UIManager:show(ConfirmBox:new({
+        text = T(
+          _("Dictionary filesize is %1 (%2 bytes). Continue with download?"),
+          util.getFriendlySize(file_size),
+          util.getFormattedSize(file_size)
+        ),
+        ok_text = _("Download"),
         ok_callback = function()
           -- call ourselves with continue = true
           self:downloadDictionary(dict, download_location, true)
         end,
-      })
+      }))
       return
     else
       logger.dbg("ReaderDictionary: Request failed; response headers:", headers)
-      UIManager:show(InfoMessage:new{
+      UIManager:show(InfoMessage:new({
         text = _("Failed to fetch dictionary. Are you online?"),
         --timeout = 3,
-      })
+      }))
       return false
     end
   else
     UIManager:nextTick(function()
-      UIManager:show(InfoMessage:new{
+      UIManager:show(InfoMessage:new({
         text = _("Downloading…"),
         timeout = 3,
-      })
+      }))
     end)
   end
 
-  socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, socketutil.FILE_TOTAL_TIMEOUT)
-  local code, headers, status = socket.skip(1, http.request{
-    url   = dict.url,
-    sink  = ltn12.sink.file(io.open(download_location, "w")),
-  })
+  socketutil:set_timeout(
+    socketutil.FILE_BLOCK_TIMEOUT,
+    socketutil.FILE_TOTAL_TIMEOUT
+  )
+  local code, headers, status = socket.skip(
+    1,
+    http.request({
+      url = dict.url,
+      sink = ltn12.sink.file(io.open(download_location, "w")),
+    })
+  )
   socketutil:reset_timeout()
   if code == 200 then
     logger.dbg("file downloaded to", download_location)
   else
     logger.dbg("ReaderDictionary: Request failed:", status or code)
     logger.dbg("ReaderDictionary: Response headers:", headers)
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = _("Could not save file to:\n") .. BD.filepath(download_location),
       --timeout = 3,
-    })
+    }))
     return false
   end
 
@@ -1185,14 +1291,15 @@ function ReaderDictionary:downloadDictionary(dict, download_location, continue)
     end
     available_ifos = false
     self:init()
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = _("Dictionary downloaded:\n") .. dict.name,
-    })
+    }))
     return true
   else
-    UIManager:show(InfoMessage:new{
-      text = _("Dictionary failed to download:\n") .. string.format("%s\n%s", dict.name, error),
-    })
+    UIManager:show(InfoMessage:new({
+      text = _("Dictionary failed to download:\n")
+        .. string.format("%s\n%s", dict.name, error),
+    }))
     return false
   end
 end
@@ -1216,7 +1323,8 @@ function ReaderDictionary:extendIfoWithLanguage(dictionary_location, ifo_lang)
 end
 
 function ReaderDictionary:onReadSettings(config)
-  self.preferred_dictionaries = config:readSetting("preferred_dictionaries") or {}
+  self.preferred_dictionaries = config:readSetting("preferred_dictionaries")
+    or {}
   if #self.preferred_dictionaries == 0 then
     -- Legacy setting, when only one dict could be set as default/first to show
     local default_dictionary = config:readSetting("default_dictionary")
@@ -1237,7 +1345,10 @@ end
 
 function ReaderDictionary:onSaveSettings()
   if self.ui.doc_settings then
-    self.ui.doc_settings:saveSetting("preferred_dictionaries", self.preferred_dictionaries)
+    self.ui.doc_settings:saveSetting(
+      "preferred_dictionaries",
+      self.preferred_dictionaries
+    )
   end
 end
 
@@ -1257,34 +1368,32 @@ function ReaderDictionary:onTogglePreferredDict(dict)
   if not removed then -- insert it as first
     table.insert(self.preferred_dictionaries, 1, dict)
   end
-  UIManager:show(InfoMessage:new{
-    text = removed and T(_("%1 is no longer a preferred dictionary for this document."), dict)
-            or T(_("%1 is now the preferred dictionary for this document."), dict),
+  UIManager:show(InfoMessage:new({
+    text = removed and T(
+      _("%1 is no longer a preferred dictionary for this document."),
+      dict
+    ) or T(_("%1 is now the preferred dictionary for this document."), dict),
     timeout = 2,
-  })
+  }))
   self:updateSdcvDictNamesOptions()
   return true
 end
 
 function ReaderDictionary:toggleFuzzyDefault(touchmenu_instance)
   local disable_fuzzy_search = G_reader_settings:isTrue("disable_fuzzy_search")
-  UIManager:show(MultiConfirmBox:new{
-    text = T(
-      disable_fuzzy_search
-      and _([[
+  UIManager:show(MultiConfirmBox:new({
+    text = T(disable_fuzzy_search and _([[
 Would you like to enable or disable fuzzy search by default?
 
 Fuzzy search can match epuisante, épuisante and épuisantes to épuisant, even if only the latter has an entry in the dictionary. It can be disabled to improve performance, but it might be worthwhile to look into disabling unneeded dictionaries before disabling fuzzy search.
 
-The current default (★) is disabled.]])
-      or _([[
+The current default (★) is disabled.]]) or _([[
 Would you like to enable or disable fuzzy search by default?
 
 Fuzzy search can match epuisante, épuisante and épuisantes to épuisant, even if only the latter has an entry in the dictionary. It can be disabled to improve performance, but it might be worthwhile to look into disabling unneeded dictionaries before disabling fuzzy search.
 
-The current default (★) is enabled.]])
-    ),
-    choice1_text_func =  function()
+The current default (★) is enabled.]])),
+    choice1_text_func = function()
       return disable_fuzzy_search and _("Disable (★)") or _("Disable")
     end,
     choice1_callback = function()
@@ -1298,7 +1407,7 @@ The current default (★) is enabled.]])
       G_reader_settings:makeFalse("disable_fuzzy_search")
       touchmenu_instance:updateItems()
     end,
-  })
+  }))
 end
 
 return ReaderDictionary

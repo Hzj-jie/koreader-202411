@@ -14,7 +14,7 @@ local EventListener = require("ui/widget/eventlistener")
 
 --- Widget base class
 -- @table Widget
-local Widget = EventListener:extend{}
+local Widget = EventListener:extend({})
 
 --[[--
 Use this method to define a widget subclass that's inherited from a base class widget.
@@ -24,10 +24,10 @@ It only setups the metatable (or prototype chain) and will not initiate a real i
 @treturn Widget
 ]]
 function Widget:extend(subclass_prototype)
-    local o = subclass_prototype or {}
-    setmetatable(o, self)
-    self.__index = self
-    return o
+  local o = subclass_prototype or {}
+  setmetatable(o, self)
+  self.__index = self
+  return o
 end
 
 --[[--
@@ -38,13 +38,17 @@ Do NOT use it for class definitions because it also calls self:init().
 @treturn Widget
 ]]
 function Widget:new(o)
-    o = self:extend(o)
-    -- Both o._init and o.init are called on object creation.
-    -- But o._init is used for base widget initialization (basic components used to build other widgets).
-    -- While o.init is for higher level widgets, for example Menu.
-    if o._init then o:_init() end
-    if o.init then o:init() end
-    return o
+  o = self:extend(o)
+  -- Both o._init and o.init are called on object creation.
+  -- But o._init is used for base widget initialization (basic components used to build other widgets).
+  -- While o.init is for higher level widgets, for example Menu.
+  if o._init then
+    o:_init()
+  end
+  if o.init then
+    o:init()
+  end
+  return o
 end
 
 --[[
@@ -56,7 +60,7 @@ Return size of the widget.
 @treturn ui.geometry.Geom
 --]]
 function Widget:getSize()
-    return self.dimen
+  return self.dimen
 end
 
 --[[--
@@ -67,7 +71,6 @@ If it's the screen BlitBuffer, then widget will show up on screen refresh.
 @int x x offset within the BlitBuffer
 @int y y offset within the BlitBuffer
 ]]
-function Widget:paintTo(bb, x, y)
-end
+function Widget:paintTo(bb, x, y) end
 
 return Widget

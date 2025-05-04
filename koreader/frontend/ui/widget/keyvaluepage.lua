@@ -47,7 +47,7 @@ local Screen = Device.screen
 local T = require("ffi/util").template
 local _ = require("gettext")
 
-local KeyValueItem = InputContainer:extend{
+local KeyValueItem = InputContainer:extend({
   show_parent = nil,
   key = nil,
   value = nil,
@@ -62,14 +62,14 @@ local KeyValueItem = InputContainer:extend{
   textviewer_width = nil,
   textviewer_height = nil,
   value_overflow_align = "left",
-    -- "right": only align right if value overflow 1/2 width
-    -- "right_always": align value right even when small and
-    --         only key overflows 1/2 width
+  -- "right": only align right if value overflow 1/2 width
+  -- "right_always": align value right even when small and
+  --         only key overflows 1/2 width
   close_callback = nil,
-}
+})
 
 function KeyValueItem:init()
-  self.dimen = Geom:new{ x = 0, y = 0, w = self.width, h = self.height }
+  self.dimen = Geom:new({ x = 0, y = 0, w = self.width, h = self.height })
 
   -- self.value may contain some control characters (\n \t...) that would
   -- be rendered as a square. Replace them with a shorter and nicer '|'.
@@ -86,19 +86,19 @@ function KeyValueItem:init()
   -- Default widths (and position of value widget) if each text fits in 1/2 screen width
   local ratio = self.width_ratio or 0.5
   local key_w = math.floor(frame_internal_width * ratio - middle_padding)
-  local value_w = math.floor(frame_internal_width * (1-ratio))
+  local value_w = math.floor(frame_internal_width * (1 - ratio))
 
-  local key_widget = TextWidget:new{
+  local key_widget = TextWidget:new({
     text = self.key,
     max_width = available_width,
     face = Font:getFace(self.key_font_name, self.font_size),
-  }
-  local value_widget = TextWidget:new{
+  })
+  local value_widget = TextWidget:new({
     text = tvalue,
     max_width = available_width,
     face = Font:getFace(self.value_font_name, self.font_size),
     lang = self.value_lang,
-  }
+  })
   local key_w_rendered = key_widget:getWidth()
   local value_w_rendered = value_widget:getWidth()
 
@@ -124,8 +124,11 @@ function KeyValueItem:init()
         key_w = key_w_rendered
       end
       value_align_right = true -- so the ellipsis touches the screen right border
-      if self.value_align ~= "right" and self.value_overflow_align ~= "right"
-          and self.value_overflow_align ~= "right_always" then
+      if
+        self.value_align ~= "right"
+        and self.value_overflow_align ~= "right"
+        and self.value_overflow_align ~= "right_always"
+      then
         -- Don't adjust the ellipsis to the screen right border,
         -- so the left of text is aligned with other truncated texts
         fit_right_align = false
@@ -134,9 +137,12 @@ function KeyValueItem:init()
       self.is_truncated = true
     else
       -- Both can fit: break the 1/2 widths
-      if self.value_align == "right" or self.value_overflow_align == "right_always"
-          or (self.value_overflow_align == "right" and value_w_rendered > value_w)
-          or key_w_rendered < key_w then -- it's the value that can't fit (longer), this way it stays closest to border
+      if
+        self.value_align == "right"
+        or self.value_overflow_align == "right_always"
+        or (self.value_overflow_align == "right" and value_w_rendered > value_w)
+        or key_w_rendered < key_w
+      then -- it's the value that can't fit (longer), this way it stays closest to border
         key_w = available_width - value_w_rendered
         value_align_right = true
       else
@@ -156,7 +162,11 @@ function KeyValueItem:init()
 
   -- Adjust widgets' max widths if needed
   value_widget:setMaxWidth(value_w)
-  if fit_right_align and value_align_right and value_widget:getWidth() < value_w then
+  if
+    fit_right_align
+    and value_align_right
+    and value_widget:getWidth() < value_w
+  then
     -- Because of truncation at glyph boundaries, value_widget
     -- may be a tad smaller than the specified value_w:
     -- adjust key_w so value is pushed to the screen right border
@@ -169,21 +179,21 @@ function KeyValueItem:init()
   -- value_widget = FrameContainer:new{ padding=0, margin=0, bordersize=1, value_widget }
 
   self.ges_events.Tap = {
-    GestureRange:new{
+    GestureRange:new({
       ges = "tap",
       range = self.dimen,
-    }
+    }),
   }
   self.ges_events.Hold = {
-    GestureRange:new{
+    GestureRange:new({
       ges = "hold",
       range = self.dimen,
-    }
+    }),
   }
   local content_dimen = self.dimen:copy()
   content_dimen.h = content_dimen.h - Size.border.thin * 2 -- reduced by 2 border sizes
   content_dimen.w = content_dimen.w - Size.border.thin * 2 -- reduced by 2 border sizes
-  self[1] = FrameContainer:new{
+  self[1] = FrameContainer:new({
     padding = frame_padding,
     padding_top = 0,
     padding_bottom = 0,
@@ -191,27 +201,27 @@ function KeyValueItem:init()
     focusable = true,
     focus_border_size = Size.border.thin,
     background = Blitbuffer.COLOR_WHITE,
-    HorizontalGroup:new{
+    HorizontalGroup:new({
       dimen = content_dimen,
-      LeftContainer:new{
-        dimen = Geom:new{
+      LeftContainer:new({
+        dimen = Geom:new({
           w = key_w,
-          h = content_dimen.h
-        },
+          h = content_dimen.h,
+        }),
         key_widget,
-      },
-      HorizontalSpan:new{
+      }),
+      HorizontalSpan:new({
         width = middle_padding,
-      },
-      LeftContainer:new{
+      }),
+      LeftContainer:new({
         dimen = {
           w = value_w,
-          h = content_dimen.h
+          h = content_dimen.h,
         },
         value_widget,
-      }
-    }
-  }
+      }),
+    }),
+  })
 end
 
 function KeyValueItem:onTap()
@@ -264,20 +274,19 @@ function KeyValueItem:onHold()
 end
 
 function KeyValueItem:onShowKeyValue()
-  local textviewer = TextViewer:new{
+  local textviewer = TextViewer:new({
     title = self.key,
     title_multilines = true, -- in case it's key/title that is too long
     text = self.value,
     lang = self.value_lang,
     width = self.textviewer_width,
     height = self.textviewer_height,
-  }
+  })
   UIManager:show(textviewer)
   return true
 end
 
-
-local KeyValuePage = FocusManager:extend{
+local KeyValuePage = FocusManager:extend({
   show_parent = nil,
   kv_pairs = nil, -- not mandatory
   title = "",
@@ -294,7 +303,7 @@ local KeyValuePage = FocusManager:extend{
   title_bar_left_icon = nil,
   title_bar_left_icon_tap_callback = nil,
   title_bar_left_icon_hold_callback = nil,
-}
+})
 
 function KeyValuePage:init()
   self.show_parent = self.show_parent or self
@@ -310,20 +319,22 @@ function KeyValuePage:init()
           self.kv_pairs[#self.kv_pairs].separator = true
         end
       else
-        table.insert(self.kv_pairs, {value, "---"})
+        table.insert(self.kv_pairs, { value, "---" })
       end
     else
       assert(type(value) == "table")
       table.insert(self.kv_pairs, value)
     end
   end
-  self.dimen = Geom:new{
+  self.dimen = Geom:new({
     x = 0,
     y = 0,
     w = self.width or Screen:getWidth(),
     h = self.height or Screen:getHeight(),
-  }
-  if self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight() then
+  })
+  if
+    self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
+  then
     self.covers_fullscreen = true -- hint for UIManager:_repaint()
   end
 
@@ -334,27 +345,30 @@ function KeyValuePage:init()
   end
   if Device:isTouchDevice() then
     self.ges_events.Swipe = {
-      GestureRange:new{
+      GestureRange:new({
         ges = "swipe",
         range = self.dimen,
-      }
+      }),
     }
     self.ges_events.MultiSwipe = {
-      GestureRange:new{
+      GestureRange:new({
         ges = "multiswipe",
         range = self.dimen,
-      }
+      }),
     }
   end
 
   -- return button
   --- @todo: alternative icon if BD.mirroredUILayout()
-  self.page_return_arrow = self.page_return_arrow or Button:new{
-    icon = BD.mirroredUILayout() and "back.top.rtl" or "back.top",
-    callback = function() self:onReturn() end,
-    bordersize = 0,
-    show_parent = self.show_parent,
-  }
+  self.page_return_arrow = self.page_return_arrow
+    or Button:new({
+      icon = BD.mirroredUILayout() and "back.top.rtl" or "back.top",
+      callback = function()
+        self:onReturn()
+      end,
+      bordersize = 0,
+      show_parent = self.show_parent,
+    })
   -- group for page info
   local chevron_left = "chevron.left"
   local chevron_right = "chevron.right"
@@ -364,76 +378,91 @@ function KeyValuePage:init()
     chevron_left, chevron_right = chevron_right, chevron_left
     chevron_first, chevron_last = chevron_last, chevron_first
   end
-  self.page_info_left_chev = self.page_info_left_chev or Button:new{
-    icon = chevron_left,
-    callback = function() self:prevPage() end,
-    bordersize = 0,
-    show_parent = self.show_parent,
-  }
-  self.page_info_right_chev = self.page_info_right_chev or Button:new{
-    icon = chevron_right,
-    callback = function() self:nextPage() end,
-    bordersize = 0,
-    show_parent = self.show_parent,
-  }
-  self.page_info_first_chev = self.page_info_first_chev or Button:new{
-    icon = chevron_first,
-    callback = function() self:goToPage(1) end,
-    bordersize = 0,
-    show_parent = self.show_parent,
-  }
-  self.page_info_last_chev = self.page_info_last_chev or Button:new{
-    icon = chevron_last,
-    callback = function() self:goToPage(self.pages) end,
-    bordersize = 0,
-    show_parent = self.show_parent,
-  }
-  self.page_info_spacer = HorizontalSpan:new{
+  self.page_info_left_chev = self.page_info_left_chev
+    or Button:new({
+      icon = chevron_left,
+      callback = function()
+        self:prevPage()
+      end,
+      bordersize = 0,
+      show_parent = self.show_parent,
+    })
+  self.page_info_right_chev = self.page_info_right_chev
+    or Button:new({
+      icon = chevron_right,
+      callback = function()
+        self:nextPage()
+      end,
+      bordersize = 0,
+      show_parent = self.show_parent,
+    })
+  self.page_info_first_chev = self.page_info_first_chev
+    or Button:new({
+      icon = chevron_first,
+      callback = function()
+        self:goToPage(1)
+      end,
+      bordersize = 0,
+      show_parent = self.show_parent,
+    })
+  self.page_info_last_chev = self.page_info_last_chev
+    or Button:new({
+      icon = chevron_last,
+      callback = function()
+        self:goToPage(self.pages)
+      end,
+      bordersize = 0,
+      show_parent = self.show_parent,
+    })
+  self.page_info_spacer = HorizontalSpan:new({
     width = Screen:scaleBySize(32),
-  }
+  })
 
   if self.callback_return == nil and self.return_button == nil then
     self.page_return_arrow:hide()
   elseif self.callback_return == nil then
     self.page_return_arrow:disable()
   end
-  self.return_button = HorizontalGroup:new{
-    HorizontalSpan:new{
+  self.return_button = HorizontalGroup:new({
+    HorizontalSpan:new({
       width = Size.span.horizontal_small,
-    },
+    }),
     self.page_return_arrow,
-    HorizontalSpan:new{
-      width = self.dimen.w - self.page_return_arrow:getSize().w - Size.span.horizontal_small,
-    },
-  }
+    HorizontalSpan:new({
+      width = self.dimen.w
+        - self.page_return_arrow:getSize().w
+        - Size.span.horizontal_small,
+    }),
+  })
 
   self.page_info_left_chev:hide()
   self.page_info_right_chev:hide()
   self.page_info_first_chev:hide()
   self.page_info_last_chev:hide()
 
-  self.page_info_text = self.page_info_text or Button:new{
-    text = "",
-    hold_input = {
-      title = _("Enter page number"),
-      input_type = "number",
-      hint_func = function()
-        return string.format("(1 - %s)", self.pages)
-      end,
-      callback = function(input)
-        local page = tonumber(input)
-        if page and page >= 1 and page <= self.pages then
-          self:goToPage(page)
-        end
-      end,
-      ok_text = _("Go to page"),
-    },
-    call_hold_input_on_tap = true,
-    bordersize = 0,
-    text_font_face = "pgfont",
-    text_font_bold = false,
-  }
-  self.page_info = HorizontalGroup:new{
+  self.page_info_text = self.page_info_text
+    or Button:new({
+      text = "",
+      hold_input = {
+        title = _("Enter page number"),
+        input_type = "number",
+        hint_func = function()
+          return string.format("(1 - %s)", self.pages)
+        end,
+        callback = function(input)
+          local page = tonumber(input)
+          if page and page >= 1 and page <= self.pages then
+            self:goToPage(page)
+          end
+        end,
+        ok_text = _("Go to page"),
+      },
+      call_hold_input_on_tap = true,
+      bordersize = 0,
+      text_font_face = "pgfont",
+      text_font_bold = false,
+    })
+  self.page_info = HorizontalGroup:new({
     self.page_info_first_chev,
     self.page_info_spacer,
     self.page_info_left_chev,
@@ -443,25 +472,25 @@ function KeyValuePage:init()
     self.page_info_right_chev,
     self.page_info_spacer,
     self.page_info_last_chev,
-  }
+  })
 
   local padding = Size.padding.large
   self.item_width = self.dimen.w - 2 * padding
 
   local footer = nil
   if not self.single_page then
-    footer = BottomContainer:new{
+    footer = BottomContainer:new({
       dimen = self.dimen:copy(),
       self.page_info,
-    }
+    })
   end
 
-  local page_return = BottomContainer:new{
+  local page_return = BottomContainer:new({
     dimen = self.dimen:copy(),
     self.return_button,
-  }
+  })
 
-  self.title_bar = TitleBar:new{
+  self.title_bar = TitleBar:new({
     title = self.title,
     fullscreen = self.covers_fullscreen,
     width = self.width,
@@ -472,19 +501,22 @@ function KeyValuePage:init()
     left_icon = self.title_bar_left_icon,
     left_icon_tap_callback = self.title_bar_left_icon_tap_callback,
     left_icon_hold_callback = self.title_bar_left_icon_hold_callback,
-    close_callback = function() self:onClose() end,
+    close_callback = function()
+      self:onClose()
+    end,
     show_parent = self.show_parent or self,
-  }
+  })
 
   -- setup main content
   local available_height = self.dimen.h
-             - self.title_bar:getHeight()
-             - Size.span.vertical_large -- for above page_info (as title_bar adds one itself)
-             - (self.single_page and 0 or self.page_info:getSize().h)
-             - 2*Size.line.thick
-              -- account for possibly 2 separator lines added
+    - self.title_bar:getHeight()
+    - Size.span.vertical_large -- for above page_info (as title_bar adds one itself)
+    - (self.single_page and 0 or self.page_info:getSize().h)
+    - 2 * Size.line.thick
+  -- account for possibly 2 separator lines added
 
-  self.items_per_page = G_reader_settings:readSetting("keyvalues_per_page") or self.getDefaultItemsPerPage()
+  self.items_per_page = G_reader_settings:readSetting("keyvalues_per_page")
+    or self.getDefaultItemsPerPage()
   if self.single_page and self.items_per_page < #self.kv_pairs then
     self.items_per_page = #self.kv_pairs
   end
@@ -496,35 +528,40 @@ function KeyValuePage:init()
   -- Font size is not configurable: we can get a good one from the following
   local TextBoxWidget = require("ui/widget/textboxwidget")
   local line_extra_height = 1.0 -- ~ 2em -- unscaled_size_check: ignore
-    -- (gives a font size similar to the fixed one from former implementation at 14 items per page)
-  self.items_font_size = math.min(TextBoxWidget:getFontSizeToFitHeight(self.item_height, 1, line_extra_height), 22)
+  -- (gives a font size similar to the fixed one from former implementation at 14 items per page)
+  self.items_font_size = math.min(
+    TextBoxWidget:getFontSizeToFitHeight(self.item_height, 1, line_extra_height),
+    22
+  )
 
   self.pages = math.ceil(#self.kv_pairs / self.items_per_page)
-  self.main_content = VerticalGroup:new{}
+  self.main_content = VerticalGroup:new({})
 
   -- set textviewer height to let our title fully visible (but hide the bottom line)
   self.textviewer_width = self.item_width
-  self.textviewer_height = self.dimen.h - 2 * (self.title_bar:getHeight() - Size.padding.default - Size.line.thick)
+  self.textviewer_height = self.dimen.h
+    - 2
+      * (self.title_bar:getHeight() - Size.padding.default - Size.line.thick)
 
   self:_populateItems()
 
-  local content = OverlapGroup:new{
+  local content = OverlapGroup:new({
     allow_mirroring = false,
     dimen = self.dimen:copy(),
-    VerticalGroup:new{
+    VerticalGroup:new({
       align = "left",
       self.title_bar,
-      VerticalSpan:new{ width = span_height },
-      HorizontalGroup:new{
-        HorizontalSpan:new{ width = padding },
+      VerticalSpan:new({ width = span_height }),
+      HorizontalGroup:new({
+        HorizontalSpan:new({ width = padding }),
         self.main_content,
-      }
-    },
+      }),
+    }),
     page_return,
     footer,
-  }
+  })
   -- assemble page
-  self[1] = FrameContainer:new{
+  self[1] = FrameContainer:new({
     width = self.dimen.w,
     height = self.dimen.h,
     padding = 0,
@@ -532,7 +569,7 @@ function KeyValuePage:init()
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,
     content,
-  }
+  })
 end
 
 function KeyValuePage.getDefaultItemsPerPage()
@@ -545,7 +582,7 @@ function KeyValuePage.getDefaultItemsPerPage()
 end
 
 function KeyValuePage:nextPage()
-  local new_page = math.min(self.show_page+1, self.pages)
+  local new_page = math.min(self.show_page + 1, self.pages)
   if new_page > self.show_page then
     self.show_page = new_page
     self:_populateItems()
@@ -553,7 +590,7 @@ function KeyValuePage:nextPage()
 end
 
 function KeyValuePage:prevPage()
-  local new_page = math.max(self.show_page-1, 1)
+  local new_page = math.max(self.show_page - 1, 1)
   if new_page < self.show_page then
     self.show_page = new_page
     self:_populateItems()
@@ -583,24 +620,26 @@ function KeyValuePage:_populateItems()
   local key_w = math.floor(frame_internal_width / 2 - middle_padding)
   local value_w = math.floor(frame_internal_width / 2)
 
-  local key_widget = TextWidget:new{
+  local key_widget = TextWidget:new({
     text = " ",
     max_width = available_width,
     face = Font:getFace("smallinfofontbold", self.items_font_size),
-  }
-  local value_widget = TextWidget:new{
+  })
+  local value_widget = TextWidget:new({
     text = " ",
     max_width = available_width,
     face = Font:getFace("smallinfofont", self.items_font_size),
     lang = self.values_lang,
-  }
+  })
   local key_widths = {}
   local value_widths = {}
   local tvalue
-  for idx=1, self.items_per_page do
+  for idx = 1, self.items_per_page do
     local kv_pairs_idx = idx_offset + idx
     local entry = self.kv_pairs[kv_pairs_idx]
-    if entry == nil then break end
+    if entry == nil then
+      break
+    end
     if type(entry) == "table" and entry[2] ~= "" then
       tvalue = tostring(entry[2])
       tvalue = tvalue:gsub("[\n\t]", "|")
@@ -618,15 +657,20 @@ function KeyValuePage:_populateItems()
   table.sort(value_widths)
   -- first we check if no unfit item at all
   local width_ratio
-  if (#self.kv_pairs == 0) or
-    (#key_widths == 0) or
-    (key_widths[#key_widths] <= key_w and value_widths[#value_widths] <= value_w) then
-    width_ratio = 1/2
+  if
+    (#self.kv_pairs == 0)
+    or (#key_widths == 0)
+    or (
+      key_widths[#key_widths] <= key_w
+      and value_widths[#value_widths] <= value_w
+    )
+  then
+    width_ratio = 1 / 2
   end
   if not width_ratio then
     -- has to adjust, not fitting 1/2 ratio
-    local least_cut_key_index = #key_widths; -- the key index from which there are least number of cuts
-    local least_cut_count = #key_widths; -- the nb of cuts
+    local least_cut_key_index = #key_widths -- the key index from which there are least number of cuts
+    local least_cut_count = #key_widths -- the nb of cuts
     for vi = #value_widths, 1, -1 do
       -- from longest to shortest
       local key_width_limit = available_width - value_widths[vi]
@@ -650,7 +694,8 @@ function KeyValuePage:_populateItems()
       if total_cut_count == 0 then
         -- no cross-over
         if key_widths[#key_widths] >= key_w then
-          width_ratio = (key_widths[#key_widths] + middle_padding) / frame_internal_width
+          width_ratio = (key_widths[#key_widths] + middle_padding)
+            / frame_internal_width
         else
           width_ratio = 1 - value_widths[#value_widths] / frame_internal_width
         end
@@ -661,7 +706,8 @@ function KeyValuePage:_populateItems()
       end
     end
     if not width_ratio then
-      width_ratio = (key_widths[least_cut_key_index] + middle_padding) / frame_internal_width
+      width_ratio = (key_widths[least_cut_key_index] + middle_padding)
+        / frame_internal_width
     end
   end
 
@@ -670,10 +716,12 @@ function KeyValuePage:_populateItems()
   for idx = 1, self.items_per_page do
     local kv_pairs_idx = idx_offset + idx
     local entry = self.kv_pairs[kv_pairs_idx]
-    if entry == nil then break end
+    if entry == nil then
+      break
+    end
 
     assert(type(entry) == "table")
-    local kv_item = KeyValueItem:new{
+    local kv_item = KeyValueItem:new({
       height = self.item_height,
       width = self.item_width,
       width_ratio = width_ratio,
@@ -690,26 +738,34 @@ function KeyValuePage:_populateItems()
       kv_pairs_idx = kv_pairs_idx,
       kv_page = self,
       show_parent = self.show_parent,
-    }
+    })
     table.insert(self.main_content, kv_item)
     table.insert(self.layout, { kv_item })
-    if entry.separator and
-       -- Never add a separator at the end of the page.
-       idx < self.items_per_page and self.kv_pairs[kv_pairs_idx + 1] ~= nil then
-      table.insert(self.main_content, LineWidget:new{
-        background = Blitbuffer.COLOR_LIGHT_GRAY,
-        dimen = Geom:new{
-          w = self.item_width,
-          h = Size.line.thick,
-        },
-        style = "solid",
-      })
+    if
+      entry.separator
+      -- Never add a separator at the end of the page.
+      and idx < self.items_per_page
+      and self.kv_pairs[kv_pairs_idx + 1] ~= nil
+    then
+      table.insert(
+        self.main_content,
+        LineWidget:new({
+          background = Blitbuffer.COLOR_LIGHT_GRAY,
+          dimen = Geom:new({
+            w = self.item_width,
+            h = Size.line.thick,
+          }),
+          style = "solid",
+        })
+      )
     end
   end
 
   -- update page information
   if self.pages >= 1 then
-    self.page_info_text:setText(T(_("Page %1 of %2"), self.show_page, self.pages))
+    self.page_info_text:setText(
+      T(_("Page %1 of %2"), self.show_page, self.pages)
+    )
     if self.pages > 1 then
       self.page_info_text:enable()
     else
@@ -733,7 +789,11 @@ function KeyValuePage:_populateItems()
     self.page_info_first_chev:hide()
     self.page_info_last_chev:hide()
   end
-  self:moveFocusTo(1, 1, bit.bor(FocusManager.FOCUS_ONLY_ON_NT, FocusManager.NOT_UNFOCUS))
+  self:moveFocusTo(
+    1,
+    1,
+    bit.bor(FocusManager.FOCUS_ONLY_ON_NT, FocusManager.NOT_UNFOCUS)
+  )
   UIManager:setDirty(self, function()
     return "ui", self.dimen
   end)
@@ -771,7 +831,8 @@ function KeyValuePage:onSwipe(arg, ges_ev)
     self:onClose()
   elseif direction == "north" then
     -- no use for now
-    do end -- luacheck: ignore 541
+    do
+    end -- luacheck: ignore 541
   else -- diagonal swipe
     -- trigger full refresh
     UIManager:setDirty(nil, "full")

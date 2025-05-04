@@ -13,11 +13,11 @@ local _ = require("gettext")
 -- additionally handles a location stack for each visited page or
 -- page view change (when scrolling in a same page)
 
-local ReaderBack = EventListener:extend{
+local ReaderBack = EventListener:extend({
   location_stack = nil, -- array
   -- a limit not intended to be a practical limit but just a failsafe
   max_stack = 5000,
-}
+})
 
 function ReaderBack:init()
   self:registerKeyEvents()
@@ -52,7 +52,7 @@ function ReaderBack:_areLocationsSimilar(location1, location2)
     if #location1 ~= #location2 then
       return false
     end
-    for i=1, #location1 do
+    for i = 1, #location1 do
       if not util.tableEquals(location1[i], location2[i]) then
         return false
       end
@@ -126,7 +126,7 @@ function ReaderBack:onBack()
         -- saved_location, which will then not be added to the stack
         self.cur_location = nil
         logger.dbg("[ReaderBack] restoring:", saved_location)
-        self.ui:handleEvent(Event:new('RestoreBookLocation', saved_location))
+        self.ui:handleEvent(Event:new("RestoreBookLocation", saved_location))
         -- Ensure we always have self.cur_location updated, as in some
         -- cases (same page), no event that we handle might be sent.
         UIManager:nextTick(self._addPreviousLocationToStackCallback)
@@ -137,9 +137,9 @@ function ReaderBack:onBack()
       -- On next "Back" only, proceed with the default behaviour (unless
       -- it's disabled, in which case we always show this notification)
       self.back_resist = true
-      UIManager:show(Notification:new{
+      UIManager:show(Notification:new({
         text = _("Location history is empty."),
-      })
+      }))
       return true
     else
       self.back_resist = nil
@@ -175,13 +175,13 @@ function ReaderBack:onBack()
   elseif back_to_exit == "disable" then
     return true
   elseif back_to_exit == "prompt" then
-    UIManager:show(ConfirmBox:new{
+    UIManager:show(ConfirmBox:new({
       text = _("Exit KOReader?"),
       ok_text = _("Exit"),
       ok_callback = function()
         self.ui:handleEvent(Event:new("Close"))
-      end
-    })
+      end,
+    }))
   end
   return true
 end

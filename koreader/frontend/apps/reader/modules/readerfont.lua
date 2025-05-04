@@ -19,12 +19,12 @@ local T = require("ffi/util").template
 local C_ = _.pgettext
 local optionsutil = require("ui/data/optionsutil")
 
-local ReaderFont = InputContainer:extend{
+local ReaderFont = InputContainer:extend({
   font_face = nil,
   font_menu_title = _("Font"),
   face_table = nil,
-  steps = {0,1,1,1,1,1,2,2,2,3,3,3,4,4,5},
-}
+  steps = { 0, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 5 },
+})
 
 -- Keep a list of the new fonts seen at launch
 local newly_added_fonts = nil -- not yet filled
@@ -48,11 +48,16 @@ function ReaderFont:setupFaceMenuTable()
   table.insert(self.face_table, {
     text_func = function()
       local nb_family_fonts = 0
-      local g_font_family_fonts = G_reader_settings:readSetting("cre_font_family_fonts") or {}
+      local g_font_family_fonts = G_reader_settings:readSetting(
+        "cre_font_family_fonts"
+      ) or {}
       for family, name in pairs(g_font_family_fonts) do
         if self.font_family_fonts[family] then
           nb_family_fonts = nb_family_fonts + 1
-        elseif g_font_family_fonts[family] and self.font_family_fonts[family] ~= false then
+        elseif
+          g_font_family_fonts[family]
+          and self.font_family_fonts[family] ~= false
+        then
           nb_family_fonts = nb_family_fonts + 1
         end
       end
@@ -62,7 +67,9 @@ function ReaderFont:setupFaceMenuTable()
       end
       return _("Font-family fonts")
     end,
-    sub_item_table_func = function() return self:getFontFamiliesTable() end,
+    sub_item_table_func = function()
+      return self:getFontFamiliesTable()
+    end,
     separator = true,
   })
   -- Font list
@@ -78,20 +85,26 @@ function ReaderFont:setupFaceMenuTable()
     end
   end
   for k, v in ipairs(face_list) do
-    local font_filename, font_faceindex, is_monospace = cre.getFontFaceFilenameAndFaceIndex(v)
+    local font_filename, font_faceindex, is_monospace =
+      cre.getFontFaceFilenameAndFaceIndex(v)
     if not font_filename then
       -- The font may be available only in italic, for example script/cursive fonts
-      font_filename, font_faceindex, is_monospace = cre.getFontFaceFilenameAndFaceIndex(v, nil, true)
+      font_filename, font_faceindex, is_monospace =
+        cre.getFontFaceFilenameAndFaceIndex(v, nil, true)
     end
     table.insert(self.face_table, {
       text_func = function()
         -- defaults are hardcoded in credocument.lua
-        local default_font = G_reader_settings:readSetting("cre_font") or self.ui.document.default_font
-        local fallback_font = G_reader_settings:readSetting("fallback_font") or self.ui.document.fallback_fonts[1]
-        local monospace_font = G_reader_settings:readSetting("monospace_font") or self.ui.document.monospace_font
+        local default_font = G_reader_settings:readSetting("cre_font")
+          or self.ui.document.default_font
+        local fallback_font = G_reader_settings:readSetting("fallback_font")
+          or self.ui.document.fallback_fonts[1]
+        local monospace_font = G_reader_settings:readSetting("monospace_font")
+          or self.ui.document.monospace_font
         local text = v
         if font_filename and font_faceindex then
-          text = FontList:getLocalizedFontName(font_filename, font_faceindex) or text
+          text = FontList:getLocalizedFontName(font_filename, font_faceindex)
+            or text
         end
 
         if v == monospace_font then
@@ -156,12 +169,12 @@ function ReaderFont:registerKeyEvents()
       self.key_events.IncreaseSize = {
         { "Shift", Input.group.PgFwd },
         event = "ChangeSize",
-        args = 0.5
+        args = 0.5,
       }
       self.key_events.DecreaseSize = {
         { "Shift", Input.group.PgBack },
         event = "ChangeSize",
-        args = -0.5
+        args = -0.5,
       }
     end
   end
@@ -175,11 +188,12 @@ end
 
 function ReaderFont:onReadSettings(config)
   self.font_face = config:readSetting("font_face")
-          or G_reader_settings:readSetting("cre_font")
-          or self.ui.document.default_font
+    or G_reader_settings:readSetting("cre_font")
+    or self.ui.document.default_font
   self.ui.document:setFontFace(self.font_face)
 
-  local header_font = G_reader_settings:readSetting("header_font") or self.ui.document.header_font
+  local header_font = G_reader_settings:readSetting("header_font")
+    or self.ui.document.header_font
   self.ui.document:setHeaderFont(header_font)
 
   self.ui.document:setFontSize(Screen:scaleBySize(self.configurable.font_size))
@@ -236,7 +250,12 @@ function ReaderFont:onSetFontBaseWeight(weight)
   self.configurable.font_base_weight = weight
   self.ui.document:setFontBaseWeight(weight)
   self.ui:handleEvent(Event:new("UpdatePos"))
-  Notification:notify(T(_("Font weight set to: %1."), optionsutil:getOptionText("SetFontBaseWeight", weight)))
+  Notification:notify(
+    T(
+      _("Font weight set to: %1."),
+      optionsutil:getOptionText("SetFontBaseWeight", weight)
+    )
+  )
   return true
 end
 
@@ -244,7 +263,12 @@ function ReaderFont:onSetFontHinting(mode)
   self.configurable.font_hinting = mode
   self.ui.document:setFontHinting(mode)
   self.ui:handleEvent(Event:new("UpdatePos"))
-  Notification:notify(T(_("Font hinting set to: %1"), optionsutil:getOptionText("SetFontHinting", mode)))
+  Notification:notify(
+    T(
+      _("Font hinting set to: %1"),
+      optionsutil:getOptionText("SetFontHinting", mode)
+    )
+  )
   return true
 end
 
@@ -252,7 +276,12 @@ function ReaderFont:onSetFontKerning(mode)
   self.configurable.font_kerning = mode
   self.ui.document:setFontKerning(mode)
   self.ui:handleEvent(Event:new("UpdatePos"))
-  Notification:notify(T(_("Font kerning set to: %1"), optionsutil:getOptionText("SetFontKerning", mode)))
+  Notification:notify(
+    T(
+      _("Font kerning set to: %1"),
+      optionsutil:getOptionText("SetFontKerning", mode)
+    )
+  )
   return true
 end
 
@@ -260,7 +289,9 @@ function ReaderFont:onSetWordSpacing(values)
   self.configurable.word_spacing = values
   self.ui.document:setWordSpacing(values)
   self.ui:handleEvent(Event:new("UpdatePos"))
-  Notification:notify(T(_("Word spacing set to: %1%, %2%"), values[1], values[2]))
+  Notification:notify(
+    T(_("Word spacing set to: %1%, %2%"), values[1], values[2])
+  )
   return true
 end
 
@@ -309,12 +340,19 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
       -- If the font is monospace, assume it wouldn't be a candidate
       -- to be set as a fallback font, and allow it to be set as the
       -- default monospace font.
-      UIManager:show(MultiConfirmBox:new{
-        text = T(_("Would you like %1 to be used as the default font (★), or the monospace font (🄼)?"), face), -- [M] is U+1F13C
+      UIManager:show(MultiConfirmBox:new({
+        text = T(
+          _(
+            "Would you like %1 to be used as the default font (★), or the monospace font (🄼)?"
+          ),
+          face
+        ), -- [M] is U+1F13C
         choice1_text = _("Default"),
         choice1_callback = function()
           G_reader_settings:saveSetting("cre_font", face)
-          if touchmenu_instance then touchmenu_instance:updateItems() end
+          if touchmenu_instance then
+            touchmenu_instance:updateItems()
+          end
         end,
         choice2_text = C_("Font", "Monospace"),
         choice2_callback = function()
@@ -323,26 +361,37 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
           local current_face = self.font_face
           self.font_face = nil
           self:onSetFont(current_face)
-          if touchmenu_instance then touchmenu_instance:updateItems() end
+          if touchmenu_instance then
+            touchmenu_instance:updateItems()
+          end
         end,
-      })
+      }))
       return
     end
-    UIManager:show(MultiConfirmBox:new{
-      text = T(_("Would you like %1 to be used as the default font (★), or the fallback font (�)?\n\nCharacters not found in the active font are shown in the fallback font instead."), face),
+    UIManager:show(MultiConfirmBox:new({
+      text = T(
+        _(
+          "Would you like %1 to be used as the default font (★), or the fallback font (�)?\n\nCharacters not found in the active font are shown in the fallback font instead."
+        ),
+        face
+      ),
       choice1_text = _("Default"),
       choice1_callback = function()
         G_reader_settings:saveSetting("cre_font", face)
-        if touchmenu_instance then touchmenu_instance:updateItems() end
+        if touchmenu_instance then
+          touchmenu_instance:updateItems()
+        end
       end,
       choice2_text = C_("Font", "Fallback"),
       choice2_callback = function()
         G_reader_settings:saveSetting("fallback_font", face)
         self.ui.document:setupFallbackFontFaces()
         self.ui:handleEvent(Event:new("UpdatePos"))
-        if touchmenu_instance then touchmenu_instance:updateItems() end
+        if touchmenu_instance then
+          touchmenu_instance:updateItems()
+        end
       end,
-    })
+    }))
   end
 end
 
@@ -357,13 +406,15 @@ function ReaderFont:addToMainMenu(menu_items)
         self.face_table.refresh_func()
       end
       return self.face_table
-    end
+    end,
   }
 end
 
 function ReaderFont:gesToFontSize(ges)
   -- Dispatcher feeds us a number, not a gesture
-  if type(ges) ~= "table" then return ges end
+  if type(ges) ~= "table" then
+    return ges
+  end
 
   if ges.distance == nil then
     ges.distance = 1
@@ -375,10 +426,16 @@ function ReaderFont:gesToFontSize(ges)
   elseif ges.direction and ges.direction == "horizontal" then
     step = math.ceil(2 * #self.steps * ges.distance / Screen:getWidth())
   elseif ges.direction and ges.direction == "diagonal" then
-    local screen_diagonal = math.sqrt(Screen:getWidth()^2 + Screen:getHeight()^2)
+    local screen_diagonal =
+      math.sqrt(Screen:getWidth() ^ 2 + Screen:getHeight() ^ 2)
     step = math.ceil(2 * #self.steps * ges.distance / screen_diagonal)
   else
-    step = math.ceil(2 * #self.steps * ges.distance / math.min(Screen:getWidth(), Screen:getHeight()))
+    step = math.ceil(
+      2
+        * #self.steps
+        * ges.distance
+        / math.min(Screen:getWidth(), Screen:getHeight())
+    )
   end
   local delta_int = self.steps[step] or self.steps[#self.steps]
   return delta_int
@@ -398,13 +455,15 @@ function ReaderFont:onDecreaseFontSize(ges)
   return true
 end
 
-local font_family_info_text = _([[
+local font_family_info_text = _(
+  [[
 In HTML/CSS based documents like EPUBs, stylesheets can specify to use fonts by family instead of a specific font name.
 Except for monospace and math, KOReader uses your default font for any family name.
 You can associate a specific font to each family if you care about the distinction.
 A long-press on a font name will make the association global (★), so it applies to all your books. This is the preferred approach.
 A tap will only affect the current book.
-If you encounter a book where such families are abused to the point where your default font is hardly used, you can quickly disable a family font for this book by unchecking the association.]])
+If you encounter a book where such families are abused to the point where your default font is hardly used, you can quickly disable a family font for this book by unchecking the association.]]
+)
 
 local FONT_FAMILIES = {
   -- On 1st page
@@ -429,13 +488,18 @@ function ReaderFont:updateFontFamilyFonts()
   -- So, we don't need to insert self.font_face in the list for unset family fonts,
   -- which would otherwise need us to call updateFontFamilyFonts() every time we
   -- change the main font face.
-  local g_font_family_fonts = G_reader_settings:readSetting("cre_font_family_fonts") or {}
+  local g_font_family_fonts = G_reader_settings:readSetting(
+    "cre_font_family_fonts"
+  ) or {}
   local family_fonts = {}
   for i, family in ipairs(FONT_FAMILIES) do
     local family_tag = family[1]
     if self.font_family_fonts[family_tag] then
       family_fonts[family_tag] = self.font_family_fonts[family_tag]
-    elseif g_font_family_fonts[family_tag] and self.font_family_fonts[family_tag] ~= false then
+    elseif
+      g_font_family_fonts[family_tag]
+      and self.font_family_fonts[family_tag] ~= false
+    then
       family_fonts[family_tag] = g_font_family_fonts[family_tag]
     elseif family_tag == "math" then
       -- If no math font set, force using our math-enabled shipped FreeSerif (which
@@ -443,19 +507,24 @@ function ReaderFont:updateFontFamilyFonts()
       family_fonts[family_tag] = "FreeSerif"
     end
   end
-  self.ui.document:setFontFamilyFontFaces(family_fonts, G_reader_settings:isTrue("cre_font_family_ignore_font_names"))
+  self.ui.document:setFontFamilyFontFaces(
+    family_fonts,
+    G_reader_settings:isTrue("cre_font_family_ignore_font_names")
+  )
   self.ui:handleEvent(Event:new("UpdatePos"))
 end
 
 function ReaderFont:getFontFamiliesTable()
-  local g_font_family_fonts = G_reader_settings:readSetting("cre_font_family_fonts") or {}
+  local g_font_family_fonts = G_reader_settings:readSetting(
+    "cre_font_family_fonts"
+  ) or {}
   local families_table = {
     {
       text = _("About font-family fonts"),
       callback = function()
-        UIManager:show(InfoMessage:new{
+        UIManager:show(InfoMessage:new({
           text = font_family_info_text,
-        })
+        }))
       end,
       keep_menu_open = true,
       separator = true,
@@ -469,9 +538,11 @@ function ReaderFont:getFontFamiliesTable()
         G_reader_settings:flipNilOrFalse("cre_font_family_ignore_font_names")
         self:updateFontFamilyFonts()
       end,
-      help_text = _([[
+      help_text = _(
+        [[
 In a CSS font-family declaration, publishers may precede a family name with one or more font names, that are to be used if found among embedded fonts or your own fonts.
-Enabling this will ignore such font names and make sure your preferred family fonts are used.]]),
+Enabling this will ignore such font names and make sure your preferred family fonts are used.]]
+      ),
       keep_menu_open = true,
       separator = true,
     },
@@ -486,9 +557,11 @@ Enabling this will ignore such font names and make sure your preferred family fo
     local unset_font_main_text = _("(main font)")
     local unset_font_choice_text = _("Use main font")
     if family_tag == "monospace" then
-      local monospace_font = G_reader_settings:readSetting("monospace_font") or self.ui.document.monospace_font
+      local monospace_font = G_reader_settings:readSetting("monospace_font")
+        or self.ui.document.monospace_font
       unset_font_main_text = _("(default monospace font)")
-      unset_font_choice_text = T(_("Use default monospace font: %1"), monospace_font)
+      unset_font_choice_text =
+        T(_("Use default monospace font: %1"), monospace_font)
     elseif family_tag == "math" then
       unset_font_main_text = _("(default math font)")
       unset_font_choice_text = _("Use default math font")
@@ -527,7 +600,10 @@ Enabling this will ignore such font names and make sure your preferred family fo
       checked_func = function()
         if self.font_family_fonts[family_tag] then
           return true
-        elseif g_font_family_fonts[family_tag] and self.font_family_fonts[family_tag] ~= false then
+        elseif
+          g_font_family_fonts[family_tag]
+          and self.font_family_fonts[family_tag] ~= false
+        then
           return true
         end
         return false
@@ -540,7 +616,10 @@ Enabling this will ignore such font names and make sure your preferred family fo
             self.font_family_fonts[family_tag] = nil
           end
         else
-          if g_font_family_fonts[family_tag] and self.font_family_fonts[family_tag] ~= false then
+          if
+            g_font_family_fonts[family_tag]
+            and self.font_family_fonts[family_tag] ~= false
+          then
             self.font_family_fonts[family_tag] = false
           else
             self.font_family_fonts[family_tag] = nil
@@ -551,7 +630,10 @@ Enabling this will ignore such font names and make sure your preferred family fo
       sub_item_table = {
         ignored_by_menu_search = true, -- those would be duplicated
         {
-          text = T(_("Font for %1"), BD.wrap(T("'font-family: %1'", family_tag))),
+          text = T(
+            _("Font for %1"),
+            BD.wrap(T("'font-family: %1'", family_tag))
+          ),
           separator = true,
         },
         {
@@ -570,13 +652,16 @@ Enabling this will ignore such font names and make sure your preferred family fo
             g_font_family_fonts[family_tag] = nil
             self.font_family_fonts[family_tag] = nil
             self:updateFontFamilyFonts()
-            if touchmenu_instance then touchmenu_instance:updateItems() end
+            if touchmenu_instance then
+              touchmenu_instance:updateItems()
+            end
           end,
           checked_func = function()
             if self.font_family_fonts[family_tag] == false then
               return true
             end
-            return not self.font_family_fonts[family_tag] and not g_font_family_fonts[family_tag]
+            return not self.font_family_fonts[family_tag]
+              and not g_font_family_fonts[family_tag]
           end,
           separator = true,
         },
@@ -584,9 +669,11 @@ Enabling this will ignore such font names and make sure your preferred family fo
       },
     }
     for k, v in ipairs(face_list) do
-      local font_filename, font_faceindex, is_monospace, has_ot_math, has_emojis = cre.getFontFaceFilenameAndFaceIndex(v)
+      local font_filename, font_faceindex, is_monospace, has_ot_math, has_emojis =
+        cre.getFontFaceFilenameAndFaceIndex(v)
       if not font_filename then
-        font_filename, font_faceindex, is_monospace, has_ot_math, has_emojis = cre.getFontFaceFilenameAndFaceIndex(v, nil, true)
+        font_filename, font_faceindex, is_monospace, has_ot_math, has_emojis =
+          cre.getFontFaceFilenameAndFaceIndex(v, nil, true)
       end
       if i == 1 then
         face_to_filename[v] = { font_filename, font_faceindex }
@@ -606,7 +693,10 @@ Enabling this will ignore such font names and make sure your preferred family fo
           text_func = function()
             local text = v
             if font_filename and font_faceindex then
-              text = FontList:getLocalizedFontName(font_filename, font_faceindex) or text
+              text = FontList:getLocalizedFontName(
+                font_filename,
+                font_faceindex
+              ) or text
             end
             if g_font_family_fonts[family_tag] == v then
               text = text .. "   ★"
@@ -627,7 +717,9 @@ Enabling this will ignore such font names and make sure your preferred family fo
               self.font_family_fonts[family_tag] = v
               -- We don't use :notify() as we don't want this notification to be masked,
               -- to let the user know it's not global (so he has to use long-press)
-              UIManager:show(Notification:new{ text = _("Font family font set for this book only.") })
+              UIManager:show(Notification:new({
+                text = _("Font family font set for this book only."),
+              }))
               -- Be sure it is shown before the re-rendering (which may take some time)
               UIManager:forceRePaint()
             end
@@ -637,12 +729,17 @@ Enabling this will ignore such font names and make sure your preferred family fo
             g_font_family_fonts[family_tag] = v
             self.font_family_fonts[family_tag] = nil
             self:updateFontFamilyFonts()
-            if touchmenu_instance then touchmenu_instance:updateItems() end
+            if touchmenu_instance then
+              touchmenu_instance:updateItems()
+            end
           end,
           checked_func = function()
             if self.font_family_fonts[family_tag] then
               return self.font_family_fonts[family_tag] == v
-            elseif g_font_family_fonts[family_tag] == v and self.font_family_fonts[family_tag] ~= false then
+            elseif
+              g_font_family_fonts[family_tag] == v
+              and self.font_family_fonts[family_tag] ~= false
+            then
               return true
             end
             return false
@@ -654,7 +751,10 @@ Enabling this will ignore such font names and make sure your preferred family fo
     family_table.sub_item_table.open_on_menu_item_id_func = function()
       if self.font_family_fonts[family_tag] then
         return family_tag .. "_" .. self.font_family_fonts[family_tag]
-      elseif g_font_family_fonts[family_tag] and self.font_family_fonts[family_tag] ~= false then
+      elseif
+        g_font_family_fonts[family_tag]
+        and self.font_family_fonts[family_tag] ~= false
+      then
         return family_tag .. "_" .. g_font_family_fonts[family_tag]
       end
     end
@@ -666,8 +766,15 @@ end
 function ReaderFont:getFontSettingsTable()
   local settings_table = {}
 
-  if Device:isAndroid() or Device:isDesktop() or Device:isEmulator() or Device:isPocketBook() then
-    for _, item in ipairs(require("ui/elements/font_settings"):getSystemFontMenuItems()) do
+  if
+    Device:isAndroid()
+    or Device:isDesktop()
+    or Device:isEmulator()
+    or Device:isPocketBook()
+  then
+    for _, item in
+      ipairs(require("ui/elements/font_settings"):getSystemFontMenuItems())
+    do
       table.insert(settings_table, item)
     end
     settings_table[#settings_table].separator = true
@@ -681,7 +788,9 @@ function ReaderFont:getFontSettingsTable()
     callback = function()
       G_reader_settings:flipNilOrTrue("font_menu_use_font_face")
     end,
-    help_text = _([[In the font menu, display each font name with its own font face.]]),
+    help_text = _(
+      [[In the font menu, display each font name with its own font face.]]
+    ),
   })
 
   table.insert(settings_table, {
@@ -694,7 +803,7 @@ function ReaderFont:getFontSettingsTable()
       self.face_table.needs_refresh = true
     end,
     hold_callback = function()
-      UIManager:show(ConfirmBox:new{
+      UIManager:show(ConfirmBox:new({
         text = _([[
 The font list menu can show fonts sorted by name or by most recently selected.
 New fonts discovered at KOReader startup will be shown first.
@@ -709,7 +818,7 @@ Do you want to clear the history of selected fonts?]]),
           self:sortFaceList(cre.getFontFaces())
           self.face_table.needs_refresh = true
         end,
-      })
+      }))
     end,
     separator = true,
   })
@@ -724,15 +833,19 @@ Do you want to clear the history of selected fonts?]]),
       self.ui.document:setupFallbackFontFaces()
       self.ui:handleEvent(Event:new("UpdatePos"))
     end,
-    help_text = T(_([[
+    help_text = T(
+      _(
+        [[
 Enable additional fallback fonts, for the most complete script and language coverage.
 These fonts will be used in this order:
 
 %1
 
 You can set a preferred fallback font with a long-press on a font name, and it will be used before these.
-If that font happens to be part of this list already, it will be used first.]]),
-      table.concat(self.ui.document.fallback_fonts, "\n")),
+If that font happens to be part of this list already, it will be used first.]]
+      ),
+      table.concat(self.ui.document.fallback_fonts, "\n")
+    ),
   })
   table.insert(settings_table, {
     text = _("Adjust fallback font sizes"),
@@ -741,23 +854,28 @@ If that font happens to be part of this list already, it will be used first.]]),
     end,
     callback = function()
       G_reader_settings:flipNilOrTrue("cre_adjusted_fallback_font_sizes")
-      self.ui.document:setAdjustedFallbackFontSizes(G_reader_settings:nilOrTrue("cre_adjusted_fallback_font_sizes"))
+      self.ui.document:setAdjustedFallbackFontSizes(
+        G_reader_settings:nilOrTrue("cre_adjusted_fallback_font_sizes")
+      )
       self.ui:handleEvent(Event:new("UpdatePos"))
     end,
-    help_text = _([[
+    help_text = _(
+      [[
 Adjust the size of each fallback font so they all get the same x-height, and lowercase characters picked in them look similarly sized as those from the default font.
-This may help with Greek words among Latin text (as Latin fonts often do not have all the Greek characters), but may make Chinese or Indic characters smaller when picked from fallback fonts.]]),
+This may help with Greek words among Latin text (as Latin fonts often do not have all the Greek characters), but may make Chinese or Indic characters smaller when picked from fallback fonts.]]
+    ),
     separator = true,
   })
 
   table.insert(settings_table, {
     text_func = function()
-      local scale = G_reader_settings:readSetting("cre_monospace_scaling") or 100
+      local scale = G_reader_settings:readSetting("cre_monospace_scaling")
+        or 100
       return T(_("Monospace fonts scaling: %1 %"), scale)
     end,
     callback = function()
       local SpinWidget = require("ui/widget/spinwidget")
-      UIManager:show(SpinWidget:new{
+      UIManager:show(SpinWidget:new({
         value = G_reader_settings:readSetting("cre_monospace_scaling") or 100,
         value_min = 30,
         value_step = 1,
@@ -774,23 +892,27 @@ This may help with Greek words among Latin text (as Latin fonts often do not hav
           self.ui.document:setMonospaceFontScaling(scale)
           self.ui:handleEvent(Event:new("UpdatePos"))
         end,
-      })
+      }))
     end,
-    help_text = _([[
+    help_text = _(
+      [[
 Monospace fonts may look big when inline with your main font if it has a small x-height.
-This setting allows scaling all monospace fonts by this percentage so they can fit your preferred font height, or you can make them be a bit smaller to distinguish them more easily.]]),
+This setting allows scaling all monospace fonts by this percentage so they can fit your preferred font height, or you can make them be a bit smaller to distinguish them more easily.]]
+    ),
     separator = true,
   })
 
   table.insert(settings_table, {
     text = _("Generate font test document"),
     callback = function()
-      UIManager:show(ConfirmBox:new{
-        text = _("Would you like to generate an HTML document showing a text sample rendered with each available font?"),
+      UIManager:show(ConfirmBox:new({
+        text = _(
+          "Would you like to generate an HTML document showing a text sample rendered with each available font?"
+        ),
         ok_callback = function()
           self:buildFontsTestDocument()
         end,
-      })
+      }))
     end,
   })
   return settings_table
@@ -808,11 +930,15 @@ function ReaderFont:addToRecentlySelectedList(face)
 end
 
 function ReaderFont:sortFaceList(face_list)
-  self.fonts_recently_selected = G_reader_settings:readSetting("cre_fonts_recently_selected")
+  self.fonts_recently_selected =
+    G_reader_settings:readSetting("cre_fonts_recently_selected")
   if not self.fonts_recently_selected then
     -- Init this list with the alphabetical list we got
     self.fonts_recently_selected = face_list
-    G_reader_settings:saveSetting("cre_fonts_recently_selected", self.fonts_recently_selected)
+    G_reader_settings:saveSetting(
+      "cre_fonts_recently_selected",
+      self.fonts_recently_selected
+    )
     -- We got no list of previously known fonts, so we can't say which are new.
     newly_added_fonts = {}
     return face_list
@@ -845,7 +971,7 @@ function ReaderFont:sortFaceList(face_list)
   -- but still with newly added fonts first
   if next(newly_added_fonts) then
     local move_idx = 1
-    for i=1, #face_list do
+    for i = 1, #face_list do
       if newly_added_fonts[face_list[i]] then
         table.insert(face_list, move_idx, table.remove(face_list, i))
         move_idx = move_idx + 1
@@ -856,9 +982,11 @@ function ReaderFont:sortFaceList(face_list)
 end
 
 -- Default sample file
-local FONT_TEST_DEFAULT_SAMPLE_PATH = "frontend/ui/elements/font-test-sample-default.template"
+local FONT_TEST_DEFAULT_SAMPLE_PATH =
+  "frontend/ui/elements/font-test-sample-default.template"
 -- Users can set their own sample file, that will be used if found
-local FONT_TEST_USER_SAMPLE_PATH = require("datastorage"):getSettingsDir() .. "/font-test-sample.html"
+local FONT_TEST_USER_SAMPLE_PATH = require("datastorage"):getSettingsDir()
+  .. "/font-test-sample.html"
 -- This document will be generated in the home or default directory
 local FONT_TEST_FINAL_FILENAME = "font-test.html"
 
@@ -871,15 +999,22 @@ function ReaderFont:buildFontsTestDocument()
   end
   if not html_sample then
     f = io.open(FONT_TEST_DEFAULT_SAMPLE_PATH, "r")
-    if not f then return nil end
+    if not f then
+      return nil
+    end
     html_sample = f:read("*all")
     f:close()
   end
-  local font_test_final_path = G_named_settings.home_dir() .. "/" .. FONT_TEST_FINAL_FILENAME
+  local font_test_final_path = G_named_settings.home_dir()
+    .. "/"
+    .. FONT_TEST_FINAL_FILENAME
   f = io.open(font_test_final_path, "w")
-  if not f then return end
+  if not f then
+    return
+  end
   -- Using <section><title>...</title></section> allows for a TOC to be built by crengine
-  f:write(string.format([[
+  f:write(string.format(
+    [[
 <?xml version="1.0" encoding="UTF-8"?>
 <html>
 <head>
@@ -898,12 +1033,15 @@ a { color: black; }
 </head>
 <body>
 <h1>%s</h1>
-]], _("Available fonts test document"), _("AVAILABLE FONTS")))
+]],
+    _("Available fonts test document"),
+    _("AVAILABLE FONTS")
+  ))
   local face_list = cre.getFontFaces()
   local new_font_idx = 1
   if next(newly_added_fonts) then
     -- Sort alphabetically, with new fonts first (as done in sortFaceList())
-    for i=1, #face_list do
+    for i = 1, #face_list do
       if newly_added_fonts[face_list[i]] then
         table.insert(face_list, new_font_idx, table.remove(face_list, i))
         new_font_idx = new_font_idx + 1
@@ -914,9 +1052,17 @@ a { color: black; }
   for i, font_name in ipairs(face_list) do
     local font_id = font_name:gsub(" ", "_"):gsub("'", "_")
     if i < new_font_idx then -- New fonts prepended with NEW on summary page
-      f:write(string.format("  <div><a href='#%s'>NEW: %s</a></div>\n", font_id, font_name))
+      f:write(
+        string.format(
+          "  <div><a href='#%s'>NEW: %s</a></div>\n",
+          font_id,
+          font_name
+        )
+      )
     else
-      f:write(string.format("  <div><a href='#%s'>%s</a></div>\n", font_id, font_name))
+      f:write(
+        string.format("  <div><a href='#%s'>%s</a></div>\n", font_id, font_name)
+      )
     end
   end
   f:write("</div>\n\n")
@@ -933,14 +1079,17 @@ a { color: black; }
   end
   f:write("</body></html>\n")
   f:close()
-  UIManager:show(ConfirmBox:new{
-    text = T(_("Document created as:\n%1\n\nWould you like to view it now?"), BD.filepath(font_test_final_path)),
+  UIManager:show(ConfirmBox:new({
+    text = T(
+      _("Document created as:\n%1\n\nWould you like to view it now?"),
+      BD.filepath(font_test_final_path)
+    ),
     ok_callback = function()
       UIManager:scheduleIn(1.0, function()
         self.ui:switchDocument(font_test_final_path)
       end)
     end,
-  })
+  }))
 end
 
 return ReaderFont

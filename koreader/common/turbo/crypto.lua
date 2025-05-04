@@ -15,22 +15,21 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local ffi = require "ffi"
-local platform = require "turbo.platform"
-require "turbo.cdef"
+local ffi = require("ffi")
+local platform = require("turbo.platform")
+require("turbo.cdef")
 
 if not _G.TURBO_SSL then
-    return setmetatable({},
-    {
+  return setmetatable({}, {
     __index = function(t, k)
-        error("TURBO_SSL is not defined and you are trying to use SSL.")
+      error("TURBO_SSL is not defined and you are trying to use SSL.")
     end,
-    __call  = function(t, k)
-        error("TURBO_SSL is not defined and you are trying to use SSL.")
-    end
-    })
+    __call = function(t, k)
+      error("TURBO_SSL is not defined and you are trying to use SSL.")
+    end,
+  })
 elseif platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
-    return require "turbo.crypto_linux"
+  return require("turbo.crypto_linux")
 else
-    return require "turbo.crypto_luasec"
+  return require("turbo.crypto_luasec")
 end

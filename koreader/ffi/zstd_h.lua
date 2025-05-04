@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 static const int ZSTD_CLEVEL_DEFAULT = 3;
 size_t ZSTD_compress(void *, size_t, const void *, size_t, int);
 size_t ZSTD_decompress(void *, size_t, const void *, size_t);
@@ -18,4 +18,4 @@ ZSTD_DCtx *ZSTD_createDCtx(void);
 size_t ZSTD_freeDCtx(ZSTD_DCtx *);
 size_t ZSTD_decompressDCtx(ZSTD_DCtx *, void *, size_t, const void *, size_t);
 size_t ZSTD_DCtx_reset(ZSTD_DCtx *, ZSTD_ResetDirective);
-]]
+]])

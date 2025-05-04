@@ -32,27 +32,27 @@ EOF
 local sizeof_pthread_attr_t
 local valueof_PTHREAD_CREATE_DETACHED
 if ffi.os == "OSX" then
-    sizeof_pthread_attr_t = 64
-    valueof_PTHREAD_CREATE_DETACHED = 2
+  sizeof_pthread_attr_t = 64
+  valueof_PTHREAD_CREATE_DETACHED = 2
 elseif ffi.os == "Linux" then
-    if os.getenv("IS_ANDROID") then
-        sizeof_pthread_attr_t = ffi.abi("32bit") and 24 or 56
-    elseif ffi.arch == "arm" or ffi.arch == "x86" then
-        sizeof_pthread_attr_t = 36
-    elseif ffi.arch == "x64" then
-        sizeof_pthread_attr_t = 56
-    elseif ffi.arch == "arm64" or ffi.arch == "arm64be" then
-        sizeof_pthread_attr_t = 64
-    end
-    valueof_PTHREAD_CREATE_DETACHED = 1
+  if os.getenv("IS_ANDROID") then
+    sizeof_pthread_attr_t = ffi.abi("32bit") and 24 or 56
+  elseif ffi.arch == "arm" or ffi.arch == "x86" then
+    sizeof_pthread_attr_t = 36
+  elseif ffi.arch == "x64" then
+    sizeof_pthread_attr_t = 56
+  elseif ffi.arch == "arm64" or ffi.arch == "arm64be" then
+    sizeof_pthread_attr_t = 64
+  end
+  valueof_PTHREAD_CREATE_DETACHED = 1
 end
 
 if not sizeof_pthread_attr_t or not valueof_PTHREAD_CREATE_DETACHED then
-    error("unsupported arch / OS")
+  error("unsupported arch / OS")
 end
 
 ffi.cdef(string.format(
-    [[
+  [[
     typedef union {
         char __size[%u];
         long int __align;
@@ -63,6 +63,7 @@ ffi.cdef(string.format(
     int pthread_attr_setdetachstate(pthread_attr_t *, int);
     int pthread_attr_destroy(pthread_attr_t *);
     int pthread_create(pthread_t *restrict, const pthread_attr_t *restrict, void *(*)(void *), void *restrict);
-    ]]
-    , sizeof_pthread_attr_t, valueof_PTHREAD_CREATE_DETACHED
+    ]],
+  sizeof_pthread_attr_t,
+  valueof_PTHREAD_CREATE_DETACHED
 ))

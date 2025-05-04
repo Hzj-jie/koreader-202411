@@ -8,14 +8,14 @@ local time = require("ui/time")
 local _ = require("gettext")
 local T = require("ffi/util").template
 
-local AutoTurn = WidgetContainer:extend{
+local AutoTurn = WidgetContainer:extend({
   name = "autoturn",
   is_doc_only = true,
   autoturn_sec = 0,
   autoturn_distance = 1,
   enabled = false,
   task = nil,
-}
+})
 
 function AutoTurn:_enabled()
   return self.enabled and self.autoturn_sec > 0
@@ -59,31 +59,51 @@ end
 
 function AutoTurn:_start()
   if self:_enabled() then
-    logger.dbg("AutoTurn: start at", time.format_time(UIManager:getElapsedTimeSinceBoot()))
+    logger.dbg(
+      "AutoTurn: start at",
+      time.format_time(UIManager:getElapsedTimeSinceBoot())
+    )
     PluginShare.pause_auto_suspend = true
     self:_schedule()
 
     local text
     if self.autoturn_distance == 1 then
-      local time_string = datetime.secondsToClockDuration("letters", self.autoturn_sec, false, true, true)
-      text = T(_("Autoturn is now active and will automatically turn the page every %1."), time_string)
+      local time_string = datetime.secondsToClockDuration(
+        "letters",
+        self.autoturn_sec,
+        false,
+        true,
+        true
+      )
+      text = T(
+        _(
+          "Autoturn is now active and will automatically turn the page every %1."
+        ),
+        time_string
+      )
     else
-      text = T(_("Autoturn is now active and will automatically scroll %1 % of the page every %2 seconds."),
+      text = T(
+        _(
+          "Autoturn is now active and will automatically scroll %1 % of the page every %2 seconds."
+        ),
         self.autoturn_distance * 100,
-        self.autoturn_sec)
+        self.autoturn_sec
+      )
     end
 
     local InfoMessage = require("ui/widget/infomessage")
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = text,
       timeout = 3,
-    })
+    }))
   end
 end
 
 function AutoTurn:init()
-  self.autoturn_sec = G_reader_settings:readSetting("autoturn_timeout_seconds") or 0
-  self.autoturn_distance = G_reader_settings:readSetting("autoturn_distance") or 1
+  self.autoturn_sec = G_reader_settings:readSetting("autoturn_timeout_seconds")
+    or 0
+  self.autoturn_distance = G_reader_settings:readSetting("autoturn_distance")
+    or 1
   self.enabled = G_reader_settings:isTrue("autoturn_enabled")
   self.ui.menu:registerToMainMenu(self)
   self.task = function()
@@ -118,16 +138,27 @@ end
 function AutoTurn:addToMainMenu(menu_items)
   menu_items.autoturn = {
     text_func = function()
-      local time_string = datetime.secondsToClockDuration("letters", self.autoturn_sec, false, true, true)
-      return self:_enabled() and T(_("Autoturn: %1"), time_string) or _("Autoturn")
+      local time_string = datetime.secondsToClockDuration(
+        "letters",
+        self.autoturn_sec,
+        false,
+        true,
+        true
+      )
+      return self:_enabled() and T(_("Autoturn: %1"), time_string)
+        or _("Autoturn")
     end,
-    checked_func = function() return self:_enabled() end,
+    checked_func = function()
+      return self:_enabled()
+    end,
     callback = function(menu)
       local DateTimeWidget = require("ui/widget/datetimewidget")
-      local autoturn_seconds = G_reader_settings:readSetting("autoturn_timeout_seconds") or 30
-      local autoturn_minutes = math.floor(autoturn_seconds * (1/60))
+      local autoturn_seconds = G_reader_settings:readSetting(
+        "autoturn_timeout_seconds"
+      ) or 30
+      local autoturn_minutes = math.floor(autoturn_seconds * (1 / 60))
       autoturn_seconds = autoturn_seconds % 60
-      local autoturn_spin = DateTimeWidget:new {
+      local autoturn_spin = DateTimeWidget:new({
         title_text = _("Autoturn time"),
         info_text = _("Enter time in minutes and seconds."),
         min = autoturn_minutes,
@@ -148,7 +179,10 @@ function AutoTurn:addToMainMenu(menu_items)
         ok_always_enabled = true,
         callback = function(t)
           self.autoturn_sec = t.min * 60 + t.sec
-          G_reader_settings:saveSetting("autoturn_timeout_seconds", self.autoturn_sec)
+          G_reader_settings:saveSetting(
+            "autoturn_timeout_seconds",
+            self.autoturn_sec
+          )
           self.enabled = true
           G_reader_settings:makeTrue("autoturn_enabled")
           self:_unschedule()
@@ -156,31 +190,34 @@ function AutoTurn:addToMainMenu(menu_items)
           menu:updateItems()
           self.onResume = self._onResume
         end,
-      }
+      })
       UIManager:show(autoturn_spin)
     end,
     hold_callback = function(menu)
       local SpinWidget = require("ui/widget/spinwidget")
       local curr_items = G_reader_settings:readSetting("autoturn_distance") or 1
-      local autoturn_spin = SpinWidget:new {
+      local autoturn_spin = SpinWidget:new({
         value = curr_items,
         value_min = -20,
         value_max = 20,
         precision = "%.2f",
-        value_step = .1,
-        value_hold_step = .5,
+        value_step = 0.1,
+        value_hold_step = 0.5,
         ok_text = _("Set distance"),
         title_text = _("Scrolling distance"),
         callback = function(autoturn_spin)
           self.autoturn_distance = autoturn_spin.value
-          G_reader_settings:saveSetting("autoturn_distance", autoturn_spin.value)
+          G_reader_settings:saveSetting(
+            "autoturn_distance",
+            autoturn_spin.value
+          )
           if self.enabled then
             self:_unschedule()
             self:_start()
           end
           menu:updateItems()
         end,
-      }
+      })
       UIManager:show(autoturn_spin)
     end,
   }

@@ -55,18 +55,18 @@ end
 function SystemStat:appendCounters()
   self:put({
     _("KOReader started at"),
-    datetime.secondsToDateTime(time.to_s(self.start_time), nil, true)
+    datetime.secondsToDateTime(time.to_s(self.start_time), nil, true),
   })
   if self.suspend_time then
-     self:put({
-       "  " .. _("Last suspend time"),
-       datetime.secondsToDateTime(time.to_s(self.suspend_time), nil, true)
+    self:put({
+      "  " .. _("Last suspend time"),
+      datetime.secondsToDateTime(time.to_s(self.suspend_time), nil, true),
     })
   end
   if self.resume_time then
     self:put({
       "  " .. _("Last resume time"),
-       datetime.secondsToDateTime(time.to_s(self.resume_time), nil, true)
+      datetime.secondsToDateTime(time.to_s(self.resume_time), nil, true),
     })
   end
   local uptime = time.boottime_or_realtime_coarse() - self.start_monotonic_time
@@ -78,31 +78,45 @@ function SystemStat:appendCounters()
   if Device:canStandby() then
     standby = Device.total_standby_time
   end
-  self:put({"  " .. _("Up time"),
-      datetime.secondsToClockDuration("", time.to_s(uptime), false, true)})
+  self:put({
+    "  " .. _("Up time"),
+    datetime.secondsToClockDuration("", time.to_s(uptime), false, true),
+  })
   if Device:canSuspend() or Device:canStandby() then
     local awake = uptime - suspend - standby
-    self:put({"  " .. _("Time spent awake"),
+    self:put({
+      "  " .. _("Time spent awake"),
       datetime.secondsToClockDuration("", time.to_s(awake), false, true)
-      .. " (" .. Math.round((awake / uptime) * 100) .. "%)"})
+        .. " ("
+        .. Math.round((awake / uptime) * 100)
+        .. "%)",
+    })
   end
   if Device:canSuspend() then
-    self:put({"  " .. _("Time in suspend"),
+    self:put({
+      "  " .. _("Time in suspend"),
       datetime.secondsToClockDuration("", time.to_s(suspend), false, true)
-      .. " (" .. Math.round((suspend / uptime) * 100) .. "%)"})
+        .. " ("
+        .. Math.round((suspend / uptime) * 100)
+        .. "%)",
+    })
   end
   if Device:canStandby() then
-    self:put({"  " .. _("Time in standby"),
+    self:put({
+      "  " .. _("Time in standby"),
       datetime.secondsToClockDuration("", time.to_s(standby), false, true)
-      .. " (" .. Math.round((standby / uptime) * 100) .. "%)"})
+        .. " ("
+        .. Math.round((standby / uptime) * 100)
+        .. "%)",
+    })
   end
   self:putSeparator()
-  self:put({_("Counters"), ""})
-  self:put({_("  wake-ups"), self.wakeup_count})
+  self:put({ _("Counters"), "" })
+  self:put({ _("  wake-ups"), self.wakeup_count })
   -- @translators The number of "sleeps", that is the number of times the device has entered standby. This could also be translated as a rendition of a phrase like "entered sleep".
-  self:put({_("  sleeps"), self.sleep_count})
-  self:put({_("  charge cycles"), self.charge_count})
-  self:put({_("  discharge cycles"), self.discharge_count})
+  self:put({ _("  sleeps"), self.sleep_count })
+  self:put({ _("  charge cycles"), self.charge_count })
+  self:put({ _("  discharge cycles"), self.discharge_count })
 end
 
 local function systemInfo()
@@ -120,11 +134,11 @@ local function systemInfo()
           n4 = tonumber(t[5])
           if n1 ~= nil and n2 ~= nil and n3 ~= nil and n4 ~= nil then
             result.cpu = {
-            user = n1,
-            nice = n2,
-            system = n3,
-            idle = n4,
-            total = n1 + n2 + n3 + n4
+              user = n1,
+              nice = n2,
+              system = n3,
+              idle = n4,
+              total = n1 + n2 + n3 + n4,
             }
             break
           end
@@ -168,47 +182,65 @@ end
 function SystemStat:appendSystemInfo()
   local stat = systemInfo()
   if stat.cpu ~= nil then
-    self:put({_("System information"), ""})
+    self:put({ _("System information"), "" })
     -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-    self:put({_("  Total ticks (million)"),
-         string.format("%.2f", stat.cpu.total * (1/1000000))})
+    self:put({
+      _("  Total ticks (million)"),
+      string.format("%.2f", stat.cpu.total * (1 / 1000000)),
+    })
     -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-    self:put({_("  Idle ticks (million)"),
-         string.format("%.2f", stat.cpu.idle * (1/1000000))})
-    self:put({_("  Processor usage %"),
-         string.format("%.2f", (1 - stat.cpu.idle / stat.cpu.total) * 100)})
+    self:put({
+      _("  Idle ticks (million)"),
+      string.format("%.2f", stat.cpu.idle * (1 / 1000000)),
+    })
+    self:put({
+      _("  Processor usage %"),
+      string.format("%.2f", (1 - stat.cpu.idle / stat.cpu.total) * 100),
+    })
   end
   if stat.memory ~= nil then
     if stat.memory.total ~= nil then
-      self:put({_("  Total memory (MB)"),
-           string.format("%.2f", stat.memory.total / 1024)})
+      self:put({
+        _("  Total memory (MB)"),
+        string.format("%.2f", stat.memory.total / 1024),
+      })
     end
     if stat.memory.free ~= nil then
-      self:put({_("  Free memory (MB)"),
-           string.format("%.2f", stat.memory.free / 1024)})
+      self:put({
+        _("  Free memory (MB)"),
+        string.format("%.2f", stat.memory.free / 1024),
+      })
     end
     if stat.memory.available ~= nil then
-      self:put({_("  Available memory (MB)"),
-           string.format("%.2f", stat.memory.available / 1024)})
+      self:put({
+        _("  Available memory (MB)"),
+        string.format("%.2f", stat.memory.available / 1024),
+      })
     end
   end
 end
 
 function SystemStat:appendProcessInfo()
   local stat = io.open("/proc/self/stat", "r")
-  if stat == nil then return end
+  if stat == nil then
+    return
+  end
 
   local t = util.splitToArray(stat:read("*line"), " ")
   stat:close()
 
   local n1, n2
 
-  if #t == 0 then return end
-  self:put({_("Process"), ""})
+  if #t == 0 then
+    return
+  end
+  self:put({ _("Process"), "" })
 
-  self:put({_("  ID"), t[1]})
+  self:put({ _("  ID"), t[1] })
 
-  if #t < 14 then return end
+  if #t < 14 then
+    return
+  end
   n1 = tonumber(t[14])
   n2 = tonumber(t[15])
   if n1 ~= nil then
@@ -217,51 +249,67 @@ function SystemStat:appendProcessInfo()
     end
     local sys_stat = systemInfo()
     if sys_stat.cpu ~= nil and sys_stat.cpu.total ~= nil then
-      self:put({_("  Processor usage %"),
-           string.format("%.2f", n1 / sys_stat.cpu.total * 100)})
+      self:put({
+        _("  Processor usage %"),
+        string.format("%.2f", n1 / sys_stat.cpu.total * 100),
+      })
     else
-      self:put({_("  Processor usage ticks (million)"), n1 * (1/1000000)})
+      self:put({ _("  Processor usage ticks (million)"), n1 * (1 / 1000000) })
     end
   end
 
-  if #t < 20 then return end
+  if #t < 20 then
+    return
+  end
   n1 = tonumber(t[20])
   if n1 ~= nil then
-    self:put({_("  Threads"), tostring(n1)})
+    self:put({ _("  Threads"), tostring(n1) })
   end
 
-  if #t < 23 then return end
+  if #t < 23 then
+    return
+  end
   n1 = tonumber(t[23])
   if n1 ~= nil then
-    self:put({_("  Virtual memory (MB)"), string.format("%.2f", n1 / 1024 / 1024)})
+    self:put({
+      _("  Virtual memory (MB)"),
+      string.format("%.2f", n1 / 1024 / 1024),
+    })
   end
 
-  if #t < 24 then return end
+  if #t < 24 then
+    return
+  end
   n1 = tonumber(t[24])
   if n1 ~= nil then
-    self:put({_("  RAM usage (MB)"), string.format("%.2f", n1 / 256)})
+    self:put({ _("  RAM usage (MB)"), string.format("%.2f", n1 / 256) })
   end
 end
 
 function SystemStat:appendStorageInfo()
-  if self.storage_filter == nil then return end
+  if self.storage_filter == nil then
+    return
+  end
 
   local std_out = io.popen(
-    "df -h | sed -r 's/ +/ /g' | grep " .. self.storage_filter ..
-    " | sed 's/ /\\t/g' | cut -f 2,4,5,6"
+    "df -h | sed -r 's/ +/ /g' | grep "
+      .. self.storage_filter
+      .. " | sed 's/ /\\t/g' | cut -f 2,4,5,6"
   )
-  if not std_out then return end
+  if not std_out then
+    return
+  end
 
-  self:put({_("Storage information"), ""})
+  self:put({ _("Storage information"), "" })
   for line in std_out:lines() do
     local t = util.splitToArray(line, "\t")
     if #t ~= 4 then
-      self:put({_("  Unexpected"), line})
+      self:put({ _("  Unexpected"), line })
     else
-      self:put({_("  Mount point"), t[4]})
-      self:put({_("  Available"), t[2]})
-      self:put({_("  Total"), t[1]})
-      self:put({_("  Used percentage"), t[3]})
+      self:put({ _("  Mount point"), t[4] })
+      self:put({ _("  Available"), t[2] })
+      self:put({ _("  Total"), t[1] })
+      self:put({ _("  Used percentage"), t[3] })
     end
   end
   std_out:close()
@@ -294,20 +342,26 @@ function SystemStat:showStatistics()
   self:appendStorageInfo()
   self:putSeparator()
   self:appendSystemInfo()
-  UIManager:show(KeyValuePage:new{
+  UIManager:show(KeyValuePage:new({
     title = _("System statistics"),
     kv_pairs = self.kv_pairs,
-  })
+  }))
 end
 
 SystemStat:init()
 
-local SystemStatWidget = WidgetContainer:extend{
+local SystemStatWidget = WidgetContainer:extend({
   name = "systemstat",
-}
+})
 
 function SystemStatWidget:onDispatcherRegisterActions()
-  Dispatcher:registerAction("system_statistics", {category="none", event="ShowSysStatistics", title=_("System statistics"), device=true, separator=true})
+  Dispatcher:registerAction("system_statistics", {
+    category = "none",
+    event = "ShowSysStatistics",
+    title = _("System statistics"),
+    device = true,
+    separator = true,
+  })
 end
 
 function SystemStatWidget:init()

@@ -9,12 +9,12 @@ local logger = require("logger")
 local _ = require("gettext")
 local T = require("ffi/util").template
 
-local NetworkListener = EventListener:extend{
+local NetworkListener = EventListener:extend({
   -- Class members, because we want the activity check to be cross-instance...
   _activity_check_scheduled = nil,
   _last_tx_packets = nil,
   _activity_check_delay_seconds = nil,
-}
+})
 
 if not Device:hasWifiToggle() then
   return NetworkListener
@@ -44,20 +44,21 @@ function NetworkListener:onInfoWifiOn()
     local current_network = NetworkMgr:getCurrentNetwork()
     -- this method is only available for some implementations
     if current_network and current_network.ssid then
-      info_text = T(_("Already connected to network %1."), BD.wrap(current_network.ssid))
+      info_text =
+        T(_("Already connected to network %1."), BD.wrap(current_network.ssid))
     else
       info_text = _("Already connected.")
     end
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = info_text,
       timeout = 1,
-    })
+    }))
   end
 end
 
 -- Everything below is to handle auto_disable_wifi ;).
-local default_network_timeout_seconds = 5*60
-local max_network_timeout_seconds = 30*60
+local default_network_timeout_seconds = 5 * 60
+local max_network_timeout_seconds = 30 * 60
 -- If autostandby is enabled, shorten the timeouts
 if G_named_settings.auto_standby_timeout_seconds() > 0 then
   default_network_timeout_seconds = default_network_timeout_seconds / 2
@@ -74,10 +75,17 @@ local network_activity_noise_margin = 12 -- unscaled_size_check: ignore
 -- net sysfs entry allows us to get away with a Linux-only solution.
 function NetworkListener:_getTxPackets()
   -- read tx_packets stats from sysfs (for the right network if)
-  local file = io.open("/sys/class/net/" .. NetworkMgr:getNetworkInterfaceName() .. "/statistics/tx_packets", "rb")
+  local file = io.open(
+    "/sys/class/net/"
+      .. NetworkMgr:getNetworkInterfaceName()
+      .. "/statistics/tx_packets",
+    "rb"
+  )
 
   -- file exists only when Wi-Fi module is loaded.
-  if not file then return nil end
+  if not file then
+    return nil
+  end
 
   local tx_packets = file:read("*number")
   file:close()
@@ -111,17 +119,40 @@ function NetworkListener:_scheduleActivityCheck()
   local tx_packets = NetworkListener:_getTxPackets()
   if NetworkListener._last_tx_packets and tx_packets then
     -- Compute noise threshold based on the current delay
-    local delay_seconds = NetworkListener._activity_check_delay_seconds or default_network_timeout_seconds
-    local noise_threshold = delay_seconds / default_network_timeout_seconds * network_activity_noise_margin
+    local delay_seconds = NetworkListener._activity_check_delay_seconds
+      or default_network_timeout_seconds
+    local noise_threshold = delay_seconds
+      / default_network_timeout_seconds
+      * network_activity_noise_margin
     local delta = tx_packets - NetworkListener._last_tx_packets
     -- If there was no meaningful activity (+/- a couple packets), kill the Wi-Fi
     if delta <= noise_threshold then
-      logger.dbg("NetworkListener: No meaningful network activity (delta:", delta, "<= threshold:", noise_threshold, "[ then:", NetworkListener._last_tx_packets, "vs. now:", tx_packets, "]) -> disabling Wi-Fi")
+      logger.dbg(
+        "NetworkListener: No meaningful network activity (delta:",
+        delta,
+        "<= threshold:",
+        noise_threshold,
+        "[ then:",
+        NetworkListener._last_tx_packets,
+        "vs. now:",
+        tx_packets,
+        "]) -> disabling Wi-Fi"
+      )
       keep_checking = false
       NetworkMgr:toggleWifiOff()
       -- NOTE: We leave wifi_was_on as-is on purpose, we wouldn't want to break auto_restore_wifi workflows on the next start...
     else
-      logger.dbg("NetworkListener: Significant network activity (delta:", delta, "> threshold:", noise_threshold, "[ then:", NetworkListener._last_tx_packets, "vs. now:", tx_packets, "]) -> keeping Wi-Fi enabled")
+      logger.dbg(
+        "NetworkListener: Significant network activity (delta:",
+        delta,
+        "> threshold:",
+        noise_threshold,
+        "[ then:",
+        NetworkListener._last_tx_packets,
+        "vs. now:",
+        tx_packets,
+        "]) -> keeping Wi-Fi enabled"
+      )
     end
   end
 
@@ -135,18 +166,31 @@ function NetworkListener:_scheduleActivityCheck()
 
   -- If it's already been scheduled, increase the delay until we hit the ceiling
   if NetworkListener._activity_check_delay_seconds then
-    NetworkListener._activity_check_delay_seconds = NetworkListener._activity_check_delay_seconds + default_network_timeout_seconds
+    NetworkListener._activity_check_delay_seconds = NetworkListener._activity_check_delay_seconds
+      + default_network_timeout_seconds
 
-    if NetworkListener._activity_check_delay_seconds > max_network_timeout_seconds then
-      NetworkListener._activity_check_delay_seconds = max_network_timeout_seconds
+    if
+      NetworkListener._activity_check_delay_seconds
+      > max_network_timeout_seconds
+    then
+      NetworkListener._activity_check_delay_seconds =
+        max_network_timeout_seconds
     end
   else
-    NetworkListener._activity_check_delay_seconds = default_network_timeout_seconds
+    NetworkListener._activity_check_delay_seconds =
+      default_network_timeout_seconds
   end
 
-  UIManager:scheduleIn(NetworkListener._activity_check_delay_seconds, NetworkListener._scheduleActivityCheck)
+  UIManager:scheduleIn(
+    NetworkListener._activity_check_delay_seconds,
+    NetworkListener._scheduleActivityCheck
+  )
   NetworkListener._activity_check_scheduled = true
-  logger.dbg("NetworkListener: network activity check scheduled in", NetworkListener._activity_check_delay_seconds, "seconds")
+  logger.dbg(
+    "NetworkListener: network activity check scheduled in",
+    NetworkListener._activity_check_delay_seconds,
+    "seconds"
+  )
 end
 
 function NetworkListener:onNetworkConnected()
@@ -185,7 +229,8 @@ end
 if Device:hasWifiRestore() then
   function NetworkListener:onResume()
     NetworkMgr:restoreWifiAndCheckAsync(
-        "NetworkListener: onResume will restore Wi-Fi in the background")
+      "NetworkListener: onResume will restore Wi-Fi in the background"
+    )
   end
 end
 
@@ -193,10 +238,10 @@ function NetworkListener:onShowNetworkInfo()
   if not NetworkMgr:isWifiOn() then
     -- This shouldn't happen, but in case something is very weird happening
     -- right between showing the network menu and the ShowNetworkInfo event.
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = _("Wi-Fi off."),
       timeout = 3,
-    })
+    }))
     return
   end
   if not NetworkMgr:isConnected() then
@@ -205,16 +250,16 @@ function NetworkListener:onShowNetworkInfo()
     return
   end
   if Device.retrieveNetworkInfo then
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = Device:retrieveNetworkInfo(),
       -- IPv6 addresses are *loooooong*!
       face = Font:getFace("x_smallinfofont"),
-    })
+    }))
   else
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = _("Could not retrieve network info."),
       timeout = 3,
-    })
+    }))
   end
 end
 

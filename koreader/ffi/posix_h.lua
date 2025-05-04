@@ -2,16 +2,16 @@ local ffi = require("ffi")
 
 -- Handle arch-dependent typedefs...
 if ffi.arch == "x64" then
-    require("ffi/posix_types_x64_h")
+  require("ffi/posix_types_x64_h")
 elseif ffi.arch == "x86" then
-    require("ffi/posix_types_x86_h")
+  require("ffi/posix_types_x86_h")
 elseif ffi.abi("64bit") then
-    require("ffi/posix_types_64b_h")
+  require("ffi/posix_types_64b_h")
 else
-    require("ffi/posix_types_def_h")
+  require("ffi/posix_types_def_h")
 end
 
-ffi.cdef[[
+ffi.cdef([[
 static const int EPERM = 1;
 static const int EINTR = 4;
 static const int EAGAIN = 11;
@@ -428,19 +428,19 @@ struct iphdr {
 int inet_aton(const char *, struct in_addr *) __attribute__((nothrow, leaf));
 uint32_t htonl(uint32_t) __attribute__((nothrow, leaf, const));
 uint16_t htons(uint16_t) __attribute__((nothrow, leaf, const));
-]]
+]])
 
 -- clock_gettime & friends require librt on old glibc (< 2.17) versions...
 if ffi.os == "Linux" then
-    -- Load it in the global namespace to make it easier on callers...
-    -- NOTE: There's no librt.so symlink, so, specify the SOVER, but not the full path,
-    --       in order to let the dynamic loader figure it out on its own (e.g.,  multilib).
-    pcall(ffi.load, "rt.so.1", true)
+  -- Load it in the global namespace to make it easier on callers...
+  -- NOTE: There's no librt.so symlink, so, specify the SOVER, but not the full path,
+  --       in order to let the dynamic loader figure it out on its own (e.g.,  multilib).
+  pcall(ffi.load, "rt.so.1", true)
 end
 
 -- The clockid_t constants are not portable :/.
 if ffi.os == "Linux" then
-    ffi.cdef[[
+  ffi.cdef([[
 static const int CLOCK_REALTIME = 0;
 static const int CLOCK_REALTIME_COARSE = 5;
 static const int CLOCK_MONOTONIC = 1;
@@ -449,10 +449,10 @@ static const int CLOCK_MONOTONIC_RAW = 4;
 static const int CLOCK_BOOTTIME = 7;
 static const int CLOCK_TAI = 11;
 static const int FIONREAD = 21531;
-]]
+]])
 elseif ffi.os == "OSX" then
-    -- c.f., https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX10.12.sdk/usr/include/time.h
-    --[[
+  -- c.f., https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX10.12.sdk/usr/include/time.h
+  --[[
     typedef enum {
     _CLOCK_REALTIME             = 0,
     _CLOCK_MONOTONIC            = 6,
@@ -464,13 +464,13 @@ elseif ffi.os == "OSX" then
     _CLOCK_THREAD_CPUTIME_ID    = 16
     } clockid_t;
     --]]
-    -- Portability notes:
-    -- Unlike on Linux, MONO ticks during sleep (which is technically the POSIX-compliant behavior).
-    -- CLOCK_UPTIME_* doesn't.
-    -- (e.g., macOS UPTIME == Linux MONO, and macOS MONO == Linux BOOTTIME)
+  -- Portability notes:
+  -- Unlike on Linux, MONO ticks during sleep (which is technically the POSIX-compliant behavior).
+  -- CLOCK_UPTIME_* doesn't.
+  -- (e.g., macOS UPTIME == Linux MONO, and macOS MONO == Linux BOOTTIME)
 
-    -- NOTE: Requires macOS 10.12
-    ffi.cdef[[
+  -- NOTE: Requires macOS 10.12
+  ffi.cdef([[
 static const int CLOCK_REALTIME = 0;
 static const int CLOCK_REALTIME_COARSE = -1;
 static const int CLOCK_MONOTONIC = 6;
@@ -479,11 +479,11 @@ static const int CLOCK_MONOTONIC_RAW = 4;
 static const int CLOCK_BOOTTIME = -1;
 static const int CLOCK_TAI = -1;
 static const int FIONREAD = 1074030207;
-]]
+]])
 elseif ffi.os == "BSD" then
-    -- OpenBSD
-    -- c.f., https://github.com/openbsd/src/blob/master/sys/sys/_time.h
-    --[[
+  -- OpenBSD
+  -- c.f., https://github.com/openbsd/src/blob/master/sys/sys/_time.h
+  --[[
     #define CLOCK_REALTIME           0
     #define CLOCK_PROCESS_CPUTIME_ID 2
     #define CLOCK_MONOTONIC          3
@@ -491,13 +491,13 @@ elseif ffi.os == "BSD" then
     #define CLOCK_UPTIME             5
     #define CLOCK_BOOTTIME           6
     --]]
-    -- Portability notes:
-    -- OpenBSD UPTIME == Linux MONOTONIC, OpenBSD BOOTTIME == Linux BOOTTIME
-    -- (Meaning MONOTONIC starts ticking at an *undefined* positive value).
+  -- Portability notes:
+  -- OpenBSD UPTIME == Linux MONOTONIC, OpenBSD BOOTTIME == Linux BOOTTIME
+  -- (Meaning MONOTONIC starts ticking at an *undefined* positive value).
 
-    -- NetBSD
-    -- c.f., https://anonhg.netbsd.org/src/file/tip/sys/sys/time.h
-    --[[
+  -- NetBSD
+  -- c.f., https://anonhg.netbsd.org/src/file/tip/sys/sys/time.h
+  --[[
     #define CLOCK_REALTIME           0
     #define CLOCK_VIRTUAL            1
     #define CLOCK_PROF               2
@@ -506,9 +506,9 @@ elseif ffi.os == "BSD" then
     #define CLOCK_PROCESS_CPUTIME_ID 0x40000000
     --]]
 
-    -- FreeBSD
-    -- c.f., https://github.com/freebsd/freebsd-src/blob/main/include/time.h
-    --[[
+  -- FreeBSD
+  -- c.f., https://github.com/freebsd/freebsd-src/blob/main/include/time.h
+  --[[
     #define CLOCK_REALTIME           0
     #define CLOCK_VIRTUAL            1
     #define CLOCK_PROF               2
@@ -524,16 +524,16 @@ elseif ffi.os == "BSD" then
     #define CLOCK_THREAD_CPUTIME_ID  14
     #define CLOCK_PROCESS_CPUTIME_ID 15
     --]]
-    -- Portability notes:
-    -- FreeBSD UPTIME == Linux MONOTONIC
-    -- (I assume that, like on OpenBSD, this means MONOTONIC starts ticking at an *undefined* positive value).
+  -- Portability notes:
+  -- FreeBSD UPTIME == Linux MONOTONIC
+  -- (I assume that, like on OpenBSD, this means MONOTONIC starts ticking at an *undefined* positive value).
 
-    -- So, here comes probey-time!
-    local C = ffi.C
-    local probe_ts = ffi.new("struct timespec")
-    if C.clock_getres(15, probe_ts) == 0 then
-        -- FreeBSD
-        ffi.cdef[[
+  -- So, here comes probey-time!
+  local C = ffi.C
+  local probe_ts = ffi.new("struct timespec")
+  if C.clock_getres(15, probe_ts) == 0 then
+    -- FreeBSD
+    ffi.cdef([[
 static const int CLOCK_REALTIME = 0;
 static const int CLOCK_REALTIME_COARSE = 10;
 static const int CLOCK_MONOTONIC = 4;
@@ -541,10 +541,10 @@ static const int CLOCK_MONOTONIC_COARSE = 12;
 static const int CLOCK_MONOTONIC_RAW = 11;
 static const int CLOCK_BOOTTIME = -1;
 static const int CLOCK_TAI = -1;
-]]
-    elseif C.clock_getres(0x40000000, probe_ts) == 0 then
-        -- NetBSD
-        ffi.cdef[[
+]])
+  elseif C.clock_getres(0x40000000, probe_ts) == 0 then
+    -- NetBSD
+    ffi.cdef([[
 static const int CLOCK_REALTIME = 0;
 static const int CLOCK_REALTIME_COARSE = -1;
 static const int CLOCK_MONOTONIC = 3;
@@ -552,10 +552,10 @@ static const int CLOCK_MONOTONIC_COARSE = -1;
 static const int CLOCK_MONOTONIC_RAW = -1;
 static const int CLOCK_BOOTTIME = -1;
 static const int CLOCK_TAI = -1;
-]]
-    else
-        -- OpenBSD
-        ffi.cdef[[
+]])
+  else
+    -- OpenBSD
+    ffi.cdef([[
 static const int CLOCK_REALTIME = 0;
 static const int CLOCK_REALTIME_COARSE = -1;
 static const int CLOCK_MONOTONIC = 3;
@@ -563,22 +563,22 @@ static const int CLOCK_MONOTONIC_COARSE = -1;
 static const int CLOCK_MONOTONIC_RAW = -1;
 static const int CLOCK_BOOTTIME = 6;
 static const int CLOCK_TAI = -1;
-]]
-    end
-    probe_ts = nil --luacheck: ignore
+]])
+  end
+  probe_ts = nil --luacheck: ignore
 else
-    -- Assume minimal Linux compat on other OSes.
+  -- Assume minimal Linux compat on other OSes.
 
-    -- This holds true for Windows via mingw,
-    -- c.f., https://github.com/mirror/mingw-w64/blob/master/mingw-w64-libraries/winpthreads/include/pthread_time.h
-    --[[
+  -- This holds true for Windows via mingw,
+  -- c.f., https://github.com/mirror/mingw-w64/blob/master/mingw-w64-libraries/winpthreads/include/pthread_time.h
+  --[[
     #define CLOCK_REALTIME           0
     #define CLOCK_MONOTONIC          1
     #define CLOCK_PROCESS_CPUTIME_ID 2
     #define CLOCK_THREAD_CPUTIME_ID  3
     --]]
 
-    ffi.cdef[[
+  ffi.cdef([[
 static const int CLOCK_REALTIME = 0;
 static const int CLOCK_REALTIME_COARSE = -1;
 static const int CLOCK_MONOTONIC = 1;
@@ -586,5 +586,5 @@ static const int CLOCK_MONOTONIC_COARSE = -1;
 static const int CLOCK_MONOTONIC_RAW = -1;
 static const int CLOCK_BOOTTIME = -1;
 static const int CLOCK_TAI = -1;
-]]
+]])
 end

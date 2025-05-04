@@ -13,7 +13,8 @@ local _ = require("gettext")
 local CURRENT_MIGRATION_DATE = 20240928
 
 -- Retrieve the date of the previous migration, if any
-local last_migration_date = G_reader_settings:readSetting("last_migration_date") or 0
+local last_migration_date = G_reader_settings:readSetting("last_migration_date")
+  or 0
 
 -- If there's nothing new to migrate since the last time, we're done.
 if last_migration_date == CURRENT_MIGRATION_DATE then
@@ -28,7 +29,7 @@ local function drop_fontcache()
   local cache_path = DataStorage:getDataDir() .. "/cache/fontlist"
   local ok, err = os.remove(cache_path .. "/fontinfo.dat")
   if not ok then
-     logger.warn("os.remove:", err)
+    logger.warn("os.remove:", err)
   end
 end
 
@@ -53,11 +54,15 @@ if last_migration_date < 20200421 then
   local ReaderTypography = require("apps/reader/modules/readertypography")
   -- Migrate old readerhyphenation settings
   -- (but keep them in case one goes back to a previous version)
-  if G_reader_settings:hasNot("text_lang_default") and G_reader_settings:hasNot("text_lang_fallback") then
+  if
+    G_reader_settings:hasNot("text_lang_default")
+    and G_reader_settings:hasNot("text_lang_fallback")
+  then
     local g_text_lang_set = false
     local hyph_alg_default = G_reader_settings:readSetting("hyph_alg_default")
     if hyph_alg_default then
-      local dict_info = ReaderTypography.HYPH_DICT_NAME_TO_LANG_NAME_TAG[hyph_alg_default]
+      local dict_info =
+        ReaderTypography.HYPH_DICT_NAME_TO_LANG_NAME_TAG[hyph_alg_default]
       if dict_info then
         G_reader_settings:saveSetting("text_lang_default", dict_info[2])
         g_text_lang_set = true
@@ -73,7 +78,8 @@ if last_migration_date < 20200421 then
     end
     local hyph_alg_fallback = G_reader_settings:readSetting("hyph_alg_fallback")
     if not g_text_lang_set and hyph_alg_fallback then
-      local dict_info = ReaderTypography.HYPH_DICT_NAME_TO_LANG_NAME_TAG[hyph_alg_fallback]
+      local dict_info =
+        ReaderTypography.HYPH_DICT_NAME_TO_LANG_NAME_TAG[hyph_alg_fallback]
       if dict_info then
         G_reader_settings:saveSetting("text_lang_fallback", dict_info[2])
         g_text_lang_set = true
@@ -84,7 +90,10 @@ if last_migration_date < 20200421 then
     if not g_text_lang_set then
       -- If nothing migrated, set the fallback to DEFAULT_LANG_TAG,
       -- as we'll always have one of text_lang_default/_fallback set.
-      G_reader_settings:saveSetting("text_lang_fallback", ReaderTypography.DEFAULT_LANG_TAG)
+      G_reader_settings:saveSetting(
+        "text_lang_fallback",
+        ReaderTypography.DEFAULT_LANG_TAG
+      )
     end
   end
 end
@@ -128,13 +137,20 @@ if last_migration_date < 20210306 then
 
       if server.url == "http://bookserver.archive.org/catalog/" then
         server.url = "https://bookserver.archive.org"
-      elseif server.url == "http://m.gutenberg.org/ebooks.opds/?format=opds" then
+      elseif
+        server.url == "http://m.gutenberg.org/ebooks.opds/?format=opds"
+      then
         server.url = "https://m.gutenberg.org/ebooks.opds/?format=opds"
-      elseif server.url == "http://www.feedbooks.com/publicdomain/catalog.atom" then
+      elseif
+        server.url == "http://www.feedbooks.com/publicdomain/catalog.atom"
+      then
         server.url = "https://catalog.feedbooks.com/catalog/public_domain.atom"
       end
 
-      if server.title == "Gallica [Fr] [Searchable]" or server.title == "Project Gutenberg [Searchable]" then
+      if
+        server.title == "Gallica [Fr] [Searchable]"
+        or server.title == "Project Gutenberg [Searchable]"
+      then
         table.remove(opds_servers, i)
       end
     end
@@ -148,11 +164,16 @@ if last_migration_date < 20210330 then
 
   -- c.f., PluginLoader
   local package_path = package.path
-  package.path = string.format("%s/?.lua;%s", "plugins/statistics.koplugin", package_path)
-  local ok, ReaderStatistics = pcall(dofile, "plugins/statistics.koplugin/main.lua")
+  package.path =
+    string.format("%s/?.lua;%s", "plugins/statistics.koplugin", package_path)
+  local ok, ReaderStatistics =
+    pcall(dofile, "plugins/statistics.koplugin/main.lua")
   package.path = package_path
   if not ok or not ReaderStatistics then
-    logger.warn("Error when loading plugins/statistics.koplugin/main.lua:", ReaderStatistics)
+    logger.warn(
+      "Error when loading plugins/statistics.koplugin/main.lua:",
+      ReaderStatistics
+    )
   else
     local settings = G_reader_settings:readSetting("statistics")
     if settings then
@@ -173,7 +194,10 @@ if last_migration_date < 20210404 then
 
   -- Migrate settings from 2021.03 or older.
   if G_reader_settings:has("screensaver_background") then
-    G_reader_settings:saveSetting("screensaver_img_background", G_reader_settings:readSetting("screensaver_background"))
+    G_reader_settings:saveSetting(
+      "screensaver_img_background",
+      G_reader_settings:readSetting("screensaver_background")
+    )
     G_reader_settings:delSetting("screensaver_background")
   end
 end
@@ -186,9 +210,10 @@ if last_migration_date < 20210409 then
   local cache_path = DataStorage:getDataDir() .. "/cache"
   local new_path = cache_path .. "/fontlist"
   lfs.mkdir(new_path)
-  local ok, err = os.rename(cache_path .. "/fontinfo.dat", new_path .. "/fontinfo.dat")
+  local ok, err =
+    os.rename(cache_path .. "/fontinfo.dat", new_path .. "/fontinfo.dat")
   if not ok then
-     logger.warn("os.rename:", err)
+    logger.warn("os.rename:", err)
   end
 
   -- Make sure DocCache gets the memo
@@ -204,13 +229,17 @@ if last_migration_date < 20210412 then
   local cache_path = DataStorage:getDataDir() .. "/cache"
   local new_path = cache_path .. "/calibre"
   lfs.mkdir(new_path)
-  local ok, err = os.rename(cache_path .. "/calibre-libraries.lua", new_path .. "/libraries.lua")
+  local ok, err = os.rename(
+    cache_path .. "/calibre-libraries.lua",
+    new_path .. "/libraries.lua"
+  )
   if not ok then
-     logger.warn("os.rename:", err)
+    logger.warn("os.rename:", err)
   end
-  ok, err = os.rename(cache_path .. "/calibre-books.dat", new_path .. "/books.dat")
+  ok, err =
+    os.rename(cache_path .. "/calibre-books.dat", new_path .. "/books.dat")
   if not ok then
-     logger.warn("os.rename:", err)
+    logger.warn("os.rename:", err)
   end
 
   -- Make sure DocCache gets the memo
@@ -225,7 +254,7 @@ if last_migration_date < 20210414 then
   local cache_path = DataStorage:getDataDir() .. "/cache/calibre"
   local ok, err = os.remove(cache_path .. "/books.dat")
   if not ok then
-     logger.warn("os.remove:", err)
+    logger.warn("os.remove:", err)
   end
 end
 
@@ -251,7 +280,8 @@ local function readerfooter_defaults(date)
   drop_fontcache()
 
   local ReaderFooter = require("apps/reader/modules/readerfooter")
-  local settings = G_reader_settings:readSetting("footer") or ReaderFooter.default_settings
+  local settings = G_reader_settings:readSetting("footer")
+    or ReaderFooter.default_settings
 
   -- Make sure we have a full set, some of these were historically kept as magic nils...
   for k, v in pairs(ReaderFooter.default_settings) do
@@ -272,10 +302,19 @@ if last_migration_date < 20210521 then
   logger.info("Performing one-time migration for 20210521")
 
   -- ReaderZooming:init has the same logic for individual DocSettings in onReadSettings
-  if G_reader_settings:has("zoom_factor") and G_reader_settings:hasNot("kopt_zoom_factor") then
-    G_reader_settings:saveSetting("kopt_zoom_factor", G_reader_settings:readSetting("zoom_factor"))
+  if
+    G_reader_settings:has("zoom_factor")
+    and G_reader_settings:hasNot("kopt_zoom_factor")
+  then
+    G_reader_settings:saveSetting(
+      "kopt_zoom_factor",
+      G_reader_settings:readSetting("zoom_factor")
+    )
     G_reader_settings:delSetting("zoom_factor")
-  elseif G_reader_settings:has("zoom_factor") and G_reader_settings:has("kopt_zoom_factor") then
+  elseif
+    G_reader_settings:has("zoom_factor")
+    and G_reader_settings:has("kopt_zoom_factor")
+  then
     G_reader_settings:delSetting("zoom_factor")
   end
 end
@@ -291,7 +330,8 @@ if last_migration_date < 20210531 then
     local ReaderZooming = require("apps/reader/modules/readerzooming")
     -- NOTE: For simplicity's sake, this will overwrite potentially existing genus/type globals,
     --     as they were ignored in this specific case anyway...
-    local zoom_mode_genus, zoom_mode_type = ReaderZooming:mode_to_combo(G_reader_settings:readSetting("zoom_mode"))
+    local zoom_mode_genus, zoom_mode_type =
+      ReaderZooming:mode_to_combo(G_reader_settings:readSetting("zoom_mode"))
     G_reader_settings:saveSetting("kopt_zoom_mode_genus", zoom_mode_genus)
     G_reader_settings:saveSetting("kopt_zoom_mode_type", zoom_mode_type)
     G_reader_settings:delSetting("zoom_mode")
@@ -340,7 +380,8 @@ end
 if last_migration_date < 20210831 then
   logger.info("Performing one-time migration for 20210831")
   local FFIUtil = require("ffi/util")
-  local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts") or {}
+  local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts")
+    or {}
   local keyboard_layouts_new = {}
   local selected_layouts_count = 0
   for k, v in FFIUtil.orderedPairs(keyboard_layouts) do
@@ -373,7 +414,9 @@ if last_migration_date < 20220116 then
 
       if server.url == "https://standardebooks.org/opds" then
         found = true
-      elseif server.url == "https://m.gutenberg.org/ebooks.opds/?format=opds" then
+      elseif
+        server.url == "https://m.gutenberg.org/ebooks.opds/?format=opds"
+      then
         gutenberg_id = i
       end
     end
@@ -417,14 +460,32 @@ if last_migration_date < 20220426 then
     end
   end
   migrateSettingsName("ges_tap_interval", "ges_tap_interval_ms", 1e-3)
-  migrateSettingsName("ges_double_tap_interval", "ges_double_tap_interval_ms", 1e-3)
-  migrateSettingsName("ges_two_finger_tap_duration", "ges_two_finger_tap_duration_ms", 1e-3)
+  migrateSettingsName(
+    "ges_double_tap_interval",
+    "ges_double_tap_interval_ms",
+    1e-3
+  )
+  migrateSettingsName(
+    "ges_two_finger_tap_duration",
+    "ges_two_finger_tap_duration_ms",
+    1e-3
+  )
   migrateSettingsName("ges_hold_interval", "ges_hold_interval_ms", 1e-3)
   migrateSettingsName("ges_swipe_interval", "ges_swipe_interval_ms", 1e-3)
-  migrateSettingsName("ges_tap_interval_on_keyboard", "ges_tap_interval_on_keyboard_ms", 1e-3)
+  migrateSettingsName(
+    "ges_tap_interval_on_keyboard",
+    "ges_tap_interval_on_keyboard_ms",
+    1e-3
+  )
 
-  migrateSettingsName("device_status_battery_interval", "device_status_battery_interval_minutes")
-  migrateSettingsName("device_status_memory_interval", "device_status_memory_interval_minutes")
+  migrateSettingsName(
+    "device_status_battery_interval",
+    "device_status_battery_interval_minutes"
+  )
+  migrateSettingsName(
+    "device_status_memory_interval",
+    "device_status_memory_interval_minutes"
+  )
 end
 
 -- Rename several time storing settings and shift their value to the new meaning follow up to (https://github.com/koreader/koreader/pull/8999)
@@ -437,7 +498,10 @@ if last_migration_date < 20220523 then
       G_reader_settings:delSetting(old)
     end
   end
-  migrateSettingsName("highlight_long_hold_threshold", "highlight_long_hold_threshold_s")
+  migrateSettingsName(
+    "highlight_long_hold_threshold",
+    "highlight_long_hold_threshold_s"
+  )
 end
 
 -- https://github.com/koreader/koreader/pull/9104
@@ -497,7 +561,9 @@ if last_migration_date < 20220930 then
     if not ok then
       logger.warn("Failed to execute defaults.persistent.lua:", perr)
       -- Don't keep *anything* around, to make it more obvious that something went screwy...
-      logger.warn("/!\\ YOU WILL HAVE TO MIGRATE YOUR CUSTOM defaults.lua SETTINGS MANUALLY /!\\")
+      logger.warn(
+        "/!\\ YOU WILL HAVE TO MIGRATE YOUR CUSTOM defaults.lua SETTINGS MANUALLY /!\\"
+      )
       defaults = {}
     end
   end
@@ -518,7 +584,7 @@ if last_migration_date < 20220930 then
   local ok
   ok, err = os.rename(defaults_path, archived_path)
   if not ok then
-     logger.warn("os.rename:", err)
+    logger.warn("os.rename:", err)
   end
 end
 
@@ -545,7 +611,11 @@ end
 if last_migration_date < 20230703 then
   logger.info("Performing one-time migration for 20230703")
   local collate = G_reader_settings:readSetting("collate")
-  if collate == "modification" or collate == "access" or collate == "change" then
+  if
+    collate == "modification"
+    or collate == "access"
+    or collate == "change"
+  then
     G_reader_settings:saveSetting("collate", "date")
   end
 end
@@ -558,13 +628,17 @@ if last_migration_date < 20230707 then
   if calibre_opds and calibre_opds.host and calibre_opds.port then
     local opds_servers = G_reader_settings:readSetting("opds_servers") or {}
     table.insert(opds_servers, 1, {
-      title  = _("Local calibre library"),
-      url    = string.format("http://%s:%d/opds", calibre_opds.host, calibre_opds.port),
+      title = _("Local calibre library"),
+      url = string.format(
+        "http://%s:%d/opds",
+        calibre_opds.host,
+        calibre_opds.port
+      ),
       username = calibre_opds.username,
       password = calibre_opds.password,
     })
-     G_reader_settings:saveSetting("opds_servers", opds_servers)
-     G_reader_settings:delSetting("calibre_opds")
+    G_reader_settings:saveSetting("opds_servers", opds_servers)
+    G_reader_settings:delSetting("calibre_opds")
   end
 end
 
@@ -574,7 +648,8 @@ if last_migration_date < 20230710 then
 
   -- c.f., PluginLoader
   local package_path = package.path
-  package.path = string.format("%s/?.lua;%s", "plugins/kosync.koplugin", package_path)
+  package.path =
+    string.format("%s/?.lua;%s", "plugins/kosync.koplugin", package_path)
   local ok, KOSync = pcall(dofile, "plugins/kosync.koplugin/main.lua")
   package.path = package_path
   if not ok or not KOSync then
@@ -590,9 +665,11 @@ if last_migration_date < 20230710 then
       end
 
       -- Migrate the whisper_* keys
-      settings.sync_forward = settings.whisper_forward or KOSync.default_settings.sync_forward
+      settings.sync_forward = settings.whisper_forward
+        or KOSync.default_settings.sync_forward
       settings.whisper_forward = nil
-      settings.sync_backward = settings.whisper_backward or KOSync.default_settings.sync_backward
+      settings.sync_backward = settings.whisper_backward
+        or KOSync.default_settings.sync_backward
       settings.whisper_backward = nil
 
       G_reader_settings:saveSetting("kosync", settings)
@@ -600,7 +677,10 @@ if last_migration_date < 20230710 then
   end
 
   local Device = require("device")
-  if Device:hasWifiToggle() and G_reader_settings:readSetting("wifi_enable_action") ~= "turn_on" then
+  if
+    Device:hasWifiToggle()
+    and G_reader_settings:readSetting("wifi_enable_action") ~= "turn_on"
+  then
     local kosync = G_reader_settings:readSetting("kosync")
     if kosync and kosync.auto_sync then
       kosync.auto_sync = false
@@ -627,16 +707,24 @@ if last_migration_date < 20230802 then
   local db_location = DataStorage:getSettingsDir() .. "/statistics.sqlite3"
   if util.fileExists(db_location) then
     local conn = SQ3.open(db_location)
-    local ok, value = pcall(conn.exec, conn, "PRAGMA table_info('page_stat_data')")
+    local ok, value =
+      pcall(conn.exec, conn, "PRAGMA table_info('page_stat_data')")
     if ok and value then
       -- Has table
       conn:exec("DELETE FROM page_stat_data WHERE id_book IS null;")
       local ok2, errmsg = pcall(conn.exec, conn, "VACUUM;")
       if not ok2 then
-        logger.warn("Failed compacting statistics database when fixing null id_book:", errmsg)
+        logger.warn(
+          "Failed compacting statistics database when fixing null id_book:",
+          errmsg
+        )
       end
     else
-      logger.warn("db not compatible when performing onetime migration:", ok, value)
+      logger.warn(
+        "db not compatible when performing onetime migration:",
+        ok,
+        value
+      )
     end
     conn:close()
   else
@@ -673,7 +761,9 @@ end
 if last_migration_date < 20240408 then
   logger.info("Performing one-time migration for 20240408")
 
-  local image_file = G_reader_settings:readSetting("screensaver_type") == "image_file" and G_reader_settings:readSetting("screensaver_image")
+  local image_file = G_reader_settings:readSetting("screensaver_type")
+      == "image_file"
+    and G_reader_settings:readSetting("screensaver_image")
   if image_file then
     G_reader_settings:saveSetting("screensaver_type", "document_cover")
     G_reader_settings:saveSetting("screensaver_document_cover", image_file)
@@ -690,9 +780,15 @@ if last_migration_date < 20240731 then
   logger.info("Performing one-time migration for 20240731")
 
   local settings = G_reader_settings:readSetting("footer")
-  if (settings ~= nil) and (not settings.progress_margin) and (settings.progress_margin_width ~= 0) then
+  if
+    (settings ~= nil)
+    and not settings.progress_margin
+    and (settings.progress_margin_width ~= 0)
+  then
     local Device = require("device")
-    settings.progress_margin_width = Device:isAndroid() and Device.screen:scaleByDPI(16) or 10
+    settings.progress_margin_width = Device:isAndroid()
+        and Device.screen:scaleByDPI(16)
+      or 10
     G_reader_settings:saveSetting("footer", settings)
   end
 end
@@ -727,7 +823,10 @@ if last_migration_date < 20240915 then
   logger.info("Performing one-time migration for 20240915")
 
   if G_reader_settings:has("metric_length") then
-    G_reader_settings:saveSetting("dimension_units", G_reader_settings:nilOrTrue("metric_length") and "mm" or "in")
+    G_reader_settings:saveSetting(
+      "dimension_units",
+      G_reader_settings:nilOrTrue("metric_length") and "mm" or "in"
+    )
     G_reader_settings:delSetting("metric_length")
   end
 end

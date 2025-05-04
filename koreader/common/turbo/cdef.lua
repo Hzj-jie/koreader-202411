@@ -14,13 +14,13 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local ffi = require "ffi"
-local platform = require "turbo.platform"
+local ffi = require("ffi")
+local platform = require("turbo.platform")
 
 local S = pcall(require, "syscall")
 
 --- ******* stdlib UNIX *******
-ffi.cdef [[
+ffi.cdef([[
     typedef int pid_t;
 
     void *malloc(size_t sz);
@@ -42,22 +42,21 @@ ffi.cdef [[
     int execvp(const char *path, char *const argv[]);
     int fcntl(int fd, int cmd, int opt);
     unsigned int sleep(unsigned int seconds);
-]]
+]])
 if platform.__WINDOWS__ then
-    -- Windows version of UNIX strncasecmp.
-    ffi.cdef[[
+  -- Windows version of UNIX strncasecmp.
+  ffi.cdef([[
         int _strnicmp(
             const char *string1,
             const char *string2,
             size_t count);
-    ]]
+    ]])
 end
-
 
 --- ******* Berkeley Socket UNIX *******
 
 if not S then
-    ffi.cdef [[
+  ffi.cdef([[
         struct sockaddr_storage{
             unsigned short int ss_family;
             unsigned long int __ss_align;
@@ -68,10 +67,10 @@ if not S then
             sa_family_t sun_family;
             char        sun_path[108];
         };
-    ]]
+    ]])
 end
 
-ffi.cdef [[
+ffi.cdef([[
     typedef int socklen_t;
 
     char *strerror(int errnum);
@@ -107,23 +106,22 @@ ffi.cdef [[
         char *buf,
         socklen_t len);
     char *inet_ntoa(struct in_addr in);
-]]
+]])
 
 if platform.__ABI32__ then
-    ffi.cdef [[
+  ffi.cdef([[
         int send(int fd, const void *buf, size_t n, int flags);
         int recv(int fd, void *buf, size_t n, int flags);
-    ]]
+    ]])
 elseif platform.__ABI64__ then
-    ffi.cdef [[
+  ffi.cdef([[
         int64_t send(int fd, const void *buf, size_t n, int flags);
         int64_t recv(int fd, void *buf, size_t n, int flags);
-    ]]
+    ]])
 end
 
-
-    --- ******* Resolv *******
-    ffi.cdef[[
+--- ******* Resolv *******
+ffi.cdef([[
         struct hostent{
             char *h_name;
             char **h_aliases;
@@ -158,12 +156,11 @@ end
         void freeaddrinfo(struct addrinfo *ai);
         const char *gai_strerror(int ecode);
         int __res_init(void);
-    ]]
+    ]])
 
-
-    --- ******* Signals *******
-    if not S then
-        ffi.cdef [[
+--- ******* Signals *******
+if not S then
+  ffi.cdef([[
             struct signalfd_siginfo{
                 unsigned int ssi_signo;
                 int ssi_errno;
@@ -195,9 +192,10 @@ end
                 void         *sigev_notify_attributes;
                 pid_t        sigev_notify_thread_id;
            };
-        ]]
-    end
-    ffi.cdef(string.format([[
+        ]])
+end
+ffi.cdef(string.format(
+  [[
         typedef void(*sighandler_t)(int);
         sighandler_t sysv_signal(int signum, sighandler_t handler);
         int kill(pid_t pid, int sig);
@@ -212,12 +210,13 @@ end
         int sigismember(const sigset_t *set, int signum);
         int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
         int signalfd(int fd, const sigset_t *mask, int flags);
-    ]], (1024 / (8 *ffi.sizeof("unsigned long")))))
+    ]],
+  (1024 / (8 * ffi.sizeof("unsigned long")))
+))
 
-
-    --- ******* Time *******
-    if not S then
-        ffi.cdef[[
+--- ******* Time *******
+if not S then
+  ffi.cdef([[
             typedef long suseconds_t;
             typedef long time_t;
             /*
@@ -230,9 +229,9 @@ end
                 int tz_dsttime;
             };
             */
-        ]]
-    end
-    ffi.cdef([[
+        ]])
+end
+ffi.cdef([[
         typedef long suseconds_t;
         typedef long time_t;
         struct tm
@@ -267,10 +266,9 @@ end
     ]])
 
 if platform.__UNIX__ then
-
-    --- ******* RealTime (for Monotonic time) *******
-    if not S then
-        ffi.cdef[[
+  --- ******* RealTime (for Monotonic time) *******
+  if not S then
+    ffi.cdef([[
             /*
             struct timespec
             {
@@ -278,9 +276,9 @@ if platform.__UNIX__ then
                 long tv_nsec;
             };
             */
-        ]]
-    end
-    ffi.cdef[[
+        ]])
+  end
+  ffi.cdef([[
         typedef unsigned int clockid_t;
         /*
         enum clock_ids{
@@ -290,38 +288,37 @@ if platform.__UNIX__ then
         */
 
         int clock_gettime(clockid_t clk_id, struct timespec *tp);
-    ]]
+    ]])
 end
 
-
 if platform.__LINUX__ then
-    --- ******* Epoll *******
-    if not S then
-        ffi.cdef[[
+  --- ******* Epoll *******
+  if not S then
+    ffi.cdef([[
             typedef union epoll_data{
                 void *ptr;
                 int fd;
                 unsigned int u32;
                 uint64_t u64;
             } epoll_data_t;
-        ]]
-        if platform.__ABI32__ or platform.__PPC64__ then
-            ffi.cdef[[
+        ]])
+    if platform.__ABI32__ or platform.__PPC64__ then
+      ffi.cdef([[
                 struct epoll_event{
                     unsigned int events;
                     epoll_data_t data;
                 };
-            ]]
-        elseif platform.__ABI64__ then
-            ffi.cdef[[
+            ]])
+    elseif platform.__ABI64__ then
+      ffi.cdef([[
                 struct epoll_event{
                     unsigned int events;
                     epoll_data_t data;
                 } __attribute__ ((__packed__));
-            ]]
-        end
+            ]])
     end
-    ffi.cdef[[
+  end
+  ffi.cdef([[
         typedef struct epoll_event epoll_event;
 
         int epoll_create(int size);
@@ -335,12 +332,11 @@ if platform.__LINUX__ then
             struct epoll_event *events,
             int maxevents,
             int timeout);
-    ]]
+    ]])
 
-
-    --- ******* Inotify *******
-    if not S then
-        ffi.cdef [[
+  --- ******* Inotify *******
+  if not S then
+    ffi.cdef([[
             struct inotify_event{
                 int wd;
                 unsigned int mask;
@@ -348,17 +344,16 @@ if platform.__LINUX__ then
                 unsigned int len;
                 char name [];
             };
-        ]]
-    end
-    ffi.cdef [[
+        ]])
+  end
+  ffi.cdef([[
         int inotify_init(void);
         int inotify_add_watch(int fd, const char *name, unsigned int mask);
         int inotify_rm_watch (int fd, int wd);
-    ]]
+    ]])
 
-
-    --- ******* File system *******
-    ffi.cdef[[
+  --- ******* File system *******
+  ffi.cdef([[
         typedef long int __ssize_t;
         typedef __ssize_t ssize_t;
 
@@ -375,10 +370,10 @@ if platform.__LINUX__ then
         int open(const char *pathname, int flags);
         int close(int fd);
         int fstat(int fd, struct stat *buf);
-    ]]
+    ]])
 
-    -- stat structure is architecture dependent in Linux
-    if not S then
+  -- stat structure is architecture dependent in Linux
+  if not S then
     --[=====[
         if platform.__X86__ then
             ffi.cdef[[
@@ -519,11 +514,10 @@ if platform.__LINUX__ then
             ]]
         end
     --]=====]
-    end
+  end
 
-
-    -- ****** Glob ******
-    ffi.cdef[[
+  -- ****** Glob ******
+  ffi.cdef([[
         typedef struct {
             long unsigned int gl_pathc;
             char **gl_pathv;
@@ -541,12 +535,12 @@ if platform.__LINUX__ then
             int (*)(const char *, int),
             glob_t *pglob);
         void globfree(glob_t *pglob);
-    ]]
+    ]])
 end
 
 if platform.__DARWIN__ then
-    if not S then
-        ffi.cdef[[
+  if not S then
+    ffi.cdef([[
             struct stat {
                 unsigned int       st_dev;
                 unsigned short     st_mode;
@@ -572,21 +566,21 @@ if platform.__DARWIN__ then
                 int                st_lspare;
                 long long          st_qspare[2];
             };
-        ]]
-    end
+        ]])
+  end
 
-    --- ******* File system *******
-    ffi.cdef[[
+  --- ******* File system *******
+  ffi.cdef([[
         int syscall(int number, ...);
         int fstat(int fd, struct stat *buf);
-    ]]
+    ]])
 end
 
 if _G.TURBO_SSL then
-    --- *******OpenSSL *******
-    -- Note: Typedef SSL structs to void as we never access their members and
-    -- they are massive in ifdef's etc and are best left as blackboxes!
-    ffi.cdef[[
+  --- *******OpenSSL *******
+  -- Note: Typedef SSL structs to void as we never access their members and
+  -- they are massive in ifdef's etc and are best left as blackboxes!
+  ffi.cdef([[
         typedef void SSL_METHOD;
         typedef void SSL_CTX;
         typedef void SSL;
@@ -703,12 +697,11 @@ if _G.TURBO_SSL then
             unsigned char *md,
             unsigned int *md_len);
         int validate_hostname(const char *hostname, const SSL *server);
-    ]]
+    ]])
 end
 
-
 --- ******* HTTP parser and libtffi *******
-ffi.cdef[[
+ffi.cdef([[
     enum http_parser_url_fields{
         UF_SCHEMA = 0,
         UF_HOST = 1,
@@ -792,4 +785,4 @@ ffi.cdef[[
         const char *in,
         size_t sz);
     uint64_t turbo_bswap_u64(uint64_t swap);
-]]
+]])

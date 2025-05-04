@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 enum fx_type {
   fx_mask = 11,
   fx_buf_is_mask = 14,
@@ -49,4 +49,4 @@ static const int FBIO_EINK_UPDATE_DISPLAY = 18139;
 static const int FBIO_EINK_UPDATE_DISPLAY_AREA = 18141;
 static const int FBIO_EINK_SET_DISPLAY_ORIENTATION = 18160;
 static const int FBIO_EINK_GET_DISPLAY_ORIENTATION = 18161;
-]]
+]])

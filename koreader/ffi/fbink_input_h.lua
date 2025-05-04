@@ -1,7 +1,7 @@
 -- cdecl available at https://github.com/NiLuJe/FBInk/blob/master/ffi/fbink_input_decl.c
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 typedef enum {
   INPUT_UNKNOWN = 0,
   INPUT_POINTINGSTICK = 1,
@@ -41,4 +41,4 @@ typedef struct {
 } FBInkInputDevice;
 FBInkInputDevice *fbink_input_scan(INPUT_DEVICE_TYPE_T, INPUT_DEVICE_TYPE_T, INPUT_SETTINGS_TYPE_T, size_t *);
 FBInkInputDevice *fbink_input_check(const char *, INPUT_DEVICE_TYPE_T, INPUT_DEVICE_TYPE_T, INPUT_SETTINGS_TYPE_T);
-]]
+]])

@@ -2,12 +2,11 @@
 -- lua-Spore : <http://fperrad.github.com/lua-Spore/>
 --
 
-
 local _ENV = nil
 local m = {}
 
-function m:call (req)
-    req.env.sporex.logger = self.logger
+function m:call(req)
+  req.env.sporex.logger = self.logger
 end
 
 return m

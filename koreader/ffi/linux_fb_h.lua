@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 static const int FBIOGET_FSCREENINFO = 17922;
 static const int FBIOGET_VSCREENINFO = 17920;
 static const int FBIOPUT_VSCREENINFO = 17921;
@@ -62,4 +62,4 @@ struct fb_var_screeninfo {
   unsigned int colorspace;
   unsigned int reserved[4];
 };
-]]
+]])

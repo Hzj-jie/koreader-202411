@@ -20,34 +20,34 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE."
 
-local ffi = require "ffi"
-require "turbo.cdef"
+local ffi = require("ffi")
+require("turbo.cdef")
 
 -- Defines for epoll_ctl.
 local epoll = {
-    EPOLL_CTL_ADD = 1,
-    EPOLL_CTL_DEL = 2,
-    EPOLL_CTL_MOD = 3,
-    EPOLL_EVENTS = {
-        EPOLLIN  = 0x001,
-        EPOLLPRI = 0x002,
-        EPOLLOUT = 0x004,
-        EPOLLERR = 0x008,
-        EPOLLHUP = 0x0010,
-    }
+  EPOLL_CTL_ADD = 1,
+  EPOLL_CTL_DEL = 2,
+  EPOLL_CTL_MOD = 3,
+  EPOLL_EVENTS = {
+    EPOLLIN = 0x001,
+    EPOLLPRI = 0x002,
+    EPOLLOUT = 0x004,
+    EPOLLERR = 0x008,
+    EPOLLHUP = 0x0010,
+  },
 }
 
 --- Create a new epoll fd. Returns the fd of the created epoll instance and -1
 -- and errno on error.
 -- @return epoll fd on success, else -1 and errno.
 function epoll.epoll_create()
-    local fd = ffi.C.epoll_create(124)
+  local fd = ffi.C.epoll_create(124)
 
-    if fd == -1 then
-        return -1, ffi.errno()
-    end
+  if fd == -1 then
+    return -1, ffi.errno()
+  end
 
-    return fd
+  return fd
 end
 
 --- Control a epoll fd.
@@ -68,16 +68,16 @@ end
 -- @return 0 on success and -1 on error together with errno.
 local _event = ffi.new("epoll_event")
 function epoll.epoll_ctl(epfd, op, fd, epoll_events)
-    local rc
+  local rc
 
-    ffi.fill(_event, ffi.sizeof(_event), 0)
-    _event.data.fd = fd
-    _event.events = epoll_events
-    rc = ffi.C.epoll_ctl(epfd, op, fd, _event)
-    if rc == -1 then
-        return -1, ffi.errno()
-    end
-    return rc
+  ffi.fill(_event, ffi.sizeof(_event), 0)
+  _event.data.fd = fd
+  _event.events = epoll_events
+  rc = ffi.C.epoll_ctl(epfd, op, fd, _event)
+  if rc == -1 then
+    return -1, ffi.errno()
+  end
+  return rc
 end
 
 --- Wait for events on a epoll instance.
@@ -87,11 +87,11 @@ end
 -- are returned.
 local _events = ffi.new("struct epoll_event[124]")
 function epoll.epoll_wait(epfd, timeout)
-    local num_events = ffi.C.epoll_wait(epfd, _events, 124, timeout)
-    if num_events == -1 then
-        return -1, ffi.errno()
-    end
-    return 0, num_events, _events
+  local num_events = ffi.C.epoll_wait(epfd, _events, 124, timeout)
+  if num_events == -1 then
+    return -1, ffi.errno()
+  end
+  return 0, num_events, _events
 end
 
 return epoll

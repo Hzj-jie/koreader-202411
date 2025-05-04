@@ -14,7 +14,7 @@ local band = bit.band
 local bor = bit.bor
 
 -- win32 utility
-ffi.cdef[[
+ffi.cdef([[
 typedef unsigned int UINT;
 typedef unsigned long DWORD;
 typedef char *LPSTR;
@@ -58,7 +58,7 @@ int WideCharToMultiByte(
   LPCSTR lpDefaultChar,
   LPBOOL lpUsedDefaultChar
 );
-]]
+]])
 
 require("ffi/posix_h")
 
@@ -66,8 +66,8 @@ local util = {}
 
 if ffi.os == "Windows" then
   util.gettime = function()
-    local ft = ffi.new('FILETIME[1]')[0]
-    local tmpres = ffi.new('unsigned long', 0)
+    local ft = ffi.new("FILETIME[1]")[0]
+    local tmpres = ffi.new("unsigned long", 0)
     C.GetSystemTimeAsFileTime(ft)
     tmpres = bor(tmpres, ft.dwHighDateTime)
     tmpres = lshift(tmpres, 32)
@@ -87,10 +87,10 @@ end
 
 if ffi.os == "Windows" then
   util.sleep = function(sec)
-    C.Sleep(sec*1000)
+    C.Sleep(sec * 1000)
   end
   util.usleep = function(usec)
-    C.Sleep(usec/1000)
+    C.Sleep(usec / 1000)
   end
 else
   util.sleep = C.sleep
@@ -99,7 +99,7 @@ end
 
 function util.getTimestamp()
   local secs, usecs = util.gettime()
-  return secs + usecs/1000000
+  return secs + usecs / 1000000
 end
 
 function util.getDuration(from_timestamp)
@@ -124,13 +124,17 @@ function util.strcoll(str1, str2)
   local strcoll_func = strcoll
 
   -- Some devices lack compiled locales (Hi, Kobo!), preventing strcoll from behaving sanely. See issue koreader/koreader#686
-  if ffi.os == "Linux" and C.access("/usr/lib/locale/locale-archive", C.F_OK) ~= 0 then
+  if
+    ffi.os == "Linux"
+    and C.access("/usr/lib/locale/locale-archive", C.F_OK) ~= 0
+  then
     strcoll_func = function(a, b)
       return a < b
     end
   end
 
-  local DALPHA_SORT_CASE_INSENSITIVE = G_defaults:readSetting("DALPHA_SORT_CASE_INSENSITIVE")
+  local DALPHA_SORT_CASE_INSENSITIVE =
+    G_defaults:readSetting("DALPHA_SORT_CASE_INSENSITIVE")
   -- patch real strcoll implementation
   util.strcoll = function(a, b)
     if a == nil and b == nil then
@@ -280,9 +284,9 @@ function util.execute(...)
     local pid = C.fork()
     if pid == 0 then
       local args = table.pack(...)
-      os.exit(C.execl(args[1], unpack(args, 1, args.n+1))) -- Last arg must be a NULL pointer
+      os.exit(C.execl(args[1], unpack(args, 1, args.n + 1))) -- Last arg must be a NULL pointer
     end
-    local status = ffi.new('int[1]')
+    local status = ffi.new("int[1]")
     C.waitpid(pid, status, 0)
     return status[0]
   end
@@ -317,13 +321,17 @@ end
 function util.runInSubProcess(func, with_pipe, double_fork)
   local parent_read_fd, child_write_fd
   if with_pipe then
-    local pipe = ffi.new('int[2]', {-1, -1})
+    local pipe = ffi.new("int[2]", { -1, -1 })
     if C.pipe(pipe) ~= 0 then -- failed creating pipe !
-      return false, "failed creating pipe: "..ffi.string(C.strerror(ffi.errno()))
+      return false,
+        "failed creating pipe: " .. ffi.string(C.strerror(ffi.errno()))
     end
     parent_read_fd, child_write_fd = pipe[0], pipe[1]
     if parent_read_fd == -1 or child_write_fd == -1 then
-      return false, "failed getting pipe read or write fd: "..ffi.string(C.strerror(ffi.errno()))
+      return false,
+        "failed getting pipe read or write fd: " .. ffi.string(
+          C.strerror(ffi.errno())
+        )
     end
   end
   local pid = C.fork()
@@ -382,15 +390,16 @@ function util.runInSubProcess(func, with_pipe, double_fork)
   end
   -- parent/main process
   if pid < 0 then -- on failure, fork() returns -1
-    return false, "fork failed: "..ffi.string(C.strerror(ffi.errno()))
+    return false, "fork failed: " .. ffi.string(C.strerror(ffi.errno()))
   end
   -- If we double-fork, reap the outer fork now, since its only purpose is fork -> _exit
   if double_fork then
-    local status = ffi.new('int[1]')
+    local status = ffi.new("int[1]")
     local ret = C.waitpid(pid, status, 0)
     -- Returns pid on success, -1 on failure
     if ret < 0 then
-      return false, "double fork failed: "..ffi.string(C.strerror(ffi.errno()))
+      return false,
+        "double fork failed: " .. ffi.string(C.strerror(ffi.errno()))
     end
   end
   if child_write_fd then
@@ -404,7 +413,7 @@ end
 -- This does not block, unless `wait` is `true`.
 -- Returns true if process was collected or has already exited, false if process is still running.
 function util.isSubProcessDone(pid, wait)
-  local status = ffi.new('int[1]')
+  local status = ffi.new("int[1]")
   local ret = C.waitpid(pid, status, wait and 0 or C.WNOHANG)
   -- status = tonumber(status[0])
   -- If still running: ret = 0 , status = 0
@@ -447,10 +456,13 @@ function util.getNonBlockingReadSize(fd_or_luafile)
   else -- lua file object
     fileno = C.fileno(fd_or_luafile)
   end
-  local available = ffi.new('int[1]')
+  local available = ffi.new("int[1]")
   local ok = C.ioctl(fileno, C.FIONREAD, available)
   if ok ~= 0 then -- ioctl failed, not supported
-    print("C.ioctl(…, FIONREAD, …) failed:", ffi.string(C.strerror(ffi.errno())))
+    print(
+      "C.ioctl(…, FIONREAD, …) failed:",
+      ffi.string(C.strerror(ffi.errno()))
+    )
     return
   end
   available = tonumber(available[0])
@@ -483,14 +495,20 @@ function util.writeToSysfs(val, file)
   --     as it only reports failures to write to the *stream*, not to the disk/file!).
   local fd = C.open(file, bit.bor(C.O_WRONLY, C.O_CLOEXEC)) -- procfs/sysfs, we shouldn't need O_TRUNC
   if fd == -1 then
-    print("Cannot open file `" .. file .. "`:", ffi.string(C.strerror(ffi.errno())))
+    print(
+      "Cannot open file `" .. file .. "`:",
+      ffi.string(C.strerror(ffi.errno()))
+    )
     return
   end
   val = tostring(val)
   local bytes = #val
   local nw = C.write(fd, val, bytes)
   if nw == -1 then
-    print("Cannot write `" .. val .. "` to file `" .. file .. "`:", ffi.string(C.strerror(ffi.errno())))
+    print(
+      "Cannot write `" .. val .. "` to file `" .. file .. "`:",
+      ffi.string(C.strerror(ffi.errno()))
+    )
   end
   C.close(fd)
   -- NOTE: Allows the caller to possibly handle short writes (not that these should ever happen here).
@@ -501,14 +519,15 @@ end
 -- This blocks until remote side has closed its side of the fd
 function util.readAllFromFD(fd)
   local chunksize = 8192
-  local buffer = ffi.new('char[?]', chunksize, {0})
+  local buffer = ffi.new("char[?]", chunksize, { 0 })
   local data = {}
   while true do
     -- print("reading from fd")
-    local bytes_read = tonumber(C.read(fd, ffi.cast('void*', buffer), chunksize))
+    local bytes_read =
+      tonumber(C.read(fd, ffi.cast("void*", buffer), chunksize))
     if bytes_read < 0 then
       local err = ffi.errno()
-      print("readAllFromFD() error: "..ffi.string(C.strerror(err)))
+      print("readAllFromFD() error: " .. ffi.string(C.strerror(err)))
       break
     elseif bytes_read == 0 then -- EOF, no more data to read
       break
@@ -570,7 +589,8 @@ function util.fsyncDirectory(path)
       return false, err
     end
   end
-  local dirfd = C.open(ffi.cast("char *", path), bit.bor(C.O_RDONLY, C.O_CLOEXEC))
+  local dirfd =
+    C.open(ffi.cast("char *", path), bit.bor(C.O_RDONLY, C.O_CLOEXEC))
   if dirfd == -1 then
     err = ffi.errno()
     return false, ffi.string(C.strerror(err))
@@ -595,17 +615,16 @@ function util.utf8charcode(charstring)
   if len == 1 then
     return band(ptr[0], 0x7F)
   elseif len == 2 then
-    return lshift(band(ptr[0], 0x1F), 6) +
-      band(ptr[1], 0x3F)
+    return lshift(band(ptr[0], 0x1F), 6) + band(ptr[1], 0x3F)
   elseif len == 3 then
-    return lshift(band(ptr[0], 0x0F), 12) +
-      lshift(band(ptr[1], 0x3F), 6) +
-      band(ptr[2], 0x3F)
+    return lshift(band(ptr[0], 0x0F), 12)
+      + lshift(band(ptr[1], 0x3F), 6)
+      + band(ptr[2], 0x3F)
   elseif len == 4 then
-    return lshift(band(ptr[0], 0x07), 18) +
-      lshift(band(ptr[1], 0x3F), 12) +
-      lshift(band(ptr[2], 0x3F), 6) +
-      band(ptr[3], 0x3F)
+    return lshift(band(ptr[0], 0x07), 18)
+      + lshift(band(ptr[1], 0x3F), 12)
+      + lshift(band(ptr[2], 0x3F), 6)
+      + band(ptr[3], 0x3F)
   end
 end
 
@@ -646,11 +665,8 @@ local libSDL2 = nil
 function util.loadSDL2()
   if libSDL2 == nil then
     local ok
-    ok, libSDL2 = pcall(ffi.loadlib,
-      "SDL2-2.0", 0,
-      "SDL2-2.0", nil,
-      "SDL2", nil
-    )
+    ok, libSDL2 =
+      pcall(ffi.loadlib, "SDL2-2.0", 0, "SDL2-2.0", nil, "SDL2", nil)
     if not ok then
       print("SDL2 not loaded:", libSDL2)
       libSDL2 = false
@@ -661,7 +677,7 @@ end
 
 --- Division with integer result.
 function util.idiv(a, b)
-  local q = a/b
+  local q = a / b
   return (q > 0) and math.floor(q) or math.ceil(q)
 end
 
@@ -689,11 +705,12 @@ This function was inspired by Qt:
 function util.template(str, ...)
   local params = table.pack(...)
   -- shortcut:
-  if params.n == 0 then return str end
-  local result = string.gsub(str, "%%([1-9][0-9]?)",
-    function(i)
-      return params[tonumber(i)]
-    end)
+  if params.n == 0 then
+    return str
+  end
+  local result = string.gsub(str, "%%([1-9][0-9]?)", function(i)
+    return params[tonumber(i)]
+  end)
   return result
 end
 

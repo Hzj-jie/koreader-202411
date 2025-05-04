@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 static const int FZ_STEXT_BLOCK_TEXT = 0;
 typedef struct {
   float x;
@@ -292,4 +292,4 @@ fz_rect *mupdf_fz_transform_rect(fz_rect *, const fz_matrix *);
 fz_irect *mupdf_fz_round_rect(fz_irect *, const fz_rect *);
 fz_rect *mupdf_fz_union_rect(fz_rect *, const fz_rect *);
 fz_rect *mupdf_fz_rect_from_quad(fz_rect *, const fz_quad *);
-]]
+]])

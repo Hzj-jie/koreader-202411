@@ -174,7 +174,7 @@ local order = {
     "common_log_files",
     "ota_update", -- if Device:hasOTAUpdates()
     "help",
-    "keyboard_shortcuts",  -- explicitly place it here to save key presses
+    "keyboard_shortcuts", -- explicitly place it here to save key presses
     "----------------------------",
     "exit_menu",
   },
@@ -198,7 +198,7 @@ local order = {
     "----------------------------",
     "start_bq", -- if Device:isCervantes()
     "exit",
-  }
+  },
 }
 
 if not Device:hasExitOptions() then

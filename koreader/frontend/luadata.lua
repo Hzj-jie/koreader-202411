@@ -25,11 +25,11 @@ function LuaData:open(file_path, name)
   end
 
   -- NOTE: Beware, our new instance is new, but self is still LuaData!
-  local new = LuaData:extend{
+  local new = LuaData:extend({
     name = name,
     file = file_path,
     data = {},
-  }
+  })
 
   -- Some magic to allow for self-describing function names:
   -- We'll use data_env both as the environment when loading the data, *and* its metatable,
@@ -42,7 +42,7 @@ function LuaData:open(file_path, name)
   local data_env = {}
   data_env.__index = data_env
   setmetatable(data_env, data_env)
-  data_env[new.name.."Entry"] = function(t)
+  data_env[new.name .. "Entry"] = function(t)
     if not t.data then
       -- We've got a deleted or currupted setting, ignore it.
       return
@@ -70,8 +70,8 @@ function LuaData:open(file_path, name)
     end
   end
   if not ok then
-    for i=1, new.max_backups, 1 do
-      local backup_file = new.file..".old."..i
+    for i = 1, new.max_backups, 1 do
+      local backup_file = new.file .. ".old." .. i
       if lfs.attributes(backup_file, "mode") == "file" then
         ok, err = loadfile(backup_file, "t", data_env)
         if ok then
@@ -112,18 +112,20 @@ function LuaData:addTableItem(value)
   -- and
   -- { ["a"] = 1}
   -- without crazily guessing the use cases.
-  self:_append{
-    data = {[#self.data] = value},
-  }
+  self:_append({
+    data = { [#self.data] = value },
+  })
 end
 
 --- Appends settings to disk.
 function LuaData:_append(data)
-  if not self.file then return end
+  if not self.file then
+    return
+  end
   local f_out = io.open(self.file, "a")
   if f_out ~= nil then
     -- NOTE: This is a function call, with a table as its single argument. Parentheses are elided.
-    f_out:write(self.name.."Entry")
+    f_out:write(self.name .. "Entry")
     f_out:write(dump(data))
     f_out:write("\n")
     f_out:close()
@@ -134,12 +136,19 @@ end
 --- Clears the existing data.
 function LuaData:reset()
   self.data = {}
-  if not self.file then return end
+  if not self.file then
+    return
+  end
   if lfs.attributes(self.file, "mode") == "file" then
-    for i=1, self.max_backups, 1 do
-      if lfs.attributes(self.file..".old."..i, "mode") == "file" then
-        logger.dbg("LuaData: Rename", self.file .. ".old." .. i, "to", self.file .. ".old." .. i+1)
-        os.rename(self.file, self.file .. ".old." .. i+1)
+    for i = 1, self.max_backups, 1 do
+      if lfs.attributes(self.file .. ".old." .. i, "mode") == "file" then
+        logger.dbg(
+          "LuaData: Rename",
+          self.file .. ".old." .. i,
+          "to",
+          self.file .. ".old." .. i + 1
+        )
+        os.rename(self.file, self.file .. ".old." .. i + 1)
       else
         break
       end

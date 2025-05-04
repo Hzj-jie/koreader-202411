@@ -28,13 +28,13 @@ local Event = require("ui/event")
 Event:new("GotoPage", 1)
 ]]
 function Event:new(name, ...)
-    local o = {
-        handler = "on"..name,
-        args = table.pack(...),
-    }
-    setmetatable(o, self)
-    self.__index = self
-    return o
+  local o = {
+    handler = "on" .. name,
+    args = table.pack(...),
+  }
+  setmetatable(o, self)
+  self.__index = self
+  return o
 end
 
 return Event

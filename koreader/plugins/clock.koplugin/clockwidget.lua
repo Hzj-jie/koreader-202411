@@ -12,7 +12,7 @@ local _ = require("gettext")
 local logger = require("logger")
 local date
 date = os.date
-local PLUGIN_ROOT = package.path:match('([^;]*clock%.koplugin/)')
+local PLUGIN_ROOT = package.path:match("([^;]*clock%.koplugin/)")
 local rotate_point
 rotate_point = function(point_x, point_y, center_x, center_y, angle_rad)
   local sin, cos, floor
@@ -45,7 +45,7 @@ local ClockWidget = WidgetContainer:new({
   height = Screen:scaleBySize(200),
   padding = Size.padding.large,
   scale_factor = 0,
-  _hands = { }
+  _hands = {},
 })
 ClockWidget.init = function(self)
   local padding = self.padding
@@ -58,11 +58,13 @@ ClockWidget.init = function(self)
       width = width,
       height = height,
       scale_factor = self.scale_factor,
-      alpha = true
-    })
+      alpha = true,
+    }),
   })
-  self._hours_hand_bb = RenderImage:renderImageFile(tostring(PLUGIN_ROOT) .. "hours.png")
-  self._minutes_hand_bb = RenderImage:renderImageFile(tostring(PLUGIN_ROOT) .. "minutes.png")
+  self._hours_hand_bb =
+    RenderImage:renderImageFile(tostring(PLUGIN_ROOT) .. "hours.png")
+  self._minutes_hand_bb =
+    RenderImage:renderImageFile(tostring(PLUGIN_ROOT) .. "minutes.png")
   self.autoRefreshTime = function()
     UIManager:setDirty("all", function()
       return "ui", self.dimen, true
@@ -91,39 +93,56 @@ ClockWidget._prepareHands = function(self, hours, minutes)
   if self._hands[idx] then
     return self._hands[idx]
   end
-  self._hands[idx] = { }
+  self._hands[idx] = {}
   local hour_rad, minute_rad = -math.pi / 6, -math.pi / 30
   local padding = self.padding
   local width, height = self.width - 2 * padding, self.height - 2 * padding
-  local hours_hand_bb = rotate_bb(self._hours_hand_bb, self._hours_hand_bb:getWidth() / 2, self._hours_hand_bb:getHeight() / 2, (hours + minutes / 60) * hour_rad)
-  local minutes_hand_bb = rotate_bb(self._minutes_hand_bb, self._minutes_hand_bb:getWidth() / 2, self._minutes_hand_bb:getHeight() / 2, minutes * minute_rad)
+  local hours_hand_bb = rotate_bb(
+    self._hours_hand_bb,
+    self._hours_hand_bb:getWidth() / 2,
+    self._hours_hand_bb:getHeight() / 2,
+    (hours + minutes / 60) * hour_rad
+  )
+  local minutes_hand_bb = rotate_bb(
+    self._minutes_hand_bb,
+    self._minutes_hand_bb:getWidth() / 2,
+    self._minutes_hand_bb:getHeight() / 2,
+    minutes * minute_rad
+  )
   local hours_hand_widget = ImageWidget:new({
     image = hours_hand_bb,
     width = width,
     height = height,
     scale_factor = self.scale_factor,
-    alpha = true
+    alpha = true,
   })
   local minutes_hand_widget = ImageWidget:new({
     image = minutes_hand_bb,
     width = width,
     height = height,
     scale_factor = self.scale_factor,
-    alpha = true
+    alpha = true,
   })
   self._hands[idx].hours = CenterContainer:new({
     dimen = self:getSize(),
-    hours_hand_widget
+    hours_hand_widget,
   })
   self._hands[idx].minutes = CenterContainer:new({
     dimen = self:getSize(),
-    minutes_hand_widget
+    minutes_hand_widget,
   })
   local n_hands = 0
   for __ in pairs(self._hands) do
     n_hands = n_hands + 1
   end
-  logger.dbg("ClockWidget: hands ready for", hours, minutes, ":", n_hands, "position(s) in memory.")
+  logger.dbg(
+    "ClockWidget: hands ready for",
+    hours,
+    minutes,
+    ":",
+    n_hands,
+    "position(s) in memory."
+  )
   return self._hands[idx]
 end
 ClockWidget._updateHands = function(self)

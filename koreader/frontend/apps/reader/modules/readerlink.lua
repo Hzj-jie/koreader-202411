@@ -26,7 +26,8 @@ local function is_wiki_page(link_url)
   if not link_url then
     return false
   end
-  local wiki_lang, wiki_page = link_url:match([[https?://([^%.]+).wikipedia.org/wiki/([^/]+)]])
+  local wiki_lang, wiki_page =
+    link_url:match([[https?://([^%.]+).wikipedia.org/wiki/([^/]+)]])
   if not wiki_lang or not wiki_page then
     return false
   end
@@ -34,13 +35,14 @@ local function is_wiki_page(link_url)
   -- wikipedia page saved as epub, full of wikipedia links, it's
   -- too easy to click on links when wanting to change page...)
   -- But first check if this wikipedia article has been saved as EPUB
-  local epub_filename = wiki_page .. "."..string.upper(wiki_lang)..".epub"
+  local epub_filename = wiki_page .. "." .. string.upper(wiki_lang) .. ".epub"
   local epub_fullpath
   -- either in current book directory
   local last_file = G_reader_settings:readSetting("lastfile")
   if last_file then
     local current_book_dir = last_file:match("(.*)/")
-    local safe_filename = util.getSafeFilename(epub_filename, current_book_dir):gsub("_", " ")
+    local safe_filename =
+      util.getSafeFilename(epub_filename, current_book_dir):gsub("_", " ")
     local epub_path = current_book_dir .. "/" .. safe_filename
     if util.pathExists(epub_path) then
       epub_fullpath = epub_path
@@ -48,10 +50,11 @@ local function is_wiki_page(link_url)
   end
   -- or in wikipedia save directory
   if not epub_fullpath then
-    local dir = G_reader_settings:readSetting("wikipedia_save_dir") or
-          G_named_settings.home_dir()
+    local dir = G_reader_settings:readSetting("wikipedia_save_dir")
+      or G_named_settings.home_dir()
     assert(dir ~= nil)
-    local safe_filename = util.getSafeFilename(epub_filename, dir):gsub("_", " ")
+    local safe_filename =
+      util.getSafeFilename(epub_filename, dir):gsub("_", " ")
     local epub_path = dir .. "/" .. safe_filename
     if util.pathExists(epub_path) then
       epub_fullpath = epub_path
@@ -60,12 +63,12 @@ local function is_wiki_page(link_url)
   return wiki_lang, wiki_page, epub_fullpath
 end
 
-local ReaderLink = InputContainer:extend{
+local ReaderLink = InputContainer:extend({
   location_stack = nil, -- table, per-instance
   forward_location_stack = nil, -- table, per-instance
   _external_link_buttons = nil,
   supported_external_schemes = nil,
-}
+})
 
 function ReaderLink:init()
   self:registerKeyEvents()
@@ -75,8 +78,10 @@ function ReaderLink:init()
         id = "tap_link",
         ges = "tap",
         screen_zone = {
-          ratio_x = 0, ratio_y = 0,
-          ratio_w = 1, ratio_h = 1,
+          ratio_x = 0,
+          ratio_y = 0,
+          ratio_w = 1,
+          ratio_h = 1,
         },
         overrides = {
           -- Tap on links have priority over everything (it can
@@ -94,20 +99,26 @@ function ReaderLink:init()
           "tap_forward",
           "tap_backward",
         },
-        handler = function(ges) return self:onTap(_, ges) end,
+        handler = function(ges)
+          return self:onTap(_, ges)
+        end,
       },
       {
         id = "swipe_link",
         ges = "swipe",
         screen_zone = {
-          ratio_x = 0, ratio_y = 0,
-          ratio_w = 1, ratio_h = 1,
+          ratio_x = 0,
+          ratio_y = 0,
+          ratio_w = 1,
+          ratio_h = 1,
         },
         overrides = {
           "paging_swipe",
-          "rolling_swipe"
+          "rolling_swipe",
         },
-        handler = function(ges) return self:onSwipe(_, ges) end,
+        handler = function(ges)
+          return self:onSwipe(_, ges)
+        end,
       },
     })
   end
@@ -124,8 +135,10 @@ function ReaderLink:init()
   local directory, filename = util.splitFilePathName(self.document.file) -- luacheck: no unused
   self.document_dir = directory
   -- Migrate these old settings to the new common one
-  if G_reader_settings:isTrue("tap_link_footnote_popup")
-      or G_reader_settings:isTrue("swipe_link_footnote_popup") then
+  if
+    G_reader_settings:isTrue("tap_link_footnote_popup")
+    or G_reader_settings:isTrue("swipe_link_footnote_popup")
+  then
     G_reader_settings:saveSetting("tap_link_footnote_popup", nil)
     G_reader_settings:saveSetting("swipe_link_footnote_popup", nil)
     G_reader_settings:saveSetting("footnote_link_in_popup", true)
@@ -135,7 +148,7 @@ function ReaderLink:init()
   self.ges_events = nil
 
   -- Set always supported external link schemes
-  self.supported_external_schemes = {"http", "https"}
+  self.supported_external_schemes = { "http", "https" }
 
   -- Set up buttons for alternative external link handling methods
   self._external_link_buttons = {}
@@ -153,12 +166,12 @@ function ReaderLink:init()
       text = _("Show QR code"),
       callback = function()
         UIManager:close(this.external_link_dialog)
-        UIManager:show(QRMessage:new{
+        UIManager:show(QRMessage:new({
           text = link_url,
           width = Device.screen:getWidth(),
-          height = Device.screen:getHeight()
-        })
-      end
+          height = Device.screen:getHeight(),
+        }))
+      end,
     }
   end
   self._external_link_buttons["30_browser"] = function(this, link_url)
@@ -172,7 +185,7 @@ function ReaderLink:init()
         if Device:canOpenLink() then
           return true
         end
-      end
+      end,
     }
   end
   self._external_link_buttons["40_wiki_lookup"] = function(this, link_url)
@@ -182,19 +195,32 @@ function ReaderLink:init()
         UIManager:nextTick(function()
           UIManager:close(this.external_link_dialog)
           local wiki_lang, wiki_page = is_wiki_page(link_url)
-          self.ui:handleEvent(Event:new("LookupWikipedia", wiki_page, true, false, true, wiki_lang))
+          self.ui:handleEvent(
+            Event:new(
+              "LookupWikipedia",
+              wiki_page,
+              true,
+              false,
+              true,
+              wiki_lang
+            )
+          )
         end)
       end,
       show_in_dialog_func = function()
         local wiki_lang, wiki_page = is_wiki_page(link_url)
         if wiki_lang and wiki_page then
           logger.dbg("Wikipedia link:", wiki_lang, wiki_page)
-          local text = T(_("Would you like to read this Wikipedia %1 article?\n\n%2\n"), wiki_lang:upper(), wiki_page:gsub("_", " "))
+          local text = T(
+            _("Would you like to read this Wikipedia %1 article?\n\n%2\n"),
+            wiki_lang:upper(),
+            wiki_page:gsub("_", " ")
+          )
           return true, text
         else
           return false
         end
-      end
+      end,
     }
   end
   self._external_link_buttons["45_wiki_saved"] = function(this, link_url)
@@ -210,10 +236,14 @@ function ReaderLink:init()
       show_in_dialog_func = function()
         local wiki_lang, wiki_page, wiki_epub_fullpath = is_wiki_page(link_url)
         if wiki_lang and wiki_page and wiki_epub_fullpath then
-          local text = T(_("This article has previously been saved as EPUB. You may wish to read the saved EPUB instead."))
+          local text = T(
+            _(
+              "This article has previously been saved as EPUB. You may wish to read the saved EPUB instead."
+            )
+          )
           return true, text
         end
-      end
+      end,
     }
   end
   self._external_link_buttons["90_cancel"] = function(this, link_url)
@@ -240,15 +270,22 @@ function ReaderLink:onGesture() end
 
 function ReaderLink:registerKeyEvents()
   if Device:hasScreenKB() or Device:hasSymKey() then
-    self.key_events.GotoSelectedPageLink = { { "Press" }, event = "GotoSelectedPageLink" }
+    self.key_events.GotoSelectedPageLink =
+      { { "Press" }, event = "GotoSelectedPageLink" }
     if Device:hasKeyboard() then
-      self.key_events.AddCurrentLocationToStackNonTouch = { { "Shift", "Press" } }
-      self.key_events.SelectNextPageLink = { { "Shift", "LPgFwd" }, event = "SelectNextPageLink" }
-      self.key_events.SelectPrevPageLink = { { "Shift", "LPgBack" }, event = "SelectPrevPageLink" }
+      self.key_events.AddCurrentLocationToStackNonTouch =
+        { { "Shift", "Press" } }
+      self.key_events.SelectNextPageLink =
+        { { "Shift", "LPgFwd" }, event = "SelectNextPageLink" }
+      self.key_events.SelectPrevPageLink =
+        { { "Shift", "LPgBack" }, event = "SelectPrevPageLink" }
     else
-      self.key_events.AddCurrentLocationToStackNonTouch = { { "ScreenKB", "Press" } }
-      self.key_events.SelectNextPageLink = { { "ScreenKB", "LPgFwd" }, event = "SelectNextPageLink" }
-      self.key_events.SelectPrevPageLink = { { "ScreenKB", "LPgBack" }, event = "SelectPrevPageLink" }
+      self.key_events.AddCurrentLocationToStackNonTouch =
+        { { "ScreenKB", "Press" } }
+      self.key_events.SelectNextPageLink =
+        { { "ScreenKB", "LPgFwd" }, event = "SelectNextPageLink" }
+      self.key_events.SelectPrevPageLink =
+        { { "ScreenKB", "LPgBack" }, event = "SelectPrevPageLink" }
     end
   elseif Device:hasKeys() then
     self.key_events = {
@@ -317,32 +354,40 @@ function ReaderLink:addToMainMenu(menu_items)
   -- insert table to main reader menu
   menu_items.go_to_previous_location = {
     text = _("Go back to previous location"),
-    enabled_func = function() return self.location_stack and #self.location_stack > 0 end,
-    callback = function() self:onGoBackLink() end,
+    enabled_func = function()
+      return self.location_stack and #self.location_stack > 0
+    end,
+    callback = function()
+      self:onGoBackLink()
+    end,
     hold_callback = function(touchmenu_instance)
-      UIManager:show(ConfirmBox:new{
+      UIManager:show(ConfirmBox:new({
         text = _("Clear location history?"),
         ok_text = _("Clear"),
         ok_callback = function()
           self:onClearLocationStack()
           touchmenu_instance:closeMenu()
         end,
-      })
+      }))
     end,
   }
   menu_items.go_to_next_location = {
     text = _("Go forward to next location"),
-    enabled_func = function() return self.forward_location_stack and #self.forward_location_stack > 0 end,
-    callback = function() self:onGoForwardLink() end,
+    enabled_func = function()
+      return self.forward_location_stack and #self.forward_location_stack > 0
+    end,
+    callback = function()
+      self:onGoForwardLink()
+    end,
     hold_callback = function(touchmenu_instance)
-      UIManager:show(ConfirmBox:new{
+      UIManager:show(ConfirmBox:new({
         text = _("Clear forward location history?"),
         ok_text = _("Clear"),
         ok_callback = function()
           self:onClearForwardLocationStack()
           touchmenu_instance:closeMenu()
         end,
-      })
+      }))
     end,
   }
   if not Device:isTouchDevice() then
@@ -356,8 +401,10 @@ function ReaderLink:addToMainMenu(menu_items)
         text = _("Tap to follow links"),
         checked_func = isTapToFollowLinksOn,
         callback = function()
-          G_reader_settings:saveSetting("tap_to_follow_links",
-            not isTapToFollowLinksOn())
+          G_reader_settings:saveSetting(
+            "tap_to_follow_links",
+            not isTapToFollowLinksOn()
+          )
         end,
         help_text = _([[Tap on links to follow them.]]),
       },
@@ -366,58 +413,78 @@ function ReaderLink:addToMainMenu(menu_items)
         enabled_func = isTapToFollowLinksOn,
         checked_func = isTapIgnoreExternalLinksEnabled,
         callback = function()
-          G_reader_settings:saveSetting("tap_ignore_external_links",
-            not isTapIgnoreExternalLinksEnabled())
+          G_reader_settings:saveSetting(
+            "tap_ignore_external_links",
+            not isTapIgnoreExternalLinksEnabled()
+          )
         end,
-        help_text = _([[
+        help_text = _(
+          [[
 Ignore taps on external links. Useful with Wikipedia EPUBs to make page turning easier.
-You can still follow them from the dictionary window or the selection menu after holding on them.]]),
+You can still follow them from the dictionary window or the selection menu after holding on them.]]
+        ),
         separator = true,
       },
       {
         text = _("Swipe to go back"),
         checked_func = isSwipeToGoBackEnabled,
         callback = function()
-          G_reader_settings:saveSetting("swipe_to_go_back",
-            not isSwipeToGoBackEnabled())
+          G_reader_settings:saveSetting(
+            "swipe_to_go_back",
+            not isSwipeToGoBackEnabled()
+          )
         end,
-        help_text = _([[Swipe to the right to go back to the previous location after you have followed a link. When the location stack is empty, swiping to the right takes you to the previous page.]]),
+        help_text = _(
+          [[Swipe to the right to go back to the previous location after you have followed a link. When the location stack is empty, swiping to the right takes you to the previous page.]]
+        ),
       },
       {
         text = _("Swipe to follow nearest link"),
         checked_func = isSwipeToFollowNearestLinkEnabled,
         callback = function()
-          G_reader_settings:saveSetting("swipe_to_follow_nearest_link",
-            not isSwipeToFollowNearestLinkEnabled())
+          G_reader_settings:saveSetting(
+            "swipe_to_follow_nearest_link",
+            not isSwipeToFollowNearestLinkEnabled()
+          )
         end,
-        help_text = _([[Swipe to the left to follow the link nearest to where you started the swipe. This is useful when a small font is used and tapping on small links is tedious.]]),
+        help_text = _(
+          [[Swipe to the left to follow the link nearest to where you started the swipe. This is useful when a small font is used and tapping on small links is tedious.]]
+        ),
       },
       {
         text = _("Ignore external links on swipe"),
         enabled_func = isSwipeToFollowNearestLinkEnabled,
         checked_func = isSwipeIgnoreExternalLinksEnabled,
         callback = function()
-          G_reader_settings:saveSetting("swipe_ignore_external_links",
-            not isSwipeIgnoreExternalLinksEnabled())
+          G_reader_settings:saveSetting(
+            "swipe_ignore_external_links",
+            not isSwipeIgnoreExternalLinksEnabled()
+          )
         end,
-        help_text = _([[
+        help_text = _(
+          [[
 Ignore external links near swipe. Useful with Wikipedia EPUBs to follow only footnotes with swipe.
-You can still follow external links from the dictionary window or the selection menu after holding on them.]]),
+You can still follow external links from the dictionary window or the selection menu after holding on them.]]
+        ),
         separator = true,
       },
       {
         text = _("Swipe to jump to latest bookmark"),
         checked_func = isSwipeToJumpToLatestBookmarkEnabled,
         callback = function()
-          G_reader_settings:saveSetting("swipe_to_jump_to_latest_bookmark",
-            not isSwipeToJumpToLatestBookmarkEnabled())
+          G_reader_settings:saveSetting(
+            "swipe_to_jump_to_latest_bookmark",
+            not isSwipeToJumpToLatestBookmarkEnabled()
+          )
         end,
-        help_text = _([[
+        help_text = _(
+          [[
 Swipe to the left to go the most recently bookmarked page.
 This can be useful to quickly swipe back and forth between what you are reading and some reference page (for example notes, a map or a characters list).
-If any of the other Swipe to follow link options is enabled, this will work only when the current page contains no link.]]),
+If any of the other Swipe to follow link options is enabled, this will work only when the current page contains no link.]]
+        ),
       },
-    }
+    },
   }
   -- Insert other items that are (for now) only supported with CreDocuments
   -- (They could be supported nearly as-is, but given that there is a lot
@@ -431,10 +498,14 @@ If any of the other Swipe to follow link options is enabled, this will work only
       enabled_func = isTapToFollowLinksOn,
       checked_func = isLargerTapAreaToFollowLinksEnabled,
       callback = function()
-        G_reader_settings:saveSetting("larger_tap_area_to_follow_links",
-          not isLargerTapAreaToFollowLinksEnabled())
+        G_reader_settings:saveSetting(
+          "larger_tap_area_to_follow_links",
+          not isLargerTapAreaToFollowLinksEnabled()
+        )
       end,
-      help_text = _([[Extends the tap area around internal links. Useful with a small font where tapping on small footnote links may be tedious.]]),
+      help_text = _(
+        [[Extends the tap area around internal links. Useful with a small font where tapping on small footnote links may be tedious.]]
+      ),
     })
     table.insert(menu_items.follow_links.sub_item_table, 4, {
       text = _("Show footnotes in popup"),
@@ -443,16 +514,20 @@ If any of the other Swipe to follow link options is enabled, this will work only
       end,
       checked_func = isFootnoteLinkInPopupEnabled,
       callback = function()
-        G_reader_settings:saveSetting("footnote_link_in_popup",
-          not isFootnoteLinkInPopupEnabled())
+        G_reader_settings:saveSetting(
+          "footnote_link_in_popup",
+          not isFootnoteLinkInPopupEnabled()
+        )
       end,
-      help_text = _([[
+      help_text = _(
+        [[
 Show internal link target content in a footnote popup when it looks like it might be a footnote, instead of following the link.
 
 Note that depending on the book quality, footnote detection may not always work correctly.
 The footnote content may be empty, truncated, or include other footnotes.
 
-From the footnote popup, you can jump to the footnote location in the book by swiping to the left.]]),
+From the footnote popup, you can jump to the footnote location in the book by swiping to the left.]]
+      ),
     })
     local footnote_popup_settings_items = {}
     table.insert(menu_items.follow_links.sub_item_table, 5, {
@@ -463,22 +538,26 @@ From the footnote popup, you can jump to the footnote location in the book by sw
     table.insert(footnote_popup_settings_items, {
       text = _("Show more links as footnotes"),
       enabled_func = function()
-        return isFootnoteLinkInPopupEnabled() and
-          (isTapToFollowLinksOn() or isSwipeToFollowNearestLinkEnabled())
+        return isFootnoteLinkInPopupEnabled()
+          and (isTapToFollowLinksOn() or isSwipeToFollowNearestLinkEnabled())
       end,
       checked_func = isPreferFootnoteEnabled,
       callback = function()
-        G_reader_settings:saveSetting("link_prefer_footnote",
-          not isPreferFootnoteEnabled())
+        G_reader_settings:saveSetting(
+          "link_prefer_footnote",
+          not isPreferFootnoteEnabled()
+        )
       end,
-      help_text = _([[Loosen footnote detection rules to show more links as footnotes.]]),
+      help_text = _(
+        [[Loosen footnote detection rules to show more links as footnotes.]]
+      ),
       separator = true,
     })
     table.insert(footnote_popup_settings_items, {
       text = _("Use book font as popup font"),
       enabled_func = function()
-        return isFootnoteLinkInPopupEnabled() and
-          (isTapToFollowLinksOn() or isSwipeToFollowNearestLinkEnabled())
+        return isFootnoteLinkInPopupEnabled()
+          and (isTapToFollowLinksOn() or isSwipeToFollowNearestLinkEnabled())
       end,
       checked_func = function()
         return G_reader_settings:isTrue("footnote_popup_use_book_font")
@@ -486,13 +565,15 @@ From the footnote popup, you can jump to the footnote location in the book by sw
       callback = function()
         G_reader_settings:flipNilOrFalse("footnote_popup_use_book_font")
       end,
-      help_text = _([[Display the footnote popup text with the font set as the document font (the book text may still render with a different font if the book uses embedded fonts).]]),
+      help_text = _(
+        [[Display the footnote popup text with the font set as the document font (the book text may still render with a different font if the book uses embedded fonts).]]
+      ),
     })
     table.insert(footnote_popup_settings_items, {
       text = _("Set footnote popup font size"),
       enabled_func = function()
-        return isFootnoteLinkInPopupEnabled() and
-          (isTapToFollowLinksOn() or isSwipeToFollowNearestLinkEnabled())
+        return isFootnoteLinkInPopupEnabled()
+          and (isTapToFollowLinksOn() or isSwipeToFollowNearestLinkEnabled())
       end,
       keep_menu_open = true,
       callback = function()
@@ -501,20 +582,29 @@ From the footnote popup, you can jump to the footnote location in the book by sw
         get_font_size_widget = function(show_absolute_font_size_widget)
           local SpinWidget = require("ui/widget/spinwidget")
           if show_absolute_font_size_widget then
-            spin_widget = SpinWidget:new{
+            spin_widget = SpinWidget:new({
               width = math.floor(Screen:getWidth() * 0.75),
-              value = G_reader_settings:readSetting("footnote_popup_absolute_font_size")
-                      or Screen:scaleBySize(self.document.configurable.font_size),
+              value = G_reader_settings:readSetting(
+                "footnote_popup_absolute_font_size"
+              )
+                or Screen:scaleBySize(self.document.configurable.font_size),
               value_min = 12,
               value_max = 255,
               precision = "%d",
               ok_text = _("Set font size"),
-              title_text =  _("Set footnote popup font size"),
-              info_text = _([[
-The footnote popup font can adjust to the font size you've set for the document, but you can specify here a fixed absolute font size to be used instead.]]),
+              title_text = _("Set footnote popup font size"),
+              info_text = _(
+                [[
+The footnote popup font can adjust to the font size you've set for the document, but you can specify here a fixed absolute font size to be used instead.]]
+              ),
               callback = function(spin)
-                G_reader_settings:delSetting("footnote_popup_relative_font_size")
-                G_reader_settings:saveSetting("footnote_popup_absolute_font_size", spin.value)
+                G_reader_settings:delSetting(
+                  "footnote_popup_relative_font_size"
+                )
+                G_reader_settings:saveSetting(
+                  "footnote_popup_absolute_font_size",
+                  spin.value
+                )
               end,
               extra_text = _("Set a relative font size instead"),
               extra_callback = function()
@@ -522,24 +612,31 @@ The footnote popup font can adjust to the font size you've set for the document,
                 spin_widget = get_font_size_widget(false)
                 UIManager:show(spin_widget)
               end,
-            }
+            })
           else
-            spin_widget = SpinWidget:new{
+            spin_widget = SpinWidget:new({
               width = math.floor(Screen:getWidth() * 0.75),
-              value = G_reader_settings:readSetting("footnote_popup_relative_font_size") or -2,
+              value = G_reader_settings:readSetting(
+                "footnote_popup_relative_font_size"
+              ) or -2,
               value_min = -10,
               value_max = 5,
               precision = "%+d",
               ok_text = _("Set font size"),
-              title_text =  _("Set footnote popup font size"),
+              title_text = _("Set footnote popup font size"),
               info_text = _([[
 The footnote popup font adjusts to the font size you've set for the document.
 You can specify here how much smaller or larger it should be relative to the document font size.
 A negative value will make it smaller, while a positive one will make it larger.
 The recommended value is -2.]]),
               callback = function(spin)
-                G_reader_settings:delSetting("footnote_popup_absolute_font_size")
-                G_reader_settings:saveSetting("footnote_popup_relative_font_size", spin.value)
+                G_reader_settings:delSetting(
+                  "footnote_popup_absolute_font_size"
+                )
+                G_reader_settings:saveSetting(
+                  "footnote_popup_relative_font_size",
+                  spin.value
+                )
               end,
               extra_text = _("Set an absolute font size instead"),
               extra_callback = function()
@@ -547,17 +644,20 @@ The recommended value is -2.]]),
                 spin_widget = get_font_size_widget(true)
                 UIManager:show(spin_widget)
               end,
-            }
+            })
           end
           return spin_widget
         end
-        local show_absolute_font_size_widget = G_reader_settings:has("footnote_popup_absolute_font_size")
+        local show_absolute_font_size_widget =
+          G_reader_settings:has("footnote_popup_absolute_font_size")
         spin_widget = get_font_size_widget(show_absolute_font_size_widget)
         UIManager:show(spin_widget)
       end,
-      help_text = _([[
+      help_text = _(
+        [[
 The footnote popup font adjusts to the font size you've set for the document.
-This allows you to specify how much smaller or larger it should be relative to the document font size.]]),
+This allows you to specify how much smaller or larger it should be relative to the document font size.]]
+      ),
     })
   end
 end
@@ -565,16 +665,19 @@ end
 --- Check if a xpointer to <a> node really points to itself
 function ReaderLink:isXpointerCoherent(a_xpointer)
   -- Get screen coordinates of xpointer
-  local screen_y, screen_x = self.document:getScreenPositionFromXPointer(a_xpointer)
+  local screen_y, screen_x =
+    self.document:getScreenPositionFromXPointer(a_xpointer)
   -- Get again link and a_xpointer from this position
-  local re_link_xpointer, re_a_xpointer = self.document:getLinkFromPosition({x = screen_x, y = screen_y}) -- luacheck: no unused
+  local re_link_xpointer, re_a_xpointer =
+    self.document:getLinkFromPosition({ x = screen_x, y = screen_y }) -- luacheck: no unused
   -- We should get the same a_xpointer. If not, crengine has messed up
   -- and we should not trust this xpointer to get back to this link.
   if re_a_xpointer ~= a_xpointer then
     -- Try it again with screen_x+1 (in the rare cases where screen_x
     -- fails, screen_x+1 usually works - probably something in crengine,
     -- but easier to workaround here that way)
-    re_link_xpointer, re_a_xpointer = self.document:getLinkFromPosition({x = screen_x+1, y = screen_y}) -- luacheck: no unused
+    re_link_xpointer, re_a_xpointer =
+      self.document:getLinkFromPosition({ x = screen_x + 1, y = screen_y }) -- luacheck: no unused
     if re_a_xpointer ~= a_xpointer then
       logger.info("noncoherent a_xpointer:", a_xpointer)
       return false
@@ -602,7 +705,15 @@ function ReaderLink:getLinkFromGes(ges)
     end
   else
     local link_xpointer, a_xpointer = self.document:getLinkFromPosition(ges.pos)
-    logger.dbg("ReaderLink:getLinkFromPosition @", ges.pos.x, ges.pos.y, "from a_xpointer:", a_xpointer, "to link_xpointer:", link_xpointer)
+    logger.dbg(
+      "ReaderLink:getLinkFromPosition @",
+      ges.pos.x,
+      ges.pos.y,
+      "from a_xpointer:",
+      a_xpointer,
+      "to link_xpointer:",
+      link_xpointer
+    )
 
     -- On some documents, crengine may sometimes give a wrong a_xpointer
     -- (in some Wikipedia saved as EPUB, it would point to some other <A>
@@ -628,7 +739,7 @@ function ReaderLink:getLinkFromGes(ges)
         -- tap y-position should be a good approximation of link y
         -- (needed to keep its highlight a bit more time if it was
         -- hidden by the footnote popup)
-        link_y = ges.pos.y
+        link_y = ges.pos.y,
       }
     end
   end
@@ -638,16 +749,18 @@ end
 function ReaderLink:showLinkBox(link, allow_footnote_popup)
   if link and link.lbox then -- pdfdocument
     -- screen box that holds the link
-    local sbox = self.view:pageToScreenTransform(link.pos.page,
-      self.document:nativeToPageRectTransform(link.pos.page, link.lbox))
+    local sbox = self.view:pageToScreenTransform(
+      link.pos.page,
+      self.document:nativeToPageRectTransform(link.pos.page, link.lbox)
+    )
     if sbox then
-      UIManager:show(LinkBox:new{
+      UIManager:show(LinkBox:new({
         box = sbox,
         timeout = G_defaults:readSetting("FOLLOW_LINK_TIMEOUT"),
         callback = function()
           self:onGotoLink(link.link, false, allow_footnote_popup)
-        end
-      })
+        end,
+      }))
       return true
     end
   elseif link and link.xpointer ~= "" then -- credocument
@@ -656,7 +769,9 @@ function ReaderLink:showLinkBox(link, allow_footnote_popup)
 end
 
 function ReaderLink:onTap(_, ges)
-  if not isTapToFollowLinksOn() then return end
+  if not isTapToFollowLinksOn() then
+    return
+  end
   if self.ui.paging then
     -- (footnote popup and larger tap area are not supported with non-CreDocuments)
     local link = self:getLinkFromGes(ges)
@@ -679,7 +794,9 @@ function ReaderLink:onTap(_, ges)
       return self:showLinkBox(link, allow_footnote_popup)
     end
   end
-  if isLargerTapAreaToFollowLinksEnabled() or isTapIgnoreExternalLinksEnabled() then
+  if
+    isLargerTapAreaToFollowLinksEnabled() or isTapIgnoreExternalLinksEnabled()
+  then
     local max_distance = 0 -- used when only isTapIgnoreExternalLinksEnabled()
     if isLargerTapAreaToFollowLinksEnabled() then
       -- If no link found exactly at the tap position,
@@ -696,13 +813,17 @@ function ReaderLink:onTap(_, ges)
       -- screen DPI if the user has set another one).
       max_distance = Screen:scaleByDPI(30)
     end
-    return self:onGoToPageLink(ges, isTapIgnoreExternalLinksEnabled(), max_distance)
+    return self:onGoToPageLink(
+      ges,
+      isTapIgnoreExternalLinksEnabled(),
+      max_distance
+    )
   end
 end
 
 function ReaderLink:getCurrentLocation()
   return self.ui.paging and self.ui.paging:getBookLocation()
-               or {xpointer = self.ui.rolling:getBookLocation()}
+    or { xpointer = self.ui.rolling:getBookLocation() }
 end
 
 -- Returns true, current_location if the current location is the same as the
@@ -710,10 +831,19 @@ end
 -- Otherwise returns false, current_location
 function ReaderLink:compareLocationToCurrent(saved_location)
   local current_location = self:getCurrentLocation()
-  if self.ui.rolling and saved_location.xpointer and saved_location.xpointer == current_location.xpointer then
+  if
+    self.ui.rolling
+    and saved_location.xpointer
+    and saved_location.xpointer == current_location.xpointer
+  then
     return true, current_location
   end
-  if self.ui.paging and saved_location[1] and current_location[1] and current_location[1].page == saved_location[1].page then
+  if
+    self.ui.paging
+    and saved_location[1]
+    and current_location[1]
+    and current_location[1].page == saved_location[1].page
+  then
     return true, current_location
   end
   return false, current_location
@@ -729,7 +859,10 @@ end
 
 function ReaderLink:onAddCurrentLocationToStackNonTouch()
   self:addCurrentLocationToStack()
-  Notification:notify(_("Current location added to history."), Notification.SOURCE_ALWAYS_SHOW)
+  Notification:notify(
+    _("Current location added to history."),
+    Notification.SOURCE_ALWAYS_SHOW
+  )
   return true
 end
 
@@ -748,9 +881,9 @@ function ReaderLink:onClearLocationStack(show_notification)
   self.location_stack = {}
   self:onClearForwardLocationStack()
   if show_notification then
-    UIManager:show(Notification:new{
+    UIManager:show(Notification:new({
       text = _("Location history cleared."),
-    })
+    }))
   end
   return true
 end
@@ -765,7 +898,8 @@ function ReaderLink:getPreviousLocationPages()
   if #self.location_stack > 0 then
     for num, location in ipairs(self.location_stack) do
       if self.ui.rolling and location.xpointer then
-        previous_locations[self.document:getPageFromXPointer(location.xpointer)] = num
+        previous_locations[self.document:getPageFromXPointer(location.xpointer)] =
+          num
       end
       if self.ui.paging and location[1] and location[1].page then
         previous_locations[location[1].page] = num
@@ -778,7 +912,11 @@ end
 --- Goes to link.
 -- (This is called by other modules (highlight, search) to jump to a xpointer,
 -- they should not provide allow_footnote_popup=true)
-function ReaderLink:onGotoLink(link, neglect_current_location, allow_footnote_popup)
+function ReaderLink:onGotoLink(
+  link,
+  neglect_current_location,
+  allow_footnote_popup
+)
   local link_url
   if self.ui.paging then
     -- internal pdf links have a "page" attribute, while external ones have an "uri" attribute
@@ -833,7 +971,9 @@ function ReaderLink:onGotoLink(link, neglect_current_location, allow_footnote_po
           self:addCurrentLocationToStack()
         end
       end
-      self.ui:handleEvent(Event:new("GotoXPointer", link.xpointer, link.marker_xpointer))
+      self.ui:handleEvent(
+        Event:new("GotoXPointer", link.xpointer, link.marker_xpointer)
+      )
       return true
     end
     link_url = link.xpointer -- external link
@@ -841,7 +981,8 @@ function ReaderLink:onGotoLink(link, neglect_current_location, allow_footnote_po
   logger.dbg("ReaderLink:onGotoLink: External link:", link_url)
 
   local scheme = link_url:match("^(%w[%w+%-.]*):") or ""
-  local is_supported_external_link = util.arrayContains(self.supported_external_schemes, scheme:lower())
+  local is_supported_external_link =
+    util.arrayContains(self.supported_external_schemes, scheme:lower())
   if is_supported_external_link and self:onGoToExternalLink(link_url) then
     return true
   end
@@ -854,7 +995,7 @@ function ReaderLink:onGotoLink(link, neglect_current_location, allow_footnote_po
   elseif linked_filename:find("#") then -- remove any anchor
     linked_filename, anchor = linked_filename:match("^(.-)(#.*)$")
   end
-  linked_filename  = ffiutil.joinPath(self.document_dir, linked_filename) -- get full path
+  linked_filename = ffiutil.joinPath(self.document_dir, linked_filename) -- get full path
   linked_filename = ffiutil.realpath(linked_filename) -- clean full path from ./ or ../
   if linked_filename and lfs.attributes(linked_filename, "mode") == "file" then
     if DocumentRegistry:hasProvider(linked_filename) then
@@ -864,37 +1005,40 @@ function ReaderLink:onGotoLink(link, neglect_current_location, allow_footnote_po
       if anchor then
         display_filename = display_filename .. anchor
       end
-      UIManager:show(ConfirmBox:new{
-        text = T(_("Would you like to read this local document?\n\n%1\n"), BD.filepath(display_filename)),
+      UIManager:show(ConfirmBox:new({
+        text = T(
+          _("Would you like to read this local document?\n\n%1\n"),
+          BD.filepath(display_filename)
+        ),
         ok_callback = function()
           UIManager:scheduleIn(0.1, function()
             self.ui:switchDocument(linked_filename)
           end)
-        end
-      })
+        end,
+      }))
     else
-      UIManager:show(InfoMessage:new{
+      UIManager:show(InfoMessage:new({
         text = T(_("Link to unsupported local file:\n%1"), BD.url(link_url)),
-      })
+      }))
     end
     return true
   end
 
   -- Not supported
-  UIManager:show(InfoMessage:new{
+  UIManager:show(InfoMessage:new({
     text = T(_("Invalid or external link:\n%1"), BD.url(link_url)),
     -- no timeout to allow user to type that link in his web browser
-  })
+  }))
   -- don't propagate, user will notice and tap elsewhere if he wants to change page
   return true
 end
 
 function ReaderLink:onGoToExternalLink(link_url)
   local buttons, title = self:getButtonsForExternalLinkDialog(link_url)
-  self.external_link_dialog = ButtonDialog:new{
+  self.external_link_dialog = ButtonDialog:new({
     title = title,
     buttons = buttons,
-  }
+  })
   UIManager:show(self.external_link_dialog)
   return true
 end
@@ -903,7 +1047,8 @@ end
 function ReaderLink:onGoBackLink(show_notification_if_empty)
   local saved_location = table.remove(self.location_stack)
   if saved_location then
-    local same_page, current_location = self:compareLocationToCurrent(saved_location)
+    local same_page, current_location =
+      self:compareLocationToCurrent(saved_location)
     -- If there are no forward items
     if #self.forward_location_stack == 0 then
       -- If we are not on the same page as the current item,
@@ -922,12 +1067,12 @@ function ReaderLink:onGoBackLink(show_notification_if_empty)
   if saved_location then
     table.insert(self.forward_location_stack, saved_location)
     logger.dbg("GoBack: restoring:", saved_location)
-    self.ui:handleEvent(Event:new('RestoreBookLocation', saved_location))
+    self.ui:handleEvent(Event:new("RestoreBookLocation", saved_location))
     return true
   elseif show_notification_if_empty then
-    UIManager:show(Notification:new{
+    UIManager:show(Notification:new({
       text = _("Location history is empty."),
-    })
+    }))
   end
 end
 
@@ -946,7 +1091,7 @@ function ReaderLink:onGoForwardLink()
   if saved_location then
     table.insert(self.location_stack, saved_location)
     logger.dbg("GoForward: restoring:", saved_location)
-    self.ui:handleEvent(Event:new('RestoreBookLocation', saved_location))
+    self.ui:handleEvent(Event:new("RestoreBookLocation", saved_location))
     return true
   end
 end
@@ -966,9 +1111,9 @@ function ReaderLink:onSwipe(arg, ges)
         self.swipe_back_resist = false
         -- Make that gesture don't do anything, and show a Notification
         -- so the user knows why
-        UIManager:show(Notification:new{
+        UIManager:show(Notification:new({
           text = _("Location history is empty."),
-        })
+        }))
         return true
       end
     end
@@ -1015,8 +1160,8 @@ function ReaderLink:onGoToPageLink(ges, internal_links_only, max_distance)
     local shortest_dist
     for _, link in ipairs(links) do
       if not internal_links_only or link.page then
-        local start_dist = (link.x0 - pos_x)^2 + (link.y0 - pos_y)^2
-        local end_dist = (link.x1 - pos_x)^2 + (link.y1 - pos_y)^2
+        local start_dist = (link.x0 - pos_x) ^ 2 + (link.y0 - pos_y) ^ 2
+        local end_dist = (link.x1 - pos_x) ^ 2 + (link.y1 - pos_y) ^ 2
         local min_dist = math.min(start_dist, end_dist)
         if shortest_dist == nil or min_dist < shortest_dist then
           -- onGotoLink()'s GotoPage event needs the link
@@ -1028,7 +1173,7 @@ function ReaderLink:onGoToPageLink(ges, internal_links_only, max_distance)
     end
     if shortest_dist then
       selected_distance2 = shortest_dist
-      if max_distance and selected_distance2 > max_distance^2 then
+      if max_distance and selected_distance2 > max_distance ^ 2 then
         selected_link = nil
       end
     end
@@ -1101,25 +1246,25 @@ function ReaderLink:onGoToPageLink(ges, internal_links_only, max_distance)
           local segments_max_y = -1
           local link_is_shortest = false
           local segments = link.segments
-          for i=1, #segments do
+          for i = 1, #segments do
             local segment = segments[i]
             local segment_dist
             -- Distance here is kept squared (d^2 = diff_x^2 + diff_y^2),
             -- and we compute each part individually
             -- First, vertical distance (squared)
             if pos_y < segment.y0 then -- above the segment height
-              segment_dist = (segment.y0 - pos_y)^2
+              segment_dist = (segment.y0 - pos_y) ^ 2
             elseif pos_y > segment.y1 then -- below the segment height
-              segment_dist = (pos_y - segment.y1)^2
+              segment_dist = (pos_y - segment.y1) ^ 2
             else -- gesture pos is on the segment height, no vertical distance
               segment_dist = 0
             end
             -- Next, horizontal distance (squared)
             if pos_x < segment.x0 then -- on the left of segment: calc dist to x0
-              segment_dist = segment_dist + (segment.x0 - pos_x)^2
+              segment_dist = segment_dist + (segment.x0 - pos_x) ^ 2
             elseif pos_x > segment.x1 then -- on the right of segment : calc dist to x1
-              segment_dist = segment_dist + (pos_x - segment.x1)^2
-            -- else -- gesture pos is in the segment width, no horizontal distance
+              segment_dist = segment_dist + (pos_x - segment.x1) ^ 2
+              -- else -- gesture pos is in the segment width, no horizontal distance
             end
             if shortest_dist == nil or segment_dist < shortest_dist then
               selected_link = link
@@ -1141,8 +1286,9 @@ function ReaderLink:onGoToPageLink(ges, internal_links_only, max_distance)
           -- We used to just check distance from start_x and end_x, and
           -- we could miss a tap in the middle of a long link.
           -- (also start_y = end_y = the top of the rect for a link on a single line)
-          local start_dist = (link.start_x - pos_x)^2 + (link.start_y - pos_y)^2
-          local end_dist = (link.end_x - pos_x)^2 + (link.end_y - pos_y)^2
+          local start_dist = (link.start_x - pos_x) ^ 2
+            + (link.start_y - pos_y) ^ 2
+          local end_dist = (link.end_x - pos_x) ^ 2 + (link.end_y - pos_y) ^ 2
           local min_dist = math.min(start_dist, end_dist)
           if shortest_dist == nil or min_dist < shortest_dist then
             selected_link = link
@@ -1154,14 +1300,17 @@ function ReaderLink:onGoToPageLink(ges, internal_links_only, max_distance)
     end
     if shortest_dist then
       selected_distance2 = shortest_dist
-      if max_distance and selected_distance2 > max_distance^2 then
+      if max_distance and selected_distance2 > max_distance ^ 2 then
         logger.dbg("nearest link is further than max distance, ignoring it")
         selected_link = nil
       else
         logger.dbg("nearest selected_link", selected_link)
         -- Check if a_xpointer is coherent, use it as from_xpointer only if it is
         local from_xpointer = nil
-        if selected_link.a_xpointer and self:isXpointerCoherent(selected_link.a_xpointer) then
+        if
+          selected_link.a_xpointer
+          and self:isXpointerCoherent(selected_link.a_xpointer)
+        then
           from_xpointer = selected_link.a_xpointer
         end
         -- Make it a link as expected by onGotoLink
@@ -1235,7 +1384,10 @@ function ReaderLink:selectRelPageLink(rel)
   logger.dbg("selected_link", selected_link)
   -- Check a_xpointer is coherent, use it as from_xpointer only if it is
   local from_xpointer = nil
-  if selected_link.a_xpointer and self:isXpointerCoherent(selected_link.a_xpointer) then
+  if
+    selected_link.a_xpointer
+    and self:isXpointerCoherent(selected_link.a_xpointer)
+  then
     from_xpointer = selected_link.a_xpointer
   end
   local link_y
@@ -1264,7 +1416,11 @@ end
 
 function ReaderLink:onGotoSelectedPageLink()
   if self.cur_selected_link then
-    return self:onGotoLink(self.cur_selected_link, false, isFootnoteLinkInPopupEnabled())
+    return self:onGotoLink(
+      self.cur_selected_link,
+      false,
+      isFootnoteLinkInPopupEnabled()
+    )
   end
 end
 
@@ -1403,9 +1559,19 @@ function ReaderLink:showAsFootnotePopup(link, neglect_current_location)
   flags = flags + 0x8000
   local max_text_size = 10000 -- nb of chars
 
-  logger.dbg("Checking if link is to a footnote:", flags, source_xpointer, target_xpointer)
+  logger.dbg(
+    "Checking if link is to a footnote:",
+    flags,
+    source_xpointer,
+    target_xpointer
+  )
   local is_footnote, reason, extStopReason, extStartXP, extEndXP =
-      self.document:isLinkToFootnote(source_xpointer, target_xpointer, flags, max_text_size)
+    self.document:isLinkToFootnote(
+      source_xpointer,
+      target_xpointer,
+      flags,
+      max_text_size
+    )
   if not is_footnote then
     logger.dbg("not a footnote:", reason)
     return false
@@ -1491,7 +1657,7 @@ function ReaderLink:showAsFootnotePopup(link, neglect_current_location)
   -- don't have a fixed size)
   local FootnoteWidget = require("ui/widget/footnotewidget")
   local popup
-  popup = FootnoteWidget:new{
+  popup = FootnoteWidget:new({
     html = html,
     doc_font_name = self.ui.font.font_face,
     doc_font_size = Screen:scaleBySize(self.document.configurable.font_size),
@@ -1517,7 +1683,7 @@ function ReaderLink:showAsFootnotePopup(link, neglect_current_location)
       self._footnote_popup_discard_previous_close_callback = nil
     end,
     dialog = self.dialog,
-  }
+  })
   UIManager:show(popup)
   return true
 end
@@ -1533,10 +1699,10 @@ function ReaderLink:removeFromExternalLinkDialog(idx)
 end
 
 function ReaderLink:getButtonsForExternalLinkDialog(link_url)
-  local buttons = {{}}
+  local buttons = { {} }
   local columns = 2
 
-  local default_title =  T(_("External link:\n\n%1"), BD.url(link_url))
+  local default_title = T(_("External link:\n\n%1"), BD.url(link_url))
   local title = default_title
 
   for idx, fn_button in ffiutil.orderedPairs(self._external_link_buttons) do
@@ -1556,7 +1722,10 @@ function ReaderLink:getButtonsForExternalLinkDialog(link_url)
         table.insert(buttons, {})
       end
       table.insert(buttons[#buttons], button)
-      logger.dbg("ReaderLink", idx..": line "..#buttons..", col "..#buttons[#buttons])
+      logger.dbg(
+        "ReaderLink",
+        idx .. ": line " .. #buttons .. ", col " .. #buttons[#buttons]
+      )
     end
     if button_title then
       -- Create the title for the button

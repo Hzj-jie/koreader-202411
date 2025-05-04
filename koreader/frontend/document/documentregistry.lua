@@ -1,6 +1,7 @@
 --[[--
 This is a registry for document providers
-]]--
+]]
+--
 
 local DocSettings = require("docsettings")
 local logger = require("logger")
@@ -13,12 +14,12 @@ local DocumentRegistry = {
   filetype_provider = {},
   mimetype_ext = {},
   image_ext = {
-    gif  = true,
+    gif = true,
     jpeg = true,
-    jpg  = true,
-    png  = true,
-    svg  = true,
-    tif  = true,
+    jpg = true,
+    png = true,
+    svg = true,
+    tif = true,
     tiff = true,
     webp = true,
   },
@@ -64,7 +65,9 @@ function DocumentRegistry:hasProvider(file, mimetype, include_aux)
   if mimetype and self.mimetype_ext[mimetype] then
     return true
   end
-  if not file then return false end
+  if not file then
+    return false
+  end
 
   -- registered document provider
   local filename_suffix = getSuffix(file)
@@ -72,8 +75,11 @@ function DocumentRegistry:hasProvider(file, mimetype, include_aux)
     return true
   end
   -- associated document or auxiliary provider for file type
-  local filetype_provider_key = (G_reader_settings:readSetting("provider") or {})[filename_suffix]
-  local provider = filetype_provider_key and self.known_providers[filetype_provider_key]
+  local filetype_provider_key = (
+    G_reader_settings:readSetting("provider") or {}
+  )[filename_suffix]
+  local provider = filetype_provider_key
+    and self.known_providers[filetype_provider_key]
   if provider and (not provider.order or include_aux) then -- excluding auxiliary by default
     return true
   end
@@ -113,7 +119,7 @@ function DocumentRegistry:getProviders(file)
   for _, provider in ipairs(self.providers) do
     local added = false
     local suffix = string.sub(file, -string.len(provider.extension) - 1)
-    if string.lower(suffix) == "."..provider.extension then
+    if string.lower(suffix) == "." .. provider.extension then
       for i = #providers, 1, -1 do
         local prov_prev = providers[i]
         if prov_prev.provider == provider.provider then
@@ -126,7 +132,11 @@ function DocumentRegistry:getProviders(file)
       end
       -- if extension == provider.extension then
       -- stick highest weighted provider at the front
-      if not added and #providers >= 1 and provider.weight > providers[1].weight then
+      if
+        not added
+        and #providers >= 1
+        and provider.weight > providers[1].weight
+      then
         table.insert(providers, 1, provider)
       elseif not added then
         table.insert(providers, provider)
@@ -167,7 +177,9 @@ function DocumentRegistry:getAssociatedProviderKey(file, all)
         return provider_key
       end
     end
-    if all == false then return end
+    if all == false then
+      return
+    end
   end
 
   -- provider for file type
@@ -187,7 +199,9 @@ function DocumentRegistry:getAuxProviders()
     end
   end
   if #providers >= 1 then
-    table.sort(providers, function(a, b) return a.order < b.order end)
+    table.sort(providers, function(a, b)
+      return a.order < b.order
+    end)
     return providers
   end
 end
@@ -236,7 +250,7 @@ function DocumentRegistry:openDocument(file, provider)
     provider = provider or self:getProvider(file)
 
     if provider ~= nil then
-      local ok, doc = pcall(provider.new, provider, {file = file})
+      local ok, doc = pcall(provider.new, provider, { file = file })
       if ok then
         self.registry[file] = {
           doc = doc,
@@ -248,7 +262,12 @@ function DocumentRegistry:openDocument(file, provider)
     end
   else
     self.registry[file].refs = self.registry[file].refs + 1
-    logger.dbg("DocumentRegistry: Increased refcount to", self.registry[file].refs, "for", file)
+    logger.dbg(
+      "DocumentRegistry: Increased refcount to",
+      self.registry[file].refs,
+      "for",
+      file
+    )
   end
   if self.registry[file] then
     return self.registry[file].doc

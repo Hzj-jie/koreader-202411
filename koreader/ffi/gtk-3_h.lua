@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 typedef int gint;
 typedef char gchar;
 typedef int gboolean;
@@ -34,4 +34,4 @@ GtkWidget *gtk_file_chooser_dialog_new(const gchar *, GtkWindow *, GtkFileChoose
 gint gtk_dialog_run(GtkDialog *);
 void gtk_widget_destroy(GtkWidget *);
 gchar *gtk_file_chooser_get_filename(GtkFileChooser *);
-]]
+]])

@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 enum TJINIT {
   TJINIT_COMPRESS = 0,
   TJINIT_DECOMPRESS = 1,
@@ -66,4 +66,4 @@ int tj3Decompress8(tjhandle, const unsigned char *, size_t, unsigned char *, int
 void tj3Destroy(tjhandle);
 int tj3SaveImage8(tjhandle, const char *, const unsigned char *, int, int, int, int);
 void tj3Free(void *);
-]]
+]])

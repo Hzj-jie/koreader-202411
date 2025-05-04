@@ -1,7 +1,9 @@
 -- Start with a empty stub, because 99.9% of users won't actually need this.
 local ReaderActivityIndicator = {}
 
-function ReaderActivityIndicator:isStub() return true end
+function ReaderActivityIndicator:isStub()
+  return true
+end
 function ReaderActivityIndicator:onStartActivityIndicator() end
 function ReaderActivityIndicator:onStopActivityIndicator() end
 
@@ -23,43 +25,52 @@ else
   return ReaderActivityIndicator
 end
 
-
 -- Okay, if we're here, it's basically because we're running on a Kindle on FW 5.x under KPV
 local EventListener = require("ui/widget/eventlistener")
 local LibLipcs = require("liblipcs")
 
-ReaderActivityIndicator = EventListener:extend{
+ReaderActivityIndicator = EventListener:extend({
   lipc_handle = nil,
-}
+})
 
-function ReaderActivityIndicator:isStub() return false end
+function ReaderActivityIndicator:isStub()
+  return false
+end
 
 function ReaderActivityIndicator:onStartActivityIndicator()
-  if LibLipcs:isFake(LibLipcs:accessor()) then return true end
+  if LibLipcs:isFake(LibLipcs:accessor()) then
+    return true
+  end
   -- check if activity indicator is needed
   if self.document.configurable.text_wrap == 1 then
     -- start indicator depends on pillow being enabled
     LibLipcs:accessor():set_string_property(
-      "com.lab126.pillow", "activityIndicator",
+      "com.lab126.pillow",
+      "activityIndicator",
       '{"activityIndicator":{ \
         "action":"start","timeout":10000, \
         "clientId":"com.github.koreader.activityindicator", \
-        "priority":true}}')
+        "priority":true}}'
+    )
     self.indicator_started = true
   end
   return true
 end
 
 function ReaderActivityIndicator:onStopActivityIndicator()
-  if LibLipcs:isFake(LibLipcs:accessor()) then return true end
+  if LibLipcs:isFake(LibLipcs:accessor()) then
+    return true
+  end
   if self.indicator_started then
     -- stop indicator depends on pillow being enabled
     LibLipcs:accessor():set_string_property(
-      "com.lab126.pillow", "activityIndicator",
+      "com.lab126.pillow",
+      "activityIndicator",
       '{"activityIndicator":{ \
         "action":"stop","timeout":10000, \
         "clientId":"com.github.koreader.activityindicator", \
-        "priority":true}}')
+        "priority":true}}'
+    )
     self.indicator_started = false
   end
   return true

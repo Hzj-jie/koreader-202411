@@ -33,7 +33,7 @@ local util = require("util")
 local xtext -- Delayed (and optional) loading
 local Screen = require("device").screen
 
-local TextBoxWidget = InputContainer:extend{
+local TextBoxWidget = InputContainer:extend({
   text = nil,
   editable = false, -- Editable flag for whether drawing the cursor or not.
   select_mode = nil, -- select mode in InputText, wider cursor line
@@ -41,9 +41,9 @@ local TextBoxWidget = InputContainer:extend{
   alignment = "left", -- or "center", "right"
   dialog = nil, -- parent dialog that will be set dirty
   face = nil,
-  bold = nil,   -- use bold=true to use a real bold font (or synthesized if not available),
-          -- or bold=Font.FORCE_SYNTHETIZED_BOLD to force using synthesized bold,
-          -- which, with XText, makes a bold string the same width as it non-bolded.
+  bold = nil, -- use bold=true to use a real bold font (or synthesized if not available),
+  -- or bold=Font.FORCE_SYNTHETIZED_BOLD to force using synthesized bold,
+  -- which, with XText, makes a bold string the same width as it non-bolded.
   line_height = 0.3, -- in em
   fgcolor = Blitbuffer.COLOR_BLACK,
   bgcolor = Blitbuffer.COLOR_WHITE,
@@ -55,15 +55,15 @@ local TextBoxWidget = InputContainer:extend{
   charpos = nil, -- idx of char to draw the cursor on its left (can exceed #charlist by 1)
 
   -- for internal use
-  charlist = nil,   -- idx => char
+  charlist = nil, -- idx => char
   char_width = nil, -- char => width
-  idx_pad = nil,   -- idx => pad for char at idx, if non zero
+  idx_pad = nil, -- idx => pad for char at idx, if non zero
   vertical_string_list = nil,
   virtual_line_num = 1, -- index of the top displayed line
   current_line_num = 1, -- index of the currently edited line (i.e., where our cursor is)
   line_height_px = nil, -- height of a line in px
   lines_per_page = nil, -- number of visible lines
-  text_height = nil,  -- adjusted height to visible text (lines_per_page*line_height_px)
+  text_height = nil, -- adjusted height to visible text (lines_per_page*line_height_px)
   cursor_line = nil, -- LineWidget to draw the vertical cursor.
   _bb = nil,
   _face_adjusted = nil,
@@ -99,13 +99,13 @@ local TextBoxWidget = InputContainer:extend{
   lang = nil, -- use this language (string) instead of the UI language
   para_direction_rtl = nil, -- use true/false to override the default direction for the UI language
   auto_para_direction = false, -- detect direction of each paragraph in text
-                 -- (para_direction_rtl or UI language is then only
-                 -- used as a weak hint about direction)
+  -- (para_direction_rtl or UI language is then only
+  -- used as a weak hint about direction)
   alignment_strict = false, -- true to force the alignment set by the alignment= attribute.
-                -- When false, specified alignment is inverted when para direction is RTL
+  -- When false, specified alignment is inverted when para direction is RTL
   tabstop_nb_space_width = 8, -- unscaled_size_check: ignore
-                -- width of tabstops, as a factor of the width of a space
-                -- (set to 0 to disable any tab handling and display a tofu glyph)
+  -- width of tabstops, as a factor of the width of a space
+  -- (set to 0 to disable any tab handling and display a tofu glyph)
   _xtext = nil, -- for internal use
   _alt_color_for_rtl = nil, -- (for debugging) draw LTR glyphs in black, RTL glyphs in gray
 
@@ -117,12 +117,12 @@ local TextBoxWidget = InputContainer:extend{
   -- hopefully not present naturally in any provided self.text).
   PTF_HEADER = "\u{FFF1}", -- should be put at start of 'text' to indicate we may find other PTF_ chars
   PTF_BOLD_START = "\u{FFF2}", -- start a sequence of bold chars
-  PTF_BOLD_END = "\u{FFF3}",   -- end a sequence of bold chars
+  PTF_BOLD_END = "\u{FFF3}", -- end a sequence of bold chars
   _ptf_char_is_bold = nil,
-    -- This uses fake/synthetic bold, making each glyph bolder without modifying advance.
-    -- Some other possible formatting we could implement is different alignment (center,
-    -- right) of some lines in the provided text.
-}
+  -- This uses fake/synthetic bold, making each glyph bolder without modifying advance.
+  -- Some other possible formatting we could implement is different alignment (center,
+  -- right) of some lines in the provided text.
+})
 
 function TextBoxWidget:init()
   if not self._face_adjusted then
@@ -134,14 +134,14 @@ function TextBoxWidget:init()
     self.face, self.bold = Font:getAdjustedFace(self.face, self.bold)
   end
 
-  self.line_height_px = Math.round( (1 + self.line_height) * self.face.size )
+  self.line_height_px = Math.round((1 + self.line_height) * self.face.size)
   -- Get accurate initial baseline and possible height overflow (so our bb
   -- is tall enough to draw glyphs with descender larger than line height)
   local face_height, face_ascender = self.face.ftsize:getHeightAndAscender()
   local line_heights_diff = math.floor(self.line_height_px - face_height)
   if line_heights_diff >= 0 then
     -- Glyphs will fit in our line_height_px: adjust baseline.
-    self.line_glyph_baseline = math.floor(face_ascender + line_heights_diff/2)
+    self.line_glyph_baseline = math.floor(face_ascender + line_heights_diff / 2)
     self.line_glyph_extra_height = 0
   else
     -- Glyphs may be taller than our line_height_px
@@ -149,12 +149,12 @@ function TextBoxWidget:init()
     self.line_glyph_extra_height = -line_heights_diff
   end
 
-  self.cursor_line = LineWidget:new{
-    dimen = Geom:new{
-      w = self.select_mode and 3*Size.line.medium or Size.line.medium,
+  self.cursor_line = LineWidget:new({
+    dimen = Geom:new({
+      w = self.select_mode and 3 * Size.line.medium or Size.line.medium,
       h = self.line_height_px,
-    }
-  }
+    }),
+  })
   if self.height then
     -- luajit may segfault if we were provided with a negative height
     -- also ensure we display at least one line
@@ -167,8 +167,13 @@ function TextBoxWidget:init()
   end
 
   -- Check for Poor Text Formatting
-  if not self.charlist and self.text and type(self.text) == "string"
-      and self.text:sub(1, #TextBoxWidget.PTF_HEADER) == TextBoxWidget.PTF_HEADER then
+  if
+    not self.charlist
+    and self.text
+    and type(self.text) == "string"
+    and self.text:sub(1, #TextBoxWidget.PTF_HEADER)
+      == TextBoxWidget.PTF_HEADER
+  then
     -- Support for very simple text styling (bold only for now)
     self._ptf_char_is_bold = {}
     -- Alas, we can't let any of our flag characters be fed to xtext (even with ASCII control
@@ -210,10 +215,12 @@ function TextBoxWidget:init()
 
   if Device:isTouchDevice() then
     self.ges_events.TapImage = {
-      GestureRange:new{
+      GestureRange:new({
         ges = "tap",
-        range = function() return self.dimen end,
-      },
+        range = function()
+          return self.dimen
+        end,
+      }),
     }
   end
 end
@@ -226,8 +233,8 @@ function TextBoxWidget:_computeTextDimensions()
   end
   self:_splitToLines()
 
-  if self.charpos and self.charpos > #self.charlist+1 then
-    self.charpos = #self.charlist+1
+  if self.charpos and self.charpos > #self.charlist + 1 then
+    self.charpos = #self.charlist + 1
   end
 
   if self.height == nil then
@@ -235,7 +242,10 @@ function TextBoxWidget:_computeTextDimensions()
     self.text_height = self.lines_per_page * self.line_height_px
     self.virtual_line_num = 1
   else
-    if self.height_overflow_show_ellipsis and #self.vertical_string_list > self.lines_per_page then
+    if
+      self.height_overflow_show_ellipsis
+      and #self.vertical_string_list > self.lines_per_page
+    then
       self.line_with_ellipsis = self.lines_per_page
     end
     if self.height_adjust then
@@ -282,7 +292,14 @@ function TextBoxWidget:_evalCharWidthList()
   local char_width = {}
   for _, c in ipairs(self.charlist) do
     if not char_width[c] then
-      char_width[c] = RenderText:sizeUtf8Text(0, Screen:getWidth(), self.face, c, true, self.bold).x
+      char_width[c] = RenderText:sizeUtf8Text(
+        0,
+        Screen:getWidth(),
+        self.face,
+        c,
+        true,
+        self.bold
+      ).x
     end
   end
   self.char_width = char_width
@@ -295,20 +312,30 @@ function TextBoxWidget:_measureWithXText()
     TextBoxWidget._xtext_loaded = true
   end
   if type(self.charlist) == "table" then
-    self._xtext = xtext.new(self.charlist, self.face, self.auto_para_direction,
-                        self.para_direction_rtl, self.lang)
+    self._xtext = xtext.new(
+      self.charlist,
+      self.face,
+      self.auto_para_direction,
+      self.para_direction_rtl,
+      self.lang
+    )
   else
     if not self.text then
       self.text = ""
     elseif type(self.text) ~= "string" then
       self.text = tostring(self.text)
     end
-    self._xtext = xtext.new(self.text, self.face, self.auto_para_direction,
-                        self.para_direction_rtl, self.lang)
+    self._xtext = xtext.new(
+      self.text,
+      self.face,
+      self.auto_para_direction,
+      self.para_direction_rtl,
+      self.lang
+    )
     self.charlist = self._xtext
-      -- Just to have many common bits of code using #self.charlist work
-      -- as expected (will crash if used as a real table with "table
-      -- expected, got userdata", so we know)
+    -- Just to have many common bits of code using #self.charlist work
+    -- as expected (will crash if used as a real table with "table
+    -- expected, got userdata", so we know)
   end
   self._xtext:measure()
   if self.tabstop_nb_space_width > 0 and not self._tabstop_width then
@@ -343,8 +370,10 @@ function TextBoxWidget:_splitToLines()
       if self.line_num_to_image == nil then
         self.line_num_to_image = {}
       end
-      if (self.lines_per_page and ln % self.lines_per_page == 1) -- first line of a scrolled page
-      or (self.lines_per_page == nil and ln == 1) then  -- first line if not scrollabled
+      if
+        (self.lines_per_page and ln % self.lines_per_page == 1) -- first line of a scrolled page
+        or (self.lines_per_page == nil and ln == 1)
+      then -- first line if not scrollabled
         image_num = image_num + 1
         if image_num <= #self.images then
           local image = self.images[image_num]
@@ -353,15 +382,19 @@ function TextBoxWidget:_splitToLines()
           -- but if loaded later with load_bb_func, load_bb_func may resize it
           -- to the width and height we have updated here.
           if image.width > self.width / 2 then
-            image.height = math.floor(image.height * (self.width / 2 / image.width))
+            image.height =
+              math.floor(image.height * (self.width / 2 / image.width))
             image.width = math.floor(self.width / 2)
           end
           if image.height > self.height / 2 then
-            image.width = math.floor(image.width * (self.height / 2 / image.height))
+            image.width =
+              math.floor(image.width * (self.height / 2 / image.height))
             image.height = math.floor(self.height / 2)
           end
           targeted_width = self.width - image.width - self.image_padding_left
-          image_lines_remaining = math.ceil((image.height + self.image_padding_bottom)/self.line_height_px)
+          image_lines_remaining = math.ceil(
+            (image.height + self.image_padding_bottom) / self.line_height_px
+          )
         end
       end
       if image_lines_remaining > 0 then
@@ -376,7 +409,12 @@ function TextBoxWidget:_splitToLines()
 
     if self.use_xtext then
       -- All of what's done below when use_xtext=false is done by the C++ module.
-      local line = self._xtext:makeLine(offset, targeted_width, false, self.tabstop_nb_space_width)
+      local line = self._xtext:makeLine(
+        offset,
+        targeted_width,
+        false,
+        self.tabstop_nb_space_width
+      )
       -- logger.dbg("makeLine", ln, line)
       -- We get a line such as this:
       --  {
@@ -410,8 +448,8 @@ function TextBoxWidget:_splitToLines()
       if line.hard_newline_at_eot and not line.next_start_offset then
         -- Add an empty line to represent the \n at end of text
         -- and allow positioning cursor after it
-        self.vertical_string_list[ln+1] = {
-          offset = size+1,
+        self.vertical_string_list[ln + 1] = {
+          offset = size + 1,
           end_offset = nil,
           width = 0,
           targeted_width = targeted_width,
@@ -435,7 +473,11 @@ function TextBoxWidget:_splitToLines()
           break
         end
         cur_line_width = cur_line_width + self.char_width[self.charlist[idx]]
-        if cur_line_width > targeted_width then break else idx = idx + 1 end
+        if cur_line_width > targeted_width then
+          break
+        else
+          idx = idx + 1
+        end
       end
       if cur_line_width <= targeted_width then -- a hard newline or end of string
         end_offset = idx - 1
@@ -443,16 +485,20 @@ function TextBoxWidget:_splitToLines()
         -- Backtrack the string until the length fit into one line.
         -- We'll give next and prev chars to isSplittable() for a wiser decision
         local c = self.charlist[idx]
-        local next_c = idx+1 <= size and self.charlist[idx+1] or false
-        local prev_c = idx-1 >= 1 and self.charlist[idx-1] or false
+        local next_c = idx + 1 <= size and self.charlist[idx + 1] or false
+        local prev_c = idx - 1 >= 1 and self.charlist[idx - 1] or false
         local adjusted_idx = idx
         local adjusted_width = cur_line_width
-        while adjusted_idx > offset and not util.isSplittable(c, next_c, prev_c) do
-          adjusted_width = adjusted_width - self.char_width[self.charlist[adjusted_idx]]
+        while
+          adjusted_idx > offset and not util.isSplittable(c, next_c, prev_c)
+        do
+          adjusted_width = adjusted_width
+            - self.char_width[self.charlist[adjusted_idx]]
           adjusted_idx = adjusted_idx - 1
           next_c = c
           c = prev_c
-          prev_c = adjusted_idx-1 >= 1 and self.charlist[adjusted_idx-1] or false
+          prev_c = adjusted_idx - 1 >= 1 and self.charlist[adjusted_idx - 1]
+            or false
         end
         if adjusted_idx == offset or adjusted_idx == idx then
           -- either a very long english word occupying more than one line,
@@ -467,7 +513,8 @@ function TextBoxWidget:_splitToLines()
           -- we backtracked and we're below max width, but the last char
           -- is a space, we can ignore it
           end_offset = adjusted_idx - 1
-          cur_line_width = adjusted_width - self.char_width[self.charlist[adjusted_idx]]
+          cur_line_width = adjusted_width
+            - self.char_width[self.charlist[adjusted_idx]]
           idx = adjusted_idx + 1
         else
           -- we backtracked and we're below max width, we can leave the
@@ -502,7 +549,9 @@ function TextBoxWidget:_splitToLines()
                     pad = pad + 1
                     space_add1_nb = space_add1_nb - 1
                   end
-                  if pad > 0 then self.idx_pad[cidx] = pad end
+                  if pad > 0 then
+                    self.idx_pad[cidx] = pad
+                  end
                 end
               end
             else
@@ -520,7 +569,9 @@ function TextBoxWidget:_splitToLines()
           end
         end
       end -- endif cur_line_width > targeted_width
-      if cur_line_width < 0 then break end
+      if cur_line_width < 0 then
+        break
+      end
       self.vertical_string_list[ln] = {
         offset = offset,
         end_offset = end_offset,
@@ -529,7 +580,8 @@ function TextBoxWidget:_splitToLines()
       if hard_newline then
         idx = idx + 1
         -- end_offset = nil means no text
-        self.vertical_string_list[ln+1] = {offset = idx, end_offset = nil, width = 0}
+        self.vertical_string_list[ln + 1] =
+          { offset = idx, end_offset = nil, width = 0 }
       else
         -- If next char is a space, discard it so it does not become
         -- an ugly leading space on the next line
@@ -544,12 +596,21 @@ function TextBoxWidget:_splitToLines()
 end
 
 function TextBoxWidget:_getLineText(vertical_string)
-  if not vertical_string.end_offset then return "" end
-  return table.concat(self.charlist, "", vertical_string.offset, vertical_string.end_offset)
+  if not vertical_string.end_offset then
+    return ""
+  end
+  return table.concat(
+    self.charlist,
+    "",
+    vertical_string.offset,
+    vertical_string.end_offset
+  )
 end
 
 function TextBoxWidget:_getLinePads(vertical_string)
-  if not vertical_string.end_offset then return end
+  if not vertical_string.end_offset then
+    return
+  end
   local pads = {}
   for idx = vertical_string.offset, vertical_string.end_offset do
     table.insert(pads, self.idx_pad[idx] or 0)
@@ -579,7 +640,8 @@ function TextBoxWidget:_shapeLine(line)
         offset = nil -- no text: get _xtext specified or default direction
       end
     end
-    local para_dir_rtl, prev_char_para_dir_rtl = self._xtext:getParaDirection(offset)
+    local para_dir_rtl, prev_char_para_dir_rtl =
+      self._xtext:getParaDirection(offset)
     line.para_is_rtl = para_dir_rtl or prev_char_para_dir_rtl
     -- We also need to set x_start & x_end (similar to how we do it below)
     local alignment = self.alignment
@@ -603,8 +665,11 @@ function TextBoxWidget:_shapeLine(line)
   -- Get glyphs, shaped and possibly substituted by Harfbuzz and re-ordered by FriBiDi.
   -- We'll add to 'line' this table of glyphs, with some additional
   -- computed x and advance keys
-  local xshaping = self._xtext:shapeLine(line.offset, line.end_offset,
-                      line.idx_to_substitute_with_ellipsis)
+  local xshaping = self._xtext:shapeLine(
+    line.offset,
+    line.end_offset,
+    line.idx_to_substitute_with_ellipsis
+  )
   -- logger.dbg(xshaping)
   -- We get an array of tables looking like this:
   --   [1] = {
@@ -686,7 +751,7 @@ function TextBoxWidget:_shapeLine(line)
     if alignment == "left" and not xshaping.para_is_rtl then
       local last_tab = 0
       local pen_x = 0
-      for i=1, #xshaping, 1 do
+      for i = 1, #xshaping, 1 do
         local xglyph = xshaping[i]
         if xglyph.is_tab then
           last_tab = i
@@ -701,7 +766,7 @@ function TextBoxWidget:_shapeLine(line)
       if last_tab > 0 and self.justified and line.can_be_justified then
         -- Remove all can_extend before (on the left of) last tab
         -- so justification does not affect tabstops
-        for i=1, last_tab, 1 do
+        for i = 1, last_tab, 1 do
           local xglyph = xshaping[i]
           if xglyph.can_extend then
             xglyph.can_extend = false
@@ -709,7 +774,8 @@ function TextBoxWidget:_shapeLine(line)
           end
           if xglyph.can_extend_fallback then
             xglyph.can_extend_fallback = false
-            xshaping.nb_can_extend_fallback = xshaping.nb_can_extend_fallback - 1
+            xshaping.nb_can_extend_fallback = xshaping.nb_can_extend_fallback
+              - 1
           end
         end
       end
@@ -717,7 +783,7 @@ function TextBoxWidget:_shapeLine(line)
       -- Similar, but scanning and using a pen_x from the right
       local last_tab = 0
       local pen_x = 0
-      for i=#xshaping, 1, -1 do
+      for i = #xshaping, 1, -1 do
         local xglyph = xshaping[i]
         if xglyph.is_tab then
           last_tab = i
@@ -732,7 +798,7 @@ function TextBoxWidget:_shapeLine(line)
       if last_tab > 0 and self.justified and line.can_be_justified then
         -- Remove all can_extend before (on the right of) last tab
         -- so justification does not affect tabstops
-        for i=#xshaping, last_tab, -1 do
+        for i = #xshaping, last_tab, -1 do
           local xglyph = xshaping[i]
           if xglyph.can_extend then
             xglyph.can_extend = false
@@ -740,7 +806,8 @@ function TextBoxWidget:_shapeLine(line)
           end
           if xglyph.can_extend_fallback then
             xglyph.can_extend_fallback = false
-            xshaping.nb_can_extend_fallback = xshaping.nb_can_extend_fallback - 1
+            xshaping.nb_can_extend_fallback = xshaping.nb_can_extend_fallback
+              - 1
           end
         end
       end
@@ -749,7 +816,7 @@ function TextBoxWidget:_shapeLine(line)
 
   local pen_x = 0 -- when alignment == "left"
   if alignment == "center" then
-    pen_x = (line.targeted_width - line.width)/2 or 0
+    pen_x = (line.targeted_width - line.width) / 2 or 0
   elseif alignment == "right" then
     pen_x = (line.targeted_width - line.width)
   end
@@ -770,7 +837,8 @@ function TextBoxWidget:_shapeLine(line)
       use_can_extend_fallback = true
       space_add_w = math.floor(space_to_fill / xshaping.nb_can_extend_fallback)
       -- nb of spaces to which we'll add 1 more pixel
-      space_add1_nb = space_to_fill - space_add_w * xshaping.nb_can_extend_fallback
+      space_add1_nb = space_to_fill
+        - space_add_w * xshaping.nb_can_extend_fallback
       line.justified = true
       line.width = line.targeted_width
       pen_x = 0 -- reset alignment
@@ -782,7 +850,10 @@ function TextBoxWidget:_shapeLine(line)
   for i, xglyph in ipairs(xshaping) do
     xglyph.x0 = pen_x
     pen_x = pen_x + xglyph.x_advance -- advance from Harfbuzz
-    if xglyph.can_extend or (use_can_extend_fallback and xglyph.can_extend_fallback) then
+    if
+      xglyph.can_extend
+      or (use_can_extend_fallback and xglyph.can_extend_fallback)
+    then
       -- add some pixels for justification
       pen_x = pen_x + space_add_w
       if space_add1_nb > 0 then
@@ -803,7 +874,8 @@ function TextBoxWidget:_shapeLine(line)
     else
       if xglyph.x1 > prev_cluster_start_xglyph.x1 then
         prev_cluster_start_xglyph.x1 = xglyph.x1
-        prev_cluster_start_xglyph.w = prev_cluster_start_xglyph.x1 - prev_cluster_start_xglyph.x0
+        prev_cluster_start_xglyph.w = prev_cluster_start_xglyph.x1
+          - prev_cluster_start_xglyph.x0
       end
       -- We don't update/decrease prev_cluster_start_xglyph.x0, even if one of its glyph
       -- has a backward advance that go back the 1st glyph x0, to not mess positioning.
@@ -824,41 +896,67 @@ end
 
 ---- Lays out text.
 function TextBoxWidget:_renderText(start_row_idx, end_row_idx)
-  if start_row_idx < 1 then start_row_idx = 1 end
-  if end_row_idx > #self.vertical_string_list then end_row_idx = #self.vertical_string_list end
+  if start_row_idx < 1 then
+    start_row_idx = 1
+  end
+  if end_row_idx > #self.vertical_string_list then
+    end_row_idx = #self.vertical_string_list
+  end
   local row_count = end_row_idx == 0 and 1 or end_row_idx - start_row_idx + 1
   -- We need a bb with the full height (even if we display only a few lines, we
   -- may have to draw an image bigger than these lines)
   local h = self.height or self.line_height_px * row_count
   h = h + self.line_glyph_extra_height
-  if self._bb then self._bb:free() end
+  if self._bb then
+    self._bb:free()
+  end
   local bbtype = nil
   local color_fg = not Blitbuffer.isColor8(self.fgcolor)
   local color_bg = not Blitbuffer.isColor8(self.bgcolor)
   -- Color, whether from images or fg or bg, means we'll need an RGB32 buffer (if it makes sense, e.g., on a color screen).
-  if (self.line_num_to_image and self.line_num_to_image[start_row_idx]) or color_fg or color_bg then
-    bbtype = Screen:isColorEnabled() and Blitbuffer.TYPE_BBRGB32 or Blitbuffer.TYPE_BB8
+  if
+    (self.line_num_to_image and self.line_num_to_image[start_row_idx])
+    or color_fg
+    or color_bg
+  then
+    bbtype = Screen:isColorEnabled() and Blitbuffer.TYPE_BBRGB32
+      or Blitbuffer.TYPE_BB8
   end
   self._bb = Blitbuffer.new(self.width, h, bbtype)
   if not color_bg then
     self._bb:fill(self.bgcolor)
   else
-    self._bb:paintRectRGB32(0, 0, self._bb:getWidth(), self._bb:getHeight(), self.bgcolor)
+    self._bb:paintRectRGB32(
+      0,
+      0,
+      self._bb:getWidth(),
+      self._bb:getHeight(),
+      self.bgcolor
+    )
   end
 
   local y = self.line_glyph_baseline
   if self.use_xtext then
     for i = start_row_idx, end_row_idx do
       local line = self.vertical_string_list[i]
-      if self.line_with_ellipsis and i == self.line_with_ellipsis and not line.ellipsis_added then
+      if
+        self.line_with_ellipsis
+        and i == self.line_with_ellipsis
+        and not line.ellipsis_added
+      then
         -- Requested to add an ellipsis on this line
         local ellipsis_width = RenderText:getEllipsisWidth(self.face)
-          -- no bold: xtext does synthesized bold with normal metrics
+        -- no bold: xtext does synthesized bold with normal metrics
         line.width = line.width + ellipsis_width
         if line.width > line.targeted_width then
           -- The ellipsis would overflow: we need to re-makeLine()
           -- this line with a smaller targeted_width
-          line = self._xtext:makeLine(line.offset, line.targeted_width - ellipsis_width, false, self._tabstop_width)
+          line = self._xtext:makeLine(
+            line.offset,
+            line.targeted_width - ellipsis_width,
+            false,
+            self._tabstop_width
+          )
           self.vertical_string_list[i] = line -- replace the former one
         end
         if line.end_offset and line.end_offset < #self._xtext then
@@ -873,22 +971,38 @@ function TextBoxWidget:_renderText(start_row_idx, end_row_idx)
         for _, xglyph in ipairs(line.xglyphs) do
           if not xglyph.no_drawing then
             local face = self.face.getFallbackFont(xglyph.font_num) -- callback (not a method)
-            local bolder = self._ptf_char_is_bold and self._ptf_char_is_bold[xglyph.text_index] or false
-            local glyph = RenderText:getGlyphByIndex(face, xglyph.glyph, self.bold, bolder)
+            local bolder = self._ptf_char_is_bold
+                and self._ptf_char_is_bold[xglyph.text_index]
+              or false
+            local glyph =
+              RenderText:getGlyphByIndex(face, xglyph.glyph, self.bold, bolder)
             local color = self.fgcolor
             if self._alt_color_for_rtl then
-              color = xglyph.is_rtl and Blitbuffer.COLOR_DARK_GRAY or Blitbuffer.COLOR_BLACK
+              color = xglyph.is_rtl and Blitbuffer.COLOR_DARK_GRAY
+                or Blitbuffer.COLOR_BLACK
             end
             if not color_fg then
-              self._bb:colorblitFrom(glyph.bb,
-                    xglyph.x0 + glyph.l + xglyph.x_offset,
-                    y - glyph.t - xglyph.y_offset,
-                    0, 0, glyph.bb:getWidth(), glyph.bb:getHeight(), color)
+              self._bb:colorblitFrom(
+                glyph.bb,
+                xglyph.x0 + glyph.l + xglyph.x_offset,
+                y - glyph.t - xglyph.y_offset,
+                0,
+                0,
+                glyph.bb:getWidth(),
+                glyph.bb:getHeight(),
+                color
+              )
             else
-              self._bb:colorblitFromRGB32(glyph.bb,
-                    xglyph.x0 + glyph.l + xglyph.x_offset,
-                    y - glyph.t - xglyph.y_offset,
-                    0, 0, glyph.bb:getWidth(), glyph.bb:getHeight(), color)
+              self._bb:colorblitFromRGB32(
+                glyph.bb,
+                xglyph.x0 + glyph.l + xglyph.x_offset,
+                y - glyph.t - xglyph.y_offset,
+                0,
+                0,
+                glyph.bb:getWidth(),
+                glyph.bb:getHeight(),
+                color
+              )
             end
           end
         end
@@ -906,7 +1020,7 @@ function TextBoxWidget:_renderText(start_row_idx, end_row_idx)
     local line = self.vertical_string_list[i]
     local pen_x = 0 -- when alignment == "left"
     if self.alignment == "center" then
-      pen_x = (self.width - line.width)/2 or 0
+      pen_x = (self.width - line.width) / 2 or 0
     elseif self.alignment == "right" then
       pen_x = (self.width - line.width)
     end
@@ -919,12 +1033,29 @@ function TextBoxWidget:_renderText(start_row_idx, end_row_idx)
       if line.width + ellipsis_width > self.width then
         -- We could try to find the last break point (space, CJK) to
         -- truncate there and add the ellipsis, but well...
-        line_text = RenderText:truncateTextByWidth(line_text, self.face, self.width, true, self.bold)
+        line_text = RenderText:truncateTextByWidth(
+          line_text,
+          self.face,
+          self.width,
+          true,
+          self.bold
+        )
       else
         line_text = line_text .. "…"
       end
     end
-    RenderText:renderUtf8Text(self._bb, pen_x, y, self.face, line_text, true, self.bold, self.fgcolor, nil, self:_getLinePads(line))
+    RenderText:renderUtf8Text(
+      self._bb,
+      pen_x,
+      y,
+      self.face,
+      line_text,
+      true,
+      self.bold,
+      self.fgcolor,
+      nil,
+      self:_getLinePads(line)
+    )
     y = y + self.line_height_px
   end
 
@@ -936,13 +1067,18 @@ end
 -- (NOTE: This instantiates the inner bb (self._bb), so be careful about its lifecycle when you call this,
 --    c.f., TextBoxWidget:update).
 function TextBoxWidget:_updateLayout()
-  self:_renderText(self.virtual_line_num, self.virtual_line_num + self.lines_per_page - 1)
+  self:_renderText(
+    self.virtual_line_num,
+    self.virtual_line_num + self.lines_per_page - 1
+  )
 end
 
 function TextBoxWidget:_renderImage(start_row_idx)
   local scheduled_update = self.scheduled_update
   self.scheduled_update = nil -- reset it, so we don't have to whenever we return below
-  if not self.line_num_to_image or not self.line_num_to_image[start_row_idx] then
+  if
+    not self.line_num_to_image or not self.line_num_to_image[start_row_idx]
+  then
     -- No image, no dithering
     if self.dialog then
       self.dialog.dithered = false
@@ -956,7 +1092,7 @@ function TextBoxWidget:_renderImage(start_row_idx)
   local status_text = nil
   local alt_text = image.title or ""
   if image.caption then
-    alt_text = alt_text.."\n"..image.caption
+    alt_text = alt_text .. "\n" .. image.caption
   end
   -- Decide what to do/display
   if image.bb then -- we have a bb
@@ -980,7 +1116,7 @@ function TextBoxWidget:_renderImage(start_row_idx)
       -- load_bb_func failed: try it again)
       if image.load_bb_func then -- we can load a bb
         do_schedule_update = true -- load it and call us again
-        status_text = "♲"  -- display loading recycle sign below alt_text
+        status_text = "♲" -- display loading recycle sign below alt_text
       end
     end
   end
@@ -1011,38 +1147,42 @@ function TextBoxWidget:_renderImage(start_row_idx)
   end
   local status_height = 0
   if status_text then
-    local status_widget = TextWidget:new{
+    local status_widget = TextWidget:new({
       text = status_text,
       face = Font:getFace("cfont", 20),
       fgcolor = Blitbuffer.COLOR_DARK_GRAY,
       bold = true,
-    }
+    })
     status_height = status_widget:getSize().h
-    status_widget = FrameContainer:new{
+    status_widget = FrameContainer:new({
       background = Blitbuffer.COLOR_WHITE,
       bordersize = 0,
       margin = 0,
       padding = 0,
-      RightContainer:new{
-        dimen = Geom:new{
+      RightContainer:new({
+        dimen = Geom:new({
           w = image.width,
           h = status_height,
-        },
+        }),
         status_widget,
-      },
-    }
-    status_widget:paintTo(self._bb, self.width - image.width, image.height - status_height)
+      }),
+    })
+    status_widget:paintTo(
+      self._bb,
+      self.width - image.width,
+      image.height - status_height
+    )
     status_widget:free()
   end
   if display_alt then
-    local alt_widget = TextBoxWidget:new{
+    local alt_widget = TextBoxWidget:new({
       text = alt_text,
       face = self.image_alt_face,
       fgcolor = self.image_alt_fgcolor,
       width = image.width,
       -- don't draw over status_text if any
       height = math.max(0, image.height - status_height),
-    }
+    })
     alt_widget:paintTo(self._bb, self.width - image.width, 0)
     alt_widget:free()
   end
@@ -1073,13 +1213,14 @@ function TextBoxWidget:_renderImage(start_row_idx)
               -- We can refresh only the image area, even if we have just
               -- re-rendered the whole textbox as the text has been
               -- rendered just the same as it was
-              return "ui", Geom:new{
-                x = self.dimen.x + self.width - image.width,
-                y = self.dimen.y,
-                w = image.width,
-                h = image.height,
-              },
-              true  -- Request dithering
+              return "ui",
+                Geom:new({
+                  x = self.dimen.x + self.width - image.width,
+                  y = self.dimen.y,
+                  w = image.width,
+                  h = image.height,
+                }),
+                true -- Request dithering
             end)
           end
         end)
@@ -1092,20 +1233,23 @@ function TextBoxWidget:_renderImage(start_row_idx)
           -- We can refresh only the image area, even if we have just
           -- re-rendered the whole textbox as the text has been
           -- rendered just the same as it was
-          return "ui", Geom:new{
-            x = self.dimen.x + self.width - image.width,
-            y = self.dimen.y,
-            w = image.width,
-            h = image.height,
-          },
-          true  -- Request dithering
+          return "ui",
+            Geom:new({
+              x = self.dimen.x + self.width - image.width,
+              y = self.dimen.y,
+              w = image.width,
+              h = image.height,
+            }),
+            true -- Request dithering
         end)
       end
     end
     -- Wrap it with Trapper, as load_bb_func may be using some of its
     -- dismissable methods
     local Trapper = require("ui/trapper")
-    UIManager:scheduleIn(0.1, function() Trapper:wrap(self.image_update_action) end)
+    UIManager:scheduleIn(0.1, function()
+      Trapper:wrap(self.image_update_action)
+    end)
   end
 end
 
@@ -1138,12 +1282,19 @@ function TextBoxWidget:getVisibleHeightRatios()
     return 0, 1
   end
   local low = (self.virtual_line_num - 1) / #self.vertical_string_list
-  local high = (self.virtual_line_num - 1 + self.lines_per_page) / #self.vertical_string_list
+  local high = (self.virtual_line_num - 1 + self.lines_per_page)
+    / #self.vertical_string_list
   return low, high
 end
 
 -- Helper function to be used before intanstiating a TextBoxWidget instance
-function TextBoxWidget:getFontSizeToFitHeight(height_px, nb_lines, line_height_em, font_face, font_bold)
+function TextBoxWidget:getFontSizeToFitHeight(
+  height_px,
+  nb_lines,
+  line_height_em,
+  font_face,
+  font_bold
+)
   -- Get a font size that would fit nb_lines in height_px.
   -- A font with the returned size should then be provided
   -- to TextBoxWidget:new() (as well as the line_height_em given
@@ -1157,7 +1308,8 @@ function TextBoxWidget:getFontSizeToFitHeight(height_px, nb_lines, line_height_e
   -- We do the revert of what's done in :init():
   --   self.line_height_px = Math.round( (1 + self.line_height) * self.face.size )
   local face_size = height_px / nb_lines / (1 + line_height_em)
-  local font_size = math.floor(face_size * 1000000 / Screen:scaleBySize(1000000)) -- invert scaleBySize
+  local font_size =
+    math.floor(face_size * 1000000 / Screen:scaleBySize(1000000)) -- invert scaleBySize
   if Screen:scaleBySize(font_size) > face_size then -- be really sure we won't get it larger
     font_size = font_size - 1
   end
@@ -1169,7 +1321,8 @@ function TextBoxWidget:getFontSizeToFitHeight(height_px, nb_lines, line_height_e
   if font_face then
     while true do
       -- As done in TextBoxWidget:init():
-      local line_height_px = Math.round( (1 + line_height_em) * Screen:scaleBySize(font_size) )
+      local line_height_px =
+        Math.round((1 + line_height_em) * Screen:scaleBySize(font_size))
       local face = Font:getFace(font_face, font_size)
       face = Font:getAdjustedFace(face, font_bold)
       local face_height = face.ftsize:getHeightAndAscender()
@@ -1201,7 +1354,7 @@ function TextBoxWidget:getSize()
     self:_updateLayout()
   end
 
-  return Geom:new{x = 0, y = 0, w = self.width, h = self._bb:getHeight()}
+  return Geom:new({ x = 0, y = 0, w = self.width, h = self._bb:getHeight() })
 end
 
 function TextBoxWidget:paintTo(bb, x, y)
@@ -1273,20 +1426,24 @@ function TextBoxWidget:setText(text)
   self.dimen.w = new_size.w
   self.dimen.h = new_size.h
 end
-dbg:guard(TextBoxWidget, "setText",
-  function(self, text)
-    assert(type(text) == "string",
-      "Wrong text type (expected string)")
-  end)
+dbg:guard(TextBoxWidget, "setText", function(self, text)
+  assert(type(text) == "string", "Wrong text type (expected string)")
+end)
 
 function TextBoxWidget:onTapImage(arg, ges)
-  if self.line_num_to_image and self.line_num_to_image[self.virtual_line_num] then
+  if
+    self.line_num_to_image and self.line_num_to_image[self.virtual_line_num]
+  then
     local image = self.line_num_to_image[self.virtual_line_num]
     local tap_x = ges.pos.x - self.dimen.x
     local tap_y = ges.pos.y - self.dimen.y
     -- Check that this tap is on this image
-    if tap_x > self.width - image.width and tap_x < self.width and
-       tap_y > 0 and tap_y < image.height then
+    if
+      tap_x > self.width - image.width
+      and tap_x < self.width
+      and tap_y > 0
+      and tap_y < image.height
+    then
       logger.dbg("tap on image")
       if image.bb then
         -- Toggle between image and alt_text
@@ -1297,13 +1454,14 @@ function TextBoxWidget:onTapImage(arg, ges)
           -- We can refresh only the image area, even if we have just
           -- re-rendered the whole textbox as the text has been
           -- rendered just the same as it was
-          return "ui", Geom:new{
-            x = self.dimen.x + self.width - image.width,
-            y = self.dimen.y,
-            w = image.width,
-            h = image.height,
-          },
-          not self.image_show_alt_text  -- Request dithering when showing the image
+          return "ui",
+            Geom:new({
+              x = self.dimen.x + self.width - image.width,
+              y = self.dimen.y,
+              w = image.width,
+              h = image.height,
+            }),
+            not self.image_show_alt_text -- Request dithering when showing the image
         end)
         return true
       end
@@ -1313,15 +1471,22 @@ end
 
 function TextBoxWidget:scrollDown()
   self.image_show_alt_text = nil -- reset image bb/alt state
-  if self.virtual_line_num + self.lines_per_page <= #self.vertical_string_list then
+  if
+    self.virtual_line_num + self.lines_per_page <= #self.vertical_string_list
+  then
     self:free(false)
     self.virtual_line_num = self.virtual_line_num + self.lines_per_page
     -- If last line shown, set it to be the last line of view
     -- (only if editable, as this would be confusing when reading
     -- a dictionary result or a wikipedia page)
     if self.editable then
-      if self.virtual_line_num > #self.vertical_string_list - self.lines_per_page + 1 then
-        self.virtual_line_num = #self.vertical_string_list - self.lines_per_page + 1
+      if
+        self.virtual_line_num
+        > #self.vertical_string_list - self.lines_per_page + 1
+      then
+        self.virtual_line_num = #self.vertical_string_list
+          - self.lines_per_page
+          + 1
         if self.virtual_line_num < 1 then
           self.virtual_line_num = 1
         end
@@ -1332,7 +1497,10 @@ function TextBoxWidget:scrollDown()
   if self.editable then
     -- move cursor to first line of visible area
     local ln = self.height == nil and 1 or self.virtual_line_num
-    self:moveCursorToCharPos(self.vertical_string_list[ln] and self.vertical_string_list[ln].offset or 1)
+    self:moveCursorToCharPos(
+      self.vertical_string_list[ln] and self.vertical_string_list[ln].offset
+        or 1
+    )
   end
 end
 
@@ -1350,7 +1518,10 @@ function TextBoxWidget:scrollUp()
   if self.editable then
     -- move cursor to first line of visible area
     local ln = self.height == nil and 1 or self.virtual_line_num
-    self:moveCursorToCharPos(self.vertical_string_list[ln] and self.vertical_string_list[ln].offset or 1)
+    self:moveCursorToCharPos(
+      self.vertical_string_list[ln] and self.vertical_string_list[ln].offset
+        or 1
+    )
   end
 end
 
@@ -1375,7 +1546,10 @@ function TextBoxWidget:scrollLines(nb_lines)
     if y < 0 or y >= self.text_height then
       -- move cursor to first line of visible area
       local ln = self.height == nil and 1 or self.virtual_line_num
-      self:moveCursorToCharPos(self.vertical_string_list[ln] and self.vertical_string_list[ln].offset or 1)
+      self:moveCursorToCharPos(
+        self.vertical_string_list[ln] and self.vertical_string_list[ln].offset
+          or 1
+      )
     end
   end
 end
@@ -1411,19 +1585,20 @@ function TextBoxWidget:scrollToBottom()
   end
 end
 
-
 function TextBoxWidget:scrollToRatio(ratio, force_to_page)
   self.image_show_alt_text = nil
   local line_num
   ratio = math.max(0, math.min(1, ratio)) -- ensure ratio is between 0 and 1 (100%)
   if force_to_page or self.scroll_force_to_page then
     -- We want scroll to align to original pages
-    local page_count = 1 + math.floor((#self.vertical_string_list - 1) / self.lines_per_page)
+    local page_count = 1
+      + math.floor((#self.vertical_string_list - 1) / self.lines_per_page)
     local page_num = 1 + Math.round((page_count - 1) * ratio)
     line_num = 1 + (page_num - 1) * self.lines_per_page
   else
     -- We want the middle of page to show at ratio, so remove self.lines_per_page/2
-    line_num = 1 + math.floor(ratio * #self.vertical_string_list - self.lines_per_page/2)
+    line_num = 1
+      + math.floor(ratio * #self.vertical_string_list - self.lines_per_page / 2)
     if line_num + self.lines_per_page > #self.vertical_string_list then
       line_num = #self.vertical_string_list - self.lines_per_page + 1
     end
@@ -1442,7 +1617,6 @@ function TextBoxWidget:scrollToRatio(ratio, force_to_page)
     self:moveCursorToCharPos(self.vertical_string_list[ln].offset)
   end
 end
-
 
 --- Cursor management
 
@@ -1493,7 +1667,10 @@ function TextBoxWidget:_getXYForCharPos(charpos)
       end
       for i, xglyph in ipairs(line.xglyphs) do
         if xglyph.is_cluster_start then -- ignore non-start cluster glyphs
-          if charpos >= xglyph.text_index and charpos < xglyph.text_index + xglyph.cluster_len then
+          if
+            charpos >= xglyph.text_index
+            and charpos < xglyph.text_index + xglyph.cluster_len
+          then
             -- Correct glyph found
             if is_after_last_char then
               -- Draw on the right of this glyph if LTR, on the left if RTL
@@ -1514,7 +1691,9 @@ function TextBoxWidget:_getXYForCharPos(charpos)
             if xglyph.cluster_len > 1 then
               -- Adjust x so we move the cursor along this single glyph width
               -- depending on charpos position inside this cluster
-              local dx = math.floor(xglyph.w * (charpos - xglyph.text_index) / xglyph.cluster_len)
+              local dx = math.floor(
+                xglyph.w * (charpos - xglyph.text_index) / xglyph.cluster_len
+              )
               if xglyph.is_rtl then
                 x = x - dx
               else
@@ -1538,7 +1717,9 @@ function TextBoxWidget:_getXYForCharPos(charpos)
   local nbchars = #self.charlist
   while offset < charpos do
     if offset <= nbchars then -- charpos may exceed #self.charlist
-      x = x + self.char_width[self.charlist[offset]] + (self.idx_pad[offset] or 0)
+      x = x
+        + self.char_width[self.charlist[offset]]
+        + (self.idx_pad[offset] or 0)
     end
     offset = offset + 1
   end
@@ -1597,8 +1778,8 @@ function TextBoxWidget:getCharPosAtXY(x, y)
               -- cluster by splitting its width into equal parts
               -- for each original char.
               local dw = xglyph.w / xglyph.cluster_len
-              for n=1, xglyph.cluster_len do
-                if x < xglyph.x0 + n*dw then
+              for n = 1, xglyph.cluster_len do
+                if x < xglyph.x0 + n * dw then
                   if xglyph.is_rtl then
                     return xglyph.text_index + xglyph.cluster_len - n
                   else
@@ -1646,8 +1827,10 @@ end
 -- when using refresh funcs. It finally feels fine with both set to true,
 -- but one can turn them to false with a setting to check how some other
 -- combinations do.
-local CURSOR_COMBINE_REGIONS = G_reader_settings:nilOrTrue("ui_cursor_combine_regions")
-local CURSOR_USE_REFRESH_FUNCS = G_reader_settings:nilOrTrue("ui_cursor_use_refresh_funcs")
+local CURSOR_COMBINE_REGIONS =
+  G_reader_settings:nilOrTrue("ui_cursor_combine_regions")
+local CURSOR_USE_REFRESH_FUNCS =
+  G_reader_settings:nilOrTrue("ui_cursor_use_refresh_funcs")
 
 -- Update charpos to the one provided; if out of current view, update
 -- virtual_line_num to move it to view, and draw the cursor
@@ -1658,7 +1841,7 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
   self.current_line_num = screen_line_num + self.virtual_line_num - 1
   -- adjust self.virtual_line_num for overflowed y to have y in current view
   if y < 0 then
-    local scroll_lines = math.ceil( -y / self.line_height_px )
+    local scroll_lines = math.ceil(-y / self.line_height_px)
     self.virtual_line_num = self.virtual_line_num - scroll_lines
     if self.virtual_line_num < 1 then
       self.virtual_line_num = 1
@@ -1666,7 +1849,9 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
     y = y + scroll_lines * self.line_height_px
   end
   if y >= self.text_height then
-    local scroll_lines = math.floor( (y-self.text_height) / self.line_height_px ) + 1
+    local scroll_lines = math.floor(
+      (y - self.text_height) / self.line_height_px
+    ) + 1
     self.virtual_line_num = self.virtual_line_num + scroll_lines
     -- needs to deal with possible overflow ?
     y = y - scroll_lines * self.line_height_px
@@ -1691,8 +1876,20 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
     -- quick restore and two small refreshes when moving only the cursor
     self.cursor_restore_x = x
     self.cursor_restore_y = y
-    self.cursor_restore_bb = Blitbuffer.new(self.cursor_line.dimen.w, self.cursor_line.dimen.h, self._bb:getType())
-    self.cursor_restore_bb:blitFrom(self._bb, 0, 0, x, y, self.cursor_line.dimen.w, self.cursor_line.dimen.h)
+    self.cursor_restore_bb = Blitbuffer.new(
+      self.cursor_line.dimen.w,
+      self.cursor_line.dimen.h,
+      self._bb:getType()
+    )
+    self.cursor_restore_bb:blitFrom(
+      self._bb,
+      0,
+      0,
+      x,
+      y,
+      self.cursor_line.dimen.w,
+      self.cursor_line.dimen.h
+    )
     -- Paint the cursor, and refresh the whole widget
     self.cursor_line:paintTo(self._bb, x, y)
     UIManager:setDirty(self.dialog or "all", function()
@@ -1705,20 +1902,28 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
       if self.cursor_restore_bb then
         -- Restore the previous cursor position content, and do
         -- a small ui refresh of the old cursor area
-        self._bb:blitFrom(self.cursor_restore_bb, self.cursor_restore_x, self.cursor_restore_y,
-          0, 0, self.cursor_line.dimen.w, self.cursor_line.dimen.h)
+        self._bb:blitFrom(
+          self.cursor_restore_bb,
+          self.cursor_restore_x,
+          self.cursor_restore_y,
+          0,
+          0,
+          self.cursor_line.dimen.w,
+          self.cursor_line.dimen.h
+        )
         -- remember current values for use in the setDirty funcs, as
         -- we will have overridden them when these are called
         restore_x = self.cursor_restore_x
         restore_y = self.cursor_restore_y
         if not CURSOR_COMBINE_REGIONS then
           UIManager:setDirty(self.dialog or "all", function()
-            return "ui", Geom:new{
-              x = self.dimen.x + restore_x,
-              y = self.dimen.y + restore_y,
-              w = self.cursor_line.dimen.w,
-              h = self.cursor_line.dimen.h,
-            }
+            return "ui",
+              Geom:new({
+                x = self.dimen.x + restore_x,
+                y = self.dimen.y + restore_y,
+                w = self.cursor_line.dimen.w,
+                h = self.cursor_line.dimen.h,
+              })
           end)
         end
         self.cursor_restore_bb:free()
@@ -1727,24 +1932,36 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
       -- Store the original image of where we will draw the new cursor
       self.cursor_restore_x = x
       self.cursor_restore_y = y
-      self.cursor_restore_bb = Blitbuffer.new(self.cursor_line.dimen.w, self.cursor_line.dimen.h, self._bb:getType())
-      self.cursor_restore_bb:blitFrom(self._bb, 0, 0, x, y, self.cursor_line.dimen.w, self.cursor_line.dimen.h)
+      self.cursor_restore_bb = Blitbuffer.new(
+        self.cursor_line.dimen.w,
+        self.cursor_line.dimen.h,
+        self._bb:getType()
+      )
+      self.cursor_restore_bb:blitFrom(
+        self._bb,
+        0,
+        0,
+        x,
+        y,
+        self.cursor_line.dimen.w,
+        self.cursor_line.dimen.h
+      )
       -- Paint the cursor, and do a small ui refresh of the new cursor area
       self.cursor_line:paintTo(self._bb, x, y)
       UIManager:setDirty(self.dialog or "all", function()
-        local cursor_region = Geom:new{
+        local cursor_region = Geom:new({
           x = self.dimen.x + x,
           y = self.dimen.y + y,
           w = self.cursor_line.dimen.w,
           h = self.cursor_line.dimen.h,
-        }
+        })
         if CURSOR_COMBINE_REGIONS and restore_x and restore_y then
-          local restore_region = Geom:new{
+          local restore_region = Geom:new({
             x = self.dimen.x + restore_x,
             y = self.dimen.y + restore_y,
             w = self.cursor_line.dimen.w,
             h = self.cursor_line.dimen.h,
-          }
+          })
           cursor_region = cursor_region:combine(restore_region)
         end
         return "ui", cursor_region
@@ -1755,15 +1972,22 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
       if self.cursor_restore_bb then
         -- Restore the previous cursor position content, and do
         -- a small ui refresh of the old cursor area
-        self._bb:blitFrom(self.cursor_restore_bb, self.cursor_restore_x, self.cursor_restore_y,
-          0, 0, self.cursor_line.dimen.w, self.cursor_line.dimen.h)
+        self._bb:blitFrom(
+          self.cursor_restore_bb,
+          self.cursor_restore_x,
+          self.cursor_restore_y,
+          0,
+          0,
+          self.cursor_line.dimen.w,
+          self.cursor_line.dimen.h
+        )
         if self.dimen then
-          restore_region = Geom:new{
+          restore_region = Geom:new({
             x = self.dimen.x + self.cursor_restore_x,
             y = self.dimen.y + self.cursor_restore_y,
             w = self.cursor_line.dimen.w,
             h = self.cursor_line.dimen.h,
-          }
+          })
           if not CURSOR_COMBINE_REGIONS then
             UIManager:setDirty(self.dialog or "all", "ui", restore_region)
           end
@@ -1774,17 +1998,29 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
       -- Store the original image of where we will draw the new cursor
       self.cursor_restore_x = x
       self.cursor_restore_y = y
-      self.cursor_restore_bb = Blitbuffer.new(self.cursor_line.dimen.w, self.cursor_line.dimen.h, self._bb:getType())
-      self.cursor_restore_bb:blitFrom(self._bb, 0, 0, x, y, self.cursor_line.dimen.w, self.cursor_line.dimen.h)
+      self.cursor_restore_bb = Blitbuffer.new(
+        self.cursor_line.dimen.w,
+        self.cursor_line.dimen.h,
+        self._bb:getType()
+      )
+      self.cursor_restore_bb:blitFrom(
+        self._bb,
+        0,
+        0,
+        x,
+        y,
+        self.cursor_line.dimen.w,
+        self.cursor_line.dimen.h
+      )
       -- Paint the cursor, and do a small ui refresh of the new cursor area
       self.cursor_line:paintTo(self._bb, x, y)
       if self.dimen then
-        local cursor_region = Geom:new{
+        local cursor_region = Geom:new({
           x = self.dimen.x + x,
           y = self.dimen.y + y,
           w = self.cursor_line.dimen.w,
           h = self.cursor_line.dimen.h,
-        }
+        })
         if CURSOR_COMBINE_REGIONS and restore_region then
           cursor_region = cursor_region:combine(restore_region)
         end
@@ -1796,20 +2032,29 @@ end
 
 -- Update view to show the line with charpos not far than <centered_lines_count> lines away
 -- from the center of the screen, and draw the cursor.
-function TextBoxWidget:moveCursorToCharPosKeepingViewCentered(charpos, centered_lines_count)
+function TextBoxWidget:moveCursorToCharPosKeepingViewCentered(
+  charpos,
+  centered_lines_count
+)
   local old_virtual_line_num = self.virtual_line_num
   self.for_measurement_only = true
   self:moveCursorToCharPos(charpos)
   self.for_measurement_only = false
   local _, _, screen_line_num = self:_getXYForCharPos(charpos)
-  local new_virtual_line_num = self.virtual_line_num + screen_line_num - math.floor(self.lines_per_page / 2)
-  local max_virtual_line_num = #self.vertical_string_list - self.lines_per_page + 1
+  local new_virtual_line_num = self.virtual_line_num
+    + screen_line_num
+    - math.floor(self.lines_per_page / 2)
+  local max_virtual_line_num = #self.vertical_string_list
+    - self.lines_per_page
+    + 1
   if new_virtual_line_num < 1 then
     new_virtual_line_num = 1
   elseif new_virtual_line_num > max_virtual_line_num then
     new_virtual_line_num = max_virtual_line_num
   end
-  if math.abs(new_virtual_line_num - old_virtual_line_num) > centered_lines_count then
+  if
+    math.abs(new_virtual_line_num - old_virtual_line_num) > centered_lines_count
+  then
     self.virtual_line_num = new_virtual_line_num
   else
     self.virtual_line_num = old_virtual_line_num
@@ -1847,8 +2092,11 @@ function TextBoxWidget:scrollViewToCharPos()
     -- Ensure we don't show too much blank at end (when deleting last lines)
     -- local max_empty_lines =  math.floor(self.lines_per_page / 2)
     -- Best to not allow any, for initially non-scrolled widgets
-    local max_empty_lines =  0
-    local max_virtual_line_num = #self.vertical_string_list - self.lines_per_page + 1 + max_empty_lines
+    local max_empty_lines = 0
+    local max_virtual_line_num = #self.vertical_string_list
+      - self.lines_per_page
+      + 1
+      + max_empty_lines
     if self.virtual_line_num > max_virtual_line_num then
       self.virtual_line_num = max_virtual_line_num
       if self.virtual_line_num < 1 then
@@ -1866,7 +2114,7 @@ function TextBoxWidget:scrollViewToCharPos()
     if lend >= #self.vertical_string_list then
       break -- last page
     end
-    if self.vertical_string_list[lend+1].offset >= self.charpos then
+    if self.vertical_string_list[lend + 1].offset >= self.charpos then
       break
     end
     ln = ln + self.lines_per_page
@@ -1876,13 +2124,13 @@ end
 
 function TextBoxWidget:moveCursorLeft()
   if self.charpos > 1 then
-    self:moveCursorToCharPos(self.charpos-1)
+    self:moveCursorToCharPos(self.charpos - 1)
   end
 end
 
 function TextBoxWidget:moveCursorRight()
   if self.charpos < #self.charlist + 1 then -- we can move after last char
-    self:moveCursorToCharPos(self.charpos+1)
+    self:moveCursorToCharPos(self.charpos + 1)
   end
 end
 
@@ -1897,41 +2145,56 @@ function TextBoxWidget:moveCursorDown()
 end
 
 function TextBoxWidget:moveCursorHome()
-  self:moveCursorToCharPos(self.vertical_string_list[self.current_line_num] and self.vertical_string_list[self.current_line_num].offset or 1)
+  self:moveCursorToCharPos(
+    self.vertical_string_list[self.current_line_num]
+        and self.vertical_string_list[self.current_line_num].offset
+      or 1
+  )
 end
 
 function TextBoxWidget:moveCursorEnd()
-  self:moveCursorToCharPos(self.vertical_string_list[self.current_line_num+1] and self.vertical_string_list[self.current_line_num+1].offset - 1 or #self.charlist + 1)
+  self:moveCursorToCharPos(
+    self.vertical_string_list[self.current_line_num + 1]
+        and self.vertical_string_list[self.current_line_num + 1].offset - 1
+      or #self.charlist + 1
+  )
 end
-
 
 --- Text selection with Hold
 
 -- Allow selection of a single word at hold position
 function TextBoxWidget:onHoldWord(callback, ges)
-  if not callback then return end
+  if not callback then
+    return
+  end
 
   local x, y = ges.pos.x - self.dimen.x, ges.pos.y - self.dimen.y
-  local line_num = math.ceil(y / self.line_height_px) + self.virtual_line_num-1
+  local line_num = math.ceil(y / self.line_height_px)
+    + self.virtual_line_num
+    - 1
   local line = self.vertical_string_list[line_num]
   logger.dbg("holding on line", line)
   if line then
     local char_start = line.offset
-    local char_end  -- char_end is non-inclusive
+    local char_end -- char_end is non-inclusive
     if line_num >= #self.vertical_string_list then
       char_end = #self.charlist + 1
     else
-      char_end = self.vertical_string_list[line_num+1].offset
+      char_end = self.vertical_string_list[line_num + 1].offset
     end
     local char_probe_x = 0
     local idx = char_start
     -- find which character the touch is holding
     while idx < char_end do
       --- @fixme This might break if kerning is enabled.
-      char_probe_x = char_probe_x + self.char_width[self.charlist[idx]] + (self.idx_pad[idx] or 0)
+      char_probe_x = char_probe_x
+        + self.char_width[self.charlist[idx]]
+        + (self.idx_pad[idx] or 0)
       if char_probe_x > x then
         -- ignore spaces
-        if self.charlist[idx] == " " then break end
+        if self.charlist[idx] == " " then
+          break
+        end
         -- now find which word the character is in
         local words = util.splitToWords(self:_getLineText(line))
         local probe_idx = char_start
@@ -1963,8 +2226,12 @@ function TextBoxWidget:onHoldStartText(_, ges)
   self.hold_start_y = ges.pos.y - self.dimen.y
 
   -- check coordinates are actually inside our area
-  if self.hold_start_x < 0 or self.hold_start_x > self.dimen.w or
-    self.hold_start_y < 0 or self.hold_start_y > self.dimen.h then
+  if
+    self.hold_start_x < 0
+    or self.hold_start_x > self.dimen.w
+    or self.hold_start_y < 0
+    or self.hold_start_y > self.dimen.h
+  then
     self.hold_start_time = nil -- don't process coming HoldRelease event
     return false -- let event be processed by other widgets
   end
@@ -1984,7 +2251,9 @@ function TextBoxWidget:onHoldPanText(_, ges)
 end
 
 function TextBoxWidget:onHoldReleaseText(callback, ges)
-  if not callback then return end
+  if not callback then
+    return
+  end
 
   local hold_end_x = ges.pos.x - self.dimen.x
   local hold_end_y = ges.pos.y - self.dimen.y
@@ -1994,10 +2263,16 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
     return false
   end
   -- check start and end coordinates are actually inside our area
-  if self.hold_start_x < 0 or hold_end_x < 0 or
-    self.hold_start_x > self.dimen.w or hold_end_x > self.dimen.w or
-    self.hold_start_y < 0 or hold_end_y < 0 or
-    self.hold_start_y > self.dimen.h or hold_end_y > self.dimen.h then
+  if
+    self.hold_start_x < 0
+    or hold_end_x < 0
+    or self.hold_start_x > self.dimen.w
+    or hold_end_x > self.dimen.w
+    or self.hold_start_y < 0
+    or hold_end_y < 0
+    or self.hold_start_y > self.dimen.h
+    or hold_end_y > self.dimen.h
+  then
     return false
   end
 
@@ -2005,7 +2280,9 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
 
   -- If page contains an image, check if Hold is on this image and deal
   -- with it directly
-  if self.line_num_to_image and self.line_num_to_image[self.virtual_line_num] then
+  if
+    self.line_num_to_image and self.line_num_to_image[self.virtual_line_num]
+  then
     local image = self.line_num_to_image[self.virtual_line_num]
     if hold_end_x > self.width - image.width and hold_end_y < image.height then
       -- Only if low-res image is loaded, so we have something to display
@@ -2019,20 +2296,22 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
           -- display hi_bb, or low-res bb if hi_bb has not been
           -- made (if not implemented, or failed, or dismissed)
           local ImageViewer = require("ui/widget/imageviewer")
-          local imgviewer = ImageViewer:new{
+          local imgviewer = ImageViewer:new({
             image = image.hi_bb or image.bb, -- fallback to low-res if high-res failed
             image_disposable = false, -- we may reuse our bb if called again
             with_title_bar = true,
             title_text = image.title,
             caption = image.caption,
             fullscreen = true,
-          }
+          })
           UIManager:show(imgviewer)
         end
         -- Wrap it with Trapper, as load_bb_func may be using some of its
         -- dismissable methods
         local Trapper = require("ui/trapper")
-        UIManager:scheduleIn(0.1, function() Trapper:wrap(load_and_show_image) end)
+        UIManager:scheduleIn(0.1, function()
+          Trapper:wrap(load_and_show_image)
+        end)
         -- And we return without calling the "Hold on text" callback
         return true
       end
@@ -2093,14 +2372,31 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
     -- use libunibreak's wordbreak features.
     -- (50 is the nb of chars backward and ahead of selection indices
     -- to consider when looking for word boundaries)
-    local selected_text = self._xtext:getSelectedWords(sel_start_idx, sel_end_idx, 50)
+    local selected_text =
+      self._xtext:getSelectedWords(sel_start_idx, sel_end_idx, 50)
 
-    logger.dbg("onHoldReleaseText (duration:", time.format_time(hold_duration), ") :",
-            sel_start_idx, ">", sel_end_idx, "=", selected_text)
+    logger.dbg(
+      "onHoldReleaseText (duration:",
+      time.format_time(hold_duration),
+      ") :",
+      sel_start_idx,
+      ">",
+      sel_end_idx,
+      "=",
+      selected_text
+    )
     -- We give index in the charlist (unicode chars), and provide a function
     -- to convert these indices as in the utf8 text, to be used by caller
     -- only if needed, as it may be expensive.
-    callback(selected_text, hold_duration, sel_start_idx, sel_end_idx, function(idx) return self:getSourceIndex(idx) end)
+    callback(
+      selected_text,
+      hold_duration,
+      sel_start_idx,
+      sel_end_idx,
+      function(idx)
+        return self:getSourceIndex(idx)
+      end
+    )
     return true
   end
 
@@ -2115,9 +2411,27 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
     return true
   end
 
-  local selected_text = table.concat(self.charlist, "", sel_start_idx, sel_end_idx)
-  logger.dbg("onHoldReleaseText (duration:", time.format_time(hold_duration), ") :", sel_start_idx, ">", sel_end_idx, "=", selected_text)
-  callback(selected_text, hold_duration, sel_start_idx, sel_end_idx, function(idx) return self:getSourceIndex(idx) end)
+  local selected_text =
+    table.concat(self.charlist, "", sel_start_idx, sel_end_idx)
+  logger.dbg(
+    "onHoldReleaseText (duration:",
+    time.format_time(hold_duration),
+    ") :",
+    sel_start_idx,
+    ">",
+    sel_end_idx,
+    "=",
+    selected_text
+  )
+  callback(
+    selected_text,
+    hold_duration,
+    sel_start_idx,
+    sel_end_idx,
+    function(idx)
+      return self:getSourceIndex(idx)
+    end
+  )
   return true
 end
 
@@ -2125,24 +2439,28 @@ function TextBoxWidget:_findWordEdge(x, y, side)
   if side ~= FIND_START and side ~= FIND_END then
     return
   end
-  local line_num = math.ceil(y / self.line_height_px) + self.virtual_line_num-1
+  local line_num = math.ceil(y / self.line_height_px)
+    + self.virtual_line_num
+    - 1
   local line = self.vertical_string_list[line_num]
   if not line then
     return -- below last line : no selection
   end
   local char_start = line.offset
-  local char_end  -- char_end is non-inclusive
+  local char_end -- char_end is non-inclusive
   if line_num >= #self.vertical_string_list then
     char_end = #self.charlist + 1
   else
-    char_end = self.vertical_string_list[line_num+1].offset
+    char_end = self.vertical_string_list[line_num + 1].offset
   end
   local char_probe_x = 0
   local idx = char_start
   local edge_idx = nil
   -- find which character the touch is holding
   while idx < char_end do
-    char_probe_x = char_probe_x + self.char_width[self.charlist[idx]] + (self.idx_pad[idx] or 0)
+    char_probe_x = char_probe_x
+      + self.char_width[self.charlist[idx]]
+      + (self.idx_pad[idx] or 0)
     if char_probe_x > x then
       -- character found, find which word the character is in, and
       -- get its start/end idx

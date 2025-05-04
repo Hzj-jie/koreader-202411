@@ -20,7 +20,7 @@ if G_reader_settings:hasNot("device_id") then
   G_reader_settings:saveSetting("device_id", random.uuid())
 end
 
-local KOSync = WidgetContainer:extend{
+local KOSync = WidgetContainer:extend({
   name = "kosync",
   is_doc_only = true,
   title = _("Register/login to KOReader server"),
@@ -34,17 +34,17 @@ local KOSync = WidgetContainer:extend{
   periodic_push_scheduled = nil,
 
   settings = nil,
-}
+})
 
 local SYNC_STRATEGY = {
-  PROMPT  = 1,
-  SILENT  = 2,
+  PROMPT = 1,
+  SILENT = 2,
   DISABLE = 3,
 }
 
 local CHECKSUM_METHOD = {
   BINARY = 0,
-  FILENAME = 1
+  FILENAME = 1,
 }
 
 -- Debounce push/pull attempts
@@ -80,13 +80,20 @@ function KOSync:init()
     self:updateProgress(false, false)
   end
 
-  self.settings = G_reader_settings:readSetting("kosync") or self.default_settings
+  self.settings = G_reader_settings:readSetting("kosync")
+    or self.default_settings
   self.device_id = G_reader_settings:readSetting("device_id")
 
   -- Disable auto-sync if beforeWifiAction was reset to "prompt" behind our back...
-  if self.settings.auto_sync and Device:hasSeamlessWifiToggle() and G_reader_settings:readSetting("wifi_enable_action") ~= "turn_on" then
+  if
+    self.settings.auto_sync
+    and Device:hasSeamlessWifiToggle()
+    and G_reader_settings:readSetting("wifi_enable_action") ~= "turn_on"
+  then
     self.settings.auto_sync = false
-    logger.warn("KOSync: Automatic sync has been disabled because wifi_enable_action is *not* turn_on")
+    logger.warn(
+      "KOSync: Automatic sync has been disabled because wifi_enable_action is *not* turn_on"
+    )
   end
 
   self.ui.menu:registerToMainMenu(self)
@@ -116,30 +123,38 @@ local function getNameStrategy(type)
 end
 
 local function showSyncedMessage()
-  UIManager:show(InfoMessage:new{
+  UIManager:show(InfoMessage:new({
     text = _("Progress has been synchronized."),
     timeout = 3,
-  })
+  }))
 end
 
 local function promptLogin()
-  UIManager:show(InfoMessage:new{
-    text = _("Please register or login before using the progress synchronization feature."),
+  UIManager:show(InfoMessage:new({
+    text = _(
+      "Please register or login before using the progress synchronization feature."
+    ),
     timeout = 3,
-  })
+  }))
 end
 
 local function showSyncError()
-  UIManager:show(InfoMessage:new{
-    text = _("Something went wrong when syncing progress, please check your network connection and try again later."),
+  UIManager:show(InfoMessage:new({
+    text = _(
+      "Something went wrong when syncing progress, please check your network connection and try again later."
+    ),
     timeout = 3,
-  })
+  }))
 end
 
 local function validate(entry)
-  if not entry then return false end
+  if not entry then
+    return false
+  end
   if type(entry) == "string" then
-    if entry == "" or not entry:match("%S") then return false end
+    if entry == "" or not entry:match("%S") then
+      return false
+    end
   end
   return true
 end
@@ -164,8 +179,19 @@ local function validateUser(user, pass)
 end
 
 function KOSync:onDispatcherRegisterActions()
-  Dispatcher:registerAction("kosync_push_progress", { category="none", event="KOSyncPushProgress", title=_("Push progress from this device"), reader=true,})
-  Dispatcher:registerAction("kosync_pull_progress", { category="none", event="KOSyncPullProgress", title=_("Pull progress from other devices"), reader=true, separator=true,})
+  Dispatcher:registerAction("kosync_push_progress", {
+    category = "none",
+    event = "KOSyncPushProgress",
+    title = _("Push progress from this device"),
+    reader = true,
+  })
+  Dispatcher:registerAction("kosync_pull_progress", {
+    category = "none",
+    event = "KOSyncPullProgress",
+    title = _("Pull progress from other devices"),
+    reader = true,
+    separator = true,
+  })
 end
 
 function KOSync:onReaderReady()
@@ -222,12 +248,24 @@ function KOSync:addToMainMenu(menu_items)
       },
       {
         text = _("Automatically keep documents in sync"),
-        checked_func = function() return self.settings.auto_sync end,
-        help_text = _([[This may lead to nagging about toggling WiFi on document close and suspend/resume, depending on the device's connectivity.]]),
+        checked_func = function()
+          return self.settings.auto_sync
+        end,
+        help_text = _(
+          [[This may lead to nagging about toggling WiFi on document close and suspend/resume, depending on the device's connectivity.]]
+        ),
         callback = function()
           -- Actively recommend switching the before wifi action to "turn_on" instead of prompt, as prompt will just not be practical (or even plain usable) here.
-          if Device:hasSeamlessWifiToggle() and G_reader_settings:readSetting("wifi_enable_action") ~= "turn_on" and not self.settings.auto_sync then
-            UIManager:show(InfoMessage:new{ text = _("You will have to switch the 'Action when Wi-Fi is off' Network setting to 'turn on' to be able to enable this feature!") })
+          if
+            Device:hasSeamlessWifiToggle()
+            and G_reader_settings:readSetting("wifi_enable_action") ~= "turn_on"
+            and not self.settings.auto_sync
+          then
+            UIManager:show(InfoMessage:new({
+              text = _(
+                "You will have to switch the 'Action when Wi-Fi is off' Network setting to 'turn on' to be able to enable this feature!"
+              ),
+            }))
             return
           end
 
@@ -246,17 +284,27 @@ function KOSync:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(_("Periodically sync every # pages (%1)"), self:getSyncPeriod())
+          return T(
+            _("Periodically sync every # pages (%1)"),
+            self:getSyncPeriod()
+          )
         end,
-        enabled_func = function() return self.settings.auto_sync end,
+        enabled_func = function()
+          return self.settings.auto_sync
+        end,
         -- This is the condition that allows enabling auto_disable_wifi in NetworkManager ;).
-        help_text = NetworkMgr:getNetworkInterfaceName() and _([[Unlike the automatic sync above, this will *not* attempt to setup a network connection, but instead relies on it being already up, and may trigger enough network activity to passively keep WiFi enabled!]]),
+        help_text = NetworkMgr:getNetworkInterfaceName()
+          and _(
+            [[Unlike the automatic sync above, this will *not* attempt to setup a network connection, but instead relies on it being already up, and may trigger enough network activity to passively keep WiFi enabled!]]
+          ),
         keep_menu_open = true,
         callback = function(touchmenu_instance)
           local SpinWidget = require("ui/widget/spinwidget")
-          local items = SpinWidget:new{
-            text = _([[This value determines how many page turns it takes to update book progress.
-If set to 0, updating progress based on page turns will be disabled.]]),
+          local items = SpinWidget:new({
+            text = _(
+              [[This value determines how many page turns it takes to update book progress.
+If set to 0, updating progress based on page turns will be disabled.]]
+            ),
             value = self.settings.pages_before_update or 0,
             value_min = 0,
             value_max = 999,
@@ -267,9 +315,11 @@ If set to 0, updating progress based on page turns will be disabled.]]),
             default_value = 0,
             callback = function(spin)
               self:setPagesBeforeUpdate(spin.value)
-              if touchmenu_instance then touchmenu_instance:updateItems() end
-            end
-          }
+              if touchmenu_instance then
+                touchmenu_instance:updateItems()
+              end
+            end,
+          })
           UIManager:show(items)
         end,
         separator = true,
@@ -280,7 +330,10 @@ If set to 0, updating progress based on page turns will be disabled.]]),
           {
             text_func = function()
               -- NOTE: With an up-to-date Sync server, "forward" means *newer*, not necessarily ahead in the document.
-              return T(_("Sync to a newer state (%1)"), getNameStrategy(self.settings.sync_forward))
+              return T(
+                _("Sync to a newer state (%1)"),
+                getNameStrategy(self.settings.sync_forward)
+              )
             end,
             sub_item_table = {
               {
@@ -310,11 +363,14 @@ If set to 0, updating progress based on page turns will be disabled.]]),
                   self:setSyncForward(SYNC_STRATEGY.DISABLE)
                 end,
               },
-            }
+            },
           },
           {
             text_func = function()
-              return T(_("Sync to an older state (%1)"), getNameStrategy(self.settings.sync_backward))
+              return T(
+                _("Sync to an older state (%1)"),
+                getNameStrategy(self.settings.sync_backward)
+              )
             end,
             sub_item_table = {
               {
@@ -344,7 +400,7 @@ If set to 0, updating progress based on page turns will be disabled.]]),
                   self:setSyncBackward(SYNC_STRATEGY.DISABLE)
                 end,
               },
-            }
+            },
           },
         },
         separator = true,
@@ -381,7 +437,9 @@ If set to 0, updating progress based on page turns will be disabled.]]),
             end,
           },
           {
-            text = _("Filename. Files with matching names will be kept in sync."),
+            text = _(
+              "Filename. Files with matching names will be kept in sync."
+            ),
             checked_func = function()
               return self.settings.checksum_method == CHECKSUM_METHOD.FILENAME
             end,
@@ -389,14 +447,16 @@ If set to 0, updating progress based on page turns will be disabled.]]),
               self:setChecksumMethod(CHECKSUM_METHOD.FILENAME)
             end,
           },
-        }
+        },
       },
-    }
+    },
   }
 end
 
 function KOSync:setPagesBeforeUpdate(pages_before_update)
-  self.settings.pages_before_update = pages_before_update > 0 and pages_before_update or nil
+  self.settings.pages_before_update = pages_before_update > 0
+      and pages_before_update
+    or nil
 end
 
 function KOSync:setCustomServer(server)
@@ -417,12 +477,14 @@ function KOSync:setChecksumMethod(method)
 end
 
 function KOSync:login(menu)
-  if NetworkMgr:willRerunWhenOnline(function() self:login(menu) end) then
+  if NetworkMgr:willRerunWhenOnline(function()
+    self:login(menu)
+  end) then
     return
   end
 
   local dialog
-  dialog = MultiInputDialog:new{
+  dialog = MultiInputDialog:new({
     title = self.title,
     fields = {
       {
@@ -449,19 +511,19 @@ function KOSync:login(menu)
             local username, password = unpack(dialog:getFields())
             local ok, err = validateUser(username, password)
             if not ok then
-              UIManager:show(InfoMessage:new{
+              UIManager:show(InfoMessage:new({
                 text = T(_("Cannot login: %1"), err),
                 timeout = 2,
-              })
+              }))
             else
               UIManager:close(dialog)
               UIManager:scheduleIn(0.5, function()
                 self:doLogin(username, password, menu)
               end)
-              UIManager:show(InfoMessage:new{
+              UIManager:show(InfoMessage:new({
                 text = _("Logging in. Please wait…"),
                 timeout = 1,
-              })
+              }))
             end
           end,
         },
@@ -471,49 +533,48 @@ function KOSync:login(menu)
             local username, password = unpack(dialog:getFields())
             local ok, err = validateUser(username, password)
             if not ok then
-              UIManager:show(InfoMessage:new{
+              UIManager:show(InfoMessage:new({
                 text = T(_("Cannot register: %1"), err),
                 timeout = 2,
-              })
+              }))
             else
               UIManager:close(dialog)
               UIManager:scheduleIn(0.5, function()
                 self:doRegister(username, password, menu)
               end)
-              UIManager:show(InfoMessage:new{
+              UIManager:show(InfoMessage:new({
                 text = _("Registering. Please wait…"),
                 timeout = 1,
-              })
+              }))
             end
           end,
         },
       },
     },
-  }
+  })
   UIManager:show(dialog)
   dialog:onShowKeyboard()
 end
 
 function KOSync:doRegister(username, password, menu)
   local KOSyncClient = require("KOSyncClient")
-  local client = KOSyncClient:new{
+  local client = KOSyncClient:new({
     custom_url = self.settings.custom_server,
-    service_spec = self.path .. "/api.json"
-  }
+    service_spec = self.path .. "/api.json",
+  })
   -- on Android to avoid ANR (no-op on other platforms)
   Device:setIgnoreInput(true)
   local userkey = md5(password)
   local ok, status, body = pcall(client.register, client, username, userkey)
   if not ok then
     if status then
-      UIManager:show(InfoMessage:new{
-        text = _("An error occurred while registering:") ..
-          "\n" .. status,
-      })
+      UIManager:show(InfoMessage:new({
+        text = _("An error occurred while registering:") .. "\n" .. status,
+      }))
     else
-      UIManager:show(InfoMessage:new{
+      UIManager:show(InfoMessage:new({
         text = _("An unknown error occurred while registering."),
-      })
+      }))
     end
   elseif status then
     self.settings.username = username
@@ -521,36 +582,35 @@ function KOSync:doRegister(username, password, menu)
     if menu then
       menu:updateItems()
     end
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = _("Registered to KOReader server."),
-    })
+    }))
   else
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = body and body.message or _("Unknown server error"),
-    })
+    }))
   end
   Device:setIgnoreInput(false)
 end
 
 function KOSync:doLogin(username, password, menu)
   local KOSyncClient = require("KOSyncClient")
-  local client = KOSyncClient:new{
+  local client = KOSyncClient:new({
     custom_url = self.settings.custom_server,
-    service_spec = self.path .. "/api.json"
-  }
+    service_spec = self.path .. "/api.json",
+  })
   Device:setIgnoreInput(true)
   local userkey = md5(password)
   local ok, status, body = pcall(client.authorize, client, username, userkey)
   if not ok then
     if status then
-      UIManager:show(InfoMessage:new{
-        text = _("An error occurred while logging in:") ..
-          "\n" .. status,
-      })
+      UIManager:show(InfoMessage:new({
+        text = _("An error occurred while logging in:") .. "\n" .. status,
+      }))
     else
-      UIManager:show(InfoMessage:new{
+      UIManager:show(InfoMessage:new({
         text = _("An unknown error occurred while logging in."),
-      })
+      }))
     end
     Device:setIgnoreInput(false)
     return
@@ -560,13 +620,13 @@ function KOSync:doLogin(username, password, menu)
     if menu then
       menu:updateItems()
     end
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = _("Logged in to KOReader server."),
-    })
+    }))
   else
-    UIManager:show(InfoMessage:new{
+    UIManager:show(InfoMessage:new({
       text = body and body.message or _("Unknown server error"),
-    })
+    }))
   end
   Device:setIgnoreInput(false)
 end
@@ -609,10 +669,14 @@ end
 
 function KOSync:getFileNameDigest()
   local file = self.ui.document.file
-  if not file then return end
+  if not file then
+    return
+  end
 
   local file_path, file_name = util.splitFilePathName(file) -- luacheck: no unused
-  if not file_name then return end
+  if not file_name then
+    return
+  end
 
   return md5(file_name)
 end
@@ -635,24 +699,32 @@ function KOSync:updateProgress(ensure_networking, interactive, on_suspend)
   end
 
   local now = UIManager:getElapsedTimeSinceBoot()
-  if not interactive and now - self.push_timestamp <= API_CALL_DEBOUNCE_DELAY then
+  if
+    not interactive and now - self.push_timestamp <= API_CALL_DEBOUNCE_DELAY
+  then
     logger.dbg("KOSync: We've already pushed progress less than 25s ago!")
     return
   end
 
-  if ensure_networking and NetworkMgr:willRerunWhenOnline(function() self:updateProgress(ensure_networking, interactive, on_suspend) end) then
+  if
+    ensure_networking
+    and NetworkMgr:willRerunWhenOnline(function()
+      self:updateProgress(ensure_networking, interactive, on_suspend)
+    end)
+  then
     return
   end
 
   local KOSyncClient = require("KOSyncClient")
-  local client = KOSyncClient:new{
+  local client = KOSyncClient:new({
     custom_url = self.settings.custom_server,
-    service_spec = self.path .. "/api.json"
-  }
+    service_spec = self.path .. "/api.json",
+  })
   local doc_digest = self:getDocumentDigest()
   local progress = self:getLastProgress()
   local percentage = self:getLastPercent()
-  local ok, err = pcall(client.update_progress,
+  local ok, err = pcall(
+    client.update_progress,
     client,
     self.settings.username,
     self.settings.userkey,
@@ -662,28 +734,45 @@ function KOSync:updateProgress(ensure_networking, interactive, on_suspend)
     Device.model,
     self.device_id,
     function(ok, body)
-      logger.dbg("KOSync: [Push] progress to", percentage * 100, "% =>", progress, "for", self.view.document.file)
+      logger.dbg(
+        "KOSync: [Push] progress to",
+        percentage * 100,
+        "% =>",
+        progress,
+        "for",
+        self.view.document.file
+      )
       logger.dbg("KOSync: ok:", ok, "body:", body)
       if interactive then
         if ok then
-          UIManager:show(InfoMessage:new{
+          UIManager:show(InfoMessage:new({
             text = _("Progress has been pushed."),
             timeout = 3,
-          })
+          }))
         else
           showSyncError()
         end
       end
-    end)
+    end
+  )
   if not ok then
-    if interactive then showSyncError() end
-    if err then logger.dbg("err:", err) end
+    if interactive then
+      showSyncError()
+    end
+    if err then
+      logger.dbg("err:", err)
+    end
   else
     -- This is solely for onSuspend's sake, to clear the ghosting left by the "Connected" InfoMessage
     if on_suspend then
       -- Our top-level widget should be the "Connected to network" InfoMessage from NetworkMgr's reconnectOrShowNetworkMenu
       local widget = UIManager:getTopmostVisibleWidget()
-      if widget and widget.modal and widget.tag == "NetworkMgr" and not widget.dismiss_callback then
+      if
+        widget
+        and widget.modal
+        and widget.tag == "NetworkMgr"
+        and not widget.dismiss_callback
+      then
         -- We want a full-screen flash on dismiss
         widget.dismiss_callback = function()
           -- Enqueued, because we run before the InfoMessage's close
@@ -714,22 +803,30 @@ function KOSync:getProgress(ensure_networking, interactive)
   end
 
   local now = UIManager:getElapsedTimeSinceBoot()
-  if not interactive and now - self.pull_timestamp <= API_CALL_DEBOUNCE_DELAY then
+  if
+    not interactive and now - self.pull_timestamp <= API_CALL_DEBOUNCE_DELAY
+  then
     logger.dbg("KOSync: We've already pulled progress less than 25s ago!")
     return
   end
 
-  if ensure_networking and NetworkMgr:willRerunWhenOnline(function() self:getProgress(ensure_networking, interactive) end) then
+  if
+    ensure_networking
+    and NetworkMgr:willRerunWhenOnline(function()
+      self:getProgress(ensure_networking, interactive)
+    end)
+  then
     return
   end
 
   local KOSyncClient = require("KOSyncClient")
-  local client = KOSyncClient:new{
+  local client = KOSyncClient:new({
     custom_url = self.settings.custom_server,
-    service_spec = self.path .. "/api.json"
-  }
+    service_spec = self.path .. "/api.json",
+  })
   local doc_digest = self:getDocumentDigest()
-  local ok, err = pcall(client.get_progress,
+  local ok, err = pcall(
+    client.get_progress,
     client,
     self.settings.username,
     self.settings.userkey,
@@ -746,21 +843,20 @@ function KOSync:getProgress(ensure_networking, interactive)
 
       if not body.percentage then
         if interactive then
-          UIManager:show(InfoMessage:new{
+          UIManager:show(InfoMessage:new({
             text = _("No progress found for this document."),
             timeout = 3,
-          })
+          }))
         end
         return
       end
 
-      if body.device == Device.model
-      and body.device_id == self.device_id then
+      if body.device == Device.model and body.device_id == self.device_id then
         if interactive then
-          UIManager:show(InfoMessage:new{
+          UIManager:show(InfoMessage:new({
             text = _("Latest progress is coming from this device."),
             timeout = 3,
-          })
+          }))
         end
         return
       end
@@ -768,15 +864,19 @@ function KOSync:getProgress(ensure_networking, interactive)
       body.percentage = Math.roundPercent(body.percentage)
       local progress = self:getLastProgress()
       local percentage = self:getLastPercent()
-      logger.dbg("KOSync: Current progress:", percentage * 100, "% =>", progress)
+      logger.dbg(
+        "KOSync: Current progress:",
+        percentage * 100,
+        "% =>",
+        progress
+      )
 
-      if percentage == body.percentage
-      or body.progress == progress then
+      if percentage == body.percentage or body.progress == progress then
         if interactive then
-          UIManager:show(InfoMessage:new{
+          UIManager:show(InfoMessage:new({
             text = _("The progress has already been synchronized."),
             timeout = 3,
-          })
+          }))
         end
         return
       end
@@ -802,34 +902,43 @@ function KOSync:getProgress(ensure_networking, interactive)
           self:syncToProgress(body.progress)
           showSyncedMessage()
         elseif self.settings.sync_forward == SYNC_STRATEGY.PROMPT then
-          UIManager:show(ConfirmBox:new{
-            text = T(_("Sync to latest location %1% from device '%2'?"),
-                 Math.round(body.percentage * 100),
-                 body.device),
+          UIManager:show(ConfirmBox:new({
+            text = T(
+              _("Sync to latest location %1% from device '%2'?"),
+              Math.round(body.percentage * 100),
+              body.device
+            ),
             ok_callback = function()
               self:syncToProgress(body.progress)
             end,
-          })
+          }))
         end
       else -- if not self_older then
         if self.settings.sync_backward == SYNC_STRATEGY.SILENT then
           self:syncToProgress(body.progress)
           showSyncedMessage()
         elseif self.settings.sync_backward == SYNC_STRATEGY.PROMPT then
-          UIManager:show(ConfirmBox:new{
-            text = T(_("Sync to previous location %1% from device '%2'?"),
-                 Math.round(body.percentage * 100),
-                 body.device),
+          UIManager:show(ConfirmBox:new({
+            text = T(
+              _("Sync to previous location %1% from device '%2'?"),
+              Math.round(body.percentage * 100),
+              body.device
+            ),
             ok_callback = function()
               self:syncToProgress(body.progress)
             end,
-          })
+          }))
         end
       end
-    end)
+    end
+  )
   if not ok then
-    if interactive then showSyncError() end
-    if err then logger.dbg("err:", err) end
+    if interactive then
+      showSyncError()
+    end
+    if err then
+      logger.dbg("err:", err)
+    end
   end
 
   self.pull_timestamp = now
@@ -873,7 +982,11 @@ function KOSync:_onPageUpdate(page)
     self.last_page_turn_timestamp = os.time()
     self.page_update_counter = self.page_update_counter + 1
     -- If we've already scheduled a push, regardless of the counter's state, delay it until we're *actually* idle
-    if self.periodic_push_scheduled or self.settings.pages_before_update and self.page_update_counter >= self.settings.pages_before_update then
+    if
+      self.periodic_push_scheduled
+      or self.settings.pages_before_update
+        and self.page_update_counter >= self.settings.pages_before_update
+    then
       self:schedulePeriodicPush()
     end
   end

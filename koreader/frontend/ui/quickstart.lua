@@ -13,7 +13,7 @@ local util = require("util")
 local _ = require("gettext")
 
 local QuickStart = {
-    quickstart_force_show_version = 2021070000,
+  quickstart_force_show_version = 2021070000,
 }
 
 local language = G_reader_settings:readSetting("language") or "en"
@@ -50,8 +50,10 @@ div.table > div > *:nth-child(3) { white-space: nowrap; }
 
 local quickstart_guide = {}
 if Device:hasScreenKB() or Device:hasSymKey() then
-    -- On Non-Touch kindle, not showing "Frontlight", showing specific section "Shortcuts"
-    table.insert(quickstart_guide, _([[
+  -- On Non-Touch kindle, not showing "Frontlight", showing specific section "Shortcuts"
+  table.insert(
+    quickstart_guide,
+    _([[
 <div class="logo">![KOReader](resources/koreader.svg)</div>
 
 # Quickstart guide
@@ -68,9 +70,11 @@ if Device:hasScreenKB() or Device:hasSymKey() then
 ---
 You can access the complete user manual from [our GitHub page](https://github.com/koreader/koreader).
 ]])
-    ) --insert toc
+  ) --insert toc
 else
-    table.insert(quickstart_guide, _([[
+  table.insert(
+    quickstart_guide,
+    _([[
 <div class="logo">![KOReader](resources/koreader.svg)</div>
 
 # Quickstart guide
@@ -87,44 +91,52 @@ else
 ---
 You can access the complete user manual from [our GitHub page](https://github.com/koreader/koreader).
 ]])
-    ) -- insert toc
+  ) -- insert toc
 end
 
 -- User interface
 if Device:hasScreenKB() then
-    -- Use correct k4 illustration and appropriate button mapping
-    table.insert(quickstart_guide, _([[## User interface <a id="ui"></a>
+  -- Use correct k4 illustration and appropriate button mapping
+  table.insert(
+    quickstart_guide,
+    _([[## User interface <a id="ui"></a>
 
 <div class="img-block">![Touch zones](resources/quickstart/kindle4.png)</div>
 
 - To show the **TOP MENU** or **BOTTOM MENU** press the **Menu** or **Press** keys respectively.
 - The **STATUS BAR** can be set to show a multitude of information regarding your reading progress or device state.
 ]])
-    ) -- inset user interface
+  ) -- inset user interface
 elseif Device:hasSymKey() then
-    -- Use correct k3 illustration and appropriate button mapping
-    table.insert(quickstart_guide, _([[## User interface <a id="ui"></a>
+  -- Use correct k3 illustration and appropriate button mapping
+  table.insert(
+    quickstart_guide,
+    _([[## User interface <a id="ui"></a>
 
 <div class="img-block">![Touch zones](resources/quickstart/kindle3.png)</div>
 
 - To show the **TOP MENU** or **BOTTOM MENU** press the **Menu** or **Aa** keys respectively.
 - The **STATUS BAR** can be set to show a multitude of information regarding your reading progress or device state.
 ]])
-    ) -- insert user interface
+  ) -- insert user interface
 else
-    table.insert(quickstart_guide, _([[## User interface <a id="ui"></a>
+  table.insert(
+    quickstart_guide,
+    _([[## User interface <a id="ui"></a>
 
 <div class="img-block">![Touch zones](resources/quickstart/touchzones.png)</div>
 
 - To show the **TOP MENU** or **BOTTOM MENU** you can click the indicated zones. You can click or swipe down the upper zone to show the **TOP MENU**.
 - The **STATUS BAR** zone can be used to cycle between STATUS BAR items if one item is visible. This will also hide and show the STATUS BAR if you tap enough times.
 ]])
-    ) -- insert user interface
+  ) -- insert user interface
 end
 
 -- User interface tips
 if Device:hasScreenKB() then
-    table.insert(quickstart_guide, _([[## User interface tips <a id="uitips"></a>
+  table.insert(
+    quickstart_guide,
+    _([[## User interface tips <a id="uitips"></a>
 
 - You can change the interface language using:
 
@@ -149,9 +161,11 @@ if Device:hasScreenKB() then
 
 > **Menu ➔ ![Typesettings](resources/icons/mdlight/appbar.typeset.svg) ➔ Selection on text**
 ]])
-    ) -- insert UI tips
+  ) -- insert UI tips
 elseif Device:hasSymKey() then
-    table.insert(quickstart_guide, _([[## User interface tips <a id="uitips"></a>
+  table.insert(
+    quickstart_guide,
+    _([[## User interface tips <a id="uitips"></a>
 
 - You can change the interface language using:
 
@@ -176,9 +190,11 @@ elseif Device:hasSymKey() then
 
 > **Menu ➔ ![Typesettings](resources/icons/mdlight/appbar.typeset.svg) ➔ Selection on text**
 ]])
-    ) -- insert UI tips
+  ) -- insert UI tips
 else
-    table.insert(quickstart_guide, _([[## User interface tips <a id="uitips"></a>
+  table.insert(
+    quickstart_guide,
+    _([[## User interface tips <a id="uitips"></a>
 
 - You can change the interface language using:
 
@@ -204,13 +220,15 @@ else
 
 > **TOP MENU ➔ ![Navigation](resources/icons/mdlight/appbar.navigation.svg) ➔ Skim document**
 ]])
-    ) -- insert UI tips
+  ) -- insert UI tips
 end
 
 -- Accessing files
 if Device:hasScreenKB() or Device:hasSymKey() then
-    -- This NT version removes mentions of gestures
-    table.insert(quickstart_guide, _([[## Accessing files <a id="afiles"></a>
+  -- This NT version removes mentions of gestures
+  table.insert(
+    quickstart_guide,
+    _([[## Accessing files <a id="afiles"></a>
 
 The following methods are available for accessing your books and articles:
 
@@ -222,9 +240,11 @@ You can also set KOReader to open with any of these dialogs on startup via:
 
 > **Menu (in File Browser) ➔ ![Filebrowser](resources/icons/mdlight/appbar.filebrowser.svg) ➔ Start with**
 ]])
-    ) -- insert Accessing files
+  ) -- insert Accessing files
 else
-    table.insert(quickstart_guide, _([[## Accessing files <a id="afiles"></a>
+  table.insert(
+    quickstart_guide,
+    _([[## Accessing files <a id="afiles"></a>
 
 The following methods are available for accessing your books and articles:
 
@@ -238,11 +258,13 @@ You can also set KOReader to open with any of these dialogs on startup via:
 
 > **TOP MENU (in File Browser) ➔ ![Filebrowser](resources/icons/mdlight/appbar.filebrowser.svg) ➔ Start with**
 ]])
-    ) -- insert accessing files
+  ) -- insert accessing files
 end
 
 -- Transferring files
-table.insert(quickstart_guide, _([[## Transferring files <a id="tfiles"></a>
+table.insert(
+  quickstart_guide,
+  _([[## Transferring files <a id="tfiles"></a>
 
 In addition to transferring files the same way you would with the built-in reader application, other options are available depending on your device:
 
@@ -257,7 +279,9 @@ In addition to transferring files the same way you would with the built-in reade
 
 -- Frontlight (shortcuts on NT)
 if Device:hasScreenKB() then
-    table.insert(quickstart_guide, _([[## Shortcuts <a id="short"></a>
+  table.insert(
+    quickstart_guide,
+    _([[## Shortcuts <a id="short"></a>
 
 The following is a non-exhaustive list of shortcuts available.
 
@@ -279,9 +303,11 @@ When using a virtual keyboard:
 - **ScreenKB** + **Home**: Toggle virtual keyboard on/off
 - **ScreenKB** + **Back**: Delete char
 ]])
-    ) -- insert shortcuts
+  ) -- insert shortcuts
 elseif Device:hasSymKey() then
-    table.insert(quickstart_guide, _([[## Shortcuts <a id="short"></a>
+  table.insert(
+    quickstart_guide,
+    _([[## Shortcuts <a id="short"></a>
 
 The following is a non-exhaustive list of shortcuts available.
 
@@ -305,19 +331,23 @@ When using a virtual keyboard:
 - **Shift** + **Back**: Delete whole line
 - **Sym** + **Alphabet keys**: symbols, numbers and special characters
 ]])
-    ) -- insert shortcuts
+  ) -- insert shortcuts
 else
-    table.insert(quickstart_guide, _([[## Frontlight/backlight <a id="flight"></a>
+  table.insert(
+    quickstart_guide,
+    _([[## Frontlight/backlight <a id="flight"></a>
 
 You can control your screen light via this menu. If you have warm lighting (normal white LEDs+orange ones) you can control them separately from this dialog:
 
 > **TOP MENU ➔ ![Settings](resources/icons/mdlight/appbar.settings.svg) ➔ Frontlight**
 ]])
-    ) -- insert frontlight
+  ) -- insert frontlight
 end
 
 -- While reading
-table.insert(quickstart_guide, _([[## While reading <a id="reading"></a>
+table.insert(
+  quickstart_guide,
+  _([[## While reading <a id="reading"></a>
 
 <div class="table"><div>
 
@@ -354,7 +384,9 @@ Change many formatting options
 ) -- insert while reading
 
 -- Dictionaries
-table.insert(quickstart_guide, _([[## Installing dictionaries <a id="dicts"></a>
+table.insert(
+  quickstart_guide,
+  _([[## Installing dictionaries <a id="dicts"></a>
 
 KOReader supports dictionary lookup in EPUB and even in scanned PDF/DJVU documents. To see the dictionary definition or translation, tap and hold a word.
 
@@ -365,7 +397,10 @@ To use the dictionary lookup function, first you need to install one or more dic
 ) -- insert dictionaries
 
 -- More information
-table.insert(quickstart_guide, T(_([[## More info <a id="more"></a>
+table.insert(
+  quickstart_guide,
+  T(
+    _([[## More info <a id="more"></a>
 
 You can find more information on our GitHub page
 
@@ -378,7 +413,8 @@ You can find other KOReader users on MobileRead forums
 ---
 <div class="generated">Generated by KOReader %1.</div>
 ]]),
-    rev)
+    rev
+  )
 ) -- insert more information
 
 quickstart_guide = table.concat(quickstart_guide, "\n")
@@ -388,8 +424,10 @@ shown yet or if display is forced through a higher version number than when
 it was first shown.
 ]]
 function QuickStart:isShown()
-    local shown_version = G_reader_settings:readSetting("quickstart_shown_version")
-    return shown_version ~= nil and (shown_version >= self.quickstart_force_show_version)
+  local shown_version =
+    G_reader_settings:readSetting("quickstart_shown_version")
+  return shown_version ~= nil
+    and (shown_version >= self.quickstart_force_show_version)
 end
 
 --[[-- Generates the quickstart guide in the user's language and returns its location.
@@ -401,65 +439,77 @@ used to generate the file.
 @treturn string path to generated HTML quickstart guide
 ]]
 function QuickStart:getQuickStart()
-    local quickstart_dir = ("%s/help"):format(DataStorage:getDataDir())
-    if lfs.attributes(quickstart_dir, "mode") ~= "dir" then
-        lfs.mkdir(quickstart_dir)
+  local quickstart_dir = ("%s/help"):format(DataStorage:getDataDir())
+  if lfs.attributes(quickstart_dir, "mode") ~= "dir" then
+    lfs.mkdir(quickstart_dir)
+  end
+
+  local quickstart_filename = ("%s/quickstart-%s-%s.html"):format(
+    quickstart_dir,
+    language,
+    rev
+  )
+  if lfs.attributes(quickstart_filename, "mode") ~= "file" then
+    -- purge old quickstart guides
+    local iter, dir_obj = lfs.dir(quickstart_dir)
+    for f in iter, dir_obj do
+      if f:match("quickstart-.*%.html") then
+        local file_abs_path =
+          FFIUtil.realpath(("%s/%s"):format(quickstart_dir, f))
+        os.remove(file_abs_path)
+        DocSettings:open(file_abs_path):purge()
+      end
     end
 
-    local quickstart_filename = ("%s/quickstart-%s-%s.html"):format(quickstart_dir, language, rev)
-    if lfs.attributes(quickstart_filename, "mode") ~= "file" then
-        -- purge old quickstart guides
-        local iter, dir_obj = lfs.dir(quickstart_dir)
-        for f in iter, dir_obj do
-            if f:match("quickstart-.*%.html") then
-                local file_abs_path = FFIUtil.realpath(("%s/%s"):format(quickstart_dir, f))
-                os.remove(file_abs_path)
-                DocSettings:open(file_abs_path):purge()
-            end
+    local quickstart_html = FileConverter:mdToHtml(
+      quickstart_guide,
+      _("KOReader Quickstart Guide"),
+      stylesheet
+    )
+    if quickstart_html then
+      -- Fix links to images, which are in KOReader install directory, which may not
+      -- be alongside help/ on some platforms like Android.
+      -- crengine won't accept full paths, so we need to make these relative
+      local src = FFIUtil.realpath(quickstart_dir) .. "/"
+      local dst = lfs.currentdir() .. "/"
+      -- Find the common leading directories
+      local idx = 0
+      while true do
+        local tst = src:find("/", idx + 1, true)
+        if tst and src:sub(1, tst) == dst:sub(1, tst) then
+          idx = tst
+        else
+          break
         end
-
-        local quickstart_html = FileConverter:mdToHtml(quickstart_guide, _("KOReader Quickstart Guide"), stylesheet)
-        if quickstart_html then
-            -- Fix links to images, which are in KOReader install directory, which may not
-            -- be alongside help/ on some platforms like Android.
-            -- crengine won't accept full paths, so we need to make these relative
-            local src = FFIUtil.realpath(quickstart_dir) .. "/"
-            local dst = lfs.currentdir() .. "/"
-            -- Find the common leading directories
-            local idx = 0
-            while true do
-                local tst = src:find("/", idx + 1, true)
-                if tst and src:sub(1,tst) == dst:sub(1,tst) then
-                    idx = tst
-                else
-                    break
-                end
-            end
-            -- Trim off the common directories from the front
-            src = src:sub(idx + 1)
-            dst = dst:sub(idx + 1)
-            -- Back up from dst to get to this common parent
-            local relpath = ""
-            idx = src:find("/")
-            while idx do
-                relpath = relpath .. "../"
-                idx = src:find("/", idx + 1)
-            end
-            -- Add the path down to dst from here
-            relpath = relpath .. dst
-            relpath = relpath:gsub("//", "/") -- make it prettier
-            quickstart_html = quickstart_html:gsub([[src="resources/]], [[src="]]..relpath..[[resources/]])
-            if Language:isLanguageRTL(language) then
-                quickstart_html = quickstart_html:gsub('<html>', '<html dir="rtl">')
-            end
-            -- Write the fixed HTML content
-            util.writeToFile(quickstart_html, quickstart_filename)
-        end
+      end
+      -- Trim off the common directories from the front
+      src = src:sub(idx + 1)
+      dst = dst:sub(idx + 1)
+      -- Back up from dst to get to this common parent
+      local relpath = ""
+      idx = src:find("/")
+      while idx do
+        relpath = relpath .. "../"
+        idx = src:find("/", idx + 1)
+      end
+      -- Add the path down to dst from here
+      relpath = relpath .. dst
+      relpath = relpath:gsub("//", "/") -- make it prettier
+      quickstart_html = quickstart_html:gsub(
+        [[src="resources/]],
+        [[src="]] .. relpath .. [[resources/]]
+      )
+      if Language:isLanguageRTL(language) then
+        quickstart_html = quickstart_html:gsub("<html>", '<html dir="rtl">')
+      end
+      -- Write the fixed HTML content
+      util.writeToFile(quickstart_html, quickstart_filename)
     end
-    -- remember filename for file manager
-    self.quickstart_filename = quickstart_filename
-    G_reader_settings:saveSetting("quickstart_shown_version", version)
-    return quickstart_filename
+  end
+  -- remember filename for file manager
+  self.quickstart_filename = quickstart_filename
+  G_reader_settings:saveSetting("quickstart_shown_version", version)
+  return quickstart_filename
 end
 
 return QuickStart

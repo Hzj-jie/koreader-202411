@@ -13,13 +13,18 @@ local jsonutil = require("json.util")
 
 local _ENV = nil
 
-local defaultOptions = {
-}
+local defaultOptions = {}
 
 local modeOptions = {}
 
 local function mergeOptions(options, mode)
-	jsonutil.doOptionMerge(options, false, 'object', defaultOptions, mode and modeOptions[mode])
+  jsonutil.doOptionMerge(
+    options,
+    false,
+    "object",
+    defaultOptions,
+    mode and modeOptions[mode]
+  )
 end
 
 --[[
@@ -27,18 +32,18 @@ end
 	trailing results
 ]]
 local function unmarkAfterEncode(tab, state, ...)
-	state.already_encoded[tab] = nil
-	return ...
+  state.already_encoded[tab] = nil
+  return ...
 end
 --[[
 	Encode a table as a JSON Object ( keys = strings, values = anything else )
 ]]
 local function encodeTable(tab, options, state)
-	-- Make sure this value hasn't been encoded yet
-	state.check_unique(tab)
-	local encode = state.encode
-	local compositeEncoder = state.outputEncoder.composite
-	local valueEncoder = [[
+  -- Make sure this value hasn't been encoded yet
+  state.check_unique(tab)
+  local encode = state.encode
+  local compositeEncoder = state.outputEncoder.composite
+  local valueEncoder = [[
 	local first = true
 	for k, v in pairs(composite) do
 		local ti = type(k)
@@ -57,21 +62,26 @@ local function encodeTable(tab, options, state)
 		end
 	end
 	]]
-	return unmarkAfterEncode(tab, state, compositeEncoder(valueEncoder, '{', '}', nil, tab, encode, state))
+  return unmarkAfterEncode(
+    tab,
+    state,
+    compositeEncoder(valueEncoder, "{", "}", nil, tab, encode, state)
+  )
 end
 
 local function getEncoder(options)
-	options = options and jsonutil.merge({}, defaultOptions, options) or defaultOptions
-	return {
-		table = function(tab, state)
-			return encodeTable(tab, options, state)
-		end
-	}
+  options = options and jsonutil.merge({}, defaultOptions, options)
+    or defaultOptions
+  return {
+    table = function(tab, state)
+      return encodeTable(tab, options, state)
+    end,
+  }
 end
 
 local object = {
-	mergeOptions = mergeOptions,
-	getEncoder = getEncoder
+  mergeOptions = mergeOptions,
+  getEncoder = getEncoder,
 }
 
 return object

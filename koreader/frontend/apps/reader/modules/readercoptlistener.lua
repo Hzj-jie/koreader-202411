@@ -9,7 +9,7 @@ local logger = require("logger")
 local T = require("ffi/util").template
 local _ = require("gettext")
 
-local ReaderCoptListener = EventListener:extend{}
+local ReaderCoptListener = EventListener:extend({})
 
 local CRE_HEADER_DEFAULT_SIZE = 20
 
@@ -18,7 +18,8 @@ function ReaderCoptListener:init()
 end
 
 function ReaderCoptListener:onReadSettings(config)
-  local view_mode_name = self.document.configurable.view_mode == 0 and "page" or "scroll"
+  local view_mode_name = self.document.configurable.view_mode == 0 and "page"
+    or "scroll"
   -- Let crengine know of the view mode before rendering, as it can
   -- cause a rendering change (2-pages would become 1-page in
   -- scroll mode).
@@ -29,44 +30,77 @@ function ReaderCoptListener:onReadSettings(config)
   self.title = G_reader_settings:readSetting("cre_header_title") or 1
   self.author = G_reader_settings:readSetting("cre_header_author") or 1
   self.clock = G_reader_settings:readSetting("cre_header_clock") or 1
-  self.header_auto_refresh = G_reader_settings:readSetting("cre_header_auto_refresh") or 1
-  self.page_number = G_reader_settings:readSetting("cre_header_page_number") or 1
+  self.header_auto_refresh = G_reader_settings:readSetting(
+    "cre_header_auto_refresh"
+  ) or 1
+  self.page_number = G_reader_settings:readSetting("cre_header_page_number")
+    or 1
   self.page_count = G_reader_settings:readSetting("cre_header_page_count") or 1
-  self.reading_percent = G_reader_settings:readSetting("cre_header_reading_percent") or 0
+  self.reading_percent = G_reader_settings:readSetting(
+    "cre_header_reading_percent"
+  ) or 0
   self.battery = G_reader_settings:readSetting("cre_header_battery") or 1
-  self.battery_percent = G_reader_settings:readSetting("cre_header_battery_percent") or 0
-  self.chapter_marks = G_reader_settings:readSetting("cre_header_chapter_marks") or 1
+  self.battery_percent = G_reader_settings:readSetting(
+    "cre_header_battery_percent"
+  ) or 0
+  self.chapter_marks = G_reader_settings:readSetting("cre_header_chapter_marks")
+    or 1
 
   self.document._document:setIntProperty("window.status.title", self.title)
   self.document._document:setIntProperty("window.status.author", self.author)
   self.document._document:setIntProperty("window.status.clock", self.clock)
-  self.document._document:setIntProperty("window.status.pos.page.number", self.page_number)
-  self.document._document:setIntProperty("window.status.pos.page.count", self.page_count)
-  self.document._document:setIntProperty("crengine.page.header.chapter.marks", self.chapter_marks)
+  self.document._document:setIntProperty(
+    "window.status.pos.page.number",
+    self.page_number
+  )
+  self.document._document:setIntProperty(
+    "window.status.pos.page.count",
+    self.page_count
+  )
+  self.document._document:setIntProperty(
+    "crengine.page.header.chapter.marks",
+    self.chapter_marks
+  )
   self.document._document:setIntProperty("window.status.battery", self.battery)
-  self.document._document:setIntProperty("window.status.battery.percent", self.battery_percent)
-  self.document._document:setIntProperty("window.status.pos.percent", self.reading_percent)
+  self.document._document:setIntProperty(
+    "window.status.battery.percent",
+    self.battery_percent
+  )
+  self.document._document:setIntProperty(
+    "window.status.pos.percent",
+    self.reading_percent
+  )
 
   -- We will build the top status bar page info string ourselves,
   -- if we have to display any chunk of it
-  self.page_info_override = self.page_number == 1 or self.page_count == 1 or self.reading_percent == 1
+  self.page_info_override = self.page_number == 1
+    or self.page_count == 1
+    or self.reading_percent == 1
     or (self.battery == 1 and self.battery_percent == 1) -- don't forget a sole battery
   self.document:setPageInfoOverride("") -- an empty string lets crengine display its own page info
 
   self:onTimeFormatChanged()
 
   -- Enable or disable crengine header status line (note that for crengine, 0=header enabled, 1=header disabled)
-  self.ui:handleEvent(Event:new("SetStatusLine", self.document.configurable.status_line))
+  self.ui:handleEvent(
+    Event:new("SetStatusLine", self.document.configurable.status_line)
+  )
 
   self.old_battery_level = self.ui.rolling:updateBatteryState()
 
   -- Have this ready in case auto-refresh is enabled, now or later
   self.headerRefresh = function()
     -- Only draw it if the header is shown...
-    if self.document.configurable.status_line == 0 and self.view.view_mode == "page" then
+    if
+      self.document.configurable.status_line == 0
+      and self.view.view_mode == "page"
+    then
       -- ...and something has changed
       local new_battery_level = self.ui.rolling:updateBatteryState()
-      if self.clock == 1 or (self.battery == 1 and new_battery_level ~= self.old_battery_level) then
+      if
+        self.clock == 1
+        or (self.battery == 1 and new_battery_level ~= self.old_battery_level)
+      then
         self.old_battery_level = new_battery_level
         self:updateHeader()
       end
@@ -91,9 +125,12 @@ end
 function ReaderCoptListener:updatePageInfoOverride(pageno)
   pageno = pageno or self.ui.view.footer.pageno
 
-  if self.document.configurable.status_line ~= 0 or self.view.view_mode ~= "page"
-    or not self.page_info_override or not next(self.additional_header_content) then
-
+  if
+    self.document.configurable.status_line ~= 0
+    or self.view.view_mode ~= "page"
+    or not self.page_info_override
+    or not next(self.additional_header_content)
+  then
     self.document:setPageInfoOverride("")
     return
   end
@@ -111,7 +148,7 @@ function ReaderCoptListener:updatePageInfoOverride(pageno)
   local percentage_pre = ""
   local percentage_post = ""
   -- Let's use the same setting for nb of digits after decimal point as configured for the footer
-  local percentage_digits =  self.ui.view.footer.settings.progress_pct_format
+  local percentage_digits = self.ui.view.footer.settings.progress_pct_format
   local percentage_fmt = "%." .. percentage_digits .. "f%%"
 
   -- We want the same output as with ReaderFooter's page_progress() and percentage()
@@ -130,7 +167,7 @@ function ReaderCoptListener:updatePageInfoOverride(pageno)
       page_sep = " // "
     else
       page_pre = "["
-      page_post = "]"..tostring(flow)
+      page_post = "]" .. tostring(flow)
       percentage_pre = "["
       percentage_post = "]"
     end
@@ -165,7 +202,10 @@ function ReaderCoptListener:updatePageInfoOverride(pageno)
     end
   end
   if self.reading_percent == 1 then
-    page_info = page_info .. percentage_pre .. percentage_fmt:format(percentage*100) .. percentage_post
+    page_info = page_info
+      .. percentage_pre
+      .. percentage_fmt:format(percentage * 100)
+      .. percentage_post
   end
 
   if self.battery == 1 and self.battery_percent == 1 then -- append battery percentage
@@ -221,7 +261,12 @@ end
 function ReaderCoptListener:onConfigChange(option_name, option_value)
   -- font_size and line_spacing are historically and sadly shared by both mupdf and cre reader modules,
   -- but fortunately they can be distinguished by their different ranges
-  if (option_name == "font_size" or option_name == "line_spacing") and option_value < 5 then return end
+  if
+    (option_name == "font_size" or option_name == "line_spacing")
+    and option_value < 5
+  then
+    return
+  end
   self.document.configurable[option_name] = option_value
   self.ui:handleEvent(Event:new("StartActivityIndicator"))
   return true
@@ -233,7 +278,10 @@ end
 ReaderCoptListener.onNotCharging = ReaderCoptListener.onCharging
 
 function ReaderCoptListener:onTimeFormatChanged()
-  self.document._document:setIntProperty("window.status.clock.12hours", G_reader_settings:isTrue("twelve_hour_clock") and 1 or 0)
+  self.document._document:setIntProperty(
+    "window.status.clock.12hours",
+    G_reader_settings:isTrue("twelve_hour_clock") and 1 or 0
+  )
 end
 
 function ReaderCoptListener:shouldHeaderBeRepainted()
@@ -256,30 +304,39 @@ function ReaderCoptListener:updateHeader()
   self.document:resetBufferCache() -- be sure next repaint is a redrawing
   -- Force a refresh if we're not hidden behind another widget
   if self:shouldHeaderBeRepainted() then
-    UIManager:setDirty(self.view.dialog, "ui",
-      Geom:new{
-        x = 0, y = 0,
+    UIManager:setDirty(
+      self.view.dialog,
+      "ui",
+      Geom:new({
+        x = 0,
+        y = 0,
         w = Device.screen:getWidth(),
         h = self.document:getHeaderHeight(),
-      }
+      })
     )
   end
 end
 
 function ReaderCoptListener:unscheduleHeaderRefresh()
-  if not self.headerRefresh then return end -- not yet set up
+  if not self.headerRefresh then
+    return
+  end -- not yet set up
   UIManager:unschedule(self.headerRefresh)
   logger.dbg("ReaderCoptListener.headerRefresh unscheduled")
 end
 
 function ReaderCoptListener:rescheduleHeaderRefreshIfNeeded()
-  if not self.headerRefresh then return end -- not yet set up
+  if not self.headerRefresh then
+    return
+  end -- not yet set up
   local unscheduled = UIManager:unschedule(self.headerRefresh) -- unschedule if already scheduled
   -- Only schedule an update if the header is actually visible
-  if self.header_auto_refresh == 1
-      and self.document.configurable.status_line == 0 -- top bar enabled
-      and self.view.view_mode == "page" -- not in scroll mode (which would disable the header)
-      and (self.clock == 1 or self.battery == 1) then -- something shown can change in next minute
+  if
+    self.header_auto_refresh == 1
+    and self.document.configurable.status_line == 0 -- top bar enabled
+    and self.view.view_mode == "page" -- not in scroll mode (which would disable the header)
+    and (self.clock == 1 or self.battery == 1)
+  then -- something shown can change in next minute
     UIManager:scheduleIn(61 - tonumber(os.date("%S")), self.headerRefresh)
     if not unscheduled then
       logger.dbg("ReaderCoptListener.headerRefresh scheduled")
@@ -292,11 +349,13 @@ function ReaderCoptListener:rescheduleHeaderRefreshIfNeeded()
 end
 
 -- Schedule or stop scheduling on these events, as they may change what is shown:
-ReaderCoptListener.onSetStatusLine = ReaderCoptListener.rescheduleHeaderRefreshIfNeeded
-  -- configurable.status_line is set before this event is triggered
-ReaderCoptListener.onSetViewMode = ReaderCoptListener.rescheduleHeaderRefreshIfNeeded
-  -- ReaderView:onSetViewMode(), which sets view.view_mode, is called before
-  -- ReaderCoptListener.onSetViewMode, so we'll get the updated value
+ReaderCoptListener.onSetStatusLine =
+  ReaderCoptListener.rescheduleHeaderRefreshIfNeeded
+-- configurable.status_line is set before this event is triggered
+ReaderCoptListener.onSetViewMode =
+  ReaderCoptListener.rescheduleHeaderRefreshIfNeeded
+-- ReaderView:onSetViewMode(), which sets view.view_mode, is called before
+-- ReaderCoptListener.onSetViewMode, so we'll get the updated value
 function ReaderCoptListener:onResume()
   -- Don't repaint the header until OutOfScreenSaver if screensaver_delay is enabled...
   local screensaver_delay = G_reader_settings:readSetting("screensaver_delay")
@@ -342,7 +401,9 @@ function ReaderCoptListener:setAndSave(setting, property, value, property_value)
 end
 
 function ReaderCoptListener:onUpdateHeader()
-  self.page_info_override = self.page_number == 1 or self.page_count == 1 or self.reading_percent == 1
+  self.page_info_override = self.page_number == 1
+    or self.page_count == 1
+    or self.reading_percent == 1
     or (self.battery == 1 and self.battery_percent == 1) -- don't forget a sole battery
 
   self:updatePageInfoOverride()
@@ -369,9 +430,9 @@ function ReaderCoptListener:getAltStatusBarMenu()
         text = _("About alt status bar"),
         keep_menu_open = true,
         callback = function()
-          UIManager:show(InfoMessage:new{
+          UIManager:show(InfoMessage:new({
             text = about_text,
-          })
+          }))
         end,
         separator = true,
       },
@@ -382,10 +443,13 @@ function ReaderCoptListener:getAltStatusBarMenu()
         end,
         callback = function()
           self.header_auto_refresh = self.header_auto_refresh == 0 and 1 or 0
-          G_reader_settings:saveSetting("cre_header_auto_refresh", self.header_auto_refresh)
+          G_reader_settings:saveSetting(
+            "cre_header_auto_refresh",
+            self.header_auto_refresh
+          )
           self:rescheduleHeaderRefreshIfNeeded()
         end,
-        separator = true
+        separator = true,
       },
       {
         text = _("Book title"),
@@ -404,7 +468,11 @@ function ReaderCoptListener:getAltStatusBarMenu()
         end,
         callback = function()
           self.author = self.author == 0 and 1 or 0
-          self:setAndSave("cre_header_author", "window.status.author", self.author)
+          self:setAndSave(
+            "cre_header_author",
+            "window.status.author",
+            self.author
+          )
         end,
       },
       {
@@ -424,7 +492,11 @@ function ReaderCoptListener:getAltStatusBarMenu()
         end,
         callback = function()
           self.page_number = self.page_number == 0 and 1 or 0
-          self:setAndSave("cre_header_page_number", "window.status.pos.page.number", self.page_number)
+          self:setAndSave(
+            "cre_header_page_number",
+            "window.status.pos.page.number",
+            self.page_number
+          )
         end,
       },
       {
@@ -434,7 +506,11 @@ function ReaderCoptListener:getAltStatusBarMenu()
         end,
         callback = function()
           self.page_count = self.page_count == 0 and 1 or 0
-          self:setAndSave("cre_header_page_count", "window.status.pos.page.count", self.page_count)
+          self:setAndSave(
+            "cre_header_page_count",
+            "window.status.pos.page.count",
+            self.page_count
+          )
         end,
       },
       {
@@ -444,7 +520,11 @@ function ReaderCoptListener:getAltStatusBarMenu()
         end,
         callback = function()
           self.reading_percent = self.reading_percent == 0 and 1 or 0
-          self:setAndSave("cre_header_reading_percent", "window.status.pos.percent", self.reading_percent)
+          self:setAndSave(
+            "cre_header_reading_percent",
+            "window.status.pos.percent",
+            self.reading_percent
+          )
         end,
       },
       {
@@ -454,7 +534,11 @@ function ReaderCoptListener:getAltStatusBarMenu()
         end,
         callback = function()
           self.chapter_marks = self.chapter_marks == 0 and 1 or 0
-          self:setAndSave("cre_header_chapter_marks", "crengine.page.header.chapter.marks", self.chapter_marks)
+          self:setAndSave(
+            "cre_header_chapter_marks",
+            "crengine.page.header.chapter.marks",
+            self.chapter_marks
+          )
         end,
       },
       {
@@ -489,8 +573,16 @@ function ReaderCoptListener:getAltStatusBarMenu()
                 self.battery = 0
                 self.battery_percent = 0
               end
-              self:setAndSave("cre_header_battery", "window.status.battery", self.battery)
-              self:setAndSave("cre_header_battery_percent", "window.status.battery.percent", self.battery_percent)
+              self:setAndSave(
+                "cre_header_battery",
+                "window.status.battery",
+                self.battery
+              )
+              self:setAndSave(
+                "cre_header_battery_percent",
+                "window.status.battery.percent",
+                self.battery_percent
+              )
             end,
           },
           {
@@ -508,10 +600,16 @@ function ReaderCoptListener:getAltStatusBarMenu()
                 self.battery = 0
                 self.battery_percent = 0
               end
-              self:setAndSave("cre_header_battery", "window.status.battery", self.battery)
-              self:setAndSave("cre_header_battery_percent",
-                      "window.status.battery.percent",
-                      self.battery_percent)
+              self:setAndSave(
+                "cre_header_battery",
+                "window.status.battery",
+                self.battery
+              )
+              self:setAndSave(
+                "cre_header_battery_percent",
+                "window.status.battery.percent",
+                self.battery_percent
+              )
             end,
           },
         },
@@ -519,32 +617,36 @@ function ReaderCoptListener:getAltStatusBarMenu()
       },
       {
         text_func = function()
-          return T(_("Font size: %1"),
-               G_reader_settings:readSetting("cre_header_status_font_size")
-               or CRE_HEADER_DEFAULT_SIZE)
+          return T(
+            _("Font size: %1"),
+            G_reader_settings:readSetting("cre_header_status_font_size")
+              or CRE_HEADER_DEFAULT_SIZE
+          )
         end,
         callback = function()
           local SpinWidget = require("ui/widget/spinwidget")
-          local start_size =
-            G_reader_settings:readSetting("cre_header_status_font_size") or CRE_HEADER_DEFAULT_SIZE
-          local size_spinner = SpinWidget:new{
+          local start_size = G_reader_settings:readSetting(
+            "cre_header_status_font_size"
+          ) or CRE_HEADER_DEFAULT_SIZE
+          local size_spinner = SpinWidget:new({
             value = start_size,
             value_min = 8,
             value_max = 36,
             default_value = 14,
             keep_shown_on_apply = true,
-            title_text =  _("Size of top status bar"),
+            title_text = _("Size of top status bar"),
             ok_text = _("Set size"),
             callback = function(spin)
               self:setAndSave(
                 "cre_header_status_font_size",
                 "crengine.page.header.font.size",
                 spin.value,
-                CreUtil.font_size(spin.value))
+                CreUtil.font_size(spin.value)
+              )
               -- This will probably needs a re-rendering, so make sure it happens now.
               self.ui:handleEvent(Event:new("UpdatePos"))
-            end
-          }
+            end,
+          })
           UIManager:show(size_spinner)
         end,
       },

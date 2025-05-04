@@ -15,25 +15,26 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local ffi = require "ffi"
-local log = require "turbo.log"
-local platform = require "turbo.platform"
-require "turbo.cdef"
+local ffi = require("ffi")
+local log = require("turbo.log")
+local platform = require("turbo.platform")
+require("turbo.cdef")
 
 local crypto = {} -- crypto namespace
 
 local ok, ssl = pcall(require, "ssl")
 if not ok then
-    log.error(
-        "Could not load \"ssl\" module (LuaSec). Exiting. "..
-        "Please install module to enable SSL in Turbo.")
-    os.exit(1)
+  log.error(
+    'Could not load "ssl" module (LuaSec). Exiting. '
+      .. "Please install module to enable SSL in Turbo."
+  )
+  os.exit(1)
 end
 
 local default_ca_path = "/etc/ssl/certs/ca-certificates.crt"
 local env_ca_path = os.getenv("TURBO_CAPATH")
 if env_ca_path then
-    default_ca_path = env_ca_path
+  default_ca_path = env_ca_path
 end
 
 --- Create a client type SSL context.
@@ -47,26 +48,28 @@ end
 -- SSL error string, or -1 and a error string.
 -- @return Allocated SSL_CTX *. Must not be freed. It is garbage collected.
 function crypto.ssl_create_client_context(
-        cert_file,
-        prv_file,
-        ca_cert_path,
-        verify, sslv)
-    local params = {
-        mode = "client",
-        protocol = "sslv23",
-        key = prv_file,
-        certificate = cert_file,
-        cafile = ca_cert_path or default_ca_path,
-        verify = verify and {"peer", "fail_if_no_peer_cert"} or nil,
-        options = {"all"},
-    }
+  cert_file,
+  prv_file,
+  ca_cert_path,
+  verify,
+  sslv
+)
+  local params = {
+    mode = "client",
+    protocol = "sslv23",
+    key = prv_file,
+    certificate = cert_file,
+    cafile = ca_cert_path or default_ca_path,
+    verify = verify and { "peer", "fail_if_no_peer_cert" } or nil,
+    options = { "all" },
+  }
 
-    local ctx, err = ssl.newcontext(params)
-    if not ctx then
-        return -1, err
-    else
-        return 0, ctx
-    end
+  local ctx, err = ssl.newcontext(params)
+  if not ctx then
+    return -1, err
+  else
+    return 0, ctx
+  end
 end
 
 --- Create a server type SSL context.
@@ -79,34 +82,39 @@ end
 -- code and a SSL
 -- error string, or -1 and a error string.
 -- @return Allocated SSL_CTX *. Must not be freed. It is garbage collected.
-function crypto.ssl_create_server_context(cert_file, prv_file, ca_cert_path, sslv)
-    local params = {
-        mode = "server",
-        protocol = "sslv23",
-        key = prv_file,
-        certificate = cert_file,
-        cafile = ca_cert_path or default_ca_path,
-        options = {"all"},
-    }
+function crypto.ssl_create_server_context(
+  cert_file,
+  prv_file,
+  ca_cert_path,
+  sslv
+)
+  local params = {
+    mode = "server",
+    protocol = "sslv23",
+    key = prv_file,
+    certificate = cert_file,
+    cafile = ca_cert_path or default_ca_path,
+    options = { "all" },
+  }
 
-    local ctx, err = ssl.newcontext(params)
-    if not ctx then
-        return -1, err
-    else
-        return 0, ctx
-    end
+  local ctx, err = ssl.newcontext(params)
+  if not ctx then
+    return -1, err
+  else
+    return 0, ctx
+  end
 end
 
 function crypto.ssl_new(ctx, fd_sock, client)
-    local peer = ssl.wrap(fd_sock, ctx)
-    peer:settimeout(0)
-    return peer
+  local peer = ssl.wrap(fd_sock, ctx)
+  peer:settimeout(0)
+  return peer
 end
 
 function crypto.ssl_do_handshake(SSLIOStream)
-    local sock = SSLIOStream._ssl
-    local res, err = sock:dohandshake()
-    return res, err
+  local sock = SSLIOStream._ssl
+  local res, err = sock:dohandshake()
+  return res, err
 end
 
 return crypto

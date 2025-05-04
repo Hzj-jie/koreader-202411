@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 static const int EVIOCGRAB = 1074021776;
 static const int EVIOCGREP = 2148025603;
 static const int EVIOCSREP = 1074283779;
@@ -63,7 +63,7 @@ struct input_event {
   short unsigned int code;
   int value;
 };
-]]
+]])
 
 -- Include our custom stuff, too
 require("ffi/custom_input_h")

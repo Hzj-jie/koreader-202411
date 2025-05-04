@@ -4,7 +4,7 @@ local Device = require("device")
 -- it is also unused by other plugins.
 -- See https://github.com/koreader/koreader/issues/6297
 if Device:isAndroid() then
-  return { disabled = true, }
+  return { disabled = true }
 end
 
 local CommandRunner = require("commandrunner")
@@ -100,8 +100,12 @@ function BackgroundRunner:_clone(job)
 end
 
 function BackgroundRunner:_shouldRepeat(job)
-  if type(job.repeated) == "nil" then return false end
-  if type(job.repeated) == "boolean" then return job.repeated end
+  if type(job.repeated) == "nil" then
+    return false
+  end
+  if type(job.repeated) == "boolean" then
+    return job.repeated
+  end
   if type(job.repeated) == "function" then
     local status, result = pcall(job.repeated)
     if status then
@@ -136,8 +140,12 @@ end
 -- @treturn boolean true if job is valid.
 function BackgroundRunner:_executeJob(job)
   assert(not CommandRunner:pending())
-  if job == nil then return false end
-  if job.executable == nil then return false end
+  if job == nil then
+    return false
+  end
+  if job.executable == nil then
+    return false
+  end
 
   if type(job.executable) == "string" then
     CommandRunner:start(job)
@@ -149,7 +157,12 @@ function BackgroundRunner:_executeJob(job)
     if status then
       job.result = 0
     else
-      logger.warn("BackgroundRunner: _executeJob [", job.executable, "] failed, ", err)
+      logger.warn(
+        "BackgroundRunner: _executeJob [",
+        job.executable,
+        "] failed, ",
+        err
+      )
       job.result = 1
       job.exception = err
     end
@@ -164,7 +177,9 @@ end
 function BackgroundRunner:_poll()
   assert(CommandRunner:pending())
   local result = CommandRunner:poll()
-  if result == nil then return end
+  if result == nil then
+    return
+  end
 
   self:_finishJob(result)
 end
@@ -200,7 +215,9 @@ function BackgroundRunner:_execute()
         end
       elseif type(job.when) == "number" then
         if job.when >= 0 then
-          should_execute = (UIManager:getTime() - job.insert_time >= time.s(job.when))
+          should_execute = (
+            UIManager:getTime() - job.insert_time >= time.s(job.when)
+          )
         else
           should_ignore = true
         end
@@ -227,7 +244,9 @@ function BackgroundRunner:_execute()
       end
 
       round = round + 1
-      if round > 2 then break end
+      if round > 2 then
+        break
+      end
     end
   end
 
@@ -241,11 +260,12 @@ function BackgroundRunner:_schedule()
     else
       logger.dbg("BackgroundRunnerWidget: start running @ ", os.time())
       self.scheduled = true
-      UIManager:scheduleIn(2, function() self:_execute() end)
+      UIManager:scheduleIn(2, function()
+        self:_execute()
+      end)
     end
   else
-    logger.dbg("BackgroundRunnerWidget: a schedule is pending @ ",
-               os.time())
+    logger.dbg("BackgroundRunnerWidget: a schedule is pending @ ", os.time())
   end
 end
 
@@ -254,9 +274,9 @@ function BackgroundRunner:_insert(job)
   table.insert(PluginShare.backgroundJobs, job)
 end
 
-local BackgroundRunnerWidget = WidgetContainer:extend{
+local BackgroundRunnerWidget = WidgetContainer:extend({
   name = "backgroundrunner",
-}
+})
 
 function BackgroundRunnerWidget:init()
   BackgroundRunner:_schedule()

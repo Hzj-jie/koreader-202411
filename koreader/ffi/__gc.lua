@@ -7,16 +7,20 @@ local smt = assert(setmetatable)
 local np = assert(newproxy)
 
 return function(t, mt)
-    if mt ~= nil and rg(mt, "__gc") and not rg(t, "__gc_proxy") then
-        local p = np(true)
-        rs(t, proxy_key, p)
-        gmt(p).__gc = function()
-            rs(t, proxy_key, nil)
-            local nmt = gmt(t)
-            if not nmt then return end
-            local fin = rg(nmt, "__gc")
-            if fin then return fin(t) end
-        end
+  if mt ~= nil and rg(mt, "__gc") and not rg(t, "__gc_proxy") then
+    local p = np(true)
+    rs(t, proxy_key, p)
+    gmt(p).__gc = function()
+      rs(t, proxy_key, nil)
+      local nmt = gmt(t)
+      if not nmt then
+        return
+      end
+      local fin = rg(nmt, "__gc")
+      if fin then
+        return fin(t)
+      end
     end
-    return smt(t, mt)
+  end
+  return smt(t, mt)
 end

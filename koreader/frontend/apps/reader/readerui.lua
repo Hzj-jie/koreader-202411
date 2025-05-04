@@ -2,7 +2,8 @@
 ReaderUI is an abstraction for a reader interface.
 
 It works using data gathered from a document interface.
-]]--
+]]
+--
 
 local BD = require("ui/bidi")
 local Device = require("device")
@@ -14,7 +15,8 @@ local Event = require("ui/event")
 local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local FileManagerCollection = require("apps/filemanager/filemanagercollection")
 local FileManagerHistory = require("apps/filemanager/filemanagerhistory")
-local FileManagerFileSearcher = require("apps/filemanager/filemanagerfilesearcher")
+local FileManagerFileSearcher =
+  require("apps/filemanager/filemanagerfilesearcher")
 local FileManagerShortcuts = require("apps/filemanager/filemanagershortcuts")
 local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
@@ -23,7 +25,8 @@ local LanguageSupport = require("languagesupport")
 local NetworkListener = require("ui/network/networklistener")
 local Notification = require("ui/widget/notification")
 local PluginLoader = require("pluginloader")
-local ReaderActivityIndicator = require("apps/reader/modules/readeractivityindicator")
+local ReaderActivityIndicator =
+  require("apps/reader/modules/readeractivityindicator")
 local ReaderAnnotation = require("apps/reader/modules/readerannotation")
 local ReaderBack = require("apps/reader/modules/readerback")
 local ReaderBookmark = require("apps/reader/modules/readerbookmark")
@@ -59,7 +62,7 @@ local ReaderZooming = require("apps/reader/modules/readerzooming")
 local Screenshoter = require("ui/widget/screenshoter")
 local SettingsMigration = require("ui/data/settings_migration")
 local UIManager = require("ui/uimanager")
-local ffiUtil  = require("ffi/util")
+local ffiUtil = require("ffi/util")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
@@ -70,7 +73,7 @@ local Input = Device.input
 local Screen = Device.screen
 local T = ffiUtil.template
 
-local ReaderUI = InputContainer:extend{
+local ReaderUI = InputContainer:extend({
   name = "ReaderUI",
   active_widgets = nil, -- array
 
@@ -85,7 +88,7 @@ local ReaderUI = InputContainer:extend{
 
   postInitCallback = nil,
   postReaderReadyCallback = nil,
-}
+})
 
 function ReaderUI:registerModule(name, ui_module, always_active)
   if name then
@@ -131,169 +134,239 @@ function ReaderUI:init()
 
   -- a view container (so it must be child #1!)
   -- all paintable widgets need to be a child of reader view
-  self:registerModule("view", ReaderView:new{
-    dialog = self.dialog,
-    dimen = self.dimen,
-    ui = self,
-    document = self.document,
-  })
+  self:registerModule(
+    "view",
+    ReaderView:new({
+      dialog = self.dialog,
+      dimen = self.dimen,
+      ui = self,
+      document = self.document,
+    })
+  )
   -- goto link controller
-  self:registerModule("link", ReaderLink:new{
-    dialog = self.dialog,
-    view = self.view,
-    ui = self,
-    document = self.document,
-  })
-  -- text highlight
-  self:registerModule("highlight", ReaderHighlight:new{
-    dialog = self.dialog,
-    view = self.view,
-    ui = self,
-    document = self.document,
-  })
-  -- menu widget should be registered after link widget and highlight widget
-  -- so that taps on link and highlight areas won't popup reader menu
-  -- reader menu controller
-  self:registerModule("menu", ReaderMenu:new{
-    view = self.view,
-    ui = self
-  })
-  -- Handmade/custom ToC and hidden flows
-  self:registerModule("handmade", ReaderHandMade:new{
-    dialog = self.dialog,
-    view = self.view,
-    ui = self,
-    document = self.document,
-  })
-  -- Table of content controller
-  self:registerModule("toc", ReaderToc:new{
-    dialog = self.dialog,
-    view = self.view,
-    ui = self
-  })
-  -- bookmark controller
-  self:registerModule("bookmark", ReaderBookmark:new{
-    dialog = self.dialog,
-    view = self.view,
-    ui = self
-  })
-  self:registerModule("annotation", ReaderAnnotation:new{
-    dialog = self.dialog,
-    view = self.view,
-    ui = self,
-    document = self.document,
-  })
-  -- reader goto controller
-  -- "goto" being a dirty keyword in Lua?
-  self:registerModule("gotopage", ReaderGoto:new{
-    dialog = self.dialog,
-    view = self.view,
-    ui = self,
-    document = self.document,
-  })
-  self:registerModule("languagesupport", LanguageSupport:new{
-    ui = self,
-    document = self.document,
-  })
-  -- dictionary
-  self:registerModule("dictionary", ReaderDictionary:new{
-    dialog = self.dialog,
-    view = self.view,
-    ui = self,
-    document = self.document,
-  })
-  -- wikipedia
-  self:registerModule("wikipedia", ReaderWikipedia:new{
-    dialog = self.dialog,
-    view = self.view,
-    ui = self,
-    document = self.document,
-  })
-  -- screenshot controller
-  self:registerModule("screenshot", Screenshoter:new{
-    prefix = 'Reader',
-    dialog = self.dialog,
-    view = self.view,
-    ui = self
-  }, true)
-  -- device status controller
-  self:registerModule("devicestatus", ReaderDeviceStatus:new{
-    ui = self,
-  })
-  -- configurable controller
-  if self.document.info.configurable then
-    -- config panel controller
-    self:registerModule("config", ReaderConfig:new{
-      configurable = self.document.configurable,
+  self:registerModule(
+    "link",
+    ReaderLink:new({
       dialog = self.dialog,
       view = self.view,
       ui = self,
       document = self.document,
     })
+  )
+  -- text highlight
+  self:registerModule(
+    "highlight",
+    ReaderHighlight:new({
+      dialog = self.dialog,
+      view = self.view,
+      ui = self,
+      document = self.document,
+    })
+  )
+  -- menu widget should be registered after link widget and highlight widget
+  -- so that taps on link and highlight areas won't popup reader menu
+  -- reader menu controller
+  self:registerModule(
+    "menu",
+    ReaderMenu:new({
+      view = self.view,
+      ui = self,
+    })
+  )
+  -- Handmade/custom ToC and hidden flows
+  self:registerModule(
+    "handmade",
+    ReaderHandMade:new({
+      dialog = self.dialog,
+      view = self.view,
+      ui = self,
+      document = self.document,
+    })
+  )
+  -- Table of content controller
+  self:registerModule(
+    "toc",
+    ReaderToc:new({
+      dialog = self.dialog,
+      view = self.view,
+      ui = self,
+    })
+  )
+  -- bookmark controller
+  self:registerModule(
+    "bookmark",
+    ReaderBookmark:new({
+      dialog = self.dialog,
+      view = self.view,
+      ui = self,
+    })
+  )
+  self:registerModule(
+    "annotation",
+    ReaderAnnotation:new({
+      dialog = self.dialog,
+      view = self.view,
+      ui = self,
+      document = self.document,
+    })
+  )
+  -- reader goto controller
+  -- "goto" being a dirty keyword in Lua?
+  self:registerModule(
+    "gotopage",
+    ReaderGoto:new({
+      dialog = self.dialog,
+      view = self.view,
+      ui = self,
+      document = self.document,
+    })
+  )
+  self:registerModule(
+    "languagesupport",
+    LanguageSupport:new({
+      ui = self,
+      document = self.document,
+    })
+  )
+  -- dictionary
+  self:registerModule(
+    "dictionary",
+    ReaderDictionary:new({
+      dialog = self.dialog,
+      view = self.view,
+      ui = self,
+      document = self.document,
+    })
+  )
+  -- wikipedia
+  self:registerModule(
+    "wikipedia",
+    ReaderWikipedia:new({
+      dialog = self.dialog,
+      view = self.view,
+      ui = self,
+      document = self.document,
+    })
+  )
+  -- screenshot controller
+  self:registerModule(
+    "screenshot",
+    Screenshoter:new({
+      prefix = "Reader",
+      dialog = self.dialog,
+      view = self.view,
+      ui = self,
+    }),
+    true
+  )
+  -- device status controller
+  self:registerModule(
+    "devicestatus",
+    ReaderDeviceStatus:new({
+      ui = self,
+    })
+  )
+  -- configurable controller
+  if self.document.info.configurable then
+    -- config panel controller
+    self:registerModule(
+      "config",
+      ReaderConfig:new({
+        configurable = self.document.configurable,
+        dialog = self.dialog,
+        view = self.view,
+        ui = self,
+        document = self.document,
+      })
+    )
     if self.document.info.has_pages then
       -- kopt option controller
-      self:registerModule("koptlistener", ReaderKoptListener:new{
-        dialog = self.dialog,
-        view = self.view,
-        ui = self,
-        document = self.document,
-      })
+      self:registerModule(
+        "koptlistener",
+        ReaderKoptListener:new({
+          dialog = self.dialog,
+          view = self.view,
+          ui = self,
+          document = self.document,
+        })
+      )
     else
       -- cre option controller
-      self:registerModule("crelistener", ReaderCoptListener:new{
-        dialog = self.dialog,
-        view = self.view,
-        ui = self,
-        document = self.document,
-      })
+      self:registerModule(
+        "crelistener",
+        ReaderCoptListener:new({
+          dialog = self.dialog,
+          view = self.view,
+          ui = self,
+          document = self.document,
+        })
+      )
     end
     -- activity indicator for when some settings take time to take effect (Kindle under KPV)
     if not ReaderActivityIndicator:isStub() then
-      self:registerModule("activityindicator", ReaderActivityIndicator:new{
-        dialog = self.dialog,
-        view = self.view,
-        ui = self,
-        document = self.document,
-      })
+      self:registerModule(
+        "activityindicator",
+        ReaderActivityIndicator:new({
+          dialog = self.dialog,
+          view = self.view,
+          ui = self,
+          document = self.document,
+        })
+      )
     end
   end
   -- for page specific controller
   if self.document.info.has_pages then
     -- cropping controller
-    self:registerModule("cropping", ReaderCropping:new{
-      dialog = self.dialog,
-      view = self.view,
-      ui = self,
-      document = self.document,
-    })
+    self:registerModule(
+      "cropping",
+      ReaderCropping:new({
+        dialog = self.dialog,
+        view = self.view,
+        ui = self,
+        document = self.document,
+      })
+    )
     -- paging controller
-    self:registerModule("paging", ReaderPaging:new{
-      pan_rate = pan_rate,
-      dialog = self.dialog,
-      view = self.view,
-      ui = self
-    })
+    self:registerModule(
+      "paging",
+      ReaderPaging:new({
+        pan_rate = pan_rate,
+        dialog = self.dialog,
+        view = self.view,
+        ui = self,
+      })
+    )
     -- zooming controller
-    self:registerModule("zooming", ReaderZooming:new{
-      dialog = self.dialog,
-      document = self.document,
-      view = self.view,
-      ui = self
-    })
+    self:registerModule(
+      "zooming",
+      ReaderZooming:new({
+        dialog = self.dialog,
+        document = self.document,
+        view = self.view,
+        ui = self,
+      })
+    )
     -- panning controller
-    self:registerModule("panning", ReaderPanning:new{
-      dialog = self.dialog,
-      view = self.view,
-      ui = self
-    })
+    self:registerModule(
+      "panning",
+      ReaderPanning:new({
+        dialog = self.dialog,
+        view = self.view,
+        ui = self,
+      })
+    )
     -- hinting controller
-    self:registerModule("hinting", ReaderHinting:new{
-      dialog = self.dialog,
-      zoom = self.zooming,
-      view = self.view,
-      ui = self,
-      document = self.document,
-    })
+    self:registerModule(
+      "hinting",
+      ReaderHinting:new({
+        dialog = self.dialog,
+        zoom = self.zooming,
+        view = self.view,
+        ui = self,
+        document = self.document,
+      })
+    )
   else
     -- load crengine default settings (from cr3.ini, some of these
     -- will be overridden by our settings by some reader modules below)
@@ -306,7 +379,12 @@ function ReaderUI:init()
       if not self.document:loadDocument() then
         self:dealWithLoadDocumentFailure()
       end
-      logger.dbg(string.format("  loading took %.3f seconds", time.to_s(time.since(start_time))))
+      logger.dbg(
+        string.format(
+          "  loading took %.3f seconds",
+          time.to_s(time.since(start_time))
+        )
+      )
 
       -- used to read additional settings after the document has been
       -- loaded (but not rendered yet)
@@ -314,149 +392,215 @@ function ReaderUI:init()
 
       start_time = time.now()
       self.document:render()
-      logger.dbg(string.format("  rendering took %.3f seconds", time.to_s(time.since(start_time))))
+      logger.dbg(
+        string.format(
+          "  rendering took %.3f seconds",
+          time.to_s(time.since(start_time))
+        )
+      )
 
       -- Uncomment to output the built DOM (for debugging)
       -- logger.dbg(self.document:getHTMLFromXPointer(".0", 0x6830))
     end)
     -- styletweak controller (must be before typeset controller)
-    self:registerModule("styletweak", ReaderStyleTweak:new{
-      dialog = self.dialog,
-      view = self.view,
-      ui = self
-    })
-    -- typeset controller
-    self:registerModule("typeset", ReaderTypeset:new{
-      configurable = self.document.configurable,
-      dialog = self.dialog,
-      view = self.view,
-      ui = self
-    })
-    -- font menu
-    self:registerModule("font", ReaderFont:new{
-      configurable = self.document.configurable,
-      dialog = self.dialog,
-      view = self.view,
-      ui = self
-    })
-    -- user hyphenation (must be registered before typography)
-    self:registerModule("userhyph", ReaderUserHyph:new{
-      dialog = self.dialog,
-      view = self.view,
-      ui = self
-    })
-    -- typography menu (replaces previous hyphenation menu / ReaderHyphenation)
-    self:registerModule("typography", ReaderTypography:new{
-      dialog = self.dialog,
-      view = self.view,
-      ui = self
-    })
-    -- rolling controller
-    self:registerModule("rolling", ReaderRolling:new{
-      configurable = self.document.configurable,
-      pan_rate = pan_rate,
-      dialog = self.dialog,
-      view = self.view,
-      ui = self
-    })
-    -- pagemap controller
-    self:registerModule("pagemap", ReaderPageMap:new{
-      dialog = self.dialog,
-      view = self.view,
-      ui = self
-    })
-  end
-  self.disable_double_tap = G_reader_settings:nilOrTrue("disable_double_tap")
-  -- scrolling (scroll settings + inertial scrolling)
-  self:registerModule("scrolling", ReaderScrolling:new{
-    pan_rate = pan_rate,
-    dialog = self.dialog,
-    ui = self,
-    view = self.view,
-  })
-  -- back location stack
-  self:registerModule("back", ReaderBack:new{
-    ui = self,
-    view = self.view,
-  })
-  -- fulltext search
-  self:registerModule("search", ReaderSearch:new{
-    dialog = self.dialog,
-    view = self.view,
-    ui = self
-  })
-  -- book status
-  self:registerModule("status", ReaderStatus:new{
-    ui = self,
-    document = self.document,
-  })
-  -- thumbnails service (book map, page browser)
-  self:registerModule("thumbnail", ReaderThumbnail:new{
-    ui = self,
-    document = self.document,
-  })
-  -- file searcher
-  self:registerModule("filesearcher", FileManagerFileSearcher:new{
-    dialog = self.dialog,
-    ui = self,
-  })
-  -- folder shortcuts
-  self:registerModule("folder_shortcuts", FileManagerShortcuts:new{
-    dialog = self.dialog,
-    ui = self,
-  })
-  -- history view
-  self:registerModule("history", FileManagerHistory:new{
-    dialog = self.dialog,
-    ui = self,
-  })
-  -- collections/favorites view
-  self:registerModule("collections", FileManagerCollection:new{
-    dialog = self.dialog,
-    ui = self,
-  })
-  -- book info
-  self:registerModule("bookinfo", FileManagerBookInfo:new{
-    dialog = self.dialog,
-    document = self.document,
-    ui = self,
-  })
-  -- event listener to change device settings
-  self:registerModule("devicelistener", DeviceListener:new {
-    document = self.document,
-    view = self.view,
-    ui = self,
-  })
-  self:registerModule("networklistener", NetworkListener:new {
-    document = self.document,
-    view = self.view,
-    ui = self,
-  })
-
-  -- koreader plugins
-  for _, plugin_module in ipairs(PluginLoader:loadPlugins()) do
-    local ok, plugin_or_err = PluginLoader:createPluginInstance(
-      plugin_module,
-      {
+    self:registerModule(
+      "styletweak",
+      ReaderStyleTweak:new({
         dialog = self.dialog,
         view = self.view,
         ui = self,
-        document = self.document,
       })
+    )
+    -- typeset controller
+    self:registerModule(
+      "typeset",
+      ReaderTypeset:new({
+        configurable = self.document.configurable,
+        dialog = self.dialog,
+        view = self.view,
+        ui = self,
+      })
+    )
+    -- font menu
+    self:registerModule(
+      "font",
+      ReaderFont:new({
+        configurable = self.document.configurable,
+        dialog = self.dialog,
+        view = self.view,
+        ui = self,
+      })
+    )
+    -- user hyphenation (must be registered before typography)
+    self:registerModule(
+      "userhyph",
+      ReaderUserHyph:new({
+        dialog = self.dialog,
+        view = self.view,
+        ui = self,
+      })
+    )
+    -- typography menu (replaces previous hyphenation menu / ReaderHyphenation)
+    self:registerModule(
+      "typography",
+      ReaderTypography:new({
+        dialog = self.dialog,
+        view = self.view,
+        ui = self,
+      })
+    )
+    -- rolling controller
+    self:registerModule(
+      "rolling",
+      ReaderRolling:new({
+        configurable = self.document.configurable,
+        pan_rate = pan_rate,
+        dialog = self.dialog,
+        view = self.view,
+        ui = self,
+      })
+    )
+    -- pagemap controller
+    self:registerModule(
+      "pagemap",
+      ReaderPageMap:new({
+        dialog = self.dialog,
+        view = self.view,
+        ui = self,
+      })
+    )
+  end
+  self.disable_double_tap = G_reader_settings:nilOrTrue("disable_double_tap")
+  -- scrolling (scroll settings + inertial scrolling)
+  self:registerModule(
+    "scrolling",
+    ReaderScrolling:new({
+      pan_rate = pan_rate,
+      dialog = self.dialog,
+      ui = self,
+      view = self.view,
+    })
+  )
+  -- back location stack
+  self:registerModule(
+    "back",
+    ReaderBack:new({
+      ui = self,
+      view = self.view,
+    })
+  )
+  -- fulltext search
+  self:registerModule(
+    "search",
+    ReaderSearch:new({
+      dialog = self.dialog,
+      view = self.view,
+      ui = self,
+    })
+  )
+  -- book status
+  self:registerModule(
+    "status",
+    ReaderStatus:new({
+      ui = self,
+      document = self.document,
+    })
+  )
+  -- thumbnails service (book map, page browser)
+  self:registerModule(
+    "thumbnail",
+    ReaderThumbnail:new({
+      ui = self,
+      document = self.document,
+    })
+  )
+  -- file searcher
+  self:registerModule(
+    "filesearcher",
+    FileManagerFileSearcher:new({
+      dialog = self.dialog,
+      ui = self,
+    })
+  )
+  -- folder shortcuts
+  self:registerModule(
+    "folder_shortcuts",
+    FileManagerShortcuts:new({
+      dialog = self.dialog,
+      ui = self,
+    })
+  )
+  -- history view
+  self:registerModule(
+    "history",
+    FileManagerHistory:new({
+      dialog = self.dialog,
+      ui = self,
+    })
+  )
+  -- collections/favorites view
+  self:registerModule(
+    "collections",
+    FileManagerCollection:new({
+      dialog = self.dialog,
+      ui = self,
+    })
+  )
+  -- book info
+  self:registerModule(
+    "bookinfo",
+    FileManagerBookInfo:new({
+      dialog = self.dialog,
+      document = self.document,
+      ui = self,
+    })
+  )
+  -- event listener to change device settings
+  self:registerModule(
+    "devicelistener",
+    DeviceListener:new({
+      document = self.document,
+      view = self.view,
+      ui = self,
+    })
+  )
+  self:registerModule(
+    "networklistener",
+    NetworkListener:new({
+      document = self.document,
+      view = self.view,
+      ui = self,
+    })
+  )
+
+  -- koreader plugins
+  for _, plugin_module in ipairs(PluginLoader:loadPlugins()) do
+    local ok, plugin_or_err = PluginLoader:createPluginInstance(plugin_module, {
+      dialog = self.dialog,
+      view = self.view,
+      ui = self,
+      document = self.document,
+    })
     if ok then
       self:registerModule(plugin_module.name, plugin_or_err)
-      logger.dbg("RD loaded plugin", plugin_module.name,
-            "at", plugin_module.path)
+      logger.dbg(
+        "RD loaded plugin",
+        plugin_module.name,
+        "at",
+        plugin_module.path
+      )
     end
   end
 
   -- Allow others to change settings based on external factors
   -- Must be called after plugins are loaded & before setting are read.
-  self:handleEvent(Event:new("DocSettingsLoad", self.doc_settings, self.document))
+  self:handleEvent(
+    Event:new("DocSettingsLoad", self.doc_settings, self.document)
+  )
   -- we only read settings after all the widgets are initialized
   self:handleEvent(Event:new("ReadSettings", self.doc_settings))
 
-  for _,v in ipairs(self.postInitCallback) do
+  for _, v in ipairs(self.postInitCallback) do
     v()
   end
   self.postInitCallback = nil
@@ -479,7 +623,10 @@ function ReaderUI:init()
     summary.modified = os.date("%Y-%m-%d", os.time())
   end
 
-  if summary.status ~= "complete" or not G_reader_settings:isTrue("history_freeze_finished_books") then
+  if
+    summary.status ~= "complete"
+    or not G_reader_settings:isTrue("history_freeze_finished_books")
+  then
     require("readhistory"):addItem(self.document.file) -- (will update "lastfile")
   end
 
@@ -488,7 +635,7 @@ function ReaderUI:init()
   -- Need the same event for PDF document
   self:handleEvent(Event:new("ReaderReady", self.doc_settings))
 
-  for _,v in ipairs(self.postReaderReadyCallback) do
+  for _, v in ipairs(self.postReaderReadyCallback) do
     v()
   end
   self.postReaderReadyCallback = nil
@@ -506,7 +653,13 @@ function ReaderUI:init()
     logger.dbg("Spinning up new ReaderUI instance", tostring(self))
   else
     -- Should never happen, given what we did in (do)showReader...
-    logger.err("ReaderUI instance mismatch! Opened", tostring(self), "while we still have an existing instance:", tostring(ReaderUI.instance), debug.traceback())
+    logger.err(
+      "ReaderUI instance mismatch! Opened",
+      tostring(self),
+      "while we still have an existing instance:",
+      tostring(ReaderUI.instance),
+      debug.traceback()
+    )
   end
   ReaderUI.instance = self
 end
@@ -516,14 +669,17 @@ function ReaderUI:registerKeyEvents()
     self.key_events.Home = { { "Home" } }
     self.key_events.Reload = { { "F5" } }
     if Device:hasDPad() and Device:useDPadAsActionKeys() then
-      self.key_events.KeyContentSelection = { { { "Up", "Down" } }, event = "StartHighlightIndicator" }
+      self.key_events.KeyContentSelection =
+        { { { "Up", "Down" } }, event = "StartHighlightIndicator" }
     end
     if Device:hasScreenKB() or Device:hasSymKey() then
       if Device:hasKeyboard() then
-        self.key_events.KeyToggleWifi = { { "Shift", "Home" }, event = "ToggleWifi" }
+        self.key_events.KeyToggleWifi =
+          { { "Shift", "Home" }, event = "ToggleWifi" }
         self.key_events.OpenLastDoc = { { "Shift", "Back" } }
       else -- Currently exclusively targets Kindle 4.
-        self.key_events.KeyToggleWifi = { { "ScreenKB", "Home" }, event = "ToggleWifi" }
+        self.key_events.KeyToggleWifi =
+          { { "ScreenKB", "Home" }, event = "ToggleWifi" }
         self.key_events.OpenLastDoc = { { "ScreenKB", "Back" } }
       end
     end
@@ -596,16 +752,22 @@ function ReaderUI:showReader(file, provider, seamless)
   origin_file = file
   file = ffiUtil.realpath(file)
   if file == nil or lfs.attributes(file, "mode") ~= "file" then
-    UIManager:show(InfoMessage:new{
-       text = T(_("File '%1' does not exist."), BD.filepath(filemanagerutil.abbreviate(origin_file)))
-    })
+    UIManager:show(InfoMessage:new({
+      text = T(
+        _("File '%1' does not exist."),
+        BD.filepath(filemanagerutil.abbreviate(origin_file))
+      ),
+    }))
     return
   end
 
   if not DocumentRegistry:hasProvider(file) and provider == nil then
-    UIManager:show(InfoMessage:new{
-      text = T(_("File '%1' is not supported."), BD.filepath(filemanagerutil.abbreviate(file)))
-    })
+    UIManager:show(InfoMessage:new({
+      text = T(
+        _("File '%1' is not supported."),
+        BD.filepath(filemanagerutil.abbreviate(file))
+      ),
+    }))
     self:showFileManager(file)
     return
   end
@@ -619,11 +781,14 @@ function ReaderUI:showReader(file, provider, seamless)
 end
 
 function ReaderUI:showReaderCoroutine(file, provider, seamless)
-  UIManager:show(InfoMessage:new{
-    text = T(_("Opening file '%1'."), BD.filepath(filemanagerutil.abbreviate(file))),
+  UIManager:show(InfoMessage:new({
+    text = T(
+      _("Opening file '%1'."),
+      BD.filepath(filemanagerutil.abbreviate(file))
+    ),
     timeout = 0.0,
     invisible = seamless,
-  })
+  }))
   -- doShowReader might block for a long time, so force repaint here
   UIManager:forceRePaint()
   UIManager:nextTick(function()
@@ -633,14 +798,14 @@ function ReaderUI:showReaderCoroutine(file, provider, seamless)
     end)
     local ok, err = coroutine.resume(co)
     if err ~= nil or ok == false then
-      io.stderr:write('[!] doShowReader coroutine crashed:\n')
+      io.stderr:write("[!] doShowReader coroutine crashed:\n")
       io.stderr:write(debug.traceback(co, err, 1))
       -- Restore input if we crashed before ReaderUI has restored it
       Device:setIgnoreInput(false)
       Input:inhibitInputUntil(0.2)
-      UIManager:show(InfoMessage:new{
-        text = _("No reader engine for this file or invalid file.")
-      })
+      UIManager:show(InfoMessage:new({
+        text = _("No reader engine for this file or invalid file."),
+      }))
       self:showFileManager(file)
     end
   end)
@@ -653,14 +818,17 @@ function ReaderUI:doShowReader(file, provider, seamless)
   logger.info("opening file", file)
   -- Only keep a single instance running
   if ReaderUI.instance then
-    logger.warn("ReaderUI instance mismatch! Tried to spin up a new instance, while we still have an existing one:", tostring(ReaderUI.instance))
+    logger.warn(
+      "ReaderUI instance mismatch! Tried to spin up a new instance, while we still have an existing one:",
+      tostring(ReaderUI.instance)
+    )
     ReaderUI.instance:onClose()
   end
   local document = DocumentRegistry:openDocument(file, provider)
   if not document then
-    UIManager:show(InfoMessage:new{
-      text = _("No reader engine for this file or invalid file.")
-    })
+    UIManager:show(InfoMessage:new({
+      text = _("No reader engine for this file or invalid file."),
+    }))
     self:showFileManager(file)
     return
   end
@@ -676,12 +844,12 @@ function ReaderUI:doShowReader(file, provider, seamless)
       end
     end
   end
-  local reader = ReaderUI:new{
+  local reader = ReaderUI:new({
     dimen = Screen:getSize(),
     covers_fullscreen = true, -- hint for UIManager:_repaint()
     document = document,
     reloading = self.reloading,
-  }
+  })
 
   Screen:setWindowTitle(reader.doc_props.display_title)
   Device:notifyBookState(reader.doc_props.display_title, document)
@@ -700,7 +868,7 @@ end
 
 function ReaderUI:unlockDocumentWithPassword(document, try_again)
   logger.dbg("show input password dialog")
-  self.password_dialog = InputDialog:new{
+  self.password_dialog = InputDialog:new({
     title = try_again and _("Password is incorrect, try again?")
       or _("Input document password"),
     buttons = {
@@ -728,7 +896,7 @@ function ReaderUI:unlockDocumentWithPassword(document, try_again)
       },
     },
     text_type = "password",
-  }
+  })
   UIManager:show(self.password_dialog)
   self.password_dialog:onShowKeyboard()
 end
@@ -782,7 +950,9 @@ function ReaderUI:onClose(full_refresh)
     DocCache:serialize(self.document.file)
     logger.dbg("closing document")
     self:handleEvent(Event:new("CloseDocument"))
-    if self.document:isEdited() and not self.highlight.highlight_write_into_pdf then
+    if
+      self.document:isEdited() and not self.highlight.highlight_write_into_pdf
+    then
       self.document:discardChange()
     end
     self:closeDocument()
@@ -794,7 +964,12 @@ function ReaderUI:onCloseWidget()
   if ReaderUI.instance == self then
     logger.dbg("Tearing down ReaderUI", tostring(self))
   else
-    logger.warn("ReaderUI instance mismatch! Closed", tostring(self), "while the active one is supposed to be", tostring(ReaderUI.instance))
+    logger.warn(
+      "ReaderUI instance mismatch! Closed",
+      tostring(self),
+      "while the active one is supposed to be",
+      tostring(ReaderUI.instance)
+    )
   end
   ReaderUI.instance = nil
   self._coroutine = nil
@@ -809,20 +984,26 @@ function ReaderUI:dealWithLoadDocumentFailure()
   -- As we are in a coroutine, we can pause and show an InfoMessage before exiting
   local _coroutine = coroutine.running()
   if coroutine then
-    logger.warn("crengine failed recognizing or parsing this file: unsupported or invalid document")
-    UIManager:show(InfoMessage:new{
-      text = _("Failed recognizing or parsing this file: unsupported or invalid document.\nKOReader will exit now."),
+    logger.warn(
+      "crengine failed recognizing or parsing this file: unsupported or invalid document"
+    )
+    UIManager:show(InfoMessage:new({
+      text = _(
+        "Failed recognizing or parsing this file: unsupported or invalid document.\nKOReader will exit now."
+      ),
       dismiss_callback = function()
         coroutine.resume(_coroutine, false)
       end,
-    })
+    }))
     -- Restore input, so can catch the InfoMessage dismiss and exit
     Device:setIgnoreInput(false)
     Input:inhibitInputUntil(0.2)
     coroutine.yield() -- pause till InfoMessage is dismissed
   end
   -- We have to error and exit the coroutine anyway to avoid any segfault
-  error("crengine failed recognizing or parsing this file: unsupported or invalid document")
+  error(
+    "crengine failed recognizing or parsing this file: unsupported or invalid document"
+  )
 end
 
 function ReaderUI:onHome()
@@ -859,7 +1040,9 @@ function ReaderUI:reloadDocument(after_close_callback, seamless)
 end
 
 function ReaderUI:switchDocument(new_file, seamless)
-  if not new_file then return end
+  if not new_file then
+    return
+  end
 
   -- Mimic onShowingReader's refresh optimizations
   self.tearing_down = true
@@ -878,7 +1061,8 @@ function ReaderUI:onOpenLastDoc()
 end
 
 function ReaderUI:getCurrentPage()
-  return self.paging and self.paging.current_page or self.document:getCurrentPage()
+  return self.paging and self.paging.current_page
+    or self.document:getCurrentPage()
 end
 
 return ReaderUI

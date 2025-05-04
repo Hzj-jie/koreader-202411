@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 static const int IN_ACCESS = 1;
 static const int IN_ATTRIB = 4;
 static const int IN_CLOSE_WRITE = 8;
@@ -38,4 +38,4 @@ struct inotify_event {
   uint32_t len;
   char name[];
 };
-]]
+]])

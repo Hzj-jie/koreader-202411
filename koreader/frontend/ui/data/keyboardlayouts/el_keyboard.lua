@@ -1,4 +1,5 @@
-local el_popup = dofile("frontend/ui/data/keyboardlayouts/keypopup/el_popup.lua")
+local el_popup =
+  dofile("frontend/ui/data/keyboardlayouts/keypopup/el_popup.lua")
 local pco = el_popup.pco
 local cop = el_popup.cop
 local cse = el_popup.cse
@@ -126,73 +127,73 @@ local hsh = el_popup.hsh
 local hs2 = el_popup.hs2
 
 return {
-    min_layer = 1,
-    max_layer = 4,
-    shiftmode_keys = { [""] = true },
-    symbolmode_keys = { ["⌥"] = true },
-    utf8mode_keys = { ["🌐"] = true },
-    -- Width of any key can be modified by adding "width = 1.0, " in the list.
-    keys = {
-        -- First row
-        { --   R    r    S    s
-            { _1p, _1_, "`", "!", },
-            { _2p, _2_, "‘", "¡", },
-            { _3p, _3_, "’", dsh, },
-            { _4p, _4_, "“", "_", },
-            { _5p, _5_, "”", quo, },
-            { _6p, _6_, eq2, eql, },
-            { _7p, _7_, _7s, _7n, },
-            { _8p, _8_, _8s, _8n, },
-            { _9p, _9_, _9s, _9n, },
-            { _0p, _0_, mn2, mns, },
-        },
-        -- Second row
-        { --   R    r    S    s
-            { _Q_el, _q_el, dif, "?", },
-            { _W_el, _w_el, int, "¿", },
-            { _E_el, _e_el, mth, "~", },
-            { _R_el, _r_el, mt2, "\\", },
-            { _T_el, _t_el, df2, bar, },
-            { _Y_el, _y_el, sl2, sla, },
-            { _U_el, _u_el, _4s, _4n, },
-            { _I_el, _i_el, _5s, _5n, },
-            { _O_el, _o_el, _6s, _6n, },
-            { _P_el, _p_el, pl2, pls, },
-        },
-        -- Third row
-        { --   R    r    S    s
-            { _A_el, _a_el, ls2, ls1, },
-            { _S_el, _s_el, mr2, mr1, },
-            { _D_el, _d_el, dgr, "(", },
-            { _F_el, _f_el, tpg, ")", },
-            { _G_el, _g_el, hs2, hsh, },
-            { _H_el, _h_el, pd2, pdc, },
-            { _J_el, _j_el, _1s, _1n, },
-            { _K_el, _k_el, _2s, _2n, },
-            { _L_el, _l_el, _3s, _3n, },
-            { sec, cse, sec, cse, }, -- comma/semicolon with CSS popup block
-        },
-        -- Fourth row
-        { --   R    r    S    s
-            { label = "", width = 1.5, }, -- Shift
-            { _Z_el, _z_el, prm, "{", },
-            { _X_el, _x_el, "°", "}", },
-            { _C_el, _c_el, "«", "[", },
-            { _V_el, _v_el, "»", "]", },
-            { _B_el, _b_el, _0s, _0n, },
-            { _N_el, _n_el, "↑", "↑", },
-            { _M_el, _m_el, "↓", "↓", },
-            { label = "", width = 1.5, }, -- Backspace
-        },
-        -- Fifth row
-        { --   R    r    S    s
-            { label = "⌥", width = 1.5, bold = true, alt_label = "SYM"}, -- SYM key
-            { label = "🌐", }, -- Globe key
-            { cop, pco, cop, pco, }, -- period/colon with RegEx popup block
-            { label = "_", " ", " ", " ", " ", width = 3.0, }, -- Spacebar
-            { label = "←", }, -- Arrow left
-            { label = "→", }, -- Arrow right
-            { label = "⮠", "\n","\n","\n","\n", width = 1.5, }, -- Enter
-        },
+  min_layer = 1,
+  max_layer = 4,
+  shiftmode_keys = { [""] = true },
+  symbolmode_keys = { ["⌥"] = true },
+  utf8mode_keys = { ["🌐"] = true },
+  -- Width of any key can be modified by adding "width = 1.0, " in the list.
+  keys = {
+    -- First row
+    { --   R    r    S    s
+      { _1p, _1_, "`", "!" },
+      { _2p, _2_, "‘", "¡" },
+      { _3p, _3_, "’", dsh },
+      { _4p, _4_, "“", "_" },
+      { _5p, _5_, "”", quo },
+      { _6p, _6_, eq2, eql },
+      { _7p, _7_, _7s, _7n },
+      { _8p, _8_, _8s, _8n },
+      { _9p, _9_, _9s, _9n },
+      { _0p, _0_, mn2, mns },
     },
+    -- Second row
+    { --   R    r    S    s
+      { _Q_el, _q_el, dif, "?" },
+      { _W_el, _w_el, int, "¿" },
+      { _E_el, _e_el, mth, "~" },
+      { _R_el, _r_el, mt2, "\\" },
+      { _T_el, _t_el, df2, bar },
+      { _Y_el, _y_el, sl2, sla },
+      { _U_el, _u_el, _4s, _4n },
+      { _I_el, _i_el, _5s, _5n },
+      { _O_el, _o_el, _6s, _6n },
+      { _P_el, _p_el, pl2, pls },
+    },
+    -- Third row
+    { --   R    r    S    s
+      { _A_el, _a_el, ls2, ls1 },
+      { _S_el, _s_el, mr2, mr1 },
+      { _D_el, _d_el, dgr, "(" },
+      { _F_el, _f_el, tpg, ")" },
+      { _G_el, _g_el, hs2, hsh },
+      { _H_el, _h_el, pd2, pdc },
+      { _J_el, _j_el, _1s, _1n },
+      { _K_el, _k_el, _2s, _2n },
+      { _L_el, _l_el, _3s, _3n },
+      { sec, cse, sec, cse }, -- comma/semicolon with CSS popup block
+    },
+    -- Fourth row
+    { --   R    r    S    s
+      { label = "", width = 1.5 }, -- Shift
+      { _Z_el, _z_el, prm, "{" },
+      { _X_el, _x_el, "°", "}" },
+      { _C_el, _c_el, "«", "[" },
+      { _V_el, _v_el, "»", "]" },
+      { _B_el, _b_el, _0s, _0n },
+      { _N_el, _n_el, "↑", "↑" },
+      { _M_el, _m_el, "↓", "↓" },
+      { label = "", width = 1.5 }, -- Backspace
+    },
+    -- Fifth row
+    { --   R    r    S    s
+      { label = "⌥", width = 1.5, bold = true, alt_label = "SYM" }, -- SYM key
+      { label = "🌐" }, -- Globe key
+      { cop, pco, cop, pco }, -- period/colon with RegEx popup block
+      { label = "_", " ", " ", " ", " ", width = 3.0 }, -- Spacebar
+      { label = "←" }, -- Arrow left
+      { label = "→" }, -- Arrow right
+      { label = "⮠", "\n", "\n", "\n", "\n", width = 1.5 }, -- Enter
+    },
+  },
 }

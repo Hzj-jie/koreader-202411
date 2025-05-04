@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 typedef long int off_t;
 typedef long int time_t;
 typedef long int suseconds_t;
@@ -26,4 +26,4 @@ struct statvfs {
   long unsigned int f_namemax;
   int __f_spare[6];
 };
-]]
+]])

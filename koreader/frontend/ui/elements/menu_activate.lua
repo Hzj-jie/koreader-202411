@@ -42,5 +42,5 @@ return {
         G_reader_settings:flipNilOrTrue("show_bottom_menu")
       end,
     },
-  }
+  },
 }

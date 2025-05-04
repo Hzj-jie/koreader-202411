@@ -43,7 +43,9 @@ function LibLipcs:_check(v)
 end
 
 function LibLipcs:accessor()
-  if not haslipc then return Fake end
+  if not haslipc then
+    return Fake
+  end
   if not self._ins then
     self._ins = self:_check(lipc.init("com.github.koreader"))
   end
@@ -51,7 +53,9 @@ function LibLipcs:accessor()
 end
 
 function LibLipcs:hash_accessor()
-  if not haslipc then return Fake end
+  if not haslipc then
+    return Fake
+  end
   if not self._no_name then
     self._no_name = self:_check(openlipc.open_no_name())
   end

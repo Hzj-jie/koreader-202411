@@ -1,5 +1,7 @@
-local en_popup = dofile("frontend/ui/data/keyboardlayouts/keypopup/en_popup.lua")
-local he_popup = dofile("frontend/ui/data/keyboardlayouts/keypopup/he_popup.lua")
+local en_popup =
+  dofile("frontend/ui/data/keyboardlayouts/keypopup/en_popup.lua")
+local he_popup =
+  dofile("frontend/ui/data/keyboardlayouts/keypopup/he_popup.lua")
 local pco = en_popup.pco
 local cop = en_popup.cop
 local cse = en_popup.cse
@@ -98,73 +100,73 @@ local hsh = en_popup.hsh
 local hs2 = en_popup.hs2
 
 return {
-    min_layer = 1,
-    max_layer = 4,
-    shiftmode_keys = {[""] = true},
-    symbolmode_keys = { ["⌥"] = true },
-    utf8mode_keys = {["🌐"] = true},
-    -- Width of any key can be modified by adding "width = 1.0, " in the list.
-    keys = {
-        -- First row
-        { --   R    r    S    s
-            { _1p, _1_, "`", "!", },
-            { _2p, _2_, "‘", "¡", },
-            { _3p, _3_, "’", dsh, },
-            { _4p, _4_, "“", "_", },
-            { _5p, _5_, "”", quo, },
-            { _6p, _6_, eq2, eql, },
-            { _7p, _7_, _7s, _7n, },
-            { _8p, _8_, _8s, _8n, },
-            { _9p, _9_, _9s, _9n, },
-            { _0p, _0_, mn2, mns, },
-        },
-        -- Second row
-        {  --  1           2       3       4
-            { "׳", "״",       dif, "?", },
-            { "֘֘֙֙ ", kuf,       int, "¿", },
-            { "֘ ", reish,     mth, "~", },
-            { "֗",  aleph,     mt2, "\\", },
-            { "֖ ", tes,       df2, bar, },
-            { "֕ ", vov,       sl2, sla, },
-            { "֔ ", "ן",       _4s, _4n, },
-            { "֓ ", mem_sofis, _5s, _5n, },
-            { "֒ ", pey,       _6s, _6n, },
-            { "֑ ", pey_sofis, pl2, pls, },
-        },
-        -- Third row
-        {  --  1           2       3       4
-            { "ּ ", shin,      ls2, ls1, },
-            { "ֻ ", daled,     mr2, mr1, },
-            { "ִ ", gimmel,    dgr, "(", },
-            { "ֹ",  chof,      tpg, ")", },
-            { "ְ ", ayin,      hs2, hsh, },
-            { "ֵ ", yud,       pd2, pdc, },
-            { "ֶ ", "ח",       _1s, _1n, },
-            { "ַ ", lamed,     _2s, _2n, },
-            { "ָ ", "ך",       _3s, _3n, },
-            { sec, cse,       sec, cse, }, -- comma/semicolon with CSS popup block
-        },
-        -- Fourth row
-        {  --  1           2       3       4
-            { label = "", width = 1.5, },
-            { "׃", zayin, prm, "{", },
-            { "׀",    samech, "°", "}", },
-            { "ׄ ", beis,      "«", "[", },
-            { "ׅ ", hey,       "»", "]", },
-            { "־",    nun,    _0s, _0n, },
-            { "ֿ ", mem,      "↑", "↑", },
-            { "ֽ ", tzadik,   "↓", "↓", },
-            { label = "", width = 1.5, },
-        },
-        -- Fifth row
-        {
-            { label = "⌥", width = 1.5, bold = true, alt_label = "SYM"}, -- SYM key
-            { label = "🌐", },
-            { cop, pco, cop, pco, }, -- period/colon with RegEx popup block
-            { label = "_", " ", " ", " ", " ", width = 3.0, }, -- Spacebar
-            { "←",    taf,      "←",    "←", },
-            { "→",    "ץ",      "→",    "→", },
-            { label = "⮠", "\n","\n","\n","\n", width = 1.5, }, -- Enter
-        },
+  min_layer = 1,
+  max_layer = 4,
+  shiftmode_keys = { [""] = true },
+  symbolmode_keys = { ["⌥"] = true },
+  utf8mode_keys = { ["🌐"] = true },
+  -- Width of any key can be modified by adding "width = 1.0, " in the list.
+  keys = {
+    -- First row
+    { --   R    r    S    s
+      { _1p, _1_, "`", "!" },
+      { _2p, _2_, "‘", "¡" },
+      { _3p, _3_, "’", dsh },
+      { _4p, _4_, "“", "_" },
+      { _5p, _5_, "”", quo },
+      { _6p, _6_, eq2, eql },
+      { _7p, _7_, _7s, _7n },
+      { _8p, _8_, _8s, _8n },
+      { _9p, _9_, _9s, _9n },
+      { _0p, _0_, mn2, mns },
     },
+    -- Second row
+    { --  1           2       3       4
+      { "׳", "״", dif, "?" },
+      { "֘֘֙֙ ", kuf, int, "¿" },
+      { "֘ ", reish, mth, "~" },
+      { "֗", aleph, mt2, "\\" },
+      { "֖ ", tes, df2, bar },
+      { "֕ ", vov, sl2, sla },
+      { "֔ ", "ן", _4s, _4n },
+      { "֓ ", mem_sofis, _5s, _5n },
+      { "֒ ", pey, _6s, _6n },
+      { "֑ ", pey_sofis, pl2, pls },
+    },
+    -- Third row
+    { --  1           2       3       4
+      { "ּ ", shin, ls2, ls1 },
+      { "ֻ ", daled, mr2, mr1 },
+      { "ִ ", gimmel, dgr, "(" },
+      { "ֹ", chof, tpg, ")" },
+      { "ְ ", ayin, hs2, hsh },
+      { "ֵ ", yud, pd2, pdc },
+      { "ֶ ", "ח", _1s, _1n },
+      { "ַ ", lamed, _2s, _2n },
+      { "ָ ", "ך", _3s, _3n },
+      { sec, cse, sec, cse }, -- comma/semicolon with CSS popup block
+    },
+    -- Fourth row
+    { --  1           2       3       4
+      { label = "", width = 1.5 },
+      { "׃", zayin, prm, "{" },
+      { "׀", samech, "°", "}" },
+      { "ׄ ", beis, "«", "[" },
+      { "ׅ ", hey, "»", "]" },
+      { "־", nun, _0s, _0n },
+      { "ֿ ", mem, "↑", "↑" },
+      { "ֽ ", tzadik, "↓", "↓" },
+      { label = "", width = 1.5 },
+    },
+    -- Fifth row
+    {
+      { label = "⌥", width = 1.5, bold = true, alt_label = "SYM" }, -- SYM key
+      { label = "🌐" },
+      { cop, pco, cop, pco }, -- period/colon with RegEx popup block
+      { label = "_", " ", " ", " ", " ", width = 3.0 }, -- Spacebar
+      { "←", taf, "←", "←" },
+      { "→", "ץ", "→", "→" },
+      { label = "⮠", "\n", "\n", "\n", "\n", width = 1.5 }, -- Enter
+    },
+  },
 }

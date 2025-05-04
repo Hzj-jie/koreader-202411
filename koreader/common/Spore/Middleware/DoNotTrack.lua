@@ -2,12 +2,11 @@
 -- lua-Spore : <http://fperrad.github.com/lua-Spore/>
 --
 
-
 local _ENV = nil
 local m = {}
 
-function m:call (req)
-    req.headers['x-do-not-track'] = 1
+function m:call(req)
+  req.headers["x-do-not-track"] = 1
 end
 
 return m

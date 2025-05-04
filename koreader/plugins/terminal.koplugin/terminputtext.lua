@@ -14,32 +14,34 @@ local esc = "\027"
 local backspace = "\008"
 
 local esc_seq = {
-  cursor_left =  "\027[D",
+  cursor_left = "\027[D",
   cursor_right = "\027[C",
-  cursor_up =  "\027[A",
-  cursor_down =  "\027[B",
-  cursor_pos1 =  "\027[7~",
-  cursor_end =   "\027[8~",
-  page_up =    "\027[5~",
-  page_down =  "\027[6~",
+  cursor_up = "\027[A",
+  cursor_down = "\027[B",
+  cursor_pos1 = "\027[7~",
+  cursor_end = "\027[8~",
+  page_up = "\027[5~",
+  page_down = "\027[6~",
 }
 
 local function isNum(char)
-  if #char ~= 1 then return end
+  if #char ~= 1 then
+    return
+  end
   if char:byte() >= ("0"):byte() and char:byte() <= ("9"):byte() then
     return true
   end
 end
 
 local function isPrintable(ch)
-  return ch:byte() >= 32 or
-         ch == "\010" or
-         ch == "\013" or
-         ch == "\009" or
-         ch == "\011"
+  return ch:byte() >= 32
+    or ch == "\010"
+    or ch == "\013"
+    or ch == "\009"
+    or ch == "\011"
 end
 
-local TermInputText = InputText:extend{
+local TermInputText = InputText:extend({
   maxr = 40,
   maxc = 80,
   min_buffer_size = 2 * 40 * 80, -- minimal size of scrollback buffer
@@ -58,7 +60,7 @@ local TermInputText = InputText:extend{
 
   alternate_buffer = nil, -- table
   save_buffer = nil, -- table
-}
+})
 
 function TermInputText:init()
   self.alternate_buffer = {}
@@ -94,14 +96,14 @@ function TermInputText:trimBuffer(new_size)
   if #self.charlist > new_size then
     -- delete whole lines from beginning
     local n = #self.charlist - new_size
-    while self.charlist[n+1] and self.charlist[n+1] ~= "\n" do
+    while self.charlist[n + 1] and self.charlist[n + 1] ~= "\n" do
       n = n + 1
     end
-    if self.charlist[n+1] == "\n" then
+    if self.charlist[n + 1] == "\n" then
       n = n + 1
     end
     -- remove first n chars
-    table.move(self.charlist, n+1, #self.charlist, 1)
+    table.move(self.charlist, n + 1, #self.charlist, 1)
     for dummy = 1, n do
       self.charlist[#self.charlist] = nil
     end
@@ -124,18 +126,17 @@ function TermInputText:trimBuffer(new_size)
 end
 
 function TermInputText:saveBuffer(buffer)
-  table.insert(self[buffer],
-    {
-      self.charlist,
-      self.charpos,
-      self.store_pos_dec,
-      self.store_pos_sco,
-      self.store_position,
-      self.scroll_region_bottom,
-      self.scroll_region_top,
-      self.scroll_region_line,
-      self.wrap,
-    })
+  table.insert(self[buffer], {
+    self.charlist,
+    self.charpos,
+    self.store_pos_dec,
+    self.store_pos_sco,
+    self.store_position,
+    self.scroll_region_bottom,
+    self.scroll_region_top,
+    self.scroll_region_line,
+    self.wrap,
+  })
   self.charlist = {}
   self.charpos = 1
   self.store_pos_dec = nil
@@ -150,15 +151,8 @@ end
 function TermInputText:restoreBuffer(buffer)
   local former_buffer = table.remove(self[buffer])
   if former_buffer and type(former_buffer[1]) == "table" then
-    self.charlist,
-    self.charpos,
-    self.store_pos_dec,
-    self.store_pos_sco,
-    self.store_position,
-    self.scroll_region_bottom,
-    self.scroll_region_top,
-    self.scroll_region_line,
-    self.wrap = unpack(former_buffer)
+    self.charlist, self.charpos, self.store_pos_dec, self.store_pos_sco, self.store_position, self.scroll_region_bottom, self.scroll_region_top, self.scroll_region_line, self.wrap =
+      unpack(former_buffer)
   end
 end
 
@@ -194,9 +188,12 @@ function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, param3)
     param1 = param1 == 0 and 1 or param1
     param2 = param2 == 0 and 1 or param2
     self:moveCursorToRowCol(param1, param2)
-    if self.scroll_region_line and param1 <= self.scroll_region_bottom
-      and param1 >= self.scroll_region_top then
-        self.scroll_region_line = param1
+    if
+      self.scroll_region_line
+      and param1 <= self.scroll_region_bottom
+      and param1 >= self.scroll_region_top
+    then
+      self.scroll_region_line = param1
     end
     return true
   elseif cmd == "J" then -- clear to end of screen
@@ -252,7 +249,12 @@ function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, param3)
       self.scroll_region_bottom = nil
     end
 
-    if self.scroll_region_bottom and param1 < self.maxr and param1 <= param2 and param1 > 0 then
+    if
+      self.scroll_region_bottom
+      and param1 < self.maxr
+      and param1 <= param2
+      and param1 > 0
+    then
       self.scroll_region_top = param1
       self.scroll_region_line = 1
     else
@@ -260,7 +262,14 @@ function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, param3)
       self.scroll_region_top = nil
       self.scroll_region_line = nil
     end
-    logger.dbg("Terminal: set scroll region", param1, param2, self.scroll_region_top, self.scroll_region_bottom, self.scroll_region_line)
+    logger.dbg(
+      "Terminal: set scroll region",
+      param1,
+      param2,
+      self.scroll_region_top,
+      self.scroll_region_bottom,
+      self.scroll_region_line
+    )
     return true
   end
   return false
@@ -277,7 +286,10 @@ function TermInputText:interpretAnsiSeq(text)
         self.sequence_state = "esc"
       elseif isPrintable(next_byte) then
         local printable_ends = pos
-        while printable_ends < #text and isPrintable(text:sub(printable_ends+1,printable_ends+1)) do
+        while
+          printable_ends < #text
+          and isPrintable(text:sub(printable_ends + 1, printable_ends + 1))
+        do
           printable_ends = printable_ends + 1
         end
         self:addChars(text:sub(pos, printable_ends), true, true)
@@ -376,10 +388,25 @@ function TermInputText:interpretAnsiSeq(text)
         self.sequence_state = "escOtherCmd"
       end
     elseif self.sequence_state == "escOtherCmd" then
-      if not self:_helperVT52VT100(next_byte, self.sequence_mode, param1, param2, param3) then
+      if
+        not self:_helperVT52VT100(
+          next_byte,
+          self.sequence_mode,
+          param1,
+          param2,
+          param3
+        )
+      then
         -- drop other VT100 sequences
-        logger.info("Terminal: ANSI-final: not supported", next_byte,
-          next_byte:byte(), next_byte, param1, param2, param3)
+        logger.info(
+          "Terminal: ANSI-final: not supported",
+          next_byte,
+          next_byte:byte(),
+          next_byte,
+          param1,
+          param2,
+          param3
+        )
       end
       param1, param2, param3 = 0, 0, 0
       self.sequence_state = ""
@@ -401,7 +428,7 @@ function TermInputText:scrollRegionDown(column)
     self.scroll_region_line = self.scroll_region_line - 1
   else -- scroll down
     local pos = self.charpos
-    for i = self.scroll_region_line, self.scroll_region_bottom  do
+    for i = self.scroll_region_line, self.scroll_region_bottom do
       while pos > 1 and self.charlist[pos] ~= "\n" do
         pos = pos + 1
       end
@@ -456,8 +483,8 @@ function TermInputText:scrollRegionUp(column)
     end
     table.insert(self.charlist, pos, "\n")
     for i = 1, column - 1 do
-       table.insert(self.charlist, pos, " ")
-       pos = pos + 1
+      table.insert(self.charlist, pos, " ")
+      pos = pos + 1
     end
   end
 end
@@ -493,8 +520,8 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
 
   local function insertSpaces(n)
     if n > 0 then
-      table.move(self.charlist, self.charpos, #self.charlist, self.charpos+n)
-      for i = self.charpos, self.charpos+n-1 do
+      table.move(self.charlist, self.charpos, #self.charlist, self.charpos + n)
+      for i = self.charpos, self.charpos + n - 1 do
         self.charlist[i] = " "
       end
     end
@@ -517,7 +544,9 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       end
 
       -- go to EOL
-      while self.charlist[self.charpos] and self.charlist[self.charpos] ~= "\n" do
+      while
+        self.charlist[self.charpos] and self.charlist[self.charpos] ~= "\n"
+      do
         self.charpos = self.charpos + 1
       end
 
@@ -580,11 +609,12 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
     self:initTextBox(table.concat(self.charlist), true)
   end
 end
-dbg:guard(TermInputText, "addChars",
-  function(self, chars)
-    assert(type(chars) == "string",
-      "TermInputText: Wrong chars value type (expected string)!")
-  end)
+dbg:guard(TermInputText, "addChars", function(self, chars)
+  assert(
+    type(chars) == "string",
+    "TermInputText: Wrong chars value type (expected string)!"
+  )
+end)
 
 -- @fixme: this secondary buffer mode has nothing to do with the meaning of
 -- escape codes ^[= and ^[> according to VT52/VT100 documentation. Delete?
@@ -619,19 +649,19 @@ function TermInputText:formatTerminal(clear)
 
       if self.charlist[i] ~= "\n" then
         if clear then
-          self.charlist[i] = ' '
+          self.charlist[i] = " "
         end
       else
-        table.insert(self.charlist, i, ' ')
+        table.insert(self.charlist, i, " ")
       end
       i = i + 1
     end
     if self.charlist[i] ~= "\n" then
       table.insert(self.charlist, i, "\n")
     end
-    i = i + 1  -- skip newline
+    i = i + 1 -- skip newline
   end
---  table.remove(self.charlist, i - 1)
+  --  table.remove(self.charlist, i - 1)
 end
 
 function TermInputText:moveCursorToRowCol(r, c)
@@ -664,7 +694,7 @@ function TermInputText:clearToEndOfScreen()
     pos = pos + 1
   end
   self.is_text_edited = true
---  self:moveCursorToCharPos(self.charpos)
+  --  self:moveCursorToCharPos(self.charpos)
 end
 
 function TermInputText:delToEndOfLine()
@@ -712,7 +742,9 @@ end
 ------------------------------------------------------------------
 
 function TermInputText:leftChar(skip_callback)
-  if self.charpos == 1 then return end
+  if self.charpos == 1 then
+    return
+  end
   if self.strike_callback and not skip_callback then
     self.strike_callback(esc_seq.cursor_left)
     return
@@ -730,7 +762,9 @@ function TermInputText:rightChar(skip_callback)
     self.strike_callback(esc_seq.cursor_right)
     return
   end
-  if self.charpos > #self.charlist then return end
+  if self.charpos > #self.charlist then
+    return
+  end
   local right_char = self.charlist[self.charpos + 1]
   if not right_char or right_char == "\n" then
     return
@@ -765,8 +799,8 @@ function TermInputText:moveCursorDown()
     self.charpos = self.charpos + 1
   end
   self.charpos = self.charpos + 1
-  for i = 1, column-1 do
-    if self.charlist[pos+i] or self.charlist[pos+i] ~= "\n" then
+  for i = 1, column - 1 do
+    if self.charlist[pos + i] or self.charlist[pos + i] ~= "\n" then
       self.charpos = self.charpos + 1
     else
       break
@@ -779,7 +813,9 @@ function TermInputText:delChar()
   if self.readonly or not self:isTextEditable(true) then
     return
   end
-  if self.charpos == 1 then return end
+  if self.charpos == 1 then
+    return
+  end
 
   if self.strike_callback then
     self.strike_callback(backspace)
@@ -832,7 +868,9 @@ function TermInputText:goToEndOfLine(skip_callback)
     if not skip_callback then
       self.strike_callback(esc_seq.cursor_end)
     else
-      while self.charpos <= #self.charlist and self.charlist[self.charpos] ~= "\n" do
+      while
+        self.charpos <= #self.charlist and self.charlist[self.charpos] ~= "\n"
+      do
         self.charpos = self.charpos + 1
       end
     end
@@ -851,7 +889,9 @@ function TermInputText:upLine(skip_callback)
 end
 
 function TermInputText:downLine(skip_callback)
-  if #self.charlist == 0 then return end -- Avoid cursor moving within a hint.
+  if #self.charlist == 0 then
+    return
+  end -- Avoid cursor moving within a hint.
   if self.strike_callback and not skip_callback then
     self.strike_callback(esc_seq.cursor_down)
     return

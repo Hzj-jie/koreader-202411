@@ -15,16 +15,20 @@ local isCall, decodeCall = jsonutil.isCall, jsonutil.decodeCall
 
 local _ENV = nil
 
-local defaultOptions = {
-}
+local defaultOptions = {}
 
 -- No real default-option handling needed...
 local modeOptions = {}
 
 local function mergeOptions(options, mode)
-	jsonutil.doOptionMerge(options, false, 'calls', defaultOptions, mode and modeOptions[mode])
+  jsonutil.doOptionMerge(
+    options,
+    false,
+    "calls",
+    defaultOptions,
+    mode and modeOptions[mode]
+  )
 end
-
 
 --[[
 	Encodes 'value' as a function call
@@ -33,15 +37,16 @@ end
 		parameters == array of parameters to encode
 ]]
 local function getEncoder(options)
-	options = options and jsonutil.merge({}, defaultOptions, options) or defaultOptions
-	local function encodeCall(value, state)
-		if not isCall(value) then
-			return false
-		end
-		local encode = state.encode
-		local name, params = decodeCall(value)
-		local compositeEncoder = state.outputEncoder.composite
-		local valueEncoder = [[
+  options = options and jsonutil.merge({}, defaultOptions, options)
+    or defaultOptions
+  local function encodeCall(value, state)
+    if not isCall(value) then
+      return false
+    end
+    local encode = state.encode
+    local name, params = decodeCall(value)
+    local compositeEncoder = state.outputEncoder.composite
+    local valueEncoder = [[
 		for i = 1, (composite.n or #composite) do
 			local val = composite[i]
 			PUTINNER(i ~= 1)
@@ -52,17 +57,25 @@ local function getEncoder(options)
 			end
 		end
 		]]
-		return compositeEncoder(valueEncoder, name .. '(', ')', ',', params, encode, state)
-	end
-	return {
-		table = encodeCall,
-		['function'] = encodeCall
-	}
+    return compositeEncoder(
+      valueEncoder,
+      name .. "(",
+      ")",
+      ",",
+      params,
+      encode,
+      state
+    )
+  end
+  return {
+    table = encodeCall,
+    ["function"] = encodeCall,
+  }
 end
 
 local calls = {
-	mergeOptions = mergeOptions,
-	getEncoder = getEncoder
+  mergeOptions = mergeOptions,
+  getEncoder = getEncoder,
 }
 
 return calls

@@ -21,10 +21,15 @@ local util = {}
 ---- @string text the string to be stripped
 ---- @treturn string stripped text
 function util.stripPunctuation(text)
-  if not text then return end
+  if not text then
+    return
+  end
   -- strip ASCII punctuation marks around text
   -- and strip any generic punctuation marks (U+2000 - U+206F) in the text
-  return text:gsub("\226[\128-\131][\128-\191]", ''):gsub("^%p+", ''):gsub("%p+$", '')
+  return text
+    :gsub("\226[\128-\131][\128-\191]", "")
+    :gsub("^%p+", "")
+    :gsub("%p+$", "")
 end
 
 -- Various whitespace trimming helpers, from http://lua-users.org/wiki/CommonFunctions & http://lua-users.org/wiki/StringTrim
@@ -50,7 +55,7 @@ end
 ---- @string s the string to be trimmed
 ---- @treturn string trimmed text
 function util.trim(s)
-  local from = s:match"^%s*()"
+  local from = s:match("^%s*()")
   return from > #s and "" or s:match(".*%S", from)
 end
 
@@ -108,9 +113,9 @@ Source: <a href="http://snippets.luacode.org/snippets/String_splitting_130">http
 ----@bool capture
 ----@bool capture_empty_entity
 function util.gsplit(str, pattern, capture, capture_empty_entity)
-  pattern = pattern and tostring(pattern) or '%s+'
-  if (''):find(pattern) then
-    error('pattern matches empty string!', 2)
+  pattern = pattern and tostring(pattern) or "%s+"
+  if (""):find(pattern) then
+    error("pattern matches empty string!", 2)
   end
   return coroutine.wrap(function()
     local index = 1
@@ -144,11 +149,17 @@ Source: <https://stackoverflow.com/a/32660766/2470572>
 ---- @bool ignore_mt
 ---- @treturn boolean
 function util.tableEquals(o1, o2, ignore_mt)
-  if o1 == o2 then return true end
+  if o1 == o2 then
+    return true
+  end
   local o1Type = type(o1)
   local o2Type = type(o2)
-  if o1Type ~= o2Type then return false end
-  if o1Type ~= 'table' then return false end
+  if o1Type ~= o2Type then
+    return false
+  end
+  if o1Type ~= "table" then
+    return false
+  end
 
   if not ignore_mt then
     local mt1 = getmetatable(o1)
@@ -162,14 +173,18 @@ function util.tableEquals(o1, o2, ignore_mt)
 
   for key1, value1 in pairs(o1) do
     local value2 = o2[key1]
-    if value2 == nil or util.tableEquals(value1, value2, ignore_mt) == false then
+    if
+      value2 == nil or util.tableEquals(value1, value2, ignore_mt) == false
+    then
       return false
     end
     keySet[key1] = true
   end
 
   for key2, _ in pairs(o2) do
-    if not keySet[key2] then return false end
+    if not keySet[key2] then
+      return false
+    end
   end
   return true
 end
@@ -183,20 +198,24 @@ Source: <https://stackoverflow.com/a/16077650/2470572>
 ---- @treturn Lua table
 function util.tableDeepCopy(o, seen)
   seen = seen or {}
-  if o == nil then return nil end
-  if seen[o] then return seen[o] end
+  if o == nil then
+    return nil
+  end
+  if seen[o] then
+    return seen[o]
+  end
 
   local no
   if type(o) == "table" then
-  no = {}
-  seen[o] = no
+    no = {}
+    seen[o] = no
 
-  for k, v in next, o, nil do
-    no[util.tableDeepCopy(k, seen)] = util.tableDeepCopy(v, seen)
-  end
-  setmetatable(no, util.tableDeepCopy(getmetatable(o), seen))
+    for k, v in next, o, nil do
+      no[util.tableDeepCopy(k, seen)] = util.tableDeepCopy(v, seen)
+    end
+    setmetatable(no, util.tableDeepCopy(getmetatable(o), seen))
   else -- number, string, boolean, etc
-  no = o
+    no = o
   end
   return no
 end
@@ -206,7 +225,9 @@ end
 ---- @treturn int number of keys in table t
 function util.tableSize(t)
   local count = 0
-  for _ in pairs(t) do count = count + 1 end
+  for _ in pairs(t) do
+    count = count + 1
+  end
   return count
 end
 
@@ -218,9 +239,13 @@ function util.tableGetValue(t, ...)
   local keys = { ... }
   local q = t
   for _, key in ipairs(keys) do
-    if type(q) ~= "table" then return end
+    if type(q) ~= "table" then
+      return
+    end
     q = q[key]
-    if q == nil then return end
+    if q == nil then
+      return
+    end
   end
   return q
 end
@@ -249,10 +274,14 @@ function util.tableRemoveValue(t, ...)
     local q = t
     for j = 1, i - 1 do
       q = q[keys[j]]
-      if type(q) ~= "table" then return end
+      if type(q) ~= "table" then
+        return
+      end
     end
     q[keys[i]] = nil
-    if next(q) ~= nil then break end
+    if next(q) ~= nil then
+      break
+    end
   end
 end
 
@@ -321,7 +350,9 @@ end
 ---- @param v
 ---- @func callback(v1, v2)
 function util.arrayContains(t, v, cb)
-  cb = cb or function(v1, v2) return v1 == v2 end
+  cb = cb or function(v1, v2)
+    return v1 == v2
+  end
   for _k, _v in ipairs(t) do
     if cb(_v, v) then
       return _k
@@ -335,8 +366,12 @@ end
 ---- @param n Lua table (array only)
 ---- @int m Max nesting level
 function util.arrayReferences(t, n, m, l)
-  if not m then m = 15 end
-  if not l then l = 0 end
+  if not m then
+    m = 15
+  end
+  if not l then
+    l = 0
+  end
   if l > m then
     return false
   end
@@ -447,19 +482,25 @@ To find . you need to escape it.
 ---- @treturn int last occurrence or -1 if not found
 function util.lastIndexOf(string, ch)
   local i = string:match(".*" .. ch .. "()")
-  if i == nil then return -1 else return i - 1 end
+  if i == nil then
+    return -1
+  else
+    return i - 1
+  end
 end
 
 --- Pattern which matches a single well-formed UTF-8 character, including
 --- theoretical >4-byte extensions.
 -- Taken from <https://www.lua.org/manual/5.4/manual.html#pdf-utf8.charpattern>
-util.UTF8_CHAR_PATTERN = '[%z\1-\127\194-\253][\128-\191]*'
+util.UTF8_CHAR_PATTERN = "[%z\1-\127\194-\253][\128-\191]*"
 
 --- Reverse the individual greater-than-single-byte characters
 -- @string string to reverse
 -- Taken from <https://github.com/blitmap/lua-utf8-simple#utf8reverses>
 function util.utf8Reverse(text)
-  text = text:gsub(util.UTF8_CHAR_PATTERN, function (c) return #c > 1 and c:reverse() end)
+  text = text:gsub(util.UTF8_CHAR_PATTERN, function(c)
+    return #c > 1 and c:reverse()
+  end)
   return text:reverse()
 end
 
@@ -500,9 +541,16 @@ function util.splitToChars(text)
           end
           hi_surrogate = charcode
           hi_surrogate_uchar = uchar -- will be added if not followed by low surrogate
-        elseif hi_surrogate and charcode and charcode >= 0xDC00 and charcode <= 0xDFFF then
+        elseif
+          hi_surrogate
+          and charcode
+          and charcode >= 0xDC00
+          and charcode <= 0xDFFF
+        then
           -- low surrogate following a high surrogate, good, let's make them a single char
-          charcode = lshift((hi_surrogate - 0xD800), 10) + (charcode - 0xDC00) + 0x10000
+          charcode = lshift((hi_surrogate - 0xD800), 10)
+            + (charcode - 0xDC00)
+            + 0x10000
           table.insert(tab, util.unicodeCodepointToUtf8(charcode))
           hi_surrogate = nil
         else
@@ -535,23 +583,26 @@ function util.isCJKChar(c)
   -- codepoint as a shortcut so if the codepoint is below U+1100 we
   -- immediately return false.
   return -- BMP (Plane 0)
-      code >=  0x1100 and (code <=  0x11FF  or -- Hangul Jamo
-       (code >=  0x2E80 and  code <=  0x9FFF) or -- Numerous CJK Blocks (NB: has some gaps)
-       (code >=  0xA960 and  code <=  0xA97F) or -- Hangul Jamo Extended-A
-       (code >=  0xAC00 and  code <=  0xD7AF) or -- Hangul Syllables
-       (code >=  0xD7B0 and  code <=  0xD7FF) or -- Hangul Jame Extended-B
-       (code >=  0xF900 and  code <=  0xFAFF) or -- CJK Compatibility Ideographs
-       (code >=  0xFE30 and  code <=  0xFE4F) or -- CJK Compatibility Forms
-       (code >=  0xFF00 and  code <=  0xFFEF) or -- Halfwidth and Fullwidth Forms
-       -- SIP (Plane 2)
-       (code >= 0x20000 and  code <= 0x2A6DF) or -- CJK Unified Ideographs Extension B
-       (code >= 0x2A700 and  code <= 0x2B73F) or -- CJK Unified Ideographs Extension C
-       (code >= 0x2B740 and  code <= 0x2B81F) or -- CJK Unified Ideographs Extension D
-       (code >= 0x2B820 and  code <= 0x2CEAF) or -- CJK Unified Ideographs Extension E
-       (code >= 0x2CEB0 and  code <= 0x2EBEF) or -- CJK Unified Ideographs Extension F
-       (code >= 0x2F800 and  code <= 0x2FA1F) or -- CJK Compatibility Ideographs Supplement
-       -- TIP (Plane 3)
-       (code >= 0x30000 and  code <= 0x3134F))   -- CJK Unified Ideographs Extension G
+    code >= 0x1100
+      and (
+        code <= 0x11FF -- Hangul Jamo
+        or (code >= 0x2E80 and code <= 0x9FFF) -- Numerous CJK Blocks (NB: has some gaps)
+        or (code >= 0xA960 and code <= 0xA97F) -- Hangul Jamo Extended-A
+        or (code >= 0xAC00 and code <= 0xD7AF) -- Hangul Syllables
+        or (code >= 0xD7B0 and code <= 0xD7FF) -- Hangul Jame Extended-B
+        or (code >= 0xF900 and code <= 0xFAFF) -- CJK Compatibility Ideographs
+        or (code >= 0xFE30 and code <= 0xFE4F) -- CJK Compatibility Forms
+        or (code >= 0xFF00 and code <= 0xFFEF) -- Halfwidth and Fullwidth Forms
+        -- SIP (Plane 2)
+        or (code >= 0x20000 and code <= 0x2A6DF) -- CJK Unified Ideographs Extension B
+        or (code >= 0x2A700 and code <= 0x2B73F) -- CJK Unified Ideographs Extension C
+        or (code >= 0x2B740 and code <= 0x2B81F) -- CJK Unified Ideographs Extension D
+        or (code >= 0x2B820 and code <= 0x2CEAF) -- CJK Unified Ideographs Extension E
+        or (code >= 0x2CEB0 and code <= 0x2EBEF) -- CJK Unified Ideographs Extension F
+        or (code >= 0x2F800 and code <= 0x2FA1F) -- CJK Compatibility Ideographs Supplement
+        -- TIP (Plane 3)
+        or (code >= 0x30000 and code <= 0x3134F)
+      ) -- CJK Unified Ideographs Extension G
 end
 
 --- Tests whether str contains CJK characters
@@ -595,33 +646,32 @@ local non_splittable_space_tailers = ":;,.!?)]}$%=-+*/|<>»”"
 -- Same if a space has some specific other punctuation mark before it
 local non_splittable_space_leaders = "([{$=-+*/|<>«“"
 
-
 -- Similar rules exist for CJK text. Taken from :
 -- https://en.wikipedia.org/wiki/Line_breaking_rules_in_East_Asian_languages
 
-local cjk_non_splittable_tailers = table.concat( {
+local cjk_non_splittable_tailers = table.concat({
   -- Simplified Chinese
-  "!%),.:;?]}¢°·’\"†‡›℃∶、。〃〆〕〗〞﹚﹜！＂％＇），．：；？！］｝～",
+  '!%),.:;?]}¢°·’"†‡›℃∶、。〃〆〕〗〞﹚﹜！＂％＇），．：；？！］｝～',
   -- Traditional Chinese
-  "!),.:;?]}¢·–—’\"•、。〆〞〕〉》」︰︱︲︳﹐﹑﹒﹓﹔﹕﹖﹘﹚﹜！），．：；？︶︸︺︼︾﹀﹂﹗］｜｝､",
+  '!),.:;?]}¢·–—’"•、。〆〞〕〉》」︰︱︲︳﹐﹑﹒﹓﹔﹕﹖﹘﹚﹜！），．：；？︶︸︺︼︾﹀﹂﹗］｜｝､',
   -- Japanese
-  ")]｝〕〉》」』】〙〗〟’\"｠»ヽヾーァィゥェォッャュョヮヵヶぁぃぅぇぉっゃゅょゎゕゖㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇺㇻㇼㇽㇾㇿ々〻‐゠–〜?!‼⁇⁈⁉・、:;,。.",
+  ')]｝〕〉》」』】〙〗〟’"｠»ヽヾーァィゥェォッャュョヮヵヶぁぃぅぇぉっゃゅょゎゕゖㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇺㇻㇼㇽㇾㇿ々〻‐゠–〜?!‼⁇⁈⁉・、:;,。.',
   -- Korean
-  "!%),.:;?]}¢°’\"†‡℃〆〈《「『〕！％），．：；？］｝",
+  '!%),.:;?]}¢°’"†‡℃〆〈《「『〕！％），．：；？］｝',
 })
 
-local cjk_non_splittable_leaders = table.concat( {
+local cjk_non_splittable_leaders = table.concat({
   -- Simplified Chinese
-  "$(£¥·‘\"〈《「『【〔〖〝﹙﹛＄（．［｛￡￥",
+  '$(£¥·‘"〈《「『【〔〖〝﹙﹛＄（．［｛￡￥',
   -- Traditional Chinese
-  "([{£¥‘\"‵〈《「『〔〝︴﹙﹛（｛︵︷︹︻︽︿﹁﹃﹏",
+  '([{£¥‘"‵〈《「『〔〝︴﹙﹛（｛︵︷︹︻︽︿﹁﹃﹏',
   -- Japanese
-  "([｛〔〈《「『【〘〖〝‘\"｟«",
+  '([｛〔〈《「『【〘〖〝‘"｟«',
   -- Korean
-  "$([{£¥‘\"々〇〉》」〔＄（［｛｠￥￦#",
+  '$([{£¥‘"々〇〉》」〔＄（［｛｠￥￦#',
 })
 
-local cjk_non_splittable = table.concat( {
+local cjk_non_splittable = table.concat({
   -- Japanese
   "—…‥〳〴〵",
 })
@@ -673,14 +723,18 @@ end
 ---- @treturn string filesystem type
 function util.getFilesystemType(path)
   local mounts = io.open("/proc/mounts", "r")
-  if not mounts then return nil end
+  if not mounts then
+    return nil
+  end
   local type
   for line in mounts:lines() do
     local mount = {}
-    for param in line:gmatch("%S+") do table.insert(mount, param) end
+    for param in line:gmatch("%S+") do
+      table.insert(mount, param)
+    end
     if string.match(path, mount[2]) then
       type = mount[3]
-      if mount[2] ~= '/' then
+      if mount[2] ~= "/" then
         break
       end
     end
@@ -776,7 +830,8 @@ function util:calcFreeMem()
   else
     -- Crappy Free + Buffers + Cache version, because the zoneinfo approach is a tad hairy...
     -- So, leave an even larger margin, and only report 75% of that...
-    return math.floor((memfree + buffers + cached) * 0.75) * 1024, memtotal * 1024
+    return math.floor((memfree + buffers + cached) * 0.75) * 1024,
+      memtotal * 1024
   end
 end
 
@@ -786,9 +841,11 @@ end
 function util.findFiles(dir, cb)
   local function scan(current)
     local ok, iter, dir_obj = pcall(lfs.dir, current)
-    if not ok then return end
+    if not ok then
+      return
+    end
     for f in iter, dir_obj do
-      local path = current.."/"..f
+      local path = current .. "/" .. f
       -- lfs can return nil here, as it will follow symlinks!
       local attr = lfs.attributes(path) or {}
       if attr.mode == "directory" then
@@ -809,9 +866,11 @@ end
 function util.isEmptyDir(path)
   -- lfs.dir will crash rather than return nil if directory doesn't exist O_o
   local ok, iter, dir_obj = pcall(lfs.dir, path)
-  if not ok then return end
+  if not ok then
+    return
+  end
   for filename in iter, dir_obj do
-    if filename ~= '.' and filename ~= '..' then
+    if filename ~= "." and filename ~= ".." then
       return false
     end
   end
@@ -824,8 +883,8 @@ end
 function util.fileExists(path)
   local file = io.open(path, "r")
   if file ~= nil then
-     file:close()
-     return true
+    file:close()
+    return true
   end
 end
 
@@ -868,7 +927,8 @@ function util.makePath(path)
     if lfs.attributes(components, "mode") == nil then
       success, err = lfs.mkdir(components)
       if not success then
-        return nil, err .. " (creating `" .. components .. "` for `" .. path .. "`)"
+        return nil,
+          err .. " (creating `" .. components .. "` for `" .. path .. "`)"
       end
     end
   end
@@ -888,10 +948,17 @@ function util.removePath(path)
       local success, err = lfs.rmdir(component)
       if not success then
         -- Most likely because ENOTEMPTY ;)
-        return nil, err .. " (removing `" .. component .. "` for `" .. path .. "`)"
+        return nil,
+          err .. " (removing `" .. component .. "` for `" .. path .. "`)"
       end
     elseif attr ~= nil then
-      return nil, "Encountered a component that isn't a directory" .. " (removing `" .. component .. "` for `" .. path .. "`)"
+      return nil,
+        "Encountered a component that isn't a directory"
+          .. " (removing `"
+          .. component
+          .. "` for `"
+          .. path
+          .. "`)"
     end
 
     local parent = ffiUtil.dirname(component)
@@ -919,23 +986,33 @@ end
 function util.diskUsage(dir)
   -- safe way of testing df & awk
   local function doCommand(d)
-    local handle = io.popen("df -k " .. d .. " 2>/dev/null | awk '$3 ~ /[0-9]+/ { print $2,$3,$4 }' 2>/dev/null || echo ::ERROR::")
-    if not handle then return end
+    local handle = io.popen(
+      "df -k "
+        .. d
+        .. " 2>/dev/null | awk '$3 ~ /[0-9]+/ { print $2,$3,$4 }' 2>/dev/null || echo ::ERROR::"
+    )
+    if not handle then
+      return
+    end
     local output = handle:read("*all")
     handle:close()
-    if not output:find "::ERROR::" then
+    if not output:find("::ERROR::") then
       return output
     end
   end
   local err = { total = nil, used = nil, available = nil }
-  if not dir or lfs.attributes(dir, "mode") ~= "directory" then return err end
+  if not dir or lfs.attributes(dir, "mode") ~= "directory" then
+    return err
+  end
   local usage = doCommand(dir)
-  if not usage then return err end
+  if not usage then
+    return err
+  end
   local stage, result = {}, {}
   for size in usage:gmatch("%w+") do
     table.insert(stage, size)
   end
-  for k, v in pairs({"total", "used", "available"}) do
+  for k, v in pairs({ "total", "used", "available" }) do
     if stage[k] ~= nil then
       -- sizes are in kb, return bytes here
       result[v] = stage[k] * 1024
@@ -943,7 +1020,6 @@ function util.diskUsage(dir)
   end
   return result
 end
-
 
 --- Replaces characters that are invalid filenames.
 --
@@ -954,7 +1030,7 @@ end
 ---- @treturn string sanitized filename
 local function replaceAllInvalidChars(str)
   if str then
-    return str:gsub('[\\,%/,:,%*,%?,%",%<,%>,%|]','_')
+    return str:gsub('[\\,%/,:,%*,%?,%",%<,%>,%|]', "_")
   end
 end
 
@@ -963,7 +1039,7 @@ end
 ---- @treturn string
 local function replaceSlashChar(str)
   if str then
-    return str:gsub('%/','_')
+    return str:gsub("%/", "_")
   end
 end
 
@@ -1022,8 +1098,12 @@ end
 ---- @string file
 ---- @treturn string directory, filename
 function util.splitFilePathName(file)
-  if file == nil or file == "" then return "", "" end
-  if string.find(file, "/") == nil then return "", file end
+  if file == nil or file == "" then
+    return "", ""
+  end
+  if string.find(file, "/") == nil then
+    return "", file
+  end
   return file:match("(.*/)(.*)")
 end
 
@@ -1031,8 +1111,12 @@ end
 ---- @string file
 ---- @treturn string path, extension
 function util.splitFileNameSuffix(file)
-  if file == nil or file == "" then return "", "" end
-  if string.find(file, "%.") == nil then return file, "" end
+  if file == nil or file == "" then
+    return "", ""
+  end
+  if string.find(file, "%.") == nil then
+    return file, ""
+  end
   return file:match("(.*)%.(.*)")
 end
 
@@ -1065,15 +1149,26 @@ function util.getFriendlySize(size, right_align)
   local frac_format = right_align and "%6.1f" or "%.1f"
   local deci_format = right_align and "%6d" or "%d"
   size = tonumber(size)
-  if not size or type(size) ~= "number" then return end
-  if size > 1000*1000*1000 then
-    return T(C_("Data storage size", "%1 GB"), string.format(frac_format, size/1000/1000/1000))
+  if not size or type(size) ~= "number" then
+    return
   end
-  if size > 1000*1000 then
-    return T(C_("Data storage size", "%1 MB"), string.format(frac_format, size/1000/1000))
+  if size > 1000 * 1000 * 1000 then
+    return T(
+      C_("Data storage size", "%1 GB"),
+      string.format(frac_format, size / 1000 / 1000 / 1000)
+    )
+  end
+  if size > 1000 * 1000 then
+    return T(
+      C_("Data storage size", "%1 MB"),
+      string.format(frac_format, size / 1000 / 1000)
+    )
   end
   if size > 1000 then
-    return T(C_("Data storage size", "%1 kB"), string.format(frac_format, size/1000))
+    return T(
+      C_("Data storage size", "%1 kB"),
+      string.format(frac_format, size / 1000)
+    )
   else
     return T(C_("Data storage size", "%1 B"), string.format(deci_format, size))
   end
@@ -1099,13 +1194,17 @@ end
 -- 1048576, 4194304, 16777216, 67108864, 268435456 or 1073741824, appending data
 -- by highlighting in KOReader may change the digest value.
 function util.partialMD5(filepath)
-  if not filepath then return end
+  if not filepath then
+    return
+  end
   local file = io.open(filepath, "rb")
-  if not file then return end
+  if not file then
+    return
+  end
   local step, size = 1024, 1024
   local update = md5()
   for i = -1, 10 do
-    file:seek("set", lshift(step, 2*i))
+    file:seek("set", lshift(step, 2 * i))
     local sample = file:read(size)
     if sample then
       update(sample)
@@ -1118,7 +1217,9 @@ function util.partialMD5(filepath)
 end
 
 function util.readFromFile(filepath, mode)
-  if not filepath then return end
+  if not filepath then
+    return
+  end
   local file, err = io.open(filepath, mode)
   if not file then
     return nil, err
@@ -1128,8 +1229,16 @@ function util.readFromFile(filepath, mode)
   return data
 end
 
-function util.writeToFile(data, filepath, force_flush, lua_dofile_ready, directory_updated)
-  if not filepath then return end
+function util.writeToFile(
+  data,
+  filepath,
+  force_flush,
+  lua_dofile_ready,
+  directory_updated
+)
+  if not filepath then
+    return
+  end
   if lua_dofile_ready then
     local t = { "-- ", filepath, "\nreturn ", data, "\n" }
     data = table.concat(t)
@@ -1163,15 +1272,23 @@ function util.fixUtf8(str, replacement)
   local pos = 1
   local len = #str
   while pos <= len do
-    if   str:find("^[%z\1-\127]", pos) then pos = pos + 1
-    elseif str:find("^[\194-\223][\128-\191]", pos) then pos = pos + 2
-    elseif str:find(     "^\224[\160-\191][\128-\191]", pos)
+    if str:find("^[%z\1-\127]", pos) then
+      pos = pos + 1
+    elseif str:find("^[\194-\223][\128-\191]", pos) then
+      pos = pos + 2
+    elseif
+      str:find("^\224[\160-\191][\128-\191]", pos)
       or str:find("^[\225-\236][\128-\191][\128-\191]", pos)
-      or str:find(     "^\237[\128-\159][\128-\191]", pos)
-      or str:find("^[\238-\239][\128-\191][\128-\191]", pos) then pos = pos + 3
-    elseif str:find(     "^\240[\144-\191][\128-\191][\128-\191]", pos)
+      or str:find("^\237[\128-\159][\128-\191]", pos)
+      or str:find("^[\238-\239][\128-\191][\128-\191]", pos)
+    then
+      pos = pos + 3
+    elseif
+      str:find("^\240[\144-\191][\128-\191][\128-\191]", pos)
       or str:find("^[\241-\243][\128-\191][\128-\191][\128-\191]", pos)
-      or str:find(     "^\244[\128-\143][\128-\191][\128-\191]", pos) then pos = pos + 4
+      or str:find("^\244[\128-\143][\128-\191][\128-\191]", pos)
+    then
+      pos = pos + 4
     else
       str = str:sub(1, pos - 1) .. replacement .. str:sub(pos + 1)
       pos = pos + #replacement
@@ -1206,46 +1323,53 @@ function util.unicodeCodepointToUtf8(c)
   if c < 0x80 then
     return string.char(c)
   elseif c < 0x800 then
-    return string.char(
-        bor(0xC0, rshift(c, 6)),
-        bor(0x80, band(c, 0x3F))
-    )
+    return string.char(bor(0xC0, rshift(c, 6)), bor(0x80, band(c, 0x3F)))
   elseif c < 0x10000 then
     if c >= 0xD800 and c <= 0xDFFF then
-      return '�' -- Surrogates -> U+FFFD REPLACEMENT CHARACTER
+      return "�" -- Surrogates -> U+FFFD REPLACEMENT CHARACTER
     end
     return string.char(
-        bor(0xE0, rshift(c, 12)),
-        bor(0x80, band(rshift(c, 6), 0x3F)),
-        bor(0x80, band(c, 0x3F))
+      bor(0xE0, rshift(c, 12)),
+      bor(0x80, band(rshift(c, 6), 0x3F)),
+      bor(0x80, band(c, 0x3F))
     )
   elseif c < 0x110000 then
     return string.char(
-        bor(0xF0, rshift(c, 18)),
-        bor(0x80, band(rshift(c, 12), 0x3F)),
-        bor(0x80, band(rshift(c, 6), 0x3F)),
-        bor(0x80, band(c, 0x3F))
+      bor(0xF0, rshift(c, 18)),
+      bor(0x80, band(rshift(c, 12), 0x3F)),
+      bor(0x80, band(rshift(c, 6), 0x3F)),
+      bor(0x80, band(c, 0x3F))
     )
   else
-    return '�' -- Invalid -> U+FFFD REPLACEMENT CHARACTER
+    return "�" -- Invalid -> U+FFFD REPLACEMENT CHARACTER
   end
 end
 
 -- we need to use an array of arrays to keep them ordered as written
 local HTML_ENTITIES_TO_UTF8 = {
-  {"&lt;", "<"},
-  {"&gt;", ">"},
-  {"&quot;", '"'},
-  {"&lsquo;", '‘'},
-  {"&rsquo;", '’'},
-  {"&ldquo;", '“'},
-  {"&rdquo;", '”'},
-  {"&mdash;", '—'},
-  {"&apos;", "'"},
-  {"&nbsp;", "\u{00A0}"},
-  {"&#(%d+);", function(x) return util.unicodeCodepointToUtf8(tonumber(x)) end},
-  {"&#x(%x+);", function(x) return util.unicodeCodepointToUtf8(tonumber(x, 16)) end},
-  {"&amp;", "&"}, -- must be last
+  { "&lt;", "<" },
+  { "&gt;", ">" },
+  { "&quot;", '"' },
+  { "&lsquo;", "‘" },
+  { "&rsquo;", "’" },
+  { "&ldquo;", "“" },
+  { "&rdquo;", "”" },
+  { "&mdash;", "—" },
+  { "&apos;", "'" },
+  { "&nbsp;", "\u{00A0}" },
+  {
+    "&#(%d+);",
+    function(x)
+      return util.unicodeCodepointToUtf8(tonumber(x))
+    end,
+  },
+  {
+    "&#x(%x+);",
+    function(x)
+      return util.unicodeCodepointToUtf8(tonumber(x, 16))
+    end,
+  },
+  { "&amp;", "&" }, -- must be last
 }
 --[[--
 Replace HTML entities with their UTF-8 encoded equivalent in text.
@@ -1278,7 +1402,7 @@ function util.htmlToPlainText(text)
   text = text:gsub("%s*</%s*p%s*>%s*", "\n") -- </p>
   text = text:gsub("%s*<%s*p%s*/>%s*", "\n") -- standalone <p/>
   text = text:gsub("%s*<%s*p%s*>%s*", "\n\t") -- <p>
-    -- (this one last, so \t is not removed by the others' %s)
+  -- (this one last, so \t is not removed by the others' %s)
   -- Remove all HTML tags
   text = text:gsub("<[^>]*>", "")
   -- Convert HTML entities
@@ -1379,17 +1503,17 @@ function util.prettifyCSS(css_text, condensed)
       -- they apply to what's above - but will still look fine if they are about
       -- what's after.
       s = "\n" .. s -- so the next one match on the first line
-      s = s:gsub("\n */%*", "\a/*")      -- '/*' with only blank before: mark them with '\a'
-      s = s:gsub(" *([^\a])/%*", "\n\t/*")   -- unmarked '/*' (content before): marked, more indentation later
-      s = s:gsub("\a", "")           -- remove mark
-      s = s:gsub("\t", "\a")         -- replace mark by one that is not caught by '%s'
-      s = s:gsub("%*/%s*", "*/\n")       -- '*/' end of css comment: newline after
-      s = s:gsub("%s*;%s*", ";\n")       -- newline after ';'
-      s = s:gsub("\n+%s*", "\n  ")     -- remove blank lines, 4 spaces indent on all lines
-      s = s:gsub("\a", "  ")         -- expand our \a marks to have these /* more indented
-      s = s:gsub("%s*:%s*", ": ")      -- normalize spacing in "keyword: value"
+      s = s:gsub("\n */%*", "\a/*") -- '/*' with only blank before: mark them with '\a'
+      s = s:gsub(" *([^\a])/%*", "\n\t/*") -- unmarked '/*' (content before): marked, more indentation later
+      s = s:gsub("\a", "") -- remove mark
+      s = s:gsub("\t", "\a") -- replace mark by one that is not caught by '%s'
+      s = s:gsub("%*/%s*", "*/\n") -- '*/' end of css comment: newline after
+      s = s:gsub("%s*;%s*", ";\n") -- newline after ';'
+      s = s:gsub("\n+%s*", "\n  ") -- remove blank lines, 4 spaces indent on all lines
+      s = s:gsub("\a", "  ") -- expand our \a marks to have these /* more indented
+      s = s:gsub("%s*:%s*", ": ") -- normalize spacing in "keyword: value"
       s = s:gsub("^%s*(.-)%s*$", "\n  %1") -- remove leading and trailing spaces, indent first line
-      s = s:gsub("^%s*$", "")        -- but have empty declaration really empty
+      s = s:gsub("^%s*$", "") -- but have empty declaration really empty
       -- less indent for these crengine specific tweaks to the followup properties
       s = s:gsub("\n  %-cr%-hint: late", "\n -cr-hint: late")
       s = s:gsub("\n  %-cr%-only%-if", "\n -cr-only-if")
@@ -1437,7 +1561,9 @@ end
 --- @table t the array to be cleared
 function util.clearTable(t)
   local c = #t
-  for i = 0, c do t[i] = nil end
+  for i = 0, c do
+    t[i] = nil
+  end
 end
 
 --- Encode URL also known as percent-encoding see https://en.wikipedia.org/wiki/Percent-encoding
@@ -1481,7 +1607,7 @@ function util.checkLuaSyntax(lua_text)
   end
   -- Replace: [string "blah blah..."]:3: '=' expected near '123'
   -- with: Line 3: '=' expected near '123'
-  err = err and err:gsub("%[string \".-%\"]:", "Line ")
+  err = err and err:gsub('%[string ".-%"]:', "Line ")
   return err
 end
 
@@ -1492,7 +1618,7 @@ end
 -- @string start string to match
 -- @treturn bool true on success
 function util.stringStartsWith(str, start)
-   return str:sub(1, #start) == start
+  return str:sub(1, #start) == start
 end
 
 --- Simple endsWith string helper.
@@ -1500,7 +1626,7 @@ end
 -- @string ending string to match
 -- @treturn bool true on success
 function util.stringEndsWith(str, ending)
-   return ending == "" or str:sub(-#ending) == ending
+  return ending == "" or str:sub(-#ending) == ending
 end
 
 --- Search a string in a text.
@@ -1596,7 +1722,12 @@ local WrappedFunction_mt = {
 -- @tparam string target_field_name The name of the field to wrap.
 -- @tparam nil|func new_func If non-nil, this function will be called instead of the original function after wrapping.
 -- @tparam nil|func before_callback If non-nil, this function will be called (with the arguments (target_table, ...)) before the function is called.
-function util.wrapMethod(target_table, target_field_name, new_func, before_callback)
+function util.wrapMethod(
+  target_table,
+  target_field_name,
+  new_func,
+  before_callback
+)
   local old_func = target_table[target_field_name]
   local wrapped = setmetatable({
     target_table = target_table,

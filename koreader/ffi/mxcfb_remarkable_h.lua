@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 static const int UPDATE_MODE_PARTIAL = 0;
 static const int UPDATE_MODE_FULL = 1;
 static const int WAVEFORM_MODE_INIT = 0;
@@ -55,4 +55,4 @@ struct mxcfb_update_marker_data {
 };
 static const int MXCFB_SEND_UPDATE = 1078478382;
 static const int MXCFB_WAIT_FOR_UPDATE_COMPLETE = 3221767727;
-]]
+]])

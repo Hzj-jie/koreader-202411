@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-ffi.cdef[[
+ffi.cdef([[
 static const int UPDATE_MODE_PARTIAL = 0;
 static const int UPDATE_MODE_FULL = 1;
 static const int WAVEFORM_MODE_INIT = 0;
@@ -155,4 +155,4 @@ static const int HWTCON_SET_TEMPERATURE = 1074021932;
 static const int HWTCON_SEND_UPDATE = 1076119086;
 static const int HWTCON_WAIT_FOR_UPDATE_SUBMISSION = 1074021943;
 static const int HWTCON_WAIT_FOR_UPDATE_COMPLETE = 3221767727;
-]]
+]])

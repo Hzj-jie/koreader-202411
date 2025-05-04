@@ -10,20 +10,30 @@ local time = require("ui/time")
 -- SDL computes WM_CLASS on X11/Wayland based on process's binary name.
 -- Some desktop environments rely on WM_CLASS to name the app and/or to assign the proper icon.
 if jit.os == "Linux" or jit.os == "BSD" or jit.os == "POSIX" then
-  if not os.getenv("SDL_VIDEO_WAYLAND_WMCLASS") then ffi.C.setenv("SDL_VIDEO_WAYLAND_WMCLASS", "KOReader", 1) end
-  if not os.getenv("SDL_VIDEO_X11_WMCLASS") then ffi.C.setenv("SDL_VIDEO_X11_WMCLASS", "KOReader", 1) end
+  if not os.getenv("SDL_VIDEO_WAYLAND_WMCLASS") then
+    ffi.C.setenv("SDL_VIDEO_WAYLAND_WMCLASS", "KOReader", 1)
+  end
+  if not os.getenv("SDL_VIDEO_X11_WMCLASS") then
+    ffi.C.setenv("SDL_VIDEO_X11_WMCLASS", "KOReader", 1)
+  end
 end
 
-local function yes() return true end
-local function no() return false end
-local function notOSX() return jit.os ~= "OSX" end
+local function yes()
+  return true
+end
+local function no()
+  return false
+end
+local function notOSX()
+  return jit.os ~= "OSX"
+end
 
 local function isUrl(s)
   return type(s) == "string" and s:match("*?://")
 end
 
 local function isCommand(s)
-  return os.execute("command -v "..s.." >/dev/null") == 0
+  return os.execute("command -v " .. s .. " >/dev/null") == 0
 end
 
 local function runCommand(command)
@@ -51,7 +61,7 @@ local function getLinkOpener()
 end
 
 -- third-party app support
-local external = require("device/thirdparty"):new{
+local external = require("device/thirdparty"):new({
   dicts = getDesktopDicts(),
   check = function(self, app)
     if (isUrl(app) and getLinkOpener()) or isCommand(app) then
@@ -59,9 +69,9 @@ local external = require("device/thirdparty"):new{
     end
     return false
   end,
-}
+})
 
-local Device = Generic:extend{
+local Device = Generic:extend({
   model = "SDL",
   isSDL = yes,
   home_dir = os.getenv("XDG_DOCUMENTS_DIR") or os.getenv("HOME"),
@@ -85,17 +95,21 @@ local Device = Generic:extend{
   canOpenLink = getLinkOpener,
   openLink = function(self, link)
     local enabled, tool = getLinkOpener()
-    if not enabled or not tool or not link or type(link) ~= "string" then return end
+    if not enabled or not tool or not link or type(link) ~= "string" then
+      return
+    end
     return runCommand(tool .. " '" .. link .. "'")
   end,
   canExternalDictLookup = yes,
-  getExternalDictLookupList = function() return external.dicts end,
+  getExternalDictLookupList = function()
+    return external.dicts
+  end,
   doExternalDictLookup = function(self, text, method, callback)
     external.when_back_callback = callback
     local ok, app = external:checkMethod("dict", method)
     if app then
       if isUrl(app) and getLinkOpener() then
-        ok = self:openLink(app..text)
+        ok = self:openLink(app .. text)
       elseif isCommand(app) then
         ok = runCommand(app .. " " .. text .. " &")
       end
@@ -106,7 +120,7 @@ local Device = Generic:extend{
     end
   end,
   window = G_reader_settings:readSetting("sdl_window") or {},
-}
+})
 
 function Device:otaModel()
   if self.ota_model then
@@ -114,27 +128,27 @@ function Device:otaModel()
   end
 end
 
-local AppImage = Device:extend{
+local AppImage = Device:extend({
   model = "AppImage",
   ota_model = "appimage",
   hasOTAUpdates = yes,
   isDesktop = yes,
-}
+})
 
-local Desktop = Device:extend{
+local Desktop = Device:extend({
   model = SDL.getPlatform(),
   isDesktop = yes,
   canRestart = notOSX,
   hasExitOptions = notOSX,
-}
+})
 
-local Flatpak = Device:extend{
+local Flatpak = Device:extend({
   model = "Flatpak",
   isDesktop = yes,
   canExternalDictLookup = no,
-}
+})
 
-local Emulator = Device:extend{
+local Emulator = Device:extend({
   model = "Emulator",
   isEmulator = yes,
   hasBattery = yes,
@@ -149,20 +163,21 @@ local Emulator = Device:extend{
   -- NOTE: Via simulateSuspend
   canSuspend = yes,
   canStandby = no,
-}
+})
 
-local UbuntuTouch = Device:extend{
+local UbuntuTouch = Device:extend({
   model = "UbuntuTouch",
   hasFrontlight = yes,
   isDefaultFullscreen = yes,
-}
+})
 
 function Device:init()
   -- allows to set a viewport via environment variable
   -- syntax is Lua table syntax, e.g. EMULATE_READER_VIEWPORT="{x=10,w=550,y=5,h=790}"
   local viewport = os.getenv("EMULATE_READER_VIEWPORT")
   if viewport then
-    self.viewport = require("ui/geometry"):new(loadstring("return " .. viewport)())
+    self.viewport =
+      require("ui/geometry"):new(loadstring("return " .. viewport)())
   end
 
   local touchless = os.getenv("DISABLE_TOUCH") == "1"
@@ -176,7 +191,7 @@ function Device:init()
   end
 
   self.hasClipboard = yes
-  self.screen = require("ffi/framebuffer_SDL2_0"):new{
+  self.screen = require("ffi/framebuffer_SDL2_0"):new({
     device = self,
     debug = logger.dbg,
     w = self.window.width,
@@ -184,21 +199,22 @@ function Device:init()
     x = self.window.left,
     y = self.window.top,
     is_always_portrait = self.isAlwaysPortrait(),
-  }
+  })
   -- Pickup the updated window sizes if they were enforced in S.open (we'll get the coordinates via the initial SDL_WINDOWEVENT_MOVED)...
   self.window.width = self.screen.w
   self.window.height = self.screen.h
-  self.powerd = require("device/sdl/powerd"):new{device = self}
+  self.powerd = require("device/sdl/powerd"):new({ device = self })
 
-  local ok, re = pcall(self.screen.setWindowIcon, self.screen, "resources/koreader.png")
-  if not ok then logger.warn(re) end
+  local ok, re =
+    pcall(self.screen.setWindowIcon, self.screen, "resources/koreader.png")
+  if not ok then
+    logger.warn(re)
+  end
 
-  self.input = require("device/input"):new{
+  self.input = require("device/input"):new({
     device = self,
     event_map = dofile("frontend/device/sdl/event_map_sdl2.lua"),
     handleSdlEv = function(device_input, ev)
-
-
       -- SDL events can remain cdata but are almost completely transparent
       local SDL_TEXTINPUT = 771
       local SDL_MOUSEWHEEL = 1027
@@ -214,18 +230,19 @@ function Device:init()
         local up = 1
         local down = -1
 
-        local pos = Geom:new{
+        local pos = Geom:new({
           x = 0,
           y = 0,
-          w = 0, h = 0,
-        }
+          w = 0,
+          h = 0,
+        })
 
         local fake_ges = {
           ges = "pan",
           distance = 200,
           relative = {
-            x = 50*scrolled_x,
-            y = 100*scrolled_y,
+            x = 50 * scrolled_x,
+            y = 100 * scrolled_y,
           },
           pos = pos,
           time = time.timeval(ev.time),
@@ -252,7 +269,8 @@ function Device:init()
         end
       elseif ev.code == SDL_MULTIGESTURE then
         -- no-op for now
-        do end -- luacheck: ignore 541
+        do
+        end -- luacheck: ignore 541
       elseif ev.code == SDL_DROPFILE then
         local dropped_file_path = ev.value
         if dropped_file_path and dropped_file_path ~= "" then
@@ -260,7 +278,11 @@ function Device:init()
           ReaderUI:doShowReader(dropped_file_path)
         end
       elseif ev.code == SDL_WINDOWEVENT_RESIZED then
-        device_input.device.screen.resize(device_input.device.screen, ev.value.data1, ev.value.data2)
+        device_input.device.screen.resize(
+          device_input.device.screen,
+          ev.value.data1,
+          ev.value.data2
+        )
         self.window.width = ev.value.data1
         self.window.height = ev.value.data2
 
@@ -282,8 +304,10 @@ function Device:init()
 
         local FileManager = require("apps/filemanager/filemanager")
         if FileManager.instance then
-          FileManager.instance:reinit(FileManager.instance.path,
-            FileManager.instance.focused_file)
+          FileManager.instance:reinit(
+            FileManager.instance.path,
+            FileManager.instance.focused_file
+          )
         end
 
         -- make sure dialogs are displayed
@@ -295,7 +319,7 @@ function Device:init()
         UIManager:sendEvent(Event:new("TextInput", tostring(ev.value)))
       end
     end,
-  }
+  })
 
   self.keyboard_layout = dofile("frontend/device/sdl/keyboard_layout.lua")
 
@@ -317,15 +341,25 @@ function Device:init()
 end
 
 function Device:setDateTime(year, month, day, hour, min, sec)
-  if hour == nil or min == nil then return true end
+  if hour == nil or min == nil then
+    return true
+  end
   local command
   if year and month and day then
-    command = string.format("date -s '%d-%d-%d %d:%d:%d'", year, month, day, hour, min, sec)
+    command = string.format(
+      "date -s '%d-%d-%d %d:%d:%d'",
+      year,
+      month,
+      day,
+      hour,
+      min,
+      sec
+    )
   else
-    command = string.format("date -s '%d:%d'",hour, min)
+    command = string.format("date -s '%d:%d'", hour, min)
   end
   if os.execute(command) == 0 then
-    os.execute('hwclock -u -w')
+    os.execute("hwclock -u -w")
     return true
   else
     return false
@@ -380,7 +414,9 @@ function Device:setEventHandlers(uimgr)
 end
 
 function Device:initNetworkManager(NetworkMgr)
-  function NetworkMgr:isWifiOn() return true end
+  function NetworkMgr:isWifiOn()
+    return true
+  end
   function NetworkMgr:isConnected()
     if not Device:hasWifiToggle() then
       -- NOTE: This is necessary so as not to confuse NetworkMghr's beforeWifiAction framework.
@@ -396,7 +432,9 @@ function Device:initNetworkManager(NetworkMgr)
   end
 end
 
-function Emulator:supportsScreensaver() return true end
+function Emulator:supportsScreensaver()
+  return true
+end
 
 function Emulator:simulateSuspend()
   local Screensaver = require("ui/screensaver")

@@ -20,8 +20,12 @@ local T = ffiUtil.template
 -- We'll need a bunch of stuff for getifaddrs & co in Device:retrieveNetworkInfo
 require("ffi/posix_h")
 
-local function yes() return true end
-local function no() return false end
+local function yes()
+  return true
+end
+local function no()
+  return false
+end
 
 local Device = {
   screen_saver_mode = false,
@@ -121,7 +125,9 @@ local Device = {
   -- matches <linux/fb.h> FB_ROTATE_* constants.
   -- See https://github.com/koreader/koreader-base/blob/master/ffi/framebuffer.lua for full template
   -- of the table expected.
-  usingForcedRotation = function() return nil end,
+  usingForcedRotation = function()
+    return nil
+  end,
   -- needs full screen refresh when resumed from screensaver?
   needsScreenRefreshAfterResume = yes,
 
@@ -233,10 +239,10 @@ function Device:init()
   logger.info("framebuffer resolution:", self.screen:getRawSize())
 
   if not self.input then
-    self.input = require("device/input"):new{device = self}
+    self.input = require("device/input"):new({ device = self })
   end
   if not self.powerd then
-    self.powerd = require("device/generic/powerd"):new{device = self}
+    self.powerd = require("device/generic/powerd"):new({ device = self })
   end
 
   -- NOTE: This needs to run *after* implementation-specific event hooks,
@@ -248,7 +254,7 @@ function Device:init()
     if self.viewport.x ~= 0 or self.viewport.y ~= 0 then
       self.input:registerEventAdjustHook(
         self.input.adjustTouchTranslate,
-        {x = 0 - self.viewport.x, y = 0 - self.viewport.y}
+        { x = 0 - self.viewport.x, y = 0 - self.viewport.y }
       )
     end
   end
@@ -282,7 +288,7 @@ function Device:init()
   -- But as implementations come from base, they just return a Geom-like table...
   self.screen.getSize = function()
     local rect = self.screen.getRawSize(self.screen)
-    return Geom:new{ x = rect.x, y = rect.y, w = rect.w, h = rect.h }
+    return Geom:new({ x = rect.x, y = rect.y, w = rect.w, h = rect.h })
   end
 
   -- DPI
@@ -308,15 +314,23 @@ function Device:init()
   -- Dithering
   if self:hasEinkScreen() then
     self.screen:setupDithering()
-    if self.screen.hw_dithering and G_reader_settings:isTrue("dev_no_hw_dither") then
+    if
+      self.screen.hw_dithering and G_reader_settings:isTrue("dev_no_hw_dither")
+    then
       self.screen:toggleHWDithering(false)
     end
-    if self.screen.sw_dithering and G_reader_settings:isTrue("dev_no_sw_dither") then
+    if
+      self.screen.sw_dithering and G_reader_settings:isTrue("dev_no_sw_dither")
+    then
       self.screen:toggleSWDithering(false)
     end
     -- NOTE: If device can HW dither (i.e., after setupDithering(), hw_dithering is true, but sw_dithering is false),
     --     but HW dither is explicitly disabled, and SW dither enabled, don't leave SW dither disabled (i.e., re-enable sw_dithering)!
-    if self:canHWDither() and G_reader_settings:isTrue("dev_no_hw_dither") and G_reader_settings:nilOrFalse("dev_no_sw_dither") then
+    if
+      self:canHWDither()
+      and G_reader_settings:isTrue("dev_no_hw_dither")
+      and G_reader_settings:nilOrFalse("dev_no_sw_dither")
+    then
       self.screen:toggleSWDithering(true)
     end
   end
@@ -353,7 +367,9 @@ function Device:onPowerEvent(ev)
     if ev == "Power" or ev == "Resume" then
       if self.is_cover_closed then
         -- Don't let power key press wake up device when the cover is in closed state.
-        logger.dbg("Pressed power while asleep in screen saver mode with a closed sleepcover, going back to suspend...")
+        logger.dbg(
+          "Pressed power while asleep in screen saver mode with a closed sleepcover, going back to suspend..."
+        )
         self:rescheduleSuspend()
       else
         logger.dbg("Resuming...")
@@ -361,7 +377,14 @@ function Device:onPowerEvent(ev)
         self:resume()
         local widget_was_closed = Screensaver:close()
         if widget_was_closed and self:needsScreenRefreshAfterResume() then
-          UIManager:scheduleIn(1, function() self.screen:refreshFull(0, 0, self.screen:getWidth(), self.screen:getHeight()) end)
+          UIManager:scheduleIn(1, function()
+            self.screen:refreshFull(
+              0,
+              0,
+              self.screen:getWidth(),
+              self.screen:getHeight()
+            )
+          end)
         end
         self.powerd:afterResume()
       end
@@ -374,7 +397,9 @@ function Device:onPowerEvent(ev)
         -- and the user presses the Power button *after* already having woken up the device.
         -- In this case, we want to go back to suspend *without* affecting the screensaver,
         -- so we simply mimic our own behavior when *not* in screen_saver_mode ;).
-        logger.dbg("Pressed power while awake in screen saver mode, going back to suspend...")
+        logger.dbg(
+          "Pressed power while awake in screen saver mode, going back to suspend..."
+        )
         -- Basically, this is the only difference.
         -- We need it because we're actually in a sane post-Resume event state right now.
         self.powerd:beforeSuspend()
@@ -403,7 +428,12 @@ function Device:onPowerEvent(ev)
     --     and on platforms where we defer to a system tool, it'd probably suspend too early!
     --     c.f., #6676
     if self:needsScreenRefreshAfterResume() then
-      self.screen:refreshFull(0, 0, self.screen:getWidth(), self.screen:getHeight())
+      self.screen:refreshFull(
+        0,
+        0,
+        self.screen:getWidth(),
+        self.screen:getHeight()
+      )
     end
     -- NOTE: In the same vein as above, make sure we update the screen *now*, before dealing with Wi-Fi.
     UIManager:forceRePaint()
@@ -425,7 +455,7 @@ end
 
 function Device:showLightDialog()
   local FrontLightWidget = require("ui/widget/frontlightwidget")
-  UIManager:show(FrontLightWidget:new{})
+  UIManager:show(FrontLightWidget:new({}))
 end
 
 function Device:info()
@@ -434,7 +464,7 @@ end
 
 function Device:install()
   local ConfirmBox = require("ui/widget/confirmbox")
-  UIManager:show(ConfirmBox:new{
+  UIManager:show(ConfirmBox:new({
     text = _("Update is ready. Install it now?"),
     ok_text = _("Install"),
     ok_callback = function()
@@ -447,17 +477,18 @@ function Device:install()
     cancel_text = _("Later"),
     cancel_callback = function()
       local InfoMessage = require("ui/widget/infomessage")
-      UIManager:show(InfoMessage:new{
-        text = _("The update will be applied the next time KOReader is started."),
+      UIManager:show(InfoMessage:new({
+        text = _(
+          "The update will be applied the next time KOReader is started."
+        ),
         unmovable = true,
         dismissable = false,
-      })
+      }))
     end,
     unmovable = true,
     dismissable = false,
-  })
+  }))
 end
-
 
 -- Hardware specific method to track opened/closed books (nil on book close)
 function Device:notifyBookState(title, document) end
@@ -469,7 +500,11 @@ function Device:setAutoStandby(isAllowed) end
 
 -- Hardware specific method to set OS-level file associations to launch koreader. Expects boolean map.
 function Device:associateFileExtensions(exts)
-  logger.dbg("Device:associateFileExtensions():", util.tableSize(exts), "entries, OS handler missing")
+  logger.dbg(
+    "Device:associateFileExtensions():",
+    util.tableSize(exts),
+    "entries, OS handler missing"
+  )
 end
 
 -- Hardware specific method to handle usb plug in event
@@ -495,7 +530,9 @@ function Device:reboot() end
 -- Hardware specific method to initialize network manager module
 function Device:initNetworkManager() end
 
-function Device:supportsScreensaver() return false end
+function Device:supportsScreensaver()
+  return false
+end
 
 -- Device specific method to set datetime
 function Device:setDateTime(year, month, day, hour, min, sec) end
@@ -503,7 +540,9 @@ function Device:setDateTime(year, month, day, hour, min, sec) end
 -- Device specific method if any setting needs being saved
 function Device:saveSettings() end
 
-function Device:isAlwaysFullscreen() return true end
+function Device:isAlwaysFullscreen()
+  return true
+end
 function Device:toggleFullscreen() end
 
 -- Simulates suspend/resume
@@ -512,7 +551,6 @@ function Device:simulateResume() end
 
 -- Put device into standby, input devices (buttons, touchscreen ...) stay enabled
 function Device:standby(max_duration) end
-
 
 -- Returns a string, used to determine the platform to fetch OTA updates
 function Device:otaModel()
@@ -527,7 +565,9 @@ Device specific method for performing haptic feedback.
 function Device:performHapticFeedback(type) end
 
 -- Device specific method for toggling input events
-function Device:setIgnoreInput(enable) return true end
+function Device:setIgnoreInput(enable)
+  return true
+end
 
 -- Device agnostic method for toggling the GSensor
 -- (can be reimplemented if need be, but you really, really should try not to. c.f., Kobo, Kindle & PocketBook)
@@ -593,7 +633,10 @@ function Device:exit()
   self:saveSettings()
 
   -- Save current rotation (or the original rotation if ScreenSaver temporarily modified it) to remember it for next startup
-  G_reader_settings:saveSetting("closed_rotation_mode", self.orig_rotation_mode or self.screen:getRotationMode())
+  G_reader_settings:saveSetting(
+    "closed_rotation_mode",
+    self.orig_rotation_mode or self.screen:getRotationMode()
+  )
 
   -- Restore initial HW inversion state
   self.screen:setHWNightmode(self.orig_hw_nightmode)
@@ -636,19 +679,35 @@ function Device:ping4(ip)
   -- NOTE: This is disabled by default, barring custom distro setup during init, c.f., sysctl net.ipv4.ping_group_range
   --     It also requires Linux 3.0+ (https://github.com/torvalds/linux/commit/c319b4d76b9e583a5d88d6bf190e079c4e43213d)
   local socket, socket_type
-  socket = C.socket(C.AF_INET, bit.bor(C.SOCK_DGRAM, C.SOCK_NONBLOCK, C.SOCK_CLOEXEC), C.IPPROTO_ICMP)
+  socket = C.socket(
+    C.AF_INET,
+    bit.bor(C.SOCK_DGRAM, C.SOCK_NONBLOCK, C.SOCK_CLOEXEC),
+    C.IPPROTO_ICMP
+  )
   if socket == -1 then
     local errno = ffi.errno()
-    logger.dbg("Device:ping4: unprivileged ICMP socket:", ffi.string(C.strerror(errno)))
+    logger.dbg(
+      "Device:ping4: unprivileged ICMP socket:",
+      ffi.string(C.strerror(errno))
+    )
 
     -- Try a raw socket
-    socket = C.socket(C.AF_INET, bit.bor(C.SOCK_RAW, C.SOCK_NONBLOCK, C.SOCK_CLOEXEC), C.IPPROTO_ICMP)
+    socket = C.socket(
+      C.AF_INET,
+      bit.bor(C.SOCK_RAW, C.SOCK_NONBLOCK, C.SOCK_CLOEXEC),
+      C.IPPROTO_ICMP
+    )
     if socket == -1 then
       errno = ffi.errno()
       if errno == C.EPERM then
-        logger.dbg("Device:ping4: opening a RAW ICMP socket requires CAP_NET_RAW capabilities!")
+        logger.dbg(
+          "Device:ping4: opening a RAW ICMP socket requires CAP_NET_RAW capabilities!"
+        )
       else
-        logger.dbg("Device:ping4: raw ICMP socket:", ffi.string(C.strerror(errno)))
+        logger.dbg(
+          "Device:ping4: raw ICMP socket:",
+          ffi.string(C.strerror(errno))
+        )
       end
       --- Fall-back to the ping CLI tool, in the hope that it's setuid...
       if self:isKindle() and self:hasDPad() then
@@ -666,7 +725,7 @@ function Device:ping4(ip)
 
   -- c.f., busybox's networking/ping.c
   local DEFDATALEN = 56 -- 64 - 8
-  local MAXIPLEN   = 60
+  local MAXIPLEN = 60
   local MAXICMPLEN = 76
 
   -- Base the id on our PID (like busybox)
@@ -695,7 +754,16 @@ function Device:ping4(ip)
 
   -- Send the ping
   local start_time = time.now()
-  if C.sendto(socket, packet, DEFDATALEN + C.ICMP_MINLEN, 0, ffi.cast("struct sockaddr*", addr), ffi.sizeof(addr)) == - 1 then
+  if
+    C.sendto(
+      socket,
+      packet,
+      DEFDATALEN + C.ICMP_MINLEN,
+      0,
+      ffi.cast("struct sockaddr*", addr),
+      ffi.sizeof(addr)
+    ) == -1
+  then
     local errno = ffi.errno()
     logger.err("Device:ping4: sendto:", ffi.string(C.strerror(errno)))
     C.close(socket)
@@ -749,8 +817,10 @@ function Device:ping4(ip)
         local icp = ffi.cast("struct icmphdr *", packet + hlen)
         -- Check that we got a *reply* to *our* ping
         -- NOTE: The reply's ident is defined by the kernel for SOCK_DGRAM, so we can't do anything with it!
-        if icp.type == C.ICMP_ECHOREPLY and
-           (socket_type == C.SOCK_DGRAM or icp.un.echo.id == myid) then
+        if
+          icp.type == C.ICMP_ECHOREPLY
+          and (socket_type == C.SOCK_DGRAM or icp.un.echo.id == myid)
+        then
           break
         end
       end
@@ -785,21 +855,34 @@ function Device:getDefaultRoute(interface)
         table.insert(fields, field)
       end
       -- Check the requested interface or anything that isn't lo
-      if (interface and fields[1] == interface) or (not interface and fields[1] ~= "lo") then
+      if
+        (interface and fields[1] == interface)
+        or (not interface and fields[1] ~= "lo")
+      then
         -- We're looking for something that's up & a gateway
-        if bit.band(fields[4], C.RTF_UP) ~= 0 and bit.band(fields[4], C.RTF_GATEWAY) ~= 0 then
+        if
+          bit.band(fields[4], C.RTF_UP) ~= 0
+          and bit.band(fields[4], C.RTF_GATEWAY) ~= 0
+        then
           -- Handle the conversion from network endianness hex string into a human-readable numeric form
           local sockaddr_in = ffi.new("struct sockaddr_in")
           sockaddr_in.sin_family = C.AF_INET
           sockaddr_in.sin_addr.s_addr = tonumber(fields[3], 16)
           local host = ffi.new("char[?]", C.NI_MAXHOST)
-          local s = C.getnameinfo(ffi.cast("struct sockaddr *", sockaddr_in),
-                      ffi.sizeof("struct sockaddr_in"),
-                      host, C.NI_MAXHOST,
-                      nil, 0,
-                      C.NI_NUMERICHOST)
+          local s = C.getnameinfo(
+            ffi.cast("struct sockaddr *", sockaddr_in),
+            ffi.sizeof("struct sockaddr_in"),
+            host,
+            C.NI_MAXHOST,
+            nil,
+            0,
+            C.NI_NUMERICHOST
+          )
           if s ~= 0 then
-            logger.err("Device:getDefaultRoute: getnameinfo:", ffi.string(C.gai_strerror(s)))
+            logger.err(
+              "Device:getDefaultRoute: getnameinfo:",
+              ffi.string(C.gai_strerror(s))
+            )
             break
           else
             gateway = ffi.string(host)
@@ -821,17 +904,23 @@ end
 
 function Device:retrieveNetworkInfo()
   -- We're going to need a random socket for the network & wireless ioctls...
-  local socket = C.socket(C.PF_INET, C.SOCK_DGRAM, C.IPPROTO_IP);
+  local socket = C.socket(C.PF_INET, C.SOCK_DGRAM, C.IPPROTO_IP)
   if socket == -1 then
     local errno = ffi.errno()
-    logger.err("Device:retrieveNetworkInfo: socket:", ffi.string(C.strerror(errno)))
+    logger.err(
+      "Device:retrieveNetworkInfo: socket:",
+      ffi.string(C.strerror(errno))
+    )
     return
   end
 
   local ifaddr = ffi.new("struct ifaddrs *[1]")
   if C.getifaddrs(ifaddr) == -1 then
     local errno = ffi.errno()
-    logger.err("Device:retrieveNetworkInfo: getifaddrs:", ffi.string(C.strerror(errno)))
+    logger.err(
+      "Device:retrieveNetworkInfo: getifaddrs:",
+      ffi.string(C.strerror(errno))
+    )
     return false
   end
 
@@ -844,19 +933,29 @@ function Device:retrieveNetworkInfo()
   local ifa = ifaddr[0]
   while ifa ~= nil do
     -- Skip over loopback or downed interfaces
-    if ifa.ifa_addr ~= nil and
-       bit.band(ifa.ifa_flags, C.IFF_UP) ~= 0 and
-       bit.band(ifa.ifa_flags, C.IFF_LOOPBACK) == 0 then
+    if
+      ifa.ifa_addr ~= nil
+      and bit.band(ifa.ifa_flags, C.IFF_UP) ~= 0
+      and bit.band(ifa.ifa_flags, C.IFF_LOOPBACK) == 0
+    then
       local family = ifa.ifa_addr.sa_family
       if family == C.AF_INET or family == C.AF_INET6 then
         local host = ffi.new("char[?]", C.NI_MAXHOST)
-        local s = C.getnameinfo(ifa.ifa_addr,
-                    family == C.AF_INET and ffi.sizeof("struct sockaddr_in") or ffi.sizeof("struct sockaddr_in6"),
-                    host, C.NI_MAXHOST,
-                    nil, 0,
-                    C.NI_NUMERICHOST)
+        local s = C.getnameinfo(
+          ifa.ifa_addr,
+          family == C.AF_INET and ffi.sizeof("struct sockaddr_in")
+            or ffi.sizeof("struct sockaddr_in6"),
+          host,
+          C.NI_MAXHOST,
+          nil,
+          0,
+          C.NI_NUMERICHOST
+        )
         if s ~= 0 then
-          logger.err("Device:retrieveNetworkInfo: getnameinfo:", ffi.string(C.gai_strerror(s)))
+          logger.err(
+            "Device:retrieveNetworkInfo: getnameinfo:",
+            ffi.string(C.gai_strerror(s))
+          )
         else
           -- Only print the ifname once
           local ifname = ffi.string(ifa.ifa_name)
@@ -873,15 +972,20 @@ function Device:retrieveNetworkInfo()
             ffi.copy(ifr.ifr_ifrn.ifrn_name, ifa.ifa_name, C.IFNAMSIZ)
             if C.ioctl(socket, C.SIOCGIFHWADDR, ifr) == -1 then
               local errno = ffi.errno()
-              logger.err("Device:retrieveNetworkInfo: SIOCGIFHWADDR ioctl:", ffi.string(C.strerror(errno)))
+              logger.err(
+                "Device:retrieveNetworkInfo: SIOCGIFHWADDR ioctl:",
+                ffi.string(C.strerror(errno))
+              )
             else
-              local mac = string.format("%02X:%02X:%02X:%02X:%02X:%02X",
-                            bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[0], 0xFF),
-                            bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[1], 0xFF),
-                            bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[2], 0xFF),
-                            bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[3], 0xFF),
-                            bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[4], 0xFF),
-                            bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[5], 0xFF))
+              local mac = string.format(
+                "%02X:%02X:%02X:%02X:%02X:%02X",
+                bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[0], 0xFF),
+                bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[1], 0xFF),
+                bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[2], 0xFF),
+                bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[3], 0xFF),
+                bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[4], 0xFF),
+                bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[5], 0xFF)
+              )
               table.insert(results, T(_("MAC: %1"), mac))
             end
 
@@ -897,7 +1001,10 @@ function Device:retrieveNetworkInfo()
               iwr.u.essid.flags = 0
               if C.ioctl(socket, C.SIOCGIWESSID, iwr) == -1 then
                 local errno = ffi.errno()
-                logger.err("Device:retrieveNetworkInfo: SIOCGIWESSID ioctl:", ffi.string(C.strerror(errno)))
+                logger.err(
+                  "Device:retrieveNetworkInfo: SIOCGIWESSID ioctl:",
+                  ffi.string(C.strerror(errno))
+                )
               else
                 local essid_on = iwr.u.data.flags
                 if essid_on ~= 0 then
@@ -910,7 +1017,7 @@ function Device:retrieveNetworkInfo()
                     table.insert(results, T(_("SSID: \"%1\""), ffi.string(essid)))
                   end
                   --]]
-                  table.insert(results, T(_("SSID: \"%1\""), ffi.string(essid)))
+                  table.insert(results, T(_('SSID: "%1"'), ffi.string(essid)))
                 else
                   table.insert(results, _("SSID: off/any"))
                 end
@@ -953,7 +1060,7 @@ function Device:retrieveNetworkInfo()
     if ok then
       table.insert(results, _("Gateway ping successful"))
       if rtt then
-        rtt = string.format("%.3f", rtt * 1/1000) -- i.e., time.to_ms w/o flooring
+        rtt = string.format("%.3f", rtt * 1 / 1000) -- i.e., time.to_ms w/o flooring
         table.insert(results, T(_("RTT: %1 ms"), rtt))
       end
     else
@@ -971,7 +1078,7 @@ function Device:retrieveNetworkInfo()
 end
 
 function Device:setTime(hour, min)
-    return false
+  return false
 end
 
 -- Return an integer value to indicate the brightness of the environment. The value should be in
@@ -991,7 +1098,7 @@ end
 ---- @treturn boolean
 function Device:canExecuteScript(file)
   local file_ext = string.lower(util.getFileNameSuffix(file))
-  if file_ext == "sh" or file_ext == "py"  then
+  if file_ext == "sh" or file_ext == "py" then
     return true
   end
 end
@@ -1020,10 +1127,19 @@ function Device:unpackArchive(archive, extract_to, with_stripped_root)
   require("dbg").dassert(type(archive) == "string")
   local BD = require("ui/bidi")
   local ok
-  if archive:match("%.tar%.bz2$") or archive:match("%.tar%.gz$") or archive:match("%.tar%.lz$") or archive:match("%.tgz$") then
+  if
+    archive:match("%.tar%.bz2$")
+    or archive:match("%.tar%.gz$")
+    or archive:match("%.tar%.lz$")
+    or archive:match("%.tgz$")
+  then
     ok = self:untar(archive, extract_to, with_stripped_root)
   else
-    return false, T(_("Couldn't extract archive:\n\n%1\n\nUnrecognized filename extension."), BD.filepath(archive))
+    return false,
+      T(
+        _("Couldn't extract archive:\n\n%1\n\nUnrecognized filename extension."),
+        BD.filepath(archive)
+      )
   end
   if not ok then
     return false, T(_("Extracting archive failed:\n\n%1"), BD.filepath(archive))
@@ -1057,7 +1173,9 @@ function Device:_UIManagerReady(uimgr)
   self:setEventHandlers(uimgr)
 
   -- Returns a self-debouncing scheduling call (~4s to give some leeway to the kernel, and debounce to deal with potential chattering)
-  self._updateChargingLED = UIManager:debounce(4, false, function() self:setupChargingLED() end)
+  self._updateChargingLED = UIManager:debounce(4, false, function()
+    self:setupChargingLED()
+  end)
 end
 -- In case implementations *also* need a reference to UIManager, *this* is the one to implement!
 function Device:UIManagerReady(uimgr) end

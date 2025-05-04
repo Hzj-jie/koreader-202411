@@ -18,7 +18,9 @@ function SimpleTCPServer:new(o)
   o = o or {}
   setmetatable(o, self)
   self.__index = self
-  if o.init then o:init() end
+  if o.init then
+    o:init()
+  end
   return o
 end
 
@@ -39,9 +41,13 @@ function SimpleTCPServer:stop()
 end
 
 function SimpleTCPServer:waitEvent()
-  if not self.server then return end
+  if not self.server then
+    return
+  end
   local client = self.server:accept() -- wait for a client to connect
-  if not client then return end
+  if not client then
+    return
+  end
   -- We expect to get all headers in 100ms. We will block during this timeframe.
   client:settimeout(0.1, "t")
   local lines = {}
@@ -58,8 +64,8 @@ function SimpleTCPServer:waitEvent()
       -- Give us more time to process the request and send the response
       client:settimeout(0.5, "t")
       self.receiveCallback(data, client)
-        -- This should call SimpleTCPServer:send() to send
-        -- the response and close this connection.
+      -- This should call SimpleTCPServer:send() to send
+      -- the response and close this connection.
     else
       table.insert(lines, data)
     end
