@@ -182,7 +182,9 @@ function FileManagerMenu:setUpdateItemTable()
 - Calibre and OPDS browsers/search results]]),
             callback = function(touchmenu_instance)
               local default_value = FileChooser.items_per_page_default
-              local current_value = G_reader_settings:readSetting("items_per_page") or default_value
+              local current_value =
+                  G_reader_settings:readSetting("items_per_page")
+                  or default_value
               local widget = SpinWidget:new{
                 title_text =  _("Items per page"),
                 value = current_value,
@@ -191,7 +193,9 @@ function FileManagerMenu:setUpdateItemTable()
                 default_value = default_value,
                 keep_shown_on_apply = true,
                 callback = function(spin)
-                  G_reader_settings:saveSetting("items_per_page", spin.value, default_value)
+                  G_reader_settings:saveSetting("items_per_page",
+                                                spin.value,
+                                                default_value)
                   FileChooser:refreshPath()
                   touchmenu_instance:updateItems()
                 end,
@@ -206,8 +210,9 @@ function FileManagerMenu:setUpdateItemTable()
             callback = function(touchmenu_instance)
               local current_value = FileChooser.font_size
               local default_value =
-                FileChooser.getItemFontSize(G_reader_settings:readSetting("items_per_page")
-                or FileChooser.items_per_page_default)
+                  FileChooser.getItemFontSize(
+                      G_reader_settings:readSetting("items_per_page")
+                  or FileChooser.items_per_page_default)
               local widget = SpinWidget:new{
                 title_text =  _("Item font size"),
                 value = current_value,
@@ -219,7 +224,9 @@ function FileManagerMenu:setUpdateItemTable()
                   -- We can't know if the user has set a size or hit "Use default", but
                   -- assume that if it is the default font size, he will prefer to have
                   -- our default font size if he later updates per-page
-                  G_reader_settings:saveSetting("items_font_size", spin.value, default_value)
+                  G_reader_settings:saveSetting("items_font_size",
+                                                spin.value,
+                                                default_value)
                   FileChooser:refreshPath()
                   touchmenu_instance:updateItems()
                 end,
@@ -389,7 +396,9 @@ To:
         keep_menu_open = true,
         callback = function(touchmenu_instance)
           local default_value = KeyValuePage.getDefaultItemsPerPage()
-          local current_value = G_reader_settings:readSetting("keyvalues_per_page") or default_value
+          local current_value =
+              G_reader_settings:readSetting("keyvalues_per_page")
+              or default_value
           local widget = SpinWidget:new{
             value = current_value,
             value_min = 10,
@@ -397,14 +406,9 @@ To:
             default_value = default_value,
             title_text =  _("Info lists items per page"),
             callback = function(spin)
-              if spin.value == default_value then
-                -- We can't know if the user has set a value or hit "Use default", but
-                -- assume that if it is the default, he will prefer to stay with our
-                -- default if he later changes screen DPI
-                G_reader_settings:delSetting("keyvalues_per_page")
-              else
-                G_reader_settings:saveSetting("keyvalues_per_page", spin.value)
-              end
+              G_reader_settings:saveSetting("keyvalues_per_page",
+                                            spin.value,
+                                            default_value)
               touchmenu_instance:updateItems()
             end
           }
@@ -592,7 +596,9 @@ To:
       end,
       callback = function()
         Device.screen:toggleHWDithering()
-        G_reader_settings:saveSetting("dev_no_hw_dither", not Device.screen.hw_dithering)
+        G_reader_settings:saveSetting("dev_no_hw_dither",
+                                      not Device.screen.hw_dithering,
+                                      false)
         -- Make sure SW dithering gets disabled when we enable HW dithering
         if Device.screen.hw_dithering and Device.screen.sw_dithering then
           G_reader_settings:makeTrue("dev_no_sw_dither")
@@ -613,7 +619,9 @@ To:
       end,
       callback = function()
         Device.screen:toggleSWDithering()
-        G_reader_settings:saveSetting("dev_no_sw_dither", not Device.screen.sw_dithering)
+        G_reader_settings:saveSetting("dev_no_sw_dither",
+                                      not Device.screen.sw_dithering,
+                                      false)
         -- Make sure HW dithering gets disabled when we enable SW dithering
         if Device.screen.hw_dithering and Device.screen.sw_dithering then
           G_reader_settings:makeTrue("dev_no_hw_dither")
@@ -653,22 +661,16 @@ To:
       -- @translators Highly technical (ioctl is a Linux API call, the uppercase stuff is a constant). What's translatable is essentially only the action ("bypass") and the article.
       text = _("Bypass the WAIT_FOR ioctls"),
       checked_func = function()
-        local mxcfb_bypass_wait_for
-        if G_reader_settings:has("mxcfb_bypass_wait_for") then
-          mxcfb_bypass_wait_for = G_reader_settings:isTrue("mxcfb_bypass_wait_for")
-        else
-          mxcfb_bypass_wait_for = not Device:hasReliableMxcWaitFor()
-        end
-        return mxcfb_bypass_wait_for
+        return G_reader_settings:isTrueOr("mxcfb_bypass_wait_for",
+                                          not Device:hasReliableMxcWaitFor())
       end,
       callback = function()
-        local mxcfb_bypass_wait_for
-        if G_reader_settings:has("mxcfb_bypass_wait_for") then
-          mxcfb_bypass_wait_for = G_reader_settings:isTrue("mxcfb_bypass_wait_for")
-        else
-          mxcfb_bypass_wait_for = not Device:hasReliableMxcWaitFor()
-        end
-        G_reader_settings:saveSetting("mxcfb_bypass_wait_for", not mxcfb_bypass_wait_for)
+        local mxcfb_bypass_wait_for =
+            G_reader_settings:isTrueOr("mxcfb_bypass_wait_for",
+                                       not Device:hasReliableMxcWaitFor())
+        G_reader_settings:saveSetting("mxcfb_bypass_wait_for",
+                                      not mxcfb_bypass_wait_for,
+                                      not Devide:hasReliableMxcWaitFor())
         UIManager:askForRestart()
       end,
     })
@@ -911,7 +913,8 @@ function FileManagerMenu:getStartWithMenuTable()
     table.insert(sub_item_table, {
       text = v[1],
       checked_func = function()
-        return v[2] == (G_reader_settings:readSetting("start_with") or "filemanager")
+        return v[2] == (G_reader_settings:readSetting("start_with")
+                        or "filemanager")
       end,
       callback = function()
         G_reader_settings:saveSetting("start_with", v[2])
@@ -999,7 +1002,7 @@ end
 function FileManagerMenu:onCloseFileManagerMenu()
   if not self.menu_container then return true end
   local last_tab_index = self.menu_container[1].last_index
-  G_reader_settings:saveSetting("filemanagermenu_tab_index", last_tab_index)
+  G_reader_settings:saveSetting("filemanagermenu_tab_index", last_tab_index, 1)
   UIManager:close(self.menu_container)
   self.menu_container = nil
   return true
@@ -1009,7 +1012,8 @@ function FileManagerMenu:_getTabIndexFromLocation(ges)
   if self.tab_item_table == nil then
     self:setUpdateItemTable()
   end
-  local last_tab_index = G_reader_settings:readSetting("filemanagermenu_tab_index") or 1
+  local last_tab_index =
+        G_reader_settings:readSetting("filemanagermenu_tab_index") or 1
   if not ges then
     return last_tab_index
   -- if the start position is far right

@@ -338,7 +338,7 @@ function CloudStorage:updateSyncFolder(item, source, dest)
       break
     end
   end
-  cs_settings:saveSetting("cs_servers", cs_servers)
+  cs_settings:saveSetting("cs_servers", cs_servers, {})
   cs_settings:flush()
 end
 
@@ -729,7 +729,7 @@ function CloudStorage:configCloud(type)
         type = "webdav",
       })
     end
-    cs_settings:saveSetting("cs_servers", cs_servers)
+    cs_settings:saveSetting("cs_servers", cs_servers, {})
     cs_settings:flush()
     self:init()
   end
@@ -784,7 +784,7 @@ function CloudStorage:editCloudServer(item)
         end
       end
     end
-    cs_settings:saveSetting("cs_servers", cs_servers)
+    cs_settings:saveSetting("cs_servers", cs_servers, {})
     cs_settings:flush()
     self:init()
   end
@@ -806,7 +806,7 @@ function CloudStorage:deleteCloudServer(item)
       break
     end
   end
-  cs_settings:saveSetting("cs_servers", cs_servers)
+  cs_settings:saveSetting("cs_servers", cs_servers, {})
   cs_settings:flush()
   self:init()
 end

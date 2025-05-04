@@ -1588,13 +1588,13 @@ function FileManager:onSetSortBy(mode)
 end
 
 function FileManager:onSetReverseSorting(toggle)
-  G_reader_settings:saveSetting("reverse_collate", toggle or nil)
+  G_reader_settings:saveSetting("reverse_collate", toggle, false)
   self.file_chooser:refreshPath()
   return true
 end
 
 function FileManager:onSetMixedSorting(toggle)
-  G_reader_settings:saveSetting("collate_mixed", toggle or nil)
+  G_reader_settings:saveSetting("collate_mixed", toggle, false)
   self.file_chooser:refreshPath()
   return true
 end

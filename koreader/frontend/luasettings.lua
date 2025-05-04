@@ -136,6 +136,13 @@ function LuaSettings:isTrue(key)
   return self.data[key] == true
 end
 
+function LuaSettings:isTrueOr(key, default)
+  if self:has(key) then
+    return self:isTrue(key)
+  end
+  return default
+end
+
 --- Checks if setting is `false` (boolean).
 function LuaSettings:isFalse(key)
   return self.data[key] == false
