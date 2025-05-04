@@ -117,7 +117,8 @@ local function parse(text,limit) -- {{{
 				function(...)return g(2,...)end
 			)
 			:gsub(
-				"(=[%s]-)".. -- same for "
+        -- same for "
+				"(=[%s]-)"..
 				'(%b"")',
 				function(...)return g(2,...)end
 			) -- Escape "<"/">" inside attr.values (see issue #50)
