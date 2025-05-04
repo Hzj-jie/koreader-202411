@@ -18,7 +18,8 @@ local T = FfiUtil.template
 local common_info = {}
 
 -- main tab
-if Device:hasOTAUpdates() then
+-- Do not use regular ota updates.
+if false and Device:hasOTAUpdates() then
   local OTAManager = require("ui/otamanager")
   common_info.ota_update = OTAManager:getOTAMenuTable()
 end
