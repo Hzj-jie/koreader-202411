@@ -1,0 +1,1 @@
+../../../../koreader/frontend/ui/elements/screen_notification_menu_table.lua

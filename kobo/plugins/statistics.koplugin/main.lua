@@ -1,0 +1,1 @@
+../../../koreader/plugins/statistics.koplugin/main.lua

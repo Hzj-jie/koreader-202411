@@ -7,8 +7,7 @@ for i in $(find ../koreader/ -type d | \
   mkdir "$i" 2>/dev/null
 done
 
-for i in $(find ../koreader/ -type f -exec file {} \; | \
-           grep -i -v elf | \
+for i in $(find ../koreader/ -type f | \
            sed 's/: /\t/g' | \
            cut -f 1 | \
            sed 's/..\/koreader\///g') ; do

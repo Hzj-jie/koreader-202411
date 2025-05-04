@@ -1,0 +1,1 @@
+../../../../koreader/frontend/device/sdl/event_map_sdl2.lua

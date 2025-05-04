@@ -1,0 +1,1 @@
+../../koreader/ffi/harfbuzz_coverage.lua

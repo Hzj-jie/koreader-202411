@@ -1,0 +1,1 @@
+../../koreader/frontend/named_settings.lua

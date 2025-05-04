@@ -1,0 +1,1 @@
+../../../koreader/plugins/keepalive.koplugin/main.lua

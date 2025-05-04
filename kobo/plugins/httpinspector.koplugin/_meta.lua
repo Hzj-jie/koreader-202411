@@ -1,0 +1,1 @@
+../../../koreader/plugins/httpinspector.koplugin/_meta.lua

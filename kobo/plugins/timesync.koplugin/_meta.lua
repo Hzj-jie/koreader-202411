@@ -1,0 +1,1 @@
+../../../koreader/plugins/timesync.koplugin/_meta.lua

@@ -1,0 +1,1 @@
+../../../../koreader/frontend/device/kindle/event_map_kindle4.lua

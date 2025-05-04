@@ -1,0 +1,1 @@
+../../../koreader/frontend/document/picdocument.lua

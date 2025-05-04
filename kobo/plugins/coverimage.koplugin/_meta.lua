@@ -1,0 +1,1 @@
+../../../koreader/plugins/coverimage.koplugin/_meta.lua

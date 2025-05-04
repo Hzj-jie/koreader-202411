@@ -1,0 +1,1 @@
+../../../../koreader/frontend/ui/elements/screen_dpi_menu_table.lua

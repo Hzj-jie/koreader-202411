@@ -1,0 +1,1 @@
+../../../../../koreader/common/Spore/Middleware/Auth/Basic.lua

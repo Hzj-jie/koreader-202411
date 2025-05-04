@@ -1,0 +1,1 @@
+../../../../koreader/frontend/device/sdl/keyboard_layout.lua

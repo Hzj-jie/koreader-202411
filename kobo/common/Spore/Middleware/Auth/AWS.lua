@@ -1,0 +1,1 @@
+../../../../../koreader/common/Spore/Middleware/Auth/AWS.lua
