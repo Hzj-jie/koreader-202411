@@ -12,6 +12,10 @@ local util = require("util")
 local _ = require("gettext")
 local T = ffiutil.template
 
+if not Device:isKobo() then
+  return { disabled = true }
+end
+
 -- This plugin uses a patched dropbear that adds two things:
 -- the -n option to bypass password checks
 -- reads the authorized_keys file from the relative path: settings/SSH/authorized_keys
@@ -34,19 +38,6 @@ function SSH:init()
 end
 
 function SSH:start()
-  local cmd = string.format(
-    "%s %s %s %s%s %s",
-    "./dropbear",
-    "-E",
-    "-R",
-    "-p",
-    self.SSH_port,
-    "-P /tmp/dropbear_koreader.pid"
-  )
-  if self.allow_no_password then
-    cmd = string.format("%s %s", cmd, "-n")
-  end
-
   -- Make a hole in the Kindle's firewall
   if Device:isKindle() then
     os.execute(
@@ -65,10 +56,10 @@ function SSH:start()
         "-m conntrack --ctstate ESTABLISHED -j ACCEPT"
       )
     )
-  end
-  -- An SSH/telnet server of course needs to be able to manipulate pseudoterminals...
-  -- Kobo's init scripts fail to set this up...
-  if Device:isKobo() then
+  elseif Device:isKobo() then
+    -- An SSH/telnet server of course needs to be able to manipulate
+    -- pseudoterminals...
+    -- Kobo's init scripts fail to set this up...
     os.execute([[if [ ! -d "/dev/pts" ] ; then
             mkdir -p /dev/pts
             mount -t devpts devpts /dev/pts
@@ -78,6 +69,15 @@ function SSH:start()
   if not util.pathExists(path .. "/settings/SSH/") then
     os.execute("mkdir " .. path .. "/settings/SSH")
   end
+
+  local cmd = string.format(
+    "./dropbear -E -R -p%s -P /tmp/dropbear_koreader.pid",
+    self.SSH_port
+  )
+  if self.allow_no_password then
+    cmd = cmd .. " -n"
+  end
+
   logger.dbg("[Network] Launching SSH server : ", cmd)
   if os.execute(cmd) == 0 then
     local info = InfoMessage:new({
