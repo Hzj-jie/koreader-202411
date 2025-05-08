@@ -107,7 +107,7 @@ function HttpInspector:_start()
       return self:onRequest(data, id)
     end,
   })
-  self.http_socket:_start()
+  self.http_socket:start()
   self.http_messagequeue = UIManager:insertZMQ(self.http_socket)
 
   logger.dbg("HttpInspector: Server listening on port " .. self.port)
