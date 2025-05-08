@@ -146,7 +146,7 @@ function CalibreWireless:JSONReceiveCallback(host, port)
         if this.invalid_password then
           msg = _("Invalid password")
           this.invalid_password = nil
-          this:disconnect()
+          this:_disconnect()
           logger.warn("invalid password, disconnecting")
         elseif this.disconnected_by_server then
           msg = _("Disconnected by calibre")
@@ -299,7 +299,7 @@ function CalibreWireless:connect()
   end
 end
 
-function CalibreWireless:disconnect()
+function CalibreWireless:_disconnect()
   logger.info("disconnecting from calibre")
   self.connect_message = false
   if self.calibre_socket then
@@ -319,7 +319,7 @@ end
 function CalibreWireless:reconnect()
   -- to use when something went wrong and we aren't in sync with calibre
   FFIUtil.sleep(1)
-  self:disconnect()
+  self:_disconnect()
   FFIUtil.sleep(1)
   self:connect()
 end
@@ -535,7 +535,7 @@ function CalibreWireless:noop(arg)
   if arg.ejecting then
     self:sendJsonData("OK", {})
     self.disconnected_by_server = true
-    self:disconnect()
+    self:_disconnect()
     return
   end
   -- calibre announces the count of books that need more metadata
@@ -756,6 +756,14 @@ function CalibreWireless:isCalibreAtLeast(x, y, z)
     return ((a * 100000) + (b * 1000)) + c
   end
   return semanticVersion(v[1], v[2], v[3]) >= semanticVersion(x, y, z)
+end
+
+function CalibreWireless:onClose()
+  self:_disconnect()
+end
+
+function CalibreWireless:onCloseWidget()
+  self:onClose()
 end
 
 return CalibreWireless

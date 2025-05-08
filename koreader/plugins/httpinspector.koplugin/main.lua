@@ -29,59 +29,51 @@ function HttpInspector:init()
   if should_run then
     -- Delay this until after all plugins are loaded
     UIManager:nextTick(function()
-      self:start()
+      self:_start()
     end)
   end
   self.ui.menu:registerToMainMenu(self)
 end
 
-function HttpInspector:isRunning()
+function HttpInspector:_isRunning()
   return self.http_socket ~= nil
 end
 
 function HttpInspector:onEnterStandby()
   logger.dbg("HttpInspector: onEnterStandby")
-  if self:isRunning() then
-    self:stop()
-  end
+  self:_stop()
 end
 
 function HttpInspector:onSuspend()
   logger.dbg("HttpInspector: onSuspend")
-  if self:isRunning() then
-    self:stop()
-  end
+  self:_stop()
 end
 
 function HttpInspector:onExit()
   logger.dbg("HttpInspector: onExit")
-  if self:isRunning() then
-    self:stop()
-  end
+  self:_stop()
 end
 
 function HttpInspector:onCloseWidget()
   logger.dbg("HttpInspector: onCloseWidget")
-  if self:isRunning() then
-    self:stop()
-  end
+  self:_stop()
 end
 
 function HttpInspector:onLeaveStandby()
   logger.dbg("HttpInspector: onLeaveStandby")
-  if should_run and not self:isRunning() then
-    self:start()
+  if should_run and not self:_isRunning() then
+    self:_start()
   end
 end
 
 function HttpInspector:onResume()
   logger.dbg("HttpInspector: onResume")
-  if should_run and not self:isRunning() then
-    self:start()
+  if should_run and not self:_isRunning() then
+    self:_start()
   end
 end
 
-function HttpInspector:start()
+function HttpInspector:_start()
   logger.dbg("HttpInspector: Starting server...")
 
   -- Make a hole in the Kindle's firewall
@@ -115,14 +107,23 @@ function HttpInspector:start()
       return self:onRequest(data, id)
     end,
   })
-  self.http_socket:start()
+  self.http_socket:_start()
   self.http_messagequeue = UIManager:insertZMQ(self.http_socket)
 
   logger.dbg("HttpInspector: Server listening on port " .. self.port)
 end
 
-function HttpInspector:stop()
+function HttpInspector:_stop()
   logger.dbg("HttpInspector: Stopping server...")
+
+  if self.http_socket then
+    self.http_socket:_stop()
+    self.http_socket = nil
+  end
+  if self.http_messagequeue then
+    UIManager:removeZMQ(self.http_messagequeue)
+    self.http_messagequeue = nil
+  end
 
   -- Plug the hole in the Kindle's firewall
   if Device:isKindle() then
@@ -144,15 +145,6 @@ function HttpInspector:stop()
     )
   end
 
-  if self.http_socket then
-    self.http_socket:stop()
-    self.http_socket = nil
-  end
-  if self.http_messagequeue then
-    UIManager:removeZMQ(self.http_messagequeue)
-    self.http_messagequeue = nil
-  end
-
   logger.dbg("HttpInspector: Server stopped.")
 end
 
@@ -163,7 +155,7 @@ function HttpInspector:addToMainMenu(menu_items)
     sub_item_table = {
       {
         text_func = function()
-          if self:isRunning() then
+          if self:_isRunning() then
             return _("Stop HTTP server")
               .. " - "
               .. T(_("Listening on port %1"), self.port)
@@ -172,12 +164,12 @@ function HttpInspector:addToMainMenu(menu_items)
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
-          if self:isRunning() then
+          if self:_isRunning() then
             should_run = false
-            self:stop()
+            self:_stop()
           else
             should_run = true
-            self:start()
+            self:_start()
           end
           touchmenu_instance:updateItems()
         end,
@@ -230,9 +222,9 @@ function HttpInspector:addToMainMenu(menu_items)
                         port,
                         DEFAULT_PORT
                       )
-                      if self:isRunning() then
-                        self:stop()
-                        self:start()
+                      if self:_isRunning() then
+                        self:_stop()
+                        self:_start()
                       end
                     end
                     UIManager:close(port_dialog)

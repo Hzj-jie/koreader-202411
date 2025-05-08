@@ -1585,7 +1585,7 @@ function UIManager:handleInputEvent(input_event)
 end
 
 -- Process all pending events on all registered ZMQs.
-function UIManager:processZMQs()
+function UIManager:_processZMQs()
   local sent_InputEvent = false
   for _, zeromq in ipairs(self._zeromqs) do
     for input_event in zeromq.waitEvent, zeromq do
@@ -1655,7 +1655,7 @@ function UIManager:handleInput()
   end
 
   -- Run ZMQs if any
-  self:processZMQs()
+  self:_processZMQs()
 
   -- If allowed, entering standby (from which we can wake by input) must trigger in response to event
   -- this function emits (plugin), or within waitEvent() right after (hardware).
