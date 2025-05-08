@@ -441,7 +441,7 @@ function TextWidget:free()
   self._updated = false
 end
 
-function TextWidget:onCloseWidget()
+function TextWidget:onClose()
   -- Free _xtext when UIManager closes this widget (as it won't
   -- be painted anymore).
   self:free()

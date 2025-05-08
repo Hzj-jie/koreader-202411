@@ -83,7 +83,7 @@ function Calculator:init()
         end,
         callback = function()
           self:convertUnit(this.selected_text.text)
-          this:onClose()
+          this:onExit()
         end,
       }
     end)

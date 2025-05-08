@@ -254,7 +254,7 @@ function DoubleSpinWidget:update(
             self.extra_callback(left_widget:getValue(), right_widget:getValue())
           end
           if not self.keep_shown_on_apply then -- assume extra wants it same as ok
-            self:onClose()
+            self:onExit()
           end
         end,
       },
@@ -267,7 +267,7 @@ function DoubleSpinWidget:update(
         if self.cancel_callback then
           self.cancel_callback()
         end
-        self:onClose()
+        self:onExit()
       end,
     },
     {
@@ -284,7 +284,7 @@ function DoubleSpinWidget:update(
         if self.keep_shown_on_apply then
           self:update()
         else
-          self:onClose()
+          self:onExit()
         end
       end,
     },
@@ -350,7 +350,7 @@ function DoubleSpinWidget:hasMoved()
   return offset.x ~= 0 or offset.y ~= 0
 end
 
-function DoubleSpinWidget:onCloseWidget()
+function DoubleSpinWidget:onClose()
   UIManager:setDirty(nil, function()
     return "ui", self.widget_frame.dimen
   end)
@@ -365,12 +365,12 @@ end
 
 function DoubleSpinWidget:onTapClose(arg, ges_ev)
   if ges_ev.pos:notIntersectWith(self.widget_frame.dimen) then
-    self:onClose()
+    self:onExit()
   end
   return true
 end
 
-function DoubleSpinWidget:onClose()
+function DoubleSpinWidget:onExit()
   UIManager:close(self)
   if self.close_callback then
     self.close_callback()

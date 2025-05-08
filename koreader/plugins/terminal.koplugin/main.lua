@@ -531,12 +531,12 @@ function Terminal:generateInputDialog()
   })
 end
 
-function Terminal:onClose()
+function Terminal:onExit()
   self:killShell()
 end
 
 -- Kill the shell on plugin teardown
-function Terminal:onCloseWidget()
+function Terminal:onClose()
   self:killShell()
 end
 

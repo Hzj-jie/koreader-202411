@@ -131,14 +131,14 @@ function Profiles:getSubMenuItems()
       {
         text = _("Execute"),
         callback = function(touchmenu_instance)
-          touchmenu_instance:onClose()
+          touchmenu_instance:onExit()
           self:onProfileExecute(k, { qm_show = false })
         end,
       },
       {
         text = _("Show as QuickMenu"),
         callback = function(touchmenu_instance)
-          touchmenu_instance:onClose()
+          touchmenu_instance:onExit()
           self:onProfileExecute(k, { qm_show = true })
         end,
       },

@@ -147,7 +147,7 @@ function PerceptionExpander:showSettingsDialog()
           text = _("Cancel"),
           id = "close",
           callback = function()
-            self.settings_dialog:onClose()
+            self.settings_dialog:onExit()
             UIManager:close(self.settings_dialog)
           end,
         },
@@ -155,7 +155,7 @@ function PerceptionExpander:showSettingsDialog()
           text = _("Apply"),
           callback = function()
             self:saveSettings(self.settings_dialog:getFields())
-            self.settings_dialog:onClose()
+            self.settings_dialog:onExit()
             UIManager:close(self.settings_dialog)
             self:createUI()
           end,

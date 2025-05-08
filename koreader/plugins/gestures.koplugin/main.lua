@@ -227,7 +227,7 @@ function Gestures:init()
   end
 end
 
-function Gestures:onCloseWidget()
+function Gestures:onClose()
   -- Restore the stub implementation on teardown, to avoid pinning a stale instance of ourselves
   InputContainer.isGestureAlwaysActive = InputContainer._isGestureAlwaysActive
 end

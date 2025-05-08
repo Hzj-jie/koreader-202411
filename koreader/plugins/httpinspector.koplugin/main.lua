@@ -54,7 +54,7 @@ function HttpInspector:onExit()
   self:_stop()
 end
 
-function HttpInspector:onCloseWidget()
+function HttpInspector:onClose()
   logger.dbg("HttpInspector: onCloseWidget")
   self:_stop()
 end

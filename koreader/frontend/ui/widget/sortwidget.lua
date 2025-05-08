@@ -240,7 +240,7 @@ function SortWidget:init()
     icon = "exit",
     width = self.footer_button_width,
     callback = function()
-      self:onClose()
+      self:onExit()
     end,
     bordersize = 0,
     radius = 0,
@@ -323,7 +323,7 @@ function SortWidget:init()
       self:onShowWidgetMenu()
     end,
     close_callback = function()
-      self:onClose()
+      self:onExit()
     end,
     show_parent = self,
   })
@@ -490,7 +490,7 @@ function SortWidget:_populateItems()
     self.footer_cancel.preselect = self.footer_cancel.frame.invert
     self.footer_cancel:setIcon("exit", self.footer_button_width)
     self.footer_cancel.callback = function()
-      self:onClose()
+      self:onExit()
     end
     self.footer_first_up:setIcon(chevron_first, self.footer_button_width)
     self.footer_last_down:setIcon(chevron_last, self.footer_button_width)
@@ -527,7 +527,7 @@ function SortWidget:onSwipe(arg, ges_ev)
     self:onPrevPage()
   elseif direction == "south" then
     -- Allow easier closing with swipe down
-    self:onClose()
+    self:onExit()
   elseif direction == "north" then
     -- no use for now
     do
@@ -611,7 +611,7 @@ function SortWidget:sortItems(collate, reverse_collate)
   self:_populateItems()
 end
 
-function SortWidget:onClose()
+function SortWidget:onExit()
   UIManager:close(self)
   UIManager:setDirty(nil, "ui")
   return true
@@ -646,7 +646,7 @@ function SortWidget:onReturn()
 
   -- If we're not in the middle of moving stuff around, just exit.
   if self.marked == 0 then
-    return self:onClose()
+    return self:onExit()
   end
 
   self.marked = 0

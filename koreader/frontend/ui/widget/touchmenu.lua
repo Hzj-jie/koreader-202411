@@ -707,7 +707,7 @@ function TouchMenu:init()
   self.bar:switchToTab(self.last_index or 1)
 end
 
-function TouchMenu:onCloseWidget()
+function TouchMenu:onClose()
   -- NOTE: We don't pass a region in order to ensure a full-screen flash to avoid ghosting,
   --     but we only need to do that if we actually have a FM or RD below us.
   -- Don't do anything when we're switching between the two, or if we don't actually have a live instance of 'em...
@@ -1085,7 +1085,7 @@ function TouchMenu:onTapCloseAllMenus(arg, ges_ev)
   end
 end
 
-function TouchMenu:onClose()
+function TouchMenu:onExit()
   self:closeMenu()
 end
 

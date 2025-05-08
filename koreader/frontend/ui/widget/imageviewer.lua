@@ -215,7 +215,7 @@ function ImageViewer:init()
         id = "close",
         text = _("Close"),
         callback = function()
-          self:onClose()
+          self:onExit()
         end,
       },
     },
@@ -251,7 +251,7 @@ function ImageViewer:init()
           self:update()
         end,
         close_callback = function()
-          self:onClose()
+          self:onExit()
         end,
         show_parent = self,
       })
@@ -271,7 +271,7 @@ function ImageViewer:init()
           self:update()
         end,
         close_callback = function()
-          self:onClose()
+          self:onExit()
         end,
         show_parent = self,
       })
@@ -283,7 +283,7 @@ function ImageViewer:init()
         title_multilines = true,
         with_bottom_line = true,
         close_callback = function()
-          self:onClose()
+          self:onExit()
         end,
         show_parent = self,
       })
@@ -523,7 +523,7 @@ end
 
 function ImageViewer:onTap(_, ges)
   if ges.pos:notIntersectWith(self.main_frame.dimen) then
-    self:onClose()
+    self:onExit()
     return true
   end
   if not Device:hasMultitouch() then
@@ -612,7 +612,7 @@ function ImageViewer:onSwipe(_, ges)
       -- When scaled to fit (on initial launch, or after one has tapped
       -- "Scale"), as we are then sure that there is no use for panning,
       -- allow swipe south to close the widget.
-      self:onClose()
+      self:onExit()
     else
       self:panBy(0, -distance)
     end
@@ -635,7 +635,7 @@ end
 function ImageViewer:onMultiSwipe(_, ges)
   -- As swipe south to close is only enabled when scaled to fit, but not
   -- when we are zoomed in/out, allow any multiswipe to close.
-  self:onClose()
+  self:onExit()
   return true
 end
 
@@ -866,12 +866,12 @@ function ImageViewer:onSaveImageView()
   return true
 end
 
-function ImageViewer:onClose()
+function ImageViewer:onExit()
   UIManager:close(self)
   return true
 end
 
-function ImageViewer:onCloseWidget()
+function ImageViewer:onClose()
   -- Our ImageWidget (self._image_wg) is always a proper child widget, so it'll receive this event,
   -- and attempt to free its resources accordingly.
   -- But, if it didn't have to touch the original BB (self.image) passed to ImageViewer (e.g., no scaling needed),

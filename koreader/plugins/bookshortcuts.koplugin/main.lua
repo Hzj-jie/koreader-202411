@@ -49,7 +49,7 @@ function BookShortcuts:onBookShortcut(path)
         if self.ui.file_chooser then
           self.ui.file_chooser:changeToPath(path)
         else -- called from Reader
-          self.ui:onClose()
+          self.ui:onExit()
           local FileManager = require("apps/filemanager/filemanager")
           if FileManager.instance then
             FileManager.instance:reinit(path)

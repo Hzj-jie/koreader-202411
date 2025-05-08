@@ -758,12 +758,12 @@ function CalibreWireless:isCalibreAtLeast(x, y, z)
   return semanticVersion(v[1], v[2], v[3]) >= semanticVersion(x, y, z)
 end
 
-function CalibreWireless:onClose()
+function CalibreWireless:onExit()
   self:_disconnect()
 end
 
-function CalibreWireless:onCloseWidget()
-  self:onClose()
+function CalibreWireless:onClose()
+  self:onExit()
 end
 
 return CalibreWireless

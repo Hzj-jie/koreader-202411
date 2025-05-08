@@ -44,7 +44,7 @@ function Calibre:onSuspend()
   self:closeWirelessConnection()
 end
 
-function Calibre:onClose()
+function Calibre:onExit()
   self:closeWirelessConnection()
 end
 

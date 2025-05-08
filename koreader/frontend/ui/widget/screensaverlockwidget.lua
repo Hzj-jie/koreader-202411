@@ -111,12 +111,12 @@ function ScreenSaverLockWidget:showWaitForGestureMessage()
   self.is_infomessage_visible = true
 end
 
-function ScreenSaverLockWidget:onClose()
+function ScreenSaverLockWidget:onExit()
   UIManager:close(self)
   -- Close the actual Screensaver, if any
   local Screensaver = require("ui/screensaver")
   if Screensaver.screensaver_widget then
-    Screensaver.screensaver_widget:onClose()
+    Screensaver.screensaver_widget:onExit()
   end
   return true
 end
@@ -124,7 +124,7 @@ end
 ScreenSaverLockWidget.onExitScreensaver = ScreenSaverLockWidget.onClose
 ScreenSaverLockWidget.onTap = ScreenSaverLockWidget.onClose
 
-function ScreenSaverLockWidget:onCloseWidget()
+function ScreenSaverLockWidget:onClose()
   -- If we don't have a ScreenSaverWidget, request a full repaint to dismiss our InfoMessage.
   local Screensaver = require("ui/screensaver")
   if not Screensaver.screensaver_widget then

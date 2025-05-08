@@ -1123,7 +1123,7 @@ function ConfigDialog:update()
   })
 end
 
-function ConfigDialog:onCloseWidget()
+function ConfigDialog:onClose()
   -- NOTE: As much as we would like to flash here, don't, because of adverse interactions with touchmenu that might lead to a double flash...
   UIManager:setDirty(nil, function()
     return "partial", self.dialog_frame.dimen
@@ -1591,7 +1591,7 @@ function ConfigDialog:onConfigMoreChoose(
           option_callback = more_options_param.other_button
             and function()
               when_applied_callback = nil -- prevent bottom menu from being shown (before being hidden again)
-              widget:onClose()
+              widget:onExit()
               local option = self:findOptionByName(
                 more_options_param.other_button.other_option
               )
@@ -1772,7 +1772,7 @@ function ConfigDialog:onSwipeCloseMenu(arg, ges_ev)
   end
 end
 
-function ConfigDialog:onClose()
+function ConfigDialog:onExit()
   self:closeDialog()
   return true
 end

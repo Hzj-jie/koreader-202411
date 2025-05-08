@@ -48,8 +48,8 @@ function AutoStandby:init()
   self.ui.menu:registerToMainMenu(self)
 end
 
-function AutoStandby:onCloseWidget()
-  logger.dbg("AutoStandby:onCloseWidget() instance=", tostring(self))
+function AutoStandby:onClose()
+  logger.dbg("AutoStandby:onClose() instance=", tostring(self))
   UIManager:unschedule(AutoStandby.allow)
 end
 
