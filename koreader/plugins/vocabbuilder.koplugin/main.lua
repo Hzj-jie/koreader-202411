@@ -1316,7 +1316,7 @@ function VocabItemWidget:onShowBookAssignment(title_changed_cb)
         },
       })
       UIManager:show(dialog)
-      dialog:onShowKeyboard()
+      dialog:showKeyboard()
     end,
   })
 
@@ -1742,7 +1742,7 @@ If no wildcard is used, the searched text will be enclosed with two %'s by defau
     },
   })
   UIManager:show(dialog)
-  dialog:onShowKeyboard()
+  dialog:showKeyboard()
 end
 
 function VocabularyBuilderWidget:setupItemHeight()
@@ -2059,7 +2059,7 @@ function VocabularyBuilderWidget:showChangeBookTitleDialog(sort_item, onSuccess)
     },
   })
   UIManager:show(dialog)
-  dialog:onShowKeyboard()
+  dialog:showKeyboard()
 end
 
 function VocabularyBuilderWidget:reloadItems()

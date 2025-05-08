@@ -389,7 +389,7 @@ function Calculator:onCalculatorStart()
   )
 
   UIManager:show(self.input_dialog)
-  self.input_dialog:onShowKeyboard(true)
+  self.input_dialog:showKeyboard(true)
 end
 
 function Calculator:load(old_file, file_name)

@@ -386,9 +386,9 @@ function NaturalLightWidget:onClose()
   return true
 end
 
-function NaturalLightWidget:onShowKeyboard()
+function NaturalLightWidget:showKeyboard()
   if self._current_input then
-    self._current_input:onShowKeyboard()
+    self._current_input:showKeyboard()
     self._current_input:focus()
   end
 end
@@ -406,7 +406,7 @@ function NaturalLightWidget:onSwitchFocus(inputbox)
   self:onCloseKeyboard()
   self._current_input = inputbox
   self:applyValues()
-  self:onShowKeyboard()
+  self:showKeyboard()
 end
 
 function NaturalLightWidget:closeKeyboard()

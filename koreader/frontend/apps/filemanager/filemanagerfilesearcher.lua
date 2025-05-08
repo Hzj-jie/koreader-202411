@@ -112,7 +112,7 @@ function FileSearcher:onShowFileSearch(search_string)
     search_dialog:addWidget(check_button_metadata)
   end
   UIManager:show(search_dialog)
-  search_dialog:onShowKeyboard()
+  search_dialog:showKeyboard()
   return true
 end
 

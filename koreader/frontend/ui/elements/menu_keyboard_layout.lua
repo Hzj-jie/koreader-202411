@@ -223,7 +223,7 @@ local sub_item_table = {
                   )
                   input_dialog._input_widget:onCloseKeyboard()
                   input_dialog._input_widget:initKeyboard()
-                  input_dialog:onShowKeyboard()
+                  input_dialog:showKeyboard()
                   if touchmenu_instance then
                     touchmenu_instance:updateItems()
                   end
@@ -254,7 +254,7 @@ local sub_item_table = {
       input_dialog:addWidget(check_button_compact)
 
       UIManager:show(input_dialog)
-      input_dialog:onShowKeyboard()
+      input_dialog:showKeyboard()
     end,
   },
 }

@@ -534,7 +534,7 @@ function TextViewer:findDialog()
   input_dialog:addWidget(check_button_case)
 
   UIManager:show(input_dialog)
-  input_dialog:onShowKeyboard(true)
+  input_dialog:showKeyboard(true)
 end
 
 function TextViewer:findCallback(input_dialog)

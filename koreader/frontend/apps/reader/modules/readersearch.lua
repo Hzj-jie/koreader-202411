@@ -367,7 +367,7 @@ function ReaderSearch:onShowFulltextSearchInput(search_string)
   end
 
   UIManager:show(self.input_dialog)
-  self.input_dialog:onShowKeyboard()
+  self.input_dialog:showKeyboard()
   return true
 end
 

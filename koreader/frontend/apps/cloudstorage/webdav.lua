@@ -214,7 +214,7 @@ The start folder is appended to the server path.]])
     },
   })
   UIManager:show(self.settings_dialog)
-  self.settings_dialog:onShowKeyboard()
+  self.settings_dialog:showKeyboard()
 end
 
 function WebDav:info(item)

@@ -468,7 +468,7 @@ function FileManagerHistory:onSearchHistory()
   })
   search_dialog:addWidget(check_button_case)
   UIManager:show(search_dialog)
-  search_dialog:onShowKeyboard()
+  search_dialog:showKeyboard()
   return true
 end
 

@@ -1464,7 +1464,7 @@ function TouchMenu:onShowMenuSearch()
   })
 
   UIManager:show(search_dialog)
-  search_dialog:onShowKeyboard()
+  search_dialog:showKeyboard()
 end
 
 return TouchMenu

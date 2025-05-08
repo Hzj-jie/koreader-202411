@@ -1137,7 +1137,7 @@ function Wallabag:setFilterTag(touchmenu_instance)
     },
   })
   UIManager:show(self.tag_dialog)
-  self.tag_dialog:onShowKeyboard()
+  self.tag_dialog:showKeyboard()
 end
 
 function Wallabag:setTagsDialog(
@@ -1174,7 +1174,7 @@ function Wallabag:setTagsDialog(
     },
   })
   UIManager:show(self.tags_dialog)
-  self.tags_dialog:onShowKeyboard()
+  self.tags_dialog:showKeyboard()
 end
 
 function Wallabag:editServerSettings()
@@ -1249,7 +1249,7 @@ Restart KOReader after editing the config file.]]),
     },
   })
   UIManager:show(self.settings_dialog)
-  self.settings_dialog:onShowKeyboard()
+  self.settings_dialog:showKeyboard()
 end
 
 function Wallabag:editClientSettings()
@@ -1286,7 +1286,7 @@ function Wallabag:editClientSettings()
     },
   })
   UIManager:show(self.client_settings_dialog)
-  self.client_settings_dialog:onShowKeyboard()
+  self.client_settings_dialog:showKeyboard()
 end
 
 function Wallabag:setDownloadDirectory(touchmenu_instance)

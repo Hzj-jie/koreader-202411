@@ -419,7 +419,7 @@ Do you want to proceed?]]),
             },
           })
           UIManager:show(file_input)
-          file_input:onShowKeyboard()
+          file_input:showKeyboard()
         end,
       })
       UIManager:show(path_chooser)
@@ -725,7 +725,7 @@ Do you want to keep this file as empty, or do you prefer to delete it?
   })
   UIManager:show(self.input)
   if self.show_keyboard_on_start and not readonly then
-    self.input:onShowKeyboard()
+    self.input:showKeyboard()
   end
   -- Note about readonly:
   -- We might have liked to still show keyboard even if readonly, just

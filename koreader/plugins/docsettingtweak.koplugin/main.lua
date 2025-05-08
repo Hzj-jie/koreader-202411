@@ -94,7 +94,7 @@ function DocSettingTweak:editDirectoryDefaults()
     end,
   })
   UIManager:show(config_editor)
-  config_editor:onShowKeyboard()
+  config_editor:showKeyboard()
 end
 
 function DocSettingTweak:onDocSettingsLoad(doc_settings, document)

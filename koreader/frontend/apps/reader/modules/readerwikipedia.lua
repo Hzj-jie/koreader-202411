@@ -80,7 +80,7 @@ function ReaderWikipedia:lookupInput()
     },
   })
   UIManager:show(self.input_dialog)
-  self.input_dialog:onShowKeyboard()
+  self.input_dialog:showKeyboard()
 end
 
 function ReaderWikipedia:addToMainMenu(menu_items)
@@ -209,7 +209,7 @@ function ReaderWikipedia:addToMainMenu(menu_items)
             },
           })
           UIManager:show(wikilang_input)
-          wikilang_input:onShowKeyboard()
+          wikilang_input:showKeyboard()
         end,
         separator = true,
       },

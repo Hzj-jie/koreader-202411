@@ -185,7 +185,7 @@ function Aliases:editAlias(alias_name, alias_command)
     },
   })
   UIManager:show(alias_input)
-  alias_input:onShowKeyboard()
+  alias_input:showKeyboard()
 end
 
 return Aliases

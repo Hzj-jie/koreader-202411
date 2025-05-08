@@ -265,7 +265,7 @@ function CalibreSearch:ShowSearch()
     },
   })
   UIManager:show(self.search_dialog)
-  self.search_dialog:onShowKeyboard()
+  self.search_dialog:showKeyboard()
 end
 
 function CalibreSearch:close()

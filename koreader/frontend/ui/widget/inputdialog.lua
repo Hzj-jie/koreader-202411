@@ -41,7 +41,7 @@ Example:
         },
     }
     UIManager:show(sample_input)
-    sample_input:onShowKeyboard()
+    sample_input:showKeyboard()
 
 To get a full screen text editor, use:
     fullscreen = true, -- No need to provide any height and width.
@@ -515,7 +515,7 @@ function InputDialog:reinit()
   self.keyboard_visible = visible and true or false
   self:init()
   if self.keyboard_visible then
-    self:onShowKeyboard()
+    self:showKeyboard()
   end
   -- Our position on screen has probably changed, so have the full screen refreshed
   UIManager:setDirty("all", "flashui")
@@ -629,7 +629,7 @@ function InputDialog:onCloseWidget()
   end)
 end
 
-function InputDialog:onShowKeyboard(ignore_first_hold_release)
+function InputDialog:showKeyboard(ignore_first_hold_release)
   -- Don't initiate virtual keyboard when user has a physical keyboard and G_setting(vk_enabled) unchecked.
   if self.skip_first_show_keyboard then
     self.skip_first_show_keyboard = nil
@@ -638,7 +638,7 @@ function InputDialog:onShowKeyboard(ignore_first_hold_release)
   -- NOTE: There's no VirtualKeyboard widget instantiated at all when readonly,
   --       and our input widget handles that itself, so we don't need any guards here.
   --       (In which case, isKeyboardVisible will return `nil`, same as if we had a VK instantiated but *never* shown).
-  self._input_widget:onShowKeyboard(ignore_first_hold_release)
+  self._input_widget:showKeyboard(ignore_first_hold_release)
   -- There's a bit of a chicken or egg issue in init where we would like to check the actual keyboard's visibility state,
   -- but the widget might not exist or be shown yet, so we'll just have to keep this in sync...
   self.keyboard_visible = self._input_widget:isKeyboardVisible()
@@ -702,7 +702,7 @@ function InputDialog:toggleKeyboard(force_toggle)
   -- NOTE: If we ever have non-fullscreen add_nav_bar callers, it might make sense *not* to lock the keyboard there?
   if self.keyboard_visible then
     self:lockKeyboard(false)
-    self:onShowKeyboard()
+    self:showKeyboard()
   else
     self:onCloseKeyboard()
     -- Prevent InputText:onTapTextBox from opening the keyboard back up on top of our buttons
@@ -1012,7 +1012,7 @@ function InputDialog:_addScrollButtons(nav_bar)
           input_dialog:addWidget(self.check_button_case)
 
           UIManager:show(input_dialog)
-          input_dialog:onShowKeyboard()
+          input_dialog:showKeyboard()
         end,
       })
       -- Add a button to go to the line by its number in the file
@@ -1062,7 +1062,7 @@ function InputDialog:_addScrollButtons(nav_bar)
             },
           })
           UIManager:show(input_dialog)
-          input_dialog:onShowKeyboard()
+          input_dialog:showKeyboard()
         end,
       })
     end

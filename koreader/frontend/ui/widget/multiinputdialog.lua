@@ -66,7 +66,7 @@ Example for input of two strings and a number:
         },
     }
     UIManager:show(sample_input)
-    sample_input:onShowKeyboard()
+    sample_input:showKeyboard()
 
 
 It is strongly recommended to use a text describing the action to be
@@ -274,7 +274,7 @@ function MultiInputDialog:onSwitchFocus(inputbox)
     return
   end
   -- Otherwise make sure we have a (new) visible keyboard
-  self:onShowKeyboard()
+  self:showKeyboard()
 end
 
 function MultiInputDialog:onKeyboardHeightChanged()
@@ -296,7 +296,7 @@ function MultiInputDialog:onKeyboardHeightChanged()
   end
   self:init()
   if self.keyboard_visible then
-    self:onShowKeyboard()
+    self:showKeyboard()
   end
   UIManager:setDirty("all", "flashui")
 end

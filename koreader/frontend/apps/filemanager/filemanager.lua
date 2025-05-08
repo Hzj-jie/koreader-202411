@@ -1154,7 +1154,7 @@ function FileManager:createFolder()
   })
   input_dialog:addWidget(check_button_enter_folder)
   UIManager:show(input_dialog)
-  input_dialog:onShowKeyboard()
+  input_dialog:showKeyboard()
 end
 
 function FileManager:showDeleteFileDialog(
@@ -1278,7 +1278,7 @@ function FileManager:showRenameFileDialog(file, is_file)
     },
   })
   UIManager:show(dialog)
-  dialog:onShowKeyboard()
+  dialog:showKeyboard()
 end
 
 function FileManager:renameFile(file, basename, is_file)

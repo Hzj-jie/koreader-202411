@@ -178,7 +178,7 @@ Username and password are optional.]])
     input_type = "text",
   })
   UIManager:show(self.settings_dialog)
-  self.settings_dialog:onShowKeyboard()
+  self.settings_dialog:showKeyboard()
 end
 
 function Ftp:info(item)

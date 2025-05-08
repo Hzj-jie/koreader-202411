@@ -139,7 +139,7 @@ function NextcloudExporter:getMenuTable()
             },
           })
           UIManager:show(url_dialog)
-          url_dialog:onShowKeyboard()
+          url_dialog:showKeyboard()
         end,
       },
       {

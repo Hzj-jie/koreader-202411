@@ -563,7 +563,7 @@ function BookInfo:showCustomEditDialog(file, book_props, prop_key)
     },
   })
   UIManager:show(input_dialog)
-  input_dialog:onShowKeyboard()
+  input_dialog:showKeyboard()
 end
 
 function BookInfo:showCustomDialog(file, book_props, prop_key)
@@ -721,7 +721,7 @@ function BookInfo:editSummary(doc_settings_or_file, book_props)
     },
   })
   UIManager:show(input_dialog)
-  input_dialog:onShowKeyboard(true)
+  input_dialog:showKeyboard(true)
 end
 
 function BookInfo:moveBookMetadata()

@@ -400,7 +400,7 @@ function InputContainer:onInput(input, ignore_first_hold_release)
     },
   })
   UIManager:show(self.input_dialog)
-  self.input_dialog:onShowKeyboard(ignore_first_hold_release)
+  self.input_dialog:showKeyboard(ignore_first_hold_release)
 end
 
 function InputContainer:closeInputDialog()

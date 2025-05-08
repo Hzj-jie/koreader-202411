@@ -91,7 +91,7 @@ function ReadwiseExporter:getMenuTable()
             },
           })
           UIManager:show(auth_dialog)
-          auth_dialog:onShowKeyboard()
+          auth_dialog:showKeyboard()
         end,
       },
       {

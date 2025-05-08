@@ -166,7 +166,7 @@ Some of the previously generated long-lived tokens are still valid.]])
     },
   })
   UIManager:show(self.settings_dialog)
-  self.settings_dialog:onShowKeyboard()
+  self.settings_dialog:showKeyboard()
 end
 
 function DropBox:info(token)

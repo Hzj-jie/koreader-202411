@@ -137,7 +137,7 @@ function Weather:getSubMenuItems()
               },
             })
             UIManager:show(input)
-            input:onShowKeyboard()
+            input:showKeyboard()
           end,
         },
         {
@@ -176,7 +176,7 @@ function Weather:getSubMenuItems()
               },
             })
             UIManager:show(input)
-            input:onShowKeyboard()
+            input:showKeyboard()
           end,
         },
         {

@@ -952,7 +952,7 @@ function AutoWarmth:getLocationMenu()
           },
         })
         UIManager:show(location_name_dialog)
-        location_name_dialog:onShowKeyboard()
+        location_name_dialog:showKeyboard()
       end,
       keep_menu_open = true,
     },

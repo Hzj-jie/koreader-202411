@@ -349,7 +349,7 @@ local function initDPadEvents()
         end -- luacheck: ignore 541
       else
         if not self:isKeyboardVisible() then
-          self:onShowKeyboard()
+          self:showKeyboard()
         end
       end
       self:focus()
@@ -763,7 +763,7 @@ function InputText:onKeyPress(key)
       if self.keyboard:isVisible() then
         self:onCloseKeyboard()
       else
-        self:onShowKeyboard()
+        self:showKeyboard()
       end
     elseif key["."] and Device:hasSymKey() then
       -- Kindle does not have a dedicated button for commas
@@ -834,7 +834,7 @@ dbg:guard(InputText, "onTextInput", function(self, text)
   assert(type(text) == "string", "Wrong text type (expected string)")
 end)
 
-function InputText:onShowKeyboard(ignore_first_hold_release)
+function InputText:showKeyboard(ignore_first_hold_release)
   if self.keyboard then
     self.keyboard:showKeyboard(ignore_first_hold_release)
   end

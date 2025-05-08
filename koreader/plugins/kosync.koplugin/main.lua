@@ -553,7 +553,7 @@ function KOSync:login(menu)
     },
   })
   UIManager:show(dialog)
-  dialog:onShowKeyboard()
+  dialog:showKeyboard()
 end
 
 function KOSync:doRegister(username, password, menu)

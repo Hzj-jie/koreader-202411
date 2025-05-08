@@ -235,7 +235,7 @@ function HttpInspector:addToMainMenu(menu_items)
             },
           })
           UIManager:show(port_dialog)
-          port_dialog:onShowKeyboard()
+          port_dialog:showKeyboard()
         end,
       },
     },

@@ -1443,7 +1443,7 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
     close_discarded_notif_text = NOT_MODIFIED_MSG,
   })
   UIManager:show(editor)
-  editor:onShowKeyboard(true)
+  editor:showKeyboard(true)
   -- ignore first hold release, as we may be invoked from hold
 end
 

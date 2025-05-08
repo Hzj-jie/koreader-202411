@@ -85,7 +85,7 @@ x for an absolute page number
     },
   })
   UIManager:show(self.goto_dialog)
-  self.goto_dialog:onShowKeyboard()
+  self.goto_dialog:showKeyboard()
 end
 
 function ReaderGoto:onShowSkimtoDialog()

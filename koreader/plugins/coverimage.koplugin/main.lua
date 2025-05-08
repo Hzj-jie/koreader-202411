@@ -521,7 +521,7 @@ function CoverImage:choosePathFile(
           },
         })
         UIManager:show(file_input)
-        file_input:onShowKeyboard()
+        file_input:showKeyboard()
       elseif mode == "file" then -- just select an existing file
         if migrate then
           migrate(self, self[key], dir_path)
