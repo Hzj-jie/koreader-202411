@@ -316,7 +316,7 @@ function DateTimeWidget:createLayout()
             })
           end
           if not self.keep_shown_on_apply then -- assume extra wants it same as ok
-            self:onExit()
+            self:onClose()
           end
         end,
       },
@@ -339,7 +339,7 @@ function DateTimeWidget:createLayout()
         if self.cancel_callback then
           self.cancel_callback(self)
         end
-        self:onExit()
+        self:onClose()
       end,
     },
     {
@@ -355,7 +355,7 @@ function DateTimeWidget:createLayout()
           self:callback(self)
         end
         if not self.keep_shown_on_apply then
-          self:onExit()
+          self:onClose()
         end
       end,
     },
@@ -441,7 +441,7 @@ function DateTimeWidget:update(year, month, day, hour, min, sec)
   self.sec_widget:update()
 end
 
-function DateTimeWidget:onClose()
+function DateTimeWidget:onCloseWidget()
   -- Let our main WidgetContainer free its child widgets
   self[1]:free()
 
@@ -459,12 +459,12 @@ end
 
 function DateTimeWidget:onTapClose(arg, ges_ev)
   if ges_ev.pos:notIntersectWith(self.date_frame.dimen) then
-    self:onExit()
+    self:onClose()
   end
   return true
 end
 
-function DateTimeWidget:onExit()
+function DateTimeWidget:onClose()
   UIManager:close(self)
   return true
 end

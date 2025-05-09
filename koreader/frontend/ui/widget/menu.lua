@@ -805,7 +805,7 @@ function Menu:init()
         end,
         right_icon_size_ratio = self.title_bar_fm_style and 1,
         close_callback = function()
-          self:onExit()
+          self:onClose()
         end,
         show_parent = self.show_parent or self,
       })
@@ -1563,7 +1563,7 @@ function Menu:onShowingReader()
 end
 Menu.onSetupShowReader = Menu.onShowingReader
 
-function Menu:onClose()
+function Menu:onCloseWidget()
   --- @fixme
   -- we cannot refresh regionally using the dimen field
   -- because some menus without menu title use VerticalGroup to include
@@ -1585,7 +1585,7 @@ function Menu:onClose()
   end
 end
 
-function Menu:onExit()
+function Menu:onClose()
   if #self.item_table_stack == 0 then
     self:onCloseAllMenus()
   else
@@ -1621,7 +1621,7 @@ function Menu:onSwipe(arg, ges_ev)
     if not self.no_title then
       -- If there is a titlebar with a close button displayed (so, this Menu can be
       -- closed), allow easier closing with swipe south.
-      self:onExit()
+      self:onClose()
     end
     -- If there is no close button, it's a top level Menu and swipe
     -- up/down may hide/show top menu
@@ -1653,7 +1653,7 @@ function Menu:onMultiSwipe(arg, ges_ev)
   if not self.no_title then
     -- If there is a titlebar with a close button displayed (so, this Menu can be
     -- closed), allow easier closing with swipe south.
-    self:onExit()
+    self:onClose()
   end
   return true
 end

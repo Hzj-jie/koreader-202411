@@ -176,7 +176,7 @@ function Aliases:editAlias(alias_name, alias_command)
             local value = fields[2] and util.trim(fields[2])
             if value ~= "" then
               UIManager:close(alias_input)
-              self.alias_kv:onExit()
+              self.alias_kv:onClose()
               self.parent:transmit(value .. "\n")
             end
           end,

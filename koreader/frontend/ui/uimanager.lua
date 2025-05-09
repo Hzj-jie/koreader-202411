@@ -75,7 +75,7 @@ function UIManager:init()
     self._entered_poweroff_stage = true
     logger.info("Powering off the device...")
     self:broadcastEvent(Event:new("PowerOff"))
-    self:broadcastEvent(Event:new("Exit"))
+    self:broadcastEvent(Event:new("Close"))
     local Screensaver = require("ui/screensaver")
     Screensaver:setup("poweroff", _("Powered off"))
     Screensaver:show()
@@ -93,7 +93,7 @@ function UIManager:init()
     self._entered_poweroff_stage = true
     logger.info("Rebooting the device...")
     self:broadcastEvent(Event:new("Reboot"))
-    self:broadcastEvent(Event:new("Exit"))
+    self:broadcastEvent(Event:new("Close"))
     local Screensaver = require("ui/screensaver")
     Screensaver:setup("reboot", _("Rebooting…"))
     Screensaver:show()
@@ -213,7 +213,7 @@ function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
   -- First notify the closed widget to save its settings...
   widget:handleEvent(Event:new("FlushSettings"))
   -- ...and notify it that it ought to be gone now.
-  widget:handleEvent(Event:new("Close"))
+  widget:handleEvent(Event:new("CloseWidget"))
   -- Make sure it's disabled by default and check if there are any widgets that want it disabled or enabled.
   Input.disable_double_tap = true
   local requested_disable_double_tap = nil

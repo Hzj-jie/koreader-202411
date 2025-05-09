@@ -120,7 +120,7 @@ function OpenWithDialog:init()
   self:refocusWidget()
 end
 
-function OpenWithDialog:onClose()
+function OpenWithDialog:onCloseWidget()
   UIManager:setDirty(nil, function()
     return "ui", self.dialog_frame.dimen
   end)

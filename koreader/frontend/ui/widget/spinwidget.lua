@@ -172,7 +172,7 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
         self.extra_callback(self)
       end
       if not self.keep_shown_on_apply then -- assume extra wants it same as ok
-        self:onExit()
+        self:onClose()
       end
     end,
   }
@@ -184,7 +184,7 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
         self.option_callback(self)
       end
       if not self.keep_shown_on_apply then -- assume option wants it same as ok
-        self:onExit()
+        self:onClose()
       end
     end,
   }
@@ -202,7 +202,7 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
         if self.cancel_callback then
           self.cancel_callback()
         end
-        self:onExit()
+        self:onClose()
       end,
     },
     {
@@ -218,7 +218,7 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
         if self.keep_shown_on_apply then
           self:update()
         else
-          self:onExit()
+          self:onClose()
         end
       end,
     },
@@ -322,7 +322,7 @@ function SpinWidget:hasMoved()
   return offset.x ~= 0 or offset.y ~= 0
 end
 
-function SpinWidget:onClose()
+function SpinWidget:onCloseWidget()
   UIManager:setDirty(nil, function()
     return "ui", self.spin_frame.dimen
   end)
@@ -337,12 +337,12 @@ end
 
 function SpinWidget:onTapClose(arg, ges_ev)
   if ges_ev.pos:notIntersectWith(self.spin_frame.dimen) then
-    self:onExit()
+    self:onClose()
   end
   return true
 end
 
-function SpinWidget:onExit()
+function SpinWidget:onClose()
   UIManager:close(self)
   if self.close_callback then
     self.close_callback()

@@ -1102,7 +1102,7 @@ end
 function NewsDownloader:openDownloadsFolder()
   local FileManager = require("apps/filemanager/filemanager")
   if self.ui.document then
-    self.ui:onExit()
+    self.ui:onClose()
   end
   if FileManager.instance then
     FileManager.instance:reinit(self.download_dir)

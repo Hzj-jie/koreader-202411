@@ -395,13 +395,13 @@ function FootnoteWidget:onShow()
   end)
 end
 
-function FootnoteWidget:onClose()
+function FootnoteWidget:onCloseWidget()
   UIManager:setDirty(self.dialog, function()
     return "partial", self.container.dimen
   end)
 end
 
-function FootnoteWidget:onExit()
+function FootnoteWidget:onClose()
   UIManager:close(self)
   if self.close_callback then
     self.close_callback(self.height)

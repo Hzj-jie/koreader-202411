@@ -236,11 +236,11 @@ function AutoDim:_clearIdling()
   PluginShare.DeviceIdling = false
 end
 
-function AutoDim:onExit()
+function AutoDim:onClose()
   BackgroundTaskPlugin.onClose(self)
 end
 
-function AutoDim:onClose()
+function AutoDim:onCloseWidget()
   BackgroundTaskPlugin.onCloseWidget(self)
 end
 

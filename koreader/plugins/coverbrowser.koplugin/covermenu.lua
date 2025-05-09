@@ -14,7 +14,7 @@ local BookInfoManager = require("bookinfomanager")
 --
 -- Here the common overridden methods of Menu are defined:
 --    :updateItems(select_number)
---    :onClose()
+--    :onCloseWidget()
 --
 -- MosaicMenu or ListMenu should implement specific UI methods:
 --    :_recalculateDimen()
@@ -483,7 +483,7 @@ function CoverMenu:onCollectionsMenuHold(item)
   return true
 end
 
-function CoverMenu:onClose()
+function CoverMenu:onCloseWidget()
   -- Due to close callback in FileManagerHistory:onShowHist, we may be called
   -- multiple times (witnessed that with print(debug.traceback())
   -- So, avoid doing what follows twice

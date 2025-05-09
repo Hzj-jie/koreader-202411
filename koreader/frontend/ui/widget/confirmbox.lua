@@ -244,13 +244,13 @@ function ConfirmBox:onShow()
   end
 end
 
-function ConfirmBox:onClose()
+function ConfirmBox:onCloseWidget()
   UIManager:setDirty(nil, function()
     return "ui", self.movable.dimen
   end)
 end
 
-function ConfirmBox:onExit()
+function ConfirmBox:onClose()
   -- Call cancel_callback, parent may expect a choice
   self.cancel_callback()
   UIManager:close(self)
@@ -259,7 +259,7 @@ end
 
 function ConfirmBox:onTapClose(arg, ges)
   if ges.pos:notIntersectWith(self.movable.dimen) then
-    self:onExit()
+    self:onClose()
   end
   -- Don't let it propagate to underlying widgets
   return true

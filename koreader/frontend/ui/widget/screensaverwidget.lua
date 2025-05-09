@@ -63,12 +63,12 @@ end
 
 function ScreenSaverWidget:onTap(_, ges)
   if ges.pos:intersectWith(self.main_frame.dimen) then
-    self:onExit()
+    self:onClose()
   end
   return true
 end
 
-function ScreenSaverWidget:onExit()
+function ScreenSaverWidget:onClose()
   -- If we happened to shortcut a delayed close via user input, unschedule it to avoid a spurious refresh.
   local Screensaver = require("ui/screensaver")
   if Screensaver.delayed_close then
@@ -81,7 +81,7 @@ end
 ScreenSaverWidget.onAnyKeyPressed = ScreenSaverWidget.onClose
 ScreenSaverWidget.onExitScreensaver = ScreenSaverWidget.onClose
 
-function ScreenSaverWidget:onClose()
+function ScreenSaverWidget:onCloseWidget()
   -- Restore to previous rotation mode, if need be.
   if Device.orig_rotation_mode then
     Screen:setRotationMode(Device.orig_rotation_mode)

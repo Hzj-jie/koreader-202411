@@ -734,7 +734,7 @@ function ReaderUI:onShowingReader()
   self.dithered = nil
 
   -- Don't enforce a "full" refresh, leave that decision to the next widget we'll *show*.
-  self:onExit(false)
+  self:onClose(false)
 end
 
 -- Same as above, except we don't close it yet. Useful for plugins that need to close custom Menus before calling showReader.
@@ -822,7 +822,7 @@ function ReaderUI:doShowReader(file, provider, seamless)
       "ReaderUI instance mismatch! Tried to spin up a new instance, while we still have an existing one:",
       tostring(ReaderUI.instance)
     )
-    ReaderUI.instance:onExit()
+    ReaderUI.instance:onClose()
   end
   local document = DocumentRegistry:openDocument(file, provider)
   if not document then
@@ -860,7 +860,7 @@ function ReaderUI:doShowReader(file, provider, seamless)
   -- in order to ensure a sane ordering of plugins teardown -> instantiation.
   local FileManager = require("apps/filemanager/filemanager")
   if FileManager.instance then
-    FileManager.instance:onExit()
+    FileManager.instance:onClose()
   end
 
   UIManager:show(reader, seamless and "ui" or "full")
@@ -907,7 +907,7 @@ function ReaderUI:onVerifyPassword(document)
 end
 
 function ReaderUI:closeDialog()
-  self.password_dialog:onExit()
+  self.password_dialog:onClose()
   UIManager:close(self.password_dialog)
 end
 
@@ -935,7 +935,7 @@ function ReaderUI:closeDocument()
   self.document = nil
 end
 
-function ReaderUI:onExit(full_refresh)
+function ReaderUI:onClose(full_refresh)
   logger.dbg("closing reader")
   PluginLoader:finalize()
   Device:notifyBookState(nil, nil)
@@ -960,7 +960,7 @@ function ReaderUI:onExit(full_refresh)
   UIManager:close(self.dialog, full_refresh ~= false and "full")
 end
 
-function ReaderUI:onClose()
+function ReaderUI:onCloseWidget()
   if ReaderUI.instance == self then
     logger.dbg("Tearing down ReaderUI", tostring(self))
   else
@@ -1008,7 +1008,7 @@ end
 
 function ReaderUI:onHome()
   local file = self.document.file
-  self:onExit()
+  self:onClose()
   self:showFileManager(file)
   return true
 end
@@ -1029,8 +1029,8 @@ function ReaderUI:reloadDocument(after_close_callback, seamless)
   self:handleEvent(Event:new("CloseReaderMenu"))
   self:handleEvent(Event:new("CloseConfigMenu"))
   self:handleEvent(Event:new("PreserveCurrentSession")) -- don't reset statistics' start_current_period
-  self.highlight:onExit() -- close highlight dialog if any
-  self:onExit(false)
+  self.highlight:onClose() -- close highlight dialog if any
+  self:onClose(false)
   if after_close_callback then
     -- allow caller to do stuff between close an re-open
     after_close_callback(file, provider)
@@ -1050,8 +1050,8 @@ function ReaderUI:switchDocument(new_file, seamless)
 
   self:handleEvent(Event:new("CloseReaderMenu"))
   self:handleEvent(Event:new("CloseConfigMenu"))
-  self.highlight:onExit() -- close highlight dialog if any
-  self:onExit(false)
+  self.highlight:onClose() -- close highlight dialog if any
+  self:onClose(false)
 
   self:showReader(new_file, nil, seamless)
 end

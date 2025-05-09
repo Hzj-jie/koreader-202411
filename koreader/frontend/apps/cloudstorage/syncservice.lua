@@ -58,7 +58,7 @@ function SyncService:generateItemTable()
             onConfirm = function(path)
               server.url = path
               self.onConfirm(server)
-              self:onExit()
+              self:onClose()
             end,
           })
           :chooseCloudDir()

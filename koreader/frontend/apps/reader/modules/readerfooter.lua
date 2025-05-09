@@ -2823,7 +2823,7 @@ function ReaderFooter:onRefreshAdditionalContent()
   end
 end
 
-function ReaderFooter:onClose()
+function ReaderFooter:onCloseWidget()
   self:free()
 end
 
