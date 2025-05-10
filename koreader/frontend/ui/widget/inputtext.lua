@@ -761,7 +761,7 @@ function InputText:onKeyPress(key)
       self:downLine()
     elseif key["Home"] then
       if self.keyboard:isVisible() then
-        self:onCloseKeyboard()
+        self:closeKeyboard()
       else
         self:showKeyboard()
       end
@@ -841,7 +841,7 @@ function InputText:showKeyboard(ignore_first_hold_release)
   return true
 end
 
-function InputText:onCloseKeyboard()
+function InputText:closeKeyboard()
   if self.keyboard then
     self.keyboard:hideKeyboard()
   end

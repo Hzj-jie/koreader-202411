@@ -393,9 +393,9 @@ function NaturalLightWidget:showKeyboard()
   end
 end
 
-function NaturalLightWidget:onCloseKeyboard()
+function NaturalLightWidget:closeKeyboard()
   if self._current_input then
-    self._current_input:onCloseKeyboard()
+    self._current_input:closeKeyboard()
     self._current_input:unfocus()
     -- Make sure the cursor is deleted
     UIManager:setDirty(self._current_input, "fast")
@@ -403,7 +403,7 @@ function NaturalLightWidget:onCloseKeyboard()
 end
 
 function NaturalLightWidget:onSwitchFocus(inputbox)
-  self:onCloseKeyboard()
+  self:closeKeyboard()
   self._current_input = inputbox
   self:applyValues()
   self:showKeyboard()
@@ -411,7 +411,7 @@ end
 
 function NaturalLightWidget:closeKeyboard()
   if self._current_input then
-    self._current_input:onCloseKeyboard()
+    self._current_input:closeKeyboard()
     self._current_input:unfocus()
   end
 end
