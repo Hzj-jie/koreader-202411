@@ -1587,7 +1587,7 @@ end
 
 function Menu:onExit()
   if #self.item_table_stack == 0 then
-    self:onCloseAllMenus()
+    self:_closeAllMenus()
   else
     -- back to parent menu
     local parent_item_table = table.remove(self.item_table_stack)
@@ -1596,7 +1596,7 @@ function Menu:onExit()
   return true
 end
 
-function Menu:onCloseAllMenus()
+function Menu:_closeAllMenus()
   UIManager:close(self)
   if self.close_callback then
     self.close_callback()
@@ -1606,7 +1606,7 @@ end
 
 function Menu:onTapCloseAllMenus(arg, ges_ev)
   if ges_ev.pos:notIntersectWith(self.dimen) then
-    self:onCloseAllMenus()
+    self:_closeAllMenus()
     return true
   end
 end

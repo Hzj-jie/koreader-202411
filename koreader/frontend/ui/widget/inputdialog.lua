@@ -313,7 +313,7 @@ function InputDialog:init()
     local keyboard_height = self.keyboard_visible
         and input_widget:getKeyboardDimen().h
       or 0
-    input_widget:onCloseKeyboard() -- we don't want multiple VKs, as the show/hide tracking assumes there's only one
+    input_widget:closeKeyboard() -- we don't want multiple VKs, as the show/hide tracking assumes there's only one
     input_widget:onClose() -- free() textboxwidget and keyboard
     -- Find out available height
     local available_height = self.screen_height
@@ -563,7 +563,7 @@ function InputDialog:onTap(arg, ges)
       and self._input_widget.keyboard.dimen
       and ges.pos:notIntersectWith(self._input_widget.keyboard.dimen)
     then
-      self:onCloseKeyboard()
+      self:closeKeyboard()
     end
   else
     if ges.pos:notIntersectWith(self.dialog_frame.dimen) then
@@ -644,8 +644,8 @@ function InputDialog:showKeyboard(ignore_first_hold_release)
   self.keyboard_visible = self._input_widget:isKeyboardVisible()
 end
 
-function InputDialog:onCloseKeyboard()
-  self._input_widget:onCloseKeyboard()
+function InputDialog:closeKeyboard()
+  self._input_widget:closeKeyboard()
   self.keyboard_visible = self._input_widget:isKeyboardVisible()
 end
 
@@ -704,7 +704,7 @@ function InputDialog:toggleKeyboard(force_toggle)
     self:lockKeyboard(false)
     self:showKeyboard()
   else
-    self:onCloseKeyboard()
+    self:closeKeyboard()
     -- Prevent InputText:onTapTextBox from opening the keyboard back up on top of our buttons
     self:lockKeyboard(true)
   end
@@ -751,7 +751,7 @@ function InputDialog:onExit()
     -- This lets the caller store/process the current top line num and cursor position via this callback
     self.view_pos_callback(self._top_line_num, self._charpos)
   end
-  self:onCloseKeyboard()
+  self:closeKeyboard()
 end
 
 function InputDialog:onSetRotationMode(mode)

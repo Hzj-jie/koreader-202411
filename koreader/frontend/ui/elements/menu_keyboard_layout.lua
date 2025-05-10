@@ -221,7 +221,7 @@ local sub_item_table = {
                     "keyboard_key_compact",
                     check_button_compact.checked
                   )
-                  input_dialog._input_widget:onCloseKeyboard()
+                  input_dialog._input_widget:closeKeyboard()
                   input_dialog._input_widget:initKeyboard()
                   input_dialog:showKeyboard()
                   if touchmenu_instance then
