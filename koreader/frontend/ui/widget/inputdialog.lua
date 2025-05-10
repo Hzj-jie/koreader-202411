@@ -314,7 +314,7 @@ function InputDialog:init()
         and input_widget:getKeyboardDimen().h
       or 0
     input_widget:onCloseKeyboard() -- we don't want multiple VKs, as the show/hide tracking assumes there's only one
-    input_widget:onClose() -- free() textboxwidget and keyboard
+    input_widget:onCloseWidget() -- free() textboxwidget and keyboard
     -- Find out available height
     local available_height = self.screen_height
       - 2 * self.border_size
@@ -349,7 +349,7 @@ function InputDialog:init()
   if self.view_pos_callback then
     -- Retrieve cursor position and top line num from our callback.
     -- Mainly used for runtime re-inits.
-    -- c.f., our onExit handler for the other end of this.
+    -- c.f., our onClose handler for the other end of this.
     -- *May* return nils, in which case, we do *not* want to override our caller's values!
     local top_line_num, charpos = self.view_pos_callback()
     if top_line_num and charpos then
@@ -369,7 +369,7 @@ function InputDialog:init()
     end
   -- In case of reinit, murder our previous input widget to prevent stale VK instances from lingering
   if self._input_widget then
-    self._input_widget:onClose()
+    self._input_widget:onCloseWidget()
   end
   self._input_widget = self.inputtext_class:new({
     text = self.input,
@@ -499,8 +499,8 @@ end
 function InputDialog:reinit()
   local visible = self:isKeyboardVisible()
   self.input = self:getInputText() -- re-init with up-to-date text
-  self:onExit() -- will close keyboard and save view position
-  self._input_widget:onClose() -- proper cleanup of InputText and its keyboard
+  self:onClose() -- will close keyboard and save view position
+  self._input_widget:onCloseWidget() -- proper cleanup of InputText and its keyboard
   if self._added_widgets then
     -- prevent these externally added widgets from being freed as :init() will re-add them
     for i = 1, #self._added_widgets do
@@ -622,8 +622,8 @@ function InputDialog:onShow()
   end)
 end
 
-function InputDialog:onClose()
-  self:onExit()
+function InputDialog:onCloseWidget()
+  self:onClose()
   UIManager:setDirty(nil, self.fullscreen and "full" or function()
     return "ui", self.dialog_frame.dimen
   end)
@@ -678,7 +678,7 @@ function InputDialog:toggleKeyboard(force_toggle)
   end
 
   self.input = self:getInputText() -- re-init with up-to-date text
-  self:onExit() -- will close keyboard and save view position
+  self:onClose() -- will close keyboard and save view position
   self:free()
 
   if force_toggle == false and not visible then
@@ -721,7 +721,7 @@ function InputDialog:onKeyboardClosed()
   if self.add_nav_bar and self.fullscreen then
     -- If the keyboard was closed via a key event (Back), make sure we reinit properly like in toggleKeyboard...
     self.input = self:getInputText()
-    self:onExit()
+    self:onClose()
     self:free()
 
     self:init()
@@ -741,7 +741,7 @@ function InputDialog:onCloseDialog()
   return false
 end
 
-function InputDialog:onExit()
+function InputDialog:onClose()
   -- Tell our input widget to poke its text widget so that we'll pickup up to date values
   self._input_widget:resyncPos()
   -- Remember current view & position in case of re-init

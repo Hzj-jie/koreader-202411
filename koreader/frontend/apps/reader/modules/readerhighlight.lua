@@ -77,7 +77,7 @@ function ReaderHighlight:init()
         enabled = this.hold_pos ~= nil,
         callback = function()
           this:startSelection()
-          this:onExit()
+          this:onClose()
         end,
       }
     end,
@@ -87,7 +87,7 @@ function ReaderHighlight:init()
         enabled = this.hold_pos ~= nil,
         callback = function()
           this:saveHighlight(true)
-          this:onExit()
+          this:onClose()
         end,
       }
     end,
@@ -99,7 +99,7 @@ function ReaderHighlight:init()
           Device.input.setClipboardText(
             util.cleanupSelectedText(this.selected_text.text)
           )
-          this:onExit()
+          this:onClose()
           UIManager:show(Notification:new({
             text = _("Selection copied to clipboard."),
           }))
@@ -112,7 +112,7 @@ function ReaderHighlight:init()
         enabled = this.hold_pos ~= nil,
         callback = function()
           this:addNote()
-          this:onExit()
+          this:onClose()
         end,
       }
     end,
@@ -124,7 +124,7 @@ function ReaderHighlight:init()
         callback = function()
           UIManager:scheduleIn(0.1, function()
             this:lookupWikipedia()
-            -- We don't call this:onExit(), we need the highlight
+            -- We don't call this:onClose(), we need the highlight
             -- to still be there, as we may Highlight it from the
             -- dict lookup widget.
           end)
@@ -136,7 +136,7 @@ function ReaderHighlight:init()
         text = _("Dictionary"),
         callback = function()
           this:onHighlightDictLookup()
-          -- We don't call this:onExit(), same reason as above
+          -- We don't call this:onClose(), same reason as above
         end,
       }
     end,
@@ -145,7 +145,7 @@ function ReaderHighlight:init()
         text = _("Translate"),
         callback = function()
           this:translate(index)
-          -- We don't call this:onExit(), so one can still see
+          -- We don't call this:onClose(), so one can still see
           -- the highlighted text when moving the translated
           -- text window, and also if NetworkMgr:promptWifiOn()
           -- is needed, so the user can just tap again on this
@@ -160,7 +160,7 @@ function ReaderHighlight:init()
         text = _("Search"),
         callback = function()
           this:onHighlightSearch()
-          -- We don't call this:onExit(), crengine will highlight
+          -- We don't call this:onClose(), crengine will highlight
           -- search matches on the current page, and self:clear()
           -- would redraw and remove crengine native highlights
         end,
@@ -176,8 +176,8 @@ function ReaderHighlight:init()
         text = action,
         callback = function()
           local text = util.cleanupSelectedText(this.selected_text.text)
-          -- call self:onExit() before calling the android framework
-          this:onExit()
+          -- call self:onClose() before calling the android framework
+          this:onClose()
           Device:doShareText(text, action)
         end,
       }
@@ -207,7 +207,7 @@ function ReaderHighlight:init()
       end,
       callback = function()
         this.ui.userhyph:modifyUserEntry(this.selected_text.text)
-        this:onExit()
+        this:onClose()
       end,
     }
   end)
@@ -222,7 +222,7 @@ function ReaderHighlight:init()
       callback = function()
         local link = this.selected_link.link or this.selected_link
         this.ui.link:onGotoLink(link)
-        this:onExit()
+        this:onClose()
       end,
     }
   end)
@@ -2296,24 +2296,24 @@ function ReaderHighlight:onHoldRelease()
         self:onShowHighlightMenu()
       elseif default_highlight_action == "highlight" then
         self:saveHighlight(true)
-        self:onExit()
+        self:onClose()
       elseif default_highlight_action == "select" then
         self:startSelection()
-        self:onExit()
+        self:onClose()
       elseif default_highlight_action == "note" then
         self:addNote()
-        self:onExit()
+        self:onClose()
       elseif default_highlight_action == "translate" then
         self:translate()
       elseif default_highlight_action == "wikipedia" then
         self:lookupWikipedia()
-        self:onExit()
+        self:onClose()
       elseif default_highlight_action == "dictionary" then
         self:onHighlightDictLookup()
-        self:onExit()
+        self:onClose()
       elseif default_highlight_action == "search" then
         self:onHighlightSearch()
-        -- No self:onExit() to not remove the selected text
+        -- No self:onClose() to not remove the selected text
         -- which will have been the first search result
       end
     end
@@ -2910,7 +2910,7 @@ function ReaderHighlight:onSaveSettings()
   )
 end
 
-function ReaderHighlight:onExit()
+function ReaderHighlight:onClose()
   if self.highlight_dialog then
     UIManager:close(self.highlight_dialog)
     self.highlight_dialog = nil

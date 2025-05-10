@@ -451,7 +451,7 @@ function SkimToWidget:addOriginToLocationStack()
   end
 end
 
-function SkimToWidget:onClose()
+function SkimToWidget:onCloseWidget()
   if self.ui.paging then
     self.ui.paging:exitSkimMode()
   end
@@ -506,12 +506,12 @@ function SkimToWidget:onTapProgress(arg, ges_ev)
     end
   elseif not ges_ev.pos:intersectWith(self.skimto_frame.dimen) then
     -- close if tap outside
-    self:onExit()
+    self:onClose()
   end
   return true
 end
 
-function SkimToWidget:onExit()
+function SkimToWidget:onClose()
   UIManager:close(self)
   return true
 end

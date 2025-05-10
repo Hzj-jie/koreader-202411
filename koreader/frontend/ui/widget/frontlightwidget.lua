@@ -391,7 +391,7 @@ function FrontLightWidget:layout()
     with_bottom_line = true,
     bottom_v_padding = 0,
     close_callback = function()
-      self:onExit()
+      self:onClose()
     end,
     show_parent = self,
   })
@@ -529,7 +529,7 @@ function FrontLightWidget:setFrontLightIntensity(intensity)
   self.fl.cur = self.powerd:frontlightIntensity()
 end
 
-function FrontLightWidget:onClose()
+function FrontLightWidget:onCloseWidget()
   UIManager:setDirty(nil, function()
     return "flashui", self.frame.dimen
   end)
@@ -543,7 +543,7 @@ function FrontLightWidget:onShow()
   return true
 end
 
-function FrontLightWidget:onExit()
+function FrontLightWidget:onClose()
   UIManager:close(self)
   return true
 end
@@ -585,7 +585,7 @@ function FrontLightWidget:onTapProgress(arg, ges_ev)
     not ges_ev.pos:intersectWith(self.frame.dimen) and ges_ev.ges == "tap"
   then
     -- Close when tapping outside.
-    self:onExit()
+    self:onClose()
   end
   -- Otherwise, do nothing (it's easy to miss a button).
   return true

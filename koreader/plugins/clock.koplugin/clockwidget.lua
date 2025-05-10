@@ -169,7 +169,7 @@ end
 ClockWidget.onShow = function(self)
   return self:autoRefreshTime()
 end
-ClockWidget.onClose = function(self)
+ClockWidget.onCloseWidget = function(self)
   return UIManager:unschedule(self.autoRefreshTime)
 end
 ClockWidget.onSuspend = function(self)

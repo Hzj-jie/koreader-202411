@@ -108,7 +108,7 @@ function MultiInputDialog:init()
   table.remove(self.layout, 1)
   -- Also murder said input field *and* its VK, or we get two of them and shit gets hilariously broken real fast...
   self:onCloseKeyboard()
-  self._input_widget:onClose()
+  self._input_widget:onCloseWidget()
 
   local VerticalGroupData = VerticalGroup:new({
     align = "left",
@@ -119,7 +119,7 @@ function MultiInputDialog:init()
   -- In case of reinit, murder our previous input widgets to prevent stale VK instances from lingering
   if self.input_fields then
     for i, widget in ipairs(self.input_fields) do
-      widget:onClose()
+      widget:onCloseWidget()
     end
   end
   self.input_fields = {}
@@ -280,8 +280,8 @@ end
 function MultiInputDialog:onKeyboardHeightChanged()
   local visible = self:isKeyboardVisible()
   local fields = self.input_fields -- backup entered text
-  self:onExit() -- will close keyboard and save view position
-  self._input_widget:onClose() -- proper cleanup of InputText and its keyboard
+  self:onClose() -- will close keyboard and save view position
+  self._input_widget:onCloseWidget() -- proper cleanup of InputText and its keyboard
   if self._added_widgets then
     -- prevent these externally added widgets from being freed as :init() will re-add them
     local vgroup = self.dialog_frame[1]

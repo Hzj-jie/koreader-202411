@@ -336,7 +336,7 @@ function CalculatorSettingsDialog:onShow()
   end)
 end
 
-function CalculatorSettingsDialog:onClose()
+function CalculatorSettingsDialog:onCloseWidget()
   UIManager:setDirty(nil, function()
     return "ui", self[1][1].dimen
   end)

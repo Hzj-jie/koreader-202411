@@ -103,7 +103,7 @@ function ReaderProgress:getStatusContent(width)
     width = width,
     bottom_v_padding = 0,
     close_callback = not self.readonly and function()
-      self:onExit()
+      self:onClose()
     end,
     show_parent = self,
   })
@@ -539,7 +539,7 @@ end
 function ReaderProgress:onSwipe(arg, ges_ev)
   if ges_ev.direction == "south" then
     -- Allow easier closing with swipe up/down
-    self:onExit()
+    self:onClose()
   elseif
     ges_ev.direction == "east"
     or ges_ev.direction == "west"
@@ -557,14 +557,14 @@ function ReaderProgress:onSwipe(arg, ges_ev)
   end
 end
 
-function ReaderProgress:onExit()
+function ReaderProgress:onClose()
   UIManager:close(self)
   return true
 end
-ReaderProgress.onAnyKeyPressed = ReaderProgress.onExit
+ReaderProgress.onAnyKeyPressed = ReaderProgress.onClose
 -- For consistency with other fullscreen widgets where swipe south can't be
 -- used to close and where we then allow any multiswipe to close, allow any
 -- multiswipe to close this widget too.
-ReaderProgress.onMultiSwipe = ReaderProgress.onExit
+ReaderProgress.onMultiSwipe = ReaderProgress.onClose
 
 return ReaderProgress

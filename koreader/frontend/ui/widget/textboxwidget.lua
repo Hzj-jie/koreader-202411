@@ -1362,7 +1362,7 @@ function TextBoxWidget:paintTo(bb, x, y)
   bb:blitFrom(self._bb, x, y, 0, 0, self.width, self._bb:getHeight())
 end
 
-function TextBoxWidget:onClose()
+function TextBoxWidget:onCloseWidget()
   -- Free all resources when UIManager closes this widget
   self:free()
 end

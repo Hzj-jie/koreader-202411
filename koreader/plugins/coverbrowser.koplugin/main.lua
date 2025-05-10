@@ -18,7 +18,7 @@ local BookInfoManager = require("bookinfomanager")
 local FileChooser = require("ui/widget/filechooser")
 local _FileChooser__recalculateDimen_orig = FileChooser._recalculateDimen
 local _FileChooser_updateItems_orig = FileChooser.updateItems
-local _FileChooser_onClose_orig = FileChooser.onClose
+local _FileChooser_onCloseWidget_orig = FileChooser.onCloseWidget
 
 local FileManagerHistory = require("apps/filemanager/filemanagerhistory")
 local _FileManagerHistory_updateItemTable_orig =
@@ -644,7 +644,7 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
   if not display_mode then -- classic mode
     -- Put back original methods
     FileChooser.updateItems = _FileChooser_updateItems_orig
-    FileChooser.onClose = _FileChooser_onClose_orig
+    FileChooser.onCloseWidget = _FileChooser_onCloseWidget_orig
     FileChooser._recalculateDimen = _FileChooser__recalculateDimen_orig
     FileManager.tapPlus = _FileManager_tapPlus_orig
     -- Also clean-up what we added, even if it does not bother original code
@@ -663,7 +663,7 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
   local CoverMenu = require("covermenu")
   FileChooser.updateCache = CoverMenu.updateCache
   FileChooser.updateItems = CoverMenu.updateItems
-  FileChooser.onClose = CoverMenu.onClose
+  FileChooser.onCloseWidget = CoverMenu.onCloseWidget
   if FileChooser.display_mode_type == "mosaic" then
     -- Replace some other original methods with those from our MosaicMenu
     local MosaicMenu = require("mosaicmenu")
@@ -719,7 +719,7 @@ local function _FileManagerHistory_updateItemTable(self)
     local CoverMenu = require("covermenu")
     hist_menu.updateCache = CoverMenu.updateCache
     hist_menu.updateItems = CoverMenu.updateItems
-    hist_menu.onClose = CoverMenu.onClose
+    hist_menu.onCloseWidget = CoverMenu.onCloseWidget
     -- Also replace original onMenuHold (it will use original method, so remember it)
     hist_menu.onMenuHold_orig = hist_menu.onMenuHold
     hist_menu.onMenuHold = CoverMenu.onHistoryMenuHold
@@ -801,7 +801,7 @@ local function _FileManagerCollections_updateItemTable(self)
     local CoverMenu = require("covermenu")
     coll_menu.updateCache = CoverMenu.updateCache
     coll_menu.updateItems = CoverMenu.updateItems
-    coll_menu.onClose = CoverMenu.onClose
+    coll_menu.onCloseWidget = CoverMenu.onCloseWidget
     -- Also replace original onMenuHold (it will use original method, so remember it)
     coll_menu.onMenuHold_orig = coll_menu.onMenuHold
     coll_menu.onMenuHold = CoverMenu.onCollectionsMenuHold

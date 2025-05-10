@@ -112,8 +112,8 @@ function AutoTurn:init()
   self:_start()
 end
 
-function AutoTurn:onClose()
-  logger.dbg("AutoTurn: onClose")
+function AutoTurn:onCloseWidget()
+  logger.dbg("AutoTurn: onCloseWidget")
   self:_unschedule()
   self.task = nil
 end

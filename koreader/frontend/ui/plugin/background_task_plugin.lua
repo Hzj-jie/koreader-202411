@@ -31,11 +31,11 @@ function BackgroundTaskPlugin:_start()
   })
 end
 
-function BackgroundTaskPlugin:onExit()
-  self:onClose()
+function BackgroundTaskPlugin:onClose()
+  self:onCloseWidget()
 end
 
-function BackgroundTaskPlugin:onClose()
+function BackgroundTaskPlugin:onCloseWidget()
   -- Invalid the background job.
   self.settings_id = self.settings_id + 1
 end

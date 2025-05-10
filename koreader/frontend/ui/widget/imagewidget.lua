@@ -735,7 +735,7 @@ function ImageWidget:free()
   self.scale_factor = self._initial_scale_factor
 end
 
-function ImageWidget:onClose()
+function ImageWidget:onCloseWidget()
   -- free when UIManager:close() was called
   self:free()
 end

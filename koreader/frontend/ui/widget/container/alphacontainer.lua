@@ -58,7 +58,7 @@ function AlphaContainer:paintTo(bb, x, y)
   )
 end
 
-function AlphaContainer:onClose()
+function AlphaContainer:onCloseWidget()
   if self.private_bb then
     self.private_bb:free()
     self.private_bb = nil

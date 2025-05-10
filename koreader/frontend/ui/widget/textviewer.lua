@@ -197,7 +197,7 @@ function TextViewer:init(reinit)
       self:onShowMenu()
     end,
     close_callback = function()
-      self:onExit()
+      self:onClose()
     end,
     show_parent = self,
   })
@@ -276,7 +276,7 @@ function TextViewer:init(reinit)
     {
       text = _("Close"),
       callback = function()
-        self:onExit()
+        self:onClose()
       end,
       hold_callback = self.default_hold_callback,
     },
@@ -374,7 +374,7 @@ function TextViewer:init(reinit)
   })
 end
 
-function TextViewer:onClose()
+function TextViewer:onCloseWidget()
   UIManager:setDirty(nil, function()
     return "partial", self.frame.dimen
   end)
@@ -389,7 +389,7 @@ end
 
 function TextViewer:onTapClose(arg, ges_ev)
   if ges_ev.pos:notIntersectWith(self.frame.dimen) then
-    self:onExit()
+    self:onClose()
   end
   return true
 end
@@ -398,11 +398,11 @@ function TextViewer:onMultiSwipe(arg, ges_ev)
   -- For consistency with other fullscreen widgets where swipe south can't be
   -- used to close and where we then allow any multiswipe to close, allow any
   -- multiswipe to close this widget too.
-  self:onExit()
+  self:onClose()
   return true
 end
 
-function TextViewer:onExit()
+function TextViewer:onClose()
   UIManager:close(self)
   if self.close_callback then
     self.close_callback()
