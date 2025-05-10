@@ -77,24 +77,7 @@ function HttpInspector:_start()
   logger.dbg("HttpInspector: Starting server...")
 
   -- Make a hole in the Kindle's firewall
-  if Device:isKindle() then
-    os.execute(
-      string.format(
-        "%s %s %s",
-        "iptables -A INPUT -p tcp --dport",
-        self.port,
-        "-m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
-      )
-    )
-    os.execute(
-      string.format(
-        "%s %s %s",
-        "iptables -A OUTPUT -p tcp --sport",
-        self.port,
-        "-m conntrack --ctstate ESTABLISHED -j ACCEPT"
-      )
-    )
-  end
+  self:_iptables("A")
 
   -- Using a simple LuaSocket based TCP server instead of a ZeroMQ based one
   -- seems to solve strange issues with Chrome.
@@ -113,6 +96,26 @@ function HttpInspector:_start()
   logger.dbg("HttpInspector: Server listening on port " .. self.port)
 end
 
+function HttpInspector:_iptables(verb)
+  if not Device:isKindle() then return end
+  os.execute(
+    string.format(
+      "iptables -%s INPUT -p tcp --dport %s " ..
+      "-m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT > /dev/null 2>&1",
+      verb,
+      self.port
+    )
+  )
+  os.execute(
+    string.format(
+      "iptables -%s OUTPUT -p tcp --sport %s " ..
+      "-m conntrack --ctstate ESTABLISHED -j ACCEPT > /dev/null 2>&1",
+      verb,
+      self.port
+    )
+  )
+end
+
 function HttpInspector:_stop()
   logger.dbg("HttpInspector: Stopping server...")
 
@@ -126,24 +129,7 @@ function HttpInspector:_stop()
   end
 
   -- Plug the hole in the Kindle's firewall
-  if Device:isKindle() then
-    os.execute(
-      string.format(
-        "%s %s %s",
-        "iptables -D INPUT -p tcp --dport",
-        self.port,
-        "-m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
-      )
-    )
-    os.execute(
-      string.format(
-        "%s %s %s",
-        "iptables -D OUTPUT -p tcp --sport",
-        self.port,
-        "-m conntrack --ctstate ESTABLISHED -j ACCEPT"
-      )
-    )
-  end
+  self:_iptables("D")
 
   logger.dbg("HttpInspector: Server stopped.")
 end
