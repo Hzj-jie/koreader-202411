@@ -149,7 +149,7 @@ local wrapInputBox = function(inputbox)
     table.insert(wrappers, util.wrapMethod(inputbox, "unfocus", nil, separate))
     table.insert(
       wrappers,
-      util.wrapMethod(inputbox, "closeKeyboard", nil, separate)
+      util.wrapMethod(inputbox, "onCloseKeyboard", nil, separate)
     )
     -- -- Gestures to move cursor.
     table.insert(

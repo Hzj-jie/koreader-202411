@@ -156,7 +156,7 @@ function ReaderConfig:onShowConfigMenu()
     is_always_active = true,
     covers_footer = true,
     close_callback = function()
-      self:_closeCallback()
+      self:onCloseCallback()
     end,
   })
   self.ui:handleEvent(Event:new("DisableHinting"))
@@ -190,7 +190,7 @@ function ReaderConfig:onSetDimensions(dimen)
   end
 end
 
-function ReaderConfig:_closeCallback()
+function ReaderConfig:onCloseCallback()
   self.last_panel_index = self.config_dialog.panel_index
   self.config_dialog = nil
   self.ui:handleEvent(Event:new("RestoreHinting"))
