@@ -859,7 +859,7 @@ function InputText:lockKeyboard(toggle)
   end
 end
 
-function InputText:onClose()
+function InputText:onCloseWidget()
   if self.keyboard then
     self.keyboard:free()
   end

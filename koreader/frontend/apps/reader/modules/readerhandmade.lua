@@ -430,7 +430,7 @@ function ReaderHandMade:updateHighlightDialog()
           end,
           callback = function()
             local selected_text = this.selected_text
-            this:onExit()
+            this:onClose()
             self:addOrEditPageTocItem(nil, nil, selected_text)
           end,
         }

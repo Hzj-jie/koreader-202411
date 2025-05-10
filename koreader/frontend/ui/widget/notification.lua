@@ -203,7 +203,7 @@ function Notification:_cleanShownStack()
   end
 end
 
-function Notification:onClose()
+function Notification:onCloseWidget()
   self:_cleanShownStack()
   self._shown_idx = nil -- Don't do something stupid if this same instance gets closed multiple times
   UIManager:setDirty(nil, function()

@@ -239,7 +239,7 @@ function DictQuickLookup:init()
     with_bottom_line = true,
     bottom_v_padding = 0, -- padding handled below
     close_callback = function()
-      self:onExit()
+      self:onClose()
     end,
     close_hold_callback = function()
       self:onHoldClose()
@@ -431,9 +431,9 @@ function DictQuickLookup:init()
                                   self.ui.highlight
                                   and self.ui.highlight.highlight_dialog
                                 then
-                                  self.ui.highlight:onExit()
+                                  self.ui.highlight:onClose()
                                 end
-                                self.ui:onExit()
+                                self.ui:onClose()
                               end
 
                               local ReaderUI = require("apps/reader/readerui")
@@ -459,7 +459,7 @@ function DictQuickLookup:init()
           id = "close",
           text = _("Close"),
           callback = function()
-            self:onExit()
+            self:onClose()
           end,
           hold_callback = function()
             self:onHoldClose()
@@ -556,10 +556,10 @@ function DictQuickLookup:init()
               DictQuickLookup.rotated_update_wiki_languages_on_close =
                 self.update_wiki_languages_on_close
               self:lookupWikipedia(false, nil, nil, self.wiki_languages[2])
-              self:onExit(true)
+              self:onClose(true)
             else
               self.ui:handleEvent(Event:new("HighlightSearch"))
-              self:onExit(true) -- don't unhighlight (or we might erase a search hit)
+              self:onClose(true) -- don't unhighlight (or we might erase a search hit)
             end
           end,
         },
@@ -567,7 +567,7 @@ function DictQuickLookup:init()
           id = "close",
           text = _("Close"),
           callback = function()
-            self:onExit()
+            self:onClose()
           end,
           hold_callback = function()
             self:onHoldClose()
@@ -585,7 +585,7 @@ function DictQuickLookup:init()
           callback = function()
             local link = self.selected_link.link or self.selected_link
             self.ui.link:onGotoLink(link)
-            self:onExit()
+            self:onClose()
           end,
         },
       })
@@ -995,7 +995,7 @@ function DictQuickLookup:getInitialVisibleArea()
   return area
 end
 
-function DictQuickLookup:onClose()
+function DictQuickLookup:onCloseWidget()
   -- Our TextBoxWidget/HtmlBoxWidget/TextWidget/ImageWidget are proper child widgets,
   -- so this event will propagate to 'em, and they'll free their resources.
 
@@ -1190,7 +1190,7 @@ end
 
 function DictQuickLookup:onTap(arg, ges_ev)
   if ges_ev.pos:notIntersectWith(self.dict_frame.dimen) then
-    self:onExit()
+    self:onClose()
     return true
   end
   if ges_ev.pos:intersectWith(self.dict_title.dimen) and not self.is_wiki then
@@ -1213,7 +1213,7 @@ function DictQuickLookup:onTap(arg, ges_ev)
   return true
 end
 
-function DictQuickLookup:onExit(no_clear)
+function DictQuickLookup:onClose(no_clear)
   for menu, _ in pairs(self.menu_opened) do
     UIManager:close(menu)
   end
@@ -1248,7 +1248,7 @@ function DictQuickLookup:onHoldClose(no_clear)
   -- Pop the windows FILO
   for i = #DictQuickLookup.window_list, 1, -1 do
     local window = DictQuickLookup.window_list[i]
-    window:onExit(no_clear)
+    window:onClose(no_clear)
   end
   return true
 end

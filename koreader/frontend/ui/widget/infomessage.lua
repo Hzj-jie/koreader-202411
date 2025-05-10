@@ -209,7 +209,7 @@ function InfoMessage:init()
   end
 end
 
-function InfoMessage:onClose()
+function InfoMessage:onCloseWidget()
   -- If we were closed early, drop the scheduled timeout
   if self._timeout_func then
     UIManager:unschedule(self._timeout_func)

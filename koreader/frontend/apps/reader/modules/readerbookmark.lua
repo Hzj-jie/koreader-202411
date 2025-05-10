@@ -899,7 +899,7 @@ function ReaderBookmark:onShowBookmark()
                     bookmark:deleteItemNote(v)
                   end
                 end
-                self:onExit()
+                self:onClose()
                 bookmark:onShowBookmark()
               end,
             }))
@@ -954,7 +954,7 @@ function ReaderBookmark:onShowBookmark()
           ),
           callback = function()
             UIManager:close(bm_dialog)
-            self:onExit()
+            self:onClose()
             bookmark.match_table = { [item_type] = true }
             bookmark:onShowBookmark()
           end,
@@ -965,7 +965,7 @@ function ReaderBookmark:onShowBookmark()
           text = _("All (reset filters)"),
           callback = function()
             UIManager:close(bm_dialog)
-            self:onExit()
+            self:onClose()
             bookmark:onShowBookmark()
           end,
         },
@@ -1293,7 +1293,7 @@ function ReaderBookmark:showBookmarkDetails(item_or_index)
       {
         text = _("Close"),
         callback = function()
-          textviewer:onExit()
+          textviewer:onClose()
         end,
       },
       {

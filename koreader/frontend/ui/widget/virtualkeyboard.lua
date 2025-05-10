@@ -567,12 +567,12 @@ function VirtualKeyPopup:onTapClose(arg, ges)
   return false
 end
 
-function VirtualKeyPopup:onExit()
+function VirtualKeyPopup:onClose()
   UIManager:close(self)
   return true
 end
 
-function VirtualKeyPopup:onClose()
+function VirtualKeyPopup:onCloseWidget()
   self:free()
   UIManager:setDirty(nil, function()
     return "ui", self.dimen
@@ -1021,7 +1021,7 @@ function VirtualKeyboard:setKeyboardLayout(layout)
   keyboard_state.force_current_layout = false
 end
 
-function VirtualKeyboard:onExit()
+function VirtualKeyboard:onClose()
   UIManager:close(self)
   if self.inputbox and Device:hasDPad() then
     -- Let InputText handle this KeyPress "Back" event to unfocus, otherwise, another extra Back event is needed.
@@ -1062,12 +1062,12 @@ function VirtualKeyboard:onShow()
   return true
 end
 
-function VirtualKeyboard:onClose()
+function VirtualKeyboard:onCloseWidget()
   self:_refresh(true)
   self.visible = false
   -- NOTE: This effectively stops SDL text input when a keyboard is hidden (... but navigational stuff still works).
   --     If you instead wanted it to be enabled as long as an input dialog is displayed, regardless of VK's state,
-  --     this could be moved to InputDialog's onShow/onClose handlers (but, it would allow input on unfocused fields).
+  --     this could be moved to InputDialog's onShow/onCloseWidget handlers (but, it would allow input on unfocused fields).
   -- NOTE: But something more complex, possibly based on an in-class ref count would have to be implemented in order to be able to deal
   --     with multiple InputDialogs being shown and closed in asymmetric fashion... Ugh.
   -- NOTE: You would also have to deal with the fact that, once InputText loses focus,
@@ -1089,7 +1089,7 @@ function VirtualKeyboard:setVisibility(toggle)
   if toggle then
     UIManager:show(self)
   else
-    self:onExit()
+    self:onClose()
   end
 end
 

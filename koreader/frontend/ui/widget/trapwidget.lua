@@ -157,7 +157,7 @@ function TrapWidget:onShow()
   return true
 end
 
-function TrapWidget:onClose()
+function TrapWidget:onCloseWidget()
   if self.frame then
     UIManager:setDirty(nil, function()
       return "ui", self.frame.dimen

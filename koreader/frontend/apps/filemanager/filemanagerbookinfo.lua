@@ -435,7 +435,7 @@ function BookInfo:updateBookInfo(file, book_props, prop_updated, prop_value_old)
     metadata_key_updated = prop_updated,
     metadata_value_old = prop_value_old,
   }
-  self.kvp_widget:onExit()
+  self.kvp_widget:onClose()
   self:show(file, book_props)
 end
 
@@ -683,7 +683,7 @@ function BookInfo:editSummary(doc_settings_or_file, book_props)
           doc_settings_or_file =
             filemanagerutil.saveSummary(doc_settings_or_file, summary)
           self.summary_updated = true
-          self.kvp_widget:onExit()
+          self.kvp_widget:onClose()
           self:show(doc_settings_or_file, book_props)
         end,
       })
@@ -713,7 +713,7 @@ function BookInfo:editSummary(doc_settings_or_file, book_props)
             doc_settings_or_file =
               filemanagerutil.saveSummary(doc_settings_or_file, summary)
             self.summary_updated = true
-            self.kvp_widget:onExit()
+            self.kvp_widget:onClose()
             self:show(doc_settings_or_file, book_props)
           end,
         },

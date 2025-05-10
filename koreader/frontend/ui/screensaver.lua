@@ -825,7 +825,7 @@ end
 
 function Screensaver:close()
   if self.screensaver_widget == nil and self.screensaver_lock_widget == nil then
-    -- When we *do* have a widget, this is handled by ScreenSaver(Lock)Widget:onClose ;).
+    -- When we *do* have a widget, this is handled by ScreenSaver(Lock)Widget:onCloseWidget ;).
     self:cleanup()
     return
   end

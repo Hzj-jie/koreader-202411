@@ -360,7 +360,7 @@ function CloudStorage:downloadFile(item)
             .. "/"
             .. filename
           local callback_close = function()
-            self:onExit()
+            self:onClose()
           end
           if lfs.attributes(path_dir) then
             UIManager:show(ConfirmBox:new({

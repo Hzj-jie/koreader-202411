@@ -562,7 +562,7 @@ function CalendarDayView:init()
     title_face = Font:getFace("smalltfont", 22),
     title_h_padding = self.outer_padding,
     close_callback = function()
-      self:onExit()
+      self:onClose()
     end,
     show_parent = self,
   })
@@ -1114,7 +1114,7 @@ function CalendarDayView:onSwipe(arg, ges_ev)
     self:onPrevPage()
   elseif direction == "south" then
     -- Allow easier closing with swipe down
-    self:onExit()
+    self:onClose()
   elseif direction == "north" then
     -- no use for now
     do
@@ -1129,11 +1129,11 @@ function CalendarDayView:onSwipe(arg, ges_ev)
 end
 
 function CalendarDayView:onMultiSwipe(arg, ges_ev)
-  self:onExit()
+  self:onClose()
   return true
 end
 
-function CalendarDayView:onExit()
+function CalendarDayView:onClose()
   UIManager:close(self)
   UIManager:setDirty(nil, "ui")
   if self.close_callback then
@@ -1338,7 +1338,7 @@ function CalendarView:init()
     title = self.title,
     title_h_padding = self.outer_padding, -- have month name aligned with calendar left edge
     close_callback = function()
-      self:onExit()
+      self:onClose()
     end,
     show_parent = self,
   })
@@ -1676,7 +1676,7 @@ function CalendarView:onSwipe(arg, ges_ev)
     return true
   elseif direction == "south" then
     -- Allow easier closing with swipe down
-    self:onExit()
+    self:onClose()
   elseif direction == "north" then
     -- no use for now
     do
@@ -1694,11 +1694,11 @@ function CalendarView:onMultiSwipe(arg, ges_ev)
   -- For consistency with other fullscreen widgets where swipe south can't be
   -- used to close and where we then allow any multiswipe to close, allow any
   -- multiswipe to close this widget too.
-  self:onExit()
+  self:onClose()
   return true
 end
 
-function CalendarView:onExit()
+function CalendarView:onClose()
   UIManager:close(self)
   -- Remove ghosting
   UIManager:setDirty(nil, "full")

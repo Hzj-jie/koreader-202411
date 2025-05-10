@@ -147,7 +147,7 @@ function NaturalLightWidget:update()
     bottom_v_padding = 0,
     close_callback = function()
       self:setAllValues(self.old_values)
-      self:onExit()
+      self:onClose()
     end,
     show_parent = self,
   })
@@ -273,7 +273,7 @@ function NaturalLightWidget:createMainContent(width, height)
     show_parent = self,
     callback = function()
       self:setAllValues(self.old_values)
-      self:onExit()
+      self:onClose()
     end,
   })
   local button_ok = Button:new({
@@ -287,7 +287,7 @@ function NaturalLightWidget:createMainContent(width, height)
         "natural_light_config",
         self:getCurrentValues()
       )
-      self:onExit()
+      self:onClose()
     end,
   })
 
@@ -365,7 +365,7 @@ function NaturalLightWidget:setValueTextBox(widget, val)
   widget:unfocus()
 end
 
-function NaturalLightWidget:onClose()
+function NaturalLightWidget:onCloseWidget()
   self:closeKeyboard()
   UIManager:setDirty(nil, function()
     return "flashui", self.nl_frame.dimen
@@ -381,7 +381,7 @@ function NaturalLightWidget:onShow()
   return true
 end
 
-function NaturalLightWidget:onExit()
+function NaturalLightWidget:onClose()
   UIManager:close(self)
   return true
 end

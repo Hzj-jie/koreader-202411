@@ -164,7 +164,7 @@ function HtmlBoxWidget:free()
   end
 end
 
-function HtmlBoxWidget:onClose()
+function HtmlBoxWidget:onCloseWidget()
   -- free when UIManager:close() was called
   self:free()
 end

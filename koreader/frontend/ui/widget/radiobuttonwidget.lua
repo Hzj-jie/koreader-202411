@@ -158,7 +158,7 @@ function RadioButtonWidget:update()
           if self.cancel_callback then
             self.cancel_callback()
           end
-          self:onExit()
+          self:onClose()
         end,
       },
       {
@@ -170,7 +170,7 @@ function RadioButtonWidget:update()
             self.callback(self)
           end
           if not self.keep_shown_on_apply then
-            self:onExit()
+            self:onClose()
           end
         end,
       },
@@ -188,7 +188,7 @@ function RadioButtonWidget:update()
             self.extra_callback(self)
           end
           if not self.keep_shown_on_apply then
-            self:onExit()
+            self:onClose()
           end
         end,
       },
@@ -274,7 +274,7 @@ function RadioButtonWidget:hasMoved()
   return offset.x ~= 0 or offset.y ~= 0
 end
 
-function RadioButtonWidget:onClose()
+function RadioButtonWidget:onCloseWidget()
   UIManager:setDirty(nil, function()
     return "ui", self.widget_frame.dimen
   end)
@@ -289,12 +289,12 @@ end
 
 function RadioButtonWidget:onTapClose(arg, ges_ev)
   if ges_ev.pos:notIntersectWith(self.widget_frame.dimen) then
-    self:onExit()
+    self:onClose()
   end
   return true
 end
 
-function RadioButtonWidget:onExit()
+function RadioButtonWidget:onClose()
   UIManager:close(self)
   if self.close_callback then
     self.close_callback()

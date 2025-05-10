@@ -504,19 +504,19 @@ Here's a quick rundown of what each refreshtype should be used for:
           Can be used when closing an UI element (usually over ReaderUI), to avoid ghosting.
           You can even drop the region in these cases, to ensure a fullscreen flash.
           NOTE: On REAGL devices, `flashpartial` will NOT actually flash (by design).
-            As such, even onClose, you might prefer `flashui` in most instances.
+            As such, even onCloseWidget, you might prefer `flashui` in most instances.
 
 NOTE: You'll notice a trend on UI elements that are usually shown *over* some kind of text (generally ReaderUI)
-of using `"ui"` onShow & onUpdate, but `"partial"` onClose.
+of using `"ui"` onShow & onUpdate, but `"partial"` onCloseWidget.
 This is by design: `"partial"` is what the reader (ReaderUI) uses, as it's tailor-made for pure text
 over a white background, so this ensures we resume the usual flow of the reader.
 The same dynamic is true for their flashing counterparts, in the rare instances we enforce flashes.
 Any kind of `"partial"` refresh *will* count towards a flashing promotion after `FULL_REFRESH_COUNT` refreshes,
 so making sure your stuff only applies to the proper region is key to avoiding spurious large black flashes.
-That said, depending on your use case, using `"ui"` onClose can be a perfectly valid decision,
+That said, depending on your use case, using `"ui"` onCloseWidget can be a perfectly valid decision,
 and will ensure never seeing a flash because of that widget.
 Remember that the FM uses `"ui"`, so, if said widgets are shown over the FM,
-prefer using `"ui"` or `"flashui"` onClose.
+prefer using `"ui"` or `"flashui"` onCloseWidget.
 
 The final parameter (refreshdither) is an optional hint for devices with hardware dithering support that this repaint
 could benefit from dithering (e.g., because it contains an image).
@@ -541,7 +541,7 @@ As far as the actual lifecycle of a widget goes, the rules are:
     at poweroff/reboot.
   * It can also be used as a keypress handler by @{ui.widget.container.inputcontainer|InputContainer}, generally bound to the Back key.
 
-Please refrain from implementing custom `onExit` methods if that's not their intended purpose ;).
+Please refrain from implementing custom `onClose` methods if that's not their intended purpose ;).
 
 On the subject of widgets and child widgets,
 you might have noticed an unspoken convention across the codebase of widgets having a field called `show_parent`.
