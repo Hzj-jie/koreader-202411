@@ -126,10 +126,10 @@ function PageBrowserWidget:init()
       end
     end,
     close_callback = function()
-      self:onClose()
+      self:onExit()
     end,
     close_hold_callback = function()
-      self:onClose(true)
+      self:onExit(true)
     end,
     show_parent = self,
   })
@@ -1180,7 +1180,7 @@ Any multiswipe will close the page browser.]]),
   }))
 end
 
-function PageBrowserWidget:onClose(close_all_parents)
+function PageBrowserWidget:onExit(close_all_parents)
   if self.requests_batch_id then
     self.ui.thumbnail:cancelPageThumbnailRequests(self.requests_batch_id)
   end
@@ -1192,7 +1192,7 @@ function PageBrowserWidget:onClose(close_all_parents)
     if close_all_parents then
       -- The last one of these (which has no launcher attribute)
       -- will do the cleanup below.
-      self.launcher:onClose(true)
+      self.launcher:onExit(true)
     else
       if self.editable_stuff_edited then
         self.launcher:updateEditableStuff(true)
@@ -1531,7 +1531,7 @@ end
 function PageBrowserWidget:onMultiSwipe(arg, ges)
   -- All swipes gestures are used for navigation.
   -- Allow for quick closing with any multiswipe.
-  self:onClose()
+  self:onExit()
   return true
 end
 
@@ -1592,11 +1592,11 @@ function PageBrowserWidget:onTap(arg, ges)
         -- must be in a hurry if he can't wait for the thumbnail!)
         -- Close the BookMapWidget that launched this PageBrowser
         -- and all their ancestors up to Reader
-        self:onClose(true)
+        self:onExit(true)
         self.ui.link:addCurrentLocationToStack()
         self.ui:handleEvent(Event:new("GotoPage", page))
         -- Note: with ReaderPaging, if we tap on the thumbnail for the current
-        -- page, nothing would be refreshed. Our :onClose(true) will have the
+        -- page, nothing would be refreshed. Our :onExit(true) will have the
         -- last ancestor issue a full refresh that will ensure it is painted.
         return true
       end

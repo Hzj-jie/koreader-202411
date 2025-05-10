@@ -559,7 +559,7 @@ function ReaderSearch:onShowSearchDialog(
           icon_width = Screen:scaleBySize(DGENERIC_ICON_SIZE * 0.8),
           icon_height = Screen:scaleBySize(DGENERIC_ICON_SIZE * 0.8),
           callback = function()
-            self.search_dialog:onClose()
+            self.search_dialog:onExit()
             self:onShowFulltextSearchInput()
           end,
         },

@@ -256,8 +256,8 @@ function AutoSuspend:init()
 end
 
 -- NOTE: event_hook takes care of overloading this to unregister the hook, too.
-function AutoSuspend:onCloseWidget()
-  logger.dbg("AutoSuspend: onCloseWidget")
+function AutoSuspend:onClose()
+  logger.dbg("AutoSuspend: onClose")
 
   self:_unschedule()
   self.task = nil
@@ -560,7 +560,7 @@ function AutoSuspend:pickTimeoutValue(
         text = T(_("%1: disabled"), title),
         timeout = 3,
       }))
-      this:onClose()
+      this:onExit()
     end,
     keep_shown_on_apply = true,
   })

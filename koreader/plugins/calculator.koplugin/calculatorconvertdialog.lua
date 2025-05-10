@@ -285,7 +285,7 @@ function CalculatorConvertDialog:onShow()
   end)
 end
 
-function CalculatorConvertDialog:onClose()
+function CalculatorConvertDialog:onExit()
   UIManager:setDirty(nil, function()
     return "ui", self[1][1].dimen
   end)

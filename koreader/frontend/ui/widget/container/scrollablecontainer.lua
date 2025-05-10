@@ -428,7 +428,7 @@ function ScrollableContainer:setScrolledOffset(offset_point)
   end
 end
 
-function ScrollableContainer:onCloseWidget()
+function ScrollableContainer:onClose()
   if self._bb then
     self._bb:free()
     self._bb = nil

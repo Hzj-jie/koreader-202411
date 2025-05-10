@@ -14,7 +14,7 @@ local BookInfoManager = require("bookinfomanager")
 --
 -- Here the common overridden methods of Menu are defined:
 --    :updateItems(select_number)
---    :onCloseWidget()
+--    :onClose()
 --
 -- MosaicMenu or ListMenu should implement specific UI methods:
 --    :_recalculateDimen()
@@ -483,7 +483,7 @@ function CoverMenu:onCollectionsMenuHold(item)
   return true
 end
 
-function CoverMenu:onCloseWidget()
+function CoverMenu:onClose()
   -- Due to close callback in FileManagerHistory:onShowHist, we may be called
   -- multiple times (witnessed that with print(debug.traceback())
   -- So, avoid doing what follows twice
@@ -493,14 +493,14 @@ function CoverMenu:onCloseWidget()
   self._covermenu_onclose_done = true
 
   -- Stop background job if any (so that full cpu is available to reader)
-  logger.dbg("CoverMenu:onCloseWidget: terminating jobs if needed")
+  logger.dbg("CoverMenu:onClose: terminating jobs if needed")
   BookInfoManager:terminateBackgroundJobs()
   BookInfoManager:closeDbConnection() -- sqlite connection no more needed
   BookInfoManager:cleanUp() -- clean temporary resources
 
   -- Cancel any still scheduled update
   if self.items_update_action then
-    logger.dbg("CoverMenu:onCloseWidget: unscheduling items_update_action")
+    logger.dbg("CoverMenu:onClose: unscheduling items_update_action")
     UIManager:unschedule(self.items_update_action)
     self.items_update_action = nil
   end
@@ -519,8 +519,8 @@ function CoverMenu:onCloseWidget()
   end)
   nb_drawings_since_last_collectgarbage = 0
 
-  -- Call the object's original onCloseWidget (i.e., Menu's, as none our our expected subclasses currently implement it)
-  Menu.onCloseWidget(self)
+  -- Call the object's original onClose (i.e., Menu's, as none our our expected subclasses currently implement it)
+  Menu.onClose(self)
 end
 
 function CoverMenu:tapPlus()

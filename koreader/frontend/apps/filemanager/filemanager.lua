@@ -158,7 +158,7 @@ function FileManager:setupLayout()
       return DocumentRegistry:hasProvider(filename)
     end,
     close_callback = function()
-      return self:onClose()
+      return self:onExit()
     end,
     -- allow left bottom tap gesture, otherwise it is eaten by hidden return button
     return_arrow_propagation = true,
@@ -513,7 +513,7 @@ function FileChooser:onBack()
   end
   local back_to_exit = G_named_settings.back_to_exit()
   if back_to_exit == "always" then
-    return self:onClose()
+    return self:onExit()
   elseif back_to_exit == "disable" then
     return true
   elseif back_to_exit == "prompt" then
@@ -521,7 +521,7 @@ function FileChooser:onBack()
       text = _("Exit KOReader?"),
       ok_text = _("Exit"),
       ok_callback = function()
-        self:onClose()
+        self:onExit()
       end,
     }))
     return true
@@ -843,7 +843,7 @@ function FileManager:getCurrentDir()
   return FileManager.instance and FileManager.instance.file_chooser.path
 end
 
-function FileManager:onClose()
+function FileManager:onExit()
   logger.dbg("close filemanager")
   PluginLoader:finalize()
   self:handleEvent(Event:new("SaveSettings"))
@@ -857,7 +857,7 @@ function FileManager:onFlushSettings()
   G_reader_settings:flush()
 end
 
-function FileManager:onCloseWidget()
+function FileManager:onClose()
   if FileManager.instance == self then
     logger.dbg("Tearing down FileManager", tostring(self))
   else
@@ -877,7 +877,7 @@ function FileManager:onShowingReader()
   -- Clear the dither flag to prevent it from infecting the queue and re-inserting a full-screen refresh...
   self.dithered = nil
 
-  self:onClose()
+  self:onExit()
 end
 
 -- Same as above, except we don't close it yet. Useful for plugins that need to close custom Menus before calling showReader.
@@ -1365,7 +1365,7 @@ function FileManager:showFiles(path, focused_file, selected_files)
       tostring(FileManager.instance)
     )
     -- Close the old one first!
-    FileManager.instance:onClose()
+    FileManager.instance:onExit()
   end
 
   path = ffiUtil.realpath(path or G_named_settings.lastdir())

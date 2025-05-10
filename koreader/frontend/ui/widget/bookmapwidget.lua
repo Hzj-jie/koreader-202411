@@ -803,10 +803,10 @@ function BookMapWidget:init()
       self:toggleDefaultSettings() -- toggle between user settings and default view
     end,
     close_callback = function()
-      self:onClose()
+      self:onExit()
     end,
     close_hold_callback = function()
-      self:onClose(true)
+      self:onExit(true)
     end,
     show_parent = self,
   })
@@ -1603,7 +1603,7 @@ Any multiswipe will close the book map.]])
   UIManager:show(InfoMessage:new({ text = text }))
 end
 
-function BookMapWidget:onClose(close_all_parents)
+function BookMapWidget:onExit(close_all_parents)
   -- Close this widget
   logger.dbg("closing BookMapWidget")
   UIManager:close(self)
@@ -1612,7 +1612,7 @@ function BookMapWidget:onClose(close_all_parents)
     if close_all_parents then
       -- The last one of these (which has no launcher attribute)
       -- will do the cleanup below.
-      self.launcher:onClose(true)
+      self.launcher:onExit(true)
     else
       if self.editable_stuff_edited then
         self.launcher:updateEditableStuff(true)
@@ -1894,7 +1894,7 @@ function BookMapWidget:onSwipe(arg, ges)
     -- Swipe south won't have any effect in overview mode as we fit on the page (except on
     -- really big books, where we can still be scrollable), so allow swipe south to close
     -- as on some other fullscreen widgets.
-    self:onClose()
+    self:onExit()
     return true
   end
   -- Let our MovableContainer handle other swipes:
@@ -2005,7 +2005,7 @@ function BookMapWidget:onMultiSwipe(arg, ges)
   -- is used for navigation. Swipe left/right are free, but a little
   -- unusual for the purpose of closing.
   -- So, allow for quick closing with any multiswipe.
-  self:onClose()
+  self:onExit()
   return true
 end
 
@@ -2027,7 +2027,7 @@ function BookMapWidget:onTap(arg, ges)
   end
   if page then
     if not G_reader_settings:nilOrTrue("book_map_tap_to_page_browser") then
-      self:onClose(true)
+      self:onExit(true)
       self.ui.link:addCurrentLocationToStack()
       self.ui:handleEvent(Event:new("GotoPage", page))
       return true

@@ -179,7 +179,7 @@ end
 function ReaderStatus:openFileBrowser()
   local FileManager = require("apps/filemanager/filemanager")
   local file = self.document.file
-  self.ui:onClose()
+  self.ui:onExit()
   if not FileManager.instance then
     self.ui:showFileManager(file)
   end
@@ -207,7 +207,7 @@ function ReaderStatus:deleteFile()
   self.ui.doc_settings:flush() -- enable additional warning text for newly opened file
   local FileManager = require("apps/filemanager/filemanager")
   local function pre_delete_callback()
-    self.ui:onClose()
+    self.ui:onExit()
   end
   local function post_delete_callback()
     local path = util.splitFilePathName(self.document.file)

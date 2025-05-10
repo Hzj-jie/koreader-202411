@@ -202,13 +202,13 @@ function TweakInfoWidget:onShow()
   end)
 end
 
-function TweakInfoWidget:onCloseWidget()
+function TweakInfoWidget:onClose()
   UIManager:setDirty(nil, function()
     return "ui", self.movable.dimen
   end)
 end
 
-function TweakInfoWidget:onClose()
+function TweakInfoWidget:onExit()
   UIManager:close(self)
   return true
 end
@@ -225,7 +225,7 @@ function TweakInfoWidget:onTap(arg, ges)
     return true
   elseif ges.pos:notIntersectWith(self.movable.dimen) then
     -- Tap outside closes widget
-    self:onClose()
+    self:onExit()
     return true
   end
   return false

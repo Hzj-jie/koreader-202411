@@ -142,7 +142,7 @@ function BookStatusWidget:getStatusContent(width)
     width = width,
     bottom_v_padding = 0,
     close_callback = not self.readonly and function()
-      self:onClose()
+      self:onExit()
     end,
     show_parent = self,
   })
@@ -539,7 +539,7 @@ end
 function BookStatusWidget:onSwipe(arg, ges_ev)
   if ges_ev.direction == "south" then
     -- Allow easier closing with swipe down
-    self:onClose()
+    self:onExit()
   elseif
     ges_ev.direction == "east"
     or ges_ev.direction == "west"
@@ -561,11 +561,11 @@ function BookStatusWidget:onMultiSwipe(arg, ges_ev)
   -- For consistency with other fullscreen widgets where swipe south can't be
   -- used to close and where we then allow any multiswipe to close, allow any
   -- multiswipe to close this widget too.
-  self:onClose()
+  self:onExit()
   return true
 end
 
-function BookStatusWidget:onClose()
+function BookStatusWidget:onExit()
   if self.updated then
     self.ui.doc_settings:flush()
   end

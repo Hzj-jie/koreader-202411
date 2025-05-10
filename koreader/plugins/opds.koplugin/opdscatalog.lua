@@ -21,7 +21,7 @@ function OPDSCatalog:init()
     is_popout = false,
     is_borderless = true,
     close_callback = function()
-      return self:onClose()
+      return self:onExit()
     end,
     file_downloaded_callback = function(downloaded_file)
       UIManager:show(ConfirmBox:new({
@@ -37,7 +37,7 @@ function OPDSCatalog:init()
           local Event = require("ui/event")
           UIManager:broadcastEvent(Event:new("SetupShowReader"))
 
-          self:onClose()
+          self:onExit()
 
           local ReaderUI = require("apps/reader/readerui")
           ReaderUI:showReader(downloaded_file)
@@ -60,7 +60,7 @@ function OPDSCatalog:onShow()
   end)
 end
 
-function OPDSCatalog:onCloseWidget()
+function OPDSCatalog:onClose()
   UIManager:setDirty(nil, function()
     return "ui", self[1].dimen
   end)
@@ -74,7 +74,7 @@ function OPDSCatalog:showCatalog()
   }))
 end
 
-function OPDSCatalog:onClose()
+function OPDSCatalog:onExit()
   logger.dbg("close OPDS catalog")
   UIManager:close(self)
   return true
