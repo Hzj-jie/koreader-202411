@@ -46,7 +46,7 @@ function ReaderMenu:init()
       callback = function()
         self:onTapCloseMenu()
         local file = self.ui.document.file
-        self.ui:onClose()
+        self.ui:onExit()
         self.ui:showFileManager(file)
       end,
     },
@@ -231,7 +231,7 @@ function ReaderMenu:setUpdateItemTable()
             ok_callback = function()
               local current_file = self.ui.document.file
               self:onTapCloseMenu()
-              self.ui:onClose()
+              self.ui:onExit()
               require("apps/filemanager/filemanagerutil").resetDocumentSettings(
                 current_file
               )
@@ -420,7 +420,7 @@ function ReaderMenu:exitOrRestart(callback, force)
 
   self:onTapCloseMenu()
   UIManager:nextTick(function()
-    self.ui:onClose()
+    self.ui:onExit()
     if callback then
       callback()
     end

@@ -58,7 +58,7 @@ function SyncService:generateItemTable()
             onConfirm = function(path)
               server.url = path
               self.onConfirm(server)
-              self:onClose()
+              self:onExit()
             end,
           })
           :chooseCloudDir()
@@ -77,9 +77,9 @@ function SyncService:generateItemTable()
     bold = true,
     callback = function()
       local cloud_storage = require("apps/cloudstorage/cloudstorage"):new({})
-      local onClose = cloud_storage.onClose
-      cloud_storage.onClose = function(this)
-        onClose(this)
+      local onExit = cloud_storage.onExit
+      cloud_storage.onExit = function(this)
+        onExit(this)
         self:switchItemTable(nil, self:generateItemTable())
       end
       UIManager:show(cloud_storage)

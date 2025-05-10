@@ -179,7 +179,7 @@ function Wallabag:addToMainMenu(menu_items)
         text = _("Go to download folder"),
         callback = function()
           if self.ui.document then
-            self.ui:onClose()
+            self.ui:onExit()
           end
           if FileManager.instance then
             FileManager.instance:reinit(self.directory)

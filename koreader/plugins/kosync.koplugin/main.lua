@@ -1053,7 +1053,7 @@ function KOSync:registerEvents()
   end
 end
 
-function KOSync:onCloseWidget()
+function KOSync:onClose()
   UIManager:unschedule(self.periodic_push_task)
   self.periodic_push_task = nil
 end

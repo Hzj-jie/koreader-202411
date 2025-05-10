@@ -276,7 +276,7 @@ function filemanagerutil.genShowFolderButton(
         ui.file_chooser:changeToPath(pathname, file)
       else
         ui = require("apps/reader/readerui").instance
-        ui:onClose()
+        ui:onExit()
         ui:showFileManager(file)
       end
     end,

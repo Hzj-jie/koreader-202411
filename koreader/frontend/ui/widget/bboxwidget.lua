@@ -393,7 +393,7 @@ function BBoxWidget:onConfirmAdjust(arg, ges)
   return true
 end
 
-function BBoxWidget:onClose()
+function BBoxWidget:onExit()
   self.ui:handleEvent(Event:new("CancelPageCrop"))
   return true
 end

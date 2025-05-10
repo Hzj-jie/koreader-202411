@@ -109,11 +109,11 @@ function FileConverter:showConvertButtons(file, ui)
       },
     },
   })
-  self.convert_dialog.onCloseWidget = function(this)
+  self.convert_dialog.onClose = function(this)
     local super = getmetatable(this)
-    if super.onCloseWidget then
+    if super.onClose then
       -- Call our super's method, if any
-      super.onCloseWidget(this)
+      super.onClose(this)
     end
     -- And then do our own cleanup
     self:cleanup()

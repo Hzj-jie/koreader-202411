@@ -113,7 +113,7 @@ function MoveToArchive:onMoveToArchive(do_copy)
 
   UIManager:broadcastEvent(Event:new("SetupShowReader"))
 
-  self.ui:onClose()
+  self.ui:onExit()
   local text
   if do_copy then
     text = _("Book copied.\nDo you want to open it from the archive folder?")
@@ -168,7 +168,7 @@ end
 
 function MoveToArchive:openFileBrowser(path)
   if self.ui.document then
-    self.ui:onClose()
+    self.ui:onExit()
   end
   if FileManager.instance then
     FileManager.instance:reinit(path)

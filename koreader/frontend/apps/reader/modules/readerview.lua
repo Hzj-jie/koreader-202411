@@ -1296,7 +1296,7 @@ function ReaderView:getRenderModeMenuTable()
   }
 end
 
-function ReaderView:onCloseWidget()
+function ReaderView:onClose()
   -- Stop any pending HintPage event
   UIManager:unschedule(self.emitHintPageEvent)
   --- @fixme: The awful readerhighlight_spec test *relies* on this pointer being left dangling...

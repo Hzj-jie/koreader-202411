@@ -502,7 +502,7 @@ function KeyValuePage:init()
     left_icon_tap_callback = self.title_bar_left_icon_tap_callback,
     left_icon_hold_callback = self.title_bar_left_icon_hold_callback,
     close_callback = function()
-      self:onClose()
+      self:onExit()
     end,
     show_parent = self.show_parent or self,
   })
@@ -828,7 +828,7 @@ function KeyValuePage:onSwipe(arg, ges_ev)
     return true
   elseif direction == "south" then
     -- Allow easier closing with swipe down
-    self:onClose()
+    self:onExit()
   elseif direction == "north" then
     -- no use for now
     do
@@ -846,7 +846,7 @@ function KeyValuePage:onMultiSwipe(arg, ges_ev)
   -- For consistency with other fullscreen widgets where swipe south can't be
   -- used to close and where we then allow any multiswipe to close, allow any
   -- multiswipe to close this widget too.
-  self:onClose()
+  self:onExit()
   return true
 end
 
@@ -854,7 +854,7 @@ function KeyValuePage:setTitleBarLeftIcon(icon)
   self.title_bar:setLeftIcon(icon)
 end
 
-function KeyValuePage:onClose()
+function KeyValuePage:onExit()
   UIManager:close(self)
   if self.close_callback then
     self.close_callback()

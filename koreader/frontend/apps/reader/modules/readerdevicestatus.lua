@@ -392,7 +392,7 @@ function ReaderDeviceStatus:onSuspend()
   self:stopMemoryChecker()
 end
 
-function ReaderDeviceStatus:onCloseWidget()
+function ReaderDeviceStatus:onClose()
   self:stopBatteryChecker()
   self:stopMemoryChecker()
 end

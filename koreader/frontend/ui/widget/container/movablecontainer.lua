@@ -244,7 +244,7 @@ function MovableContainer:paintTo(bb, x, y)
   end
 end
 
-function MovableContainer:onCloseWidget()
+function MovableContainer:onClose()
   if self.compose_bb then
     self.compose_bb:free()
     self.compose_bb = nil

@@ -192,7 +192,7 @@ function KeyboardLayoutDialog:onShow()
   end)
 end
 
-function KeyboardLayoutDialog:onCloseWidget()
+function KeyboardLayoutDialog:onClose()
   UIManager:setDirty(nil, function()
     return "ui", self.movable.dimen
   end)

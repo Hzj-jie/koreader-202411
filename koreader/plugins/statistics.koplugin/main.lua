@@ -1511,7 +1511,7 @@ Time is in hours and minutes.]]),
               local server = self.settings.sync_server
               local edit_cb = function()
                 local sync_settings = SyncService:new({})
-                sync_settings.onClose = function(this)
+                sync_settings.onExit = function(this)
                   UIManager:close(this)
                 end
                 sync_settings.onConfirm = function(sv)

@@ -153,20 +153,20 @@ function MultiConfirmBox:onShow()
   end)
 end
 
-function MultiConfirmBox:onCloseWidget()
+function MultiConfirmBox:onClose()
   UIManager:setDirty(nil, function()
     return "ui", self[1][1].dimen
   end)
 end
 
-function MultiConfirmBox:onClose()
+function MultiConfirmBox:onExit()
   UIManager:close(self)
   return true
 end
 
 function MultiConfirmBox:onTapClose(arg, ges)
   if ges.pos:notIntersectWith(self[1][1].dimen) then
-    self:onClose()
+    self:onExit()
     return true
   end
   return false
