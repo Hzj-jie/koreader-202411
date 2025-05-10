@@ -247,7 +247,7 @@ function CalibreSearch:ShowSearch()
           id = "close",
           enabled = true,
           callback = function()
-            self.search_dialog:onClose()
+            self.search_dialog:onExit()
             UIManager:close(self.search_dialog)
           end,
         },
@@ -270,7 +270,7 @@ end
 
 function CalibreSearch:close()
   if self.search_value then
-    self.search_dialog:onClose()
+    self.search_dialog:onExit()
     UIManager:close(self.search_dialog)
     if string.len(self.search_value) > 0 or self.lastsearch ~= "find" then
       self:find(self.lastsearch)
@@ -323,7 +323,7 @@ function CalibreSearch:bookCatalog(t, option)
       local Event = require("ui/event")
       UIManager:broadcastEvent(Event:new("SetupShowReader"))
 
-      self.search_menu:onClose()
+      self.search_menu:onExit()
 
       local ReaderUI = require("apps/reader/readerui")
       ReaderUI:showReader(book.rootpath .. "/" .. book.lpath)

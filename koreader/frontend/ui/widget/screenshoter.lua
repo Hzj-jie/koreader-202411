@@ -59,7 +59,7 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
         text = _("Delete"),
         callback = function()
           os.remove(screenshot_name)
-          dialog:onClose()
+          dialog:onExit()
         end,
       },
       {
@@ -68,7 +68,7 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
         callback = function()
           self.ui.bookinfo:setCustomCoverFromImage(file, screenshot_name)
           os.remove(screenshot_name)
-          dialog:onClose()
+          dialog:onExit()
         end,
       },
     },
@@ -91,7 +91,7 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
         callback = function()
           G_reader_settings:saveSetting("screensaver_type", "image_file")
           G_reader_settings:saveSetting("screensaver_image", screenshot_name)
-          dialog:onClose()
+          dialog:onExit()
         end,
       },
     },

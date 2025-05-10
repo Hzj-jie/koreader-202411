@@ -43,7 +43,7 @@ function FileManagerShortcuts:onMenuChoice(item)
     if self._manager.ui.file_chooser then
       self._manager.ui.file_chooser:changeToPath(folder)
     else -- called from Reader
-      self._manager.ui:onClose()
+      self._manager.ui:onExit()
       self._manager.ui:showFileManager(folder .. "/")
     end
   end

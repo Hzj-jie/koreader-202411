@@ -856,7 +856,7 @@ To:
       local filemanagerRefresh = function()
         self.ui:onRefresh()
       end
-      function cloud_storage:onClose()
+      function cloud_storage:onExit()
         filemanagerRefresh()
         UIManager:close(cloud_storage)
       end
@@ -1039,7 +1039,7 @@ function FileManagerMenu:exitOrRestart(callback, force)
   end
 
   UIManager:close(self.menu_container)
-  self.ui:onClose()
+  self.ui:onExit()
   if callback then
     callback()
   end

@@ -478,7 +478,7 @@ function FileSearcher:onMenuHold(item)
       local pathname = util.splitFilePathName(item.path)
       self.ui.file_chooser:changeToPath(pathname, item.path)
     else -- called from Reader
-      self.ui:onClose()
+      self.ui:onExit()
       self.ui:showFileManager(item.path)
     end
   end
@@ -562,7 +562,7 @@ function FileSearcher:showSelectModeDialog()
             self.ui.title_bar:setRightIcon("check")
             self.ui.file_chooser:refreshPath()
           else -- called from Reader
-            self.ui:onClose()
+            self.ui:onExit()
             self.ui:showFileManager(self.path .. "/", selected_files)
           end
         end,

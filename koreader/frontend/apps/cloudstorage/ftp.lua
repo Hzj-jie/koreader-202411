@@ -142,7 +142,7 @@ Username and password are optional.]])
           text = _("Cancel"),
           id = "close",
           callback = function()
-            self.settings_dialog:onClose()
+            self.settings_dialog:onExit()
             UIManager:close(self.settings_dialog)
           end,
         },
@@ -164,7 +164,7 @@ Username and password are optional.]])
                 -- add new
                 callback(fields)
               end
-              self.settings_dialog:onClose()
+              self.settings_dialog:onExit()
               UIManager:close(self.settings_dialog)
             else
               UIManager:show(InfoMessage:new({

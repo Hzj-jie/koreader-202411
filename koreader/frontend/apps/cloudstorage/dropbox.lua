@@ -139,7 +139,7 @@ Some of the previously generated long-lived tokens are still valid.]])
           text = _("Cancel"),
           id = "close",
           callback = function()
-            self.settings_dialog:onClose()
+            self.settings_dialog:onExit()
             UIManager:close(self.settings_dialog)
           end,
         },
@@ -158,7 +158,7 @@ Some of the previously generated long-lived tokens are still valid.]])
             else
               callback(fields)
             end
-            self.settings_dialog:onClose()
+            self.settings_dialog:onExit()
             UIManager:close(self.settings_dialog)
           end,
         },

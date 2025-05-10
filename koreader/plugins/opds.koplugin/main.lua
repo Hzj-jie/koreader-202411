@@ -27,7 +27,7 @@ function OPDS:showCatalog()
   local filemanagerRefresh = function()
     self.ui:onRefresh()
   end
-  function OPDSCatalog:onClose()
+  function OPDSCatalog:onExit()
     UIManager:close(self)
     local FileManager = require("apps/filemanager/filemanager")
     if FileManager.instance then

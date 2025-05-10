@@ -286,13 +286,13 @@ function ButtonDialog:onShow()
   end)
 end
 
-function ButtonDialog:onCloseWidget()
+function ButtonDialog:onClose()
   UIManager:setDirty(nil, function()
     return "flashui", self.movable.dimen
   end)
 end
 
-function ButtonDialog:onClose()
+function ButtonDialog:onExit()
   if self.tap_close_callback then
     self.tap_close_callback()
   end
@@ -302,7 +302,7 @@ end
 
 function ButtonDialog:onTapClose(arg, ges)
   if ges.pos:notIntersectWith(self.movable.dimen) then
-    self:onClose()
+    self:onExit()
   end
   return true
 end
