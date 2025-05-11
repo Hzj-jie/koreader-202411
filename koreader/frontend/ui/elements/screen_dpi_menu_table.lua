@@ -58,6 +58,23 @@ local dpi_xlarge = 320
 local dpi_xxlarge = 480
 local dpi_xxxlarge = 640
 
+local function predefined_dpi_menu_item(text, dpi_value, lower, upper)
+  return {
+    text = T(_(text .. " (%1)"), dpi_value),
+    checked_func = function()
+      if isAutoDPI() then
+        return false
+      end
+      local _dpi = dpi()
+      return _dpi and _dpi > lower and _dpi <= upper and _dpi ~= custom()
+    end,
+    callback = function()
+      setDPI(dpi_value)
+    end,
+    radio = true,
+  }
+end
+
 return {
   text = _("Screen DPI"),
   sub_item_table = {
@@ -70,85 +87,19 @@ return {
       callback = function()
         setDPI()
       end,
+      radio = true,
     },
-    {
-      text = T(_("Small (%1)"), dpi_small),
-      checked_func = function()
-        if isAutoDPI() then
-          return false
-        end
-        local _dpi, _custom = dpi(), custom()
-        return _dpi and _dpi <= 140 and _dpi ~= _custom
-      end,
-      callback = function()
-        setDPI(dpi_small)
-      end,
-    },
-    {
-      text = T(_("Medium (%1)"), dpi_medium),
-      checked_func = function()
-        if isAutoDPI() then
-          return false
-        end
-        local _dpi, _custom = dpi(), custom()
-        return _dpi and _dpi > 140 and _dpi <= 200 and _dpi ~= _custom
-      end,
-      callback = function()
-        setDPI(dpi_medium)
-      end,
-    },
-    {
-      text = T(_("Large (%1)"), dpi_large),
-      checked_func = function()
-        if isAutoDPI() then
-          return false
-        end
-        local _dpi, _custom = dpi(), custom()
-        return _dpi and _dpi > 200 and _dpi <= 280 and _dpi ~= _custom
-      end,
-      callback = function()
-        setDPI(dpi_large)
-      end,
-    },
-    {
-      text = T(_("Extra large (%1)"), dpi_xlarge),
-      checked_func = function()
-        if isAutoDPI() then
-          return false
-        end
-        local _dpi, _custom = dpi(), custom()
-        return _dpi and _dpi > 280 and _dpi <= 400 and _dpi ~= _custom
-      end,
-      callback = function()
-        setDPI(dpi_xlarge)
-      end,
-    },
-    {
-      text = T(_("Extra-Extra Large (%1)"), dpi_xxlarge),
-      checked_func = function()
-        if isAutoDPI() then
-          return false
-        end
-        local _dpi, _custom = dpi(), custom()
-        return _dpi and _dpi > 400 and _dpi <= 560 and _dpi ~= _custom
-      end,
-      callback = function()
-        setDPI(dpi_xxlarge)
-      end,
-    },
-    {
-      text = T(_("Extra-Extra-Extra Large (%1)"), dpi_xxxlarge),
-      checked_func = function()
-        if isAutoDPI() then
-          return false
-        end
-        local _dpi, _custom = dpi(), custom()
-        return _dpi and _dpi > 560 and _dpi ~= _custom
-      end,
-      callback = function()
-        setDPI(dpi_xxxlarge)
-      end,
-    },
+    predefined_dpi_menu_item("Small", dpi_small, 0, 140),
+    predefined_dpi_menu_item("Medium", dpi_medium, 140, 200),
+    predefined_dpi_menu_item("Large", dpi_large, 200, 280),
+    predefined_dpi_menu_item("Extra Large", dpi_xlarge, 280, 400),
+    predefined_dpi_menu_item("Extra-Extra Large", dpi_xxlarge, 400, 560),
+    predefined_dpi_menu_item(
+      "Extra-Extra-Extra Large",
+      dpi_xxxlarge,
+      560,
+      1000000000
+    ),
     {
       text_func = function()
         local custom_dpi = custom() or dpi_auto
@@ -175,6 +126,7 @@ return {
       hold_callback = function(touchmenu_instance)
         spinWidgetSetDPI(touchmenu_instance)
       end,
+      radio = true,
     },
   },
 }
