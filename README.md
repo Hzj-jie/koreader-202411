@@ -36,9 +36,9 @@ platform folder.
 
 So far, all the changes are limited to lua files, there isn't a need of changing
 anything native yet. Most of the changes fixed annoying bugs or usability
-issues, but there are some slightly out of the scope, to improve the code health
-, reduce the complexity, improve the user experience or reduce power
+issues, but there are some slightly out of the scope, to improve the code
+health, reduce the complexity, improve the user experience or reduce power
 consumption.
 
 Except for some repo setups, most of the changes can be mapped to one or more
-issues to explain the motivation of the change.
+issues to explain the motivations.
