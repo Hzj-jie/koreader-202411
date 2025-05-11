@@ -888,10 +888,7 @@ function ImageViewer:onClose()
     and self._images_list_disposable
     and self._images_list.free
   then
-    logger.dbg(
-      "ImageViewer:onClose: free self._images_list",
-      self._images_list
-    )
+    logger.dbg("ImageViewer:onClose: free self._images_list", self._images_list)
     self._images_list:free()
   end
   if self._scaled_image_func then

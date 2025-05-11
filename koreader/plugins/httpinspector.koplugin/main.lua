@@ -97,19 +97,21 @@ function HttpInspector:_start()
 end
 
 function HttpInspector:_iptables(verb)
-  if not Device:isKindle() then return end
+  if not Device:isKindle() then
+    return
+  end
   os.execute(
     string.format(
-      "iptables -%s INPUT -p tcp --dport %s " ..
-      "-m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT > /dev/null 2>&1",
+      "iptables -%s INPUT -p tcp --dport %s "
+        .. "-m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT > /dev/null 2>&1",
       verb,
       self.port
     )
   )
   os.execute(
     string.format(
-      "iptables -%s OUTPUT -p tcp --sport %s " ..
-      "-m conntrack --ctstate ESTABLISHED -j ACCEPT > /dev/null 2>&1",
+      "iptables -%s OUTPUT -p tcp --sport %s "
+        .. "-m conntrack --ctstate ESTABLISHED -j ACCEPT > /dev/null 2>&1",
       verb,
       self.port
     )
