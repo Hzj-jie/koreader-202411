@@ -110,9 +110,7 @@ function PluginLoader:loadPlugins()
   else
     local data_dir = require("datastorage"):getDataDir()
     if data_dir ~= "." then
-      local extra_path = data_dir .. "/plugins/"
-      G_reader_settings:saveSetting("extra_plugin_paths", { extra_path })
-      table.insert(lookup_path_list, extra_path)
+      table.insert(lookup_path_list, { data_dir .. "/plugins/" })
     end
   end
 
@@ -124,20 +122,17 @@ function PluginLoader:loadPlugins()
   if type(plugins_disabled) ~= "table" then
     plugins_disabled = {}
   end
-  -- disable obsolete plugins
-  for element in pairs(OBSOLETE_PLUGINS) do
-    plugins_disabled[element] = true
-  end
   for _, lookup_path in ipairs(lookup_path_list) do
     logger.info("Loading plugins from directory:", lookup_path)
     for entry in lfs.dir(lookup_path) do
       local plugin_root = lookup_path .. "/" .. entry
       local mode = lfs.attributes(plugin_root, "mode")
+      local plugin_name = entry:sub(1, -10)
       -- valid koreader plugin directory
-      if mode == "directory" and entry:find(".+%.koplugin$") then
+      if mode == "directory" and entry:find(".+%.koplugin$") and not OBSOLETE_PLUGINS[plugin_name] then
         local mainfile = plugin_root .. "/main.lua"
         local metafile = plugin_root .. "/_meta.lua"
-        if plugins_disabled and plugins_disabled[entry:sub(1, -10)] then
+        if plugins_disabled[plugin_name] then
           mainfile = metafile
         end
         package.path = string.format("%s/?.lua;%s", plugin_root, package_path)
@@ -153,7 +148,7 @@ function PluginLoader:loadPlugins()
           plugin_module.path = plugin_root
           plugin_module.name = plugin_module.name
             or plugin_root:match("/(.-)%.koplugin")
-          if plugins_disabled and plugins_disabled[entry:sub(1, -10)] then
+          if plugins_disabled[plugin_name] then
             table.insert(self.disabled_plugins, plugin_module)
           else
             local ok_meta, plugin_metamodule = pcall(dofile, metafile)
@@ -201,9 +196,7 @@ function PluginLoader:genPluginManagerSubItem()
     for _, plugin in ipairs(disabled_plugins) do
       local element = getMenuTable(plugin)
       element.enable = false
-      if not OBSOLETE_PLUGINS[element.name] then
-        table.insert(self.all_plugins, element)
-      end
+      table.insert(self.all_plugins, element)
     end
 
     table.sort(self.all_plugins, function(v1, v2)
