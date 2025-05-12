@@ -22,6 +22,10 @@ local DEPRECATION_MESSAGES = {
   ),
 }
 
+local UNDISABLE_PLUGINS = {
+  backgroundrunner = true,
+}
+
 local function deprecationFmt(field)
   local s
   if type(field) == "table" then
@@ -122,6 +126,9 @@ function PluginLoader:loadPlugins()
   if type(plugins_disabled) ~= "table" then
     plugins_disabled = {}
   end
+  for entry in pairs(UNDISABLE_PLUGINS) do
+    plugins_disabled[entry] = false
+  end
   for _, lookup_path in ipairs(lookup_path_list) do
     logger.info("Loading plugins from directory:", lookup_path)
     for entry in lfs.dir(lookup_path) do
@@ -202,12 +209,17 @@ function PluginLoader:genPluginManagerSubItem()
     table.sort(self.all_plugins, function(v1, v2)
       return v1.fullname < v2.fullname
     end)
+
+    for entry in pairs(UNDISABLE_PLUGINS) do
+      self.all_plugins[entry] = nil
+    end
   end
 
   local plugin_table = {}
   for __, plugin in ipairs(self.all_plugins) do
     table.insert(plugin_table, {
       text = plugin.fullname,
+      enabled = not UNDISABLE_PLUGINS[plugin.name],
       checked_func = function()
         return plugin.enable
       end,
