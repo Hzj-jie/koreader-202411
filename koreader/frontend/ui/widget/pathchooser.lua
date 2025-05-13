@@ -60,7 +60,7 @@ function PathChooser:onMenuSelect(item)
   local path = item.path
   if path:sub(-2, -1) == "/." then -- with show_current_dir_for_hold
     if not Device:isTouchDevice() and self.select_directory then -- let non-touch device can select the folder
-      return self:onMenuHold(item)
+      self:onMenuHold(item)
     end
     -- Don't navigate to same directory
     return true
@@ -80,7 +80,7 @@ function PathChooser:onMenuSelect(item)
   end
   if attr.mode ~= "directory" then
     if not Device:isTouchDevice() and self.select_file then -- let non-touch device can select the file
-      return self:onMenuHold(item)
+      self:onMenuHold(item)
     end
     -- Do nothing if Tap on other than directories
     return true
@@ -101,17 +101,17 @@ function PathChooser:onMenuHold(item)
   end
   path = ffiutil.realpath(path)
   if not path then
-    return true
+    return
   end
   local attr = lfs.attributes(path)
   if not attr then
-    return true
+    return
   end
   if attr.mode == "file" and not self.select_file then
-    return true
+    return
   end
   if attr.mode == "directory" and not self.select_directory then
-    return true
+    return
   end
   local title
   if attr.mode == "file" then
@@ -159,7 +159,6 @@ function PathChooser:onMenuHold(item)
     },
   })
   UIManager:show(self.button_dialog)
-  return true
 end
 
 function PathChooser:showPlusMenu()
