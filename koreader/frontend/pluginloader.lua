@@ -136,7 +136,11 @@ function PluginLoader:loadPlugins()
       local mode = lfs.attributes(plugin_root, "mode")
       local plugin_name = entry:sub(1, -10)
       -- valid koreader plugin directory
-      if mode == "directory" and entry:find(".+%.koplugin$") and not OBSOLETE_PLUGINS[plugin_name] then
+      if
+        mode == "directory"
+        and entry:find(".+%.koplugin$")
+        and not OBSOLETE_PLUGINS[plugin_name]
+      then
         local mainfile = plugin_root .. "/main.lua"
         local metafile = plugin_root .. "/_meta.lua"
         if plugins_disabled[plugin_name] then
