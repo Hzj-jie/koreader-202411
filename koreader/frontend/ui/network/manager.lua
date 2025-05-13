@@ -55,22 +55,32 @@ function NetworkMgr:_readNWSettings()
 end
 
 -- Common chunk of stuff we have to do when aborting a connection attempt
-function NetworkMgr:_abortWifiConnection()
+function NetworkMgr:_dropPendingWifiConnection(
+  mark_wifi_was_off,
+  turn_off_wifi,
+  turn_off_wifi_callback
+)
   -- Cancel any pending connectivity check, because it wouldn't achieve anything
   self:_unscheduleConnectivityCheck()
-
-  G_reader_settings:makeFalse("wifi_was_on")
-  -- Murder Wi-Fi and the async script (if any) first...
+  -- Make sure we don't have an async script running...
   if Device:hasWifiRestore() and not Device:isKindle() then
     os.execute("pkill -TERM restore-wifi-async.sh 2>/dev/null")
   end
-  -- We were never connected to begin with, so, no disconnecting broadcast required
-  if Device:hasSeamlessWifiToggle() then
-    -- We only want to actually kill the WiFi on platforms where we can do that seamlessly.
-    self:_turnOffWifi()
-  end
-  -- We're obviously done with this connection attempt
+  -- Can't be connecting since we're killing Wi-Fi ;)
   self.pending_connection = false
+
+  if turn_off_wifi then
+    self:_turnOffWifi(turn_off_wifi_callback)
+  end
+
+  if mark_wifi_was_off then
+    G_reader_settings:makeFalse("wifi_was_on")
+  end
+end
+
+function NetworkMgr:_abortWifiConnection()
+  -- We only want to actually kill the WiFi on platforms where we can do that seamlessly.
+  return self:_dropPendingWifiConnection(true, Device:hasSeamlessWifiToggle())
 end
 
 -- Attempt to deal with platforms that don't guarantee isConnected when turnOnWifi returns,
@@ -543,23 +553,11 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
   end
   raiseNetworkEvent("Disconnecting")
 
-  -- NOTE: This is a subset of _abortWifiConnection, in case we disable wifi during a connection attempt.
-  -- Cancel any pending connectivity check, because it wouldn't achieve anything
-  self:_unscheduleConnectivityCheck()
-  -- Make sure we don't have an async script running...
-  if Device:hasWifiRestore() and not Device:isKindle() then
-    os.execute("pkill -TERM restore-wifi-async.sh 2>/dev/null")
-  end
-  -- Can't be connecting since we're killing Wi-Fi ;)
-  self.pending_connection = false
-
-  self:_turnOffWifi(complete_callback)
-
+  self:_dropPendingWifiConnection(interactive, true, complete_callback)
   if interactive then
     -- Note, similar to the toggleWifiOn, the info will be dismissed before the connection is fully
     -- dropped.
     UIManager:close(info)
-    G_reader_settings:makeFalse("wifi_was_on")
   end
 end
 
