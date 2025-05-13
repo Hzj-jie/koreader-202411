@@ -169,12 +169,26 @@ function TouchMenuItem:onUnfocus()
   return true
 end
 
+function TouchMenuItem:_showHelpText()
+  local help_text
+  if self.item.help_text then
+    help_text = self.item.help_text
+  elseif type(self.item.help_text_func) == "function" then
+    help_text = self.item.help_text_func(self)
+  else
+    return false
+  end
+  UIManager:show(InfoMessage:new({ text = help_text }))
+  return true
+end
+
 function TouchMenuItem:onTapSelect(arg, ges)
   local enabled = self.item.enabled
   if self.item.enabled_func then
     enabled = self.item.enabled_func()
   end
   if enabled == false then
+    self:_showHelpText()
     return true
   end -- don't propagate
 
@@ -245,15 +259,7 @@ function TouchMenuItem:onHoldSelect(arg, ges)
   end
   if enabled == false then
     -- Allow help_text to be displayed even if menu item disabled
-    if self.item.help_text or type(self.item.help_text_func) == "function" then
-      local help_text = self.item.help_text
-      if self.item.help_text_func then
-        help_text = self.item.help_text_func(self)
-      end
-      if help_text then
-        UIManager:show(InfoMessage:new({ text = help_text }))
-      end
-    end
+    self:_showHelpText()
     return true -- don't propagate
   end
 
@@ -1033,7 +1039,7 @@ function TouchMenu:onMenuSelect(item, tap_on_checkmark)
   return true
 end
 
-function TouchMenu:onMenuHold(item, text_truncated)
+function TouchMenu:onMenuHold(item, text_truncated) --> None
   if self.touch_menu_callback then
     self.touch_menu_callback()
   end
@@ -1046,7 +1052,9 @@ function TouchMenu:onMenuHold(item, text_truncated)
     else
       self:onInput(item.hold_input_func())
     end
-  elseif item.hold_callback or type(item.hold_callback_func) == "function" then
+    return
+  end
+  if item.hold_callback or type(item.hold_callback_func) == "function" then
     local callback = item.hold_callback
     if item.hold_callback_func then
       callback = item.hold_callback_func()
@@ -1062,21 +1070,18 @@ function TouchMenu:onMenuHold(item, text_truncated)
       -- closemenu() or updateItems() when it sees fit
       callback(self)
     end
-  elseif item.help_text or type(item.help_text_func) == "function" then
-    local help_text = item.help_text
-    if item.help_text_func then
-      help_text = item.help_text_func(self)
-    end
-    if help_text then
-      UIManager:show(InfoMessage:new({ text = help_text }))
-    end
-  elseif text_truncated then
+    return
+  end
+  if self:_showHelpText() then
+    return
+  end
+  if text_truncated then
     UIManager:show(InfoMessage:new({
       text = getMenuText(item),
       show_icon = false,
     }))
+    return
   end
-  return true
 end
 
 function TouchMenu:onTapCloseAllMenus(arg, ges_ev)

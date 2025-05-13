@@ -209,10 +209,6 @@ function PluginLoader:genPluginManagerSubItem()
     table.sort(self.all_plugins, function(v1, v2)
       return v1.fullname < v2.fullname
     end)
-
-    for entry in pairs(UNDISABLE_PLUGINS) do
-      self.all_plugins[entry] = nil
-    end
   end
 
   local plugin_table = {}
