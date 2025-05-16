@@ -1072,7 +1072,7 @@ function TouchMenu:onMenuHold(item, text_truncated) --> None
     end
     return
   end
-  if self:_showHelpText() then
+  if item:_showHelpText() then
     return
   end
   if text_truncated then
