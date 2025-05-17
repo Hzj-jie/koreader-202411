@@ -210,6 +210,9 @@ function Cervantes:initNetworkManager(NetworkMgr)
   function NetworkMgr:restoreWifiAsync()
     os.execute("./restore-wifi-async.sh")
   end
+  function NetworkMgr:stopAsyncWifiRestore()
+    self:killRestoreWifiAsync()
+  end
   NetworkMgr.isWifiOn = NetworkMgr.sysfsWifiOn
   NetworkMgr.isConnected = NetworkMgr.ifHasAnAddress
 end

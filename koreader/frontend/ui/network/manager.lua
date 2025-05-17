@@ -63,8 +63,8 @@ function NetworkMgr:_dropPendingWifiConnection(
   -- Cancel any pending connectivity check, because it wouldn't achieve anything
   self:_unscheduleConnectivityCheck()
   -- Make sure we don't have an async script running...
-  if Device:hasWifiRestore() and not Device:isKindle() then
-    os.execute("pkill -TERM restore-wifi-async.sh 2>/dev/null")
+  if Device:hasWifiRestore() then
+    self:stopAsyncWifiRestore()
   end
   -- Can't be connecting since we're killing Wi-Fi ;)
   self.pending_connection = false
@@ -309,7 +309,14 @@ function NetworkMgr:obtainIP() end
 function NetworkMgr:releaseIP() end
 -- This function should call both turnOnWifi() and obtainIP() in a non-blocking manner.
 function NetworkMgr:restoreWifiAsync() end
+-- This function should stop the pending restoreWifiAsync if any.
+function NetworkMgr:stopAsyncWifiRestore() end
 -- End of device specific methods
+
+-- Helper function if restore-wifi-async.sh is implemented.
+function NetworkMgr:killRestoreWifiAsync()
+  os.execute("pkill -TERM restore-wifi-async.sh 2>/dev/null")
+end
 
 -- Helper functions for devices that use sysfs entries to check connectivity.
 function NetworkMgr:sysfsWifiOn()
