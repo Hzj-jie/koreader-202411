@@ -243,7 +243,7 @@ end
 function NetworkItem:connect()
   local connected_item = self.setting_ui:getConnectedItem()
   if connected_item then
-    connected_item:disconnect()
+    connected_item:disconnect(true)
   end
 
   local success, err_msg = NetworkMgr:authenticateNetwork(self.info)
@@ -269,18 +269,23 @@ function NetworkItem:connect()
   UIManager:show(InfoMessage:new({ text = text, timeout = 3 }))
 end
 
-function NetworkItem:disconnect()
-  if not Device:canDisconnectWifi() then
+function NetworkItem:disconnect(will_reconnect)
+  if not Device:canDisconnectWifi() and not will_reconnect then
+    -- Nothing to do if the device does not support wifi connection.
     return
   end
-  local info = InfoMessage:new({ text = _("Disconnecting…") })
-  UIManager:show(info)
-  UIManager:forceRePaint()
+  -- But if the wifi will be reconnected, the internal state should still be
+  -- cleaned since the wifi will be disconnected before connecting.
+  if Device:canDisconnectWifi() then
+    local info = InfoMessage:new({ text = _("Disconnecting…") })
+    UIManager:show(info)
+    UIManager:forceRePaint()
 
-  NetworkMgr:disconnectNetwork(self.info)
-  NetworkMgr:releaseIP()
+    NetworkMgr:disconnectNetwork(self.info)
+    NetworkMgr:releaseIP()
 
-  UIManager:close(info)
+    UIManager:close(info)
+  end
   self.info.connected = nil
   self:refresh()
   self.setting_ui:setConnectedItem(nil)
