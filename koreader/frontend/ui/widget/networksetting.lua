@@ -271,20 +271,27 @@ end
 
 function NetworkItem:disconnect(will_reconnect)
   if not Device:canDisconnectWifi() and not will_reconnect then
-    -- Nothing to do if the device does not support wifi connection.
+    -- Nothing to do if the device does not support wifi disconnection.
     return
   end
   -- But if the wifi will be reconnected, the internal state should still be
   -- cleaned since the wifi will be disconnected before connecting.
   if Device:canDisconnectWifi() then
-    local info = InfoMessage:new({ text = _("Disconnecting…") })
-    UIManager:show(info)
-    UIManager:forceRePaint()
+    if will_reconnect then
+      -- Do not show the disconnecting message if a pending reconnecting will
+      -- happen.
+      NetworkMgr:disconnectNetwork(self.info)
+      NetworkMgr:releaseIP()
+    else
+      local info = InfoMessage:new({ text = _("Disconnecting…") })
+      UIManager:show(info)
+      UIManager:forceRePaint()
 
-    NetworkMgr:disconnectNetwork(self.info)
-    NetworkMgr:releaseIP()
+      NetworkMgr:disconnectNetwork(self.info)
+      NetworkMgr:releaseIP()
 
-    UIManager:close(info)
+      UIManager:close(info)
+    end
   end
   self.info.connected = nil
   self:refresh()
