@@ -170,11 +170,15 @@ function TouchMenuItem:onUnfocus()
 end
 
 function TouchMenuItem:_showHelpText()
+  return TouchMenuItem.showHelpText(self.item)
+end
+
+function TouchMenuItem.showHelpText(item)
   local help_text
-  if self.item.help_text then
-    help_text = self.item.help_text
-  elseif type(self.item.help_text_func) == "function" then
-    help_text = self.item.help_text_func(self)
+  if item.help_text then
+    help_text = item.help_text
+  elseif type(item.help_text_func) == "function" then
+    help_text = item.help_text_func()
   else
     return false
   end
@@ -1072,7 +1076,7 @@ function TouchMenu:onMenuHold(item, text_truncated) --> None
     end
     return
   end
-  if item:_showHelpText() then
+  if TouchMenuItem.showHelpText(item) then
     return
   end
   if text_truncated then
