@@ -295,6 +295,7 @@ function FileChooser:show_file(filename, fullpath)
     "^BookReader%.sqlite",
     "^KoboReader%.sqlite",
     "^device%.salt%.conf$",
+    "^KUAL%.kual$",
     -- macOS
     "^%.DS_Store$",
     -- *nix
