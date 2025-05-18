@@ -24,33 +24,6 @@
 			"internal": "status Start KOReader"
 		},
 		{
-			"name": "Start KOReader (no framework)",
-			"priority": 4,
-			"action": "/mnt/us/koreader/koreader.sh",
-			"params": "--kual --framework_stop",
-			"status": false,
-			"internal": "status Kill the framework and start KOReader"
-		},
-		{
-			"name": "Start KOReader (ASAP)",
-			"if": "\"KindleVoyage\" -m!",
-			"priority": 6,
-			"action": "/mnt/us/koreader/koreader.sh",
-			"params": "--kual --asap",
-			"status": false,
-			"internal": "status Start KOReader ASAP"
-		},
-		{
-			"name": "Start KOReader (ASAP)",
-			"if": "\"KindleVoyage\" -m",
-			"priority": 6,
-			"action": "/mnt/us/koreader/koreader.sh",
-			"params": "--kual --asap",
-			"exitmenu": false,
-			"status": false,
-			"internal": "status Start KOReader ASAP"
-		},
-		{
             "name": "Update KOReader",
             "priority": 7,
             "action": "./bin/update.sh",
