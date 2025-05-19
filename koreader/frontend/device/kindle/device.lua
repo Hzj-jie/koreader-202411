@@ -1,9 +1,12 @@
 local Generic = require("device/generic/device")
 local LibLipcs = require("liblipcs")
 local UIManager
+local T = require("ffi/util").template
+local ffi = require("ffi")
 local time = require("ui/time")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local _ = require("gettext")
 
 -- We're going to need a few <linux/fb.h> & <linux/input.h> constants...
 local ffi = require("ffi")
@@ -358,6 +361,19 @@ local Kindle = Generic:extend({
   -- Kindle cannot disconnect a wifi, it will reconnect wifi automatically.
   canDisconnectWifi = no,
 })
+
+function Kindle:retrieveNetworkInfo()
+  -- The default ioctl SSID retrieving logic does not work on kindle, use kindle
+  -- way to include the SSID.
+  results = Generic.retrieveNetworkInfo(self)
+  profile = kindleGetCurrentProfile()
+  if profile == nil then
+    table.insert(results, 3, _("SSID: off/any"))
+  else
+    table.insert(results, 3, T(_('SSID: "%1"'), ffi.string(profile.essid)))
+  end
+  return results
+end
 
 function Kindle:initNetworkManager(NetworkMgr)
   if LibLipcs:supported() then

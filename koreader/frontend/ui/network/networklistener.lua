@@ -251,7 +251,7 @@ function NetworkListener:onShowNetworkInfo()
   end
   if Device.retrieveNetworkInfo then
     UIManager:show(InfoMessage:new({
-      text = Device:retrieveNetworkInfo(),
+      text = table.concat(Device:retrieveNetworkInfo(), "\n"),
       -- IPv6 addresses are *loooooong*!
       face = Font:getFace("x_smallinfofont"),
     }))

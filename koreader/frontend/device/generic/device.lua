@@ -1074,7 +1074,7 @@ function Device:retrieveNetworkInfo()
     table.insert(results, _("No default gateway to ping"))
   end
 
-  return table.concat(results, "\n")
+  return results
 end
 
 function Device:setTime(hour, min)
