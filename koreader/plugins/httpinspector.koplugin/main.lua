@@ -12,10 +12,6 @@ local util = require("util")
 local _ = require("gettext")
 local T = ffiUtil.template
 
-local HttpInspector = WidgetContainer:extend({
-  name = "httpinspector",
-})
-
 -- A plugin gets instantiated on each document load and reader/FM switch.
 -- Ensure autostart only on KOReader startup, and keep the running state
 -- across document load and reader/FM switch.
@@ -23,57 +19,24 @@ local should_run = G_reader_settings:isTrue("httpinspector_autostart")
 
 local DEFAULT_PORT = Device:isEmulator() and 8080 or 80
 
+local HttpInspector = {}
+
 function HttpInspector:init()
   self.port = G_reader_settings:readSetting("httpinspector_port")
     or DEFAULT_PORT
   if should_run then
     -- Delay this until after all plugins are loaded
     UIManager:nextTick(function()
-      self:_start()
+      self:start()
     end)
   end
-  self.ui.menu:registerToMainMenu(self)
 end
 
-function HttpInspector:_isRunning()
+function HttpInspector:isRunning()
   return self.http_socket ~= nil
 end
 
-function HttpInspector:onEnterStandby()
-  logger.dbg("HttpInspector: onEnterStandby")
-  self:_stop()
-end
-
-function HttpInspector:onSuspend()
-  logger.dbg("HttpInspector: onSuspend")
-  self:_stop()
-end
-
-function HttpInspector:onExit()
-  logger.dbg("HttpInspector: onExit")
-  self:_stop()
-end
-
-function HttpInspector:onClose()
-  logger.dbg("HttpInspector: onClose")
-  self:_stop()
-end
-
-function HttpInspector:onLeaveStandby()
-  logger.dbg("HttpInspector: onLeaveStandby")
-  if should_run and not self:_isRunning() then
-    self:_start()
-  end
-end
-
-function HttpInspector:onResume()
-  logger.dbg("HttpInspector: onResume")
-  if should_run and not self:_isRunning() then
-    self:_start()
-  end
-end
-
-function HttpInspector:_start()
+function HttpInspector:start()
   logger.dbg("HttpInspector: Starting server...")
 
   -- Make a hole in the Kindle's firewall
@@ -87,7 +50,7 @@ function HttpInspector:_start()
     host = "*",
     port = self.port,
     receiveCallback = function(data, id)
-      return self:onRequest(data, id)
+      return self:_processRequest(data, id)
     end,
   })
   self.http_socket:start()
@@ -118,11 +81,11 @@ function HttpInspector:_iptables(verb)
   )
 end
 
-function HttpInspector:_stop()
+function HttpInspector:stop()
   logger.dbg("HttpInspector: Stopping server...")
 
   if self.http_socket then
-    self.http_socket:_stop()
+    self.http_socket:stop()
     self.http_socket = nil
   end
   if self.http_messagequeue then
@@ -134,100 +97,6 @@ function HttpInspector:_stop()
   self:_iptables("D")
 
   logger.dbg("HttpInspector: Server stopped.")
-end
-
-function HttpInspector:addToMainMenu(menu_items)
-  menu_items.httpremote = {
-    text = _("KOReader HTTP inspector"),
-    sorting_hint = "network",
-    sub_item_table = {
-      {
-        text_func = function()
-          if self:_isRunning() then
-            return _("Stop HTTP server")
-              .. " - "
-              .. T(_("Listening on port %1"), self.port)
-          end
-          return _("Start HTTP server")
-        end,
-        keep_menu_open = true,
-        callback = function(touchmenu_instance)
-          if self:_isRunning() then
-            should_run = false
-            self:_stop()
-          else
-            should_run = true
-            self:_start()
-          end
-          touchmenu_instance:updateItems()
-        end,
-        separator = true,
-      },
-      {
-        text = _("Auto start HTTP server"),
-        checked_func = function()
-          return G_reader_settings:isTrue("httpinspector_autostart")
-        end,
-        callback = function()
-          G_reader_settings:flipNilOrFalse("httpinspector_autostart")
-        end,
-      },
-      {
-        text_func = function()
-          return T(_("Port: %1"), self.port)
-        end,
-        keep_menu_open = true,
-        callback = function(touchmenu_instance)
-          local InputDialog = require("ui/widget/inputdialog")
-          local port_dialog
-          port_dialog = InputDialog:new({
-            title = _("Set custom port"),
-            input = self.port,
-            input_type = "number",
-            input_hint = _("Port number (default is 8080)"):gsub(
-              "8080",
-              DEFAULT_PORT
-            ),
-            buttons = {
-              {
-                {
-                  text = _("Cancel"),
-                  id = "close",
-                  callback = function()
-                    UIManager:close(port_dialog)
-                  end,
-                },
-                {
-                  text = _("OK"),
-                  -- keep_menu_open = true,
-                  callback = function()
-                    local port = port_dialog:getInputValue()
-                    logger.warn("port", port)
-                    if port and port >= 1 and port <= 65535 then
-                      self.port = port
-                      G_reader_settings:saveSetting(
-                        "httpinspector_port",
-                        port,
-                        DEFAULT_PORT
-                      )
-                      if self:_isRunning() then
-                        self:_stop()
-                        self:_start()
-                      end
-                    end
-                    UIManager:close(port_dialog)
-                    touchmenu_instance:updateItems()
-                  end,
-                },
-              },
-            },
-          })
-          UIManager:show(port_dialog)
-          port_dialog:showKeyboard()
-        end,
-      },
-    },
-  }
 end
 
 local HTTP_RESPONSE_CODE = {
@@ -260,7 +129,7 @@ local CTYPE = {
   TEXT = "text/plain",
 }
 
-function HttpInspector:sendResponse(reqinfo, http_code, content_type, body)
+function HttpInspector:_sendResponse(reqinfo, http_code, content_type, body)
   if not http_code then
     http_code = 400
   end
@@ -565,7 +434,7 @@ This service is aimed at developers, <mark>use at your own risk</mark>.
 -- - Stream live crash.log
 
 -- Process HTTP request
-function HttpInspector:onRequest(data, request_id)
+function HttpInspector:_processRequest(data, request_id)
   -- Keep track of request info so nested calls can send the response
   local reqinfo = {
     request_id = request_id,
@@ -574,7 +443,7 @@ function HttpInspector:onRequest(data, request_id)
   local method, uri = data:match("^(%u+) ([^\n]*) HTTP/%d%.%d\r?\n.*")
   -- We only need to support GET, with our special simple URI syntax/grammar
   if method ~= "GET" then
-    return self:sendResponse(reqinfo, 405, CTYPE.TEXT, "Only GET supported")
+    return self:_sendResponse(reqinfo, 405, CTYPE.TEXT, "Only GET supported")
   end
   reqinfo.uri = uri
   -- Decode any %-encoded stuff (should be ok to do it that early)
@@ -599,13 +468,13 @@ function HttpInspector:onRequest(data, request_id)
     if f then
       data = f:read("*all")
       f:close()
-      return self:sendResponse(reqinfo, 200, nil, data) -- let content-type be sniffed
+      return self:_sendResponse(reqinfo, 200, nil, data) -- let content-type be sniffed
     end
     if uri == "/index.html" then
       -- / but no /web/index.html created by the user: redirect to our /koreader/
-      return self:sendResponse(reqinfo, 302, nil, "/koreader/")
+      return self:_sendResponse(reqinfo, 302, nil, "/koreader/")
     end
-    return self:sendResponse(
+    return self:_sendResponse(
       reqinfo,
       404,
       CTYPE.TEXT,
@@ -621,8 +490,8 @@ function HttpInspector:onRequest(data, request_id)
 
   ftype, fragment, uri = stepUriFragment(uri)
   if not fragment then
-    return self:sendResponse(reqinfo, 200, CTYPE.HTML, HOME_CONTENT)
-    -- return self:sendResponse(reqinfo, 400, CTYPE.TEXT, "Missing entry point.")
+    return self:_sendResponse(reqinfo, 200, CTYPE.HTML, HOME_CONTENT)
+    -- return self:_sendResponse(reqinfo, 400, CTYPE.TEXT, "Missing entry point.")
   end
   reqinfo.prev_parsed_uri = reqinfo.parsed_uri
   reqinfo.parsed_uri = reqinfo.parsed_uri .. ftype .. fragment
@@ -649,7 +518,7 @@ function HttpInspector:onRequest(data, request_id)
     end
   end
 
-  return self:sendResponse(reqinfo, 404, CTYPE.TEXT, "Unknown entry point.")
+  return self:_sendResponse(reqinfo, 404, CTYPE.TEXT, "Unknown entry point.")
 end
 
 -- Navigate object and its children according to uri, reach the
@@ -680,7 +549,7 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
           current_key = fragment
           obj = obj[fragment]
           if obj == nil then
-            return self:sendResponse(
+            return self:_sendResponse(
               reqinfo,
               404,
               CTYPE.TEXT,
@@ -693,13 +562,13 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
         -- URI ends with 'object' (without a trailing /): output it as JSON if possible
         local ok, json = pcall(getAsJsonString, obj)
         if ok then
-          return self:sendResponse(reqinfo, 200, CTYPE.JSON, json)
+          return self:_sendResponse(reqinfo, 200, CTYPE.JSON, json)
         else
           -- Probably nested/recursive data structures (ie. a widget with self.dialog pointing to a parent)
-          return self:sendResponse(reqinfo, 500, CTYPE.TEXT, json)
+          return self:_sendResponse(reqinfo, 500, CTYPE.TEXT, json)
         end
       else
-        return self:sendResponse(
+        return self:_sendResponse(
           reqinfo,
           400,
           CTYPE.TEXT,
@@ -719,7 +588,7 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
         return self:callFunction(obj, parent, uri, ftype == "?/", reqinfo)
       else
         -- Nothing else accepted
-        return self:sendResponse(
+        return self:_sendResponse(
           reqinfo,
           400,
           CTYPE.TEXT,
@@ -745,11 +614,11 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
             local data = f:read("*all")
             f:close()
             os.remove(tmpfile)
-            return self:sendResponse(reqinfo, 200, CTYPE.PNG, data)
+            return self:_sendResponse(reqinfo, 200, CTYPE.PNG, data)
           end
         end
       end
-      return self:sendResponse(
+      return self:_sendResponse(
         reqinfo,
         403,
         CTYPE.TEXT,
@@ -759,14 +628,14 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
       -- Simple Lua types: string, number, boolean, nil
       if ftype == "" then
         -- Return it as text
-        return self:sendResponse(reqinfo, 200, CTYPE.TEXT, tostring(obj))
+        return self:_sendResponse(reqinfo, 200, CTYPE.TEXT, tostring(obj))
       elseif (ftype == "=" or ftype == "?=") and fragment and uri then
         -- 'property=value': assign value to property
         -- 'property?=value': same, but output HTML allowing to get back to the parent
         uri = fragment .. uri -- put back first fragment into uri
         local args, nb_args = getVariablesFromUri(uri)
         if nb_args ~= 1 then
-          return self:sendResponse(
+          return self:_sendResponse(
             reqinfo,
             400,
             CTYPE.TEXT,
@@ -776,7 +645,7 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
         local value = args[1]
         parent[current_key] = value -- do what is asked: assign it
         if ftype == "=" then
-          return self:sendResponse(
+          return self:_sendResponse(
             reqinfo,
             200,
             CTYPE.TEXT,
@@ -817,10 +686,10 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
             )
           )
           html = table.concat(html, "\n")
-          return self:sendResponse(reqinfo, 200, CTYPE.HTML, html)
+          return self:_sendResponse(reqinfo, 200, CTYPE.HTML, html)
         end
       elseif ftype == "?" then
-        return self:sendResponse(
+        return self:_sendResponse(
           reqinfo,
           400,
           CTYPE.TEXT,
@@ -828,7 +697,7 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
         )
       else
         -- Nothing else accepted
-        return self:sendResponse(
+        return self:_sendResponse(
           reqinfo,
           400,
           CTYPE.TEXT,
@@ -837,7 +706,7 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
       end
     end
   end
-  return self:sendResponse(reqinfo, 400, CTYPE.TEXT, "Unexpected request") -- luacheck: ignore 511
+  return self:_sendResponse(reqinfo, 400, CTYPE.TEXT, "Unexpected request") -- luacheck: ignore 511
 end
 
 -- Send a HTML page describing all this object's key/values
@@ -1025,7 +894,7 @@ function HttpInspector:browseObject(obj, reqinfo)
   end
   add_html("</pre>")
   html = table.concat(html, "\n")
-  return self:sendResponse(reqinfo, 200, CTYPE.HTML, html)
+  return self:_sendResponse(reqinfo, 200, CTYPE.HTML, html)
 end
 
 -- Send a HTML page describing a function or method
@@ -1106,7 +975,7 @@ function HttpInspector:showFunctionDetails(obj, reqinfo)
   end
   add_html("</pre>")
   html = table.concat(html, "\n")
-  return self:sendResponse(reqinfo, 200, CTYPE.HTML, html)
+  return self:_sendResponse(reqinfo, 200, CTYPE.HTML, html)
 end
 
 -- Call a function or method, send results as JSON or HTML
@@ -1202,9 +1071,9 @@ function HttpInspector:callFunction(
     end
     add_html("</pre>")
     html = table.concat(html, "\n")
-    return self:sendResponse(reqinfo, http_code, CTYPE.HTML, html)
+    return self:_sendResponse(reqinfo, http_code, CTYPE.HTML, html)
   else
-    return self:sendResponse(reqinfo, http_code, CTYPE.JSON, json)
+    return self:_sendResponse(reqinfo, http_code, CTYPE.JSON, json)
   end
 end
 
@@ -1321,7 +1190,7 @@ function HttpInspector:exposeEvent(uri, reqinfo)
         UIManager:sendEvent(ev)
       end
     end)
-    return self:sendResponse(
+    return self:_sendResponse(
       reqinfo,
       200,
       CTYPE.TEXT,
@@ -1332,7 +1201,7 @@ function HttpInspector:exposeEvent(uri, reqinfo)
   -- No event provided.
   -- We want to show the list of actions exposed by Dispatcher (that are all handled as Events).
   local actions = getOrderedDispatcherActions()
-  -- if true then return self:sendResponse(reqinfo, 200, CTYPE.JSON, getAsJsonString(actions)) end
+  -- if true then return self:_sendResponse(reqinfo, 200, CTYPE.JSON, getAsJsonString(actions)) end
   local html = {}
   local add_html = function(h)
     table.insert(html, h)
@@ -1510,7 +1379,7 @@ function HttpInspector:exposeEvent(uri, reqinfo)
   end
   add_html("</pre>")
   html = table.concat(html, "\n")
-  return self:sendResponse(reqinfo, 200, CTYPE.HTML, html)
+  return self:_sendResponse(reqinfo, 200, CTYPE.HTML, html)
 end
 
 function HttpInspector:exposeBroadcastEvent(uri, reqinfo)
@@ -1547,7 +1416,7 @@ function HttpInspector:exposeBroadcastEvent(uri, reqinfo)
         UIManager:broadcastEvent(ev)
       end
     end)
-    return self:sendResponse(
+    return self:_sendResponse(
       reqinfo,
       200,
       CTYPE.TEXT,
@@ -1567,7 +1436,140 @@ function HttpInspector:exposeBroadcastEvent(uri, reqinfo)
   )
   add_html("</pre>")
   html = table.concat(html, "\n")
-  return self:sendResponse(reqinfo, 200, CTYPE.HTML, html)
+  return self:_sendResponse(reqinfo, 200, CTYPE.HTML, html)
 end
 
-return HttpInspector
+local HttpInspectorWidget = WidgetContainer:extend({
+  name = "httpinspector",
+})
+
+function HttpInspectorWidget:init()
+  self.ui.menu:registerToMainMenu(self)
+end
+
+function HttpInspectorWidget:addToMainMenu(menu_items)
+  menu_items.httpremote = {
+    text = _("KOReader HTTP inspector"),
+    sorting_hint = "network",
+    sub_item_table = {
+      {
+        text_func = function()
+          if HttpInspector:isRunning() then
+            return _("Stop HTTP server")
+              .. " - "
+              .. T(_("Listening on port %1"), HttpInspector.port)
+          end
+          return _("Start HTTP server")
+        end,
+        keep_menu_open = true,
+        callback = function(touchmenu_instance)
+          if HttpInspector:isRunning() then
+            should_run = false
+            HttpInspector:stop()
+          else
+            should_run = true
+            HttpInspector:start()
+          end
+          touchmenu_instance:updateItems()
+        end,
+        separator = true,
+      },
+      {
+        text = _("Auto start HTTP server"),
+        checked_func = function()
+          return G_reader_settings:isTrue("httpinspector_autostart")
+        end,
+        callback = function()
+          G_reader_settings:flipNilOrFalse("httpinspector_autostart")
+        end,
+      },
+      {
+        text_func = function()
+          return T(_("Port: %1"), HttpInspector.port)
+        end,
+        keep_menu_open = true,
+        callback = function(touchmenu_instance)
+          local InputDialog = require("ui/widget/inputdialog")
+          local port_dialog
+          port_dialog = InputDialog:new({
+            title = _("Set custom port"),
+            input = HttpInspector.port,
+            input_type = "number",
+            input_hint = _("Port number (default is 8080)"):gsub(
+              "8080",
+              DEFAULT_PORT
+            ),
+            buttons = {
+              {
+                {
+                  text = _("Cancel"),
+                  id = "close",
+                  callback = function()
+                    UIManager:close(port_dialog)
+                  end,
+                },
+                {
+                  text = _("OK"),
+                  -- keep_menu_open = true,
+                  callback = function()
+                    local port = port_dialog:getInputValue()
+                    logger.warn("port", port)
+                    if port and port >= 1 and port <= 65535 then
+                      HttpInspector.port = port
+                      G_reader_settings:saveSetting(
+                        "httpinspector_port",
+                        port,
+                        DEFAULT_PORT
+                      )
+                      if HttpInspector:isRunning() then
+                        HttpInspector:stop()
+                        HttpInspector:start()
+                      end
+                    end
+                    UIManager:close(port_dialog)
+                    touchmenu_instance:updateItems()
+                  end,
+                },
+              },
+            },
+          })
+          UIManager:show(port_dialog)
+          port_dialog:showKeyboard()
+        end,
+      },
+    },
+  }
+end
+
+function HttpInspectorWidget:onEnterStandby()
+  logger.dbg("HttpInspectorWidget: onEnterStandby")
+  HttpInspector:stop()
+end
+
+function HttpInspectorWidget:onSuspend()
+  logger.dbg("HttpInspectorWidget: onSuspend")
+  HttpInspector:stop()
+end
+
+function HttpInspectorWidget:onExit()
+  logger.dbg("HttpInspectorWidget: onExit")
+  HttpInspector:stop()
+end
+
+function HttpInspectorWidget:onLeaveStandby()
+  logger.dbg("HttpInspectorWidget: onLeaveStandby")
+  if should_run and not HttpInspector:isRunning() then
+    HttpInspector:start()
+  end
+end
+
+function HttpInspectorWidget:onResume()
+  logger.dbg("HttpInspectorWidget: onResume")
+  if should_run and not HttpInspector:isRunning() then
+    HttpInspector:start()
+  end
+end
+
+HttpInspector:init()
+
+return HttpInspectorWidget
