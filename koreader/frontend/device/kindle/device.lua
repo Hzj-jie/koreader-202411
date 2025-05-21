@@ -363,15 +363,20 @@ local Kindle = Generic:extend({
 })
 
 function Kindle:retrieveNetworkInfo()
-  -- The default ioctl SSID retrieving logic does not work on kindle, use kindle
-  -- way to include the SSID.
-  results = Generic.retrieveNetworkInfo(self)
-  profile = kindleGetCurrentProfile()
+  -- The default ioctl SSID retrieving logic does not work on some kindle
+  -- models, use kindle way to include the SSID when missing.
+  local results = Generic.retrieveNetworkInfo(self)
+  local profile = kindleGetCurrentProfile()
+  local ssid
   if profile == nil then
-    table.insert(results, 3, _("SSID: off/any"))
+    ssid = _("SSID: off/any")
   else
-    table.insert(results, 3, T(_('SSID: "%1"'), ffi.string(profile.essid)))
+    ssid = T(_('SSID: "%1"'), ffi.string(profile.essid))
   end
+  for _, value in ipairs(results) do
+    if value == ssid then return results end
+  end
+  table.insert(results, 3, ssid)
   return results
 end
 
