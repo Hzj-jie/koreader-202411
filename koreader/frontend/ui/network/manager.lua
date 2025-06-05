@@ -182,13 +182,13 @@ function NetworkMgr:restoreWifiAndCheckAsync(msg)
 end
 
 function NetworkMgr:_queryOnlineState()
-  local last_state = NetworkMgr.was_online
+  local last_state = self.was_online
   if self:_isWifiConnected() then
     self.was_online = self:_isOnline()
   else
     self.was_online = false
   end
-  if last_state ~= NetworkMgr.was_online then
+  if last_state ~= self.was_online then
     if self.was_online then
       raiseNetworkEvent("Online")
     else
