@@ -40,7 +40,7 @@ function NetworkMgr:_networkConnected()
     -- This is a hacky way to ensure the NetworkOnline event can be triggered
     -- after a NetworkConnected event.
     self.was_online = false
-    NetworkMgr:_queryOnlineState()
+    self:_queryOnlineState()
   end)
 end
 
@@ -206,7 +206,7 @@ function NetworkMgr:init()
     -- NOTE: This needs to be delayed because we run on require, while
     -- NetworkListener gets spun up sliiightly later on FM/ReaderUI init...
     UIManager:nextTick(function()
-      NetworkMgr:_networkConnected()
+      self:_networkConnected()
     end)
   else
     self:restoreWifiAndCheckAsync(
@@ -221,7 +221,7 @@ function NetworkMgr:init()
         when = 60,
         repeated = true,
         executable = function()
-          NetworkMgr:_queryOnlineState()
+          self:_queryOnlineState()
         end,
       })
     end)
@@ -553,7 +553,7 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
   end
 
   local complete_callback = function()
-    NetworkMgr:_networkDisconnected()
+    self:_networkDisconnected()
     if cb then
       cb()
     end
