@@ -232,9 +232,8 @@ local function kindleEnableWifi(toggle)
   end
 end
 
--- Check if wifid thinks that the WiFi is enabled. Not yet needed,
--- sysfsInterfaceOperational serves the same purpose.
---[[
+-- sysfsInterfaceOperational may not indicate the internal state of
+-- com.lab126.wifid.
 local function kindleIsWifiUp()
   local lipc = LibLipcs:accessor()
   if not LibLipcs:isFake(lipc) then
@@ -253,7 +252,6 @@ local function kindleIsWifiUp()
 
   return result == 1
 end
---]]
 
 --[[
 Test if a kindle device is flagged as a Special Offers device (i.e., ad supported) (FW >= 5.x)
@@ -503,7 +501,7 @@ function Kindle:initNetworkManager(NetworkMgr)
     return { ssid = profile.essid }
   end
 
-  NetworkMgr.isWifiOn = NetworkMgr.sysfsInterfaceOperational
+  NetworkMgr.isWifiOn = kindleIsWifiUp
   NetworkMgr.isConnected = kindleIsWifiConnected
 end
 
