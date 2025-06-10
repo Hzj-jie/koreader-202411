@@ -623,7 +623,15 @@ end
 -- internet access.
 function NetworkMgr:_isOnline()
   assert(Device:hasWifiToggle())
-  return self:_hasDefaultRoute() and self:_canResolveHostnames()
+  local dr = self:_hasDefaultRoute()
+  local rh = self:_canResolveHostnames()
+  if dr ~= rh then
+    logger.warn("_hasDefaultRoute ",
+                tostring(dr),
+                " returns different value compared with _canResolveHostnames ",
+                tostring(rh))
+  end
+  return dr
 end
 
 -- Return a cached online state from the last _isOnline call.
