@@ -372,7 +372,9 @@ function Kindle:retrieveNetworkInfo()
     ssid = T(_('SSID: "%1"'), ffi.string(profile.essid))
   end
   for _, value in ipairs(results) do
-    if value == ssid then return results end
+    if value == ssid then
+      return results
+    end
   end
   table.insert(results, 3, ssid)
   return results

@@ -626,10 +626,12 @@ function NetworkMgr:_isOnline()
   local dr = self:_hasDefaultRoute()
   local rh = self:_canResolveHostnames()
   if dr ~= rh then
-    logger.warn("_hasDefaultRoute ",
-                tostring(dr),
-                " returns different value compared with _canResolveHostnames ",
-                tostring(rh))
+    logger.warn(
+      "_hasDefaultRoute ",
+      tostring(dr),
+      " returns different value compared with _canResolveHostnames ",
+      tostring(rh)
+    )
   end
   return dr
 end

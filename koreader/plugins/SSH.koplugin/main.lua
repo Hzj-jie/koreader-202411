@@ -87,7 +87,7 @@ function SSH:start()
         _("SSH server started.\n\nSSH port: %1\n%2"),
         self.SSH_port,
         Device.retrieveNetworkInfo
-          and table.concat(Device:retrieveNetworkInfo(), "\n")
+            and table.concat(Device:retrieveNetworkInfo(), "\n")
           or _("Could not retrieve network info.")
       ),
     })
