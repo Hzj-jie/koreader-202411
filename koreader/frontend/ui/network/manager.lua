@@ -461,14 +461,24 @@ function NetworkMgr:_hasDefaultRoute()
   return ret ~= nil
 end
 
+-- Use microsoft services by default to allow accessing in mainland china.
+
 -- This function costs 100ms on kindle with great wifi connection, it's slow naturally.
 function NetworkMgr:_canResolveHostnames()
-  local socket = require("socket")
   -- Microsoft uses `dns.msftncsi.com` for Windows, see
   -- <https://technet.microsoft.com/en-us/library/ee126135#BKMK_How> for
   -- more information. They also check whether <http://www.msftncsi.com/ncsi.txt>
   -- returns `Microsoft NCSI`.
-  return socket.dns.toip("dns.msftncsi.com") ~= nil
+  return require("socket").dns.toip("dns.msftncsi.com") ~= nil
+end
+
+-- This function costs 100ms on kindle with great wifi connection, it's slow naturally.
+function NetworkMgr:_canPingMicrosoftCom()
+  local ip = require("socket").dns.toip("www.microsoft.com")
+  if ip == nil then
+    return false
+  end
+  return Device:ping4(ip)
 end
 
 function NetworkMgr:toggleWifiOn(wifi_cb) -- false | nil
@@ -623,6 +633,8 @@ end
 -- internet access.
 function NetworkMgr:_isOnline()
   assert(Device:hasWifiToggle())
+  return self:_canPingMicrosoftCom()
+  --[[
   local dr = self:_hasDefaultRoute()
   local rh = self:_canResolveHostnames()
   if dr ~= rh then
@@ -634,6 +646,7 @@ function NetworkMgr:_isOnline()
     )
   end
   return dr
+  ]]--
 end
 
 -- Return a cached online state from the last _isOnline call.
