@@ -427,6 +427,7 @@ function NetworkMgr:ifHasAnAddress()
   return ok
 end
 
+--[[
 -- This function costs 10ms on kindle with great wifi connection, it's slow naturally.
 -- The socket API equivalent of "ip route get 203.0.113.1 || ip route get 2001:db8::1".
 --
@@ -471,6 +472,7 @@ function NetworkMgr:_canResolveHostnames()
   -- returns `Microsoft NCSI`.
   return require("socket").dns.toip("dns.msftncsi.com") ~= nil
 end
+--]]
 
 -- This function costs 100ms on kindle with great wifi connection, it's slow naturally.
 function NetworkMgr:_canPingMicrosoftCom()
