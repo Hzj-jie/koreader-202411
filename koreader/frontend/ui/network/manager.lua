@@ -182,7 +182,6 @@ function NetworkMgr:restoreWifiAndCheckAsync(msg)
 end
 
 function NetworkMgr:_queryOnlineState()
-  logger.info("NetworkMgr: _queryOnlineState")
   local last_state = self.was_online
   if self:_isWifiConnected() then
     self.was_online = self:_isOnline()
@@ -627,7 +626,7 @@ function NetworkMgr:_isOnline()
   local dr = self:_hasDefaultRoute()
   local rh = self:_canResolveHostnames()
   if dr ~= rh then
-    logger.info(
+    logger.warn(
       "_hasDefaultRoute ",
       tostring(dr),
       " returns different value compared with _canResolveHostnames ",
