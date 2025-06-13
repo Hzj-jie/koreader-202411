@@ -339,6 +339,8 @@ local Kindle = Generic:extend({
   canTurnFrontlightOff = yes,
   -- NOTE: Via powerd.toggleSuspend
   canSuspend = yes,
+  canReboot = yes,
+  canPowerOff = yes,
   home_dir = "/mnt/us",
   -- New devices are REAGL-aware, default to REAGL
   isREAGL = yes,
@@ -923,6 +925,14 @@ function Kindle:ambientBrightnessLevel()
     return 3
   end
   return 4
+end
+
+function Kindle:reboot()
+  os.execute("shutdown -r now")
+end
+
+function Kindle:powerOff()
+  os.execute("shutdown -h now")
 end
 
 local Kindle2 = Kindle:extend({
