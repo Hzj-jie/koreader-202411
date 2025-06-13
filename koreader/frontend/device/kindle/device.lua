@@ -68,7 +68,7 @@ local function kindleWifiState()
     return lipc:get_string_property("com.lab126.wifid", "cmState")
   end
 
-  local std_out = io.popen("lipc-get-prop -i com.lab126.wifid cmState", "r")
+  local std_out = io.popen("lipc-get-prop com.lab126.wifid cmState", "r")
   if not std_out then
     return nil
   end
