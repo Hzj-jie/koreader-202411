@@ -1,1 +1,0 @@
-../../koreader/scripts/disable-wifi.sh

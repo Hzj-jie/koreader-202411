@@ -1,1 +1,0 @@
-../../koreader/scripts/enable-wifi.sh

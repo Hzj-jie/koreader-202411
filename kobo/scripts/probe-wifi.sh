@@ -1,1 +1,0 @@
-../../koreader/scripts/probe-wifi.sh
