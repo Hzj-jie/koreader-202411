@@ -27,7 +27,6 @@ function SwitchPlugin:new(o)
     LuaSettings:open(DataStorage:getSettingsDir() .. "/" .. o.name .. ".lua")
   -- Impossible to create two instances with the same settings_id.
   o.settings_id = math.floor(os.clock() * 1000)
-  SwitchPlugin._init(o)
   return WidgetContainer.new(o)
 end
 
