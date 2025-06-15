@@ -1068,7 +1068,7 @@ function ReaderDictionary:stardictLookup(
 
   self:showLookupInfo(word, self.lookup_msg_delay)
 
-  self._lookup_start_time = UIManager:getTime()
+  self._lookup_start_time = time.now()
   local results = self:startSdcv(word, dict_names, fuzzy_search)
   if
     results

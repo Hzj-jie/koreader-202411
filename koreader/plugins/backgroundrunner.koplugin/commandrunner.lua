@@ -40,7 +40,7 @@ function CommandRunner:start(job)
   assert(self.pio == nil)
   assert(self.job == nil)
   self.job = job
-  self.job.start_time = UIManager:getTime()
+  self.job.start_time = time.now()
   assert(type(self.job.executable) == "string")
   local command = self:createEnvironment()
     .. " "
