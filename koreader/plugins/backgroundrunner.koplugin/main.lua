@@ -228,9 +228,7 @@ function BackgroundRunner:_executeRound(round)
     elseif type(job.when) == "number" then
       if round == 0 then
         if job.when >= 0 then
-          should_execute = (
-            os.time() - job.insert_time >= time.s(job.when)
-          )
+          should_execute = (os.time() - job.insert_time >= time.s(job.when))
         else
           should_ignore = true
         end
