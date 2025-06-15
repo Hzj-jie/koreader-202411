@@ -195,7 +195,7 @@ function HtmlBoxWidget:onHoldStartText(_, ges)
     return false -- let event be processed by other widgets
   end
 
-  self.hold_start_time = os.time()
+  self.hold_start_time = UIManager:getTime()
 
   return true
 end

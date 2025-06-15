@@ -31,6 +31,7 @@ local UIManager = {
 
   event_handlers = nil,
 
+  _now = time.now(),
   _window_stack = {},
   _task_queue = {},
   _task_queue_dirty = false,
@@ -1059,7 +1060,7 @@ function UIManager:getNextTaskTime()
 end
 
 function UIManager:_checkTasks()
-  local _now = time.now()
+  self._now = time.now()
   local wait_until = nil
 
   -- Tasks due for execution might themselves schedule more tasks (that might also be immediately due for execution ;)).
@@ -1067,7 +1068,7 @@ function UIManager:_checkTasks()
   self._task_queue_dirty = false
   while self._task_queue[1] do
     local task_time = self._task_queue[#self._task_queue].time
-    if task_time <= _now then
+    if task_time <= self._now then
       -- Remove the upcoming task, as it is due for execution...
       local task = table.remove(self._task_queue)
       -- ...so do it now.
@@ -1082,14 +1083,36 @@ function UIManager:_checkTasks()
     end
   end
 
-  return wait_until, _now
+  return wait_until, self._now
+end
+
+--[[--
+Returns a time (fts) corresponding to the last tick.
+
+This is essentially a cached time.now(), computed at the top of every iteration of the main UI loop,
+(right before checking/running scheduled tasks).
+This is mainly useful to compute/schedule stuff in the same time scale as the UI loop (i.e., MONOTONIC),
+without having to resort to a syscall.
+It should never be significantly stale, assuming the UI is in use (e.g., there are input events),
+unless you're blocking the UI for a significant amount of time in a single UI frame.
+
+That is to say, its granularity is an UI frame.
+
+Prefer the appropriate time function for your needs if you require perfect accuracy or better granularity
+(e.g., when you're actually working on the event loop *itself* (UIManager, Input, GestureDetector),
+or if you're dealing with intra-frame timers).
+
+This is *NOT* wall clock time (REALTIME).
+]]
+function UIManager:getTime()
+  return self._now
 end
 
 --[[--
 Returns a time (fts) corresponding to the last UI tick plus the time in standby.
 ]]
 function UIManager:getElapsedTimeSinceBoot()
-  return os.time() + Device.total_standby_time + Device.total_suspend_time
+  return self:getTime() + Device.total_standby_time + Device.total_suspend_time
 end
 
 function UIManager:lastUserActionTime()
