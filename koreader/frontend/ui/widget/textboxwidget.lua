@@ -2236,7 +2236,7 @@ function TextBoxWidget:onHoldStartText(_, ges)
     return false -- let event be processed by other widgets
   end
 
-  self.hold_start_time = UIManager:getTime()
+  self.hold_start_time = os.time()
   return true
 end
 

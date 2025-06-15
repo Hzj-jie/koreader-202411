@@ -2058,9 +2058,9 @@ function ReaderRolling:setupRerenderingAutomation()
         local top_widget = UIManager:getTopmostVisibleWidget() or {}
         if top_widget.name == "ReaderUI" then
           if not next_step_not_before then -- start counting from now
-            next_step_not_before = UIManager:getTime() + time.s(3)
+            next_step_not_before = os.time() + time.s(3)
           else
-            if UIManager:getTime() >= next_step_not_before then
+            if os.time() >= next_step_not_before then
               self._stepRerenderingAutomation(
                 self.RENDERING_STATE.FULL_RENDERING_IN_BACKGROUND
               )
