@@ -82,6 +82,11 @@ local _ = require("gettext")
 -- the inserted job may return inaccurate results, always use the parameter of
 -- the callback function.
 
+-- @return a string to represent the job for logging purpose.
+local function _debugJobStr(job)
+  return require("dump")(job)
+end
+
 local BackgroundRunner = {
   scheduled = false,
 }
@@ -128,6 +133,14 @@ function BackgroundRunner:_finishJob(job)
     job.timeout = (time_diff > threshold)
   end
   job.blocked = job.timeout
+  if job.blocked then
+    logger.warn(
+      "BackgroundRunner: job [",
+      _debugJobStr(job),
+      " will be blocked due to timeout @ ",
+      os.time()
+    )
+  end
   if not job.blocked and self:_shouldRepeat(job) then
     self:_insert(self:_clone(job))
   end
@@ -159,7 +172,7 @@ function BackgroundRunner:_executeJob(job)
     else
       logger.warn(
         "BackgroundRunner: _executeJob [",
-        job.executable,
+        _debugJobStr(job),
         "] failed, ",
         err
       )
@@ -235,7 +248,12 @@ function BackgroundRunner:_execute()
       end
 
       if should_execute then
-        logger.dbg("BackgroundRunner: run job ", job, " @ ", os.time())
+        logger.dbg(
+          "BackgroundRunner: run job ",
+          _debugJobStr(job),
+          " @ ",
+          os.time()
+        )
         assert(not should_ignore)
         self:_executeJob(job)
         break

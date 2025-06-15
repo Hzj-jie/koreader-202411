@@ -182,10 +182,12 @@ function NetworkMgr:restoreWifiAndCheckAsync(msg)
 end
 
 function NetworkMgr:_queryOnlineState()
-  logger.info("NetworkMgr: _queryOnlineState, was_online",
-              tostring(self.was_online),
-              ", isWifiConnected ",
-              tostring(self:_isWifiConnected()))
+  logger.info(
+    "NetworkMgr: _queryOnlineState, was_online",
+    tostring(self.was_online),
+    ", isWifiConnected ",
+    tostring(self:_isWifiConnected())
+  )
   local last_state = self.was_online
   if self:_isWifiConnected() then
     self.was_online = self:_isOnline()
@@ -652,7 +654,7 @@ function NetworkMgr:_isOnline()
     )
   end
   return dr
-  ]]--
+  --]]
 end
 
 -- Return a cached online state from the last _isOnline call.
