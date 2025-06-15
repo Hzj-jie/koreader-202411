@@ -130,6 +130,11 @@ function BackgroundRunner:_finishJob(job)
   if type(job.executable) == "function" then
     local time_diff = job.end_time - job.start_time
     local threshold = time.s(1)
+    if job.when == "best-effort" then
+      threshold = threshold * 2
+    elseif job.when == "idle" then
+      threshold = threshold * 2
+    end
     job.timeout = (time_diff > threshold)
   end
   job.blocked = job.timeout
@@ -197,6 +202,69 @@ function BackgroundRunner:_poll()
   self:_finishJob(result)
 end
 
+function BackgroundRunner:_executeRound(round)
+  assert(round == 0 or round == 1 or round == 2)
+  local executed_jobs = 0
+  -- Change of #PluginShare.backgroundJobs during the loop is very rare, make it
+  -- simple.
+  for _ = 1, #PluginShare.backgroundJobs do
+    local job = table.remove(PluginShare.backgroundJobs, 1)
+    if job.insert_time == nil then
+      -- Jobs are first inserted to jobs table from external users.
+      -- So they may not have an insert field.
+      job.insert_time = UIManager:getTime()
+    end
+    local should_execute = false
+    local should_ignore = false
+    if type(job.when) == "function" then
+      if round == 0 then
+        local status, result = pcall(job.when)
+        if status then
+          should_execute = result
+        else
+          should_ignore = true
+        end
+      end
+    elseif type(job.when) == "number" then
+      if round == 0 then
+        if job.when >= 0 then
+          should_execute = (
+            UIManager:getTime() - job.insert_time >= time.s(job.when)
+          )
+        else
+          should_ignore = true
+        end
+      end
+    elseif type(job.when) == "string" then
+      --- @todo (Hzj_jie): Implement "idle" mode
+      if job.when == "best-effort" then
+        should_execute = (round == 1)
+      elseif job.when == "idle" then
+        should_execute = (round == 2)
+      else
+        should_ignore = true
+      end
+    else
+      should_ignore = true
+    end
+
+    if should_execute then
+      logger.dbg(
+        "BackgroundRunner: run job ",
+        _debugJobStr(job),
+        " @ ",
+        os.time()
+      )
+      assert(not should_ignore)
+      self:_executeJob(job)
+      executed_jobs = executed_jobs + 1
+    elseif not should_ignore then
+      table.insert(PluginShare.backgroundJobs, job)
+    end
+  end
+  return executed_jobs
+end
+
 function BackgroundRunner:_execute()
   logger.dbg("BackgroundRunner: _execute() @ ", os.time())
   -- The BackgroundRunner always needs to be rescheduled after running an
@@ -209,60 +277,11 @@ function BackgroundRunner:_execute()
   if CommandRunner:pending() then
     self:_poll()
   else
-    local round = 0
-    while #PluginShare.backgroundJobs > 0 do
-      local job = table.remove(PluginShare.backgroundJobs, 1)
-      if job.insert_time == nil then
-        -- Jobs are first inserted to jobs table from external users.
-        -- So they may not have an insert field.
-        job.insert_time = UIManager:getTime()
-      end
-      local should_execute = false
-      local should_ignore = false
-      if type(job.when) == "function" then
-        local status, result = pcall(job.when)
-        if status then
-          should_execute = result
-        else
-          should_ignore = true
-        end
-      elseif type(job.when) == "number" then
-        if job.when >= 0 then
-          should_execute = (
-            UIManager:getTime() - job.insert_time >= time.s(job.when)
-          )
-        else
-          should_ignore = true
-        end
-      elseif type(job.when) == "string" then
-        --- @todo (Hzj_jie): Implement "idle" mode
-        if job.when == "best-effort" then
-          should_execute = (round > 0)
-        elseif job.when == "idle" then
-          should_execute = (round > 1)
-        else
-          should_ignore = true
-        end
-      else
-        should_ignore = true
-      end
-
-      if should_execute then
-        logger.dbg(
-          "BackgroundRunner: run job ",
-          _debugJobStr(job),
-          " @ ",
-          os.time()
-        )
-        assert(not should_ignore)
-        self:_executeJob(job)
-        break
-      elseif not should_ignore then
-        table.insert(PluginShare.backgroundJobs, job)
-      end
-
-      round = round + 1
-      if round > 2 then
+    -- round == 0, when is number
+    --          1, when is 'best-effort'
+    --          2, when is 'idle'
+    for round = 0, 2 do
+      if self:_executeRound(round) > 0 then
         break
       end
     end
