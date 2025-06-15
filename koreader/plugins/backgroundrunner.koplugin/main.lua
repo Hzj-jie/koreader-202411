@@ -170,7 +170,7 @@ function BackgroundRunner:_executeJob(job)
     return true
   end
   if type(job.executable) == "function" then
-    job.start_time = UIManager:getTime()
+    job.start_time = os.time()
     local status, err = pcall(job.executable)
     if status then
       job.result = 0
@@ -212,7 +212,7 @@ function BackgroundRunner:_executeRound(round)
     if job.insert_time == nil then
       -- Jobs are first inserted to jobs table from external users.
       -- So they may not have an insert field.
-      job.insert_time = UIManager:getTime()
+      job.insert_time = os.time()
     end
     local should_execute = false
     local should_ignore = false
@@ -229,7 +229,7 @@ function BackgroundRunner:_executeRound(round)
       if round == 0 then
         if job.when >= 0 then
           should_execute = (
-            UIManager:getTime() - job.insert_time >= time.s(job.when)
+            os.time() - job.insert_time >= time.s(job.when)
           )
         else
           should_ignore = true
@@ -307,7 +307,7 @@ function BackgroundRunner:_schedule()
 end
 
 function BackgroundRunner:_insert(job)
-  job.insert_time = UIManager:getTime()
+  job.insert_time = os.time()
   table.insert(PluginShare.backgroundJobs, job)
 end
 
