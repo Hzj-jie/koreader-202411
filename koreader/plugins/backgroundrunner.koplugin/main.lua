@@ -84,7 +84,7 @@ local _ = require("gettext")
 
 -- @return a string to represent the job for logging purpose.
 local function _debugJobStr(job)
-  return require("dump")(job)
+  return "[" .. require("dump")(job) .. "]"
 end
 
 local BackgroundRunner = {
@@ -116,6 +116,7 @@ function BackgroundRunner:_shouldRepeat(job)
     if status then
       return result
     end
+    logger.warn("job.repeated failed, ", _debugJobStr(job))
     return false
   end
   if type(job.repeated) == "number" then
@@ -148,6 +149,8 @@ function BackgroundRunner:_finishJob(job)
   end
   if not job.blocked and self:_shouldRepeat(job) then
     self:_insert(self:_clone(job))
+  elseif G_defaults:isTrue("DEV_MODE") then
+    logger.info("job ", _debugJobStr(job), " will not be repeated.")
   end
   if type(job.callback) == "function" then
     pcall(job.callback, job)
@@ -176,9 +179,9 @@ function BackgroundRunner:_executeJob(job)
       job.result = 0
     else
       logger.warn(
-        "BackgroundRunner: _executeJob [",
+        "BackgroundRunner: _executeJob ",
         _debugJobStr(job),
-        "] failed, ",
+        " failed, ",
         err
       )
       job.result = 1
@@ -222,6 +225,7 @@ function BackgroundRunner:_executeRound(round)
         if status then
           should_execute = result
         else
+          logger.warn("job.when failed, ", _debugJobStr(job))
           should_ignore = true
         end
       end
