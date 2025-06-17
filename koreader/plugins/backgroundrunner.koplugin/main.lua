@@ -143,8 +143,7 @@ function BackgroundRunner:_finishJob(job)
     logger.warn(
       "BackgroundRunner: job [",
       _debugJobStr(job),
-      " will be blocked due to timeout @ ",
-      os.time()
+      " will be blocked due to timeout"
     )
   end
   if not job.blocked and self:_shouldRepeat(job) then
@@ -199,7 +198,9 @@ end
 
 --- Polls the status of the pending CommandRunner.
 function BackgroundRunner:_poll()
-  assert(CommandRunner:pending())
+  if not CommandRunner:pending() then
+    return
+  end
   local result = CommandRunner:poll()
   if result == nil then
     return
@@ -235,8 +236,15 @@ function BackgroundRunner:_executeRound(round)
     elseif type(job.when) == "number" then
       if round == 0 then
         if job.when >= 0 then
+          if job.when < 2 then
+            logger.warn("job.when is less than 2 seconds, ",
+                        "changing to 2 seconds, ",
+                        _debugJobStr(job))
+            job.when = 2
+          end
           should_execute = (time.now() - job.insert_time >= time.s(job.when))
         else
+          logger.warn("ignore negative job.when, ", _debugJobStr(job))
           should_ignore = true
         end
       end
@@ -247,18 +255,18 @@ function BackgroundRunner:_executeRound(round)
       elseif job.when == "idle" then
         should_execute = (round == 2)
       else
+        logger.warn("ignore unrecognized job.when, ", _debugJobStr(job))
         should_ignore = true
       end
     else
+      logger.warn("ignore job without .when, ", _debugJobStr(job))
       should_ignore = true
     end
 
     if should_execute then
       logger.dbg(
         "BackgroundRunner: run job ",
-        _debugJobStr(job),
-        " @ ",
-        os.time()
+        _debugJobStr(job)
       )
       assert(not should_ignore)
       if self:_executeJob(job) then
@@ -272,24 +280,21 @@ function BackgroundRunner:_executeRound(round)
 end
 
 function BackgroundRunner:_execute()
-  logger.dbg("BackgroundRunner: _execute() @ ", os.time())
+  logger.dbg("BackgroundRunner: _execute()")
   -- The BackgroundRunner always needs to be rescheduled after running an
   -- _execute.
   self.scheduled = false
   if PluginShare.stopBackgroundRunner == true then
-    logger.dbg("BackgroundRunnerWidget: skip running @ ", os.time())
+    logger.dbg("BackgroundRunnerWidget: skip running")
     return
   end
-  if CommandRunner:pending() then
-    self:_poll()
-  else
-    -- round == 0, when is number
-    --          1, when is 'best-effort'
-    --          2, when is 'idle'
-    for round = 0, 2 do
-      if self:_executeRound(round) > 0 then
-        break
-      end
+  self:_poll()
+  -- round == 0, when is number
+  --          1, when is 'best-effort'
+  --          2, when is 'idle'
+  for round = 0, 2 do
+    if self:_executeRound(round) > 0 then
+      break
     end
   end
 
@@ -299,16 +304,16 @@ end
 function BackgroundRunner:_schedule()
   if self.scheduled == false then
     if #PluginShare.backgroundJobs == 0 and not CommandRunner:pending() then
-      logger.dbg("BackgroundRunnerWidget: no job, not running @ ", os.time())
+      logger.dbg("BackgroundRunnerWidget: no job, not running")
     else
-      logger.dbg("BackgroundRunnerWidget: start running @ ", os.time())
+      logger.dbg("BackgroundRunnerWidget: start running")
       self.scheduled = true
       UIManager:scheduleIn(2, function()
         self:_execute()
       end)
     end
   else
-    logger.dbg("BackgroundRunnerWidget: a schedule is pending @ ", os.time())
+    logger.dbg("BackgroundRunnerWidget: a schedule is pending")
   end
 end
 
@@ -326,18 +331,18 @@ function BackgroundRunnerWidget:init()
 end
 
 function BackgroundRunnerWidget:onSuspend()
-  logger.dbg("BackgroundRunnerWidget:onSuspend() @ ", os.time())
+  logger.dbg("BackgroundRunnerWidget:onSuspend()")
   PluginShare.stopBackgroundRunner = true
 end
 
 function BackgroundRunnerWidget:onResume()
-  logger.dbg("BackgroundRunnerWidget:onResume() @ ", os.time())
+  logger.dbg("BackgroundRunnerWidget:onResume()")
   PluginShare.stopBackgroundRunner = false
   BackgroundRunner:_schedule()
 end
 
 function BackgroundRunnerWidget:onBackgroundJobsUpdated()
-  logger.dbg("BackgroundRunnerWidget:onBackgroundJobsUpdated() @ ", os.time())
+  logger.dbg("BackgroundRunnerWidget:onBackgroundJobsUpdated()")
   PluginShare.stopBackgroundRunner = false
   BackgroundRunner:_schedule()
 end
