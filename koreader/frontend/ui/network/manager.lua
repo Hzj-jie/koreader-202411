@@ -182,12 +182,12 @@ function NetworkMgr:restoreWifiAndCheckAsync(msg)
 end
 
 function NetworkMgr:_queryOnlineState()
+  self:_setOnlineState(self:_isWifiConnected() and self:_isOnline())
+end
+
+function NetworkMgr:_setOnlineState(new_state)
   local last_state = self.was_online
-  if self:_isWifiConnected() then
-    self.was_online = self:_isOnline()
-  else
-    self.was_online = false
-  end
+  self.was_online = new_state
   if last_state ~= self.was_online then
     if self.was_online then
       raiseNetworkEvent("Online")
@@ -220,8 +220,12 @@ function NetworkMgr:init()
       require("background_jobs").insert({
         when = 60,
         repeated = true,
-        executable = function()
-          self:_queryOnlineState()
+        -- Technically speaking, the behavior is different than
+        -- self:_queryOnlineState, the results should be consistent in the
+        -- normal network condition.
+        executable = "ping -c 1 www.microsoft.com",
+        callback = function(job)
+          self:_setOnlineState(job.result == 0)
         end,
       })
     end)

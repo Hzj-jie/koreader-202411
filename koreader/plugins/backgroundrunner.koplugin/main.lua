@@ -160,7 +160,6 @@ end
 --- Executes |job|.
 -- @treturn boolean true if job is valid.
 function BackgroundRunner:_executeJob(job)
-  assert(not CommandRunner:pending())
   if job == nil then
     return false
   end
@@ -169,6 +168,10 @@ function BackgroundRunner:_executeJob(job)
   end
 
   if type(job.executable) == "string" then
+    if CommandRunner:pending() then
+      -- Full background CommandRunner supports only one job.
+      return false
+    end
     CommandRunner:start(job)
     return true
   end
@@ -258,8 +261,9 @@ function BackgroundRunner:_executeRound(round)
         os.time()
       )
       assert(not should_ignore)
-      self:_executeJob(job)
-      executed_jobs = executed_jobs + 1
+      if self:_executeJob(job) then
+        executed_jobs = executed_jobs + 1
+      end
     elseif not should_ignore then
       table.insert(PluginShare.backgroundJobs, job)
     end
