@@ -427,7 +427,6 @@ function NetworkMgr:ifHasAnAddress()
   return ok
 end
 
---[[
 -- This function costs 10ms on kindle with great wifi connection, it's slow naturally.
 -- The socket API equivalent of "ip route get 203.0.113.1 || ip route get 2001:db8::1".
 --
@@ -464,7 +463,8 @@ end
 
 -- Use microsoft services by default to allow accessing in mainland china.
 
--- This function costs 100ms on kindle with great wifi connection, it's slow naturally.
+-- This function costs 200ms to 300ms on kindle with great wifi connection, it's
+-- slow naturally.
 function NetworkMgr:_canResolveHostnames()
   -- Microsoft uses `dns.msftncsi.com` for Windows, see
   -- <https://technet.microsoft.com/en-us/library/ee126135#BKMK_How> for
@@ -472,9 +472,11 @@ function NetworkMgr:_canResolveHostnames()
   -- returns `Microsoft NCSI`.
   return require("socket").dns.toip("dns.msftncsi.com") ~= nil
 end
---]]
 
--- This function costs 100ms on kindle with great wifi connection, it's slow naturally.
+--[[
+-- This function costs between 40 to 1000ms on kindle with great wifi
+-- connection, it's slow naturally. Device:ping4 uses the default timeout of
+-- 2000ms.
 function NetworkMgr:_canPingMicrosoftCom()
   local ip = require("socket").dns.toip("www.microsoft.com")
   if ip == nil then
@@ -482,6 +484,7 @@ function NetworkMgr:_canPingMicrosoftCom()
   end
   return Device:ping4(ip)
 end
+--]]
 
 function NetworkMgr:toggleWifiOn(wifi_cb) -- false | nil
   if self:_isWifiConnected() then
@@ -635,11 +638,14 @@ end
 -- internet access.
 function NetworkMgr:_isOnline()
   assert(Device:hasWifiToggle())
-  return self:_canPingMicrosoftCom()
-  --[[
+  --return self:_canPingMicrosoftCom()
   local dr = self:_hasDefaultRoute()
   local rh = self:_canResolveHostnames()
+  if rh and not dr then
+    dr = self:_hasDefaultRoute()
+  end
   if dr ~= rh then
+    -- It's unexpected to have different results after the retry above.
     logger.warn(
       "_hasDefaultRoute ",
       tostring(dr),
@@ -648,7 +654,6 @@ function NetworkMgr:_isOnline()
     )
   end
   return dr
-  --]]
 end
 
 -- Return a cached online state from the last _isOnline call.
