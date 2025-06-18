@@ -87,13 +87,9 @@ local function _debugJobStr(job)
   return "[" .. require("dump")(job) .. "]"
 end
 
-local BackgroundRunner = {
-  scheduled = false,
-}
-
 --- Copies required fields from |job|.
 -- @return a new table with required fields of a valid job.
-function BackgroundRunner:_clone(job)
+local function _clone(job)
   assert(job ~= nil)
   local result = {}
   result.when = job.when
@@ -101,8 +97,13 @@ function BackgroundRunner:_clone(job)
   result.executable = job.executable
   result.callback = job.callback
   result.environment = job.environment
+  result.insert_time = time.now()
   return result
 end
+
+local BackgroundRunner = {
+  scheduled = false,
+}
 
 function BackgroundRunner:_shouldRepeat(job)
   if type(job.repeated) == "nil" then
@@ -147,7 +148,7 @@ function BackgroundRunner:_finishJob(job)
     )
   end
   if not job.blocked and self:_shouldRepeat(job) then
-    self:_insert(self:_clone(job))
+    table.insert(PluginShare.backgroundJobs, _clone(job))
   elseif G_defaults:isTrue("DEV_MODE") then
     logger.info("job ", _debugJobStr(job), " will not be repeated.")
   end
@@ -217,8 +218,6 @@ function BackgroundRunner:_executeRound(round)
   for _ = 1, #PluginShare.backgroundJobs do
     local job = table.remove(PluginShare.backgroundJobs, 1)
     if job.insert_time == nil then
-      -- Jobs are first inserted to jobs table from external users.
-      -- So they may not have an insert field.
       job.insert_time = time.now()
     end
     local should_execute = false
@@ -298,28 +297,29 @@ function BackgroundRunner:_execute()
     end
   end
 
-  self:_schedule()
+  self:schedule()
 end
 
-function BackgroundRunner:_schedule()
-  if self.scheduled == false then
-    if #PluginShare.backgroundJobs == 0 and not CommandRunner:pending() then
-      logger.dbg("BackgroundRunnerWidget: no job, not running")
-    else
-      logger.dbg("BackgroundRunnerWidget: start running")
-      self.scheduled = true
-      UIManager:scheduleIn(2, function()
-        self:_execute()
-      end)
-    end
-  else
+function BackgroundRunner:schedule()
+  if self.scheduled then
     logger.dbg("BackgroundRunnerWidget: a schedule is pending")
+    return
   end
+  if #PluginShare.backgroundJobs == 0 and not CommandRunner:pending() then
+    logger.dbg("BackgroundRunnerWidget: no job, not running")
+    return
+  end
+  logger.dbg("BackgroundRunnerWidget: start running")
+  self.scheduled = true
+  UIManager:scheduleIn(2, function()
+    self:_execute()
+  end)
 end
 
-function BackgroundRunner:_insert(job)
-  job.insert_time = time.now()
-  table.insert(PluginShare.backgroundJobs, job)
+function BackgroundRunner:resetInsertTime()
+  for _, job in ipairs(PluginShare.backgroundJobs) do
+    job.insert_time = nil
+  end
 end
 
 local BackgroundRunnerWidget = WidgetContainer:extend({
@@ -327,7 +327,8 @@ local BackgroundRunnerWidget = WidgetContainer:extend({
 })
 
 function BackgroundRunnerWidget:init()
-  BackgroundRunner:_schedule()
+  PluginShare.stopBackgroundRunner = false
+  BackgroundRunner:schedule()
 end
 
 function BackgroundRunnerWidget:onSuspend()
@@ -337,14 +338,15 @@ end
 
 function BackgroundRunnerWidget:onResume()
   logger.dbg("BackgroundRunnerWidget:onResume()")
-  PluginShare.stopBackgroundRunner = false
-  BackgroundRunner:_schedule()
+  -- Avoid jobs being executed right after resume, treat all the jobs as freshly
+  -- inserted.
+  BackgroundRunner:resetInsertTime()
+  self:init()
 end
 
 function BackgroundRunnerWidget:onBackgroundJobsUpdated()
   logger.dbg("BackgroundRunnerWidget:onBackgroundJobsUpdated()")
-  PluginShare.stopBackgroundRunner = false
-  BackgroundRunner:_schedule()
+  self:init()
 end
 
 return BackgroundRunnerWidget
