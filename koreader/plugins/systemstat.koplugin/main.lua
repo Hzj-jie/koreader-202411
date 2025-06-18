@@ -284,6 +284,8 @@ function SystemStat:appendProcessInfo()
   if n1 ~= nil then
     self:put({ _("  RAM usage (MB)"), string.format("%.2f", n1 / 256) })
   end
+  -- no localization.
+  self:put({ _("  Background Jobs"), #(require("pluginshare").backgroundJobs)})
 end
 
 function SystemStat:appendStorageInfo()
