@@ -22,8 +22,10 @@ local _ = require("gettext")
 -- when: number, string or function
 --   number: the delay in seconds
 --   string: "best-effort" - the job will be started when there is no other jobs
---                           to be executed.
---           "idle"        - the job will be started when the device is idle.
+--                           to be executed and was not executed during the last
+--                           minute.
+--           "idle"        - the job will be started when there is no other jobs
+--                           to be executed and the device is idle.
 --   function: if the return value of the function is true, the job will be
 --             executed immediately.
 --
@@ -235,11 +237,15 @@ function BackgroundRunner:_executeRound(round)
     elseif type(job.when) == "number" then
       if round == 0 then
         if job.when >= 0 then
-          if job.when < 2 then
-            logger.warn("job.when is less than 2 seconds, ",
-                        "changing to 2 seconds, ",
-                        _debugJobStr(job))
-            job.when = 2
+          -- Interval of two runs is 2 sec, so set the minimum allowance to 3
+          -- sec to ensure all the jobs have a chance to run.
+          if job.when < 3 then
+            logger.warn(
+              "job.when is less than 3 seconds, ",
+              "changing to 3 seconds, ",
+              _debugJobStr(job)
+            )
+            job.when = 3
           end
           should_execute = (time.now() - job.insert_time >= time.s(job.when))
         else
@@ -248,11 +254,11 @@ function BackgroundRunner:_executeRound(round)
         end
       end
     elseif type(job.when) == "string" then
-      --- @todo (Hzj_jie): Implement "idle" mode
       if job.when == "best-effort" then
         should_execute = (round == 1)
+          and (time.now() - job.insert_time >= time.s(60))
       elseif job.when == "idle" then
-        should_execute = (round == 2)
+        should_execute = (round == 2) and PluginShare.DeviceIdling
       else
         logger.warn("ignore unrecognized job.when, ", _debugJobStr(job))
         should_ignore = true
@@ -263,10 +269,7 @@ function BackgroundRunner:_executeRound(round)
     end
 
     if should_execute then
-      logger.dbg(
-        "BackgroundRunner: run job ",
-        _debugJobStr(job)
-      )
+      logger.dbg("BackgroundRunner: run job ", _debugJobStr(job))
       assert(not should_ignore)
       if self:_executeJob(job) then
         executed_jobs = executed_jobs + 1

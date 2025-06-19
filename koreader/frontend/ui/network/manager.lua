@@ -218,7 +218,7 @@ function NetworkMgr:init()
       -- Initial state.
       self:_queryOnlineState()
       require("background_jobs").insert({
-        when = 60,
+        when = "best-effort",
         repeated = true,
         -- Technically speaking, the behavior is different than
         -- self:_queryOnlineState, the results should be consistent in the
