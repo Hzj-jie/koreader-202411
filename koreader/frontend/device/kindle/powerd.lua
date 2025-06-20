@@ -258,9 +258,6 @@ function KindlePowerD:initWakeupMgr()
   if LibLipcs:isFake(LibLipcs:accessor()) then
     return
   end
-  if G_defaults:isFalse("ENABLE_WAKEUP_MANAGER") then
-    return
-  end
   if not self.device:supportsScreensaver() then
     return
   end

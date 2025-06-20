@@ -194,10 +194,6 @@ return {
   -- By default they're stored in data/dict under dataDir.
   STARDICT_DATA_DIR = nil,
 
-  -- Enable wakeup manager, it detects unexpected wakeup and provides scheduled
-  -- wakeup.
-  ENABLE_WAKEUP_MANAGER = false,
-
   -- Enable features for developers, e.g. enable logging.
   DEV_MODE = false,
 }
