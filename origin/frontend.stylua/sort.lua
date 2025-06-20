@@ -103,31 +103,30 @@ cmp, cache = sort.natsort_cmp(cache)
 table.sort(t, function(a, b) return cmp(a.text, b.text) end)
 ]]
 function sort.natsort_cmp(cache)
-    if not cache then
-        cache = {}
-    end
+  if not cache then
+    cache = {}
+  end
 
-    local function natsort_conv(s)
-        local res, dot = "", ""
-        for n, m, c in tostring(s):gmatch("(0*(%d*))(.?)") do
-            if n == "" then
-                dot, c = "", dot..c
-            else
-                res = res..(dot == "" and ("%03d%s"):format(#m, m)
-                                       or "."..n)
-                dot, c = c:match("(%.?)(.*)")
-            end
-            res = res..c:gsub("[%z\1-\127\192-\255]", "\0%0")
-        end
-        cache[s] = res
-        return res
+  local function natsort_conv(s)
+    local res, dot = "", ""
+    for n, m, c in tostring(s):gmatch("(0*(%d*))(.?)") do
+      if n == "" then
+        dot, c = "", dot .. c
+      else
+        res = res .. (dot == "" and ("%03d%s"):format(#m, m) or "." .. n)
+        dot, c = c:match("(%.?)(.*)")
+      end
+      res = res .. c:gsub("[%z\1-\127\192-\255]", "\0%0")
     end
+    cache[s] = res
+    return res
+  end
 
-    local function natsort(a, b)
-        local ca, cb = cache[a] or natsort_conv(a), cache[b] or natsort_conv(b)
-        return ca < cb or ca == cb and a < b
-    end
-    return natsort, cache
+  local function natsort(a, b)
+    local ca, cb = cache[a] or natsort_conv(a), cache[b] or natsort_conv(b)
+    return ca < cb or ca == cb and a < b
+  end
+  return natsort, cache
 end
 
 return sort

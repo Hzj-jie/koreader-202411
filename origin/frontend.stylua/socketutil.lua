@@ -9,14 +9,17 @@ local ltn12 = require("ltn12")
 local socket = require("socket")
 
 local socketutil = {
-    -- Init to the default LuaSocket/LuaSec values
-    block_timeout = 60,
-    total_timeout = -1,
+  -- Init to the default LuaSocket/LuaSec values
+  block_timeout = 60,
+  total_timeout = -1,
 }
 
 --- Builds a sensible UserAgent that fits Wikipedia's UA policy <https://meta.wikimedia.org/wiki/User-Agent_policy>
 local socket_ua = http.USERAGENT
-socketutil.USER_AGENT = "KOReader/" .. Version:getShortVersion() .. " (https://koreader.rocks/) " .. socket_ua:gsub(" ", "/")
+socketutil.USER_AGENT = "KOReader/"
+  .. Version:getShortVersion()
+  .. " (https://koreader.rocks/) "
+  .. socket_ua:gsub(" ", "/")
 -- Monkey-patch it in LuaSocket, as it already takes care of inserting the appropriate header to its requests.
 http.USERAGENT = socketutil.USER_AGENT
 
@@ -46,23 +49,23 @@ socketutil.DEFAULT_TOTAL_TIMEOUT = -1
 -- Note that name resolution happens earlier and one level lower (e.g., glibc),
 -- so name resolution delays will fall outside of these timeouts.
 function socketutil:set_timeout(block_timeout, total_timeout)
-    self.block_timeout = block_timeout or 5
-    self.total_timeout = total_timeout or 15
+  self.block_timeout = block_timeout or 5
+  self.total_timeout = total_timeout or 15
 
-    -- Also update the actual LuaSocket & LuaSec constants, because:
-    -- 1. LuaSocket's `open` does a `settimeout` *after* create with this constant
-    -- 2. Rogue code might be attempting to enforce them
-    http.TIMEOUT = self.block_timeout
-    https.TIMEOUT = self.block_timeout
+  -- Also update the actual LuaSocket & LuaSec constants, because:
+  -- 1. LuaSocket's `open` does a `settimeout` *after* create with this constant
+  -- 2. Rogue code might be attempting to enforce them
+  http.TIMEOUT = self.block_timeout
+  https.TIMEOUT = self.block_timeout
 end
 
 --- Reset timeout values to LuaSocket defaults.
 function socketutil:reset_timeout()
-    self.block_timeout = self.DEFAULT_BLOCK_TIMEOUT
-    self.total_timeout = self.DEFAULT_TOTAL_TIMEOUT
+  self.block_timeout = self.DEFAULT_BLOCK_TIMEOUT
+  self.total_timeout = self.DEFAULT_TOTAL_TIMEOUT
 
-    http.TIMEOUT = self.block_timeout
-    https.TIMEOUT = self.block_timeout
+  http.TIMEOUT = self.block_timeout
+  https.TIMEOUT = self.block_timeout
 end
 
 --- Monkey-patch LuaSocket's `socket.tcp` in order to honor tighter timeouts, to avoid blocking the UI for too long.
@@ -75,64 +78,64 @@ end
 --        without us having to maintain a tweaked version of LuaSec's `https.tcp` function...
 local real_socket_tcp = socket.tcp
 function socketutil.tcp()
-    -- Based on https://stackoverflow.com/a/6021774
-    local req_sock = real_socket_tcp()
-    req_sock:settimeout(socketutil.block_timeout, "b")
-    req_sock:settimeout(socketutil.total_timeout, "t")
-    return req_sock
+  -- Based on https://stackoverflow.com/a/6021774
+  local req_sock = real_socket_tcp()
+  req_sock:settimeout(socketutil.block_timeout, "b")
+  req_sock:settimeout(socketutil.total_timeout, "t")
+  return req_sock
 end
 socket.tcp = socketutil.tcp
 
 --- Various timeout return codes
-socketutil.TIMEOUT_CODE         = "timeout"      -- from LuaSocket's io.c
-socketutil.SSL_HANDSHAKE_CODE   = "wantread"     -- from LuaSec's ssl.c
-socketutil.SINK_TIMEOUT_CODE    = "sink timeout" -- from our own socketutil
+socketutil.TIMEOUT_CODE = "timeout" -- from LuaSocket's io.c
+socketutil.SSL_HANDSHAKE_CODE = "wantread" -- from LuaSec's ssl.c
+socketutil.SINK_TIMEOUT_CODE = "sink timeout" -- from our own socketutil
 
 -- NOTE: Use os.time() for simplicity's sake (we don't really need subsecond precision).
 --       LuaSocket itself is already using gettimeofday anyway (although it does the maths, like ffi/util's getTimestamp).
 --- Custom version of `ltn12.sink.table` that honors total_timeout
 function socketutil.table_sink(t)
-    if socketutil.total_timeout < 0 then
-        return ltn12.sink.table(t)
-    end
+  if socketutil.total_timeout < 0 then
+    return ltn12.sink.table(t)
+  end
 
-    local start_ts = os.time()
-    t = t or {}
-    local f = function(chunk, err)
-        if chunk then
-            if os.time() - start_ts > socketutil.total_timeout then
-                return nil, socketutil.SINK_TIMEOUT_CODE
-            end
-            table.insert(t, chunk)
-        end
-        return 1
+  local start_ts = os.time()
+  t = t or {}
+  local f = function(chunk, err)
+    if chunk then
+      if os.time() - start_ts > socketutil.total_timeout then
+        return nil, socketutil.SINK_TIMEOUT_CODE
+      end
+      table.insert(t, chunk)
     end
-    return f, t
+    return 1
+  end
+  return f, t
 end
 
 --- Custom version of `ltn12.sink.file` that honors total_timeout
 function socketutil.file_sink(handle, io_err)
-    if socketutil.total_timeout < 0 then
-        return ltn12.sink.file(handle, io_err)
-    end
+  if socketutil.total_timeout < 0 then
+    return ltn12.sink.file(handle, io_err)
+  end
 
-    if handle then
-        local start_ts = os.time()
-        return function(chunk, err)
-            if not chunk then
-                handle:close()
-                return 1
-            else
-                if os.time() - start_ts > socketutil.total_timeout then
-                    handle:close()
-                    return nil, socketutil.SINK_TIMEOUT_CODE
-                end
-                return handle:write(chunk)
-            end
+  if handle then
+    local start_ts = os.time()
+    return function(chunk, err)
+      if not chunk then
+        handle:close()
+        return 1
+      else
+        if os.time() - start_ts > socketutil.total_timeout then
+          handle:close()
+          return nil, socketutil.SINK_TIMEOUT_CODE
         end
-    else
-        return nil, io_err or "unable to open file"
+        return handle:write(chunk)
+      end
     end
+  else
+    return nil, io_err or "unable to open file"
+  end
 end
 
 return socketutil

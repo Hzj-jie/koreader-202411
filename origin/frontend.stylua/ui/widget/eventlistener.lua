@@ -10,16 +10,18 @@ will call a method "onEventName" for an event with name
 local EventListener = {}
 
 function EventListener:extend(subclass_prototype)
-    local o = subclass_prototype or {}
-    setmetatable(o, self)
-    self.__index = self
-    return o
+  local o = subclass_prototype or {}
+  setmetatable(o, self)
+  self.__index = self
+  return o
 end
 
 function EventListener:new(o)
-    o = self:extend(o)
-    if o.init then o:init() end
-    return o
+  o = self:extend(o)
+  if o.init then
+    o:init()
+  end
+  return o
 end
 
 --[[--
@@ -32,10 +34,10 @@ By default, it's `"on"..Event.name`.
 @treturn bool return true if event is consumed successfully.
 ]]
 function EventListener:handleEvent(event)
-    if self[event.handler] then
-        --print("EventListener:handleEvent:", event.handler, "handled by", debug.getinfo(self[event.handler], "S").short_src, self)
-        return self[event.handler](self, unpack(event.args, 1, event.args.n))
-    end
+  if self[event.handler] then
+    --print("EventListener:handleEvent:", event.handler, "handled by", debug.getinfo(self[event.handler], "S").short_src, self)
+    return self[event.handler](self, unpack(event.args, 1, event.args.n))
+  end
 end
 
 return EventListener

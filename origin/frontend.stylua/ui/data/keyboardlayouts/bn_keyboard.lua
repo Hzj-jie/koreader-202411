@@ -1,4 +1,5 @@
-local bn_popup = dofile("frontend/ui/data/keyboardlayouts/keypopup/bn_popup.lua")
+local bn_popup =
+  dofile("frontend/ui/data/keyboardlayouts/keypopup/bn_popup.lua")
 local pco = bn_popup.pco
 local cop = bn_popup.cop
 local cse = bn_popup.cse
@@ -137,79 +138,79 @@ local hsh = bn_popup.hsh
 local hs2 = bn_popup.hs2
 
 return {
-    min_layer = 1,
-    max_layer = 4,
-    shiftmode_keys = { [""] = true },
-    symbolmode_keys = { ["⌥"] = true },
-    utf8mode_keys = { ["🌐"] = true },
-    -- Width of any key can be modified by adding "width = 1.0, " in the list.
-    keys = {
-        -- First row
-        { --   R    r    S    s
-            { _1p, _1_, "`", "!", },
-            { _2p, _2_, "‘", "¡", },
-            { _3p, _3_, "’", dsh, },
-            { _4p, _4_, "“", "_", },
-            { _5p, _5_, "”", quo, },
-            { _6p, _6_, eq2, eql, },
-            { _7p, _7_, _7s, _7n, },
-            { _8p, _8_, _8s, _8n, },
-            { _9p, _9_, _9s, _9n, },
-            { _0p, _0_, mn2, mns, },
-        },
-        -- Second row
-        { --   R    r    S    s
-            { _dha_, _da_, dif, "?",  width = 0.833},
-            { _U_, _U_kaar_, int, "¿", width = 0.833},
-            { _I_, _I_kaar_, mth, "~", width = 0.833},
-            { _rda_, _ra_, mt2, "\\", width = 0.833},
-            { _Tha_, _Ta_, df2, bar, width = 0.833},
-            { _oi_, _e_, sl2, sla, width = 0.833},
-            { _u_, _u_kaar_, _4s, _4n, width = 0.833},
-            { _i_, _i_kaar_, _5s, _5n, width = 0.833},
-            { _ou_, _o_, _6s, _6n, width = 0.833},
-            { _pha_, _pa_, pl2, pls, width = 0.833},
-            { _oi_kaar_, _e_kaar_, "[", "{", width = 0.833},
-            { _ou_kaar_, _o_kaar_, "]", "}", width = 0.833},
-        },
-
-        -- Third row
-        { --   R    r    S    s
-            { _a_, _aa_kaar_, ls2, ls1, },
-            { _sHa_, _sa_, mr2, mr1, },
-            { _Dha_, _Da_, dgr, "(", },
-            { _tha_, _ta_, tpg, ")", },
-            { _gha_, _ga_, hs2, hsh, },
-            { _bisarga_, _ha_, pd2, pdc, },
-            { _jha_, _ja_, _1s, _1n, },
-            { _kha_, _ka_, _2s, _2n, },
-            { _anuswara_, _la_, _3s, _3n, },
-            { sec, cse, sec, cse, }, -- comma/semicolon with CSS popup block
-        },
-        -- Fourth row
-        { --   R    r    S    s
-            { label = "", width = 0.9 }, -- Shift
-            { _ya_, _jya_, prm, "{", width = 0.82},
-            { _Rha_, _sha_, "°", "}", width = 0.82},
-            { _Cha_, _cha_, "«", "[", width = 0.82},
-            { _rwi_, _aa_, "»", "]", width = 0.82},
-            { _bha_, _ba_, _0s, _0n, width = 0.82},
-            { _Na_, _na_, "↑", "↑", width = 0.82},
-            { _uma_, _ma_, "↓", "↓", width = 0.82},
-            { _rwi_kaar_, com2, "়", "ৄ", width = 0.82},
-            { _chandrabindu_, daari, "ৠ", "ৡ", width = 0.82},
-            { question2, hashanto, "ৰ", "ৱ", width = 0.82},
-            { label = "", width = 0.9 }, -- Backspace
-        },
-        -- Fifth row
-        { --   R    r    S    s
-            { label = "⌥", width = 1.5, bold = true, alt_label = "SYM"}, -- SYM key
-            { label = "🌐", }, -- Globe key
-            { cop, pco, cop, pco, }, -- period/colon with RegEx popup block
-            { label = "বাংলা", " ", " ", " ", " ", width = 3.0, }, -- Spacebar
-            { label = "←", }, -- Arrow left
-            { label = "→", }, -- Arrow right
-            { label = "⮠", "\n","\n","\n","\n", width = 1.5, }, -- Enter
-        },
+  min_layer = 1,
+  max_layer = 4,
+  shiftmode_keys = { [""] = true },
+  symbolmode_keys = { ["⌥"] = true },
+  utf8mode_keys = { ["🌐"] = true },
+  -- Width of any key can be modified by adding "width = 1.0, " in the list.
+  keys = {
+    -- First row
+    { --   R    r    S    s
+      { _1p, _1_, "`", "!" },
+      { _2p, _2_, "‘", "¡" },
+      { _3p, _3_, "’", dsh },
+      { _4p, _4_, "“", "_" },
+      { _5p, _5_, "”", quo },
+      { _6p, _6_, eq2, eql },
+      { _7p, _7_, _7s, _7n },
+      { _8p, _8_, _8s, _8n },
+      { _9p, _9_, _9s, _9n },
+      { _0p, _0_, mn2, mns },
     },
+    -- Second row
+    { --   R    r    S    s
+      { _dha_, _da_, dif, "?", width = 0.833 },
+      { _U_, _U_kaar_, int, "¿", width = 0.833 },
+      { _I_, _I_kaar_, mth, "~", width = 0.833 },
+      { _rda_, _ra_, mt2, "\\", width = 0.833 },
+      { _Tha_, _Ta_, df2, bar, width = 0.833 },
+      { _oi_, _e_, sl2, sla, width = 0.833 },
+      { _u_, _u_kaar_, _4s, _4n, width = 0.833 },
+      { _i_, _i_kaar_, _5s, _5n, width = 0.833 },
+      { _ou_, _o_, _6s, _6n, width = 0.833 },
+      { _pha_, _pa_, pl2, pls, width = 0.833 },
+      { _oi_kaar_, _e_kaar_, "[", "{", width = 0.833 },
+      { _ou_kaar_, _o_kaar_, "]", "}", width = 0.833 },
+    },
+
+    -- Third row
+    { --   R    r    S    s
+      { _a_, _aa_kaar_, ls2, ls1 },
+      { _sHa_, _sa_, mr2, mr1 },
+      { _Dha_, _Da_, dgr, "(" },
+      { _tha_, _ta_, tpg, ")" },
+      { _gha_, _ga_, hs2, hsh },
+      { _bisarga_, _ha_, pd2, pdc },
+      { _jha_, _ja_, _1s, _1n },
+      { _kha_, _ka_, _2s, _2n },
+      { _anuswara_, _la_, _3s, _3n },
+      { sec, cse, sec, cse }, -- comma/semicolon with CSS popup block
+    },
+    -- Fourth row
+    { --   R    r    S    s
+      { label = "", width = 0.9 }, -- Shift
+      { _ya_, _jya_, prm, "{", width = 0.82 },
+      { _Rha_, _sha_, "°", "}", width = 0.82 },
+      { _Cha_, _cha_, "«", "[", width = 0.82 },
+      { _rwi_, _aa_, "»", "]", width = 0.82 },
+      { _bha_, _ba_, _0s, _0n, width = 0.82 },
+      { _Na_, _na_, "↑", "↑", width = 0.82 },
+      { _uma_, _ma_, "↓", "↓", width = 0.82 },
+      { _rwi_kaar_, com2, "়", "ৄ", width = 0.82 },
+      { _chandrabindu_, daari, "ৠ", "ৡ", width = 0.82 },
+      { question2, hashanto, "ৰ", "ৱ", width = 0.82 },
+      { label = "", width = 0.9 }, -- Backspace
+    },
+    -- Fifth row
+    { --   R    r    S    s
+      { label = "⌥", width = 1.5, bold = true, alt_label = "SYM" }, -- SYM key
+      { label = "🌐" }, -- Globe key
+      { cop, pco, cop, pco }, -- period/colon with RegEx popup block
+      { label = "বাংলা", " ", " ", " ", " ", width = 3.0 }, -- Spacebar
+      { label = "←" }, -- Arrow left
+      { label = "→" }, -- Arrow right
+      { label = "⮠", "\n", "\n", "\n", "\n", width = 1.5 }, -- Enter
+    },
+  },
 }

@@ -14,8 +14,8 @@ local filemanager_order = require("ui/elements/filemanager_menu_order")
 local PluginMenuInserter = {}
 
 function PluginMenuInserter.add(name)
-    table.insert(reader_order.more_tools, name)
-    table.insert(filemanager_order.more_tools, name)
+  table.insert(reader_order.more_tools, name)
+  table.insert(filemanager_order.more_tools, name)
 end
 
 return PluginMenuInserter

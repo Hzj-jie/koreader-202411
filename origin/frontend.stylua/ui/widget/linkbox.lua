@@ -7,56 +7,66 @@ local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
 local Screen = Device.screen
 
-local LinkBox = InputContainer:extend{
-    box = nil,
-    color = Blitbuffer.COLOR_DARK_GRAY,
-    radius = 0,
-    bordersize = Size.line.medium,
-}
+local LinkBox = InputContainer:extend({
+  box = nil,
+  color = Blitbuffer.COLOR_DARK_GRAY,
+  radius = 0,
+  bordersize = Size.line.medium,
+})
 
 function LinkBox:init()
-    if Device:isTouchDevice() then
-        self.ges_events.TapClose = {
-            GestureRange:new{
-                ges = "tap",
-                range = Geom:new{
-                    x = 0, y = 0,
-                    w = Screen:getWidth(),
-                    h = Screen:getHeight(),
-                }
-            }
-        }
-    end
+  if Device:isTouchDevice() then
+    self.ges_events.TapClose = {
+      GestureRange:new({
+        ges = "tap",
+        range = Geom:new({
+          x = 0,
+          y = 0,
+          w = Screen:getWidth(),
+          h = Screen:getHeight(),
+        }),
+      }),
+    }
+  end
 end
 
 function LinkBox:paintTo(bb)
-    bb:paintBorder(self.box.x, self.box.y, self.box.w, self.box.h,
-            self.bordersize, self.color, self.radius)
+  bb:paintBorder(
+    self.box.x,
+    self.box.y,
+    self.box.w,
+    self.box.h,
+    self.bordersize,
+    self.color,
+    self.radius
+  )
 end
 
 function LinkBox:onCloseWidget()
-    UIManager:setDirty(nil, function()
-        return "partial", self.box
-    end)
+  UIManager:setDirty(nil, function()
+    return "partial", self.box
+  end)
 end
 
 function LinkBox:onShow()
-    UIManager:setDirty(self, function()
-        return "ui", self.box
+  UIManager:setDirty(self, function()
+    return "ui", self.box
+  end)
+  if self.timeout then
+    UIManager:scheduleIn(self.timeout, function()
+      UIManager:close(self)
+      if self.callback then
+        self.callback()
+      end
     end)
-    if self.timeout then
-        UIManager:scheduleIn(self.timeout, function()
-            UIManager:close(self)
-            if self.callback then self.callback() end
-        end)
-    end
-    return true
+  end
+  return true
 end
 
 function LinkBox:onTapClose()
-    UIManager:close(self)
-    self.callback = nil
-    return true
+  UIManager:close(self)
+  self.callback = nil
+  return true
 end
 
 return LinkBox

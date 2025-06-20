@@ -112,34 +112,34 @@ time.huge = math.huge
 
 --- Creates a time (fts) from a number in seconds.
 function time.s(seconds)
-    return math.floor(seconds * S2FTS)
+  return math.floor(seconds * S2FTS)
 end
 
 --- Creates a time (fts) from a number in milliseconds.
 function time.ms(msec)
-    return math.floor(msec * MS2FTS)
+  return math.floor(msec * MS2FTS)
 end
 
 --- Creates a time (fts) from a number in microseconds.
 function time.us(usec)
-    return math.floor(usec * US2FTS)
+  return math.floor(usec * US2FTS)
 end
 
 --- Creates a time (fts) from a structure similar to timeval.
 function time.timeval(tv)
-    return tv.sec * S2FTS + tv.usec * US2FTS
+  return tv.sec * S2FTS + tv.usec * US2FTS
 end
 
 --- Converts an fts time to a Lua (decimal) number (sec.usecs) (accurate to the ms, rounded to 4 decimal places)
 function time.to_number(time_fts)
-    -- Round to 4 decimal places
-    return math.floor(time.to_s(time_fts) * 10000 + 0.5) * (1/10000)
+  -- Round to 4 decimal places
+  return math.floor(time.to_s(time_fts) * 10000 + 0.5) * (1 / 10000)
 end
 
 --- Converts an fts to a Lua (int) number (resolution: 1µs)
 function time.to_s(time_fts)
-    -- Time in seconds with µs precision (without decimal places)
-    return time_fts * FTS2S
+  -- Time in seconds with µs precision (without decimal places)
+  return time_fts * FTS2S
 end
 
 --[[-- Converts a fts to a Lua (int) number (resolution: 1ms, rounded).
@@ -147,14 +147,14 @@ end
 (Mainly useful when computing a time lapse for benchmarking purposes).
 ]]
 function time.to_ms(time_fts)
-    -- Time in milliseconds ms (without decimal places)
-    return math.floor(time_fts * FTS2MS + 0.5)
+  -- Time in milliseconds ms (without decimal places)
+  return math.floor(time_fts * FTS2MS + 0.5)
 end
 
 --- Converts an fts to a Lua (int) number (resolution: 1µs, rounded)
 function time.to_us(time_fts)
-    -- Time in microseconds µs (without decimal places)
-    return math.floor(time_fts * FTS2US + 0.5)
+  -- Time in microseconds µs (without decimal places)
+  return math.floor(time_fts * FTS2US + 0.5)
 end
 
 --[[-- Compare a past *MONOTONIC* fts time to *now*, returning the elapsed time between the two. (sec.usecs variant)
@@ -162,18 +162,20 @@ end
 Returns a Lua (decimal) number (sec.usecs, with decimal places) (accurate to the µs).
 ]]
 function time.since(start_time)
-    -- Time difference
-   return time.now() - start_time
+  -- Time difference
+  return time.now() - start_time
 end
 
 --- Splits an fts to seconds and microseconds.
 -- If argument is nil, returns nil,nil.
 function time.split_s_us(time_fts)
-    if not time_fts then return nil, nil end
-    local sec = math.floor(time_fts * FTS2S)
-    local usec = math.floor((time_fts - sec * S2FTS) * FTS2US)
-    -- Seconds and µs
-    return sec, usec
+  if not time_fts then
+    return nil, nil
+  end
+  local sec = math.floor(time_fts * FTS2S)
+  local usec = math.floor((time_fts - sec * S2FTS) * FTS2US)
+  -- Seconds and µs
+  return sec, usec
 end
 
 -- ffi object for C.clock_gettime calls
@@ -188,30 +190,43 @@ local PREFERRED_REALTIME_CLOCKID = C.CLOCK_REALTIME
 -- CLOCK_BOOTTIME is only available on Linux 2.6.39+...
 local HAVE_BOOTTIME = false
 if ffi.os == "Linux" then
-    -- Unfortunately, it was only implemented in Linux 2.6.32, and we may run on older kernels than that...
-    -- So, just probe it to see if we can rely on it.
-    local probe_ts = ffi.new("struct timespec")
-    if C.clock_getres(C.CLOCK_MONOTONIC_COARSE, probe_ts) == 0 then
-        -- Now, it usually has a 1ms resolution on modern x86_64 systems,
-        -- but it only provides a 10ms resolution on all my armv7 devices :/.
-        if probe_ts.tv_sec == 0 and probe_ts.tv_nsec <= 1000000 then
-            PREFERRED_MONOTONIC_CLOCKID = C.CLOCK_MONOTONIC_COARSE
-        end
+  -- Unfortunately, it was only implemented in Linux 2.6.32, and we may run on older kernels than that...
+  -- So, just probe it to see if we can rely on it.
+  local probe_ts = ffi.new("struct timespec")
+  if C.clock_getres(C.CLOCK_MONOTONIC_COARSE, probe_ts) == 0 then
+    -- Now, it usually has a 1ms resolution on modern x86_64 systems,
+    -- but it only provides a 10ms resolution on all my armv7 devices :/.
+    if probe_ts.tv_sec == 0 and probe_ts.tv_nsec <= 1000000 then
+      PREFERRED_MONOTONIC_CLOCKID = C.CLOCK_MONOTONIC_COARSE
     end
-    logger.dbg("fts: Preferred MONOTONIC clock source is", PREFERRED_MONOTONIC_CLOCKID == C.CLOCK_MONOTONIC_COARSE and "CLOCK_MONOTONIC_COARSE" or "CLOCK_MONOTONIC")
-    if C.clock_getres(C.CLOCK_REALTIME_COARSE, probe_ts) == 0 then
-        if probe_ts.tv_sec == 0 and probe_ts.tv_nsec <= 1000000 then
-            PREFERRED_REALTIME_CLOCKID = C.CLOCK_REALTIME_COARSE
-        end
+  end
+  logger.dbg(
+    "fts: Preferred MONOTONIC clock source is",
+    PREFERRED_MONOTONIC_CLOCKID == C.CLOCK_MONOTONIC_COARSE
+        and "CLOCK_MONOTONIC_COARSE"
+      or "CLOCK_MONOTONIC"
+  )
+  if C.clock_getres(C.CLOCK_REALTIME_COARSE, probe_ts) == 0 then
+    if probe_ts.tv_sec == 0 and probe_ts.tv_nsec <= 1000000 then
+      PREFERRED_REALTIME_CLOCKID = C.CLOCK_REALTIME_COARSE
     end
-    logger.dbg("fts: Preferred REALTIME clock source is", PREFERRED_REALTIME_CLOCKID == C.CLOCK_REALTIME_COARSE and "CLOCK_REALTIME_COARSE" or "CLOCK_REALTIME")
+  end
+  logger.dbg(
+    "fts: Preferred REALTIME clock source is",
+    PREFERRED_REALTIME_CLOCKID == C.CLOCK_REALTIME_COARSE
+        and "CLOCK_REALTIME_COARSE"
+      or "CLOCK_REALTIME"
+  )
 
-    if C.clock_getres(C.CLOCK_BOOTTIME, probe_ts) == 0 then
-        HAVE_BOOTTIME = true
-    end
-    logger.dbg("fts: BOOTTIME clock source is", HAVE_BOOTTIME and "supported" or "NOT supported")
+  if C.clock_getres(C.CLOCK_BOOTTIME, probe_ts) == 0 then
+    HAVE_BOOTTIME = true
+  end
+  logger.dbg(
+    "fts: BOOTTIME clock source is",
+    HAVE_BOOTTIME and "supported" or "NOT supported"
+  )
 
-    probe_ts = nil --luacheck: ignore
+  probe_ts = nil --luacheck: ignore
 end
 
 --[[--
@@ -232,9 +247,10 @@ Which means that, yes, this is a fancier POSIX Epoch ;).
 @treturn fts fixed point time
 ]]
 function time.realtime()
-    C.clock_gettime(C.CLOCK_REALTIME, timespec)
-    -- TIMESPEC_TO_FTS
-    return tonumber(timespec.tv_sec) * S2FTS + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
+  C.clock_gettime(C.CLOCK_REALTIME, timespec)
+  -- TIMESPEC_TO_FTS
+  return tonumber(timespec.tv_sec) * S2FTS
+    + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
 end
 
 --[[--
@@ -247,49 +263,55 @@ On Linux, this will not account for time spent with the device in suspend (unlik
 @treturn fts fixed point time
 ]]
 function time.monotonic()
-    C.clock_gettime(C.CLOCK_MONOTONIC, timespec)
-    -- TIMESPEC_TO_FTS
-    return tonumber(timespec.tv_sec) * S2FTS + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
+  C.clock_gettime(C.CLOCK_MONOTONIC, timespec)
+  -- TIMESPEC_TO_FTS
+  return tonumber(timespec.tv_sec) * S2FTS
+    + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
 end
 
 --- Ditto, but w/ CLOCK_MONOTONIC_COARSE if it's available and has a 1ms resolution or better (uses CLOCK_MONOTONIC otherwise).
 function time.monotonic_coarse()
-    C.clock_gettime(PREFERRED_MONOTONIC_CLOCKID, timespec)
-    -- TIMESPEC_TO_FTS
-    return tonumber(timespec.tv_sec) * S2FTS + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
+  C.clock_gettime(PREFERRED_MONOTONIC_CLOCKID, timespec)
+  -- TIMESPEC_TO_FTS
+  return tonumber(timespec.tv_sec) * S2FTS
+    + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
 end
 
 -- Ditto, but w/ CLOCK_REALTIME_COARSE if it's available and has a 1ms resolution or better (uses CLOCK_REALTIME otherwise).
 function time.realtime_coarse()
-    C.clock_gettime(PREFERRED_REALTIME_CLOCKID, timespec)
-    -- TIMESPEC_TO_FTS
-    return tonumber(timespec.tv_sec) * S2FTS + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
-    end
+  C.clock_gettime(PREFERRED_REALTIME_CLOCKID, timespec)
+  -- TIMESPEC_TO_FTS
+  return tonumber(timespec.tv_sec) * S2FTS
+    + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
+end
 
 --- Since CLOCK_BOOTIME may not be supported, we offer a few aliases with automatic fallbacks to MONOTONIC or REALTIME
 if HAVE_BOOTTIME then
-    --- Ditto, but w/ CLOCK_BOOTTIME (will return an fts time set to 0, 0 if the clock source is unsupported, as it's 2.6.39+)
-    --- Only use it if you *know* it's going to be supported, otherwise, prefer the four following aliases.
-    function time.boottime()
-        C.clock_gettime(C.CLOCK_BOOTTIME, timespec)
-        -- TIMESPEC_TO_FTS
-    return tonumber(timespec.tv_sec) * S2FTS + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
-    end
+  --- Ditto, but w/ CLOCK_BOOTTIME (will return an fts time set to 0, 0 if the clock source is unsupported, as it's 2.6.39+)
+  --- Only use it if you *know* it's going to be supported, otherwise, prefer the four following aliases.
+  function time.boottime()
+    C.clock_gettime(C.CLOCK_BOOTTIME, timespec)
+    -- TIMESPEC_TO_FTS
+    return tonumber(timespec.tv_sec) * S2FTS
+      + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
+  end
 
-    time.boottime_or_monotonic = time.boottime
-    time.boottime_or_monotonic_coarse = time.boottime
-    time.boottime_or_realtime = time.boottime
-    time.boottime_or_realtime_coarse = time.boottime
+  time.boottime_or_monotonic = time.boottime
+  time.boottime_or_monotonic_coarse = time.boottime
+  time.boottime_or_realtime = time.boottime
+  time.boottime_or_realtime_coarse = time.boottime
 else
-    function time.boottime()
-        logger.warn("fts: Attempted to call boottime on a platform where it's unsupported!")
-        return 0
-    end
+  function time.boottime()
+    logger.warn(
+      "fts: Attempted to call boottime on a platform where it's unsupported!"
+    )
+    return 0
+  end
 
-    time.boottime_or_monotonic = time.monotonic
-    time.boottime_or_monotonic_coarse = time.monotonic_coarse
-    time.boottime_or_realtime = time.realtime
-    time.boottime_or_realtime_coarse = time.realtime_coarse
+  time.boottime_or_monotonic = time.monotonic
+  time.boottime_or_monotonic_coarse = time.monotonic_coarse
+  time.boottime_or_realtime = time.realtime
+  time.boottime_or_realtime_coarse = time.realtime_coarse
 end
 
 --[[-- Alias for `monotonic_coarse`.
@@ -301,7 +323,7 @@ time.now = time.monotonic_coarse
 
 --- Converts an fts time to a string (seconds with 6 decimal places)
 function time.format_time(time_fts)
-    return string.format("%.06f", time_fts * FTS2S)
+  return string.format("%.06f", time_fts * FTS2S)
 end
 
 return time
