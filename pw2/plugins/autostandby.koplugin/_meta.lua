@@ -1,0 +1,1 @@
+../../../koreader/plugins/autostandby.koplugin/_meta.lua

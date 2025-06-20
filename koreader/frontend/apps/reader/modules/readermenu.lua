@@ -1,5 +1,6 @@
 local BD = require("ui/bidi")
 local CenterContainer = require("ui/widget/container/centercontainer")
+local CommonMenu = require("apps/common_menu")
 local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local Event = require("ui/event")
@@ -404,27 +405,8 @@ function ReaderMenu:saveDocumentSettingsAsDefault()
 end
 
 function ReaderMenu:exitOrRestart(callback, force)
-  -- Only restart sets a callback, which suits us just fine for this check ;)
-  if callback and not force and not Device:isStartupScriptUpToDate() then
-    UIManager:show(ConfirmBox:new({
-      text = _(
-        "KOReader's startup script has been updated. You'll need to completely exit KOReader to finalize the update."
-      ),
-      ok_text = _("Restart anyway"),
-      ok_callback = function()
-        self:exitOrRestart(callback, true)
-      end,
-    }))
-    return
-  end
-
-  self:onTapCloseMenu()
-  UIManager:nextTick(function()
-    self.ui:onExit()
-    if callback then
-      callback()
-    end
-  end)
+  CommonMenu:exitOrRestart(
+      function() self:onTapCloseMenu() end, self.ui, callback)
 end
 
 function ReaderMenu:onShowMenu(tab_index)

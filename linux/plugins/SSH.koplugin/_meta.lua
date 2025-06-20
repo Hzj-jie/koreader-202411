@@ -1,0 +1,1 @@
+../../../koreader/plugins/SSH.koplugin/_meta.lua

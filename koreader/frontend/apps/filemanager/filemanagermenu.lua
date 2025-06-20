@@ -1,5 +1,6 @@
 local BD = require("ui/bidi")
 local CenterContainer = require("ui/widget/container/centercontainer")
+local CommonMenu = require("apps/common_menu")
 local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local FFIUtil = require("ffi/util")
@@ -1023,26 +1024,8 @@ function FileManagerMenu:getStartWithMenuTable()
 end
 
 function FileManagerMenu:exitOrRestart(callback, force)
-  -- Only restart sets a callback, which suits us just fine for this check ;)
-  if callback and not force and not Device:isStartupScriptUpToDate() then
-    UIManager:show(ConfirmBox:new({
-      text = _(
-        "KOReader's startup script has been updated. You'll need to completely exit KOReader to "
-          .. "finalize the update."
-      ),
-      ok_text = _("Restart anyway"),
-      ok_callback = function()
-        self:exitOrRestart(callback, true)
-      end,
-    }))
-    return
-  end
-
-  UIManager:close(self.menu_container)
-  self.ui:onExit()
-  if callback then
-    callback()
-  end
+  CommonMenu:exitOrRestart(
+      function() UIManager:close(self.menu_container) end, self.ui, callback)
 end
 
 function FileManagerMenu:onShowMenu(tab_index)

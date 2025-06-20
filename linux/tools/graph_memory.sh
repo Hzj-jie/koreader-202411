@@ -1,0 +1,1 @@
+../../koreader/tools/graph_memory.sh
