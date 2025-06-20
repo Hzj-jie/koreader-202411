@@ -468,8 +468,7 @@ function Input:init()
   -- set up fake event map
   self.event_map[10000] = "IntoSS" -- Requested to go into screen saver
   self.event_map[10001] = "OutOfSS" -- Requested to go out of screen saver
-  -- Unused yet.
-  -- self.event_map[10002] = "ExitingSS" -- Specific to Kindle, SS *actually* closed
+  self.event_map[10002] = "ExitingSS" -- Specific to Kindle, SS *actually* closed
   self.event_map[10010] = "UsbPlugIn"
   self.event_map[10011] = "UsbPlugOut"
   self.event_map[10020] = "Charging"

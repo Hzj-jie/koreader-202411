@@ -822,10 +822,6 @@ function Kindle:_outofScreenSaver(source)
   end)
 end
 
--- On stock, there's a distinction between OutOfSS (which *requests* closing the SS) and ExitingSS, which fires once they're *actually* closed...
--- Unused yet.
--- function Kindle:exitingScreenSaver() end
-
 function Kindle:usbPlugOut()
   -- NOTE: See usbPlugIn(), we don't have anything fancy to do here either.
 end
@@ -877,12 +873,13 @@ function Kindle:setEventHandlers(uimgr)
   UIManager.event_handlers.OutOfSS = function(input_event)
     local arg = table.remove(self.input.fake_event_args[input_event])
     self:_outofScreenSaver(arg)
+  end
+  UIManager.event_handlers.ExitingSS = function()
+    -- On stock, there's a distinction between OutOfSS (which *requests* closing
+    -- the SS) and ExitingSS, which fires once they're *actually* closed...
+    -- So do not trigger onResume until the screensaver is dismissed.
     self.powerd:afterResume()
   end
-  -- Unused yet.
-  -- UIManager.event_handlers.ExitingSS = function()
-  --   self:exitingScreenSaver()
-  -- end
   UIManager.event_handlers.Charging = function()
     self:_beforeCharging()
     self:usbPlugIn()
