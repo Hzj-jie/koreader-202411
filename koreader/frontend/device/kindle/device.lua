@@ -880,6 +880,8 @@ function Kindle:setEventHandlers(uimgr)
     self.powerd:afterResume()
   end
   -- Unused yet.
+  -- self.powerd:afterResume() here may not always work, some units do not
+  -- trigger the ExitingSS behavior.
   -- UIManager.event_handlers.ExitingSS = function()
   --   self:exitingScreenSaver()
   -- end
