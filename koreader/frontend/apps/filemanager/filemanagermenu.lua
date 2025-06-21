@@ -1024,9 +1024,8 @@ function FileManagerMenu:getStartWithMenuTable()
 end
 
 function FileManagerMenu:exitOrRestart(callback, force)
-  CommonMenu:exitOrRestart(function()
-    UIManager:close(self.menu_container)
-  end, self.ui, callback)
+  CommonMenu:exitOrRestart(
+      function() UIManager:close(self.menu_container) end, self.ui, callback)
 end
 
 function FileManagerMenu:onShowMenu(tab_index)
