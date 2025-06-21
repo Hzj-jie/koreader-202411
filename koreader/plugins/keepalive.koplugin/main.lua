@@ -15,6 +15,12 @@ local menuItem = {
 local disable
 local enable
 
+local function disableOnMenu(touchmenu_instance)
+  disable()
+  PluginShare.keepalive = false
+  touchmenu_instance:updateItems()
+end
+
 local function showConfirmBox(touchmenu_instance)
   UIManager:show(ConfirmBox:new({
     text = _(
@@ -22,9 +28,7 @@ local function showConfirmBox(touchmenu_instance)
     ),
     cancel_text = _("Close"),
     cancel_callback = function()
-      disable()
-      PluginShare.keepalive = false
-      touchmenu_instance:updateItems()
+      disableOnMenu(touchmenu_instance)
     end,
     ok_text = _("Stay alive"),
     ok_callback = function()
@@ -70,8 +74,12 @@ else
 end
 
 menuItem.callback = function(touchmenu_instance)
-  enable()
-  showConfirmBox(touchmenu_instance)
+  if PluginShare.keepalive then
+    disableOnMenu(touchmenu_instance)
+  else
+    enable()
+    showConfirmBox(touchmenu_instance)
+  end
 end
 
 local KeepAlive = WidgetContainer:extend({
