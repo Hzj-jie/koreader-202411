@@ -721,14 +721,14 @@ local POWERD_EVENT_SOURCES = {
   [6] = "HALL_WAKEUP", -- outOfScreenSaver 6
 }
 
-function Kindle:_intoScreenSaver(source)
+function Kindle:_intoScreenSaver(source) --> bool
   logger.dbg(
     "Kindle:_intoScreenSaver via",
     POWERD_EVENT_SOURCES[source]
       or string.format("UNKNOWN_SUSPEND (%d)", source or -1)
   )
   if self.screen_saver_mode then
-    return
+    return false
   end
 
   if self:supportsScreensaver() then
@@ -736,7 +736,8 @@ function Kindle:_intoScreenSaver(source)
     local Screensaver = require("ui/screensaver")
     Screensaver:setup()
     Screensaver:show()
-    return
+    assert(self.screen_saver_mode)
+    return true
   end
   -- Let the native system handle screensavers on SO devices...
   if os.getenv("AWESOME_STOPPED") == "yes" then
@@ -748,16 +749,17 @@ function Kindle:_intoScreenSaver(source)
   -- Don't forget to flag ourselves in ScreenSaver mode like Screensaver:show would,
   -- so that we do the right thing on resume ;).
   self.screen_saver_mode = true
+  return true
 end
 
-function Kindle:_outofScreenSaver(source)
+function Kindle:_outofScreenSaver(source) --> bool
   logger.dbg(
     "Kindle:_outofScreenSaver via",
     POWERD_EVENT_SOURCES[source]
       or string.format("UNKNOWN_WAKEUP (%d)", source or -1)
   )
   if not self.screen_saver_mode then
-    return
+    return false
   end
   if not self:supportsScreensaver() then
     -- Stop awesome again if need be...
@@ -773,7 +775,7 @@ function Kindle:_outofScreenSaver(source)
     end)
     -- Flip the switch again
     self.screen_saver_mode = false
-    return
+    return true
   end
   local Screensaver = require("ui/screensaver")
   if Screensaver:close() then
@@ -782,20 +784,20 @@ function Kindle:_outofScreenSaver(source)
       UIManager:setDirty("all", "full")
     end)
   end
+  assert(not self.screen_saver_mode)
 
   -- If the device supports deep sleep, and we woke up from hibernation (which kicks in at the 1H mark),
   -- chuck an extra tiny refresh to get rid of the "waking up" banner if the above refresh was too early...
-  if not self.canDeepSleep then
-    return
-  end
-  if self.last_suspend_time <= time.s(self.hibernationDelay) then
-    return
-  end
   if
-    lfs.attributes("/var/local/system/powerd/hibernate_session_tracker", "mode")
-    ~= "file"
+    not self.canDeepSleep
+    or self.last_suspend_time <= time.s(self.hibernationDelay)
+    or lfs.attributes(
+        "/var/local/system/powerd/hibernate_session_tracker",
+        "mode"
+      )
+      ~= "file"
   then
-    return
+    return true
   end
   local mtime = lfs.attributes(
     "/var/local/system/powerd/hibernate_session_tracker",
@@ -803,7 +805,7 @@ function Kindle:_outofScreenSaver(source)
   )
   local now = os.time()
   if math.abs(now - mtime) > 60 then
-    return
+    return true
   end
   -- That was less than a minute ago, assume we're golden.
   logger.dbg("Kindle: Woke up from hibernation")
@@ -820,6 +822,7 @@ function Kindle:_outofScreenSaver(source)
   UIManager:scheduleIn(1.5, function()
     UIManager:setDirty("all", "ui", refresh_region)
   end)
+  return true
 end
 
 -- On stock, there's a distinction between OutOfSS (which *requests* closing the SS) and ExitingSS, which fires once they're *actually* closed...
@@ -872,12 +875,18 @@ function Kindle:setEventHandlers(uimgr)
     self.powerd:beforeSuspend()
     -- Retrieve the argument set by Input:handleKeyBoardEv
     local arg = table.remove(self.input.fake_event_args[input_event])
-    self:_intoScreenSaver(arg)
+    -- Technically the return value of self:_intoScreenSaver should be used to
+    -- decide if self.powerd:beforeSuspend() should be issued. But there isn't a
+    -- chance IntoSS is double issued, and beforeSuspend is designed to be
+    -- executed before _intoScreenSaver. So instead of making the logic more
+    -- complicated, assert here to track the unexpected behavior.
+    assert(self:_intoScreenSaver(arg))
   end
   UIManager.event_handlers.OutOfSS = function(input_event)
     local arg = table.remove(self.input.fake_event_args[input_event])
-    self:_outofScreenSaver(arg)
-    self.powerd:afterResume()
+    if self:_outofScreenSaver(arg) then
+      self.powerd:afterResume()
+    end
   end
   -- Unused yet.
   -- self.powerd:afterResume() here may not always work, some units do not
