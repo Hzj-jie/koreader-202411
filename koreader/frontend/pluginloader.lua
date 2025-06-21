@@ -114,7 +114,7 @@ function PluginLoader:loadPlugins()
   else
     local data_dir = require("datastorage"):getDataDir()
     if data_dir ~= "." then
-      table.insert(lookup_path_list, { data_dir .. "/plugins/" })
+      table.insert(lookup_path_list, data_dir .. "/plugins/")
     end
   end
 
