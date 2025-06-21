@@ -405,8 +405,9 @@ function ReaderMenu:saveDocumentSettingsAsDefault()
 end
 
 function ReaderMenu:exitOrRestart(callback, force)
-  CommonMenu:exitOrRestart(
-      function() self:onTapCloseMenu() end, self.ui, callback)
+  CommonMenu:exitOrRestart(function()
+    self:onTapCloseMenu()
+  end, self.ui, callback)
 end
 
 function ReaderMenu:onShowMenu(tab_index)
