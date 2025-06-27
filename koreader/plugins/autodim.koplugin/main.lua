@@ -215,8 +215,6 @@ function AutoDim:_restoreFrontlight()
   end
 end
 
--- Do not use onSuspend, it may not work on kindle since koreader cannot
--- reliably receive the suspend signal.
 function AutoDim:onResume()
   if not self.trap_widget then
     return
@@ -315,6 +313,12 @@ end
 function AutoDim:_rampTask(fl_diff, autodim_end_fl, delay)
   -- Something else happened, like resumed, stopping the ramp down.
   if not self.trap_widget then
+    return
+  end
+  -- Stops the ramp down when the device is suspending. This condition likely
+  -- shouldn't be triggered, since the UIManager would stop running tasks, but
+  -- in case the _rampTask is happening during the onSuspend procedure.
+  if Device.screen_saver_mode then
     return
   end
   -- User actions, likely won't happen, but in case the user action was
