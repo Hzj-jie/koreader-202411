@@ -40,4 +40,8 @@ function EventListener:handleEvent(event)
   end
 end
 
+function EventListener:broadcastEvent(event) --> void
+  self:handleEvent(event)
+end
+
 return EventListener

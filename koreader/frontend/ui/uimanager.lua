@@ -1029,7 +1029,7 @@ function UIManager:broadcastEvent(event)
     local widget = self._window_stack[i].widget
     if not checked_widgets[widget] then
       checked_widgets[widget] = true
-      widget:handleEvent(event)
+      widget:broadcastEvent(event)
       i = #self._window_stack
     else
       i = i - 1

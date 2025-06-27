@@ -68,10 +68,9 @@ local function sandboxPluginEventHandlers(plugin)
         local ok, re = pcall(value, self, ...)
         if ok then
           return re
-        else
-          logger.err("failed to call event handler", key, re)
-          return false
         end
+        logger.err("failed to call event handler", key, re)
+        return false
       end
     end
   end

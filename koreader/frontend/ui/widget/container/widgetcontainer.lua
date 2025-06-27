@@ -111,6 +111,13 @@ function WidgetContainer:handleEvent(event)
   end
 end
 
+function WidgetContainer:broadcastEvent(event)  --> void
+  for _, widget in ipairs(self) do
+    widget:broadcastEvent(event)
+  end
+  Widget.handleEvent(self, event)
+end
+
 -- Honor full for TextBoxWidget's benefit...
 function WidgetContainer:free(full)
   for _, widget in ipairs(self) do
