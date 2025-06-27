@@ -1194,6 +1194,7 @@ end
 -- The common operations that should be performed before suspending the device.
 function Device:_beforeSuspend(inhibit)
   UIManager:flushSettings()
+  logger.info("generic/Device broadcasts onSuspend")
   UIManager:broadcastEvent(Event:new("Suspend"))
 
   if inhibit ~= false then
@@ -1221,6 +1222,7 @@ function Device:_afterResume(inhibit)
   -- Ideally UIManager should understand the Resume event, but it needs to check every single
   -- event being processed.
   UIManager:updateLastUserActionTime()
+  logger.info("generic/Device broadcasts onResume")
   UIManager:broadcastEvent(Event:new("Resume"))
 end
 

@@ -903,7 +903,6 @@ function Input:handleKeyBoardEv(ev)
     -- do not handle keypress for keys we don't know
     return
   end
-  logger.info("Input: Receive keyboard event ", keycode)
 
   if self.event_map_adapter[keycode] then
     return self.event_map_adapter[keycode](ev)
