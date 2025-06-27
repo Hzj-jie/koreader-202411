@@ -1008,7 +1008,6 @@ function Input:handlePowerManagementOnlyEv(ev)
     -- Do not handle keypress for keys we don't know
     return
   end
-  logger.info("Input: Receive power management event ", keycode)
 
   -- We'll need to parse the synthetic event map, because SleepCover* events are synthetic.
   if self.event_map_adapter[keycode] then
