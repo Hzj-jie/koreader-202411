@@ -111,7 +111,7 @@ function WidgetContainer:handleEvent(event)
   end
 end
 
-function WidgetContainer:broadcastEvent(event)  --> void
+function WidgetContainer:broadcastEvent(event) --> void
   for _, widget in ipairs(self) do
     widget:broadcastEvent(event)
   end

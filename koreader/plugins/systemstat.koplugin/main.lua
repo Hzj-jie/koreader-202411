@@ -112,10 +112,19 @@ function SystemStat:appendCounters()
   end
   self:putSeparator()
   self:put({ _("Counters"), "" })
-  self:put({ _("  wake-ups"), self.wakeup_count })
+  -- TODO: Remove the wakeup_count and the assertion.
+  if G_defaults:isTrue("DEV_MODE") then
+    assert(self.wakeup_count == self.sleep_count)
+  end
   -- @translators The number of "sleeps", that is the number of times the device has entered standby. This could also be translated as a rendition of a phrase like "entered sleep".
-  self:put({ _("  sleeps"), self.sleep_count })
-  self:put({ _("  charge cycles"), self.charge_count })
+  self:put({
+    _("  wake-ups") .. " / " .. _("  sleeps"):gsub("^%s+", ""),
+    self.wakeup_count,
+  })
+  -- TODO: Remove the charge_count and the assertion.
+  if G_defaults:isTrue("DEV_MODE") then
+    assert(self.charge_count == self.discharge_count)
+  end
   self:put({ _("  discharge cycles"), self.discharge_count })
 end
 
