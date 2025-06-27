@@ -49,9 +49,6 @@ local UIManager = {
 
 function UIManager:init()
   self.event_handlers = {
-    SaveState = function()
-      self:flushSettings()
-    end,
     Power = function(input_event)
       Device:onPowerEvent(input_event)
     end,
