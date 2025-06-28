@@ -190,8 +190,8 @@ end
 
 function SystemStat:appendSystemInfo()
   local stat = systemInfo()
+  self:put({ _("System information"), "" })
   if stat.cpu ~= nil then
-    self:put({ _("System information"), "" })
     -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
     self:put({
       _("  Total ticks (million)"),
