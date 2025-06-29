@@ -9,6 +9,87 @@ local time = require("ui/time")
 local util = require("util")
 local _ = require("gettext")
 
+local function systemInfo()
+  local result = {}
+  do
+    local stat = io.open("/proc/stat", "r")
+    if stat ~= nil then
+      for line in stat:lines() do
+        local t = util.splitToArray(line, " ")
+        if #t >= 5 and string.lower(t[1]) == "cpu" then
+          local n1, n2, n3, n4
+          n1 = tonumber(t[2])
+          n2 = tonumber(t[3])
+          n3 = tonumber(t[4])
+          n4 = tonumber(t[5])
+          if n1 ~= nil and n2 ~= nil and n3 ~= nil and n4 ~= nil then
+            result.cpu = {
+              user = n1,
+              nice = n2,
+              system = n3,
+              idle = n4,
+              total = n1 + n2 + n3 + n4,
+            }
+            break
+          end
+        end
+      end
+      stat:close()
+    end
+  end
+
+  do
+    local meminfo = io.open("/proc/meminfo", "r")
+    if meminfo ~= nil then
+      result.memory = {}
+      for line in meminfo:lines() do
+        local t = util.splitToArray(line, " ")
+        if #t >= 2 then
+          if string.lower(t[1]) == "memtotal:" then
+            local n = tonumber(t[2])
+            if n ~= nil then
+              result.memory.total = n
+            end
+          elseif string.lower(t[1]) == "memfree:" then
+            local n = tonumber(t[2])
+            if n ~= nil then
+              result.memory.free = n
+            end
+          elseif string.lower(t[1]) == "memavailable:" then
+            local n = tonumber(t[2])
+            if n ~= nil then
+              result.memory.available = n
+            end
+          end
+        end
+      end
+      meminfo:close()
+    end
+  end
+
+  do
+    result.processes = {}
+    local handle = io.popen("ps -e | wc -l")
+    if handle ~= nil then
+      -- Exclude ps and wc
+      result.processes.count = tonumber(handle:read("*a")) - 2
+    end
+    handle:close()
+  end
+
+  do
+    result.cpu.average = {}
+    local handle = io.popen("uptime | sed 's/.*load average://g'")
+    if handle ~= nil then
+      for word in handle:read("*a"):gmatch("[^,%s]+") do
+        table.insert(result.cpu.average, tonumber(word))
+      end
+    end
+  end
+
+  return result
+end
+
 local SystemStat = {
   start_time = time.realtime(),
   start_monotonic_time = time.boottime_or_realtime_coarse(),
@@ -133,102 +214,72 @@ function SystemStat:appendCounters()
   self:put({ _("  Background jobs"), #require("pluginshare").backgroundJobs })
 end
 
-local function systemInfo()
-  local result = {}
-  do
-    local stat = io.open("/proc/stat", "r")
-    if stat ~= nil then
-      for line in stat:lines() do
-        local t = util.splitToArray(line, " ")
-        if #t >= 5 and string.lower(t[1]) == "cpu" then
-          local n1, n2, n3, n4
-          n1 = tonumber(t[2])
-          n2 = tonumber(t[3])
-          n3 = tonumber(t[4])
-          n4 = tonumber(t[5])
-          if n1 ~= nil and n2 ~= nil and n3 ~= nil and n4 ~= nil then
-            result.cpu = {
-              user = n1,
-              nice = n2,
-              system = n3,
-              idle = n4,
-              total = n1 + n2 + n3 + n4,
-            }
-            break
-          end
-        end
-      end
-      stat:close()
-    end
-  end
-
-  do
-    local meminfo = io.open("/proc/meminfo", "r")
-    if meminfo ~= nil then
-      result.memory = {}
-      for line in meminfo:lines() do
-        local t = util.splitToArray(line, " ")
-        if #t >= 2 then
-          if string.lower(t[1]) == "memtotal:" then
-            local n = tonumber(t[2])
-            if n ~= nil then
-              result.memory.total = n
-            end
-          elseif string.lower(t[1]) == "memfree:" then
-            local n = tonumber(t[2])
-            if n ~= nil then
-              result.memory.free = n
-            end
-          elseif string.lower(t[1]) == "memavailable:" then
-            local n = tonumber(t[2])
-            if n ~= nil then
-              result.memory.available = n
-            end
-          end
-        end
-      end
-      meminfo:close()
-    end
-  end
-  return result
-end
-
 function SystemStat:appendSystemInfo()
-  local stat = systemInfo()
   self:put({ _("System information"), "" })
-  if stat.cpu ~= nil then
+  if self.sys_stat.processes.count ~= nil then
+    -- Need localization
+    self:put({
+      _("  Number of processes"),
+      self.sys_stat.processes.count,
+    })
+  end
+  if self.sys_stat.cpu ~= nil then
     -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
     self:put({
       _("  Total ticks (million)"),
-      string.format("%.2f", stat.cpu.total * (1 / 1000000)),
+      string.format("%.2f", self.sys_stat.cpu.total * (1 / 1000000)),
     })
     -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
     self:put({
       _("  Idle ticks (million)"),
-      string.format("%.2f", stat.cpu.idle * (1 / 1000000)),
+      string.format("%.2f", self.sys_stat.cpu.idle * (1 / 1000000)),
     })
+    if #self.sys_stat.cpu.average > 0 then
+      self:put({
+        _("  Processor usage %"),
+        string.format("%.2f", self.sys_stat.cpu.average[1] * 100),
+      })
+      if #self.sys_stat.cpu.average > 1 then
+        -- Need localization
+        self:put({
+          _("  5 minutes usage %"),
+          string.format("%.2f", self.sys_stat.cpu.average[2] * 100),
+        })
+        if #self.sys_stat.cpu.average > 2 then
+          -- Need localization
+          self:put({
+            _("  15 minutes usage %"),
+            string.format("%.2f", self.sys_stat.cpu.average[3] * 100),
+          })
+        end
+      end
+    end
+    -- Need localization
     self:put({
-      _("  Processor usage %"),
-      string.format("%.2f", (1 - stat.cpu.idle / stat.cpu.total) * 100),
+      _("  Usage % since boot"),
+      string.format(
+        "%.2f",
+        (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total) * 100
+      ),
     })
   end
-  if stat.memory ~= nil then
-    if stat.memory.total ~= nil then
+  if self.sys_stat.memory ~= nil then
+    if self.sys_stat.memory.total ~= nil then
       self:put({
         _("  Total memory (MB)"),
-        string.format("%.2f", stat.memory.total / 1024),
+        string.format("%.2f", self.sys_stat.memory.total / 1024),
       })
     end
-    if stat.memory.free ~= nil then
+    if self.sys_stat.memory.free ~= nil then
       self:put({
         _("  Free memory (MB)"),
-        string.format("%.2f", stat.memory.free / 1024),
+        string.format("%.2f", self.sys_stat.memory.free / 1024),
       })
     end
-    if stat.memory.available ~= nil then
+    if self.sys_stat.memory.available ~= nil then
       self:put({
         _("  Available memory (MB)"),
-        string.format("%.2f", stat.memory.available / 1024),
+        string.format("%.2f", self.sys_stat.memory.available / 1024),
       })
     end
   end
@@ -261,23 +312,19 @@ function SystemStat:appendProcessInfo()
     if n2 ~= nil then
       n1 = n1 + n2
     end
-    -- Need localization
-    self:put({ _("  Processor usage"), "" })
-    -- Need localization
-    self:put({ _("    Ticks"), n1 })
+    self:put({ _("  Total ticks (million)"), n1 * (1 / 1000000) })
     if #t >= 22 then
       n2 = tonumber(t[22])
-      -- Need localization
-      self:put({ _("    Percentage"), string.format("%.2f", n1 / n2 * 100) })
-      -- Need localization
-      self:put({ _("    Total ticks"), t[22] })
+      self:put({
+        _("  Processor usage %"),
+        string.format("%.2f", n1 / n2 * 100),
+      })
     end
-    local sys_stat = systemInfo()
-    if sys_stat.cpu ~= nil and sys_stat.cpu.total ~= nil then
+    if self.sys_stat.cpu ~= nil and self.sys_stat.cpu.total ~= nil then
       self:put({
         -- Need localization
-        _("  Percentage since boot"),
-        string.format("%.2f", n1 / sys_stat.cpu.total * 100),
+        _("  Usage % since boot"),
+        string.format("%.2f", n1 / self.sys_stat.cpu.total * 100),
       })
     end
   end
@@ -365,6 +412,7 @@ end
 
 function SystemStat:showStatistics()
   self.kv_pairs = {}
+  self.sys_stat = systemInfo()
   self:appendCounters()
   self:putSeparator()
   self:appendProcessInfo()
