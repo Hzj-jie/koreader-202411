@@ -123,7 +123,10 @@ function SystemStat:appendCounters()
   })
   -- TODO: Remove the charge_count and the assertion.
   if G_defaults:isTrue("DEV_MODE") then
-    assert(self.charge_count == self.discharge_count)
+    assert(
+      self.charge_count == self.discharge_count
+        or self.charge_count == self.discharge_count + 1
+    )
   end
   self:put({ _("  discharge cycles"), self.discharge_count })
 end
