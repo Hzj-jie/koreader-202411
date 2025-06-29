@@ -20251,7 +20251,7 @@ msgid "Counters"
 msgstr "Sayaçlar"
 
 #: plugins/systemstat.koplugin/main.lua:100
-msgid "  wake-ups"
+msgid "  Wake-ups"
 msgstr "  uyanma"
 
 #. @translators The number of "sleeps", that is the number of times the device has entered standby. This could also be translated as a rendition of a phrase like "entered sleep".
@@ -20264,7 +20264,7 @@ msgid "  charge cycles"
 msgstr "  şarj döngüsü"
 
 #: plugins/systemstat.koplugin/main.lua:104
-msgid "  discharge cycles"
+msgid "  Discharge cycles"
 msgstr "  boşalma döngüsü"
 
 #: plugins/systemstat.koplugin/main.lua:170

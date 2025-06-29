@@ -118,7 +118,7 @@ function SystemStat:appendCounters()
   end
   -- @translators The number of "sleeps", that is the number of times the device has entered standby. This could also be translated as a rendition of a phrase like "entered sleep".
   self:put({
-    _("  wake-ups") .. " / " .. _("  sleeps"):gsub("^%s+", ""),
+    _("  Wake-ups") .. " / " .. _("  sleeps"):gsub("^%s+", ""),
     self.wakeup_count,
   })
   -- TODO: Remove the charge_count and the assertion.
@@ -128,7 +128,7 @@ function SystemStat:appendCounters()
         or self.charge_count == self.discharge_count + 1
     )
   end
-  self:put({ _("  discharge cycles"), self.discharge_count })
+  self:put({ _("  Discharge cycles"), self.discharge_count })
   -- no localization.
   self:put({ _("  Background jobs"), #require("pluginshare").backgroundJobs })
 end
