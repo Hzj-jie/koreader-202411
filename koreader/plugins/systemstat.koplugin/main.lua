@@ -129,6 +129,8 @@ function SystemStat:appendCounters()
     )
   end
   self:put({ _("  discharge cycles"), self.discharge_count })
+  -- no localization.
+  self:put({ _("  Background jobs"), #require("pluginshare").backgroundJobs })
 end
 
 local function systemInfo()
@@ -259,16 +261,32 @@ function SystemStat:appendProcessInfo()
     if n2 ~= nil then
       n1 = n1 + n2
     end
+    -- Need localization
+    self:put({ _("  Processor usage"), "" })
+    -- Need localization
+    self:put({ _("    Ticks"), n1 })
+    if #t >= 22 then
+      n2 = tonumber(t[22])
+      -- Need localization
+      self:put({ _("    Percentage"), string.format("%.2f", n1 / n2 * 100) })
+      -- Need localization
+      self:put({ _("    Total ticks"), t[22] })
+    end
     local sys_stat = systemInfo()
     if sys_stat.cpu ~= nil and sys_stat.cpu.total ~= nil then
       self:put({
-        _("  Processor usage %"),
+        -- Need localization
+        _("  Percentage since boot"),
         string.format("%.2f", n1 / sys_stat.cpu.total * 100),
       })
-    else
-      self:put({ _("  Processor usage ticks (million)"), n1 * (1 / 1000000) })
     end
   end
+
+  if #t < 19 then
+    return
+  end
+  -- Need localization
+  self:put({ _("  Priority / nice"), t[18] .. " / " .. t[19] })
 
   if #t < 20 then
     return
@@ -296,8 +314,6 @@ function SystemStat:appendProcessInfo()
   if n1 ~= nil then
     self:put({ _("  RAM usage (MB)"), string.format("%.2f", n1 / 256) })
   end
-  -- no localization.
-  self:put({ _("  Background jobs"), #require("pluginshare").backgroundJobs })
 end
 
 function SystemStat:appendStorageInfo()
