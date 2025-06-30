@@ -14,7 +14,11 @@ This repo is derived from the 2024-11 version with essential bug fixes only.
 After running stylua at
 https://github.com/Hzj-jie/koreader-202411/commit/587d93fa241744aa8e03574bdcd3cf3dd92c3244,
 diff against the baseline becomes pointless. But a copy of original files can
-still be found under origin/ as the reference.
+still be found under origin/ as the reference; or diff by
+
+```
+diff -rw koreader/ origin.stylua/
+```
 
 ## Repo structure
 
