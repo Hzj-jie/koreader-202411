@@ -16,26 +16,50 @@ local function systemInfo()
     if stat ~= nil then
       for line in stat:lines() do
         local t = util.splitToArray(line, " ")
-        if #t >= 5 and string.lower(t[1]) == "cpu" then
-          local n1, n2, n3, n4
-          n1 = tonumber(t[2])
-          n2 = tonumber(t[3])
-          n3 = tonumber(t[4])
-          n4 = tonumber(t[5])
-          if n1 ~= nil and n2 ~= nil and n3 ~= nil and n4 ~= nil then
-            result.cpu = {
-              user = n1,
-              nice = n2,
-              system = n3,
-              idle = n4,
-              total = n1 + n2 + n3 + n4,
-            }
-            break
+        result.cpu = {}
+        result.cpu.total = 0
+        if #t > 0 and string.lower(t[1]) == "cpu" then
+          if #t > 1 then
+            result.cpu.user = tonumber(t[2])
           end
+          if #t > 2 then
+            result.cpu.nice = tonumber(t[3])
+          end
+          if #t > 3 then
+            result.cpu.system = tonumber(t[4])
+          end
+          if #t > 4 then
+            result.cpu.idle = tonumber(t[5])
+          end
+          if #t > 5 then
+            result.cpu.io_wait = tonumber(t[6])
+          end
+          if #t > 6 then
+            result.cpu.hardirq = tonumber(t[7])
+          end
+          if #t > 7 then
+            result.cpu.softirq = tonumber(t[8])
+          end
+          result.cpu.total = (result.cpu.user or 0)
+            + (result.cpu.nice or 0)
+            + (result.cpu.system or 0)
+            + (result.cpu.idle or 0)
+            + (result.cpu.io_wait or 0)
+            + (result.cpu.hardirq or 0)
+            + (result.cpu.softirq or 0)
+          break
         end
       end
       stat:close()
     end
+  end
+  do
+    local handle = io.popen("cat /proc/stat | grep ^cpu | wc -l")
+    if handle ~= nil then
+      -- Exclude cpu line.
+      result.cpu.count = tonumber(handle:read("*a")) - 1
+    end
+    handle:close()
   end
 
   do
@@ -83,6 +107,17 @@ local function systemInfo()
     if handle ~= nil then
       for word in handle:read("*a"):gmatch("[^,%s]+") do
         table.insert(result.cpu.average, tonumber(word))
+      end
+    end
+  end
+
+  do
+    result.uptime = {}
+    local file = io.open("/proc/uptime", "r")
+    if file ~= nil then
+      local t = util.splitToArray(file:read("*line"), " ")
+      if #t > 0 then
+        result.uptime.sec = tonumber(t[1])
       end
     end
   end
@@ -223,7 +258,45 @@ function SystemStat:appendSystemInfo()
       self.sys_stat.processes.count,
     })
   end
+  if self.sys_stat.uptime.sec ~= nil then
+    self:put({
+      "  " .. _("Up time"),
+      datetime.secondsToClockDuration(
+        "",
+        self.sys_stat.uptime.sec,
+        false,
+        true
+      ),
+    })
+    if self.sys_stat.cpu ~= nil then
+      local uptime = self.sys_stat.uptime.sec
+      if Device:canSuspend() or Device:canStandby() then
+        -- Assume getconf CLK_TCK is 100.
+        local awake = self.sys_stat.cpu.total / 100 / self.sys_stat.cpu.count
+        self:put({
+          "  " .. _("Time spent awake"),
+          datetime.secondsToClockDuration("", awake, false, true)
+            .. " ("
+            .. Math.round((awake / uptime) * 100)
+            .. "%)",
+        })
+      end
+      if Device:canSuspend() then
+        -- Assume getconf CLK_TCK is 100.
+        local suspend = self.sys_stat.uptime.sec - self.sys_stat.cpu.total / 100 / self.sys_stat.cpu.count
+        self:put({
+          "  " .. _("Time in suspend"),
+          datetime.secondsToClockDuration("", suspend, false, true)
+            .. " ("
+            .. Math.round((suspend / uptime) * 100)
+            .. "%)",
+        })
+      end
+    end
+  end
   if self.sys_stat.cpu ~= nil then
+    -- Need localization
+    self:put({_("  Number of processors"), self.sys_stat.cpu.count })
     -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
     self:put({
       _("  Total ticks (million)"),
@@ -239,20 +312,20 @@ function SystemStat:appendSystemInfo()
         _("  Processor usage %"),
         string.format("%.2f", self.sys_stat.cpu.average[1] * 100),
       })
-      if #self.sys_stat.cpu.average > 1 then
-        -- Need localization
-        self:put({
-          _("  5 minutes usage %"),
-          string.format("%.2f", self.sys_stat.cpu.average[2] * 100),
-        })
-        if #self.sys_stat.cpu.average > 2 then
-          -- Need localization
-          self:put({
-            _("  15 minutes usage %"),
-            string.format("%.2f", self.sys_stat.cpu.average[3] * 100),
-          })
-        end
-      end
+    end
+    if #self.sys_stat.cpu.average > 1 then
+      -- Need localization
+      self:put({
+        _("  5 minutes usage %"),
+        string.format("%.2f", self.sys_stat.cpu.average[2] * 100),
+      })
+    end
+    if #self.sys_stat.cpu.average > 2 then
+      -- Need localization
+      self:put({
+        _("  15 minutes usage %"),
+        string.format("%.2f", self.sys_stat.cpu.average[3] * 100),
+      })
     end
     -- Need localization
     self:put({
@@ -312,18 +385,14 @@ function SystemStat:appendProcessInfo()
     if n2 ~= nil then
       n1 = n1 + n2
     end
-    self:put({ _("  Total ticks (million)"), n1 * (1 / 1000000) })
-    if #t >= 22 then
-      n2 = tonumber(t[22])
+    -- Need localization
+    -- Fairly hard for reader.lua to use so much processor resources, do not
+    -- change the unit to millions.
+    self:put({ _("  Total ticks"), n1 })
+    if self.sys_stat.cpu ~= nil and self.sys_stat.cpu.total ~= nil then
+      assert(self.sys_stat.cpu.total > 0) -- Imporssible to be 0.
       self:put({
         _("  Processor usage %"),
-        string.format("%.2f", n1 / n2 * 100),
-      })
-    end
-    if self.sys_stat.cpu ~= nil and self.sys_stat.cpu.total ~= nil then
-      self:put({
-        -- Need localization
-        _("  Usage % since boot"),
         string.format("%.2f", n1 / self.sys_stat.cpu.total * 100),
       })
     end
