@@ -20,6 +20,6 @@ function run_twice {
 }
 
 run_twice "koreader"
-run_twice "origin/frontend.stylua"
+run_twice "origin.stylua"
 
 # Run everything twice to avoid syntax breakages.
