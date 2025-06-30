@@ -12,113 +12,119 @@ local _ = require("gettext")
 local function systemInfo()
   local result = {}
   do
+    result.cpu = {
+      user = 0,
+      nice = 0,
+      system = 0,
+      idle = 0,
+      io_wait = 0,
+      hardirq = 0,
+      softirq = 0,
+    }
     local stat = io.open("/proc/stat", "r")
-    if stat ~= nil then
-      for line in stat:lines() do
-        local t = util.splitToArray(line, " ")
-        result.cpu = {}
-        result.cpu.total = 0
-        if #t > 0 and string.lower(t[1]) == "cpu" then
-          if #t > 1 then
-            result.cpu.user = tonumber(t[2])
-          end
-          if #t > 2 then
-            result.cpu.nice = tonumber(t[3])
-          end
-          if #t > 3 then
-            result.cpu.system = tonumber(t[4])
-          end
-          if #t > 4 then
-            result.cpu.idle = tonumber(t[5])
-          end
-          if #t > 5 then
-            result.cpu.io_wait = tonumber(t[6])
-          end
-          if #t > 6 then
-            result.cpu.hardirq = tonumber(t[7])
-          end
-          if #t > 7 then
-            result.cpu.softirq = tonumber(t[8])
-          end
-          result.cpu.total = (result.cpu.user or 0)
-            + (result.cpu.nice or 0)
-            + (result.cpu.system or 0)
-            + (result.cpu.idle or 0)
-            + (result.cpu.io_wait or 0)
-            + (result.cpu.hardirq or 0)
-            + (result.cpu.softirq or 0)
-          break
+    assert(stat ~= nil)
+    for line in stat:lines() do
+      local t = util.splitToArray(line, " ")
+      if #t > 0 and string.lower(t[1]) == "cpu" then
+        if #t > 1 then
+          result.cpu.user = tonumber(t[2])
         end
+        if #t > 2 then
+          result.cpu.nice = tonumber(t[3])
+        end
+        if #t > 3 then
+          result.cpu.system = tonumber(t[4])
+        end
+        if #t > 4 then
+          result.cpu.idle = tonumber(t[5])
+        end
+        if #t > 5 then
+          result.cpu.io_wait = tonumber(t[6])
+        end
+        if #t > 6 then
+          result.cpu.hardirq = tonumber(t[7])
+        end
+        if #t > 7 then
+          result.cpu.softirq = tonumber(t[8])
+        end
+        break
       end
-      stat:close()
     end
+    result.cpu.total = result.cpu.user
+      + result.cpu.nice
+      + result.cpu.system
+      + result.cpu.idle
+      + result.cpu.io_wait
+      + result.cpu.hardirq
+      + result.cpu.softirq
+    stat:close()
   end
+
   do
     local handle = io.popen("cat /proc/stat | grep ^cpu | wc -l")
-    if handle ~= nil then
-      -- Exclude cpu line.
-      result.cpu.count = tonumber(handle:read("*a")) - 1
-    end
-    handle:close()
+    assert(handle ~= nil)
+    -- Exclude cpu line.
+    result.cpu.count = tonumber(handle:read("*a")) - 1
   end
 
   do
     local meminfo = io.open("/proc/meminfo", "r")
-    if meminfo ~= nil then
-      result.memory = {}
-      for line in meminfo:lines() do
-        local t = util.splitToArray(line, " ")
-        if #t >= 2 then
-          if string.lower(t[1]) == "memtotal:" then
-            local n = tonumber(t[2])
-            if n ~= nil then
-              result.memory.total = n
-            end
-          elseif string.lower(t[1]) == "memfree:" then
-            local n = tonumber(t[2])
-            if n ~= nil then
-              result.memory.free = n
-            end
-          elseif string.lower(t[1]) == "memavailable:" then
-            local n = tonumber(t[2])
-            if n ~= nil then
-              result.memory.available = n
-            end
+    assert(meminfo ~= nil)
+    result.memory = {
+      total = 0,
+      free = 0,
+      available = 0,
+    }
+    for line in meminfo:lines() do
+      local t = util.splitToArray(line, " ")
+      if #t >= 2 then
+        if string.lower(t[1]) == "memtotal:" then
+          local n = tonumber(t[2])
+          if n ~= nil then
+            result.memory.total = n
+          end
+        elseif string.lower(t[1]) == "memfree:" then
+          local n = tonumber(t[2])
+          if n ~= nil then
+            result.memory.free = n
+          end
+        elseif string.lower(t[1]) == "memavailable:" then
+          local n = tonumber(t[2])
+          if n ~= nil then
+            result.memory.available = n
           end
         end
       end
-      meminfo:close()
     end
+    meminfo:close()
   end
 
   do
     result.processes = {}
     local handle = io.popen("ps -e | wc -l")
-    if handle ~= nil then
-      -- Exclude ps and wc
-      result.processes.count = tonumber(handle:read("*a")) - 2
-    end
-    handle:close()
+    assert(handle ~= nil)
+    -- Exclude ps and wc
+    result.processes.count = tonumber(handle:read("*a")) - 2
   end
 
   do
     result.cpu.average = {}
     local handle = io.popen("uptime | sed 's/.*load average://g'")
-    if handle ~= nil then
-      for word in handle:read("*a"):gmatch("[^,%s]+") do
-        table.insert(result.cpu.average, tonumber(word))
-      end
+    assert(handle ~= nil)
+    for word in handle:read("*a"):gmatch("[^,%s]+") do
+      table.insert(result.cpu.average, tonumber(word))
     end
   end
 
   do
-    result.uptime = {}
+    result.uptime = {
+      sec = 0,
+    }
     local file = io.open("/proc/uptime", "r")
-    if file ~= nil then
-      local t = util.splitToArray(file:read("*line"), " ")
-      if #t > 0 then
-        result.uptime.sec = tonumber(t[1])
-      end
+    assert(file ~= nil)
+    local t = util.splitToArray(file:read("*line"), " ")
+    if #t > 0 then
+      result.uptime.sec = tonumber(t[1])
     end
   end
 
@@ -251,118 +257,96 @@ end
 
 function SystemStat:appendSystemInfo()
   self:put({ _("System information"), "" })
-  if self.sys_stat.processes.count ~= nil then
+  -- Need localization
+  self:put({
+    _("  Number of processes"),
+    self.sys_stat.processes.count,
+  })
+  self:put({
+    "  " .. _("Up time"),
+    datetime.secondsToClockDuration("", self.sys_stat.uptime.sec, false, true),
+  })
+  local uptime = self.sys_stat.uptime.sec
+  if Device:canSuspend() or Device:canStandby() then
+    -- Assume getconf CLK_TCK is 100.
+    local awake = self.sys_stat.cpu.total / 100 / self.sys_stat.cpu.count
+    self:put({
+      "  " .. _("Time spent awake"),
+      datetime.secondsToClockDuration("", awake, false, true)
+        .. " ("
+        .. Math.round((awake / uptime) * 100)
+        .. "%)",
+    })
+  end
+  if Device:canSuspend() then
+    -- Assume getconf CLK_TCK is 100.
+    local suspend = self.sys_stat.uptime.sec
+      - self.sys_stat.cpu.total / 100 / self.sys_stat.cpu.count
+    self:put({
+      "  " .. _("Time in suspend"),
+      datetime.secondsToClockDuration("", suspend, false, true)
+        .. " ("
+        .. Math.round((suspend / uptime) * 100)
+        .. "%)",
+    })
+  end
+  -- Need localization
+  self:put({ _("  Number of processors"), self.sys_stat.cpu.count })
+  -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
+  self:put({
+    _("  Total ticks (million)"),
+    string.format("%.2f", self.sys_stat.cpu.total * (1 / 1000000)),
+  })
+  -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
+  self:put({
+    _("  Idle ticks (million)"),
+    string.format("%.2f", self.sys_stat.cpu.idle * (1 / 1000000)),
+  })
+  if #self.sys_stat.cpu.average > 0 then
+    self:put({
+      _("  Processor usage %"),
+      string.format("%.2f", self.sys_stat.cpu.average[1] * 100),
+    })
+  end
+  if #self.sys_stat.cpu.average > 1 then
     -- Need localization
     self:put({
-      _("  Number of processes"),
-      self.sys_stat.processes.count,
+      _("  5 minutes usage %"),
+      string.format("%.2f", self.sys_stat.cpu.average[2] * 100),
     })
   end
-  if self.sys_stat.uptime.sec ~= nil then
-    self:put({
-      "  " .. _("Up time"),
-      datetime.secondsToClockDuration(
-        "",
-        self.sys_stat.uptime.sec,
-        false,
-        true
-      ),
-    })
-    if self.sys_stat.cpu ~= nil then
-      local uptime = self.sys_stat.uptime.sec
-      if Device:canSuspend() or Device:canStandby() then
-        -- Assume getconf CLK_TCK is 100.
-        local awake = self.sys_stat.cpu.total / 100 / self.sys_stat.cpu.count
-        self:put({
-          "  " .. _("Time spent awake"),
-          datetime.secondsToClockDuration("", awake, false, true)
-            .. " ("
-            .. Math.round((awake / uptime) * 100)
-            .. "%)",
-        })
-      end
-      if Device:canSuspend() then
-        -- Assume getconf CLK_TCK is 100.
-        local suspend = self.sys_stat.uptime.sec - self.sys_stat.cpu.total / 100 / self.sys_stat.cpu.count
-        self:put({
-          "  " .. _("Time in suspend"),
-          datetime.secondsToClockDuration("", suspend, false, true)
-            .. " ("
-            .. Math.round((suspend / uptime) * 100)
-            .. "%)",
-        })
-      end
-    end
-  end
-  if self.sys_stat.cpu ~= nil then
-    -- Need localization
-    self:put({_("  Number of processors"), self.sys_stat.cpu.count })
-    -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-    self:put({
-      _("  Total ticks (million)"),
-      string.format("%.2f", self.sys_stat.cpu.total * (1 / 1000000)),
-    })
-    -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-    self:put({
-      _("  Idle ticks (million)"),
-      string.format("%.2f", self.sys_stat.cpu.idle * (1 / 1000000)),
-    })
-    if #self.sys_stat.cpu.average > 0 then
-      self:put({
-        _("  Processor usage %"),
-        string.format("%.2f", self.sys_stat.cpu.average[1] * 100),
-      })
-    end
-    if #self.sys_stat.cpu.average > 1 then
-      -- Need localization
-      self:put({
-        _("  5 minutes usage %"),
-        string.format("%.2f", self.sys_stat.cpu.average[2] * 100),
-      })
-    end
-    if #self.sys_stat.cpu.average > 2 then
-      -- Need localization
-      self:put({
-        _("  15 minutes usage %"),
-        string.format("%.2f", self.sys_stat.cpu.average[3] * 100),
-      })
-    end
+  if #self.sys_stat.cpu.average > 2 then
     -- Need localization
     self:put({
-      _("  Usage % since boot"),
-      string.format(
-        "%.2f",
-        (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total) * 100
-      ),
+      _("  15 minutes usage %"),
+      string.format("%.2f", self.sys_stat.cpu.average[3] * 100),
     })
   end
-  if self.sys_stat.memory ~= nil then
-    if self.sys_stat.memory.total ~= nil then
-      self:put({
-        _("  Total memory (MB)"),
-        string.format("%.2f", self.sys_stat.memory.total / 1024),
-      })
-    end
-    if self.sys_stat.memory.free ~= nil then
-      self:put({
-        _("  Free memory (MB)"),
-        string.format("%.2f", self.sys_stat.memory.free / 1024),
-      })
-    end
-    if self.sys_stat.memory.available ~= nil then
-      self:put({
-        _("  Available memory (MB)"),
-        string.format("%.2f", self.sys_stat.memory.available / 1024),
-      })
-    end
-  end
+  -- Need localization
+  self:put({
+    _("  Usage % since boot"),
+    string.format(
+      "%.2f",
+      (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total) * 100
+    ),
+  })
+  self:put({
+    _("  Total memory (MB)"),
+    string.format("%.2f", self.sys_stat.memory.total / 1024),
+  })
+  self:put({
+    _("  Free memory (MB)"),
+    string.format("%.2f", self.sys_stat.memory.free / 1024),
+  })
+  self:put({
+    _("  Available memory (MB)"),
+    string.format("%.2f", self.sys_stat.memory.available / 1024),
+  })
 end
 
 function SystemStat:appendProcessInfo()
   local stat = io.open("/proc/self/stat", "r")
-  if stat == nil then
-    return
-  end
+  assert(stat ~= nil)
 
   local t = util.splitToArray(stat:read("*line"), " ")
   stat:close()
@@ -442,9 +426,7 @@ function SystemStat:appendStorageInfo()
       .. self.storage_filter
       .. " | sed 's/ /\\t/g' | cut -f 2,4,5,6"
   )
-  if not std_out then
-    return
-  end
+  assert(std_out ~= nil)
 
   self:put({ _("Storage information"), "" })
   for line in std_out:lines() do
