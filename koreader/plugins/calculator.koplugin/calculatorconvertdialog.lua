@@ -2,7 +2,7 @@
 This widget displays the calculator convert menu
 ]]
 
-local ButtonDialog = require("ui/widget/buttondialog")
+local ButtonDialogTitle = require("ui/widget/buttondialogtitle")
 local CalculatorUnitsDialog = require("calculatorunitsdialog")
 local Font = require("ui/font")
 local InputContainer = require("ui/widget/container/inputcontainer")
@@ -272,7 +272,7 @@ function CalculatorConvertDialog:init()
     table.insert(highlight_buttons[#highlight_buttons], button)
   end
 
-  self[1] = ButtonDialog:new({
+  self[1] = ButtonDialogTitle:new({
     title = self.title or _("♺ Convert"),
     title_align = "center",
     buttons = highlight_buttons,
@@ -285,7 +285,7 @@ function CalculatorConvertDialog:onShow()
   end)
 end
 
-function CalculatorConvertDialog:onExit()
+function CalculatorConvertDialog:onClose()
   UIManager:setDirty(nil, function()
     return "ui", self[1][1].dimen
   end)

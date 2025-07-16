@@ -15,7 +15,7 @@ usage:
 
 local Parser = {}
 
-local ParserHelp = require("formulaparser/parserhelp")
+local ParserHelp = require("parserhelp")
 
 math.randomseed(os.time())
 

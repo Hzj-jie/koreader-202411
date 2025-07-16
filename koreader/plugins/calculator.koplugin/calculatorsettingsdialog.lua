@@ -336,7 +336,7 @@ function CalculatorSettingsDialog:onShow()
   end)
 end
 
-function CalculatorSettingsDialog:onClose()
+function CalculatorSettingsDialog:onCloseWidget()
   UIManager:setDirty(nil, function()
     return "ui", self[1][1].dimen
   end)
@@ -411,7 +411,7 @@ function CalculatorSettingsDialog:choosePathFile(
           },
         })
         UIManager:show(file_input)
-        file_input:showKeyboard()
+        file_input:onShowKeyboard()
       elseif mode == "file" then -- just select an existing file
         if migrate then
           migrate(self, self[key], dir_path)
