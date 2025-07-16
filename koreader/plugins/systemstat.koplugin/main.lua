@@ -137,8 +137,6 @@ local SystemStat = {
   suspend_time = nil,
   resume_time = nil,
   wakeup_count = 0,
-  sleep_count = 0,
-  charge_count = 0,
   discharge_count = 0,
 }
 
@@ -156,12 +154,12 @@ function SystemStat:init()
   -- Account for a start-up mid-charge
   local powerd = Device:getPowerDevice()
   if Device:hasAuxBattery() and powerd:isAuxBatteryConnected() then
-    if powerd:isAuxCharging() and not powerd:isAuxCharged() then
-      self.charge_count = self.charge_count + 1
+    if not powerd:isAuxCharging() or powerd:isAuxCharged() then
+      self.discharge_count = self.discharge_count + 1
     end
   else
-    if powerd:isCharging() and not powerd:isCharged() then
-      self.charge_count = self.charge_count + 1
+    if not powerd:isCharging() or powerd:isCharged() then
+      self.discharge_count = self.discharge_count + 1
     end
   end
 end
@@ -234,22 +232,11 @@ function SystemStat:appendCounters()
   end
   self:putSeparator()
   self:put({ _("Counters"), "" })
-  -- TODO: Remove the wakeup_count and the assertion.
-  if G_defaults:isTrue("DEV_MODE") then
-    assert(self.wakeup_count == self.sleep_count)
-  end
   -- @translators The number of "sleeps", that is the number of times the device has entered standby. This could also be translated as a rendition of a phrase like "entered sleep".
   self:put({
     _("  Wake-ups") .. " / " .. _("  sleeps"):gsub("^%s+", ""),
     self.wakeup_count,
   })
-  -- TODO: Remove the charge_count and the assertion.
-  if G_defaults:isTrue("DEV_MODE") then
-    assert(
-      self.charge_count == self.discharge_count
-        or self.charge_count == self.discharge_count + 1
-    )
-  end
   self:put({ _("  Discharge cycles"), self.discharge_count })
   -- no localization.
   self:put({ _("  Background jobs"), #require("pluginshare").backgroundJobs })
@@ -445,16 +432,11 @@ end
 
 function SystemStat:onSuspend()
   self.suspend_time = time.realtime()
-  self.sleep_count = self.sleep_count + 1
 end
 
 function SystemStat:onResume()
   self.resume_time = time.realtime()
   self.wakeup_count = self.wakeup_count + 1
-end
-
-function SystemStat:onCharging()
-  self.charge_count = self.charge_count + 1
 end
 
 function SystemStat:onNotCharging()
