@@ -292,27 +292,24 @@ function FileManagerCollection:showCollDialog()
     local file = self.ui.document.file
     local is_in_collection =
       ReadCollection:isFileInCollection(file, self.coll_menu.collection_name)
-    table.insert(
-      buttons,
+    table.insert(buttons, {
       {
-        {
-          text_func = function()
-            return is_in_collection and _("Remove current book from collection")
-              or _("Add current book to collection")
-          end,
-          callback = function()
-            UIManager:close(coll_dialog)
-            if is_in_collection then
-              ReadCollection:removeItem(file, self.coll_menu.collection_name)
-            else
-              ReadCollection:addItem(file, self.coll_menu.collection_name)
-            end
-            self:updateItemTable(not is_in_collection)
-            self.files_updated = true
-          end,
-        },
-      }
-    )
+        text_func = function()
+          return is_in_collection and _("Remove current book from collection")
+            or _("Add current book to collection")
+        end,
+        callback = function()
+          UIManager:close(coll_dialog)
+          if is_in_collection then
+            ReadCollection:removeItem(file, self.coll_menu.collection_name)
+          else
+            ReadCollection:addItem(file, self.coll_menu.collection_name)
+          end
+          self:updateItemTable(not is_in_collection)
+          self.files_updated = true
+        end,
+      },
+    })
   end
   coll_dialog = ButtonDialog:new({
     buttons = buttons,

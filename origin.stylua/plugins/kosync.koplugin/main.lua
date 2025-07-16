@@ -178,25 +178,19 @@ local function validateUser(user, pass)
 end
 
 function KOSync:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "kosync_push_progress",
-    {
-      category = "none",
-      event = "KOSyncPushProgress",
-      title = _("Push progress from this device"),
-      reader = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "kosync_pull_progress",
-    {
-      category = "none",
-      event = "KOSyncPullProgress",
-      title = _("Pull progress from other devices"),
-      reader = true,
-      separator = true,
-    }
-  )
+  Dispatcher:registerAction("kosync_push_progress", {
+    category = "none",
+    event = "KOSyncPushProgress",
+    title = _("Push progress from this device"),
+    reader = true,
+  })
+  Dispatcher:registerAction("kosync_pull_progress", {
+    category = "none",
+    event = "KOSyncPullProgress",
+    title = _("Pull progress from other devices"),
+    reader = true,
+    separator = true,
+  })
 end
 
 function KOSync:onReaderReady()
@@ -266,13 +260,11 @@ function KOSync:addToMainMenu(menu_items)
             and G_reader_settings:readSetting("wifi_enable_action") ~= "turn_on"
             and not self.settings.auto_sync
           then
-            UIManager:show(
-              InfoMessage:new({
-                text = _(
-                  "You will have to switch the 'Action when Wi-Fi is off' Network setting to 'turn on' to be able to enable this feature!"
-                ),
-              })
-            )
+            UIManager:show(InfoMessage:new({
+              text = _(
+                "You will have to switch the 'Action when Wi-Fi is off' Network setting to 'turn on' to be able to enable this feature!"
+              ),
+            }))
             return
           end
 

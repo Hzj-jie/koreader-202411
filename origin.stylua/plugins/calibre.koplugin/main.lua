@@ -69,74 +69,53 @@ function Calibre:closeWirelessConnection()
 end
 
 function Calibre:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "calibre_search",
-    {
-      category = "none",
-      event = "CalibreSearch",
-      title = _("Calibre metadata search"),
-      general = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "calibre_browse_tags",
-    {
-      category = "none",
-      event = "CalibreBrowseBy",
-      arg = "tags",
-      title = _("Browse all calibre tags"),
-      general = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "calibre_browse_series",
-    {
-      category = "none",
-      event = "CalibreBrowseBy",
-      arg = "series",
-      title = _("Browse all calibre series"),
-      general = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "calibre_browse_authors",
-    {
-      category = "none",
-      event = "CalibreBrowseBy",
-      arg = "authors",
-      title = _("Browse all calibre authors"),
-      general = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "calibre_browse_titles",
-    {
-      category = "none",
-      event = "CalibreBrowseBy",
-      arg = "title",
-      title = _("Browse all calibre titles"),
-      general = true,
-      separator = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "calibre_start_connection",
-    {
-      category = "none",
-      event = "StartWirelessConnection",
-      title = _("Calibre wireless connect"),
-      general = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "calibre_close_connection",
-    {
-      category = "none",
-      event = "CloseWirelessConnection",
-      title = _("Calibre wireless disconnect"),
-      general = true,
-    }
-  )
+  Dispatcher:registerAction("calibre_search", {
+    category = "none",
+    event = "CalibreSearch",
+    title = _("Calibre metadata search"),
+    general = true,
+  })
+  Dispatcher:registerAction("calibre_browse_tags", {
+    category = "none",
+    event = "CalibreBrowseBy",
+    arg = "tags",
+    title = _("Browse all calibre tags"),
+    general = true,
+  })
+  Dispatcher:registerAction("calibre_browse_series", {
+    category = "none",
+    event = "CalibreBrowseBy",
+    arg = "series",
+    title = _("Browse all calibre series"),
+    general = true,
+  })
+  Dispatcher:registerAction("calibre_browse_authors", {
+    category = "none",
+    event = "CalibreBrowseBy",
+    arg = "authors",
+    title = _("Browse all calibre authors"),
+    general = true,
+  })
+  Dispatcher:registerAction("calibre_browse_titles", {
+    category = "none",
+    event = "CalibreBrowseBy",
+    arg = "title",
+    title = _("Browse all calibre titles"),
+    general = true,
+    separator = true,
+  })
+  Dispatcher:registerAction("calibre_start_connection", {
+    category = "none",
+    event = "StartWirelessConnection",
+    title = _("Calibre wireless connect"),
+    general = true,
+  })
+  Dispatcher:registerAction("calibre_close_connection", {
+    category = "none",
+    event = "CloseWirelessConnection",
+    title = _("Calibre wireless disconnect"),
+    general = true,
+  })
 end
 
 function Calibre:init()

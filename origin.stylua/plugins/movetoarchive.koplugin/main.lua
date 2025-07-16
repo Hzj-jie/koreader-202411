@@ -20,7 +20,12 @@ local MoveToArchive = WidgetContainer:extend({
 function MoveToArchive:onDispatcherRegisterActions()
   Dispatcher:registerAction(
     self.name,
-    { category = "none", event = "MoveToArchive", title = self.title, reader = true }
+    {
+      category = "none",
+      event = "MoveToArchive",
+      title = self.title,
+      reader = true,
+    }
   )
 end
 

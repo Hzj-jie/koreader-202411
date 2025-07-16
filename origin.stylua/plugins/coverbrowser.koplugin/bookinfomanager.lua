@@ -205,12 +205,10 @@ function BookInfoManager:createDB()
     db_conn:exec(string.format("PRAGMA user_version=%d;", BOOKINFO_DB_VERSION))
 
     -- Say hi!
-    UIManager:show(
-      InfoMessage:new({
-        text = _("Book info cache database updated."),
-        timeout = 3,
-      })
-    )
+    UIManager:show(InfoMessage:new({
+      text = _("Book info cache database updated."),
+      timeout = 3,
+    }))
   end
   db_conn:close()
   self.db_created = true

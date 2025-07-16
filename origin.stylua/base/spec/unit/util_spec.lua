@@ -79,7 +79,8 @@ describe("util module", function()
     end)
 
     it("should treat %100 as %10", function()
-      local str_regular = "First: success1-; tenth: success10-; hundredth: success10-0."
+      local str_regular =
+        "First: success1-; tenth: success10-; hundredth: success10-0."
       local template_args = {}
       for i = 1, 100, 1 do
         template_args[i] = "success" .. i .. "-"

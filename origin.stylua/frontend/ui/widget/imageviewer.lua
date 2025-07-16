@@ -116,7 +116,9 @@ function ImageViewer:init()
       -- Pan happens if we don't hold at start, but hold at end
       -- Swipe happens if we don't hold at any moment
       Hold = { GestureRange:new({ ges = "hold", range = range }) },
-      HoldRelease = { GestureRange:new({ ges = "hold_release", range = range }) },
+      HoldRelease = {
+        GestureRange:new({ ges = "hold_release", range = range }),
+      },
       Pan = { GestureRange:new({ ges = "pan", range = range }) },
       PanRelease = { GestureRange:new({ ges = "pan_release", range = range }) },
       Swipe = { GestureRange:new({ ges = "swipe", range = range }) },

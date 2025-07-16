@@ -650,15 +650,24 @@ function TouchMenu:init()
   local footer_height = up_button:getSize().h + Size.line.thick
   self.footer = HorizontalGroup:new({
     LeftContainer:new({
-      dimen = Geom:new({ w = math.floor(footer_width * 0.33), h = footer_height }),
+      dimen = Geom:new({
+        w = math.floor(footer_width * 0.33),
+        h = footer_height,
+      }),
       up_button,
     }),
     CenterContainer:new({
-      dimen = Geom:new({ w = math.floor(footer_width * 0.33), h = footer_height }),
+      dimen = Geom:new({
+        w = math.floor(footer_width * 0.33),
+        h = footer_height,
+      }),
       self.page_info,
     }),
     RightContainer:new({
-      dimen = Geom:new({ w = math.floor(footer_width * 0.33), h = footer_height }),
+      dimen = Geom:new({
+        w = math.floor(footer_width * 0.33),
+        h = footer_height,
+      }),
       self.device_info,
     }),
   })
@@ -1100,7 +1109,8 @@ function TouchMenu:search(search_for)
     for i, v in ipairs(item_table) do
       if type(v) == "table" and not v.ignored_by_menu_search then
         local entry_text = v.text_func and v.text_func() or v.text
-        local indent = text and ((" "):rep(math.min(depth - 1, 6)) .. "→ ")
+        local indent = text
+            and ((" "):rep(math.min(depth - 1, 6)) .. "→ ")
           or "→ " -- all spaces here are Hair Space U+200A
         local walk_text = text and (text .. "\n" .. indent .. entry_text)
           or (indent .. entry_text)

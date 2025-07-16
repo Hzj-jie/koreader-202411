@@ -94,52 +94,37 @@ ReaderStatistics.default_settings = {
 }
 
 function ReaderStatistics:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "toggle_statistics",
-    {
-      category = "none",
-      event = "ToggleStatistics",
-      title = _("Toggle statistics"),
-      general = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "stats_calendar_view",
-    {
-      category = "none",
-      event = "ShowCalendarView",
-      title = _("Statistics calendar view"),
-      general = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "stats_calendar_day_view",
-    {
-      category = "none",
-      event = "ShowCalendarDayView",
-      title = _("Statistics today's timeline"),
-      general = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "stats_sync",
-    {
-      category = "none",
-      event = "SyncBookStats",
-      title = _("Synchronize book statistics"),
-      general = true,
-      separator = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "book_statistics",
-    {
-      category = "none",
-      event = "ShowBookStats",
-      title = _("Book statistics"),
-      reader = true,
-    }
-  )
+  Dispatcher:registerAction("toggle_statistics", {
+    category = "none",
+    event = "ToggleStatistics",
+    title = _("Toggle statistics"),
+    general = true,
+  })
+  Dispatcher:registerAction("stats_calendar_view", {
+    category = "none",
+    event = "ShowCalendarView",
+    title = _("Statistics calendar view"),
+    general = true,
+  })
+  Dispatcher:registerAction("stats_calendar_day_view", {
+    category = "none",
+    event = "ShowCalendarDayView",
+    title = _("Statistics today's timeline"),
+    general = true,
+  })
+  Dispatcher:registerAction("stats_sync", {
+    category = "none",
+    event = "SyncBookStats",
+    title = _("Synchronize book statistics"),
+    general = true,
+    separator = true,
+  })
+  Dispatcher:registerAction("book_statistics", {
+    category = "none",
+    event = "ShowBookStats",
+    title = _("Book statistics"),
+    reader = true,
+  })
 end
 
 function ReaderStatistics:init()
@@ -392,12 +377,10 @@ Do you want to create an empty database?
           local conn_new = SQ3.open(db_location)
           self:createDB(conn_new)
           conn_new:close()
-          UIManager:show(
-            InfoMessage:new({
-              text = _("A new empty database has been created."),
-              timeout = 3,
-            })
-          )
+          UIManager:show(InfoMessage:new({
+            text = _("A new empty database has been created."),
+            timeout = 3,
+          }))
           if self.document then
             self:initData()
           end
@@ -459,7 +442,10 @@ Do you want to create an empty database?
 
       logger.info("ReaderStatistics: DB migration complete")
       UIManager:show(
-        InfoMessage:new({ text = _("Statistics database updated."), timeout = 3 })
+        InfoMessage:new({
+          text = _("Statistics database updated."),
+          timeout = 3,
+        })
       )
     elseif db_version > DB_SCHEMA_VERSION then
       logger.warn(

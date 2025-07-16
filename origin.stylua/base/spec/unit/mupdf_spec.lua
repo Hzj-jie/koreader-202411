@@ -75,15 +75,12 @@ describe("mupdf module", function()
   describe("PDF document API", function()
     local doc1, doc2, doc3
     local ffi = require("ffi")
-    local annotation_quadpoints = ffi.new(
-      "fz_quad[1]",
+    local annotation_quadpoints = ffi.new("fz_quad[1]", {
       {
-        {
-          { 70, 930, 510, 930 },
-          { 510, 970, 70, 970 },
-        },
-      }
-    )
+        { 70, 930, 510, 930 },
+        { 510, 970, 70, 970 },
+      },
+    })
     setup(function()
       doc1 = M.openDocument(sample_pdf)
       assert.is_not_nil(doc1)

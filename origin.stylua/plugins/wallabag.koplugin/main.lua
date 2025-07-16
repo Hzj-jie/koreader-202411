@@ -42,15 +42,12 @@ local Wallabag = WidgetContainer:extend({
 })
 
 function Wallabag:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "wallabag_download",
-    {
-      category = "none",
-      event = "SynchronizeWallabag",
-      title = _("Wallabag retrieval"),
-      general = true,
-    }
-  )
+  Dispatcher:registerAction("wallabag_download", {
+    category = "none",
+    event = "SynchronizeWallabag",
+    title = _("Wallabag retrieval"),
+    general = true,
+  })
 end
 
 function Wallabag:init()

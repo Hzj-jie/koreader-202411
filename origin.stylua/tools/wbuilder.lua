@@ -343,7 +343,10 @@ readerwindow = CenterContainer:new({
 })
 reader = ReaderUI:new({
   dialog = readerwindow,
-  dimen = Geom:new({ w = Screen:getWidth() - 100, h = Screen:getHeight() - 100 }),
+  dimen = Geom:new({
+    w = Screen:getWidth() - 100,
+    h = Screen:getHeight() - 100,
+  }),
   document = DocumentRegistry:openDocument("spec/front/unit/data/2col.pdf"),
   --document = DocumentRegistry:openDocument("spec/front/unit/data/djvu3spec.djvu")
 })

@@ -37,16 +37,13 @@ local TextEditor = WidgetContainer:extend({
 })
 
 function TextEditor:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "edit_last_edited_file",
-    {
-      category = "none",
-      event = "OpenLastEditedFile",
-      title = _("Text editor: open last file"),
-      general = true,
-      separator = true,
-    }
-  )
+  Dispatcher:registerAction("edit_last_edited_file", {
+    category = "none",
+    event = "OpenLastEditedFile",
+    title = _("Text editor: open last file"),
+    general = true,
+    separator = true,
+  })
 end
 
 function TextEditor:init()

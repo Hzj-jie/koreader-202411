@@ -171,25 +171,22 @@ function ViewHtml:_viewSelectionHTML(
       table.insert(buttons_table, { button })
     end
   end
-  table.insert(
-    buttons_table,
+  table.insert(buttons_table, {
     {
-      {
-        text = next_view_text,
-        callback = function()
-          UIManager:close(textviewer)
-          self:_viewSelectionHTML(
-            document,
-            selected_text,
-            next_view,
-            with_css_files_buttons,
-            hide_stylesheet_elem_content
-          )
-        end,
-        hold_callback = buttons_hold_callback,
-      },
-    }
-  )
+      text = next_view_text,
+      callback = function()
+        UIManager:close(textviewer)
+        self:_viewSelectionHTML(
+          document,
+          selected_text,
+          next_view,
+          with_css_files_buttons,
+          hide_stylesheet_elem_content
+        )
+      end,
+      hold_callback = buttons_hold_callback,
+    },
+  })
 
   -- Long-press in the HTML will present a list of CSS selectors related to the element
   -- we pressed on, to be copied to clipboard

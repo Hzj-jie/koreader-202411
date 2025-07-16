@@ -179,7 +179,9 @@ function DropBox:info(token)
       and space_usage.allocation.allocated
     UIManager:show(InfoMessage:new({
       text = T(
-        _("Type: %1\nName: %2\nEmail: %3\nCountry: %4\nSpace total: %5\nSpace used: %6"),
+        _(
+          "Type: %1\nName: %2\nEmail: %3\nCountry: %4\nSpace total: %5\nSpace used: %6"
+        ),
         account_type,
         name,
         info.email,

@@ -710,17 +710,18 @@ local function genMetadataFolderMenuItem(value)
         if value == "hash" then
           DocSettings.setIsHashLocationEnabled(true)
           UIManager:show(
-            InfoMessage:new({ text = hash_filemod_warn, icon = "notice-warning" })
+            InfoMessage:new({
+              text = hash_filemod_warn,
+              icon = "notice-warning",
+            })
           )
         else
           DocSettings.setIsHashLocationEnabled(nil) -- reset
           if DocSettings.isHashLocationEnabled() then
-            UIManager:show(
-              InfoMessage:new({
-                text = leaving_hash_sdr_warn,
-                icon = "notice-warning",
-              })
-            )
+            UIManager:show(InfoMessage:new({
+              text = leaving_hash_sdr_warn,
+              icon = "notice-warning",
+            }))
           end
         end
       end

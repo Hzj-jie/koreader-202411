@@ -495,7 +495,12 @@ function IME:wrappedAddChars(inputbox, char, orig_char)
         else
           table.insert(
             _stack,
-            { code = key, index = 1, char = new_candi[1] or "", candi = new_candi }
+            {
+              code = key,
+              index = 1,
+              char = new_candi[1] or "",
+              candi = new_candi,
+            }
           )
         end
         self:refreshHintChars(inputbox)

@@ -1003,12 +1003,20 @@ local settingsList = {
   h_page_margins = { category = "string", rolling = true },
   sync_t_b_page_margins = { category = "string", rolling = true },
   t_page_margin = { category = "absolutenumber", rolling = true },
-  b_page_margin = { category = "absolutenumber", rolling = true, separator = true },
+  b_page_margin = {
+    category = "absolutenumber",
+    rolling = true,
+    separator = true,
+  },
   ----
   view_mode = { category = "string", rolling = true },
   block_rendering_mode = { category = "string", rolling = true },
   render_dpi = { category = "string", title = _("Zoom"), rolling = true },
-  line_spacing = { category = "absolutenumber", rolling = true, separator = true },
+  line_spacing = {
+    category = "absolutenumber",
+    rolling = true,
+    separator = true,
+  },
   ----
   status_line = { category = "string", rolling = true },
   embedded_css = { category = "string", rolling = true },
@@ -1031,7 +1039,11 @@ local settingsList = {
   kopt_full_screen = { category = "string", paging = true },
   kopt_line_spacing = { category = "configurable", paging = true },
   kopt_justification = { category = "configurable", paging = true },
-  kopt_font_size = { category = "string", paging = true, title = _("Font Size") },
+  kopt_font_size = {
+    category = "string",
+    paging = true,
+    title = _("Font Size"),
+  },
   kopt_font_fine_tune = {
     category = "string",
     paging = true,
@@ -1963,59 +1975,53 @@ function Dispatcher:_showAsMenu(settings, exec_props)
   local quickmenu
   local buttons = {}
   if exec_props and exec_props.qm_show then
-    table.insert(
-      buttons,
+    table.insert(buttons, {
       {
-        {
-          text = _("Execute all"),
-          align = "left",
-          font_face = "smallinfofont",
-          font_size = 22,
-          callback = function()
-            UIManager:close(quickmenu)
-            Dispatcher:execute(settings, { qm_show = false })
-          end,
-        },
-      }
-    )
+        text = _("Execute all"),
+        align = "left",
+        font_face = "smallinfofont",
+        font_size = 22,
+        callback = function()
+          UIManager:close(quickmenu)
+          Dispatcher:execute(settings, { qm_show = false })
+        end,
+      },
+    })
   end
   for _, v in ipairs(display_list) do
-    table.insert(
-      buttons,
+    table.insert(buttons, {
       {
-        {
-          text = v.text,
-          enabled = Dispatcher:isActionEnabled(settingsList[v.key]),
-          align = "left",
-          font_face = "smallinfofont",
-          font_size = 22,
-          font_bold = false,
-          callback = function()
+        text = v.text,
+        enabled = Dispatcher:isActionEnabled(settingsList[v.key]),
+        align = "left",
+        font_face = "smallinfofont",
+        font_size = 22,
+        font_bold = false,
+        callback = function()
+          UIManager:close(quickmenu)
+          Dispatcher:execute({ [v.key] = settings[v.key] })
+          if
+            keep_open_on_apply
+            and not util.stringStartsWith(v.key, "touch_input")
+          then
+            quickmenu:setTitle(title)
+            UIManager:show(quickmenu)
+          end
+        end,
+        hold_callback = function()
+          if v.key:sub(1, 13) == "profile_exec_" then
             UIManager:close(quickmenu)
-            Dispatcher:execute({ [v.key] = settings[v.key] })
-            if
-              keep_open_on_apply
-              and not util.stringStartsWith(v.key, "touch_input")
-            then
-              quickmenu:setTitle(title)
-              UIManager:show(quickmenu)
-            end
-          end,
-          hold_callback = function()
-            if v.key:sub(1, 13) == "profile_exec_" then
-              UIManager:close(quickmenu)
-              UIManager:sendEvent(
-                Event:new(
-                  settingsList[v.key].event,
-                  settingsList[v.key].arg,
-                  { qm_show = true }
-                )
+            UIManager:sendEvent(
+              Event:new(
+                settingsList[v.key].event,
+                settingsList[v.key].arg,
+                { qm_show = true }
               )
-            end
-          end,
-        },
-      }
-    )
+            )
+          end
+        end,
+      },
+    })
   end
   local ButtonDialog = require("ui/widget/buttondialog")
   quickmenu = ButtonDialog:new({

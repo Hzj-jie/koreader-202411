@@ -103,33 +103,24 @@ function Usage:dump(kv_pairs, id)
     { INDENTATION .. _("Total time:"), duration(time.to_s(self.time)) }
   )
   table.insert(kv_pairs, { INDENTATION .. name, shorten(self.percentage), "%" })
-  table.insert(
-    kv_pairs,
-    {
-      INDENTATION .. _("Change per hour:"),
-      shorten(self:percentageRatePerHour()),
-    }
-  )
+  table.insert(kv_pairs, {
+    INDENTATION .. _("Change per hour:"),
+    shorten(self:percentageRatePerHour()),
+  })
 end
 
 function Usage:dumpRemaining(kv_pairs)
-  table.insert(
-    kv_pairs,
-    {
-      INDENTATION .. _("Estimated remaining time:"),
-      duration(self:remainingTime()),
-    }
-  )
+  table.insert(kv_pairs, {
+    INDENTATION .. _("Estimated remaining time:"),
+    duration(self:remainingTime()),
+  })
 end
 
 function Usage:dumpCharging(kv_pairs)
-  table.insert(
-    kv_pairs,
-    {
-      INDENTATION .. _("Estimated time for charging:"),
-      duration(self:chargingTime()),
-    }
-  )
+  table.insert(kv_pairs, {
+    INDENTATION .. _("Estimated time for charging:"),
+    duration(self:chargingTime()),
+  })
 end
 
 local BatteryStat = {
@@ -310,16 +301,13 @@ local BatteryStatWidget = WidgetContainer:extend({
 })
 
 function BatteryStatWidget:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "battery_statistics",
-    {
-      category = "none",
-      event = "ShowBatteryStatistics",
-      title = _("Battery statistics"),
-      device = true,
-      separator = true,
-    }
-  )
+  Dispatcher:registerAction("battery_statistics", {
+    category = "none",
+    event = "ShowBatteryStatistics",
+    title = _("Battery statistics"),
+    device = true,
+    separator = true,
+  })
 end
 
 function BatteryStatWidget:init()

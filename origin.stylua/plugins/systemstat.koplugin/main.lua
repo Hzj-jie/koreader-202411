@@ -354,16 +354,13 @@ local SystemStatWidget = WidgetContainer:extend({
 })
 
 function SystemStatWidget:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "system_statistics",
-    {
-      category = "none",
-      event = "ShowSysStatistics",
-      title = _("System statistics"),
-      device = true,
-      separator = true,
-    }
-  )
+  Dispatcher:registerAction("system_statistics", {
+    category = "none",
+    event = "ShowSysStatistics",
+    title = _("System statistics"),
+    device = true,
+    separator = true,
+  })
 end
 
 function SystemStatWidget:init()

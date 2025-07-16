@@ -127,74 +127,53 @@ function AutoWarmth:init()
 end
 
 function AutoWarmth:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "show_ephemeris",
-    {
-      category = "none",
-      event = "ShowEphemeris",
-      title = _("Show ephemeris"),
-      general = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "auto_warmth_off",
-    {
-      category = "none",
-      event = "AutoWarmthOff",
-      title = _("Auto warmth off"),
-      screen = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "auto_warmth_activate_sun",
-    {
-      category = "none",
-      event = "AutoWarmthMode",
-      arg = activate_sun,
-      title = _("Auto warmth use sun position"),
-      screen = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "auto_warmth_activate_schedule",
-    {
-      category = "none",
-      event = "AutoWarmthMode",
-      arg = activate_schedule,
-      title = _("Auto warmth use schedule"),
-      screen = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "auto_warmth_activate_closer_midnight",
-    {
-      category = "none",
-      event = "AutoWarmthMode",
-      arg = activate_closer_midnight,
-      title = _("Auto warmth use closer midnight"),
-      screen = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "auto_warmth_activate_closer_noon",
-    {
-      category = "none",
-      event = "AutoWarmthMode",
-      arg = activate_closer_noon,
-      title = _("Auto warmth use closer noon"),
-      screen = true,
-    }
-  )
+  Dispatcher:registerAction("show_ephemeris", {
+    category = "none",
+    event = "ShowEphemeris",
+    title = _("Show ephemeris"),
+    general = true,
+  })
+  Dispatcher:registerAction("auto_warmth_off", {
+    category = "none",
+    event = "AutoWarmthOff",
+    title = _("Auto warmth off"),
+    screen = true,
+  })
+  Dispatcher:registerAction("auto_warmth_activate_sun", {
+    category = "none",
+    event = "AutoWarmthMode",
+    arg = activate_sun,
+    title = _("Auto warmth use sun position"),
+    screen = true,
+  })
+  Dispatcher:registerAction("auto_warmth_activate_schedule", {
+    category = "none",
+    event = "AutoWarmthMode",
+    arg = activate_schedule,
+    title = _("Auto warmth use schedule"),
+    screen = true,
+  })
+  Dispatcher:registerAction("auto_warmth_activate_closer_midnight", {
+    category = "none",
+    event = "AutoWarmthMode",
+    arg = activate_closer_midnight,
+    title = _("Auto warmth use closer midnight"),
+    screen = true,
+  })
+  Dispatcher:registerAction("auto_warmth_activate_closer_noon", {
+    category = "none",
+    event = "AutoWarmthMode",
+    arg = activate_closer_noon,
+    title = _("Auto warmth use closer noon"),
+    screen = true,
+  })
 
-  Dispatcher:registerAction(
-    "auto_warmth_cycle_trough",
-    {
-      category = "none",
-      event = "AutoWarmthMode",
-      title = _("Auto warmth cycle through modes"),
-      screen = true,
-    }
-  )
+  Dispatcher:registerAction("auto_warmth_cycle_trough", {
+    category = "none",
+    event = "AutoWarmthMode",
+    title = _("Auto warmth cycle through modes"),
+    screen = true,
+  })
 end
 
 function AutoWarmth:onShowEphemeris()

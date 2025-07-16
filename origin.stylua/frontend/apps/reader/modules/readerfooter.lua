@@ -1219,8 +1219,7 @@ function ReaderFooter:addToMainMenu(menu_items)
           (
             self.mode_list[option] == self.mode
             and self.settings[option] == false
-          )
-          or (prev_has_no_mode ~= self.has_no_mode)
+          ) or (prev_has_no_mode ~= self.has_no_mode)
         then
           -- current mode got disabled, redraw footer with other
           -- enabled modes. if all modes are disabled, then only show
@@ -1565,13 +1564,10 @@ function ReaderFooter:addToMainMenu(menu_items)
         callback = function()
           local item_table = {}
           for i = 1, #self.mode_index do
-            table.insert(
-              item_table,
-              {
-                text = self:textOptionTitles(self.mode_index[i]),
-                label = self.mode_index[i],
-              }
-            )
+            table.insert(item_table, {
+              text = self:textOptionTitles(self.mode_index[i]),
+              label = self.mode_index[i],
+            })
           end
           local SortWidget = require("ui/widget/sortwidget")
           local sort_item

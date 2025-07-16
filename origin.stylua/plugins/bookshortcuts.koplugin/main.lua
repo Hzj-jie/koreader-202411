@@ -28,16 +28,13 @@ function BookShortcuts:onDispatcherRegisterActions()
         local directory, filename = util.splitFilePathName(k) -- luacheck: no unused
         title = filename
       end
-      Dispatcher:registerAction(
-        k,
-        {
-          category = "none",
-          event = "BookShortcut",
-          title = title,
-          general = true,
-          arg = k,
-        }
-      )
+      Dispatcher:registerAction(k, {
+        category = "none",
+        event = "BookShortcut",
+        title = title,
+        general = true,
+        arg = k,
+      })
     end
   end
 end

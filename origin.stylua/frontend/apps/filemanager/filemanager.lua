@@ -1566,33 +1566,27 @@ function FileManager:showOpenWithDialog(file)
   local buttons = {}
   -- row: wide button
   if file_associated_provider_key then
-    table.insert(
-      buttons,
+    table.insert(buttons, {
       {
-        {
-          text = _("Reset default for this file"),
-          callback = function()
-            DocumentRegistry:setProvider(file, nil, false)
-            UIManager:close(dialog)
-          end,
-        },
-      }
-    )
+        text = _("Reset default for this file"),
+        callback = function()
+          DocumentRegistry:setProvider(file, nil, false)
+          UIManager:close(dialog)
+        end,
+      },
+    })
   end
   -- row: wide button
   if type_associated_provider_key then
-    table.insert(
-      buttons,
+    table.insert(buttons, {
       {
-        {
-          text = T(_("Reset default for %1 files"), filename_suffix),
-          callback = function()
-            DocumentRegistry:setProvider(file, nil, true)
-            UIManager:close(dialog)
-          end,
-        },
-      }
-    )
+        text = T(_("Reset default for %1 files"), filename_suffix),
+        callback = function()
+          DocumentRegistry:setProvider(file, nil, true)
+          UIManager:close(dialog)
+        end,
+      },
+    })
   end
   -- row: wide button
   local associated_providers = DocumentRegistry:getAssociatedProviderKey() -- hash table

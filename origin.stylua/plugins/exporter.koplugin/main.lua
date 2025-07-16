@@ -132,25 +132,19 @@ function Exporter:init()
 end
 
 function Exporter:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "export_current_notes",
-    {
-      category = "none",
-      event = "ExportCurrentNotes",
-      title = _("Export all notes in current book"),
-      reader = true,
-    }
-  )
-  Dispatcher:registerAction(
-    "export_all_notes",
-    {
-      category = "none",
-      event = "ExportAllNotes",
-      title = _("Export all notes in all books in history"),
-      reader = true,
-      filemanager = true,
-    }
-  )
+  Dispatcher:registerAction("export_current_notes", {
+    category = "none",
+    event = "ExportCurrentNotes",
+    title = _("Export all notes in current book"),
+    reader = true,
+  })
+  Dispatcher:registerAction("export_all_notes", {
+    category = "none",
+    event = "ExportAllNotes",
+    title = _("Export all notes in all books in history"),
+    reader = true,
+    filemanager = true,
+  })
 end
 
 function Exporter:isReady()

@@ -759,15 +759,12 @@ Aliases (shortcuts) to frequently used commands can be placed in:
 end
 
 function Terminal:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "terminal",
-    {
-      category = "none",
-      event = "TerminalStart",
-      title = _("Terminal emulator"),
-      device = true,
-    }
-  )
+  Dispatcher:registerAction("terminal", {
+    category = "none",
+    event = "TerminalStart",
+    title = _("Terminal emulator"),
+    device = true,
+  })
 end
 
 return Terminal

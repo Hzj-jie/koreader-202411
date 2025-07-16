@@ -487,9 +487,8 @@ end
 function DocSettings.removeSidecarDir(dir)
   if dir and isDir(dir) then
     if
-      dir:match("^" .. DOCSETTINGS_DIR) or dir:match(
-        "^" .. DOCSETTINGS_HASH_DIR
-      )
+      dir:match("^" .. DOCSETTINGS_DIR)
+      or dir:match("^" .. DOCSETTINGS_HASH_DIR)
     then
       util.removePath(dir) -- remove empty parent folders
     else

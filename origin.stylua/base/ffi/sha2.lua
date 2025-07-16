@@ -2361,11 +2361,8 @@ if branch == "LJ" then
           b,
           NORM(
             ROL(
-              XOR(c, AND(d, XOR(b, c))) + (
-                  K[j + 2]
-                  + W[AND(g + 10, 15) + 1]
-                  + a
-                ),
+              XOR(c, AND(d, XOR(b, c)))
+                + (K[j + 2] + W[AND(g + 10, 15) + 1] + a),
               14
             ) + b
           )

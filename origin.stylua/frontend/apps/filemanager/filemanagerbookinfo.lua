@@ -90,14 +90,11 @@ function BookInfo:show(doc_settings_or_file, book_props)
     kv_pairs,
     { _("File date:"), os.date("%Y-%m-%d %H:%M:%S", attr.modification) }
   )
-  table.insert(
-    kv_pairs,
-    {
-      _("Folder:"),
-      BD.dirpath(filemanagerutil.abbreviate(folder)),
-      separator = true,
-    }
-  )
+  table.insert(kv_pairs, {
+    _("Folder:"),
+    BD.dirpath(filemanagerutil.abbreviate(folder)),
+    separator = true,
+  })
 
   -- Book section
   -- book_props may be provided if caller already has them available
@@ -172,14 +169,11 @@ function BookInfo:show(doc_settings_or_file, book_props)
     })
   end
   -- pages
-  table.insert(
-    kv_pairs,
-    {
-      self.prop_text["pages"],
-      book_props["pages"] or _("N/A"),
-      separator = true,
-    }
-  )
+  table.insert(kv_pairs, {
+    self.prop_text["pages"],
+    book_props["pages"] or _("N/A"),
+    separator = true,
+  })
 
   -- Current page
   if self.document then
@@ -198,22 +192,16 @@ function BookInfo:show(doc_settings_or_file, book_props)
   local summary_hold_callback = function()
     self:editSummary(doc_settings_or_file, book_props)
   end
-  table.insert(
-    kv_pairs,
-    {
-      _("Rating:"),
-      ("★"):rep(rating) .. ("☆"):rep(self.rating_max - rating),
-      hold_callback = summary_hold_callback,
-    }
-  )
-  table.insert(
-    kv_pairs,
-    {
-      _("Review:"),
-      summary.note or _("N/A"),
-      hold_callback = summary_hold_callback,
-    }
-  )
+  table.insert(kv_pairs, {
+    _("Rating:"),
+    ("★"):rep(rating) .. ("☆"):rep(self.rating_max - rating),
+    hold_callback = summary_hold_callback,
+  })
+  table.insert(kv_pairs, {
+    _("Review:"),
+    summary.note or _("N/A"),
+    hold_callback = summary_hold_callback,
+  })
 
   local KeyValuePage = require("ui/widget/keyvaluepage")
   self.kvp_widget = KeyValuePage:new({

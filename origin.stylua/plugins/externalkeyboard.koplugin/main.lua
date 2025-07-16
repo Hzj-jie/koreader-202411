@@ -336,15 +336,12 @@ local function findKeyboards()
       if dev.matched then
         -- Check if it provides a DPad, too.
         local has_dpad = bit.band(dev.type, C.INPUT_DPAD) ~= 0
-        table.insert(
-          keyboards,
-          {
-            event_fd = tonumber(dev.fd),
-            event_path = ffi.string(dev.path),
-            name = ffi.string(dev.name),
-            has_dpad = has_dpad,
-          }
-        )
+        table.insert(keyboards, {
+          event_fd = tonumber(dev.fd),
+          event_path = ffi.string(dev.path),
+          name = ffi.string(dev.name),
+          has_dpad = has_dpad,
+        })
       end
     end
     C.free(devices)

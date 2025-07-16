@@ -60,16 +60,13 @@ function Profiles:onFlushSettings()
 end
 
 local function dispatcherRegisterProfile(name)
-  Dispatcher:registerAction(
-    Profiles.prefix .. name,
-    {
-      category = "none",
-      event = "ProfileExecute",
-      arg = name,
-      title = T(_("Profile %1"), name),
-      general = true,
-    }
-  )
+  Dispatcher:registerAction(Profiles.prefix .. name, {
+    category = "none",
+    event = "ProfileExecute",
+    arg = name,
+    title = T(_("Profile %1"), name),
+    general = true,
+  })
 end
 
 local function dispatcherUnregisterProfile(name)

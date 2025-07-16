@@ -592,18 +592,15 @@ function WordInfoDialog:init()
 
   local buttons = { { reset_button, remove_button } }
   if self.vocabbuilder.item.last_due_time then
-    table.insert(
-      buttons,
+    table.insert(buttons, {
       {
-        {
-          text = _("Undo study status"),
-          callback = function()
-            self.undo_callback()
-            UIManager:close(self)
-          end,
-        },
-      }
-    )
+        text = _("Undo study status"),
+        callback = function()
+          self.undo_callback()
+          UIManager:close(self)
+        end,
+      },
+    })
   end
 
   local focus_button = ButtonTable:new({
@@ -2251,16 +2248,13 @@ function VocabBuilder:onDictButtonsReady(dict_popup, buttons)
 end
 
 function VocabBuilder:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "show_vocab_builder",
-    {
-      category = "none",
-      event = "ShowVocabBuilder",
-      title = _("Open vocabulary builder"),
-      general = true,
-      separator = true,
-    }
-  )
+  Dispatcher:registerAction("show_vocab_builder", {
+    category = "none",
+    event = "ShowVocabBuilder",
+    title = _("Open vocabulary builder"),
+    general = true,
+    separator = true,
+  })
 end
 
 function VocabBuilder:onShowVocabBuilder()

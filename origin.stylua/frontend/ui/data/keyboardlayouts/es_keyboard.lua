@@ -4,16 +4,12 @@ local es_keyboard = dofile("frontend/ui/data/keyboardlayouts/en_keyboard.lua")
 local keys = es_keyboard.keys
 
 -- Insert an additional key at the end of 2nd row for easy Ñ and ñ
-table.insert(
-  keys[4],
-  7,
-  {
-    { "Ñ", north = "ñ" },
-    { "ñ", north = "Ñ" },
-    { "¿", alt_label = "¡" },
-    { "¡", alt_label = "¿" },
-  }
-)
+table.insert(keys[4], 7, {
+  { "Ñ", north = "ñ" },
+  { "ñ", north = "Ñ" },
+  { "¿", alt_label = "¡" },
+  { "¡", alt_label = "¿" },
+})
 
 -- put zero in its usual space under numpad (layers 3 and 4)
 keys[4][6][3], keys[4][7][3] = keys[4][7][3], keys[4][6][3]

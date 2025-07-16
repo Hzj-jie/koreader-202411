@@ -84,34 +84,22 @@ local function populateEventMappings()
       { "HoldSymAA", { { "Sym", "AA" }, event = "Hold" } }
     )
     -- half rows/columns move, it is helpful for slow device like Kindle DX to move quickly
-    table.insert(
-      event_keys,
-      {
-        "HalfFocusUp",
-        { { "Alt", "Up" }, event = "FocusHalfMove", args = { "up" } },
-      }
-    )
-    table.insert(
-      event_keys,
-      {
-        "HalfFocusRight",
-        { { "Alt", "Right" }, event = "FocusHalfMove", args = { "right" } },
-      }
-    )
-    table.insert(
-      event_keys,
-      {
-        "HalfFocusDown",
-        { { "Alt", "Down" }, event = "FocusHalfMove", args = { "down" } },
-      }
-    )
-    table.insert(
-      event_keys,
-      {
-        "HalfFocusLeft",
-        { { "Alt", "Left" }, event = "FocusHalfMove", args = { "left" } },
-      }
-    )
+    table.insert(event_keys, {
+      "HalfFocusUp",
+      { { "Alt", "Up" }, event = "FocusHalfMove", args = { "up" } },
+    })
+    table.insert(event_keys, {
+      "HalfFocusRight",
+      { { "Alt", "Right" }, event = "FocusHalfMove", args = { "right" } },
+    })
+    table.insert(event_keys, {
+      "HalfFocusDown",
+      { { "Alt", "Down" }, event = "FocusHalfMove", args = { "down" } },
+    })
+    table.insert(event_keys, {
+      "HalfFocusLeft",
+      { { "Alt", "Left" }, event = "FocusHalfMove", args = { "left" } },
+    })
     -- for PC navigation behavior support
     table.insert(
       event_keys,

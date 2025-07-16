@@ -93,7 +93,14 @@ keys[4][8][1] = { "ฝ", north = "ม", alt_label = "ม" }
 keys[4][8][2] = { "ม", north = "ฝ", alt_label = "ฝ" }
 table.insert(keys[4], 9, {
   { "์", north = "้", alt_label = "้" },
-  { "้", north = "์", alt_label = "์", south = "ุ", west = "๋", east = "ํ" },
+  {
+    "้",
+    north = "์",
+    alt_label = "์",
+    south = "ุ",
+    west = "๋",
+    east = "ํ",
+  },
   "๚",
   "๚",
 })

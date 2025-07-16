@@ -10,69 +10,47 @@ table.insert(keys[1], { "₺", "₺", "₺", "₺" })
 -- empty key to make extra keys on other rows fit
 table.insert(keys[1], { "", "", "", "" })
 -- Add Ğ, G with breve
-table.insert(
-  keys[2],
-  {
-    { "Ğ", north = "ğ" },
-    { "ğ", north = "Ğ" },
-    { "Ź", north = "ź" },
-    { "ź", north = "Ź" },
-  }
-)
+table.insert(keys[2], {
+  { "Ğ", north = "ğ" },
+  { "ğ", north = "Ğ" },
+  { "Ź", north = "ź" },
+  { "ź", north = "Ź" },
+})
 -- Add Ü, U with umlaut
-table.insert(
-  keys[2],
-  {
-    { "Ü", north = "ü" },
-    { "ü", north = "Ü" },
-    { "Ə", north = "ə" },
-    { "ə", north = "Ə" },
-  }
-)
+table.insert(keys[2], {
+  { "Ü", north = "ü" },
+  { "ü", north = "Ü" },
+  { "Ə", north = "ə" },
+  { "ə", north = "Ə" },
+})
 -- Add Ş, S with cedilla
-table.insert(
-  keys[3],
-  10,
-  {
-    { "Ş", north = "ş" },
-    { "ş", north = "Ş" },
-    { "Ḧ", north = "ḧ" },
-    { "ḧ", north = "Ḧ" },
-  }
-)
+table.insert(keys[3], 10, {
+  { "Ş", north = "ş" },
+  { "ş", north = "Ş" },
+  { "Ḧ", north = "ḧ" },
+  { "ḧ", north = "Ḧ" },
+})
 -- Add İ and i, dotted I and i
-table.insert(
-  keys[3],
-  11,
-  {
-    { "İ", north = "i" },
-    { "i", north = "İ" },
-    { "Ẍ", north = "ẍ" },
-    { "ẍ", north = "Ẍ" },
-  }
-)
+table.insert(keys[3], 11, {
+  { "İ", north = "i" },
+  { "i", north = "İ" },
+  { "Ẍ", north = "ẍ" },
+  { "ẍ", north = "Ẍ" },
+})
 -- Add Ö, O with umlaut
-table.insert(
-  keys[4],
-  9,
-  {
-    { "Ö", north = "ö" },
-    { "ö", north = "Ö" },
-    { "Ł", north = "ł" },
-    { "ł", north = "Ł" },
-  }
-)
+table.insert(keys[4], 9, {
+  { "Ö", north = "ö" },
+  { "ö", north = "Ö" },
+  { "Ł", north = "ł" },
+  { "ł", north = "Ł" },
+})
 -- Add Ç, C with cedilla
-table.insert(
-  keys[4],
-  10,
-  {
-    { "Ç", north = "ç" },
-    { "ç", north = "Ç" },
-    { "Ř", north = "ř" },
-    { "ř", north = "Ř" },
-  }
-)
+table.insert(keys[4], 10, {
+  { "Ç", north = "ç" },
+  { "ç", north = "Ç" },
+  { "Ř", north = "ř" },
+  { "ř", north = "Ř" },
+})
 
 -- change order "ḧ ẍ ," to ", ḧ ẍ"
 keys[3][10][3], keys[3][11][3], keys[3][12][3] =

@@ -462,7 +462,9 @@ function MenuItem:init()
   })
   local hgroup = HorizontalGroup:new({
     align = "center",
-    HorizontalSpan:new({ width = self.items_padding or Size.padding.fullscreen }),
+    HorizontalSpan:new({
+      width = self.items_padding or Size.padding.fullscreen,
+    }),
   })
   if self.shortcut then
     table.insert(

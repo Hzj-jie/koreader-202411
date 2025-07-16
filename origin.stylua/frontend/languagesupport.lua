@@ -229,18 +229,13 @@ function LanguageSupport:improveWordSelection(selection)
     return
   end
 
-  local new_pos0, new_pos1 = unpack(
-    self:_findAndCallPlugin(
-      language_code,
-      "WordSelection",
-      {
-        text = selection.text,
-        pos0 = selection.pos0,
-        pos1 = selection.pos1,
-        callbacks = callbacks,
-      }
-    ) or {}
-  )
+  local new_pos0, new_pos1 =
+    unpack(self:_findAndCallPlugin(language_code, "WordSelection", {
+      text = selection.text,
+      pos0 = selection.pos0,
+      pos1 = selection.pos1,
+      callbacks = callbacks,
+    }) or {})
   -- If no plugin could update the selection (or after "expansion" the
   -- selection is the same) then we can safely skip all of the subsequent
   -- re-selection work.

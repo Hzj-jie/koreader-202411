@@ -489,16 +489,13 @@ function ReaderStyleTweak:onSaveSettings()
 end
 
 local function dispatcherRegisterStyleTweak(tweak_id, tweak_title)
-  Dispatcher:registerAction(
-    ReaderStyleTweak.dispatcher_prefix .. tweak_id,
-    {
-      category = "none",
-      event = "ToggleStyleTweak",
-      arg = tweak_id,
-      title = T(_("Toggle style tweak: %1"), tweak_title),
-      rolling = true,
-    }
-  )
+  Dispatcher:registerAction(ReaderStyleTweak.dispatcher_prefix .. tweak_id, {
+    category = "none",
+    event = "ToggleStyleTweak",
+    arg = tweak_id,
+    title = T(_("Toggle style tweak: %1"), tweak_title),
+    rolling = true,
+  })
 end
 
 local function dispatcherUnregisterStyleTweak(tweak_id)
@@ -1263,32 +1260,29 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
                         local sub_is_info_only = sub_suggestion[3]
                         local sub_text = sub_is_info_only and sub_title
                           or BD.ltr(sub_title)
-                        table.insert(
-                          sub_buttons,
+                        table.insert(sub_buttons, {
                           {
-                            {
-                              text = sub_text,
-                              align = "left",
-                              callback = function()
-                                if sub_is_info_only then
-                                  UIManager:show(
-                                    InfoMessage:new({ text = sub_description })
-                                  )
-                                  return
-                                end
-                                UIManager:close(sub_suggestions_popup_widget)
-                                UIManager:close(suggestions_popup_widget)
-                                editor:addTextToInput(sub_title)
+                            text = sub_text,
+                            align = "left",
+                            callback = function()
+                              if sub_is_info_only then
+                                UIManager:show(
+                                  InfoMessage:new({ text = sub_description })
+                                )
+                                return
+                              end
+                              UIManager:close(sub_suggestions_popup_widget)
+                              UIManager:close(suggestions_popup_widget)
+                              editor:addTextToInput(sub_title)
+                            end,
+                            hold_callback = sub_description
+                              and function()
+                                UIManager:show(
+                                  InfoMessage:new({ text = sub_description })
+                                )
                               end,
-                              hold_callback = sub_description
-                                and function()
-                                  UIManager:show(
-                                    InfoMessage:new({ text = sub_description })
-                                  )
-                                end,
-                            },
-                          }
-                        )
+                          },
+                        })
                       end
                       local anchor_func = function()
                         local d = suggestions_popup_widget

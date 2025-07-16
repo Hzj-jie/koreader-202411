@@ -1706,21 +1706,18 @@ function PageBrowserWidget:onThumbnailHold(page, ges)
   end
   if handmade_hidden_flows_edit_enabled then
     local is_in_hidden_flow = self.ui.handmade:isInHiddenFlow(page)
-    table.insert(
-      buttons,
+    table.insert(buttons, {
       {
-        {
-          text = is_in_hidden_flow and _("Restart regular flow here")
-            or _("Start hidden flow here"),
-          align = "left",
-          callback = function()
-            UIManager:close(button_dialog)
-            self.ui.handmade:toggleHiddenFlow(page)
-            self:updateEditableStuff(true)
-          end,
-        },
-      }
-    )
+        text = is_in_hidden_flow and _("Restart regular flow here")
+          or _("Start hidden flow here"),
+        align = "left",
+        callback = function()
+          UIManager:close(button_dialog)
+          self.ui.handmade:toggleHiddenFlow(page)
+          self:updateEditableStuff(true)
+        end,
+      },
+    })
   end
   button_dialog = ButtonDialog:new({
     shrink_unneeded_width = true,

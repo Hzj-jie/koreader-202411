@@ -22,15 +22,12 @@ local Hello = WidgetContainer:extend({
 })
 
 function Hello:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "helloworld_action",
-    {
-      category = "none",
-      event = "HelloWorld",
-      title = _("Hello World"),
-      general = true,
-    }
-  )
+  Dispatcher:registerAction("helloworld_action", {
+    category = "none",
+    event = "HelloWorld",
+    title = _("Hello World"),
+    general = true,
+  })
 end
 
 function Hello:init()
