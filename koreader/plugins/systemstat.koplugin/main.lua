@@ -137,6 +137,7 @@ local SystemStat = {
   suspend_time = nil,
   resume_time = nil,
   wakeup_count = 0,
+  discharge_time = nil,
   discharge_count = 0,
 }
 
@@ -153,14 +154,15 @@ function SystemStat:init()
 
   -- Account for a start-up mid-charge
   local powerd = Device:getPowerDevice()
+  local discharging = false
   if Device:hasAuxBattery() and powerd:isAuxBatteryConnected() then
-    if not powerd:isAuxCharging() or powerd:isAuxCharged() then
-      self.discharge_count = self.discharge_count + 1
-    end
+    discharging = not powerd:isAuxCharging() or powerd:isAuxCharged()
   else
-    if not powerd:isCharging() or powerd:isCharged() then
-      self.discharge_count = self.discharge_count + 1
-    end
+    discharging = not powerd:isCharging() or powerd:isCharged()
+  end
+  if discharging then
+    self.discharge_count = self.discharge_count + 1
+    self.discharge_time = time.realtime()
   end
 end
 
@@ -228,6 +230,13 @@ function SystemStat:appendCounters()
         .. " ("
         .. Math.round((standby / uptime) * 100)
         .. "%)",
+    })
+  end
+  if self.discharge_time then
+    -- Need localization.
+    self:put({
+      "  " .. _("Start discharging at"),
+      datetime.secondsToDateTime(time.to_s(self.discharge_time), nil, true),
     })
   end
   self:putSeparator()
@@ -440,6 +449,7 @@ function SystemStat:onResume()
 end
 
 function SystemStat:onNotCharging()
+  self.discharge_time = time.realtime()
   self.discharge_count = self.discharge_count + 1
 end
 
