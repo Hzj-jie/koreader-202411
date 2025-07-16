@@ -22,7 +22,7 @@ local DEPRECATION_MESSAGES = {
   ),
 }
 
-local UNDISABLE_PLUGINS = {
+local INVISIBLE_PLUGINS = {
   backgroundrunner = true,
 }
 
@@ -125,7 +125,7 @@ function PluginLoader:loadPlugins()
   if type(plugins_disabled) ~= "table" then
     plugins_disabled = {}
   end
-  for entry in pairs(UNDISABLE_PLUGINS) do
+  for entry in pairs(INVISIBLE_PLUGINS) do
     plugins_disabled[entry] = false
   end
   for _, lookup_path in ipairs(lookup_path_list) do
@@ -215,33 +215,34 @@ function PluginLoader:genPluginManagerSubItem()
   end
 
   local plugin_table = {}
-  for __, plugin in ipairs(self.all_plugins) do
-    table.insert(plugin_table, {
-      text = plugin.fullname,
-      enabled = not UNDISABLE_PLUGINS[plugin.name],
-      checked_func = function()
-        return plugin.enable
-      end,
-      callback = function()
-        local UIManager = require("ui/uimanager")
-        local _ = require("gettext")
-        local plugins_disabled = G_reader_settings:readSetting(
-          "plugins_disabled"
-        ) or {}
-        plugin.enable = not plugin.enable
-        if plugin.enable then
-          plugins_disabled[plugin.name] = nil
-        else
-          plugins_disabled[plugin.name] = true
-        end
-        G_reader_settings:saveSetting("plugins_disabled", plugins_disabled)
-        if self.show_info then
-          self.show_info = false
-          UIManager:askForRestart()
-        end
-      end,
-      help_text = plugin.description,
-    })
+  for _, plugin in ipairs(self.all_plugins) do
+    if not INVISIBLE_PLUGINS[plugin.name] then
+      table.insert(plugin_table, {
+        text = plugin.fullname,
+        checked_func = function()
+          return plugin.enable
+        end,
+        callback = function()
+          local UIManager = require("ui/uimanager")
+          local _ = require("gettext")
+          local plugins_disabled = G_reader_settings:readSetting(
+            "plugins_disabled"
+          ) or {}
+          plugin.enable = not plugin.enable
+          if plugin.enable then
+            plugins_disabled[plugin.name] = nil
+          else
+            plugins_disabled[plugin.name] = true
+          end
+          G_reader_settings:saveSetting("plugins_disabled", plugins_disabled)
+          if self.show_info then
+            self.show_info = false
+            UIManager:askForRestart()
+          end
+        end,
+        help_text = plugin.description,
+      })
+    end
   end
   return plugin_table
 end
