@@ -441,12 +441,10 @@ Do you want to create an empty database?
       end
 
       logger.info("ReaderStatistics: DB migration complete")
-      UIManager:show(
-        InfoMessage:new({
-          text = _("Statistics database updated."),
-          timeout = 3,
-        })
-      )
+      UIManager:show(InfoMessage:new({
+        text = _("Statistics database updated."),
+        timeout = 3,
+      }))
     elseif db_version > DB_SCHEMA_VERSION then
       logger.warn(
         "ReaderStatistics: You appear to be using a database with an unknown schema version:",

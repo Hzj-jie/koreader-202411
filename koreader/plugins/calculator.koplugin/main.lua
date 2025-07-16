@@ -134,15 +134,12 @@ function Calculator:addToMainMenu(menu_items)
 end
 
 function Calculator:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "show_calculator",
-    {
-      category = "none",
-      event = "CalculatorStart",
-      title = _("Calculator"),
-      device = true,
-    }
-  )
+  Dispatcher:registerAction("show_calculator", {
+    category = "none",
+    event = "CalculatorStart",
+    title = _("Calculator"),
+    device = true,
+  })
 end
 
 function Calculator:getString(format, table)
