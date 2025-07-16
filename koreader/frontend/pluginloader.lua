@@ -167,7 +167,9 @@ function PluginLoader:loadPlugins()
                 plugin_module[k] = v
               end
             end
-            sandboxPluginEventHandlers(plugin_module)
+            if not INVISIBLE_PLUGINS[plugin_module.name] then
+              sandboxPluginEventHandlers(plugin_module)
+            end
             table.insert(self.enabled_plugins, plugin_module)
           end
         else
