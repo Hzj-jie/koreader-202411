@@ -14,23 +14,15 @@ local Util = require("util")
 local VirtualKeyboard = require("ui/widget/virtualkeyboard")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local T = require("ffi/util").template
-local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("ffi/util")
 local _ = require("gettext")
 
-local EXTERNAL_PLUGIN = DataStorage:getDataDir()
-  .. "/plugins/calculator.koplugin/formulaparser"
-if lfs.attributes(EXTERNAL_PLUGIN, "mode") == "directory" then
-  package.path = string.format("%s/?.lua;%s", EXTERNAL_PLUGIN, package.path)
-end
-
 local CalculatorSettingsDialog = require("calculatorsettingsdialog")
 local CalculatorConvertDialog = require("calculatorconvertdialog")
-local Parser = require("formulaparser")
+local Parser = require("formulaparser/formulaparser")
 
-local VERSION_FILE = DataStorage:getDataDir()
-  .. "/plugins/calculator.koplugin/VERSION"
+local VERSION_FILE = "plugins/calculator.koplugin/VERSION"
 local LATEST_VERSION =
   "https://raw.githubusercontent.com/zwim/calculator.koplugin/master/VERSION"
 
@@ -41,14 +33,13 @@ local Calculator = WidgetContainer:new({
     "calculator_output_path"
   ) or util.realpath(DataStorage:getDataDir()) .. "/output.calc",
   calculator_input_path = G_reader_settings:readSetting(
-    "calculator_output_path"
+    "calculator_input_path"
   ) or util.realpath(DataStorage:getDataDir()) .. "/input.calc",
-  init_file = util.realpath(DataStorage:getDataDir())
-    .. "/plugins/calculator.koplugin/init.calc",
+  init_file = "plugins/calculator.koplugin/init.calc",
   use_init_file = G_reader_settings:readSetting("calculator_use_init_file")
     or "yes",
-  load_file = G_reader_settings:readSetting("calculator_input_path")
-    or util.realpath(DataStorage:getDataDir()) .. "/init.calc",
+  load_file = G_reader_settings:readSetting("calculator_init_path")
+    or init_file,
   history = "",
   i_num = 1, -- number of next input
   input = {},
@@ -92,7 +83,7 @@ function Calculator:init()
         end,
         callback = function()
           self:convertUnit(this.selected_text.text)
-          this:onClose()
+          this:onExit()
         end,
       }
     end)
@@ -125,7 +116,7 @@ end
 function Calculator:addToMainMenu(menu_items)
   menu_items.calculator = {
     text = _("Calculator"),
-    sorting_hint = "more_tools",
+    sorting_hint = "tools",
     keep_menu_open = true,
     callback = function()
       self:onCalculatorStart()
@@ -398,7 +389,7 @@ function Calculator:onCalculatorStart()
   )
 
   UIManager:show(self.input_dialog)
-  self.input_dialog:onShowKeyboard(true)
+  self.input_dialog:showKeyboard(true)
 end
 
 function Calculator:load(old_file, file_name)
