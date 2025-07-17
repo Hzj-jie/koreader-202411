@@ -156,11 +156,11 @@ function Calculator:getStatusLine()
   )
 end
 
-function Calculator:generateInputDialog(status_line, hint)
-  hint = _([[Enter your calculations and press '⮠'
+function Calculator:generateInputDialog(status_line)
+  local hint = _([[Enter your calculations and press '⮠'
 '♺' Convert, '⎚' Clear, '⇧' Load,
 '⇩' Store, '☰' Settings, '✕' Close
-or type 'help()⮠']]) .. (hint or "")
+or type 'help()⮠']])
 
   return InputDialog:new({
     title = _("Calculator"),
@@ -348,44 +348,19 @@ function Calculator:onCalculatorStart()
 
   self.status_line = self.status_line or self:getStatusLine()
 
-  local current_version = self:getCurrentVersion()
-  logger.info(
-    "Calculator koplugin: current version " .. tostring(current_version)
-  )
-  local latest_version = self:getLatestVersion(LATEST_VERSION, 20, 60)
-  logger.info(
-    "Calculator koplugin: latest version " .. tostring(latest_version)
-  )
-
-  local hint = ""
-  if
-    latest_version
-    and current_version
-    and latest_version > current_version
-  then
-    hint = hint .. "\n\n" .. _("A calculator update is available:") .. "\n"
-    if current_version then
-      hint = hint .. "Current-" .. current_version
-    end
-    if latest_version then
-      hint = hint .. "Latest-" .. latest_version
-    end
-  end
-
   -- fill status line with spaces
   local expand = -1 -- expand tabs with x spaces
   self.input_dialog =
-    self:generateInputDialog(self:expandTabs(self.status_line, 1), hint)
+    self:generateInputDialog(self:expandTabs(self.status_line, 1))
   local old_height = self.input_dialog.title_bar:getHeight()
   repeat
     expand = expand + 1
     self.input_dialog =
-      self:generateInputDialog(self:expandTabs(self.status_line, expand), hint)
+      self:generateInputDialog(self:expandTabs(self.status_line, expand))
   until expand > 50 or self.input_dialog.title_bar:getHeight() ~= old_height
 
   self.input_dialog = self:generateInputDialog(
-    self:expandTabs(self.status_line, expand - 1),
-    hint
+    self:expandTabs(self.status_line, expand - 1)
   )
 
   UIManager:show(self.input_dialog)
@@ -636,62 +611,6 @@ function Calculator:calculate(input_text)
     end
     self.history = self.history:gsub("\n\n", "\n")
   end
-end
-
-function Calculator:getCurrentVersion()
-  local file = io.open(VERSION_FILE, "r")
-  local version
-  if file then
-    version = file:read("*a")
-    file:close()
-  else
-    logger.warn("Did not find version file " .. VERSION_FILE)
-  end
-  return version
-end
-
-function Calculator:getLatestVersion(url, timeout, maxtime)
-  local http = require("socket.http")
-  local ltn12 = require("ltn12")
-  local socket = require("socket")
-  local socketutil = require("socketutil")
-
-  local sink = {}
-  socketutil:set_timeout(timeout or 3, maxtime or 5)
-  local request = {
-    url = url,
-    method = "GET",
-    sink = maxtime and socketutil.table_sink(sink) or ltn12.sink.table(sink),
-  }
-
-  local code, headers, status = socket.skip(1, http.request(request))
-  socketutil:reset_timeout()
-  local content = table.concat(sink) -- empty or content accumulated till now
-
-  if
-    code == socketutil.TIMEOUT_CODE
-    or code == socketutil.SSL_HANDSHAKE_CODE
-    or code == socketutil.SINK_TIMEOUT_CODE
-  then
-    logger.warn("request interrupted:", code)
-    return false, code
-  end
-  if headers == nil then
-    logger.warn("No HTTP headers:", code, status)
-    return false, "Network or remote server unavailable"
-  end
-  if not code or string.sub(code, 1, 1) ~= "2" then -- all 200..299 HTTP codes are OK
-    logger.warn("HTTP status not okay:", code, status)
-    return false, "Remote server error or unavailable"
-  end
-  if headers and headers["content-length"] then
-    -- Check we really got the announced content size
-    local content_length = tonumber(headers["content-length"])
-    if #content ~= content_length then
-      return false, "Incomplete content received"
-    end
-  end
-  return content
 end
 
 return Calculator
