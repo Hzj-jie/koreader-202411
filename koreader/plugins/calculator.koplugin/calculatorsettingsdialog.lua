@@ -29,7 +29,6 @@ local util = require("util")
 local Parser = require("formulaparser/formulaparser")
 
 local CalculatorSettingsDialog = InputContainer:new({
-  is_always_active = true,
   title = _("Calculator settings"),
   modal = true,
   stop_events_propagation = true,

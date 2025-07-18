@@ -124,7 +124,6 @@ local temperature_table = {
 }
 
 local CalculatorConvertDialog = InputContainer:new({
-  is_always_active = true,
   title = title or _("Convert"),
   modal = true,
   width = math.floor(Screen:getWidth() * 0.8),

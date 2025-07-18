@@ -23,7 +23,6 @@ local _ = require("gettext")
 local Screen = require("device").screen
 
 local CalculatorUnitsDialog = InputContainer:new({
-  is_always_active = true,
   title = _("Units to convert"),
   modal = true,
   stop_events_propagation = true,
