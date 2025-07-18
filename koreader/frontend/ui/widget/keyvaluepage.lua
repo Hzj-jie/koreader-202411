@@ -303,8 +303,6 @@ local KeyValuePage = FocusManager:extend({
   title_bar_left_icon = nil,
   title_bar_left_icon_tap_callback = nil,
   title_bar_left_icon_hold_callback = nil,
-  -- Disallow other widgets behind to hijack the events.
-  stop_events_propagation = true,
 })
 
 function KeyValuePage:init()
