@@ -154,15 +154,14 @@ function SystemStat:init()
 
   -- Account for a start-up mid-charge
   local powerd = Device:getPowerDevice()
-  local discharging = false
   if Device:hasAuxBattery() and powerd:isAuxBatteryConnected() then
-    discharging = not powerd:isAuxCharging() or powerd:isAuxCharged()
+    if not powerd:isAuxCharging() or powerd:isAuxCharged() then
+      self.discharge_count = self.discharge_count + 1
+    end
   else
-    discharging = not powerd:isCharging() or powerd:isCharged()
-  end
-  if discharging then
-    self.discharge_count = self.discharge_count + 1
-    self.discharge_time = time.realtime()
+    if not powerd:isCharging() or powerd:isCharged() then
+      self.discharge_count = self.discharge_count + 1
+    end
   end
 end
 
