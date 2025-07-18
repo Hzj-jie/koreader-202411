@@ -359,9 +359,8 @@ function Calculator:onCalculatorStart()
       self:generateInputDialog(self:expandTabs(self.status_line, expand))
   until expand > 50 or self.input_dialog.title_bar:getHeight() ~= old_height
 
-  self.input_dialog = self:generateInputDialog(
-    self:expandTabs(self.status_line, expand - 1)
-  )
+  self.input_dialog =
+    self:generateInputDialog(self:expandTabs(self.status_line, expand - 1))
 
   UIManager:show(self.input_dialog)
   self.input_dialog:showKeyboard(true)

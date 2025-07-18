@@ -61,21 +61,6 @@ local function getMenuTable(plugin)
   return t
 end
 
-local function sandboxPluginEventHandlers(plugin)
-  for key, value in pairs(plugin) do
-    if key:sub(1, 2) == "on" and type(value) == "function" then
-      plugin[key] = function(self, ...)
-        local ok, re = pcall(value, self, ...)
-        if ok then
-          return re
-        end
-        logger.err("failed to call event handler", key, re)
-        return false
-      end
-    end
-  end
-end
-
 local PluginLoader = {
   show_info = true,
   enabled_plugins = nil,
@@ -148,30 +133,23 @@ function PluginLoader:loadPlugins()
         package.path = string.format("%s/?.lua;%s", plugin_root, package_path)
         package.cpath =
           string.format("%s/lib/?.so;%s", plugin_root, package_cpath)
-        local ok, plugin_module = pcall(dofile, mainfile)
-        if not ok or not plugin_module then
-          logger.warn("Error when loading", mainfile, plugin_module)
-        elseif
-          type(plugin_module.disabled) ~= "boolean"
-          or not plugin_module.disabled
-        then
+        local plugin_module = dofile(mainfile)
+        assert(plugin_module ~= nil)
+        assert(
+          plugin_module.disabled == nil
+            or type(plugin_module.disabled) == "boolean"
+        )
+        if not plugin_module.disabled then
           plugin_module.path = plugin_root
           plugin_module.name = plugin_module.name
             or plugin_root:match("/(.-)%.koplugin")
           if plugins_disabled[plugin_name] then
             table.insert(self.disabled_plugins, plugin_module)
           else
-            local ok_meta, plugin_metamodule = pcall(dofile, metafile)
-            if ok_meta and plugin_metamodule then
-              for k, v in pairs(plugin_metamodule) do
-                plugin_module[k] = v
-              end
-            end
-            if
-              not INVISIBLE_PLUGINS[plugin_module.name]
-              and G_defaults:isFalse("DEV_MODE")
-            then
-              sandboxPluginEventHandlers(plugin_module)
+            local plugin_metamodule = dofile(metafile)
+            assert(plugin_metamodule)
+            for k, v in pairs(plugin_metamodule) do
+              plugin_module[k] = v
             end
             table.insert(self.enabled_plugins, plugin_module)
           end
