@@ -1,0 +1,4 @@
+# Never ignore anything in pw2/ kobo/ etc, folders. Anything inside will be
+# copied to the devices via push.sh or similar commands.
+
+lua/lua-*/
