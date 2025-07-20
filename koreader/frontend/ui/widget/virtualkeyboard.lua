@@ -60,7 +60,9 @@ function VirtualKey:init()
     "keyboard_key_font_size"
   ) or DEFAULT_LABEL_SIZE
   self.face = Font:getFace("infont", label_font_size)
-  self.bold = G_reader_settings:isTrue("keyboard_key_bold")
+  if self.bold == nil then
+    self.bold = G_reader_settings:isTrue("keyboard_key_bold")
+  end
   if self.keyboard.symbolmode_keys[self.label] ~= nil then
     self.callback = function()
       self.keyboard:setLayer("Sym")
@@ -346,7 +348,10 @@ function VirtualKey:init()
         or self.keyboard.shiftmode_keys[self.key]
       ) and self.keyboard.shiftmode
     )
-    or (self.keyboard.umlautmode_keys[self.label] ~= nil and self.keyboard.umlautmode)
+    or (
+      self.keyboard.umlautmode_keys[self.label] ~= nil
+      and self.keyboard.umlautmode
+    )
     or (
       self.keyboard.symbolmode_keys[self.label] ~= nil
       and self.keyboard.symbolmode
@@ -1111,17 +1116,14 @@ function VirtualKeyboard:hideKeyboard()
 end
 
 function VirtualKeyboard:initLayer(layer)
-  local function VKLayer(b1, b2, b3)
-    local function boolnum(bool)
-      return bool and 1 or 0
-    end
-    return 2 - boolnum(b1) + 2 * boolnum(b2) + 4 * boolnum(b3)
+  local function normalize(layer)
+    -- to be sure layer is selected properly
+    layer = math.max(layer, self.min_layer)
+    return math.min(layer, self.max_layer)
   end
 
   if layer then
-    -- to be sure layer is selected properly
-    layer = math.max(layer, self.min_layer)
-    layer = math.min(layer, self.max_layer)
+    layer = normalize(layer)
     self.keyboard_layer = layer
     -- fill the layer modes
     self.shiftmode = (
@@ -1142,8 +1144,15 @@ function VirtualKeyboard:initLayer(layer)
     )
     self.umlautmode = (layer == 5 or layer == 6 or layer == 7 or layer == 8)
   else -- or, without input parameter, restore layer from current layer modes
-    self.keyboard_layer =
-      VKLayer(self.shiftmode, self.symbolmode, self.umlautmode)
+    local function boolnum(bool)
+      return bool and 1 or 0
+    end
+    self.keyboard_layer = normalize(
+      2
+        - boolnum(self.shiftmode)
+        + 2 * boolnum(self.symbolmode)
+        + 4 * boolnum(self.umlautmode)
+    )
   end
   self:addKeys()
 end

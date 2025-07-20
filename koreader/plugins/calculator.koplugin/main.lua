@@ -91,16 +91,14 @@ function Calculator:init()
 end
 
 function Calculator:addKeyboard()
-  VirtualKeyboard.lang_to_keyboard_layout[_("Calculator")] = "calc_keyboard"
-  VirtualKeyboard.layout_file = "calc_keyboard"
+  VirtualKeyboard.lang_to_keyboard_layout["Calculator"] = "calc_keyboard"
   self.original_keyboard_layout =
     G_reader_settings:readSetting("keyboard_layout")
   G_reader_settings:saveSetting("keyboard_layout", "Calculator")
 end
 
 function Calculator:restoreKeyboard()
-  VirtualKeyboard.lang_to_keyboard_layout[_("Calculator")] = nil
-  VirtualKeyboard.layout_file = nil
+  VirtualKeyboard.lang_to_keyboard_layout["Calculator"] = nil
 
   G_reader_settings:saveSetting(
     "keyboard_layout",
