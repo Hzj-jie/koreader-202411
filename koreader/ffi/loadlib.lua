@@ -140,7 +140,8 @@ if android then
       return package.loadlib(path, "luaopen_" .. modulename:sub(18))
     end)
   end
-elseif ffi.os == "Linux" then
+elseif ffi.os == "Linux" or ffi.os == nil then
+  -- ffi.os is not defined in lua-ffi, but only in luajit.
   lib_search_path = "libs/?"
   -- Unversioned: libz.so
   lib_basic_format = "lib%s.so"
