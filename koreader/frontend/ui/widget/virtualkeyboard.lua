@@ -348,10 +348,7 @@ function VirtualKey:init()
         or self.keyboard.shiftmode_keys[self.key]
       ) and self.keyboard.shiftmode
     )
-    or (
-      self.keyboard.umlautmode_keys[self.label] ~= nil
-      and self.keyboard.umlautmode
-    )
+    or (self.keyboard.umlautmode_keys[self.label] ~= nil and self.keyboard.umlautmode)
     or (
       self.keyboard.symbolmode_keys[self.label] ~= nil
       and self.keyboard.symbolmode
