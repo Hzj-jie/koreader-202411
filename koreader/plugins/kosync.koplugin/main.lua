@@ -77,7 +77,7 @@ function KOSync:init()
     self.periodic_push_scheduled = false
     self.page_update_counter = 0
     -- We do *NOT* want to make sure networking is up here, as the nagging would be extremely annoying; we're leaving that to the network activity check...
-    self:updateProgress(false, false)
+    self:_updateProgress(false, false)
   end
 
   self.settings = G_reader_settings:readSetting("kosync")
@@ -99,7 +99,7 @@ function KOSync:init()
   self.ui.menu:registerToMainMenu(self)
 end
 
-function KOSync:getSyncPeriod()
+function KOSync:_getSyncPeriod()
   if not self.settings.auto_sync then
     return _("Not available")
   end
@@ -197,7 +197,7 @@ end
 function KOSync:onReaderReady()
   if self.settings.auto_sync then
     UIManager:nextTick(function()
-      self:getProgress(true, false)
+      self:_getProgress(true, false)
     end)
   end
   -- NOTE: Keep in mind that, on Android, turning on WiFi requires a focus switch, which will trip a Suspend/Resume pair.
@@ -236,11 +236,11 @@ function KOSync:addToMainMenu(menu_items)
         callback_func = function()
           if self.settings.userkey then
             return function(menu)
-              self:logout(menu)
+              self:_logout(menu)
             end
           else
             return function(menu)
-              self:login(menu)
+              self:_login(menu)
             end
           end
         end,
@@ -274,11 +274,11 @@ function KOSync:addToMainMenu(menu_items)
           if self.settings.auto_sync then
             -- Since we will update the progress when closing the document,
             -- pull the current progress now so as not to silently overwrite it.
-            self:getProgress(true, true)
+            self:_getProgress(true, true)
           else
             -- Since we won't update the progress when closing the document,
             -- push the current progress now so as not to lose it.
-            self:updateProgress(true, true)
+            self:_updateProgress(true, true)
           end
         end,
       },
@@ -286,7 +286,7 @@ function KOSync:addToMainMenu(menu_items)
         text_func = function()
           return T(
             _("Periodically sync every # pages (%1)"),
-            self:getSyncPeriod()
+            self:_getSyncPeriod()
           )
         end,
         enabled_func = function()
@@ -314,7 +314,9 @@ If set to 0, updating progress based on page turns will be disabled.]]
             title_text = _("Number of pages before update"),
             default_value = 0,
             callback = function(spin)
-              self:setPagesBeforeUpdate(spin.value)
+              self.settings.pages_before_update = (spin.value > 0
+                  and pages_before_update
+                or nil)
               if touchmenu_instance then
                 touchmenu_instance:updateItems()
               end
@@ -411,7 +413,7 @@ If set to 0, updating progress based on page turns will be disabled.]]
           return self.settings.userkey ~= nil
         end,
         callback = function()
-          self:updateProgress(true, true)
+          self:_updateProgress(true, true)
         end,
       },
       {
@@ -420,7 +422,7 @@ If set to 0, updating progress based on page turns will be disabled.]]
           return self.settings.userkey ~= nil
         end,
         callback = function()
-          self:getProgress(true, true)
+          self:_getProgress(true, true)
         end,
         separator = true,
       },
@@ -453,12 +455,6 @@ If set to 0, updating progress based on page turns will be disabled.]]
   }
 end
 
-function KOSync:setPagesBeforeUpdate(pages_before_update)
-  self.settings.pages_before_update = pages_before_update > 0
-      and pages_before_update
-    or nil
-end
-
 function KOSync:setCustomServer(server)
   logger.dbg("KOSync: Setting custom server to:", server)
   self.settings.custom_server = server ~= "" and server or nil
@@ -476,9 +472,9 @@ function KOSync:setChecksumMethod(method)
   self.settings.checksum_method = method
 end
 
-function KOSync:login(menu)
+function KOSync:_login(menu)
   if NetworkMgr:willRerunWhenOnline(function()
-    self:login(menu)
+    self:_login(menu)
   end) then
     return
   end
@@ -518,7 +514,7 @@ function KOSync:login(menu)
             else
               UIManager:close(dialog)
               UIManager:scheduleIn(0.5, function()
-                self:doLogin(username, password, menu)
+                self:_doLogin(username, password, menu)
               end)
               UIManager:show(InfoMessage:new({
                 text = _("Logging in. Please wait…"),
@@ -540,7 +536,7 @@ function KOSync:login(menu)
             else
               UIManager:close(dialog)
               UIManager:scheduleIn(0.5, function()
-                self:doRegister(username, password, menu)
+                self:_doRegister(username, password, menu)
               end)
               UIManager:show(InfoMessage:new({
                 text = _("Registering. Please wait…"),
@@ -556,7 +552,7 @@ function KOSync:login(menu)
   dialog:showKeyboard()
 end
 
-function KOSync:doRegister(username, password, menu)
+function KOSync:_doRegister(username, password, menu)
   local KOSyncClient = require("KOSyncClient")
   local client = KOSyncClient:new({
     custom_url = self.settings.custom_server,
@@ -593,7 +589,7 @@ function KOSync:doRegister(username, password, menu)
   Device:setIgnoreInput(false)
 end
 
-function KOSync:doLogin(username, password, menu)
+function KOSync:_doLogin(username, password, menu)
   local KOSyncClient = require("KOSyncClient")
   local client = KOSyncClient:new({
     custom_url = self.settings.custom_server,
@@ -631,7 +627,7 @@ function KOSync:doLogin(username, password, menu)
   Device:setIgnoreInput(false)
 end
 
-function KOSync:logout(menu)
+function KOSync:_logout(menu)
   self.settings.userkey = nil
   self.settings.auto_sync = true
   if menu then
@@ -639,7 +635,7 @@ function KOSync:logout(menu)
   end
 end
 
-function KOSync:getLastPercent()
+function KOSync:_getLastPercent()
   if self.ui.document.info.has_pages then
     return Math.roundPercent(self.ui.paging:getLastPercent())
   else
@@ -647,7 +643,7 @@ function KOSync:getLastPercent()
   end
 end
 
-function KOSync:getLastProgress()
+function KOSync:_getLastProgress()
   if self.ui.document.info.has_pages then
     return self.ui.paging:getLastProgress()
   else
@@ -655,34 +651,29 @@ function KOSync:getLastProgress()
   end
 end
 
-function KOSync:getDocumentDigest()
-  if self.settings.checksum_method == CHECKSUM_METHOD.FILENAME then
-    return self:getFileNameDigest()
-  else
-    return self:getFileDigest()
+function KOSync:_getDocumentDigest()
+  if self.settings.checksum_method ~= CHECKSUM_METHOD.FILENAME then
+    return self.ui.doc_settings:readSetting("partial_md5_checksum")
   end
-end
-
-function KOSync:getFileDigest()
-  return self.ui.doc_settings:readSetting("partial_md5_checksum")
-end
-
-function KOSync:getFileNameDigest()
   local file = self.ui.document.file
   if not file then
-    return
+    return nil
   end
 
-  local file_path, file_name = util.splitFilePathName(file) -- luacheck: no unused
+  local _, file_name = util.splitFilePathName(file)
   if not file_name then
-    return
+    return nil
   end
 
   return md5(file_name)
 end
 
-function KOSync:syncToProgress(progress)
+function KOSync:_syncToProgress(progress)
   logger.dbg("KOSync: [Sync] progress to", progress)
+  if self.ui.document == nil then
+    return
+  end
+
   if self.ui.document.info.has_pages then
     self.ui:handleEvent(Event:new("GotoPage", tonumber(progress)))
   else
@@ -690,7 +681,11 @@ function KOSync:syncToProgress(progress)
   end
 end
 
-function KOSync:updateProgress(ensure_networking, interactive, on_suspend)
+function KOSync:_updateProgress(ensure_networking, interactive, on_suspend)
+  if self.ui.document == nil then
+    return
+  end
+
   if not self.settings.username or not self.settings.userkey then
     if interactive then
       promptLogin()
@@ -709,7 +704,7 @@ function KOSync:updateProgress(ensure_networking, interactive, on_suspend)
   if
     ensure_networking
     and NetworkMgr:willRerunWhenOnline(function()
-      self:updateProgress(ensure_networking, interactive, on_suspend)
+      self:_updateProgress(ensure_networking, interactive, on_suspend)
     end)
   then
     return
@@ -720,9 +715,9 @@ function KOSync:updateProgress(ensure_networking, interactive, on_suspend)
     custom_url = self.settings.custom_server,
     service_spec = self.path .. "/api.json",
   })
-  local doc_digest = self:getDocumentDigest()
-  local progress = self:getLastProgress()
-  local percentage = self:getLastPercent()
+  local doc_digest = self:_getDocumentDigest()
+  local progress = self:_getLastProgress()
+  local percentage = self:_getLastPercent()
   local ok, err = pcall(
     client.update_progress,
     client,
@@ -794,7 +789,11 @@ function KOSync:updateProgress(ensure_networking, interactive, on_suspend)
   self.push_timestamp = now
 end
 
-function KOSync:getProgress(ensure_networking, interactive)
+function KOSync:_getProgress(ensure_networking, interactive)
+  if self.ui.document == nil then
+    return
+  end
+
   if not self.settings.username or not self.settings.userkey then
     if interactive then
       promptLogin()
@@ -813,7 +812,7 @@ function KOSync:getProgress(ensure_networking, interactive)
   if
     ensure_networking
     and NetworkMgr:willRerunWhenOnline(function()
-      self:getProgress(ensure_networking, interactive)
+      self:_getProgress(ensure_networking, interactive)
     end)
   then
     return
@@ -824,7 +823,7 @@ function KOSync:getProgress(ensure_networking, interactive)
     custom_url = self.settings.custom_server,
     service_spec = self.path .. "/api.json",
   })
-  local doc_digest = self:getDocumentDigest()
+  local doc_digest = self:_getDocumentDigest()
   local ok, err = pcall(
     client.get_progress,
     client,
@@ -862,8 +861,8 @@ function KOSync:getProgress(ensure_networking, interactive)
       end
 
       body.percentage = Math.roundPercent(body.percentage)
-      local progress = self:getLastProgress()
-      local percentage = self:getLastPercent()
+      local progress = self:_getLastProgress()
+      local percentage = self:_getLastPercent()
       logger.dbg(
         "KOSync: Current progress:",
         percentage * 100,
@@ -885,7 +884,7 @@ function KOSync:getProgress(ensure_networking, interactive)
       if interactive then
         -- If user actively pulls progress from other devices,
         -- we always update the progress without further confirmation.
-        self:syncToProgress(body.progress)
+        self:_syncToProgress(body.progress)
         showSyncedMessage()
         return
       end
@@ -899,7 +898,7 @@ function KOSync:getProgress(ensure_networking, interactive)
       end
       if self_older then
         if self.settings.sync_forward == SYNC_STRATEGY.SILENT then
-          self:syncToProgress(body.progress)
+          self:_syncToProgress(body.progress)
           showSyncedMessage()
         elseif self.settings.sync_forward == SYNC_STRATEGY.PROMPT then
           UIManager:show(ConfirmBox:new({
@@ -909,13 +908,13 @@ function KOSync:getProgress(ensure_networking, interactive)
               body.device
             ),
             ok_callback = function()
-              self:syncToProgress(body.progress)
+              self:_syncToProgress(body.progress)
             end,
           }))
         end
       else -- if not self_older then
         if self.settings.sync_backward == SYNC_STRATEGY.SILENT then
-          self:syncToProgress(body.progress)
+          self:_syncToProgress(body.progress)
           showSyncedMessage()
         elseif self.settings.sync_backward == SYNC_STRATEGY.PROMPT then
           UIManager:show(ConfirmBox:new({
@@ -925,7 +924,7 @@ function KOSync:getProgress(ensure_networking, interactive)
               body.device
             ),
             ok_callback = function()
-              self:syncToProgress(body.progress)
+              self:_syncToProgress(body.progress)
             end,
           }))
         end
@@ -961,7 +960,7 @@ function KOSync:_onCloseDocument()
   --     (and quite likely ours, too).
   NetworkMgr:runWhenOnline(function()
     -- Drop the inner willRerunWhenOnline ;).
-    self:updateProgress(false, false)
+    self:_updateProgress(false, false)
   end)
 end
 
@@ -1001,38 +1000,38 @@ function KOSync:_onResume()
   end
 
   -- And if we don't, this *will* (attempt to) trigger a connection and as such a NetworkConnected event,
-  -- but only a single pull will happen, since getProgress debounces itself.
+  -- but only a single pull will happen, since _getProgress debounces itself.
   UIManager:scheduleIn(1, function()
-    self:getProgress(true, false)
+    self:_getProgress(true, false)
   end)
 end
 
 function KOSync:_onSuspend()
   logger.dbg("KOSync: onSuspend")
   -- We request an extra flashing refresh on success, to deal with potential ghosting left by the NetworkMgr UI
-  self:updateProgress(true, false, true)
+  self:_updateProgress(true, false, true)
 end
 
 function KOSync:_onNetworkOnline()
   logger.dbg("KOSync: onNetworkOnline")
   UIManager:nextTick(function()
     -- Network is supposed to be on already, don't wrap this in willRerunWhenOnline
-    self:getProgress(false, false)
+    self:_getProgress(false, false)
   end)
 end
 
 function KOSync:_onNetworkDisconnecting()
   logger.dbg("KOSync: onNetworkDisconnecting")
   -- Network is supposed to be on already, don't wrap this in willRerunWhenOnline
-  self:updateProgress(false, false)
+  self:_updateProgress(false, false)
 end
 
 function KOSync:onKOSyncPushProgress()
-  self:updateProgress(true, true)
+  self:_updateProgress(true, true)
 end
 
 function KOSync:onKOSyncPullProgress()
-  self:getProgress(true, true)
+  self:_getProgress(true, true)
 end
 
 function KOSync:registerEvents()
