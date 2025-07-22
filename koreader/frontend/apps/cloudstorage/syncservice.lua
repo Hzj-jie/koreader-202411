@@ -132,104 +132,115 @@ end
 -- and renamed to replace the old cached file (thus the naming). The cached file stays (in the same folder) till being replaced
 -- in the next round.
 function SyncService.sync(server, file_path, sync_cb, is_silent)
-  local function exec()
-    local file_name = ffiutil.basename(file_path)
-    local income_file_path = file_path .. ".temp" -- file downloaded from server
-    local cached_file_path = file_path .. ".sync" -- file uploaded to server last time
-
-    local fail_msg = _(
-      "Something went wrong when syncing, please check your network connection and try again later."
-    )
-    local show_msg = function(msg)
-      if is_silent then
-        return
-      end
-      UIManager:show(InfoMessage:new({
-        text = msg or fail_msg,
-        timeout = 3,
-      }))
-    end
-    if server.type ~= "dropbox" and server.type ~= "webdav" then
-      show_msg(_("Wrong server type."))
+  if server.type == "dropbox" then
+    if
+      NetworkMgr:willRerunWhenOnline(function()
+        SyncService.sync(server, file_path, sync_cb, is_silent)
+      end)
+    then
       return
     end
-    local code_response = 412 -- If-Match header failed
-    local etag
-    local api = server.type == "dropbox"
-        and require("apps/cloudstorage/dropboxapi")
-      or require("apps/cloudstorage/webdavapi")
-    local token = server.password
-    if
-      server.type == "dropbox"
-      and not (server.address == nil or server.address == "")
-    then
-      token = api:getAccessToken(server.password, server.address)
-    end
-    while code_response == 412 do
-      os.remove(income_file_path)
-      if server.type == "dropbox" then
-        local url_base = server.url:sub(-1) == "/" and server.url
-          or server.url .. "/"
-        code_response, etag =
-          api:downloadFile(url_base .. file_name, token, income_file_path)
-      elseif server.type == "webdav" then
-        local path = api:getJoinedPath(server.address, server.url)
-        path = api:getJoinedPath(path, file_name)
-        code_response, etag = api:downloadFile(
-          path,
-          server.username,
-          server.password,
-          income_file_path
-        )
-      end
-      if
-        code_response ~= 200
-        and code_response ~= 404
-        and not (server.type == "dropbox" and code_response == 409)
-      then
-        show_msg()
-        return
-      end
-      local ok, cb_return =
-        pcall(sync_cb, file_path, cached_file_path, income_file_path)
-      if not ok or not cb_return then
-        show_msg()
-        if not ok then
-          require("logger").err("sync service callback failed:", cb_return)
-        end
-        return
-      end
-      if server.type == "dropbox" then
-        local url_base = server.url == "/" and "" or server.url
-        code_response = api:uploadFile(url_base, token, file_path, etag, true)
-      elseif server.type == "webdav" then
-        local path = api:getJoinedPath(server.address, server.url)
-        path = api:getJoinedPath(path, file_name)
-        code_response =
-          api:uploadFile(path, server.username, server.password, file_path, etag)
-      end
-    end
-    os.remove(income_file_path)
-    if
-      type(code_response) == "number"
-      and code_response >= 200
-      and code_response < 300
-    then
-      os.remove(cached_file_path)
-      ffiutil.copyFile(file_path, cached_file_path)
-      UIManager:show(Notification:new({
-        text = _("Successfully synchronized."),
-        timeout = 2,
-      }))
-    else
-      show_msg()
-    end
-  end
-  if server.type == "dropbox" then
-    NetworkMgr:runWhenOnline(exec)
   else
     -- NOTE: Align behavior with CloudStorage:openCloudServer, where only Dropbox requires isOnline
-    NetworkMgr:runWhenConnected(exec)
+    if
+      NetworkMgr:willRerunWhenConnected(function()
+        SyncService.sync(server, file_path, sync_cb, is_silent)
+      end)
+    then
+      return
+    end
+  end
+
+  local file_name = ffiutil.basename(file_path)
+  local income_file_path = file_path .. ".temp" -- file downloaded from server
+  local cached_file_path = file_path .. ".sync" -- file uploaded to server last time
+
+  local fail_msg = _(
+    "Something went wrong when syncing, please check your network connection and try again later."
+  )
+  local show_msg = function(msg)
+    if is_silent then
+      return
+    end
+    UIManager:show(InfoMessage:new({
+      text = msg or fail_msg,
+      timeout = 3,
+    }))
+  end
+  if server.type ~= "dropbox" and server.type ~= "webdav" then
+    show_msg(_("Wrong server type."))
+    return
+  end
+  local code_response = 412 -- If-Match header failed
+  local etag
+  local api = server.type == "dropbox"
+      and require("apps/cloudstorage/dropboxapi")
+    or require("apps/cloudstorage/webdavapi")
+  local token = server.password
+  if
+    server.type == "dropbox"
+    and not (server.address == nil or server.address == "")
+  then
+    token = api:getAccessToken(server.password, server.address)
+  end
+  while code_response == 412 do
+    os.remove(income_file_path)
+    if server.type == "dropbox" then
+      local url_base = server.url:sub(-1) == "/" and server.url
+        or server.url .. "/"
+      code_response, etag =
+        api:downloadFile(url_base .. file_name, token, income_file_path)
+    elseif server.type == "webdav" then
+      local path = api:getJoinedPath(server.address, server.url)
+      path = api:getJoinedPath(path, file_name)
+      code_response, etag = api:downloadFile(
+        path,
+        server.username,
+        server.password,
+        income_file_path
+      )
+    end
+    if
+      code_response ~= 200
+      and code_response ~= 404
+      and not (server.type == "dropbox" and code_response == 409)
+    then
+      show_msg()
+      return
+    end
+    local ok, cb_return =
+      pcall(sync_cb, file_path, cached_file_path, income_file_path)
+    if not ok or not cb_return then
+      show_msg()
+      if not ok then
+        require("logger").err("sync service callback failed:", cb_return)
+      end
+      return
+    end
+    if server.type == "dropbox" then
+      local url_base = server.url == "/" and "" or server.url
+      code_response = api:uploadFile(url_base, token, file_path, etag, true)
+    elseif server.type == "webdav" then
+      local path = api:getJoinedPath(server.address, server.url)
+      path = api:getJoinedPath(path, file_name)
+      code_response =
+        api:uploadFile(path, server.username, server.password, file_path, etag)
+    end
+  end
+  os.remove(income_file_path)
+  if
+    type(code_response) == "number"
+    and code_response >= 200
+    and code_response < 300
+  then
+    os.remove(cached_file_path)
+    ffiutil.copyFile(file_path, cached_file_path)
+    UIManager:show(Notification:new({
+      text = _("Successfully synchronized."),
+      timeout = 2,
+    }))
+  else
+    show_msg()
   end
 end
 

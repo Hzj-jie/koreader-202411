@@ -473,80 +473,83 @@ function KOSync:setChecksumMethod(method)
 end
 
 function KOSync:_login(menu)
-  local function exec()
-    local dialog = MultiInputDialog:new({
-      title = self.title,
-      fields = {
-        {
-          text = self.settings.username,
-          hint = "username",
-        },
-        {
-          hint = "password",
-          text_type = "password",
-        },
-      },
-      buttons = {
-        {
-          {
-            text = _("Cancel"),
-            id = "close",
-            callback = function()
-              UIManager:close(dialog)
-            end,
-          },
-          {
-            text = _("Login"),
-            callback = function()
-              local username, password = unpack(dialog:getFields())
-              local ok, err = validateUser(username, password)
-              if not ok then
-                UIManager:show(InfoMessage:new({
-                  text = T(_("Cannot login: %1"), err),
-                  timeout = 2,
-                }))
-              else
-                UIManager:close(dialog)
-                UIManager:scheduleIn(0.5, function()
-                  self:_doLogin(username, password, menu)
-                end)
-                UIManager:show(InfoMessage:new({
-                  text = _("Logging in. Please wait…"),
-                  timeout = 1,
-                }))
-              end
-            end,
-          },
-          {
-            text = _("Register"),
-            callback = function()
-              local username, password = unpack(dialog:getFields())
-              local ok, err = validateUser(username, password)
-              if not ok then
-                UIManager:show(InfoMessage:new({
-                  text = T(_("Cannot register: %1"), err),
-                  timeout = 2,
-                }))
-              else
-                UIManager:close(dialog)
-                UIManager:scheduleIn(0.5, function()
-                  self:_doRegister(username, password, menu)
-                end)
-                UIManager:show(InfoMessage:new({
-                  text = _("Registering. Please wait…"),
-                  timeout = 1,
-                }))
-              end
-            end,
-          },
-        },
-      },
-    })
-    UIManager:show(dialog)
-    dialog:showKeyboard()
+  if NetworkMgr:willRerunWhenOnline(function()
+    self:_login(menu)
+  end) then
+    return
   end
 
-  NetworkMgr:runWhenOnline(exec)
+  local dialog
+  dialog = MultiInputDialog:new({
+    title = self.title,
+    fields = {
+      {
+        text = self.settings.username,
+        hint = "username",
+      },
+      {
+        hint = "password",
+        text_type = "password",
+      },
+    },
+    buttons = {
+      {
+        {
+          text = _("Cancel"),
+          id = "close",
+          callback = function()
+            UIManager:close(dialog)
+          end,
+        },
+        {
+          text = _("Login"),
+          callback = function()
+            local username, password = unpack(dialog:getFields())
+            local ok, err = validateUser(username, password)
+            if not ok then
+              UIManager:show(InfoMessage:new({
+                text = T(_("Cannot login: %1"), err),
+                timeout = 2,
+              }))
+            else
+              UIManager:close(dialog)
+              UIManager:scheduleIn(0.5, function()
+                self:_doLogin(username, password, menu)
+              end)
+              UIManager:show(InfoMessage:new({
+                text = _("Logging in. Please wait…"),
+                timeout = 1,
+              }))
+            end
+          end,
+        },
+        {
+          text = _("Register"),
+          callback = function()
+            local username, password = unpack(dialog:getFields())
+            local ok, err = validateUser(username, password)
+            if not ok then
+              UIManager:show(InfoMessage:new({
+                text = T(_("Cannot register: %1"), err),
+                timeout = 2,
+              }))
+            else
+              UIManager:close(dialog)
+              UIManager:scheduleIn(0.5, function()
+                self:_doRegister(username, password, menu)
+              end)
+              UIManager:show(InfoMessage:new({
+                text = _("Registering. Please wait…"),
+                timeout = 1,
+              }))
+            end
+          end,
+        },
+      },
+    },
+  })
+  UIManager:show(dialog)
+  dialog:showKeyboard()
 end
 
 function KOSync:_doRegister(username, password, menu)
@@ -698,91 +701,92 @@ function KOSync:_updateProgress(ensure_networking, interactive, on_suspend)
     return
   end
 
-  local function exec()
-    local KOSyncClient = require("KOSyncClient")
-    local client = KOSyncClient:new({
-      custom_url = self.settings.custom_server,
-      service_spec = self.path .. "/api.json",
-    })
-    local doc_digest = self:_getDocumentDigest()
-    local progress = self:_getLastProgress()
-    local percentage = self:_getLastPercent()
-    local ok, err = pcall(
-      client.update_progress,
-      client,
-      self.settings.username,
-      self.settings.userkey,
-      doc_digest,
-      progress,
-      percentage,
-      Device.model,
-      self.device_id,
-      function(ok, body)
-        logger.dbg(
-          "KOSync: [Push] progress to",
-          percentage * 100,
-          "% =>",
-          progress,
-          "for",
-          self.view.document.file
-        )
-        logger.dbg("KOSync: ok:", ok, "body:", body)
-        if interactive then
-          if ok then
-            UIManager:show(InfoMessage:new({
-              text = _("Progress has been pushed."),
-              timeout = 3,
-            }))
-          else
-            showSyncError()
-          end
-        end
-      end
-    )
-    if not ok then
+  if
+    ensure_networking
+    and NetworkMgr:willRerunWhenOnline(function()
+      self:_updateProgress(ensure_networking, interactive, on_suspend)
+    end)
+  then
+    return
+  end
+
+  local KOSyncClient = require("KOSyncClient")
+  local client = KOSyncClient:new({
+    custom_url = self.settings.custom_server,
+    service_spec = self.path .. "/api.json",
+  })
+  local doc_digest = self:_getDocumentDigest()
+  local progress = self:_getLastProgress()
+  local percentage = self:_getLastPercent()
+  local ok, err = pcall(
+    client.update_progress,
+    client,
+    self.settings.username,
+    self.settings.userkey,
+    doc_digest,
+    progress,
+    percentage,
+    Device.model,
+    self.device_id,
+    function(ok, body)
+      logger.dbg(
+        "KOSync: [Push] progress to",
+        percentage * 100,
+        "% =>",
+        progress,
+        "for",
+        self.view.document.file
+      )
+      logger.dbg("KOSync: ok:", ok, "body:", body)
       if interactive then
-        showSyncError()
-      end
-      if err then
-        logger.dbg("err:", err)
-      end
-    else
-      -- This is solely for onSuspend's sake, to clear the ghosting left by the "Connected" InfoMessage
-      if on_suspend then
-        -- Our top-level widget should be the "Connected to network" InfoMessage from NetworkMgr's reconnectOrShowNetworkMenu
-        local widget = UIManager:getTopmostVisibleWidget()
-        if
-          widget
-          and widget.modal
-          and widget.tag == "NetworkMgr"
-          and not widget.dismiss_callback
-        then
-          -- We want a full-screen flash on dismiss
-          widget.dismiss_callback = function()
-            -- Enqueued, because we run before the InfoMessage's close
-            UIManager:setDirty(nil, "full")
-          end
+        if ok then
+          UIManager:show(InfoMessage:new({
+            text = _("Progress has been pushed."),
+            timeout = 3,
+          }))
+        else
+          showSyncError()
         end
       end
     end
-
+  )
+  if not ok then
+    if interactive then
+      showSyncError()
+    end
+    if err then
+      logger.dbg("err:", err)
+    end
+  else
+    -- This is solely for onSuspend's sake, to clear the ghosting left by the "Connected" InfoMessage
     if on_suspend then
-      -- NOTE: We want to murder Wi-Fi once we're done in this specific case (i.e., Suspend),
-      --     because some of our hasWifiManager targets will horribly implode when attempting to suspend with the Wi-Fi chip powered on,
-      --     and they'll have attempted to kill Wi-Fi well before *we* run (e.g., in `Device:onPowerEvent`, *before* actually sending the Suspend Event)...
-      if Device:hasWifiManager() then
-        NetworkMgr:toggleWifiOff()
+      -- Our top-level widget should be the "Connected to network" InfoMessage from NetworkMgr's reconnectOrShowNetworkMenu
+      local widget = UIManager:getTopmostVisibleWidget()
+      if
+        widget
+        and widget.modal
+        and widget.tag == "NetworkMgr"
+        and not widget.dismiss_callback
+      then
+        -- We want a full-screen flash on dismiss
+        widget.dismiss_callback = function()
+          -- Enqueued, because we run before the InfoMessage's close
+          UIManager:setDirty(nil, "full")
+        end
       end
     end
-
-    self.push_timestamp = now
   end
 
-  if ensure_networking then
-    NetworkMgr:runWhenOnline(exec)
-  else
-    exec()
+  if on_suspend then
+    -- NOTE: We want to murder Wi-Fi once we're done in this specific case (i.e., Suspend),
+    --     because some of our hasWifiManager targets will horribly implode when attempting to suspend with the Wi-Fi chip powered on,
+    --     and they'll have attempted to kill Wi-Fi well before *we* run (e.g., in `Device:onPowerEvent`, *before* actually sending the Suspend Event)...
+    if Device:hasWifiManager() then
+      NetworkMgr:toggleWifiOff()
+    end
   end
+
+  self.push_timestamp = now
 end
 
 function KOSync:_getProgress(ensure_networking, interactive)
@@ -805,137 +809,138 @@ function KOSync:_getProgress(ensure_networking, interactive)
     return
   end
 
-  local function exec()
-    local KOSyncClient = require("KOSyncClient")
-    local client = KOSyncClient:new({
-      custom_url = self.settings.custom_server,
-      service_spec = self.path .. "/api.json",
-    })
-    local doc_digest = self:_getDocumentDigest()
-    local ok, err = pcall(
-      client.get_progress,
-      client,
-      self.settings.username,
-      self.settings.userkey,
-      doc_digest,
-      function(ok, body)
-        logger.dbg("KOSync: [Pull] progress for", self.view.document.file)
-        logger.dbg("KOSync: ok:", ok, "body:", body)
-        if not ok or not body then
-          if interactive then
-            showSyncError()
-          end
-          return
-        end
+  if
+    ensure_networking
+    and NetworkMgr:willRerunWhenOnline(function()
+      self:_getProgress(ensure_networking, interactive)
+    end)
+  then
+    return
+  end
 
-        if not body.percentage then
-          if interactive then
-            UIManager:show(InfoMessage:new({
-              text = _("No progress found for this document."),
-              timeout = 3,
-            }))
-          end
-          return
-        end
-
-        if body.device == Device.model and body.device_id == self.device_id then
-          if interactive then
-            UIManager:show(InfoMessage:new({
-              text = _("Latest progress is coming from this device."),
-              timeout = 3,
-            }))
-          end
-          return
-        end
-
-        body.percentage = Math.roundPercent(body.percentage)
-        local progress = self:_getLastProgress()
-        local percentage = self:_getLastPercent()
-        logger.dbg(
-          "KOSync: Current progress:",
-          percentage * 100,
-          "% =>",
-          progress
-        )
-
-        if percentage == body.percentage or body.progress == progress then
-          if interactive then
-            UIManager:show(InfoMessage:new({
-              text = _("The progress has already been synchronized."),
-              timeout = 3,
-            }))
-          end
-          return
-        end
-
-        -- The progress needs to be updated.
+  local KOSyncClient = require("KOSyncClient")
+  local client = KOSyncClient:new({
+    custom_url = self.settings.custom_server,
+    service_spec = self.path .. "/api.json",
+  })
+  local doc_digest = self:_getDocumentDigest()
+  local ok, err = pcall(
+    client.get_progress,
+    client,
+    self.settings.username,
+    self.settings.userkey,
+    doc_digest,
+    function(ok, body)
+      logger.dbg("KOSync: [Pull] progress for", self.view.document.file)
+      logger.dbg("KOSync: ok:", ok, "body:", body)
+      if not ok or not body then
         if interactive then
-          -- If user actively pulls progress from other devices,
-          -- we always update the progress without further confirmation.
+          showSyncError()
+        end
+        return
+      end
+
+      if not body.percentage then
+        if interactive then
+          UIManager:show(InfoMessage:new({
+            text = _("No progress found for this document."),
+            timeout = 3,
+          }))
+        end
+        return
+      end
+
+      if body.device == Device.model and body.device_id == self.device_id then
+        if interactive then
+          UIManager:show(InfoMessage:new({
+            text = _("Latest progress is coming from this device."),
+            timeout = 3,
+          }))
+        end
+        return
+      end
+
+      body.percentage = Math.roundPercent(body.percentage)
+      local progress = self:_getLastProgress()
+      local percentage = self:_getLastPercent()
+      logger.dbg(
+        "KOSync: Current progress:",
+        percentage * 100,
+        "% =>",
+        progress
+      )
+
+      if percentage == body.percentage or body.progress == progress then
+        if interactive then
+          UIManager:show(InfoMessage:new({
+            text = _("The progress has already been synchronized."),
+            timeout = 3,
+          }))
+        end
+        return
+      end
+
+      -- The progress needs to be updated.
+      if interactive then
+        -- If user actively pulls progress from other devices,
+        -- we always update the progress without further confirmation.
+        self:_syncToProgress(body.progress)
+        showSyncedMessage()
+        return
+      end
+
+      local self_older
+      if body.timestamp ~= nil then
+        self_older = (body.timestamp > self.last_page_turn_timestamp)
+      else
+        -- If we are working with an old sync server, we can only use the percentage field.
+        self_older = (body.percentage > percentage)
+      end
+      if self_older then
+        if self.settings.sync_forward == SYNC_STRATEGY.SILENT then
           self:_syncToProgress(body.progress)
           showSyncedMessage()
-          return
+        elseif self.settings.sync_forward == SYNC_STRATEGY.PROMPT then
+          UIManager:show(ConfirmBox:new({
+            text = T(
+              _("Sync to latest location %1% from device '%2'?"),
+              Math.round(body.percentage * 100),
+              body.device
+            ),
+            ok_callback = function()
+              self:_syncToProgress(body.progress)
+            end,
+          }))
         end
-
-        local self_older
-        if body.timestamp ~= nil then
-          self_older = (body.timestamp > self.last_page_turn_timestamp)
-        else
-          -- If we are working with an old sync server, we can only use the percentage field.
-          self_older = (body.percentage > percentage)
+      else -- if not self_older then
+        if self.settings.sync_backward == SYNC_STRATEGY.SILENT then
+          self:_syncToProgress(body.progress)
+          showSyncedMessage()
+        elseif self.settings.sync_backward == SYNC_STRATEGY.PROMPT then
+          UIManager:show(ConfirmBox:new({
+            text = T(
+              _("Sync to previous location %1% from device '%2'?"),
+              Math.round(body.percentage * 100),
+              body.device
+            ),
+            ok_callback = function()
+              self:_syncToProgress(body.progress)
+            end,
+          }))
         end
-        if self_older then
-          if self.settings.sync_forward == SYNC_STRATEGY.SILENT then
-            self:_syncToProgress(body.progress)
-            showSyncedMessage()
-          elseif self.settings.sync_forward == SYNC_STRATEGY.PROMPT then
-            UIManager:show(ConfirmBox:new({
-              text = T(
-                _("Sync to latest location %1% from device '%2'?"),
-                Math.round(body.percentage * 100),
-                body.device
-              ),
-              ok_callback = function()
-                self:_syncToProgress(body.progress)
-              end,
-            }))
-          end
-        else -- if not self_older then
-          if self.settings.sync_backward == SYNC_STRATEGY.SILENT then
-            self:_syncToProgress(body.progress)
-            showSyncedMessage()
-          elseif self.settings.sync_backward == SYNC_STRATEGY.PROMPT then
-            UIManager:show(ConfirmBox:new({
-              text = T(
-                _("Sync to previous location %1% from device '%2'?"),
-                Math.round(body.percentage * 100),
-                body.device
-              ),
-              ok_callback = function()
-                self:_syncToProgress(body.progress)
-              end,
-            }))
-          end
-        end
-      end
-    )
-    if not ok then
-      if interactive then
-        showSyncError()
-      end
-      if err then
-        logger.dbg("err:", err)
       end
     end
-
-    self.pull_timestamp = now
+  )
+  if not ok then
+    if interactive then
+      showSyncError()
+    end
+    if err then
+      logger.dbg("err:", err)
+    end
   end
 
-  if ensure_networking then
-    NetworkMgr:runWhenOnline(exec)
-  else
-    exec()
-  end
+  self.pull_timestamp = now
 end
 
 function KOSync:_onCloseDocument()

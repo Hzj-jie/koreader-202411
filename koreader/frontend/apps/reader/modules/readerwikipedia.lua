@@ -440,151 +440,158 @@ function ReaderWikipedia:lookupWikipedia(
   get_fullpage,
   forced_lang
 )
-  NetworkMgr:runWhenOnline(function()
-    -- word is the text to query. If get_fullpage is true, it is the
-    -- exact wikipedia page title we want the full page of.
-    self:initLanguages(word)
-    local lang
-    if forced_lang then
-      -- use provided lang (from readerlink when noticing that an external link is a wikipedia url,
-      -- of from Wikipedia lookup history, or when switching to next language in DictQuickLookup)
-      lang = forced_lang
-    else
-      -- use first lang from self.wiki_languages
-      lang = self.wiki_languages[1]
-    end
-    logger.dbg("lookup word:", word, box, get_fullpage)
-    -- no need to clean word if get_fullpage, as it is the exact wikipetia page title
-    if word and not get_fullpage then
-      -- escape quotes and other funny characters in word
-      word = self:cleanSelection(word, is_sane)
-      -- no need to lower() word with wikipedia search
-    end
-    logger.dbg("stripped word:", word)
-    if word == "" then
-      return
-    end
-    local display_word = word:gsub("_", " ")
+  if
+    NetworkMgr:willRerunWhenOnline(function()
+      self:lookupWikipedia(word, is_sane, box, get_fullpage, forced_lang)
+    end)
+  then
+    -- Not online yet, nothing more to do here, NetworkMgr will forward the callback and run it once connected!
+    return
+  end
 
-    if not self.disable_history then
-      local book_title = self.ui.doc_props and self.ui.doc_props.display_title
-        or _("Wikipedia lookup")
-      wikipedia_history:addTableItem({
-        book_title = book_title,
-        time = os.time(),
-        word = display_word,
-        lang = lang:lower(),
-        page = get_fullpage,
-      })
-    end
+  -- word is the text to query. If get_fullpage is true, it is the
+  -- exact wikipedia page title we want the full page of.
+  self:initLanguages(word)
+  local lang
+  if forced_lang then
+    -- use provided lang (from readerlink when noticing that an external link is a wikipedia url,
+    -- of from Wikipedia lookup history, or when switching to next language in DictQuickLookup)
+    lang = forced_lang
+  else
+    -- use first lang from self.wiki_languages
+    lang = self.wiki_languages[1]
+  end
+  logger.dbg("lookup word:", word, box, get_fullpage)
+  -- no need to clean word if get_fullpage, as it is the exact wikipetia page title
+  if word and not get_fullpage then
+    -- escape quotes and other funny characters in word
+    word = self:cleanSelection(word, is_sane)
+    -- no need to lower() word with wikipedia search
+  end
+  logger.dbg("stripped word:", word)
+  if word == "" then
+    return
+  end
+  local display_word = word:gsub("_", " ")
 
-    -- Fix lookup message to include lang and set appropriate error texts
-    local no_result_text, req_failure_text
-    if get_fullpage then
-      self.lookup_msg =
-        T(_("Retrieving Wikipedia %2 article:\n%1"), "%1", lang:upper())
-      req_failure_text = _("Failed to retrieve Wikipedia article.")
-      no_result_text = _("Wikipedia article not found.")
-    else
-      self.lookup_msg =
-        T(_("Searching Wikipedia %2 for:\n%1"), "%1", lang:upper())
-      req_failure_text = _("Failed searching Wikipedia.")
-      no_result_text = _("No results.")
-    end
-    self:showLookupInfo(display_word)
+  if not self.disable_history then
+    local book_title = self.ui.doc_props and self.ui.doc_props.display_title
+      or _("Wikipedia lookup")
+    wikipedia_history:addTableItem({
+      book_title = book_title,
+      time = os.time(),
+      word = display_word,
+      lang = lang:lower(),
+      page = get_fullpage,
+    })
+  end
 
-    local results = {}
-    local ok, pages
-    local lookup_cancelled = false
-    Wikipedia:setTrapWidget(self.lookup_progress_msg)
-    if get_fullpage then
-      ok, pages = pcall(Wikipedia.getFullPage, Wikipedia, word, lang)
-    else
-      ok, pages = pcall(Wikipedia.searchAndGetIntros, Wikipedia, word, lang)
+  -- Fix lookup message to include lang and set appropriate error texts
+  local no_result_text, req_failure_text
+  if get_fullpage then
+    self.lookup_msg =
+      T(_("Retrieving Wikipedia %2 article:\n%1"), "%1", lang:upper())
+    req_failure_text = _("Failed to retrieve Wikipedia article.")
+    no_result_text = _("Wikipedia article not found.")
+  else
+    self.lookup_msg =
+      T(_("Searching Wikipedia %2 for:\n%1"), "%1", lang:upper())
+    req_failure_text = _("Failed searching Wikipedia.")
+    no_result_text = _("No results.")
+  end
+  self:showLookupInfo(display_word)
+
+  local results = {}
+  local ok, pages
+  local lookup_cancelled = false
+  Wikipedia:setTrapWidget(self.lookup_progress_msg)
+  if get_fullpage then
+    ok, pages = pcall(Wikipedia.getFullPage, Wikipedia, word, lang)
+  else
+    ok, pages = pcall(Wikipedia.searchAndGetIntros, Wikipedia, word, lang)
+  end
+  Wikipedia:resetTrapWidget()
+  if
+    not ok
+    and pages
+    and string.find(pages, Wikipedia.dismissed_error_code)
+  then
+    -- So we can display an alternate dummy result
+    lookup_cancelled = true
+    -- Or we could just not show anything with:
+    -- self:dismissLookupInfo()
+    -- return
+  end
+  if ok and pages then
+    -- sort pages according to 'index' attribute if present (not present
+    -- in fullpage results)
+    local sorted_pages = {}
+    local has_indexes = false
+    for pageid, page in pairs(pages) do
+      if page.index ~= nil then
+        sorted_pages[page.index + 1] = page
+        has_indexes = true
+      end
     end
-    Wikipedia:resetTrapWidget()
-    if
-      not ok
-      and pages
-      and string.find(pages, Wikipedia.dismissed_error_code)
-    then
-      -- So we can display an alternate dummy result
-      lookup_cancelled = true
-      -- Or we could just not show anything with:
-      -- self:dismissLookupInfo()
-      -- return
+    if has_indexes then
+      pages = sorted_pages
     end
-    if ok and pages then
-      -- sort pages according to 'index' attribute if present (not present
-      -- in fullpage results)
-      local sorted_pages = {}
-      local has_indexes = false
-      for pageid, page in pairs(pages) do
-        if page.index ~= nil then
-          sorted_pages[page.index + 1] = page
-          has_indexes = true
-        end
+    for pageid, page in pairs(pages) do
+      local definition = page.extract
+        or (page.length and _("No introduction."))
+        or no_result_text
+      if page.length then
+        -- we get 'length' only for intro results
+        -- let's append it to definition so we know
+        -- how big/valuable the full page is
+        local fullkb = math.ceil(page.length / 1024)
+        local more_factor = math.ceil(page.length / (1 + definition:len())) -- +1 just in case len()=0
+        definition = definition
+          .. "\n"
+          .. T(
+            _("(full article : %1 kB, = %2 x this intro length)"),
+            fullkb,
+            more_factor
+          )
       end
-      if has_indexes then
-        pages = sorted_pages
-      end
-      for pageid, page in pairs(pages) do
-        local definition = page.extract
-          or (page.length and _("No introduction."))
-          or no_result_text
-        if page.length then
-          -- we get 'length' only for intro results
-          -- let's append it to definition so we know
-          -- how big/valuable the full page is
-          local fullkb = math.ceil(page.length / 1024)
-          local more_factor = math.ceil(page.length / (1 + definition:len())) -- +1 just in case len()=0
-          definition = definition
-            .. "\n"
-            .. T(
-              _("(full article : %1 kB, = %2 x this intro length)"),
-              fullkb,
-              more_factor
-            )
-        end
-        local result = {
-          dict = T(_("Wikipedia %1"), lang:upper()),
-          word = page.title,
-          definition = definition,
-          is_wiki_fullpage = get_fullpage,
-          lang = lang,
-          rtl_lang = Wikipedia:isWikipediaLanguageRTL(lang),
-          images = page.images,
-        }
-        table.insert(results, result)
-      end
-      -- logger.dbg of results will be done by ReaderDictionary:showDict()
-    else
-      -- dummy results
-      local definition
-      if lookup_cancelled then
-        definition = _("Wikipedia request interrupted.")
-      elseif ok then
-        definition = no_result_text
-      else
-        definition = req_failure_text
-        logger.dbg("error:", pages)
-      end
-      results = {
-        {
-          dict = T(_("Wikipedia %1"), lang:upper()),
-          word = word,
-          definition = definition,
-          is_wiki_fullpage = get_fullpage,
-          lang = lang,
-        },
+      local result = {
+        dict = T(_("Wikipedia %1"), lang:upper()),
+        word = page.title,
+        definition = definition,
+        is_wiki_fullpage = get_fullpage,
+        lang = lang,
+        rtl_lang = Wikipedia:isWikipediaLanguageRTL(lang),
+        images = page.images,
       }
-      -- Also put this as a k/v into the results array: if we end up with this
-      -- after lang rotation, DictQuickLookup will not update this lang rotation.
-      results.no_result = true
-      logger.dbg("dummy result table:", word, results)
+      table.insert(results, result)
     end
-    self:showDict(word, results, box)
-  end)
+    -- logger.dbg of results will be done by ReaderDictionary:showDict()
+  else
+    -- dummy results
+    local definition
+    if lookup_cancelled then
+      definition = _("Wikipedia request interrupted.")
+    elseif ok then
+      definition = no_result_text
+    else
+      definition = req_failure_text
+      logger.dbg("error:", pages)
+    end
+    results = {
+      {
+        dict = T(_("Wikipedia %1"), lang:upper()),
+        word = word,
+        definition = definition,
+        is_wiki_fullpage = get_fullpage,
+        lang = lang,
+      },
+    }
+    -- Also put this as a k/v into the results array: if we end up with this
+    -- after lang rotation, DictQuickLookup will not update this lang rotation.
+    results.no_result = true
+    logger.dbg("dummy result table:", word, results)
+  end
+  self:showDict(word, results, box)
 end
 
 function ReaderWikipedia:getWikiLanguages(first_lang)

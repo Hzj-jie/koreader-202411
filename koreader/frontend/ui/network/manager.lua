@@ -713,6 +713,37 @@ function NetworkMgr:runWhenConnected(callback)
   end
 end
 
+-- Mild variants that are used for recursive calls at the beginning of a complex function call.
+-- Returns true when not yet online, in which case you should *abort* (i.e., return) the initial call,
+-- and otherwise, go-on as planned.
+-- NOTE: If you're currently connected but without Internet access (i.e., isConnected and not isOnline),
+--     it will just attempt to re-connect, *without* running the callback.
+-- c.f., ReaderWikipedia:lookupWikipedia @ frontend/apps/reader/modules/readerwikipedia.lua
+function NetworkMgr:willRerunWhenOnline(callback)
+  if self:isOnline() then
+    return false
+  end
+  --- @note: Avoid infinite recursion, beforeWifiAction only guarantees
+  --- isConnected, not isOnline.
+  if self:_isWifiConnected() then
+    self:_beforeWifiAction()
+  else
+    self:_beforeWifiAction(callback)
+  end
+  return true
+end
+
+-- This one is for callbacks that only require isConnected, and since that's
+-- guaranteed by beforeWifiAction, you also have a guarantee that the callback
+-- *will* run.
+function NetworkMgr:willRerunWhenConnected(callback)
+  if self:_isWifiConnected() then
+    return false
+  end
+  self:_beforeWifiAction(callback)
+  return true
+end
+
 function NetworkMgr:getWifiMenuTable()
   if Device:isAndroid() then
     return {
