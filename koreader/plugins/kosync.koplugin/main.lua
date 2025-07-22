@@ -473,7 +473,7 @@ function KOSync:setChecksumMethod(method)
 end
 
 function KOSync:_login(menu)
-  local function exec()
+  NetworkMgr:runWhenOnline(function()
     local dialog = MultiInputDialog:new({
       title = self.title,
       fields = {
@@ -544,9 +544,7 @@ function KOSync:_login(menu)
     })
     UIManager:show(dialog)
     dialog:showKeyboard()
-  end
-
-  NetworkMgr:runWhenOnline(exec)
+  end)
 end
 
 function KOSync:_doRegister(username, password, menu)
@@ -779,7 +777,11 @@ function KOSync:_updateProgress(ensure_networking, interactive, on_suspend)
   end
 
   if ensure_networking then
-    NetworkMgr:runWhenOnline(exec)
+    if interactive then
+      NetworkMgr:runWhenOnline(exec)
+    else
+      NetworkMgr:willRerunWhenOnline(exec)
+    end
   else
     exec()
   end
@@ -932,7 +934,11 @@ function KOSync:_getProgress(ensure_networking, interactive)
   end
 
   if ensure_networking then
-    NetworkMgr:runWhenOnline(exec)
+    if interactive then
+      NetworkMgr:runWhenOnline(exec)
+    else
+      NetworkMgr:willRerunWhenOnline(exec)
+    end
   else
     exec()
   end
@@ -944,19 +950,7 @@ function KOSync:_onCloseDocument()
   --     and we handle those system focus events via... Suspend & Resume events, so we need to neuter those handlers early.
   self.onResume = nil
   self.onSuspend = nil
-  -- NOTE+: There isn't any gurantee that the network would be connected now and the logic of
-  --    goOnlineToRun is surprisingly complicated. It would just be easier to call
-  --    runWhenOnline.
-  --    The experience without a wifi connection here is unacceptable, it would be blocking
-  --    the file from closing.
-  -- NOTE: Because we'll lose the document instance on return, we need to *block* until the connection is actually up here,
-  --     we cannot rely on willRerunWhenOnline, because if we're not currently online,
-  --     it *will* return early, and that means the actual callback *will* run *after* teardown of the document instance
-  --     (and quite likely ours, too).
-  NetworkMgr:runWhenOnline(function()
-    -- Drop the inner willRerunWhenOnline ;).
-    self:_updateProgress(false, false)
-  end)
+  self:_updateProgress(false, false)
 end
 
 function KOSync:schedulePeriodicPush()
@@ -1010,14 +1004,12 @@ end
 function KOSync:_onNetworkOnline()
   logger.dbg("KOSync: onNetworkOnline")
   UIManager:nextTick(function()
-    -- Network is supposed to be on already, don't wrap this in willRerunWhenOnline
     self:_getProgress(false, false)
   end)
 end
 
 function KOSync:_onNetworkDisconnecting()
   logger.dbg("KOSync: onNetworkDisconnecting")
-  -- Network is supposed to be on already, don't wrap this in willRerunWhenOnline
   self:_updateProgress(false, false)
 end
 

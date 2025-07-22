@@ -683,6 +683,8 @@ function NetworkMgr:setHTTPProxy(proxy)
 end
 
 -- Helper functions to hide the quirks of using beforeWifiAction properly ;).
+-- runWhen... triggers wifi connection and queues the callback.
+-- willRerunWhen... queues the callback without triggering the wifi connection.
 
 -- Run callback *now* if you're currently online (ie., isOnline),
 -- or attempt to go online and run it *ASAP* without any more user interaction.
