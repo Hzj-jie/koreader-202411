@@ -5,6 +5,7 @@
 .*.swp
 native/**/.*.un~
 native/**/.*.swp
-native/lua/lua-*/
+native/lua/lua-*
 native/ffi/lua-ffi-*
 native/ffi/libffi-*
+native/lfs/luafilesystem-*
