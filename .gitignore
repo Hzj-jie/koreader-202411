@@ -1,11 +1,10 @@
 # Never ignore anything in pw2/ kobo/ etc, folders. Anything inside will be
 # copied to the devices via push.sh or similar commands.
 
-lua/**/.*.un~
-lua/**/.*.swp
-lua/lua-*/
-ffi/**/.*.swp
-ffi/lua-ffi-*
-ffi/libffi-*
 .*.un~
 .*.swp
+native/**/.*.un~
+native/**/.*.swp
+native/lua/lua-*/
+native/ffi/lua-ffi-*
+native/ffi/libffi-*
