@@ -394,6 +394,9 @@ end
 
 --- Updates last book access time on closing the document.
 function ReadHistory:updateLastBookTime(no_flush)
+  if #self.hist == 0 then
+    return
+  end
   local now = os.time()
   self.hist[1].time = now
   self.hist[1].mandatory = getMandatory(now)
