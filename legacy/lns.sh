@@ -11,4 +11,5 @@ ln -rs ../kindle/* .
 rm -rf scripts
 rm -rf settings
 rm -rf web
+rm -rf extensions
 
