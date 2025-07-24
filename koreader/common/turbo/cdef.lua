@@ -354,7 +354,7 @@ if platform.__LINUX__ then
 
   --- ******* File system *******
   ffi.cdef([[
-        typedef long int __ssize_t;
+        typedef long __ssize_t;
         typedef __ssize_t ssize_t;
 
         ssize_t read(int fd, void *buf, size_t nbytes) ;

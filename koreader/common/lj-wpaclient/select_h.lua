@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
-pcall(ffi.cdef, "typedef long int __fd_mask;")
+pcall(ffi.cdef, "typedef long __fd_mask;")
 pcall(
   ffi.cdef,
   [[

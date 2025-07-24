@@ -1,9 +1,9 @@
 local ffi = require("ffi")
 
 ffi.cdef([[
-typedef long int off_t;
-typedef long int time_t;
-typedef long int suseconds_t;
+typedef long off_t;
+typedef long time_t;
+typedef long suseconds_t;
 struct timeval {
   time_t tv_sec;
   suseconds_t tv_usec;

@@ -120,8 +120,8 @@ typedef unsigned int mode_t;
 typedef unsigned int nlink_t;
 typedef unsigned int uid_t;
 typedef unsigned int gid_t;
-typedef long int blksize_t;
-typedef long int blkcnt_t;
+typedef long blksize_t;
+typedef long blkcnt_t;
 struct stat {
   long long unsigned int st_dev;
   short unsigned int __pad1;
