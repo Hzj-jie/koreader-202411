@@ -60,7 +60,7 @@ if platform.__DARWIN__ then
     SYS_fstat = 339,
     SYS_lstat = 340,
   }
-elseif ffi.arch == "x86" then
+elseif jit.arch == "x86" then
   cmds = {
     SYS_stat = 106,
     SYS_fstat = 108,
@@ -76,7 +76,7 @@ elseif ffi.arch == "x86" then
     SYS_clock_getres = 266,
     SYS_clock_nanosleep = 267,
   }
-elseif ffi.arch == "x64" then
+elseif jit.arch == "x64" then
   cmds = {
     SYS_stat = 4,
     SYS_fstat = 5,
@@ -92,7 +92,7 @@ elseif ffi.arch == "x64" then
     SYS_clock_getres = 229,
     SYS_clock_nanosleep = 230,
   }
-elseif ffi.arch == "ppc" or ffi.arch == "ppc64le" then
+elseif jit.arch == "ppc" or jit.arch == "ppc64le" then
   cmds = {
     SYS_stat = 106,
     SYS_fstat = 108,
@@ -108,7 +108,7 @@ elseif ffi.arch == "ppc" or ffi.arch == "ppc64le" then
     SYS_clock_getres = 247,
     SYS_clock_nanosleep = 248,
   }
-elseif ffi.arch == "arm" then
+elseif jit.arch == "arm" then
   cmds = {
     SYS_stat = 106,
     SYS_fstat = 108,
@@ -124,7 +124,7 @@ elseif ffi.arch == "arm" then
     SYS_clock_getres = 264,
     SYS_clock_nanosleep = 265,
   }
-elseif ffi.arch == "mipsel" then
+elseif jit.arch == "mipsel" then
   cmds = {
     SYS_stat = 4106,
     SYS_fstat = 4108,

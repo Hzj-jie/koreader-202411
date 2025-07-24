@@ -37,11 +37,11 @@ if jit.os == "OSX" then
 elseif jit.os == "Linux" then
   if os.getenv("IS_ANDROID") then
     sizeof_pthread_attr_t = ffi.abi("32bit") and 24 or 56
-  elseif ffi.arch == "arm" or ffi.arch == "x86" then
+  elseif jit.arch == "arm" or jit.arch == "x86" then
     sizeof_pthread_attr_t = 36
-  elseif ffi.arch == "x64" then
+  elseif jit.arch == "x64" then
     sizeof_pthread_attr_t = 56
-  elseif ffi.arch == "arm64" or ffi.arch == "arm64be" then
+  elseif jit.arch == "arm64" or jit.arch == "arm64be" then
     sizeof_pthread_attr_t = 64
   end
   valueof_PTHREAD_CREATE_DETACHED = 1

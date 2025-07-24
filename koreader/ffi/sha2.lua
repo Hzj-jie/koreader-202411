@@ -152,7 +152,7 @@ if is_LuaJIT then
     ffi = result
   end
   is_LuaJIT_21 = not not loadstring("b=0b0")
-  LuaJIT_arch = type(jit) == "table" and jit.arch or ffi and ffi.arch or nil
+  LuaJIT_arch = type(jit) == "table" and jit.arch or ffi and jit.arch or nil
 else
   -- For vanilla Lua, "bit"/"bit32" libraries are searched in global namespace only.  No attempt is made to load a library if it's not loaded yet.
   for _, libname in
