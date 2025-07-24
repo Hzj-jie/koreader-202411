@@ -45,10 +45,10 @@ typedef short unsigned int FT_UShort;
 typedef short int FT_Short;
 typedef int FT_Int;
 typedef unsigned int FT_UInt;
-typedef long FT_Long;
+typedef long int FT_Long;
 typedef long unsigned int FT_ULong;
 typedef int FT_Error;
-typedef long FT_Pos;
+typedef long int FT_Pos;
 typedef enum FT_Encoding_ FT_Encoding;
 enum FT_Encoding_ {
   FT_ENCODING_NONE = 0,
