@@ -1,9 +1,7 @@
-if ffi ~= nil then
-  -- Native ffi from luajit.
-  return ffi
-end
-local ffi = package.loadlib("./ffi.so", "luaopen_ffi")()
+assert(ffi == nil, "This file shouldn't be imported by luajit")
+ffi = package.loadlib("./ffi.so", "luaopen_ffi")()
 function ffi.abi(param)
   return param == "32bit" or param == "le"
 end
+
 return ffi

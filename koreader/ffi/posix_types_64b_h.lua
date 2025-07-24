@@ -1,5 +1,12 @@
 local ffi = require("ffi")
 
+-- If these types have been defined, ignore them.
+pcall(ffi.cdef, [[
+typedef long int off_t;
+typedef long int time_t;
+typedef long int suseconds_t;
+]])
+
 ffi.cdef([[
 struct timeval {
   time_t tv_sec;
@@ -24,13 +31,3 @@ struct statvfs {
   int __f_spare[6];
 };
 ]])
-
-if ffi.typeof("off_t") == nil then
-  assert(ffi.typeof("time_t") == nil)
-  assert(ffi.typeof("suseconds_t") == nil)
-  ffi.cdef([[
-typedef long int off_t;
-typedef long int time_t;
-typedef long int suseconds_t;
-  ]])
-end
