@@ -64,7 +64,7 @@ require("ffi/posix_h")
 
 local util = {}
 
-if ffi.os == "Windows" then
+if jit.os == "Windows" then
   util.gettime = function()
     local ft = ffi.new("FILETIME[1]")[0]
     local tmpres = ffi.new("unsigned long", 0)
@@ -85,7 +85,7 @@ else
   end
 end
 
-if ffi.os == "Windows" then
+if jit.os == "Windows" then
   util.sleep = function(sec)
     C.Sleep(sec * 1000)
   end
@@ -125,7 +125,7 @@ function util.strcoll(str1, str2)
 
   -- Some devices lack compiled locales (Hi, Kobo!), preventing strcoll from behaving sanely. See issue koreader/koreader#686
   if
-    ffi.os == "Linux"
+    jit.os == "Linux"
     and C.access("/usr/lib/locale/locale-archive", C.F_OK) ~= 0
   then
     strcoll_func = function(a, b)
@@ -155,7 +155,7 @@ function util.strcoll(str1, str2)
 end
 
 --- Wrapper for C.realpath.
-if ffi.os == "Windows" then
+if jit.os == "Windows" then
   function util.realpath(path)
     local buffer = ffi.new("char[?]", C.PATH_MAX)
     if C.GetFullPathNameA(path, C.PATH_MAX, buffer, nil) ~= 0 then
@@ -172,7 +172,7 @@ else
 end
 
 --- Wrapper for C.basename.
-if ffi.os == "Windows" then
+if jit.os == "Windows" then
   function util.basename(path)
     local ptr = ffi.cast("uint8_t *", path)
     return ffi.string(C.PathFindFileNameA(ptr))
@@ -194,7 +194,7 @@ else
 end
 
 --- Wrapper for C.dirname.
-if ffi.os == "Windows" then
+if jit.os == "Windows" then
   function util.dirname(in_path)
     --[[
     Both PathRemoveFileSpec and dirname will change original input string,
@@ -366,7 +366,7 @@ function util.runInSubProcess(func, with_pipe, double_fork)
       end
 
       -- As the name imply, this is a non-interactive background task.
-      if ffi.os == "Linux" then
+      if jit.os == "Linux" then
         -- On Linux, schedule it accordingly.
         local param = ffi.new("struct sched_param")
         C.sched_setscheduler(0, C.SCHED_BATCH, param)

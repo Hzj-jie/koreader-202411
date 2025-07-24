@@ -1119,7 +1119,7 @@ local function get_pthread()
   require("ffi/pthread_h")
 
   local ok
-  if ffi.os == "Windows" then
+  if jit.os == "Windows" then
     return ffi.load("libwinpthread-1.dll")
   elseif util.isAndroid() then
     -- pthread directives are in Bionic library on Android

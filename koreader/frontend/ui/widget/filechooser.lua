@@ -521,7 +521,7 @@ function FileChooser:genItemTable(dirs, files, path)
 
   -- lfs.dir iterated node string may be encoded with some weird codepage on
   -- Windows we need to encode them to utf-8
-  if ffi.os == "Windows" then
+  if jit.os == "Windows" then
     for _, v in ipairs(item_table) do
       if v.text then
         v.text = ffiUtil.multiByteToUTF8(v.text) or ""

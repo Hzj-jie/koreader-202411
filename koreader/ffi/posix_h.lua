@@ -431,7 +431,7 @@ uint16_t htons(uint16_t) __attribute__((nothrow, leaf, const));
 ]])
 
 -- clock_gettime & friends require librt on old glibc (< 2.17) versions...
-if ffi.os == "Linux" then
+if jit.os == "Linux" then
   -- Load it in the global namespace to make it easier on callers...
   -- NOTE: There's no librt.so symlink, so, specify the SOVER, but not the full path,
   --       in order to let the dynamic loader figure it out on its own (e.g.,  multilib).
@@ -439,7 +439,7 @@ if ffi.os == "Linux" then
 end
 
 -- The clockid_t constants are not portable :/.
-if ffi.os == "Linux" then
+if jit.os == "Linux" then
   ffi.cdef([[
 static const int CLOCK_REALTIME = 0;
 static const int CLOCK_REALTIME_COARSE = 5;
@@ -450,7 +450,7 @@ static const int CLOCK_BOOTTIME = 7;
 static const int CLOCK_TAI = 11;
 static const int FIONREAD = 21531;
 ]])
-elseif ffi.os == "OSX" then
+elseif jit.os == "OSX" then
   -- c.f., https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX10.12.sdk/usr/include/time.h
   --[[
     typedef enum {
@@ -480,7 +480,7 @@ static const int CLOCK_BOOTTIME = -1;
 static const int CLOCK_TAI = -1;
 static const int FIONREAD = 1074030207;
 ]])
-elseif ffi.os == "BSD" then
+elseif jit.os == "BSD" then
   -- OpenBSD
   -- c.f., https://github.com/openbsd/src/blob/master/sys/sys/_time.h
   --[[

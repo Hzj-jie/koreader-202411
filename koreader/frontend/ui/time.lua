@@ -189,7 +189,7 @@ local PREFERRED_MONOTONIC_CLOCKID = C.CLOCK_MONOTONIC
 local PREFERRED_REALTIME_CLOCKID = C.CLOCK_REALTIME
 -- CLOCK_BOOTTIME is only available on Linux 2.6.39+...
 local HAVE_BOOTTIME = false
-if ffi.os == "Linux" then
+if jit.os == "Linux" then
   -- Unfortunately, it was only implemented in Linux 2.6.32, and we may run on older kernels than that...
   -- So, just probe it to see if we can rely on it.
   local probe_ts = ffi.new("struct timespec")
