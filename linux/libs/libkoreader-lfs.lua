@@ -1,1 +1,0 @@
-../../koreader/libs/libkoreader-lfs.lua
