@@ -18,7 +18,7 @@ rm lua-ffi-$LUA_FFI_VERSION.tar.gz
 pushd lua-ffi-$LUA_FFI_VERSION
 mkdir build
 pushd build
-cmake ..
+cmake -D USE_LUA54=true ..
 make
 popd
 popd

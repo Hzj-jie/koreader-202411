@@ -17,7 +17,7 @@ fi
 
 RETURN_VALUE=85
 while [ ${RETURN_VALUE} -eq 85 ]; do
-    lua ./reader.lua "${ARGS}"
+    ./lua ./reader.lua "${ARGS}"
     RETURN_VALUE=$?
     # do not restart with saved arguments
     ARGS="${HOME}"
