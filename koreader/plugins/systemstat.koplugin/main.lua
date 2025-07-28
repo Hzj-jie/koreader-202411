@@ -511,10 +511,6 @@ function SystemStatWidget:onResume()
   SystemStat:onResume()
 end
 
-function SystemStatWidget:onCharging()
-  SystemStat:onCharging()
-end
-
 function SystemStatWidget:onNotCharging()
   SystemStat:onNotCharging()
 end
