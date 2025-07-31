@@ -4,4 +4,6 @@ function ffi.abi(param)
   return param == "32bit" or param == "le"
 end
 
+ffi.C.EPERM = 1
+
 return ffi
