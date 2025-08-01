@@ -11,7 +11,7 @@ else
   require("ffi/posix_types_def_h")
 end
 
-if ffi.arch ~= nil then
+if ffi.arch ~= nil and ffi.type == nil then
   require("ffi/posix_h_jit")
 else
   require("ffi/posix_h_ffi")

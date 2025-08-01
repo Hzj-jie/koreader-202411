@@ -1,89 +1,11 @@
 assert(ffi == nil, "This file shouldn't be imported by luajit")
+--[[
 ffi = package.loadlib("./ffi.so", "luaopen_ffi")()
 function ffi.abi(param)
   return param == "32bit" or param == "le"
 end
+]]--
 
-ffi.C.EPERM = 1
-ffi.C.EINTR = 4
-ffi.C.EAGAIN = 11
-ffi.C.EINVAL = 22
-ffi.C.ENODEV = 19
-ffi.C.ENOSYS = 38
-ffi.C.EPIPE = 32
-ffi.C.ETIME = 62
-ffi.C.ETIMEDOUT = 110
-ffi.C.O_APPEND = 1024
-ffi.C.O_CREAT = 64
-ffi.C.O_TRUNC = 512
-ffi.C.O_RDWR = 2
-ffi.C.O_RDONLY = 0
-ffi.C.O_WRONLY = 1
-ffi.C.O_NONBLOCK = 2048
-ffi.C.O_CLOEXEC = 524288
-ffi.C.S_IRUSR = 256
-ffi.C.S_IWUSR = 128
-ffi.C.S_IXUSR = 64
-ffi.C.S_IRWXU = 448
-ffi.C.S_IRGRP = 32
-ffi.C.S_IWGRP = 16
-ffi.C.S_IXGRP = 8
-ffi.C.S_IRWXG = 56
-ffi.C.S_IROTH = 4
-ffi.C.S_IWOTH = 2
-ffi.C.S_IXOTH = 1
-ffi.C.S_IRWXO = 7
-ffi.C.WNOHANG = 1
-ffi.C.POLLIN = 1
-ffi.C.POLLOUT = 4
-ffi.C.POLLERR = 8
-ffi.C.POLLHUP = 16
-ffi.C.PROT_READ = 1
-ffi.C.PROT_WRITE = 2
-ffi.C.MAP_SHARED = 1
-ffi.C.MAP_ANONYMOUS = 32
-ffi.C.MAP_FAILED = -1
-ffi.C.PATH_MAX = 4096
-ffi.C.TIMER_ABSTIME = 1
-ffi.C.F_OK = 0
-ffi.C.SCHED_OTHER = 0
-ffi.C.SCHED_BATCH = 3
-ffi.C.SCHED_IDLE = 5
-ffi.C.SCHED_FIFO = 1
-ffi.C.SCHED_RR = 2
-ffi.C.SCHED_RESET_ON_FORK = 1073741824
-ffi.C.NI_MAXHOST = 1025
-ffi.C.AF_INET = 2
-ffi.C.AF_INET6 = 10
-ffi.C.NI_NUMERICHOST = 1
-ffi.C.PF_INET = 2
-ffi.C.SOCK_DGRAM = 2
-ffi.C.SOCK_RAW = 3
-ffi.C.SOCK_NONBLOCK = 2048
-ffi.C.SOCK_CLOEXEC = 524288
-ffi.C.IPPROTO_IP = 0
-ffi.C.IPPROTO_ICMP = 1
-ffi.C.IFNAMSIZ = 16
-ffi.C.SIOCGIFHWADDR = 35111
-ffi.C.RTF_UP = 1
-ffi.C.RTF_GATEWAY = 2
-ffi.C.IFF_UP = 1
-ffi.C.IFF_LOOPBACK = 8
-ffi.C.SIOCGIWNAME = 35585
-ffi.C.SIOCGIWESSID = 35611
-ffi.C.IW_ESSID_MAX_SIZE = 32
-ffi.C.IW_ENCODE_INDEX = 255
-ffi.C.ICMP_MINLEN = 8
-ffi.C.ICMP_ECHO = 8
-ffi.C.ICMP_ECHOREPLY = 0
--- Support Linux only.
-ffi.C.CLOCK_REALTIME = 0
-ffi.C.CLOCK_REALTIME_COARSE = 5
-ffi.C.CLOCK_MONOTONIC = 1
-ffi.C.CLOCK_MONOTONIC_COARSE = 6
-ffi.C.CLOCK_MONOTONIC_RAW = 4
-ffi.C.CLOCK_BOOTTIME = 7
-ffi.C.CLOCK_TAI = 11
-ffi.C.FIONREAD = 21531
+ffi = package.loadlib("./cffi.so", "luaopen_cffi")()
 
 return ffi
