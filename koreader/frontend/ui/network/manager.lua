@@ -490,7 +490,7 @@ function NetworkMgr:_canPingMicrosoftCom()
 end
 --]]
 
-function NetworkMgr:toggleWifiOn(wifi_cb) -- false | nil
+function NetworkMgr:toggleWifiOn(wifi_cb)
   if self:_isWifiConnected() then
     if wifi_cb then
       wifi_cb()
@@ -529,7 +529,6 @@ function NetworkMgr:toggleWifiOn(wifi_cb) -- false | nil
   if status == false then
     logger.warn("NetworkMgr:toggleWifiOn: Connection failed!")
     self:_abortWifiConnection()
-    return false
   elseif status == EBUSY then
     -- NOTE: This means turnOnWifi was *not* called (this time).
     logger.warn(
@@ -588,7 +587,7 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
 end
 
 -- NOTE: Only used by the beforeWifiAction framework, so, can never be flagged as "interactive" ;).
-function NetworkMgr:_promptWifiOn(complete_callback) -- void
+function NetworkMgr:_promptWifiOn(complete_callback)
   -- If there's already an ongoing connection attempt, don't even display the ConfirmBox,
   -- as that's just confusing, especially on Android, because you might have seen the one you tapped "Turn on" on disappear,
   -- and be surprised by new ones that popped up out of focus while the system settings were opened...
@@ -610,7 +609,7 @@ function NetworkMgr:_promptWifiOn(complete_callback) -- void
 end
 
 -- This is only used on Android, the intent being we assume the system will eventually turn on WiFi on its own in the background...
-function NetworkMgr:_doNothingAndWaitForConnection(callback) -- void
+function NetworkMgr:_doNothingAndWaitForConnection(callback)
   if self:_isWifiConnected() then
     if callback then
       callback()
@@ -626,14 +625,14 @@ end
 ---    *NOT* isOnline (i.e., WAN), se be careful with recursive callbacks!
 ---    Should only return false on *explicit* failures,
 ---    in which case the backend will already have called _abortWifiConnection
-function NetworkMgr:_beforeWifiAction(callback) -- false | nil
+function NetworkMgr:_beforeWifiAction(callback)
   local wifi_enable_action = G_reader_settings:readSetting("wifi_enable_action")
   if wifi_enable_action == "turn_on" then
-    return self:toggleWifiOn(callback)
+    self:toggleWifiOn(callback)
   elseif wifi_enable_action == "ignore" then
-    return self:_doNothingAndWaitForConnection(callback)
+    self:_doNothingAndWaitForConnection(callback)
   else
-    return self:_promptWifiOn(callback)
+    self:_promptWifiOn(callback)
   end
 end
 
