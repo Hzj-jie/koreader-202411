@@ -14,11 +14,15 @@ else
 fi
 
 if [ -z "$(git status --porcelain)" ]; then
-  ../clean.sh
-  ../update-git-rev.sh
+  pushd ..
+  ./clean.sh
+  ./update-git-rev.sh
+  popd
 
   rsync -acvLK --no-o --no-g ../kindle/extensions/ root@$TARGET:/mnt/us/extensions/
   rsync -acvLK --no-o --no-g --exclude=lns.sh --exclude=push.sh --exclude=push-all.sh . root@$TARGET:/mnt/us/koreader/
+
+  git checkout ../koreader/git-rev
 else
   echo commit first
   git status
