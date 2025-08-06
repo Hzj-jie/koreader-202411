@@ -14,7 +14,8 @@ else
 fi
 
 if [ -z "$(git status --porcelain)" ]; then
-  ./clean.sh
+  ../clean.sh
+  ../update-git-rev.sh
 
   rsync -acvLK --no-o --no-g ../kindle/extensions/ root@$TARGET:/mnt/us/extensions/
   rsync -acvLK --no-o --no-g --exclude=lns.sh --exclude=push.sh --exclude=push-all.sh . root@$TARGET:/mnt/us/koreader/
