@@ -31,9 +31,63 @@ function LibLipcs:isFake(v)
   return v == Fake
 end
 
+local Wrapper = {}
+
+function Wrapper:new(l)
+  local o = {
+    l = l
+  }
+  setmetatable(o, self)
+  self.__index = self
+  return o
+end
+
+function Wrapper:get_string_property(...)
+  local r, o = pcall(self.l.get_string_property, self.l, ...)
+  if r then return o end
+  return nil
+end
+
+function Wrapper:set_string_property(...)
+  pcall(self.l.set_string_property, self.l, ...)
+end
+
+function Wrapper:get_int_property(...)
+  local r, o = pcall(self.l.get_int_property, self.l, ...)
+  if r then return o end
+  return nil
+end
+
+function Wrapper:set_int_property(...)
+  pcall(self.l.set_int_property, self.l, ...)
+end
+
+function Wrapper:access_hasharray_property(...)
+  local r, o = pcall(self.l.access_hasharray_property, self.l, ...)
+  if r then return o end
+  return nil
+end
+
+function Wrapper:new_hasharray(...)
+  local r, o = pcall(self.l.new_hash_array, self.l, ...)
+  if r then return o end
+  return nil
+end
+
+function Wrapper:register_int_property(...)
+  local r, o = pcall(self.l.register_int_property, self.l, ...)
+  if r then return o end
+  return nil
+end
+
+function Wrapper:close(...)
+  pcall(self.l.close, self.l, ...)
+end
+
 function LibLipcs:_check(v)
   if v then
     assert(not self:isFake(v))
+    v = Wrapper:new(v)
   else
     logger.warn("Couldn't get lipc handle")
     v = Fake
