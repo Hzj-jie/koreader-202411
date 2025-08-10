@@ -18,7 +18,7 @@ function Fake:get_string_property() end
 function Fake:set_string_property() end
 function Fake:get_int_property() end
 function Fake:set_int_property() end
-function Fake:access_hasharray_property() end
+function Fake:access_hash_property() end
 function Fake:new_hasharray() end
 function Fake:register_int_property() end
 function Fake:close() end
@@ -62,8 +62,8 @@ function Wrapper:set_int_property(...)
   pcall(self.l.set_int_property, self.l, ...)
 end
 
-function Wrapper:access_hasharray_property(...)
-  local r, o = pcall(self.l.access_hasharray_property, self.l, ...)
+function Wrapper:access_hash_property(...)
+  local r, o = pcall(self.l.access_hash_property, self.l, ...)
   if r then return o end
   return nil
 end
