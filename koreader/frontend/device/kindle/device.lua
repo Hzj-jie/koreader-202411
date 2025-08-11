@@ -140,12 +140,13 @@ local function kindleGetScanList()
   end
   --]]
   local ha_input = lipc:new_hasharray()
+  if ha_input == nil then
+    return {}, nil
+  end
   local ha_results =
     lipc:access_hash_property("com.lab126.wifid", "scanList", ha_input)
   ha_input:destroy()
   if ha_results == nil then
-    -- Shouldn't really happen, access_hash_property will throw if LipcAccessHasharrayProperty failed
-    -- NetworkMgr will ask for a re-scan on seeing an empty table, the second attempt *should* work ;).
     return {}, nil
   end
   local scan_result = ha_results:to_table()
