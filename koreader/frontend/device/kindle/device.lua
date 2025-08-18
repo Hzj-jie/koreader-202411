@@ -56,6 +56,9 @@ local function kindleGetSavedNetworks()
   local ha_input = lipc:new_hasharray() -- an empty hash array since we only want to read
   local ha_result =
     lipc:access_hash_property("com.lab126.wifid", "profileData", ha_input)
+   if ha_result == nil then
+     return nil
+   end
   local profiles = ha_result:to_table()
   ha_result:destroy()
   ha_input:destroy()
