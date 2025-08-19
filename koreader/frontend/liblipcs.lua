@@ -22,6 +22,8 @@ function Fake:access_hash_property() end
 function Fake:new_hasharray() end
 function Fake:register_int_property() end
 function Fake:close() end
+-- Extensions
+function Fake:read_hash_property() end
 
 function LibLipcs:supported()
   return haslipc
@@ -69,7 +71,7 @@ function Wrapper:access_hash_property(...)
 end
 
 function Wrapper:new_hasharray(...)
-  local r, o = pcall(self.l.new_hash_array, self.l, ...)
+  local r, o = pcall(self.l.new_hasharray, self.l, ...)
   if r then return o end
   return nil
 end
@@ -82,6 +84,23 @@ end
 
 function Wrapper:close(...)
   pcall(self.l.close, self.l, ...)
+end
+
+-- Extensions
+-- access_hash_property with empty input, and always returns to_table().
+function Wrapper:read_hash_property(publisher, prop)
+  local input = self:new_hasharray()
+  if input == nil then
+    return nil
+  end
+  local result = self:access_hash_property(publisher, prop, input)
+  input:destroy()
+  if result == nil then
+    return nil
+  end
+  local t = result:to_table()
+  result:destroy()
+  return t
 end
 
 function LibLipcs:_check(v)
