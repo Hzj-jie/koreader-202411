@@ -260,8 +260,7 @@ function NetworkItem:connect()
 
   -- Do what it says on the tin, and only trigger the connect_callback on a *successful* connect.
   -- NOTE: This callback comes from NetworkManager, where it's named complete_callback.
-  if success then
-    assert(self.setting_ui.connect_callback)
+  if success and self.setting_ui.connect_callback then
     self.setting_ui.connect_callback()
   end
 
