@@ -49,7 +49,8 @@ local function isHardFP()
 end
 
 local function kindleGetSavedNetworks()
-  return LibLipcs:hash_accessor():read_hash_property("com.lab126.wifid", "profileData")
+  return LibLipcs:hash_accessor()
+    :read_hash_property("com.lab126.wifid", "profileData")
 end
 
 local function kindleWifiState()
@@ -72,7 +73,8 @@ local function kindleIsWifiConnected()
 end
 
 local function kindleGetCurrentProfile()
-  local result = LibLipcs:hash_accessor():read_hash_property("com.lab126.wifid", "currentEssid")
+  local result = LibLipcs:hash_accessor()
+    :read_hash_property("com.lab126.wifid", "currentEssid")
   if result == nil then
     return nil
   end
@@ -124,7 +126,8 @@ local function kindleGetScanList()
     return { profile }, nil
   end
   --]]
-  local result = LibLipcs:hash_accessor():read_hash_property("com.lab126.wifid", "scanList")
+  local result = LibLipcs:hash_accessor()
+    :read_hash_property("com.lab126.wifid", "scanList")
   if result == nil then
     return nil,
       require("gettext")("Unable to communicate with the Wi-Fi backend")

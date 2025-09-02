@@ -10,17 +10,23 @@ local Version = {}
 -- @treturn string full KOReader git-rev such as `v2015.11-982-g704d4238`
 function Version:getCurrentRevision()
   if not self.rev then
-    local rev_file = io.open("git-rev", "r")
-    if rev_file then
-      self.rev = rev_file:read("*line")
-      rev_file:close()
-    end
-    -- sanity check in case `git describe` failed
-    if self.rev == "fatal: No names found, cannot describe anything." then
-      self.rev = nil
-    end
+    self.rev = self:getUncachedCurrentRevision()
   end
   return self.rev
+end
+
+function Version:getUncachedCurrentRevision()
+  local rev = nil
+  local rev_file = io.open("git-rev", "r")
+  if rev_file then
+    rev = rev_file:read("*line")
+    rev_file:close()
+  end
+  -- sanity check in case `git describe` failed
+  if rev == "fatal: No names found, cannot describe anything." then
+    return nil
+  end
+  return rev
 end
 
 --- Returns normalized version of KOReader git-rev input string.
@@ -78,24 +84,6 @@ function Version:getShortVersion()
     end
   end
   return self.short
-end
-
---- Returns the release date of the current version of KOReader, YYYYmmdd, in UTC.
---- Technically closer to the build date, but close enough where official builds are concerned ;).
--- @treturn int date
-function Version:getBuildDate()
-  if not self.date then
-    local lfs = require("libs/libkoreader-lfs")
-    local mtime = lfs.attributes("git-rev", "modification")
-    if mtime then
-      local ts = os.date("!%Y%m%d", mtime)
-      self.date = tonumber(ts) or 0
-    else
-      -- No git-rev file?
-      self.date = 0
-    end
-  end
-  return self.date
 end
 
 --- Get last line in `VERSION_LOG_FILE`.

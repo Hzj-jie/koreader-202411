@@ -37,7 +37,7 @@ local Wrapper = {}
 
 function Wrapper:new(l)
   local o = {
-    l = l
+    l = l,
   }
   setmetatable(o, self)
   self.__index = self
@@ -46,7 +46,9 @@ end
 
 function Wrapper:get_string_property(...)
   local r, o = pcall(self.l.get_string_property, self.l, ...)
-  if r then return o end
+  if r then
+    return o
+  end
   return nil
 end
 
@@ -56,7 +58,9 @@ end
 
 function Wrapper:get_int_property(...)
   local r, o = pcall(self.l.get_int_property, self.l, ...)
-  if r then return o end
+  if r then
+    return o
+  end
   return nil
 end
 
@@ -66,19 +70,25 @@ end
 
 function Wrapper:access_hash_property(...)
   local r, o = pcall(self.l.access_hash_property, self.l, ...)
-  if r then return o end
+  if r then
+    return o
+  end
   return nil
 end
 
 function Wrapper:new_hasharray(...)
   local r, o = pcall(self.l.new_hasharray, self.l, ...)
-  if r then return o end
+  if r then
+    return o
+  end
   return nil
 end
 
 function Wrapper:register_int_property(...)
   local r, o = pcall(self.l.register_int_property, self.l, ...)
-  if r then return o end
+  if r then
+    return o
+  end
   return nil
 end
 

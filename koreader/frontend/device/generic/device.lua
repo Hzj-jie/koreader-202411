@@ -1081,7 +1081,10 @@ function Device:retrieveNetworkInfo()
     return network:isOnline()
   end
   -- Need localization
-  table.insert(results, _("Internet") .. " " .. (connected() and _("online") or _("offline")))
+  table.insert(
+    results,
+    _("Internet") .. " " .. (connected() and _("online") or _("offline"))
+  )
 
   return results
 end

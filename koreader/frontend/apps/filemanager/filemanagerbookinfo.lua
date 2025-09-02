@@ -86,10 +86,11 @@ function BookInfo:show(doc_settings_or_file, book_props)
     kv_pairs,
     { _("Size:"), string.format("%s (%s bytes)", size_f, size_b) }
   )
-  table.insert(
-    kv_pairs,
-    { _("File date:"), attr ~= nil and os.date("%Y-%m-%d %H:%M:%S", attr.modification) or _("Unknown") }
-  )
+  table.insert(kv_pairs, {
+    _("File date:"),
+    attr ~= nil and os.date("%Y-%m-%d %H:%M:%S", attr.modification)
+      or _("Unknown"),
+  })
   table.insert(kv_pairs, {
     _("Folder:"),
     BD.dirpath(filemanagerutil.abbreviate(folder)),
