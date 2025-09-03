@@ -26,37 +26,37 @@ typedef LPSTR LPTSTR;
 typedef int BOOL;
 
 typedef struct _FILETIME {
-  DWORD dwLowDateTime;
-  DWORD dwHighDateTime;
+    DWORD dwLowDateTime;
+    DWORD dwHighDateTime;
 } FILETIME, *PFILETIME;
 
 void GetSystemTimeAsFileTime(FILETIME*);
 DWORD GetFullPathNameA(
-  LPCSTR lpFileName,
-  DWORD nBufferLength,
-  LPSTR lpBuffer,
-  LPSTR *lpFilePart
+    LPCSTR lpFileName,
+    DWORD nBufferLength,
+    LPSTR lpBuffer,
+    LPSTR *lpFilePart
 );
 LPTSTR PathFindFileNameA(LPCSTR lpszPath);
 BOOL PathRemoveFileSpec(LPTSTR pszPath);
 UINT GetACP(void);
 int MultiByteToWideChar(
-  UINT CodePage,
-  DWORD dwFlags,
-  LPCSTR lpMultiByteStr,
-  int cbMultiByte,
-  LPWSTR lpWideCharStr,
-  int cchWideChar
+    UINT CodePage,
+    DWORD dwFlags,
+    LPCSTR lpMultiByteStr,
+    int cbMultiByte,
+    LPWSTR lpWideCharStr,
+    int cchWideChar
 );
 int WideCharToMultiByte(
-  UINT CodePage,
-  DWORD dwFlags,
-  LPCWSTR lpWideCharStr,
-  int cchWideChar,
-  LPSTR lpMultiByteStr,
-  int cbMultiByte,
-  LPCSTR lpDefaultChar,
-  LPBOOL lpUsedDefaultChar
+    UINT CodePage,
+    DWORD dwFlags,
+    LPCWSTR lpWideCharStr,
+    int cchWideChar,
+    LPSTR lpMultiByteStr,
+    int cbMultiByte,
+    LPCSTR lpDefaultChar,
+    LPBOOL lpUsedDefaultChar
 );
 ]])
 
