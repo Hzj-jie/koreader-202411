@@ -1074,6 +1074,18 @@ function Device:retrieveNetworkInfo()
     table.insert(results, _("No default gateway to ping"))
   end
 
+  local connected = function()
+    local network = require("ui/network/manager")
+    -- Less ideal, but force updating the connectivity state.
+    network:_queryOnlineState()
+    return network:isOnline()
+  end
+  -- Need localization
+  table.insert(
+    results,
+    _("Internet") .. " " .. (connected() and _("online") or _("offline"))
+  )
+
   return results
 end
 

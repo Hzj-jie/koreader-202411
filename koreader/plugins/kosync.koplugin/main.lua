@@ -314,9 +314,9 @@ If set to 0, updating progress based on page turns will be disabled.]]
             title_text = _("Number of pages before update"),
             default_value = 0,
             callback = function(spin)
-              self.settings.pages_before_update = (spin.value > 0
-                  and pages_before_update
-                or nil)
+              self.settings.pages_before_update = (
+                spin.value > 0 and pages_before_update or nil
+              )
               if touchmenu_instance then
                 touchmenu_instance:updateItems()
               end

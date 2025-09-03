@@ -182,10 +182,25 @@ common_info.about = {
     UIManager:show(InfoMessage:new({
       text = T(
         _(
-          "KOReader %1\n\nA document viewer for E Ink devices.\n\nLicensed under Affero GPL v3. All dependencies are free software.\n\nhttp://koreader.rocks"
+          "KOReader %1\n\nA document viewer for E Ink devices.\n\n"
+            .. "Licensed under Affero GPL v3. All dependencies are free software.\n\n"
+            .. "http://koreader.rocks"
         ),
         BD.ltr(Version:getCurrentRevision())
-      ):gsub("koreader.rocks", "github.com/Hzj-jie/koreader-202411"),
+      ):gsub("koreader.rocks", "github.com/Hzj-jie/koreader-202411")
+        .. (
+          Version:getUncachedCurrentRevision()
+              == Version:getCurrentRevision()
+            and ""
+          or "\n\n"
+            .. T(
+              _(
+                "Running version may not match source code version %1.\n"
+                  .. "Please consider restarting KOReader at the ealiest convenience."
+              ),
+              Version:getUncachedCurrentRevision()
+            )
+        ), -- Need localization
       icon = "koreader",
     }))
   end,

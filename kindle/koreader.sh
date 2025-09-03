@@ -323,6 +323,11 @@ while [ "${RETURN_VALUE}" -eq 85 ]; do
     RETURN_VALUE=$?
 done
 
+if [ "${RETURN_VALUE}" -ne 0 ]; then
+    # Backup the crash.log in case of a crash.
+    cp crash.log /mnt/us/koreader.crash.$(date +%Y%m%d%H%M%S).log
+fi
+
 # clean up our own process tree in case the reader crashed (if needed, to avoid flooding KUAL's log)
 if pidof reader.lua >/dev/null 2>&1; then
     logmsg "Sending a SIGTERM to stray KOreader processes . . ."

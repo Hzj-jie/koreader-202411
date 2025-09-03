@@ -77,7 +77,7 @@ function BookInfo:show(doc_settings_or_file, book_props)
   local folder, filename = util.splitFilePathName(file)
   local __, filetype = filemanagerutil.splitFileNameType(filename)
   local attr = lfs.attributes(file)
-  local file_size = attr.size or 0
+  local file_size = attr ~= nil and (attr.size or 0) or 0
   local size_f = util.getFriendlySize(file_size)
   local size_b = util.getFormattedSize(file_size)
   table.insert(kv_pairs, { _("Filename:"), BD.filename(filename) })
@@ -86,10 +86,11 @@ function BookInfo:show(doc_settings_or_file, book_props)
     kv_pairs,
     { _("Size:"), string.format("%s (%s bytes)", size_f, size_b) }
   )
-  table.insert(
-    kv_pairs,
-    { _("File date:"), os.date("%Y-%m-%d %H:%M:%S", attr.modification) }
-  )
+  table.insert(kv_pairs, {
+    _("File date:"),
+    attr ~= nil and os.date("%Y-%m-%d %H:%M:%S", attr.modification)
+      or _("Unknown"),
+  })
   table.insert(kv_pairs, {
     _("Folder:"),
     BD.dirpath(filemanagerutil.abbreviate(folder)),

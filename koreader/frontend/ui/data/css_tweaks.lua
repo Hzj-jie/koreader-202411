@@ -763,6 +763,21 @@ width: 100% !important;
                 ]],
       },
       {
+        id = "almost_image_full_width",
+        -- Need localization
+        title = _("Almost full-width images"),
+        description = _(
+          "Useful for books containing only images, when they are smaller than your screen. May stretch images in some cases."
+        ),
+        css = [[
+img {
+margin: auto !important;
+display: block !important;
+width: 85% !important;
+}
+                ]],
+      },
+      {
         id = "image_valign_middle",
         title = _("Vertically center-align images relative to text"),
         css = [[img { vertical-align: middle; }]],
