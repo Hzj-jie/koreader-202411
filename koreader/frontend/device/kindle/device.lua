@@ -49,17 +49,8 @@ local function isHardFP()
 end
 
 local function kindleGetSavedNetworks()
-  local lipc = LibLipcs:hash_accessor()
-  if LibLipcs:isFake(lipc) then
-    return nil
-  end
-  local ha_input = lipc:new_hasharray() -- an empty hash array since we only want to read
-  local ha_result =
-    lipc:access_hash_property("com.lab126.wifid", "profileData", ha_input)
-  local profiles = ha_result:to_table()
-  ha_result:destroy()
-  ha_input:destroy()
-  return profiles
+  return LibLipcs:hash_accessor()
+    :read_hash_property("com.lab126.wifid", "profileData")
 end
 
 local function kindleWifiState()
@@ -82,17 +73,13 @@ local function kindleIsWifiConnected()
 end
 
 local function kindleGetCurrentProfile()
-  local lipc = LibLipcs:hash_accessor()
-  if LibLipcs:isFake(lipc) then
+  local result = LibLipcs:hash_accessor()
+    :read_hash_property("com.lab126.wifid", "currentEssid")
+  if result == nil then
     return nil
   end
-  local ha_input = lipc:new_hasharray() -- an empty hash array since we only want to read
-  local ha_result =
-    lipc:access_hash_property("com.lab126.wifid", "currentEssid", ha_input)
-  local profile = ha_result:to_table()[1] -- there is only a single element
-  ha_input:destroy()
-  ha_result:destroy()
-  return profile
+  -- there is only a single element
+  return result[1]
 end
 
 local function kindleAuthenticateNetwork(essid)
@@ -106,6 +93,9 @@ local function kindleSaveNetwork(data)
     return
   end
   local profile = lipc:new_hasharray()
+  if profile == nil then
+    return
+  end
   profile:add_hash()
   profile:put_string(0, "essid", data.ssid)
   if string.find(data.flags, "WPA") then
@@ -115,10 +105,12 @@ local function kindleSaveNetwork(data)
   else
     profile:put_string(0, "secured", "no")
   end
-  lipc
-    :access_hash_property("com.lab126.wifid", "createProfile", profile)
-    :destroy() -- destroy the returned empty ha
+  local ha_result =
+    lipc:access_hash_property("com.lab126.wifid", "createProfile", profile)
   profile:destroy()
+  if ha_result ~= nil then
+    ha_result:destroy() -- destroy the returned empty ha
+  end
 end
 
 local function kindleDeleteNetwork(data)
@@ -127,11 +119,6 @@ local function kindleDeleteNetwork(data)
 end
 
 local function kindleGetScanList()
-  local lipc = LibLipcs:hash_accessor()
-  if LibLipcs:isFake(lipc) then
-    return nil,
-      require("gettext")("Unable to communicate with the Wi-Fi backend")
-  end
   --[[ This logic is strange :/
   if kindleIsWifiConnected() then
     -- return a fake scan list containing only the currently connected profile :)
@@ -139,22 +126,13 @@ local function kindleGetScanList()
     return { profile }, nil
   end
   --]]
-  local ha_input = lipc:new_hasharray()
-  local ha_results =
-    lipc:access_hash_property("com.lab126.wifid", "scanList", ha_input)
-  ha_input:destroy()
-  if ha_results == nil then
-    -- Shouldn't really happen, access_hash_property will throw if LipcAccessHasharrayProperty failed
-    -- NetworkMgr will ask for a re-scan on seeing an empty table, the second attempt *should* work ;).
-    return {}, nil
+  local result = LibLipcs:hash_accessor()
+    :read_hash_property("com.lab126.wifid", "scanList")
+  if result == nil then
+    return nil,
+      require("gettext")("Unable to communicate with the Wi-Fi backend")
   end
-  local scan_result = ha_results:to_table()
-  ha_results:destroy()
-  if scan_result then
-    return scan_result, nil
-  end
-  -- e.g., to_table hit lha->ha == NULL
-  return {}, nil
+  return result, nil
 end
 
 local function kindleScanThenGetResults()
