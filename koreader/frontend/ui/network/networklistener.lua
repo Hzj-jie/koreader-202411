@@ -197,7 +197,7 @@ function NetworkListener:_scheduleActivityCheck()
 end
 
 function NetworkListener:onNetworkConnected()
-  logger.warn("NetworkListener: onNetworkConnected")
+  logger.dbg("NetworkListener: onNetworkConnected")
 
   for _, v in pairs(_pending_connected) do
     v()
@@ -214,7 +214,7 @@ function NetworkListener:onNetworkConnected()
 end
 
 function NetworkListener:onNetworkOnline()
-  logger.warn("NetworkListener: onNetworkOnline")
+  logger.dbg("NetworkListener: onNetworkOnline")
 
   for _, v in pairs(_pending_online) do
     v()
@@ -238,13 +238,9 @@ function NetworkListener:countsOfPendingJobs()
 end
 
 function NetworkListener:onNetworkDisconnected()
-  logger.warn("NetworkListener: onNetworkDisconnected")
+  logger.dbg("NetworkListener: onNetworkDisconnected")
 
   NetworkListener:_unscheduleActivityCheck()
-end
-
-function NetworkListener:onNetworkOffline()
-  logger.warn("NetworkListener: onNetworkOffline")
 end
 
 -- Also unschedule on suspend (and we happen to also kill Wi-Fi to do so, so resetting the stats is also relevant here)
