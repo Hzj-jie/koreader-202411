@@ -182,10 +182,9 @@ function NetworkMgr:_queryOnlineState()
 end
 
 function NetworkMgr:_setOnlineState(new_state)
-  local last_state = self.was_online
-  self.was_online = new_state
-  if last_state ~= self.was_online then
-    if self.was_online then
+  if self.was_online ~= new_state then
+    self.was_online = new_state
+    if new_state then
       raiseNetworkEvent("Online")
     else
       raiseNetworkEvent("Offline")
