@@ -247,7 +247,9 @@ function SystemStat:appendCounters()
   })
   self:put({ _("  Discharge cycles"), self.discharge_count })
   -- no localization.
-  self:put({ _("  Background jobs"), #require("pluginshare").backgroundJobs })
+  self:put({ "  " .. _("Background jobs"), #require("pluginshare").backgroundJobs })
+  -- no localization.
+  self:put({ "  " .. _("Pending network activities"), require("ui/network/networklistener"):countsOfPendingJobs() })
 end
 
 function SystemStat:appendSystemInfo()
@@ -286,7 +288,7 @@ function SystemStat:appendSystemInfo()
     })
   end
   -- Need localization
-  self:put({ _("  Number of processors"), self.sys_stat.cpu.count })
+  self:put({ "  " .. _("Number of processors"), self.sys_stat.cpu.count })
   -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
   self:put({
     _("  Total ticks (million)"),
@@ -306,20 +308,20 @@ function SystemStat:appendSystemInfo()
   if #self.sys_stat.cpu.average > 1 then
     -- Need localization
     self:put({
-      _("  5 minutes usage %"),
+      "  " .. _("5 minutes usage %"),
       string.format("%.2f", self.sys_stat.cpu.average[2] * 100),
     })
   end
   if #self.sys_stat.cpu.average > 2 then
     -- Need localization
     self:put({
-      _("  15 minutes usage %"),
+      "  " .. _("15 minutes usage %"),
       string.format("%.2f", self.sys_stat.cpu.average[3] * 100),
     })
   end
   -- Need localization
   self:put({
-    _("  Usage % since boot"),
+    "  " .. _("Usage % since boot"),
     string.format(
       "%.2f",
       (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total) * 100
@@ -367,7 +369,7 @@ function SystemStat:appendProcessInfo()
     -- Need localization
     -- Fairly hard for reader.lua to use so much processor resources, do not
     -- change the unit to millions.
-    self:put({ _("  Total ticks"), n1 })
+    self:put({ "  " .. _("Total ticks"), n1 })
     if self.sys_stat.cpu ~= nil and self.sys_stat.cpu.total ~= nil then
       assert(self.sys_stat.cpu.total > 0) -- Imporssible to be 0.
       self:put({
@@ -381,7 +383,7 @@ function SystemStat:appendProcessInfo()
     return
   end
   -- Need localization
-  self:put({ _("  Priority / nice"), t[18] .. " / " .. t[19] })
+  self:put({ "  " .. _("Priority / nice"), t[18] .. " / " .. t[19] })
 
   if #t < 20 then
     return

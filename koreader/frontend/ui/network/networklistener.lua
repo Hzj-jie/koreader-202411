@@ -232,6 +232,11 @@ function NetworkListener:onPendingOnline(callback)
   table.insert(self._pending_online, callback)
 end
 
+-- Returns a human readable string to indicate the # of pending jobs.
+function NetworkListener:countsOfPendingJobs()
+  return string.format("%d / %d", #self._pending_connected, #self._pending_online)
+end
+
 function NetworkListener:onNetworkDisconnected()
   logger.dbg("NetworkListener: onNetworkDisconnected")
 
