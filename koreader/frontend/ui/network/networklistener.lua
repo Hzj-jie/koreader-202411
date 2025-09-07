@@ -205,6 +205,9 @@ function NetworkListener:onNetworkConnected()
   NetworkListener:_scheduleActivityCheck()
 end
 
+function NetworkListener:onNetworkOnline()
+end
+
 function NetworkListener:onNetworkDisconnected()
   logger.dbg("NetworkListener: onNetworkDisconnected")
 
