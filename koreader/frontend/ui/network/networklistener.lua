@@ -14,6 +14,9 @@ local NetworkListener = EventListener:extend({
   _activity_check_scheduled = nil,
   _last_tx_packets = nil,
   _activity_check_delay_seconds = nil,
+
+  _pending_connected = {},
+  _pending_online = {},
 })
 
 if not Device:hasWifiToggle() then
@@ -196,6 +199,11 @@ end
 function NetworkListener:onNetworkConnected()
   logger.dbg("NetworkListener: onNetworkConnected")
 
+  for _, v in pairs(self._pending_connected) do
+    v()
+  end
+  self._pending_connected = {}
+
   if not G_reader_settings:isTrue("auto_disable_wifi") or Device:isKindle() then
     return
   end
@@ -206,6 +214,22 @@ function NetworkListener:onNetworkConnected()
 end
 
 function NetworkListener:onNetworkOnline()
+  logger.dbg("NetworkListener: onNetworkOnline")
+
+  for _, v in pairs(self._pending_online) do
+    v()
+  end
+  self._pending_online = {}
+end
+
+function NetworkListener:onPendingConnected(callback)
+  assert(callback ~= nil)
+  table.insert(self._pending_connected, callback)
+end
+
+function NetworkListener:onPendingOnline(callback)
+  assert(callback ~= nil)
+  table.insert(self._pending_online, callback)
 end
 
 function NetworkListener:onNetworkDisconnected()

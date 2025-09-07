@@ -691,16 +691,8 @@ end
 --     it will just attempt to re-connect, *without* running the callback.
 -- c.f., ReaderWikipedia:onShowWikipediaLookup @ frontend/apps/reader/modules/readerwikipedia.lua
 function NetworkMgr:runWhenOnline(callback)
-  assert(callback ~= nil)
-  if self:isOnline() then
-    callback()
-  else
-    --- @note: Avoid infinite recursion, beforeWifiAction only guarantees isConnected, not isOnline.
-    if self:_isWifiConnected() then
-      self:_beforeWifiAction()
-    else
-      self:_beforeWifiAction(callback)
-    end
+  if self:willRerunWhenOnline(callback) then
+    self:_beforeWifiAction()
   end
 end
 
@@ -708,11 +700,8 @@ end
 -- guaranteed by beforeWifiAction, you also have a guarantee that the callback
 -- *will* run.
 function NetworkMgr:runWhenConnected(callback)
-  assert(callback ~= nil)
-  if self:_isWifiConnected() then
-    callback()
-  else
-    self:_beforeWifiAction(callback)
+  if self:willRerunWhenConnected(callback) then
+    self:_beforeWifiAction()
   end
 end
 
@@ -726,14 +715,10 @@ function NetworkMgr:willRerunWhenOnline(callback)
   assert(callback ~= nil)
   if self:isOnline() then
     callback()
+    return false
   end
-  --- @note: Avoid infinite recursion, beforeWifiAction only guarantees
-  --- isConnected, not isOnline.
-  if self:_isWifiConnected() then
-    self:_beforeWifiAction()
-  else
-    self:_beforeWifiAction(callback)
-  end
+  UIManager:broadcastEvent(Event:new("PendingOnline", callback))
+  return true
 end
 
 -- This one is for callbacks that only require isConnected, and since that's
@@ -743,8 +728,10 @@ function NetworkMgr:willRerunWhenConnected(callback)
   assert(callback ~= nil)
   if self:_isWifiConnected() then
     callback()
+    return false
   end
-  self:_beforeWifiAction(callback)
+  UIManager:broadcastEvent(Event:new("PendingConnected", callback))
+  return true
 end
 
 function NetworkMgr:getWifiMenuTable()
