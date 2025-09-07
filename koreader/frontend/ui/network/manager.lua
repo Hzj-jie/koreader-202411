@@ -691,6 +691,7 @@ end
 --     it will just attempt to re-connect, *without* running the callback.
 -- c.f., ReaderWikipedia:onShowWikipediaLookup @ frontend/apps/reader/modules/readerwikipedia.lua
 function NetworkMgr:runWhenOnline(callback)
+  assert(callback ~= nil)
   if self:isOnline() then
     callback()
   else
@@ -707,6 +708,7 @@ end
 -- guaranteed by beforeWifiAction, you also have a guarantee that the callback
 -- *will* run.
 function NetworkMgr:runWhenConnected(callback)
+  assert(callback ~= nil)
   if self:_isWifiConnected() then
     callback()
   else
@@ -721,8 +723,9 @@ end
 --     it will just attempt to re-connect, *without* running the callback.
 -- c.f., ReaderWikipedia:lookupWikipedia @ frontend/apps/reader/modules/readerwikipedia.lua
 function NetworkMgr:willRerunWhenOnline(callback)
+  assert(callback ~= nil)
   if self:isOnline() then
-    return false
+    callback()
   end
   --- @note: Avoid infinite recursion, beforeWifiAction only guarantees
   --- isConnected, not isOnline.
@@ -731,18 +734,17 @@ function NetworkMgr:willRerunWhenOnline(callback)
   else
     self:_beforeWifiAction(callback)
   end
-  return true
 end
 
 -- This one is for callbacks that only require isConnected, and since that's
 -- guaranteed by beforeWifiAction, you also have a guarantee that the callback
 -- *will* run.
 function NetworkMgr:willRerunWhenConnected(callback)
+  assert(callback ~= nil)
   if self:_isWifiConnected() then
-    return false
+    callback()
   end
   self:_beforeWifiAction(callback)
-  return true
 end
 
 function NetworkMgr:getWifiMenuTable()
