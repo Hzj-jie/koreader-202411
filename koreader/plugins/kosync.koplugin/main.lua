@@ -474,7 +474,9 @@ end
 
 function KOSync:_login(menu)
   NetworkMgr:runWhenOnline(function()
-    local dialog = MultiInputDialog:new({
+    -- For closure capture.
+    local dialog
+    dialog = MultiInputDialog:new({
       title = self.title,
       fields = {
         {
