@@ -197,7 +197,7 @@ function NetworkListener:_scheduleActivityCheck()
 end
 
 function NetworkListener:onNetworkConnected()
-  logger.dbg("NetworkListener: onNetworkConnected")
+  logger.warn("NetworkListener: onNetworkConnected")
 
   for _, v in pairs(self._pending_connected) do
     v()
@@ -214,7 +214,7 @@ function NetworkListener:onNetworkConnected()
 end
 
 function NetworkListener:onNetworkOnline()
-  logger.dbg("NetworkListener: onNetworkOnline")
+  logger.warn("NetworkListener: onNetworkOnline")
 
   for _, v in pairs(self._pending_online) do
     v()
