@@ -238,9 +238,13 @@ function NetworkListener:countsOfPendingJobs()
 end
 
 function NetworkListener:onNetworkDisconnected()
-  logger.dbg("NetworkListener: onNetworkDisconnected")
+  logger.warn("NetworkListener: onNetworkDisconnected")
 
   NetworkListener:_unscheduleActivityCheck()
+end
+
+function NetworkListener:onNetworkOffline()
+  logger.warn("NetworkListener: onNetworkOffline")
 end
 
 -- Also unschedule on suspend (and we happen to also kill Wi-Fi to do so, so resetting the stats is also relevant here)
