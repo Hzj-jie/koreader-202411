@@ -9,14 +9,14 @@ local logger = require("logger")
 local _ = require("gettext")
 local T = require("ffi/util").template
 
+local _pending_connected = {}
+local _pending_online = {}
+
 local NetworkListener = EventListener:extend({
   -- Class members, because we want the activity check to be cross-instance...
   _activity_check_scheduled = nil,
   _last_tx_packets = nil,
   _activity_check_delay_seconds = nil,
-
-  _pending_connected = {},
-  _pending_online = {},
 })
 
 if not Device:hasWifiToggle() then
@@ -199,10 +199,10 @@ end
 function NetworkListener:onNetworkConnected()
   logger.warn("NetworkListener: onNetworkConnected")
 
-  for _, v in pairs(self._pending_connected) do
+  for _, v in pairs(_pending_connected) do
     v()
   end
-  self._pending_connected = {}
+  _pending_connected = {}
 
   if not G_reader_settings:isTrue("auto_disable_wifi") or Device:isKindle() then
     return
@@ -216,25 +216,25 @@ end
 function NetworkListener:onNetworkOnline()
   logger.warn("NetworkListener: onNetworkOnline")
 
-  for _, v in pairs(self._pending_online) do
+  for _, v in pairs(_pending_online) do
     v()
   end
-  self._pending_online = {}
+  _pending_online = {}
 end
 
 function NetworkListener:onPendingConnected(callback)
   assert(callback ~= nil)
-  table.insert(self._pending_connected, callback)
+  table.insert(_pending_connected, callback)
 end
 
 function NetworkListener:onPendingOnline(callback)
   assert(callback ~= nil)
-  table.insert(self._pending_online, callback)
+  table.insert(_pending_online, callback)
 end
 
 -- Returns a human readable string to indicate the # of pending jobs.
 function NetworkListener:countsOfPendingJobs()
-  return string.format("%d / %d", #self._pending_connected, #self._pending_online)
+  return string.format("%d / %d", #_pending_connected, #_pending_online)
 end
 
 function NetworkListener:onNetworkDisconnected()
