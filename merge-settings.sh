@@ -9,10 +9,10 @@ echo Press any key to continue.
 
 read -n 1 -s
 
-luajit merge-settings.lua
+linux/luajit merge-settings.lua
 
 echo '< new > device'
-diff /tmp/settings.reader.new.lua /tmp/settings.reader.lua
+diff -w /tmp/settings.reader.new.lua /tmp/settings.reader.lua
 
 echo '*** WARNING AGAIN ***'
 echo Ensure the above diff is expected, right file will be overridden.
