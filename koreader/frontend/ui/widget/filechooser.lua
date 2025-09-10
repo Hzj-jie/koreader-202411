@@ -563,6 +563,13 @@ function FileChooser:updateItems(select_number, no_recalculate_dimen)
 end
 
 function FileChooser:refreshPath()
+  UIManager:show(require("ui/widget/infomessage"):new({
+    -- Need localization.
+    text = T(_("Loading contents in %1"), self.path),
+    timeout = 0,
+  }))
+  UIManager:forceRePaint()
+
   local _, folder_name = util.splitFilePathName(self.path)
   Screen:setWindowTitle(folder_name)
 
@@ -583,6 +590,8 @@ function FileChooser:refreshPath()
     itemmatch,
     subtitle
   )
+  -- The previous InfoMessage may cause the page to be partially freshed.
+  UIManager:setDirty(nil, "full")
 end
 
 function FileChooser:changeToPath(path, focused_path)
