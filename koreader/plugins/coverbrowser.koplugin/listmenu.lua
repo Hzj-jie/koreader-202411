@@ -3,6 +3,7 @@ local Blitbuffer = require("ffi/blitbuffer")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local DocSettings = require("docsettings")
+local FileChooser = require("ui/widget/filechooser")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
@@ -230,14 +231,16 @@ function ListMenuItem:update()
       text = self.mandatory or "",
       face = Font:getFace("infont", _fontSize(14, 18)),
     })
-    local pad_width = Screen:scaleBySize(10) -- on the left, in between, and on the right
+    -- on the left, in between, and on the right
+    local pad_width = Screen:scaleBySize(10)
     local wleft_width = dimen.w - wright:getWidth() - 3 * pad_width
     local wleft = TextBoxWidget:new({
       text = BD.directory(self.text),
       face = Font:getFace("cfont", _fontSize(20, 24)),
       width = wleft_width,
       alignment = "left",
-      bold = true,
+      -- follow regular FileChooser to not show directories in bold
+      bold = false,
       height = dimen.h,
       height_adjust = true,
       height_overflow_show_ellipsis = true,
@@ -622,7 +625,7 @@ function ListMenuItem:update()
           height_adjust = true,
           height_overflow_show_ellipsis = true,
           alignment = "left",
-          bold = true,
+          bold = FileChooser:showFileInBold(percent_finished ~= nil),
           fgcolor = fgcolor,
         })
       end
