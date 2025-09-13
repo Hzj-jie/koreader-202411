@@ -1898,5 +1898,15 @@ function UIManager:keyEvents()
   return require("ffi/SortedIteration")(key_events)
 end
 
+-- Executes the function during the showing of the widget, usually InfoMessage.
+function UIManager:runWith(func, widget)
+  assert(widget ~= nil)
+  assert(func ~= nil)
+  self:show(widget)
+  self:forceRePaint()
+  func()
+  self:close(widget)
+end
+
 UIManager:init()
 return UIManager
