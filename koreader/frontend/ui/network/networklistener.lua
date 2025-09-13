@@ -196,7 +196,7 @@ end
 function NetworkListener:onNetworkConnected()
   logger.dbg("NetworkListener: onNetworkConnected")
 
-  if not G_reader_settings:isTrue("auto_disable_wifi") then
+  if not G_reader_settings:isTrue("auto_disable_wifi") or Device:isKindle() then
     return
   end
 

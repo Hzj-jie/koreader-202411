@@ -36,17 +36,13 @@ end
 
 function NetworkMgr:_networkConnected()
   raiseNetworkEvent("Connected")
-  UIManager:nextTick(function()
-    -- This is a hacky way to ensure the NetworkOnline event can be triggered
-    -- after a NetworkConnected event.
-    self.was_online = false
-    self:_queryOnlineState()
-  end)
+  self:_queryOnlineState()
 end
 
 function NetworkMgr:_networkDisconnected()
   -- A less preferred way to allow Emulator raising the events.
   raiseNetworkEvent("Disconnected")
+  self:_queryOnlineState()
 end
 
 function NetworkMgr:_readNWSettings()
@@ -186,10 +182,9 @@ function NetworkMgr:_queryOnlineState()
 end
 
 function NetworkMgr:_setOnlineState(new_state)
-  local last_state = self.was_online
-  self.was_online = new_state
-  if last_state ~= self.was_online then
-    if self.was_online then
+  if self.was_online ~= new_state then
+    self.was_online = new_state
+    if new_state then
       raiseNetworkEvent("Online")
     else
       raiseNetworkEvent("Offline")

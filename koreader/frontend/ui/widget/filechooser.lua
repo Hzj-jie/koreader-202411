@@ -6,6 +6,7 @@ local DocumentRegistry = require("document/documentregistry")
 local Event = require("ui/event")
 local FileManagerShortcuts = require("apps/filemanager/filemanagershortcuts")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
+local InfoMessage = require("ui/widget/infomessage")
 local Menu = require("ui/widget/menu")
 local ReadCollection = require("readcollection")
 local UIManager = require("ui/uimanager")
@@ -392,6 +393,21 @@ function FileChooser:getList(path, collate)
   return dirs, files
 end
 
+-- Returns true if the file should be displayed in bold.
+function FileChooser:showFileInBold(opened)
+  -- set to false to show all files in regular font
+  -- set to "opened" to show opened files in bold
+  -- otherwise, show new files in bold
+  local show_file_in_bold = G_named_settings.show_file_in_bold()
+  if show_file_in_bold == "new" then
+    return not opened
+  end
+  if show_file_in_bold == "opened" then
+    return opened
+  end
+  return false
+end
+
 function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
   local item = {
     text = f,
@@ -399,18 +415,10 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
     attr = attributes,
   }
   if attributes.mode == "file" then
-    -- set to false to show all files in regular font
-    -- set to "opened" to show opened files in bold
-    -- otherwise, show new files in bold
-    local show_file_in_bold = G_named_settings.show_file_in_bold()
     item.bidi_wrap_func = BD.filename
     item.is_file = true
     item.opened = DocSettings:hasSidecarFile(fullpath)
-    if show_file_in_bold == "new" then
-      item.bold = not item.opened
-    elseif show_file_in_bold == "opened" then
-      item.bold = item.opened
-    end
+    item.bold = self:showFileInBold(item.opened)
     item.dim = self.filemanager
       and self.filemanager.selected_files
       and self.filemanager.selected_files[item.path]
@@ -563,26 +571,31 @@ function FileChooser:updateItems(select_number, no_recalculate_dimen)
 end
 
 function FileChooser:refreshPath()
-  local _, folder_name = util.splitFilePathName(self.path)
-  Screen:setWindowTitle(folder_name)
+  UIManager:runWith(function()
+    local _, folder_name = util.splitFilePathName(self.path)
+    Screen:setWindowTitle(folder_name)
 
-  local itemmatch
-  if self.focused_path then
-    itemmatch = { path = self.focused_path }
-    -- We use focused_path only once, but remember it
-    -- for CoverBrowser to re-apply it on startup if needed
-    self.prev_focused_path = self.focused_path
-    self.focused_path = nil
-  end
-  local subtitle = self.filemanager == nil
-    and BD.directory(filemanagerutil.abbreviate(self.path))
-  self:switchItemTable(
-    nil,
-    self:genItemTableFromPath(self.path),
-    self.path_items[self.path],
-    itemmatch,
-    subtitle
-  )
+    local itemmatch
+    if self.focused_path then
+      itemmatch = { path = self.focused_path }
+      -- We use focused_path only once, but remember it
+      -- for CoverBrowser to re-apply it on startup if needed
+      self.prev_focused_path = self.focused_path
+      self.focused_path = nil
+    end
+    local subtitle = self.filemanager == nil
+      and BD.directory(filemanagerutil.abbreviate(self.path))
+    self:switchItemTable(
+      nil,
+      self:genItemTableFromPath(self.path),
+      self.path_items[self.path],
+      itemmatch,
+      subtitle
+    )
+  end, InfoMessage:new({
+    -- Need localization.
+    text = T(_("Loading contents in %1"), self.path),
+  }))
 end
 
 function FileChooser:changeToPath(path, focused_path)
