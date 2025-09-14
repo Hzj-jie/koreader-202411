@@ -79,7 +79,7 @@ if G_reader_settings:isTrue("debug") then
   end
 else
   -- Disable logger after dbg takes effect, dbg sets the log level.
-  if G_defaults:isFalse("DEV_MODE") then
+  if not G_defaults:isTrue("DEV_MODE") then
     local logger = require("logger")
     logger:setLevel(logger.levels.err)
   end
