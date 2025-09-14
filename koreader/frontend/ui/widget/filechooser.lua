@@ -571,31 +571,34 @@ function FileChooser:updateItems(select_number, no_recalculate_dimen)
 end
 
 function FileChooser:refreshPath()
-  UIManager:runWith(function()
-    local _, folder_name = util.splitFilePathName(self.path)
-    Screen:setWindowTitle(folder_name)
+  UIManager:runWith(
+    function()
+      local _, folder_name = util.splitFilePathName(self.path)
+      Screen:setWindowTitle(folder_name)
 
-    local itemmatch
-    if self.focused_path then
-      itemmatch = { path = self.focused_path }
-      -- We use focused_path only once, but remember it
-      -- for CoverBrowser to re-apply it on startup if needed
-      self.prev_focused_path = self.focused_path
-      self.focused_path = nil
-    end
-    local subtitle = self.filemanager == nil
-      and BD.directory(filemanagerutil.abbreviate(self.path))
-    self:switchItemTable(
-      nil,
-      self:genItemTableFromPath(self.path),
-      self.path_items[self.path],
-      itemmatch,
-      subtitle
-    )
-  end, InfoMessage:new({
-    -- Need localization.
-    text = T(_("Loading contents in %1"), self.path),
-  }))
+      local itemmatch
+      if self.focused_path then
+        itemmatch = { path = self.focused_path }
+        -- We use focused_path only once, but remember it
+        -- for CoverBrowser to re-apply it on startup if needed
+        self.prev_focused_path = self.focused_path
+        self.focused_path = nil
+      end
+      local subtitle = self.filemanager == nil
+        and BD.directory(filemanagerutil.abbreviate(self.path))
+      self:switchItemTable(
+        nil,
+        self:genItemTableFromPath(self.path),
+        self.path_items[self.path],
+        itemmatch,
+        subtitle
+      )
+    end,
+    InfoMessage:new({
+      -- Need localization.
+      text = T(_("Loading contents in %1"), self.path),
+    })
+  )
 end
 
 function FileChooser:changeToPath(path, focused_path)
