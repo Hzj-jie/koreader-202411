@@ -539,10 +539,11 @@ function Translator:showTranslation(
     Device.input.setClipboardText(text)
   end
 
-  local NetworkMgr = require("ui/network/manager")
-  if
-    NetworkMgr:willRerunWhenOnline(function()
-      self:showTranslation(
+  require("ui/network/manager"):runWhenOnline(function()
+    -- Wrap next function with Trapper to be able to interrupt
+    -- translation service query.
+    require("ui/trapper"):wrap(function()
+      self:_showTranslation(
         text,
         detailed_view,
         source_lang,
@@ -551,22 +552,6 @@ function Translator:showTranslation(
         index
       )
     end)
-  then
-    return
-  end
-
-  -- Wrap next function with Trapper to be able to interrupt
-  -- translation service query.
-  local Trapper = require("ui/trapper")
-  Trapper:wrap(function()
-    self:_showTranslation(
-      text,
-      detailed_view,
-      source_lang,
-      target_lang,
-      from_highlight,
-      index
-    )
   end)
 end
 

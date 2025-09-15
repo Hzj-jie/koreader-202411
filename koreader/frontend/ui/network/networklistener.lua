@@ -9,6 +9,9 @@ local logger = require("logger")
 local _ = require("gettext")
 local T = require("ffi/util").template
 
+local _pending_connected = {}
+local _pending_online = {}
+
 local NetworkListener = EventListener:extend({
   -- Class members, because we want the activity check to be cross-instance...
   _activity_check_scheduled = nil,
@@ -196,6 +199,11 @@ end
 function NetworkListener:onNetworkConnected()
   logger.dbg("NetworkListener: onNetworkConnected")
 
+  for _, v in pairs(_pending_connected) do
+    v()
+  end
+  _pending_connected = {}
+
   if not G_reader_settings:isTrue("auto_disable_wifi") or Device:isKindle() then
     return
   end
@@ -203,6 +211,30 @@ function NetworkListener:onNetworkConnected()
   -- If the activity check has already been scheduled for some reason, unschedule it first.
   NetworkListener:_unscheduleActivityCheck()
   NetworkListener:_scheduleActivityCheck()
+end
+
+function NetworkListener:onNetworkOnline()
+  logger.dbg("NetworkListener: onNetworkOnline")
+
+  for _, v in pairs(_pending_online) do
+    v()
+  end
+  _pending_online = {}
+end
+
+function NetworkListener:onPendingConnected(callback)
+  assert(callback ~= nil)
+  table.insert(_pending_connected, callback)
+end
+
+function NetworkListener:onPendingOnline(callback)
+  assert(callback ~= nil)
+  table.insert(_pending_online, callback)
+end
+
+-- Returns a human readable string to indicate the # of pending jobs.
+function NetworkListener:countsOfPendingJobs()
+  return string.format("%d / %d", #_pending_connected, #_pending_online)
 end
 
 function NetworkListener:onNetworkDisconnected()
