@@ -582,7 +582,7 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
 end
 
 -- NOTE: Only used by the beforeWifiAction framework, so, can never be flagged as "interactive" ;).
-function NetworkMgr:_promptWifiOn(complete_callback)
+function NetworkMgr:_promptWifiOn()
   -- If there's already an ongoing connection attempt, don't even display the ConfirmBox,
   -- as that's just confusing, especially on Android, because you might have seen the one you tapped "Turn on" on disappear,
   -- and be surprised by new ones that popped up out of focus while the system settings were opened...
@@ -598,21 +598,18 @@ function NetworkMgr:_promptWifiOn(complete_callback)
     text = _("Do you want to turn on Wi-Fi?"),
     ok_text = _("Turn on"),
     ok_callback = function()
-      self:toggleWifiOn(complete_callback)
+      self:toggleWifiOn()
     end,
   }))
 end
 
 -- This is only used on Android, the intent being we assume the system will eventually turn on WiFi on its own in the background...
-function NetworkMgr:_doNothingAndWaitForConnection(callback)
+function NetworkMgr:_doNothingAndWaitForConnection()
   if self:_isWifiConnected() then
-    if callback then
-      callback()
-    end
     return
   end
 
-  self:_scheduleConnectivityCheck(callback)
+  self:_scheduleConnectivityCheck()
 end
 
 --- @note: The callback will only run *after* a *successful* network connection.
@@ -620,14 +617,14 @@ end
 ---    *NOT* isOnline (i.e., WAN), se be careful with recursive callbacks!
 ---    Should only return false on *explicit* failures,
 ---    in which case the backend will already have called _abortWifiConnection
-function NetworkMgr:_beforeWifiAction(callback)
+function NetworkMgr:_beforeWifiAction()
   local wifi_enable_action = G_reader_settings:readSetting("wifi_enable_action")
   if wifi_enable_action == "turn_on" then
-    self:toggleWifiOn(callback)
+    self:toggleWifiOn()
   elseif wifi_enable_action == "ignore" then
-    self:_doNothingAndWaitForConnection(callback)
+    self:_doNothingAndWaitForConnection()
   else
-    self:_promptWifiOn(callback)
+    self:_promptWifiOn()
   end
 end
 
@@ -677,6 +674,8 @@ function NetworkMgr:setHTTPProxy(proxy)
 end
 
 -- Helper functions to hide the quirks of using beforeWifiAction properly ;).
+-- runWhen... triggers wifi connection and queues the callback.
+-- willRerunWhen... queues the callback without triggering the wifi connection.
 
 -- Run callback *now* if you're currently online (ie., isOnline),
 -- or attempt to go online and run it *ASAP* without any more user interaction.
@@ -684,15 +683,8 @@ end
 --     it will just attempt to re-connect, *without* running the callback.
 -- c.f., ReaderWikipedia:onShowWikipediaLookup @ frontend/apps/reader/modules/readerwikipedia.lua
 function NetworkMgr:runWhenOnline(callback)
-  if self:isOnline() then
-    callback()
-  else
-    --- @note: Avoid infinite recursion, beforeWifiAction only guarantees isConnected, not isOnline.
-    if self:_isWifiConnected() then
-      self:_beforeWifiAction()
-    else
-      self:_beforeWifiAction(callback)
-    end
+  if self:willRerunWhenOnline(callback) then
+    self:_beforeWifiAction()
   end
 end
 
@@ -700,10 +692,8 @@ end
 -- guaranteed by beforeWifiAction, you also have a guarantee that the callback
 -- *will* run.
 function NetworkMgr:runWhenConnected(callback)
-  if self:_isWifiConnected() then
-    callback()
-  else
-    self:_beforeWifiAction(callback)
+  if self:willRerunWhenConnected(callback) then
+    self:_beforeWifiAction()
   end
 end
 
@@ -714,16 +704,12 @@ end
 --     it will just attempt to re-connect, *without* running the callback.
 -- c.f., ReaderWikipedia:lookupWikipedia @ frontend/apps/reader/modules/readerwikipedia.lua
 function NetworkMgr:willRerunWhenOnline(callback)
+  assert(callback ~= nil)
   if self:isOnline() then
+    callback()
     return false
   end
-  --- @note: Avoid infinite recursion, beforeWifiAction only guarantees
-  --- isConnected, not isOnline.
-  if self:_isWifiConnected() then
-    self:_beforeWifiAction()
-  else
-    self:_beforeWifiAction(callback)
-  end
+  UIManager:broadcastEvent(Event:new("PendingOnline", callback))
   return true
 end
 
@@ -731,10 +717,12 @@ end
 -- guaranteed by beforeWifiAction, you also have a guarantee that the callback
 -- *will* run.
 function NetworkMgr:willRerunWhenConnected(callback)
+  assert(callback ~= nil)
   if self:_isWifiConnected() then
+    callback()
     return false
   end
-  self:_beforeWifiAction(callback)
+  UIManager:broadcastEvent(Event:new("PendingConnected", callback))
   return true
 end
 

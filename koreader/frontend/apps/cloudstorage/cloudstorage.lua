@@ -150,40 +150,25 @@ end
 function CloudStorage:openCloudServer(url)
   local tbl, e
   if self.type == "dropbox" then
-    if
-      NetworkMgr:willRerunWhenOnline(function()
-        self:openCloudServer(url)
-      end)
-    then
-      return
-    end
-    if self:generateDropBoxAccessToken() then
-      tbl, e = DropBox:run(url, self.password, self.choose_folder_mode)
-    end
+    NetworkMgr:runWhenOnline(function()
+      if self:generateDropBoxAccessToken() then
+        tbl, e = DropBox:run(url, self.password, self.choose_folder_mode)
+      end
+    end)
   elseif self.type == "ftp" then
-    if
-      NetworkMgr:willRerunWhenConnected(function()
-        self:openCloudServer(url)
-      end)
-    then
-      return
-    end
-    tbl, e = Ftp:run(self.address, self.username, self.password, url)
+    NetworkMgr:runWhenConnected(function()
+      tbl, e = Ftp:run(self.address, self.username, self.password, url)
+    end)
   elseif self.type == "webdav" then
-    if
-      NetworkMgr:willRerunWhenConnected(function()
-        self:openCloudServer(url)
-      end)
-    then
-      return
-    end
-    tbl, e = WebDav:run(
-      self.address,
-      self.username,
-      self.password,
-      url,
-      self.choose_folder_mode
-    )
+    NetworkMgr:runWhenConnected(function()
+      tbl, e = WebDav:run(
+        self.address,
+        self.username,
+        self.password,
+        url,
+        self.choose_folder_mode
+      )
+    end)
   end
   if tbl then
     self:switchItemTable(url, tbl)
@@ -506,66 +491,61 @@ function CloudStorage:onMenuHold(item)
 end
 
 function CloudStorage:synchronizeCloud(item)
-  if
-    NetworkMgr:willRerunWhenOnline(function()
-      self:synchronizeCloud(item)
-    end)
-  then
-    return
-  end
-  self.password = item.password
-  self.address = item.address
-  local Trapper = require("ui/trapper")
-  Trapper:wrap(function()
-    Trapper:setPausedText(
-      "Download paused.\nDo you want to continue or abort downloading files?"
-    )
-    if self:generateDropBoxAccessToken() then
-      local ok, downloaded_files, failed_files =
-        pcall(self.downloadListFiles, self, item)
-      if ok and downloaded_files then
-        if not failed_files then
-          failed_files = 0
-        end
-        local text
-        if downloaded_files == 0 and failed_files == 0 then
-          text = _("No files to download from Dropbox.")
-        else
-          text = T(
-            N_(
-              "Successfully downloaded 1 file from Dropbox to local storage.",
-              "Successfully downloaded %1 files from Dropbox to local storage.",
-              downloaded_files
-            ),
-            downloaded_files
-          )
-          if failed_files > 0 then
-            text = text
-              .. "\n"
-              .. T(
-                N_(
-                  "Failed to download 1 file.",
-                  "Failed to download %1 files.",
-                  failed_files
-                ),
-                failed_files
-              )
+  NetworkMgr:runWhenOnline(function()
+    self.password = item.password
+    self.address = item.address
+    local Trapper = require("ui/trapper")
+    Trapper:wrap(function()
+      Trapper:setPausedText(
+        "Download paused.\nDo you want to continue or abort downloading files?"
+      )
+      if self:generateDropBoxAccessToken() then
+        local ok, downloaded_files, failed_files =
+          pcall(self.downloadListFiles, self, item)
+        if ok and downloaded_files then
+          if not failed_files then
+            failed_files = 0
           end
+          local text
+          if downloaded_files == 0 and failed_files == 0 then
+            text = _("No files to download from Dropbox.")
+          else
+            text = T(
+              N_(
+                "Successfully downloaded 1 file from Dropbox to local storage.",
+                "Successfully downloaded %1 files from Dropbox to local storage.",
+                downloaded_files
+              ),
+              downloaded_files
+            )
+            if failed_files > 0 then
+              text = text
+                .. "\n"
+                .. T(
+                  N_(
+                    "Failed to download 1 file.",
+                    "Failed to download %1 files.",
+                    failed_files
+                  ),
+                  failed_files
+                )
+            end
+          end
+          UIManager:show(InfoMessage:new({
+            text = text,
+            timeout = 3,
+          }))
+        else
+          Trapper:reset() -- close any last widget not cleaned if error
+          UIManager:show(InfoMessage:new({
+            text = _(
+              "No files to download from Dropbox.\nPlease check your configuration and connection."
+            ),
+            timeout = 3,
+          }))
         end
-        UIManager:show(InfoMessage:new({
-          text = text,
-          timeout = 3,
-        }))
-      else
-        Trapper:reset() -- close any last widget not cleaned if error
-        UIManager:show(InfoMessage:new({
-          text = _(
-            "No files to download from Dropbox.\nPlease check your configuration and connection."
-          ),
-          timeout = 3,
-        }))
       end
-    end
+    end)
   end)
 end
 
@@ -976,19 +956,14 @@ end
 
 function CloudStorage:infoServer(item)
   if item.type == "dropbox" then
-    if
-      NetworkMgr:willRerunWhenOnline(function()
-        self:infoServer(item)
-      end)
-    then
-      return
-    end
-    self.password = item.password
-    self.address = item.address
-    if self:generateDropBoxAccessToken() then
-      DropBox:info(self.password)
-      self.username = nil
-    end
+    NetworkMgr:runWhenOnline(function()
+      self.password = item.password
+      self.address = item.address
+      if self:generateDropBoxAccessToken() then
+        DropBox:info(self.password)
+        self.username = nil
+      end
+    end)
   elseif item.type == "ftp" then
     Ftp:info(item)
   elseif item.type == "webdav" then
