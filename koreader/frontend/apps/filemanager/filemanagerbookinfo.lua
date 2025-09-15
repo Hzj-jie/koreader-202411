@@ -64,10 +64,8 @@ function BookInfo:addToMainMenu(menu_items)
   }
 end
 
--- Shows book information.
-function BookInfo:show(doc_settings_or_file, book_props)
-  self.prop_updated = nil
-  self.summary_updated = nil
+-- Extracts book information.
+function BookInfo:extract(doc_settings_or_file, book_props)
   local kv_pairs = {}
 
   -- File section
@@ -204,11 +202,19 @@ function BookInfo:show(doc_settings_or_file, book_props)
     hold_callback = summary_hold_callback,
   })
 
+  return kv_pairs
+end
+
+-- Shows book information.
+function BookInfo:show(doc_settings_or_file, book_props)
+  self.prop_updated = nil
+  self.summary_updated = nil
+
   local KeyValuePage = require("ui/widget/keyvaluepage")
   self.kvp_widget = KeyValuePage:new({
     title = self.title,
     value_overflow_align = "right",
-    kv_pairs = kv_pairs,
+    kv_pairs = self:extract(doc_settings_or_file, book_props),
     values_lang = values_lang,
     close_callback = function()
       self.custom_doc_settings = nil

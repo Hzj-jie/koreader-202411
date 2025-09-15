@@ -920,19 +920,26 @@ function FileManager:openRandomFile(dir)
   end
   local random_file = filemanagerutil.getRandomFile(dir, match_func)
   if random_file then
+    local info = ""
+    for __, v in ipairs(FileManagerBookInfo:extract(random_file)) do
+      -- Hacky way to ignore less interesting fields.
+      if type(v) == "table" and v[1] ~= _("Filename:") and v[1] ~= _("Folder:") and v[1] ~= _("Cover image:") and v[2] ~= _("N/A") then
+        info = info .. "\n" .. v[1] .. v[2]
+      end
+    end
     UIManager:show(MultiConfirmBox:new({
       text = T(
         _("Do you want to open %1?"),
         BD.filename(ffiUtil.basename(random_file))
-      ),
-      choice1_text = _("Open"),
-      choice1_callback = function()
+      ) .. info,
+      choice2_text = _("Open"),
+      choice2_callback = function()
         local ReaderUI = require("apps/reader/readerui")
         ReaderUI:showReader(random_file)
       end,
       -- @translators Another file. This is a button on the open random file dialog. It presents a file with the choices Open/Another.
-      choice2_text = _("Another"),
-      choice2_callback = function()
+      choice1_text = _("Another"),
+      choice1_callback = function()
         self:openRandomFile(dir)
       end,
     }))
