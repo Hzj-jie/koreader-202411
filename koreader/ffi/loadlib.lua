@@ -20,7 +20,10 @@ local ffi = require("ffi")
 local android = jit.os == "Linux"
   and os.getenv("IS_ANDROID")
   and require("android")
-local log = require("logger").info
+
+local function log(...)
+  require("logger").info(...)
+end
 
 local monolibtic = {
   path = (android and android.nativeLibraryDir or "libs")

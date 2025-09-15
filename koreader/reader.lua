@@ -45,6 +45,22 @@ G_reader_settings = require("luasettings"):open(
 )
 G_named_settings = require("named_settings")
 
+-- Should check DEBUG option in arg and turn on DEBUG before loading other
+-- modules, otherwise DEBUG in some modules may not be printed.
+local dbg = require("dbg")
+if G_reader_settings:isTrue("debug") then
+  dbg:turnOn()
+  if G_reader_settings:isTrue("debug_verbose") then
+    dbg:setVerbose(true)
+  end
+else
+  -- Disable logger after dbg takes effect, dbg sets the log level.
+  if not G_defaults:isTrue("DEV_MODE") then
+    local logger = require("logger")
+    logger:setLevel(logger.levels.err)
+  end
+end
+
 -- Apply the JIT opt tweaks ASAP when the C BB is disabled,
 -- because we want to avoid the jit.flush() from bb:enableCBB,
 -- which only makes the mcode allocation issues worse on Android...
@@ -68,22 +84,6 @@ local bb = require("ffi/blitbuffer")
 bb:setUseCBB(is_cbb_enabled)
 is_cbb_enabled = bb:enableCBB(G_reader_settings:nilOrFalse("dev_no_c_blitter"))
 G_reader_settings:saveSetting("dev_no_c_blitter", not is_cbb_enabled)
-
--- Should check DEBUG option in arg and turn on DEBUG before loading other
--- modules, otherwise DEBUG in some modules may not be printed.
-local dbg = require("dbg")
-if G_reader_settings:isTrue("debug") then
-  dbg:turnOn()
-  if G_reader_settings:isTrue("debug_verbose") then
-    dbg:setVerbose(true)
-  end
-else
-  -- Disable logger after dbg takes effect, dbg sets the log level.
-  if not G_defaults:isTrue("DEV_MODE") then
-    local logger = require("logger")
-    logger:setLevel(logger.levels.err)
-  end
-end
 
 -- Option parsing:
 local longopts = {
