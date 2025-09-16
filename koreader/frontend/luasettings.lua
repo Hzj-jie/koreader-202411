@@ -105,6 +105,19 @@ function LuaSettings:readSetting(key)
   ]]
 end
 
+--[[-- Reads a setting or creates an empty table
+
+@param key The setting's key
+]]
+function LuaSettings:readTableSetting(key)
+  local v = self:readSetting(key)
+  if v == nil then
+    v = {}
+    self:saveSetting(key, v)
+  end
+  return v
+end
+
 --- Saves a setting.
 function LuaSettings:saveSetting(key, value, default_value)
   -- Setting value to nil is same as self.delSetting(key), no reason to
