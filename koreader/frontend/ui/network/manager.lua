@@ -1163,6 +1163,22 @@ function NetworkMgr:setWirelessBackend(name, options)
   require("ui/network/" .. name).init(self, options)
 end
 
+function NetworkMgr:ipAddress()
+  -- This is a simple way of getting the ip address.
+  local std_out = io.popen(
+    string.format(
+      "ip addr show %s | grep 'inet\\b' | awk '{print $2}' | cut -d/ -f1",
+      self:getNetworkInterfaceName()
+    )
+  )
+  if not std_out then
+    return nil
+  end
+  local r = std_out:read("*a")
+  std_out:close()
+  return r
+end
+
 if
   G_reader_settings:readSetting("http_proxy_enabled")
   and G_reader_settings:readSetting("http_proxy")

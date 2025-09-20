@@ -205,8 +205,13 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
       elseif server.type == "webdav" then
         local path = api:getJoinedPath(server.address, server.url)
         path = api:getJoinedPath(path, file_name)
-        code_response =
-          api:uploadFile(path, server.username, server.password, file_path, etag)
+        code_response = api:uploadFile(
+          path,
+          server.username,
+          server.password,
+          file_path,
+          etag
+        )
       end
     end
     os.remove(income_file_path)

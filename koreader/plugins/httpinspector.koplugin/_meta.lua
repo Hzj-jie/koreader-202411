@@ -1,8 +1,12 @@
 local _ = require("gettext")
 return {
   name = "httpinspector",
-  fullname = _("HTTP KOReader Inspector"),
+  -- Need localization.
+  fullname = _("Remotely control KOReader"),
+  -- Need localization.
   description = _(
-    [[Allow browsing KOReader internal objects over HTTP. This is aimed at developers, and may pose some security risks. Only enable this on networks you can trust.]]
+    "Allow remotely controlling KOReader via browsers, with advanced "
+      .. "features of inspecting KOReader internal state. It poses security "
+      .. "risks; only enable this on networks you can trust."
   ),
 }
