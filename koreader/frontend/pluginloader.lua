@@ -231,14 +231,7 @@ function PluginLoader:genPluginManagerSubItem()
 end
 
 function PluginLoader:createPluginInstance(plugin, attr)
-  local ok, re = pcall(plugin.new, plugin, attr)
-  if ok then -- re is a plugin instance
-    self.loaded_plugins[plugin.name] = re
-    return ok, re
-  else -- re is the error message
-    logger.err("Failed to initialize", plugin.name, "plugin:", re)
-    return nil, re
-  end
+  return true, plugin:new(attr)
 end
 
 --- Checks if a specific plugin is instantiated
