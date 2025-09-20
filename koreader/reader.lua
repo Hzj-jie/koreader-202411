@@ -25,11 +25,6 @@ io.write(
 -- Set up Lua and ffi search paths
 require("setupkoenv")
 
--- Apply startup user patches and execute startup user scripts
-local userpatch = require("userpatch")
-userpatch.applyPatches(userpatch.early_once)
-userpatch.applyPatches(userpatch.early)
-
 local Version = require("version")
 io.write(" [*] Version: ", Version:getCurrentRevision(), "\n\n")
 
@@ -204,9 +199,6 @@ end
 
 local UIManager = require("ui/uimanager")
 
--- Apply developer patches
-userpatch.applyPatches(userpatch.late)
-
 -- Inform once about color rendering on newly supported devices
 -- (there are some android devices that may not have a color screen,
 -- and we are not (yet?) able to guess that fact)
@@ -327,13 +319,7 @@ local function exitReader()
   return true
 end
 
--- Apply before_exit patches and execute user scripts
-userpatch.applyPatches(userpatch.before_exit)
-
 local reader_retval = exitReader()
-
--- Apply exit user patches and execute user scripts
-userpatch.applyPatches(userpatch.on_exit)
 
 -- Close the Lua state on exit
 os.exit(reader_retval, true)

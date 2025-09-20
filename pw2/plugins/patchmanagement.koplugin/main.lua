@@ -1,1 +1,0 @@
-../../../koreader/plugins/patchmanagement.koplugin/main.lua

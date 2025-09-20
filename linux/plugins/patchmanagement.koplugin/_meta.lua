@@ -1,1 +1,0 @@
-../../../koreader/plugins/patchmanagement.koplugin/_meta.lua
