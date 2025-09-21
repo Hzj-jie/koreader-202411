@@ -637,7 +637,7 @@ function TouchMenu:init()
       }))
     end,
     hold_callback = function()
-      UIManager:sendEvent(Event:new("ShowBatteryStatistics"))
+      UIManager:broadcastEvent(Event:new("ShowBatteryStatistics"))
     end,
     bordersize = 0,
     show_parent = self.show_parent,

@@ -32,7 +32,7 @@ if Device:hasFrontlight() then
   common_settings.frontlight = {
     text = _("Frontlight"),
     callback = function()
-      UIManager:sendEvent(Event:new("ShowFlDialog"))
+      UIManager:broadcastEvent(Event:new("ShowFlDialog"))
     end,
   }
 end
@@ -111,7 +111,7 @@ common_settings.time = {
           end,
           callback = function()
             G_reader_settings:saveSetting("duration_format", "classic")
-            UIManager:sendEvent(Event:new("UpdateFooter", true, true))
+            UIManager:broadcastEvent(Event:new("UpdateFooter", true, true))
           end,
         },
         {
@@ -127,7 +127,7 @@ common_settings.time = {
           end,
           callback = function()
             G_reader_settings:saveSetting("duration_format", "modern")
-            UIManager:sendEvent(Event:new("UpdateFooter", true, true))
+            UIManager:broadcastEvent(Event:new("UpdateFooter", true, true))
           end,
         },
         {
@@ -143,7 +143,7 @@ common_settings.time = {
           end,
           callback = function()
             G_reader_settings:saveSetting("duration_format", "letters")
-            UIManager:sendEvent(Event:new("UpdateFooter", true, true))
+            UIManager:broadcastEvent(Event:new("UpdateFooter", true, true))
           end,
         },
       },

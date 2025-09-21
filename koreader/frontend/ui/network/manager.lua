@@ -864,7 +864,7 @@ function NetworkMgr:getInfoMenuTable()
       return Device:isAndroid() or self:isConnected() or self:isWifiOn()
     end,
     callback = function()
-      UIManager:sendEvent(Event:new("ShowNetworkInfo"))
+      UIManager:broadcastEvent(Event:new("ShowNetworkInfo"))
     end,
   }
 end

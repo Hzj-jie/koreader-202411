@@ -572,7 +572,7 @@ Higher values mean faster screen updates, but also use more CPU.]]),
             default_value = default_value,
             callback = function(spin)
               G_reader_settings:saveSetting("hold_pan_rate", spin.value)
-              UIManager:sendEvent(Event:new("UpdateHoldPanRate"))
+              UIManager:broadcastEvent(Event:new("UpdateHoldPanRate"))
             end,
           })
           UIManager:show(items)
