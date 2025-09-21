@@ -60,7 +60,7 @@ If you need to do so, you'll have to use the UI toggles.]]),
           return G_reader_settings:isTrue("input_lock_gsensor")
         end,
         callback = function()
-          UIManager:broadcastEvent(Event:new("LockGSensor"))
+          UIManager:sendEvent(Event:new("LockGSensor"))
         end,
       })
     end

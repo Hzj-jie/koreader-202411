@@ -205,7 +205,7 @@ function Device:init()
           local FileManager = require("apps/filemanager/filemanager")
           UIManager:broadcastEvent(Event:new("SetDimensions", new_size))
           UIManager:broadcastEvent(Event:new("ScreenResize", new_size))
-          UIManager:broadcastEvent(Event:new("RedrawCurrentPage"))
+          UIManager:sendEvent(Event:new("RedrawCurrentPage"))
           if FileManager.instance then
             FileManager.instance:reinit(
               FileManager.instance.path,

@@ -300,7 +300,7 @@ function Device:init()
 
         -- this triggers paged media like PDF and DjVu to redraw
         -- CreDocument doesn't need it
-        UIManager:broadcastEvent(Event:new("RedrawCurrentPage"))
+        UIManager:sendEvent(Event:new("RedrawCurrentPage"))
 
         local FileManager = require("apps/filemanager/filemanager")
         if FileManager.instance then

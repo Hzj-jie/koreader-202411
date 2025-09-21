@@ -99,10 +99,10 @@ end
 
 function ReadTimer:update_status_bars(seconds)
   if self.show_value_in_header then
-    UIManager:broadcastEvent(Event:new("UpdateHeader"))
+    UIManager:sendEvent(Event:new("UpdateHeader"))
   end
   if self.show_value_in_footer then
-    UIManager:broadcastEvent(Event:new("RefreshAdditionalContent"))
+    UIManager:sendEvent(Event:new("RefreshAdditionalContent"))
   end
   -- if seconds schedule 1ms later
   if seconds and seconds >= 0 then
@@ -185,7 +185,7 @@ function ReadTimer:removeAdditionalHeaderContent()
       self.additional_header_content_func
     )
     self:update_status_bars(-1)
-    UIManager:broadcastEvent(Event:new("UpdateHeader"))
+    UIManager:sendEvent(Event:new("UpdateHeader"))
   end
 end
 
@@ -195,7 +195,7 @@ function ReadTimer:removeAdditionalFooterContent()
       self.additional_footer_content_func
     )
     self:update_status_bars(-1)
-    UIManager:broadcastEvent(Event:new("UpdateFooter", true))
+    UIManager:sendEvent(Event:new("UpdateFooter", true))
   end
 end
 
