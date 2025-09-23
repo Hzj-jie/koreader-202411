@@ -56,29 +56,29 @@ function ReadTimer:init()
   end
 
   self.additional_header_content_func = function()
-    if self:scheduled() then
-      local hours, minutes, dummy = self:remainingTime(1)
-      local timer_info = string.format("%02d:%02d", hours, minutes)
-      return self.timer_symbol .. timer_info
+    if not self:scheduled() then
+      return nil
     end
-    return
+    local hours, minutes, dummy = self:remainingTime(1)
+    local timer_info = string.format("%02d:%02d", hours, minutes)
+    return self.timer_symbol .. timer_info
   end
 
   self.additional_footer_content_func = function()
-    if self:scheduled() then
-      local item_prefix = self.ui.view.footer.settings.item_prefix
-      local hours, minutes, dummy = self:remainingTime(1)
-      local timer_info = string.format("%02d:%02d", hours, minutes)
-
-      if item_prefix == "icons" then
-        return self.timer_symbol .. " " .. timer_info
-      elseif item_prefix == "compact_items" then
-        return self.timer_symbol .. timer_info
-      else
-        return self.timer_letter .. ": " .. timer_info
-      end
+    if not self:scheduled() then
+      return nil
     end
-    return
+    local item_prefix = self.ui.view.footer.settings.item_prefix
+    local hours, minutes, dummy = self:remainingTime(1)
+    local timer_info = string.format("%02d:%02d", hours, minutes)
+
+    if item_prefix == "icons" then
+      return self.timer_symbol .. " " .. timer_info
+    elseif item_prefix == "compact_items" then
+      return self.timer_symbol .. timer_info
+    else
+      return self.timer_letter .. ": " .. timer_info
+    end
   end
 
   self.show_value_in_header =
@@ -225,7 +225,8 @@ function ReadTimer:addCheckboxes(widget)
       self.show_value_in_header = not self.show_value_in_header
       G_reader_settings:saveSetting(
         "readtimer_show_value_in_header",
-        self.show_value_in_header
+        self.show_value_in_header,
+        false
       )
       if self.show_value_in_header then
         self:addAdditionalHeaderContent()

@@ -679,9 +679,6 @@ end
 
 -- Run callback *now* if you're currently online (ie., isOnline),
 -- or attempt to go online and run it *ASAP* without any more user interaction.
--- NOTE: If you're currently connected but without Internet access (i.e., isConnected and not isOnline),
---     it will just attempt to re-connect, *without* running the callback.
--- c.f., ReaderWikipedia:onShowWikipediaLookup @ frontend/apps/reader/modules/readerwikipedia.lua
 function NetworkMgr:runWhenOnline(callback)
   if self:willRerunWhenOnline(callback) then
     self:_beforeWifiAction()
@@ -700,11 +697,13 @@ end
 -- Mild variants that are used for recursive calls at the beginning of a complex function call.
 -- Returns true when not yet online, in which case you should *abort* (i.e., return) the initial call,
 -- and otherwise, go-on as planned.
--- NOTE: If you're currently connected but without Internet access (i.e., isConnected and not isOnline),
---     it will just attempt to re-connect, *without* running the callback.
--- c.f., ReaderWikipedia:lookupWikipedia @ frontend/apps/reader/modules/readerwikipedia.lua
 function NetworkMgr:willRerunWhenOnline(callback)
   assert(callback ~= nil)
+  -- This is not very right, but should solve the problem.
+  -- TODO: Remove this hack.
+  if self:_isWifiConnected() and not self:isOnline() then
+    self:_queryOnlineState()
+  end
   if self:isOnline() then
     callback()
     return false
@@ -1161,6 +1160,22 @@ end
 
 function NetworkMgr:setWirelessBackend(name, options)
   require("ui/network/" .. name).init(self, options)
+end
+
+function NetworkMgr:ipAddress()
+  -- This is a simple way of getting the ip address.
+  local std_out = io.popen(
+    string.format(
+      "ip addr show %s | grep 'inet\\b' | awk '{print $2}' | cut -d/ -f1",
+      self:getNetworkInterfaceName()
+    )
+  )
+  if not std_out then
+    return nil
+  end
+  local r = std_out:read("*a")
+  std_out:close()
+  return r
 end
 
 if

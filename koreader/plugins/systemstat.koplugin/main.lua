@@ -247,9 +247,15 @@ function SystemStat:appendCounters()
   })
   self:put({ _("  Discharge cycles"), self.discharge_count })
   -- no localization.
-  self:put({ "  " .. _("Background jobs"), #require("pluginshare").backgroundJobs })
+  self:put({
+    "  " .. _("Background jobs"),
+    #require("pluginshare").backgroundJobs,
+  })
   -- no localization.
-  self:put({ "  " .. _("Pending network activities"), require("ui/network/networklistener"):countsOfPendingJobs() })
+  self:put({
+    "  " .. _("Pending network activities"),
+    require("ui/network/networklistener"):countsOfPendingJobs(),
+  })
 end
 
 function SystemStat:appendSystemInfo()

@@ -430,6 +430,10 @@ function Device:initNetworkManager(NetworkMgr)
     end
     return 0 == os.execute("ping -c1 -w2 " .. default_gw .. " > /dev/null")
   end
+  function NetworkMgr:getNetworkInterfaceName()
+    -- Not accurate.
+    return "eth0"
+  end
 end
 
 function Emulator:supportsScreensaver()
@@ -473,6 +477,10 @@ function Emulator:initNetworkManager(NetworkMgr)
   end
   function NetworkMgr:isWifiOn()
     return G_reader_settings:nilOrTrue("emulator_fake_wifi_connected")
+  end
+  function NetworkMgr:getNetworkInterfaceName()
+    -- Not accurate.
+    return "eth0"
   end
   NetworkMgr.isConnected = NetworkMgr.isWifiOn
 end

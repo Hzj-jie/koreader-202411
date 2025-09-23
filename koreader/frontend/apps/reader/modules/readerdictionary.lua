@@ -99,6 +99,67 @@ local function getDictionaryFixHtmlFunc(path)
   end
 end
 
+function ReaderDictionary:_getAvailableIfos()
+  logger.dbg("Getting list of dictionaries")
+  local ifo_files = getIfosInDir(self.data_dir)
+  local dict_ext = self.data_dir .. "_ext"
+  if lfs.attributes(dict_ext, "mode") == "directory" then
+    local extifos = getIfosInDir(dict_ext)
+    for _, ifo in pairs(extifos) do
+      table.insert(ifo_files, ifo)
+    end
+  end
+
+  if available_ifos and #available_ifos == #ifo_files then
+    return available_ifos
+  end
+
+  -- Gather info about available dictionaries
+  available_ifos = {}
+  for _, ifo_file in pairs(ifo_files) do
+    local f = io.open(ifo_file, "r")
+    if f then
+      local content = f:read("*all")
+      f:close()
+      local dictname = content:match("\nbookname=(.-)\r?\n")
+      local is_html = content:find("sametypesequence=h", 1, true) ~= nil
+      local lang_in, lang_out = content:match("lang=(%a+)-?(%a*)\r?\n?")
+      -- sdcv won't use dict that don't have a bookname=
+      if dictname then
+        table.insert(available_ifos, {
+          file = ifo_file,
+          name = dictname,
+          is_html = is_html,
+          css = readDictionaryCss(ifo_file:gsub("%.ifo$", ".css")),
+          fix_html_func = getDictionaryFixHtmlFunc(
+            ifo_file:gsub("%.ifo$", ".lua")
+          ),
+          lang = lang_in and { lang_in = lang_in, lang_out = lang_out },
+        })
+      end
+    end
+  end
+  logger.dbg("found", #available_ifos, "dictionaries")
+  self:_sortAvailableIfos()
+  return available_ifos
+end
+
+-- Needs to be executed after user reordering.
+function ReaderDictionary:_sortAvailableIfos()
+  table.sort(available_ifos, function(lifo, rifo)
+    local lord = self.dicts_order[lifo.file]
+    local rord = self.dicts_order[rifo.file]
+
+    -- Both ifos without an explicit position -> lexical comparison
+    if lord == rord then
+      return ffiUtil.strcoll(lifo.name, rifo.name)
+    end
+
+    -- Ifos without an explicit position come last.
+    return lord ~= nil and (rord == nil or lord < rord)
+  end)
+end
+
 function ReaderDictionary:init()
   self:registerKeyEvents()
 
@@ -123,44 +184,6 @@ function ReaderDictionary:init()
   -- result window is shown and dismiss prevented for a few 100ms
   self.quick_dismiss_before_delay = time.s(3)
 
-  -- Gather info about available dictionaries
-  if not available_ifos then
-    available_ifos = {}
-    logger.dbg("Getting list of dictionaries")
-    local ifo_files = getIfosInDir(self.data_dir)
-    local dict_ext = self.data_dir .. "_ext"
-    if lfs.attributes(dict_ext, "mode") == "directory" then
-      local extifos = getIfosInDir(dict_ext)
-      for _, ifo in pairs(extifos) do
-        table.insert(ifo_files, ifo)
-      end
-    end
-    for _, ifo_file in pairs(ifo_files) do
-      local f = io.open(ifo_file, "r")
-      if f then
-        local content = f:read("*all")
-        f:close()
-        local dictname = content:match("\nbookname=(.-)\r?\n")
-        local is_html = content:find("sametypesequence=h", 1, true) ~= nil
-        local lang_in, lang_out = content:match("lang=(%a+)-?(%a*)\r?\n?")
-        -- sdcv won't use dict that don't have a bookname=
-        if dictname then
-          table.insert(available_ifos, {
-            file = ifo_file,
-            name = dictname,
-            is_html = is_html,
-            css = readDictionaryCss(ifo_file:gsub("%.ifo$", ".css")),
-            fix_html_func = getDictionaryFixHtmlFunc(
-              ifo_file:gsub("%.ifo$", ".lua")
-            ),
-            lang = lang_in and { lang_in = lang_in, lang_out = lang_out },
-          })
-        end
-      end
-    end
-    logger.dbg("found", #available_ifos, "dictionaries")
-    self:sortAvailableIfos()
-  end
   -- Prepare the -u options to give to sdcv the dictionary order and if some are disabled
   self:updateSdcvDictNamesOptions()
 
@@ -176,21 +199,6 @@ function ReaderDictionary:registerKeyEvents()
   if Device:hasKeyboard() then
     self.key_events.ShowDictionaryLookup = { { "Alt", "D" }, { "Ctrl", "D" } }
   end
-end
-
-function ReaderDictionary:sortAvailableIfos()
-  table.sort(available_ifos, function(lifo, rifo)
-    local lord = self.dicts_order[lifo.file]
-    local rord = self.dicts_order[rifo.file]
-
-    -- Both ifos without an explicit position -> lexical comparison
-    if lord == rord then
-      return ffiUtil.strcoll(lifo.name, rifo.name)
-    end
-
-    -- Ifos without an explicit position come last.
-    return lord ~= nil and (rord == nil or lord < rord)
-  end)
 end
 
 function ReaderDictionary:updateSdcvDictNamesOptions()
@@ -214,7 +222,7 @@ function ReaderDictionary:updateSdcvDictNamesOptions()
   end
 
   local dicts_disabled = G_reader_settings:readSetting("dicts_disabled") or {}
-  for _, ifo in pairs(available_ifos) do
+  for _, ifo in pairs(self:_getAvailableIfos()) do
     if
       not dicts_disabled[ifo.file] and not preferred_names_already_in[ifo.name]
     then
@@ -527,10 +535,10 @@ end
 -- @treturn int nb_enabled
 -- @treturn int nb_disabled
 function ReaderDictionary:getNumberOfDictionaries()
-  local nb_available = #available_ifos
+  local nb_available = #self:_getAvailableIfos()
   local nb_enabled = 0
   local nb_disabled = 0
-  for _, ifo in pairs(available_ifos) do
+  for _, ifo in pairs(self:_getAvailableIfos()) do
     if self.dicts_disabled[ifo.file] then
       nb_disabled = nb_disabled + 1
     else
@@ -599,7 +607,7 @@ function ReaderDictionary:showDictionariesMenu(changed_callback)
   local dicts_disabled = util.tableDeepCopy(self.dicts_disabled)
 
   local sort_items = {}
-  for _, ifo in pairs(available_ifos) do
+  for _, ifo in pairs(self:_getAvailableIfos()) do
     table.insert(sort_items, {
       text = ifo.name,
       callback = function()
@@ -632,7 +640,7 @@ function ReaderDictionary:showDictionariesMenu(changed_callback)
       self.dicts_order = dicts_order
       G_reader_settings:saveSetting("dicts_order", self.dicts_order)
 
-      self:sortAvailableIfos()
+      self:_sortAvailableIfos()
 
       self:updateSdcvDictNamesOptions()
 
@@ -652,8 +660,8 @@ local function dictDirsEmpty(dict_dirs)
   return true
 end
 
-local function getAvailableIfoByName(dictionary_name)
-  for _, ifo in ipairs(available_ifos) do
+function ReaderDictionary:_getAvailableIfoByName(dictionary_name)
+  for _, ifo in ipairs(self:_getAvailableIfos()) do
     if ifo.name == dictionary_name then
       return ifo
     end
@@ -662,11 +670,11 @@ local function getAvailableIfoByName(dictionary_name)
   return nil
 end
 
-local function tidyMarkup(results)
+function ReaderDictionary:_tidyMarkup(results)
   local cdata_tag = "<!%[CDATA%[(.-)%]%]>"
   local format_escape = "&[29Ib%+]{(.-)}"
   for _, result in ipairs(results) do
-    local ifo = getAvailableIfoByName(result.dict)
+    local ifo = self:_getAvailableIfoByName(result.dict)
     if ifo and ifo.lang then
       result.ifo_lang = ifo.lang
     end
@@ -1085,7 +1093,7 @@ function ReaderDictionary:stardictLookup(
     return
   end
 
-  self:showDict(word, tidyMarkup(results), boxes, link)
+  self:showDict(word, self:_tidyMarkup(results), boxes, link)
 end
 
 function ReaderDictionary:showDict(word, results, boxes, link)
@@ -1289,19 +1297,16 @@ function ReaderDictionary:downloadDictionary(dict, download_location, continue)
     if dict.ifo_lang then
       self:extendIfoWithLanguage(dict_path, dict.ifo_lang)
     end
-    available_ifos = false
-    self:init()
     UIManager:show(InfoMessage:new({
       text = _("Dictionary downloaded:\n") .. dict.name,
     }))
     return true
-  else
-    UIManager:show(InfoMessage:new({
-      text = _("Dictionary failed to download:\n")
-        .. string.format("%s\n%s", dict.name, error),
-    }))
-    return false
   end
+  UIManager:show(InfoMessage:new({
+    text = _("Dictionary failed to download:\n")
+      .. string.format("%s\n%s", dict.name, error),
+  }))
+  return false
 end
 
 function ReaderDictionary:extendIfoWithLanguage(dictionary_location, ifo_lang)

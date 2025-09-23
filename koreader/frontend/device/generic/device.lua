@@ -1076,7 +1076,8 @@ function Device:retrieveNetworkInfo()
 
   local connected = function()
     local network = require("ui/network/manager")
-    -- Less ideal, but force updating the connectivity state.
+    -- TODO: Check the online state here should not be necessary, remove this
+    -- hack.
     network:_queryOnlineState()
     return network:isOnline()
   end

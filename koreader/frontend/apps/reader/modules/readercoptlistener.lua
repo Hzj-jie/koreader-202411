@@ -71,12 +71,6 @@ function ReaderCoptListener:onReadSettings(config)
     self.reading_percent
   )
 
-  -- We will build the top status bar page info string ourselves,
-  -- if we have to display any chunk of it
-  self.page_info_override = self.page_number == 1
-    or self.page_count == 1
-    or self.reading_percent == 1
-    or (self.battery == 1 and self.battery_percent == 1) -- don't forget a sole battery
   self.document:setPageInfoOverride("") -- an empty string lets crengine display its own page info
 
   self:onTimeFormatChanged()
@@ -102,7 +96,7 @@ function ReaderCoptListener:onReadSettings(config)
         or (self.battery == 1 and new_battery_level ~= self.old_battery_level)
       then
         self.old_battery_level = new_battery_level
-        self:updateHeader()
+        self:_updateHeader()
       end
     end
     self:rescheduleHeaderRefreshIfNeeded() -- schedule (or not) next refresh
@@ -128,7 +122,7 @@ function ReaderCoptListener:updatePageInfoOverride(pageno)
   if
     self.document.configurable.status_line ~= 0
     or self.view.view_mode ~= "page"
-    or not self.page_info_override
+    or not self:page_info_override()
     or not next(self.additional_header_content)
   then
     self.document:setPageInfoOverride("")
@@ -173,18 +167,17 @@ function ReaderCoptListener:updatePageInfoOverride(pageno)
     end
   end
 
-  local additional_content = ""
+  local page_info = ""
   for dummy, v in ipairs(self.additional_header_content) do
     local value = v()
     if value and value ~= "" then
-      additional_content = additional_content .. value
+      page_info = page_info .. value
       if self.page_number == 1 or self.page_count == 1 then
-        additional_content = additional_content .. "  " -- double spaces as crengine's own drawing
+        page_info = page_info .. "  " -- double spaces as crengine's own drawing
       end
     end
   end
 
-  local page_info = additional_content
   if self.page_number == 1 or self.page_count == 1 then
     page_info = page_info .. page_pre
     if self.page_number == 1 then
@@ -254,7 +247,7 @@ function ReaderCoptListener:onBookMetadataChanged(prop_updated)
   local prop_key = prop_updated and prop_updated.metadata_key_updated
   if prop_key and self.document.prop_to_cre_prop[prop_key] then
     self.document:setAltDocumentProp(prop_key, prop_updated.doc_props[prop_key])
-    self:updateHeader()
+    self:_updateHeader()
   end
 end
 
@@ -299,7 +292,7 @@ function ReaderCoptListener:shouldHeaderBeRepainted()
   end
 end
 
-function ReaderCoptListener:updateHeader()
+function ReaderCoptListener:_updateHeader()
   -- Have crengine display accurate time and battery on its next drawing
   self.document:resetBufferCache() -- be sure next repaint is a redrawing
   -- Force a refresh if we're not hidden behind another widget
@@ -400,16 +393,21 @@ function ReaderCoptListener:setAndSave(setting, property, value, property_value)
   self:onUpdateHeader()
 end
 
-function ReaderCoptListener:onUpdateHeader()
-  self.page_info_override = self.page_number == 1
+-- We will build the top status bar page info string ourselves, if we have to
+-- display any chunk of it
+function ReaderCoptListener:page_info_override()
+  return self.page_number == 1
     or self.page_count == 1
     or self.reading_percent == 1
     or (self.battery == 1 and self.battery_percent == 1) -- don't forget a sole battery
+    or next(self.additional_header_content) ~= nil
+end
 
+function ReaderCoptListener:onUpdateHeader()
   self:updatePageInfoOverride()
   -- Have crengine redraw it (even if hidden by the menu at this time)
   self.ui.rolling:updateBatteryState()
-  self:updateHeader()
+  self:_updateHeader()
   -- And see if we should auto-refresh
   self:rescheduleHeaderRefreshIfNeeded()
 end
