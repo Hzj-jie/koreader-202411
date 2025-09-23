@@ -923,7 +923,13 @@ function FileManager:openRandomFile(dir)
     local info = ""
     for __, v in ipairs(FileManagerBookInfo:extract(random_file)) do
       -- Hacky way to ignore less interesting fields.
-      if type(v) == "table" and v[1] ~= _("Filename:") and v[1] ~= _("Folder:") and v[1] ~= _("Cover image:") and v[2] ~= _("N/A") then
+      if
+        type(v) == "table"
+        and v[1] ~= _("Filename:")
+        and v[1] ~= _("Folder:")
+        and v[1] ~= _("Cover image:")
+        and v[2] ~= _("N/A")
+      then
         info = info .. "\n" .. v[1] .. v[2]
       end
     end

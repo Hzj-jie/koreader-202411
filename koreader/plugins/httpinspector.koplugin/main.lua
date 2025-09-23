@@ -4,6 +4,8 @@
 local DataStorage = require("datastorage")
 local Device = require("device")
 local Event = require("ui/event")
+local InfoMessage = require("ui/widget/infomessage")
+local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiUtil = require("ffi/util")
@@ -1449,9 +1451,47 @@ end
 
 function HttpInspectorWidget:addToMainMenu(menu_items)
   menu_items.httpremote = {
-    text = _("KOReader HTTP inspector"),
+    text = _("Remotely control KOReader"),
     sorting_hint = "network",
     sub_item_table = {
+      {
+        text = _("About"),
+        keep_menu_open = true,
+        callback = function()
+          local text = _(
+            "Allow remotely controlling KOReader via browsers, with "
+              .. "advanced features of inspecting KOReader internal state. It "
+              .. "poses security risks; only enable this on networks you can "
+              .. "trust."
+          )
+          text = text .. "\n\n"
+          -- Need localization.
+          if NetworkMgr:isOnline() and HttpInspector:isRunning() then
+            text = text
+              .. T(
+                _("Navigate to %1 from a browser to control KOReader."),
+                NetworkMgr:ipAddress()
+              )
+          elseif NetworkMgr:isOnline() then
+            text = text
+              .. T(
+                _(
+                  "After starting the HTTP server, navigate to %1 from a browser to control KOReader."
+                ),
+                NetworkMgr:ipAddress()
+              )
+          else
+            -- If the http server has been enabled, very likely the user knows
+            -- what does it mean and no extra "Starting the HTTP server"
+            -- infomation is needed.
+            text = text
+              .. _("Turn on the network connection to use the feature.")
+          end
+          UIManager:show(InfoMessage:new({
+            text = text,
+          }))
+        end,
+      },
       {
         text_func = function()
           if HttpInspector:isRunning() then
