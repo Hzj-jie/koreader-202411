@@ -116,12 +116,7 @@ function BackgroundRunner:_shouldRepeat(job)
     return job.repeated
   end
   if type(job.repeated) == "function" then
-    local status, result = pcall(job.repeated)
-    if status then
-      return result
-    end
-    logger.warn("job.repeated failed, ", _debugJobStr(job))
-    return false
+    return job.repeated()
   end
   if type(job.repeated) == "number" then
     job.repeated = job.repeated - 1
@@ -156,7 +151,7 @@ function BackgroundRunner:_finishJob(job)
     logger.info("job ", _debugJobStr(job), " will not be repeated.")
   end
   if type(job.callback) == "function" then
-    pcall(job.callback, job)
+    job.callback(job)
   end
 end
 
@@ -233,13 +228,7 @@ function BackgroundRunner:_execute()
     local should_execute = false
     local should_ignore = false
     if type(job.when) == "function" then
-      local status, result = pcall(job.when)
-      if status then
-        should_execute = result
-      else
-        logger.warn("job.when failed, ", _debugJobStr(job))
-        should_ignore = true
-      end
+      should_execute = job.when()
     elseif type(job.when) == "number" then
       if job.when >= 0 then
         -- Interval of two runs is 1 sec.
