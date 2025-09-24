@@ -61,32 +61,6 @@ function LuaSettings:open(file_path)
   return new
 end
 
-function LuaSettings:wrap(data)
-  return self:extend({
-    data = type(data) == "table" and data or {},
-  })
-end
-
---[[--Reads child settings.
-
-@usage
-
-  Settings:saveSetting("key", {
-    a = "b",
-    c = true,
-    d = false,
-  })
-
-  local child = Settings:child("key")
-
-  child:readSetting("a")
-  -- result "b"
-]]
--- TODO: Remove, this is very wrong, updating the returned object has no effect.
-function LuaSettings:child(key)
-  return self:wrap(self:readSetting(key))
-end
-
 --[[-- Reads a setting or nil
 
 @param key The setting's key
