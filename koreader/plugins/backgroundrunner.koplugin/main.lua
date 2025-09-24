@@ -276,11 +276,10 @@ function BackgroundRunner:_execute()
     if should_execute then
       logger.dbg("BackgroundRunner: run job ", _debugJobStr(job))
       assert(not should_ignore)
-      if not self:_executeJob(job) then
-        should_ignore = true
-      end
-    end
-    if not should_ignore then
+      self:_executeJob(job)
+    elseif not should_ignore then
+      -- _finishJob would insert a clone, so this insert is only needed if the
+      -- job wasn't executed.
       table.insert(PluginShare.backgroundJobs, job)
     end
   end
