@@ -299,7 +299,7 @@ function BackgroundRunner:schedule()
   end
   logger.dbg("BackgroundRunnerWidget: start running")
   self.scheduled = true
-  UIManager:scheduleIn(1, function()
+  UIManager:scheduleIn(2, function()
     self:_execute()
   end)
 end
