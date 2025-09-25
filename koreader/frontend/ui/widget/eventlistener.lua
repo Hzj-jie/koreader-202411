@@ -39,7 +39,7 @@ function EventListener:handleEvent(event)
   end
   -- print("EventListener:handleEvent:", event.handler, "handled by", debug.getinfo(self[event.handler], "S").short_src, self)
   local r = self[event.handler](self, unpack(event.args, 1, event.args.n))
-  if event.handler == "onGesture" or event.handler == "onKeyPress" or event.handler == "onKeyRepeat" or event.handler == "onKeyRelease" or event.handler == "onGenericInput" or event.handler == "onSetRotationMode" or event.handler == "onInputError" then
+  if event:isUserInput() then
     return r
   end
   return true
