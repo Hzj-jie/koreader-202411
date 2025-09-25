@@ -126,7 +126,7 @@ function ReaderBack:onBack()
         -- saved_location, which will then not be added to the stack
         self.cur_location = nil
         logger.dbg("[ReaderBack] restoring:", saved_location)
-        self.ui:handleEvent(Event:new("RestoreBookLocation", saved_location))
+        UIManager:broadcastEvent(Event:new("RestoreBookLocation", saved_location))
         -- Ensure we always have self.cur_location updated, as in some
         -- cases (same page), no event that we handle might be sent.
         UIManager:nextTick(self._addPreviousLocationToStackCallback)
@@ -164,14 +164,14 @@ function ReaderBack:onBack()
       return true
     end
   elseif back_in_reader == "filebrowser" then
-    self.ui:handleEvent(Event:new("Home"))
+    UIManager:broadcastEvent(Event:new("Home"))
     -- Filebrowser will handle next "Back" and ensure back_to_exit
     return true
   end
 
   -- location stack empty, or back_in_reader == "default"
   if back_to_exit == "always" then
-    self.ui:handleEvent(Event:new("Close"))
+    UIManager:broadcastEvent(Event:new("Close"))
   elseif back_to_exit == "disable" then
     return true
   elseif back_to_exit == "prompt" then
@@ -179,7 +179,7 @@ function ReaderBack:onBack()
       text = _("Exit KOReader?"),
       ok_text = _("Exit"),
       ok_callback = function()
-        self.ui:handleEvent(Event:new("Close"))
+        UIManager:broadcastEvent(Event:new("Close"))
       end,
     }))
   end
