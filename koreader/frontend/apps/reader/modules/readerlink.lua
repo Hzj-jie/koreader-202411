@@ -122,9 +122,6 @@ function ReaderLink:init()
       },
     })
   end
-  self.ui:registerPostInitCallback(function()
-    self.ui.menu:registerToMainMenu(self)
-  end)
   if G_reader_settings:isTrue("opening_page_location_stack") then
     -- Add location at book opening to stack
     self.ui:registerPostReaderReadyCallback(function()
@@ -254,6 +251,10 @@ function ReaderLink:init()
       end,
     }
   end
+end
+
+function ReaderLink:onReaderInited()
+  self.ui.menu:registerToMainMenu(self)
 end
 
 -- Register URL scheme. The external link dialog will be brought up when a URL
