@@ -309,6 +309,7 @@ function ReaderUI:init()
       )
     end
   end
+  local delayedLoading = nil
   -- for page specific controller
   if self.document.info.has_pages then
     -- cropping controller
@@ -368,7 +369,7 @@ function ReaderUI:init()
       self.document:setupDefaultView()
     end
     -- make sure we render document first before calling any callback
-    self.onReaderInited = function()
+    delayedLoading = function()
       local start_time = time.now()
       if not self.document:loadDocument() then
         self:dealWithLoadDocumentFailure()
@@ -594,6 +595,9 @@ function ReaderUI:init()
   )
   -- we only read settings after all the widgets are initialized
   self:broadcastEvent(Event:new("ReadSettings", self.doc_settings))
+  if delayedLoading then
+    delayedLoading()
+  end
   self:broadcastEvent(Event:new("ReaderInited"))
 
   -- Now that document is loaded, store book metadata in settings.
