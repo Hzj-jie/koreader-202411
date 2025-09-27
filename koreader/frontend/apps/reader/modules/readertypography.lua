@@ -553,8 +553,8 @@ When the book's language tag is not among our presets, no specific features will
         }))
         self.text_lang_tag = lang_tag
         self.ui.document:setTextMainLang(lang_tag)
-        self.ui:handleEvent(Event:new("TypographyLanguageChanged"))
-        self.ui:handleEvent(Event:new("UpdatePos"))
+        UIManager:broadcastEvent(Event:new("TypographyLanguageChanged"))
+        UIManager:broadcastEvent(Event:new("UpdatePos"))
       end,
       hold_callback = function(touchmenu_instance)
         UIManager:show(MultiConfirmBox:new({
@@ -608,7 +608,7 @@ When the book's language tag is not among our presets, no specific features will
     callback = function()
       self.text_lang_embedded_langs = not self.text_lang_embedded_langs
       self.ui.document:setTextEmbeddedLangs(self.text_lang_embedded_langs)
-      self.ui:handleEvent(Event:new("UpdatePos"))
+      UIManager:broadcastEvent(Event:new("UpdatePos"))
     end,
     hold_callback = function()
       local text_lang_embedded_langs =
@@ -647,7 +647,7 @@ When the book's language tag is not among our presets, no specific features will
     callback = function()
       self.hyphenation = not self.hyphenation
       self.ui.document:setTextHyphenation(self.hyphenation)
-      self.ui:handleEvent(Event:new("UpdatePos"))
+      UIManager:broadcastEvent(Event:new("UpdatePos"))
     end,
     hold_callback = function()
       local hyphenation = G_reader_settings:nilOrTrue("hyphenation")
@@ -748,7 +748,7 @@ These settings will apply to all books with any hyphenation dictionary.
             G_reader_settings:readSetting("hyph_right_hyphen_min") or 0
           )
           -- signal readerrolling to update pos in new height, and redraw page
-          self.ui:handleEvent(Event:new("UpdatePos"))
+          UIManager:broadcastEvent(Event:new("UpdatePos"))
         end,
       })
       UIManager:show(hyph_limits_widget)
@@ -762,7 +762,7 @@ These settings will apply to all books with any hyphenation dictionary.
     callback = function()
       self.hyph_trust_soft_hyphens = not self.hyph_trust_soft_hyphens
       self.ui.document:setTrustSoftHyphens(self.hyph_trust_soft_hyphens)
-      self.ui:handleEvent(Event:new("UpdatePos"))
+      UIManager:broadcastEvent(Event:new("UpdatePos"))
     end,
     hold_callback = function()
       local hyph_trust_soft_hyphens =
@@ -815,7 +815,7 @@ These settings will apply to all books with any hyphenation dictionary.
       self.ui.document:setTextHyphenationForceAlgorithmic(
         self.hyph_force_algorithmic
       )
-      self.ui:handleEvent(Event:new("UpdatePos"))
+      UIManager:broadcastEvent(Event:new("UpdatePos"))
     end,
     -- no hold_callback
     checked_func = function()
@@ -838,7 +838,7 @@ These settings will apply to all books with any hyphenation dictionary.
       self.ui.document:setTextHyphenationForceAlgorithmic(
         self.hyph_force_algorithmic
       )
-      self.ui:handleEvent(Event:new("UpdatePos"))
+      UIManager:broadcastEvent(Event:new("UpdatePos"))
     end,
     hold_callback = function()
       local hyph_force_algorithmic =
@@ -887,7 +887,7 @@ These settings will apply to all books with any hyphenation dictionary.
       self.ui.document:setTextHyphenationForceAlgorithmic(
         self.hyph_force_algorithmic
       )
-      self.ui:handleEvent(Event:new("UpdatePos"))
+      UIManager:broadcastEvent(Event:new("UpdatePos"))
     end,
     hold_callback = function()
       local hyph_soft_hyphens_only =
@@ -981,7 +981,7 @@ function ReaderTypography:onToggleFloatingPunctuation(toggle)
     toggle = 0
   end
   self.ui.document:setFloatingPunctuation(toggle)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
 end
 
 function ReaderTypography:makeDefaultFloatingPunctuation()
@@ -1190,7 +1190,7 @@ function ReaderTypography:onReadSettings(config)
     logger.dbg("Typography lang: no lang set, using", self.text_lang_tag)
   end
   self.ui.document:setTextMainLang(self.text_lang_tag)
-  self.ui:handleEvent(Event:new("TypographyLanguageChanged"))
+  UIManager:broadcastEvent(Event:new("TypographyLanguageChanged"))
 end
 
 function ReaderTypography:onPreRenderDocument(config)
@@ -1219,8 +1219,8 @@ function ReaderTypography:onPreRenderDocument(config)
       self.text_lang_tag = self.book_lang_tag
       self.ui.doc_settings:saveSetting("text_lang", self.text_lang_tag)
       self.ui.document:setTextMainLang(self.text_lang_tag)
-      self.ui:handleEvent(Event:new("TypographyLanguageChanged"))
-      self.ui:handleEvent(Event:new("UpdatePos"))
+      UIManager:broadcastEvent(Event:new("TypographyLanguageChanged"))
+      UIManager:broadcastEvent(Event:new("UpdatePos"))
     end,
     enabled_func = function()
       return self.book_lang_tag ~= nil
@@ -1270,7 +1270,7 @@ function ReaderTypography:onPreRenderDocument(config)
     end
     self.text_lang_tag = self.book_lang_tag
     self.ui.document:setTextMainLang(self.text_lang_tag)
-    self.ui:handleEvent(Event:new("TypographyLanguageChanged"))
+    UIManager:broadcastEvent(Event:new("TypographyLanguageChanged"))
   end
 end
 
