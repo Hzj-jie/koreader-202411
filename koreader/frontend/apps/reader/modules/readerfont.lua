@@ -217,7 +217,8 @@ end
 -- document will be reset to 0 on first view render.
 -- So far, I don't know why this call will alter the value of m_is_rendered.
 function ReaderFont:onReaderInited()
-  UIManager:broadcastEvent(Event:new("UpdatePos"))
+  -- Note, at this time, the UIManager still doesn't know ReaderUI yet.
+  self.ui:broadcastEvent(Event:new("UpdatePos"))
 end
 
 --[[
