@@ -100,6 +100,8 @@ function ReaderUI:registerModule(name, ui_module, always_active)
 end
 
 function ReaderUI:init()
+  UIManager:show(self, self.seamless and "ui" or "full")
+
   self.active_widgets = {}
 
   -- cap screen refresh on pan to 2 refreshes per second
@@ -376,7 +378,9 @@ function ReaderUI:init()
 
       -- used to read additional settings after the document has been
       -- loaded (but not rendered yet)
-      UIManager:broadcastEvent(Event:new("PreRenderDocument", self.doc_settings))
+      UIManager:broadcastEvent(
+        Event:new("PreRenderDocument", self.doc_settings)
+      )
 
       start_time = time.now()
       self.document:render()
@@ -813,6 +817,7 @@ function ReaderUI:doShowReader(file, provider, seamless)
     covers_fullscreen = true, -- hint for UIManager:_repaint()
     document = document,
     reloading = self.reloading,
+    seamless = seamless,
   })
 
   Screen:setWindowTitle(reader.doc_props.display_title)
@@ -826,8 +831,6 @@ function ReaderUI:doShowReader(file, provider, seamless)
   if FileManager.instance then
     FileManager.instance:onExit()
   end
-
-  UIManager:show(reader, seamless and "ui" or "full")
 end
 
 function ReaderUI:unlockDocumentWithPassword(document, try_again)

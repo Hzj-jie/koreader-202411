@@ -435,6 +435,7 @@ end
 
 -- NOTE: The only thing that will *ever* instantiate a new FileManager object is our very own showFiles below!
 function FileManager:init()
+  UIManager:show(self)
   self:setupLayout()
   self.active_widgets = {}
 
@@ -1363,7 +1364,6 @@ function FileManager:showFiles(path, focused_file, selected_files)
     focused_file = focused_file,
     selected_files = selected_files,
   })
-  UIManager:show(file_manager)
 end
 
 --- A shortcut to execute mv.
