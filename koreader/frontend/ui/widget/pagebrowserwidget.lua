@@ -1594,7 +1594,7 @@ function PageBrowserWidget:onTap(arg, ges)
         -- and all their ancestors up to Reader
         self:onExit(true)
         self.ui.link:addCurrentLocationToStack()
-        UIManager:broadcastEvent(Event:new("GotoPage", page))
+        self.ui:handleEvent(Event:new("GotoPage", page))
         -- Note: with ReaderPaging, if we tap on the thumbnail for the current
         -- page, nothing would be refreshed. Our :onExit(true) will have the
         -- last ancestor issue a full refresh that will ensure it is painted.

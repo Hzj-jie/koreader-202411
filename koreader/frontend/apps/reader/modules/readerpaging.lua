@@ -223,7 +223,7 @@ book, the page view will be roughly the same.
 function ReaderPaging:setPagePosition(page, pos)
   logger.dbg("set page position", pos)
   self.page_positions[page] = pos ~= 0 and pos or nil
-  UIManager:broadcastEvent(Event:new("PagePositionUpdated"))
+  self.ui:handleEvent(Event:new("PagePositionUpdated"))
 end
 
 --[[
@@ -254,8 +254,8 @@ function ReaderPaging:onTogglePageFlipping()
     self:updateOriginalPage(nil)
     self:exitFlippingMode()
   end
-  UIManager:broadcastEvent(Event:new("SetHinting", not self.page_flipping_mode))
-  UIManager:broadcastEvent(Event:new("ReZoom"))
+  self.ui:handleEvent(Event:new("SetHinting", not self.page_flipping_mode))
+  self.ui:handleEvent(Event:new("ReZoom"))
   UIManager:setDirty(self.view.dialog, "partial")
 end
 
@@ -272,10 +272,8 @@ function ReaderPaging:onToggleBookmarkFlipping()
     self:exitFlippingMode()
     self:_gotoPage(self.bm_flipping_orig_page)
   end
-  UIManager:broadcastEvent(
-    Event:new("SetHinting", not self.bookmark_flipping_mode)
-  )
-  UIManager:broadcastEvent(Event:new("ReZoom"))
+  self.ui:handleEvent(Event:new("SetHinting", not self.bookmark_flipping_mode))
+  self.ui:handleEvent(Event:new("ReZoom"))
   UIManager:setDirty(self.view.dialog, "partial")
 end
 
@@ -287,9 +285,7 @@ function ReaderPaging:enterFlippingMode()
   self.view.document.configurable.text_wrap = 0
   self.view.page_scroll = self.flipping_scroll_mode
   Input.disable_double_tap = false
-  UIManager:broadcastEvent(
-    Event:new("EnterFlippingMode", self.flipping_zoom_mode)
-  )
+  self.ui:handleEvent(Event:new("EnterFlippingMode", self.flipping_zoom_mode))
 end
 
 function ReaderPaging:exitFlippingMode()
@@ -299,7 +295,7 @@ function ReaderPaging:exitFlippingMode()
   self.flipping_zoom_mode = self.view.zoom_mode
   self.flipping_scroll_mode = self.view.page_scroll
   logger.dbg("restore zoom mode", self.orig_zoom_mode)
-  UIManager:broadcastEvent(Event:new("ExitFlippingMode", self.orig_zoom_mode))
+  self.ui:handleEvent(Event:new("ExitFlippingMode", self.orig_zoom_mode))
 end
 
 function ReaderPaging:updateOriginalPage(page)
@@ -335,9 +331,9 @@ end
 function ReaderPaging:bookmarkFlipping(flipping_page, flipping_ges)
   local direction = BD.flipDirectionIfMirroredUILayout(flipping_ges.direction)
   if direction == "east" then
-    UIManager:broadcastEvent(Event:new("GotoPreviousBookmark", flipping_page))
+    self.ui:handleEvent(Event:new("GotoPreviousBookmark", flipping_page))
   elseif direction == "west" then
-    UIManager:broadcastEvent(Event:new("GotoNextBookmark", flipping_page))
+    self.ui:handleEvent(Event:new("GotoNextBookmark", flipping_page))
   end
   UIManager:setDirty(self.view.dialog, "partial")
 end
@@ -610,7 +606,7 @@ end
 function ReaderPaging:onPageUpdate(new_page_no, orig_mode)
   self.current_page = new_page_no
   if self.view.page_scroll and orig_mode ~= "scrolling" then
-    UIManager:broadcastEvent(Event:new("InitScrollPageStates", orig_mode))
+    self.ui:handleEvent(Event:new("InitScrollPageStates", orig_mode))
   end
 end
 
@@ -682,7 +678,7 @@ function ReaderPaging:onRestoreBookLocation(saved_location)
     else
       -- If context is unusable (not from scroll mode), trigger
       -- this to go at least to its page and redraw it
-      UIManager:broadcastEvent(Event:new("PageUpdate", saved_location[1].page))
+      self.ui:handleEvent(Event:new("PageUpdate", saved_location[1].page))
     end
   else
     -- gotoPage may emit PageUpdate event, which will trigger recalculate
@@ -698,7 +694,7 @@ function ReaderPaging:onRestoreBookLocation(saved_location)
       send_PageUpdate = true
     end
     if send_PageUpdate then
-      UIManager:broadcastEvent(Event:new("PageUpdate", saved_location[1].page))
+      self.ui:handleEvent(Event:new("PageUpdate", saved_location[1].page))
     end
   end
   self:setPagePosition(self:getTopPage(), self:getTopPosition())
@@ -1003,7 +999,7 @@ function ReaderPaging:onScrollPageRel(page_diff)
         >= last_page_state.page_area.h
     then
       table.insert(self.view.page_states, last_page_state)
-      UIManager:broadcastEvent(Event:new("EndOfBook"))
+      self.ui:handleEvent(Event:new("EndOfBook"))
       return true
     end
 
@@ -1127,7 +1123,7 @@ function ReaderPaging:onGotoPageRel(diff)
       new_page = self.current_page + diff
     end
     if new_page > self.number_of_pages then
-      UIManager:broadcastEvent(Event:new("EndOfBook"))
+      self.ui:handleEvent(Event:new("EndOfBook"))
       goto_end(y)
       goto_end(x)
     elseif new_page > 0 then
@@ -1207,7 +1203,7 @@ function ReaderPaging:onGotoPageRel(diff)
 end
 
 function ReaderPaging:onRedrawCurrentPage()
-  UIManager:broadcastEvent(Event:new("PageUpdate", self.current_page))
+  self.ui:handleEvent(Event:new("PageUpdate", self.current_page))
   return true
 end
 
@@ -1227,7 +1223,7 @@ function ReaderPaging:_gotoPage(number, orig_mode)
     number = 1
   end
   -- this is an event to allow other controllers to be aware of this change
-  UIManager:broadcastEvent(Event:new("PageUpdate", number, orig_mode))
+  self.ui:handleEvent(Event:new("PageUpdate", number, orig_mode))
   return true
 end
 
@@ -1248,7 +1244,7 @@ function ReaderPaging:onGotoPage(number, pos)
     end
   elseif number == self.current_page then
     -- gotoPage emits this event only if the page changes
-    UIManager:broadcastEvent(Event:new("PageUpdate", self.current_page))
+    self.ui:handleEvent(Event:new("PageUpdate", self.current_page))
   end
   return true
 end
@@ -1303,9 +1299,9 @@ function ReaderPaging:onGotoPrevChapter()
 end
 
 function ReaderPaging:onReflowUpdated()
-  UIManager:broadcastEvent(Event:new("RedrawCurrentPage"))
-  UIManager:broadcastEvent(Event:new("RestoreZoomMode"))
-  UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
+  self.ui:handleEvent(Event:new("RedrawCurrentPage"))
+  self.ui:handleEvent(Event:new("RestoreZoomMode"))
+  self.ui:handleEvent(Event:new("InitScrollPageStates"))
 end
 
 function ReaderPaging:onToggleReflow()

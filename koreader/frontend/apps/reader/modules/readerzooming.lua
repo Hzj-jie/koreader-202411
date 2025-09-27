@@ -344,14 +344,14 @@ function ReaderZooming:onToggleFreeZoom(arg, ges)
     self.zoom, xpos, ypos =
       self:getRegionalZoomCenter(self.current_page, ges.pos)
     logger.info("zoom center", self.zoom, xpos, ypos)
-    UIManager:broadcastEvent(Event:new("SetZoomMode", "free"))
+    self.ui:handleEvent(Event:new("SetZoomMode", "free"))
     if xpos == nil or ypos == nil then
       xpos = ges.pos.x * self.zoom / self.orig_zoom
       ypos = ges.pos.y * self.zoom / self.orig_zoom
     end
     self.view:SetZoomCenter(xpos, ypos)
   else
-    UIManager:broadcastEvent(Event:new("SetZoomMode", "page"))
+    self.ui:handleEvent(Event:new("SetZoomMode", "page"))
   end
 end
 
@@ -414,7 +414,7 @@ function ReaderZooming:onDefineZoom(btn, when_applied_callback)
     zoom_mode = zoom_mode_genus .. zoom_mode_type
   else
     zoom_mode = zoom_mode_genus
-    UIManager:broadcastEvent(Event:new("SetScrollMode", false))
+    self.ui:handleEvent(Event:new("SetScrollMode", false))
   end
   zoom_mode = self.zoom_mode_label[zoom_mode] and zoom_mode
     or self.DEFAULT_ZOOM_MODE
@@ -433,7 +433,7 @@ function ReaderZooming:onDefineZoom(btn, when_applied_callback)
 
   if zoom_mode == "columns" or zoom_mode == "rows" then
     if btn ~= "columns" and btn ~= "rows" then
-      UIManager:broadcastEvent(Event:new("SetZoomPan", settings, true))
+      self.ui:handleEvent(Event:new("SetZoomPan", settings, true))
       config.zoom_factor = self:setNumberOf(
         zoom_mode,
         zoom_range_number,
@@ -447,14 +447,14 @@ function ReaderZooming:onDefineZoom(btn, when_applied_callback)
       config.zoom_factor = self:getNumberOf("columns")
       settings.kopt_zoom_factor = config.zoom_factor
       -- We *want* a redraw the first time we swap to manual mode (like any other mode swap)
-      UIManager:broadcastEvent(Event:new("SetZoomPan", settings))
+      self.ui:handleEvent(Event:new("SetZoomPan", settings))
     else
       self:setNumberOf("columns", zoom_factor)
       -- No redraw here, because setNumberOf already took care of it
-      UIManager:broadcastEvent(Event:new("SetZoomPan", settings, true))
+      self.ui:handleEvent(Event:new("SetZoomPan", settings, true))
     end
   end
-  UIManager:broadcastEvent(Event:new("SetZoomMode", zoom_mode))
+  self.ui:handleEvent(Event:new("SetZoomMode", zoom_mode))
   if btn == "columns" or btn == "rows" then
     config.zoom_range_number = self:getNumberOf(
       zoom_mode,
@@ -490,14 +490,14 @@ function ReaderZooming:onSetZoomMode(new_mode)
   self.view.zoom_mode = new_mode
   if self.zoom_mode ~= new_mode then
     logger.info("setting zoom mode to", new_mode)
-    UIManager:broadcastEvent(Event:new("ZoomModeUpdate", new_mode))
+    self.ui:handleEvent(Event:new("ZoomModeUpdate", new_mode))
     self.zoom_mode = new_mode
     self:_updateConfigurable(new_mode)
     self:setZoom()
     if new_mode == "manual" then
-      UIManager:broadcastEvent(Event:new("SetScrollMode", false))
+      self.ui:handleEvent(Event:new("SetScrollMode", false))
     else
-      UIManager:broadcastEvent(Event:new("InitScrollPageStates", new_mode))
+      self.ui:handleEvent(Event:new("InitScrollPageStates", new_mode))
     end
   end
 end
@@ -514,7 +514,7 @@ function ReaderZooming:onReZoom(font_size)
     self.document:layoutDocument(reflowable_font_size)
   end
   self:setZoom()
-  UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
+  self.ui:handleEvent(Event:new("InitScrollPageStates"))
   return true
 end
 
@@ -559,9 +559,9 @@ function ReaderZooming:onEnterFlippingMode(zoom_mode)
 
   self.orig_zoom_mode = self.zoom_mode
   if zoom_mode == "free" then
-    UIManager:broadcastEvent(Event:new("SetZoomMode", "page"))
+    self.ui:handleEvent(Event:new("SetZoomMode", "page"))
   else
-    UIManager:broadcastEvent(Event:new("SetZoomMode", zoom_mode))
+    self.ui:handleEvent(Event:new("SetZoomMode", zoom_mode))
   end
 end
 
@@ -570,7 +570,7 @@ function ReaderZooming:onExitFlippingMode(zoom_mode)
     self.ges_events = {}
   end
   self.orig_zoom_mode = nil
-  UIManager:broadcastEvent(Event:new("SetZoomMode", zoom_mode))
+  self.ui:handleEvent(Event:new("SetZoomMode", zoom_mode))
 end
 
 function ReaderZooming:getZoom(pageno)
@@ -685,7 +685,7 @@ function ReaderZooming:setZoom()
     self.dimen = self.ui.dimen
   end
   self.zoom = self:getZoom(self.current_page)
-  UIManager:broadcastEvent(Event:new("ZoomUpdate", self.zoom))
+  self.ui:handleEvent(Event:new("ZoomUpdate", self.zoom))
 end
 
 function ReaderZooming:genSetZoomModeCallBack(mode)
@@ -719,10 +719,10 @@ Please enable page view instead of continuous view (scroll mode).]])
   end
 
   -- Dirty hack to prevent ReaderKoptListener from stomping on normal_zoom_mode...
-  UIManager:broadcastEvent(
+  self.ui:handleEvent(
     Event:new("SetZoomMode", mode, is_reflowed and "koptlistener")
   )
-  UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
+  self.ui:handleEvent(Event:new("InitScrollPageStates"))
 end
 
 local function _getOverlapFactorForNum(n, overlap)
@@ -750,7 +750,7 @@ function ReaderZooming:setNumberOf(what, num, overlap)
   if what == "rows" then
     zoom_factor = zoom_factor * zoom_h / zoom_w
   end
-  UIManager:broadcastEvent(
+  self.ui:handleEvent(
     Event:new("SetZoomPan", { kopt_zoom_factor = zoom_factor })
   )
   return zoom_factor
@@ -784,9 +784,7 @@ function ReaderZooming:_zoomPanChange(text, setting)
     ok_text = _("Set"),
     title_text = text,
     callback = function(spin)
-      UIManager:broadcastEvent(
-        Event:new("SetZoomPan", { [setting] = spin.value })
-      )
+      self.ui:handleEvent(Event:new("SetZoomPan", { [setting] = spin.value }))
     end,
   }))
 end
@@ -810,7 +808,7 @@ function ReaderZooming:onSetZoomPan(settings, no_redraw)
     end
   end
   if not no_redraw then
-    UIManager:broadcastEvent(Event:new("RedrawCurrentPage"))
+    self.ui:handleEvent(Event:new("RedrawCurrentPage"))
   end
 end
 

@@ -266,14 +266,14 @@ function DeviceListener:onIterateRotation(ccw)
   -- Simply rotate by 90° CW or CCW
   local step = ccw and -1 or 1
   local arg = bit.band(Screen:getRotationMode() + step, 3)
-  UIManager:broadcastEvent(Event:new("SetRotationMode", arg))
+  self.ui:handleEvent(Event:new("SetRotationMode", arg))
   return true
 end
 
 function DeviceListener:onInvertRotation()
   -- Invert is always rota + 2, w/ wraparound
   local arg = bit.band(Screen:getRotationMode() + 2, 3)
-  UIManager:broadcastEvent(Event:new("SetRotationMode", arg))
+  self.ui:handleEvent(Event:new("SetRotationMode", arg))
   return true
 end
 
@@ -289,7 +289,7 @@ function DeviceListener:onSwapRotation()
     -- If Landscape, Portrait is -1
     arg = bit.band(rota - 1, 3)
   end
-  UIManager:broadcastEvent(Event:new("SetRotationMode", arg))
+  self.ui:handleEvent(Event:new("SetRotationMode", arg))
   return true
 end
 
@@ -448,9 +448,7 @@ end
 
 function DeviceListener:onFullRefresh()
   if self.ui and self.ui.view then
-    UIManager:broadcastEvent(
-      Event:new("UpdateFooter", self.ui.view.footer_visible)
-    )
+    self.ui:handleEvent(Event:new("UpdateFooter", self.ui.view.footer_visible))
   end
   UIManager:setDirty(nil, "full")
 end
