@@ -24,7 +24,7 @@ function EventListener:new(o)
   return o
 end
 
-function EventListener:runEvent(f, event)
+function EventListener:_runEvent(f, event)
   assert(type(f) == "function")
   return f(self, unpack(event.args, 1, event.args.n))
 end
@@ -45,11 +45,11 @@ function EventListener:handleEvent(event)
   -- print("EventListener:handleEvent:", event.handler, "handled by", debug.getinfo(self[event.handler], "S").short_src, self)
   local r = false
   if type(self[event.handler]) == "function" then
-    r = self:runEvent(self[event.handler], event)
+    r = self:_runEvent(self[event.handler], event)
   else
     assert(type(self[event.handler]) == "table")
     for _, v in ipairs(self[event.handler]) do
-      r = r or self:runEvent(v, event)
+      r = r or self:_runEvent(v, event)
     end
   end
   if event:isUserInput() then
