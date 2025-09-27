@@ -1040,7 +1040,7 @@ function ReaderUI:getCurrentPage()
     or self.document:getCurrentPage()
 end
 
-function ReaderUI:inited()
+function ReaderUI:ready()
   return ReaderUI.instance ~= nil
 end
 
