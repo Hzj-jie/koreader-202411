@@ -111,6 +111,8 @@ function ReaderUI:registerPostReaderReadyCallback(callback)
 end
 
 function ReaderUI:init()
+  UIManager:show(self, self.seamless and "ui" or "full")
+
   self.active_widgets = {}
 
   -- cap screen refresh on pan to 2 refreshes per second
@@ -388,7 +390,7 @@ function ReaderUI:init()
 
       -- used to read additional settings after the document has been
       -- loaded (but not rendered yet)
-      self:handleEvent(Event:new("PreRenderDocument", self.doc_settings))
+      UIManager:broadcastEvent(Event:new("PreRenderDocument", self.doc_settings))
 
       start_time = time.now()
       self.document:render()
@@ -594,11 +596,11 @@ function ReaderUI:init()
 
   -- Allow others to change settings based on external factors
   -- Must be called after plugins are loaded & before setting are read.
-  self:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("DocSettingsLoad", self.doc_settings, self.document)
   )
   -- we only read settings after all the widgets are initialized
-  self:handleEvent(Event:new("ReadSettings", self.doc_settings))
+  UIManager:broadcastEvent(Event:new("ReadSettings", self.doc_settings))
 
   for _, v in ipairs(self.postInitCallback) do
     v()
@@ -633,7 +635,7 @@ function ReaderUI:init()
   -- After initialisation notify that document is loaded and rendered
   -- CREngine only reports correct page count after rendering is done
   -- Need the same event for PDF document
-  self:handleEvent(Event:new("ReaderReady", self.doc_settings))
+  UIManager:broadcastEvent(Event:new("ReaderReady", self.doc_settings))
 
   for _, v in ipairs(self.postReaderReadyCallback) do
     v()
@@ -832,6 +834,7 @@ function ReaderUI:doShowReader(file, provider, seamless)
     covers_fullscreen = true, -- hint for UIManager:_repaint()
     document = document,
     reloading = self.reloading,
+    seamless = seamless,
   })
 
   Screen:setWindowTitle(reader.doc_props.display_title)
@@ -845,8 +848,6 @@ function ReaderUI:doShowReader(file, provider, seamless)
   if FileManager.instance then
     FileManager.instance:onExit()
   end
-
-  UIManager:show(reader, seamless and "ui" or "full")
 end
 
 function ReaderUI:unlockDocumentWithPassword(document, try_again)
@@ -900,7 +901,7 @@ function ReaderUI:onScreenResize(dimen)
 end
 
 function ReaderUI:saveSettings()
-  self:handleEvent(Event:new("SaveSettings"))
+  UIManager:broadcastEvent(Event:new("SaveSettings"))
   self.doc_settings:flush()
   G_reader_settings:flush()
 end
@@ -932,7 +933,7 @@ function ReaderUI:onExit(full_refresh)
     -- Serialize the most recently displayed page for later launch
     DocCache:serialize(self.document.file)
     logger.dbg("closing document")
-    self:handleEvent(Event:new("CloseDocument"))
+    UIManager:broadcastEvent(Event:new("CloseDocument"))
     if
       self.document:isEdited() and not self.highlight.highlight_write_into_pdf
     then
@@ -1000,9 +1001,9 @@ function ReaderUI:reloadDocument(after_close_callback, seamless)
   self.dithered = nil
   self.reloading = true
 
-  self:handleEvent(Event:new("CloseReaderMenu"))
-  self:handleEvent(Event:new("CloseConfigMenu"))
-  self:handleEvent(Event:new("PreserveCurrentSession")) -- don't reset statistics' start_current_period
+  UIManager:broadcastEvent(Event:new("CloseReaderMenu"))
+  UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
+  UIManager:broadcastEvent(Event:new("PreserveCurrentSession")) -- don't reset statistics' start_current_period
   self.highlight:onExit() -- close highlight dialog if any
   self:onExit(false)
   if after_close_callback then
@@ -1022,8 +1023,8 @@ function ReaderUI:switchDocument(new_file, seamless)
   self.tearing_down = true
   self.dithered = nil
 
-  self:handleEvent(Event:new("CloseReaderMenu"))
-  self:handleEvent(Event:new("CloseConfigMenu"))
+  UIManager:broadcastEvent(Event:new("CloseReaderMenu"))
+  UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
   self.highlight:onExit() -- close highlight dialog if any
   self:onExit(false)
 
