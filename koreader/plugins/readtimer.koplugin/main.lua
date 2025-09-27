@@ -86,6 +86,10 @@ function ReadTimer:init()
   self.show_value_in_footer =
     G_reader_settings:readSetting("readtimer_show_value_in_footer")
 
+  self.ui.menu:registerToMainMenu(self)
+end
+
+function ReadTimer:onPostReaderReady()
   if self.show_value_in_header then
     self:addAdditionalHeaderContent()
   end
@@ -93,8 +97,6 @@ function ReadTimer:init()
   if self.show_value_in_footer then
     self:addAdditionalFooterContent()
   end
-
-  self.ui.menu:registerToMainMenu(self)
 end
 
 function ReadTimer:update_status_bars(seconds)
