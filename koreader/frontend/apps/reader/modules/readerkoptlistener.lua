@@ -8,9 +8,9 @@ local ReaderKoptListener = EventListener:extend({})
 function ReaderKoptListener:setZoomMode(zoom_mode)
   if self.document.configurable.text_wrap == 1 then
     -- in reflow mode only "page" zoom mode is valid so override any other zoom mode
-    self.ui:handleEvent(Event:new("SetZoomMode", "page", "koptlistener"))
+    UIManager:broadcastEvent(Event:new("SetZoomMode", "page", "koptlistener"))
   else
-    self.ui:handleEvent(Event:new("SetZoomMode", zoom_mode, "koptlistener"))
+    UIManager:broadcastEvent(Event:new("SetZoomMode", zoom_mode, "koptlistener"))
   end
 end
 
@@ -26,7 +26,7 @@ function ReaderKoptListener:onReadSettings(config)
     or ReaderZooming.DEFAULT_ZOOM_MODE
   self.normal_zoom_mode = normal_zoom_mode
   self:setZoomMode(normal_zoom_mode)
-  self.ui:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("GammaUpdate", self.document.configurable.contrast, true)
   ) -- no notification
   -- since K2pdfopt v2.21 negative value of word spacing is also used, for config
@@ -34,7 +34,7 @@ function ReaderKoptListener:onReadSettings(config)
   if self.document.configurable.word_spacing == -1 then
     self.document.configurable.word_spacing = -0.2
   end
-  self.ui:handleEvent(Event:new("DitheringUpdate"))
+  UIManager:broadcastEvent(Event:new("DitheringUpdate"))
 end
 
 function ReaderKoptListener:onSaveSettings()
@@ -94,7 +94,7 @@ function ReaderKoptListener:onConfigChange(option_name, option_value)
     return
   end
   self.document.configurable[option_name] = option_value
-  self.ui:handleEvent(Event:new("StartActivityIndicator"))
+  UIManager:broadcastEvent(Event:new("StartActivityIndicator"))
   UIManager:setDirty("all", "partial")
   return true
 end

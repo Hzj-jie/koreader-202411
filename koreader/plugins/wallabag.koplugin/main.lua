@@ -154,7 +154,7 @@ function Wallabag:addToMainMenu(menu_items)
       {
         text = _("Retrieve new articles from server"),
         callback = function()
-          self.ui:handleEvent(Event:new("SynchronizeWallabag"))
+          UIManager:broadcastEvent(Event:new("SynchronizeWallabag"))
         end,
       },
       {

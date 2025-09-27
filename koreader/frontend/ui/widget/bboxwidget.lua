@@ -388,19 +388,19 @@ end
 
 function BBoxWidget:onConfirmAdjust(arg, ges)
   if self:inPageArea(ges) then
-    self.ui:handleEvent(Event:new("ConfirmPageCrop"))
+    UIManager:broadcastEvent(Event:new("ConfirmPageCrop"))
   end
   return true
 end
 
 function BBoxWidget:onExit()
-  self.ui:handleEvent(Event:new("CancelPageCrop"))
+  UIManager:broadcastEvent(Event:new("CancelPageCrop"))
   return true
 end
 
 function BBoxWidget:onSelect()
   if not self._confirm_stage or self._confirm_stage == 2 then
-    self.ui:handleEvent(Event:new("ConfirmPageCrop"))
+    UIManager:broadcastEvent(Event:new("ConfirmPageCrop"))
   else
     local bbox = self.screen_bbox
     self._confirm_stage = self._confirm_stage + 1

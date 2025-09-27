@@ -544,10 +544,10 @@ function ReaderThumbnail:_getPageImage(page)
 
     -- This seems to do it all well:
     --   local Event = require("ui/event")
-    --   self.ui:handleEvent(Event:new("SetDimensions", dimen))
+    --   UIManager:broadcastEvent(Event:new("SetDimensions", dimen))
     --   self.ui.view.dogear[1].dimen.w = dimen.w -- (hack... its code uses the Screen width)
-    --   self.ui:handleEvent(Event:new("PageUpdate", page))
-    --   self.ui:handleEvent(Event:new("SetZoomMode", "page"))
+    --   UIManager:broadcastEvent(Event:new("PageUpdate", page))
+    --   UIManager:broadcastEvent(Event:new("SetZoomMode", "page"))
 
     -- Trying to do as little as needed, knowing the internals:
     self.ui.view:onSetDimensions(dimen)
