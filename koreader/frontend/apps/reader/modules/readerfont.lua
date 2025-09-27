@@ -210,15 +210,14 @@ function ReaderFont:onReadSettings(config)
   self:updateFontFamilyFonts()
 
   self:setupFaceMenuTable()
+end
 
-  -- Dirty hack: we have to add following call in order to set
-  -- m_is_rendered(member of LVDocView) to true. Otherwise position inside
-  -- document will be reset to 0 on first view render.
-  -- So far, I don't know why this call will alter the value of m_is_rendered.
-  --
+-- Dirty hack: we have to add following call in order to set
+-- m_is_rendered(member of LVDocView) to true. Otherwise position inside
+-- document will be reset to 0 on first view render.
+-- So far, I don't know why this call will alter the value of m_is_rendered.
+function ReaderFont:onReaderInited()
   -- Note, at this time, the UIManager still doesn't know ReaderUI yet.
-  -- Note, this call needs to happen before other ReaderInited calls, so put it
-  -- into ReadSettings event.
   self.ui:broadcastEvent(Event:new("UpdatePos"))
 end
 
