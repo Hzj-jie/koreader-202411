@@ -24,6 +24,11 @@ function EventListener:new(o)
   return o
 end
 
+function EventListener:runEvent(f, event)
+  assert(type(f) == "function")
+  return f(self, unpack(event.args, 1, event.args.n))
+end
+
 --[[--
 Invoke handler method for an event.
 
@@ -38,7 +43,15 @@ function EventListener:handleEvent(event)
     return false
   end
   -- print("EventListener:handleEvent:", event.handler, "handled by", debug.getinfo(self[event.handler], "S").short_src, self)
-  local r = self[event.handler](self, unpack(event.args, 1, event.args.n))
+  local r = false
+  if type(self[event.handler]) == "function" then
+    r = self:runEvent(self[event.handler], event)
+  else
+    assert(type(self[event.handler]) == "table")
+    for _, v in ipairs(self[event.handler]) do
+      r = r or self:runEvent(v, event)
+    end
+  end
   if event:isUserInput() then
     return r
   end
