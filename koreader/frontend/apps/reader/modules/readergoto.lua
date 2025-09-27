@@ -110,17 +110,17 @@ function ReaderGoto:gotoPage()
   if number then
     self.ui.link:addCurrentLocationToStack()
     if relative_sign == "+" or relative_sign == "-" then
-      self.ui:handleEvent(Event:new("GotoRelativePage", number))
+      UIManager:broadcastEvent(Event:new("GotoRelativePage", number))
     else
       if self.ui.pagemap and self.ui.pagemap:wantsPageLabels() then
         number = self.ui.pagemap:getRenderedPageNumber(page_number, true)
         if number then -- found
-          self.ui:handleEvent(Event:new("GotoPage", number))
+          UIManager:broadcastEvent(Event:new("GotoPage", number))
         else
           return -- avoid self:close()
         end
       else
-        self.ui:handleEvent(Event:new("GotoPage", number))
+        UIManager:broadcastEvent(Event:new("GotoPage", number))
       end
     end
     self:close()
@@ -149,7 +149,7 @@ function ReaderGoto:gotoPage()
           page = self.ui.document:getFirstPageInFlow(flow) + number - 1
         end
         if page > 0 then
-          self.ui:handleEvent(Event:new("GotoPage", page))
+          UIManager:broadcastEvent(Event:new("GotoPage", page))
           self:close()
         end
       end
@@ -161,7 +161,7 @@ function ReaderGoto:gotoPercent()
   local number = self.goto_dialog:getInputValue()
   if number then
     self.ui.link:addCurrentLocationToStack()
-    self.ui:handleEvent(Event:new("GotoPercent", number))
+    UIManager:broadcastEvent(Event:new("GotoPercent", number))
     self:close()
   end
 end
@@ -170,7 +170,7 @@ function ReaderGoto:onGoToBeginning()
   local new_page = self.ui.document:getNextPage(0)
   if new_page then
     self.ui.link:addCurrentLocationToStack()
-    self.ui:handleEvent(Event:new("GotoPage", new_page))
+    UIManager:broadcastEvent(Event:new("GotoPage", new_page))
   end
   return true
 end
@@ -179,7 +179,7 @@ function ReaderGoto:onGoToEnd()
   local new_page = self.ui.document:getPrevPage(0)
   if new_page then
     self.ui.link:addCurrentLocationToStack()
-    self.ui:handleEvent(Event:new("GotoPage", new_page))
+    UIManager:broadcastEvent(Event:new("GotoPage", new_page))
   end
   return true
 end
@@ -207,7 +207,7 @@ function ReaderGoto:onGoToRandomPage()
     if random_page ~= current_page then
       table.remove(self.pages_pool, random_page_idx)
       self.ui.link:addCurrentLocationToStack()
-      self.ui:handleEvent(Event:new("GotoPage", random_page))
+      UIManager:broadcastEvent(Event:new("GotoPage", random_page))
       return true
     end
   end

@@ -121,7 +121,7 @@ function ReaderView:init()
 
   self:addWidgets()
   self.emitHintPageEvent = function()
-    self.ui:handleEvent(Event:new("HintPage", self.hinting))
+    UIManager:broadcastEvent(Event:new("HintPage", self.hinting))
   end
 
   -- We've subclassed OverlapGroup, go through its init, because it does some funky stuff with self.dimen...
@@ -287,7 +287,7 @@ function ReaderView:paintTo(bb, x, y)
     m:paintTo(bb, x, y)
   end
   -- stop activity indicator
-  self.ui:handleEvent(Event:new("StopActivityIndicator"))
+  UIManager:broadcastEvent(Event:new("StopActivityIndicator"))
 
   -- Most pages should not require dithering, but the dithering flag is also used to engage Kaleido waveform modes,
   -- so we'll set the flag to true if any of our drawn highlights were in color.
@@ -820,7 +820,7 @@ function ReaderView:recalculate()
     end
     -- clear dim area
     self.dim_area:clear()
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("ViewRecalculate", self.visible_area, self.page_area)
     )
   else
@@ -859,7 +859,7 @@ function ReaderView:PanningUpdate(dx, dy)
     UIManager:setDirty(self.dialog, "partial")
     logger.dbg("on pan: page_area", self.page_area)
     logger.dbg("on pan: visible_area", self.visible_area)
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("ViewRecalculate", self.visible_area, self.page_area)
     )
   end
@@ -873,7 +873,7 @@ function ReaderView:PanningStart(x, y)
   end
   self.visible_area = self.panning_visible_area:copy()
   self.visible_area:offsetWithin(self.page_area, x, y)
-  self.ui:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("ViewRecalculate", self.visible_area, self.page_area)
   )
   UIManager:setDirty(self.dialog, "partial")
@@ -887,7 +887,7 @@ function ReaderView:SetZoomCenter(x, y)
   local old = self.visible_area:copy()
   self.visible_area:centerWithin(self.page_area, x, y)
   if self.visible_area ~= old then
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("ViewRecalculate", self.visible_area, self.page_area)
     )
     UIManager:setDirty(self.dialog, "partial")
@@ -959,9 +959,9 @@ function ReaderView:rotate(mode, old_mode)
   else
     UIManager:setDirty(nil, "full") -- SetDimensions will only request a partial, we want a flash
     local new_screen_size = Screen:getSize()
-    self.ui:handleEvent(Event:new("SetDimensions", new_screen_size))
+    UIManager:broadcastEvent(Event:new("SetDimensions", new_screen_size))
     self.ui:onScreenResize(new_screen_size)
-    self.ui:handleEvent(Event:new("InitScrollPageStates"))
+    UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
   end
   Notification:notify(
     T(
@@ -987,7 +987,7 @@ end
 
 function ReaderView:onSetFullScreen(full_screen)
   self.footer_visible = not full_screen
-  self.ui:handleEvent(Event:new("SetDimensions", Screen:getSize()))
+  UIManager:broadcastEvent(Event:new("SetDimensions", Screen:getSize()))
 end
 
 function ReaderView:onSetScrollMode(page_scroll)
@@ -1013,7 +1013,7 @@ In combination with zoom to fit page, page height, content height, content or co
     self.document.configurable.page_scroll = 0
   end
   self:recalculate()
-  self.ui:handleEvent(Event:new("InitScrollPageStates"))
+  UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
 end
 
 function ReaderView:onReadSettings(config)
@@ -1126,7 +1126,7 @@ function ReaderView:onReaderFooterVisibilityChange()
       -- NOTE: ReaderView:recalculate will snap visible_area to page_area edges (depending on zoom direction).
       --     We don't actually want to move here, so save & restore our current visible_area *coordinates*...
       local x, y = self.visible_area.x, self.visible_area.y
-      self.ui:handleEvent(Event:new("SetDimensions", Screen:getSize()))
+      UIManager:broadcastEvent(Event:new("SetDimensions", Screen:getSize()))
       self.visible_area.x = x
       self.visible_area.y = y
 
@@ -1155,7 +1155,7 @@ end
 function ReaderView:onGammaUpdate(gamma, no_notification)
   self.state.gamma = gamma
   if self.page_scroll then
-    self.ui:handleEvent(Event:new("UpdateScrollPageGamma", gamma))
+    UIManager:broadcastEvent(Event:new("UpdateScrollPageGamma", gamma))
   end
   if not no_notification then
     Notification:notify(T(_("Contrast set to: %1."), gamma))
@@ -1193,28 +1193,28 @@ end
 
 function ReaderView:onFontSizeUpdate(font_size)
   if self.ui.paging then
-    self.ui:handleEvent(Event:new("ReZoom", font_size))
+    UIManager:broadcastEvent(Event:new("ReZoom", font_size))
     Notification:notify(T(_("Font zoom set to: %1."), font_size))
   end
 end
 
 function ReaderView:onDefectSizeUpdate()
-  self.ui:handleEvent(Event:new("ReZoom"))
+  UIManager:broadcastEvent(Event:new("ReZoom"))
 end
 
 function ReaderView:onPageCrop()
-  self.ui:handleEvent(Event:new("ReZoom"))
+  UIManager:broadcastEvent(Event:new("ReZoom"))
 end
 
 function ReaderView:onMarginUpdate()
-  self.ui:handleEvent(Event:new("ReZoom"))
+  UIManager:broadcastEvent(Event:new("ReZoom"))
 end
 
 function ReaderView:onSetViewMode(new_mode)
   if new_mode ~= self.view_mode then
     self.view_mode = new_mode
     self.document:setViewMode(new_mode)
-    self.ui:handleEvent(Event:new("ChangeViewMode"))
+    UIManager:broadcastEvent(Event:new("ChangeViewMode"))
     Notification:notify(
       T(
         _("View mode set to: %1"),

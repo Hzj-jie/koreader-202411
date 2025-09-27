@@ -1326,7 +1326,7 @@ function Gestures:gestureAction(action, ges)
   if action_list == nil or (ges.ges == "hold" and self.ignore_hold_corners) then
     return
   else
-    self.ui:handleEvent(Event:new("HandledAsSwipe"))
+    UIManager:broadcastEvent(Event:new("HandledAsSwipe"))
     local exec_props = { gesture = ges }
     if action_list.settings and action_list.settings.anchor_quickmenu then
       exec_props.qm_anchor = ges.end_pos or ges.pos
