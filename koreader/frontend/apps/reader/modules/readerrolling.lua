@@ -88,15 +88,13 @@ local ReaderRolling = InputContainer:extend({
   mark_func = nil,
   unmark_func = nil,
   _stepRerenderingAutomation = nil,
-
-  onReaderInited = {},
 })
 
 function ReaderRolling:init()
   self:registerKeyEvents()
   self.pan_interval = time.s(1 / self.pan_rate)
 
-  table.insert(self.onReaderInited, function()
+  table.insert(self.ui.postInitCallback, function()
     self.rendering_hash = self.ui.document:getDocumentRenderingHash(true)
     self.ui.document:_readMetadata()
     if
@@ -1253,7 +1251,7 @@ function ReaderRolling:onChangeViewMode()
     -- Ensure a whole screen refresh is always enqueued
     UIManager:setDirty(self.view.dialog, "partial")
   else
-    table.insert(self.onReaderInited, function()
+    table.insert(self.ui.postInitCallback, function()
       self:_gotoXPointer(self.xpointer)
     end)
   end
