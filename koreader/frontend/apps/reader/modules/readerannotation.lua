@@ -128,16 +128,16 @@ function ReaderAnnotation:onReadSettings(config)
     end
     self.annotations = annotations
     if needs_update or needs_sort then
-      self.ui:registerPostReaderReadyCallback(function()
+      self.onPostReaderReady = function()
         self:updateAnnotations(needs_update, needs_sort)
-      end)
+      end
       config:delSetting("annotations_externally_modified")
     end
   else -- first run
     if self.ui.rolling then
-      self.ui:registerPostInitCallback(function()
+      self.onReaderInited = function()
         self:migrateToAnnotations(config)
-      end)
+      end
     else
       self:migrateToAnnotations(config)
     end

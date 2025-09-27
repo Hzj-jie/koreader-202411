@@ -36,9 +36,9 @@ function ReaderPageMap:init()
   ) or self.label_default_font_size
   self.use_textbox_widget = nil
   self.initialized = false
-  self.ui:registerPostInitCallback(function()
+  self.onReaderInited = function()
     self:_postInit()
-  end)
+  end
 end
 
 function ReaderPageMap:_postInit()
