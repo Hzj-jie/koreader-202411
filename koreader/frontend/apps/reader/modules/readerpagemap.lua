@@ -36,9 +36,12 @@ function ReaderPageMap:init()
   ) or self.label_default_font_size
   self.use_textbox_widget = nil
   self.initialized = false
+  self.ui:registerPostInitCallback(function()
+    self:_postInit()
+  end)
 end
 
-function ReaderPageMap:onReaderInited()
+function ReaderPageMap:_postInit()
   self.initialized = true
   if self.ui.document.info.has_pages then
     return

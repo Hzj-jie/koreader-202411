@@ -86,6 +86,7 @@ local ReaderUI = InputContainer:extend({
   -- password for document unlock
   password = nil,
 
+  postInitCallback = nil,
   postReaderReadyCallback = nil,
 })
 
@@ -101,6 +102,10 @@ function ReaderUI:registerModule(name, ui_module, always_active)
   end
 end
 
+function ReaderUI:registerPostInitCallback(callback)
+  table.insert(self.postInitCallback, callback)
+end
+
 function ReaderUI:registerPostReaderReadyCallback(callback)
   table.insert(self.postReaderReadyCallback, callback)
 end
@@ -114,6 +119,7 @@ function ReaderUI:init()
   Input:inhibitInput(true) -- Inhibit any past and upcoming input events.
   Device:setIgnoreInput(true) -- Avoid ANRs on Android with unprocessed events.
 
+  self.postInitCallback = {}
   self.postReaderReadyCallback = {}
   -- if we are not the top level dialog ourselves, it must be given in the table
   if not self.dialog then
@@ -367,9 +373,8 @@ function ReaderUI:init()
     if self.document.setupDefaultView then
       self.document:setupDefaultView()
     end
-    -- make sure we render document first before calling any callback, so
-    -- onReadSettings is used which will be executed before onReaderInited.
-    self.onReadSettings = function()
+    -- make sure we render document first before calling any callback
+    self:registerPostInitCallback(function()
       local start_time = time.now()
       if not self.document:loadDocument() then
         self:dealWithLoadDocumentFailure()
@@ -383,7 +388,7 @@ function ReaderUI:init()
 
       -- used to read additional settings after the document has been
       -- loaded (but not rendered yet)
-      self:broadcastEvent(Event:new("PreRenderDocument", self.doc_settings))
+      self:handleEvent(Event:new("PreRenderDocument", self.doc_settings))
 
       start_time = time.now()
       self.document:render()
@@ -396,8 +401,7 @@ function ReaderUI:init()
 
       -- Uncomment to output the built DOM (for debugging)
       -- logger.dbg(self.document:getHTMLFromXPointer(".0", 0x6830))
-    end
-
+    end)
     -- styletweak controller (must be before typeset controller)
     self:registerModule(
       "styletweak",
@@ -590,12 +594,16 @@ function ReaderUI:init()
 
   -- Allow others to change settings based on external factors
   -- Must be called after plugins are loaded & before setting are read.
-  self:broadcastEvent(
+  self:handleEvent(
     Event:new("DocSettingsLoad", self.doc_settings, self.document)
   )
   -- we only read settings after all the widgets are initialized
-  self:broadcastEvent(Event:new("ReadSettings", self.doc_settings))
-  self:broadcastEvent(Event:new("ReaderInited"))
+  self:handleEvent(Event:new("ReadSettings", self.doc_settings))
+
+  for _, v in ipairs(self.postInitCallback) do
+    v()
+  end
+  self.postInitCallback = nil
 
   -- Now that document is loaded, store book metadata in settings.
   local props = self.document:getProps()
@@ -625,7 +633,7 @@ function ReaderUI:init()
   -- After initialisation notify that document is loaded and rendered
   -- CREngine only reports correct page count after rendering is done
   -- Need the same event for PDF document
-  self:broadcastEvent(Event:new("ReaderReady", self.doc_settings))
+  self:handleEvent(Event:new("ReaderReady", self.doc_settings))
 
   for _, v in ipairs(self.postReaderReadyCallback) do
     v()
@@ -909,7 +917,7 @@ function ReaderUI:onScreenResize(dimen)
 end
 
 function ReaderUI:saveSettings()
-  self:broadcastEvent(Event:new("SaveSettings"))
+  self:handleEvent(Event:new("SaveSettings"))
   self.doc_settings:flush()
   G_reader_settings:flush()
 end
@@ -941,7 +949,7 @@ function ReaderUI:onExit(full_refresh)
     -- Serialize the most recently displayed page for later launch
     DocCache:serialize(self.document.file)
     logger.dbg("closing document")
-    self:broadcastEvent(Event:new("CloseDocument"))
+    self:handleEvent(Event:new("CloseDocument"))
     if
       self.document:isEdited() and not self.highlight.highlight_write_into_pdf
     then
@@ -1018,9 +1026,9 @@ function ReaderUI:reloadDocument(after_close_callback, seamless)
   self.dithered = nil
   self.reloading = true
 
-  self:broadcastEvent(Event:new("CloseReaderMenu"))
-  self:broadcastEvent(Event:new("CloseConfigMenu"))
-  self:broadcastEvent(Event:new("PreserveCurrentSession")) -- don't reset statistics' start_current_period
+  self:handleEvent(Event:new("CloseReaderMenu"))
+  self:handleEvent(Event:new("CloseConfigMenu"))
+  self:handleEvent(Event:new("PreserveCurrentSession")) -- don't reset statistics' start_current_period
   self.highlight:onExit() -- close highlight dialog if any
   self:onExit(false)
   if after_close_callback then
@@ -1040,8 +1048,8 @@ function ReaderUI:switchDocument(new_file, seamless)
   self.tearing_down = true
   self.dithered = nil
 
-  self:broadcastEvent(Event:new("CloseReaderMenu"))
-  self:broadcastEvent(Event:new("CloseConfigMenu"))
+  self:handleEvent(Event:new("CloseReaderMenu"))
+  self:handleEvent(Event:new("CloseConfigMenu"))
   self.highlight:onExit() -- close highlight dialog if any
   self:onExit(false)
 

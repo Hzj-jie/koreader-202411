@@ -94,6 +94,22 @@ function ReaderRolling:init()
   self:registerKeyEvents()
   self.pan_interval = time.s(1 / self.pan_rate)
 
+  table.insert(self.ui.postInitCallback, function()
+    self.rendering_hash = self.ui.document:getDocumentRenderingHash(true)
+    self.ui.document:_readMetadata()
+    if
+      self.ui.document:hasCacheFile()
+      and not self.ui.document:isCacheFileStale()
+    then
+      -- We loaded from a valid cache file: remember its hash. It may allow not
+      -- having to do any background rerendering if the user somehow reverted
+      -- some setting changes before any background rerendering had completed
+      -- (ie. with autorotation, transitioning from portrait to landscape for
+      -- a few seconds, to then end up back in portrait).
+      self.valid_cache_rendering_hash =
+        self.ui.document:getDocumentRenderingHash(false)
+    end
+  end)
   table.insert(self.ui.postReaderReadyCallback, function()
     self:updatePos()
     -- Disable crengine internal history, with required redraw
@@ -289,25 +305,6 @@ function ReaderRolling:onReadSettings(config)
       logger.warn("cre callback() error:", err)
     end
   end)
-end
-
-function ReaderRolling:onReaderInited()
-  self.rendering_hash = self.ui.document:getDocumentRenderingHash(true)
-  self.ui.document:_readMetadata()
-  if
-    self.ui.document:hasCacheFile()
-    and not self.ui.document:isCacheFileStale()
-  then
-    -- We loaded from a valid cache file: remember its hash. It may allow not
-    -- having to do any background rerendering if the user somehow reverted
-    -- some setting changes before any background rerendering had completed
-    -- (ie. with autorotation, transitioning from portrait to landscape for
-    -- a few seconds, to then end up back in portrait).
-    self.valid_cache_rendering_hash =
-      self.ui.document:getDocumentRenderingHash(false)
-  end
-
-  self:_gotoXPointer(self.xpointer)
 end
 
 function ReaderRolling:onCloseDocument()
@@ -1245,8 +1242,6 @@ function ReaderRolling:onChangeViewMode()
     or 0
   -- Restore current position when switching page/scroll mode
   if self.xpointer then
-    -- self.xpointer isn't available before the reader finish initialization,
-    -- the _gotoXPointer call in the case will be delayed until onReaderInited.
     if self.configurable.visible_pages == 2 then
       -- Switching from 2-pages page mode to scroll mode has crengine switch to 1-page,
       -- and we need to notice this re-rendering and keep things sane
@@ -1255,6 +1250,10 @@ function ReaderRolling:onChangeViewMode()
     self:_gotoXPointer(self.xpointer)
     -- Ensure a whole screen refresh is always enqueued
     UIManager:setDirty(self.view.dialog, "partial")
+  else
+    table.insert(self.ui.postInitCallback, function()
+      self:_gotoXPointer(self.xpointer)
+    end)
   end
 end
 

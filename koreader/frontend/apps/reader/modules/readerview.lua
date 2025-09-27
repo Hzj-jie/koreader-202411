@@ -780,7 +780,6 @@ end
 This method is supposed to be only used by ReaderPaging
 --]]
 function ReaderView:recalculate()
-  print("===== debug ReaderView:recalculate" .. debug.traceback())
   -- Start by resetting the dithering flag early, so it doesn't carry over from the previous page.
   self.dialog.dithered = nil
 
