@@ -10,7 +10,9 @@ function ReaderKoptListener:setZoomMode(zoom_mode)
     -- in reflow mode only "page" zoom mode is valid so override any other zoom mode
     UIManager:broadcastEvent(Event:new("SetZoomMode", "page", "koptlistener"))
   else
-    UIManager:broadcastEvent(Event:new("SetZoomMode", zoom_mode, "koptlistener"))
+    UIManager:broadcastEvent(
+      Event:new("SetZoomMode", zoom_mode, "koptlistener")
+    )
   end
 end
 

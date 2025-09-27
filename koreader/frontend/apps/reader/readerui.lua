@@ -378,7 +378,9 @@ function ReaderUI:init()
 
       -- used to read additional settings after the document has been
       -- loaded (but not rendered yet)
-      UIManager:broadcastEvent(Event:new("PreRenderDocument", self.doc_settings))
+      UIManager:broadcastEvent(
+        Event:new("PreRenderDocument", self.doc_settings)
+      )
 
       start_time = time.now()
       self.document:render()

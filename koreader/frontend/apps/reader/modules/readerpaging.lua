@@ -272,7 +272,9 @@ function ReaderPaging:onToggleBookmarkFlipping()
     self:exitFlippingMode()
     self:_gotoPage(self.bm_flipping_orig_page)
   end
-  UIManager:broadcastEvent(Event:new("SetHinting", not self.bookmark_flipping_mode))
+  UIManager:broadcastEvent(
+    Event:new("SetHinting", not self.bookmark_flipping_mode)
+  )
   UIManager:broadcastEvent(Event:new("ReZoom"))
   UIManager:setDirty(self.view.dialog, "partial")
 end
@@ -285,7 +287,9 @@ function ReaderPaging:enterFlippingMode()
   self.view.document.configurable.text_wrap = 0
   self.view.page_scroll = self.flipping_scroll_mode
   Input.disable_double_tap = false
-  UIManager:broadcastEvent(Event:new("EnterFlippingMode", self.flipping_zoom_mode))
+  UIManager:broadcastEvent(
+    Event:new("EnterFlippingMode", self.flipping_zoom_mode)
+  )
 end
 
 function ReaderPaging:exitFlippingMode()
