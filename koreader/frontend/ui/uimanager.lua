@@ -207,9 +207,9 @@ function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
   logger.dbg("close widget:", widget.name or widget.id or tostring(widget))
   local dirty = false
   -- First notify the closed widget to save its settings...
-  widget:handleEvent(Event:new("FlushSettings"))
+  widget:broadcastEvent(Event:new("FlushSettings"))
   -- ...and notify it that it ought to be gone now.
-  widget:handleEvent(Event:new("Close"))
+  widget:broadcastEvent(Event:new("Close"))
   -- Make sure it's disabled by default and check if there are any widgets that want it disabled or enabled.
   Input.disable_double_tap = true
   local requested_disable_double_tap = nil

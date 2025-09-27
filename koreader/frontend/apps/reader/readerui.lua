@@ -111,6 +111,7 @@ function ReaderUI:init()
   Device:setIgnoreInput(true) -- Avoid ANRs on Android with unprocessed events.
 
   -- if we are not the top level dialog ourselves, it must be given in the table
+  assert(self.dialog == nil or self.dialog == self)
   if not self.dialog then
     self.dialog = self
   end
@@ -924,7 +925,12 @@ function ReaderUI:onExit(full_refresh)
     end
     self:closeDocument()
   end
-  UIManager:close(self.dialog, full_refresh ~= false and "full")
+  if self.dialog == self then
+    UIManager:close(self, full_refresh ~= false and "full")
+  else
+    UIManager:close(self)
+    UIManager:close(self.dialog, full_refresh ~= false and "full")
+  end
 end
 
 function ReaderUI:onClose()
