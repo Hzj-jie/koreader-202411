@@ -85,8 +85,6 @@ local ReaderUI = InputContainer:extend({
 
   -- password for document unlock
   password = nil,
-
-  postReaderReadyCallback = nil,
 })
 
 function ReaderUI:registerModule(name, ui_module, always_active)
@@ -101,10 +99,6 @@ function ReaderUI:registerModule(name, ui_module, always_active)
   end
 end
 
-function ReaderUI:registerPostReaderReadyCallback(callback)
-  table.insert(self.postReaderReadyCallback, callback)
-end
-
 function ReaderUI:init()
   UIManager:show(self, self.seamless and "ui" or "full")
 
@@ -116,7 +110,6 @@ function ReaderUI:init()
   Input:inhibitInput(true) -- Inhibit any past and upcoming input events.
   Device:setIgnoreInput(true) -- Avoid ANRs on Android with unprocessed events.
 
-  self.postReaderReadyCallback = {}
   -- if we are not the top level dialog ourselves, it must be given in the table
   if not self.dialog then
     self.dialog = self
@@ -369,8 +362,9 @@ function ReaderUI:init()
     if self.document.setupDefaultView then
       self.document:setupDefaultView()
     end
-    -- make sure we render document first before calling any callback
-    self.onReaderInited = function()
+    -- make sure we render document first before calling any callback, so using
+    -- onReadSettings which happens before onReaderInited.
+    self.onReadSettings = function()
       local start_time = time.now()
       if not self.document:loadDocument() then
         self:dealWithLoadDocumentFailure()
@@ -626,11 +620,7 @@ function ReaderUI:init()
   -- CREngine only reports correct page count after rendering is done
   -- Need the same event for PDF document
   UIManager:broadcastEvent(Event:new("ReaderReady", self.doc_settings))
-
-  for _, v in ipairs(self.postReaderReadyCallback) do
-    v()
-  end
-  self.postReaderReadyCallback = nil
+  UIManager:broadcastEvent(Event:new("PostReaderReady"))
   self.reloading = nil
 
   Device:setIgnoreInput(false) -- Allow processing of events (on Android).
