@@ -398,7 +398,6 @@ function ReaderRolling:onSaveSettings()
 end
 
 function ReaderRolling:onReaderReady()
-  print('========== debug ' .. debug.traceback())
   self:setupTouchZones()
   if self.hide_nonlinear_flows then
     self.ui.document:cacheFlows()
