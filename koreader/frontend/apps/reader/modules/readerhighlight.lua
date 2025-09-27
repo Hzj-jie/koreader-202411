@@ -227,9 +227,9 @@ function ReaderHighlight:init()
     }
   end)
 
-  self.ui:registerPostInitCallback(function()
+  self.onReaderInited = function()
     self.ui.menu:registerToMainMenu(self)
-  end)
+  end
 
   -- delegate gesture listener to readerui, NOP our own
   self.ges_events = nil
