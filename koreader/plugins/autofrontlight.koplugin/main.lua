@@ -18,7 +18,7 @@ function AutoFrontlightPlugin:new(o)
   o = o or {}
   o.name = "autofrontlight"
   o.default_enable = true
-  o.when = 3
+  o.when = "asap"
   o.last_brightness = -1
   o.executable = function()
     AutoFrontlightPlugin._action(o)
