@@ -397,7 +397,7 @@ function ReaderBookmark:toggleBookmark(pageno)
     }
     self.ui.annotation:addItem(item)
   end
-  UIManager:broadcastEvent(Event:new("AnnotationsModified", { item }))
+  self.ui:handleEvent(Event:new("AnnotationsModified", { item }))
 end
 
 function ReaderBookmark:setDogearVisibility(pn_or_xp)
@@ -462,11 +462,11 @@ function ReaderBookmark:removeItemByIndex(index)
   local item = self.ui.annotation.annotations[index]
   local item_type = self.getBookmarkType(item)
   if item_type == "highlight" then
-    UIManager:broadcastEvent(
+    self.ui:handleEvent(
       Event:new("AnnotationsModified", { item, nb_highlights_added = -1 })
     )
   elseif item_type == "note" then
-    UIManager:broadcastEvent(
+    self.ui:handleEvent(
       Event:new("AnnotationsModified", { item, nb_notes_added = -1 })
     )
   end
@@ -477,7 +477,7 @@ end
 function ReaderBookmark:deleteItemNote(item)
   local index = self:getBookmarkItemIndex(item)
   self.ui.annotation.annotations[index].note = nil
-  UIManager:broadcastEvent(
+  self.ui:handleEvent(
     Event:new(
       "AnnotationsModified",
       { item, nb_highlights_added = 1, nb_notes_added = -1 }
@@ -500,7 +500,7 @@ end
 function ReaderBookmark:gotoBookmark(pn_or_xp, marker_xp)
   if pn_or_xp then
     local event = self.ui.paging and "GotoPage" or "GotoXPointer"
-    UIManager:broadcastEvent(Event:new(event, pn_or_xp, marker_xp))
+    self.ui:handleEvent(Event:new(event, pn_or_xp, marker_xp))
   end
 end
 
@@ -1414,14 +1414,14 @@ function ReaderBookmark:setBookmarkNote(
             local type_after = self.getBookmarkType(annotation)
             if type_before ~= type_after then
               if type_before == "highlight" then
-                UIManager:broadcastEvent(
+                self.ui:handleEvent(
                   Event:new(
                     "AnnotationsModified",
                     { annotation, nb_highlights_added = -1, nb_notes_added = 1 }
                   )
                 )
               else
-                UIManager:broadcastEvent(
+                self.ui:handleEvent(
                   Event:new(
                     "AnnotationsModified",
                     { annotation, nb_highlights_added = 1, nb_notes_added = -1 }

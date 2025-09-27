@@ -1152,7 +1152,7 @@ function ConfigDialog:onShowConfigPanel(index)
 end
 
 function ConfigDialog:onConfigChoice(option_name, option_value)
-  UIManager:broadcastEvent(Event:new("ConfigChange", option_name, option_value))
+  self.ui:handleEvent(Event:new("ConfigChange", option_name, option_value))
   return true
 end
 
@@ -1161,7 +1161,7 @@ function ConfigDialog:onConfigEvent(
   option_arg,
   when_applied_callback
 )
-  UIManager:broadcastEvent(
+  self.ui:handleEvent(
     Event:new(option_event, option_arg, when_applied_callback)
   )
   return true

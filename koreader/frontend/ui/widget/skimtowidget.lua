@@ -269,11 +269,11 @@ function SkimToWidget:init()
     height = button_height,
     show_parent = self,
     callback = function()
-      UIManager:broadcastEvent(Event:new("ToggleBookmark"))
+      self.ui:handleEvent(Event:new("ToggleBookmark"))
       self:update()
     end,
     hold_callback = function()
-      UIManager:broadcastEvent(Event:new("ShowBookmark"))
+      self.ui:handleEvent(Event:new("ShowBookmark"))
       UIManager:close(self)
     end,
   })
@@ -480,13 +480,13 @@ end
 function SkimToWidget:goToPage(page)
   self.curr_page = page
   self:addOriginToLocationStack()
-  UIManager:broadcastEvent(Event:new("GotoPage", self.curr_page))
+  self.ui:handleEvent(Event:new("GotoPage", self.curr_page))
   self:update()
 end
 
 function SkimToWidget:goToByEvent(event_name)
   self:addOriginToLocationStack()
-  UIManager:broadcastEvent(Event:new(event_name, false))
+  self.ui:handleEvent(Event:new(event_name, false))
   -- add_current_location_to_stack=false, as we handled it here
   self.curr_page = self.ui:getCurrentPage()
   self:update()

@@ -2177,7 +2177,7 @@ function VocabularyBuilderWidget:getVocabItems()
     table.insert(vocab_items, {
       callback = function(item)
         self.current_lookup_word = item.word
-        UIManager:broadcastEvent(
+        self.ui:handleEvent(
           Event:new("LookupWord", item.word, true, nil, nil, nil)
         )
       end,

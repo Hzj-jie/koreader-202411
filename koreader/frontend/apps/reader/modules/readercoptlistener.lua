@@ -76,7 +76,7 @@ function ReaderCoptListener:onReadSettings(config)
   self:onTimeFormatChanged()
 
   -- Enable or disable crengine header status line (note that for crengine, 0=header enabled, 1=header disabled)
-  UIManager:broadcastEvent(
+  self.ui:handleEvent(
     Event:new("SetStatusLine", self.document.configurable.status_line)
   )
 
@@ -261,7 +261,7 @@ function ReaderCoptListener:onConfigChange(option_name, option_value)
     return
   end
   self.document.configurable[option_name] = option_value
-  UIManager:broadcastEvent(Event:new("StartActivityIndicator"))
+  self.ui:handleEvent(Event:new("StartActivityIndicator"))
   return true
 end
 
@@ -642,7 +642,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
                 CreUtil.font_size(spin.value)
               )
               -- This will probably needs a re-rendering, so make sure it happens now.
-              UIManager:broadcastEvent(Event:new("UpdatePos"))
+              self.ui:handleEvent(Event:new("UpdatePos"))
             end,
           })
           UIManager:show(size_spinner)
