@@ -1028,7 +1028,7 @@ function ReaderDictionary:stardictLookup(
     or _("Dictionary lookup")
 
   -- Event for plugin to catch lookup with book title
-  UIManager:broadcastEvent(Event:new("WordLookedUp", word, book_title))
+  self.ui:handleEvent(Event:new("WordLookedUp", word, book_title))
   if not self.disable_lookup_history then
     lookup_history:addTableItem({
       book_title = book_title,

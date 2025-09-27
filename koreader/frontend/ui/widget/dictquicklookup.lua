@@ -154,7 +154,7 @@ function DictQuickLookup:init()
       --   },
       --   -- callback function when HoldWord is handled as args
       --   args = function(word)
-      --     UIManager:broadcastEvent(
+      --     self.ui:handleEvent(
       --       -- don't pass self.highlight to subsequent lookup, we want
       --       -- the first to be the only one to unhighlight selection
       --       -- when closed
@@ -192,7 +192,7 @@ function DictQuickLookup:init()
           if lookup_wikipedia then
             self:lookupWikipedia(false, text)
           else
-            UIManager:broadcastEvent(Event:new("LookupWord", text))
+            self.ui:handleEvent(Event:new("LookupWord", text))
           end
         end,
       },
@@ -558,7 +558,7 @@ function DictQuickLookup:init()
               self:lookupWikipedia(false, nil, nil, self.wiki_languages[2])
               self:onExit(true)
             else
-              UIManager:broadcastEvent(Event:new("HighlightSearch"))
+              self.ui:handleEvent(Event:new("HighlightSearch"))
               self:onExit(true) -- don't unhighlight (or we might erase a search hit)
             end
           end,
@@ -592,7 +592,7 @@ function DictQuickLookup:init()
     end
   end
   if self.ui then
-    UIManager:broadcastEvent(Event:new("DictButtonsReady", self, buttons))
+    self.ui:handleEvent(Event:new("DictButtonsReady", self, buttons))
   end
   -- Bottom buttons get a bit less padding so their line separators
   -- reach out from the content to the borders a bit more
@@ -1194,7 +1194,7 @@ function DictQuickLookup:onTap(arg, ges_ev)
     return true
   end
   if ges_ev.pos:intersectWith(self.dict_title.dimen) and not self.is_wiki then
-    UIManager:broadcastEvent(Event:new("TogglePreferredDict", self.dictionary))
+    self.ui:handleEvent(Event:new("TogglePreferredDict", self.dictionary))
     -- Re-display current result, with title bar updated
     self:changeDictionary(self.dict_index)
     return true
@@ -1224,9 +1224,7 @@ function DictQuickLookup:onExit(no_clear)
   if self.update_wiki_languages_on_close then
     -- except if we got no result for current language
     if not self.results.no_result then
-      UIManager:broadcastEvent(
-        Event:new("UpdateWikiLanguages", self.wiki_languages)
-      )
+      self.ui:handleEvent(Event:new("UpdateWikiLanguages", self.wiki_languages))
     end
   end
 
@@ -1269,7 +1267,7 @@ function DictQuickLookup:onSwipe(arg, ges)
         self.refresh_callback()
       end
       -- update footer (time & battery)
-      UIManager:broadcastEvent(Event:new("UpdateFooter", true))
+      self.ui:handleEvent(Event:new("UpdateFooter", true))
       -- trigger a full-screen HQ flashing refresh
       UIManager:setDirty(nil, "full")
       -- a long diagonal swipe may also be used for taking a screenshot,
@@ -1389,7 +1387,7 @@ function DictQuickLookup:onLookupInputWord(hint)
             if text ~= "" then
               UIManager:close(self.input_dialog)
               self.is_wiki = false
-              UIManager:broadcastEvent(Event:new("LookupWord", text, true))
+              self.ui:handleEvent(Event:new("LookupWord", text, true))
             end
           end,
         },
@@ -1425,7 +1423,7 @@ function DictQuickLookup:lookupWikipedia(get_fullpage, word, is_sane, lang)
     end
   end
   -- Keep providing self.word_boxes so new windows keep being positioned to not hide it
-  UIManager:broadcastEvent(
+  self.ui:handleEvent(
     Event:new(
       "LookupWikipedia",
       word,
@@ -1462,7 +1460,7 @@ function DictQuickLookup:onShowResultsMenu()
         end,
         hold_callback = function()
           -- Allow doing another lookup with this result word
-          UIManager:broadcastEvent(Event:new("LookupWord", result.word))
+          self.ui:handleEvent(Event:new("LookupWord", result.word))
         end,
       },
       {
@@ -1551,7 +1549,7 @@ function DictQuickLookup:showResultsAltMenu()
       is_single_result = true
       hold_callback = function()
         -- Allow doing another lookup with this result word
-        UIManager:broadcastEvent(Event:new("LookupWord", first_result.word))
+        self.ui:handleEvent(Event:new("LookupWord", first_result.word))
       end
     else
       text = T(_("%1 results"), #results)
@@ -1590,7 +1588,7 @@ function DictQuickLookup:showResultsAltMenu()
             end,
             hold_callback = function()
               -- Allow doing another lookup with this result word
-              UIManager:broadcastEvent(
+              self.ui:handleEvent(
                 Event:new("LookupWord", self.results[results[res]].word)
               )
             end,

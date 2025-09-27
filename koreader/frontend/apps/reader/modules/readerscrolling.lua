@@ -244,7 +244,7 @@ function ReaderScrolling:applyScrollSettings()
     self._inertial_scroll_enabled = false
   end
   self:setupTouchZones()
-  UIManager:broadcastEvent(
+  self.ui:handleEvent(
     Event:new(
       "ScrollSettingsUpdated",
       self.scroll_method,

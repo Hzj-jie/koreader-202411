@@ -215,7 +215,7 @@ This custom table of contents is currently limited to a single level and can't h
               ),
               ok_callback = function()
                 self.toc = {}
-                UIManager:broadcastEvent(Event:new("UpdateToc"))
+                self.ui:handleEvent(Event:new("UpdateToc"))
                 -- The footer may be visible, so have it update its chapter related items
                 self.view.footer:onUpdateFooter(self.view.footer_visible)
                 if touchmenu_instance then
@@ -282,8 +282,8 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
                   table.remove(self.flow_points, self.inactive_flow_points[i])
                 end
                 self:updateDocFlows()
-                UIManager:broadcastEvent(Event:new("UpdateToc"))
-                UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
+                self.ui:handleEvent(Event:new("UpdateToc"))
+                self.ui:handleEvent(Event:new("InitScrollPageStates"))
                 -- The footer may be visible, so have it update its dependent items
                 self.view.footer:onUpdateFooter(self.view.footer_visible)
                 self.ui.annotation:setNeedsUpdateFlag()
@@ -308,8 +308,8 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
               ok_callback = function()
                 self.flow_points = {}
                 self:updateDocFlows()
-                UIManager:broadcastEvent(Event:new("UpdateToc"))
-                UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
+                self.ui:handleEvent(Event:new("UpdateToc"))
+                self.ui:handleEvent(Event:new("InitScrollPageStates"))
                 -- The footer may be visible, so have it update its dependent items
                 self.view.footer:onUpdateFooter(self.view.footer_visible)
                 self.ui.annotation:setNeedsUpdateFlag()
@@ -363,11 +363,11 @@ function ReaderHandMade:onReaderReady()
   self:setupToc(true)
   -- Now send the events
   if self.toc_enabled or self.flows_enabled then
-    UIManager:broadcastEvent(Event:new("UpdateToc"))
+    self.ui:handleEvent(Event:new("UpdateToc"))
   end
   if self.flows_enabled then
     -- Needed to skip hidden flows if PDF in scroll mode
-    UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
+    self.ui:handleEvent(Event:new("InitScrollPageStates"))
   end
 end
 
@@ -398,7 +398,7 @@ function ReaderHandMade:setupToc(no_event)
   end
   self:updateHighlightDialog()
   if not no_event then
-    UIManager:broadcastEvent(Event:new("UpdateToc"))
+    self.ui:handleEvent(Event:new("UpdateToc"))
   end
 end
 
@@ -543,7 +543,7 @@ function ReaderHandMade:addOrEditPageTocItem(
             if not item_found then
               table.insert(self.toc, idx, item)
             end
-            UIManager:broadcastEvent(Event:new("UpdateToc"))
+            self.ui:handleEvent(Event:new("UpdateToc"))
             if when_updated_callback then
               when_updated_callback()
             end
@@ -557,7 +557,7 @@ function ReaderHandMade:addOrEditPageTocItem(
               callback = function()
                 UIManager:close(dialog)
                 table.remove(self.toc, idx)
-                UIManager:broadcastEvent(Event:new("UpdateToc"))
+                self.ui:handleEvent(Event:new("UpdateToc"))
                 if when_updated_callback then
                   when_updated_callback()
                 end
@@ -754,9 +754,9 @@ function ReaderHandMade:setupFlows(no_event)
     end
   end
   if not no_event then
-    UIManager:broadcastEvent(Event:new("UpdateToc"))
+    self.ui:handleEvent(Event:new("UpdateToc"))
     -- Needed to skip hidden flows if PDF in scroll mode
-    UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
+    self.ui:handleEvent(Event:new("InitScrollPageStates"))
   end
 end
 

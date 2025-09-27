@@ -33,7 +33,7 @@ function AutoTurn:_schedule()
     local top_wg = UIManager:getTopmostVisibleWidget() or {}
     if top_wg.name == "ReaderUI" then
       logger.dbg("AutoTurn: go to next page")
-      UIManager:broadcastEvent(Event:new("GotoViewRel", self.autoturn_distance))
+      self.ui:handleEvent(Event:new("GotoViewRel", self.autoturn_distance))
       -- Treat it as a user action.
       UIManager:updateLastUserActionTime()
     end

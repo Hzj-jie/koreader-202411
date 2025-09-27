@@ -111,7 +111,7 @@ function ReaderTypeset:onToggleEmbeddedStyleSheet(toggle)
     text = _("Disabled embedded styles.")
   end
   self.ui.document:setEmbeddedStyleSheet(self.configurable.embedded_css)
-  UIManager:broadcastEvent(Event:new("UpdatePos"))
+  self.ui:handleEvent(Event:new("UpdatePos"))
   Notification:notify(text)
   return true
 end
@@ -126,7 +126,7 @@ function ReaderTypeset:onToggleEmbeddedFonts(toggle)
     text = _("Disabled embedded fonts.")
   end
   self.ui.document:setEmbeddedFonts(self.configurable.embedded_fonts)
-  UIManager:broadcastEvent(Event:new("UpdatePos"))
+  self.ui:handleEvent(Event:new("UpdatePos"))
   Notification:notify(text)
   return true
 end
@@ -134,7 +134,7 @@ end
 function ReaderTypeset:onToggleImageScaling(toggle)
   self.configurable.smooth_scaling = toggle and 1 or 0
   self.ui.document:setImageScaling(toggle)
-  UIManager:broadcastEvent(Event:new("UpdatePos"))
+  self.ui:handleEvent(Event:new("UpdatePos"))
   local text = T(
     _("Image scaling set to: %1"),
     optionsutil:getOptionText("ToggleImageScaling", toggle)
@@ -146,7 +146,7 @@ end
 function ReaderTypeset:onToggleNightmodeImages(toggle)
   self.configurable.nightmode_images = toggle and 1 or 0
   self.ui.document:setNightmodeImages(toggle)
-  UIManager:broadcastEvent(Event:new("UpdatePos"))
+  self.ui:handleEvent(Event:new("UpdatePos"))
   return true
 end
 
@@ -163,7 +163,7 @@ end
 function ReaderTypeset:onSetRenderDPI(dpi)
   self.configurable.render_dpi = dpi
   self.ui.document:setRenderDPI(dpi)
-  UIManager:broadcastEvent(Event:new("UpdatePos"))
+  self.ui:handleEvent(Event:new("UpdatePos"))
   local text =
     T(_("Zoom set to: %1"), optionsutil:getOptionText("SetRenderDPI", dpi))
   Notification:notify(text)
@@ -379,7 +379,7 @@ end
 function ReaderTypeset:onApplyStyleSheet()
   local tweaks_css = self.ui.styletweak:getCssText()
   self.ui.document:setStyleSheet(self.css, tweaks_css)
-  UIManager:broadcastEvent(Event:new("UpdatePos"))
+  self.ui:handleEvent(Event:new("UpdatePos"))
   return true
 end
 
@@ -388,7 +388,7 @@ function ReaderTypeset:setStyleSheet(new_css)
     self.css = new_css
     local tweaks_css = self.ui.styletweak:getCssText()
     self.ui.document:setStyleSheet(new_css, tweaks_css)
-    UIManager:broadcastEvent(Event:new("UpdatePos"))
+    self.ui:handleEvent(Event:new("UpdatePos"))
   end
 end
 
@@ -399,7 +399,7 @@ function ReaderTypeset:setEmbededStyleSheetOnly()
     self.ui.document:setStyleSheet("")
     self.ui.document:setEmbeddedStyleSheet(1)
     self.css = nil
-    UIManager:broadcastEvent(Event:new("UpdatePos"))
+    self.ui:handleEvent(Event:new("UpdatePos"))
   end
 end
 
@@ -463,7 +463,7 @@ function ReaderTypeset:setBlockRenderingMode(mode)
     flags = bit.band(flags, bit.bnot(0x02000000))
   end
   self.ui.document:setBlockRenderingFlags(flags)
-  UIManager:broadcastEvent(Event:new("UpdatePos"))
+  self.ui:handleEvent(Event:new("UpdatePos"))
 end
 
 function ReaderTypeset:ensureSanerBlockRenderingFlags(mode)
@@ -516,7 +516,7 @@ function ReaderTypeset:onSetPageHorizMargins(h_margins, when_applied_callback)
     h_margins[2],
     self.unscaled_margins[4],
   }
-  UIManager:broadcastEvent(
+  self.ui:handleEvent(
     Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback)
   )
 end
@@ -533,7 +533,7 @@ function ReaderTypeset:onSetPageTopMargin(t_margin, when_applied_callback)
     -- Let ConfigDialog know so it can update it on screen and have it saved on quit
     self.configurable.b_page_margin = t_margin
   end
-  UIManager:broadcastEvent(
+  self.ui:handleEvent(
     Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback)
   )
 end
@@ -550,7 +550,7 @@ function ReaderTypeset:onSetPageBottomMargin(b_margin, when_applied_callback)
     -- Let ConfigDialog know so it can update it on screen and have it saved on quit
     self.configurable.t_page_margin = b_margin
   end
-  UIManager:broadcastEvent(
+  self.ui:handleEvent(
     Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback)
   )
 end
@@ -567,7 +567,7 @@ function ReaderTypeset:onSetPageTopAndBottomMargin(
     self.sync_t_b_page_margins = false
     self.configurable.sync_t_b_page_margins = 0
   end
-  UIManager:broadcastEvent(
+  self.ui:handleEvent(
     Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback)
   )
 end
@@ -593,7 +593,7 @@ function ReaderTypeset:onSyncPageTopBottomMargins(toggle, when_applied_callback)
         self.unscaled_margins[3],
         mean_margin,
       }
-      UIManager:broadcastEvent(
+      self.ui:handleEvent(
         Event:new(
           "SetPageMargins",
           self.unscaled_margins,
@@ -619,7 +619,7 @@ function ReaderTypeset:onSetPageMargins(margins, when_applied_callback)
     bottom = Screen:scaleBySize(margins[4]) + self.view.footer:getHeight()
   end
   self.ui.document:setPageMargins(left, top, right, bottom)
-  UIManager:broadcastEvent(Event:new("UpdatePos"))
+  self.ui:handleEvent(Event:new("UpdatePos"))
   if when_applied_callback then
     -- Provided when hide_on_apply, and ConfigDialog temporarily hidden:
     -- show an InfoMessage with the unscaled & scaled values,
