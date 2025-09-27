@@ -1224,7 +1224,9 @@ function DictQuickLookup:onExit(no_clear)
   if self.update_wiki_languages_on_close then
     -- except if we got no result for current language
     if not self.results.no_result then
-      UIManager:broadcastEvent(Event:new("UpdateWikiLanguages", self.wiki_languages))
+      UIManager:broadcastEvent(
+        Event:new("UpdateWikiLanguages", self.wiki_languages)
+      )
     end
   end
 

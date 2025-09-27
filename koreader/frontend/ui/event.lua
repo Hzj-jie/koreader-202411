@@ -38,11 +38,19 @@ function Event:new(name, ...)
 end
 
 function Event:isUserInput()
-  return self.handler == "onGesture" or self.handler == "onKeyPress" or self.handler == "onKeyRepeat" or self.handler == "onKeyRelease" or self.handler == "onGenericInput" or self.handler == "onSetRotationMode" or self.handler == "onInputError"
+  return self.handler == "onGesture"
+    or self.handler == "onKeyPress"
+    or self.handler == "onKeyRepeat"
+    or self.handler == "onKeyRelease"
+    or self.handler == "onGenericInput"
+    or self.handler == "onSetRotationMode"
+    or self.handler == "onInputError"
 end
 
 function Event:asUserInput()
-  self.isUserInput = function() return true end
+  self.isUserInput = function()
+    return true
+  end
   return self
 end
 

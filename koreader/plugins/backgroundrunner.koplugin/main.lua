@@ -160,7 +160,11 @@ end
 function BackgroundRunner:_executeJob(job)
   assert(job ~= nil)
   if job.executable == nil then
-    logger.dbg("BackgroundRunner: job ", _debugJobStr(job), " has no executable.")
+    logger.dbg(
+      "BackgroundRunner: job ",
+      _debugJobStr(job),
+      " has no executable."
+    )
     return false
   end
 
@@ -190,7 +194,11 @@ function BackgroundRunner:_executeJob(job)
     self:_finishJob(job)
     return true
   end
-  logger.dbg("BackgroundRunner: job ", _debugJobStr(job), " has no valid executable.")
+  logger.dbg(
+    "BackgroundRunner: job ",
+    _debugJobStr(job),
+    " has no valid executable."
+  )
   return false
 end
 

@@ -235,7 +235,9 @@ function InputContainer:onKeyPress(key)
       for _, oneseq in ipairs(seq) do
         -- NOTE: key is a device/key object, this isn't string.match!
         if key:match(oneseq) then
-          return self:handleEvent(Event:new(seq.event or name, seq.args, key):asUserInput())
+          return self:handleEvent(
+            Event:new(seq.event or name, seq.args, key):asUserInput()
+          )
         end
       end
     end
@@ -248,7 +250,9 @@ function InputContainer:onKeyRepeat(key)
     if not seq.is_inactive then
       for _, oneseq in ipairs(seq) do
         if key:match(oneseq) then
-          return self:handleEvent(Event:new(seq.event or name, seq.args, key):asUserInput())
+          return self:handleEvent(
+            Event:new(seq.event or name, seq.args, key):asUserInput()
+          )
         end
       end
     end
@@ -264,7 +268,11 @@ function InputContainer:onGesture(ev)
   for name, gsseq in pairs(self.ges_events) do
     for _, gs_range in ipairs(gsseq) do
       if gs_range:match(ev) then
-        if self:handleEvent(Event:new(gsseq.event or name, gsseq.args, ev):asUserInput()) then
+        if
+          self:handleEvent(
+            Event:new(gsseq.event or name, gsseq.args, ev):asUserInput()
+          )
+        then
           return true
         end
       end
