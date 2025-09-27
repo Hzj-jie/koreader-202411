@@ -630,7 +630,18 @@ function ReaderUI:init()
   --   print("  "..tzone.def.id)
   -- end
 
-  assert(ReaderUI.instance == nil)
+  if ReaderUI.instance == nil then
+    logger.dbg("Spinning up new ReaderUI instance", tostring(self))
+  else
+    -- Should never happen, given what we did in (do)showReader...
+    logger.err(
+      "ReaderUI instance mismatch! Opened",
+      tostring(self),
+      "while we still have an existing instance:",
+      tostring(ReaderUI.instance),
+      debug.traceback()
+    )
+  end
   ReaderUI.instance = self
 end
 
@@ -787,7 +798,13 @@ function ReaderUI:doShowReader(file, provider, seamless)
   end
   logger.info("opening file", file)
   -- Only keep a single instance running
-  assert(ReaderUI.instance == nil)
+  if ReaderUI.instance then
+    logger.warn(
+      "ReaderUI instance mismatch! Tried to spin up a new instance, while we still have an existing one:",
+      tostring(ReaderUI.instance)
+    )
+    ReaderUI.instance:onExit()
+  end
   local document = DocumentRegistry:openDocument(file, provider)
   if not document then
     UIManager:show(InfoMessage:new({
@@ -925,7 +942,16 @@ function ReaderUI:onExit(full_refresh)
 end
 
 function ReaderUI:onClose()
-  assert(ReaderUI.instance == self)
+  if ReaderUI.instance == self then
+    logger.dbg("Tearing down ReaderUI", tostring(self))
+  else
+    logger.warn(
+      "ReaderUI instance mismatch! Closed",
+      tostring(self),
+      "while the active one is supposed to be",
+      tostring(ReaderUI.instance)
+    )
+  end
   ReaderUI.instance = nil
   self._coroutine = nil
 end
