@@ -88,16 +88,13 @@ local ReaderRolling = InputContainer:extend({
   mark_func = nil,
   unmark_func = nil,
   _stepRerenderingAutomation = nil,
-
-  onReaderInited = {},
-  onPostReaderReady = {},
 })
 
 function ReaderRolling:init()
   self:registerKeyEvents()
   self.pan_interval = time.s(1 / self.pan_rate)
 
-  table.insert(self.onReaderInited, function()
+  table.insert(self.ui.postInitCallback, function()
     self.rendering_hash = self.ui.document:getDocumentRenderingHash(true)
     self.ui.document:_readMetadata()
     if
@@ -113,7 +110,7 @@ function ReaderRolling:init()
         self.ui.document:getDocumentRenderingHash(false)
     end
   end)
-  table.insert(self.onPostReaderReady, function()
+  table.insert(self.ui.postReaderReadyCallback, function()
     self:updatePos()
     -- Disable crengine internal history, with required redraw
     self.ui.document:enableInternalHistory(false)
@@ -226,7 +223,7 @@ function ReaderRolling:onReadSettings(config)
     -- And check if we can migrate to a newest DOM version after
     -- the book is loaded (unless the user told us not to).
     if config:nilOrFalse("cre_keep_old_dom_version") then
-      table.insert(self.onPostReaderReady, function()
+      self.ui:registerPostReaderReadyCallback(function()
         self:checkXPointersAndProposeDOMVersionUpgrade()
       end)
     end
@@ -1160,9 +1157,10 @@ function ReaderRolling:onUpdatePos(force)
   if self.batched_update_count > 0 then
     return
   end
-  if not self.ui:ready() then -- ReaderUI:init() not yet done
+  if self.ui.postReaderReadyCallback ~= nil then -- ReaderUI:init() not yet done
     -- Don't schedule any updatePos as long as ReaderUI:init() is
-    -- not finished to avoid multiple refreshes.
+    -- not finished (one will be called in the ui.postReaderReadyCallback
+    -- we have set above) to avoid multiple refreshes.
     return true
   end
 
@@ -1253,7 +1251,7 @@ function ReaderRolling:onChangeViewMode()
     -- Ensure a whole screen refresh is always enqueued
     UIManager:setDirty(self.view.dialog, "partial")
   else
-    table.insert(self.onReaderInited, function()
+    table.insert(self.ui.postInitCallback, function()
       self:_gotoXPointer(self.xpointer)
     end)
   end
@@ -1272,7 +1270,7 @@ function ReaderRolling:onRedrawCurrentView()
 end
 
 function ReaderRolling:onSetDimensions(dimen)
-  if not self.ui:ready() then
+  if self.ui.postReaderReadyCallback ~= nil then
     -- ReaderUI:init() not yet done: just set document dimensions
     self.ui.document:setViewDimen(Screen:getSize())
     -- (what's done in the following else is done elsewhere by

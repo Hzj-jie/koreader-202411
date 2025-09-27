@@ -122,14 +122,14 @@ function ReaderLink:init()
       },
     })
   end
-  self.onReaderInited = function()
+  self.ui:registerPostInitCallback(function()
     self.ui.menu:registerToMainMenu(self)
-  end
+  end)
   if G_reader_settings:isTrue("opening_page_location_stack") then
     -- Add location at book opening to stack
-    self.onPostReaderReady = function()
+    self.ui:registerPostReaderReadyCallback(function()
       self:addCurrentLocationToStack()
-    end
+    end)
   end
   -- For relative local file links
   local directory, filename = util.splitFilePathName(self.document.file) -- luacheck: no unused

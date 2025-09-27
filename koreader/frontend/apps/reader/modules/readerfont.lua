@@ -210,14 +210,14 @@ function ReaderFont:onReadSettings(config)
   self:updateFontFamilyFonts()
 
   self:setupFaceMenuTable()
-end
 
--- Dirty hack: we have to add following call in order to set
--- m_is_rendered(member of LVDocView) to true. Otherwise position inside
--- document will be reset to 0 on first view render.
--- So far, I don't know why this call will alter the value of m_is_rendered.
-function ReaderFont:onReaderInited()
-  UIManager:broadcastEvent(Event:new("UpdatePos"))
+  -- Dirty hack: we have to add following call in order to set
+  -- m_is_rendered(member of LVDocView) to true. Otherwise position inside
+  -- document will be reset to 0 on first view render.
+  -- So far, I don't know why this call will alter the value of m_is_rendered.
+  table.insert(self.ui.postInitCallback, function()
+    UIManager:broadcastEvent(Event:new("UpdatePos"))
+  end)
 end
 
 --[[
