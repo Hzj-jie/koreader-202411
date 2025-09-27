@@ -86,6 +86,7 @@ local ReaderUI = InputContainer:extend({
   -- password for document unlock
   password = nil,
 
+  postInitCallback = nil,
   postReaderReadyCallback = nil,
 })
 
@@ -101,6 +102,10 @@ function ReaderUI:registerModule(name, ui_module, always_active)
   end
 end
 
+function ReaderUI:registerPostInitCallback(callback)
+  table.insert(self.postInitCallback, callback)
+end
+
 function ReaderUI:registerPostReaderReadyCallback(callback)
   table.insert(self.postReaderReadyCallback, callback)
 end
@@ -114,6 +119,7 @@ function ReaderUI:init()
   Input:inhibitInput(true) -- Inhibit any past and upcoming input events.
   Device:setIgnoreInput(true) -- Avoid ANRs on Android with unprocessed events.
 
+  self.postInitCallback = {}
   self.postReaderReadyCallback = {}
   -- if we are not the top level dialog ourselves, it must be given in the table
   if not self.dialog then
@@ -368,7 +374,7 @@ function ReaderUI:init()
       self.document:setupDefaultView()
     end
     -- make sure we render document first before calling any callback
-    self.onReaderInited = function()
+    self:registerPostInitCallback(function()
       local start_time = time.now()
       if not self.document:loadDocument() then
         self:dealWithLoadDocumentFailure()
@@ -395,7 +401,7 @@ function ReaderUI:init()
 
       -- Uncomment to output the built DOM (for debugging)
       -- logger.dbg(self.document:getHTMLFromXPointer(".0", 0x6830))
-    end
+    end)
     -- styletweak controller (must be before typeset controller)
     self:registerModule(
       "styletweak",
@@ -593,7 +599,11 @@ function ReaderUI:init()
   )
   -- we only read settings after all the widgets are initialized
   self:handleEvent(Event:new("ReadSettings", self.doc_settings))
-  self:handleEvent(Event:new("ReaderInited"))
+
+  for _, v in ipairs(self.postInitCallback) do
+    v()
+  end
+  self.postInitCallback = nil
 
   -- Now that document is loaded, store book metadata in settings.
   local props = self.document:getProps()

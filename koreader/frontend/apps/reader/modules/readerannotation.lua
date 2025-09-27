@@ -135,9 +135,9 @@ function ReaderAnnotation:onReadSettings(config)
     end
   else -- first run
     if self.ui.rolling then
-      self.onReaderInited = function()
+      self.ui:registerPostInitCallback(function()
         self:migrateToAnnotations(config)
-      end
+      end)
     else
       self:migrateToAnnotations(config)
     end
