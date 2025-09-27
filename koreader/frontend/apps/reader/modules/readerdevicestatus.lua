@@ -104,7 +104,7 @@ function ReaderDeviceStatus:init()
                 icon = "notice-warning",
               }))
               UIManager:nextTick(function()
-                self.ui:handleEvent(Event:new("Restart"))
+                UIManager:broadcastEvent(Event:new("Restart"))
               end)
             else
               self.memory_confirm_box = ConfirmBox:new({
@@ -120,7 +120,7 @@ function ReaderDeviceStatus:init()
                     icon = "notice-warning",
                   }))
                   UIManager:nextTick(function()
-                    self.ui:handleEvent(Event:new("Restart"))
+                    UIManager:broadcastEvent(Event:new("Restart"))
                   end)
                 end,
               })
@@ -132,7 +132,7 @@ function ReaderDeviceStatus:init()
               ok_text = _("Exit"),
               dismissable = false,
               ok_callback = function()
-                self.ui:handleEvent(Event:new("Exit"))
+                UIManager:broadcastEvent(Event:new("Exit"))
               end,
             })
             UIManager:show(self.memory_confirm_box)

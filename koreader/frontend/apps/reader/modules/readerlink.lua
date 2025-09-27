@@ -195,7 +195,7 @@ function ReaderLink:init()
         UIManager:nextTick(function()
           UIManager:close(this.external_link_dialog)
           local wiki_lang, wiki_page = is_wiki_page(link_url)
-          self.ui:handleEvent(
+          UIManager:broadcastEvent(
             Event:new(
               "LookupWikipedia",
               wiki_page,
@@ -925,7 +925,7 @@ function ReaderLink:onGotoLink(
       if not neglect_current_location then
         self:addCurrentLocationToStack()
       end
-      self.ui:handleEvent(Event:new("GotoPage", link.page + 1, link.pos))
+      UIManager:broadcastEvent(Event:new("GotoPage", link.page + 1, link.pos))
       return true
     end
     link_url = link.uri -- external link
@@ -971,7 +971,7 @@ function ReaderLink:onGotoLink(
           self:addCurrentLocationToStack()
         end
       end
-      self.ui:handleEvent(
+      UIManager:broadcastEvent(
         Event:new("GotoXPointer", link.xpointer, link.marker_xpointer)
       )
       return true
@@ -1067,7 +1067,7 @@ function ReaderLink:onGoBackLink(show_notification_if_empty)
   if saved_location then
     table.insert(self.forward_location_stack, saved_location)
     logger.dbg("GoBack: restoring:", saved_location)
-    self.ui:handleEvent(Event:new("RestoreBookLocation", saved_location))
+    UIManager:broadcastEvent(Event:new("RestoreBookLocation", saved_location))
     return true
   elseif show_notification_if_empty then
     UIManager:show(Notification:new({
@@ -1091,7 +1091,7 @@ function ReaderLink:onGoForwardLink()
   if saved_location then
     table.insert(self.location_stack, saved_location)
     logger.dbg("GoForward: restoring:", saved_location)
-    self.ui:handleEvent(Event:new("RestoreBookLocation", saved_location))
+    UIManager:broadcastEvent(Event:new("RestoreBookLocation", saved_location))
     return true
   end
 end

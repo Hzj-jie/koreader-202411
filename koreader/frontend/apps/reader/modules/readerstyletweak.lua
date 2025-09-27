@@ -444,7 +444,7 @@ function ReaderStyleTweak:updateCssText(apply)
     logger.dbg("made no tweak css (Style tweaks disabled)")
   end
   if apply then
-    self.ui:handleEvent(Event:new("ApplyStyleSheet"))
+    UIManager:broadcastEvent(Event:new("ApplyStyleSheet"))
   end
 end
 

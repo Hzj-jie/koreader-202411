@@ -133,7 +133,7 @@ end
 
 function ReaderToc:onUpdateToc()
   self:resetToc()
-  self.ui:handleEvent(Event:new("TocReset"))
+  UIManager:broadcastEvent(Event:new("TocReset"))
   return true
 end
 
@@ -990,11 +990,11 @@ function ReaderToc:onShowToc()
       toc_menu:close_callback()
       self.ui.link:addCurrentLocationToStack()
       if item.xpointer then
-        self.ui:handleEvent(
+        UIManager:broadcastEvent(
           Event:new("GotoXPointer", item.xpointer, item.xpointer)
         )
       else
-        self.ui:handleEvent(Event:new("GotoPage", item.page))
+        UIManager:broadcastEvent(Event:new("GotoPage", item.page))
       end
     end
   end
@@ -1206,7 +1206,7 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
               self:onShowToc()
               self.view.footer:setTocMarkers(true)
               self.view.footer:onUpdateFooter()
-              self.ui:handleEvent(Event:new("UpdateTopStatusBarMarkers"))
+              UIManager:broadcastEvent(Event:new("UpdateTopStatusBarMarkers"))
             end,
           }))
         end
@@ -1241,7 +1241,7 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
           or nil
         self:onUpdateToc()
         self.view.footer:onUpdateFooter(self.view.footer_visible)
-        self.ui:handleEvent(Event:new("UpdateTopStatusBarMarkers"))
+        UIManager:broadcastEvent(Event:new("UpdateTopStatusBarMarkers"))
       end,
     }
   end

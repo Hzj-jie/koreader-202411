@@ -99,7 +99,7 @@ function ReaderUserHyph:loadUserDictionary(reload)
     self:isAvailable() and self:getDictionaryPath() or "",
     reload and true or false
   )
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
 end
 
 -- Functions to use with the UI
