@@ -485,8 +485,15 @@ function FileManager:init()
   end
 
   self:initGesListener()
-  self:handleEvent(Event:new("SetDimensions", self.dimen))
-  self:handleEvent(Event:new("PathChanged", self.file_chooser.path))
+  -- Note, the behavior here doesn't match the common practice of preferring
+  -- UIManager:broadcastEvent,
+  -- 1. UIManager may not know FileManager yet.
+  -- 2. The events shouldn't be propagated to ReaderUI.
+  -- So instead of UIManager:broadcastEvent, self:broadcastEvent is used in this
+  -- class to propagate the event to the child widgets.
+  -- Same as the ReaderUI.
+  self:broadcastEvent(Event:new("SetDimensions", self.dimen))
+  self:broadcastEvent(Event:new("PathChanged", self.file_chooser.path))
 
   assert(FileManager.instance == nil)
   FileManager.instance = self
@@ -812,7 +819,7 @@ function FileManager:reinit(path, focused_file)
   -- reinit filemanager
   self.focused_file = focused_file
   self:setupLayout()
-  self:handleEvent(Event:new("SetDimensions", self.dimen))
+  self:broadcastEvent(Event:new("SetDimensions", self.dimen))
   self.file_chooser.path_items = path_items_backup
   -- self:init() has already done file_chooser:refreshPath()
   -- (by virtue of rebuilding file_chooser), so this one
@@ -835,14 +842,14 @@ end
 function FileManager:onExit()
   logger.dbg("close filemanager")
   PluginLoader:finalize()
-  self:handleEvent(Event:new("SaveSettings"))
+  self:broadcastEvent(Event:new("SaveSettings"))
   G_reader_settings:flush()
   UIManager:close(self)
   return true
 end
 
 function FileManager:onFlushSettings()
-  self:handleEvent(Event:new("SaveSettings"))
+  self:broadcastEvent(Event:new("SaveSettings"))
   G_reader_settings:flush()
 end
 
