@@ -784,7 +784,9 @@ function ReaderZooming:_zoomPanChange(text, setting)
     ok_text = _("Set"),
     title_text = text,
     callback = function(spin)
-      UIManager:broadcastEvent(Event:new("SetZoomPan", { [setting] = spin.value }))
+      UIManager:broadcastEvent(
+        Event:new("SetZoomPan", { [setting] = spin.value })
+      )
     end,
   }))
 end

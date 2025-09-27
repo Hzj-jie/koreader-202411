@@ -126,7 +126,9 @@ function ReaderBack:onBack()
         -- saved_location, which will then not be added to the stack
         self.cur_location = nil
         logger.dbg("[ReaderBack] restoring:", saved_location)
-        UIManager:broadcastEvent(Event:new("RestoreBookLocation", saved_location))
+        UIManager:broadcastEvent(
+          Event:new("RestoreBookLocation", saved_location)
+        )
         -- Ensure we always have self.cur_location updated, as in some
         -- cases (same page), no event that we handle might be sent.
         UIManager:nextTick(self._addPreviousLocationToStackCallback)
