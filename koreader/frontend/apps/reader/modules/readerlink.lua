@@ -122,9 +122,9 @@ function ReaderLink:init()
       },
     })
   end
-  self.ui:registerPostInitCallback(function()
+  self.onReaderInited = function()
     self.ui.menu:registerToMainMenu(self)
-  end)
+  end
   if G_reader_settings:isTrue("opening_page_location_stack") then
     -- Add location at book opening to stack
     self.ui:registerPostReaderReadyCallback(function()
