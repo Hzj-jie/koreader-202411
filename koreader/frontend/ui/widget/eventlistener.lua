@@ -42,7 +42,6 @@ function EventListener:handleEvent(event)
   if self[event.handler] == nil then
     return false
   end
-  -- print("EventListener:handleEvent:", event.handler, "handled by", debug.getinfo(self[event.handler], "S").short_src, self)
   local r = false
   if type(self[event.handler]) == "function" then
     r = self:_runEvent(self[event.handler], event)
@@ -52,10 +51,27 @@ function EventListener:handleEvent(event)
       r = r or self:_runEvent(v, event)
     end
   end
-  if event:isUserInput() then
-    return r
+  if not event:isUserInput() then
+    r = true
   end
-  return true
+  --[[--
+  if r then
+    if type(self[event.handler]) == "function" then
+      print("EventListener:handleEvent:",
+            event.handler,
+            "handled by",
+            debug.getinfo(self[event.handler], "S").short_src,
+            self)
+    else
+      print("EventListener:handleEvent:",
+            event.handler,
+            "handled by",
+            debug.getinfo(self[event.handler][1], "S").short_src,
+            self)
+    end
+  end
+  --]]
+  return r
 end
 
 function EventListener:broadcastEvent(event) --> void
