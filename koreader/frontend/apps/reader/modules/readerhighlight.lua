@@ -227,13 +227,14 @@ function ReaderHighlight:init()
     }
   end)
 
-  self.ui:registerPostInitCallback(function()
-    self.ui.menu:registerToMainMenu(self)
-  end)
-
   -- delegate gesture listener to readerui, NOP our own
   self.ges_events = nil
 end
+
+function ReaderHighlight:onReaderInited()
+  self.ui.menu:registerToMainMenu(self)
+end
+
 
 function ReaderHighlight:onSetDimensions(dimen)
   self.screen_w, self.screen_h = dimen.w, dimen.h

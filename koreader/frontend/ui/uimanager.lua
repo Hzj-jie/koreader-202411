@@ -1021,6 +1021,9 @@ Transmits an @{ui.event.Event|Event} to all registered widgets.
 @param event an @{ui.event.Event|Event} object
 ]]
 function UIManager:broadcastEvent(event)
+  if event.handler == "onPageUpdate" then
+    print("====== debug broadcastEvent onPageUpdate")
+  end
   -- Unlike sendEvent, we send the event to *all* (window-level) widgets (i.e., we don't stop, even if a handler returns true).
   -- NOTE: Same defensive approach to _window_stack changing from under our feet as above.
   local checked_widgets = {}
