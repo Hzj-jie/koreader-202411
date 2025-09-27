@@ -435,6 +435,7 @@ end
 
 -- NOTE: The only thing that will *ever* instantiate a new FileManager object is our very own showFiles below!
 function FileManager:init()
+  UIManager:show(self)
   self:setupLayout()
   self.active_widgets = {}
 
@@ -485,8 +486,8 @@ function FileManager:init()
   end
 
   self:initGesListener()
-  self:handleEvent(Event:new("SetDimensions", self.dimen))
-  self:handleEvent(Event:new("PathChanged", self.file_chooser.path))
+  UIManager:broadcastEvent(Event:new("SetDimensions", self.dimen))
+  UIManager:broadcastEvent(Event:new("PathChanged", self.file_chooser.path))
 
   if FileManager.instance == nil then
     logger.dbg("Spinning up new FileManager instance", tostring(self))
@@ -823,7 +824,7 @@ function FileManager:reinit(path, focused_file)
   -- reinit filemanager
   self.focused_file = focused_file
   self:setupLayout()
-  self:handleEvent(Event:new("SetDimensions", self.dimen))
+  UIManager:broadcastEvent(Event:new("SetDimensions", self.dimen))
   self.file_chooser.path_items = path_items_backup
   -- self:init() has already done file_chooser:refreshPath()
   -- (by virtue of rebuilding file_chooser), so this one
@@ -846,14 +847,14 @@ end
 function FileManager:onExit()
   logger.dbg("close filemanager")
   PluginLoader:finalize()
-  self:handleEvent(Event:new("SaveSettings"))
+  UIManager:broadcastEvent(Event:new("SaveSettings"))
   G_reader_settings:flush()
   UIManager:close(self)
   return true
 end
 
 function FileManager:onFlushSettings()
-  self:handleEvent(Event:new("SaveSettings"))
+  UIManager:broadcastEvent(Event:new("SaveSettings"))
   G_reader_settings:flush()
 end
 
@@ -1391,7 +1392,6 @@ function FileManager:showFiles(path, focused_file, selected_files)
     focused_file = focused_file,
     selected_files = selected_files,
   })
-  UIManager:show(file_manager)
 end
 
 --- A shortcut to execute mv.
