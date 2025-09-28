@@ -75,7 +75,6 @@ local T = ffiUtil.template
 
 local ReaderUI = InputContainer:extend({
   name = "ReaderUI",
-  active_widgets = nil, -- array
 
   -- if we have a parent container, it must be referenced for now
   dialog = nil,
@@ -90,16 +89,12 @@ local ReaderUI = InputContainer:extend({
   postReaderReadyCallback = nil,
 })
 
-function ReaderUI:registerModule(name, ui_module, always_active)
+function ReaderUI:registerModule(name, ui_module)
   if name then
     self[name] = ui_module
     ui_module.name = "reader" .. name
   end
   table.insert(self, ui_module)
-  if always_active then
-    -- to get events even when hidden
-    table.insert(self.active_widgets, ui_module)
-  end
 end
 
 function ReaderUI:registerPostInitCallback(callback)
@@ -111,8 +106,6 @@ function ReaderUI:registerPostReaderReadyCallback(callback)
 end
 
 function ReaderUI:init()
-  self.active_widgets = {}
-
   -- cap screen refresh on pan to 2 refreshes per second
   local pan_rate = Screen.low_pan_rate and 2.0 or 30.0
 
@@ -143,6 +136,19 @@ function ReaderUI:init()
       document = self.document,
     })
   )
+
+  -- screenshot controller, it has the highest priority to receive the user
+  -- input, e.g. swipe or two-finger-tap
+  self:registerModule(
+    "screenshot",
+    Screenshoter:new({
+      prefix = "Reader",
+      dialog = self.dialog,
+      view = self.view,
+      ui = self,
+    })
+  )
+
   -- goto link controller
   self:registerModule(
     "link",
@@ -247,17 +253,6 @@ function ReaderUI:init()
       ui = self,
       document = self.document,
     })
-  )
-  -- screenshot controller
-  self:registerModule(
-    "screenshot",
-    Screenshoter:new({
-      prefix = "Reader",
-      dialog = self.dialog,
-      view = self.view,
-      ui = self,
-    }),
-    true
   )
   -- device status controller
   self:registerModule(
