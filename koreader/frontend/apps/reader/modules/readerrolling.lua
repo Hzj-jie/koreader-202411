@@ -88,14 +88,14 @@ local ReaderRolling = InputContainer:extend({
   mark_func = nil,
   unmark_func = nil,
   _stepRerenderingAutomation = nil,
-
-  onReaderInited = {},
-  onPostReaderReady = {},
 })
 
 function ReaderRolling:init()
   self:registerKeyEvents()
   self.pan_interval = time.s(1 / self.pan_rate)
+
+  self.onReaderInited = {}
+  self.onPostReaderReady = {}
 
   table.insert(self.onReaderInited, function()
     self.rendering_hash = self.ui.document:getDocumentRenderingHash(true)
