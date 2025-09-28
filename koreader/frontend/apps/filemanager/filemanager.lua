@@ -837,14 +837,18 @@ end
 function FileManager:onExit()
   logger.dbg("close filemanager")
   PluginLoader:finalize()
-  UIManager:broadcastEvent(Event:new("SaveSettings"))
+  -- See ReaderUI:onFlushSettings, this should only impact the widget and its
+  -- sub widget.
+  self:broadcastEvent(Event:new("SaveSettings"))
   G_reader_settings:flush()
   UIManager:close(self)
   return true
 end
 
 function FileManager:onFlushSettings()
-  UIManager:broadcastEvent(Event:new("SaveSettings"))
+  -- See ReaderUI:onFlushSettings, this should only impact the widget and its
+  -- sub widget.
+  self:broadcastEvent(Event:new("SaveSettings"))
   G_reader_settings:flush()
 end
 
