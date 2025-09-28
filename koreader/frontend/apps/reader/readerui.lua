@@ -751,6 +751,11 @@ function ReaderUI:showReader(file, provider, seamless)
   provider = provider or DocumentRegistry:getProvider(file)
   if provider.provider then
     self:showReaderCoroutine(file, provider, seamless)
+  else
+    UIManager:show(InfoMessage:new({
+      text = _("No reader engine for this file or invalid file."),
+    }))
+    self:showFileManager(file)
   end
 end
 
@@ -777,8 +782,9 @@ function ReaderUI:showReaderCoroutine(file, provider, seamless)
       -- Restore input if we crashed before ReaderUI has restored it
       Device:setIgnoreInput(false)
       Input:inhibitInputUntil(0.2)
+      -- Need localization.
       UIManager:show(InfoMessage:new({
-        text = _("No reader engine for this file or invalid file."),
+        text = _("Reader crashed, reporting a bug can help developers to improve KOReader."),
       }))
       self:showFileManager(file)
     end
