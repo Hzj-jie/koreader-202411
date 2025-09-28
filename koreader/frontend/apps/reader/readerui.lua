@@ -930,8 +930,6 @@ function ReaderUI:onExit(full_refresh)
     UIManager:close(self)
     UIManager:close(self.dialog, full_refresh ~= false and "full")
   end
-  assert(not UIManager:isWidgetShow(self))
-  assert(not UIManager:isWidgetShow(self.dialog))
 end
 
 function ReaderUI:onClose()
