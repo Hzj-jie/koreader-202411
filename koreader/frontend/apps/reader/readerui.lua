@@ -894,11 +894,7 @@ function ReaderUI:onScreenResize(dimen)
 end
 
 function ReaderUI:saveSettings()
-  -- Note, this behavior should only impact ReaderUI and its modules but not
-  -- other components, since it's called by UIManager:close /
-  -- widget:broadcastEvent("FlushSettings"). I.e. only the widget and its sub
-  -- widgets need to flush settings.
-  self:broadcastEvent(Event:new("SaveSettings"))
+  UIManager:broadcastEvent(Event:new("SaveSettings"))
   self.doc_settings:flush()
   G_reader_settings:flush()
 end
