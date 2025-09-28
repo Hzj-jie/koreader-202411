@@ -974,6 +974,7 @@ function UIManager:sendEvent(event)
   if top_widget.active_widgets then
     for _, active_widget in ipairs(top_widget.active_widgets) do
       if active_widget:handleEvent(event) then
+        assert(false, "top_widget:handleEvent should cover active_widgets")
         return
       end
     end
