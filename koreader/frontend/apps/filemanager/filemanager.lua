@@ -47,7 +47,6 @@ local T = ffiUtil.template
 
 local FileManager = InputContainer:extend({
   title = _("KOReader"),
-  active_widgets = nil, -- array
   root_path = lfs.currentdir(),
 
   clipboard = nil, -- for single file operations
@@ -421,31 +420,27 @@ function FileManager:registerKeyEvents()
   end
 end
 
-function FileManager:registerModule(name, ui_module, always_active)
+function FileManager:registerModule(name, ui_module)
   if name then
     self[name] = ui_module
     ui_module.name = "filemanager" .. name
   end
   table.insert(self, ui_module)
-  if always_active then
-    -- to get events even when hidden
-    table.insert(self.active_widgets, ui_module)
-  end
 end
 
 -- NOTE: The only thing that will *ever* instantiate a new FileManager object is our very own showFiles below!
 function FileManager:init()
   UIManager:show(self)
   self:setupLayout()
-  self.active_widgets = {}
 
+  -- screenshot controller, it has the highest priority to receive the user
+  -- input, e.g. swipe or two-finger-tap
   self:registerModule(
     "screenshot",
     Screenshoter:new({
       prefix = "FileManager",
       ui = self,
-    }),
-    true
+    })
   )
 
   self:registerModule("menu", self.menu)

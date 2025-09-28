@@ -971,14 +971,6 @@ function UIManager:sendEvent(event)
   if top_widget:handleEvent(event) then
     return
   end
-  if top_widget.active_widgets then
-    for _, active_widget in ipairs(top_widget.active_widgets) do
-      if active_widget:handleEvent(event) then
-        assert(false, "top_widget:handleEvent should cover active_widgets")
-        return
-      end
-    end
-  end
 
   -- If the event was not consumed (no handler returned true), active widgets (from top to bottom) can access it.
   -- NOTE: _window_stack can shrink/grow when widgets are closed (CloseWidget & Close events) or opened.
@@ -992,16 +984,6 @@ function UIManager:sendEvent(event)
     local widget = self._window_stack[i].widget
     if not checked_widgets[widget] then
       checked_widgets[widget] = true
-      -- Widget's active widgets have precedence to handle this event
-      -- NOTE: ReaderUI & FileManager *may* optionally register their modules as such
-      --     (currently, they only do that for the Screenshot module).
-      if widget.active_widgets then
-        for _, active_widget in ipairs(widget.active_widgets) do
-          if active_widget:handleEvent(event) then
-            return
-          end
-        end
-      end
       if widget.is_always_active then
         -- Widget itself is flagged always active, let it handle the event
         -- NOTE: is_always_active widgets are currently widgets that want to show a VirtualKeyboard or listen to Dispatcher events
@@ -1887,11 +1869,6 @@ function UIManager:keyEvents()
     check(w)
     for _, widget in ipairs(w) do
       check_widget(widget)
-    end
-    if w.active_widgets then
-      for _, active_widget in ipairs(w.active_widgets) do
-        check_widget(active_widget)
-      end
     end
   end
 
