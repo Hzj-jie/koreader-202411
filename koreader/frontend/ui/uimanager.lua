@@ -1908,5 +1908,15 @@ function UIManager:runWith(func, widget)
   self:close(widget)
 end
 
+function UIManager:isWidgetShown(widget)
+  for i = #self._window_stack, 1, -1 do
+    local w = self._window_stack[i].widget
+    if w == widget then
+      return true
+    end
+  end
+  return false
+end
+
 UIManager:init()
 return UIManager
