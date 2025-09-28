@@ -488,18 +488,7 @@ function FileManager:init()
   self:handleEvent(Event:new("SetDimensions", self.dimen))
   self:handleEvent(Event:new("PathChanged", self.file_chooser.path))
 
-  if FileManager.instance == nil then
-    logger.dbg("Spinning up new FileManager instance", tostring(self))
-  else
-    -- Should never happen, given what we did in showFiles...
-    logger.err(
-      "FileManager instance mismatch! Opened",
-      tostring(self),
-      "while we still have an existing instance:",
-      tostring(FileManager.instance),
-      debug.traceback()
-    )
-  end
+  assert(FileManager.instance == nil)
   FileManager.instance = self
 end
 
@@ -858,16 +847,7 @@ function FileManager:onFlushSettings()
 end
 
 function FileManager:onClose()
-  if FileManager.instance == self then
-    logger.dbg("Tearing down FileManager", tostring(self))
-  else
-    logger.warn(
-      "FileManager instance mismatch! Closed",
-      tostring(self),
-      "while the active one is supposed to be",
-      tostring(FileManager.instance)
-    )
-  end
+  assert(FileManager.instance == self)
   FileManager.instance = nil
 end
 
@@ -1372,15 +1352,7 @@ end
 --- @note: This is the *only* safe way to instantiate a new FileManager instance!
 function FileManager:showFiles(path, focused_file, selected_files)
   -- Warn about and close any pre-existing FM instances first...
-  if FileManager.instance then
-    logger.warn(
-      "FileManager instance mismatch! Tried to spin up a new instance, while we still have an existing one:",
-      tostring(FileManager.instance)
-    )
-    -- Close the old one first!
-    FileManager.instance:onExit()
-  end
-
+  assert(FileManager.instance == nil)
   path = ffiUtil.realpath(path or G_named_settings.lastdir())
   G_reader_settings:saveSetting("lastdir", path)
   self:setRotationMode()
