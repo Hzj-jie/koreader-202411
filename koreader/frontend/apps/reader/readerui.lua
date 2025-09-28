@@ -799,8 +799,11 @@ function ReaderUI:showReaderCoroutine(file, provider, seamless)
       Input:inhibitInputUntil(0.2)
       -- Need localization.
       UIManager:show(InfoMessage:new({
-        text = _("Unfortunately KOReader crashed.") .. "\n" .. 
-                _("Report a bug to https://github.com/Hzj-jie/koreader-202411 can help developers to improve it."),
+        text = _("Unfortunately KOReader crashed.")
+          .. "\n"
+          .. _(
+            "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help developers to improve it."
+          ),
       }))
       self:showFileManager(file)
     end
