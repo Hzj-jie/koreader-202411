@@ -898,6 +898,8 @@ function ReaderUI:saveSettings()
   -- other components, since it's called by UIManager:close /
   -- widget:broadcastEvent("FlushSettings"). I.e. only the widget and its sub
   -- widgets need to flush settings.
+  -- Note, even calling UIManager:broadcastEvent, it shouldn't make noticeable
+  -- difference, as the UIManager should only know ReaderUI in the case.
   self:broadcastEvent(Event:new("SaveSettings"))
   self.doc_settings:flush()
   G_reader_settings:flush()
