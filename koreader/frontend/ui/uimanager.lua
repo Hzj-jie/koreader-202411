@@ -143,6 +143,10 @@ If refreshtype is omitted, no refresh will be enqueued at this time.
 @see setDirty
 ]]
 function UIManager:show(widget, refreshtype, refreshregion, x, y, refreshdither)
+  for i = 1, #self._window_stack do
+    assert(self._window_stack[i].widget ~= widget)
+  end
+
   if not widget then
     logger.dbg("attempted to show a nil widget")
     return
