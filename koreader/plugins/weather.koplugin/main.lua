@@ -28,7 +28,7 @@ local ffiutil = require("ffi/util")
 local _ = require("gettext")
 local T = ffiutil.template
 
-local Weather = WidgetContainer:new({
+local Weather = WidgetContainer:extend({
   name = "weather",
   settings_file = DataStorage:getSettingsDir() .. "/weather.lua",
   settings = nil,
