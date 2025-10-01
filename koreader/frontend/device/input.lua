@@ -951,7 +951,8 @@ function Input:handleKeyBoardEv(ev)
   -- quit on Alt + F4
   -- this is also emitted by the close event in SDL
   if self:isEvKeyPress(ev) and self.modifiers["Alt"] and keycode == "F4" then
-    UIManager:broadcastEvent(Event:new("Close")) -- Tell all widgets to close.
+    -- This behavior is unnecessary.
+    UIManager:broadcastEvent(Event:new("Exit")) -- Tell all widgets to close.
     UIManager:nextTick(function()
       UIManager:quit()
     end) -- Ensure the program closes in case of some lingering dialog.

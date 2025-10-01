@@ -944,7 +944,8 @@ function ReaderUI:onExit(full_refresh)
 end
 
 function ReaderUI:onClose()
-  assert(ReaderUI.instance == self)
+  -- In case someone broadcasts Exit or Close multiple times.
+  assert(ReaderUI.instance == self or ReaderUI.instance == nil)
   ReaderUI.instance = nil
   self._coroutine = nil
 end

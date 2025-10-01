@@ -446,7 +446,7 @@ function PocketBook:setEventHandlers(uimgr)
   end
   UIManager.event_handlers.Exit = function()
     local Event = require("ui/event")
-    UIManager:broadcastEvent(Event:new("Close"))
+    UIManager:broadcastEvent(Event:new("Exit"))
     UIManager:quit(0)
   end
 end

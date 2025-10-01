@@ -848,7 +848,8 @@ function FileManager:onFlushSettings()
 end
 
 function FileManager:onClose()
-  assert(FileManager.instance == self)
+  -- In case someone broadcasts Exit or Close multiple times.
+  assert(FileManager.instance == self or FileManager.instance == nil)
   FileManager.instance = nil
 end
 
