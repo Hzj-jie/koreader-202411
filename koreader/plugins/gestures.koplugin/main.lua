@@ -572,7 +572,7 @@ Higher values mean faster screen updates, but also use more CPU.]]),
             default_value = default_value,
             callback = function(spin)
               G_reader_settings:saveSetting("hold_pan_rate", spin.value)
-              UIManager:sendEvent(Event:new("UpdateHoldPanRate"):asUserInput())
+              UIManager:sendEvent(Event:new("UpdateHoldPanRate"))
             end,
           })
           UIManager:show(items)
@@ -1319,7 +1319,7 @@ function Gestures:gestureAction(action, ges)
   if action_list == nil or (ges.ges == "hold" and self.ignore_hold_corners) then
     return
   else
-    UIManager:sendEvent(Event:new("HandledAsSwipe"):asUserInput())
+    UIManager:sendEvent(Event:new("HandledAsSwipe"))
     local exec_props = { gesture = ges }
     if action_list.settings and action_list.settings.anchor_quickmenu then
       exec_props.qm_anchor = ges.end_pos or ges.pos

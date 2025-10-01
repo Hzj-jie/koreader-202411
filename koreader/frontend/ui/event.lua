@@ -38,13 +38,7 @@ function Event:new(name, ...)
 end
 
 function Event:isUserInput()
-  return self.handler == "onGesture"
-    or self.handler == "onKeyPress"
-    or self.handler == "onKeyRepeat"
-    or self.handler == "onKeyRelease"
-    or self.handler == "onGenericInput"
-    or self.handler == "onSetRotationMode"
-    or self.handler == "onInputError"
+  return false
 end
 
 function Event:asUserInput()

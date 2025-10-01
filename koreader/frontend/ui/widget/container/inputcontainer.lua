@@ -246,17 +246,7 @@ end
 
 -- NOTE: Currently a verbatim copy of onKeyPress ;).
 function InputContainer:onKeyRepeat(key)
-  for name, seq in pairs(self.key_events) do
-    if not seq.is_inactive then
-      for _, oneseq in ipairs(seq) do
-        if key:match(oneseq) then
-          return self:handleEvent(
-            Event:new(seq.event or name, seq.args, key):asUserInput()
-          )
-        end
-      end
-    end
-  end
+  return self:onKeyPress(key)
 end
 
 function InputContainer:onGesture(ev)
