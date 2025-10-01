@@ -260,12 +260,12 @@ function Device:init()
         local fake_release_ev = Event:new("Gesture", fake_ges_release)
         if scrolled_y == down then
           fake_ges.direction = "north"
-          UIManager:sendEvent(fake_pan_ev)
-          UIManager:sendEvent(fake_release_ev)
+          UIManager:userInput(fake_pan_ev)
+          UIManager:userInput(fake_release_ev)
         elseif scrolled_y == up then
           fake_ges.direction = "south"
-          UIManager:sendEvent(fake_pan_ev)
-          UIManager:sendEvent(fake_release_ev)
+          UIManager:userInput(fake_pan_ev)
+          UIManager:userInput(fake_release_ev)
         end
       elseif ev.code == SDL_MULTIGESTURE then
         -- no-op for now
@@ -316,7 +316,7 @@ function Device:init()
         self.window.left = ev.value.data1
         self.window.top = ev.value.data2
       elseif ev.code == SDL_TEXTINPUT then
-        UIManager:sendEvent(Event:new("TextInput", tostring(ev.value)))
+        UIManager:userInput(Event:new("TextInput", tostring(ev.value)))
       end
     end,
   })

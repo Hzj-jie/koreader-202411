@@ -942,7 +942,7 @@ which itself will take care of propagating an event to its members.
 
 @param event an @{ui.event.Event|Event} object
 ]]
-function UIManager:sendEvent(event)
+function UIManager:userInput(event)
   event:asUserInput()
   local top_widget
   local checked_widgets = {}

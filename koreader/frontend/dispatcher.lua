@@ -2011,7 +2011,7 @@ function Dispatcher:_showAsMenu(settings, exec_props)
         hold_callback = function()
           if v.key:sub(1, 13) == "profile_exec_" then
             UIManager:close(quickmenu)
-            UIManager:sendEvent(
+            UIManager:userInput(
               Event:new(
                 settingsList[v.key].event,
                 settingsList[v.key].arg,
@@ -2082,7 +2082,7 @@ function Dispatcher:execute(settings, exec_props)
             end
           end
         end
-        UIManager:sendEvent(
+        UIManager:userInput(
           Event:new("ConfigChange", settingsList[k].configurable.name, value)
         )
       end
@@ -2091,20 +2091,20 @@ function Dispatcher:execute(settings, exec_props)
       local event = settingsList[k].event
       if category == "none" then
         if settingsList[k].arg ~= nil then
-          UIManager:sendEvent(Event:new(event, settingsList[k].arg, exec_props))
+          UIManager:userInput(Event:new(event, settingsList[k].arg, exec_props))
         else
-          UIManager:sendEvent(Event:new(event))
+          UIManager:userInput(Event:new(event))
         end
       elseif category == "absolutenumber" or category == "string" then
-        UIManager:sendEvent(Event:new(event, v))
+        UIManager:userInput(Event:new(event, v))
       elseif category == "arg" then
         -- the event can accept a gesture object or an argument
         local arg = gesture or settingsList[k].arg
-        UIManager:sendEvent(Event:new(event, arg))
+        UIManager:userInput(Event:new(event, arg))
       elseif category == "incrementalnumber" then
         -- the event can accept a gesture object or a number
         local arg = v ~= 0 and v or gesture or 0
-        UIManager:sendEvent(Event:new(event, arg))
+        UIManager:userInput(Event:new(event, arg))
       end
     end
     Notification:resetNotifySource()

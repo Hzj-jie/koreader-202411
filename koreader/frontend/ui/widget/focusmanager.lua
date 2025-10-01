@@ -507,7 +507,7 @@ function FocusManager:_sendGestureEventToFocusedWidget(gesture)
     point.w = 0
     point.h = 0
     logger.dbg("FocusManager: Send", gesture, "to", point.x, ",", point.y)
-    UIManager:sendEvent(Event:new("Gesture", {
+    UIManager:userInput(Event:new("Gesture", {
       ges = gesture,
       pos = point,
     }))

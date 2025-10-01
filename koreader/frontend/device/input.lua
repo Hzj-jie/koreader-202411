@@ -917,7 +917,7 @@ function Input:handleKeyBoardEv(ev)
   if self.fake_event_set[keycode] then
     -- For events that pass a parameter in the input event's value field,
     -- we kludge it up a bit, because we *want* a broadcastEvent *and* an argument, but...
-    -- * If we return an Event here, UIManager will just pass it to UIManager:sendEvent(), meaning it won't reach plugins
+    -- * If we return an Event here, UIManager will just pass it to UIManager:userInput(), meaning it won't reach plugins
     --   (because these are not, and currently cannot be, registered as active_widgets).
     -- * If we return a string here, our named UIManager.event_handlers cannot directly receive an argument...
     -- So, we simply store it somewhere our handler can find and call it a day.

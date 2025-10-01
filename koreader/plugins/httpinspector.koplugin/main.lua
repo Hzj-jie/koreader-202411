@@ -1189,7 +1189,7 @@ function HttpInspector:exposeEvent(uri, reqinfo)
     -- shutdown the HTTP server
     UIManager:nextTick(function()
       for _, ev in ipairs(events) do
-        UIManager:sendEvent(ev)
+        UIManager:userInput(ev)
       end
     end)
     return self:_sendResponse(
