@@ -544,7 +544,7 @@ end
 
 function ReaderMenu:onMenuSearch()
   self:onShowMenu()
-  self.menu_container[1]:onShowMenuSearch()
+  UIManager:broadcastEvent(Event:new("ShowMenuSearch"))
 end
 
 function ReaderMenu:onShowKeyboardShortcuts()

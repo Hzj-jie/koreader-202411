@@ -901,7 +901,7 @@ function Menu:init()
         text = _("File search"),
         callback = function()
           self.page_info_text:closeInputDialog()
-          UIManager:sendEvent(
+          UIManager:broadcastEvent(
             Event:new(
               "ShowFileSearch",
               self.page_info_text.input_dialog:getInputText()

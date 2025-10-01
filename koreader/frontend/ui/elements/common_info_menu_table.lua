@@ -89,7 +89,7 @@ common_info.quickstart_guide = {
 common_info.search_menu = {
   text = _("Menu search"),
   callback = function()
-    UIManager:sendEvent(Event:new("ShowMenuSearch"))
+    UIManager:broadcastEvent(Event:new("ShowMenuSearch"))
   end,
   keep_menu_open = true,
 }
