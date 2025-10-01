@@ -35,6 +35,14 @@ Invoke handler method for an event.
 Handler method name is determined by @{ui.event.Event}'s handler field.
 By default, it's `"on"..Event.name`.
 
+Note, anything explicitly calls handleEvent should send in an
+Event:asUserInput() / Event:isUserInput(); meanwhile broadcastEvent also uses
+the same logic to process the non-user-input events.
+Note, explicitly calling this function is less common, most of the user inputs
+should come from UIManager:userInput(). broadcastEvent is usually the right
+choice in most of the cases, especially when the return value of the function
+call is ignored.
+
 @tparam ui.event.Event event
 @treturn bool return true if event is consumed successfully.
 ]]
