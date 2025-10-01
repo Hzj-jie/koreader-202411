@@ -1540,7 +1540,7 @@ function UIManager:handleInputEvent(input_event)
   if handler then
     handler(input_event)
   else
-    self:sendEvent(input_event)
+    self:userInput(input_event)
   end
 end
 
