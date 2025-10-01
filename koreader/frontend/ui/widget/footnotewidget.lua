@@ -185,7 +185,7 @@ function FootnoteWidget:init()
           if self.dialog then
             local lookup_target = hold_duration < time.s(3) and "LookupWord"
               or "LookupWikipedia"
-            self.dialog:handleEvent(Event:new(lookup_target, text))
+            UIManager:broadcastEvent(Event:new(lookup_target, text))
           end
         end,
       },

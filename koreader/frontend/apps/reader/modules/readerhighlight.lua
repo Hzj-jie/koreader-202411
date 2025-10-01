@@ -1622,7 +1622,7 @@ function ReaderHighlight:onShowHighlightMenu(index)
       )
     end,
     tap_close_callback = function()
-      self:handleEvent(Event:new("Tap"))
+      self:onTap()
     end,
   })
   -- NOTE: Disable merging for this update,

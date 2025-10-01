@@ -624,7 +624,10 @@ function FileChooser:changeToPath(path, focused_path)
 
   self:refreshPath()
   if self.filemanager then
-    self.filemanager:handleEvent(Event:new("PathChanged", path))
+    -- Note, this is a little bit tricky, the event is only consumed by
+    -- FileManager and Profiles, but the profiles behavior should only be
+    -- triggered when navigating file system through FileManager.
+    UIManager:broadcastEvent(Event:new("PathChanged", path))
   end
 end
 

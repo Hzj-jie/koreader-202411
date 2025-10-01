@@ -908,7 +908,7 @@ function MenuBar:init()
         width = icon_width,
         height = icon_height,
         callback = function()
-          self.config_dialog:handleEvent(Event:new("ShowConfigPanel", c))
+          self.config_dialog:showConfigPanel(c)
         end,
       })
       self.menu_items[c] = menu_icon
@@ -1130,7 +1130,7 @@ function ConfigDialog:onClose()
   end)
 end
 
-function ConfigDialog:onShowConfigPanel(index)
+function ConfigDialog:showConfigPanel(index)
   self.panel_index = index
   local old_dimen = self.dialog_frame.dimen and self.dialog_frame.dimen:copy()
   local old_layout_h = self.layout and #self.layout
