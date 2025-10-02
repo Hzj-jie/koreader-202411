@@ -7,6 +7,7 @@ Plugin for automatic dimming of the frontlight after an idle period.
 
 local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local Device = require("device")
+local Event = require("ui/event")
 local PluginShare = require("pluginshare")
 local SpinWidget = require("ui/widget/spinwidget")
 local TrapWidget = require("ui/widget/trapwidget")
@@ -337,7 +338,7 @@ function AutoDim:_rampTask(fl_diff, autodim_end_fl, delay)
   -- Reduce the frequency of firing frontlight level change event on
   -- eink devices.
   if not Device:hasEinkScreen() or ((self.origin_fl - fl_level) % 2 == 0) then
-    UIManager:broadcastEvent("UpdateFooter")
+    UIManager:broadcastEvent(Event:new("UpdateFooter", true, true))
   end
   if fl_level > autodim_end_fl then
     UIManager:scheduleIn(

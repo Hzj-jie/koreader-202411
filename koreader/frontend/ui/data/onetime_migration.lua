@@ -347,6 +347,8 @@ end
 if last_migration_date < 20210629 then
   logger.info("Performing one-time migration for 20210629")
 
+  -- TODO: Remove. This function doesn't exist, but this section won't be
+  -- executed at all.
   local footer = G_reader_settings:child("footer")
   if footer and footer:has("duration_format") then
     local user_format = footer:readSetting("duration_format")

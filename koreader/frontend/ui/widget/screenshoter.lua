@@ -25,7 +25,6 @@ function Screenshoter:init()
     TapDiagonal = {
       GestureRange:new({
         ges = "two_finger_tap",
-        scale = { diagonal - Screen:scaleBySize(200), diagonal },
         rate = 1.0,
       }),
     },

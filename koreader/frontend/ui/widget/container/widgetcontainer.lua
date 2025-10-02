@@ -103,12 +103,11 @@ to react to the event by itself.
 not be sent to other widgets.
 ]]
 function WidgetContainer:handleEvent(event)
-  if not self:propagateEvent(event) then
-    -- call our own standard event handler
-    return Widget.handleEvent(self, event)
-  else
+  if self:propagateEvent(event) then
     return true
   end
+  -- call our own standard event handler
+  return Widget.handleEvent(self, event)
 end
 
 function WidgetContainer:broadcastEvent(event) --> void
