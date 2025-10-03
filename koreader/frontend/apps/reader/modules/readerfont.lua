@@ -210,14 +210,15 @@ function ReaderFont:onReadSettings(config)
   self:updateFontFamilyFonts()
 
   self:setupFaceMenuTable()
+end
 
-  -- Dirty hack: we have to add following call in order to set
-  -- m_is_rendered(member of LVDocView) to true. Otherwise position inside
-  -- document will be reset to 0 on first view render.
-  -- So far, I don't know why this call will alter the value of m_is_rendered.
-  table.insert(self.ui.postInitCallback, function()
-    self.ui:handleEvent(Event:new("UpdatePos"))
-  end)
+-- Dirty hack: we have to add following call in order to set
+-- m_is_rendered(member of LVDocView) to true. Otherwise position inside
+-- document will be reset to 0 on first view render.
+-- So far, I don't know why this call will alter the value of m_is_rendered.
+function ReaderFont:onReaderInited()
+  -- Note, at this time, the UIManager still doesn't know ReaderUI yet.
+  self.ui:broadcastEvent(Event:new("UpdatePos"))
 end
 
 --[[
@@ -232,7 +233,7 @@ function ReaderFont:onSetFontSize(size)
   size = math.max(12, math.min(size, 255))
   self.configurable.font_size = size
   self.ui.document:setFontSize(Screen:scaleBySize(size))
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   Notification:notify(T(_("Font size set to: %1."), size))
   return true
 end
@@ -241,7 +242,7 @@ function ReaderFont:onSetLineSpace(space)
   space = math.max(50, math.min(space, 200))
   self.configurable.line_spacing = space
   self.ui.document:setInterlineSpacePercent(space)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   Notification:notify(T(_("Line spacing set to: %1%."), space))
   return true
 end
@@ -249,7 +250,7 @@ end
 function ReaderFont:onSetFontBaseWeight(weight)
   self.configurable.font_base_weight = weight
   self.ui.document:setFontBaseWeight(weight)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   Notification:notify(
     T(
       _("Font weight set to: %1."),
@@ -262,7 +263,7 @@ end
 function ReaderFont:onSetFontHinting(mode)
   self.configurable.font_hinting = mode
   self.ui.document:setFontHinting(mode)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   Notification:notify(
     T(
       _("Font hinting set to: %1"),
@@ -275,7 +276,7 @@ end
 function ReaderFont:onSetFontKerning(mode)
   self.configurable.font_kerning = mode
   self.ui.document:setFontKerning(mode)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   Notification:notify(
     T(
       _("Font kerning set to: %1"),
@@ -288,7 +289,7 @@ end
 function ReaderFont:onSetWordSpacing(values)
   self.configurable.word_spacing = values
   self.ui.document:setWordSpacing(values)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   Notification:notify(
     T(_("Word spacing set to: %1%, %2%"), values[1], values[2])
   )
@@ -298,7 +299,7 @@ end
 function ReaderFont:onSetWordExpansion(value)
   self.configurable.word_expansion = value
   self.ui.document:setWordExpansion(value)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   Notification:notify(T(_("Word expansion set to: %1%."), value))
   return true
 end
@@ -306,7 +307,7 @@ end
 function ReaderFont:onSetCJKWidthScaling(value)
   self.configurable.cjk_width_scaling = value
   self.ui.document:setCJKWidthScaling(value)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   Notification:notify(T(_("CJK width scaling set to: %1%."), value))
   return true
 end
@@ -315,7 +316,7 @@ function ReaderFont:onSetFontGamma(gamma)
   self.configurable.font_gamma = gamma
   self.ui.document:setGammaIndex(gamma)
   local gamma_level = self.ui.document:getGammaLevel()
-  self.ui:handleEvent(Event:new("RedrawCurrentView"))
+  UIManager:broadcastEvent(Event:new("RedrawCurrentView"))
   Notification:notify(T(_("Font gamma set to: %1."), gamma_level))
   return true
 end
@@ -330,7 +331,7 @@ function ReaderFont:onSetFont(face)
     self.font_face = face
     self.ui.document:setFontFace(face)
     -- signal readerrolling to update pos in new height
-    self.ui:handleEvent(Event:new("UpdatePos"))
+    UIManager:broadcastEvent(Event:new("UpdatePos"))
   end
 end
 
@@ -386,7 +387,7 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
       choice2_callback = function()
         G_reader_settings:saveSetting("fallback_font", face)
         self.ui.document:setupFallbackFontFaces()
-        self.ui:handleEvent(Event:new("UpdatePos"))
+        UIManager:broadcastEvent(Event:new("UpdatePos"))
         if touchmenu_instance then
           touchmenu_instance:updateItems()
         end
@@ -511,7 +512,7 @@ function ReaderFont:updateFontFamilyFonts()
     family_fonts,
     G_reader_settings:isTrue("cre_font_family_ignore_font_names")
   )
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
 end
 
 function ReaderFont:getFontFamiliesTable()
@@ -831,7 +832,7 @@ Do you want to clear the history of selected fonts?]]),
     callback = function()
       G_reader_settings:flipNilOrTrue("additional_fallback_fonts")
       self.ui.document:setupFallbackFontFaces()
-      self.ui:handleEvent(Event:new("UpdatePos"))
+      UIManager:broadcastEvent(Event:new("UpdatePos"))
     end,
     help_text = T(
       _(
@@ -857,7 +858,7 @@ If that font happens to be part of this list already, it will be used first.]]
       self.ui.document:setAdjustedFallbackFontSizes(
         G_reader_settings:nilOrTrue("cre_adjusted_fallback_font_sizes")
       )
-      self.ui:handleEvent(Event:new("UpdatePos"))
+      UIManager:broadcastEvent(Event:new("UpdatePos"))
     end,
     help_text = _(
       [[
@@ -890,7 +891,7 @@ This may help with Greek words among Latin text (as Latin fonts often do not hav
           local scale = spin.value
           G_reader_settings:saveSetting("cre_monospace_scaling", scale)
           self.ui.document:setMonospaceFontScaling(scale)
-          self.ui:handleEvent(Event:new("UpdatePos"))
+          UIManager:broadcastEvent(Event:new("UpdatePos"))
         end,
       }))
     end,

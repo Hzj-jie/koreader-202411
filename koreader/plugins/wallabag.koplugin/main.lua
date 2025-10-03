@@ -140,7 +140,7 @@ function Wallabag:init()
         text = _("Add to Wallabag"),
         callback = function()
           UIManager:close(this.external_link_dialog)
-          this.ui:handleEvent(Event:new("AddWallabagArticle", link_url))
+          self:addWallabagArticle(link_url)
         end,
       }
     end)
@@ -154,7 +154,7 @@ function Wallabag:addToMainMenu(menu_items)
       {
         text = _("Retrieve new articles from server"),
         callback = function()
-          self.ui:handleEvent(Event:new("SynchronizeWallabag"))
+          UIManager:broadcastEvent(Event:new("SynchronizeWallabag"))
         end,
       },
       {
@@ -1347,7 +1347,7 @@ function Wallabag:saveWBSettings(setting)
   self.wb_settings:flush()
 end
 
-function Wallabag:onAddWallabagArticle(article_url)
+function Wallabag:addWallabagArticle(article_url)
   if not NetworkMgr:isOnline() then
     self:addToDownloadQueue(article_url)
     UIManager:show(InfoMessage:new({

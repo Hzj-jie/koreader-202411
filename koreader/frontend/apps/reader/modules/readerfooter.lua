@@ -2429,7 +2429,7 @@ function ReaderFooter:_updateFooterText(force_repaint, full_repaint)
     -- If there was a visibility change, notify ReaderView
     if self.visibility_change then
       self.visibility_change = nil
-      self.ui:handleEvent(Event:new("ReaderFooterVisibilityChange"))
+      UIManager:broadcastEvent(Event:new("ReaderFooterVisibilityChange"))
     end
 
     -- NOTE: Getting the dimensions of the widget is impossible without having drawn it first,
@@ -2590,7 +2590,7 @@ function ReaderFooter:TapFooter(ges)
     -- if reader footer is not drawn before the dimen value should be nil
     if dimen then
       local percentage = (pos.x - dimen.x) / dimen.w
-      self.ui:handleEvent(Event:new("GotoPercentage", percentage))
+      UIManager:broadcastEvent(Event:new("GotoPercentage", percentage))
     end
     self:onUpdateFooter(true)
     return true
@@ -2691,7 +2691,7 @@ function ReaderFooter:onHoldFooter(ges)
   end
 
   -- We're good, make sure we stop the event from going to readerhighlight_hold
-  self.ui:handleEvent(Event:new("ShowSkimtoDialog"))
+  UIManager:broadcastEvent(Event:new("ShowSkimtoDialog"))
   return true
 end
 
@@ -2704,7 +2704,7 @@ function ReaderFooter:refreshFooter(refresh, signal)
   if signal then
     if self.ui.document.provider == "crengine" then
       -- This will ultimately trigger an UpdatePos, hence a ReaderUI repaint.
-      self.ui:handleEvent(
+      UIManager:broadcastEvent(
         Event:new(
           "SetPageBottomMargin",
           self.ui.document.configurable.b_page_margin

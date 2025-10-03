@@ -227,9 +227,9 @@ function ReaderHighlight:init()
     }
   end)
 
-  self.ui:registerPostInitCallback(function()
+  self.onReaderInited = function()
     self.ui.menu:registerToMainMenu(self)
-  end)
+  end
 
   -- delegate gesture listener to readerui, NOP our own
   self.ges_events = nil
@@ -1354,19 +1354,19 @@ function ReaderHighlight:updateHighlight(index, side, direction, move_by_char)
   local new_end = highlight.pos1
   local new_text = self.ui.document:getTextFromXPointers(new_beginning, new_end)
   highlight.text = util.cleanupSelectedText(new_text)
-  self.ui:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("AnnotationsModified", { highlight, highlight_before })
   )
   if side == 0 then
     -- Ensure we show the page with the new beginning of highlight
     if not self.ui.document:isXPointerInCurrentPage(new_beginning) then
-      self.ui:handleEvent(Event:new("GotoXPointer", new_beginning))
+      UIManager:broadcastEvent(Event:new("GotoXPointer", new_beginning))
     end
   else
     -- Ensure we show the page with the new end of highlight
     if not self.ui.document:isXPointerInCurrentPage(new_end) then
       if self.view.view_mode == "page" then
-        self.ui:handleEvent(Event:new("GotoXPointer", new_end))
+        UIManager:broadcastEvent(Event:new("GotoXPointer", new_end))
       else
         -- Not easy to get the y that would show the whole line
         -- containing new_end. So, we scroll so that new_end
@@ -1622,7 +1622,7 @@ function ReaderHighlight:onShowHighlightMenu(index)
       )
     end,
     tap_close_callback = function()
-      self:handleEvent(Event:new("Tap"))
+      self:onTap()
     end,
   })
   -- NOTE: Disable merging for this update,
@@ -1975,13 +1975,13 @@ function ReaderHighlight:onHoldPan(_, ges)
           -- Switch from page mode to scroll mode
           local restore_page_mode_xpointer = self.ui.document:getXPointer() -- top of current page
           self.restore_page_mode_func = function()
-            self.ui:handleEvent(Event:new("SetViewMode", "page"))
+            UIManager:broadcastEvent(Event:new("SetViewMode", "page"))
             self.ui.rolling:onGotoXPointer(
               restore_page_mode_xpointer,
               self.selected_text_start_xpointer
             )
           end
-          self.ui:handleEvent(Event:new("SetViewMode", "scroll"))
+          UIManager:broadcastEvent(Event:new("SetViewMode", "scroll"))
         end
         -- (using rolling:onGotoViewRel(1/3) has some strange side effects)
         local scroll_distance = math.floor(self.screen_h * 1 / 3)
@@ -2101,7 +2101,7 @@ function ReaderHighlight:lookup(selected_text, selected_link)
 
   -- if we extracted text directly
   if #selected_text.text > 0 and self.hold_pos then
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new(
         "LookupWord",
         selected_text.text,
@@ -2132,7 +2132,7 @@ function ReaderHighlight:lookup(selected_text, selected_link)
     end
     logger.dbg("OCRed text:", text)
     if text and text ~= "" then
-      self.ui:handleEvent(
+      UIManager:broadcastEvent(
         Event:new("LookupWord", text, false, word_boxes, self, selected_link)
       )
     else
@@ -2457,7 +2457,7 @@ function ReaderHighlight:saveHighlight(extend_to_sentence)
     end
     local index = self.ui.annotation:addItem(item)
     self.view.footer:maybeUpdateFooter()
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("AnnotationsModified", { item, nb_highlights_added = 1 })
     )
     return index
@@ -2493,7 +2493,7 @@ end
 
 function ReaderHighlight:lookupWikipedia()
   if self.selected_text then
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new(
         "LookupWikipedia",
         util.cleanupSelectedText(self.selected_text.text)
@@ -2521,7 +2521,7 @@ function ReaderHighlight:onHighlightDictLookup()
   logger.dbg("dictionary lookup highlight")
   self:highlightFromHoldPos()
   if self.selected_text then
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("LookupWord", util.cleanupSelectedText(self.selected_text.text))
     )
   end
@@ -2569,7 +2569,7 @@ function ReaderHighlight:editHighlightStyle(index)
       end
     end
     UIManager:setDirty(self.dialog, "ui")
-    self.ui:handleEvent(Event:new("AnnotationsModified", { item }))
+    UIManager:broadcastEvent(Event:new("AnnotationsModified", { item }))
   end
   self:showHighlightStyleDialog(apply_drawer, item.drawer, index)
 end
@@ -2586,7 +2586,7 @@ function ReaderHighlight:editHighlightColor(index)
       end
     end
     UIManager:setDirty(self.dialog, "ui")
-    self.ui:handleEvent(Event:new("AnnotationsModified", { item }))
+    UIManager:broadcastEvent(Event:new("AnnotationsModified", { item }))
   end
   self:showHighlightColorDialog(apply_color, item)
 end

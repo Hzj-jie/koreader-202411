@@ -303,8 +303,8 @@ function FocusManager:onFocusMove(args)
       or not self.layout[self.selected.y][self.selected.x].is_inactive
     then
       -- we found a different object to focus
-      current_item:handleEvent(Event:new("Unfocus"))
-      self.layout[self.selected.y][self.selected.x]:handleEvent(
+      current_item:broadcastEvent(Event:new("Unfocus"))
+      self.layout[self.selected.y][self.selected.x]:broadcastEvent(
         Event:new("Focus")
       )
       -- Trigger a fast repaint, this does not count toward a flashing eink refresh
@@ -407,18 +407,18 @@ function FocusManager:moveFocusTo(x, y, focus_flags)
         --       we potentially need to be a bit heavy-handed ;).
         if current_item and current_item ~= target_item then
           -- This is the absolute best-case scenario, when self.layout's integrity is sound
-          current_item:handleEvent(Event:new("Unfocus"))
+          current_item:broadcastEvent(Event:new("Unfocus"))
         else
           -- Couldn't find the current item, or it matches the target_item: blast the whole widget container,
           -- just in case we still have a different, older widget visually focused.
           -- Can easily happen if caller calls refocusWidget *after* having manually mangled self.layout.
-          self:handleEvent(Event:new("Unfocus"))
+          self:broadcastEvent(Event:new("Unfocus"))
         end
       end
       if
         bit.band(focus_flags, FocusManager.NOT_FOCUS) ~= FocusManager.NOT_FOCUS
       then
-        target_item:handleEvent(Event:new("Focus"))
+        target_item:broadcastEvent(Event:new("Focus"))
         UIManager:setDirty(self.show_parent or self, "fast")
       end
     end
@@ -507,7 +507,7 @@ function FocusManager:_sendGestureEventToFocusedWidget(gesture)
     point.w = 0
     point.h = 0
     logger.dbg("FocusManager: Send", gesture, "to", point.x, ",", point.y)
-    UIManager:sendEvent(Event:new("Gesture", {
+    UIManager:userInput(Event:new("Gesture", {
       ges = gesture,
       pos = point,
     }))
@@ -561,7 +561,7 @@ function FocusManager:disableFocusManagement(parent)
   -- parent container will call refocusWidget to focus another one
   local row = self.layout[self.selected.y]
   if row and row[self.selected.x] then
-    row[self.selected.x]:handleEvent(Event:new("Unfocus"))
+    row[self.selected.x]:broadcastEvent(Event:new("Unfocus"))
   end
   self.layout = nil -- turn off focus feature
 end

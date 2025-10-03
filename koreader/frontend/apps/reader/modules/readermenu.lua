@@ -449,7 +449,7 @@ function ReaderMenu:onShowMenu(tab_index)
   end
 
   main_menu.touch_menu_callback = function()
-    self.ui:handleEvent(Event:new("CloseConfigMenu"))
+    UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
   end
 
   menu_container[1] = main_menu
@@ -503,10 +503,10 @@ end
 function ReaderMenu:onSwipeShowMenu(ges)
   if self.activation_menu ~= "tap" and ges.direction == "south" then
     if G_reader_settings:nilOrTrue("show_bottom_menu") then
-      self.ui:handleEvent(Event:new("ShowConfigMenu"))
+      UIManager:broadcastEvent(Event:new("ShowConfigMenu"))
     end
     self:onShowMenu(self:_getTabIndexFromLocation(ges))
-    self.ui:handleEvent(Event:new("HandledAsSwipe")) -- cancel any pan scroll made
+    UIManager:broadcastEvent(Event:new("HandledAsSwipe")) -- cancel any pan scroll made
     return true
   end
 end
@@ -514,7 +514,7 @@ end
 function ReaderMenu:onTapShowMenu(ges)
   if self.activation_menu ~= "swipe" then
     if G_reader_settings:nilOrTrue("show_bottom_menu") then
-      self.ui:handleEvent(Event:new("ShowConfigMenu"))
+      UIManager:broadcastEvent(Event:new("ShowConfigMenu"))
     end
     self:onShowMenu(self:_getTabIndexFromLocation(ges))
     return true
@@ -523,7 +523,7 @@ end
 
 function ReaderMenu:onPressMenu()
   if G_reader_settings:nilOrTrue("show_bottom_menu") then
-    self.ui:handleEvent(Event:new("ShowConfigMenu"))
+    UIManager:broadcastEvent(Event:new("ShowConfigMenu"))
   end
   self:onShowMenu()
   return true
@@ -531,7 +531,7 @@ end
 
 function ReaderMenu:onTapCloseMenu()
   self:onCloseReaderMenu()
-  self.ui:handleEvent(Event:new("CloseConfigMenu"))
+  UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
 end
 
 function ReaderMenu:onReadSettings(config)
@@ -544,7 +544,7 @@ end
 
 function ReaderMenu:onMenuSearch()
   self:onShowMenu()
-  self.menu_container[1]:onShowMenuSearch()
+  UIManager:broadcastEvent(Event:new("ShowMenuSearch"))
 end
 
 function ReaderMenu:onShowKeyboardShortcuts()

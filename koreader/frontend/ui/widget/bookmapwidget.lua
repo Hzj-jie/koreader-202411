@@ -2029,7 +2029,7 @@ function BookMapWidget:onTap(arg, ges)
     if not G_reader_settings:nilOrTrue("book_map_tap_to_page_browser") then
       self:onExit(true)
       self.ui.link:addCurrentLocationToStack()
-      self.ui:handleEvent(Event:new("GotoPage", page))
+      UIManager:broadcastEvent(Event:new("GotoPage", page))
       return true
     end
     local PageBrowserWidget = require("ui/widget/pagebrowserwidget")

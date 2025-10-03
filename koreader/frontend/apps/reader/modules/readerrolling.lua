@@ -94,7 +94,10 @@ function ReaderRolling:init()
   self:registerKeyEvents()
   self.pan_interval = time.s(1 / self.pan_rate)
 
-  table.insert(self.ui.postInitCallback, function()
+  self.onReaderInited = {}
+  self.onPostReaderReady = {}
+
+  table.insert(self.onReaderInited, function()
     self.rendering_hash = self.ui.document:getDocumentRenderingHash(true)
     self.ui.document:_readMetadata()
     if
@@ -110,7 +113,7 @@ function ReaderRolling:init()
         self.ui.document:getDocumentRenderingHash(false)
     end
   end)
-  table.insert(self.ui.postReaderReadyCallback, function()
+  table.insert(self.onPostReaderReady, function()
     self:updatePos()
     -- Disable crengine internal history, with required redraw
     self.ui.document:enableInternalHistory(false)
@@ -223,7 +226,7 @@ function ReaderRolling:onReadSettings(config)
     -- And check if we can migrate to a newest DOM version after
     -- the book is loaded (unless the user told us not to).
     if config:nilOrFalse("cre_keep_old_dom_version") then
-      self.ui:registerPostReaderReadyCallback(function()
+      table.insert(self.onPostReaderReady, function()
         self:checkXPointersAndProposeDOMVersionUpgrade()
       end)
     end
@@ -252,7 +255,7 @@ function ReaderRolling:onReadSettings(config)
       -- _gotoPercent already calls gotoPos, so no need to emit
       -- PosUpdate event in scroll mode
       if self.view.view_mode == "page" then
-        self.ui:handleEvent(
+        UIManager:broadcastEvent(
           Event:new("PageUpdate", self.ui.document:getCurrentPage())
         )
       end
@@ -262,7 +265,7 @@ function ReaderRolling:onReadSettings(config)
     self.setupXpointer = function()
       self.xpointer = self.ui.document:getXPointer()
       if self.view.view_mode == "page" then
-        self.ui:handleEvent(
+        UIManager:broadcastEvent(
           Event:new("PageUpdate", self.ui.document:getNextPage(0))
         )
       end
@@ -1077,7 +1080,7 @@ function ReaderRolling:onGotoViewRel(diff)
     local do_dim_area = math.abs(diff) == 1
     self:_gotoPos(self.current_pos + pan_diff, do_dim_area)
     if diff > 0 and old_pos == self.current_pos then
-      self.ui:handleEvent(Event:new("EndOfBook"))
+      UIManager:broadcastEvent(Event:new("EndOfBook"))
     end
   elseif self.view.view_mode == "page" then
     local page_count = self.ui.document:getVisiblePageNumberCount()
@@ -1106,7 +1109,7 @@ function ReaderRolling:onGotoViewRel(diff)
     end
     self:_gotoPage(new_page)
     if diff > 0 and old_page == self.current_page then
-      self.ui:handleEvent(Event:new("EndOfBook"))
+      UIManager:broadcastEvent(Event:new("EndOfBook"))
     end
   end
   if self.ui.document ~= nil then
@@ -1157,10 +1160,9 @@ function ReaderRolling:onUpdatePos(force)
   if self.batched_update_count > 0 then
     return
   end
-  if self.ui.postReaderReadyCallback ~= nil then -- ReaderUI:init() not yet done
+  if not self.ui:ready() then -- ReaderUI:init() not yet done
     -- Don't schedule any updatePos as long as ReaderUI:init() is
-    -- not finished (one will be called in the ui.postReaderReadyCallback
-    -- we have set above) to avoid multiple refreshes.
+    -- not finished to avoid multiple refreshes.
     return true
   end
 
@@ -1223,7 +1225,7 @@ function ReaderRolling:updatePos(force)
     -- Note: ReaderStatistics needs to get these in this order
     -- ("PageUpdate" event first, and then "DocumentRerendered").
     self:_gotoXPointer(self.xpointer)
-    self.ui:handleEvent(Event:new("DocumentRerendered"))
+    UIManager:broadcastEvent(Event:new("DocumentRerendered"))
   end
   self:onUpdateTopStatusBarMarkers()
   UIManager:setDirty(self.view.dialog, "partial")
@@ -1251,7 +1253,7 @@ function ReaderRolling:onChangeViewMode()
     -- Ensure a whole screen refresh is always enqueued
     UIManager:setDirty(self.view.dialog, "partial")
   else
-    table.insert(self.ui.postInitCallback, function()
+    table.insert(self.onReaderInited, function()
       self:_gotoXPointer(self.xpointer)
     end)
   end
@@ -1259,10 +1261,10 @@ end
 
 function ReaderRolling:onRedrawCurrentView()
   if self.view.view_mode == "page" then
-    self.ui:handleEvent(Event:new("PageUpdate", self.current_page))
+    UIManager:broadcastEvent(Event:new("PageUpdate", self.current_page))
   else
     self.current_page = self.ui.document:getCurrentPage()
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("PosUpdate", self.current_pos, self.current_page)
     )
   end
@@ -1270,7 +1272,7 @@ function ReaderRolling:onRedrawCurrentView()
 end
 
 function ReaderRolling:onSetDimensions(dimen)
-  if self.ui.postReaderReadyCallback ~= nil then
+  if not self.ui:ready() then
     -- ReaderUI:init() not yet done: just set document dimensions
     self.ui.document:setViewDimen(Screen:getSize())
     -- (what's done in the following else is done elsewhere by
@@ -1347,7 +1349,7 @@ function ReaderRolling:_gotoPos(new_pos, do_dim_area)
     self.view.dim_area:clear()
   end
   if self.current_pos and not UIManager.currently_scrolling then
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("PageChangeAnimation", new_pos > self.current_pos)
     )
   end
@@ -1356,7 +1358,7 @@ function ReaderRolling:_gotoPos(new_pos, do_dim_area)
   -- but we give it anyway to onPosUpdate so footer and statistics can
   -- keep up with page.
   self.current_page = self.ui.document:getCurrentPage()
-  self.ui:handleEvent(Event:new("PosUpdate", new_pos, self.current_page))
+  UIManager:broadcastEvent(Event:new("PosUpdate", new_pos, self.current_page))
 end
 
 function ReaderRolling:_gotoPercent(new_percent)
@@ -1387,18 +1389,18 @@ function ReaderRolling:_gotoPage(new_page, free_first_page, internal)
     end
   end
   if self.current_page then
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("PageChangeAnimation", new_page > self.current_page)
     )
   end
   self.ui.document:gotoPage(new_page, internal)
   if self.view.view_mode == "page" then
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("PageUpdate", self.ui.document:getCurrentPage())
     )
   else
     self.current_page = self.ui.document:getCurrentPage()
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new(
         "PosUpdate",
         self.ui.document:getCurrentPos(),
@@ -1901,7 +1903,7 @@ function ReaderRolling:handleRenderingDelayed()
   -- we turn pages, only on setting changes (if this would be needed,
   -- send this or another event in :handlePartialRerendering()).
   local first_partial_rerender = self.rendering_state == nil
-  self.ui:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("DocumentPartiallyRerendered", first_partial_rerender)
   )
   -- Start the automation, ensuring we'll soon be rendering in background
@@ -1951,12 +1953,12 @@ function ReaderRolling:handlePartialRerendering()
   -- At least, be sure everything knows about the current page, so we can
   -- turn pages and scroll.
   if self.view.view_mode == "page" then
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("PageUpdate", self.ui.document:getCurrentPage())
     )
   else
     self.current_page = self.ui.document:getCurrentPage()
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new(
         "PosUpdate",
         self.ui.document:getCurrentPos(),

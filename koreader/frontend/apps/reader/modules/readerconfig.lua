@@ -159,11 +159,11 @@ function ReaderConfig:onShowConfigMenu()
       self:_closeCallback()
     end,
   })
-  self.ui:handleEvent(Event:new("DisableHinting"))
+  UIManager:broadcastEvent(Event:new("DisableHinting"))
   -- show last used panel when opening config dialog
-  self.config_dialog:onShowConfigPanel(self.last_panel_index)
+  self.config_dialog:showConfigPanel(self.last_panel_index)
   UIManager:show(self.config_dialog)
-  self.ui:handleEvent(Event:new("HandledAsSwipe")) -- cancel any pan scroll made
+  UIManager:broadcastEvent(Event:new("HandledAsSwipe")) -- cancel any pan scroll made
 
   return true
 end
@@ -193,7 +193,7 @@ end
 function ReaderConfig:_closeCallback()
   self.last_panel_index = self.config_dialog.panel_index
   self.config_dialog = nil
-  self.ui:handleEvent(Event:new("RestoreHinting"))
+  UIManager:broadcastEvent(Event:new("RestoreHinting"))
 end
 
 -- event handler for readercropping

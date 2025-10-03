@@ -18,10 +18,7 @@ local Clock = InputContainer:new({
   width = Screen:getWidth(),
   height = Screen:getHeight(),
   scale_factor = 0,
-  dismiss_callback = function(self)
-    PluginShare.pause_auto_suspend = false
-    self._was_suspending = false
-  end,
+  _visible = false,
 })
 Clock.init = function(self)
   if Device:hasKeys() then
@@ -64,7 +61,7 @@ Clock.addToMainMenu = function(self, menu_items)
     text = _("Clock"),
     sorting_hint = "tools",
     callback = function()
-      return UIManager:show(self)
+      self:onClockShow()
     end,
   }
 end
@@ -96,16 +93,23 @@ Clock.onResume = function(self)
   end
   self._was_suspending = false
 end
-Clock.onAnyKeyPressed = function(self)
-  self:dismiss_callback()
-  return UIManager:close(self)
-end
 Clock.onTapClose = function(self)
-  self:dismiss_callback()
-  return UIManager:close(self)
+  if not self._visible then
+    return false
+  end
+  PluginShare.pause_auto_suspend = false
+  self._was_suspending = false
+  self._visible = false
+  UIManager:close(self)
+  return true
+end
+Clock.onAnyKeyPressed = function(self)
+  return self:onTapClose()
 end
 Clock.onClockShow = function(self)
-  return UIManager:show(self)
+  self._visible = true
+  UIManager:show(self)
+  return true
 end
 Clock.onDispatcherRegisterAction = function(self)
   return Dispatcher:registerAction("clock_show", {

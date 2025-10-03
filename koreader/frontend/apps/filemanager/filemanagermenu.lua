@@ -3,6 +3,7 @@ local CenterContainer = require("ui/widget/container/centercontainer")
 local CommonMenu = require("apps/common_menu")
 local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
+local Event = require("ui/event")
 local FFIUtil = require("ffi/util")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local KeyValuePage = require("ui/widget/keyvaluepage")
@@ -1132,7 +1133,7 @@ end
 
 function FileManagerMenu:onMenuSearch()
   self:onShowMenu()
-  self.menu_container[1]:onShowMenuSearch()
+  UIManager:broadcastEvent(Event:new("ShowMenuSearch"))
 end
 
 function FileManagerMenu:registerToMainMenu(widget)

@@ -860,7 +860,7 @@ function ImageViewer:onSaveImageView()
   local screenshot_dir = Screenshoter:getScreenshotDir()
   local screenshot_name =
     os.date(screenshot_dir .. "/ImageViewer_%Y-%m-%d_%H%M%S.png")
-  UIManager:sendEvent(
+  UIManager:broadcastEvent(
     Event:new("Screenshot", screenshot_name, restore_settings_func)
   )
   return true

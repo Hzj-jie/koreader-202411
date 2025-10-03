@@ -83,9 +83,6 @@ local ReaderUI = InputContainer:extend({
 
   -- password for document unlock
   password = nil,
-
-  postInitCallback = nil,
-  postReaderReadyCallback = nil,
 })
 
 function ReaderUI:registerModule(name, ui_module)
@@ -96,23 +93,15 @@ function ReaderUI:registerModule(name, ui_module)
   table.insert(self, ui_module)
 end
 
-function ReaderUI:registerPostInitCallback(callback)
-  table.insert(self.postInitCallback, callback)
-end
-
-function ReaderUI:registerPostReaderReadyCallback(callback)
-  table.insert(self.postReaderReadyCallback, callback)
-end
-
 function ReaderUI:init()
+  UIManager:show(self, self.seamless and "ui" or "full")
+
   -- cap screen refresh on pan to 2 refreshes per second
   local pan_rate = Screen.low_pan_rate and 2.0 or 30.0
 
   Input:inhibitInput(true) -- Inhibit any past and upcoming input events.
   Device:setIgnoreInput(true) -- Avoid ANRs on Android with unprocessed events.
 
-  self.postInitCallback = {}
-  self.postReaderReadyCallback = {}
   -- if we are not the top level dialog ourselves, it must be given in the table
   if not self.dialog then
     self.dialog = self
@@ -365,8 +354,9 @@ function ReaderUI:init()
     if self.document.setupDefaultView then
       self.document:setupDefaultView()
     end
-    -- make sure we render document first before calling any callback
-    self:registerPostInitCallback(function()
+    -- make sure we render document first before calling any callback, so using
+    -- onReadSettings which happens before onReaderInited.
+    self.onReadSettings = function()
       local start_time = time.now()
       if not self.document:loadDocument() then
         self:dealWithLoadDocumentFailure()
@@ -380,7 +370,9 @@ function ReaderUI:init()
 
       -- used to read additional settings after the document has been
       -- loaded (but not rendered yet)
-      self:handleEvent(Event:new("PreRenderDocument", self.doc_settings))
+      UIManager:broadcastEvent(
+        Event:new("PreRenderDocument", self.doc_settings)
+      )
 
       start_time = time.now()
       self.document:render()
@@ -393,7 +385,7 @@ function ReaderUI:init()
 
       -- Uncomment to output the built DOM (for debugging)
       -- logger.dbg(self.document:getHTMLFromXPointer(".0", 0x6830))
-    end)
+    end
     -- styletweak controller (must be before typeset controller)
     self:registerModule(
       "styletweak",
@@ -586,16 +578,12 @@ function ReaderUI:init()
 
   -- Allow others to change settings based on external factors
   -- Must be called after plugins are loaded & before setting are read.
-  self:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("DocSettingsLoad", self.doc_settings, self.document)
   )
   -- we only read settings after all the widgets are initialized
-  self:handleEvent(Event:new("ReadSettings", self.doc_settings))
-
-  for _, v in ipairs(self.postInitCallback) do
-    v()
-  end
-  self.postInitCallback = nil
+  UIManager:broadcastEvent(Event:new("ReadSettings", self.doc_settings))
+  UIManager:broadcastEvent(Event:new("ReaderInited"))
 
   -- Now that document is loaded, store book metadata in settings.
   local props = self.document:getProps()
@@ -625,12 +613,9 @@ function ReaderUI:init()
   -- After initialisation notify that document is loaded and rendered
   -- CREngine only reports correct page count after rendering is done
   -- Need the same event for PDF document
-  self:handleEvent(Event:new("ReaderReady", self.doc_settings))
+  UIManager:broadcastEvent(Event:new("ReaderReady", self.doc_settings))
+  UIManager:broadcastEvent(Event:new("PostReaderReady"))
 
-  for _, v in ipairs(self.postReaderReadyCallback) do
-    v()
-  end
-  self.postReaderReadyCallback = nil
   self.reloading = nil
 
   Device:setIgnoreInput(false) -- Allow processing of events (on Android).
@@ -834,6 +819,7 @@ function ReaderUI:doShowReader(file, provider, seamless)
     covers_fullscreen = true, -- hint for UIManager:_repaint()
     document = document,
     reloading = self.reloading,
+    seamless = seamless,
   })
 
   Screen:setWindowTitle(reader.doc_props.display_title)
@@ -847,8 +833,6 @@ function ReaderUI:doShowReader(file, provider, seamless)
   if FileManager.instance then
     FileManager.instance:onExit()
   end
-
-  UIManager:show(reader, seamless and "ui" or "full")
 end
 
 function ReaderUI:unlockDocumentWithPassword(document, try_again)
@@ -902,7 +886,13 @@ function ReaderUI:onScreenResize(dimen)
 end
 
 function ReaderUI:saveSettings()
-  self:handleEvent(Event:new("SaveSettings"))
+  -- Note, this behavior should only impact ReaderUI and its modules but not
+  -- other components, since it's called by UIManager:close /
+  -- widget:broadcastEvent("FlushSettings"). I.e. only the widget and its sub
+  -- widgets need to flush settings.
+  -- Note, even calling UIManager:broadcastEvent, it shouldn't make noticeable
+  -- difference, as the UIManager should only know ReaderUI in the case.
+  self:broadcastEvent(Event:new("SaveSettings"))
   self.doc_settings:flush()
   G_reader_settings:flush()
 end
@@ -934,7 +924,7 @@ function ReaderUI:onExit(full_refresh)
     -- Serialize the most recently displayed page for later launch
     DocCache:serialize(self.document.file)
     logger.dbg("closing document")
-    self:handleEvent(Event:new("CloseDocument"))
+    UIManager:broadcastEvent(Event:new("CloseDocument"))
     if
       self.document:isEdited() and not self.highlight.highlight_write_into_pdf
     then
@@ -942,7 +932,12 @@ function ReaderUI:onExit(full_refresh)
     end
     self:closeDocument()
   end
-  UIManager:close(self.dialog, full_refresh ~= false and "full")
+  if self.dialog == self then
+    UIManager:close(self, full_refresh ~= false and "full")
+  else
+    UIManager:close(self)
+    UIManager:close(self.dialog, full_refresh ~= false and "full")
+  end
 end
 
 function ReaderUI:onClose()
@@ -1003,9 +998,9 @@ function ReaderUI:reloadDocument(after_close_callback, seamless)
   self.dithered = nil
   self.reloading = true
 
-  self:handleEvent(Event:new("CloseReaderMenu"))
-  self:handleEvent(Event:new("CloseConfigMenu"))
-  self:handleEvent(Event:new("PreserveCurrentSession")) -- don't reset statistics' start_current_period
+  UIManager:broadcastEvent(Event:new("CloseReaderMenu"))
+  UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
+  UIManager:broadcastEvent(Event:new("PreserveCurrentSession")) -- don't reset statistics' start_current_period
   self.highlight:onExit() -- close highlight dialog if any
   self:onExit(false)
   if after_close_callback then
@@ -1025,8 +1020,8 @@ function ReaderUI:switchDocument(new_file, seamless)
   self.tearing_down = true
   self.dithered = nil
 
-  self:handleEvent(Event:new("CloseReaderMenu"))
-  self:handleEvent(Event:new("CloseConfigMenu"))
+  UIManager:broadcastEvent(Event:new("CloseReaderMenu"))
+  UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
   self.highlight:onExit() -- close highlight dialog if any
   self:onExit(false)
 

@@ -668,9 +668,9 @@ function KOSync:_syncToProgress(progress)
   end
 
   if self.ui.document.info.has_pages then
-    self.ui:handleEvent(Event:new("GotoPage", tonumber(progress)))
+    UIManager:broadcastEvent(Event:new("GotoPage", tonumber(progress)))
   else
-    self.ui:handleEvent(Event:new("GotoXPointer", progress))
+    UIManager:broadcastEvent(Event:new("GotoXPointer", progress))
   end
 end
 

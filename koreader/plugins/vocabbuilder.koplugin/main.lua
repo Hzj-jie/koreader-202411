@@ -2177,7 +2177,7 @@ function VocabularyBuilderWidget:getVocabItems()
     table.insert(vocab_items, {
       callback = function(item)
         self.current_lookup_word = item.word
-        self.ui:handleEvent(
+        UIManager:broadcastEvent(
           Event:new("LookupWord", item.word, true, nil, nil, nil)
         )
       end,
@@ -2230,7 +2230,7 @@ function VocabBuilder:onDictButtonsReady(dict_popup, buttons)
         local book_title = (
           dict_popup.ui.doc_props and dict_popup.ui.doc_props.display_title
         ) or _("Dictionary lookup")
-        dict_popup.ui:handleEvent(
+        UIManager:broadcastEvent(
           Event:new("WordLookedUp", dict_popup.lookupword, book_title, true)
         ) -- is_manual: true
         local button = dict_popup.button_table.button_by_id["vocabulary"]
