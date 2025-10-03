@@ -79,20 +79,6 @@ local ReaderStatistics = Widget:extend({
   doc_md5 = nil,
 })
 
--- NOTE: This is used in a migration script by ui/data/onetime_migration,
---     which is why it's public.
-ReaderStatistics.default_settings = {
-  min_sec = DEFAULT_MIN_READ_SEC,
-  max_sec = DEFAULT_MAX_READ_SEC,
-  freeze_finished_books = false,
-  is_enabled = true,
-  convert_to_db = nil,
-  calendar_start_day_of_week = DEFAULT_CALENDAR_START_DAY_OF_WEEK,
-  calendar_nb_book_spans = DEFAULT_CALENDAR_NB_BOOK_SPANS,
-  calendar_show_histogram = true,
-  calendar_browse_future_months = false,
-}
-
 function ReaderStatistics:onDispatcherRegisterActions()
   Dispatcher:registerAction("toggle_statistics", {
     category = "none",
@@ -156,7 +142,17 @@ function ReaderStatistics:init()
   self:resetVolatileStats()
 
   self.settings = G_reader_settings:readSetting("statistics")
-    or self.default_settings
+    or {
+      min_sec = DEFAULT_MIN_READ_SEC,
+      max_sec = DEFAULT_MAX_READ_SEC,
+      freeze_finished_books = false,
+      is_enabled = true,
+      convert_to_db = nil,
+      calendar_start_day_of_week = DEFAULT_CALENDAR_START_DAY_OF_WEEK,
+      calendar_nb_book_spans = DEFAULT_CALENDAR_NB_BOOK_SPANS,
+      calendar_show_histogram = true,
+      calendar_browse_future_months = false,
+    }
 
   self.ui.menu:registerToMainMenu(self)
   self:onDispatcherRegisterActions()

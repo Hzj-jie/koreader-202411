@@ -1276,13 +1276,7 @@ function Gestures:setupGesture(ges)
   end
 end
 
-function Gestures:registerGesture(
-  ges,
-  ges_type,
-  zone,
-  overrides,
-  direction
-)
+function Gestures:registerGesture(ges, ges_type, zone, overrides, direction)
   self.ui:registerTouchZones({
     {
       id = ges,

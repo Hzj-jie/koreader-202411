@@ -18,9 +18,7 @@ local ReaderTypography = WidgetContainer:extend({})
 -- This is used to migrate old hyph settings, and to show the currently
 -- used hyph dict language in the hyphenation menu.
 -- It will be completed with info from the LANGUAGES table below.
--- NOTE: Actual migration is handled in ui/data/onetime_migration,
---       which is why this hash is public.
-ReaderTypography.HYPH_DICT_NAME_TO_LANG_NAME_TAG = {
+local HYPH_DICT_NAME_TO_LANG_NAME_TAG = {
   ["@none"] = { "@none", "en" },
   ["@softhyphens"] = { "@softhyphens", "en" },
   ["@algorithm"] = { "@algorithm", "en" },
@@ -386,7 +384,7 @@ local LANGUAGES = {
   },
 }
 
-ReaderTypography.DEFAULT_LANG_TAG = "en-US" -- English_US.pattern is loaded by default in crengine
+local DEFAULT_LANG_TAG = "en-US" -- English_US.pattern is loaded by default in crengine
 
 local LANG_TAG_TO_LANG_NAME = {}
 local LANG_ALIAS_TO_LANG_TAG = {}
@@ -400,8 +398,7 @@ for __, v in ipairs(LANGUAGES) do
     end
   end
   if hyph_filename then
-    ReaderTypography.HYPH_DICT_NAME_TO_LANG_NAME_TAG[hyph_filename] =
-      { lang_name, lang_tag }
+    HYPH_DICT_NAME_TO_LANG_NAME_TAG[hyph_filename] = { lang_name, lang_tag }
   end
 end
 -- Make lang aliases available to other modules (can be used by Translator)
@@ -1011,7 +1008,7 @@ end
 
 function ReaderTypography:getCurrentDefaultHyphDictLanguage()
   local hyph_dict_name = self.ui.document:getTextMainLangDefaultHyphDictionary()
-  local dict_info = self.HYPH_DICT_NAME_TO_LANG_NAME_TAG[hyph_dict_name]
+  local dict_info = HYPH_DICT_NAME_TO_LANG_NAME_TAG[hyph_dict_name]
   if dict_info then
     hyph_dict_name = dict_info[1]
   else -- shouldn't happen
@@ -1075,7 +1072,7 @@ function ReaderTypography:onReadSettings(config)
   -- Migrate old readerhyphenation setting, if one was set
   if config:hasNot("text_lang") and config:has("hyph_alg") then
     local hyph_alg = config:readSetting("hyph_alg")
-    local dict_info = self.HYPH_DICT_NAME_TO_LANG_NAME_TAG[hyph_alg]
+    local dict_info = HYPH_DICT_NAME_TO_LANG_NAME_TAG[hyph_alg]
     if dict_info then
       config:saveSetting("text_lang", dict_info[2])
       -- Set the other settings if the default hyph algo happens
@@ -1186,7 +1183,7 @@ function ReaderTypography:onReadSettings(config)
   else
     self.allow_doc_lang_tag_override = true
     -- None decided, use default (shouldn't be reached)
-    self.text_lang_tag = self.DEFAULT_LANG_TAG
+    self.text_lang_tag = DEFAULT_LANG_TAG
     logger.dbg("Typography lang: no lang set, using", self.text_lang_tag)
   end
   self.ui.document:setTextMainLang(self.text_lang_tag)

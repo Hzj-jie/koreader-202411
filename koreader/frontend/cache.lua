@@ -176,26 +176,13 @@ function Cache:memoryPressureCheck()
   end
 end
 
--- Refresh the disk snapshot (mainly used by ui/data/onetime_migration)
+-- Refresh the disk snapshot
 function Cache:refreshSnapshot()
   if not self.disk_cache then
     return
   end
 
   self.cached = self:_getDiskCache()
-end
-
--- Evict the disk cache (ditto)
-function Cache:clearDiskCache()
-  if not self.disk_cache then
-    return
-  end
-
-  for _, file in pairs(self.cached) do
-    os.remove(file)
-  end
-
-  self:refreshSnapshot()
 end
 
 return Cache
