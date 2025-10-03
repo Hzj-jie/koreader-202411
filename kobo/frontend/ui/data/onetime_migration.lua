@@ -1,1 +1,0 @@
-../../../../koreader/frontend/ui/data/onetime_migration.lua

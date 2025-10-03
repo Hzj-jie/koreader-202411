@@ -1,1 +1,0 @@
-../../../../koreader/frontend/ui/data/settings_migration.lua

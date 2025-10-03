@@ -50,20 +50,6 @@ local CHECKSUM_METHOD = {
 -- Debounce push/pull attempts
 local API_CALL_DEBOUNCE_DELAY = time.s(25)
 
--- NOTE: This is used in a migration script by ui/data/onetime_migration,
---     which is why it's public.
-KOSync.default_settings = {
-  custom_server = nil,
-  username = nil,
-  userkey = nil,
-  -- Do *not* default to auto-sync, as wifi may not be on at all times, and the nagging enabling this may cause requires careful consideration.
-  auto_sync = false,
-  pages_before_update = nil,
-  sync_forward = SYNC_STRATEGY.PROMPT,
-  sync_backward = SYNC_STRATEGY.DISABLE,
-  checksum_method = CHECKSUM_METHOD.BINARY,
-}
-
 function KOSync:init()
   self.push_timestamp = 0
   self.pull_timestamp = 0
@@ -81,7 +67,17 @@ function KOSync:init()
   end
 
   self.settings = G_reader_settings:readSetting("kosync")
-    or self.default_settings
+    or {
+      custom_server = nil,
+      username = nil,
+      userkey = nil,
+      -- Do *not* default to auto-sync, as wifi may not be on at all times, and the nagging enabling this may cause requires careful consideration.
+      auto_sync = false,
+      pages_before_update = nil,
+      sync_forward = SYNC_STRATEGY.PROMPT,
+      sync_backward = SYNC_STRATEGY.DISABLE,
+      checksum_method = CHECKSUM_METHOD.BINARY,
+    }
   self.device_id = G_reader_settings:readSetting("device_id")
 
   -- Disable auto-sync if beforeWifiAction was reset to "prompt" behind our back...

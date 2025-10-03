@@ -176,11 +176,6 @@ CanvasContext:init(Device)
 -- Update the version log file if there was an update or the device has changed
 Version:updateVersionLog(Device.model)
 
--- Handle one time migration stuff (settings, deprecation, ...) in case of an upgrade...
-do
-  dofile("frontend/ui/data/onetime_migration.lua")
-end
-
 -- UI mirroring for RTL languages, and text shaping configuration
 local Bidi = require("ui/bidi")
 Bidi.setup(lang_locale)
