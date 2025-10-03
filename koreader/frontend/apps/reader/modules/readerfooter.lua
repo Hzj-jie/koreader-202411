@@ -500,9 +500,7 @@ local ReaderFooter = WidgetContainer:extend({
   textGeneratorMap = footerTextGeneratorMap,
 })
 
--- NOTE: This is used in a migration script by ui/data/onetime_migration,
---     which is why it's public.
-ReaderFooter.default_settings = {
+local DEFAULT_SETTINGS = {
   disable_progress_bar = false, -- enable progress bar by default
   chapter_progress_bar = false, -- the whole book
   disabled = false,
@@ -556,8 +554,7 @@ ReaderFooter.default_settings = {
 }
 
 function ReaderFooter:init()
-  self.settings = G_reader_settings:readSetting("footer")
-    or self.default_settings
+  self.settings = G_reader_settings:readSetting("footer") or DEFAULT_SETTINGS
 
   self.additional_footer_content = {} -- array, where additional header content can be inserted.
 
@@ -1368,13 +1365,12 @@ function ReaderFooter:addToMainMenu(menu_items)
             callback = function(touchmenu_instance)
               local value, value_min, value_max, default_value
               if self.settings.progress_style_thin then
-                default_value = self.default_settings.progress_style_thin_height
+                default_value = DEFAULT_SETTINGS.progress_style_thin_height
                 value = self.settings.progress_style_thin_height
                 value_min = 1
                 value_max = 12
               else
-                default_value =
-                  self.default_settings.progress_style_thick_height
+                default_value = DEFAULT_SETTINGS.progress_style_thick_height
                 value = self.settings.progress_style_thick_height
                 value_min = 5
                 value_max = 28
@@ -1423,7 +1419,7 @@ function ReaderFooter:addToMainMenu(menu_items)
             value_min = 0,
             value_max = 140, -- max creoptions h_page_margins
             value_hold_step = 5,
-            default_value = self.default_settings.progress_margin_width,
+            default_value = DEFAULT_SETTINGS.progress_margin_width,
             keep_shown_on_apply = true,
             callback = function(spin)
               self.settings.progress_margin_width = spin.value
@@ -1693,7 +1689,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
                 value = self.settings.text_font_size,
                 value_min = 8,
                 value_max = 36,
-                default_value = self.default_settings.text_font_size,
+                default_value = DEFAULT_SETTINGS.text_font_size,
                 keep_shown_on_apply = true,
                 callback = function(spin)
                   self.settings.text_font_size = spin.value
@@ -1801,7 +1797,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
             value = self.settings.container_height,
             value_min = 7,
             value_max = 98,
-            default_value = self.default_settings.container_height,
+            default_value = DEFAULT_SETTINGS.container_height,
             title_text = _("Items container height"),
             keep_shown_on_apply = true,
             callback = function(spin)
@@ -1829,7 +1825,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
             value = self.settings.container_bottom_padding,
             value_min = 0,
             value_max = 49,
-            default_value = self.default_settings.container_bottom_padding,
+            default_value = DEFAULT_SETTINGS.container_bottom_padding,
             title_text = _("Container bottom margin"),
             keep_shown_on_apply = true,
             callback = function(spin)
@@ -1854,7 +1850,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
       text_func = function()
         if
           self.settings.battery_hide_threshold
-          <= self.default_settings.battery_hide_threshold
+          <= DEFAULT_SETTINGS.battery_hide_threshold
         then
           return T(
             _("Hide battery item when higher than: %1\xE2\x80\xAF%"),
@@ -1866,13 +1862,13 @@ With this feature enabled, the current page is factored in, resulting in the cou
       end,
       checked_func = function()
         return self.settings.battery_hide_threshold
-          <= self.default_settings.battery_hide_threshold
+          <= DEFAULT_SETTINGS.battery_hide_threshold
       end,
       enabled_func = function()
         return self.settings.all_at_once == true
       end,
       callback = function(touchmenu_instance)
-        local max_pct = self.default_settings.battery_hide_threshold
+        local max_pct = DEFAULT_SETTINGS.battery_hide_threshold
         local battery_threshold = SpinWidget:new({
           value = math.min(self.settings.battery_hide_threshold, max_pct),
           value_min = 0,
@@ -2088,7 +2084,7 @@ function ReaderFooter:genItemMaxWidthMenuItems(title_text, item_text, setting)
         value_step = 5,
         value_hold_step = 20,
         unit = "%",
-        default_value = self.default_settings[setting],
+        default_value = DEFAULT_SETTINGS[setting],
         keep_shown_on_apply = true,
         callback = function(spin)
           self.settings[setting] = spin.value
@@ -2521,7 +2517,7 @@ function ReaderFooter:onReaderReady()
   if self.settings.progress_margin then -- progress bar margins same as book margins
     if self.ui.paging then -- enforce default static margins
       self.settings.progress_margin_width =
-        self.default_settings.progress_margin_width
+        DEFAULT_SETTINGS.progress_margin_width
     else -- current book margins
       local h_margins = self.ui.document.configurable.h_page_margins
       self.settings.progress_margin_width =

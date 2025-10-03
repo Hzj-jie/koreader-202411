@@ -47,7 +47,6 @@ local T = ffiUtil.template
 
 local FileManager = InputContainer:extend({
   title = _("KOReader"),
-  active_widgets = nil, -- array
   root_path = lfs.currentdir(),
 
   clipboard = nil, -- for single file operations
@@ -421,30 +420,26 @@ function FileManager:registerKeyEvents()
   end
 end
 
-function FileManager:registerModule(name, ui_module, always_active)
+function FileManager:registerModule(name, ui_module)
   if name then
     self[name] = ui_module
     ui_module.name = "filemanager" .. name
   end
   table.insert(self, ui_module)
-  if always_active then
-    -- to get events even when hidden
-    table.insert(self.active_widgets, ui_module)
-  end
 end
 
 -- NOTE: The only thing that will *ever* instantiate a new FileManager object is our very own showFiles below!
 function FileManager:init()
   self:setupLayout()
-  self.active_widgets = {}
 
+  -- screenshot controller, it has the highest priority to receive the user
+  -- input, e.g. swipe or two-finger-tap
   self:registerModule(
     "screenshot",
     Screenshoter:new({
       prefix = "FileManager",
       ui = self,
-    }),
-    true
+    })
   )
 
   self:registerModule("menu", self.menu)
@@ -488,18 +483,7 @@ function FileManager:init()
   self:handleEvent(Event:new("SetDimensions", self.dimen))
   self:handleEvent(Event:new("PathChanged", self.file_chooser.path))
 
-  if FileManager.instance == nil then
-    logger.dbg("Spinning up new FileManager instance", tostring(self))
-  else
-    -- Should never happen, given what we did in showFiles...
-    logger.err(
-      "FileManager instance mismatch! Opened",
-      tostring(self),
-      "while we still have an existing instance:",
-      tostring(FileManager.instance),
-      debug.traceback()
-    )
-  end
+  assert(FileManager.instance == nil)
   FileManager.instance = self
 end
 
@@ -858,16 +842,8 @@ function FileManager:onFlushSettings()
 end
 
 function FileManager:onClose()
-  if FileManager.instance == self then
-    logger.dbg("Tearing down FileManager", tostring(self))
-  else
-    logger.warn(
-      "FileManager instance mismatch! Closed",
-      tostring(self),
-      "while the active one is supposed to be",
-      tostring(FileManager.instance)
-    )
-  end
+  -- In case someone broadcasts Exit or Close multiple times.
+  assert(FileManager.instance == self or FileManager.instance == nil)
   FileManager.instance = nil
 end
 
@@ -1372,15 +1348,7 @@ end
 --- @note: This is the *only* safe way to instantiate a new FileManager instance!
 function FileManager:showFiles(path, focused_file, selected_files)
   -- Warn about and close any pre-existing FM instances first...
-  if FileManager.instance then
-    logger.warn(
-      "FileManager instance mismatch! Tried to spin up a new instance, while we still have an existing one:",
-      tostring(FileManager.instance)
-    )
-    -- Close the old one first!
-    FileManager.instance:onExit()
-  end
-
+  assert(FileManager.instance == nil)
   path = ffiUtil.realpath(path or G_named_settings.lastdir())
   G_reader_settings:saveSetting("lastdir", path)
   self:setRotationMode()

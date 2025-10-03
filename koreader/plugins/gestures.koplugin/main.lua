@@ -898,7 +898,7 @@ function Gestures:setupGesture(ges)
   local ges_type
   local zone
   local overrides
-  local direction, distance
+  local direction
 
   local zone_fullscreen = {
     ratio_x = 0,
@@ -1224,7 +1224,6 @@ function Gestures:setupGesture(ges)
     }
     direction =
       { northeast = true, northwest = true, southeast = true, southwest = true }
-    distance = "short"
     if self.is_docless then
       overrides = {
         "filemanager_ext_tap",
@@ -1255,7 +1254,7 @@ function Gestures:setupGesture(ges)
   else
     return
   end
-  self:registerGesture(ges, ges_type, zone, overrides, direction, distance)
+  self:registerGesture(ges, ges_type, zone, overrides, direction)
   -- make dummy zone to disable panning and panning_release when gesture is swipe
   if ges_type == "swipe" and ges ~= "short_diagonal_swipe" then
     local pan_gesture = ges .. "_pan"
@@ -1265,37 +1264,25 @@ function Gestures:setupGesture(ges)
       "pan",
       zone,
       overrides_swipe_pan,
-      direction,
-      distance
+      direction
     )
     self:registerGesture(
       pan_release_gesture,
       "pan_release",
       zone,
       overrides_swipe_pan_release,
-      direction,
-      distance
+      direction
     )
   end
 end
 
-function Gestures:registerGesture(
-  ges,
-  ges_type,
-  zone,
-  overrides,
-  direction,
-  distance
-)
+function Gestures:registerGesture(ges, ges_type, zone, overrides, direction)
   self.ui:registerTouchZones({
     {
       id = ges,
       ges = ges_type,
       screen_zone = zone,
       handler = function(gest)
-        if distance == "short" and gest.distance > Screen:scaleBySize(300) then
-          return
-        end
         if direction and not direction[gest.direction] then
           return
         end

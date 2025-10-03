@@ -21,7 +21,8 @@ local _ = require("gettext")
 -- It contains at least following items:
 -- when: number, string or function
 --   number: the delay in seconds
---   string: "best-effort" - the job will be started when there is no other jobs
+--   string: "asap"        - the job will be executed as soon as possible.
+--           "best-effort" - the job will be started when there is no other jobs
 --                           to be executed and was not executed during the last
 --                           minute.
 --           "idle"        - the job will be started when there is no other jobs
@@ -115,12 +116,7 @@ function BackgroundRunner:_shouldRepeat(job)
     return job.repeated
   end
   if type(job.repeated) == "function" then
-    local status, result = pcall(job.repeated)
-    if status then
-      return result
-    end
-    logger.warn("job.repeated failed, ", _debugJobStr(job))
-    return false
+    return job.repeated()
   end
   if type(job.repeated) == "number" then
     job.repeated = job.repeated - 1
@@ -155,26 +151,28 @@ function BackgroundRunner:_finishJob(job)
     logger.info("job ", _debugJobStr(job), " will not be repeated.")
   end
   if type(job.callback) == "function" then
-    pcall(job.callback, job)
+    job.callback(job)
   end
 end
 
 --- Executes |job|.
 -- @treturn boolean true if job is valid.
 function BackgroundRunner:_executeJob(job)
-  if job == nil then
-    return false
-  end
+  assert(job ~= nil)
   if job.executable == nil then
+    logger.dbg(
+      "BackgroundRunner: job ",
+      _debugJobStr(job),
+      " has no executable."
+    )
     return false
   end
 
   if type(job.executable) == "string" then
-    if CommandRunner:pending() then
+    if not CommandRunner:pending() then
       -- Full background CommandRunner supports only one job.
-      return false
+      CommandRunner:start(job)
     end
-    CommandRunner:start(job)
     return true
   end
   if type(job.executable) == "function" then
@@ -196,6 +194,11 @@ function BackgroundRunner:_executeJob(job)
     self:_finishJob(job)
     return true
   end
+  logger.dbg(
+    "BackgroundRunner: job ",
+    _debugJobStr(job),
+    " has no valid executable."
+  )
   return false
 end
 
@@ -212,9 +215,17 @@ function BackgroundRunner:_poll()
   self:_finishJob(result)
 end
 
-function BackgroundRunner:_executeRound(round)
-  assert(round == 0 or round == 1 or round == 2)
-  local executed_jobs = 0
+function BackgroundRunner:_execute()
+  logger.dbg("BackgroundRunner: _execute()")
+  -- The BackgroundRunner always needs to be rescheduled after running an
+  -- _execute.
+  self.scheduled = false
+  if PluginShare.stopBackgroundRunner == true then
+    logger.dbg("BackgroundRunnerWidget: skip running")
+    return
+  end
+  self:_poll()
+
   -- Change of #PluginShare.backgroundJobs during the loop is very rare, make it
   -- simple.
   for _ = 1, #PluginShare.backgroundJobs do
@@ -225,40 +236,31 @@ function BackgroundRunner:_executeRound(round)
     local should_execute = false
     local should_ignore = false
     if type(job.when) == "function" then
-      if round == 0 then
-        local status, result = pcall(job.when)
-        if status then
-          should_execute = result
-        else
-          logger.warn("job.when failed, ", _debugJobStr(job))
-          should_ignore = true
-        end
-      end
+      should_execute = job.when()
     elseif type(job.when) == "number" then
-      if round == 0 then
-        if job.when >= 0 then
-          -- Interval of two runs is 2 sec, so set the minimum allowance to 3
-          -- sec to ensure all the jobs have a chance to run.
-          if job.when < 3 then
-            logger.warn(
-              "job.when is less than 3 seconds, ",
-              "changing to 3 seconds, ",
-              _debugJobStr(job)
-            )
-            job.when = 3
-          end
-          should_execute = (time.now() - job.insert_time >= time.s(job.when))
-        else
-          logger.warn("ignore negative job.when, ", _debugJobStr(job))
-          should_ignore = true
+      if job.when >= 0 then
+        -- Interval of two runs is 1 sec.
+        if job.when < 1 then
+          logger.warn(
+            "job.when is less than 1 seconds, ",
+            "changing to 1 seconds, ",
+            _debugJobStr(job)
+          )
+          job.when = 1
         end
+        should_execute = (time.now() - job.insert_time >= time.s(job.when))
+      else
+        logger.warn("ignore negative job.when, ", _debugJobStr(job))
+        should_ignore = true
       end
     elseif type(job.when) == "string" then
-      if job.when == "best-effort" then
-        should_execute = (round == 1)
-          and (time.now() - job.insert_time >= time.s(60))
+      if job.when == "asap" then
+        should_execute = true
+      elseif job.when == "best-effort" then
+        -- TODO: Implement a better best-effort strategy.
+        should_execute = (time.now() - job.insert_time >= time.s(60))
       elseif job.when == "idle" then
-        should_execute = (round == 2) and PluginShare.DeviceIdling
+        should_execute = PluginShare.DeviceIdling
       else
         logger.warn("ignore unrecognized job.when, ", _debugJobStr(job))
         should_ignore = true
@@ -271,32 +273,11 @@ function BackgroundRunner:_executeRound(round)
     if should_execute then
       logger.dbg("BackgroundRunner: run job ", _debugJobStr(job))
       assert(not should_ignore)
-      if self:_executeJob(job) then
-        executed_jobs = executed_jobs + 1
-      end
+      self:_executeJob(job)
     elseif not should_ignore then
+      -- _finishJob would insert a clone, so this insert is only needed if the
+      -- job wasn't executed.
       table.insert(PluginShare.backgroundJobs, job)
-    end
-  end
-  return executed_jobs
-end
-
-function BackgroundRunner:_execute()
-  logger.dbg("BackgroundRunner: _execute()")
-  -- The BackgroundRunner always needs to be rescheduled after running an
-  -- _execute.
-  self.scheduled = false
-  if PluginShare.stopBackgroundRunner == true then
-    logger.dbg("BackgroundRunnerWidget: skip running")
-    return
-  end
-  self:_poll()
-  -- round == 0, when is number
-  --          1, when is 'best-effort'
-  --          2, when is 'idle'
-  for round = 0, 2 do
-    if self:_executeRound(round) > 0 then
-      break
     end
   end
 
@@ -314,7 +295,7 @@ function BackgroundRunner:schedule()
   end
   logger.dbg("BackgroundRunnerWidget: start running")
   self.scheduled = true
-  UIManager:scheduleIn(2, function()
+  UIManager:scheduleIn(1, function()
     self:_execute()
   end)
 end

@@ -60,7 +60,6 @@ local ReaderView = require("apps/reader/modules/readerview")
 local ReaderWikipedia = require("apps/reader/modules/readerwikipedia")
 local ReaderZooming = require("apps/reader/modules/readerzooming")
 local Screenshoter = require("ui/widget/screenshoter")
-local SettingsMigration = require("ui/data/settings_migration")
 local UIManager = require("ui/uimanager")
 local ffiUtil = require("ffi/util")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
@@ -75,7 +74,6 @@ local T = ffiUtil.template
 
 local ReaderUI = InputContainer:extend({
   name = "ReaderUI",
-  active_widgets = nil, -- array
 
   -- if we have a parent container, it must be referenced for now
   dialog = nil,
@@ -90,16 +88,12 @@ local ReaderUI = InputContainer:extend({
   postReaderReadyCallback = nil,
 })
 
-function ReaderUI:registerModule(name, ui_module, always_active)
+function ReaderUI:registerModule(name, ui_module)
   if name then
     self[name] = ui_module
     ui_module.name = "reader" .. name
   end
   table.insert(self, ui_module)
-  if always_active then
-    -- to get events even when hidden
-    table.insert(self.active_widgets, ui_module)
-  end
 end
 
 function ReaderUI:registerPostInitCallback(callback)
@@ -111,8 +105,6 @@ function ReaderUI:registerPostReaderReadyCallback(callback)
 end
 
 function ReaderUI:init()
-  self.active_widgets = {}
-
   -- cap screen refresh on pan to 2 refreshes per second
   local pan_rate = Screen.low_pan_rate and 2.0 or 30.0
 
@@ -127,8 +119,6 @@ function ReaderUI:init()
   end
 
   self.doc_settings = DocSettings:open(self.document.file)
-  -- Handle local settings migration
-  SettingsMigration:migrateSettings(self.doc_settings)
 
   self:registerKeyEvents()
 
@@ -143,6 +133,19 @@ function ReaderUI:init()
       document = self.document,
     })
   )
+
+  -- screenshot controller, it has the highest priority to receive the user
+  -- input, e.g. swipe or two-finger-tap
+  self:registerModule(
+    "screenshot",
+    Screenshoter:new({
+      prefix = "Reader",
+      dialog = self.dialog,
+      view = self.view,
+      ui = self,
+    })
+  )
+
   -- goto link controller
   self:registerModule(
     "link",
@@ -247,17 +250,6 @@ function ReaderUI:init()
       ui = self,
       document = self.document,
     })
-  )
-  -- screenshot controller
-  self:registerModule(
-    "screenshot",
-    Screenshoter:new({
-      prefix = "Reader",
-      dialog = self.dialog,
-      view = self.view,
-      ui = self,
-    }),
-    true
   )
   -- device status controller
   self:registerModule(
@@ -649,18 +641,7 @@ function ReaderUI:init()
   --   print("  "..tzone.def.id)
   -- end
 
-  if ReaderUI.instance == nil then
-    logger.dbg("Spinning up new ReaderUI instance", tostring(self))
-  else
-    -- Should never happen, given what we did in (do)showReader...
-    logger.err(
-      "ReaderUI instance mismatch! Opened",
-      tostring(self),
-      "while we still have an existing instance:",
-      tostring(ReaderUI.instance),
-      debug.traceback()
-    )
-  end
+  assert(ReaderUI.instance == nil)
   ReaderUI.instance = self
 end
 
@@ -777,6 +758,11 @@ function ReaderUI:showReader(file, provider, seamless)
   provider = provider or DocumentRegistry:getProvider(file)
   if provider.provider then
     self:showReaderCoroutine(file, provider, seamless)
+  else
+    UIManager:show(InfoMessage:new({
+      text = _("No reader engine for this file or invalid file."),
+    }))
+    self:showFileManager(file)
   end
 end
 
@@ -803,8 +789,13 @@ function ReaderUI:showReaderCoroutine(file, provider, seamless)
       -- Restore input if we crashed before ReaderUI has restored it
       Device:setIgnoreInput(false)
       Input:inhibitInputUntil(0.2)
+      -- Need localization.
       UIManager:show(InfoMessage:new({
-        text = _("No reader engine for this file or invalid file."),
+        text = _("Unfortunately KOReader crashed.")
+          .. "\n"
+          .. _(
+            "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help developers to improve it."
+          ),
       }))
       self:showFileManager(file)
     end
@@ -817,13 +808,7 @@ function ReaderUI:doShowReader(file, provider, seamless)
   end
   logger.info("opening file", file)
   -- Only keep a single instance running
-  if ReaderUI.instance then
-    logger.warn(
-      "ReaderUI instance mismatch! Tried to spin up a new instance, while we still have an existing one:",
-      tostring(ReaderUI.instance)
-    )
-    ReaderUI.instance:onExit()
-  end
+  assert(ReaderUI.instance == nil)
   local document = DocumentRegistry:openDocument(file, provider)
   if not document then
     UIManager:show(InfoMessage:new({
@@ -961,16 +946,8 @@ function ReaderUI:onExit(full_refresh)
 end
 
 function ReaderUI:onClose()
-  if ReaderUI.instance == self then
-    logger.dbg("Tearing down ReaderUI", tostring(self))
-  else
-    logger.warn(
-      "ReaderUI instance mismatch! Closed",
-      tostring(self),
-      "while the active one is supposed to be",
-      tostring(ReaderUI.instance)
-    )
-  end
+  -- In case someone broadcasts Exit or Close multiple times.
+  assert(ReaderUI.instance == self or ReaderUI.instance == nil)
   ReaderUI.instance = nil
   self._coroutine = nil
 end
@@ -1063,6 +1040,10 @@ end
 function ReaderUI:getCurrentPage()
   return self.paging and self.paging.current_page
     or self.document:getCurrentPage()
+end
+
+function ReaderUI:ready()
+  return ReaderUI.instance ~= nil
 end
 
 return ReaderUI
