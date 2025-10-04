@@ -33,7 +33,7 @@ function DeviceListener:onSetNightMode(night_mode_on)
   end
 end
 
-function DeviceListener:onShowIntensity()
+function DeviceListener:showIntensity()
   if not Device:hasFrontlight() then
     return true
   end
@@ -109,7 +109,7 @@ if Device:hasFrontlight() then
 
   -- direction +1 - increase frontlight
   -- direction -1 - decrease frontlight
-  function DeviceListener:onChangeFlIntensity(ges, direction)
+  function DeviceListener:changeFlIntensity(ges, direction)
     local powerd = Device:getPowerDevice()
     local delta =
       calculateGestureDelta(ges, direction, powerd.fl_min, powerd.fl_max)
@@ -117,7 +117,7 @@ if Device:hasFrontlight() then
     local new_intensity = powerd:frontlightIntensity() + delta
     -- when new_intensity <= 0, toggle light off
     self:onSetFlIntensity(new_intensity)
-    self:onShowIntensity()
+    self:showIntensity()
     return true
   end
 
@@ -133,12 +133,12 @@ if Device:hasFrontlight() then
   end
 
   function DeviceListener:onIncreaseFlIntensity(ges)
-    self:onChangeFlIntensity(ges, 1)
+    self:changeFlIntensity(ges, 1)
     return true
   end
 
   function DeviceListener:onDecreaseFlIntensity(ges)
-    self:onChangeFlIntensity(ges, -1)
+    self:changeFlIntensity(ges, -1)
     return true
   end
 
