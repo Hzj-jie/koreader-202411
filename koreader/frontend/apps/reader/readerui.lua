@@ -980,8 +980,14 @@ end
 
 function ReaderUI:onHome()
   local file = self.document.file
-  self:onExit()
-  self:showFileManager(file)
+  UIManager:runWith(function()
+    self:onExit()
+    self:showFileManager(file)
+  end,
+  InfoMessage:new({
+    -- Need localization.
+    text = T(_("Closing file %1"), file),
+  }))
   return true
 end
 
