@@ -1,1 +1,0 @@
-../../../koreader/plugins/gestures.koplugin/migration.lua
