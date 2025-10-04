@@ -349,7 +349,7 @@ function FileSearcher:updateMenu(item_table)
   )
 end
 
-function FileSearcher:onMenuSelect(item)
+function FileSearcher:onMenuHold(item)
   if lfs.attributes(item.path) == nil then
     return
   end
@@ -462,7 +462,7 @@ function FileSearcher:showFileDialog(item)
   UIManager:show(dialog)
 end
 
-function FileSearcher:onMenuHold(item)
+function FileSearcher:onMenuSelect(item)
   if self._manager.selected_files or lfs.attributes(item.path) == nil then
     return true
   end
