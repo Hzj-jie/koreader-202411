@@ -940,9 +940,13 @@ Stops at the first handler that returns `true`.
 Note that most complex widgets are based on @{ui.widget.container.WidgetContainer|WidgetContainer},
 which itself will take care of propagating an event to its members.
 
-@param event an @{ui.event.Event|Event} object
+@param event an @{ui.event.Event|Event} object or string, string will be
+             converted to Event:new().
 ]]
 function UIManager:userInput(event)
+  if type(event) == "string" then
+    event = Event:new(event)
+  end
   event:asUserInput()
   local top_widget
   local checked_widgets = {}
@@ -1004,9 +1008,13 @@ end
 --[[--
 Transmits an @{ui.event.Event|Event} to all registered widgets.
 
-@param event an @{ui.event.Event|Event} object
+@param event an @{ui.event.Event|Event} object or string, string will be
+             converted to Event:new()
 ]]
 function UIManager:broadcastEvent(event)
+  if type(event) == "string" then
+    event = Event:new(event)
+  end
   -- Unlike sendEvent, we send the event to *all* (window-level) widgets (i.e., we don't stop, even if a handler returns true).
   -- NOTE: Same defensive approach to _window_stack changing from under our feet as above.
   local checked_widgets = {}
