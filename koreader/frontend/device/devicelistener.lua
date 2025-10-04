@@ -33,34 +33,6 @@ function DeviceListener:onSetNightMode(night_mode_on)
   end
 end
 
-function DeviceListener:showIntensity()
-  if not Device:hasFrontlight() then
-    return true
-  end
-  local powerd = Device:getPowerDevice()
-  local new_text
-  if powerd:isFrontlightOff() then
-    new_text = _("Frontlight disabled.")
-  else
-    new_text =
-      T(_("Frontlight intensity set to %1."), powerd:frontlightIntensity())
-  end
-  Notification:notify(new_text)
-  return true
-end
-
-function DeviceListener:onShowWarmth()
-  if not Device:hasNaturalLight() then
-    return true
-  end
-  -- Display it in the native scale, like FrontLightWidget
-  local powerd = Device:getPowerDevice()
-  Notification:notify(
-    T(_("Warmth set to %1."), powerd:toNativeWarmth(powerd:frontlightWarmth()))
-  )
-  return true
-end
-
 -- frontlight controller
 if Device:hasFrontlight() then
   local function calculateGestureDelta(ges, direction, min, max)
@@ -110,43 +82,54 @@ if Device:hasFrontlight() then
   -- direction +1 - increase frontlight
   -- direction -1 - decrease frontlight
   function DeviceListener:changeFlIntensity(ges, direction)
+    -- TODO: Should assert.
+    if not Device:hasFrontlight() then
+      return false
+    end
     local powerd = Device:getPowerDevice()
     local delta =
       calculateGestureDelta(ges, direction, powerd.fl_min, powerd.fl_max)
 
     local new_intensity = powerd:frontlightIntensity() + delta
     -- when new_intensity <= 0, toggle light off
-    self:onSetFlIntensity(new_intensity)
-    self:showIntensity()
-    return true
+    return self:onSetFlIntensity(new_intensity)
   end
 
   function DeviceListener:onSetFlIntensity(new_intensity)
+    -- TODO: Should assert.
+    if not Device:hasFrontlight() then
+      return false
+    end
     local powerd = Device:getPowerDevice()
+    local new_text
     if new_intensity <= 0 then
       powerd:turnOffFrontlight()
+      new_text = _("Frontlight disabled.")
     else
       powerd:setIntensity(new_intensity)
+      -- Allow powerd adjusting the frontlight intensity.
+      new_text =
+        T(_("Frontlight intensity set to %1."), powerd:frontlightIntensity())
     end
     powerd:updateResumeFrontlightState()
+    Notification:notify(new_text)
     return true
   end
 
   function DeviceListener:onIncreaseFlIntensity(ges)
-    self:changeFlIntensity(ges, 1)
-    return true
+    return self:changeFlIntensity(ges, 1)
   end
 
   function DeviceListener:onDecreaseFlIntensity(ges)
-    self:changeFlIntensity(ges, -1)
-    return true
+    return self:changeFlIntensity(ges, -1)
   end
 
   -- direction +1 - increase frontlight warmth
   -- direction -1 - decrease frontlight warmth
-  function DeviceListener:onChangeFlWarmth(ges, direction)
+  function DeviceListener:changeFlWarmth(ges, direction)
+    -- TODO: Should assert.
     if not Device:hasNaturalLight() then
-      return true
+      return false
     end
 
     local powerd = Device:getPowerDevice()
@@ -165,12 +148,14 @@ if Device:hasFrontlight() then
       powerd:toNativeWarmth(powerd:frontlightWarmth()) + delta
     )
 
-    self:onSetFlWarmth(warmth)
-    self:onShowWarmth()
-    return true
+    return self:onSetFlWarmth(warmth)
   end
 
   function DeviceListener:onSetFlWarmth(warmth)
+    -- TODO: Should assert.
+    if not Device:hasNaturalLight() then
+      return false
+    end
     local powerd = Device:getPowerDevice()
     if warmth > 100 then
       warmth = 100
@@ -178,15 +163,19 @@ if Device:hasFrontlight() then
       warmth = 0
     end
     powerd:setWarmth(warmth)
+    -- Allow powerd adjusting warmth.
+    Notification:notify(
+      T(_("Warmth set to %1."), powerd:toNativeWarmth(powerd:frontlightWarmth()))
+    )
     return true
   end
 
   function DeviceListener:onIncreaseFlWarmth(ges)
-    self:onChangeFlWarmth(ges, 1)
+    return self:changeFlWarmth(ges, 1)
   end
 
   function DeviceListener:onDecreaseFlWarmth(ges)
-    self:onChangeFlWarmth(ges, -1)
+    return self:changeFlWarmth(ges, -1)
   end
 
   function DeviceListener:onToggleFrontlight()
