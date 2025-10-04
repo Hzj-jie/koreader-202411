@@ -61,27 +61,34 @@ local FileChooser = Menu:extend({
       can_collate_mixed = true,
       init_sort_func = function(cache)
         return function(a, b)
-          return a.attr.access > b.attr.access
+          return a.attr.last_read > b.attr.last_read
         end,
           cache
       end,
       item_func = function(item)
-        -- System returns random time if the file hasn't been accessed
-        -- at all.
-        -- https://github.com/Hzj-jie/koreader-202411/issues/34
-        if
-          item.attr.mode == "file"
-          and item.attr.access < item.attr.modification
-        then
-          item.attr.access = item.attr.modification
+        if item.attr.mode == "file" then
+          if not item.opened then
+            -- Avoid other components impacting the access time.
+            item.attr.last_read = item.attr.modification
+            return
+          end
+          -- System returns random time if the file hasn't been accessed
+          -- at all.
+          -- https://github.com/Hzj-jie/koreader-202411/issues/34
+          if item.attr.access < item.attr.modification then
+            item.attr.last_read = item.attr.modification
+            return
+          end
         end
+        -- A directory or default.
+        item.attr.last_read = item.attr.access
       end,
       mandatory_func = function(item)
         -- Fat has low resolution of access time.
-        if item.attr.access % 86400 == 0 then
-          return datetime.secondsToDate(item.attr.access)
+        if item.attr.last_read % 86400 == 0 then
+          return datetime.secondsToDate(item.attr.last_read)
         end
-        return datetime.secondsToDateTime(item.attr.access)
+        return datetime.secondsToDateTime(item.attr.last_read)
       end,
     },
     date = {
