@@ -165,7 +165,10 @@ if Device:hasFrontlight() then
     powerd:setWarmth(warmth)
     -- Allow powerd adjusting warmth.
     Notification:notify(
-      T(_("Warmth set to %1."), powerd:toNativeWarmth(powerd:frontlightWarmth()))
+      T(
+        _("Warmth set to %1."),
+        powerd:toNativeWarmth(powerd:frontlightWarmth())
+      )
     )
     return true
   end
