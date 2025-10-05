@@ -24,7 +24,8 @@ diff -rw koreader/ origin.stylua/
 
 Unlike the original koreader, building native binaries is not officially
 supported, though it's possible to build in origin/ after running
-install-deps.sh.
+install-deps.sh. Indeed the linux native binaries were rebuilt to support
+outdated the Intel Core 2 Duo x64 processor on a Thinkpad X61t.
 
 Instead, all the native files are placed in their corresponding platform
 folders, e.g. pw2/ for kindle pw2, legacy/ for kindle legacy.
