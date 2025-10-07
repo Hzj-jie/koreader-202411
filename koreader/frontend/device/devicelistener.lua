@@ -89,10 +89,7 @@ if Device:hasFrontlight() then
     local powerd = Device:getPowerDevice()
     local delta =
       calculateGestureDelta(ges, direction, powerd.fl_min, powerd.fl_max)
-
-    local new_intensity = powerd:frontlightIntensity() + delta
-    -- when new_intensity <= 0, toggle light off
-    return self:onSetFlIntensity(new_intensity)
+    return self:onSetFlIntensity(powerd:frontlightIntensity() + delta)
   end
 
   function DeviceListener:onSetFlIntensity(new_intensity)
@@ -101,6 +98,13 @@ if Device:hasFrontlight() then
       return false
     end
     local powerd = Device:getPowerDevice()
+    if powerd:frontlightIntensity() == new_intensity then
+      -- This may not be accurate, the powerd can adjust the frontlight
+      -- intensity. So even the new_intensity does not equal to the
+      -- powerd:frontlightIntensity(), the following set calls may have no
+      -- effect.
+      return true
+    end
     local new_text
     if new_intensity <= 0 then
       powerd:turnOffFrontlight()
