@@ -419,6 +419,11 @@ function ReaderWikipedia:initLanguages(word)
   end
 end
 
+function ReaderWikipedia:onLookupWord()
+  -- Clear the onLookupWord event handler.
+  return false
+end
+
 function ReaderWikipedia:onLookupWikipedia(
   word,
   is_sane,
