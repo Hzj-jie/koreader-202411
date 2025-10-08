@@ -126,13 +126,19 @@ local function kindleGetScanList()
     return { profile }, nil
   end
   --]]
-  local result = LibLipcs:hash_accessor()
-    :read_hash_property("com.lab126.wifid", "scanList")
-  if result == nil then
-    return nil,
-      require("gettext")("Unable to communicate with the Wi-Fi backend")
+  -- Wait at most 1s.
+  for _ = 0, 4 do
+    local result = LibLipcs:hash_accessor()
+      :read_hash_property("com.lab126.wifid", "scanList")
+    if result ~= nil then
+      -- This is a very edge case where the scanList call fails sometimes.
+      return result, nil
+    end
+    C.usleep(250 * 1000)
   end
-  return result, nil
+  -- Need localization
+  return nil,
+    require("gettext")("Cannot find any Wi-Fi, please try again later.")
 end
 
 local function kindleScanThenGetResults()
