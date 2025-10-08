@@ -70,8 +70,6 @@ local InfoMessage = InputContainer:extend({
   lang = nil,
   para_direction_rtl = nil,
   auto_para_direction = nil,
-  -- Don't call setDirty when closing the widget
-  no_refresh_on_close = nil,
   -- Only have it painted after this delay (dismissing still works before it's shown)
   show_delay = nil,
   -- Set to true when it might be displayed after some processing, to avoid accidental dismissal
@@ -230,9 +228,6 @@ function InfoMessage:onClose()
 
   if self.invisible then
     -- Still invisible, no setDirty needed
-    return
-  end
-  if self.no_refresh_on_close then
     return
   end
 
