@@ -63,7 +63,6 @@ end
 
 local ReaderDictionary = InputContainer:extend({
   data_dir = nil,
-  lookup_msg = _("Searching dictionary for:\n%1"),
 })
 
 -- For a HTML dict, one can specify a specific stylesheet
@@ -754,22 +753,6 @@ function ReaderDictionary:cleanSelection(text, is_sane)
   return text
 end
 
-function ReaderDictionary:showLookupInfo(word, show_delay)
-  local text = T(self.lookup_msg, word)
-  self.lookup_progress_msg = InfoMessage:new({
-    text = text,
-    show_delay = show_delay,
-  })
-  UIManager:show(self.lookup_progress_msg)
-end
-
-function ReaderDictionary:dismissLookupInfo()
-  if self.lookup_progress_msg then
-    UIManager:close(self.lookup_progress_msg)
-  end
-  self.lookup_progress_msg = nil
-end
-
 function ReaderDictionary:onShowDictionaryLookup()
   self.dictionary_lookup_dialog = InputDialog:new({
     title = _("Enter a word or phrase to look up"),
@@ -1057,7 +1040,7 @@ function ReaderDictionary:stardictLookup(
   end
 
   -- If the user disabled all the dictionaries, go away.
-  if dict_names and #dict_names == 0 then
+  if dict_names == nil or #dict_names == 0 then
     -- Dummy result
     local nope = {
       {
@@ -1074,7 +1057,11 @@ function ReaderDictionary:stardictLookup(
     return
   end
 
-  self:showLookupInfo(word, self.lookup_msg_delay)
+  self.lookup_progress_msg = InfoMessage:new({
+    text = T(_("Searching dictionary for:\n%1"), word),
+    show_delay = show_delay,
+  })
+  UIManager:show(self.lookup_progress_msg)
 
   self._lookup_start_time = time.now()
   local results = self:startSdcv(word, dict_names, fuzzy_search)
@@ -1097,66 +1084,59 @@ function ReaderDictionary:stardictLookup(
 end
 
 function ReaderDictionary:showDict(word, results, boxes, link)
-  if results and results[1] then
-    logger.dbg(
-      "showing quick lookup window",
-      #DictQuickLookup.window_list + 1,
-      ":",
-      word,
-      results
-    )
-    self.dict_window = DictQuickLookup:new({
-      ui = self.ui,
-      highlight = self.highlight,
-      dialog = self.dialog,
-      -- original lookup word
-      word = word,
-      -- selected link, if any
-      selected_link = link,
-      results = results,
-      word_boxes = boxes,
-      preferred_dictionaries = self.preferred_dictionaries,
-      -- differentiate between dict and wiki
-      is_wiki = self.is_wiki,
-      refresh_callback = function()
-        if self.view then
-          -- update info in footer (time, battery, etc)
-          self.view.footer:onUpdateFooter()
-        end
-      end,
-      html_dictionary_link_tapped_callback = function(dictionary, html_link)
-        self:onHtmlDictionaryLinkTapped(dictionary, html_link)
-      end,
-    })
-    if self.lookup_progress_msg then
-      -- If we have a lookup InfoMessage that ended up being displayed, make
-      -- it *not* refresh on close if it is hidden by our DictQuickLookup
-      -- to avoid refreshes competition and possible glitches
-      local msg_dimen = self.lookup_progress_msg:getVisibleArea()
-      if msg_dimen then -- not invisible
-        local dict_dimen = self.dict_window:getInitialVisibleArea()
-        if dict_dimen and dict_dimen:contains(msg_dimen) then
-          self.lookup_progress_msg.no_refresh_on_close = true
-        end
-      end
-    end
-  end
+  UIManager:close(self.lookup_progress_msg)
+  self.lookup_progress_msg = nil
 
-  self:dismissLookupInfo()
-  if results and results[1] then
-    UIManager:show(self.dict_window)
-    if
-      not results.lookup_cancelled
-      and self._lookup_start_time
-      and (time.now() - self._lookup_start_time)
-        > self.quick_dismiss_before_delay
-    then
-      -- If the search took more than a few seconds to be done, discard
-      -- queued and upcoming input events to avoid a voluntary dismissal
-      -- (because the user felt the result would not come) to kill the
-      -- result that finally came and is about to be displayed
-      Input:inhibitInputUntil(true)
-    end
+  if results == nil or results[1] == nil then
+    UIManager:show(InfoMessage:new({
+      -- Need localization.
+      text = T(_("Cannot find results of %1"), word),
+      timeout = 3,
+    }))
+    return
+  end
+  logger.dbg(
+    "showing quick lookup window",
+    #DictQuickLookup.window_list + 1,
+    ":",
+    word,
+    results
+  )
+  self.dict_window = DictQuickLookup:new({
+    ui = self.ui,
+    highlight = self.highlight,
+    dialog = self.dialog,
+    -- original lookup word
+    word = word,
+    -- selected link, if any
+    selected_link = link,
+    results = results,
+    word_boxes = boxes,
+    preferred_dictionaries = self.preferred_dictionaries,
+    -- differentiate between dict and wiki
+    is_wiki = self.is_wiki,
+    refresh_callback = function()
+      if self.view then
+        -- update info in footer (time, battery, etc)
+        self.view.footer:onUpdateFooter()
+      end
+    end,
+    html_dictionary_link_tapped_callback = function(dictionary, html_link)
+      self:onHtmlDictionaryLinkTapped(dictionary, html_link)
+    end,
+  })
+  UIManager:show(self.dict_window)
+  if
+    not results.lookup_cancelled
+    and self._lookup_start_time
+    and (time.now() - self._lookup_start_time)
+      > self.quick_dismiss_before_delay
+  then
+    -- If the search took more than a few seconds to be done, discard
+    -- queued and upcoming input events to avoid a voluntary dismissal
+    -- (because the user felt the result would not come) to kill the
+    -- result that finally came and is about to be displayed
+    Input:inhibitInputUntil(true)
   end
 end
 

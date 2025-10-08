@@ -135,7 +135,7 @@ function ReaderHighlight:init()
       return {
         text = _("Dictionary"),
         callback = function()
-          this:onHighlightDictLookup()
+          this:highlightDictLookup()
           -- We don't call this:onExit(), same reason as above
         end,
       }
@@ -2309,7 +2309,7 @@ function ReaderHighlight:onHoldRelease()
         self:lookupWikipedia()
         self:onExit()
       elseif default_highlight_action == "dictionary" then
-        self:onHighlightDictLookup()
+        self:highlightDictLookup()
         self:onExit()
       elseif default_highlight_action == "search" then
         self:onHighlightSearch()
@@ -2517,7 +2517,7 @@ function ReaderHighlight:onHighlightSearch()
   end
 end
 
-function ReaderHighlight:onHighlightDictLookup()
+function ReaderHighlight:highlightDictLookup()
   logger.dbg("dictionary lookup highlight")
   self:highlightFromHoldPos()
   if self.selected_text then
