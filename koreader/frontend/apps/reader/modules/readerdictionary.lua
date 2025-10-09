@@ -176,8 +176,6 @@ function ReaderDictionary:init()
     or os.getenv("STARDICT_DATA_DIR")
     or DataStorage:getDataDir() .. "/data/dict"
 
-  -- Show the "Searching..." InfoMessage after this delay
-  self.lookup_msg_delay = 0.5
   -- Allow quick interruption or dismiss of search result window
   -- with tap if done before this delay. After this delay, the
   -- result window is shown and dismiss prevented for a few 100ms
@@ -793,8 +791,7 @@ end
 function ReaderDictionary:rawSdcv(
   words,
   dict_names,
-  fuzzy_search,
-  lookup_progress_msg
+  fuzzy_search
 )
   -- Allow for two sdcv calls : one in the classic data/dict, and
   -- another one in data/dict_ext if it exists
@@ -849,7 +846,7 @@ function ReaderDictionary:rawSdcv(
     -- Because sdcv starts outputting its output only at the end when it has
     -- done its work, we can use Trapper:dismissablePopen() to cancel it as
     -- long as we are waiting for output.
-    -- When fuzzy search is enabled, we have a lookup_progress_msg that can
+    -- When fuzzy search is enabled, we have a self.lookup_progress_msg that can
     -- be used to catch a tap and trigger cancellation.
     -- When fuzzy search is disabled, we provide false instead so an
     -- invisible non-event-forwarding TrapWidget is used to catch a tap
@@ -865,7 +862,9 @@ function ReaderDictionary:rawSdcv(
       C.setenv("LD_LIBRARY_PATH", android.nativeLibraryDir, 1)
     end
     local completed, results_str =
-      Trapper:dismissablePopen(cmd, lookup_progress_msg)
+      -- If there isn't a self.lookup_progress_msg, e.g. startSdvc is executed
+      -- directly, do not resent the event to other widgets.
+      Trapper:dismissablePopen(cmd, self.lookup_progress_msg or false)
     if android then
       -- NOTE: It's unset by default, so this is perfectly fine.
       C.unsetenv("LD_LIBRARY_PATH")
@@ -943,8 +942,7 @@ function ReaderDictionary:startSdcv(word, dict_names, fuzzy_search)
   local lookup_cancelled, results = self:rawSdcv(
     words,
     dict_names,
-    fuzzy_search,
-    self.lookup_progress_msg or false
+    fuzzy_search
   )
   if results == nil then -- no dictionaries found
     return {
@@ -1059,7 +1057,8 @@ function ReaderDictionary:stardictLookup(
 
   self.lookup_progress_msg = InfoMessage:new({
     text = T(_("Searching dictionary for:\n%1"), word),
-    show_delay = show_delay,
+    -- Show the "Searching..." InfoMessage after this delay
+    show_delay = 0.5,
   })
   UIManager:show(self.lookup_progress_msg)
 
