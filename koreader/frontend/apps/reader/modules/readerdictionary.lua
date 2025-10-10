@@ -1055,12 +1055,7 @@ function ReaderDictionary:stardictLookup(
     return
   end
 
-  self.lookup_progress_msg = InfoMessage:new({
-    text = T(_("Searching dictionary for:\n%1"), word),
-    -- Show the "Searching..." InfoMessage after this delay
-    show_delay = 0.5,
-  })
-  UIManager:show(self.lookup_progress_msg)
+  self:showLookupMsg(T(_("Searching dictionary for:\n%1"), word))
 
   self._lookup_start_time = time.now()
   local results = self:startSdcv(word, dict_names, fuzzy_search)
@@ -1080,6 +1075,15 @@ function ReaderDictionary:stardictLookup(
   end
 
   self:showDict(word, self:_tidyMarkup(results), boxes, link)
+end
+
+function ReaderDictionary:showLookupMsg(text)
+  self.lookup_progress_msg = InfoMessage:new({
+    text = text,
+    -- Show the "Searching..." InfoMessage after this delay
+    show_delay = 0.25,
+  })
+  UIManager:show(self.lookup_progress_msg)
 end
 
 function ReaderDictionary:showDict(word, results, boxes, link)

@@ -449,15 +449,11 @@ function ReaderWikipedia:lookupWikipedia(
     -- word is the text to query. If get_fullpage is true, it is the
     -- exact wikipedia page title we want the full page of.
     self:initLanguages(word)
-    local lang
-    if forced_lang then
-      -- use provided lang (from readerlink when noticing that an external link is a wikipedia url,
-      -- of from Wikipedia lookup history, or when switching to next language in DictQuickLookup)
-      lang = forced_lang
-    else
-      -- use first lang from self.wiki_languages
-      lang = self.wiki_languages[1]
-    end
+    -- Prefer using provided lang (from readerlink when noticing that an
+    -- external link is a wikipedia url, of from Wikipedia lookup history, or
+    -- when switching to next language in DictQuickLookup).
+    -- Otherwise use first lang from self.wiki_languages
+    local lang = (forced_lang and forced_lang or self.wiki_languages[1])
     logger.dbg("lookup word:", word, box, get_fullpage)
     -- no need to clean word if get_fullpage, as it is the exact wikipetia page title
     if word and not get_fullpage then
@@ -484,19 +480,21 @@ function ReaderWikipedia:lookupWikipedia(
     end
 
     -- Fix lookup message to include lang and set appropriate error texts
-    local no_result_text, req_failure_text
+    local lookup_msg, no_result_text, req_failure_text
     if get_fullpage then
-      self.lookup_msg =
-        T(_("Retrieving Wikipedia %2 article:\n%1"), "%1", lang:upper())
+      lookup_msg =
+        T(_("Retrieving Wikipedia %2 article:\n%1"), display_word, lang:upper())
       req_failure_text = _("Failed to retrieve Wikipedia article.")
       no_result_text = _("Wikipedia article not found.")
     else
-      self.lookup_msg =
-        T(_("Searching Wikipedia %2 for:\n%1"), "%1", lang:upper())
+      lookup_msg =
+        T(_("Searching Wikipedia %2 for:\n%1"), display_word, lang:upper())
       req_failure_text = _("Failed searching Wikipedia.")
       no_result_text = _("No results.")
     end
-    self:showLookupInfo(display_word)
+    -- This is hacky, it relies on ReaderDictionary:showDict to close
+    -- self.lookup_progress_msg.
+    self:showLookupMsg(lookup_msg)
 
     local results = {}
     local ok, pages

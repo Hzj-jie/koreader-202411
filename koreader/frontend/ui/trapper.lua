@@ -47,7 +47,7 @@ function Trapper:wrap(func)
     local ok, err = xpcall(func, debug.traceback)
     UIManager:allowStandby()
     if not ok then
-      logger.warn("error in wrapped function:", err)
+      logger.err("error in wrapped function:", err)
       return false
     end
     return true
