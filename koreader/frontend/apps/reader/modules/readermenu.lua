@@ -45,7 +45,7 @@ function ReaderMenu:init()
       icon = "appbar.filebrowser",
       remember = false,
       callback = function()
-        self:onTapCloseMenu()
+        self:closeMenu()
         self.ui:onHome()
       end,
     },
@@ -229,7 +229,7 @@ function ReaderMenu:setUpdateItemTable()
             ok_text = _("Reset"),
             ok_callback = function()
               local current_file = self.ui.document.file
-              self:onTapCloseMenu()
+              self:closeMenu()
               self.ui:onExit()
               require("apps/filemanager/filemanagerutil").resetDocumentSettings(
                 current_file
@@ -247,7 +247,7 @@ function ReaderMenu:setUpdateItemTable()
             text = _("Save current document settings as default values?"),
             ok_text = _("Save"),
             ok_callback = function()
-              self:onTapCloseMenu()
+              self:closeMenu()
               self:saveDocumentSettingsAsDefault()
               UIManager:show(require("ui/widget/notification"):new({
                 text = _("Default settings updated"),
@@ -404,7 +404,7 @@ end
 
 function ReaderMenu:exitOrRestart(callback, force)
   CommonMenu:exitOrRestart(function()
-    self:onTapCloseMenu()
+    self:closeMenu()
   end, self.ui, callback)
 end
 
@@ -527,7 +527,7 @@ function ReaderMenu:onPressMenu()
   return true
 end
 
-function ReaderMenu:onTapCloseMenu()
+function ReaderMenu:closeMenu()
   self:onCloseReaderMenu()
   UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
 end
