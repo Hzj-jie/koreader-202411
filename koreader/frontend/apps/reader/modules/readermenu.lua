@@ -548,12 +548,4 @@ function ReaderMenu:registerToMainMenu(widget)
   table.insert(self.registered_widgets, widget)
 end
 
-function ReaderMenu:onTapTouchMenu(menu)
-  if not self.menu_container or menu ~= self.menu_container[1] then
-    return
-  end
-  -- It's our menu.
-  UIManager:broadcastEvent("CloseConfigMenu")
-end
-
 return ReaderMenu

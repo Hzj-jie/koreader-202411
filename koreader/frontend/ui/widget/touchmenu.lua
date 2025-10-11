@@ -1084,8 +1084,6 @@ function TouchMenu:onTapCloseAllMenus(arg, ges_ev)
     self:closeMenu()
     return true
   end
-  -- Not closing, but the tap will be consumed by TouchMenu
-  UIManager:broadcastEvent(Event:new("TapTouchMenu", self))
 end
 
 function TouchMenu:onExit()
