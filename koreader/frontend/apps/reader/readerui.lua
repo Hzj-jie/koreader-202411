@@ -989,7 +989,7 @@ end
 
 function ReaderUI:onHome()
   local file = self.document.file
-  self:onExit()
+  self:onExit(false)
   self:showFileManager(file)
   return true
 end
