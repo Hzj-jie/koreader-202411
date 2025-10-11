@@ -202,6 +202,7 @@ If refreshtype is omitted, no extra refresh will be enqueued at this time, leavi
 @see setDirty
 ]]
 function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
+  -- TODO: Should assert.
   if not widget then
     logger.dbg("attempted to close a nil widget")
     return
@@ -621,9 +622,6 @@ function UIManager:setDirty(widget, refreshtype, refreshregion, refreshdither)
         end
 
         if w == widget then
-          if w.name == "ReaderUI" then
-            print(' ========= refresh ReaderUI ' .. debug.traceback())
-          end
           self._dirty[widget] = true
 
           -- We've got a match, now check if it's translucent...
@@ -1281,6 +1279,29 @@ function UIManager:_refresh(mode, region, dither)
   )
 end
 
+function UIManager:paintWindow(window)
+  assert(window ~= nil)
+  local widget = window.widget
+  -- pass hint to widget that we got when setting widget dirty
+  -- the widget can use this to decide which parts should be refreshed
+  logger.dbg(
+    "painting widget:",
+    widget.name or widget.id or tostring(widget)
+  )
+  Screen:beforePaint()
+  -- NOTE: Nothing actually seems to use the final argument?
+  --     Could be used by widgets to know whether they're being repainted because they're actually dirty (it's true),
+  --     or because something below them was (it's nil).
+  widget:paintTo(Screen.bb, window.x, window.y, self._dirty[widget])
+
+  -- and remove from list after painting
+  self._dirty[widget] = nil
+end
+
+function UIManager:paintTopWindow()
+  self:paintWindow(self._window_stack[#self._window_stack])
+end
+
 --[[--
 Repaints dirty widgets.
 
@@ -1326,21 +1347,7 @@ function UIManager:_repaint()
     local widget = window.widget
     -- paint if current widget or any widget underneath is dirty
     if dirty or self._dirty[widget] then
-      -- pass hint to widget that we got when setting widget dirty
-      -- the widget can use this to decide which parts should be refreshed
-      logger.dbg(
-        "painting widget:",
-        widget.name or widget.id or tostring(widget)
-      )
-      Screen:beforePaint()
-      -- NOTE: Nothing actually seems to use the final argument?
-      --     Could be used by widgets to know whether they're being repainted because they're actually dirty (it's true),
-      --     or because something below them was (it's nil).
-      widget:paintTo(Screen.bb, window.x, window.y, self._dirty[widget])
-
-      -- and remove from list after painting
-      self._dirty[widget] = nil
-
+      self:paintWindow(window)
       -- trigger a repaint for every widget above us, too
       dirty = true
 
@@ -1895,7 +1902,7 @@ function UIManager:runWith(func, widget)
   assert(widget ~= nil)
   assert(func ~= nil)
   self:show(widget)
-  self:forceRePaint()
+  self:paintTopWindow()
   func()
   self:close(widget)
 end
