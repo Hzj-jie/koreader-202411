@@ -145,6 +145,7 @@ If refreshtype is omitted, no refresh will be enqueued at this time.
 function UIManager:show(widget, refreshtype, refreshregion, x, y, refreshdither)
   assert(not self:isWidgetShown(widget))
 
+  -- TODO: Should assert
   if not widget then
     logger.dbg("attempted to show a nil widget")
     return
@@ -202,6 +203,7 @@ If refreshtype is omitted, no extra refresh will be enqueued at this time, leavi
 @see setDirty
 ]]
 function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
+  -- TODO: Should assert
   if not widget then
     logger.dbg("attempted to close a nil widget")
     return
