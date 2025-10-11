@@ -788,11 +788,7 @@ function ReaderDictionary:onShowDictionaryLookup()
   return true
 end
 
-function ReaderDictionary:rawSdcv(
-  words,
-  dict_names,
-  fuzzy_search
-)
+function ReaderDictionary:rawSdcv(words, dict_names, fuzzy_search)
   -- Allow for two sdcv calls : one in the classic data/dict, and
   -- another one in data/dict_ext if it exists
   -- We could put in data/dict_ext dictionaries with a great number of words
@@ -939,11 +935,8 @@ function ReaderDictionary:startSdcv(word, dict_names, fuzzy_search)
     fuzzy_search = false
   end
 
-  local lookup_cancelled, results = self:rawSdcv(
-    words,
-    dict_names,
-    fuzzy_search
-  )
+  local lookup_cancelled, results =
+    self:rawSdcv(words, dict_names, fuzzy_search)
   if results == nil then -- no dictionaries found
     return {
       {
