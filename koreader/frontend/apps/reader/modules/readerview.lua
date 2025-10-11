@@ -613,9 +613,6 @@ function ReaderView:drawPageSavedHighlight(bb, x, y)
               color,
               draw_note_mark
             )
-            if draw_note_mark and self.highlight.note_mark == "sidemark" then
-              draw_note_mark = false -- side mark in the first line only
-            end
           end
         end
       end
