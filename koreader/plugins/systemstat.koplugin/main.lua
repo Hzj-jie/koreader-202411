@@ -258,6 +258,12 @@ function SystemStat:appendCounters()
   })
 end
 
+function SystemStat:awakeSec()
+  assert(self.sys_stat ~= nil)
+  -- Assume getconf CLK_TCK is 100.
+  return self.sys_stat.cpu.total / 100 / self.sys_stat.cpu.count
+end
+
 function SystemStat:appendSystemInfo()
   self:put({ _("System information"), "" })
   -- Need localization
@@ -271,8 +277,7 @@ function SystemStat:appendSystemInfo()
   })
   local uptime = self.sys_stat.uptime.sec
   if Device:canSuspend() or Device:canStandby() then
-    -- Assume getconf CLK_TCK is 100.
-    local awake = self.sys_stat.cpu.total / 100 / self.sys_stat.cpu.count
+    local awake = self:awakeSec()
     self:put({
       "  " .. _("Time spent awake"),
       datetime.secondsToClockDuration("", awake, false, true)
@@ -282,9 +287,7 @@ function SystemStat:appendSystemInfo()
     })
   end
   if Device:canSuspend() then
-    -- Assume getconf CLK_TCK is 100.
-    local suspend = self.sys_stat.uptime.sec
-      - self.sys_stat.cpu.total / 100 / self.sys_stat.cpu.count
+    local suspend = self.sys_stat.uptime.sec - self:awakeSec()
     self:put({
       "  " .. _("Time in suspend"),
       datetime.secondsToClockDuration("", suspend, false, true)
@@ -327,10 +330,18 @@ function SystemStat:appendSystemInfo()
   end
   -- Need localization
   self:put({
-    "  " .. _("Usage % since boot"),
+    "  " .. _("Usage % during awake"),
     string.format(
       "%.2f",
       (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total) * 100
+    ),
+  })
+  -- Need localization
+  self:put({
+    "  " .. _("Usage % since boot"),
+    string.format(
+      "%.2f",
+      (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total) * 100 * self:awakeSec() / self.sys_stat.uptime.sec
     ),
   })
   self:put({
