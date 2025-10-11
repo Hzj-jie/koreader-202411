@@ -143,7 +143,6 @@ If refreshtype is omitted, no refresh will be enqueued at this time.
 @see setDirty
 ]]
 function UIManager:show(widget, refreshtype, refreshregion, x, y, refreshdither)
-  --> window
   assert(not self:isWidgetShown(widget))
 
   -- TODO: Should assert
@@ -186,7 +185,6 @@ function UIManager:show(widget, refreshtype, refreshregion, x, y, refreshdither)
     self:setIgnoreTouchInput(false)
     widget._restored_input_gestures = true
   end
-  return window
 end
 
 --[[--
@@ -1282,25 +1280,6 @@ function UIManager:_refresh(mode, region, dither)
   )
 end
 
-function UIManager:paintWindow(window)
-  assert(window ~= nil)
-  local widget = window.widget
-  -- pass hint to widget that we got when setting widget dirty
-  -- the widget can use this to decide which parts should be refreshed
-  logger.dbg(
-    "painting widget:",
-    widget.name or widget.id or tostring(widget)
-  )
-  Screen:beforePaint()
-  -- NOTE: Nothing actually seems to use the final argument?
-  --     Could be used by widgets to know whether they're being repainted because they're actually dirty (it's true),
-  --     or because something below them was (it's nil).
-  widget:paintTo(Screen.bb, window.x, window.y, self._dirty[widget])
-
-  -- and remove from list after painting
-  self._dirty[widget] = nil
-end
-
 --[[--
 Repaints dirty widgets.
 
@@ -1346,7 +1325,22 @@ function UIManager:_repaint()
     local widget = window.widget
     -- paint if current widget or any widget underneath is dirty
     if dirty or self._dirty[widget] then
-      self:paintWindow(window)
+      -- pass hint to widget that we got when setting widget dirty
+      -- the widget can use this to decide which parts should be refreshed
+      logger.dbg(
+        "painting widget:",
+        widget.name or widget.id or tostring(widget)
+      )
+      Screen:beforePaint()
+      -- NOTE: Nothing actually seems to use the final argument?
+      --     Could be used by widgets to know whether they're being repainted
+      --     because they're actually dirty (it's true), or because something
+      --     below them was (it's nil).
+      widget:paintTo(Screen.bb, window.x, window.y, self._dirty[widget])
+
+      -- and remove from list after painting
+      self._dirty[widget] = nil
+
       -- trigger a repaint for every widget above us, too
       dirty = true
 
@@ -1900,7 +1894,8 @@ end
 function UIManager:runWith(func, widget)
   assert(widget ~= nil)
   assert(func ~= nil)
-  self:paintWindow(self:show(widget))
+  self:show(widget)
+  self:forceRePaint()
   func()
   self:close(widget)
 end
