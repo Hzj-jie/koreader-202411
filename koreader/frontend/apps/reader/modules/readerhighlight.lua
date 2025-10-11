@@ -610,8 +610,9 @@ function ReaderHighlight:addToMainMenu(menu_items)
             )
           end
           self.view:setupNoteMarkPosition()
-          UIManager:setDirty(self.dialog, "ui")
+          UIManager:setDirty(self.ui, "ui")
           touchmenu_instance:updateItems()
+          UIManager:close(radio)
         end,
       }))
     end,
