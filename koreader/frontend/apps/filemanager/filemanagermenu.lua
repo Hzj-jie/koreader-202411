@@ -1008,6 +1008,7 @@ function FileManagerMenu:getStartWithMenuTable()
       callback = function()
         G_reader_settings:saveSetting("start_with", v[2])
       end,
+      radio = true,
     })
   end
   return {
