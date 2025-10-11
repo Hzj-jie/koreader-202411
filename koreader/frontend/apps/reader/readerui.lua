@@ -752,17 +752,8 @@ function ReaderUI:showReader(file, provider, seamless)
 end
 
 function ReaderUI:showReaderCoroutine(file, provider, seamless)
-  UIManager:show(InfoMessage:new({
-    text = T(
-      _("Opening file '%1'."),
-      BD.filepath(filemanagerutil.abbreviate(file))
-    ),
-    timeout = 0.0,
-    invisible = seamless,
-  }))
   -- doShowReader might block for a long time, so force repaint here
-  UIManager:forceRePaint()
-  UIManager:nextTick(function()
+  UIManager:runInNextTickWith(function()
     logger.dbg("creating coroutine for showing reader")
     local co = coroutine.create(function()
       self:doShowReader(file, provider, seamless)
@@ -784,7 +775,13 @@ function ReaderUI:showReaderCoroutine(file, provider, seamless)
       }))
       self:showFileManager(file)
     end
-  end)
+  end, InfoMessage:new({
+    text = T(
+      _("Opening file '%1'."),
+      BD.filepath(filemanagerutil.abbreviate(file))
+    ),
+    invisible = seamless,
+  }))
 end
 
 function ReaderUI:doShowReader(file, provider, seamless)
