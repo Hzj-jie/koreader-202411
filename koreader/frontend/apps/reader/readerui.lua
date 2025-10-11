@@ -753,41 +753,35 @@ end
 
 function ReaderUI:showReaderCoroutine(file, provider, seamless)
   -- doShowReader might block for a long time, so force repaint here
-  UIManager:runWith(
-    function()
-      UIManager:nextTick(function()
-        logger.dbg("creating coroutine for showing reader")
-        local co = coroutine.create(function()
-          self:doShowReader(file, provider, seamless)
-        end)
-        local ok, err = coroutine.resume(co)
-        if err ~= nil or ok == false then
-          io.stderr:write("[!] doShowReader coroutine crashed:\n")
-          io.stderr:write(debug.traceback(co, err, 1))
-          -- Restore input if we crashed before ReaderUI has restored it
-          Device:setIgnoreInput(false)
-          Input:inhibitInputUntil(0.2)
-          -- Need localization.
-          UIManager:show(InfoMessage:new({
-            text = _("Unfortunately KOReader crashed.")
-              .. "\n"
-              .. _(
-                "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help developers to improve it."
-              ),
-          }))
-          self:showFileManager(file)
-        end
-      end)
-    end,
-    InfoMessage:new({
-      text = T(
-        _("Opening file '%1'."),
-        BD.filepath(filemanagerutil.abbreviate(file))
-      ),
-      timeout = 0.0,
-      invisible = seamless,
-    })
-  )
+  UIManager:runInNextTickWith(function()
+    logger.dbg("creating coroutine for showing reader")
+    local co = coroutine.create(function()
+      self:doShowReader(file, provider, seamless)
+    end)
+    local ok, err = coroutine.resume(co)
+    if err ~= nil or ok == false then
+      io.stderr:write("[!] doShowReader coroutine crashed:\n")
+      io.stderr:write(debug.traceback(co, err, 1))
+      -- Restore input if we crashed before ReaderUI has restored it
+      Device:setIgnoreInput(false)
+      Input:inhibitInputUntil(0.2)
+      -- Need localization.
+      UIManager:show(InfoMessage:new({
+        text = _("Unfortunately KOReader crashed.")
+          .. "\n"
+          .. _(
+            "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help developers to improve it."
+          ),
+      }))
+      self:showFileManager(file)
+    end
+  end, InfoMessage:new({
+    text = T(
+      _("Opening file '%1'."),
+      BD.filepath(filemanagerutil.abbreviate(file))
+    ),
+    invisible = seamless,
+  }))
 end
 
 function ReaderUI:doShowReader(file, provider, seamless)

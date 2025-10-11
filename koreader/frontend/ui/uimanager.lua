@@ -1900,5 +1900,11 @@ function UIManager:runWith(func, widget)
   self:close(widget)
 end
 
+function UIManager:runInNextTickWith(func, widget)
+  self:runWith(function()
+    self:nextTick(func)
+  end, widget)
+end
+
 UIManager:init()
 return UIManager
