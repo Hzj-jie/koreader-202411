@@ -143,8 +143,10 @@ If refreshtype is omitted, no refresh will be enqueued at this time.
 @see setDirty
 ]]
 function UIManager:show(widget, refreshtype, refreshregion, x, y, refreshdither)
+  --> window
   assert(not self:isWidgetShown(widget))
 
+  -- TODO: Should assert
   if not widget then
     logger.dbg("attempted to show a nil widget")
     return
@@ -184,6 +186,7 @@ function UIManager:show(widget, refreshtype, refreshregion, x, y, refreshdither)
     self:setIgnoreTouchInput(false)
     widget._restored_input_gestures = true
   end
+  return window
 end
 
 --[[--
@@ -1298,10 +1301,6 @@ function UIManager:paintWindow(window)
   self._dirty[widget] = nil
 end
 
-function UIManager:paintTopWindow()
-  self:paintWindow(self._window_stack[#self._window_stack])
-end
-
 --[[--
 Repaints dirty widgets.
 
@@ -1901,8 +1900,7 @@ end
 function UIManager:runWith(func, widget)
   assert(widget ~= nil)
   assert(func ~= nil)
-  self:show(widget)
-  self:paintTopWindow()
+  self:paintWindow(self:show(widget))
   func()
   self:close(widget)
 end
