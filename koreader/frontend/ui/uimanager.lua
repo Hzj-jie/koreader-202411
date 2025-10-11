@@ -1333,9 +1333,8 @@ function UIManager:_repaint()
       )
       Screen:beforePaint()
       -- NOTE: Nothing actually seems to use the final argument?
-      --     Could be used by widgets to know whether they're being repainted
-      --     because they're actually dirty (it's true), or because something
-      --     below them was (it's nil).
+      --     Could be used by widgets to know whether they're being repainted because they're actually dirty (it's true),
+      --     or because something below them was (it's nil).
       widget:paintTo(Screen.bb, window.x, window.y, self._dirty[widget])
 
       -- and remove from list after painting
