@@ -45,7 +45,6 @@ function ReaderMenu:init()
       icon = "appbar.filebrowser",
       remember = false,
       callback = function()
-        self:onTapCloseMenu()
         self.ui:onHome()
       end,
     },

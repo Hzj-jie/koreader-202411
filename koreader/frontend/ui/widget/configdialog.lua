@@ -1740,7 +1740,6 @@ end
 function ConfigDialog:onTapCloseMenu(arg, ges_ev)
   if ges_ev.pos:notIntersectWith(self.dialog_frame.dimen) then
     self:closeDialog()
-    return true
   end
 end
 
