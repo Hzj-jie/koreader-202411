@@ -341,7 +341,10 @@ function SystemStat:appendSystemInfo()
     "  " .. _("Usage % since boot"),
     string.format(
       "%.2f",
-      (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total) * 100 * self:awakeSec() / self.sys_stat.uptime.sec
+      (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total)
+        * 100
+        * self:awakeSec()
+        / self.sys_stat.uptime.sec
     ),
   })
   self:put({

@@ -110,7 +110,7 @@ function FileManagerShortcuts:editShortcut(folder, post_callback)
         -- Callback happens during the constructor, do nothing.
         return
       end
-      if name == nil then  -- new, allow hint.
+      if name == nil then -- new, allow hint.
         return
       end
       local new_name = input_dialog:getInputText()
@@ -138,7 +138,7 @@ function FileManagerShortcuts:editShortcut(folder, post_callback)
           text = _("Save"),
           id = "save",
           is_enter_default = true,
-          enabled = (name == nil),  -- New shortcut with default value as hint.
+          enabled = (name == nil), -- New shortcut with default value as hint.
           callback = function()
             local new_name = input_dialog:getInputText()
             assert(new_name ~= nil and new_name ~= "" and new_name ~= name)
