@@ -203,7 +203,7 @@ If refreshtype is omitted, no extra refresh will be enqueued at this time, leavi
 @see setDirty
 ]]
 function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
-  -- TODO: Should assert.
+  -- TODO: Should assert
   if not widget then
     logger.dbg("attempted to close a nil widget")
     return
