@@ -621,6 +621,9 @@ function UIManager:setDirty(widget, refreshtype, refreshregion, refreshdither)
         end
 
         if w == widget then
+          if w.name == "ReaderUI" then
+            print(' ========= refresh ReaderUI ' .. debug.traceback())
+          end
           self._dirty[widget] = true
 
           -- We've got a match, now check if it's translucent...
