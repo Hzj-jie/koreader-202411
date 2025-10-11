@@ -20,7 +20,7 @@ while [ ${RETURN_VALUE} -eq 85 ]; do
     ./reader.lua "${ARGS}"
     RETURN_VALUE=$?
     # do not restart with saved arguments
-    ARGS="${HOME}"
+    ARGS=""
 done | tee ${HOME}/.config/koreader/crash.log
 
 # remove the flag to avoid emulator confusion
