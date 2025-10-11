@@ -804,36 +804,50 @@ function InputDialog:_backupRestoreButtons()
   self._buttons_backup_done = true
 end
 
+function InputDialog:button(id)
+  assert(self.button_table ~= nil)
+  return self.button_table:getButtonById(id)
+end
+
+function InputDialog:enableButton(id)
+  return self:button(id):enable()
+end
+
+function InputDialog:disableButton(id)
+  return self:button(id):disable()
+end
+
 function InputDialog:_addSaveCloseButtons()
   if not self.buttons then
     self.buttons = { {} }
-  end
-  -- Add them to the end of first row
-  local row = self.buttons[1]
-  local button = function(id) -- shortcut for more readable code
-    return self.button_table:getButtonById(id)
   end
   -- Callback to enable/disable Reset/Save buttons, for feedback when text modified
   self._buttons_edit_callback = function(edited)
     if self._text_modified and not edited then
       self._text_modified = false
-      button("save"):disable()
+      local refresh = self:disableButton("save")
       if self.reset_callback then
-        button("reset"):disable()
+        refresh = refresh or self:disableButton("reset")
       end
-      self:refreshButtons()
+      if refresh then
+        self:refreshButtons()
+      end
     elseif edited and not self._text_modified then
       self._text_modified = true
-      button("save"):enable()
+      local refresh = self:enableButton("save")
       if self.reset_callback then
-        button("reset"):enable()
+        refresh = refresh or self:enableButton("reset")
       end
-      self:refreshButtons()
+      if refresh then
+        self:refreshButtons()
+      end
     end
     if self.edited_callback then
       self.edited_callback(edited)
     end
   end
+  -- Add them to the end of first row
+  local row = self.buttons[1]
   if self.reset_callback then
     -- if reset_callback provided, add button to restore
     -- text to some previous state
@@ -1119,40 +1133,33 @@ function InputDialog:_addScrollButtons(nav_bar)
   -- Callback to enable/disable buttons, for at-top/at-bottom feedback
   local prev_at_top = false -- Buttons were created enabled
   local prev_at_bottom = false
-  local button = function(id) -- shortcut for more readable code
-    return self.button_table:getButtonById(id)
-  end
   self._buttons_scroll_callback = function(low, high)
     local changed = false
     if prev_at_top and low > 0 then
-      button("up"):enable()
+      changed = changed or self:enableButton("up")
       if nav_bar then
-        button("top"):enable()
+        changed = changed or self:enableButton("top")
       end
       prev_at_top = false
-      changed = true
     elseif not prev_at_top and low <= 0 then
-      button("up"):disable()
+      changed = changed or self:disableButton("up")
       if nav_bar then
-        button("top"):disable()
+        changed = changed or self:disableButton("top")
       end
       prev_at_top = true
-      changed = true
     end
     if prev_at_bottom and high < 1 then
-      button("down"):enable()
+      changed = changed or self:enableButton("down")
       if nav_bar then
-        button("bottom"):enable()
+        changed = changed or self:enableButton("bottom")
       end
       prev_at_bottom = false
-      changed = true
     elseif not prev_at_bottom and high >= 1 then
-      button("down"):disable()
+      changed = changed or self:disableButton("down")
       if nav_bar then
-        button("bottom"):disable()
+        changed = changed or self:disableButton("bottom")
       end
       prev_at_bottom = true
-      changed = true
     end
     if changed then
       self:refreshButtons()

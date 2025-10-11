@@ -1,5 +1,6 @@
 local BD = require("ui/bidi")
 local ButtonDialog = require("ui/widget/buttondialog")
+local FFIUtil = require("ffi/util")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local Menu = require("ui/widget/menu")
@@ -102,24 +103,45 @@ function FileManagerShortcuts:editShortcut(folder, post_callback)
   input_dialog = InputDialog:new({
     title = _("Enter folder shortcut name"),
     input = name,
+    input_hint = name and nil or FFIUtil.basename(folder),
     description = BD.dirpath(folder),
+    edited_callback = function()
+      if input_dialog == nil then
+        -- Callback happens during the constructor, do nothing.
+        return
+      end
+      if name == nil then  -- new, allow hint.
+        return
+      end
+      local new_name = input_dialog:getInputText()
+      -- When input is cleared, the hint / original input will be provided,
+      -- also disallow it.
+      if new_name == nil or new_name == "" or new_name == name then
+        if input_dialog:disableButton("save") then
+          input_dialog:refreshButtons()
+        end
+      else
+        if input_dialog:enableButton("save") then
+          input_dialog:refreshButtons()
+        end
+      end
+    end,
     buttons = {
       {
         {
           text = _("Cancel"),
-          id = "close",
           callback = function()
             UIManager:close(input_dialog)
           end,
         },
         {
           text = _("Save"),
+          id = "save",
           is_enter_default = true,
+          enabled = (name == nil),  -- New shortcut with default value as hint.
           callback = function()
             local new_name = input_dialog:getInputText()
-            if new_name == "" or new_name == name then
-              return
-            end
+            assert(new_name ~= nil and new_name ~= "" and new_name ~= name)
             UIManager:close(input_dialog)
             if item then
               item.text = new_name
