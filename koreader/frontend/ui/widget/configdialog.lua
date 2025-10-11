@@ -1740,7 +1740,10 @@ end
 function ConfigDialog:onTapCloseMenu(arg, ges_ev)
   if ges_ev.pos:notIntersectWith(self.dialog_frame.dimen) then
     self:closeDialog()
+    return true
   end
+  -- Not closing, but the tap will be consumed by the ConfigDialog
+  UIManager:broadcastEvent(Event:new("TapConfigDialog", self))
 end
 
 function ConfigDialog:onSwipeCloseMenu(arg, ges_ev)

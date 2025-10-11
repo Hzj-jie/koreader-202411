@@ -220,4 +220,12 @@ function ReaderConfig:onSaveSettings()
   self.ui.doc_settings:saveSetting("config_panel_index", self.last_panel_index)
 end
 
+function ReaderConfig:onTapConfigDialog(config)
+  if config ~= self.config_dialog then
+    return
+  end
+  -- It's our config.
+  UIManager:broadcastEvent("CloseReaderMenu")
+end
+
 return ReaderConfig

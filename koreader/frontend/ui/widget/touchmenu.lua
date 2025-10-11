@@ -872,9 +872,6 @@ function TouchMenu:switchMenuTab(tab_num)
   if self.tab_item_table[tab_num].remember ~= false then
     self.last_index = tab_num
   end
-  if self.touch_menu_callback then
-    self.touch_menu_callback()
-  end
   if self.tab_item_table[tab_num].callback then
     self.tab_item_table[tab_num].callback()
   end
@@ -981,9 +978,6 @@ function TouchMenu:onSwipe(arg, ges_ev)
 end
 
 function TouchMenu:onMenuSelect(item, tap_on_checkmark)
-  if self.touch_menu_callback then
-    self.touch_menu_callback()
-  end
   if tap_on_checkmark and item.checkmark_callback then
     item.checkmark_callback()
     self:updateItems()
@@ -1044,9 +1038,6 @@ function TouchMenu:onMenuSelect(item, tap_on_checkmark)
 end
 
 function TouchMenu:onMenuHold(item, text_truncated) --> None
-  if self.touch_menu_callback then
-    self.touch_menu_callback()
-  end
   if item.hold_input or type(item.hold_input_func) == "function" then
     if item.hold_keep_menu_open == false then
       self:closeMenu()
@@ -1091,7 +1082,10 @@ end
 function TouchMenu:onTapCloseAllMenus(arg, ges_ev)
   if ges_ev.pos:notIntersectWith(self.dimen) then
     self:closeMenu()
+    return true
   end
+  -- Not closing, but the tap will be consumed by TouchMenu
+  UIManager:broadcastEvent(Event:new("TapTouchMenu", self))
 end
 
 function TouchMenu:onExit()
