@@ -134,54 +134,45 @@ function CheckButton:onTapCheckButton()
   elseif type(self.tap_input_func) == "function" then
     self:onInput(self.tap_input_func())
   else
-    if G_reader_settings:isFalse("flash_ui") then
-      if not self.radio then
-        self:toggleCheck()
-      end
-      if self.callback then
-        self.callback()
-      end
-    else
-      -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-      local highlight_dimen = self.dimen
+    local highlight_dimen = self.dimen
 
-      -- Highlight
-      --
-      self[1].invert = true
-      UIManager:widgetInvert(
-        self[1],
-        highlight_dimen.x,
-        highlight_dimen.y,
-        highlight_dimen.w
-      )
-      UIManager:setDirty(nil, "fast", highlight_dimen)
+    -- Highlight
+    --
+    self[1].invert = true
+    UIManager:widgetInvert(
+      self[1],
+      highlight_dimen.x,
+      highlight_dimen.y,
+      highlight_dimen.w
+    )
+    UIManager:setDirty(nil, "fast", highlight_dimen)
 
-      UIManager:forceRePaint()
-      UIManager:yieldToEPDC()
+    UIManager:forceRePaint()
+    UIManager:yieldToEPDC()
 
-      -- Unhighlight
-      --
-      self[1].invert = false
-      UIManager:widgetInvert(
-        self[1],
-        highlight_dimen.x,
-        highlight_dimen.y,
-        highlight_dimen.w
-      )
-      UIManager:setDirty(nil, "ui", highlight_dimen)
+    -- Unhighlight
+    --
+    self[1].invert = false
+    UIManager:widgetInvert(
+      self[1],
+      highlight_dimen.x,
+      highlight_dimen.y,
+      highlight_dimen.w
+    )
+    UIManager:setDirty(nil, "ui", highlight_dimen)
 
-      -- Callback
-      --
-      if not self.radio then
-        self:toggleCheck()
-      end
-      if self.callback then
-        self.callback()
-      end
-
-      UIManager:forceRePaint()
+    -- Callback
+    --
+    if not self.radio then
+      self:toggleCheck()
     end
+    if self.callback then
+      self.callback()
+    end
+
+    UIManager:forceRePaint()
   end
   return true
 end

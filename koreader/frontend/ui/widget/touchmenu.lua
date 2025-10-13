@@ -210,49 +210,45 @@ function TouchMenuItem:onTapSelect(arg, ges)
     return true
   end
 
-  if G_reader_settings:isFalse("flash_ui") then
-    self.menu:onMenuSelect(self.item, tap_on_checkmark)
-  else
-    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+  -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-    -- The item frame's width stops at the text width, but we want it to match the menu's length instead
-    local highlight_dimen = self.item_frame.dimen
-    highlight_dimen.w = self.item_frame.width
+  -- The item frame's width stops at the text width, but we want it to match the menu's length instead
+  local highlight_dimen = self.item_frame.dimen
+  highlight_dimen.w = self.item_frame.width
 
-    -- Highlight
-    --
-    self.item_frame.invert = true
+  -- Highlight
+  --
+  self.item_frame.invert = true
+  UIManager:widgetInvert(
+    self.item_frame,
+    highlight_dimen.x,
+    highlight_dimen.y,
+    highlight_dimen.w
+  )
+  UIManager:setDirty(nil, "fast", highlight_dimen)
+
+  UIManager:forceRePaint()
+  UIManager:yieldToEPDC()
+
+  -- Unhighlight
+  --
+  self.item_frame.invert = false
+  -- NOTE: If the menu is going to be closed, we can safely drop that.
+  if self.item.keep_menu_open then
     UIManager:widgetInvert(
       self.item_frame,
       highlight_dimen.x,
       highlight_dimen.y,
       highlight_dimen.w
     )
-    UIManager:setDirty(nil, "fast", highlight_dimen)
-
-    UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
-
-    -- Unhighlight
-    --
-    self.item_frame.invert = false
-    -- NOTE: If the menu is going to be closed, we can safely drop that.
-    if self.item.keep_menu_open then
-      UIManager:widgetInvert(
-        self.item_frame,
-        highlight_dimen.x,
-        highlight_dimen.y,
-        highlight_dimen.w
-      )
-      UIManager:setDirty(nil, "ui", highlight_dimen)
-    end
-
-    -- Callback
-    --
-    self.menu:onMenuSelect(self.item, tap_on_checkmark)
-
-    UIManager:forceRePaint()
+    UIManager:setDirty(nil, "ui", highlight_dimen)
   end
+
+  -- Callback
+  --
+  self.menu:onMenuSelect(self.item, tap_on_checkmark)
+
+  UIManager:forceRePaint()
   return true
 end
 
@@ -271,50 +267,46 @@ function TouchMenuItem:onHoldSelect(arg, ges)
     return true
   end
 
-  if G_reader_settings:isFalse("flash_ui") then
-    self.menu:onMenuHold(self.item, self.text_truncated)
-  else
-    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+  -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-    -- The item frame's width stops at the text width, but we want it to match the menu's length instead
-    local highlight_dimen = self.item_frame.dimen
-    highlight_dimen.w = self.item_frame.width
+  -- The item frame's width stops at the text width, but we want it to match the menu's length instead
+  local highlight_dimen = self.item_frame.dimen
+  highlight_dimen.w = self.item_frame.width
 
-    -- Highlight
-    --
-    self.item_frame.invert = true
+  -- Highlight
+  --
+  self.item_frame.invert = true
+  UIManager:widgetInvert(
+    self.item_frame,
+    highlight_dimen.x,
+    highlight_dimen.y,
+    highlight_dimen.w
+  )
+  UIManager:setDirty(nil, "fast", highlight_dimen)
+
+  UIManager:forceRePaint()
+  UIManager:yieldToEPDC()
+
+  -- Unhighlight
+  --
+  self.item_frame.invert = false
+  -- NOTE: If the menu is going to be closed, we can safely drop that.
+  --     (This field defaults to nil, meaning keep the menu open, hence the negated test)
+  if self.item.hold_keep_menu_open ~= false then
     UIManager:widgetInvert(
       self.item_frame,
       highlight_dimen.x,
       highlight_dimen.y,
       highlight_dimen.w
     )
-    UIManager:setDirty(nil, "fast", highlight_dimen)
-
-    UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
-
-    -- Unhighlight
-    --
-    self.item_frame.invert = false
-    -- NOTE: If the menu is going to be closed, we can safely drop that.
-    --     (This field defaults to nil, meaning keep the menu open, hence the negated test)
-    if self.item.hold_keep_menu_open ~= false then
-      UIManager:widgetInvert(
-        self.item_frame,
-        highlight_dimen.x,
-        highlight_dimen.y,
-        highlight_dimen.w
-      )
-      UIManager:setDirty(nil, "ui", highlight_dimen)
-    end
-
-    -- Callback
-    --
-    self.menu:onMenuHold(self.item, self.text_truncated)
-
-    UIManager:forceRePaint()
+    UIManager:setDirty(nil, "ui", highlight_dimen)
   end
+
+  -- Callback
+  --
+  self.menu:onMenuHold(self.item, self.text_truncated)
+
+  UIManager:forceRePaint()
   return true
 end
 

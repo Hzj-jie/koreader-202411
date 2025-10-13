@@ -550,32 +550,28 @@ function MenuItem:onTapSelect(arg, ges)
   end
 
   local pos = self:getGesPosition(ges)
-  if G_reader_settings:isFalse("flash_ui") then
-    self.menu:onMenuSelect(self.entry, pos)
-  else
-    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+  -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-    -- Highlight
-    --
-    self[1].invert = true
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-    UIManager:setDirty(nil, "fast", self[1].dimen)
+  -- Highlight
+  --
+  self[1].invert = true
+  UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+  UIManager:setDirty(nil, "fast", self[1].dimen)
 
-    UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
+  UIManager:forceRePaint()
+  UIManager:yieldToEPDC()
 
-    -- Unhighlight
-    --
-    self[1].invert = false
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-    UIManager:setDirty(nil, "ui", self[1].dimen)
+  -- Unhighlight
+  --
+  self[1].invert = false
+  UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+  UIManager:setDirty(nil, "ui", self[1].dimen)
 
-    -- Callback
-    --
-    self.menu:onMenuSelect(self.entry, pos)
+  -- Callback
+  --
+  self.menu:onMenuSelect(self.entry, pos)
 
-    UIManager:forceRePaint()
-  end
+  UIManager:forceRePaint()
   return true
 end
 
@@ -585,32 +581,28 @@ function MenuItem:onHoldSelect(arg, ges)
   end
 
   local pos = self:getGesPosition(ges)
-  if G_reader_settings:isFalse("flash_ui") then
-    self.menu:onMenuHold(self.entry, pos)
-  else
-    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+  -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-    -- Highlight
-    --
-    self[1].invert = true
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-    UIManager:setDirty(nil, "fast", self[1].dimen)
+  -- Highlight
+  --
+  self[1].invert = true
+  UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+  UIManager:setDirty(nil, "fast", self[1].dimen)
 
-    UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
+  UIManager:forceRePaint()
+  UIManager:yieldToEPDC()
 
-    -- Unhighlight
-    --
-    self[1].invert = false
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-    UIManager:setDirty(nil, "ui", self[1].dimen)
+  -- Unhighlight
+  --
+  self[1].invert = false
+  UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+  UIManager:setDirty(nil, "ui", self[1].dimen)
 
-    -- Callback
-    --
-    self.menu:onMenuHold(self.entry, pos)
+  -- Callback
+  --
+  self.menu:onMenuHold(self.entry, pos)
 
-    UIManager:forceRePaint()
-  end
+  UIManager:forceRePaint()
   return true
 end
 

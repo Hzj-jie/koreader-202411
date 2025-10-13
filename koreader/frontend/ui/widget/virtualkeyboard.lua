@@ -356,7 +356,6 @@ function VirtualKey:init()
   then
     self[1].background = Blitbuffer.COLOR_LIGHT_GRAY
   end
-  self.flash_keyboard = G_reader_settings:nilOrTrue("flash_keyboard")
 end
 
 function VirtualKey:paintTo(...)
@@ -443,7 +442,7 @@ function VirtualKey:onTapSelect(skip_flash)
   Device:performHapticFeedback("KEYBOARD_TAP")
   -- just in case it's not flipped to false on hold release where it's supposed to
   self.keyboard.ignore_first_hold_release = false
-  if self.flash_keyboard and not skip_flash and not self.skiptap then
+  if not skip_flash and not self.skiptap then
     self:invert(true)
     UIManager:forceRePaint()
     UIManager:yieldToEPDC()
@@ -464,11 +463,7 @@ end
 function VirtualKey:onHoldSelect()
   Device:performHapticFeedback("LONG_PRESS")
   -- No visual feedback necessary if we're going to show a popup on top of the key ;).
-  if
-    self.flash_keyboard
-    and not self.skiphold
-    and not self.hold_cb_is_popup
-  then
+  if not self.skiphold and not self.hold_cb_is_popup then
     self:invert(true)
     UIManager:forceRePaint()
     UIManager:yieldToEPDC()
@@ -494,21 +489,15 @@ function VirtualKey:onSwipeKey(arg, ges)
     return self:onTapSelect()
   end
   Device:performHapticFeedback("KEYBOARD_TAP")
-  if self.flash_keyboard then
-    self:invert(true)
-    UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
+  self:invert(true)
+  UIManager:forceRePaint()
+  UIManager:yieldToEPDC()
 
-    self:invert(false)
-    if self.swipe_callback then
-      self.swipe_callback(ges)
-    end
-    UIManager:forceRePaint()
-  else
-    if self.swipe_callback then
-      self.swipe_callback(ges)
-    end
+  self:invert(false)
+  if self.swipe_callback then
+    self.swipe_callback(ges)
   end
+  UIManager:forceRePaint()
   return true
 end
 

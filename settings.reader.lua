@@ -94,7 +94,6 @@ return {
   ["fallback_font"] = "Noto Sans CJK SC",
   ["filemanagermenu_tab_index"] = 5,
   ["fl_last_level"] = 80,
-  ["flash_keyboard"] = true,
   ["floating_punctuation"] = 1,
   ["footer"] = {
     ["align"] = "center",

@@ -226,32 +226,28 @@ end
 
 function KeyValueItem:onTap()
   if self.callback then
-    if G_reader_settings:isFalse("flash_ui") then
-      self.callback(self.kv_page, self)
-    else
-      -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-      -- Highlight
-      --
-      self[1].invert = true
-      UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-      UIManager:setDirty(nil, "fast", self[1].dimen)
+    -- Highlight
+    --
+    self[1].invert = true
+    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+    UIManager:setDirty(nil, "fast", self[1].dimen)
 
-      UIManager:forceRePaint()
-      UIManager:yieldToEPDC()
+    UIManager:forceRePaint()
+    UIManager:yieldToEPDC()
 
-      -- Unhighlight
-      --
-      self[1].invert = false
-      UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-      UIManager:setDirty(nil, "ui", self[1].dimen)
+    -- Unhighlight
+    --
+    self[1].invert = false
+    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+    UIManager:setDirty(nil, "ui", self[1].dimen)
 
-      -- Callback
-      --
-      self.callback(self.kv_page, self)
+    -- Callback
+    --
+    self.callback(self.kv_page, self)
 
-      UIManager:forceRePaint()
-    end
+    UIManager:forceRePaint()
   else
     -- If no tap callback, allow for displaying the non-truncated
     -- text with Tap too

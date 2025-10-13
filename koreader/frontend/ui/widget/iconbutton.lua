@@ -110,7 +110,7 @@ function IconButton:onTapIconButton()
   if not self.callback then
     return
   end
-  if G_reader_settings:isFalse("flash_ui") or not self.allow_flash then
+  if not self.allow_flash then
     self.callback()
   else
     -- Mimic BiDi left/right switcheroos...
