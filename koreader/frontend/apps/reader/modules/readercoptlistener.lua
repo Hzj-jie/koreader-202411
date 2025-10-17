@@ -423,17 +423,8 @@ function ReaderCoptListener:getAltStatusBarMenu()
   return {
     text = _("Alt status bar"),
     separator = true,
+    help_text = about_text,
     sub_item_table = {
-      {
-        text = _("About alt status bar"),
-        keep_menu_open = true,
-        callback = function()
-          UIManager:show(InfoMessage:new({
-            text = about_text,
-          }))
-        end,
-        separator = true,
-      },
       {
         text = _("Auto refresh"),
         checked_func = function()
