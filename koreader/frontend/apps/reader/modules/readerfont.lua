@@ -26,6 +26,30 @@ local ReaderFont = InputContainer:extend({
   steps = { 0, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 5 },
 })
 
+local FONT_FAMILY_INFO_TEXT = _(
+  [[
+In HTML/CSS based documents like EPUBs, stylesheets can specify to use fonts by family instead of a specific font name.
+Except for monospace and math, KOReader uses your default font for any family name.
+You can associate a specific font to each family if you care about the distinction.
+A long-press on a font name will make the association global (★), so it applies to all your books. This is the preferred approach.
+A tap will only affect the current book.
+If you encounter a book where such families are abused to the point where your default font is hardly used, you can quickly disable a family font for this book by unchecking the association.]]
+)
+
+local FONT_FAMILIES = {
+  -- On 1st page
+  -- @translators These are typography font family names as used in CSS, they can be kept untranslated if they are used more commonly than their translation
+  { "serif", _("Serif") },
+  { "sans-serif", _("Sans-serif") },
+  { "monospace", _("Monospace") },
+  -- On 2nd page
+  { "cursive", _("Cursive") },
+  { "fantasy", _("Fantasy") },
+  { "emoji", _("Emoji") .. " 😊" }, -- U+1F60A
+  { "fangsong", _("Fang Song") .. " 仿宋" }, -- U+4EFF U+5B8B
+  { "math", _("Math") },
+}
+
 -- Keep a list of the new fonts seen at launch
 local newly_added_fonts = nil -- not yet filled
 
@@ -67,6 +91,7 @@ function ReaderFont:setupFaceMenuTable()
       end
       return _("Font-family fonts")
     end,
+    help_text = FONT_FAMILY_INFO_TEXT,
     sub_item_table_func = function()
       return self:getFontFamiliesTable()
     end,
@@ -453,30 +478,6 @@ function ReaderFont:onDecreaseFontSize(ges)
   return true
 end
 
-local font_family_info_text = _(
-  [[
-In HTML/CSS based documents like EPUBs, stylesheets can specify to use fonts by family instead of a specific font name.
-Except for monospace and math, KOReader uses your default font for any family name.
-You can associate a specific font to each family if you care about the distinction.
-A long-press on a font name will make the association global (★), so it applies to all your books. This is the preferred approach.
-A tap will only affect the current book.
-If you encounter a book where such families are abused to the point where your default font is hardly used, you can quickly disable a family font for this book by unchecking the association.]]
-)
-
-local FONT_FAMILIES = {
-  -- On 1st page
-  -- @translators These are typography font family names as used in CSS, they can be kept untranslated if they are used more commonly than their translation
-  { "serif", _("Serif") },
-  { "sans-serif", _("Sans-serif") },
-  { "monospace", _("Monospace") },
-  -- On 2nd page
-  { "cursive", _("Cursive") },
-  { "fantasy", _("Fantasy") },
-  { "emoji", _("Emoji") .. " 😊" }, -- U+1F60A
-  { "fangsong", _("Fang Song") .. " 仿宋" }, -- U+4EFF U+5B8B
-  { "math", _("Math") },
-}
-
 function ReaderFont:updateFontFamilyFonts()
   -- Note: when no font is specified for a family, we provide an empty string to
   -- crengine, which is enough to have it kill any "css_ff_inherit" and have the
@@ -517,16 +518,6 @@ function ReaderFont:getFontFamiliesTable()
     "cre_font_family_fonts"
   ) or {}
   local families_table = {
-    {
-      text = _("About font-family fonts"),
-      callback = function()
-        UIManager:show(InfoMessage:new({
-          text = font_family_info_text,
-        }))
-      end,
-      keep_menu_open = true,
-      separator = true,
-    },
     {
       text = _("Ignore publisher font names when font-family is set"),
       checked_func = function()
@@ -631,6 +622,7 @@ Enabling this will ignore such font names and make sure your preferred family fo
             _("Font for %1"),
             BD.wrap(T("'font-family: %1'", family_tag))
           ),
+          enabled = false,
           separator = true,
         },
         {
