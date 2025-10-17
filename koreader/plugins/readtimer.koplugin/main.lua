@@ -29,16 +29,14 @@ function ReadTimer:init()
 
     self.time = 0
     local tip_text = _("Time is up")
-    local confirm_box
     -- only interval support repeat
     if self.last_interval_time > 0 then
       logger.dbg("can_repeat, show confirm_box")
-      confirm_box = ConfirmBox:new({
+      local confirm_box = ConfirmBox:new({
         text = tip_text,
         ok_text = _("Repeat"),
         ok_callback = function()
           logger.dbg("Schedule a new time:", self.last_interval_time)
-          UIManager:close(confirm_box)
           self:rescheduleIn(self.last_interval_time)
         end,
         cancel_text = _("Done"),
@@ -410,18 +408,9 @@ end
 function ReadTimer:onResume()
   if self:scheduled() then
     logger.dbg("ReadTimer: onResume with an active timer")
-    local remainder = self:remaining()
-
-    if remainder == 0 then
-      -- Make sure we fire the alarm right away if it expired during suspend...
-      self:alarm_callback()
-      self:unschedule()
-    else
-      -- ...and that we re-schedule the timer against the REAL time if it's still ticking.
-      logger.dbg("ReadTimer: Rescheduling in", remainder, "seconds")
-      self:unschedule()
-      self:rescheduleIn(remainder)
-    end
+    self:unschedule()
+    -- When self:remaining() is 0, it should immediately fire the alarm.
+    self:rescheduleIn(self:remaining())
   end
 end
 
