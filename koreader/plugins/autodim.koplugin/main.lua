@@ -20,8 +20,14 @@ local C_ = _.pgettext
 local Powerd = Device.powerd
 local T = require("ffi/util").template
 
-local DEFAULT_AUTODIM_DURATION_S = 5
-local DEFAULT_AUTODIM_FRACTION = 20
+-- Instead of embedding these constants, keep them here so that if there is
+-- really a need of changing them, e.g. from G_defaults, the change would be
+-- easier.
+local AUTODIM_DURATION_S = 1
+local AUTODIM_END_FL = 1
+-- Kindle auto-shuts off in roughly 10 minutes, cut it into half.
+local DEFAULT_AUTODIM_STARTTIME_M = 5
+local HELP_TEXT = require("_meta").description
 
 local AutoDim = WidgetContainer:extend({
   name = "autodim",
@@ -37,11 +43,6 @@ function AutoDim:init()
   self.autodim_starttime_m = G_reader_settings:readSetting(
     "autodim_starttime_minutes"
   ) or -1
-  self.autodim_duration_s = G_reader_settings:readSetting(
-    "autodim_duration_seconds"
-  ) or DEFAULT_AUTODIM_DURATION_S
-  self.autodim_fraction = G_reader_settings:readSetting("autodim_fraction")
-    or DEFAULT_AUTODIM_FRACTION
 
   self.ui.menu:registerToMainMenu(self)
 
@@ -55,147 +56,63 @@ end
 
 function AutoDim:addToMainMenu(menu_items)
   menu_items.autodim = {
-    text = _("Automatic dimmer"),
-    checked_func = function()
-      return self.autodim_starttime_m > 0
-    end,
-    sub_item_table = {
-      {
-        text_func = function()
-          return self.autodim_starttime_m <= 0 and _("Idle time for dimmer")
-            or T(
-              _("Idle time for dimmer: %1"),
+    text_func = function()
+      return _("Automatic dimmer") .. ": " ..
+      -- Need localization.
+       (self.autodim_starttime_m <= 0 and _("disabled") or T(
+              _("after %1"),
               datetime.secondsToClockDuration(
                 "letters",
                 self.autodim_starttime_m * 60,
                 false,
                 false,
                 true
-              )
-            )
-        end,
-        checked_func = function()
-          return self.autodim_starttime_m > 0
-        end,
-        callback = function(menu)
-          local idle_dialog = SpinWidget:new({
-            title_text = _("Automatic dimmer idle time"),
-            info_text = _(
-              "Start the dimmer after the designated period of inactivity."
-            ),
-            value = self.autodim_starttime_m >= 0 and self.autodim_starttime_m
-              or 0.5,
-            default_value = Device:isKindle() and 4 or 5,
-            value_min = 0.5,
-            value_max = 60,
-            value_step = 0.5,
-            value_hold_step = 5,
-            unit = C_("Time", "min"),
-            precision = "%0.1f",
-            ok_always_enabled = true,
-            callback = function(spin)
-              if not spin then
-                return
-              end
-              self.autodim_starttime_m = spin.value
-              G_reader_settings:saveSetting(
-                "autodim_starttime_minutes",
-                spin.value
-              )
-              self:_scheduleAutoDimTask()
-              menu:updateItems()
-            end,
-            extra_text = _("Disable"),
-            extra_callback = function()
-              self.autodim_starttime_m = -1
-              G_reader_settings:saveSetting("autodim_starttime_minutes", -1)
-              self:_scheduleAutoDimTask()
-              menu:updateItems()
-            end,
-          })
-          UIManager:show(idle_dialog)
-        end,
-        keep_menu_open = true,
-      },
-      {
-        text_func = function()
-          return T(
-            _("Dimmer duration: %1"),
-            datetime.secondsToClockDuration(
-              "letters",
-              self.autodim_duration_s,
-              false,
-              false,
-              true
-            )
+              )))
+    end,
+    checked_func = function()
+      return self.autodim_starttime_m > 0
+    end,
+    callback = function(menu)
+      local idle_dialog = SpinWidget:new({
+        title_text = _("Automatic dimmer idle time"),
+        info_text = _(
+          "Start the dimmer after the designated period of inactivity."
+        ),
+        value = self.autodim_starttime_m >= 0 and self.autodim_starttime_m
+          or DEFAULT_AUTODIM_STARTTIME_M,
+        default_value = DEFAULT_AUTODIM_STARTTIME_M,
+        value_min = 0.5,
+        -- kindle auto-shuts off in roughly 10 minutes.
+        value_max = Device:isKindle() and 8 or 60,
+        value_step = 0.5,
+        value_hold_step = 5,
+        unit = C_("Time", "min"),
+        precision = "%0.1f",
+        ok_always_enabled = true,
+        callback = function(spin)
+          if not spin then
+            return
+          end
+          self.autodim_starttime_m = spin.value
+          G_reader_settings:saveSetting(
+            "autodim_starttime_minutes",
+            spin.value
           )
+          self:_scheduleAutoDimTask()
+          menu:updateItems()
         end,
-        enabled_func = function()
-          return self.autodim_starttime_m > 0
+        extra_text = _("Disable"),
+        extra_callback = function()
+          self.autodim_starttime_m = -1
+          G_reader_settings:saveSetting("autodim_starttime_minutes", -1)
+          self:_scheduleAutoDimTask()
+          menu:updateItems()
         end,
-        callback = function(menu)
-          local dimmer_dialog = SpinWidget:new({
-            title_text = _("Automatic dimmer duration"),
-            info_text = _("Delay to reach the lowest brightness."),
-            value = self.autodim_duration_s,
-            default_value = DEFAULT_AUTODIM_DURATION_S,
-            value_min = 0,
-            value_max = 300,
-            value_step = 1,
-            value_hold_step = 10,
-            precision = "%1d",
-            unit = C_("Time", "s"),
-            callback = function(spin)
-              if not spin then
-                return
-              end
-              self.autodim_duration_s = spin.value
-              G_reader_settings:saveSetting(
-                "autodim_duration_seconds",
-                spin.value
-              )
-              self:_scheduleAutoDimTask()
-              menu:updateItems()
-            end,
-          })
-          UIManager:show(dimmer_dialog)
-        end,
-        keep_menu_open = true,
-      },
-      {
-        text_func = function()
-          return T(
-            _("Dim to %1 % of the regular brightness"),
-            self.autodim_fraction
-          )
-        end,
-        enabled_func = function()
-          return self.autodim_starttime_m > 0
-        end,
-        callback = function(menu)
-          local percentage_dialog = SpinWidget:new({
-            title_text = _("Dim to percentage"),
-            info_text = _(
-              "The lowest brightness as a percentage of the regular brightness."
-            ),
-            value = self.autodim_fraction,
-            value_default = DEFAULT_AUTODIM_FRACTION,
-            value_min = 0,
-            value_max = 100,
-            value_hold_step = 10,
-            unit = "%",
-            callback = function(spin)
-              self.autodim_fraction = spin.value
-              G_reader_settings:saveSetting("autodim_fraction", spin.value)
-              self:_scheduleAutoDimTask()
-              menu:updateItems()
-            end,
-          })
-          UIManager:show(percentage_dialog)
-        end,
-        keep_menu_open = true,
-      },
-    },
+      })
+      UIManager:show(idle_dialog)
+    end,
+    keep_menu_open = true,
+    help_text = HELP_TEXT,
   }
 end
 
@@ -276,13 +193,7 @@ function AutoDim:_executable()
   end
 
   self.origin_fl = self.origin_fl or Powerd:frontlightIntensity()
-  local autodim_end_fl =
-    math.floor(self.origin_fl * self.autodim_fraction * (1 / 100) + 0.5)
-  -- Clamp `autodim_end_fl` to 1 if `self.autodim_fraction` ~= 0
-  if self.autodim_fraction ~= 0 and autodim_end_fl == 0 then
-    autodim_end_fl = 1
-  end
-  local fl_diff = self.origin_fl - autodim_end_fl
+  local fl_diff = self.origin_fl - AUTODIM_END_FL
   if fl_diff <= 0 then
     -- Well, this is likely impossible, but in case the combination of the
     -- configurations is weird.
@@ -304,14 +215,14 @@ function AutoDim:_executable()
   PluginShare.DeviceIdling = true
 
   -- BackgroundTaskRunner isn't designed to run rapid jobs.
+  UIManager:unschedule(AutoDim._rampTask)
   self:_rampTask(
     fl_diff,
-    autodim_end_fl,
-    math.max(self.autodim_duration_s / fl_diff, 0.001)
+    math.max(AUTODIM_DURATION_S / fl_diff, 0.001)
   )
 end
 
-function AutoDim:_rampTask(fl_diff, autodim_end_fl, delay)
+function AutoDim:_rampTask(fl_diff, delay)
   -- Something else happened, like resumed, stopping the ramp down.
   if not self.trap_widget then
     return
@@ -330,7 +241,7 @@ function AutoDim:_rampTask(fl_diff, autodim_end_fl, delay)
   local fl_level = Powerd:frontlightIntensity()
   -- Well, something else may happened as well, e.g. some other logic changed
   -- the frontlight level.
-  if fl_level <= autodim_end_fl then
+  if fl_level <= AUTODIM_END_FL then
     return
   end
   fl_level = fl_level - 1
@@ -340,13 +251,12 @@ function AutoDim:_rampTask(fl_diff, autodim_end_fl, delay)
   if not Device:hasEinkScreen() or ((self.origin_fl - fl_level) % 2 == 0) then
     UIManager:broadcastEvent(Event:new("UpdateFooter", true, true))
   end
-  if fl_level > autodim_end_fl then
+  if fl_level > AUTODIM_END_FL then
     UIManager:scheduleIn(
       delay,
       AutoDim._rampTask,
       self,
       fl_diff,
-      autodim_end_fl,
       delay
     )
   end
