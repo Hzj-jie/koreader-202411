@@ -1112,7 +1112,6 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
     --     so we don't *actually* have a full connection yet,
     --     we've just *started* connecting to the requested network...
     UIManager:show(InfoMessage:new({
-      tag = "NetworkMgr", -- for crazy KOSync purposes
       text = T(
         Device:isKindle() and _("Connecting to network %1…")
           or _("Connected to network %1"),
