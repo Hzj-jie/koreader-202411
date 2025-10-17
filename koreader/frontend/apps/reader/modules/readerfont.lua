@@ -1073,9 +1073,9 @@ a { color: black; }
       BD.filepath(font_test_final_path)
     ),
     ok_callback = function()
-      UIManager:scheduleIn(1.0, function()
-        self.ui:switchDocument(font_test_final_path)
-      end)
+      -- Need to ensure this ConfirmBox is still showing before exiting the
+      -- ReaderUI.
+      self.ui:switchDocument(font_test_final_path)
     end,
   }))
 end
