@@ -590,7 +590,6 @@ When the book's language tag is not among our presets, no specific features will
     })
   end
 
-  self.language_submenu.max_per_page = 5
   table.insert(self.menu_table, {
     text_func = function()
       local lang_name = LANG_TAG_TO_LANG_NAME[self.text_lang_tag]
@@ -957,7 +956,6 @@ These settings will apply to all books with any hyphenation dictionary.
 end
 
 function ReaderTypography:addToMainMenu(menu_items)
-  self.menu_table.max_per_page = 7
   -- insert table to main reader menu
   menu_items.typography = {
     text_func = function()

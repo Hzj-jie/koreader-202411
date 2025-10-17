@@ -498,6 +498,8 @@ function TouchMenuBar:switchToTab(index)
   self.icon_widgets[index].callback()
 end
 
+local MAX_PER_PAGE = 10
+
 --[[
 TouchMenu widget for hierarchical menus
 --]]
@@ -514,7 +516,6 @@ local TouchMenu = FocusManager:extend({
   width = nil,
   height = nil,
   page = 1,
-  max_per_page_default = 10,
   -- for UIManager:setDirty
   show_parent = nil,
   cur_tab = -1,
@@ -742,9 +743,8 @@ function TouchMenu:_recalculatePageLayout()
 
   local item_list_content_height = content_height - footer_height
   self.perpage = math.floor(item_list_content_height / self.item_height)
-  local max_per_page = self.item_table.max_per_page or self.max_per_page_default
-  if self.perpage > max_per_page then
-    self.perpage = max_per_page
+  if self.perpage > MAX_PER_PAGE then
+    self.perpage = MAX_PER_PAGE
   end
 
   self.page_num = math.ceil(#self.item_table / self.perpage)

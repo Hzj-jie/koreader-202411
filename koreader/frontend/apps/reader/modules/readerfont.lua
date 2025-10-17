@@ -155,9 +155,6 @@ function ReaderFont:setupFaceMenuTable()
   self.face_table.open_on_menu_item_id_func = function()
     return self.font_face
   end
-  -- Have TouchMenu show half of the usual nb of items, so we
-  -- have more room to see how the text looks with that font
-  self.face_table.max_per_page = 5
 end
 
 function ReaderFont:onGesture() end
@@ -547,7 +544,6 @@ Enabling this will ignore such font names and make sure your preferred family fo
       keep_menu_open = true,
       separator = true,
     },
-    max_per_page = 5,
   }
   local face_to_filename = {}
   local face_list = cre.getFontFaces()
@@ -666,7 +662,6 @@ Enabling this will ignore such font names and make sure your preferred family fo
           end,
           separator = true,
         },
-        max_per_page = 5,
       },
     }
     for k, v in ipairs(face_list) do
