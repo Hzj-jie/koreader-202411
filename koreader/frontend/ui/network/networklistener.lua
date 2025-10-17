@@ -24,6 +24,10 @@ if not Device:hasWifiToggle() then
   return NetworkListener
 end
 
+local function supportActivityCheck()
+  return not Device:isKindle() and G_reader_settings:isTrue("auto_disable_wifi")
+end
+
 function NetworkListener:onToggleWifi()
   -- This is not a bug, but to allow users connecting to the wifi network if the
   -- wifi is on but not connected.
@@ -99,6 +103,10 @@ function NetworkListener:_getTxPackets()
 end
 
 function NetworkListener:_unscheduleActivityCheck()
+  if not supportActivityCheck() then
+    return
+  end
+
   logger.dbg("NetworkListener: unschedule network activity check")
   if NetworkListener._activity_check_scheduled then
     UIManager:unschedule(NetworkListener._scheduleActivityCheck)
@@ -117,6 +125,10 @@ end
 
 -- NOTE: This must *never* access instance-specific members!
 function NetworkListener:_scheduleActivityCheck()
+  if not supportActivityCheck() then
+    return
+  end
+
   logger.dbg("NetworkListener: network activity check")
   local keep_checking = true
 
@@ -201,13 +213,9 @@ function NetworkListener:onNetworkConnected()
   logger.dbg("NetworkListener: onNetworkConnected")
 
   for _, v in pairs(_pending_connected) do
-    v()
+    UIManager:nextTick(v)
   end
   _pending_connected = {}
-
-  if not G_reader_settings:isTrue("auto_disable_wifi") or Device:isKindle() then
-    return
-  end
 
   -- If the activity check has already been scheduled for some reason, unschedule it first.
   NetworkListener:_unscheduleActivityCheck()
@@ -218,7 +226,7 @@ function NetworkListener:onNetworkOnline()
   logger.dbg("NetworkListener: onNetworkOnline")
 
   for _, v in pairs(_pending_online) do
-    v()
+    UIManager:nextTick(v)
   end
   _pending_online = {}
 end
