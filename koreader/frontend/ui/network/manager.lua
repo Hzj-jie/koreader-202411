@@ -1,3 +1,4 @@
+local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local BD = require("ui/bidi")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
@@ -21,6 +22,44 @@ require("ffi/posix_h")
 
 -- We unfortunately don't have that one in ffi/posix_h :/
 local EBUSY = 16
+
+local ConnectivityChecker = {
+  -- Copied from SwitchPlugin.
+  settings_id = math.floor(os.clock() * 1000),
+  -- For BackgroundTaskPlugin
+  enabled = true,
+  -- Check once per second.
+  when = 1,
+  -- Up to 60s.
+  repeated = 60,
+
+  -- For BackgroundTaskPlugin
+  executable = function()
+    self:_executable()
+  end,
+  callback = function(job)
+    self:_callback(job)
+  end,
+}
+
+function ConnectivityChecker:_executable()
+end
+
+function ConnectivityChecker:_callback(job)
+  if job.repeated > 1 then
+    return
+  end
+  -- Last iteration, shutdown connection.
+end
+
+function ConnectivityChecker:_start()
+  self:_stop()
+  BackgroundTaskPlugin._start(self)
+end
+
+function ConnectivityChecker:_stop()
+  self.settings_id = self.settings_id + 1
+end
 
 local NetworkMgr = {
   pending_connectivity_check = false,
