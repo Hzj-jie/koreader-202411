@@ -749,11 +749,14 @@ function NetworkMgr:getWifiToggleMenuTable()
       return self:isWifiOn()
     end,
     callback = function(menu)
-      menu.onNetworkConnected = function()
-        menu:updateItems()
-      end
-      menu.onNetworkDisconnected = function()
-        menu:updateItems()
+      if menu.onNetworkConnected == nil then
+        assert(menu.onNetworkDisconnected == nil)
+        menu.onNetworkConnected = function()
+          menu:updateItems()
+        end
+        menu.onNetworkDisconnected = function()
+          menu:updateItems()
+        end
       end
       -- interactive
       if self:isWifiOn() then
