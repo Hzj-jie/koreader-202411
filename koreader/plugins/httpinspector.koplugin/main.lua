@@ -1476,8 +1476,7 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
         -- If the http server has been enabled, very likely the user knows
         -- what does it mean and no extra "Starting the HTTP server"
         -- infomation is needed.
-        text = text
-          .. _("Turn on the network connection to use the feature.")
+        text = text .. _("Turn on the network connection to use the feature.")
       end
       return text
     end,

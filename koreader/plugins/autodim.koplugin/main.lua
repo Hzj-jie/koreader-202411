@@ -57,17 +57,22 @@ end
 function AutoDim:addToMainMenu(menu_items)
   menu_items.autodim = {
     text_func = function()
-      return _("Automatic dimmer") .. ": " ..
-      -- Need localization.
-       (self.autodim_starttime_m <= 0 and _("disabled") or T(
-              _("after %1"),
-              datetime.secondsToClockDuration(
-                "letters",
-                self.autodim_starttime_m * 60,
-                false,
-                false,
-                true
-              )))
+      return _("Automatic dimmer")
+        .. ": "
+        -- Need localization.
+        .. (
+          self.autodim_starttime_m <= 0 and _("disabled")
+          or T(
+            _("after %1"),
+            datetime.secondsToClockDuration(
+              "letters",
+              self.autodim_starttime_m * 60,
+              false,
+              false,
+              true
+            )
+          )
+        )
     end,
     checked_func = function()
       return self.autodim_starttime_m > 0
@@ -94,10 +99,7 @@ function AutoDim:addToMainMenu(menu_items)
             return
           end
           self.autodim_starttime_m = spin.value
-          G_reader_settings:saveSetting(
-            "autodim_starttime_minutes",
-            spin.value
-          )
+          G_reader_settings:saveSetting("autodim_starttime_minutes", spin.value)
           self:_scheduleAutoDimTask()
           menu:updateItems()
         end,
@@ -216,10 +218,7 @@ function AutoDim:_executable()
 
   -- BackgroundTaskRunner isn't designed to run rapid jobs.
   UIManager:unschedule(AutoDim._rampTask)
-  self:_rampTask(
-    fl_diff,
-    math.max(AUTODIM_DURATION_S / fl_diff, 0.001)
-  )
+  self:_rampTask(fl_diff, math.max(AUTODIM_DURATION_S / fl_diff, 0.001))
 end
 
 function AutoDim:_rampTask(fl_diff, delay)
@@ -252,13 +251,7 @@ function AutoDim:_rampTask(fl_diff, delay)
     UIManager:broadcastEvent(Event:new("UpdateFooter", true, true))
   end
   if fl_level > AUTODIM_END_FL then
-    UIManager:scheduleIn(
-      delay,
-      AutoDim._rampTask,
-      self,
-      fl_diff,
-      delay
-    )
+    UIManager:scheduleIn(delay, AutoDim._rampTask, self, fl_diff, delay)
   end
 end
 
