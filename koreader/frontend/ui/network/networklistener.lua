@@ -291,11 +291,30 @@ function NetworkListener:onShowNetworkInfo()
     return
   end
   if Device.retrieveNetworkInfo then
-    UIManager:show(InfoMessage:new({
-      text = table.concat(Device:retrieveNetworkInfo(), "\n"),
-      -- IPv6 addresses are *loooooong*!
-      face = Font:getFace("x_smallinfofont"),
-    }))
+    local network_info = table.concat(Device:retrieveNetworkInfo(), "\n")
+    UIManager:runWith(
+      function()
+        -- TODO: Check the online state here should not be necessary, remove this
+        -- hack.
+        NetworkMgr:_queryOnlineState()
+        UIManager:show(InfoMessage:new({
+          -- Need localization.
+          text = network_info
+            .. "\n"
+            .. _("Internet")
+            .. " "
+            .. (NetworkMgr:isOnline() and _("online") or _("offline")),
+          -- IPv6 addresses are *loooooong*!
+          face = Font:getFace("x_smallinfofont"),
+        }))
+      end,
+      InfoMessage:new({
+        -- Need localization.
+        text = network_info .. "\n" .. _("Internet"),
+        -- IPv6 addresses are *loooooong*!
+        face = Font:getFace("x_smallinfofont"),
+      })
+    )
   else
     UIManager:show(InfoMessage:new({
       text = _("Could not retrieve network info."),
