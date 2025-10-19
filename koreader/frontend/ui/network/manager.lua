@@ -27,6 +27,24 @@ local NetworkMgr = {
   was_online = false,
 }
 
+local ConnectivityChecker = {
+  settings_id = 0,
+  -- For BackgroundTaskPlugin
+  enabled = true,
+  -- Check once per second.
+  when = 1,
+  -- Up to 60s.
+  repeated = 60,
+
+  -- For BackgroundTaskPlugin
+  executable = function()
+    self:_executable()
+  end,
+  callback = function(job)
+    self:_callback(job)
+  end,
+}
+
 local function raiseNetworkEvent(t)
   UIManager:broadcastEvent(Event:new("Network" .. t))
   UIManager:broadcastEvent(Event:new("NetworkStateChanged"))
@@ -87,24 +105,6 @@ function NetworkMgr:_requestToTurnOnWifi(wifi_cb, interactive) -- bool | EBUSY
 
   return self:_turnOnWifi(wifi_cb, interactive)
 end
-
-local ConnectivityChecker = {
-  settings_id = 0,
-  -- For BackgroundTaskPlugin
-  enabled = true,
-  -- Check once per second.
-  when = 1,
-  -- Up to 60s.
-  repeated = 60,
-
-  -- For BackgroundTaskPlugin
-  executable = function()
-    self:_executable()
-  end,
-  callback = function(job)
-    self:_callback(job)
-  end,
-}
 
 function ConnectivityChecker:_executable()
   if NetworkMgr:_isWifiConnected() then
