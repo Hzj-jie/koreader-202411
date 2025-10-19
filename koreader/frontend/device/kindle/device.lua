@@ -387,12 +387,8 @@ function Kindle:initNetworkManager(NetworkMgr)
     end
   end
 
-  function NetworkMgr:_turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi()
     kindleEnableWifi(0)
-    -- NOTE: Same here, except disconnect is simpler, so a dumb delay will do...
-    if complete_callback then
-      UIManager:scheduleIn(2, complete_callback)
-    end
   end
 
   function NetworkMgr:getNetworkInterfaceName()

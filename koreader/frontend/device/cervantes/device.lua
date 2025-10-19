@@ -181,13 +181,10 @@ end
 
 -- wireless
 function Cervantes:initNetworkManager(NetworkMgr)
-  function NetworkMgr:_turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi()
     logger.info("Cervantes: disabling Wi-Fi")
     self:releaseIP()
     os.execute("./disable-wifi.sh")
-    if complete_callback then
-      complete_callback()
-    end
   end
   function NetworkMgr:_turnOnWifi(complete_callback, interactive)
     logger.info("Cervantes: enabling Wi-Fi")

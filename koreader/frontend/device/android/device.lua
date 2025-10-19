@@ -355,11 +355,8 @@ function Device:initNetworkManager(NetworkMgr)
       complete_callback()
     end
   end
-  function NetworkMgr:_turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi()
     android.openWifiSettings()
-    if complete_callback then
-      complete_callback()
-    end
   end
 
   function NetworkMgr:_openSettings()

@@ -407,11 +407,8 @@ function PocketBook:initNetworkManager(NetworkMgr)
     end
   end
 
-  function NetworkMgr:_turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi()
     inkview.NetDisconnect()
-    if complete_callback then
-      complete_callback()
-    end
   end
 
   function NetworkMgr:isConnected()

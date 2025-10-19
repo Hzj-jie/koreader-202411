@@ -92,8 +92,7 @@ end
 -- Common chunk of stuff we have to do when aborting a connection attempt
 function NetworkMgr:_dropPendingWifiConnection(
   mark_wifi_was_off,
-  turn_off_wifi,
-  turn_off_wifi_callback
+  turn_off_wifi
 )
   -- Cancel any pending connectivity check, because it wouldn't achieve anything
   self:_unscheduleConnectivityCheck()
@@ -105,7 +104,7 @@ function NetworkMgr:_dropPendingWifiConnection(
   self.pending_connection = false
 
   if turn_off_wifi then
-    self:_turnOffWifi(turn_off_wifi_callback)
+    self:_turnOffWifi()
   end
 
   if mark_wifi_was_off then
@@ -264,7 +263,7 @@ end
 --     as said callback is responsible for schedulig the connectivity check,
 --     which, in turn, is responsible for the Event signaling!
 function NetworkMgr:_turnOnWifi(complete_callback, interactive) end
-function NetworkMgr:_turnOffWifi(complete_callback) end
+function NetworkMgr:_turnOffWifi() end
 
 --- There are three states of the network.
 --- 1. isWifiOn
@@ -571,9 +570,8 @@ function NetworkMgr:toggleWifiOff(interactive)
   end
 
   raiseNetworkEvent("Disconnecting")
-  self:_dropPendingWifiConnection(interactive, true, function()
-    self:_networkDisconnected()
-  end)
+  self:_dropPendingWifiConnection(interactive, true)
+  self:_networkDisconnected()
 
   if interactive then
     -- Note, similar to the toggleWifiOn, the info will be dismissed before the connection is fully
