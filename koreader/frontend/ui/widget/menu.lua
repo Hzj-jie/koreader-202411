@@ -606,26 +606,9 @@ function MenuItem:onHoldSelect(arg, ges)
   return true
 end
 
---[[
-Widget that displays menu
---]]
-local Menu = FocusManager:extend({
-  show_parent = nil,
+local ENABLE_SHORTCUT = Device:hasKeyboard()
 
-  no_title = false,
-  title = "",
-  custom_title_bar = nil,
-  subtitle = nil,
-  show_path = nil, -- path in titlebar subtitle
-  -- default width and height
-  width = nil,
-  -- height will be calculated according to item number if not given
-  height = nil,
-  dimen = nil,
-  item_table = nil, -- NOT mandatory (will be empty)
-  item_table_stack = nil,
-
-  item_shortcuts = { -- const
+local ITEM_SHORTCUTS = {
     "Q",
     "W",
     "E",
@@ -655,8 +638,26 @@ local Menu = FocusManager:extend({
     "M",
     ".",
     "Sym",
-  },
-  is_enable_shortcut = Device:hasKeyboard(),
+}
+
+--[[
+Widget that displays menu
+--]]
+local Menu = FocusManager:extend({
+  show_parent = nil,
+
+  no_title = false,
+  title = "",
+  custom_title_bar = nil,
+  subtitle = nil,
+  show_path = nil, -- path in titlebar subtitle
+  -- default width and height
+  width = nil,
+  -- height will be calculated according to item number if not given
+  height = nil,
+  dimen = nil,
+  item_table = nil, -- NOT mandatory (will be empty)
+  item_table_stack = nil,
 
   item_dimen = nil,
   page = 1,
@@ -1096,9 +1097,9 @@ function Menu:init()
       self.key_events.Right = { { "Right" } }
     end
     -- shortcut icon is not needed for touch device
-    if self.is_enable_shortcut then
-      self.key_events.SelectByShortCut = { { self.item_shortcuts } }
-    end
+  end
+  if ENABLE_SHORTCUT then
+    self.key_events.SelectByShortCut = { { ITEM_SHORTCUTS } }
   end
 
   if self.item_table.current then
@@ -1201,8 +1202,8 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
       select_number = idx
     end
     local item_shortcut, shortcut_style
-    if self.is_enable_shortcut then
-      item_shortcut = self.item_shortcuts[idx]
+    if ENABLE_SHORTCUT then
+      item_shortcut = ITEM_SHORTCUTS[idx]
       -- give different shortcut_style to keys in different lines of keyboard
       shortcut_style = (idx < 11 or idx > 20) and "square" or "grey_square"
     end
@@ -1382,7 +1383,7 @@ function Menu:setupItemHeights()
   })
     :getSize().w
   local available_width = self.inner_dimen.w
-  if self.is_enable_shortcut then
+  if ENABLE_SHORTCUT then
     available_width = available_width
       - line_height
       - Size.span.horizontal_default
@@ -1453,17 +1454,15 @@ function Menu:onSetRotationMode(rotation)
 end
 
 function Menu:onSelectByShortCut(_, keyevent)
-  for k, v in ipairs(self.item_shortcuts) do
+  for k, v in ipairs(ITEM_SHORTCUTS) do
     if k > self.perpage then
       break
-    elseif v == keyevent.key then
-      if self.item_table[(self.page - 1) * self.perpage + k] then
-        self:onMenuSelect(self.item_table[(self.page - 1) * self.perpage + k])
-      end
-      break
+    end
+    if v == keyevent.key and self.item_table[(self.page - 1) * self.perpage + k] then
+      return self:onMenuSelect(self.item_table[(self.page - 1) * self.perpage + k])
     end
   end
-  return true
+  return false
 end
 
 function Menu:onShowGotoDialog()
@@ -1701,6 +1700,9 @@ function Menu.getMenuText(item)
     text = item.text_func()
   else
     text = item.text
+  end
+  if item.shortcut then
+    text = text .. " (" .. item.shortcut .. ")"
   end
   if item.sub_item_table ~= nil or item.sub_item_table_func then
     text = string.format(sub_item_format, text)

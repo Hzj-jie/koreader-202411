@@ -40,16 +40,26 @@ local Screen = Device.screen
 
 local DGENERIC_ICON_SIZE = G_defaults:readSetting("DGENERIC_ICON_SIZE")
 
+-- Similar to menu widget.
+local ENABLE_SHORTCUT = Device:hasKeyboard()
+-- Since the MAX_PER_PAGE is 10, optimize the shortcuts to the left side of the
+-- keyboard.
+local ITEM_SHORTCUTS = {
+  "Q", "W", "E", "R", "T", "A", "S", "D", "F", "G",
+}
+
 --[[
 TouchMenuItem widget
 --]]
 local TouchMenuItem = InputContainer:extend({
-  menu = nil,
   vertical_align = "center",
-  item = nil,
-  dimen = nil,
   face = Font:getFace("smallinfofont"),
+
+  item = nil,
+  menu = nil,
+  dimen = nil,
   show_parent = nil,
+  item_visible_index = nil,
 })
 
 function TouchMenuItem:init()
@@ -67,6 +77,11 @@ function TouchMenuItem:init()
       }),
     },
   }
+
+  if ENABLE_SHORTCUT then
+    self.item.shortcut = ITEM_SHORTCUTS[self.item_visible_index]
+    self.key_events.TapSelect = { { self.item.shortcut } }
+  end
 
   local item_enabled = self.item.enabled
   if self.item.enabled_func then
@@ -499,6 +514,7 @@ function TouchMenuBar:switchToTab(index)
 end
 
 local MAX_PER_PAGE = 10
+assert(#ITEM_SHORTCUTS == MAX_PER_PAGE)
 
 --[[
 TouchMenu widget for hierarchical menus
