@@ -583,11 +583,12 @@ function TouchMenu:init()
     }),
   }
 
-  self.key_events.Back = { { Input.group.Back } }
-  self.key_events.Close = { { "Menu" } }
   if Device:hasFewKeys() then
     self.key_events.Back = { { "Left" } }
+  else
+    self.key_events.Back = { { Input.group.Back } }
   end
+  self.key_events.Close = { { "Menu" } }
   self.key_events.NextPage = { { Input.group.PgFwd } }
   self.key_events.PrevPage = { { Input.group.PgBack } }
 
