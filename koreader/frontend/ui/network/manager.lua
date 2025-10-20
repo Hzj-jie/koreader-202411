@@ -700,12 +700,8 @@ function NetworkMgr:getWifiToggleMenuTable()
       return self:isWifiOn()
     end,
     callback = function(menu)
-      if menu.onNetworkConnected == nil then
-        assert(menu.onNetworkDisconnected == nil)
-        menu.onNetworkConnected = function()
-          menu:updateItems()
-        end
-        menu.onNetworkDisconnected = function()
+      if menu.onNetworkStateChanged == nil then
+        menu.onNetworkStateChanged = function()
           menu:updateItems()
         end
       end
@@ -804,7 +800,12 @@ function NetworkMgr:getRestoreMenuTable()
     enabled_func = function()
       return Device:hasWifiRestore()
     end,
-    callback = function()
+    callback = function(menu)
+      if menu.onNetworkStateChanged == nil then
+        menu.onNetworkStateChanged = function()
+          menu:updateItems()
+        end
+      end
       G_reader_settings:flipNilOrFalse("auto_restore_wifi")
     end,
   }
