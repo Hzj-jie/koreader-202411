@@ -310,7 +310,12 @@ function NetworkListener:onShowNetworkInfo()
       end,
       InfoMessage:new({
         -- Need localization.
-        text = network_info .. "\n" .. _("Internet"),
+        text = network_info
+          .. "\n"
+          .. _("Internet")
+          .. " ("
+          .. _("checking")
+          .. "...)",
         -- IPv6 addresses are *loooooong*!
         face = Font:getFace("x_smallinfofont"),
       })
