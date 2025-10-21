@@ -45,7 +45,16 @@ local ENABLE_SHORTCUT = Device:hasKeyboard()
 -- Since the MAX_PER_PAGE is 10, optimize the shortcuts to the left side of the
 -- keyboard.
 local ITEM_SHORTCUTS = {
-  "Q", "W", "E", "R", "T", "A", "S", "D", "F", "G",
+  "Q",
+  "W",
+  "E",
+  "R",
+  "T",
+  "A",
+  "S",
+  "D",
+  "F",
+  "G",
 }
 
 --[[
