@@ -609,35 +609,35 @@ end
 local ENABLE_SHORTCUT = Device:hasKeyboard()
 
 local ITEM_SHORTCUTS = {
-    "Q",
-    "W",
-    "E",
-    "R",
-    "T",
-    "Y",
-    "U",
-    "I",
-    "O",
-    "P",
-    "A",
-    "S",
-    "D",
-    "F",
-    "G",
-    "H",
-    "J",
-    "K",
-    "L",
-    "Del",
-    "Z",
-    "X",
-    "C",
-    "V",
-    "B",
-    "N",
-    "M",
-    ".",
-    "Sym",
+  "Q",
+  "W",
+  "E",
+  "R",
+  "T",
+  "Y",
+  "U",
+  "I",
+  "O",
+  "P",
+  "A",
+  "S",
+  "D",
+  "F",
+  "G",
+  "H",
+  "J",
+  "K",
+  "L",
+  "Del",
+  "Z",
+  "X",
+  "C",
+  "V",
+  "B",
+  "N",
+  "M",
+  ".",
+  "Sym",
 }
 
 --[[
@@ -1458,8 +1458,11 @@ function Menu:onSelectByShortCut(_, keyevent)
     if k > self.perpage then
       break
     end
-    if v == keyevent.key and self.item_table[(self.page - 1) * self.perpage + k] then
-      return self:onMenuSelect(self.item_table[(self.page - 1) * self.perpage + k])
+    if v == keyevent.key then
+      local index = (self.page - 1) * self.perpage + k
+      if self.item_table[index] then
+        return self:onMenuSelect(self.item_table[index])
+      end
     end
   end
   return false
