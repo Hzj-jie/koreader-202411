@@ -24,6 +24,8 @@ require("ffi/posix_h")
 local EBUSY = 16
 
 local NetworkMgr = {
+  -- Cache the last online state to sacrifice the accuracy in return of avoiding
+  -- blocking UI for too long.
   was_online = false,
 }
 
@@ -44,6 +46,51 @@ local ConnectivityChecker = {
     self:_callback(job)
   end,
 }
+
+function ConnectivityChecker:_executable()
+  if not NetworkMgr:_isWifiConnected() then
+    return
+  end
+  G_reader_settings:makeTrue("wifi_was_on")
+  logger.info(
+    "Wi-Fi successfully restored (after",
+    os.clock() - self.settings_id / 1000,
+    "seconds)!"
+  )
+  NetworkMgr:_networkConnected()
+  self:stop()
+end
+
+function ConnectivityChecker:_callback(job)
+  if job.repeated > 1 then
+    return
+  end
+  -- Last iteration, shutdown connection.
+  NetworkMgr:_abortWifiConnection()
+
+  -- Handle the UI warning if it's from a beforeWifiAction...
+  if self.interactive then
+    UIManager:show(
+      InfoMessage:new({ text = _("Error connecting to the network") })
+    )
+  end
+end
+
+function ConnectivityChecker:start(interactive)
+  self:stop()
+  self.interactive = interactive
+  -- Copied from SwitchPlugin.
+  self.settings_id =
+    math.floor(os.clock() * 1000), BackgroundTaskPlugin._start(self)
+end
+
+function ConnectivityChecker:stop()
+  self.settings_id = 0
+end
+
+function ConnectivityChecker:running()
+  return self.settings_id > 0
+end
 
 local function raiseNetworkEvent(t)
   UIManager:broadcastEvent(Event:new("Network" .. t))
@@ -67,10 +114,7 @@ function NetworkMgr:_readNWSettings()
 end
 
 -- Common chunk of stuff we have to do when aborting a connection attempt
-function NetworkMgr:_dropPendingWifiConnection(
-  mark_wifi_was_off,
-  turn_off_wifi
-)
+function NetworkMgr:_dropPendingWifiConnection(mark_wifi_was_off, turn_off_wifi)
   -- Cancel any pending connectivity check, because it wouldn't achieve anything
   ConnectivityChecker:stop()
   -- Make sure we don't have an async script running...
@@ -104,46 +148,6 @@ function NetworkMgr:_requestToTurnOnWifi(wifi_cb, interactive) -- bool | EBUSY
   raiseNetworkEvent("Connecting")
 
   return self:_turnOnWifi(wifi_cb, interactive)
-end
-
-function ConnectivityChecker:_executable()
-  if NetworkMgr:_isWifiConnected() then
-    G_reader_settings:makeTrue("wifi_was_on")
-    logger.info("Wi-Fi successfully restored (after", os.clock() - self.settings_id / 1000, "seconds)!")
-    NetworkMgr:_networkConnected()
-    self:stop()
-  end
-end
-
-function ConnectivityChecker:_callback(job)
-  if job.repeated > 1 then
-    return
-  end
-  -- Last iteration, shutdown connection.
-  NetworkMgr:_abortWifiConnection()
-
-  -- Handle the UI warning if it's from a beforeWifiAction...
-  if self.interactive then
-    UIManager:show(
-      InfoMessage:new({ text = _("Error connecting to the network") })
-    )
-  end
-end
-
-function ConnectivityChecker:start(interactive)
-  self:stop()
-  self.interactive = interactive
-  -- Copied from SwitchPlugin.
-  self.settings_id = math.floor(os.clock() * 1000),
-  BackgroundTaskPlugin._start(self)
-end
-
-function ConnectivityChecker:stop()
-  self.settings_id = 0
-end
-
-function ConnectivityChecker:running()
-  return self.settings_id > 0
 end
 
 function NetworkMgr:shouldRestoreWifi()
