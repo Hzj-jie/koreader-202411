@@ -1,6 +1,10 @@
 #!/bin/sh
 
-../update-git-rev.sh
+pushd ..
+./clean.sh
+./update-git-rev.sh
+popd
+
 rm -rf /media/hzj_jie/Kindle/koreader.old/
 mv /media/hzj_jie/Kindle/koreader /media/hzj_jie/Kindle/koreader.old
 cp -rL . /media/hzj_jie/Kindle/koreader/
