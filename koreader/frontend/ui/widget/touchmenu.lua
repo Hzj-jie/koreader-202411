@@ -889,7 +889,9 @@ function TouchMenu:updateItems()
   )
 end
 
+-- Only called by TouchMenuBar:switchToTab / IconButton.callback.
 function TouchMenu:switchMenuTab(tab_num)
+  assert(tab_num >= 1 and tab_num <= #self.tab_item_table)
   if self.tab_item_table[tab_num].remember ~= false then
     self.last_index = tab_num
   end
@@ -945,7 +947,16 @@ function TouchMenu:onNextPage()
   if self.page < self.page_num then
     self.page = self.page + 1
   elseif self.page == self.page_num then
-    self.page = 1
+    assert(self.last_index)
+    local index = self.last_index
+    repeat
+      index = index + 1
+      if index == #self.tab_item_table + 1 then
+        index = 1
+      end
+    until self.tab_item_table[index].remember ~= false
+    self.bar:switchToTab(index)
+    assert(self.page == 1)
   end
   self:updateItems()
   return true
@@ -955,6 +966,15 @@ function TouchMenu:onPrevPage()
   if self.page > 1 then
     self.page = self.page - 1
   elseif self.page == 1 then
+    assert(self.last_index)
+    local index = self.last_index
+    repeat
+      index = index - 1
+      if index == 0 then
+        index = #self.tab_item_table
+      end
+    until self.tab_item_table[index].remember ~= false
+    self.bar:switchToTab(index)
     self.page = self.page_num
   end
   self:updateItems()
