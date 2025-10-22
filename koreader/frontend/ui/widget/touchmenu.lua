@@ -508,6 +508,9 @@ end
 function TouchMenuBar:switchToTab(index)
   -- a little safety check
   -- don't auto-activate a non-existent index
+  if index < 1 then
+    index = 1
+  end
   if index > #self.icon_widgets then
     index = #self.icon_widgets
   end
@@ -1240,7 +1243,6 @@ function TouchMenu:openMenu(path, with_animation)
       if self.bar.icon_widgets[tab_nb].image.invert then
         highlightWidget(self.bar.icon_widgets[tab_nb].image, true)
       end
-      self:switchMenuTab(tab_nb)
       self.bar:switchToTab(tab_nb)
       item_nb = table.remove(parts)
       step = STEPS.TARGET_PAGE_OR_HIGHLIGHT_NEXT_PREV
