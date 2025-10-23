@@ -2402,7 +2402,10 @@ function ReaderFooter:__updateFooterText()
   -- NOTE: That's assuming using "fast" for pans was a good idea, which, it turned out, not so much ;).
   -- NOTE: We skip repaints on page turns/pos update, as that's redundant (and slow).
   local top_wg = UIManager:getTopmostVisibleWidget() or {}
-  if top_wg.name ~= "ReaderUI" and (top_wg.covers_fullscreen or top_wg.covers_footer) then
+  if
+    top_wg.name ~= "ReaderUI"
+    and (top_wg.covers_fullscreen or top_wg.covers_footer)
+  then
     -- If the top most visible covers the footer, but it's not the ReaderUI,
     -- footer shouldn't be repainted to avoid covering it.
     return
