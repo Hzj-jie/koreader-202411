@@ -2406,8 +2406,8 @@ function ReaderFooter:__updateFooterText()
     top_wg.name ~= "ReaderUI"
     and (top_wg.covers_fullscreen or top_wg.covers_footer)
   then
-    -- If the top most visible covers the footer, but it's not the ReaderUI,
-    -- footer shouldn't be repainted to avoid covering it.
+    -- If the top most widget covers the footer, but it's not the ReaderUI,
+    -- footer doesn't need to be repainted.
     return
   end
   -- If there was a visibility change, notify ReaderView
