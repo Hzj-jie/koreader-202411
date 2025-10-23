@@ -1,3 +1,4 @@
+local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local BD = require("ui/bidi")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
@@ -23,11 +24,73 @@ require("ffi/posix_h")
 local EBUSY = 16
 
 local NetworkMgr = {
-  pending_connectivity_check = false,
-  pending_connection = false,
-
+  -- Cache the last online state to sacrifice the accuracy in return of avoiding
+  -- blocking UI for too long.
   was_online = false,
 }
+
+local ConnectivityChecker = {
+  settings_id = 0,
+  -- For BackgroundTaskPlugin
+  enabled = true,
+  -- Check once per second.
+  when = 1,
+  -- Up to 60s.
+  repeated = 60,
+
+  -- For BackgroundTaskPlugin
+  executable = function()
+    self:_executable()
+  end,
+  callback = function(job)
+    self:_callback(job)
+  end,
+}
+
+function ConnectivityChecker:_executable()
+  if not NetworkMgr:_isWifiConnected() then
+    return
+  end
+  G_reader_settings:makeTrue("wifi_was_on")
+  logger.info(
+    "Wi-Fi successfully restored (after",
+    os.clock() - self.settings_id / 1000,
+    "seconds)!"
+  )
+  NetworkMgr:_networkConnected()
+  self:stop()
+end
+
+function ConnectivityChecker:_callback(job)
+  if job.repeated > 1 then
+    return
+  end
+  -- Last iteration, shutdown connection.
+  NetworkMgr:_abortWifiConnection()
+
+  -- Handle the UI warning if it's from a beforeWifiAction...
+  if self.interactive then
+    UIManager:show(
+      InfoMessage:new({ text = _("Error connecting to the network") })
+    )
+  end
+end
+
+function ConnectivityChecker:start(interactive)
+  self:stop()
+  self.interactive = interactive
+  -- Copied from SwitchPlugin.
+  self.settings_id =
+    math.floor(os.clock() * 1000), BackgroundTaskPlugin._start(self)
+end
+
+function ConnectivityChecker:stop()
+  self.settings_id = 0
+end
+
+function ConnectivityChecker:running()
+  return self.settings_id > 0
+end
 
 local function raiseNetworkEvent(t)
   UIManager:broadcastEvent(Event:new("Network" .. t))
@@ -51,22 +114,16 @@ function NetworkMgr:_readNWSettings()
 end
 
 -- Common chunk of stuff we have to do when aborting a connection attempt
-function NetworkMgr:_dropPendingWifiConnection(
-  mark_wifi_was_off,
-  turn_off_wifi,
-  turn_off_wifi_callback
-)
+function NetworkMgr:_dropPendingWifiConnection(mark_wifi_was_off, turn_off_wifi)
   -- Cancel any pending connectivity check, because it wouldn't achieve anything
-  self:_unscheduleConnectivityCheck()
+  ConnectivityChecker:stop()
   -- Make sure we don't have an async script running...
   if Device:hasWifiRestore() then
     self:stopAsyncWifiRestore()
   end
-  -- Can't be connecting since we're killing Wi-Fi ;)
-  self.pending_connection = false
 
   if turn_off_wifi then
-    self:_turnOffWifi(turn_off_wifi_callback)
+    self:_turnOffWifi()
   end
 
   if mark_wifi_was_off then
@@ -82,82 +139,15 @@ end
 -- Attempt to deal with platforms that don't guarantee isConnected when turnOnWifi returns,
 -- so that we only attempt to connect to WiFi *once* when using the beforeWifiAction framework...
 function NetworkMgr:_requestToTurnOnWifi(wifi_cb, interactive) -- bool | EBUSY
-  if self.pending_connection then
+  if ConnectivityChecker:running() then
     -- We've already enabled WiFi, don't try again until the earlier attempt succeeds or fails...
     return EBUSY
   end
 
   -- Connecting will take a few seconds, broadcast that information so affected modules/plugins can react.
   raiseNetworkEvent("Connecting")
-  self.pending_connection = true
 
   return self:_turnOnWifi(wifi_cb, interactive)
-end
-
--- Used after restoreWifiAsync() and the turn_on beforeWifiAction to make sure we eventually send a NetworkConnected event,
--- as quite a few things rely on it (KOSync, c.f. #5109; the network activity check, c.f., #6424).
-function NetworkMgr:_connectivityCheck(iter, callback, interactive)
-  -- Give up after a while (restoreWifiAsync can take over 45s, so, try to cover that)...
-  if iter >= 180 then
-    logger.info("Failed to restore Wi-Fi (after", iter * 0.25, "seconds)!")
-    self:_abortWifiConnection()
-
-    -- Handle the UI warning if it's from a beforeWifiAction...
-    if interactive then
-      UIManager:show(
-        InfoMessage:new({ text = _("Error connecting to the network") })
-      )
-    end
-    return
-  end
-
-  if self:_isWifiConnected() then
-    G_reader_settings:makeTrue("wifi_was_on")
-    logger.info("Wi-Fi successfully restored (after", iter * 0.25, "seconds)!")
-    self:_networkConnected()
-
-    if callback then
-      callback()
-    else
-      -- If this trickled down from a turn_onbeforeWifiAction and there is no callback,
-      -- mention that the action needs to be retried manually.
-      if interactive then
-        UIManager:show(InfoMessage:new({
-          text = _("You can now retry the action that required network access"),
-          timeout = 3,
-        }))
-      end
-    end
-    self.pending_connectivity_check = false
-    -- We're done, so we can stop blocking concurrent connection attempts
-    self.pending_connection = false
-  else
-    UIManager:scheduleIn(
-      0.25,
-      self._connectivityCheck,
-      self,
-      iter + 1,
-      callback,
-      interactive
-    )
-  end
-end
-
-function NetworkMgr:_scheduleConnectivityCheck(callback, interactive)
-  self.pending_connectivity_check = true
-  UIManager:scheduleIn(
-    0.25,
-    self._connectivityCheck,
-    self,
-    1,
-    callback,
-    interactive
-  )
-end
-
-function NetworkMgr:_unscheduleConnectivityCheck()
-  UIManager:unschedule(self._connectivityCheck)
-  self.pending_connectivity_check = false
 end
 
 function NetworkMgr:shouldRestoreWifi()
@@ -173,7 +163,7 @@ function NetworkMgr:restoreWifiAndCheckAsync(msg)
       logger.dbg(msg)
     end
     self:restoreWifiAsync()
-    self:_scheduleConnectivityCheck()
+    ConnectivityChecker:start()
   end
 end
 
@@ -239,7 +229,7 @@ end
 --     as said callback is responsible for schedulig the connectivity check,
 --     which, in turn, is responsible for the Event signaling!
 function NetworkMgr:_turnOnWifi(complete_callback, interactive) end
-function NetworkMgr:_turnOffWifi(complete_callback) end
+function NetworkMgr:_turnOffWifi() end
 
 --- There are three states of the network.
 --- 1. isWifiOn
@@ -485,11 +475,8 @@ function NetworkMgr:_canPingMicrosoftCom()
 end
 --]]
 
-function NetworkMgr:toggleWifiOn(wifi_cb)
+function NetworkMgr:toggleWifiOn()
   if self:_isWifiConnected() then
-    if wifi_cb then
-      wifi_cb()
-    end
     return
   end
 
@@ -498,25 +485,12 @@ function NetworkMgr:toggleWifiOn(wifi_cb)
   })
   UIManager:show(info)
   UIManager:forceRePaint()
-  -- NOTE: Let the backend run the wifi_cb via a connectivity check once it's *actually* attempted a connection,
-  --     as it knows best when that actually happens (especially reconnectOrShowNetworkMenu), unlike us.
-  local connectivity_cb = function()
-    -- NOTE: We *could* arguably have multiple connectivity checks running concurrently,
-    --     but only having a single one running makes things somewhat easier to follow...
-    if self.pending_connectivity_check then
-      self:_unscheduleConnectivityCheck()
-    end
-
-    -- This will handle sending the proper Event, manage wifi_was_on, as well as tearing down Wi-Fi in case of failures.
-    self:_scheduleConnectivityCheck(function()
-      if wifi_cb then
-        wifi_cb()
-      end
-    end, true)
-  end
 
   -- Some implementations (usually, hasWifiManager) can report whether they were successful
-  local status = self:_requestToTurnOnWifi(connectivity_cb, true)
+  local status = self:_requestToTurnOnWifi(function()
+    -- Interactive
+    ConnectivityChecker:start(true)
+  end, true)
   -- Note, when showing the network list, the callback would be heavily delayed, and the info will
   -- block the list.
   UIManager:close(info)
@@ -529,19 +503,6 @@ function NetworkMgr:toggleWifiOn(wifi_cb)
     logger.warn(
       "NetworkMgr:toggleWifiOn: A previous connection attempt is still ongoing!"
     )
-    -- We don't really have a great way of dealing with the wifi_cb in this case, we'll just drop
-    -- it...
-    -- We don't want to run multiple concurrent connectivity checks,
-    -- which means we'd need to unschedule the pending one, which would effectively rewind the timer,
-    -- which we don't want, especially if we're non-interactive,
-    -- as that would risk rescheduling the same thing over and over again...
-    if wifi_cb then
-      logger.warn(
-        "NetworkMgr:toggleWifiOn: We've had to drop wifi_cb:",
-        wifi_cb
-      )
-    end
-    UIManager:close(info)
     UIManager:show(InfoMessage:new({
       text = _(
         "A previous connection attempt is still ongoing, this one will be ignored!"
@@ -551,7 +512,7 @@ function NetworkMgr:toggleWifiOn(wifi_cb)
   end
 end
 
-function NetworkMgr:toggleWifiOff(complete_callback, interactive)
+function NetworkMgr:toggleWifiOff(interactive)
   if not self:isWifiOn() then
     return
   end
@@ -565,15 +526,10 @@ function NetworkMgr:toggleWifiOff(complete_callback, interactive)
     UIManager:forceRePaint()
   end
 
-  local complete_callback = function()
-    self:_networkDisconnected()
-    if cb then
-      cb()
-    end
-  end
   raiseNetworkEvent("Disconnecting")
+  self:_dropPendingWifiConnection(interactive, true)
+  self:_networkDisconnected()
 
-  self:_dropPendingWifiConnection(interactive, true, complete_callback)
   if interactive then
     -- Note, similar to the toggleWifiOn, the info will be dismissed before the connection is fully
     -- dropped.
@@ -586,7 +542,7 @@ function NetworkMgr:_promptWifiOn()
   -- If there's already an ongoing connection attempt, don't even display the ConfirmBox,
   -- as that's just confusing, especially on Android, because you might have seen the one you tapped "Turn on" on disappear,
   -- and be surprised by new ones that popped up out of focus while the system settings were opened...
-  if self.pending_connection then
+  if ConnectivityChecker:running() then
     -- Like other beforeWifiAction backends, the callback is forfeit anyway
     logger.warn(
       "NetworkMgr:promptWifiOn: A previous connection attempt is still ongoing!"
@@ -609,7 +565,7 @@ function NetworkMgr:_doNothingAndWaitForConnection()
     return
   end
 
-  self:_scheduleConnectivityCheck()
+  ConnectivityChecker:start()
 end
 
 --- @note: The callback will only run *after* a *successful* network connection.
@@ -748,16 +704,15 @@ function NetworkMgr:getWifiToggleMenuTable()
       return self:isWifiOn()
     end,
     callback = function(menu)
-      local complete_callback = function()
-        -- Notify TouchMenu to update item check state
-        menu:updateItems()
-      end -- complete_callback()
       -- interactive
       if self:isWifiOn() then
-        self:toggleWifiOff(complete_callback, true)
+        self:toggleWifiOff(true)
       else
-        self:toggleWifiOn(complete_callback)
+        self:toggleWifiOn()
       end
+    end,
+    onNetworkStateChanged = function(menu)
+      menu:updateItems()
     end,
     hold_callback = function(menu)
       if self:isWifiOn() then
@@ -847,8 +802,11 @@ function NetworkMgr:getRestoreMenuTable()
     enabled_func = function()
       return Device:hasWifiRestore()
     end,
-    callback = function()
+    callback = function(menu)
       G_reader_settings:flipNilOrFalse("auto_restore_wifi")
+    end,
+    onNetworkStateChanged = function(menu)
+      menu:updateItems()
     end,
   }
 end

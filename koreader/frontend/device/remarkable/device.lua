@@ -235,11 +235,8 @@ function Remarkable:initNetworkManager(NetworkMgr)
     return self:reconnectOrShowNetworkMenu(complete_callback, interactive)
   end
 
-  function NetworkMgr:_turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi()
     os.execute("./disable-wifi.sh")
-    if complete_callback then
-      complete_callback()
-    end
   end
 
   function NetworkMgr:getNetworkInterfaceName()

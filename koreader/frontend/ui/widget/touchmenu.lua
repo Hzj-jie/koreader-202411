@@ -181,6 +181,15 @@ function TouchMenuItem:init()
   function self:isEnabled()
     return item_enabled ~= false and true
   end
+
+  for k, v in pairs(self.item) do
+    -- on event handlers.
+    if k:sub(1, 2) == "on" and type(v) == "function" then
+      self[k] = function()
+        v(self.menu)
+      end
+    end
+  end
 end
 
 function TouchMenuItem:onFocus()
