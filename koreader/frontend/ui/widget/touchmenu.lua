@@ -517,6 +517,9 @@ end
 function TouchMenuBar:switchToTab(index)
   -- a little safety check
   -- don't auto-activate a non-existent index
+  if index < 1 then
+    index = 1
+  end
   if index > #self.icon_widgets then
     index = #self.icon_widgets
   end
@@ -895,7 +898,9 @@ function TouchMenu:updateItems()
   )
 end
 
+-- Only called by TouchMenuBar:switchToTab / IconButton.callback.
 function TouchMenu:switchMenuTab(tab_num)
+  assert(tab_num >= 1 and tab_num <= #self.tab_item_table)
   if self.tab_item_table[tab_num].remember ~= false then
     self.last_index = tab_num
   end
@@ -951,7 +956,16 @@ function TouchMenu:onNextPage()
   if self.page < self.page_num then
     self.page = self.page + 1
   elseif self.page == self.page_num then
-    self.page = 1
+    assert(self.last_index)
+    local index = self.last_index
+    repeat
+      index = index + 1
+      if index == #self.tab_item_table + 1 then
+        index = 1
+      end
+    until self.tab_item_table[index].remember ~= false
+    self.bar:switchToTab(index)
+    assert(self.page == 1)
   end
   self:updateItems()
   return true
@@ -961,6 +975,15 @@ function TouchMenu:onPrevPage()
   if self.page > 1 then
     self.page = self.page - 1
   elseif self.page == 1 then
+    assert(self.last_index)
+    local index = self.last_index
+    repeat
+      index = index - 1
+      if index == 0 then
+        index = #self.tab_item_table
+      end
+    until self.tab_item_table[index].remember ~= false
+    self.bar:switchToTab(index)
     self.page = self.page_num
   end
   self:updateItems()
@@ -1249,7 +1272,6 @@ function TouchMenu:openMenu(path, with_animation)
       if self.bar.icon_widgets[tab_nb].image.invert then
         highlightWidget(self.bar.icon_widgets[tab_nb].image, true)
       end
-      self:switchMenuTab(tab_nb)
       self.bar:switchToTab(tab_nb)
       item_nb = table.remove(parts)
       step = STEPS.TARGET_PAGE_OR_HIGHLIGHT_NEXT_PREV
