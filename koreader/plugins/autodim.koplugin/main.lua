@@ -248,7 +248,7 @@ function AutoDim:_rampTask(fl_diff, delay)
   -- Reduce the frequency of firing frontlight level change event on
   -- eink devices.
   if not Device:hasEinkScreen() or ((self.origin_fl - fl_level) % 2 == 0) then
-    UIManager:broadcastEvent(Event:new("UpdateFooter", true, true))
+    UIManager:broadcastEvent("UpdateFooter")
   end
   if fl_level > AUTODIM_END_FL then
     UIManager:scheduleIn(delay, AutoDim._rampTask, self, fl_diff, delay)

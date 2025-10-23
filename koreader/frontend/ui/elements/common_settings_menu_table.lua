@@ -111,7 +111,7 @@ common_settings.time = {
           end,
           callback = function()
             G_reader_settings:saveSetting("duration_format", "classic")
-            UIManager:broadcastEvent(Event:new("UpdateFooter", true, true))
+            UIManager:broadcastEvent("UpdateFooter")
           end,
         },
         {
@@ -127,7 +127,7 @@ common_settings.time = {
           end,
           callback = function()
             G_reader_settings:saveSetting("duration_format", "modern")
-            UIManager:broadcastEvent(Event:new("UpdateFooter", true, true))
+            UIManager:broadcastEvent("UpdateFooter")
           end,
         },
         {
@@ -143,7 +143,7 @@ common_settings.time = {
           end,
           callback = function()
             G_reader_settings:saveSetting("duration_format", "letters")
-            UIManager:broadcastEvent(Event:new("UpdateFooter", true, true))
+            UIManager:broadcastEvent("UpdateFooter")
           end,
         },
       },

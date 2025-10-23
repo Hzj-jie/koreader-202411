@@ -1269,7 +1269,7 @@ function ReaderStatistics:onToggleStatistics(no_notification)
       self.curr_page = self.ui:getCurrentPage()
       self:resetVolatileStats(self.start_current_period)
     end
-    self.view.footer:maybeUpdateFooter()
+    UIManager:broadcastEvent("UpdateFooter")
   end
   if not no_notification then
     local Notification = require("ui/widget/notification")
@@ -3501,7 +3501,6 @@ function ReaderStatistics:onReaderReady(config)
   self.doc_md5 = config:readSetting("partial_md5_checksum")
   -- we have correct page count now, do the actual initialization work
   self:initData()
-  self.view.footer:maybeUpdateFooter()
 end
 
 function ReaderStatistics:onShowCalendarView()

@@ -671,7 +671,7 @@ end
 function AutoWarmth:updateItems(touchmenu_instance)
   touchmenu_instance:updateItems()
   UIManager:broadcastEvent(
-    Event:new("UpdateFooter", self.view and self.view.footer_visible or false)
+    "UpdateFooter"
   )
 end
 
@@ -873,10 +873,7 @@ function AutoWarmth:getActivateMenu()
         G_reader_settings:saveSetting("autowarmth_activate", self.activate)
         self:scheduleMidnightUpdate()
         UIManager:broadcastEvent(
-          Event:new(
-            "UpdateFooter",
-            self.view and self.view.footer_visible or false
-          )
+            "UpdateFooter"
         )
       end,
     }

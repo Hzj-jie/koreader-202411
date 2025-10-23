@@ -115,15 +115,11 @@ end
 function ReaderHandMade:onToggleHandmadeToc()
   self.toc_enabled = not self.toc_enabled
   self:setupToc()
-  -- Have footer updated, so we may see this took effect
-  self.view.footer:onUpdateFooter(self.view.footer_visible)
 end
 
 function ReaderHandMade:onToggleHandmadeFlows()
   self.flows_enabled = not self.flows_enabled
   self:setupFlows()
-  -- Have footer updated, so we may see this took effect
-  self.view.footer:onUpdateFooter(self.view.footer_visible)
   self.ui.annotation:setNeedsUpdateFlag()
 end
 
@@ -216,8 +212,6 @@ This custom table of contents is currently limited to a single level and can't h
               ok_callback = function()
                 self.toc = {}
                 UIManager:broadcastEvent(Event:new("UpdateToc"))
-                -- The footer may be visible, so have it update its chapter related items
-                self.view.footer:onUpdateFooter(self.view.footer_visible)
                 if touchmenu_instance then
                   touchmenu_instance:updateItems()
                 end
@@ -284,8 +278,6 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
                 self:updateDocFlows()
                 UIManager:broadcastEvent(Event:new("UpdateToc"))
                 UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
-                -- The footer may be visible, so have it update its dependent items
-                self.view.footer:onUpdateFooter(self.view.footer_visible)
                 self.ui.annotation:setNeedsUpdateFlag()
                 if touchmenu_instance then
                   touchmenu_instance:updateItems()
@@ -310,8 +302,6 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
                 self:updateDocFlows()
                 UIManager:broadcastEvent(Event:new("UpdateToc"))
                 UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
-                -- The footer may be visible, so have it update its dependent items
-                self.view.footer:onUpdateFooter(self.view.footer_visible)
                 self.ui.annotation:setNeedsUpdateFlag()
                 if touchmenu_instance then
                   touchmenu_instance:updateItems()

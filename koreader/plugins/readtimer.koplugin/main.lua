@@ -195,7 +195,7 @@ function ReadTimer:removeAdditionalFooterContent()
       self.additional_footer_content_func
     )
     self:update_status_bars(-1)
-    UIManager:broadcastEvent(Event:new("UpdateFooter", true))
+    UIManager:broadcastEvent("UpdateFooter")
   end
 end
 

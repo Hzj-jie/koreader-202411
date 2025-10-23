@@ -445,7 +445,7 @@ end
 function DeviceListener:onFullRefresh()
   if self.ui and self.ui.view then
     UIManager:broadcastEvent(
-      Event:new("UpdateFooter", self.ui.view.footer_visible)
+      "UpdateFooter"
     )
   end
   UIManager:setDirty(nil, "full")
