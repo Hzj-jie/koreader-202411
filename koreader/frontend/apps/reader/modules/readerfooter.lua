@@ -542,7 +542,6 @@ local DEFAULT_SETTINGS = {
   progress_bar_position = "alongside",
   bottom_horizontal_separator = false,
   align = "center",
-  auto_refresh_time = false,
   progress_style_thin_height = 3, -- unscaled_size_check: ignore
   progress_style_thick_height = 7, -- unscaled_size_check: ignore
   hide_empty_generators = false,
@@ -1522,18 +1521,6 @@ function ReaderFooter:addToMainMenu(menu_items)
       },
       getMinibarOption("all_at_once", self._updateFooterTextGenerator),
       {
-        text = _("Auto refresh items"),
-        help_text = _(
-          "This option allows certain items to update without needing user interaction (i.e page refresh). For example, the time item will update every minute regardless of user input."
-        ),
-        checked_func = function()
-          return self.settings.auto_refresh_time == true
-        end,
-        callback = function()
-          self.settings.auto_refresh_time = not self.settings.auto_refresh_time
-        end,
-      },
-      {
         text = _("Hide inactive items"),
         help_text = _(
           [[This option will hide inactive items from appearing on the status bar. For example, if the frontlight is 'off' (i.e 0 brightness), no symbols or values will be displayed until the brightness is set to a value >= 1.]]
@@ -2393,7 +2380,7 @@ function ReaderFooter:onTocReset()
 end
 
 function ReaderFooter:onTimesChange_1M()
-  if self.settings.auto_refresh_time then
+  if self.settings.time then
     self:onUpdateFooter()
   end
 end

@@ -96,7 +96,6 @@ return {
   ["footer"] = {
     ["align"] = "center",
     ["all_at_once"] = true,
-    ["auto_refresh_time"] = true,
     ["battery"] = true,
     ["battery_hide_threshold"] = 100,
     ["book_author"] = false,
