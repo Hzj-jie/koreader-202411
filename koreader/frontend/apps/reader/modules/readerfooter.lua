@@ -2709,7 +2709,7 @@ function ReaderFooter:onResume()
   end
 
   -- Maybe perform a footer repaint on resume if it was visible.
-  self:maybeUpdateFooter()
+  self:onUpdateFooter()
   self:rescheduleFooterAutoRefreshIfNeeded()
 end
 
@@ -2720,7 +2720,7 @@ function ReaderFooter:onOutOfScreenSaver()
 
   self._delayed_screensaver = nil
   -- Maybe perform a footer repaint on resume if it was visible.
-  self:maybeUpdateFooter()
+  self:onUpdateFooter()
   self:rescheduleFooterAutoRefreshIfNeeded()
 end
 
@@ -2748,7 +2748,7 @@ function ReaderFooter:onSwapPageTurnButtons()
   if self.settings.page_turning_inverted then
     -- We may receive the event *before* DeviceListener, so delay this to make sure it had a chance to actually swap the settings.
     -- Also delay it further to avoid screwing with TouchMenu highlights...
-    UIManager:scheduleIn(0.5, self.maybeUpdateFooter, self)
+    UIManager:scheduleIn(0.5, self.onUpdateFooter, self)
   end
 end
 ReaderFooter.onToggleReadingOrder = ReaderFooter.onSwapPageTurnButtons
@@ -2779,14 +2779,14 @@ function ReaderFooter:onBookMetadataChanged(prop_updated)
       or prop_updated.metadata_key_updated == "authors"
     )
   then
-    self:maybeUpdateFooter()
+    self:onUpdateFooter()
   end
 end
 
 function ReaderFooter:onRefreshAdditionalContent()
   if #self.additional_footer_content > 0 then
     -- Can be sent an any time, so we need to be careful about the repaint/refresh
-    self:maybeUpdateFooter()
+    self:onUpdateFooter()
   end
 end
 

@@ -363,7 +363,7 @@ function ReaderBookmark:onToggleBookmark()
   end)
   -- And ask for a footer refresh, in case we have bookmark_count enabled.
   -- Assuming the footer is visible, it'll request a refresh regardless, but the EPDC should optimize it out if no content actually changed.
-  self.view.footer:maybeUpdateFooter()
+  UIManager:broadcastEvent("UpdateFooter")
   return true
 end
 
@@ -471,7 +471,7 @@ function ReaderBookmark:removeItemByIndex(index)
     )
   end
   table.remove(self.ui.annotation.annotations, index)
-  self.view.footer:maybeUpdateFooter()
+  UIManager:broadcastEvent("UpdateFooter")
 end
 
 function ReaderBookmark:deleteItemNote(item)

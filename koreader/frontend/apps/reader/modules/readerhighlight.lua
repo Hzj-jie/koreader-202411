@@ -2457,7 +2457,7 @@ function ReaderHighlight:saveHighlight(extend_to_sentence)
       self:writePdfAnnotation("save", item)
     end
     local index = self.ui.annotation:addItem(item)
-    self.view.footer:maybeUpdateFooter()
+    UIManager:broadcastEvent("UpdateFooter")
     UIManager:broadcastEvent(
       Event:new("AnnotationsModified", { item, nb_highlights_added = 1 })
     )
