@@ -1,7 +1,6 @@
 local CheckButton = require("ui/widget/checkbutton")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DateTimeWidget = require("ui/widget/datetimewidget")
-local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -99,10 +98,10 @@ end
 
 function ReadTimer:update_status_bars(seconds)
   if self.show_value_in_header then
-    UIManager:broadcastEvent(Event:new("UpdateHeader"))
+    UIManager:broadcastEvent("UpdateHeader")
   end
   if self.show_value_in_footer then
-    UIManager:broadcastEvent(Event:new("RefreshAdditionalContent"))
+    UIManager:broadcastEvent("UpdateFooter")
   end
   -- if seconds schedule 1ms later
   if seconds and seconds >= 0 then
@@ -185,7 +184,7 @@ function ReadTimer:removeAdditionalHeaderContent()
       self.additional_header_content_func
     )
     self:update_status_bars(-1)
-    UIManager:broadcastEvent(Event:new("UpdateHeader"))
+    UIManager:broadcastEvent("UpdateHeader")
   end
 end
 

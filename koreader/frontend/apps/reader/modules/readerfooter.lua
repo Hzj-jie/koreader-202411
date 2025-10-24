@@ -1107,11 +1107,7 @@ function ReaderFooter:addToMainMenu(menu_items)
       end,
       callback = function()
         self.settings[option] = not self.settings[option]
-        -- We only need to send a SetPageBottomMargin event when we truly affect the margin
-        local should_signal = false
-        -- only case that we don't need a UI update is enable/disable
-        -- non-current mode when all_at_once is disabled.
-        local should_update = false
+        local should_refresh = false
         local first_enabled_mode_num
         local prev_has_no_mode = self.has_no_mode
         local prev_reclaim_height = self.reclaim_height
@@ -1127,7 +1123,7 @@ function ReaderFooter:addToMainMenu(menu_items)
         -- refresh margins position
         if self.has_no_mode then
           self.footer_text.height = 0
-          should_signal = true
+          should_refresh = true
           self.genFooterText = footerTextGeneratorMap.empty
           self.mode = self.mode_list.off
         elseif prev_has_no_mode then
@@ -1141,15 +1137,14 @@ function ReaderFooter:addToMainMenu(menu_items)
               first_enabled_mode_num
             )
           end
-          should_signal = true
+          should_refresh = true
         elseif self.reclaim_height ~= prev_reclaim_height then
-          should_signal = true
-          should_update = true
+          should_refresh = true
         end
         if callback then
-          should_update = callback(self)
+          should_refresh = callback(self)
         elseif self.settings.all_at_once then
-          should_update = self:_updateFooterTextGenerator()
+          should_refresh = self:_updateFooterTextGenerator()
         elseif
           (
             self.mode_list[option] == self.mode
@@ -1170,11 +1165,11 @@ function ReaderFooter:addToMainMenu(menu_items)
                 and self.mode_list.off
               or self.mode_list.page_progress
           end
-          should_update = true
+          should_refresh = true
           self:applyFooterMode()
           G_reader_settings:saveSetting("reader_footer_mode", self.mode)
         end
-        if should_update or should_signal then
+        if should_refresh then
           self:refreshFooter()
         end
       end,
@@ -2607,19 +2602,17 @@ function ReaderFooter:refreshFooter()
   self:updateFooterContainer()
   self:resetLayout(true)
   self:onUpdateFooter()
-  if signal then
-    if self.ui.document.provider == "crengine" then
-      -- This will ultimately trigger an UpdatePos, hence a ReaderUI repaint.
-      UIManager:broadcastEvent(
-        Event:new(
-          "SetPageBottomMargin",
-          self.ui.document.configurable.b_page_margin
-        )
+  if self.ui.document.provider == "crengine" then
+    -- This will ultimately trigger an UpdatePos, hence a ReaderUI repaint.
+    UIManager:broadcastEvent(
+      Event:new(
+        "SetPageBottomMargin",
+        self.ui.document.configurable.b_page_margin
       )
-    else
-      -- No fancy chain of events outside of CRe, just ask for a ReaderUI repaint ourselves ;).
-      UIManager:setDirty(self.view.dialog, "partial")
-    end
+    )
+  else
+    -- No fancy chain of events outside of CRe, just ask for a ReaderUI repaint ourselves ;).
+    UIManager:setDirty(self.view.dialog, "partial")
   end
 end
 
@@ -2692,13 +2685,6 @@ function ReaderFooter:onBookMetadataChanged(prop_updated)
       or prop_updated.metadata_key_updated == "authors"
     )
   then
-    self:onUpdateFooter()
-  end
-end
-
-function ReaderFooter:onRefreshAdditionalContent()
-  if #self.additional_footer_content > 0 then
-    -- Can be sent an any time, so we need to be careful about the repaint/refresh
     self:onUpdateFooter()
   end
 end
