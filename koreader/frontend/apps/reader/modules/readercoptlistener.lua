@@ -375,12 +375,14 @@ ReaderCoptListener.onSuspend = ReaderCoptListener.unscheduleHeaderRefresh
 
 function ReaderCoptListener:addAdditionalHeaderContent(content_func)
   table.insert(self.additional_header_content, content_func)
+  self:onUpdateHeader()
 end
 
 function ReaderCoptListener:removeAdditionalHeaderContent(content_func)
   for i, v in ipairs(self.additional_header_content) do
     if v == content_func then
       table.remove(self.additional_header_content, i)
+      self:onUpdateHeader()
       return true
     end
   end

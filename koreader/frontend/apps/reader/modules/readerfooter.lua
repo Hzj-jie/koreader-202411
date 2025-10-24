@@ -2020,12 +2020,14 @@ end
 
 function ReaderFooter:addAdditionalFooterContent(content_func)
   table.insert(self.additional_footer_content, content_func)
+  self:onUpdateFooter()
 end
 
 function ReaderFooter:removeAdditionalFooterContent(content_func)
   for i, v in ipairs(self.additional_footer_content) do
     if v == content_func then
       table.remove(self.additional_footer_content, i)
+      self:onUpdateFooter()
       return true
     end
   end
