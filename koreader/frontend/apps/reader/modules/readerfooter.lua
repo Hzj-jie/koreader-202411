@@ -858,66 +858,6 @@ function ReaderFooter:updateFooterContainer()
   self[1] = self.footer_positioner
 end
 
-function ReaderFooter:unscheduleFooterAutoRefresh()
-  if not self.autoRefreshFooter then
-    return
-  end -- not yet set up
-  -- Slightly different wording than in rescheduleFooterAutoRefreshIfNeeded because it might not actually be scheduled at all
-  logger.dbg("ReaderFooter: unschedule autoRefreshFooter")
-  UIManager:unschedule(self.autoRefreshFooter)
-end
-
-function ReaderFooter:rescheduleFooterAutoRefreshIfNeeded()
-  if not self.autoRefreshFooter then
-    -- Create this function the first time we're called
-    self.autoRefreshFooter = function()
-      -- Only actually repaint the footer if nothing's being shown over ReaderUI (#6616)
-      -- (We want to avoid the footer to be painted over a widget covering it - we would
-      -- be fine refreshing it if the widget is not covering it, but this is hard to
-      -- guess from here.)
-      self:onUpdateFooter()
-
-      self:rescheduleFooterAutoRefreshIfNeeded() -- schedule (or not) next refresh
-    end
-  end
-  local unscheduled = UIManager:unschedule(self.autoRefreshFooter) -- unschedule if already scheduled
-  -- Only schedule an update if the footer has items that may change
-  -- As self.view.footer_visible may be temporarily toggled off by other modules,
-  -- we can't trust it for not scheduling auto refresh
-  local schedule = false
-  if self.settings.auto_refresh_time then
-    if self.settings.all_at_once then
-      if
-        self.settings.time
-        or self.settings.battery
-        or self.settings.wifi_status
-        or self.settings.mem_usage
-      then
-        schedule = true
-      end
-    else
-      if
-        self.mode == self.mode_list.time
-        or self.mode == self.mode_list.battery
-        or self.mode == self.mode_list.wifi_status
-        or self.mode == self.mode_list.mem_usage
-      then
-        schedule = true
-      end
-    end
-  end
-  if schedule then
-    UIManager:scheduleIn(61 - tonumber(os.date("%S")), self.autoRefreshFooter)
-    if not unscheduled then
-      logger.dbg("ReaderFooter: scheduled autoRefreshFooter")
-    else
-      logger.dbg("ReaderFooter: rescheduled autoRefreshFooter")
-    end
-  elseif unscheduled then
-    logger.dbg("ReaderFooter: unscheduled autoRefreshFooter")
-  end
-end
-
 function ReaderFooter:setupTouchZones()
   if not Device:isTouchDevice() then
     return
@@ -1238,8 +1178,6 @@ function ReaderFooter:addToMainMenu(menu_items)
         if should_update or should_signal then
           self:refreshFooter()
         end
-        -- The absence or presence of some items may change whether auto-refresh should be ensured
-        self:rescheduleFooterAutoRefreshIfNeeded()
       end,
     }
   end
@@ -1593,7 +1531,6 @@ function ReaderFooter:addToMainMenu(menu_items)
         end,
         callback = function()
           self.settings.auto_refresh_time = not self.settings.auto_refresh_time
-          self:rescheduleFooterAutoRefreshIfNeeded()
         end,
       },
       {
@@ -2455,6 +2392,15 @@ function ReaderFooter:onTocReset()
   self:onUpdateFooter()
 end
 
+function ReaderFooter:onTimesChange_1M()
+  if self.settings.auto_refresh_time then
+    self:onUpdateFooter()
+  end
+end
+ReaderFooter.onFrontlightStateChanged = ReaderFooter.onUpdateFooter
+ReaderFooter.onCharging = ReaderFooter.onUpdateFooter
+ReaderFooter.onNotCharging = ReaderFooter.onUpdateFooter
+
 function ReaderFooter:onPageUpdate(pageno)
   local toc_markers_update = false
   if self.ui.document:hasHiddenFlows() then
@@ -2508,7 +2454,6 @@ function ReaderFooter:onReaderReady()
   self:setTocMarkers()
   self._updateFooterText = self.__updateFooterText
   self:onUpdateFooter()
-  self:rescheduleFooterAutoRefreshIfNeeded()
 end
 
 function ReaderFooter:applyFooterMode(mode)
@@ -2554,12 +2499,10 @@ end
 function ReaderFooter:onEnterFlippingMode()
   self.orig_mode = self.mode
   self:applyFooterMode(self.mode_list.page_progress)
-  self:rescheduleFooterAutoRefreshIfNeeded()
 end
 
 function ReaderFooter:onExitFlippingMode()
   self:applyFooterMode(self.orig_mode)
-  self:rescheduleFooterAutoRefreshIfNeeded()
 end
 
 function ReaderFooter:TapFooter(ges)
@@ -2608,7 +2551,6 @@ function ReaderFooter:onToggleFooterMode()
   self:applyFooterMode()
   G_reader_settings:saveSetting("reader_footer_mode", self.mode)
   self:onUpdateFooter()
-  self:rescheduleFooterAutoRefreshIfNeeded()
   return true
 end
 
@@ -2710,7 +2652,6 @@ function ReaderFooter:onResume()
 
   -- Maybe perform a footer repaint on resume if it was visible.
   self:onUpdateFooter()
-  self:rescheduleFooterAutoRefreshIfNeeded()
 end
 
 function ReaderFooter:onOutOfScreenSaver()
@@ -2721,22 +2662,7 @@ function ReaderFooter:onOutOfScreenSaver()
   self._delayed_screensaver = nil
   -- Maybe perform a footer repaint on resume if it was visible.
   self:onUpdateFooter()
-  self:rescheduleFooterAutoRefreshIfNeeded()
 end
-
-function ReaderFooter:onSuspend()
-  self:unscheduleFooterAutoRefresh()
-end
-
-function ReaderFooter:onCloseDocument()
-  self:unscheduleFooterAutoRefresh()
-end
-
-function ReaderFooter:onFrontlightStateChanged()
-  self:onUpdateFooter()
-end
-ReaderFooter.onCharging = ReaderFooter.onFrontlightStateChanged
-ReaderFooter.onNotCharging = ReaderFooter.onFrontlightStateChanged
 
 function ReaderFooter:onNetworkStateChanged()
   if self.settings.wifi_status then
