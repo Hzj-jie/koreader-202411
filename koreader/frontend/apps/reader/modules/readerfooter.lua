@@ -2019,8 +2019,14 @@ function ReaderFooter:genAlignmentMenuItems(value)
 end
 
 function ReaderFooter:addAdditionalFooterContent(content_func)
+  for i, v in ipairs(self.additional_footer_content) do
+    if v == content_func then
+      return false
+    end
+  end
   table.insert(self.additional_footer_content, content_func)
   self:onUpdateFooter()
+  return true
 end
 
 function ReaderFooter:removeAdditionalFooterContent(content_func)
@@ -2031,6 +2037,7 @@ function ReaderFooter:removeAdditionalFooterContent(content_func)
       return true
     end
   end
+  return false
 end
 
 -- this method will be updated at runtime based on user setting

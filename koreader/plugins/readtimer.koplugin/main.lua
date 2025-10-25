@@ -88,12 +88,20 @@ function ReadTimer:init()
 end
 
 function ReadTimer:onPostReaderReady()
+  if not self:scheduled() then
+    return
+  end
+
   if self.show_value_in_header then
     self:addAdditionalHeaderContent()
+  else
+    self:removeAdditionalHeaderContent()
   end
 
   if self.show_value_in_footer then
     self:addAdditionalFooterContent()
+  else
+    self:removeAdditionalFooterContent()
   end
 end
 
@@ -216,11 +224,6 @@ function ReadTimer:addCheckboxes(widget)
         self.show_value_in_header,
         false
       )
-      if self.show_value_in_header then
-        self:addAdditionalHeaderContent()
-      else
-        self:removeAdditionalHeaderContent()
-      end
     end,
   })
   local checkbox_footer = CheckButton:new({
@@ -233,11 +236,6 @@ function ReadTimer:addCheckboxes(widget)
         "readtimer_show_value_in_footer",
         self.show_value_in_footer
       )
-      if self.show_value_in_footer then
-        self:addAdditionalFooterContent()
-      else
-        self:removeAdditionalFooterContent()
-      end
     end,
   })
   widget:addWidget(checkbox_header)

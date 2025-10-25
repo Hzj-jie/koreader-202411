@@ -374,8 +374,14 @@ ReaderCoptListener.onCloseDocument = ReaderCoptListener.unscheduleHeaderRefresh
 ReaderCoptListener.onSuspend = ReaderCoptListener.unscheduleHeaderRefresh
 
 function ReaderCoptListener:addAdditionalHeaderContent(content_func)
+  for _, v in ipairs(self.additional_header_content) do
+    if v == content_func then
+      return false
+    end
+  end
   table.insert(self.additional_header_content, content_func)
   self:onUpdateHeader()
+  return true
 end
 
 function ReaderCoptListener:removeAdditionalHeaderContent(content_func)
@@ -386,6 +392,7 @@ function ReaderCoptListener:removeAdditionalHeaderContent(content_func)
       return true
     end
   end
+  return false
 end
 
 function ReaderCoptListener:setAndSave(setting, property, value, property_value)
