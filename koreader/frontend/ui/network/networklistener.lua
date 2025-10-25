@@ -34,12 +34,12 @@ function NetworkListener:onToggleWifi()
   if not NetworkMgr:isConnected() then
     NetworkMgr:toggleWifiOn()
   else
-    NetworkMgr:toggleWifiOff(nil, true) -- flag it as interactive
+    NetworkMgr:toggleWifiOff(true) -- flag it as interactive
   end
 end
 
 function NetworkListener:onInfoWifiOff()
-  NetworkMgr:toggleWifiOff(nil, true) -- flag it as interactive
+  NetworkMgr:toggleWifiOff(true) -- flag it as interactive
 end
 
 function NetworkListener:onInfoWifiOn()

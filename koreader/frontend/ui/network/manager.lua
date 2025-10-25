@@ -51,7 +51,6 @@ function ConnectivityChecker:_executable()
   if not NetworkMgr:_isWifiConnected() then
     return
   end
-  G_reader_settings:makeTrue("wifi_was_on")
   logger.info(
     "Wi-Fi successfully restored (after",
     os.clock() - self.settings_id / 1000,
@@ -98,6 +97,7 @@ local function raiseNetworkEvent(t)
 end
 
 function NetworkMgr:_networkConnected()
+  G_reader_settings:makeTrue("wifi_was_on")
   raiseNetworkEvent("Connected")
   self:_queryOnlineState()
 end
@@ -157,8 +157,10 @@ function NetworkMgr:shouldRestoreWifi()
 end
 
 function NetworkMgr:restoreWifiAndCheckAsync(msg)
-  -- Attempt to restore wifi in the background if necessary
-  if self:shouldRestoreWifi() then
+  if self:_isWifiConnected() then
+    self:_networkConnected()
+  elseif self:shouldRestoreWifi() then
+    -- Attempt to restore wifi in the background if necessary
     if msg then
       logger.dbg(msg)
     end
@@ -187,17 +189,13 @@ function NetworkMgr:init()
 
   -- Trigger an initial NetworkConnected event if WiFi was already up when we
   -- were launched
-  if self:_isWifiConnected() then
-    -- NOTE: This needs to be delayed because we run on require, while
-    -- NetworkListener gets spun up sliiightly later on FM/ReaderUI init...
-    UIManager:nextTick(function()
-      self:_networkConnected()
-    end)
-  else
+  -- NOTE: This needs to be delayed because we run on require, while
+  -- NetworkListener gets spun up sliiightly later on FM/ReaderUI init...
+  UIManager:nextTick(function()
     self:restoreWifiAndCheckAsync(
       "NetworkMgr: init will restore Wi-Fi in the background"
     )
-  end
+  end)
   if Device:hasWifiToggle() then
     UIManager:nextTick(function()
       -- Initial state.
