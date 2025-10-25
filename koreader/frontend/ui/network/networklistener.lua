@@ -28,6 +28,23 @@ local function supportActivityCheck()
   return not Device:isKindle() and G_reader_settings:isTrue("auto_disable_wifi")
 end
 
+function NetworkListener:_wifiActivityCheck()
+  if not G_reader_settings:isTrue("auto_disable_wifi") then
+    return
+  end
+  if not NetworkMgr:isWifiOn() then
+    return
+  end
+  local wifi_inactive = false
+  if wifi_inactive then
+    NetworkMgr:toggleWifiOff()
+  end
+end
+
+function NetworkListener:onTimesChange_5M()
+  self:_wifiActivityCheck()
+end
+
 function NetworkListener:onToggleWifi()
   -- This is not a bug, but to allow users connecting to the wifi network if the
   -- wifi is on but not connected.
