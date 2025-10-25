@@ -471,10 +471,7 @@ To:
   }
 
   for _, widget in pairs(self.registered_widgets) do
-    local ok, err = pcall(widget.addToMainMenu, widget, self.menu_items)
-    if not ok then
-      logger.err("failed to register widget", widget.name, err)
-    end
+    widget:addToMainMenu(self.menu_items)
   end
 
   self.menu_items.sort_by = self:getSortingMenuTable()
