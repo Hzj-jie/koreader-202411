@@ -788,6 +788,44 @@ function TouchMenu:_recalculatePageLayout()
   self.page_num = math.ceil(#self.item_table / self.perpage)
 end
 
+function TouchMenu:onTimesChange_1M()
+  self:_updateTimeInfo()
+  UIManager:setDirty(self.time_info, "ui")
+end
+
+function TouchMenu:_updateTimeInfo()
+  local time_info_txt = datetime.secondsToHour(
+    os.time(),
+    G_reader_settings:isTrue("twelve_hour_clock")
+  )
+  local powerd = Device:getPowerDevice()
+  if Device:hasBattery() then
+    local batt_lvl = powerd:getCapacity()
+    local batt_symbol =
+      powerd:getBatterySymbol(powerd:isCharged(), powerd:isCharging(), batt_lvl)
+    time_info_txt = BD.wrap(time_info_txt)
+      .. " "
+      .. BD.wrap("⌁")
+      .. BD.wrap(batt_symbol)
+      .. BD.wrap(batt_lvl .. "%")
+
+    if Device:hasAuxBattery() and powerd:isAuxBatteryConnected() then
+      local aux_batt_lvl = powerd:getAuxCapacity()
+      local aux_batt_symbol = powerd:getBatterySymbol(
+        powerd:isAuxCharged(),
+        powerd:isAuxCharging(),
+        aux_batt_lvl
+      )
+      time_info_txt = time_info_txt
+        .. " "
+        .. BD.wrap("+")
+        .. BD.wrap(aux_batt_symbol)
+        .. BD.wrap(aux_batt_lvl .. "%")
+    end
+  end
+  self.time_info:setText(time_info_txt)
+end
+
 function TouchMenu:updateItems()
   local old_dimen = self.dimen and self.dimen:copy()
   self:_recalculatePageLayout()
@@ -838,36 +876,7 @@ function TouchMenu:updateItems()
   self.page_info_left_chev:enableDisable(self.page > 1)
   self.page_info_right_chev:enableDisable(self.page < self.page_num)
 
-  local time_info_txt = datetime.secondsToHour(
-    os.time(),
-    G_reader_settings:isTrue("twelve_hour_clock")
-  )
-  local powerd = Device:getPowerDevice()
-  if Device:hasBattery() then
-    local batt_lvl = powerd:getCapacity()
-    local batt_symbol =
-      powerd:getBatterySymbol(powerd:isCharged(), powerd:isCharging(), batt_lvl)
-    time_info_txt = BD.wrap(time_info_txt)
-      .. " "
-      .. BD.wrap("⌁")
-      .. BD.wrap(batt_symbol)
-      .. BD.wrap(batt_lvl .. "%")
-
-    if Device:hasAuxBattery() and powerd:isAuxBatteryConnected() then
-      local aux_batt_lvl = powerd:getAuxCapacity()
-      local aux_batt_symbol = powerd:getBatterySymbol(
-        powerd:isAuxCharged(),
-        powerd:isAuxCharging(),
-        aux_batt_lvl
-      )
-      time_info_txt = time_info_txt
-        .. " "
-        .. BD.wrap("+")
-        .. BD.wrap(aux_batt_symbol)
-        .. BD.wrap(aux_batt_lvl .. "%")
-    end
-  end
-  self.time_info:setText(time_info_txt)
+  self:_updateTimeInfo()
 
   -- recalculate dimen based on new layout
   self.dimen.w = self.width
