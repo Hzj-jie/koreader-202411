@@ -37,15 +37,16 @@ local ConnectivityChecker = {
   when = 1,
   -- Up to 60s.
   repeated = 60,
-
-  -- For BackgroundTaskPlugin
-  executable = function()
-    self:_executable()
-  end,
-  callback = function(job)
-    self:_callback(job)
-  end,
 }
+
+-- For BackgroundTaskPlugin
+ConnectivityChecker.executable = function()
+  ConnectivityChecker:_executable()
+end
+
+ConnectivityChecker.callback = function(job)
+  ConnectivityChecker:_callback(job)
+end
 
 function ConnectivityChecker:_executable()
   if not NetworkMgr:_isWifiConnected() then
@@ -97,7 +98,7 @@ local function raiseNetworkEvent(t)
 end
 
 function NetworkMgr:_networkConnected()
-  G_reader_settings:makeTrue("wifi_was_on")
+  -- A less preferred way to allow Emulator raising the events.
   raiseNetworkEvent("Connected")
   self:_queryOnlineState()
 end
@@ -114,7 +115,7 @@ function NetworkMgr:_readNWSettings()
 end
 
 -- Common chunk of stuff we have to do when aborting a connection attempt
-function NetworkMgr:_dropPendingWifiConnection(mark_wifi_was_off, turn_off_wifi)
+function NetworkMgr:_dropPendingWifiConnection(turn_off_wifi)
   -- Cancel any pending connectivity check, because it wouldn't achieve anything
   ConnectivityChecker:stop()
   -- Make sure we don't have an async script running...
@@ -125,15 +126,11 @@ function NetworkMgr:_dropPendingWifiConnection(mark_wifi_was_off, turn_off_wifi)
   if turn_off_wifi then
     self:_turnOffWifi()
   end
-
-  if mark_wifi_was_off then
-    G_reader_settings:makeFalse("wifi_was_on")
-  end
 end
 
 function NetworkMgr:_abortWifiConnection()
   -- We only want to actually kill the WiFi on platforms where we can do that seamlessly.
-  return self:_dropPendingWifiConnection(true, Device:hasSeamlessWifiToggle())
+  return self:_dropPendingWifiConnection(Device:hasSeamlessWifiToggle())
 end
 
 -- Attempt to deal with platforms that don't guarantee isConnected when turnOnWifi returns,
@@ -152,7 +149,6 @@ end
 
 function NetworkMgr:shouldRestoreWifi()
   return Device:hasWifiRestore()
-    and G_reader_settings:isTrue("wifi_was_on")
     and G_reader_settings:isTrue("auto_restore_wifi")
 end
 
@@ -525,7 +521,7 @@ function NetworkMgr:toggleWifiOff(interactive)
   end
 
   raiseNetworkEvent("Disconnecting")
-  self:_dropPendingWifiConnection(interactive, true)
+  self:_dropPendingWifiConnection(true)
   self:_networkDisconnected()
 
   if interactive then
