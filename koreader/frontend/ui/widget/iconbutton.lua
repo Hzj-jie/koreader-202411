@@ -31,7 +31,6 @@ local IconButton = InputContainer:extend({
   padding_left = nil,
   enabled = true,
   callback = nil,
-  allow_flash = true, -- set to false for any IconButton that may close its container
 })
 
 function IconButton:init()
@@ -110,58 +109,54 @@ function IconButton:onTapIconButton()
   if not self.callback then
     return
   end
-  if not self.allow_flash then
-    self.callback()
+  -- Mimic BiDi left/right switcheroos...
+  local h_padding
+  if BD.mirroredUILayout() then
+    h_padding = self.padding_right
   else
-    -- Mimic BiDi left/right switcheroos...
-    local h_padding
-    if BD.mirroredUILayout() then
-      h_padding = self.padding_right
-    else
-      h_padding = self.padding_left
-    end
-    -- c.f., ui/widget/button for more gnarly details about the implementation, but the flow of the flash_ui codepath essentially goes like this:
-    -- 1. Paint the highlight
-    -- 2. Refresh the highlighted item (so we can see the highlight)
-    -- 3. Paint the unhighlight
-    -- 4. Do NOT refresh the highlighted item, but enqueue a refresh request
-    -- 5. Run the callback
-    -- 6. Explicitly drain the paint & refresh queues; i.e., refresh (so we get to see both the callback results, and the unhighlight).
-
-    -- Highlight
-    --
-    self.image.invert = true
-    UIManager:widgetInvert(
-      self.image,
-      self.dimen.x + h_padding,
-      self.dimen.y + self.padding_top
-    )
-    UIManager:setDirty(nil, "fast", self.dimen)
-
-    UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
-
-    -- Unhighlight
-    --
-    self.image.invert = false
-    UIManager:widgetInvert(
-      self.image,
-      self.dimen.x + h_padding,
-      self.dimen.y + self.padding_top
-    )
-
-    -- Callback
-    --
-    self.callback()
-
-    -- NOTE: plugins/coverbrowser.koplugin/covermenu (ab)uses UIManager:clearRenderStack,
-    --       so we need to enqueue the actual refresh request for the unhighlight post-callback,
-    --       otherwise, it's lost.
-    --       This changes nothing in practice, since we follow by explicitly requesting to drain the refresh queue ;).
-    UIManager:setDirty(nil, "fast", self.dimen)
-
-    UIManager:forceRePaint()
+    h_padding = self.padding_left
   end
+  -- c.f., ui/widget/button for more gnarly details about the implementation, but the flow of the flash_ui codepath essentially goes like this:
+  -- 1. Paint the highlight
+  -- 2. Refresh the highlighted item (so we can see the highlight)
+  -- 3. Paint the unhighlight
+  -- 4. Do NOT refresh the highlighted item, but enqueue a refresh request
+  -- 5. Run the callback
+  -- 6. Explicitly drain the paint & refresh queues; i.e., refresh (so we get to see both the callback results, and the unhighlight).
+
+  -- Highlight
+  --
+  self.image.invert = true
+  UIManager:widgetInvert(
+    self.image,
+    self.dimen.x + h_padding,
+    self.dimen.y + self.padding_top
+  )
+  UIManager:setDirty(nil, "fast", self.dimen)
+
+  UIManager:forceRePaint()
+  UIManager:yieldToEPDC()
+
+  -- Unhighlight
+  --
+  self.image.invert = false
+  UIManager:widgetInvert(
+    self.image,
+    self.dimen.x + h_padding,
+    self.dimen.y + self.padding_top
+  )
+
+  -- Callback
+  --
+  self.callback()
+
+  -- NOTE: plugins/coverbrowser.koplugin/covermenu (ab)uses UIManager:clearRenderStack,
+  --       so we need to enqueue the actual refresh request for the unhighlight post-callback,
+  --       otherwise, it's lost.
+  --       This changes nothing in practice, since we follow by explicitly requesting to drain the refresh queue ;).
+  UIManager:setDirty(nil, "fast", self.dimen)
+
+  UIManager:forceRePaint()
   return true
 end
 

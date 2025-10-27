@@ -57,13 +57,11 @@ local TitleBar = OverlapGroup:extend({
   left_icon_rotation_angle = 0,
   left_icon_tap_callback = function() end,
   left_icon_hold_callback = function() end,
-  left_icon_allow_flash = true,
   right_icon = nil,
   right_icon_size_ratio = 0.6,
   right_icon_rotation_angle = 0,
   right_icon_tap_callback = function() end,
   right_icon_hold_callback = function() end,
-  right_icon_allow_flash = true,
   -- set any of these _callback to false to not handle the event
   -- and let it propagate; otherwise the event is discarded
 
@@ -87,7 +85,6 @@ function TitleBar:init()
   if self.close_callback then
     self.right_icon = "close"
     self.right_icon_tap_callback = self.close_callback
-    self.right_icon_allow_flash = false
     if self.close_hold_callback then
       self.right_icon_hold_callback = function()
         self.close_hold_callback()
@@ -386,7 +383,6 @@ function TitleBar:init()
       overlap_align = "left",
       callback = self.left_icon_tap_callback,
       hold_callback = self.left_icon_hold_callback,
-      allow_flash = self.left_icon_allow_flash,
       show_parent = self.show_parent,
     })
     table.insert(self, self.left_button)
@@ -403,7 +399,6 @@ function TitleBar:init()
       overlap_align = "right",
       callback = self.right_icon_tap_callback,
       hold_callback = self.right_icon_hold_callback,
-      allow_flash = self.right_icon_allow_flash,
       show_parent = self.show_parent,
     })
     table.insert(self, self.right_button)
