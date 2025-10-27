@@ -683,7 +683,7 @@ function TouchMenu:init()
     icon = "chevron.up",
     show_parent = self.show_parent,
     padding_left = math.floor(footer_width * 0.33 * 0.1),
-    padding_right = math.floor(footer_width * 0.33 * 0.1),
+    padding_right = math.floor(footer_width * 0.33 * 0.5),
     callback = function()
       self:backToUpperMenu()
     end,
