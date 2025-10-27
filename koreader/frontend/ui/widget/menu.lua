@@ -131,7 +131,7 @@ function MenuItem:init()
     },
     HoldSelect = {
       GestureRange:new({
-        ges = self.handle_hold_on_hold_release and "hold_release" or "hold",
+        ges = "hold",
         range = self.dimen,
       }),
     },
@@ -550,32 +550,28 @@ function MenuItem:onTapSelect(arg, ges)
   end
 
   local pos = self:getGesPosition(ges)
-  if G_reader_settings:isFalse("flash_ui") then
-    self.menu:onMenuSelect(self.entry, pos)
-  else
-    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+  -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-    -- Highlight
-    --
-    self[1].invert = true
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-    UIManager:setDirty(nil, "fast", self[1].dimen)
+  -- Highlight
+  --
+  self[1].invert = true
+  UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+  UIManager:setDirty(nil, "fast", self[1].dimen)
 
-    UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
+  UIManager:forceRePaint()
+  UIManager:yieldToEPDC()
 
-    -- Unhighlight
-    --
-    self[1].invert = false
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-    UIManager:setDirty(nil, "ui", self[1].dimen)
+  -- Unhighlight
+  --
+  self[1].invert = false
+  UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+  UIManager:setDirty(nil, "ui", self[1].dimen)
 
-    -- Callback
-    --
-    self.menu:onMenuSelect(self.entry, pos)
+  -- Callback
+  --
+  self.menu:onMenuSelect(self.entry, pos)
 
-    UIManager:forceRePaint()
-  end
+  UIManager:forceRePaint()
   return true
 end
 
@@ -585,34 +581,64 @@ function MenuItem:onHoldSelect(arg, ges)
   end
 
   local pos = self:getGesPosition(ges)
-  if G_reader_settings:isFalse("flash_ui") then
-    self.menu:onMenuHold(self.entry, pos)
-  else
-    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+  -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-    -- Highlight
-    --
-    self[1].invert = true
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-    UIManager:setDirty(nil, "fast", self[1].dimen)
+  -- Highlight
+  --
+  self[1].invert = true
+  UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+  UIManager:setDirty(nil, "fast", self[1].dimen)
 
-    UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
+  UIManager:forceRePaint()
+  UIManager:yieldToEPDC()
 
-    -- Unhighlight
-    --
-    self[1].invert = false
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-    UIManager:setDirty(nil, "ui", self[1].dimen)
+  -- Unhighlight
+  --
+  self[1].invert = false
+  UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+  UIManager:setDirty(nil, "ui", self[1].dimen)
 
-    -- Callback
-    --
-    self.menu:onMenuHold(self.entry, pos)
+  -- Callback
+  --
+  self.menu:onMenuHold(self.entry, pos)
 
-    UIManager:forceRePaint()
-  end
+  UIManager:forceRePaint()
   return true
 end
+
+local ENABLE_SHORTCUT = Device:hasKeyboard()
+
+local ITEM_SHORTCUTS = {
+  "Q",
+  "W",
+  "E",
+  "R",
+  "T",
+  "Y",
+  "U",
+  "I",
+  "O",
+  "P",
+  "A",
+  "S",
+  "D",
+  "F",
+  "G",
+  "H",
+  "J",
+  "K",
+  "L",
+  "Del",
+  "Z",
+  "X",
+  "C",
+  "V",
+  "B",
+  "N",
+  "M",
+  ".",
+  "Sym",
+}
 
 --[[
 Widget that displays menu
@@ -632,39 +658,6 @@ local Menu = FocusManager:extend({
   dimen = nil,
   item_table = nil, -- NOT mandatory (will be empty)
   item_table_stack = nil,
-
-  item_shortcuts = { -- const
-    "Q",
-    "W",
-    "E",
-    "R",
-    "T",
-    "Y",
-    "U",
-    "I",
-    "O",
-    "P",
-    "A",
-    "S",
-    "D",
-    "F",
-    "G",
-    "H",
-    "J",
-    "K",
-    "L",
-    "Del",
-    "Z",
-    "X",
-    "C",
-    "V",
-    "B",
-    "N",
-    "M",
-    ".",
-    "Sym",
-  },
-  is_enable_shortcut = Device:hasKeyboard(),
 
   item_dimen = nil,
   page = 1,
@@ -1104,9 +1097,9 @@ function Menu:init()
       self.key_events.Right = { { "Right" } }
     end
     -- shortcut icon is not needed for touch device
-    if self.is_enable_shortcut then
-      self.key_events.SelectByShortCut = { { self.item_shortcuts } }
-    end
+  end
+  if ENABLE_SHORTCUT then
+    self.key_events.SelectByShortCut = { { ITEM_SHORTCUTS } }
   end
 
   if self.item_table.current then
@@ -1209,8 +1202,8 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
       select_number = idx
     end
     local item_shortcut, shortcut_style
-    if self.is_enable_shortcut then
-      item_shortcut = self.item_shortcuts[idx]
+    if ENABLE_SHORTCUT then
+      item_shortcut = ITEM_SHORTCUTS[idx]
       -- give different shortcut_style to keys in different lines of keyboard
       shortcut_style = (idx < 11 or idx > 20) and "square" or "grey_square"
     end
@@ -1246,7 +1239,6 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
       with_dots = self.with_dots,
       line_color = self.line_color,
       items_padding = self.items_padding,
-      handle_hold_on_hold_release = self.handle_hold_on_hold_release,
     })
     table.insert(self.item_group, item_tmp)
     -- this is for focus manager
@@ -1391,7 +1383,7 @@ function Menu:setupItemHeights()
   })
     :getSize().w
   local available_width = self.inner_dimen.w
-  if self.is_enable_shortcut then
+  if ENABLE_SHORTCUT then
     available_width = available_width
       - line_height
       - Size.span.horizontal_default
@@ -1462,17 +1454,18 @@ function Menu:onSetRotationMode(rotation)
 end
 
 function Menu:onSelectByShortCut(_, keyevent)
-  for k, v in ipairs(self.item_shortcuts) do
+  for k, v in ipairs(ITEM_SHORTCUTS) do
     if k > self.perpage then
       break
-    elseif v == keyevent.key then
-      if self.item_table[(self.page - 1) * self.perpage + k] then
-        self:onMenuSelect(self.item_table[(self.page - 1) * self.perpage + k])
+    end
+    if v == keyevent.key then
+      local index = (self.page - 1) * self.perpage + k
+      if self.item_table[index] then
+        return self:onMenuSelect(self.item_table[index])
       end
-      break
     end
   end
-  return true
+  return false
 end
 
 function Menu:onShowGotoDialog()
@@ -1710,6 +1703,9 @@ function Menu.getMenuText(item)
     text = item.text_func()
   else
     text = item.text
+  end
+  if item.shortcut then
+    text = text .. " (" .. item.shortcut .. ")"
   end
   if item.sub_item_table ~= nil or item.sub_item_table_func then
     text = string.format(sub_item_format, text)

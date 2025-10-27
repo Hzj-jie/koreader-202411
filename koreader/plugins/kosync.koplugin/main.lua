@@ -63,7 +63,7 @@ function KOSync:init()
     self.periodic_push_scheduled = false
     self.page_update_counter = 0
     -- We do *NOT* want to make sure networking is up here, as the nagging would be extremely annoying; we're leaving that to the network activity check...
-    self:_updateProgress(false, false)
+    self:_updateProgress(false)
   end
 
   self.settings = G_reader_settings:readSetting("kosync")
@@ -193,7 +193,7 @@ end
 function KOSync:onReaderReady()
   if self.settings.auto_sync then
     UIManager:nextTick(function()
-      self:_getProgress(true, false)
+      self:_getProgress(false)
     end)
   end
   -- NOTE: Keep in mind that, on Android, turning on WiFi requires a focus switch, which will trip a Suspend/Resume pair.
@@ -270,11 +270,11 @@ function KOSync:addToMainMenu(menu_items)
           if self.settings.auto_sync then
             -- Since we will update the progress when closing the document,
             -- pull the current progress now so as not to silently overwrite it.
-            self:_getProgress(true, true)
+            self:_getProgress(true)
           else
             -- Since we won't update the progress when closing the document,
             -- push the current progress now so as not to lose it.
-            self:_updateProgress(true, true)
+            self:_updateProgress(true)
           end
         end,
       },
@@ -409,7 +409,7 @@ If set to 0, updating progress based on page turns will be disabled.]]
           return self.settings.userkey ~= nil
         end,
         callback = function()
-          self:_updateProgress(true, true)
+          self:_updateProgress(true)
         end,
       },
       {
@@ -418,7 +418,7 @@ If set to 0, updating progress based on page turns will be disabled.]]
           return self.settings.userkey ~= nil
         end,
         callback = function()
-          self:_getProgress(true, true)
+          self:_getProgress(true)
         end,
         separator = true,
       },
@@ -674,7 +674,7 @@ function KOSync:_syncToProgress(progress)
   end
 end
 
-function KOSync:_updateProgress(ensure_networking, interactive, on_suspend)
+function KOSync:_updateProgress(interactive)
   if self.ui.document == nil then
     return
   end
@@ -742,50 +742,19 @@ function KOSync:_updateProgress(ensure_networking, interactive, on_suspend)
       if err then
         logger.dbg("err:", err)
       end
-    else
-      -- This is solely for onSuspend's sake, to clear the ghosting left by the "Connected" InfoMessage
-      if on_suspend then
-        -- Our top-level widget should be the "Connected to network" InfoMessage from NetworkMgr's reconnectOrShowNetworkMenu
-        local widget = UIManager:getTopmostVisibleWidget()
-        if
-          widget
-          and widget.modal
-          and widget.tag == "NetworkMgr"
-          and not widget.dismiss_callback
-        then
-          -- We want a full-screen flash on dismiss
-          widget.dismiss_callback = function()
-            -- Enqueued, because we run before the InfoMessage's close
-            UIManager:setDirty(nil, "full")
-          end
-        end
-      end
-    end
-
-    if on_suspend then
-      -- NOTE: We want to murder Wi-Fi once we're done in this specific case (i.e., Suspend),
-      --     because some of our hasWifiManager targets will horribly implode when attempting to suspend with the Wi-Fi chip powered on,
-      --     and they'll have attempted to kill Wi-Fi well before *we* run (e.g., in `Device:onPowerEvent`, *before* actually sending the Suspend Event)...
-      if Device:hasWifiManager() then
-        NetworkMgr:toggleWifiOff()
-      end
     end
 
     self.push_timestamp = now
   end
 
-  if ensure_networking then
-    if interactive then
-      NetworkMgr:runWhenOnline(exec)
-    else
-      NetworkMgr:willRerunWhenOnline(exec)
-    end
+  if interactive then
+    NetworkMgr:runWhenOnline(exec)
   else
-    exec()
+    NetworkMgr:willRerunWhenOnline(exec)
   end
 end
 
-function KOSync:_getProgress(ensure_networking, interactive)
+function KOSync:_getProgress(interactive)
   if self.ui.document == nil then
     return
   end
@@ -931,14 +900,10 @@ function KOSync:_getProgress(ensure_networking, interactive)
     self.pull_timestamp = now
   end
 
-  if ensure_networking then
-    if interactive then
-      NetworkMgr:runWhenOnline(exec)
-    else
-      NetworkMgr:willRerunWhenOnline(exec)
-    end
+  if interactive then
+    NetworkMgr:runWhenOnline(exec)
   else
-    exec()
+    NetworkMgr:willRerunWhenOnline(exec)
   end
 end
 
@@ -948,7 +913,7 @@ function KOSync:_onCloseDocument()
   --     and we handle those system focus events via... Suspend & Resume events, so we need to neuter those handlers early.
   self.onResume = nil
   self.onSuspend = nil
-  self:_updateProgress(false, false)
+  self:_updateProgress(false)
 end
 
 function KOSync:schedulePeriodicPush()
@@ -988,35 +953,33 @@ function KOSync:_onResume()
 
   -- And if we don't, this *will* (attempt to) trigger a connection and as such a NetworkConnected event,
   -- but only a single pull will happen, since _getProgress debounces itself.
-  UIManager:scheduleIn(1, function()
-    self:_getProgress(true, false)
+  UIManager:nextTick(function()
+    self:_getProgress(false)
   end)
 end
 
 function KOSync:_onSuspend()
   logger.dbg("KOSync: onSuspend")
   -- We request an extra flashing refresh on success, to deal with potential ghosting left by the NetworkMgr UI
-  self:_updateProgress(true, false, true)
+  self:_updateProgress(false)
 end
 
 function KOSync:_onNetworkOnline()
   logger.dbg("KOSync: onNetworkOnline")
-  UIManager:nextTick(function()
-    self:_getProgress(false, false)
-  end)
+  self:_getProgress(false)
 end
 
 function KOSync:_onNetworkDisconnecting()
   logger.dbg("KOSync: onNetworkDisconnecting")
-  self:_updateProgress(false, false)
+  self:_updateProgress(false)
 end
 
 function KOSync:onKOSyncPushProgress()
-  self:_updateProgress(true, true)
+  self:_updateProgress(true)
 end
 
 function KOSync:onKOSyncPullProgress()
-  self:_getProgress(true, true)
+  self:_getProgress(true)
 end
 
 function KOSync:registerEvents()

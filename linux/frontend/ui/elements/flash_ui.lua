@@ -1,1 +1,0 @@
-../../../../koreader/frontend/ui/elements/flash_ui.lua

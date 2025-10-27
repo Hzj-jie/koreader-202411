@@ -25,9 +25,23 @@ function BackgroundJobs.insert(job)
   --]]
   table.insert(jobs, job)
   -- Raises an event to avoid depending on BackgroundRunner plugin directly.
-  require("ui/uimanager"):broadcastEvent(
-    require("ui/event"):new("BackgroundJobsUpdated")
-  )
+  require("ui/uimanager"):broadcastEvent("BackgroundJobsUpdated")
 end
+
+BackgroundJobs.insert({
+  when = 60,
+  repeated = true,
+  executable = function()
+    require("ui/uimanager"):broadcastEvent("TimesChange_1M")
+  end,
+})
+
+BackgroundJobs.insert({
+  when = 300,
+  repeated = true,
+  executable = function()
+    require("ui/uimanager"):broadcastEvent("TimesChange_5M")
+  end,
+})
 
 return BackgroundJobs

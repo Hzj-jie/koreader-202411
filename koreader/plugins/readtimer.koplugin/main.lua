@@ -1,7 +1,6 @@
 local CheckButton = require("ui/widget/checkbutton")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DateTimeWidget = require("ui/widget/datetimewidget")
-local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -29,21 +28,20 @@ function ReadTimer:init()
 
     self.time = 0
     local tip_text = _("Time is up")
-    local confirm_box
     -- only interval support repeat
     if self.last_interval_time > 0 then
       logger.dbg("can_repeat, show confirm_box")
-      confirm_box = ConfirmBox:new({
+      local confirm_box = ConfirmBox:new({
         text = tip_text,
         ok_text = _("Repeat"),
         ok_callback = function()
           logger.dbg("Schedule a new time:", self.last_interval_time)
-          UIManager:close(confirm_box)
           self:rescheduleIn(self.last_interval_time)
         end,
         cancel_text = _("Done"),
         cancel_callback = function()
           self.last_interval_time = 0
+          self:unschedule()
         end,
       })
       UIManager:show(confirm_box)
@@ -90,37 +88,36 @@ function ReadTimer:init()
 end
 
 function ReadTimer:onPostReaderReady()
+  if not self:scheduled() then
+    return
+  end
+
   if self.show_value_in_header then
     self:addAdditionalHeaderContent()
+  else
+    self:removeAdditionalHeaderContent()
   end
 
   if self.show_value_in_footer then
     self:addAdditionalFooterContent()
+  else
+    self:removeAdditionalFooterContent()
   end
 end
 
-function ReadTimer:update_status_bars(seconds)
+function ReadTimer:onTimesChange_1M()
+  if not self:scheduled() then
+    return
+  end
   if self.show_value_in_header then
-    UIManager:broadcastEvent(Event:new("UpdateHeader"))
+    UIManager:broadcastEvent("UpdateHeader")
   end
   if self.show_value_in_footer then
-    UIManager:broadcastEvent(Event:new("RefreshAdditionalContent"))
-  end
-  -- if seconds schedule 1ms later
-  if seconds and seconds >= 0 then
-    UIManager:scheduleIn(
-      math.max(math.floor(seconds) % 60, 0.001),
-      self.update_status_bars,
-      self
-    )
-  elseif seconds and seconds < 0 and self:scheduled() then
-    UIManager:scheduleIn(
-      math.max(math.floor(self:remaining()) % 60, 0.001),
-      self.update_status_bars,
-      self
-    )
-  else
-    UIManager:scheduleIn(60, self.update_status_bars, self)
+    -- This is a little bit wasteful. When time is showed, ReaderFooter listens
+    -- to onTimesChange_1M and the onUpdateFooter will be called twice.
+    -- It's easy to create a different event handler to avoid double-updating,
+    -- but it seems not very necessary.
+    UIManager:broadcastEvent("UpdateFooter")
   end
 end
 
@@ -165,40 +162,38 @@ function ReadTimer:remainingTime(round)
 end
 
 function ReadTimer:addAdditionalHeaderContent()
-  if self.ui.crelistener then
-    self.ui.crelistener:addAdditionalHeaderContent(
-      self.additional_header_content_func
-    )
-    self:update_status_bars(-1)
+  if not self.ui.crelistener then
+    return
   end
+  self.ui.crelistener:addAdditionalHeaderContent(
+    self.additional_header_content_func
+  )
 end
 function ReadTimer:addAdditionalFooterContent()
-  if self.ui.view then
-    self.ui.view.footer:addAdditionalFooterContent(
-      self.additional_footer_content_func
-    )
-    self:update_status_bars(-1)
+  if not self.ui.view then
+    return
   end
+  self.ui.view.footer:addAdditionalFooterContent(
+    self.additional_footer_content_func
+  )
 end
 
 function ReadTimer:removeAdditionalHeaderContent()
-  if self.ui.crelistener then
-    self.ui.crelistener:removeAdditionalHeaderContent(
-      self.additional_header_content_func
-    )
-    self:update_status_bars(-1)
-    UIManager:broadcastEvent(Event:new("UpdateHeader"))
+  if not self.ui.crelistener then
+    return
   end
+  self.ui.crelistener:removeAdditionalHeaderContent(
+    self.additional_header_content_func
+  )
 end
 
 function ReadTimer:removeAdditionalFooterContent()
-  if self.ui.view then
-    self.ui.view.footer:removeAdditionalFooterContent(
-      self.additional_footer_content_func
-    )
-    self:update_status_bars(-1)
-    UIManager:broadcastEvent(Event:new("UpdateFooter", true))
+  if not self.ui.view then
+    return
   end
+  self.ui.view.footer:removeAdditionalFooterContent(
+    self.additional_footer_content_func
+  )
 end
 
 function ReadTimer:unschedule()
@@ -206,16 +201,15 @@ function ReadTimer:unschedule()
     UIManager:unschedule(self.alarm_callback)
     self.time = 0
   end
-  UIManager:unschedule(self.update_status_bars, self)
+  self:removeAdditionalHeaderContent()
+  self:removeAdditionalFooterContent()
 end
 
 function ReadTimer:rescheduleIn(seconds)
   -- Resolution: time.now() subsecond, os.time() two seconds
   self.time = time.now() + time.s(seconds)
   UIManager:scheduleIn(seconds, self.alarm_callback)
-  if self.show_value_in_header or self.show_value_in_footer then
-    self:update_status_bars(seconds)
-  end
+  self:onPostReaderReady()
 end
 
 function ReadTimer:addCheckboxes(widget)
@@ -230,11 +224,6 @@ function ReadTimer:addCheckboxes(widget)
         self.show_value_in_header,
         false
       )
-      if self.show_value_in_header then
-        self:addAdditionalHeaderContent()
-      else
-        self:removeAdditionalHeaderContent()
-      end
     end,
   })
   local checkbox_footer = CheckButton:new({
@@ -247,11 +236,6 @@ function ReadTimer:addCheckboxes(widget)
         "readtimer_show_value_in_footer",
         self.show_value_in_footer
       )
-      if self.show_value_in_footer then
-        self:addAdditionalFooterContent()
-      else
-        self:removeAdditionalFooterContent()
-      end
     end,
   })
   widget:addWidget(checkbox_header)
@@ -410,18 +394,9 @@ end
 function ReadTimer:onResume()
   if self:scheduled() then
     logger.dbg("ReadTimer: onResume with an active timer")
-    local remainder = self:remaining()
-
-    if remainder == 0 then
-      -- Make sure we fire the alarm right away if it expired during suspend...
-      self:alarm_callback()
-      self:unschedule()
-    else
-      -- ...and that we re-schedule the timer against the REAL time if it's still ticking.
-      logger.dbg("ReadTimer: Rescheduling in", remainder, "seconds")
-      self:unschedule()
-      self:rescheduleIn(remainder)
-    end
+    self:unschedule()
+    -- When self:remaining() is 0, it should immediately fire the alarm.
+    self:rescheduleIn(self:remaining())
   end
 end
 

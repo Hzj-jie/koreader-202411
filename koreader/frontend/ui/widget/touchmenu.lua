@@ -40,16 +40,35 @@ local Screen = Device.screen
 
 local DGENERIC_ICON_SIZE = G_defaults:readSetting("DGENERIC_ICON_SIZE")
 
+-- Similar to menu widget.
+local ENABLE_SHORTCUT = Device:hasKeyboard()
+-- Since the MAX_PER_PAGE is 10, optimize the shortcuts to the left side of the
+-- keyboard.
+local ITEM_SHORTCUTS = {
+  "Q",
+  "W",
+  "E",
+  "R",
+  "T",
+  "A",
+  "S",
+  "D",
+  "F",
+  "G",
+}
+
 --[[
 TouchMenuItem widget
 --]]
 local TouchMenuItem = InputContainer:extend({
-  menu = nil,
   vertical_align = "center",
-  item = nil,
-  dimen = nil,
   face = Font:getFace("smallinfofont"),
+
+  item = nil,
+  menu = nil,
+  dimen = nil,
   show_parent = nil,
+  item_visible_index = nil,
 })
 
 function TouchMenuItem:init()
@@ -67,6 +86,11 @@ function TouchMenuItem:init()
       }),
     },
   }
+
+  if ENABLE_SHORTCUT then
+    self.item.shortcut = ITEM_SHORTCUTS[self.item_visible_index]
+    self.key_events.TapSelect = { { self.item.shortcut } }
+  end
 
   local item_enabled = self.item.enabled
   if self.item.enabled_func then
@@ -157,6 +181,15 @@ function TouchMenuItem:init()
   function self:isEnabled()
     return item_enabled ~= false and true
   end
+
+  for k, v in pairs(self.item) do
+    -- on event handlers.
+    if k:sub(1, 2) == "on" and type(v) == "function" then
+      self[k] = function()
+        v(self.menu)
+      end
+    end
+  end
 end
 
 function TouchMenuItem:onFocus()
@@ -210,49 +243,45 @@ function TouchMenuItem:onTapSelect(arg, ges)
     return true
   end
 
-  if G_reader_settings:isFalse("flash_ui") then
-    self.menu:onMenuSelect(self.item, tap_on_checkmark)
-  else
-    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+  -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-    -- The item frame's width stops at the text width, but we want it to match the menu's length instead
-    local highlight_dimen = self.item_frame.dimen
-    highlight_dimen.w = self.item_frame.width
+  -- The item frame's width stops at the text width, but we want it to match the menu's length instead
+  local highlight_dimen = self.item_frame.dimen
+  highlight_dimen.w = self.item_frame.width
 
-    -- Highlight
-    --
-    self.item_frame.invert = true
+  -- Highlight
+  --
+  self.item_frame.invert = true
+  UIManager:widgetInvert(
+    self.item_frame,
+    highlight_dimen.x,
+    highlight_dimen.y,
+    highlight_dimen.w
+  )
+  UIManager:setDirty(nil, "fast", highlight_dimen)
+
+  UIManager:forceRePaint()
+  UIManager:yieldToEPDC()
+
+  -- Unhighlight
+  --
+  self.item_frame.invert = false
+  -- NOTE: If the menu is going to be closed, we can safely drop that.
+  if self.item.keep_menu_open then
     UIManager:widgetInvert(
       self.item_frame,
       highlight_dimen.x,
       highlight_dimen.y,
       highlight_dimen.w
     )
-    UIManager:setDirty(nil, "fast", highlight_dimen)
-
-    UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
-
-    -- Unhighlight
-    --
-    self.item_frame.invert = false
-    -- NOTE: If the menu is going to be closed, we can safely drop that.
-    if self.item.keep_menu_open then
-      UIManager:widgetInvert(
-        self.item_frame,
-        highlight_dimen.x,
-        highlight_dimen.y,
-        highlight_dimen.w
-      )
-      UIManager:setDirty(nil, "ui", highlight_dimen)
-    end
-
-    -- Callback
-    --
-    self.menu:onMenuSelect(self.item, tap_on_checkmark)
-
-    UIManager:forceRePaint()
+    UIManager:setDirty(nil, "ui", highlight_dimen)
   end
+
+  -- Callback
+  --
+  self.menu:onMenuSelect(self.item, tap_on_checkmark)
+
+  UIManager:forceRePaint()
   return true
 end
 
@@ -271,50 +300,46 @@ function TouchMenuItem:onHoldSelect(arg, ges)
     return true
   end
 
-  if G_reader_settings:isFalse("flash_ui") then
-    self.menu:onMenuHold(self.item, self.text_truncated)
-  else
-    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+  -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-    -- The item frame's width stops at the text width, but we want it to match the menu's length instead
-    local highlight_dimen = self.item_frame.dimen
-    highlight_dimen.w = self.item_frame.width
+  -- The item frame's width stops at the text width, but we want it to match the menu's length instead
+  local highlight_dimen = self.item_frame.dimen
+  highlight_dimen.w = self.item_frame.width
 
-    -- Highlight
-    --
-    self.item_frame.invert = true
+  -- Highlight
+  --
+  self.item_frame.invert = true
+  UIManager:widgetInvert(
+    self.item_frame,
+    highlight_dimen.x,
+    highlight_dimen.y,
+    highlight_dimen.w
+  )
+  UIManager:setDirty(nil, "fast", highlight_dimen)
+
+  UIManager:forceRePaint()
+  UIManager:yieldToEPDC()
+
+  -- Unhighlight
+  --
+  self.item_frame.invert = false
+  -- NOTE: If the menu is going to be closed, we can safely drop that.
+  --     (This field defaults to nil, meaning keep the menu open, hence the negated test)
+  if self.item.hold_keep_menu_open ~= false then
     UIManager:widgetInvert(
       self.item_frame,
       highlight_dimen.x,
       highlight_dimen.y,
       highlight_dimen.w
     )
-    UIManager:setDirty(nil, "fast", highlight_dimen)
-
-    UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
-
-    -- Unhighlight
-    --
-    self.item_frame.invert = false
-    -- NOTE: If the menu is going to be closed, we can safely drop that.
-    --     (This field defaults to nil, meaning keep the menu open, hence the negated test)
-    if self.item.hold_keep_menu_open ~= false then
-      UIManager:widgetInvert(
-        self.item_frame,
-        highlight_dimen.x,
-        highlight_dimen.y,
-        highlight_dimen.w
-      )
-      UIManager:setDirty(nil, "ui", highlight_dimen)
-    end
-
-    -- Callback
-    --
-    self.menu:onMenuHold(self.item, self.text_truncated)
-
-    UIManager:forceRePaint()
+    UIManager:setDirty(nil, "ui", highlight_dimen)
   end
+
+  -- Callback
+  --
+  self.menu:onMenuHold(self.item, self.text_truncated)
+
+  UIManager:forceRePaint()
   return true
 end
 
@@ -492,6 +517,9 @@ end
 function TouchMenuBar:switchToTab(index)
   -- a little safety check
   -- don't auto-activate a non-existent index
+  if index < 1 then
+    index = 1
+  end
   if index > #self.icon_widgets then
     index = #self.icon_widgets
   end
@@ -505,6 +533,9 @@ function TouchMenuBar:switchToTab(index)
   end
   self.icon_widgets[index].callback()
 end
+
+local MAX_PER_PAGE = 10
+assert(#ITEM_SHORTCUTS == MAX_PER_PAGE)
 
 --[[
 TouchMenu widget for hierarchical menus
@@ -522,7 +553,6 @@ local TouchMenu = FocusManager:extend({
   width = nil,
   height = nil,
   page = 1,
-  max_per_page_default = 10,
   -- for UIManager:setDirty
   show_parent = nil,
   cur_tab = -1,
@@ -565,11 +595,12 @@ function TouchMenu:init()
     }),
   }
 
-  self.key_events.Back = { { Input.group.Back } }
-  self.key_events.Close = { { "Menu" } }
   if Device:hasFewKeys() then
     self.key_events.Back = { { "Left" } }
+  else
+    self.key_events.Back = { { Input.group.Back } }
   end
+  self.key_events.Close = { { "Menu" } }
   self.key_events.NextPage = { { Input.group.PgFwd } }
   self.key_events.PrevPage = { { Input.group.PgBack } }
 
@@ -750,12 +781,49 @@ function TouchMenu:_recalculatePageLayout()
 
   local item_list_content_height = content_height - footer_height
   self.perpage = math.floor(item_list_content_height / self.item_height)
-  local max_per_page = self.item_table.max_per_page or self.max_per_page_default
-  if self.perpage > max_per_page then
-    self.perpage = max_per_page
+  if self.perpage > MAX_PER_PAGE then
+    self.perpage = MAX_PER_PAGE
   end
 
   self.page_num = math.ceil(#self.item_table / self.perpage)
+end
+
+function TouchMenu:onTimesChange_1M()
+  self:_updateTimeInfo()
+  UIManager:setDirty(self.time_info, "ui")
+end
+
+function TouchMenu:_updateTimeInfo()
+  local time_info_txt = datetime.secondsToHour(
+    os.time(),
+    G_reader_settings:isTrue("twelve_hour_clock")
+  )
+  local powerd = Device:getPowerDevice()
+  if Device:hasBattery() then
+    local batt_lvl = powerd:getCapacity()
+    local batt_symbol =
+      powerd:getBatterySymbol(powerd:isCharged(), powerd:isCharging(), batt_lvl)
+    time_info_txt = BD.wrap(time_info_txt)
+      .. " "
+      .. BD.wrap("⌁")
+      .. BD.wrap(batt_symbol)
+      .. BD.wrap(batt_lvl .. "%")
+
+    if Device:hasAuxBattery() and powerd:isAuxBatteryConnected() then
+      local aux_batt_lvl = powerd:getAuxCapacity()
+      local aux_batt_symbol = powerd:getBatterySymbol(
+        powerd:isAuxCharged(),
+        powerd:isAuxCharging(),
+        aux_batt_lvl
+      )
+      time_info_txt = time_info_txt
+        .. " "
+        .. BD.wrap("+")
+        .. BD.wrap(aux_batt_symbol)
+        .. BD.wrap(aux_batt_lvl .. "%")
+    end
+  end
+  self.time_info:setText(time_info_txt)
 end
 
 function TouchMenu:updateItems()
@@ -808,36 +876,7 @@ function TouchMenu:updateItems()
   self.page_info_left_chev:enableDisable(self.page > 1)
   self.page_info_right_chev:enableDisable(self.page < self.page_num)
 
-  local time_info_txt = datetime.secondsToHour(
-    os.time(),
-    G_reader_settings:isTrue("twelve_hour_clock")
-  )
-  local powerd = Device:getPowerDevice()
-  if Device:hasBattery() then
-    local batt_lvl = powerd:getCapacity()
-    local batt_symbol =
-      powerd:getBatterySymbol(powerd:isCharged(), powerd:isCharging(), batt_lvl)
-    time_info_txt = BD.wrap(time_info_txt)
-      .. " "
-      .. BD.wrap("⌁")
-      .. BD.wrap(batt_symbol)
-      .. BD.wrap(batt_lvl .. "%")
-
-    if Device:hasAuxBattery() and powerd:isAuxBatteryConnected() then
-      local aux_batt_lvl = powerd:getAuxCapacity()
-      local aux_batt_symbol = powerd:getBatterySymbol(
-        powerd:isAuxCharged(),
-        powerd:isAuxCharging(),
-        aux_batt_lvl
-      )
-      time_info_txt = time_info_txt
-        .. " "
-        .. BD.wrap("+")
-        .. BD.wrap(aux_batt_symbol)
-        .. BD.wrap(aux_batt_lvl .. "%")
-    end
-  end
-  self.time_info:setText(time_info_txt)
+  self:_updateTimeInfo()
 
   -- recalculate dimen based on new layout
   self.dimen.w = self.width
@@ -868,7 +907,9 @@ function TouchMenu:updateItems()
   )
 end
 
+-- Only called by TouchMenuBar:switchToTab / IconButton.callback.
 function TouchMenu:switchMenuTab(tab_num)
+  assert(tab_num >= 1 and tab_num <= #self.tab_item_table)
   if self.tab_item_table[tab_num].remember ~= false then
     self.last_index = tab_num
   end
@@ -921,7 +962,16 @@ function TouchMenu:onNextPage()
   if self.page < self.page_num then
     self.page = self.page + 1
   elseif self.page == self.page_num then
-    self.page = 1
+    assert(self.last_index)
+    local index = self.last_index
+    repeat
+      index = index + 1
+      if index == #self.tab_item_table + 1 then
+        index = 1
+      end
+    until self.tab_item_table[index].remember ~= false
+    self.bar:switchToTab(index)
+    assert(self.page == 1)
   end
   self:updateItems()
   return true
@@ -931,6 +981,15 @@ function TouchMenu:onPrevPage()
   if self.page > 1 then
     self.page = self.page - 1
   elseif self.page == 1 then
+    assert(self.last_index)
+    local index = self.last_index
+    repeat
+      index = index - 1
+      if index == 0 then
+        index = #self.tab_item_table
+      end
+    until self.tab_item_table[index].remember ~= false
+    self.bar:switchToTab(index)
     self.page = self.page_num
   end
   self:updateItems()
@@ -1214,7 +1273,6 @@ function TouchMenu:openMenu(path, with_animation)
       if self.bar.icon_widgets[tab_nb].image.invert then
         highlightWidget(self.bar.icon_widgets[tab_nb].image, true)
       end
-      self:switchMenuTab(tab_nb)
       self.bar:switchToTab(tab_nb)
       item_nb = table.remove(parts)
       step = STEPS.TARGET_PAGE_OR_HIGHLIGHT_NEXT_PREV

@@ -15,15 +15,13 @@ local eink_settings_table = {
         G_reader_settings:saveSetting("low_pan_rate", Screen.low_pan_rate)
       end,
     },
-    dofile("frontend/ui/elements/flash_ui.lua"),
-    dofile("frontend/ui/elements/flash_keyboard.lua"),
     {
       text = _("Avoid mandatory black flashes in UI"),
       checked_func = function()
-        return G_reader_settings:isTrue("avoid_flashing_ui")
+        return G_reader_settings:nilOrTrue("avoid_flashing_ui")
       end,
       callback = function()
-        G_reader_settings:flipNilOrFalse("avoid_flashing_ui")
+        G_reader_settings:flipFalse("avoid_flashing_ui")
       end,
     },
   },

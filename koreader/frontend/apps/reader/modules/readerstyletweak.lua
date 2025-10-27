@@ -546,12 +546,11 @@ You can enable individual tweaks on this book with a tap, or view more details a
   -- css_tweaks.lua, or like the one we build from user styletweaks
   -- directory files and sub-directories)
   local addTweakMenuItem
-  addTweakMenuItem = function(menu, item, max_per_page)
+  addTweakMenuItem = function(menu, item)
     if type(item) == "table" and #item > 0 then -- sub-menu
       local sub_item_table = {}
-      sub_item_table.max_per_page = max_per_page
       for _, it in ipairs(item) do
-        addTweakMenuItem(sub_item_table, it, max_per_page) -- recurse
+        addTweakMenuItem(sub_item_table, it) -- recurse
       end
       table.insert(menu, {
         text_func = function()
@@ -749,8 +748,7 @@ You can enable individual tweaks on this book with a tap, or view more details a
     if_empty_menu_title
   )
   self.tweaks_table[#self.tweaks_table].separator = true
-  addTweakMenuItem(self.tweaks_table, user_tweaks_table, 6)
-  -- limit to 6 user tweaks per page
+  addTweakMenuItem(self.tweaks_table, user_tweaks_table)
 
   -- Book-specific editable tweak
   self.tweaks_table[#self.tweaks_table].separator = true

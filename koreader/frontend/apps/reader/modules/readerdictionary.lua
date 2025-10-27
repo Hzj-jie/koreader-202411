@@ -1112,10 +1112,7 @@ function ReaderDictionary:showDict(word, results, boxes, link)
     -- differentiate between dict and wiki
     is_wiki = self.is_wiki,
     refresh_callback = function()
-      if self.view then
-        -- update info in footer (time, battery, etc)
-        self.view.footer:onUpdateFooter()
-      end
+      UIManager:broadcastEvent("UpdateFooter")
     end,
     html_dictionary_link_tapped_callback = function(dictionary, html_link)
       self:onHtmlDictionaryLinkTapped(dictionary, html_link)

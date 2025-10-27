@@ -1874,7 +1874,6 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
       sub_item_table = submenu,
     })
   end
-  menu.max_per_page = #menu -- next items in page 2
   table.insert(menu, {
     text = _("Arrange actions"),
     checked_func = function()

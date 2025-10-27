@@ -1120,12 +1120,9 @@ function Kobo:setDateTime(year, month, day, hour, min, sec)
 end
 
 function Kobo:initNetworkManager(NetworkMgr)
-  function NetworkMgr:_turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi()
     self:releaseIP()
     koboEnableWifi(false)
-    if complete_callback then
-      complete_callback()
-    end
   end
 
   function NetworkMgr:_turnOnWifi(complete_callback, interactive)

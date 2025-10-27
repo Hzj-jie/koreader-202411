@@ -1205,7 +1205,7 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
               self.ui.doc_settings:makeTrue("alternative_toc")
               self:onShowToc()
               self.view.footer:setTocMarkers(true)
-              self.view.footer:onUpdateFooter()
+              UIManager:broadcastEvent("UpdateFooter")
               UIManager:broadcastEvent(Event:new("UpdateTopStatusBarMarkers"))
             end,
           }))
@@ -1240,7 +1240,6 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
         self.toc_ticks_ignored_levels[level] = not self.toc_ticks_ignored_levels[level]
           or nil
         self:onUpdateToc()
-        self.view.footer:onUpdateFooter(self.view.footer_visible)
         UIManager:broadcastEvent(Event:new("UpdateTopStatusBarMarkers"))
       end,
     }
@@ -1297,7 +1296,6 @@ Enabling this option will restrict chapter navigation to progress bar ticks.]]
           self.toc_chapter_navigation_bind_to_ticks =
             not self.toc_chapter_navigation_bind_to_ticks
           self:onUpdateToc()
-          self.view.footer:onUpdateFooter(self.view.footer_visible)
         end,
       })
       table.insert(toc_ticks_levels, {
@@ -1315,7 +1313,7 @@ Enabling this option will restrict display to the chapter titles of progress bar
         callback = function()
           self.toc_chapter_title_bind_to_ticks =
             not self.toc_chapter_title_bind_to_ticks
-          self.view.footer:onUpdateFooter(self.view.footer_visible)
+          UIManager:broadcastEvent("UpdateFooter")
         end,
       })
       return toc_ticks_levels

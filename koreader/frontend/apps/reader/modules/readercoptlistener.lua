@@ -30,9 +30,6 @@ function ReaderCoptListener:onReadSettings(config)
   self.title = G_reader_settings:readSetting("cre_header_title") or 1
   self.author = G_reader_settings:readSetting("cre_header_author") or 1
   self.clock = G_reader_settings:readSetting("cre_header_clock") or 1
-  self.header_auto_refresh = G_reader_settings:readSetting(
-    "cre_header_auto_refresh"
-  ) or 1
   self.page_number = G_reader_settings:readSetting("cre_header_page_number")
     or 1
   self.page_count = G_reader_settings:readSetting("cre_header_page_count") or 1
@@ -99,9 +96,7 @@ function ReaderCoptListener:onReadSettings(config)
         self:_updateHeader()
       end
     end
-    self:rescheduleHeaderRefreshIfNeeded() -- schedule (or not) next refresh
   end
-  self:rescheduleHeaderRefreshIfNeeded() -- schedule (or not) first refresh
 end
 
 function ReaderCoptListener:onReaderReady()
@@ -269,6 +264,7 @@ function ReaderCoptListener:onCharging()
   self:headerRefresh()
 end
 ReaderCoptListener.onNotCharging = ReaderCoptListener.onCharging
+ReaderCoptListener.onTimesChange_1M = ReaderCoptListener.onCharging
 
 function ReaderCoptListener:onTimeFormatChanged()
   self.document._document:setIntProperty(
@@ -310,43 +306,6 @@ function ReaderCoptListener:_updateHeader()
   end
 end
 
-function ReaderCoptListener:unscheduleHeaderRefresh()
-  if not self.headerRefresh then
-    return
-  end -- not yet set up
-  UIManager:unschedule(self.headerRefresh)
-  logger.dbg("ReaderCoptListener.headerRefresh unscheduled")
-end
-
-function ReaderCoptListener:rescheduleHeaderRefreshIfNeeded()
-  if not self.headerRefresh then
-    return
-  end -- not yet set up
-  local unscheduled = UIManager:unschedule(self.headerRefresh) -- unschedule if already scheduled
-  -- Only schedule an update if the header is actually visible
-  if
-    self.header_auto_refresh == 1
-    and self.document.configurable.status_line == 0 -- top bar enabled
-    and self.view.view_mode == "page" -- not in scroll mode (which would disable the header)
-    and (self.clock == 1 or self.battery == 1)
-  then -- something shown can change in next minute
-    UIManager:scheduleIn(61 - tonumber(os.date("%S")), self.headerRefresh)
-    if not unscheduled then
-      logger.dbg("ReaderCoptListener.headerRefresh scheduled")
-    else
-      logger.dbg("ReaderCoptListener.headerRefresh rescheduled")
-    end
-  elseif unscheduled then
-    logger.dbg("ReaderCoptListener.headerRefresh unscheduled")
-  end
-end
-
--- Schedule or stop scheduling on these events, as they may change what is shown:
-ReaderCoptListener.onSetStatusLine =
-  ReaderCoptListener.rescheduleHeaderRefreshIfNeeded
--- configurable.status_line is set before this event is triggered
-ReaderCoptListener.onSetViewMode =
-  ReaderCoptListener.rescheduleHeaderRefreshIfNeeded
 -- ReaderView:onSetViewMode(), which sets view.view_mode, is called before
 -- ReaderCoptListener.onSetViewMode, so we'll get the updated value
 function ReaderCoptListener:onResume()
@@ -369,21 +328,26 @@ function ReaderCoptListener:onOutOfScreenSaver()
   self:headerRefresh()
 end
 
--- Unschedule on these events
-ReaderCoptListener.onCloseDocument = ReaderCoptListener.unscheduleHeaderRefresh
-ReaderCoptListener.onSuspend = ReaderCoptListener.unscheduleHeaderRefresh
-
 function ReaderCoptListener:addAdditionalHeaderContent(content_func)
+  for _, v in ipairs(self.additional_header_content) do
+    if v == content_func then
+      return false
+    end
+  end
   table.insert(self.additional_header_content, content_func)
+  self:onUpdateHeader()
+  return true
 end
 
 function ReaderCoptListener:removeAdditionalHeaderContent(content_func)
   for i, v in ipairs(self.additional_header_content) do
     if v == content_func then
       table.remove(self.additional_header_content, i)
+      self:onUpdateHeader()
       return true
     end
   end
+  return false
 end
 
 function ReaderCoptListener:setAndSave(setting, property, value, property_value)
@@ -408,8 +372,6 @@ function ReaderCoptListener:onUpdateHeader()
   -- Have crengine redraw it (even if hidden by the menu at this time)
   self.ui.rolling:updateBatteryState()
   self:_updateHeader()
-  -- And see if we should auto-refresh
-  self:rescheduleHeaderRefreshIfNeeded()
 end
 
 local about_text = _([[
@@ -423,32 +385,8 @@ function ReaderCoptListener:getAltStatusBarMenu()
   return {
     text = _("Alt status bar"),
     separator = true,
+    help_text = about_text,
     sub_item_table = {
-      {
-        text = _("About alt status bar"),
-        keep_menu_open = true,
-        callback = function()
-          UIManager:show(InfoMessage:new({
-            text = about_text,
-          }))
-        end,
-        separator = true,
-      },
-      {
-        text = _("Auto refresh"),
-        checked_func = function()
-          return self.header_auto_refresh == 1
-        end,
-        callback = function()
-          self.header_auto_refresh = self.header_auto_refresh == 0 and 1 or 0
-          G_reader_settings:saveSetting(
-            "cre_header_auto_refresh",
-            self.header_auto_refresh
-          )
-          self:rescheduleHeaderRefreshIfNeeded()
-        end,
-        separator = true,
-      },
       {
         text = _("Book title"),
         checked_func = function()

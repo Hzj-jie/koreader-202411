@@ -322,7 +322,6 @@ function FileSearcher:onShowSearchResults(not_cached)
     end,
     onMenuSelect = self.onMenuSelect,
     onMenuHold = self.onMenuHold,
-    handle_hold_on_hold_release = true,
     ui = self.ui,
     _manager = self,
   })

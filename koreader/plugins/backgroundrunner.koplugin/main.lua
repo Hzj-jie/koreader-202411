@@ -58,6 +58,9 @@ local _ = require("gettext")
 --             Errors thrown from this function will be ignored.
 --   nil: ignore.
 --
+-- catch_exception: boolean
+--   allow capturing the exception instead of crashing. Default false.
+--
 -- If a job does not contain enough information, it will be ignored.
 --
 -- Once the job is finished, several items will be added to the table:
@@ -150,7 +153,8 @@ function BackgroundRunner:_finishJob(job)
   elseif G_defaults:isTrue("DEV_MODE") then
     logger.info("job ", _debugJobStr(job), " will not be repeated.")
   end
-  if type(job.callback) == "function" then
+  if job.callback ~= nil then
+    assert(type(job.callback) == "function")
     job.callback(job)
   end
 end
@@ -189,6 +193,8 @@ function BackgroundRunner:_executeJob(job)
       )
       job.result = 1
       job.exception = err
+      -- trigger the exception at the end to preserve the logs.
+      assert(job.catch_exception == true)
     end
     job.end_time = time.now()
     self:_finishJob(job)

@@ -24,18 +24,39 @@ if not Device:hasWifiToggle() then
   return NetworkListener
 end
 
+local function supportActivityCheck()
+  return not Device:isKindle() and G_reader_settings:isTrue("auto_disable_wifi")
+end
+
+function NetworkListener:_wifiActivityCheck()
+  if not G_reader_settings:isTrue("auto_disable_wifi") then
+    return
+  end
+  if not NetworkMgr:isWifiOn() then
+    return
+  end
+  local wifi_inactive = false
+  if wifi_inactive then
+    NetworkMgr:toggleWifiOff()
+  end
+end
+
+function NetworkListener:onTimesChange_5M()
+  self:_wifiActivityCheck()
+end
+
 function NetworkListener:onToggleWifi()
   -- This is not a bug, but to allow users connecting to the wifi network if the
   -- wifi is on but not connected.
   if not NetworkMgr:isConnected() then
     NetworkMgr:toggleWifiOn()
   else
-    NetworkMgr:toggleWifiOff(nil, true) -- flag it as interactive
+    NetworkMgr:toggleWifiOff(true) -- flag it as interactive
   end
 end
 
 function NetworkListener:onInfoWifiOff()
-  NetworkMgr:toggleWifiOff(nil, true) -- flag it as interactive
+  NetworkMgr:toggleWifiOff(true) -- flag it as interactive
 end
 
 function NetworkListener:onInfoWifiOn()
@@ -99,6 +120,10 @@ function NetworkListener:_getTxPackets()
 end
 
 function NetworkListener:_unscheduleActivityCheck()
+  if not supportActivityCheck() then
+    return
+  end
+
   logger.dbg("NetworkListener: unschedule network activity check")
   if NetworkListener._activity_check_scheduled then
     UIManager:unschedule(NetworkListener._scheduleActivityCheck)
@@ -117,6 +142,10 @@ end
 
 -- NOTE: This must *never* access instance-specific members!
 function NetworkListener:_scheduleActivityCheck()
+  if not supportActivityCheck() then
+    return
+  end
+
   logger.dbg("NetworkListener: network activity check")
   local keep_checking = true
 
@@ -201,13 +230,9 @@ function NetworkListener:onNetworkConnected()
   logger.dbg("NetworkListener: onNetworkConnected")
 
   for _, v in pairs(_pending_connected) do
-    v()
+    UIManager:nextTick(v)
   end
   _pending_connected = {}
-
-  if not G_reader_settings:isTrue("auto_disable_wifi") or Device:isKindle() then
-    return
-  end
 
   -- If the activity check has already been scheduled for some reason, unschedule it first.
   NetworkListener:_unscheduleActivityCheck()
@@ -218,7 +243,7 @@ function NetworkListener:onNetworkOnline()
   logger.dbg("NetworkListener: onNetworkOnline")
 
   for _, v in pairs(_pending_online) do
-    v()
+    UIManager:nextTick(v)
   end
   _pending_online = {}
 end
@@ -283,11 +308,35 @@ function NetworkListener:onShowNetworkInfo()
     return
   end
   if Device.retrieveNetworkInfo then
-    UIManager:show(InfoMessage:new({
-      text = table.concat(Device:retrieveNetworkInfo(), "\n"),
-      -- IPv6 addresses are *loooooong*!
-      face = Font:getFace("x_smallinfofont"),
-    }))
+    local network_info = table.concat(Device:retrieveNetworkInfo(), "\n")
+    UIManager:runWith(
+      function()
+        -- TODO: Check the online state here should not be necessary, remove this
+        -- hack.
+        NetworkMgr:_queryOnlineState()
+        UIManager:show(InfoMessage:new({
+          -- Need localization.
+          text = network_info
+            .. "\n"
+            .. _("Internet")
+            .. " "
+            .. (NetworkMgr:isOnline() and _("online") or _("offline")),
+          -- IPv6 addresses are *loooooong*!
+          face = Font:getFace("x_smallinfofont"),
+        }))
+      end,
+      InfoMessage:new({
+        -- Need localization.
+        text = network_info
+          .. "\n"
+          .. _("Internet")
+          .. " ("
+          .. _("checking")
+          .. "...)",
+        -- IPv6 addresses are *loooooong*!
+        face = Font:getFace("x_smallinfofont"),
+      })
+    )
   else
     UIManager:show(InfoMessage:new({
       text = _("Could not retrieve network info."),
