@@ -781,7 +781,7 @@ function VirtualKeyPopup:init()
   )
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
 
   local offset_x = 2 * keyboard_frame.bordersize
@@ -930,7 +930,7 @@ function VirtualKeyboard:init()
     G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms") or 0
   )
   if Device:hasKeys() then
-    self.key_events.Close = { { "Back" } }
+    self.key_events.Exit = { { "Back" } }
   end
   if keyboard.wrapInputBox then
     self.uwrap_func = keyboard.wrapInputBox(self.inputbox) or self.uwrap_func

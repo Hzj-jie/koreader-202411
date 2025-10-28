@@ -600,7 +600,7 @@ function TouchMenu:init()
   else
     self.key_events.Back = { { Input.group.Back } }
   end
-  self.key_events.Close = { { "Menu" } }
+  self.key_events.Exit = { { "Menu" } }
   self.key_events.NextPage = { { Input.group.PgFwd } }
   self.key_events.PrevPage = { { Input.group.PgBack } }
 

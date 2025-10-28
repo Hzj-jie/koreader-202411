@@ -112,7 +112,7 @@ function TextViewer:init(reinit)
   self._old_virtual_line_num = 1
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
     self.key_events.ShowMenu = { { "Menu" } }
   end
 

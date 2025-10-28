@@ -85,7 +85,7 @@ function FrontLightWidget:init()
     local close_keys = Device:hasFewKeys()
         and { Device.input.group.Back, "Left" }
       or Device.input.group.Back
-    self.key_events.Close = { { close_keys } }
+    self.key_events.Exit = { { close_keys } }
   end
   if Device:isTouchDevice() then
     self.ges_events = {

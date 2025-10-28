@@ -103,7 +103,7 @@ function DictQuickLookup:init()
   if Device:hasKeys() then
     self.key_events.ReadPrevResult = { { Input.group.PgBack } }
     self.key_events.ReadNextResult = { { Input.group.PgFwd } }
-    self.key_events.Close = { { Input.group.Back } }
+    self.key_events.Exit = { { Input.group.Back } }
     self.key_events.MenuKeyPress = { { "Menu" } }
     if Device:hasKeyboard() then
       self.key_events.ChangeToPrevDict = { { "Shift", "Left" } }

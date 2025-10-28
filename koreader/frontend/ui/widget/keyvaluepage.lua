@@ -338,7 +338,7 @@ function KeyValuePage:init()
   end
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Input.group.Back } }
+    self.key_events.Exit = { { Input.group.Back } }
     self.key_events.NextPage = { { Input.group.PgFwd } }
     self.key_events.PrevPage = { { Input.group.PgBack } }
   end

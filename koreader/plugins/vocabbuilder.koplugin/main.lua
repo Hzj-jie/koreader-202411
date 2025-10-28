@@ -87,7 +87,7 @@ function MenuDialog:init()
     else
       table.insert(back_group, "Menu")
     end
-    self.key_events.Close = { { back_group } }
+    self.key_events.Exit = { { back_group } }
   end
   if Device:isTouchDevice() then
     self.ges_events.Tap = {
@@ -542,7 +542,7 @@ function WordInfoDialog:init()
   self.layout = {}
   if self.dismissable then
     if Device:hasKeys() then
-      self.key_events.Close = { { Device.input.group.Back } }
+      self.key_events.Exit = { { Device.input.group.Back } }
     end
     if Device:isTouchDevice() then
       self.ges_events.Tap = {
@@ -1413,7 +1413,7 @@ function VocabularyBuilderWidget:init()
   })
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
     self.key_events.NextPage = { { Device.input.group.PgFwd } }
     self.key_events.PrevPage = { { Device.input.group.PgBack } }
     self.key_events.ShowMenu = { { "Menu" } }

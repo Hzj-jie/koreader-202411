@@ -798,7 +798,7 @@ function Menu:init()
         end,
         right_icon_size_ratio = self.title_bar_fm_style and 1,
         close_callback = function()
-          self:onTapClose()
+          self:onExit()
         end,
         show_parent = self.show_parent or self,
       })
@@ -1067,15 +1067,15 @@ function Menu:init()
       range = self.dimen,
     }),
   }
-  self.ges_events.TapClose = self.on_close_ges
+  self.ges_events.Exit = self.on_close_ges
 
   if Device:hasKeys() then
     -- set up keyboard events
     self.key_events.LeftButtonTap = { { "Menu" } }
     if Device:hasFewKeys() then
-      self.key_events.TapClose = { { "Left" } }
+      self.key_events.Exit = { { "Left" } }
     else
-      self.key_events.TapClose = { { Input.group.Back } }
+      self.key_events.Exit = { { Input.group.Back } }
     end
     self.key_events.NextPage = { { Input.group.PgFwd } }
     self.key_events.PrevPage = { { Input.group.PgBack } }
@@ -1579,7 +1579,7 @@ function Menu:onClose()
   end
 end
 
-function Menu:onTapClose()
+function Menu:onExit()
   if #self.item_table_stack == 0 then
     self:_closeAllMenus()
   else
@@ -1615,7 +1615,7 @@ function Menu:onSwipe(arg, ges_ev)
     if not self.no_title then
       -- If there is a titlebar with a close button displayed (so, this Menu can be
       -- closed), allow easier closing with swipe south.
-      self:onTapClose()
+      self:onExit()
     end
     -- If there is no close button, it's a top level Menu and swipe
     -- up/down may hide/show top menu
@@ -1647,7 +1647,7 @@ function Menu:onMultiSwipe(arg, ges_ev)
   if not self.no_title then
     -- If there is a titlebar with a close button displayed (so, this Menu can be
     -- closed), allow easier closing with swipe south.
-    self:onTapClose()
+    self:onExit()
   end
   return true
 end

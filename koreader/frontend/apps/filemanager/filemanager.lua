@@ -411,12 +411,12 @@ function FileManager:registerKeyEvents()
     end
     if not Device:hasFewKeys() then
       -- Also remove the handler assigned to the "Back" key by menu.lua
-      self.file_chooser.key_events.Close = nil
+      self.file_chooser.key_events.Exit = nil
     end
   else
     self.key_events.Home = nil
     self.file_chooser.key_events.Back = nil
-    self.file_chooser.key_events.Close = nil
+    self.file_chooser.key_events.Exit = nil
   end
 end
 

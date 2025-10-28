@@ -61,7 +61,7 @@ function BBoxWidget:init()
       { { "Right" }, event = "MoveIndicator", args = { 1, 0 } }
   end
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
     self.key_events.Select = { { "Press" } }
   end
 end

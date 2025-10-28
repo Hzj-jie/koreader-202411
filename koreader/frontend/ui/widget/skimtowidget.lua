@@ -31,7 +31,7 @@ function SkimToWidget:init()
   local screen_height = Screen:getHeight()
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
   if Device:isTouchDevice() then
     self.ges_events.TapProgress = {

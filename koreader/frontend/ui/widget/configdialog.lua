@@ -1072,11 +1072,11 @@ function ConfigDialog:init()
     local back_group = util.tableDeepCopy(Device.input.group.Back)
     if Device:hasFewKeys() then
       table.insert(back_group, "Left")
-      self.key_events.Close = { { back_group } }
+      self.key_events.Exit = { { back_group } }
     else
       table.insert(back_group, "Menu")
       table.insert(back_group, "AA")
-      self.key_events.Close = { { back_group } }
+      self.key_events.Exit = { { back_group } }
     end
   end
 end
