@@ -57,7 +57,10 @@ function ConnectivityChecker:_executable()
     os.clock() - self.settings_id / 1000,
     "seconds)!"
   )
-  NetworkMgr:_networkConnected()
+  -- Avoid causing timeout due to query online state.
+  UIManager:nextTick(function()
+    NetworkMgr:_networkConnected()
+  end)
   self:stop()
 end
 
