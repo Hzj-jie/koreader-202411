@@ -1194,7 +1194,7 @@ function UIManager:_refresh(mode, region, dither)
   -- Handle downgrading flashing modes to non-flashing modes, according to user settings.
   -- NOTE: Do it before "full" promotion and collision checks/update_mode.
   if G_reader_settings:nilOrTrue("avoid_flashing_ui") then
-    if mode == "full" or mode == "flashui" then
+    if mode == "flashui" then
       mode = "ui"
       logger.dbg("_refresh: downgraded flashui refresh to", mode)
     elseif mode == "flashpartial" then
