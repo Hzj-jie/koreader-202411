@@ -12,20 +12,12 @@ local T = require("ffi/util").template
 
 local _pending_connected = {}
 local _pending_online = {}
+local _last_tx_packets = nil
 
-local NetworkListener = EventListener:extend({
-  -- Class members, because we want the activity check to be cross-instance...
-  _activity_check_scheduled = nil,
-  _last_tx_packets = nil,
-  _activity_check_delay_seconds = nil,
-})
+local NetworkListener = EventListener:extend({})
 
 if not Device:hasWifiToggle() then
   return NetworkListener
-end
-
-local function supportActivityCheck()
-  return not Device:isKindle() and G_reader_settings:isTrue("auto_disable_wifi")
 end
 
 function NetworkListener:_wifiActivityCheck()
@@ -35,10 +27,20 @@ function NetworkListener:_wifiActivityCheck()
   if not NetworkMgr:isWifiOn() then
     return
   end
-  local wifi_inactive = false
-  if wifi_inactive then
-    NetworkMgr:toggleWifiOff()
+
+  -- This should be more than enough to catch actual activity vs. noise spread
+  -- over 5 minutes.
+  local NETWORK_ACTIVITY_NOISE_MARGIN = 12 -- unscaled_size_check: ignore
+  local current_tx_packets = self:_getTxPackets()
+  if
+    _last_tx_packets == nil
+    or current_tx_packets - _last_tx_packets > NETWORK_ACTIVITY_NOISE_MARGIN
+  then
+    _last_tx_packets = current_tx_packets
+    return
   end
+  _last_tx_packets = nil
+  NetworkMgr:toggleWifiOff()
 end
 
 function NetworkListener:onTimesChange_5M()
@@ -81,19 +83,6 @@ function NetworkListener:onInfoWifiOn()
   end
 end
 
--- Everything below is to handle auto_disable_wifi ;).
-local default_network_timeout_seconds = 5 * 60
-local max_network_timeout_seconds = 30 * 60
--- If autostandby is enabled, shorten the timeouts
-if G_named_settings.auto_standby_timeout_seconds() > 0 then
-  default_network_timeout_seconds = default_network_timeout_seconds / 2
-  max_network_timeout_seconds = max_network_timeout_seconds / 2
-end
--- This should be more than enough to catch actual activity vs. noise spread over 5 minutes.
--- TODO: This does not work on kindle, the origin system makes noticeable
--- network traffic, ~20 packages in 2 minutes, and very unpredictable.
-local network_activity_noise_margin = 12 -- unscaled_size_check: ignore
-
 -- Read the statistics/tx_packets sysfs entry for the current network interface.
 -- It *should* be the least noisy entry on an idle network...
 -- The fact that auto_disable_wifi is only available on devices that expose a
@@ -119,113 +108,6 @@ function NetworkListener:_getTxPackets()
   return tx_packets
 end
 
-function NetworkListener:_unscheduleActivityCheck()
-  if not supportActivityCheck() then
-    return
-  end
-
-  logger.dbg("NetworkListener: unschedule network activity check")
-  if NetworkListener._activity_check_scheduled then
-    UIManager:unschedule(NetworkListener._scheduleActivityCheck)
-    NetworkListener._activity_check_scheduled = nil
-    logger.dbg("NetworkListener: network activity check unscheduled")
-  end
-
-  -- We also need to reset the stats, otherwise we'll be comparing apples vs. oranges... (i.e., two different network sessions)
-  if NetworkListener._last_tx_packets then
-    NetworkListener._last_tx_packets = nil
-  end
-  if NetworkListener._activity_check_delay_seconds then
-    NetworkListener._activity_check_delay_seconds = nil
-  end
-end
-
--- NOTE: This must *never* access instance-specific members!
-function NetworkListener:_scheduleActivityCheck()
-  if not supportActivityCheck() then
-    return
-  end
-
-  logger.dbg("NetworkListener: network activity check")
-  local keep_checking = true
-
-  local tx_packets = NetworkListener:_getTxPackets()
-  if NetworkListener._last_tx_packets and tx_packets then
-    -- Compute noise threshold based on the current delay
-    local delay_seconds = NetworkListener._activity_check_delay_seconds
-      or default_network_timeout_seconds
-    local noise_threshold = delay_seconds
-      / default_network_timeout_seconds
-      * network_activity_noise_margin
-    local delta = tx_packets - NetworkListener._last_tx_packets
-    -- If there was no meaningful activity (+/- a couple packets), kill the Wi-Fi
-    if delta <= noise_threshold then
-      logger.dbg(
-        "NetworkListener: No meaningful network activity (delta:",
-        delta,
-        "<= threshold:",
-        noise_threshold,
-        "[ then:",
-        NetworkListener._last_tx_packets,
-        "vs. now:",
-        tx_packets,
-        "]) -> disabling Wi-Fi"
-      )
-      keep_checking = false
-      NetworkMgr:toggleWifiOff()
-      -- NOTE: We leave wifi_was_on as-is on purpose, we wouldn't want to break auto_restore_wifi workflows on the next start...
-    else
-      logger.dbg(
-        "NetworkListener: Significant network activity (delta:",
-        delta,
-        "> threshold:",
-        noise_threshold,
-        "[ then:",
-        NetworkListener._last_tx_packets,
-        "vs. now:",
-        tx_packets,
-        "]) -> keeping Wi-Fi enabled"
-      )
-    end
-  end
-
-  -- If we've just killed Wi-Fi, onNetworkDisconnected will take care of unscheduling us, so we're done
-  if not keep_checking then
-    return
-  end
-
-  -- Update tracker for next iter
-  NetworkListener._last_tx_packets = tx_packets
-
-  -- If it's already been scheduled, increase the delay until we hit the ceiling
-  if NetworkListener._activity_check_delay_seconds then
-    NetworkListener._activity_check_delay_seconds = NetworkListener._activity_check_delay_seconds
-      + default_network_timeout_seconds
-
-    if
-      NetworkListener._activity_check_delay_seconds
-      > max_network_timeout_seconds
-    then
-      NetworkListener._activity_check_delay_seconds =
-        max_network_timeout_seconds
-    end
-  else
-    NetworkListener._activity_check_delay_seconds =
-      default_network_timeout_seconds
-  end
-
-  UIManager:scheduleIn(
-    NetworkListener._activity_check_delay_seconds,
-    NetworkListener._scheduleActivityCheck
-  )
-  NetworkListener._activity_check_scheduled = true
-  logger.dbg(
-    "NetworkListener: network activity check scheduled in",
-    NetworkListener._activity_check_delay_seconds,
-    "seconds"
-  )
-end
-
 function NetworkListener:onNetworkConnected()
   logger.dbg("NetworkListener: onNetworkConnected")
 
@@ -233,10 +115,6 @@ function NetworkListener:onNetworkConnected()
     UIManager:nextTick(v)
   end
   _pending_connected = {}
-
-  -- If the activity check has already been scheduled for some reason, unschedule it first.
-  NetworkListener:_unscheduleActivityCheck()
-  NetworkListener:_scheduleActivityCheck()
 end
 
 function NetworkListener:onNetworkOnline()
@@ -263,12 +141,6 @@ function NetworkListener:countsOfPendingJobs()
   return string.format("%d / %d", #_pending_connected, #_pending_online)
 end
 
-function NetworkListener:onNetworkDisconnected()
-  logger.dbg("NetworkListener: onNetworkDisconnected")
-
-  NetworkListener:_unscheduleActivityCheck()
-end
-
 -- Also unschedule on suspend (and we happen to also kill Wi-Fi to do so, so resetting the stats is also relevant here)
 function NetworkListener:onSuspend()
   logger.dbg("NetworkListener: onSuspend")
@@ -278,9 +150,6 @@ function NetworkListener:onSuspend()
   if Device:hasWifiManager() and NetworkMgr:isWifiOn() then
     NetworkMgr:toggleWifiOff()
   end
-
-  -- Wi-Fi will be down, unschedule unconditionally
-  NetworkListener:_unscheduleActivityCheck()
 end
 
 -- If the platform implements NetworkMgr:restoreWifiAsync, run it as needed

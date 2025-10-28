@@ -777,8 +777,6 @@ function NetworkMgr:getPowersaveMenuTable()
     end,
     callback = function()
       G_reader_settings:flipNilOrFalse("auto_disable_wifi")
-      -- NOTE: Well, not exactly, but the activity check wouldn't be (un)scheduled until the next Network(Dis)Connected event...
-      UIManager:askForRestart()
     end,
   }
 end
@@ -884,8 +882,7 @@ function NetworkMgr:getMenuTable(common_settings)
   common_settings.network_info = self:getInfoMenuTable()
 
   -- Allow auto_disable_wifi on devices where the net sysfs entry is exposed.
-  -- TODO: It doesn't work on kindle, see the comment in networklistener.
-  if self:getNetworkInterfaceName() and not Device:isKindle() then
+  if self:getNetworkInterfaceName() then
     common_settings.network_powersave = self:getPowersaveMenuTable()
   end
 
