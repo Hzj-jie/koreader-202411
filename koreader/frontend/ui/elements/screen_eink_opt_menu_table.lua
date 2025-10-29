@@ -21,7 +21,7 @@ local eink_settings_table = {
         return G_reader_settings:nilOrTrue("avoid_flashing_ui")
       end,
       callback = function()
-        G_reader_settings:flipFalse("avoid_flashing_ui")
+        G_reader_settings:flipNilOrTrue("avoid_flashing_ui")
       end,
     },
   },
