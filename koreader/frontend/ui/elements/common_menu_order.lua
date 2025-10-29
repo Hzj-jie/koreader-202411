@@ -47,6 +47,7 @@ local function mergeWith(b)
       "network_dismiss_scan",
       "----------------------------",
       "ssh",
+      "httpremote",
     },
     help = {
       "quickstart_guide",

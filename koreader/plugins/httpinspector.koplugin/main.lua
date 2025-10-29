@@ -1454,7 +1454,6 @@ end
 function HttpInspectorWidget:addToMainMenu(menu_items)
   menu_items.httpremote = {
     text = _("Remotely control KOReader"),
-    sorting_hint = "network",
     help_text_func = function()
       local text = HELP_TEXT .. "\n\n"
       -- Need localization.

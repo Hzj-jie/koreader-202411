@@ -570,7 +570,6 @@ end
 function AutoSuspend:addToMainMenu(menu_items)
   -- Device:canSuspend() check elided because it's a plugin requirement
   menu_items.autosuspend = {
-    sorting_hint = "device",
     checked_func = function()
       return self:_enabled()
     end,
@@ -608,7 +607,6 @@ function AutoSuspend:addToMainMenu(menu_items)
   }
   if Device:canPowerOff() then
     menu_items.autoshutdown = {
-      sorting_hint = "device",
       checked_func = function()
         return self:_enabledShutdown()
       end,
@@ -664,7 +662,6 @@ Upon user input, the device needs a certain amount of time to wake up. Generally
     end
 
     menu_items.autostandby = {
-      sorting_hint = "device",
       checked_func = function()
         return self:_enabledStandby()
       end,
