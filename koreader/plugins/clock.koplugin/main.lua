@@ -59,7 +59,6 @@ end
 Clock.addToMainMenu = function(self, menu_items)
   menu_items.clock = {
     text = _("Clock"),
-    sorting_hint = "tools",
     callback = function()
       self:onClockShow()
     end,

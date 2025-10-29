@@ -1,4 +1,4 @@
-return require("ui/elements/common_menu_order")({
+local order = require("ui/elements/common_menu_order")({
   ["KOMenu:menu_buttons"] = {
     "filemanager_settings",
     "setting",
@@ -17,116 +17,26 @@ return require("ui/elements/common_menu_order")({
     "----------------------------",
     "start_with",
   },
-  setting = {
-    -- common settings
-    -- those that don't exist will simply be skipped during menu gen
-    "frontlight", -- if Device:hasFrontlight()
-    "night_mode",
-    "----------------------------",
-    "network",
-    "screen",
-    "----------------------------",
-    "taps_and_gestures",
-    "navigation",
-    "document",
-    "----------------------------",
-    "language",
-    "device",
-    -- end common settings
-  },
-  document = {
-    "document_metadata_location",
-    "document_metadata_location_move",
-    "document_auto_save",
-    "document_end_action",
-    "language_support",
-  },
-  screen = {
-    "screensaver",
-    "autodim",
-    "auto_frontlight",
-    "keep_alive",
-    "----------------------------",
-    "screen_rotation",
-    "----------------------------",
-    "screen_dpi",
-    "screen_eink_opt",
-    "autowarmth",
-    "color_rendering",
-    "----------------------------",
-    "screen_timeout",
-    "fullscreen",
-    "----------------------------",
-    "screen_notification",
-  },
-  taps_and_gestures = {
-    "gesture_manager",
-    "gesture_intervals",
-    "----------------------------",
-    "ignore_hold_corners",
-    "screen_disable_double_tab",
-    "----------------------------",
-    "menu_activate",
-  },
-  tools = {
-    "read_timer",
-    "calibre",
-    "exporter",
-    "statistics",
-    "cloud_storage",
-    "move_to_archive",
-    "wallabag",
-    "news_downloader",
-    "text_editor",
-    "profiles",
-    "qrclipboard",
-    "----------------------------",
-    "book_shortcuts",
-    "doc_setting_tweak",
-    "terminal",
-    "----------------------------",
-    "plugin_management",
-    "patch_management",
-    "advanced_settings",
-    "developer_options",
-    "----------------------------",
-    -- For more tools with sorting_hint.
-  },
-  search = {
-    "search_settings",
-    "----------------------------",
-    "dictionary_lookup",
-    "dictionary_lookup_history",
-    "vocabbuilder",
-    "----------------------------",
-    "wikipedia_lookup",
-    "wikipedia_history",
-    "----------------------------",
-    "file_search",
-    "file_search_results",
-    "find_book_in_calibre_catalog",
-    "----------------------------",
-    "opds",
-  },
-  search_settings = {
-    "dictionary_settings",
-    "wikipedia_settings",
-  },
-  main = {
-    "history",
-    "open_last_document",
-    "----------------------------",
-    "favorites",
-    "collections",
-    "----------------------------",
-    "mass_storage_actions", -- if Device:canToggleMassStorage()
-    "----------------------------",
-    "common_log_files",
-    "ota_update", -- if Device:hasOTAUpdates()
-    "help",
-    "keyboard_shortcuts", -- explicitly place it here to save key presses
-    "----------------------------",
-    "exit_menu",
-  },
   plus_menu = {},
 })
+
+table.insert(order.document, 2, "document_metadata_location_move")
+table.insert(order.tools, 5, "cloud_storage")
+for _, v in ipairs({
+  "advanced_settings",
+  "developer_options",
+}) do
+  table.insert(order.tools, v)
+end
+
+for _, v in ipairs({
+  "file_search",
+  "file_search_results",
+  "find_book_in_calibre_catalog",
+  "----------------------------",
+  "opds",
+}) do
+  table.insert(order.search, v)
+end
+
+return order

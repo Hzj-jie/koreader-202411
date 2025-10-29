@@ -887,7 +887,7 @@ Tap a book in the search results to open it.]]
   }
 
   -- main menu tab
-  self.menu_items.open_last_document = {
+  self.menu_items.open_previous_document = {
     text_func = function()
       if
         not G_reader_settings:isTrue("open_last_menu_show_filename")
@@ -944,8 +944,11 @@ Tap a book in the search results to open it.]]
     }
   end
 
-  self.tab_item_table =
-    require("ui/menusorter"):mergeAndSort("filemanager", self.menu_items, require("ui/elements/filemanager_menu_order"))
+  self.tab_item_table = require("ui/menusorter"):mergeAndSort(
+    "filemanager",
+    self.menu_items,
+    require("ui/elements/filemanager_menu_order")
+  )
 end
 dbg:guard(FileManagerMenu, "setUpdateItemTable", function(self)
   local mock_menu_items = {}

@@ -1,4 +1,4 @@
-return require("ui/elements/common_menu_order")({
+local order = require("ui/elements/common_menu_order")({
   ["KOMenu:menu_buttons"] = {
     "navi",
     "typeset",
@@ -65,128 +65,47 @@ return require("ui/elements/common_menu_order")({
     "djvu_render_mode",
     "start_content_selection", -- if Device:hasDPad(), put this as last one so it is easy to select with "press" and "up" keys
   },
-  setting = {
-    -- common settings
-    -- those that don't exist will simply be skipped during menu gen
-    "frontlight", -- if Device:hasFrontlight()
-    "night_mode",
-    "----------------------------",
-    "network",
-    "screen",
-    "----------------------------",
-    "taps_and_gestures", -- if Device:isTouchDevice()
-    "navigation",
-    "document",
-    "----------------------------",
-    "language",
-    "device",
-    "----------------------------",
-    "status_bar",
-  },
-  document = {
-    "document_metadata_location",
-    "document_auto_save",
-    "document_end_action",
-    "language_support",
-    "----------------------------",
-    "partial_rerendering",
-  },
-  screen = {
-    "screensaver",
-    "coverimage",
-    "autodim",
-    "auto_frontlight",
-    "keep_alive",
-    "----------------------------",
-    "screen_rotation",
-    "----------------------------",
-    "screen_dpi",
-    "screen_eink_opt",
-    "autowarmth",
-    "color_rendering",
-    "----------------------------",
-    "screen_timeout",
-    "fullscreen",
-    "----------------------------",
-    "screen_notification",
-  },
-  taps_and_gestures = {
-    "gesture_manager",
-    "gesture_intervals",
-    "----------------------------",
-    "ignore_hold_corners",
-    "screen_disable_double_tab",
-    "----------------------------",
-    "follow_links",
-    "----------------------------",
-    "menu_activate",
-    "page_turns",
-    "scrolling",
-    "long_press",
-  },
-  tools = {
-    "read_timer",
-    "calibre",
-    "exporter",
-    "statistics",
-    "move_to_archive",
-    "wallabag",
-    "news_downloader",
-    "text_editor",
-    "profiles",
-    "qrclipboard",
-    "----------------------------",
-    "book_shortcuts",
-    "doc_setting_tweak",
-    "terminal",
-    "----------------------------",
-    "plugin_management",
-    "patch_management",
-    "----------------------------",
-    -- For more tools with sorting_hint.
-  },
-  search = {
-    "search_settings",
-    "----------------------------",
-    "dictionary_lookup",
-    "dictionary_lookup_history",
-    "vocabbuilder",
-    "----------------------------",
-    "wikipedia_lookup",
-    "wikipedia_history",
-    "----------------------------",
-    "translate_current_page",
-    "----------------------------",
-    "find_book_in_calibre_catalog",
-    "fulltext_search",
-    "fulltext_search_findall_results",
-    "bookmark_search",
-  },
-  search_settings = {
-    "dictionary_settings",
-    "wikipedia_settings",
-    "translation_settings",
-    "----------------------------",
-    "fulltext_search_settings",
-  },
   filemanager = {},
-  main = {
-    "history",
-    "open_previous_document",
-    "----------------------------",
-    "favorites",
-    "collections",
-    "----------------------------",
-    "book_status",
-    "book_info",
-    "----------------------------",
-    "mass_storage_actions", -- if Device:canToggleMassStorage()
-    "----------------------------",
-    "common_log_files",
-    "ota_update", -- if Device:hasOTAUpdates()
-    "help",
-    "keyboard_shortcuts", -- explicitly place it here to save key presses
-    "----------------------------",
-    "exit_menu",
-  },
 })
+
+table.insert(order.setting, "status_bar")
+table.insert(order.screen, 2, "coverimage")
+table.insert(order.document, "partial_rerendering")
+for _, v in ipairs({
+  "follow_links",
+  "page_turns",
+  "scrolling",
+  "long_press",
+}) do
+  table.insert(order.taps_and_gestures, v)
+end
+
+for _, v in ipairs({
+  "translate_current_page",
+  "----------------------------",
+  "find_book_in_calibre_catalog",
+  "fulltext_search",
+  "fulltext_search_findall_results",
+  "bookmark_search",
+}) do
+  table.insert(order.search, v)
+end
+
+for _, v in ipairs({
+  "translation_settings",
+  "----------------------------",
+  "fulltext_search_settings",
+}) do
+  table.insert(order.search_settings, v)
+end
+
+for _, v in ipairs({
+  -- Reverse ordered
+  "book_info",
+  "book_status",
+  "----------------------------",
+}) do
+  table.insert(order.main, 6, v)
+end
+
+return order

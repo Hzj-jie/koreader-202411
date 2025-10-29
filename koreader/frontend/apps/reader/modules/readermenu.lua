@@ -368,8 +368,11 @@ function ReaderMenu:setUpdateItemTable()
     end,
   }
 
-  self.tab_item_table =
-    require("ui/menusorter"):mergeAndSort("reader", self.menu_items, require("ui/elements/reader_menu_order"))
+  self.tab_item_table = require("ui/menusorter"):mergeAndSort(
+    "reader",
+    self.menu_items,
+    require("ui/elements/reader_menu_order")
+  )
 end
 dbg:guard(ReaderMenu, "setUpdateItemTable", function(self)
   local mock_menu_items = {}

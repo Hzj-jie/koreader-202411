@@ -163,7 +163,7 @@ function MenuSorter:sort(item_table, order)
 
   -- attach orphans based on sorting_hint, or with a NEW prefix in the first menu if none found
   for k, v in FFIUtil.orderedPairs(item_table) do
-    assert(v.sorting_hint)
+    assert(v.sorting_hint, k)
 
     -- normally there should be menu text but check to be sure
     if v.text and v.new ~= true then
