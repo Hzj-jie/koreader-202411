@@ -944,10 +944,8 @@ Tap a book in the search results to open it.]]
     }
   end
 
-  local order = require("ui/elements/filemanager_menu_order")
-  local MenuSorter = require("ui/menusorter")
   self.tab_item_table =
-    MenuSorter:mergeAndSort("filemanager", self.menu_items, order)
+    require("ui/menusorter"):mergeAndSort("filemanager", self.menu_items, require("ui/elements/filemanager_menu_order"))
 end
 dbg:guard(FileManagerMenu, "setUpdateItemTable", function(self)
   local mock_menu_items = {}
