@@ -176,11 +176,9 @@ function NetworkListener:onShowNetworkInfo()
   if Device.retrieveNetworkInfo then
     UIManager:show(InfoMessage:new({
       -- Need localization.
-      text = table.concat(Device:retrieveNetworkInfo(), "\n")
-        .. "\n"
-        .. _("Internet")
-        .. " "
-        .. (NetworkMgr:isOnline() and _("online") or _("offline")),
+      text = table.concat(Device:retrieveNetworkInfo(), "\n") .. "\n" .. _(
+        "Internet"
+      ) .. " " .. (NetworkMgr:isOnline() and _("online") or _("offline")),
       -- IPv6 addresses are *loooooong*!
       face = Font:getFace("x_smallinfofont"),
     }))

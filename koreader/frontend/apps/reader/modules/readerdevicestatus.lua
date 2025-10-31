@@ -48,7 +48,7 @@ function ReaderDeviceStatus:_checkBatteryStatus()
   local is_charging = powerd:isCharging()
   local battery_capacity = powerd:getCapacity()
   if Device:canSuspend() and not is_charging and battery_capacity < 5 then
-    local info = InfoMessage:new({
+    UIManager:show(InfoMessage:new({
       text = _(
         "Battery level drops below the critical zone.\n\nSuspending the device…"
       )
@@ -56,10 +56,9 @@ function ReaderDeviceStatus:_checkBatteryStatus()
         -- Need localization
         .. _("Waiting for 3 seconds to proceed."),
       icon = "notice-warning",
-    })
-    UIManager:show(info)
+      timeout = 3,
+    }))
     UIManager:scheduleIn(3, function()
-      UIManager:close(info)
       UIManager:suspend()
     end)
     return
