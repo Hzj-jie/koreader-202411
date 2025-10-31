@@ -430,7 +430,7 @@ function NetworkMgr:_hasDefaultRoute()
   s, err = socket.udp()
   if s == nil then
     logger.err("NetworkMgr: socket.udp:", err)
-    return nil
+    return false
   end
 
   ret, err = s:setpeername("203.0.113.1", "53")
@@ -594,9 +594,6 @@ function NetworkMgr:_isOnline()
   --return self:_canPingMicrosoftCom()
   local dr = self:_hasDefaultRoute()
   local rh = self:_canResolveHostnames()
-  if rh and not dr then
-    dr = self:_hasDefaultRoute()
-  end
   if dr ~= rh then
     -- It's unexpected to have different results after the retry above.
     logger.warn(
@@ -606,7 +603,7 @@ function NetworkMgr:_isOnline()
       tostring(rh)
     )
   end
-  return dr
+  return dr or rh
 end
 
 -- Return a cached online state from the last _isOnline call.
