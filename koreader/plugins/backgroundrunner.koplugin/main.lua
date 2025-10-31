@@ -165,11 +165,9 @@ function BackgroundRunner:_finishJob(job)
       logger.warn(
         "BackgroundRunner: job [",
         _debugJobStr(job),
-        "] callback took too long time."
+        "] callback took too long time. ",
+        time.to_ms(time.now() - start_time)
       )
-      if G_defaults:isTrue("DEV_MODE") then
-        assert(false)
-      end
     end
   end
 end
