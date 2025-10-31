@@ -41,8 +41,31 @@ function ReaderDeviceStatus:init()
 end
 
 function ReaderDeviceStatus:_checkBatteryStatus()
+  if self.battery_confirm_box then
+    UIManager:close(self.battery_confirm_box)
+    self.battery_confirm_box = nil
+  end
+
   local is_charging = powerd:isCharging()
   local battery_capacity = powerd:getCapacity()
+  if Device:canSuspend() and not is_charging and battery_capacity < 5 then
+    local info = InfoMessage:new({
+      text = _(
+        "Battery level drops below the critical zone.\n\nSuspending the device…"
+      )
+        .. "\n\n"
+        -- Need localization
+        .. _("Waiting for 3 seconds to proceed."),
+      icon = "notice-warning",
+    })
+    UIManager:show(info)
+    UIManager:scheduleIn(3, function()
+      UIManager:close(info)
+      UIManager:suspend()
+    end)
+    return
+  end
+
   if self.battery_status_dismissed == true then -- alerts dismissed
     if
       (is_charging and battery_capacity <= self.battery_threshold_high)
@@ -58,25 +81,6 @@ function ReaderDeviceStatus:_checkBatteryStatus()
       or (not is_charging and battery_capacity <= self.battery_threshold)
     )
   then
-    return
-  end
-
-  if self.battery_confirm_box then
-    UIManager:close(self.battery_confirm_box)
-  end
-  if Device:canSuspend() and not is_charging and battery_capacity < 5 then
-    UIManager:show(InfoMessage:new({
-      text = _(
-        "Battery level drops below the critical zone.\n\nSuspending the device…"
-      )
-        .. "\n\n"
-        -- Need localization
-        .. _("Waiting for 3 seconds to proceed."),
-      icon = "notice-warning",
-    }))
-    UIManager:scheduleIn(3, function()
-      UIManager:suspend()
-    end)
     return
   end
 
@@ -127,6 +131,7 @@ function ReaderDeviceStatus:_checkMemoryStatus()
   end
   if self.memory_confirm_box then
     UIManager:close(self.memory_confirm_box)
+    self.memory_confirm_box = nil
   end
   if Device:canRestart() then
     local top_wg = UIManager:getTopmostVisibleWidget() or {}
