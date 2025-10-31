@@ -12,7 +12,7 @@ local T = require("ffi/util").template
 
 local _pending_connected = {}
 local _pending_online = {}
-local _last_tx_packets = nil
+local _last_tx_packets = 0
 
 local NetworkListener = EventListener:extend({})
 
@@ -32,14 +32,11 @@ function NetworkListener:_wifiActivityCheck()
   -- over 5 minutes.
   local NETWORK_ACTIVITY_NOISE_MARGIN = 12 -- unscaled_size_check: ignore
   local current_tx_packets = self:_getTxPackets()
-  if
-    _last_tx_packets == nil
-    or current_tx_packets - _last_tx_packets > NETWORK_ACTIVITY_NOISE_MARGIN
-  then
+  if current_tx_packets - _last_tx_packets > NETWORK_ACTIVITY_NOISE_MARGIN then
     _last_tx_packets = current_tx_packets
     return
   end
-  _last_tx_packets = nil
+  _last_tx_packets = 0
   NetworkMgr:toggleWifiOff()
 end
 
