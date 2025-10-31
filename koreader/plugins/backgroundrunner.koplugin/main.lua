@@ -149,26 +149,17 @@ function BackgroundRunner:_finishJob(job)
       "] will be blocked due to timeout"
     )
   end
-  if G_defaults:isTrue("DEV_MODE") then
-    assert(not job.blocked)
-  end
   if not job.blocked and self:_shouldRepeat(job) then
     table.insert(PluginShare.backgroundJobs, _clone(job))
   elseif G_defaults:isTrue("DEV_MODE") then
     logger.info("job [", _debugJobStr(job), "] will not be repeated.")
+    if job.blocked then
+      assert(false)
+    end
   end
   if job.callback ~= nil then
     assert(type(job.callback) == "function")
-    local start_time = time.now()
     job.callback(job)
-    if time.now() - start_time >= time.s(1) then
-      logger.warn(
-        "BackgroundRunner: job [",
-        _debugJobStr(job),
-        "] callback took too long time. ",
-        time.to_ms(time.now() - start_time)
-      )
-    end
   end
 end
 
