@@ -185,6 +185,7 @@ end
 
 function NetworkMgr:init()
   Device:initNetworkManager(self)
+  self:onResume()
 
   -- Trigger an initial NetworkConnected event if WiFi was already up when we
   -- were launched
@@ -194,26 +195,29 @@ function NetworkMgr:init()
     self:restoreWifiAndCheckAsync(
       "NetworkMgr: init will restore Wi-Fi in the background"
     )
+
+    require("background_jobs").insert({
+      when = "best-effort",
+      repeated = true,
+      -- Technically speaking, the behavior is different than
+      -- self:_queryOnlineState, the results should be consistent in the
+      -- normal network condition.
+      executable = "ping -c 1 www.microsoft.com",
+      callback = function(job)
+        if job.start_time < self.last_resume_time then
+          -- Ignore the ping calls before the last resume, it would fail anyway.
+          return
+        end
+        self:_setOnlineState(job.result == 0)
+      end,
+    })
   end)
-  if Device:hasWifiToggle() then
-    UIManager:nextTick(function()
-      -- Initial state.
-      self:_queryOnlineState()
-      require("background_jobs").insert({
-        when = "best-effort",
-        repeated = true,
-        -- Technically speaking, the behavior is different than
-        -- self:_queryOnlineState, the results should be consistent in the
-        -- normal network condition.
-        executable = "ping -c 1 www.microsoft.com",
-        callback = function(job)
-          self:_setOnlineState(job.result == 0)
-        end,
-      })
-    end)
-  end
 
   return self
+end
+
+function NetworkMgr:onResume()
+  self.last_resume_time = time.now()
 end
 
 -- The following methods are Device specific, and need to be initialized in Device:initNetworkManager.
@@ -652,11 +656,6 @@ end
 -- and otherwise, go-on as planned.
 function NetworkMgr:willRerunWhenOnline(callback)
   assert(callback ~= nil)
-  -- This is not very right, but should solve the problem.
-  -- TODO: Remove this hack.
-  if self:_isWifiConnected() and not self:isOnline() then
-    self:_queryOnlineState()
-  end
   if self:isOnline() then
     callback()
     return false

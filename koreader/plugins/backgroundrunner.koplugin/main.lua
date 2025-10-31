@@ -130,6 +130,7 @@ function BackgroundRunner:_shouldRepeat(job)
 end
 
 function BackgroundRunner:_finishJob(job)
+  -- No timeout for real forked commands, they can run as long as they need.
   if type(job.executable) == "function" then
     local time_diff = job.end_time - job.start_time
     local threshold = time.s(1)
