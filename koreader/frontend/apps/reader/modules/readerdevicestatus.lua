@@ -10,12 +10,11 @@ local _ = require("gettext")
 local C_ = _.pgettext
 local T = require("ffi/util").template
 
-local ReaderDeviceStatus = WidgetContainer:extend({
-  -- Class static variables
-  battery_status_dismissed = false,
-  battery_confirm_box = nil,
-  memory_confirm_box = nil,
-})
+battery_status_dismissed = false
+battery_confirm_box = nil
+memory_confirm_box = nil
+
+local ReaderDeviceStatus = WidgetContainer:extend({})
 
 function ReaderDeviceStatus:init()
   if not Device:hasBattery() and Device:isAndroid() then
@@ -41,9 +40,9 @@ function ReaderDeviceStatus:init()
 end
 
 function ReaderDeviceStatus:_checkBatteryStatus()
-  if self.battery_confirm_box then
-    UIManager:close(self.battery_confirm_box)
-    self.battery_confirm_box = nil
+  if battery_confirm_box then
+    UIManager:close(battery_confirm_box)
+    battery_confirm_box = nil
   end
 
   local is_charging = powerd:isCharging()
@@ -66,12 +65,12 @@ function ReaderDeviceStatus:_checkBatteryStatus()
     return
   end
 
-  if self.battery_status_dismissed == true then -- alerts dismissed
+  if battery_status_dismissed == true then -- alerts dismissed
     if
       (is_charging and battery_capacity <= self.battery_threshold_high)
       or (not is_charging and battery_capacity > self.battery_threshold)
     then
-      self.battery_status_dismissed = false
+      battery_status_dismissed = false
     end
     return
   end
@@ -107,15 +106,15 @@ function ReaderDeviceStatus:_checkBatteryStatus()
         )
     end
   end
-  self.battery_confirm_box = ConfirmBox:new({
+  battery_confirm_box = ConfirmBox:new({
     text = text,
     ok_text = _("Dismiss"),
     dismissable = false,
     ok_callback = function()
-      self.battery_status_dismissed = true
+      battery_status_dismissed = true
     end,
   })
-  UIManager:show(self.battery_confirm_box)
+  UIManager:show(battery_confirm_box)
 end
 
 function ReaderDeviceStatus:_checkMemoryStatus()
@@ -129,9 +128,9 @@ function ReaderDeviceStatus:_checkMemoryStatus()
   if rss < self.memory_threshold then
     return
   end
-  if self.memory_confirm_box then
-    UIManager:close(self.memory_confirm_box)
-    self.memory_confirm_box = nil
+  if memory_confirm_box then
+    UIManager:close(memory_confirm_box)
+    memory_confirm_box = nil
   end
   if Device:canRestart() then
     local top_wg = UIManager:getTopmostVisibleWidget() or {}
@@ -150,7 +149,7 @@ function ReaderDeviceStatus:_checkMemoryStatus()
         UIManager:broadcastEvent(Event:new("Restart"))
       end)
     else
-      self.memory_confirm_box = ConfirmBox:new({
+      memory_confirm_box = ConfirmBox:new({
         text = T(_("High memory usage: %1 MB\n\nRestart KOReader?"), rss),
         ok_text = _("Restart"),
         dismissable = false,
@@ -164,10 +163,10 @@ function ReaderDeviceStatus:_checkMemoryStatus()
           end)
         end,
       })
-      UIManager:show(self.memory_confirm_box)
+      UIManager:show(memory_confirm_box)
     end
   else
-    self.memory_confirm_box = ConfirmBox:new({
+    memory_confirm_box = ConfirmBox:new({
       text = T(_("High memory usage: %1 MB\n\nExit KOReader?"), rss),
       ok_text = _("Exit"),
       dismissable = false,
@@ -175,7 +174,7 @@ function ReaderDeviceStatus:_checkMemoryStatus()
         UIManager:broadcastEvent(Event:new("Exit"))
       end,
     })
-    UIManager:show(self.memory_confirm_box)
+    UIManager:show(memory_confirm_box)
   end
 end
 
@@ -261,7 +260,7 @@ High level threshold is checked when the device is charging.]]),
               95
             )
             touchmenu_instance:updateItems()
-            self.battery_status_dismissed = false
+            battery_status_dismissed = false
           end,
         })
         UIManager:show(thresholds_widget)
