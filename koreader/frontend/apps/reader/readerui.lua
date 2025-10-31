@@ -605,7 +605,7 @@ function ReaderUI:init()
 
   if
     summary.status ~= "complete"
-    or not G_reader_settings:isTrue("history_freeze_finished_books")
+    or not G_reader_settings:nilOrTrue("history_freeze_finished_books")
   then
     require("readhistory"):addItem(self.document.file) -- (will update "lastfile")
   end
