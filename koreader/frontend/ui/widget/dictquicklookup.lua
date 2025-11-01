@@ -1204,7 +1204,13 @@ function DictQuickLookup:onTap(arg, ges_ev)
     -- This allow for continuous reading of results' definitions with tap.
     -- Ignore the second result / backward_zone & late initialization.
     local forward_zone = require("apps/reader/modules/readerview"):getTapZones()
-    if BD.flipIfMirroredUILayout(ges_ev.pos:intersectWith(self.definition_widget.dimen:copy():resize(forward_zone))) then
+    if
+      BD.flipIfMirroredUILayout(
+        ges_ev.pos:intersectWith(
+          self.definition_widget.dimen:copy():resize(forward_zone)
+        )
+      )
+    then
       self:onReadNextResult()
     else
       self:onReadPrevResult()

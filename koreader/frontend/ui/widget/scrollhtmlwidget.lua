@@ -199,11 +199,13 @@ function ScrollHtmlWidget:onScrollText(arg, ges)
 end
 
 function ScrollHtmlWidget:onTapScrollText(arg, ges)
-    -- Ignore the second result / backward_zone & late initialization.
-    local forward_zone = require("apps/reader/modules/readerview"):getTapZones()
-  if BD.flipIfMirroredUILayout(
-ges.pos:intersectWith(self.dimen:copy():resize(forward_zone))
-    ) then
+  -- Ignore the second result / backward_zone & late initialization.
+  local forward_zone = require("apps/reader/modules/readerview"):getTapZones()
+  if
+    BD.flipIfMirroredUILayout(
+      ges.pos:intersectWith(self.dimen:copy():resize(forward_zone))
+    )
+  then
     return self:onScrollDown()
   else
     return self:onScrollUp()

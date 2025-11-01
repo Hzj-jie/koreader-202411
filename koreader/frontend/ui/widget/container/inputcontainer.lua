@@ -149,7 +149,8 @@ function InputContainer:registerTouchZones(zones)
       gs_range = GestureRange:new({
         ges = zone.ges,
         rate = zone.rate,
-        range = Geom:new({ x = 0, y = 0, w = screen_width, h = screen_height }):resize(zone.screen_zone),
+        range = Geom:new({ x = 0, y = 0, w = screen_width, h = screen_height })
+          :resize(zone.screen_zone),
       }),
     }
     self.touch_zone_dg:addNode(zone.id)

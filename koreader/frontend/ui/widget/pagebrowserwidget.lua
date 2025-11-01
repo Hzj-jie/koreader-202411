@@ -1607,7 +1607,11 @@ function PageBrowserWidget:onTap(arg, ges)
   -- not friend with swipe can still move around
   -- Ignore the second result / backward_zone & late initialization.
   local forward_zone = require("apps/reader/modules/readerview"):getTapZones()
-  if BD.flipIfMirroredUILayout(ges.pos:intersectWith(self.dimen:copy():resize(forward_zone))) then
+  if
+    BD.flipIfMirroredUILayout(
+      ges.pos:intersectWith(self.dimen:copy():resize(forward_zone))
+    )
+  then
     self:onScrollPageDown()
   else
     self:onScrollPageUp()
