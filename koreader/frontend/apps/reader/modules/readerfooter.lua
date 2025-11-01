@@ -962,10 +962,11 @@ function ReaderFooter:getHeight()
 end
 
 function ReaderFooter:disableFooter()
-  self.onReaderReady = function() end
-  self.resetLayout = function() end
-  self._updateFooterPage = function() end
-  self._updateFooterPos = function() end
+  for k, v in pairs(self) do
+    if type(v) == "function" then
+      self[k] = function() end
+    end
+  end
   self.mode = self.mode_list.off
   self.view.footer_visible = false
 end
@@ -2190,7 +2191,7 @@ function ReaderFooter:onUpdateFooter()
 end
 
 function ReaderFooter:_updateFooterPage()
-  if type(self.pageno) ~= "number" then
+  if type(self.pageno) ~= "number" or type(self.position) == "number" then
     return
   end
   if self.settings.chapter_progress_bar then
@@ -2213,6 +2214,7 @@ function ReaderFooter:_updateFooterPage()
 end
 
 function ReaderFooter:_updateFooterPos()
+  -- self.pageno is optional.
   if type(self.position) ~= "number" then
     return
   end
