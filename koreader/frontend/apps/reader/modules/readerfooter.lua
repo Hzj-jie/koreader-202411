@@ -503,7 +503,6 @@ local ReaderFooter = WidgetContainer:extend({
 local DEFAULT_SETTINGS = {
   disable_progress_bar = false, -- enable progress bar by default
   chapter_progress_bar = false, -- the whole book
-  disabled = false,
   all_at_once = false,
   reclaim_height = false,
   toc_markers = true,
@@ -616,11 +615,6 @@ function ReaderFooter:init()
   self.mode_list = {}
   for i = 0, #self.mode_index do
     self.mode_list[self.mode_index[i]] = i
-  end
-  if self.settings.disabled then
-    -- footer feature is completely disabled, stop initialization now
-    self:disableFooter()
-    return
   end
 
   self.pageno = self.view.state.page
@@ -959,16 +953,6 @@ function ReaderFooter:getHeight()
   else
     return 0
   end
-end
-
-function ReaderFooter:disableFooter()
-  for k, v in pairs(self) do
-    if type(v) == "function" then
-      self[k] = function() end
-    end
-  end
-  self.mode = self.mode_list.off
-  self.view.footer_visible = false
 end
 
 function ReaderFooter:_updateFooterTextGenerator()
