@@ -591,9 +591,7 @@ function DictQuickLookup:init()
       })
     end
   end
-  if self.ui then
-    UIManager:broadcastEvent(Event:new("DictButtonsReady", self, buttons))
-  end
+  UIManager:broadcastEvent(Event:new("DictButtonsReady", self, buttons))
   -- Bottom buttons get a bit less padding so their line separators
   -- reach out from the content to the borders a bit more
   local buttons_padding = Size.padding.default
