@@ -924,6 +924,8 @@ function KOSync:_onCloseDocument()
   --     and we handle those system focus events via... Suspend & Resume events, so we need to neuter those handlers early.
   self.onResume = nil
   self.onSuspend = nil
+  -- Force triggering a push.
+  self.push_timestamp = 0
   self:_updateProgress(false)
 end
 
