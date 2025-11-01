@@ -334,7 +334,9 @@ function FileManagerMenu:setUpdateItemTable()
           {
             text = _("Freeze last read date of finished books"),
             checked_func = function()
-              return G_reader_settings:nilOrTrue("history_freeze_finished_books")
+              return G_reader_settings:nilOrTrue(
+                "history_freeze_finished_books"
+              )
             end,
             callback = function()
               G_reader_settings:flipNilOrTrue("history_freeze_finished_books")

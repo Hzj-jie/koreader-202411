@@ -174,14 +174,29 @@ function NetworkListener:onShowNetworkInfo()
     return
   end
   if Device.retrieveNetworkInfo then
-    UIManager:show(InfoMessage:new({
-      -- Need localization.
-      text = table.concat(Device:retrieveNetworkInfo(), "\n") .. "\n" .. _(
-        "Internet"
-      ) .. " " .. (NetworkMgr:isOnline() and _("online") or _("offline")),
-      -- IPv6 addresses are *loooooong*!
-      face = Font:getFace("x_smallinfofont"),
-    }))
+    UIManager:runWith(
+      function()
+        -- Since it's running with some display hints, we can spend some time to
+        -- query the online state again in case the network dropped between two
+        -- online state checks.
+        NetworkMgr:_queryOnlineState()
+        -- Need localization.
+        UIManager:show(InfoMessage:new({
+          -- Need localization.
+          text = table.concat(Device:retrieveNetworkInfo(), "\n") .. "\n" .. _(
+            "Internet"
+          ) .. " " .. (NetworkMgr:isOnline() and _("online") or _(
+            "offline"
+          )),
+          -- IPv6 addresses are *loooooong*!
+          face = Font:getFace("x_smallinfofont"),
+        }))
+      end,
+      InfoMessage:new({
+        -- Need localization.
+        text = _("Retrieving network information…"),
+      })
+    )
   else
     UIManager:show(InfoMessage:new({
       text = _("Could not retrieve network info."),
