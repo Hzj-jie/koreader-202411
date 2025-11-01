@@ -1605,10 +1605,12 @@ function PageBrowserWidget:onTap(arg, ges)
   end
   -- If tap on a blank area, handle as prev/next page, so people
   -- not friend with swipe can still move around
-  if BD.flipIfMirroredUILayout(ges.pos.x < Screen:getWidth() / 2) then
-    self:onScrollPageUp()
-  else
+  -- Ignore the second result / backward_zone & late initialization.
+  local forward_zone = require("apps/reader/modules/readerview"):getTapZones()
+  if BD.flipIfMirroredUILayout(ges.pos:intersectWith(self.dimen:copy():resize(forward_zone))) then
     self:onScrollPageDown()
+  else
+    self:onScrollPageUp()
   end
   return true
 end

@@ -149,12 +149,7 @@ function InputContainer:registerTouchZones(zones)
       gs_range = GestureRange:new({
         ges = zone.ges,
         rate = zone.rate,
-        range = Geom:new({
-          x = screen_width * zone.screen_zone.ratio_x,
-          y = screen_height * zone.screen_zone.ratio_y,
-          w = screen_width * zone.screen_zone.ratio_w,
-          h = screen_height * zone.screen_zone.ratio_h,
-        }),
+        range = Geom:new({ x = 0, y = 0, w = screen_width, h = screen_height }):resize(zone.screen_zone),
       }),
     }
     self.touch_zone_dg:addNode(zone.id)
@@ -217,11 +212,7 @@ Updates touch zones based on new screen dimensions.
 ]]
 function InputContainer:updateTouchZonesOnScreenResize(new_screen_dimen)
   for _, tzone in ipairs(self._ordered_touch_zones) do
-    local range = tzone.gs_range.range
-    range.x = new_screen_dimen.w * tzone.def.screen_zone.ratio_x
-    range.y = new_screen_dimen.h * tzone.def.screen_zone.ratio_y
-    range.w = new_screen_dimen.w * tzone.def.screen_zone.ratio_w
-    range.h = new_screen_dimen.h * tzone.def.screen_zone.ratio_h
+    tzone.gs_range.range:resize(tzone.def.screen_zone)
   end
 end
 

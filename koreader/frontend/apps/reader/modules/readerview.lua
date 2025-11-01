@@ -1359,6 +1359,8 @@ function ReaderView:onToggleReadingOrder()
   return true
 end
 
+-- Should use only forward_zone, no point of using only part of the screen to
+-- turn pages.
 function ReaderView:getTapZones()
   local forward_zone, backward_zone
   local DTAP_ZONE_FORWARD = G_defaults:readSetting("DTAP_ZONE_FORWARD")
@@ -1426,7 +1428,9 @@ function ReaderView:getTapZones()
       }
     end
   end
-  if self.inverse_reading_order ~= BD.mirroredUILayout() then -- mirrored reading
+  -- Allow running without self.
+  -- Mirrored reading
+  if self and self.inverse_reading_order ~= BD.mirroredUILayout() then
     forward_zone.ratio_x = 1 - forward_zone.ratio_x - forward_zone.ratio_w
     backward_zone.ratio_x = 1 - backward_zone.ratio_x - backward_zone.ratio_w
   end
