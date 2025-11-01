@@ -694,26 +694,33 @@ function KOSync:_updateProgress(interactive)
     logger.dbg("KOSync: We've already pushed progress less than 25s ago!")
     return
   end
+  self.push_timestamp = now
 
+  local KOSyncClient = require("KOSyncClient")
+  local client = KOSyncClient:new({
+    custom_url = self.settings.custom_server,
+    service_spec = self.path .. "/api.json",
+  })
+  local doc_digest = self:_getDocumentDigest()
+  local progress = self:_getLastProgress()
+  local percentage = self:_getLastPercent()
+  local username = self.settings.username
+  local userkey = self.settings.userkey
+  local device_id = self.device_id
+  local filename = self.view.document.file
+
+  -- No self in this function, the execution may be delayed.
   local function exec()
-    local KOSyncClient = require("KOSyncClient")
-    local client = KOSyncClient:new({
-      custom_url = self.settings.custom_server,
-      service_spec = self.path .. "/api.json",
-    })
-    local doc_digest = self:_getDocumentDigest()
-    local progress = self:_getLastProgress()
-    local percentage = self:_getLastPercent()
     local ok, err = pcall(
       client.update_progress,
       client,
-      self.settings.username,
-      self.settings.userkey,
+      username,
+      userkey,
       doc_digest,
       progress,
       percentage,
       Device.model,
-      self.device_id,
+      device_id,
       function(ok, body)
         logger.dbg(
           "KOSync: [Push] progress to",
@@ -721,7 +728,7 @@ function KOSync:_updateProgress(interactive)
           "% =>",
           progress,
           "for",
-          self.view.document.file
+          filename
         )
         logger.dbg("KOSync: ok:", ok, "body:", body)
         if interactive then
@@ -744,8 +751,6 @@ function KOSync:_updateProgress(interactive)
         logger.dbg("err:", err)
       end
     end
-
-    self.push_timestamp = now
   end
 
   if interactive then
@@ -776,6 +781,11 @@ function KOSync:_getProgress(interactive)
   end
 
   local function exec()
+    -- Unlike pushProgress, it's unreasonable to get the progress as a pending
+    -- job after user closing the document. In the case, ignore the request.
+    if self.ui.document == nil then
+      return
+    end
     local KOSyncClient = require("KOSyncClient")
     local client = KOSyncClient:new({
       custom_url = self.settings.custom_server,
