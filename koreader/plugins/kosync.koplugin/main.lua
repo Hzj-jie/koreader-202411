@@ -97,15 +97,9 @@ end
 
 function KOSync:_getSyncPeriod()
   if not self.settings.auto_sync then
-    return _("Not available")
+    return nil
   end
-
-  local period = self.settings.pages_before_update
-  if period and period > 0 then
-    return period
-  else
-    return _("Never")
-  end
+  return self.settings.pages_before_update
 end
 
 local function getNameStrategy(type)
@@ -280,10 +274,15 @@ function KOSync:addToMainMenu(menu_items)
       },
       {
         text_func = function()
+          local period = self.settings.pages_before_update
+          if not self.settings.auto_sync or period == nil or period <= 0 then
+            -- Need localization
+            return _("Periodically sync setting")
+          end
           return T(
             -- Need localization
             _("Periodically sync every %1 pages"),
-            self:_getSyncPeriod()
+            period
           )
         end,
         enabled_func = function()
