@@ -2247,7 +2247,9 @@ function ReaderFooter:_updateFooterText() end
 -- only call this function after document is fully loaded
 function ReaderFooter:__updateFooterText()
   -- footer is invisible, we need neither a repaint nor a recompute, go away.
-  assert(self.view.footer_visible)
+  if not self.view.footer_visible then
+    return
+  end
 
   local text = self:genFooterText() or ""
   for _, v in ipairs(self.additional_footer_content) do
