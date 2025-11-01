@@ -281,7 +281,8 @@ function KOSync:addToMainMenu(menu_items)
       {
         text_func = function()
           return T(
-            _("Periodically sync every # pages (%1)"),
+            -- Need localization
+            _("Periodically sync every %1 pages"),
             self:_getSyncPeriod()
           )
         end,
