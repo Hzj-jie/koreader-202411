@@ -1359,91 +1359,42 @@ function ReaderView:onToggleReadingOrder()
   return true
 end
 
--- Note, this may return a not bd version if the self or
+-- Note, this may return a none bd version if the self or
 -- self.inverse_reading_order is not defined.
 function ReaderView:getForwardTapZone()
-  local forward_zone, _ = self:getTapZones()
-  return forward_zone
-end
-
--- Should use only forward_zone, no point of using only part of the screen to
--- turn pages.
--- Note, this may return a not bd version if the self or
--- self.inverse_reading_order is not defined.
-function ReaderView:getTapZones()
-  local forward_zone, backward_zone
-  local DTAP_ZONE_FORWARD = G_defaults:readSetting("DTAP_ZONE_FORWARD")
-  local DTAP_ZONE_BACKWARD = G_defaults:readSetting("DTAP_ZONE_BACKWARD")
-  local tap_zones_type = G_reader_settings:readSetting("page_turns_tap_zones")
-    or "default"
-  if tap_zones_type == "default" then
+  local tap_zones_type = G_reader_settings:readSetting("page_turns_tap_zones") or "left_right"
+  local tap_zone_forward_w = G_reader_settings:readSetting(
+    "page_turns_tap_zone_forward_size_ratio"
+  ) or 0.6
+  local forward_zone
+  if tap_zones_type == "left_right" then
     forward_zone = {
-      ratio_x = DTAP_ZONE_FORWARD.x,
-      ratio_y = DTAP_ZONE_FORWARD.y,
-      ratio_w = DTAP_ZONE_FORWARD.w,
-      ratio_h = DTAP_ZONE_FORWARD.h,
+      ratio_x = 1 - tap_zone_forward_w,
+      ratio_y = 0,
+      ratio_w = tap_zone_forward_w,
+      ratio_h = 1,
     }
-    backward_zone = {
-      ratio_x = DTAP_ZONE_BACKWARD.x,
-      ratio_y = DTAP_ZONE_BACKWARD.y,
-      ratio_w = DTAP_ZONE_BACKWARD.w,
-      ratio_h = DTAP_ZONE_BACKWARD.h,
+  elseif tap_zones_type == "top_bottom" then
+    forward_zone = {
+      ratio_x = 0,
+      ratio_y = 1 - tap_zone_forward_w,
+      ratio_w = 1,
+      ratio_h = tap_zone_forward_w,
     }
-  else -- user defined page turns tap zones
-    local tap_zone_forward_w = G_reader_settings:readSetting(
-      "page_turns_tap_zone_forward_size_ratio"
-    ) or DTAP_ZONE_FORWARD.w
-    local tap_zone_backward_w = G_reader_settings:readSetting(
-      "page_turns_tap_zone_backward_size_ratio"
-    ) or DTAP_ZONE_BACKWARD.w
-    if tap_zones_type == "left_right" then
-      forward_zone = {
-        ratio_x = 1 - tap_zone_forward_w,
-        ratio_y = 0,
-        ratio_w = tap_zone_forward_w,
-        ratio_h = 1,
-      }
-      backward_zone = {
-        ratio_x = 0,
-        ratio_y = 0,
-        ratio_w = tap_zone_backward_w,
-        ratio_h = 1,
-      }
-    elseif tap_zones_type == "top_bottom" then
-      forward_zone = {
-        ratio_x = 0,
-        ratio_y = 1 - tap_zone_forward_w,
-        ratio_w = 1,
-        ratio_h = tap_zone_forward_w,
-      }
-      backward_zone = {
-        ratio_x = 0,
-        ratio_y = 0,
-        ratio_w = 1,
-        ratio_h = tap_zone_backward_w,
-      }
-    else -- "bottom_top"
-      forward_zone = {
-        ratio_x = 0,
-        ratio_y = 0,
-        ratio_w = 1,
-        ratio_h = tap_zone_forward_w,
-      }
-      backward_zone = {
-        ratio_x = 0,
-        ratio_y = 1 - tap_zone_backward_w,
-        ratio_w = 1,
-        ratio_h = tap_zone_backward_w,
-      }
-    end
+  else -- "bottom_top"
+    forward_zone = {
+      ratio_x = 0,
+      ratio_y = 0,
+      ratio_w = 1,
+      ratio_h = tap_zone_forward_w,
+    }
   end
   -- Allow running without self.
   -- Mirrored reading
   if self and self.inverse_reading_order ~= BD.mirroredUILayout() then
     forward_zone.ratio_x = 1 - forward_zone.ratio_x - forward_zone.ratio_w
-    backward_zone.ratio_x = 1 - backward_zone.ratio_x - backward_zone.ratio_w
   end
-  return forward_zone, backward_zone
+  return forward_zone
 end
 
 function ReaderView:setupNoteMarkPosition()
