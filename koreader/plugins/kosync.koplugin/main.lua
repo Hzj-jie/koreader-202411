@@ -203,6 +203,7 @@ function KOSync:addToMainMenu(menu_items)
             -- @translators Server address defined by user for progress sync.
             title = _("Custom progress sync server address"),
             input = self.settings.custom_server or "https://",
+            allow_blank_input = true,
             callback = function(input)
               self:setCustomServer(input)
             end,
