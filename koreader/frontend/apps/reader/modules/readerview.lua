@@ -1362,7 +1362,8 @@ end
 -- Note, this may return a none bd version if the self or
 -- self.inverse_reading_order is not defined.
 function ReaderView:getForwardTapZone()
-  local tap_zones_type = G_reader_settings:readSetting("page_turns_tap_zones") or "left_right"
+  local tap_zones_type = G_reader_settings:readSetting("page_turns_tap_zones")
+    or "left_right"
   local tap_zone_forward_w = G_reader_settings:readSetting(
     "page_turns_tap_zone_forward_size_ratio"
   ) or 0.6
