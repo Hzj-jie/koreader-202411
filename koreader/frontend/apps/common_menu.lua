@@ -24,6 +24,7 @@ function CommonMenu:exitOrRestart(before_exit, ui, after_exit, force)
 
   before_exit()
   UIManager:nextTick(function()
+    UIManager:flushSettings()
     ui:onExit()
     if after_exit then
       after_exit()
