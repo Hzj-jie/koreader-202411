@@ -66,7 +66,7 @@ function KOSync:init()
     self:_updateProgress(false)
   end
 
-  self.settings = G_reader_settings:readSetting("kosync")
+  self.settings = G_reader_settings:readTableSetting("kosync")
     or {
       custom_server = nil,
       username = nil,
@@ -93,13 +93,6 @@ function KOSync:init()
   end
 
   self.ui.menu:registerToMainMenu(self)
-end
-
-function KOSync:_getSyncPeriod()
-  if not self.settings.auto_sync then
-    return nil
-  end
-  return self.settings.pages_before_update
 end
 
 local function getNameStrategy(type)
