@@ -113,7 +113,7 @@ local PageTurns = {
       text_func = function()
         local tap_zones_type = G_reader_settings:readSetting(
           "page_turns_tap_zones"
-        ) or "default"
+        ) or "left_right"
         return T(_("Tap zones: %1"), tap_zones[tap_zones_type]:lower())
       end,
       enabled_func = function()
