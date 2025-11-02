@@ -66,8 +66,7 @@ function KOSync:init()
     self:_updateProgress(false)
   end
 
-  self.settings = G_reader_settings:readTableSetting("kosync")
-    or {
+  self.settings = G_reader_settings:readTableSetting("kosync", {
       custom_server = nil,
       username = nil,
       userkey = nil,
@@ -77,7 +76,7 @@ function KOSync:init()
       sync_forward = SYNC_STRATEGY.PROMPT,
       sync_backward = SYNC_STRATEGY.DISABLE,
       checksum_method = CHECKSUM_METHOD.BINARY,
-    }
+  })
   self.device_id = G_reader_settings:readSetting("device_id")
 
   -- Disable auto-sync if beforeWifiAction was reset to "prompt" behind our back...

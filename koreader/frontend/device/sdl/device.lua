@@ -119,7 +119,7 @@ local Device = Generic:extend({
       external.when_back_callback = nil
     end
   end,
-  window = G_reader_settings:readSetting("sdl_window") or {},
+  window = G_reader_settings:readTableSetting("sdl_window"),
 })
 
 function Device:otaModel()

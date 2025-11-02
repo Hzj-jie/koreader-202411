@@ -64,7 +64,7 @@ function ReaderStatus:onEndOfBook()
       {
         {
           text_func = function()
-            local status = (self.ui.doc_settings:readSetting("summary") or {}).status
+            local status = self.ui.doc_settings:readTableSetting("summary").status
             return status == "complete" and _("Mark as reading")
               or _("Mark as finished")
           end,
@@ -223,7 +223,7 @@ end
 -- If mark_read is true then we change status only from reading/abandoned to complete.
 -- Otherwise we change status from reading/abandoned to complete or from complete to reading.
 function ReaderStatus:markBook(mark_read)
-  local summary = self.ui.doc_settings:readSetting("summary") or {}
+  local summary = self.ui.doc_settings:readTableSetting("summary")
   summary.status = (not mark_read and summary.status == "complete")
       and "reading"
     or "complete"

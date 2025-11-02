@@ -9,7 +9,7 @@ local function getSupportedExtensions()
 end
 
 local ExtAssoc = {
-  assoc = G_reader_settings:readSetting("file_ext_assoc") or {},
+  assoc = G_reader_settings:readTableSetting("file_ext_assoc"),
 }
 
 function ExtAssoc:commit()

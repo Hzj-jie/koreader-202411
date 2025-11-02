@@ -228,7 +228,7 @@ function ReaderFont:onReadSettings(config)
   self.ui.document:setInterlineSpacePercent(self.configurable.line_spacing)
   self.ui.document:setGammaIndex(self.configurable.font_gamma)
 
-  self.font_family_fonts = config:readSetting("font_family_fonts") or {}
+  self.font_family_fonts = config:readTableSetting("font_family_fonts")
   self:updateFontFamilyFonts()
 
   self:setupFaceMenuTable()

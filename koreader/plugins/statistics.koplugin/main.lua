@@ -192,7 +192,7 @@ end
 
 function ReaderStatistics:initData()
   self.is_doc = true
-  self.is_doc_not_finished = (self.ui.doc_settings:readSetting("summary") or {}).status
+  self.is_doc_not_finished = self.ui.doc_settings:readTableSetting("summary").status
     ~= "complete"
   self.is_doc_not_frozen = self.is_doc_not_finished
     or not self.settings.freeze_finished_books
@@ -2077,7 +2077,7 @@ function ReaderStatistics:getCurrentStat()
     }
   else
     estimated_time_left = { _("Estimated reading time left"), _("finished") }
-    local mark_date = (self.ui.doc_settings:readSetting("summary") or {}).modified
+    local mark_date = self.ui.doc_settings:readTableSetting("summary").modified
     estimated_finish_date = {
       _("Book marked as finished"),
       datetime.secondsToDate(datetime.stringToSeconds(mark_date), true),
@@ -3497,7 +3497,7 @@ function ReaderStatistics:onReadingResumed()
 end
 
 function ReaderStatistics:onReaderReady(config)
-  self.data = config:readSetting("stats") or { performance_in_pages = {} }
+  self.data = config:readTableSetting("stats", { performance_in_pages = {} })
   self.doc_md5 = config:readSetting("partial_md5_checksum")
   -- we have correct page count now, do the actual initialization work
   self:initData()

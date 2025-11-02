@@ -176,7 +176,7 @@ function ReaderPaging:setupTouchZones()
 end
 
 function ReaderPaging:onReadSettings(config)
-  self.page_positions = config:readSetting("page_positions") or {}
+  self.page_positions = config:readTableSetting("page_positions")
   self:_gotoPage(config:readSetting("last_page") or 1)
   self.flipping_zoom_mode = config:readSetting("flipping_zoom_mode") or "page"
   self.flipping_scroll_mode = config:isTrue("flipping_scroll_mode")

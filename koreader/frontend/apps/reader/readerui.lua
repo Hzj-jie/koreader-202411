@@ -597,7 +597,7 @@ function ReaderUI:init()
     self.doc_settings:saveSetting("partial_md5_checksum", md5)
   end
 
-  local summary = self.doc_settings:readSetting("summary") or {}
+  local summary = self.doc_settings:readTableSetting("summary")
   if summary.status == nil then
     summary.status = "reading"
     summary.modified = os.date("%Y-%m-%d", os.time())

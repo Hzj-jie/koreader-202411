@@ -164,8 +164,8 @@ function ReaderDictionary:init()
 
   self.disable_lookup_history =
     G_reader_settings:isTrue("disable_lookup_history")
-  self.dicts_order = G_reader_settings:readSetting("dicts_order") or {}
-  self.dicts_disabled = G_reader_settings:readSetting("dicts_disabled") or {}
+  self.dicts_order = G_reader_settings:readTableSetting("dicts_order")
+  self.dicts_disabled = G_reader_settings:readTableSetting("dicts_disabled")
   self.disable_fuzzy_search_fm =
     G_reader_settings:isTrue("disable_fuzzy_search")
 
@@ -218,7 +218,7 @@ function ReaderDictionary:updateSdcvDictNamesOptions()
     end
   end
 
-  local dicts_disabled = G_reader_settings:readSetting("dicts_disabled") or {}
+  local dicts_disabled = G_reader_settings:readTableSetting("dicts_disabled")
   for _, ifo in pairs(self:_getAvailableIfos()) do
     if
       not dicts_disabled[ifo.file] and not preferred_names_already_in[ifo.name]

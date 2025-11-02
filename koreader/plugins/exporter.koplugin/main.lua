@@ -293,7 +293,7 @@ function Exporter:addToMainMenu(menu_items)
   table.sort(formats_submenu, function(v1, v2)
     return v1.text < v2.text
   end)
-  local settings = G_reader_settings:readSetting("exporter") or {}
+  local settings = G_reader_settings:readTableSetting("exporter")
   for i, v in ipairs(ReaderHighlight.getHighlightStyles()) do
     local style = v[2]
     styles_submenu[i] = {
@@ -386,7 +386,7 @@ function Exporter:addToMainMenu(menu_items)
 end
 
 function Exporter:chooseFolder()
-  local settings = G_reader_settings:readSetting("exporter") or {}
+  local settings = G_reader_settings:readTableSetting("exporter")
   local title_header = _("Current export folder:")
   local current_path = settings.clipping_dir
   local default_path = DataStorage:getFullDataDir() .. "/clipboard"

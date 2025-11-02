@@ -1073,7 +1073,7 @@ function ReaderHighlight:genPanelZoomMenu()
       end,
       hold_callback = function()
         local ext = util.getFileNameSuffix(self.ui.document.file)
-        local curr = G_reader_settings:readSetting("panel_zoom_enabled") or {}
+        local curr = G_reader_settings:readTableSetting("panel_zoom_enabled")
         curr[ext] = not curr[ext]
         G_reader_settings:saveSetting("panel_zoom_enabled", curr)
       end,

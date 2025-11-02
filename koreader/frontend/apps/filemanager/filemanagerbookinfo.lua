@@ -495,7 +495,7 @@ function BookInfo:setCustomMetadata(file, book_props, prop_key, prop_value)
     book_props.display_title = nil
     custom_doc_settings:saveSetting("doc_props", book_props) -- save a copy of original props
   end
-  custom_props = custom_doc_settings:readSetting("custom_props") or {}
+  custom_props = custom_doc_settings:readTableSetting("custom_props")
   local prop_value_old = custom_props[prop_key] or book_props[prop_key]
   custom_props[prop_key] = prop_value -- nil when resetting a custom prop
   if next(custom_props) == nil then -- no more custom metadata
@@ -514,7 +514,7 @@ function BookInfo:setCustomMetadata(file, book_props, prop_key, prop_value)
   book_props.display_title = book_props.display_title or display_title -- restore
   -- in memory
   prop_value = prop_value
-    or custom_doc_settings:readSetting("doc_props")[prop_key] -- set custom or restore original
+    or custom_doc_settings:readTableSetting("doc_props")[prop_key] -- set custom or restore original
   book_props[prop_key] = prop_value
   if prop_key == "title" then -- generate when resetting the customized title and original is empty
     book_props.display_title = book_props.title

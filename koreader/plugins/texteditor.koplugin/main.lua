@@ -76,8 +76,8 @@ function TextEditor:loadSettings()
   end
   self.settings = LuaSettings:open(self.settings_file)
   -- NOTE: addToHistory assigns a new object
-  self.history = self.settings:readSetting("history") or {}
-  self.last_view_pos = self.settings:readSetting("last_view_pos") or {}
+  self.history = self.settings:readTableSetting("history")
+  self.last_view_pos = self.settings:readTableSetting("last_view_pos")
   self.last_path = self.settings:readSetting("last_path")
     or ffiutil.realpath(DataStorage:getDataDir())
   self.font_face = self.settings:readSetting("font_face") or self.normal_font

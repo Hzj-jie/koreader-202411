@@ -83,10 +83,10 @@ end
 
 @param key The setting's key
 ]]
-function LuaSettings:readTableSetting(key)
+function LuaSettings:readTableSetting(key, default)
   local v = self:readSetting(key)
   if v == nil then
-    v = {}
+    v = default or {}
     self:saveSetting(key, v)
   end
   return v

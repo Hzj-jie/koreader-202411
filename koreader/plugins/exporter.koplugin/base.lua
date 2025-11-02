@@ -62,7 +62,7 @@ end
 Loads settings for the exporter
 ]]
 function BaseExporter:loadSettings()
-  local plugin_settings = G_reader_settings:readSetting("exporter") or {}
+  local plugin_settings = G_reader_settings:readTableSetting("exporter")
   self.settings = plugin_settings[self.name] or {}
 end
 
@@ -70,7 +70,7 @@ end
 Saves settings for the exporter
 ]]
 function BaseExporter:saveSettings()
-  local plugin_settings = G_reader_settings:readSetting("exporter") or {}
+  local plugin_settings = G_reader_settings:readTableSetting("exporter")
   plugin_settings[self.name] = self.settings
   G_reader_settings:saveSetting("exporter", plugin_settings)
   self.new_settings = true
@@ -94,7 +94,7 @@ function BaseExporter:getFilePath(t)
   if self.is_remote then
     return
   end
-  local plugin_settings = G_reader_settings:readSetting("exporter") or {}
+  local plugin_settings = G_reader_settings:readTableSetting("exporter")
   local clipping_dir = plugin_settings.clipping_dir or self.clipping_dir
   local title
   if #t == 1 then

@@ -20,10 +20,10 @@ end
 function ReaderHandMade:onReadSettings(config)
   self.toc_enabled = config:isTrue("handmade_toc_enabled")
   self.toc_edit_enabled = config:nilOrTrue("handmade_toc_edit_enabled")
-  self.toc = config:readSetting("handmade_toc") or {}
+  self.toc = config:readTableSetting("handmade_toc")
   self.flows_enabled = config:isTrue("handmade_flows_enabled")
   self.flows_edit_enabled = config:nilOrTrue("handmade_flows_edit_enabled")
-  self.flow_points = config:readSetting("handmade_flow_points") or {}
+  self.flow_points = config:readTableSetting("handmade_flow_points")
   self.inactive_flow_points = {}
 
   -- Don't mess toc and flow_points made on that document if saved when
@@ -32,11 +32,11 @@ function ReaderHandMade:onReadSettings(config)
     local has_xpointers = self.toc[1].xpointer ~= nil
     if self.ui.rolling and not has_xpointers then
       config:saveSetting("handmade_toc_paging", self.toc)
-      self.toc = config:readSetting("handmade_toc_rolling") or {}
+      self.toc = config:readTableSetting("handmade_toc_rolling")
       config:delSetting("handmade_toc_rolling")
     elseif self.ui.paging and has_xpointers then
       config:saveSetting("handmade_toc_rolling", self.toc)
-      self.toc = config:readSetting("handmade_toc_paging") or {}
+      self.toc = config:readTableSetting("handmade_toc_paging")
       config:delSetting("handmade_toc_paging")
     end
   else
@@ -57,7 +57,7 @@ function ReaderHandMade:onReadSettings(config)
       config:delSetting("handmade_flow_points_rolling")
     elseif self.ui.paging and has_xpointers then
       config:saveSetting("handmade_flow_points_rolling", self.flow_points)
-      self.flow_points = config:readSetting("handmade_flow_points_paging") or {}
+      self.flow_points = config:readTableSetting("handmade_flow_points_paging")
       config:delSetting("handmade_flow_points_paging")
     end
   else
