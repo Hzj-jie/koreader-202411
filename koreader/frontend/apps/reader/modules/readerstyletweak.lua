@@ -503,9 +503,8 @@ local function dispatcherUnregisterStyleTweak(tweak_id)
 end
 
 function ReaderStyleTweak:init()
-  self.tweaks_in_dispatcher = G_reader_settings:readSetting(
-    "style_tweaks_in_dispatcher"
-  ) or {}
+  self.tweaks_in_dispatcher =
+    G_reader_settings:readTableSetting("style_tweaks_in_dispatcher")
   self.tweaks_by_id = {}
   self.tweaks_table = {}
 

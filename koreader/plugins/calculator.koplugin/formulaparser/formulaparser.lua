@@ -475,8 +475,7 @@ function Parser.basicOperator(str, operator, right)
       local charLeft
       opPos = opPos + 1
       while
-        opPos < str_len
-        and (str:sub(opPos, opPos) == "(" or bracketLevel ~= 0)
+        opPos < str_len and (str:sub(opPos, opPos) == "(" or bracketLevel ~= 0)
       do
         if str:sub(opPos, opPos) == "(" then
           bracketLevel = bracketLevel + 1
@@ -555,8 +554,7 @@ function Parser.ternaryOperator(str, operator)
     repeat
       opPos = opPos + 1
       while
-        opPos < str_len
-        and (str:sub(opPos, opPos) == "(" or bracketLevel ~= 0)
+        opPos < str_len and (str:sub(opPos, opPos) == "(" or bracketLevel ~= 0)
       do
         if str:sub(opPos, opPos) == "(" then
           bracketLevel = bracketLevel + 1

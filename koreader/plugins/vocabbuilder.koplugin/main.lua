@@ -58,8 +58,10 @@ local subtitle_face = Font:getFace("cfont", 12)
 local subtitle_italic_face = Font:getFace("NotoSans-Italic.ttf", 12)
 local subtitle_color = Blitbuffer.COLOR_DARK_GRAY
 local dim_color = Blitbuffer.COLOR_GRAY_3
-local settings = G_reader_settings:readSetting("vocabulary_builder")
-  or { enabled = false, with_context = true }
+local settings = G_reader_settings:readTableSetting(
+  "vocabulary_builder",
+  { enabled = false, with_context = true }
+)
 
 local function saveSettings()
   G_reader_settings:saveSetting("vocabulary_builder", settings)

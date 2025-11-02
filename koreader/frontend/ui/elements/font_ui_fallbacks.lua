@@ -136,9 +136,8 @@ local getSubMenuItems = function()
         return enabled_names[name]
       end,
       callback = function()
-        local additional_fallbacks = G_reader_settings:readSetting(
-          "font_ui_fallbacks"
-        ) or {}
+        local additional_fallbacks =
+          G_reader_settings:readTableSetting("font_ui_fallbacks")
         if checked_names[name] then -- enabled: remove it
           for i = #additional_fallbacks, 1, -1 do
             if additional_fallbacks[i] == fontinfo.path then

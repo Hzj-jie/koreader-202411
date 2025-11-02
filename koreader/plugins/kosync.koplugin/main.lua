@@ -67,15 +67,15 @@ function KOSync:init()
   end
 
   self.settings = G_reader_settings:readTableSetting("kosync", {
-      custom_server = nil,
-      username = nil,
-      userkey = nil,
-      -- Do *not* default to auto-sync, as wifi may not be on at all times, and the nagging enabling this may cause requires careful consideration.
-      auto_sync = false,
-      pages_before_update = nil,
-      sync_forward = SYNC_STRATEGY.PROMPT,
-      sync_backward = SYNC_STRATEGY.DISABLE,
-      checksum_method = CHECKSUM_METHOD.BINARY,
+    custom_server = nil,
+    username = nil,
+    userkey = nil,
+    -- Do *not* default to auto-sync, as wifi may not be on at all times, and the nagging enabling this may cause requires careful consideration.
+    auto_sync = false,
+    pages_before_update = nil,
+    sync_forward = SYNC_STRATEGY.PROMPT,
+    sync_backward = SYNC_STRATEGY.DISABLE,
+    checksum_method = CHECKSUM_METHOD.BINARY,
   })
   self.device_id = G_reader_settings:readSetting("device_id")
 

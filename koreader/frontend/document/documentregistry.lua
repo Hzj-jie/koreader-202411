@@ -75,9 +75,7 @@ function DocumentRegistry:hasProvider(file, mimetype, include_aux)
     return true
   end
   -- associated document or auxiliary provider for file type
-  local filetype_provider_key = (
-    G_reader_settings:readTableSetting("provider")
-  )[filename_suffix]
+  local filetype_provider_key = (G_reader_settings:readTableSetting("provider"))[filename_suffix]
   local provider = filetype_provider_key
     and self.known_providers[filetype_provider_key]
   if provider and (not provider.order or include_aux) then -- excluding auxiliary by default

@@ -1089,9 +1089,9 @@ function ReaderHighlight:genPanelZoomMenu()
       end,
       hold_callback = function()
         local ext = util.getFileNameSuffix(self.ui.document.file)
-        local curr = G_reader_settings:readSetting(
+        local curr = G_reader_settings:readTableSetting(
           "panel_zoom_fallback_to_text_selection"
-        ) or {}
+        )
         curr[ext] = self.panel_zoom_fallback_to_text_selection
         G_reader_settings:saveSetting(
           "panel_zoom_fallback_to_text_selection",
@@ -2872,17 +2872,16 @@ function ReaderHighlight:onReadSettings(config)
     if config:has("panel_zoom_enabled") then
       self.panel_zoom_enabled = config:isTrue("panel_zoom_enabled")
     else
-      self.panel_zoom_enabled = (G_reader_settings:readSetting(
+      self.panel_zoom_enabled = G_reader_settings:readTableSetting(
         "panel_zoom_enabled"
-      ) or {})[ext] or false
+      )[ext] or false
     end
     if config:has("panel_zoom_fallback_to_text_selection") then
       self.panel_zoom_fallback_to_text_selection =
         config:isTrue("panel_zoom_fallback_to_text_selection")
     else
-      self.panel_zoom_fallback_to_text_selection = (
-        G_reader_settings:readSetting("panel_zoom_fallback_to_text_selection")
-        or {}
+      self.panel_zoom_fallback_to_text_selection = G_reader_settings:readTableSetting(
+        "panel_zoom_fallback_to_text_selection"
       )[ext] or false
     end
   end

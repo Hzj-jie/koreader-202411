@@ -52,8 +52,7 @@ function ReaderHandMade:onReadSettings(config)
     local has_xpointers = self.flow_points[1].xpointer ~= nil
     if self.ui.rolling and not has_xpointers then
       config:saveSetting("handmade_flow_points_paging", self.flow_points)
-      self.flow_points = config:readSetting("handmade_flow_points_rolling")
-        or {}
+      self.flow_points = config:readTableSetting("handmade_flow_points_rolling")
       config:delSetting("handmade_flow_points_rolling")
     elseif self.ui.paging and has_xpointers then
       config:saveSetting("handmade_flow_points_rolling", self.flow_points)

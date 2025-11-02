@@ -1301,8 +1301,8 @@ function ReaderDictionary:extendIfoWithLanguage(dictionary_location, ifo_lang)
 end
 
 function ReaderDictionary:onReadSettings(config)
-  self.preferred_dictionaries = config:readSetting("preferred_dictionaries")
-    or {}
+  self.preferred_dictionaries =
+    config:readTableSetting("preferred_dictionaries")
   if #self.preferred_dictionaries == 0 then
     -- Legacy setting, when only one dict could be set as default/first to show
     local default_dictionary = config:readSetting("default_dictionary")
