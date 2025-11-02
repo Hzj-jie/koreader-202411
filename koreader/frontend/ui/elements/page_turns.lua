@@ -30,17 +30,13 @@ genTapZonesMenu("left_right")
 genTapZonesMenu("top_bottom")
 genTapZonesMenu("bottom_top")
 
-local default_size_b =
-  math.floor(G_defaults:readSetting("DTAP_ZONE_BACKWARD").w * 100)
-local default_size_f =
-  math.floor(G_defaults:readSetting("DTAP_ZONE_FORWARD").w * 100)
 local function getTapZonesSize()
   if
     (G_reader_settings:readSetting("page_turns_tap_zones") or "default")
       == "default"
     or G_reader_settings:hasNot("page_turns_tap_zone_forward_size_ratio")
   then
-    return default_size_b, default_size_f
+    return 35, 65
   end
   local size_f = math.floor(
     G_reader_settings:readSetting("page_turns_tap_zone_forward_size_ratio")
@@ -77,13 +73,11 @@ table.insert(page_turns_tap_zones_sub_items, {
       left_value = size_b,
       left_min = 0,
       left_max = 100,
-      left_default = default_size_b,
       left_hold_step = 5,
       right_text = _("Forward"),
       right_value = size_f,
       right_min = 0,
       right_max = 100,
-      right_default = default_size_f,
       right_hold_step = 5,
       unit = "%",
       callback = function(value_b, value_f)
