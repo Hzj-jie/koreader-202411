@@ -7,6 +7,7 @@ local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local logger = require("logger")
 local md5 = require("ffi/sha2").md5
+local util = require("util")
 local _ = require("gettext")
 local T = require("ffi/util").template
 
@@ -135,7 +136,7 @@ end
 
 -- Returns a human readable string to indicate the # of pending jobs.
 function NetworkListener:countsOfPendingJobs()
-  return string.format("%d / %d", #_pending_connected, #_pending_online)
+  return string.format("%d / %d", util.tableSize(_pending_connected), util.tableSize(_pending_online))
 end
 
 -- Also unschedule on suspend (and we happen to also kill Wi-Fi to do so, so resetting the stats is also relevant here)
