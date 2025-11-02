@@ -1202,12 +1202,15 @@ function DictQuickLookup:onTap(arg, ges_ev)
     -- processed for scrolling definition by ScrollTextWidget, which
     -- will pop it up for us here when it can't scroll anymore).
     -- This allow for continuous reading of results' definitions with tap.
-    -- Ignore the second result / backward_zone & late initialization.
-    local forward_zone = require("apps/reader/modules/readerview"):getTapZones()
+    -- Late initialization to avoid cycle dependency.
     if
       BD.flipIfMirroredUILayout(
         ges_ev.pos:intersectWith(
-          self.definition_widget.dimen:copy():resize(forward_zone)
+          self.definition_widget.dimen
+            :copy()
+            :resize(
+              require("apps/reader/modules/readerview"):getForwardTapZone()
+            )
         )
       )
     then

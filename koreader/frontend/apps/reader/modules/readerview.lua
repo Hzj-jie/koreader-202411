@@ -1359,8 +1359,17 @@ function ReaderView:onToggleReadingOrder()
   return true
 end
 
+-- Note, this may return a not bd version if the self or
+-- self.inverse_reading_order is not defined.
+function ReaderView:getForwardTapZone()
+  local forward_zone, _ = self:getTapZones()
+  return forward_zone
+end
+
 -- Should use only forward_zone, no point of using only part of the screen to
 -- turn pages.
+-- Note, this may return a not bd version if the self or
+-- self.inverse_reading_order is not defined.
 function ReaderView:getTapZones()
   local forward_zone, backward_zone
   local DTAP_ZONE_FORWARD = G_defaults:readSetting("DTAP_ZONE_FORWARD")

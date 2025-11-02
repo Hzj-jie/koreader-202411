@@ -320,11 +320,14 @@ function ScrollTextWidget:onTapScrollText(arg, ges)
     return false
   end
   -- same tests as done in TextBoxWidget:scrollUp/Down
-  -- Ignore the second result / backward_zone & late initialization.
-  local forward_zone = require("apps/reader/modules/readerview"):getTapZones()
+  -- Late initialization to avoid cycle dependency.
   if
     BD.flipIfMirroredUILayout(
-      ges.pos:intersectWith(self.dimen:copy():resize(forward_zone))
+      ges.pos:intersectWith(
+        self.dimen
+          :copy()
+          :resize(require("apps/reader/modules/readerview"):getForwardTapZone())
+      )
     )
   then
     return self:onScrollDown()

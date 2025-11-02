@@ -111,13 +111,11 @@ function ReaderPaging:setupTouchZones()
     return
   end
 
-  local forward_zone, backward_zone = self.view:getTapZones()
-
   self.ui:registerTouchZones({
     {
       id = "tap_forward",
       ges = "tap",
-      screen_zone = forward_zone,
+      screen_zone = self.view:getForwardTapZone(),
       handler = function()
         if G_reader_settings:nilOrFalse("page_turns_disable_tap") then
           return self:onGotoViewRel(1)
@@ -127,7 +125,8 @@ function ReaderPaging:setupTouchZones()
     {
       id = "tap_backward",
       ges = "tap",
-      screen_zone = backward_zone,
+      -- Anything else should be backward tap zone.
+      screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
       handler = function()
         if G_reader_settings:nilOrFalse("page_turns_disable_tap") then
           return self:onGotoViewRel(-1)
