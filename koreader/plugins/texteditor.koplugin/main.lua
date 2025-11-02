@@ -531,9 +531,6 @@ end
 function TextEditor:saveFileContent(file_path, content)
   local ok, err = util.writeToFile(content, file_path)
   if ok then
-    if self.ui.file_chooser then
-      self.ui.file_chooser:refreshPath()
-    end
     logger.info("TextEditor: saved file", file_path)
     return true
   end
@@ -638,6 +635,9 @@ function TextEditor:editFile(file_path, readonly)
         Screen:setRotationMode(self.input.rotation_mode_backup)
       end
       self:execWhenDoneFunc()
+      if self.ui.file_chooser then
+        self.ui.file_chooser:refreshPath()
+      end
     end,
     -- File saving callback
     save_callback = function(content, closing) -- Will add Save/Close buttons
