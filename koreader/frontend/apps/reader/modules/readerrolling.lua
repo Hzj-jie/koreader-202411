@@ -2157,7 +2157,7 @@ function ReaderRolling:setupRerenderingAutomation()
             -- Otherwise, no background rerendering needed, or the subprocess died: go on with the reload.
             -- We're done with background stuff and icon animations: reallow standby
             self.rendering_state = self.RENDERING_STATE.DO_RELOAD_DOCUMENT
-            self.ui:reloadDocument(nil, true) -- seamless reload (no infomsg, no flash)
+            self.ui:reloadDocument(true) -- seamless reload (no infomsg, no flash)
           end
           return
         end
