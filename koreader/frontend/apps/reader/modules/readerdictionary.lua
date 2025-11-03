@@ -1073,10 +1073,12 @@ end
 function ReaderDictionary:showLookupMsg(text)
   self.lookup_progress_msg = InfoMessage:new({
     text = text,
-    -- Show the "Searching..." InfoMessage after this delay
-    show_delay = 0.25,
+    -- Note, if the following operation is blocking, the delay will cause the
+    -- display of the info message to be cancelled. So no delay here, and force
+    -- a repaint.
   })
   UIManager:show(self.lookup_progress_msg)
+  UIManager:forceRePaint()
 end
 
 function ReaderDictionary:showDict(word, results, boxes, link)

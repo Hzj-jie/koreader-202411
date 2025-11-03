@@ -7,6 +7,7 @@ local InputDialog = require("ui/widget/inputdialog")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local LuaData = require("luadata")
 local NetworkMgr = require("ui/network/manager")
+local Notification = require("ui/widget/notification")
 local ReaderDictionary = require("apps/reader/modules/readerdictionary")
 local Trapper = require("ui/trapper")
 local Translator = require("ui/translator")
@@ -445,7 +446,7 @@ function ReaderWikipedia:lookupWikipedia(
   get_fullpage,
   forced_lang
 )
-  NetworkMgr:runWhenOnline(function()
+  if NetworkMgr:runWhenOnline(function()
     -- word is the text to query. If get_fullpage is true, it is the
     -- exact wikipedia page title we want the full page of.
     self:initLanguages(word)
@@ -587,7 +588,16 @@ function ReaderWikipedia:lookupWikipedia(
       logger.dbg("dummy result table:", word, results)
     end
     self:showDict(word, results, box)
-  end)
+  end) then
+    return
+  end
+
+  Notification:notify(
+    -- Need localization
+    _("Wikipedia search will be performed after being online."),
+    Notification.SOURCE_ALWAYS_SHOW,
+    true
+  )
 end
 
 function ReaderWikipedia:getWikiLanguages(first_lang)

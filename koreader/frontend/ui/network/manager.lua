@@ -628,30 +628,33 @@ function NetworkMgr:setHTTPProxy(proxy)
   end
 end
 
--- Helper functions to hide the quirks of using beforeWifiAction properly ;).
--- runWhen... triggers wifi connection and queues the callback.
--- willRerunWhen... queues the callback without triggering the wifi connection.
-
 -- Run callback *now* if you're currently online (ie., isOnline),
 -- or attempt to go online and run it *ASAP* without any more user interaction.
+-- Returns true if the callback has been "run".
 function NetworkMgr:runWhenOnline(callback)
   if self:willRerunWhenOnline(callback) then
     self:_beforeWifiAction()
+    return false
   end
+  return true
 end
 
 -- This one is for callbacks that only require isConnected, and since that's
 -- guaranteed by beforeWifiAction, you also have a guarantee that the callback
 -- *will* run.
+-- Returns true if the callback has been "run"
 function NetworkMgr:runWhenConnected(callback)
   if self:willRerunWhenConnected(callback) then
     self:_beforeWifiAction()
+    return false
   end
+  return true
 end
 
 -- Mild variants that are used for recursive calls at the beginning of a complex function call.
 -- Returns true when not yet online, in which case you should *abort* (i.e., return) the initial call,
 -- and otherwise, go-on as planned.
+-- Returns true if the callback "will be rerun", i.e. has been backlogged.
 function NetworkMgr:willRerunWhenOnline(callback)
   assert(callback ~= nil)
   if self:isOnline() then
@@ -665,6 +668,7 @@ end
 -- This one is for callbacks that only require isConnected, and since that's
 -- guaranteed by beforeWifiAction, you also have a guarantee that the callback
 -- *will* run.
+-- Returns true if the callback "will be rerun", i.e. has been backlogged.
 function NetworkMgr:willRerunWhenConnected(callback)
   assert(callback ~= nil)
   if self:_isWifiConnected() then
