@@ -28,10 +28,7 @@ local KOSync = WidgetContainer:extend({
   push_timestamp = nil,
   pull_timestamp = nil,
   page_update_counter = nil,
-  last_page = nil,
   last_page_turn_timestamp = nil,
-  periodic_push_task = nil,
-  periodic_push_scheduled = nil,
 
   settings = nil,
 })
@@ -54,17 +51,7 @@ function KOSync:init()
   self.push_timestamp = 0
   self.pull_timestamp = 0
   self.page_update_counter = 0
-  self.last_page = -1
   self.last_page_turn_timestamp = 0
-  self.periodic_push_scheduled = false
-
-  -- Like AutoSuspend, we need an instance-specific task for scheduling/resource management reasons.
-  self.periodic_push_task = function()
-    self.periodic_push_scheduled = false
-    self.page_update_counter = 0
-    -- We do *NOT* want to make sure networking is up here, as the nagging would be extremely annoying; we're leaving that to the network activity check...
-    self:_updateProgress(false)
-  end
 
   self.settings = G_reader_settings:readTableSetting("kosync", {
     custom_server = nil,
@@ -190,8 +177,6 @@ function KOSync:onReaderReady()
     end)
   end
   self:onDispatcherRegisterActions()
-
-  self.last_page = self.ui:getCurrentPage()
 end
 
 function KOSync:addToMainMenu(menu_items)
@@ -520,12 +505,11 @@ function KOSync:_login(menu)
                 }))
               else
                 UIManager:close(dialog)
-                UIManager:scheduleIn(0.5, function()
+                UIManager:runWith(function()
                   self:_doLogin(username, password, menu)
-                end)
-                UIManager:show(InfoMessage:new({
+                end,
+                InfoMessage:new({
                   text = _("Logging in. Please wait…"),
-                  timeout = 1,
                 }))
               end
             end,
@@ -701,6 +685,7 @@ function KOSync:_updateProgress(interactive)
     return
   end
   self.push_timestamp = now
+  self.page_update_counter = 0
 
   local client = self:_createClient()
   local doc_digest = self:_getDocumentDigest()
@@ -937,13 +922,6 @@ function KOSync:onCloseDocument()
   self:_updateProgress(false)
 end
 
-function KOSync:schedulePeriodicPush()
-  UIManager:unschedule(self.periodic_push_task)
-  -- Use a sizable delay to make debouncing this on skim feasible...
-  UIManager:scheduleIn(10, self.periodic_push_task)
-  self.periodic_push_scheduled = true
-end
-
 function KOSync:onPageUpdate(page)
   if not self.settings.auto_sync then
     return
@@ -951,19 +929,18 @@ function KOSync:onPageUpdate(page)
   if page == nil then
     return
   end
+  self.last_page_turn_timestamp = os.time()
+  self.page_update_counter = self.page_update_counter + 1
+end
 
-  if self.last_page ~= page then
-    self.last_page = page
-    self.last_page_turn_timestamp = os.time()
-    self.page_update_counter = self.page_update_counter + 1
-    -- If we've already scheduled a push, regardless of the counter's state, delay it until we're *actually* idle
-    if
-      self.periodic_push_scheduled
-      or self.settings.pages_before_update
-        and self.page_update_counter >= self.settings.pages_before_update
-    then
-      self:schedulePeriodicPush()
-    end
+function KOSync:onTimesChange_1M()
+  if not self.settings.auto_sync then
+    return
+  end
+  if self.page_update_counter >= self.settings.pages_before_update then
+    UIManager:nextTick(function()
+      self:_updateProgress(false)
+    end)
   end
 end
 
@@ -1012,11 +989,6 @@ end
 
 function KOSync:onKOSyncPullProgress()
   self:_getProgress(true)
-end
-
-function KOSync:onClose()
-  UIManager:unschedule(self.periodic_push_task)
-  self.periodic_push_task = nil
 end
 
 return KOSync
