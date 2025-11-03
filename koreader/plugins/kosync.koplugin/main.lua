@@ -160,6 +160,13 @@ local function validateUser(user, pass)
   end
 end
 
+function KOSync:_createClient()
+  return require("KOSyncClient"):new({
+    custom_url = self.settings.custom_server,
+    service_spec = self.path .. "/api.json",
+  })
+end
+
 function KOSync:onDispatcherRegisterActions()
   Dispatcher:registerAction("kosync_push_progress", {
     category = "none",
@@ -202,7 +209,7 @@ function KOSync:addToMainMenu(menu_items)
           return {
             -- @translators Server address defined by user for progress sync.
             title = _("Custom progress sync server address"),
-            input = self.settings.custom_server or "https://",
+            input = self.settings.custom_server or self.last_custom_server_attempt or "https://",
             allow_blank_input = true,
             callback = function(input)
               self:setCustomServer(input)
@@ -446,7 +453,20 @@ end
 
 function KOSync:setCustomServer(server)
   logger.dbg("KOSync: Setting custom server to:", server)
+  local prev_server = self.settings.custom_server
   self.settings.custom_server = server ~= "" and server or nil
+  local ok, err = pcall(KOSync._createClient, self)
+  if ok then
+    return
+  end
+  self.settings.custom_server = prev_server
+  -- Keep a reference to retry.
+  self.last_custom_server_attempt = server
+  UIManager:show(InfoMessage:new({
+    -- Need localization
+    text = T(_("The new server address %1 is invalid, revert back to %2.\nError: %3"), server, prev_server or "default server", err),
+    timeout = 3,
+  }))
 end
 
 function KOSync:setSyncForward(strategy)
@@ -539,11 +559,7 @@ function KOSync:_login(menu)
 end
 
 function KOSync:_doRegister(username, password, menu)
-  local KOSyncClient = require("KOSyncClient")
-  local client = KOSyncClient:new({
-    custom_url = self.settings.custom_server,
-    service_spec = self.path .. "/api.json",
-  })
+  local client = self:_createClient()
   -- on Android to avoid ANR (no-op on other platforms)
   Device:setIgnoreInput(true)
   local userkey = md5(password)
@@ -576,11 +592,7 @@ function KOSync:_doRegister(username, password, menu)
 end
 
 function KOSync:_doLogin(username, password, menu)
-  local KOSyncClient = require("KOSyncClient")
-  local client = KOSyncClient:new({
-    custom_url = self.settings.custom_server,
-    service_spec = self.path .. "/api.json",
-  })
+  local client = self:_createClient()
   Device:setIgnoreInput(true)
   local userkey = md5(password)
   local ok, status, body = pcall(client.authorize, client, username, userkey)
@@ -688,11 +700,7 @@ function KOSync:_updateProgress(interactive)
   end
   self.push_timestamp = now
 
-  local KOSyncClient = require("KOSyncClient")
-  local client = KOSyncClient:new({
-    custom_url = self.settings.custom_server,
-    service_spec = self.path .. "/api.json",
-  })
+  local client = self:_createClient()
   local doc_digest = self:_getDocumentDigest()
   local progress = self:_getLastProgress()
   local percentage = self:_getLastPercent()
@@ -778,11 +786,7 @@ function KOSync:_getProgress(interactive)
     if self.ui.document == nil then
       return
     end
-    local KOSyncClient = require("KOSyncClient")
-    local client = KOSyncClient:new({
-      custom_url = self.settings.custom_server,
-      service_spec = self.path .. "/api.json",
-    })
+    local client = self:_createClient()
     local doc_digest = self:_getDocumentDigest()
     local ok, err = pcall(
       client.get_progress,
