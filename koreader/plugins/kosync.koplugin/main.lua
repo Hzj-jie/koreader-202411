@@ -189,10 +189,6 @@ function KOSync:onReaderReady()
       self:_getProgress(false)
     end)
   end
-  -- NOTE: Keep in mind that, on Android, turning on WiFi requires a focus switch, which will trip a Suspend/Resume pair.
-  --     NetworkMgr will attempt to hide the damage to avoid a useless pull -> push -> pull dance instead of the single pull requested.
-  --     Plus, if wifi_enable_action is set to prompt, that also avoids stacking three prompts on top of each other...
-  self:registerEvents()
   self:onDispatcherRegisterActions()
 
   self.last_page = self.ui:getCurrentPage()
@@ -262,7 +258,6 @@ function KOSync:addToMainMenu(menu_items)
           end
 
           self.settings.auto_sync = not self.settings.auto_sync
-          self:registerEvents()
           if self.settings.auto_sync then
             -- Since we will update the progress when closing the document,
             -- pull the current progress now so as not to silently overwrite it.
@@ -761,7 +756,13 @@ function KOSync:_updateProgress(interactive)
   end
 
   if interactive then
-    NetworkMgr:runWhenOnline(exec)
+    UIManager:runWith(function()
+      NetworkMgr:runWhenOnline(exec)
+    end,
+    InfoMessage:new({
+      -- Need localization
+      text = _("Pushing progress…"),
+    }))
   else
     NetworkMgr:willRerunWhenOnline(exec)
   end
@@ -915,18 +916,22 @@ function KOSync:_getProgress(interactive)
   end
 
   if interactive then
-    NetworkMgr:runWhenOnline(exec)
+    UIManager:runWith(function()
+      NetworkMgr:runWhenOnline(exec)
+    end,
+    InfoMessage:new({
+      -- Need localization
+      text = _("Pulling progress…"),
+    }))
   else
     NetworkMgr:willRerunWhenOnline(exec)
   end
 end
 
-function KOSync:_onCloseDocument()
-  logger.dbg("KOSync: onCloseDocument")
-  -- NOTE: Because everything is terrible, on Android, opening the system settings to enable WiFi means we lose focus,
-  --     and we handle those system focus events via... Suspend & Resume events, so we need to neuter those handlers early.
-  self.onResume = nil
-  self.onSuspend = nil
+function KOSync:onCloseDocument()
+  if not self.settings.auto_sync then
+    return
+  end
   -- Force triggering a push.
   self.push_timestamp = 0
   self:_updateProgress(false)
@@ -939,7 +944,10 @@ function KOSync:schedulePeriodicPush()
   self.periodic_push_scheduled = true
 end
 
-function KOSync:_onPageUpdate(page)
+function KOSync:onPageUpdate(page)
+  if not self.settings.auto_sync then
+    return
+  end
   if page == nil then
     return
   end
@@ -959,8 +967,10 @@ function KOSync:_onPageUpdate(page)
   end
 end
 
-function KOSync:_onResume()
-  logger.dbg("KOSync: onResume")
+function KOSync:onResume()
+  if not self.settings.auto_sync then
+    return
+  end
   -- If we have auto_restore_wifi enabled, skip this to prevent both the "Connecting..." UI to pop-up,
   -- *and* a duplicate NetworkConnected event from firing...
   if NetworkMgr:shouldRestoreWifi() then
@@ -974,19 +984,25 @@ function KOSync:_onResume()
   end)
 end
 
-function KOSync:_onSuspend()
-  logger.dbg("KOSync: onSuspend")
+function KOSync:onSuspend()
+  if not self.settings.auto_sync then
+    return
+  end
   -- We request an extra flashing refresh on success, to deal with potential ghosting left by the NetworkMgr UI
   self:_updateProgress(false)
 end
 
-function KOSync:_onNetworkOnline()
-  logger.dbg("KOSync: onNetworkOnline")
+function KOSync:onNetworkOnline()
+  if not self.settings.auto_sync then
+    return
+  end
   self:_getProgress(false)
 end
 
-function KOSync:_onNetworkDisconnecting()
-  logger.dbg("KOSync: onNetworkDisconnecting")
+function KOSync:onNetworkDisconnecting()
+  if not self.settings.auto_sync then
+    return
+  end
   self:_updateProgress(false)
 end
 
@@ -996,24 +1012,6 @@ end
 
 function KOSync:onKOSyncPullProgress()
   self:_getProgress(true)
-end
-
-function KOSync:registerEvents()
-  if self.settings.auto_sync then
-    self.onCloseDocument = self._onCloseDocument
-    self.onPageUpdate = self._onPageUpdate
-    self.onResume = self._onResume
-    self.onSuspend = self._onSuspend
-    self.onNetworkOnline = self._onNetworkOnline
-    self.onNetworkDisconnecting = self._onNetworkDisconnecting
-  else
-    self.onCloseDocument = nil
-    self.onPageUpdate = nil
-    self.onResume = nil
-    self.onSuspend = nil
-    self.onNetworkOnline = nil
-    self.onNetworkDisconnecting = nil
-  end
 end
 
 function KOSync:onClose()
