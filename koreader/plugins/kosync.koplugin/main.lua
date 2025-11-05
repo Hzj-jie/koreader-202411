@@ -59,11 +59,13 @@ function KOSync:init()
     userkey = nil,
     -- Do *not* default to auto-sync, as wifi may not be on at all times, and the nagging enabling this may cause requires careful consideration.
     auto_sync = false,
-    pages_before_update = nil,
+    pages_before_update = 0,
     sync_forward = SYNC_STRATEGY.PROMPT,
     sync_backward = SYNC_STRATEGY.DISABLE,
     checksum_method = CHECKSUM_METHOD.BINARY,
   })
+  -- Legacy settings may have nil value for this field.
+  self.settings.pages_before_update = self.settings.pages_before_update or 0
   self.device_id = G_reader_settings:readSetting("device_id")
 
   -- Disable auto-sync if beforeWifiAction was reset to "prompt" behind our back...
@@ -256,8 +258,9 @@ function KOSync:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          local period = (self.settings.pages_before_update or 0)
-          if not self.settings.auto_sync or period <= 0 then
+          local period = self.settings.pages_before_update
+          assert(period >= 0)
+          if not self.settings.auto_sync or period == 0 then
             -- Need localization
             return _("Periodically sync setting")
           end
@@ -283,7 +286,7 @@ function KOSync:addToMainMenu(menu_items)
               [[This value determines how many page turns it takes to update book progress.
 If set to 0, updating progress based on page turns will be disabled.]]
             ),
-            value = self.settings.pages_before_update or 0,
+            value = self.settings.pages_before_update,
             value_min = 0,
             value_max = 999,
             value_step = 1,
@@ -292,9 +295,8 @@ If set to 0, updating progress based on page turns will be disabled.]]
             title_text = _("Number of pages before update"),
             default_value = 0,
             callback = function(spin)
-              self.settings.pages_before_update = (
-                spin.value > 0 and pages_before_update or nil
-              )
+              assert(spin.value >= 0)
+              self.settings.pages_before_update = spin.value
               if touchmenu_instance then
                 touchmenu_instance:updateItems()
               end
@@ -943,7 +945,7 @@ function KOSync:onTimesChange_1M()
   if not self.settings.auto_sync then
     return
   end
-  if (self.settings.pages_before_update or 0) == 0 then
+  if self.settings.pages_before_update == 0 then
     return
   end
   if self.page_update_counter >= self.settings.pages_before_update then
