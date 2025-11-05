@@ -1897,7 +1897,6 @@ function UIManager:runWith(func, widget)
   self:forceRePaint()
   func()
   self:close(widget)
-  self:forceRePaint()
 end
 
 UIManager:init()
