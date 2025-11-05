@@ -190,7 +190,7 @@ end
 
 function NetworkMgr:init()
   Device:initNetworkManager(self)
-  self:onResume()
+  self.last_online_check_time = 0
 
   -- Trigger an initial NetworkConnected event if WiFi was already up when we
   -- were launched
