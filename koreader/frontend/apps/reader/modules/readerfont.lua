@@ -466,15 +466,13 @@ end
 function ReaderFont:onIncreaseFontSize(ges)
   UIManager:runWith(function()
     self:onChangeSize(self:gesToFontSize(ges))
-  end,
-  Notification:new({text = _("Increasing font size…")}))
+  end, Notification:new({ text = _("Increasing font size…") }))
 end
 
 function ReaderFont:onDecreaseFontSize(ges)
   UIManager:runWith(function()
     self:onChangeSize(-self:gesToFontSize(ges))
-  end,
-  Notification:new({text = _("Decreasing font size…")}))
+  end, Notification:new({ text = _("Decreasing font size…") }))
   return true
 end
 
@@ -702,7 +700,7 @@ Enabling this will ignore such font names and make sure your preferred family fo
             else
               self.font_family_fonts[family_tag] = v
               Notification:notify({
-                text = _("Font family font set for this book only.")
+                text = _("Font family font set for this book only."),
               })
               -- Be sure it is shown before the re-rendering (which may take some time)
               UIManager:forceRePaint()

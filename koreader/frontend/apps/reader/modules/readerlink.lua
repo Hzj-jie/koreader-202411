@@ -859,9 +859,7 @@ end
 
 function ReaderLink:onAddCurrentLocationToStackNonTouch()
   self:addCurrentLocationToStack()
-  Notification:notify(
-    _("Current location added to history.")
-  )
+  Notification:notify(_("Current location added to history."))
   return true
 end
 
@@ -1111,7 +1109,7 @@ function ReaderLink:onSwipe(arg, ges)
         -- Make that gesture don't do anything, and show a Notification
         -- so the user knows why
         Notification:notify({
-          text = _("Location history is empty.")
+          text = _("Location history is empty."),
         })
         return true
       end
