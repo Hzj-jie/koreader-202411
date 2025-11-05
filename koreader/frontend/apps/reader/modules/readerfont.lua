@@ -464,18 +464,17 @@ function ReaderFont:gesToFontSize(ges)
 end
 
 function ReaderFont:onIncreaseFontSize(ges)
-  local delta_int = self:gesToFontSize(ges)
-  Notification:notify(_("Increasing font size…"))
-  UIManager:forceRePaint()
-  self:onChangeSize(delta_int)
-  return true
+  UIManager:runWith(function()
+    self:onChangeSize(self:gesToFontSize(ges))
+  end,
+  Notification:new({text = _("Increasing font size…")}))
 end
 
 function ReaderFont:onDecreaseFontSize(ges)
-  local delta_int = self:gesToFontSize(ges)
-  Notification:notify(_("Decreasing font size…"))
-  UIManager:forceRePaint()
-  self:onChangeSize(-delta_int)
+  UIManager:runWith(function()
+    self:onChangeSize(-self:gesToFontSize(ges))
+  end,
+  Notification:new({text = _("Decreasing font size…")}))
   return true
 end
 
