@@ -238,6 +238,11 @@ function SystemStat:appendCounters()
       datetime.secondsToDateTime(time.to_s(self.discharge_time), nil, true),
     })
   end
+  self:put({
+    -- Need localization
+    "  " .. _("Device model"),
+    Device.model
+  })
   self:putSeparator()
   self:put({ _("Counters"), "" })
   -- @translators The number of "sleeps", that is the number of times the device has entered standby. This could also be translated as a rendition of a phrase like "entered sleep".
