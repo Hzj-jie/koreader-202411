@@ -256,8 +256,8 @@ function KOSync:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          local period = self.settings.pages_before_update
-          if not self.settings.auto_sync or period == nil or period <= 0 then
+          local period = (self.settings.pages_before_update or 0)
+          if not self.settings.auto_sync or period <= 0 then
             -- Need localization
             return _("Periodically sync setting")
           end
@@ -935,6 +935,9 @@ end
 
 function KOSync:onTimesChange_1M()
   if not self.settings.auto_sync then
+    return
+  end
+  if (self.settings.pages_before_update or 0) == 0 then
     return
   end
   if self.page_update_counter >= self.settings.pages_before_update then
