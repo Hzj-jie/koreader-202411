@@ -88,7 +88,6 @@ function OptionTextItem:onTapSelect()
   end
   self.underline_container.color = Blitbuffer.COLOR_BLACK
 
-  Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_ICON)
   self.config:onConfigChoose(
     self.values,
     self.name,
@@ -102,9 +101,6 @@ function OptionTextItem:onTapSelect()
     return "fast", self[1].dimen
   end)
 
-  UIManager:tickAfterNext(function()
-    Notification:resetNotifySource()
-  end)
   return true
 end
 
@@ -172,7 +168,6 @@ function OptionIconItem:onTapSelect()
   --self[1][1].invert = true
   self.underline_container.color = Blitbuffer.COLOR_BLACK
 
-  Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_ICON)
   self.config:onConfigChoose(
     self.values,
     self.name,
@@ -186,9 +181,6 @@ function OptionIconItem:onTapSelect()
     return "fast", self[1].dimen
   end)
 
-  UIManager:tickAfterNext(function()
-    Notification:resetNotifySource()
-  end)
   return true
 end
 
@@ -674,7 +666,6 @@ function ConfigOption:init()
                 self.options[c].more_options_param.show_true_value_func =
                   self.options[c].show_true_value_func
               end
-              Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_MORE)
               local default_value_original
               if
                 self.options[c].more_options_param
@@ -700,9 +691,6 @@ function ConfigOption:init()
                 name_text,
                 self.options[c].more_options_param
               )
-              UIManager:tickAfterNext(function()
-                Notification:resetNotifySource()
-              end)
             end
           end,
         })
@@ -730,7 +718,6 @@ function ConfigOption:init()
           position = self.options[c].default_pos,
           callback = function(arg)
             if arg == "-" or arg == "+" then
-              Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_FINE)
               self.config:onConfigFineTuneChoose(
                 self.options[c].values,
                 self.options[c].name,
@@ -741,7 +728,6 @@ function ConfigOption:init()
                 self.options[c].fine_tune_param
               )
             elseif arg == "⋮" then
-              Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_MORE)
               local default_value_original
               if
                 self.options[c].more_options_param
@@ -768,9 +754,6 @@ function ConfigOption:init()
                 self.options[c].more_options_param
               )
             else
-              Notification:setNotifySource(
-                Notification.SOURCE_BOTTOM_MENU_PROGRESS
-              )
               self.config:onConfigChoose(
                 self.options[c].values,
                 self.options[c].name,
@@ -783,9 +766,6 @@ function ConfigOption:init()
 
             UIManager:setDirty(self.config, function()
               return "fast", switch.dimen
-            end)
-            UIManager:tickAfterNext(function()
-              Notification:resetNotifySource()
             end)
           end,
           hold_callback = function(arg)
@@ -1435,11 +1415,7 @@ function ConfigDialog:onConfigMoreChoose(
               -- it actually do it when provided a callback as argument
               local dummy_callback = when_applied_callback and function() end
               args = args or {}
-              Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_MORE)
               self:onConfigEvent(event, value_tables, dummy_callback)
-              UIManager:tickAfterNext(function()
-                Notification:resetNotifySource()
-              end)
               self:update()
             end
           end,
@@ -1541,11 +1517,7 @@ function ConfigDialog:onConfigMoreChoose(
               -- it actually do it when provided a callback as argument
               local dummy_callback = when_applied_callback and function() end
               args = args or {}
-              Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_MORE)
               self:onConfigEvent(event, spin_value, dummy_callback)
-              UIManager:tickAfterNext(function()
-                Notification:resetNotifySource()
-              end)
               self:update()
             end
           end,

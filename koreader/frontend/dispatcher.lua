@@ -2065,7 +2065,6 @@ function Dispatcher:execute(settings, exec_props)
       v = settings[k]
     end
     if Dispatcher:isActionEnabled(settingsList[k]) then
-      Notification:setNotifySource(Notification.SOURCE_DISPATCHER)
       if settings.settings and settings.settings.notify then
         Notification:notify(
           T(_("Executing profile: %1"), settings.settings.name)
@@ -2106,7 +2105,6 @@ function Dispatcher:execute(settings, exec_props)
         UIManager:userInput(Event:new(event, arg))
       end
     end
-    Notification:resetNotifySource()
   end
   if has_many then
     UIManager:broadcastEvent(Event:new("BatchedUpdateDone"))

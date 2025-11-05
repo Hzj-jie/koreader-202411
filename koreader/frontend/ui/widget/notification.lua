@@ -113,18 +113,6 @@ function Notification:init()
   })
 end
 
-function Notification:setNotifySource(source)
-  self.notify_source = source
-end
-
-function Notification:resetNotifySource()
-  self.notify_source = SOURCE_OTHER
-end
-
-function Notification:getNotifySource()
-  return self.notify_source
-end
-
 -- Display a notification popup
 function Notification:notify(arg, source, refresh_after)
   UIManager:show(Notification:new({
