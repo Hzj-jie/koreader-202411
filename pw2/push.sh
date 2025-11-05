@@ -20,7 +20,7 @@ if [ -z "$(git status --porcelain)" ]; then
   popd
 
   rsync -acvLK --no-o --no-g ../kindle/extensions/ root@$TARGET:/mnt/us/extensions/
-  rsync -acvLK --no-o --no-g --exclude=lns.sh --exclude=push.sh --exclude=push-all.sh . root@$TARGET:/mnt/us/koreader/
+  rsync -acvLK --no-o --no-g --exclude=lns.sh --exclude=push*.sh . root@$TARGET:/mnt/us/koreader/
 
   git checkout ../koreader/git-rev
 else
