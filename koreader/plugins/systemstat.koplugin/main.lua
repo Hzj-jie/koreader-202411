@@ -258,7 +258,7 @@ function SystemStat:appendCounters()
   })
   -- no localization.
   self:put({
-    "  " .. _("Pending network activities"),
+    "  " .. _("Pending network jobs"),
     require("ui/network/networklistener"):countsOfPendingJobs(),
   })
 end
