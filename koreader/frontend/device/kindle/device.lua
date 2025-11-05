@@ -1012,7 +1012,6 @@ local KindleVoyage = Kindle:extend({
   model = "KindleVoyage",
   isTouchDevice = yes,
   hasFrontlight = yes,
-  canTurnFrontlightOff = no,
   hasLightSensor = yes,
   hasKeys = yes,
   display_dpi = 300,
