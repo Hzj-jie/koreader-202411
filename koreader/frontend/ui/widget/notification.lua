@@ -31,24 +31,6 @@ local Notification = InputContainer:extend({
 
   _shown_list = {}, -- actual static class member, array of stacked notifications (value is show (well, init) time or false).
   _shown_idx = nil, -- index of this instance in the class's _shown_list array (assumes each Notification object is only shown (well, init) once).
-
-  -- TODO(#252): Remove
-  SOURCE_BOTTOM_MENU_ICON = 0,
-  SOURCE_BOTTOM_MENU_TOGGLE = 0,
-  SOURCE_BOTTOM_MENU_FINE = 0,
-  SOURCE_BOTTOM_MENU_MORE = 0,
-  SOURCE_BOTTOM_MENU_PROGRESS = 0,
-  SOURCE_DISPATCHER = 0,
-  SOURCE_OTHER = 0,
-  SOURCE_ALWAYS_SHOW = 0,
-
-  SOURCE_BOTTOM_MENU = 0,
-
-  SOURCE_NONE = 0,
-  SOURCE_SOME = 0,
-  SOURCE_MORE = 0,
-  SOURCE_DEFAULT = 0,
-  SOURCE_ALL = 0,
 })
 
 function Notification:init()
@@ -114,13 +96,10 @@ function Notification:init()
 end
 
 -- Display a notification popup
-function Notification:notify(arg, source, refresh_after)
+function Notification:notify(arg)
   UIManager:show(Notification:new({
     text = arg,
   }))
-  if refresh_after then
-    UIManager:forceRePaint()
-  end
 end
 
 function Notification:_cleanShownStack()

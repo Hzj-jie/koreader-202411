@@ -150,8 +150,7 @@ common_info.report_bug = {
                 G_reader_settings:makeFalse("debug_verbose")
                 G_reader_settings:makeFalse("debug")
                 Notification:notify(
-                  _("Verbose logging disabled"),
-                  Notification.SOURCE_ALWAYS_SHOW
+                  _("Verbose logging disabled")
                 )
               else
                 dbg:turnOn()
@@ -159,8 +158,7 @@ common_info.report_bug = {
                 G_reader_settings:makeTrue("debug")
                 G_reader_settings:makeTrue("debug_verbose")
                 Notification:notify(
-                  _("Verbose logging enabled"),
-                  Notification.SOURCE_ALWAYS_SHOW
+                  _("Verbose logging enabled")
                 )
               end
               touchmenu_instance:updateItems()

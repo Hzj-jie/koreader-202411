@@ -860,8 +860,7 @@ end
 function ReaderLink:onAddCurrentLocationToStackNonTouch()
   self:addCurrentLocationToStack()
   Notification:notify(
-    _("Current location added to history."),
-    Notification.SOURCE_ALWAYS_SHOW
+    _("Current location added to history.")
   )
   return true
 end
@@ -881,9 +880,9 @@ function ReaderLink:onClearLocationStack(show_notification)
   self.location_stack = {}
   self:onClearForwardLocationStack()
   if show_notification then
-    UIManager:show(Notification:new({
+    Notification:notify({
       text = _("Location history cleared."),
-    }))
+    })
   end
   return true
 end
@@ -1070,9 +1069,9 @@ function ReaderLink:onGoBackLink(show_notification_if_empty)
     UIManager:broadcastEvent(Event:new("RestoreBookLocation", saved_location))
     return true
   elseif show_notification_if_empty then
-    UIManager:show(Notification:new({
+    Notification:notify({
       text = _("Location history is empty."),
-    }))
+    })
   end
 end
 
@@ -1111,9 +1110,9 @@ function ReaderLink:onSwipe(arg, ges)
         self.swipe_back_resist = false
         -- Make that gesture don't do anything, and show a Notification
         -- so the user knows why
-        UIManager:show(Notification:new({
-          text = _("Location history is empty."),
-        }))
+        Notification:notify({
+          text = _("Location history is empty.")
+        })
         return true
       end
     end

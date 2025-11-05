@@ -599,9 +599,7 @@ function ReaderWikipedia:lookupWikipedia(
 
   Notification:notify(
     -- Need localization
-    _("Wikipedia search will be performed after being online."),
-    Notification.SOURCE_ALWAYS_SHOW,
-    true
+    _("Wikipedia search will be performed after being online.")
   )
 end
 

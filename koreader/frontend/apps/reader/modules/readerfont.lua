@@ -465,14 +465,16 @@ end
 
 function ReaderFont:onIncreaseFontSize(ges)
   local delta_int = self:gesToFontSize(ges)
-  Notification:notify(_("Increasing font size…"), nil, true)
+  Notification:notify(_("Increasing font size…"))
+  UIManager:forceRePaint()
   self:onChangeSize(delta_int)
   return true
 end
 
 function ReaderFont:onDecreaseFontSize(ges)
   local delta_int = self:gesToFontSize(ges)
-  Notification:notify(_("Decreasing font size…"), nil, true)
+  Notification:notify(_("Decreasing font size…"))
+  UIManager:forceRePaint()
   self:onChangeSize(-delta_int)
   return true
 end
@@ -700,11 +702,9 @@ Enabling this will ignore such font names and make sure your preferred family fo
               self.font_family_fonts[family_tag] = nil
             else
               self.font_family_fonts[family_tag] = v
-              -- We don't use :notify() as we don't want this notification to be masked,
-              -- to let the user know it's not global (so he has to use long-press)
-              UIManager:show(Notification:new({
-                text = _("Font family font set for this book only."),
-              }))
+              Notification:notify({
+                text = _("Font family font set for this book only.")
+              })
               -- Be sure it is shown before the re-rendering (which may take some time)
               UIManager:forceRePaint()
             end
