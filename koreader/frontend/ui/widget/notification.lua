@@ -20,36 +20,6 @@ local _ = require("gettext")
 local Screen = Device.screen
 local Input = Device.input
 
-local band = bit.band
-
--- The following constants are positions in a bitfield
-local SOURCE_BOTTOM_MENU_ICON = 0x0001 -- icons in bottom menu
-local SOURCE_BOTTOM_MENU_TOGGLE = 0x0002 -- toggles in bottom menu
-local SOURCE_BOTTOM_MENU_FINE = 0x0004 -- toggles with fine-tuning ("increase", "+" etc)
-local SOURCE_BOTTOM_MENU_MORE = 0x0008 -- three dots in bottom menu
-local SOURCE_BOTTOM_MENU_PROGRESS = 0x0010 -- progress indicator on bottom menu
-local SOURCE_DISPATCHER = 0x0020 -- dispatcher
-local SOURCE_OTHER = 0x0040 -- all other sources (e.g. keyboard)
-local SOURCE_ALWAYS_SHOW = 0x8000 -- display this, no matter the display preferences
-
--- All bottom menu bits
-local SOURCE_BOTTOM_MENU = SOURCE_BOTTOM_MENU_ICON
-  + SOURCE_BOTTOM_MENU_TOGGLE
-  + SOURCE_BOTTOM_MENU_FINE
-  + SOURCE_BOTTOM_MENU_MORE
-  + SOURCE_BOTTOM_MENU_PROGRESS
-
--- these values can be changed here
-local SOURCE_SOME = SOURCE_BOTTOM_MENU_FINE
-local SOURCE_MORE = SOURCE_SOME
-  + SOURCE_BOTTOM_MENU_MORE
-  + SOURCE_BOTTOM_MENU_PROGRESS
-local SOURCE_DEFAULT = SOURCE_MORE + SOURCE_DISPATCHER
-local SOURCE_ALL = SOURCE_BOTTOM_MENU + SOURCE_DISPATCHER + SOURCE_OTHER
-
--- Maximum number of saved message text
-local MAX_NB_PAST_MESSAGES = 20
-
 local Notification = InputContainer:extend({
   face = Font:getFace("x_smallinfofont"),
   text = _("N/A"),
@@ -62,24 +32,23 @@ local Notification = InputContainer:extend({
   _shown_list = {}, -- actual static class member, array of stacked notifications (value is show (well, init) time or false).
   _shown_idx = nil, -- index of this instance in the class's _shown_list array (assumes each Notification object is only shown (well, init) once).
 
-  SOURCE_BOTTOM_MENU_ICON = SOURCE_BOTTOM_MENU_ICON,
-  SOURCE_BOTTOM_MENU_TOGGLE = SOURCE_BOTTOM_MENU_TOGGLE,
-  SOURCE_BOTTOM_MENU_FINE = SOURCE_BOTTOM_MENU_FINE,
-  SOURCE_BOTTOM_MENU_MORE = SOURCE_BOTTOM_MENU_MORE,
-  SOURCE_BOTTOM_MENU_PROGRESS = SOURCE_BOTTOM_MENU_PROGRESS,
-  SOURCE_DISPATCHER = SOURCE_DISPATCHER,
-  SOURCE_OTHER = SOURCE_OTHER,
-  SOURCE_ALWAYS_SHOW = SOURCE_ALWAYS_SHOW,
+  -- TODO(#252): Remove
+  SOURCE_BOTTOM_MENU_ICON = 0,
+  SOURCE_BOTTOM_MENU_TOGGLE = 0,
+  SOURCE_BOTTOM_MENU_FINE = 0,
+  SOURCE_BOTTOM_MENU_MORE = 0,
+  SOURCE_BOTTOM_MENU_PROGRESS = 0,
+  SOURCE_DISPATCHER = 0,
+  SOURCE_OTHER = 0,
+  SOURCE_ALWAYS_SHOW = 0,
 
-  SOURCE_BOTTOM_MENU = SOURCE_BOTTOM_MENU,
+  SOURCE_BOTTOM_MENU = 0,
 
   SOURCE_NONE = 0,
-  SOURCE_SOME = SOURCE_SOME,
-  SOURCE_MORE = SOURCE_MORE,
-  SOURCE_DEFAULT = SOURCE_DEFAULT,
-  SOURCE_ALL = SOURCE_ALL,
-
-  _past_messages = {}, -- a static class member to store the N last messages text
+  SOURCE_SOME = 0,
+  SOURCE_MORE = 0,
+  SOURCE_DEFAULT = 0,
+  SOURCE_ALL = 0,
 })
 
 function Notification:init()
@@ -156,26 +125,14 @@ function Notification:getNotifySource()
   return self.notify_source
 end
 
--- Display a notification popup if `source` or `self.notify_source` is not masked by the `notification_sources_to_show_mask` setting
+-- Display a notification popup
 function Notification:notify(arg, source, refresh_after)
-  source = source or self.notify_source
-  local mask = G_reader_settings:readSetting(
-    "notification_sources_to_show_mask"
-  ) or SOURCE_DEFAULT
-  if source and (source == SOURCE_ALWAYS_SHOW or band(mask, source) ~= 0) then
-    UIManager:show(Notification:new({
-      text = arg,
-    }))
-    if refresh_after then
-      UIManager:forceRePaint()
-    end
-    return true
+  UIManager:show(Notification:new({
+    text = arg,
+  }))
+  if refresh_after then
+    UIManager:forceRePaint()
   end
-  return false
-end
-
-function Notification:getPastMessages()
-  return self._past_messages
 end
 
 function Notification:_cleanShownStack()
@@ -227,11 +184,6 @@ function Notification:onShow()
     end
     UIManager:scheduleIn(self.timeout, self._timeout_func)
   end
-
-  if #self._past_messages >= MAX_NB_PAST_MESSAGES then
-    table.remove(self._past_messages)
-  end
-  table.insert(self._past_messages, 1, os.date("%X: ") .. self.text)
 
   return true
 end

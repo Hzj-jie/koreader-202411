@@ -298,8 +298,6 @@ common_settings.screen_dpi =
   dofile("frontend/ui/elements/screen_dpi_menu_table.lua")
 common_settings.screen_eink_opt =
   dofile("frontend/ui/elements/screen_eink_opt_menu_table.lua")
-common_settings.screen_notification =
-  dofile("frontend/ui/elements/screen_notification_menu_table.lua")
 
 if Device:isTouchDevice() then
   common_settings.taps_and_gestures = {

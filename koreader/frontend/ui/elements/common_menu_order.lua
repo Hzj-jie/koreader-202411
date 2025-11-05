@@ -109,8 +109,6 @@ local function mergeWith(b)
       "----------------------------",
       "screen_timeout",
       "fullscreen",
-      "----------------------------",
-      "screen_notification",
     },
     taps_and_gestures = {
       "gesture_manager",
