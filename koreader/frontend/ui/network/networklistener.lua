@@ -33,6 +33,9 @@ function NetworkListener:_wifiActivityCheck()
   -- over 5 minutes.
   local NETWORK_ACTIVITY_NOISE_MARGIN = 12 -- unscaled_size_check: ignore
   local current_tx_packets = self:_getTxPackets()
+  if current_tx_packets == nil then
+    return
+  end
   if current_tx_packets - _last_tx_packets > NETWORK_ACTIVITY_NOISE_MARGIN then
     _last_tx_packets = current_tx_packets
     return
