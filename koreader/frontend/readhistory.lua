@@ -337,7 +337,9 @@ end
 
 function ReadHistory:ignoreFile(file)
   filename = ffiutil.basename(file)
-  if not require("ui/widget/filechooser"):show_file(ffiutil.basename(filename)) then
+  if
+    not require("ui/widget/filechooser"):show_file(ffiutil.basename(filename))
+  then
     return true
   end
   exclude_files = { -- const

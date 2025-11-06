@@ -241,7 +241,7 @@ function SystemStat:appendCounters()
   self:put({
     -- Need localization
     "  " .. _("Device model"),
-    Device.model
+    Device.model,
   })
   self:putSeparator()
   self:put({ _("Counters"), "" })
