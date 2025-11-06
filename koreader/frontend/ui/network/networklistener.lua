@@ -33,9 +33,6 @@ function NetworkListener:_wifiActivityCheck()
   -- over 5 minutes.
   local NETWORK_ACTIVITY_NOISE_MARGIN = 12 -- unscaled_size_check: ignore
   local current_tx_packets = self:_getTxPackets()
-  if current_tx_packets == nil then
-    return
-  end
   if current_tx_packets - _last_tx_packets > NETWORK_ACTIVITY_NOISE_MARGIN then
     _last_tx_packets = current_tx_packets
     return
@@ -99,13 +96,16 @@ function NetworkListener:_getTxPackets()
 
   -- file exists only when Wi-Fi module is loaded.
   if not file then
-    return nil
+    return 0
   end
 
   local tx_packets = file:read("*number")
   file:close()
 
-  -- Will be nil if NaN, just like we want it
+  -- Will be 0 if NaN, just like we want it
+  if tx_packets ~= tx_packets then
+    return 0
+  end
   return tx_packets
 end
 
