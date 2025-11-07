@@ -192,18 +192,17 @@ end
 
 function ReaderStatistics:_updateFrozen()
   self.is_doc_not_finished = (
-    self.ui 
-    and self.ui.doc_settings:readTableSetting("summary").status    ~= "complete"
+    self.ui
+    and self.ui.doc_settings:readTableSetting("summary").status ~= "complete"
   )
   self.is_doc_not_frozen = self.is_doc
-    and (
-      self.is_doc_not_finished
-      or not self.settings.freeze_finished_books
-    )
+    and (self.is_doc_not_finished or not self.settings.freeze_finished_books)
 end
 
 function ReaderStatistics:_initData()
-  self.is_doc = (self.document and not require("readhistory"):ignoreFile(self.document.file))
+  self.is_doc = (
+    self.document and not require("readhistory"):ignoreFile(self.document.file)
+  )
   self:_updateFrozen()
 
   -- first execution

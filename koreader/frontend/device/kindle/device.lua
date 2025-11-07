@@ -222,7 +222,8 @@ local function kindleIsWifiUp()
   local lipc = LibLipcs:accessor()
   if not LibLipcs:isFake(lipc) then
     return (lipc:get_int_property("com.lab126.wifid", "enable") or 0) == 1
-        and (lipc:get_int_property("com.lab126.cmd", "wirelessEnable") or 0) == 1
+      and (lipc:get_int_property("com.lab126.cmd", "wirelessEnable") or 0)
+        == 1
   end
   local std_out = io.popen("lipc-get-prop -i com.lab126.wifid enable", "r")
   if not std_out then
