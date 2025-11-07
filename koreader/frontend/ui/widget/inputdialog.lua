@@ -487,7 +487,7 @@ function InputDialog:init()
     }
   end
   if Device:hasKeys() then
-    self.key_events.ExitDialog = { { Device.input.group.Back } }
+    self.key_events.CloseDialog = { { Device.input.group.Back } }
   end
   if self._added_widgets then
     for _, widget in ipairs(self._added_widgets) do
