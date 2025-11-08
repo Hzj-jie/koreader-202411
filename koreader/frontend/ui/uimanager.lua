@@ -50,7 +50,7 @@ local UIManager = {
 function UIManager:init()
   self.event_handlers = {
     Power = function(input_event)
-      Device:onPowerEvent(input_event)
+      Device:handlePowerEvent(input_event)
     end,
     -- This is for hotpluggable evdev input devices (e.g., USB OTG)
     UsbDevicePlugIn = function(input_event)

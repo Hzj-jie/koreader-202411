@@ -361,7 +361,7 @@ function Device:rescheduleSuspend()
 end
 
 -- Only used on platforms where we handle suspend ourselves.
-function Device:onPowerEvent(ev)
+function Device:handlePowerEvent(ev)
   local Screensaver = require("ui/screensaver")
   if self.screen_saver_mode then
     if ev == "Power" or ev == "Resume" then

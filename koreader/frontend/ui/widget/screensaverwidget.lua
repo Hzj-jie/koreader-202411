@@ -103,7 +103,7 @@ end
 function ScreenSaverWidget:onResume()
   -- If we actually catch this event, it means screensaver_delay is set.
   -- Tell Device about it, so that further power button presses while we're still shown send us back to suspend.
-  -- NOTE: This only affects devices where we handle Power events ourselves (i.e., rely on Device -> Generic's onPowerEvent),
+  -- NOTE: This only affects devices where we handle Power events ourselves (i.e., rely on Device -> Generic's handlePowerEvent),
   --       and it *always* implies that Device.screen_saver_mode is true.
   Device.screen_saver_lock = true
 end

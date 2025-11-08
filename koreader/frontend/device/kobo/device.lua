@@ -1473,7 +1473,7 @@ function Kobo:suspend()
     return
   end
 
-  -- Murder Wi-Fi (again, c.f., `Device:onPowerEvent`) if NetworkMgr is attempting to connect or currently connected...
+  -- Murder Wi-Fi (again, c.f., `Device:handlePowerEvent`) if NetworkMgr is attempting to connect or currently connected...
   -- (Most likely because of a rerunWhenOnline in a Suspend handler)
   local network_mgr = require("ui/network/manager")
   if network_mgr:isWifiOn() then
@@ -1767,10 +1767,10 @@ function Kobo:setEventHandlers(uimgr)
   -- suspend. So let's unschedule it when suspending, and restart it after
   -- resume. Done via the plugin's onSuspend/onResume handlers.
   UIManager.event_handlers.Suspend = function()
-    self:onPowerEvent("Suspend")
+    self:handlePowerEvent("Suspend")
   end
   UIManager.event_handlers.Resume = function()
-    self:onPowerEvent("Resume")
+    self:handlePowerEvent("Resume")
   end
   UIManager.event_handlers.PowerPress = function()
     -- Always schedule power off.

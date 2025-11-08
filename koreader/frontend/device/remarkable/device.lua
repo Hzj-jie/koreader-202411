@@ -296,10 +296,10 @@ end
 
 function Remarkable:setEventHandlers(UIManager)
   UIManager.event_handlers.Suspend = function()
-    self:onPowerEvent("Suspend")
+    self:handlePowerEvent("Suspend")
   end
   UIManager.event_handlers.Resume = function()
-    self:onPowerEvent("Resume")
+    self:handlePowerEvent("Resume")
   end
   UIManager.event_handlers.PowerPress = function()
     UIManager:scheduleIn(2, UIManager.poweroff_action)
