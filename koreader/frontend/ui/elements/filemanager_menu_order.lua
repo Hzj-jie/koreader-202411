@@ -21,13 +21,6 @@ local order = require("ui/elements/common_menu_order")({
 })
 
 table.insert(order.document, 2, "document_metadata_location_move")
-table.insert(order.tools, 5, "cloud_storage")
-for _, v in ipairs({
-  "advanced_settings",
-  "developer_options",
-}) do
-  table.insert(order.tools, v)
-end
 
 for _, v in ipairs({
   "file_search",

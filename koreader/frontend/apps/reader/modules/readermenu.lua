@@ -316,11 +316,17 @@ function ReaderMenu:setUpdateItemTable()
     }
   end
 
+  self.menu_items.advanced_settings = require("ui/elements/advanced_settings_menu_table")
+
   local PluginLoader = require("pluginloader")
   self.menu_items.plugin_management = {
     text = _("Plugin management"),
     sub_item_table = PluginLoader:genPluginManagerSubItem(),
   }
+
+  self.menu_items.developer_options = require("ui/elements/dev_opt_menu_table")
+
+  self.menu_items.cloud_storage = require("ui/elements/cloud_storage_menu_table")
   -- main menu tab
   -- insert common info
   for id, common_setting in

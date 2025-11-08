@@ -125,6 +125,7 @@ local function mergeWith(b)
       "calibre",
       "exporter",
       "statistics",
+      "cloud_storage",
       "move_to_archive",
       "wallabag",
       "news_downloader",
@@ -170,6 +171,8 @@ local function mergeWith(b)
       "ota_update", -- if Device:hasOTAUpdates()
       "help",
       "keyboard_shortcuts", -- explicitly place it here to save key presses
+      "advanced_settings",
+      "developer_options",
       "----------------------------",
       "exit_menu",
     },
