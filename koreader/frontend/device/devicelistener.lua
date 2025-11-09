@@ -5,6 +5,7 @@ local Notification = require("ui/widget/notification")
 local Screen = Device.screen
 local UIManager = require("ui/uimanager")
 local bit = require("bit")
+local time = require("ui/time")
 local _ = require("gettext")
 local T = require("ffi/util").template
 
@@ -453,6 +454,11 @@ end
 -- It's also helpful when the IgnoreTouchInput event is emitted by Dispatcher through other means than Gestures.
 function DeviceListener:onResume()
   UIManager:setIgnoreTouchInput(false)
+  self.last_resume_at = time.realtime()
+end
+
+function DeviceListener:onSuspend()
+  self.last_suspend_at = time.realtime()
 end
 
 return DeviceListener

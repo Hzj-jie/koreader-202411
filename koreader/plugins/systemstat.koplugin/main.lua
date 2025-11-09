@@ -1,4 +1,5 @@
 local Device = require("device")
+local DeviceListener = require("device/devicelistener")
 local Dispatcher = require("dispatcher")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local Math = require("optmath")
@@ -134,8 +135,6 @@ end
 local SystemStat = {
   start_time = time.realtime(),
   start_monotonic_time = time.boottime_or_realtime_coarse(),
-  suspend_time = nil,
-  resume_time = nil,
   wakeup_count = 0,
   discharge_time = nil,
   discharge_count = 0,
@@ -178,16 +177,16 @@ function SystemStat:appendCounters()
     _("KOReader started at"),
     datetime.secondsToDateTime(time.to_s(self.start_time), nil, true),
   })
-  if self.suspend_time then
+  if DeviceListener.last_suspend_at then
     self:put({
       "  " .. _("Last suspend time"),
-      datetime.secondsToDateTime(time.to_s(self.suspend_time), nil, true),
+      datetime.secondsToDateTime(time.to_s(DeviceListener.last_suspend_at), nil, true),
     })
   end
-  if self.resume_time then
+  if DeviceListener.last_resume_at then
     self:put({
       "  " .. _("Last resume time"),
-      datetime.secondsToDateTime(time.to_s(self.resume_time), nil, true),
+      datetime.secondsToDateTime(time.to_s(DeviceListener.last_resume_at), nil, true),
     })
   end
   local uptime = time.boottime_or_realtime_coarse() - self.start_monotonic_time
@@ -465,12 +464,7 @@ function SystemStat:appendStorageInfo()
   std_out:close()
 end
 
-function SystemStat:onSuspend()
-  self.suspend_time = time.realtime()
-end
-
 function SystemStat:onResume()
-  self.resume_time = time.realtime()
   self.wakeup_count = self.wakeup_count + 1
 end
 
@@ -528,10 +522,6 @@ end
 
 function SystemStatWidget:onShowSysStatistics()
   SystemStat:showStatistics()
-end
-
-function SystemStatWidget:onSuspend()
-  SystemStat:onSuspend()
 end
 
 function SystemStatWidget:onResume()

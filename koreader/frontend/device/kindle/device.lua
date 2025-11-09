@@ -23,6 +23,17 @@ local function no()
   return false
 end -- luacheck: ignore
 
+local function shouldDelayLipc()
+  local DeviceListener = require("device/devicelistener")
+  if DeviceListener.last_resume_at == nil then
+    -- Very likely the initial start of KOReader.
+    return false
+  end
+  -- Delay the initial lipc calls after resume. See
+  -- https://github.com/Hzj-jie/koreader-202411/issues/260
+  return time.to_s(time.since(DeviceListener.last_resume_at)) < 2
+end
+
 -- Try to detect WARIO+ Kindle boards (i.MX6 & i.MX7)
 local function isWarioOrMore()
   -- Parse cpuinfo line by line, until we find the Hardware description
@@ -54,6 +65,9 @@ local function kindleGetSavedNetworks()
 end
 
 local function kindleWifiState()
+  if shouldDelayLipc() then
+    return "UNKNOWN"
+  end
   local lipc = LibLipcs:accessor()
   if not LibLipcs:isFake(lipc) then
     return lipc:get_string_property("com.lab126.wifid", "cmState")
@@ -219,6 +233,9 @@ end
 -- sysfsInterfaceOperational may not indicate the internal state of
 -- com.lab126.wifid.
 local function kindleIsWifiUp()
+  if shouldDelayLipc() then
+    return false
+  end
   local lipc = LibLipcs:accessor()
   if not LibLipcs:isFake(lipc) then
     return (lipc:get_int_property("com.lab126.wifid", "enable") or 0) == 1
@@ -409,7 +426,10 @@ function Kindle:initNetworkManager(NetworkMgr)
   end
 
   function NetworkMgr:restoreWifiAsync()
-    kindleEnableWifi(1)
+    -- It's "async".
+    UIManager:nextTick(function()
+      kindleEnableWifi(1)
+    end)
   end
 
   function NetworkMgr:authenticateNetwork(network)
