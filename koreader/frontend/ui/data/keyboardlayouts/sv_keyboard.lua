@@ -1,5 +1,5 @@
 -- Start with the norwegian keyboard layout
-local sv_keyboard = dofile("frontend/ui/data/keyboardlayouts/no_keyboard.lua")
+local sv_keyboard = require("ui/data/keyboardlayouts/no_keyboard")
 
 local keys = sv_keyboard.keys
 

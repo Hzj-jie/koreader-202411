@@ -465,7 +465,7 @@ function ExternalKeyboard:setupKeyboard(data)
   util.tableMerge(event_map, Device.input.event_map)
   util.tableMerge(
     event_map,
-    dofile("plugins/externalkeyboard.koplugin/event_map_keyboard.lua")
+    require("plugins/externalkeyboard.koplugin/event_map_keyboard")
   )
   Device.input.event_map = event_map
   Device.hasKeyboard = yes

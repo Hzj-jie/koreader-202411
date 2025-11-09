@@ -508,13 +508,13 @@ To:
   if Device:supportsScreensaver() then
     self.menu_items.screensaver = {
       text = _("Sleep screen"),
-      sub_item_table = dofile("frontend/ui/elements/screensaver_menu.lua"),
+      sub_item_table = require("ui/elements/screensaver_menu"),
     }
   end
 
   -- insert common settings
   for id, common_setting in
-    pairs(dofile("frontend/ui/elements/common_settings_menu_table.lua"))
+    pairs(require("ui/elements/common_settings_menu_table"))
   do
     self.menu_items[id] = common_setting
   end
@@ -522,7 +522,7 @@ To:
   -- Settings > Navigation; this mostly concerns physical keys, and applies *everywhere*
   if Device:hasKeys() then
     self.menu_items.physical_buttons_setup =
-      dofile("frontend/ui/elements/physical_buttons.lua")
+      require("ui/elements/physical_buttons")
   end
 
   -- settings tab - Document submenu
@@ -605,13 +605,13 @@ Tap a book in the search results to open it.]]
   }
   -- insert common info
   for id, common_setting in
-    pairs(dofile("frontend/ui/elements/common_info_menu_table.lua"))
+    pairs(require("ui/elements/common_info_menu_table"))
   do
     self.menu_items[id] = common_setting
   end
   -- insert common exit for filemanager
   for id, common_setting in
-    pairs(dofile("frontend/ui/elements/common_exit_menu_table.lua"))
+    pairs(require("ui/elements/common_exit_menu_table"))
   do
     self.menu_items[id] = common_setting
   end

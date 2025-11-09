@@ -171,7 +171,7 @@ function Device:init()
   })
   self.powerd = require("device/android/powerd"):new({ device = self })
 
-  local event_map = dofile("frontend/device/android/event_map.lua")
+  local event_map = require("device/android/event_map")
 
   self.input = require("device/input"):new({
     device = self,

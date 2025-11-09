@@ -1,5 +1,5 @@
 local en_popup =
-  dofile("frontend/ui/data/keyboardlayouts/keypopup/en_popup.lua")
+  require("ui/data/keyboardlayouts/keypopup/en_popup")
 local pco = en_popup.pco
 local cop = en_popup.cop
 local cse = en_popup.cse

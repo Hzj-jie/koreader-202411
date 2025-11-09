@@ -293,11 +293,11 @@ common_settings.screen = {
   text = _("Screen"),
 }
 common_settings.screen_rotation =
-  dofile("frontend/ui/elements/screen_rotation_menu_table.lua")
+  require("ui/elements/screen_rotation_menu_table")
 common_settings.screen_dpi =
-  dofile("frontend/ui/elements/screen_dpi_menu_table.lua")
+  require("ui/elements/screen_dpi_menu_table")
 common_settings.screen_eink_opt =
-  dofile("frontend/ui/elements/screen_eink_opt_menu_table.lua")
+  require("ui/elements/screen_eink_opt_menu_table")
 
 if Device:isTouchDevice() then
   common_settings.taps_and_gestures = {
@@ -313,15 +313,15 @@ if Device:isTouchDevice() then
     end,
   }
   common_settings.screen_disable_double_tab =
-    dofile("frontend/ui/elements/screen_disable_double_tap_table.lua")
+    require("ui/elements/screen_disable_double_tap_table")
   common_settings.menu_activate =
-    dofile("frontend/ui/elements/menu_activate.lua")
+    require("ui/elements/menu_activate")
 end
 
 -- NOTE: Allow disabling color if it's mistakenly enabled on a Grayscale screen (after a settings import?)
 if Screen:isColorEnabled() or Screen:isColorScreen() then
   common_settings.color_rendering =
-    dofile("frontend/ui/elements/screen_color_menu_table.lua")
+    require("ui/elements/screen_color_menu_table")
 end
 
 -- fullscreen toggle for supported devices
@@ -885,11 +885,11 @@ common_settings.device = {
 
 common_settings.keyboard_layout = {
   text = _("Keyboard"),
-  sub_item_table = dofile("frontend/ui/elements/menu_keyboard_layout.lua"),
+  sub_item_table = require("ui/elements/menu_keyboard_layout"),
 }
 
 common_settings.font_ui_fallbacks =
-  dofile("frontend/ui/elements/font_ui_fallbacks.lua")
+  require("ui/elements/font_ui_fallbacks")
 
 common_settings.units = {
   text_func = function()

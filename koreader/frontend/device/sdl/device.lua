@@ -213,7 +213,7 @@ function Device:init()
 
   self.input = require("device/input"):new({
     device = self,
-    event_map = dofile("frontend/device/sdl/event_map_sdl2.lua"),
+    event_map = require("device/sdl/event_map_sdl2"),
     handleSdlEv = function(device_input, ev)
       -- SDL events can remain cdata but are almost completely transparent
       local SDL_TEXTINPUT = 771
@@ -321,7 +321,7 @@ function Device:init()
     end,
   })
 
-  self.keyboard_layout = dofile("frontend/device/sdl/keyboard_layout.lua")
+  self.keyboard_layout = require("device/sdl/keyboard_layout")
 
   if self.input.gameControllerRumble(0, 0, 0) then
     self.isHapticFeedbackEnabled = yes

@@ -1,4 +1,4 @@
-local cs_keyboard = dofile("frontend/ui/data/keyboardlayouts/sk_keyboard.lua")
+local cs_keyboard = require("ui/data/keyboardlayouts/sk_keyboard")
 
 local keys = cs_keyboard.keys
 

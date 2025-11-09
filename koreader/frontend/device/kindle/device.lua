@@ -1186,7 +1186,7 @@ function Kindle2:init()
   })
   self.input = require("device/input"):new({
     device = self,
-    event_map = dofile("frontend/device/kindle/event_map_keyboard.lua"),
+    event_map = require("device/kindle/event_map_keyboard"),
   })
   Kindle.init(self)
 end
@@ -1200,9 +1200,9 @@ function KindleDXG:init()
   })
   self.input = require("device/input"):new({
     device = self,
-    event_map = dofile("frontend/device/kindle/event_map_keyboard.lua"),
+    event_map = require("device/kindle/event_map_keyboard"),
   })
-  self.keyboard_layout = dofile("frontend/device/kindle/keyboard_layout.lua")
+  self.keyboard_layout = require("device/kindle/keyboard_layout")
   Kindle.init(self)
 end
 
@@ -1216,11 +1216,11 @@ function Kindle3:init()
   })
   self.input = require("device/input"):new({
     device = self,
-    event_map = dofile("frontend/device/kindle/event_map_kindle4.lua"),
+    event_map = require("device/kindle/event_map_kindle4"),
   })
-  self.keyboard_layout = dofile("frontend/device/kindle/keyboard_layout.lua")
+  self.keyboard_layout = require("device/kindle/keyboard_layout")
   self.k3_alt_plus_key_kernel_translated =
-    dofile("frontend/device/kindle/k3_alt_and_top_row.lua")
+    require("device/kindle/k3_alt_and_top_row")
   Kindle.init(self)
 end
 
@@ -1234,7 +1234,7 @@ function Kindle4:init()
   })
   self.input = require("device/input"):new({
     device = self,
-    event_map = dofile("frontend/device/kindle/event_map_kindle4.lua"),
+    event_map = require("device/kindle/event_map_kindle4"),
   })
   Kindle.init(self)
 end
