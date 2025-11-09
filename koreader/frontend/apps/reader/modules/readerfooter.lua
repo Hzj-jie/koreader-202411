@@ -2066,11 +2066,6 @@ function ReaderFooter:genAllFooterText()
     -- Skip empty generators, so they don't generate bogus separators
     local text, merge = gen(self)
     if text and text ~= "" then
-      if self.settings.item_prefix == "compact_items" then
-        -- remove whitespace from footer items if symbol_type is compact_items
-        -- use a hair-space to avoid issues with RTL display
-        text = text:gsub("%s", "\u{200A}")
-      end
       -- if generator request a merge of this item, add it directly,
       -- i.e. no separator before and after the text then.
       if merge then
@@ -2085,7 +2080,13 @@ function ReaderFooter:genAllFooterText()
       end
     end
   end
-  return table.concat(info, BD.wrap(self:genSeparator()))
+  local result = table.concat(info, BD.wrap(self:genSeparator()))
+  if self.settings.item_prefix == "compact_items" then
+    -- remove whitespace from footer items if symbol_type is compact_items
+    -- use a hair-space to avoid issues with RTL display
+    result = result:gsub("%s", "\u{200A}")
+  end
+  return result
 end
 
 function ReaderFooter:setTocMarkers(reset)
