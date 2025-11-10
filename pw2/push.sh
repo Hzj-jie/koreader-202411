@@ -5,7 +5,7 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-if [[ $1 == 192.* ]]; then
+if [[ $1 == *.*.*.* ]]; then
   TARGET=$1
 elif [[ $1 == *.* ]]; then
   TARGET=192.168.$1
