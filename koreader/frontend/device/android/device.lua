@@ -109,10 +109,6 @@ local Device = Generic:extend({
     return android.app.activity.sdkVersion >= 19
   end,
   hasClipboard = yes,
-  hasOTAUpdates = android.ota.isEnabled,
-  hasOTARunning = function()
-    return android.ota.isRunning
-  end,
   hasFastWifiStatusQuery = yes,
   hasSystemFonts = yes,
   canOpenLink = yes,

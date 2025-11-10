@@ -167,7 +167,6 @@ local function mergeWith(b)
       "----------------------------",
       "mass_storage_actions", -- if Device:canToggleMassStorage()
       "----------------------------",
-      "ota_update", -- if Device:hasOTAUpdates()
       "help",
       "common_log_files",
       "advanced_settings",

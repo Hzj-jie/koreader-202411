@@ -18,7 +18,6 @@ local SonyPRSTUX = Generic:extend({
   model = "Sony PRSTUX",
   isSonyPRSTUX = yes,
   hasKeys = yes,
-  hasOTAUpdates = no,
   hasWifiManager = yes,
   canReboot = yes,
   canPowerOff = yes,

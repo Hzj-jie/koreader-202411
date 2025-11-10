@@ -27,7 +27,6 @@ local PocketBook = Generic:extend({
   model = "PocketBook",
   ota_model = "pocketbook",
   isPocketBook = yes,
-  hasOTAUpdates = yes,
   hasWifiToggle = yes,
   isTouchDevice = yes,
   hasKeys = yes,

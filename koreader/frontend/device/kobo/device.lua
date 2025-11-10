@@ -105,7 +105,6 @@ local Kobo = Generic:extend({
   ota_model = "kobo",
   isKobo = yes,
   isTouchDevice = yes, -- all of them are
-  hasOTAUpdates = yes,
   hasFastWifiStatusQuery = yes,
   hasWifiManager = yes,
   hasWifiRestore = yes,

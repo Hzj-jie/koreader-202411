@@ -131,7 +131,6 @@ end
 local AppImage = Device:extend({
   model = "AppImage",
   ota_model = "appimage",
-  hasOTAUpdates = yes,
   isDesktop = yes,
 })
 
