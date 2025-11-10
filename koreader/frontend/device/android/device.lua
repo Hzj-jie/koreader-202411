@@ -8,6 +8,7 @@ local C = ffi.C
 local FFIUtil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local time = require("ui/time")
 local util = require("util")
 local _ = require("gettext")
 local T = FFIUtil.template
@@ -215,6 +216,7 @@ function Device:init()
         -- to-do: keyboard connected, disconnected
       elseif ev.code == C.APP_CMD_RESUME then
         if not android.prop.brokenLifecycle then
+          this.device.last_resume_at = time.realtime()
           UIManager:broadcastEvent(Event:new("Resume"))
         end
         if external.when_back_callback then

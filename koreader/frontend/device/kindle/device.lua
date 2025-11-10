@@ -24,14 +24,13 @@ local function no()
 end -- luacheck: ignore
 
 local function shouldDelayLipc()
-  local DeviceListener = require("device/devicelistener")
-  if DeviceListener.last_resume_at == nil then
+  if Generic.last_resume_at == nil then
     -- Very likely the initial start of KOReader.
     return false
   end
   -- Delay the initial lipc calls after resume. See
   -- https://github.com/Hzj-jie/koreader-202411/issues/260
-  return time.to_s(time.since(DeviceListener.last_resume_at)) < 2
+  return time.to_s(time.since(Generic.last_resume_at)) < 2
 end
 
 -- Try to detect WARIO+ Kindle boards (i.MX6 & i.MX7)

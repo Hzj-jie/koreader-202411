@@ -454,11 +454,6 @@ end
 -- It's also helpful when the IgnoreTouchInput event is emitted by Dispatcher through other means than Gestures.
 function DeviceListener:onResume()
   UIManager:setIgnoreTouchInput(false)
-  self.last_resume_at = time.realtime()
-end
-
-function DeviceListener:onSuspend()
-  self.last_suspend_at = time.realtime()
 end
 
 return DeviceListener

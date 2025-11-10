@@ -1,5 +1,4 @@
 local Device = require("device")
-local DeviceListener = require("device/devicelistener")
 local Dispatcher = require("dispatcher")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local Math = require("optmath")
@@ -177,16 +176,16 @@ function SystemStat:appendCounters()
     _("KOReader started at"),
     datetime.secondsToDateTime(time.to_s(self.start_time), nil, true),
   })
-  if DeviceListener.last_suspend_at then
+  if Device.last_suspend_at then
     self:put({
       "  " .. _("Last suspend time"),
-      datetime.secondsToDateTime(time.to_s(DeviceListener.last_suspend_at), nil, true),
+      datetime.secondsToDateTime(time.to_s(Device.last_suspend_at), nil, true),
     })
   end
-  if DeviceListener.last_resume_at then
+  if Device.last_resume_at then
     self:put({
       "  " .. _("Last resume time"),
-      datetime.secondsToDateTime(time.to_s(DeviceListener.last_resume_at), nil, true),
+      datetime.secondsToDateTime(time.to_s(Device.last_resume_at), nil, true),
     })
   end
   local uptime = time.boottime_or_realtime_coarse() - self.start_monotonic_time
