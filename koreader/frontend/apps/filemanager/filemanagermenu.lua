@@ -535,7 +535,8 @@ To:
   }
 
   -- tools tab
-  self.menu_items.advanced_settings = require("ui/elements/advanced_settings_menu_table")
+  self.menu_items.advanced_settings =
+    require("ui/elements/advanced_settings_menu_table")
 
   self.menu_items.plugin_management = {
     text = _("Plugin management"),
@@ -544,7 +545,8 @@ To:
 
   self.menu_items.developer_options = require("ui/elements/dev_opt_menu_table")
 
-  self.menu_items.cloud_storage = require("ui/elements/cloud_storage_menu_table")
+  self.menu_items.cloud_storage =
+    require("ui/elements/cloud_storage_menu_table")
 
   self.menu_items.file_search = {
     -- @translators Search for files by name.
@@ -604,15 +606,11 @@ Tap a book in the search results to open it.]]
     end,
   }
   -- insert common info
-  for id, common_setting in
-    pairs(require("ui/elements/common_info_menu_table"))
-  do
+  for id, common_setting in pairs(require("ui/elements/common_info_menu_table")) do
     self.menu_items[id] = common_setting
   end
   -- insert common exit for filemanager
-  for id, common_setting in
-    pairs(require("ui/elements/common_exit_menu_table"))
-  do
+  for id, common_setting in pairs(require("ui/elements/common_exit_menu_table")) do
     self.menu_items[id] = common_setting
   end
   if not Device:isTouchDevice() then

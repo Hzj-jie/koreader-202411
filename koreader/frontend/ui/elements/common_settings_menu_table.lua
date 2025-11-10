@@ -294,8 +294,7 @@ common_settings.screen = {
 }
 common_settings.screen_rotation =
   require("ui/elements/screen_rotation_menu_table")
-common_settings.screen_dpi =
-  require("ui/elements/screen_dpi_menu_table")
+common_settings.screen_dpi = require("ui/elements/screen_dpi_menu_table")
 common_settings.screen_eink_opt =
   require("ui/elements/screen_eink_opt_menu_table")
 
@@ -314,8 +313,7 @@ if Device:isTouchDevice() then
   }
   common_settings.screen_disable_double_tab =
     require("ui/elements/screen_disable_double_tap_table")
-  common_settings.menu_activate =
-    require("ui/elements/menu_activate")
+  common_settings.menu_activate = require("ui/elements/menu_activate")
 end
 
 -- NOTE: Allow disabling color if it's mistakenly enabled on a Grayscale screen (after a settings import?)
@@ -888,8 +886,7 @@ common_settings.keyboard_layout = {
   sub_item_table = require("ui/elements/menu_keyboard_layout"),
 }
 
-common_settings.font_ui_fallbacks =
-  require("ui/elements/font_ui_fallbacks")
+common_settings.font_ui_fallbacks = require("ui/elements/font_ui_fallbacks")
 
 common_settings.units = {
   text_func = function()

@@ -1,7 +1,5 @@
-local en_popup =
-  require("ui/data/keyboardlayouts/keypopup/en_popup")
-local he_popup =
-  require("ui/data/keyboardlayouts/keypopup/he_popup")
+local en_popup = require("ui/data/keyboardlayouts/keypopup/en_popup")
+local he_popup = require("ui/data/keyboardlayouts/keypopup/he_popup")
 local pco = en_popup.pco
 local cop = en_popup.cop
 local cse = en_popup.cse

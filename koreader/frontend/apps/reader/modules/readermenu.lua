@@ -307,8 +307,7 @@ function ReaderMenu:setUpdateItemTable()
         self.ui:saveSettings()
       end,
     }
-    local screensaver_sub_item_table =
-      require("ui/elements/screensaver_menu")
+    local screensaver_sub_item_table = require("ui/elements/screensaver_menu")
     table.insert(screensaver_sub_item_table, ss_book_settings)
     self.menu_items.screensaver = {
       text = _("Sleep screen"),
@@ -316,7 +315,8 @@ function ReaderMenu:setUpdateItemTable()
     }
   end
 
-  self.menu_items.advanced_settings = require("ui/elements/advanced_settings_menu_table")
+  self.menu_items.advanced_settings =
+    require("ui/elements/advanced_settings_menu_table")
 
   local PluginLoader = require("pluginloader")
   self.menu_items.plugin_management = {
@@ -326,18 +326,15 @@ function ReaderMenu:setUpdateItemTable()
 
   self.menu_items.developer_options = require("ui/elements/dev_opt_menu_table")
 
-  self.menu_items.cloud_storage = require("ui/elements/cloud_storage_menu_table")
+  self.menu_items.cloud_storage =
+    require("ui/elements/cloud_storage_menu_table")
   -- main menu tab
   -- insert common info
-  for id, common_setting in
-    pairs(require("ui/elements/common_info_menu_table"))
-  do
+  for id, common_setting in pairs(require("ui/elements/common_info_menu_table")) do
     self.menu_items[id] = common_setting
   end
   -- insert common exit for reader
-  for id, common_setting in
-    pairs(require("ui/elements/common_exit_menu_table"))
-  do
+  for id, common_setting in pairs(require("ui/elements/common_exit_menu_table")) do
     self.menu_items[id] = common_setting
   end
 

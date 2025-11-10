@@ -1,5 +1,4 @@
-local bn_popup =
-  require("ui/data/keyboardlayouts/keypopup/bn_popup")
+local bn_popup = require("ui/data/keyboardlayouts/keypopup/bn_popup")
 local pco = bn_popup.pco
 local cop = bn_popup.cop
 local cse = bn_popup.cse
