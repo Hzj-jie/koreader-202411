@@ -76,6 +76,8 @@ function ConnectivityChecker:_callback(job)
       InfoMessage:new({ text = _("Error connecting to the network") })
     )
   end
+
+  self:stop()
 end
 
 function ConnectivityChecker:start(interactive)
