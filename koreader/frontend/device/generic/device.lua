@@ -1193,7 +1193,7 @@ end
 function Device:_beforeSuspend(inhibit)
   UIManager:flushSettings()
   UIManager:broadcastEvent(Event:new("Suspend"))
-  Device.last_suspend_at = time.realtime()
+  Device.last_suspend_at = time.now()
 
   if inhibit ~= false then
     -- Block input events unrelated to power management
@@ -1220,7 +1220,7 @@ function Device:_afterResume(inhibit)
   -- Ideally UIManager should understand the Resume event, but it needs to check every single
   -- event being processed.
   UIManager:updateLastUserActionTime()
-  Device.last_resume_at = time.realtime()
+  Device.last_resume_at = time.now()
   UIManager:broadcastEvent(Event:new("Resume"))
 end
 
