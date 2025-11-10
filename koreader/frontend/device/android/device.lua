@@ -13,13 +13,6 @@ local util = require("util")
 local _ = require("gettext")
 local T = FFIUtil.template
 
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
-
 local function getCodename()
   local api = android.app.activity.sdkVersion
   local codename = ""
@@ -87,31 +80,31 @@ local external = require("device/thirdparty"):new({
 })
 
 local Device = Generic:extend({
-  isAndroid = yes,
+  isAndroid = util.yes,
   model = android.prop.product,
-  hasKeys = yes,
-  hasDPad = no,
-  hasSeamlessWifiToggle = no, -- Requires losing focus to the sytem's network settings and user interaction
-  hasExitOptions = no,
+  hasKeys = util.yes,
+  hasDPad = util.no,
+  hasSeamlessWifiToggle = util.no, -- Requires losing focus to the sytem's network settings and user interaction
+  hasExitOptions = util.no,
   hasEinkScreen = function()
     return android.isEink()
   end,
   hasColorScreen = android.isColorScreen,
   hasFrontlight = android.hasLights,
   hasNaturalLight = android.isWarmthDevice,
-  canRestart = no,
-  canSuspend = no,
+  canRestart = util.no,
+  canSuspend = util.no,
   firmware_rev = android.app.activity.sdkVersion,
   home_dir = android.getExternalStoragePath(),
   display_dpi = android.lib.AConfiguration_getDensity(android.app.config),
-  isHapticFeedbackEnabled = yes,
+  isHapticFeedbackEnabled = util.yes,
   isDefaultFullscreen = function()
     return android.app.activity.sdkVersion >= 19
   end,
-  hasClipboard = yes,
-  hasFastWifiStatusQuery = yes,
-  hasSystemFonts = yes,
-  canOpenLink = yes,
+  hasClipboard = util.yes,
+  hasFastWifiStatusQuery = util.yes,
+  hasSystemFonts = util.yes,
+  canOpenLink = util.yes,
   openLink = function(self, link)
     if not link or type(link) ~= "string" then
       return
@@ -127,12 +120,12 @@ local Device = Generic:extend({
   importFile = function(path)
     android.importFile(path)
   end,
-  canShareText = yes,
+  canShareText = util.yes,
   doShareText = function(self, text, reason, title, mimetype)
     android.sendText(text, reason, title, mimetype)
   end,
 
-  canExternalDictLookup = yes,
+  canExternalDictLookup = util.yes,
   getExternalDictLookupList = function()
     return external.dicts
   end,

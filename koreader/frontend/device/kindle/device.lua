@@ -6,6 +6,7 @@ local ffi = require("ffi")
 local time = require("ui/time")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local util = require("util")
 local _ = require("gettext")
 
 -- We're going to need a few <linux/fb.h> & <linux/input.h> constants...
@@ -15,13 +16,6 @@ require("ffi/linux_fb_h")
 require("ffi/linux_input_h")
 require("ffi/posix_h")
 require("ffi/fbink_input_h")
-
-local function yes()
-  return true
-end
-local function no()
-  return false
-end -- luacheck: ignore
 
 local function shouldDelayLipc()
   if Generic.last_resume_at == nil then
@@ -338,40 +332,40 @@ end
 
 local Kindle = Generic:extend({
   model = "Kindle",
-  isKindle = yes,
+  isKindle = util.yes,
   -- NOTE: We can cheat by adding a platform-specific entry here, because the only code that will check for this is here.
   isSpecialOffers = isSpecialOffers(),
-  hasFastWifiStatusQuery = yes,
-  hasWifiRestore = yes,
+  hasFastWifiStatusQuery = util.yes,
+  hasWifiRestore = util.yes,
   -- NOTE: HW inversion is generally safe on mxcfb Kindles
-  canHWInvert = yes,
+  canHWInvert = util.yes,
   -- NOTE: And the fb driver is generally sane on those, too
-  canModifyFBInfo = yes,
+  canModifyFBInfo = util.yes,
   -- NOTE: Newer devices will turn the frontlight off at 0
-  canTurnFrontlightOff = yes,
+  canTurnFrontlightOff = util.yes,
   -- NOTE: Via powerd.toggleSuspend
-  canSuspend = yes,
-  canReboot = yes,
-  canPowerOff = yes,
+  canSuspend = util.yes,
+  canReboot = util.yes,
+  canPowerOff = util.yes,
   home_dir = "/mnt/us",
   -- New devices are REAGL-aware, default to REAGL
-  isREAGL = yes,
+  isREAGL = util.yes,
   -- Rex & Zelda devices sport an updated driver.
-  isZelda = no,
-  isRex = no,
+  isZelda = util.no,
+  isRex = util.no,
   -- So do devices running on a MediaTek SoC
-  isMTK = no,
+  isMTK = util.no,
   -- But of course, some devices don't actually support all the features the kernel exposes...
-  isNightModeChallenged = no,
+  isNightModeChallenged = util.no,
   -- NOTE: While this ought to behave on Zelda/Rex, turns out, nope, it really doesn't work on *any* of 'em :/ (c.f., ko#5884).
-  canHWDither = no,
+  canHWDither = util.no,
   -- Device has an Ambient Light Sensor
-  hasLightSensor = no,
+  hasLightSensor = util.no,
   -- The time the device went into suspend
   suspend_time = 0,
   framework_lipc_handle = frameworkStopped(),
   -- Kindle cannot disconnect a wifi, it will reconnect wifi automatically.
-  canDisconnectWifi = no,
+  canDisconnectWifi = util.no,
 })
 
 function Kindle:retrieveNetworkInfo()
@@ -950,120 +944,120 @@ end
 
 local Kindle2 = Kindle:extend({
   model = "Kindle2",
-  isREAGL = no,
-  hasKeyboard = yes,
-  hasKeys = yes,
-  hasSymKey = yes,
-  hasDPad = yes,
-  useDPadAsActionKeys = yes,
-  canHWInvert = no,
-  canModifyFBInfo = no,
-  canUseCBB = no, -- 4bpp
-  canUseWAL = no, -- Kernel too old to support mmap'ed I/O on /mnt/us
-  supportsScreensaver = yes, -- The first ad-supported device was the K3
+  isREAGL = util.no,
+  hasKeyboard = util.yes,
+  hasKeys = util.yes,
+  hasSymKey = util.yes,
+  hasDPad = util.yes,
+  useDPadAsActionKeys = util.yes,
+  canHWInvert = util.no,
+  canModifyFBInfo = util.no,
+  canUseCBB = util.no, -- 4bpp
+  canUseWAL = util.no, -- Kernel too old to support mmap'ed I/O on /mnt/us
+  supportsScreensaver = util.yes, -- The first ad-supported device was the K3
 })
 
 local KindleDXG = Kindle:extend({
   model = "KindleDXG",
-  isREAGL = no,
-  hasKeyboard = yes,
-  hasKeys = yes,
-  hasSymKey = yes,
-  hasDPad = yes,
-  useDPadAsActionKeys = yes,
-  canHWInvert = no,
-  canModifyFBInfo = no,
-  canUseCBB = no, -- 4bpp
-  canUseWAL = no, -- Kernel too old to support mmap'ed I/O on /mnt/us
-  supportsScreensaver = yes, -- The first ad-supported device was the K3
+  isREAGL = util.no,
+  hasKeyboard = util.yes,
+  hasKeys = util.yes,
+  hasSymKey = util.yes,
+  hasDPad = util.yes,
+  useDPadAsActionKeys = util.yes,
+  canHWInvert = util.no,
+  canModifyFBInfo = util.no,
+  canUseCBB = util.no, -- 4bpp
+  canUseWAL = util.no, -- Kernel too old to support mmap'ed I/O on /mnt/us
+  supportsScreensaver = util.yes, -- The first ad-supported device was the K3
 })
 
 local Kindle3 = Kindle:extend({
   model = "Kindle3",
-  isREAGL = no,
-  hasKeyboard = yes,
-  hasKeys = yes,
-  hasSymKey = yes,
-  hasDPad = yes,
-  useDPadAsActionKeys = yes,
-  canHWInvert = no,
-  canModifyFBInfo = no,
-  canUseCBB = no, -- 4bpp
+  isREAGL = util.no,
+  hasKeyboard = util.yes,
+  hasKeys = util.yes,
+  hasSymKey = util.yes,
+  hasDPad = util.yes,
+  useDPadAsActionKeys = util.yes,
+  canHWInvert = util.no,
+  canModifyFBInfo = util.no,
+  canUseCBB = util.no, -- 4bpp
   isSpecialOffers = hasSpecialOffers(),
 })
 
 local Kindle4 = Kindle:extend({
   model = "Kindle4",
-  isREAGL = no,
-  hasKeys = yes,
-  hasScreenKB = yes,
-  hasDPad = yes,
-  useDPadAsActionKeys = yes,
-  canHWInvert = no,
-  canModifyFBInfo = no,
+  isREAGL = util.no,
+  hasKeys = util.yes,
+  hasScreenKB = util.yes,
+  hasDPad = util.yes,
+  useDPadAsActionKeys = util.yes,
+  canHWInvert = util.no,
+  canModifyFBInfo = util.no,
   -- NOTE: It could *technically* use the C BB, as it's running @ 8bpp, but it's expecting an inverted palette...
-  canUseCBB = no,
+  canUseCBB = util.no,
   isSpecialOffers = hasSpecialOffers(),
 })
 
 local KindleTouch = Kindle:extend({
   model = "KindleTouch",
-  isREAGL = no,
-  isTouchDevice = yes,
-  hasKeys = yes,
+  isREAGL = util.no,
+  isTouchDevice = util.yes,
+  hasKeys = util.yes,
   touch_dev = "/dev/input/event3",
 })
 
 local KindlePaperWhite = Kindle:extend({
   model = "KindlePaperWhite",
-  isREAGL = no,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  canTurnFrontlightOff = no,
+  isREAGL = util.no,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  canTurnFrontlightOff = util.no,
   display_dpi = 212,
   touch_dev = "/dev/input/event0",
 })
 
 local KindlePaperWhite2 = Kindle:extend({
   model = "KindlePaperWhite2",
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  canTurnFrontlightOff = no,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  canTurnFrontlightOff = util.no,
   display_dpi = 212,
   touch_dev = "/dev/input/event1",
 })
 
 local KindleBasic = Kindle:extend({
   model = "KindleBasic",
-  isTouchDevice = yes,
+  isTouchDevice = util.yes,
   touch_dev = "/dev/input/event1",
 })
 
 local KindleVoyage = Kindle:extend({
   model = "KindleVoyage",
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  hasLightSensor = yes,
-  hasKeys = yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  hasLightSensor = util.yes,
+  hasKeys = util.yes,
   display_dpi = 300,
   touch_dev = "/dev/input/event1",
 })
 
 local KindlePaperWhite3 = Kindle:extend({
   model = "KindlePaperWhite3",
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  canTurnFrontlightOff = no,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  canTurnFrontlightOff = util.no,
   display_dpi = 300,
   touch_dev = "/dev/input/event1",
 })
 
 local KindleOasis = Kindle:extend({
   model = "KindleOasis",
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  hasKeys = yes,
-  hasGSensor = yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  hasKeys = util.yes,
+  hasGSensor = util.yes,
   display_dpi = 300,
   --[[
   -- NOTE: Points to event3 on Wi-Fi devices, event4 on 3G devices...
@@ -1076,41 +1070,41 @@ local KindleOasis = Kindle:extend({
 
 local KindleOasis2 = Kindle:extend({
   model = "KindleOasis2",
-  isZelda = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  hasLightSensor = yes,
-  hasKeys = yes,
-  hasGSensor = yes,
+  isZelda = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  hasLightSensor = util.yes,
+  hasKeys = util.yes,
+  hasGSensor = util.yes,
   display_dpi = 300,
   touch_dev = "/dev/input/by-path/platform-30a30000.i2c-event",
 })
 
 local KindleOasis3 = Kindle:extend({
   model = "KindleOasis3",
-  isZelda = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  hasNaturalLight = yes,
-  hasNaturalLightMixer = yes,
-  hasLightSensor = yes,
-  hasKeys = yes,
-  hasGSensor = yes,
+  isZelda = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  hasNaturalLight = util.yes,
+  hasNaturalLightMixer = util.yes,
+  hasLightSensor = util.yes,
+  hasKeys = util.yes,
+  hasGSensor = util.yes,
   display_dpi = 300,
   touch_dev = "/dev/input/by-path/platform-30a30000.i2c-event",
 })
 
 local KindleBasic2 = Kindle:extend({
   model = "KindleBasic2",
-  isTouchDevice = yes,
+  isTouchDevice = util.yes,
   touch_dev = "/dev/input/event0",
 })
 
 local KindlePaperWhite4 = Kindle:extend({
   model = "KindlePaperWhite4",
-  isRex = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
+  isRex = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
   display_dpi = 300,
   -- NOTE: LTE devices once again have a mysterious extra SX9310 proximity sensor...
   --     Except this time, we can't rely on by-path, because there's no entry for the TS :/.
@@ -1120,59 +1114,59 @@ local KindlePaperWhite4 = Kindle:extend({
 
 local KindleBasic3 = Kindle:extend({
   model = "KindleBasic3",
-  isRex = yes,
+  isRex = util.yes,
   -- NOTE: Apparently, the KT4 doesn't actually support the fancy nightmode waveforms, c.f., ko/#5076
   --     It also doesn't handle HW dithering, c.f., base/#1039
-  isNightModeChallenged = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
+  isNightModeChallenged = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
   touch_dev = "/dev/input/event2",
 })
 
 local KindlePaperWhite5 = Kindle:extend({
   model = "KindlePaperWhite5",
-  isMTK = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  hasNaturalLight = yes,
+  isMTK = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  hasNaturalLight = util.yes,
   -- NOTE: We *can* technically control both LEDs independently,
   --     but the mix is device-specific, we don't have access to the LUT for the mix powerd is using,
   --     and the widget is designed for the Kobo Aura One anyway, so, hahaha, nope.
-  hasNaturalLightMixer = yes,
+  hasNaturalLightMixer = util.yes,
   display_dpi = 300,
   -- NOTE: While hardware dithering (via MDP) should be a thing, it doesn't appear to do anything right now :/.
-  canHWDither = no,
-  canDoSwipeAnimation = yes,
+  canHWDither = util.no,
+  canDoSwipeAnimation = util.yes,
   -- NOTE: Input device path is variable, see findInputDevices
 })
 
 local KindleBasic4 = Kindle:extend({
   model = "KindleBasic4",
-  isMTK = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
+  isMTK = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
   display_dpi = 300,
-  canHWDither = no,
-  canDoSwipeAnimation = yes,
+  canHWDither = util.no,
+  canDoSwipeAnimation = util.yes,
   -- NOTE: Like the PW5, input device path is variable, see findInputDevices
 })
 
 local KindleScribe = Kindle:extend({
   model = "KindleScribe",
-  isMTK = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  hasNaturalLight = yes,
+  isMTK = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  hasNaturalLight = util.yes,
   -- NOTE: We *can* technically control both LEDs independently,
   --     but the mix is device-specific, we don't have access to the LUT for the mix powerd is using,
   --     and the widget is designed for the Kobo Aura One anyway, so, hahaha, nope.
-  hasNaturalLightMixer = yes,
-  hasLightSensor = yes,
-  hasGSensor = yes,
+  hasNaturalLightMixer = util.yes,
+  hasLightSensor = util.yes,
+  hasGSensor = util.yes,
   display_dpi = 300,
   touch_dev = "/dev/input/touch",
-  canHWDither = yes,
-  canDoSwipeAnimation = yes,
+  canHWDither = util.yes,
+  canDoSwipeAnimation = util.yes,
 })
 
 function Kindle2:init()

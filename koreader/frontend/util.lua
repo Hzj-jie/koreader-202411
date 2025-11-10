@@ -1771,4 +1771,12 @@ function util.backup_dir()
   return require("device").home_dir or "."
 end
 
+function util.yes()
+  return true
+end
+
+function util.no()
+  return false
+end
+
 return util

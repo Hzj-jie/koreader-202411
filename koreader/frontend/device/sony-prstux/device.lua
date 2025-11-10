@@ -3,25 +3,19 @@ local PluginShare = require("pluginshare")
 local UIManager
 local ffi = require("ffi")
 local logger = require("logger")
+local util = require("util")
 
 local C = ffi.C
 require("ffi/linux_input_h")
 
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
-
 local SonyPRSTUX = Generic:extend({
   model = "Sony PRSTUX",
-  isSonyPRSTUX = yes,
-  hasKeys = yes,
-  hasWifiManager = yes,
-  canReboot = yes,
-  canPowerOff = yes,
-  canSuspend = yes,
+  isSonyPRSTUX = util.yes,
+  hasKeys = util.yes,
+  hasWifiManager = util.yes,
+  canReboot = util.yes,
+  canPowerOff = util.yes,
+  canSuspend = util.yes,
   usbPluggedIn = false,
   home_dir = nil,
 })
@@ -252,9 +246,9 @@ end
 
 -- For Sony PRS-T2
 local SonyPRSTUX_T2 = SonyPRSTUX:extend({
-  isTouchDevice = yes,
-  hasKeys = yes,
-  hasFrontlight = no,
+  isTouchDevice = util.yes,
+  hasKeys = util.yes,
+  hasFrontlight = util.no,
   display_dpi = 166,
 })
 

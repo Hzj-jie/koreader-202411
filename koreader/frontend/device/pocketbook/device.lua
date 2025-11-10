@@ -13,34 +13,27 @@ require("ffi/posix_h")
 require("ffi/linux_input_h")
 require("ffi/inkview_h")
 
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
-
 local ext_path = "/mnt/ext1/system/config/extensions.cfg"
 local app_name = "koreader.app"
 
 local PocketBook = Generic:extend({
   model = "PocketBook",
   ota_model = "pocketbook",
-  isPocketBook = yes,
-  hasWifiToggle = yes,
-  isTouchDevice = yes,
-  hasKeys = yes,
-  hasFrontlight = yes,
-  hasSystemFonts = yes,
-  canSuspend = no,
-  canReboot = yes,
-  canPowerOff = yes,
-  needsScreenRefreshAfterResume = no,
+  isPocketBook = util.yes,
+  hasWifiToggle = util.yes,
+  isTouchDevice = util.yes,
+  hasKeys = util.yes,
+  hasFrontlight = util.yes,
+  hasSystemFonts = util.yes,
+  canSuspend = util.no,
+  canReboot = util.yes,
+  canPowerOff = util.yes,
+  needsScreenRefreshAfterResume = util.no,
   home_dir = "/mnt/ext1",
-  canAssociateFileExtensions = yes,
+  canAssociateFileExtensions = util.yes,
 
   -- all devices that have warmth lights use inkview api
-  hasNaturalLightApi = yes,
+  hasNaturalLightApi = util.yes,
 
   -- NOTE: Apparently, HW inversion is a pipedream on PB (#6669), ... well, on sunxi chipsets anyway.
   -- For which we now probe in fbinfoOverride() and tweak the flag to "no".
@@ -48,7 +41,7 @@ local PocketBook = Generic:extend({
   --
   -- The above comment applied to rendering without inkview. With the inkview library HW inverting the
   -- screen is not possible. For now disable HWInvert for all devices.
-  canHWInvert = no,
+  canHWInvert = util.no,
 
   -- If we can access the necessary devices, input events can be handled directly.
   -- This improves latency (~40ms), as well as power usage - we can spend more time asleep,
@@ -67,7 +60,7 @@ local PocketBook = Generic:extend({
   inkview_translates_buttons = false,
 
   -- Will be set appropriately at init
-  isB288SoC = no,
+  isB288SoC = util.no,
 
   -- Private per-model kludges
   _fb_init = function() end,
@@ -485,80 +478,80 @@ end
 local PocketBook515 = PocketBook:extend({
   model = "PB515",
   display_dpi = 200,
-  isTouchDevice = no,
-  hasFrontlight = no,
-  hasDPad = yes,
-  hasFewKeys = yes,
+  isTouchDevice = util.no,
+  hasFrontlight = util.no,
+  hasDPad = util.yes,
+  hasFewKeys = util.yes,
 })
 
 -- PocketBook Basic 4 (606)
 local PocketBook606 = PocketBook:extend({
   model = "PB606",
   display_dpi = 212,
-  isTouchDevice = no,
-  hasFrontlight = no,
-  hasDPad = yes,
-  hasFewKeys = yes,
+  isTouchDevice = util.no,
+  hasFrontlight = util.no,
+  hasDPad = util.yes,
+  hasFewKeys = util.yes,
 })
 
 -- PocketBook Basic (611)
 local PocketBook611 = PocketBook:extend({
   model = "PB611",
   display_dpi = 167,
-  isTouchDevice = no,
-  hasFrontlight = no,
-  hasDPad = yes,
-  hasFewKeys = yes,
+  isTouchDevice = util.no,
+  hasFrontlight = util.no,
+  hasDPad = util.yes,
+  hasFewKeys = util.yes,
 })
 
 -- PocketBook Basic (613)
 local PocketBook613 = PocketBook:extend({
   model = "PB613B",
   display_dpi = 167,
-  isTouchDevice = no,
-  hasWifiToggle = no,
-  hasSeamlessWifiToggle = no,
-  hasFrontlight = no,
-  hasDPad = yes,
-  hasFewKeys = yes,
+  isTouchDevice = util.no,
+  hasWifiToggle = util.no,
+  hasSeamlessWifiToggle = util.no,
+  hasFrontlight = util.no,
+  hasDPad = util.yes,
+  hasFewKeys = util.yes,
 })
 
 -- PocketBook Basic 2 / Basic 3 (614/614W)
 local PocketBook614W = PocketBook:extend({
   model = "PB614W",
   display_dpi = 167,
-  isTouchDevice = no,
-  hasFrontlight = no,
-  hasDPad = yes,
-  hasFewKeys = yes,
+  isTouchDevice = util.no,
+  hasFrontlight = util.no,
+  hasDPad = util.yes,
+  hasFewKeys = util.yes,
 })
 
 -- PocketBook Basic Lux / 615 Plus (615/615W)
 local PocketBook615 = PocketBook:extend({
   model = "PBBLux",
   display_dpi = 212,
-  isTouchDevice = no,
-  hasDPad = yes,
-  hasFewKeys = yes,
+  isTouchDevice = util.no,
+  hasDPad = util.yes,
+  hasFewKeys = util.yes,
 })
 
 -- PocketBook Basic Lux 2 (616/616W)
 local PocketBook616 = PocketBook:extend({
   model = "PBBLux2",
   display_dpi = 212,
-  isTouchDevice = no,
-  hasDPad = yes,
-  hasFewKeys = yes,
+  isTouchDevice = util.no,
+  hasDPad = util.yes,
+  hasFewKeys = util.yes,
 })
 
 -- PocketBook Basic Lux 3 (617)
 local PocketBook617 = PocketBook:extend({
   model = "PBBLux3",
   display_dpi = 212,
-  isTouchDevice = no,
-  hasDPad = yes,
-  hasFewKeys = yes,
-  hasNaturalLight = yes,
+  isTouchDevice = util.no,
+  hasDPad = util.yes,
+  hasFewKeys = util.yes,
+  hasNaturalLight = util.yes,
 })
 
 -- PocketBook Basic Lux 4 (618)
@@ -571,7 +564,7 @@ local PocketBook618 = PocketBook:extend({
 local PocketBook622 = PocketBook:extend({
   model = "PBTouch",
   display_dpi = 167,
-  hasFrontlight = no,
+  hasFrontlight = util.no,
 })
 
 -- PocketBook Touch Lux (623)
@@ -584,14 +577,14 @@ local PocketBook623 = PocketBook:extend({
 local PocketBook624 = PocketBook:extend({
   model = "PBBasicTouch",
   display_dpi = 167,
-  hasFrontlight = no,
+  hasFrontlight = util.no,
 })
 
 -- PocketBook Basic Touch 2 (625)
 local PocketBook625 = PocketBook:extend({
   model = "PBBasicTouch2",
   display_dpi = 167,
-  hasFrontlight = no,
+  hasFrontlight = util.no,
 })
 
 -- PocketBook Touch Lux 2 / Touch Lux 3 (626)
@@ -604,24 +597,24 @@ local PocketBook626 = PocketBook:extend({
 local PocketBook627 = PocketBook:extend({
   model = "PBLux4",
   display_dpi = 212,
-  isAlwaysPortrait = yes,
+  isAlwaysPortrait = util.yes,
 })
 
 -- PocketBook Touch Lux 5 (628)
 local PocketBook628 = PocketBook:extend({
   model = "PBTouchLux5",
   display_dpi = 212,
-  isAlwaysPortrait = yes,
+  isAlwaysPortrait = util.yes,
   usingForcedRotation = landscape_ccw,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
 })
 
 -- PocketBook Verse (629)
 local PocketBook629 = PocketBook:extend({
   model = "PB629",
   display_dpi = 212,
-  isAlwaysPortrait = yes,
-  hasNaturalLight = yes,
+  isAlwaysPortrait = util.yes,
+  hasNaturalLight = util.yes,
 })
 
 -- PocketBook Sense / Sense 2 (630)
@@ -644,19 +637,19 @@ local PocketBook631 = PocketBook:extend({
 local PocketBook632 = PocketBook:extend({
   model = "PBTouchHDPlus",
   display_dpi = 300,
-  isAlwaysPortrait = yes,
+  isAlwaysPortrait = util.yes,
   usingForcedRotation = landscape_ccw,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
 })
 
 -- PocketBook Color (633)
 local PocketBook633 = PocketBook:extend({
   model = "PBColor",
   display_dpi = 300,
-  hasColorScreen = yes,
-  canHWDither = yes, -- Adjust color saturation with inkview
-  canUseCBB = no, -- 24bpp
-  isAlwaysPortrait = yes,
+  hasColorScreen = util.yes,
+  canHWDither = util.yes, -- Adjust color saturation with inkview
+  canUseCBB = util.no, -- 24bpp
+  isAlwaysPortrait = util.yes,
   usingForcedRotation = landscape_ccw,
 })
 
@@ -664,19 +657,19 @@ local PocketBook633 = PocketBook:extend({
 local PocketBook634 = PocketBook:extend({
   model = "PB634",
   display_dpi = 300,
-  isAlwaysPortrait = yes,
-  hasNaturalLight = yes,
+  isAlwaysPortrait = util.yes,
+  hasNaturalLight = util.yes,
 })
 
 -- PocketBook Verse Pro Color (PB634K3)
 local PocketBook634K3 = PocketBook:extend({
   model = "PBVerseProColor",
   display_dpi = 300,
-  hasColorScreen = yes,
-  canHWDither = yes, -- Adjust color saturation with inkview
-  canUseCBB = no, -- 24bpp
-  isAlwaysPortrait = yes,
-  hasNaturalLight = yes,
+  hasColorScreen = util.yes,
+  canHWDither = util.yes, -- Adjust color saturation with inkview
+  canUseCBB = util.no, -- 24bpp
+  isAlwaysPortrait = util.yes,
+  hasNaturalLight = util.yes,
 })
 
 function PocketBook634K3._fb_init(fb, finfo, vinfo)
@@ -705,8 +698,8 @@ local PocketBook650 = PocketBook:extend({
 local PocketBook700 = PocketBook:extend({
   model = "PB700",
   display_dpi = 300,
-  isAlwaysPortrait = yes,
-  hasNaturalLight = yes,
+  isAlwaysPortrait = util.yes,
+  hasNaturalLight = util.yes,
   -- c.f., https://github.com/koreader/koreader/issues/9556
   inkview_translates_buttons = true,
 })
@@ -715,11 +708,11 @@ local PocketBook700 = PocketBook:extend({
 local PocketBook700K3 = PocketBook:extend({
   model = "PBEraColor",
   display_dpi = 300,
-  hasColorScreen = yes,
-  canHWDither = yes, -- Adjust color saturation with inkview
-  canUseCBB = no, -- 24bpp
-  isAlwaysPortrait = yes,
-  hasNaturalLight = yes,
+  hasColorScreen = util.yes,
+  canHWDither = util.yes, -- Adjust color saturation with inkview
+  canUseCBB = util.no, -- 24bpp
+  isAlwaysPortrait = util.yes,
+  hasNaturalLight = util.yes,
   -- c.f., https://github.com/koreader/koreader/issues/9556
   inkview_translates_buttons = true,
 })
@@ -733,18 +726,18 @@ end
 local PocketBook740 = PocketBook:extend({
   model = "PBInkPad3",
   display_dpi = 300,
-  isAlwaysPortrait = yes,
+  isAlwaysPortrait = util.yes,
   usingForcedRotation = landscape_ccw,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
 })
 
 -- PocketBook InkPad 3 Pro (740_2)
 local PocketBook740_2 = PocketBook:extend({
   model = "PBInkPad3Pro",
   display_dpi = 300,
-  isAlwaysPortrait = yes,
+  isAlwaysPortrait = util.yes,
   usingForcedRotation = landscape_ccw,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   raw_input = {
     touch_rotation = -1,
     keymap = {
@@ -759,10 +752,10 @@ local PocketBook740_2 = PocketBook:extend({
 local PocketBook741 = PocketBook:extend({
   model = "PBInkPadColor",
   display_dpi = 300,
-  hasColorScreen = yes,
-  canHWDither = yes, -- Adjust color saturation with inkview
-  canUseCBB = no, -- 24bpp
-  isAlwaysPortrait = yes,
+  hasColorScreen = util.yes,
+  canHWDither = util.yes, -- Adjust color saturation with inkview
+  canUseCBB = util.no, -- 24bpp
+  isAlwaysPortrait = util.yes,
   usingForcedRotation = landscape_ccw,
 })
 
@@ -775,12 +768,12 @@ end
 local PocketBook743C = PocketBook:extend({
   model = "PBInkPadColor2",
   display_dpi = 300,
-  hasColorScreen = yes,
-  canHWDither = yes, -- Adjust color saturation with inkview
-  canUseCBB = no, -- 24bpp
-  isAlwaysPortrait = yes,
+  hasColorScreen = util.yes,
+  canHWDither = util.yes, -- Adjust color saturation with inkview
+  canUseCBB = util.no, -- 24bpp
+  isAlwaysPortrait = util.yes,
   usingForcedRotation = landscape_ccw,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
 })
 
 function PocketBook743C._fb_init(fb, finfo, vinfo)
@@ -793,12 +786,12 @@ local PocketBook743K3 = PocketBook:extend({
   model = "PBInkPadColor3",
   display_dpi = 300,
   viewport = Geom:new({ x = 3, y = 2, w = 1395, h = 1864 }),
-  hasColorScreen = yes,
-  canHWDither = yes, -- Adjust color saturation with inkview
-  canUseCBB = no, -- 24bpp
-  isAlwaysPortrait = yes,
+  hasColorScreen = util.yes,
+  canHWDither = util.yes, -- Adjust color saturation with inkview
+  canUseCBB = util.no, -- 24bpp
+  isAlwaysPortrait = util.yes,
   usingForcedRotation = landscape_ccw,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
 })
 
 function PocketBook743K3._fb_init(fb, finfo, vinfo)
@@ -810,18 +803,18 @@ end
 local PocketBook743G = PocketBook:extend({
   model = "PBInkPad4",
   display_dpi = 300,
-  isAlwaysPortrait = yes,
+  isAlwaysPortrait = util.yes,
   usingForcedRotation = landscape_ccw,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
 })
 
 -- PocketBook Color Lux (801)
 local PocketBookColorLux = PocketBook:extend({
   model = "PBColorLux",
   display_dpi = 125,
-  hasColorScreen = yes,
-  canHWDither = yes, -- Adjust color saturation with inkview
-  canUseCBB = no, -- 24bpp
+  hasColorScreen = util.yes,
+  canHWDither = util.yes, -- Adjust color saturation with inkview
+  canUseCBB = util.no, -- 24bpp
 })
 function PocketBookColorLux:_model_init()
   self.screen.blitbuffer_rotation_mode = self.screen.DEVICE_ROTATED_UPRIGHT
@@ -844,17 +837,17 @@ local PocketBook840 = PocketBook:extend({
 local PocketBook970 = PocketBook:extend({
   model = "PB970",
   display_dpi = 150,
-  isAlwaysPortrait = yes,
-  hasNaturalLight = yes,
+  isAlwaysPortrait = util.yes,
+  hasNaturalLight = util.yes,
 })
 
 -- PocketBook InkPad X (1040)
 local PocketBook1040 = PocketBook:extend({
   model = "PB1040",
   display_dpi = 227,
-  isAlwaysPortrait = yes,
+  isAlwaysPortrait = util.yes,
   usingForcedRotation = landscape_ccw,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
 })
 
 logger.info("SoftwareVersion: ", PocketBook:getSoftwareVersion())

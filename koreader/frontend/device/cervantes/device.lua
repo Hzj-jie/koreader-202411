@@ -1,12 +1,6 @@
 local Generic = require("device/generic/device")
 local logger = require("logger")
-
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
+local util = require("util")
 
 local function getProductId()
   local ntxinfo_pcb =
@@ -32,20 +26,20 @@ end
 local Cervantes = Generic:extend({
   model = "Cervantes",
   ota_model = "cervantes",
-  isCervantes = yes,
-  isAlwaysPortrait = yes,
-  isTouchDevice = yes,
+  isCervantes = util.yes,
+  isAlwaysPortrait = util.yes,
+  isTouchDevice = util.yes,
   touch_legacy = true, -- SingleTouch input events
   touch_switch_xy = true,
   touch_mirrored_x = true,
-  hasFastWifiStatusQuery = yes,
-  hasKeys = yes,
-  hasWifiManager = yes,
-  hasWifiRestore = yes,
-  canReboot = yes,
-  canPowerOff = yes,
-  canSuspend = yes,
-  supportsScreensaver = yes,
+  hasFastWifiStatusQuery = util.yes,
+  hasKeys = util.yes,
+  hasWifiManager = util.yes,
+  hasWifiRestore = util.yes,
+  canReboot = util.yes,
+  canPowerOff = util.yes,
+  canSuspend = util.yes,
+  supportsScreensaver = util.yes,
   home_dir = "/mnt/public",
 
   -- do we support usb mass storage?
@@ -54,46 +48,46 @@ local Cervantes = Generic:extend({
   end,
 
   -- all devices, except the original Cervantes Touch, have frontlight
-  hasFrontlight = yes,
+  hasFrontlight = util.yes,
 
   -- currently only Cervantes 4 has coloured frontlight
-  hasNaturalLight = no,
-  hasNaturalLightMixer = no,
+  hasNaturalLight = util.no,
+  hasNaturalLightMixer = util.no,
 
   -- HW inversion is generally safe on Cervantes, except on a few boards/kernels
-  canHWInvert = yes,
+  canHWInvert = util.yes,
 })
 -- Cervantes Touch
 local CervantesTouch = Cervantes:extend({
   model = "CervantesTouch",
   display_dpi = 167,
-  hasFrontlight = no,
-  hasMultitouch = no,
+  hasFrontlight = util.no,
+  hasMultitouch = util.no,
 })
 -- Cervantes TouchLight / Fnac Touch Plus
 local CervantesTouchLight = Cervantes:extend({
   model = "CervantesTouchLight",
   display_dpi = 167,
-  hasMultitouch = no,
+  hasMultitouch = util.no,
 })
 -- Cervantes 2013 / Fnac Touch Light
 local Cervantes2013 = Cervantes:extend({
   model = "Cervantes2013",
   display_dpi = 212,
-  hasMultitouch = no,
-  --- @fixme: Possibly requires canHWInvert = no, as it seems to be based on a similar board as the Kobo Aura...
+  hasMultitouch = util.no,
+  --- @fixme: Possibly requires canHWInvert = util.no, as it seems to be based on a similar board as the Kobo Aura...
 })
 -- Cervantes 3 / Fnac Touch Light 2
 local Cervantes3 = Cervantes:extend({
   model = "Cervantes3",
   display_dpi = 300,
-  hasMultitouch = no,
+  hasMultitouch = util.no,
 })
 -- Cervantes 4
 local Cervantes4 = Cervantes:extend({
   model = "Cervantes4",
   display_dpi = 300,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/mxc_msp430_fl.0/brightness",
     frontlight_mixer = "/sys/class/backlight/lm3630a_led/color",

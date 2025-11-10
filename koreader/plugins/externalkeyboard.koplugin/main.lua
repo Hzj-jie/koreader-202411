@@ -98,13 +98,6 @@ else
   return { disabled = true }
 end
 
-local function yes()
-  return true
-end
-local function no()
-  return false
-end -- luacheck: ignore
-
 local ExternalKeyboard = WidgetContainer:extend({
   name = "external_keyboard",
   is_doc_only = false,
