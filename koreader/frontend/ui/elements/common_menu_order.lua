@@ -167,12 +167,12 @@ local function mergeWith(b)
       "----------------------------",
       "mass_storage_actions", -- if Device:canToggleMassStorage()
       "----------------------------",
-      "common_log_files",
       "ota_update", -- if Device:hasOTAUpdates()
       "help",
-      "keyboard_shortcuts", -- explicitly place it here to save key presses
+      "common_log_files",
       "advanced_settings",
       "developer_options",
+      "keyboard_shortcuts", -- explicitly place it here to save key presses
       "----------------------------",
       "exit_menu",
     },
