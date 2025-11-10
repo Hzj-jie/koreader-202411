@@ -35,8 +35,6 @@ local ConnectivityChecker = {
   enabled = true,
   -- Check once per second.
   when = 1,
-  -- Up to 60s.
-  repeated = 60,
 }
 
 -- For BackgroundTaskPlugin
@@ -65,7 +63,8 @@ function ConnectivityChecker:_executable()
 end
 
 function ConnectivityChecker:_callback(job)
-  if job.repeated > 1 then
+  -- Up to 60s.
+  if os.clock() - self.settings_id / 1000 < 60 then
     return
   end
   -- Last iteration, shutdown connection.
