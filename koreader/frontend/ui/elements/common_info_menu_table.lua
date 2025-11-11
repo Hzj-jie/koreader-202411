@@ -72,7 +72,12 @@ if G_defaults:isTrue("DEV_MODE") then
     text = _("Common log files"),
     sub_item_table = sub_item_table,
   }
+
+  common_info.advanced_settings =
+    require("ui/elements/advanced_settings_menu_table")
+  common_info.developer_options = require("ui/elements/dev_opt_menu_table")
 end
+
 common_info.quickstart_guide = {
   text = _("Quickstart guide"),
   callback = function()
