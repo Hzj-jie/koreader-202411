@@ -1149,7 +1149,13 @@ end
 
 function TouchMenu:onTapCloseAllMenus(arg, ges_ev)
   if ges_ev.pos:notIntersectWith(self.dimen) then
+    -- Do not consume the event, the items not being covered should still
+    -- receive the event.
     self:closeMenu()
+  else
+    -- Do nothing, but still consume the event to avoid being propagated to
+    -- other items behind.
+    return true
   end
 end
 
