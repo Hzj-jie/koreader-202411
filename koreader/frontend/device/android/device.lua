@@ -102,7 +102,6 @@ local Device = Generic:extend({
     return android.app.activity.sdkVersion >= 19
   end,
   hasClipboard = util.yes,
-  hasFastWifiStatusQuery = util.yes,
   hasSystemFonts = util.yes,
   canOpenLink = util.yes,
   openLink = function(self, link)

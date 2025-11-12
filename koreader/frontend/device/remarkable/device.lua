@@ -33,7 +33,6 @@ local Remarkable = Generic:extend({
   ota_model = "remarkable",
   hasKeys = util.yes,
   needsScreenRefreshAfterResume = util.no,
-  hasFastWifiStatusQuery = util.yes,
   hasWifiManager = util.yes,
   canReboot = util.yes,
   canPowerOff = util.yes,

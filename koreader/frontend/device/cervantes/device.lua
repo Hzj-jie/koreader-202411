@@ -32,7 +32,6 @@ local Cervantes = Generic:extend({
   touch_legacy = true, -- SingleTouch input events
   touch_switch_xy = true,
   touch_mirrored_x = true,
-  hasFastWifiStatusQuery = util.yes,
   hasKeys = util.yes,
   hasWifiManager = util.yes,
   hasWifiRestore = util.yes,

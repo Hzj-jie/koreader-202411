@@ -128,10 +128,6 @@ local Device = {
   -- needs full screen refresh when resumed from screensaver?
   needsScreenRefreshAfterResume = util.yes,
 
-  -- set to yes on devices that have a non-blocking isWifiOn implementation
-  -- (c.f., https://github.com/koreader/koreader/pull/5211#issuecomment-521304139)
-  hasFastWifiStatusQuery = util.no,
-
   -- set to yes on devices with system fonts
   hasSystemFonts = util.no,
 

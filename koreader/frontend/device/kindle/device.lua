@@ -335,7 +335,6 @@ local Kindle = Generic:extend({
   isKindle = util.yes,
   -- NOTE: We can cheat by adding a platform-specific entry here, because the only code that will check for this is here.
   isSpecialOffers = isSpecialOffers(),
-  hasFastWifiStatusQuery = util.yes,
   hasWifiRestore = util.yes,
   -- NOTE: HW inversion is generally safe on mxcfb Kindles
   canHWInvert = util.yes,

@@ -557,9 +557,6 @@ function ReaderFooter:init()
   self.additional_footer_content = {} -- array, where additional header content can be inserted.
 
   -- Remove items not supported by the current device
-  if not Device:hasFastWifiStatusQuery() then
-    MODE.wifi_status = nil
-  end
   if not Device:hasFrontlight() then
     MODE.frontlight = nil
   end
@@ -1456,9 +1453,7 @@ function ReaderFooter:addToMainMenu(menu_items)
     table.insert(footer_items, getMinibarOption("frontlight_warmth"))
   end
   table.insert(footer_items, getMinibarOption("mem_usage"))
-  if Device:hasFastWifiStatusQuery() then
-    table.insert(footer_items, getMinibarOption("wifi_status"))
-  end
+  table.insert(footer_items, getMinibarOption("wifi_status"))
   table.insert(footer_items, getMinibarOption("page_turning_inverted"))
   table.insert(footer_items, getMinibarOption("book_author"))
   table.insert(footer_items, getMinibarOption("book_title"))

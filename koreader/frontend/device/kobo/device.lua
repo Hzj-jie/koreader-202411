@@ -99,7 +99,6 @@ local Kobo = Generic:extend({
   ota_model = "kobo",
   isKobo = util.yes,
   isTouchDevice = util.yes, -- all of them are
-  hasFastWifiStatusQuery = util.yes,
   hasWifiManager = util.yes,
   hasWifiRestore = util.yes,
   canStandby = util.no, -- will get updated by checkStandby()
