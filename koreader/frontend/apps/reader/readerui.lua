@@ -902,12 +902,11 @@ function ReaderUI:onFlushSettings(show_notification)
   end
 end
 
-function ReaderUI:closeDocument()
-  self.document:close()
-  self.document = nil
-end
-
 function ReaderUI:onExit(full_refresh)
+  if self.document == nil then
+    -- This shouldn't happen, but who knows who would call ReaderUI:onExit?
+    return
+  end
   logger.dbg("closing reader")
   UIManager:runWith(
     function()
@@ -930,7 +929,8 @@ function ReaderUI:onExit(full_refresh)
         then
           self.document:discardChange()
         end
-        self:closeDocument()
+        self.document:close()
+        self.document = nil
       end
       if self.dialog == self then
         UIManager:close(self, full_refresh ~= false and "full")
