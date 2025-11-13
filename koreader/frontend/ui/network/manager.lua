@@ -141,20 +141,6 @@ function NetworkMgr:_abortWifiConnection()
   return self:_dropPendingWifiConnection(Device:hasSeamlessWifiToggle())
 end
 
--- Attempt to deal with platforms that don't guarantee isConnected when turnOnWifi returns,
--- so that we only attempt to connect to WiFi *once* when using the beforeWifiAction framework...
-function NetworkMgr:_requestToTurnOnWifi(wifi_cb, interactive) -- bool | EBUSY
-  if ConnectivityChecker:running() then
-    -- We've already enabled WiFi, don't try again until the earlier attempt succeeds or fails...
-    return EBUSY
-  end
-
-  -- Connecting will take a few seconds, broadcast that information so affected modules/plugins can react.
-  raiseNetworkEvent("Connecting")
-
-  return self:_turnOnWifi(wifi_cb, interactive)
-end
-
 function NetworkMgr:shouldRestoreWifi()
   return Device:hasWifiRestore()
     and G_reader_settings:isTrue("auto_restore_wifi")
@@ -494,10 +480,22 @@ function NetworkMgr:toggleWifiOn()
   UIManager:forceRePaint()
 
   -- Some implementations (usually, hasWifiManager) can report whether they were successful
-  local status = self:_requestToTurnOnWifi(function()
-    -- Interactive
-    ConnectivityChecker:start(true)
-  end, true)
+  local function requestToTurnOnWifi()
+    if ConnectivityChecker:running() then
+      -- We've already enabled WiFi, don't try again until the earlier attempt succeeds or fails...
+      return EBUSY
+    end
+
+    -- Connecting will take a few seconds, broadcast that information so affected modules/plugins can react.
+    raiseNetworkEvent("Connecting")
+
+    return self:_turnOnWifi(function()
+      -- Interactive
+      ConnectivityChecker:start(true)
+    end, true)
+  end
+
+  local status = requestToTurnOnWifi()
   -- Note, when showing the network list, the callback would be heavily delayed, and the info will
   -- block the list.
   UIManager:close(info)
@@ -510,12 +508,6 @@ function NetworkMgr:toggleWifiOn()
     logger.warn(
       "NetworkMgr:toggleWifiOn: A previous connection attempt is still ongoing!"
     )
-    UIManager:show(InfoMessage:new({
-      text = _(
-        "A previous connection attempt is still ongoing, this one will be ignored!"
-      ),
-      timeout = 3,
-    }))
   end
 end
 
