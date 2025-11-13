@@ -17,16 +17,6 @@ require("ffi/linux_input_h")
 require("ffi/posix_h")
 require("ffi/fbink_input_h")
 
-local function shouldDelayLipc()
-  if Generic.last_resume_at == nil then
-    -- Very likely the initial start of KOReader.
-    return false
-  end
-  -- Delay the initial lipc calls after resume. See
-  -- https://github.com/Hzj-jie/koreader-202411/issues/260
-  return time.to_s(time.since(Generic.last_resume_at)) < 2
-end
-
 -- Try to detect WARIO+ Kindle boards (i.MX6 & i.MX7)
 local function isWarioOrMore()
   -- Parse cpuinfo line by line, until we find the Hardware description
@@ -55,28 +45,6 @@ end
 local function kindleGetSavedNetworks()
   return LibLipcs:hash_accessor()
     :read_hash_property("com.lab126.wifid", "profileData")
-end
-
-local function kindleWifiState()
-  if shouldDelayLipc() then
-    return "UNKNOWN"
-  end
-  local lipc = LibLipcs:accessor()
-  if not LibLipcs:isFake(lipc) then
-    return lipc:get_string_property("com.lab126.wifid", "cmState")
-  end
-
-  local std_out = io.popen("lipc-get-prop com.lab126.wifid cmState", "r")
-  if not std_out then
-    return nil
-  end
-  local result = std_out:read("*l")
-  std_out:close()
-  return result
-end
-
-local function kindleIsWifiConnected()
-  return kindleWifiState() == "CONNECTED"
 end
 
 local function kindleGetCurrentProfile()
@@ -226,6 +194,16 @@ end
 -- sysfsInterfaceOperational may not indicate the internal state of
 -- com.lab126.wifid.
 local function kindleIsWifiUp()
+  local function shouldDelayLipc()
+    if Generic.last_resume_at == nil then
+      -- Very likely the initial start of KOReader.
+      return false
+    end
+    -- Delay the initial com.lab126.cmd wirelessEnable call after resume. See
+    -- https://github.com/Hzj-jie/koreader-202411/issues/260 and
+    -- https://github.com/Hzj-jie/koreader-202411/issues/266
+    return time.to_s(time.since(Generic.last_resume_at)) < 10
+  end
   if shouldDelayLipc() then
     return false
   end
@@ -258,6 +236,29 @@ local function kindleIsWifiUp()
   end
 
   return true
+end
+
+local function kindleIsWifiConnected()
+  local function kindleWifiState()
+    local lipc = LibLipcs:accessor()
+    if not LibLipcs:isFake(lipc) then
+      return lipc:get_string_property("com.lab126.wifid", "cmState")
+    end
+
+    local std_out = io.popen("lipc-get-prop com.lab126.wifid cmState", "r")
+    if not std_out then
+      return nil
+    end
+    local result = std_out:read("*l")
+    std_out:close()
+    return result
+  end
+
+  if not kindleIsWifiUp() then
+    -- Checking wifi up may be delayed and causes the consistency issue.
+    return "UNKNOWN"
+  end
+  return kindleWifiState() == "CONNECTED"
 end
 
 --[[
