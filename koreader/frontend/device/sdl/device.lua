@@ -150,6 +150,7 @@ local Emulator = Device:extend({
   hasFrontlight = util.yes,
   hasNaturalLight = util.yes,
   hasNaturalLightApi = util.yes,
+  hasWifiRestore = util.yes,
   hasWifiToggle = util.yes,
   -- Not really, Device:reboot & Device:powerOff are not implemented, so we just exit ;).
   canPowerOff = util.yes,

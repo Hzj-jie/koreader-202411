@@ -4,6 +4,7 @@ local EventListener = require("ui/widget/eventlistener")
 local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
 local NetworkMgr = require("ui/network/manager")
+local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local logger = require("logger")
 local util = require("util")
@@ -133,11 +134,19 @@ end
 function NetworkListener:onPendingConnected(callback, key)
   assert(callback ~= nil)
   _pending_connected[key or self:_pendingKeyOf(callback)] = callback
+  Notification:notify(
+  -- Need localization
+  _("Action will be performed after network being connected")
+  )
 end
 
 function NetworkListener:onPendingOnline(callback, key)
   assert(callback ~= nil)
   _pending_online[key or self:_pendingKeyOf(callback)] = callback
+  Notification:notify(
+  -- Need localization
+  _("Action will be performed after network being online")
+  )
 end
 
 -- Returns a human readable string to indicate the # of pending jobs.

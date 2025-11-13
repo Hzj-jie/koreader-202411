@@ -7,7 +7,6 @@ local InputDialog = require("ui/widget/inputdialog")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local LuaData = require("luadata")
 local NetworkMgr = require("ui/network/manager")
-local Notification = require("ui/widget/notification")
 local ReaderDictionary = require("apps/reader/modules/readerdictionary")
 local Trapper = require("ui/trapper")
 local Translator = require("ui/translator")
@@ -432,22 +431,9 @@ function ReaderWikipedia:onLookupWikipedia(
   get_fullpage,
   forced_lang
 )
+    NetworkMgr:runWhenOnline(function()
   -- Wrapped through Trapper, as we may be using Trapper:dismissableRunInSubprocess() in it
   Trapper:wrap(function()
-    self:lookupWikipedia(word, is_sane, box, get_fullpage, forced_lang)
-  end)
-  return true
-end
-
-function ReaderWikipedia:lookupWikipedia(
-  word,
-  is_sane,
-  box,
-  get_fullpage,
-  forced_lang
-)
-  if
-    NetworkMgr:runWhenOnline(function()
       -- word is the text to query. If get_fullpage is true, it is the
       -- exact wikipedia page title we want the full page of.
       self:initLanguages(word)
@@ -593,14 +579,7 @@ function ReaderWikipedia:lookupWikipedia(
       end
       self:showDict(word, results, box)
     end)
-  then
-    return
-  end
-
-  Notification:notify(
-    -- Need localization
-    _("Wikipedia search will be performed after being online.")
-  )
+  end)
 end
 
 function ReaderWikipedia:getWikiLanguages(first_lang)
