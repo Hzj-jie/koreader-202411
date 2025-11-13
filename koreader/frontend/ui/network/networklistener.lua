@@ -6,7 +6,6 @@ local InfoMessage = require("ui/widget/infomessage")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local logger = require("logger")
-local md5 = require("ffi/sha2").md5
 local util = require("util")
 local _ = require("gettext")
 local T = require("ffi/util").template
@@ -127,14 +126,18 @@ function NetworkListener:onNetworkOnline()
   _pending_online = {}
 end
 
-function NetworkListener:onPendingConnected(callback)
-  assert(callback ~= nil)
-  _pending_connected[md5(string.dump(callback, true))] = callback
+function NetworkListener:_pendingKeyOf(callback)
+  return require("ffi/sha2").md5(string.dump(callback, true))
 end
 
-function NetworkListener:onPendingOnline(callback)
+function NetworkListener:onPendingConnected(callback, key)
   assert(callback ~= nil)
-  _pending_online[md5(string.dump(callback, true))] = callback
+  _pending_connected[key or self:_pendingKeyOf(callback)] = callback
+end
+
+function NetworkListener:onPendingOnline(callback, key)
+  assert(callback ~= nil)
+  _pending_online[key or self:_pendingKeyOf(callback)] = callback
 end
 
 -- Returns a human readable string to indicate the # of pending jobs.

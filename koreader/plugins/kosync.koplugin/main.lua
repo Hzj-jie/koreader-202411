@@ -747,7 +747,7 @@ function KOSync:_updateProgress(interactive)
   if interactive then
     UIManager:runWith(
       function()
-        NetworkMgr:runWhenOnline(exec)
+        NetworkMgr:runWhenOnline(exec, "kosync-push-" .. doc_digest)
       end,
       InfoMessage:new({
         -- Need localization
@@ -755,7 +755,7 @@ function KOSync:_updateProgress(interactive)
       })
     )
   else
-    NetworkMgr:willRerunWhenOnline(exec)
+    NetworkMgr:willRerunWhenOnline(exec, "kosync-push-" .. doc_digest)
   end
 end
 
@@ -779,6 +779,7 @@ function KOSync:_getProgress(interactive)
     return
   end
 
+  local doc_digest = self:_getDocumentDigest()
   local function exec()
     -- Unlike pushProgress, it's unreasonable to get the progress as a pending
     -- job after user closing the document. In the case, ignore the request.
@@ -786,7 +787,6 @@ function KOSync:_getProgress(interactive)
       return
     end
     local client = self:_createClient()
-    local doc_digest = self:_getDocumentDigest()
     local ok, err = pcall(
       client.get_progress,
       client,
@@ -909,7 +909,7 @@ function KOSync:_getProgress(interactive)
   if interactive then
     UIManager:runWith(
       function()
-        NetworkMgr:runWhenOnline(exec)
+        NetworkMgr:runWhenOnline(exec, "kosync-pull-" .. doc_digest)
       end,
       InfoMessage:new({
         -- Need localization
@@ -917,7 +917,7 @@ function KOSync:_getProgress(interactive)
       })
     )
   else
-    NetworkMgr:willRerunWhenOnline(exec)
+    NetworkMgr:willRerunWhenOnline(exec, "kosync-pull-" .. doc_digest)
   end
 end
 

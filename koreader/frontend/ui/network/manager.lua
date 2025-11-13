@@ -632,8 +632,8 @@ end
 -- Run callback *now* if you're currently online (ie., isOnline),
 -- or attempt to go online and run it *ASAP* without any more user interaction.
 -- Returns true if the callback has been "run".
-function NetworkMgr:runWhenOnline(callback)
-  if self:willRerunWhenOnline(callback) then
+function NetworkMgr:runWhenOnline(callback, key)
+  if self:willRerunWhenOnline(callback, key) then
     self:_beforeWifiAction()
     return false
   end
@@ -644,8 +644,8 @@ end
 -- guaranteed by beforeWifiAction, you also have a guarantee that the callback
 -- *will* run.
 -- Returns true if the callback has been "run"
-function NetworkMgr:runWhenConnected(callback)
-  if self:willRerunWhenConnected(callback) then
+function NetworkMgr:runWhenConnected(callback, key)
+  if self:willRerunWhenConnected(callback, key) then
     self:_beforeWifiAction()
     return false
   end
@@ -656,13 +656,13 @@ end
 -- Returns true when not yet online, in which case you should *abort* (i.e., return) the initial call,
 -- and otherwise, go-on as planned.
 -- Returns true if the callback "will be rerun", i.e. has been backlogged.
-function NetworkMgr:willRerunWhenOnline(callback)
+function NetworkMgr:willRerunWhenOnline(callback, key)
   assert(callback ~= nil)
   if self:isOnline() then
     callback()
     return false
   end
-  UIManager:broadcastEvent(Event:new("PendingOnline", callback))
+  UIManager:broadcastEvent(Event:new("PendingOnline", callback, key))
   return true
 end
 
@@ -670,13 +670,13 @@ end
 -- guaranteed by beforeWifiAction, you also have a guarantee that the callback
 -- *will* run.
 -- Returns true if the callback "will be rerun", i.e. has been backlogged.
-function NetworkMgr:willRerunWhenConnected(callback)
+function NetworkMgr:willRerunWhenConnected(callback, key)
   assert(callback ~= nil)
   if self:_isWifiConnected() then
     callback()
     return false
   end
-  UIManager:broadcastEvent(Event:new("PendingConnected", callback))
+  UIManager:broadcastEvent(Event:new("PendingConnected", callback, key))
   return true
 end
 
