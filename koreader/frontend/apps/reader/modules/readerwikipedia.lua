@@ -431,9 +431,9 @@ function ReaderWikipedia:onLookupWikipedia(
   get_fullpage,
   forced_lang
 )
-    NetworkMgr:runWhenOnline(function()
-  -- Wrapped through Trapper, as we may be using Trapper:dismissableRunInSubprocess() in it
-  Trapper:wrap(function()
+  NetworkMgr:runWhenOnline(function()
+    -- Wrapped through Trapper, as we may be using Trapper:dismissableRunInSubprocess() in it
+    Trapper:wrap(function()
       -- word is the text to query. If get_fullpage is true, it is the
       -- exact wikipedia page title we want the full page of.
       self:initLanguages(word)

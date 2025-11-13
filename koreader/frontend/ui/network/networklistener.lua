@@ -135,8 +135,8 @@ function NetworkListener:onPendingConnected(callback, key)
   assert(callback ~= nil)
   _pending_connected[key or self:_pendingKeyOf(callback)] = callback
   Notification:notify(
-  -- Need localization
-  _("Action will be performed after network being connected")
+    -- Need localization
+    _("Action will be performed after network being connected")
   )
 end
 
@@ -144,8 +144,8 @@ function NetworkListener:onPendingOnline(callback, key)
   assert(callback ~= nil)
   _pending_online[key or self:_pendingKeyOf(callback)] = callback
   Notification:notify(
-  -- Need localization
-  _("Action will be performed after network being online")
+    -- Need localization
+    _("Action will be performed after network being online")
   )
 end
 
