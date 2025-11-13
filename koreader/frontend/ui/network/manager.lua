@@ -564,7 +564,10 @@ function NetworkMgr:_beforeWifiAction()
     end
 
     UIManager:show(ConfirmBox:new({
-      text = _("Do you want to turn on Wi-Fi?"),
+      -- Need localization.
+      text = _("Network connection is required to perform the action.")
+        .. "\n"
+        .. _("Do you want to turn on Wi-Fi?"),
       ok_text = _("Turn on"),
       ok_callback = function()
         self:toggleWifiOn()
