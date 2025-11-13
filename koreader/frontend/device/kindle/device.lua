@@ -256,7 +256,7 @@ local function kindleIsWifiConnected()
 
   if not kindleIsWifiUp() then
     -- Checking wifi up may be delayed and causes the consistency issue.
-    return "UNKNOWN"
+    return false
   end
   return kindleWifiState() == "CONNECTED"
 end
