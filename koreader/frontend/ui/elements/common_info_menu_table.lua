@@ -48,7 +48,11 @@ if Device:hasKeyboard() then
   }
 end
 if G_defaults:isTrue("DEV_MODE") then
-  local sub_item_table = {}
+  common_info.common_log_files = {
+    -- Need l11n
+    text = _("Common log files"),
+    sub_item_table = {},
+  }
   for _, file in ipairs({
     "batterystat.log",
     "crash.log",
@@ -56,7 +60,7 @@ if G_defaults:isTrue("DEV_MODE") then
   }) do
     local fullpath =
       FfiUtil.realpath(DataStorage:getFullDataDir() .. "/" .. file)
-    table.insert(sub_item_table, {
+    table.insert(common_info.common_log_files.sub_item_table, {
       text = file,
       enabled_func = function()
         return fullpath ~= nil and lfs.attributes(fullpath, "mode") == "file"
@@ -66,12 +70,6 @@ if G_defaults:isTrue("DEV_MODE") then
       end,
     })
   end
-
-  common_info.common_log_files = {
-    -- Need l11n
-    text = _("Common log files"),
-    sub_item_table = sub_item_table,
-  }
 
   common_info.advanced_settings =
     require("ui/elements/advanced_settings_menu_table")
