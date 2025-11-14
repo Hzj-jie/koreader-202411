@@ -623,6 +623,10 @@ end
 -- Returns true if the callback has been "run".
 function NetworkMgr:runWhenOnline(callback, key)
   if self:willRerunWhenOnline(callback, key) then
+    Notification:notify(
+      -- Need localization
+      _("Action will be performed after network being online")
+    )
     self:_beforeWifiAction()
     return false
   end
@@ -635,6 +639,10 @@ end
 -- Returns true if the callback has been "run"
 function NetworkMgr:runWhenConnected(callback, key)
   if self:willRerunWhenConnected(callback, key) then
+    Notification:notify(
+      -- Need localization
+      _("Action will be performed after network being connected")
+    )
     self:_beforeWifiAction()
     return false
   end
