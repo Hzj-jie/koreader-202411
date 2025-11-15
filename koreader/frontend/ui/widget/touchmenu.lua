@@ -950,12 +950,17 @@ function TouchMenu:backToUpperMenu(no_close)
     end
     self:updateItems()
   elseif not no_close then
-    self:closeMenu()
+    self:_closeMenuOnly()
   end
 end
 
-function TouchMenu:closeMenu()
+function TouchMenu:_closeMenuOnly()
   self.close_callback()
+end
+
+function TouchMenu:closeMenu()
+  self:_closeMenuOnly()
+  UIManager:broadcastEvent("CloseConfigMenu")
 end
 
 function TouchMenu:onNextPage()
@@ -1027,7 +1032,7 @@ function TouchMenu:onSwipe(arg, ges_ev)
   elseif direction == "east" then
     self:onPrevPage()
   elseif direction == "north" then
-    self:closeMenu()
+    self:_closeMenuOnly()
   elseif direction == "south" then
     -- We don't allow the menu to be closed (this is also necessary as
     -- a swipe south will be emitted when done opening the menu with
@@ -1142,7 +1147,7 @@ function TouchMenu:onTapCloseAllMenus(arg, ges_ev)
   if ges_ev.pos:notIntersectWith(self.dimen) then
     -- Do not consume the event, the items not being covered should still
     -- receive the event.
-    self:closeMenu()
+    self:_closeMenuOnly()
   else
     -- Do nothing, but still consume the event to avoid being propagated to
     -- other items behind.
