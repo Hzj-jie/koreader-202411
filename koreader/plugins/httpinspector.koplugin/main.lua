@@ -21,7 +21,8 @@ local should_run = G_reader_settings:isTrue("httpinspector_autostart")
 
 local DEFAULT_PORT = Device:isEmulator() and 8080 or 80
 
-local HELP_TEXT = require("_meta").description
+-- Avoid caching the common _meta.lua file name as a module.
+local HELP_TEXT = dofile("plugins/httpinspector.koplugin/_meta.lua").description
 
 local HttpInspector = {}
 
