@@ -70,11 +70,14 @@ function AutoWarmth:init()
     or -20.30
   self.altitude = G_reader_settings:readSetting("autowarmth_altitude") or 200
   self.timezone = G_reader_settings:readSetting("autowarmth_timezone") or 0
-  self.scheduler_times = G_reader_settings:readSetting(
-    "autowarmth_scheduler_times"
-  ) or { 0.0, 5.5, 6.0, 6.5, 7.0, 13.0, 21.5, 22.0, 22.5, 23.0, 24.0 }
-  self.warmth = G_reader_settings:readSetting("autowarmth_warmth")
-    or { 90, 90, 80, 60, 20, 20, 20, 60, 80, 90, 90 }
+  self.scheduler_times = G_reader_settings:readTableSetting(
+    "autowarmth_scheduler_times",
+    { 0.0, 5.5, 6.0, 6.5, 7.0, 13.0, 21.5, 22.0, 22.5, 23.0, 24.0 }
+  )
+  self.warmth = G_reader_settings:readTableSetting(
+    "autowarmth_warmth",
+    { 90, 90, 80, 60, 20, 20, 20, 60, 80, 90, 90 }
+  )
 
   self.fl_off_during_day =
     G_reader_settings:readSetting("autowarmth_fl_off_during_day")

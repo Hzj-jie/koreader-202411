@@ -372,7 +372,7 @@ function JoplinExporter:export(t)
       self:saveSettings()
     end
   end
-  local plugin_settings = G_reader_settings:readSetting("exporter") or {}
+  local plugin_settings = G_reader_settings:readTableSetting("exporter")
   local markdown_settings = plugin_settings.markdown
   local notebook_id = self.settings.notebook_guid
   for _, booknotes in pairs(t) do

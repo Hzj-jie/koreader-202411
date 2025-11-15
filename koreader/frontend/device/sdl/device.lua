@@ -6,6 +6,7 @@ local SDL = require("ffi/SDL2_0")
 local ffi = require("ffi")
 local logger = require("logger")
 local time = require("ui/time")
+local util = require("util")
 
 -- SDL computes WM_CLASS on X11/Wayland based on process's binary name.
 -- Some desktop environments rely on WM_CLASS to name the app and/or to assign the proper icon.
@@ -18,12 +19,6 @@ if jit.os == "Linux" or jit.os == "BSD" or jit.os == "POSIX" then
   end
 end
 
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
 local function notOSX()
   return jit.os ~= "OSX"
 end
@@ -73,23 +68,23 @@ local external = require("device/thirdparty"):new({
 
 local Device = Generic:extend({
   model = "SDL",
-  isSDL = yes,
+  isSDL = util.yes,
   home_dir = os.getenv("XDG_DOCUMENTS_DIR") or os.getenv("HOME"),
   hasBattery = SDL.getPowerInfo,
-  hasKeyboard = yes,
-  hasKeys = yes,
+  hasKeyboard = util.yes,
+  hasKeys = util.yes,
   hasSymKey = os.getenv("DISABLE_TOUCH") == "1" and yes or no,
-  hasDPad = yes,
-  hasWifiToggle = no,
-  hasSeamlessWifiToggle = no,
-  isTouchDevice = yes,
-  isDefaultFullscreen = no,
-  needsScreenRefreshAfterResume = no,
-  hasColorScreen = yes,
-  hasEinkScreen = no,
-  hasSystemFonts = yes,
-  canSuspend = no,
-  canStandby = no,
+  hasDPad = util.yes,
+  hasWifiToggle = util.no,
+  hasSeamlessWifiToggle = util.no,
+  isTouchDevice = util.yes,
+  isDefaultFullscreen = util.no,
+  needsScreenRefreshAfterResume = util.no,
+  hasColorScreen = util.yes,
+  hasEinkScreen = util.no,
+  hasSystemFonts = util.yes,
+  canSuspend = util.no,
+  canStandby = util.no,
   startTextInput = SDL.startTextInput,
   stopTextInput = SDL.stopTextInput,
   canOpenLink = getLinkOpener,
@@ -100,7 +95,7 @@ local Device = Generic:extend({
     end
     return runCommand(tool .. " '" .. link .. "'")
   end,
-  canExternalDictLookup = yes,
+  canExternalDictLookup = util.yes,
   getExternalDictLookupList = function()
     return external.dicts
   end,
@@ -119,7 +114,7 @@ local Device = Generic:extend({
       external.when_back_callback = nil
     end
   end,
-  window = G_reader_settings:readSetting("sdl_window") or {},
+  window = G_reader_settings:readTableSetting("sdl_window"),
 })
 
 function Device:otaModel()
@@ -131,44 +126,44 @@ end
 local AppImage = Device:extend({
   model = "AppImage",
   ota_model = "appimage",
-  hasOTAUpdates = yes,
-  isDesktop = yes,
+  isDesktop = util.yes,
 })
 
 local Desktop = Device:extend({
   model = SDL.getPlatform(),
-  isDesktop = yes,
+  isDesktop = util.yes,
   canRestart = notOSX,
   hasExitOptions = notOSX,
 })
 
 local Flatpak = Device:extend({
   model = "Flatpak",
-  isDesktop = yes,
-  canExternalDictLookup = no,
+  isDesktop = util.yes,
+  canExternalDictLookup = util.no,
 })
 
 local Emulator = Device:extend({
   model = "Emulator",
-  isEmulator = yes,
-  hasBattery = yes,
-  hasEinkScreen = yes,
-  hasFrontlight = yes,
-  hasNaturalLight = yes,
-  hasNaturalLightApi = yes,
-  hasWifiToggle = yes,
+  isEmulator = util.yes,
+  hasBattery = util.yes,
+  hasEinkScreen = util.yes,
+  hasFrontlight = util.yes,
+  hasNaturalLight = util.yes,
+  hasNaturalLightApi = util.yes,
+  hasWifiRestore = util.yes,
+  hasWifiToggle = util.yes,
   -- Not really, Device:reboot & Device:powerOff are not implemented, so we just exit ;).
-  canPowerOff = yes,
-  canReboot = yes,
+  canPowerOff = util.yes,
+  canReboot = util.yes,
   -- NOTE: Via simulateSuspend
-  canSuspend = yes,
-  canStandby = no,
+  canSuspend = util.yes,
+  canStandby = util.no,
 })
 
 local UbuntuTouch = Device:extend({
   model = "UbuntuTouch",
-  hasFrontlight = yes,
-  isDefaultFullscreen = yes,
+  hasFrontlight = util.yes,
+  isDefaultFullscreen = util.yes,
 })
 
 function Device:init()
@@ -213,7 +208,7 @@ function Device:init()
 
   self.input = require("device/input"):new({
     device = self,
-    event_map = dofile("frontend/device/sdl/event_map_sdl2.lua"),
+    event_map = require("device/sdl/event_map_sdl2"),
     handleSdlEv = function(device_input, ev)
       -- SDL events can remain cdata but are almost completely transparent
       local SDL_TEXTINPUT = 771
@@ -321,7 +316,7 @@ function Device:init()
     end,
   })
 
-  self.keyboard_layout = dofile("frontend/device/sdl/keyboard_layout.lua")
+  self.keyboard_layout = require("device/sdl/keyboard_layout")
 
   if self.input.gameControllerRumble(0, 0, 0) then
     self.isHapticFeedbackEnabled = yes

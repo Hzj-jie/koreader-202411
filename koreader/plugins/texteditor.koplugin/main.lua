@@ -76,8 +76,8 @@ function TextEditor:loadSettings()
   end
   self.settings = LuaSettings:open(self.settings_file)
   -- NOTE: addToHistory assigns a new object
-  self.history = self.settings:readSetting("history") or {}
-  self.last_view_pos = self.settings:readSetting("last_view_pos") or {}
+  self.history = self.settings:readTableSetting("history")
+  self.last_view_pos = self.settings:readTableSetting("last_view_pos")
   self.last_path = self.settings:readSetting("last_path")
     or ffiutil.realpath(DataStorage:getDataDir())
   self.font_face = self.settings:readSetting("font_face") or self.normal_font
@@ -531,9 +531,6 @@ end
 function TextEditor:saveFileContent(file_path, content)
   local ok, err = util.writeToFile(content, file_path)
   if ok then
-    if self.ui.file_chooser then
-      self.ui.file_chooser:refreshPath()
-    end
     logger.info("TextEditor: saved file", file_path)
     return true
   end
@@ -638,6 +635,9 @@ function TextEditor:editFile(file_path, readonly)
         Screen:setRotationMode(self.input.rotation_mode_backup)
       end
       self:execWhenDoneFunc()
+      if self.ui.file_chooser then
+        self.ui.file_chooser:refreshPath()
+      end
     end,
     -- File saving callback
     save_callback = function(content, closing) -- Will add Save/Close buttons

@@ -8,16 +8,10 @@ local C = ffi.C
 local FFIUtil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local time = require("ui/time")
 local util = require("util")
 local _ = require("gettext")
 local T = FFIUtil.template
-
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
 
 local function getCodename()
   local api = android.app.activity.sdkVersion
@@ -86,35 +80,30 @@ local external = require("device/thirdparty"):new({
 })
 
 local Device = Generic:extend({
-  isAndroid = yes,
+  isAndroid = util.yes,
   model = android.prop.product,
-  hasKeys = yes,
-  hasDPad = no,
-  hasSeamlessWifiToggle = no, -- Requires losing focus to the sytem's network settings and user interaction
-  hasExitOptions = no,
+  hasKeys = util.yes,
+  hasDPad = util.no,
+  hasSeamlessWifiToggle = util.no, -- Requires losing focus to the sytem's network settings and user interaction
+  hasExitOptions = util.no,
   hasEinkScreen = function()
     return android.isEink()
   end,
   hasColorScreen = android.isColorScreen,
   hasFrontlight = android.hasLights,
   hasNaturalLight = android.isWarmthDevice,
-  canRestart = no,
-  canSuspend = no,
+  canRestart = util.no,
+  canSuspend = util.no,
   firmware_rev = android.app.activity.sdkVersion,
   home_dir = android.getExternalStoragePath(),
   display_dpi = android.lib.AConfiguration_getDensity(android.app.config),
-  isHapticFeedbackEnabled = yes,
+  isHapticFeedbackEnabled = util.yes,
   isDefaultFullscreen = function()
     return android.app.activity.sdkVersion >= 19
   end,
-  hasClipboard = yes,
-  hasOTAUpdates = android.ota.isEnabled,
-  hasOTARunning = function()
-    return android.ota.isRunning
-  end,
-  hasFastWifiStatusQuery = yes,
-  hasSystemFonts = yes,
-  canOpenLink = yes,
+  hasClipboard = util.yes,
+  hasSystemFonts = util.yes,
+  canOpenLink = util.yes,
   openLink = function(self, link)
     if not link or type(link) ~= "string" then
       return
@@ -130,12 +119,12 @@ local Device = Generic:extend({
   importFile = function(path)
     android.importFile(path)
   end,
-  canShareText = yes,
+  canShareText = util.yes,
   doShareText = function(self, text, reason, title, mimetype)
     android.sendText(text, reason, title, mimetype)
   end,
 
-  canExternalDictLookup = yes,
+  canExternalDictLookup = util.yes,
   getExternalDictLookupList = function()
     return external.dicts
   end,
@@ -171,7 +160,7 @@ function Device:init()
   })
   self.powerd = require("device/android/powerd"):new({ device = self })
 
-  local event_map = dofile("frontend/device/android/event_map.lua")
+  local event_map = require("device/android/event_map")
 
   self.input = require("device/input"):new({
     device = self,
@@ -189,8 +178,7 @@ function Device:init()
       then
         this.device.screen:_updateWindow()
       elseif
-        ev.code == C.APP_CMD_LOST_FOCUS
-        or ev.code == C.APP_CMD_TERM_WINDOW
+        ev.code == C.APP_CMD_LOST_FOCUS or ev.code == C.APP_CMD_TERM_WINDOW
       then
         this.device.input:resetState()
       elseif ev.code == C.APP_CMD_CONFIG_CHANGED then
@@ -216,6 +204,7 @@ function Device:init()
         -- to-do: keyboard connected, disconnected
       elseif ev.code == C.APP_CMD_RESUME then
         if not android.prop.brokenLifecycle then
+          Generic.last_resume_at = time.now()
           UIManager:broadcastEvent(Event:new("Resume"))
         end
         if external.when_back_callback then

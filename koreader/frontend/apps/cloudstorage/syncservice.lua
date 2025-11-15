@@ -39,7 +39,7 @@ function SyncService:generateItemTable()
   -- select and/or add server
   local added_servers = LuaSettings:open(
     DataStorage:getSettingsDir() .. "/cloudstorage.lua"
-  ):readSetting("cs_servers") or {}
+  ):readTableSetting("cs_servers")
   for _, server in ipairs(added_servers) do
     if server.type == "dropbox" or server.type == "webdav" then
       local item = {

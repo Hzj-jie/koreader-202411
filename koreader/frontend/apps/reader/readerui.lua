@@ -597,7 +597,7 @@ function ReaderUI:init()
     self.doc_settings:saveSetting("partial_md5_checksum", md5)
   end
 
-  local summary = self.doc_settings:readSetting("summary") or {}
+  local summary = self.doc_settings:readTableSetting("summary")
   if summary.status == nil then
     summary.status = "reading"
     summary.modified = os.date("%Y-%m-%d", os.time())
@@ -605,7 +605,7 @@ function ReaderUI:init()
 
   if
     summary.status ~= "complete"
-    or not G_reader_settings:isTrue("history_freeze_finished_books")
+    or not G_reader_settings:nilOrTrue("history_freeze_finished_books")
   then
     require("readhistory"):addItem(self.document.file) -- (will update "lastfile")
   end
@@ -615,8 +615,6 @@ function ReaderUI:init()
   -- Need the same event for PDF document
   UIManager:broadcastEvent(Event:new("ReaderReady", self.doc_settings))
   UIManager:broadcastEvent(Event:new("PostReaderReady"))
-
-  self.reloading = nil
 
   Device:setIgnoreInput(false) -- Allow processing of events (on Android).
   Input:inhibitInputUntil(0.2)
@@ -753,7 +751,7 @@ end
 
 function ReaderUI:showReaderCoroutine(file, provider, seamless)
   -- doShowReader might block for a long time, so force repaint here
-  UIManager:runInNextTickWith(
+  UIManager:runWith(
     function()
       logger.dbg("creating coroutine for showing reader")
       local co = coroutine.create(function()
@@ -818,7 +816,6 @@ function ReaderUI:doShowReader(file, provider, seamless)
     dimen = Screen:getSize(),
     covers_fullscreen = true, -- hint for UIManager:_repaint()
     document = document,
-    reloading = self.reloading,
     seamless = seamless,
   })
 
@@ -905,12 +902,11 @@ function ReaderUI:onFlushSettings(show_notification)
   end
 end
 
-function ReaderUI:closeDocument()
-  self.document:close()
-  self.document = nil
-end
-
 function ReaderUI:onExit(full_refresh)
+  if self.document == nil then
+    -- This shouldn't happen, but who knows who would call ReaderUI:onExit?
+    return
+  end
   logger.dbg("closing reader")
   UIManager:runWith(
     function()
@@ -933,7 +929,8 @@ function ReaderUI:onExit(full_refresh)
         then
           self.document:discardChange()
         end
-        self:closeDocument()
+        self.document:close()
+        self.document = nil
       end
       if self.dialog == self then
         UIManager:close(self, full_refresh ~= false and "full")
@@ -998,43 +995,29 @@ function ReaderUI:onReload()
   self:reloadDocument()
 end
 
-function ReaderUI:reloadDocument(after_close_callback, seamless)
-  local file = self.document.file
-  local provider = getmetatable(self.document).__index
-
+function ReaderUI:_loadDocument(file, seamless)
   -- Mimic onShowingReader's refresh optimizations
   self.tearing_down = true
   self.dithered = nil
-  self.reloading = true
 
   UIManager:broadcastEvent(Event:new("CloseReaderMenu"))
   UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
-  UIManager:broadcastEvent(Event:new("PreserveCurrentSession")) -- don't reset statistics' start_current_period
   self.highlight:onExit() -- close highlight dialog if any
   self:onExit(false)
-  if after_close_callback then
-    -- allow caller to do stuff between close an re-open
-    after_close_callback(file, provider)
-  end
 
-  self:showReader(file, provider, seamless)
+  self:showReader(file, nil, seamless)
+end
+
+function ReaderUI:reloadDocument(seamless)
+  UIManager:broadcastEvent(Event:new("PreserveCurrentSession")) -- don't reset statistics' start_current_period
+  self:_loadDocument(self.document.file, seamless)
 end
 
 function ReaderUI:switchDocument(new_file, seamless)
-  if not new_file then
+  if not new_file or new_file == self.document.file then
     return
   end
-
-  -- Mimic onShowingReader's refresh optimizations
-  self.tearing_down = true
-  self.dithered = nil
-
-  UIManager:broadcastEvent(Event:new("CloseReaderMenu"))
-  UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
-  self.highlight:onExit() -- close highlight dialog if any
-  self:onExit(false)
-
-  self:showReader(new_file, nil, seamless)
+  self:_loadDocument(new_file, seamless)
 end
 
 function ReaderUI:onOpenLastDoc()

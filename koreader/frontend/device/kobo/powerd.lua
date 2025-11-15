@@ -603,7 +603,7 @@ function KoboPowerD:afterResume()
   -- Restore user input and emit the Resume event.
   self.device:_afterResume()
 
-  -- There's a whole bunch of stuff happening before us in Generic:onPowerEvent,
+  -- There's a whole bunch of stuff happening before us in Generic:handlePowerEvent,
   -- so we'll delay this ever so slightly so as to appear as smooth as possible...
   if self.fl then
     -- Same reasoning as on suspend

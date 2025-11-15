@@ -50,7 +50,7 @@ local BookStatusWidget = FocusManager:extend({
 function BookStatusWidget:init()
   self.updated = nil
   self.layout = {}
-  self.summary = self.ui.doc_settings:readSetting("summary") or {}
+  self.summary = self.ui.doc_settings:readTableSetting("summary")
   self.total_pages = self.ui.document:getPageCount()
   stats_book = self:getStats()
 
@@ -69,7 +69,7 @@ function BookStatusWidget:init()
   })
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
   if Device:isTouchDevice() then
     self.ges_events.Swipe = {

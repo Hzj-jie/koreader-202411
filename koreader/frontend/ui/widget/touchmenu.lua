@@ -600,7 +600,7 @@ function TouchMenu:init()
   else
     self.key_events.Back = { { Input.group.Back } }
   end
-  self.key_events.Close = { { "Menu" } }
+  self.key_events.Exit = { { "Menu" } }
   self.key_events.NextPage = { { Input.group.PgFwd } }
   self.key_events.PrevPage = { { Input.group.PgBack } }
 
@@ -683,7 +683,7 @@ function TouchMenu:init()
     icon = "chevron.up",
     show_parent = self.show_parent,
     padding_left = math.floor(footer_width * 0.33 * 0.1),
-    padding_right = math.floor(footer_width * 0.33 * 0.1),
+    padding_right = math.floor(footer_width * 0.33 * 0.5),
     callback = function()
       self:backToUpperMenu()
     end,
@@ -1140,7 +1140,12 @@ end
 
 function TouchMenu:onTapCloseAllMenus(arg, ges_ev)
   if ges_ev.pos:notIntersectWith(self.dimen) then
+    -- Do not consume the event, the items not being covered should still
+    -- receive the event.
     self:closeMenu()
+  else
+    -- Do nothing, but still consume the event to avoid being propagated to
+    -- other items behind.
     return true
   end
 end

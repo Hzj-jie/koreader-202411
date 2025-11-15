@@ -55,7 +55,6 @@ end
 
 function AutoStandby:addToMainMenu(menu_items)
   menu_items.autostandby = {
-    sorting_hint = "device",
     text = _("Auto-standby settings"),
     sub_item_table = {
       {

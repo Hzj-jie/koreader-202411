@@ -1,5 +1,5 @@
 -- Start with the english keyboard layout
-local th_keyboard = dofile("frontend/ui/data/keyboardlayouts/en_keyboard.lua")
+local th_keyboard = require("ui/data/keyboardlayouts/en_keyboard")
 
 -- Swap the four AZWQ keys (only in the lowercase and
 -- uppercase letters layouts) to change it from QWERTY to AZERTY

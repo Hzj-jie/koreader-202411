@@ -7,6 +7,8 @@ if Device:isAndroid() then
   return { disabled = true }
 end
 
+local ALLOW_BLOCKING_JOBS = false
+
 local CommandRunner = require("commandrunner")
 local PluginShare = require("pluginshare")
 local UIManager = require("ui/uimanager")
@@ -130,6 +132,7 @@ function BackgroundRunner:_shouldRepeat(job)
 end
 
 function BackgroundRunner:_finishJob(job)
+  -- No timeout for real forked commands, they can run as long as they need.
   if type(job.executable) == "function" then
     local time_diff = job.end_time - job.start_time
     local threshold = time.s(1)
@@ -140,18 +143,22 @@ function BackgroundRunner:_finishJob(job)
     end
     job.timeout = (time_diff > threshold)
   end
-  job.blocked = job.timeout
-  if job.blocked then
+  if ALLOW_BLOCKING_JOBS then
+    job.blocked = job.timeout
+  else
+    job.blocked = false
+  end
+  if job.blocked or job.timeout then
     logger.warn(
       "BackgroundRunner: job [",
       _debugJobStr(job),
-      " will be blocked due to timeout"
+      "] may be blocked due to timeout"
     )
   end
   if not job.blocked and self:_shouldRepeat(job) then
     table.insert(PluginShare.backgroundJobs, _clone(job))
   elseif G_defaults:isTrue("DEV_MODE") then
-    logger.info("job ", _debugJobStr(job), " will not be repeated.")
+    assert(not job.blocked)
   end
   if job.callback ~= nil then
     assert(type(job.callback) == "function")

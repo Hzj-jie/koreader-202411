@@ -1067,14 +1067,15 @@ function Menu:init()
       range = self.dimen,
     }),
   }
-  self.ges_events.Close = self.on_close_ges
+  self.ges_events.Exit = self.on_close_ges
 
   if Device:hasKeys() then
     -- set up keyboard events
-    self.key_events.Close = { { Input.group.Back } }
     self.key_events.LeftButtonTap = { { "Menu" } }
     if Device:hasFewKeys() then
-      self.key_events.Close = { { "Left" } }
+      self.key_events.Exit = { { "Left" } }
+    else
+      self.key_events.Exit = { { Input.group.Back } }
     end
     self.key_events.NextPage = { { Input.group.PgFwd } }
     self.key_events.PrevPage = { { Input.group.PgBack } }

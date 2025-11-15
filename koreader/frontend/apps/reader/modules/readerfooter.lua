@@ -503,7 +503,6 @@ local ReaderFooter = WidgetContainer:extend({
 local DEFAULT_SETTINGS = {
   disable_progress_bar = false, -- enable progress bar by default
   chapter_progress_bar = false, -- the whole book
-  disabled = false,
   all_at_once = false,
   reclaim_height = false,
   toc_markers = true,
@@ -553,14 +552,11 @@ local DEFAULT_SETTINGS = {
 }
 
 function ReaderFooter:init()
-  self.settings = G_reader_settings:readSetting("footer") or DEFAULT_SETTINGS
+  self.settings = G_reader_settings:readTableSetting("footer", DEFAULT_SETTINGS)
 
   self.additional_footer_content = {} -- array, where additional header content can be inserted.
 
   -- Remove items not supported by the current device
-  if not Device:hasFastWifiStatusQuery() then
-    MODE.wifi_status = nil
-  end
   if not Device:hasFrontlight() then
     MODE.frontlight = nil
   end
@@ -616,11 +612,6 @@ function ReaderFooter:init()
   self.mode_list = {}
   for i = 0, #self.mode_index do
     self.mode_list[self.mode_index[i]] = i
-  end
-  if self.settings.disabled then
-    -- footer feature is completely disabled, stop initialization now
-    self:disableFooter()
-    return
   end
 
   self.pageno = self.view.state.page
@@ -678,7 +669,7 @@ function ReaderFooter:init()
       self.footer_text.height = 0
     end
   else
-    self:applyFooterMode()
+    self:_applyFooterMode()
   end
 
   self.visibility_change = nil
@@ -961,15 +952,6 @@ function ReaderFooter:getHeight()
   end
 end
 
-function ReaderFooter:disableFooter()
-  self.onReaderReady = function() end
-  self.resetLayout = function() end
-  self._updateFooterPage = function() end
-  self._updateFooterPos = function() end
-  self.mode = self.mode_list.off
-  self.view.footer_visible = false
-end
-
 function ReaderFooter:_updateFooterTextGenerator()
   local footerTextGenerators = {}
   for i, m in pairs(self.mode_index) do
@@ -1129,7 +1111,7 @@ function ReaderFooter:addToMainMenu(menu_items)
         elseif prev_has_no_mode then
           if self.settings.all_at_once then
             self.mode = self.mode_list.page_progress
-            self:applyFooterMode()
+            self:_applyFooterMode()
             G_reader_settings:saveSetting("reader_footer_mode", self.mode)
           else
             G_reader_settings:saveSetting(
@@ -1166,7 +1148,7 @@ function ReaderFooter:addToMainMenu(menu_items)
               or self.mode_list.page_progress
           end
           should_refresh = true
-          self:applyFooterMode()
+          self:_applyFooterMode()
           G_reader_settings:saveSetting("reader_footer_mode", self.mode)
         end
         if should_refresh then
@@ -1194,7 +1176,7 @@ function ReaderFooter:addToMainMenu(menu_items)
           -- If the status bar is currently disabled, switch to an innocuous mode to display it
           if not self.view.footer_visible then
             self.mode = self.mode_list.page_progress
-            self:applyFooterMode()
+            self:_applyFooterMode()
             G_reader_settings:saveSetting("reader_footer_mode", self.mode)
           end
           self:refreshFooter()
@@ -1471,9 +1453,7 @@ function ReaderFooter:addToMainMenu(menu_items)
     table.insert(footer_items, getMinibarOption("frontlight_warmth"))
   end
   table.insert(footer_items, getMinibarOption("mem_usage"))
-  if Device:hasFastWifiStatusQuery() then
-    table.insert(footer_items, getMinibarOption("wifi_status"))
-  end
+  table.insert(footer_items, getMinibarOption("wifi_status"))
   table.insert(footer_items, getMinibarOption("page_turning_inverted"))
   table.insert(footer_items, getMinibarOption("book_author"))
   table.insert(footer_items, getMinibarOption("book_title"))
@@ -2081,11 +2061,6 @@ function ReaderFooter:genAllFooterText()
     -- Skip empty generators, so they don't generate bogus separators
     local text, merge = gen(self)
     if text and text ~= "" then
-      if self.settings.item_prefix == "compact_items" then
-        -- remove whitespace from footer items if symbol_type is compact_items
-        -- use a hair-space to avoid issues with RTL display
-        text = text:gsub("%s", "\u{200A}")
-      end
       -- if generator request a merge of this item, add it directly,
       -- i.e. no separator before and after the text then.
       if merge then
@@ -2100,7 +2075,13 @@ function ReaderFooter:genAllFooterText()
       end
     end
   end
-  return table.concat(info, BD.wrap(self:genSeparator()))
+  local result = table.concat(info, BD.wrap(self:genSeparator()))
+  if self.settings.item_prefix == "compact_items" then
+    -- remove whitespace from footer items if symbol_type is compact_items
+    -- use a hair-space to avoid issues with RTL display
+    result = result:gsub("%s", "\u{200A}")
+  end
+  return result
 end
 
 function ReaderFooter:setTocMarkers(reset)
@@ -2179,10 +2160,64 @@ function ReaderFooter:getDataFromStatistics(title, pages)
   return title .. sec
 end
 
+function ReaderFooter:_repaint()
+  -- NOTE: This is essentially preventing us from truly using "fast" for panning,
+  --     since it'll get coalesced in the "fast" panning update, upgrading it to "ui".
+  -- NOTE: That's assuming using "fast" for pans was a good idea, which, it turned out, not so much ;).
+  -- NOTE: We skip repaints on page turns/pos update, as that's redundant (and slow).
+  local top_wg = UIManager:getTopmostVisibleWidget() or {}
+  if
+    top_wg.name ~= "ReaderUI"
+    and (top_wg.covers_fullscreen or top_wg.covers_footer)
+  then
+    -- If the top most widget covers the footer, but it's not the ReaderUI,
+    -- footer doesn't need to be repainted.
+    return
+  end
+
+  -- If there was a visibility change, notify ReaderView
+  if self.visibility_change then
+    self.visibility_change = nil
+    UIManager:broadcastEvent(Event:new("ReaderFooterVisibilityChange"))
+  end
+
+  -- NOTE: Getting the dimensions of the widget is impossible without having drawn it first,
+  --     so, we'll fudge it if need be...
+  --     i.e., when it's no longer visible, because there's nothing to draw ;).
+  local refresh_dim = self.footer_content.dimen
+  -- No more content...
+  if not self.view.footer_visible and not refresh_dim then
+    -- So, instead, rely on self:getHeight to compute self.footer_content's height early...
+    refresh_dim = self.dimen
+    refresh_dim.h = self:getHeight()
+    refresh_dim.y = self._saved_screen_height - refresh_dim.h
+  end
+  -- If we're making the footer visible (or it already is), we don't need to repaint ReaderUI behind it
+  if self.view.footer_visible and top_wg.name == "ReaderUI" then
+    -- Unfortunately, it's not a modal (we never show() it), so it's not in the window stack,
+    -- instead, it's baked inside ReaderUI, so it gets slightly trickier...
+    -- NOTE: self.view.footer -> self ;).
+
+    -- c.f., ReaderView:paintTo()
+    UIManager:widgetRepaint(self.view.footer, 0, 0)
+    -- We've painted it first to ensure self.footer_content.dimen is sane
+    UIManager:setDirty(nil, function()
+      return self.view.currently_scrolling and "fast" or "ui",
+        self.footer_content.dimen
+    end)
+  else
+    -- If the footer is invisible or might be hidden behind another widget, we need to repaint the full ReaderUI stack.
+    UIManager:setDirty(self.view.dialog, function()
+      return self.view.currently_scrolling and "fast" or "ui", refresh_dim
+    end)
+  end
+end
+
 -- Use of this event should be very cautious, ReaderFooter should listen to
 -- other events and call this function itself.
 function ReaderFooter:onUpdateFooter()
   if not self.view.footer_visible then
+    self:_repaint()
     return
   end
   self:_updateFooterPage()
@@ -2190,7 +2225,7 @@ function ReaderFooter:onUpdateFooter()
 end
 
 function ReaderFooter:_updateFooterPage()
-  if type(self.pageno) ~= "number" then
+  if type(self.pageno) ~= "number" or type(self.position) == "number" then
     return
   end
   if self.settings.chapter_progress_bar then
@@ -2213,6 +2248,7 @@ function ReaderFooter:_updateFooterPage()
 end
 
 function ReaderFooter:_updateFooterPos()
+  -- self.pageno is optional.
   if type(self.position) ~= "number" then
     return
   end
@@ -2245,7 +2281,9 @@ function ReaderFooter:_updateFooterText() end
 -- only call this function after document is fully loaded
 function ReaderFooter:__updateFooterText()
   -- footer is invisible, we need neither a repaint nor a recompute, go away.
-  assert(self.view.footer_visible)
+  if not self.view.footer_visible then
+    return
+  end
 
   local text = self:genFooterText() or ""
   for _, v in ipairs(self.additional_footer_content) do
@@ -2325,55 +2363,7 @@ function ReaderFooter:__updateFooterText()
   end
   self.text_container.dimen.w = self.text_width
   self.horizontal_group:resetLayout()
-  -- NOTE: This is essentially preventing us from truly using "fast" for panning,
-  --     since it'll get coalesced in the "fast" panning update, upgrading it to "ui".
-  -- NOTE: That's assuming using "fast" for pans was a good idea, which, it turned out, not so much ;).
-  -- NOTE: We skip repaints on page turns/pos update, as that's redundant (and slow).
-  local top_wg = UIManager:getTopmostVisibleWidget() or {}
-  if
-    top_wg.name ~= "ReaderUI"
-    and (top_wg.covers_fullscreen or top_wg.covers_footer)
-  then
-    -- If the top most widget covers the footer, but it's not the ReaderUI,
-    -- footer doesn't need to be repainted.
-    return
-  end
-  -- If there was a visibility change, notify ReaderView
-  if self.visibility_change then
-    self.visibility_change = nil
-    UIManager:broadcastEvent(Event:new("ReaderFooterVisibilityChange"))
-  end
-
-  -- NOTE: Getting the dimensions of the widget is impossible without having drawn it first,
-  --     so, we'll fudge it if need be...
-  --     i.e., when it's no longer visible, because there's nothing to draw ;).
-  local refresh_dim = self.footer_content.dimen
-  -- No more content...
-  if not self.view.footer_visible and not refresh_dim then
-    -- So, instead, rely on self:getHeight to compute self.footer_content's height early...
-    refresh_dim = self.dimen
-    refresh_dim.h = self:getHeight()
-    refresh_dim.y = self._saved_screen_height - refresh_dim.h
-  end
-  -- If we're making the footer visible (or it already is), we don't need to repaint ReaderUI behind it
-  if top_wg.name == "ReaderUI" then
-    -- Unfortunately, it's not a modal (we never show() it), so it's not in the window stack,
-    -- instead, it's baked inside ReaderUI, so it gets slightly trickier...
-    -- NOTE: self.view.footer -> self ;).
-
-    -- c.f., ReaderView:paintTo()
-    UIManager:widgetRepaint(self.view.footer, 0, 0)
-    -- We've painted it first to ensure self.footer_content.dimen is sane
-    UIManager:setDirty(nil, function()
-      return self.view.currently_scrolling and "fast" or "ui",
-        self.footer_content.dimen
-    end)
-  else
-    -- If the footer is invisible or might be hidden behind another widget, we need to repaint the full ReaderUI stack.
-    UIManager:setDirty(self.view.dialog, function()
-      return self.view.currently_scrolling and "fast" or "ui", refresh_dim
-    end)
-  end
+  self:_repaint()
 end
 
 -- Note: no need for :onDocumentRerendered(), ReaderToc will catch "DocumentRerendered"
@@ -2447,12 +2437,16 @@ function ReaderFooter:onReaderReady()
   self:onUpdateFooter()
 end
 
-function ReaderFooter:applyFooterMode(mode)
-  if mode ~= nil then
-    self.mode = mode
-  end
+function ReaderFooter:_applyFooterMode()
   local prev_visible_state = self.view.footer_visible
+  assert(prev_visible_state ~= nil)
   self.view.footer_visible = (self.mode ~= self.mode_list.off)
+  if self.view.footer_visible ~= prev_visible_state then
+    -- It's allowed setting visibility_change to true multiple times without a
+    -- __updateFooterText() call.
+    -- Flag __updateFooterText to notify ReaderView to recalculate the visible_area!
+    self.visibility_change = true
+  end
 
   -- NOTE: __updateFooterText won't actually run the text generator(s) when hidden ;).
 
@@ -2475,25 +2469,22 @@ function ReaderFooter:applyFooterMode(mode)
   end
 
   -- If we changed visibility state at runtime (as opposed to during init), better make sure the layout has been reset...
-  if
-    prev_visible_state ~= nil
-    and self.view.footer_visible ~= prev_visible_state
-  then
+  if self.visibility_change then
     self:updateFooterContainer()
     -- NOTE: __updateFooterText does a resetLayout, but not a forced one!
     self:resetLayout(true)
-    -- Flag __updateFooterText to notify ReaderView to recalculate the visible_area!
-    self.visibility_change = true
   end
 end
 
 function ReaderFooter:onEnterFlippingMode()
   self.orig_mode = self.mode
-  self:applyFooterMode(self.mode_list.page_progress)
+  self.mode = self.mode_list.page_progress
+  self:_applyFooterMode()
 end
 
 function ReaderFooter:onExitFlippingMode()
-  self:applyFooterMode(self.orig_mode)
+  self.mode = self.orig_mode
+  self:_applyFooterMode()
 end
 
 function ReaderFooter:TapFooter(ges)
@@ -2539,7 +2530,7 @@ function ReaderFooter:onToggleFooterMode()
       end
     end
   end
-  self:applyFooterMode()
+  self:_applyFooterMode()
   G_reader_settings:saveSetting("reader_footer_mode", self.mode)
   self:onUpdateFooter()
   return true

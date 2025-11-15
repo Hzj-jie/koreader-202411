@@ -47,7 +47,7 @@ function FileManagerHistory:fetchStatuses(count)
     if v.dim then -- deleted file
       status = "deleted"
     elseif v.file == (self.ui.document and self.ui.document.file) then -- currently opened file
-      status = (self.ui.doc_settings:readSetting("summary") or {}).status
+      status = self.ui.doc_settings:readTableSetting("summary").status
     else
       status = filemanagerutil.getStatus(v.file)
     end
@@ -314,7 +314,7 @@ function FileManagerHistory:onShowHist(search_info)
     self.selected_collections = nil
   end
   self.filter = G_reader_settings:readSetting("history_filter") or "all"
-  self.is_frozen = G_reader_settings:isTrue("history_freeze_finished_books")
+  self.is_frozen = G_reader_settings:nilOrTrue("history_freeze_finished_books")
   if self.filter ~= "all" or self.is_frozen then
     self:fetchStatuses(false)
   end

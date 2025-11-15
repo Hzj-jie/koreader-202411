@@ -50,7 +50,7 @@ local UIManager = {
 function UIManager:init()
   self.event_handlers = {
     Power = function(input_event)
-      Device:onPowerEvent(input_event)
+      Device:handlePowerEvent(input_event)
     end,
     -- This is for hotpluggable evdev input devices (e.g., USB OTG)
     UsbDevicePlugIn = function(input_event)
@@ -1194,7 +1194,7 @@ function UIManager:_refresh(mode, region, dither)
   -- Handle downgrading flashing modes to non-flashing modes, according to user settings.
   -- NOTE: Do it before "full" promotion and collision checks/update_mode.
   if G_reader_settings:nilOrTrue("avoid_flashing_ui") then
-    if mode == "full" or mode == "flashui" then
+    if mode == "flashui" then
       mode = "ui"
       logger.dbg("_refresh: downgraded flashui refresh to", mode)
     elseif mode == "flashpartial" then
@@ -1897,12 +1897,6 @@ function UIManager:runWith(func, widget)
   self:forceRePaint()
   func()
   self:close(widget)
-end
-
-function UIManager:runInNextTickWith(func, widget)
-  self:runWith(function()
-    self:nextTick(func)
-  end, widget)
 end
 
 UIManager:init()

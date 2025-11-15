@@ -58,8 +58,10 @@ local subtitle_face = Font:getFace("cfont", 12)
 local subtitle_italic_face = Font:getFace("NotoSans-Italic.ttf", 12)
 local subtitle_color = Blitbuffer.COLOR_DARK_GRAY
 local dim_color = Blitbuffer.COLOR_GRAY_3
-local settings = G_reader_settings:readSetting("vocabulary_builder")
-  or { enabled = false, with_context = true }
+local settings = G_reader_settings:readTableSetting(
+  "vocabulary_builder",
+  { enabled = false, with_context = true }
+)
 
 local function saveSettings()
   G_reader_settings:saveSetting("vocabulary_builder", settings)
@@ -87,7 +89,7 @@ function MenuDialog:init()
     else
       table.insert(back_group, "Menu")
     end
-    self.key_events.Close = { { back_group } }
+    self.key_events.Exit = { { back_group } }
   end
   if Device:isTouchDevice() then
     self.ges_events.Tap = {
@@ -542,7 +544,7 @@ function WordInfoDialog:init()
   self.layout = {}
   if self.dismissable then
     if Device:hasKeys() then
-      self.key_events.Close = { { Device.input.group.Back } }
+      self.key_events.Exit = { { Device.input.group.Back } }
     end
     if Device:isTouchDevice() then
       self.ges_events.Tap = {
@@ -1413,7 +1415,7 @@ function VocabularyBuilderWidget:init()
   })
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
     self.key_events.NextPage = { { Device.input.group.PgFwd } }
     self.key_events.PrevPage = { { Device.input.group.PgBack } }
     self.key_events.ShowMenu = { { "Menu" } }

@@ -526,7 +526,7 @@ function CalendarDayView:init()
     h = Screen:getHeight(),
   })
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
     self.key_events.NextPage = { { Device.input.group.PgFwd } }
     self.key_events.PrevPage = { { Device.input.group.PgBack } }
   end
@@ -1185,7 +1185,7 @@ function CalendarView:init()
   end
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Input.group.Back } }
+    self.key_events.Exit = { { Input.group.Back } }
     self.key_events.NextMonth = { { Input.group.PgFwd } }
     self.key_events.PrevMonth = { { Input.group.PgBack } }
   end

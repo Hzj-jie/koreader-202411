@@ -3,15 +3,9 @@ local PluginShare = require("pluginshare")
 local logger = require("logger")
 local time = require("ui/time")
 local ffi = require("ffi")
+local util = require("util")
 local C = ffi.C
 require("ffi/linux_input_h")
-
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
 
 -- returns isRm2, device_model
 local function getModel()
@@ -34,23 +28,21 @@ local wacom_scale_y = screen_height / wacom_height
 local isRm2, rm_model = getModel()
 
 local Remarkable = Generic:extend({
-  isRemarkable = yes,
+  isRemarkable = util.yes,
   model = rm_model,
   ota_model = "remarkable",
-  hasKeys = yes,
-  needsScreenRefreshAfterResume = no,
-  hasOTAUpdates = yes,
-  hasFastWifiStatusQuery = yes,
-  hasWifiManager = yes,
-  canReboot = yes,
-  canPowerOff = yes,
-  canSuspend = yes,
-  isTouchDevice = yes,
-  hasFrontlight = no,
-  hasSystemFonts = yes,
+  hasKeys = util.yes,
+  needsScreenRefreshAfterResume = util.no,
+  hasWifiManager = util.yes,
+  canReboot = util.yes,
+  canPowerOff = util.yes,
+  canSuspend = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.no,
+  hasSystemFonts = util.yes,
   display_dpi = 226,
   -- Despite the SoC supporting it, it's finicky in practice (#6772)
-  canHWInvert = no,
+  canHWInvert = util.no,
   home_dir = "/home/root",
 })
 
@@ -139,7 +131,7 @@ function Remarkable:init()
     status_file = self.status_path,
   })
 
-  local event_map = dofile("frontend/device/remarkable/event_map.lua")
+  local event_map = require("device/remarkable/event_map")
   -- If we are launched while Oxide is running, remove Power from the event map
   if oxide_running then
     event_map[116] = nil
@@ -147,7 +139,7 @@ function Remarkable:init()
 
   self.input = require("device/input"):new({
     device = self,
-    event_map = dofile("frontend/device/remarkable/event_map.lua"),
+    event_map = require("device/remarkable/event_map"),
     wacom_protocol = true,
   })
 
@@ -296,10 +288,10 @@ end
 
 function Remarkable:setEventHandlers(UIManager)
   UIManager.event_handlers.Suspend = function()
-    self:onPowerEvent("Suspend")
+    self:handlePowerEvent("Suspend")
   end
   UIManager.event_handlers.Resume = function()
-    self:onPowerEvent("Resume")
+    self:handlePowerEvent("Resume")
   end
   UIManager.event_handlers.PowerPress = function()
     UIManager:scheduleIn(2, UIManager.poweroff_action)

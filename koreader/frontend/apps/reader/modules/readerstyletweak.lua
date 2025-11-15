@@ -190,7 +190,7 @@ end
 
 function TweakInfoWidget:registerKeyEvents()
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
 end
 
@@ -450,7 +450,7 @@ end
 
 function ReaderStyleTweak:onReadSettings(config)
   self.enabled = config:nilOrTrue("style_tweaks_enabled")
-  self.doc_tweaks = config:readSetting("style_tweaks") or {}
+  self.doc_tweaks = config:readTableSetting("style_tweaks")
   -- Default globally enabled style tweaks (for new installations)
   -- are defined in css_tweaks.lua
   self.global_tweaks = G_reader_settings:readSetting("style_tweaks")
@@ -503,9 +503,8 @@ local function dispatcherUnregisterStyleTweak(tweak_id)
 end
 
 function ReaderStyleTweak:init()
-  self.tweaks_in_dispatcher = G_reader_settings:readSetting(
-    "style_tweaks_in_dispatcher"
-  ) or {}
+  self.tweaks_in_dispatcher =
+    G_reader_settings:readTableSetting("style_tweaks_in_dispatcher")
   self.tweaks_by_id = {}
   self.tweaks_table = {}
 

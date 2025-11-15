@@ -46,8 +46,8 @@ function KeyboardLayoutDialog:init()
   local buttons = {}
   local radio_buttons = {}
 
-  local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts")
-    or {}
+  local keyboard_layouts =
+    G_reader_settings:readTableSetting("keyboard_layouts")
   local default_layout =
     G_reader_settings:readSetting("keyboard_layout_default")
   self.keyboard_state.force_current_layout = true
@@ -182,7 +182,7 @@ function KeyboardLayoutDialog:init()
     self.movable,
   })
   if Device:hasKeys() then
-    self.key_events.CloseDialog = { { Device.input.group.Back } }
+    self.key_events.ExitDialog = { { Device.input.group.Back } }
   end
 end
 

@@ -134,8 +134,6 @@ end
 local SystemStat = {
   start_time = time.realtime(),
   start_monotonic_time = time.boottime_or_realtime_coarse(),
-  suspend_time = nil,
-  resume_time = nil,
   wakeup_count = 0,
   discharge_time = nil,
   discharge_count = 0,
@@ -178,16 +176,16 @@ function SystemStat:appendCounters()
     _("KOReader started at"),
     datetime.secondsToDateTime(time.to_s(self.start_time), nil, true),
   })
-  if self.suspend_time then
+  if Device.last_suspend_at then
     self:put({
       "  " .. _("Last suspend time"),
-      datetime.secondsToDateTime(time.to_s(self.suspend_time), nil, true),
+      datetime.secondsToDateTime(time.to_s(Device.last_suspend_at), nil, true),
     })
   end
-  if self.resume_time then
+  if Device.last_resume_at then
     self:put({
       "  " .. _("Last resume time"),
-      datetime.secondsToDateTime(time.to_s(self.resume_time), nil, true),
+      datetime.secondsToDateTime(time.to_s(Device.last_resume_at), nil, true),
     })
   end
   local uptime = time.boottime_or_realtime_coarse() - self.start_monotonic_time
@@ -238,6 +236,11 @@ function SystemStat:appendCounters()
       datetime.secondsToDateTime(time.to_s(self.discharge_time), nil, true),
     })
   end
+  self:put({
+    -- Need localization
+    "  " .. _("Device model"),
+    Device.model,
+  })
   self:putSeparator()
   self:put({ _("Counters"), "" })
   -- @translators The number of "sleeps", that is the number of times the device has entered standby. This could also be translated as a rendition of a phrase like "entered sleep".
@@ -253,7 +256,7 @@ function SystemStat:appendCounters()
   })
   -- no localization.
   self:put({
-    "  " .. _("Pending network activities"),
+    "  " .. _("Pending network jobs"),
     require("ui/network/networklistener"):countsOfPendingJobs(),
   })
 end
@@ -460,12 +463,7 @@ function SystemStat:appendStorageInfo()
   std_out:close()
 end
 
-function SystemStat:onSuspend()
-  self.suspend_time = time.realtime()
-end
-
 function SystemStat:onResume()
-  self.resume_time = time.realtime()
   self.wakeup_count = self.wakeup_count + 1
 end
 
@@ -523,10 +521,6 @@ end
 
 function SystemStatWidget:onShowSysStatistics()
   SystemStat:showStatistics()
-end
-
-function SystemStatWidget:onSuspend()
-  SystemStat:onSuspend()
 end
 
 function SystemStatWidget:onResume()

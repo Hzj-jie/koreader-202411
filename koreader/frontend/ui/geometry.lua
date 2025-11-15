@@ -466,6 +466,22 @@ function Geom:isEmpty()
 end
 
 --[[--
+Resizes the Geom according to the ratio.
+]]
+function Geom:resize(ratio)
+  assert(ratio ~= nil)
+  local x = self.x + self.w * ratio.ratio_x
+  local y = self.y + self.h * ratio.ratio_y
+  local w = self.w * ratio.ratio_w
+  local h = self.h * ratio.ratio_h
+  self.x = x
+  self.y = y
+  self.w = w
+  self.h = h
+  return self
+end
+
+--[[--
 Returns a bounding box which encompasses all passed rectangles.
 @tparam Geom rectangles to encompass
 @treturn Geom bounding box or nil if no rectangles passed

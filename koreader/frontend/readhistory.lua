@@ -335,6 +335,27 @@ function ReadHistory:removeItem(item, idx, no_flush)
   end
 end
 
+function ReadHistory:ignoreFile(file)
+  filename = ffiutil.basename(file)
+  if
+    not require("ui/widget/filechooser"):show_file(ffiutil.basename(filename))
+  then
+    return true
+  end
+  exclude_files = { -- const
+    "^batterystat%.log$",
+    "^crash%.log$",
+    "^crash%.prev%.log$",
+    "^quickstart%-.*%.html$",
+  }
+  for _, pattern in ipairs(exclude_files) do
+    if filename:match(pattern) then
+      return true
+    end
+  end
+  return false
+end
+
 function ReadHistory:_ignoreItem(file)
   -- Expect file to be a realpath(file)
   if not file or (ts and lfs.attributes(file, "mode") ~= "file") then
@@ -346,19 +367,7 @@ function ReadHistory:_ignoreItem(file)
   if not require("ui/widget/filechooser"):show_dir(ffiutil.basename(path)) then
     return true
   end
-  exclude_files = { -- const
-    "^batterystat%.log$",
-    "^crash%.log$",
-    "^crash%.prev%.log$",
-    "^quickstart%-.*%.html$",
-  }
-  filename = ffiutil.basename(file)
-  for _, pattern in ipairs(exclude_files) do
-    if filename:match(pattern) then
-      return true
-    end
-  end
-  return false
+  return self:ignoreFile(file)
 end
 
 --- Adds new item (last opened document) to the top of the history list.

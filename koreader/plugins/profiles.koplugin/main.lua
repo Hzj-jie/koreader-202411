@@ -27,7 +27,7 @@ local Profiles = WidgetContainer:extend({
 
 function Profiles:init()
   Dispatcher:init()
-  self.autoexec = G_reader_settings:readSetting("profiles_autoexec") or {}
+  self.autoexec = G_reader_settings:readTableSetting("profiles_autoexec")
   self.ui.menu:registerToMainMenu(self)
   self:onDispatcherRegisterActions()
   self:onStart()

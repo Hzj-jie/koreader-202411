@@ -20,13 +20,6 @@ local T = ffiUtil.template
 -- We'll need a bunch of stuff for getifaddrs & co in Device:retrieveNetworkInfo
 require("ffi/posix_h")
 
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
-
 local Device = {
   screen_saver_mode = false,
   screen_saver_lock = false,
@@ -41,60 +34,64 @@ local Device = {
   suspend_wait_timeout = 15,
 
   -- hardware feature tests: (these are functions!)
-  hasBattery = yes,
-  hasAuxBattery = no,
-  hasKeyboard = no,
-  hasKeys = no,
-  hasScreenKB = no, -- in practice only some Kindles
-  hasSymKey = no, -- in practice only some Kindles
-  canKeyRepeat = no,
-  hasDPad = no,
-  useDPadAsActionKeys = no,
-  hasExitOptions = yes,
-  hasFewKeys = no,
-  hasWifiToggle = yes,
-  hasSeamlessWifiToggle = yes, -- Can toggle Wi-Fi without focus loss and extra user interaction (i.e., not Android)
-  hasWifiManager = no,
-  hasWifiRestore = no,
-  isDefaultFullscreen = yes,
-  isHapticFeedbackEnabled = no,
-  isDeprecated = no, -- device no longer receive OTA updates
-  isTouchDevice = no,
-  hasFrontlight = no,
-  hasNaturalLight = no, -- FL warmth implementation specific to NTX boards (Kobo, Cervantes)
-  hasNaturalLightMixer = no, -- Same, but only found on newer boards
-  hasNaturalLightApi = no,
-  hasClipboard = yes, -- generic internal clipboard on all devices
-  hasEinkScreen = yes,
-  hasExternalSD = no, -- or other storage volume that cannot be accessed using the File Manager
-  canHWDither = no,
-  canHWInvert = no,
-  hasKaleidoWfm = no,
-  canDoSwipeAnimation = no,
-  canModifyFBInfo = no, -- some NTX boards do wonky things with the rotate flag after a FBIOPUT_VSCREENINFO ioctl
-  canUseCBB = yes, -- The C BB maintains a 1:1 feature parity with the Lua BB, except that is has NO support for BB4, and limited support for BBRGB24
-  hasColorScreen = no,
-  hasBGRFrameBuffer = no,
-  canImportFiles = no,
-  canShareText = no,
-  hasGSensor = no,
-  isGSensorLocked = no,
-  canToggleMassStorage = no,
-  canToggleChargingLED = no,
+  hasBattery = util.yes,
+  hasAuxBattery = util.no,
+  hasKeyboard = util.no,
+  hasKeys = util.no,
+  hasScreenKB = util.no, -- in practice only some Kindles
+  hasSymKey = util.no, -- in practice only some Kindles
+  canKeyRepeat = util.no,
+  hasDPad = util.no,
+  useDPadAsActionKeys = util.no,
+  hasExitOptions = util.yes,
+  hasFewKeys = util.no,
+  hasWifiToggle = util.yes,
+  hasSeamlessWifiToggle = util.yes, -- Can toggle Wi-Fi without focus loss and extra user interaction (i.e., not Android)
+  hasWifiManager = util.no,
+  hasWifiRestore = util.no,
+  isDefaultFullscreen = util.yes,
+  isHapticFeedbackEnabled = util.no,
+  isDeprecated = util.no, -- device no longer receive OTA updates
+  isTouchDevice = util.no,
+  hasFrontlight = util.no,
+  hasNaturalLight = util.no, -- FL warmth implementation specific to NTX boards (Kobo, Cervantes)
+  hasNaturalLightMixer = util.no, -- Same, but only found on newer boards
+  hasNaturalLightApi = util.no,
+  hasClipboard = util.yes, -- generic internal clipboard on all devices
+  hasEinkScreen = util.yes,
+  hasExternalSD = util.no, -- or other storage volume that cannot be accessed using the File Manager
+  canHWDither = util.no,
+  canHWInvert = util.no,
+  hasKaleidoWfm = util.no,
+  canDoSwipeAnimation = util.no,
+  canModifyFBInfo = util.no, -- some NTX boards do wonky things with the rotate flag after a FBIOPUT_VSCREENINFO ioctl
+  canUseCBB = util.yes, -- The C BB maintains a 1:1 feature parity with the Lua BB, except that is has NO support for BB4, and limited support for BBRGB24
+  hasColorScreen = util.no,
+  hasBGRFrameBuffer = util.no,
+  canImportFiles = util.no,
+  canShareText = util.no,
+  hasGSensor = util.no,
+  isGSensorLocked = util.no,
+  canToggleMassStorage = util.no,
+  canToggleChargingLED = util.no,
   _updateChargingLED = nil,
-  canUseWAL = yes, -- requires mmap'ed I/O on the target FS
-  canRestart = yes,
-  canSuspend = no,
-  canStandby = no,
-  canPowerSaveWhileCharging = no,
+  canUseWAL = util.yes, -- requires mmap'ed I/O on the target FS
+  canRestart = util.yes,
+  canSuspend = util.no,
+  canStandby = util.no,
+  canPowerSaveWhileCharging = util.no,
   total_standby_time = 0, -- total time spent in standby
   last_standby_time = 0, -- time spent during the last standby
   total_suspend_time = 0, -- total time spent in suspend
   last_suspend_time = 0, -- time spent during the last suspend
-  canReboot = no,
-  canPowerOff = no,
-  canAssociateFileExtensions = no,
-  canDisconnectWifi = yes,
+  -- Note, these two are static and can be nil to indicate the last resume /
+  -- suspend times were unknown.
+  last_resume_at = nil, -- time right before calling onResume event
+  last_suspend_at = nil, -- time right after calling onSuspend event
+  canReboot = util.no,
+  canPowerOff = util.no,
+  canAssociateFileExtensions = util.no,
+  canDisconnectWifi = util.yes,
 
   -- Start and stop text input mode (e.g. open soft keyboard, etc)
   startTextInput = function() end,
@@ -104,21 +101,21 @@ local Device = {
   -- and have device dependent implementations in the corresponding
   -- device/<devicetype>/device.lua file
   -- (these are functions!)
-  isAndroid = no,
-  isCervantes = no,
-  isKindle = no,
-  isKobo = no,
-  isPocketBook = no,
-  isRemarkable = no,
-  isSonyPRSTUX = no,
-  isSDL = no,
-  isEmulator = no,
-  isDesktop = no,
+  isAndroid = util.no,
+  isCervantes = util.no,
+  isKindle = util.no,
+  isKobo = util.no,
+  isPocketBook = util.no,
+  isRemarkable = util.no,
+  isSonyPRSTUX = util.no,
+  isSDL = util.no,
+  isEmulator = util.no,
+  isDesktop = util.no,
 
   -- some devices have part of their screen covered by the bezel
   viewport = nil,
   -- enforce portrait orientation of display when FB defaults to landscape
-  isAlwaysPortrait = no,
+  isAlwaysPortrait = util.no,
   -- On some devices (eg newer pocketbook) we can force HW rotation on the fly (before each update)
   -- The value here is table of 4 elements mapping the sensible linux constants to whatever
   -- nonsense the device actually has. Canonically it should return { 0, 1, 2, 3 } if the device
@@ -129,24 +126,14 @@ local Device = {
     return nil
   end,
   -- needs full screen refresh when resumed from screensaver?
-  needsScreenRefreshAfterResume = yes,
-
-  -- set to yes on devices that support over-the-air incremental updates.
-  hasOTAUpdates = no,
-
-  -- For devices that have non-blocking OTA updates, this function will return true if the download is currently running.
-  hasOTARunning = no,
-
-  -- set to yes on devices that have a non-blocking isWifiOn implementation
-  -- (c.f., https://github.com/koreader/koreader/pull/5211#issuecomment-521304139)
-  hasFastWifiStatusQuery = no,
+  needsScreenRefreshAfterResume = util.yes,
 
   -- set to yes on devices with system fonts
-  hasSystemFonts = no,
+  hasSystemFonts = util.no,
 
-  canOpenLink = no,
-  openLink = no,
-  canExternalDictLookup = no,
+  canOpenLink = util.no,
+  openLink = util.no,
+  canExternalDictLookup = util.no,
 }
 
 function Device:extend(o)
@@ -361,7 +348,7 @@ function Device:rescheduleSuspend()
 end
 
 -- Only used on platforms where we handle suspend ourselves.
-function Device:onPowerEvent(ev)
+function Device:handlePowerEvent(ev)
   local Screensaver = require("ui/screensaver")
   if self.screen_saver_mode then
     if ev == "Power" or ev == "Resume" then
@@ -1195,6 +1182,7 @@ end
 function Device:_beforeSuspend(inhibit)
   UIManager:flushSettings()
   UIManager:broadcastEvent(Event:new("Suspend"))
+  Device.last_suspend_at = time.now()
 
   if inhibit ~= false then
     -- Block input events unrelated to power management
@@ -1221,6 +1209,7 @@ function Device:_afterResume(inhibit)
   -- Ideally UIManager should understand the Resume event, but it needs to check every single
   -- event being processed.
   UIManager:updateLastUserActionTime()
+  Device.last_resume_at = time.now()
   UIManager:broadcastEvent(Event:new("Resume"))
 end
 

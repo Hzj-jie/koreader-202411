@@ -256,24 +256,24 @@ function ReaderMenu:setUpdateItemTable()
     },
   }
 
-  self.menu_items.page_overlap = dofile("frontend/ui/elements/page_overlap.lua")
+  self.menu_items.page_overlap = require("ui/elements/page_overlap")
 
   -- settings tab
   -- insert common settings
   for id, common_setting in
-    pairs(dofile("frontend/ui/elements/common_settings_menu_table.lua"))
+    pairs(require("ui/elements/common_settings_menu_table"))
   do
     self.menu_items[id] = common_setting
   end
 
   if Device:isTouchDevice() then
     -- Settings > Taps & Gestures; mostly concerns touch related page turn stuff, and only applies to Reader
-    self.menu_items.page_turns = dofile("frontend/ui/elements/page_turns.lua")
+    self.menu_items.page_turns = require("ui/elements/page_turns")
   end
   -- Settings > Navigation; while also related to page turns, this mostly concerns physical keys, and applies *everywhere*
   if Device:hasKeys() then
     self.menu_items.physical_buttons_setup =
-      dofile("frontend/ui/elements/physical_buttons.lua")
+      require("ui/elements/physical_buttons")
   end
   -- insert DjVu render mode submenu just before the last entry (show advanced)
   -- this is a bit of a hack
@@ -307,8 +307,7 @@ function ReaderMenu:setUpdateItemTable()
         self.ui:saveSettings()
       end,
     }
-    local screensaver_sub_item_table =
-      dofile("frontend/ui/elements/screensaver_menu.lua")
+    local screensaver_sub_item_table = require("ui/elements/screensaver_menu")
     table.insert(screensaver_sub_item_table, ss_book_settings)
     self.menu_items.screensaver = {
       text = _("Sleep screen"),
@@ -321,17 +320,16 @@ function ReaderMenu:setUpdateItemTable()
     text = _("Plugin management"),
     sub_item_table = PluginLoader:genPluginManagerSubItem(),
   }
+
+  self.menu_items.cloud_storage =
+    require("ui/elements/cloud_storage_menu_table")
   -- main menu tab
   -- insert common info
-  for id, common_setting in
-    pairs(dofile("frontend/ui/elements/common_info_menu_table.lua"))
-  do
+  for id, common_setting in pairs(require("ui/elements/common_info_menu_table")) do
     self.menu_items[id] = common_setting
   end
   -- insert common exit for reader
-  for id, common_setting in
-    pairs(dofile("frontend/ui/elements/common_exit_menu_table.lua"))
-  do
+  for id, common_setting in pairs(require("ui/elements/common_exit_menu_table")) do
     self.menu_items[id] = common_setting
   end
 
@@ -368,10 +366,11 @@ function ReaderMenu:setUpdateItemTable()
     end,
   }
 
-  local order = require("ui/elements/reader_menu_order")
-  local MenuSorter = require("ui/menusorter")
-  self.tab_item_table =
-    MenuSorter:mergeAndSort("reader", self.menu_items, order)
+  self.tab_item_table = require("ui/menusorter"):mergeAndSort(
+    "reader",
+    self.menu_items,
+    require("ui/elements/reader_menu_order")
+  )
 end
 dbg:guard(ReaderMenu, "setUpdateItemTable", function(self)
   local mock_menu_items = {}

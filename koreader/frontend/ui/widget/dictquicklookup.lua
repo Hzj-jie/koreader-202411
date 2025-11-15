@@ -103,7 +103,7 @@ function DictQuickLookup:init()
   if Device:hasKeys() then
     self.key_events.ReadPrevResult = { { Input.group.PgBack } }
     self.key_events.ReadNextResult = { { Input.group.PgFwd } }
-    self.key_events.Close = { { Input.group.Back } }
+    self.key_events.Exit = { { Input.group.Back } }
     self.key_events.MenuKeyPress = { { "Menu" } }
     if Device:hasKeyboard() then
       self.key_events.ChangeToPrevDict = { { "Shift", "Left" } }
@@ -591,9 +591,7 @@ function DictQuickLookup:init()
       })
     end
   end
-  if self.ui then
-    UIManager:broadcastEvent(Event:new("DictButtonsReady", self, buttons))
-  end
+  UIManager:broadcastEvent(Event:new("DictButtonsReady", self, buttons))
   -- Bottom buttons get a bit less padding so their line separators
   -- reach out from the content to the borders a bit more
   local buttons_padding = Size.padding.default
@@ -1204,10 +1202,21 @@ function DictQuickLookup:onTap(arg, ges_ev)
     -- processed for scrolling definition by ScrollTextWidget, which
     -- will pop it up for us here when it can't scroll anymore).
     -- This allow for continuous reading of results' definitions with tap.
-    if BD.flipIfMirroredUILayout(ges_ev.pos.x < Screen:getWidth() / 2) then
-      self:onReadPrevResult()
-    else
+    -- Late initialization to avoid cycle dependency.
+    if
+      BD.flipIfMirroredUILayout(
+        ges_ev.pos:intersectWith(
+          self.definition_widget.dimen
+            :copy()
+            :resize(
+              require("apps/reader/modules/readerview"):getForwardTapZone()
+            )
+        )
+      )
+    then
       self:onReadNextResult()
+    else
+      self:onReadPrevResult()
     end
   end
   return true

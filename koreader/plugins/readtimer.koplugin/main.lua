@@ -1,6 +1,7 @@
 local CheckButton = require("ui/widget/checkbutton")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DateTimeWidget = require("ui/widget/datetimewidget")
+local Device = require("device")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -59,7 +60,12 @@ function ReadTimer:init()
     end
     local hours, minutes, dummy = self:remainingTime(1)
     local timer_info = string.format("%02d:%02d", hours, minutes)
-    return self.timer_symbol .. timer_info
+    if Device:isEmulator() then
+      return self.timer_symbol .. timer_info
+    else
+      -- TODO(#151): Try to fix it.
+      return self.timer_letter .. ": " .. timer_info
+    end
   end
 
   self.additional_footer_content_func = function()
@@ -70,10 +76,8 @@ function ReadTimer:init()
     local hours, minutes, dummy = self:remainingTime(1)
     local timer_info = string.format("%02d:%02d", hours, minutes)
 
-    if item_prefix == "icons" then
+    if item_prefix == "icons" or item_prefix == "compact_items" then
       return self.timer_symbol .. " " .. timer_info
-    elseif item_prefix == "compact_items" then
-      return self.timer_symbol .. timer_info
     else
       return self.timer_letter .. ": " .. timer_info
     end

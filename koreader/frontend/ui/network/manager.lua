@@ -35,8 +35,6 @@ local ConnectivityChecker = {
   enabled = true,
   -- Check once per second.
   when = 1,
-  -- Up to 60s.
-  repeated = 60,
 }
 
 -- For BackgroundTaskPlugin
@@ -57,12 +55,16 @@ function ConnectivityChecker:_executable()
     os.clock() - self.settings_id / 1000,
     "seconds)!"
   )
-  NetworkMgr:_networkConnected()
+  -- Avoid causing timeout due to query online state.
+  UIManager:nextTick(function()
+    NetworkMgr:_networkConnected()
+  end)
   self:stop()
 end
 
 function ConnectivityChecker:_callback(job)
-  if job.repeated > 1 then
+  -- Up to 60s.
+  if os.clock() - self.settings_id / 1000 < 60 then
     return
   end
   -- Last iteration, shutdown connection.
@@ -74,9 +76,15 @@ function ConnectivityChecker:_callback(job)
       InfoMessage:new({ text = _("Error connecting to the network") })
     )
   end
+
+  self:stop()
 end
 
 function ConnectivityChecker:start(interactive)
+  if self:running() then
+    return
+  end
+
   self:stop()
   self.interactive = interactive
   -- Copied from SwitchPlugin.
@@ -133,20 +141,6 @@ function NetworkMgr:_abortWifiConnection()
   return self:_dropPendingWifiConnection(Device:hasSeamlessWifiToggle())
 end
 
--- Attempt to deal with platforms that don't guarantee isConnected when turnOnWifi returns,
--- so that we only attempt to connect to WiFi *once* when using the beforeWifiAction framework...
-function NetworkMgr:_requestToTurnOnWifi(wifi_cb, interactive) -- bool | EBUSY
-  if ConnectivityChecker:running() then
-    -- We've already enabled WiFi, don't try again until the earlier attempt succeeds or fails...
-    return EBUSY
-  end
-
-  -- Connecting will take a few seconds, broadcast that information so affected modules/plugins can react.
-  raiseNetworkEvent("Connecting")
-
-  return self:_turnOnWifi(wifi_cb, interactive)
-end
-
 function NetworkMgr:shouldRestoreWifi()
   return Device:hasWifiRestore()
     and G_reader_settings:isTrue("auto_restore_wifi")
@@ -166,22 +160,28 @@ function NetworkMgr:restoreWifiAndCheckAsync(msg)
 end
 
 function NetworkMgr:_queryOnlineState()
+  -- This field is used to decide if the result from a full background ping
+  -- background job should be ignored.
+  -- This function is blocking, so only the start time needs to be recorded.
+  self.last_online_check_time = time.now()
   self:_setOnlineState(self:_isWifiConnected() and self:_isOnline())
 end
 
 function NetworkMgr:_setOnlineState(new_state)
-  if self.was_online ~= new_state then
-    self.was_online = new_state
-    if new_state then
-      raiseNetworkEvent("Online")
-    else
-      raiseNetworkEvent("Offline")
-    end
+  if self.was_online == new_state then
+    return
+  end
+  self.was_online = new_state
+  if new_state then
+    raiseNetworkEvent("Online")
+  else
+    raiseNetworkEvent("Offline")
   end
 end
 
 function NetworkMgr:init()
   Device:initNetworkManager(self)
+  self.last_online_check_time = 0
 
   -- Trigger an initial NetworkConnected event if WiFi was already up when we
   -- were launched
@@ -191,24 +191,23 @@ function NetworkMgr:init()
     self:restoreWifiAndCheckAsync(
       "NetworkMgr: init will restore Wi-Fi in the background"
     )
+
+    require("background_jobs").insert({
+      when = "best-effort",
+      repeated = true,
+      -- Technically speaking, the behavior is different than
+      -- self:_queryOnlineState, the results should be consistent in the
+      -- normal network condition.
+      executable = "ping -c 1 www.microsoft.com",
+      callback = function(job)
+        if job.start_time <= self.last_online_check_time then
+          -- Ignore the ping calls before the last check.
+          return
+        end
+        self:_setOnlineState(job.result == 0)
+      end,
+    })
   end)
-  if Device:hasWifiToggle() then
-    UIManager:nextTick(function()
-      -- Initial state.
-      self:_queryOnlineState()
-      require("background_jobs").insert({
-        when = "best-effort",
-        repeated = true,
-        -- Technically speaking, the behavior is different than
-        -- self:_queryOnlineState, the results should be consistent in the
-        -- normal network condition.
-        executable = "ping -c 1 www.microsoft.com",
-        callback = function(job)
-          self:_setOnlineState(job.result == 0)
-        end,
-      })
-    end)
-  end
 
   return self
 end
@@ -422,7 +421,7 @@ function NetworkMgr:_hasDefaultRoute()
   s, err = socket.udp()
   if s == nil then
     logger.err("NetworkMgr: socket.udp:", err)
-    return nil
+    return false
   end
 
   ret, err = s:setpeername("203.0.113.1", "53")
@@ -481,10 +480,22 @@ function NetworkMgr:toggleWifiOn()
   UIManager:forceRePaint()
 
   -- Some implementations (usually, hasWifiManager) can report whether they were successful
-  local status = self:_requestToTurnOnWifi(function()
-    -- Interactive
-    ConnectivityChecker:start(true)
-  end, true)
+  local function requestToTurnOnWifi()
+    if ConnectivityChecker:running() then
+      -- We've already enabled WiFi, don't try again until the earlier attempt succeeds or fails...
+      return EBUSY
+    end
+
+    -- Connecting will take a few seconds, broadcast that information so affected modules/plugins can react.
+    raiseNetworkEvent("Connecting")
+
+    return self:_turnOnWifi(function()
+      -- Interactive
+      ConnectivityChecker:start(true)
+    end, true)
+  end
+
+  local status = requestToTurnOnWifi()
   -- Note, when showing the network list, the callback would be heavily delayed, and the info will
   -- block the list.
   UIManager:close(info)
@@ -497,12 +508,6 @@ function NetworkMgr:toggleWifiOn()
     logger.warn(
       "NetworkMgr:toggleWifiOn: A previous connection attempt is still ongoing!"
     )
-    UIManager:show(InfoMessage:new({
-      text = _(
-        "A previous connection attempt is still ongoing, this one will be ignored!"
-      ),
-      timeout = 3,
-    }))
   end
 end
 
@@ -531,37 +536,6 @@ function NetworkMgr:toggleWifiOff(interactive)
   end
 end
 
--- NOTE: Only used by the beforeWifiAction framework, so, can never be flagged as "interactive" ;).
-function NetworkMgr:_promptWifiOn()
-  -- If there's already an ongoing connection attempt, don't even display the ConfirmBox,
-  -- as that's just confusing, especially on Android, because you might have seen the one you tapped "Turn on" on disappear,
-  -- and be surprised by new ones that popped up out of focus while the system settings were opened...
-  if ConnectivityChecker:running() then
-    -- Like other beforeWifiAction backends, the callback is forfeit anyway
-    logger.warn(
-      "NetworkMgr:promptWifiOn: A previous connection attempt is still ongoing!"
-    )
-    return
-  end
-
-  UIManager:show(ConfirmBox:new({
-    text = _("Do you want to turn on Wi-Fi?"),
-    ok_text = _("Turn on"),
-    ok_callback = function()
-      self:toggleWifiOn()
-    end,
-  }))
-end
-
--- This is only used on Android, the intent being we assume the system will eventually turn on WiFi on its own in the background...
-function NetworkMgr:_doNothingAndWaitForConnection()
-  if self:_isWifiConnected() then
-    return
-  end
-
-  ConnectivityChecker:start()
-end
-
 --- @note: The callback will only run *after* a *successful* network connection.
 ---    The only guarantee it provides is isConnected (i.e., an IP & a local gateway),
 ---    *NOT* isOnline (i.e., WAN), se be careful with recursive callbacks!
@@ -572,9 +546,33 @@ function NetworkMgr:_beforeWifiAction()
   if wifi_enable_action == "turn_on" then
     self:toggleWifiOn()
   elseif wifi_enable_action == "ignore" then
-    self:_doNothingAndWaitForConnection()
+    if self:isOnline() then
+      return
+    end
+
+    ConnectivityChecker:start()
   else
-    self:_promptWifiOn()
+    -- If there's already an ongoing connection attempt, don't even display the ConfirmBox,
+    -- as that's just confusing, especially on Android, because you might have seen the one you tapped "Turn on" on disappear,
+    -- and be surprised by new ones that popped up out of focus while the system settings were opened...
+    if ConnectivityChecker:running() then
+      -- Like other beforeWifiAction backends, the callback is forfeit anyway
+      logger.warn(
+        "NetworkMgr:promptWifiOn: A previous connection attempt is still ongoing!"
+      )
+      return
+    end
+
+    UIManager:show(ConfirmBox:new({
+      -- Need localization.
+      text = _("Network connection is required to perform the action.")
+        .. "\n"
+        .. _("Do you want to turn on Wi-Fi?"),
+      ok_text = _("Turn on"),
+      ok_callback = function()
+        self:toggleWifiOn()
+      end,
+    }))
   end
 end
 
@@ -586,9 +584,6 @@ function NetworkMgr:_isOnline()
   --return self:_canPingMicrosoftCom()
   local dr = self:_hasDefaultRoute()
   local rh = self:_canResolveHostnames()
-  if rh and not dr then
-    dr = self:_hasDefaultRoute()
-  end
   if dr ~= rh then
     -- It's unexpected to have different results after the retry above.
     logger.warn(
@@ -598,7 +593,7 @@ function NetworkMgr:_isOnline()
       tostring(rh)
     )
   end
-  return dr
+  return dr or rh
 end
 
 -- Return a cached online state from the last _isOnline call.
@@ -623,55 +618,62 @@ function NetworkMgr:setHTTPProxy(proxy)
   end
 end
 
--- Helper functions to hide the quirks of using beforeWifiAction properly ;).
--- runWhen... triggers wifi connection and queues the callback.
--- willRerunWhen... queues the callback without triggering the wifi connection.
-
 -- Run callback *now* if you're currently online (ie., isOnline),
 -- or attempt to go online and run it *ASAP* without any more user interaction.
-function NetworkMgr:runWhenOnline(callback)
-  if self:willRerunWhenOnline(callback) then
+-- Returns true if the callback has been "run".
+function NetworkMgr:runWhenOnline(callback, key)
+  if self:willRerunWhenOnline(callback, key) then
+    Notification:notify(
+      -- Need localization
+      _("Action will be performed after network being online")
+    )
     self:_beforeWifiAction()
-  end
-end
-
--- This one is for callbacks that only require isConnected, and since that's
--- guaranteed by beforeWifiAction, you also have a guarantee that the callback
--- *will* run.
-function NetworkMgr:runWhenConnected(callback)
-  if self:willRerunWhenConnected(callback) then
-    self:_beforeWifiAction()
-  end
-end
-
--- Mild variants that are used for recursive calls at the beginning of a complex function call.
--- Returns true when not yet online, in which case you should *abort* (i.e., return) the initial call,
--- and otherwise, go-on as planned.
-function NetworkMgr:willRerunWhenOnline(callback)
-  assert(callback ~= nil)
-  -- This is not very right, but should solve the problem.
-  -- TODO: Remove this hack.
-  if self:_isWifiConnected() and not self:isOnline() then
-    self:_queryOnlineState()
-  end
-  if self:isOnline() then
-    callback()
     return false
   end
-  UIManager:broadcastEvent(Event:new("PendingOnline", callback))
   return true
 end
 
 -- This one is for callbacks that only require isConnected, and since that's
 -- guaranteed by beforeWifiAction, you also have a guarantee that the callback
 -- *will* run.
-function NetworkMgr:willRerunWhenConnected(callback)
+-- Returns true if the callback has been "run"
+function NetworkMgr:runWhenConnected(callback, key)
+  if self:willRerunWhenConnected(callback, key) then
+    Notification:notify(
+      -- Need localization
+      _("Action will be performed after network being connected")
+    )
+    self:_beforeWifiAction()
+    return false
+  end
+  return true
+end
+
+-- Mild variants that are used for recursive calls at the beginning of a complex function call.
+-- Returns true when not yet online, in which case you should *abort* (i.e., return) the initial call,
+-- and otherwise, go-on as planned.
+-- Returns true if the callback "will be rerun", i.e. has been backlogged.
+function NetworkMgr:willRerunWhenOnline(callback, key)
+  assert(callback ~= nil)
+  if self:isOnline() then
+    callback()
+    return false
+  end
+  UIManager:broadcastEvent(Event:new("PendingOnline", callback, key))
+  return true
+end
+
+-- This one is for callbacks that only require isConnected, and since that's
+-- guaranteed by beforeWifiAction, you also have a guarantee that the callback
+-- *will* run.
+-- Returns true if the callback "will be rerun", i.e. has been backlogged.
+function NetworkMgr:willRerunWhenConnected(callback, key)
   assert(callback ~= nil)
   if self:_isWifiConnected() then
     callback()
     return false
   end
-  UIManager:broadcastEvent(Event:new("PendingConnected", callback))
+  UIManager:broadcastEvent(Event:new("PendingConnected", callback, key))
   return true
 end
 
@@ -777,8 +779,6 @@ function NetworkMgr:getPowersaveMenuTable()
     end,
     callback = function()
       G_reader_settings:flipNilOrFalse("auto_disable_wifi")
-      -- NOTE: Well, not exactly, but the activity check wouldn't be (un)scheduled until the next Network(Dis)Connected event...
-      UIManager:askForRestart()
     end,
   }
 end
@@ -884,8 +884,7 @@ function NetworkMgr:getMenuTable(common_settings)
   common_settings.network_info = self:getInfoMenuTable()
 
   -- Allow auto_disable_wifi on devices where the net sysfs entry is exposed.
-  -- TODO: It doesn't work on kindle, see the comment in networklistener.
-  if self:getNetworkInterfaceName() and not Device:isKindle() then
+  if self:getNetworkInterfaceName() then
     common_settings.network_powersave = self:getPowersaveMenuTable()
   end
 

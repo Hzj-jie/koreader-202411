@@ -115,14 +115,14 @@ function ReaderAnnotation:onReadSettings(config)
         config:saveSetting("annotations_paging", annotations)
       end
       -- load compatible format
-      annotations = config:readSetting("annotations_rolling") or {}
+      annotations = config:readTableSetting("annotations_rolling")
       config:delSetting("annotations_rolling")
       needs_sort = true
     elseif self.ui.paging and annotations_type ~= "number" then
       if has_annotations then
         config:saveSetting("annotations_rolling", annotations)
       end
-      annotations = config:readSetting("annotations_paging") or {}
+      annotations = config:readTableSetting("annotations_paging")
       config:delSetting("annotations_paging")
       needs_sort = true
     end
@@ -145,8 +145,8 @@ function ReaderAnnotation:onReadSettings(config)
 end
 
 function ReaderAnnotation:migrateToAnnotations(config)
-  local bookmarks = config:readSetting("bookmarks") or {}
-  local highlights = config:readSetting("highlight") or {}
+  local bookmarks = config:readTableSetting("bookmarks")
+  local highlights = config:readTableSetting("highlight")
 
   if config:hasNot("highlights_imported") then
     -- before 2014, saved highlights were not added to bookmarks when they were created.
@@ -197,8 +197,8 @@ function ReaderAnnotation:migrateToAnnotations(config)
         config:saveSetting("annotations_paging", annotations)
       end
       -- load compatible format
-      bookmarks = config:readSetting("bookmarks_rolling") or {}
-      highlights = config:readSetting("highlight_rolling") or {}
+      bookmarks = config:readTableSetting("bookmarks_rolling")
+      highlights = config:readTableSetting("highlight_rolling")
       config:delSetting("bookmarks_rolling")
       config:delSetting("highlight_rolling")
     end
@@ -221,8 +221,8 @@ function ReaderAnnotation:migrateToAnnotations(config)
           self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
         config:saveSetting("annotations_rolling", annotations)
       end
-      bookmarks = config:readSetting("bookmarks_paging") or {}
-      highlights = config:readSetting("highlight_paging") or {}
+      bookmarks = config:readTableSetting("bookmarks_paging")
+      highlights = config:readTableSetting("highlight_paging")
       config:delSetting("bookmarks_paging")
       config:delSetting("highlight_paging")
     end

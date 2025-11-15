@@ -6,7 +6,6 @@ local T = require("ffi/util").template
 
 local page_turns_tap_zones_sub_items = {} -- build the Tap zones submenu
 local tap_zones = {
-  default = _("Default"),
   left_right = _("Left / right"),
   top_bottom = _("Top / bottom"),
   bottom_top = _("Bottom / top"),
@@ -16,87 +15,69 @@ local function genTapZonesMenu(tap_zones_type)
     text = tap_zones[tap_zones_type],
     checked_func = function()
       return (
-        G_reader_settings:readSetting("page_turns_tap_zones") or "default"
+        G_reader_settings:readSetting("page_turns_tap_zones") or "left_right"
       ) == tap_zones_type
     end,
     callback = function()
-      G_reader_settings:saveSetting("page_turns_tap_zones", tap_zones_type)
+      G_reader_settings:saveSetting(
+        "page_turns_tap_zones",
+        tap_zones_type,
+        "left_right"
+      )
       ReaderUI.instance.view:setupTouchZones()
     end,
   })
 end
-genTapZonesMenu("default")
 genTapZonesMenu("left_right")
 genTapZonesMenu("top_bottom")
 genTapZonesMenu("bottom_top")
 
-local default_size_b =
-  math.floor(G_defaults:readSetting("DTAP_ZONE_BACKWARD").w * 100)
-local default_size_f =
-  math.floor(G_defaults:readSetting("DTAP_ZONE_FORWARD").w * 100)
-local function getTapZonesSize()
-  if
-    (G_reader_settings:readSetting("page_turns_tap_zones") or "default")
-      == "default"
-    or G_reader_settings:hasNot("page_turns_tap_zone_forward_size_ratio")
-  then
-    return default_size_b, default_size_f
-  end
-  local size_f = math.floor(
-    G_reader_settings:readSetting("page_turns_tap_zone_forward_size_ratio")
-      * 100
+-- Returns percentage rather than decimal.
+local function getForwardTapZone()
+  return math.floor(
+    (
+      G_reader_settings:readSetting("page_turns_tap_zone_forward_size_ratio")
+      or 0.6
+    ) * 100
   )
-  local size_b =
-    G_reader_settings:readSetting("page_turns_tap_zone_backward_size_ratio")
-  size_b = size_b and math.floor(size_b * 100) or (100 - size_f)
-  return size_b, size_f
 end
 
 table.insert(page_turns_tap_zones_sub_items, {
   text_func = function()
+    local forward_zone = getForwardTapZone()
     return T(
       _("Backward / forward tap zone size: %1\xE2\x80\xAF% / %2\xE2\x80\xAF%"),
-      getTapZonesSize()
+      100 - forward_zone,
+      forward_zone
     )
-  end,
-  enabled_func = function()
-    return (G_reader_settings:readSetting("page_turns_tap_zones") or "default")
-      ~= "default"
   end,
   keep_menu_open = true,
   callback = function(touchmenu_instance)
     local is_left_right = G_reader_settings:readSetting("page_turns_tap_zones")
       == "left_right"
-    local size_b, size_f = getTapZonesSize()
-    UIManager:show(require("ui/widget/doublespinwidget"):new({
+    local forward_zone = getForwardTapZone()
+    UIManager:show(require("ui/widget/spinwidget"):new({
       title_text = is_left_right and _("Tap zone width")
         or _("Tap zone height"),
-      info_text = is_left_right and _("Percentage of screen width")
-        or _("Percentage of screen height"),
-      left_text = _("Backward"),
-      left_value = size_b,
-      left_min = 0,
-      left_max = 100,
-      left_default = default_size_b,
-      left_hold_step = 5,
-      right_text = _("Forward"),
-      right_value = size_f,
-      right_min = 0,
-      right_max = 100,
-      right_default = default_size_f,
-      right_hold_step = 5,
+      info_text = (
+        is_left_right and _("Percentage of screen width")
+        or _("Percentage of screen height")
+      )
+        .. " "
+        -- Need localization
+        .. _("to move forward.")
+        .. "\n"
+        .. _("Tapping the rest area will move backward."),
+      value = forward_zone,
+      value_min = 20,
+      value_max = 80,
+      value_hold_step = 5,
       unit = "%",
-      callback = function(value_b, value_f)
-        if value_b + value_f > 100 then
-          value_b = 100 - value_f
-        end
-        G_reader_settings:saveSetting(
-          "page_turns_tap_zone_backward_size_ratio",
-          value_b * (1 / 100)
-        )
+      callback = function(new_value)
         G_reader_settings:saveSetting(
           "page_turns_tap_zone_forward_size_ratio",
-          value_f * (1 / 100)
+          new_value * (1 / 100),
+          0.6
         )
         ReaderUI.instance.view:setupTouchZones()
         if touchmenu_instance then
@@ -132,7 +113,7 @@ local PageTurns = {
       text_func = function()
         local tap_zones_type = G_reader_settings:readSetting(
           "page_turns_tap_zones"
-        ) or "default"
+        ) or "left_right"
         return T(_("Tap zones: %1"), tap_zones[tap_zones_type]:lower())
       end,
       enabled_func = function()

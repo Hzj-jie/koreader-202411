@@ -72,9 +72,8 @@ function ReaderFont:setupFaceMenuTable()
   table.insert(self.face_table, {
     text_func = function()
       local nb_family_fonts = 0
-      local g_font_family_fonts = G_reader_settings:readSetting(
-        "cre_font_family_fonts"
-      ) or {}
+      local g_font_family_fonts =
+        G_reader_settings:readTableSetting("cre_font_family_fonts")
       for family, name in pairs(g_font_family_fonts) do
         if self.font_family_fonts[family] then
           nb_family_fonts = nb_family_fonts + 1
@@ -228,7 +227,7 @@ function ReaderFont:onReadSettings(config)
   self.ui.document:setInterlineSpacePercent(self.configurable.line_spacing)
   self.ui.document:setGammaIndex(self.configurable.font_gamma)
 
-  self.font_family_fonts = config:readSetting("font_family_fonts") or {}
+  self.font_family_fonts = config:readTableSetting("font_family_fonts")
   self:updateFontFamilyFonts()
 
   self:setupFaceMenuTable()
@@ -465,16 +464,15 @@ function ReaderFont:gesToFontSize(ges)
 end
 
 function ReaderFont:onIncreaseFontSize(ges)
-  local delta_int = self:gesToFontSize(ges)
-  Notification:notify(_("Increasing font size…"), nil, true)
-  self:onChangeSize(delta_int)
-  return true
+  UIManager:runWith(function()
+    self:onChangeSize(self:gesToFontSize(ges))
+  end, Notification:new({ text = _("Increasing font size…") }))
 end
 
 function ReaderFont:onDecreaseFontSize(ges)
-  local delta_int = self:gesToFontSize(ges)
-  Notification:notify(_("Decreasing font size…"), nil, true)
-  self:onChangeSize(-delta_int)
+  UIManager:runWith(function()
+    self:onChangeSize(-self:gesToFontSize(ges))
+  end, Notification:new({ text = _("Decreasing font size…") }))
   return true
 end
 
@@ -487,9 +485,8 @@ function ReaderFont:updateFontFamilyFonts()
   -- So, we don't need to insert self.font_face in the list for unset family fonts,
   -- which would otherwise need us to call updateFontFamilyFonts() every time we
   -- change the main font face.
-  local g_font_family_fonts = G_reader_settings:readSetting(
-    "cre_font_family_fonts"
-  ) or {}
+  local g_font_family_fonts =
+    G_reader_settings:readTableSetting("cre_font_family_fonts")
   local family_fonts = {}
   for i, family in ipairs(FONT_FAMILIES) do
     local family_tag = family[1]
@@ -514,9 +511,8 @@ function ReaderFont:updateFontFamilyFonts()
 end
 
 function ReaderFont:getFontFamiliesTable()
-  local g_font_family_fonts = G_reader_settings:readSetting(
-    "cre_font_family_fonts"
-  ) or {}
+  local g_font_family_fonts =
+    G_reader_settings:readTableSetting("cre_font_family_fonts")
   local families_table = {
     {
       text = _("Ignore publisher font names when font-family is set"),
@@ -703,11 +699,9 @@ Enabling this will ignore such font names and make sure your preferred family fo
               self.font_family_fonts[family_tag] = nil
             else
               self.font_family_fonts[family_tag] = v
-              -- We don't use :notify() as we don't want this notification to be masked,
-              -- to let the user know it's not global (so he has to use long-press)
-              UIManager:show(Notification:new({
+              Notification:notify({
                 text = _("Font family font set for this book only."),
-              }))
+              })
               -- Be sure it is shown before the re-rendering (which may take some time)
               UIManager:forceRePaint()
             end

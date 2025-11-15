@@ -113,7 +113,6 @@ return {
     ["container_bottom_padding"] = 1,
     ["container_height"] = 14,
     ["disable_progress_bar"] = false,
-    ["disabled"] = false,
     ["frontlight"] = true,
     ["hide_empty_generators"] = false,
     ["initial_marker"] = false,

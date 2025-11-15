@@ -3,10 +3,10 @@ local util = require("util")
 local _ = require("gettext")
 
 -- Start with the english keyboard layout
-local py_keyboard = dofile("frontend/ui/data/keyboardlayouts/en_keyboard.lua")
+local py_keyboard = require("ui/data/keyboardlayouts/en_keyboard")
 local SETTING_NAME = "keyboard_chinese_pinyin_settings"
 
-local code_map = dofile("frontend/ui/data/keyboardlayouts/zh_pinyin_data.lua")
+local code_map = require("ui/data/keyboardlayouts/zh_pinyin_data")
 local settings =
   G_reader_settings:readSetting(SETTING_NAME, { show_candi = true })
 local ime = IME:new({

@@ -164,8 +164,8 @@ function ReaderDictionary:init()
 
   self.disable_lookup_history =
     G_reader_settings:isTrue("disable_lookup_history")
-  self.dicts_order = G_reader_settings:readSetting("dicts_order") or {}
-  self.dicts_disabled = G_reader_settings:readSetting("dicts_disabled") or {}
+  self.dicts_order = G_reader_settings:readTableSetting("dicts_order")
+  self.dicts_disabled = G_reader_settings:readTableSetting("dicts_disabled")
   self.disable_fuzzy_search_fm =
     G_reader_settings:isTrue("disable_fuzzy_search")
 
@@ -218,7 +218,7 @@ function ReaderDictionary:updateSdcvDictNamesOptions()
     end
   end
 
-  local dicts_disabled = G_reader_settings:readSetting("dicts_disabled") or {}
+  local dicts_disabled = G_reader_settings:readTableSetting("dicts_disabled")
   for _, ifo in pairs(self:_getAvailableIfos()) do
     if
       not dicts_disabled[ifo.file] and not preferred_names_already_in[ifo.name]
@@ -1073,10 +1073,12 @@ end
 function ReaderDictionary:showLookupMsg(text)
   self.lookup_progress_msg = InfoMessage:new({
     text = text,
-    -- Show the "Searching..." InfoMessage after this delay
-    show_delay = 0.25,
+    -- Note, if the following operation is blocking, the delay will cause the
+    -- display of the info message to be cancelled. So no delay here, and force
+    -- a repaint.
   })
   UIManager:show(self.lookup_progress_msg)
+  UIManager:forceRePaint()
 end
 
 function ReaderDictionary:showDict(word, results, boxes, link)
@@ -1301,8 +1303,8 @@ function ReaderDictionary:extendIfoWithLanguage(dictionary_location, ifo_lang)
 end
 
 function ReaderDictionary:onReadSettings(config)
-  self.preferred_dictionaries = config:readSetting("preferred_dictionaries")
-    or {}
+  self.preferred_dictionaries =
+    config:readTableSetting("preferred_dictionaries")
   if #self.preferred_dictionaries == 0 then
     -- Legacy setting, when only one dict could be set as default/first to show
     local default_dictionary = config:readSetting("default_dictionary")

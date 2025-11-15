@@ -1,0 +1,1 @@
+../../../../koreader/frontend/ui/elements/cloud_storage_menu_table.lua

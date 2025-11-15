@@ -12,7 +12,6 @@ local _ = require("gettext")
 local separator_id = "----------------------------"
 
 local MenuSorter = {
-  orphaned_prefix = _("NEW: "),
   separator = {
     id = separator_id,
     text = "KOMenu:separator",
@@ -164,14 +163,11 @@ function MenuSorter:sort(item_table, order)
 
   -- attach orphans based on sorting_hint, or with a NEW prefix in the first menu if none found
   for k, v in FFIUtil.orderedPairs(item_table) do
-    local sorting_hint = v.sorting_hint
+    assert(v.sorting_hint, k)
 
     -- normally there should be menu text but check to be sure
     if v.text and v.new ~= true then
       v.id = k
-      if not sorting_hint then
-        v.text = self.orphaned_prefix .. v.text
-      end
       -- prevent text being prepended to item on menu reload, i.e., on switching between reader and filemanager
       v.new = true
       -- deal with orphaned submenus
@@ -182,14 +178,10 @@ function MenuSorter:sort(item_table, order)
         end
       end
     end
-    if sorting_hint then
-      local sorting_hint_menu =
-        self:findById(menu_table["KOMenu:menu_buttons"], sorting_hint)
-      sorting_hint_menu = sorting_hint_menu.sub_item_table or sorting_hint_menu
-      table.insert(sorting_hint_menu, v)
-    else
-      table.insert(menu_table["KOMenu:menu_buttons"][1], v)
-    end
+    local sorting_hint_menu =
+      self:findById(menu_table["KOMenu:menu_buttons"], v.sorting_hint)
+    sorting_hint_menu = sorting_hint_menu.sub_item_table or sorting_hint_menu
+    table.insert(sorting_hint_menu, v)
   end
   return menu_table["KOMenu:menu_buttons"]
 end

@@ -62,12 +62,6 @@ end
 function BasePowerD:isAuxBatteryConnectedHW()
   return false
 end
-function BasePowerD:getDismissBatteryStatus()
-  return self.battery_warning
-end
-function BasePowerD:setDismissBatteryStatus(status)
-  self.battery_warning = status
-end
 --- @note: Should ideally return true as long as the device is plugged in, even once the battery is full...
 function BasePowerD:isChargingHW()
   return false

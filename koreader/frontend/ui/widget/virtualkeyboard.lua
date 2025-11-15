@@ -93,8 +93,8 @@ function VirtualKey:init()
       self.keyboard:onSwitchingKeyboardLayout()
       local current = G_reader_settings:readSetting("keyboard_layout")
       local default = G_reader_settings:readSetting("keyboard_layout_default")
-      local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts")
-        or {}
+      local keyboard_layouts =
+        G_reader_settings:readTableSetting("keyboard_layouts")
       local next_layout = nil
       local layout_index = util.arrayContains(keyboard_layouts, current)
       if layout_index then
@@ -378,8 +378,8 @@ function VirtualKey:genKeyboardLayoutKeyChars()
     "northwest",
     "west",
   }
-  local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts")
-    or {}
+  local keyboard_layouts =
+    G_reader_settings:readTableSetting("keyboard_layouts")
   local key_chars = {
     { label = "🌐" },
     east = { label = "⋮" },
@@ -781,7 +781,7 @@ function VirtualKeyPopup:init()
   )
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
 
   local offset_x = 2 * keyboard_frame.bordersize
@@ -930,7 +930,7 @@ function VirtualKeyboard:init()
     G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms") or 0
   )
   if Device:hasKeys() then
-    self.key_events.Close = { { "Back" } }
+    self.key_events.Exit = { { "Back" } }
   end
   if keyboard.wrapInputBox then
     self.uwrap_func = keyboard.wrapInputBox(self.inputbox) or self.uwrap_func

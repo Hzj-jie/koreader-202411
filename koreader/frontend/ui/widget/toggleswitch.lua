@@ -219,11 +219,6 @@ function ToggleSwitch:onTapSelect(arg, gev)
     self.callback(self.position)
   end
   if self.toggle[self.position] ~= "⋮" then
-    if #self.values == 0 then -- this is a toggle which is not selectable (eg. increase, decrease)
-      Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_FINE)
-    else
-      Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_TOGGLE)
-    end
     self.config:onConfigChoose(
       self.values,
       self.name,
@@ -235,10 +230,6 @@ function ToggleSwitch:onTapSelect(arg, gev)
 
     UIManager:setDirty(self.config, function()
       return "ui", self.dimen
-    end)
-
-    UIManager:tickAfterNext(function()
-      Notification:resetNotifySource()
     end)
   end
   return true

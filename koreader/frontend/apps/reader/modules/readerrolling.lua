@@ -417,13 +417,11 @@ function ReaderRolling:setupTouchZones()
     return
   end
 
-  local forward_zone, backward_zone = self.view:getTapZones()
-
   self.ui:registerTouchZones({
     {
       id = "tap_forward",
       ges = "tap",
-      screen_zone = forward_zone,
+      screen_zone = self.view:getForwardTapZone(),
       handler = function()
         if G_reader_settings:nilOrFalse("page_turns_disable_tap") then
           return self:onGotoViewRel(1)
@@ -433,7 +431,8 @@ function ReaderRolling:setupTouchZones()
     {
       id = "tap_backward",
       ges = "tap",
-      screen_zone = backward_zone,
+      -- Anything else should be backward tap zone.
+      screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
       handler = function()
         if G_reader_settings:nilOrFalse("page_turns_disable_tap") then
           return self:onGotoViewRel(-1)
@@ -2158,7 +2157,7 @@ function ReaderRolling:setupRerenderingAutomation()
             -- Otherwise, no background rerendering needed, or the subprocess died: go on with the reload.
             -- We're done with background stuff and icon animations: reallow standby
             self.rendering_state = self.RENDERING_STATE.DO_RELOAD_DOCUMENT
-            self.ui:reloadDocument(nil, true) -- seamless reload (no infomsg, no flash)
+            self.ui:reloadDocument(true) -- seamless reload (no infomsg, no flash)
           end
           return
         end

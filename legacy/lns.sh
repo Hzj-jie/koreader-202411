@@ -3,8 +3,10 @@
 ../lns.sh
 
 mv plugins/README .
+mv plugins/backgroundrunner.koplugin .
 rm -rf plugins/*
 mv README plugins/
+mv backgroundrunner.koplugin plugins/
 
 ln -rs ../kindle/* .
 

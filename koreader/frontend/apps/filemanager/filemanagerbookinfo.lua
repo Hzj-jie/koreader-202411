@@ -185,7 +185,8 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   end
 
   -- Summary section
-  local summary = has_sidecar and doc_settings_or_file:readSetting("summary")
+  local summary = has_sidecar
+      and doc_settings_or_file:readTableSetting("summary")
     or {}
   local rating = summary.rating or 0
   local summary_hold_callback = function()
@@ -237,7 +238,7 @@ function BookInfo.getCustomProp(prop_key, filepath)
   local custom_metadata_file = DocSettings:findCustomMetadataFile(filepath)
   return custom_metadata_file
     and DocSettings.openSettingsFile(custom_metadata_file)
-      :readSetting("custom_props")[prop_key]
+      :readTableSetting("custom_props")[prop_key]
 end
 
 -- Returns extended and customized metadata.
@@ -247,7 +248,7 @@ function BookInfo.extendProps(original_props, filepath)
     and DocSettings:findCustomMetadataFile(filepath)
   local custom_props = custom_metadata_file
       and DocSettings.openSettingsFile(custom_metadata_file)
-        :readSetting("custom_props")
+        :readTableSetting("custom_props")
     or {}
   original_props = original_props or {}
 
@@ -495,7 +496,7 @@ function BookInfo:setCustomMetadata(file, book_props, prop_key, prop_value)
     book_props.display_title = nil
     custom_doc_settings:saveSetting("doc_props", book_props) -- save a copy of original props
   end
-  custom_props = custom_doc_settings:readSetting("custom_props") or {}
+  custom_props = custom_doc_settings:readTableSetting("custom_props")
   local prop_value_old = custom_props[prop_key] or book_props[prop_key]
   custom_props[prop_key] = prop_value -- nil when resetting a custom prop
   if next(custom_props) == nil then -- no more custom metadata
@@ -514,7 +515,7 @@ function BookInfo:setCustomMetadata(file, book_props, prop_key, prop_value)
   book_props.display_title = book_props.display_title or display_title -- restore
   -- in memory
   prop_value = prop_value
-    or custom_doc_settings:readSetting("doc_props")[prop_key] -- set custom or restore original
+    or custom_doc_settings:readTableSetting("doc_props")[prop_key] -- set custom or restore original
   book_props[prop_key] = prop_value
   if prop_key == "title" then -- generate when resetting the customized title and original is empty
     book_props.display_title = book_props.title
@@ -578,9 +579,9 @@ function BookInfo:showCustomDialog(file, book_props, prop_key)
   if prop_key then -- metadata
     if self.custom_doc_settings then
       original_prop =
-        self.custom_doc_settings:readSetting("doc_props")[prop_key]
+        self.custom_doc_settings:readTableSetting("doc_props")[prop_key]
       custom_prop =
-        self.custom_doc_settings:readSetting("custom_props")[prop_key]
+        self.custom_doc_settings:readTableSetting("custom_props")[prop_key]
     else
       original_prop = book_props[prop_key]
     end
@@ -666,7 +667,8 @@ end
 
 function BookInfo:editSummary(doc_settings_or_file, book_props)
   local has_sidecar = type(doc_settings_or_file) == "table"
-  local summary = has_sidecar and doc_settings_or_file:readSetting("summary")
+  local summary = has_sidecar
+      and doc_settings_or_file:readTableSetting("summary")
     or {}
   local rating = summary.rating or 0
   local input_dialog
@@ -831,7 +833,7 @@ function BookInfo.showBooksWithHashBasedMetadata()
     local doc_props = doc_settings:readSetting("doc_props")
     local custom_props = custom_metadata_file
         and DocSettings.openSettingsFile(custom_metadata_file)
-          :readSetting("custom_props")
+          :readTableSetting("custom_props")
       or {}
     local doc_path = doc_settings:readSetting("doc_path")
     local title = custom_props.title

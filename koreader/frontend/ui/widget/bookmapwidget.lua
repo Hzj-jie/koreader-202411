@@ -719,7 +719,7 @@ function BookMapWidget:init()
   self.covers_fullscreen = true -- hint for UIManager:_repaint()
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
     self.key_events.ShowBookMapMenu = { { "Menu" } }
     self.key_events.ScrollPageUp = { { Input.group.PgBack } }
     self.key_events.ScrollPageDown = { { Input.group.PgFwd } }

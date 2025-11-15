@@ -1,5 +1,5 @@
 -- Start with the english keyboard layout
-local tr_keyboard = dofile("frontend/ui/data/keyboardlayouts/en_keyboard.lua")
+local tr_keyboard = require("ui/data/keyboardlayouts/en_keyboard")
 
 local keys = tr_keyboard.keys
 -- Insert 2 additional key at the end of first 3 rows after numeric row.

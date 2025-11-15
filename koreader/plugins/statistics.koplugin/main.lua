@@ -190,12 +190,20 @@ function ReaderStatistics:init()
   end
 end
 
-function ReaderStatistics:initData()
-  self.is_doc = true
-  self.is_doc_not_finished = (self.ui.doc_settings:readSetting("summary") or {}).status
-    ~= "complete"
-  self.is_doc_not_frozen = self.is_doc_not_finished
-    or not self.settings.freeze_finished_books
+function ReaderStatistics:_updateFrozen()
+  self.is_doc_not_finished = (
+    self.ui
+    and self.ui.doc_settings:readTableSetting("summary").status ~= "complete"
+  )
+  self.is_doc_not_frozen = self.is_doc
+    and (self.is_doc_not_finished or not self.settings.freeze_finished_books)
+end
+
+function ReaderStatistics:_initData()
+  self.is_doc = (
+    self.document and not require("readhistory"):ignoreFile(self.document.file)
+  )
+  self:_updateFrozen()
 
   -- first execution
   local book_properties = self.ui.doc_props
@@ -378,7 +386,7 @@ Do you want to create an empty database?
             timeout = 3,
           }))
           if self.document then
-            self:initData()
+            self:_initData()
           end
         end,
       }))
@@ -1264,7 +1272,7 @@ function ReaderStatistics:onToggleStatistics(no_notification)
   self.settings.is_enabled = not self.settings.is_enabled
   if self.is_doc then
     if self.settings.is_enabled then
-      self:initData()
+      self:_initData()
       self.start_current_period = os.time()
       self.curr_page = self.ui:getCurrentPage()
       self:resetVolatileStats(self.start_current_period)
@@ -1350,11 +1358,7 @@ The max value ensures a page you stay on for a long time (because you fell aslee
             callback = function()
               self.settings.freeze_finished_books =
                 not self.settings.freeze_finished_books
-              self.is_doc_not_frozen = self.is_doc
-                and (
-                  self.is_doc_not_finished
-                  or not self.settings.freeze_finished_books
-                )
+              self:_updateFrozen()
             end,
             separator = true,
           },
@@ -2077,7 +2081,7 @@ function ReaderStatistics:getCurrentStat()
     }
   else
     estimated_time_left = { _("Estimated reading time left"), _("finished") }
-    local mark_date = (self.ui.doc_settings:readSetting("summary") or {}).modified
+    local mark_date = self.ui.doc_settings:readTableSetting("summary").modified
     estimated_finish_date = {
       _("Book marked as finished"),
       datetime.secondsToDate(datetime.stringToSeconds(mark_date), true),
@@ -3497,10 +3501,10 @@ function ReaderStatistics:onReadingResumed()
 end
 
 function ReaderStatistics:onReaderReady(config)
-  self.data = config:readSetting("stats") or { performance_in_pages = {} }
+  self.data = config:readTableSetting("stats", { performance_in_pages = {} })
   self.doc_md5 = config:readSetting("partial_md5_checksum")
   -- we have correct page count now, do the actual initialization work
-  self:initData()
+  self:_initData()
 end
 
 function ReaderStatistics:onShowCalendarView()
