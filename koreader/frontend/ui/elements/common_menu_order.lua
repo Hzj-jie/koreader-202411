@@ -167,11 +167,12 @@ local function mergeWith(b)
       "----------------------------",
       "mass_storage_actions", -- if Device:canToggleMassStorage()
       "----------------------------",
-      "help",
       "common_log_files",
       "advanced_settings",
       "developer_options",
+      "----------------------------",
       "keyboard_shortcuts", -- explicitly place it here to save key presses
+      "help",
       "----------------------------",
       "exit_menu",
     },
