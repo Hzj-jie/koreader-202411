@@ -1115,9 +1115,8 @@ function Profiles:onSetRotationMode(mode) -- global
   end
   for profile_name, modes in pairs(self.autoexec[event]) do
     if modes[mode] then
-      if self.ui.config then -- close bottom menu to let Dispatcher execute profile
-        self.ui.config:onCloseConfigMenu()
-      end
+      -- close bottom menu to let Dispatcher execute profile
+      UIManager:broadcastEvent("CloseConfigMenu")
       self:executeAutoExec(profile_name)
     end
   end
