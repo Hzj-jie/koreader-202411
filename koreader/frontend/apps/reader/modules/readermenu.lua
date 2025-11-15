@@ -442,10 +442,6 @@ function ReaderMenu:onShowMenu(tab_index)
     self:onCloseReaderMenu()
   end
 
-  main_menu.touch_menu_callback = function()
-    UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
-  end
-
   menu_container[1] = main_menu
   -- maintain a reference to menu_container
   self.menu_container = menu_container
