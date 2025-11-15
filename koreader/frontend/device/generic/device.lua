@@ -459,7 +459,7 @@ function Device:install()
         self:saveSettings()
         UIManager:quit(85)
       end
-      UIManager:broadcastEvent(Event:new("Exit", save_quit))
+      UIManager:broadcastEvent(Event:new("ExitKOReader", save_quit))
     end,
     cancel_text = _("Later"),
     cancel_callback = function()

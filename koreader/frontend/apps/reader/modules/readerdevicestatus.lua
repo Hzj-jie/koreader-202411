@@ -170,7 +170,7 @@ function ReaderDeviceStatus:_checkMemoryStatus()
       ok_text = _("Exit"),
       dismissable = false,
       ok_callback = function()
-        UIManager:broadcastEvent(Event:new("Exit"))
+        UIManager:broadcastEvent("ExitKOReader")
       end,
     })
     UIManager:show(memory_confirm_box)

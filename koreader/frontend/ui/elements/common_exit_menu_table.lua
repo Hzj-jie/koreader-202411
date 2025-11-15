@@ -8,14 +8,14 @@ local exit_settings = {}
 exit_settings.exit_menu = {
   text = _("Exit"),
   hold_callback = function()
-    UIManager:broadcastEvent(Event:new("Exit"))
+    UIManager:broadcastEvent("ExitKOReader")
   end,
   -- submenu entries will be appended by xyz_menu_order_lua
 }
 exit_settings.exit = {
   text = _("Exit"),
   callback = function()
-    UIManager:broadcastEvent(Event:new("Exit"))
+    UIManager:broadcastEvent("ExitKOReader")
   end,
 }
 exit_settings.restart_koreader = {

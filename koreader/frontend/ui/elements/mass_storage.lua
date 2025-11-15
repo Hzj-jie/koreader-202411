@@ -83,7 +83,7 @@ function MassStorage:start(with_confirmation)
         -- save settings before activating USBMS:
         UIManager:flushSettings()
         logger.info("Exiting KOReader to enter USBMS mode...")
-        UIManager:broadcastEvent(Event:new("Exit"))
+        UIManager:broadcastEvent("ExitKOReader")
         UIManager:quit(86)
       end,
       cancel_callback = function()
@@ -96,7 +96,7 @@ function MassStorage:start(with_confirmation)
     -- save settings before activating USBMS:
     UIManager:flushSettings()
     logger.info("Exiting KOReader to enter USBMS mode...")
-    UIManager:broadcastEvent(Event:new("Exit"))
+    UIManager:broadcastEvent("ExitKOReader")
     UIManager:quit(86)
   end
 end

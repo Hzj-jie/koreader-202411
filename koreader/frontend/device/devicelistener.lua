@@ -421,7 +421,7 @@ function DeviceListener:onRequestUSBMS()
   MassStorage:start(false)
 end
 
-function DeviceListener:onExit(callback)
+function DeviceListener:onExitKOReader(callback)
   self.ui.menu:exitOrRestart(callback)
 end
 
