@@ -202,7 +202,7 @@ local function kindleIsWifiUp()
     -- Delay the initial com.lab126.cmd wirelessEnable call after resume. See
     -- https://github.com/Hzj-jie/koreader-202411/issues/260 and
     -- https://github.com/Hzj-jie/koreader-202411/issues/266
-    return time.to_s(time.since(Generic.last_resume_at)) < 10
+    return time.to_s(time.realtime() - Generic.last_resume_at) < 10
   end
   if shouldDelayLipc() then
     return false
