@@ -1209,7 +1209,7 @@ function Device:_afterResume(inhibit)
   -- event being processed.
   UIManager:updateLastUserActionTime()
   Device.last_resume_at = time.realtime()
-  self.total_suspend_time = self.total_suspend_time + (Device.last_resume_at - Device.last_suspend_at)
+  Device.total_suspend_time = Device.total_suspend_time + (Device.last_resume_at - Device.last_suspend_at)
   UIManager:broadcastEvent(Event:new("Resume"))
 end
 
