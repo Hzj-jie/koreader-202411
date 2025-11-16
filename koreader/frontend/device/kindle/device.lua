@@ -800,14 +800,11 @@ end
 function Kindle:wakeupFromSuspend(ts)
   logger.dbg("Kindle:wakeupFromSuspend", ts)
   self.powerd:wakeupFromSuspend(ts)
-  self.last_suspend_time = time.boottime_or_realtime_coarse()
-    - self.suspend_time
 end
 
 function Kindle:readyToSuspend(delay)
   logger.dbg("Kindle:readyToSuspend", delay)
   self.powerd:readyToSuspend(delay)
-  self.suspend_time = time.boottime_or_realtime_coarse()
 end
 
 -- We add --no-same-permissions --no-same-owner to make the userstore fuse proxy happy...
