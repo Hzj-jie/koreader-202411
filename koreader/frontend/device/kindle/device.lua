@@ -787,44 +787,6 @@ function Kindle:_outofScreenSaver(source)
       UIManager:setDirty("all", "full")
     end)
   end
-
-  -- If the device supports deep sleep, and we woke up from hibernation (which kicks in at the 1H mark),
-  -- chuck an extra tiny refresh to get rid of the "waking up" banner if the above refresh was too early...
-  if not self.canDeepSleep then
-    return
-  end
-  if self.last_suspend_time <= time.s(self.hibernationDelay) then
-    return
-  end
-  if
-    lfs.attributes("/var/local/system/powerd/hibernate_session_tracker", "mode")
-    ~= "file"
-  then
-    return
-  end
-  local mtime = lfs.attributes(
-    "/var/local/system/powerd/hibernate_session_tracker",
-    "modification"
-  )
-  local now = os.time()
-  if math.abs(now - mtime) > 60 then
-    return
-  end
-  -- That was less than a minute ago, assume we're golden.
-  logger.dbg("Kindle: Woke up from hibernation")
-  -- The banner on a 1236x1648 PW5 is 1235x125; we refresh the bottom 10% of the screen to be safe.
-  local Geom = require("ui/geometry")
-  local screen_height = self.screen:getHeight()
-  local refresh_height = math.ceil(screen_height * (1 / 10))
-  local refresh_region = Geom:new({
-    x = 0,
-    y = screen_height - 1 - refresh_height,
-    w = self.screen:getWidth(),
-    h = refresh_height,
-  })
-  UIManager:scheduleIn(1.5, function()
-    UIManager:setDirty("all", "ui", refresh_region)
-  end)
 end
 
 -- On stock, there's a distinction between OutOfSS (which *requests* closing the SS) and ExitingSS, which fires once they're *actually* closed...
@@ -840,7 +802,6 @@ function Kindle:wakeupFromSuspend(ts)
   self.powerd:wakeupFromSuspend(ts)
   self.last_suspend_time = time.boottime_or_realtime_coarse()
     - self.suspend_time
-  self.total_suspend_time = self.total_suspend_time + self.last_suspend_time
 end
 
 function Kindle:readyToSuspend(delay)
@@ -883,6 +844,44 @@ function Kindle:setEventHandlers(uimgr)
     local arg = table.remove(self.input.fake_event_args[input_event])
     self:_outofScreenSaver(arg)
     self.powerd:afterResume()
+
+    -- If the device supports deep sleep, and we woke up from hibernation (which kicks in at the 1H mark),
+    -- chuck an extra tiny refresh to get rid of the "waking up" banner if the above refresh was too early...
+    if not self.canDeepSleep then
+      return
+    end
+    if (Generic.last_resume_at - Generic.last_suspend_at) <= time.s(self.hibernationDelay) then
+      return
+    end
+    if
+      lfs.attributes("/var/local/system/powerd/hibernate_session_tracker", "mode")
+      ~= "file"
+    then
+      return
+    end
+    local mtime = lfs.attributes(
+      "/var/local/system/powerd/hibernate_session_tracker",
+      "modification"
+    )
+    local now = os.time()
+    if math.abs(now - mtime) > 60 then
+      return
+    end
+    -- That was less than a minute ago, assume we're golden.
+    logger.dbg("Kindle: Woke up from hibernation")
+    -- The banner on a 1236x1648 PW5 is 1235x125; we refresh the bottom 10% of the screen to be safe.
+    local Geom = require("ui/geometry")
+    local screen_height = self.screen:getHeight()
+    local refresh_height = math.ceil(screen_height * (1 / 10))
+    local refresh_region = Geom:new({
+      x = 0,
+      y = screen_height - 1 - refresh_height,
+      w = self.screen:getWidth(),
+      h = refresh_height,
+    })
+    UIManager:scheduleIn(1.5, function()
+      UIManager:setDirty("all", "ui", refresh_region)
+    end)
   end
   -- Unused yet.
   -- self.powerd:afterResume() here may not always work, some units do not

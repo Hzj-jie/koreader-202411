@@ -83,7 +83,6 @@ local Device = {
   total_standby_time = 0, -- total time spent in standby
   last_standby_time = 0, -- time spent during the last standby
   total_suspend_time = 0, -- total time spent in suspend
-  last_suspend_time = 0, -- time spent during the last suspend
   -- Note, these two are static and can be nil to indicate the last resume /
   -- suspend times were unknown.
   last_resume_at = nil, -- time right before calling onResume event
@@ -1182,7 +1181,7 @@ end
 function Device:_beforeSuspend(inhibit)
   UIManager:flushSettings()
   UIManager:broadcastEvent(Event:new("Suspend"))
-  Device.last_suspend_at = time.now()
+  Device.last_suspend_at = time.realtime()
 
   if inhibit ~= false then
     -- Block input events unrelated to power management
@@ -1209,7 +1208,8 @@ function Device:_afterResume(inhibit)
   -- Ideally UIManager should understand the Resume event, but it needs to check every single
   -- event being processed.
   UIManager:updateLastUserActionTime()
-  Device.last_resume_at = time.now()
+  Device.last_resume_at = time.realtime()
+  self.total_suspend_time = self.total_suspend_time + (Device.last_resume_at - Device.last_suspend_at)
   UIManager:broadcastEvent(Event:new("Resume"))
 end
 

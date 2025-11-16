@@ -1530,14 +1530,9 @@ function Kobo:_doSuspend()
   --]]
 
   logger.dbg("Kobo suspend: asking for a suspend to RAM . . .")
-  local suspend_time = time.boottime_or_realtime_coarse()
 
+  -- Do the real suspend.
   local ret = ffiUtil.writeToSysfs("mem", "/sys/power/state")
-
-  -- NOTE: At this point, we *should* be in suspend to RAM, as such,
-  --     execution should only resume on wakeup...
-  self.last_suspend_time = time.boottime_or_realtime_coarse() - suspend_time
-  self.total_suspend_time = self.total_suspend_time + self.last_suspend_time
 
   if ret then
     logger.info("Kobo suspend: ZzZ ZzZ ZzZ... And woke up!")
