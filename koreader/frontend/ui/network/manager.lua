@@ -865,7 +865,10 @@ end
 
 function NetworkMgr:getDismissScanMenuTable()
   return {
-    text = _("Dismiss Wi-Fi scan popup after connection"),
+    -- Need localization
+    text = _("Automatically connect to the known Wi-Fi"),
+    -- Need localization
+    help_text = _("Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known network automatically after turning on Wi-Fi."),
     checked_func = function()
       return G_reader_settings:nilOrTrue("auto_dismiss_wifi_scan")
     end,
