@@ -848,7 +848,6 @@ end
 
 function KeyValuePage:onExit()
   UIManager:close(self)
-  UIManager:setDirty(nil, "ui")
   if self.close_callback then
     self.close_callback()
   end

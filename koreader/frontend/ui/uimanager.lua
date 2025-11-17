@@ -275,7 +275,7 @@ function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
     for i = start_idx, #self._window_stack do
       self:setDirty(self._window_stack[i].widget)
     end
-    self:_refresh(refreshtype, refreshregion, refreshdither)
+    self:_refresh(refreshtype or "ui", refreshregion, refreshdither)
   end
   if widget._restored_input_gestures then
     logger.dbg("Widget is gone, disabling gesture handling again")
