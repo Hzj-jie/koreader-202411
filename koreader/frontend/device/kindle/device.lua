@@ -669,46 +669,6 @@ function Kindle:init()
   Generic.init(self)
 end
 
-function Kindle:setDateTime(year, month, day, hour, min, sec)
-  if hour == nil or min == nil then
-    return true
-  end
-
-  -- Prefer using the setdate wrapper if possible, as it will poke the native UI, too.
-  if lfs.attributes("/usr/sbin/setdate", "mode") == "file" then
-    local t = os.date("*t") -- Start with now to make sure we have a full table
-    t.year = year or t.year
-    t.month = month or t.month
-    t.day = day or t.day
-    t.hour = hour
-    t.min = min
-    t.sec = sec or t.sec
-    local epoch = os.time(t)
-
-    local command = string.format("/usr/sbin/setdate '%d'", epoch)
-    return os.execute(command) == 0
-  end
-  local command
-  if year and month and day then
-    command = string.format(
-      "date -s '%d-%d-%d %d:%d:%d' '+%%Y-%%m-%%d %%H:%%M:%%S'",
-      year,
-      month,
-      day,
-      hour,
-      min,
-      sec
-    )
-  else
-    command = string.format("date -s '%d:%d' '+%%H:%%M'", hour, min)
-  end
-  if os.execute(command) == 0 then
-    os.execute("hwclock -u -w")
-    return true
-  end
-  return false
-end
-
 function Kindle:usbPlugIn()
   -- NOTE: We cannot support running in USBMS mode (we cannot, we live on the partition being exported!).
   --     But since that's the default state of the Kindle system, we have to try to make nice...
