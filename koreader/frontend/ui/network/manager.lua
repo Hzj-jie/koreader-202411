@@ -147,15 +147,23 @@ function NetworkMgr:shouldRestoreWifi()
 end
 
 function NetworkMgr:restoreWifiAndCheckAsync(msg)
-  if self:_isWifiConnected() then
-    self:_networkConnected()
-  elseif self:shouldRestoreWifi() then
-    -- Attempt to restore wifi in the background if necessary
-    if msg then
-      logger.dbg(msg)
+  if self:shouldRestoreWifi() then
+    if self:_isWifiConnected() then
+      self:_networkConnected()
+    else
+      -- Attempt to restore wifi in the background if necessary
+      if msg then
+        logger.dbg(msg)
+      end
+      self:restoreWifiAsync()
+      ConnectivityChecker:start()
     end
-    self:restoreWifiAsync()
-    ConnectivityChecker:start()
+  else
+    -- Note, here it needs only to turn off the wifi without any events, just in
+    -- case the native OS decides to turn on the wifi for whatever reason.
+    UIManager:scheduleIn(2, function()
+      self:_turnOffWifi()
+    end)
   end
 end
 

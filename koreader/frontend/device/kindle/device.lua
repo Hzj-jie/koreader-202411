@@ -348,10 +348,7 @@ function Kindle:initNetworkManager(NetworkMgr)
   end
 
   function NetworkMgr:restoreWifiAsync()
-    -- It's "async".
-    UIManager:nextTick(function()
-      kindleEnableWifi(1)
-    end)
+    kindleEnableWifi(1)
   end
 
   function NetworkMgr:authenticateNetwork(network)
