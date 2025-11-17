@@ -294,7 +294,6 @@ local KeyValuePage = FocusManager:extend({
   -- alignment of value when key or value overflows its reserved width (for
   -- now: 50%): "left" (stick to key), "right" (stick to screen's right border)
   value_overflow_align = "left",
-  single_page = nil, -- show all items on one single page (and make them small)
   title_bar_align = "left",
   title_bar_left_icon = nil,
   title_bar_left_icon_tap_callback = nil,
@@ -476,13 +475,10 @@ function KeyValuePage:init()
   local padding = Size.padding.large
   self.item_width = self.dimen.w - 2 * padding
 
-  local footer = nil
-  if not self.single_page then
-    footer = BottomContainer:new({
+  local footer = BottomContainer:new({
       dimen = self.dimen:copy(),
       self.page_info,
     })
-  end
 
   local page_return = BottomContainer:new({
     dimen = self.dimen:copy(),
@@ -510,15 +506,12 @@ function KeyValuePage:init()
   local available_height = self.dimen.h
     - self.title_bar:getHeight()
     - Size.span.vertical_large -- for above page_info (as title_bar adds one itself)
-    - (self.single_page and 0 or self.page_info:getSize().h)
+    - self.page_info:getSize().h
     - 2 * Size.line.thick
   -- account for possibly 2 separator lines added
 
   self.items_per_page = G_reader_settings:readSetting("keyvalues_per_page")
     or self.getDefaultItemsPerPage()
-  if self.single_page and self.items_per_page < #self.kv_pairs then
-    self.items_per_page = #self.kv_pairs
-  end
   self.item_height = math.floor(available_height / self.items_per_page)
   -- Put half of the pixels lost by floor'ing between title and content
   local content_height = self.items_per_page * self.item_height

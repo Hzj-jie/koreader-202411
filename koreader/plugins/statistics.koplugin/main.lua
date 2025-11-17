@@ -1610,13 +1610,7 @@ Time is in hours and minutes.]]),
         text = _("Current book"),
         keep_menu_open = true,
         callback = function()
-          self.kv = KeyValuePage:new({
-            title = _("Current statistics"),
-            kv_pairs = self:getCurrentStat(),
-            value_align = "right",
-            single_page = true,
-          })
-          UIManager:show(self.kv)
+          self:onShowBookStats()
         end,
         enabled_func = function()
           return self:isEnabled()
@@ -2804,7 +2798,6 @@ function ReaderStatistics:getBooksFromPeriod(
             title = result_book[1][i],
             kv_pairs = self:getBookStat(tonumber(result_book[4][i])),
             value_align = "right",
-            single_page = true,
             callback_return = function()
               UIManager:show(kv)
               self.kv = kv
@@ -3044,7 +3037,6 @@ function ReaderStatistics:getTotalStats()
           title = book_title,
           kv_pairs = self:getBookStat(id_book),
           value_align = "right",
-          single_page = true,
           callback_return = function()
             UIManager:show(kv)
             self.kv = kv
@@ -3767,7 +3759,6 @@ function ReaderStatistics:onShowBookStats()
     title = _("Current statistics"),
     kv_pairs = self:getCurrentStat(),
     value_align = "right",
-    single_page = true,
   })
   UIManager:show(self.kv)
 end

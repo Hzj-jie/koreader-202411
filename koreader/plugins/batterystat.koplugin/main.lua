@@ -259,7 +259,6 @@ function BatteryStat:showStatistics()
   self.kv_page = KeyValuePage:new({
     title = T(_("Battery statistics (now %1%)"), self.awake_state.percentage),
     kv_pairs = kv_pairs,
-    single_page = true,
   })
   UIManager:show(self.kv_page)
 end
