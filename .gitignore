@@ -7,3 +7,4 @@ native/lua/lua-*
 native/ffi/lua-ffi-*
 native/ffi/libffi-*
 native/lfs/luafilesystem-*
+origin.linux/
