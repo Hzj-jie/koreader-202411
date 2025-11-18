@@ -6,7 +6,6 @@ local function mergeWith(b)
       "font_ui_fallbacks",
       "----------------------------",
       "time",
-      "synchronize_time",
       "units",
       "device_status_alarm",
       "charging_led", -- if Device:canToggleChargingLED()
