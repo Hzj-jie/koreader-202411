@@ -346,6 +346,7 @@ function ReadHistory:ignoreFile(file)
     "^batterystat%.log$",
     "^crash%.log$",
     "^crash%.prev%.log$",
+    "^koreader%.crash%..*%.log$",
     "^quickstart%-.*%.html$",
   }
   for _, pattern in ipairs(exclude_files) do
