@@ -507,14 +507,9 @@ function KOSync:_login(menu)
                 }))
               else
                 UIManager:close(dialog)
-                UIManager:runWith(
-                  function()
-                    self:_doLogin(username, password, menu)
-                  end,
-                  InfoMessage:new({
-                    text = _("Logging in. Please wait…"),
-                  })
-                )
+                UIManager:runWith(function()
+                  self:_doLogin(username, password, menu)
+                end, _("Logging in. Please wait…"))
               end
             end,
           },
@@ -749,10 +744,8 @@ function KOSync:_updateProgress(interactive)
       function()
         NetworkMgr:runWhenOnline(exec, "kosync-push-" .. doc_digest)
       end,
-      InfoMessage:new({
-        -- Need localization
-        text = _("Pushing progress…"),
-      })
+      -- Need localization
+      _("Pushing progress…")
     )
   else
     NetworkMgr:willRerunWhenOnline(exec, "kosync-push-" .. doc_digest)
@@ -911,10 +904,8 @@ function KOSync:_getProgress(interactive)
       function()
         NetworkMgr:runWhenOnline(exec, "kosync-pull-" .. doc_digest)
       end,
-      InfoMessage:new({
-        -- Need localization
-        text = _("Pulling progress…"),
-      })
+      -- Need localization
+      _("Pulling progress…")
     )
   else
     NetworkMgr:willRerunWhenOnline(exec, "kosync-pull-" .. doc_digest)

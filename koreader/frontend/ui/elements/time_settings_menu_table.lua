@@ -241,10 +241,7 @@ local function add_sync_time()
     local txt
     UIManager:runWith(function()
       txt = syncNTPOnly()
-    end,
-    InfoMessage:new({
-      text = _("Synchronizing time. This may take several seconds."),
-    }))
+    end, _("Synchronizing time. This may take several seconds."))
 
     UIManager:show(InfoMessage:new({
       text = txt,

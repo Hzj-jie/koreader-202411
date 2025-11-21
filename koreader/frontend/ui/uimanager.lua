@@ -1771,8 +1771,7 @@ function UIManager:askForRestart(message_text)
         cancel_text = _("Restart later"),
       }))
     else
-      local InfoMessage = require("ui/widget/infomessage")
-      self:show(InfoMessage:new({
+      self:show(require("ui/widget/infomessage"):new({
         text = message_text or _("This will take effect on next restart."),
       }))
     end
@@ -1893,6 +1892,11 @@ end
 function UIManager:runWith(func, widget)
   assert(widget ~= nil)
   assert(func ~= nil)
+  if type(widget) == "string" then
+    widget = require("ui/widget/infomessage"):new({
+      text = widget,
+    })
+  end
   self:show(widget)
   self:forceRePaint()
   func()

@@ -476,9 +476,9 @@ function KeyValuePage:init()
   self.item_width = self.dimen.w - 2 * padding
 
   local footer = BottomContainer:new({
-      dimen = self.dimen:copy(),
-      self.page_info,
-    })
+    dimen = self.dimen:copy(),
+    self.page_info,
+  })
 
   local page_return = BottomContainer:new({
     dimen = self.dimen:copy(),

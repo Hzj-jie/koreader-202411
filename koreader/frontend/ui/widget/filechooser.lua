@@ -6,7 +6,6 @@ local DocumentRegistry = require("document/documentregistry")
 local Event = require("ui/event")
 local FileManagerShortcuts = require("apps/filemanager/filemanagershortcuts")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
-local InfoMessage = require("ui/widget/infomessage")
 local Menu = require("ui/widget/menu")
 local ReadCollection = require("readcollection")
 local UIManager = require("ui/uimanager")
@@ -601,10 +600,8 @@ function FileChooser:refreshPath()
         subtitle
       )
     end,
-    InfoMessage:new({
-      -- Need localization.
-      text = T(_("Loading contents in %1"), self.path),
-    })
+    -- Need localization.
+    T(_("Loading contents in %1"), self.path)
   )
 end
 

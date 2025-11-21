@@ -939,10 +939,8 @@ function ReaderUI:onExit(full_refresh)
         UIManager:close(self.dialog, full_refresh ~= false and "full")
       end
     end,
-    InfoMessage:new({
-      -- Need localization.
-      text = T(_("Saving progress of file %1"), self.document.file),
-    })
+    -- Need localization.
+    T(_("Saving progress of file %1"), self.document.file)
   )
 end
 

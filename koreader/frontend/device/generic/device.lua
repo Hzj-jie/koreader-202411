@@ -1205,7 +1205,8 @@ function Device:_afterResume(inhibit)
   end
 
   self.last_resume_at = time.realtime()
-  self.total_suspend_time = self.total_suspend_time + (self.last_resume_at - self.last_suspend_at)
+  self.total_suspend_time = self.total_suspend_time
+    + (self.last_resume_at - self.last_suspend_at)
   -- This is a hacky way to ensure the resume can be treated as an input.
   -- Ideally UIManager should understand the Resume event, but it needs to check every single
   -- event being processed.

@@ -203,10 +203,8 @@ function NetworkListener:onShowNetworkInfo()
           face = Font:getFace("x_smallinfofont"),
         }))
       end,
-      InfoMessage:new({
-        -- Need localization.
-        text = _("Retrieving network information…"),
-      })
+      -- Need localization.
+      _("Retrieving network information…")
     )
   else
     UIManager:show(InfoMessage:new({

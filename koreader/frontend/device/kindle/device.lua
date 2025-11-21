@@ -808,12 +808,17 @@ function Kindle:setEventHandlers(uimgr)
     if not self.canDeepSleep then
       return
     end
-    if (self.last_resume_at - self.last_suspend_at) <= time.s(self.hibernationDelay) then
+    if
+      (self.last_resume_at - self.last_suspend_at)
+      <= time.s(self.hibernationDelay)
+    then
       return
     end
     if
-      lfs.attributes("/var/local/system/powerd/hibernate_session_tracker", "mode")
-      ~= "file"
+      lfs.attributes(
+        "/var/local/system/powerd/hibernate_session_tracker",
+        "mode"
+      ) ~= "file"
     then
       return
     end
