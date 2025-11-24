@@ -64,6 +64,13 @@ function BookInfo:addToMainMenu(menu_items)
   }
 end
 
+local function sizeStr(attr)
+  local file_size = attr ~= nil and (attr.size or 0) or 0
+  local size_f = util.getFriendlySize(file_size)
+  local size_b = util.getFormattedSize(file_size)
+  return string.format("%s (%s bytes)", size_f, size_b)
+end
+
 -- Extracts book information.
 function BookInfo:extract(doc_settings_or_file, book_props)
   local kv_pairs = {}
@@ -75,14 +82,11 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   local folder, filename = util.splitFilePathName(file)
   local __, filetype = filemanagerutil.splitFileNameType(filename)
   local attr = lfs.attributes(file)
-  local file_size = attr ~= nil and (attr.size or 0) or 0
-  local size_f = util.getFriendlySize(file_size)
-  local size_b = util.getFormattedSize(file_size)
   table.insert(kv_pairs, { _("Filename:"), BD.filename(filename) })
   table.insert(kv_pairs, { _("Format:"), filetype:upper() })
   table.insert(
     kv_pairs,
-    { _("Size:"), string.format("%s (%s bytes)", size_f, size_b) }
+    { _("Size:"),  sizeStr(attr)}
   )
   table.insert(kv_pairs, {
     _("File date:"),
@@ -202,6 +206,17 @@ function BookInfo:extract(doc_settings_or_file, book_props)
     summary.note or _("N/A"),
     hold_callback = summary_hold_callback,
   })
+  if has_sidecar then
+    table.insert(kv_pairs, {
+      -- Need localization
+      _("Number of bookmarks"), #doc_settings_or_file:readTableSetting("annotations")
+    })
+    table.insert(
+      kv_pairs,
+      -- Need localization
+      { _("Sidecar file size:"),  sizeStr(lfs.attributes(doc_settings_or_file.source_candidate))}
+    )
+  end
 
   return kv_pairs
 end
