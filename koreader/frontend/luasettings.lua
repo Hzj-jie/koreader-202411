@@ -252,4 +252,11 @@ function LuaSettings:settingCount()
   return util.tableSize(self.data)
 end
 
+function LuaSettings:fileAttribute()
+  if self.file then
+    return lfs.attributes(self.file)
+  end
+  return nil
+end
+
 return LuaSettings

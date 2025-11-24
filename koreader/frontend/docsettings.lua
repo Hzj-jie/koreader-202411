@@ -331,7 +331,7 @@ function DocSettings:open(doc_path)
   if ok and stored then
     new.data = stored
     new.candidates = candidates
-    new.source_candidate = candidate_path
+    new.file = candidate_path
   else
     new.data = {}
   end
@@ -354,18 +354,8 @@ function DocSettings.openSettingsFile(sidecar_file)
   else
     new.data = {}
   end
-  new.sidecar_file = sidecar_file
+  new.file = sidecar_file
   return new
-end
-
-function DocSettings:sourceAttribute()
-  if self.source_candidate then
-    return lfs.attributes(self.source_candidate)
-  end
-  if self.sidecar_file then
-    return lfs.attributes(self.sidecar_file)
-  end
-  return nil
 end
 
 --- Serializes settings and writes them to `metadata.lua`.

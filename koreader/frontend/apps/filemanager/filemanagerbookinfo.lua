@@ -219,7 +219,7 @@ function BookInfo:extract(doc_settings_or_file, book_props)
     table.insert(
       kv_pairs,
       -- Need localization
-      { _("Setting file size:"),  sizeStr(doc_settings_or_file:sourceAttribute())}
+      { _("Setting file size:"),  sizeStr(doc_settings_or_file:fileAttribute())}
     )
   end
 
@@ -520,9 +520,9 @@ function BookInfo:setCustomMetadata(file, book_props, prop_key, prop_value)
   local prop_value_old = custom_props[prop_key] or book_props[prop_key]
   custom_props[prop_key] = prop_value -- nil when resetting a custom prop
   if next(custom_props) == nil then -- no more custom metadata
-    os.remove(custom_doc_settings.sidecar_file)
+    custom_doc_settings:purge()
     DocSettings.removeSidecarDir(
-      util.splitFilePathName(custom_doc_settings.sidecar_file)
+      util.splitFilePathName(custom_doc_settings.file)
     )
     no_custom_metadata = true
   else
