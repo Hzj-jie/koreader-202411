@@ -358,6 +358,16 @@ function DocSettings.openSettingsFile(sidecar_file)
   return new
 end
 
+function DocSettings:sourceAttribute()
+  if self.source_candidate then
+    return lfs.attributes(self.source_candidate)
+  end
+  if self.sidecar_file then
+    return lfs.attributes(self.sidecar_file)
+  end
+  return nil
+end
+
 --- Serializes settings and writes them to `metadata.lua`.
 function DocSettings:flush(data, no_custom_metadata)
   data = data or self.data

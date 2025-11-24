@@ -214,7 +214,12 @@ function BookInfo:extract(doc_settings_or_file, book_props)
     table.insert(
       kv_pairs,
       -- Need localization
-      { _("Sidecar file size:"),  sizeStr(lfs.attributes(doc_settings_or_file.source_candidate))}
+      { _("Number of settings:"),  doc_settings_or_file:settingCount()}
+    )
+    table.insert(
+      kv_pairs,
+      -- Need localization
+      { _("Setting file size:"),  sizeStr(doc_settings_or_file:sourceAttribute())}
     )
   end
 

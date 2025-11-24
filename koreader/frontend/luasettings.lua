@@ -249,4 +249,8 @@ function LuaSettings:purge()
   return self
 end
 
+function LuaSettings:settingCount()
+  return util.tableSize(self.data)
+end
+
 return LuaSettings
