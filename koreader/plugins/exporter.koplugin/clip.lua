@@ -247,7 +247,7 @@ function MyClipping:getImage(image)
 end
 
 function MyClipping:parseAnnotations(annotations, book)
-  local settings = G_reader_settings:readSetting("exporter")
+  local settings = G_reader_settings:readTableSetting("exporter")
   for _, item in ipairs(annotations) do
     if
       item.drawer
@@ -287,7 +287,7 @@ function MyClipping:parseHighlight(highlights, bookmarks, book)
     .. "$"
 
   local orphan_highlights = {}
-  local settings = G_reader_settings:readSetting("exporter")
+  local settings = G_reader_settings:readTableSetting("exporter")
   for page, items in pairs(highlights) do
     for _, item in ipairs(items) do
       if
@@ -383,17 +383,10 @@ end
 
 function MyClipping:getClippingsFromBook(clippings, doc_path)
   local doc_settings = DocSettings:open(doc_path)
-  local highlights, bookmarks
-  local annotations = doc_settings:readSetting("annotations")
-  if annotations == nil then
-    highlights = doc_settings:readSetting("highlight")
-    if highlights == nil then
-      return
-    end
-    bookmarks = doc_settings:readSetting("bookmarks")
-  end
-  local props = doc_settings:readSetting("doc_props")
-  props = FileManagerBookInfo.extendProps(props, doc_path)
+  local annotations = doc_settings:readTableSetting("annotations")
+  local highlights = doc_settings:readTableSetting("highlight")
+  local bookmarks = doc_settings:readTableSetting("bookmarks")
+  local props = FileManagerBookInfo.extendProps(doc_settings:readTableSetting("doc_props"), doc_path)
   local title, author = self:getTitleAuthor(doc_path, props)
   clippings[title] = {
     file = doc_path,
@@ -401,11 +394,8 @@ function MyClipping:getClippingsFromBook(clippings, doc_path)
     author = author,
     number_of_pages = doc_settings:readSetting("doc_pages"),
   }
-  if annotations then
-    self:parseAnnotations(annotations, clippings[title])
-  else
-    self:parseHighlight(highlights, bookmarks, clippings[title])
-  end
+  self:parseAnnotations(annotations, clippings[title])
+  self:parseHighlight(highlights, bookmarks, clippings[title])
 end
 
 function MyClipping:parseHistory()
