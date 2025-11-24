@@ -101,8 +101,8 @@ function ReaderAnnotation:getAnnotationsFromBookmarksHighlights(
 end
 
 function ReaderAnnotation:onReadSettings(config)
-  local annotations = config:readSetting("annotations")
-  if annotations then
+  if config:has("annotations") then
+    local annotations = config:readTableSetting("annotations")
     -- KOHighlights may set this key when it has merged annotations from different sources:
     -- we want to make sure they are updated and sorted
     local needs_update = config:isTrue("annotations_externally_modified")
