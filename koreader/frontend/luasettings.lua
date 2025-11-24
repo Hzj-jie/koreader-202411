@@ -72,7 +72,8 @@ function LuaSettings:readSetting(key)
     logger.info(
       "FixMe: LuaSettings:readSetting ",
       key,
-      " returns a table and should use readTableSetting instead."
+      " returns a table and should use readTableSetting instead.\n",
+      debug.traceback()
     )
   end
   return r
