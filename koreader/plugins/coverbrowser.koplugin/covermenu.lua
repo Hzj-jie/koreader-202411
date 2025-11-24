@@ -57,14 +57,8 @@ function CoverMenu:updateCache(file, status, do_create, pages)
     local percent_finished = doc_settings:readSetting("percent_finished")
     local summary = doc_settings:readSetting("summary")
     status = summary and summary.status
-    local has_highlight
-    local annotations = doc_settings:readSetting("annotations")
-    if annotations then
-      has_highlight = #annotations > 0
-    else
-      local highlight = doc_settings:readSetting("highlight")
-      has_highlight = highlight and next(highlight) and true
-    end
+    local has_highlight = (next(doc_settings:readTableSetting("annotations")) and true) or
+      (next(doc_settings:readTableSetting("highlight")) and true)
     self.cover_info_cache[file] =
       table.pack(pages, percent_finished, status, has_highlight) -- may be a sparse array
   else
