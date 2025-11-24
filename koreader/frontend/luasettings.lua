@@ -66,17 +66,16 @@ end
 @param key The setting's key
 ]]
 function LuaSettings:readSetting(key)
-  return self.data[key]
-  --[[-- Emmm, some logic relies on changing the returned table directly.
   local r = self.data[key]
-  if type(r) ~= 'table' then return r end
-  -- Make a shallow copy.
-  local r2 = {}
-  for k,v in pairs(r) do
-    r2[k] = v
+  -- TODO: Should be an assertion.
+  if type(r) == "table" then
+    logger.warn(
+      "FixMe: LuaSettings:readSetting ",
+      key,
+      " returns a table and should use readTableSetting instead."
+    )
   end
-  return r2
-  ]]
+  return r
 end
 
 --[[-- Reads a setting or creates an empty table
