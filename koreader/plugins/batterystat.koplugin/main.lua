@@ -131,10 +131,10 @@ local BatteryStat = {
 }
 
 function BatteryStat:init()
-  self.awake = Usage:new(self.settings:readSetting("awake"))
-  self.sleeping = Usage:new(self.settings:readSetting("sleeping"))
-  self.charging = Usage:new(self.settings:readSetting("charging"))
-  self.discharging = Usage:new(self.settings:readSetting("discharging"))
+  self.awake = Usage:new(self.settings:readTableSetting("awake"))
+  self.sleeping = Usage:new(self.settings:readTableSetting("sleeping"))
+  self.charging = Usage:new(self.settings:readTableSetting("charging"))
+  self.discharging = Usage:new(self.settings:readTableSetting("discharging"))
 
   -- Note: these fields are not the "real" timestamp and battery usage, but
   -- the unaccumulated values.
@@ -149,7 +149,7 @@ function BatteryStat:init()
     self:reset(true, false)
   end
   -- Check if the battery was charging when KO was turned off.
-  local battery_before_off = self.settings:readSetting("awake_state")
+  local battery_before_off = self.settings:readTableSetting("awake_state")
   if
     battery_before_off
     and battery_before_off.percentage
