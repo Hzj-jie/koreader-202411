@@ -86,7 +86,12 @@ end
 function LuaSettings:readTableSetting(key, default)
   local v = self.data[key]
   if type(v) ~= "table" then
-    logger.warn("LuaSetting ", key, " was not a table, override it with the default value ", dump(default or {}))
+    logger.warn(
+      "LuaSetting ",
+      key,
+      " was not a table, override it with the default value ",
+      dump(default or {})
+    )
     v = nil
   end
   if v == nil then

@@ -383,7 +383,10 @@ end
 
 function MyClipping:getClippingsFromBook(clippings, doc_path)
   local doc_settings = DocSettings:open(doc_path)
-  local props = FileManagerBookInfo.extendProps(doc_settings:readTableSetting("doc_props"), doc_path)
+  local props = FileManagerBookInfo.extendProps(
+    doc_settings:readTableSetting("doc_props"),
+    doc_path
+  )
   local title, author = self:getTitleAuthor(doc_path, props)
   clippings[title] = {
     file = doc_path,
@@ -392,10 +395,17 @@ function MyClipping:getClippingsFromBook(clippings, doc_path)
     number_of_pages = doc_settings:readSetting("doc_pages"),
   }
   if doc_settings:has("annotations") then
-    self:parseAnnotations(doc_settings:readTableSetting("annotations"), clippings[title])
+    self:parseAnnotations(
+      doc_settings:readTableSetting("annotations"),
+      clippings[title]
+    )
   end
   if doc_settings:has("highlight") then
-    self:parseHighlight(doc_settings:readTableSetting("highlight"), doc_settings:readTableSetting("bookmarks"), clippings[title])
+    self:parseHighlight(
+      doc_settings:readTableSetting("highlight"),
+      doc_settings:readTableSetting("bookmarks"),
+      clippings[title]
+    )
   end
 end
 
