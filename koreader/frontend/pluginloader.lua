@@ -78,6 +78,10 @@ function PluginLoader:loadPlugins()
   self.disabled_plugins = {}
   self.loaded_plugins = {}
   local lookup_path_list = { DEFAULT_PLUGIN_PATH }
+  local data_dir = require("datastorage"):getDataDir()
+  if data_dir ~= "." then
+    table.insert(lookup_path_list, data_dir .. "/plugins/")
+  end
   local extra_paths = G_reader_settings:readSetting("extra_plugin_paths")
   if extra_paths then
     if type(extra_paths) == "string" then
@@ -94,11 +98,6 @@ function PluginLoader:loadPlugins()
       end
     else
       logger.err("extra_plugin_paths config only accepts string or table value")
-    end
-  else
-    local data_dir = require("datastorage"):getDataDir()
-    if data_dir ~= "." then
-      table.insert(lookup_path_list, data_dir .. "/plugins/")
     end
   end
 
