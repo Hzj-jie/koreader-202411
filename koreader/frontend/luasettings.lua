@@ -69,7 +69,7 @@ function LuaSettings:readSetting(key)
   local r = self.data[key]
   -- TODO: Should be an assertion.
   if type(r) == "table" then
-    logger.warn(
+    logger.info(
       "FixMe: LuaSettings:readSetting ",
       key,
       " returns a table and should use readTableSetting instead."
@@ -83,7 +83,7 @@ end
 @param key The setting's key
 ]]
 function LuaSettings:readTableSetting(key, default)
-  local v = self:readSetting(key)
+  local v = self.data[key]
   if v == nil then
     v = default or {}
     self:saveSetting(key, v)
