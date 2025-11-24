@@ -29,7 +29,7 @@ local CatalogCache = Cache:new({
 })
 
 local OPDSBrowser = Menu:extend({
-  opds_servers = G_reader_settings:readSetting("opds_servers", {
+  opds_servers = G_reader_settings:readTableSetting("opds_servers", {
     {
       title = "Project Gutenberg",
       url = "https://m.gutenberg.org/ebooks.opds/?format=opds",
