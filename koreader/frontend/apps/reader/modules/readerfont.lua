@@ -913,10 +913,7 @@ function ReaderFont:sortFaceList(face_list)
   if not G_reader_settings:has("cre_fonts_recently_selected") then
     -- Init this list with the alphabetical list we got
     self.fonts_recently_selected = face_list
-    G_reader_settings:saveSetting(
-      "cre_fonts_recently_selected",
-     face_list 
-    )
+    G_reader_settings:saveSetting("cre_fonts_recently_selected", face_list)
     -- We got no list of previously known fonts, so we can't say which are new.
     newly_added_fonts = {}
     return face_list
