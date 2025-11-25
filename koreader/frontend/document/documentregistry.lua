@@ -163,7 +163,7 @@ function DocumentRegistry:getAssociatedProviderKey(file, all)
   -- all: nil - first not empty, false - this file, true - file type
 
   if not file then -- get the full list of associated providers
-    return G_reader_settings:readSetting("provider")
+    return G_reader_settings:readTableSetting("provider")
   end
 
   -- provider for this file
@@ -181,8 +181,7 @@ function DocumentRegistry:getAssociatedProviderKey(file, all)
   end
 
   -- provider for file type
-  local providers = G_reader_settings:readSetting("provider")
-  provider_key = providers and providers[getSuffix(file)]
+  provider_key = G_reader_settings:readTableSetting("provider")[getSuffix(file)]
   if provider_key and self.known_providers[provider_key] then
     return provider_key
   end
