@@ -85,7 +85,7 @@ end
 ]]
 function LuaSettings:readTableSetting(key, default)
   local v = self.data[key]
-  if type(v) ~= "table" then
+  if v ~= nil and type(v) ~= "table" then
     logger.warn(
       "LuaSetting ",
       key,
