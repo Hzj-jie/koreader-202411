@@ -55,8 +55,7 @@ function CoverMenu:updateCache(file, status, do_create, pages)
       end
     end
     local percent_finished = doc_settings:readSetting("percent_finished")
-    local summary = doc_settings:readSetting("summary")
-    status = summary and summary.status
+    status = doc_settings:readTableSetting("summary").status
     local has_highlight = (
       next(doc_settings:readTableSetting("annotations")) and true
     ) or (next(doc_settings:readTableSetting("highlight")) and true)
