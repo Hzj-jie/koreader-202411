@@ -84,10 +84,7 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   local attr = lfs.attributes(file)
   table.insert(kv_pairs, { _("Filename:"), BD.filename(filename) })
   table.insert(kv_pairs, { _("Format:"), filetype:upper() })
-  table.insert(
-    kv_pairs,
-    { _("Size:"),  sizeStr(attr)}
-  )
+  table.insert(kv_pairs, { _("Size:"), sizeStr(attr) })
   table.insert(kv_pairs, {
     _("File date:"),
     attr ~= nil and os.date("%Y-%m-%d %H:%M:%S", attr.modification)
@@ -209,17 +206,18 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   if has_sidecar then
     table.insert(kv_pairs, {
       -- Need localization
-      _("Number of bookmarks"), #doc_settings_or_file:readTableSetting("annotations")
+      _("Number of bookmarks"),
+      #doc_settings_or_file:readTableSetting("annotations"),
     })
     table.insert(
       kv_pairs,
       -- Need localization
-      { _("Number of settings:"),  doc_settings_or_file:settingCount()}
+      { _("Number of settings:"), doc_settings_or_file:settingCount() }
     )
     table.insert(
       kv_pairs,
       -- Need localization
-      { _("Setting file size:"),  sizeStr(doc_settings_or_file:fileAttribute())}
+      { _("Setting file size:"), sizeStr(doc_settings_or_file:fileAttribute()) }
     )
   end
 
