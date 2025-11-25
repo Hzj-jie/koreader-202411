@@ -910,19 +910,19 @@ function ReaderFont:addToRecentlySelectedList(face)
 end
 
 function ReaderFont:sortFaceList(face_list)
-  self.fonts_recently_selected =
-    G_reader_settings:readSetting("cre_fonts_recently_selected")
-  if not self.fonts_recently_selected then
+  if not G_reader_settings:has("cre_fonts_recently_selected") then
     -- Init this list with the alphabetical list we got
     self.fonts_recently_selected = face_list
     G_reader_settings:saveSetting(
       "cre_fonts_recently_selected",
-      self.fonts_recently_selected
+     face_list 
     )
     -- We got no list of previously known fonts, so we can't say which are new.
     newly_added_fonts = {}
     return face_list
   end
+  self.fonts_recently_selected =
+    G_reader_settings:readTableSetting("cre_fonts_recently_selected")
   if not newly_added_fonts then
     -- First call after launch: check for fonts not yet known
     newly_added_fonts = {}
