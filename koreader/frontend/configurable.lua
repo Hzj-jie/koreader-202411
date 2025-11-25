@@ -48,10 +48,14 @@ function Configurable:loadSettings(settings, prefix)
     if
       value_type == "number"
       or value_type == "string"
-      or value_type == "table"
     then
       local saved_value = settings:readSetting(prefix .. key)
       if saved_value ~= nil then
+        self[key] = saved_value
+      end
+    elseif value_type == "table"    then
+      local saved_value = settings:readTableSetting(prefix .. key)
+      if next(saved_value) then
         self[key] = saved_value
       end
     end
@@ -61,11 +65,11 @@ end
 function Configurable:saveSettings(settings, prefix)
   for key, value in pairs(self) do
     local value_type = type(value)
-    if
+    if 
       value_type == "number"
       or value_type == "string"
       or value_type == "table"
-    then
+       then
       settings:saveSetting(prefix .. key, value)
     end
   end
