@@ -149,6 +149,18 @@ function NetworkListener:countsOfPendingJobs()
   )
 end
 
+function NetworkListener:pendingJobKeys()
+  local c = {}
+  for k, _ in pairs(_pending_connected) do
+    table.insert(c, k)
+  end
+  local o = {}
+  for k, _ in pairs(_pending_online) do
+    table.insert(o, k)
+  end
+  return c, o
+end
+
 -- Also unschedule on suspend (and we happen to also kill Wi-Fi to do so, so resetting the stats is also relevant here)
 function NetworkListener:onSuspend()
   logger.dbg("NetworkListener: onSuspend")

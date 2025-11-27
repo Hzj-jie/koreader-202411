@@ -1,5 +1,6 @@
 local Device = require("device")
 local Dispatcher = require("dispatcher")
+local InfoMessage = require("ui/widget/infomessage")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local Math = require("optmath")
 local UIManager = require("ui/uimanager")
@@ -258,6 +259,32 @@ function SystemStat:appendCounters()
   self:put({
     "  " .. _("Pending network jobs"),
     require("ui/network/networklistener"):countsOfPendingJobs(),
+    callback = function()
+      local msg = ""
+      local c, o = require("ui/network/networklistener"):pendingJobKeys()
+      if #c > 0 then
+        -- Need localization
+        msg = msg .. _("Pending jobs after being connected")
+        for _, k in ipairs(c) do
+          msg = msg .. "\n" .. k
+        end
+      end
+      if #o > 0 then
+        if msg ~= "" then
+          msg = msg .. "\n"
+        end
+        -- Need localization
+        msg = msg .. _("Pending jobs after being online")
+        for _, k in ipairs(o) do
+          msg = msg .. "\n" .. k
+        end
+      end
+      if msg == "" then
+        UIManager:show(InfoMessage:new({
+          text = msg,
+        }))
+      end
+    end,
   })
 end
 
