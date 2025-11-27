@@ -2392,6 +2392,7 @@ function ReaderFooter:onPageUpdate(pageno)
     end
   end
   self.pageno = pageno
+  self.position = nil
   if not self.initial_pageno then
     self.initial_pageno = pageno
   end
@@ -2405,9 +2406,9 @@ end
 
 function ReaderFooter:onPosUpdate(pos, pageno)
   self.position = pos
+  self.pageno = pageno
   self.doc_height = self.ui.document.info.doc_height
   if pageno then
-    self.pageno = pageno
     if not self.initial_pageno then
       self.initial_pageno = pageno
     end
