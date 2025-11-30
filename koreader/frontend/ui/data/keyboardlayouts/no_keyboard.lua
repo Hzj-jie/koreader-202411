@@ -1,5 +1,5 @@
 -- Start with the english keyboard layout
-local no_keyboard = require("ui/data/keyboardlayouts/en_keyboard")
+local no_keyboard = require("util").tableDeepCopy(require("ui/data/keyboardlayouts/en_keyboard"))
 
 local keys = no_keyboard.keys
 

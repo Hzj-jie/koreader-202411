@@ -1,5 +1,5 @@
 -- Start with the norwegian keyboard layout
-local da_keyboard = require("ui/data/keyboardlayouts/no_keyboard")
+local da_keyboard = require("util").tableDeepCopy(require("ui/data/keyboardlayouts/no_keyboard"))
 
 local keys = da_keyboard.keys
 

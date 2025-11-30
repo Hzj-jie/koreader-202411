@@ -1,5 +1,5 @@
 -- Start with the english keyboard layout
-local vi_keyboard = require("ui/data/keyboardlayouts/en_keyboard")
+local vi_keyboard = require("util").tableDeepCopy(require("ui/data/keyboardlayouts/en_keyboard"))
 
 local IME = require("ui/data/keyboardlayouts/generic_ime")
 local util = require("util")
