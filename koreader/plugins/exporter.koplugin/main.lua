@@ -45,27 +45,26 @@ local function migrateSettings()
   -- these are for legacy formats. Don't add new targets here.
   local formats = { "html", "joplin", "json", "readwise", "text" }
 
-  local settings = G_reader_settings:readSetting("exporter")
+  local settings = G_reader_settings:readTableSetting("exporter")
   if not settings then
-    settings = G_reader_settings:readSetting("evernote")
+    settings = G_reader_settings:readTableSetting("evernote")
   end
 
-  if type(settings) == "table" then
-    for _, fmt in ipairs(formats) do
-      if type(settings[fmt]) == "table" then
-        return
-      end
+  assert(type(settings) == "table")
+  for _, fmt in ipairs(formats) do
+    if type(settings[fmt]) == "table" then
+      return
     end
-    local new_settings = {}
-    for _, fmt in ipairs(formats) do
-      new_settings[fmt] = { enabled = false }
-    end
-    new_settings["joplin"].ip = settings.joplin_IP
-    new_settings["joplin"].port = settings.joplin_port
-    new_settings["joplin"].token = settings.joplin_token
-    new_settings["readwise"].token = settings.readwise_token
-    G_reader_settings:saveSetting("exporter", new_settings)
   end
+  local new_settings = {}
+  for _, fmt in ipairs(formats) do
+    new_settings[fmt] = { enabled = false }
+  end
+  new_settings["joplin"].ip = settings.joplin_IP
+  new_settings["joplin"].port = settings.joplin_port
+  new_settings["joplin"].token = settings.joplin_token
+  new_settings["readwise"].token = settings.readwise_token
+  G_reader_settings:saveSetting("exporter", new_settings)
 end
 
 -- update clippings from history clippings

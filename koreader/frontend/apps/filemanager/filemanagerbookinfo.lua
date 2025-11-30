@@ -64,6 +64,13 @@ function BookInfo:addToMainMenu(menu_items)
   }
 end
 
+local function sizeStr(attr)
+  local file_size = attr ~= nil and (attr.size or 0) or 0
+  local size_f = util.getFriendlySize(file_size)
+  local size_b = util.getFormattedSize(file_size)
+  return string.format("%s (%s bytes)", size_f, size_b)
+end
+
 -- Extracts book information.
 function BookInfo:extract(doc_settings_or_file, book_props)
   local kv_pairs = {}
@@ -75,15 +82,9 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   local folder, filename = util.splitFilePathName(file)
   local __, filetype = filemanagerutil.splitFileNameType(filename)
   local attr = lfs.attributes(file)
-  local file_size = attr ~= nil and (attr.size or 0) or 0
-  local size_f = util.getFriendlySize(file_size)
-  local size_b = util.getFormattedSize(file_size)
   table.insert(kv_pairs, { _("Filename:"), BD.filename(filename) })
   table.insert(kv_pairs, { _("Format:"), filetype:upper() })
-  table.insert(
-    kv_pairs,
-    { _("Size:"), string.format("%s (%s bytes)", size_f, size_b) }
-  )
+  table.insert(kv_pairs, { _("Size:"), sizeStr(attr) })
   table.insert(kv_pairs, {
     _("File date:"),
     attr ~= nil and os.date("%Y-%m-%d %H:%M:%S", attr.modification)
@@ -202,6 +203,23 @@ function BookInfo:extract(doc_settings_or_file, book_props)
     summary.note or _("N/A"),
     hold_callback = summary_hold_callback,
   })
+  if has_sidecar then
+    table.insert(kv_pairs, {
+      -- Need localization
+      _("Number of bookmarks"),
+      #doc_settings_or_file:readTableSetting("annotations"),
+    })
+    table.insert(
+      kv_pairs,
+      -- Need localization
+      { _("Number of settings:"), doc_settings_or_file:settingCount() }
+    )
+    table.insert(
+      kv_pairs,
+      -- Need localization
+      { _("Setting file size:"), sizeStr(doc_settings_or_file:fileAttribute()) }
+    )
+  end
 
   return kv_pairs
 end
@@ -500,9 +518,9 @@ function BookInfo:setCustomMetadata(file, book_props, prop_key, prop_value)
   local prop_value_old = custom_props[prop_key] or book_props[prop_key]
   custom_props[prop_key] = prop_value -- nil when resetting a custom prop
   if next(custom_props) == nil then -- no more custom metadata
-    os.remove(custom_doc_settings.sidecar_file)
+    custom_doc_settings:purge()
     DocSettings.removeSidecarDir(
-      util.splitFilePathName(custom_doc_settings.sidecar_file)
+      util.splitFilePathName(custom_doc_settings.file)
     )
     no_custom_metadata = true
   else
