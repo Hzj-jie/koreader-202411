@@ -142,7 +142,7 @@ function ReaderWikipedia:addToMainMenu(menu_items)
     return {
       text = title,
       checked_func = function()
-        return G_reader_settings:readSetting(setting, default) == value
+        return (G_reader_settings:readSetting(setting) or default) == value
       end,
       callback = function()
         G_reader_settings:saveSetting(setting, value)
