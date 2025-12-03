@@ -38,8 +38,10 @@ function Configurable:loadDefaults(config_options)
       local default_value = options[j].default_value
       local settings_key = prefix .. key
       if G_reader_settings:has(settings_key) then
-        if type(default_value) == "number" or
-          type(default_value) == "string" then
+        if
+          type(default_value) == "number"
+          or type(default_value) == "string"
+        then
           self[key] = G_reader_settings:readSetting(settings_key)
         elseif type(default_value) == "table" then
           self[key] = G_reader_settings:readTableSetting(settings_key)
