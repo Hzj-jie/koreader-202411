@@ -141,8 +141,8 @@ function ReaderStatistics:init()
   end
   self:resetVolatileStats()
 
-  self.settings = G_reader_settings:readSetting("statistics")
-    or {
+  self.settings = G_reader_settings:readTableSetting("statistics",
+    {
       min_sec = DEFAULT_MIN_READ_SEC,
       max_sec = DEFAULT_MAX_READ_SEC,
       freeze_finished_books = false,
@@ -153,6 +153,7 @@ function ReaderStatistics:init()
       calendar_show_histogram = true,
       calendar_browse_future_months = false,
     }
+    )
 
   self.ui.menu:registerToMainMenu(self)
   self:onDispatcherRegisterActions()

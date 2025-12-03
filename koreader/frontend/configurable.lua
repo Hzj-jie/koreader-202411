@@ -35,27 +35,39 @@ function Configurable:loadDefaults(config_options)
     local options = config_options[i].options
     for j = 1, #options do
       local key = options[j].name
+      local default_value = options[j].default_value
       local settings_key = prefix .. key
-      local default = G_reader_settings:readSetting(settings_key)
-      self[key] = default or options[j].default_value
+      if G_reader_settings:has(settings_key) then
+        if type(default_value) == "number" or
+          type(default_value) == "string" then
+          self[key] = G_reader_settings:readSetting(settings_key)
+        elseif type(default_value) == "table" then
+          self[key] = G_reader_settings:readTableSetting(settings_key)
+        else
+          assert(false)
+        end
+      else
+        self[key] = default_value
+      end
+      assert(self[key] ~= nil)
     end
   end
 end
 
 function Configurable:loadSettings(settings, prefix)
   for key, value in pairs(self) do
-    local value_type = type(value)
-    if value_type == "number" or value_type == "string" then
-      local saved_value = settings:readSetting(prefix .. key)
-      if saved_value ~= nil then
-        self[key] = saved_value
-      end
-    elseif value_type == "table" then
-      local saved_value = settings:readTableSetting(prefix .. key)
-      if next(saved_value) then
-        self[key] = saved_value
+    local settings_key = prefix .. key
+    if settings:has(settings_key) then
+      local value_type = type(value)
+      if value_type == "number" or value_type == "string" then
+        self[key] = settings:readSetting(settings_key)
+      elseif value_type == "table" then
+        self[key] = settings:readTableSetting(settings_key)
+      else
+        assert(false)
       end
     end
+    assert(self[key] ~= nil)
   end
 end
 
@@ -68,6 +80,8 @@ function Configurable:saveSettings(settings, prefix)
       or value_type == "table"
     then
       settings:saveSetting(prefix .. key, value)
+    else
+      assert(false)
     end
   end
 end
