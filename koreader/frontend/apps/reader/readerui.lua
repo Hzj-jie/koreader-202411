@@ -781,6 +781,7 @@ function ReaderUI:showReaderCoroutine(file, provider, seamless)
         BD.filepath(filemanagerutil.abbreviate(file))
       ),
       invisible = seamless,
+      icon = "hourglass",
     })
   )
 end
