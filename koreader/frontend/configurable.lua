@@ -36,6 +36,7 @@ function Configurable:loadDefaults(config_options)
     for j = 1, #options do
       local key = options[j].name
       local default_value = options[j].default_value
+      assert(default_value ~= nil, key)
       local settings_key = prefix .. key
       if G_reader_settings:has(settings_key) then
         if
@@ -48,10 +49,10 @@ function Configurable:loadDefaults(config_options)
         else
           assert(false)
         end
-        assert(self[key] ~= nil)
       else
         self[key] = default_value
       end
+      assert(self[key] ~= nil)
     end
   end
 end
