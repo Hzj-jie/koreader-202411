@@ -961,8 +961,8 @@ function Wallabag:processLocalFiles(mode)
             self:addTags(entry_path)
           end
           local doc_settings = DocSettings:open(entry_path)
-          local summary = doc_settings:readSetting("summary")
-          local status = summary and summary.status
+          local summary = doc_settings:readTableSetting("summary")
+          local status = summary.status
           local percent_finished = doc_settings:readSetting("percent_finished")
           if status == "complete" then
             if self.is_delete_finished then
@@ -1016,8 +1016,8 @@ function Wallabag:addTags(path)
   local id = self:getArticleID(path)
   if id then
     local doc_settings = DocSettings:open(path)
-    local summary = doc_settings:readSetting("summary")
-    local tags = summary and summary.note
+    local summary = doc_settings:readTableSetting("summary")
+    local tags = summary.note
     if tags and tags ~= "" then
       logger.dbg("Wallabag: sending tags ", tags, " for ", path)
 
@@ -1397,8 +1397,8 @@ end
 function Wallabag:onCloseDocument()
   if self.remove_finished_from_history or self.remove_read_from_history then
     local document_full_path = self.ui.document.file
-    local summary = self.ui.doc_settings:readSetting("summary")
-    local status = summary and summary.status
+    local summary = self.ui.doc_settings:readTableSetting("summary")
+    local status = summary.status
     local is_finished = status == "complete"
     local is_read = self:getLastPercent() == 1
     local is_abandoned = status == "abandoned"
