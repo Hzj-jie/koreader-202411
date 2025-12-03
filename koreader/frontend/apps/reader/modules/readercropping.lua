@@ -175,12 +175,12 @@ end
 
 function ReaderCropping:onReadSettings(config)
   if config:has("bbox") then
-    self.document.bbox = config:readSetting("bbox")
+    self.document.bbox = config:readTableSetting("bbox")
   end
 end
 
 function ReaderCropping:onSaveSettings()
-  self.ui.doc_settings:saveSetting("bbox", self.document.bbox)
+  self.ui.doc_settings:saveSetting("bbox", self.document.bbox, {})
 end
 
 return ReaderCropping
