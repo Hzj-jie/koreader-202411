@@ -46,10 +46,10 @@ function Configurable:loadDefaults(config_options)
         else
           assert(false)
         end
+        assert(self[key] ~= nil)
       else
         self[key] = default_value
       end
-      assert(self[key] ~= nil)
     end
   end
 end
