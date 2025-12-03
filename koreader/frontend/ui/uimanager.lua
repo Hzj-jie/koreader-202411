@@ -1895,6 +1895,7 @@ function UIManager:runWith(func, widget)
   if type(widget) == "string" then
     widget = require("ui/widget/infomessage"):new({
       text = widget,
+      icon = "hourglass",
     })
   end
   self:show(widget)
