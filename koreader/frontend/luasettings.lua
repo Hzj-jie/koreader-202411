@@ -110,7 +110,7 @@ function LuaSettings:saveSetting(key, value, default_value)
     return self:delSetting(key)
   end
   if type(value) == "table" and value == self.data[key] then
-    logger.warn(
+    logger.info(
       "FixMe: LuaSettings:saveSetting ",
       key,
       " on a LuaSettings:readTableSetting is not necessary.",
