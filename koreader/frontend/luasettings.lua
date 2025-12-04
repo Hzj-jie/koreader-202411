@@ -102,6 +102,16 @@ function LuaSettings:readTableSetting(key, default)
   return v
 end
 
+--[[-- Reads a setting but not creates an empty table, expects to call
+       saveSetting or the setting will not be persisted.
+]]
+function LuaSettings:readTableSettingOr(key, default)
+  if self:has(key) then
+    return LuaSettings:readTableSetting(key)
+  end
+  return default or {}
+end
+
 --- Saves a setting.
 function LuaSettings:saveSetting(key, value, default_value)
   -- Setting value to nil is same as self.delSetting(key), no reason to
