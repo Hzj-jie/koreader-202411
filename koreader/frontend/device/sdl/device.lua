@@ -473,6 +473,9 @@ function Emulator:initNetworkManager(NetworkMgr)
   function NetworkMgr:isWifiOn()
     return G_reader_settings:nilOrTrue("emulator_fake_wifi_connected")
   end
+  function NetworkMgr:restoreWifiAsync()
+    self:_turnOnWifi()
+  end
   function NetworkMgr:getNetworkInterfaceName()
     -- Not accurate.
     return "eth0"
