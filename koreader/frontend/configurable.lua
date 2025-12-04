@@ -1,5 +1,4 @@
 local ffiUtil = require("ffi/util")
-local util = require("util")
 
 local Configurable = {}
 
@@ -8,6 +7,15 @@ function Configurable:new(o)
   setmetatable(o, self)
   self.__index = self
   return o
+end
+
+function Configurable:reset()
+  for key, value in pairs(self) do
+    local value_type = type(value)
+    if value_type == "number" or value_type == "string" then
+      self[key] = nil
+    end
+  end
 end
 
 function Configurable:hash(list)
@@ -20,6 +28,8 @@ function Configurable:hash(list)
 end
 
 function Configurable:loadDefaults(config_options)
+  -- reset configurable before loading new options
+  self:reset()
   local prefix = config_options.prefix .. "_"
   for i = 1, #config_options do
     local options = config_options[i].options
@@ -45,9 +55,6 @@ function Configurable:loadDefaults(config_options)
       assert(self[key] ~= nil)
     end
   end
-  local defaults = util.tableDeepCopy(self)
-  -- Avoid copying defaults again.
-  self.defaults = defaults
 end
 
 function Configurable:loadSettings(settings, prefix)
@@ -75,7 +82,7 @@ function Configurable:saveSettings(settings, prefix)
       or value_type == "string"
       or value_type == "table"
     then
-      settings:saveSetting(prefix .. key, value, self.defaults[key])
+      settings:saveSetting(prefix .. key, value)
     else
       assert(false)
     end

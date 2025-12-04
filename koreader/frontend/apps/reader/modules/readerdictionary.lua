@@ -1323,6 +1323,15 @@ function ReaderDictionary:onReadSettings(config)
   end
 end
 
+function ReaderDictionary:onSaveSettings()
+  if self.ui.doc_settings then
+    self.ui.doc_settings:saveSetting(
+      "preferred_dictionaries",
+      self.preferred_dictionaries
+    )
+  end
+end
+
 function ReaderDictionary:onTogglePreferredDict(dict)
   if not self.preferred_dictionaries then
     -- Invoked from FileManager: no preferred dict to manage

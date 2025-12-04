@@ -230,8 +230,6 @@ function ReaderAnnotation:migrateToAnnotations(config)
 
   self.annotations =
     self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights, true)
-  -- has("annotations") is meaningful to indicate the finish of migration.
-  config:saveSetting("annotations", self.annotations)
 end
 
 function ReaderAnnotation:setNeedsUpdateFlag()
