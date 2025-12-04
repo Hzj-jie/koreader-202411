@@ -1317,13 +1317,12 @@ function ReaderView:checkAutoSaveSettings()
   if not self.settings_last_save_time then -- reader not yet ready
     return
   end
-  if G_reader_settings:hasNot("auto_save_settings_interval_minutes") then
+  local interval_m =
+    G_reader_settings:readSetting("auto_save_settings_interval_minutes")
+  if interval_m == nil then
     -- no auto save
     return
   end
-
-  local interval_m =
-    G_reader_settings:readSetting("auto_save_settings_interval_minutes")
   local interval = time.s(interval_m * 60)
   local now = UIManager:getElapsedTimeSinceBoot()
   if now - self.settings_last_save_time >= interval then
