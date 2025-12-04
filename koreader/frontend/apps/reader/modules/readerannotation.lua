@@ -246,7 +246,6 @@ end
 
 function ReaderAnnotation:onSaveSettings()
   self:updatePageNumbers()
-  self.ui.doc_settings:saveSetting("annotations", self.annotations)
 end
 
 -- items handling
