@@ -213,7 +213,6 @@ function PluginLoader:genPluginManagerSubItem()
           else
             plugins_disabled[plugin.name] = true
           end
-          G_reader_settings:saveSetting("plugins_disabled", plugins_disabled)
           if self.show_info then
             self.show_info = false
             UIManager:askForRestart()
