@@ -196,24 +196,19 @@ Source: <https://stackoverflow.com/a/16077650/2470572>
 ]]
 ---- @param o Lua table
 ---- @treturn Lua table
-function util.tableDeepCopy(o, seen)
-  seen = seen or {}
+function util.tableDeepCopy(o)
   if o == nil then
     return nil
-  end
-  if seen[o] then
-    return seen[o]
   end
 
   local no
   if type(o) == "table" then
     no = {}
-    seen[o] = no
 
     for k, v in next, o, nil do
-      no[util.tableDeepCopy(k, seen)] = util.tableDeepCopy(v, seen)
+      no[util.tableDeepCopy(k)] = util.tableDeepCopy(v)
     end
-    setmetatable(no, util.tableDeepCopy(getmetatable(o), seen))
+    setmetatable(no, util.tableDeepCopy(getmetatable(o)))
   else -- number, string, boolean, etc
     no = o
   end
