@@ -86,6 +86,7 @@ end
 function LuaSettings:readTableSetting(key, default)
   local v = self.data[key]
   if v ~= nil and type(v) ~= "table" then
+    -- Should only happen during migrations.
     logger.warn(
       "LuaSetting ",
       key,
@@ -96,7 +97,7 @@ function LuaSettings:readTableSetting(key, default)
   end
   if v == nil then
     v = default or {}
-    self:saveSetting(key, v)
+    self.data[key] = v
   end
   return v
 end
@@ -107,6 +108,14 @@ function LuaSettings:saveSetting(key, value, default_value)
   -- dump and compare the value in the case.
   if value == nil then
     return self:delSetting(key)
+  end
+  if type(value) == "table" and value == self.data[key] then
+    logger.warn(
+      "FixMe: LuaSettings:saveSetting ",
+      key,
+      " on a LuaSettings:readTableSetting is not necessary.",
+      debug.traceback()
+    )
   end
   if default_value == nil or type(value) ~= type(default_value) then
     self.data[key] = value
