@@ -402,34 +402,34 @@ function ConfigOption:init()
       local current_item = nil
       local default_item = self.options[c].default_pos
       local function value_diff(val1, val2, name)
-        if type(val1) ~= type(val2) then
-          logger.dbg("different data types in option")
-        end
+        assert(type(val1) == type(val2))
         if type(val1) == "number" then
           return math.abs(val1 - val2)
         elseif type(val1) == "string" then
           return val1 == val2 and 0 or 1
+        else
+          assert(false)
         end
       end
       if self.options[c].name then
-        if self.options[c].values then
+        if #self.options[c].values > 0 then
           -- check if current value is stored in configurable or calculated in runtime
           local val = self.options[c].current_func
               and self.options[c].current_func()
             or self.config.configurable[self.options[c].name]
           local min_diff
           if type(val) == "table" then
-            min_diff = value_diff(val[1], self.options[c].values[1][1])
+            min_diff = value_diff(val[1], self.options[c].values[1][1], self.options[c].name)
           else
-            min_diff = value_diff(val, self.options[c].values[1])
+            min_diff = value_diff(val, self.options[c].values[1], self.options[c].name)
           end
 
           local diff
           for index, val_ in pairs(self.options[c].values) do
             if type(val) == "table" then
-              diff = value_diff(val[1], val_[1])
+              diff = value_diff(val[1], val_[1], self.options[c].name)
             else
-              diff = value_diff(val, val_)
+              diff = value_diff(val, val_, self.options[c].name)
             end
             if val == val_ then
               current_item = index
@@ -461,7 +461,7 @@ function ConfigOption:init()
           .. "_"
           .. self.options[c].name
         local default_value = G_reader_settings:readSetting(default_option_name)
-        if default_value and self.options[c].values then
+        if default_value and #self.options[c].values > 0 then
           local val = default_value
           local min_diff
           if type(val) == "table" then
@@ -1324,21 +1324,6 @@ function ConfigDialog:onConfigMoreChoose(
         end
       end
     end
-    local hide_on_picker_show = more_options_param.hide_on_picker_show
-    if hide_on_picker_show == nil then -- default to true if unset
-      hide_on_picker_show = true
-    end
-    local when_applied_callback = nil
-    if type(hide_on_picker_show) == "number" then -- timeout
-      UIManager:scheduleIn(hide_on_picker_show, refresh_dialog_func)
-      self.skip_paint = true
-    elseif hide_on_picker_show then -- anything but nil or false: provide a callback
-      -- This needs the config option to have an "event" key
-      -- The event handler is responsible for calling this callback when
-      -- it considers it appropriate
-      when_applied_callback = refresh_dialog_func
-      self.skip_paint = true
-    end
     if values and event then
       if more_options_param.name then
         name = more_options_param.name
@@ -1394,12 +1379,6 @@ function ConfigDialog:onConfigMoreChoose(
           keep_shown_on_apply = true,
           unit = more_options_param.unit,
           precision = more_options_param.precision,
-          close_callback = function()
-            if when_applied_callback then
-              when_applied_callback()
-              when_applied_callback = nil
-            end
-          end,
           callback = function(left_value, right_value)
             local value_tables = { left_value, right_value }
             if more_options_param.names then
@@ -1413,9 +1392,7 @@ function ConfigDialog:onConfigMoreChoose(
               -- is done in close_callback, but we want onConfigEvent to
               -- show a message when settings applied: handlers that can do
               -- it actually do it when provided a callback as argument
-              local dummy_callback = when_applied_callback and function() end
-              args = args or {}
-              self:onConfigEvent(event, value_tables, dummy_callback)
+              self:onConfigEvent(event, value_tables, nil)
               self:update()
             end
           end,
@@ -1516,7 +1493,6 @@ function ConfigDialog:onConfigMoreChoose(
               -- show a message when settings applied: handlers that can do
               -- it actually do it when provided a callback as argument
               local dummy_callback = when_applied_callback and function() end
-              args = args or {}
               self:onConfigEvent(event, spin_value, dummy_callback)
               self:update()
             end
