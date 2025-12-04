@@ -129,7 +129,10 @@ function LuaSettings:saveSetting(key, value, default_value)
     -- An easy optimization to avoid dumping.
     if
       util.tableSize(value) == util.tableSize(default_value)
-      and dump(value, nil, true) == dump(default_value, nil, true)
+      and (
+        util.tableSize(value) == 0
+        or dump(value, nil, true) == dump(default_value, nil, true)
+      )
     then
       return self:delSetting(key)
     end

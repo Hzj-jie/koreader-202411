@@ -450,7 +450,9 @@ end
 
 function ReaderStyleTweak:onReadSettings(config)
   self.enabled = config:nilOrTrue("style_tweaks_enabled")
-  self.doc_tweaks = config:readTableSetting("style_tweaks")
+  self.doc_tweaks = config:has("style_tweaks")
+      and config:readTableSetting("style_tweaks")
+    or {}
   -- Default globally enabled style tweaks (for new installations)
   -- are defined in css_tweaks.lua
   self.global_tweaks = G_reader_settings:readTableSetting(
@@ -470,14 +472,11 @@ function ReaderStyleTweak:onSaveSettings()
   else
     self.ui.doc_settings:makeFalse("style_tweaks_enabled")
   end
-  self.ui.doc_settings:saveSetting(
-    "style_tweaks",
-    util.tableSize(self.doc_tweaks) > 0 and self.doc_tweaks or nil
-  )
-  G_reader_settings:saveSetting("style_tweaks", self.global_tweaks)
+  self.ui.doc_settings:saveSetting("style_tweaks", self.doc_tweaks, {})
   G_reader_settings:saveSetting(
-    "style_tweaks_in_dispatcher",
-    self.tweaks_in_dispatcher
+    "style_tweaks",
+    self.global_tweaks,
+    CssTweaks.DEFAULT_GLOBAL_STYLE_TWEAKS
   )
   self.ui.doc_settings:saveSetting("book_style_tweak", self.book_style_tweak)
   self.ui.doc_settings:saveSetting(

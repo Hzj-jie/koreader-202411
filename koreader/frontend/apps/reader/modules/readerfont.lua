@@ -344,7 +344,6 @@ end
 
 function ReaderFont:onSaveSettings()
   self.ui.doc_settings:saveSetting("font_face", self.font_face)
-  self.ui.doc_settings:saveSetting("font_family_fonts", self.font_family_fonts)
 end
 
 function ReaderFont:onSetFont(face)

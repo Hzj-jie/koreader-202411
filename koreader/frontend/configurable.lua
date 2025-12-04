@@ -71,9 +71,12 @@ function Configurable:saveSettings(settings, prefix)
   for key, value in pairs(self) do
     local value_type = type(value)
     if
-      key ~= "defaults" and (value_type == "number"
-      or value_type == "string"
-      or value_type == "table")
+      key ~= "defaults"
+      and (
+        value_type == "number"
+        or value_type == "string"
+        or value_type == "table"
+      )
     then
       settings:saveSetting(prefix .. key, value, self.defaults[key])
     else
