@@ -107,7 +107,7 @@ end
 ]]
 function LuaSettings:readTableSettingOr(key, default)
   if self:has(key) then
-    return LuaSettings:readTableSetting(key)
+    return self:readTableSetting(key)
   end
   return default or {}
 end
