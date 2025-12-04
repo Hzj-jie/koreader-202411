@@ -109,20 +109,26 @@ function LuaSettings:saveSetting(key, value, default_value)
   if value == nil then
     return self:delSetting(key)
   end
-  if type(value) == "table" and value == self.data[key] then
-    logger.info(
-      "FixMe: LuaSettings:saveSetting ",
-      key,
-      " on a LuaSettings:readTableSetting is not necessary.",
-      debug.traceback()
-    )
-  end
-  if default_value == nil or type(value) ~= type(default_value) then
-    self.data[key] = value
+  if default_value == nil then
+    if type(value) == "table" and value == self.data[key] then
+      logger.info(
+        "FixMe: LuaSettings:saveSetting ",
+        key,
+        " on a LuaSettings:readTableSetting is not necessary, ",
+        "unless a default_value is provided to remove the unnecessary setting.",
+        debug.traceback()
+      )
+    else
+      self.data[key] = value
+    end
     return self
   end
+  -- Should never happen.
+  assert(type(value) == type(default_value))
   if type(value) == "table" then
-    if dump(value, nil, true) == dump(default_value, nil, true) then
+    -- An easy optimization to avoid dumping.
+    if util.tableSize(value) == util.tableSize(default_value) and
+      dump(value, nil, true) == dump(default_value, nil, true) then
       return self:delSetting(key)
     end
   else
