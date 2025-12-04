@@ -94,10 +94,6 @@ end
 
 function ReaderToc:onSaveSettings()
   self.ui.doc_settings:saveSetting(
-    "toc_ticks_ignored_levels",
-    self.toc_ticks_ignored_levels
-  )
-  self.ui.doc_settings:saveSetting(
     "toc_chapter_navigation_bind_to_ticks",
     self.toc_chapter_navigation_bind_to_ticks
   )
