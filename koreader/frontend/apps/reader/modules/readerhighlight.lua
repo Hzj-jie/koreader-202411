@@ -598,7 +598,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
         callback = function(radio)
           if radio.provider == "none" then
             self.view.highlight.note_mark = nil
-            G_reader_settings:del("highlight_note_marker")
+            G_reader_settings:delete("highlight_note_marker")
           else
             self.view.highlight.note_mark = radio.provider
             G_reader_settings:save("highlight_note_marker", radio.provider)
@@ -711,7 +711,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
             self.highlight_write_into_pdf = false
           end,
           hold_callback = function(touchmenu_instance)
-            G_reader_settings:del("highlight_write_into_pdf")
+            G_reader_settings:delete("highlight_write_into_pdf")
             touchmenu_instance:updateItems()
           end,
         },

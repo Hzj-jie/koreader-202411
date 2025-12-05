@@ -569,7 +569,7 @@ When the book's language tag is not among our presets, no specific features will
           choice1_text = _("Default"),
           choice1_callback = function()
             G_reader_settings:save("text_lang_default", lang_tag)
-            G_reader_settings:del("text_lang_fallback")
+            G_reader_settings:delete("text_lang_fallback")
             if touchmenu_instance then
               touchmenu_instance:updateItems()
             end
@@ -577,7 +577,7 @@ When the book's language tag is not among our presets, no specific features will
           choice2_text = C_("Typography", "Fallback"),
           choice2_callback = function()
             G_reader_settings:save("text_lang_fallback", lang_tag)
-            G_reader_settings:del("text_lang_default")
+            G_reader_settings:delete("text_lang_default")
             if touchmenu_instance then
               touchmenu_instance:updateItems()
             end

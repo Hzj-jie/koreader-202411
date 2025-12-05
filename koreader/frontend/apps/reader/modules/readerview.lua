@@ -1020,7 +1020,7 @@ function ReaderView:onReadSettings(config)
     self.document.render_mode = self.render_mode
     if config:has("gamma") then -- old doc contrast setting
       config:save("kopt_contrast", config:read("gamma"))
-      config:del("gamma")
+      config:delete("gamma")
     end
   end
   if G_reader_settings:nilOrFalse("lock_rotation") then
@@ -1291,7 +1291,7 @@ function ReaderView:onClose()
 end
 
 function ReaderView:onReaderReady()
-  self.ui.doc_settings:del("docsettings_reset_done")
+  self.ui.doc_settings:delete("docsettings_reset_done")
   self.settings_last_save_time = UIManager:getElapsedTimeSinceBoot()
 end
 

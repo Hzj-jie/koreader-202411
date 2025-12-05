@@ -414,7 +414,7 @@ function Screensaver:setStretchLimit(touchmenu_instance)
     option_text = _("Full stretch"),
     option_callback = function()
       G_reader_settings:makeTrue("screensaver_stretch_images")
-      G_reader_settings:del("screensaver_stretch_limit_percentage")
+      G_reader_settings:delete("screensaver_stretch_limit_percentage")
       if touchmenu_instance then
         touchmenu_instance:updateItems()
       end

@@ -231,7 +231,7 @@ function ReaderScrolling:applyScrollSettings()
   if
     self.scroll_activation_delay_ms == self:getDefaultScrollActivationDelay_ms()
   then
-    G_reader_settings:del("scroll_activation_delay")
+    G_reader_settings:delete("scroll_activation_delay")
   else
     G_reader_settings:save(
       "scroll_activation_delay",

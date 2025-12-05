@@ -1308,7 +1308,7 @@ function ReaderDictionary:onReadSettings(config)
     local default_dictionary = config:read("default_dictionary")
     if default_dictionary then
       table.insert(self.preferred_dictionaries, default_dictionary)
-      config:del("default_dictionary")
+      config:delete("default_dictionary")
     end
   end
   if #self.preferred_dictionaries > 0 then

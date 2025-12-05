@@ -93,7 +93,7 @@ end
 function LuaDefaults:save(key, value)
   if util.tableEquals(self.ro[key], value, true) then
     -- Only keep actually custom settings in the rw table ;).
-    return self:del(key)
+    return self:delete(key)
   else
     self.rw[key] = value
   end
@@ -101,7 +101,7 @@ function LuaDefaults:save(key, value)
 end
 
 --- Deletes a setting.
-function LuaDefaults:del(key)
+function LuaDefaults:delete(key)
   self.rw[key] = nil
   return self
 end

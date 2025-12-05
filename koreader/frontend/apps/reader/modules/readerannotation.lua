@@ -116,14 +116,14 @@ function ReaderAnnotation:onReadSettings(config)
       end
       -- load compatible format
       annotations = config:readTableRef("annotations_rolling")
-      config:del("annotations_rolling")
+      config:delete("annotations_rolling")
       needs_sort = true
     elseif self.ui.paging and annotations_type ~= "number" then
       if has_annotations then
         config:save("annotations_rolling", annotations)
       end
       annotations = config:readTableRef("annotations_paging")
-      config:del("annotations_paging")
+      config:delete("annotations_paging")
       needs_sort = true
     end
     self.annotations = annotations
@@ -131,7 +131,7 @@ function ReaderAnnotation:onReadSettings(config)
       self.onPostReaderReady = function()
         self:updateAnnotations(needs_update, needs_sort)
       end
-      config:del("annotations_externally_modified")
+      config:delete("annotations_externally_modified")
     end
   else -- first run
     if self.ui.rolling then
@@ -187,8 +187,8 @@ function ReaderAnnotation:migrateToAnnotations(config)
           highlights_paging
         )
         config:save("annotations_paging", annotations)
-        config:del("bookmarks_paging")
-        config:del("highlight_paging")
+        config:delete("bookmarks_paging")
+        config:delete("highlight_paging")
       end
     else -- incompatible format loaded, or empty
       if has_bookmarks then -- save incompatible format if not empty
@@ -199,8 +199,8 @@ function ReaderAnnotation:migrateToAnnotations(config)
       -- load compatible format
       bookmarks = config:readTableRef("bookmarks_rolling")
       highlights = config:readTableRef("highlight_rolling")
-      config:del("bookmarks_rolling")
-      config:del("highlight_rolling")
+      config:delete("bookmarks_rolling")
+      config:delete("highlight_rolling")
     end
   else -- self.ui.paging
     if bookmarks_type == "number" then
@@ -212,8 +212,8 @@ function ReaderAnnotation:migrateToAnnotations(config)
           highlights_rolling
         )
         config:save("annotations_rolling", annotations)
-        config:del("bookmarks_rolling")
-        config:del("highlight_rolling")
+        config:delete("bookmarks_rolling")
+        config:delete("highlight_rolling")
       end
     else
       if has_bookmarks then
@@ -223,8 +223,8 @@ function ReaderAnnotation:migrateToAnnotations(config)
       end
       bookmarks = config:readTableRef("bookmarks_paging")
       highlights = config:readTableRef("highlight_paging")
-      config:del("bookmarks_paging")
-      config:del("highlight_paging")
+      config:delete("bookmarks_paging")
+      config:delete("highlight_paging")
     end
   end
 

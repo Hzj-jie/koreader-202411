@@ -464,7 +464,7 @@ end
 
 function ReaderStyleTweak:onSaveSettings()
   if self.enabled then
-    self.ui.doc_settings:del("style_tweaks_enabled")
+    self.ui.doc_settings:delete("style_tweaks_enabled")
   else
     self.ui.doc_settings:makeFalse("style_tweaks_enabled")
   end

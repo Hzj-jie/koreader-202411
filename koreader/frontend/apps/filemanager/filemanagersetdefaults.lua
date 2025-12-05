@@ -62,7 +62,7 @@ function SetDefaultsWidget:init()
     if not self.state[k] then
       logger.warn("G_defaults: Found an unknown key in custom settings:", k)
       -- Should we just delete it?
-      --G_defaults:del(k)
+      --G_defaults:delete(k)
     else
       self.state[k].value = v
       self.state[k].custom = true

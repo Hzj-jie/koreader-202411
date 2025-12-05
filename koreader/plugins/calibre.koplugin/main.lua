@@ -348,7 +348,7 @@ function Calibre:getWirelessMenuTable()
             return G_reader_settings:hasNot("calibre_wireless_url")
           end,
           callback = function()
-            G_reader_settings:del("calibre_wireless_url")
+            G_reader_settings:delete("calibre_wireless_url")
           end,
         },
         {

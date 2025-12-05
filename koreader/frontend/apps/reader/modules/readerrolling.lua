@@ -379,7 +379,7 @@ function ReaderRolling:onCheckDomStyleCoherence()
 end
 
 function ReaderRolling:onSaveSettings()
-  self.ui.doc_settings:del("last_percent") -- deprecated
+  self.ui.doc_settings:delete("last_percent") -- deprecated
   self.ui.doc_settings:save("last_xpointer", self.xpointer)
   self.ui.doc_settings:save("hide_nonlinear_flows", self.hide_nonlinear_flows)
   self.ui.doc_settings:save("partial_rerendering", self.partial_rerendering)

@@ -72,7 +72,7 @@ function ReadCollection:write(collection_name)
   local collections = LuaSettings:open(collection_file)
   for coll_name in pairs(collections.data) do
     if not self.coll[coll_name] then
-      collections:del(coll_name)
+      collections:delete(coll_name)
     end
   end
   for coll_name, coll in pairs(self.coll) do

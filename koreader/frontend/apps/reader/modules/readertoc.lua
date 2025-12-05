@@ -1178,7 +1178,7 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
             ),
             ok_callback = function()
               touchmenu_instance:closeMenu()
-              self.ui.doc_settings:del("alternative_toc")
+              self.ui.doc_settings:delete("alternative_toc")
               self.ui.document:invalidateCacheFile()
               self.toc_ticks_ignored_levels = {} -- reset this
               -- Allow for ConfirmBox to be closed before showing

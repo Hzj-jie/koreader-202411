@@ -462,7 +462,7 @@ function CalibreWireless:setPassword()
             if passwordCheck(pass) then
               G_reader_settings:save("calibre_wireless_password", pass)
             else
-              G_reader_settings:del("calibre_wireless_password")
+              G_reader_settings:delete("calibre_wireless_password")
             end
             UIManager:close(password_dialog)
           end,

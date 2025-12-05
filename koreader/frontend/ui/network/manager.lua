@@ -1111,7 +1111,7 @@ function NetworkMgr:deleteNetwork(setting)
   if not self.nw_settings then
     self:_readNWSettings()
   end
-  self.nw_settings:del(setting.ssid)
+  self.nw_settings:delete(setting.ssid)
   self.nw_settings:flush()
 end
 

@@ -598,7 +598,7 @@ From the footnote popup, you can jump to the footnote location in the book by sw
 The footnote popup font can adjust to the font size you've set for the document, but you can specify here a fixed absolute font size to be used instead.]]
               ),
               callback = function(spin)
-                G_reader_settings:del("footnote_popup_relative_font_size")
+                G_reader_settings:delete("footnote_popup_relative_font_size")
                 G_reader_settings:save(
                   "footnote_popup_absolute_font_size",
                   spin.value
@@ -628,7 +628,7 @@ You can specify here how much smaller or larger it should be relative to the doc
 A negative value will make it smaller, while a positive one will make it larger.
 The recommended value is -2.]]),
               callback = function(spin)
-                G_reader_settings:del("footnote_popup_absolute_font_size")
+                G_reader_settings:delete("footnote_popup_absolute_font_size")
                 G_reader_settings:save(
                   "footnote_popup_relative_font_size",
                   spin.value

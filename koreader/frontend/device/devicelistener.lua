@@ -310,7 +310,7 @@ function DeviceListener:onSetFlashOnChapterBoundaries(toggle)
   if toggle == true then
     G_reader_settings:makeTrue("refresh_on_chapter_boundaries")
   else
-    G_reader_settings:del("refresh_on_chapter_boundaries")
+    G_reader_settings:delete("refresh_on_chapter_boundaries")
   end
 end
 
@@ -322,7 +322,7 @@ function DeviceListener:onSetNoFlashOnSecondChapterPage(toggle)
   if toggle == true then
     G_reader_settings:makeTrue("no_refresh_on_second_chapter_page")
   else
-    G_reader_settings:del("no_refresh_on_second_chapter_page")
+    G_reader_settings:delete("no_refresh_on_second_chapter_page")
   end
 end
 
@@ -332,7 +332,7 @@ end
 
 function DeviceListener:onSetFlashOnPagesWithImages(toggle)
   if toggle == true then
-    G_reader_settings:del("refresh_on_pages_with_images")
+    G_reader_settings:delete("refresh_on_pages_with_images")
   else
     G_reader_settings:makeFalse("refresh_on_pages_with_images")
   end

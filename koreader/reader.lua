@@ -226,7 +226,7 @@ then
     ok_text = _("Disable"),
     ok_callback = function()
       local Event = require("ui/event")
-      G_reader_settings:del("color_rendering")
+      G_reader_settings:delete("color_rendering")
       CanvasContext:setColorRenderingEnabled(false)
       UIManager:broadcastEvent(Event:new("ColorRenderingUpdate"))
     end,

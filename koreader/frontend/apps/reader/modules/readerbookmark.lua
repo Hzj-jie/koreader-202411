@@ -142,7 +142,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
             end,
             extra_text = _("Disable"),
             extra_callback = function()
-              G_reader_settings:del("bookmarks_items_max_lines")
+              G_reader_settings:delete("bookmarks_items_max_lines")
               self.items_max_lines = nil
               touchmenu_instance:updateItems()
             end,

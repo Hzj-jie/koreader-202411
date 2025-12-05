@@ -94,7 +94,7 @@ function filemanagerutil.resetDocumentSettings(file)
     local doc_settings = DocSettings:open(file_abs_path)
     for k in pairs(doc_settings.data) do
       if not settings_to_keep[k] then
-        doc_settings:del(k)
+        doc_settings:delete(k)
       end
     end
     doc_settings:makeTrue("docsettings_reset_done") -- for readertypeset block_rendering_mode

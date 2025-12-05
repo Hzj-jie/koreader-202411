@@ -790,7 +790,7 @@ New fonts discovered at KOReader startup will be shown first.
 Do you want to clear the history of selected fonts?]]),
         ok_text = _("Clear"),
         ok_callback = function()
-          G_reader_settings:del("cre_fonts_recently_selected")
+          G_reader_settings:delete("cre_fonts_recently_selected")
           -- Recreate it now, sorted alphabetically (we may not go visit
           -- and refresh the font menu until quit, but we want to be able
           -- to notice newly added fonts at next startup).

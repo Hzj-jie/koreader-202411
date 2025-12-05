@@ -277,9 +277,9 @@ function ReaderZooming:onReadSettings(config)
   if config:has("zoom_factor") and config:hasNot("kopt_zoom_factor") then
     config:save("kopt_zoom_factor", config:read("zoom_factor"))
     self.document.configurable.zoom_factor = config:read("kopt_zoom_factor")
-    config:del("zoom_factor")
+    config:delete("zoom_factor")
   elseif config:has("zoom_factor") and config:has("kopt_zoom_factor") then
-    config:del("zoom_factor")
+    config:delete("zoom_factor")
   end
 
   -- Don't stomp on normal_zoom_mode in ReaderKoptListener if we're reflowed...

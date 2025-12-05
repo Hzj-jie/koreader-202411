@@ -178,7 +178,7 @@ function ReaderSearch:addToMainMenu(menu_items)
             end,
             extra_text = _("Disable"),
             extra_callback = function()
-              G_reader_settings:del("fulltext_search_results_max_lines")
+              G_reader_settings:delete("fulltext_search_results_max_lines")
               self.findall_results_max_lines = nil
               self.last_search_hash = nil
               touchmenu_instance:updateItems()

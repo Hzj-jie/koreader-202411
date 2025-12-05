@@ -1290,7 +1290,7 @@ function Gestures:gestureAction(action, ges)
       ),
       show_icon = false,
     }))
-    G_reader_settings:del("gestures_migrated")
+    G_reader_settings:delete("gestures_migrated")
     return true
   end
   local action_list = self.gestures[action]
