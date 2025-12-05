@@ -61,8 +61,7 @@ function ReaderBookmark:init()
   end
   self.items_text = G_reader_settings:read("bookmarks_items_text_type")
     or "note"
-  self.items_max_lines =
-    G_reader_settings:read("bookmarks_items_max_lines")
+  self.items_max_lines = G_reader_settings:read("bookmarks_items_max_lines")
 
   self.ui.menu:registerToMainMenu(self)
   -- NOP our own gesture handling
@@ -736,11 +735,9 @@ function ReaderBookmark:onShowBookmark()
     table.sort(item_table, sort_func)
   end
 
-  local items_per_page =
-    G_reader_settings:read("bookmarks_items_per_page")
-  local items_font_size = G_reader_settings:read(
-    "bookmarks_items_font_size"
-  ) or Menu.getItemFontSize(items_per_page)
+  local items_per_page = G_reader_settings:read("bookmarks_items_per_page")
+  local items_font_size = G_reader_settings:read("bookmarks_items_font_size")
+    or Menu.getItemFontSize(items_per_page)
   local multilines_show_more_text =
     G_reader_settings:isTrue("bookmarks_items_multilines_show_more_text")
   local show_separator =

@@ -359,8 +359,7 @@ function Calibre:getWirelessMenuTable()
           callback = function(touchmenu_instance)
             local MultiInputDialog = require("ui/widget/multiinputdialog")
             local url_dialog
-            local calibre_url =
-              G_reader_settings:read("calibre_wireless_url")
+            local calibre_url = G_reader_settings:read("calibre_wireless_url")
             local calibre_url_address, calibre_url_port
             if calibre_url then
               calibre_url_address = calibre_url["address"]

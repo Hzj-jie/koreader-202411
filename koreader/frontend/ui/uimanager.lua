@@ -802,13 +802,12 @@ end
 --- Toggles Night Mode (i.e., inverted rendering).
 function UIManager:ToggleNightMode(night_mode)
   if night_mode then
-    self.FULL_REFRESH_COUNT = G_reader_settings:read(
-      "night_full_refresh_count"
-    ) or G_reader_settings:read("full_refresh_count") or DEFAULT_FULL_REFRESH_COUNT
+    self.FULL_REFRESH_COUNT = G_reader_settings:read("night_full_refresh_count")
+      or G_reader_settings:read("full_refresh_count")
+      or DEFAULT_FULL_REFRESH_COUNT
   else
-    self.FULL_REFRESH_COUNT = G_reader_settings:read(
-      "full_refresh_count"
-    ) or DEFAULT_FULL_REFRESH_COUNT
+    self.FULL_REFRESH_COUNT = G_reader_settings:read("full_refresh_count")
+      or DEFAULT_FULL_REFRESH_COUNT
   end
 end
 

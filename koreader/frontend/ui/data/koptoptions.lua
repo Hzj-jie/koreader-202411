@@ -15,9 +15,7 @@ local FONT_SCALE_DISPLAY_SIZE =
   { 12, 14, 15, 16, 17, 18, 19, 20, 22, 25, 30, 35 }
 
 local KOPTREADER_CONFIG_DOC_LANGS_TEXT = {}
-for _, lang in
-  ipairs(G_defaults:read("DKOPTREADER_CONFIG_DOC_LANGS_CODE"))
-do
+for _, lang in ipairs(G_defaults:read("DKOPTREADER_CONFIG_DOC_LANGS_CODE")) do
   local langName = IsoLanguage:getLocalizedLanguage(lang)
   if langName then
     table.insert(KOPTREADER_CONFIG_DOC_LANGS_TEXT, langName)
@@ -132,9 +130,7 @@ In 'semi-auto' and 'manual' modes, you may need to define areas once on an odd p
         name_text = _("Margin"),
         buttonprogress = true,
         values = { 0.05, 0.10, 0.25, 0.40, 0.55, 0.70, 0.85, 1.00 },
-        default_value = G_defaults:read(
-          "DKOPTREADER_CONFIG_PAGE_MARGIN"
-        ),
+        default_value = G_defaults:read("DKOPTREADER_CONFIG_PAGE_MARGIN"),
         event = "MarginUpdate",
         args = { 0.05, 0.10, 0.25, 0.40, 0.55, 0.70, 0.85, 1.00 },
         name_text_hold_callback = optionsutil.showValues,
@@ -161,9 +157,7 @@ In 'semi-auto' and 'manual' modes, you may need to define areas once on an odd p
         more_options_param = {
           unit = "°",
         },
-        default_value = G_defaults:read(
-          "DKOPTREADER_CONFIG_AUTO_STRAIGHTEN"
-        ),
+        default_value = G_defaults:read("DKOPTREADER_CONFIG_AUTO_STRAIGHTEN"),
         name_text_hold_callback = optionsutil.showValues,
         help_text = _(
           [[Attempt to automatically straighten tilted source pages.
@@ -435,9 +429,7 @@ left to right or reverse, top to bottom or reverse.]]
           C_("Line spacing", "large"),
         },
         values = { 1.0, 1.2, 1.4 },
-        default_value = G_defaults:read(
-          "DKOPTREADER_CONFIG_LINE_SPACING"
-        ),
+        default_value = G_defaults:read("DKOPTREADER_CONFIG_LINE_SPACING"),
         advanced = true,
         enabled_func = function(configurable)
           -- seems to only work in reflow mode
@@ -458,9 +450,7 @@ left to right or reverse, top to bottom or reverse.]]
           "align.justify",
         },
         values = { -1, 0, 1, 2, 3 },
-        default_value = G_defaults:read(
-          "DKOPTREADER_CONFIG_JUSTIFICATION"
-        ),
+        default_value = G_defaults:read("DKOPTREADER_CONFIG_JUSTIFICATION"),
         advanced = true,
         enabled_func = function(configurable)
           return optionsutil.enableIfEquals(configurable, "text_wrap", 1)
@@ -633,9 +623,7 @@ This can also be used to remove some gray background or to convert a grayscale o
           C_("Quality", "high"),
         },
         values = { 0.5, 1.0, 1.5 },
-        default_value = G_defaults:read(
-          "DKOPTREADER_CONFIG_RENDER_QUALITY"
-        ),
+        default_value = G_defaults:read("DKOPTREADER_CONFIG_RENDER_QUALITY"),
         advanced = true,
         enabled_func = function(configurable)
           return optionsutil.enableIfEquals(configurable, "text_wrap", 1)
@@ -703,9 +691,7 @@ This can also be used to remove some gray background or to convert a grayscale o
         name_text = _("Reflow Speckle Ignore Size"),
         toggle = { _("small"), _("medium"), _("large") },
         values = { 1.0, 3.0, 5.0 },
-        default_value = G_defaults:read(
-          "DKOPTREADER_CONFIG_DEFECT_SIZE"
-        ),
+        default_value = G_defaults:read("DKOPTREADER_CONFIG_DEFECT_SIZE"),
         event = "DefectSizeUpdate",
         show = false, -- might work somehow, but larger values than 1.0 might easily eat content
         enabled_func = function(configurable)
@@ -718,9 +704,7 @@ This can also be used to remove some gray background or to convert a grayscale o
         name_text = _("Indentation"),
         toggle = { _("off"), _("on") },
         values = { 0, 1 },
-        default_value = G_defaults:read(
-          "DKOPTREADER_CONFIG_DETECT_INDENT"
-        ),
+        default_value = G_defaults:read("DKOPTREADER_CONFIG_DETECT_INDENT"),
         show = false, -- does not work
         enabled_func = function(configurable)
           return optionsutil.enableIfEquals(configurable, "text_wrap", 1)
@@ -736,9 +720,7 @@ This can also be used to remove some gray background or to convert a grayscale o
           "column.three",
         },
         values = { 1, 2, 3 },
-        default_value = G_defaults:read(
-          "DKOPTREADER_CONFIG_MAX_COLUMNS"
-        ),
+        default_value = G_defaults:read("DKOPTREADER_CONFIG_MAX_COLUMNS"),
         enabled_func = function(configurable)
           return optionsutil.enableIfEquals(configurable, "text_wrap", 1)
         end,

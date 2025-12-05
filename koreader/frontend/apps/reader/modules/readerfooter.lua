@@ -490,9 +490,7 @@ local ReaderFooter = WidgetContainer:extend({
   pages = nil,
   footer_text = nil,
   text_font_face = "ffont",
-  height = Screen:scaleBySize(
-    G_defaults:read("DMINIBAR_CONTAINER_HEIGHT")
-  ),
+  height = Screen:scaleBySize(G_defaults:read("DMINIBAR_CONTAINER_HEIGHT")),
   horizontal_margin = Size.span.horizontal_default,
   bottom_padding = Size.padding.tiny,
   settings = nil, -- table
@@ -677,8 +675,7 @@ function ReaderFooter:init()
   self.custom_text = G_reader_settings:read("reader_footer_custom_text")
     or "KOReader"
   self.custom_text_repetitions = tonumber(
-    G_reader_settings:read("reader_footer_custom_text_repetitions")
-      or "1"
+    G_reader_settings:read("reader_footer_custom_text_repetitions") or "1"
   )
 end
 

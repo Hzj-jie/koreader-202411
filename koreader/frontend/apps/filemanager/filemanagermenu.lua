@@ -219,9 +219,8 @@ function FileManagerMenu:setUpdateItemTable()
 - Calibre and OPDS browsers/search results]]),
             callback = function(touchmenu_instance)
               local default_value = FileChooser.items_per_page_default
-              local current_value = G_reader_settings:read(
-                "items_per_page"
-              ) or default_value
+              local current_value = G_reader_settings:read("items_per_page")
+                or default_value
               local widget = SpinWidget:new({
                 title_text = _("Items per page"),
                 value = current_value,
@@ -435,9 +434,8 @@ To:
       {
         text_func = function()
           local default_value = KeyValuePage.getDefaultItemsPerPage()
-          local current_value = G_reader_settings:read(
-            "keyvalues_per_page"
-          ) or default_value
+          local current_value = G_reader_settings:read("keyvalues_per_page")
+            or default_value
           return T(_("Info lists items per page: %1"), current_value)
         end,
         help_text = _([[This sets the number of items per page in:
@@ -448,9 +446,8 @@ To:
         keep_menu_open = true,
         callback = function(touchmenu_instance)
           local default_value = KeyValuePage.getDefaultItemsPerPage()
-          local current_value = G_reader_settings:read(
-            "keyvalues_per_page"
-          ) or default_value
+          local current_value = G_reader_settings:read("keyvalues_per_page")
+            or default_value
           local widget = SpinWidget:new({
             value = current_value,
             value_min = 10,
@@ -677,8 +674,7 @@ function FileManagerMenu:getStartWithMenuTable()
     table.insert(sub_item_table, {
       text = v[1],
       checked_func = function()
-        return v[2]
-          == (G_reader_settings:read("start_with") or "filemanager")
+        return v[2] == (G_reader_settings:read("start_with") or "filemanager")
       end,
       callback = function()
         G_reader_settings:saveSetting("start_with", v[2])
@@ -688,8 +684,7 @@ function FileManagerMenu:getStartWithMenuTable()
   end
   return {
     text_func = function()
-      local start_with = G_reader_settings:read("start_with")
-        or "filemanager"
+      local start_with = G_reader_settings:read("start_with") or "filemanager"
       for i, v in ipairs(start_withs) do
         if v[2] == start_with then
           return T(_("Start with: %1"), v[1])
@@ -765,9 +760,8 @@ function FileManagerMenu:_getTabIndexFromLocation(ges)
   if self.tab_item_table == nil then
     self:setUpdateItemTable()
   end
-  local last_tab_index = G_reader_settings:read(
-    "filemanagermenu_tab_index"
-  ) or 1
+  local last_tab_index = G_reader_settings:read("filemanagermenu_tab_index")
+    or 1
   if not ges then
     return last_tab_index
   -- if the start position is far right

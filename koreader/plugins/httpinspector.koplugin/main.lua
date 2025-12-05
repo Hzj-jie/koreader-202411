@@ -27,8 +27,7 @@ local HELP_TEXT = dofile("plugins/httpinspector.koplugin/_meta.lua").description
 local HttpInspector = {}
 
 function HttpInspector:init()
-  self.port = G_reader_settings:read("httpinspector_port")
-    or DEFAULT_PORT
+  self.port = G_reader_settings:read("httpinspector_port") or DEFAULT_PORT
   if should_run then
     -- Delay this until after all plugins are loaded
     UIManager:nextTick(function()

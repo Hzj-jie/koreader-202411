@@ -839,9 +839,8 @@ If you wish your highlights to be saved in the document, just move it to a writa
     table.insert(menu_items.long_press.sub_item_table, {
       text = v[1],
       checked_func = function()
-        return (
-          G_reader_settings:read("default_highlight_action") or "ask"
-        ) == v[2]
+        return (G_reader_settings:read("default_highlight_action") or "ask")
+          == v[2]
       end,
       radio = true,
       callback = function()
@@ -855,9 +854,8 @@ If you wish your highlights to be saved in the document, just move it to a writa
     table.insert(sub_item_table, {
       text = v[1],
       checked_func = function()
-        return (
-          G_reader_settings:read("highlight_dialog_position") or "center"
-        ) == v[2]
+        return (G_reader_settings:read("highlight_dialog_position") or "center")
+          == v[2]
       end,
       callback = function()
         G_reader_settings:saveSetting("highlight_dialog_position", v[2])
@@ -866,9 +864,8 @@ If you wish your highlights to be saved in the document, just move it to a writa
   end
   table.insert(menu_items.long_press.sub_item_table, {
     text_func = function()
-      local position = G_reader_settings:read(
-        "highlight_dialog_position"
-      ) or "center"
+      local position = G_reader_settings:read("highlight_dialog_position")
+        or "center"
       for __, v in ipairs(highlight_dialog_position) do
         if v[2] == position then
           return T(_("Highlight dialog position: %1"), v[1]:lower())
@@ -894,9 +891,8 @@ If you wish your highlights to be saved in the document, just move it to a writa
             "If a long-press is not released in this interval, it is considered a very-long-press. On document text, single word selection will not be triggered."
           ),
           width = math.floor(self.screen_w * 0.75),
-          value = G_reader_settings:read(
-            "highlight_long_hold_threshold_s"
-          ) or 3,
+          value = G_reader_settings:read("highlight_long_hold_threshold_s")
+            or 3,
           value_min = 2.5,
           value_max = 20,
           value_step = 0.1,
@@ -958,9 +954,8 @@ Except when in two columns mode, where this is limited to showing only the previ
         )
       end,
       callback = function(touchmenu_instance)
-        local curr_val = G_reader_settings:read(
-          "highlight_non_touch_factor"
-        ) or 4
+        local curr_val = G_reader_settings:read("highlight_non_touch_factor")
+          or 4
         local spin_widget = SpinWidget:new({
           value = curr_val,
           value_min = 0.25,
@@ -1016,9 +1011,8 @@ Except when in two columns mode, where this is limited to showing only the previ
           and G_reader_settings:nilOrTrue("highlight_non_touch_spedup")
       end,
       callback = function(touchmenu_instance)
-        local curr_val = G_reader_settings:read(
-          "highlight_non_touch_interval"
-        ) or 1
+        local curr_val = G_reader_settings:read("highlight_non_touch_interval")
+          or 1
         local spin_widget = SpinWidget:new({
           value = curr_val,
           value_min = 0.1,
@@ -1721,9 +1715,7 @@ function ReaderHighlight:_resetHoldTimer(clear)
       -- no need to handle long-hold.
       if
         G_reader_settings:isTrue("highlight_action_on_single_word")
-        and (
-            G_reader_settings:read("default_highlight_action") or "ask"
-          )
+        and (G_reader_settings:read("default_highlight_action") or "ask")
           == "ask"
       then
         handle_long_hold = false
@@ -2344,9 +2336,8 @@ function ReaderHighlight:onSetHighlightAction(action_num, no_notification)
 end
 
 function ReaderHighlight:onCycleHighlightAction()
-  local current_action = G_reader_settings:read(
-    "default_highlight_action"
-  ) or "ask"
+  local current_action = G_reader_settings:read("default_highlight_action")
+    or "ask"
   local next_action_num
   for i, v in ipairs(long_press_action) do
     if v[2] == current_action then
@@ -3026,9 +3017,8 @@ function ReaderHighlight:onMoveHighlightIndicator(args)
         -- quadruple press: 64 single distances, almost move to screen edge
         if G_reader_settings:nilOrTrue("highlight_non_touch_spedup") then
           -- user selects whether to use 'constant' or [this] 'sped up' rate (speed-up on by default)
-          local t_inter = G_reader_settings:read(
-            "highlight_non_touch_interval"
-          ) or 1
+          local t_inter = G_reader_settings:read("highlight_non_touch_interval")
+            or 1
           if diff < time.s(t_inter) then
             move_distance = self._last_indicator_move_args.distance * 4
           end

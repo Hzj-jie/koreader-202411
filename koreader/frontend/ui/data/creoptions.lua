@@ -325,9 +325,7 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
         name_text = _("View Mode"),
         toggle = { _("page"), _("continuous") },
         values = { 0, 1 },
-        default_value = G_defaults:read("DCREREADER_VIEW_MODE")
-              == "page"
-            and 0
+        default_value = G_defaults:read("DCREREADER_VIEW_MODE") == "page" and 0
           or 1,
         args = { "page", "scroll" },
         event = "SetViewMode",
@@ -391,33 +389,17 @@ Note that your selected font size is not affected by this setting.]]
         values = {
           G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_TINY"),
           G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_TINY"),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_SMALL"
-          ),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_SMALL"
-          ),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_SMALL"),
           G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_SMALL"),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_SMALL"
-          ),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_SMALL"),
           G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_MEDIUM"),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_MEDIUM"
-          ),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XL_MEDIUM"
-          ),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XXL_MEDIUM"
-          ),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XL_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XXL_MEDIUM"),
           G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_LARGE"),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_LARGE"
-          ),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_LARGE"
-          ),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_LARGE"),
         },
         default_pos = 7,
         default_value = G_defaults:read(
@@ -435,33 +417,17 @@ Note that your selected font size is not affected by this setting.]]
         args = {
           G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_TINY"),
           G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_TINY"),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_SMALL"
-          ),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_SMALL"
-          ),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_SMALL"),
           G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_SMALL"),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_SMALL"
-          ),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_SMALL"),
           G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_MEDIUM"),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_MEDIUM"
-          ),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XL_MEDIUM"
-          ),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XXL_MEDIUM"
-          ),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XL_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XXL_MEDIUM"),
           G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_LARGE"),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_LARGE"
-          ),
-          G_defaults:read(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_LARGE"
-          ),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_LARGE"),
         },
         name_text_hold_callback = optionsutil.showValues,
         show_true_value_func = function(val) -- add "%"
@@ -483,9 +449,7 @@ Note that your selected font size is not affected by this setting.]]
         spacing = 15,
         item_font_size = G_defaults:read("DCREREADER_CONFIG_FONT_SIZES"),
         values = G_defaults:read("DCREREADER_CONFIG_FONT_SIZES"),
-        default_value = G_defaults:read(
-          "DCREREADER_CONFIG_DEFAULT_FONT_SIZE"
-        ),
+        default_value = G_defaults:read("DCREREADER_CONFIG_DEFAULT_FONT_SIZE"),
         args = G_defaults:read("DCREREADER_CONFIG_FONT_SIZES"),
         event = "SetFontSize",
       },
@@ -509,9 +473,7 @@ Note that your selected font size is not affected by this setting.]]
           event = "SetFontSize",
         },
         values = {},
-        default_value = G_defaults:read(
-          "DCREREADER_CONFIG_DEFAULT_FONT_SIZE"
-        ),
+        default_value = G_defaults:read("DCREREADER_CONFIG_DEFAULT_FONT_SIZE"),
         event = "ChangeSize",
         args = { -0.5, 0.5 },
         alternate = false,

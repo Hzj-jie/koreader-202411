@@ -329,8 +329,7 @@ function ReadTimer:addToMainMenu(menu_items)
           local remain_time = {}
           local remain_hours, remain_minutes = self:remainingTime()
           if not remain_hours and not remain_minutes then
-            remain_time =
-              G_reader_settings:read("reader_timer_remain_time")
+            remain_time = G_reader_settings:read("reader_timer_remain_time")
             if remain_time then
               remain_hours = remain_time[1]
               remain_minutes = remain_time[2]

@@ -94,8 +94,7 @@ function ReaderView:init()
     bbox = nil,
   }
   self.highlight = {
-    lighten_factor = G_reader_settings:read("highlight_lighten_factor")
-      or 0.2,
+    lighten_factor = G_reader_settings:read("highlight_lighten_factor") or 0.2,
     note_mark = G_reader_settings:read("highlight_note_marker"),
     temp_drawer = "invert",
     temp = {},
@@ -1015,9 +1014,7 @@ end
 
 function ReaderView:onReadSettings(config)
   if self.ui.paging then
-    self.document:setTileCacheValidity(
-      config:read("tile_cache_validity_ts")
-    )
+    self.document:setTileCacheValidity(config:read("tile_cache_validity_ts"))
     self.render_mode = config:read("render_mode")
       or G_defaults:read("DRENDER_MODE")
     self.document.render_mode = self.render_mode

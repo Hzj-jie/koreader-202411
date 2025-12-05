@@ -89,22 +89,18 @@ function CoverImage:init()
     or Device:getDefaultCoverPath()
   self.cover_image_format = G_reader_settings:read("cover_image_format")
     or "auto"
-  self.cover_image_quality = G_reader_settings:read(
-    "cover_image_quality"
-  ) or 75
+  self.cover_image_quality = G_reader_settings:read("cover_image_quality") or 75
   self.cover_image_grayscale = G_reader_settings:isTrue("cover_image_grayscale")
   self.cover_image_stretch_limit = G_reader_settings:read(
     "cover_image_stretch_limit"
   ) or 8
-  self.cover_image_background = G_reader_settings:read(
-    "cover_image_background"
-  ) or "black"
+  self.cover_image_background = G_reader_settings:read("cover_image_background")
+    or "black"
   self.cover_image_fallback_path = G_reader_settings:read(
     "cover_image_fallback_path"
   ) or default_fallback_path
-  self.cover_image_cache_path = G_reader_settings:read(
-    "cover_image_cache_path"
-  ) or default_cache_path
+  self.cover_image_cache_path = G_reader_settings:read("cover_image_cache_path")
+    or default_cache_path
   self.cover_image_cache_maxfiles = G_reader_settings:read(
     "cover_image_cache_maxfiles"
   ) or 36

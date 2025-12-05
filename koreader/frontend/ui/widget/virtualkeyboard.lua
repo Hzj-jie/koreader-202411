@@ -56,9 +56,8 @@ local VirtualKey = InputContainer:extend({
 local ignore_key_release
 
 function VirtualKey:init()
-  local label_font_size = G_reader_settings:read(
-    "keyboard_key_font_size"
-  ) or DEFAULT_LABEL_SIZE
+  local label_font_size = G_reader_settings:read("keyboard_key_font_size")
+    or DEFAULT_LABEL_SIZE
   self.face = Font:getFace("infont", label_font_size)
   if self.bold == nil then
     self.bold = G_reader_settings:isTrue("keyboard_key_bold")
@@ -775,9 +774,8 @@ function VirtualKeyPopup:init()
       ges = "tap",
     }),
   }
-  self.tap_interval_override = time.ms(
-    G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0
-  )
+  self.tap_interval_override =
+    time.ms(G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0)
 
   if Device:hasKeys() then
     self.key_events.Exit = { { Device.input.group.Back } }
@@ -925,9 +923,8 @@ function VirtualKeyboard:init()
   self.min_layer = keyboard.min_layer
   self.max_layer = keyboard.max_layer
   self:initLayer(self.keyboard_layer)
-  self.tap_interval_override = time.ms(
-    G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0
-  )
+  self.tap_interval_override =
+    time.ms(G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0)
   if Device:hasKeys() then
     self.key_events.Exit = { { "Back" } }
   end

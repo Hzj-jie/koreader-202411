@@ -63,11 +63,9 @@ function AutoWarmth:init()
 
   self.easy_mode = G_reader_settings:nilOrTrue("autowarmth_easy_mode")
   self.activate = G_reader_settings:read("autowarmth_activate") or 0
-  self.location = G_reader_settings:read("autowarmth_location")
-    or "Geysir"
+  self.location = G_reader_settings:read("autowarmth_location") or "Geysir"
   self.latitude = G_reader_settings:read("autowarmth_latitude") or 64.31 --great Geysir in Iceland
-  self.longitude = G_reader_settings:read("autowarmth_longitude")
-    or -20.30
+  self.longitude = G_reader_settings:read("autowarmth_longitude") or -20.30
   self.altitude = G_reader_settings:read("autowarmth_altitude") or 200
   self.timezone = G_reader_settings:read("autowarmth_timezone") or 0
   self.scheduler_times = G_reader_settings:readTableRef(

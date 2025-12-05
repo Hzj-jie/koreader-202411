@@ -195,10 +195,8 @@ function Screensaver:expandSpecial(message, fallback)
     else
       percent = Math.round(Math.clamp(percent * 100, 1, 99))
     end
-    props = FileManagerBookInfo.extendProps(
-      doc_settings:read("doc_props"),
-      lastfile
-    )
+    props =
+      FileManagerBookInfo.extendProps(doc_settings:read("doc_props"), lastfile)
     -- Unable to set time_left_chapter and time_left_document without ReaderUI, so leave N/A
   end
   if props then
@@ -345,9 +343,8 @@ end
 
 function Screensaver:setMessage()
   local InputDialog = require("ui/widget/inputdialog")
-  local screensaver_message = G_reader_settings:read(
-    "screensaver_message"
-  ) or self.default_screensaver_message
+  local screensaver_message = G_reader_settings:read("screensaver_message")
+    or self.default_screensaver_message
   local input_dialog
   input_dialog = InputDialog:new({
     title = _("Sleep screen message"),
@@ -392,9 +389,7 @@ end
 
 function Screensaver:setStretchLimit(touchmenu_instance)
   UIManager:show(SpinWidget:new({
-    value = G_reader_settings:read(
-      "screensaver_stretch_limit_percentage"
-    ) or 8,
+    value = G_reader_settings:read("screensaver_stretch_limit_percentage") or 8,
     value_min = 0,
     value_max = 25,
     default_value = 8,
@@ -721,12 +716,10 @@ function Screensaver:show()
 
     local message_pos
     if G_reader_settings:has(self.prefix .. "screensaver_message_position") then
-      message_pos = G_reader_settings:read(
-        self.prefix .. "screensaver_message_position"
-      )
-    else
       message_pos =
-        G_reader_settings:read("screensaver_message_position")
+        G_reader_settings:read(self.prefix .. "screensaver_message_position")
+    else
+      message_pos = G_reader_settings:read("screensaver_message_position")
     end
 
     -- The only case where we *won't* cover the full-screen is when we only display a message and no background.

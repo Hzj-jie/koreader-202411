@@ -496,9 +496,7 @@ end
 function CalibreWireless:getFreeSpace(arg)
   logger.dbg("FREE_SPACE", arg)
   local free_space = {
-    free_space_on_device = getFreeSpace(
-      G_reader_settings:read("inbox_dir")
-    ),
+    free_space_on_device = getFreeSpace(G_reader_settings:read("inbox_dir")),
   }
   self:sendJsonData("OK", free_space)
 end
