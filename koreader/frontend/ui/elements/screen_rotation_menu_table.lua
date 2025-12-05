@@ -8,7 +8,7 @@ local Screen = Device.screen
 local function genMenuItem(text, mode)
   return {
     text_func = function()
-      return G_reader_settings:readSetting("fm_rotation_mode") == mode
+      return G_reader_settings:read("fm_rotation_mode") == mode
           and text .. "   ★"
         or text
     end,
@@ -21,7 +21,7 @@ local function genMenuItem(text, mode)
       touchmenu_instance:closeMenu()
     end,
     hold_callback = function(touchmenu_instance)
-      G_reader_settings:saveSetting("fm_rotation_mode", mode)
+      G_reader_settings:save("fm_rotation_mode", mode)
       touchmenu_instance:updateItems()
     end,
   }

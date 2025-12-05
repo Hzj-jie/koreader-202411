@@ -17,7 +17,7 @@ local C_ = _.pgettext
 local Screen = Device.screen
 local T = require("ffi/util").template
 
-local DGENERIC_ICON_SIZE = G_defaults:readSetting("DGENERIC_ICON_SIZE")
+local DGENERIC_ICON_SIZE = G_defaults:read("DGENERIC_ICON_SIZE")
 
 local ReaderSearch = InputContainer:extend({
   direction = 0, -- 0 for search forward, 1 for search backward
@@ -44,14 +44,14 @@ function ReaderSearch:init()
   self:registerKeyEvents()
 
   -- number of words before and after the search string in All search results
-  self.findall_nb_context_words = G_reader_settings:readSetting(
+  self.findall_nb_context_words = G_reader_settings:read(
     "fulltext_search_nb_context_words"
   ) or 5
-  self.findall_results_per_page = G_reader_settings:readSetting(
+  self.findall_results_per_page = G_reader_settings:read(
     "fulltext_search_results_per_page"
   ) or 10
   self.findall_results_max_lines =
-    G_reader_settings:readSetting("fulltext_search_results_max_lines")
+    G_reader_settings:read("fulltext_search_results_max_lines")
 
   self.ui.menu:registerToMainMenu(self)
 end
@@ -137,7 +137,7 @@ function ReaderSearch:addToMainMenu(menu_items)
             callback = function(spin)
               self.last_search_hash = nil
               self.findall_nb_context_words = spin.value
-              G_reader_settings:saveSetting(
+              G_reader_settings:save(
                 "fulltext_search_nb_context_words",
                 spin.value
               )
@@ -168,7 +168,7 @@ function ReaderSearch:addToMainMenu(menu_items)
             default_value = default_value,
             ok_always_enabled = true,
             callback = function(spin)
-              G_reader_settings:saveSetting(
+              G_reader_settings:save(
                 "fulltext_search_results_max_lines",
                 spin.value
               )
@@ -178,7 +178,7 @@ function ReaderSearch:addToMainMenu(menu_items)
             end,
             extra_text = _("Disable"),
             extra_callback = function()
-              G_reader_settings:delSetting("fulltext_search_results_max_lines")
+              G_reader_settings:del("fulltext_search_results_max_lines")
               self.findall_results_max_lines = nil
               self.last_search_hash = nil
               touchmenu_instance:updateItems()
@@ -206,7 +206,7 @@ function ReaderSearch:addToMainMenu(menu_items)
             default_value = 10,
             callback = function(spin)
               self.findall_results_per_page = spin.value
-              G_reader_settings:saveSetting(
+              G_reader_settings:save(
                 "fulltext_search_results_per_page",
                 spin.value
               )
@@ -247,7 +247,7 @@ function ReaderSearch:searchCallback(reverse, text)
   if search_text == nil or search_text == "" then
     return
   end
-  self.ui.doc_settings:saveSetting(
+  self.ui.doc_settings:save(
     "fulltext_search_last_search_text",
     search_text
   )
@@ -311,7 +311,7 @@ function ReaderSearch:onShowFulltextSearchInput(search_string)
     width = math.floor(math.min(Screen:getWidth(), Screen:getHeight()) * 0.9),
     input = search_string
       or self.last_search_text
-      or self.ui.doc_settings:readSetting("fulltext_search_last_search_text"),
+      or self.ui.doc_settings:read("fulltext_search_last_search_text"),
     buttons = {
       {
         {

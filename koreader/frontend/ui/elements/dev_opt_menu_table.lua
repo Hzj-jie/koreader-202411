@@ -113,7 +113,7 @@ if Device:hasEinkScreen() and Device:canHWDither() then
     end,
     callback = function()
       Device.screen:toggleHWDithering()
-      G_reader_settings:saveSetting(
+      G_reader_settings:save(
         "dev_no_hw_dither",
         not Device.screen.hw_dithering,
         false
@@ -138,7 +138,7 @@ if Device:hasEinkScreen() then
     end,
     callback = function()
       Device.screen:toggleSWDithering()
-      G_reader_settings:saveSetting(
+      G_reader_settings:save(
         "dev_no_sw_dither",
         not Device.screen.sw_dithering,
         false
@@ -192,7 +192,7 @@ if Device:hasEinkScreen() and Device:isKobo() then
         "mxcfb_bypass_wait_for",
         not Device:hasReliableMxcWaitFor()
       )
-      G_reader_settings:saveSetting(
+      G_reader_settings:save(
         "mxcfb_bypass_wait_for",
         not mxcfb_bypass_wait_for,
         not Devide:hasReliableMxcWaitFor()

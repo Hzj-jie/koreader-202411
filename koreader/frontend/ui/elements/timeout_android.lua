@@ -46,7 +46,7 @@ local function timeoutEquals(timeout)
 end
 
 local function saveAndApplyTimeout(timeout)
-  G_reader_settings:saveSetting("android_screen_timeout", timeout)
+  G_reader_settings:save("android_screen_timeout", timeout)
   android.timeout.set(timeout)
 end
 

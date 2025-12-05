@@ -94,7 +94,7 @@ function filemanagerutil.resetDocumentSettings(file)
     local doc_settings = DocSettings:open(file_abs_path)
     for k in pairs(doc_settings.data) do
       if not settings_to_keep[k] then
-        doc_settings:delSetting(k)
+        doc_settings:del(k)
       end
     end
     doc_settings:makeTrue("docsettings_reset_done") -- for readertypeset block_rendering_mode
@@ -120,7 +120,7 @@ function filemanagerutil.saveSummary(doc_settings_or_file, summary)
     doc_settings_or_file = DocSettings:open(doc_settings_or_file)
   end
   summary.modified = os.date("%Y-%m-%d", os.time())
-  doc_settings_or_file:saveSetting("summary", summary)
+  doc_settings_or_file:save("summary", summary)
   doc_settings_or_file:flush()
   return doc_settings_or_file
 end
@@ -143,7 +143,7 @@ function filemanagerutil.genStatusButtonsRow(
 )
   local file, summary, status
   if type(doc_settings_or_file) == "table" then
-    file = doc_settings_or_file:readSetting("doc_path")
+    file = doc_settings_or_file:read("doc_path")
     summary = doc_settings_or_file:readTableRef("summary")
     status = summary.status
   else
@@ -182,7 +182,7 @@ function filemanagerutil.genResetSettingsButton(
   local doc_settings, file, has_sidecar_file
   if type(doc_settings_or_file) == "table" then
     doc_settings = doc_settings_or_file
-    file = doc_settings_or_file:readSetting("doc_path")
+    file = doc_settings_or_file:read("doc_path")
     has_sidecar_file = true
   else
     file = ffiutil.realpath(doc_settings_or_file) or doc_settings_or_file

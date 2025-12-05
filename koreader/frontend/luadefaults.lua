@@ -68,7 +68,7 @@ function LuaDefaults:open(path)
 end
 
 --- Reads a setting, optionally initializing it to a default.
-function LuaDefaults:readSetting(key, default)
+function LuaDefaults:read(key, default)
   if not default then
     if self:hasBeenCustomized(key) then
       return self.rw[key]
@@ -90,10 +90,10 @@ function LuaDefaults:readSetting(key, default)
 end
 
 --- Saves a setting.
-function LuaDefaults:saveSetting(key, value)
+function LuaDefaults:save(key, value)
   if util.tableEquals(self.ro[key], value, true) then
     -- Only keep actually custom settings in the rw table ;).
-    return self:delSetting(key)
+    return self:del(key)
   else
     self.rw[key] = value
   end
@@ -101,7 +101,7 @@ function LuaDefaults:saveSetting(key, value)
 end
 
 --- Deletes a setting.
-function LuaDefaults:delSetting(key)
+function LuaDefaults:del(key)
   self.rw[key] = nil
   return self
 end

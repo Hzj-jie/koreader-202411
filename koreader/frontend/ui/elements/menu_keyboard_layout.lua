@@ -54,7 +54,7 @@ local function genKeyboardLayoutsSubmenu()
       text_func = function()
         local text =
           T("%1 (%2)", Language:getLanguageName(lang), lang:sub(1, 2))
-        if G_reader_settings:readSetting("keyboard_layout_default") == lang then
+        if G_reader_settings:read("keyboard_layout_default") == lang then
           text = text .. "   ★"
         end
         return text
@@ -82,7 +82,7 @@ local function genKeyboardLayoutsSubmenu()
         end
       end,
       hold_callback = function(touchmenu_instance)
-        G_reader_settings:saveSetting("keyboard_layout_default", lang)
+        G_reader_settings:save("keyboard_layout_default", lang)
         touchmenu_instance:updateItems()
       end,
     })
@@ -183,7 +183,7 @@ local sub_item_table = {
         title = _("Keyboard font size"),
         -- do not use input_type = "number" to see letters on the keyboard
         input = tostring(
-          G_reader_settings:readSetting("keyboard_key_font_size")
+          G_reader_settings:read("keyboard_key_font_size")
             or VirtualKeyboard.default_label_size
         ),
         input_hint = "(16 - 30)",
@@ -202,19 +202,19 @@ local sub_item_table = {
               callback = function()
                 local font_size = tonumber(input_dialog:getInputText())
                 if font_size and font_size >= 16 and font_size <= 30 then
-                  G_reader_settings:saveSetting(
+                  G_reader_settings:save(
                     "keyboard_key_font_size",
                     font_size
                   )
-                  G_reader_settings:saveSetting(
+                  G_reader_settings:save(
                     "keyboard_key_bold",
                     check_button_bold.checked
                   )
-                  G_reader_settings:saveSetting(
+                  G_reader_settings:save(
                     "keyboard_key_border",
                     check_button_border.checked
                   )
-                  G_reader_settings:saveSetting(
+                  G_reader_settings:save(
                     "keyboard_key_compact",
                     check_button_compact.checked
                   )

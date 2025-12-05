@@ -12,7 +12,7 @@ local eink_settings_table = {
       end,
       callback = function()
         Screen.low_pan_rate = not Screen.low_pan_rate
-        G_reader_settings:saveSetting("low_pan_rate", Screen.low_pan_rate)
+        G_reader_settings:save("low_pan_rate", Screen.low_pan_rate)
       end,
     },
     {

@@ -846,9 +846,9 @@ function Wikipedia:createEpub(epub_path, page, lang, with_images)
 
   -- See what to do with images
   local include_images =
-    G_reader_settings:readSetting("wikipedia_epub_include_images")
+    G_reader_settings:read("wikipedia_epub_include_images")
   local use_img_2x =
-    G_reader_settings:readSetting("wikipedia_epub_highres_images")
+    G_reader_settings:read("wikipedia_epub_highres_images")
   if with_images then
     -- If no UI (Trapper:wrap() not called), UI:confirm() will answer true
     if #images > 0 then

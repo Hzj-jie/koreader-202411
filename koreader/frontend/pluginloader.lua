@@ -82,7 +82,7 @@ function PluginLoader:loadPlugins()
   if data_dir ~= "." then
     table.insert(lookup_path_list, data_dir .. "/plugins/")
   end
-  local extra_paths = G_reader_settings:readSetting("extra_plugin_paths")
+  local extra_paths = G_reader_settings:read("extra_plugin_paths")
   if extra_paths then
     if type(extra_paths) == "string" then
       extra_paths = { extra_paths }

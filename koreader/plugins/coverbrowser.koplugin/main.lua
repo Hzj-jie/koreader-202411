@@ -82,9 +82,9 @@ function CoverBrowser:init()
       and not BookInfoManager:getSetting("history_display_mode")
     then
       logger.info("CoverBrowser: setting default display modes")
-      BookInfoManager:saveSetting("filemanager_display_mode", "list_image_meta")
-      BookInfoManager:saveSetting("history_display_mode", "mosaic_image")
-      BookInfoManager:saveSetting("collection_display_mode", "mosaic_image")
+      BookInfoManager:save("filemanager_display_mode", "list_image_meta")
+      BookInfoManager:save("history_display_mode", "mosaic_image")
+      BookInfoManager:save("collection_display_mode", "mosaic_image")
     end
     G_reader_settings:makeTrue("coverbrowser_initial_default_setup_done")
   end
@@ -220,11 +220,11 @@ function CoverBrowser:addToMainMenu(menu_items)
                 fc.nb_cols_portrait ~= nb_cols
                 or fc.nb_rows_portrait ~= nb_rows
               then
-                BookInfoManager:saveSetting(
+                BookInfoManager:save(
                   "nb_cols_portrait",
                   fc.nb_cols_portrait
                 )
-                BookInfoManager:saveSetting(
+                BookInfoManager:save(
                   "nb_rows_portrait",
                   fc.nb_rows_portrait
                 )
@@ -281,11 +281,11 @@ function CoverBrowser:addToMainMenu(menu_items)
                 fc.nb_cols_landscape ~= nb_cols
                 or fc.nb_rows_landscape ~= nb_rows
               then
-                BookInfoManager:saveSetting(
+                BookInfoManager:save(
                   "nb_cols_landscape",
                   fc.nb_cols_landscape
                 )
-                BookInfoManager:saveSetting(
+                BookInfoManager:save(
                   "nb_rows_landscape",
                   fc.nb_rows_landscape
                 )
@@ -331,7 +331,7 @@ function CoverBrowser:addToMainMenu(menu_items)
             end,
             close_callback = function()
               if fc.files_per_page ~= files_per_page then
-                BookInfoManager:saveSetting("files_per_page", fc.files_per_page)
+                BookInfoManager:save("files_per_page", fc.files_per_page)
                 FileChooser.files_per_page = fc.files_per_page
                 if fc.display_mode_type == "list" then
                   fc.no_refresh_covers = nil
@@ -445,7 +445,7 @@ function CoverBrowser:addToMainMenu(menu_items)
               else
                 series_mode = "append_series_to_authors"
               end
-              BookInfoManager:saveSetting("series_mode", series_mode)
+              BookInfoManager:save("series_mode", series_mode)
               fc:updateItems(1, true)
             end,
           },
@@ -460,7 +460,7 @@ function CoverBrowser:addToMainMenu(menu_items)
               else
                 series_mode = "append_series_to_title"
               end
-              BookInfoManager:saveSetting("series_mode", series_mode)
+              BookInfoManager:save("series_mode", series_mode)
               fc:updateItems(1, true)
             end,
           },
@@ -475,7 +475,7 @@ function CoverBrowser:addToMainMenu(menu_items)
               else
                 series_mode = "series_in_separate_line"
               end
-              BookInfoManager:saveSetting("series_mode", series_mode)
+              BookInfoManager:save("series_mode", series_mode)
               fc:updateItems(1, true)
             end,
           },
@@ -625,7 +625,7 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
     return
   end
   if init_done then -- save new mode in db
-    BookInfoManager:saveSetting("filemanager_display_mode", display_mode)
+    BookInfoManager:save("filemanager_display_mode", display_mode)
   end
   -- remember current mode in module variable
   filemanager_display_mode = display_mode
@@ -758,7 +758,7 @@ function CoverBrowser:setupHistoryDisplayMode(display_mode)
     return
   end
   if init_done then -- save new mode in db
-    BookInfoManager:saveSetting("history_display_mode", display_mode)
+    BookInfoManager:save("history_display_mode", display_mode)
   end
   -- remember current mode in module variable
   history_display_mode = display_mode
@@ -840,7 +840,7 @@ function CoverBrowser:setupCollectionDisplayMode(display_mode)
     return
   end
   if init_done then -- save new mode in db
-    BookInfoManager:saveSetting("collection_display_mode", display_mode)
+    BookInfoManager:save("collection_display_mode", display_mode)
   end
   -- remember current mode in module variable
   collection_display_mode = display_mode

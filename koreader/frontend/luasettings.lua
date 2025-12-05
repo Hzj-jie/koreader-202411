@@ -65,7 +65,7 @@ end
 
 @param key The setting's key
 ]]
-function LuaSettings:readSetting(key)
+function LuaSettings:read(key)
   local r = self.data[key]
   -- TODO: Should be an assertion.
   if type(r) == "table" then
@@ -113,11 +113,11 @@ function LuaSettings:readTableOrNil(key)
 end
 
 --- Saves a setting.
-function LuaSettings:saveSetting(key, value, default_value)
+function LuaSettings:save(key, value, default_value)
   -- Setting value to nil is same as self.delSetting(key), no reason to
   -- dump and compare the value in the case.
   if value == nil then
-    return self:delSetting(key)
+    return self:del(key)
   end
   if default_value == nil then
     if type(value) == "table" and value == self.data[key] then
@@ -144,11 +144,11 @@ function LuaSettings:saveSetting(key, value, default_value)
         or dump(value, nil, true) == dump(default_value, nil, true)
       )
     then
-      return self:delSetting(key)
+      return self:del(key)
     end
   else
     if value == default_value then
-      return self:delSetting(key)
+      return self:del(key)
     end
   end
   self.data[key] = value
@@ -156,7 +156,7 @@ function LuaSettings:saveSetting(key, value, default_value)
 end
 
 --- Deletes a setting.
-function LuaSettings:delSetting(key)
+function LuaSettings:del(key)
   self.data[key] = nil
   return self
 end
@@ -202,9 +202,9 @@ end
 --- e.g., a setting that defaults to true.
 function LuaSettings:flipNilOrTrue(key)
   if self:nilOrTrue(key) then
-    self:saveSetting(key, false)
+    self:save(key, false)
   else
-    self:delSetting(key)
+    self:del(key)
   end
   return self
 end
@@ -213,22 +213,22 @@ end
 --- e.g., a setting that defaults to false.
 function LuaSettings:flipNilOrFalse(key)
   if self:nilOrFalse(key) then
-    self:saveSetting(key, true)
+    self:save(key, true)
   else
-    self:delSetting(key)
+    self:del(key)
   end
   return self
 end
 
 -- Unconditionally makes a boolean setting `true`.
 function LuaSettings:makeTrue(key, default_value)
-  self:saveSetting(key, true, default_value)
+  self:save(key, true, default_value)
   return self
 end
 
 -- Unconditionally makes a boolean setting `false`.
 function LuaSettings:makeFalse(key, default_value)
-  self:saveSetting(key, false, default_value)
+  self:save(key, false, default_value)
   return self
 end
 

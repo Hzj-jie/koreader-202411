@@ -267,7 +267,7 @@ function CloudStorage:downloadFile(item)
   end
 
   local cs_settings = self:readSettings()
-  local download_dir = cs_settings:readSetting("download_dir")
+  local download_dir = cs_settings:read("download_dir")
     or G_named_settings.lastdir()
   local filename_orig = item.text
   local filename = filename_orig
@@ -280,7 +280,7 @@ function CloudStorage:downloadFile(item)
           require("ui/downloadmgr")
             :new({
               onConfirm = function(path)
-                self.cs_settings:saveSetting("download_dir", path)
+                self.cs_settings:save("download_dir", path)
                 self.cs_settings:flush()
                 download_dir = path
                 self.download_dialog:setTitle(
@@ -401,7 +401,7 @@ function CloudStorage:updateSyncFolder(item, source, dest)
       break
     end
   end
-  cs_settings:saveSetting("cs_servers", cs_servers, {})
+  cs_settings:save("cs_servers", cs_servers, {})
   cs_settings:flush()
 end
 
@@ -859,7 +859,7 @@ function CloudStorage:configCloud(type)
         type = "webdav",
       })
     end
-    cs_settings:saveSetting("cs_servers", cs_servers, {})
+    cs_settings:save("cs_servers", cs_servers, {})
     cs_settings:flush()
     self:init()
   end
@@ -923,7 +923,7 @@ function CloudStorage:editCloudServer(item)
         end
       end
     end
-    cs_settings:saveSetting("cs_servers", cs_servers, {})
+    cs_settings:save("cs_servers", cs_servers, {})
     cs_settings:flush()
     self:init()
   end
@@ -949,7 +949,7 @@ function CloudStorage:deleteCloudServer(item)
       break
     end
   end
-  cs_settings:saveSetting("cs_servers", cs_servers, {})
+  cs_settings:save("cs_servers", cs_servers, {})
   cs_settings:flush()
   self:init()
 end

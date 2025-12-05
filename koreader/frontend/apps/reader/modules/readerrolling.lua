@@ -193,25 +193,25 @@ function ReaderRolling:onReadSettings(config)
     if config:has("last_xpointer") then
       -- We have a last_xpointer: this book was previously opened
       -- with possibly a very old version: request the oldest
-      config:saveSetting(
+      config:save(
         "cre_dom_version",
         self.ui.document:getOldestDomVersion()
       )
     else
       -- No previous xpointer: book never opened (or sidecar file
       -- purged): we can use the latest DOM version
-      config:saveSetting(
+      config:save(
         "cre_dom_version",
         self.ui.document:getLatestDomVersion()
       )
     end
   end
-  self.ui.document:requestDomVersion(config:readSetting("cre_dom_version"))
+  self.ui.document:requestDomVersion(config:read("cre_dom_version"))
   -- If we're using a DOM version without normalized XPointers, some stuff
   -- may need tweaking:
   local cre = require("document/credocument"):engineInit()
   if
-    config:readSetting("cre_dom_version")
+    config:read("cre_dom_version")
     < cre.getDomVersionWithNormalizedXPointers()
   then
     -- Show some warning when styles "display:" have changed that
@@ -232,8 +232,8 @@ function ReaderRolling:onReadSettings(config)
     end
   end
 
-  local last_xp = config:readSetting("last_xpointer")
-  local last_per = config:readSetting("last_percent")
+  local last_xp = config:read("last_xpointer")
+  local last_per = config:read("last_percent")
   if last_xp then
     self.xpointer = last_xp
     self.setupXpointer = function()
@@ -324,10 +324,10 @@ function ReaderRolling:onCloseDocument()
 
   self.current_header_height = nil -- show unload progress bar at top
   -- we cannot do it in onSaveSettings() because getLastPercent() uses self.ui.document
-  self.ui.doc_settings:saveSetting("percent_finished", self:getLastPercent())
+  self.ui.doc_settings:save("percent_finished", self:getLastPercent())
 
   local cache_file_path = self.ui.document:getCacheFilePath() -- nil if no cache file
-  self.ui.doc_settings:saveSetting("cache_file_path", cache_file_path)
+  self.ui.doc_settings:save("cache_file_path", cache_file_path)
   if self.ui.document:hasCacheFile() then
     -- also checks if DOM is coherent with styles; if not, invalidate the
     -- cache, so a new DOM is built on next opening
@@ -385,13 +385,13 @@ function ReaderRolling:onCheckDomStyleCoherence()
 end
 
 function ReaderRolling:onSaveSettings()
-  self.ui.doc_settings:delSetting("last_percent") -- deprecated
-  self.ui.doc_settings:saveSetting("last_xpointer", self.xpointer)
-  self.ui.doc_settings:saveSetting(
+  self.ui.doc_settings:del("last_percent") -- deprecated
+  self.ui.doc_settings:save("last_xpointer", self.xpointer)
+  self.ui.doc_settings:save(
     "hide_nonlinear_flows",
     self.hide_nonlinear_flows
   )
-  self.ui.doc_settings:saveSetting(
+  self.ui.doc_settings:save(
     "partial_rerendering",
     self.partial_rerendering
   )
@@ -513,7 +513,7 @@ function ReaderRolling:addToMainMenu(menu_items)
             self.hide_nonlinear_flows and _("enabled") or _("disabled")
           ),
           ok_callback = function()
-            G_reader_settings:saveSetting(
+            G_reader_settings:save(
               "hide_nonlinear_flows",
               self.hide_nonlinear_flows
             )
@@ -905,7 +905,7 @@ function ReaderRolling:onGotoXPointer(xp, marker_xp)
   -- (no real need for a menu item, the default is the finest)
   local marker_setting
   if G_reader_settings:has("followed_link_marker") then
-    marker_setting = G_reader_settings:readSetting("followed_link_marker")
+    marker_setting = G_reader_settings:read("followed_link_marker")
   else
     marker_setting = 1 -- default is: shown and removed after 1 second
   end
@@ -1060,7 +1060,7 @@ function ReaderRolling:onGotoViewRel(diff)
     local page_visible_height = self.ui.dimen.h - footer_height
     local pan_diff = diff * page_visible_height
     if self.view.page_overlap_enable then
-      local overlap_lines = G_reader_settings:readSetting("copt_overlap_lines")
+      local overlap_lines = G_reader_settings:read("copt_overlap_lines")
         or 1
       local overlap_h = Screen:scaleBySize(
         self.configurable.font_size
@@ -1488,7 +1488,7 @@ function ReaderRolling:updateBatteryState()
       local aux_batt_lvl = powerd:getAuxCapacity()
       -- If aux_battery not charging, but present -> don't show '[ + ]' in header
       -- but show the average (as both battery have the same maximum capacity).
-      if G_reader_settings:readSetting("cre_header_battery_percent") ~= 0 then
+      if G_reader_settings:read("cre_header_battery_percent") ~= 0 then
         -- if percentage is wanted, show the total capacity of reader plus power-cover
         state = main_batt_lvl + aux_batt_lvl
       else
@@ -1704,7 +1704,7 @@ function ReaderRolling:checkXPointersAndProposeDOMVersionUpgrade()
     logger.info("Upgrading book to latest DOM version:")
 
     -- Backup metadata.lua
-    local cur_dom_version = self.ui.doc_settings:readSetting("cre_dom_version")
+    local cur_dom_version = self.ui.doc_settings:read("cre_dom_version")
       or "unknown"
     if self.ui.doc_settings.filepath then
       local backup_filepath = self.ui.doc_settings.filepath
@@ -1736,7 +1736,7 @@ function ReaderRolling:checkXPointersAndProposeDOMVersionUpgrade()
       latest_dom_version =
         self.ui.document:getDomVersionWithNormalizedXPointers()
     end
-    self.ui.doc_settings:saveSetting("cre_dom_version", latest_dom_version)
+    self.ui.doc_settings:save("cre_dom_version", latest_dom_version)
     logger.info("  cre_dom_version updated to", latest_dom_version)
 
     -- Switch to default block rendering mode if this book has it set to "legacy",
@@ -1745,7 +1745,7 @@ function ReaderRolling:checkXPointersAndProposeDOMVersionUpgrade()
     local g_block_rendering_mode
     if G_reader_settings:has("copt_block_rendering_mode") then
       g_block_rendering_mode =
-        G_reader_settings:readSetting("copt_block_rendering_mode")
+        G_reader_settings:read("copt_block_rendering_mode")
     else
       -- nil means: use default
       g_block_rendering_mode = 3 -- default in ReaderTypeset:onReadSettings()

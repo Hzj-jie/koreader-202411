@@ -85,30 +85,30 @@ local default_cache_path = DataStorage:getDataDir()
 local default_fallback_path = DataStorage:getDataDir() .. "/"
 
 function CoverImage:init()
-  self.cover_image_path = G_reader_settings:readSetting("cover_image_path")
+  self.cover_image_path = G_reader_settings:read("cover_image_path")
     or Device:getDefaultCoverPath()
-  self.cover_image_format = G_reader_settings:readSetting("cover_image_format")
+  self.cover_image_format = G_reader_settings:read("cover_image_format")
     or "auto"
-  self.cover_image_quality = G_reader_settings:readSetting(
+  self.cover_image_quality = G_reader_settings:read(
     "cover_image_quality"
   ) or 75
   self.cover_image_grayscale = G_reader_settings:isTrue("cover_image_grayscale")
-  self.cover_image_stretch_limit = G_reader_settings:readSetting(
+  self.cover_image_stretch_limit = G_reader_settings:read(
     "cover_image_stretch_limit"
   ) or 8
-  self.cover_image_background = G_reader_settings:readSetting(
+  self.cover_image_background = G_reader_settings:read(
     "cover_image_background"
   ) or "black"
-  self.cover_image_fallback_path = G_reader_settings:readSetting(
+  self.cover_image_fallback_path = G_reader_settings:read(
     "cover_image_fallback_path"
   ) or default_fallback_path
-  self.cover_image_cache_path = G_reader_settings:readSetting(
+  self.cover_image_cache_path = G_reader_settings:read(
     "cover_image_cache_path"
   ) or default_cache_path
-  self.cover_image_cache_maxfiles = G_reader_settings:readSetting(
+  self.cover_image_cache_maxfiles = G_reader_settings:read(
     "cover_image_cache_maxfiles"
   ) or 36
-  self.cover_image_cache_maxsize = G_reader_settings:readSetting(
+  self.cover_image_cache_maxsize = G_reader_settings:read(
     "cover_image_cache_maxsize"
   ) or 5 -- MB
   self.cover_image_cache_prefix = "cover_"
@@ -484,7 +484,7 @@ function CoverImage:choosePathFile(
           migrate(self, self[key], dir_path)
         end
         self[key] = dir_path
-        G_reader_settings:saveSetting(key, dir_path)
+        G_reader_settings:save(key, dir_path)
         if touchmenu_instance then
           touchmenu_instance:updateItems()
         end
@@ -510,7 +510,7 @@ function CoverImage:choosePathFile(
                     migrate(self, self[key], file)
                   end
                   self[key] = file
-                  G_reader_settings:saveSetting(key, file)
+                  G_reader_settings:save(key, file)
                   if touchmenu_instance then
                     touchmenu_instance:updateItems()
                   end
@@ -527,7 +527,7 @@ function CoverImage:choosePathFile(
           migrate(self, self[key], dir_path)
         end
         self[key] = dir_path
-        G_reader_settings:saveSetting(key, dir_path)
+        G_reader_settings:save(key, dir_path)
         if touchmenu_instance then
           touchmenu_instance:updateItems()
         end
@@ -568,7 +568,7 @@ function CoverImage:sizeSpinner(
     ok_text = _("Set"),
     callback = function(spin)
       self[setting] = spin.value
-      G_reader_settings:saveSetting(setting, self[setting])
+      G_reader_settings:save(setting, self[setting])
       if callback then
         callback(self)
       end
@@ -773,7 +773,7 @@ function CoverImage:menuEntrySetPath(
                   migrate(self, self[key], default)
                 end
                 self[key] = default
-                G_reader_settings:saveSetting(key, default)
+                G_reader_settings:save(key, default)
                 if touchmenu_instance then
                   touchmenu_instance:updateItems()
                 end
@@ -797,9 +797,9 @@ function CoverImage:menuEntryFormat(title, format, grayscale)
       local old_cover_image_format = self.cover_image_format
       local old_cover_image_grayscale = self.cover_image_grayscale
       self.cover_image_format = format
-      G_reader_settings:saveSetting("cover_image_format", format)
+      G_reader_settings:save("cover_image_format", format)
       self.cover_image_grayscale = grayscale
-      G_reader_settings:saveSetting("cover_image_grayscale", grayscale)
+      G_reader_settings:save("cover_image_grayscale", grayscale)
       if
         self:coverEnabled()
         and (
@@ -822,7 +822,7 @@ function CoverImage:menuEntryBackground(color, color_translatable)
     callback = function()
       local old_background = self.cover_image_background
       self.cover_image_background = color
-      G_reader_settings:saveSetting(
+      G_reader_settings:save(
         "cover_image_background",
         self.cover_image_background
       )
@@ -888,7 +888,7 @@ function CoverImage:menuEntrySBF()
         callback = function()
           local old_background = self.cover_image_background
           self.cover_image_background = "none"
-          G_reader_settings:saveSetting(
+          G_reader_settings:save(
             "cover_image_background",
             self.cover_image_background
           )
@@ -913,7 +913,7 @@ function CoverImage:menuEntrySBF()
         callback = function()
           local old_cover_image_format = self.cover_image_format
           self.cover_image_format = "auto"
-          G_reader_settings:saveSetting(
+          G_reader_settings:save(
             "cover_image_format",
             self.cover_image_format
           )
@@ -976,7 +976,7 @@ function CoverImage:addToMainMenu(menu_items)
           if self.cover_image_path ~= "" then
             self.cover = not self.cover
             self.cover = self.cover and self:coverEnabled()
-            G_reader_settings:saveSetting("cover_image_enabled", self.cover)
+            G_reader_settings:save("cover_image_enabled", self.cover)
             if self:coverEnabled() then
               self:createCoverImage(self.ui.doc_settings)
             else
@@ -1030,7 +1030,7 @@ function CoverImage:addToMainMenu(menu_items)
         callback = function()
           self.fallback = not self.fallback
           self.fallback = self.fallback and self:fallbackEnabled()
-          G_reader_settings:saveSetting("cover_image_fallback", self.fallback)
+          G_reader_settings:save("cover_image_fallback", self.fallback)
           if not self:coverEnabled() then
             self:cleanUpImage()
           end

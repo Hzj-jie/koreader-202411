@@ -44,7 +44,7 @@ function BookShortcuts:onBookShortcut(path)
     local file
     if lfs.attributes(path, "mode") ~= "file" then
       if
-        G_reader_settings:readSetting("BookShortcuts_directory_action") == "FM"
+        G_reader_settings:read("BookShortcuts_directory_action") == "FM"
       then
         if self.ui.file_chooser then
           self.ui.file_chooser:changeToPath(path)
@@ -120,7 +120,7 @@ function BookShortcuts:getSubMenuItems()
         return T(
           _("Folder action: %1"),
           (
-            G_reader_settings:readSetting("BookShortcuts_directory_action")
+            G_reader_settings:read("BookShortcuts_directory_action")
             or "FM"
           )
                 == "FM"
@@ -133,12 +133,12 @@ function BookShortcuts:getSubMenuItems()
         {
           text = last_text,
           checked_func = function()
-            return G_reader_settings:readSetting(
+            return G_reader_settings:read(
               "BookShortcuts_directory_action"
             ) == "Last"
           end,
           callback = function()
-            G_reader_settings:saveSetting(
+            G_reader_settings:save(
               "BookShortcuts_directory_action",
               "Last"
             )
@@ -147,12 +147,12 @@ function BookShortcuts:getSubMenuItems()
         {
           text = FM_text,
           checked_func = function()
-            return G_reader_settings:readSetting(
+            return G_reader_settings:read(
               "BookShortcuts_directory_action"
             ) == "FM"
           end,
           callback = function()
-            G_reader_settings:saveSetting(
+            G_reader_settings:save(
               "BookShortcuts_directory_action",
               "FM"
             )
@@ -167,7 +167,7 @@ function BookShortcuts:getSubMenuItems()
         return G_reader_settings:isTrue("BookShortcuts_recursive_directory")
       end,
       enabled_func = function()
-        return G_reader_settings:readSetting("BookShortcuts_directory_action")
+        return G_reader_settings:read("BookShortcuts_directory_action")
           == "Last"
       end,
       callback = function()

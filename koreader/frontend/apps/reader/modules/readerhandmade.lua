@@ -31,65 +31,65 @@ function ReaderHandMade:onReadSettings(config)
   if #self.toc > 0 then
     local has_xpointers = self.toc[1].xpointer ~= nil
     if self.ui.rolling and not has_xpointers then
-      config:saveSetting("handmade_toc_paging", self.toc)
+      config:save("handmade_toc_paging", self.toc)
       self.toc = config:readTableRef("handmade_toc_rolling")
-      config:delSetting("handmade_toc_rolling")
+      config:del("handmade_toc_rolling")
     elseif self.ui.paging and has_xpointers then
-      config:saveSetting("handmade_toc_rolling", self.toc)
+      config:save("handmade_toc_rolling", self.toc)
       self.toc = config:readTableRef("handmade_toc_paging")
-      config:delSetting("handmade_toc_paging")
+      config:del("handmade_toc_paging")
     end
   else
     if self.ui.rolling and config:has("handmade_toc_rolling") then
-      self.toc = config:readSetting("handmade_toc_rolling")
-      config:delSetting("handmade_toc_rolling")
+      self.toc = config:read("handmade_toc_rolling")
+      config:del("handmade_toc_rolling")
     elseif self.ui.paging and config:has("handmade_toc_paging") then
-      self.toc = config:readSetting("handmade_toc_paging")
-      config:delSetting("handmade_toc_paging")
+      self.toc = config:read("handmade_toc_paging")
+      config:del("handmade_toc_paging")
     end
   end
   if #self.flow_points > 0 then
     local has_xpointers = self.flow_points[1].xpointer ~= nil
     if self.ui.rolling and not has_xpointers then
-      config:saveSetting("handmade_flow_points_paging", self.flow_points)
+      config:save("handmade_flow_points_paging", self.flow_points)
       self.flow_points = config:readTableRef("handmade_flow_points_rolling")
-      config:delSetting("handmade_flow_points_rolling")
+      config:del("handmade_flow_points_rolling")
     elseif self.ui.paging and has_xpointers then
-      config:saveSetting("handmade_flow_points_rolling", self.flow_points)
+      config:save("handmade_flow_points_rolling", self.flow_points)
       self.flow_points = config:readTableRef("handmade_flow_points_paging")
-      config:delSetting("handmade_flow_points_paging")
+      config:del("handmade_flow_points_paging")
     end
   else
     if self.ui.rolling and config:has("handmade_flow_points_rolling") then
-      self.flow_points = config:readSetting("handmade_flow_points_rolling")
-      config:delSetting("handmade_flow_points_rolling")
+      self.flow_points = config:read("handmade_flow_points_rolling")
+      config:del("handmade_flow_points_rolling")
     elseif self.ui.paging and config:has("handmade_flow_points_paging") then
-      self.flow_points = config:readSetting("handmade_flow_points_paging")
-      config:delSetting("handmade_flow_points_paging")
+      self.flow_points = config:read("handmade_flow_points_paging")
+      config:del("handmade_flow_points_paging")
     end
   end
 end
 
 function ReaderHandMade:onSaveSettings()
-  self.ui.doc_settings:saveSetting("handmade_toc_enabled", self.toc_enabled)
-  self.ui.doc_settings:saveSetting(
+  self.ui.doc_settings:save("handmade_toc_enabled", self.toc_enabled)
+  self.ui.doc_settings:save(
     "handmade_toc_edit_enabled",
     self.toc_edit_enabled
   )
   if #self.toc > 0 then
-    self.ui.doc_settings:saveSetting("handmade_toc", self.toc)
+    self.ui.doc_settings:save("handmade_toc", self.toc)
   else
-    self.ui.doc_settings:delSetting("handmade_toc")
+    self.ui.doc_settings:del("handmade_toc")
   end
-  self.ui.doc_settings:saveSetting("handmade_flows_enabled", self.flows_enabled)
-  self.ui.doc_settings:saveSetting(
+  self.ui.doc_settings:save("handmade_flows_enabled", self.flows_enabled)
+  self.ui.doc_settings:save(
     "handmade_flows_edit_enabled",
     self.flows_edit_enabled
   )
   if #self.flow_points > 0 then
-    self.ui.doc_settings:saveSetting("handmade_flow_points", self.flow_points)
+    self.ui.doc_settings:save("handmade_flow_points", self.flow_points)
   else
-    self.ui.doc_settings:delSetting("handmade_flow_points")
+    self.ui.doc_settings:del("handmade_flow_points")
   end
 end
 

@@ -13,7 +13,7 @@ local ExtAssoc = {
 }
 
 function ExtAssoc:commit()
-  G_reader_settings:saveSetting("file_ext_assoc", self.assoc):flush()
+  G_reader_settings:save("file_ext_assoc", self.assoc):flush()
   -- Translate the boolean map back to map of providers the OS backend can inquire further
   local t = {}
   for k, v in pairs(getSupportedExtensions()) do

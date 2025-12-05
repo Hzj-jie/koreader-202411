@@ -206,11 +206,11 @@ end
 
 function AutoSuspend:init()
   logger.dbg("AutoSuspend: init")
-  self.autoshutdown_timeout_seconds = G_reader_settings:readSetting(
+  self.autoshutdown_timeout_seconds = G_reader_settings:read(
     "autoshutdown_timeout_seconds",
     default_autoshutdown_timeout_seconds
   )
-  self.auto_suspend_timeout_seconds = G_reader_settings:readSetting(
+  self.auto_suspend_timeout_seconds = G_reader_settings:read(
     "auto_suspend_timeout_seconds",
     default_auto_suspend_timeout_seconds
   )
@@ -500,7 +500,7 @@ function AutoSuspend:pickTimeoutValue(
           * 60
         + (t.sec or 0)
       self[setting] = Math.clamp(self[setting], range[1], range[2])
-      G_reader_settings:saveSetting(setting, self[setting])
+      G_reader_settings:save(setting, self[setting])
       if is_standby then
         self:_unschedule_standby()
         self:toggleStandbyHandler(self:_enabledStandby())
@@ -546,7 +546,7 @@ function AutoSuspend:pickTimeoutValue(
     extra_text = _("Disable"),
     extra_callback = function(this)
       self[setting] = -1 -- disable with a negative time/number
-      G_reader_settings:saveSetting(setting, -1)
+      G_reader_settings:save(setting, -1)
       if is_standby then
         self:_unschedule_standby()
         self:toggleStandbyHandler(false)

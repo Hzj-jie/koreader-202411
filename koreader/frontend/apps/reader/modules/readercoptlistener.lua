@@ -27,20 +27,20 @@ function ReaderCoptListener:onReadSettings(config)
   -- ReaderView is the holder of the view_mode state
   self.view.view_mode = view_mode_name
 
-  self.title = G_reader_settings:readSetting("cre_header_title") or 1
-  self.author = G_reader_settings:readSetting("cre_header_author") or 1
-  self.clock = G_reader_settings:readSetting("cre_header_clock") or 1
-  self.page_number = G_reader_settings:readSetting("cre_header_page_number")
+  self.title = G_reader_settings:read("cre_header_title") or 1
+  self.author = G_reader_settings:read("cre_header_author") or 1
+  self.clock = G_reader_settings:read("cre_header_clock") or 1
+  self.page_number = G_reader_settings:read("cre_header_page_number")
     or 1
-  self.page_count = G_reader_settings:readSetting("cre_header_page_count") or 1
-  self.reading_percent = G_reader_settings:readSetting(
+  self.page_count = G_reader_settings:read("cre_header_page_count") or 1
+  self.reading_percent = G_reader_settings:read(
     "cre_header_reading_percent"
   ) or 0
-  self.battery = G_reader_settings:readSetting("cre_header_battery") or 1
-  self.battery_percent = G_reader_settings:readSetting(
+  self.battery = G_reader_settings:read("cre_header_battery") or 1
+  self.battery_percent = G_reader_settings:read(
     "cre_header_battery_percent"
   ) or 0
-  self.chapter_marks = G_reader_settings:readSetting("cre_header_chapter_marks")
+  self.chapter_marks = G_reader_settings:read("cre_header_chapter_marks")
     or 1
 
   self.document._document:setIntProperty("window.status.title", self.title)
@@ -102,7 +102,7 @@ end
 function ReaderCoptListener:onReaderReady()
   -- custom metadata support for alt status bar and cre synthetic cover
   for prop_key in pairs(self.document.prop_to_cre_prop) do
-    local orig_prop_value = self.ui.doc_settings:readSetting(prop_key)
+    local orig_prop_value = self.ui.doc_settings:read(prop_key)
     local custom_prop_key = prop_key == "title" and "display_title" or prop_key
     local custom_prop_value = self.ui.doc_props[custom_prop_key]
     if custom_prop_value ~= orig_prop_value then
@@ -310,7 +310,7 @@ end
 -- ReaderCoptListener.onSetViewMode, so we'll get the updated value
 function ReaderCoptListener:onResume()
   -- Don't repaint the header until OutOfScreenSaver if screensaver_delay is enabled...
-  local screensaver_delay = G_reader_settings:readSetting("screensaver_delay")
+  local screensaver_delay = G_reader_settings:read("screensaver_delay")
   if screensaver_delay and screensaver_delay ~= "disable" then
     self._delayed_screensaver = true
     return
@@ -353,7 +353,7 @@ end
 function ReaderCoptListener:setAndSave(setting, property, value, property_value)
   property_value = property_value or value
   self.document._document:setIntProperty(property, property_value)
-  G_reader_settings:saveSetting(setting, value)
+  G_reader_settings:save(setting, value)
   self:onUpdateHeader()
 end
 
@@ -555,13 +555,13 @@ function ReaderCoptListener:getAltStatusBarMenu()
         text_func = function()
           return T(
             _("Font size: %1"),
-            G_reader_settings:readSetting("cre_header_status_font_size")
+            G_reader_settings:read("cre_header_status_font_size")
               or CRE_HEADER_DEFAULT_SIZE
           )
         end,
         callback = function()
           local SpinWidget = require("ui/widget/spinwidget")
-          local start_size = G_reader_settings:readSetting(
+          local start_size = G_reader_settings:read(
             "cre_header_status_font_size"
           ) or CRE_HEADER_DEFAULT_SIZE
           local size_spinner = SpinWidget:new({

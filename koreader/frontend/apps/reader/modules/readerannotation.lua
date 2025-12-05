@@ -112,18 +112,18 @@ function ReaderAnnotation:onReadSettings(config)
     local annotations_type = has_annotations and type(annotations[1].page)
     if self.ui.rolling and annotations_type ~= "string" then -- incompatible format loaded, or empty
       if has_annotations then -- backup incompatible format if not empty
-        config:saveSetting("annotations_paging", annotations)
+        config:save("annotations_paging", annotations)
       end
       -- load compatible format
       annotations = config:readTableRef("annotations_rolling")
-      config:delSetting("annotations_rolling")
+      config:del("annotations_rolling")
       needs_sort = true
     elseif self.ui.paging and annotations_type ~= "number" then
       if has_annotations then
-        config:saveSetting("annotations_rolling", annotations)
+        config:save("annotations_rolling", annotations)
       end
       annotations = config:readTableRef("annotations_paging")
-      config:delSetting("annotations_paging")
+      config:del("annotations_paging")
       needs_sort = true
     end
     self.annotations = annotations
@@ -131,7 +131,7 @@ function ReaderAnnotation:onReadSettings(config)
       self.onPostReaderReady = function()
         self:updateAnnotations(needs_update, needs_sort)
       end
-      config:delSetting("annotations_externally_modified")
+      config:del("annotations_externally_modified")
     end
   else -- first run
     if self.ui.rolling then
@@ -180,58 +180,58 @@ function ReaderAnnotation:migrateToAnnotations(config)
   if self.ui.rolling then
     if bookmarks_type == "string" then -- compatible format loaded, check for incompatible old backup
       if config:has("bookmarks_paging") then -- save incompatible old backup
-        local bookmarks_paging = config:readSetting("bookmarks_paging")
-        local highlights_paging = config:readSetting("highlight_paging")
+        local bookmarks_paging = config:read("bookmarks_paging")
+        local highlights_paging = config:read("highlight_paging")
         local annotations = self:getAnnotationsFromBookmarksHighlights(
           bookmarks_paging,
           highlights_paging
         )
-        config:saveSetting("annotations_paging", annotations)
-        config:delSetting("bookmarks_paging")
-        config:delSetting("highlight_paging")
+        config:save("annotations_paging", annotations)
+        config:del("bookmarks_paging")
+        config:del("highlight_paging")
       end
     else -- incompatible format loaded, or empty
       if has_bookmarks then -- save incompatible format if not empty
         local annotations =
           self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
-        config:saveSetting("annotations_paging", annotations)
+        config:save("annotations_paging", annotations)
       end
       -- load compatible format
       bookmarks = config:readTableRef("bookmarks_rolling")
       highlights = config:readTableRef("highlight_rolling")
-      config:delSetting("bookmarks_rolling")
-      config:delSetting("highlight_rolling")
+      config:del("bookmarks_rolling")
+      config:del("highlight_rolling")
     end
   else -- self.ui.paging
     if bookmarks_type == "number" then
       if config:has("bookmarks_rolling") then
-        local bookmarks_rolling = config:readSetting("bookmarks_rolling")
-        local highlights_rolling = config:readSetting("highlight_rolling")
+        local bookmarks_rolling = config:read("bookmarks_rolling")
+        local highlights_rolling = config:read("highlight_rolling")
         local annotations = self:getAnnotationsFromBookmarksHighlights(
           bookmarks_rolling,
           highlights_rolling
         )
-        config:saveSetting("annotations_rolling", annotations)
-        config:delSetting("bookmarks_rolling")
-        config:delSetting("highlight_rolling")
+        config:save("annotations_rolling", annotations)
+        config:del("bookmarks_rolling")
+        config:del("highlight_rolling")
       end
     else
       if has_bookmarks then
         local annotations =
           self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
-        config:saveSetting("annotations_rolling", annotations)
+        config:save("annotations_rolling", annotations)
       end
       bookmarks = config:readTableRef("bookmarks_paging")
       highlights = config:readTableRef("highlight_paging")
-      config:delSetting("bookmarks_paging")
-      config:delSetting("highlight_paging")
+      config:del("bookmarks_paging")
+      config:del("highlight_paging")
     end
   end
 
   self.annotations =
     self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights, true)
   -- has("annotations") is meaningful to indicate the finish of migration.
-  config:saveSetting("annotations", self.annotations)
+  config:save("annotations", self.annotations)
 end
 
 function ReaderAnnotation:setNeedsUpdateFlag()

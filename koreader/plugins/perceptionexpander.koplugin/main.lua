@@ -46,13 +46,13 @@ end
 
 function PerceptionExpander:createUI(readSettings)
   if readSettings then
-    self.line_thickness = tonumber(self.settings:readSetting("line_thick"))
-    self.margin = tonumber(self.settings:readSetting("margin"))
+    self.line_thickness = tonumber(self.settings:read("line_thick"))
+    self.margin = tonumber(self.settings:read("margin"))
     self.line_color_intensity =
-      tonumber(self.settings:readSetting("line_color_intensity"))
+      tonumber(self.settings:read("line_color_intensity"))
     self.shift_each_pages =
-      tonumber(self.settings:readSetting("shift_each_pages"))
-    self.page_counter = tonumber(self.settings:readSetting("page_counter"))
+      tonumber(self.settings:read("shift_each_pages"))
+    self.page_counter = tonumber(self.settings:read("page_counter"))
   end
 
   self.screen_width = Screen:getWidth()
@@ -247,11 +247,11 @@ function PerceptionExpander:saveSettings(fields)
       or self.shift_each_pages
   end
 
-  self.settings:saveSetting("line_thick", self.line_thickness)
-  self.settings:saveSetting("margin", self.margin)
-  self.settings:saveSetting("line_color_intensity", self.line_color_intensity)
-  self.settings:saveSetting("shift_each_pages", self.shift_each_pages)
-  self.settings:saveSetting("is_enabled", self.is_enabled)
+  self.settings:save("line_thick", self.line_thickness)
+  self.settings:save("margin", self.margin)
+  self.settings:save("line_color_intensity", self.line_color_intensity)
+  self.settings:save("shift_each_pages", self.shift_each_pages)
+  self.settings:save("is_enabled", self.is_enabled)
   self.settings:flush()
 
   self:createUI()

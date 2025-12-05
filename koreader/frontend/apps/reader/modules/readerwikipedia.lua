@@ -96,7 +96,7 @@ function ReaderWikipedia:addToMainMenu(menu_items)
       return wikipedia_history:notEmpty()
     end,
     callback = function()
-      local wikipedia_history_table = wikipedia_history:readSetting()
+      local wikipedia_history_table = wikipedia_history:read()
       local kv_pairs = {}
       local previous_title
       self:initLanguages() -- so current lang is set
@@ -142,10 +142,10 @@ function ReaderWikipedia:addToMainMenu(menu_items)
     return {
       text = title,
       checked_func = function()
-        return (G_reader_settings:readSetting(setting) or default) == value
+        return (G_reader_settings:read(setting) or default) == value
       end,
       callback = function()
-        G_reader_settings:saveSetting(setting, value)
+        G_reader_settings:save(setting, value)
       end,
     }
   end
@@ -173,7 +173,7 @@ function ReaderWikipedia:addToMainMenu(menu_items)
               lang = lang:lower()
               table.insert(wiki_languages, lang)
             end
-            G_reader_settings:saveSetting("wikipedia_languages", wiki_languages)
+            G_reader_settings:save("wikipedia_languages", wiki_languages)
             -- re-init languages
             self.wiki_languages = {}
             self:initLanguages()
@@ -225,10 +225,10 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         callback = function()
           local title_header = _("Current Wikipedia 'Save as EPUB' folder:")
           local current_path =
-            G_reader_settings:readSetting("wikipedia_save_dir")
+            G_reader_settings:read("wikipedia_save_dir")
           local default_path = DictQuickLookup.getWikiSaveEpubDefaultDir()
           local caller_callback = function(path)
-            G_reader_settings:saveSetting("wikipedia_save_dir", path)
+            G_reader_settings:save("wikipedia_save_dir", path)
             if not util.pathExists(path) then
               lfs.mkdir(path)
             end
@@ -254,12 +254,12 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         text_func = function()
           local include_images = _("ask")
           if
-            G_reader_settings:readSetting("wikipedia_epub_include_images")
+            G_reader_settings:read("wikipedia_epub_include_images")
             == true
           then
             include_images = _("always")
           elseif
-            G_reader_settings:readSetting("wikipedia_epub_include_images")
+            G_reader_settings:read("wikipedia_epub_include_images")
             == false
           then
             include_images = _("never")
@@ -284,12 +284,12 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         text_func = function()
           local images_quality = _("ask")
           if
-            G_reader_settings:readSetting("wikipedia_epub_highres_images")
+            G_reader_settings:read("wikipedia_epub_highres_images")
             == true
           then
             images_quality = _("higher")
           elseif
-            G_reader_settings:readSetting("wikipedia_epub_highres_images")
+            G_reader_settings:read("wikipedia_epub_highres_images")
             == false
           then
             images_quality = _("standard")
@@ -297,7 +297,7 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
           return T(_("Images quality in EPUB: %1"), images_quality)
         end,
         enabled_func = function()
-          return G_reader_settings:readSetting("wikipedia_epub_include_images")
+          return G_reader_settings:read("wikipedia_epub_include_images")
             ~= false
         end,
         sub_item_table = {
@@ -322,7 +322,7 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         end,
         callback = function()
           self.disable_history = not self.disable_history
-          G_reader_settings:saveSetting(
+          G_reader_settings:save(
             "wikipedia_disable_history",
             self.disable_history
           )
@@ -379,7 +379,7 @@ function ReaderWikipedia:initLanguages(word)
   end
   -- Fill self.wiki_languages with languages to propose
   local wikipedia_languages =
-    G_reader_settings:readSetting("wikipedia_languages")
+    G_reader_settings:read("wikipedia_languages")
   if type(wikipedia_languages) == "table" and #wikipedia_languages > 0 then
     -- use this setting, no need to guess: we reference the setting table, so
     -- any update to it will have it saved in settings
@@ -405,7 +405,7 @@ function ReaderWikipedia:initLanguages(word)
     if self.view then
       addLanguage(self.ui.doc_props.language)
     end
-    addLanguage(G_reader_settings:readSetting("language"))
+    addLanguage(G_reader_settings:read("language"))
     if #self.wiki_languages == 0 and word then
       -- if no language at all, do a translation of selected word
       local ok_translator, lang

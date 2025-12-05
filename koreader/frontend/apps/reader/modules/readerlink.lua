@@ -38,7 +38,7 @@ local function is_wiki_page(link_url)
   local epub_filename = wiki_page .. "." .. string.upper(wiki_lang) .. ".epub"
   local epub_fullpath
   -- either in current book directory
-  local last_file = G_reader_settings:readSetting("lastfile")
+  local last_file = G_reader_settings:read("lastfile")
   if last_file then
     local current_book_dir = last_file:match("(.*)/")
     local safe_filename =
@@ -50,7 +50,7 @@ local function is_wiki_page(link_url)
   end
   -- or in wikipedia save directory
   if not epub_fullpath then
-    local dir = G_reader_settings:readSetting("wikipedia_save_dir")
+    local dir = G_reader_settings:read("wikipedia_save_dir")
       or G_named_settings.home_dir()
     assert(dir ~= nil)
     local safe_filename =
@@ -139,9 +139,9 @@ function ReaderLink:init()
     G_reader_settings:isTrue("tap_link_footnote_popup")
     or G_reader_settings:isTrue("swipe_link_footnote_popup")
   then
-    G_reader_settings:saveSetting("tap_link_footnote_popup", nil)
-    G_reader_settings:saveSetting("swipe_link_footnote_popup", nil)
-    G_reader_settings:saveSetting("footnote_link_in_popup", true)
+    G_reader_settings:save("tap_link_footnote_popup", nil)
+    G_reader_settings:save("swipe_link_footnote_popup", nil)
+    G_reader_settings:save("footnote_link_in_popup", true)
   end
 
   -- delegate gesture listener to readerui, NOP our own
@@ -302,7 +302,7 @@ function ReaderLink:registerKeyEvents()
         event = "GotoSelectedPageLink",
       },
       -- "Back" is handled by ReaderBack, which will call our onGoBackLink()
-      -- when G_reader_settings:readSetting("back_in_reader") == "previous_location"
+      -- when G_reader_settings:read("back_in_reader") == "previous_location"
     }
   end
 end
@@ -401,7 +401,7 @@ function ReaderLink:addToMainMenu(menu_items)
         text = _("Tap to follow links"),
         checked_func = isTapToFollowLinksOn,
         callback = function()
-          G_reader_settings:saveSetting(
+          G_reader_settings:save(
             "tap_to_follow_links",
             not isTapToFollowLinksOn()
           )
@@ -413,7 +413,7 @@ function ReaderLink:addToMainMenu(menu_items)
         enabled_func = isTapToFollowLinksOn,
         checked_func = isTapIgnoreExternalLinksEnabled,
         callback = function()
-          G_reader_settings:saveSetting(
+          G_reader_settings:save(
             "tap_ignore_external_links",
             not isTapIgnoreExternalLinksEnabled()
           )
@@ -429,7 +429,7 @@ You can still follow them from the dictionary window or the selection menu after
         text = _("Swipe to go back"),
         checked_func = isSwipeToGoBackEnabled,
         callback = function()
-          G_reader_settings:saveSetting(
+          G_reader_settings:save(
             "swipe_to_go_back",
             not isSwipeToGoBackEnabled()
           )
@@ -442,7 +442,7 @@ You can still follow them from the dictionary window or the selection menu after
         text = _("Swipe to follow nearest link"),
         checked_func = isSwipeToFollowNearestLinkEnabled,
         callback = function()
-          G_reader_settings:saveSetting(
+          G_reader_settings:save(
             "swipe_to_follow_nearest_link",
             not isSwipeToFollowNearestLinkEnabled()
           )
@@ -456,7 +456,7 @@ You can still follow them from the dictionary window or the selection menu after
         enabled_func = isSwipeToFollowNearestLinkEnabled,
         checked_func = isSwipeIgnoreExternalLinksEnabled,
         callback = function()
-          G_reader_settings:saveSetting(
+          G_reader_settings:save(
             "swipe_ignore_external_links",
             not isSwipeIgnoreExternalLinksEnabled()
           )
@@ -472,7 +472,7 @@ You can still follow external links from the dictionary window or the selection 
         text = _("Swipe to jump to latest bookmark"),
         checked_func = isSwipeToJumpToLatestBookmarkEnabled,
         callback = function()
-          G_reader_settings:saveSetting(
+          G_reader_settings:save(
             "swipe_to_jump_to_latest_bookmark",
             not isSwipeToJumpToLatestBookmarkEnabled()
           )
@@ -498,7 +498,7 @@ If any of the other Swipe to follow link options is enabled, this will work only
       enabled_func = isTapToFollowLinksOn,
       checked_func = isLargerTapAreaToFollowLinksEnabled,
       callback = function()
-        G_reader_settings:saveSetting(
+        G_reader_settings:save(
           "larger_tap_area_to_follow_links",
           not isLargerTapAreaToFollowLinksEnabled()
         )
@@ -514,7 +514,7 @@ If any of the other Swipe to follow link options is enabled, this will work only
       end,
       checked_func = isFootnoteLinkInPopupEnabled,
       callback = function()
-        G_reader_settings:saveSetting(
+        G_reader_settings:save(
           "footnote_link_in_popup",
           not isFootnoteLinkInPopupEnabled()
         )
@@ -543,7 +543,7 @@ From the footnote popup, you can jump to the footnote location in the book by sw
       end,
       checked_func = isPreferFootnoteEnabled,
       callback = function()
-        G_reader_settings:saveSetting(
+        G_reader_settings:save(
           "link_prefer_footnote",
           not isPreferFootnoteEnabled()
         )
@@ -584,7 +584,7 @@ From the footnote popup, you can jump to the footnote location in the book by sw
           if show_absolute_font_size_widget then
             spin_widget = SpinWidget:new({
               width = math.floor(Screen:getWidth() * 0.75),
-              value = G_reader_settings:readSetting(
+              value = G_reader_settings:read(
                 "footnote_popup_absolute_font_size"
               )
                 or Screen:scaleBySize(self.document.configurable.font_size),
@@ -598,10 +598,10 @@ From the footnote popup, you can jump to the footnote location in the book by sw
 The footnote popup font can adjust to the font size you've set for the document, but you can specify here a fixed absolute font size to be used instead.]]
               ),
               callback = function(spin)
-                G_reader_settings:delSetting(
+                G_reader_settings:del(
                   "footnote_popup_relative_font_size"
                 )
-                G_reader_settings:saveSetting(
+                G_reader_settings:save(
                   "footnote_popup_absolute_font_size",
                   spin.value
                 )
@@ -616,7 +616,7 @@ The footnote popup font can adjust to the font size you've set for the document,
           else
             spin_widget = SpinWidget:new({
               width = math.floor(Screen:getWidth() * 0.75),
-              value = G_reader_settings:readSetting(
+              value = G_reader_settings:read(
                 "footnote_popup_relative_font_size"
               ) or -2,
               value_min = -10,
@@ -630,10 +630,10 @@ You can specify here how much smaller or larger it should be relative to the doc
 A negative value will make it smaller, while a positive one will make it larger.
 The recommended value is -2.]]),
               callback = function(spin)
-                G_reader_settings:delSetting(
+                G_reader_settings:del(
                   "footnote_popup_absolute_font_size"
                 )
-                G_reader_settings:saveSetting(
+                G_reader_settings:save(
                   "footnote_popup_relative_font_size",
                   spin.value
                 )
@@ -756,7 +756,7 @@ function ReaderLink:showLinkBox(link, allow_footnote_popup)
     if sbox then
       UIManager:show(LinkBox:new({
         box = sbox,
-        timeout = G_defaults:readSetting("FOLLOW_LINK_TIMEOUT"),
+        timeout = G_defaults:read("FOLLOW_LINK_TIMEOUT"),
         callback = function()
           self:onGotoLink(link.link, false, allow_footnote_popup)
         end,

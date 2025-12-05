@@ -17,7 +17,7 @@ if G_reader_settings == nil then
     DataStorage:getDataDir() .. "/settings.reader.lua"
   )
 end
-local lang_locale = G_reader_settings:readSetting("language")
+local lang_locale = G_reader_settings:read("language")
 if lang_locale then
   _.changeLang(lang_locale)
 end
@@ -97,7 +97,7 @@ end
 
 function TouchProbe:saveSwitchXYSetting(need_to_switch_xy)
   -- save the settings here so device.input can pick it up
-  G_reader_settings:saveSetting("kobo_touch_switch_xy", need_to_switch_xy)
+  G_reader_settings:save("kobo_touch_switch_xy", need_to_switch_xy)
   G_reader_settings:flush()
   UIManager:quit()
 end

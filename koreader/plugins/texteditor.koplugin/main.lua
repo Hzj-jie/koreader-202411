@@ -78,10 +78,10 @@ function TextEditor:loadSettings()
   -- NOTE: addToHistory assigns a new object
   self.history = self.settings:readTableRef("history")
   self.last_view_pos = self.settings:readTableRef("last_view_pos")
-  self.last_path = self.settings:readSetting("last_path")
+  self.last_path = self.settings:read("last_path")
     or ffiutil.realpath(DataStorage:getDataDir())
-  self.font_face = self.settings:readSetting("font_face") or self.normal_font
-  self.font_size = self.settings:readSetting("font_size")
+  self.font_face = self.settings:read("font_face") or self.normal_font
+  self.font_size = self.settings:read("font_size")
     or self.default_font_size
   -- The font settings could be saved in G_reader_setting if we want them
   -- to be re-used by default by InputDialog (on certain conditaions,
@@ -90,10 +90,10 @@ function TextEditor:loadSettings()
   -- Allow users to set their preferred font manually in text_editor.lua
   -- (sadly, not via TextEditor itself, as they would be overridden on close)
   if self.settings:has("normal_font") then
-    self.normal_font = self.settings:readSetting("normal_font")
+    self.normal_font = self.settings:read("normal_font")
   end
   if self.settings:has("monospace_font") then
-    self.monospace_font = self.settings:readSetting("monospace_font")
+    self.monospace_font = self.settings:read("monospace_font")
   end
   self.auto_para_direction = self.settings:nilOrTrue("auto_para_direction")
   self.force_ltr_para_direction =
@@ -105,18 +105,18 @@ end
 
 function TextEditor:onFlushSettings()
   if self.settings then
-    self.settings:saveSetting("history", self.history)
-    self.settings:saveSetting("last_view_pos", self.last_view_pos)
-    self.settings:saveSetting("last_path", self.last_path)
-    self.settings:saveSetting("font_face", self.font_face)
-    self.settings:saveSetting("font_size", self.font_size)
-    self.settings:saveSetting("auto_para_direction", self.auto_para_direction)
-    self.settings:saveSetting(
+    self.settings:save("history", self.history)
+    self.settings:save("last_view_pos", self.last_view_pos)
+    self.settings:save("last_path", self.last_path)
+    self.settings:save("font_face", self.font_face)
+    self.settings:save("font_size", self.font_size)
+    self.settings:save("auto_para_direction", self.auto_para_direction)
+    self.settings:save(
       "force_ltr_para_direction",
       self.force_ltr_para_direction
     )
-    self.settings:saveSetting("qr_code_export", self.qr_code_export)
-    self.settings:saveSetting(
+    self.settings:save("qr_code_export", self.qr_code_export)
+    self.settings:save(
       "show_keyboard_on_start",
       self.show_keyboard_on_start
     )

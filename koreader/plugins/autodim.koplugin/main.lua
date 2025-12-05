@@ -41,7 +41,7 @@ local AutoDim = WidgetContainer:extend({
 })
 
 function AutoDim:init()
-  self.autodim_starttime_m = G_reader_settings:readSetting(
+  self.autodim_starttime_m = G_reader_settings:read(
     "autodim_starttime_minutes"
   ) or -1
 
@@ -100,14 +100,14 @@ function AutoDim:addToMainMenu(menu_items)
             return
           end
           self.autodim_starttime_m = spin.value
-          G_reader_settings:saveSetting("autodim_starttime_minutes", spin.value)
+          G_reader_settings:save("autodim_starttime_minutes", spin.value)
           self:_scheduleAutoDimTask()
           menu:updateItems()
         end,
         extra_text = _("Disable"),
         extra_callback = function()
           self.autodim_starttime_m = -1
-          G_reader_settings:saveSetting("autodim_starttime_minutes", -1)
+          G_reader_settings:save("autodim_starttime_minutes", -1)
           self:_scheduleAutoDimTask()
           menu:updateItems()
         end,

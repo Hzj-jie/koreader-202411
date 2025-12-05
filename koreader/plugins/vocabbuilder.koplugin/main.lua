@@ -64,7 +64,7 @@ local settings = G_reader_settings:readTableRef(
 )
 
 local function saveSettings()
-  G_reader_settings:saveSetting("vocabulary_builder", settings)
+  G_reader_settings:save("vocabulary_builder", settings)
 end
 
 --[[--

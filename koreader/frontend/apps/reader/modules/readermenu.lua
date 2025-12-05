@@ -99,8 +99,8 @@ function ReaderMenu:initGesListener()
     return
   end
 
-  local DTAP_ZONE_MENU = G_defaults:readSetting("DTAP_ZONE_MENU")
-  local DTAP_ZONE_MENU_EXT = G_defaults:readSetting("DTAP_ZONE_MENU_EXT")
+  local DTAP_ZONE_MENU = G_defaults:read("DTAP_ZONE_MENU")
+  local DTAP_ZONE_MENU_EXT = G_defaults:read("DTAP_ZONE_MENU_EXT")
   self.ui:registerTouchZones({
     {
       id = "readermenu_tap",
@@ -287,7 +287,7 @@ function ReaderMenu:setUpdateItemTable()
       enabled_func = function()
         if self.ui and self.ui.document then
           local screensaverType =
-            G_reader_settings:readSetting("screensaver_type")
+            G_reader_settings:read("screensaver_type")
           return screensaverType == "cover" or screensaverType == "disable"
         else
           return false
@@ -383,9 +383,9 @@ end)
 function ReaderMenu:saveDocumentSettingsAsDefault()
   local prefix
   if self.ui.rolling then
-    G_reader_settings:saveSetting("cre_font", self.ui.font.font_face)
-    G_reader_settings:saveSetting("copt_css", self.ui.document.default_css)
-    G_reader_settings:saveSetting(
+    G_reader_settings:save("cre_font", self.ui.font.font_face)
+    G_reader_settings:save("copt_css", self.ui.document.default_css)
+    G_reader_settings:save(
       "style_tweaks",
       self.ui.styletweak.global_tweaks
     )
@@ -394,7 +394,7 @@ function ReaderMenu:saveDocumentSettingsAsDefault()
     prefix = "kopt_"
   end
   for k, v in pairs(self.ui.document.configurable) do
-    G_reader_settings:saveSetting(prefix .. k, v)
+    G_reader_settings:save(prefix .. k, v)
   end
 end
 
@@ -525,11 +525,11 @@ function ReaderMenu:closeMenu()
 end
 
 function ReaderMenu:onReadSettings(config)
-  self.last_tab_index = config:readSetting("readermenu_tab_index") or 1
+  self.last_tab_index = config:read("readermenu_tab_index") or 1
 end
 
 function ReaderMenu:onSaveSettings()
-  self.ui.doc_settings:saveSetting("readermenu_tab_index", self.last_tab_index)
+  self.ui.doc_settings:save("readermenu_tab_index", self.last_tab_index)
 end
 
 function ReaderMenu:onMenuSearch()

@@ -77,7 +77,7 @@ local genMenuItems = function(self)
       end,
       callback = function()
         settings.show_candi = not settings.show_candi
-        G_reader_settings:saveSetting(SETTING_NAME, settings)
+        G_reader_settings:save(SETTING_NAME, settings)
       end,
     },
   }

@@ -107,7 +107,7 @@ function DocSettingTweak:onDocSettingsLoad(doc_settings, document)
       if directory_defaults:has(directory) then
         local summary = doc_settings.data.summary -- keep status
         doc_settings.data =
-          util.tableDeepCopy(directory_defaults:readSetting(directory))
+          util.tableDeepCopy(directory_defaults:read(directory))
         doc_settings.data.doc_path = document.file
         doc_settings.data.summary = doc_settings.data.summary or summary
         break

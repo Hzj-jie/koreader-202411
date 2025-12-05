@@ -178,7 +178,7 @@ function ReaderCropping:onReadSettings(config)
 end
 
 function ReaderCropping:onSaveSettings()
-  self.ui.doc_settings:saveSetting("bbox", self.document.bbox, {})
+  self.ui.doc_settings:save("bbox", self.document.bbox, {})
 end
 
 return ReaderCropping

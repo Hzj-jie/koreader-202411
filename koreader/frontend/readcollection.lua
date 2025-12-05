@@ -47,7 +47,7 @@ function ReadCollection:_read()
   end
   local collections = LuaSettings:open(collection_file)
   if collections:hasNot(self.default_collection_name) then
-    collections:saveSetting(self.default_collection_name, {})
+    collections:save(self.default_collection_name, {})
   end
   logger.dbg("ReadCollection: reading from collection file")
   self.coll = {}
@@ -72,7 +72,7 @@ function ReadCollection:write(collection_name)
   local collections = LuaSettings:open(collection_file)
   for coll_name in pairs(collections.data) do
     if not self.coll[coll_name] then
-      collections:delSetting(coll_name)
+      collections:del(coll_name)
     end
   end
   for coll_name, coll in pairs(self.coll) do
@@ -81,7 +81,7 @@ function ReadCollection:write(collection_name)
       for _, item in pairs(coll) do
         table.insert(data, { file = item.file, order = item.order })
       end
-      collections:saveSetting(coll_name, data)
+      collections:save(coll_name, data)
     end
   end
   logger.dbg("ReadCollection: writing to collection file")

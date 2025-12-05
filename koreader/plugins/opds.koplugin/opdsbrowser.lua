@@ -723,7 +723,7 @@ function OPDSBrowser:showDownloads(item)
           :new({
             onConfirm = function(path)
               logger.dbg("Download folder set to", path)
-              G_reader_settings:saveSetting("download_dir", path)
+              G_reader_settings:save("download_dir", path)
               self.download_dialog:setTitle(createTitle(path, filename))
             end,
           })
@@ -808,7 +808,7 @@ end
 
 -- Returns user selected or last opened folder
 function OPDSBrowser.getCurrentDownloadDir()
-  return G_reader_settings:readSetting("download_dir")
+  return G_reader_settings:read("download_dir")
     or G_named_settings.lastdir()
 end
 

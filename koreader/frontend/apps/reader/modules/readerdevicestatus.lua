@@ -22,16 +22,16 @@ function ReaderDeviceStatus:init()
   end
 
   if Device:hasBattery() then
-    self.battery_threshold = G_reader_settings:readSetting(
+    self.battery_threshold = G_reader_settings:read(
       "device_status_battery_threshold"
     ) or 20
-    self.battery_threshold_high = G_reader_settings:readSetting(
+    self.battery_threshold_high = G_reader_settings:read(
       "device_status_battery_threshold_high"
     ) or 95
   end
 
   if not Device:isAndroid() then
-    self.memory_threshold = G_reader_settings:readSetting(
+    self.memory_threshold = G_reader_settings:read(
       "device_status_memory_threshold"
     ) or 100
   end
@@ -248,12 +248,12 @@ High level threshold is checked when the device is charging.]]),
             self.battery_threshold = left_value
             self.battery_threshold_high = right_value
             assert(self.battery_threshold < self.battery_threshold_high)
-            G_reader_settings:saveSetting(
+            G_reader_settings:save(
               "device_status_battery_threshold",
               self.battery_threshold,
               20
             )
-            G_reader_settings:saveSetting(
+            G_reader_settings:save(
               "device_status_battery_threshold_high",
               self.battery_threshold_high,
               95
@@ -296,7 +296,7 @@ High level threshold is checked when the device is charging.]]),
           title_text = _("Memory alert threshold"),
           callback = function(spin)
             self.memory_threshold = spin.value
-            G_reader_settings:saveSetting(
+            G_reader_settings:save(
               "device_status_memory_threshold",
               self.memory_threshold
             )

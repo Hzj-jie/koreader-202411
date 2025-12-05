@@ -31,7 +31,7 @@ function ReaderPageMap:init()
   self.container = nil
   self.max_left_label_width = 0
   self.max_right_label_width = 0
-  self.label_font_size = G_reader_settings:readSetting(
+  self.label_font_size = G_reader_settings:read(
     "pagemap_label_font_size"
   ) or self.label_default_font_size
   self.use_textbox_widget = nil
@@ -223,9 +223,9 @@ function ReaderPageMap:onShowPageList()
   end
 
   -- We use the per-page and font-size settings set for the ToC
-  local items_per_page = G_reader_settings:readSetting("toc_items_per_page")
+  local items_per_page = G_reader_settings:read("toc_items_per_page")
     or 14
-  local items_font_size = G_reader_settings:readSetting("toc_items_font_size")
+  local items_font_size = G_reader_settings:read("toc_items_font_size")
     or Menu.getItemFontSize(items_per_page)
   local items_with_dots = G_reader_settings:nilOrTrue("toc_items_with_dots")
 
@@ -366,7 +366,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
         end,
         callback = function()
           self.use_page_labels = not self.use_page_labels
-          self.ui.doc_settings:saveSetting(
+          self.ui.doc_settings:save(
             "pagemap_use_page_labels",
             self.use_page_labels
           )
@@ -415,7 +415,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
         end,
         callback = function()
           self.show_page_labels = not self.show_page_labels
-          self.ui.doc_settings:saveSetting(
+          self.ui.doc_settings:save(
             "pagemap_show_page_labels",
             self.show_page_labels
           )
@@ -473,7 +473,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
             keep_shown_on_apply = true,
             callback = function(spin)
               self.label_font_size = spin.value
-              G_reader_settings:saveSetting(
+              G_reader_settings:save(
                 "pagemap_label_font_size",
                 self.label_font_size
               )

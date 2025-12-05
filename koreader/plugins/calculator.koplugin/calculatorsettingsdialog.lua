@@ -143,7 +143,7 @@ function CalculatorSettingsDialog:init()
             else
               Parser:eval(Parser:parse("setrad()"))
             end
-            G_reader_settings:saveSetting(
+            G_reader_settings:save(
               "calculator_angle_mode",
               new_angle_mode
             )
@@ -154,7 +154,7 @@ function CalculatorSettingsDialog:init()
             self.radio_button_table_format.checked_button.provider
           if new_format ~= self.parent.number_format then
             self.parent.number_format = new_format
-            G_reader_settings:saveSetting(
+            G_reader_settings:save(
               "calculator_number_format",
               new_format
             )
@@ -165,7 +165,7 @@ function CalculatorSettingsDialog:init()
             self.radio_button_table_significant.checked_button.provider
           if new_significant ~= self.parent.significant_places then
             self.parent.significant_places = new_significant
-            G_reader_settings:saveSetting(
+            G_reader_settings:save(
               "calculator_significant_places",
               new_significant
             )
@@ -176,7 +176,7 @@ function CalculatorSettingsDialog:init()
             self.radio_button_table_init.checked_button.provider
           if new_init_file ~= self.parent.use_init_file then
             self.parent.use_init_file = new_init_file
-            G_reader_settings:saveSetting(
+            G_reader_settings:save(
               "calculator_use_init_file",
               new_init_file
             )
@@ -374,7 +374,7 @@ function CalculatorSettingsDialog:choosePathFile(
           migrate(self, self[key], dir_path)
         end
         self[key] = dir_path
-        G_reader_settings:saveSetting(key, dir_path)
+        G_reader_settings:save(key, dir_path)
         if touchmenu_instance then
           touchmenu_instance:updateItems()
         end
@@ -399,7 +399,7 @@ function CalculatorSettingsDialog:choosePathFile(
                     migrate(self, self[key], file)
                   end
                   self[key] = file
-                  G_reader_settings:saveSetting(key, file)
+                  G_reader_settings:save(key, file)
                   if touchmenu_instance then
                     touchmenu_instance:updateItems()
                   end
@@ -416,7 +416,7 @@ function CalculatorSettingsDialog:choosePathFile(
           migrate(self, self[key], dir_path)
         end
         self[key] = dir_path
-        G_reader_settings:saveSetting(key, dir_path)
+        G_reader_settings:save(key, dir_path)
         if touchmenu_instance then
           touchmenu_instance:updateItems()
         end

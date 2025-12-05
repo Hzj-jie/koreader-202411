@@ -99,7 +99,7 @@ local Terminal = WidgetContainer:extend({
   history = "",
   is_shell_open = false,
   buffer_size = 1024
-    * (G_reader_settings:readSetting("terminal_buffer_size") or 16), -- size in kB
+    * (G_reader_settings:read("terminal_buffer_size") or 16), -- size in kB
   refresh_time = 0.2,
   terminal_data = ".",
 })
@@ -211,7 +211,7 @@ function Terminal:spawnShell(cols, rows)
   end
   local profile_file = "./plugins/terminal.koplugin/profile"
   local rlw = get_readline_wrapper()
-  local shell = G_reader_settings:readSetting("terminal_shell")
+  local shell = G_reader_settings:read("terminal_shell")
     or self:getDefaultShellExecutable()
   local args = {}
   if shell:find("bash") then
@@ -545,7 +545,7 @@ function Terminal:onTerminalStart(touchmenu_instance)
 
   self.input_face = Font:getFace(
     "smallinfont",
-    G_reader_settings:readSetting("terminal_font_size") or 14
+    G_reader_settings:read("terminal_font_size") or 14
   )
   self.ctrl = false
   self.input_dialog = self:generateInputDialog()
@@ -632,11 +632,11 @@ Aliases (shortcuts) to frequently used commands can be placed in:
         text_func = function()
           return T(
             _("Font size: %1"),
-            G_reader_settings:readSetting("terminal_font_size") or 14
+            G_reader_settings:read("terminal_font_size") or 14
           )
         end,
         callback = function(touchmenu_instance)
-          local cur_size = G_reader_settings:readSetting("terminal_font_size")
+          local cur_size = G_reader_settings:read("terminal_font_size")
             or 14
           local size_spin = SpinWidget:new({
             value = cur_size,
@@ -646,7 +646,7 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             default_value = 14,
             title_text = _("Terminal emulator font size"),
             callback = function(spin)
-              G_reader_settings:saveSetting("terminal_font_size", spin.value)
+              G_reader_settings:save("terminal_font_size", spin.value)
               if touchmenu_instance then
                 touchmenu_instance:updateItems()
               end
@@ -660,12 +660,12 @@ Aliases (shortcuts) to frequently used commands can be placed in:
         text_func = function()
           return T(
             _("Buffer size: %1 kB"),
-            G_reader_settings:readSetting("terminal_buffer_size") or 16
+            G_reader_settings:read("terminal_buffer_size") or 16
           )
         end,
         callback = function(touchmenu_instance)
           local cur_buffer =
-            G_reader_settings:readSetting("terminal_buffer_size")
+            G_reader_settings:read("terminal_buffer_size")
           local buffer_spin = SpinWidget:new({
             value = cur_buffer,
             value_min = 10,
@@ -675,7 +675,7 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             unit = C_("Data storage size", "kB"),
             title_text = _("Terminal emulator buffer size (kB)"),
             callback = function(spin)
-              G_reader_settings:saveSetting("terminal_buffer_size", spin.value)
+              G_reader_settings:save("terminal_buffer_size", spin.value)
               if touchmenu_instance then
                 touchmenu_instance:updateItems()
               end
@@ -689,7 +689,7 @@ Aliases (shortcuts) to frequently used commands can be placed in:
         text_func = function()
           return T(
             _("Shell executable: %1"),
-            G_reader_settings:readSetting("terminal_shell")
+            G_reader_settings:read("terminal_shell")
               or self:getDefaultShellExecutable()
           )
         end,
@@ -700,7 +700,7 @@ Aliases (shortcuts) to frequently used commands can be placed in:
               _("Here you can select the startup shell.\nDefault: %1"),
               self:getDefaultShellExecutable()
             ),
-            input = G_reader_settings:readSetting("terminal_shell")
+            input = G_reader_settings:read("terminal_shell")
               or self:getDefaultShellExecutable(),
             buttons = {
               {
@@ -713,7 +713,7 @@ Aliases (shortcuts) to frequently used commands can be placed in:
                 {
                   text = _("Default"),
                   callback = function()
-                    G_reader_settings:saveSetting(
+                    G_reader_settings:save(
                       "terminal_shell",
                       self:getDefaultShellExecutable()
                     )
@@ -732,7 +732,7 @@ Aliases (shortcuts) to frequently used commands can be placed in:
                       new_shell = "sh"
                     end
                     if self:isExecutable(new_shell) then
-                      G_reader_settings:saveSetting("terminal_shell", new_shell)
+                      G_reader_settings:save("terminal_shell", new_shell)
                       UIManager:close(self.shell_dialog)
                       if touchmenu_instance then
                         touchmenu_instance:updateItems()

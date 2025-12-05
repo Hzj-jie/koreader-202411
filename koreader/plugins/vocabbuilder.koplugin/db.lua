@@ -179,7 +179,7 @@ function VocabularyBuilder:insertLookupData(db_conn)
     return
   end
 
-  local lookup_history_table = lookup_history:readSetting()
+  local lookup_history_table = lookup_history:read()
   local book_titles = {}
   local stmt = db_conn:prepare("INSERT INTO title (name) values (?);")
   for i = #lookup_history_table, 1, -1 do
