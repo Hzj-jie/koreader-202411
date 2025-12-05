@@ -100,10 +100,8 @@ function AutoTurn:_start()
 end
 
 function AutoTurn:init()
-  self.autoturn_sec = G_reader_settings:read("autoturn_timeout_seconds")
-    or 0
-  self.autoturn_distance = G_reader_settings:read("autoturn_distance")
-    or 1
+  self.autoturn_sec = G_reader_settings:read("autoturn_timeout_seconds") or 0
+  self.autoturn_distance = G_reader_settings:read("autoturn_distance") or 1
   self.enabled = G_reader_settings:isTrue("autoturn_enabled")
   self.ui.menu:registerToMainMenu(self)
   self.task = function()
@@ -179,10 +177,7 @@ function AutoTurn:addToMainMenu(menu_items)
         ok_always_enabled = true,
         callback = function(t)
           self.autoturn_sec = t.min * 60 + t.sec
-          G_reader_settings:save(
-            "autoturn_timeout_seconds",
-            self.autoturn_sec
-          )
+          G_reader_settings:save("autoturn_timeout_seconds", self.autoturn_sec)
           self.enabled = true
           G_reader_settings:makeTrue("autoturn_enabled")
           self:_unschedule()
@@ -207,10 +202,7 @@ function AutoTurn:addToMainMenu(menu_items)
         title_text = _("Scrolling distance"),
         callback = function(autoturn_spin)
           self.autoturn_distance = autoturn_spin.value
-          G_reader_settings:save(
-            "autoturn_distance",
-            autoturn_spin.value
-          )
+          G_reader_settings:save("autoturn_distance", autoturn_spin.value)
           if self.enabled then
             self:_unschedule()
             self:_start()

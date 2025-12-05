@@ -143,10 +143,7 @@ function CalculatorSettingsDialog:init()
             else
               Parser:eval(Parser:parse("setrad()"))
             end
-            G_reader_settings:save(
-              "calculator_angle_mode",
-              new_angle_mode
-            )
+            G_reader_settings:save("calculator_angle_mode", new_angle_mode)
             self.parent.status_line = self.parent:getStatusLine()
           end
 
@@ -154,10 +151,7 @@ function CalculatorSettingsDialog:init()
             self.radio_button_table_format.checked_button.provider
           if new_format ~= self.parent.number_format then
             self.parent.number_format = new_format
-            G_reader_settings:save(
-              "calculator_number_format",
-              new_format
-            )
+            G_reader_settings:save("calculator_number_format", new_format)
             self.parent.status_line = self.parent:getStatusLine()
           end
 
@@ -176,10 +170,7 @@ function CalculatorSettingsDialog:init()
             self.radio_button_table_init.checked_button.provider
           if new_init_file ~= self.parent.use_init_file then
             self.parent.use_init_file = new_init_file
-            G_reader_settings:save(
-              "calculator_use_init_file",
-              new_init_file
-            )
+            G_reader_settings:save("calculator_use_init_file", new_init_file)
           end
 
           UIManager:close(self.parent.input_dialog)

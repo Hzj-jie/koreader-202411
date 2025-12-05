@@ -55,8 +55,7 @@ function ReaderStatus:onEndOfBook()
 
   local collate = G_reader_settings:read("collate")
   local next_file_enabled = collate ~= "access" and collate ~= "date"
-  local settings = G_reader_settings:read("end_document_action")
-    or "pop-up"
+  local settings = G_reader_settings:read("end_document_action") or "pop-up"
   local top_widget = UIManager:getTopmostVisibleWidget() or {}
   if settings == "pop-up" and top_widget.name ~= "end_document" then
     local button_dialog

@@ -424,8 +424,7 @@ shown yet or if display is forced through a higher version number than when
 it was first shown.
 ]]
 function QuickStart:isShown()
-  local shown_version =
-    G_reader_settings:read("quickstart_shown_version")
+  local shown_version = G_reader_settings:read("quickstart_shown_version")
   return shown_version ~= nil
     and (shown_version >= self.quickstart_force_show_version)
 end

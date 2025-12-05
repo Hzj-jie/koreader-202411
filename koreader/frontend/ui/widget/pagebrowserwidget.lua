@@ -1234,10 +1234,7 @@ function PageBrowserWidget:saveSettings(reset)
       self.nb_toc_spans
     )
   else
-    self.ui.doc_settings:save(
-      "page_browser_toc_depth",
-      self.nb_toc_spans
-    )
+    self.ui.doc_settings:save("page_browser_toc_depth", self.nb_toc_spans)
   end
   self.ui.doc_settings:save("page_browser_nb_rows", self.nb_rows)
   self.ui.doc_settings:save("page_browser_nb_cols", self.nb_cols)

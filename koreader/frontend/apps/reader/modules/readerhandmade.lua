@@ -72,10 +72,7 @@ end
 
 function ReaderHandMade:onSaveSettings()
   self.ui.doc_settings:save("handmade_toc_enabled", self.toc_enabled)
-  self.ui.doc_settings:save(
-    "handmade_toc_edit_enabled",
-    self.toc_edit_enabled
-  )
+  self.ui.doc_settings:save("handmade_toc_edit_enabled", self.toc_edit_enabled)
   if #self.toc > 0 then
     self.ui.doc_settings:save("handmade_toc", self.toc)
   else

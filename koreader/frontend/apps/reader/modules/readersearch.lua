@@ -247,10 +247,7 @@ function ReaderSearch:searchCallback(reverse, text)
   if search_text == nil or search_text == "" then
     return
   end
-  self.ui.doc_settings:save(
-    "fulltext_search_last_search_text",
-    search_text
-  )
+  self.ui.doc_settings:save("fulltext_search_last_search_text", search_text)
   self.last_search_text = search_text
 
   local regex_error

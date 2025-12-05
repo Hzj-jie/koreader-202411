@@ -53,16 +53,12 @@ function ReaderBookmark:init()
       and items_font_size ~= Menu.getItemFontSize(items_per_page)
     then
       -- Keep the user items font size if it's not the default for items_per_page
-      G_reader_settings:save(
-        "bookmarks_items_font_size",
-        items_font_size
-      )
+      G_reader_settings:save("bookmarks_items_font_size", items_font_size)
     end
   end
   self.items_text = G_reader_settings:read("bookmarks_items_text_type")
     or "note"
-  self.items_max_lines =
-    G_reader_settings:read("bookmarks_items_max_lines")
+  self.items_max_lines = G_reader_settings:read("bookmarks_items_max_lines")
 
   self.ui.menu:registerToMainMenu(self)
   -- NOP our own gesture handling
@@ -140,10 +136,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
             default_value = default_value,
             ok_always_enabled = true,
             callback = function(spin)
-              G_reader_settings:save(
-                "bookmarks_items_max_lines",
-                spin.value
-              )
+              G_reader_settings:save("bookmarks_items_max_lines", spin.value)
               self.items_max_lines = spin.value
               touchmenu_instance:updateItems()
             end,
@@ -177,10 +170,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
             value_max = 24,
             default_value = Menu.items_per_page_default,
             callback = function(spin)
-              G_reader_settings:save(
-                "bookmarks_items_per_page",
-                spin.value
-              )
+              G_reader_settings:save("bookmarks_items_per_page", spin.value)
               touchmenu_instance:updateItems()
             end,
           })
@@ -212,10 +202,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
             value_max = 72,
             default_value = default_font_size,
             callback = function(spin)
-              G_reader_settings:save(
-                "bookmarks_items_font_size",
-                spin.value
-              )
+              G_reader_settings:save("bookmarks_items_font_size", spin.value)
               touchmenu_instance:updateItems()
             end,
           })
@@ -736,11 +723,9 @@ function ReaderBookmark:onShowBookmark()
     table.sort(item_table, sort_func)
   end
 
-  local items_per_page =
-    G_reader_settings:read("bookmarks_items_per_page")
-  local items_font_size = G_reader_settings:read(
-    "bookmarks_items_font_size"
-  ) or Menu.getItemFontSize(items_per_page)
+  local items_per_page = G_reader_settings:read("bookmarks_items_per_page")
+  local items_font_size = G_reader_settings:read("bookmarks_items_font_size")
+    or Menu.getItemFontSize(items_per_page)
   local multilines_show_more_text =
     G_reader_settings:isTrue("bookmarks_items_multilines_show_more_text")
   local show_separator =

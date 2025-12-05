@@ -733,10 +733,7 @@ These settings will apply to all books with any hyphenation dictionary.
             left_hyphen_min, right_hyphen_min = nil, nil -- don't store default values
           end
           G_reader_settings:save("hyph_left_hyphen_min", left_hyphen_min)
-          G_reader_settings:save(
-            "hyph_right_hyphen_min",
-            right_hyphen_min
-          )
+          G_reader_settings:save("hyph_right_hyphen_min", right_hyphen_min)
           self.ui.document:setHyphLeftHyphenMin(
             G_reader_settings:read("hyph_left_hyphen_min") or 0
           )
@@ -1288,10 +1285,7 @@ function ReaderTypography:onSaveSettings()
     "hyph_force_algorithmic",
     self.hyph_force_algorithmic
   )
-  self.ui.doc_settings:save(
-    "floating_punctuation",
-    self.floating_punctuation
-  )
+  self.ui.doc_settings:save("floating_punctuation", self.floating_punctuation)
 end
 
 return ReaderTypography

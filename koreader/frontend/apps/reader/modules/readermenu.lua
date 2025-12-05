@@ -286,8 +286,7 @@ function ReaderMenu:setUpdateItemTable()
       text = _("Do not show this book cover on sleep screen"),
       enabled_func = function()
         if self.ui and self.ui.document then
-          local screensaverType =
-            G_reader_settings:read("screensaver_type")
+          local screensaverType = G_reader_settings:read("screensaver_type")
           return screensaverType == "cover" or screensaverType == "disable"
         else
           return false
@@ -385,10 +384,7 @@ function ReaderMenu:saveDocumentSettingsAsDefault()
   if self.ui.rolling then
     G_reader_settings:save("cre_font", self.ui.font.font_face)
     G_reader_settings:save("copt_css", self.ui.document.default_css)
-    G_reader_settings:save(
-      "style_tweaks",
-      self.ui.styletweak.global_tweaks
-    )
+    G_reader_settings:save("style_tweaks", self.ui.styletweak.global_tweaks)
     prefix = "copt_"
   else
     prefix = "kopt_"

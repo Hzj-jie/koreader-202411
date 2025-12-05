@@ -64,9 +64,7 @@ function AutoStandby:addToMainMenu(menu_items)
           return self:isAllowedByConfig()
         end,
         callback = function()
-          self.settings
-            :save("forbidden", self:isAllowedByConfig())
-            :flush()
+          self.settings:save("forbidden", self:isAllowedByConfig()):flush()
         end,
       },
       self:genSpinMenuItem(_("Min input idle seconds"), "min", function()

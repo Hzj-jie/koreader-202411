@@ -220,14 +220,8 @@ function CoverBrowser:addToMainMenu(menu_items)
                 fc.nb_cols_portrait ~= nb_cols
                 or fc.nb_rows_portrait ~= nb_rows
               then
-                BookInfoManager:save(
-                  "nb_cols_portrait",
-                  fc.nb_cols_portrait
-                )
-                BookInfoManager:save(
-                  "nb_rows_portrait",
-                  fc.nb_rows_portrait
-                )
+                BookInfoManager:save("nb_cols_portrait", fc.nb_cols_portrait)
+                BookInfoManager:save("nb_rows_portrait", fc.nb_rows_portrait)
                 FileChooser.nb_cols_portrait = fc.nb_cols_portrait
                 FileChooser.nb_rows_portrait = fc.nb_rows_portrait
                 if fc.display_mode_type == "mosaic" and fc.portrait_mode then
@@ -281,14 +275,8 @@ function CoverBrowser:addToMainMenu(menu_items)
                 fc.nb_cols_landscape ~= nb_cols
                 or fc.nb_rows_landscape ~= nb_rows
               then
-                BookInfoManager:save(
-                  "nb_cols_landscape",
-                  fc.nb_cols_landscape
-                )
-                BookInfoManager:save(
-                  "nb_rows_landscape",
-                  fc.nb_rows_landscape
-                )
+                BookInfoManager:save("nb_cols_landscape", fc.nb_cols_landscape)
+                BookInfoManager:save("nb_rows_landscape", fc.nb_rows_landscape)
                 FileChooser.nb_cols_landscape = fc.nb_cols_landscape
                 FileChooser.nb_rows_landscape = fc.nb_rows_landscape
                 if

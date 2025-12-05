@@ -276,8 +276,7 @@ function ReaderZooming:onReadSettings(config)
   -- Import legacy zoom_factor settings
   if config:has("zoom_factor") and config:hasNot("kopt_zoom_factor") then
     config:save("kopt_zoom_factor", config:read("zoom_factor"))
-    self.document.configurable.zoom_factor =
-      config:read("kopt_zoom_factor")
+    self.document.configurable.zoom_factor = config:read("kopt_zoom_factor")
     config:del("zoom_factor")
   elseif config:has("zoom_factor") and config:has("kopt_zoom_factor") then
     config:del("zoom_factor")
@@ -309,10 +308,7 @@ function ReaderZooming:onReadSettings(config)
 end
 
 function ReaderZooming:onSaveSettings()
-  self.ui.doc_settings:save(
-    "zoom_mode",
-    self.orig_zoom_mode or self.zoom_mode
-  )
+  self.ui.doc_settings:save("zoom_mode", self.orig_zoom_mode or self.zoom_mode)
 end
 
 function ReaderZooming:onSpread(arg, ges)
@@ -796,10 +792,7 @@ function ReaderZooming:onZoomFactorChange()
 end
 
 function ReaderZooming:onSetZoomPan(settings, no_redraw)
-  self.ui.doc_settings:save(
-    "kopt_zoom_factor",
-    settings.kopt_zoom_factor
-  )
+  self.ui.doc_settings:save("kopt_zoom_factor", settings.kopt_zoom_factor)
   self.ui.doc_settings:save("zoom_mode", settings.zoom_mode)
   for k, v in pairs(settings) do
     self[k] = v

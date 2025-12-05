@@ -22,10 +22,8 @@ function CervantesPowerD:frontlightWarmthHW()
 end
 
 function CervantesPowerD:_syncLightOnStart()
-  local new_intensity = G_reader_settings:read("frontlight_intensity")
-    or nil
-  local is_frontlight_on = G_reader_settings:read("is_frontlight_on")
-    or nil
+  local new_intensity = G_reader_settings:read("frontlight_intensity") or nil
+  local is_frontlight_on = G_reader_settings:read("is_frontlight_on") or nil
 
   if new_intensity ~= nil then
     self.hw_intensity = new_intensity

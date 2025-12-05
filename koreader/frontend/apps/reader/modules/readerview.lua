@@ -94,8 +94,7 @@ function ReaderView:init()
     bbox = nil,
   }
   self.highlight = {
-    lighten_factor = G_reader_settings:read("highlight_lighten_factor")
-      or 0.2,
+    lighten_factor = G_reader_settings:read("highlight_lighten_factor") or 0.2,
     note_mark = G_reader_settings:read("highlight_note_marker"),
     temp_drawer = "invert",
     temp = {},
@@ -1015,9 +1014,7 @@ end
 
 function ReaderView:onReadSettings(config)
   if self.ui.paging then
-    self.document:setTileCacheValidity(
-      config:read("tile_cache_validity_ts")
-    )
+    self.document:setTileCacheValidity(config:read("tile_cache_validity_ts"))
     self.render_mode = config:read("render_mode")
       or G_defaults:read("DRENDER_MODE")
     self.document.render_mode = self.render_mode
@@ -1249,18 +1246,9 @@ function ReaderView:onSaveSettings()
   if G_reader_settings:nilOrFalse("lock_rotation") then
     self.document.configurable.rotation_mode = Screen:getRotationMode() -- will be saved by ReaderConfig
   end
-  self.ui.doc_settings:save(
-    "inverse_reading_order",
-    self.inverse_reading_order
-  )
-  self.ui.doc_settings:save(
-    "show_overlap_enable",
-    self.page_overlap_enable
-  )
-  self.ui.doc_settings:save(
-    "page_overlap_style",
-    self.page_overlap_style
-  )
+  self.ui.doc_settings:save("inverse_reading_order", self.inverse_reading_order)
+  self.ui.doc_settings:save("show_overlap_enable", self.page_overlap_enable)
+  self.ui.doc_settings:save("page_overlap_style", self.page_overlap_style)
 end
 
 function ReaderView:getRenderModeMenuTable()

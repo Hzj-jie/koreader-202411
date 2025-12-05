@@ -193,17 +193,11 @@ function ReaderRolling:onReadSettings(config)
     if config:has("last_xpointer") then
       -- We have a last_xpointer: this book was previously opened
       -- with possibly a very old version: request the oldest
-      config:save(
-        "cre_dom_version",
-        self.ui.document:getOldestDomVersion()
-      )
+      config:save("cre_dom_version", self.ui.document:getOldestDomVersion())
     else
       -- No previous xpointer: book never opened (or sidecar file
       -- purged): we can use the latest DOM version
-      config:save(
-        "cre_dom_version",
-        self.ui.document:getLatestDomVersion()
-      )
+      config:save("cre_dom_version", self.ui.document:getLatestDomVersion())
     end
   end
   self.ui.document:requestDomVersion(config:read("cre_dom_version"))
@@ -387,14 +381,8 @@ end
 function ReaderRolling:onSaveSettings()
   self.ui.doc_settings:del("last_percent") -- deprecated
   self.ui.doc_settings:save("last_xpointer", self.xpointer)
-  self.ui.doc_settings:save(
-    "hide_nonlinear_flows",
-    self.hide_nonlinear_flows
-  )
-  self.ui.doc_settings:save(
-    "partial_rerendering",
-    self.partial_rerendering
-  )
+  self.ui.doc_settings:save("hide_nonlinear_flows", self.hide_nonlinear_flows)
+  self.ui.doc_settings:save("partial_rerendering", self.partial_rerendering)
 end
 
 function ReaderRolling:onReaderReady()
@@ -1060,8 +1048,7 @@ function ReaderRolling:onGotoViewRel(diff)
     local page_visible_height = self.ui.dimen.h - footer_height
     local pan_diff = diff * page_visible_height
     if self.view.page_overlap_enable then
-      local overlap_lines = G_reader_settings:read("copt_overlap_lines")
-        or 1
+      local overlap_lines = G_reader_settings:read("copt_overlap_lines") or 1
       local overlap_h = Screen:scaleBySize(
         self.configurable.font_size
           * 1.1

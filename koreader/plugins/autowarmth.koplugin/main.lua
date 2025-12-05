@@ -63,11 +63,9 @@ function AutoWarmth:init()
 
   self.easy_mode = G_reader_settings:nilOrTrue("autowarmth_easy_mode")
   self.activate = G_reader_settings:read("autowarmth_activate") or 0
-  self.location = G_reader_settings:read("autowarmth_location")
-    or "Geysir"
+  self.location = G_reader_settings:read("autowarmth_location") or "Geysir"
   self.latitude = G_reader_settings:read("autowarmth_latitude") or 64.31 --great Geysir in Iceland
-  self.longitude = G_reader_settings:read("autowarmth_longitude")
-    or -20.30
+  self.longitude = G_reader_settings:read("autowarmth_longitude") or -20.30
   self.altitude = G_reader_settings:read("autowarmth_altitude") or 200
   self.timezone = G_reader_settings:read("autowarmth_timezone") or 0
   self.scheduler_times = G_reader_settings:readTableRef(
@@ -934,10 +932,7 @@ function AutoWarmth:getLocationMenu()
                 text = _("OK"),
                 callback = function()
                   self.location = location_name_dialog:getInputText()
-                  G_reader_settings:save(
-                    "autowarmth_location",
-                    self.location
-                  )
+                  G_reader_settings:save("autowarmth_location", self.location)
                   UIManager:close(location_name_dialog)
                   if touchmenu_instance then
                     self:updateItems(touchmenu_instance)
@@ -982,10 +977,7 @@ function AutoWarmth:getLocationMenu()
             self.longitude = long
             self.timezone = SunTime:getTimezoneOffset() -- use timezone of device
             G_reader_settings:save("autowarmth_latitude", self.latitude)
-            G_reader_settings:save(
-              "autowarmth_longitude",
-              self.longitude
-            )
+            G_reader_settings:save("autowarmth_longitude", self.longitude)
             G_reader_settings:save("autowarmth_timezone", self.timezone)
             self:scheduleMidnightUpdate()
             if touchmenu_instance then
@@ -1040,10 +1032,7 @@ end
 function AutoWarmth:getScheduleMenu()
   local function store_times(touchmenu_instance, new_time, num)
     self.scheduler_times[num] = new_time
-    G_reader_settings:save(
-      "autowarmth_scheduler_times",
-      self.scheduler_times
-    )
+    G_reader_settings:save("autowarmth_scheduler_times", self.scheduler_times)
     self:scheduleMidnightUpdate()
     if touchmenu_instance then
       self:updateItems(touchmenu_instance)

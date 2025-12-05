@@ -202,10 +202,7 @@ local sub_item_table = {
               callback = function()
                 local font_size = tonumber(input_dialog:getInputText())
                 if font_size and font_size >= 16 and font_size <= 30 then
-                  G_reader_settings:save(
-                    "keyboard_key_font_size",
-                    font_size
-                  )
+                  G_reader_settings:save("keyboard_key_font_size", font_size)
                   G_reader_settings:save(
                     "keyboard_key_bold",
                     check_button_bold.checked

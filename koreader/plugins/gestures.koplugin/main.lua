@@ -613,8 +613,7 @@ The interval value is in milliseconds and can range from 0 (0 seconds) to 2000 (
             ),
             width = math.floor(Screen:getWidth() * 0.75),
             value = time.to_ms(
-              G_reader_settings:read("ges_tap_interval_on_keyboard_ms")
-                or 0
+              G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0
             ),
             value_min = 0,
             value_max = 2000,
@@ -655,10 +654,7 @@ The interval value is in milliseconds and can range from 100 (0.1 seconds) to 20
             ok_text = _("Set interval"),
             default_value = GestureDetector.DOUBLE_TAP_INTERVAL_MS,
             callback = function(spin)
-              G_reader_settings:save(
-                "ges_double_tap_interval_ms",
-                spin.value
-              )
+              G_reader_settings:save("ges_double_tap_interval_ms", spin.value)
               GestureDetector.ges_double_tap_interval = time.ms(spin.value)
             end,
           })
@@ -905,8 +901,7 @@ function Gestures:setupGesture(ges)
     ratio_w = dswipe_zone_left_edge.w,
     ratio_h = dswipe_zone_left_edge.h,
   }
-  local dswipe_zone_right_edge =
-    G_defaults:read("DSWIPE_ZONE_RIGHT_EDGE")
+  local dswipe_zone_right_edge = G_defaults:read("DSWIPE_ZONE_RIGHT_EDGE")
   local zone_right_edge = {
     ratio_x = dswipe_zone_right_edge.x,
     ratio_y = dswipe_zone_right_edge.y,
@@ -920,8 +915,7 @@ function Gestures:setupGesture(ges)
     ratio_w = dswipe_zone_top_edge.w,
     ratio_h = dswipe_zone_top_edge.h,
   }
-  local dswipe_zone_bottom_edge =
-    G_defaults:read("DSWIPE_ZONE_BOTTOM_EDGE")
+  local dswipe_zone_bottom_edge = G_defaults:read("DSWIPE_ZONE_BOTTOM_EDGE")
   local zone_bottom_edge = {
     ratio_x = dswipe_zone_bottom_edge.x,
     ratio_y = dswipe_zone_bottom_edge.y,
@@ -950,8 +944,7 @@ function Gestures:setupGesture(ges)
     ratio_w = dtap_zone_bottom_left.w,
     ratio_h = dtap_zone_bottom_left.h,
   }
-  local dtap_zone_bottom_right =
-    G_defaults:read("DTAP_ZONE_BOTTOM_RIGHT")
+  local dtap_zone_bottom_right = G_defaults:read("DTAP_ZONE_BOTTOM_RIGHT")
   local zone_bottom_right_corner = {
     ratio_x = dtap_zone_bottom_right.x,
     ratio_y = dtap_zone_bottom_right.y,

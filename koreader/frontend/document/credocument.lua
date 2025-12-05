@@ -341,22 +341,16 @@ function CreDocument:setupDefaultView()
   if G_reader_settings:has("cre_header_status_font_size") then
     self._document:setIntProperty(
       "crengine.page.header.font.size",
-      CreUtil.font_size(
-        G_reader_settings:read("cre_header_status_font_size")
-      )
+      CreUtil.font_size(G_reader_settings:read("cre_header_status_font_size"))
     )
   end
 
   -- One can set these to change from white background
   if G_reader_settings:has("cre_background_color") then
-    self:setBackgroundColor(
-      G_reader_settings:read("cre_background_color")
-    )
+    self:setBackgroundColor(G_reader_settings:read("cre_background_color"))
   end
   if G_reader_settings:has("cre_background_image") then
-    self:setBackgroundImage(
-      G_reader_settings:read("cre_background_image")
-    )
+    self:setBackgroundImage(G_reader_settings:read("cre_background_image"))
   end
 end
 

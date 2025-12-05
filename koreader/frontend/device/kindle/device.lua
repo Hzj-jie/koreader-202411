@@ -879,8 +879,7 @@ function Kindle:ambientBrightnessLevel()
   if type(value) ~= "number" then
     return 0
   end
-  value = value
-    * (G_defaults:read("KINDLE_AMBIENT_BRIGHTNESS_MULTIPLIER") or 1)
+  value = value * (G_defaults:read("KINDLE_AMBIENT_BRIGHTNESS_MULTIPLIER") or 1)
   if value < 10 then
     return 0
   end

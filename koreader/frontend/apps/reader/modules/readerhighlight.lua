@@ -533,10 +533,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
       self:showHighlightColorDialog(apply_color)
     end,
     hold_callback = function(touchmenu_instance) -- set color for new highlights in new books
-      G_reader_settings:save(
-        "highlight_color",
-        self.view.highlight.saved_color
-      )
+      G_reader_settings:save("highlight_color", self.view.highlight.saved_color)
       touchmenu_instance:updateItems()
     end,
   })
@@ -604,10 +601,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
             G_reader_settings:del("highlight_note_marker")
           else
             self.view.highlight.note_mark = radio.provider
-            G_reader_settings:save(
-              "highlight_note_marker",
-              radio.provider
-            )
+            G_reader_settings:save("highlight_note_marker", radio.provider)
           end
           self.view:setupNoteMarkPosition()
           UIManager:setDirty(self.ui, "ui")
@@ -839,9 +833,8 @@ If you wish your highlights to be saved in the document, just move it to a writa
     table.insert(menu_items.long_press.sub_item_table, {
       text = v[1],
       checked_func = function()
-        return (
-          G_reader_settings:read("default_highlight_action") or "ask"
-        ) == v[2]
+        return (G_reader_settings:read("default_highlight_action") or "ask")
+          == v[2]
       end,
       radio = true,
       callback = function()
@@ -855,9 +848,8 @@ If you wish your highlights to be saved in the document, just move it to a writa
     table.insert(sub_item_table, {
       text = v[1],
       checked_func = function()
-        return (
-          G_reader_settings:read("highlight_dialog_position") or "center"
-        ) == v[2]
+        return (G_reader_settings:read("highlight_dialog_position") or "center")
+          == v[2]
       end,
       callback = function()
         G_reader_settings:save("highlight_dialog_position", v[2])
@@ -866,9 +858,8 @@ If you wish your highlights to be saved in the document, just move it to a writa
   end
   table.insert(menu_items.long_press.sub_item_table, {
     text_func = function()
-      local position = G_reader_settings:read(
-        "highlight_dialog_position"
-      ) or "center"
+      local position = G_reader_settings:read("highlight_dialog_position")
+        or "center"
       for __, v in ipairs(highlight_dialog_position) do
         if v[2] == position then
           return T(_("Highlight dialog position: %1"), v[1]:lower())
@@ -894,9 +885,8 @@ If you wish your highlights to be saved in the document, just move it to a writa
             "If a long-press is not released in this interval, it is considered a very-long-press. On document text, single word selection will not be triggered."
           ),
           width = math.floor(self.screen_w * 0.75),
-          value = G_reader_settings:read(
-            "highlight_long_hold_threshold_s"
-          ) or 3,
+          value = G_reader_settings:read("highlight_long_hold_threshold_s")
+            or 3,
           value_min = 2.5,
           value_max = 20,
           value_step = 0.1,
@@ -958,9 +948,8 @@ Except when in two columns mode, where this is limited to showing only the previ
         )
       end,
       callback = function(touchmenu_instance)
-        local curr_val = G_reader_settings:read(
-          "highlight_non_touch_factor"
-        ) or 4
+        local curr_val = G_reader_settings:read("highlight_non_touch_factor")
+          or 4
         local spin_widget = SpinWidget:new({
           value = curr_val,
           value_min = 0.25,
@@ -973,10 +962,7 @@ Except when in two columns mode, where this is limited to showing only the previ
             "Select a decimal value from 0.25 to 5. A smaller value results in a larger travel distance per keystroke. Font size and this value are inversely correlated, meaning a smaller font size requires a larger value and vice versa."
           ),
           callback = function(spin)
-            G_reader_settings:save(
-              "highlight_non_touch_factor",
-              spin.value
-            )
+            G_reader_settings:save("highlight_non_touch_factor", spin.value)
             if touchmenu_instance then
               touchmenu_instance:updateItems()
             end
@@ -1016,9 +1002,8 @@ Except when in two columns mode, where this is limited to showing only the previ
           and G_reader_settings:nilOrTrue("highlight_non_touch_spedup")
       end,
       callback = function(touchmenu_instance)
-        local curr_val = G_reader_settings:read(
-          "highlight_non_touch_interval"
-        ) or 1
+        local curr_val = G_reader_settings:read("highlight_non_touch_interval")
+          or 1
         local spin_widget = SpinWidget:new({
           value = curr_val,
           value_min = 0.1,
@@ -1031,10 +1016,7 @@ Except when in two columns mode, where this is limited to showing only the previ
             "Select a decimal value up to 1 second. This is the period of time within which multiple keystrokes will speed-up rate of travel."
           ),
           callback = function(spin)
-            G_reader_settings:save(
-              "highlight_non_touch_interval",
-              spin.value
-            )
+            G_reader_settings:save("highlight_non_touch_interval", spin.value)
             if touchmenu_instance then
               touchmenu_instance:updateItems()
             end
@@ -1093,10 +1075,7 @@ function ReaderHighlight:genPanelZoomMenu()
           "panel_zoom_fallback_to_text_selection"
         )
         curr[ext] = self.panel_zoom_fallback_to_text_selection
-        G_reader_settings:save(
-          "panel_zoom_fallback_to_text_selection",
-          curr
-        )
+        G_reader_settings:save("panel_zoom_fallback_to_text_selection", curr)
       end,
       separator = true,
     },
@@ -1721,9 +1700,7 @@ function ReaderHighlight:_resetHoldTimer(clear)
       -- no need to handle long-hold.
       if
         G_reader_settings:isTrue("highlight_action_on_single_word")
-        and (
-            G_reader_settings:read("default_highlight_action") or "ask"
-          )
+        and (G_reader_settings:read("default_highlight_action") or "ask")
           == "ask"
       then
         handle_long_hold = false
@@ -2344,9 +2321,8 @@ function ReaderHighlight:onSetHighlightAction(action_num, no_notification)
 end
 
 function ReaderHighlight:onCycleHighlightAction()
-  local current_action = G_reader_settings:read(
-    "default_highlight_action"
-  ) or "ask"
+  local current_action = G_reader_settings:read("default_highlight_action")
+    or "ask"
   local next_action_num
   for i, v in ipairs(long_press_action) do
     if v[2] == current_action then
@@ -2858,10 +2834,7 @@ function ReaderHighlight:onReadSettings(config)
     end
     local ext = util.getFileNameSuffix(self.ui.document.file)
     if G_reader_settings:hasNot("panel_zoom_enabled") then
-      G_reader_settings:save(
-        "panel_zoom_enabled",
-        { cbz = true, cbt = true }
-      )
+      G_reader_settings:save("panel_zoom_enabled", { cbz = true, cbt = true })
     end
     if G_reader_settings:hasNot("panel_zoom_fallback_to_text_selection") then
       G_reader_settings:save(
@@ -2896,18 +2869,12 @@ function ReaderHighlight:onSaveSettings()
     "highlight_drawer",
     self.view.highlight.saved_drawer
   )
-  self.ui.doc_settings:save(
-    "highlight_color",
-    self.view.highlight.saved_color
-  )
+  self.ui.doc_settings:save("highlight_color", self.view.highlight.saved_color)
   self.ui.doc_settings:save(
     "highlight_write_into_pdf",
     self.highlight_write_into_pdf
   )
-  self.ui.doc_settings:save(
-    "panel_zoom_enabled",
-    self.panel_zoom_enabled
-  )
+  self.ui.doc_settings:save("panel_zoom_enabled", self.panel_zoom_enabled)
 end
 
 function ReaderHighlight:onExit()
@@ -3026,9 +2993,8 @@ function ReaderHighlight:onMoveHighlightIndicator(args)
         -- quadruple press: 64 single distances, almost move to screen edge
         if G_reader_settings:nilOrTrue("highlight_non_touch_spedup") then
           -- user selects whether to use 'constant' or [this] 'sped up' rate (speed-up on by default)
-          local t_inter = G_reader_settings:read(
-            "highlight_non_touch_interval"
-          ) or 1
+          local t_inter = G_reader_settings:read("highlight_non_touch_interval")
+            or 1
           if diff < time.s(t_inter) then
             move_distance = self._last_indicator_move_args.distance * 4
           end

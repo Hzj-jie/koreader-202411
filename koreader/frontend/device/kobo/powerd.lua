@@ -27,8 +27,7 @@ function KoboPowerD:_syncKoboLightOnStart()
   local new_intensity = nil
   local is_frontlight_on = nil
   local new_warmth = nil
-  local kobo_light_on_start =
-    tonumber(G_defaults:read("KOBO_LIGHT_ON_START"))
+  local kobo_light_on_start = tonumber(G_defaults:read("KOBO_LIGHT_ON_START"))
 
   if kobo_light_on_start then
     if kobo_light_on_start > 0 then

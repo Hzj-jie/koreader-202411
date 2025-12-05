@@ -191,8 +191,7 @@ function NewsDownloader:lazyInitialization()
     )
     -- Check to see if a custom download directory has been set.
     if self.settings:has(self.config_key_custom_dl_dir) then
-      self.download_dir =
-        self.settings:read(self.config_key_custom_dl_dir)
+      self.download_dir = self.settings:read(self.config_key_custom_dl_dir)
     else
       self.download_dir = ("%s/%s/"):format(
         DataStorage:getFullDataDir(),
@@ -684,10 +683,7 @@ function NewsDownloader:setCustomDownloadDirectory()
     :new({
       onConfirm = function(path)
         logger.dbg("NewsDownloader: set download directory to: ", path)
-        self.settings:save(
-          self.config_key_custom_dl_dir,
-          ("%s/"):format(path)
-        )
+        self.settings:save(self.config_key_custom_dl_dir, ("%s/"):format(path))
         self.settings:flush()
 
         logger.dbg(

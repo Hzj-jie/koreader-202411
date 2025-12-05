@@ -224,8 +224,7 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         ),
         callback = function()
           local title_header = _("Current Wikipedia 'Save as EPUB' folder:")
-          local current_path =
-            G_reader_settings:read("wikipedia_save_dir")
+          local current_path = G_reader_settings:read("wikipedia_save_dir")
           local default_path = DictQuickLookup.getWikiSaveEpubDefaultDir()
           local caller_callback = function(path)
             G_reader_settings:save("wikipedia_save_dir", path)
@@ -378,8 +377,7 @@ function ReaderWikipedia:initLanguages(word)
     return
   end
   -- Fill self.wiki_languages with languages to propose
-  local wikipedia_languages =
-    G_reader_settings:read("wikipedia_languages")
+  local wikipedia_languages = G_reader_settings:read("wikipedia_languages")
   if type(wikipedia_languages) == "table" and #wikipedia_languages > 0 then
     -- use this setting, no need to guess: we reference the setting table, so
     -- any update to it will have it saved in settings

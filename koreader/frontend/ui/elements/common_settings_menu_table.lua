@@ -219,10 +219,7 @@ if Device:isAndroid() then
     callback = function()
       local is_ignored = android.getVolumeKeysIgnored()
       android.setVolumeKeysIgnored(not is_ignored)
-      G_reader_settings:save(
-        "android_ignore_volume_keys",
-        not is_ignored
-      )
+      G_reader_settings:save("android_ignore_volume_keys", not is_ignored)
     end,
   }
 
@@ -234,10 +231,7 @@ if Device:isAndroid() then
     callback = function()
       local is_ignored = android.isBackButtonIgnored()
       android.setBackButtonIgnored(not is_ignored)
-      G_reader_settings:save(
-        "android_ignore_back_button",
-        not is_ignored
-      )
+      G_reader_settings:save("android_ignore_back_button", not is_ignored)
     end,
   }
 
@@ -406,8 +400,7 @@ local skim_dialog_position_string = {
 }
 common_settings.skim_dialog_position = {
   text_func = function()
-    local position = G_reader_settings:read("skim_dialog_position")
-      or "center"
+    local position = G_reader_settings:read("skim_dialog_position") or "center"
     return T(
       _("Skim dialog position: %1"),
       skim_dialog_position_string[position]:lower()
@@ -678,8 +671,7 @@ common_settings.document_end_action = {
         return G_reader_settings:read("collate") ~= "access"
       end,
       checked_func = function()
-        return G_reader_settings:read("end_document_action")
-          == "next_file"
+        return G_reader_settings:read("end_document_action") == "next_file"
       end,
       radio = true,
       callback = function()

@@ -490,9 +490,7 @@ local ReaderFooter = WidgetContainer:extend({
   pages = nil,
   footer_text = nil,
   text_font_face = "ffont",
-  height = Screen:scaleBySize(
-    G_defaults:read("DMINIBAR_CONTAINER_HEIGHT")
-  ),
+  height = Screen:scaleBySize(G_defaults:read("DMINIBAR_CONTAINER_HEIGHT")),
   horizontal_margin = Size.span.horizontal_default,
   bottom_padding = Size.padding.tiny,
   settings = nil, -- table
@@ -677,8 +675,7 @@ function ReaderFooter:init()
   self.custom_text = G_reader_settings:read("reader_footer_custom_text")
     or "KOReader"
   self.custom_text_repetitions = tonumber(
-    G_reader_settings:read("reader_footer_custom_text_repetitions")
-      or "1"
+    G_reader_settings:read("reader_footer_custom_text_repetitions") or "1"
   )
 end
 
@@ -1114,10 +1111,7 @@ function ReaderFooter:addToMainMenu(menu_items)
             self:_applyFooterMode()
             G_reader_settings:save("reader_footer_mode", self.mode)
           else
-            G_reader_settings:save(
-              "reader_footer_mode",
-              first_enabled_mode_num
-            )
+            G_reader_settings:save("reader_footer_mode", first_enabled_mode_num)
           end
           should_refresh = true
         elseif self.reclaim_height ~= prev_reclaim_height then

@@ -44,9 +44,8 @@ end
 
 local CalibreExtensions = {
   outputs = { "epub", "mobi", "docx", "fb2", "pdf", "txt" },
-  default_output = G_reader_settings:read(
-    "calibre_wireless_default_format"
-  ) or "epub",
+  default_output = G_reader_settings:read("calibre_wireless_default_format")
+    or "epub",
   user_overrides = getCustomConfig(),
 }
 
