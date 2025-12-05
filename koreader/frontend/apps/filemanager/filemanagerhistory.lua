@@ -195,7 +195,7 @@ function FileManagerHistory:onMenuHold(item)
     if DocSettings:hasSidecarFile(file) then
       doc_settings_or_file = DocSettings:open(file)
       if not self.book_props then
-        local props = doc_settings_or_file:readSetting("doc_props")
+        local props = doc_settings_or_file:read("doc_props")
         self.book_props = self.ui.bookinfo.extendProps(props, file)
         self.book_props.has_cover = true
       end
@@ -319,7 +319,7 @@ function FileManagerHistory:onShowHist(search_info)
     self.search_string = nil
     self.selected_collections = nil
   end
-  self.filter = G_reader_settings:readSetting("history_filter") or "all"
+  self.filter = G_reader_settings:read("history_filter") or "all"
   self.is_frozen = G_reader_settings:nilOrTrue("history_freeze_finished_books")
   if self.filter ~= "all" or self.is_frozen then
     self:fetchStatuses(false)

@@ -31,7 +31,7 @@ local ReaderPaging = InputContainer:extend({
   number_of_pages = 0,
   visible_area = nil,
   page_area = nil,
-  overlap = Screen:scaleBySize(G_defaults:readSetting("DOVERLAPPIXELS")),
+  overlap = Screen:scaleBySize(G_defaults:read("DOVERLAPPIXELS")),
 
   page_flipping_mode = false,
   bookmark_flipping_mode = false,
@@ -177,8 +177,8 @@ end
 
 function ReaderPaging:onReadSettings(config)
   self.page_positions = config:readTableRef("page_positions")
-  self:_gotoPage(config:readSetting("last_page") or 1)
-  self.flipping_zoom_mode = config:readSetting("flipping_zoom_mode") or "page"
+  self:_gotoPage(config:read("last_page") or 1)
+  self.flipping_zoom_mode = config:read("flipping_zoom_mode") or "page"
   self.flipping_scroll_mode = config:isTrue("flipping_scroll_mode")
 end
 

@@ -17,7 +17,7 @@ local C_ = _.pgettext
 local Screen = Device.screen
 local T = require("ffi/util").template
 
-local DGENERIC_ICON_SIZE = G_defaults:readSetting("DGENERIC_ICON_SIZE")
+local DGENERIC_ICON_SIZE = G_defaults:read("DGENERIC_ICON_SIZE")
 
 local ReaderSearch = InputContainer:extend({
   direction = 0, -- 0 for search forward, 1 for search backward
@@ -44,14 +44,14 @@ function ReaderSearch:init()
   self:registerKeyEvents()
 
   -- number of words before and after the search string in All search results
-  self.findall_nb_context_words = G_reader_settings:readSetting(
+  self.findall_nb_context_words = G_reader_settings:read(
     "fulltext_search_nb_context_words"
   ) or 5
-  self.findall_results_per_page = G_reader_settings:readSetting(
+  self.findall_results_per_page = G_reader_settings:read(
     "fulltext_search_results_per_page"
   ) or 10
   self.findall_results_max_lines =
-    G_reader_settings:readSetting("fulltext_search_results_max_lines")
+    G_reader_settings:read("fulltext_search_results_max_lines")
 
   self.ui.menu:registerToMainMenu(self)
 end
@@ -311,7 +311,7 @@ function ReaderSearch:onShowFulltextSearchInput(search_string)
     width = math.floor(math.min(Screen:getWidth(), Screen:getHeight()) * 0.9),
     input = search_string
       or self.last_search_text
-      or self.ui.doc_settings:readSetting("fulltext_search_last_search_text"),
+      or self.ui.doc_settings:read("fulltext_search_last_search_text"),
     buttons = {
       {
         {

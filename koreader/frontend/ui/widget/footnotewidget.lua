@@ -214,13 +214,13 @@ function FootnoteWidget:init()
   -- footnotes are usually smaller, and because NotoSans is a bit on the
   -- larger size when compared to other fonts at the same size)
   local font_size =
-    G_reader_settings:readSetting("footnote_popup_absolute_font_size")
+    G_reader_settings:read("footnote_popup_absolute_font_size")
   if font_size then
     font_size = Screen:scaleBySize(font_size)
   else
     font_size = self.doc_font_size
       + (
-        G_reader_settings:readSetting("footnote_popup_relative_font_size") or -2
+        G_reader_settings:read("footnote_popup_relative_font_size") or -2
       )
   end
 

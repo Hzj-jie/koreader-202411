@@ -298,7 +298,7 @@ function Device:init()
   if android.needsWakelocks() then
     android.timeout.set(C.AKEEP_SCREEN_ON_ENABLED)
   else
-    local timeout = G_reader_settings:readSetting("android_screen_timeout")
+    local timeout = G_reader_settings:read("android_screen_timeout")
     if timeout then
       if
         timeout == C.AKEEP_SCREEN_ON_ENABLED

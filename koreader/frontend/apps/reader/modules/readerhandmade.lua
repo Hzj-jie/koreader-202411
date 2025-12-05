@@ -41,10 +41,10 @@ function ReaderHandMade:onReadSettings(config)
     end
   else
     if self.ui.rolling and config:has("handmade_toc_rolling") then
-      self.toc = config:readSetting("handmade_toc_rolling")
+      self.toc = config:read("handmade_toc_rolling")
       config:delSetting("handmade_toc_rolling")
     elseif self.ui.paging and config:has("handmade_toc_paging") then
-      self.toc = config:readSetting("handmade_toc_paging")
+      self.toc = config:read("handmade_toc_paging")
       config:delSetting("handmade_toc_paging")
     end
   end
@@ -61,10 +61,10 @@ function ReaderHandMade:onReadSettings(config)
     end
   else
     if self.ui.rolling and config:has("handmade_flow_points_rolling") then
-      self.flow_points = config:readSetting("handmade_flow_points_rolling")
+      self.flow_points = config:read("handmade_flow_points_rolling")
       config:delSetting("handmade_flow_points_rolling")
     elseif self.ui.paging and config:has("handmade_flow_points_paging") then
-      self.flow_points = config:readSetting("handmade_flow_points_paging")
+      self.flow_points = config:read("handmade_flow_points_paging")
       config:delSetting("handmade_flow_points_paging")
     end
   end

@@ -12,10 +12,10 @@ local function custom(refresh_rate_num)
   else
     default_value = 99
   end
-  return (G_reader_settings:readSetting(refresh_rate_num) or default_value),
+  return (G_reader_settings:read(refresh_rate_num) or default_value),
     (
-      G_reader_settings:readSetting("night_" .. refresh_rate_num)
-      or G_reader_settings:readSetting(refresh_rate_num)
+      G_reader_settings:read("night_" .. refresh_rate_num)
+      or G_reader_settings:read(refresh_rate_num)
       or default_value
     )
 end

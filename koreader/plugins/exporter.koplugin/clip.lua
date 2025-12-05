@@ -392,7 +392,7 @@ function MyClipping:getClippingsFromBook(clippings, doc_path)
     file = doc_path,
     title = title,
     author = author,
-    number_of_pages = doc_settings:readSetting("doc_pages"),
+    number_of_pages = doc_settings:read("doc_pages"),
   }
   if doc_settings:has("annotations") then
     self:parseAnnotations(

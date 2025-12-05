@@ -82,7 +82,7 @@ end
 
 --- Reduces number of history items to the required limit by removing old items.
 function ReadHistory:_reduce()
-  local history_size = G_reader_settings:readSetting("history_size") or 100000
+  local history_size = G_reader_settings:read("history_size") or 100000
   while #self.hist > history_size do
     table.remove(self.hist)
   end
@@ -172,7 +172,7 @@ end
 -- been removed from history).
 function ReadHistory:getPreviousFile(current_file)
   if not current_file then
-    current_file = G_reader_settings:readSetting("lastfile")
+    current_file = G_reader_settings:read("lastfile")
   end
   for _, v in ipairs(self.hist) do
     -- skip current document and deleted items kept in history

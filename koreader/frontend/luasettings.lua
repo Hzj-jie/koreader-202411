@@ -65,7 +65,7 @@ end
 
 @param key The setting's key
 ]]
-function LuaSettings:readSetting(key)
+function LuaSettings:read(key)
   local r = self.data[key]
   -- TODO: Should be an assertion.
   if type(r) == "table" then

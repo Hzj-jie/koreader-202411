@@ -76,8 +76,8 @@ function FileManagerMenu:initGesListener()
     return
   end
 
-  local DTAP_ZONE_MENU = G_defaults:readSetting("DTAP_ZONE_MENU")
-  local DTAP_ZONE_MENU_EXT = G_defaults:readSetting("DTAP_ZONE_MENU_EXT")
+  local DTAP_ZONE_MENU = G_defaults:read("DTAP_ZONE_MENU")
+  local DTAP_ZONE_MENU_EXT = G_defaults:read("DTAP_ZONE_MENU_EXT")
   self:registerTouchZones({
     {
       id = "filemanager_tap",
@@ -145,7 +145,7 @@ function FileManagerMenu:initGesListener()
 end
 
 function FileManagerMenu:onOpenLastDoc()
-  local last_file = G_reader_settings:readSetting("lastfile")
+  local last_file = G_reader_settings:read("lastfile")
   if not last_file or lfs.attributes(last_file, "mode") ~= "file" then
     local InfoMessage = require("ui/widget/infomessage")
     UIManager:show(InfoMessage:new({
@@ -208,7 +208,7 @@ function FileManagerMenu:setUpdateItemTable()
             text_func = function()
               return T(
                 _("Items per page: %1"),
-                G_reader_settings:readSetting("items_per_page")
+                G_reader_settings:read("items_per_page")
                   or FileChooser.items_per_page_default
               )
             end,
@@ -219,7 +219,7 @@ function FileManagerMenu:setUpdateItemTable()
 - Calibre and OPDS browsers/search results]]),
             callback = function(touchmenu_instance)
               local default_value = FileChooser.items_per_page_default
-              local current_value = G_reader_settings:readSetting(
+              local current_value = G_reader_settings:read(
                 "items_per_page"
               ) or default_value
               local widget = SpinWidget:new({
@@ -249,7 +249,7 @@ function FileManagerMenu:setUpdateItemTable()
             callback = function(touchmenu_instance)
               local current_value = FileChooser.font_size
               local default_value = FileChooser.getItemFontSize(
-                G_reader_settings:readSetting("items_per_page")
+                G_reader_settings:read("items_per_page")
                   or FileChooser.items_per_page_default
               )
               local widget = SpinWidget:new({
@@ -392,7 +392,7 @@ function FileManagerMenu:setUpdateItemTable()
                   G_reader_settings:saveSetting("home_dir", path)
                   self.ui:updateTitleBarPath()
                 end,
-                G_reader_settings:readSetting("home_dir"),
+                G_reader_settings:read("home_dir"),
                 require("util").backup_dir()
               )
             end,
@@ -435,7 +435,7 @@ To:
       {
         text_func = function()
           local default_value = KeyValuePage.getDefaultItemsPerPage()
-          local current_value = G_reader_settings:readSetting(
+          local current_value = G_reader_settings:read(
             "keyvalues_per_page"
           ) or default_value
           return T(_("Info lists items per page: %1"), current_value)
@@ -448,7 +448,7 @@ To:
         keep_menu_open = true,
         callback = function(touchmenu_instance)
           local default_value = KeyValuePage.getDefaultItemsPerPage()
-          local current_value = G_reader_settings:readSetting(
+          local current_value = G_reader_settings:read(
             "keyvalues_per_page"
           ) or default_value
           local widget = SpinWidget:new({
@@ -576,7 +576,7 @@ Tap a book in the search results to open it.]]
       then
         return _("Open last document")
       end
-      local last_file = G_reader_settings:readSetting("lastfile")
+      local last_file = G_reader_settings:read("lastfile")
       local path, file_name = util.splitFilePathName(last_file) -- luacheck: no unused
       return T(_("Last: %1"), BD.filename(file_name))
     end,
@@ -587,7 +587,7 @@ Tap a book in the search results to open it.]]
       self:onOpenLastDoc()
     end,
     hold_callback = function()
-      local last_file = G_reader_settings:readSetting("lastfile")
+      local last_file = G_reader_settings:read("lastfile")
       UIManager:show(ConfirmBox:new({
         text = T(
           _("Would you like to open the last document: %1?"),
@@ -678,7 +678,7 @@ function FileManagerMenu:getStartWithMenuTable()
       text = v[1],
       checked_func = function()
         return v[2]
-          == (G_reader_settings:readSetting("start_with") or "filemanager")
+          == (G_reader_settings:read("start_with") or "filemanager")
       end,
       callback = function()
         G_reader_settings:saveSetting("start_with", v[2])
@@ -688,7 +688,7 @@ function FileManagerMenu:getStartWithMenuTable()
   end
   return {
     text_func = function()
-      local start_with = G_reader_settings:readSetting("start_with")
+      local start_with = G_reader_settings:read("start_with")
         or "filemanager"
       for i, v in ipairs(start_withs) do
         if v[2] == start_with then
@@ -712,7 +712,7 @@ function FileManagerMenu:onShowMenu(tab_index)
   end
 
   if not tab_index then
-    tab_index = G_reader_settings:readSetting("filemanagermenu_tab_index") or 1
+    tab_index = G_reader_settings:read("filemanagermenu_tab_index") or 1
   end
 
   local menu_container = CenterContainer:new({
@@ -765,7 +765,7 @@ function FileManagerMenu:_getTabIndexFromLocation(ges)
   if self.tab_item_table == nil then
     self:setUpdateItemTable()
   end
-  local last_tab_index = G_reader_settings:readSetting(
+  local last_tab_index = G_reader_settings:read(
     "filemanagermenu_tab_index"
   ) or 1
   if not ges then

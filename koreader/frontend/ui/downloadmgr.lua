@@ -41,7 +41,7 @@ function DownloadMgr:chooseDir(dir)
   if dir then
     path = dir
   else
-    local download_dir = G_reader_settings:readSetting("download_dir")
+    local download_dir = G_reader_settings:read("download_dir")
     path = download_dir and util.realpath(download_dir .. "/..")
       or G_named_settings.lastdir()
   end

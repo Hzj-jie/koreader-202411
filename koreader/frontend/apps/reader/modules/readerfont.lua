@@ -119,11 +119,11 @@ function ReaderFont:setupFaceMenuTable()
     table.insert(self.face_table, {
       text_func = function()
         -- defaults are hardcoded in credocument.lua
-        local default_font = G_reader_settings:readSetting("cre_font")
+        local default_font = G_reader_settings:read("cre_font")
           or self.ui.document.default_font
-        local fallback_font = G_reader_settings:readSetting("fallback_font")
+        local fallback_font = G_reader_settings:read("fallback_font")
           or self.ui.document.fallback_fonts[1]
-        local monospace_font = G_reader_settings:readSetting("monospace_font")
+        local monospace_font = G_reader_settings:read("monospace_font")
           or self.ui.document.monospace_font
         local text = v
         if font_filename and font_faceindex then
@@ -208,12 +208,12 @@ function ReaderFont:onSetDimensions(dimen)
 end
 
 function ReaderFont:onReadSettings(config)
-  self.font_face = config:readSetting("font_face")
-    or G_reader_settings:readSetting("cre_font")
+  self.font_face = config:read("font_face")
+    or G_reader_settings:read("cre_font")
     or self.ui.document.default_font
   self.ui.document:setFontFace(self.font_face)
 
-  local header_font = G_reader_settings:readSetting("header_font")
+  local header_font = G_reader_settings:read("header_font")
     or self.ui.document.header_font
   self.ui.document:setHeaderFont(header_font)
 
@@ -540,7 +540,7 @@ Enabling this will ignore such font names and make sure your preferred family fo
     local unset_font_main_text = _("(main font)")
     local unset_font_choice_text = _("Use main font")
     if family_tag == "monospace" then
-      local monospace_font = G_reader_settings:readSetting("monospace_font")
+      local monospace_font = G_reader_settings:read("monospace_font")
         or self.ui.document.monospace_font
       unset_font_main_text = _("(default monospace font)")
       unset_font_choice_text =
@@ -848,14 +848,14 @@ This may help with Greek words among Latin text (as Latin fonts often do not hav
 
   table.insert(settings_table, {
     text_func = function()
-      local scale = G_reader_settings:readSetting("cre_monospace_scaling")
+      local scale = G_reader_settings:read("cre_monospace_scaling")
         or 100
       return T(_("Monospace fonts scaling: %1 %"), scale)
     end,
     callback = function()
       local SpinWidget = require("ui/widget/spinwidget")
       UIManager:show(SpinWidget:new({
-        value = G_reader_settings:readSetting("cre_monospace_scaling") or 100,
+        value = G_reader_settings:read("cre_monospace_scaling") or 100,
         value_min = 30,
         value_step = 1,
         value_hold_step = 5,

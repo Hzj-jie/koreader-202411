@@ -530,10 +530,10 @@ When the book's language tag is not among our presets, no specific features will
         -- Other usable nerdfont glyphs in case of need:
         -- feat = feat .. "       "
         text = text .. "   " .. feat
-        if lang_tag == G_reader_settings:readSetting("text_lang_default") then
+        if lang_tag == G_reader_settings:read("text_lang_default") then
           text = text .. "   ★"
         end
-        if lang_tag == G_reader_settings:readSetting("text_lang_fallback") then
+        if lang_tag == G_reader_settings:read("text_lang_fallback") then
           text = text .. "   �"
         end
         return text
@@ -684,8 +684,8 @@ When the book's language tag is not among our presets, no specific features will
         -- @translators to RTL language translators: %1/left is the min length of the start of a hyphenated word, %2/right is the min length of the end of a hyphenated word (note that there is yet no support for hyphenation with RTL languages, so this will mostly apply to LTR documents)
         return T(
           _("Left/right minimal sizes: %1 / %2"),
-          G_reader_settings:readSetting("hyph_left_hyphen_min"),
-          G_reader_settings:readSetting("hyph_right_hyphen_min")
+          G_reader_settings:read("hyph_left_hyphen_min"),
+          G_reader_settings:read("hyph_right_hyphen_min")
         )
       end
       return _("Left/right minimal sizes: language defaults")
@@ -701,11 +701,11 @@ When the book's language tag is not among our presets, no specific features will
         -- values from languages.json, but we give 0 to crengine, which will
         -- use its own default hardcoded values (in textlang.cpp). Try to keep
         -- these values in sync.
-        left_value = G_reader_settings:readSetting("hyph_left_hyphen_min")
+        left_value = G_reader_settings:read("hyph_left_hyphen_min")
           or alg_left_hyphen_min,
         left_min = 1,
         left_max = 10,
-        right_value = G_reader_settings:readSetting("hyph_right_hyphen_min")
+        right_value = G_reader_settings:read("hyph_right_hyphen_min")
           or alg_right_hyphen_min,
         right_min = 1,
         right_max = 10,
@@ -738,10 +738,10 @@ These settings will apply to all books with any hyphenation dictionary.
             right_hyphen_min
           )
           self.ui.document:setHyphLeftHyphenMin(
-            G_reader_settings:readSetting("hyph_left_hyphen_min") or 0
+            G_reader_settings:read("hyph_left_hyphen_min") or 0
           )
           self.ui.document:setHyphRightHyphenMin(
-            G_reader_settings:readSetting("hyph_right_hyphen_min") or 0
+            G_reader_settings:read("hyph_right_hyphen_min") or 0
           )
           -- signal readerrolling to update pos in new height, and redraw page
           UIManager:broadcastEvent(Event:new("UpdatePos"))
@@ -1069,7 +1069,7 @@ end
 function ReaderTypography:onReadSettings(config)
   -- Migrate old readerhyphenation setting, if one was set
   if config:hasNot("text_lang") and config:has("hyph_alg") then
-    local hyph_alg = config:readSetting("hyph_alg")
+    local hyph_alg = config:read("hyph_alg")
     local dict_info = HYPH_DICT_NAME_TO_LANG_NAME_TAG[hyph_alg]
     if dict_info then
       config:saveSetting("text_lang", dict_info[2])
@@ -1135,17 +1135,17 @@ function ReaderTypography:onReadSettings(config)
 
   -- These are global only settings (a bit complicated to make them per-document)
   self.ui.document:setHyphLeftHyphenMin(
-    G_reader_settings:readSetting("hyph_left_hyphen_min") or 0
+    G_reader_settings:read("hyph_left_hyphen_min") or 0
   )
   self.ui.document:setHyphRightHyphenMin(
-    G_reader_settings:readSetting("hyph_right_hyphen_min") or 0
+    G_reader_settings:read("hyph_right_hyphen_min") or 0
   )
 
   -- Default to disable hanging/floating punctuation
   -- (Stored as 0/1 in docsetting for historical reasons, but as true/false
   -- in global settings.)
   if config:has("floating_punctuation") then
-    self.floating_punctuation = config:readSetting("floating_punctuation")
+    self.floating_punctuation = config:read("floating_punctuation")
   else
     self.floating_punctuation = G_reader_settings:isTrue("floating_punctuation")
         and 1
@@ -1157,7 +1157,7 @@ function ReaderTypography:onReadSettings(config)
   if config:has("text_lang") then
     self.allow_doc_lang_tag_override = false
     -- Use the one manually set for this document
-    self.text_lang_tag = config:readSetting("text_lang")
+    self.text_lang_tag = config:read("text_lang")
     logger.dbg(
       "Typography lang: using",
       self.text_lang_tag,
@@ -1166,13 +1166,13 @@ function ReaderTypography:onReadSettings(config)
   elseif G_reader_settings:has("text_lang_default") then
     self.allow_doc_lang_tag_override = false
     -- Use the one manually set as default (with Hold)
-    self.text_lang_tag = G_reader_settings:readSetting("text_lang_default")
+    self.text_lang_tag = G_reader_settings:read("text_lang_default")
     logger.dbg("Typography lang: using default ", self.text_lang_tag)
   elseif G_reader_settings:has("text_lang_fallback") then
     -- Document language will be allowed to override the one we set from now on
     self.allow_doc_lang_tag_override = true
     -- Use the one manually set as fallback (with Hold)
-    self.text_lang_tag = G_reader_settings:readSetting("text_lang_fallback")
+    self.text_lang_tag = G_reader_settings:read("text_lang_fallback")
     logger.dbg(
       "Typography lang: using fallback ",
       self.text_lang_tag,

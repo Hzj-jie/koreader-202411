@@ -225,13 +225,13 @@ end
 function PageBrowserWidget:updateLayout()
   -- We start with showing all toc levels (we could use book_map_toc_depth,
   -- but we might want to have it different here).
-  self.nb_toc_spans = self.ui.doc_settings:readSetting("page_browser_toc_depth")
+  self.nb_toc_spans = self.ui.doc_settings:read("page_browser_toc_depth")
     or self.max_toc_depth
   if self.ui.handmade:isHandmadeTocEnabled() then
     -- We can switch from a custom TOC (max depth of 1) to the regular TOC
     -- (larger depth possible), so we'd rather not replace with 1 the depth
     -- set and saved for a regular TOC. So, use a dedicated setting for each.
-    self.nb_toc_spans = self.ui.doc_settings:readSetting(
+    self.nb_toc_spans = self.ui.doc_settings:read(
       "page_browser_toc_depth_handmade_toc"
     ) or self.max_toc_depth
   end
@@ -299,10 +299,10 @@ function PageBrowserWidget:updateLayout()
     }),
   })
 
-  self.nb_rows = self.ui.doc_settings:readSetting("page_browser_nb_rows")
-    or G_reader_settings:readSetting("page_browser_nb_rows")
-  self.nb_cols = self.ui.doc_settings:readSetting("page_browser_nb_cols")
-    or G_reader_settings:readSetting("page_browser_nb_cols")
+  self.nb_rows = self.ui.doc_settings:read("page_browser_nb_rows")
+    or G_reader_settings:read("page_browser_nb_rows")
+  self.nb_cols = self.ui.doc_settings:read("page_browser_nb_cols")
+    or G_reader_settings:read("page_browser_nb_cols")
   if not self.nb_rows or not self.nb_cols then
     -- 3 x 2 seems like a good default, in both portrait or landscape mode
     self.nb_cols = 3
@@ -310,9 +310,9 @@ function PageBrowserWidget:updateLayout()
   end
   self.nb_grid_items = self.nb_rows * self.nb_cols
 
-  self.thumbnails_pagenums = self.ui.doc_settings:readSetting(
+  self.thumbnails_pagenums = self.ui.doc_settings:read(
     "page_browser_thumbnails_pagenums"
-  ) or G_reader_settings:readSetting("page_browser_thumbnails_pagenums") or 2
+  ) or G_reader_settings:read("page_browser_thumbnails_pagenums") or 2
   -- Set our items target size
   -- Borders may eat into the margin, and the horizontal margin should be able to contain the page number
   local grid_item_default_margin = Screen:scaleBySize(10)

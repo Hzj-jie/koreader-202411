@@ -693,10 +693,10 @@ local Menu = FocusManager:extend({
 
 function Menu:_recalculateDimen(no_recalculate_dimen)
   local perpage = self.items_per_page
-    or G_reader_settings:readSetting("items_per_page")
+    or G_reader_settings:read("items_per_page")
     or self.items_per_page_default
   local font_size = self.items_font_size
-    or G_reader_settings:readSetting("items_font_size")
+    or G_reader_settings:read("items_font_size")
     or Menu.getItemFontSize(perpage)
   if self.perpage ~= perpage or self.font_size ~= font_size then
     self.perpage = perpage

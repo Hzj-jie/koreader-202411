@@ -207,7 +207,7 @@ local Translator = {
 }
 
 function Translator:getTransServer()
-  return G_reader_settings:readSetting("trans_server") or self.trans_servers[1]
+  return G_reader_settings:read("trans_server") or self.trans_servers[1]
 end
 
 function Translator:getLanguageName(lang, default_string)
@@ -233,7 +233,7 @@ function Translator:genSettingsMenu()
         checked_func = function()
           return lang_key
             == (
-              G_reader_settings:readSetting(setting_name)
+              G_reader_settings:read(setting_name)
               or default_checked_item
             )
         end,
@@ -293,7 +293,7 @@ This is useful:
       },
       {
         text_func = function()
-          local lang = G_reader_settings:readSetting("translator_from_language")
+          local lang = G_reader_settings:read("translator_from_language")
           return T(_("Translate from: %1"), self:getLanguageName(lang, ""))
         end,
         help_text = _(
@@ -363,16 +363,16 @@ function Translator:getSourceLanguage()
     G_reader_settings:isFalse("translator_from_auto_detect")
     and G_reader_settings:has("translator_from_language")
   then
-    return G_reader_settings:readSetting("translator_from_language")
+    return G_reader_settings:read("translator_from_language")
   end
   return AUTODETECT_LANGUAGE -- "auto"
 end
 
 function Translator:getTargetLanguage()
-  local lang = G_reader_settings:readSetting("translator_to_language")
+  local lang = G_reader_settings:read("translator_to_language")
   if not lang then
     -- Fallback to the UI language the user has selected
-    lang = G_reader_settings:readSetting("language")
+    lang = G_reader_settings:read("language")
   end
   if lang then
     -- convert "zh-CN" and "zh-TW" to "zh"

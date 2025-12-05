@@ -963,7 +963,7 @@ function Wallabag:processLocalFiles(mode)
           local doc_settings = DocSettings:open(entry_path)
           local summary = doc_settings:readTableRef("summary")
           local status = summary.status
-          local percent_finished = doc_settings:readSetting("percent_finished")
+          local percent_finished = doc_settings:read("percent_finished")
           if status == "complete" then
             if self.is_delete_finished then
               self:removeArticle(entry_path)

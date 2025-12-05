@@ -254,7 +254,7 @@ function CalibreWireless:connect()
         address_type = "unavailable"
       end
     else
-      local calibre_url = G_reader_settings:readSetting("calibre_wireless_url")
+      local calibre_url = G_reader_settings:read("calibre_wireless_url")
       host, port = calibre_url["address"], calibre_url["port"]
       address_type = "specified"
     end
@@ -284,7 +284,7 @@ function CalibreWireless:connect()
         ),
       }))
     else
-      local inbox_dir = G_reader_settings:readSetting("inbox_dir")
+      local inbox_dir = G_reader_settings:read("inbox_dir")
       if inbox_dir then
         CalibreMetadata:init(inbox_dir)
         self:initCalibreMQ(host, port)
@@ -401,7 +401,7 @@ function CalibreWireless:getInitInfo(arg)
   self.calibre.version = arg.calibre_version
   self.calibre.version_string = s
   local getPasswordHash = function()
-    local password = G_reader_settings:readSetting("calibre_wireless_password")
+    local password = G_reader_settings:read("calibre_wireless_password")
     local challenge = arg.passwordChallenge
     if password and challenge then
       return sha.sha1(password .. challenge)
@@ -445,7 +445,7 @@ function CalibreWireless:setPassword()
   local password_dialog
   password_dialog = InputDialog:new({
     title = _("Set a password for calibre wireless server"),
-    input = G_reader_settings:readSetting("calibre_wireless_password") or "",
+    input = G_reader_settings:read("calibre_wireless_password") or "",
     buttons = {
       {
         {
@@ -497,7 +497,7 @@ function CalibreWireless:getFreeSpace(arg)
   logger.dbg("FREE_SPACE", arg)
   local free_space = {
     free_space_on_device = getFreeSpace(
-      G_reader_settings:readSetting("inbox_dir")
+      G_reader_settings:read("inbox_dir")
     ),
   }
   self:sendJsonData("OK", free_space)
@@ -561,7 +561,7 @@ end
 
 function CalibreWireless:sendBook(arg)
   logger.dbg("SEND_BOOK", arg)
-  local inbox_dir = G_reader_settings:readSetting("inbox_dir")
+  local inbox_dir = G_reader_settings:read("inbox_dir")
   local filename = inbox_dir .. "/" .. arg.lpath
   local fits = getFreeSpace(inbox_dir) >= (arg.length + 128 * 1024)
   local to_write_bytes = arg.length
@@ -666,7 +666,7 @@ end
 function CalibreWireless:deleteBook(arg)
   logger.dbg("DELETE_BOOK", arg)
   self:sendJsonData("OK", {})
-  local inbox_dir = G_reader_settings:readSetting("inbox_dir")
+  local inbox_dir = G_reader_settings:read("inbox_dir")
   if not inbox_dir then
     return
   end
@@ -718,7 +718,7 @@ end
 
 function CalibreWireless:sendToCalibre(arg)
   logger.dbg("GET_BOOK_FILE_SEGMENT", arg)
-  local inbox_dir = G_reader_settings:readSetting("inbox_dir")
+  local inbox_dir = G_reader_settings:read("inbox_dir")
   local path = inbox_dir .. "/" .. arg.lpath
 
   local file_size = lfs.attributes(path, "size")

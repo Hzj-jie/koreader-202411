@@ -249,7 +249,7 @@ end
 
 function ReaderZooming:onReadSettings(config)
   -- If we have a composite zoom_mode stored, use that
-  local zoom_mode = config:readSetting("zoom_mode")
+  local zoom_mode = config:read("zoom_mode")
   if zoom_mode then
     -- Validate it first
     zoom_mode = self.zoom_mode_label[zoom_mode] and zoom_mode
@@ -261,11 +261,11 @@ function ReaderZooming:onReadSettings(config)
     config:saveSetting("kopt_zoom_mode_type", zoom_mode_type)
   else
     -- Otherwise, build it from the split genus & type settings
-    local zoom_mode_genus = config:readSetting("kopt_zoom_mode_genus")
-      or G_reader_settings:readSetting("kopt_zoom_mode_genus")
+    local zoom_mode_genus = config:read("kopt_zoom_mode_genus")
+      or G_reader_settings:read("kopt_zoom_mode_genus")
       or 3 -- autocrop is default then pagewidth will be the default as well
-    local zoom_mode_type = config:readSetting("kopt_zoom_mode_type")
-      or G_reader_settings:readSetting("kopt_zoom_mode_type")
+    local zoom_mode_type = config:read("kopt_zoom_mode_type")
+      or G_reader_settings:read("kopt_zoom_mode_type")
     zoom_mode = self:combo_to_mode(zoom_mode_genus, zoom_mode_type)
 
     -- Validate it
@@ -275,9 +275,9 @@ function ReaderZooming:onReadSettings(config)
 
   -- Import legacy zoom_factor settings
   if config:has("zoom_factor") and config:hasNot("kopt_zoom_factor") then
-    config:saveSetting("kopt_zoom_factor", config:readSetting("zoom_factor"))
+    config:saveSetting("kopt_zoom_factor", config:read("zoom_factor"))
     self.document.configurable.zoom_factor =
-      config:readSetting("kopt_zoom_factor")
+      config:read("kopt_zoom_factor")
     config:delSetting("zoom_factor")
   elseif config:has("zoom_factor") and config:has("kopt_zoom_factor") then
     config:delSetting("zoom_factor")
@@ -285,23 +285,23 @@ function ReaderZooming:onReadSettings(config)
 
   -- Don't stomp on normal_zoom_mode in ReaderKoptListener if we're reflowed...
   local is_reflowed = config:has("kopt_text_wrap")
-    and config:readSetting("kopt_text_wrap") == 1
+    and config:read("kopt_text_wrap") == 1
 
   self:setZoomMode(zoom_mode, true, is_reflowed) -- avoid informative message on load
 
-  self.kopt_zoom_factor = config:readSetting("kopt_zoom_factor")
-    or G_reader_settings:readSetting("kopt_zoom_factor")
+  self.kopt_zoom_factor = config:read("kopt_zoom_factor")
+    or G_reader_settings:read("kopt_zoom_factor")
     or self.kopt_zoom_factor
-  self.zoom_overlap_h = config:readSetting("kopt_zoom_overlap_h")
-    or G_reader_settings:readSetting("kopt_zoom_overlap_h")
+  self.zoom_overlap_h = config:read("kopt_zoom_overlap_h")
+    or G_reader_settings:read("kopt_zoom_overlap_h")
     or self.zoom_overlap_h
-  self.zoom_overlap_v = config:readSetting("kopt_zoom_overlap_v")
-    or G_reader_settings:readSetting("kopt_zoom_overlap_v")
+  self.zoom_overlap_v = config:read("kopt_zoom_overlap_v")
+    or G_reader_settings:read("kopt_zoom_overlap_v")
     or self.zoom_overlap_v
 
   -- update zoom direction parameters
   local zoom_direction_setting =
-    self.zoom_direction_settings[self.document.configurable.zoom_direction or G_reader_settings:readSetting(
+    self.zoom_direction_settings[self.document.configurable.zoom_direction or G_reader_settings:read(
       "kopt_zoom_direction"
     ) or 7]
   self.zoom_bottom_to_top = zoom_direction_setting.zoom_bottom_to_top
@@ -629,8 +629,8 @@ function ReaderZooming:getZoom(pageno)
   elseif self.zoom_mode == "free" then
     zoom = self.zoom
   else
-    local zoom_factor = self.ui.doc_settings:readSetting("kopt_zoom_factor")
-      or G_reader_settings:readSetting("kopt_zoom_factor")
+    local zoom_factor = self.ui.doc_settings:read("kopt_zoom_factor")
+      or G_reader_settings:read("kopt_zoom_factor")
       or self.kopt_zoom_factor
     zoom = zoom_w * zoom_factor
   end

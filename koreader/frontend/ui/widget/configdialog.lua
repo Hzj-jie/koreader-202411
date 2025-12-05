@@ -34,7 +34,7 @@ local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
-local DGENERIC_ICON_SIZE = G_defaults:readSetting("DGENERIC_ICON_SIZE")
+local DGENERIC_ICON_SIZE = G_defaults:read("DGENERIC_ICON_SIZE")
 
 local OptionTextItem = InputContainer:extend({})
 
@@ -465,7 +465,7 @@ function ConfigOption:init()
         local default_option_name = self.config.config_options.prefix
           .. "_"
           .. self.options[c].name
-        local default_value = G_reader_settings:readSetting(default_option_name)
+        local default_value = G_reader_settings:read(default_option_name)
         if default_value and #self.options[c].values > 0 then
           local val = default_value
           local min_diff
@@ -1349,15 +1349,15 @@ function ConfigDialog:onConfigMoreChoose(
             self.configurable[more_options_param.names[1]],
             self.configurable[more_options_param.names[2]],
           }
-          left_default = G_reader_settings:readSetting(
+          left_default = G_reader_settings:read(
             self.config_options.prefix .. "_" .. more_options_param.names[1]
           ) or default_value_orig[1]
-          right_default = G_reader_settings:readSetting(
+          right_default = G_reader_settings:read(
             self.config_options.prefix .. "_" .. more_options_param.names[2]
           ) or default_value_orig[2]
         else
           curr_values = self.configurable[name]
-          local default_values = G_reader_settings:readSetting(
+          local default_values = G_reader_settings:read(
             self.config_options.prefix .. "_" .. name
           ) or default_value_orig
           left_default = default_values[1]
@@ -1454,7 +1454,7 @@ function ConfigDialog:onConfigMoreChoose(
         end
         local curr_items = self.configurable[name]
         local value_index
-        local default_value = G_reader_settings:readSetting(
+        local default_value = G_reader_settings:read(
           self.config_options.prefix .. "_" .. name
         ) or default_value_orig
         if more_options_param.value_table then
@@ -1698,14 +1698,14 @@ function ConfigDialog:onTapCloseMenu(arg, ges_ev)
 end
 
 function ConfigDialog:onSwipeCloseMenu(arg, ges_ev)
-  local DTAP_ZONE_CONFIG = G_defaults:readSetting("DTAP_ZONE_CONFIG")
+  local DTAP_ZONE_CONFIG = G_defaults:read("DTAP_ZONE_CONFIG")
   local range = Geom:new({
     x = DTAP_ZONE_CONFIG.x * Screen:getWidth(),
     y = DTAP_ZONE_CONFIG.y * Screen:getHeight(),
     w = DTAP_ZONE_CONFIG.w * Screen:getWidth(),
     h = DTAP_ZONE_CONFIG.h * Screen:getHeight(),
   })
-  local DTAP_ZONE_CONFIG_EXT = G_defaults:readSetting("DTAP_ZONE_CONFIG_EXT")
+  local DTAP_ZONE_CONFIG_EXT = G_defaults:read("DTAP_ZONE_CONFIG_EXT")
   local range_ext = Geom:new({
     x = DTAP_ZONE_CONFIG_EXT.x * Screen:getWidth(),
     y = DTAP_ZONE_CONFIG_EXT.y * Screen:getHeight(),

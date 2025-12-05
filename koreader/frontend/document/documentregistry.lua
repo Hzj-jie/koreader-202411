@@ -170,7 +170,7 @@ function DocumentRegistry:getAssociatedProviderKey(file, all)
   local provider_key
   if all ~= true then
     if DocSettings:hasSidecarFile(file) then
-      provider_key = DocSettings:open(file):readSetting("provider")
+      provider_key = DocSettings:open(file):read("provider")
       if provider_key or all == false then
         return provider_key
       end

@@ -89,33 +89,33 @@ end
 
 function KoptInterface:setDefaultConfigurable(configurable)
   configurable.doc_language =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_DOC_DEFAULT_LANG_CODE")
+    G_defaults:read("DKOPTREADER_CONFIG_DOC_DEFAULT_LANG_CODE")
   configurable.trim_page =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_TRIM_PAGE")
+    G_defaults:read("DKOPTREADER_CONFIG_TRIM_PAGE")
   configurable.text_wrap =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_TEXT_WRAP")
+    G_defaults:read("DKOPTREADER_CONFIG_TEXT_WRAP")
   configurable.detect_indent =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_DETECT_INDENT")
+    G_defaults:read("DKOPTREADER_CONFIG_DETECT_INDENT")
   configurable.max_columns =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_MAX_COLUMNS")
+    G_defaults:read("DKOPTREADER_CONFIG_MAX_COLUMNS")
   configurable.auto_straighten =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_AUTO_STRAIGHTEN")
+    G_defaults:read("DKOPTREADER_CONFIG_AUTO_STRAIGHTEN")
   configurable.justification =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_JUSTIFICATION")
+    G_defaults:read("DKOPTREADER_CONFIG_JUSTIFICATION")
   configurable.writing_direction = 0
   configurable.font_size =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_FONT_SIZE")
+    G_defaults:read("DKOPTREADER_CONFIG_FONT_SIZE")
   configurable.page_margin =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_PAGE_MARGIN")
+    G_defaults:read("DKOPTREADER_CONFIG_PAGE_MARGIN")
   configurable.quality =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_RENDER_QUALITY")
-  configurable.contrast = G_defaults:readSetting("DKOPTREADER_CONFIG_CONTRAST")
+    G_defaults:read("DKOPTREADER_CONFIG_RENDER_QUALITY")
+  configurable.contrast = G_defaults:read("DKOPTREADER_CONFIG_CONTRAST")
   configurable.defect_size =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_DEFECT_SIZE")
+    G_defaults:read("DKOPTREADER_CONFIG_DEFECT_SIZE")
   configurable.line_spacing =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_LINE_SPACING")
+    G_defaults:read("DKOPTREADER_CONFIG_LINE_SPACING")
   configurable.word_spacing =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_DEFAULT_WORD_SPACING")
+    G_defaults:read("DKOPTREADER_CONFIG_DEFAULT_WORD_SPACING")
 end
 
 function KoptInterface:waitForContext(kc)

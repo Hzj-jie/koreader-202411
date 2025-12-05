@@ -46,13 +46,13 @@ end
 
 function PerceptionExpander:createUI(readSettings)
   if readSettings then
-    self.line_thickness = tonumber(self.settings:readSetting("line_thick"))
-    self.margin = tonumber(self.settings:readSetting("margin"))
+    self.line_thickness = tonumber(self.settings:read("line_thick"))
+    self.margin = tonumber(self.settings:read("margin"))
     self.line_color_intensity =
-      tonumber(self.settings:readSetting("line_color_intensity"))
+      tonumber(self.settings:read("line_color_intensity"))
     self.shift_each_pages =
-      tonumber(self.settings:readSetting("shift_each_pages"))
-    self.page_counter = tonumber(self.settings:readSetting("page_counter"))
+      tonumber(self.settings:read("shift_each_pages"))
+    self.page_counter = tonumber(self.settings:read("page_counter"))
   end
 
   self.screen_width = Screen:getWidth()

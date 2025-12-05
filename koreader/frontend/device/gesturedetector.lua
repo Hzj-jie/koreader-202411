@@ -93,21 +93,21 @@ local GestureDetector = {
   clock_id = nil,
   -- current values
   ges_tap_interval = time.ms(
-    G_reader_settings:readSetting("ges_tap_interval_ms") or TAP_INTERVAL_MS
+    G_reader_settings:read("ges_tap_interval_ms") or TAP_INTERVAL_MS
   ),
   ges_double_tap_interval = time.ms(
-    G_reader_settings:readSetting("ges_double_tap_interval_ms")
+    G_reader_settings:read("ges_double_tap_interval_ms")
       or DOUBLE_TAP_INTERVAL_MS
   ),
   ges_two_finger_tap_duration = time.ms(
-    G_reader_settings:readSetting("ges_two_finger_tap_duration_ms")
+    G_reader_settings:read("ges_two_finger_tap_duration_ms")
       or TWO_FINGER_TAP_DURATION_MS
   ),
   ges_hold_interval = time.ms(
-    G_reader_settings:readSetting("ges_hold_interval_ms") or HOLD_INTERVAL_MS
+    G_reader_settings:read("ges_hold_interval_ms") or HOLD_INTERVAL_MS
   ),
   ges_swipe_interval = time.ms(
-    G_reader_settings:readSetting("ges_swipe_interval_ms") or SWIPE_INTERVAL_MS
+    G_reader_settings:read("ges_swipe_interval_ms") or SWIPE_INTERVAL_MS
   ),
 }
 

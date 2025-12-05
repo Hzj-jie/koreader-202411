@@ -38,7 +38,7 @@ local function is_wiki_page(link_url)
   local epub_filename = wiki_page .. "." .. string.upper(wiki_lang) .. ".epub"
   local epub_fullpath
   -- either in current book directory
-  local last_file = G_reader_settings:readSetting("lastfile")
+  local last_file = G_reader_settings:read("lastfile")
   if last_file then
     local current_book_dir = last_file:match("(.*)/")
     local safe_filename =
@@ -50,7 +50,7 @@ local function is_wiki_page(link_url)
   end
   -- or in wikipedia save directory
   if not epub_fullpath then
-    local dir = G_reader_settings:readSetting("wikipedia_save_dir")
+    local dir = G_reader_settings:read("wikipedia_save_dir")
       or G_named_settings.home_dir()
     assert(dir ~= nil)
     local safe_filename =
@@ -302,7 +302,7 @@ function ReaderLink:registerKeyEvents()
         event = "GotoSelectedPageLink",
       },
       -- "Back" is handled by ReaderBack, which will call our onGoBackLink()
-      -- when G_reader_settings:readSetting("back_in_reader") == "previous_location"
+      -- when G_reader_settings:read("back_in_reader") == "previous_location"
     }
   end
 end
@@ -584,7 +584,7 @@ From the footnote popup, you can jump to the footnote location in the book by sw
           if show_absolute_font_size_widget then
             spin_widget = SpinWidget:new({
               width = math.floor(Screen:getWidth() * 0.75),
-              value = G_reader_settings:readSetting(
+              value = G_reader_settings:read(
                 "footnote_popup_absolute_font_size"
               )
                 or Screen:scaleBySize(self.document.configurable.font_size),
@@ -616,7 +616,7 @@ The footnote popup font can adjust to the font size you've set for the document,
           else
             spin_widget = SpinWidget:new({
               width = math.floor(Screen:getWidth() * 0.75),
-              value = G_reader_settings:readSetting(
+              value = G_reader_settings:read(
                 "footnote_popup_relative_font_size"
               ) or -2,
               value_min = -10,
@@ -756,7 +756,7 @@ function ReaderLink:showLinkBox(link, allow_footnote_popup)
     if sbox then
       UIManager:show(LinkBox:new({
         box = sbox,
-        timeout = G_defaults:readSetting("FOLLOW_LINK_TIMEOUT"),
+        timeout = G_defaults:read("FOLLOW_LINK_TIMEOUT"),
         callback = function()
           self:onGotoLink(link.link, false, allow_footnote_popup)
         end,

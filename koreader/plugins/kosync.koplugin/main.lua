@@ -66,13 +66,13 @@ function KOSync:init()
   })
   -- Legacy settings may have nil value for this field.
   self.settings.pages_before_update = self.settings.pages_before_update or 0
-  self.device_id = G_reader_settings:readSetting("device_id")
+  self.device_id = G_reader_settings:read("device_id")
 
   -- Disable auto-sync if beforeWifiAction was reset to "prompt" behind our back...
   if
     self.settings.auto_sync
     and Device:hasSeamlessWifiToggle()
-    and G_reader_settings:readSetting("wifi_enable_action") ~= "turn_on"
+    and G_reader_settings:read("wifi_enable_action") ~= "turn_on"
   then
     self.settings.auto_sync = false
     logger.warn(
@@ -233,7 +233,7 @@ function KOSync:addToMainMenu(menu_items)
           -- Actively recommend switching the before wifi action to "turn_on" instead of prompt, as prompt will just not be practical (or even plain usable) here.
           if
             Device:hasSeamlessWifiToggle()
-            and G_reader_settings:readSetting("wifi_enable_action") ~= "turn_on"
+            and G_reader_settings:read("wifi_enable_action") ~= "turn_on"
             and not self.settings.auto_sync
           then
             UIManager:show(InfoMessage:new({
@@ -636,7 +636,7 @@ end
 
 function KOSync:_getDocumentDigest()
   if self.settings.checksum_method ~= CHECKSUM_METHOD.FILENAME then
-    return self.ui.doc_settings:readSetting("partial_md5_checksum")
+    return self.ui.doc_settings:read("partial_md5_checksum")
   end
   local file = self.ui.document.file
   if not file then

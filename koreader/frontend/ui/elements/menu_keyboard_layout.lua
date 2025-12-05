@@ -54,7 +54,7 @@ local function genKeyboardLayoutsSubmenu()
       text_func = function()
         local text =
           T("%1 (%2)", Language:getLanguageName(lang), lang:sub(1, 2))
-        if G_reader_settings:readSetting("keyboard_layout_default") == lang then
+        if G_reader_settings:read("keyboard_layout_default") == lang then
           text = text .. "   ★"
         end
         return text
@@ -183,7 +183,7 @@ local sub_item_table = {
         title = _("Keyboard font size"),
         -- do not use input_type = "number" to see letters on the keyboard
         input = tostring(
-          G_reader_settings:readSetting("keyboard_key_font_size")
+          G_reader_settings:read("keyboard_key_font_size")
             or VirtualKeyboard.default_label_size
         ),
         input_hint = "(16 - 30)",

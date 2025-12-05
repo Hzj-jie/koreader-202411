@@ -31,7 +31,7 @@ local SSH = WidgetContainer:extend({
 })
 
 function SSH:init()
-  self.SSH_port = G_reader_settings:readSetting("SSH_port") or "2222"
+  self.SSH_port = G_reader_settings:read("SSH_port") or "2222"
   self.allow_no_password = G_reader_settings:isTrue("SSH_allow_no_password")
   self.ui.menu:registerToMainMenu(self)
   self:onDispatcherRegisterActions()

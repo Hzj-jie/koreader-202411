@@ -180,8 +180,8 @@ function ReaderAnnotation:migrateToAnnotations(config)
   if self.ui.rolling then
     if bookmarks_type == "string" then -- compatible format loaded, check for incompatible old backup
       if config:has("bookmarks_paging") then -- save incompatible old backup
-        local bookmarks_paging = config:readSetting("bookmarks_paging")
-        local highlights_paging = config:readSetting("highlight_paging")
+        local bookmarks_paging = config:read("bookmarks_paging")
+        local highlights_paging = config:read("highlight_paging")
         local annotations = self:getAnnotationsFromBookmarksHighlights(
           bookmarks_paging,
           highlights_paging
@@ -205,8 +205,8 @@ function ReaderAnnotation:migrateToAnnotations(config)
   else -- self.ui.paging
     if bookmarks_type == "number" then
       if config:has("bookmarks_rolling") then
-        local bookmarks_rolling = config:readSetting("bookmarks_rolling")
-        local highlights_rolling = config:readSetting("highlight_rolling")
+        local bookmarks_rolling = config:read("bookmarks_rolling")
+        local highlights_rolling = config:read("highlight_rolling")
         local annotations = self:getAnnotationsFromBookmarksHighlights(
           bookmarks_rolling,
           highlights_rolling

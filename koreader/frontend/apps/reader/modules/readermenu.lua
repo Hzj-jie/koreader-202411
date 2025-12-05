@@ -99,8 +99,8 @@ function ReaderMenu:initGesListener()
     return
   end
 
-  local DTAP_ZONE_MENU = G_defaults:readSetting("DTAP_ZONE_MENU")
-  local DTAP_ZONE_MENU_EXT = G_defaults:readSetting("DTAP_ZONE_MENU_EXT")
+  local DTAP_ZONE_MENU = G_defaults:read("DTAP_ZONE_MENU")
+  local DTAP_ZONE_MENU_EXT = G_defaults:read("DTAP_ZONE_MENU_EXT")
   self.ui:registerTouchZones({
     {
       id = "readermenu_tap",
@@ -287,7 +287,7 @@ function ReaderMenu:setUpdateItemTable()
       enabled_func = function()
         if self.ui and self.ui.document then
           local screensaverType =
-            G_reader_settings:readSetting("screensaver_type")
+            G_reader_settings:read("screensaver_type")
           return screensaverType == "cover" or screensaverType == "disable"
         else
           return false
@@ -525,7 +525,7 @@ function ReaderMenu:closeMenu()
 end
 
 function ReaderMenu:onReadSettings(config)
-  self.last_tab_index = config:readSetting("readermenu_tab_index") or 1
+  self.last_tab_index = config:read("readermenu_tab_index") or 1
 end
 
 function ReaderMenu:onSaveSettings()

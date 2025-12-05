@@ -85,7 +85,7 @@ local getSubMenuItems = function()
   end
   if G_reader_settings:has("font_ui_fallbacks") then
     local additional_fallbacks =
-      G_reader_settings:readSetting("font_ui_fallbacks")
+      G_reader_settings:read("font_ui_fallbacks")
     for i = #additional_fallbacks, 1, -1 do
       local path = additional_fallbacks[i]
       local name = fallback_candidates_path_to_name[path]

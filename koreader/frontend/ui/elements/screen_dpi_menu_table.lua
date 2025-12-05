@@ -12,7 +12,7 @@ local function dpi()
 end
 
 local function custom()
-  return G_reader_settings:readSetting("custom_screen_dpi")
+  return G_reader_settings:read("custom_screen_dpi")
 end
 
 local function setDPI(dpi_val)

@@ -455,10 +455,10 @@ function ReaderStyleTweak:onReadSettings(config)
   -- are defined in css_tweaks.lua
   self.global_tweaks = G_reader_settings:readTableOrNil("style_tweaks")
     or CssTweaks.DEFAULT_GLOBAL_STYLE_TWEAKS
-  self.book_style_tweak = config:readSetting("book_style_tweak") -- string or nil
-  self.book_style_tweak_enabled = config:readSetting("book_style_tweak_enabled")
+  self.book_style_tweak = config:read("book_style_tweak") -- string or nil
+  self.book_style_tweak_enabled = config:read("book_style_tweak_enabled")
   self.book_style_tweak_last_edit_pos =
-    config:readSetting("book_style_tweak_last_edit_pos")
+    config:read("book_style_tweak_last_edit_pos")
   self:updateCssText()
 end
 

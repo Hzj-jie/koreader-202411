@@ -35,8 +35,8 @@ function MoveToArchive:init()
       "move_to_archive_settings.lua"
     )
   )
-  self.archive_dir_path = self.settings:readSetting("archive_dir")
-  self.last_copied_from_dir = self.settings:readSetting("last_copied_from_dir")
+  self.archive_dir_path = self.settings:read("archive_dir")
+  self.last_copied_from_dir = self.settings:read("last_copied_from_dir")
 end
 
 function MoveToArchive:addToMainMenu(menu_items)

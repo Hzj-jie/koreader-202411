@@ -851,7 +851,7 @@ function ReaderStatistics:migrateToDB(conn)
   local nr_of_conv_books = 0
   local exclude_titles = {}
   for _, v in ipairs(ReadHistory.hist) do
-    local book_stats = DocSettings:open(v.file):readSetting("stats")
+    local book_stats = DocSettings:open(v.file):read("stats")
     if book_stats and book_stats.title == "" then
       book_stats.title = v.file:match("^.+/(.+)$")
     end
@@ -1035,7 +1035,7 @@ function ReaderStatistics:onBookMetadataChanged(prop_updated)
     -- Not the current document: we have to find its id in the db, from the (old) title/authors/md5
     local db_md5, db_title, db_authors, db_authors_legacy
     if DocSettings:hasSidecarFile(filepath) then
-      db_md5 = DocSettings:open(filepath):readSetting("partial_md5_checksum")
+      db_md5 = DocSettings:open(filepath):read("partial_md5_checksum")
       -- Note: stats.title and stats.authors may be osbolete, if the metadata
       -- has previously been updated and the document never re-opened since.
       logger.dbg(log_prefix, "got md5 from docsettings:", db_md5)
@@ -3493,7 +3493,7 @@ end
 
 function ReaderStatistics:onReaderReady(config)
   self.data = config:readTableRef("stats", { performance_in_pages = {} })
-  self.doc_md5 = config:readSetting("partial_md5_checksum")
+  self.doc_md5 = config:read("partial_md5_checksum")
   -- we have correct page count now, do the actual initialization work
   self:_initData()
 end
