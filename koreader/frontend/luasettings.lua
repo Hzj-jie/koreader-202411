@@ -79,7 +79,8 @@ function LuaSettings:readSetting(key)
   return r
 end
 
---[[-- Reads a setting or creates an empty table
+--[[-- Reads a setting or creates an empty table, returned table can be directly
+--     modified, and modifications would be preserved.
 
 @param key The setting's key
 ]]
@@ -105,11 +106,10 @@ end
 --[[-- Reads a setting but not creates an empty table, expects to call
        saveSetting or the setting will not be persisted.
 ]]
-function LuaSettings:readTableSettingOr(key, default)
+function LuaSettings:readTableSettingOrNil(key)
   if self:has(key) then
     return self:readTableSetting(key)
   end
-  return default or {}
 end
 
 --- Saves a setting.

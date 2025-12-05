@@ -145,8 +145,8 @@ function ReaderAnnotation:onReadSettings(config)
 end
 
 function ReaderAnnotation:migrateToAnnotations(config)
-  local bookmarks = config:readTableSettingOr("bookmarks")
-  local highlights = config:readTableSettingOr("highlight")
+  local bookmarks = config:readTableSettingOrNil("bookmarks") or {}
+  local highlights = config:readTableSettingOrNil("highlight") or {}
 
   if config:hasNot("highlights_imported") then
     -- before 2014, saved highlights were not added to bookmarks when they were created.
