@@ -808,7 +808,8 @@ end
 
 -- Returns user selected or last opened folder
 function OPDSBrowser.getCurrentDownloadDir()
-  return G_reader_settings:read("download_dir") or G_named_settings.lastdir()
+  return G_reader_settings:read("download_dir")
+    or G_named_settings.lastdir()
 end
 
 -- Downloads a book (with "File already exists" dialog)

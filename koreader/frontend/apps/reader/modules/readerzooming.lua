@@ -276,7 +276,8 @@ function ReaderZooming:onReadSettings(config)
   -- Import legacy zoom_factor settings
   if config:has("zoom_factor") and config:hasNot("kopt_zoom_factor") then
     config:saveSetting("kopt_zoom_factor", config:read("zoom_factor"))
-    self.document.configurable.zoom_factor = config:read("kopt_zoom_factor")
+    self.document.configurable.zoom_factor =
+      config:read("kopt_zoom_factor")
     config:delSetting("zoom_factor")
   elseif config:has("zoom_factor") and config:has("kopt_zoom_factor") then
     config:delSetting("zoom_factor")

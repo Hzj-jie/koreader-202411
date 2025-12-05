@@ -443,7 +443,8 @@ function ReaderDictionary:addToMainMenu(menu_items)
     table.insert(menu_items.dictionary_settings.sub_item_table, 2, {
       text_func = function()
         local display_name = _("none")
-        local ext_id = G_reader_settings:read("external_dict_lookup_method")
+        local ext_id =
+          G_reader_settings:read("external_dict_lookup_method")
         for i, v in ipairs(Device:getExternalDictLookupList()) do
           if v[1] == ext_id then
             display_name = v[2]

@@ -30,14 +30,18 @@ function ReaderCoptListener:onReadSettings(config)
   self.title = G_reader_settings:read("cre_header_title") or 1
   self.author = G_reader_settings:read("cre_header_author") or 1
   self.clock = G_reader_settings:read("cre_header_clock") or 1
-  self.page_number = G_reader_settings:read("cre_header_page_number") or 1
+  self.page_number = G_reader_settings:read("cre_header_page_number")
+    or 1
   self.page_count = G_reader_settings:read("cre_header_page_count") or 1
-  self.reading_percent = G_reader_settings:read("cre_header_reading_percent")
-    or 0
+  self.reading_percent = G_reader_settings:read(
+    "cre_header_reading_percent"
+  ) or 0
   self.battery = G_reader_settings:read("cre_header_battery") or 1
-  self.battery_percent = G_reader_settings:read("cre_header_battery_percent")
-    or 0
-  self.chapter_marks = G_reader_settings:read("cre_header_chapter_marks") or 1
+  self.battery_percent = G_reader_settings:read(
+    "cre_header_battery_percent"
+  ) or 0
+  self.chapter_marks = G_reader_settings:read("cre_header_chapter_marks")
+    or 1
 
   self.document._document:setIntProperty("window.status.title", self.title)
   self.document._document:setIntProperty("window.status.author", self.author)

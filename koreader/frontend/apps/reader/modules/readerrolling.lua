@@ -1060,7 +1060,8 @@ function ReaderRolling:onGotoViewRel(diff)
     local page_visible_height = self.ui.dimen.h - footer_height
     local pan_diff = diff * page_visible_height
     if self.view.page_overlap_enable then
-      local overlap_lines = G_reader_settings:read("copt_overlap_lines") or 1
+      local overlap_lines = G_reader_settings:read("copt_overlap_lines")
+        or 1
       local overlap_h = Screen:scaleBySize(
         self.configurable.font_size
           * 1.1

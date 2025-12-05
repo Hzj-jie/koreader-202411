@@ -81,7 +81,8 @@ function TextEditor:loadSettings()
   self.last_path = self.settings:read("last_path")
     or ffiutil.realpath(DataStorage:getDataDir())
   self.font_face = self.settings:read("font_face") or self.normal_font
-  self.font_size = self.settings:read("font_size") or self.default_font_size
+  self.font_size = self.settings:read("font_size")
+    or self.default_font_size
   -- The font settings could be saved in G_reader_setting if we want them
   -- to be re-used by default by InputDialog (on certain conditaions,
   -- when fullscreen or condensed or add_nav_bar...)

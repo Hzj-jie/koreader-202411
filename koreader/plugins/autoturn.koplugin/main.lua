@@ -100,8 +100,10 @@ function AutoTurn:_start()
 end
 
 function AutoTurn:init()
-  self.autoturn_sec = G_reader_settings:read("autoturn_timeout_seconds") or 0
-  self.autoturn_distance = G_reader_settings:read("autoturn_distance") or 1
+  self.autoturn_sec = G_reader_settings:read("autoturn_timeout_seconds")
+    or 0
+  self.autoturn_distance = G_reader_settings:read("autoturn_distance")
+    or 1
   self.enabled = G_reader_settings:isTrue("autoturn_enabled")
   self.ui.menu:registerToMainMenu(self)
   self.task = function()

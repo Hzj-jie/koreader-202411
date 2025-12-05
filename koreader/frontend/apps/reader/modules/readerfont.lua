@@ -848,7 +848,8 @@ This may help with Greek words among Latin text (as Latin fonts often do not hav
 
   table.insert(settings_table, {
     text_func = function()
-      local scale = G_reader_settings:read("cre_monospace_scaling") or 100
+      local scale = G_reader_settings:read("cre_monospace_scaling")
+        or 100
       return T(_("Monospace fonts scaling: %1 %"), scale)
     end,
     callback = function()

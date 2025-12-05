@@ -71,7 +71,8 @@ return {
         enabled_func = function()
           return G_reader_settings:read("screensaver_type") == "cover"
             or G_reader_settings:read("screensaver_type") == "document_cover"
-            or G_reader_settings:read("screensaver_type") == "random_image"
+            or G_reader_settings:read("screensaver_type")
+              == "random_image"
         end,
         sub_item_table = {
           genMenuItem(_("Black fill"), "screensaver_img_background", "black"),
@@ -86,8 +87,9 @@ return {
           -- separator
           {
             text_func = function()
-              local percentage =
-                G_reader_settings:read("screensaver_stretch_limit_percentage")
+              local percentage = G_reader_settings:read(
+                "screensaver_stretch_limit_percentage"
+              )
               if
                 G_reader_settings:isTrue("screensaver_stretch_images")
                 and percentage
@@ -140,8 +142,10 @@ return {
       {
         text = _("Custom images"),
         enabled_func = function()
-          return G_reader_settings:read("screensaver_type") == "random_image"
-            or G_reader_settings:read("screensaver_type") == "document_cover"
+          return G_reader_settings:read("screensaver_type")
+              == "random_image"
+            or G_reader_settings:read("screensaver_type")
+              == "document_cover"
         end,
         sub_item_table = {
           {

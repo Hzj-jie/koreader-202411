@@ -50,7 +50,8 @@ function PerceptionExpander:createUI(readSettings)
     self.margin = tonumber(self.settings:read("margin"))
     self.line_color_intensity =
       tonumber(self.settings:read("line_color_intensity"))
-    self.shift_each_pages = tonumber(self.settings:read("shift_each_pages"))
+    self.shift_each_pages =
+      tonumber(self.settings:read("shift_each_pages"))
     self.page_counter = tonumber(self.settings:read("page_counter"))
   end
 

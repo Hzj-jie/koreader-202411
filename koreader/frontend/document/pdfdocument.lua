@@ -82,7 +82,8 @@ function PdfDocument:convertKoptToReflowableFontSize(font_size)
   elseif G_reader_settings:read("kopt_font_size") then
     return G_reader_settings:read("kopt_font_size") * default_font_size
   elseif G_defaults:read("DKOPTREADER_CONFIG_FONT_SIZE") then
-    return G_defaults:read("DKOPTREADER_CONFIG_FONT_SIZE") * default_font_size
+    return G_defaults:read("DKOPTREADER_CONFIG_FONT_SIZE")
+      * default_font_size
   else
     return default_font_size
   end

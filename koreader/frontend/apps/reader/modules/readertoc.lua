@@ -1347,8 +1347,9 @@ Enabling this option will restrict display to the chapter titles of progress bar
       local curr_perpage = G_reader_settings:read("toc_items_per_page")
         or self.toc_items_per_page_default
       local default_font_size = Menu.getItemFontSize(curr_perpage)
-      local curr_font_size = G_reader_settings:read("toc_items_font_size")
-        or default_font_size
+      local curr_font_size = G_reader_settings:read(
+        "toc_items_font_size"
+      ) or default_font_size
       local items_font = SpinWidget:new({
         value = curr_font_size,
         value_min = 10,

@@ -286,7 +286,8 @@ function ReaderMenu:setUpdateItemTable()
       text = _("Do not show this book cover on sleep screen"),
       enabled_func = function()
         if self.ui and self.ui.document then
-          local screensaverType = G_reader_settings:read("screensaver_type")
+          local screensaverType =
+            G_reader_settings:read("screensaver_type")
           return screensaverType == "cover" or screensaverType == "disable"
         else
           return false
