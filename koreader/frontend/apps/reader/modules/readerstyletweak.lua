@@ -450,10 +450,10 @@ end
 
 function ReaderStyleTweak:onReadSettings(config)
   self.enabled = config:nilOrTrue("style_tweaks_enabled")
-  self.doc_tweaks = config:readTableSettingOrNil("style_tweaks") or {}
+  self.doc_tweaks = config:readTableOrNil("style_tweaks") or {}
   -- Default globally enabled style tweaks (for new installations)
   -- are defined in css_tweaks.lua
-  self.global_tweaks = G_reader_settings:readTableSettingOrNil(
+  self.global_tweaks = G_reader_settings:readTableOrNil(
     "style_tweaks") or 
     CssTweaks.DEFAULT_GLOBAL_STYLE_TWEAKS
   self.book_style_tweak = config:readSetting("book_style_tweak") -- string or nil

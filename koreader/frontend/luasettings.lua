@@ -106,7 +106,7 @@ end
 --[[-- Reads a setting but not creates an empty table, expects to call
        saveSetting or the setting will not be persisted.
 ]]
-function LuaSettings:readTableSettingOrNil(key)
+function LuaSettings:readTableOrNil(key)
   if self:has(key) then
     return self:readTableSetting(key)
   end
