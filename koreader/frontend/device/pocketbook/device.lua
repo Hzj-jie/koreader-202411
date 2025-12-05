@@ -109,7 +109,7 @@ function PocketBook:init()
   self.screen = require("ffi/framebuffer_pocketbook"):new({
     device = self,
     debug = logger.dbg,
-    wf_level = G_reader_settings:read("wf_level") or 0,
+    wf_level = G_reader_settings:readSetting("wf_level") or 0,
     fbinfoOverride = function(fb, finfo, vinfo)
       -- Device model caps *can* set both to indicate that either will work to get correct orientation.
       -- But for FB backend, the flags are mutually exclusive, so we nuke one of em later.

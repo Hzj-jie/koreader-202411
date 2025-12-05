@@ -63,7 +63,7 @@ end
 function FileManager:setRotationMode()
   local locked = G_reader_settings:isTrue("lock_rotation")
   if not locked then
-    local mode = G_reader_settings:read("fm_rotation_mode")
+    local mode = G_reader_settings:readSetting("fm_rotation_mode")
       or Screen.DEVICE_ROTATED_UPRIGHT
     self:onSetRotationMode(mode)
   end
@@ -277,7 +277,7 @@ function FileManager:setupLayout()
         if has_sidecar then
           doc_settings_or_file = DocSettings:open(file)
           if not self.book_props then
-            local props = doc_settings_or_file:read("doc_props")
+            local props = doc_settings_or_file:readSetting("doc_props")
             self.book_props = FileManagerBookInfo.extendProps(props, file)
             self.book_props.has_cover = true -- to enable "Book cover" button, we do not know if cover exists
           end

@@ -97,7 +97,7 @@ function LuaData:empty()
   return #(self.data or {}) == 0
 end
 
-function LuaData:read()
+function LuaData:readSetting()
   return self.data
 end
 

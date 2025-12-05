@@ -115,13 +115,13 @@ function CreDocument:cacheInit()
   cre.initCache(
     DataStorage:getDataDir() .. "/cache/cr3cache",
     (
-      G_reader_settings:read("cre_disk_cache_max_size")
+      G_reader_settings:readSetting("cre_disk_cache_max_size")
       or default_cre_disk_cache_max_size
     )
       * 1024
       * 1024,
     G_reader_settings:nilOrTrue("cre_compress_cached_data"),
-    G_reader_settings:read("cre_storage_size_factor")
+    G_reader_settings:readSetting("cre_storage_size_factor")
       or default_cre_storage_size_factor
   )
 end
@@ -203,7 +203,7 @@ function CreDocument:init()
   end
 
   -- This mode must be the same as the default one set as ReaderView.view_mode
-  self._view_mode = G_defaults:read("DCREREADER_VIEW_MODE") == "scroll"
+  self._view_mode = G_defaults:readSetting("DCREREADER_VIEW_MODE") == "scroll"
       and self.SCROLL_VIEW_MODE
     or self.PAGE_VIEW_MODE
 
@@ -331,7 +331,7 @@ function CreDocument:setupDefaultView()
 
   -- set monospace fonts size scaling
   self:setMonospaceFontScaling(
-    G_reader_settings:read("cre_monospace_scaling") or 100
+    G_reader_settings:readSetting("cre_monospace_scaling") or 100
   )
 
   -- adjust font sizes according to dpi set in canvas context
@@ -342,7 +342,7 @@ function CreDocument:setupDefaultView()
     self._document:setIntProperty(
       "crengine.page.header.font.size",
       CreUtil.font_size(
-        G_reader_settings:read("cre_header_status_font_size")
+        G_reader_settings:readSetting("cre_header_status_font_size")
       )
     )
   end
@@ -350,12 +350,12 @@ function CreDocument:setupDefaultView()
   -- One can set these to change from white background
   if G_reader_settings:has("cre_background_color") then
     self:setBackgroundColor(
-      G_reader_settings:read("cre_background_color")
+      G_reader_settings:readSetting("cre_background_color")
     )
   end
   if G_reader_settings:has("cre_background_image") then
     self:setBackgroundImage(
-      G_reader_settings:read("cre_background_image")
+      G_reader_settings:readSetting("cre_background_image")
     )
   end
 end
@@ -385,7 +385,7 @@ function CreDocument:render()
   -- This is now configurable and done by ReaderRolling:
   -- -- set visible page count in landscape
   -- if math.max(CanvasContext:getWidth(), CanvasContext:getHeight()) / CanvasContext:getDPI()
-  --   < G_defaults:read("DCREREADER_TWO_PAGE_THRESHOLD") then
+  --   < G_defaults:readSetting("DCREREADER_TWO_PAGE_THRESHOLD") then
   --   self:setVisiblePageCount(1)
   -- end
   logger.dbg("CreDocument: rendering document...")
@@ -1199,7 +1199,7 @@ function CreDocument:setOtherFontBiases()
   -- if other monospace fonts were registered (same factor as above so its
   -- synthetic bold or italic are used, in case some other monospace font
   -- has real bold or italic variants)
-  local monospace_font = G_reader_settings:read("monospace_font")
+  local monospace_font = G_reader_settings:readSetting("monospace_font")
     or self.monospace_font
   cre.setAsPreferredFontWithBias(monospace_font, 1 + 128 * 5 + 256 * 5, false)
 end
@@ -1223,7 +1223,7 @@ end
 function CreDocument:setupFallbackFontFaces()
   local fallbacks = {}
   local seen_fonts = {}
-  local user_fallback = G_reader_settings:read("fallback_font")
+  local user_fallback = G_reader_settings:readSetting("fallback_font")
   if user_fallback then
     table.insert(fallbacks, user_fallback)
     seen_fonts[user_fallback] = true

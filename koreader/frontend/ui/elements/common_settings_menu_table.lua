@@ -279,7 +279,7 @@ local function genGenericMenuEntry(title, setting, value, default, radiomark)
   return {
     text = title,
     checked_func = function()
-      return (G_reader_settings:read(setting) or default) == value
+      return (G_reader_settings:readSetting(setting) or default) == value
     end,
     radio = radiomark,
     callback = function()
@@ -406,7 +406,7 @@ local skim_dialog_position_string = {
 }
 common_settings.skim_dialog_position = {
   text_func = function()
-    local position = G_reader_settings:read("skim_dialog_position")
+    local position = G_reader_settings:readSetting("skim_dialog_position")
       or "center"
     return T(
       _("Skim dialog position: %1"),
@@ -473,7 +473,7 @@ local function genAutoSaveMenuItem(value)
     text = text,
     help_text = auto_save_help_text,
     checked_func = function()
-      return G_reader_settings:read(setting_name) == value
+      return G_reader_settings:readSetting(setting_name) == value
     end,
     callback = function()
       G_reader_settings:saveSetting(setting_name, value)
@@ -604,7 +604,7 @@ common_settings.document_metadata_location = {
 common_settings.document_auto_save = {
   text_func = function()
     local interval =
-      G_reader_settings:read("auto_save_settings_interval_minutes")
+      G_reader_settings:readSetting("auto_save_settings_interval_minutes")
     local s_interval
     if interval == false then
       s_interval = _("only on close and suspend")
@@ -675,10 +675,10 @@ common_settings.document_end_action = {
     {
       text = _("Open next file"),
       enabled_func = function()
-        return G_reader_settings:read("collate") ~= "access"
+        return G_reader_settings:readSetting("collate") ~= "access"
       end,
       checked_func = function()
-        return G_reader_settings:read("end_document_action")
+        return G_reader_settings:readSetting("end_document_action")
           == "next_file"
       end,
       radio = true,

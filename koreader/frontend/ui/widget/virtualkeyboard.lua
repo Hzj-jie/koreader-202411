@@ -56,7 +56,7 @@ local VirtualKey = InputContainer:extend({
 local ignore_key_release
 
 function VirtualKey:init()
-  local label_font_size = G_reader_settings:read(
+  local label_font_size = G_reader_settings:readSetting(
     "keyboard_key_font_size"
   ) or DEFAULT_LABEL_SIZE
   self.face = Font:getFace("infont", label_font_size)
@@ -91,8 +91,8 @@ function VirtualKey:init()
     self.key_chars = self:genKeyboardLayoutKeyChars()
     self.callback = function()
       self.keyboard:onSwitchingKeyboardLayout()
-      local current = G_reader_settings:read("keyboard_layout")
-      local default = G_reader_settings:read("keyboard_layout_default")
+      local current = G_reader_settings:readSetting("keyboard_layout")
+      local default = G_reader_settings:readSetting("keyboard_layout_default")
       local keyboard_layouts =
         G_reader_settings:readTableRef("keyboard_layouts")
       local next_layout = nil
@@ -776,7 +776,7 @@ function VirtualKeyPopup:init()
     }),
   }
   self.tap_interval_override = time.ms(
-    G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0
+    G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms") or 0
   )
 
   if Device:hasKeys() then
@@ -926,7 +926,7 @@ function VirtualKeyboard:init()
   self.max_layer = keyboard.max_layer
   self:initLayer(self.keyboard_layer)
   self.tap_interval_override = time.ms(
-    G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0
+    G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms") or 0
   )
   if Device:hasKeys() then
     self.key_events.Exit = { { "Back" } }
@@ -980,13 +980,13 @@ function VirtualKeyboard:getKeyboardLayout()
     G_reader_settings:isFalse("keyboard_remember_layout")
     and not keyboard_state.force_current_layout
   then
-    local lang = G_reader_settings:read("keyboard_layout_default")
-      or G_reader_settings:read("keyboard_layout")
+    local lang = G_reader_settings:readSetting("keyboard_layout_default")
+      or G_reader_settings:readSetting("keyboard_layout")
       or "en"
     G_reader_settings:saveSetting("keyboard_layout", lang)
   end
-  return G_reader_settings:read("keyboard_layout")
-    or G_reader_settings:read("language")
+  return G_reader_settings:readSetting("keyboard_layout")
+    or G_reader_settings:readSetting("language")
     or "en"
 end
 

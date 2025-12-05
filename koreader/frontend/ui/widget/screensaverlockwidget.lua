@@ -16,7 +16,7 @@ local ScreenSaverLockWidget = InputContainer:extend({
 
 function ScreenSaverLockWidget:init()
   if Device:isTouchDevice() then
-    if G_reader_settings:read("screensaver_delay") == "gesture" then
+    if G_reader_settings:readSetting("screensaver_delay") == "gesture" then
       self:setupGestureEvents()
     end
     if not self.has_exit_screensaver_gesture then

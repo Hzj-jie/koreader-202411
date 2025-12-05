@@ -143,7 +143,7 @@ function filemanagerutil.genStatusButtonsRow(
 )
   local file, summary, status
   if type(doc_settings_or_file) == "table" then
-    file = doc_settings_or_file:read("doc_path")
+    file = doc_settings_or_file:readSetting("doc_path")
     summary = doc_settings_or_file:readTableRef("summary")
     status = summary.status
   else
@@ -182,7 +182,7 @@ function filemanagerutil.genResetSettingsButton(
   local doc_settings, file, has_sidecar_file
   if type(doc_settings_or_file) == "table" then
     doc_settings = doc_settings_or_file
-    file = doc_settings_or_file:read("doc_path")
+    file = doc_settings_or_file:readSetting("doc_path")
     has_sidecar_file = true
   else
     file = ffiutil.realpath(doc_settings_or_file) or doc_settings_or_file

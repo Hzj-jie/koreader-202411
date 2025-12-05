@@ -55,7 +55,7 @@ function ReaderScrolling:init()
   end
 
   -- The different scrolling methods are handled directly by readerpaging/readerrolling
-  self.scroll_method = G_reader_settings:read("scroll_method")
+  self.scroll_method = G_reader_settings:readSetting("scroll_method")
 
   -- Keep inertial scrolling available on the emulator (which advertises itself as eInk)
   if not Device:hasEinkScreen() or Device:isEmulator() then
@@ -219,7 +219,7 @@ end
 
 function ReaderScrolling:onReaderReady()
   -- We don't know if the gestures plugin is loaded in :init(), but we know it here
-  self.scroll_activation_delay_ms = G_reader_settings:read(
+  self.scroll_activation_delay_ms = G_reader_settings:readSetting(
     "scroll_activation_delay"
   ) or self:getDefaultScrollActivationDelay_ms()
   self:applyScrollSettings()

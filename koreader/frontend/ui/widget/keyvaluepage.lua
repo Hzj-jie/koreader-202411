@@ -510,7 +510,7 @@ function KeyValuePage:init()
     - 2 * Size.line.thick
   -- account for possibly 2 separator lines added
 
-  self.items_per_page = G_reader_settings:read("keyvalues_per_page")
+  self.items_per_page = G_reader_settings:readSetting("keyvalues_per_page")
     or self.getDefaultItemsPerPage()
   self.item_height = math.floor(available_height / self.items_per_page)
   -- Put half of the pixels lost by floor'ing between title and content

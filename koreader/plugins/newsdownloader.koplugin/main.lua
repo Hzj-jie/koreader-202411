@@ -192,7 +192,7 @@ function NewsDownloader:lazyInitialization()
     -- Check to see if a custom download directory has been set.
     if self.settings:has(self.config_key_custom_dl_dir) then
       self.download_dir =
-        self.settings:read(self.config_key_custom_dl_dir)
+        self.settings:readSetting(self.config_key_custom_dl_dir)
     else
       self.download_dir = ("%s/%s/"):format(
         DataStorage:getFullDataDir(),

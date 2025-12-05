@@ -75,7 +75,7 @@ function Bidi.setup(lang)
     -- Simplified Chinese vs Traditional Chinese).
     -- Allow overriding xtext language rules from main UI language
     -- (eg. English UI, with French line breaking rules)
-    local alt_lang = G_reader_settings:read("xtext_alt_lang") or lang
+    local alt_lang = G_reader_settings:readSetting("xtext_alt_lang") or lang
     if alt_lang then
       xtext.setDefaultLang(alt_lang)
     end

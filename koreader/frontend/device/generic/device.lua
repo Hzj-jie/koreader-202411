@@ -216,7 +216,7 @@ function Device:init()
   self.screen.isBGRFrameBuffer = self.hasBGRFrameBuffer
 
   if G_reader_settings:has("low_pan_rate") then
-    self.screen.low_pan_rate = G_reader_settings:read("low_pan_rate")
+    self.screen.low_pan_rate = G_reader_settings:readSetting("low_pan_rate")
   else
     self.screen.low_pan_rate = self.hasEinkScreen()
   end
@@ -278,7 +278,7 @@ function Device:init()
   end
 
   -- DPI
-  local dpi_override = G_reader_settings:read("screen_dpi")
+  local dpi_override = G_reader_settings:readSetting("screen_dpi")
   if dpi_override ~= nil then
     self:setScreenDPI(dpi_override)
   end
@@ -292,7 +292,7 @@ function Device:init()
   -- Ensure the proper rotation on startup.
   -- We default to the rotation KOReader closed with.
   -- If the rotation is not locked it will be overridden by a book or the FM when opened.
-  local rotation_mode = G_reader_settings:read("closed_rotation_mode")
+  local rotation_mode = G_reader_settings:readSetting("closed_rotation_mode")
   if rotation_mode and rotation_mode ~= self.screen:getRotationMode() then
     self.screen:setRotationMode(rotation_mode)
   end

@@ -39,7 +39,7 @@ function Screenshoter:init()
 end
 
 function Screenshoter:getScreenshotDir()
-  local screenshot_dir = G_reader_settings:read("screenshot_dir")
+  local screenshot_dir = G_reader_settings:readSetting("screenshot_dir")
   return screenshot_dir and screenshot_dir:gsub("/$", "") or self.default_dir
 end
 
@@ -124,7 +124,7 @@ end
 
 function Screenshoter:chooseFolder()
   local title_header = _("Current screenshot folder:")
-  local current_path = G_reader_settings:read("screenshot_dir")
+  local current_path = G_reader_settings:readSetting("screenshot_dir")
   local default_path = self.default_dir
   local caller_callback = function(path)
     G_reader_settings:saveSetting("screenshot_dir", path)

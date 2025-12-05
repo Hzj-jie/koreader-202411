@@ -74,7 +74,7 @@ function FileSearcher:onShowFileSearch(search_string)
           text = _("Home folder"),
           enabled = G_reader_settings:has("home_dir"),
           callback = function()
-            self.path = G_reader_settings:read("home_dir")
+            self.path = G_reader_settings:readSetting("home_dir")
             _doSearch()
           end,
         },

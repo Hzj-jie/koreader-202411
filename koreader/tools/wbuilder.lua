@@ -15,7 +15,7 @@ local _ = require("gettext")
 G_reader_settings = require("luasettings"):open(
   DataStorage:getDataDir() .. "/settings.reader.lua"
 )
-local lang_locale = G_reader_settings:read("language")
+local lang_locale = G_reader_settings:readSetting("language")
 if lang_locale then
   _.changeLang(lang_locale)
 end

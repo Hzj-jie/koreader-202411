@@ -29,16 +29,16 @@ local LATEST_VERSION =
 local Calculator = WidgetContainer:new({
   name = "calculator",
   is_doc_only = false,
-  calculator_output_path = G_reader_settings:read(
+  calculator_output_path = G_reader_settings:readSetting(
     "calculator_output_path"
   ) or util.realpath(DataStorage:getDataDir()) .. "/output.calc",
-  calculator_input_path = G_reader_settings:read(
+  calculator_input_path = G_reader_settings:readSetting(
     "calculator_input_path"
   ) or util.realpath(DataStorage:getDataDir()) .. "/input.calc",
   init_file = "plugins/calculator.koplugin/init.calc",
-  use_init_file = G_reader_settings:read("calculator_use_init_file")
+  use_init_file = G_reader_settings:readSetting("calculator_use_init_file")
     or "yes",
-  load_file = G_reader_settings:read("calculator_init_path")
+  load_file = G_reader_settings:readSetting("calculator_init_path")
     or init_file,
   history = "",
   i_num = 1, -- number of next input
@@ -93,7 +93,7 @@ end
 function Calculator:addKeyboard()
   VirtualKeyboard.lang_to_keyboard_layout["Calculator"] = "calc_keyboard"
   self.original_keyboard_layout =
-    G_reader_settings:read("keyboard_layout")
+    G_reader_settings:readSetting("keyboard_layout")
   G_reader_settings:saveSetting("keyboard_layout", "Calculator")
 end
 
@@ -323,11 +323,11 @@ function Calculator:convertUnit(text_containing_unit)
 end
 
 function Calculator:onCalculatorStart()
-  self.angle_mode = G_reader_settings:read("calculator_angle_mode")
+  self.angle_mode = G_reader_settings:readSetting("calculator_angle_mode")
     or self.angle_mode
-  self.number_format = G_reader_settings:read("calculator_number_format")
+  self.number_format = G_reader_settings:readSetting("calculator_number_format")
     or self.number_format
-  self.significant_places = G_reader_settings:read(
+  self.significant_places = G_reader_settings:readSetting(
     "calculator_significant_places"
   ) or self.significant_places
 

@@ -42,8 +42,8 @@ function ReaderConfig:initGesListener()
     return
   end
 
-  local DTAP_ZONE_CONFIG = G_defaults:read("DTAP_ZONE_CONFIG")
-  local DTAP_ZONE_CONFIG_EXT = G_defaults:read("DTAP_ZONE_CONFIG_EXT")
+  local DTAP_ZONE_CONFIG = G_defaults:readSetting("DTAP_ZONE_CONFIG")
+  local DTAP_ZONE_CONFIG_EXT = G_defaults:readSetting("DTAP_ZONE_CONFIG_EXT")
   self.ui:registerTouchZones({
     {
       id = "readerconfigmenu_tap",
@@ -205,7 +205,7 @@ end
 
 function ReaderConfig:onReadSettings(config)
   self.configurable:loadSettings(config, self.options.prefix .. "_")
-  local config_panel_index = config:read("config_panel_index")
+  local config_panel_index = config:readSetting("config_panel_index")
   if config_panel_index then
     config_panel_index = math.min(config_panel_index, #self.options)
   end

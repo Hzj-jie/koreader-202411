@@ -111,7 +111,7 @@ end
 -- in which case we append the results of a conversion to that unit in the final string.
 -- It can also be set to `true`, in which case the unit is pulled from user settings ("dimension_units").
 function optionsutil.showValues(configurable, option, prefix, document, unit)
-  local default = G_reader_settings:read(prefix .. "_" .. option.name)
+  local default = G_reader_settings:readSetting(prefix .. "_" .. option.name)
   local current = configurable[option.name]
   local value_default, value_current
   unit = unit or option.name_text_unit
@@ -244,7 +244,7 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
 end
 
 function optionsutil.showValuesHMargins(configurable, option)
-  local default = G_reader_settings:read("copt_" .. option.name)
+  local default = G_reader_settings:readSetting("copt_" .. option.name)
   local current = configurable[option.name]
   local unit = G_named_settings.dimension_units()
   if not default then

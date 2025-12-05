@@ -10,13 +10,13 @@ local logger = require("logger")
 local md5 = require("ffi/sha2").md5
 local util = require("util")
 
-local DHINTCOUNT = G_defaults:read("DHINTCOUNT")
+local DHINTCOUNT = G_defaults:readSetting("DHINTCOUNT")
 
 local function calcCacheMemSize()
-  local min = G_defaults:read("DGLOBAL_CACHE_SIZE_MINIMUM")
-  local max = G_defaults:read("DGLOBAL_CACHE_SIZE_MAXIMUM")
+  local min = G_defaults:readSetting("DGLOBAL_CACHE_SIZE_MINIMUM")
+  local max = G_defaults:readSetting("DGLOBAL_CACHE_SIZE_MAXIMUM")
   local memfree, _ = util.calcFreeMem() or 0, 0
-  local calc = memfree * G_defaults:read("DGLOBAL_CACHE_FREE_PROPORTION")
+  local calc = memfree * G_defaults:readSetting("DGLOBAL_CACHE_FREE_PROPORTION")
   return math.min(max, math.max(min, calc))
 end
 local doccache_size = calcCacheMemSize()

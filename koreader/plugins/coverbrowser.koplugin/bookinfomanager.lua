@@ -452,7 +452,7 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
       self.tmpcr3cache,
       0, -- 0 = previous book caches are removed when opening a book
       true,
-      G_reader_settings:read("cre_storage_size_factor")
+      G_reader_settings:readSetting("cre_storage_size_factor")
         or default_cre_storage_size_factor
     )
     self.cre_cache_overriden = true

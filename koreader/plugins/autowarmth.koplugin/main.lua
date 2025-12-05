@@ -62,14 +62,14 @@ function AutoWarmth:init()
   self.ui.menu:registerToMainMenu(self)
 
   self.easy_mode = G_reader_settings:nilOrTrue("autowarmth_easy_mode")
-  self.activate = G_reader_settings:read("autowarmth_activate") or 0
-  self.location = G_reader_settings:read("autowarmth_location")
+  self.activate = G_reader_settings:readSetting("autowarmth_activate") or 0
+  self.location = G_reader_settings:readSetting("autowarmth_location")
     or "Geysir"
-  self.latitude = G_reader_settings:read("autowarmth_latitude") or 64.31 --great Geysir in Iceland
-  self.longitude = G_reader_settings:read("autowarmth_longitude")
+  self.latitude = G_reader_settings:readSetting("autowarmth_latitude") or 64.31 --great Geysir in Iceland
+  self.longitude = G_reader_settings:readSetting("autowarmth_longitude")
     or -20.30
-  self.altitude = G_reader_settings:read("autowarmth_altitude") or 200
-  self.timezone = G_reader_settings:read("autowarmth_timezone") or 0
+  self.altitude = G_reader_settings:readSetting("autowarmth_altitude") or 200
+  self.timezone = G_reader_settings:readSetting("autowarmth_timezone") or 0
   self.scheduler_times = G_reader_settings:readTableRef(
     "autowarmth_scheduler_times",
     { 0.0, 5.5, 6.0, 6.5, 7.0, 13.0, 21.5, 22.0, 22.5, 23.0, 24.0 }
@@ -80,8 +80,8 @@ function AutoWarmth:init()
   )
 
   self.fl_off_during_day =
-    G_reader_settings:read("autowarmth_fl_off_during_day")
-  self.fl_off_during_day_offset_s = G_reader_settings:read(
+    G_reader_settings:readSetting("autowarmth_fl_off_during_day")
+  self.fl_off_during_day_offset_s = G_reader_settings:readSetting(
     "autowarmth_fl_off_during_day_offset_s"
   ) or 0
   if self.easy_mode then
@@ -725,7 +725,7 @@ function AutoWarmth:getSubMenuItems()
         if self.easy_mode then
           self.fl_off_during_day_offset_s = 0 -- don't store that value
         else
-          self.fl_off_during_day_offset_s = G_reader_settings:read(
+          self.fl_off_during_day_offset_s = G_reader_settings:readSetting(
             "autowarmth_fl_off_during_day_offset_s"
           ) or 0
         end
@@ -804,7 +804,7 @@ function AutoWarmth:getFlOffDuringDayMenu()
   • on before sunset.]]),
           ok_always_enabled = true,
           -- read the saved setting, as this gets overwritten by toggling easy_mode
-          value = (G_reader_settings:read(
+          value = (G_reader_settings:readSetting(
             "autowarmth_fl_off_during_day_offset_s"
           ) or 0) * (1 / 60),
           value_min = -15,

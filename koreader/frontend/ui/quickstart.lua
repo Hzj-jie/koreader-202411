@@ -16,7 +16,7 @@ local QuickStart = {
   quickstart_force_show_version = 2021070000,
 }
 
-local language = G_reader_settings:read("language") or "en"
+local language = G_reader_settings:readSetting("language") or "en"
 local version = Version:getNormalizedCurrentVersion()
 local rev = Version:getCurrentRevision()
 
@@ -425,7 +425,7 @@ it was first shown.
 ]]
 function QuickStart:isShown()
   local shown_version =
-    G_reader_settings:read("quickstart_shown_version")
+    G_reader_settings:readSetting("quickstart_shown_version")
   return shown_version ~= nil
     and (shown_version >= self.quickstart_force_show_version)
 end

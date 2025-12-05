@@ -40,10 +40,10 @@ function ReaderToc:init()
     -- The TOC items per page and items' font size can now be
     -- configured. Previously, the ones set for the file browser
     -- were used. Initialize them from these ones.
-    local items_per_page = G_reader_settings:read("items_per_page")
+    local items_per_page = G_reader_settings:readSetting("items_per_page")
       or self.toc_items_per_page_default
     G_reader_settings:saveSetting("toc_items_per_page", items_per_page)
-    local items_font_size = G_reader_settings:read("items_font_size")
+    local items_font_size = G_reader_settings:readSetting("items_font_size")
     if
       items_font_size
       and items_font_size ~= Menu.getItemFontSize(items_per_page)
@@ -87,9 +87,9 @@ function ReaderToc:onReadSettings(config)
   self.toc_ticks_ignored_levels =
     config:readTableRef("toc_ticks_ignored_levels")
   self.toc_chapter_navigation_bind_to_ticks =
-    config:read("toc_chapter_navigation_bind_to_ticks")
+    config:readSetting("toc_chapter_navigation_bind_to_ticks")
   self.toc_chapter_title_bind_to_ticks =
-    config:read("toc_chapter_title_bind_to_ticks")
+    config:readSetting("toc_chapter_title_bind_to_ticks")
 end
 
 function ReaderToc:onSaveSettings()
@@ -788,9 +788,9 @@ function ReaderToc:onShowToc()
     BD.invert()
   end
 
-  local items_per_page = G_reader_settings:read("toc_items_per_page")
+  local items_per_page = G_reader_settings:readSetting("toc_items_per_page")
     or self.toc_items_per_page_default
-  local items_font_size = G_reader_settings:read("toc_items_font_size")
+  local items_font_size = G_reader_settings:readSetting("toc_items_font_size")
     or Menu.getItemFontSize(items_per_page)
   local items_show_chapter_length =
     G_reader_settings:isTrue("toc_items_show_chapter_length")
@@ -1320,7 +1320,7 @@ Enabling this option will restrict display to the chapter titles of progress bar
     keep_menu_open = true,
     callback = function()
       local SpinWidget = require("ui/widget/spinwidget")
-      local curr_perpage = G_reader_settings:read("toc_items_per_page")
+      local curr_perpage = G_reader_settings:readSetting("toc_items_per_page")
         or self.toc_items_per_page_default
       local items = SpinWidget:new({
         value = curr_perpage,
@@ -1344,10 +1344,10 @@ Enabling this option will restrict display to the chapter titles of progress bar
     keep_menu_open = true,
     callback = function()
       local SpinWidget = require("ui/widget/spinwidget")
-      local curr_perpage = G_reader_settings:read("toc_items_per_page")
+      local curr_perpage = G_reader_settings:readSetting("toc_items_per_page")
         or self.toc_items_per_page_default
       local default_font_size = Menu.getItemFontSize(curr_perpage)
-      local curr_font_size = G_reader_settings:read(
+      local curr_font_size = G_reader_settings:readSetting(
         "toc_items_font_size"
       ) or default_font_size
       local items_font = SpinWidget:new({

@@ -55,7 +55,7 @@ function WpaSupplicant:getNetworkList()
   for _, network in ipairs(list) do
     network.ssid = decodeSSID(network.ssid)
     network.signal_quality = network:getSignalQuality()
-    local saved_nw = saved_networks:read(network.ssid)
+    local saved_nw = saved_networks:readSetting(network.ssid)
     if saved_nw then
       --- @todo verify saved_nw.flags == network.flags?
       -- This will break if user changed the network setting, e.g.,

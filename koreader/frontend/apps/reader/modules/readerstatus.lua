@@ -39,7 +39,7 @@ end
 function ReaderStatus:onEndOfBook()
   Device:performHapticFeedback("CONTEXT_CLICK")
   local QuickStart = require("ui/quickstart")
-  local last_file = G_reader_settings:read("lastfile")
+  local last_file = G_reader_settings:readSetting("lastfile")
   if last_file == QuickStart.quickstart_filename then
     -- Like onOpenNextDocumentInFolder, delay this so as not to break instance lifecycle
     UIManager:nextTick(function()
@@ -53,9 +53,9 @@ function ReaderStatus:onEndOfBook()
     self:markBook(true)
   end
 
-  local collate = G_reader_settings:read("collate")
+  local collate = G_reader_settings:readSetting("collate")
   local next_file_enabled = collate ~= "access" and collate ~= "date"
-  local settings = G_reader_settings:read("end_document_action")
+  local settings = G_reader_settings:readSetting("end_document_action")
     or "pop-up"
   local top_widget = UIManager:getTopmostVisibleWidget() or {}
   if settings == "pop-up" and top_widget.name ~= "end_document" then

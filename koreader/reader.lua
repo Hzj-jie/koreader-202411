@@ -64,7 +64,7 @@ if not is_cbb_enabled then
   jit.opt.start("loopunroll=45")
 end
 
-local lang_locale = G_reader_settings:read("language")
+local lang_locale = G_reader_settings:readSetting("language")
 -- Allow quick switching to Arabic for testing RTL/UI mirroring
 if os.getenv("KO_RTL") then
   lang_locale = "ar"
@@ -184,7 +184,7 @@ Bidi.setup(lang_locale)
 -- for name, _ in pairs(package.loaded) do print(name) end
 
 -- User fonts override
-local fontmap = G_reader_settings:read("fontmap")
+local fontmap = G_reader_settings:readSetting("fontmap")
 if fontmap ~= nil then
   local Font = require("ui/font")
   for k, v in pairs(fontmap) do
@@ -234,8 +234,8 @@ then
 end
 
 -- Get which file to start with
-local last_file = G_reader_settings:read("lastfile")
-local start_with = G_reader_settings:read("start_with") or "filemanager"
+local last_file = G_reader_settings:readSetting("lastfile")
+local start_with = G_reader_settings:readSetting("start_with") or "filemanager"
 
 -- Helpers
 local function retryLastFile()

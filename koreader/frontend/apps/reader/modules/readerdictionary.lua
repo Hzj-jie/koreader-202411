@@ -172,7 +172,7 @@ function ReaderDictionary:init()
   if self.ui then
     self.ui.menu:registerToMainMenu(self)
   end
-  self.data_dir = G_defaults:read("STARDICT_DATA_DIR")
+  self.data_dir = G_defaults:readSetting("STARDICT_DATA_DIR")
     or os.getenv("STARDICT_DATA_DIR")
     or DataStorage:getDataDir() .. "/data/dict"
 
@@ -245,7 +245,7 @@ function ReaderDictionary:addToMainMenu(menu_items)
       return lookup_history:notEmpty()
     end,
     callback = function()
-      local lookup_history_table = lookup_history:read()
+      local lookup_history_table = lookup_history:readSetting()
       local kv_pairs = {}
       local previous_title
       for i = #lookup_history_table, 1, -1 do
@@ -419,7 +419,7 @@ function ReaderDictionary:addToMainMenu(menu_items)
           text = dict_name,
           checked_func = function()
             return setting
-              == G_reader_settings:read("external_dict_lookup_method")
+              == G_reader_settings:readSetting("external_dict_lookup_method")
           end,
           enabled_func = function()
             return is_enabled == true
@@ -444,7 +444,7 @@ function ReaderDictionary:addToMainMenu(menu_items)
       text_func = function()
         local display_name = _("none")
         local ext_id =
-          G_reader_settings:read("external_dict_lookup_method")
+          G_reader_settings:readSetting("external_dict_lookup_method")
         for i, v in ipairs(Device:getExternalDictLookupList()) do
           if v[1] == ext_id then
             display_name = v[2]
@@ -1017,7 +1017,7 @@ function ReaderDictionary:stardictLookup(
   then
     Device:doExternalDictLookup(
       word,
-      G_reader_settings:read("external_dict_lookup_method"),
+      G_reader_settings:readSetting("external_dict_lookup_method"),
       function()
         if self.highlight then
           local clear_id = self.highlight:getClearId()
@@ -1306,7 +1306,7 @@ function ReaderDictionary:onReadSettings(config)
   self.preferred_dictionaries = config:readTableRef("preferred_dictionaries")
   if #self.preferred_dictionaries == 0 then
     -- Legacy setting, when only one dict could be set as default/first to show
-    local default_dictionary = config:read("default_dictionary")
+    local default_dictionary = config:readSetting("default_dictionary")
     if default_dictionary then
       table.insert(self.preferred_dictionaries, default_dictionary)
       config:delSetting("default_dictionary")

@@ -530,7 +530,7 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
     end
   else -- delete
     if has_sidecar_file then
-      local cache_file_path = doc_settings:read("cache_file_path")
+      local cache_file_path = doc_settings:readSetting("cache_file_path")
       if cache_file_path then
         os.remove(cache_file_path)
       end

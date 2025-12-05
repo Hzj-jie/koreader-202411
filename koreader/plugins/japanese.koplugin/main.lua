@@ -44,7 +44,7 @@ local DEFAULT_TEXT_SCAN_LENGTH = 20
 function Japanese:init()
   self.deinflector = SingleInstanceDeinflector
   self.dictionary = (self.ui and self.ui.dictionary) or ReaderDictionary:new()
-  self.max_scan_length = G_reader_settings:read(
+  self.max_scan_length = G_reader_settings:readSetting(
     "language_japanese_text_scan_length"
   ) or DEFAULT_TEXT_SCAN_LENGTH
   LanguageSupport:registerPlugin(self)

@@ -565,7 +565,7 @@ function CalibreSearch:prompt(message)
 
       -- append current wireless dir if it wasn't found on the scan
       -- this will happen if it is in a nested dir.
-      local inbox_dir = G_reader_settings:read("inbox_dir")
+      local inbox_dir = G_reader_settings:readSetting("inbox_dir")
       if inbox_dir and not self.libraries[inbox_dir] then
         if CalibreMetadata:getDeviceInfo(inbox_dir, "date_last_connected") then
           self.libraries[inbox_dir] = true

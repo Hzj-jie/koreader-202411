@@ -18,10 +18,10 @@ end
 
 function ReaderKoptListener:onReadSettings(config)
   -- normal zoom mode is zoom mode used in non-reflow mode.
-  local normal_zoom_mode = config:read("normal_zoom_mode")
+  local normal_zoom_mode = config:readSetting("normal_zoom_mode")
     or ReaderZooming:combo_to_mode(
-      G_reader_settings:read("kopt_zoom_mode_genus"),
-      G_reader_settings:read("kopt_zoom_mode_type")
+      G_reader_settings:readSetting("kopt_zoom_mode_genus"),
+      G_reader_settings:readSetting("kopt_zoom_mode_type")
     )
   normal_zoom_mode = ReaderZooming.zoom_mode_label[normal_zoom_mode]
       and normal_zoom_mode
@@ -79,10 +79,10 @@ function ReaderKoptListener:onDocLangUpdate(lang)
     or lang == "kor"
   then
     self.document.configurable.word_spacing =
-      G_defaults:read("DKOPTREADER_CONFIG_WORD_SPACINGS")[1]
+      G_defaults:readSetting("DKOPTREADER_CONFIG_WORD_SPACINGS")[1]
   else
     self.document.configurable.word_spacing =
-      G_defaults:read("DKOPTREADER_CONFIG_WORD_SPACINGS")[3]
+      G_defaults:readSetting("DKOPTREADER_CONFIG_WORD_SPACINGS")[3]
   end
 end
 

@@ -11,53 +11,53 @@ local named_settings = {
 function named_settings.home_dir()
   -- Use of readSetting("home_dir") should still be possible but very limited, e.g. protected by
   -- G_named_settings:has("home_dir") or with another way to provide the backup_dir().
-  return G_reader_settings:read("home_dir")
+  return G_reader_settings:readSetting("home_dir")
     or require("util").backup_dir()
 end
 
 function named_settings.lastdir()
-  return G_reader_settings:read("lastdir")
+  return G_reader_settings:readSetting("lastdir")
     or require("util").backup_dir()
 end
 
 function named_settings.activate_menu()
-  return G_reader_settings:read("activate_menu") or "swipe_tap"
+  return G_reader_settings:readSetting("activate_menu") or "swipe_tap"
 end
 
 function named_settings.auto_standby_timeout_seconds()
-  return G_reader_settings:read("auto_standby_timeout_seconds") or -1
+  return G_reader_settings:readSetting("auto_standby_timeout_seconds") or -1
 end
 
 function named_settings.back_in_filemanager()
-  return G_reader_settings:read("back_in_filemanager") or "default"
+  return G_reader_settings:readSetting("back_in_filemanager") or "default"
 end
 
 function named_settings.back_in_reader()
-  return G_reader_settings:read("back_in_reader") or "previous_location"
+  return G_reader_settings:readSetting("back_in_reader") or "previous_location"
 end
 
 function named_settings.back_to_exit()
-  return G_reader_settings:read("back_to_exit") or "prompt"
+  return G_reader_settings:readSetting("back_to_exit") or "prompt"
 end
 
 function named_settings.dict_font_size()
-  return G_reader_settings:read("dict_font_size") or 20
+  return G_reader_settings:readSetting("dict_font_size") or 20
 end
 
 function named_settings.dimension_units()
-  return G_reader_settings:read("dimension_units") or "mm"
+  return G_reader_settings:readSetting("dimension_units") or "mm"
 end
 
 function named_settings.document_metadata_folder()
-  return G_reader_settings:read("document_metadata_folder") or "doc"
+  return G_reader_settings:readSetting("document_metadata_folder") or "doc"
 end
 
 function named_settings.duration_format()
-  return G_reader_settings:read("duration_format") or "classic"
+  return G_reader_settings:readSetting("duration_format") or "classic"
 end
 
 function named_settings.show_file_in_bold()
-  return G_reader_settings:read("show_file_in_bold") or "new"
+  return G_reader_settings:readSetting("show_file_in_bold") or "new"
 end
 
 function named_settings.set.show_file_in_bold(value)

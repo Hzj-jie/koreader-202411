@@ -20,8 +20,8 @@ local DEFAULT_FULL_REFRESH_COUNT = 6
 local UIManager = {
   -- trigger a full refresh when counter reaches FULL_REFRESH_COUNT
   FULL_REFRESH_COUNT = G_reader_settings:isTrue("night_mode")
-      and G_reader_settings:read("night_full_refresh_count")
-    or G_reader_settings:read("full_refresh_count")
+      and G_reader_settings:readSetting("night_full_refresh_count")
+    or G_reader_settings:readSetting("full_refresh_count")
     or DEFAULT_FULL_REFRESH_COUNT,
   refresh_count = 0,
   currently_scrolling = false,
@@ -792,21 +792,21 @@ end
 
 --- Returns the full refresh rate for e-ink screens (`FULL_REFRESH_COUNT`).
 function UIManager:getRefreshRate()
-  return G_reader_settings:read("full_refresh_count")
+  return G_reader_settings:readSetting("full_refresh_count")
     or DEFAULT_FULL_REFRESH_COUNT,
-    G_reader_settings:read("night_full_refresh_count")
-      or G_reader_settings:read("full_refresh_count")
+    G_reader_settings:readSetting("night_full_refresh_count")
+      or G_reader_settings:readSetting("full_refresh_count")
       or DEFAULT_FULL_REFRESH_COUNT
 end
 
 --- Toggles Night Mode (i.e., inverted rendering).
 function UIManager:ToggleNightMode(night_mode)
   if night_mode then
-    self.FULL_REFRESH_COUNT = G_reader_settings:read(
+    self.FULL_REFRESH_COUNT = G_reader_settings:readSetting(
       "night_full_refresh_count"
-    ) or G_reader_settings:read("full_refresh_count") or DEFAULT_FULL_REFRESH_COUNT
+    ) or G_reader_settings:readSetting("full_refresh_count") or DEFAULT_FULL_REFRESH_COUNT
   else
-    self.FULL_REFRESH_COUNT = G_reader_settings:read(
+    self.FULL_REFRESH_COUNT = G_reader_settings:readSetting(
       "full_refresh_count"
     ) or DEFAULT_FULL_REFRESH_COUNT
   end
@@ -1673,7 +1673,7 @@ function UIManager:onRotation()
 end
 
 function UIManager:initLooper()
-  if G_defaults:read("DUSE_TURBO_LIB") and not self.looper then
+  if G_defaults:readSetting("DUSE_TURBO_LIB") and not self.looper then
     TURBO_SSL = true -- luacheck: ignore
     __TURBO_USE_LUASOCKET__ = true -- luacheck: ignore
     local turbo = require("turbo")

@@ -22,16 +22,16 @@ function ReaderDeviceStatus:init()
   end
 
   if Device:hasBattery() then
-    self.battery_threshold = G_reader_settings:read(
+    self.battery_threshold = G_reader_settings:readSetting(
       "device_status_battery_threshold"
     ) or 20
-    self.battery_threshold_high = G_reader_settings:read(
+    self.battery_threshold_high = G_reader_settings:readSetting(
       "device_status_battery_threshold_high"
     ) or 95
   end
 
   if not Device:isAndroid() then
-    self.memory_threshold = G_reader_settings:read(
+    self.memory_threshold = G_reader_settings:readSetting(
       "device_status_memory_threshold"
     ) or 100
   end

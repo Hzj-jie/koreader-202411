@@ -545,7 +545,7 @@ function Gestures:addIntervals(menu_items)
         keep_menu_open = true,
         callback = function()
           local default_value = Screen.low_pan_rate and 5.0 or 30.0
-          local current_value = G_reader_settings:read("hold_pan_rate")
+          local current_value = G_reader_settings:readSetting("hold_pan_rate")
             or default_value
           local items = SpinWidget:new({
             title_text = _("Text selection rate"),
@@ -613,7 +613,7 @@ The interval value is in milliseconds and can range from 0 (0 seconds) to 2000 (
             ),
             width = math.floor(Screen:getWidth() * 0.75),
             value = time.to_ms(
-              G_reader_settings:read("ges_tap_interval_on_keyboard_ms")
+              G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms")
                 or 0
             ),
             value_min = 0,
@@ -898,7 +898,7 @@ function Gestures:setupGesture(ges)
     ratio_h = 1,
   }
 
-  local dswipe_zone_left_edge = G_defaults:read("DSWIPE_ZONE_LEFT_EDGE")
+  local dswipe_zone_left_edge = G_defaults:readSetting("DSWIPE_ZONE_LEFT_EDGE")
   local zone_left_edge = {
     ratio_x = dswipe_zone_left_edge.x,
     ratio_y = dswipe_zone_left_edge.y,
@@ -906,14 +906,14 @@ function Gestures:setupGesture(ges)
     ratio_h = dswipe_zone_left_edge.h,
   }
   local dswipe_zone_right_edge =
-    G_defaults:read("DSWIPE_ZONE_RIGHT_EDGE")
+    G_defaults:readSetting("DSWIPE_ZONE_RIGHT_EDGE")
   local zone_right_edge = {
     ratio_x = dswipe_zone_right_edge.x,
     ratio_y = dswipe_zone_right_edge.y,
     ratio_w = dswipe_zone_right_edge.w,
     ratio_h = dswipe_zone_right_edge.h,
   }
-  local dswipe_zone_top_edge = G_defaults:read("DSWIPE_ZONE_TOP_EDGE")
+  local dswipe_zone_top_edge = G_defaults:readSetting("DSWIPE_ZONE_TOP_EDGE")
   local zone_top_edge = {
     ratio_x = dswipe_zone_top_edge.x,
     ratio_y = dswipe_zone_top_edge.y,
@@ -921,7 +921,7 @@ function Gestures:setupGesture(ges)
     ratio_h = dswipe_zone_top_edge.h,
   }
   local dswipe_zone_bottom_edge =
-    G_defaults:read("DSWIPE_ZONE_BOTTOM_EDGE")
+    G_defaults:readSetting("DSWIPE_ZONE_BOTTOM_EDGE")
   local zone_bottom_edge = {
     ratio_x = dswipe_zone_bottom_edge.x,
     ratio_y = dswipe_zone_bottom_edge.y,
@@ -929,21 +929,21 @@ function Gestures:setupGesture(ges)
     ratio_h = dswipe_zone_bottom_edge.h,
   }
 
-  local dtap_zone_top_left = G_defaults:read("DTAP_ZONE_TOP_LEFT")
+  local dtap_zone_top_left = G_defaults:readSetting("DTAP_ZONE_TOP_LEFT")
   local zone_top_left_corner = {
     ratio_x = dtap_zone_top_left.x,
     ratio_y = dtap_zone_top_left.y,
     ratio_w = dtap_zone_top_left.w,
     ratio_h = dtap_zone_top_left.h,
   }
-  local dtap_zone_top_right = G_defaults:read("DTAP_ZONE_TOP_RIGHT")
+  local dtap_zone_top_right = G_defaults:readSetting("DTAP_ZONE_TOP_RIGHT")
   local zone_top_right_corner = {
     ratio_x = dtap_zone_top_right.x,
     ratio_y = dtap_zone_top_right.y,
     ratio_w = dtap_zone_top_right.w,
     ratio_h = dtap_zone_top_right.h,
   }
-  local dtap_zone_bottom_left = G_defaults:read("DTAP_ZONE_BOTTOM_LEFT")
+  local dtap_zone_bottom_left = G_defaults:readSetting("DTAP_ZONE_BOTTOM_LEFT")
   local zone_bottom_left_corner = {
     ratio_x = dtap_zone_bottom_left.x,
     ratio_y = dtap_zone_bottom_left.y,
@@ -951,16 +951,16 @@ function Gestures:setupGesture(ges)
     ratio_h = dtap_zone_bottom_left.h,
   }
   local dtap_zone_bottom_right =
-    G_defaults:read("DTAP_ZONE_BOTTOM_RIGHT")
+    G_defaults:readSetting("DTAP_ZONE_BOTTOM_RIGHT")
   local zone_bottom_right_corner = {
     ratio_x = dtap_zone_bottom_right.x,
     ratio_y = dtap_zone_bottom_right.y,
     ratio_w = dtap_zone_bottom_right.w,
     ratio_h = dtap_zone_bottom_right.h,
   }
-  -- NOTE: The defaults are effectively mapped to G_defaults:read("DTAP_ZONE_BACKWARD") & G_defaults:read("DTAP_ZONE_FORWARD")
+  -- NOTE: The defaults are effectively mapped to G_defaults:readSetting("DTAP_ZONE_BACKWARD") & G_defaults:readSetting("DTAP_ZONE_FORWARD")
   local ddouble_tap_zone_prev_chapter =
-    G_defaults:read("DDOUBLE_TAP_ZONE_PREV_CHAPTER")
+    G_defaults:readSetting("DDOUBLE_TAP_ZONE_PREV_CHAPTER")
   local zone_left = {
     ratio_x = ddouble_tap_zone_prev_chapter.x,
     ratio_y = ddouble_tap_zone_prev_chapter.y,
@@ -968,7 +968,7 @@ function Gestures:setupGesture(ges)
     ratio_h = ddouble_tap_zone_prev_chapter.h,
   }
   local ddouble_tap_zone_next_chapter =
-    G_defaults:read("DDOUBLE_TAP_ZONE_NEXT_CHAPTER")
+    G_defaults:readSetting("DDOUBLE_TAP_ZONE_NEXT_CHAPTER")
   local zone_right = {
     ratio_x = ddouble_tap_zone_next_chapter.x,
     ratio_y = ddouble_tap_zone_next_chapter.y,

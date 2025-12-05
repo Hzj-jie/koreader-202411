@@ -84,9 +84,9 @@ function ReadTimer:init()
   end
 
   self.show_value_in_header =
-    G_reader_settings:read("readtimer_show_value_in_header")
+    G_reader_settings:readSetting("readtimer_show_value_in_header")
   self.show_value_in_footer =
-    G_reader_settings:read("readtimer_show_value_in_footer")
+    G_reader_settings:readSetting("readtimer_show_value_in_footer")
 
   self.ui.menu:registerToMainMenu(self)
 end
@@ -330,7 +330,7 @@ function ReadTimer:addToMainMenu(menu_items)
           local remain_hours, remain_minutes = self:remainingTime()
           if not remain_hours and not remain_minutes then
             remain_time =
-              G_reader_settings:read("reader_timer_remain_time")
+              G_reader_settings:readSetting("reader_timer_remain_time")
             if remain_time then
               remain_hours = remain_time[1]
               remain_minutes = remain_time[2]

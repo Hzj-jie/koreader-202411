@@ -50,12 +50,12 @@ function Weather:loadSettings()
   end
   -- Load the default settings
   self.settings = LuaSettings:open(self.settings_file)
-  self.postal_code = self.settings:read("postal_code")
+  self.postal_code = self.settings:readSetting("postal_code")
     or self.default_postal_code
-  self.api_key = self.settings:read("api_key") or self.default_api_key
-  self.temp_scale = self.settings:read("temp_scale")
+  self.api_key = self.settings:readSetting("api_key") or self.default_api_key
+  self.temp_scale = self.settings:readSetting("temp_scale")
     or self.default_temp_scale
-  self.clock_style = self.settings:read("clock_style")
+  self.clock_style = self.settings:readSetting("clock_style")
     or self.default_clock_style
   -- Pollinate the other objects that require settings
   self.composer = Composer:new({

@@ -206,11 +206,11 @@ end
 
 function AutoSuspend:init()
   logger.dbg("AutoSuspend: init")
-  self.autoshutdown_timeout_seconds = G_reader_settings:read(
+  self.autoshutdown_timeout_seconds = G_reader_settings:readSetting(
     "autoshutdown_timeout_seconds",
     default_autoshutdown_timeout_seconds
   )
-  self.auto_suspend_timeout_seconds = G_reader_settings:read(
+  self.auto_suspend_timeout_seconds = G_reader_settings:readSetting(
     "auto_suspend_timeout_seconds",
     default_auto_suspend_timeout_seconds
   )

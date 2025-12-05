@@ -153,7 +153,7 @@ local FileChooser = Menu:extend({
         item.opened = DocSettings:hasSidecarFile(item.path)
         if item.opened then
           local doc_settings = DocSettings:open(item.path)
-          percent_finished = doc_settings:read("percent_finished")
+          percent_finished = doc_settings:readSetting("percent_finished")
         end
 
         -- smooth 2 decimal points (0.00) instead of 16 decimal points
@@ -186,7 +186,7 @@ local FileChooser = Menu:extend({
         item.opened = DocSettings:hasSidecarFile(item.path)
         if item.opened then
           local doc_settings = DocSettings:open(item.path)
-          percent_finished = doc_settings:read("percent_finished")
+          percent_finished = doc_settings:readSetting("percent_finished")
         end
 
         -- smooth 2 decimal points (0.00) instead of 16 decimal points
@@ -235,7 +235,7 @@ local FileChooser = Menu:extend({
             sort_percent = -0.01
           end
 
-          percent_finished = doc_settings:read("percent_finished")
+          percent_finished = doc_settings:readSetting("percent_finished")
         end
         -- smooth 2 decimal points (0.00) instead of 16 decimal points
         item.sort_percent = sort_percent
@@ -451,7 +451,7 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
 end
 
 function FileChooser:getCollate()
-  local collate_id = G_reader_settings:read("collate") or "strcoll"
+  local collate_id = G_reader_settings:readSetting("collate") or "strcoll"
   local collate = self.collates[collate_id]
   if collate ~= nil then
     return collate, collate_id

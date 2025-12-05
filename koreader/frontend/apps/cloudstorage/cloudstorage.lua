@@ -267,7 +267,7 @@ function CloudStorage:downloadFile(item)
   end
 
   local cs_settings = self:readSettings()
-  local download_dir = cs_settings:read("download_dir")
+  local download_dir = cs_settings:readSetting("download_dir")
     or G_named_settings.lastdir()
   local filename_orig = item.text
   local filename = filename_orig

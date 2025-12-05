@@ -77,7 +77,7 @@ function BookInfo:extract(doc_settings_or_file, book_props)
 
   -- File section
   local has_sidecar = type(doc_settings_or_file) == "table"
-  local file = has_sidecar and doc_settings_or_file:read("doc_path")
+  local file = has_sidecar and doc_settings_or_file:readSetting("doc_path")
     or doc_settings_or_file
   local folder, filename = util.splitFilePathName(file)
   local __, filetype = filemanagerutil.splitFileNameType(filename)
@@ -125,7 +125,7 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   if custom_metadata_file then
     self.custom_doc_settings =
       DocSettings.openSettingsFile(custom_metadata_file)
-    custom_props = self.custom_doc_settings:read("custom_props")
+    custom_props = self.custom_doc_settings:readSetting("custom_props")
   end
   local values_lang, callback
   for _i, prop_key in ipairs(self.props) do
@@ -287,21 +287,21 @@ function BookInfo.getDocProps(file, book_props, no_open_document)
     if not book_props then
       -- Files opened after 20170701 have a "doc_props" setting with
       -- complete metadata and "doc_pages" with accurate nb of pages
-      book_props = doc_settings:read("doc_props")
+      book_props = doc_settings:readSetting("doc_props")
     end
     if not book_props then
       -- File last opened before 20170701 may have a "stats" setting.
       -- with partial metadata, or empty metadata if statistics plugin
       -- was not enabled when book was read (we can guess that from
       -- the fact that stats.page = 0)
-      local stats = doc_settings:read("stats")
+      local stats = doc_settings:readSetting("stats")
       if stats and stats.pages ~= 0 then
         -- title, authors, series, series_index, language
         book_props = Document:getProps(stats)
       end
     end
     -- Files opened after 20170701 have an accurate "doc_pages" setting.
-    local doc_pages = doc_settings:read("doc_pages")
+    local doc_pages = doc_settings:readSetting("doc_pages")
     if doc_pages and book_props then
       book_props.pages = doc_pages
     end
@@ -313,7 +313,7 @@ function BookInfo.getDocProps(file, book_props, no_open_document)
     local custom_metadata_file = DocSettings:findCustomMetadataFile(file)
     if custom_metadata_file then
       book_props = DocSettings.openSettingsFile(custom_metadata_file)
-        :read("doc_props")
+        :readSetting("doc_props")
     end
   end
 
@@ -371,7 +371,7 @@ end
 -- Shows book information for currently opened document.
 function BookInfo:onShowBookInfo()
   if self.document then
-    self.ui.doc_props.pages = self.ui.doc_settings:read("doc_pages")
+    self.ui.doc_props.pages = self.ui.doc_settings:readSetting("doc_pages")
     self:show(self.ui.doc_settings, self.ui.doc_props)
   end
 end
@@ -524,7 +524,7 @@ function BookInfo:setCustomMetadata(file, book_props, prop_key, prop_value)
     no_custom_metadata = true
   else
     if book_props.pages then -- keep a copy of original 'pages' up to date
-      local original_props = custom_doc_settings:read("doc_props")
+      local original_props = custom_doc_settings:readSetting("doc_props")
       original_props.pages = book_props.pages
     end
     custom_doc_settings:flushCustomMetadata(file)
@@ -846,12 +846,12 @@ function BookInfo.showBooksWithHashBasedMetadata()
   for i, sdr in ipairs(sdrs) do
     local sidecar_file, custom_metadata_file = unpack(sdr)
     local doc_settings = DocSettings.openSettingsFile(sidecar_file)
-    local doc_props = doc_settings:read("doc_props")
+    local doc_props = doc_settings:readSetting("doc_props")
     local custom_props = custom_metadata_file
         and DocSettings.openSettingsFile(custom_metadata_file)
           :readTableRef("custom_props")
       or {}
-    local doc_path = doc_settings:read("doc_path")
+    local doc_path = doc_settings:readSetting("doc_path")
     local title = custom_props.title
       or doc_props.title
       or filemanagerutil.splitFileNameType(doc_path)
