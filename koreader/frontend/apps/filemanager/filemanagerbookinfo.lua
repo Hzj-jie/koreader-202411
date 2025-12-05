@@ -186,8 +186,7 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   end
 
   -- Summary section
-  local summary = has_sidecar
-      and doc_settings_or_file:readTableRef("summary")
+  local summary = has_sidecar and doc_settings_or_file:readTableRef("summary")
     or {}
   local rating = summary.rating or 0
   local summary_hold_callback = function()
@@ -685,8 +684,7 @@ end
 
 function BookInfo:editSummary(doc_settings_or_file, book_props)
   local has_sidecar = type(doc_settings_or_file) == "table"
-  local summary = has_sidecar
-      and doc_settings_or_file:readTableRef("summary")
+  local summary = has_sidecar and doc_settings_or_file:readTableRef("summary")
     or {}
   local rating = summary.rating or 0
   local input_dialog

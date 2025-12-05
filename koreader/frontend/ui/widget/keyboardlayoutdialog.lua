@@ -46,8 +46,7 @@ function KeyboardLayoutDialog:init()
   local buttons = {}
   local radio_buttons = {}
 
-  local keyboard_layouts =
-    G_reader_settings:readTableRef("keyboard_layouts")
+  local keyboard_layouts = G_reader_settings:readTableRef("keyboard_layouts")
   local default_layout =
     G_reader_settings:readSetting("keyboard_layout_default")
   self.keyboard_state.force_current_layout = true

@@ -378,8 +378,7 @@ function VirtualKey:genKeyboardLayoutKeyChars()
     "northwest",
     "west",
   }
-  local keyboard_layouts =
-    G_reader_settings:readTableRef("keyboard_layouts")
+  local keyboard_layouts = G_reader_settings:readTableRef("keyboard_layouts")
   local key_chars = {
     { label = "🌐" },
     east = { label = "⋮" },

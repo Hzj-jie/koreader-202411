@@ -105,8 +105,7 @@ function PluginLoader:loadPlugins()
   local package_path = package.path
   local package_cpath = package.cpath
 
-  local plugins_disabled =
-    G_reader_settings:readTableRef("plugins_disabled")
+  local plugins_disabled = G_reader_settings:readTableRef("plugins_disabled")
   for entry in pairs(INVISIBLE_PLUGINS) do
     plugins_disabled[entry] = false
   end

@@ -17,8 +17,7 @@ local _ = require("gettext")
 local input_dialog, check_button_bold, check_button_border, check_button_compact
 
 local function getOrderedActivatedKeyboardLayouts()
-  local keyboard_layouts =
-    G_reader_settings:readTableRef("keyboard_layouts")
+  local keyboard_layouts = G_reader_settings:readTableRef("keyboard_layouts")
   local activated_keyboards = {}
   for _, lang in ipairs(keyboard_layouts) do
     if VirtualKeyboard.lang_to_keyboard_layout[lang] then
