@@ -45,9 +45,9 @@ local function migrateSettings()
   -- these are for legacy formats. Don't add new targets here.
   local formats = { "html", "joplin", "json", "readwise", "text" }
 
-  local settings = G_reader_settings:readTableSetting("exporter")
+  local settings = G_reader_settings:readTableRef("exporter")
   if not settings then
-    settings = G_reader_settings:readTableSetting("evernote")
+    settings = G_reader_settings:readTableRef("evernote")
   end
 
   assert(type(settings) == "table")
@@ -292,7 +292,7 @@ function Exporter:addToMainMenu(menu_items)
   table.sort(formats_submenu, function(v1, v2)
     return v1.text < v2.text
   end)
-  local settings = G_reader_settings:readTableSetting("exporter")
+  local settings = G_reader_settings:readTableRef("exporter")
   for i, v in ipairs(ReaderHighlight.getHighlightStyles()) do
     local style = v[2]
     styles_submenu[i] = {
@@ -385,7 +385,7 @@ function Exporter:addToMainMenu(menu_items)
 end
 
 function Exporter:chooseFolder()
-  local settings = G_reader_settings:readTableSetting("exporter")
+  local settings = G_reader_settings:readTableRef("exporter")
   local title_header = _("Current export folder:")
   local current_path = settings.clipping_dir
   local default_path = DataStorage:getFullDataDir() .. "/clipboard"

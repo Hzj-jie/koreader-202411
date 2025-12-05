@@ -164,8 +164,8 @@ function ReaderDictionary:init()
 
   self.disable_lookup_history =
     G_reader_settings:isTrue("disable_lookup_history")
-  self.dicts_order = G_reader_settings:readTableSetting("dicts_order")
-  self.dicts_disabled = G_reader_settings:readTableSetting("dicts_disabled")
+  self.dicts_order = G_reader_settings:readTableRef("dicts_order")
+  self.dicts_disabled = G_reader_settings:readTableRef("dicts_disabled")
   self.disable_fuzzy_search_fm =
     G_reader_settings:isTrue("disable_fuzzy_search")
 
@@ -218,7 +218,7 @@ function ReaderDictionary:updateSdcvDictNamesOptions()
     end
   end
 
-  local dicts_disabled = G_reader_settings:readTableSetting("dicts_disabled")
+  local dicts_disabled = G_reader_settings:readTableRef("dicts_disabled")
   for _, ifo in pairs(self:_getAvailableIfos()) do
     if
       not dicts_disabled[ifo.file] and not preferred_names_already_in[ifo.name]
@@ -1304,7 +1304,7 @@ end
 
 function ReaderDictionary:onReadSettings(config)
   self.preferred_dictionaries =
-    config:readTableSetting("preferred_dictionaries")
+    config:readTableRef("preferred_dictionaries")
   if #self.preferred_dictionaries == 0 then
     -- Legacy setting, when only one dict could be set as default/first to show
     local default_dictionary = config:readSetting("default_dictionary")

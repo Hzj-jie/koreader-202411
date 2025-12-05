@@ -53,7 +53,7 @@ function FileManagerHistory:fetchStatuses(count)
     if v.dim then -- deleted file
       status = "deleted"
     elseif v.file == (self.ui.document and self.ui.document.file) then -- currently opened file
-      status = self.ui.doc_settings:readTableSetting("summary").status
+      status = self.ui.doc_settings:readTableRef("summary").status
     else
       status = filemanagerutil.getStatus(v.file)
     end

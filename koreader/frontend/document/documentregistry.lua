@@ -75,7 +75,7 @@ function DocumentRegistry:hasProvider(file, mimetype, include_aux)
     return true
   end
   -- associated document or auxiliary provider for file type
-  local filetype_provider_key = (G_reader_settings:readTableSetting("provider"))[filename_suffix]
+  local filetype_provider_key = (G_reader_settings:readTableRef("provider"))[filename_suffix]
   local provider = filetype_provider_key
     and self.known_providers[filetype_provider_key]
   if provider and (not provider.order or include_aux) then -- excluding auxiliary by default
@@ -163,7 +163,7 @@ function DocumentRegistry:getAssociatedProviderKey(file, all)
   -- all: nil - first not empty, false - this file, true - file type
 
   if not file then -- get the full list of associated providers
-    return G_reader_settings:readTableSetting("provider")
+    return G_reader_settings:readTableRef("provider")
   end
 
   -- provider for this file
@@ -181,7 +181,7 @@ function DocumentRegistry:getAssociatedProviderKey(file, all)
   end
 
   -- provider for file type
-  provider_key = G_reader_settings:readTableSetting("provider")[getSuffix(file)]
+  provider_key = G_reader_settings:readTableRef("provider")[getSuffix(file)]
   if provider_key and self.known_providers[provider_key] then
     return provider_key
   end
@@ -227,7 +227,7 @@ function DocumentRegistry:setProvider(file, provider, all)
     doc_settings:flush()
   -- global
   else
-    local filetype_provider = G_reader_settings:readTableSetting("provider")
+    local filetype_provider = G_reader_settings:readTableRef("provider")
     filetype_provider[getSuffix(file)] = provider.provider
   end
 end

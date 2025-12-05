@@ -56,7 +56,7 @@ end
 
 function CloudStorage:genItemTableFromRoot()
   local item_table = {}
-  local added_servers = self.cs_settings:readTableSetting("cs_servers")
+  local added_servers = self.cs_settings:readTableRef("cs_servers")
   for _, server in ipairs(added_servers) do
     table.insert(item_table, {
       text = server.name,
@@ -83,7 +83,7 @@ end
 
 function CloudStorage:genItemTable(item)
   local item_table = {}
-  local added_servers = self.cs_settings:readTableSetting("cs_servers")
+  local added_servers = self.cs_settings:readTableRef("cs_servers")
   for _, server in ipairs(added_servers) do
     if
       server.name == item.text
@@ -385,7 +385,7 @@ end
 
 function CloudStorage:updateSyncFolder(item, source, dest)
   local cs_settings = self:readSettings()
-  local cs_servers = cs_settings:readTableSetting("cs_servers")
+  local cs_servers = cs_settings:readTableRef("cs_servers")
   for _, server in ipairs(cs_servers) do
     if
       server.name == item.text
@@ -831,7 +831,7 @@ end
 function CloudStorage:configCloud(type)
   local callbackAdd = function(fields)
     local cs_settings = self:readSettings()
-    local cs_servers = cs_settings:readTableSetting("cs_servers")
+    local cs_servers = cs_settings:readTableRef("cs_servers")
     if type == "dropbox" then
       table.insert(cs_servers, {
         name = fields[1],
@@ -877,7 +877,7 @@ end
 function CloudStorage:editCloudServer(item)
   local callbackEdit = function(updated_config, fields)
     local cs_settings = self:readSettings()
-    local cs_servers = cs_settings:readTableSetting("cs_servers")
+    local cs_servers = cs_settings:readTableRef("cs_servers")
     if item.type == "dropbox" then
       for i, server in ipairs(cs_servers) do
         if
@@ -938,7 +938,7 @@ end
 
 function CloudStorage:deleteCloudServer(item)
   local cs_settings = self:readSettings()
-  local cs_servers = cs_settings:readTableSetting("cs_servers")
+  local cs_servers = cs_settings:readTableRef("cs_servers")
   for i, server in ipairs(cs_servers) do
     if
       server.name == item.text

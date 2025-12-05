@@ -102,7 +102,7 @@ end
 
 function ReaderAnnotation:onReadSettings(config)
   if config:has("annotations") then
-    local annotations = config:readTableSetting("annotations")
+    local annotations = config:readTableRef("annotations")
     -- KOHighlights may set this key when it has merged annotations from different sources:
     -- we want to make sure they are updated and sorted
     local needs_update = config:isTrue("annotations_externally_modified")
@@ -115,14 +115,14 @@ function ReaderAnnotation:onReadSettings(config)
         config:saveSetting("annotations_paging", annotations)
       end
       -- load compatible format
-      annotations = config:readTableSetting("annotations_rolling")
+      annotations = config:readTableRef("annotations_rolling")
       config:delSetting("annotations_rolling")
       needs_sort = true
     elseif self.ui.paging and annotations_type ~= "number" then
       if has_annotations then
         config:saveSetting("annotations_rolling", annotations)
       end
-      annotations = config:readTableSetting("annotations_paging")
+      annotations = config:readTableRef("annotations_paging")
       config:delSetting("annotations_paging")
       needs_sort = true
     end
@@ -197,8 +197,8 @@ function ReaderAnnotation:migrateToAnnotations(config)
         config:saveSetting("annotations_paging", annotations)
       end
       -- load compatible format
-      bookmarks = config:readTableSetting("bookmarks_rolling")
-      highlights = config:readTableSetting("highlight_rolling")
+      bookmarks = config:readTableRef("bookmarks_rolling")
+      highlights = config:readTableRef("highlight_rolling")
       config:delSetting("bookmarks_rolling")
       config:delSetting("highlight_rolling")
     end
@@ -221,8 +221,8 @@ function ReaderAnnotation:migrateToAnnotations(config)
           self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
         config:saveSetting("annotations_rolling", annotations)
       end
-      bookmarks = config:readTableSetting("bookmarks_paging")
-      highlights = config:readTableSetting("highlight_paging")
+      bookmarks = config:readTableRef("bookmarks_paging")
+      highlights = config:readTableRef("highlight_paging")
       config:delSetting("bookmarks_paging")
       config:delSetting("highlight_paging")
     end

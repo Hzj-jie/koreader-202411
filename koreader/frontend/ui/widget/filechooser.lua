@@ -226,7 +226,7 @@ local FileChooser = Menu:extend({
         item.opened = DocSettings:hasSidecarFile(item.path)
         if item.opened then
           local doc_settings = DocSettings:open(item.path)
-          local summary = doc_settings:readTableSetting("summary")
+          local summary = doc_settings:readTableRef("summary")
 
           -- books marked as "finished" or "on hold" should be considered the same as 100% and less than 0% respectively
           if summary.status == "complete" then

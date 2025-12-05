@@ -73,7 +73,7 @@ function ReaderFont:setupFaceMenuTable()
     text_func = function()
       local nb_family_fonts = 0
       local g_font_family_fonts =
-        G_reader_settings:readTableSetting("cre_font_family_fonts")
+        G_reader_settings:readTableRef("cre_font_family_fonts")
       for family, name in pairs(g_font_family_fonts) do
         if self.font_family_fonts[family] then
           nb_family_fonts = nb_family_fonts + 1
@@ -227,7 +227,7 @@ function ReaderFont:onReadSettings(config)
   self.ui.document:setInterlineSpacePercent(self.configurable.line_spacing)
   self.ui.document:setGammaIndex(self.configurable.font_gamma)
 
-  self.font_family_fonts = config:readTableSetting("font_family_fonts")
+  self.font_family_fonts = config:readTableRef("font_family_fonts")
   self:updateFontFamilyFonts()
 
   self:setupFaceMenuTable()
@@ -485,7 +485,7 @@ function ReaderFont:updateFontFamilyFonts()
   -- which would otherwise need us to call updateFontFamilyFonts() every time we
   -- change the main font face.
   local g_font_family_fonts =
-    G_reader_settings:readTableSetting("cre_font_family_fonts")
+    G_reader_settings:readTableRef("cre_font_family_fonts")
   local family_fonts = {}
   for i, family in ipairs(FONT_FAMILIES) do
     local family_tag = family[1]
@@ -511,7 +511,7 @@ end
 
 function ReaderFont:getFontFamiliesTable()
   local g_font_family_fonts =
-    G_reader_settings:readTableSetting("cre_font_family_fonts")
+    G_reader_settings:readTableRef("cre_font_family_fonts")
   local families_table = {
     {
       text = _("Ignore publisher font names when font-family is set"),
@@ -918,7 +918,7 @@ function ReaderFont:sortFaceList(face_list)
     return face_list
   end
   self.fonts_recently_selected =
-    G_reader_settings:readTableSetting("cre_fonts_recently_selected")
+    G_reader_settings:readTableRef("cre_fonts_recently_selected")
   if not newly_added_fonts then
     -- First call after launch: check for fonts not yet known
     newly_added_fonts = {}

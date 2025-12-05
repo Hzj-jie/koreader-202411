@@ -105,7 +105,7 @@ end
 -- Get a document status ("new", "reading", "complete", or "abandoned")
 function filemanagerutil.getStatus(file)
   if DocSettings:hasSidecarFile(file) then
-    local summary = DocSettings:open(file):readTableSetting("summary")
+    local summary = DocSettings:open(file):readTableRef("summary")
     if summary.status and summary.status ~= "" then
       return summary.status
     end
@@ -144,7 +144,7 @@ function filemanagerutil.genStatusButtonsRow(
   local file, summary, status
   if type(doc_settings_or_file) == "table" then
     file = doc_settings_or_file:readSetting("doc_path")
-    summary = doc_settings_or_file:readTableSetting("summary")
+    summary = doc_settings_or_file:readTableRef("summary")
     status = summary.status
   else
     file = doc_settings_or_file

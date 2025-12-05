@@ -20,10 +20,10 @@ end
 function ReaderHandMade:onReadSettings(config)
   self.toc_enabled = config:isTrue("handmade_toc_enabled")
   self.toc_edit_enabled = config:nilOrTrue("handmade_toc_edit_enabled")
-  self.toc = config:readTableSetting("handmade_toc")
+  self.toc = config:readTableRef("handmade_toc")
   self.flows_enabled = config:isTrue("handmade_flows_enabled")
   self.flows_edit_enabled = config:nilOrTrue("handmade_flows_edit_enabled")
-  self.flow_points = config:readTableSetting("handmade_flow_points")
+  self.flow_points = config:readTableRef("handmade_flow_points")
   self.inactive_flow_points = {}
 
   -- Don't mess toc and flow_points made on that document if saved when
@@ -32,11 +32,11 @@ function ReaderHandMade:onReadSettings(config)
     local has_xpointers = self.toc[1].xpointer ~= nil
     if self.ui.rolling and not has_xpointers then
       config:saveSetting("handmade_toc_paging", self.toc)
-      self.toc = config:readTableSetting("handmade_toc_rolling")
+      self.toc = config:readTableRef("handmade_toc_rolling")
       config:delSetting("handmade_toc_rolling")
     elseif self.ui.paging and has_xpointers then
       config:saveSetting("handmade_toc_rolling", self.toc)
-      self.toc = config:readTableSetting("handmade_toc_paging")
+      self.toc = config:readTableRef("handmade_toc_paging")
       config:delSetting("handmade_toc_paging")
     end
   else
@@ -52,11 +52,11 @@ function ReaderHandMade:onReadSettings(config)
     local has_xpointers = self.flow_points[1].xpointer ~= nil
     if self.ui.rolling and not has_xpointers then
       config:saveSetting("handmade_flow_points_paging", self.flow_points)
-      self.flow_points = config:readTableSetting("handmade_flow_points_rolling")
+      self.flow_points = config:readTableRef("handmade_flow_points_rolling")
       config:delSetting("handmade_flow_points_rolling")
     elseif self.ui.paging and has_xpointers then
       config:saveSetting("handmade_flow_points_rolling", self.flow_points)
-      self.flow_points = config:readTableSetting("handmade_flow_points_paging")
+      self.flow_points = config:readTableRef("handmade_flow_points_paging")
       config:delSetting("handmade_flow_points_paging")
     end
   else

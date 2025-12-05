@@ -53,7 +53,7 @@ function KOSync:init()
   self.page_update_counter = 0
   self.last_page_turn_timestamp = 0
 
-  self.settings = G_reader_settings:readTableSetting("kosync", {
+  self.settings = G_reader_settings:readTableRef("kosync", {
     custom_server = nil,
     username = nil,
     userkey = nil,

@@ -106,7 +106,7 @@ function PluginLoader:loadPlugins()
   local package_cpath = package.cpath
 
   local plugins_disabled =
-    G_reader_settings:readTableSetting("plugins_disabled")
+    G_reader_settings:readTableRef("plugins_disabled")
   for entry in pairs(INVISIBLE_PLUGINS) do
     plugins_disabled[entry] = false
   end
@@ -206,7 +206,7 @@ function PluginLoader:genPluginManagerSubItem()
           local UIManager = require("ui/uimanager")
           local _ = require("gettext")
           local plugins_disabled =
-            G_reader_settings:readTableSetting("plugins_disabled")
+            G_reader_settings:readTableRef("plugins_disabled")
           plugin.enable = not plugin.enable
           if plugin.enable then
             plugins_disabled[plugin.name] = nil

@@ -10,7 +10,7 @@ local SETTING_NAME = "keyboard_chinese_pinyin_settings"
 
 local code_map = require("ui/data/keyboardlayouts/zh_pinyin_data")
 local settings =
-  G_reader_settings:readTableSetting(SETTING_NAME, { show_candi = true })
+  G_reader_settings:readTableRef(SETTING_NAME, { show_candi = true })
 local ime = IME:new({
   code_map = code_map,
   partial_separators = { " " },

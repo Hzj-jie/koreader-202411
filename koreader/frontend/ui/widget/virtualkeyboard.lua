@@ -94,7 +94,7 @@ function VirtualKey:init()
       local current = G_reader_settings:readSetting("keyboard_layout")
       local default = G_reader_settings:readSetting("keyboard_layout_default")
       local keyboard_layouts =
-        G_reader_settings:readTableSetting("keyboard_layouts")
+        G_reader_settings:readTableRef("keyboard_layouts")
       local next_layout = nil
       local layout_index = util.arrayContains(keyboard_layouts, current)
       if layout_index then
@@ -379,7 +379,7 @@ function VirtualKey:genKeyboardLayoutKeyChars()
     "west",
   }
   local keyboard_layouts =
-    G_reader_settings:readTableSetting("keyboard_layouts")
+    G_reader_settings:readTableRef("keyboard_layouts")
   local key_chars = {
     { label = "🌐" },
     east = { label = "⋮" },

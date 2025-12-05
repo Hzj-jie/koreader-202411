@@ -619,7 +619,7 @@ end
 
 function TextViewer:reinit()
   local text_settings =
-    G_reader_settings:readTableSetting("textviewer_text_types")
+    G_reader_settings:readTableRef("textviewer_text_types")
   text_settings[self.text_type] = {
     monospace_font = self.monospace_font,
     font_size = self.text_font_size,

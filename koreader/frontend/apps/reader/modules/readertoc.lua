@@ -85,7 +85,7 @@ ReaderToc.onPhysicalKeyboardConnected = ReaderToc.registerKeyEvents
 
 function ReaderToc:onReadSettings(config)
   self.toc_ticks_ignored_levels =
-    config:readTableSetting("toc_ticks_ignored_levels")
+    config:readTableRef("toc_ticks_ignored_levels")
   self.toc_chapter_navigation_bind_to_ticks =
     config:readSetting("toc_chapter_navigation_bind_to_ticks")
   self.toc_chapter_title_bind_to_ticks =

@@ -123,7 +123,7 @@ local function populateEventMappings()
         BUILTIN_KEY_EVENTS[key_name] = event_keys[i][2]
       end
       local focus_manager_setting =
-        G_reader_settings:readTableSetting("focus_manager")
+        G_reader_settings:readTableRef("focus_manager")
       -- Enable advanced feature, like Hold, FocusNext, FocusPrevious
       -- Can also add extra arrow keys like using A, W, D, S for Left, Up, Right, Down
       local alternative_keymaps = focus_manager_setting["alternative_keymaps"]

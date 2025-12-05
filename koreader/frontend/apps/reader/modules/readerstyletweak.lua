@@ -502,7 +502,7 @@ end
 
 function ReaderStyleTweak:init()
   self.tweaks_in_dispatcher =
-    G_reader_settings:readTableSetting("style_tweaks_in_dispatcher")
+    G_reader_settings:readTableRef("style_tweaks_in_dispatcher")
   self.tweaks_by_id = {}
   self.tweaks_table = {}
 

@@ -72,7 +72,7 @@ function LuaSettings:readSetting(key)
     logger.info(
       "FixMe: LuaSettings:readSetting ",
       key,
-      " returns a table and should use readTableSetting instead.\n",
+      " returns a table and should use readTableRef instead.\n",
       debug.traceback()
     )
   end
@@ -84,7 +84,7 @@ end
 
 @param key The setting's key
 ]]
-function LuaSettings:readTableSetting(key, default)
+function LuaSettings:readTableRef(key, default)
   local v = self.data[key]
   if v ~= nil and type(v) ~= "table" then
     -- Should only happen during migrations.
@@ -108,7 +108,7 @@ end
 ]]
 function LuaSettings:readTableOrNil(key)
   if self:has(key) then
-    return self:readTableSetting(key)
+    return self:readTableRef(key)
   end
 end
 
@@ -124,7 +124,7 @@ function LuaSettings:saveSetting(key, value, default_value)
       logger.info(
         "FixMe: LuaSettings:saveSetting ",
         key,
-        " on a LuaSettings:readTableSetting is not necessary, ",
+        " on a LuaSettings:readTableRef is not necessary, ",
         "unless a default_value is provided to remove the unnecessary setting.",
         debug.traceback()
       )

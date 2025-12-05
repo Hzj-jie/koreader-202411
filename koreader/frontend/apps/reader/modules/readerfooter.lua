@@ -552,7 +552,7 @@ local DEFAULT_SETTINGS = {
 }
 
 function ReaderFooter:init()
-  self.settings = G_reader_settings:readTableSetting("footer", DEFAULT_SETTINGS)
+  self.settings = G_reader_settings:readTableRef("footer", DEFAULT_SETTINGS)
 
   self.additional_footer_content = {} -- array, where additional header content can be inserted.
 

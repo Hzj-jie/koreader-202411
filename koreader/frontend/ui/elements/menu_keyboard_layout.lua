@@ -18,7 +18,7 @@ local input_dialog, check_button_bold, check_button_border, check_button_compact
 
 local function getOrderedActivatedKeyboardLayouts()
   local keyboard_layouts =
-    G_reader_settings:readTableSetting("keyboard_layouts")
+    G_reader_settings:readTableRef("keyboard_layouts")
   local activated_keyboards = {}
   for _, lang in ipairs(keyboard_layouts) do
     if VirtualKeyboard.lang_to_keyboard_layout[lang] then
@@ -62,12 +62,12 @@ local function genKeyboardLayoutsSubmenu()
       end,
       checked_func = function()
         local keyboard_layouts =
-          G_reader_settings:readTableSetting("keyboard_layouts")
+          G_reader_settings:readTableRef("keyboard_layouts")
         return util.arrayContains(keyboard_layouts, lang)
       end,
       callback = function()
         local keyboard_layouts =
-          G_reader_settings:readTableSetting("keyboard_layouts")
+          G_reader_settings:readTableRef("keyboard_layouts")
         local layout_index = util.arrayContains(keyboard_layouts, lang)
         if layout_index then
           table.remove(keyboard_layouts, layout_index)
