@@ -72,7 +72,6 @@ Saves settings for the exporter
 function BaseExporter:saveSettings()
   local plugin_settings = G_reader_settings:readTableRef("exporter")
   plugin_settings[self.name] = self.settings
-  G_reader_settings:save("exporter", plugin_settings)
   self.new_settings = true
 end
 
