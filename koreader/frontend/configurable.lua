@@ -26,23 +26,26 @@ function Configurable:loadDefaults(config_options)
     for j = 1, #options do
       local key = options[j].name
       local default_value = options[j].default_value
-      assert(default_value ~= nil, key)
-      local settings_key = prefix .. key
-      if G_reader_settings:has(settings_key) then
-        if
-          type(default_value) == "number"
-          or type(default_value) == "string"
-        then
-          self[key] = G_reader_settings:read(settings_key)
-        elseif type(default_value) == "table" then
-          self[key] = G_reader_settings:readTableRef(settings_key)
+      if default_value ~= nil then
+        -- This is dedicated for font_fine_tune, it shouldn't be saved at all,
+        -- thus no default value.
+        local settings_key = prefix .. key
+        if G_reader_settings:has(settings_key) then
+          if
+            type(default_value) == "number"
+            or type(default_value) == "string"
+          then
+            self[key] = G_reader_settings:read(settings_key)
+          elseif type(default_value) == "table" then
+            self[key] = G_reader_settings:readTableRef(settings_key)
+          else
+            assert(false)
+          end
         else
-          assert(false)
+          self[key] = default_value
         end
-      else
-        self[key] = default_value
+        assert(self[key] ~= nil)
       end
-      assert(self[key] ~= nil)
     end
   end
   local defaults = util.tableDeepCopy(self)
