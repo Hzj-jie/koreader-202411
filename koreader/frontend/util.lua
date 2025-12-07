@@ -5,6 +5,7 @@ This module contains miscellaneous helper functions for the KOReader frontend.
 local Utf8Proc = require("ffi/utf8proc")
 local ffiUtil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
+local logger = require("logger")
 local md5 = require("ffi/sha2").md5
 local _ = require("gettext")
 local C_ = _.pgettext
@@ -1236,12 +1237,27 @@ function util.writeToFile(
   lua_dofile_ready,
   directory_updated
 )
+  if not data then
+    return
+  end
   if not filepath then
     return
   end
   if lua_dofile_ready then
     local t = { "-- ", filepath, "\nreturn ", data, "\n" }
     data = table.concat(t)
+  end
+  local ori = util.readFromFile(filepath, "rb")
+  if ori == data then
+    local file = io.open(filepath, "a")
+    -- This could only happen when another process removed the file between the
+    -- io.open and the previous util.readFromFile.
+    if file then
+      logger.dbg("Content of ", filepath, " doesn't change, ignore writing.")
+      -- But still touch it.
+      file:close()
+      return
+    end
   end
   local file, err = io.open(filepath, "wb")
   if not file then
