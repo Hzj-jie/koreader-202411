@@ -222,12 +222,12 @@ function KOSync:addToMainMenu(menu_items)
           return self.settings.auto_sync
         end,
         help_text =
-        -- Need localization
-        _("Enable the feature will automatically pull and push progress when necessary.") ..
-        "\n\n" ..
-        _(
-          [[This may lead to nagging about toggling WiFi on document close and suspend/resume, depending on the device's connectivity.]]
-        ),
+          -- Need localization
+          _(
+            "Enable the feature will automatically pull and push progress when necessary."
+          ) .. "\n\n" .. _(
+            [[This may lead to nagging about toggling WiFi on document close and suspend/resume, depending on the device's connectivity.]]
+          ),
         callback = function()
           -- Actively recommend switching the before wifi action to "turn_on" instead of prompt, as prompt will just not be practical (or even plain usable) here.
           if
@@ -255,82 +255,82 @@ function KOSync:addToMainMenu(menu_items)
           end
         end,
       },
+      {
+        text_func = function()
+          -- NOTE: With an up-to-date Sync server, "forward" means *newer*, not necessarily ahead in the document.
+          return T(
+            _("Sync to a newer state (%1)"),
+            getNameStrategy(self.settings.sync_forward)
+          )
+        end,
+        sub_item_table = {
           {
-            text_func = function()
-              -- NOTE: With an up-to-date Sync server, "forward" means *newer*, not necessarily ahead in the document.
-              return T(
-                _("Sync to a newer state (%1)"),
-                getNameStrategy(self.settings.sync_forward)
-              )
+            text = _("Silently"),
+            checked_func = function()
+              return self.settings.sync_forward == SYNC_STRATEGY.SILENT
             end,
-            sub_item_table = {
-              {
-                text = _("Silently"),
-                checked_func = function()
-                  return self.settings.sync_forward == SYNC_STRATEGY.SILENT
-                end,
-                callback = function()
-                  self:setSyncForward(SYNC_STRATEGY.SILENT)
-                end,
-              },
-              {
-                text = _("Prompt"),
-                checked_func = function()
-                  return self.settings.sync_forward == SYNC_STRATEGY.PROMPT
-                end,
-                callback = function()
-                  self:setSyncForward(SYNC_STRATEGY.PROMPT)
-                end,
-              },
-              {
-                text = _("Never"),
-                checked_func = function()
-                  return self.settings.sync_forward == SYNC_STRATEGY.DISABLE
-                end,
-                callback = function()
-                  self:setSyncForward(SYNC_STRATEGY.DISABLE)
-                end,
-              },
-            },
+            callback = function()
+              self:setSyncForward(SYNC_STRATEGY.SILENT)
+            end,
           },
           {
-            text_func = function()
-              return T(
-                _("Sync to an older state (%1)"),
-                getNameStrategy(self.settings.sync_backward)
-              )
+            text = _("Prompt"),
+            checked_func = function()
+              return self.settings.sync_forward == SYNC_STRATEGY.PROMPT
             end,
-            sub_item_table = {
-              {
-                text = _("Silently"),
-                checked_func = function()
-                  return self.settings.sync_backward == SYNC_STRATEGY.SILENT
-                end,
-                callback = function()
-                  self:setSyncBackward(SYNC_STRATEGY.SILENT)
-                end,
-              },
-              {
-                text = _("Prompt"),
-                checked_func = function()
-                  return self.settings.sync_backward == SYNC_STRATEGY.PROMPT
-                end,
-                callback = function()
-                  self:setSyncBackward(SYNC_STRATEGY.PROMPT)
-                end,
-              },
-              {
-                text = _("Never"),
-                checked_func = function()
-                  return self.settings.sync_backward == SYNC_STRATEGY.DISABLE
-                end,
-                callback = function()
-                  self:setSyncBackward(SYNC_STRATEGY.DISABLE)
-                end,
-              },
-            },
+            callback = function()
+              self:setSyncForward(SYNC_STRATEGY.PROMPT)
+            end,
+          },
+          {
+            text = _("Never"),
+            checked_func = function()
+              return self.settings.sync_forward == SYNC_STRATEGY.DISABLE
+            end,
+            callback = function()
+              self:setSyncForward(SYNC_STRATEGY.DISABLE)
+            end,
+          },
+        },
+      },
+      {
+        text_func = function()
+          return T(
+            _("Sync to an older state (%1)"),
+            getNameStrategy(self.settings.sync_backward)
+          )
+        end,
+        sub_item_table = {
+          {
+            text = _("Silently"),
+            checked_func = function()
+              return self.settings.sync_backward == SYNC_STRATEGY.SILENT
+            end,
+            callback = function()
+              self:setSyncBackward(SYNC_STRATEGY.SILENT)
+            end,
+          },
+          {
+            text = _("Prompt"),
+            checked_func = function()
+              return self.settings.sync_backward == SYNC_STRATEGY.PROMPT
+            end,
+            callback = function()
+              self:setSyncBackward(SYNC_STRATEGY.PROMPT)
+            end,
+          },
+          {
+            text = _("Never"),
+            checked_func = function()
+              return self.settings.sync_backward == SYNC_STRATEGY.DISABLE
+            end,
+            callback = function()
+              self:setSyncBackward(SYNC_STRATEGY.DISABLE)
+            end,
+          },
+        },
         separator = true,
-          },
+      },
       {
         text = _("Push progress from this device now"),
         enabled_func = function()

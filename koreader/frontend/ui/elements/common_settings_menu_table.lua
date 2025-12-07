@@ -546,29 +546,32 @@ common_settings.document_metadata_location = {
 }
 
 local function auto_save_help_text()
-
-local text = _(
-  [[
+  local text = _(
+    [[
 This sets how often to rewrite to disk global settings and book metadata, including your current position and any highlights and bookmarks made, when you're reading a document.
 
 The normal behavior is to save those only when the document is closed, or your device suspended, or when exiting KOReader.
 
 Setting it to some interval may help prevent losing new settings/sidecar data after a software crash, but will cause more I/O writes the lower the interval is, and may slowly wear out your storage media in the long run.]]
-)
-
--- Some devices with FAT32 storage may not like having settings rewritten too often,
--- so let that be known. See https://github.com/koreader/koreader/pull/3625
-if Device:isKobo()
-  or Device:isKindle()
-  or Device:isCervantes()
-  or Device:isPocketBook()
-  or Device:isSonyPRSTUX() then
-  text = text .. "\n\n" .. _(
-    [[Please be warned that on this device, setting a low interval may exacerbate the potential for filesystem corruption and complete data loss after a hardware crash.]]
   )
-end
 
-return text
+  -- Some devices with FAT32 storage may not like having settings rewritten too often,
+  -- so let that be known. See https://github.com/koreader/koreader/pull/3625
+  if
+    Device:isKobo()
+    or Device:isKindle()
+    or Device:isCervantes()
+    or Device:isPocketBook()
+    or Device:isSonyPRSTUX()
+  then
+    text = text
+      .. "\n\n"
+      .. _(
+        [[Please be warned that on this device, setting a low interval may exacerbate the potential for filesystem corruption and complete data loss after a hardware crash.]]
+      )
+  end
+
+  return text
 end
 
 common_settings.document_auto_save = {
