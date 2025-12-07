@@ -473,7 +473,6 @@ Note that your selected font size is not affected by this setting.]]
           event = "SetFontSize",
         },
         values = {},
-        default_value = G_defaults:read("DCREREADER_CONFIG_DEFAULT_FONT_SIZE"),
         event = "ChangeSize",
         args = { -0.5, 0.5 },
         alternate = false,
