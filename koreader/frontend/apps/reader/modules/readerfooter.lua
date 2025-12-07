@@ -667,6 +667,7 @@ function ReaderFooter:init()
       self.footer_text.height = 0
     end
   else
+    self.view.footer_visible = self.view.footer_visible or false
     self:_applyFooterMode()
   end
 
