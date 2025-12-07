@@ -1065,14 +1065,12 @@ function ReaderView:onPageUpdate(new_page_no)
   self.state.drawn = false
   self:recalculate()
   self.highlight.temp = {}
-  self:checkAutoSaveSettings()
 end
 
 function ReaderView:onPosUpdate(new_pos)
   self.state.pos = new_pos
   self:recalculate()
   self.highlight.temp = {}
-  self:checkAutoSaveSettings()
 end
 
 function ReaderView:onZoomUpdate(zoom)
