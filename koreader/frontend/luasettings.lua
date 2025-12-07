@@ -124,8 +124,8 @@ function LuaSettings:save(key, value, default_value)
       logger.info(
         "FixMe: LuaSettings:saveSetting ",
         key,
-        " on a LuaSettings:readTableRef is not necessary, ",
-        "unless a default_value is provided to remove the unnecessary setting.",
+        " on a LuaSettings:readTableRef is not necessary, unless a ",
+        "default_value is provided to remove the unnecessary setting.\n",
         debug.traceback()
       )
     else
@@ -134,7 +134,24 @@ function LuaSettings:save(key, value, default_value)
     return self
   end
   -- Should never happen.
-  assert(type(value) == type(default_value))
+  if type(value) ~= type(default_value) then
+    logger.info(
+      "FixMe: LuaSettings:saveSetting ",
+      key,
+      " value type ",
+      type(value),
+      " unmatches default value type ",
+      type(default_value),
+      ", ignore default value ",
+      default_value,
+      " in favor of value ",
+      value,
+      "\n",
+      debug.traceback()
+    )
+    self.data[key] = value
+    return self
+  end
   if type(value) == "table" then
     -- An easy optimization to avoid dumping.
     if
