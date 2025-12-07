@@ -298,7 +298,7 @@ function Device:init()
   if android.needsWakelocks() then
     android.timeout.set(C.AKEEP_SCREEN_ON_ENABLED)
   else
-    local timeout = G_reader_settings:readSetting("android_screen_timeout")
+    local timeout = G_reader_settings:read("android_screen_timeout")
     if timeout then
       if
         timeout == C.AKEEP_SCREEN_ON_ENABLED
@@ -425,7 +425,7 @@ function Device:_toggleFullscreenLegacy()
 
   local is_fullscreen = android.isFullscreen()
   android.setFullscreen(not is_fullscreen)
-  G_reader_settings:saveSetting("disable_android_fullscreen", is_fullscreen)
+  G_reader_settings:save("disable_android_fullscreen", is_fullscreen)
 
   self.fullscreen = android.isFullscreen()
   if self.fullscreen then

@@ -53,7 +53,7 @@ function FileManagerHistory:fetchStatuses(count)
     if v.dim then -- deleted file
       status = "deleted"
     elseif v.file == (self.ui.document and self.ui.document.file) then -- currently opened file
-      status = self.ui.doc_settings:readTableSetting("summary").status
+      status = self.ui.doc_settings:readTableRef("summary").status
     else
       status = filemanagerutil.getStatus(v.file)
     end
@@ -195,7 +195,7 @@ function FileManagerHistory:onMenuHold(item)
     if DocSettings:hasSidecarFile(file) then
       doc_settings_or_file = DocSettings:open(file)
       if not self.book_props then
-        local props = doc_settings_or_file:readSetting("doc_props")
+        local props = doc_settings_or_file:read("doc_props")
         self.book_props = self.ui.bookinfo.extendProps(props, file)
         self.book_props.has_cover = true
       end
@@ -319,7 +319,7 @@ function FileManagerHistory:onShowHist(search_info)
     self.search_string = nil
     self.selected_collections = nil
   end
-  self.filter = G_reader_settings:readSetting("history_filter") or "all"
+  self.filter = G_reader_settings:read("history_filter") or "all"
   self.is_frozen = G_reader_settings:nilOrTrue("history_freeze_finished_books")
   if self.filter ~= "all" or self.is_frozen then
     self:fetchStatuses(false)
@@ -335,7 +335,7 @@ function FileManagerHistory:onShowHist(search_info)
     self.statuses_fetched = nil
     UIManager:close(self.hist_menu)
     self.hist_menu = nil
-    G_reader_settings:saveSetting("history_filter", self.filter, "all")
+    G_reader_settings:save("history_filter", self.filter, "all")
   end
   UIManager:show(self.hist_menu, "flashui")
   return true

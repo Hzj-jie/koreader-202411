@@ -84,9 +84,9 @@ function ReadTimer:init()
   end
 
   self.show_value_in_header =
-    G_reader_settings:readSetting("readtimer_show_value_in_header")
+    G_reader_settings:read("readtimer_show_value_in_header")
   self.show_value_in_footer =
-    G_reader_settings:readSetting("readtimer_show_value_in_footer")
+    G_reader_settings:read("readtimer_show_value_in_footer")
 
   self.ui.menu:registerToMainMenu(self)
 end
@@ -223,7 +223,7 @@ function ReadTimer:addCheckboxes(widget)
     parent = widget,
     callback = function()
       self.show_value_in_header = not self.show_value_in_header
-      G_reader_settings:saveSetting(
+      G_reader_settings:save(
         "readtimer_show_value_in_header",
         self.show_value_in_header,
         false
@@ -236,7 +236,7 @@ function ReadTimer:addCheckboxes(widget)
     parent = widget,
     callback = function()
       self.show_value_in_footer = not self.show_value_in_footer
-      G_reader_settings:saveSetting(
+      G_reader_settings:save(
         "readtimer_show_value_in_footer",
         self.show_value_in_footer
       )
@@ -329,8 +329,7 @@ function ReadTimer:addToMainMenu(menu_items)
           local remain_time = {}
           local remain_hours, remain_minutes = self:remainingTime()
           if not remain_hours and not remain_minutes then
-            remain_time =
-              G_reader_settings:readSetting("reader_timer_remain_time")
+            remain_time = G_reader_settings:read("reader_timer_remain_time")
             if remain_time then
               remain_hours = remain_time[1]
               remain_minutes = remain_time[2]
@@ -363,10 +362,7 @@ function ReadTimer:addToMainMenu(menu_items)
                   timeout = 5,
                 }))
                 remain_time = { timer_time.hour, timer_time.min }
-                G_reader_settings:saveSetting(
-                  "reader_timer_remain_time",
-                  remain_time
-                )
+                G_reader_settings:save("reader_timer_remain_time", remain_time)
                 if touchmenu_instance then
                   touchmenu_instance:updateItems()
                 end

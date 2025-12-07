@@ -17,7 +17,7 @@ local T = require("ffi/util").template
 local _ = require("gettext")
 
 if G_reader_settings:hasNot("device_id") then
-  G_reader_settings:saveSetting("device_id", random.uuid())
+  G_reader_settings:save("device_id", random.uuid())
 end
 
 local KOSync = WidgetContainer:extend({
@@ -53,7 +53,7 @@ function KOSync:init()
   self.page_update_counter = 0
   self.last_page_turn_timestamp = 0
 
-  self.settings = G_reader_settings:readTableSetting("kosync", {
+  self.settings = G_reader_settings:readTableRef("kosync", {
     custom_server = nil,
     username = nil,
     userkey = nil,
@@ -66,13 +66,13 @@ function KOSync:init()
   })
   -- Legacy settings may have nil value for this field.
   self.settings.pages_before_update = self.settings.pages_before_update or 0
-  self.device_id = G_reader_settings:readSetting("device_id")
+  self.device_id = G_reader_settings:read("device_id")
 
   -- Disable auto-sync if beforeWifiAction was reset to "prompt" behind our back...
   if
     self.settings.auto_sync
     and Device:hasSeamlessWifiToggle()
-    and G_reader_settings:readSetting("wifi_enable_action") ~= "turn_on"
+    and G_reader_settings:read("wifi_enable_action") ~= "turn_on"
   then
     self.settings.auto_sync = false
     logger.warn(
@@ -233,7 +233,7 @@ function KOSync:addToMainMenu(menu_items)
           -- Actively recommend switching the before wifi action to "turn_on" instead of prompt, as prompt will just not be practical (or even plain usable) here.
           if
             Device:hasSeamlessWifiToggle()
-            and G_reader_settings:readSetting("wifi_enable_action") ~= "turn_on"
+            and G_reader_settings:read("wifi_enable_action") ~= "turn_on"
             and not self.settings.auto_sync
           then
             UIManager:show(InfoMessage:new({
@@ -636,7 +636,7 @@ end
 
 function KOSync:_getDocumentDigest()
   if self.settings.checksum_method ~= CHECKSUM_METHOD.FILENAME then
-    return self.ui.doc_settings:readSetting("partial_md5_checksum")
+    return self.ui.doc_settings:read("partial_md5_checksum")
   end
   local file = self.ui.document.file
   if not file then

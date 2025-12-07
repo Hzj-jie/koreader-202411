@@ -9,7 +9,7 @@ Example:
       title = _("Choose download directory"),
       onConfirm = function(path)
         logger.dbg("set download directory to", path)
-        G_reader_settings:saveSetting("download_dir", path)
+        G_reader_settings:save("download_dir", path)
         UIManager:nextTick(function()
           -- reinitialize dialog
         end)
@@ -41,7 +41,7 @@ function DownloadMgr:chooseDir(dir)
   if dir then
     path = dir
   else
-    local download_dir = G_reader_settings:readSetting("download_dir")
+    local download_dir = G_reader_settings:read("download_dir")
     path = download_dir and util.realpath(download_dir .. "/..")
       or G_named_settings.lastdir()
   end

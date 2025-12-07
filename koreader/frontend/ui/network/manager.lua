@@ -551,7 +551,7 @@ end
 ---    Should only return false on *explicit* failures,
 ---    in which case the backend will already have called _abortWifiConnection
 function NetworkMgr:_beforeWifiAction()
-  local wifi_enable_action = G_reader_settings:readSetting("wifi_enable_action")
+  local wifi_enable_action = G_reader_settings:read("wifi_enable_action")
   if wifi_enable_action == "turn_on" then
     self:toggleWifiOn()
   elseif wifi_enable_action == "ignore" then
@@ -620,7 +620,7 @@ function NetworkMgr:setHTTPProxy(proxy)
   local http = require("socket.http")
   http.PROXY = proxy
   if proxy then
-    G_reader_settings:saveSetting("http_proxy", proxy)
+    G_reader_settings:save("http_proxy", proxy)
     G_reader_settings:makeTrue("http_proxy_enabled")
   else
     G_reader_settings:makeFalse("http_proxy_enabled")
@@ -737,10 +737,10 @@ end
 
 function NetworkMgr:getProxyMenuTable()
   local proxy_enabled = function()
-    return G_reader_settings:readSetting("http_proxy_enabled")
+    return G_reader_settings:read("http_proxy_enabled")
   end
   local proxy = function()
-    return G_reader_settings:readSetting("http_proxy")
+    return G_reader_settings:read("http_proxy")
   end
   return {
     text_func = function()
@@ -830,7 +830,7 @@ function NetworkMgr:getInfoMenuTable()
 end
 
 function NetworkMgr:getBeforeWifiActionMenuTable()
-  local wifi_enable_action_setting = G_reader_settings:readSetting(
+  local wifi_enable_action_setting = G_reader_settings:read(
     "wifi_enable_action"
   ) or "prompt"
   local wifi_enable_actions = {
@@ -848,7 +848,7 @@ function NetworkMgr:getBeforeWifiActionMenuTable()
       end,
       callback = function()
         wifi_enable_action_setting = wifi_enable_action
-        G_reader_settings:saveSetting("wifi_enable_action", wifi_enable_action)
+        G_reader_settings:save("wifi_enable_action", wifi_enable_action)
       end,
     }
   end
@@ -1098,7 +1098,7 @@ function NetworkMgr:saveNetwork(setting)
     self:_readNWSettings()
   end
 
-  self.nw_settings:saveSetting(setting.ssid, {
+  self.nw_settings:save(setting.ssid, {
     ssid = setting.ssid,
     password = setting.password,
     psk = setting.psk,
@@ -1111,7 +1111,7 @@ function NetworkMgr:deleteNetwork(setting)
   if not self.nw_settings then
     self:_readNWSettings()
   end
-  self.nw_settings:delSetting(setting.ssid)
+  self.nw_settings:delete(setting.ssid)
   self.nw_settings:flush()
 end
 
@@ -1143,12 +1143,12 @@ function NetworkMgr:ipAddress()
 end
 
 if
-  G_reader_settings:readSetting("http_proxy_enabled")
-  and G_reader_settings:readSetting("http_proxy")
+  G_reader_settings:read("http_proxy_enabled")
+  and G_reader_settings:read("http_proxy")
 then
-  NetworkMgr:setHTTPProxy(G_reader_settings:readSetting("http_proxy"))
-elseif G_defaults:readSetting("NETWORK_PROXY") then
-  NetworkMgr:setHTTPProxy(G_defaults:readSetting("NETWORK_PROXY"))
+  NetworkMgr:setHTTPProxy(G_reader_settings:read("http_proxy"))
+elseif G_defaults:read("NETWORK_PROXY") then
+  NetworkMgr:setHTTPProxy(G_defaults:read("NETWORK_PROXY"))
 end
 
 return NetworkMgr:init()

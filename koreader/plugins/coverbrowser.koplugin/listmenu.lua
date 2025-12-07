@@ -986,7 +986,7 @@ function ListMenu:_recalculateDimen()
     -- Default perpage is computed from a base of 64px per ListMenuItem,
     -- which gives 10 items on kobo glo hd.
     self.files_per_page = math.floor(available_height / scale_by_size / 64)
-    BookInfoManager:saveSetting("files_per_page", self.files_per_page)
+    BookInfoManager:save("files_per_page", self.files_per_page)
   end
   self.perpage = self.files_per_page
   if not self.portrait_mode then

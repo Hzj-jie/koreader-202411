@@ -29,7 +29,7 @@ local CatalogCache = Cache:new({
 })
 
 local OPDSBrowser = Menu:extend({
-  opds_servers = G_reader_settings:readTableSetting("opds_servers", {
+  opds_servers = G_reader_settings:readTableRef("opds_servers", {
     {
       title = "Project Gutenberg",
       url = "https://m.gutenberg.org/ebooks.opds/?format=opds",
@@ -723,7 +723,7 @@ function OPDSBrowser:showDownloads(item)
           :new({
             onConfirm = function(path)
               logger.dbg("Download folder set to", path)
-              G_reader_settings:saveSetting("download_dir", path)
+              G_reader_settings:save("download_dir", path)
               self.download_dialog:setTitle(createTitle(path, filename))
             end,
           })
@@ -808,8 +808,7 @@ end
 
 -- Returns user selected or last opened folder
 function OPDSBrowser.getCurrentDownloadDir()
-  return G_reader_settings:readSetting("download_dir")
-    or G_named_settings.lastdir()
+  return G_reader_settings:read("download_dir") or G_named_settings.lastdir()
 end
 
 -- Downloads a book (with "File already exists" dialog)

@@ -605,7 +605,7 @@ function Deinflector:genTextConversionMenuItems()
       callback = function(touchmenu_instance)
         self.enabled_text_conversions[name] =
           not self.enabled_text_conversions[name]
-        G_reader_settings:saveSetting(
+        G_reader_settings:save(
           "language_japanese_text_conversions",
           self.enabled_text_conversions
         )
@@ -679,7 +679,7 @@ end
 -- yomichan-deflect.json.
 function Deinflector:init()
   self.enabled_text_conversions = self.enabled_text_conversions
-    or G_reader_settings:readSetting("language_japanese_text_conversions")
+    or G_reader_settings:read("language_japanese_text_conversions")
     or DEFAULT_TEXT_CONVERSIONS
   if self.rules ~= nil then
     return

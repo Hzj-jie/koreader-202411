@@ -121,7 +121,7 @@ function ReaderUserHyph:getMenuEntry()
     ),
     callback = function()
       local hyph_user_dict = not G_reader_settings:isTrue("hyph_user_dict")
-      G_reader_settings:saveSetting("hyph_user_dict", hyph_user_dict)
+      G_reader_settings:save("hyph_user_dict", hyph_user_dict)
       self:loadUserDictionary() -- not needed to force a reload here
     end,
     checked_func = function()

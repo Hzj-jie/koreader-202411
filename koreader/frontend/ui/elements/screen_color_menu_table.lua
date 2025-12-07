@@ -13,7 +13,7 @@ return {
   callback = function()
     local new_val = not Screen.isColorEnabled()
     -- Screen.isColorEnabled reads G_reader_settings :'(
-    G_reader_settings:saveSetting("color_rendering", new_val)
+    G_reader_settings:save("color_rendering", new_val)
     CanvasContext:setColorRenderingEnabled(new_val)
     UIManager:broadcastEvent(Event:new("ColorRenderingUpdate"))
     -- On color Kobos, we can use this opportunity to swap to 8bpp, so, request a restart.

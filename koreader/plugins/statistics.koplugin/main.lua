@@ -141,18 +141,17 @@ function ReaderStatistics:init()
   end
   self:resetVolatileStats()
 
-  self.settings = G_reader_settings:readSetting("statistics")
-    or {
-      min_sec = DEFAULT_MIN_READ_SEC,
-      max_sec = DEFAULT_MAX_READ_SEC,
-      freeze_finished_books = false,
-      is_enabled = true,
-      convert_to_db = nil,
-      calendar_start_day_of_week = DEFAULT_CALENDAR_START_DAY_OF_WEEK,
-      calendar_nb_book_spans = DEFAULT_CALENDAR_NB_BOOK_SPANS,
-      calendar_show_histogram = true,
-      calendar_browse_future_months = false,
-    }
+  self.settings = G_reader_settings:readTableRef("statistics", {
+    min_sec = DEFAULT_MIN_READ_SEC,
+    max_sec = DEFAULT_MAX_READ_SEC,
+    freeze_finished_books = false,
+    is_enabled = true,
+    convert_to_db = nil,
+    calendar_start_day_of_week = DEFAULT_CALENDAR_START_DAY_OF_WEEK,
+    calendar_nb_book_spans = DEFAULT_CALENDAR_NB_BOOK_SPANS,
+    calendar_show_histogram = true,
+    calendar_browse_future_months = false,
+  })
 
   self.ui.menu:registerToMainMenu(self)
   self:onDispatcherRegisterActions()
@@ -193,7 +192,7 @@ end
 function ReaderStatistics:_updateFrozen()
   self.is_doc_not_finished = (
     self.ui
-    and self.ui.doc_settings:readTableSetting("summary").status ~= "complete"
+    and self.ui.doc_settings:readTableRef("summary").status ~= "complete"
   )
   self.is_doc_not_frozen = self.is_doc
     and (self.is_doc_not_finished or not self.settings.freeze_finished_books)
@@ -852,7 +851,7 @@ function ReaderStatistics:migrateToDB(conn)
   local nr_of_conv_books = 0
   local exclude_titles = {}
   for _, v in ipairs(ReadHistory.hist) do
-    local book_stats = DocSettings:open(v.file):readSetting("stats")
+    local book_stats = DocSettings:open(v.file):read("stats")
     if book_stats and book_stats.title == "" then
       book_stats.title = v.file:match("^.+/(.+)$")
     end
@@ -1036,7 +1035,7 @@ function ReaderStatistics:onBookMetadataChanged(prop_updated)
     -- Not the current document: we have to find its id in the db, from the (old) title/authors/md5
     local db_md5, db_title, db_authors, db_authors_legacy
     if DocSettings:hasSidecarFile(filepath) then
-      db_md5 = DocSettings:open(filepath):readSetting("partial_md5_checksum")
+      db_md5 = DocSettings:open(filepath):read("partial_md5_checksum")
       -- Note: stats.title and stats.authors may be osbolete, if the metadata
       -- has previously been updated and the document never re-opened since.
       logger.dbg(log_prefix, "got md5 from docsettings:", db_md5)
@@ -2075,7 +2074,7 @@ function ReaderStatistics:getCurrentStat()
     }
   else
     estimated_time_left = { _("Estimated reading time left"), _("finished") }
-    local mark_date = self.ui.doc_settings:readTableSetting("summary").modified
+    local mark_date = self.ui.doc_settings:readTableRef("summary").modified
     estimated_finish_date = {
       _("Book marked as finished"),
       datetime.secondsToDate(datetime.stringToSeconds(mark_date), true),
@@ -3493,8 +3492,8 @@ function ReaderStatistics:onReadingResumed()
 end
 
 function ReaderStatistics:onReaderReady(config)
-  self.data = config:readTableSetting("stats", { performance_in_pages = {} })
-  self.doc_md5 = config:readSetting("partial_md5_checksum")
+  self.data = config:readTableRef("stats", { performance_in_pages = {} })
+  self.doc_md5 = config:read("partial_md5_checksum")
   -- we have correct page count now, do the actual initialization work
   self:_initData()
 end

@@ -196,7 +196,7 @@ function BookInfoManager:createDB()
     -- Restore non-deprecated settings
     for k, v in pairs(self.settings) do
       if k ~= "version" then
-        self:saveSetting(k, v, db_conn, true)
+        self:save(k, v, db_conn, true)
       end
     end
     self:loadSettings(db_conn)
@@ -298,7 +298,7 @@ function BookInfoManager:getSetting(key)
   return self.settings[key]
 end
 
-function BookInfoManager:saveSetting(key, value, db_conn, skip_reload)
+function BookInfoManager:save(key, value, db_conn, skip_reload)
   if not value or value == false or value == "" then
     if lfs.attributes(self.db_location, "mode") ~= "file" then
       -- If no db created, no need to save (and create db) an empty value
@@ -333,7 +333,7 @@ end
 
 function BookInfoManager:toggleSetting(key)
   local value = not self:getSetting(key)
-  self:saveSetting(key, value)
+  self:save(key, value)
   return value
 end
 
@@ -452,7 +452,7 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
       self.tmpcr3cache,
       0, -- 0 = previous book caches are removed when opening a book
       true,
-      G_reader_settings:readSetting("cre_storage_size_factor")
+      G_reader_settings:read("cre_storage_size_factor")
         or default_cre_storage_size_factor
     )
     self.cre_cache_overriden = true

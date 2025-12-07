@@ -11,7 +11,7 @@ local _ = require("gettext")
 
 local FileManagerShortcuts = WidgetContainer:extend({
   title = _("Folder shortcuts"),
-  folder_shortcuts = G_reader_settings:readTableSetting("folder_shortcuts"),
+  folder_shortcuts = G_reader_settings:readTableRef("folder_shortcuts"),
 })
 
 function FileManagerShortcuts:updateItemTable()

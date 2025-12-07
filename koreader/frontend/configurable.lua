@@ -1,4 +1,5 @@
 local ffiUtil = require("ffi/util")
+local util = require("util")
 
 local Configurable = {}
 
@@ -7,15 +8,6 @@ function Configurable:new(o)
   setmetatable(o, self)
   self.__index = self
   return o
-end
-
-function Configurable:reset()
-  for key, value in pairs(self) do
-    local value_type = type(value)
-    if value_type == "number" or value_type == "string" then
-      self[key] = nil
-    end
-  end
 end
 
 function Configurable:hash(list)
@@ -28,46 +20,66 @@ function Configurable:hash(list)
 end
 
 function Configurable:loadDefaults(config_options)
-  -- reset configurable before loading new options
-  self:reset()
   local prefix = config_options.prefix .. "_"
   for i = 1, #config_options do
     local options = config_options[i].options
     for j = 1, #options do
       local key = options[j].name
+      local default_value = options[j].default_value
+      assert(default_value ~= nil, key)
       local settings_key = prefix .. key
-      local default = G_reader_settings:readSetting(settings_key)
-      self[key] = default or options[j].default_value
+      if G_reader_settings:has(settings_key) then
+        if
+          type(default_value) == "number"
+          or type(default_value) == "string"
+        then
+          self[key] = G_reader_settings:read(settings_key)
+        elseif type(default_value) == "table" then
+          self[key] = G_reader_settings:readTableRef(settings_key)
+        else
+          assert(false)
+        end
+      else
+        self[key] = default_value
+      end
+      assert(self[key] ~= nil)
     end
   end
+  local defaults = util.tableDeepCopy(self)
+  -- Avoid copying defaults again.
+  self.defaults = defaults
 end
 
 function Configurable:loadSettings(settings, prefix)
   for key, value in pairs(self) do
-    local value_type = type(value)
-    if value_type == "number" or value_type == "string" then
-      local saved_value = settings:readSetting(prefix .. key)
-      if saved_value ~= nil then
-        self[key] = saved_value
-      end
-    elseif value_type == "table" then
-      local saved_value = settings:readTableSetting(prefix .. key)
-      if next(saved_value) then
-        self[key] = saved_value
+    local settings_key = prefix .. key
+    if settings:has(settings_key) then
+      local value_type = type(value)
+      if value_type == "number" or value_type == "string" then
+        self[key] = settings:read(settings_key)
+      elseif value_type == "table" then
+        self[key] = settings:readTableRef(settings_key)
+      else
+        assert(false)
       end
     end
+    assert(self[key] ~= nil)
   end
 end
 
 function Configurable:saveSettings(settings, prefix)
   for key, value in pairs(self) do
-    local value_type = type(value)
-    if
-      value_type == "number"
-      or value_type == "string"
-      or value_type == "table"
-    then
-      settings:saveSetting(prefix .. key, value)
+    if key ~= "defaults" then
+      local value_type = type(value)
+      if
+        value_type == "number"
+        or value_type == "string"
+        or value_type == "table"
+      then
+        settings:save(prefix .. key, value, self.defaults[key])
+      else
+        assert(false)
+      end
     end
   end
 end

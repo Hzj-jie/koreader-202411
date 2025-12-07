@@ -84,8 +84,7 @@ local getSubMenuItems = function()
     enabled_names[name] = false
   end
   if G_reader_settings:has("font_ui_fallbacks") then
-    local additional_fallbacks =
-      G_reader_settings:readSetting("font_ui_fallbacks")
+    local additional_fallbacks = G_reader_settings:read("font_ui_fallbacks")
     for i = #additional_fallbacks, 1, -1 do
       local path = additional_fallbacks[i]
       local name = fallback_candidates_path_to_name[path]
@@ -100,7 +99,7 @@ local getSubMenuItems = function()
       end
     end
     if #additional_fallbacks == 0 then -- all removed
-      G_reader_settings:delSetting("font_ui_fallbacks")
+      G_reader_settings:delete("font_ui_fallbacks")
     end
   end
   local add_separator_idx = #ordered_names
@@ -137,13 +136,13 @@ local getSubMenuItems = function()
       end,
       callback = function()
         local additional_fallbacks =
-          G_reader_settings:readTableSetting("font_ui_fallbacks")
+          G_reader_settings:readTableRef("font_ui_fallbacks")
         if checked_names[name] then -- enabled: remove it
           for i = #additional_fallbacks, 1, -1 do
             if additional_fallbacks[i] == fontinfo.path then
               table.remove(additional_fallbacks, i)
               if #additional_fallbacks == 0 then
-                G_reader_settings:delSetting("font_ui_fallbacks")
+                G_reader_settings:delete("font_ui_fallbacks")
               end
               break
             end

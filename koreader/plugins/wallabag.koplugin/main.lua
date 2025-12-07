@@ -961,9 +961,9 @@ function Wallabag:processLocalFiles(mode)
             self:addTags(entry_path)
           end
           local doc_settings = DocSettings:open(entry_path)
-          local summary = doc_settings:readSetting("summary")
-          local status = summary and summary.status
-          local percent_finished = doc_settings:readSetting("percent_finished")
+          local summary = doc_settings:readTableRef("summary")
+          local status = summary.status
+          local percent_finished = doc_settings:read("percent_finished")
           if status == "complete" then
             if self.is_delete_finished then
               self:removeArticle(entry_path)
@@ -1016,8 +1016,8 @@ function Wallabag:addTags(path)
   local id = self:getArticleID(path)
   if id then
     local doc_settings = DocSettings:open(path)
-    local summary = doc_settings:readSetting("summary")
-    local tags = summary and summary.note
+    local summary = doc_settings:readTableRef("summary")
+    local tags = summary.note
     if tags and tags ~= "" then
       logger.dbg("Wallabag: sending tags ", tags, " for ", path)
 
@@ -1328,14 +1328,14 @@ function Wallabag:saveSettings()
     download_original_document = self.download_original_document,
     download_queue = self.download_queue,
   }
-  self.wb_settings:saveSetting("wallabag", tempsettings)
+  self.wb_settings:save("wallabag", tempsettings)
   self.wb_settings:flush()
 end
 
 function Wallabag:readSettings()
   local wb_settings =
     LuaSettings:open(DataStorage:getSettingsDir() .. "/wallabag.lua")
-  wb_settings:readTableSetting("wallabag")
+  wb_settings:readTableRef("wallabag")
   return wb_settings
 end
 
@@ -1343,7 +1343,7 @@ function Wallabag:saveWBSettings(setting)
   if not self.wb_settings then
     self.wb_settings = self:readSettings()
   end
-  self.wb_settings:saveSetting("wallabag", setting)
+  self.wb_settings:save("wallabag", setting)
   self.wb_settings:flush()
 end
 
@@ -1397,8 +1397,8 @@ end
 function Wallabag:onCloseDocument()
   if self.remove_finished_from_history or self.remove_read_from_history then
     local document_full_path = self.ui.document.file
-    local summary = self.ui.doc_settings:readSetting("summary")
-    local status = summary and summary.status
+    local summary = self.ui.doc_settings:readTableRef("summary")
+    local status = summary.status
     local is_finished = status == "complete"
     local is_read = self:getLastPercent() == 1
     local is_abandoned = status == "abandoned"

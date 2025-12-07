@@ -658,7 +658,7 @@ function Kindle:init()
   if self.powerd:hasHallSensor() then
     if G_reader_settings:has("kindle_hall_effect_sensor_enabled") then
       self.powerd:onToggleHallSensor(
-        G_reader_settings:readSetting("kindle_hall_effect_sensor_enabled")
+        G_reader_settings:read("kindle_hall_effect_sensor_enabled")
       )
     end
   end
@@ -879,8 +879,7 @@ function Kindle:ambientBrightnessLevel()
   if type(value) ~= "number" then
     return 0
   end
-  value = value
-    * (G_defaults:readSetting("KINDLE_AMBIENT_BRIGHTNESS_MULTIPLIER") or 1)
+  value = value * (G_defaults:read("KINDLE_AMBIENT_BRIGHTNESS_MULTIPLIER") or 1)
   if value < 10 then
     return 0
   end

@@ -75,15 +75,14 @@ function PdfDocument:convertKoptToReflowableFontSize(font_size)
   local size
   if DocSettings:hasSidecarFile(self.file) then
     local doc_settings = DocSettings:open(self.file)
-    size = doc_settings:readSetting("kopt_font_size")
+    size = doc_settings:read("kopt_font_size")
   end
   if size then
     return size * default_font_size
-  elseif G_reader_settings:readSetting("kopt_font_size") then
-    return G_reader_settings:readSetting("kopt_font_size") * default_font_size
-  elseif G_defaults:readSetting("DKOPTREADER_CONFIG_FONT_SIZE") then
-    return G_defaults:readSetting("DKOPTREADER_CONFIG_FONT_SIZE")
-      * default_font_size
+  elseif G_reader_settings:read("kopt_font_size") then
+    return G_reader_settings:read("kopt_font_size") * default_font_size
+  elseif G_defaults:read("DKOPTREADER_CONFIG_FONT_SIZE") then
+    return G_defaults:read("DKOPTREADER_CONFIG_FONT_SIZE") * default_font_size
   else
     return default_font_size
   end

@@ -33,7 +33,7 @@ function OPDS:showCatalog()
     if FileManager.instance then
       filemanagerRefresh()
     else
-      FileManager:showFiles(G_reader_settings:readSetting("download_dir"))
+      FileManager:showFiles(G_reader_settings:read("download_dir"))
     end
   end
   OPDSCatalog:showCatalog()

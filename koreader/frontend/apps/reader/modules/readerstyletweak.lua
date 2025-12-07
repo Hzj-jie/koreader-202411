@@ -450,41 +450,36 @@ end
 
 function ReaderStyleTweak:onReadSettings(config)
   self.enabled = config:nilOrTrue("style_tweaks_enabled")
-  self.doc_tweaks = config:readTableSetting("style_tweaks")
+  self.doc_tweaks = config:readTableOrNil("style_tweaks") or {}
   -- Default globally enabled style tweaks (for new installations)
   -- are defined in css_tweaks.lua
-  self.global_tweaks = G_reader_settings:readTableSetting(
-    "style_tweaks",
-    CssTweaks.DEFAULT_GLOBAL_STYLE_TWEAKS
-  )
-  self.book_style_tweak = config:readSetting("book_style_tweak") -- string or nil
-  self.book_style_tweak_enabled = config:readSetting("book_style_tweak_enabled")
+  self.global_tweaks = G_reader_settings:readTableOrNil("style_tweaks")
+    or CssTweaks.DEFAULT_GLOBAL_STYLE_TWEAKS
+  self.book_style_tweak = config:read("book_style_tweak") -- string or nil
+  self.book_style_tweak_enabled = config:read("book_style_tweak_enabled")
   self.book_style_tweak_last_edit_pos =
-    config:readSetting("book_style_tweak_last_edit_pos")
+    config:read("book_style_tweak_last_edit_pos")
   self:updateCssText()
 end
 
 function ReaderStyleTweak:onSaveSettings()
   if self.enabled then
-    self.ui.doc_settings:delSetting("style_tweaks_enabled")
+    self.ui.doc_settings:delete("style_tweaks_enabled")
   else
     self.ui.doc_settings:makeFalse("style_tweaks_enabled")
   end
-  self.ui.doc_settings:saveSetting(
+  self.ui.doc_settings:save("style_tweaks", self.doc_tweaks, {})
+  G_reader_settings:save(
     "style_tweaks",
-    util.tableSize(self.doc_tweaks) > 0 and self.doc_tweaks or nil
+    self.global_tweaks,
+    CssTweaks.DEFAULT_GLOBAL_STYLE_TWEAKS
   )
-  G_reader_settings:saveSetting("style_tweaks", self.global_tweaks)
-  G_reader_settings:saveSetting(
-    "style_tweaks_in_dispatcher",
-    self.tweaks_in_dispatcher
-  )
-  self.ui.doc_settings:saveSetting("book_style_tweak", self.book_style_tweak)
-  self.ui.doc_settings:saveSetting(
+  self.ui.doc_settings:save("book_style_tweak", self.book_style_tweak)
+  self.ui.doc_settings:save(
     "book_style_tweak_enabled",
     self.book_style_tweak_enabled
   )
-  self.ui.doc_settings:saveSetting(
+  self.ui.doc_settings:save(
     "book_style_tweak_last_edit_pos",
     self.book_style_tweak_last_edit_pos
   )
@@ -506,7 +501,7 @@ end
 
 function ReaderStyleTweak:init()
   self.tweaks_in_dispatcher =
-    G_reader_settings:readTableSetting("style_tweaks_in_dispatcher")
+    G_reader_settings:readTableRef("style_tweaks_in_dispatcher")
   self.tweaks_by_id = {}
   self.tweaks_table = {}
 

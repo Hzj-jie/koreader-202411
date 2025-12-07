@@ -34,7 +34,7 @@ local ReaderView = OverlapGroup:extend({
   -- single page state
   state = nil, -- table
   outer_page_color = Blitbuffer.gray(
-    G_defaults:readSetting("DOUTER_PAGE_COLOR") * (1 / 15)
+    G_defaults:read("DOUTER_PAGE_COLOR") * (1 / 15)
   ),
   -- highlight with "lighten" or "underscore" or "strikeout" or "invert"
   highlight = nil, -- table
@@ -46,7 +46,7 @@ local ReaderView = OverlapGroup:extend({
   -- PDF/DjVu continuous paging
   page_scroll = nil,
   page_bgcolor = Blitbuffer.gray(
-    G_defaults:readSetting("DBACKGROUND_COLOR") * (1 / 15)
+    G_defaults:read("DBACKGROUND_COLOR") * (1 / 15)
   ),
   page_states = nil, -- table
   -- properties of the gap drawn between each page in scroll mode:
@@ -54,7 +54,7 @@ local ReaderView = OverlapGroup:extend({
   -- DjVu page rendering mode (used in djvu.c:drawPage())
   render_mode = nil, -- default to COLOR, will be set in onReadSettings()
   -- Crengine view mode
-  view_mode = G_defaults:readSetting("DCREREADER_VIEW_MODE"), -- default to page mode
+  view_mode = G_defaults:read("DCREREADER_VIEW_MODE"), -- default to page mode
   hinting = true,
   emitHintPageEvent = nil,
 
@@ -94,9 +94,8 @@ function ReaderView:init()
     bbox = nil,
   }
   self.highlight = {
-    lighten_factor = G_reader_settings:readSetting("highlight_lighten_factor")
-      or 0.2,
-    note_mark = G_reader_settings:readSetting("highlight_note_marker"),
+    lighten_factor = G_reader_settings:read("highlight_lighten_factor") or 0.2,
+    note_mark = G_reader_settings:read("highlight_note_marker"),
     temp_drawer = "invert",
     temp = {},
     saved_drawer = "lighten",
@@ -108,7 +107,7 @@ function ReaderView:init()
   self.page_gap = {
     -- color (0 = white, 8 = gray, 15 = black)
     color = Blitbuffer.gray(
-      (G_reader_settings:readSetting("page_gap_color") or 8) * (1 / 15)
+      (G_reader_settings:read("page_gap_color") or 8) * (1 / 15)
     ),
   }
   self.visible_area = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
@@ -1015,46 +1014,44 @@ end
 
 function ReaderView:onReadSettings(config)
   if self.ui.paging then
-    self.document:setTileCacheValidity(
-      config:readSetting("tile_cache_validity_ts")
-    )
-    self.render_mode = config:readSetting("render_mode")
-      or G_defaults:readSetting("DRENDER_MODE")
+    self.document:setTileCacheValidity(config:read("tile_cache_validity_ts"))
+    self.render_mode = config:read("render_mode")
+      or G_defaults:read("DRENDER_MODE")
     self.document.render_mode = self.render_mode
     if config:has("gamma") then -- old doc contrast setting
-      config:saveSetting("kopt_contrast", config:readSetting("gamma"))
-      config:delSetting("gamma")
+      config:save("kopt_contrast", config:read("gamma"))
+      config:delete("gamma")
     end
   end
   if G_reader_settings:nilOrFalse("lock_rotation") then
     local setting_name = self.ui.paging and "kopt_rotation_mode"
       or "copt_rotation_mode"
     -- document.configurable.rotation_mode is not ready yet
-    local rotation_mode = config:readSetting(setting_name)
-      or G_reader_settings:readSetting(setting_name)
+    local rotation_mode = config:read(setting_name)
+      or G_reader_settings:read(setting_name)
       or Screen.DEVICE_ROTATED_UPRIGHT
     self:onSetRotationMode(rotation_mode)
   end
-  local full_screen = config:readSetting("kopt_full_screen")
+  local full_screen = config:read("kopt_full_screen")
     or self.document.configurable.full_screen
   if full_screen == 0 then
     self.footer_visible = false
   end
   self:resetLayout()
-  local page_scroll = config:readSetting("kopt_page_scroll")
+  local page_scroll = config:read("kopt_page_scroll")
     or self.document.configurable.page_scroll
   self.page_scroll = page_scroll == 1 and true or false
   self.inverse_reading_order = config:isTrue("inverse_reading_order")
     or G_reader_settings:isTrue("inverse_reading_order")
   self.page_overlap_enable = config:isTrue("show_overlap_enable")
     or G_reader_settings:isTrue("page_overlap_enable")
-    or G_defaults:readSetting("DSHOWOVERLAP")
-  self.page_overlap_style = config:readSetting("page_overlap_style")
-    or G_reader_settings:readSetting("page_overlap_style")
+    or G_defaults:read("DSHOWOVERLAP")
+  self.page_overlap_style = config:read("page_overlap_style")
+    or G_reader_settings:read("page_overlap_style")
     or "dim"
   self.page_gap.height = Screen:scaleBySize(
-    config:readSetting("kopt_page_gap_height")
-      or G_reader_settings:readSetting("kopt_page_gap_height")
+    config:read("kopt_page_gap_height")
+      or G_reader_settings:read("kopt_page_gap_height")
       or 8
   )
 end
@@ -1237,30 +1234,21 @@ function ReaderView:onSaveSettings()
     then
       self.document:resetTileCacheValidity()
     end
-    self.ui.doc_settings:saveSetting(
+    self.ui.doc_settings:save(
       "tile_cache_validity_ts",
       self.document:getTileCacheValidity()
     )
     if self.document.is_djvu then
-      self.ui.doc_settings:saveSetting("render_mode", self.render_mode)
+      self.ui.doc_settings:save("render_mode", self.render_mode)
     end
   end
   -- Don't etch the current rotation in stone when sticky rotation is enabled
   if G_reader_settings:nilOrFalse("lock_rotation") then
     self.document.configurable.rotation_mode = Screen:getRotationMode() -- will be saved by ReaderConfig
   end
-  self.ui.doc_settings:saveSetting(
-    "inverse_reading_order",
-    self.inverse_reading_order
-  )
-  self.ui.doc_settings:saveSetting(
-    "show_overlap_enable",
-    self.page_overlap_enable
-  )
-  self.ui.doc_settings:saveSetting(
-    "page_overlap_style",
-    self.page_overlap_style
-  )
+  self.ui.doc_settings:save("inverse_reading_order", self.inverse_reading_order)
+  self.ui.doc_settings:save("show_overlap_enable", self.page_overlap_enable)
+  self.ui.doc_settings:save("page_overlap_style", self.page_overlap_style)
 end
 
 function ReaderView:getRenderModeMenuTable()
@@ -1303,7 +1291,7 @@ function ReaderView:onClose()
 end
 
 function ReaderView:onReaderReady()
-  self.ui.doc_settings:delSetting("docsettings_reset_done")
+  self.ui.doc_settings:delete("docsettings_reset_done")
   self.settings_last_save_time = UIManager:getElapsedTimeSinceBoot()
 end
 
@@ -1317,13 +1305,12 @@ function ReaderView:checkAutoSaveSettings()
   if not self.settings_last_save_time then -- reader not yet ready
     return
   end
-  if G_reader_settings:hasNot("auto_save_settings_interval_minutes") then
+  local interval_m =
+    G_reader_settings:read("auto_save_settings_interval_minutes")
+  if interval_m == nil then
     -- no auto save
     return
   end
-
-  local interval_m =
-    G_reader_settings:readSetting("auto_save_settings_interval_minutes")
   local interval = time.s(interval_m * 60)
   local now = UIManager:getElapsedTimeSinceBoot()
   if now - self.settings_last_save_time >= interval then
@@ -1362,9 +1349,9 @@ end
 -- Note, this may return a none bd version if the self or
 -- self.inverse_reading_order is not defined.
 function ReaderView:getForwardTapZone()
-  local tap_zones_type = G_reader_settings:readSetting("page_turns_tap_zones")
+  local tap_zones_type = G_reader_settings:read("page_turns_tap_zones")
     or "left_right"
-  local tap_zone_forward_w = G_reader_settings:readSetting(
+  local tap_zone_forward_w = G_reader_settings:read(
     "page_turns_tap_zone_forward_size_ratio"
   ) or 0.6
   local forward_zone

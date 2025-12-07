@@ -335,7 +335,7 @@ function Calibre:getWirelessMenuTable()
       text_func = function()
         local address = _("automatic")
         if G_reader_settings:has("calibre_wireless_url") then
-          address = G_reader_settings:readSetting("calibre_wireless_url")
+          address = G_reader_settings:read("calibre_wireless_url")
           address = string.format("%s:%s", address["address"], address["port"])
         end
         return T(_("Server address (%1)"), BD.ltr(address))
@@ -348,7 +348,7 @@ function Calibre:getWirelessMenuTable()
             return G_reader_settings:hasNot("calibre_wireless_url")
           end,
           callback = function()
-            G_reader_settings:delSetting("calibre_wireless_url")
+            G_reader_settings:delete("calibre_wireless_url")
           end,
         },
         {
@@ -359,8 +359,7 @@ function Calibre:getWirelessMenuTable()
           callback = function(touchmenu_instance)
             local MultiInputDialog = require("ui/widget/multiinputdialog")
             local url_dialog
-            local calibre_url =
-              G_reader_settings:readSetting("calibre_wireless_url")
+            local calibre_url = G_reader_settings:read("calibre_wireless_url")
             local calibre_url_address, calibre_url_port
             if calibre_url then
               calibre_url_address = calibre_url["address"]
@@ -399,7 +398,7 @@ function Calibre:getWirelessMenuTable()
                           --default port
                           port = 9090
                         end
-                        G_reader_settings:saveSetting(
+                        G_reader_settings:save(
                           "calibre_wireless_url",
                           { address = fields[1], port = port }
                         )
@@ -460,7 +459,7 @@ function Calibre:getWirelessMenuTable()
               type(v) == "string" and v ~= CalibreExtensions.default_output
             then
               CalibreExtensions.default_output = v
-              G_reader_settings:saveSetting(
+              G_reader_settings:save(
                 "calibre_wireless_default_format",
                 CalibreExtensions.default_output
               )

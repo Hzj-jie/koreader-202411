@@ -16,7 +16,7 @@ local QuickStart = {
   quickstart_force_show_version = 2021070000,
 }
 
-local language = G_reader_settings:readSetting("language") or "en"
+local language = G_reader_settings:read("language") or "en"
 local version = Version:getNormalizedCurrentVersion()
 local rev = Version:getCurrentRevision()
 
@@ -424,8 +424,7 @@ shown yet or if display is forced through a higher version number than when
 it was first shown.
 ]]
 function QuickStart:isShown()
-  local shown_version =
-    G_reader_settings:readSetting("quickstart_shown_version")
+  local shown_version = G_reader_settings:read("quickstart_shown_version")
   return shown_version ~= nil
     and (shown_version >= self.quickstart_force_show_version)
 end
@@ -508,7 +507,7 @@ function QuickStart:getQuickStart()
   end
   -- remember filename for file manager
   self.quickstart_filename = quickstart_filename
-  G_reader_settings:saveSetting("quickstart_shown_version", version)
+  G_reader_settings:save("quickstart_shown_version", version)
   return quickstart_filename
 end
 

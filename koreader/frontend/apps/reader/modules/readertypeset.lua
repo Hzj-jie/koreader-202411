@@ -25,12 +25,12 @@ function ReaderTypeset:init()
 end
 
 function ReaderTypeset:onReadSettings(config)
-  self.css = config:readSetting("css")
+  self.css = config:read("css")
   if not self.css then
     if self.ui.document.is_fb2 then
-      self.css = G_reader_settings:readSetting("copt_fb2_css")
+      self.css = G_reader_settings:read("copt_fb2_css")
     else
-      self.css = G_reader_settings:readSetting("copt_css")
+      self.css = G_reader_settings:read("copt_css")
     end
   end
   if not self.css then
@@ -49,7 +49,7 @@ function ReaderTypeset:onReadSettings(config)
   -- previously opened so bookmarks and highlights stay valid.
   -- For new books, use 'web' mode below in BLOCK_RENDERING_FLAGS
   if config:has("copt_block_rendering_mode") then
-    self.block_rendering_mode = config:readSetting("copt_block_rendering_mode")
+    self.block_rendering_mode = config:read("copt_block_rendering_mode")
   else
     if
       config:has("last_xpointer") and not config:has("docsettings_reset_done")
@@ -57,7 +57,7 @@ function ReaderTypeset:onReadSettings(config)
       -- We have a last_xpointer: this book was previously opened
       self.block_rendering_mode = 0
     else
-      self.block_rendering_mode = G_reader_settings:readSetting(
+      self.block_rendering_mode = G_reader_settings:read(
         "copt_block_rendering_mode"
       ) or 3 -- default to 'web' mode
     end
@@ -85,8 +85,8 @@ function ReaderTypeset:onReadSettings(config)
     or false
 
   -- default to disable TXT formatting as it does more harm than good (the setting is not in UI)
-  self.txt_preformatted = config:readSetting("txt_preformatted")
-    or G_reader_settings:readSetting("txt_preformatted")
+  self.txt_preformatted = config:read("txt_preformatted")
+    or G_reader_settings:read("txt_preformatted")
     or 1
   self.ui.document:setTxtPreFormatted(self.txt_preformatted)
 
@@ -98,7 +98,7 @@ function ReaderTypeset:onReadSettings(config)
 end
 
 function ReaderTypeset:onSaveSettings()
-  self.ui.doc_settings:saveSetting("css", self.css)
+  self.ui.doc_settings:save("css", self.css)
 end
 
 function ReaderTypeset:onToggleEmbeddedStyleSheet(toggle)
@@ -198,10 +198,7 @@ function ReaderTypeset:genStyleSheetMenu()
       text_func = function()
         local css_opt = self.ui.document.is_fb2 and "copt_fb2_css" or "copt_css"
         return text
-          .. (
-            css_file == G_reader_settings:readSetting(css_opt) and "   ★"
-            or ""
-          )
+          .. (css_file == G_reader_settings:read(css_opt) and "   ★" or "")
       end,
       callback = function()
         self:setStyleSheet(css_file or self.ui.document.default_css)
@@ -363,7 +360,7 @@ This stylesheet is to be used only with FB2 and FB3 documents, which are not cla
       if obsoleted_css[self.css] then
         text = T(_("Obsolete (%1)"), BD.filename(obsoleted_css[self.css]))
       end
-      if obsoleted_css[G_reader_settings:readSetting("copt_css")] then
+      if obsoleted_css[G_reader_settings:read("copt_css")] then
         text = text .. "   ★"
       end
       return text
@@ -498,9 +495,9 @@ function ReaderTypeset:makeDefaultStyleSheet(
     text = text,
     ok_callback = function()
       if self.ui.document.is_fb2 then
-        G_reader_settings:saveSetting("copt_fb2_css", css)
+        G_reader_settings:save("copt_fb2_css", css)
       else
-        G_reader_settings:saveSetting("copt_css", css)
+        G_reader_settings:save("copt_css", css)
       end
       if touchmenu_instance then
         touchmenu_instance:updateItems()

@@ -201,7 +201,7 @@ function KindlePowerD:onToggleHallSensor(toggle)
   end
   ffiUtil.writeToSysfs(toggle, self.hall_file)
 
-  G_reader_settings:saveSetting(
+  G_reader_settings:save(
     "kindle_hall_effect_sensor_enabled",
     toggle == 1 and true or false
   )

@@ -11,9 +11,9 @@ return {
       end,
       callback = function()
         if G_named_settings.activate_menu() ~= "swipe" then
-          G_reader_settings:saveSetting("activate_menu", "swipe")
+          G_reader_settings:save("activate_menu", "swipe")
         else
-          G_reader_settings:saveSetting("activate_menu", "swipe_tap")
+          G_reader_settings:save("activate_menu", "swipe_tap")
         end
         UIManager:askForRestart()
       end,
@@ -25,9 +25,9 @@ return {
       end,
       callback = function()
         if G_named_settings.activate_menu() ~= "tap" then
-          G_reader_settings:saveSetting("activate_menu", "tap")
+          G_reader_settings:save("activate_menu", "tap")
         else
-          G_reader_settings:saveSetting("activate_menu", "swipe_tap")
+          G_reader_settings:save("activate_menu", "swipe_tap")
         end
         UIManager:askForRestart()
       end,

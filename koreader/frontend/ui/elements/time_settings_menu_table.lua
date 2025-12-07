@@ -45,7 +45,7 @@ local menu = {
             return G_named_settings.duration_format() == "classic"
           end,
           callback = function()
-            G_reader_settings:saveSetting("duration_format", "classic")
+            G_reader_settings:save("duration_format", "classic")
             UIManager:broadcastEvent("UpdateFooter")
           end,
         },
@@ -61,7 +61,7 @@ local menu = {
             return G_named_settings.duration_format() == "modern"
           end,
           callback = function()
-            G_reader_settings:saveSetting("duration_format", "modern")
+            G_reader_settings:save("duration_format", "modern")
             UIManager:broadcastEvent("UpdateFooter")
           end,
         },
@@ -77,7 +77,7 @@ local menu = {
             return G_named_settings.duration_format() == "letters"
           end,
           callback = function()
-            G_reader_settings:saveSetting("duration_format", "letters")
+            G_reader_settings:save("duration_format", "letters")
             UIManager:broadcastEvent("UpdateFooter")
           end,
         },

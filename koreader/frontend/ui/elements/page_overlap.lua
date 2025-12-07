@@ -48,7 +48,7 @@ table.insert(PageOverlap.sub_item_table, {
   text_func = function()
     return T(
       _("Number of lines: %1"),
-      G_reader_settings:readSetting("copt_overlap_lines") or 1
+      G_reader_settings:read("copt_overlap_lines") or 1
     )
   end,
   enabled_func = function()
@@ -63,13 +63,13 @@ table.insert(PageOverlap.sub_item_table, {
       info_text = _([[
 When page overlap is enabled, some lines from the previous page will be displayed on the next page.
 You can set how many lines are shown.]]),
-      value = G_reader_settings:readSetting("copt_overlap_lines") or 1,
+      value = G_reader_settings:read("copt_overlap_lines") or 1,
       value_min = 1,
       value_max = 10,
       default_value = 1,
       precision = "%d",
       callback = function(spin)
-        G_reader_settings:saveSetting("copt_overlap_lines", spin.value)
+        G_reader_settings:save("copt_overlap_lines", spin.value)
         touchmenu_instance:updateItems()
       end,
     }))
@@ -88,7 +88,7 @@ for _, v in ipairs(page_overlap_styles) do
   table.insert(PageOverlap.sub_item_table, {
     text_func = function()
       local text = style_text
-      if G_reader_settings:readSetting("page_overlap_style") == style then
+      if G_reader_settings:read("page_overlap_style") == style then
         text = text .. "   ★"
       end
       return text
@@ -105,7 +105,7 @@ for _, v in ipairs(page_overlap_styles) do
       ReaderUI.instance.view.page_overlap_style = style
     end,
     hold_callback = function(touchmenu_instance)
-      G_reader_settings:saveSetting("page_overlap_style", style)
+      G_reader_settings:save("page_overlap_style", style)
       touchmenu_instance:updateItems()
     end,
   })

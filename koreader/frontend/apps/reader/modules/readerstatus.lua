@@ -39,7 +39,7 @@ end
 function ReaderStatus:onEndOfBook()
   Device:performHapticFeedback("CONTEXT_CLICK")
   local QuickStart = require("ui/quickstart")
-  local last_file = G_reader_settings:readSetting("lastfile")
+  local last_file = G_reader_settings:read("lastfile")
   if last_file == QuickStart.quickstart_filename then
     -- Like onOpenNextDocumentInFolder, delay this so as not to break instance lifecycle
     UIManager:nextTick(function()
@@ -53,10 +53,9 @@ function ReaderStatus:onEndOfBook()
     self:markBook(true)
   end
 
-  local collate = G_reader_settings:readSetting("collate")
+  local collate = G_reader_settings:read("collate")
   local next_file_enabled = collate ~= "access" and collate ~= "date"
-  local settings = G_reader_settings:readSetting("end_document_action")
-    or "pop-up"
+  local settings = G_reader_settings:read("end_document_action") or "pop-up"
   local top_widget = UIManager:getTopmostVisibleWidget() or {}
   if settings == "pop-up" and top_widget.name ~= "end_document" then
     local button_dialog
@@ -64,8 +63,7 @@ function ReaderStatus:onEndOfBook()
       {
         {
           text_func = function()
-            local status =
-              self.ui.doc_settings:readTableSetting("summary").status
+            local status = self.ui.doc_settings:readTableRef("summary").status
             return status == "complete" and _("Mark as reading")
               or _("Mark as finished")
           end,
@@ -224,12 +222,12 @@ end
 -- If mark_read is true then we change status only from reading/abandoned to complete.
 -- Otherwise we change status from reading/abandoned to complete or from complete to reading.
 function ReaderStatus:markBook(mark_read)
-  local summary = self.ui.doc_settings:readTableSetting("summary")
+  local summary = self.ui.doc_settings:readTableRef("summary")
   summary.status = (not mark_read and summary.status == "complete")
       and "reading"
     or "complete"
   summary.modified = os.date("%Y-%m-%d", os.time())
-  self.ui.doc_settings:saveSetting("summary", summary)
+  self.ui.doc_settings:save("summary", summary)
   -- If History is called over Reader, it will read the file to get the book status, so flush
   self.ui.doc_settings:flush()
 end

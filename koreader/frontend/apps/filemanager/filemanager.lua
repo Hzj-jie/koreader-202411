@@ -63,7 +63,7 @@ end
 function FileManager:setRotationMode()
   local locked = G_reader_settings:isTrue("lock_rotation")
   if not locked then
-    local mode = G_reader_settings:readSetting("fm_rotation_mode")
+    local mode = G_reader_settings:read("fm_rotation_mode")
       or Screen.DEVICE_ROTATED_UPRIGHT
     self:onSetRotationMode(mode)
   end
@@ -277,7 +277,7 @@ function FileManager:setupLayout()
         if has_sidecar then
           doc_settings_or_file = DocSettings:open(file)
           if not self.book_props then
-            local props = doc_settings_or_file:readSetting("doc_props")
+            local props = doc_settings_or_file:read("doc_props")
             self.book_props = FileManagerBookInfo.extendProps(props, file)
             self.book_props.has_cover = true -- to enable "Book cover" button, we do not know if cover exists
           end
@@ -886,7 +886,7 @@ function FileManager:setHome(path)
     text = T(_("Set '%1' as HOME folder?"), BD.dirpath(path)),
     ok_text = _("Set as HOME"),
     ok_callback = function()
-      G_reader_settings:saveSetting("home_dir", path)
+      G_reader_settings:save("home_dir", path)
       if G_reader_settings:isTrue("lock_home_folder") then
         self:onRefresh()
       end
@@ -1356,7 +1356,7 @@ function FileManager:showFiles(path, focused_file, selected_files)
   -- Warn about and close any pre-existing FM instances first...
   assert(FileManager.instance == nil)
   path = ffiUtil.realpath(path or G_named_settings.lastdir())
-  G_reader_settings:saveSetting("lastdir", path)
+  G_reader_settings:save("lastdir", path)
   self:setRotationMode()
   local file_manager = FileManager:new({
     dimen = Screen:getSize(),
@@ -1746,20 +1746,20 @@ function FileManager.getSortByActions()
 end
 
 function FileManager:onSetSortBy(mode)
-  G_reader_settings:saveSetting("collate", mode)
+  G_reader_settings:save("collate", mode)
   self.file_chooser:clearSortingCache()
   self.file_chooser:refreshPath()
   return true
 end
 
 function FileManager:onSetReverseSorting(toggle)
-  G_reader_settings:saveSetting("reverse_collate", toggle, false)
+  G_reader_settings:save("reverse_collate", toggle, false)
   self.file_chooser:refreshPath()
   return true
 end
 
 function FileManager:onSetMixedSorting(toggle)
-  G_reader_settings:saveSetting("collate_mixed", toggle, false)
+  G_reader_settings:save("collate_mixed", toggle, false)
   self.file_chooser:refreshPath()
   return true
 end

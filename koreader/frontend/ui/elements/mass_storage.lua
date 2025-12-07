@@ -27,7 +27,7 @@ function MassStorage:getSettingsMenuTable()
         return not self:requireConfirmation()
       end,
       callback = function()
-        G_reader_settings:saveSetting(
+        G_reader_settings:save(
           "mass_storage_confirmation_disabled",
           self:requireConfirmation()
         )
@@ -42,7 +42,7 @@ function MassStorage:getSettingsMenuTable()
         return not self:isEnabled()
       end,
       callback = function()
-        G_reader_settings:saveSetting("mass_storage_disabled", self:isEnabled())
+        G_reader_settings:save("mass_storage_disabled", self:isEnabled())
       end,
     },
   }

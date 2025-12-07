@@ -176,7 +176,7 @@ function NextcloudExporter:export(t)
   end
 
   -- determine if markdown export is set
-  local plugin_settings = G_reader_settings:readTableSetting("exporter")
+  local plugin_settings = G_reader_settings:readTableRef("exporter")
   local markdown_settings = plugin_settings.markdown
 
   -- setup Nextcloud variables
