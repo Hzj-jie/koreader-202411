@@ -174,7 +174,7 @@ function ReaderCropping:setZoomMode(mode)
 end
 
 function ReaderCropping:onReadSettings(config)
-  self.document.bbox = config:readTableOrNil("bbox") or {}
+  self.document.bbox = config:readTable("bbox") or {}
 end
 
 function ReaderCropping:onSaveSettings()
