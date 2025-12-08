@@ -20,49 +20,10 @@ function LuaDefaults:open(path)
   local new = LuaDefaults:extend({
     file = file_path,
   })
-  local ok, stored
-
-  -- File being absent and returning an empty table is a use case,
-  -- so logger.warn() only if there was an existing file
-  local existing = lfs.attributes(new.file, "mode") == "file"
-
-  ok, stored = pcall(dofile, new.file)
-  if ok and stored then
-    new.rw = stored
-  else
-    if existing then
-      logger.warn(
-        "LuaDefaults: Failed reading",
-        new.file,
-        "(probably corrupted)."
-      )
-    end
-    -- Fallback to .old if it exists
-    ok, stored = pcall(dofile, new.file .. ".old")
-    if ok and stored then
-      if existing then
-        logger.warn("LuaDefaults: read from backup file", new.file .. ".old")
-      end
-      new.rw = stored
-    else
-      if existing then
-        logger.warn(
-          "LuaDefaults: no usable backup file for",
-          new.file,
-          "to read from"
-        )
-      end
-      new.rw = {}
-    end
-  end
+  new.rw = LuaSettings:load(file_path)
 
   -- The actual defaults file, on the other hand, is set in stone.
-  ok, stored = pcall(dofile, "defaults.lua")
-  if ok and stored then
-    new.ro = stored
-  else
-    error("Failed reading defaults.lua")
-  end
+  new.ro = dofile("defaults.lua")
 
   return new
 end
@@ -161,13 +122,11 @@ function LuaDefaults:flush()
   if not self.file then
     return
   end
-  local directory_updated = self:backup() -- LuaSettings
   util.writeToFile(
     dump(self.rw),
     self.file,
     true,
-    true,
-    directory_updated
+    true
   )
   return self
 end

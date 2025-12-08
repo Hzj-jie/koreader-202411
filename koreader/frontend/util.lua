@@ -1234,14 +1234,13 @@ function util.writeToFile(
   data,
   filepath,
   force_flush,
-  lua_dofile_ready,
-  directory_updated
+  lua_dofile_ready
 )
   if not data then
-    return
+    return false, "data"
   end
   if not filepath then
-    return
+    return false, "filepath"
   end
   if lua_dofile_ready then
     local t = { "-- ", filepath, "\nreturn ", data, "\n" }
@@ -1256,21 +1255,23 @@ function util.writeToFile(
       logger.dbg("Content of ", filepath, " doesn't change, ignore writing.")
       -- But still touch it.
       file:close()
-      return
+      return true
     end
   end
-  local file, err = io.open(filepath, "wb")
+  local file, err = io.open(filepath .. ".new", "wb")
   if not file then
-    return nil, err
+    return false, err
   end
   file:write(data)
   if force_flush then
     ffiUtil.fsyncOpenedFile(file)
   end
   file:close()
-  if directory_updated then
-    ffiUtil.fsyncDirectory(filepath)
+  file, err = os.rename(filepath .. ".new", filepath)
+  if not file then
+    return file, err
   end
+  ffiUtil.fsyncDirectory(filepath)
   return true
 end
 
