@@ -374,7 +374,7 @@ function DocSettings:flush(data, no_custom_metadata)
     sidecar_dirs = { self.hash_sidecar_dir }
   end
 
-  local ser_data = dump(data, nil, true)
+  local ser_data = dump(data)
   for _, sidecar_dir in ipairs(sidecar_dirs) do
     local sidecar_dir_slash = sidecar_dir .. "/"
     local sidecar_file = sidecar_dir_slash .. self.sidecar_filename
@@ -644,7 +644,7 @@ end
 
 function DocSettings:flushCustomMetadata(doc_path)
   local sidecar_dirs = self:getCustomLocationCandidates(doc_path)
-  local s_out = dump(self.data, nil, true)
+  local s_out = dump(self.data)
   for _, sidecar_dir in ipairs(sidecar_dirs) do
     util.makePath(sidecar_dir)
     local new_metadata_file = sidecar_dir .. "/" .. custom_metadata_filename

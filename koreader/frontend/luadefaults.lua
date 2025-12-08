@@ -163,7 +163,7 @@ function LuaDefaults:flush()
   end
   local directory_updated = self:backup() -- LuaSettings
   util.writeToFile(
-    dump(self.rw, nil, true),
+    dump(self.rw),
     self.file,
     true,
     true,

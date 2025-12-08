@@ -158,7 +158,7 @@ function LuaSettings:save(key, value, default_value)
       util.tableSize(value) == util.tableSize(default_value)
       and (
         util.tableSize(value) == 0
-        or dump(value, nil, true) == dump(default_value, nil, true)
+        or dump(value) == dump(default_value)
       )
     then
       return self:delete(key)
@@ -283,7 +283,7 @@ function LuaSettings:flush()
   end
   local directory_updated = self:backup()
   util.writeToFile(
-    dump(self.data, nil, true),
+    dump(self.data),
     self.file,
     true,
     true,
