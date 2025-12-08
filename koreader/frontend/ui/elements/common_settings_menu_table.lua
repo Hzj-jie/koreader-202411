@@ -576,7 +576,7 @@ end
 
 common_settings.document_auto_save = {
   -- Need localization
-  text = _("Periodically save book metadata"),
+  text = _("Periodically save reading progress"),
   help_text = auto_save_help_text(),
   checked_func = function()
     return G_reader_settings:nilOrTrue("auto_save_settings")
