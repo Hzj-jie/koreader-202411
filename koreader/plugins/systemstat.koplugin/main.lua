@@ -398,8 +398,6 @@ function SystemStat:appendProcessInfo()
   local t = util.splitToArray(stat:read("*line"), " ")
   stat:close()
 
-  local n1, n2
-
   if #t == 0 then
     return
   end
@@ -410,11 +408,13 @@ function SystemStat:appendProcessInfo()
   if #t < 14 then
     return
   end
-  n1 = tonumber(t[14])
-  n2 = tonumber(t[15])
+  local n1 = tonumber(t[14])
   if n1 ~= nil then
-    if n2 ~= nil then
-      n1 = n1 + n2
+    for i = 15, 17 do
+      local n2 = tonumber(t[i])
+      if n2 ~= nil then
+        n1 = n1 + n2
+      end
     end
     -- Need localization
     -- Fairly hard for reader.lua to use so much processor resources, do not
@@ -424,7 +424,7 @@ function SystemStat:appendProcessInfo()
       assert(self.sys_stat.cpu.total > 0) -- Imporssible to be 0.
       self:put({
         _("  Processor usage %"),
-        string.format("%.2f", n1 / self.sys_stat.cpu.total * 100),
+        string.format("%.2f", n1 * 100 * self.sys_stat.uptime.sec/ self.sys_stat.cpu.total/self:awakeSec()),
       })
     end
   end
