@@ -122,12 +122,7 @@ function LuaDefaults:flush()
   if not self.file then
     return
   end
-  util.writeToFile(
-    dump(self.rw),
-    self.file,
-    true,
-    true
-  )
+  util.writeToFile(dump(self.rw), self.file, true)
   return self
 end
 

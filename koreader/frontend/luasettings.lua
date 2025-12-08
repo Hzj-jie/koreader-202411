@@ -28,11 +28,7 @@ function LuaSettings:load(file_path)
   if ok and stored then
     return stored, true
   end
-  logger.warn(
-    "LuaSettings: Failed reading",
-    file_path,
-    ", probably corrupted."
-  )
+  logger.warn("LuaSettings: Failed reading", file_path, ", probably corrupted.")
   return {}, false
 end
 
@@ -141,10 +137,7 @@ function LuaSettings:save(key, value, default_value)
     -- An easy optimization to avoid dumping.
     if
       util.tableSize(value) == util.tableSize(default_value)
-      and (
-        util.tableSize(value) == 0
-        or dump(value) == dump(default_value)
-      )
+      and (util.tableSize(value) == 0 or dump(value) == dump(default_value))
     then
       return self:delete(key)
     end
@@ -249,12 +242,7 @@ function LuaSettings:flush()
   if self.data == nil or next(self.data) == nil then
     return
   end
-  util.writeToFile(
-    dump(self.data),
-    self.file,
-    true,
-    true
-  )
+  util.writeToFile(dump(self.data), self.file, true)
   return self
 end
 

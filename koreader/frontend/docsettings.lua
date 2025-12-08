@@ -344,9 +344,7 @@ function DocSettings:flush(data, no_custom_metadata)
     local sidecar_file = sidecar_dir_slash .. self.sidecar_filename
     util.makePath(sidecar_dir)
     logger.dbg("DocSettings: Writing to", sidecar_file)
-    if
-      util.writeToFile(ser_data, sidecar_file, true, true)
-    then
+    if util.writeToFile(ser_data, sidecar_file, true) then
       -- move custom cover file and custom metadata file to the metadata file location
       if not no_custom_metadata then
         local metadata_file, filepath, filename
@@ -399,11 +397,7 @@ function DocSettings:purge(sidecar_to_keep, data_to_purge)
     for _, t in ipairs(self.candidates) do
       local candidate_path = t.path
       if isFile(candidate_path) then
-        if
-          not sidecar_to_keep
-          or
-            candidate_path ~= sidecar_to_keep
-        then
+        if not sidecar_to_keep or candidate_path ~= sidecar_to_keep then
           os.remove(candidate_path)
           logger.dbg("DocSettings: purged:", candidate_path)
         end
@@ -609,7 +603,7 @@ function DocSettings:flushCustomMetadata(doc_path)
   for _, sidecar_dir in ipairs(sidecar_dirs) do
     util.makePath(sidecar_dir)
     local new_metadata_file = sidecar_dir .. "/" .. custom_metadata_filename
-    if util.writeToFile(s_out, new_metadata_file, true, true) then
+    if util.writeToFile(s_out, new_metadata_file, true) then
       return true
     end
   end

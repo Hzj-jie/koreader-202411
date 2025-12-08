@@ -1230,12 +1230,7 @@ function util.readFromFile(filepath, mode)
   return data
 end
 
-function util.writeToFile(
-  data,
-  filepath,
-  force_flush,
-  lua_dofile_ready
-)
+function util.writeToFile(data, filepath, lua_dofile_ready)
   if not data then
     return false, "data"
   end
@@ -1263,9 +1258,7 @@ function util.writeToFile(
     return false, err
   end
   file:write(data)
-  if force_flush then
-    ffiUtil.fsyncOpenedFile(file)
-  end
+  ffiUtil.fsyncOpenedFile(file)
   file:close()
   file, err = os.rename(filepath .. ".new", filepath)
   if not file then
