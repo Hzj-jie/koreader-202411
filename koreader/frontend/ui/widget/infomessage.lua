@@ -44,6 +44,8 @@ local _ = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 
+local MAX_SCREEN_RATIO = 3 / 4
+
 local InfoMessage = InputContainer:extend({
   modal = true,
   face = nil,
@@ -124,7 +126,7 @@ function InfoMessage:init()
 
   local text_width
   if self.width == nil then
-    text_width = math.floor(Screen:getWidth() * 2 / 3)
+    text_width = math.floor(Screen:getWidth() * MAX_SCREEN_RATIO)
   else
     text_width = self.width - image_widget:getSize().w
     if text_width < 0 then
@@ -177,27 +179,13 @@ function InfoMessage:init()
     self.movable,
   })
   if not self.height then
-    -- Reduce font size until widget fit screen height if needed
+    -- Force using ScrollTextWidget if the widget cannot fit screen height.
     local cur_size = frame:getSize()
-    if cur_size and cur_size.h > 0.95 * Screen:getHeight() then
-      local orig_font = text_widget.face.orig_font
-      local orig_size = text_widget.face.orig_size
-      local real_size = text_widget.face.size
-      if orig_size > 10 then -- don't go too small
-        while true do
-          orig_size = orig_size - 1
-          self.face = Font:getFace(orig_font, orig_size)
-          -- scaleBySize() in Font:getFace() may give the same
-          -- real font size even if we decreased orig_size,
-          -- so check we really got a smaller real font size
-          if self.face.size < real_size then
-            break
-          end
-        end
-        -- re-init this widget
-        self:free()
-        self:init()
-      end
+    if cur_size and cur_size.h > MAX_SCREEN_RATIO * Screen:getHeight() then
+      self.height = math.floor(MAX_SCREEN_RATIO * Screen:getHeight())
+      -- re-init this widget
+      self:free()
+      self:init()
     end
   end
 
