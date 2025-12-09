@@ -212,47 +212,45 @@ function ReaderMenu:setUpdateItemTable()
   end
 
   -- typeset tab
-  self.menu_items.reset_document_settings = 
-      {
-        text = _("Reset document settings to default"),
-        keep_menu_open = true,
-        callback = function()
-          UIManager:show(ConfirmBox:new({
-            text = _(
-              "Reset current document settings to their default values?\n\nReading position, highlights and bookmarks will be kept.\nThe document will be reloaded."
-            ),
-            ok_text = _("Reset"),
-            ok_callback = function()
-              local current_file = self.ui.document.file
-              self:closeMenu()
-              self.ui:onExit()
-              require("apps/filemanager/filemanagerutil").resetDocumentSettings(
-                current_file
-              )
-              require("apps/reader/readerui"):showReader(current_file)
-            end,
-          }))
+  self.menu_items.reset_document_settings = {
+    text = _("Reset document settings to default"),
+    keep_menu_open = true,
+    callback = function()
+      UIManager:show(ConfirmBox:new({
+        text = _(
+          "Reset current document settings to their default values?\n\nReading position, highlights and bookmarks will be kept.\nThe document will be reloaded."
+        ),
+        ok_text = _("Reset"),
+        ok_callback = function()
+          local current_file = self.ui.document.file
+          self:closeMenu()
+          self.ui:onExit()
+          require("apps/filemanager/filemanagerutil").resetDocumentSettings(
+            current_file
+          )
+          require("apps/reader/readerui"):showReader(current_file)
         end,
-      }
+      }))
+    end,
+  }
 
-  self.menu_items.save_document_settings =
-      {
-        text = _("Save document settings as default"),
-        keep_menu_open = true,
-        callback = function()
-          UIManager:show(ConfirmBox:new({
-            text = _("Save current document settings as default values?"),
-            ok_text = _("Save"),
-            ok_callback = function()
-              self:closeMenu()
-              self:saveDocumentSettingsAsDefault()
-              UIManager:show(require("ui/widget/notification"):new({
-                text = _("Default settings updated"),
-              }))
-            end,
+  self.menu_items.save_document_settings = {
+    text = _("Save document settings as default"),
+    keep_menu_open = true,
+    callback = function()
+      UIManager:show(ConfirmBox:new({
+        text = _("Save current document settings as default values?"),
+        ok_text = _("Save"),
+        ok_callback = function()
+          self:closeMenu()
+          self:saveDocumentSettingsAsDefault()
+          UIManager:show(require("ui/widget/notification"):new({
+            text = _("Default settings updated"),
           }))
         end,
-      }
+      }))
+    end,
+  }
 
   self.menu_items.page_overlap = require("ui/elements/page_overlap")
 

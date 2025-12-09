@@ -424,7 +424,14 @@ function SystemStat:appendProcessInfo()
       assert(self.sys_stat.cpu.total > 0) -- Imporssible to be 0.
       self:put({
         _("  Processor usage %"),
-        string.format("%.2f", n1 * 100 * self.sys_stat.uptime.sec/ self.sys_stat.cpu.total/self:awakeSec()),
+        string.format(
+          "%.2f",
+          n1
+            * 100
+            * self.sys_stat.uptime.sec
+            / self.sys_stat.cpu.total
+            / self:awakeSec()
+        ),
       })
     end
   end
