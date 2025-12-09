@@ -212,9 +212,7 @@ function ReaderMenu:setUpdateItemTable()
   end
 
   -- typeset tab
-  self.menu_items.document_settings = {
-    text = _("Document settings"),
-    sub_item_table = {
+  self.menu_items.reset_document_settings = 
       {
         text = _("Reset document settings to default"),
         keep_menu_open = true,
@@ -235,7 +233,9 @@ function ReaderMenu:setUpdateItemTable()
             end,
           }))
         end,
-      },
+      }
+
+  self.menu_items.save_document_settings =
       {
         text = _("Save document settings as default"),
         keep_menu_open = true,
@@ -252,9 +252,7 @@ function ReaderMenu:setUpdateItemTable()
             end,
           }))
         end,
-      },
-    },
-  }
+      }
 
   self.menu_items.page_overlap = require("ui/elements/page_overlap")
 
