@@ -333,7 +333,7 @@ return {
       { " ", ".", "←" },
       { " ", _sl, "↓" },
       { _vl, _al, "→" },
-      { label = "⮠", bold = true },
+      { label = "⮠", "\n", "\n", "\n", bold = true },
     },
   },
 }
