@@ -65,51 +65,107 @@ end
 
 @param key The setting's key
 ]]
-function LuaSettings:readSetting(key)
-  return self.data[key]
-  --[[-- Emmm, some logic relies on changing the returned table directly.
+function LuaSettings:read(key)
   local r = self.data[key]
-  if type(r) ~= 'table' then return r end
-  -- Make a shallow copy.
-  local r2 = {}
-  for k,v in pairs(r) do
-    r2[k] = v
+  -- TODO: Should be an assertion.
+  if type(r) == "table" then
+    logger.info(
+      "FixMe: LuaSettings:readSetting ",
+      key,
+      " returns a table and should use readTableRef instead.\n",
+      debug.traceback()
+    )
   end
-  return r2
-  ]]
+  return r
 end
 
---[[-- Reads a setting or creates an empty table
+--[[-- Reads a setting or creates an empty table, returned table can be directly
+--     modified, and modifications would be preserved.
 
 @param key The setting's key
 ]]
-function LuaSettings:readTableSetting(key, default)
-  local v = self:readSetting(key)
+function LuaSettings:readTableRef(key, default)
+  local v = self.data[key]
+  if v ~= nil and type(v) ~= "table" then
+    -- Should only happen during migrations.
+    logger.warn(
+      "LuaSetting ",
+      key,
+      " was not a table, override it with the default value ",
+      dump(default or {})
+    )
+    v = nil
+  end
   if v == nil then
     v = default or {}
-    self:saveSetting(key, v)
+    self.data[key] = v
   end
   return v
 end
 
+--[[-- Reads a setting but not creates an empty table, expects to call
+       saveSetting or the setting will not be persisted.
+]]
+function LuaSettings:readTableOrNil(key)
+  if self:has(key) then
+    return self:readTableRef(key)
+  end
+end
+
 --- Saves a setting.
-function LuaSettings:saveSetting(key, value, default_value)
+function LuaSettings:save(key, value, default_value)
   -- Setting value to nil is same as self.delSetting(key), no reason to
   -- dump and compare the value in the case.
   if value == nil then
-    return self:delSetting(key)
+    return self:delete(key)
   end
-  if default_value == nil or type(value) ~= type(default_value) then
+  if default_value == nil then
+    if type(value) == "table" and value == self.data[key] then
+      logger.info(
+        "FixMe: LuaSettings:saveSetting ",
+        key,
+        " on a LuaSettings:readTableRef is not necessary, unless a ",
+        "default_value is provided to remove the unnecessary setting.\n",
+        debug.traceback()
+      )
+    else
+      self.data[key] = value
+    end
+    return self
+  end
+  -- Should never happen.
+  if type(value) ~= type(default_value) then
+    logger.info(
+      "FixMe: LuaSettings:saveSetting ",
+      key,
+      " value type ",
+      type(value),
+      " unmatches default value type ",
+      type(default_value),
+      ", ignore default value ",
+      default_value,
+      " in favor of value ",
+      value,
+      "\n",
+      debug.traceback()
+    )
     self.data[key] = value
     return self
   end
   if type(value) == "table" then
-    if dump(value, nil, true) == dump(default_value, nil, true) then
-      return self:delSetting(key)
+    -- An easy optimization to avoid dumping.
+    if
+      util.tableSize(value) == util.tableSize(default_value)
+      and (
+        util.tableSize(value) == 0
+        or dump(value, nil, true) == dump(default_value, nil, true)
+      )
+    then
+      return self:delete(key)
     end
   else
     if value == default_value then
-      return self:delSetting(key)
+      return self:delete(key)
     end
   end
   self.data[key] = value
@@ -117,7 +173,7 @@ function LuaSettings:saveSetting(key, value, default_value)
 end
 
 --- Deletes a setting.
-function LuaSettings:delSetting(key)
+function LuaSettings:delete(key)
   self.data[key] = nil
   return self
 end
@@ -163,9 +219,9 @@ end
 --- e.g., a setting that defaults to true.
 function LuaSettings:flipNilOrTrue(key)
   if self:nilOrTrue(key) then
-    self:saveSetting(key, false)
+    self:save(key, false)
   else
-    self:delSetting(key)
+    self:delete(key)
   end
   return self
 end
@@ -174,22 +230,22 @@ end
 --- e.g., a setting that defaults to false.
 function LuaSettings:flipNilOrFalse(key)
   if self:nilOrFalse(key) then
-    self:saveSetting(key, true)
+    self:save(key, true)
   else
-    self:delSetting(key)
+    self:delete(key)
   end
   return self
 end
 
 -- Unconditionally makes a boolean setting `true`.
 function LuaSettings:makeTrue(key, default_value)
-  self:saveSetting(key, true, default_value)
+  self:save(key, true, default_value)
   return self
 end
 
 -- Unconditionally makes a boolean setting `false`.
 function LuaSettings:makeFalse(key, default_value)
-  self:saveSetting(key, false, default_value)
+  self:save(key, false, default_value)
   return self
 end
 
@@ -247,6 +303,17 @@ function LuaSettings:purge()
     os.remove(self.file)
   end
   return self
+end
+
+function LuaSettings:settingCount()
+  return util.tableSize(self.data)
+end
+
+function LuaSettings:fileAttribute()
+  if self.file then
+    return lfs.attributes(self.file)
+  end
+  return nil
 end
 
 return LuaSettings

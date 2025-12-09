@@ -22,7 +22,7 @@ for i = 0, Screen.wf_level_max do
     end,
     callback = function()
       Screen.wf_level = i
-      G_reader_settings:saveSetting("wf_level", i)
+      G_reader_settings:save("wf_level", i)
       UIManager:askForRestart()
     end,
   })

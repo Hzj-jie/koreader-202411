@@ -38,7 +38,7 @@ local T = ffiUtil.template
 local Input = Device.input
 local Screen = Device.screen
 
-local DGENERIC_ICON_SIZE = G_defaults:readSetting("DGENERIC_ICON_SIZE")
+local DGENERIC_ICON_SIZE = G_defaults:read("DGENERIC_ICON_SIZE")
 
 -- Similar to menu widget.
 local ENABLE_SHORTCUT = Device:hasKeyboard()
@@ -1507,7 +1507,7 @@ function TouchMenu:onShowMenuSearch()
     description = _(
       "Search for a menu entry containing the following text (case insensitive)."
     ),
-    input = G_reader_settings:readSetting("menu_search_string") or _("Help"),
+    input = G_reader_settings:read("menu_search_string") or _("Help"),
     buttons = {
       {
         {
@@ -1523,7 +1523,7 @@ function TouchMenu:onShowMenuSearch()
           callback = function()
             local search_for = search_dialog:getInputText()
             search_for = Utf8Proc.lowercase(search_for)
-            G_reader_settings:saveSetting("menu_search_string", search_for)
+            G_reader_settings:save("menu_search_string", search_for)
             UIManager:close(search_dialog)
             show_search_results(search_for)
           end,

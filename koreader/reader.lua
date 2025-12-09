@@ -64,7 +64,7 @@ if not is_cbb_enabled then
   jit.opt.start("loopunroll=45")
 end
 
-local lang_locale = G_reader_settings:readSetting("language")
+local lang_locale = G_reader_settings:read("language")
 -- Allow quick switching to Arabic for testing RTL/UI mirroring
 if os.getenv("KO_RTL") then
   lang_locale = "ar"
@@ -78,7 +78,7 @@ end
 local bb = require("ffi/blitbuffer")
 bb:setUseCBB(is_cbb_enabled)
 is_cbb_enabled = bb:enableCBB(G_reader_settings:nilOrFalse("dev_no_c_blitter"))
-G_reader_settings:saveSetting("dev_no_c_blitter", not is_cbb_enabled)
+G_reader_settings:save("dev_no_c_blitter", not is_cbb_enabled)
 
 -- Option parsing:
 local longopts = {
@@ -184,7 +184,7 @@ Bidi.setup(lang_locale)
 -- for name, _ in pairs(package.loaded) do print(name) end
 
 -- User fonts override
-local fontmap = G_reader_settings:readSetting("fontmap")
+local fontmap = G_reader_settings:read("fontmap")
 if fontmap ~= nil then
   local Font = require("ui/font")
   for k, v in pairs(fontmap) do
@@ -226,7 +226,7 @@ then
     ok_text = _("Disable"),
     ok_callback = function()
       local Event = require("ui/event")
-      G_reader_settings:delSetting("color_rendering")
+      G_reader_settings:delete("color_rendering")
       CanvasContext:setColorRenderingEnabled(false)
       UIManager:broadcastEvent(Event:new("ColorRenderingUpdate"))
     end,
@@ -234,8 +234,8 @@ then
 end
 
 -- Get which file to start with
-local last_file = G_reader_settings:readSetting("lastfile")
-local start_with = G_reader_settings:readSetting("start_with") or "filemanager"
+local last_file = G_reader_settings:read("lastfile")
+local start_with = G_reader_settings:read("start_with") or "filemanager"
 
 -- Helpers
 local function retryLastFile()

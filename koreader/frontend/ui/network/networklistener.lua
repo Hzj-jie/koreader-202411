@@ -32,7 +32,10 @@ function NetworkListener:_wifiActivityCheck()
   -- over 5 minutes.
   local NETWORK_ACTIVITY_NOISE_MARGIN = 12 -- unscaled_size_check: ignore
   local current_tx_packets = self:_getTxPackets()
-  if current_tx_packets - _last_tx_packets > NETWORK_ACTIVITY_NOISE_MARGIN then
+  if
+    _last_tx_packets == 0 -- Initial state
+    or current_tx_packets - _last_tx_packets > NETWORK_ACTIVITY_NOISE_MARGIN
+  then
     _last_tx_packets = current_tx_packets
     return
   end
@@ -149,6 +152,18 @@ function NetworkListener:countsOfPendingJobs()
   )
 end
 
+function NetworkListener:pendingJobKeys()
+  local c = {}
+  for k, _ in pairs(_pending_connected) do
+    table.insert(c, k)
+  end
+  local o = {}
+  for k, _ in pairs(_pending_online) do
+    table.insert(o, k)
+  end
+  return c, o
+end
+
 -- Also unschedule on suspend (and we happen to also kill Wi-Fi to do so, so resetting the stats is also relevant here)
 function NetworkListener:onSuspend()
   logger.dbg("NetworkListener: onSuspend")
@@ -203,10 +218,8 @@ function NetworkListener:onShowNetworkInfo()
           face = Font:getFace("x_smallinfofont"),
         }))
       end,
-      InfoMessage:new({
-        -- Need localization.
-        text = _("Retrieving network information…"),
-      })
+      -- Need localization.
+      _("Retrieving network information…")
     )
   else
     UIManager:show(InfoMessage:new({

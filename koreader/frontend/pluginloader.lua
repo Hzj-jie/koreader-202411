@@ -78,7 +78,11 @@ function PluginLoader:loadPlugins()
   self.disabled_plugins = {}
   self.loaded_plugins = {}
   local lookup_path_list = { DEFAULT_PLUGIN_PATH }
-  local extra_paths = G_reader_settings:readSetting("extra_plugin_paths")
+  local data_dir = require("datastorage"):getDataDir()
+  if data_dir ~= "." then
+    table.insert(lookup_path_list, data_dir .. "/plugins/")
+  end
+  local extra_paths = G_reader_settings:read("extra_plugin_paths")
   if extra_paths then
     if type(extra_paths) == "string" then
       extra_paths = { extra_paths }
@@ -95,21 +99,13 @@ function PluginLoader:loadPlugins()
     else
       logger.err("extra_plugin_paths config only accepts string or table value")
     end
-  else
-    local data_dir = require("datastorage"):getDataDir()
-    if data_dir ~= "." then
-      table.insert(lookup_path_list, data_dir .. "/plugins/")
-    end
   end
 
   -- keep reference to old value so they can be restored later
   local package_path = package.path
   local package_cpath = package.cpath
 
-  local plugins_disabled = G_reader_settings:readSetting("plugins_disabled")
-  if type(plugins_disabled) ~= "table" then
-    plugins_disabled = {}
-  end
+  local plugins_disabled = G_reader_settings:readTableRef("plugins_disabled")
   for entry in pairs(INVISIBLE_PLUGINS) do
     plugins_disabled[entry] = false
   end
@@ -209,14 +205,13 @@ function PluginLoader:genPluginManagerSubItem()
           local UIManager = require("ui/uimanager")
           local _ = require("gettext")
           local plugins_disabled =
-            G_reader_settings:readTableSetting("plugins_disabled")
+            G_reader_settings:readTableRef("plugins_disabled")
           plugin.enable = not plugin.enable
           if plugin.enable then
             plugins_disabled[plugin.name] = nil
           else
             plugins_disabled[plugin.name] = true
           end
-          G_reader_settings:saveSetting("plugins_disabled", plugins_disabled)
           if self.show_info then
             self.show_info = false
             UIManager:askForRestart()

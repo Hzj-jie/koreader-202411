@@ -62,26 +62,24 @@ function AutoWarmth:init()
   self.ui.menu:registerToMainMenu(self)
 
   self.easy_mode = G_reader_settings:nilOrTrue("autowarmth_easy_mode")
-  self.activate = G_reader_settings:readSetting("autowarmth_activate") or 0
-  self.location = G_reader_settings:readSetting("autowarmth_location")
-    or "Geysir"
-  self.latitude = G_reader_settings:readSetting("autowarmth_latitude") or 64.31 --great Geysir in Iceland
-  self.longitude = G_reader_settings:readSetting("autowarmth_longitude")
-    or -20.30
-  self.altitude = G_reader_settings:readSetting("autowarmth_altitude") or 200
-  self.timezone = G_reader_settings:readSetting("autowarmth_timezone") or 0
-  self.scheduler_times = G_reader_settings:readTableSetting(
+  self.activate = G_reader_settings:read("autowarmth_activate") or 0
+  self.location = G_reader_settings:read("autowarmth_location") or "Geysir"
+  self.latitude = G_reader_settings:read("autowarmth_latitude") or 64.31 --great Geysir in Iceland
+  self.longitude = G_reader_settings:read("autowarmth_longitude") or -20.30
+  self.altitude = G_reader_settings:read("autowarmth_altitude") or 200
+  self.timezone = G_reader_settings:read("autowarmth_timezone") or 0
+  self.scheduler_times = G_reader_settings:readTableRef(
     "autowarmth_scheduler_times",
     { 0.0, 5.5, 6.0, 6.5, 7.0, 13.0, 21.5, 22.0, 22.5, 23.0, 24.0 }
   )
-  self.warmth = G_reader_settings:readTableSetting(
+  self.warmth = G_reader_settings:readTableRef(
     "autowarmth_warmth",
     { 90, 90, 80, 60, 20, 20, 20, 60, 80, 90, 90 }
   )
 
   self.fl_off_during_day =
-    G_reader_settings:readSetting("autowarmth_fl_off_during_day")
-  self.fl_off_during_day_offset_s = G_reader_settings:readSetting(
+    G_reader_settings:read("autowarmth_fl_off_during_day")
+  self.fl_off_during_day_offset_s = G_reader_settings:read(
     "autowarmth_fl_off_during_day_offset_s"
   ) or 0
   if self.easy_mode then
@@ -216,7 +214,7 @@ function AutoWarmth:onAutoWarmthMode(forced_method)
   elseif self.activate == activate_closer_noon then
     notify_text = _("Auto warmth use whatever is closer to noon")
   end
-  G_reader_settings:saveSetting("autowarmth_activate", self.activate)
+  G_reader_settings:save("autowarmth_activate", self.activate)
   Notification:notify(notify_text)
   self:scheduleMidnightUpdate()
 end
@@ -351,7 +349,7 @@ function AutoWarmth:scheduleMidnightUpdate(from_resume)
   -- Calculate current timezone of device, which might change due to daylight saving.
   local timezone = SunTime:getTimezoneOffset()
   if timezone ~= self.timezone then
-    G_reader_settings:saveSetting("autowarmth_timezone", self.timezone)
+    G_reader_settings:save("autowarmth_timezone", self.timezone)
     self.timezone = timezone
   end
 
@@ -721,11 +719,11 @@ function AutoWarmth:getSubMenuItems()
       ),
       callback = function(touchmenu_instance)
         self.easy_mode = not self.easy_mode
-        G_reader_settings:saveSetting("autowarmth_easy_mode", self.easy_mode)
+        G_reader_settings:save("autowarmth_easy_mode", self.easy_mode)
         if self.easy_mode then
           self.fl_off_during_day_offset_s = 0 -- don't store that value
         else
-          self.fl_off_during_day_offset_s = G_reader_settings:readSetting(
+          self.fl_off_during_day_offset_s = G_reader_settings:read(
             "autowarmth_fl_off_during_day_offset_s"
           ) or 0
         end
@@ -789,7 +787,7 @@ function AutoWarmth:getFlOffDuringDayMenu()
     callback = function(touchmenu_instance)
       if self.easy_mode then
         self.fl_off_during_day = not self.fl_off_during_day
-        G_reader_settings:saveSetting(
+        G_reader_settings:save(
           "autowarmth_fl_off_during_day",
           self.fl_off_during_day
         )
@@ -804,7 +802,7 @@ function AutoWarmth:getFlOffDuringDayMenu()
   • on before sunset.]]),
           ok_always_enabled = true,
           -- read the saved setting, as this gets overwritten by toggling easy_mode
-          value = (G_reader_settings:readSetting(
+          value = (G_reader_settings:read(
             "autowarmth_fl_off_during_day_offset_s"
           ) or 0) * (1 / 60),
           value_min = -15,
@@ -816,12 +814,12 @@ function AutoWarmth:getFlOffDuringDayMenu()
           ok_text = _("Set"),
           callback = function(spin)
             self.fl_off_during_day_offset_s = spin.value * 60
-            G_reader_settings:saveSetting(
+            G_reader_settings:save(
               "autowarmth_fl_off_during_day_offset_s",
               self.fl_off_during_day_offset_s
             )
             self.fl_off_during_day = true
-            G_reader_settings:saveSetting("autowarmth_fl_off_during_day", true)
+            G_reader_settings:save("autowarmth_fl_off_during_day", true)
             self:scheduleMidnightUpdate()
             self:toggleFrontlight()
             if touchmenu_instance then
@@ -831,7 +829,7 @@ function AutoWarmth:getFlOffDuringDayMenu()
           extra_text = _("Disable"),
           extra_callback = function()
             self.fl_off_during_day = nil
-            G_reader_settings:saveSetting("autowarmth_fl_off_during_day", nil)
+            G_reader_settings:save("autowarmth_fl_off_during_day", nil)
             self:scheduleMidnightUpdate()
             self:toggleFrontlight()
             if touchmenu_instance then
@@ -871,7 +869,7 @@ function AutoWarmth:getActivateMenu()
       end,
       callback = function()
         self.activate = self.activate ~= activator and activator or 0
-        G_reader_settings:saveSetting("autowarmth_activate", self.activate)
+        G_reader_settings:save("autowarmth_activate", self.activate)
         self:scheduleMidnightUpdate()
         UIManager:broadcastEvent("UpdateFooter")
       end,
@@ -934,10 +932,7 @@ function AutoWarmth:getLocationMenu()
                 text = _("OK"),
                 callback = function()
                   self.location = location_name_dialog:getInputText()
-                  G_reader_settings:saveSetting(
-                    "autowarmth_location",
-                    self.location
-                  )
+                  G_reader_settings:save("autowarmth_location", self.location)
                   UIManager:close(location_name_dialog)
                   if touchmenu_instance then
                     self:updateItems(touchmenu_instance)
@@ -981,12 +976,9 @@ function AutoWarmth:getLocationMenu()
             self.latitude = lat
             self.longitude = long
             self.timezone = SunTime:getTimezoneOffset() -- use timezone of device
-            G_reader_settings:saveSetting("autowarmth_latitude", self.latitude)
-            G_reader_settings:saveSetting(
-              "autowarmth_longitude",
-              self.longitude
-            )
-            G_reader_settings:saveSetting("autowarmth_timezone", self.timezone)
+            G_reader_settings:save("autowarmth_latitude", self.latitude)
+            G_reader_settings:save("autowarmth_longitude", self.longitude)
+            G_reader_settings:save("autowarmth_timezone", self.timezone)
             self:scheduleMidnightUpdate()
             if touchmenu_instance then
               self:updateItems(touchmenu_instance)
@@ -1015,7 +1007,7 @@ function AutoWarmth:getLocationMenu()
           ok_text = _("Set"),
           callback = function(spin)
             self.altitude = spin.value
-            G_reader_settings:saveSetting("autowarmth_altitude", self.altitude)
+            G_reader_settings:save("autowarmth_altitude", self.altitude)
             self:scheduleMidnightUpdate()
             if touchmenu_instance then
               self:updateItems(touchmenu_instance)
@@ -1024,7 +1016,7 @@ function AutoWarmth:getLocationMenu()
           extra_text = _("Default"),
           extra_callback = function()
             self.altitude = 200
-            G_reader_settings:saveSetting("autowarmth_altitude", self.altitude)
+            G_reader_settings:save("autowarmth_altitude", self.altitude)
             self:scheduleMidnightUpdate()
             if touchmenu_instance then
               self:updateItems(touchmenu_instance)
@@ -1040,10 +1032,7 @@ end
 function AutoWarmth:getScheduleMenu()
   local function store_times(touchmenu_instance, new_time, num)
     self.scheduler_times[num] = new_time
-    G_reader_settings:saveSetting(
-      "autowarmth_scheduler_times",
-      self.scheduler_times
-    )
+    G_reader_settings:save("autowarmth_scheduler_times", self.scheduler_times)
     self:scheduleMidnightUpdate()
     if touchmenu_instance then
       self:updateItems(touchmenu_instance)
@@ -1222,7 +1211,7 @@ function AutoWarmth:getWarmthMenu()
                 end
               end
               self.warmth[#self.warmth - num + 1] = self.warmth[num]
-              G_reader_settings:saveSetting("autowarmth_warmth", self.warmth)
+              G_reader_settings:save("autowarmth_warmth", self.warmth)
               self:scheduleMidnightUpdate()
               if touchmenu_instance then
                 self:updateItems(touchmenu_instance)
@@ -1247,7 +1236,7 @@ function AutoWarmth:getWarmthMenu()
               if self.warmth[num] <= 100 then
                 self.warmth[num] = self.warmth[num] + 1000
                 self.warmth[#self.warmth - num + 1] = self.warmth[num]
-                G_reader_settings:saveSetting("autowarmth_warmth", self.warmth)
+                G_reader_settings:save("autowarmth_warmth", self.warmth)
                 self:scheduleMidnightUpdate()
                 if touchmenu_instance then
                   self:updateItems(touchmenu_instance)
@@ -1259,7 +1248,7 @@ function AutoWarmth:getWarmthMenu()
               if self.warmth[num] > 100 then
                 self.warmth[num] = math.max(self.warmth[num] - 1000, 0) -- delete night mode
                 self.warmth[#self.warmth - num + 1] = self.warmth[num]
-                G_reader_settings:saveSetting("autowarmth_warmth", self.warmth)
+                G_reader_settings:save("autowarmth_warmth", self.warmth)
                 self:scheduleMidnightUpdate()
                 if touchmenu_instance then
                   self:updateItems(touchmenu_instance)

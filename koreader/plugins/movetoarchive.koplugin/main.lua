@@ -35,8 +35,8 @@ function MoveToArchive:init()
       "move_to_archive_settings.lua"
     )
   )
-  self.archive_dir_path = self.settings:readSetting("archive_dir")
-  self.last_copied_from_dir = self.settings:readSetting("last_copied_from_dir")
+  self.archive_dir_path = self.settings:read("archive_dir")
+  self.last_copied_from_dir = self.settings:read("last_copied_from_dir")
 end
 
 function MoveToArchive:addToMainMenu(menu_items)
@@ -108,7 +108,7 @@ function MoveToArchive:onMoveToArchive(do_copy)
     util.splitFilePathName(document_full_path)
   local dest_file = string.format("%s%s", self.archive_dir_path, filename)
 
-  self.settings:saveSetting("last_copied_from_dir", self.last_copied_from_dir)
+  self.settings:save("last_copied_from_dir", self.last_copied_from_dir)
   self.settings:flush()
 
   UIManager:broadcastEvent(Event:new("SetupShowReader"))
@@ -142,7 +142,7 @@ function MoveToArchive:setArchiveDirectory()
     :new({
       onConfirm = function(path)
         self.archive_dir_path = ("%s/"):format(path)
-        self.settings:saveSetting("archive_dir", self.archive_dir_path)
+        self.settings:save("archive_dir", self.archive_dir_path)
         self.settings:flush()
       end,
     })

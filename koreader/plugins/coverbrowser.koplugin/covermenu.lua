@@ -45,26 +45,20 @@ function CoverMenu:updateCache(file, status, do_create, pages)
     end
     local doc_settings = DocSettings:open(file)
     -- We can get nb of page in the new 'doc_pages' setting, or from the old 'stats.page'
-    local doc_pages = doc_settings:readSetting("doc_pages")
+    local doc_pages = doc_settings:read("doc_pages")
     if doc_pages then
       pages = doc_pages
     else
-      local stats = doc_settings:readSetting("stats")
+      local stats = doc_settings:read("stats")
       if stats and stats.pages and stats.pages ~= 0 then -- crengine with statistics disabled stores 0
         pages = stats.pages
       end
     end
-    local percent_finished = doc_settings:readSetting("percent_finished")
-    local summary = doc_settings:readSetting("summary")
-    status = summary and summary.status
-    local has_highlight
-    local annotations = doc_settings:readSetting("annotations")
-    if annotations then
-      has_highlight = #annotations > 0
-    else
-      local highlight = doc_settings:readSetting("highlight")
-      has_highlight = highlight and next(highlight) and true
-    end
+    local percent_finished = doc_settings:read("percent_finished")
+    status = doc_settings:readTableRef("summary").status
+    local has_highlight = (
+      next(doc_settings:readTableRef("annotations")) and true
+    ) or (next(doc_settings:readTableRef("highlight")) and true)
     self.cover_info_cache[file] =
       table.pack(pages, percent_finished, status, has_highlight) -- may be a sparse array
   else

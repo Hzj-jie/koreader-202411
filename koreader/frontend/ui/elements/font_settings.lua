@@ -77,7 +77,7 @@ function FontSettings:getSystemFontMenuItems()
       text = _("Enable system fonts"),
       checked_func = usesSystemFonts,
       callback = function()
-        G_reader_settings:saveSetting("system_fonts", not usesSystemFonts())
+        G_reader_settings:save("system_fonts", not usesSystemFonts())
         local UIManager = require("ui/uimanager")
         UIManager:askForRestart()
       end,

@@ -56,7 +56,7 @@ end
 
 function CloudStorage:genItemTableFromRoot()
   local item_table = {}
-  local added_servers = self.cs_settings:readTableSetting("cs_servers")
+  local added_servers = self.cs_settings:readTableRef("cs_servers")
   for _, server in ipairs(added_servers) do
     table.insert(item_table, {
       text = server.name,
@@ -83,7 +83,7 @@ end
 
 function CloudStorage:genItemTable(item)
   local item_table = {}
-  local added_servers = self.cs_settings:readTableSetting("cs_servers")
+  local added_servers = self.cs_settings:readTableRef("cs_servers")
   for _, server in ipairs(added_servers) do
     if
       server.name == item.text
@@ -267,7 +267,7 @@ function CloudStorage:downloadFile(item)
   end
 
   local cs_settings = self:readSettings()
-  local download_dir = cs_settings:readSetting("download_dir")
+  local download_dir = cs_settings:read("download_dir")
     or G_named_settings.lastdir()
   local filename_orig = item.text
   local filename = filename_orig
@@ -280,7 +280,7 @@ function CloudStorage:downloadFile(item)
           require("ui/downloadmgr")
             :new({
               onConfirm = function(path)
-                self.cs_settings:saveSetting("download_dir", path)
+                self.cs_settings:save("download_dir", path)
                 self.cs_settings:flush()
                 download_dir = path
                 self.download_dialog:setTitle(
@@ -385,7 +385,7 @@ end
 
 function CloudStorage:updateSyncFolder(item, source, dest)
   local cs_settings = self:readSettings()
-  local cs_servers = cs_settings:readTableSetting("cs_servers")
+  local cs_servers = cs_settings:readTableRef("cs_servers")
   for _, server in ipairs(cs_servers) do
     if
       server.name == item.text
@@ -401,7 +401,7 @@ function CloudStorage:updateSyncFolder(item, source, dest)
       break
     end
   end
-  cs_settings:saveSetting("cs_servers", cs_servers, {})
+  cs_settings:save("cs_servers", cs_servers, {})
   cs_settings:flush()
 end
 
@@ -831,7 +831,7 @@ end
 function CloudStorage:configCloud(type)
   local callbackAdd = function(fields)
     local cs_settings = self:readSettings()
-    local cs_servers = cs_settings:readTableSetting("cs_servers")
+    local cs_servers = cs_settings:readTableRef("cs_servers")
     if type == "dropbox" then
       table.insert(cs_servers, {
         name = fields[1],
@@ -859,7 +859,7 @@ function CloudStorage:configCloud(type)
         type = "webdav",
       })
     end
-    cs_settings:saveSetting("cs_servers", cs_servers, {})
+    cs_settings:save("cs_servers", cs_servers, {})
     cs_settings:flush()
     self:init()
   end
@@ -877,7 +877,7 @@ end
 function CloudStorage:editCloudServer(item)
   local callbackEdit = function(updated_config, fields)
     local cs_settings = self:readSettings()
-    local cs_servers = cs_settings:readTableSetting("cs_servers")
+    local cs_servers = cs_settings:readTableRef("cs_servers")
     if item.type == "dropbox" then
       for i, server in ipairs(cs_servers) do
         if
@@ -923,7 +923,7 @@ function CloudStorage:editCloudServer(item)
         end
       end
     end
-    cs_settings:saveSetting("cs_servers", cs_servers, {})
+    cs_settings:save("cs_servers", cs_servers, {})
     cs_settings:flush()
     self:init()
   end
@@ -938,7 +938,7 @@ end
 
 function CloudStorage:deleteCloudServer(item)
   local cs_settings = self:readSettings()
-  local cs_servers = cs_settings:readTableSetting("cs_servers")
+  local cs_servers = cs_settings:readTableRef("cs_servers")
   for i, server in ipairs(cs_servers) do
     if
       server.name == item.text
@@ -949,7 +949,7 @@ function CloudStorage:deleteCloudServer(item)
       break
     end
   end
-  cs_settings:saveSetting("cs_servers", cs_servers, {})
+  cs_settings:save("cs_servers", cs_servers, {})
   cs_settings:flush()
   self:init()
 end

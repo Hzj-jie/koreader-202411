@@ -219,10 +219,7 @@ if Device:isAndroid() then
     callback = function()
       local is_ignored = android.getVolumeKeysIgnored()
       android.setVolumeKeysIgnored(not is_ignored)
-      G_reader_settings:saveSetting(
-        "android_ignore_volume_keys",
-        not is_ignored
-      )
+      G_reader_settings:save("android_ignore_volume_keys", not is_ignored)
     end,
   }
 
@@ -234,10 +231,7 @@ if Device:isAndroid() then
     callback = function()
       local is_ignored = android.isBackButtonIgnored()
       android.setBackButtonIgnored(not is_ignored)
-      G_reader_settings:saveSetting(
-        "android_ignore_back_button",
-        not is_ignored
-      )
+      G_reader_settings:save("android_ignore_back_button", not is_ignored)
     end,
   }
 
@@ -279,11 +273,11 @@ local function genGenericMenuEntry(title, setting, value, default, radiomark)
   return {
     text = title,
     checked_func = function()
-      return (G_reader_settings:readSetting(setting) or default) == value
+      return (G_reader_settings:read(setting) or default) == value
     end,
     radio = radiomark,
     callback = function()
-      G_reader_settings:saveSetting(setting, value)
+      G_reader_settings:save(setting, value)
     end,
   }
 end
@@ -319,7 +313,7 @@ common_settings.back_in_filemanager = {
         return G_named_settings.back_in_filemanager() == "default"
       end,
       callback = function()
-        G_reader_settings:saveSetting("back_in_filemanager", "default")
+        G_reader_settings:save("back_in_filemanager", "default")
       end,
     },
     genGenericMenuEntry(
@@ -355,7 +349,7 @@ common_settings.back_in_reader = {
         return G_named_settings.back_in_reader() == "default"
       end,
       callback = function()
-        G_reader_settings:saveSetting("back_in_reader", "default")
+        G_reader_settings:save("back_in_reader", "default")
       end,
     },
     genGenericMenuEntry(
@@ -406,8 +400,7 @@ local skim_dialog_position_string = {
 }
 common_settings.skim_dialog_position = {
   text_func = function()
-    local position = G_reader_settings:readSetting("skim_dialog_position")
-      or "center"
+    local position = G_reader_settings:read("skim_dialog_position") or "center"
     return T(
       _("Skim dialog position: %1"),
       skim_dialog_position_string[position]:lower()
@@ -435,7 +428,7 @@ common_settings.skim_dialog_position = {
 -- Auto-save settings: default value, info text and warning, and menu items
 if G_reader_settings:hasNot("auto_save_settings_interval_minutes") then
   -- Default to auto save every 15 mn
-  G_reader_settings:saveSetting("auto_save_settings_interval_minutes", 15)
+  G_reader_settings:save("auto_save_settings_interval_minutes", 15)
 end
 
 local auto_save_help_text = _(
@@ -473,10 +466,10 @@ local function genAutoSaveMenuItem(value)
     text = text,
     help_text = auto_save_help_text,
     checked_func = function()
-      return G_reader_settings:readSetting(setting_name) == value
+      return G_reader_settings:read(setting_name) == value
     end,
     callback = function()
-      G_reader_settings:saveSetting(setting_name, value)
+      G_reader_settings:save(setting_name, value)
     end,
   }
 end
@@ -537,7 +530,7 @@ local function genMetadataFolderMenuItem(value)
     callback = function()
       local old_value = G_named_settings.document_metadata_folder()
       if value ~= old_value then
-        G_reader_settings:saveSetting("document_metadata_folder", value)
+        G_reader_settings:save("document_metadata_folder", value)
         if value == "hash" then
           DocSettings.setIsHashLocationEnabled(true)
           UIManager:show(InfoMessage:new({
@@ -604,7 +597,7 @@ common_settings.document_metadata_location = {
 common_settings.document_auto_save = {
   text_func = function()
     local interval =
-      G_reader_settings:readSetting("auto_save_settings_interval_minutes")
+      G_reader_settings:read("auto_save_settings_interval_minutes")
     local s_interval
     if interval == false then
       s_interval = _("only on close and suspend")
@@ -675,15 +668,14 @@ common_settings.document_end_action = {
     {
       text = _("Open next file"),
       enabled_func = function()
-        return G_reader_settings:readSetting("collate") ~= "access"
+        return G_reader_settings:read("collate") ~= "access"
       end,
       checked_func = function()
-        return G_reader_settings:readSetting("end_document_action")
-          == "next_file"
+        return G_reader_settings:read("end_document_action") == "next_file"
       end,
       radio = true,
       callback = function()
-        G_reader_settings:saveSetting("end_document_action", "next_file")
+        G_reader_settings:save("end_document_action", "next_file")
       end,
     },
     genGenericMenuEntry(

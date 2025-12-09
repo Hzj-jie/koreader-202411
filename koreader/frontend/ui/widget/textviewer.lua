@@ -97,7 +97,7 @@ function TextViewer:init(reinit)
   self.height = self.height or screen_h - Screen:scaleBySize(30)
 
   if not reinit then
-    local text_types = G_reader_settings:readSetting("textviewer_text_types")
+    local text_types = G_reader_settings:read("textviewer_text_types")
     local text_settings = text_types and text_types[self.text_type]
       or self.text_types[self.text_type]
     self.monospace_font = text_settings.monospace_font
@@ -618,8 +618,7 @@ function TextViewer:handleTextSelection(
 end
 
 function TextViewer:reinit()
-  local text_settings =
-    G_reader_settings:readTableSetting("textviewer_text_types")
+  local text_settings = G_reader_settings:readTableRef("textviewer_text_types")
   text_settings[self.text_type] = {
     monospace_font = self.monospace_font,
     font_size = self.text_font_size,

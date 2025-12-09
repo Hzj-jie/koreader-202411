@@ -268,7 +268,7 @@ end
 
 -- Try to determine the localized font name
 function FontList:getLocalizedFontName(file, index)
-  local lang = G_reader_settings:readSetting("language")
+  local lang = G_reader_settings:read("language")
   if not lang then
     return
   end

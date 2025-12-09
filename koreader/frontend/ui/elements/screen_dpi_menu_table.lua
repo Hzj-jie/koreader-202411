@@ -12,7 +12,7 @@ local function dpi()
 end
 
 local function custom()
-  return G_reader_settings:readSetting("custom_screen_dpi")
+  return G_reader_settings:read("custom_screen_dpi")
 end
 
 local function setDPI(dpi_val)
@@ -24,7 +24,7 @@ local function setDPI(dpi_val)
       )
     or _("DPI set to auto. This will take effect after restarting.")
   -- If this is set to nil, reader.lua doesn't call setScreenDPI
-  G_reader_settings:saveSetting("screen_dpi", dpi_val)
+  G_reader_settings:save("screen_dpi", dpi_val)
   -- Passing a nil properly resets to defaults/auto
   Device:setScreenDPI(dpi_val)
   UIManager:askForRestart(text)
@@ -42,7 +42,7 @@ local function spinWidgetSetDPI(touchmenu_instance)
     ok_text = _("Set DPI"),
     title_text = _("Set custom screen DPI"),
     callback = function(spin)
-      G_reader_settings:saveSetting("custom_screen_dpi", spin.value)
+      G_reader_settings:save("custom_screen_dpi", spin.value)
       setDPI(spin.value)
       touchmenu_instance:updateItems()
     end,

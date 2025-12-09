@@ -381,11 +381,11 @@ function DictQuickLookup:init()
               G_reader_settings:isTrue("wikipedia_save_in_book_dir")
               and not self:isDocless()
             then
-              local last_file = G_reader_settings:readSetting("lastfile")
+              local last_file = G_reader_settings:read("lastfile")
               dir = last_file and last_file:match("(.*)/")
             end
             dir = dir
-              or G_reader_settings:readSetting("wikipedia_save_dir")
+              or G_reader_settings:read("wikipedia_save_dir")
               or DictQuickLookup.getWikiSaveEpubDefaultDir()
             if not util.pathExists(dir) then
               lfs.mkdir(dir)

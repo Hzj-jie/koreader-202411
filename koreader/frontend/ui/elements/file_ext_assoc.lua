@@ -9,11 +9,11 @@ local function getSupportedExtensions()
 end
 
 local ExtAssoc = {
-  assoc = G_reader_settings:readTableSetting("file_ext_assoc"),
+  assoc = G_reader_settings:readTableRef("file_ext_assoc"),
 }
 
 function ExtAssoc:commit()
-  G_reader_settings:saveSetting("file_ext_assoc", self.assoc):flush()
+  G_reader_settings:save("file_ext_assoc", self.assoc):flush()
   -- Translate the boolean map back to map of providers the OS backend can inquire further
   local t = {}
   for k, v in pairs(getSupportedExtensions()) do

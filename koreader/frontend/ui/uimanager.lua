@@ -20,8 +20,8 @@ local DEFAULT_FULL_REFRESH_COUNT = 6
 local UIManager = {
   -- trigger a full refresh when counter reaches FULL_REFRESH_COUNT
   FULL_REFRESH_COUNT = G_reader_settings:isTrue("night_mode")
-      and G_reader_settings:readSetting("night_full_refresh_count")
-    or G_reader_settings:readSetting("full_refresh_count")
+      and G_reader_settings:read("night_full_refresh_count")
+    or G_reader_settings:read("full_refresh_count")
     or DEFAULT_FULL_REFRESH_COUNT,
   refresh_count = 0,
   currently_scrolling = false,
@@ -783,32 +783,31 @@ function UIManager:setRefreshRate(rate, night_rate)
   end
 
   if rate then
-    G_reader_settings:saveSetting("full_refresh_count", rate)
+    G_reader_settings:save("full_refresh_count", rate)
   end
   if night_rate then
-    G_reader_settings:saveSetting("night_full_refresh_count", night_rate)
+    G_reader_settings:save("night_full_refresh_count", night_rate)
   end
 end
 
 --- Returns the full refresh rate for e-ink screens (`FULL_REFRESH_COUNT`).
 function UIManager:getRefreshRate()
-  return G_reader_settings:readSetting("full_refresh_count")
+  return G_reader_settings:read("full_refresh_count")
     or DEFAULT_FULL_REFRESH_COUNT,
-    G_reader_settings:readSetting("night_full_refresh_count")
-      or G_reader_settings:readSetting("full_refresh_count")
+    G_reader_settings:read("night_full_refresh_count")
+      or G_reader_settings:read("full_refresh_count")
       or DEFAULT_FULL_REFRESH_COUNT
 end
 
 --- Toggles Night Mode (i.e., inverted rendering).
 function UIManager:ToggleNightMode(night_mode)
   if night_mode then
-    self.FULL_REFRESH_COUNT = G_reader_settings:readSetting(
-      "night_full_refresh_count"
-    ) or G_reader_settings:readSetting("full_refresh_count") or DEFAULT_FULL_REFRESH_COUNT
+    self.FULL_REFRESH_COUNT = G_reader_settings:read("night_full_refresh_count")
+      or G_reader_settings:read("full_refresh_count")
+      or DEFAULT_FULL_REFRESH_COUNT
   else
-    self.FULL_REFRESH_COUNT = G_reader_settings:readSetting(
-      "full_refresh_count"
-    ) or DEFAULT_FULL_REFRESH_COUNT
+    self.FULL_REFRESH_COUNT = G_reader_settings:read("full_refresh_count")
+      or DEFAULT_FULL_REFRESH_COUNT
   end
 end
 
@@ -1673,7 +1672,7 @@ function UIManager:onRotation()
 end
 
 function UIManager:initLooper()
-  if G_defaults:readSetting("DUSE_TURBO_LIB") and not self.looper then
+  if G_defaults:read("DUSE_TURBO_LIB") and not self.looper then
     TURBO_SSL = true -- luacheck: ignore
     __TURBO_USE_LUASOCKET__ = true -- luacheck: ignore
     local turbo = require("turbo")
@@ -1771,8 +1770,7 @@ function UIManager:askForRestart(message_text)
         cancel_text = _("Restart later"),
       }))
     else
-      local InfoMessage = require("ui/widget/infomessage")
-      self:show(InfoMessage:new({
+      self:show(require("ui/widget/infomessage"):new({
         text = message_text or _("This will take effect on next restart."),
       }))
     end
@@ -1893,6 +1891,12 @@ end
 function UIManager:runWith(func, widget)
   assert(widget ~= nil)
   assert(func ~= nil)
+  if type(widget) == "string" then
+    widget = require("ui/widget/infomessage"):new({
+      text = widget,
+      icon = "hourglass",
+    })
+  end
   self:show(widget)
   self:forceRePaint()
   func()

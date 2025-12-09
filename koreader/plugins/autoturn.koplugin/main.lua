@@ -100,10 +100,8 @@ function AutoTurn:_start()
 end
 
 function AutoTurn:init()
-  self.autoturn_sec = G_reader_settings:readSetting("autoturn_timeout_seconds")
-    or 0
-  self.autoturn_distance = G_reader_settings:readSetting("autoturn_distance")
-    or 1
+  self.autoturn_sec = G_reader_settings:read("autoturn_timeout_seconds") or 0
+  self.autoturn_distance = G_reader_settings:read("autoturn_distance") or 1
   self.enabled = G_reader_settings:isTrue("autoturn_enabled")
   self.ui.menu:registerToMainMenu(self)
   self.task = function()
@@ -153,7 +151,7 @@ function AutoTurn:addToMainMenu(menu_items)
     end,
     callback = function(menu)
       local DateTimeWidget = require("ui/widget/datetimewidget")
-      local autoturn_seconds = G_reader_settings:readSetting(
+      local autoturn_seconds = G_reader_settings:read(
         "autoturn_timeout_seconds"
       ) or 30
       local autoturn_minutes = math.floor(autoturn_seconds * (1 / 60))
@@ -179,10 +177,7 @@ function AutoTurn:addToMainMenu(menu_items)
         ok_always_enabled = true,
         callback = function(t)
           self.autoturn_sec = t.min * 60 + t.sec
-          G_reader_settings:saveSetting(
-            "autoturn_timeout_seconds",
-            self.autoturn_sec
-          )
+          G_reader_settings:save("autoturn_timeout_seconds", self.autoturn_sec)
           self.enabled = true
           G_reader_settings:makeTrue("autoturn_enabled")
           self:_unschedule()
@@ -195,7 +190,7 @@ function AutoTurn:addToMainMenu(menu_items)
     end,
     hold_callback = function(menu)
       local SpinWidget = require("ui/widget/spinwidget")
-      local curr_items = G_reader_settings:readSetting("autoturn_distance") or 1
+      local curr_items = G_reader_settings:read("autoturn_distance") or 1
       local autoturn_spin = SpinWidget:new({
         value = curr_items,
         value_min = -20,
@@ -207,10 +202,7 @@ function AutoTurn:addToMainMenu(menu_items)
         title_text = _("Scrolling distance"),
         callback = function(autoturn_spin)
           self.autoturn_distance = autoturn_spin.value
-          G_reader_settings:saveSetting(
-            "autoturn_distance",
-            autoturn_spin.value
-          )
+          G_reader_settings:save("autoturn_distance", autoturn_spin.value)
           if self.enabled then
             self:_unschedule()
             self:_start()

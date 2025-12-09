@@ -490,9 +490,7 @@ local ReaderFooter = WidgetContainer:extend({
   pages = nil,
   footer_text = nil,
   text_font_face = "ffont",
-  height = Screen:scaleBySize(
-    G_defaults:readSetting("DMINIBAR_CONTAINER_HEIGHT")
-  ),
+  height = Screen:scaleBySize(G_defaults:read("DMINIBAR_CONTAINER_HEIGHT")),
   horizontal_margin = Size.span.horizontal_default,
   bottom_padding = Size.padding.tiny,
   settings = nil, -- table
@@ -528,7 +526,7 @@ local DEFAULT_SETTINGS = {
   toc_markers_width = 2, -- unscaled_size_check: ignore
   text_font_size = 14, -- unscaled_size_check: ignore
   text_font_bold = false,
-  container_height = G_defaults:readSetting("DMINIBAR_CONTAINER_HEIGHT"),
+  container_height = G_defaults:read("DMINIBAR_CONTAINER_HEIGHT"),
   container_bottom_padding = 1, -- unscaled_size_check: ignore
   progress_margin_width = Device:isAndroid() and Screen:scaleByDPI(16) or 10, -- android: guidelines for rounded corner margins
   progress_margin = false, -- true if progress bar margins same as book margins
@@ -552,7 +550,7 @@ local DEFAULT_SETTINGS = {
 }
 
 function ReaderFooter:init()
-  self.settings = G_reader_settings:readTableSetting("footer", DEFAULT_SETTINGS)
+  self.settings = G_reader_settings:readTableRef("footer", DEFAULT_SETTINGS)
 
   self.additional_footer_content = {} -- array, where additional header content can be inserted.
 
@@ -653,7 +651,7 @@ function ReaderFooter:init()
     self.footer_text,
   })
   self:updateFooterContainer()
-  self.mode = G_reader_settings:readSetting("reader_footer_mode") or self.mode
+  self.mode = G_reader_settings:read("reader_footer_mode") or self.mode
   if self.has_no_mode and self.settings.disable_progress_bar then
     self.mode = self.mode_list.off
     self.view.footer_visible = false
@@ -669,16 +667,16 @@ function ReaderFooter:init()
       self.footer_text.height = 0
     end
   else
+    self.view.footer_visible = self.view.footer_visible or false
     self:_applyFooterMode()
   end
 
   self.visibility_change = nil
 
-  self.custom_text = G_reader_settings:readSetting("reader_footer_custom_text")
+  self.custom_text = G_reader_settings:read("reader_footer_custom_text")
     or "KOReader"
   self.custom_text_repetitions = tonumber(
-    G_reader_settings:readSetting("reader_footer_custom_text_repetitions")
-      or "1"
+    G_reader_settings:read("reader_footer_custom_text_repetitions") or "1"
   )
 end
 
@@ -716,7 +714,7 @@ function ReaderFooter:set_custom_text(touchmenu_instance)
             end
             if self.custom_text ~= new_text then
               self.custom_text = new_text
-              G_reader_settings:saveSetting(
+              G_reader_settings:save(
                 "reader_footer_custom_text",
                 self.custom_text
               )
@@ -730,7 +728,7 @@ function ReaderFooter:set_custom_text(touchmenu_instance)
               and self.custom_text_repetitions ~= new_repetitions
             then
               self.custom_text_repetitions = new_repetitions
-              G_reader_settings:saveSetting(
+              G_reader_settings:save(
                 "reader_footer_custom_text_repetitions",
                 self.custom_text_repetitions
               )
@@ -852,7 +850,7 @@ function ReaderFooter:setupTouchZones()
   if not Device:isTouchDevice() then
     return
   end
-  local DTAP_ZONE_MINIBAR = G_defaults:readSetting("DTAP_ZONE_MINIBAR")
+  local DTAP_ZONE_MINIBAR = G_defaults:read("DTAP_ZONE_MINIBAR")
   local footer_screen_zone = {
     ratio_x = DTAP_ZONE_MINIBAR.x,
     ratio_y = DTAP_ZONE_MINIBAR.y,
@@ -1060,7 +1058,7 @@ function ReaderFooter:addToMainMenu(menu_items)
   end
 
   -- menu item to fake footer tapping when touch area is disabled
-  local DTAP_ZONE_MINIBAR = G_defaults:readSetting("DTAP_ZONE_MINIBAR")
+  local DTAP_ZONE_MINIBAR = G_defaults:read("DTAP_ZONE_MINIBAR")
   if DTAP_ZONE_MINIBAR.h == 0 or DTAP_ZONE_MINIBAR.w == 0 then
     table.insert(sub_items, {
       text = _("Toggle mode"),
@@ -1112,12 +1110,9 @@ function ReaderFooter:addToMainMenu(menu_items)
           if self.settings.all_at_once then
             self.mode = self.mode_list.page_progress
             self:_applyFooterMode()
-            G_reader_settings:saveSetting("reader_footer_mode", self.mode)
+            G_reader_settings:save("reader_footer_mode", self.mode)
           else
-            G_reader_settings:saveSetting(
-              "reader_footer_mode",
-              first_enabled_mode_num
-            )
+            G_reader_settings:save("reader_footer_mode", first_enabled_mode_num)
           end
           should_refresh = true
         elseif self.reclaim_height ~= prev_reclaim_height then
@@ -1149,7 +1144,7 @@ function ReaderFooter:addToMainMenu(menu_items)
           end
           should_refresh = true
           self:_applyFooterMode()
-          G_reader_settings:saveSetting("reader_footer_mode", self.mode)
+          G_reader_settings:save("reader_footer_mode", self.mode)
         end
         if should_refresh then
           self:refreshFooter()
@@ -1177,7 +1172,7 @@ function ReaderFooter:addToMainMenu(menu_items)
           if not self.view.footer_visible then
             self.mode = self.mode_list.page_progress
             self:_applyFooterMode()
-            G_reader_settings:saveSetting("reader_footer_mode", self.mode)
+            G_reader_settings:save("reader_footer_mode", self.mode)
           end
           self:refreshFooter()
         end,
@@ -2392,6 +2387,7 @@ function ReaderFooter:onPageUpdate(pageno)
     end
   end
   self.pageno = pageno
+  self.position = nil
   if not self.initial_pageno then
     self.initial_pageno = pageno
   end
@@ -2399,20 +2395,20 @@ function ReaderFooter:onPageUpdate(pageno)
   if toc_markers_update then
     self:setTocMarkers(true)
   end
-  self.ui.doc_settings:saveSetting("doc_pages", self.pages) -- for Book information
+  self.ui.doc_settings:save("doc_pages", self.pages) -- for Book information
   self:_updateFooterPage()
 end
 
 function ReaderFooter:onPosUpdate(pos, pageno)
   self.position = pos
+  self.pageno = pageno
   self.doc_height = self.ui.document.info.doc_height
   if pageno then
-    self.pageno = pageno
     if not self.initial_pageno then
       self.initial_pageno = pageno
     end
     self.pages = self.ui.document:getPageCount()
-    self.ui.doc_settings:saveSetting("doc_pages", self.pages) -- for Book information
+    self.ui.doc_settings:save("doc_pages", self.pages) -- for Book information
   end
   self:_updateFooterPos()
 end
@@ -2531,7 +2527,7 @@ function ReaderFooter:onToggleFooterMode()
     end
   end
   self:_applyFooterMode()
-  G_reader_settings:saveSetting("reader_footer_mode", self.mode)
+  G_reader_settings:save("reader_footer_mode", self.mode)
   self:onUpdateFooter()
   return true
 end
@@ -2624,7 +2620,7 @@ function ReaderFooter:onResume()
   end
 
   -- Don't repaint the footer until OutOfScreenSaver if screensaver_delay is enabled...
-  local screensaver_delay = G_reader_settings:readSetting("screensaver_delay")
+  local screensaver_delay = G_reader_settings:read("screensaver_delay")
   if screensaver_delay and screensaver_delay ~= "disable" then
     self._delayed_screensaver = true
     return

@@ -131,8 +131,7 @@ local Font = {
 }
 
 if G_reader_settings and G_reader_settings:has("font_ui_fallbacks") then
-  local additional_fallbacks =
-    G_reader_settings:readSetting("font_ui_fallbacks")
+  local additional_fallbacks = G_reader_settings:read("font_ui_fallbacks")
   for i = #additional_fallbacks, 1, -1 do
     table.insert(
       Font.fallbacks,

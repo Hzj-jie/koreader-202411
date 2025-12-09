@@ -476,9 +476,9 @@ function KeyValuePage:init()
   self.item_width = self.dimen.w - 2 * padding
 
   local footer = BottomContainer:new({
-      dimen = self.dimen:copy(),
-      self.page_info,
-    })
+    dimen = self.dimen:copy(),
+    self.page_info,
+  })
 
   local page_return = BottomContainer:new({
     dimen = self.dimen:copy(),
@@ -510,7 +510,7 @@ function KeyValuePage:init()
     - 2 * Size.line.thick
   -- account for possibly 2 separator lines added
 
-  self.items_per_page = G_reader_settings:readSetting("keyvalues_per_page")
+  self.items_per_page = G_reader_settings:read("keyvalues_per_page")
     or self.getDefaultItemsPerPage()
   self.item_height = math.floor(available_height / self.items_per_page)
   -- Put half of the pixels lost by floor'ing between title and content

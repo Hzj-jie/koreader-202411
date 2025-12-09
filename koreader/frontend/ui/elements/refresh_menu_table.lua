@@ -12,10 +12,10 @@ local function custom(refresh_rate_num)
   else
     default_value = 99
   end
-  return (G_reader_settings:readSetting(refresh_rate_num) or default_value),
+  return (G_reader_settings:read(refresh_rate_num) or default_value),
     (
-      G_reader_settings:readSetting("night_" .. refresh_rate_num)
-      or G_reader_settings:readSetting(refresh_rate_num)
+      G_reader_settings:read("night_" .. refresh_rate_num)
+      or G_reader_settings:read(refresh_rate_num)
       or default_value
     )
 end
@@ -45,8 +45,8 @@ local function spinWidgetSetRefresh(touchmenu_instance, refresh_rate_num)
     ok_text = _("Set refresh"),
     title_text = _("Set custom refresh rate"),
     callback = function(left_value, right_value)
-      G_reader_settings:saveSetting(refresh_rate_num, left_value)
-      G_reader_settings:saveSetting("night_" .. refresh_rate_num, right_value)
+      G_reader_settings:save(refresh_rate_num, left_value)
+      G_reader_settings:save("night_" .. refresh_rate_num, right_value)
       UIManager:broadcastEvent(
         Event:new("SetRefreshRates", left_value, right_value)
       )

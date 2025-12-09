@@ -331,7 +331,7 @@ function DocSettings:open(doc_path)
   if ok and stored then
     new.data = stored
     new.candidates = candidates
-    new.source_candidate = candidate_path
+    new.file = candidate_path
   else
     new.data = {}
   end
@@ -354,7 +354,7 @@ function DocSettings.openSettingsFile(sidecar_file)
   else
     new.data = {}
   end
-  new.sidecar_file = sidecar_file
+  new.file = sidecar_file
   return new
 end
 
@@ -530,7 +530,7 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
     end
   else -- delete
     if has_sidecar_file then
-      local cache_file_path = doc_settings:readSetting("cache_file_path")
+      local cache_file_path = doc_settings:read("cache_file_path")
       if cache_file_path then
         os.remove(cache_file_path)
       end

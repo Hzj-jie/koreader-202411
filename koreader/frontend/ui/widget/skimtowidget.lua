@@ -48,8 +48,7 @@ function SkimToWidget:init()
   end
 
   -- nil for default center full mode; "top" and "bottom" for compact mode
-  local skim_dialog_position =
-    G_reader_settings:readSetting("skim_dialog_position")
+  local skim_dialog_position = G_reader_settings:read("skim_dialog_position")
   local full_mode = not skim_dialog_position
 
   local frame_border_size = Size.border.window

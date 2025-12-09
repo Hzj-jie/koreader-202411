@@ -144,31 +144,31 @@ This is disabled in scroll mode. Switching from page mode with two columns to sc
         name_text = _("L/R Margins"),
         buttonprogress = true,
         values = {
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_SMALL"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_MEDIUM"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_X_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_XX_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_XXX_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_HUGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_X_HUGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_XX_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_X_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_XX_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_XXX_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_X_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_XX_HUGE"),
         },
         default_pos = 2,
-        default_value = G_defaults:readSetting(
+        default_value = G_defaults:read(
           "DCREREADER_CONFIG_H_MARGIN_SIZES_MEDIUM"
         ),
         event = "SetPageHorizMargins",
         args = {
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_SMALL"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_MEDIUM"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_X_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_XX_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_XXX_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_HUGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_X_HUGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_XX_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_X_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_XX_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_XXX_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_X_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_XX_HUGE"),
         },
         hide_on_apply = true,
         name_text_hold_callback = optionsutil.showValuesHMargins,
@@ -209,31 +209,31 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
         name_text = _("Top Margin"),
         buttonprogress = true,
         values = {
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_SMALL"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_MEDIUM"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_X_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_XX_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_XXX_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_HUGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_X_HUGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_XX_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_X_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_XX_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_XXX_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_X_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_XX_HUGE"),
         },
         default_pos = 3,
-        default_value = G_defaults:readSetting(
+        default_value = G_defaults:read(
           "DCREREADER_CONFIG_T_MARGIN_SIZES_LARGE"
         ),
         event = "SetPageTopMargin",
         args = {
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_SMALL"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_MEDIUM"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_X_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_XX_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_XXX_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_HUGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_X_HUGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_XX_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_X_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_XX_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_XXX_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_X_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_XX_HUGE"),
         },
         hide_on_apply = true,
         name_text_hold_callback = optionsutil.showValues,
@@ -264,31 +264,31 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
         name_text = _("Bottom Margin"),
         buttonprogress = true,
         values = {
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_SMALL"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_MEDIUM"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_X_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_XX_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_XXX_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_HUGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_X_HUGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_XX_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_X_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_XX_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_XXX_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_X_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_XX_HUGE"),
         },
         default_pos = 3,
-        default_value = G_defaults:readSetting(
+        default_value = G_defaults:read(
           "DCREREADER_CONFIG_B_MARGIN_SIZES_LARGE"
         ),
         event = "SetPageBottomMargin",
         args = {
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_SMALL"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_MEDIUM"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_X_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_XX_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_XXX_LARGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_HUGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_X_HUGE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_XX_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_X_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_XX_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_XXX_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_X_HUGE"),
+          G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_XX_HUGE"),
         },
         hide_on_apply = true,
         name_text_hold_callback = optionsutil.showValues,
@@ -325,9 +325,7 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
         name_text = _("View Mode"),
         toggle = { _("page"), _("continuous") },
         values = { 0, 1 },
-        default_value = G_defaults:readSetting("DCREREADER_VIEW_MODE")
-              == "page"
-            and 0
+        default_value = G_defaults:read("DCREREADER_VIEW_MODE") == "page" and 0
           or 1,
         args = { "page", "scroll" },
         event = "SetViewMode",
@@ -389,38 +387,22 @@ Note that your selected font size is not affected by this setting.]]
         name_text = _("Line Spacing"),
         buttonprogress = true,
         values = {
-          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_TINY"),
-          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_TINY"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_SMALL"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_SMALL"
-          ),
-          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_SMALL"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_SMALL"
-          ),
-          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_MEDIUM"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_MEDIUM"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XL_MEDIUM"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XXL_MEDIUM"
-          ),
-          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_LARGE"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_LARGE"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_LARGE"
-          ),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_TINY"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_TINY"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XL_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XXL_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_LARGE"),
         },
         default_pos = 7,
-        default_value = G_defaults:readSetting(
+        default_value = G_defaults:read(
           "DCREREADER_CONFIG_LINE_SPACE_PERCENT_MEDIUM"
         ),
         more_options = true,
@@ -433,35 +415,19 @@ Note that your selected font size is not affected by this setting.]]
         },
         event = "SetLineSpace",
         args = {
-          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_TINY"),
-          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_TINY"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_SMALL"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_SMALL"
-          ),
-          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_SMALL"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_SMALL"
-          ),
-          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_MEDIUM"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_MEDIUM"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XL_MEDIUM"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XXL_MEDIUM"
-          ),
-          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_LARGE"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_LARGE"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_LARGE"
-          ),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_TINY"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_TINY"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XL_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XXL_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_LARGE"),
         },
         name_text_hold_callback = optionsutil.showValues,
         show_true_value_func = function(val) -- add "%"
@@ -477,16 +443,14 @@ Note that your selected font size is not affected by this setting.]]
         name = "font_size",
         alt_name_text = _("Font Size"),
         item_text = tableOfNumbersToTableOfStrings(
-          G_defaults:readSetting("DCREREADER_CONFIG_FONT_SIZES")
+          G_defaults:read("DCREREADER_CONFIG_FONT_SIZES")
         ),
         item_align_center = 1.0,
         spacing = 15,
-        item_font_size = G_defaults:readSetting("DCREREADER_CONFIG_FONT_SIZES"),
-        values = G_defaults:readSetting("DCREREADER_CONFIG_FONT_SIZES"),
-        default_value = G_defaults:readSetting(
-          "DCREREADER_CONFIG_DEFAULT_FONT_SIZE"
-        ),
-        args = G_defaults:readSetting("DCREREADER_CONFIG_FONT_SIZES"),
+        item_font_size = G_defaults:read("DCREREADER_CONFIG_FONT_SIZES"),
+        values = G_defaults:read("DCREREADER_CONFIG_FONT_SIZES"),
+        default_value = G_defaults:read("DCREREADER_CONFIG_DEFAULT_FONT_SIZE"),
+        args = G_defaults:read("DCREREADER_CONFIG_FONT_SIZES"),
         event = "SetFontSize",
       },
       { -- ReaderFont
@@ -552,17 +516,17 @@ Note that your selected font size is not affected by this setting.]]
           C_("Word spacing", "large"),
         },
         values = {
-          G_defaults:readSetting("DCREREADER_CONFIG_WORD_SPACING_SMALL"),
-          G_defaults:readSetting("DCREREADER_CONFIG_WORD_SPACING_MEDIUM"),
-          G_defaults:readSetting("DCREREADER_CONFIG_WORD_SPACING_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_WORD_SPACING_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_WORD_SPACING_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_WORD_SPACING_LARGE"),
         },
-        default_value = G_defaults:readSetting(
+        default_value = G_defaults:read(
           "DCREREADER_CONFIG_WORD_SPACING_MEDIUM"
         ),
         args = {
-          G_defaults:readSetting("DCREREADER_CONFIG_WORD_SPACING_SMALL"),
-          G_defaults:readSetting("DCREREADER_CONFIG_WORD_SPACING_MEDIUM"),
-          G_defaults:readSetting("DCREREADER_CONFIG_WORD_SPACING_LARGE"),
+          G_defaults:read("DCREREADER_CONFIG_WORD_SPACING_SMALL"),
+          G_defaults:read("DCREREADER_CONFIG_WORD_SPACING_MEDIUM"),
+          G_defaults:read("DCREREADER_CONFIG_WORD_SPACING_LARGE"),
         },
         event = "SetWordSpacing",
         help_text = _(
@@ -601,17 +565,17 @@ Note that your selected font size is not affected by this setting.]]
           C_("Word expansion", "more"),
         },
         values = {
-          G_defaults:readSetting("DCREREADER_CONFIG_WORD_EXPANSION_NONE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_WORD_EXPANSION_SOME"),
-          G_defaults:readSetting("DCREREADER_CONFIG_WORD_EXPANSION_MORE"),
+          G_defaults:read("DCREREADER_CONFIG_WORD_EXPANSION_NONE"),
+          G_defaults:read("DCREREADER_CONFIG_WORD_EXPANSION_SOME"),
+          G_defaults:read("DCREREADER_CONFIG_WORD_EXPANSION_MORE"),
         },
-        default_value = G_defaults:readSetting(
+        default_value = G_defaults:read(
           "DCREREADER_CONFIG_WORD_EXPANSION_NONE"
         ),
         args = {
-          G_defaults:readSetting("DCREREADER_CONFIG_WORD_EXPANSION_NONE"),
-          G_defaults:readSetting("DCREREADER_CONFIG_WORD_EXPANSION_SOME"),
-          G_defaults:readSetting("DCREREADER_CONFIG_WORD_EXPANSION_MORE"),
+          G_defaults:read("DCREREADER_CONFIG_WORD_EXPANSION_NONE"),
+          G_defaults:read("DCREREADER_CONFIG_WORD_EXPANSION_SOME"),
+          G_defaults:read("DCREREADER_CONFIG_WORD_EXPANSION_MORE"),
         },
         event = "SetWordExpansion",
         help_text = _(

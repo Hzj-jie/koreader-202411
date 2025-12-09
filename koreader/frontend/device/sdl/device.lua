@@ -114,7 +114,7 @@ local Device = Generic:extend({
       external.when_back_callback = nil
     end
   end,
-  window = G_reader_settings:readTableSetting("sdl_window"),
+  window = G_reader_settings:readTableRef("sdl_window"),
 })
 
 function Device:otaModel()
@@ -472,6 +472,9 @@ function Emulator:initNetworkManager(NetworkMgr)
   end
   function NetworkMgr:isWifiOn()
     return G_reader_settings:nilOrTrue("emulator_fake_wifi_connected")
+  end
+  function NetworkMgr:restoreWifiAsync()
+    self:_turnOnWifi()
   end
   function NetworkMgr:getNetworkInterfaceName()
     -- Not accurate.

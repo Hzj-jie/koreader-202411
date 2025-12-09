@@ -6,7 +6,6 @@ local DocumentRegistry = require("document/documentregistry")
 local Event = require("ui/event")
 local FileManagerShortcuts = require("apps/filemanager/filemanagershortcuts")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
-local InfoMessage = require("ui/widget/infomessage")
 local Menu = require("ui/widget/menu")
 local ReadCollection = require("readcollection")
 local UIManager = require("ui/uimanager")
@@ -154,7 +153,7 @@ local FileChooser = Menu:extend({
         item.opened = DocSettings:hasSidecarFile(item.path)
         if item.opened then
           local doc_settings = DocSettings:open(item.path)
-          percent_finished = doc_settings:readSetting("percent_finished")
+          percent_finished = doc_settings:read("percent_finished")
         end
 
         -- smooth 2 decimal points (0.00) instead of 16 decimal points
@@ -187,7 +186,7 @@ local FileChooser = Menu:extend({
         item.opened = DocSettings:hasSidecarFile(item.path)
         if item.opened then
           local doc_settings = DocSettings:open(item.path)
-          percent_finished = doc_settings:readSetting("percent_finished")
+          percent_finished = doc_settings:read("percent_finished")
         end
 
         -- smooth 2 decimal points (0.00) instead of 16 decimal points
@@ -227,16 +226,16 @@ local FileChooser = Menu:extend({
         item.opened = DocSettings:hasSidecarFile(item.path)
         if item.opened then
           local doc_settings = DocSettings:open(item.path)
-          local summary = doc_settings:readSetting("summary")
+          local summary = doc_settings:readTableRef("summary")
 
           -- books marked as "finished" or "on hold" should be considered the same as 100% and less than 0% respectively
-          if summary and summary.status == "complete" then
+          if summary.status == "complete" then
             sort_percent = 1.0
           elseif summary and summary.status == "abandoned" then
             sort_percent = -0.01
           end
 
-          percent_finished = doc_settings:readSetting("percent_finished")
+          percent_finished = doc_settings:read("percent_finished")
         end
         -- smooth 2 decimal points (0.00) instead of 16 decimal points
         item.sort_percent = sort_percent
@@ -452,12 +451,12 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
 end
 
 function FileChooser:getCollate()
-  local collate_id = G_reader_settings:readSetting("collate") or "strcoll"
+  local collate_id = G_reader_settings:read("collate") or "strcoll"
   local collate = self.collates[collate_id]
   if collate ~= nil then
     return collate, collate_id
   else
-    G_reader_settings:saveSetting("collate", "strcoll")
+    G_reader_settings:save("collate", "strcoll")
     return self.collates.strcoll, "strcoll"
   end
 end
@@ -601,10 +600,8 @@ function FileChooser:refreshPath()
         subtitle
       )
     end,
-    InfoMessage:new({
-      -- Need localization.
-      text = T(_("Loading contents in %1"), self.path),
-    })
+    -- Need localization.
+    T(_("Loading contents in %1"), self.path)
   )
 end
 
@@ -684,7 +681,7 @@ end
 function FileChooser:toggleShowFilesMode(mode)
   -- modes: "show_finished", "show_hidden", "show_unsupported"
   FileChooser[mode] = not FileChooser[mode]
-  G_reader_settings:saveSetting(mode, FileChooser[mode])
+  G_reader_settings:save(mode, FileChooser[mode])
   self:refreshPath()
 end
 

@@ -587,17 +587,17 @@ function ReaderUI:init()
 
   -- Now that document is loaded, store book metadata in settings.
   local props = self.document:getProps()
-  self.doc_settings:saveSetting("doc_props", props)
+  self.doc_settings:save("doc_props", props)
   -- And have an extended and customized copy in memory for quick access.
   self.doc_props = FileManagerBookInfo.extendProps(props, self.document.file)
 
-  local md5 = self.doc_settings:readSetting("partial_md5_checksum")
+  local md5 = self.doc_settings:read("partial_md5_checksum")
   if md5 == nil then
     md5 = util.partialMD5(self.document.file)
-    self.doc_settings:saveSetting("partial_md5_checksum", md5)
+    self.doc_settings:save("partial_md5_checksum", md5)
   end
 
-  local summary = self.doc_settings:readTableSetting("summary")
+  local summary = self.doc_settings:readTableRef("summary")
   if summary.status == nil then
     summary.status = "reading"
     summary.modified = os.date("%Y-%m-%d", os.time())
@@ -667,7 +667,7 @@ function ReaderUI:getLastDirFile(to_file_browser)
   end
   local QuickStart = require("ui/quickstart")
   local last_dir
-  local last_file = G_reader_settings:readSetting("lastfile")
+  local last_file = G_reader_settings:read("lastfile")
   -- ignore quickstart guide as last_file so we can go back to home dir
   if last_file and last_file ~= QuickStart.quickstart_filename then
     last_dir = last_file:match("(.*)/")
@@ -781,6 +781,7 @@ function ReaderUI:showReaderCoroutine(file, provider, seamless)
         BD.filepath(filemanagerutil.abbreviate(file))
       ),
       invisible = seamless,
+      icon = "hourglass",
     })
   )
 end
@@ -939,10 +940,8 @@ function ReaderUI:onExit(full_refresh)
         UIManager:close(self.dialog, full_refresh ~= false and "full")
       end
     end,
-    InfoMessage:new({
-      -- Need localization.
-      text = T(_("Saving progress of file %1"), self.document.file),
-    })
+    -- Need localization.
+    T(_("Saving progress of file %1"), self.document.file)
   )
 end
 

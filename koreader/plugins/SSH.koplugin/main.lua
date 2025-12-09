@@ -31,7 +31,7 @@ local SSH = WidgetContainer:extend({
 })
 
 function SSH:init()
-  self.SSH_port = G_reader_settings:readSetting("SSH_port") or "2222"
+  self.SSH_port = G_reader_settings:read("SSH_port") or "2222"
   self.allow_no_password = G_reader_settings:isTrue("SSH_allow_no_password")
   self.ui.menu:registerToMainMenu(self)
   self:onDispatcherRegisterActions()
@@ -167,7 +167,7 @@ function SSH:show_port_dialog(touchmenu_instance)
             local value = tonumber(self.port_dialog:getInputText())
             if value and value >= 0 then
               self.SSH_port = value
-              G_reader_settings:saveSetting("SSH_port", self.SSH_port)
+              G_reader_settings:save("SSH_port", self.SSH_port)
               UIManager:close(self.port_dialog)
               touchmenu_instance:updateItems()
             end

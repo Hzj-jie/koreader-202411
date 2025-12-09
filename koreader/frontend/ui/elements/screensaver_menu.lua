@@ -4,7 +4,7 @@ local _ = require("gettext")
 local T = require("ffi/util").template
 
 local function hasLastFile()
-  local last_file = G_reader_settings:readSetting("lastfile")
+  local last_file = G_reader_settings:read("lastfile")
   return last_file and lfs.attributes(last_file, "mode") == "file"
 end
 
@@ -17,10 +17,10 @@ local function genMenuItem(text, setting, value, enabled_func, separator)
     text = text,
     enabled_func = enabled_func,
     checked_func = function()
-      return G_reader_settings:readSetting(setting) == value
+      return G_reader_settings:read(setting) == value
     end,
     callback = function()
-      G_reader_settings:saveSetting(setting, value)
+      G_reader_settings:save(setting, value)
     end,
     radio = true,
     separator = separator,
@@ -69,10 +69,9 @@ return {
       {
         text = _("Border fill, rotation, and fit"),
         enabled_func = function()
-          return G_reader_settings:readSetting("screensaver_type") == "cover"
-            or G_reader_settings:readSetting("screensaver_type") == "document_cover"
-            or G_reader_settings:readSetting("screensaver_type")
-              == "random_image"
+          return G_reader_settings:read("screensaver_type") == "cover"
+            or G_reader_settings:read("screensaver_type") == "document_cover"
+            or G_reader_settings:read("screensaver_type") == "random_image"
         end,
         sub_item_table = {
           genMenuItem(_("Black fill"), "screensaver_img_background", "black"),
@@ -87,9 +86,8 @@ return {
           -- separator
           {
             text_func = function()
-              local percentage = G_reader_settings:readSetting(
-                "screensaver_stretch_limit_percentage"
-              )
+              local percentage =
+                G_reader_settings:read("screensaver_stretch_limit_percentage")
               if
                 G_reader_settings:isTrue("screensaver_stretch_images")
                 and percentage
@@ -142,16 +140,14 @@ return {
       {
         text = _("Custom images"),
         enabled_func = function()
-          return G_reader_settings:readSetting("screensaver_type")
-              == "random_image"
-            or G_reader_settings:readSetting("screensaver_type")
-              == "document_cover"
+          return G_reader_settings:read("screensaver_type") == "random_image"
+            or G_reader_settings:read("screensaver_type") == "document_cover"
         end,
         sub_item_table = {
           {
             text = _("Choose image or document cover"),
             enabled_func = function()
-              return G_reader_settings:readSetting("screensaver_type")
+              return G_reader_settings:read("screensaver_type")
                 == "document_cover"
             end,
             keep_menu_open = true,
@@ -162,7 +158,7 @@ return {
           {
             text = _("Choose random image folder"),
             enabled_func = function()
-              return G_reader_settings:readSetting("screensaver_type")
+              return G_reader_settings:read("screensaver_type")
                 == "random_image"
             end,
             keep_menu_open = true,
@@ -203,7 +199,7 @@ return {
           "This option will only become available, if you have selected 'Leave screen as-is' as wallpaper and have 'Sleep screen message' on."
         ),
         enabled_func = function()
-          return G_reader_settings:readSetting("screensaver_type") == "disable"
+          return G_reader_settings:read("screensaver_type") == "disable"
             and G_reader_settings:isTrue("screensaver_show_message")
         end,
         sub_item_table = {

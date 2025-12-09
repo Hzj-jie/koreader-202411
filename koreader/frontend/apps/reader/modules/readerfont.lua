@@ -73,7 +73,7 @@ function ReaderFont:setupFaceMenuTable()
     text_func = function()
       local nb_family_fonts = 0
       local g_font_family_fonts =
-        G_reader_settings:readTableSetting("cre_font_family_fonts")
+        G_reader_settings:readTableRef("cre_font_family_fonts")
       for family, name in pairs(g_font_family_fonts) do
         if self.font_family_fonts[family] then
           nb_family_fonts = nb_family_fonts + 1
@@ -119,11 +119,11 @@ function ReaderFont:setupFaceMenuTable()
     table.insert(self.face_table, {
       text_func = function()
         -- defaults are hardcoded in credocument.lua
-        local default_font = G_reader_settings:readSetting("cre_font")
+        local default_font = G_reader_settings:read("cre_font")
           or self.ui.document.default_font
-        local fallback_font = G_reader_settings:readSetting("fallback_font")
+        local fallback_font = G_reader_settings:read("fallback_font")
           or self.ui.document.fallback_fonts[1]
-        local monospace_font = G_reader_settings:readSetting("monospace_font")
+        local monospace_font = G_reader_settings:read("monospace_font")
           or self.ui.document.monospace_font
         local text = v
         if font_filename and font_faceindex then
@@ -208,12 +208,12 @@ function ReaderFont:onSetDimensions(dimen)
 end
 
 function ReaderFont:onReadSettings(config)
-  self.font_face = config:readSetting("font_face")
-    or G_reader_settings:readSetting("cre_font")
+  self.font_face = config:read("font_face")
+    or G_reader_settings:read("cre_font")
     or self.ui.document.default_font
   self.ui.document:setFontFace(self.font_face)
 
-  local header_font = G_reader_settings:readSetting("header_font")
+  local header_font = G_reader_settings:read("header_font")
     or self.ui.document.header_font
   self.ui.document:setHeaderFont(header_font)
 
@@ -227,7 +227,7 @@ function ReaderFont:onReadSettings(config)
   self.ui.document:setInterlineSpacePercent(self.configurable.line_spacing)
   self.ui.document:setGammaIndex(self.configurable.font_gamma)
 
-  self.font_family_fonts = config:readTableSetting("font_family_fonts")
+  self.font_family_fonts = config:readTableRef("font_family_fonts")
   self:updateFontFamilyFonts()
 
   self:setupFaceMenuTable()
@@ -343,8 +343,7 @@ function ReaderFont:onSetFontGamma(gamma)
 end
 
 function ReaderFont:onSaveSettings()
-  self.ui.doc_settings:saveSetting("font_face", self.font_face)
-  self.ui.doc_settings:saveSetting("font_family_fonts", self.font_family_fonts)
+  self.ui.doc_settings:save("font_face", self.font_face)
 end
 
 function ReaderFont:onSetFont(face)
@@ -371,14 +370,14 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
         ), -- [M] is U+1F13C
         choice1_text = _("Default"),
         choice1_callback = function()
-          G_reader_settings:saveSetting("cre_font", face)
+          G_reader_settings:save("cre_font", face)
           if touchmenu_instance then
             touchmenu_instance:updateItems()
           end
         end,
         choice2_text = C_("Font", "Monospace"),
         choice2_callback = function()
-          G_reader_settings:saveSetting("monospace_font", face)
+          G_reader_settings:save("monospace_font", face)
           -- We need to reset the main font for the biases to be re-set correctly
           local current_face = self.font_face
           self.font_face = nil
@@ -399,14 +398,14 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
       ),
       choice1_text = _("Default"),
       choice1_callback = function()
-        G_reader_settings:saveSetting("cre_font", face)
+        G_reader_settings:save("cre_font", face)
         if touchmenu_instance then
           touchmenu_instance:updateItems()
         end
       end,
       choice2_text = C_("Font", "Fallback"),
       choice2_callback = function()
-        G_reader_settings:saveSetting("fallback_font", face)
+        G_reader_settings:save("fallback_font", face)
         self.ui.document:setupFallbackFontFaces()
         UIManager:broadcastEvent(Event:new("UpdatePos"))
         if touchmenu_instance then
@@ -486,7 +485,7 @@ function ReaderFont:updateFontFamilyFonts()
   -- which would otherwise need us to call updateFontFamilyFonts() every time we
   -- change the main font face.
   local g_font_family_fonts =
-    G_reader_settings:readTableSetting("cre_font_family_fonts")
+    G_reader_settings:readTableRef("cre_font_family_fonts")
   local family_fonts = {}
   for i, family in ipairs(FONT_FAMILIES) do
     local family_tag = family[1]
@@ -512,7 +511,7 @@ end
 
 function ReaderFont:getFontFamiliesTable()
   local g_font_family_fonts =
-    G_reader_settings:readTableSetting("cre_font_family_fonts")
+    G_reader_settings:readTableRef("cre_font_family_fonts")
   local families_table = {
     {
       text = _("Ignore publisher font names when font-family is set"),
@@ -541,7 +540,7 @@ Enabling this will ignore such font names and make sure your preferred family fo
     local unset_font_main_text = _("(main font)")
     local unset_font_choice_text = _("Use main font")
     if family_tag == "monospace" then
-      local monospace_font = G_reader_settings:readSetting("monospace_font")
+      local monospace_font = G_reader_settings:read("monospace_font")
         or self.ui.document.monospace_font
       unset_font_main_text = _("(default monospace font)")
       unset_font_choice_text =
@@ -699,9 +698,7 @@ Enabling this will ignore such font names and make sure your preferred family fo
               self.font_family_fonts[family_tag] = nil
             else
               self.font_family_fonts[family_tag] = v
-              Notification:notify({
-                text = _("Font family font set for this book only."),
-              })
+              Notification:notify(_("Font family font set for this book only."))
               -- Be sure it is shown before the re-rendering (which may take some time)
               UIManager:forceRePaint()
             end
@@ -793,7 +790,7 @@ New fonts discovered at KOReader startup will be shown first.
 Do you want to clear the history of selected fonts?]]),
         ok_text = _("Clear"),
         ok_callback = function()
-          G_reader_settings:delSetting("cre_fonts_recently_selected")
+          G_reader_settings:delete("cre_fonts_recently_selected")
           -- Recreate it now, sorted alphabetically (we may not go visit
           -- and refresh the font menu until quit, but we want to be able
           -- to notice newly added fonts at next startup).
@@ -851,14 +848,13 @@ This may help with Greek words among Latin text (as Latin fonts often do not hav
 
   table.insert(settings_table, {
     text_func = function()
-      local scale = G_reader_settings:readSetting("cre_monospace_scaling")
-        or 100
+      local scale = G_reader_settings:read("cre_monospace_scaling") or 100
       return T(_("Monospace fonts scaling: %1 %"), scale)
     end,
     callback = function()
       local SpinWidget = require("ui/widget/spinwidget")
       UIManager:show(SpinWidget:new({
-        value = G_reader_settings:readSetting("cre_monospace_scaling") or 100,
+        value = G_reader_settings:read("cre_monospace_scaling") or 100,
         value_min = 30,
         value_step = 1,
         value_hold_step = 5,
@@ -870,7 +866,7 @@ This may help with Greek words among Latin text (as Latin fonts often do not hav
         keep_shown_on_apply = true,
         callback = function(spin)
           local scale = spin.value
-          G_reader_settings:saveSetting("cre_monospace_scaling", scale)
+          G_reader_settings:save("cre_monospace_scaling", scale)
           self.ui.document:setMonospaceFontScaling(scale)
           UIManager:broadcastEvent(Event:new("UpdatePos"))
         end,
@@ -912,19 +908,16 @@ function ReaderFont:addToRecentlySelectedList(face)
 end
 
 function ReaderFont:sortFaceList(face_list)
-  self.fonts_recently_selected =
-    G_reader_settings:readSetting("cre_fonts_recently_selected")
-  if not self.fonts_recently_selected then
+  if not G_reader_settings:has("cre_fonts_recently_selected") then
     -- Init this list with the alphabetical list we got
     self.fonts_recently_selected = face_list
-    G_reader_settings:saveSetting(
-      "cre_fonts_recently_selected",
-      self.fonts_recently_selected
-    )
+    G_reader_settings:save("cre_fonts_recently_selected", face_list)
     -- We got no list of previously known fonts, so we can't say which are new.
     newly_added_fonts = {}
     return face_list
   end
+  self.fonts_recently_selected =
+    G_reader_settings:readTableRef("cre_fonts_recently_selected")
   if not newly_added_fonts then
     -- First call after launch: check for fonts not yet known
     newly_added_fonts = {}
