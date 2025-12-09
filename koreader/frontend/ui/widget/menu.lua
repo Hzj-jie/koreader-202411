@@ -691,7 +691,7 @@ local Menu = FocusManager:extend({
   line_color = Blitbuffer.COLOR_DARK_GRAY,
 })
 
-function Menu:_recalculateDimen(no_recalculate_dimen)
+function Menu:_calculateLayout()
   local perpage = self.items_per_page
     or G_reader_settings:read("items_per_page")
     or self.items_per_page_default
@@ -701,6 +701,13 @@ function Menu:_recalculateDimen(no_recalculate_dimen)
   if self.perpage ~= perpage or self.font_size ~= font_size then
     self.perpage = perpage
     self.font_size = font_size
+    return true
+  end
+  return false
+end
+
+function Menu:_recalculateDimen(no_recalculate_dimen)
+  if self:_calculateLayout() then
     no_recalculate_dimen = false
   end
 
@@ -725,7 +732,7 @@ function Menu:_recalculateDimen(no_recalculate_dimen)
     x = 0,
     y = 0,
     w = self.inner_dimen.w,
-    h = math.floor(self.available_height / perpage),
+    h = math.floor(self.available_height / self.perpage),
   })
 
   if self.items_max_lines then
@@ -1003,7 +1010,10 @@ function Menu:init()
     }),
   })
 
-  self:_recalculateDimen()
+  -- Initialize FileChooser.font_size and perpage, coverbrowser.koplugin will
+  -- override _recalculateDimen.
+  assert(self:_calculateLayout())  -- No idea how it could return false.
+  self:_recalculateDimen(false)
   self.content_group = VerticalGroup:new({
     align = "left",
     header,
