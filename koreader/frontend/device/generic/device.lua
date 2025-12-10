@@ -218,7 +218,7 @@ function Device:init()
   if G_reader_settings:has("low_pan_rate") then
     self.screen.low_pan_rate = G_reader_settings:read("low_pan_rate")
   else
-    self.screen.low_pan_rate = self.hasEinkScreen()
+    self.screen.low_pan_rate = self:hasEinkScreen()
   end
 
   logger.info("initializing for device", self.model)
