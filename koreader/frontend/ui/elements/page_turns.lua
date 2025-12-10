@@ -11,7 +11,10 @@ local tap_zones = {
   bottom_top = _("Bottom / top"),
 }
 
-if tap_zones[(G_reader_settings:read("page_turns_tap_zones") or "left_right")] == nil then
+if
+  tap_zones[(G_reader_settings:read("page_turns_tap_zones") or "left_right")]
+  == nil
+then
   -- Legacy configuration
   G_reader_settings:delete("page_turns_tap_zones")
 end
