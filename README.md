@@ -6,10 +6,8 @@ This repo is derived from the 2024-11 version with essential bug fixes only.
 ## Supported platforms
 - kindle pw2
 - kindle legacy
-- linux & wsl with ubuntu 24.04 or upper
-
-## To be supported platforms
 - kobo
+- linux & wsl with ubuntu 24.04 or upper
 
 After running stylua at
 https://github.com/Hzj-jie/koreader-202411/commit/587d93fa241744aa8e03574bdcd3cf3dd92c3244,
