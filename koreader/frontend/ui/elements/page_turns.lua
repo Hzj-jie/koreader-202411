@@ -10,6 +10,15 @@ local tap_zones = {
   top_bottom = _("Top / bottom"),
   bottom_top = _("Bottom / top"),
 }
+
+if
+  tap_zones[(G_reader_settings:read("page_turns_tap_zones") or "left_right")]
+  == nil
+then
+  -- Legacy configuration
+  G_reader_settings:delete("page_turns_tap_zones")
+end
+
 local function genTapZonesMenu(tap_zones_type)
   table.insert(page_turns_tap_zones_sub_items, {
     text = tap_zones[tap_zones_type],

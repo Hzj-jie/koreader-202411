@@ -6,6 +6,7 @@ local InfoMessage = require("ui/widget/infomessage")
 local Math = require("optmath")
 local MultiInputDialog = require("ui/widget/multiinputdialog")
 local NetworkMgr = require("ui/network/manager")
+local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
@@ -94,10 +95,13 @@ local function getNameStrategy(type)
 end
 
 local function showSyncedMessage()
-  UIManager:show(InfoMessage:new({
-    text = _("Progress has been synchronized."),
-    timeout = 3,
-  }))
+  -- Unlike push, pulling progress is
+  -- 1. noticeable, since the page was turned automatically.
+  -- 2. usually following with reading experience.
+  -- So instead of using an InfoMessage, shows a notification to avoid blocking
+  -- most of the screen would provide a better user experience. Similar to the
+  -- notifications used to change the font size.
+  Notification:notify(_("Progress has been synchronized."))
 end
 
 local function promptLogin()
@@ -174,7 +178,11 @@ end
 
 function KOSync:onReaderReady()
   if self.settings.auto_sync then
-    UIManager:nextTick(function()
+    UIManager:scheduleIn(0.1, function()
+      -- Opening a book will trigger onPageUpdated, but the page isn't "updated"
+      -- when the book is opened. So reset the last_page_turn_timestamp in
+      -- onReaderReady event to force a pull if any.
+      self.last_page_turn_timestamp = 0
       self:_getProgress(false)
     end)
   end
