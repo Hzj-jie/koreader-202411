@@ -311,10 +311,6 @@ function ReaderHighlight:setupTouchZones()
   if not Device:isTouchDevice() then
     return
   end
-  local hold_pan_rate = G_reader_settings:read("hold_pan_rate")
-  if not hold_pan_rate then
-    hold_pan_rate = Screen.low_pan_rate and 5.0 or 30.0
-  end
   local DTAP_ZONE_TOP_LEFT = G_defaults:read("DTAP_ZONE_TOP_LEFT")
   self.ui:registerTouchZones({
     {
@@ -396,7 +392,7 @@ function ReaderHighlight:setupTouchZones()
     {
       id = "readerhighlight_hold_pan",
       ges = "hold_pan",
-      rate = hold_pan_rate,
+      rate = G_reader_settings:read("hold_pan_rate") or G_named_settings.low_pan_rate_or_full(5.0),
       screen_zone = {
         ratio_x = 0,
         ratio_y = 0,

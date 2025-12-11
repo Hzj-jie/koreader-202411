@@ -31,7 +31,7 @@ local FrontLightWidget = FocusManager:extend({
   height = nil,
   -- This should stay active during natural light configuration
   is_always_active = true,
-  rate = Screen.low_pan_rate and 3 or 30, -- Widget update rate.
+  rate = G_named_settings.low_pan_rate_or_full(3), -- Widget update rate.
   last_time = 0, -- Tracks last update time to prevent update spamming.
 })
 
@@ -568,7 +568,7 @@ function FrontLightWidget:onTapProgress(arg, ges_ev)
     self:setFrontLightIntensity(num)
 
     -- But limit the widget update frequency on E Ink.
-    if Screen.low_pan_rate then
+    if G_named_settings.low_pan_rate() then
       local current_time = time.now()
       local last_time = self.last_time or 0
       if current_time - last_time > time.s(1 / self.rate) then

@@ -8,11 +8,10 @@ local eink_settings_table = {
     {
       text = _("Use smaller panning rate"),
       checked_func = function()
-        return Screen.low_pan_rate
+        return G_named_settings.low_pan_rate()
       end,
       callback = function()
-        Screen.low_pan_rate = not Screen.low_pan_rate
-        G_reader_settings:save("low_pan_rate", Screen.low_pan_rate)
+        G_named_settings.flip.low_pan_rate()
       end,
     },
     {

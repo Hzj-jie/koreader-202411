@@ -97,7 +97,7 @@ function ReaderUI:init()
   UIManager:show(self, self.seamless and "ui" or "full")
 
   -- cap screen refresh on pan to 2 refreshes per second
-  local pan_rate = Screen.low_pan_rate and 2.0 or 30.0
+  local pan_rate = G_named_settings.low_pan_rate_or_full(2.0)
 
   Input:inhibitInput(true) -- Inhibit any past and upcoming input events.
   Device:setIgnoreInput(true) -- Avoid ANRs on Android with unprocessed events.
