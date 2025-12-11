@@ -241,13 +241,16 @@ function AutoDim:_rampTask(fl_diff, delay)
   -- Well, something else may happened as well, e.g. some other logic changed
   -- the frontlight level.
   if fl_level <= AUTODIM_END_FL then
+    if Device:hasEinkScreen() then
+      UIManager:broadcastEvent("UpdateFooter")
+    end
     return
   end
   fl_level = fl_level - 1
   Powerd:setIntensity(fl_level)
   -- Reduce the frequency of firing frontlight level change event on
   -- eink devices.
-  if not Device:hasEinkScreen() or ((self.origin_fl - fl_level) % 2 == 0) then
+  if not Device:hasEinkScreen() then
     UIManager:broadcastEvent("UpdateFooter")
   end
   if fl_level > AUTODIM_END_FL then
