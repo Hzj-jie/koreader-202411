@@ -543,12 +543,10 @@ function ReaderSearch:onShowSearchDialog(
       {
         {
           text = from_start_text,
-          
           callback = search(self.searchFromStart, text, nil),
         },
         {
           text = backward_text,
-          
           callback = search(self.searchNext, text, 1),
         },
         {
@@ -562,12 +560,10 @@ function ReaderSearch:onShowSearchDialog(
         },
         {
           text = forward_text,
-          
           callback = search(self.searchNext, text, 0),
         },
         {
           text = from_end_text,
-          
           callback = search(self.searchFromEnd, text, nil),
         },
       },

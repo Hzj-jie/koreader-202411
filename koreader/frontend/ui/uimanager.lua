@@ -1331,10 +1331,7 @@ function UIManager:_repaint()
     if dirty or self._dirty[widget] then
       -- pass hint to widget that we got when setting widget dirty
       -- the widget can use this to decide which parts should be refreshed
-      logger.dbg(
-        "painting widget:",
-        self:_widgetDebugStr(widget)
-      )
+      logger.dbg("painting widget:", self:_widgetDebugStr(widget))
       Screen:beforePaint()
       -- NOTE: Nothing actually seems to use the final argument?
       --     Could be used by widgets to know whether they're being repainted because they're actually dirty (it's true),
@@ -1453,13 +1450,7 @@ function UIManager:widgetRepaint(widget, x, y)
     y = y or widget.dimen.y
   end
 
-  logger.dbg(
-    "Explicit widgetRepaint:",
-    self:_widgetDebugStr(widget),
-    "@",
-    x,
-    y
-  )
+  logger.dbg("Explicit widgetRepaint:", self:_widgetDebugStr(widget), "@", x, y)
   if widget.show_parent and widget.show_parent.cropping_widget then
     -- The main widget parent of this subwidget has a cropping container: see if
     -- this widget is a child of this cropping container
@@ -1501,17 +1492,15 @@ function UIManager:widgetInvert(widget, x, y, w, h)
     h = h or widget.dimen.h
   end
   if not x or not y or not w or not h then
-    logger.warn("Cannot invert widget ", self:_widgetDebugStr(widget), " without its dimen.")
+    logger.warn(
+      "Cannot invert widget ",
+      self:_widgetDebugStr(widget),
+      " without its dimen."
+    )
     return
   end
 
-  logger.dbg(
-    "Explicit widgetInvert:",
-    self:_widgetDebugStr(widget),
-    "@",
-    x,
-    y
-  )
+  logger.dbg("Explicit widgetInvert:", self:_widgetDebugStr(widget), "@", x, y)
   if widget.show_parent and widget.show_parent.cropping_widget then
     -- The main widget parent of this subwidget has a cropping container: see if
     -- this widget is a child of this cropping container

@@ -392,7 +392,8 @@ function ReaderHighlight:setupTouchZones()
     {
       id = "readerhighlight_hold_pan",
       ges = "hold_pan",
-      rate = G_reader_settings:read("hold_pan_rate") or G_named_settings.low_pan_rate_or_full(5.0),
+      rate = G_reader_settings:read("hold_pan_rate")
+        or G_named_settings.low_pan_rate_or_full(5.0),
       screen_zone = {
         ratio_x = 0,
         ratio_y = 0,

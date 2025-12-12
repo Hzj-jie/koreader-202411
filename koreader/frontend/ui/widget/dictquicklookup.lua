@@ -478,7 +478,6 @@ function DictQuickLookup:init()
         {
           id = "prev_dict",
           text = prev_dict_text,
-          
           enabled = self:isPrevDictAvaiable(),
           callback = function()
             self:onChangeToPrevDict()
@@ -505,7 +504,6 @@ function DictQuickLookup:init()
         {
           id = "next_dict",
           text = next_dict_text,
-          
           enabled = self:isNextDictAvaiable(),
           callback = function()
             self:onChangeToNextDict()

@@ -79,7 +79,11 @@ function named_settings.low_pan_rate_or_scroll(value)
 end
 
 function named_settings.flip.low_pan_rate()
-  return G_reader_settings:save("low_pan_rate", not named_settings.low_pan_rate(), require("device"):hasEinkScreen())
+  return G_reader_settings:save(
+    "low_pan_rate",
+    not named_settings.low_pan_rate(),
+    require("device"):hasEinkScreen()
+  )
 end
 
 return named_settings
