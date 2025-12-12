@@ -423,7 +423,7 @@ function VirtualKey:update_keyboard(want_flash, want_a2)
     -- NOTE: On MTK, we'd have to forcibly stall a bit for the highlights to actually show.
     --[[
     UIManager:forceRePaint()
-    UIManager:yieldToEPDC(3000)
+    UIManager:waitForScreenRefresh()
     --]]
   end
 end
@@ -443,7 +443,7 @@ function VirtualKey:onTapSelect(skip_flash)
   if not skip_flash and not self.skiptap then
     self:invert(true)
     UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
+    UIManager:waitForScreenRefresh()
 
     self:invert(false)
     if self.callback then
@@ -464,7 +464,7 @@ function VirtualKey:onHoldSelect()
   if not self.skiphold and not self.hold_cb_is_popup then
     self:invert(true)
     UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
+    UIManager:waitForScreenRefresh()
 
     -- NOTE: We do *NOT* set hold to true here,
     --     because some mxcfb drivers apparently like to merge the flash that it would request
@@ -489,7 +489,7 @@ function VirtualKey:onSwipeKey(arg, ges)
   Device:performHapticFeedback("KEYBOARD_TAP")
   self:invert(true)
   UIManager:forceRePaint()
-  UIManager:yieldToEPDC()
+  UIManager:waitForScreenRefresh()
 
   self:invert(false)
   if self.swipe_callback then

@@ -206,7 +206,9 @@ function fb:refreshA2Imp(x, y, w, h, d)
   return self:refreshFastImp(x, y, w, h, d)
 end
 function fb:refreshWaitForLastImp()
-  -- default is NOP
+  -- default is waiting for 1000us; note, unless Device:hasEinkScreen(), this
+  -- function shouldn't be called at all.
+  require("ffi/util").usleep(1000)
 end
 
 -- these should not be overridden, they provide the external refresh API:

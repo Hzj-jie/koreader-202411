@@ -1413,36 +1413,11 @@ function UIManager:avoidFlashOnNextRepaint()
   self.refresh_counted = true
 end
 
---[[--
-Ask the EPDC to *block* until our previous refresh ioctl has completed.
-
-This interacts sanely with the existing low-level handling of this in `framebuffer_mxcfb`
-(i.e., it doesn't even try to wait for a marker that fb has already waited for, and vice-versa).
-
-Will return immediately if it has already completed.
-
-If the device isn't a Linux + MXCFB device, this is a NOP.
-]]
-function UIManager:waitForVSync()
-  Screen:refreshWaitForLast()
-end
-
---[[--
-Yield to the EPDC.
-
-This is a dumb workaround for potential races with the EPDC when we request a refresh on a specific region,
-and then proceed to *write* to the framebuffer, in the same region, very, very, very soon after that.
-
-This basically just puts ourselves to sleep for a very short amount of time, to let the kernel do its thing in peace.
-
-@int sleep_us Amount of time to sleep for (in µs). (Optional, defaults to 1ms).
-]]
-function UIManager:yieldToEPDC(sleep_us)
-  if Device:hasEinkScreen() then
-    -- NOTE: Early empiric evidence suggests that going as low as 1ms is enough to do the trick.
-    --     Consider jumping to the jiffy resolution (100Hz/10ms) if it turns out it isn't ;).
-    ffiUtil.usleep(sleep_us or 1000)
+function UIManager:waitForScreenRefresh()
+  if not Device:hasEinkScreen() then
+    return
   end
+  Screen:refreshWaitForLast()
 end
 
 --[[--

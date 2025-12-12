@@ -536,7 +536,7 @@ local function mxc_update(
   -- * Waiting for complete *after* Fast helps everywhere, but obviously murders latency, too.
   -- FWIW, Nickel does (using AUTO everywhere): Complete -> HL -> Submission -> UI -> Complete -> UnHL -> Submission
   -- * Doing something similar with our usual DU + AUTO combos doesn't help.
-  -- NOTE: Much like on lab126 MTK, bumping UIManager:yieldToEPDC to something along the lines of 175ms helps,
+  -- NOTE: Much like on lab126 MTK, bumping UIManager:waitForScreenRefresh to something along the lines of 175ms helps,
   --       but is also obviously not desirable latency-wise.
   --       Interestingly enough, lab126 devices are affected the *other* way around:
   --       they tend to optimize *out* the highlight, instead of having trouble dealing with the unhighlight...

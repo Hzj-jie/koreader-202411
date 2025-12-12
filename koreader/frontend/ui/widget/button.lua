@@ -470,7 +470,7 @@ function Button:onTapSelectButton()
         --       The other approach would be to *ask* the EPDC to block until it's *completely* done,
         --       but that's too much (because we only care about it being done *reading* the fb),
         --       and that could take upwards of 300ms, which is also way too much ;).
-        UIManager:yieldToEPDC()
+        UIManager:waitForScreenRefresh()
       end
 
       -- Unhighlight
@@ -496,7 +496,7 @@ function Button:onTapSelectButton()
       UIManager:forceRePaint() -- Ensures whatever the callback wanted to paint will be shown *now*...
       if self.vsync then
         -- NOTE: This is mainly useful when the callback caused a REAGL update that we do not explicitly fence via MXCFB_WAIT_FOR_UPDATE_COMPLETE already, (i.e., Kobo Mk. 7).
-        UIManager:waitForVSync() -- ...and that the EPDC will not wait to coalesce it with the *next* update,
+        UIManager:waitForScreenRefresh() -- ...and that the EPDC will not wait to coalesce it with the *next* update,
         -- because that would have a chance to noticeably delay it until the unhighlight.
       end
 

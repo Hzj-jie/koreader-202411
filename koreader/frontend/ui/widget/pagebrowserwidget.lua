@@ -892,7 +892,7 @@ function PageBrowserWidget:showTile(grid_idx, page, tile, do_refresh)
       self.wait_for_refresh_on_show_tile = nil
       -- Be sure the main view initial refresh has ended before refreshing
       -- this first thumbnail, to avoid papercut refresh glitches.
-      UIManager:waitForVSync()
+      UIManager:waitForScreenRefresh()
     end
     UIManager:setDirty(self, function()
       if not thumb_frame.dimen then

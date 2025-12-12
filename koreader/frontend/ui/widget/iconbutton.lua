@@ -135,7 +135,7 @@ function IconButton:onTapIconButton()
   UIManager:setDirty(nil, "fast", self.dimen)
 
   UIManager:forceRePaint()
-  UIManager:yieldToEPDC()
+  UIManager:waitForScreenRefresh()
 
   -- Unhighlight
   --
