@@ -250,7 +250,11 @@ function fb:refreshA2(x, y, w, h, d)
   return self:refreshA2Imp(x, y, w, h, d)
 end
 function fb:refreshWaitForLast()
-  return self:refreshWaitForLastImp()
+  -- Inner peace, UIManager should take care of it as well.
+  if not self.device:hasEinkScreen() then
+    return
+  end
+  self:refreshWaitForLastImp()
 end
 
 -- should be overridden to free resources

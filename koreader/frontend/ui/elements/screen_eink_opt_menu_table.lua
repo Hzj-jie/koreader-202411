@@ -9,7 +9,7 @@ local eink_settings_table = {
       -- Need localization
       text = _("Use lower refresh rate when appropriate"),
       -- Need localization
-      help_text = _("E-ink may laggy when refreshing, avoid refreshing the screen for the intermedia states can be beneficial to reduce the laggy or blur.\nA reloading of the book may be needed to make it effective after changing this configuration."),
+      help_text = _("E-ink may laggy when refreshing, avoid refreshing the screen for the intermedia states, e.g. when scrolling, can be beneficial to reduce the laggy or blur.\nA reloading of the book may be needed to make it effective after changing this configuration."),
       checked_func = function()
         return G_named_settings.low_pan_rate()
       end,
@@ -20,7 +20,7 @@ local eink_settings_table = {
     {
       text = _("Avoid mandatory black flashes in UI"),
       -- Need localization
-      help_text = _("Fully rendering a black area can increase the blurring effect on the E-ink, avoiding full refreshing the black areas may reduce the impact."),
+      help_text = _("Fully rendering a black area can increase the blurring effect on the E-ink, avoiding full refreshing the black areas may reduce the impact. But sometimes partially rendered black areas may be observed, especially on menus or buttons."),
       checked_func = function()
         return G_reader_settings:nilOrTrue("avoid_flashing_ui")
       end,

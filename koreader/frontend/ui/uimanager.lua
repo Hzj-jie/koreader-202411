@@ -1417,7 +1417,11 @@ function UIManager:waitForScreenRefresh()
   if not Device:hasEinkScreen() then
     return
   end
-  Screen:refreshWaitForLast()
+  if G_reader_settings:nilOrTrue("avoid_flashing_ui") then
+    ffiUtil.usleep(1000)
+  else
+    Screen:refreshWaitForLast()
+  end
 end
 
 --[[--
