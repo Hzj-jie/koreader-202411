@@ -115,15 +115,17 @@ function ReaderAnnotation:onReadSettings(config)
         config:save("annotations_paging", annotations)
       end
       -- load compatible format
-      annotations = config:readTableRef("annotations_rolling")
+      annotations = config:readTable("annotations_rolling") or {}
       config:delete("annotations_rolling")
+      config:save("annotations", annotations)
       needs_sort = true
     elseif self.ui.paging and annotations_type ~= "number" then
       if has_annotations then
         config:save("annotations_rolling", annotations)
       end
-      annotations = config:readTableRef("annotations_paging")
+      annotations = config:readTable("annotations_paging") or {}
       config:delete("annotations_paging")
+      config:save("annotations", annotations)
       needs_sort = true
     end
     self.annotations = annotations
