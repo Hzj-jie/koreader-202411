@@ -416,7 +416,7 @@ function VirtualKey:update_keyboard(want_flash, want_a2)
     -- Only repaint the key itself, not the full board...
     -- NOTE: We use self[1] (i.e., FrameContainer),
     --     because we fudge self.dimen to include the padding for the gesture hitbox...
-    UIManager:widgetRepaint(self[1], self[1].dimen.x, self[1].dimen.y)
+    UIManager:widgetRepaint(self[1])
     logger.dbg("update key", self.key)
     UIManager:setDirty(nil, refresh_type, self[1].dimen)
 

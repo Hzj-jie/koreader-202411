@@ -131,6 +131,8 @@ function IconButton:onTapIconButton()
     self.image,
     self.dimen.x + h_padding,
     self.dimen.y + self.padding_top
+    -- It's not necessary to calculate the self.dimen.w - 2 * h_padding,
+    -- cropping logic in the widgetInvert will take care of it.
   )
   UIManager:setDirty(nil, "fast", self.dimen)
 

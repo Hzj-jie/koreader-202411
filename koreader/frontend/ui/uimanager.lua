@@ -121,6 +121,11 @@ function UIManager:setIgnoreTouchInput(state)
   InputContainer:setIgnoreTouchInput(state)
 end
 
+function UIManager:_widgetDebugStr(widget)
+  assert(widget ~= nil)
+  return widget.name or widget.id or tostring(widget)
+end
+
 --[[--
 Registers and shows a widget.
 
@@ -233,7 +238,7 @@ function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
           refreshdither = true
           logger.dbg(
             "Lower widget",
-            w.name or w.id or tostring(w),
+            self:_widgetDebugStr(w),
             "was dithered, honoring the dithering hint"
           )
         end
@@ -245,7 +250,7 @@ function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
           start_idx = i
           logger.dbg(
             "Lower widget",
-            w.name or w.id or tostring(w),
+            self:_widgetDebugStr(w),
             "covers the full screen"
           )
           if i > 1 then
@@ -612,7 +617,7 @@ function UIManager:setDirty(widget, refreshtype, refreshregion, refreshdither)
           self._dirty[w] = true
           logger.dbg(
             "setDirty: Marking as dirty widget:",
-            w.name or w.id or tostring(w),
+            self:_widgetDebugStr(w),
             "because it's below translucent widget:",
             widget_name
           )
@@ -1314,7 +1319,7 @@ function UIManager:_repaint()
   if start_idx > 1 then
     for i = 1, start_idx-1 do
       local widget = self._window_stack[i].widget
-      logger.dbg("NOT painting widget:", widget.name or widget.id or tostring(widget))
+      logger.dbg("NOT painting widget:", self:_widgetDebugStr(widget))
     end
   end
   --]]
@@ -1328,7 +1333,7 @@ function UIManager:_repaint()
       -- the widget can use this to decide which parts should be refreshed
       logger.dbg(
         "painting widget:",
-        widget.name or widget.id or tostring(widget)
+        self:_widgetDebugStr(widget)
       )
       Screen:beforePaint()
       -- NOTE: Nothing actually seems to use the final argument?
@@ -1433,17 +1438,24 @@ No safety checks on x & y *by design*. I want this to blow up if used wrong.
 This is an explicit repaint *now*: it bypasses and ignores the paint queue (unlike `setDirty`).
 
 @param widget a @{ui.widget.widget|widget} object
-@int x left origin of widget (in the Screen buffer, e.g., `widget.dimen.x`)
-@int y top origin of widget (in the Screen buffer, e.g., `widget.dimen.y`)
+@int x left origin of widget (in the Screen buffer, optional, will use `widget.dimen.x`)
+@int y top origin of widget (in the Screen buffer, optional, will use `widget.dimen.y`)
 ]]
 function UIManager:widgetRepaint(widget, x, y)
+  -- TODO: Should assert.
   if not widget then
     return
   end
 
+  -- It's possible that the function is called before the paintTo call.
+  if widget.dimen then
+    x = x or widget.dimen.x
+    y = y or widget.dimen.y
+  end
+
   logger.dbg(
     "Explicit widgetRepaint:",
-    widget.name or widget.id or tostring(widget),
+    self:_widgetDebugStr(widget),
     "@",
     x,
     y
@@ -1469,20 +1481,33 @@ end
 Same idea as `widgetRepaint`, but does a simple `bb:invertRect` on the Screen buffer, without actually going through the widget's `paintTo` method.
 
 @param widget a @{ui.widget.widget|widget} object
-@int x left origin of the rectangle to invert (in the Screen buffer, e.g., `widget.dimen.x`)
-@int y top origin of the rectangle (in the Screen buffer, e.g., `widget.dimen.y`)
+@int x left origin of the rectangle to invert (in the Screen buffer, optional, will use `widget.dimen.x`)
+@int y top origin of the rectangle (in the Screen buffer, optional, will use `widget.dimen.y`)
 @int w width of the rectangle (optional, will use `widget.dimen.w` like `paintTo` would if omitted)
 @int h height of the rectangle (optional, will use `widget.dimen.h` like `paintTo` would if omitted)
 @see widgetRepaint
 --]]
 function UIManager:widgetInvert(widget, x, y, w, h)
+  -- TODO: Should assert.
   if not widget then
+    return
+  end
+
+  -- It's possible that the function is called before the paintTo call.
+  if widget.dimen then
+    x = x or widget.dimen.x
+    y = y or widget.dimen.y
+    w = w or widget.dimen.w
+    h = h or widget.dimen.h
+  end
+  if not x or not y or not w or not h then
+    logger.warn("Cannot invert widget ", self:_widgetDebugStr(widget), " without its dimen.")
     return
   end
 
   logger.dbg(
     "Explicit widgetInvert:",
-    widget.name or widget.id or tostring(widget),
+    self:_widgetDebugStr(widget),
     "@",
     x,
     y
@@ -1496,8 +1521,8 @@ function UIManager:widgetInvert(widget, x, y, w, h)
       local widget_region = Geom:new({
         x = x,
         y = y,
-        w = w or widget.dimen.w,
-        h = h or widget.dimen.h,
+        w = w,
+        h = h,
       })
       local crop_region = cropping_widget:getCropRegion()
       local invert_region = crop_region:intersect(widget_region)
