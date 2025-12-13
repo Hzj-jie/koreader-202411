@@ -1400,6 +1400,9 @@ function UIManager:_repaint()
   if dirty then
     Screen:afterPaint()
   end
+  -- In comparison, no matter if anything was painted, at this time point, the
+  -- screen should be updated into the latest status.
+  self._last_repaint_time = time.realtime_coarse()
 
   self._refresh_stack = {}
   self.refresh_counted = false
@@ -1538,6 +1541,12 @@ end
 -- NOTE: The Event hook mechanism used to dispatch for *every* event, and would actually pass the event along.
 --     We've simplified that to once per input frame, and without passing anything (as we, in fact, have never made use of it).
 function UIManager:handleInputEvent(input_event)
+  if type(input_event) == "table" and input_event.args and #input_event.args > 0 and input_event.args[1].ges == "tap" and input_event.args[1].time and G_reader_settings:nilOrTrue("disable_out_of_order_taps") then
+    if self._last_repaint_time >= input_event.args[1].time then
+      logger.dbg("Ignore out of order event " .. input_event.handler)
+      return
+    end
+  end
   -- Compare input_event.args[1].time / 1000 / 1000 with os.time()
   local handler = self.event_handlers[input_event]
   if handler then

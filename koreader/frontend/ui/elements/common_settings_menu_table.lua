@@ -153,8 +153,20 @@ if Device:isTouchDevice() then
       UIManager:broadcastEvent(Event:new("IgnoreHoldCorners"))
     end,
   }
-  common_settings.screen_disable_double_tab =
+  common_settings.screen_disable_double_tap =
     require("ui/elements/screen_disable_double_tap_table")
+  common_settings.disable_out_of_order_tap = {
+    -- Need localization
+    text = _("Disable out of order taps"),
+    -- Need localization
+    help_text = _("Disallow taps or other interactions being sent to the UI elements before they are showing up.\nIt's highly suggested keeping this configuration enabled to avoid unexpectedly triggering user actions."),
+    checked_func = function()
+      return G_reader_settings:nilOrTrue("disable_out_of_order_taps")
+    end,
+    callback = function()
+      G_reader_settings:flipNilOrTrue("disable_out_of_order_taps")
+    end,
+  }
   common_settings.menu_activate = require("ui/elements/menu_activate")
 end
 
