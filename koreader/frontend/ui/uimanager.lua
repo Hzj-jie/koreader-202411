@@ -1538,6 +1538,7 @@ end
 -- NOTE: The Event hook mechanism used to dispatch for *every* event, and would actually pass the event along.
 --     We've simplified that to once per input frame, and without passing anything (as we, in fact, have never made use of it).
 function UIManager:handleInputEvent(input_event)
+  -- Compare input_event.args[1].time / 1000 / 1000 with os.time()
   local handler = self.event_handlers[input_event]
   if handler then
     handler(input_event)
