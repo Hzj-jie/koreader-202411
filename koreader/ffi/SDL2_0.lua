@@ -238,7 +238,7 @@ local function genEmuEvent(evtype, code, value)
   -- NOTE: SDL timestamps are in ms since application startup, which doesn't tell us anything useful,
   --       so, use synthetic ones in the same timescale as the UI.
   local timespec = ffi.new("struct timespec")
-  C.clock_gettime(C.CLOCK_MONOTONIC_COARSE, timespec)
+  C.clock_gettime(C.CLOCK_REALTIME, timespec)
   local timev = {
     sec = tonumber(timespec.tv_sec),
     -- ns to µs
