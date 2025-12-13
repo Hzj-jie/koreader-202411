@@ -341,7 +341,7 @@ Schedules a task to be run a certain amount of seconds from now.
 function UIManager:scheduleIn(seconds, action, ...)
   -- We might run significantly late inside an UI frame, so we can't use the cached value here.
   -- It would also cause some bad interactions with the way nextTick & co behave.
-  local when = time.now() + time.s(seconds)
+  local when = time.monotonic() + time.s(seconds)
   self:schedule(when, action, ...)
 end
 dbg:guard(UIManager, "scheduleIn", function(self, seconds, action)
@@ -397,7 +397,7 @@ function UIManager:debounce(seconds, immediate, action)
 
   local scheduled_action
   scheduled_action = function()
-    local passed_from_last_call = time:now() - previous_call_at
+    local passed_from_last_call = time.monotonic() - previous_call_at
     if seconds > passed_from_last_call then
       self:scheduleIn(seconds - passed_from_last_call, scheduled_action)
       is_scheduled = true
@@ -414,7 +414,7 @@ function UIManager:debounce(seconds, immediate, action)
   end
   local debounced_action_wrapper = function(...)
     args = table.pack(...)
-    previous_call_at = time:now()
+    previous_call_at = time.monotonic()
     if not is_scheduled then
       self:scheduleIn(seconds, scheduled_action)
       is_scheduled = true
@@ -1042,7 +1042,7 @@ function UIManager:getNextTaskTimes(count)
   count = math.min(count or 1, #self._task_queue)
   local times = {}
   for i = 1, count do
-    times[i] = self._task_queue[i].time - time.now()
+    times[i] = self._task_queue[i].time - time.monotonic()
   end
   return times
 end
@@ -1051,12 +1051,12 @@ end
 function UIManager:getNextTaskTime()
   local next_task = self._task_queue[#self._task_queue]
   if next_task then
-    return next_task.time - time:now()
+    return next_task.time - time.monotonic()
   end
 end
 
 function UIManager:_checkTasks()
-  local _now = time.now()
+  local _now = time.monotonic()
   local wait_until = nil
 
   -- Tasks due for execution might themselves schedule more tasks (that might also be immediately due for execution ;)).
@@ -1086,7 +1086,7 @@ end
 Returns a time (fts) corresponding to the last UI tick plus the time in standby.
 ]]
 function UIManager:getElapsedTimeSinceBoot()
-  return time.now() + Device.total_standby_time + Device.total_suspend_time
+  return time.monotonic() + Device.total_standby_time + Device.total_suspend_time
 end
 
 function UIManager:lastUserActionTime()

@@ -743,7 +743,7 @@ function Input:setTimeout(slot, ges, cb, origin, delay)
   if self.input.setTimer then
     -- If GestureDetector's clock source probing was inconclusive, do this on the UI timescale instead.
     if clock_id == -1 then
-      deadline = time.now() + delay
+      deadline = time.monotonic() + delay
       clock_id = C.CLOCK_MONOTONIC
     else
       deadline = origin + delay
@@ -767,7 +767,7 @@ function Input:setTimeout(slot, ges, cb, origin, delay)
     else
       -- Otherwise, fudge it by using a current timestamp in the UI's timescale (MONOTONIC).
       -- This isn't the end of the world in practice (c.f., #7415).
-      deadline = time.now() + delay
+      deadline = time.monotonic() + delay
     end
     item.deadline = deadline
   end
@@ -1538,7 +1538,7 @@ function Input:isEvKeyRelease(ev)
 end
 
 --- Main event handling.
--- `now` corresponds to time.now() (an fts time), and it's just been updated by UIManager.
+-- `now` corresponds to time.monotonic() (an fts time), and it's just been updated by UIManager.
 -- `deadline` (an fts time) is the absolute deadline imposed by UIManager:handleInput() (a.k.a., our main event loop ^^):
 -- it's either nil (meaning block forever waiting for input), or the earliest UIManager deadline (in most cases, that's the next scheduled task,
 -- in much less common cases, that's the earliest of UIManager.INPUT_TIMEOUT (currently, only KOSync ever sets it) or UIManager.ZMQ_TIMEOUT if there are pending ZMQs).
@@ -1589,7 +1589,7 @@ function Input:waitEvent(now, deadline)
         if poll_deadline then
           -- If we haven't hit that deadline yet, poll until it expires, otherwise,
           -- have select return immediately so that we trip a timeout.
-          now = now or time.now()
+          now = now or time.monotonic()
           if poll_deadline > now then
             -- Deadline hasn't been blown yet, honor it.
             poll_timeout = poll_deadline - now
@@ -1623,7 +1623,7 @@ function Input:waitEvent(now, deadline)
               -- We're only guaranteed to have blown the timer's deadline
               -- when our actual select deadline *was* the timer's!
               consume_callback = true
-            elseif time.now() >= self.timer_callbacks[1].deadline then
+            elseif time.monotonic() >= self.timer_callbacks[1].deadline then
               -- But if it was a task deadline instead, we to have to check the timer's against the current time,
               -- to double-check whether we blew it or not.
               consume_callback = true
@@ -1684,7 +1684,7 @@ function Input:waitEvent(now, deadline)
       -- If UIManager put us on deadline, enforce it, otherwise, block forever.
       if deadline then
         -- Convert that absolute deadline to value relative to *now*, as we may loop multiple times between UI ticks.
-        now = now or time.now()
+        now = now or time.monotonic()
         if deadline > now then
           -- Deadline hasn't been blown yet, honor it.
           poll_timeout = deadline - now

@@ -733,7 +733,7 @@ function Device:ping4(ip)
   addr.sin_port = 0
 
   -- Send the ping
-  local start_time = time.now()
+  local start_time = time.monotonic()
   if
     C.sendto(
       socket,
@@ -805,14 +805,14 @@ function Device:ping4(ip)
         end
       end
     else
-      local end_time = time.now()
+      local end_time = time.monotonic()
       logger.info("Device:ping4: timed out waiting for a response from", ip)
       C.close(socket)
       return false, end_time - start_time
     end
     ::continue::
   end
-  local end_time = time.now()
+  local end_time = time.monotonic()
 
   -- If we got this far, we've got a reply to our ping in time!
   C.close(socket)

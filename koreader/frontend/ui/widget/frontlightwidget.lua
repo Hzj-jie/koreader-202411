@@ -569,7 +569,7 @@ function FrontLightWidget:onTapProgress(arg, ges_ev)
 
     -- But limit the widget update frequency on E Ink.
     if G_named_settings.low_pan_rate() then
-      local current_time = time.now()
+      local current_time = time.monotonic()
       local last_time = self.last_time or 0
       if current_time - last_time > time.s(1 / self.rate) then
         self.last_time = current_time

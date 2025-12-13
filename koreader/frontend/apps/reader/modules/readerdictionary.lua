@@ -1049,12 +1049,12 @@ function ReaderDictionary:stardictLookup(
 
   self:showLookupMsg(T(_("Searching dictionary for:\n%1"), word))
 
-  self._lookup_start_time = time.now()
+  self._lookup_start_time = time.monotonic()
   local results = self:startSdcv(word, dict_names, fuzzy_search)
   if
     results
     and results.lookup_cancelled
-    and (time.now() - self._lookup_start_time)
+    and (time.monotonic() - self._lookup_start_time)
       <= self.quick_dismiss_before_delay
   then
     -- If interrupted quickly just after launch, don't display anything
@@ -1123,7 +1123,7 @@ function ReaderDictionary:showDict(word, results, boxes, link)
   if
     not results.lookup_cancelled
     and self._lookup_start_time
-    and (time.now() - self._lookup_start_time)
+    and (time.monotonic() - self._lookup_start_time)
       > self.quick_dismiss_before_delay
   then
     -- If the search took more than a few seconds to be done, discard

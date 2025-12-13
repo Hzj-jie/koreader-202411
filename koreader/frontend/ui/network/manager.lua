@@ -172,7 +172,7 @@ function NetworkMgr:_queryOnlineState()
   -- This field is used to decide if the result from a full background ping
   -- background job should be ignored.
   -- This function is blocking, so only the start time needs to be recorded.
-  self.last_online_check_time = time.now()
+  self.last_online_check_time = time.monotonic()
   self:_setOnlineState(self:_isWifiConnected() and self:_isOnline())
 end
 

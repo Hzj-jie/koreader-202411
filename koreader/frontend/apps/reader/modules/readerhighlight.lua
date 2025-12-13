@@ -62,7 +62,7 @@ function ReaderHighlight:init()
   self._current_indicator_pos = nil
   self._previous_indicator_pos = nil
   self._last_indicator_move_args =
-    { dx = 0, dy = 0, distance = 0, time = time:now() }
+    { dx = 0, dy = 0, distance = 0, time = time.monotonic() }
   self._fallback_drawer = self.view.highlight.saved_drawer -- "lighten"
   self._fallback_color = self.view.highlight.saved_color -- "yellow" or "gray"
 
@@ -1083,7 +1083,7 @@ end
 -- to ensure current highlight has not already been cleared, and that we
 -- are not going to clear a new highlight
 function ReaderHighlight:getClearId()
-  self.clear_id = time.now() -- can act as a unique id
+  self.clear_id = time.monotonic() -- can act as a unique id
   return self.clear_id
 end
 
@@ -2978,7 +2978,7 @@ function ReaderHighlight:onMoveHighlightIndicator(args)
       rect.x = rect.x + quick_move_distance_dx * dx
       rect.y = rect.y + quick_move_distance_dy * dy
     else
-      local now = time:now()
+      local now = time.monotonic()
       if
         dx == self._last_indicator_move_args.dx
         and dy == self._last_indicator_move_args.dy

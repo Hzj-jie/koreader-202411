@@ -357,7 +357,7 @@ function ReaderUI:init()
     -- make sure we render document first before calling any callback, so using
     -- onReadSettings which happens before onReaderInited.
     self.onReadSettings = function()
-      local start_time = time.now()
+      local start_time = time.monotonic()
       if not self.document:loadDocument() then
         self:dealWithLoadDocumentFailure()
       end
@@ -374,7 +374,7 @@ function ReaderUI:init()
         Event:new("PreRenderDocument", self.doc_settings)
       )
 
-      start_time = time.now()
+      start_time = time.monotonic()
       self.document:render()
       logger.dbg(
         string.format(

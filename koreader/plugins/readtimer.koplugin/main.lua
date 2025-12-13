@@ -131,8 +131,8 @@ end
 
 function ReadTimer:remaining()
   if self:scheduled() then
-    -- Resolution: time.now() subsecond, os.time() two seconds
-    local remaining_s = time.to_s(self.time - time.now())
+    -- Resolution: time.monotonic() subsecond, os.time() two seconds
+    local remaining_s = time.to_s(self.time - time.monotonic())
     if remaining_s > 0 then
       return remaining_s
     else
@@ -210,8 +210,8 @@ function ReadTimer:unschedule()
 end
 
 function ReadTimer:rescheduleIn(seconds)
-  -- Resolution: time.now() subsecond, os.time() two seconds
-  self.time = time.now() + time.s(seconds)
+  -- Resolution: time.monotonic() subsecond, os.time() two seconds
+  self.time = time.monotonic() + time.s(seconds)
   UIManager:scheduleIn(seconds, self.alarm_callback)
   self:onPostReaderReady()
 end

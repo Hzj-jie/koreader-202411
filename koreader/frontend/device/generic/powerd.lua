@@ -303,7 +303,7 @@ function BasePowerD:getCapacity()
     now = UIManager:getElapsedTimeSinceBoot()
   else
     -- Add time the device was in standby and suspend
-    now = time.now()
+    now = time.monotonic()
       + self.device.total_standby_time
       + self.device.total_suspend_time
   end
@@ -330,7 +330,7 @@ function BasePowerD:getAuxCapacity()
     now = UIManager:getElapsedTimeSinceBoot()
   else
     -- Add time the device was in standby and suspend
-    now = time.now()
+    now = time.monotonic()
       + self.device.total_standby_time
       + self.device.total_suspend_time
   end

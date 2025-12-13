@@ -387,7 +387,7 @@ function ReaderThumbnail:startTileGeneration(request)
       local target_w = math.floor(bb:getWidth() * scale_factor)
       local target_h = math.floor(bb:getHeight() * scale_factor)
       -- local time = require("ui/time")
-      -- local start_time = time.now()
+      -- local start_time = time.monotonic()
       local tile = TileCacheItem:new({
         bb = RenderImage:scaleBlitBuffer(bb, target_w, target_h, true),
         pageno = request.page,
@@ -427,7 +427,7 @@ function ReaderThumbnail:checkTileGeneration(request)
   )
   if stuff_to_read then
     -- local time = require("ui/time")
-    -- local start_time = time.now()
+    -- local start_time = time.monotonic()
     local result, err =
       self.codec.deserialize(ffiutil.readAllFromFD(parent_read_fd))
     if result then

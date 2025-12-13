@@ -377,7 +377,7 @@ function ReaderScrolling:_setupAction()
 
       -- Initiate inertial scrolling (action=true), unless we should not
       if
-        time.now() - self._last_manual_scroll_timev
+        time.monotonic() - self._last_manual_scroll_timev
         >= self.pause_before_release_cancel_duration
       then
         -- but not if no finger move for 0.3s before finger up

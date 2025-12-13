@@ -105,7 +105,7 @@ local function _clone(job)
   result.executable = job.executable
   result.callback = job.callback
   result.environment = job.environment
-  result.insert_time = time.now()
+  result.insert_time = time.monotonic()
   return result
 end
 
@@ -187,7 +187,7 @@ function BackgroundRunner:_executeJob(job)
     return true
   end
   if type(job.executable) == "function" then
-    job.start_time = time.now()
+    job.start_time = time.monotonic()
     local status, err = pcall(job.executable)
     if status then
       job.result = 0
@@ -203,7 +203,7 @@ function BackgroundRunner:_executeJob(job)
       -- trigger the exception at the end to preserve the logs.
       assert(job.catch_exception == true)
     end
-    job.end_time = time.now()
+    job.end_time = time.monotonic()
     self:_finishJob(job)
     return true
   end
@@ -244,7 +244,7 @@ function BackgroundRunner:_execute()
   for _ = 1, #PluginShare.backgroundJobs do
     local job = table.remove(PluginShare.backgroundJobs, 1)
     if job.insert_time == nil then
-      job.insert_time = time.now()
+      job.insert_time = time.monotonic()
     end
     local should_execute = false
     local should_ignore = false
@@ -261,7 +261,7 @@ function BackgroundRunner:_execute()
           )
           job.when = 1
         end
-        should_execute = (time.now() - job.insert_time >= time.s(job.when))
+        should_execute = (time.monotonic() - job.insert_time >= time.s(job.when))
       else
         logger.warn("ignore negative job.when, ", _debugJobStr(job))
         should_ignore = true
@@ -271,7 +271,7 @@ function BackgroundRunner:_execute()
         should_execute = true
       elseif job.when == "best-effort" then
         -- TODO: Implement a better best-effort strategy.
-        should_execute = (time.now() - job.insert_time >= time.s(60))
+        should_execute = (time.monotonic() - job.insert_time >= time.s(60))
       elseif job.when == "idle" then
         should_execute = PluginShare.DeviceIdling
       else

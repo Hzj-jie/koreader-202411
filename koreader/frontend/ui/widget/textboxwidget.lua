@@ -2236,7 +2236,7 @@ function TextBoxWidget:onHoldStartText(_, ges)
     return false -- let event be processed by other widgets
   end
 
-  self.hold_start_time = time.now()
+  self.hold_start_time = time.monotonic()
   return true
 end
 
@@ -2276,7 +2276,7 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
     return false
   end
 
-  local hold_duration = time.now() - self.hold_start_time
+  local hold_duration = time.monotonic() - self.hold_start_time
 
   -- If page contains an image, check if Hold is on this image and deal
   -- with it directly

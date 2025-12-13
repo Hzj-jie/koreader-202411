@@ -1539,7 +1539,7 @@ function ReaderRolling:showEngineProgress(percent)
   end
 
   if percent then
-    local now = time.now()
+    local now = time.monotonic()
     if
       self.engine_progress_update_not_before
       and now < self.engine_progress_update_not_before
@@ -2046,9 +2046,9 @@ function ReaderRolling:setupRerenderingAutomation()
         local top_widget = UIManager:getTopmostVisibleWidget() or {}
         if top_widget.name == "ReaderUI" then
           if not next_step_not_before then -- start counting from now
-            next_step_not_before = time.now() + time.s(3)
+            next_step_not_before = time.monotonic() + time.s(3)
           else
-            if time.now() >= next_step_not_before then
+            if time.monotonic() >= next_step_not_before then
               self._stepRerenderingAutomation(
                 self.RENDERING_STATE.FULL_RENDERING_IN_BACKGROUND
               )
