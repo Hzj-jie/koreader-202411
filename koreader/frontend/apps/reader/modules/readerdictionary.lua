@@ -1054,7 +1054,7 @@ function ReaderDictionary:stardictLookup(
   if
     results
     and results.lookup_cancelled
-    and (time.monotonic() - self._lookup_start_time)
+    and time.since(self._lookup_start_time)
       <= self.quick_dismiss_before_delay
   then
     -- If interrupted quickly just after launch, don't display anything

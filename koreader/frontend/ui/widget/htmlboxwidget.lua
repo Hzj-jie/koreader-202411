@@ -274,7 +274,7 @@ function HtmlBoxWidget:onHoldReleaseText(callback, ges)
     return false
   end
 
-  local hold_duration = time.monotonic() - self.hold_start_time
+  local hold_duration = time.since(self.hold_start_time)
 
   local page = self.document:openPage(self.page_number)
   local lines = page:getPageText()

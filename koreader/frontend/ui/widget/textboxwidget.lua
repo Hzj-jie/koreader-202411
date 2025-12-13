@@ -2276,7 +2276,7 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
     return false
   end
 
-  local hold_duration = time.monotonic() - self.hold_start_time
+  local hold_duration = time.since(self.hold_start_time)
 
   -- If page contains an image, check if Hold is on this image and deal
   -- with it directly

@@ -397,7 +397,7 @@ function UIManager:debounce(seconds, immediate, action)
 
   local scheduled_action
   scheduled_action = function()
-    local passed_from_last_call = time.monotonic() - previous_call_at
+    local passed_from_last_call = (time.since(previous_call_at) > 0)
     if seconds > passed_from_last_call then
       self:scheduleIn(seconds - passed_from_last_call, scheduled_action)
       is_scheduled = true
