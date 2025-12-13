@@ -1861,10 +1861,4 @@ function Input:waitEvent(now, deadline)
   end
 end
 
-function Input:inhibitInput(toggle)
-end
-
-function Input:inhibitInputUntil(set_or_seconds)
-end
-
 return Input

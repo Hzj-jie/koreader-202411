@@ -168,9 +168,6 @@ function Trapper:info(text, fast_refresh)
         ok_callback = function()
           coroutine.resume(_coroutine, false)
         end,
-        -- flush any pending tap, so past events won't be considered
-        -- action on the yet to be displayed widget
-        flush_events_on_show = true,
       })
       UIManager:show(abort_box)
       -- no need to forceRePaint, UIManager will do it when we yield()
@@ -223,9 +220,6 @@ function Trapper:info(text, fast_refresh)
         coroutine.resume(_coroutine, false)
       end,
       is_infomessage = true, -- flag on our InfoMessages
-      -- flush any pending tap, so past events won't be considered
-      -- action on the yet to be displayed widget
-      flush_events_on_show = true,
     })
     logger.dbg("Showing InfoMessage:", text)
     UIManager:show(self.current_widget)
@@ -295,9 +289,6 @@ function Trapper:confirm(text, cancel_text, ok_text)
     ok_callback = function()
       coroutine.resume(_coroutine, true)
     end,
-    -- flush any pending tap, so past events won't be considered
-    -- action on the yet to be displayed widget
-    flush_events_on_show = true,
   })
   logger.dbg("Showing ConfirmBox and waiting for answer:", text)
   UIManager:show(self.current_widget)

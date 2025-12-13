@@ -1172,30 +1172,19 @@ function Device:setEventHandlers(uimgr)
 end
 
 -- The common operations that should be performed before suspending the device.
-function Device:_beforeSuspend(inhibit)
+function Device:_beforeSuspend()
   UIManager:flushSettings()
   UIManager:broadcastEvent(Event:new("Suspend"))
   self.last_suspend_at = time.realtime()
-
-  if inhibit ~= false then
-    -- Block input events unrelated to power management
-    self.input:inhibitInput(true)
-
-    -- Disable key repeat to avoid useless chatter (especially where Sleep Covers are concerned...)
-    self:disableKeyRepeat()
-  end
+  -- Disable key repeat to avoid useless chatter (especially where Sleep Covers are concerned...)
+  self:disableKeyRepeat()
 end
 
 -- The common operations that should be performed after resuming the device.
-function Device:_afterResume(inhibit)
-  if inhibit ~= false then
-    -- Restore key repeat if it's not disabled
-    if G_reader_settings:nilOrFalse("input_no_key_repeat") then
-      self:restoreKeyRepeat()
-    end
-
-    -- Restore full input handling
-    self.input:inhibitInput(false)
+function Device:_afterResume()
+  -- Restore key repeat if it's not disabled
+  if G_reader_settings:nilOrFalse("input_no_key_repeat") then
+    self:restoreKeyRepeat()
   end
 
   self.last_resume_at = time.realtime()

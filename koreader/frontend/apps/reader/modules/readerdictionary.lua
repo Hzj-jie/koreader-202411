@@ -1120,18 +1120,6 @@ function ReaderDictionary:showDict(word, results, boxes, link)
     end,
   })
   UIManager:show(self.dict_window)
-  if
-    not results.lookup_cancelled
-    and self._lookup_start_time
-    and (time.monotonic() - self._lookup_start_time)
-      > self.quick_dismiss_before_delay
-  then
-    -- If the search took more than a few seconds to be done, discard
-    -- queued and upcoming input events to avoid a voluntary dismissal
-    -- (because the user felt the result would not come) to kill the
-    -- result that finally came and is about to be displayed
-    Input:inhibitInputUntil(true)
-  end
 end
 
 function ReaderDictionary:showDownload(downloadable_dicts)

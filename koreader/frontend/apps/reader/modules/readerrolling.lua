@@ -1152,7 +1152,6 @@ function ReaderRolling:onUpdatePos(force)
     return true
   end
 
-  Input:inhibitInput(true) -- Inhibit any past and upcoming input events.
   Device:setIgnoreInput(true) -- Avoid ANRs on Android with unprocessed events.
 
   -- Calling this now ensures the re-rendering is done by crengine
@@ -1171,9 +1170,6 @@ function ReaderRolling:onUpdatePos(force)
   self:updatePos(force)
 
   Device:setIgnoreInput(false) -- Allow processing of events (on Android).
-  Input:inhibitInputUntil(0.2) -- Discard input events, which might have occurred (double tap).
-  -- We can use a smaller duration than the default (quite large to avoid accidental dismissals),
-  -- to allow for quicker setting changes and rendering comparisons.
 end
 
 function ReaderRolling:updatePos(force)

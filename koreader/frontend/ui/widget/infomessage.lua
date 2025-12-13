@@ -74,8 +74,6 @@ local InfoMessage = InputContainer:extend({
   auto_para_direction = nil,
   -- Only have it painted after this delay (dismissing still works before it's shown)
   show_delay = nil,
-  -- Set to true when it might be displayed after some processing, to avoid accidental dismissal
-  flush_events_on_show = false,
 })
 
 function InfoMessage:init()
@@ -240,10 +238,6 @@ function InfoMessage:onShow()
   UIManager:setDirty(self, function()
     return "ui", self.movable.dimen
   end)
-  if self.flush_events_on_show then
-    -- Discard queued and upcoming input events to avoid accidental dismissal
-    Input:inhibitInputUntil(true)
-  end
   -- schedule a close on timeout, if any
   if self.timeout then
     self._timeout_func = function()
