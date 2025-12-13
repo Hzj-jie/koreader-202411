@@ -1086,7 +1086,9 @@ end
 Returns a time (fts) corresponding to the last UI tick plus the time in standby.
 ]]
 function UIManager:getElapsedTimeSinceBoot()
-  return time.monotonic() + Device.total_standby_time + Device.total_suspend_time
+  return time.monotonic()
+    + Device.total_standby_time
+    + Device.total_suspend_time
 end
 
 function UIManager:lastUserActionTime()
@@ -1541,7 +1543,14 @@ end
 -- NOTE: The Event hook mechanism used to dispatch for *every* event, and would actually pass the event along.
 --     We've simplified that to once per input frame, and without passing anything (as we, in fact, have never made use of it).
 function UIManager:handleInputEvent(input_event)
-  if type(input_event) == "table" and input_event.args and #input_event.args > 0 and input_event.args[1].ges == "tap" and input_event.args[1].time and G_reader_settings:nilOrTrue("disable_out_of_order_taps") then
+  if
+    type(input_event) == "table"
+    and input_event.args
+    and #input_event.args > 0
+    and input_event.args[1].ges == "tap"
+    and input_event.args[1].time
+    and G_reader_settings:nilOrTrue("disable_out_of_order_taps")
+  then
     if self._last_repaint_time >= input_event.args[1].time then
       logger.dbg("Ignore out of order event " .. input_event.handler)
       return
