@@ -493,11 +493,6 @@ function Input:init()
   if G_reader_settings:isTrue("backspace_as_back") then
     table.insert(self.group.Back, "Backspace")
   end
-
-  -- setup inhibitInputUntil scheduling function
-  self._inhibitInputUntil_func = function()
-    self:inhibitInputUntil()
-  end
 end
 
 function Input:UIManagerReady(uimgr)
@@ -1866,105 +1861,10 @@ function Input:waitEvent(now, deadline)
   end
 end
 
--- Allow toggling the handling of most every kind of input, except for power management related events.
 function Input:inhibitInput(toggle)
-  if toggle then
-    -- Only handle power management events
-    if not self._key_ev_handler then
-      logger.info("Inhibiting user input")
-      self._key_ev_handler = self.handleKeyBoardEv
-      self.handleKeyBoardEv = self.handlePowerManagementOnlyEv
-    end
-    -- And send everything else to the void
-    if not self._abs_ev_handler then
-      self._abs_ev_handler = self.handleTouchEv
-      self.handleTouchEv = self.voidEv
-    end
-    -- NOTE: We leave handleMiscEv alone, as some platforms make extensive use of EV_MSC for critical low-level stuff:
-    --     e.g., on PocketBook, it is used to handle InkView task management events (i.e., PM);
-    --     and on Android, for the critical purpose of forwarding Android events to Lua-land.
-    --     The only thing we might want to skip in there are gyro events anyway, which we'll handle separately.
-    if not self._gyro_ev_handler then
-      self._gyro_ev_handler = self.handleGyroEv
-      self.handleGyroEv = self.voidEv
-    end
-    if not self._sdl_ev_handler then
-      self._sdl_ev_handler = self.handleSdlEv
-      -- This is mainly used for non-input events, so we mostly want to leave it alone (#10427).
-      -- The only exception being mwheel handling, which we *do* want to inhibit.
-      self.handleSdlEv = function(this, ev)
-        local SDL_MOUSEWHEEL = 1027
-        if ev.code == SDL_MOUSEWHEEL then
-          return
-        else
-          return this:_sdl_ev_handler(ev)
-        end
-      end
-    end
-    if not self._generic_ev_handler then
-      self._generic_ev_handler = self.handleGenericEv
-      self.handleGenericEv = self.voidEv
-    end
-
-    -- Reset gesture detection state to a blank slate, to avoid bogus gesture detection on restore.
-    self:resetState()
-  else
-    -- Restore event handlers, if any
-    if self._key_ev_handler then
-      logger.info("Restoring user input handling")
-      self.handleKeyBoardEv = self._key_ev_handler
-      self._key_ev_handler = nil
-    end
-    if self._abs_ev_handler then
-      self.handleTouchEv = self._abs_ev_handler
-      self._abs_ev_handler = nil
-    end
-    if self._gyro_ev_handler then
-      self.handleGyroEv = self._gyro_ev_handler
-      self._gyro_ev_handler = nil
-    end
-    if self._sdl_ev_handler then
-      self.handleSdlEv = self._sdl_ev_handler
-      self._sdl_ev_handler = nil
-    end
-    if self._generic_ev_handler then
-      self.handleGenericEv = self._generic_ev_handler
-      self._generic_ev_handler = nil
-    end
-  end
 end
 
---[[--
-Request all input events to be ignored for some duration.
-
-@param set_or_seconds either `true`, in which case a platform-specific delay is chosen, or a duration in seconds (***int***).
-]]
 function Input:inhibitInputUntil(set_or_seconds)
-  UIManager:unschedule(self._inhibitInputUntil_func)
-  if not set_or_seconds then -- remove any previously set
-    self:inhibitInput(false)
-    return
-  end
-  local delay_s
-  if set_or_seconds == true then
-    -- Use an adequate delay to account for device refresh duration
-    -- so any events happening in this delay (ie. before a widget
-    -- is really painted on screen) are discarded.
-    if self.device:hasEinkScreen() then
-      -- A screen refresh can take a few 100ms,
-      -- sometimes > 500ms on some devices/temperatures.
-      -- So, block for 400ms (to have it displayed) + 400ms
-      -- for user reaction to it
-      delay_s = 0.8
-    else
-      -- On non-eInk screen, display is usually instantaneous
-      delay_s = 0.4
-    end
-  else -- we expect a number
-    delay_s = set_or_seconds
-  end
-  UIManager:scheduleIn(delay_s, self._inhibitInputUntil_func)
-  self:inhibitInput(true)
 end
 
 return Input
