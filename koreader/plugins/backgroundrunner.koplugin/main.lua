@@ -261,9 +261,7 @@ function BackgroundRunner:_execute()
           )
           job.when = 1
         end
-        should_execute = (
-          time.since(job.insert_time) >= time.s(job.when)
-        )
+        should_execute = (time.since(job.insert_time) >= time.s(job.when))
       else
         logger.warn("ignore negative job.when, ", _debugJobStr(job))
         should_ignore = true
