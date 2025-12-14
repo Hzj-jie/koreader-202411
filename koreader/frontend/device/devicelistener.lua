@@ -23,7 +23,7 @@ function DeviceListener:onToggleNightMode()
     self.ui.document:resetCallCache()
   end
   UIManager:setDirty("all", "full")
-  UIManager:ToggleNightMode(not night_mode)
+  UIManager:toggleNightMode(not night_mode)
   G_reader_settings:save("night_mode", not night_mode)
 end
 
