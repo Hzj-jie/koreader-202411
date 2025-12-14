@@ -279,9 +279,7 @@ function Device:init()
 
   -- Night mode
   self.orig_hw_nightmode = self.screen:getHWNightmode()
-  if G_reader_settings:isTrue("night_mode") then
-    self.screen:toggleNightMode()
-  end
+  self.screen:setNightmode(G_reader_settings:isTrue("night_mode"))
 
   -- Ensure the proper rotation on startup.
   -- We default to the rotation KOReader closed with.
@@ -619,7 +617,7 @@ function Device:exit()
   )
 
   -- Restore initial HW inversion state
-  self.screen:setHWNightmode(self.orig_hw_nightmode)
+  self.screen:setNightmode(self.orig_hw_nightmode)
 
   -- Tear down the fb backend
   self.screen:close()

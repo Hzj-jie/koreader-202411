@@ -123,7 +123,7 @@ common_settings.night_mode = {
     return G_reader_settings:isTrue("night_mode")
   end,
   callback = function()
-    UIManager:broadcastEvent(Event:new("ToggleNightMode"))
+    UIManager:broadcastEvent(Event:new("ToggleNightMode", G_reader_settings:nilOrFalse("night_mode")))
   end,
 }
 common_settings.network = {

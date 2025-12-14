@@ -408,7 +408,7 @@ local settingsList = {
   },
   set_night_mode = {
     category = "string",
-    event = "SetNightMode",
+    event = "ToggleNightMode",
     title = _("Set night mode"),
     screen = true,
     args = { true, false },

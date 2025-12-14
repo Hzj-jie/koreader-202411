@@ -11,9 +11,9 @@ local T = require("ffi/util").template
 
 local DeviceListener = EventListener:extend({})
 
-function DeviceListener:onToggleNightMode()
-  local night_mode = G_reader_settings:isTrue("night_mode")
-  Screen:toggleNightMode()
+function DeviceListener:onToggleNightMode(night_mode)
+  G_reader_settings:save("night_mode", night_mode, false)
+  Screen:setNightmode(night_mode)
   -- Make sure CRe will bypass the call cache
   if
     self.ui
@@ -23,15 +23,7 @@ function DeviceListener:onToggleNightMode()
     self.ui.document:resetCallCache()
   end
   UIManager:setDirty("all", "full")
-  UIManager:toggleNightMode(not night_mode)
-  G_reader_settings:save("night_mode", not night_mode)
-end
-
-function DeviceListener:onSetNightMode(night_mode_on)
-  local night_mode = G_reader_settings:isTrue("night_mode")
-  if night_mode_on ~= night_mode then
-    self:onToggleNightMode()
-  end
+  UIManager:toggleNightMode(night_mode)
 end
 
 -- frontlight controller
