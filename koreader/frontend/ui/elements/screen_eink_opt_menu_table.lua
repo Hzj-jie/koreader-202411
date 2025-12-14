@@ -23,7 +23,7 @@ local eink_settings_table = {
       text = _("Avoid mandatory black flashes in UI"),
       -- Need localization
       help_text = _(
-        "Fully rendering a black area can be slow and increase the blur on the E-ink, avoiding full refreshing the black areas may improve the device responsiveness in exchange of potentially observing partially rendered black areas, especially on menus and buttons."
+        "Fully rendering a black area can be slow and increase the blur on the E-ink, avoiding full refreshes of the black areas may improve the device responsiveness in exchange of potentially observing partially rendered black areas, especially on menus and buttons."
       ),
       checked_func = function()
         return G_reader_settings:nilOrTrue("avoid_flashing_ui")
