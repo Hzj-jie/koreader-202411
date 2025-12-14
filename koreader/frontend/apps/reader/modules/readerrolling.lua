@@ -94,31 +94,33 @@ function ReaderRolling:init()
   self:registerKeyEvents()
   self.pan_interval = time.s(1 / self.pan_rate)
 
-  self.onReaderInited = {}
-  self.onPostReaderReady = {}
+  self.onReaderInited = {
+    function()
+      self.rendering_hash = self.ui.document:getDocumentRenderingHash(true)
+      self.ui.document:_readMetadata()
+      if
+        self.ui.document:hasCacheFile()
+        and not self.ui.document:isCacheFileStale()
+      then
+        -- We loaded from a valid cache file: remember its hash. It may allow not
+        -- having to do any background rerendering if the user somehow reverted
+        -- some setting changes before any background rerendering had completed
+        -- (ie. with autorotation, transitioning from portrait to landscape for
+        -- a few seconds, to then end up back in portrait).
+        self.valid_cache_rendering_hash =
+          self.ui.document:getDocumentRenderingHash(false)
+      end
+    end,
+  }
+  self.onPostReaderReady = {
+    function()
+      self:updatePos()
+      -- Disable crengine internal history, with required redraw
+      self.ui.document:enableInternalHistory(false)
+      self:onRedrawCurrentView()
+    end,
+  }
 
-  table.insert(self.onReaderInited, function()
-    self.rendering_hash = self.ui.document:getDocumentRenderingHash(true)
-    self.ui.document:_readMetadata()
-    if
-      self.ui.document:hasCacheFile()
-      and not self.ui.document:isCacheFileStale()
-    then
-      -- We loaded from a valid cache file: remember its hash. It may allow not
-      -- having to do any background rerendering if the user somehow reverted
-      -- some setting changes before any background rerendering had completed
-      -- (ie. with autorotation, transitioning from portrait to landscape for
-      -- a few seconds, to then end up back in portrait).
-      self.valid_cache_rendering_hash =
-        self.ui.document:getDocumentRenderingHash(false)
-    end
-  end)
-  table.insert(self.onPostReaderReady, function()
-    self:updatePos()
-    -- Disable crengine internal history, with required redraw
-    self.ui.document:enableInternalHistory(false)
-    self:onRedrawCurrentView()
-  end)
   self.ui.menu:registerToMainMenu(self)
   self.batched_update_count = 0
 
