@@ -121,6 +121,11 @@ function UIManager:setIgnoreTouchInput(state)
   InputContainer:setIgnoreTouchInput(state)
 end
 
+function UIManager:_widgetDebugStr(widget)
+  assert(widget ~= nil)
+  return widget.name or widget.id or tostring(widget)
+end
+
 --[[--
 Registers and shows a widget.
 
@@ -233,7 +238,7 @@ function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
           refreshdither = true
           logger.dbg(
             "Lower widget",
-            w.name or w.id or tostring(w),
+            self:_widgetDebugStr(w),
             "was dithered, honoring the dithering hint"
           )
         end
@@ -245,7 +250,7 @@ function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
           start_idx = i
           logger.dbg(
             "Lower widget",
-            w.name or w.id or tostring(w),
+            self:_widgetDebugStr(w),
             "covers the full screen"
           )
           if i > 1 then
@@ -336,7 +341,7 @@ Schedules a task to be run a certain amount of seconds from now.
 function UIManager:scheduleIn(seconds, action, ...)
   -- We might run significantly late inside an UI frame, so we can't use the cached value here.
   -- It would also cause some bad interactions with the way nextTick & co behave.
-  local when = time.now() + time.s(seconds)
+  local when = time.monotonic() + time.s(seconds)
   self:schedule(when, action, ...)
 end
 dbg:guard(UIManager, "scheduleIn", function(self, seconds, action)
@@ -392,7 +397,7 @@ function UIManager:debounce(seconds, immediate, action)
 
   local scheduled_action
   scheduled_action = function()
-    local passed_from_last_call = time:now() - previous_call_at
+    local passed_from_last_call = (time.since(previous_call_at) > 0)
     if seconds > passed_from_last_call then
       self:scheduleIn(seconds - passed_from_last_call, scheduled_action)
       is_scheduled = true
@@ -409,7 +414,7 @@ function UIManager:debounce(seconds, immediate, action)
   end
   local debounced_action_wrapper = function(...)
     args = table.pack(...)
-    previous_call_at = time:now()
+    previous_call_at = time.monotonic()
     if not is_scheduled then
       self:scheduleIn(seconds, scheduled_action)
       is_scheduled = true
@@ -612,7 +617,7 @@ function UIManager:setDirty(widget, refreshtype, refreshregion, refreshdither)
           self._dirty[w] = true
           logger.dbg(
             "setDirty: Marking as dirty widget:",
-            w.name or w.id or tostring(w),
+            self:_widgetDebugStr(w),
             "because it's below translucent widget:",
             widget_name
           )
@@ -1037,7 +1042,7 @@ function UIManager:getNextTaskTimes(count)
   count = math.min(count or 1, #self._task_queue)
   local times = {}
   for i = 1, count do
-    times[i] = self._task_queue[i].time - time.now()
+    times[i] = self._task_queue[i].time - time.monotonic()
   end
   return times
 end
@@ -1046,12 +1051,12 @@ end
 function UIManager:getNextTaskTime()
   local next_task = self._task_queue[#self._task_queue]
   if next_task then
-    return next_task.time - time:now()
+    return next_task.time - time.monotonic()
   end
 end
 
 function UIManager:_checkTasks()
-  local _now = time.now()
+  local _now = time.monotonic()
   local wait_until = nil
 
   -- Tasks due for execution might themselves schedule more tasks (that might also be immediately due for execution ;)).
@@ -1081,7 +1086,9 @@ end
 Returns a time (fts) corresponding to the last UI tick plus the time in standby.
 ]]
 function UIManager:getElapsedTimeSinceBoot()
-  return time.now() + Device.total_standby_time + Device.total_suspend_time
+  return time.monotonic()
+    + Device.total_standby_time
+    + Device.total_suspend_time
 end
 
 function UIManager:lastUserActionTime()
@@ -1314,7 +1321,7 @@ function UIManager:_repaint()
   if start_idx > 1 then
     for i = 1, start_idx-1 do
       local widget = self._window_stack[i].widget
-      logger.dbg("NOT painting widget:", widget.name or widget.id or tostring(widget))
+      logger.dbg("NOT painting widget:", self:_widgetDebugStr(widget))
     end
   end
   --]]
@@ -1326,10 +1333,7 @@ function UIManager:_repaint()
     if dirty or self._dirty[widget] then
       -- pass hint to widget that we got when setting widget dirty
       -- the widget can use this to decide which parts should be refreshed
-      logger.dbg(
-        "painting widget:",
-        widget.name or widget.id or tostring(widget)
-      )
+      logger.dbg("painting widget:", self:_widgetDebugStr(widget))
       Screen:beforePaint()
       -- NOTE: Nothing actually seems to use the final argument?
       --     Could be used by widgets to know whether they're being repainted because they're actually dirty (it's true),
@@ -1398,6 +1402,9 @@ function UIManager:_repaint()
   if dirty then
     Screen:afterPaint()
   end
+  -- In comparison, no matter if anything was painted, at this time point, the
+  -- screen should be updated into the latest status.
+  self._last_repaint_time = time.realtime_coarse()
 
   self._refresh_stack = {}
   self.refresh_counted = false
@@ -1413,35 +1420,14 @@ function UIManager:avoidFlashOnNextRepaint()
   self.refresh_counted = true
 end
 
---[[--
-Ask the EPDC to *block* until our previous refresh ioctl has completed.
-
-This interacts sanely with the existing low-level handling of this in `framebuffer_mxcfb`
-(i.e., it doesn't even try to wait for a marker that fb has already waited for, and vice-versa).
-
-Will return immediately if it has already completed.
-
-If the device isn't a Linux + MXCFB device, this is a NOP.
-]]
-function UIManager:waitForVSync()
-  Screen:refreshWaitForLast()
-end
-
---[[--
-Yield to the EPDC.
-
-This is a dumb workaround for potential races with the EPDC when we request a refresh on a specific region,
-and then proceed to *write* to the framebuffer, in the same region, very, very, very soon after that.
-
-This basically just puts ourselves to sleep for a very short amount of time, to let the kernel do its thing in peace.
-
-@int sleep_us Amount of time to sleep for (in µs). (Optional, defaults to 1ms).
-]]
-function UIManager:yieldToEPDC(sleep_us)
-  if Device:hasEinkScreen() then
-    -- NOTE: Early empiric evidence suggests that going as low as 1ms is enough to do the trick.
-    --     Consider jumping to the jiffy resolution (100Hz/10ms) if it turns out it isn't ;).
-    ffiUtil.usleep(sleep_us or 1000)
+function UIManager:waitForScreenRefresh()
+  if not Device:hasEinkScreen() then
+    return
+  end
+  if G_reader_settings:nilOrTrue("avoid_flashing_ui") then
+    ffiUtil.usleep(1000)
+  else
+    Screen:refreshWaitForLast()
   end
 end
 
@@ -1454,21 +1440,22 @@ No safety checks on x & y *by design*. I want this to blow up if used wrong.
 This is an explicit repaint *now*: it bypasses and ignores the paint queue (unlike `setDirty`).
 
 @param widget a @{ui.widget.widget|widget} object
-@int x left origin of widget (in the Screen buffer, e.g., `widget.dimen.x`)
-@int y top origin of widget (in the Screen buffer, e.g., `widget.dimen.y`)
+@int x left origin of widget (in the Screen buffer, optional, will use `widget.dimen.x`)
+@int y top origin of widget (in the Screen buffer, optional, will use `widget.dimen.y`)
 ]]
 function UIManager:widgetRepaint(widget, x, y)
+  -- TODO: Should assert.
   if not widget then
     return
   end
 
-  logger.dbg(
-    "Explicit widgetRepaint:",
-    widget.name or widget.id or tostring(widget),
-    "@",
-    x,
-    y
-  )
+  -- It's possible that the function is called before the paintTo call.
+  if widget.dimen then
+    x = x or widget.dimen.x
+    y = y or widget.dimen.y
+  end
+
+  logger.dbg("Explicit widgetRepaint:", self:_widgetDebugStr(widget), "@", x, y)
   if widget.show_parent and widget.show_parent.cropping_widget then
     -- The main widget parent of this subwidget has a cropping container: see if
     -- this widget is a child of this cropping container
@@ -1490,24 +1477,35 @@ end
 Same idea as `widgetRepaint`, but does a simple `bb:invertRect` on the Screen buffer, without actually going through the widget's `paintTo` method.
 
 @param widget a @{ui.widget.widget|widget} object
-@int x left origin of the rectangle to invert (in the Screen buffer, e.g., `widget.dimen.x`)
-@int y top origin of the rectangle (in the Screen buffer, e.g., `widget.dimen.y`)
+@int x left origin of the rectangle to invert (in the Screen buffer, optional, will use `widget.dimen.x`)
+@int y top origin of the rectangle (in the Screen buffer, optional, will use `widget.dimen.y`)
 @int w width of the rectangle (optional, will use `widget.dimen.w` like `paintTo` would if omitted)
 @int h height of the rectangle (optional, will use `widget.dimen.h` like `paintTo` would if omitted)
 @see widgetRepaint
 --]]
 function UIManager:widgetInvert(widget, x, y, w, h)
+  -- TODO: Should assert.
   if not widget then
     return
   end
 
-  logger.dbg(
-    "Explicit widgetInvert:",
-    widget.name or widget.id or tostring(widget),
-    "@",
-    x,
-    y
-  )
+  -- It's possible that the function is called before the paintTo call.
+  if widget.dimen then
+    x = x or widget.dimen.x
+    y = y or widget.dimen.y
+    w = w or widget.dimen.w
+    h = h or widget.dimen.h
+  end
+  if not x or not y or not w or not h then
+    logger.warn(
+      "Cannot invert widget ",
+      self:_widgetDebugStr(widget),
+      " without its dimen."
+    )
+    return
+  end
+
+  logger.dbg("Explicit widgetInvert:", self:_widgetDebugStr(widget), "@", x, y)
   if widget.show_parent and widget.show_parent.cropping_widget then
     -- The main widget parent of this subwidget has a cropping container: see if
     -- this widget is a child of this cropping container
@@ -1517,8 +1515,8 @@ function UIManager:widgetInvert(widget, x, y, w, h)
       local widget_region = Geom:new({
         x = x,
         y = y,
-        w = w or widget.dimen.w,
-        h = h or widget.dimen.h,
+        w = w,
+        h = h,
       })
       local crop_region = cropping_widget:getCropRegion()
       local invert_region = crop_region:intersect(widget_region)
@@ -1545,6 +1543,20 @@ end
 -- NOTE: The Event hook mechanism used to dispatch for *every* event, and would actually pass the event along.
 --     We've simplified that to once per input frame, and without passing anything (as we, in fact, have never made use of it).
 function UIManager:handleInputEvent(input_event)
+  if
+    type(input_event) == "table"
+    and input_event.args
+    and #input_event.args > 0
+    and input_event.args[1].ges == "tap"
+    and input_event.args[1].time
+    and G_reader_settings:nilOrTrue("disable_out_of_order_taps")
+  then
+    if self._last_repaint_time >= input_event.args[1].time then
+      logger.dbg("Ignore out of order event " .. input_event.handler)
+      return
+    end
+  end
+  -- Compare input_event.args[1].time / 1000 / 1000 with os.time()
   local handler = self.event_handlers[input_event]
   if handler then
     handler(input_event)

@@ -1088,7 +1088,6 @@ function InputDialog:_addScrollButtons(nav_bar)
     table.insert(row, {
       text = "⇱",
       id = "top",
-      vsync = true,
       callback = function()
         self._input_widget:scrollToTop()
       end,
@@ -1096,7 +1095,6 @@ function InputDialog:_addScrollButtons(nav_bar)
     table.insert(row, {
       text = "⇲",
       id = "bottom",
-      vsync = true,
       callback = function()
         self._input_widget:scrollToBottom()
       end,

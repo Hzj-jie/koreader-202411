@@ -62,7 +62,7 @@ function ReaderHighlight:init()
   self._current_indicator_pos = nil
   self._previous_indicator_pos = nil
   self._last_indicator_move_args =
-    { dx = 0, dy = 0, distance = 0, time = time:now() }
+    { dx = 0, dy = 0, distance = 0, time = time.monotonic() }
   self._fallback_drawer = self.view.highlight.saved_drawer -- "lighten"
   self._fallback_color = self.view.highlight.saved_color -- "yellow" or "gray"
 
@@ -311,10 +311,6 @@ function ReaderHighlight:setupTouchZones()
   if not Device:isTouchDevice() then
     return
   end
-  local hold_pan_rate = G_reader_settings:read("hold_pan_rate")
-  if not hold_pan_rate then
-    hold_pan_rate = Screen.low_pan_rate and 5.0 or 30.0
-  end
   local DTAP_ZONE_TOP_LEFT = G_defaults:read("DTAP_ZONE_TOP_LEFT")
   self.ui:registerTouchZones({
     {
@@ -396,7 +392,8 @@ function ReaderHighlight:setupTouchZones()
     {
       id = "readerhighlight_hold_pan",
       ges = "hold_pan",
-      rate = hold_pan_rate,
+      rate = G_reader_settings:read("hold_pan_rate")
+        or G_named_settings.low_pan_rate_or_full(5.0),
       screen_zone = {
         ratio_x = 0,
         ratio_y = 0,
@@ -1086,7 +1083,7 @@ end
 -- to ensure current highlight has not already been cleared, and that we
 -- are not going to clear a new highlight
 function ReaderHighlight:getClearId()
-  self.clear_id = time.now() -- can act as a unique id
+  self.clear_id = time.monotonic() -- can act as a unique id
   return self.clear_id
 end
 
@@ -2981,7 +2978,7 @@ function ReaderHighlight:onMoveHighlightIndicator(args)
       rect.x = rect.x + quick_move_distance_dx * dx
       rect.y = rect.y + quick_move_distance_dy * dy
     else
-      local now = time:now()
+      local now = time.monotonic()
       if
         dx == self._last_indicator_move_args.dx
         and dy == self._last_indicator_move_args.dy

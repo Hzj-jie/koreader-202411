@@ -543,12 +543,10 @@ function ReaderSearch:onShowSearchDialog(
       {
         {
           text = from_start_text,
-          vsync = true,
           callback = search(self.searchFromStart, text, nil),
         },
         {
           text = backward_text,
-          vsync = true,
           callback = search(self.searchNext, text, 1),
         },
         {
@@ -562,12 +560,10 @@ function ReaderSearch:onShowSearchDialog(
         },
         {
           text = forward_text,
-          vsync = true,
           callback = search(self.searchNext, text, 0),
         },
         {
           text = from_end_text,
-          vsync = true,
           callback = search(self.searchFromEnd, text, nil),
         },
       },

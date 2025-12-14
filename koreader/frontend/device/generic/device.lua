@@ -215,12 +215,6 @@ function Device:init()
 
   self.screen.isBGRFrameBuffer = self.hasBGRFrameBuffer
 
-  if G_reader_settings:has("low_pan_rate") then
-    self.screen.low_pan_rate = G_reader_settings:read("low_pan_rate")
-  else
-    self.screen.low_pan_rate = self.hasEinkScreen()
-  end
-
   logger.info("initializing for device", self.model)
   logger.info("framebuffer resolution:", self.screen:getRawSize())
 
@@ -739,7 +733,7 @@ function Device:ping4(ip)
   addr.sin_port = 0
 
   -- Send the ping
-  local start_time = time.now()
+  local start_time = time.monotonic()
   if
     C.sendto(
       socket,
@@ -811,14 +805,14 @@ function Device:ping4(ip)
         end
       end
     else
-      local end_time = time.now()
+      local end_time = time.monotonic()
       logger.info("Device:ping4: timed out waiting for a response from", ip)
       C.close(socket)
       return false, end_time - start_time
     end
     ::continue::
   end
-  local end_time = time.now()
+  local end_time = time.monotonic()
 
   -- If we got this far, we've got a reply to our ping in time!
   C.close(socket)
@@ -1178,30 +1172,19 @@ function Device:setEventHandlers(uimgr)
 end
 
 -- The common operations that should be performed before suspending the device.
-function Device:_beforeSuspend(inhibit)
+function Device:_beforeSuspend()
   UIManager:flushSettings()
   UIManager:broadcastEvent(Event:new("Suspend"))
   self.last_suspend_at = time.realtime()
-
-  if inhibit ~= false then
-    -- Block input events unrelated to power management
-    self.input:inhibitInput(true)
-
-    -- Disable key repeat to avoid useless chatter (especially where Sleep Covers are concerned...)
-    self:disableKeyRepeat()
-  end
+  -- Disable key repeat to avoid useless chatter (especially where Sleep Covers are concerned...)
+  self:disableKeyRepeat()
 end
 
 -- The common operations that should be performed after resuming the device.
-function Device:_afterResume(inhibit)
-  if inhibit ~= false then
-    -- Restore key repeat if it's not disabled
-    if G_reader_settings:nilOrFalse("input_no_key_repeat") then
-      self:restoreKeyRepeat()
-    end
-
-    -- Restore full input handling
-    self.input:inhibitInput(false)
+function Device:_afterResume()
+  -- Restore key repeat if it's not disabled
+  if G_reader_settings:nilOrFalse("input_no_key_repeat") then
+    self:restoreKeyRepeat()
   end
 
   self.last_resume_at = time.realtime()

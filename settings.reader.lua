@@ -2,7 +2,6 @@
 return {
   ["activate_menu"] = "tap",
   ["auto_restore_wifi"] = true,
-  ["auto_save_settings_interval_minutes"] = 15,
   ["autodim_starttime_minutes"] = 4,
   ["autoremove_deleted_items_from_history"] = true,
   ["autowarmth_easy_mode"] = true,

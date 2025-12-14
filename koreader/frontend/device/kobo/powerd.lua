@@ -562,7 +562,7 @@ function KoboPowerD:beforeSuspend()
 
     -- Turn off the frontlight
     -- NOTE: Funky delay mainly to yield to the EPDC's refresh on UP systems.
-    --       (Neither yieldToEPDC nor nextTick & friends quite cut it here)...
+    --       (Neither waitForScreenRefresh nor nextTick & friends quite cut it here)...
     UIManager:scheduleIn(0.001, self._suspendFrontlight, self)
   end
 end

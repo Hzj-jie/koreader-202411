@@ -104,7 +104,7 @@ end
 -- (Such as turning the front light off).
 -- Do *not* omit calling Device's _beforeSuspend method! This default implementation passes `false` so as *not* to disable input events during PM.
 function BasePowerD:beforeSuspend()
-  self.device:_beforeSuspend(false)
+  self.device:_beforeSuspend()
 end
 -- Anything that needs to be done after doing a real hardware resume.
 -- (Such as restoring front light state).
@@ -114,7 +114,7 @@ function BasePowerD:afterResume()
   -- invalidate the last battery capacity pull time so that we get up to date data immediately.
   self:invalidateCapacityCache()
 
-  self.device:_afterResume(false)
+  self.device:_afterResume()
 end
 
 -- Update our UIManager reference once it's ready
@@ -303,7 +303,7 @@ function BasePowerD:getCapacity()
     now = UIManager:getElapsedTimeSinceBoot()
   else
     -- Add time the device was in standby and suspend
-    now = time.now()
+    now = time.monotonic()
       + self.device.total_standby_time
       + self.device.total_suspend_time
   end
@@ -330,7 +330,7 @@ function BasePowerD:getAuxCapacity()
     now = UIManager:getElapsedTimeSinceBoot()
   else
     -- Add time the device was in standby and suspend
-    now = time.now()
+    now = time.monotonic()
       + self.device.total_standby_time
       + self.device.total_suspend_time
   end

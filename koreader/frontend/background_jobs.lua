@@ -44,4 +44,12 @@ BackgroundJobs.insert({
   end,
 })
 
+BackgroundJobs.insert({
+  when = 900,
+  repeated = true,
+  executable = function()
+    require("ui/uimanager"):broadcastEvent("TimesChange_15M")
+  end,
+})
+
 return BackgroundJobs

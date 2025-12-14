@@ -544,7 +544,7 @@ function Gestures:addIntervals(menu_items)
         text = _("Text selection rate"),
         keep_menu_open = true,
         callback = function()
-          local default_value = Screen.low_pan_rate and 5.0 or 30.0
+          local default_value = G_named_settings.low_pan_rate_or_full(5.0)
           local current_value = G_reader_settings:read("hold_pan_rate")
             or default_value
           local items = SpinWidget:new({

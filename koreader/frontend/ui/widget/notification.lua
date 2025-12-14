@@ -76,7 +76,7 @@ function Notification:init()
   local notif_height = self.frame:getSize().h
 
   self:_cleanShownStack()
-  table.insert(Notification._shown_list, time.now())
+  table.insert(Notification._shown_list, time.monotonic())
   self._shown_idx = #Notification._shown_list
 
   self[1] = VerticalGroup:new({
@@ -115,7 +115,7 @@ function Notification:_cleanShownStack()
   -- to follow what is happening).
   -- As a sanity check, we also forget those shown for
   -- more than 30s in case no close event was received.
-  local expire_time = time.now() - time.s(30)
+  local expire_time = time.monotonic() - time.s(30)
   for i = #Notification._shown_list, 1, -1 do
     if
       Notification._shown_list[i]

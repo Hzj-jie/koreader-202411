@@ -70,8 +70,6 @@ local ReaderView = OverlapGroup:extend({
   dogear_visible = false,
   -- in flipping state
   flipping_visible = false,
-  -- to ensure periodic flush of settings
-  settings_last_save_time = nil,
   -- might be directly updated by readerpaging/readerrolling when
   -- they handle some panning/scrolling, to request "fast" refreshes
   currently_scrolling = false,
@@ -1067,14 +1065,12 @@ function ReaderView:onPageUpdate(new_page_no)
   self.state.drawn = false
   self:recalculate()
   self.highlight.temp = {}
-  self:checkAutoSaveSettings()
 end
 
 function ReaderView:onPosUpdate(new_pos)
   self.state.pos = new_pos
   self:recalculate()
   self.highlight.temp = {}
-  self:checkAutoSaveSettings()
 end
 
 function ReaderView:onZoomUpdate(zoom)
@@ -1292,34 +1288,16 @@ end
 
 function ReaderView:onReaderReady()
   self.ui.doc_settings:delete("docsettings_reset_done")
-  self.settings_last_save_time = UIManager:getElapsedTimeSinceBoot()
 end
 
-function ReaderView:onResume()
-  -- As settings were saved on suspend, reset this on resume,
-  -- as there's no need for a possibly immediate save.
-  self.settings_last_save_time = UIManager:getElapsedTimeSinceBoot()
-end
-
-function ReaderView:checkAutoSaveSettings()
-  if not self.settings_last_save_time then -- reader not yet ready
-    return
-  end
-  local interval_m =
-    G_reader_settings:read("auto_save_settings_interval_minutes")
-  if interval_m == nil then
+function ReaderView:onTimesChange_15M()
+  if G_reader_settings:isFalse("auto_save_settings") then
     -- no auto save
     return
   end
-  local interval = time.s(interval_m * 60)
-  local now = UIManager:getElapsedTimeSinceBoot()
-  if now - self.settings_last_save_time >= interval then
-    self.settings_last_save_time = now
-    -- I/O, delay until after the pageturn
-    UIManager:tickAfterNext(function()
-      self.ui:saveSettings()
-    end)
-  end
+  UIManager:nextTick(function()
+    self.ui:saveSettings()
+  end)
 end
 
 function ReaderView:isOverlapAllowed()

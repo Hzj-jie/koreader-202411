@@ -53,41 +53,16 @@ end
 
 local function buildCandidates(list)
   local candidates = {}
-  local previous_entry_exists = false
 
   for i, file_path in ipairs(list) do
     -- Ignore missing files.
     if file_path ~= "" and isFile(file_path) then
       local mtime = lfs.attributes(file_path, "modification")
-      -- NOTE: Extra trickery: if we're inserting a "backup" file, and its primary buddy exists,
-      --     make sure it will *never* sort ahead of it by using the same mtime.
-      --     This aims to avoid weird UTC/localtime issues when USBMS is involved,
-      --     c.f., https://github.com/koreader/koreader/issues/9227#issuecomment-1345263324
-      if file_path:sub(-4) == ".old" and previous_entry_exists then
-        local primary_mtime = candidates[#candidates].mtime
-        -- Only proceed with the switcheroo when necessary, and warn about it.
-        if primary_mtime < mtime then
-          logger.warn(
-            "DocSettings: Backup",
-            file_path,
-            "is newer (",
-            mtime,
-            ") than its primary (",
-            primary_mtime,
-            "), fudging timestamps!"
-          )
-          -- Use the most recent timestamp for both (i.e., the backup's).
-          candidates[#candidates].mtime = mtime
-        end
-      end
       table.insert(candidates, {
         path = file_path,
         mtime = mtime,
         prio = i,
       })
-      previous_entry_exists = true
-    else
-      previous_entry_exists = false
     end
   end
 
@@ -291,22 +266,14 @@ function DocSettings:open(doc_path)
   local candidates_list = {
     -- New sidecar file in doc folder
     doc_sidecar_file or "",
-    -- Backup file of new sidecar file in doc folder
-    doc_sidecar_file and (doc_sidecar_file .. ".old") or "",
     -- Legacy sidecar file
     legacy_sidecar_file or "",
     -- New sidecar file in docsettings folder
     dir_sidecar_file or "",
-    -- Backup file of new sidecar file in docsettings folder
-    dir_sidecar_file and (dir_sidecar_file .. ".old") or "",
     -- New sidecar file in hashdocsettings folder
     hash_sidecar_file or "",
-    -- Backup file of new sidecar file in hashdocsettings folder
-    hash_sidecar_file and (hash_sidecar_file .. ".old") or "",
     -- Legacy history folder
     history_file or "",
-    -- Backup file in legacy history folder
-    history_file and (history_file .. ".old") or "",
     -- Legacy kpdfview setting
     doc_path .. ".kpdfview.lua",
   }
@@ -316,19 +283,16 @@ function DocSettings:open(doc_path)
   local candidate_path, ok, stored
   for _, t in ipairs(candidates) do
     candidate_path = t.path
-    -- Ignore empty files
-    if lfs.attributes(candidate_path, "size") > 0 then
-      ok, stored = pcall(dofile, candidate_path)
-      -- Ignore empty tables
-      if ok and next(stored) ~= nil then
-        logger.dbg("DocSettings: data is read from", candidate_path)
-        break
-      end
+    stored, ok = LuaSettings:load(candidate_path)
+    -- Ignore empty tables
+    if ok and next(stored) ~= nil then
+      logger.dbg("DocSettings: data is read from", candidate_path)
+      break
     end
     logger.dbg("DocSettings:", candidate_path, "is invalid, removed.")
     os.remove(candidate_path)
   end
-  if ok and stored then
+  if ok and next(stored) then
     new.data = stored
     new.candidates = candidates
     new.file = candidate_path
@@ -374,16 +338,13 @@ function DocSettings:flush(data, no_custom_metadata)
     sidecar_dirs = { self.hash_sidecar_dir }
   end
 
-  local ser_data = dump(data, nil, true)
+  local ser_data = dump(data)
   for _, sidecar_dir in ipairs(sidecar_dirs) do
     local sidecar_dir_slash = sidecar_dir .. "/"
     local sidecar_file = sidecar_dir_slash .. self.sidecar_filename
     util.makePath(sidecar_dir)
     logger.dbg("DocSettings: Writing to", sidecar_file)
-    local directory_updated = LuaSettings:backup(sidecar_file) -- "*.old"
-    if
-      util.writeToFile(ser_data, sidecar_file, true, true, directory_updated)
-    then
+    if util.writeToFile(ser_data, sidecar_file, true) then
       -- move custom cover file and custom metadata file to the metadata file location
       if not no_custom_metadata then
         local metadata_file, filepath, filename
@@ -436,13 +397,7 @@ function DocSettings:purge(sidecar_to_keep, data_to_purge)
     for _, t in ipairs(self.candidates) do
       local candidate_path = t.path
       if isFile(candidate_path) then
-        if
-          not sidecar_to_keep
-          or (
-            candidate_path ~= sidecar_to_keep
-            and candidate_path ~= sidecar_to_keep .. ".old"
-          )
-        then
+        if not sidecar_to_keep or candidate_path ~= sidecar_to_keep then
           os.remove(candidate_path)
           logger.dbg("DocSettings: purged:", candidate_path)
         end
@@ -644,11 +599,11 @@ end
 
 function DocSettings:flushCustomMetadata(doc_path)
   local sidecar_dirs = self:getCustomLocationCandidates(doc_path)
-  local s_out = dump(self.data, nil, true)
+  local s_out = dump(self.data)
   for _, sidecar_dir in ipairs(sidecar_dirs) do
     util.makePath(sidecar_dir)
     local new_metadata_file = sidecar_dir .. "/" .. custom_metadata_filename
-    if util.writeToFile(s_out, new_metadata_file, true, true) then
+    if util.writeToFile(s_out, new_metadata_file, true) then
       return true
     end
   end

@@ -30,7 +30,7 @@ function HorizontalScrollBar:init()
   self.extra_touch_on_side =
     math.ceil(self.extra_touch_on_side_heightratio * self.height)
   if Device:isTouchDevice() then
-    local pan_rate = Screen.low_pan_rate and 2.0 or 5.0
+    local pan_rate = G_named_settings.low_pan_rate_or_scroll()
     self.ges_events = {
       TapScroll = {
         GestureRange:new({

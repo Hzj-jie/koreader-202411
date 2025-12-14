@@ -5,6 +5,7 @@ This module contains miscellaneous helper functions for the KOReader frontend.
 local Utf8Proc = require("ffi/utf8proc")
 local ffiUtil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
+local logger = require("logger")
 local md5 = require("ffi/sha2").md5
 local _ = require("gettext")
 local C_ = _.pgettext
@@ -1229,32 +1230,41 @@ function util.readFromFile(filepath, mode)
   return data
 end
 
-function util.writeToFile(
-  data,
-  filepath,
-  force_flush,
-  lua_dofile_ready,
-  directory_updated
-)
+function util.writeToFile(data, filepath, lua_dofile_ready)
+  if not data then
+    return false, "data"
+  end
   if not filepath then
-    return
+    return false, "filepath"
   end
   if lua_dofile_ready then
     local t = { "-- ", filepath, "\nreturn ", data, "\n" }
     data = table.concat(t)
   end
-  local file, err = io.open(filepath, "wb")
+  local ori = util.readFromFile(filepath, "rb")
+  if ori == data then
+    local file = io.open(filepath, "a")
+    -- This could only happen when another process removed the file between the
+    -- io.open and the previous util.readFromFile.
+    if file then
+      logger.dbg("Content of ", filepath, " doesn't change, ignore writing.")
+      -- But still touch it.
+      file:close()
+      return true
+    end
+  end
+  local file, err = io.open(filepath .. ".new", "wb")
   if not file then
-    return nil, err
+    return false, err
   end
   file:write(data)
-  if force_flush then
-    ffiUtil.fsyncOpenedFile(file)
-  end
+  ffiUtil.fsyncOpenedFile(file)
   file:close()
-  if directory_updated then
-    ffiUtil.fsyncDirectory(filepath)
+  file, err = os.rename(filepath .. ".new", filepath)
+  if not file then
+    return file, err
   end
+  ffiUtil.fsyncDirectory(filepath)
   return true
 end
 

@@ -66,7 +66,6 @@ local Button = InputContainer:extend({
   text_font_face = "cfont",
   text_font_size = 20,
   text_font_bold = true,
-  vsync = nil, -- when "flash_ui" is enabled, allow bundling the highlight with the callback, and fence that batch away from the unhighlight. Avoid delays when callback requires a "partial" on Kobo Mk. 7, c.f., ffi/framebuffer_mxcfb for more details.
 })
 
 function Button:init()
@@ -411,10 +410,10 @@ function Button:_doFeedbackHighlight()
     end
 
     -- This repaints *now*, unlike setDirty
-    UIManager:widgetRepaint(self[1], self[1].dimen.x, self[1].dimen.y)
+    UIManager:widgetRepaint(self[1])
   else
     self[1].invert = true
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+    UIManager:widgetInvert(self[1])
   end
   UIManager:setDirty(nil, "fast", self[1].dimen)
 end
@@ -428,10 +427,10 @@ function Button:_undoFeedbackHighlight(is_translucent)
     else
       self[1].invert = false
     end
-    UIManager:widgetRepaint(self[1], self[1].dimen.x, self[1].dimen.y)
+    UIManager:widgetRepaint(self[1])
   else
     self[1].invert = false
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+    UIManager:widgetInvert(self[1])
   end
 
   if is_translucent then
@@ -458,56 +457,23 @@ function Button:onTapSelectButton()
       --
       self:_doFeedbackHighlight()
 
-      -- Force the refresh by draining the refresh queue *now*, so we have a chance to see the highlight on its own, before whatever the callback will do.
-      if not self.vsync then
-        -- NOTE: Except when a Button is flagged vsync, in which case we *want* to bundle the highlight with the callback, to prevent further delays
-        UIManager:forceRePaint()
-
-        -- NOTE: Yield to the kernel for a tiny slice of time, otherwise, writing to the same fb region as the refresh we've just requested may be race-y,
-        --       causing mild variants of our friend the papercut refresh glitch ;).
-        --       Remember that the whole eInk refresh dance is completely asynchronous: we *request* a refresh from the kernel,
-        --       but it's up to the EPDC to schedule that however it sees fit...
-        --       The other approach would be to *ask* the EPDC to block until it's *completely* done,
-        --       but that's too much (because we only care about it being done *reading* the fb),
-        --       and that could take upwards of 300ms, which is also way too much ;).
-        UIManager:yieldToEPDC()
-      end
-
-      -- Unhighlight
-      --
-      -- We'll *paint* the unhighlight now, because at this point we can still be sure that our widget exists,
-      -- and that anything we do will not impact whatever the callback does (i.e., that we draw *below* whatever the callback might show).
-      -- We won't *fence* the refresh (i.e., it's queued, but we don't actually drain the queue yet), though, to ensure that we do not delay the callback, and that the unhighlight essentially blends into whatever the callback does.
-      -- Worst case scenario, we'll simply have "wasted" a tiny subwidget repaint if the callback closed us,
-      -- but doing it this way allows us to avoid a large array of potential interactions with whatever the callback may paint/refresh if we were to handle the unhighlight post-callback,
-      -- which would require a number of possibly brittle heuristics to handle.
-      -- NOTE: If a Button is marked vsync, we want to keep it highlighted for now (in order for said highlight to be visible during the callback refresh), we'll remove the highlight post-callback.
-      if not self.vsync then
-        self:_undoFeedbackHighlight(is_translucent)
-      end
-
-      -- Callback
-      --
-      self.callback()
-
       -- Check if the callback reset transparency...
       is_translucent = is_translucent and self.show_parent.movable.alpha
 
       UIManager:forceRePaint() -- Ensures whatever the callback wanted to paint will be shown *now*...
-      if self.vsync then
-        -- NOTE: This is mainly useful when the callback caused a REAGL update that we do not explicitly fence via MXCFB_WAIT_FOR_UPDATE_COMPLETE already, (i.e., Kobo Mk. 7).
-        UIManager:waitForVSync() -- ...and that the EPDC will not wait to coalesce it with the *next* update,
-        -- because that would have a chance to noticeably delay it until the unhighlight.
-      end
+      -- NOTE: This is mainly useful when the callback caused a REAGL update that we do not explicitly fence via MXCFB_WAIT_FOR_UPDATE_COMPLETE already, (i.e., Kobo Mk. 7).
+      UIManager:waitForScreenRefresh() -- ...and that the EPDC will not wait to coalesce it with the *next* update,
+      -- because that would have a chance to noticeably delay it until the unhighlight.
 
       -- Unhighlight
-      --
-      -- NOTE: If a Button is marked vsync, we have a guarantee from the programmer that the widget it belongs to is still alive and top-level post-callback,
-      --       so we can do this safely without risking UI glitches.
-      if self.vsync then
-        self:_undoFeedbackHighlight(is_translucent)
-        UIManager:forceRePaint()
-      end
+      self:_undoFeedbackHighlight(is_translucent)
+      UIManager:forceRePaint()
+
+      -- Callback
+      -- In case anything needs to be displayed in the callback; make sure it
+      -- runs at the last.
+      self.callback()
+
       if self.checked_func then
         local text = self:getDisplayText()
         self.label_widget:setText(text)
@@ -539,7 +505,7 @@ function Button:refresh()
     )
     return
   end
-  UIManager:widgetRepaint(self[1], self[1].dimen.x, self.dimen.y)
+  UIManager:widgetRepaint(self[1])
 
   UIManager:setDirty(nil, function()
     return self.enabled and "fast" or "ui", self[1].dimen

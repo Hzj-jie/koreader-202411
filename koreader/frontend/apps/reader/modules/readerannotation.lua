@@ -115,15 +115,17 @@ function ReaderAnnotation:onReadSettings(config)
         config:save("annotations_paging", annotations)
       end
       -- load compatible format
-      annotations = config:readTableRef("annotations_rolling")
+      annotations = config:readTable("annotations_rolling") or {}
       config:delete("annotations_rolling")
+      config:save("annotations", annotations)
       needs_sort = true
     elseif self.ui.paging and annotations_type ~= "number" then
       if has_annotations then
         config:save("annotations_rolling", annotations)
       end
-      annotations = config:readTableRef("annotations_paging")
+      annotations = config:readTable("annotations_paging") or {}
       config:delete("annotations_paging")
+      config:save("annotations", annotations)
       needs_sort = true
     end
     self.annotations = annotations
@@ -145,8 +147,8 @@ function ReaderAnnotation:onReadSettings(config)
 end
 
 function ReaderAnnotation:migrateToAnnotations(config)
-  local bookmarks = config:readTableOrNil("bookmarks") or {}
-  local highlights = config:readTableOrNil("highlight") or {}
+  local bookmarks = config:readTable("bookmarks") or {}
+  local highlights = config:readTable("highlight") or {}
 
   if config:hasNot("highlights_imported") then
     -- before 2014, saved highlights were not added to bookmarks when they were created.

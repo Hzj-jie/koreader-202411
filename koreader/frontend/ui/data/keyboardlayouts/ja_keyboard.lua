@@ -59,7 +59,7 @@ local function wrappedAddChars(inputbox, char)
       within_tap_window = time.since(inputbox._ja_last_tap_time)
         < getKeitaiTapInterval()
     end
-    inputbox._ja_last_tap_time = time.now()
+    inputbox._ja_last_tap_time = time.monotonic()
   else
     -- This is a non-keitai or non-tap key, so break out of keitai window.
     exitKeitaiMode(inputbox)

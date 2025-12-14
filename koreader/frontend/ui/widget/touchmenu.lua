@@ -261,7 +261,7 @@ function TouchMenuItem:onTapSelect(arg, ges)
   UIManager:setDirty(nil, "fast", highlight_dimen)
 
   UIManager:forceRePaint()
-  UIManager:yieldToEPDC()
+  UIManager:waitForScreenRefresh()
 
   -- Unhighlight
   --
@@ -318,7 +318,7 @@ function TouchMenuItem:onHoldSelect(arg, ges)
   UIManager:setDirty(nil, "fast", highlight_dimen)
 
   UIManager:forceRePaint()
-  UIManager:yieldToEPDC()
+  UIManager:waitForScreenRefresh()
 
   -- Unhighlight
   --
