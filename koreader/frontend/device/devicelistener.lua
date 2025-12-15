@@ -22,7 +22,7 @@ function DeviceListener:onToggleNightMode(night_mode)
   then
     self.ui.document:resetCallCache()
   end
-  UIManager:setDirty("all", "full")
+  UIManager:toggleNightMode()
 end
 
 -- frontlight controller
@@ -282,55 +282,8 @@ function DeviceListener:onSwapRotation()
 end
 
 function DeviceListener:onSetRefreshRates(day, night)
-  UIManager:setRefreshRate(day, night)
-end
-
-function DeviceListener:onSetBothRefreshRates(rate)
-  UIManager:setRefreshRate(rate, rate)
-end
-
-function DeviceListener:onSetDayRefreshRate(day)
-  UIManager:setRefreshRate(day, nil)
-end
-
-function DeviceListener:onSetNightRefreshRate(night)
-  UIManager:setRefreshRate(nil, night)
-end
-
-function DeviceListener:onSetFlashOnChapterBoundaries(toggle)
-  if toggle == true then
-    G_reader_settings:makeTrue("refresh_on_chapter_boundaries")
-  else
-    G_reader_settings:delete("refresh_on_chapter_boundaries")
-  end
-end
-
-function DeviceListener:onToggleFlashOnChapterBoundaries()
-  G_reader_settings:flipNilOrFalse("refresh_on_chapter_boundaries")
-end
-
-function DeviceListener:onSetNoFlashOnSecondChapterPage(toggle)
-  if toggle == true then
-    G_reader_settings:makeTrue("no_refresh_on_second_chapter_page")
-  else
-    G_reader_settings:delete("no_refresh_on_second_chapter_page")
-  end
-end
-
-function DeviceListener:onToggleNoFlashOnSecondChapterPage()
-  G_reader_settings:flipNilOrFalse("no_refresh_on_second_chapter_page")
-end
-
-function DeviceListener:onSetFlashOnPagesWithImages(toggle)
-  if toggle == true then
-    G_reader_settings:delete("refresh_on_pages_with_images")
-  else
-    G_reader_settings:makeFalse("refresh_on_pages_with_images")
-  end
-end
-
-function DeviceListener:onToggleFlashOnPagesWithImages()
-  G_reader_settings:flipNilOrTrue("refresh_on_pages_with_images")
+  G_reader_settings:save("full_refresh_count", rate, 6)
+  UIManager:updateRefreshRate()
 end
 
 function DeviceListener:onSwapPageTurnButtons(side)

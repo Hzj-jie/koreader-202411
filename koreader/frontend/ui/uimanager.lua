@@ -14,15 +14,9 @@ local _ = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 
-local DEFAULT_FULL_REFRESH_COUNT = 6
-
 -- This is a singleton
 local UIManager = {
-  -- trigger a full refresh when counter reaches FULL_REFRESH_COUNT
-  FULL_REFRESH_COUNT = G_reader_settings:isTrue("night_mode")
-      and G_reader_settings:read("night_full_refresh_count")
-    or G_reader_settings:read("full_refresh_count")
-    or DEFAULT_FULL_REFRESH_COUNT,
+  FULL_REFRESH_COUNT = 6,
   refresh_count = 0,
   currently_scrolling = false,
 
@@ -106,6 +100,7 @@ function UIManager:init()
 
   -- The first user action is always the one starts koreader.
   self:updateLastUserActionTime()
+  self:updateRefreshRate()
 
   -- Tell Device that we're now available, so that it can setup PM event handlers
   Device:_UIManagerReady(self)
@@ -765,47 +760,20 @@ function UIManager:removeZMQ(zeromq)
   end
 end
 
---[[--
-Sets the full refresh rate for e-ink screens (`FULL_REFRESH_COUNT`).
-
-This is the amount of `"partial"` refreshes before the next one gets promoted to `"full"`.
-
-Also makes the refresh rate persistent in global reader settings.
-
-@see setDirty
---]]
-function UIManager:setRefreshRate(rate, night_rate)
-  logger.dbg("set screen full refresh rate", rate, night_rate)
-
+--- Returns the full refresh rate for e-ink screens (`FULL_REFRESH_COUNT`).
+function UIManager:updateRefreshRate()
+  self.FULL_REFRESH_COUNT = G_reader_settings:read("full_refresh_count") or 6
   if G_reader_settings:isTrue("night_mode") then
-    if night_rate then
-      self.FULL_REFRESH_COUNT = night_rate
-    end
-  else
-    if rate then
-      self.FULL_REFRESH_COUNT = rate
-    end
+    self.FULL_REFRSH_COUNT = math.floor(refresh_count / 2)
   end
-
-  if rate then
-    G_reader_settings:save("full_refresh_count", rate)
-  end
-  if night_rate then
-    G_reader_settings:save("night_full_refresh_count", night_rate)
+  if self.FULL_REFRSH_COUNT < 1 then
+    self.FULL_REFRSH_COUNT = 1
   end
 end
 
---- Returns the full refresh rate for e-ink screens (`FULL_REFRESH_COUNT`).
-function UIManager:_refreshRate()
-  local refresh_count = G_reader_settings:read("full_refresh_count")
-    or DEFAULT_FULL_REFRESH_COUNT
-  if G_reader_settings:isTrue("night_mode") then
-    refresh_count = math.floor(refresh_count / 2)
-  end
-  if refresh_count < 1 then
-    return 1
-  end
-  return refresh_count
+function UIManager:toggleNightMode()
+  UIManager:setDirty("all", "full")
+  self:_updateRefreshRate()
 end
 
 --- Get n.th topmost widget
