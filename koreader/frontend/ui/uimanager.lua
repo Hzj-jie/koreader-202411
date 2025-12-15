@@ -772,8 +772,8 @@ function UIManager:updateRefreshRate()
 end
 
 function UIManager:toggleNightMode()
-  UIManager:setDirty("all", "full")
-  self:_updateRefreshRate()
+  self:setDirty("all", "full")
+  self:updateRefreshRate()
 end
 
 --- Get n.th topmost widget
