@@ -4,7 +4,18 @@ local Screen = Device.screen
 
 local eink_settings_table = {
   text = _("E-ink settings"),
-  sub_item_table = {
+  sub_item_table = {},
+}
+
+if Device:hasEinkScreen() then
+  for _, v in pairs(require("ui/elements/refresh_menu_table")) do
+  table.insert(
+    eink_settings_table.sub_item_table,
+    v)
+  end
+end
+
+table.insert(eink_settings_table.sub_item_table,
     {
       -- Need localization
       text = _("Use lower refresh rate when appropriate"),
@@ -18,7 +29,9 @@ local eink_settings_table = {
       callback = function()
         G_named_settings.flip.low_pan_rate()
       end,
-    },
+    })
+
+table.insert(eink_settings_table.sub_item_table,
     {
       text = _("Avoid mandatory black flashes in UI"),
       -- Need localization
@@ -31,16 +44,9 @@ local eink_settings_table = {
       callback = function()
         G_reader_settings:flipNilOrTrue("avoid_flashing_ui")
       end,
-    },
-  },
-}
+    })
 
 if Device:hasEinkScreen() then
-  table.insert(
-    eink_settings_table.sub_item_table,
-    1,
-    require("ui/elements/refresh_menu_table")
-  )
   if (Screen.wf_level_max or 0) > 0 then
     table.insert(
       eink_settings_table.sub_item_table,
