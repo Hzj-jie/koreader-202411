@@ -139,30 +139,21 @@ function ReaderToc:onDocumentRerendered()
 end
 
 function ReaderToc:onPageUpdate(pageno)
-  if
-    UIManager.FULL_REFRESH_COUNT == -1
-    or G_reader_settings:isTrue("refresh_on_chapter_boundaries")
-  then
-    local flash_on_second =
-      G_reader_settings:nilOrFalse("no_refresh_on_second_chapter_page")
-    local paging_forward, paging_backward
-    if flash_on_second then
-      if self.pageno then
-        if pageno > self.pageno then
-          paging_forward = true
-        elseif pageno < self.pageno then
-          paging_backward = true
-        end
-      end
+  local paging_forward, paging_backward
+  if self.pageno then
+    if pageno > self.pageno then
+      paging_forward = true
+    elseif pageno < self.pageno then
+      paging_backward = true
     end
+  end
 
-    if paging_backward and self:isChapterEnd(pageno) then
-      UIManager:setDirty(nil, "full")
-    elseif self:isChapterStart(pageno) then
-      UIManager:setDirty(nil, "full")
-    elseif paging_forward and self:isChapterSecondPage(pageno) then
-      UIManager:setDirty(nil, "full")
-    end
+  if paging_backward and self:isChapterEnd(pageno) then
+    UIManager:setDirty(nil, "full")
+  elseif self:isChapterStart(pageno) then
+    UIManager:setDirty(nil, "full")
+  elseif paging_forward and self:isChapterSecondPage(pageno) then
+    UIManager:setDirty(nil, "full")
   end
 
   self.pageno = pageno
