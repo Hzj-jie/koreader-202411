@@ -796,24 +796,16 @@ function UIManager:setRefreshRate(rate, night_rate)
 end
 
 --- Returns the full refresh rate for e-ink screens (`FULL_REFRESH_COUNT`).
-function UIManager:getRefreshRate()
-  return G_reader_settings:read("full_refresh_count")
-    or DEFAULT_FULL_REFRESH_COUNT,
-    G_reader_settings:read("night_full_refresh_count")
-      or G_reader_settings:read("full_refresh_count")
-      or DEFAULT_FULL_REFRESH_COUNT
-end
-
---- Toggles Night Mode (i.e., inverted rendering).
-function UIManager:toggleNightMode(night_mode)
-  if night_mode then
-    self.FULL_REFRESH_COUNT = G_reader_settings:read("night_full_refresh_count")
-      or G_reader_settings:read("full_refresh_count")
-      or DEFAULT_FULL_REFRESH_COUNT
-  else
-    self.FULL_REFRESH_COUNT = G_reader_settings:read("full_refresh_count")
-      or DEFAULT_FULL_REFRESH_COUNT
+function UIManager:_refreshRate()
+  local refresh_count = G_reader_settings:read("full_refresh_count")
+    or DEFAULT_FULL_REFRESH_COUNT
+  if G_reader_settings:isTrue("night_mode") then
+    refresh_count = math.floor(refresh_count / 2)
   end
+  if refresh_count < 1 then
+    return 1
+  end
+  return refresh_count
 end
 
 --- Get n.th topmost widget

@@ -17,9 +17,9 @@ return {
   },
   {
   -- Need localization
-  text = _("Never fully refresh screen"),
+  text = _("Never automatically fully refresh screen"),
   -- Need localization
-  help_text = _()
+  help_text = _("The full refresh will happen only when showing an image, moving to next chapter or opening another book.")
   },
   {
     -- Need localization

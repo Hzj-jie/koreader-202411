@@ -23,7 +23,6 @@ function DeviceListener:onToggleNightMode(night_mode)
     self.ui.document:resetCallCache()
   end
   UIManager:setDirty("all", "full")
-  UIManager:toggleNightMode(night_mode)
 end
 
 -- frontlight controller
