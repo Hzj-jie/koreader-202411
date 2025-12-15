@@ -16,7 +16,7 @@ local Screen = Device.screen
 
 -- This is a singleton
 local UIManager = {
-  FULL_REFRESH_COUNT = 6,
+  FULL_REFRESH_COUNT = G_named_settings.default.full_refresh_count(),
   refresh_count = 0,
   currently_scrolling = false,
 
