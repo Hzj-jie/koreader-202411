@@ -7,6 +7,7 @@
 local named_settings = {
   set = {},
   flip = {},
+  default = {},
 }
 
 function named_settings.home_dir()
@@ -84,6 +85,18 @@ function named_settings.flip.low_pan_rate()
     not named_settings.low_pan_rate(),
     require("device"):hasEinkScreen()
   )
+end
+
+function named_settings.default.full_refresh_count()
+  return 6
+end
+
+function named_settings.full_refresh_count()
+  return G_reader_settings:read("full_refresh_count") or named_settings.default.full_refresh_count()
+end
+
+function named_settings.set.full_refresh_count(rate)
+  return G_reader_settings:save("full_refresh_count", rate, named_settings.default.full_refresh_count())
 end
 
 return named_settings

@@ -281,8 +281,8 @@ function DeviceListener:onSwapRotation()
   return true
 end
 
-function DeviceListener:onSetRefreshRates(day, night)
-  G_reader_settings:save("full_refresh_count", rate, 6)
+function DeviceListener:onSetRefreshRate(rate)
+  G_named_settings.set.full_refresh_count(rate)
   UIManager:updateRefreshRate()
 end
 

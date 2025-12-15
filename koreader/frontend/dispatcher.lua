@@ -424,7 +424,7 @@ local settingsList = {
   },
   set_refresh_rate = {
     category = "absolutenumber",
-    event = "SetRefreshRates",
+    event = "SetRefreshRate",
     min = -1,
     max = 200,
     title = _("Full refresh rate (always)"),

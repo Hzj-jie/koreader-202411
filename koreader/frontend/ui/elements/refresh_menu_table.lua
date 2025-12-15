@@ -19,19 +19,44 @@ return {
   -- Need localization
   text = _("Never automatically fully refresh screen"),
   -- Need localization
-  help_text = _("The full refresh will happen only when showing an image, moving to next chapter or opening another book.")
+  help_text = _("The full refresh will happen only when showing an image, moving to next chapter or opening another book."),
+  checked_func = function()
+    return G_named_settings.full_refresh_count() == 0
+  end,
+  callback = function()
+    UIManager:broadcastEvent(Event:new("SetRefreshRate", 0))
+  end,
   },
   {
     -- Need localization
     text = _("Low full refresh rate for better responsiveness"),
+    checked_func = function()
+      return G_named_settings.full_refresh_count() == 24
+    end,
+    callback = function()
+      UIManager:broadcastEvent(Event:new("SetRefreshRate", 24))
+    end,
   },
   {
     -- Need localization
     text = _("Balance between responsiveness and quality"),
+    checked_func = function()
+      return G_named_settings.full_refresh_count() == G_named_settings.default.full_refresh_count()
+    end,
+    callback = function()
+      UIManager:broadcastEvent(Event:new("SetRefreshRate",
+    G_named_settings.default.full_refresh_count()))
+    end,
   },
   {
     -- Need localization
     text = _("High full refresh rate for better display quality"),
+    checked_func = function()
+      return G_named_settings.full_refresh_count() == 1
+    end,
+    callback = function()
+      UIManager:broadcastEvent(Event:new("SetRefreshRate", 1))
+    end,
     separator = true,
   },
 }

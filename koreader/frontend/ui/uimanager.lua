@@ -762,13 +762,23 @@ end
 
 --- Returns the full refresh rate for e-ink screens (`FULL_REFRESH_COUNT`).
 function UIManager:updateRefreshRate()
-  self.FULL_REFRESH_COUNT = G_reader_settings:read("full_refresh_count") or 6
-  if G_reader_settings:isTrue("night_mode") then
-    self.FULL_REFRSH_COUNT = math.floor(refresh_count / 2)
+  local function refresh_count()
+    local r = G_named_settings.full_refresh_count()
+    -- Never fully refresh screen.
+    if r == 0 then
+      return 0
+    end
+    -- Double the refresh rate in night_mode, black area would be way larger,
+    -- and causes more blur.
+    if G_reader_settings:isTrue("night_mode") then
+      r = math.floor(refresh_count / 2)
+    end
+    if r < 1 then
+      return 1
+    end
+    return r
   end
-  if self.FULL_REFRSH_COUNT < 1 then
-    self.FULL_REFRSH_COUNT = 1
-  end
+  self.FULL_REFRESH_COUNT = refresh_count()
 end
 
 function UIManager:toggleNightMode()
