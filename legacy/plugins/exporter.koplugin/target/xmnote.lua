@@ -1,0 +1,1 @@
+../../../../koreader/plugins/exporter.koplugin/target/xmnote.lua

@@ -1,0 +1,1 @@
+../../../koreader/plugins/movetoarchive.koplugin/_meta.lua
