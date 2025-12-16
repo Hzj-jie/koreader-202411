@@ -8,11 +8,12 @@ local Device = require("device")
 
 if
   not (
-    Device.isAndroid()
-    or Device.isEmulator()
-    or Device.isRemarkable()
-    or Device.isPocketBook()
-    or Device.isKindle()
+    Device:isAndroid()
+    or Device:isEmulator()
+    or Device:isRemarkable()
+    or Device:isPocketBook()
+    or Device:isKindle()
+    or Device:isKobo()
   )
 then
   return { disabled = true }
