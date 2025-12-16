@@ -1,0 +1,1 @@
+../../../koreader/plugins/autowarmth.koplugin/_meta.lua

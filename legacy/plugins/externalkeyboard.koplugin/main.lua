@@ -1,0 +1,1 @@
+../../../koreader/plugins/externalkeyboard.koplugin/main.lua

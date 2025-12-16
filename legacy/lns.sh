@@ -1,17 +1,21 @@
 #!/bin/sh
 
-../lns.sh
+../pw2/lns.sh
 
-mv plugins/README .
-mv plugins/backgroundrunner.koplugin .
-rm -rf plugins/*
-mv README plugins/
-mv backgroundrunner.koplugin plugins/
+rm -rf plugins/autodim.koplugin/
+rm -rf plugins/autofrontlight.koplugin/
+rm -rf plugins/autostandby.koplugin/
+rm -rf plugins/autosuspend.koplugin/
+rm -rf plugins/calibre.koplugin/
+rm -rf plugins/gestures.koplugin/
+rm -rf plugins/httpinspector.koplugin/
+rm -rf plugins/kosync.koplugin/
+rm -rf plugins/newsdownloader.koplugin/
+rm -rf plugins/opds.koplugin/
+rm -rf plugins/SSH.koplugin/
+rm -rf plugins/wallabag.koplugin/
+rm -rf plugins/weather.koplugin/
 
-ln -rs ../kindle/* .
-
-rm -rf scripts
-rm -rf settings
+rm -rf settings/weather.lua
 rm -rf web
-rm -rf extensions
 
