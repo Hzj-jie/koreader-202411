@@ -356,8 +356,10 @@ function ReaderStatistics:getStatsBookStatus(id_curr_book, stat_enable)
 end
 
 function ReaderStatistics:checkInitDatabase()
-  local convert_to_db = (lfs.attributes(db_location, "mode") == "file" and
-                         lfs.attributes(db_location, "size") > 0)
+  local convert_to_db = (
+    lfs.attributes(db_location, "mode") == "file"
+    and lfs.attributes(db_location, "size") > 0
+  )
   local conn = SQ3.open(db_location)
   if convert_to_db then -- if conversion to sqlite DB has already been done
     if not conn:exec("PRAGMA table_info('book');") then
