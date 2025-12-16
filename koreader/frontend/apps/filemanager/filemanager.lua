@@ -1358,7 +1358,8 @@ function FileManager:showFiles(path, focused_file, selected_files)
   path = ffiUtil.realpath(path or G_named_settings.lastdir())
   G_reader_settings:save("lastdir", path)
   self:setRotationMode()
-  local file_manager = FileManager:new({
+  -- FileManager shows itself.
+  FileManager:new({
     dimen = Screen:getSize(),
     covers_fullscreen = true, -- hint for UIManager:_repaint()
     root_path = path,
