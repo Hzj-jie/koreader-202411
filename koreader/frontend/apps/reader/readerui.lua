@@ -94,8 +94,6 @@ function ReaderUI:registerModule(name, ui_module)
 end
 
 function ReaderUI:init()
-  UIManager:show(self, self.seamless and "ui" or "full")
-
   -- cap screen refresh on pan to 2 refreshes per second
   local pan_rate = G_named_settings.low_pan_rate_or_full(2.0)
 
@@ -828,6 +826,7 @@ function ReaderUI:doShowReader(file, provider, seamless)
   if FileManager.instance then
     FileManager.instance:onExit()
   end
+  UIManager:show(reader, reader.seamless and "ui" or "full")
 end
 
 function ReaderUI:unlockDocumentWithPassword(document, try_again)
