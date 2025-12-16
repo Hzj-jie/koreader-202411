@@ -67,7 +67,6 @@ local ReaderStatistics = Widget:extend({
   curr_page = 0,
   id_curr_book = nil,
   is_enabled = nil,
-  convert_to_db = nil, -- true when migration to DB has been done
   pageturn_count = 0,
   mem_read_time = 0,
   mem_read_pages = 0,
@@ -146,7 +145,6 @@ function ReaderStatistics:init()
     max_sec = DEFAULT_MAX_READ_SEC,
     freeze_finished_books = false,
     is_enabled = true,
-    convert_to_db = nil,
     calendar_start_day_of_week = DEFAULT_CALENDAR_START_DAY_OF_WEEK,
     calendar_nb_book_spans = DEFAULT_CALENDAR_NB_BOOK_SPANS,
     calendar_show_histogram = true,
@@ -155,7 +153,6 @@ function ReaderStatistics:init()
 
   self.ui.menu:registerToMainMenu(self)
   self:onDispatcherRegisterActions()
-  self:checkInitDatabase()
   BookStatusWidget.getStats = function()
     return self:getStatsBookStatus(self.id_curr_book, self.settings.is_enabled)
   end
@@ -359,8 +356,10 @@ function ReaderStatistics:getStatsBookStatus(id_curr_book, stat_enable)
 end
 
 function ReaderStatistics:checkInitDatabase()
+  local convert_to_db = (lfs.attributes(db_location, "mode") == "file" and
+                         lfs.attributes(db_location, "size") > 0)
   local conn = SQ3.open(db_location)
-  if self.settings.convert_to_db then -- if conversion to sqlite DB has already been done
+  if convert_to_db then -- if conversion to sqlite DB has already been done
     if not conn:exec("PRAGMA table_info('book');") then
       UIManager:show(ConfirmBox:new({
         text = T(
@@ -483,7 +482,6 @@ Do you want to create an empty database?
       conn = SQ3.open(db_location)
     end
   else -- Migrate stats for books in history from metadata.lua to sqlite database
-    self.settings.convert_to_db = true
     if not conn:exec("PRAGMA table_info('book');") then
       local filename_first_history, quickstart_filename, __
       if #ReadHistory.hist == 1 then
@@ -3494,6 +3492,10 @@ end
 function ReaderStatistics:onReaderReady(config)
   self.data = config:readTableRef("stats", { performance_in_pages = {} })
   self.doc_md5 = config:read("partial_md5_checksum")
+end
+
+function ReaderStatistics:onPostReaderReady()
+  self:checkInitDatabase()
   -- we have correct page count now, do the actual initialization work
   self:_initData()
 end
