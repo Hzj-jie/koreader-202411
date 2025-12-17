@@ -94,6 +94,8 @@ function ReaderUI:registerModule(name, ui_module)
 end
 
 function ReaderUI:init()
+  -- Show self at the very beginning to ensure all the UIManager:broadcastEvent
+  -- in the following calls can be received by ReaderUI modules.
   UIManager:show(self, self.seamless and "ui" or "full")
 
   -- cap screen refresh on pan to 2 refreshes per second
