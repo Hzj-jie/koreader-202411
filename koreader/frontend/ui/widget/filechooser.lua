@@ -689,7 +689,7 @@ function FileChooser:onMenuSelect(item)
   -- parent directory of dir without permission get nil mode
   -- we need to change to parent path in this case
   if item.is_file then
-    self:onFileSelect(item)
+    self:fileSelect(item)
   else
     self:changeToPath(item.path, item.is_go_up and self.path)
   end
@@ -697,16 +697,16 @@ function FileChooser:onMenuSelect(item)
 end
 
 function FileChooser:onMenuHold(item)
-  self:onFileHold(item)
+  self:fileHold(item)
   return true
 end
 
-function FileChooser:onFileSelect(item)
+function FileChooser:fileSelect(item)
   UIManager:close(self)
   return true
 end
 
-function FileChooser:onFileHold(item)
+function FileChooser:fileHold(item)
   return true
 end
 

@@ -1081,11 +1081,12 @@ function Menu:init()
 
   if Device:hasKeys() then
     -- set up keyboard events
-    self.key_events.LeftButtonTap = { { "Menu" } }
+    self.key_events.FocusLeft = nil
     if Device:hasFewKeys() then
       self.key_events.Exit = { { "Left" } }
     else
       self.key_events.Exit = { { Input.group.Back } }
+      self.key_events.LeftButtonTap = { { "Left" } }
     end
     self.key_events.NextPage = { { Input.group.PgFwd } }
     self.key_events.PrevPage = { { Input.group.PgBack } }
@@ -1101,13 +1102,10 @@ function Menu:init()
   end
 
   if Device:hasDPad() then
-    if Device:hasFewKeys() then
-      -- we won't catch presses to "Right", leave that to MenuItem.
-      self.key_events.FocusRight = nil
-      -- add long press on "Right" key
-      self.key_events.Right = { { "Right" } }
-    end
-    -- shortcut icon is not needed for touch device
+    -- we won't catch presses to "Right", leave that to MenuItem.
+    self.key_events.FocusRight = nil
+    -- add long press on "Right" key
+    self.key_events.KeyboardHold = { { "Right" } }
   end
   if ENABLE_SHORTCUT then
     self.key_events.SelectByShortCut = { { ITEM_SHORTCUTS } }
@@ -1557,7 +1555,7 @@ function Menu:onGotoPage(page)
   return true
 end
 
-function Menu:onRight()
+function Menu:onKeyboardHold()
   return self:sendHoldEventToFocusedWidget()
 end
 
