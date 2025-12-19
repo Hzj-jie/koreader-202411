@@ -26,9 +26,6 @@ rm -rf web
 # No touch screen
 rm -rf plugins/gestures.koplugin/
 
-# issue #323
-rm -rf plugins/coverbrowser.koplugin/
-
 # issue #325
 rm -rf plugins/terminal.koplugin/
 
