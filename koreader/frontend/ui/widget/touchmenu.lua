@@ -50,6 +50,7 @@ local ITEM_SHORTCUTS = {
   "E",
   "R",
   "T",
+
   "A",
   "S",
   "D",
@@ -130,6 +131,10 @@ function TouchMenuItem:init()
     - 2 * Size.padding.default
     - checked_widget:getSize().w
   local text = getMenuText(self.item)
+  if ENABLE_SHORTCUT then
+    assert(self.item.shortcut ~= nil)
+    text = "[" .. self.item.shortcut .. "] " .. text
+  end
   local face = self.face
   local forced_baseline, forced_height
   if self.item.font_func then
@@ -534,9 +539,6 @@ function TouchMenuBar:switchToTab(index)
   self.icon_widgets[index].callback()
 end
 
-local MAX_PER_PAGE = 10
-assert(#ITEM_SHORTCUTS == MAX_PER_PAGE)
-
 --[[
 TouchMenu widget for hierarchical menus
 --]]
@@ -780,10 +782,8 @@ function TouchMenu:_recalculatePageLayout()
   end
 
   local item_list_content_height = content_height - footer_height
-  self.perpage = math.floor(item_list_content_height / self.item_height)
-  if self.perpage > MAX_PER_PAGE then
-    self.perpage = MAX_PER_PAGE
-  end
+  self.perpage = (math.floor(item_list_content_height / self.item_height) % 11)
+  assert(self.perpage <= #ITEM_SHORTCUTS)
 
   self.page_num = math.ceil(#self.item_table / self.perpage)
 end

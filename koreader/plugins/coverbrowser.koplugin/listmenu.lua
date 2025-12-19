@@ -13,6 +13,7 @@ local HorizontalSpan = require("ui/widget/horizontalspan")
 local IconWidget = require("ui/widget/iconwidget")
 local ImageWidget = require("ui/widget/imagewidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
+local ItemShortCutIcon = require("ui/widget/itemshortcuticon")
 local LeftContainer = require("ui/widget/container/leftcontainer")
 local LineWidget = require("ui/widget/linewidget")
 local Math = require("optmath")
@@ -47,54 +48,6 @@ local corner_mark_size = -1
 local corner_mark
 
 local scale_by_size = Screen:scaleBySize(1000000) * (1 / 1000000)
-
--- ItemShortCutIcon (for keyboard navigation) is private to menu.lua and can't be accessed,
--- so we need to redefine it
-local ItemShortCutIcon = WidgetContainer:extend({
-  dimen = Geom:new({
-    x = 0,
-    y = 0,
-    w = Screen:scaleBySize(22),
-    h = Screen:scaleBySize(22),
-  }),
-  key = nil,
-  bordersize = Size.border.default,
-  radius = 0,
-  style = "square",
-})
-
-function ItemShortCutIcon:init()
-  if not self.key then
-    return
-  end
-  local radius = 0
-  local background = Blitbuffer.COLOR_WHITE
-  if self.style == "rounded_corner" then
-    radius = math.floor(self.width / 2)
-  elseif self.style == "grey_square" then
-    background = Blitbuffer.COLOR_LIGHT_GRAY
-  end
-  local sc_face
-  if self.key:len() > 1 then
-    sc_face = Font:getFace("ffont", 14)
-  else
-    sc_face = Font:getFace("scfont", 22)
-  end
-  self[1] = FrameContainer:new({
-    padding = 0,
-    bordersize = self.bordersize,
-    radius = radius,
-    background = background,
-    dimen = self.dimen:copy(),
-    CenterContainer:new({
-      dimen = self.dimen,
-      TextWidget:new({
-        text = self.key,
-        face = sc_face,
-      }),
-    }),
-  })
-end
 
 -- Based on menu.lua's MenuItem
 local ListMenuItem = InputContainer:extend({
