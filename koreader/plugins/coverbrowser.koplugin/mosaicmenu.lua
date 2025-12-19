@@ -15,6 +15,7 @@ local ImageWidget = require("ui/widget/imagewidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local ItemShortCutIcon = require("ui/widget/itemshortcuticon")
 local LeftContainer = require("ui/widget/container/leftcontainer")
+local Menu = require("ui/widget/menu")
 local OverlapGroup = require("ui/widget/overlapgroup")
 local ProgressWidget = require("ui/widget/progresswidget")
 local ReadCollection = require("readcollection")
@@ -30,7 +31,6 @@ local util = require("util")
 local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
-local getMenuText = require("ui/widget/menu").getMenuText
 
 local BookInfoManager = require("bookinfomanager")
 
@@ -1008,9 +1008,12 @@ function MosaicMenu:_updateItemsBuildUI()
     end
     -- Keyboard shortcuts, as done in Menu
     local item_shortcut, shortcut_style
-    if self.is_enable_shortcut then
-      item_shortcut = self.item_shortcuts[idx]
-      shortcut_style = (idx < 11 or idx > 20) and "square" or "grey_square"
+    if Menu.ENABLE_SHORTCUT then
+      item_shortcut = Menu.ITEM_SHORTCUTS[idx]
+      -- give different shortcut_style to keys in different lines of keyboard
+      if (idx - 1) % 10 >= 5 then
+        shortcut_style = "grey_square"
+      end
     end
 
     if idx % self.nb_cols == 1 then -- new row
@@ -1043,7 +1046,7 @@ function MosaicMenu:_updateItemsBuildUI()
       height = self.item_height,
       width = self.item_width,
       entry = entry,
-      text = getMenuText(entry),
+      text = Menu.getMenuText(entry),
       show_parent = self.show_parent,
       mandatory = entry.mandatory,
       dimen = self.item_dimen:copy(),

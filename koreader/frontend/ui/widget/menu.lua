@@ -591,13 +591,16 @@ local ITEM_SHORTCUTS = {
   "M",
   ".",
   "/",
-  "Sym",  -- Replace "Press" to "Sym"
+  "Sym", -- Replace "Press" with "Sym"
 }
 
 --[[
 Widget that displays menu
 --]]
 local Menu = FocusManager:extend({
+  ENABLE_SHORTCUT = ENABLE_SHORTCUT,
+  ITEM_SHORTCUTS = ITEM_SHORTCUTS,
+
   show_parent = nil,
 
   no_title = false,
