@@ -170,7 +170,9 @@ function NetworkListener:onSuspend()
 
   -- If we haven't already (e.g., via Generic's handlePowerEvent), kill Wi-Fi.
   -- Do so only on devices where we have explicit management of Wi-Fi: assume the host system does things properly elsewhere.
-  if Device:hasWifiManager() and NetworkMgr:isWifiOn() then
+  -- Note, it's explicitly not checking NetworkMgr:isWifiOn(), the native system
+  -- may shutdown the wifi partially, i.e. isWifiOn is not accurate sometimes.
+  if Device:hasWifiManager() then
     NetworkMgr:toggleWifiOff()
   end
 end
