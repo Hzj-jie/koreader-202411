@@ -521,10 +521,8 @@ function NetworkMgr:toggleWifiOn()
 end
 
 function NetworkMgr:toggleWifiOff(interactive)
-  if not self:isWifiOn() then
-    return
-  end
-
+  -- Note, it's explicitly not checking NetworkMgr:isWifiOn(), the native system
+  -- may shutdown the wifi partially, i.e. isWifiOn is not accurate sometimes.
   local info
   if interactive then
     info = InfoMessage:new({
