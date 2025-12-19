@@ -591,7 +591,7 @@ local ITEM_SHORTCUTS = {
   "M",
   ".",
   "/",
-  "Sym",  -- Replace "Press" to "Sym"
+  "Sym",  -- Replace "Press" with "Sym"
 }
 
 --[[
