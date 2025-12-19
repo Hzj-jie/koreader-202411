@@ -1,1 +1,0 @@
-../../../koreader/plugins/terminal.koplugin/shfm_opener.sh
