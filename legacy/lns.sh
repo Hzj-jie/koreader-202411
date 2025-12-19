@@ -7,6 +7,7 @@ rm -rf plugins/autofrontlight.koplugin/
 rm -rf plugins/autostandby.koplugin/
 rm -rf plugins/autosuspend.koplugin/
 rm -rf plugins/calibre.koplugin/
+rm -rf plugins/coverbrowser.koplugin/
 rm -rf plugins/gestures.koplugin/
 rm -rf plugins/httpinspector.koplugin/
 rm -rf plugins/kosync.koplugin/
