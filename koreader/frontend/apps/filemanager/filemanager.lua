@@ -171,7 +171,7 @@ function FileManager:setupLayout()
 
   local file_manager = self
 
-  function file_chooser:onFileSelect(item)
+  function file_chooser:fileSelect(item)
     if file_manager.selected_files then -- toggle selection
       item.dim = not item.dim and true or nil
       file_manager.selected_files[item.path] = item.dim
@@ -182,7 +182,7 @@ function FileManager:setupLayout()
     return true
   end
 
-  function file_chooser:onFileHold(item)
+  function file_chooser:fileHold(item)
     if file_manager.selected_files then
       file_manager:tapPlus()
     else
