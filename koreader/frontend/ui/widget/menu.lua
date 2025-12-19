@@ -1151,7 +1151,11 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
   else
     items_nb = self.perpage
     idx_offset = (self.page - 1) * items_nb
-    multilines_show_more_text = self.multilines_show_more_text or G_reader_settings:isTrue("items_multilines_show_more_text")
+    multilines_show_more_text = self.multilines_show_more_text
+    if multilines_show_more_text == nil then
+      multilines_show_more_text =
+        G_reader_settings:isTrue("items_multilines_show_more_text")
+    end
   end
 
   for idx = 1, items_nb do
