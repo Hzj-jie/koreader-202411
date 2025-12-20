@@ -716,7 +716,7 @@ function InputText:onKeyPress(key)
       self:goToEnd()
     elseif key["Home"] then
       self:goToHome()
-    elseif key["Press"] then
+    elseif key["Press"] or key["Enter"] then
       self:addChars("\n")
     elseif key["Tab"] then
       self:addChars("    ")

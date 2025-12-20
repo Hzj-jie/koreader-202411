@@ -277,6 +277,7 @@ local Input = {
       "Down",
       "Left",
       "Right",
+      "Enter",
       "Press",
       "Backspace",
       "End",

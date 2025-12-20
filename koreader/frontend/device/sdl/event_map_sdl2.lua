@@ -87,7 +87,10 @@ return {
   [1073741890] = "F9", -- F[9]
   [1073741891] = "F10", -- F[10]
   [1073741892] = "F11", -- F[11]
-  [1073741893] = "F12", -- F[12]
+  -- On regular laptops, the Enter is treated as Press which triggers most of
+  -- the actions. But F12 is hacked to be the Enter key, and represents the
+  -- Enter key on the physical keyboard on the DXG.
+  [1073741893] = "Enter", -- F[12]
 
   [1073742049] = "Shift", -- left shift
   [1073742053] = os.getenv("DISABLE_TOUCH") == "1" and "Sym" or "Shift", -- right shift
