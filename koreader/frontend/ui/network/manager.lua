@@ -109,13 +109,16 @@ end
 function NetworkMgr:_networkConnected()
   -- A less preferred way to allow Emulator raising the events.
   raiseNetworkEvent("Connected")
-  self:_queryOnlineState()
+  -- Ensure the state can be flipped.
+  self.was_online = false
+  -- This function is blocking, so only the start time needs to be recorded.
+  self:_setOnlineState(self:_isWifiConnected() and self:_isOnline())
 end
 
 function NetworkMgr:_networkDisconnected()
   -- A less preferred way to allow Emulator raising the events.
   raiseNetworkEvent("Disconnected")
-  self:_queryOnlineState()
+  self:_setOnlineState(false)
 end
 
 function NetworkMgr:_readNWSettings()
@@ -167,15 +170,15 @@ function NetworkMgr:restoreWifiAndCheckAsync(msg)
   end
 end
 
-function NetworkMgr:_queryOnlineState()
+function NetworkMgr:_setOnlineState(new_state, check_time)
+  check_time = check_time or time.now()
   -- This field is used to decide if the result from a full background ping
   -- background job should be ignored.
-  -- This function is blocking, so only the start time needs to be recorded.
-  self.last_online_check_time = time.now()
-  self:_setOnlineState(self:_isWifiConnected() and self:_isOnline())
-end
-
-function NetworkMgr:_setOnlineState(new_state)
+  if self.last_online_check_time > check_time then
+    -- Ignore the set state if a newer result was processed.
+    return
+  end
+  self.last_online_check_time = check_time
   if self.was_online == new_state then
     return
   end
@@ -204,15 +207,11 @@ function NetworkMgr:init()
       when = "best-effort",
       repeated = true,
       -- Technically speaking, the behavior is different than
-      -- self:_queryOnlineState, the results should be consistent in the
+      -- self:_networkConnected, the results should be consistent in the
       -- normal network condition.
       executable = "ping -c 1 www.microsoft.com",
       callback = function(job)
-        if job.start_time <= self.last_online_check_time then
-          -- Ignore the ping calls before the last check.
-          return
-        end
-        self:_setOnlineState(job.result == 0)
+        self:_setOnlineState(job.result == 0, job.start_time)
       end,
     })
   end)
@@ -507,7 +506,6 @@ function NetworkMgr:toggleWifiOn()
 
     -- Connecting will take a few seconds, broadcast that information so affected modules/plugins can react.
     raiseNetworkEvent("Connecting")
-
     return self:_turnOnWifi(function()
       -- Interactive
       ConnectivityChecker:start(true)
