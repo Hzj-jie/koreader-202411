@@ -227,7 +227,7 @@ function Device:init()
               }))
             end)
             UIManager:scheduleIn(0.2, function()
-              require("apps/reader/readerui"):doShowReader(new_file)
+              require("apps/reader/readerui"):showReader(new_file)
             end)
           else
             -- check if we're resuming from importing content.

@@ -740,7 +740,7 @@ function ReaderUI:showReader(file, provider, seamless)
   UIManager:broadcastEvent(Event:new("ShowingReader"))
   provider = provider or DocumentRegistry:getProvider(file)
   if provider.provider then
-    self:showReaderCoroutine(file, provider, seamless)
+    self:_showReaderCoroutine(file, provider, seamless)
   else
     UIManager:show(InfoMessage:new({
       text = _("No reader engine for this file or invalid file."),
@@ -749,13 +749,13 @@ function ReaderUI:showReader(file, provider, seamless)
   end
 end
 
-function ReaderUI:showReaderCoroutine(file, provider, seamless)
+function ReaderUI:_showReaderCoroutine(file, provider, seamless)
   -- doShowReader might block for a long time, so force repaint here
   UIManager:runWith(
     function()
       logger.dbg("creating coroutine for showing reader")
       local co = coroutine.create(function()
-        self:doShowReader(file, provider, seamless)
+        self:_doShowReader(file, provider, seamless)
       end)
       local ok, err = coroutine.resume(co)
       if err ~= nil or ok == false then
@@ -785,7 +785,7 @@ function ReaderUI:showReaderCoroutine(file, provider, seamless)
   )
 end
 
-function ReaderUI:doShowReader(file, provider, seamless)
+function ReaderUI:_doShowReader(file, provider, seamless)
   if seamless then
     UIManager:avoidFlashOnNextRepaint()
   end
