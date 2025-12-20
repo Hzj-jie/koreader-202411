@@ -21,14 +21,14 @@ local function NOP()
   return
 end
 
-local function koboEnableWifi(toggle)
-  if toggle == true then
-    logger.info("Kobo Wi-Fi: enabling Wi-Fi")
-    os.execute("./enable-wifi.sh")
-  else
-    logger.info("Kobo Wi-Fi: disabling Wi-Fi")
-    os.execute("./disable-wifi.sh")
-  end
+local function koboEnableWifi()
+  logger.info("Kobo Wi-Fi: enabling Wi-Fi")
+  os.execute("./enable-wifi.sh")
+end
+
+local function koboDisableWifi()
+  logger.info("Kobo Wi-Fi: disabling Wi-Fi")
+  os.execute("./disable-wifi.sh")
 end
 
 -- checks if standby is available on the device
@@ -1114,11 +1114,11 @@ end
 function Kobo:initNetworkManager(NetworkMgr)
   function NetworkMgr:_turnOffWifi()
     self:releaseIP()
-    koboEnableWifi(false)
+    koboDisableWifi()
   end
 
   function NetworkMgr:_turnOnWifi(complete_callback, interactive)
-    koboEnableWifi(true)
+    koboEnableWifi()
     return self:reconnectOrShowNetworkMenu(complete_callback, interactive)
   end
 
