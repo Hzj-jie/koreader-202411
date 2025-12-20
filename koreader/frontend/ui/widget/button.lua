@@ -103,6 +103,9 @@ function Button:init()
   local reference_height = self.height
   if self.text then
     local text = self.checked_func == nil and self.text or self:getDisplayText()
+    if self.shortcut then
+      text = "[" .. self.shortcut .. "] " .. text
+    end
     local fgcolor = self.enabled and Blitbuffer.COLOR_BLACK
       or Blitbuffer.COLOR_DARK_GRAY
     local face = Font:getFace(self.text_font_face, self.text_font_size)
@@ -250,6 +253,11 @@ function Button:init()
       }),
     },
   }
+  if self.shortcut then
+    self.key_events = {
+      TapSelectButton = { { self.shortcut } }
+    }
+  end
 end
 
 function Button:getMinNeededWidth()
