@@ -128,9 +128,7 @@ function NetworkMgr:_dropPendingWifiConnection(turn_off_wifi)
   -- Cancel any pending connectivity check, because it wouldn't achieve anything
   ConnectivityChecker:stop()
   -- Make sure we don't have an async script running...
-  if Device:hasWifiRestore() then
-    self:stopAsyncWifiRestore()
-  end
+  self:_stopAsyncWifiRestoreIfSupported()
 
   if turn_off_wifi then
     self:_turnOffWifi()
@@ -156,6 +154,7 @@ function NetworkMgr:restoreWifiAndCheckAsync(msg)
       if msg then
         logger.dbg(msg)
       end
+      raiseNetworkEvent("Connecting")
       self:restoreWifiAsync()
       ConnectivityChecker:start()
     end
@@ -464,6 +463,12 @@ function NetworkMgr:_canResolveHostnames()
   return require("socket").dns.toip("dns.msftncsi.com") ~= nil
 end
 
+function NetworkMgr:_stopAsyncWifiRestoreIfSupported()
+  if Device:hasWifiRestore() then
+    self:stopAsyncWifiRestore()
+  end
+end
+
 --[[
 -- This function costs between 40 to 1000ms on kindle with great wifi
 -- connection, it's slow naturally. Device:ping4 uses the default timeout of
@@ -491,8 +496,13 @@ function NetworkMgr:toggleWifiOn()
   -- Some implementations (usually, hasWifiManager) can report whether they were successful
   local function requestToTurnOnWifi()
     if ConnectivityChecker:running() then
-      -- We've already enabled WiFi, don't try again until the earlier attempt succeeds or fails...
-      return EBUSY
+      -- We've already enabled WiFi, but let's just restore the wifi again in
+      -- case something weird happened, e.g. _beforeWifiAction with
+      -- wifi_enable_action == ignore.
+      self:_stopAsyncWifiRestoreIfSupported()
+      -- No callback and not interactive
+      self:_turnOnWifi()
+      return true
     end
 
     -- Connecting will take a few seconds, broadcast that information so affected modules/plugins can react.
@@ -510,13 +520,20 @@ function NetworkMgr:toggleWifiOn()
   UIManager:close(info)
   -- If turnOnWifi failed, abort early
   if status == false then
-    logger.warn("NetworkMgr:toggleWifiOn: Connection failed!")
+    UIManager:show(InfoMessage:new({
+      text = _("Error connecting to the network"),
+      timeout = 3,
+    }))
     self:_abortWifiConnection()
   elseif status == EBUSY then
     -- NOTE: This means turnOnWifi was *not* called (this time).
-    logger.warn(
-      "NetworkMgr:toggleWifiOn: A previous connection attempt is still ongoing!"
-    )
+    -- This should almost never happen, but who knows.
+    UIManager:show(InfoMessage:new({
+      text = _(
+        "A previous connection attempt is still ongoing, this one will be ignored!"
+      ),
+      timeout = 3,
+    }))
   end
 end
 
