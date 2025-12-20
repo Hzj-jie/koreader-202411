@@ -96,7 +96,7 @@ end
 function ReaderUI:init()
   -- Show self at the very beginning to ensure all the UIManager:broadcastEvent
   -- in the following calls can be received by ReaderUI modules.
-  UIManager:show(self, self.seamless and "ui" or "full")
+  UIManager:show(self)
 
   -- cap screen refresh on pan to 2 refreshes per second
   local pan_rate = G_named_settings.low_pan_rate_or_full(2.0)
@@ -751,8 +751,7 @@ end
 
 function ReaderUI:_showReaderCoroutine(file, provider, seamless)
   -- doShowReader might block for a long time, so force repaint here
-  UIManager:runWith(
-    function()
+  local function f()
       logger.dbg("creating coroutine for showing reader")
       local co = coroutine.create(function()
         self:_doShowReader(file, provider, seamless)
@@ -773,22 +772,19 @@ function ReaderUI:_showReaderCoroutine(file, provider, seamless)
         }))
         self:showFileManager(file)
       end
-    end,
-    InfoMessage:new({
-      text = T(
+  end
+  if seamless then
+    f()
+    return
+  end
+  UIManager:runWith(
+    f,T(
         _("Opening file '%1'."),
         BD.filepath(filemanagerutil.abbreviate(file))
-      ),
-      invisible = seamless,
-      icon = "hourglass",
-    })
-  )
+      ))
 end
 
-function ReaderUI:_doShowReader(file, provider, seamless)
-  if seamless then
-    UIManager:avoidFlashOnNextRepaint()
-  end
+function ReaderUI:_doShowReader(file, provider)
   logger.info("opening file", file)
   -- Only keep a single instance running
   assert(ReaderUI.instance == nil)
@@ -816,7 +812,6 @@ function ReaderUI:_doShowReader(file, provider, seamless)
     dimen = Screen:getSize(),
     covers_fullscreen = true, -- hint for UIManager:_repaint()
     document = document,
-    seamless = seamless,
   })
 
   Screen:setWindowTitle(reader.doc_props.display_title)
@@ -1010,11 +1005,11 @@ function ReaderUI:reloadDocument(seamless)
   self:_loadDocument(self.document.file, seamless)
 end
 
-function ReaderUI:switchDocument(new_file, seamless)
+function ReaderUI:switchDocument(new_file)
   if not new_file or new_file == self.document.file then
     return
   end
-  self:_loadDocument(new_file, seamless)
+  self:_loadDocument(new_file)
 end
 
 function ReaderUI:onOpenLastDoc()

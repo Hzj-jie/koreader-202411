@@ -1194,7 +1194,6 @@ function UIManager:_refresh(mode, region, dither)
   if
     mode == "partial"
     and self.FULL_REFRESH_COUNT > 0
-    and not self.refresh_counted
   then
     self.refresh_count = (self.refresh_count + 1) % self.FULL_REFRESH_COUNT
     if self.refresh_count == self.FULL_REFRESH_COUNT - 1 then
@@ -1206,7 +1205,6 @@ function UIManager:_refresh(mode, region, dither)
       end
       logger.dbg("_refresh: promote refresh to", mode)
     end
-    self.refresh_counted = true
   end
 
   -- if no region is specified, use the screen's dimensions
@@ -1377,17 +1375,11 @@ function UIManager:_repaint()
   self._last_repaint_time = time.realtime_coarse()
 
   self._refresh_stack = {}
-  self.refresh_counted = false
 end
 
 --- Explicitly drain the paint & refresh queues *now*, instead of waiting for the next UI tick.
 function UIManager:forceRePaint()
   self:_repaint()
-end
-
-function UIManager:avoidFlashOnNextRepaint()
-  -- Avoid going through the "partial" to "full" refresh promotion: pretend we already checked that.
-  self.refresh_counted = true
 end
 
 function UIManager:waitForScreenRefresh()
