@@ -205,7 +205,7 @@ function NetworkListener:onShowNetworkInfo()
         -- Since it's running with some display hints, we can spend some time to
         -- query the online state again in case the network dropped between two
         -- online state checks.
-        NetworkMgr:_queryOnlineState()
+        NetworkMgr:queryOnlineState()
         -- Need localization.
         UIManager:show(InfoMessage:new({
           -- Need localization.

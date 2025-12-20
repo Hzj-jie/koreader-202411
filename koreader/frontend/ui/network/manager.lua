@@ -111,6 +111,10 @@ function NetworkMgr:_networkConnected()
   raiseNetworkEvent("Connected")
   -- Ensure the state can be flipped.
   self.was_online = false
+  self:queryOnlineState()
+end
+
+function NetworkMgr:queryOnlineState()
   -- This function is blocking, so only the start time needs to be recorded.
   self:_setOnlineState(self:_isWifiConnected() and self:_isOnline())
 end
