@@ -1,1 +1,0 @@
-../../../koreader/plugins/coverbrowser.koplugin/mosaicmenu.lua
