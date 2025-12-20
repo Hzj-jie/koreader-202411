@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ "${PRODUCT}" == "dragon" ]; then
+  ./disable-wifi-18db509.sh
+  exit
+fi
+
 # Disable wifi, and remove all modules.
 # NOTE: Save our resolv.conf to avoid ending up with an empty one, in case the DHCP client wipes it on release (#6424).
 cp -a "/etc/resolv.conf" "/tmp/resolv.ko"
