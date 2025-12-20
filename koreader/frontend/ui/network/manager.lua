@@ -131,9 +131,7 @@ function NetworkMgr:_dropPendingWifiConnection(turn_off_wifi)
   -- Cancel any pending connectivity check, because it wouldn't achieve anything
   ConnectivityChecker:stop()
   -- Make sure we don't have an async script running...
-  if Device:hasWifiRestore() then
-    self:stopAsyncWifiRestore()
-  end
+  self:_stopAsyncWifiRestoreIfSupported()
 
   if turn_off_wifi then
     self:_turnOffWifi()
@@ -464,6 +462,12 @@ function NetworkMgr:_canResolveHostnames()
   return require("socket").dns.toip("dns.msftncsi.com") ~= nil
 end
 
+function NetworkMgr:_stopAsyncWifiRestoreIfSupported()
+  if Device:hasWifiRestore() then
+    self:stopAsyncWifiRestore()
+  end
+end
+
 --[[
 -- This function costs between 40 to 1000ms on kindle with great wifi
 -- connection, it's slow naturally. Device:ping4 uses the default timeout of
@@ -479,25 +483,26 @@ end
 
 function NetworkMgr:toggleWifiOn()
   if self:_isWifiConnected() then
-    -- In case the OS decided to enable the wifi for us.
-    ConnectivityChecker:start(true)
     return
   end
 
   local info = InfoMessage:new({
     text = _("Turning on Wi-Fi…"),
   })
+  UIManager:show(info)
+  UIManager:forceRePaint()
 
   -- Some implementations (usually, hasWifiManager) can report whether they were successful
   local function requestToTurnOnWifi()
     if ConnectivityChecker:running() then
-      -- We've already enabled WiFi, don't try again until the earlier attempt
-      -- succeeds or fails...
-      return EBUSY
+      -- We've already enabled WiFi, but let's just restore the wifi again in
+      -- case something weird happened, e.g. _beforeWifiAction with
+      -- wifi_enable_action == ignore.
+      self:_stopAsyncWifiRestoreIfSupported()
+      -- No callback and not interactive
+      self:_turnOnWifi()
+      return true
     end
-
-    UIManager:show(info)
-    UIManager:forceRePaint()
 
     -- Connecting will take a few seconds, broadcast that information so affected modules/plugins can react.
     raiseNetworkEvent("Connecting")
@@ -563,7 +568,6 @@ function NetworkMgr:_beforeWifiAction()
   if wifi_enable_action == "turn_on" then
     self:toggleWifiOn()
   elseif wifi_enable_action == "ignore" then
-    assert(Device:isAndroid())
     if self:isOnline() then
       return
     end
