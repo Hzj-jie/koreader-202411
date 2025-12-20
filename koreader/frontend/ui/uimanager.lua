@@ -1551,7 +1551,7 @@ function UIManager:handleInputEvent(input_event)
     and input_event.args[1].time
     and G_reader_settings:nilOrTrue("disable_out_of_order_taps")
   then
-    if self._last_repaint_time >= input_event.args[1].time then
+    if self._last_repaint_time > input_event.args[1].time then
       logger.dbg("Ignore out of order event " .. input_event.handler)
       return
     end
