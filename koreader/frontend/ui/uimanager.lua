@@ -18,7 +18,6 @@ local Screen = Device.screen
 local UIManager = {
   FULL_REFRESH_COUNT = G_named_settings.default.full_refresh_count(),
   refresh_count = 0,
-  currently_scrolling = false,
 
   -- How long to wait between ZMQ wakeups: 50ms.
   ZMQ_TIMEOUT = 50 * 1000,
@@ -39,6 +38,7 @@ local UIManager = {
   _prev_prevent_standby_count = 0,
   _input_gestures_disabled = false,
   _last_user_action_time = 0,
+  _force_fast_refresh = false,
 }
 
 function UIManager:init()
@@ -1132,6 +1132,18 @@ local function update_dither(dither1, dither2)
   end
 end
 
+function UIManager:forceFastRefresh()
+  self._force_fast_refresh = true
+end
+
+function UIManager:resetForceFastRefresh()
+  self._force_fast_refresh = false
+end
+
+function UIManager:duringForceFastRefresh()
+  return self._force_fast_refresh
+end
+
 --[[--
 Enqueues a refresh.
 
@@ -1158,7 +1170,7 @@ function UIManager:_refresh(mode, region, dither)
   end
 
   -- Downgrade all refreshes to "fast" when ReaderPaging or ReaderScrolling have set this flag
-  if self.currently_scrolling then
+  if self._force_fast_refresh then
     mode = "fast"
   end
 
