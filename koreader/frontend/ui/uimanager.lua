@@ -1351,7 +1351,7 @@ function UIManager:_repaint()
     self:_refresh("partial")
   end
 
-  if dirty then
+  if #self._refresh_stack > 0 then
     -- execute refreshes:
     for _, refresh in ipairs(self._refresh_stack) do
       -- Honor dithering hints from *anywhere* in the dirty stack
@@ -1394,10 +1394,8 @@ function UIManager:_repaint()
 
     -- Record how many partial refreshes happened.
     self.refresh_count = (self.refresh_count + 1) % self.FULL_REFRESH_COUNT
-  else
-    logger.warn("Refresh stack is discarded due to no dirty detected. " ..
-                "This is definitely wrong.")
   end
+
   -- In comparison, no matter if anything was painted, at this time point, the
   -- screen should be updated into the latest status.
   self._last_repaint_time = time.realtime_coarse()
