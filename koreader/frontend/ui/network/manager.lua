@@ -574,6 +574,7 @@ function NetworkMgr:_beforeWifiAction()
   if wifi_enable_action == "turn_on" then
     self:toggleWifiOn()
   elseif wifi_enable_action == "ignore" then
+    assert(Device:isAndroid())
     if self:isOnline() then
       return
     end
