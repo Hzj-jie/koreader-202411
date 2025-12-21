@@ -1170,13 +1170,8 @@ function UIManager:_refresh(mode, region, dither)
   end
 
   -- Downgrade all refreshes to "fast" when ReaderPaging or ReaderScrolling have set this flag
-  if self._force_fast_refresh then
+  if self:duringForceFastRefresh() then
     mode = "fast"
-  end
-
-  -- Reset the refresh counter on any explicit full refresh
-  if not region and mode == "full" then
-    self.refresh_count = 0
   end
 
   -- Handle downgrading flashing modes to non-flashing modes, according to user settings.
@@ -1207,7 +1202,6 @@ function UIManager:_refresh(mode, region, dither)
     mode == "partial"
     and self.FULL_REFRESH_COUNT > 0
   then
-    self.refresh_count = (self.refresh_count + 1) % self.FULL_REFRESH_COUNT
     if self.refresh_count == self.FULL_REFRESH_COUNT - 1 then
       -- NOTE: Promote to "full" if no region (reader), to "flashui" otherwise (UI)
       if region then
@@ -1354,33 +1348,43 @@ function UIManager:_repaint()
     self:_refresh("partial")
   end
 
-  -- execute refreshes:
-  for _, refresh in ipairs(self._refresh_stack) do
-    -- Honor dithering hints from *anywhere* in the dirty stack
-    refresh.dither = update_dither(refresh.dither, dithered)
-    -- If HW dithering is disabled, unconditionally drop the dither flag
-    if not Screen.hw_dithering then
-      refresh.dither = nil
-    end
-    dbg:v("triggering refresh", refresh)
-
-    --[[
-    -- Remember the refresh region
-    self._last_refresh_region = refresh.region:copy()
-    --]]
-    refresh_methods[refresh.mode](
-      Screen,
-      refresh.region.x,
-      refresh.region.y,
-      refresh.region.w,
-      refresh.region.h,
-      refresh.dither
-    )
-  end
-
-  -- Don't trigger afterPaint if we did not, in fact, paint anything
   if dirty then
+    -- execute refreshes:
+    for _, refresh in ipairs(self._refresh_stack) do
+      -- Honor dithering hints from *anywhere* in the dirty stack
+      refresh.dither = update_dither(refresh.dither, dithered)
+      -- If HW dithering is disabled, unconditionally drop the dither flag
+      if not Screen.hw_dithering then
+        refresh.dither = nil
+      end
+      dbg:v("triggering refresh", refresh)
+
+      --[[
+      -- Remember the refresh region
+      self._last_refresh_region = refresh.region:copy()
+      --]]
+      refresh_methods[refresh.mode](
+        Screen,
+        refresh.region.x,
+        refresh.region.y,
+        refresh.region.w,
+        refresh.region.h,
+        refresh.dither
+      )
+
+      if refresh.mode == "full" and refresh.region.x == 0 and refresh.region.y == 0 and refresh.region.w == Screen:getWidth() and refresh.region.y == Screen:getHeight() then
+        -- Reset the refresh_count to 0 after an explicit full screen refresh.
+        -- Technically speaking, in the case, it should be the only refresh, but
+        -- who knows.
+        self.refresh_count = -1
+      end
+    end
+
+    -- Don't trigger afterPaint if we did not, in fact, paint anything
     Screen:afterPaint()
+
+    -- Record how many partial refreshes happened.
+    self.refresh_count = (self.refresh_count + 1) % self.FULL_REFRESH_COUNT
   end
   -- In comparison, no matter if anything was painted, at this time point, the
   -- screen should be updated into the latest status.
