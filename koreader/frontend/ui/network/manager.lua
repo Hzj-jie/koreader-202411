@@ -1104,6 +1104,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
       timeout = 3,
       dismiss_callback = complete_callback,
     }))
+    UIManager:forceRePaint()
   elseif complete_callback then
     complete_callback()
   end
