@@ -1502,14 +1502,12 @@ function UIManager:widgetInvert(widget, x, y, w, h)
     local cropping_widget = widget.show_parent.cropping_widget
     if util.arrayReferences(cropping_widget, widget) then
       -- Invert only what intersects with the cropping container
-      local widget_region = Geom:new({
+      local invert_region = cropping_widget:getCropRegion():intersect(Geom:new({
         x = x,
         y = y,
         w = w,
         h = h,
-      })
-      local crop_region = cropping_widget:getCropRegion()
-      local invert_region = crop_region:intersect(widget_region)
+      }))
       Screen.bb:invertRect(
         invert_region.x,
         invert_region.y,
@@ -1519,7 +1517,7 @@ function UIManager:widgetInvert(widget, x, y, w, h)
       return
     end
   end
-  Screen.bb:invertRect(x, y, w or widget.dimen.w, h or widget.dimen.h)
+  Screen.bb:invertRect(x, y, w, h)
 end
 
 function UIManager:setInputTimeout(timeout)

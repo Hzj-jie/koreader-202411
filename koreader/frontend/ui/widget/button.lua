@@ -423,7 +423,7 @@ function Button:_doFeedbackHighlight()
     self[1].invert = true
     UIManager:widgetInvert(self[1])
   end
-  UIManager:setDirty(self, "fast", self[1].dimen)
+  UIManager:setDirty(nil, "fast", self[1].dimen)
 end
 
 function Button:_undoFeedbackHighlight(is_translucent)
