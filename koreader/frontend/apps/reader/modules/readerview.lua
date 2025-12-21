@@ -70,9 +70,6 @@ local ReaderView = OverlapGroup:extend({
   dogear_visible = false,
   -- in flipping state
   flipping_visible = false,
-  -- might be directly updated by readerpaging/readerrolling when
-  -- they handle some panning/scrolling, to request "fast" refreshes
-  currently_scrolling = false,
 
   -- image content stats of the current page, if supported by the Document engine
   img_count = nil,
@@ -839,7 +836,7 @@ function ReaderView:recalculate()
   -- NOTE: This is also unfortunately called during panning, essentially making sure we'll never be using "fast" for pans ;).
   UIManager:setDirty(
     self.dialog,
-    self.currently_scrolling and "fast" or "partial"
+    "partial"
   )
 end
 

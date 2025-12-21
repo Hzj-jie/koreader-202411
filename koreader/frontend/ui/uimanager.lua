@@ -150,7 +150,7 @@ function UIManager:show(widget, refreshtype, refreshregion, x, y, refreshdither)
     logger.dbg("attempted to show a nil widget")
     return
   end
-  logger.dbg("show widget:", widget.id or widget.name or tostring(widget))
+  logger.dbg("show widget:", self:_widgetDebugStr(widget))
 
   local window = { x = x or 0, y = y or 0, widget = widget }
   -- put this window on top of the topmost non-modal window
@@ -582,7 +582,7 @@ UIManager:setDirty(self.widget, function() return "ui", self.someelement.dimen e
 function UIManager:setDirty(widget, refreshtype, refreshregion, refreshdither)
   local widget_name
   if widget then
-    widget_name = widget.name or widget.id or tostring(widget)
+    widget_name = self:_widgetDebugStr(widget)
     if widget == "all" then
       -- special case: set all top-level widgets as being "dirty".
       for _, window in ipairs(self._window_stack) do
