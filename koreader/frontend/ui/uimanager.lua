@@ -452,6 +452,71 @@ dbg:guard(UIManager, "unschedule", function(self, action)
 end)
 
 --[[--
+-- Schedule the paintTo call of the widget and everything above it. It doesn't
+-- paint anything immediately though.
+-- widget can be a widget or nil to force repainting everything.
+function UIManager:scheduleWidgetRepaint(widget)
+  if widget == nil then
+    for _, window in ipairs(self._window_stack) do
+      self._dirty[window.widget] = true
+    end
+    return
+  end
+  if widget.invisible then
+    logger.warn("Schedule repainting an invisible widget " .. self:_debugWidgetStr(widget))
+    return
+  end
+
+  -- NOTE: If our widget is translucent, or belongs to a translucent MovableContainer,
+  --     we'll want to flag everything below it as dirty, too,
+  --     because doing transparency right requires having an up to date background against which to blend.
+  --     (The typecheck is because some widgets use an alpha boolean trap for internal alpha handling (e.g., ImageWidget)).
+  local handle_alpha = false
+  -- NOTE: We only ever check the dirty flag on top-level widgets, so only set it there!
+  --     Enable verbose debug to catch misbehaving widgets via our post-guard.
+  for i = #self._window_stack, 1, -1 do
+    local w = self._window_stack[i].widget
+    if handle_alpha then
+      self._dirty[w] = true
+      logger.dbg(
+        "setDirty: Marking as dirty widget:",
+        self:_widgetDebugStr(w),
+        "because it's below translucent widget:",
+        widget_name
+      )
+      -- Stop flagging widgets at the uppermost one that covers the full screen
+      if w.covers_fullscreen then
+        break
+      end
+    end
+
+    if w == widget then
+      self._dirty[widget] = true
+
+      -- We've got a match, now check if it's translucent...
+      handle_alpha = (
+        widget.alpha
+        and type(widget.alpha) == "number"
+        and widget.alpha < 1
+        and widget.alpha > 0
+      )
+        or (
+          widget.movable
+          and widget.movable.alpha
+          and widget.movable.alpha < 1
+          and widget.movable.alpha > 0
+        )
+      -- We shouldn't be seeing the same widget at two different spots in the stack, so, we're done,
+      -- except when we need to keep looping to flag widgets below us in order to handle a translucent widget...
+      if not handle_alpha then
+        break
+      end
+    end
+  end
+end
+--]]--
+
+--[[--
 Mark a window-level widget as dirty, enqueuing a repaint & refresh request for that widget, to be processed on the next UI tick.
 
 The second parameter (refreshtype) can either specify a refreshtype
