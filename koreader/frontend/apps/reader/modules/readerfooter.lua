@@ -2196,10 +2196,14 @@ function ReaderFooter:_repaint()
     -- c.f., ReaderView:paintTo()
     UIManager:widgetRepaint(self.view.footer, 0, 0)
     -- We've painted it first to ensure self.footer_content.dimen is sane
-    UIManager:setDirty(nil, "ui", self.footer_content.dimen)
+    UIManager:setDirty(nil,function() 
+      return "ui", self.footer_content.dimen
+    end)
   else
     -- If the footer is invisible or might be hidden behind another widget, we need to repaint the full ReaderUI stack.
-    UIManager:setDirty(self.view.dialog, "ui", refresh_dim)
+    UIManager:setDirty(self.view.dialog, function()
+      return "ui", refresh_dim
+    end)
   end
 end
 
