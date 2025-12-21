@@ -120,6 +120,11 @@ function NetworkListener:onNetworkConnected()
   _pending_connected = {}
 end
 
+function NetworkListener:onNetworkStateChanged()
+  -- Avoid being disabled right after connecting to the network.
+  _last_tx_packets = nil
+end
+
 function NetworkListener:onNetworkOnline()
   logger.dbg("NetworkListener: onNetworkOnline")
 
