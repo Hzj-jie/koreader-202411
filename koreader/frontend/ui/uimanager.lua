@@ -1577,10 +1577,12 @@ function UIManager:widgetInvert(widget, x, y, w, h)
         invert_region.w,
         invert_region.h
       )
+      self:_refresh("fast", invert_region)
       return
     end
   end
   Screen.bb:invertRect(x, y, w, h)
+  self:_refresh("fast", Geom:new({x = x, y = y, w = w, h = h}))
 end
 
 function UIManager:setInputTimeout(timeout)

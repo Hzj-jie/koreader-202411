@@ -147,7 +147,6 @@ function CheckButton:onTapCheckButton()
       highlight_dimen.y,
       highlight_dimen.w
     )
-    UIManager:setDirty(nil, "fast", highlight_dimen)
 
     UIManager:forceRePaint()
     UIManager:waitForScreenRefresh()
@@ -161,7 +160,6 @@ function CheckButton:onTapCheckButton()
       highlight_dimen.y,
       highlight_dimen.w
     )
-    UIManager:setDirty(nil, "ui", highlight_dimen)
 
     -- Callback
     --

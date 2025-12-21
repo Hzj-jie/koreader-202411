@@ -419,11 +419,11 @@ function Button:_doFeedbackHighlight()
 
     -- This repaints *now*, unlike setDirty
     UIManager:widgetRepaint(self[1])
+    UIManager:setDirty(nil, "fast", self[1].dimen)
   else
     self[1].invert = true
     UIManager:widgetInvert(self[1])
   end
-  UIManager:setDirty(nil, "fast", self[1].dimen)
 end
 
 function Button:_undoFeedbackHighlight(is_translucent)

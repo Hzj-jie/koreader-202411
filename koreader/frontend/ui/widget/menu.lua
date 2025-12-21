@@ -504,7 +504,6 @@ function MenuItem:onTapSelect(arg, ges)
   --
   self[1].invert = true
   UIManager:widgetInvert(self[1])
-  UIManager:setDirty(nil, "fast", self[1].dimen)
 
   UIManager:forceRePaint()
   UIManager:waitForScreenRefresh()
@@ -513,7 +512,6 @@ function MenuItem:onTapSelect(arg, ges)
   --
   self[1].invert = false
   UIManager:widgetInvert(self[1])
-  UIManager:setDirty(nil, "ui", self[1].dimen)
 
   -- Callback
   --
@@ -535,7 +533,6 @@ function MenuItem:onHoldSelect(arg, ges)
   --
   self[1].invert = true
   UIManager:widgetInvert(self[1])
-  UIManager:setDirty(nil, "fast", self[1].dimen)
 
   UIManager:forceRePaint()
   UIManager:waitForScreenRefresh()
@@ -544,7 +541,6 @@ function MenuItem:onHoldSelect(arg, ges)
   --
   self[1].invert = false
   UIManager:widgetInvert(self[1])
-  UIManager:setDirty(nil, "ui", self[1].dimen)
 
   -- Callback
   --

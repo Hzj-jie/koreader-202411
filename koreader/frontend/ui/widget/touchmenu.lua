@@ -245,7 +245,6 @@ function TouchMenuItem:onTapSelect(arg, ges)
     highlight_dimen.y,
     highlight_dimen.w
   )
-  UIManager:setDirty(nil, "fast", highlight_dimen)
 
   UIManager:forceRePaint()
   UIManager:waitForScreenRefresh()
@@ -261,7 +260,6 @@ function TouchMenuItem:onTapSelect(arg, ges)
       highlight_dimen.y,
       highlight_dimen.w
     )
-    UIManager:setDirty(nil, "ui", highlight_dimen)
   end
 
   -- Callback
@@ -302,7 +300,6 @@ function TouchMenuItem:onHoldSelect(arg, ges)
     highlight_dimen.y,
     highlight_dimen.w
   )
-  UIManager:setDirty(nil, "fast", highlight_dimen)
 
   UIManager:forceRePaint()
   UIManager:waitForScreenRefresh()
@@ -319,7 +316,6 @@ function TouchMenuItem:onHoldSelect(arg, ges)
       highlight_dimen.y,
       highlight_dimen.w
     )
-    UIManager:setDirty(nil, "ui", highlight_dimen)
   end
 
   -- Callback
@@ -1218,7 +1214,6 @@ function TouchMenu:openMenu(path, with_animation)
         highlight_dimen.y,
         highlight_dimen.w
       )
-      UIManager:setDirty(nil, "ui", highlight_dimen)
     else
       widget.invert = true
       UIManager:widgetInvert(
@@ -1227,7 +1222,6 @@ function TouchMenu:openMenu(path, with_animation)
         highlight_dimen.y,
         highlight_dimen.w
       )
-      UIManager:setDirty(nil, "fast", highlight_dimen)
     end
   end
 
