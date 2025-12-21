@@ -1394,6 +1394,9 @@ function UIManager:_repaint()
 
     -- Record how many partial refreshes happened.
     self.refresh_count = (self.refresh_count + 1) % self.FULL_REFRESH_COUNT
+  else
+    logger.warn("Refresh stack is discarded due to no dirty detected. " ..
+                "This is definitely wrong.")
   end
   -- In comparison, no matter if anything was painted, at this time point, the
   -- screen should be updated into the latest status.
