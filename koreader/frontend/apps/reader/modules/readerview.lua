@@ -305,9 +305,7 @@ function ReaderView:paintTo(bb, x, y)
         self.dialog.dithered = true
       end
       -- Request a flashing update while we're at it, but only if it's the first time we're painting it
-      if
-        self.state.drawn == false
-      then
+      if self.state.drawn == false then
         UIManager:setDirty(nil, "full")
       end
     end
@@ -834,10 +832,7 @@ function ReaderView:recalculate()
 
   -- Flag a repaint so self:paintTo will be called
   -- NOTE: This is also unfortunately called during panning, essentially making sure we'll never be using "fast" for pans ;).
-  UIManager:setDirty(
-    self.dialog,
-    "partial"
-  )
+  UIManager:setDirty(self.dialog, "partial")
 end
 
 function ReaderView:PanningUpdate(dx, dy)

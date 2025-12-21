@@ -255,7 +255,7 @@ function Button:init()
   }
   if self.shortcut then
     self.key_events = {
-      TapSelectButton = { { self.shortcut } }
+      TapSelectButton = { { self.shortcut } },
     }
   end
 end

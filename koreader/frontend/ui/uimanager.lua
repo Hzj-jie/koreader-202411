@@ -1198,10 +1198,7 @@ function UIManager:_refresh(mode, region, dither)
   --     (Putting "ui" in that list is problematic with a number of UI elements, most notably, ReaderHighlight,
   --     because it is implemented as "ui" over the full viewport, since we can't devise a proper bounding box).
   --     So we settle for only "partial", but treating full-screen ones slightly differently.
-  if
-    mode == "partial"
-    and self.FULL_REFRESH_COUNT > 0
-  then
+  if mode == "partial" and self.FULL_REFRESH_COUNT > 0 then
     if self.refresh_count == self.FULL_REFRESH_COUNT - 1 then
       -- NOTE: Promote to "full" if no region (reader), to "flashui" otherwise (UI)
       if region then
@@ -1372,7 +1369,13 @@ function UIManager:_repaint()
         refresh.dither
       )
 
-      if refresh.mode == "full" and refresh.region.x == 0 and refresh.region.y == 0 and refresh.region.w == Screen:getWidth() and refresh.region.y == Screen:getHeight() then
+      if
+        refresh.mode == "full"
+        and refresh.region.x == 0
+        and refresh.region.y == 0
+        and refresh.region.w == Screen:getWidth()
+        and refresh.region.y == Screen:getHeight()
+      then
         -- Reset the refresh_count to 0 after an explicit full screen refresh.
         -- Technically speaking, in the case, it should be the only refresh, but
         -- who knows.

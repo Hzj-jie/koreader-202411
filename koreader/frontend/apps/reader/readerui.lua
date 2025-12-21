@@ -752,36 +752,35 @@ end
 function ReaderUI:_showReaderCoroutine(file, provider, seamless)
   -- doShowReader might block for a long time, so force repaint here
   local function f()
-      logger.dbg("creating coroutine for showing reader")
-      local co = coroutine.create(function()
-        self:_doShowReader(file, provider, seamless)
-      end)
-      local ok, err = coroutine.resume(co)
-      if err ~= nil or ok == false then
-        io.stderr:write("[!] doShowReader coroutine crashed:\n")
-        io.stderr:write(debug.traceback(co, err, 1))
-        -- Restore input if we crashed before ReaderUI has restored it
-        Device:setIgnoreInput(false)
-        -- Need localization.
-        UIManager:show(InfoMessage:new({
-          text = _("Unfortunately KOReader crashed.")
-            .. "\n"
-            .. _(
-              "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help developers to improve it."
-            ),
-        }))
-        self:showFileManager(file)
-      end
+    logger.dbg("creating coroutine for showing reader")
+    local co = coroutine.create(function()
+      self:_doShowReader(file, provider, seamless)
+    end)
+    local ok, err = coroutine.resume(co)
+    if err ~= nil or ok == false then
+      io.stderr:write("[!] doShowReader coroutine crashed:\n")
+      io.stderr:write(debug.traceback(co, err, 1))
+      -- Restore input if we crashed before ReaderUI has restored it
+      Device:setIgnoreInput(false)
+      -- Need localization.
+      UIManager:show(InfoMessage:new({
+        text = _("Unfortunately KOReader crashed.")
+          .. "\n"
+          .. _(
+            "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help developers to improve it."
+          ),
+      }))
+      self:showFileManager(file)
+    end
   end
   if seamless then
     f()
     return
   end
   UIManager:runWith(
-    f,T(
-        _("Opening file '%1'."),
-        BD.filepath(filemanagerutil.abbreviate(file))
-      ))
+    f,
+    T(_("Opening file '%1'."), BD.filepath(filemanagerutil.abbreviate(file)))
+  )
 end
 
 function ReaderUI:_doShowReader(file, provider)

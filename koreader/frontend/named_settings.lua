@@ -92,11 +92,16 @@ function named_settings.default.full_refresh_count()
 end
 
 function named_settings.full_refresh_count()
-  return G_reader_settings:read("full_refresh_count") or named_settings.default.full_refresh_count()
+  return G_reader_settings:read("full_refresh_count")
+    or named_settings.default.full_refresh_count()
 end
 
 function named_settings.set.full_refresh_count(rate)
-  return G_reader_settings:save("full_refresh_count", rate, named_settings.default.full_refresh_count())
+  return G_reader_settings:save(
+    "full_refresh_count",
+    rate,
+    named_settings.default.full_refresh_count()
+  )
 end
 
 return named_settings
