@@ -598,6 +598,9 @@ function UIManager:setDirty(widget, refreshtype, refreshregion, refreshdither)
           refreshdither = true
         end
       end
+      if not refreshregion then
+        refreshregion = Geom:new({x = 0, y = 0, w = Screen:getWidth(), h = Screen:getHeight()})
+      end
     elseif not widget.invisible then
       -- NOTE: If our widget is translucent, or belongs to a translucent MovableContainer,
       --     we'll want to flag everything below it as dirty, too,
@@ -648,6 +651,9 @@ function UIManager:setDirty(widget, refreshtype, refreshregion, refreshdither)
       -- Again, if it's flagged as dithered, honor that
       if widget.dithered then
         refreshdither = true
+      end
+      if not refreshregion then
+        refreshregion = widget.dimen
       end
     end
   else
