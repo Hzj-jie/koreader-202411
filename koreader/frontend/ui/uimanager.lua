@@ -1377,10 +1377,10 @@ function UIManager:_repaint()
       -- the widget can use this to decide which parts should be refreshed
       logger.dbg("painting widget:", self:_widgetDebugStr(widget))
       Screen:beforePaint()
-      -- NOTE: Nothing actually seems to use the final argument?
-      --     Could be used by widgets to know whether they're being repainted because they're actually dirty (it's true),
-      --     or because something below them was (it's nil).
-      widget:paintTo(Screen.bb, window.x, window.y, self._dirty[widget])
+      widget:paintTo(Screen.bb, window.x, window.y)
+      self:scheduleRefresh(widget.refreshMode or "ui", 
+        widget.dimen:copy():offsetBy(window.x, window.y),
+        widget.dithered)
 
       -- and remove from list after painting
       self._dirty[widget] = nil
@@ -1520,10 +1520,16 @@ function UIManager:widgetRepaint(widget, x, y)
         cropping_widget.dimen.x,
         cropping_widget.dimen.y
       )
+      self:scheduleRefresh(widget.refreshMode or "ui", 
+        cropping_widget.dimen,
+        widget.dithered)
       return
     end
   end
   widget:paintTo(Screen.bb, x, y)
+  self:scheduleRefresh(widget.refreshMode or "ui", 
+    widget.dimen:copy():offsetBy(x, y),
+    widget.dithered)
 end
 
 --[[--
