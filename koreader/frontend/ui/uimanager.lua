@@ -275,7 +275,7 @@ function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
     for i = start_idx, #self._window_stack do
       self:setDirty(self._window_stack[i].widget)
     end
-    self:_refresh(refreshtype or "ui", refreshregion, refreshdither)
+    self:scheduleRefresh(refreshtype or "ui", refreshregion, refreshdither)
   end
   if widget._restored_input_gestures then
     logger.dbg("Widget is gone, disabling gesture handling again")
@@ -750,7 +750,7 @@ function UIManager:setDirty(widget, refreshtype, refreshregion, refreshdither)
     end
   else
     -- otherwise, enqueue refresh
-    self:_refresh(refreshtype, refreshregion, refreshdither)
+    self:scheduleRefresh(refreshtype, refreshregion, refreshdither)
     if dbg.is_on then
       if refreshregion then
         logger.dbg(
@@ -1233,7 +1233,7 @@ UIManager that a certain part of the screen is to be refreshed.
 
 @local Not to be used outside of UIManager!
 ]]
-function UIManager:_refresh(mode, region, dither)
+function UIManager:scheduleRefresh(mode, region, dither)
   if not mode then
     -- This is most likely from a `show` or `close` that wasn't passed specific refresh details,
     -- (which is the vast majority of them), in which case we drop it to avoid enqueuing a useless full-screen refresh.
@@ -1306,7 +1306,7 @@ function UIManager:_refresh(mode, region, dither)
       -- remove colliding refresh
       table.remove(self._refresh_stack, i)
       -- and try again with combined data
-      return self:_refresh(mode, combined, dither)
+      return self:scheduleRefresh(mode, combined, dither)
     end
   end
 
@@ -1402,7 +1402,7 @@ function UIManager:_repaint()
     -- honor dithering hints from *anywhere* in the dirty stack
     dither = update_dither(dither, dithered)
     if refreshtype then
-      self:_refresh(refreshtype, region, dither)
+      self:scheduleRefresh(refreshtype, region, dither)
     end
   end
   self._refresh_func_stack = {}
@@ -1413,7 +1413,7 @@ function UIManager:_repaint()
     logger.dbg(
       "no refresh got enqueued. Will do a partial full screen refresh, which might be inefficient"
     )
-    self:_refresh("partial")
+    self:scheduleRefresh("partial")
   end
 
   if #self._refresh_stack > 0 then
@@ -1577,12 +1577,12 @@ function UIManager:widgetInvert(widget, x, y, w, h)
         invert_region.w,
         invert_region.h
       )
-      self:_refresh("fast", invert_region)
+      self:scheduleRefresh("fast", invert_region)
       return
     end
   end
   Screen.bb:invertRect(x, y, w, h)
-  self:_refresh("fast", Geom:new({x = x, y = y, w = w, h = h}))
+  self:scheduleRefresh("fast", Geom:new({x = x, y = y, w = w, h = h}))
 end
 
 function UIManager:setInputTimeout(timeout)
