@@ -1164,6 +1164,11 @@ function UIManager:forceRepaint()
 end
 
 function UIManager:waitForScreenRefresh()
+  if Device:isEmulator() then
+    -- 100ms to make the animations more visible.
+    ffiUtil.usleep(100000)
+    return
+  end
   if not Device:hasEinkScreen() then
     return
   end
