@@ -1015,8 +1015,13 @@ end
 function UIManager:_scheduleRefreshWindowWidget(window)
   assert(window ~= nil)
   local widget = window.widget
+  local dimen = widget.dimen
+  -- window.x and window.y are never used, but keept the potential logic right.
+  if window.x > 0 or window.y > 0 then
+    dimen = dimen:copy():offsetBy(window.x, window.y)
+  end
   self:scheduleRefresh(widget:refreshMode(), 
-    widget.dimen:copy():offsetBy(window.x, window.y),
+    dimen,
     widget.dithered)
 end
 
