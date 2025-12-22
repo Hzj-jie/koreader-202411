@@ -505,7 +505,7 @@ function MenuItem:onTapSelect(arg, ges)
   self[1].invert = true
   UIManager:widgetInvert(self[1])
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
 
   -- Unhighlight
@@ -517,7 +517,7 @@ function MenuItem:onTapSelect(arg, ges)
   --
   self.menu:onMenuSelect(self.entry, pos)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   return true
 end
 
@@ -534,7 +534,7 @@ function MenuItem:onHoldSelect(arg, ges)
   self[1].invert = true
   UIManager:widgetInvert(self[1])
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
 
   -- Unhighlight
@@ -546,7 +546,7 @@ function MenuItem:onHoldSelect(arg, ges)
   --
   self.menu:onMenuHold(self.entry, pos)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   return true
 end
 

@@ -468,14 +468,14 @@ function Button:onTapSelectButton()
       -- Check if the callback reset transparency...
       is_translucent = is_translucent and self.show_parent.movable.alpha
 
-      UIManager:forceRePaint() -- Ensures whatever the callback wanted to paint will be shown *now*...
+      UIManager:forceRepaint() -- Ensures whatever the callback wanted to paint will be shown *now*...
       -- NOTE: This is mainly useful when the callback caused a REAGL update that we do not explicitly fence via MXCFB_WAIT_FOR_UPDATE_COMPLETE already, (i.e., Kobo Mk. 7).
       UIManager:waitForScreenRefresh() -- ...and that the EPDC will not wait to coalesce it with the *next* update,
       -- because that would have a chance to noticeably delay it until the unhighlight.
 
       -- Unhighlight
       self:_undoFeedbackHighlight(is_translucent)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
 
       -- Callback
       -- In case anything needs to be displayed in the callback; make sure it

@@ -700,7 +700,7 @@ Enabling this will ignore such font names and make sure your preferred family fo
               self.font_family_fonts[family_tag] = v
               Notification:notify(_("Font family font set for this book only."))
               -- Be sure it is shown before the re-rendering (which may take some time)
-              UIManager:forceRePaint()
+              UIManager:forceRepaint()
             end
             self:updateFontFamilyFonts()
           end,

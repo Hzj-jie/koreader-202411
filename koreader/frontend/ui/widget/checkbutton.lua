@@ -148,7 +148,7 @@ function CheckButton:onTapCheckButton()
       highlight_dimen.w
     )
 
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     UIManager:waitForScreenRefresh()
 
     -- Unhighlight
@@ -170,7 +170,7 @@ function CheckButton:onTapCheckButton()
       self.callback()
     end
 
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   end
   return true
 end

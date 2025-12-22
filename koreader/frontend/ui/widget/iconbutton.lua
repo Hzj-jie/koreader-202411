@@ -135,7 +135,7 @@ function IconButton:onTapIconButton()
     -- cropping logic in the widgetInvert will take care of it.
   )
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
 
   -- Unhighlight
@@ -157,7 +157,7 @@ function IconButton:onTapIconButton()
   --       This changes nothing in practice, since we follow by explicitly requesting to drain the refresh queue ;).
   UIManager:setDirty(nil, "fast", self.dimen)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   return true
 end
 

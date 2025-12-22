@@ -414,7 +414,7 @@ function Device:handlePowerEvent(ev)
       )
     end
     -- NOTE: In the same vein as above, make sure we update the screen *now*, before dealing with Wi-Fi.
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     -- NOTE: This side of the check needs to be laxer, some platforms can handle Wi-Fi without WifiManager ;).
     if self:hasWifiToggle() then
       -- NOTE: wifi_was_on does not necessarily mean that Wi-Fi is *currently* on! It means *we* enabled it.

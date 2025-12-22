@@ -855,7 +855,7 @@ function ImageViewer:onSaveImageView()
     self.buttons_visible = false
     self.fullscreen = true
     self:update()
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   end
   local screenshot_dir = Screenshoter:getScreenshotDir()
   local screenshot_name =

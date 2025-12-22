@@ -246,7 +246,7 @@ function TouchMenuItem:onTapSelect(arg, ges)
     highlight_dimen.w
   )
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
 
   -- Unhighlight
@@ -266,7 +266,7 @@ function TouchMenuItem:onTapSelect(arg, ges)
   --
   self.menu:onMenuSelect(self.item, tap_on_checkmark)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   return true
 end
 
@@ -301,7 +301,7 @@ function TouchMenuItem:onHoldSelect(arg, ges)
     highlight_dimen.w
   )
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
 
   -- Unhighlight
@@ -322,7 +322,7 @@ function TouchMenuItem:onHoldSelect(arg, ges)
   --
   self.menu:onMenuHold(self.item, self.text_truncated)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   return true
 end
 

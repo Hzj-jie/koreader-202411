@@ -233,7 +233,7 @@ function KeyValueItem:onTap()
     self[1].invert = true
     UIManager:widgetInvert(self[1])
 
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     UIManager:waitForScreenRefresh()
 
     -- Unhighlight
@@ -245,7 +245,7 @@ function KeyValueItem:onTap()
     --
     self.callback(self.kv_page, self)
 
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   else
     -- If no tap callback, allow for displaying the non-truncated
     -- text with Tap too

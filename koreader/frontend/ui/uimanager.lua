@@ -1035,7 +1035,7 @@ in which case, nothing is repainted, but the refreshes are still drained and exe
 
 @local Not to be used outside of UIManager!
 --]]
-function UIManager:forceRePaint()
+function UIManager:forceRepaint()
   -- flag in which we will record if we did any repaints at all
   -- will trigger a refresh if set.
   local dirty = false
@@ -1359,7 +1359,7 @@ function UIManager:handleInput()
       end
     end
 
-    self:forceRePaint()
+    self:forceRepaint()
   until not self._task_queue_dirty
 
   -- NOTE: Compute deadline *before* processing ZMQs, in order to be able to catch tasks scheduled *during*
@@ -1450,7 +1450,7 @@ end
 
 function UIManager:onRotation()
   self:scheduleRepaintAll()
-  self:forceRePaint()
+  self:forceRepaint()
 end
 
 function UIManager:initLooper()
@@ -1680,7 +1680,7 @@ function UIManager:runWith(func, widget)
     })
   end
   self:show(widget)
-  self:forceRePaint()
+  self:forceRepaint()
   func()
   self:close(widget)
 end

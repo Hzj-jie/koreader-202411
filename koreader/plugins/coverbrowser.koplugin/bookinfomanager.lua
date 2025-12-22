@@ -919,7 +919,7 @@ Do you want to prune the cache of removed books?]]),
     while true do
       info = InfoMessage:new({ text = _("Pruning cache of removed books…") })
       UIManager:show(info)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
       completed, summary = Trapper:dismissableRunInSubprocess(function()
         return self:removeNonExistantEntries()
       end, info)
@@ -931,7 +931,7 @@ Do you want to prune the cache of removed books?]]),
         UIManager:close(info)
         info = InfoMessage:new({ text = summary })
         UIManager:show(info)
-        UIManager:forceRePaint()
+        UIManager:forceRepaint()
         FFIUtil.sleep(2) -- Let the user see that
         break
       end
@@ -943,7 +943,7 @@ Do you want to prune the cache of removed books?]]),
   while true do
     info = InfoMessage:new({ text = _("Looking for books to index…") })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     completed, files = Trapper:dismissableRunInSubprocess(function()
       local filepaths = findFilesInDir(path, recursive)
       table.sort(filepaths)
@@ -972,7 +972,7 @@ Do you want to prune the cache of removed books?]]),
       ),
     })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     FFIUtil.sleep(2) -- Let the user see that
   else
     local all_files = files
@@ -986,7 +986,7 @@ Do you want to prune the cache of removed books?]]),
         ),
       })
       UIManager:show(info)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
       FFIUtil.sleep(2) -- Let the user see that
       completed, files = Trapper:dismissableRunInSubprocess(function()
         files = {}
@@ -1034,7 +1034,7 @@ Do you want to prune the cache of removed books?]]),
       ),
     })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     FFIUtil.sleep(2) -- Let the user see that
   end
   UIManager:close(info)
