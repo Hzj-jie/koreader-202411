@@ -120,7 +120,7 @@ function filemanagerutil.saveSummary(doc_settings_or_file, summary)
     doc_settings_or_file = DocSettings:open(doc_settings_or_file)
   end
   summary.modified = os.date("%Y-%m-%d", os.time())
-  doc_settings_or_file:save("summary", summary)
+  doc_settings_or_file:save("summary", summary, {})
   doc_settings_or_file:flush()
   return doc_settings_or_file
 end
