@@ -1254,6 +1254,11 @@ function UIManager:widgetInvert(widget, x, y, w, h)
     return
   end
 
+  local mode = "flashui"
+  if G_reader_settings:nilOrTrue("avoid_flashing_ui") then
+    mode = "fast"
+  end
+
   logger.dbg("Explicit widgetInvert:", self:_widgetDebugStr(widget), "@", x, y)
   if widget.show_parent and widget.show_parent.cropping_widget then
     -- The main widget parent of this subwidget has a cropping container: see if
@@ -1273,12 +1278,12 @@ function UIManager:widgetInvert(widget, x, y, w, h)
         invert_region.w,
         invert_region.h
       )
-      self:scheduleRefresh("fast", invert_region)
+      self:scheduleRefresh(mode, invert_region)
       return
     end
   end
   Screen.bb:invertRect(x, y, w, h)
-  self:scheduleRefresh("fast", Geom:new({x = x, y = y, w = w, h = h}))
+  self:scheduleRefresh(mode, Geom:new({x = x, y = y, w = w, h = h}))
 end
 
 function UIManager:setInputTimeout(timeout)
