@@ -312,7 +312,6 @@ function FileSearcher:onShowSearchResults(not_cached)
 
   self.search_menu = Menu:new({
     subtitle = T(_("Query: %1"), FileSearcher.search_string),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     is_borderless = true,
     is_popout = false,
     title_bar_fm_style = true,

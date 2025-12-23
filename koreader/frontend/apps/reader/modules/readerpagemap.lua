@@ -256,7 +256,6 @@ function ReaderPageMap:onShowPageList()
 
   self.pagelist_menu = CenterContainer:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     pl_menu,
   })
 

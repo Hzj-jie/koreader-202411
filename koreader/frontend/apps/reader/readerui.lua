@@ -809,7 +809,6 @@ function ReaderUI:_doShowReader(file, provider)
   end
   local reader = ReaderUI:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     document = document,
   })
 

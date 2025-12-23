@@ -1365,7 +1365,6 @@ function FileManager:showFiles(path, focused_file, selected_files)
   -- FileManager shows itself.
   FileManager:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     root_path = path,
     focused_file = focused_file,
     selected_files = selected_files,

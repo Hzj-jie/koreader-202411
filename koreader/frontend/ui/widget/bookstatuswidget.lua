@@ -91,7 +91,6 @@ function BookStatusWidget:init()
   end
 
   local screen_size = Screen:getSize()
-  self.covers_fullscreen = true -- hint for UIManager:_repaint()
   self[1] = FrameContainer:new({
     width = screen_size.w,
     height = screen_size.h,

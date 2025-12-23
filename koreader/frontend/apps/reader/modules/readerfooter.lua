@@ -2163,7 +2163,7 @@ function ReaderFooter:_repaint()
   local top_wg = UIManager:getTopmostVisibleWidget() or {}
   if
     top_wg.name ~= "ReaderUI"
-    and (top_wg.covers_fullscreen or top_wg.covers_footer)
+    and top_wg.covers_footer
   then
     -- If the top most widget covers the footer, but it's not the ReaderUI,
     -- footer doesn't need to be repainted.

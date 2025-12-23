@@ -1178,12 +1178,6 @@ function CalendarView:init()
     w = self.width or Screen:getWidth(),
     h = self.height or Screen:getHeight(),
   })
-  if
-    self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
-  then
-    self.covers_fullscreen = true -- hint for UIManager:_repaint()
-  end
-
   if Device:hasKeys() then
     self.key_events.Exit = { { Input.group.Back } }
     self.key_events.NextMonth = { { Input.group.PgFwd } }
@@ -1332,7 +1326,7 @@ function CalendarView:init()
   })
 
   self.title_bar = TitleBar:new({
-    fullscreen = self.covers_fullscreen,
+    fullscreen = (self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()),
     width = self.dimen.w,
     align = "left",
     title = self.title,

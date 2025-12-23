@@ -72,8 +72,6 @@ local InfoMessage = InputContainer:extend({
   lang = nil,
   para_direction_rtl = nil,
   auto_para_direction = nil,
-  -- Only have it painted after this delay (dismissing still works before it's shown)
-  show_delay = nil,
 })
 
 function InfoMessage:init()
@@ -186,11 +184,6 @@ function InfoMessage:init()
       self:init()
     end
   end
-
-  if self.show_delay then
-    -- Don't have UIManager setDirty us yet
-    self.invisible = true
-  end
 end
 
 function InfoMessage:onClose()
@@ -211,33 +204,10 @@ function InfoMessage:onClose()
       self.dismiss_callback = nil
     end
   end
-
-  if self.invisible then
-    -- Still invisible, no setDirty needed
-    return
-  end
-
-  UIManager:setDirty(nil, function()
-    return "ui", self.movable.dimen
-  end)
 end
 
 function InfoMessage:onShow()
   -- triggered by the UIManager after we got successfully show()'n (not yet painted)
-  if self.show_delay and self.invisible then
-    -- Let us be shown after this delay
-    self._delayed_show_action = function()
-      self._delayed_show_action = nil
-      self.invisible = false
-      self:onShow()
-    end
-    UIManager:scheduleIn(self.show_delay, self._delayed_show_action)
-    return true
-  end
-  -- set our region to be dirty, so UImanager will call our paintTo()
-  UIManager:setDirty(self, function()
-    return "ui", self.movable.dimen
-  end)
   -- schedule a close on timeout, if any
   if self.timeout then
     self._timeout_func = function()
@@ -249,16 +219,7 @@ function InfoMessage:onShow()
   return true
 end
 
-function InfoMessage:getVisibleArea()
-  if not self.invisible then
-    return self.movable.dimen
-  end
-end
-
 function InfoMessage:paintTo(bb, x, y)
-  if self.invisible then
-    return
-  end
   InputContainer.paintTo(self, bb, x, y)
 end
 

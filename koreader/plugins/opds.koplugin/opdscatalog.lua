@@ -70,7 +70,6 @@ function OPDSCatalog:showCatalog()
   logger.dbg("show OPDS catalog")
   UIManager:show(OPDSCatalog:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
   }))
 end
 

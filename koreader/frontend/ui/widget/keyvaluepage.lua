@@ -328,12 +328,6 @@ function KeyValuePage:init()
     w = self.width or Screen:getWidth(),
     h = self.height or Screen:getHeight(),
   })
-  if
-    self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
-  then
-    self.covers_fullscreen = true -- hint for UIManager:_repaint()
-  end
-
   if Device:hasKeys() then
     self.key_events.Exit = { { Input.group.Back } }
     self.key_events.NextPage = { { Input.group.PgFwd } }
@@ -485,7 +479,7 @@ function KeyValuePage:init()
 
   self.title_bar = TitleBar:new({
     title = self.title,
-    fullscreen = self.covers_fullscreen,
+    fullscreen = (self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()),
     width = self.width,
     align = self.title_bar_align,
     with_bottom_line = true,

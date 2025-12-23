@@ -51,7 +51,6 @@ function PageBrowserWidget:init()
     w = Screen:getWidth(),
     h = Screen:getHeight(),
   })
-  self.covers_fullscreen = true -- hint for UIManager:_repaint()
 
   if Device:hasKeys() then
     self.key_events = {

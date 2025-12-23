@@ -213,7 +213,6 @@ function InputDialog:init()
     self.is_movable = false
     self.border_size = 0
     self.width = self.screen_width - 2 * self.border_size
-    self.covers_fullscreen = true -- hint for UIManager:_repaint()
   else
     self.width = self.width
       or math.floor(math.min(self.screen_width, self.screen_height) * 0.8)

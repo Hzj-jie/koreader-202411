@@ -293,7 +293,6 @@ end
 function FileManagerHistory:onShowHist(search_info)
   self.hist_menu = Menu:new({
     ui = self.ui,
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     is_borderless = true,
     is_popout = false,
     title = self.hist_menu_title,

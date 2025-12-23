@@ -327,7 +327,6 @@ function MenuDialog:setupPluginMenu()
   })
   self:mergeLayoutInVertical(buttons)
 
-  self.covers_fullscreen = true
   self[1] = CenterContainer:new({
     dimen = size,
     FrameContainer:new({
@@ -458,7 +457,6 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
     show_parent = self,
   })
 
-  self.covers_fullscreen = true
   self[1] = CenterContainer:new({
     dimen = size,
     FrameContainer:new({

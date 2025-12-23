@@ -943,7 +943,6 @@ function ReaderToc:onShowToc()
 
   local menu_container = CenterContainer:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     toc_menu,
   })
 

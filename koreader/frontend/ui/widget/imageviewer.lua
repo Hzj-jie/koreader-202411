@@ -136,9 +136,6 @@ function ImageViewer:init()
       MultiSwipe = { GestureRange:new({ ges = "multiswipe", range = range }) },
     }
   end
-  if self.fullscreen then
-    self.covers_fullscreen = true -- hint for UIManager:_repaint()
-  end
 
   -- if self.image is a list of images, swap it with first image to be displayed
   if type(self.image) == "table" then

@@ -274,7 +274,7 @@ function ReaderCoptListener:shouldHeaderBeRepainted()
   if top_wg.name == "ReaderUI" then
     -- We're on display, go ahead
     return true
-  elseif top_wg.covers_fullscreen or top_wg.covers_header then
+  elseif top_wg.covers_header then
     -- We're hidden behind something that definitely covers us, don't do anything
     return false
   else

@@ -733,7 +733,6 @@ function ReaderBookmark:onShowBookmark()
 
   self.bookmark_menu = CenterContainer:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
   })
   local bm_menu = Menu:new({
     title = T(_("Bookmarks (%1)"), #item_table),
