@@ -1201,11 +1201,27 @@ This is an explicit repaint *now*: it bypasses and ignores the paint queue (unli
 function UIManager:scheduleWidgetRepaint(widget, refreshMode)
   -- TODO: Should assert.
   if not widget then
-    return
+    return false
   end
 
-  self._dirty[widget] = true
-  widget._refreshMode = refreshMode or widget._refreshMode
+  -- TODO: Should assert.
+  for i = 1, #self._window_stack do
+    if self._window_stack[i].widget == widget then
+      self._dirty[widget] = true
+      widget._refreshMode = refreshMode or widget._refreshMode
+      return true
+    end
+  end
+
+  if widget.show_parent then
+    if self:scheduleWidgetRepaint(widget.show_parent, refreshMode) then
+      logger.warn("scheduleWidgetRepaint widget.show_parent of ", self:_widgetDebugStr(widget), ", send in the show(widget) instead.")
+      return true
+    end
+  end
+
+  logger.warn("Unknown widget ", self:_widgetDebugStr(widget), " to repaint, send in the show(widget) instead.")
+  return false
 end
 
 --[[--
