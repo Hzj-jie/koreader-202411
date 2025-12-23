@@ -1678,7 +1678,12 @@ function UIManager:runWith(func, widget)
   end
   self:show(widget)
   self:forceRepaint()
+  local wait_time = time.monotonic()
   func()
+  wait_time = time.ms(200) - (time.monotonic() - wait_time)
+  if wait_time > 0 then
+    ffiUtil.usleep(wait_time)
+  end
   self:close(widget)
 end
 

@@ -442,8 +442,8 @@ local NetworkSetting = InputContainer:extend({
 })
 
 function NetworkSetting:init()
-  self.width = self.width or Screen:getWidth() - Screen:scaleBySize(50)
-  self.width = math.min(self.width, Screen:scaleBySize(600))
+  self.width = self.width
+    or math.min(Screen:getWidth() * 3 / 4, Screen:scaleBySize(600))
 
   local gray_bg = Blitbuffer.COLOR_GRAY_E
   local items = {}
