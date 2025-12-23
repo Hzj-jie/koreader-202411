@@ -470,8 +470,7 @@ function UIManager:setDirty(widget, refreshMode, region)
     self:scheduleRepaintAll(refreshMode)
     return
   end
-  self._dirty[widget] = true
-  widget._refreshMode = refreshMode or widget._refreshMode
+  self:scheduleWidgetRepaint(widget, refreshMode)
 end
 --[[
 -- NOTE: While nice in theory, this is *extremely* verbose in practice,
@@ -946,6 +945,10 @@ function UIManager:scheduleRefresh(mode, region, dither)
       mode = "ui"
       logger.dbg("_refresh: downgraded regional partial refresh to", mode)
     end
+  else
+    if mode == "fast" or mode == "a2" then
+      mode = "flashui"
+    end
   end
   -- special case: "partial" refreshes
   -- will get promoted every self.FULL_REFRESH_COUNT refreshes
@@ -1195,13 +1198,14 @@ This is an explicit repaint *now*: it bypasses and ignores the paint queue (unli
 @int x left origin of widget (in the Screen buffer, optional, will use `widget.dimen.x`)
 @int y top origin of widget (in the Screen buffer, optional, will use `widget.dimen.y`)
 ]]
-function UIManager:scheduleWidgetRepaint(widget)
+function UIManager:scheduleWidgetRepaint(widget, refreshMode)
   -- TODO: Should assert.
   if not widget then
     return
   end
 
   self._dirty[widget] = true
+  widget._refreshMode = refreshMode or widget._refreshMode
 end
 
 --[[--
@@ -1236,11 +1240,6 @@ function UIManager:scheduleWidgetInvert(widget, x, y, w, h)
     return
   end
 
-  local mode = "flashui"
-  if G_reader_settings:nilOrTrue("avoid_flashing_ui") then
-    mode = "fast"
-  end
-
   logger.dbg("Explicit widgetInvert:", self:_widgetDebugStr(widget), "@", x, y)
   if widget.show_parent and widget.show_parent.cropping_widget then
     -- The main widget parent of this subwidget has a cropping container: see if
@@ -1260,12 +1259,12 @@ function UIManager:scheduleWidgetInvert(widget, x, y, w, h)
         invert_region.w,
         invert_region.h
       )
-      self:scheduleRefresh(mode, invert_region)
+      self:scheduleRefresh("fast", invert_region)
       return
     end
   end
   Screen.bb:invertRect(x, y, w, h)
-  self:scheduleRefresh(mode, Geom:new({x = x, y = y, w = w, h = h}))
+  self:scheduleRefresh("fast", Geom:new({x = x, y = y, w = w, h = h}))
 end
 
 function UIManager:setInputTimeout(timeout)
