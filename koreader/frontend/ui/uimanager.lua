@@ -454,9 +454,13 @@ end)
 -- A workaround to handle most of the existing logic
 function UIManager:setDirty(widget, refreshMode, region)
   if type(refreshMode) == "function" then
-    local returnedRegion
-    refreshMode, returnedRegion = refreshMode()
-    region = region or returnedRegion
+    table.insert(self._refresh_func_stack, function()
+      local returnedRegion
+      refreshMode, returnedRegion = refreshMode()
+      region = region or returnedRegion
+      self:setDirty(widget, refreshMode, region)
+    end)
+    return
   end
   if widget == nil then
     self:scheduleRefresh(refreshMode, region)
