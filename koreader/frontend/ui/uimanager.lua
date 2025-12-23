@@ -888,8 +888,9 @@ end
 --[[--
 Enqueues a refresh.
 
-Widgets call this in their `paintTo()` method in order to notify
-UIManager that a certain part of the screen is to be refreshed.
+It's very uncommon to call this function directly out of UIManager, but it's
+still usable. It notifies UIManager that a certain part of the screen needs to
+be refreshed and will be performed later.
 
 @string mode
   refresh mode (`"full"`, `"flashpartial"`, `"flashui"`, `"[partial]"`, `"[ui]"`, `"partial"`, `"ui"`, `"fast"`, `"a2"`)
@@ -900,8 +901,6 @@ UIManager that a certain part of the screen is to be refreshed.
 @bool dither
   A hint to request hardware dithering (if supported).
   Optional, no dithering requested if not specified or not supported.
-
-@local Not to be used outside of UIManager!
 ]]
 function UIManager:scheduleRefresh(mode, region, dither)
   if mode == nil then
