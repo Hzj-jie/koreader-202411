@@ -1570,7 +1570,7 @@ function PageBrowserWidget:onTap(arg, ges)
           thumb_frame.dimen.y = thumb_frame.dimen.y - b_inc
           thumb_frame.dimen.w = thumb_frame.dimen.w + 2 * b_inc
           thumb_frame.dimen.h = thumb_frame.dimen.h + 2 * b_inc
-          UIManager:widgetRepaint(thumb_frame)
+          UIManager:scheduleWidgetRepaint(thumb_frame)
           Screen:refreshFast(
             thumb_frame.dimen.x,
             thumb_frame.dimen.y,

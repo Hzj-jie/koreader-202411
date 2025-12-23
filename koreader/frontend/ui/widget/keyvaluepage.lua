@@ -231,7 +231,7 @@ function KeyValueItem:onTap()
     -- Highlight
     --
     self[1].invert = true
-    UIManager:widgetInvert(self[1])
+    UIManager:scheduleWidgetInvert(self[1])
 
     UIManager:forceRepaint()
     UIManager:waitForScreenRefresh()
@@ -239,7 +239,7 @@ function KeyValueItem:onTap()
     -- Unhighlight
     --
     self[1].invert = false
-    UIManager:widgetInvert(self[1])
+    UIManager:scheduleWidgetInvert(self[1])
 
     -- Callback
     --

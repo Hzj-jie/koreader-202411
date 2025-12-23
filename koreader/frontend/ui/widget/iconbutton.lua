@@ -127,7 +127,7 @@ function IconButton:onTapIconButton()
   -- Highlight
   --
   self.image.invert = true
-  UIManager:widgetInvert(
+  UIManager:scheduleWidgetInvert(
     self.image,
     self.dimen.x + h_padding,
     self.dimen.y + self.padding_top
@@ -141,7 +141,7 @@ function IconButton:onTapIconButton()
   -- Unhighlight
   --
   self.image.invert = false
-  UIManager:widgetInvert(
+  UIManager:scheduleWidgetInvert(
     self.image,
     self.dimen.x + h_padding,
     self.dimen.y + self.padding_top

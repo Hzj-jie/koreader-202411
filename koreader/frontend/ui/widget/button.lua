@@ -418,11 +418,11 @@ function Button:_doFeedbackHighlight()
     end
 
     -- This repaints *now*, unlike setDirty
-    UIManager:widgetRepaint(self[1])
-    UIManager:setDirty(nil, "fast", self[1].dimen)
+    self[1]._refreshMode = "fast"
+    UIManager:scheduleWidgetRepaint(self[1])
   else
     self[1].invert = true
-    UIManager:widgetInvert(self[1])
+    UIManager:scheduleWidgetInvert(self[1])
   end
 end
 
@@ -435,10 +435,13 @@ function Button:_undoFeedbackHighlight(is_translucent)
     else
       self[1].invert = false
     end
-    UIManager:widgetRepaint(self[1])
+
+    -- This repaints *now*, unlike setDirty
+    self[1]._refreshMode = "fast"
+    UIManager:scheduleWidgetRepaint(self[1])
   else
     self[1].invert = false
-    UIManager:widgetInvert(self[1])
+    UIManager:scheduleWidgetInvert(self[1])
   end
 
   if is_translucent then
@@ -513,7 +516,7 @@ function Button:refresh()
     )
     return
   end
-  UIManager:widgetRepaint(self[1])
+  UIManager:scheduleWidgetRepaint(self[1])
 
   UIManager:setDirty(nil, function()
     return self.enabled and "fast" or "ui", self[1].dimen

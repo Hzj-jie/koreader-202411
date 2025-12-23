@@ -239,7 +239,7 @@ function TouchMenuItem:onTapSelect(arg, ges)
   -- Highlight
   --
   self.item_frame.invert = true
-  UIManager:widgetInvert(
+  UIManager:scheduleWidgetInvert(
     self.item_frame,
     highlight_dimen.x,
     highlight_dimen.y,
@@ -254,7 +254,7 @@ function TouchMenuItem:onTapSelect(arg, ges)
   self.item_frame.invert = false
   -- NOTE: If the menu is going to be closed, we can safely drop that.
   if self.item.keep_menu_open then
-    UIManager:widgetInvert(
+    UIManager:scheduleWidgetInvert(
       self.item_frame,
       highlight_dimen.x,
       highlight_dimen.y,
@@ -294,7 +294,7 @@ function TouchMenuItem:onHoldSelect(arg, ges)
   -- Highlight
   --
   self.item_frame.invert = true
-  UIManager:widgetInvert(
+  UIManager:scheduleWidgetInvert(
     self.item_frame,
     highlight_dimen.x,
     highlight_dimen.y,
@@ -310,7 +310,7 @@ function TouchMenuItem:onHoldSelect(arg, ges)
   -- NOTE: If the menu is going to be closed, we can safely drop that.
   --     (This field defaults to nil, meaning keep the menu open, hence the negated test)
   if self.item.hold_keep_menu_open ~= false then
-    UIManager:widgetInvert(
+    UIManager:scheduleWidgetInvert(
       self.item_frame,
       highlight_dimen.x,
       highlight_dimen.y,
@@ -1208,7 +1208,7 @@ function TouchMenu:openMenu(path, with_animation)
     end
     if unhighlight then
       widget.invert = false
-      UIManager:widgetInvert(
+      UIManager:scheduleWidgetInvert(
         widget,
         highlight_dimen.x,
         highlight_dimen.y,
@@ -1216,7 +1216,7 @@ function TouchMenu:openMenu(path, with_animation)
       )
     else
       widget.invert = true
-      UIManager:widgetInvert(
+      UIManager:scheduleWidgetInvert(
         widget,
         highlight_dimen.x,
         highlight_dimen.y,

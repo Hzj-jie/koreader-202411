@@ -1191,40 +1191,13 @@ This is an explicit repaint *now*: it bypasses and ignores the paint queue (unli
 @int x left origin of widget (in the Screen buffer, optional, will use `widget.dimen.x`)
 @int y top origin of widget (in the Screen buffer, optional, will use `widget.dimen.y`)
 ]]
-function UIManager:widgetRepaint(widget, x, y)
+function UIManager:scheduleWidgetRepaint(widget)
   -- TODO: Should assert.
   if not widget then
     return
   end
 
-  -- It's possible that the function is called before the paintTo call.
-  if widget.dimen then
-    x = x or widget.dimen.x
-    y = y or widget.dimen.y
-  end
-
-  logger.dbg("Explicit widgetRepaint:", self:_widgetDebugStr(widget), "@", x, y)
-  if widget.show_parent and widget.show_parent.cropping_widget then
-    -- The main widget parent of this subwidget has a cropping container: see if
-    -- this widget is a child of this cropping container
-    local cropping_widget = widget.show_parent.cropping_widget
-    if util.arrayReferences(cropping_widget, widget) then
-      -- Delegate the painting of this subwidget to its cropping widget container
-      cropping_widget:paintTo(
-        Screen.bb,
-        cropping_widget.dimen.x,
-        cropping_widget.dimen.y
-      )
-      self:scheduleRefresh(widget:refreshMode(), 
-        cropping_widget.dimen,
-        widget.dithered)
-      return
-    end
-  end
-  widget:paintTo(Screen.bb, x, y)
-  self:scheduleRefresh(widget:refreshMode(), 
-    widget.dimen:copy():offsetBy(x, y),
-    widget.dithered)
+  self._dirty[widget] = true
 end
 
 --[[--
@@ -1237,7 +1210,7 @@ Same idea as `widgetRepaint`, but does a simple `bb:invertRect` on the Screen bu
 @int h height of the rectangle (optional, will use `widget.dimen.h` like `paintTo` would if omitted)
 @see widgetRepaint
 --]]
-function UIManager:widgetInvert(widget, x, y, w, h)
+function UIManager:scheduleWidgetInvert(widget, x, y, w, h)
   -- TODO: Should assert.
   if not widget then
     return
