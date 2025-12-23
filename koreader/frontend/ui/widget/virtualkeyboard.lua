@@ -408,24 +408,21 @@ function VirtualKey:update_keyboard(want_flash, want_a2)
     UIManager:setDirty(self.keyboard, function()
       return "flashui", self.keyboard.dimen
     end)
-  else
-    local refresh_type = "ui"
-    if want_a2 then
-      refresh_type = "a2"
-    end
-    -- Only repaint the key itself, not the full board...
-    -- NOTE: We use self[1] (i.e., FrameContainer),
-    --     because we fudge self.dimen to include the padding for the gesture hitbox...
-    UIManager:scheduleWidgetRepaint(self[1])
-    logger.dbg("update key", self.key)
-    UIManager:setDirty(nil, refresh_type, self[1].dimen)
-
-    -- NOTE: On MTK, we'd have to forcibly stall a bit for the highlights to actually show.
-    --[[
-    UIManager:forceRepaint()
-    UIManager:waitForScreenRefresh()
-    --]]
+    return
   end
+
+  -- Only repaint the key itself, not the full board...
+  -- NOTE: We use self[1] (i.e., FrameContainer),
+  --     because we fudge self.dimen to include the padding for the gesture hitbox...
+  self[1]._refreshMode = (want_a2 and "a2" or "ui")
+  UIManager:repaintWidget(self[1])
+  logger.dbg("update key", self.key)
+
+  -- NOTE: On MTK, we'd have to forcibly stall a bit for the highlights to actually show.
+  --[[
+  UIManager:forceRepaint()
+  UIManager:waitForScreenRefresh()
+  --]]
 end
 
 function VirtualKey:onFocus()

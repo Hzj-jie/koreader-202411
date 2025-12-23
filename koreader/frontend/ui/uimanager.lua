@@ -1165,7 +1165,7 @@ This is an explicit repaint *now*: it bypasses and ignores the paint queue (unli
 @int x left origin of widget (in the Screen buffer, optional, will use `widget.dimen.x`)
 @int y top origin of widget (in the Screen buffer, optional, will use `widget.dimen.y`)
 ]]
-function UIManager:scheduleWidgetRepaint(widget, refreshMode)
+function UIManager:scheduleWidgetRepaint(widget)
   -- TODO: Should assert.
   if not widget then
     return false
@@ -1175,13 +1175,12 @@ function UIManager:scheduleWidgetRepaint(widget, refreshMode)
   for i = 1, #self._window_stack do
     if self._window_stack[i].widget == widget then
       self._dirty[widget] = true
-      widget._refreshMode = refreshMode or widget._refreshMode
       return true
     end
   end
 
   if widget.show_parent and widget.show_parent ~= widget then
-    if self:scheduleWidgetRepaint(widget.show_parent, refreshMode) then
+    if self:scheduleWidgetRepaint(widget.show_parent) then
       logger.warn(
         "scheduleWidgetRepaint widget.show_parent of ",
         self:_widgetDebugStr(widget),
@@ -1199,6 +1198,14 @@ function UIManager:scheduleWidgetRepaint(widget, refreshMode)
     debug.traceback()
   )
   return false
+end
+
+-- Immediately repaint the widget, relying on the widget.dimen.
+function UIManager:repaintWidget(widget)
+  assert(widget ~= nil)
+  assert(widget.dimen ~= nil)
+  widget:paintTo(Screen.bb, widget.dimen.x, widget.dimen.y)
+  self:scheduleRefresh(widget:refreshMode(), widget.dimen, widget.dithered)
 end
 
 --[[--
@@ -1406,6 +1413,9 @@ function UIManager:handleInput()
   end
 end
 
+-- If a function works with widget, it should use widget:refreshMode(). But this
+-- function is special, cause it goes through all the widgets. If their
+-- refreshMode()s are considered, it would almost always end up with "full".
 function UIManager:scheduleRepaintAll(refreshMode)
   local dithered = false
   for _, window in ipairs(self._window_stack) do

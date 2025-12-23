@@ -225,6 +225,7 @@ function Button:init()
     padding_bottom = self.padding_v,
     padding_left = self.padding_h,
     padding_right = self.padding_h,
+    _refreshMode = "fast",
     self.label_container,
   })
   if self.preselect then
@@ -418,7 +419,7 @@ function Button:_doFeedbackHighlight()
     end
 
     -- This repaints *now*, unlike setDirty
-    UIManager:scheduleWidgetRepaint(self[1], "fast")
+    UIManager:scheduleWidgetRepaint(self[1])
   else
     self[1].invert = true
     UIManager:scheduleWidgetInvert(self[1])
@@ -436,7 +437,7 @@ function Button:_undoFeedbackHighlight()
     end
 
     -- This repaints *now*, unlike setDirty
-    UIManager:scheduleWidgetRepaint(self[1], "fast")
+    UIManager:scheduleWidgetRepaint(self[1])
   else
     self[1].invert = false
     UIManager:scheduleWidgetInvert(self[1])
