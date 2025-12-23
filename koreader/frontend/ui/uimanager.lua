@@ -143,13 +143,13 @@ If refreshtype is omitted, no refresh will be enqueued at this time.
 @see setDirty
 ]]
 function UIManager:show(widget)
-  assert(not self:isWidgetShown(widget))
-
   -- TODO: Should assert
   if not widget then
     logger.dbg("attempted to show a nil widget")
     return
   end
+  assert(not self:isWidgetShown(widget))
+
   logger.dbg("show widget:", self:_widgetDebugStr(widget))
 
   -- The window x and y are never used.
@@ -454,18 +454,15 @@ end)
 -- A workaround to handle most of the existing logic
 function UIManager:setDirty(widget, refreshMode, region)
   if type(refreshMode) == "function" then
-    if widget ~= nil then
-      self:scheduleWidgetRepaint(widget)
-    end
     table.insert(self._refresh_func_stack, function()
-      local returnedRegion
-      refreshMode, returnedRegion = refreshMode()
-      region = region or returnedRegion
+      local m, r = refreshMode()
+      r = region or r
       if widget ~= nil then
-        region = region or widget.dimen
+        r = r or widget.dimen
       end
-      self:scheduleRefresh(refreshMode, region)
+      self:setDirty(widget, m, r)
     end)
+    return
   end
   if widget == nil then
     self:scheduleRefresh(refreshMode, region)
