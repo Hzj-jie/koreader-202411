@@ -88,7 +88,7 @@ function named_settings.flip.low_pan_rate()
 end
 
 function named_settings.default.full_refresh_count()
-  return 6
+  return 24
 end
 
 function named_settings.full_refresh_count()

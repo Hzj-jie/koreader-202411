@@ -35,10 +35,10 @@ return {
     -- Need localization
     text = _("Low full refresh rate for better responsiveness"),
     checked_func = function()
-      return G_named_settings.full_refresh_count() == 24
+      return G_named_settings.full_refresh_count() == 48
     end,
     callback = function()
-      UIManager:broadcastEvent(Event:new("SetRefreshRate", 24))
+      UIManager:broadcastEvent(Event:new("SetRefreshRate", 48))
     end,
   },
   {
@@ -61,10 +61,10 @@ return {
     -- Need localization
     text = _("High full refresh rate for better display quality"),
     checked_func = function()
-      return G_named_settings.full_refresh_count() == 1
+      return G_named_settings.full_refresh_count() == 4
     end,
     callback = function()
-      UIManager:broadcastEvent(Event:new("SetRefreshRate", 1))
+      UIManager:broadcastEvent(Event:new("SetRefreshRate", 4))
     end,
     separator = true,
   },

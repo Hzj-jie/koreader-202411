@@ -2201,6 +2201,15 @@ function ReaderFooter:_repaint()
     -- If the footer is invisible or might be hidden behind another widget, we need to repaint the full ReaderUI stack.
     UIManager:setDirty(self.view.dialog, "ui", refresh_dim)
   end
+
+  if G_reader_settings:isFalse("avoid_flashing_ui") or
+    G_named_settings.full_refresh_count() < G_named_settings.default.full_refresh_count() then
+    -- This is very uncommon, but considering the _paint can be called randomly,
+    -- without forcing a repaint, the delay would be noticable up to 200ms per
+    -- frequence of repainting in UIManager. So force a repaint to reduce the
+    -- laggy if users would like a better user experience.
+    UIManager:forceRepaint()
+  end
 end
 
 -- Use of this event should be very cautious, ReaderFooter should listen to

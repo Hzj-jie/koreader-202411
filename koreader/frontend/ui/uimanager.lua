@@ -217,7 +217,6 @@ function UIManager:close(widget)
       dirty = true
     else
       if w.dithered then
-        refreshdither = true
         logger.dbg(
           "Lower widget",
           self:_widgetDebugStr(w),
@@ -241,6 +240,9 @@ function UIManager:close(widget)
       self._window_stack[#self._window_stack].widget.tap_interval_override
   end
   if dirty then
+    -- TODO: Similar to the UIManager:show, an optimization can be calculating
+    -- the covered area and not repainting all the invisible widgets, but it's
+    -- hard to demonstrate the imporantce.
     for i = 1, #self._window_stack do
       self._dirty[self._window_stack[i].widget] = true
     end
