@@ -1219,7 +1219,7 @@ function UIManager:scheduleWidgetRepaint(widget, refreshMode)
     end
   end
 
-  if widget.show_parent then
+  if widget.show_parent and widget.show_parent ~= widget then
     if self:scheduleWidgetRepaint(widget.show_parent, refreshMode) then
       logger.warn(
         "scheduleWidgetRepaint widget.show_parent of ",
