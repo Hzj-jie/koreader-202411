@@ -135,12 +135,6 @@ For more details about refreshtype, refreshregion & refreshdither see the descri
 If refreshtype is omitted, no refresh will be enqueued at this time.
 
 @param widget a @{ui.widget.widget|widget} object
-@string refreshtype `"full"`, `"flashpartial"`, `"flashui"`, `"[partial]"`, `"[ui]"`, `"partial"`, `"ui"`, `"fast"`, `"a2"` (optional)
-@param refreshregion a rectangle @{ui.geometry.Geom|Geom} object (optional, requires refreshtype to be set)
-@int x horizontal screen offset (optional, `0` if omitted)
-@int y vertical screen offset (optional, `0` if omitted)
-@bool refreshdither `true` if widget requires dithering (optional, requires refreshtype to be set)
-@see setDirty
 ]]
 function UIManager:show(widget)
   -- TODO: Should assert
@@ -197,10 +191,6 @@ For more details about refreshtype, refreshregion & refreshdither see the descri
 If refreshtype is omitted, no extra refresh will be enqueued at this time, leaving only those from the uncovered widgets.
 
 @param widget a @{ui.widget.widget|widget} object
-@string refreshtype `"full"`, `"flashpartial"`, `"flashui"`, `"[partial]"`, `"[ui]"`, `"partial"`, `"ui"`, `"fast"`, `"a2"` (optional)
-@param refreshregion a rectangle @{ui.geometry.Geom|Geom} object (optional, requires refreshtype to be set)
-@bool refreshdither `true` if the refresh requires dithering (optional, requires refreshtype to be set)
-@see setDirty
 ]]
 function UIManager:close(widget)
   -- TODO: Should assert
