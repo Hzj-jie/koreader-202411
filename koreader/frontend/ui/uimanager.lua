@@ -422,13 +422,18 @@ end)
 -- A workaround to handle most of the existing logic
 function UIManager:setDirty(widget, refreshMode, region)
   if type(refreshMode) == "function" then
+    -- Have to repaint the widget first; still use :setDirty to handle various
+    -- conditions of the widget itself.
+    if widget ~= nil then
+      self:setDirty(widget)
+    end
     table.insert(self._refresh_func_stack, function()
       local m, r = refreshMode()
       r = region or r
       if widget ~= nil then
         r = r or widget.dimen
       end
-      self:setDirty(widget, m, r)
+      self:scheduleRefresh(m, r)
     end)
     return
   end
