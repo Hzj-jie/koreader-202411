@@ -927,8 +927,13 @@ UIManager that a certain part of the screen is to be refreshed.
 @local Not to be used outside of UIManager!
 ]]
 function UIManager:scheduleRefresh(mode, region, dither)
+  if mode == nil then
+    logger.warn("No mode provided when scheduleRefresh " .. debug.traceback())
+    return
+  end
+
   -- Downgrade all refreshes to "fast" when ReaderPaging or ReaderScrolling have set this flag
-  if mode == nil or self:duringForceFastRefresh() then
+  if self:duringForceFastRefresh() then
     mode = "fast"
   end
 
