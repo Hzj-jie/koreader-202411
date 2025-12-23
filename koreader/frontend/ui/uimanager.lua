@@ -454,16 +454,18 @@ end)
 -- A workaround to handle most of the existing logic
 function UIManager:setDirty(widget, refreshMode, region)
   if type(refreshMode) == "function" then
+    if widget ~= nil then
+      self:scheduleWidgetRepaint(widget)
+    end
     table.insert(self._refresh_func_stack, function()
-      if widget ~= nil then
-        self:scheduleWidgetRepaint(widget)
-      end
       local returnedRegion
       refreshMode, returnedRegion = refreshMode()
       region = region or returnedRegion
+      if widget ~= nil then
+        region = region or widget.dimen
+      end
       self:scheduleRefresh(refreshMode, region)
     end)
-    return
   end
   if widget == nil then
     self:scheduleRefresh(refreshMode, region)
@@ -935,6 +937,8 @@ function UIManager:scheduleRefresh(mode, region, dither)
     return
   end
 
+  assert(refresh_modes[mode] ~= nil, "Unknown refresh mode " .. tostring(mode))
+
   -- Downgrade all refreshes to "fast" when ReaderPaging or ReaderScrolling have set this flag
   if self:duringForceFastRefresh() then
     mode = "fast"
@@ -1106,12 +1110,7 @@ function UIManager:forceRepaint()
 
   -- execute pending refresh functions
   for _, refreshfunc in ipairs(self._refresh_func_stack) do
-    local refreshtype, region, dither = refreshfunc()
-    -- honor dithering hints from *anywhere* in the dirty stack
-    dither = update_dither(dither, dithered)
-    if refreshtype then
-      self:scheduleRefresh(refreshtype, region, dither)
-    end
+    refreshfunc()
   end
   self._refresh_func_stack = {}
 
