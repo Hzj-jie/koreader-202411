@@ -1027,9 +1027,7 @@ function UIManager:_scheduleRefreshWindowWidget(window)
   if window.x > 0 or window.y > 0 then
     dimen = dimen:copy():offsetBy(window.x, window.y)
   end
-  self:scheduleRefresh(widget:refreshMode(), 
-    dimen,
-    widget.dithered)
+  self:scheduleRefresh(widget:refreshMode(), dimen, widget.dithered)
 end
 
 --[[--
@@ -1215,12 +1213,20 @@ function UIManager:scheduleWidgetRepaint(widget, refreshMode)
 
   if widget.show_parent then
     if self:scheduleWidgetRepaint(widget.show_parent, refreshMode) then
-      logger.warn("scheduleWidgetRepaint widget.show_parent of ", self:_widgetDebugStr(widget), ", send in the show(widget) instead.")
+      logger.warn(
+        "scheduleWidgetRepaint widget.show_parent of ",
+        self:_widgetDebugStr(widget),
+        ", send in the show(widget) instead."
+      )
       return true
     end
   end
 
-  logger.warn("Unknown widget ", self:_widgetDebugStr(widget), " to repaint, send in the show(widget) instead.")
+  logger.warn(
+    "Unknown widget ",
+    self:_widgetDebugStr(widget),
+    " to repaint, send in the show(widget) instead."
+  )
   return false
 end
 
@@ -1280,7 +1286,7 @@ function UIManager:scheduleWidgetInvert(widget, x, y, w, h)
     end
   end
   Screen.bb:invertRect(x, y, w, h)
-  self:scheduleRefresh("fast", Geom:new({x = x, y = y, w = w, h = h}))
+  self:scheduleRefresh("fast", Geom:new({ x = x, y = y, w = w, h = h }))
 end
 
 function UIManager:setInputTimeout(timeout)

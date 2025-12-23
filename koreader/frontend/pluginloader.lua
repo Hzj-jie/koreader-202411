@@ -94,7 +94,8 @@ function PluginLoader:loadPlugins()
     if type(extra_paths) == "table" then
       for _, extra_path in ipairs(extra_paths) do
         if
-          lfs.attributes(extra_path, "mode") == "directory" and not util.arrayContains(lookup_path_list, extra_path)
+          lfs.attributes(extra_path, "mode") == "directory"
+          and not util.arrayContains(lookup_path_list, extra_path)
         then
           table.insert(lookup_path_list, extra_path)
         end
