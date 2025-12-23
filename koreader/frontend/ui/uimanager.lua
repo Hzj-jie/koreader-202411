@@ -904,7 +904,7 @@ be refreshed and will be performed later.
 ]]
 function UIManager:scheduleRefresh(mode, region, dither)
   if mode == nil then
-    logger.warn("No mode provided when scheduleRefresh " .. debug.traceback())
+    logger.warn("No mode provided when scheduleRefresh ", debug.traceback())
     return
   end
 
@@ -1065,7 +1065,7 @@ function UIManager:forceRepaint()
   if util.tableSize(self._dirty) > 0 then
     logger.warn("Found unrecognized widgets being scheduled to repaint. Ignored.")
     for _, widget in self._dirty do
-      logger.warn("  Widget " .. self:_widgetDebugStr(widget))
+      logger.warn("  Widget ", self:_widgetDebugStr(widget))
     end
     self._dirty = {}
   end
@@ -1185,7 +1185,8 @@ function UIManager:scheduleWidgetRepaint(widget, refreshMode)
       logger.warn(
         "scheduleWidgetRepaint widget.show_parent of ",
         self:_widgetDebugStr(widget),
-        ", send in the show(widget) instead."
+        ", send in the show(widget) instead. ",
+        debug.traceback()
       )
       return true
     end
@@ -1194,7 +1195,8 @@ function UIManager:scheduleWidgetRepaint(widget, refreshMode)
   logger.warn(
     "Unknown widget ",
     self:_widgetDebugStr(widget),
-    " to repaint, send in the show(widget) instead."
+    " to repaint, send in the show(widget) instead. ",
+    debug.traceback()
   )
   return false
 end
@@ -1278,7 +1280,7 @@ function UIManager:handleInputEvent(input_event)
     and G_reader_settings:nilOrTrue("disable_out_of_order_taps")
   then
     if self._last_repaint_time > input_event.args[1].time then
-      logger.dbg("Ignore out of order event " .. input_event.handler)
+      logger.dbg("Ignore out of order event ", input_event.handler)
       return
     end
   end
