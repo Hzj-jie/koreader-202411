@@ -455,10 +455,13 @@ end)
 function UIManager:setDirty(widget, refreshMode, region)
   if type(refreshMode) == "function" then
     table.insert(self._refresh_func_stack, function()
+      if widget ~= nil then
+        self:scheduleWidgetRepaint(widget)
+      end
       local returnedRegion
       refreshMode, returnedRegion = refreshMode()
       region = region or returnedRegion
-      self:setDirty(widget, refreshMode, region)
+      self:scheduleRefresh(refreshMode, region)
     end)
     return
   end
