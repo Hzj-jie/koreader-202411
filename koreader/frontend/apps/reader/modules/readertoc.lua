@@ -145,14 +145,13 @@ function ReaderToc:onPageUpdate(pageno)
       paging_forward = true
     elseif pageno < self.pageno then
       paging_backward = true
+    -- else -- well, impossible to update to the same page, but ignore it.
     end
   end
 
   if paging_backward and self:isChapterEnd(pageno) then
     UIManager:setDirty(nil, "full")
-  elseif self:isChapterStart(pageno) then
-    UIManager:setDirty(nil, "full")
-  elseif paging_forward and self:isChapterSecondPage(pageno) then
+  elseif paging_forward and self:isChapterStart(pageno) then
     UIManager:setDirty(nil, "full")
   end
 
@@ -646,18 +645,6 @@ function ReaderToc:isChapterStart(cur_pageno)
     end
   end
   return _start
-end
-
-function ReaderToc:isChapterSecondPage(cur_pageno)
-  local ticks = self:getTocTicksFlattened(true)
-  local _second = false
-  for _, page in ipairs(ticks) do
-    if page + 1 == cur_pageno then
-      _second = true
-      break
-    end
-  end
-  return _second
 end
 
 function ReaderToc:isChapterEnd(cur_pageno)
