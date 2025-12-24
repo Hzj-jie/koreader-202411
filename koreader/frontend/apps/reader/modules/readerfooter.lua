@@ -2194,7 +2194,7 @@ function ReaderFooter:_repaint()
     -- NOTE: self.view.footer -> self ;).
 
     -- c.f., ReaderView:paintTo()
-    UIManager:scheduleWidgetRepaint(self.view.footer)
+    UIManager:repaintWidget(self.view.footer)
     -- We've painted it first to ensure self.footer_content.dimen is sane
     UIManager:setDirty(nil, "ui", self.footer_content.dimen)
   else

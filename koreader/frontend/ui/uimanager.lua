@@ -564,18 +564,6 @@ function UIManager:getTopmostVisibleWidget()
   end
 end
 
---- Check if a widget is still in the window stack, or is a subwidget of a widget still in the window stack.
-function UIManager:isSubwidgetShown(widget, max_depth)
-  for i = #self._window_stack, 1, -1 do
-    local w = self._window_stack[i].widget
-    local matched, depth = util.arrayReferences(w, widget, max_depth)
-    if matched then
-      return matched, depth, w
-    end
-  end
-  return false
-end
-
 --- Same as `isSubwidgetShown`, but only check window-level widgets (e.g., what's directly registered in the window stack), don't recurse.
 function UIManager:isWidgetShown(widget)
   for i = #self._window_stack, 1, -1 do
@@ -1173,12 +1161,6 @@ function UIManager:scheduleWidgetRepaint(widget)
 
   if widget.show_parent and widget.show_parent ~= widget then
     if self:scheduleWidgetRepaint(widget.show_parent) then
-      logger.warn(
-        "scheduleWidgetRepaint widget.show_parent of ",
-        self:_widgetDebugStr(widget),
-        ", send in the show(widget) instead. ",
-        debug.traceback()
-      )
       return true
     end
   end
@@ -1186,8 +1168,8 @@ function UIManager:scheduleWidgetRepaint(widget)
   logger.warn(
     "Unknown widget ",
     self:_widgetDebugStr(widget),
-    " to repaint, send in the show(widget) instead. ",
-    debug.traceback()
+    " to repaint, it may not be shown yet, or you may want to send in the ",
+    "show(widget) instead."
   )
   return false
 end
