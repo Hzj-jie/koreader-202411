@@ -419,7 +419,7 @@ function Button:_doFeedbackHighlight()
     end
 
     -- This repaints *now*, unlike setDirty
-    UIManager:scheduleWidgetRepaint(self[1])
+    UIManager:repaintWidget(self[1])
   else
     self[1].invert = true
     UIManager:invertWidget(self[1])
@@ -437,7 +437,7 @@ function Button:_undoFeedbackHighlight()
     end
 
     -- This repaints *now*, unlike setDirty
-    UIManager:scheduleWidgetRepaint(self[1])
+    UIManager:repaintWidget(self[1])
   else
     self[1].invert = false
     UIManager:invertWidget(self[1])
