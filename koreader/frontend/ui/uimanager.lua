@@ -1154,17 +1154,9 @@ function UIManager:waitForScreenRefresh()
 end
 
 --[[--
-Used to repaint a specific sub-widget that isn't on the `_window_stack` itself.
-
-Useful to avoid repainting a complex widget when we just want to invert an icon, for instance.
-No safety checks on x & y *by design*. I want this to blow up if used wrong.
-
-This is an explicit repaint *now*: it bypasses and ignores the paint queue (unlike `setDirty`).
-
-@param widget a @{ui.widget.widget|widget} object
-@int x left origin of widget (in the Screen buffer, optional, will use `widget.dimen.x`)
-@int y top origin of widget (in the Screen buffer, optional, will use `widget.dimen.y`)
-]]
+Schedule a widget to be repainted, it or its show_parent must be in the
+_window_stack.
+--]]
 function UIManager:scheduleWidgetRepaint(widget)
   -- TODO: Should assert.
   if not widget then
@@ -1200,7 +1192,14 @@ function UIManager:scheduleWidgetRepaint(widget)
   return false
 end
 
--- Immediately repaint the widget, relying on the widget.dimen.
+--[[--
+Immediately repaint the widget, relying on the widget.dimen. The widget doesn't
+need to be in the _window_stack, i.e. not a show(widget).
+
+Use this function is dangerous, it doesn't respect the _window_stack and may
+break anything above the widget, and should only be used to show feedbacks for
+user interactions.
+--]]
 function UIManager:repaintWidget(widget)
   assert(widget ~= nil)
   assert(widget.dimen ~= nil)
@@ -1209,14 +1208,21 @@ function UIManager:repaintWidget(widget)
 end
 
 --[[--
-Same idea as `widgetRepaint`, but does a simple `bb:invertRect` on the Screen buffer, without actually going through the widget's `paintTo` method.
+Same idea as `widgetRepaint`, but does a simple `bb:invertRect` on the Screen
+buffer, without actually going through the widget's `paintTo` method.
+
+It allows inverting a subset of the widget unlike :repaintWidget with optional
+geometry parameters.
+
+Use this function is dangerous, it doesn't respect the _window_stack and may
+break anything above the widget, and should only be used to show feedbacks for
+user interactions.
 
 @param widget a @{ui.widget.widget|widget} object
 @int x left origin of the rectangle to invert (in the Screen buffer, optional, will use `widget.dimen.x`)
 @int y top origin of the rectangle (in the Screen buffer, optional, will use `widget.dimen.y`)
 @int w width of the rectangle (optional, will use `widget.dimen.w` like `paintTo` would if omitted)
 @int h height of the rectangle (optional, will use `widget.dimen.h` like `paintTo` would if omitted)
-@see widgetRepaint
 --]]
 function UIManager:invertWidget(widget, x, y, w, h)
   -- TODO: Should assert.
