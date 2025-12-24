@@ -921,27 +921,6 @@ function UIManager:scheduleRefresh(mode, region, dither)
       mode = "flashui"
     end
   end
-  -- special case: "partial" refreshes
-  -- will get promoted every self.FULL_REFRESH_COUNT refreshes
-  -- since _refresh can be called multiple times via setDirty called in
-  -- different widgets before a real screen repaint, we should make sure
-  -- refresh_count is incremented by only once at most for each repaint
-  -- NOTE: Ideally, we'd only check for "partial"" w/ no region set (that neatly narrows it down to just the reader).
-  --     In practice, we also want to promote refreshes in a few other places, except purely text-poor UI elements.
-  --     (Putting "ui" in that list is problematic with a number of UI elements, most notably, ReaderHighlight,
-  --     because it is implemented as "ui" over the full viewport, since we can't devise a proper bounding box).
-  --     So we settle for only "partial", but treating full-screen ones slightly differently.
-  if mode == "partial" and self.FULL_REFRESH_COUNT > 0 then
-    if self.refresh_count == self.FULL_REFRESH_COUNT - 1 then
-      -- NOTE: Promote to "full" if no region (reader), to "flashui" otherwise (UI)
-      if region then
-        mode = "flashui"
-      else
-        mode = "full"
-      end
-      logger.dbg("_refresh: promote refresh to", mode)
-    end
-  end
 
   -- if no region is specified, use the screen's dimensions
   region = region
@@ -1084,11 +1063,37 @@ function UIManager:forceRepaint()
       end
       dbg:v("triggering refresh", refresh)
 
+      local mode = refresh.mode
+      -- special case: "partial" refreshes
+      -- will get promoted every self.FULL_REFRESH_COUNT refreshes
+      -- since _refresh can be called multiple times via setDirty called in
+      -- different widgets before a real screen repaint, we should make sure
+      -- refresh_count is incremented by only once at most for each repaint
+      -- NOTE: Ideally, we'd only check for "partial"" w/ no region set (that neatly narrows it down to just the reader).
+      --     In practice, we also want to promote refreshes in a few other places, except purely text-poor UI elements.
+      --     (Putting "ui" in that list is problematic with a number of UI elements, most notably, ReaderHighlight,
+      --     because it is implemented as "ui" over the full viewport, since we can't devise a proper bounding box).
+      --     So we settle for only "partial", but treating full-screen ones slightly differently.
+      if mode == "partial" and self.FULL_REFRESH_COUNT > 0 then
+        if self.refresh_count == self.FULL_REFRESH_COUNT - 1 then
+          -- NOTE: Promote to "full" if no region (reader), to "flashui" otherwise (UI)
+          if refresh.region.x == 0 and refresh.region.y == 0 and refresh.region.w == Screen:getWidth() and refresh.region.h == Screen:getHeight() then
+            mode = "full"
+          else
+            mode = "flashui"
+          end
+          logger.dbg("_refresh: promote refresh to", mode)
+        end
+        -- Reset the refresh_count to 0 after an explicit full screen refresh.
+        -- Technically speaking, in the case, it should be the only refresh, but
+        -- who knows.
+        self.refresh_count = -1
+      end
       --[[
       -- Remember the refresh region
       self._last_refresh_region = refresh.region:copy()
       --]]
-      refresh_methods[refresh.mode](
+      refresh_methods[mode](
         Screen,
         refresh.region.x,
         refresh.region.y,
@@ -1096,19 +1101,6 @@ function UIManager:forceRepaint()
         refresh.region.h,
         refresh.dither
       )
-
-      if
-        refresh.mode == "full"
-        and refresh.region.x == 0
-        and refresh.region.y == 0
-        and refresh.region.w == Screen:getWidth()
-        and refresh.region.y == Screen:getHeight()
-      then
-        -- Reset the refresh_count to 0 after an explicit full screen refresh.
-        -- Technically speaking, in the case, it should be the only refresh, but
-        -- who knows.
-        self.refresh_count = -1
-      end
     end
 
     -- Don't trigger afterPaint if we did not, in fact, paint anything
