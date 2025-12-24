@@ -174,6 +174,9 @@ function TouchMenuItem:init()
     if k:sub(1, 2) == "on" and type(v) == "function" then
       self[k] = function()
         v(self.menu)
+        -- This event isn't triggered by an user interaction, and the update may
+        -- be heavily delayed.
+        UIManager:forceRepaint()
       end
     end
   end
@@ -886,8 +889,6 @@ function TouchMenu:updateItems()
       return refresh_type, refresh_dimen
     end
   )
-  -- Immediately repaint everything to reflect the changes.
-  UIManager:forceRepaint()
 end
 
 -- Only called by TouchMenuBar:switchToTab / IconButton.callback.
