@@ -435,7 +435,7 @@ function UIManager:setDirty(widget, refreshMode, region)
       if widget ~= nil then
         r = r or widget.dimen
       end
-      self:scheduleRefresh(m, r)
+      self:scheduleRefresh(m, r, widget ~= nil and widget.dithered)
     end)
     return
   end
