@@ -2194,7 +2194,7 @@ function ReaderFooter:_repaint()
     -- NOTE: self.view.footer -> self ;).
 
     -- c.f., ReaderView:paintTo()
-    UIManager:scheduleWidgetRepaint(self.view.footer)
+    UIManager:repaintWidget(self.view.footer)
 
     if G_reader_settings:isFalse("avoid_flashing_ui") or
       G_named_settings.full_refresh_count() < G_named_settings.default.full_refresh_count() then
