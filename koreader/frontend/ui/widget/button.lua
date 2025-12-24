@@ -422,7 +422,7 @@ function Button:_doFeedbackHighlight()
     UIManager:scheduleWidgetRepaint(self[1])
   else
     self[1].invert = true
-    UIManager:scheduleWidgetInvert(self[1])
+    UIManager:invertWidget(self[1])
   end
 end
 
@@ -440,7 +440,7 @@ function Button:_undoFeedbackHighlight()
     UIManager:scheduleWidgetRepaint(self[1])
   else
     self[1].invert = false
-    UIManager:scheduleWidgetInvert(self[1])
+    UIManager:invertWidget(self[1])
   end
 end
 

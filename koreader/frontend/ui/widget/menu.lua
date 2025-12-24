@@ -503,7 +503,7 @@ function MenuItem:onTapSelect(arg, ges)
   -- Highlight
   --
   self[1].invert = true
-  UIManager:scheduleWidgetInvert(self[1])
+  UIManager:invertWidget(self[1])
 
   UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
@@ -511,7 +511,7 @@ function MenuItem:onTapSelect(arg, ges)
   -- Unhighlight
   --
   self[1].invert = false
-  UIManager:scheduleWidgetInvert(self[1])
+  UIManager:invertWidget(self[1])
 
   -- Callback
   --
@@ -532,7 +532,7 @@ function MenuItem:onHoldSelect(arg, ges)
   -- Highlight
   --
   self[1].invert = true
-  UIManager:scheduleWidgetInvert(self[1])
+  UIManager:invertWidget(self[1])
 
   UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
@@ -540,7 +540,7 @@ function MenuItem:onHoldSelect(arg, ges)
   -- Unhighlight
   --
   self[1].invert = false
-  UIManager:scheduleWidgetInvert(self[1])
+  UIManager:invertWidget(self[1])
 
   -- Callback
   --

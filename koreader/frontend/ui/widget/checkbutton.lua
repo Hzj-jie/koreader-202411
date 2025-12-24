@@ -141,7 +141,7 @@ function CheckButton:onTapCheckButton()
     -- Highlight
     --
     self[1].invert = true
-    UIManager:scheduleWidgetInvert(
+    UIManager:invertWidget(
       self[1],
       highlight_dimen.x,
       highlight_dimen.y,
@@ -154,7 +154,7 @@ function CheckButton:onTapCheckButton()
     -- Unhighlight
     --
     self[1].invert = false
-    UIManager:scheduleWidgetInvert(
+    UIManager:invertWidget(
       self[1],
       highlight_dimen.x,
       highlight_dimen.y,

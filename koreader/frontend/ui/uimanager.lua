@@ -1218,7 +1218,7 @@ Same idea as `widgetRepaint`, but does a simple `bb:invertRect` on the Screen bu
 @int h height of the rectangle (optional, will use `widget.dimen.h` like `paintTo` would if omitted)
 @see widgetRepaint
 --]]
-function UIManager:scheduleWidgetInvert(widget, x, y, w, h)
+function UIManager:invertWidget(widget, x, y, w, h)
   -- TODO: Should assert.
   if not widget then
     return
@@ -1264,7 +1264,7 @@ function UIManager:scheduleWidgetInvert(widget, x, y, w, h)
     end
   end
   Screen.bb:invertRect(x, y, w, h)
-  self:scheduleRefresh("fast", Geom:new({ x = x, y = y, w = w, h = h }))
+  self:scheduleRefresh("fast", Geom:new({ x = x, y = y, w = w, h = h }), widget.dithered)
 end
 
 function UIManager:setInputTimeout(timeout)
