@@ -2194,21 +2194,19 @@ function ReaderFooter:_repaint()
     -- NOTE: self.view.footer -> self ;).
 
     -- c.f., ReaderView:paintTo()
-    UIManager:repaintWidget(self.view.footer)
-    -- We've painted it first to ensure self.footer_content.dimen is sane
-    UIManager:setDirty(nil, "ui", self.footer_content.dimen)
+    UIManager:scheduleWidgetRepaint(self.view.footer)
+
+    if G_reader_settings:isFalse("avoid_flashing_ui") or
+      G_named_settings.full_refresh_count() < G_named_settings.default.full_refresh_count() then
+      -- This is very uncommon, but considering the _paint can be called randomly,
+      -- without forcing a repaint, the delay would be noticable up to 200ms per
+      -- frequence of repainting in UIManager. So force a repaint to reduce the
+      -- laggy if users would like a better user experience.
+      UIManager:forceRepaint()
+    end
   else
     -- If the footer is invisible or might be hidden behind another widget, we need to repaint the full ReaderUI stack.
     UIManager:setDirty(self.view.dialog, "ui", refresh_dim)
-  end
-
-  if G_reader_settings:isFalse("avoid_flashing_ui") or
-    G_named_settings.full_refresh_count() < G_named_settings.default.full_refresh_count() then
-    -- This is very uncommon, but considering the _paint can be called randomly,
-    -- without forcing a repaint, the delay would be noticable up to 200ms per
-    -- frequence of repainting in UIManager. So force a repaint to reduce the
-    -- laggy if users would like a better user experience.
-    UIManager:forceRepaint()
   end
 end
 
