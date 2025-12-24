@@ -886,6 +886,8 @@ function TouchMenu:updateItems()
       return refresh_type, refresh_dimen
     end
   )
+  -- Immediately repaint everything to reflect the changes.
+  UIManager:forceRepaint()
 end
 
 -- Only called by TouchMenuBar:switchToTab / IconButton.callback.
