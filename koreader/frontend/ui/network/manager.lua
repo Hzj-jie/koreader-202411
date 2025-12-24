@@ -828,9 +828,6 @@ function NetworkMgr:getRestoreMenuTable()
     callback = function(menu)
       G_reader_settings:flipNilOrFalse("auto_restore_wifi")
     end,
-    onNetworkStateChanged = function(menu)
-      menu:updateItems()
-    end,
   }
 end
 
@@ -845,6 +842,9 @@ function NetworkMgr:getInfoMenuTable()
     end,
     callback = function()
       UIManager:broadcastEvent(Event:new("ShowNetworkInfo"))
+    end,
+    onNetworkStateChanged = function(menu)
+      menu:updateItems()
     end,
   }
 end
