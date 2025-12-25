@@ -362,30 +362,18 @@ function util.arrayContains(t, v, cb)
   return false
 end
 
---- Test whether array t contains a reference to array n (at any depth at or below m)
+--- Test whether array t contains a reference to array n
 ---- @param t Lua table (array only)
 ---- @param n Lua table (array only)
----- @int m Max nesting level
-function util.arrayReferences(t, n, m, l)
-  if not m then
-    m = 15
-  end
-  if not l then
-    l = 0
-  end
-  if l > m then
-    return false
-  end
-
+function util.arrayReferences(t, n)
   if type(t) == "table" then
     if t == n then
-      return true, l
+      return true
     end
 
     for _, v in ipairs(t) do
-      local matched, depth = util.arrayReferences(v, n, m, l + 1)
-      if matched then
-        return matched, depth
+      if util.arrayReferences(v, n) then
+        return true
       end
     end
   end

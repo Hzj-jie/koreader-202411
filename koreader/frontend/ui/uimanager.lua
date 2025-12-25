@@ -527,18 +527,6 @@ function UIManager:toggleNightMode()
   self:updateRefreshRate()
 end
 
---- Get n.th topmost widget
-function UIManager:getNthTopWidget(n)
-  n = n and n - 1 or 0
-  if #self._window_stack - n < 1 then
-    -- No or not enough widgets in the stack, bye!
-    return nil
-  end
-
-  local widget = self._window_stack[#self._window_stack - n].widget
-  return widget
-end
-
 --- Top-to-bottom widgets iterator
 --- NOTE: VirtualKeyboard can be instantiated multiple times, and is a modal,
 --    so don't be surprised if you find a couple of instances of it at the top ;).
@@ -1166,6 +1154,43 @@ function UIManager:scheduleWidgetRepaint(widget)
   return false
 end
 
+local function cropping_region(widget, x, y, w, h)
+  assert(widget ~= nil)
+  -- It's possible that the function is called before the paintTo call.
+  if widget.dimen then
+    x = x or widget.dimen.x
+    y = y or widget.dimen.y
+    w = w or widget.dimen.w
+    h = h or widget.dimen.h
+  end
+
+  if not x or not y or not w or not h then
+    logger.warn(
+      "Cannot calculate cropping region of widget ",
+      self:_widgetDebugStr(widget),
+      " without its dimen."
+    )
+    return nil
+  end
+
+  if widget.show_parent and widget.show_parent.cropping_widget then
+    -- The main widget parent of this subwidget has a cropping container: see if
+    -- this widget is a child of this cropping container
+    local cropping_widget = widget.show_parent.cropping_widget
+    if util.arrayReferences(cropping_widget, widget) then
+      -- Invert only what intersects with the cropping container
+      local region = cropping_widget:getCropRegion():intersect(Geom:new({
+        x = x,
+        y = y,
+        w = w,
+        h = h,
+      }))
+      return region
+    end
+  end
+  return Geom:new({ x = x, y = y, w = w, h = h })
+end
+
 --[[--
 Immediately repaint the widget, relying on the widget.dimen. The widget doesn't
 need to be in the _window_stack, i.e. not a show(widget).
@@ -1177,15 +1202,17 @@ user interactions.
 function UIManager:repaintWidget(widget)
   assert(widget ~= nil)
   assert(widget.dimen ~= nil)
-  widget:paintTo(Screen.bb, widget.dimen.x, widget.dimen.y)
-  self:scheduleRefresh(widget:refreshMode(), widget.dimen, widget.dithered)
+  local paint_region = cropping_region(widget)
+  assert(paint_region ~= nil)
+  widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
+  self:scheduleRefresh(widget:refreshMode(), paint_region, widget.dithered)
 end
 
 --[[--
 Same idea as `widgetRepaint`, but does a simple `bb:invertRect` on the Screen
 buffer, without actually going through the widget's `paintTo` method.
 
-It allows inverting a subset of the widget unlike :repaintWidget with optional
+Unlike :repaintWidget, it allows inverting a subset of the widget with optional
 geometry parameters.
 
 Use this function is dangerous, it doesn't respect the _window_stack and may
@@ -1204,47 +1231,19 @@ function UIManager:invertWidget(widget, x, y, w, h)
     return
   end
 
-  -- It's possible that the function is called before the paintTo call.
-  if widget.dimen then
-    x = x or widget.dimen.x
-    y = y or widget.dimen.y
-    w = w or widget.dimen.w
-    h = h or widget.dimen.h
-  end
-  if not x or not y or not w or not h then
-    logger.warn(
-      "Cannot invert widget ",
-      self:_widgetDebugStr(widget),
-      " without its dimen."
-    )
+  local invert_region = cropping_region(widget, x, y, w, h)
+  if invert_region == nil then
     return
   end
 
   logger.dbg("Explicit widgetInvert:", self:_widgetDebugStr(widget), "@", x, y)
-  if widget.show_parent and widget.show_parent.cropping_widget then
-    -- The main widget parent of this subwidget has a cropping container: see if
-    -- this widget is a child of this cropping container
-    local cropping_widget = widget.show_parent.cropping_widget
-    if util.arrayReferences(cropping_widget, widget) then
-      -- Invert only what intersects with the cropping container
-      local invert_region = cropping_widget:getCropRegion():intersect(Geom:new({
-        x = x,
-        y = y,
-        w = w,
-        h = h,
-      }))
-      Screen.bb:invertRect(
-        invert_region.x,
-        invert_region.y,
-        invert_region.w,
-        invert_region.h
-      )
-      self:scheduleRefresh("fast", invert_region)
-      return
-    end
-  end
-  Screen.bb:invertRect(x, y, w, h)
-  self:scheduleRefresh("fast", Geom:new({ x = x, y = y, w = w, h = h }), widget.dithered)
+  Screen.bb:invertRect(
+    invert_region.x,
+    invert_region.y,
+    invert_region.w,
+    invert_region.h
+  )
+  self:scheduleRefresh("fast", invert_region, widget.dithered)
 end
 
 function UIManager:setInputTimeout(timeout)
