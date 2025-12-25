@@ -323,7 +323,6 @@ function MenuDialog:setupPluginMenu()
       { filter_button, edit_button },
       { reset_button, clean_button },
     },
-    show_parent = self,
   })
   self:mergeLayoutInVertical(buttons)
 
@@ -454,7 +453,6 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
       { select_page_all_button },
       { deselect_page_all_button },
     },
-    show_parent = self,
   })
 
   self[1] = CenterContainer:new({
@@ -604,7 +602,6 @@ function WordInfoDialog:init()
   local focus_button = ButtonTable:new({
     width = width,
     buttons = buttons,
-    show_parent = self,
   })
 
   local copy_button = Button:new({
@@ -635,7 +632,6 @@ function WordInfoDialog:init()
         )
       end)
     end,
-    show_parent = self,
   })
 
   table.insert(self.layout, { copy_button })
@@ -776,7 +772,6 @@ local VocabItemWidget = InputContainer:extend({
   width = nil,
   height = nil,
   review_button_width = nil,
-  show_parent = nil,
   item = nil,
   forgot_button = nil,
   got_it_button = nil,
@@ -844,7 +839,6 @@ function VocabItemWidget:initItemWidget()
       end,
       width = ellipsis_button_width,
       bordersize = 0,
-      show_parent = self,
     })
   else
     self.more_button = IconButton:new({
@@ -873,7 +867,6 @@ function VocabItemWidget:initItemWidget()
       callback = function()
         self:onForgot()
       end,
-      show_parent = self,
     })
 
     self.got_it_button = Button:new({
@@ -883,7 +876,6 @@ function VocabItemWidget:initItemWidget()
         self:onGotIt()
       end,
       width = self.review_button_width,
-      show_parent = self,
     })
     right_widget = HorizontalGroup:new({
       dimen = Geom:new({ w = 0, h = self.height }),
@@ -1466,7 +1458,6 @@ function VocabularyBuilderWidget:init()
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self,
   })
 
   self:setupItemHeight()
@@ -1563,7 +1554,6 @@ function VocabularyBuilderWidget:refreshFooter()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_right = Button:new({
     icon = chevron_right,
@@ -1573,7 +1563,6 @@ function VocabularyBuilderWidget:refreshFooter()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_first_up = Button:new({
     icon = chevron_first,
@@ -1583,7 +1572,6 @@ function VocabularyBuilderWidget:refreshFooter()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_last_down = Button:new({
     icon = chevron_last,
@@ -1593,7 +1581,6 @@ function VocabularyBuilderWidget:refreshFooter()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   local footer_height = self.footer_last_down:getSize().h
   local sync_size = TextWidget:getFontSizeToFitHeight(
@@ -1611,7 +1598,6 @@ function VocabularyBuilderWidget:refreshFooter()
     padding_h = Size.padding.large,
     padding_v = Size.padding.button,
     margin = 0,
-    show_parent = self,
     callback = function()
       if not settings.server then
         local sync_settings = SyncService:new({})
@@ -1648,7 +1634,6 @@ function VocabularyBuilderWidget:refreshFooter()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_page = Button:new({
     text = "",
@@ -1672,7 +1657,6 @@ function VocabularyBuilderWidget:refreshFooter()
     text_font_face = "pgfont",
     text_font_bold = false,
     width = self.footer_center_width,
-    show_parent = self,
   })
   table.insert(
     self.page_info,
@@ -1829,7 +1813,6 @@ function VocabularyBuilderWidget:_populateItems()
       review_button_width = self.review_button_width,
       item = self.item_table[idx],
       index = idx,
-      show_parent = self,
     })
     table.insert(self.layout, #self.layout, item.layout)
     table.insert(self.main_content, item)
@@ -1975,7 +1958,6 @@ function VocabularyBuilderWidget:onShowFilter()
       end,
       hold_callback = function(sort_item, onSuccess)
         local menu = MenuDialog:new({
-          show_parent = sort_widget,
         })
         menu:setupBookMenu(sort_item, onSuccess)
         UIManager:show(menu)
@@ -1995,7 +1977,6 @@ function VocabularyBuilderWidget:onShowFilter()
 
       UIManager:setDirty(nil, "ui")
     end,
-    show_parent = self,
   })
 
   if Device:hasKeys() then

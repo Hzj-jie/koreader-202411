@@ -1317,8 +1317,6 @@ Adds settings at runtime.
     function Hello:init()
         self:onDispatcherRegisterActions()
     end
-
-
 @param name the key to use in the table
 @param value a table per settingsList above
 --]]

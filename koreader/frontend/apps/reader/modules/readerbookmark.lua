@@ -759,7 +759,6 @@ function ReaderBookmark:onShowBookmark()
         direction = BD.flipDirectionIfMirroredUILayout("east"),
       }),
     },
-    show_parent = self.bookmark_menu,
   })
   table.insert(self.bookmark_menu, bm_menu)
 

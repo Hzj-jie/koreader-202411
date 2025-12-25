@@ -8,8 +8,6 @@ Show image from file example:
             -- Make sure alpha is set to true if png has transparent background
             -- alpha = true,
         })
-
-
 Show image from memory example:
 
         UIManager:show(ImageWidget:new{

@@ -22,7 +22,6 @@ local T = require("ffi/util").template
 
 local CloudStorage = Menu:extend({
   no_title = false,
-  show_parent = nil,
   is_popout = false,
   is_borderless = true,
   title = _("Cloud storage"),

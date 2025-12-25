@@ -248,7 +248,6 @@ function InputDialog:init()
     info_text = self.description,
     left_icon = self.title_bar_left_icon,
     left_icon_tap_callback = self.title_bar_left_icon_tap_callback,
-    show_parent = self,
   })
 
   -- Vertical spaces added before and after InputText
@@ -276,7 +275,6 @@ function InputDialog:init()
     width = self.width - 2 * self.button_padding,
     buttons = self.buttons,
     zero_sep = true,
-    show_parent = self,
   })
   local buttons_container = CenterContainer:new({
     dimen = Geom:new({

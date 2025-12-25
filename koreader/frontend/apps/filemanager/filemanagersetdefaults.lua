@@ -257,7 +257,6 @@ function SetDefaultsWidget:init()
   self.defaults_menu = Menu:new({
     width = self.screen_width - (Size.margin.fullscreen_popout * 2),
     height = self.screen_height - (Size.margin.fullscreen_popout * 2),
-    show_parent = self,
     item_table = self.menu_entries,
     title = _("Defaults"),
   })

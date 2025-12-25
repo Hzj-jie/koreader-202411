@@ -124,7 +124,6 @@ function MultiConfirmBox:init()
       },
     },
     zero_sep = true,
-    show_parent = self,
   })
 
   self[1] = CenterContainer:new({

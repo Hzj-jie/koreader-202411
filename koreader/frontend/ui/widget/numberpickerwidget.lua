@@ -74,7 +74,6 @@ function NumberPickerWidget:init()
     radius = 0,
     text_font_size = 24,
     width = self.width,
-    show_parent = self.show_parent,
     callback = function()
       if self.date_month and self.date_year then
         self.value_max = self:getDaysInMonth(
@@ -116,7 +115,6 @@ function NumberPickerWidget:init()
     radius = 0,
     text_font_size = 24,
     width = self.width,
-    show_parent = self.show_parent,
     callback = function()
       if self.date_month and self.date_year then
         self.value_max = self:getDaysInMonth(
@@ -305,7 +303,6 @@ function NumberPickerWidget:init()
     text_font_face = self.spinner_face.font,
     text_font_size = self.spinner_face.orig_size,
     width = self.width,
-    show_parent = self.show_parent,
     callback = callback_input,
   })
   if callback_input then

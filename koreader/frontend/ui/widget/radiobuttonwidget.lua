@@ -1,7 +1,5 @@
 --[[--
 Widget that allows selecting an entry from a @{ui.widget.radiobuttontable|RadioButton} list.
-
-
 Example:
     local RadioButtonWidget = require("ui/widget/radiobuttonwidget")
 
@@ -147,7 +145,6 @@ function RadioButtonWidget:update()
     title = self.title_text,
     title_shrink_font_to_fit = true,
     info_text = self.info_text,
-    show_parent = self,
   })
 
   local buttons = {
@@ -199,7 +196,6 @@ function RadioButtonWidget:update()
     width = self.width - 2 * Size.padding.default,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
   self:mergeLayoutInVertical(ok_cancel_buttons)
   local vgroup = VerticalGroup:new({

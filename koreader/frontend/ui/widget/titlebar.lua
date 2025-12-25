@@ -68,9 +68,6 @@ local TitleBar = OverlapGroup:extend({
   -- If provided, use right_icon="exit" and use this as right_icon_tap_callback
   close_callback = nil,
   close_hold_callback = nil,
-
-  show_parent = nil,
-
   -- Internal: remember first sizes computed when title_shrink_font_to_fit=true,
   -- and keep using them after :setTitle() in case a smaller font size is needed,
   -- to keep the TitleBar geometry stable.
@@ -383,7 +380,6 @@ function TitleBar:init()
       overlap_align = "left",
       callback = self.left_icon_tap_callback,
       hold_callback = self.left_icon_hold_callback,
-      show_parent = self.show_parent,
     })
     table.insert(self, self.left_button)
   end
@@ -399,7 +395,6 @@ function TitleBar:init()
       overlap_align = "right",
       callback = self.right_icon_tap_callback,
       hold_callback = self.right_icon_hold_callback,
-      show_parent = self.show_parent,
     })
     table.insert(self, self.right_button)
   end

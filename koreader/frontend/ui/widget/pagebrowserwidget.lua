@@ -130,7 +130,6 @@ function PageBrowserWidget:init()
     close_hold_callback = function()
       self:onExit(true)
     end,
-    show_parent = self,
   })
   self.title_bar_h = self.title_bar:getHeight()
 
@@ -634,7 +633,6 @@ function PageBrowserWidget:update()
   local row = BookMapRow:new({
     height = self.row_height,
     width = self.row_width,
-    show_parent = self,
     left_spacing = left_spacing,
     nb_toc_spans = self.nb_toc_spans,
     span_height = self.span_height,

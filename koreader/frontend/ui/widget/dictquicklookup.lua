@@ -246,7 +246,6 @@ function DictQuickLookup:init()
     end,
     -- visual hint: title left aligned for dict, centered for Wikipedia
     align = self.is_wiki and "center" or "left",
-    show_parent = self,
     lang = self.lang_out,
     left_icon = "appbar.menu",
     left_icon_tap_callback = function()
@@ -315,7 +314,6 @@ function DictQuickLookup:init()
       self:onLookupInputWord(self.lookupword)
     end,
     overlap_align = "right",
-    show_parent = self,
   })
   local lookup_edit_button_w = lookup_edit_button:getSize().w
   -- Nb of results (if set)
@@ -598,7 +596,6 @@ function DictQuickLookup:init()
     width = buttons_width,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
 
   -- Margin from screen edges

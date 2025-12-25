@@ -151,7 +151,6 @@ function CalculatorUnitsDialog:init()
     button_font_size = 20,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
 
   self.dialog_frame = FrameContainer:new({

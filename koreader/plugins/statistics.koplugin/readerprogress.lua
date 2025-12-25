@@ -104,7 +104,6 @@ function ReaderProgress:getStatusContent(width)
     close_callback = not self.readonly and function()
       self:onExit()
     end,
-    show_parent = self,
   })
   return VerticalGroup:new({
     align = "left",

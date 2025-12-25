@@ -48,7 +48,6 @@ local T = require("ffi/util").template
 local _ = require("gettext")
 
 local KeyValueItem = InputContainer:extend({
-  show_parent = nil,
   key = nil,
   value = nil,
   value_lang = nil,
@@ -281,7 +280,6 @@ function KeyValueItem:onShowKeyValue()
 end
 
 local KeyValuePage = FocusManager:extend({
-  show_parent = nil,
   kv_pairs = nil, -- not mandatory
   title = "",
   width = nil,
@@ -357,7 +355,6 @@ function KeyValuePage:init()
         self:onReturn()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   -- group for page info
   local chevron_left = "chevron.left"
@@ -375,7 +372,6 @@ function KeyValuePage:init()
         self:prevPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_right_chev = self.page_info_right_chev
     or Button:new({
@@ -384,7 +380,6 @@ function KeyValuePage:init()
         self:nextPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_first_chev = self.page_info_first_chev
     or Button:new({
@@ -393,7 +388,6 @@ function KeyValuePage:init()
         self:goToPage(1)
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_last_chev = self.page_info_last_chev
     or Button:new({
@@ -402,7 +396,6 @@ function KeyValuePage:init()
         self:goToPage(self.pages)
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_spacer = HorizontalSpan:new({
     width = Screen:scaleBySize(32),
@@ -491,7 +484,6 @@ function KeyValuePage:init()
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self.show_parent or self,
   })
 
   -- setup main content
@@ -721,7 +713,6 @@ function KeyValuePage:_populateItems()
       value_align = self.value_align,
       kv_pairs_idx = kv_pairs_idx,
       kv_page = self,
-      show_parent = self.show_parent,
     })
     table.insert(self.main_content, kv_item)
     table.insert(self.layout, { kv_item })

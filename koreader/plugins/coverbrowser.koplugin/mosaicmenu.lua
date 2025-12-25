@@ -324,7 +324,6 @@ end
 local MosaicMenuItem = InputContainer:extend({
   entry = nil, -- table, mandatory
   text = nil,
-  show_parent = nil,
   dimen = nil,
   _underline_container = nil,
   do_cover_image = false,
@@ -1047,7 +1046,6 @@ function MosaicMenu:_updateItemsBuildUI()
       width = self.item_width,
       entry = entry,
       text = Menu.getMenuText(entry),
-      show_parent = self.show_parent,
       mandatory = entry.mandatory,
       dimen = self.item_dimen:copy(),
       shortcut = item_shortcut,

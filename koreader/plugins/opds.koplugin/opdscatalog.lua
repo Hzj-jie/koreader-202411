@@ -17,7 +17,6 @@ local OPDSCatalog = WidgetContainer:extend({
 function OPDSCatalog:init()
   local opds_browser = OPDSBrowser:new({
     title = self.title,
-    show_parent = self,
     is_popout = false,
     is_borderless = true,
     close_callback = function()

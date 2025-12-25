@@ -50,7 +50,6 @@ local TouchMenuItem = InputContainer:extend({
   item = nil,
   menu = nil,
   dimen = nil,
-  show_parent = nil,
   item_visible_index = nil,
 })
 
@@ -336,7 +335,6 @@ local TouchMenuBar = InputContainer:extend({
   width = Screen:getWidth(),
   icons = nil, -- array, mandatory
   -- touch menu that holds the bar, used for trigger repaint on icons
-  show_parent = nil,
   menu = nil,
 })
 
@@ -371,7 +369,6 @@ function TouchMenuBar:init()
 
   for k, v in ipairs(self.icons) do
     local ib = IconButton:new({
-      show_parent = self.show_parent,
       icon = v,
       width = icon_width,
       height = icon_height,
@@ -537,7 +534,6 @@ local TouchMenu = FocusManager:extend({
   height = nil,
   page = 1,
   -- for UIManager:setDirty
-  show_parent = nil,
   cur_tab = -1,
   close_callback = nil,
   is_fresh = true,
@@ -594,7 +590,6 @@ function TouchMenu:init()
   self.bar = TouchMenuBar:new({
     width = self.width, -- will impose width and push left and right borders offscreen
     icons = icons,
-    show_parent = self.show_parent,
     menu = self,
   })
 
@@ -616,7 +611,6 @@ function TouchMenu:init()
       self:onFirstPage()
     end,
     bordersize = 0,
-    show_parent = self.show_parent,
   })
   self.page_info_right_chev = Button:new({
     icon = chevron_right,
@@ -627,7 +621,6 @@ function TouchMenu:init()
       self:onLastPage()
     end,
     bordersize = 0,
-    show_parent = self.show_parent,
   })
   self.page_info_left_chev:hide()
   self.page_info_right_chev:hide()
@@ -654,7 +647,6 @@ function TouchMenu:init()
       UIManager:broadcastEvent(Event:new("ShowBatteryStatistics"))
     end,
     bordersize = 0,
-    show_parent = self.show_parent,
   })
   self.device_info = HorizontalGroup:new({
     self.time_info,
@@ -664,7 +656,6 @@ function TouchMenu:init()
   local footer_width = self.width - self.padding * 2
   local up_button = IconButton:new({
     icon = "chevron.up",
-    show_parent = self.show_parent,
     padding_left = math.floor(footer_width * 0.33 * 0.1),
     padding_right = math.floor(footer_width * 0.33 * 0.5),
     callback = function()
@@ -830,7 +821,6 @@ function TouchMenu:updateItems()
           w = self.item_width,
           h = self.item_height,
         }),
-        show_parent = self.show_parent,
         item_visible_index = c,
       })
       table.insert(self.item_group, item_tmp)

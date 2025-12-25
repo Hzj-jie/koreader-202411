@@ -166,7 +166,6 @@ function TweakInfoWidget:init()
     width = content:getSize().w,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
 
   self.movable = MovableContainer:new({

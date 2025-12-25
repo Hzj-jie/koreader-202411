@@ -102,7 +102,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToPage(self.curr_page - 1)
     end,
@@ -113,7 +112,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToPage(self.curr_page - 10)
     end,
@@ -124,7 +122,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToPage(self.curr_page + 1)
     end,
@@ -135,7 +132,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToPage(self.curr_page + 10)
     end,
@@ -153,7 +149,6 @@ function SkimToWidget:init()
     bordersize = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self.callback_switch_to_goto()
     end,
@@ -168,7 +163,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToOrigPage()
     end,
@@ -192,7 +186,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       local page = self.ui.toc:getNextChapter(self.curr_page)
       if page and page >= 1 and page <= self.page_count then
@@ -209,7 +202,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       local page = self.ui.toc:getPreviousChapter(self.curr_page)
       if page and page >= 1 and page <= self.page_count then
@@ -226,7 +218,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToByEvent("GotoNextBookmarkFromPage")
     end,
@@ -240,7 +231,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToByEvent("GotoPreviousBookmarkFromPage")
     end,
@@ -257,7 +247,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       UIManager:broadcastEvent(Event:new("ToggleBookmark"))
       self:update()

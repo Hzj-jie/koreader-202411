@@ -792,7 +792,6 @@ function ConfigOption:init()
               )
             end
           end,
-          show_parent = self.config,
           enabled = enabled,
           fine_tune = self.options[c].fine_tune,
           fine_tune_param = self.options[c].fine_tune_param,
@@ -888,7 +887,6 @@ function MenuBar:init()
     self.menu_items = {}
     for c = 1, #config_options do
       local menu_icon = IconButton:new({
-        show_parent = self.config_dialog,
         icon = config_options[c].icon,
         width = icon_width,
         height = icon_height,

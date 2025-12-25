@@ -722,7 +722,6 @@ function FileManagerMenu:onShowMenu(tab_index)
       width = Screen:getWidth(),
       last_index = tab_index,
       tab_item_table = self.tab_item_table,
-      show_parent = menu_container,
     })
   else
     local Menu = require("ui/widget/menu")
@@ -730,7 +729,6 @@ function FileManagerMenu:onShowMenu(tab_index)
       title = _("File manager menu"),
       item_table = Menu.itemTableFromTouchMenu(self.tab_item_table),
       width = Screen:getWidth() - (Size.margin.fullscreen_popout * 2),
-      show_parent = menu_container,
     })
   end
 

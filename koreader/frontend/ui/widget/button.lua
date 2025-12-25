@@ -217,7 +217,6 @@ function Button:init()
   end
   self.frame = FrameContainer:new({
     margin = self.margin,
-    show_parent = self.show_parent,
     bordersize = self.bordersize,
     background = self.background,
     radius = self.radius,

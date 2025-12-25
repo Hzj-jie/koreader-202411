@@ -53,7 +53,6 @@ local scale_by_size = Screen:scaleBySize(1000000) * (1 / 1000000)
 local ListMenuItem = InputContainer:extend({
   entry = nil, -- hash, mandatory
   text = nil,
-  show_parent = nil,
   dimen = nil,
   shortcut = nil,
   shortcut_style = "square",
@@ -1035,7 +1034,6 @@ function ListMenu:_updateItemsBuildUI()
       width = self.item_width,
       entry = entry,
       text = Menu.getMenuText(entry),
-      show_parent = self.show_parent,
       mandatory = entry.mandatory,
       dimen = self.item_dimen:copy(),
       shortcut = item_shortcut,

@@ -869,7 +869,6 @@ function ReaderToc:onShowToc()
     icon_width = icon_size,
     icon_height = icon_size,
     bordersize = 0,
-    show_parent = self,
     callback = function(index)
       self:expandToc(index)
     end,
@@ -882,7 +881,6 @@ function ReaderToc:onShowToc()
     icon_width = icon_size,
     icon_height = icon_size,
     bordersize = 0,
-    show_parent = self,
     callback = function(index)
       self:collapseToc(index)
     end,

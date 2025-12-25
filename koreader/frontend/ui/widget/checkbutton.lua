@@ -55,7 +55,6 @@ function CheckButton:initCheckButton(checked)
       enabled = self.enabled,
       face = self.face,
       parent = self.parent or self,
-      show_parent = self.show_parent or self,
     })
   else
     self._checkmark = CheckMark:new({
@@ -64,7 +63,6 @@ function CheckButton:initCheckButton(checked)
       enabled = self.enabled,
       face = self.face,
       parent = self.parent or self,
-      show_parent = self.show_parent or self,
     })
   end
   local fgcolor = self.fgcolor or Blitbuffer.COLOR_BLACK
@@ -96,7 +94,6 @@ function CheckButton:initCheckButton(checked)
     background = self.background,
     margin = 0,
     padding = 0,
-    show_parent = self.show_parent or self,
     self._horizontalgroup,
   })
   self.dimen = self._frame:getSize()

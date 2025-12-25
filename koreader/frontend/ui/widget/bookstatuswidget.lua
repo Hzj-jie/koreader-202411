@@ -64,7 +64,6 @@ function BookStatusWidget:init()
     radius = 0,
     margin = 0,
     enabled = not self.readonly,
-    show_parent = self,
     readonly = self.readonly,
   })
 
@@ -143,7 +142,6 @@ function BookStatusWidget:getStatusContent(width)
     close_callback = not self.readonly and function()
       self:onExit()
     end,
-    show_parent = self,
   })
   local content = VerticalGroup:new({
     align = "left",

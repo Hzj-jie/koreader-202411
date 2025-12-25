@@ -221,7 +221,6 @@ function ImageViewer:init()
     width = self.width - 2 * self.button_padding,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
   self.button_container = CenterContainer:new({
     dimen = Geom:new({
@@ -250,7 +249,6 @@ function ImageViewer:init()
         close_callback = function()
           self:onExit()
         end,
-        show_parent = self,
       })
       self.captioned_title_bar = TitleBar:new({ -- when caption shown
         width = self.width,
@@ -270,7 +268,6 @@ function ImageViewer:init()
         close_callback = function()
           self:onExit()
         end,
-        show_parent = self,
       })
     else
       self.title_bar = TitleBar:new({
@@ -282,7 +279,6 @@ function ImageViewer:init()
         close_callback = function()
           self:onExit()
         end,
-        show_parent = self,
       })
     end
   end

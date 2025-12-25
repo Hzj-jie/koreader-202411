@@ -596,9 +596,6 @@ Widget that displays menu
 local Menu = FocusManager:extend({
   ENABLE_SHORTCUT = ENABLE_SHORTCUT,
   ITEM_SHORTCUTS = ITEM_SHORTCUTS,
-
-  show_parent = nil,
-
   no_title = false,
   title = "",
   custom_title_bar = nil,
@@ -761,7 +758,6 @@ function Menu:init()
         close_callback = function()
           self:onExit()
         end,
-        show_parent = self.show_parent or self,
       })
   end
 
@@ -783,7 +779,6 @@ function Menu:init()
         self:onPrevPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_right_chev = self.page_info_right_chev
     or Button:new({
@@ -792,7 +787,6 @@ function Menu:init()
         self:onNextPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_first_chev = self.page_info_first_chev
     or Button:new({
@@ -801,7 +795,6 @@ function Menu:init()
         self:onFirstPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_last_chev = self.page_info_last_chev
     or Button:new({
@@ -810,7 +803,6 @@ function Menu:init()
         self:onLastPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_spacer = HorizontalSpan:new({
     width = Screen:scaleBySize(32),
@@ -933,7 +925,6 @@ function Menu:init()
         end
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
       readonly = self.return_arrow_propagation,
     })
   self.page_return_arrow:hide()
@@ -1178,7 +1169,6 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
     end
     local item_tmp = MenuItem:new({
       idx = index,
-      show_parent = self.show_parent,
       state_w = self.state_w,
       text = Menu.getMenuText(item),
       bidi_wrap_func = item.bidi_wrap_func,

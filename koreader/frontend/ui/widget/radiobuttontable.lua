@@ -75,8 +75,6 @@ function RadioButtonTable:init()
         margin = 0,
         padding = 0,
         face = self.face,
-
-        show_parent = self.show_parent or self,
         parent = self.parent or self,
       })
       local button_callback = function()

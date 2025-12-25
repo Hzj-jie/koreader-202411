@@ -21,7 +21,6 @@ local IconButton = InputContainer:extend({
   icon_rotation_angle = 0,
   dimen = nil,
   -- show_parent is used for UIManager:setDirty, so we can trigger repaint
-  show_parent = nil,
   width = Screen:scaleBySize(DGENERIC_ICON_SIZE), -- our icons are square
   height = Screen:scaleBySize(DGENERIC_ICON_SIZE),
   padding = 0,

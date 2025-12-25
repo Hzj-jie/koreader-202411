@@ -418,7 +418,6 @@ function ReaderMenu:onShowMenu(tab_index)
       width = Screen:getWidth(),
       last_index = tab_index,
       tab_item_table = self.tab_item_table,
-      show_parent = menu_container,
     })
   else
     local Menu = require("ui/widget/menu")
@@ -426,7 +425,6 @@ function ReaderMenu:onShowMenu(tab_index)
       title = _("Document menu"),
       item_table = Menu.itemTableFromTouchMenu(self.tab_item_table),
       width = Screen:getWidth() - 100,
-      show_parent = menu_container,
     })
   end
 
