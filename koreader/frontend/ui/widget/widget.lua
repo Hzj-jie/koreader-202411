@@ -80,14 +80,15 @@ end
 -- Get the show(widget) of current widget, use this function should be careful
 -- due to it's slowness.
 function Widget:showParent()
+  local UIManager = require("ui/uimanager")
   -- A fast loop to avoid dfs.
-  for w in require("uimanager"):topdown_widgets_iter() do
+  for w in UIManager:topdown_widgets_iter() do
     if w == self then
       return self
     end
   end
 
-  for w in require("uimanager"):topdown_widgets_iter() do
+  for w in UIManager:topdown_widgets_iter() do
     if require("util").arrayReferences(w, self) then
       return w
     end
