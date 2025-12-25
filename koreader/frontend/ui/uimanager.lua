@@ -1653,5 +1653,11 @@ function UIManager:runWith(func, widget)
   self:close(widget)
 end
 
+function UIManager:forceRepaintIfFastRefreshEnabled()
+  if G_named_settings.fast_screen_refresh() then
+    self:forceRepaint()
+  end
+end
+
 UIManager:init()
 return UIManager

@@ -175,7 +175,7 @@ function TouchMenuItem:init()
         v(self.menu)
         -- This event isn't triggered by an user interaction, and the update may
         -- be heavily delayed.
-        UIManager:forceRepaint()
+        UIManager:forceRepaintIfFastRefreshEnabled()
       end
     end
   end
