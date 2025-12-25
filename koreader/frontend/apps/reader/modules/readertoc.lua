@@ -139,23 +139,16 @@ function ReaderToc:onDocumentRerendered()
 end
 
 function ReaderToc:onPageUpdate(pageno)
-  local paging_forward, paging_backward
-  if self.pageno then
-    if pageno > self.pageno then
-      paging_forward = true
-    elseif pageno < self.pageno then
-      paging_backward = true
-      -- else -- well, impossible to update to the same page, but ignore it.
-    end
+  if not self.pageno then
+    self.pageno = pageno
+    return
   end
 
-  if paging_backward and self:isChapterEnd(pageno) then
-    UIManager:setDirty(nil, "full")
-  elseif paging_forward and self:isChapterStart(pageno) then
-    UIManager:setDirty(nil, "full")
-  end
-
-  self.pageno = pageno
+  if (pageno > self.pageno and self:isChapterStart(pageno)) or
+     (pageno < self.pageno and self:isChapterEnd(pageno)) then
+     UIManager:scheduleRefresh("full")
+   end
+   self.pageno = pageno
 end
 
 function ReaderToc:onPosUpdate(pos, pageno)
