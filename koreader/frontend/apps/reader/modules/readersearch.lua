@@ -681,7 +681,7 @@ function ReaderSearch:findAllText(search_text)
     local Trapper = require("ui/trapper")
     local info = InfoMessage:new({ text = _("Searching… (tap to cancel)") })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     local completed, res = Trapper:dismissableRunInSubprocess(function()
       return self.ui.document:findAllText(
         search_text,
@@ -755,7 +755,6 @@ function ReaderSearch:onShowFindAllResults(not_cached)
     item_table = self.findall_results,
     items_per_page = self.findall_results_per_page,
     items_max_lines = self.findall_results_max_lines,
-    covers_fullscreen = true,
     is_borderless = true,
     is_popout = false,
     title_bar_fm_style = true,

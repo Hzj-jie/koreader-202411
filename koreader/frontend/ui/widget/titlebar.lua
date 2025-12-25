@@ -68,9 +68,6 @@ local TitleBar = OverlapGroup:extend({
   -- If provided, use right_icon="exit" and use this as right_icon_tap_callback
   close_callback = nil,
   close_hold_callback = nil,
-
-  show_parent = nil,
-
   -- Internal: remember first sizes computed when title_shrink_font_to_fit=true,
   -- and keep using them after :setTitle() in case a smaller font size is needed,
   -- to keep the TitleBar geometry stable.
@@ -383,7 +380,6 @@ function TitleBar:init()
       overlap_align = "left",
       callback = self.left_icon_tap_callback,
       hold_callback = self.left_icon_hold_callback,
-      show_parent = self.show_parent,
     })
     table.insert(self, self.left_button)
   end
@@ -399,7 +395,6 @@ function TitleBar:init()
       overlap_align = "right",
       callback = self.right_icon_tap_callback,
       hold_callback = self.right_icon_hold_callback,
-      show_parent = self.show_parent,
     })
     table.insert(self, self.right_button)
   end
@@ -441,7 +436,7 @@ function TitleBar:setTitle(title, no_refresh)
       -- size: be sure everything is repainted
       UIManager:setDirty("all", "ui")
     else
-      UIManager:setDirty(self.show_parent, "ui", self.dimen)
+      UIManager:setDirty(self:showParent(), "ui", self.dimen)
     end
   else
     -- TextWidget with max-width: we can just update its text
@@ -451,7 +446,7 @@ function TitleBar:setTitle(title, no_refresh)
     end
     self.title_group:resetLayout()
     if not no_refresh then
-      UIManager:setDirty(self.show_parent, "ui", self.dimen)
+      UIManager:setDirty(self:showParent(), "ui", self.dimen)
     end
   end
 end
@@ -464,7 +459,7 @@ function TitleBar:setSubTitle(subtitle, no_refresh)
     end
     self.title_group:resetLayout()
     if not no_refresh then
-      UIManager:setDirty(self.show_parent, "ui", self.dimen)
+      UIManager:setDirty(self:showParent(), "ui", self.dimen)
     end
   end
 end
@@ -472,14 +467,14 @@ end
 function TitleBar:setLeftIcon(icon)
   if self.has_left_icon then
     self.left_button:setIcon(icon)
-    UIManager:setDirty(self.show_parent, "ui", self.dimen)
+    UIManager:setDirty(self:showParent(), "ui", self.dimen)
   end
 end
 
 function TitleBar:setRightIcon(icon)
   if self.has_right_icon then
     self.right_button:setIcon(icon)
-    UIManager:setDirty(self.show_parent, "ui", self.dimen)
+    UIManager:setDirty(self:showParent(), "ui", self.dimen)
   end
 end
 

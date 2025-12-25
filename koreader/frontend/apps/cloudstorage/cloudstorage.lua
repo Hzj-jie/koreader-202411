@@ -22,7 +22,6 @@ local T = require("ffi/util").template
 
 local CloudStorage = Menu:extend({
   no_title = false,
-  show_parent = nil,
   is_popout = false,
   is_borderless = true,
   title = _("Cloud storage"),
@@ -37,7 +36,6 @@ local server_types = {
 function CloudStorage:init()
   --- @todo: Probably a good candidate for the new readSetting API
   self.cs_settings = self:readSettings()
-  self.show_parent = self
   if self.item then
     self.item_table = self:genItemTable(self.item)
     self.choose_folder_mode = true

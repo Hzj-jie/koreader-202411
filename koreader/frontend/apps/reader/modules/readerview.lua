@@ -70,9 +70,6 @@ local ReaderView = OverlapGroup:extend({
   dogear_visible = false,
   -- in flipping state
   flipping_visible = false,
-  -- might be directly updated by readerpaging/readerrolling when
-  -- they handle some panning/scrolling, to request "fast" refreshes
-  currently_scrolling = false,
 
   -- image content stats of the current page, if supported by the Document engine
   img_count = nil,
@@ -308,10 +305,7 @@ function ReaderView:paintTo(bb, x, y)
         self.dialog.dithered = true
       end
       -- Request a flashing update while we're at it, but only if it's the first time we're painting it
-      if
-        self.state.drawn == false
-        and G_reader_settings:nilOrTrue("refresh_on_pages_with_images")
-      then
+      if self.state.drawn == false then
         UIManager:setDirty(nil, "full")
       end
     end
@@ -838,10 +832,7 @@ function ReaderView:recalculate()
 
   -- Flag a repaint so self:paintTo will be called
   -- NOTE: This is also unfortunately called during panning, essentially making sure we'll never be using "fast" for pans ;).
-  UIManager:setDirty(
-    self.dialog,
-    self.currently_scrolling and "fast" or "partial"
-  )
+  UIManager:setDirty(self.dialog, "partial")
 end
 
 function ReaderView:PanningUpdate(dx, dy)

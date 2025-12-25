@@ -50,7 +50,6 @@ local TouchMenuItem = InputContainer:extend({
   item = nil,
   menu = nil,
   dimen = nil,
-  show_parent = nil,
   item_visible_index = nil,
 })
 
@@ -174,6 +173,9 @@ function TouchMenuItem:init()
     if k:sub(1, 2) == "on" and type(v) == "function" then
       self[k] = function()
         v(self.menu)
+        -- This event isn't triggered by an user interaction, and the update may
+        -- be heavily delayed.
+        UIManager:forceRepaintIfFastRefreshEnabled()
       end
     end
   end
@@ -239,15 +241,14 @@ function TouchMenuItem:onTapSelect(arg, ges)
   -- Highlight
   --
   self.item_frame.invert = true
-  UIManager:widgetInvert(
+  UIManager:invertWidget(
     self.item_frame,
     highlight_dimen.x,
     highlight_dimen.y,
     highlight_dimen.w
   )
-  UIManager:setDirty(nil, "fast", highlight_dimen)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
 
   -- Unhighlight
@@ -255,20 +256,19 @@ function TouchMenuItem:onTapSelect(arg, ges)
   self.item_frame.invert = false
   -- NOTE: If the menu is going to be closed, we can safely drop that.
   if self.item.keep_menu_open then
-    UIManager:widgetInvert(
+    UIManager:invertWidget(
       self.item_frame,
       highlight_dimen.x,
       highlight_dimen.y,
       highlight_dimen.w
     )
-    UIManager:setDirty(nil, "ui", highlight_dimen)
   end
 
   -- Callback
   --
   self.menu:onMenuSelect(self.item, tap_on_checkmark)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   return true
 end
 
@@ -296,15 +296,14 @@ function TouchMenuItem:onHoldSelect(arg, ges)
   -- Highlight
   --
   self.item_frame.invert = true
-  UIManager:widgetInvert(
+  UIManager:invertWidget(
     self.item_frame,
     highlight_dimen.x,
     highlight_dimen.y,
     highlight_dimen.w
   )
-  UIManager:setDirty(nil, "fast", highlight_dimen)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
 
   -- Unhighlight
@@ -313,20 +312,19 @@ function TouchMenuItem:onHoldSelect(arg, ges)
   -- NOTE: If the menu is going to be closed, we can safely drop that.
   --     (This field defaults to nil, meaning keep the menu open, hence the negated test)
   if self.item.hold_keep_menu_open ~= false then
-    UIManager:widgetInvert(
+    UIManager:invertWidget(
       self.item_frame,
       highlight_dimen.x,
       highlight_dimen.y,
       highlight_dimen.w
     )
-    UIManager:setDirty(nil, "ui", highlight_dimen)
   end
 
   -- Callback
   --
   self.menu:onMenuHold(self.item, self.text_truncated)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   return true
 end
 
@@ -337,7 +335,6 @@ local TouchMenuBar = InputContainer:extend({
   width = Screen:getWidth(),
   icons = nil, -- array, mandatory
   -- touch menu that holds the bar, used for trigger repaint on icons
-  show_parent = nil,
   menu = nil,
 })
 
@@ -352,7 +349,6 @@ function TouchMenuBar:init()
   local spacing_width = (self.width - content_width) / (#self.icons * 2)
   local icon_padding = math.min(spacing_width, Screen:scaleBySize(16))
   self.height = icon_height + 2 * Size.padding.default
-  self.show_parent = self.show_parent or self
   self.bar_icon_group = HorizontalGroup:new({})
   -- build up image widget for menu icon bar
   self.icon_widgets = {}
@@ -372,7 +368,6 @@ function TouchMenuBar:init()
 
   for k, v in ipairs(self.icons) do
     local ib = IconButton:new({
-      show_parent = self.show_parent,
       icon = v,
       width = icon_width,
       height = icon_height,
@@ -538,7 +533,6 @@ local TouchMenu = FocusManager:extend({
   height = nil,
   page = 1,
   -- for UIManager:setDirty
-  show_parent = nil,
   cur_tab = -1,
   close_callback = nil,
   is_fresh = true,
@@ -552,10 +546,9 @@ function TouchMenu:init()
   if not self.dimen then
     self.dimen = Geom:new()
   end
-  self.show_parent = self.show_parent or self
   if not self.close_callback then
     self.close_callback = function()
-      UIManager:close(self.show_parent)
+      UIManager:close(self:showParent())
     end
   end
 
@@ -595,7 +588,6 @@ function TouchMenu:init()
   self.bar = TouchMenuBar:new({
     width = self.width, -- will impose width and push left and right borders offscreen
     icons = icons,
-    show_parent = self.show_parent,
     menu = self,
   })
 
@@ -617,7 +609,6 @@ function TouchMenu:init()
       self:onFirstPage()
     end,
     bordersize = 0,
-    show_parent = self.show_parent,
   })
   self.page_info_right_chev = Button:new({
     icon = chevron_right,
@@ -628,7 +619,6 @@ function TouchMenu:init()
       self:onLastPage()
     end,
     bordersize = 0,
-    show_parent = self.show_parent,
   })
   self.page_info_left_chev:hide()
   self.page_info_right_chev:hide()
@@ -655,7 +645,6 @@ function TouchMenu:init()
       UIManager:broadcastEvent(Event:new("ShowBatteryStatistics"))
     end,
     bordersize = 0,
-    show_parent = self.show_parent,
   })
   self.device_info = HorizontalGroup:new({
     self.time_info,
@@ -665,7 +654,6 @@ function TouchMenu:init()
   local footer_width = self.width - self.padding * 2
   local up_button = IconButton:new({
     icon = "chevron.up",
-    show_parent = self.show_parent,
     padding_left = math.floor(footer_width * 0.33 * 0.1),
     padding_right = math.floor(footer_width * 0.33 * 0.5),
     callback = function()
@@ -775,7 +763,7 @@ end
 
 function TouchMenu:onTimesChange_1M()
   self:_updateTimeInfo()
-  UIManager:setDirty(self.time_info, "ui")
+  UIManager:setDirty(self.time_info, "fast")
 end
 
 function TouchMenu:_updateTimeInfo()
@@ -831,7 +819,6 @@ function TouchMenu:updateItems()
           w = self.item_width,
           h = self.item_height,
         }),
-        show_parent = self.show_parent,
         item_visible_index = c,
       })
       table.insert(self.item_group, item_tmp)
@@ -874,20 +861,10 @@ function TouchMenu:updateItems()
   --     in order to optionally flash on initial menu popup...
   -- NOTE: Also avoid repainting what's underneath us on initial popup.
   -- NOTE: And we also only need to repaint what's behind us when switching to a smaller menu...
-  local keep_bg = old_dimen and self.dimen.h >= old_dimen.h
   UIManager:setDirty(
-    (self.is_fresh or keep_bg) and self.show_parent or "all",
+    (old_dimen and self.dimen.h >= old_dimen.h) and self:showParent() or "all",
     function()
-      local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)
-        or self.dimen
-      local refresh_type = "ui"
-      if self.is_fresh then
-        refresh_type = "flashui"
-        -- Drop the region, too, to make it full-screen? May help when starting from a "small" menu.
-        --refresh_dimen = nil
-        self.is_fresh = false
-      end
-      return refresh_type, refresh_dimen
+      return "ui", old_dimen and old_dimen:combine(self.dimen) or self.dimen
     end
   )
 end
@@ -1212,22 +1189,20 @@ function TouchMenu:openMenu(path, with_animation)
     end
     if unhighlight then
       widget.invert = false
-      UIManager:widgetInvert(
+      UIManager:invertWidget(
         widget,
         highlight_dimen.x,
         highlight_dimen.y,
         highlight_dimen.w
       )
-      UIManager:setDirty(nil, "ui", highlight_dimen)
     else
       widget.invert = true
-      UIManager:widgetInvert(
+      UIManager:invertWidget(
         widget,
         highlight_dimen.x,
         highlight_dimen.y,
         highlight_dimen.w
       )
-      UIManager:setDirty(nil, "fast", highlight_dimen)
     end
   end
 
@@ -1475,9 +1450,6 @@ function TouchMenu:onShowMenuSearch()
         dimen = Screen:getSize(),
         results_menu,
       })
-
-      results_menu.show_parent = self.results_menu_container
-
       UIManager:show(self.results_menu_container)
     else
       UIManager:show(InfoMessage:new({

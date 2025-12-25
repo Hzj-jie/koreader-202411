@@ -496,6 +496,7 @@ local ReaderFooter = WidgetContainer:extend({
   settings = nil, -- table
   -- added to expose them to unit tests
   textGeneratorMap = footerTextGeneratorMap,
+  _refreshMode = "fast",
 })
 
 local DEFAULT_SETTINGS = {
@@ -2161,12 +2162,9 @@ function ReaderFooter:_repaint()
   -- NOTE: That's assuming using "fast" for pans was a good idea, which, it turned out, not so much ;).
   -- NOTE: We skip repaints on page turns/pos update, as that's redundant (and slow).
   local top_wg = UIManager:getTopmostVisibleWidget() or {}
-  if
-    top_wg.name ~= "ReaderUI"
-    and (top_wg.covers_fullscreen or top_wg.covers_footer)
-  then
-    -- If the top most widget covers the footer, but it's not the ReaderUI,
-    -- footer doesn't need to be repainted.
+  if G_named_settings.fast_screen_refresh() and top_wg.name ~= "ReaderUI" then
+    -- If the top most widget is not the ReaderUI, and it's not expected to
+    -- "fast" refreshing the screen, footer doesn't need to be repainted.
     return
   end
 
@@ -2194,17 +2192,16 @@ function ReaderFooter:_repaint()
     -- NOTE: self.view.footer -> self ;).
 
     -- c.f., ReaderView:paintTo()
-    UIManager:widgetRepaint(self.view.footer, 0, 0)
-    -- We've painted it first to ensure self.footer_content.dimen is sane
-    UIManager:setDirty(nil, function()
-      return self.view.currently_scrolling and "fast" or "ui",
-        self.footer_content.dimen
-    end)
+    UIManager:repaintWidget(self.view.footer)
+
+    -- This is very uncommon, but considering the _paint can be called randomly,
+    -- without forcing a repaint, the delay would be noticable up to 200ms per
+    -- frequence of repainting in UIManager. So force a repaint to reduce the
+    -- laggy if users would like a better user experience.
+    UIManager:forceRepaintIfFastRefreshEnabled()
   else
     -- If the footer is invisible or might be hidden behind another widget, we need to repaint the full ReaderUI stack.
-    UIManager:setDirty(self.view.dialog, function()
-      return self.view.currently_scrolling and "fast" or "ui", refresh_dim
-    end)
+    UIManager:setDirty(self.view.dialog, "ui", refresh_dim)
   end
 end
 

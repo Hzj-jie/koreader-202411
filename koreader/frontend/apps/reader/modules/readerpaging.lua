@@ -382,7 +382,7 @@ function ReaderPaging:onScrollSettingsUpdated(
         if not self.ui.document then
           return false
         end
-        UIManager.currently_scrolling = true
+        UIManager:forceFastRefresh()
         local top_page, top_position = self:getTopPage(), self:getTopPosition()
         self:onPanningRel(distance)
         return not (
@@ -391,7 +391,7 @@ function ReaderPaging:onScrollSettingsUpdated(
         )
       end,
       function() -- scroll_done_callback
-        UIManager.currently_scrolling = false
+        UIManager:resetForceFastRefresh()
         UIManager:setDirty(self.view.dialog, "partial")
       end
     )
@@ -410,7 +410,7 @@ function ReaderPaging:onSwipe(_, ges)
     return true
   else
     self._pan_started = false
-    UIManager.currently_scrolling = false
+    UIManager:resetForceFastRefresh()
     self._pan_page_states_to_restore = nil
   end
   local direction = BD.flipDirectionIfMirroredUILayout(ges.direction)
@@ -535,7 +535,7 @@ function ReaderPaging:onPan(_, ges)
         self._pan_to_scroll_later = 0
         if dist ~= 0 then
           self._pan_has_scrolled = true
-          UIManager.currently_scrolling = true
+          UIManager:forceFastRefresh()
           self:onPanningRel(dist)
         end
       else
@@ -559,7 +559,7 @@ function ReaderPaging:onPanRelease(_, ges)
     end
     self._pan_started = false
     self._pan_page_states_to_restore = nil
-    UIManager.currently_scrolling = false
+    UIManager:resetForceFastRefresh()
     if self._pan_has_scrolled then
       self._pan_has_scrolled = false
       -- Don't do any inertial scrolling if pan events come from
@@ -590,7 +590,7 @@ function ReaderPaging:onHandledAsSwipe()
     self._pan_page_states_to_restore = nil
     self._pan_started = false
     self._pan_has_scrolled = false
-    UIManager.currently_scrolling = false
+    UIManager:resetForceFastRefresh()
   end
   return true
 end

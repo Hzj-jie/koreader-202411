@@ -408,24 +408,21 @@ function VirtualKey:update_keyboard(want_flash, want_a2)
     UIManager:setDirty(self.keyboard, function()
       return "flashui", self.keyboard.dimen
     end)
-  else
-    local refresh_type = "ui"
-    if want_a2 then
-      refresh_type = "a2"
-    end
-    -- Only repaint the key itself, not the full board...
-    -- NOTE: We use self[1] (i.e., FrameContainer),
-    --     because we fudge self.dimen to include the padding for the gesture hitbox...
-    UIManager:widgetRepaint(self[1])
-    logger.dbg("update key", self.key)
-    UIManager:setDirty(nil, refresh_type, self[1].dimen)
-
-    -- NOTE: On MTK, we'd have to forcibly stall a bit for the highlights to actually show.
-    --[[
-    UIManager:forceRePaint()
-    UIManager:waitForScreenRefresh()
-    --]]
+    return
   end
+
+  -- Only repaint the key itself, not the full board...
+  -- NOTE: We use self[1] (i.e., FrameContainer),
+  --     because we fudge self.dimen to include the padding for the gesture hitbox...
+  self[1]._refreshMode = (want_a2 and "a2" or "ui")
+  UIManager:repaintWidget(self[1])
+  logger.dbg("update key", self.key)
+
+  -- NOTE: On MTK, we'd have to forcibly stall a bit for the highlights to actually show.
+  --[[
+  UIManager:forceRepaint()
+  UIManager:waitForScreenRefresh()
+  --]]
 end
 
 function VirtualKey:onFocus()
@@ -442,14 +439,14 @@ function VirtualKey:onTapSelect(skip_flash)
   self.keyboard.ignore_first_hold_release = false
   if not skip_flash and not self.skiptap then
     self:invert(true)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     UIManager:waitForScreenRefresh()
 
     self:invert(false)
     if self.callback then
       self.callback()
     end
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   else
     if self.callback then
       self.callback()
@@ -463,7 +460,7 @@ function VirtualKey:onHoldSelect()
   -- No visual feedback necessary if we're going to show a popup on top of the key ;).
   if not self.skiphold and not self.hold_cb_is_popup then
     self:invert(true)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     UIManager:waitForScreenRefresh()
 
     -- NOTE: We do *NOT* set hold to true here,
@@ -473,7 +470,7 @@ function VirtualKey:onHoldSelect()
     if self.hold_callback then
       self.hold_callback()
     end
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   else
     if self.hold_callback then
       self.hold_callback()
@@ -488,14 +485,14 @@ function VirtualKey:onSwipeKey(arg, ges)
   end
   Device:performHapticFeedback("KEYBOARD_TAP")
   self:invert(true)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
 
   self:invert(false)
   if self.swipe_callback then
     self.swipe_callback(ges)
   end
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   return true
 end
 

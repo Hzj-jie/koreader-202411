@@ -213,7 +213,6 @@ function InputDialog:init()
     self.is_movable = false
     self.border_size = 0
     self.width = self.screen_width - 2 * self.border_size
-    self.covers_fullscreen = true -- hint for UIManager:_repaint()
   else
     self.width = self.width
       or math.floor(math.min(self.screen_width, self.screen_height) * 0.8)
@@ -249,7 +248,6 @@ function InputDialog:init()
     info_text = self.description,
     left_icon = self.title_bar_left_icon,
     left_icon_tap_callback = self.title_bar_left_icon_tap_callback,
-    show_parent = self,
   })
 
   -- Vertical spaces added before and after InputText
@@ -277,7 +275,6 @@ function InputDialog:init()
     width = self.width - 2 * self.button_padding,
     buttons = self.buttons,
     zero_sep = true,
-    show_parent = self,
   })
   local buttons_container = CenterContainer:new({
     dimen = Geom:new({

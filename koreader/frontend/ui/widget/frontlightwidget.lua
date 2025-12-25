@@ -159,7 +159,6 @@ function FrontLightWidget:layout()
     text = "−",
     enabled = self.fl.cur ~= self.fl.min,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.cur - 1)
     end,
@@ -168,7 +167,6 @@ function FrontLightWidget:layout()
     text = "＋",
     enabled = self.fl.cur ~= self.fl.max,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.cur + 1)
     end,
@@ -189,7 +187,6 @@ function FrontLightWidget:layout()
     text = C_("Extrema", "Min"),
     enabled = true,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.min + 1)
     end, -- min is 1 (We use 0 to mean "toggle")
@@ -198,7 +195,6 @@ function FrontLightWidget:layout()
     text = C_("Extrema", "Max"),
     enabled = true,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.max)
     end,
@@ -207,7 +203,6 @@ function FrontLightWidget:layout()
     text = _("Toggle"),
     enabled = true,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.min)
     end,
@@ -265,7 +260,6 @@ function FrontLightWidget:layout()
       callback = function(i)
         self:setWarmth(Math.round(i * self.nl.stride), false)
       end,
-      show_parent = self,
       enabled = true,
     })
     -- We want a wider gap between the two sets of widgets
@@ -280,7 +274,6 @@ function FrontLightWidget:layout()
       text = "−",
       enabled = self.nl.cur ~= self.nl.min,
       width = self.button_width,
-      show_parent = self,
       callback = function()
         self:setWarmth(self.nl.cur - 1, true)
       end,
@@ -289,7 +282,6 @@ function FrontLightWidget:layout()
       text = "＋",
       enabled = self.nl.cur ~= self.nl.max,
       width = self.button_width,
-      show_parent = self,
       callback = function()
         self:setWarmth(self.nl.cur + 1, true)
       end,
@@ -310,7 +302,6 @@ function FrontLightWidget:layout()
       text = C_("Extrema", "Min"),
       enabled = true,
       width = self.button_width,
-      show_parent = self,
       callback = function()
         self:setWarmth(self.nl.min, true)
       end,
@@ -319,7 +310,6 @@ function FrontLightWidget:layout()
       text = C_("Extrema", "Max"),
       enabled = true,
       width = self.button_width,
-      show_parent = self,
       callback = function()
         self:setWarmth(self.nl.max, true)
       end,
@@ -331,7 +321,6 @@ function FrontLightWidget:layout()
       nl_setup = Button:new({
         text = _("Configure"),
         width = self.button_width,
-        show_parent = self,
         callback = function()
           UIManager:show(NaturalLight:new({ fl_widget = self }))
         end,
@@ -393,7 +382,6 @@ function FrontLightWidget:layout()
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self,
   })
   local inner_frame = FrameContainer:new({
     padding = Size.padding.button,

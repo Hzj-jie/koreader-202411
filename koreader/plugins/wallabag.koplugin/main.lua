@@ -832,7 +832,7 @@ end
 function Wallabag:synchronize()
   local info = InfoMessage:new({ text = _("Connecting…") })
   UIManager:show(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:close(info)
 
   if self:getBearerToken() == false then
@@ -841,7 +841,7 @@ function Wallabag:synchronize()
   if self.download_queue and next(self.download_queue) ~= nil then
     info = InfoMessage:new({ text = _("Adding articles from queue…") })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     for _, articleUrl in ipairs(self.download_queue) do
       self:addArticle(articleUrl)
     end
@@ -854,7 +854,7 @@ function Wallabag:synchronize()
 
   info = InfoMessage:new({ text = _("Getting article list…") })
   UIManager:show(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:close(info)
 
   local remote_article_ids = {}
@@ -867,7 +867,7 @@ function Wallabag:synchronize()
 
       info = InfoMessage:new({ text = _("Downloading articles…") })
       UIManager:show(info)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
       UIManager:close(info)
       for _, article in ipairs(articles) do
         logger.dbg("Wallabag: processing article ID: ", article.id)
@@ -911,7 +911,7 @@ function Wallabag:processRemoteDeletes(remote_article_ids)
   local info =
     InfoMessage:new({ text = _("Synchronizing remote deletions…") })
   UIManager:show(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:close(info)
   local deleted_count = 0
   for entry in lfs.dir(self.directory) do
@@ -951,7 +951,7 @@ function Wallabag:processLocalFiles(mode)
   then
     local info = InfoMessage:new({ text = _("Processing local files…") })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     UIManager:close(info)
     for entry in lfs.dir(self.directory) do
       if entry ~= "." and entry ~= ".." then

@@ -134,7 +134,7 @@ function WpaSupplicant:authenticateNetwork(network)
   local success = false
   local msg = _("Authenticated")
   UIManager:show(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   while cnt < max_retry do
     -- Start by checking if we're not actually connected already...
     -- NOTE: This is mainly to catch corner-cases where our preferred network list differs from the system's,
@@ -154,7 +154,7 @@ function WpaSupplicant:authenticateNetwork(network)
           text = string.upper(first) .. string.lower(rest) .. "…",
         })
         UIManager:show(info)
-        UIManager:forceRePaint()
+        UIManager:forceRepaint()
       end
     end
 
@@ -165,7 +165,7 @@ function WpaSupplicant:authenticateNetwork(network)
         UIManager:close(info)
         info = InfoMessage:new({ text = ev.msg })
         UIManager:show(info)
-        UIManager:forceRePaint()
+        UIManager:forceRepaint()
       end
       if ev:isAuthSuccessful() then
         network.wpa_supplicant_id = nw_id
@@ -188,7 +188,7 @@ function WpaSupplicant:authenticateNetwork(network)
   end
   wcli:close()
   UIManager:close(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   if cnt >= max_retry then
     success, msg = false, _("Timed out")
   end

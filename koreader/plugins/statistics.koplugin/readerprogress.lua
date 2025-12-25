@@ -46,7 +46,6 @@ function ReaderProgress:init()
     self.stats_span = 10
   end
 
-  self.covers_fullscreen = true -- hint for UIManager:_repaint()
   self[1] = FrameContainer:new({
     width = self.screen_width,
     height = self.screen_height,
@@ -105,7 +104,6 @@ function ReaderProgress:getStatusContent(width)
     close_callback = not self.readonly and function()
       self:onExit()
     end,
-    show_parent = self,
   })
   return VerticalGroup:new({
     align = "left",

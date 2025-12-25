@@ -269,8 +269,7 @@ function Device:init()
       elseif ev.code == SDL_DROPFILE then
         local dropped_file_path = ev.value
         if dropped_file_path and dropped_file_path ~= "" then
-          local ReaderUI = require("apps/reader/readerui")
-          ReaderUI:doShowReader(dropped_file_path)
+          require("apps/reader/readerui"):showReader(dropped_file_path)
         end
       elseif ev.code == SDL_WINDOWEVENT_RESIZED then
         device_input.device.screen.resize(

@@ -494,7 +494,7 @@ function NetworkMgr:toggleWifiOn()
     text = _("Turning on Wi-Fi…"),
   })
   UIManager:show(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
 
   -- Some implementations (usually, hasWifiManager) can report whether they were successful
   local function requestToTurnOnWifi()
@@ -550,7 +550,7 @@ function NetworkMgr:toggleWifiOff(interactive)
       text = _("Turning off Wi-Fi…"),
     })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   end
 
   raiseNetworkEvent("Disconnecting")
@@ -968,7 +968,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
   if interactive then
     local info = InfoMessage:new({ text = _("Scanning for networks…") })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     network_list = scanNetworkList()
     UIManager:close(info)
   else
@@ -1105,7 +1105,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
       timeout = 3,
       dismiss_callback = complete_callback,
     }))
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   elseif complete_callback then
     complete_callback()
   end

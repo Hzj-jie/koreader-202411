@@ -134,7 +134,7 @@ function ReaderStatus:onEndOfBook()
         text = _("Searching next file…"),
       })
       UIManager:show(info)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
       UIManager:close(info)
       self:onOpenNextDocumentInFolder()
     else

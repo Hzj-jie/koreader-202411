@@ -73,7 +73,6 @@ function ReaderCropping:onPageCrop(mode)
       },
     },
     zero_sep = true,
-    show_parent = self,
   })
   local button_container = FrameContainer:new({
     margin = 0,

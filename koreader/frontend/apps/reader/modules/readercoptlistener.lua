@@ -269,37 +269,20 @@ function ReaderCoptListener:onTimeFormatChanged()
   )
 end
 
-function ReaderCoptListener:shouldHeaderBeRepainted()
-  local top_wg = UIManager:getTopmostVisibleWidget() or {}
-  if top_wg.name == "ReaderUI" then
-    -- We're on display, go ahead
-    return true
-  elseif top_wg.covers_fullscreen or top_wg.covers_header then
-    -- We're hidden behind something that definitely covers us, don't do anything
-    return false
-  else
-    -- There's something on top of us, but we might still be visible, request a ReaderUI repaint,
-    -- UIManager will sort it out.
-    return true
-  end
-end
-
 function ReaderCoptListener:_updateHeader()
   -- Have crengine display accurate time and battery on its next drawing
   self.document:resetBufferCache() -- be sure next repaint is a redrawing
   -- Force a refresh if we're not hidden behind another widget
-  if self:shouldHeaderBeRepainted() then
-    UIManager:setDirty(
-      self.view.dialog,
-      "ui",
-      Geom:new({
-        x = 0,
-        y = 0,
-        w = Device.screen:getWidth(),
-        h = self.document:getHeaderHeight(),
-      })
-    )
-  end
+  UIManager:setDirty(
+    self.view.dialog,
+    "ui",
+    Geom:new({
+      x = 0,
+      y = 0,
+      w = Device.screen:getWidth(),
+      h = self.document:getHeaderHeight(),
+    })
+  )
 end
 
 -- ReaderView:onSetViewMode(), which sets view.view_mode, is called before

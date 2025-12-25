@@ -157,7 +157,6 @@ function DateTimeWidget:createLayout()
 
   if self.year then
     self.year_widget = NumberPickerWidget:new({
-      show_parent = self,
       value = self.year,
       value_min = self.year_min or 2021,
       value_max = self.year_max or 2525,
@@ -171,7 +170,6 @@ function DateTimeWidget:createLayout()
   end
   if self.month then
     self.month_widget = NumberPickerWidget:new({
-      show_parent = self,
       value = self.month,
       value_min = self.month_min or 1,
       value_max = self.month_max or 12,
@@ -185,7 +183,6 @@ function DateTimeWidget:createLayout()
   end
   if self.day then
     self.day_widget = NumberPickerWidget:new({
-      show_parent = self,
       value = self.day,
       value_min = self.day_min or 1,
       value_max = self.day_max or 31,
@@ -200,7 +197,6 @@ function DateTimeWidget:createLayout()
 
   if self.hour then
     self.hour_widget = NumberPickerWidget:new({
-      show_parent = self,
       value = self.hour,
       value_min = self.hour_min or 0,
       value_max = self.hour_max or 23,
@@ -214,7 +210,6 @@ function DateTimeWidget:createLayout()
   end
   if self.min then
     self.min_widget = NumberPickerWidget:new({
-      show_parent = self,
       value = self.min,
       value_min = self.min_min or 0,
       value_max = self.min_max or 59,
@@ -228,7 +223,6 @@ function DateTimeWidget:createLayout()
   end
   if self.sec then
     self.sec_widget = NumberPickerWidget:new({
-      show_parent = self,
       value = self.sec,
       value_min = self.sec_min or 0,
       value_max = self.sec_max or 59,
@@ -295,7 +289,6 @@ function DateTimeWidget:createLayout()
     title = self.title_text,
     title_shrink_font_to_fit = true,
     info_text = self.info_text,
-    show_parent = self,
   })
 
   local buttons = {}
@@ -365,7 +358,6 @@ function DateTimeWidget:createLayout()
     width = self.width - 2 * Size.padding.default,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
   self:mergeLayoutInVertical(ok_cancel_buttons)
 

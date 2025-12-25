@@ -100,36 +100,36 @@ function SortItemWidget:onTap(_, ges)
   if
     self.item.checked_func
     and (
-      self.show_parent.sort_disabled
+      self:showParent().sort_disabled
       or ges.pos:intersectWith(self.checkmark_widget.dimen)
     )
   then
     if self.item.callback then
       self.item:callback()
     end
-  elseif self.show_parent.sort_disabled then
+  elseif self:showParent().sort_disabled then
     if self.item.callback then
       self.item:callback()
     else
       return true
     end
-  elseif self.show_parent.marked == self.index then
-    self.show_parent.marked = 0
+  elseif self:showParent().marked == self.index then
+    self:showParent().marked = 0
   else
-    self.show_parent.marked = self.index
+    self:showParent().marked = self.index
   end
-  self.show_parent:_populateItems()
+  self:showParent():_populateItems()
   return true
 end
 
 function SortItemWidget:onHold()
   if self.item.hold_callback then
     self.item:hold_callback(function()
-      self.show_parent:_populateItems()
+      self:showParent():_populateItems()
     end)
   elseif self.item.callback then
     self.item:callback()
-    self.show_parent:_populateItems()
+    self:showParent():_populateItems()
   end
   return true
 end
@@ -196,7 +196,6 @@ function SortWidget:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_right = Button:new({
     icon = chevron_right,
@@ -206,7 +205,6 @@ function SortWidget:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_first_up = Button:new({
     icon = chevron_first,
@@ -220,7 +218,6 @@ function SortWidget:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_last_down = Button:new({
     icon = chevron_last,
@@ -234,7 +231,6 @@ function SortWidget:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_cancel = Button:new({
     icon = "exit",
@@ -244,7 +240,6 @@ function SortWidget:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_ok = Button:new({
     icon = "check",
@@ -254,7 +249,6 @@ function SortWidget:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_page = Button:new({
     text = "",
@@ -278,7 +272,6 @@ function SortWidget:init()
     text_font_face = "pgfont",
     text_font_bold = false,
     width = self.footer_center_width,
-    show_parent = self,
   })
   self.page_info = HorizontalGroup:new({
     self.footer_cancel,
@@ -325,7 +318,6 @@ function SortWidget:init()
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self,
   })
   -- setup main content
   self.item_margin = math.floor(self.item_height / 8)
@@ -446,7 +438,6 @@ function SortWidget:_populateItems()
       item = self.item_table[idx],
       invert = invert_status,
       index = idx,
-      show_parent = self,
     })
     table.insert(self.layout, #self.layout, { item })
     table.insert(self.main_content, item)

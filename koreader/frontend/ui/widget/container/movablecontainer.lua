@@ -287,7 +287,7 @@ function MovableContainer:_moveBy(dx, dy, restrict_to_screen)
         self.orig_alpha = self.alpha
         self.alpha = nil
       else
-        self.alpha = self.orig_alpha or 0.7
+        self.alpha = self.orig_alpha or 0.6
         -- For testing: to visually see how different alpha
         -- values look: loop thru decreasing alpha values
         -- self.alpha = self.orig_alpha or 1.0

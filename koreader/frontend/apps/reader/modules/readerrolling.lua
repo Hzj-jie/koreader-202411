@@ -605,13 +605,13 @@ function ReaderRolling:onScrollSettingsUpdated(
         if not self.ui.document then
           return false
         end
-        UIManager.currently_scrolling = true
+        UIManager:forceFastRefresh()
         local prev_pos = self.current_pos
         self:_gotoPos(prev_pos + distance)
         return self.current_pos ~= prev_pos
       end,
       function() -- scroll_done_callback
-        UIManager.currently_scrolling = false
+        UIManager:resetForceFastRefresh()
         if self.ui.document then
           self.xpointer = self.ui.document:getXPointer()
         end
@@ -633,7 +633,7 @@ function ReaderRolling:onSwipe(_, ges)
     return true
   else
     self._pan_started = false
-    UIManager.currently_scrolling = false
+    UIManager:resetForceFastRefresh()
   end
   local direction = BD.flipDirectionIfMirroredUILayout(ges.direction)
   if direction == "west" then
@@ -739,7 +739,7 @@ function ReaderRolling:onPan(_, ges)
         self._pan_to_scroll_later = 0
         if dist ~= 0 then
           self._pan_has_scrolled = true
-          UIManager.currently_scrolling = true
+          UIManager:forceFastRefresh()
           self:_gotoPos(self.current_pos + dist)
           -- (We'll update self.xpointer only when done moving, at
           -- release/swipe time as it might be expensive)
@@ -757,7 +757,7 @@ function ReaderRolling:onPanRelease(_, ges)
     self:_gotoPos(self.current_pos + self._pan_to_scroll_later)
   end
   self._pan_started = false
-  UIManager.currently_scrolling = false
+  UIManager:resetForceFastRefresh()
   if self._pan_has_scrolled then
     self._pan_has_scrolled = false
     self.xpointer = self.ui.document:getXPointer()
@@ -780,7 +780,7 @@ function ReaderRolling:onHandledAsSwipe()
     self:_gotoPos(self._pan_pos_at_pan_start)
     self._pan_started = false
     self._pan_has_scrolled = false
-    UIManager.currently_scrolling = false
+    UIManager:resetForceFastRefresh()
     -- No specific refresh: the swipe/multiswipe might show other stuff,
     -- and we'd want to avoid a flashing refresh
   end
@@ -1332,7 +1332,7 @@ function ReaderRolling:_gotoPos(new_pos, do_dim_area)
   else
     self.view.dim_area:clear()
   end
-  if self.current_pos and not UIManager.currently_scrolling then
+  if self.current_pos and not UIManager:duringForceFastRefresh() then
     UIManager:broadcastEvent(
       Event:new("PageChangeAnimation", new_pos > self.current_pos)
     )

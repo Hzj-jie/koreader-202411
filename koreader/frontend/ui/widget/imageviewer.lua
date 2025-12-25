@@ -136,9 +136,6 @@ function ImageViewer:init()
       MultiSwipe = { GestureRange:new({ ges = "multiswipe", range = range }) },
     }
   end
-  if self.fullscreen then
-    self.covers_fullscreen = true -- hint for UIManager:_repaint()
-  end
 
   -- if self.image is a list of images, swap it with first image to be displayed
   if type(self.image) == "table" then
@@ -224,7 +221,6 @@ function ImageViewer:init()
     width = self.width - 2 * self.button_padding,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
   self.button_container = CenterContainer:new({
     dimen = Geom:new({
@@ -253,7 +249,6 @@ function ImageViewer:init()
         close_callback = function()
           self:onExit()
         end,
-        show_parent = self,
       })
       self.captioned_title_bar = TitleBar:new({ -- when caption shown
         width = self.width,
@@ -273,7 +268,6 @@ function ImageViewer:init()
         close_callback = function()
           self:onExit()
         end,
-        show_parent = self,
       })
     else
       self.title_bar = TitleBar:new({
@@ -285,7 +279,6 @@ function ImageViewer:init()
         close_callback = function()
           self:onExit()
         end,
-        show_parent = self,
       })
     end
   end
@@ -855,7 +848,7 @@ function ImageViewer:onSaveImageView()
     self.buttons_visible = false
     self.fullscreen = true
     self:update()
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   end
   local screenshot_dir = Screenshoter:getScreenshotDir()
   local screenshot_name =

@@ -69,7 +69,7 @@ local function obtainIP()
   --- @todo check for DHCP result
   local info = InfoMessage:new({ text = _("Obtaining IP address…") })
   UIManager:show(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   NetworkMgr:obtainIP()
   UIManager:close(info)
 end
@@ -284,7 +284,7 @@ function NetworkItem:disconnect(will_reconnect)
     else
       local info = InfoMessage:new({ text = _("Disconnecting…") })
       UIManager:show(info)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
 
       NetworkMgr:disconnectNetwork(self.info)
       NetworkMgr:releaseIP()

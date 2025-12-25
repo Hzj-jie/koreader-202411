@@ -158,7 +158,6 @@ function ConfirmBox:init()
     width = content:getSize().w,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
 
   local frame = FrameContainer:new({

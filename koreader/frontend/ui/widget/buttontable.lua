@@ -78,8 +78,8 @@ function ButtonTable:init()
         enabled = btn_entry.enabled,
         enabled_func = btn_entry.enabled_func,
         callback = function()
-          if self.show_parent and self.show_parent.movable then
-            self.show_parent.movable:resetEventState()
+          if self:showParent() and self:showParent().movable then
+            self:showParent().movable:resetEventState()
           end
           btn_entry.callback()
         end,
@@ -97,8 +97,11 @@ function ButtonTable:init()
         text_font_face = btn_entry.font_face,
         text_font_size = btn_entry.font_size,
         text_font_bold = btn_entry.font_bold,
-        show_parent = self.show_parent,
-        shortcut = ((self.enable_shortcut and Menu.ENABLE_SHORTCUT) and Menu.ITEM_SHORTCUTS[(i - 1) * column_cnt + j] or nil)
+        shortcut = (
+          (self.enable_shortcut and Menu.ENABLE_SHORTCUT)
+            and Menu.ITEM_SHORTCUTS[(i - 1) * column_cnt + j]
+          or nil
+        ),
       })
       if
         self.shrink_unneeded_width

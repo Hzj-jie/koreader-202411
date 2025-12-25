@@ -21,7 +21,6 @@ local IconButton = InputContainer:extend({
   icon_rotation_angle = 0,
   dimen = nil,
   -- show_parent is used for UIManager:setDirty, so we can trigger repaint
-  show_parent = nil,
   width = Screen:scaleBySize(DGENERIC_ICON_SIZE), -- our icons are square
   height = Screen:scaleBySize(DGENERIC_ICON_SIZE),
   padding = 0,
@@ -40,9 +39,6 @@ function IconButton:init()
     width = self.width,
     height = self.height,
   })
-
-  self.show_parent = self.show_parent or self
-
   self.horizontal_group = HorizontalGroup:new({})
   table.insert(self.horizontal_group, HorizontalSpan:new({}))
   table.insert(self.horizontal_group, self.image)
@@ -127,22 +123,21 @@ function IconButton:onTapIconButton()
   -- Highlight
   --
   self.image.invert = true
-  UIManager:widgetInvert(
+  UIManager:invertWidget(
     self.image,
     self.dimen.x + h_padding,
     self.dimen.y + self.padding_top
     -- It's not necessary to calculate the self.dimen.w - 2 * h_padding,
     -- cropping logic in the widgetInvert will take care of it.
   )
-  UIManager:setDirty(nil, "fast", self.dimen)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
 
   -- Unhighlight
   --
   self.image.invert = false
-  UIManager:widgetInvert(
+  UIManager:invertWidget(
     self.image,
     self.dimen.x + h_padding,
     self.dimen.y + self.padding_top
@@ -158,7 +153,7 @@ function IconButton:onTapIconButton()
   --       This changes nothing in practice, since we follow by explicitly requesting to drain the refresh queue ;).
   UIManager:setDirty(nil, "fast", self.dimen)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   return true
 end
 

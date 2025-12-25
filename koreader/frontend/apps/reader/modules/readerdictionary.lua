@@ -1076,7 +1076,7 @@ function ReaderDictionary:showLookupMsg(text)
     -- a repaint.
   })
   UIManager:show(self.lookup_progress_msg)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
 end
 
 function ReaderDictionary:showDict(word, results, boxes, link)

@@ -51,7 +51,6 @@ function PageBrowserWidget:init()
     w = Screen:getWidth(),
     h = Screen:getHeight(),
   })
-  self.covers_fullscreen = true -- hint for UIManager:_repaint()
 
   if Device:hasKeys() then
     self.key_events = {
@@ -131,7 +130,6 @@ function PageBrowserWidget:init()
     close_hold_callback = function()
       self:onExit(true)
     end,
-    show_parent = self,
   })
   self.title_bar_h = self.title_bar:getHeight()
 
@@ -635,7 +633,6 @@ function PageBrowserWidget:update()
   local row = BookMapRow:new({
     height = self.row_height,
     width = self.row_width,
-    show_parent = self,
     left_spacing = left_spacing,
     nb_toc_spans = self.nb_toc_spans,
     span_height = self.span_height,
@@ -1570,7 +1567,7 @@ function PageBrowserWidget:onTap(arg, ges)
           thumb_frame.dimen.y = thumb_frame.dimen.y - b_inc
           thumb_frame.dimen.w = thumb_frame.dimen.w + 2 * b_inc
           thumb_frame.dimen.h = thumb_frame.dimen.h + 2 * b_inc
-          UIManager:widgetRepaint(thumb_frame)
+          UIManager:scheduleWidgetRepaint(thumb_frame)
           Screen:refreshFast(
             thumb_frame.dimen.x,
             thumb_frame.dimen.y,

@@ -48,7 +48,6 @@ local T = require("ffi/util").template
 local _ = require("gettext")
 
 local KeyValueItem = InputContainer:extend({
-  show_parent = nil,
   key = nil,
   value = nil,
   value_lang = nil,
@@ -231,23 +230,21 @@ function KeyValueItem:onTap()
     -- Highlight
     --
     self[1].invert = true
-    UIManager:widgetInvert(self[1])
-    UIManager:setDirty(nil, "fast", self[1].dimen)
+    UIManager:invertWidget(self[1])
 
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     UIManager:waitForScreenRefresh()
 
     -- Unhighlight
     --
     self[1].invert = false
-    UIManager:widgetInvert(self[1])
-    UIManager:setDirty(nil, "ui", self[1].dimen)
+    UIManager:invertWidget(self[1])
 
     -- Callback
     --
     self.callback(self.kv_page, self)
 
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   else
     -- If no tap callback, allow for displaying the non-truncated
     -- text with Tap too
@@ -283,7 +280,6 @@ function KeyValueItem:onShowKeyValue()
 end
 
 local KeyValuePage = FocusManager:extend({
-  show_parent = nil,
   kv_pairs = nil, -- not mandatory
   title = "",
   width = nil,
@@ -304,7 +300,6 @@ local KeyValuePage = FocusManager:extend({
 })
 
 function KeyValuePage:init()
-  self.show_parent = self.show_parent or self
   local kv_pairs = self.kv_pairs
   self.kv_pairs = {}
   -- deprecated, use separator=true on a regular k/v table
@@ -330,12 +325,6 @@ function KeyValuePage:init()
     w = self.width or Screen:getWidth(),
     h = self.height or Screen:getHeight(),
   })
-  if
-    self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
-  then
-    self.covers_fullscreen = true -- hint for UIManager:_repaint()
-  end
-
   if Device:hasKeys() then
     self.key_events.Exit = { { Input.group.Back } }
     self.key_events.NextPage = { { Input.group.PgFwd } }
@@ -365,7 +354,6 @@ function KeyValuePage:init()
         self:onReturn()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   -- group for page info
   local chevron_left = "chevron.left"
@@ -383,7 +371,6 @@ function KeyValuePage:init()
         self:prevPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_right_chev = self.page_info_right_chev
     or Button:new({
@@ -392,7 +379,6 @@ function KeyValuePage:init()
         self:nextPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_first_chev = self.page_info_first_chev
     or Button:new({
@@ -401,7 +387,6 @@ function KeyValuePage:init()
         self:goToPage(1)
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_last_chev = self.page_info_last_chev
     or Button:new({
@@ -410,7 +395,6 @@ function KeyValuePage:init()
         self:goToPage(self.pages)
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_spacer = HorizontalSpan:new({
     width = Screen:scaleBySize(32),
@@ -487,7 +471,9 @@ function KeyValuePage:init()
 
   self.title_bar = TitleBar:new({
     title = self.title,
-    fullscreen = self.covers_fullscreen,
+    fullscreen = (
+      self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
+    ),
     width = self.width,
     align = self.title_bar_align,
     with_bottom_line = true,
@@ -499,7 +485,6 @@ function KeyValuePage:init()
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self.show_parent or self,
   })
 
   -- setup main content
@@ -729,7 +714,6 @@ function KeyValuePage:_populateItems()
       value_align = self.value_align,
       kv_pairs_idx = kv_pairs_idx,
       kv_page = self,
-      show_parent = self.show_parent,
     })
     table.insert(self.main_content, kv_item)
     table.insert(self.layout, { kv_item })

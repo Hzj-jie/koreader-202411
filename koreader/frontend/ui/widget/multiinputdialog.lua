@@ -67,8 +67,6 @@ Example for input of two strings and a number:
     }
     UIManager:show(sample_input)
     sample_input:showKeyboard()
-
-
 It is strongly recommended to use a text describing the action to be
 executed, as demonstrated in the example above. If the resulting phrase would be
 longer than three words it should just read "OK".

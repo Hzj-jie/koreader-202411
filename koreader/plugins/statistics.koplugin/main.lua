@@ -507,10 +507,10 @@ Please wait…
 ]]),
         })
         UIManager:show(info)
-        UIManager:forceRePaint()
+        UIManager:forceRepaint()
         local nr_book = self:migrateToDB(conn)
         UIManager:close(info)
-        UIManager:forceRePaint()
+        UIManager:forceRepaint()
         UIManager:show(InfoMessage:new({
           text = T(
             N_(

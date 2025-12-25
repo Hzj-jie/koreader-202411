@@ -716,7 +716,6 @@ function BookMapWidget:init()
     w = Screen:getWidth(),
     h = Screen:getHeight(),
   })
-  self.covers_fullscreen = true -- hint for UIManager:_repaint()
 
   if Device:hasKeys() then
     self.key_events.Exit = { { Device.input.group.Back } }
@@ -808,7 +807,6 @@ function BookMapWidget:init()
     close_hold_callback = function()
       self:onExit(true)
     end,
-    show_parent = self,
   })
   self.title_bar_h = self.title_bar:getHeight()
   self.crop_height = self.dimen.h
@@ -862,7 +860,6 @@ function BookMapWidget:init()
       w = self.dimen.w,
       h = self.crop_height,
     }),
-    show_parent = self,
     ignore_events = { "swipe" },
     self.vgroup,
   })
@@ -1266,7 +1263,6 @@ function BookMapWidget:update()
     local row = BookMapRow:new({
       height = self.row_height,
       width = self.row_width,
-      show_parent = self,
       left_spacing = cur_left_spacing,
       nb_toc_spans = self.nb_toc_spans,
       span_height = self.span_height,

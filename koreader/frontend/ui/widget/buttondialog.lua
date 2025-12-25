@@ -123,7 +123,6 @@ function ButtonDialog:init()
     width = self.width - 2 * Size.border.window - 2 * Size.padding.button,
     shrink_unneeded_width = self.shrink_unneeded_width,
     shrink_min_width = self.shrink_min_width,
-    show_parent = self,
     enable_shortcut = true,
   })
   local buttontable_width = self.buttontable:getSize().w -- may be shrunk
@@ -201,7 +200,6 @@ function ButtonDialog:init()
         w = buttontable_width + scrollbar_width,
         h = max_height,
       }),
-      show_parent = self,
       step_scroll_grid = step_scroll_grid,
       self.buttontable,
     })

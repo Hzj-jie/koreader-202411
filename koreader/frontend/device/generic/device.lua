@@ -279,9 +279,7 @@ function Device:init()
 
   -- Night mode
   self.orig_hw_nightmode = self.screen:getHWNightmode()
-  if G_reader_settings:isTrue("night_mode") then
-    self.screen:toggleNightMode()
-  end
+  self.screen:setNightmode(G_reader_settings:isTrue("night_mode"))
 
   -- Ensure the proper rotation on startup.
   -- We default to the rotation KOReader closed with.
@@ -416,7 +414,7 @@ function Device:handlePowerEvent(ev)
       )
     end
     -- NOTE: In the same vein as above, make sure we update the screen *now*, before dealing with Wi-Fi.
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     -- NOTE: This side of the check needs to be laxer, some platforms can handle Wi-Fi without WifiManager ;).
     if self:hasWifiToggle() then
       -- NOTE: wifi_was_on does not necessarily mean that Wi-Fi is *currently* on! It means *we* enabled it.
@@ -619,7 +617,7 @@ function Device:exit()
   )
 
   -- Restore initial HW inversion state
-  self.screen:setHWNightmode(self.orig_hw_nightmode)
+  self.screen:setNightmode(self.orig_hw_nightmode)
 
   -- Tear down the fb backend
   self.screen:close()

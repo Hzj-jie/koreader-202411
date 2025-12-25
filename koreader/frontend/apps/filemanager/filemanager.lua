@@ -119,9 +119,7 @@ end
 FileManager.onPathChanged = FileManager.updateTitleBarPath
 
 function FileManager:setupLayout()
-  self.show_parent = self.show_parent or self
   self.title_bar = TitleBar:new({
-    show_parent = self.show_parent,
     fullscreen = "true",
     align = "center",
     title = self.title,
@@ -149,7 +147,6 @@ function FileManager:setupLayout()
   local file_chooser = FileChooser:new({
     path = self.root_path,
     focused_path = self.focused_file,
-    show_parent = self.show_parent,
     height = Screen:getHeight(),
     is_popout = false,
     is_borderless = true,
@@ -1365,7 +1362,6 @@ function FileManager:showFiles(path, focused_file, selected_files)
   -- FileManager shows itself.
   FileManager:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     root_path = path,
     focused_file = focused_file,
     selected_files = selected_files,

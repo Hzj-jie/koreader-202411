@@ -73,4 +73,27 @@ If it's the screen BlitBuffer, then widget will show up on screen refresh.
 ]]
 function Widget:paintTo(bb, x, y) end
 
+function Widget:refreshMode()
+  return self._refreshMode or "ui"
+end
+
+-- Get the show(widget) of current widget, use this function should be careful
+-- due to it's slowness.
+function Widget:showParent()
+  local UIManager = require("ui/uimanager")
+  -- A fast loop to avoid dfs.
+  for w in UIManager:topdown_widgets_iter() do
+    if w == self then
+      return self
+    end
+  end
+
+  for w in UIManager:topdown_widgets_iter() do
+    if require("util").arrayDfSearch(w, self) then
+      return w
+    end
+  end
+  return nil
+end
+
 return Widget

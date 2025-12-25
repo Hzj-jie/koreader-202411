@@ -506,7 +506,7 @@ end
 
 function BookDailyItem:onHold()
   if self.item.hold_callback then
-    self.item.hold_callback(self.show_parent, self.item)
+    self.item.hold_callback(self:showParent(), self.item)
   end
   return true
 end
@@ -564,7 +564,6 @@ function CalendarDayView:init()
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self,
   })
 
   self.titlebar_height = self.title_bar:getHeight()
@@ -592,7 +591,6 @@ function CalendarDayView:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_right = Button:new({
     icon = chevron_right,
@@ -602,7 +600,6 @@ function CalendarDayView:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_first_up = Button:new({
     icon = chevron_first,
@@ -612,7 +609,6 @@ function CalendarDayView:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_last_down = Button:new({
     icon = chevron_last,
@@ -622,7 +618,6 @@ function CalendarDayView:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_page = Button:new({
     text = "",
@@ -646,7 +641,6 @@ function CalendarDayView:init()
     text_font_face = "pgfont",
     text_font_bold = false,
     width = self.footer_center_width,
-    show_parent = self,
   })
   self.page_info = HorizontalGroup:new({
     self.footer_first_up,
@@ -877,7 +871,6 @@ function CalendarDayView:_populateBooks()
       width = self.dimen.w - 2 * self.outer_padding,
       value_width = value_width,
       height = self.book_item_height,
-      show_parent = self,
     })
     table.insert(self.layout, { item })
     table.insert(self.book_items, item)
@@ -1178,12 +1171,6 @@ function CalendarView:init()
     w = self.width or Screen:getWidth(),
     h = self.height or Screen:getHeight(),
   })
-  if
-    self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
-  then
-    self.covers_fullscreen = true -- hint for UIManager:_repaint()
-  end
-
   if Device:hasKeys() then
     self.key_events.Exit = { { Input.group.Back } }
     self.key_events.NextMonth = { { Input.group.PgFwd } }
@@ -1247,7 +1234,6 @@ function CalendarView:init()
       self:prevMonth()
     end,
     bordersize = 0,
-    show_parent = self,
   })
   self.page_info_right_chev = Button:new({
     icon = chevron_right,
@@ -1255,7 +1241,6 @@ function CalendarView:init()
       self:nextMonth()
     end,
     bordersize = 0,
-    show_parent = self,
   })
   self.page_info_first_chev = Button:new({
     icon = chevron_first,
@@ -1263,7 +1248,6 @@ function CalendarView:init()
       self:goToMonth(self.min_month)
     end,
     bordersize = 0,
-    show_parent = self,
   })
   self.page_info_last_chev = Button:new({
     icon = chevron_last,
@@ -1271,7 +1255,6 @@ function CalendarView:init()
       self:goToMonth(self.max_month)
     end,
     bordersize = 0,
-    show_parent = self,
   })
   self.page_info_spacer = HorizontalSpan:new({
     width = Screen:scaleBySize(32),
@@ -1332,7 +1315,9 @@ function CalendarView:init()
   })
 
   self.title_bar = TitleBar:new({
-    fullscreen = self.covers_fullscreen,
+    fullscreen = (
+      self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
+    ),
     width = self.dimen.w,
     align = "left",
     title = self.title,
@@ -1340,7 +1325,6 @@ function CalendarView:init()
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self,
   })
 
   -- week days names header
@@ -1513,7 +1497,6 @@ function CalendarView:_populateItems()
         span_height = self.span_height,
         font_face = self.font_face,
         font_size = self.span_font_size,
-        show_parent = self,
       })
       layout_row = {}
       table.insert(self.layout, layout_row)
@@ -1528,7 +1511,6 @@ function CalendarView:_populateItems()
             height = self.week_height,
             width = self.day_width,
             border = self.day_border,
-            show_parent = self,
           }))
           day = day + 1
           if day == 8 then
@@ -1557,7 +1539,6 @@ function CalendarView:_populateItems()
       width = self.day_width,
       ratio_per_hour = ratio_per_hour_by_day[day_s],
       read_books = books_by_day[day_s],
-      show_parent = self,
       callback = not is_future
         and function()
           UIManager:show(CalendarDayView:new({

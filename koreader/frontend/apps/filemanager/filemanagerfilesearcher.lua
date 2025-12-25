@@ -127,7 +127,7 @@ function FileSearcher:doSearch()
     local Trapper = require("ui/trapper")
     local info = InfoMessage:new({ text = _("Searching… (tap to cancel)") })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     local completed, dirs, files, no_metadata_count = Trapper:dismissableRunInSubprocess(
       function()
         return self:getList()
@@ -312,7 +312,6 @@ function FileSearcher:onShowSearchResults(not_cached)
 
   self.search_menu = Menu:new({
     subtitle = T(_("Query: %1"), FileSearcher.search_string),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     is_borderless = true,
     is_popout = false,
     title_bar_fm_style = true,

@@ -61,7 +61,6 @@ function FileManagerCollection:onShowColl(collection_name)
   collection_name = collection_name or ReadCollection.default_collection_name
   self.coll_menu = Menu:new({
     ui = self.ui,
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     is_borderless = true,
     is_popout = false,
     -- item and book cover thumbnail dimensions in Mosaic and Detailed list display modes
@@ -364,7 +363,6 @@ function FileManagerCollection:onShowCollList(
   end
   self.coll_list = Menu:new({
     subtitle = "",
-    covers_fullscreen = true,
     is_borderless = true,
     is_popout = false,
     title_bar_fm_style = true,

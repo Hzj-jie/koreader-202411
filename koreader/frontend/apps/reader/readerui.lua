@@ -96,7 +96,7 @@ end
 function ReaderUI:init()
   -- Show self at the very beginning to ensure all the UIManager:broadcastEvent
   -- in the following calls can be received by ReaderUI modules.
-  UIManager:show(self, self.seamless and "ui" or "full")
+  UIManager:show(self)
 
   -- cap screen refresh on pan to 2 refreshes per second
   local pan_rate = G_named_settings.low_pan_rate_or_full(2.0)
@@ -740,7 +740,7 @@ function ReaderUI:showReader(file, provider, seamless)
   UIManager:broadcastEvent(Event:new("ShowingReader"))
   provider = provider or DocumentRegistry:getProvider(file)
   if provider.provider then
-    self:showReaderCoroutine(file, provider, seamless)
+    self:_showReaderCoroutine(file, provider, seamless)
   else
     UIManager:show(InfoMessage:new({
       text = _("No reader engine for this file or invalid file."),
@@ -749,46 +749,41 @@ function ReaderUI:showReader(file, provider, seamless)
   end
 end
 
-function ReaderUI:showReaderCoroutine(file, provider, seamless)
+function ReaderUI:_showReaderCoroutine(file, provider, seamless)
   -- doShowReader might block for a long time, so force repaint here
+  local function f()
+    logger.dbg("creating coroutine for showing reader")
+    local co = coroutine.create(function()
+      self:_doShowReader(file, provider, seamless)
+    end)
+    local ok, err = coroutine.resume(co)
+    if err ~= nil or ok == false then
+      io.stderr:write("[!] doShowReader coroutine crashed:\n")
+      io.stderr:write(debug.traceback(co, err, 1))
+      -- Restore input if we crashed before ReaderUI has restored it
+      Device:setIgnoreInput(false)
+      -- Need localization.
+      UIManager:show(InfoMessage:new({
+        text = _("Unfortunately KOReader crashed.")
+          .. "\n"
+          .. _(
+            "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help developers to improve it."
+          ),
+      }))
+      self:showFileManager(file)
+    end
+  end
+  if seamless then
+    f()
+    return
+  end
   UIManager:runWith(
-    function()
-      logger.dbg("creating coroutine for showing reader")
-      local co = coroutine.create(function()
-        self:doShowReader(file, provider, seamless)
-      end)
-      local ok, err = coroutine.resume(co)
-      if err ~= nil or ok == false then
-        io.stderr:write("[!] doShowReader coroutine crashed:\n")
-        io.stderr:write(debug.traceback(co, err, 1))
-        -- Restore input if we crashed before ReaderUI has restored it
-        Device:setIgnoreInput(false)
-        -- Need localization.
-        UIManager:show(InfoMessage:new({
-          text = _("Unfortunately KOReader crashed.")
-            .. "\n"
-            .. _(
-              "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help developers to improve it."
-            ),
-        }))
-        self:showFileManager(file)
-      end
-    end,
-    InfoMessage:new({
-      text = T(
-        _("Opening file '%1'."),
-        BD.filepath(filemanagerutil.abbreviate(file))
-      ),
-      invisible = seamless,
-      icon = "hourglass",
-    })
+    f,
+    T(_("Opening file '%1'."), BD.filepath(filemanagerutil.abbreviate(file)))
   )
 end
 
-function ReaderUI:doShowReader(file, provider, seamless)
-  if seamless then
-    UIManager:avoidFlashOnNextRepaint()
-  end
+function ReaderUI:_doShowReader(file, provider)
   logger.info("opening file", file)
   -- Only keep a single instance running
   assert(ReaderUI.instance == nil)
@@ -814,9 +809,7 @@ function ReaderUI:doShowReader(file, provider, seamless)
   end
   local reader = ReaderUI:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     document = document,
-    seamless = seamless,
   })
 
   Screen:setWindowTitle(reader.doc_props.display_title)
@@ -1010,11 +1003,11 @@ function ReaderUI:reloadDocument(seamless)
   self:_loadDocument(self.document.file, seamless)
 end
 
-function ReaderUI:switchDocument(new_file, seamless)
+function ReaderUI:switchDocument(new_file)
   if not new_file or new_file == self.document.file then
     return
   end
-  self:_loadDocument(new_file, seamless)
+  self:_loadDocument(new_file)
 end
 
 function ReaderUI:onOpenLastDoc()

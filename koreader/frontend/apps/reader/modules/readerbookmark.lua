@@ -733,7 +733,6 @@ function ReaderBookmark:onShowBookmark()
 
   self.bookmark_menu = CenterContainer:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
   })
   local bm_menu = Menu:new({
     title = T(_("Bookmarks (%1)"), #item_table),
@@ -760,7 +759,6 @@ function ReaderBookmark:onShowBookmark()
         direction = BD.flipDirectionIfMirroredUILayout("east"),
       }),
     },
-    show_parent = self.bookmark_menu,
   })
   table.insert(self.bookmark_menu, bm_menu)
 

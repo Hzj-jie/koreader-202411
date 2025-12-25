@@ -217,7 +217,6 @@ function Button:init()
   end
   self.frame = FrameContainer:new({
     margin = self.margin,
-    show_parent = self.show_parent,
     bordersize = self.bordersize,
     background = self.background,
     radius = self.radius,
@@ -225,6 +224,7 @@ function Button:init()
     padding_bottom = self.padding_v,
     padding_left = self.padding_h,
     padding_right = self.padding_h,
+    _refreshMode = "fast",
     self.label_container,
   })
   if self.preselect then
@@ -255,7 +255,7 @@ function Button:init()
   }
   if self.shortcut then
     self.key_events = {
-      TapSelectButton = { { self.shortcut } }
+      TapSelectButton = { { self.shortcut } },
     }
   end
 end
@@ -418,15 +418,14 @@ function Button:_doFeedbackHighlight()
     end
 
     -- This repaints *now*, unlike setDirty
-    UIManager:widgetRepaint(self[1])
+    UIManager:repaintWidget(self[1])
   else
     self[1].invert = true
-    UIManager:widgetInvert(self[1])
+    UIManager:invertWidget(self[1])
   end
-  UIManager:setDirty(nil, "fast", self[1].dimen)
 end
 
-function Button:_undoFeedbackHighlight(is_translucent)
+function Button:_undoFeedbackHighlight()
   if self.text then
     if self[1].radius == Size.radius.button then
       self[1].radius = nil
@@ -435,47 +434,30 @@ function Button:_undoFeedbackHighlight(is_translucent)
     else
       self[1].invert = false
     end
-    UIManager:widgetRepaint(self[1])
+
+    -- This repaints *now*, unlike setDirty
+    UIManager:repaintWidget(self[1])
   else
     self[1].invert = false
-    UIManager:widgetInvert(self[1])
-  end
-
-  if is_translucent then
-    -- If our parent belongs to a translucent MovableContainer, we need to repaint it on unhighlight in order to honor alpha,
-    -- because our highlight/unhighlight will have made the Button fully opaque.
-    -- UIManager will detect transparency and then takes care of also repainting what's underneath us to avoid alpha layering glitches.
-    UIManager:setDirty(self.show_parent, "ui", self[1].dimen)
-  else
-    -- In case the callback itself won't enqueue a refresh region that includes us, do it ourselves.
-    -- If the button is disabled, switch to UI to make sure the gray comes through unharmed ;).
-    UIManager:setDirty(nil, self.enabled and "fast" or "ui", self[1].dimen)
+    UIManager:invertWidget(self[1])
   end
 end
 
 function Button:onTapSelectButton()
   if self.enabled or self.allow_tap_when_disabled then
     if self.callback then
-      -- NOTE: We have a few tricks up our sleeve in case our parent is inside a translucent MovableContainer...
-      local is_translucent = self.show_parent
-        and self.show_parent.movable
-        and self.show_parent.movable.alpha
-
       -- Highlight
       --
       self:_doFeedbackHighlight()
 
-      -- Check if the callback reset transparency...
-      is_translucent = is_translucent and self.show_parent.movable.alpha
-
-      UIManager:forceRePaint() -- Ensures whatever the callback wanted to paint will be shown *now*...
+      UIManager:forceRepaint() -- Ensures whatever the callback wanted to paint will be shown *now*...
       -- NOTE: This is mainly useful when the callback caused a REAGL update that we do not explicitly fence via MXCFB_WAIT_FOR_UPDATE_COMPLETE already, (i.e., Kobo Mk. 7).
       UIManager:waitForScreenRefresh() -- ...and that the EPDC will not wait to coalesce it with the *next* update,
       -- because that would have a chance to noticeably delay it until the unhighlight.
 
       -- Unhighlight
-      self:_undoFeedbackHighlight(is_translucent)
-      UIManager:forceRePaint()
+      self:_undoFeedbackHighlight()
+      UIManager:forceRepaint()
 
       -- Callback
       -- In case anything needs to be displayed in the callback; make sure it
@@ -513,11 +495,7 @@ function Button:refresh()
     )
     return
   end
-  UIManager:widgetRepaint(self[1])
-
-  UIManager:setDirty(nil, function()
-    return self.enabled and "fast" or "ui", self[1].dimen
-  end)
+  UIManager:setDirty(self[1], self.enabled and "fast" or "ui")
 end
 
 function Button:onHoldSelectButton()

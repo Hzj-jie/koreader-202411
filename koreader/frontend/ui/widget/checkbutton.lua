@@ -55,7 +55,6 @@ function CheckButton:initCheckButton(checked)
       enabled = self.enabled,
       face = self.face,
       parent = self.parent or self,
-      show_parent = self.show_parent or self,
     })
   else
     self._checkmark = CheckMark:new({
@@ -64,7 +63,6 @@ function CheckButton:initCheckButton(checked)
       enabled = self.enabled,
       face = self.face,
       parent = self.parent or self,
-      show_parent = self.show_parent or self,
     })
   end
   local fgcolor = self.fgcolor or Blitbuffer.COLOR_BLACK
@@ -96,7 +94,6 @@ function CheckButton:initCheckButton(checked)
     background = self.background,
     margin = 0,
     padding = 0,
-    show_parent = self.show_parent or self,
     self._horizontalgroup,
   })
   self.dimen = self._frame:getSize()
@@ -141,27 +138,25 @@ function CheckButton:onTapCheckButton()
     -- Highlight
     --
     self[1].invert = true
-    UIManager:widgetInvert(
+    UIManager:invertWidget(
       self[1],
       highlight_dimen.x,
       highlight_dimen.y,
       highlight_dimen.w
     )
-    UIManager:setDirty(nil, "fast", highlight_dimen)
 
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     UIManager:waitForScreenRefresh()
 
     -- Unhighlight
     --
     self[1].invert = false
-    UIManager:widgetInvert(
+    UIManager:invertWidget(
       self[1],
       highlight_dimen.x,
       highlight_dimen.y,
       highlight_dimen.w
     )
-    UIManager:setDirty(nil, "ui", highlight_dimen)
 
     -- Callback
     --
@@ -172,7 +167,7 @@ function CheckButton:onTapCheckButton()
       self.callback()
     end
 
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   end
   return true
 end

@@ -253,7 +253,7 @@ function ButtonProgressWidget:update()
   end
 
   self:refocusWidget()
-  UIManager:setDirty(self.show_parent, function()
+  UIManager:setDirty(self:showParent(), function()
     return "ui", self.dimen
   end)
 end
