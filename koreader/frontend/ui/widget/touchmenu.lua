@@ -763,7 +763,7 @@ end
 
 function TouchMenu:onTimesChange_1M()
   self:_updateTimeInfo()
-  UIManager:setDirty(self.time_info, "ui")
+  UIManager:setDirty(self.time_info, "fast")
 end
 
 function TouchMenu:_updateTimeInfo()
@@ -861,20 +861,10 @@ function TouchMenu:updateItems()
   --     in order to optionally flash on initial menu popup...
   -- NOTE: Also avoid repainting what's underneath us on initial popup.
   -- NOTE: And we also only need to repaint what's behind us when switching to a smaller menu...
-  local keep_bg = old_dimen and self.dimen.h >= old_dimen.h
   UIManager:setDirty(
-    (self.is_fresh or keep_bg) and self:showParent() or "all",
+    (old_dimen and self.dimen.h >= old_dimen.h) and self:showParent() or "all",
     function()
-      local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)
-        or self.dimen
-      local refresh_type = "ui"
-      if self.is_fresh then
-        refresh_type = "flashui"
-        -- Drop the region, too, to make it full-screen? May help when starting from a "small" menu.
-        --refresh_dimen = nil
-        self.is_fresh = false
-      end
-      return refresh_type, refresh_dimen
+      return "ui", old_dimen and old_dimen:combine(self.dimen) or self.dimen
     end
   )
 end
