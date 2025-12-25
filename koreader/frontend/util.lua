@@ -362,9 +362,9 @@ function util.arrayContains(t, v, cb)
   return false
 end
 
---- Test whether array t contains a reference to array n
+--- Test whether array t contains a reference to n
 ---- @param t Lua table (array only)
----- @param n Lua table (array only)
+---- @param n anything
 function util.arrayReferences(t, n)
   if type(t) ~= "table" then
     return false
