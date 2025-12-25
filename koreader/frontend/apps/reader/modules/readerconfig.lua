@@ -154,7 +154,6 @@ function ReaderConfig:onShowConfigMenu()
     configurable = self.configurable,
     config_options = self.options,
     is_always_active = true,
-    covers_footer = true,
     close_callback = function()
       self:_closeCallback()
     end,

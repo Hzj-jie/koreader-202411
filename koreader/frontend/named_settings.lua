@@ -104,4 +104,12 @@ function named_settings.set.full_refresh_count(rate)
   )
 end
 
+function named_settings.fast_screen_refresh()
+  if not named_settings.low_pan_rate() then
+    return true
+  end
+  return G_reader_settings:isFalse("avoid_flashing_ui") or
+   named_settings.full_refresh_count() < G_named_settings.default.full_refresh_count()
+end
+
 return named_settings

@@ -2162,12 +2162,11 @@ function ReaderFooter:_repaint()
   -- NOTE: That's assuming using "fast" for pans was a good idea, which, it turned out, not so much ;).
   -- NOTE: We skip repaints on page turns/pos update, as that's redundant (and slow).
   local top_wg = UIManager:getTopmostVisibleWidget() or {}
-  if
+  if G_named_settings.fast_screen_refresh() and
     top_wg.name ~= "ReaderUI"
-    and top_wg.covers_footer
   then
-    -- If the top most widget covers the footer, but it's not the ReaderUI,
-    -- footer doesn't need to be repainted.
+    -- If the top most widget is not the ReaderUI, and it's not expected to
+    -- "fast" refreshing the screen, footer doesn't need to be repainted.
     return
   end
 
@@ -2197,8 +2196,7 @@ function ReaderFooter:_repaint()
     -- c.f., ReaderView:paintTo()
     UIManager:repaintWidget(self.view.footer)
 
-    if G_reader_settings:isFalse("avoid_flashing_ui") or
-      G_named_settings.full_refresh_count() < G_named_settings.default.full_refresh_count() then
+    if G_named_settings.fast_screen_refresh() then
       -- This is very uncommon, but considering the _paint can be called randomly,
       -- without forcing a repaint, the delay would be noticable up to 200ms per
       -- frequence of repainting in UIManager. So force a repaint to reduce the
