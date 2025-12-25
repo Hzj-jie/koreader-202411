@@ -1171,7 +1171,7 @@ local function cropping_region(widget, x, y, w, h)
     -- The main widget parent of this subwidget has a cropping container: see if
     -- this widget is a child of this cropping container
     local cropping_widget = p.cropping_widget
-    if util.arrayReferences(cropping_widget, widget) then
+    if util.arrayDfSearch(cropping_widget, widget) then
       -- Invert only what intersects with the cropping container
       return cropping_widget:getCropRegion():intersect(Geom:new({
         x = x,

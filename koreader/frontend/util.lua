@@ -365,7 +365,7 @@ end
 --- Test whether array t contains a reference to n
 ---- @param t Lua table (array only)
 ---- @param n anything
-function util.arrayReferences(t, n)
+function util.arrayDfSearch(t, n)
   if type(t) ~= "table" then
     return false
   end
@@ -375,7 +375,7 @@ function util.arrayReferences(t, n)
   end
 
   for _, v in ipairs(t) do
-    if util.arrayReferences(v, n) then
+    if util.arrayDfSearch(v, n) then
       return true
     end
   end

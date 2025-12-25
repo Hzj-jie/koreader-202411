@@ -89,7 +89,7 @@ function Widget:showParent()
   end
 
   for w in UIManager:topdown_widgets_iter() do
-    if require("util").arrayReferences(w, self) then
+    if require("util").arrayDfSearch(w, self) then
       return w
     end
   end
