@@ -430,12 +430,13 @@ function UIManager:setDirty(widget, refreshMode, region)
       self:setDirty(widget)
     end
     table.insert(self._refresh_func_stack, function()
-      local m, r = refreshMode()
+      local m, r, d = refreshMode()
       r = region or r
       if widget ~= nil then
         r = r or widget.dimen
+        d = d or widget.dithered
       end
-      self:scheduleRefresh(m, r, widget ~= nil and widget.dithered)
+      self:scheduleRefresh(m, r, d)
     end)
     return
   end
