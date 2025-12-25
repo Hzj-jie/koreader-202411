@@ -6,6 +6,7 @@
 
 local named_settings = {
   set = {},
+  flip = {},
 }
 
 function named_settings.home_dir()
@@ -60,6 +61,29 @@ end
 
 function named_settings.set.show_file_in_bold(value)
   return G_reader_settings:save("show_file_in_bold", value, "new")
+end
+
+function named_settings.low_pan_rate()
+  if G_reader_settings:has("low_pan_rate") then
+    return G_reader_settings:read("low_pan_rate")
+  end
+  return require("device"):hasEinkScreen()
+end
+
+function named_settings.low_pan_rate_or_full(value)
+  return named_settings.low_pan_rate() and value or 30
+end
+
+function named_settings.low_pan_rate_or_scroll(value)
+  return named_settings.low_pan_rate() and (value or 2) or 5
+end
+
+function named_settings.flip.low_pan_rate()
+  return G_reader_settings:save(
+    "low_pan_rate",
+    not named_settings.low_pan_rate(),
+    require("device"):hasEinkScreen()
+  )
 end
 
 return named_settings

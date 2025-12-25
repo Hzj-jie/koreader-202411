@@ -13,6 +13,7 @@ local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
 local InputContainer = require("ui/widget/container/inputcontainer")
+local ItemShortCutIcon = require("ui/widget/itemshortcuticon")
 local LeftContainer = require("ui/widget/container/leftcontainer")
 local Math = require("optmath")
 local OverlapGroup = require("ui/widget/overlapgroup")
@@ -34,59 +35,6 @@ local _ = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 local T = ffiUtil.template
-
---[[--
-Widget that displays a shortcut icon for menu item.
---]]
-local ItemShortCutIcon = WidgetContainer:extend({
-  dimen = Geom:new({
-    x = 0,
-    y = 0,
-    w = Screen:scaleBySize(22),
-    h = Screen:scaleBySize(22),
-  }),
-  key = nil,
-  bordersize = Size.border.default,
-  radius = 0,
-  style = "square",
-})
-
-function ItemShortCutIcon:init()
-  if not self.key then
-    return
-  end
-
-  local radius = 0
-  local background = Blitbuffer.COLOR_WHITE
-  if self.style == "rounded_corner" then
-    radius = math.floor(self.width / 2)
-  elseif self.style == "grey_square" then
-    background = Blitbuffer.COLOR_LIGHT_GRAY
-  end
-
-  --- @todo Calculate font size by icon size  01.05 2012 (houqp).
-  local sc_face
-  if self.key:len() > 1 then
-    sc_face = Font:getFace("ffont", 14)
-  else
-    sc_face = Font:getFace("scfont", 22)
-  end
-
-  self[1] = FrameContainer:new({
-    padding = 0,
-    bordersize = self.bordersize,
-    radius = radius,
-    background = background,
-    dimen = self.dimen:copy(),
-    CenterContainer:new({
-      dimen = self.dimen,
-      TextWidget:new({
-        text = self.key,
-        face = sc_face,
-      }),
-    }),
-  })
-end
 
 --[[
 Widget that displays an item for menu
@@ -555,16 +503,16 @@ function MenuItem:onTapSelect(arg, ges)
   -- Highlight
   --
   self[1].invert = true
-  UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+  UIManager:widgetInvert(self[1])
   UIManager:setDirty(nil, "fast", self[1].dimen)
 
   UIManager:forceRePaint()
-  UIManager:yieldToEPDC()
+  UIManager:waitForScreenRefresh()
 
   -- Unhighlight
   --
   self[1].invert = false
-  UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+  UIManager:widgetInvert(self[1])
   UIManager:setDirty(nil, "ui", self[1].dimen)
 
   -- Callback
@@ -586,16 +534,16 @@ function MenuItem:onHoldSelect(arg, ges)
   -- Highlight
   --
   self[1].invert = true
-  UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+  UIManager:widgetInvert(self[1])
   UIManager:setDirty(nil, "fast", self[1].dimen)
 
   UIManager:forceRePaint()
-  UIManager:yieldToEPDC()
+  UIManager:waitForScreenRefresh()
 
   -- Unhighlight
   --
   self[1].invert = false
-  UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+  UIManager:widgetInvert(self[1])
   UIManager:setDirty(nil, "ui", self[1].dimen)
 
   -- Callback
@@ -614,36 +562,45 @@ local ITEM_SHORTCUTS = {
   "E",
   "R",
   "T",
-  "Y",
-  "U",
-  "I",
-  "O",
-  "P",
+
   "A",
   "S",
   "D",
   "F",
   "G",
-  "H",
-  "J",
-  "K",
-  "L",
-  "Del",
+
   "Z",
   "X",
   "C",
   "V",
   "B",
+
+  "Y",
+  "U",
+  "I",
+  "O",
+  "P",
+
+  "H",
+  "J",
+  "K",
+  "L",
+  "Del",
+
   "N",
   "M",
   ".",
-  "Sym",
+  "/",
+  "Sym", -- Replace "Press" with "Sym"
 }
 
 --[[
 Widget that displays menu
 --]]
 local Menu = FocusManager:extend({
+  ENABLE_SHORTCUT = ENABLE_SHORTCUT,
+  ITEM_SHORTCUTS = ITEM_SHORTCUTS,
+
   show_parent = nil,
 
   no_title = false,
@@ -700,6 +657,7 @@ function Menu:_calculateLayout()
     or Menu.getItemFontSize(perpage)
   if self.perpage ~= perpage or self.font_size ~= font_size then
     self.perpage = perpage
+    assert(self.perpage <= #ITEM_SHORTCUTS)
     self.font_size = font_size
     return true
   end
@@ -1189,6 +1147,7 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
   local idx_offset, multilines_show_more_text
   if self.items_max_lines then
     items_nb = #self.page_items[self.page]
+    assert(items_nb <= self.perpage)
   else
     items_nb = self.perpage
     idx_offset = (self.page - 1) * items_nb
@@ -1214,7 +1173,9 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
     if ENABLE_SHORTCUT then
       item_shortcut = ITEM_SHORTCUTS[idx]
       -- give different shortcut_style to keys in different lines of keyboard
-      shortcut_style = (idx < 11 or idx > 20) and "square" or "grey_square"
+      if (idx - 1) % 10 >= 5 then
+        shortcut_style = "grey_square"
+      end
     end
     if self.items_max_lines then
       self.item_dimen.h = item.height
@@ -1712,9 +1673,6 @@ function Menu.getMenuText(item)
     text = item.text_func()
   else
     text = item.text
-  end
-  if item.shortcut then
-    text = text .. " (" .. item.shortcut .. ")"
   end
   if item.sub_item_table ~= nil or item.sub_item_table_func then
     text = string.format(sub_item_format, text)

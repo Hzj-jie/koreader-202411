@@ -252,7 +252,7 @@ function CalibreMetadata:init(dir, is_search)
   if not dir then
     return
   end
-  local start_time = time.now()
+  local start_time = time.monotonic()
   self.path = dir
   local ok_meta, ok_drive, file_meta, file_drive = findCalibreFiles(dir)
   self.driveinfo = file_drive

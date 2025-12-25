@@ -917,7 +917,7 @@ function CreDocument:drawCurrentView(target, x, y, rect, pos)
   -- We also honor the current smooth scaling setting,
   -- as well as the global SW dithering setting.
 
-  --local start_time = time.now()
+  --local start_time = time.monotonic()
   self._drawn_images_count, self._drawn_images_surface_ratio =
     self._document:drawCurrentPage(
       self.buffer,
@@ -926,12 +926,12 @@ function CreDocument:drawCurrentView(target, x, y, rect, pos)
       self._smooth_scaling,
       Screen.sw_dithering
     )
-  --local end_time = time.now()
+  --local end_time = time.monotonic()
   --print(string.format("CreDocument:drawCurrentView: Rendering took %9.3f ms", time.to_ms(end_time - start_time))
 
-  --start = time.now()
+  --start = time.monotonic()
   target:blitFrom(self.buffer, x, y, 0, 0, rect.w, rect.h)
-  --end_time = time.now()
+  --end_time = time.monotonic()
   --print(string.format("CreDocument:drawCurrentView: Blitting took  %9.3f ms", time.to_ms(end_time - start_time))
 end
 
@@ -1959,7 +1959,7 @@ function CreDocument:setupCallCache()
     -- cache statistics
     self._call_cache_stats = {}
     now = function()
-      return time.now()
+      return time.monotonic()
     end
     addStatMiss = function(name, starttime, not_cached)
       local duration = time.since(starttime)

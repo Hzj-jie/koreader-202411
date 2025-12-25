@@ -124,6 +124,7 @@ function ButtonDialog:init()
     shrink_unneeded_width = self.shrink_unneeded_width,
     shrink_min_width = self.shrink_min_width,
     show_parent = self,
+    enable_shortcut = true,
   })
   local buttontable_width = self.buttontable:getSize().w -- may be shrunk
 

@@ -28,7 +28,6 @@ local KOSync = WidgetContainer:extend({
 
   push_timestamp = nil,
   pull_timestamp = nil,
-  page_update_counter = nil,
   last_page_turn_timestamp = nil,
 
   settings = nil,
@@ -51,7 +50,6 @@ local API_CALL_DEBOUNCE_DELAY = time.s(25)
 function KOSync:init()
   self.push_timestamp = 0
   self.pull_timestamp = 0
-  self.page_update_counter = 0
   self.last_page_turn_timestamp = 0
 
   self.settings = G_reader_settings:readTableRef("kosync", {
@@ -60,13 +58,10 @@ function KOSync:init()
     userkey = nil,
     -- Do *not* default to auto-sync, as wifi may not be on at all times, and the nagging enabling this may cause requires careful consideration.
     auto_sync = false,
-    pages_before_update = 0,
     sync_forward = SYNC_STRATEGY.PROMPT,
     sync_backward = SYNC_STRATEGY.DISABLE,
     checksum_method = CHECKSUM_METHOD.BINARY,
   })
-  -- Legacy settings may have nil value for this field.
-  self.settings.pages_before_update = self.settings.pages_before_update or 0
   self.device_id = G_reader_settings:read("device_id")
 
   -- Disable auto-sync if beforeWifiAction was reset to "prompt" behind our back...
@@ -234,9 +229,13 @@ function KOSync:addToMainMenu(menu_items)
         checked_func = function()
           return self.settings.auto_sync
         end,
-        help_text = _(
-          [[This may lead to nagging about toggling WiFi on document close and suspend/resume, depending on the device's connectivity.]]
-        ),
+        help_text =
+          -- Need localization
+          _(
+            "Enable the feature will automatically pull and push progress when necessary."
+          ) .. "\n\n" .. _(
+            [[This may lead to nagging about toggling WiFi on document close and suspend/resume, depending on the device's connectivity.]]
+          ),
         callback = function()
           -- Actively recommend switching the before wifi action to "turn_on" instead of prompt, as prompt will just not be practical (or even plain usable) here.
           if
@@ -266,131 +265,76 @@ function KOSync:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          local period = self.settings.pages_before_update
-          assert(period >= 0)
-          if not self.settings.auto_sync or period == 0 then
-            -- Need localization
-            return _("Periodically sync setting")
-          end
+          -- NOTE: With an up-to-date Sync server, "forward" means *newer*, not necessarily ahead in the document.
           return T(
-            -- Need localization
-            _("Periodically sync every %1 pages"),
-            period
+            _("Sync to a newer state (%1)"),
+            getNameStrategy(self.settings.sync_forward)
           )
         end,
-        enabled_func = function()
-          return self.settings.auto_sync
-        end,
-        -- This is the condition that allows enabling auto_disable_wifi in NetworkManager ;).
-        help_text = NetworkMgr:getNetworkInterfaceName()
-          and _(
-            [[Unlike the automatic sync above, this will *not* attempt to setup a network connection, but instead relies on it being already up, and may trigger enough network activity to passively keep WiFi enabled!]]
-          ),
-        keep_menu_open = true,
-        callback = function(touchmenu_instance)
-          local SpinWidget = require("ui/widget/spinwidget")
-          local items = SpinWidget:new({
-            text = _(
-              [[This value determines how many page turns it takes to update book progress.
-If set to 0, updating progress based on page turns will be disabled.]]
-            ),
-            value = self.settings.pages_before_update,
-            value_min = 0,
-            value_max = 999,
-            value_step = 1,
-            value_hold_step = 10,
-            ok_text = _("Set"),
-            title_text = _("Number of pages before update"),
-            default_value = 0,
-            callback = function(spin)
-              assert(spin.value >= 0)
-              self.settings.pages_before_update = spin.value
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
-              end
-            end,
-          })
-          UIManager:show(items)
-        end,
-        separator = true,
-      },
-      {
-        text = _("Sync behavior"),
         sub_item_table = {
           {
-            text_func = function()
-              -- NOTE: With an up-to-date Sync server, "forward" means *newer*, not necessarily ahead in the document.
-              return T(
-                _("Sync to a newer state (%1)"),
-                getNameStrategy(self.settings.sync_forward)
-              )
+            text = _("Silently"),
+            checked_func = function()
+              return self.settings.sync_forward == SYNC_STRATEGY.SILENT
             end,
-            sub_item_table = {
-              {
-                text = _("Silently"),
-                checked_func = function()
-                  return self.settings.sync_forward == SYNC_STRATEGY.SILENT
-                end,
-                callback = function()
-                  self:setSyncForward(SYNC_STRATEGY.SILENT)
-                end,
-              },
-              {
-                text = _("Prompt"),
-                checked_func = function()
-                  return self.settings.sync_forward == SYNC_STRATEGY.PROMPT
-                end,
-                callback = function()
-                  self:setSyncForward(SYNC_STRATEGY.PROMPT)
-                end,
-              },
-              {
-                text = _("Never"),
-                checked_func = function()
-                  return self.settings.sync_forward == SYNC_STRATEGY.DISABLE
-                end,
-                callback = function()
-                  self:setSyncForward(SYNC_STRATEGY.DISABLE)
-                end,
-              },
-            },
+            callback = function()
+              self:setSyncForward(SYNC_STRATEGY.SILENT)
+            end,
           },
           {
-            text_func = function()
-              return T(
-                _("Sync to an older state (%1)"),
-                getNameStrategy(self.settings.sync_backward)
-              )
+            text = _("Prompt"),
+            checked_func = function()
+              return self.settings.sync_forward == SYNC_STRATEGY.PROMPT
             end,
-            sub_item_table = {
-              {
-                text = _("Silently"),
-                checked_func = function()
-                  return self.settings.sync_backward == SYNC_STRATEGY.SILENT
-                end,
-                callback = function()
-                  self:setSyncBackward(SYNC_STRATEGY.SILENT)
-                end,
-              },
-              {
-                text = _("Prompt"),
-                checked_func = function()
-                  return self.settings.sync_backward == SYNC_STRATEGY.PROMPT
-                end,
-                callback = function()
-                  self:setSyncBackward(SYNC_STRATEGY.PROMPT)
-                end,
-              },
-              {
-                text = _("Never"),
-                checked_func = function()
-                  return self.settings.sync_backward == SYNC_STRATEGY.DISABLE
-                end,
-                callback = function()
-                  self:setSyncBackward(SYNC_STRATEGY.DISABLE)
-                end,
-              },
-            },
+            callback = function()
+              self:setSyncForward(SYNC_STRATEGY.PROMPT)
+            end,
+          },
+          {
+            text = _("Never"),
+            checked_func = function()
+              return self.settings.sync_forward == SYNC_STRATEGY.DISABLE
+            end,
+            callback = function()
+              self:setSyncForward(SYNC_STRATEGY.DISABLE)
+            end,
+          },
+        },
+      },
+      {
+        text_func = function()
+          return T(
+            _("Sync to an older state (%1)"),
+            getNameStrategy(self.settings.sync_backward)
+          )
+        end,
+        sub_item_table = {
+          {
+            text = _("Silently"),
+            checked_func = function()
+              return self.settings.sync_backward == SYNC_STRATEGY.SILENT
+            end,
+            callback = function()
+              self:setSyncBackward(SYNC_STRATEGY.SILENT)
+            end,
+          },
+          {
+            text = _("Prompt"),
+            checked_func = function()
+              return self.settings.sync_backward == SYNC_STRATEGY.PROMPT
+            end,
+            callback = function()
+              self:setSyncBackward(SYNC_STRATEGY.PROMPT)
+            end,
+          },
+          {
+            text = _("Never"),
+            checked_func = function()
+              return self.settings.sync_backward == SYNC_STRATEGY.DISABLE
+            end,
+            callback = function()
+              self:setSyncBackward(SYNC_STRATEGY.DISABLE)
+            end,
           },
         },
         separator = true,
@@ -692,7 +636,6 @@ function KOSync:_updateProgress(interactive)
     return
   end
   self.push_timestamp = now
-  self.page_update_counter = 0
 
   local client = self:_createClient()
   local doc_digest = self:_getDocumentDigest()
@@ -920,15 +863,6 @@ function KOSync:_getProgress(interactive)
   end
 end
 
-function KOSync:onCloseDocument()
-  if not self.settings.auto_sync then
-    return
-  end
-  -- Force triggering a push.
-  self.push_timestamp = 0
-  self:_updateProgress(false)
-end
-
 function KOSync:onPageUpdate(page)
   if not self.settings.auto_sync then
     return
@@ -937,21 +871,19 @@ function KOSync:onPageUpdate(page)
     return
   end
   self.last_page_turn_timestamp = os.time()
-  self.page_update_counter = self.page_update_counter + 1
 end
 
-function KOSync:onTimesChange_1M()
+function KOSync:onSaveSettings()
   if not self.settings.auto_sync then
     return
   end
-  if self.settings.pages_before_update == 0 then
-    return
-  end
-  if self.page_update_counter >= self.settings.pages_before_update then
-    UIManager:nextTick(function()
-      self:_updateProgress(false)
-    end)
-  end
+  -- Do not block the current event, also give sufficient time to respond the
+  -- user activity.
+  UIManager:scheduleIn(0.1, function()
+    -- Force triggering a push.
+    self.push_timestamp = 0
+    self:_updateProgress(false)
+  end)
 end
 
 function KOSync:onResume()
@@ -966,7 +898,7 @@ function KOSync:onResume()
 
   -- And if we don't, this *will* (attempt to) trigger a connection and as such a NetworkConnected event,
   -- but only a single pull will happen, since _getProgress debounces itself.
-  UIManager:nextTick(function()
+  UIManager:scheduleIn(0.1, function()
     self:_getProgress(false)
   end)
 end

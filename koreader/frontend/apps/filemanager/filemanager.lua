@@ -399,7 +399,8 @@ function FileManager:setupLayout()
 end
 
 function FileManager:registerKeyEvents()
-  -- NOTE: We need to be surgical here, because this is called through reinit at runtime.
+  -- NOTE: We need to be surgical here, because this is called through reinit at
+  -- runtime.
   if Device:hasKeys() then
     self.key_events.Home = { { "Home" } }
     -- Override the menu.lua way of handling the back key
@@ -428,8 +429,11 @@ function FileManager:registerModule(name, ui_module)
   table.insert(self, ui_module)
 end
 
--- NOTE: The only thing that will *ever* instantiate a new FileManager object is our very own showFiles below!
+-- NOTE: The only thing that will *ever* instantiate a new FileManager object is
+-- our very own showFiles below!
 function FileManager:init()
+  -- Show self at the very beginning to ensure all the UIManager:broadcastEvent
+  -- in the following calls can be received by FileManager modules.
   UIManager:show(self)
   self:setupLayout()
 
@@ -1358,7 +1362,8 @@ function FileManager:showFiles(path, focused_file, selected_files)
   path = ffiUtil.realpath(path or G_named_settings.lastdir())
   G_reader_settings:save("lastdir", path)
   self:setRotationMode()
-  local file_manager = FileManager:new({
+  -- FileManager shows itself.
+  FileManager:new({
     dimen = Screen:getSize(),
     covers_fullscreen = true, -- hint for UIManager:_repaint()
     root_path = path,

@@ -17,47 +17,28 @@ function LuaSettings:extend(o)
 end
 -- NOTE: Instances are created via open, so we do *NOT* implement a new method, to avoid confusion.
 
+function LuaSettings:load(file_path)
+  -- File being absent and returning an empty table is a use case,
+  -- so logger.warn() only if there was an existing file
+  local existing = lfs.attributes(file_path, "mode") == "file"
+  if not existing then
+    return {}, false
+  end
+  local ok, stored = pcall(dofile, file_path)
+  if ok and stored then
+    return stored, true
+  end
+  logger.warn("LuaSettings: Failed reading", file_path, ", probably corrupted.")
+  return {}, false
+end
+
 --- Opens a settings file.
 function LuaSettings:open(file_path)
   local new = LuaSettings:extend({
     file = file_path,
   })
-  local ok, stored
 
-  -- File being absent and returning an empty table is a use case,
-  -- so logger.warn() only if there was an existing file
-  local existing = lfs.attributes(new.file, "mode") == "file"
-
-  ok, stored = pcall(dofile, new.file)
-  if ok and stored then
-    new.data = stored
-  else
-    if existing then
-      logger.warn(
-        "LuaSettings: Failed reading",
-        new.file,
-        "(probably corrupted)."
-      )
-    end
-    -- Fallback to .old if it exists
-    ok, stored = pcall(dofile, new.file .. ".old")
-    if ok and stored then
-      if existing then
-        logger.warn("LuaSettings: read from backup file", new.file .. ".old")
-      end
-      new.data = stored
-    else
-      if existing then
-        logger.warn(
-          "LuaSettings: no usable backup file for",
-          new.file,
-          "to read from"
-        )
-      end
-      new.data = {}
-    end
-  end
-
+  new.data = LuaSettings:load(file_path)
   return new
 end
 
@@ -156,10 +137,7 @@ function LuaSettings:save(key, value, default_value)
     -- An easy optimization to avoid dumping.
     if
       util.tableSize(value) == util.tableSize(default_value)
-      and (
-        util.tableSize(value) == 0
-        or dump(value, nil, true) == dump(default_value, nil, true)
-      )
+      and (util.tableSize(value) == 0 or dump(value) == dump(default_value))
     then
       return self:delete(key)
     end
@@ -255,23 +233,6 @@ function LuaSettings:reset(table)
   return self
 end
 
-function LuaSettings:backup(file)
-  file = file or self.file
-  local directory_updated
-  if lfs.attributes(file, "mode") == "file" then
-    -- As an additional safety measure (to the ffiutil.fsync* calls used in util.writeToFile),
-    -- we only backup the file to .old when it has not been modified in the last 60 seconds.
-    -- This should ensure in the case the fsync calls are not supported
-    -- that the OS may have itself sync'ed that file content in the meantime.
-    local mtime = lfs.attributes(file, "modification")
-    if mtime < os.time() - 60 then
-      os.rename(file, file .. ".old")
-      directory_updated = true -- fsync directory content
-    end
-  end
-  return directory_updated
-end
-
 --- Writes settings to disk.
 function LuaSettings:flush()
   if not self.file then
@@ -281,14 +242,7 @@ function LuaSettings:flush()
   if self.data == nil or next(self.data) == nil then
     return
   end
-  local directory_updated = self:backup()
-  util.writeToFile(
-    dump(self.data, nil, true),
-    self.file,
-    true,
-    true,
-    directory_updated
-  )
+  util.writeToFile(dump(self.data), self.file, true)
   return self
 end
 

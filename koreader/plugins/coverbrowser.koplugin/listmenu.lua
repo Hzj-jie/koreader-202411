@@ -13,9 +13,11 @@ local HorizontalSpan = require("ui/widget/horizontalspan")
 local IconWidget = require("ui/widget/iconwidget")
 local ImageWidget = require("ui/widget/imagewidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
+local ItemShortCutIcon = require("ui/widget/itemshortcuticon")
 local LeftContainer = require("ui/widget/container/leftcontainer")
 local LineWidget = require("ui/widget/linewidget")
 local Math = require("optmath")
+local Menu = require("ui/widget/menu")
 local OverlapGroup = require("ui/widget/overlapgroup")
 local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
@@ -32,7 +34,6 @@ local _ = require("gettext")
 local N_ = _.ngettext
 local Screen = Device.screen
 local T = require("ffi/util").template
-local getMenuText = require("ui/widget/menu").getMenuText
 
 local BookInfoManager = require("bookinfomanager")
 
@@ -47,54 +48,6 @@ local corner_mark_size = -1
 local corner_mark
 
 local scale_by_size = Screen:scaleBySize(1000000) * (1 / 1000000)
-
--- ItemShortCutIcon (for keyboard navigation) is private to menu.lua and can't be accessed,
--- so we need to redefine it
-local ItemShortCutIcon = WidgetContainer:extend({
-  dimen = Geom:new({
-    x = 0,
-    y = 0,
-    w = Screen:scaleBySize(22),
-    h = Screen:scaleBySize(22),
-  }),
-  key = nil,
-  bordersize = Size.border.default,
-  radius = 0,
-  style = "square",
-})
-
-function ItemShortCutIcon:init()
-  if not self.key then
-    return
-  end
-  local radius = 0
-  local background = Blitbuffer.COLOR_WHITE
-  if self.style == "rounded_corner" then
-    radius = math.floor(self.width / 2)
-  elseif self.style == "grey_square" then
-    background = Blitbuffer.COLOR_LIGHT_GRAY
-  end
-  local sc_face
-  if self.key:len() > 1 then
-    sc_face = Font:getFace("ffont", 14)
-  else
-    sc_face = Font:getFace("scfont", 22)
-  end
-  self[1] = FrameContainer:new({
-    padding = 0,
-    bordersize = self.bordersize,
-    radius = radius,
-    background = background,
-    dimen = self.dimen:copy(),
-    CenterContainer:new({
-      dimen = self.dimen,
-      TextWidget:new({
-        text = self.key,
-        face = sc_face,
-      }),
-    }),
-  })
-end
 
 -- Based on menu.lua's MenuItem
 local ListMenuItem = InputContainer:extend({
@@ -1069,16 +1022,19 @@ function ListMenu:_updateItemsBuildUI()
     end
     -- Keyboard shortcuts, as done in Menu
     local item_shortcut, shortcut_style
-    if self.is_enable_shortcut then
-      item_shortcut = self.item_shortcuts[idx]
-      shortcut_style = (idx < 11 or idx > 20) and "square" or "grey_square"
+    if Menu.ENABLE_SHORTCUT then
+      item_shortcut = Menu.ITEM_SHORTCUTS[idx]
+      -- give different shortcut_style to keys in different lines of keyboard
+      if (idx - 1) % 10 >= 5 then
+        shortcut_style = "grey_square"
+      end
     end
 
     local item_tmp = ListMenuItem:new({
       height = self.item_height,
       width = self.item_width,
       entry = entry,
-      text = getMenuText(entry),
+      text = Menu.getMenuText(entry),
       show_parent = self.show_parent,
       mandatory = entry.mandatory,
       dimen = self.item_dimen:copy(),

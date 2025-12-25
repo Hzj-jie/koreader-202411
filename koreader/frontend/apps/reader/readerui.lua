@@ -94,12 +94,13 @@ function ReaderUI:registerModule(name, ui_module)
 end
 
 function ReaderUI:init()
+  -- Show self at the very beginning to ensure all the UIManager:broadcastEvent
+  -- in the following calls can be received by ReaderUI modules.
   UIManager:show(self, self.seamless and "ui" or "full")
 
   -- cap screen refresh on pan to 2 refreshes per second
-  local pan_rate = Screen.low_pan_rate and 2.0 or 30.0
+  local pan_rate = G_named_settings.low_pan_rate_or_full(2.0)
 
-  Input:inhibitInput(true) -- Inhibit any past and upcoming input events.
   Device:setIgnoreInput(true) -- Avoid ANRs on Android with unprocessed events.
 
   -- if we are not the top level dialog ourselves, it must be given in the table
@@ -357,7 +358,7 @@ function ReaderUI:init()
     -- make sure we render document first before calling any callback, so using
     -- onReadSettings which happens before onReaderInited.
     self.onReadSettings = function()
-      local start_time = time.now()
+      local start_time = time.monotonic()
       if not self.document:loadDocument() then
         self:dealWithLoadDocumentFailure()
       end
@@ -374,7 +375,7 @@ function ReaderUI:init()
         Event:new("PreRenderDocument", self.doc_settings)
       )
 
-      start_time = time.now()
+      start_time = time.monotonic()
       self.document:render()
       logger.dbg(
         string.format(
@@ -617,7 +618,6 @@ function ReaderUI:init()
   UIManager:broadcastEvent(Event:new("PostReaderReady"))
 
   Device:setIgnoreInput(false) -- Allow processing of events (on Android).
-  Input:inhibitInputUntil(0.2)
 
   -- print("Ordered registered gestures:")
   -- for _, tzone in ipairs(self._ordered_touch_zones) do
@@ -763,7 +763,6 @@ function ReaderUI:showReaderCoroutine(file, provider, seamless)
         io.stderr:write(debug.traceback(co, err, 1))
         -- Restore input if we crashed before ReaderUI has restored it
         Device:setIgnoreInput(false)
-        Input:inhibitInputUntil(0.2)
         -- Need localization.
         UIManager:show(InfoMessage:new({
           text = _("Unfortunately KOReader crashed.")
@@ -974,7 +973,6 @@ function ReaderUI:dealWithLoadDocumentFailure()
     }))
     -- Restore input, so can catch the InfoMessage dismiss and exit
     Device:setIgnoreInput(false)
-    Input:inhibitInputUntil(0.2)
     coroutine.yield() -- pause till InfoMessage is dismissed
   end
   -- We have to error and exit the coroutine anyway to avoid any segfault

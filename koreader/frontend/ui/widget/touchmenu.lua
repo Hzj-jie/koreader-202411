@@ -20,6 +20,7 @@ local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local LeftContainer = require("ui/widget/container/leftcontainer")
 local LineWidget = require("ui/widget/linewidget")
+local Menu = require("ui/widget/menu")
 local RadioMark = require("ui/widget/radiomark")
 local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
@@ -30,7 +31,6 @@ local Utf8Proc = require("ffi/utf8proc")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local datetime = require("datetime")
-local getMenuText = require("ui/widget/menu").getMenuText
 local _ = require("gettext")
 local ffiUtil = require("ffi/util")
 local util = require("util")
@@ -39,23 +39,6 @@ local Input = Device.input
 local Screen = Device.screen
 
 local DGENERIC_ICON_SIZE = G_defaults:read("DGENERIC_ICON_SIZE")
-
--- Similar to menu widget.
-local ENABLE_SHORTCUT = Device:hasKeyboard()
--- Since the MAX_PER_PAGE is 10, optimize the shortcuts to the left side of the
--- keyboard.
-local ITEM_SHORTCUTS = {
-  "Q",
-  "W",
-  "E",
-  "R",
-  "T",
-  "A",
-  "S",
-  "D",
-  "F",
-  "G",
-}
 
 --[[
 TouchMenuItem widget
@@ -87,8 +70,8 @@ function TouchMenuItem:init()
     },
   }
 
-  if ENABLE_SHORTCUT then
-    self.item.shortcut = ITEM_SHORTCUTS[self.item_visible_index]
+  if Menu.ENABLE_SHORTCUT then
+    self.item.shortcut = Menu.ITEM_SHORTCUTS[self.item_visible_index]
     self.key_events.TapSelect = { { self.item.shortcut } }
   end
 
@@ -129,7 +112,11 @@ function TouchMenuItem:init()
   local text_max_width = self.dimen.w
     - 2 * Size.padding.default
     - checked_widget:getSize().w
-  local text = getMenuText(self.item)
+  local text = Menu.getMenuText(self.item)
+  if Menu.ENABLE_SHORTCUT then
+    assert(self.item.shortcut ~= nil)
+    text = "[" .. self.item.shortcut .. "] " .. text
+  end
   local face = self.face
   local forced_baseline, forced_height
   if self.item.font_func then
@@ -261,7 +248,7 @@ function TouchMenuItem:onTapSelect(arg, ges)
   UIManager:setDirty(nil, "fast", highlight_dimen)
 
   UIManager:forceRePaint()
-  UIManager:yieldToEPDC()
+  UIManager:waitForScreenRefresh()
 
   -- Unhighlight
   --
@@ -318,7 +305,7 @@ function TouchMenuItem:onHoldSelect(arg, ges)
   UIManager:setDirty(nil, "fast", highlight_dimen)
 
   UIManager:forceRePaint()
-  UIManager:yieldToEPDC()
+  UIManager:waitForScreenRefresh()
 
   -- Unhighlight
   --
@@ -533,9 +520,6 @@ function TouchMenuBar:switchToTab(index)
   end
   self.icon_widgets[index].callback()
 end
-
-local MAX_PER_PAGE = 10
-assert(#ITEM_SHORTCUTS == MAX_PER_PAGE)
 
 --[[
 TouchMenu widget for hierarchical menus
@@ -781,9 +765,10 @@ function TouchMenu:_recalculatePageLayout()
 
   local item_list_content_height = content_height - footer_height
   self.perpage = math.floor(item_list_content_height / self.item_height)
-  if self.perpage > MAX_PER_PAGE then
-    self.perpage = MAX_PER_PAGE
+  if self.perpage > 10 then
+    self.perpage = 10
   end
+  assert(self.perpage <= #Menu.ITEM_SHORTCUTS)
 
   self.page_num = math.ceil(#self.item_table / self.perpage)
 end
@@ -1136,7 +1121,7 @@ function TouchMenu:onMenuHold(item, text_truncated) --> None
   end
   if text_truncated then
     UIManager:show(InfoMessage:new({
-      text = getMenuText(item),
+      text = Menu.getMenuText(item),
       show_icon = false,
     }))
     return

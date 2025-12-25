@@ -46,7 +46,8 @@ local order = require("ui/elements/common_menu_order")({
     "bookmarks_settings",
   },
   typeset = {
-    "document_settings",
+    "reset_document_settings",
+    "save_document_settings",
     "----------------------------",
     "set_render_style",
     "style_tweaks",

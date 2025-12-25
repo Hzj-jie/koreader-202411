@@ -892,7 +892,7 @@ function PageBrowserWidget:showTile(grid_idx, page, tile, do_refresh)
       self.wait_for_refresh_on_show_tile = nil
       -- Be sure the main view initial refresh has ended before refreshing
       -- this first thumbnail, to avoid papercut refresh glitches.
-      UIManager:waitForVSync()
+      UIManager:waitForScreenRefresh()
     end
     UIManager:setDirty(self, function()
       if not thumb_frame.dimen then
@@ -1570,11 +1570,7 @@ function PageBrowserWidget:onTap(arg, ges)
           thumb_frame.dimen.y = thumb_frame.dimen.y - b_inc
           thumb_frame.dimen.w = thumb_frame.dimen.w + 2 * b_inc
           thumb_frame.dimen.h = thumb_frame.dimen.h + 2 * b_inc
-          UIManager:widgetRepaint(
-            thumb_frame,
-            thumb_frame.dimen.x,
-            thumb_frame.dimen.y
-          )
+          UIManager:widgetRepaint(thumb_frame)
           Screen:refreshFast(
             thumb_frame.dimen.x,
             thumb_frame.dimen.y,

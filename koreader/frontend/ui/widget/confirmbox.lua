@@ -55,8 +55,6 @@ local ConfirmBox = InputContainer:extend({
   margin = Size.margin.default,
   padding = Size.padding.default,
   dismissable = true, -- set to false if any button callback is required
-  flush_events_on_show = false, -- set to true when it might be displayed after
-  -- some processing, to avoid accidental dismissal
 })
 
 function ConfirmBox:init()
@@ -238,10 +236,6 @@ function ConfirmBox:onShow()
   UIManager:setDirty(self, function()
     return "ui", self.movable.dimen
   end)
-  if self.flush_events_on_show then
-    -- Discard queued and upcoming input events to avoid accidental dismissal
-    Input:inhibitInputUntil(true)
-  end
 end
 
 function ConfirmBox:onClose()

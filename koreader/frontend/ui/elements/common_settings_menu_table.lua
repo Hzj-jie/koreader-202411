@@ -153,8 +153,22 @@ if Device:isTouchDevice() then
       UIManager:broadcastEvent(Event:new("IgnoreHoldCorners"))
     end,
   }
-  common_settings.screen_disable_double_tab =
+  common_settings.screen_disable_double_tap =
     require("ui/elements/screen_disable_double_tap_table")
+  common_settings.disable_out_of_order_tap = {
+    -- Need localization
+    text = _("Disable out of order taps"),
+    -- Need localization
+    help_text = _(
+      "Disallow taps or other interactions being sent to the UI elements before they are showing up.\nIt's highly suggested keeping this configuration enabled to avoid unexpectedly triggering user actions."
+    ),
+    checked_func = function()
+      return G_reader_settings:nilOrTrue("disable_out_of_order_taps")
+    end,
+    callback = function()
+      G_reader_settings:flipNilOrTrue("disable_out_of_order_taps")
+    end,
+  }
   common_settings.menu_activate = require("ui/elements/menu_activate")
 end
 
@@ -425,55 +439,6 @@ common_settings.skim_dialog_position = {
   },
 }
 
--- Auto-save settings: default value, info text and warning, and menu items
-if G_reader_settings:hasNot("auto_save_settings_interval_minutes") then
-  -- Default to auto save every 15 mn
-  G_reader_settings:save("auto_save_settings_interval_minutes", 15)
-end
-
-local auto_save_help_text = _(
-  [[
-This sets how often to rewrite to disk global settings and book metadata, including your current position and any highlights and bookmarks made, when you're reading a document.
-
-The normal behavior is to save those only when the document is closed, or your device suspended, or when exiting KOReader.
-
-Setting it to some interval may help prevent losing new settings/sidecar data after a software crash, but will cause more I/O writes the lower the interval is, and may slowly wear out your storage media in the long run.]]
-)
-
--- Some devices with FAT32 storage may not like having settings rewritten too often,
--- so let that be known. See https://github.com/koreader/koreader/pull/3625
-local warn_about_auto_save = Device:isKobo()
-  or Device:isKindle()
-  or Device:isCervantes()
-  or Device:isPocketBook()
-  or Device:isSonyPRSTUX()
-if warn_about_auto_save then
-  local auto_save_help_warning = _(
-    [[Please be warned that on this device, setting a low interval may exacerbate the potential for filesystem corruption and complete data loss after a hardware crash.]]
-  )
-  auto_save_help_text = auto_save_help_text .. "\n\n" .. auto_save_help_warning
-end
-
-local function genAutoSaveMenuItem(value)
-  local setting_name = "auto_save_settings_interval_minutes"
-  local text
-  if not value then
-    text = _("Only on close and suspend")
-  else
-    text = T(N_("Every minute", "Every %1 minutes", value), value)
-  end
-  return {
-    text = text,
-    help_text = auto_save_help_text,
-    checked_func = function()
-      return G_reader_settings:read(setting_name) == value
-    end,
-    callback = function()
-      G_reader_settings:save(setting_name, value)
-    end,
-  }
-end
-
 common_settings.document = {
   text = _("Document"),
   -- submenus are filled by menu_order
@@ -594,33 +559,45 @@ common_settings.document_metadata_location = {
   },
 }
 
+local function auto_save_help_text()
+  local text = _(
+    [[
+This sets how often to rewrite to disk global settings and book metadata, including your current position and any highlights and bookmarks made, when you're reading a document.
+
+The normal behavior is to save those only when the document is closed, or your device suspended, or when exiting KOReader.
+
+Setting it to some interval may help prevent losing new settings/sidecar data after a software crash, but will cause more I/O writes the lower the interval is, and may slowly wear out your storage media in the long run.]]
+  )
+
+  -- Some devices with FAT32 storage may not like having settings rewritten too often,
+  -- so let that be known. See https://github.com/koreader/koreader/pull/3625
+  if
+    Device:isKobo()
+    or Device:isKindle()
+    or Device:isCervantes()
+    or Device:isPocketBook()
+    or Device:isSonyPRSTUX()
+  then
+    text = text
+      .. "\n\n"
+      .. _(
+        [[Please be warned that on this device, setting a low interval may exacerbate the potential for filesystem corruption and complete data loss after a hardware crash.]]
+      )
+  end
+
+  return text
+end
+
 common_settings.document_auto_save = {
-  text_func = function()
-    local interval =
-      G_reader_settings:read("auto_save_settings_interval_minutes")
-    local s_interval
-    if interval == false then
-      s_interval = _("only on close and suspend")
-    else
-      s_interval = T(N_("every 1 m", "every %1 m", interval), interval)
-    end
-    return T(_("Save book metadata: %1"), s_interval)
+  -- Need localization
+  text = _("Periodically save reading progress"),
+  help_text = auto_save_help_text(),
+  checked_func = function()
+    return G_reader_settings:nilOrTrue("auto_save_settings")
   end,
-  help_text = auto_save_help_text,
-  sub_item_table = {
-    genAutoSaveMenuItem(false),
-    genAutoSaveMenuItem(5),
-    genAutoSaveMenuItem(15),
-    genAutoSaveMenuItem(30),
-    genAutoSaveMenuItem(60),
-    warn_about_auto_save and {
-      text = _("Important info about this auto-save option"),
-      keep_menu_open = true,
-      callback = function()
-        UIManager:show(InfoMessage:new({ text = auto_save_help_text }))
-      end,
-    } or nil,
-  },
+  callback = function()
+    G_reader_settings:flipNilOrTrue("auto_save_settings")
+  end,
   separator = true,
 }
 

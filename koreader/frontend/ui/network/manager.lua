@@ -175,7 +175,7 @@ function NetworkMgr:restoreWifiAndCheckAsync(msg)
 end
 
 function NetworkMgr:_setOnlineState(new_state, check_time)
-  check_time = check_time or time.now()
+  check_time = check_time or time.monotonic()
   -- This field is used to decide if the result from a full background ping
   -- background job should be ignored.
   if self.last_online_check_time > check_time then
@@ -828,9 +828,6 @@ function NetworkMgr:getRestoreMenuTable()
     callback = function(menu)
       G_reader_settings:flipNilOrFalse("auto_restore_wifi")
     end,
-    onNetworkStateChanged = function(menu)
-      menu:updateItems()
-    end,
   }
 end
 
@@ -845,6 +842,9 @@ function NetworkMgr:getInfoMenuTable()
     end,
     callback = function()
       UIManager:broadcastEvent(Event:new("ShowNetworkInfo"))
+    end,
+    onNetworkStateChanged = function(menu)
+      menu:updateItems()
     end,
   }
 end
@@ -1105,6 +1105,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
       timeout = 3,
       dismiss_callback = complete_callback,
     }))
+    UIManager:forceRePaint()
   elseif complete_callback then
     complete_callback()
   end

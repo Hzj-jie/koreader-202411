@@ -1,5 +1,6 @@
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local util = require("util")
 local _ = require("gettext")
 
 local DEFAULT_PLUGIN_PATH = "plugins"
@@ -80,7 +81,10 @@ function PluginLoader:loadPlugins()
   local lookup_path_list = { DEFAULT_PLUGIN_PATH }
   local data_dir = require("datastorage"):getDataDir()
   if data_dir ~= "." then
-    table.insert(lookup_path_list, data_dir .. "/plugins/")
+    local p = data_dir .. "/plugins/"
+    if not util.arrayContains(lookup_path_list, p) then
+      table.insert(lookup_path_list, p)
+    end
   end
   local extra_paths = G_reader_settings:read("extra_plugin_paths")
   if extra_paths then
@@ -89,9 +93,8 @@ function PluginLoader:loadPlugins()
     end
     if type(extra_paths) == "table" then
       for _, extra_path in ipairs(extra_paths) do
-        local extra_path_mode = lfs.attributes(extra_path, "mode")
         if
-          extra_path_mode == "directory" and extra_path ~= DEFAULT_PLUGIN_PATH
+          lfs.attributes(extra_path, "mode") == "directory" and not util.arrayContains(lookup_path_list, extra_path)
         then
           table.insert(lookup_path_list, extra_path)
         end

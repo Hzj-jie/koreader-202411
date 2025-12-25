@@ -369,7 +369,7 @@ function CalibreSearch:find(option)
   end
 
   -- measure time elapsed searching
-  local start_time = time.now()
+  local start_time = time.monotonic()
   self:browse(option)
   logger.info(
     string.format(
@@ -652,7 +652,7 @@ end
 
 -- get metadata from cache or calibre files
 function CalibreSearch:getMetadata()
-  local start_time = time.now()
+  local start_time = time.monotonic()
   local template = "metadata: %d books imported from %s in %.3f milliseconds"
 
   -- try to load metadata from cache

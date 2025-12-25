@@ -94,31 +94,33 @@ function ReaderRolling:init()
   self:registerKeyEvents()
   self.pan_interval = time.s(1 / self.pan_rate)
 
-  self.onReaderInited = {}
-  self.onPostReaderReady = {}
+  self.onReaderInited = {
+    function()
+      self.rendering_hash = self.ui.document:getDocumentRenderingHash(true)
+      self.ui.document:_readMetadata()
+      if
+        self.ui.document:hasCacheFile()
+        and not self.ui.document:isCacheFileStale()
+      then
+        -- We loaded from a valid cache file: remember its hash. It may allow not
+        -- having to do any background rerendering if the user somehow reverted
+        -- some setting changes before any background rerendering had completed
+        -- (ie. with autorotation, transitioning from portrait to landscape for
+        -- a few seconds, to then end up back in portrait).
+        self.valid_cache_rendering_hash =
+          self.ui.document:getDocumentRenderingHash(false)
+      end
+    end,
+  }
+  self.onPostReaderReady = {
+    function()
+      self:updatePos()
+      -- Disable crengine internal history, with required redraw
+      self.ui.document:enableInternalHistory(false)
+      self:onRedrawCurrentView()
+    end,
+  }
 
-  table.insert(self.onReaderInited, function()
-    self.rendering_hash = self.ui.document:getDocumentRenderingHash(true)
-    self.ui.document:_readMetadata()
-    if
-      self.ui.document:hasCacheFile()
-      and not self.ui.document:isCacheFileStale()
-    then
-      -- We loaded from a valid cache file: remember its hash. It may allow not
-      -- having to do any background rerendering if the user somehow reverted
-      -- some setting changes before any background rerendering had completed
-      -- (ie. with autorotation, transitioning from portrait to landscape for
-      -- a few seconds, to then end up back in portrait).
-      self.valid_cache_rendering_hash =
-        self.ui.document:getDocumentRenderingHash(false)
-    end
-  end)
-  table.insert(self.onPostReaderReady, function()
-    self:updatePos()
-    -- Disable crengine internal history, with required redraw
-    self.ui.document:enableInternalHistory(false)
-    self:onRedrawCurrentView()
-  end)
   self.ui.menu:registerToMainMenu(self)
   self.batched_update_count = 0
 
@@ -1152,7 +1154,6 @@ function ReaderRolling:onUpdatePos(force)
     return true
   end
 
-  Input:inhibitInput(true) -- Inhibit any past and upcoming input events.
   Device:setIgnoreInput(true) -- Avoid ANRs on Android with unprocessed events.
 
   -- Calling this now ensures the re-rendering is done by crengine
@@ -1171,9 +1172,6 @@ function ReaderRolling:onUpdatePos(force)
   self:updatePos(force)
 
   Device:setIgnoreInput(false) -- Allow processing of events (on Android).
-  Input:inhibitInputUntil(0.2) -- Discard input events, which might have occurred (double tap).
-  -- We can use a smaller duration than the default (quite large to avoid accidental dismissals),
-  -- to allow for quicker setting changes and rendering comparisons.
 end
 
 function ReaderRolling:updatePos(force)
@@ -1539,7 +1537,7 @@ function ReaderRolling:showEngineProgress(percent)
   end
 
   if percent then
-    local now = time.now()
+    local now = time.monotonic()
     if
       self.engine_progress_update_not_before
       and now < self.engine_progress_update_not_before
@@ -2046,9 +2044,9 @@ function ReaderRolling:setupRerenderingAutomation()
         local top_widget = UIManager:getTopmostVisibleWidget() or {}
         if top_widget.name == "ReaderUI" then
           if not next_step_not_before then -- start counting from now
-            next_step_not_before = time.now() + time.s(3)
+            next_step_not_before = time.monotonic() + time.s(3)
           else
-            if time.now() >= next_step_not_before then
+            if time.monotonic() >= next_step_not_before then
               self._stepRerenderingAutomation(
                 self.RENDERING_STATE.FULL_RENDERING_IN_BACKGROUND
               )

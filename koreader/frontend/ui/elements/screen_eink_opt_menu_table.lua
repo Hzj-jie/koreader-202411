@@ -6,17 +6,25 @@ local eink_settings_table = {
   text = _("E-ink settings"),
   sub_item_table = {
     {
-      text = _("Use smaller panning rate"),
+      -- Need localization
+      text = _("Use lower refresh rate when appropriate"),
+      -- Need localization
+      help_text = _(
+        "E-ink may laggy when refreshing, avoid refreshing the screen for the intermedia states, e.g. when scrolling, can be beneficial to reduce the laggy or blur.\nA reloading of the book may be needed to take effect."
+      ),
       checked_func = function()
-        return Screen.low_pan_rate
+        return G_named_settings.low_pan_rate()
       end,
       callback = function()
-        Screen.low_pan_rate = not Screen.low_pan_rate
-        G_reader_settings:save("low_pan_rate", Screen.low_pan_rate)
+        G_named_settings.flip.low_pan_rate()
       end,
     },
     {
       text = _("Avoid mandatory black flashes in UI"),
+      -- Need localization
+      help_text = _(
+        "Fully rendering a black area can be slow and increase the blur on the E-ink, avoiding full refreshes of the black areas may improve the device responsiveness in exchange of potentially observing partially rendered black areas, especially on menus and buttons."
+      ),
       checked_func = function()
         return G_reader_settings:nilOrTrue("avoid_flashing_ui")
       end,
