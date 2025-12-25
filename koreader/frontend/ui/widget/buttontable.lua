@@ -78,8 +78,8 @@ function ButtonTable:init()
         enabled = btn_entry.enabled,
         enabled_func = btn_entry.enabled_func,
         callback = function()
-          if self.show_parent and self.show_parent.movable then
-            self.show_parent.movable:resetEventState()
+          if self:showParent() and self:showParent().movable then
+            self:showParent().movable:resetEventState()
           end
           btn_entry.callback()
         end,

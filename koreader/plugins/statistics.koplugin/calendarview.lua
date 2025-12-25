@@ -506,7 +506,7 @@ end
 
 function BookDailyItem:onHold()
   if self.item.hold_callback then
-    self.item.hold_callback(self.show_parent, self.item)
+    self.item.hold_callback(self:showParent(), self.item)
   end
   return true
 end

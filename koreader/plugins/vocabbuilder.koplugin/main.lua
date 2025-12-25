@@ -386,7 +386,8 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
     callback = function()
       self:onExit()
       -- first show_parent is sortWidget, second is vocabBuilderWidget
-      self.show_parent.show_parent:showChangeBookTitleDialog(
+      -- TODO: This is wrong, a widget shouldn't be shown twice.
+      self:showParent():showParent():showChangeBookTitleDialog(
         sort_item,
         onSuccess
       )
@@ -396,7 +397,7 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
     text = _("Select only this book"),
     callback = function()
       self:onExit()
-      for _, item in pairs(self.show_parent.item_table) do
+      for _, item in pairs(self:showParent().item_table) do
         if item == sort_item then
           if not item.checked_func() then
             item.callback() -- toggle checkmark
@@ -405,43 +406,43 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
           item.callback()
         end
       end
-      self.show_parent:goToPage(self.show_parent.show_page)
+      self:showParent():goToPage(self:showParent().show_page)
     end,
   }
   local select_all_button = {
     text = _("Select all books"),
     callback = function()
       self:onExit()
-      for _, item in pairs(self.show_parent.item_table) do
+      for _, item in pairs(self:showParent().item_table) do
         if not item.checked_func() then
           item.callback()
         end
       end
-      self.show_parent:goToPage(self.show_parent.show_page)
+      self:showParent():goToPage(self:showParent().show_page)
     end,
   }
   local select_page_all_button = {
     text = _("Select all books on this page"),
     callback = function()
       self:onExit()
-      for _, content in pairs(self.show_parent.main_content) do
+      for _, content in pairs(self:showParent().main_content) do
         if content.item and not content.item.checked_func() then
           content.item.callback()
         end
       end
-      self.show_parent:goToPage(self.show_parent.show_page)
+      self:showParent():goToPage(self:showParent().show_page)
     end,
   }
   local deselect_page_all_button = {
     text = _("Deselect all books on this page"),
     callback = function()
       self:onExit()
-      for _, content in pairs(self.show_parent.main_content) do
+      for _, content in pairs(self:showParent().main_content) do
         if content.item and content.item.checked_func() then
           content.item.callback()
         end
       end
-      self.show_parent:goToPage(self.show_parent.show_page)
+      self:showParent():goToPage(self:showParent().show_page)
     end,
   }
   local buttons = ButtonTable:new({
@@ -829,7 +830,7 @@ function VocabItemWidget:initItemWidget()
   for i = 1, #self.layout do
     self.layout[i] = nil
   end
-  if not self.show_parent.is_edit_mode then
+  if not self:showParent().is_edit_mode then
     self.more_button = Button:new({
       text = (self.item.prev_context or self.item.next_context) and "⋯"
         or "⋮",
@@ -855,7 +856,7 @@ function VocabItemWidget:initItemWidget()
 
   local right_side_width
   local right_widget
-  if not self.show_parent.is_edit_mode and self.item.due_time <= os.time() then
+  if not self:showParent().is_edit_mode and self.item.due_time <= os.time() then
     self.has_review_buttons = true
     right_side_width = self.review_button_width * 2
       + Size.padding.large * 2
@@ -1070,7 +1071,7 @@ end
 
 function VocabItemWidget:remover()
   self.item.remove_callback(self.item)
-  self.show_parent:removeAt(self.index)
+  self:showParent():removeAt(self.index)
 end
 
 function VocabItemWidget:resetProgress()
@@ -1081,7 +1082,7 @@ function VocabItemWidget:resetProgress()
   self.item.last_due_time = nil
   self.item.is_dim = false
   self:initItemWidget()
-  UIManager:setDirty(self.show_parent, function()
+  UIManager:setDirty(self:showParent(), function()
     return "ui", self[1].dimen
   end)
 end
@@ -1097,7 +1098,7 @@ function VocabItemWidget:undo()
   self.item.last_due_time = nil
   self.item.is_dim = false
   self:initItemWidget()
-  UIManager:setDirty(self.show_parent, function()
+  UIManager:setDirty(self:showParent(), function()
     return "ui", self[1].dimen
   end)
 end
@@ -1163,7 +1164,7 @@ function VocabItemWidget:onTap(_, ges)
         and ges.pos.x
           < self.more_button.dimen.x + self.more_button.dimen.w * 2
       then
-        if self.show_parent.is_edit_mode then
+        if self:showParent().is_edit_mode then
           self:remover()
         else
           self:showMore()
@@ -1176,7 +1177,7 @@ function VocabItemWidget:onTap(_, ges)
         ges.pos.x > self.more_button.dimen.x - self.more_button.dimen.w
         and ges.pos.x < self.more_button.dimen.x + self.more_button.dimen.w
       then
-        if self.show_parent.is_edit_mode then
+        if self:showParent().is_edit_mode then
           self:remover()
         else
           self:showMore()
@@ -1198,10 +1199,10 @@ function VocabItemWidget:onGotIt()
   self.item.got_it_callback(self.item)
   self.item.is_dim = true
   self:initItemWidget()
-  if self.show_parent.selected.x == 3 then
-    self.show_parent.selected.x = 1
+  if self:showParent().selected.x == 3 then
+    self:showParent().selected.x = 1
   end
-  UIManager:setDirty(self.show_parent, function()
+  UIManager:setDirty(self:showParent(), function()
     return "ui", self[1].dimen
   end)
 end
@@ -1210,7 +1211,7 @@ function VocabItemWidget:onForgot(no_lookup)
   self.item.forgot_callback(self.item)
   self.item.is_dim = false
   self:initItemWidget()
-  UIManager:setDirty(self.show_parent, function()
+  UIManager:setDirty(self:showParent(), function()
     return "ui", self[1].dimen
   end)
   if not no_lookup and self.item.callback then
@@ -1236,7 +1237,7 @@ function VocabItemWidget:onShowBookAssignment(title_changed_cb)
       end,
       hold_callback = function(sort_item, onSuccess)
         local book_title = self.item.book_title
-        self.show_parent:showChangeBookTitleDialog(sort_item, function()
+        self:showParent():showChangeBookTitleDialog(sort_item, function()
           onSuccess()
           if book_title == info.name then
             if book == book_title then
@@ -1289,7 +1290,7 @@ function VocabItemWidget:onShowBookAssignment(title_changed_cb)
                       return new_book_title == book
                     end,
                     hold_callback = function(sort_item, onSuccess)
-                      self.show_parent:showChangeBookTitleDialog(
+                      self:showParent():showChangeBookTitleDialog(
                         sort_item,
                         onSuccess
                       )
@@ -1347,7 +1348,7 @@ function VocabItemWidget:onDictButtonsReady(dict_popup, buttons)
           id = "got_it",
           text = _("Got it"),
           callback = function()
-            self.show_parent:gotItFromDict(self.item.word)
+            self:showParent():gotItFromDict(self.item.word)
             dict_popup:onExit()
           end,
         }
@@ -1361,7 +1362,7 @@ function VocabItemWidget:onDictButtonsReady(dict_popup, buttons)
           id = "forgot",
           text = _("Forgot"),
           callback = function()
-            self.show_parent:forgotFromDict(self.item.word)
+            self:showParent():forgotFromDict(self.item.word)
             dict_popup:onExit()
           end,
         }

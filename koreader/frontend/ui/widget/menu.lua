@@ -1203,7 +1203,7 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
   self:updatePageInfo(select_number)
   self:mergeTitleBarIntoLayout()
 
-  UIManager:setDirty(self.show_parent, function()
+  UIManager:setDirty(self:showParent(), function()
     local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)
       or self.dimen
     return "ui", refresh_dimen

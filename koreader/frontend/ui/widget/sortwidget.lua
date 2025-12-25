@@ -100,36 +100,36 @@ function SortItemWidget:onTap(_, ges)
   if
     self.item.checked_func
     and (
-      self.show_parent.sort_disabled
+      self:showParent().sort_disabled
       or ges.pos:intersectWith(self.checkmark_widget.dimen)
     )
   then
     if self.item.callback then
       self.item:callback()
     end
-  elseif self.show_parent.sort_disabled then
+  elseif self:showParent().sort_disabled then
     if self.item.callback then
       self.item:callback()
     else
       return true
     end
-  elseif self.show_parent.marked == self.index then
-    self.show_parent.marked = 0
+  elseif self:showParent().marked == self.index then
+    self:showParent().marked = 0
   else
-    self.show_parent.marked = self.index
+    self:showParent().marked = self.index
   end
-  self.show_parent:_populateItems()
+  self:showParent():_populateItems()
   return true
 end
 
 function SortItemWidget:onHold()
   if self.item.hold_callback then
     self.item:hold_callback(function()
-      self.show_parent:_populateItems()
+      self:showParent():_populateItems()
     end)
   elseif self.item.callback then
     self.item:callback()
-    self.show_parent:_populateItems()
+    self:showParent():_populateItems()
   end
   return true
 end

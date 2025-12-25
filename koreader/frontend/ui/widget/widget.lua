@@ -77,6 +77,8 @@ function Widget:refreshMode()
   return self._refreshMode or "ui"
 end
 
+-- Get the show(widget) of current widget, use this function should be careful
+-- due to it's slowness.
 function Widget:showParent()
   -- A fast loop to avoid dfs.
   for w in require("uimanager"):topdown_widgets_iter() do

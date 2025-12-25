@@ -548,7 +548,7 @@ function TouchMenu:init()
   end
   if not self.close_callback then
     self.close_callback = function()
-      UIManager:close(self.show_parent)
+      UIManager:close(self:showParent())
     end
   end
 
@@ -863,7 +863,7 @@ function TouchMenu:updateItems()
   -- NOTE: And we also only need to repaint what's behind us when switching to a smaller menu...
   local keep_bg = old_dimen and self.dimen.h >= old_dimen.h
   UIManager:setDirty(
-    (self.is_fresh or keep_bg) and self.show_parent or "all",
+    (self.is_fresh or keep_bg) and self:showParent() or "all",
     function()
       local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)
         or self.dimen

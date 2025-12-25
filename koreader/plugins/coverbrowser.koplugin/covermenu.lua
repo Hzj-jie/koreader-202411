@@ -141,11 +141,11 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
   self:updatePageInfo(select_number)
   Menu.mergeTitleBarIntoLayout(self)
 
-  self.show_parent.dithered = self._has_cover_images
-  UIManager:setDirty(self.show_parent, function()
+  self:showParent().dithered = self._has_cover_images
+  UIManager:setDirty(self:showParent(), function()
     local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)
       or self.dimen
-    return "ui", refresh_dimen, self.show_parent.dithered
+    return "ui", refresh_dimen, self:showParent().dithered
   end)
 
   -- As additionally done in FileChooser:updateItems()
@@ -191,17 +191,17 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
         item:update()
         if item.bookinfo_found then
           logger.dbg("  found", item.text)
-          self.show_parent.dithered = item._has_cover_image
+          self:showParent().dithered = item._has_cover_image
           local refreshfunc = function()
             if item.refresh_dimen then
               -- MosaicMenuItem may exceed its own dimen in its paintTo
               -- with its "description" hint
-              return "ui", item.refresh_dimen, self.show_parent.dithered
+              return "ui", item.refresh_dimen, self:showParent().dithered
             else
-              return "ui", item[1].dimen, self.show_parent.dithered
+              return "ui", item[1].dimen, self:showParent().dithered
             end
           end
-          UIManager:setDirty(self.show_parent, refreshfunc)
+          UIManager:setDirty(self:showParent(), refreshfunc)
           table.remove(self.items_to_update, i)
         else
           logger.dbg("  not yet found", item.text)

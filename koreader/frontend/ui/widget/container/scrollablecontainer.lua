@@ -409,7 +409,7 @@ function ScrollableContainer:_scrollBy(dx, dy, ensure_scroll_steps)
   end
   self:_hideTruncatedGridItemsIfRequested()
   self:_updateScrollBars()
-  UIManager:setDirty(self.show_parent, function()
+  UIManager:setDirty(self:showParent(), function()
     return "ui", self.dimen
   end)
 end
@@ -718,9 +718,9 @@ end
 
 function ScrollableContainer:_notifyParentOfPageScroll()
   -- For ButtonDialog's focus shenanigans, as we ourselves are not a FocusManager
-  if self.show_parent and self.show_parent._onPageScrollToRow then
+  if self:showParent() and self:showParent()._onPageScrollToRow then
     local top_row = self:_getStepScrollRowAtY(self._scroll_offset_y, true)
-    self.show_parent:_onPageScrollToRow(top_row and top_row.row_num or 1)
+    self:showParent():_onPageScrollToRow(top_row and top_row.row_num or 1)
   end
 end
 

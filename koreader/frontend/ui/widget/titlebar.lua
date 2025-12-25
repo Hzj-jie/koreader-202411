@@ -436,7 +436,7 @@ function TitleBar:setTitle(title, no_refresh)
       -- size: be sure everything is repainted
       UIManager:setDirty("all", "ui")
     else
-      UIManager:setDirty(self.show_parent, "ui", self.dimen)
+      UIManager:setDirty(self:showParent(), "ui", self.dimen)
     end
   else
     -- TextWidget with max-width: we can just update its text
@@ -446,7 +446,7 @@ function TitleBar:setTitle(title, no_refresh)
     end
     self.title_group:resetLayout()
     if not no_refresh then
-      UIManager:setDirty(self.show_parent, "ui", self.dimen)
+      UIManager:setDirty(self:showParent(), "ui", self.dimen)
     end
   end
 end
@@ -459,7 +459,7 @@ function TitleBar:setSubTitle(subtitle, no_refresh)
     end
     self.title_group:resetLayout()
     if not no_refresh then
-      UIManager:setDirty(self.show_parent, "ui", self.dimen)
+      UIManager:setDirty(self:showParent(), "ui", self.dimen)
     end
   end
 end
@@ -467,14 +467,14 @@ end
 function TitleBar:setLeftIcon(icon)
   if self.has_left_icon then
     self.left_button:setIcon(icon)
-    UIManager:setDirty(self.show_parent, "ui", self.dimen)
+    UIManager:setDirty(self:showParent(), "ui", self.dimen)
   end
 end
 
 function TitleBar:setRightIcon(icon)
   if self.has_right_icon then
     self.right_button:setIcon(icon)
-    UIManager:setDirty(self.show_parent, "ui", self.dimen)
+    UIManager:setDirty(self:showParent(), "ui", self.dimen)
   end
 end
 
