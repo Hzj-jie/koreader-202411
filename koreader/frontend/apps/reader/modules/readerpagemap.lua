@@ -269,8 +269,6 @@ function ReaderPageMap:onShowPageList()
   pl_menu.close_callback = function()
     UIManager:close(self.pagelist_menu)
   end
-
-  pl_menu.show_parent = self.pagelist_menu
   self.refresh = function()
     pl_menu:updateItems()
   end

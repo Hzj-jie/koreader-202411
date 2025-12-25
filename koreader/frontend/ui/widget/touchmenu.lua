@@ -349,7 +349,6 @@ function TouchMenuBar:init()
   local spacing_width = (self.width - content_width) / (#self.icons * 2)
   local icon_padding = math.min(spacing_width, Screen:scaleBySize(16))
   self.height = icon_height + 2 * Size.padding.default
-  self.show_parent = self.show_parent or self
   self.bar_icon_group = HorizontalGroup:new({})
   -- build up image widget for menu icon bar
   self.icon_widgets = {}
@@ -547,7 +546,6 @@ function TouchMenu:init()
   if not self.dimen then
     self.dimen = Geom:new()
   end
-  self.show_parent = self.show_parent or self
   if not self.close_callback then
     self.close_callback = function()
       UIManager:close(self.show_parent)
@@ -1462,9 +1460,6 @@ function TouchMenu:onShowMenuSearch()
         dimen = Screen:getSize(),
         results_menu,
       })
-
-      results_menu.show_parent = self.results_menu_container
-
       UIManager:show(self.results_menu_container)
     else
       UIManager:show(InfoMessage:new({

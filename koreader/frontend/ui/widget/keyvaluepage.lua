@@ -300,7 +300,6 @@ local KeyValuePage = FocusManager:extend({
 })
 
 function KeyValuePage:init()
-  self.show_parent = self.show_parent or self
   local kv_pairs = self.kv_pairs
   self.kv_pairs = {}
   -- deprecated, use separator=true on a regular k/v table

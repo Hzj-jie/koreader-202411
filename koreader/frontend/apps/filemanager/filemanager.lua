@@ -119,7 +119,6 @@ end
 FileManager.onPathChanged = FileManager.updateTitleBarPath
 
 function FileManager:setupLayout()
-  self.show_parent = self.show_parent or self
   self.title_bar = TitleBar:new({
     fullscreen = "true",
     align = "center",

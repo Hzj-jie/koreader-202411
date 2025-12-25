@@ -993,9 +993,6 @@ function ReaderToc:onShowToc()
     UIManager:close(menu_container)
     BD.resetInvert()
   end
-
-  toc_menu.show_parent = menu_container
-
   self.toc_menu = toc_menu
 
   self:updateCurrentNode()

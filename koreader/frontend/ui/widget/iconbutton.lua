@@ -39,9 +39,6 @@ function IconButton:init()
     width = self.width,
     height = self.height,
   })
-
-  self.show_parent = self.show_parent or self
-
   self.horizontal_group = HorizontalGroup:new({})
   table.insert(self.horizontal_group, HorizontalSpan:new({}))
   table.insert(self.horizontal_group, self.image)

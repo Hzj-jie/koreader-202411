@@ -1,5 +1,7 @@
 --[[--
 MD5 hash library.
+
+
 Deprecated except for sumFile. Use sha2 instead.
 
 @module ffi.md5

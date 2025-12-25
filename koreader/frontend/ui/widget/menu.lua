@@ -697,7 +697,6 @@ function Menu:_recalculateDimen(no_recalculate_dimen)
 end
 
 function Menu:init()
-  self.show_parent = self.show_parent or self
   self.item_table = self.item_table or {}
   self.item_table_stack = {}
   self.page = 1
