@@ -2162,9 +2162,7 @@ function ReaderFooter:_repaint()
   -- NOTE: That's assuming using "fast" for pans was a good idea, which, it turned out, not so much ;).
   -- NOTE: We skip repaints on page turns/pos update, as that's redundant (and slow).
   local top_wg = UIManager:getTopmostVisibleWidget() or {}
-  if G_named_settings.fast_screen_refresh() and
-    top_wg.name ~= "ReaderUI"
-  then
+  if G_named_settings.fast_screen_refresh() and top_wg.name ~= "ReaderUI" then
     -- If the top most widget is not the ReaderUI, and it's not expected to
     -- "fast" refreshing the screen, footer doesn't need to be repainted.
     return

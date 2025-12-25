@@ -31,7 +31,7 @@ local TrapWidget = InputContainer:extend({
   face = Font:getFace("infofont"),
   -- Whether to resend the event caught and used for dismissal
   resend_event = false,
-  invisible = true,  -- This is a dirty hint for UIManager to ignore this widget.
+  invisible = true, -- This is a dirty hint for UIManager to ignore this widget.
 })
 
 function TrapWidget:init()

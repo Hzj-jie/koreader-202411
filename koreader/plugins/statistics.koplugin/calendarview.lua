@@ -1315,7 +1315,9 @@ function CalendarView:init()
   })
 
   self.title_bar = TitleBar:new({
-    fullscreen = (self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()),
+    fullscreen = (
+      self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
+    ),
     width = self.dimen.w,
     align = "left",
     title = self.title,

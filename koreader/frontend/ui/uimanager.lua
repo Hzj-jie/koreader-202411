@@ -1018,7 +1018,9 @@ function UIManager:forceRepaint()
   end
 
   if util.tableSize(self._dirty) > 0 then
-    logger.warn("Found unrecognized widgets being scheduled to repaint. Ignored.")
+    logger.warn(
+      "Found unrecognized widgets being scheduled to repaint. Ignored."
+    )
     for _, widget in self._dirty do
       logger.warn("  Widget ", self:_widgetDebugStr(widget))
     end
@@ -1065,7 +1067,12 @@ function UIManager:forceRepaint()
       if mode == "partial" and self.FULL_REFRESH_COUNT > 0 then
         if self.refresh_count == self.FULL_REFRESH_COUNT - 1 then
           -- NOTE: Promote to "full" if no region (reader), to "flashui" otherwise (UI)
-          if refresh.region.x == 0 and refresh.region.y == 0 and refresh.region.w == Screen:getWidth() and refresh.region.h == Screen:getHeight() then
+          if
+            refresh.region.x == 0
+            and refresh.region.y == 0
+            and refresh.region.w == Screen:getWidth()
+            and refresh.region.h == Screen:getHeight()
+          then
             mode = "full"
           else
             mode = "flashui"

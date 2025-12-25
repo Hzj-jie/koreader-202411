@@ -145,7 +145,7 @@ function ReaderToc:onPageUpdate(pageno)
       paging_forward = true
     elseif pageno < self.pageno then
       paging_backward = true
-    -- else -- well, impossible to update to the same page, but ignore it.
+      -- else -- well, impossible to update to the same page, but ignore it.
     end
   end
 

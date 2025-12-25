@@ -387,10 +387,10 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
       self:onExit()
       -- first show_parent is sortWidget, second is vocabBuilderWidget
       -- TODO: This is wrong, a widget shouldn't be shown twice.
-      self:showParent():showParent():showChangeBookTitleDialog(
-        sort_item,
-        onSuccess
-      )
+      self
+        :showParent()
+        :showParent()
+        :showChangeBookTitleDialog(sort_item, onSuccess)
     end,
   }
   local select_single_button = {
@@ -1290,10 +1290,9 @@ function VocabItemWidget:onShowBookAssignment(title_changed_cb)
                       return new_book_title == book
                     end,
                     hold_callback = function(sort_item, onSuccess)
-                      self:showParent():showChangeBookTitleDialog(
-                        sort_item,
-                        onSuccess
-                      )
+                      self
+                        :showParent()
+                        :showChangeBookTitleDialog(sort_item, onSuccess)
                     end,
                   })
                   sort_widget:goToPage(sort_widget.show_page)
@@ -1958,8 +1957,7 @@ function VocabularyBuilderWidget:onShowFilter()
         return info.filter
       end,
       hold_callback = function(sort_item, onSuccess)
-        local menu = MenuDialog:new({
-        })
+        local menu = MenuDialog:new({})
         menu:setupBookMenu(sort_item, onSuccess)
         UIManager:show(menu)
       end,
