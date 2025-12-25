@@ -77,4 +77,20 @@ function Widget:refreshMode()
   return self._refreshMode or "ui"
 end
 
+function Widget:showParent()
+  -- A fast loop to avoid dfs.
+  for w in require("uimanager"):topdown_widgets_iter() do
+    if w == self then
+      return self
+    end
+  end
+
+  for w in require("uimanager"):topdown_widgets_iter() do
+    if require("util").arrayReferences(w, self) then
+      return w
+    end
+  end
+  return nil
+end
+
 return Widget

@@ -366,15 +366,17 @@ end
 ---- @param t Lua table (array only)
 ---- @param n Lua table (array only)
 function util.arrayReferences(t, n)
-  if type(t) == "table" then
-    if t == n then
-      return true
-    end
+  if type(t) ~= "table" then
+    return false
+  end
 
-    for _, v in ipairs(t) do
-      if util.arrayReferences(v, n) then
-        return true
-      end
+  if t == n then
+    return true
+  end
+
+  for _, v in ipairs(t) do
+    if util.arrayReferences(v, n) then
+      return true
     end
   end
 

@@ -1131,27 +1131,20 @@ function UIManager:scheduleWidgetRepaint(widget)
     return false
   end
 
-  -- TODO: Should assert.
-  for i = 1, #self._window_stack do
-    if self._window_stack[i].widget == widget then
-      self._dirty[widget] = true
-      return true
-    end
+  local p = widget:showParent()
+  if p == nil then
+    -- TODO: Should assert.
+    logger.warn(
+      "Unknown widget ",
+      self:_widgetDebugStr(widget),
+      " to repaint, it may not be shown yet, or you may want to send in the ",
+      "show(widget) instead."
+    )
+    return false
   end
 
-  if widget.show_parent and widget.show_parent ~= widget then
-    if self:scheduleWidgetRepaint(widget.show_parent) then
-      return true
-    end
-  end
-
-  logger.warn(
-    "Unknown widget ",
-    self:_widgetDebugStr(widget),
-    " to repaint, it may not be shown yet, or you may want to send in the ",
-    "show(widget) instead."
-  )
-  return false
+  self._dirty[p] = true
+  return true
 end
 
 local function cropping_region(widget, x, y, w, h)
@@ -1173,19 +1166,19 @@ local function cropping_region(widget, x, y, w, h)
     return nil
   end
 
-  if widget.show_parent and widget.show_parent.cropping_widget then
+  local p = widget:showParent()
+  if p and p.cropping_widget then
     -- The main widget parent of this subwidget has a cropping container: see if
     -- this widget is a child of this cropping container
-    local cropping_widget = widget.show_parent.cropping_widget
+    local cropping_widget = p.cropping_widget
     if util.arrayReferences(cropping_widget, widget) then
       -- Invert only what intersects with the cropping container
-      local region = cropping_widget:getCropRegion():intersect(Geom:new({
+      return cropping_widget:getCropRegion():intersect(Geom:new({
         x = x,
         y = y,
         w = w,
         h = h,
       }))
-      return region
     end
   end
   return Geom:new({ x = x, y = y, w = w, h = h })
