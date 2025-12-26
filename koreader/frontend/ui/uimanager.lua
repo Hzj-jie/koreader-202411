@@ -427,7 +427,10 @@ function UIManager:setDirty(widget, refreshMode, region)
     -- Have to repaint the widget first; still use :setDirty to handle various
     -- conditions of the widget itself.
     if widget ~= nil then
-      self:setDirty(widget)
+      -- Indeed it shouldn't be necessary to provide extra function if a widget
+      -- will be repainted, but anyway, it's how most of the logic is
+      -- implemented now.
+      self:setDirty(widget, "a2")
     end
     table.insert(self._refresh_func_stack, function()
       local m, r, d = refreshMode()
@@ -448,7 +451,7 @@ function UIManager:setDirty(widget, refreshMode, region)
     self:scheduleRepaintAll(refreshMode)
     return
   end
-  self:scheduleWidgetRepaint(widget, refreshMode)
+  self:scheduleWidgetRepaint(widget)
 end
 --[[
 -- NOTE: While nice in theory, this is *extremely* verbose in practice,
@@ -1404,7 +1407,7 @@ function UIManager:scheduleRepaintAll(refreshMode)
       refreshdither = true
     end
   end
-  self:scheduleRefresh(refreshMode or "full", nil, dithered)
+  self:scheduleRefresh(refreshMode, nil, dithered)
 end
 
 function UIManager:onRotation()

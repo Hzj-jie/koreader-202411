@@ -208,7 +208,8 @@ function TouchMenuItem.showHelpText(item)
   return true
 end
 
-function TouchMenuItem:onTapSelect(arg, ges)
+function TouchMenuItem:_tapEventHandler(f)
+  assert(f ~= nil)
   local enabled = self.item.enabled
   if self.item.enabled_func then
     enabled = self.item.enabled_func()
@@ -217,15 +218,6 @@ function TouchMenuItem:onTapSelect(arg, ges)
     self:_showHelpText()
     return true
   end -- don't propagate
-
-  local tap_on_checkmark = false
-  if ges and ges.pos and ges.pos.x then
-    local tap_x = BD.mirroredUILayout() and self.dimen.w - ges.pos.x - 1
-      or ges.pos.x
-    if tap_x <= self.checkmark_tap_width then
-      tap_on_checkmark = true
-    end
-  end
 
   -- If the menu hasn't actually been drawn yet, don't do anything (as it's confusing, and the coordinates may be wrong).
   if not self.item_frame.dimen then
@@ -265,8 +257,7 @@ function TouchMenuItem:onTapSelect(arg, ges)
   end
 
   -- Callback
-  --
-  self.menu:onMenuSelect(self.item, tap_on_checkmark)
+  f()
 
   if self.item.keep_menu_open then
     UIManager:forceRepaint()
@@ -275,60 +266,24 @@ function TouchMenuItem:onTapSelect(arg, ges)
   return true
 end
 
-function TouchMenuItem:onHoldSelect(arg, ges)
-  local enabled = self.item.enabled
-  if self.item.enabled_func then
-    enabled = self.item.enabled_func()
-  end
-  if enabled == false then
-    -- Allow help_text to be displayed even if menu item disabled
-    self:_showHelpText()
-    return true -- don't propagate
-  end
+function TouchMenuItem:onTapSelect(_, ges)
+  return self:_tapEventHandler(function()
+    local tap_on_checkmark = false
+    if ges and ges.pos and ges.pos.x then
+      local tap_x = BD.mirroredUILayout() and self.dimen.w - ges.pos.x - 1
+        or ges.pos.x
+      if tap_x <= self.checkmark_tap_width then
+        tap_on_checkmark = true
+      end
+    end
+    self.menu:onMenuSelect(self.item, tap_on_checkmark)
+  end)
+end
 
-  if not self.item_frame.dimen then
-    return true
-  end
-
-  -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
-
-  -- The item frame's width stops at the text width, but we want it to match the menu's length instead
-  local highlight_dimen = self.item_frame.dimen
-  highlight_dimen.w = self.item_frame.width
-
-  -- Highlight
-  --
-  self.item_frame.invert = true
-  UIManager:invertWidget(
-    self.item_frame,
-    highlight_dimen.x,
-    highlight_dimen.y,
-    highlight_dimen.w
-  )
-
-  UIManager:forceRepaint()
-  UIManager:waitForScreenRefresh()
-
-  -- Unhighlight
-  --
-  self.item_frame.invert = false
-  -- NOTE: If the menu is going to be closed, we can safely drop that.
-  --     (This field defaults to nil, meaning keep the menu open, hence the negated test)
-  if self.item.hold_keep_menu_open ~= false then
-    UIManager:invertWidget(
-      self.item_frame,
-      highlight_dimen.x,
-      highlight_dimen.y,
-      highlight_dimen.w
-    )
-  end
-
-  -- Callback
-  --
-  self.menu:onMenuHold(self.item, self.text_truncated)
-
-  UIManager:forceRepaint()
-  return true
+function TouchMenuItem:onHoldSelect()
+  return self:_tapEventHandler(function()
+    self.menu:onMenuHold(self.item, self.text_truncated)
+  end)
 end
 
 --[[
