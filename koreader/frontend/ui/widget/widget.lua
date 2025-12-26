@@ -74,7 +74,7 @@ If it's the screen BlitBuffer, then widget will show up on screen refresh.
 function Widget:paintTo(bb, x, y) end
 
 function Widget:refreshMode()
-  return self._refreshMode or "fast"
+  return self._refreshMode or "ui"
 end
 
 -- Get the show(widget) of current widget, use this function should be careful

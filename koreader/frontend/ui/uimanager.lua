@@ -801,16 +801,35 @@ function UIManager:timeSinceLastUserAction()
   return self:getElapsedTimeSinceBoot() - self:lastUserActionTime()
 end
 
+-- When a mode is not supported by the hardware, the next level will be
+-- automatically used.
+
 -- precedence of refresh modes:
 local refresh_modes = {
+  -- Break grayscale on kobo aura hd and kindles, very likely shouldn't be used
+  -- at all. Supported by sunxi and mxcfb.
   a2 = 1,
+  -- The dirtiest way of changing the display, but unlike a2, it at least keeps
+  -- everything readable. Supported by pocketbook, sunxi, android and mxcfb.
   fast = 2,
+  -- The default way of showing anything related to the ui. Supported by
+  -- pocketbook, sunxi, android and mxcfb.
   ui = 3,
+  -- Allow partially updating the screen without flashing the screen. Supported
+  -- by pocketbook, sunxi, android, mxcfb and einkfb.
   partial = 4,
+  -- Useless, supported only by sunxi.
   ["[ui]"] = 5,
+  -- Useless, supported only by sunxi.
   ["[partial]"] = 6,
+  -- UI + a screen flashing, cause flickering, clean the black areas.
+  -- Supported by pocketbook, sunxi, android and mxcfb.
   flashui = 7,
+  -- Partial + a screen flashing, cause flickering, clean the black areas.
+  -- Supported by pocketbook, sunxi, android and mxcfb.
   flashpartial = 8,
+  -- A full screen flashing, cause flickering, clean the black areas.
+  -- Supported by pocketbook, sunxi, android, mxcfb and einkfb.
   full = 9,
 }
 -- NOTE: We might want to introduce a "force_a2" that points to fast, but has the highest priority,
@@ -910,10 +929,9 @@ function UIManager:scheduleRefresh(mode, region, dither)
     elseif mode == "partial" and region then
       mode = "ui"
       logger.dbg("_refresh: downgraded regional partial refresh to", mode)
-    end
-  else
-    if mode == "fast" or mode == "a2" then
-      mode = "flashui"
+    elseif mode == "full" then
+      mode = "partial"
+      logger.dbg("_refresh: downgraded full refresh to", mode)
     end
   end
 
@@ -1207,7 +1225,8 @@ function UIManager:repaintWidget(widget)
   local paint_region = cropping_region(widget)
   assert(paint_region ~= nil)
   widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
-  self:scheduleRefresh(widget:refreshMode(), paint_region, widget.dithered)
+  -- Explicitly using "fast" to reduce the cost of showing feedbacks.
+  self:scheduleRefresh("fast", paint_region, widget.dithered)
 end
 
 --[[--
