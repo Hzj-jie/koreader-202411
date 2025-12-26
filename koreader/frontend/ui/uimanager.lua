@@ -430,14 +430,17 @@ function UIManager:setDirty(widget, refreshMode, region)
       -- Indeed it shouldn't be necessary to provide extra function if a widget
       -- will be repainted, but anyway, it's how most of the logic is
       -- implemented now.
-      self:setDirty(widget, "a2")
+      self:setDirty(widget, "fast")
     end
     table.insert(self._refresh_func_stack, function()
       local m, r, d = refreshMode()
-      r = region or r
+      r = r or region
       if widget ~= nil then
         r = r or widget.dimen
-        d = d or widget.dithered
+        -- Avoid treating false wrongly.
+        if d == nil then
+          d = widget.dithered
+        end
       end
       self:scheduleRefresh(m, r, d)
     end)
