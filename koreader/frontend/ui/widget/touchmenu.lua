@@ -268,7 +268,10 @@ function TouchMenuItem:onTapSelect(arg, ges)
   --
   self.menu:onMenuSelect(self.item, tap_on_checkmark)
 
-  UIManager:forceRepaint()
+  if self.item.keep_menu_open then
+    UIManager:forceRepaint()
+  end
+
   return true
 end
 
