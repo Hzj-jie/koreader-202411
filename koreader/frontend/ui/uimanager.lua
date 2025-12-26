@@ -1207,7 +1207,8 @@ function UIManager:repaintWidget(widget)
   local paint_region = cropping_region(widget)
   assert(paint_region ~= nil)
   widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
-  self:scheduleRefresh(widget:refreshMode(), paint_region, widget.dithered)
+  -- Explicitly using a2 since it's designed to show feedbacks only.
+  self:scheduleRefresh("a2", paint_region, widget.dithered)
 end
 
 --[[--
@@ -1245,7 +1246,7 @@ function UIManager:invertWidget(widget, x, y, w, h)
     invert_region.w,
     invert_region.h
   )
-  self:scheduleRefresh("fast", invert_region, widget.dithered)
+  self:scheduleRefresh("a2", invert_region, widget.dithered)
 end
 
 function UIManager:setInputTimeout(timeout)
