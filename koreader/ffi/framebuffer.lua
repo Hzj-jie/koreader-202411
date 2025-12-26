@@ -374,6 +374,10 @@ function fb:getHeight()
   return self.bb:getHeight()
 end
 
+function fb:getArea()
+  return self:getWidth() * self:getHeight()
+end
+
 function fb:getScreenWidth()
   return self.screen_size.w
 end

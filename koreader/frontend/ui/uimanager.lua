@@ -17,7 +17,6 @@ local Screen = Device.screen
 -- This is a singleton
 local UIManager = {
   FULL_REFRESH_COUNT = G_named_settings.default.full_refresh_count(),
-  refresh_count = 0,
 
   -- How long to wait between ZMQ wakeups: 50ms.
   ZMQ_TIMEOUT = 50 * 1000,
@@ -39,6 +38,7 @@ local UIManager = {
   _input_gestures_disabled = false,
   _last_user_action_time = 0,
   _force_fast_refresh = false,
+  _refresh_count = 0,
 }
 
 function UIManager:init()
@@ -912,6 +912,11 @@ function UIManager:scheduleRefresh(mode, region, dither)
 
   assert(refresh_modes[mode] ~= nil, "Unknown refresh mode " .. tostring(mode))
 
+  if mode == "a2" then
+    logger.dbg("_refresh: explicitly disable a2 mode.")
+    mode = "fast"
+  end
+
   -- Downgrade all refreshes to "fast" when ReaderPaging or ReaderScrolling have set this flag
   if self:duringForceFastRefresh() then
     mode = "fast"
@@ -932,6 +937,11 @@ function UIManager:scheduleRefresh(mode, region, dither)
     elseif mode == "full" then
       mode = "partial"
       logger.dbg("_refresh: downgraded full refresh to", mode)
+    end
+  else
+    if mode == "fast" then
+      mode = "ui"
+      logger.dbg("_refresh: promote fast refresh to", mode)
     end
   end
 
@@ -1061,6 +1071,7 @@ function UIManager:_refreshScreen()
     return
   end
 
+  local refreshed_region = nil
   -- execute refreshes:
   for _, refresh in ipairs(self._refresh_stack) do
     -- Honor dithering hints from *anywhere* in the dirty stack
@@ -1071,37 +1082,25 @@ function UIManager:_refreshScreen()
     end
     dbg:v("triggering refresh", refresh)
 
-    local mode = refresh.mode
-    -- special case: "partial" refreshes
-    -- will get promoted every self.FULL_REFRESH_COUNT refreshes
-    -- since _refresh can be called multiple times via setDirty called in
-    -- different widgets before a real screen repaint, we should make sure
-    -- refresh_count is incremented by only once at most for each repaint
-    -- NOTE: Ideally, we'd only check for "partial"" w/ no region set (that neatly narrows it down to just the reader).
-    --     In practice, we also want to promote refreshes in a few other places, except purely text-poor UI elements.
-    --     (Putting "ui" in that list is problematic with a number of UI elements, most notably, ReaderHighlight,
-    --     because it is implemented as "ui" over the full viewport, since we can't devise a proper bounding box).
-    --     So we settle for only "partial", but treating full-screen ones slightly differently.
-    if mode == "partial" and self.FULL_REFRESH_COUNT > 0 then
-      if self.refresh_count == self.FULL_REFRESH_COUNT - 1 then
-        -- NOTE: Promote to "full" if no region (reader), to "flashui" otherwise (UI)
-        if
-          refresh.region.x == 0
-          and refresh.region.y == 0
-          and refresh.region.w == Screen:getWidth()
-          and refresh.region.h == Screen:getHeight()
-        then
-          mode = "full"
-        else
-          mode = "flashui"
-        end
-        logger.dbg("_refresh: promote refresh to", mode)
-      end
-      -- Reset the refresh_count to 0 after an explicit full screen refresh.
-      -- Technically speaking, in the case, it should be the only refresh, but
-      -- who knows.
-      self.refresh_count = -1
+    if refreshed_region == nil then
+      refreshed_region = refresh.region
+    else
+      refreshed_region = refreshed_region:combine(refresh.region)
     end
+
+    local mode = refresh.mode
+    if self.FULL_REFRESH_COUNT > 0 and self._refresh_count >= self.FULL_REFRESH_COUNT and
+      refresh.region:area() >= Screen:getArea() * 0.5 then
+      if refresh.region:area() >= Screen:getArea() * 0.9 then
+        mode = "full"
+      else
+        mode = "flashui"
+      end
+        logger.dbg("_refresh: promote ", refresh.mode, " refresh to ", mode)
+        -- ensure it's 0 at the end of the function call.
+        self._refresh_count = -1
+    end
+
     --[[
     -- Remember the refresh region
     self._last_refresh_region = refresh.region:copy()
@@ -1116,8 +1115,11 @@ function UIManager:_refreshScreen()
     )
   end
 
-  -- Record how many partial refreshes happened.
-  self.refresh_count = (self.refresh_count + 1) % self.FULL_REFRESH_COUNT
+  if refreshed_region:area() >= Screen:getArea() * 0.5 then
+    -- Record how many partial refreshes happened, but ignore any small areas
+    -- like footer or clock.
+    self._refresh_count = self._refresh_count + 1
+  end
 
   self._refresh_stack = {}
 end
