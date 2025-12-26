@@ -531,13 +531,13 @@ end
 --- Top-to-bottom widgets iterator
 --- NOTE: VirtualKeyboard can be instantiated multiple times, and is a modal,
 --    so don't be surprised if you find a couple of instances of it at the top ;).
-function UIManager:topdown_widgets_iter()
+function UIManager:topdown_windows_iter()
   local n = #self._window_stack
   local i = n + 1
   return function()
     i = i - 1
     if i > 0 then
-      return self._window_stack[i].widget
+      return self._window_stack[i]
     end
   end
 end
@@ -958,15 +958,144 @@ function UIManager:scheduleRefresh(mode, region, dither)
   )
 end
 
-function UIManager:_scheduleRefreshWindowWidget(window)
+function UIManager:_scheduleRefreshWindowWidget(window, widget)
   assert(window ~= nil)
-  local widget = window.widget
+  widget = widget or window.widget
+  assert(widget ~= nil)
   local dimen = widget.dimen
   -- window.x and window.y are never used, but keept the potential logic right.
   if window.x > 0 or window.y > 0 then
     dimen = dimen:copy():offsetBy(window.x, window.y)
   end
   self:scheduleRefresh(widget:refreshMode(), dimen, widget.dithered)
+end
+
+function UIManager:_repaintDirtyWidgets()
+  if util.tableSize(self._dirty) == 0 then
+    return
+  end
+
+  -- TODO: A potential improvement is calculating the covered area from
+  -- for i = #self._window_stack, 1, -1 do
+  -- and ignore anything covered by other widget. But considering the number of
+  -- widgets showing up in the stack, it's very hard to demonstrate if it's even
+  -- necessary.
+
+  local dirty_widgets = {}
+  for _ = 1, #self._window_stack do
+    table.insert(dirty_widgets, {})
+  end
+
+  for w in pairs(self._dirty) do
+    local window = w:window()
+    if window == nil then
+      -- TODO: Should assert.
+      logger.warn(
+        "Unknown widget ",
+        self:_widgetDebugStr(w),
+        " to repaint, it may not be shown yet, or you may want to send in the ",
+        "show(widget) instead."
+      )
+    else
+      local index = util.arrayContains(self._window_stack, window)
+      assert(index ~= false and index > 0 and index <= #self._window_stack)
+      -- Or window will be nil.
+      table.insert(dirty_widgets[index], w)
+    end
+  end
+
+  for i = 1, #self._window_stack do
+    if util.tableSize(dirty_widgets[i]) > 0 then
+      -- Anything above this window needs to be repainted.
+      for j = i + 1, #self._window_stack do
+        dirty_widgets[j] = {self._window_stack[j].widget}
+      end
+      break
+    end
+  end
+
+  for i = 1, #self._window_stack do
+    local window = self._window_stack[i]
+    for _, widget in ipairs(dirty_widgets[i]) do
+      logger.dbg("painting widget:", self:_widgetDebugStr(widget))
+      widget:paintTo(Screen.bb, window.x, window.y)
+      self:_scheduleRefreshWindowWidget(window, widget)
+    end
+  end
+
+  self._dirty = {}
+end
+
+function UIManager:_refreshScreen()
+  -- execute pending refresh functions
+  for _, refreshfunc in ipairs(self._refresh_func_stack) do
+    refreshfunc()
+  end
+  self._refresh_func_stack = {}
+
+  if #self._refresh_stack == 0 then
+    return
+  end
+
+  -- execute refreshes:
+  for _, refresh in ipairs(self._refresh_stack) do
+    -- Honor dithering hints from *anywhere* in the dirty stack
+    refresh.dither = update_dither(refresh.dither, dithered)
+    -- If HW dithering is disabled, unconditionally drop the dither flag
+    if not Screen.hw_dithering then
+      refresh.dither = nil
+    end
+    dbg:v("triggering refresh", refresh)
+
+    local mode = refresh.mode
+    -- special case: "partial" refreshes
+    -- will get promoted every self.FULL_REFRESH_COUNT refreshes
+    -- since _refresh can be called multiple times via setDirty called in
+    -- different widgets before a real screen repaint, we should make sure
+    -- refresh_count is incremented by only once at most for each repaint
+    -- NOTE: Ideally, we'd only check for "partial"" w/ no region set (that neatly narrows it down to just the reader).
+    --     In practice, we also want to promote refreshes in a few other places, except purely text-poor UI elements.
+    --     (Putting "ui" in that list is problematic with a number of UI elements, most notably, ReaderHighlight,
+    --     because it is implemented as "ui" over the full viewport, since we can't devise a proper bounding box).
+    --     So we settle for only "partial", but treating full-screen ones slightly differently.
+    if mode == "partial" and self.FULL_REFRESH_COUNT > 0 then
+      if self.refresh_count == self.FULL_REFRESH_COUNT - 1 then
+        -- NOTE: Promote to "full" if no region (reader), to "flashui" otherwise (UI)
+        if
+          refresh.region.x == 0
+          and refresh.region.y == 0
+          and refresh.region.w == Screen:getWidth()
+          and refresh.region.h == Screen:getHeight()
+        then
+          mode = "full"
+        else
+          mode = "flashui"
+        end
+        logger.dbg("_refresh: promote refresh to", mode)
+      end
+      -- Reset the refresh_count to 0 after an explicit full screen refresh.
+      -- Technically speaking, in the case, it should be the only refresh, but
+      -- who knows.
+      self.refresh_count = -1
+    end
+    --[[
+    -- Remember the refresh region
+    self._last_refresh_region = refresh.region:copy()
+    --]]
+    refresh_methods[mode](
+      Screen,
+      refresh.region.x,
+      refresh.region.y,
+      refresh.region.w,
+      refresh.region.h,
+      refresh.dither
+    )
+  end
+
+  -- Record how many partial refreshes happened.
+  self.refresh_count = (self.refresh_count + 1) % self.FULL_REFRESH_COUNT
+
+  self._refresh_stack = {}
 end
 
 --[[--
@@ -980,137 +1109,15 @@ in which case, nothing is repainted, but the refreshes are still drained and exe
 @local Not to be used outside of UIManager!
 --]]
 function UIManager:forceRepaint()
-  -- flag in which we will record if we did any repaints at all
-  -- will trigger a refresh if set.
-  local dirty = false
-  -- remember if any of our repaints were dithered
-  local dithered = false
+  Screen:beforePaint()
+  self:_repaintDirtyWidgets()
 
-  -- TODO: A potential improvement is calculating the covered area from
-  -- for i = #self._window_stack, 1, -1 do
-  -- and ignore anything covered by other widget. But considering the number of
-  -- widgets showing up in the stack, it's very hard to demonstrate if it's even
-  -- necessary.
+  self:_refreshScreen()
+  Screen:afterPaint()
 
-  for i = 1, #self._window_stack do
-    local window = self._window_stack[i]
-    local widget = window.widget
-    -- paint if current widget or any widget underneath is dirty
-    if dirty or self._dirty[widget] then
-      -- pass hint to widget that we got when setting widget dirty
-      -- the widget can use this to decide which parts should be refreshed
-      logger.dbg("painting widget:", self:_widgetDebugStr(widget))
-      Screen:beforePaint()
-      widget:paintTo(Screen.bb, window.x, window.y)
-      self:_scheduleRefreshWindowWidget(window)
-
-      -- and remove from list after painting
-      self._dirty[widget] = nil
-
-      -- trigger a repaint for every widget above us, too
-      dirty = true
-
-      -- if any of 'em were dithered, we'll want to dither the final refresh
-      if widget.dithered then
-        logger.dbg("_repaint: it was dithered, infecting the refresh queue")
-        dithered = true
-      end
-    end
-  end
-
-  if util.tableSize(self._dirty) > 0 then
-    logger.warn(
-      "Found unrecognized widgets being scheduled to repaint. Ignored."
-    )
-    for _, widget in self._dirty do
-      logger.warn("  Widget ", self:_widgetDebugStr(widget))
-    end
-    self._dirty = {}
-  end
-
-  -- execute pending refresh functions
-  for _, refreshfunc in ipairs(self._refresh_func_stack) do
-    refreshfunc()
-  end
-  self._refresh_func_stack = {}
-
-  -- We should have at least one refresh if we did repaint.
-  -- If we don't, add one now and log a warning if we are debugging.
-  if dirty and not self._refresh_stack[1] then
-    logger.dbg(
-      "no refresh got enqueued. Will do a partial full screen refresh, which might be inefficient"
-    )
-    self:scheduleRefresh("partial")
-  end
-
-  if #self._refresh_stack > 0 then
-    -- execute refreshes:
-    for _, refresh in ipairs(self._refresh_stack) do
-      -- Honor dithering hints from *anywhere* in the dirty stack
-      refresh.dither = update_dither(refresh.dither, dithered)
-      -- If HW dithering is disabled, unconditionally drop the dither flag
-      if not Screen.hw_dithering then
-        refresh.dither = nil
-      end
-      dbg:v("triggering refresh", refresh)
-
-      local mode = refresh.mode
-      -- special case: "partial" refreshes
-      -- will get promoted every self.FULL_REFRESH_COUNT refreshes
-      -- since _refresh can be called multiple times via setDirty called in
-      -- different widgets before a real screen repaint, we should make sure
-      -- refresh_count is incremented by only once at most for each repaint
-      -- NOTE: Ideally, we'd only check for "partial"" w/ no region set (that neatly narrows it down to just the reader).
-      --     In practice, we also want to promote refreshes in a few other places, except purely text-poor UI elements.
-      --     (Putting "ui" in that list is problematic with a number of UI elements, most notably, ReaderHighlight,
-      --     because it is implemented as "ui" over the full viewport, since we can't devise a proper bounding box).
-      --     So we settle for only "partial", but treating full-screen ones slightly differently.
-      if mode == "partial" and self.FULL_REFRESH_COUNT > 0 then
-        if self.refresh_count == self.FULL_REFRESH_COUNT - 1 then
-          -- NOTE: Promote to "full" if no region (reader), to "flashui" otherwise (UI)
-          if
-            refresh.region.x == 0
-            and refresh.region.y == 0
-            and refresh.region.w == Screen:getWidth()
-            and refresh.region.h == Screen:getHeight()
-          then
-            mode = "full"
-          else
-            mode = "flashui"
-          end
-          logger.dbg("_refresh: promote refresh to", mode)
-        end
-        -- Reset the refresh_count to 0 after an explicit full screen refresh.
-        -- Technically speaking, in the case, it should be the only refresh, but
-        -- who knows.
-        self.refresh_count = -1
-      end
-      --[[
-      -- Remember the refresh region
-      self._last_refresh_region = refresh.region:copy()
-      --]]
-      refresh_methods[mode](
-        Screen,
-        refresh.region.x,
-        refresh.region.y,
-        refresh.region.w,
-        refresh.region.h,
-        refresh.dither
-      )
-    end
-
-    -- Don't trigger afterPaint if we did not, in fact, paint anything
-    Screen:afterPaint()
-
-    -- Record how many partial refreshes happened.
-    self.refresh_count = (self.refresh_count + 1) % self.FULL_REFRESH_COUNT
-  end
-
-  -- In comparison, no matter if anything was painted, at this time point, the
-  -- screen should be updated into the latest status.
+  -- No matter if anything was painted, at this time point, the screen should be
+  -- updated into the latest status.
   self._last_repaint_time = time.realtime_coarse()
-
-  self._refresh_stack = {}
 end
 
 function UIManager:waitForScreenRefresh()
@@ -1139,19 +1146,7 @@ function UIManager:scheduleWidgetRepaint(widget)
     return false
   end
 
-  local p = widget:showParent()
-  if p == nil then
-    -- TODO: Should assert.
-    logger.warn(
-      "Unknown widget ",
-      self:_widgetDebugStr(widget),
-      " to repaint, it may not be shown yet, or you may want to send in the ",
-      "show(widget) instead."
-    )
-    return false
-  end
-
-  self._dirty[p] = true
+  self._dirty[widget] = true
   return true
 end
 

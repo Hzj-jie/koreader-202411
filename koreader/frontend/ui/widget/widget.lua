@@ -80,16 +80,23 @@ end
 -- Get the show(widget) of current widget, use this function should be careful
 -- due to it's slowness.
 function Widget:showParent()
+  local window = self:window()
+  return window ~= nil and window.widget or nil
+end
+
+-- Get the window of current widget, use this function should be careful due
+-- to it's slowness.
+function Widget:window()
   local UIManager = require("ui/uimanager")
   -- A fast loop to avoid dfs.
-  for w in UIManager:topdown_widgets_iter() do
-    if w == self then
-      return self
+  for w in UIManager:topdown_windows_iter() do
+    if w.widget == self then
+      return w
     end
   end
 
-  for w in UIManager:topdown_widgets_iter() do
-    if require("util").arrayDfSearch(w, self) then
+  for w in UIManager:topdown_windows_iter() do
+    if require("util").arrayDfSearch(w.widget, self) then
       return w
     end
   end
