@@ -152,6 +152,30 @@ function NetworkMgr:shouldRestoreWifi()
     and G_reader_settings:isTrue("auto_restore_wifi")
 end
 
+-- Provides a function to reconnect to the wifi after wifi is restored but not
+-- connected.
+function NetworkMgr:_asyncCheckWifiState()
+  require("background_jobs").insert({
+    when = 10,
+    repeated = 12,  -- up to 2 minutes
+    executable = function()
+      if self:_isWifiConnected() then
+        -- Well, do not stop the repeating, it won't waste a dime.
+        return
+      end
+      if self:isWifiOn() then
+        -- The async restore function doesn't report back if the connection
+        -- succeeded or not. Trigger reconnect manually to restore the wifi if
+        -- the async restore doesn't automatically connect to a known hotspot.
+        -- Technically speaking, this function should only be called once to
+        -- avoid blocking UI. But unfortunately the network can be reached at
+        -- anytimes, so retry this during the 2m window.
+        self:reconnectOrShowNetworkMenu()
+      end
+    end,
+  })
+end
+
 function NetworkMgr:restoreWifiAndCheckAsync(msg)
   if self:shouldRestoreWifi() then
     if self:_isWifiConnected() then
@@ -502,6 +526,9 @@ function NetworkMgr:toggleWifiOn()
       -- We've already enabled WiFi, but let's just restore the wifi again in
       -- case something weird happened, e.g. _beforeWifiAction with
       -- wifi_enable_action == ignore.
+      -- This behavior ensures if a user manually clicked on the Wi-Fi
+      -- connection, it can actually do something instead of showing "Turn on
+      -- wifi" then nothing.
       self:_stopAsyncWifiRestoreIfSupported()
       -- No callback and not interactive
       self:_turnOnWifi()

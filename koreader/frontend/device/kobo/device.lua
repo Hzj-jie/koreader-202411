@@ -1141,6 +1141,7 @@ function Kobo:initNetworkManager(NetworkMgr)
 
   function NetworkMgr:restoreWifiAsync()
     os.execute("./restore-wifi-async.sh")
+    self:_asyncCheckWifiState()
   end
 
   function NetworkMgr:stopAsyncWifiRestore()
