@@ -198,7 +198,9 @@ function UIManager:close(widget)
     logger.dbg("attempted to close a nil widget")
     return
   end
-  logger.dbg("close widget:", widget.name or widget.id or tostring(widget))
+  assert(UIManager:isWidgetShown(widget))
+
+  logger.dbg("close widget:", self:_widgetDebugStr(widget))
   local dirty = false
   -- First notify the closed widget to save its settings...
   widget:broadcastEvent(Event:new("FlushSettings"))
@@ -214,7 +216,16 @@ function UIManager:close(widget)
       self._dirty[w] = nil
       self:_scheduleRefreshWindowWidget(self._window_stack[i])
       table.remove(self._window_stack, i)
-      dirty = true
+      -- Unfortunately, here the logic needs to mark the ones *below* dirty,
+      -- so :forceRepaint() cannot help. Though indeed the :forceRepaint() would
+      -- still redraw everything *above* the dirty one, the logic here should
+      -- not break any potential improvements.
+      -- TODO: Similar to the UIManager:show, an optimization can be calculating
+      -- the covered area and not repainting all the invisible widgets, but it's
+      -- hard to demonstrate the importance.
+      for j = 1, i - 1 do
+        self._dirty[self._window_stack[j].widget] = true
+      end
     else
       if w.dithered then
         logger.dbg(
@@ -238,14 +249,6 @@ function UIManager:close(widget)
     -- set tap interval override to what the topmost widget specifies (when it doesn't, nil restores the default)
     Input.tap_interval_override =
       self._window_stack[#self._window_stack].widget.tap_interval_override
-  end
-  if dirty then
-    -- TODO: Similar to the UIManager:show, an optimization can be calculating
-    -- the covered area and not repainting all the invisible widgets, but it's
-    -- hard to demonstrate the imporantce.
-    for i = 1, #self._window_stack do
-      self._dirty[self._window_stack[i].widget] = true
-    end
   end
   if widget._restored_input_gestures then
     logger.dbg("Widget is gone, disabling gesture handling again")
