@@ -462,6 +462,10 @@ function ReaderDictionary:addToMainMenu(menu_items)
 end
 
 function ReaderDictionary:onLookupWord(word, is_sane, boxes, highlight, link)
+  -- TODO: Clean this up, this is dirty.
+  if self.is_wiki then
+    return
+  end
   logger.dbg("dict lookup word:", word, boxes)
   -- escape quotes and other funny characters in word
   word = self:cleanSelection(word, is_sane)
@@ -489,6 +493,10 @@ function ReaderDictionary:onLookupWord(word, is_sane, boxes, highlight, link)
 end
 
 function ReaderDictionary:onHtmlDictionaryLinkTapped(dictionary, link)
+  -- TODO: Clean this up, this is dirty.
+  if self.is_wiki then
+    return
+  end
   if not link.uri then
     return
   end
@@ -751,6 +759,10 @@ function ReaderDictionary:cleanSelection(text, is_sane)
 end
 
 function ReaderDictionary:onShowDictionaryLookup()
+  -- TODO: Clean this up, this is dirty.
+  if self.is_wiki then
+    return
+  end
   self.dictionary_lookup_dialog = InputDialog:new({
     title = _("Enter a word or phrase to look up"),
     input = "",
@@ -1289,6 +1301,10 @@ function ReaderDictionary:extendIfoWithLanguage(dictionary_location, ifo_lang)
 end
 
 function ReaderDictionary:onReadSettings(config)
+  -- TODO: Clean this up, this is dirty.
+  if self.is_wiki then
+    return
+  end
   self.preferred_dictionaries = config:readTableRef("preferred_dictionaries")
   if #self.preferred_dictionaries == 0 then
     -- Legacy setting, when only one dict could be set as default/first to show
@@ -1309,6 +1325,10 @@ function ReaderDictionary:onReadSettings(config)
 end
 
 function ReaderDictionary:onTogglePreferredDict(dict)
+  -- TODO: Clean this up, this is dirty.
+  if self.is_wiki then
+    return
+  end
   if not self.preferred_dictionaries then
     -- Invoked from FileManager: no preferred dict to manage
     return true

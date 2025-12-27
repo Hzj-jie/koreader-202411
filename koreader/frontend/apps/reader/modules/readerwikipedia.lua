@@ -417,11 +417,6 @@ function ReaderWikipedia:initLanguages(word)
   end
 end
 
-function ReaderWikipedia:onLookupWord()
-  -- Clear the onLookupWord event handler.
-  return false
-end
-
 function ReaderWikipedia:onLookupWikipedia(
   word,
   is_sane,
@@ -632,9 +627,6 @@ function ReaderWikipedia:onUpdateWikiLanguages(wiki_languages)
     table.insert(self.wiki_languages, lang)
   end
 end
-
--- override onSaveSettings in ReaderDictionary
-function ReaderWikipedia:onSaveSettings() end
 
 function ReaderWikipedia:onShowWikipediaLookup()
   local connect_callback = function()
