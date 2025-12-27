@@ -170,7 +170,8 @@ function NetworkMgr:_asyncCheckWifiState()
         -- Technically speaking, this function should only be called once to
         -- avoid blocking UI. But unfortunately the network can be reached at
         -- anytimes, so retry this during the 2m window.
-        self:reconnectOrShowNetworkMenu()
+        -- Treat it as a user interaction to avoid UI irresponsiveness.
+        self:reconnectOrShowNetworkMenu(nil, true)
       end
     end,
   })
