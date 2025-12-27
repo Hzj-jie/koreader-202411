@@ -74,23 +74,23 @@ function ReaderCoptListener:onReadSettings(config)
   )
 
   self.old_battery_level = self.ui.rolling:updateBatteryState()
+end
 
-  -- Have this ready in case auto-refresh is enabled, now or later
-  self.headerRefresh = function()
-    -- Only draw it if the header is shown...
+-- Have this ready in case auto-refresh is enabled, now or later
+function ReaderCoptListener:_headerRefresh()
+  -- Only draw it if the header is shown...
+  if
+    self.document.configurable.status_line == 0
+    and self.view.view_mode == "page"
+  then
+    -- ...and something has changed
+    local new_battery_level = self.ui.rolling:updateBatteryState()
     if
-      self.document.configurable.status_line == 0
-      and self.view.view_mode == "page"
+      self.clock == 1
+      or (self.battery == 1 and new_battery_level ~= self.old_battery_level)
     then
-      -- ...and something has changed
-      local new_battery_level = self.ui.rolling:updateBatteryState()
-      if
-        self.clock == 1
-        or (self.battery == 1 and new_battery_level ~= self.old_battery_level)
-      then
-        self.old_battery_level = new_battery_level
-        self:_updateHeader()
-      end
+      self.old_battery_level = new_battery_level
+      self:_updateHeader()
     end
   end
 end
@@ -257,7 +257,7 @@ function ReaderCoptListener:onConfigChange(option_name, option_value)
 end
 
 function ReaderCoptListener:onCharging()
-  self:headerRefresh()
+  self:_headerRefresh()
 end
 ReaderCoptListener.onNotCharging = ReaderCoptListener.onCharging
 ReaderCoptListener.onTimesChange_1M = ReaderCoptListener.onCharging
@@ -295,7 +295,7 @@ function ReaderCoptListener:onResume()
     return
   end
 
-  self:headerRefresh()
+  self:_headerRefresh()
 end
 
 function ReaderCoptListener:onOutOfScreenSaver()
@@ -304,7 +304,7 @@ function ReaderCoptListener:onOutOfScreenSaver()
   end
 
   self._delayed_screensaver = nil
-  self:headerRefresh()
+  self:_headerRefresh()
 end
 
 function ReaderCoptListener:addAdditionalHeaderContent(content_func)
