@@ -465,7 +465,10 @@ function ConfigOption:init()
         local default_option_name = self.config.config_options.prefix
           .. "_"
           .. self.options[c].name
-        local default_value = G_reader_settings:read(default_option_name)
+        -- TODO: Avoid directly accessing G_reader_settings.data.
+        -- Now the config can be either a primitive value or a table.
+        -- See https://github.com/Hzj-jie/koreader-202411/issues/355.
+        local default_value = G_reader_settings.data[default_option_name]
         if default_value and #self.options[c].values > 0 then
           local val = default_value
           local min_diff

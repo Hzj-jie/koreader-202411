@@ -49,8 +49,8 @@ function CoverMenu:updateCache(file, status, do_create, pages)
     if doc_pages then
       pages = doc_pages
     else
-      local stats = doc_settings:read("stats")
-      if stats and stats.pages and stats.pages ~= 0 then -- crengine with statistics disabled stores 0
+      local stats = doc_settings:readTable("stats") or {}
+      if stats.pages and stats.pages ~= 0 then -- crengine with statistics disabled stores 0
         pages = stats.pages
       end
     end
