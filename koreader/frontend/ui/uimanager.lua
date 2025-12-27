@@ -454,6 +454,7 @@ function UIManager:setDirty(widget, refreshMode, region)
     self:scheduleRepaintAll(refreshMode)
     return
   end
+  widget._refreshMode = refreshMode or widget._refreshMode
   self:scheduleWidgetRepaint(widget)
 end
 --[[
