@@ -1000,6 +1000,10 @@ function UIManager:_scheduleRefreshWindowWidget(window, widget)
   assert(window ~= nil)
   widget = widget or window.widget
   assert(widget ~= nil)
+  if widget.invisible then
+    return
+  end
+
   local dimen = widget.dimen
   -- window.x and window.y are never used, but keept the potential logic right.
   if window.x > 0 or window.y > 0 then

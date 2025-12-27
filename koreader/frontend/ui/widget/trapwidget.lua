@@ -61,6 +61,7 @@ function TrapWidget:init()
     }
   end
   if self.text then
+    self.invisible = false
     local textw = TextWidget:new({
       text = self.text,
       face = self.face,
