@@ -523,7 +523,7 @@ function UIManager:updateRefreshRate()
     -- Double the refresh rate in night_mode, black area would be way larger,
     -- and causes more blur.
     if G_reader_settings:isTrue("night_mode") then
-      r = math.floor(refresh_count / 2)
+      r = math.floor(r / 2)
     end
     if r < 1 then
       return 1
