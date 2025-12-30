@@ -1061,6 +1061,12 @@ function Menu:init()
   if not self.path_items then -- not FileChooser
     self:updateItems(1, true)
   end
+
+  if self.close_callback == nil then
+    self.close_callback = function()
+      UIManager:close(self)
+    end
+  end
 end
 
 function Menu:updatePageInfo(select_number)
@@ -1445,9 +1451,7 @@ function Menu:onMenuSelect(item)
       end
     end
     self:onMenuChoice(item)
-    if self.close_callback then
-      self.close_callback()
-    end
+    self.close_callback()
   else
     -- save menu title for later resume
     self.item_table.title = self.title
@@ -1545,10 +1549,7 @@ function Menu:onExit()
 end
 
 function Menu:_closeAllMenus()
-  UIManager:close(self)
-  if self.close_callback then
-    self.close_callback()
-  end
+  self.close_callback()
   return true
 end
 

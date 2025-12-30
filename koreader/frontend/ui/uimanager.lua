@@ -198,7 +198,11 @@ function UIManager:close(widget)
     logger.dbg("attempted to close a nil widget")
     return
   end
-  assert(UIManager:isWidgetShown(widget))
+
+  if not UIManager:isWidgetShown(widget) then
+    logger.warn("FixMe: widget " .. self:_widgetDebugStr(widget) .. " has been closed already. " .. debug.traceback())
+    return
+  end
 
   logger.dbg("close widget:", self:_widgetDebugStr(widget))
   local dirty = false
