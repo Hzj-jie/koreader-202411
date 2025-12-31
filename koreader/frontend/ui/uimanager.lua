@@ -823,7 +823,8 @@ local refresh_modes = {
   -- at all. Supported by sunxi and mxcfb.
   a2 = 1,
   -- The dirtiest way of changing the display, but unlike a2, it at least keeps
-  -- everything readable. Supported by pocketbook, sunxi, android and mxcfb.
+  -- everything readable, but the grayscale may not be very accurate. Supported
+  -- by pocketbook, sunxi, android and mxcfb.
   fast = 2,
   -- The default way of showing anything related to the ui. Supported by
   -- pocketbook, sunxi, android and mxcfb.
