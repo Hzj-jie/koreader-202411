@@ -2192,7 +2192,7 @@ function ReaderFooter:_repaint()
     -- NOTE: self.view.footer -> self ;).
 
     -- c.f., ReaderView:paintTo()
-    UIManager:repaintWidget(self.view.footer)
+    UIManager:scheduleWidgetRepaint(self.view.footer)
 
     -- This is very uncommon, but considering the _paint can be called randomly,
     -- without forcing a repaint, the delay would be noticable up to 200ms per
