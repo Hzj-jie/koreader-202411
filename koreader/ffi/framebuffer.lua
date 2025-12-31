@@ -168,6 +168,11 @@ function fb:init()
   self.cur_rotation_mode = self.native_rotation_mode
 end
 
+-- See framebuffer_einkfb.
+function fb:reverseNightmode()
+  return false
+end
+
 -- This method must be called just before drawing a sequence of blits into a framebuffer.
 -- It's ok to spam it for each paint, drivers should ensure to become nop for subsequent calls until final afterPaint().
 function fb:beforePaint() end
@@ -506,6 +511,9 @@ function fb:setNightmode(night_mode)
     -- If the device supports global inversion via the grayscale flag, do that.
     self:setHWNightmode(self.night_mode)
   else
+    if self:reverseNightmode() then
+      night_mode = not night_mode
+    end
     -- Only do SW inversion if the HW can't...
     if (self.bb:getInverse() == 1) ~= night_mode then
       -- flip
