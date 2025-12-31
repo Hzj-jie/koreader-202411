@@ -1779,4 +1779,10 @@ function util.no()
   return false
 end
 
+function util.copyRequire(f)
+  local v = require(f)
+  assert(type(v) == "table")
+  return util.tableDeepCopy(v)
+end
+
 return util
