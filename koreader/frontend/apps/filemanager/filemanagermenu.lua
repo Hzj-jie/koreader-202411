@@ -510,10 +510,10 @@ To:
   end
 
   -- insert common settings
-  for id, common_setting in
+  for k, v in
     pairs(require("ui/elements/common_settings_menu_table"))
   do
-    self.menu_items[id] = common_setting
+    self.menu_items[k] = v
   end
 
   -- Settings > Navigation; this mostly concerns physical keys, and applies *everywhere*
@@ -598,12 +598,12 @@ Tap a book in the search results to open it.]]
     end,
   }
   -- insert common info
-  for id, common_setting in pairs(require("ui/elements/common_info_menu_table")) do
-    self.menu_items[id] = common_setting
+  for k, v in pairs(require("ui/elements/common_info_menu_table")) do
+    self.menu_items[k] = v
   end
   -- insert common exit for filemanager
-  for id, common_setting in pairs(require("ui/elements/common_exit_menu_table")) do
-    self.menu_items[id] = common_setting
+  for k, v in pairs(require("ui/elements/common_exit_menu_table")) do
+    self.menu_items[k] = v
   end
   if not Device:isTouchDevice() then
     -- add a shortcut on non touch-device

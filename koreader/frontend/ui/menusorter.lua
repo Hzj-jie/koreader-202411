@@ -7,6 +7,7 @@ local DataStorage = require("datastorage")
 local FFIUtil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local util = require("util")
 local _ = require("gettext")
 
 local separator_id = "----------------------------"
@@ -27,7 +28,7 @@ function MenuSorter:readMSSettings(config_prefix)
     )
 
     if lfs.attributes(menu_order) then
-      return dofile(menu_order) or {}
+      return require(menu_order) or {}
     end
   end
   return {}
@@ -48,6 +49,8 @@ end
 ---- @tparam table order sorting order
 ---- @treturn table the sorted menu item table
 function MenuSorter:sort(item_table, order)
+  -- The logic changes the item_table, need to make a copy.
+  item_table = util.tableDeepCopy(item_table)
   local menu_table = {}
   local sub_menus = {}
   -- the actual sorting of menu items

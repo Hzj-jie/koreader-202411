@@ -256,10 +256,10 @@ function ReaderMenu:setUpdateItemTable()
 
   -- settings tab
   -- insert common settings
-  for id, common_setting in
+  for k, v in
     pairs(require("ui/elements/common_settings_menu_table"))
   do
-    self.menu_items[id] = common_setting
+    self.menu_items[k] = v
   end
 
   if Device:isTouchDevice() then
@@ -320,12 +320,12 @@ function ReaderMenu:setUpdateItemTable()
     require("ui/elements/cloud_storage_menu_table")
   -- main menu tab
   -- insert common info
-  for id, common_setting in pairs(require("ui/elements/common_info_menu_table")) do
-    self.menu_items[id] = common_setting
+  for k, v in pairs(require("ui/elements/common_info_menu_table")) do
+    self.menu_items[k] = v
   end
   -- insert common exit for reader
-  for id, common_setting in pairs(require("ui/elements/common_exit_menu_table")) do
-    self.menu_items[id] = common_setting
+  for k, v in pairs(require("ui/elements/common_exit_menu_table")) do
+    self.menu_items[k] = v
   end
 
   self.menu_items.open_previous_document = {
