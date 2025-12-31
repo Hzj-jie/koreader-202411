@@ -144,11 +144,13 @@ function ReaderToc:onPageUpdate(pageno)
     return
   end
 
-  if (pageno > self.pageno and self:isChapterStart(pageno)) or
-     (pageno < self.pageno and self:isChapterEnd(pageno)) then
-     UIManager:scheduleRefresh("full")
-   end
-   self.pageno = pageno
+  if
+    (pageno > self.pageno and self:isChapterStart(pageno))
+    or (pageno < self.pageno and self:isChapterEnd(pageno))
+  then
+    UIManager:scheduleRefresh("full")
+  end
+  self.pageno = pageno
 end
 
 function ReaderToc:onPosUpdate(pos, pageno)

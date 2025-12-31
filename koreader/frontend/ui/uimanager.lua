@@ -200,7 +200,12 @@ function UIManager:close(widget)
   end
 
   if not UIManager:isWidgetShown(widget) then
-    logger.warn("FixMe: widget " .. self:_widgetDebugStr(widget) .. " has been closed already. " .. debug.traceback())
+    logger.warn(
+      "FixMe: widget "
+        .. self:_widgetDebugStr(widget)
+        .. " has been closed already. "
+        .. debug.traceback()
+    )
     return
   end
 
@@ -1054,7 +1059,7 @@ function UIManager:_repaintDirtyWidgets()
     if util.tableSize(dirty_widgets[i]) > 0 then
       -- Anything above this window needs to be repainted.
       for j = i + 1, #self._window_stack do
-        dirty_widgets[j] = {self._window_stack[j].widget}
+        dirty_widgets[j] = { self._window_stack[j].widget }
       end
       break
     end
@@ -1101,16 +1106,19 @@ function UIManager:_refreshScreen()
     end
 
     local mode = refresh.mode
-    if self.FULL_REFRESH_COUNT > 0 and self._refresh_count >= self.FULL_REFRESH_COUNT and
-      refresh.region:area() >= Screen:getArea() * 0.5 then
+    if
+      self.FULL_REFRESH_COUNT > 0
+      and self._refresh_count >= self.FULL_REFRESH_COUNT
+      and refresh.region:area() >= Screen:getArea() * 0.5
+    then
       if refresh.region:area() >= Screen:getArea() * 0.9 then
         mode = "full"
       else
         mode = "flashui"
       end
-        logger.dbg("_refresh: promote ", refresh.mode, " refresh to ", mode)
-        -- ensure it's 0 at the end of the function call.
-        self._refresh_count = -1
+      logger.dbg("_refresh: promote ", refresh.mode, " refresh to ", mode)
+      -- ensure it's 0 at the end of the function call.
+      self._refresh_count = -1
     end
 
     --[[

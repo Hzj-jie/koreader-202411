@@ -4,8 +4,7 @@ local _ = require("gettext")
 
 -- Start with the english keyboard layout
 -- Explicitly make a new copy since the following logic will modify it.
-local py_keyboard =
-  util.copyRequire("ui/data/keyboardlayouts/en_keyboard")
+local py_keyboard = util.copyRequire("ui/data/keyboardlayouts/en_keyboard")
 local SETTING_NAME = "keyboard_chinese_pinyin_settings"
 
 local code_map = require("ui/data/keyboardlayouts/zh_pinyin_data")
