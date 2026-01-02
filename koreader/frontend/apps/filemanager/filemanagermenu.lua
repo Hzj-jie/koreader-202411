@@ -510,9 +510,7 @@ To:
   end
 
   -- insert common settings
-  for k, v in
-    pairs(require("ui/elements/common_settings_menu_table"))
-  do
+  for k, v in pairs(require("ui/elements/common_settings_menu_table")) do
     self.menu_items[k] = v
   end
 

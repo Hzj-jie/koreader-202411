@@ -98,7 +98,11 @@ function ButtonTable:init()
         text_font_size = btn_entry.font_size,
         text_font_bold = btn_entry.font_bold,
         show_parent = self.show_parent,
-        shortcut = ((self.enable_shortcut and Menu.ENABLE_SHORTCUT) and Menu.ITEM_SHORTCUTS[(i - 1) * column_cnt + j] or nil)
+        shortcut = (
+          (self.enable_shortcut and Menu.ENABLE_SHORTCUT)
+            and Menu.ITEM_SHORTCUTS[(i - 1) * column_cnt + j]
+          or nil
+        ),
       })
       if
         self.shrink_unneeded_width

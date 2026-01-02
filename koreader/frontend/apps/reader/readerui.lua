@@ -697,8 +697,7 @@ function ReaderUI:onShowingReader()
   self.tearing_down = true
   self.dithered = nil
 
-  -- Don't enforce a "full" refresh, leave that decision to the next widget we'll *show*.
-  self:onExit(false)
+  self:onExit()
 end
 
 -- Same as above, except we don't close it yet. Useful for plugins that need to close custom Menus before calling showReader.
@@ -902,46 +901,52 @@ function ReaderUI:onFlushSettings(show_notification)
   end
 end
 
-function ReaderUI:onExit(full_refresh)
+function ReaderUI:onExit(seamless)
   if self.document == nil then
     -- This shouldn't happen, but who knows who would call ReaderUI:onExit?
     return
   end
   logger.dbg("closing reader")
-  UIManager:runWith(
-    function()
-      PluginLoader:finalize()
-      Device:notifyBookState(nil, nil)
-      -- if self.dialog is us, we'll have our onFlushSettings() called
-      -- by UIManager:close() below, so avoid double save
-      if self.dialog ~= self then
-        self:saveSettings()
+  local f = function()
+    PluginLoader:finalize()
+    Device:notifyBookState(nil, nil)
+    -- if self.dialog is us, we'll have our onFlushSettings() called
+    -- by UIManager:close() below, so avoid double save
+    if self.dialog ~= self then
+      self:saveSettings()
+    end
+    if self.document ~= nil then
+      require("readhistory"):updateLastBookTime(self.tearing_down)
+      -- Serialize the most recently displayed page for later launch
+      DocCache:serialize(self.document.file)
+      logger.dbg("closing document")
+      UIManager:broadcastEvent(Event:new("CloseDocument"))
+      if
+        self.document:isEdited()
+        and not self.highlight.highlight_write_into_pdf
+      then
+        self.document:discardChange()
       end
-      if self.document ~= nil then
-        require("readhistory"):updateLastBookTime(self.tearing_down)
-        -- Serialize the most recently displayed page for later launch
-        DocCache:serialize(self.document.file)
-        logger.dbg("closing document")
-        UIManager:broadcastEvent(Event:new("CloseDocument"))
-        if
-          self.document:isEdited()
-          and not self.highlight.highlight_write_into_pdf
-        then
-          self.document:discardChange()
-        end
-        self.document:close()
-        self.document = nil
-      end
-      if self.dialog == self then
-        UIManager:close(self, full_refresh ~= false and "full")
-      else
-        UIManager:close(self)
-        UIManager:close(self.dialog, full_refresh ~= false and "full")
-      end
-    end,
-    -- Need localization.
-    T(_("Saving progress of file %1"), self.document.file)
-  )
+      self.document:close()
+      self.document = nil
+    end
+    if self.dialog == self then
+      UIManager:close(self)
+    else
+      UIManager:close(self)
+      UIManager:close(self.dialog)
+    end
+  end
+
+  if seamless then
+    f()
+  else
+    UIManager:runWith(
+      f,
+      -- Need localization.
+      T(_("Saving progress of file %1"), self.document.file)
+    )
+  end
 end
 
 function ReaderUI:onClose()
@@ -983,7 +988,7 @@ end
 
 function ReaderUI:onHome()
   local file = self.document.file
-  self:onExit(false)
+  self:onExit()
   self:showFileManager(file)
   return true
 end
@@ -1000,7 +1005,7 @@ function ReaderUI:_loadDocument(file, seamless)
   UIManager:broadcastEvent(Event:new("CloseReaderMenu"))
   UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
   self.highlight:onExit() -- close highlight dialog if any
-  self:onExit(false)
+  self:onExit(seamless)
 
   self:showReader(file, nil, seamless)
 end
