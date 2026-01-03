@@ -925,39 +925,6 @@ function UIManager:scheduleRefresh(mode, region, dither)
 
   assert(refresh_modes[mode] ~= nil, "Unknown refresh mode " .. tostring(mode))
 
-  if mode == "a2" then
-    logger.dbg("_refresh: explicitly disable a2 mode.")
-    mode = "fast"
-  end
-
-  -- Downgrade all refreshes to "fast" when ReaderPaging or ReaderScrolling have set this flag
-  if self:duringForceFastRefresh() then
-    mode = "fast"
-  end
-
-  -- Handle downgrading flashing modes to non-flashing modes, according to user settings.
-  -- NOTE: Do it before "full" promotion and collision checks/update_mode.
-  if G_reader_settings:nilOrTrue("avoid_flashing_ui") then
-    if mode == "flashui" then
-      mode = "ui"
-      logger.dbg("_refresh: downgraded flashui refresh to", mode)
-    elseif mode == "flashpartial" then
-      mode = "partial"
-      logger.dbg("_refresh: downgraded flashpartial refresh to", mode)
-    elseif mode == "partial" and region then
-      mode = "ui"
-      logger.dbg("_refresh: downgraded regional partial refresh to", mode)
-    elseif mode == "full" then
-      mode = "partial"
-      logger.dbg("_refresh: downgraded full refresh to", mode)
-    end
-  else
-    if mode == "fast" then
-      mode = "ui"
-      logger.dbg("_refresh: promote fast refresh to", mode)
-    end
-  end
-
   -- if no region is specified, use the screen's dimensions
   region = region
     or Geom:new({ x = 0, y = 0, w = Screen:getWidth(), h = Screen:getHeight() })
@@ -1077,6 +1044,62 @@ function UIManager:_repaintDirtyWidgets()
   self._dirty = {}
 end
 
+function UIManager:_decideRefreshMode(refresh)
+  local mode = refresh.mode
+  local region = refresh.region
+  assert(refresh_modes[mode] ~= nil, "Unknown refresh mode " .. tostring(mode))
+  assert(region ~= nil)
+  if mode == "a2" then
+    logger.dbg("_refreshScreen: explicitly disable a2 mode.")
+    return "fast"
+  end
+  if self:duringForceFastRefresh() then
+    -- Downgrade all refreshes to "fast" when ReaderPaging or ReaderScrolling have set this flag
+    logger.dbg("_refreshScreen: downgrading all refresh mode to fast during forceFastRefresh.")
+    return "fast"
+  end
+
+  if
+    self.FULL_REFRESH_COUNT > 0
+    and self._refresh_count >= self.FULL_REFRESH_COUNT
+    and region:area() >= Screen:getArea() * 0.5
+  then
+    if region:area() >= Screen:getArea() * 0.8 then
+      logger.dbg("_refreshScreen: promote ", mode, " refresh to full")
+      return "full"
+    else
+      logger.dbg("_refresh: promote ", mode, " refresh to flashui")
+      return "flashui"
+    end
+  end
+
+  -- Handle downgrading flashing modes to non-flashing modes, according to user settings.
+  -- NOTE: Do it before "full" promotion and collision checks/update_mode.
+  if G_reader_settings:nilOrTrue("avoid_flashing_ui") then
+    if mode == "flashui" then
+      logger.dbg("_refresh: downgraded flashui refresh to ui")
+      return "ui"
+    elseif mode == "flashpartial" then
+      logger.dbg("_refresh: downgraded flashpartial refresh to partial")
+      return "partial"
+    elseif mode == "partial" then
+      logger.dbg("_refresh: downgraded partial refresh to ui")
+      return "ui"
+    elseif mode == "full" then
+      logger.dbg("_refresh: downgraded full refresh to partial")
+      return "partial"
+    end
+  else
+    if mode == "fast" then
+      logger.dbg("_refresh: promote fast refresh to ui")
+      return "ui"
+    end
+  end
+
+  -- No modification would happen, return the original input.
+  return mode
+end
+
 function UIManager:_refreshScreen()
   -- execute pending refresh functions
   for _, refreshfunc in ipairs(self._refresh_func_stack) do
@@ -1091,8 +1114,6 @@ function UIManager:_refreshScreen()
   local refreshed_region = nil
   -- execute refreshes:
   for _, refresh in ipairs(self._refresh_stack) do
-    -- Honor dithering hints from *anywhere* in the dirty stack
-    refresh.dither = update_dither(refresh.dither, dithered)
     -- If HW dithering is disabled, unconditionally drop the dither flag
     if not Screen.hw_dithering then
       refresh.dither = nil
@@ -1105,22 +1126,8 @@ function UIManager:_refreshScreen()
       refreshed_region = refreshed_region:combine(refresh.region)
     end
 
-    local mode = refresh.mode
-    if
-      self.FULL_REFRESH_COUNT > 0
-      and self._refresh_count >= self.FULL_REFRESH_COUNT
-      and refresh.region:area() >= Screen:getArea() * 0.5
-    then
-      if refresh.region:area() >= Screen:getArea() * 0.9 then
-        mode = "full"
-      else
-        mode = "flashui"
-      end
-      logger.dbg("_refresh: promote ", refresh.mode, " refresh to ", mode)
-      -- ensure it's 0 at the end of the function call.
-      self._refresh_count = -1
-    end
-
+    local mode = self:_decideRefreshMode(refresh)
+    assert(refresh_modes[mode] ~= nil, "Unknown refresh mode " .. tostring(mode))
     --[[
     -- Remember the refresh region
     self._last_refresh_region = refresh.region:copy()
@@ -1138,7 +1145,11 @@ function UIManager:_refreshScreen()
   if refreshed_region:area() >= Screen:getArea() * 0.5 then
     -- Record how many partial refreshes happened, but ignore any small areas
     -- like footer or clock.
-    self._refresh_count = self._refresh_count + 1
+    if mode ~= "full" and mode ~= "flashpartial" and mode ~= "flashui" then
+      self._refresh_count = self._refresh_count + 1
+    else
+      self._refresh_count = 0
+    end
   end
 
   self._refresh_stack = {}
