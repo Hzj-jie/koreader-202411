@@ -1053,7 +1053,7 @@ function UIManager:_decideRefreshMode(refresh)
     logger.dbg("_refreshScreen: explicitly disable a2 mode.")
     return "fast"
   end
-  if self:duringForceFastRefresh() then
+  if self:duringForceFastRefresh() and named_settings.low_pan_rate() then
     -- Downgrade all refreshes to "fast" when ReaderPaging or ReaderScrolling have set this flag
     logger.dbg("_refreshScreen: downgrading all refresh mode to fast during forceFastRefresh.")
     return "fast"
@@ -1145,7 +1145,7 @@ function UIManager:_refreshScreen()
   if refreshed_region:area() >= Screen:getArea() * 0.5 then
     -- Record how many partial refreshes happened, but ignore any small areas
     -- like footer or clock.
-    if mode ~= "full" and mode ~= "flashpartial" and mode ~= "flashui" then
+    if refresh_modes[mode] < refresh_modes["flashui"] then
       self._refresh_count = self._refresh_count + 1
     else
       self._refresh_count = 0
