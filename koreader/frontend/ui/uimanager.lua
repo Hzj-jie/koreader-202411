@@ -1057,7 +1057,9 @@ function UIManager:_decideRefreshMode(refresh)
   end
   if self:duringForceFastRefresh() and named_settings.low_pan_rate() then
     -- Downgrade all refreshes to "fast" when ReaderPaging or ReaderScrolling have set this flag
-    logger.dbg("_refreshScreen: downgrading all refresh mode to fast during forceFastRefresh.")
+    logger.dbg(
+      "_refreshScreen: downgrading all refresh mode to fast during forceFastRefresh."
+    )
     return "fast"
   end
 
@@ -1122,7 +1124,10 @@ function UIManager:_refreshScreen()
     dbg:v("triggering refresh", refresh)
 
     local mode = self:_decideRefreshMode(refresh)
-    assert(refresh_modes[mode] ~= nil, "Unknown refresh mode " .. tostring(mode))
+    assert(
+      refresh_modes[mode] ~= nil,
+      "Unknown refresh mode " .. tostring(mode)
+    )
     --[[
     -- Remember the refresh region
     self._last_refresh_region = refresh.region:copy()
