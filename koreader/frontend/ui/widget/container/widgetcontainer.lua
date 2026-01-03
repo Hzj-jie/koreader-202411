@@ -45,6 +45,16 @@ function WidgetContainer:clear(skip_free)
   end
 end
 
+function WidgetContainer:dirtyDimen()
+  if self.dirty_dimen then
+    return self.dirty_dimen
+  end
+  if self[1] == nil then
+    return Widget.dirtyDimen(self)
+  end
+  return self[1]:dirtyDimen()
+end
+
 function WidgetContainer:paintTo(bb, x, y)
   -- Forward painting duties to our first child widget
   if self[1] == nil then
@@ -55,9 +65,6 @@ function WidgetContainer:paintTo(bb, x, y)
     local content_size = self[1]:getSize()
     self.dimen =
       Geom:new({ x = 0, y = 0, w = content_size.w, h = content_size.h })
-  end
-  if not self.dirty_dimen then
-    self.dirty_dimen = self[1].dirty_dimen or self.dimen
   end
 
   -- NOTE: Clunky `or` left in on the off-chance we're passed a dimen that isn't a proper Geom object...

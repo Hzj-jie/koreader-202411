@@ -982,7 +982,7 @@ function UIManager:_scheduleRefreshWindowWidget(window, widget)
 
   -- A dirty hack to workaround the groups, they cover the entire screen but
   -- only draw a small portion.
-  local dimen = widget.dirty_dimen or widget.dimen
+  local dimen = widget:dirtyDimen()
   -- window.x and window.y are never used, but keept the potential logic right.
   if window.x > 0 or window.y > 0 then
     dimen = dimen:copy():offsetBy(window.x, window.y)
