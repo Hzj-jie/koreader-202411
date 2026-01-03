@@ -2177,25 +2177,20 @@ function ReaderFooter:_repaint()
   -- NOTE: Getting the dimensions of the widget is impossible without having drawn it first,
   --     so, we'll fudge it if need be...
   --     i.e., when it's no longer visible, because there's nothing to draw ;).
-  local refresh_dim = self.footer_content.dimen
-  -- No more content...
-  if not self.view.footer_visible and not refresh_dim then
-    -- So, instead, rely on self:getHeight to compute self.footer_content's height early...
-    refresh_dim = self.dimen
-    refresh_dim.h = self:getHeight()
-    refresh_dim.y = self._saved_screen_height - refresh_dim.h
+  self.dirty_dimen = self.footer_content.dimen
+  if self.dirty_dimen then
+    -- Note, footer_content is inside of several alignment groups, it doesn't
+    -- know its own x and y on the screen.
+    self.dirty_dimen.y = self._saved_screen_height - self.dirty_dimen.h
   end
+  -- If self.footer_content.dimen is nil, i.e. the first paint, just refresh the
+  -- entire screen.
   -- If we're making the footer visible (or it already is), we don't need to repaint ReaderUI behind it
   if self.view.footer_visible and top_wg.name == "ReaderUI" then
-    -- Unfortunately, it's not a modal (we never show() it), so it's not in the window stack,
-    -- instead, it's baked inside ReaderUI, so it gets slightly trickier...
-    -- NOTE: self.view.footer -> self ;).
-
-    -- c.f., ReaderView:paintTo()
     UIManager:scheduleWidgetRepaint(self.view.footer)
   else
     -- If the footer is invisible or might be hidden behind another widget, we need to repaint the full ReaderUI stack.
-    UIManager:setDirty(self.view.dialog, "ui", refresh_dim)
+    UIManager:setDirty(self.view.dialog, "ui", self.dirty_dimen)
   end
 end
 
