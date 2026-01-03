@@ -49,8 +49,8 @@ function WidgetContainer:dirtyDimen()
   if self.dirty_dimen then
     return self.dirty_dimen
   end
-  if self[1] == nil then
-    return Widget.dirtyDimen(self)
+  if self[1] == nil or self[1].dirty_dimen == nil then
+    return self.dimen
   end
   return self[1]:dirtyDimen()
 end
