@@ -1,4 +1,8 @@
-#!/bin/sh
+#!/bin/bash
+
+pushd ..
+./update-git-rev.sh
+popd
 
 export STORAGE_DIR=/mnt/onboard/.adds
 export KOREADER_DIR=$STORAGE_DIR/koreader
