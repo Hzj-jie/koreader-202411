@@ -185,7 +185,7 @@ end
 
 function ReaderView:paintTo(bb, x, y)
   dbg:v("readerview painting", self.visible_area, "to", x, y)
-  if self.highlight.temp then
+  if util.tableSize(self.highlight.temp) > 0 then
     -- If there is a temp highlight, reduce the refresh level to fast.
     UIManager:forceFastRefresh()
   else
@@ -266,9 +266,7 @@ function ReaderView:paintTo(bb, x, y)
     colorful = self:drawSavedHighlight(bb, x, y)
   end
   -- draw temporary highlight
-  if self.highlight.temp then
-    self:drawTempHighlight(bb, x, y)
-  end
+  self:drawTempHighlight(bb, x, y)
   -- draw highlight position indicator for non-touch
   if self.highlight.indicator then
     self:drawHighlightIndicator(bb, x, y)
