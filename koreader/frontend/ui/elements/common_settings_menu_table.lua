@@ -162,7 +162,7 @@ if Device:isTouchDevice() then
     text = _("Disable out of order taps"),
     -- Need localization
     help_text = _(
-      "Disallow taps or other interactions being sent to the UI elements before they are showing up.\nIt's highly suggested keeping this configuration enabled to avoid unexpectedly triggering user actions."
+      "Disallow taps or other interactions being sent to the UI elements before they are showing up.\nE-ink screens are slow and take noticeable time to update the content. Users may feel it's laggy, tap the screen multiple times, and cause the following taps to interact with the upcoming UI elements and trigger unexpected actions.\nThis feature decides if a user action is expected or caused by the delay of screen refreshing, and drops the unexpected ones.\nIt's highly suggested keeping this configuration enabled unless you feel the UI interactions are slow."
     ),
     checked_func = function()
       return G_reader_settings:nilOrTrue("disable_out_of_order_taps")
