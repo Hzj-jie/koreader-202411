@@ -268,7 +268,7 @@ function Device:init()
   -- But as implementations come from base, they just return a Geom-like table...
   self.screen.getSize = function()
     local rect = self.screen.getRawSize(self.screen)
-    return Geom:new({ x = rect.x, y = rect.y, w = rect.w, h = rect.h })
+    return Geom:new({ x = rect.x or 0, y = rect.y or 0, w = rect.w, h = rect.h })
   end
 
   -- DPI

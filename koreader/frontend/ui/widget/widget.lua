@@ -78,7 +78,7 @@ function Widget:refreshMode()
 end
 
 function Widget:dirtyDimen()
-  return self.dirty_dimen or self.dimen
+  return self.dirty_dimen or self.dimen or require("device").screen:getSize()
 end
 
 -- Get the show(widget) of current widget, use this function should be careful
