@@ -1096,7 +1096,7 @@ function UIManager:_decideRefreshMode(refresh)
     end
   end
 
-  -- No modification would happen, return the original input.
+  -- No adjustments happened, return the original input.
   return mode
 end
 
@@ -1133,7 +1133,7 @@ function UIManager:_refreshScreen()
       refresh.region.h,
       refresh.dither
     )
-    -- This implementation sits in the safer side to only drop the upcoming
+    -- This implementation sits on the safer side to only drop the upcoming
     -- refresh mode promotion when a "flash" type refresh affects over 1/2
     -- screen.
     -- In theory, multiple partial "flash" type refreshes may cover the entire
