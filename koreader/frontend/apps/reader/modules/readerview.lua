@@ -164,7 +164,7 @@ readerui.view:registerViewModule('dummy_image', dummy_image)
 ]]
 function ReaderView:registerViewModule(name, widget)
   if not widget.paintTo then
-    print(name .. " view module does not have paintTo method!")
+    logger.err(name .. " view module does not have paintTo method!")
     return
   end
   widget.view = self
@@ -185,6 +185,13 @@ end
 
 function ReaderView:paintTo(bb, x, y)
   dbg:v("readerview painting", self.visible_area, "to", x, y)
+  if self.highlight.temp then
+    -- If there is a temp highlight, reduce the refresh level to fast.
+    UIManager:forceFastRefresh()
+  else
+    UIManager:resetForceFastRefresh()
+  end
+
   if self.page_scroll then
     self:drawPageBackground(bb, x, y)
   else

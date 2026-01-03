@@ -210,7 +210,6 @@ function UIManager:close(widget)
   end
 
   logger.dbg("close widget:", self:_widgetDebugStr(widget))
-  local dirty = false
   -- First notify the closed widget to save its settings...
   widget:broadcastEvent(Event:new("FlushSettings"))
   -- ...and notify it that it ought to be gone now.
