@@ -142,7 +142,6 @@ return {
     ["toc_markers_width"] = 2,
     ["wifi_status"] = true,
   },
-  ["full_refresh_count"] = 6,
   ["history_filter"] = "all",
   ["home_dir"] = "/mnt/us/documents",
   ["hyph_alg_default"] = "@algorithm",
