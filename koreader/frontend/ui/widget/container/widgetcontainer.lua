@@ -56,6 +56,9 @@ function WidgetContainer:paintTo(bb, x, y)
     self.dimen =
       Geom:new({ x = 0, y = 0, w = content_size.w, h = content_size.h })
   end
+  if not self.dirty_dimen then
+    self.dirty_dimen = self[1].dirty_dimen or self.dimen
+  end
 
   -- NOTE: Clunky `or` left in on the off-chance we're passed a dimen that isn't a proper Geom object...
   x = x + (self.dimen.x or 0)
