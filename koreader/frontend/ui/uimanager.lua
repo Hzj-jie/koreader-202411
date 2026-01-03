@@ -1112,6 +1112,7 @@ function UIManager:_refreshScreen()
   end
 
   local refreshed_region = nil
+  local best_mode = "a2"
   -- execute refreshes:
   for _, refresh in ipairs(self._refresh_stack) do
     -- If HW dithering is disabled, unconditionally drop the dither flag
@@ -1127,6 +1128,7 @@ function UIManager:_refreshScreen()
     end
 
     local mode = self:_decideRefreshMode(refresh)
+    best_mode = update_mode(best_mode, mode)
     assert(refresh_modes[mode] ~= nil, "Unknown refresh mode " .. tostring(mode))
     --[[
     -- Remember the refresh region
@@ -1145,7 +1147,7 @@ function UIManager:_refreshScreen()
   if refreshed_region:area() >= Screen:getArea() * 0.5 then
     -- Record how many partial refreshes happened, but ignore any small areas
     -- like footer or clock.
-    if refresh_modes[mode] < refresh_modes["flashui"] then
+    if refresh_modes[best_mode] < refresh_modes["flashui"] then
       self._refresh_count = self._refresh_count + 1
     else
       self._refresh_count = 0
