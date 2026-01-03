@@ -1111,8 +1111,6 @@ function UIManager:_refreshScreen()
     return
   end
 
-  local refreshed_region = nil
-  local best_mode = "a2"
   -- execute refreshes:
   for _, refresh in ipairs(self._refresh_stack) do
     -- If HW dithering is disabled, unconditionally drop the dither flag
@@ -1121,14 +1119,7 @@ function UIManager:_refreshScreen()
     end
     dbg:v("triggering refresh", refresh)
 
-    if refreshed_region == nil then
-      refreshed_region = refresh.region
-    else
-      refreshed_region = refreshed_region:combine(refresh.region)
-    end
-
     local mode = self:_decideRefreshMode(refresh)
-    best_mode = update_mode(best_mode, mode)
     assert(refresh_modes[mode] ~= nil, "Unknown refresh mode " .. tostring(mode))
     --[[
     -- Remember the refresh region
@@ -1142,18 +1133,25 @@ function UIManager:_refreshScreen()
       refresh.region.h,
       refresh.dither
     )
-  end
-
-  if refreshed_region:area() >= Screen:getArea() * 0.5 then
-    -- Record how many partial refreshes happened, but ignore any small areas
-    -- like footer or clock.
-    if refresh_modes[best_mode] < refresh_modes["flashui"] then
-      self._refresh_count = self._refresh_count + 1
-    else
-      self._refresh_count = 0
+    -- This implementation sits in the safer side to only drop the upcoming
+    -- refresh mode promotion when a "flash" type refresh affects over 1/2
+    -- screen.
+    -- In theory, multiple partial "flash" type refreshes may cover the entire
+    -- screen already without needing another full "flash". But tracking it
+    -- would be very painful.
+    -- Note, it's worth investigating if a partial flash is even possible on
+    -- different device models.
+    if refresh.region:area() >= Screen:getArea() * 0.5 then
+      -- Record how many partial refreshes happened, but ignore any small areas
+      -- like footer or clock.
+      if refresh_modes[mode] >= refresh_modes["flashui"] then
+        -- The counter will +1 at the end.
+        self._refresh_count = -1
+      end
     end
   end
 
+  self._refresh_count = self._refresh_count + 1
   self._refresh_stack = {}
 end
 
