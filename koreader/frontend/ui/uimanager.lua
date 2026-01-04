@@ -1116,6 +1116,7 @@ function UIManager:_refreshScreen()
   end
 
   -- execute refreshes:
+  local large_refresh = false
   for _, refresh in ipairs(self._refresh_stack) do
     -- If HW dithering is disabled, unconditionally drop the dither flag
     if not Screen.hw_dithering then
@@ -1146,19 +1147,19 @@ function UIManager:_refreshScreen()
     -- In theory, multiple partial "flash" type refreshes may cover the entire
     -- screen already without needing another full "flash". But tracking it
     -- would be very painful.
-    -- Note, it's worth investigating if a partial flash is even possible on
-    -- different device models.
     if refresh.region:area() >= Screen:getArea() * 0.5 then
       -- Record how many partial refreshes happened, but ignore any small areas
       -- like footer or clock.
       if refresh_modes[mode] >= refresh_modes["flashui"] then
-        -- The counter will +1 at the end.
-        self._refresh_count = -1
+        self._refresh_count = 0
+      else
+        large_refresh = true
       end
     end
   end
-
-  self._refresh_count = self._refresh_count + 1
+  if large_refresh then
+    self._refresh_count = self._refresh_count + 1
+  end
   self._refresh_stack = {}
 end
 
