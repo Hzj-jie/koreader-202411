@@ -1085,6 +1085,39 @@ end
 function UIManager:_mergeRefreshStack()
   assert(#self._refresh_stack > 0)
   local r = self._refresh_stack
+  table.sort(r, function(a, b)
+    if refresh_modes[a.mode] < refresh_modes[b.mode] then
+      return true
+    elseif refresh_modes[a.mode] > refresh_modes[b.mode] then
+      return false
+    end
+    -- Same refresh mode, prefer not dither.
+    if a.dither == false and b.dither == true then
+      return true
+    elseif a.dither == true and b.dither == false then
+      return false
+    end
+    -- Same refresh mode and dither, prefer smaller area - note, they do not
+    -- need to contain each other, but a smaller rect cannot include a larger
+    -- one.
+    return Geom.smallerThan(a.region, b.region)
+  end)
+
+  local i = 1
+  -- r is changing.
+  while i <= #r do
+    for j = 1, i - 1 do
+      if r[i].region:contains(r[j].region) then
+        -- Remove j
+        table.remove(r, j)
+        -- Retry
+        i = i - 2
+        break
+      end
+    end
+    i = i + 1
+  end
+
   self._refresh_stack = {}
   return r
 end

@@ -523,4 +523,32 @@ function Geom.boundingBox(boxes)
   end
 end
 
+-- Unlike Geom:__lt, this function provides a stable comparison.
+function Geom.smallerThan(a, b)
+  assert(a ~= nil and b ~= nil)
+  assert(type(a) == "table" and type(b) == "table")
+
+  -- Reference equal.
+  if a == b then
+    return false
+  end
+  if a:area() < b:area() then
+    return true
+  elseif a:area() > b:area() then
+    return false
+  end
+  -- Well, comparing x or y or table string.
+  if a.x < b.x then
+    return true
+  elseif a.x > b.x then
+    return false
+  end
+  if a.y < b.y then
+    return true
+  elseif a.y > b.y then
+    return false
+  end
+  return tostring(a) < tostring(b)
+end
+
 return Geom
