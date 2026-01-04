@@ -932,28 +932,6 @@ function UIManager:scheduleRefresh(mode, region, dither)
   -- if no dithering hint was specified, don't request dithering
   dither = dither or false
 
-  -- NOTE: While, ideally, we shouldn't merge refreshes w/ different waveform modes,
-  --     this allows us to optimize away a number of quirks of our rendering stack
-  --     (e.g., multiple setDirty calls queued when showing/closing a widget because of update mechanisms),
-  --     as well as a few actually effective merges
-  --     (e.g., the disappearance of a selection HL with the following menu update).
-  for i, refresh in ipairs(self._refresh_stack) do
-    -- Check for collisions with refreshes that are already enqueued.
-    -- NOTE: We use the open range variant, as we want to combine rectangles that share an edge (like the EPDC).
-    if region:openIntersectWith(refresh.region) then
-      -- combine both refreshes' regions
-      local combined = region:combine(refresh.region)
-      -- update the mode, if needed
-      mode = update_mode(mode, refresh.mode)
-      -- dithering hints are viral, one is enough to infect the whole queue
-      dither = update_dither(dither, refresh.dither)
-      -- remove colliding refresh
-      table.remove(self._refresh_stack, i)
-      -- and try again with combined data
-      return self:scheduleRefresh(mode, combined, dither)
-    end
-  end
-
   -- if we've stopped hitting collisions, enqueue the refresh
   logger.dbg(
     "_refresh: Enqueued",
@@ -1104,6 +1082,13 @@ function UIManager:_decideRefreshMode(refresh)
   return mode
 end
 
+function UIManager:_mergeRefreshStack()
+  assert(#self._refresh_stack > 0)
+  local r = self._refresh_stack
+  self._refresh_stack = {}
+  return r
+end
+
 function UIManager:_refreshScreen()
   -- execute pending refresh functions
   for _, refreshfunc in ipairs(self._refresh_func_stack) do
@@ -1115,9 +1100,10 @@ function UIManager:_refreshScreen()
     return
   end
 
+  local refresh_stack = self:_mergeRefreshStack()
   -- execute refreshes:
   local large_refresh = false
-  for _, refresh in ipairs(self._refresh_stack) do
+  for _, refresh in ipairs(refresh_stack) do
     -- If HW dithering is disabled, unconditionally drop the dither flag
     if not Screen.hw_dithering then
       refresh.dither = nil
@@ -1160,7 +1146,6 @@ function UIManager:_refreshScreen()
   if large_refresh then
     self._refresh_count = self._refresh_count + 1
   end
-  self._refresh_stack = {}
 end
 
 --[[--
