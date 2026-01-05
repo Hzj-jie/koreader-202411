@@ -400,31 +400,6 @@ function VirtualKey:genKeyboardLayoutKeyChars()
   return key_chars
 end
 
--- NOTE: We currently don't ever set want_flash to true (c.f., our invert method).
-function VirtualKey:update_keyboard(want_flash, want_a2)
-  -- NOTE: We use "a2" for the highlights.
-  --     We flash the *full* keyboard when we release a hold.
-  if want_flash then
-    UIManager:setDirty(self.keyboard, function()
-      return "flashui", self.keyboard.dimen
-    end)
-    return
-  end
-
-  -- Only repaint the key itself, not the full board...
-  -- NOTE: We use self[1] (i.e., FrameContainer),
-  --     because we fudge self.dimen to include the padding for the gesture hitbox...
-  self[1]._refreshMode = (want_a2 and "a2" or "ui")
-  UIManager:repaintWidget(self[1])
-  logger.dbg("update key", self.key)
-
-  -- NOTE: On MTK, we'd have to forcibly stall a bit for the highlights to actually show.
-  --[[
-  UIManager:forceRepaint()
-  UIManager:waitForScreenRefresh()
-  --]]
-end
-
 function VirtualKey:onFocus()
   self[1].inner_bordersize = self.focused_bordersize
 end
@@ -529,13 +504,19 @@ function VirtualKey:onPanReleaseKey()
 end
 
 -- NOTE: We currently don't ever set hold to true (c.f., our onHoldSelect method)
-function VirtualKey:invert(invert, hold)
+function VirtualKey:invert(invert)
   if invert then
-    self[1].inner_bordersize = self.focused_bordersize
+    self[1].background = Blitbuffer.COLOR_LIGHT_GRAY
   else
-    self[1].inner_bordersize = 0
+    self[1].background = Blitbuffer.COLOR_WHITE
   end
-  self:update_keyboard(hold, true)
+
+  -- Only repaint the key itself, not the full board...
+  -- NOTE: We use self[1] (i.e., FrameContainer),
+  --     because we fudge self.dimen to include the padding for the gesture hitbox...
+  self[1]._refreshMode = "a2"
+  UIManager:repaintWidget(self[1])
+  logger.dbg("update key", self.key)
 end
 
 VirtualKeyPopup = FocusManager:extend({
