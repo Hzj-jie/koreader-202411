@@ -209,7 +209,7 @@ function util.tableDeepCopy(o, seen)
   local no
   if type(o) == "table" then
     no = {}
-    seen[o] = no
+    seen[o] = util.no
 
     for k, v in next, o, nil do
       no[util.tableDeepCopy(k, seen)] = util.tableDeepCopy(v, seen)

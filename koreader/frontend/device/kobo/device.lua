@@ -637,7 +637,7 @@ function Kobo:getKeyRepeat()
       self.key_repeat[C.REP_DELAY],
       "ms"
     )
-    self.canKeyRepeat = yes
+    self.canKeyRepeat = util.yes
     return true
   end
 end
@@ -730,7 +730,7 @@ function Kobo:init()
     })
 
     -- Sunxi means no HW inversion :(
-    self.canHWInvert = no
+    self.canHWInvert = util.no
   else
     self.screen = require("ffi/framebuffer_mxcfb"):new({
       device = self,
@@ -744,7 +744,7 @@ function Kobo:init()
     if self.screen.fb_bpp == 32 and self.screen._vinfo.red.offset ~= 0 then
       -- Ensure we decode images properly, as our framebuffer is BGRA...
       logger.info("Enabling Kobo @ 32bpp BGR tweaks")
-      self.hasBGRFrameBuffer = yes
+      self.hasBGRFrameBuffer = util.yes
     end
   end
 
@@ -839,16 +839,16 @@ function Kobo:init()
     and self.frontlight_settings
     and self.frontlight_settings.frontlight_mixer
   then
-    self.hasNaturalLightMixer = yes
+    self.hasNaturalLightMixer = util.yes
   end
   -- Ditto
   if self:isMk7() or self:isMTK() then
-    self.canHWDither = yes
+    self.canHWDither = util.yes
   end
 
   -- Enable Kaleido waveform modes on supported devices
   if self:hasColorScreen() and self:isMTK() then
-    self.hasKaleidoWfm = yes
+    self.hasKaleidoWfm = util.yes
   end
 
   -- NOTE: Devices with an AW99703 frontlight PWM controller feature a hardware smooth ramp when setting the frontlight intensity.
@@ -1009,7 +1009,7 @@ function Kobo:init()
   elseif util.pathExists("/sys/devices/platform/pmic_light.1/lit") then
     self.ntx_lit_sysfs_knob = "/sys/devices/platform/pmic_light.1/lit"
   else
-    self.canToggleChargingLED = no
+    self.canToggleChargingLED = util.no
   end
 
   -- Switch to the simple standard implementation if available
@@ -1042,7 +1042,7 @@ function Kobo:init()
   if self.canStandby() and (self:isMk7() or self:isSunxi()) then
     -- NOTE: Do *NOT* enable this on MTK. What happens if you do can only be described as "shit hits the fan".
     --     (Nickel doesn't).
-    self.canPowerSaveWhileCharging = yes
+    self.canPowerSaveWhileCharging = util.yes
   end
 
   -- Check if the device has a Neonode IR grid (to tone down the chatter on resume ;)).

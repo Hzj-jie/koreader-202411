@@ -284,14 +284,14 @@ function Device:init()
     android.lib.AConfiguration_getKeyboard(android.app.config)
     == C.ACONFIGURATION_KEYBOARD_QWERTY
   then
-    self.hasKeyboard = yes
+    self.hasKeyboard = util.yes
   end
   -- check if we have a touchscreen
   if
     android.lib.AConfiguration_getTouchscreen(android.app.config)
     ~= C.ACONFIGURATION_TOUCHSCREEN_NOTOUCH
   then
-    self.isTouchDevice = yes
+    self.isTouchDevice = util.yes
   end
 
   -- check if we use custom timeouts
