@@ -441,7 +441,7 @@ function UIManager:setDirty(widget, refreshMode, region)
       -- Indeed it shouldn't be necessary to provide extra function if a widget
       -- will be repainted, but anyway, it's how most of the logic is
       -- implemented now.
-      self:setDirty(widget, "fast")
+      self:setDirty(widget)
     end
     table.insert(self._refresh_func_stack, function()
       local m, r, d = refreshMode()
@@ -462,7 +462,7 @@ function UIManager:setDirty(widget, refreshMode, region)
     return
   end
   if widget == "all" then
-    self:scheduleRepaintAll(refreshMode)
+    self:scheduleRepaintAll()
     return
   end
   widget._refreshMode = refreshMode or widget._refreshMode
@@ -1472,23 +1472,10 @@ function UIManager:handleInput()
   end
 end
 
--- If a function works with widget, it should use widget:refreshMode(). But this
--- function is special, cause it goes through all the widgets. If their
--- refreshMode()s are considered, it would almost always end up with "full".
-function UIManager:scheduleRepaintAll(refreshMode)
-  local dithered = false
+function UIManager:scheduleRepaintAll()
   for _, window in ipairs(self._window_stack) do
     self._dirty[window.widget] = true
-    if window.widget.dithered then
-      -- NOTE: That works when refreshtype is NOT a function,
-      --     which is why _repaint does another pass of this check ;).
-      logger.dbg(
-        "setDirty on all widgets: found a dithered widget, infecting the refresh queue"
-      )
-      refreshdither = true
-    end
   end
-  self:scheduleRefresh(refreshMode, nil, dithered)
 end
 
 function UIManager:onRotation()
