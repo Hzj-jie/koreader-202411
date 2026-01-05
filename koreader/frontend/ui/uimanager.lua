@@ -441,7 +441,12 @@ function UIManager:setDirty(widget, refreshMode, region)
       -- Indeed it shouldn't be necessary to provide extra function if a widget
       -- will be repainted, but anyway, it's how most of the logic is
       -- implemented now.
-      self:setDirty(widget)
+      if widget == "all" then
+        self:scheduleRepaintAll()
+      else
+        widget.delay_refresh = true
+        self:scheduleWidgetRepaint(widget)
+      end
     end
     table.insert(self._refresh_func_stack, function()
       local m, r, d = refreshMode()
@@ -466,6 +471,7 @@ function UIManager:setDirty(widget, refreshMode, region)
     return
   end
   widget._refreshMode = refreshMode or widget._refreshMode
+  widget.dirty_dimen = region or widget.dirty_dimen
   self:scheduleWidgetRepaint(widget)
 end
 --[[
@@ -955,6 +961,11 @@ function UIManager:_scheduleRefreshWindowWidget(window, widget)
   widget = widget or window.widget
   assert(widget ~= nil)
   if widget.invisible then
+    return
+  end
+  -- A dirty hack to workaround the :setDirty calls.
+  if widget.delay_refresh then
+    widget.delay_refresh = nil
     return
   end
 
