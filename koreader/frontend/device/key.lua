@@ -24,6 +24,25 @@ function Key:__tostring()
   return table.concat(self:getSequence(), "-")
 end
 
+function Key:hasModifiers()
+  for _, pressed in pairs(self.modifiers) do
+    if pressed then
+      return true
+    end
+  end
+  return false
+end
+
+function Key:hasMultipleModifiers()
+  local r = 0
+  for _, pressed in pairs(self.modifiers) do
+    if pressed then
+      r = r + 1
+    end
+  end
+  return r >= 2
+end
+
 --[[
 get a sequence that can be matched against later
 

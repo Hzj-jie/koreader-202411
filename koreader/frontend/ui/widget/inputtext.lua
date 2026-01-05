@@ -672,23 +672,8 @@ local sym_key_map = {
   ["AA"] = ";",
 }
 
--- Handle real keypresses from a physical keyboard, even if the virtual keyboard
--- is shown. Mostly likely to be in the emulator, but could be Android + BT
--- keyboard, or a "coder's keyboard" Android input method.
-function InputText:onKeyPress(key)
-  -- only handle key on focused status, otherwise there are more than one InputText
-  -- the first one always handle key pressed
-  if not self.focused then
-    return false
-  end
-  local handled = true
-
-  if
-    not key["Ctrl"]
-    and not key["Shift"]
-    and not key["Alt"]
-    and not key["ScreenKB"]
-  then
+function InputText:_handleControlKeys(key)
+  if not key:hasModifiers() then
     if key["Backspace"] then
       self:delChar()
     elseif key["Del"] then
@@ -728,7 +713,7 @@ function InputText:onKeyPress(key)
         self:unfocus()
       end
     else
-      handled = false
+      return false
     end
   elseif key["Ctrl"] and not key["Shift"] and not key["Alt"] then
     if key["U"] then
@@ -736,15 +721,21 @@ function InputText:onKeyPress(key)
     elseif key["H"] then
       self:delChar()
     else
-      handled = false
+      return false
     end
   else
-    handled = false
+    return false
   end
-  -- This primarily targets Kindle. When a virtual keyboard is shown on screen, mod+dpad allows controlling the cursor, as dpad alone
-  -- (see previous ‘if’) is now occupied handling the virtual keyboard.
-  if not handled and (key["ScreenKB"] or key["Shift"]) then
-    handled = true
+  return true
+end
+
+-- This primarily targets Kindle. When a virtual keyboard is shown on screen,
+-- mod+dpad allows controlling the cursor, as dpad alone (see previous ‘if’) is
+-- now occupied handling the virtual keyboard.
+function InputText:_handleKindleControlKeys(key)
+  -- Use Device:has* to differentiate models, it's less ideal, but creating too
+  -- many Device:has* functions is also less ideal.
+  if key["ScreenKB"] or key["Shift"] then
     if key["Back"] and Device:hasScreenKB() then
       self:delChar()
     elseif key["Back"] and Device:hasSymKey() then
@@ -769,39 +760,37 @@ function InputText:onKeyPress(key)
       -- Kindle does not have a dedicated button for commas
       self:addChars(",")
     else
-      handled = false
+      return false
     end
+  else
+    return false
   end
-  if not handled and Device:hasSymKey() then
-    handled = true
+  return true
+end
+
+function InputText:_handleSymKeyMap(key)
+  -- Do not match Shift + Sym + 'Alphabet keys'
+  if key["Sym"] and not key["Shift"] then
+    -- Imply Device:hasSymKey()
     local symkey = sym_key_map[key.key]
-    -- Do not match Shift + Sym + 'Alphabet keys'
-    if symkey and key.modifiers["Sym"] and not key.modifiers["Shift"] then
+    if symkey then
       self:addChars(symkey)
     else
-      handled = false
+      return false
     end
+  else
+    return false
   end
-  if not handled and Device:hasDPad() then
-    -- FocusManager may turn on alternative key maps.
-    -- These key map maybe single text keys.
-    -- It will cause unexpected focus move instead of enter text to InputText
-    if not FocusManagerInstance then
-      FocusManagerInstance = FocusManager:new({})
-    end
-    local is_alternative_key = FocusManagerInstance:isAlternativeKey(key)
-    if not is_alternative_key and Device:isSDL() then
-      -- SDL already insert char via TextInput event
-      -- Stop event propagate to FocusManager
-      return true
-    end
+  return true
+end
+
+function InputText:_handleChar(key)
+  assert(not Device:isSDL())
+  -- A dirty hack to select devices with some keys.
+  if Device:hasDPad() then
     -- if it is single text char, insert it
-    local key_code = key.key -- is in upper case
-    if not Device.isSDL() and #key_code == 1 then
-      if key["Shift"] and key["Alt"] and key["G"] then
-        -- Allow the screenshot keyboard-shortcut to work when focus is on InputText
-        return false
-      end
+    if #key_code == 1 then
+      local key_code = key.key -- is in upper case
       if not key["Shift"] then
         key_code = string.lower(key_code)
       end
@@ -813,11 +802,57 @@ function InputText:onKeyPress(key)
       self:addChars(key_code)
       return true
     end
-    if is_alternative_key then
+    -- FocusManager may turn on alternative key maps.
+    -- These key map maybe single text keys.
+    -- It will cause unexpected focus move instead of enter text to InputText
+    if not FocusManagerInstance then
+      FocusManagerInstance = FocusManager:new({})
+    end
+    if FocusManagerInstance:isAlternativeKey(key) then
       return true -- Stop event propagate to FocusManager to void focus move
     end
   end
-  return handled
+  return false
+end
+
+-- Handle real keypresses from a physical keyboard, even if the virtual keyboard
+-- is shown. Mostly likely to be in the emulator, but could be Android + BT
+-- keyboard, or a "coder's keyboard" Android input method.
+function InputText:onKeyPress(key)
+  -- only handle key on focused status, otherwise there are more than one InputText
+  -- the first one always handle key pressed
+  if not self.focused then
+    return false
+  end
+
+  -- Allow other components to register multiple-modifier shortcuts.
+  if key:hasMultipleModifiers() then
+    return false
+  end
+
+  if self:_handleControlKeys(key) then
+    return true
+  end
+
+  if self:_handleKindleControlKeys(key) then
+    return true
+  end
+
+  if self:_handleSymKeyMap(key) then
+    return true
+  end
+
+  if Device:isSDL() then
+    -- SDL already insert char via TextInput event, stop event propagate to
+    -- FocusManager.
+    return true
+  end
+
+  if self:_handleChar(key) then
+    return true
+  end
+
+  return false
 end
 
 -- Handle text coming directly as text from the Device layer (eg. soft keyboard
