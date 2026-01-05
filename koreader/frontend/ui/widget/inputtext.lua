@@ -641,7 +641,40 @@ end
 --       * K3 does not have numeric keys (top row) and,
 --       * we want to prioritise the most-likely-used characters for "style tweaks" and note taking
 --       (in English, sorry everybody else, there are just not enough keys)
-local sym_key_map = {
+local sym_key_map = ((Device.model == "KindleDXG" or Device.model == "Kindle2") and {
+  -- Kindle DX and Kindle 2 are sharing the same Device.model, but Kindle 2 does
+  -- have physical number keys, so it doesn't matter too much to shift the keys
+  ["Q"] = "1",
+  ["W"] = "2",
+  ["E"] = "3",
+  ["R"] = "4",
+  ["T"] = "5",
+  ["Y"] = "6",
+  ["U"] = "7",
+  ["I"] = "8",
+  ["O"] = "9",
+  ["P"] = "0",
+  ["A"] = "!",
+  ["S"] = "@",
+  ["D"] = "#",
+  ["F"] = "$",
+  ["G"] = "%",
+  ["H"] = "^",
+  ["J"] = "&",
+  ["K"] = "*",
+  ["L"] = "(",
+  ["Del"] = ")",
+  ["Z"] = "-",
+  ["X"] = "_",
+  ["C"] = "+",
+  ["V"] = "=",
+  ["B"] = "[",
+  ["N"] = "]",
+  ["M"] = "{",
+  ["."] = "}",
+  ["/"] = "?",
+}
+or {
   ["Q"] = "!",
   ["W"] = "?",
   ["E"] = "-",
@@ -670,7 +703,7 @@ local sym_key_map = {
   ["M"] = "3",
   ["."] = ":",
   ["AA"] = ";",
-}
+})
 
 function InputText:_handleControlKeys(key)
   if not key:hasModifiers() then
