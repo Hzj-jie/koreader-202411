@@ -123,7 +123,7 @@ function Cervantes:init()
     and self.frontlight_settings
     and self.frontlight_settings.frontlight_mixer
   then
-    self.hasNaturalLightMixer = yes
+    self.hasNaturalLightMixer = util.yes
   end
 
   self.powerd = require("device/cervantes/powerd"):new({ device = self })

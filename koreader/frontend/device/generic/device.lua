@@ -317,7 +317,7 @@ function Device:init()
 
   -- Can't be seamless if you can't do it at all ;)
   if not self:hasWifiToggle() then
-    self.hasSeamlessWifiToggle = no
+    self.hasSeamlessWifiToggle = util.no
   end
 end
 
@@ -569,16 +569,16 @@ function Device:lockGSensor(toggle)
 
   if toggle == true then
     -- Lock GSensor to current roientation
-    self.isGSensorLocked = yes
+    self.isGSensorLocked = util.yes
   elseif toggle == false then
     -- Unlock GSensor
-    self.isGSensorLocked = no
+    self.isGSensorLocked = util.no
   else
     -- Toggle it
     if self:isGSensorLocked() then
-      self.isGSensorLocked = no
+      self.isGSensorLocked = util.no
     else
-      self.isGSensorLocked = yes
+      self.isGSensorLocked = util.yes
     end
   end
 end

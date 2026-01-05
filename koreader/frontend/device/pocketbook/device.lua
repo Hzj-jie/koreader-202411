@@ -117,12 +117,12 @@ function PocketBook:init()
       fb.forced_rotation = self.usingForcedRotation()
       -- Tweak combination of alwaysPortrait/hwRot/hwInvert flags depending on probed HW and wf settings.
       if fb:isB288() then
-        self.isB288SoC = yes
+        self.isB288SoC = util.yes
 
         -- Allow bypassing the bans for debugging purposes...
         if G_reader_settings:nilOrFalse("pb_ignore_b288_quirks") then
           logger.dbg("mxcfb: Disabling hwinvert on B288 chipset")
-          self.canHWInvert = no
+          self.canHWInvert = util.no
           -- GL16 glitches with hwrot. And apparently with more stuff on newer FW (#7663)
           logger.dbg("mxcfb: Disabling hwrot on B288 chipset")
           fb.forced_rotation = nil
@@ -232,7 +232,7 @@ function PocketBook:init()
 
   -- If InkView tells us this device has a gsensor enable the event based functionality
   if inkview.QueryGSensor() ~= 0 then
-    self.hasGSensor = yes
+    self.hasGSensor = util.yes
   end
 
   -- In contrast to kobo/kindle, pocketbook-devices do not use linux/input events directly.
@@ -258,7 +258,7 @@ function PocketBook:init()
     self.input:open(self.input)
     touch_rotation = 0
   else
-    self.canSuspend = yes
+    self.canSuspend = util.yes
   end
   self.powerd = require("device/pocketbook/powerd"):new({ device = self })
   self:setAutoStandby(true)

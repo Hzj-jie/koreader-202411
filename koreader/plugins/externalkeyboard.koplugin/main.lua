@@ -436,7 +436,7 @@ function ExternalKeyboard:setupKeyboard(data)
     )
 
     if keyboard_info.has_dpad then
-      has_dpad_func = yes
+      has_dpad_func = util.yes
     end
   end
 
@@ -461,9 +461,9 @@ function ExternalKeyboard:setupKeyboard(data)
     require("plugins/externalkeyboard.koplugin/event_map_keyboard")
   )
   Device.input.event_map = event_map
-  Device.hasKeyboard = yes
-  Device.hasKeys = yes
-  Device.hasFewKeys = no
+  Device.hasKeyboard = util.yes
+  Device.hasKeys = util.yes
+  Device.hasFewKeys = util.no
   Device.hasDPad = has_dpad_func
 
   -- Only show this once

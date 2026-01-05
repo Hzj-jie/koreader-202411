@@ -177,15 +177,15 @@ function Device:init()
 
   local touchless = os.getenv("DISABLE_TOUCH") == "1"
   if touchless then
-    self.isTouchDevice = no
+    self.isTouchDevice = util.no
   end
 
   local portrait = os.getenv("EMULATE_READER_FORCE_PORTRAIT")
   if portrait then
-    self.isAlwaysPortrait = yes
+    self.isAlwaysPortrait = util.yes
   end
 
-  self.hasClipboard = yes
+  self.hasClipboard = util.yes
   self.screen = require("ffi/framebuffer_SDL2_0"):new({
     device = self,
     debug = logger.dbg,
@@ -319,7 +319,7 @@ function Device:init()
   self.keyboard_layout = require("device/sdl/keyboard_layout")
 
   if self.input.gameControllerRumble(0, 0, 0) then
-    self.isHapticFeedbackEnabled = yes
+    self.isHapticFeedbackEnabled = util.yes
     self.performHapticFeedback = function(type)
       self.input.gameControllerRumble()
     end
