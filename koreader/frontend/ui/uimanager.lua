@@ -1073,7 +1073,17 @@ function UIManager:_repaintDirtyWidgets()
     local window = self._window_stack[i]
     for _, widget in ipairs(dirty_widgets[i]) do
       logger.dbg("painting widget:", widgetDebugStr(widget))
-      local paint_region = (widget.dimen and cropping_region(widget) or {x = window.x, y = window.y})
+      -- Before the initial paintTo call, widget.dimen isn't available. In the
+      -- case, it's expected to paintTo a showParent which starts from the top
+      -- left of a window.
+      local paint_region = (
+        widget.dimen and cropping_region(widget) or {
+          -- window.x and window.y are never used, but keep the potential logic
+          -- right.
+          x = window.x,
+          y = window.y,
+        }
+      )
       assert(paint_region ~= nil)
       widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
       self:_scheduleRefreshWindowWidget(window, widget)
