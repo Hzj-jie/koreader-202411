@@ -24,23 +24,26 @@ function Key:__tostring()
   return table.concat(self:getSequence(), "-")
 end
 
-function Key:hasModifiers()
-  for _, pressed in pairs(self.modifiers) do
-    if pressed then
-      return true
-    end
-  end
-  return false
-end
-
-function Key:hasMultipleModifiers()
+function Key:numOfModifiers()
   local r = 0
   for _, pressed in pairs(self.modifiers) do
     if pressed then
       r = r + 1
     end
   end
-  return r >= 2
+  return r
+end
+
+function Key:hasModifiers()
+  return self:numOfModifiers() > 0
+end
+
+function Key:hasMultipleModifiers()
+  return self:numOfModifiers() > 1
+end
+
+function Key:hasSingleModifier()
+  return self:numOfModifiers() == 1
 end
 
 --[[

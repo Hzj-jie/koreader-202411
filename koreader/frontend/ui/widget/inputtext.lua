@@ -748,7 +748,10 @@ function InputText:_handleControlKeys(key)
     else
       return false
     end
-  elseif key["Ctrl"] and not key["Shift"] and not key["Alt"] then
+    return true
+  end
+  if key["Ctrl"] then
+    assert(key:hasSingleModifier())
     if key["U"] then
       self:delToStartOfLine()
     elseif key["H"] then
@@ -756,10 +759,9 @@ function InputText:_handleControlKeys(key)
     else
       return false
     end
-  else
-    return false
+    return true
   end
-  return true
+  return false
 end
 
 -- This primarily targets Kindle. When a virtual keyboard is shown on screen,
@@ -795,55 +797,48 @@ function InputText:_handleKindleControlKeys(key)
     else
       return false
     end
-  else
-    return false
+    return true
   end
-  return true
+  return false
 end
 
 function InputText:_handleSymKeyMap(key)
-  -- Do not match Shift + Sym + 'Alphabet keys'
-  if key["Sym"] and not key["Shift"] then
-    -- Imply Device:hasSymKey()
+  -- Imply Device:hasSymKey()
+  if key["Sym"] then
+    assert(key:hasSingleModifier())
     local symkey = sym_key_map[key.key]
     if symkey then
       self:addChars(symkey)
-    else
-      return false
+      return true
     end
-  else
-    return false
   end
-  return true
+  return false
 end
 
 function InputText:_handleChar(key)
   assert(not Device:isSDL())
-  -- A dirty hack to select devices with some keys.
-  if Device:hasDPad() then
-    -- if it is single text char, insert it
-    if #key_code == 1 then
-      local key_code = key.key -- is in upper case
-      if not key["Shift"] then
-        key_code = string.lower(key_code)
+  -- if it is single text char, insert it
+  local key_code = key.key -- is in upper case
+  if #key_code == 1 then
+    assert(key:numOfModifiers() <= 1)
+    if not key["Shift"] then
+      if key:hasSingleModifier() then
+        -- Other modifier: not a single char insert
+        return false
       end
-      for modifier, flag in pairs(key.modifiers) do
-        if modifier ~= "Shift" and flag then -- Other modifier: not a single char insert
-          return true
-        end
-      end
-      self:addChars(key_code)
-      return true
+      key_code = string.lower(key_code)
     end
-    -- FocusManager may turn on alternative key maps.
-    -- These key map maybe single text keys.
-    -- It will cause unexpected focus move instead of enter text to InputText
-    if not FocusManagerInstance then
-      FocusManagerInstance = FocusManager:new({})
-    end
-    if FocusManagerInstance:isAlternativeKey(key) then
-      return true -- Stop event propagate to FocusManager to void focus move
-    end
+    self:addChars(key_code)
+    return true
+  end
+  -- FocusManager may turn on alternative key maps.
+  -- These key map maybe single text keys.
+  -- It will cause unexpected focus move instead of enter text to InputText
+  if not FocusManagerInstance then
+    FocusManagerInstance = FocusManager:new({})
+  end
+  if FocusManagerInstance:isAlternativeKey(key) then
+    return true -- Stop event propagate to FocusManager to void focus move
   end
   return false
 end
