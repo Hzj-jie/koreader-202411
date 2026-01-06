@@ -14,6 +14,128 @@ local _ = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 
+-- When a mode is not supported by the hardware, the next level will be
+-- automatically used.
+
+-- precedence of refresh modes:
+local refresh_modes = {
+  -- Break grayscale on kobo aura hd and kindles, very likely shouldn't be used
+  -- at all. Supported by sunxi and mxcfb.
+  a2 = 1,
+  -- The dirtiest way of changing the display, but unlike a2, it at least keeps
+  -- everything readable, but the grayscale may not be very accurate. Supported
+  -- by pocketbook, sunxi, android and mxcfb.
+  fast = 2,
+  -- The default way of showing anything related to the ui. Supported by
+  -- pocketbook, sunxi, android and mxcfb.
+  ui = 3,
+  -- Allow partially updating the screen without flashing the screen. Supported
+  -- by pocketbook, sunxi, android, mxcfb and einkfb.
+  partial = 4,
+  -- Useless, supported only by sunxi.
+  ["[ui]"] = 5,
+  -- Useless, supported only by sunxi.
+  ["[partial]"] = 6,
+  -- UI + a screen flashing, cause flickering, clean the black areas.
+  -- Supported by pocketbook, sunxi, android and mxcfb.
+  flashui = 7,
+  -- Partial + a screen flashing, cause flickering, clean the black areas.
+  -- Supported by pocketbook, sunxi, android and mxcfb.
+  flashpartial = 8,
+  -- A full screen flashing, cause flickering, clean the black areas.
+  -- Supported by pocketbook, sunxi, android, mxcfb and einkfb.
+  full = 9,
+}
+-- NOTE: We might want to introduce a "force_a2" that points to fast, but has the highest priority,
+--     for the few cases where we might *really* want to enforce fast (for stuff like panning or skimming?).
+-- refresh methods in framebuffer implementation
+local refresh_methods = {
+  a2 = Screen.refreshA2,
+  fast = Screen.refreshFast,
+  ui = Screen.refreshUI,
+  partial = Screen.refreshPartial,
+  ["[ui]"] = Screen.refreshNoMergeUI,
+  ["[partial]"] = Screen.refreshNoMergePartial,
+  flashui = Screen.refreshFlashUI,
+  flashpartial = Screen.refreshFlashPartial,
+  full = Screen.refreshFull,
+}
+
+local function widgetDebugStr(widget)
+  assert(widget ~= nil)
+  return widget.name or widget.id or tostring(widget)
+end
+
+--[[
+Compares refresh mode.
+
+Will return the mode that takes precedence.
+]]
+local function update_mode(mode1, mode2)
+  if refresh_modes[mode1] > refresh_modes[mode2] then
+    logger.dbg("update_mode: Update refresh mode", mode2, "to", mode1)
+    return mode1
+  else
+    return mode2
+  end
+end
+
+--[[
+Compares dither hints.
+
+Dither always wins.
+]]
+local function update_dither(dither1, dither2)
+  if dither1 and not dither2 then
+    logger.dbg("update_dither: Update dither hint", dither2, "to", dither1)
+    return dither1
+  else
+    return dither2
+  end
+end
+
+local function cropping_region(widget, x, y, w, h)
+  assert(widget ~= nil)
+  -- It's possible that the function is called before the paintTo call.
+  if widget.dimen then
+    x = x or widget.dimen.x
+    y = y or widget.dimen.y
+    w = w or widget.dimen.w
+    h = h or widget.dimen.h
+  end
+
+  if not x or not y or not w or not h then
+    logger.warn(
+      "Cannot calculate cropping region of widget ",
+      widgetDebugStr(widget),
+      " without its dimen."
+    )
+    return nil
+  end
+
+  local window = widget:window()
+  if window then
+    x = x + window.x
+    y = y + window.y
+    local parent = window.widget
+    if parent and parent.cropping_widget then
+      -- The main widget parent of this subwidget has a cropping container: see if
+      -- this widget is a child of this cropping container
+      local cropping_widget = parent.cropping_widget
+      if util.arrayDfSearch(cropping_widget, widget) then
+        -- Invert only what intersects with the cropping container
+        return cropping_widget:getCropRegion():intersect(Geom:new({
+          x = x,
+          y = y,
+          w = w,
+          h = h,
+        }))
+      end
+    end
+  end
+  return Geom:new({ x = x, y = y, w = w, h = h })
+end
+
 -- This is a singleton
 local UIManager = {
   FULL_REFRESH_COUNT = G_named_settings.default.full_refresh_count(),
@@ -116,11 +238,6 @@ function UIManager:setIgnoreTouchInput(state)
   InputContainer:setIgnoreTouchInput(state)
 end
 
-function UIManager:_widgetDebugStr(widget)
-  assert(widget ~= nil)
-  return widget.name or widget.id or tostring(widget)
-end
-
 --[[--
 Registers and shows a widget.
 
@@ -144,7 +261,7 @@ function UIManager:show(widget)
   end
   assert(not self:isWidgetShown(widget))
 
-  logger.dbg("show widget:", self:_widgetDebugStr(widget))
+  logger.dbg("show widget:", widgetDebugStr(widget))
 
   -- The window x and y are never used.
   local window = { x = 0, y = 0, widget = widget }
@@ -202,14 +319,14 @@ function UIManager:close(widget)
   if not UIManager:isWidgetShown(widget) then
     logger.warn(
       "FixMe: widget "
-        .. self:_widgetDebugStr(widget)
+        .. widgetDebugStr(widget)
         .. " has been closed already. "
         .. debug.traceback()
     )
     return
   end
 
-  logger.dbg("close widget:", self:_widgetDebugStr(widget))
+  logger.dbg("close widget:", widgetDebugStr(widget))
   -- First notify the closed widget to save its settings...
   widget:broadcastEvent(Event:new("FlushSettings"))
   -- ...and notify it that it ought to be gone now.
@@ -238,7 +355,7 @@ function UIManager:close(widget)
       if w.dithered then
         logger.dbg(
           "Lower widget",
-          self:_widgetDebugStr(w),
+          widgetDebugStr(w),
           "was dithered, honoring the dithering hint"
         )
       end
@@ -823,81 +940,6 @@ function UIManager:timeSinceLastUserAction()
   return self:getElapsedTimeSinceBoot() - self:lastUserActionTime()
 end
 
--- When a mode is not supported by the hardware, the next level will be
--- automatically used.
-
--- precedence of refresh modes:
-local refresh_modes = {
-  -- Break grayscale on kobo aura hd and kindles, very likely shouldn't be used
-  -- at all. Supported by sunxi and mxcfb.
-  a2 = 1,
-  -- The dirtiest way of changing the display, but unlike a2, it at least keeps
-  -- everything readable, but the grayscale may not be very accurate. Supported
-  -- by pocketbook, sunxi, android and mxcfb.
-  fast = 2,
-  -- The default way of showing anything related to the ui. Supported by
-  -- pocketbook, sunxi, android and mxcfb.
-  ui = 3,
-  -- Allow partially updating the screen without flashing the screen. Supported
-  -- by pocketbook, sunxi, android, mxcfb and einkfb.
-  partial = 4,
-  -- Useless, supported only by sunxi.
-  ["[ui]"] = 5,
-  -- Useless, supported only by sunxi.
-  ["[partial]"] = 6,
-  -- UI + a screen flashing, cause flickering, clean the black areas.
-  -- Supported by pocketbook, sunxi, android and mxcfb.
-  flashui = 7,
-  -- Partial + a screen flashing, cause flickering, clean the black areas.
-  -- Supported by pocketbook, sunxi, android and mxcfb.
-  flashpartial = 8,
-  -- A full screen flashing, cause flickering, clean the black areas.
-  -- Supported by pocketbook, sunxi, android, mxcfb and einkfb.
-  full = 9,
-}
--- NOTE: We might want to introduce a "force_a2" that points to fast, but has the highest priority,
---     for the few cases where we might *really* want to enforce fast (for stuff like panning or skimming?).
--- refresh methods in framebuffer implementation
-local refresh_methods = {
-  a2 = Screen.refreshA2,
-  fast = Screen.refreshFast,
-  ui = Screen.refreshUI,
-  partial = Screen.refreshPartial,
-  ["[ui]"] = Screen.refreshNoMergeUI,
-  ["[partial]"] = Screen.refreshNoMergePartial,
-  flashui = Screen.refreshFlashUI,
-  flashpartial = Screen.refreshFlashPartial,
-  full = Screen.refreshFull,
-}
-
---[[
-Compares refresh mode.
-
-Will return the mode that takes precedence.
-]]
-local function update_mode(mode1, mode2)
-  if refresh_modes[mode1] > refresh_modes[mode2] then
-    logger.dbg("update_mode: Update refresh mode", mode2, "to", mode1)
-    return mode1
-  else
-    return mode2
-  end
-end
-
---[[
-Compares dither hints.
-
-Dither always wins.
-]]
-local function update_dither(dither1, dither2)
-  if dither1 and not dither2 then
-    logger.dbg("update_dither: Update dither hint", dither2, "to", dither1)
-    return dither1
-  else
-    return dither2
-  end
-end
-
 function UIManager:forceFastRefresh()
   self._force_fast_refresh = true
 end
@@ -1005,7 +1047,7 @@ function UIManager:_repaintDirtyWidgets()
       -- TODO: Should assert.
       logger.warn(
         "Unknown widget ",
-        self:_widgetDebugStr(w),
+        widgetDebugStr(w),
         " to repaint, it may not be shown yet, or you may want to send in the ",
         "show(widget) instead."
       )
@@ -1030,8 +1072,10 @@ function UIManager:_repaintDirtyWidgets()
   for i = 1, #self._window_stack do
     local window = self._window_stack[i]
     for _, widget in ipairs(dirty_widgets[i]) do
-      logger.dbg("painting widget:", self:_widgetDebugStr(widget))
-      widget:paintTo(Screen.bb, window.x, window.y)
+      logger.dbg("painting widget:", widgetDebugStr(widget))
+      local paint_region = (widget.dimen and cropping_region(widget) or {x = window.x, y = window.y})
+      assert(paint_region ~= nil)
+      widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
       self:_scheduleRefreshWindowWidget(window, widget)
     end
   end
@@ -1248,43 +1292,6 @@ function UIManager:scheduleWidgetRepaint(widget)
   return true
 end
 
-local function cropping_region(widget, x, y, w, h)
-  assert(widget ~= nil)
-  -- It's possible that the function is called before the paintTo call.
-  if widget.dimen then
-    x = x or widget.dimen.x
-    y = y or widget.dimen.y
-    w = w or widget.dimen.w
-    h = h or widget.dimen.h
-  end
-
-  if not x or not y or not w or not h then
-    logger.warn(
-      "Cannot calculate cropping region of widget ",
-      self:_widgetDebugStr(widget),
-      " without its dimen."
-    )
-    return nil
-  end
-
-  local p = widget:showParent()
-  if p and p.cropping_widget then
-    -- The main widget parent of this subwidget has a cropping container: see if
-    -- this widget is a child of this cropping container
-    local cropping_widget = p.cropping_widget
-    if util.arrayDfSearch(cropping_widget, widget) then
-      -- Invert only what intersects with the cropping container
-      return cropping_widget:getCropRegion():intersect(Geom:new({
-        x = x,
-        y = y,
-        w = w,
-        h = h,
-      }))
-    end
-  end
-  return Geom:new({ x = x, y = y, w = w, h = h })
-end
-
 --[[--
 Immediately repaint the widget, relying on the widget.dimen. The widget doesn't
 need to be in the _window_stack, i.e. not a show(widget).
@@ -1331,7 +1338,7 @@ function UIManager:invertWidget(widget, x, y, w, h)
     return
   end
 
-  logger.dbg("Explicit widgetInvert:", self:_widgetDebugStr(widget), "@", x, y)
+  logger.dbg("Explicit widgetInvert:", widgetDebugStr(widget), "@", x, y)
   Screen.bb:invertRect(
     invert_region.x,
     invert_region.y,
