@@ -634,13 +634,6 @@ function ReaderUI:init()
   ReaderUI.instance = self
 end
 
-function ReaderUI:dirtyDimen()
-  -- TODO: This needs optimization.
-  -- Now UIManager:setDirty set the dirty_dimen, but abuses like highlight
-  -- which setDirty of ReaderUI and breaks the logic.
-  return self.dimen
-end
-
 function ReaderUI:registerKeyEvents()
   if Device:hasKeys() then
     self.key_events.Home = { { "Home" } }

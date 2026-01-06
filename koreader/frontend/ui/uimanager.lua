@@ -432,6 +432,18 @@ dbg:guard(UIManager, "unschedule", function(self, action)
   assert(action ~= nil)
 end)
 
+function UIManager:_scheduleWidgetRefresh(widget, mode, region, dithered)
+  if type(widget) == "table" then
+    mode = mode or widget:refreshMode()
+    region = region or widget:dirtyDimen()
+    -- Avoid treating false wrongly.
+    if dithered == nil then
+      dithered = widget.dithered
+    end
+  end
+  self:scheduleRefresh(mode, region, dithered)
+end
+
 -- A workaround to handle most of the existing logic
 function UIManager:setDirty(widget, refreshMode, region)
   if type(refreshMode) == "function" then
@@ -450,16 +462,7 @@ function UIManager:setDirty(widget, refreshMode, region)
     end
     table.insert(self._refresh_func_stack, function()
       local m, r, d = refreshMode()
-      r = r or region
-      if type(widget) == "table" then
-        m = m or widget:refreshMode()
-        r = r or widget:dirtyDimen()
-        -- Avoid treating false wrongly.
-        if d == nil then
-          d = widget.dithered
-        end
-      end
-      self:scheduleRefresh(m, r, d)
+      self:_scheduleWidgetRefresh(widget, m, r, d)
     end)
     return
   end
@@ -471,9 +474,9 @@ function UIManager:setDirty(widget, refreshMode, region)
     self:scheduleRepaintAll()
     return
   end
-  widget._refresh_mode = refreshMode or widget._refresh_mode
-  widget.dirty_dimen = region or widget.dirty_dimen
+  widget.delay_refresh = true
   self:scheduleWidgetRepaint(widget)
+  self:_scheduleWidgetRefresh(widget, refreshMode, region)
 end
 --[[
 -- NOTE: While nice in theory, this is *extremely* verbose in practice,
