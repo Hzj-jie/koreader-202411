@@ -763,7 +763,10 @@ function InputText:onKeyPress(key)
     else
       handled = false
     end
-  elseif key["Ctrl"] and not key["Shift"] and not key["Alt"] then
+    return true
+  end
+  if key["Ctrl"] then
+    assert(key:hasSingleModifier())
     if key["U"] then
       self:delToStartOfLine()
     elseif key["H"] then
@@ -771,13 +774,18 @@ function InputText:onKeyPress(key)
     else
       handled = false
     end
-  else
-    handled = false
+    return true
   end
-  -- This primarily targets Kindle. When a virtual keyboard is shown on screen, mod+dpad allows controlling the cursor, as dpad alone
-  -- (see previous ‘if’) is now occupied handling the virtual keyboard.
-  if not handled and (key["ScreenKB"] or key["Shift"]) then
-    handled = true
+  return false
+end
+
+-- This primarily targets Kindle. When a virtual keyboard is shown on screen,
+-- mod+dpad allows controlling the cursor, as dpad alone (see previous ‘if’) is
+-- now occupied handling the virtual keyboard.
+function InputText:_handleKindleControlKeys(key)
+  -- Use Device:has* to differentiate models, it's less ideal, but creating too
+  -- many Device:has* functions is also less ideal.
+  if key["ScreenKB"] or key["Shift"] then
     if key["Back"] and Device:hasScreenKB() then
       self:delChar()
     elseif key["Back"] and Device:hasSymKey() then
@@ -804,51 +812,49 @@ function InputText:onKeyPress(key)
     else
       handled = false
     end
+    return true
   end
-  if not handled and Device:hasSymKey() then
-    handled = true
+  return false
+end
+
+function InputText:_handleSymKeyMap(key)
+  -- Imply Device:hasSymKey()
+  if key["Sym"] then
+    assert(key:hasSingleModifier())
     local symkey = sym_key_map[key.key]
     -- Do not match Shift + Sym + 'Alphabet keys'
     if symkey and key.modifiers["Sym"] and not key.modifiers["Shift"] then
       self:addChars(symkey)
-    else
-      handled = false
+      return true
     end
   end
-  if not handled and Device:hasDPad() then
-    -- FocusManager may turn on alternative key maps.
-    -- These key map maybe single text keys.
-    -- It will cause unexpected focus move instead of enter text to InputText
-    if not FocusManagerInstance then
-      FocusManagerInstance = FocusManager:new({})
-    end
-    local is_alternative_key = FocusManagerInstance:isAlternativeKey(key)
-    if not is_alternative_key and Device:isSDL() then
-      -- SDL already insert char via TextInput event
-      -- Stop event propagate to FocusManager
-      return true
-    end
-    -- if it is single text char, insert it
-    local key_code = key.key -- is in upper case
-    if not Device.isSDL() and #key_code == 1 then
-      if key["Shift"] and key["Alt"] and key["G"] then
-        -- Allow the screenshot keyboard-shortcut to work when focus is on InputText
+  return false
+end
+
+function InputText:_handleChar(key)
+  assert(not Device:isSDL())
+  -- if it is single text char, insert it
+  local key_code = key.key -- is in upper case
+  if #key_code == 1 then
+    assert(key:numOfModifiers() <= 1)
+    if not key["Shift"] then
+      if key:hasSingleModifier() then
+        -- Other modifier: not a single char insert
         return false
       end
-      if not key["Shift"] then
-        key_code = string.lower(key_code)
-      end
-      for modifier, flag in pairs(key.modifiers) do
-        if modifier ~= "Shift" and flag then -- Other modifier: not a single char insert
-          return true
-        end
-      end
-      self:addChars(key_code)
-      return true
+      key_code = string.lower(key_code)
     end
-    if is_alternative_key then
-      return true -- Stop event propagate to FocusManager to void focus move
-    end
+    self:addChars(key_code)
+    return true
+  end
+  -- FocusManager may turn on alternative key maps.
+  -- These key map maybe single text keys.
+  -- It will cause unexpected focus move instead of enter text to InputText
+  if not FocusManagerInstance then
+    FocusManagerInstance = FocusManager:new({})
+  end
+  if FocusManagerInstance:isAlternativeKey(key) then
+    return true -- Stop event propagate to FocusManager to void focus move
   end
   return handled
 end

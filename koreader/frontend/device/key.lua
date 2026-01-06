@@ -24,6 +24,28 @@ function Key:__tostring()
   return table.concat(self:getSequence(), "-")
 end
 
+function Key:numOfModifiers()
+  local r = 0
+  for _, pressed in pairs(self.modifiers) do
+    if pressed then
+      r = r + 1
+    end
+  end
+  return r
+end
+
+function Key:hasModifiers()
+  return self:numOfModifiers() > 0
+end
+
+function Key:hasMultipleModifiers()
+  return self:numOfModifiers() > 1
+end
+
+function Key:hasSingleModifier()
+  return self:numOfModifiers() == 1
+end
+
 --[[
 get a sequence that can be matched against later
 
