@@ -229,13 +229,6 @@ function InputDialog:init()
   if self.fullscreen or self.add_nav_bar then
     self.deny_keyboard_hiding = true
   end
-  if
-    (Device:hasKeyboard() or Device:hasScreenKB())
-    and G_reader_settings:isFalse("virtual_keyboard_enabled")
-  then
-    self.keyboard_visible = false
-    self.skip_first_show_keyboard = true
-  end
 
   -- Title & description
   self.title_bar = TitleBar:new({
@@ -619,6 +612,15 @@ function InputDialog:setAllowNewline(allow)
 end
 
 function InputDialog:onShow()
+  if
+    (Device:hasKeyboard() or Device:hasScreenKB())
+    and G_reader_settings:isFalse("virtual_keyboard_enabled")
+  then
+    self:closeKeyboard()
+  else
+    self:showKeyboard(self.ignore_first_hold_release)
+  end
+
   UIManager:setDirty(self, function()
     return "ui", self.dialog_frame.dimen
   end)
@@ -632,11 +634,6 @@ function InputDialog:onClose()
 end
 
 function InputDialog:showKeyboard(ignore_first_hold_release)
-  -- Don't initiate virtual keyboard when user has a physical keyboard and G_setting(vk_enabled) unchecked.
-  if self.skip_first_show_keyboard then
-    self.skip_first_show_keyboard = nil
-    return
-  end
   -- NOTE: There's no VirtualKeyboard widget instantiated at all when readonly,
   --       and our input widget handles that itself, so we don't need any guards here.
   --       (In which case, isKeyboardVisible will return `nil`, same as if we had a VK instantiated but *never* shown).

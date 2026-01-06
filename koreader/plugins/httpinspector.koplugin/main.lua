@@ -1562,7 +1562,6 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
             },
           })
           UIManager:show(port_dialog)
-          port_dialog:showKeyboard()
         end,
       },
     },

@@ -604,7 +604,6 @@ function FileManagerCollection:editCollectionName(editCallback, old_name)
     },
   })
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
 end
 
 function FileManagerCollection:addCollection()

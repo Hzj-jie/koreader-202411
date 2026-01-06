@@ -602,7 +602,6 @@ function BookStatusWidget:onSwitchFocus(inputbox)
     },
   })
   UIManager:show(self.note_dialog)
-  self.note_dialog:showKeyboard()
 end
 
 function BookStatusWidget:closeInputDialog()

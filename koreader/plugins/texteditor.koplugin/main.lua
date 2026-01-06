@@ -415,7 +415,6 @@ Do you want to proceed?]]),
             },
           })
           UIManager:show(file_input)
-          file_input:showKeyboard()
         end,
       })
       UIManager:show(path_chooser)

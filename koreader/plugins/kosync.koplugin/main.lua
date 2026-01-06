@@ -491,7 +491,6 @@ function KOSync:_login(menu)
       },
     })
     UIManager:show(dialog)
-    dialog:showKeyboard()
   end)
 end
 

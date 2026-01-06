@@ -840,7 +840,6 @@ function NewsDownloader:editFeedAttribute(id, key, value)
       },
     })
     UIManager:show(input_dialog)
-    input_dialog:showKeyboard()
     return true
   else
     local text
@@ -1093,7 +1092,6 @@ function NewsDownloader:changeFeedConfig()
     end,
   })
   UIManager:show(config_editor)
-  config_editor:showKeyboard()
 end
 function NewsDownloader:openDownloadsFolder()
   local FileManager = require("apps/filemanager/filemanager")

@@ -162,7 +162,6 @@ function FileManagerShortcuts:editShortcut(folder, post_callback)
     },
   })
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
 end
 
 function FileManagerShortcuts:addShortcut()

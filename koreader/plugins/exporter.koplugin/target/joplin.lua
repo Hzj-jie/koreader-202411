@@ -278,7 +278,6 @@ function JoplinExporter:getMenuTable()
             },
           })
           UIManager:show(url_dialog)
-          url_dialog:showKeyboard()
         end,
       },
       {
@@ -309,7 +308,6 @@ function JoplinExporter:getMenuTable()
             },
           })
           UIManager:show(auth_dialog)
-          auth_dialog:showKeyboard()
         end,
       },
       {

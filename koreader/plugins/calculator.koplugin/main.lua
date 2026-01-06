@@ -350,9 +350,9 @@ function Calculator:onCalculatorStart()
 
   self.input_dialog =
     self:generateInputDialog(self:expandTabs(self.status_line, expand - 1))
+  self.input_dialog.ignore_first_hold_release = true
 
   UIManager:show(self.input_dialog)
-  self.input_dialog:showKeyboard(true)
 end
 
 function Calculator:load(old_file, file_name)

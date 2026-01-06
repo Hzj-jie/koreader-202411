@@ -530,9 +530,9 @@ function TextViewer:findDialog()
     end,
   })
   input_dialog:addWidget(check_button_case)
+  input_dialog.ignore_first_hold_release = true
 
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard(true)
 end
 
 function TextViewer:findCallback(input_dialog)

@@ -128,7 +128,6 @@ function SetDefaultsWidget:init()
           width = self.dialog_width,
         })
         UIManager:show(set_dialog)
-        set_dialog:showKeyboard()
       end
 
       table.insert(self.menu_entries, {
@@ -189,7 +188,6 @@ function SetDefaultsWidget:init()
           width = self.dialog_width,
         })
         UIManager:show(set_dialog)
-        set_dialog:showKeyboard()
       end
 
       table.insert(self.menu_entries, {
@@ -242,7 +240,6 @@ function SetDefaultsWidget:init()
           width = self.dialog_width,
         })
         UIManager:show(set_dialog)
-        set_dialog:showKeyboard()
       end
 
       table.insert(self.menu_entries, {

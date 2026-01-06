@@ -862,7 +862,6 @@ function ReaderUI:unlockDocumentWithPassword(document, try_again)
     text_type = "password",
   })
   UIManager:show(self.password_dialog)
-  self.password_dialog:showKeyboard()
 end
 
 function ReaderUI:onVerifyPassword(document)

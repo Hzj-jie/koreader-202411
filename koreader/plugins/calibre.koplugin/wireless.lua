@@ -471,7 +471,6 @@ function CalibreWireless:setPassword()
     },
   })
   UIManager:show(password_dialog)
-  password_dialog:showKeyboard()
 end
 
 function CalibreWireless:getDeviceInfo(arg)

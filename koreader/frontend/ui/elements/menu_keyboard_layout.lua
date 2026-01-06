@@ -248,7 +248,6 @@ local sub_item_table = {
       input_dialog:addWidget(check_button_compact)
 
       UIManager:show(input_dialog)
-      input_dialog:showKeyboard()
     end,
   },
 }

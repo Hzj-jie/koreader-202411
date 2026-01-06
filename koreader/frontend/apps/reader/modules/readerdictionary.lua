@@ -795,7 +795,6 @@ function ReaderDictionary:onShowDictionaryLookup()
     },
   })
   UIManager:show(self.dictionary_lookup_dialog)
-  self.dictionary_lookup_dialog:showKeyboard()
   return true
 end
 

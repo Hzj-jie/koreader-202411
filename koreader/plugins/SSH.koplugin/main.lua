@@ -177,7 +177,6 @@ function SSH:show_port_dialog(touchmenu_instance)
     },
   })
   UIManager:show(self.port_dialog)
-  self.port_dialog:showKeyboard()
 end
 
 function SSH:addToMainMenu(menu_items)

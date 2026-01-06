@@ -588,7 +588,6 @@ function BookInfo:showCustomEditDialog(file, book_props, prop_key)
     },
   })
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
 end
 
 function BookInfo:showCustomDialog(file, book_props, prop_key)
@@ -745,8 +744,8 @@ function BookInfo:editSummary(doc_settings_or_file, book_props)
       },
     },
   })
+  input_dialog.ignore_first_hold_release = true
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard(true)
 end
 
 function BookInfo:moveBookMetadata()

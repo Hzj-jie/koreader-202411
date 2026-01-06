@@ -745,7 +745,6 @@ function ReaderFooter:set_custom_text(touchmenu_instance)
     },
   })
   UIManager:show(text_dialog)
-  text_dialog:showKeyboard()
 end
 
 -- Help text string, or function, to be shown, or executed, on a long press on menu item

@@ -566,7 +566,6 @@ function Terminal:onTerminalStart(touchmenu_instance)
   if self:spawnShell(self.maxc, self.maxr) then
     UIManager:show(self.input_dialog)
     UIManager:scheduleIn(0.25, Terminal.refresh, self, true)
-    self.input_dialog:showKeyboard(true)
   end
 end
 
@@ -745,7 +744,6 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             },
           })
           UIManager:show(self.shell_dialog)
-          self.shell_dialog:showKeyboard()
         end,
         keep_menu_open = true,
       },

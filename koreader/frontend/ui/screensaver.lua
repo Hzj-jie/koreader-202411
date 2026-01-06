@@ -384,7 +384,6 @@ Enter a custom message to be displayed on the sleep screen. The following escape
     },
   })
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
 end
 
 function Screensaver:setStretchLimit(touchmenu_instance)
