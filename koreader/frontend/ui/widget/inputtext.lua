@@ -150,9 +150,7 @@ local function initTouchEvents()
       if self.parent.onSwitchFocus then
         self.parent:onSwitchFocus(self)
       else
-        if self.keyboard then
-          self.keyboard:showKeyboard()
-        end
+        self:showKeyboard()
         -- Make sure we're flagged as in focus again.
         -- NOTE: self:focus() does a full free/reinit cycle, which is completely unnecessary to begin with,
         --       *and* resets cursor position, which is problematic when tapping on an already in-focus field (#12444).
@@ -342,15 +340,10 @@ local function initDPadEvents()
       if self.parent.onSwitchFocus then
         self.parent:onSwitchFocus(self)
       elseif
-        (Device:hasKeyboard() or Device:hasScreenKB())
-        and G_reader_settings:isFalse("virtual_keyboard_enabled")
+        (not Device:hasKeyboard() and not Device:hasScreenKB())
+        or G_reader_settings:isFalse("virtual_keyboard_enabled")
       then
-        do
-        end -- luacheck: ignore 541
-      else
-        if not self:isKeyboardVisible() then
-          self:showKeyboard()
-        end
+        self:showKeyboard()
       end
       self:focus()
       return true

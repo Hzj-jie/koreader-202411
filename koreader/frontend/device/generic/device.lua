@@ -36,7 +36,9 @@ local Device = {
   -- hardware feature tests: (these are functions!)
   hasBattery = util.yes,
   hasAuxBattery = util.no,
+  -- Has an almost full keyboard, e.g. Kindle 2, 3, DX and DXG.
   hasKeyboard = util.no,
+  -- Has some physical keys, not include power button.
   hasKeys = util.no,
   hasScreenKB = util.no, -- in practice only some Kindles
   hasSymKey = util.no, -- in practice only some Kindles
@@ -44,6 +46,7 @@ local Device = {
   hasDPad = util.no,
   useDPadAsActionKeys = util.no,
   hasExitOptions = util.yes,
+  -- Has very limited physical keys, used only on pocketbook models.
   hasFewKeys = util.no,
   hasWifiToggle = util.yes,
   hasSeamlessWifiToggle = util.yes, -- Can toggle Wi-Fi without focus loss and extra user interaction (i.e., not Android)
