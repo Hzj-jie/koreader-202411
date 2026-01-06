@@ -496,7 +496,7 @@ local ReaderFooter = WidgetContainer:extend({
   settings = nil, -- table
   -- added to expose them to unit tests
   textGeneratorMap = footerTextGeneratorMap,
-  _refreshMode = "ui",
+  _refresh_mode = "ui",
 })
 
 local DEFAULT_SETTINGS = {

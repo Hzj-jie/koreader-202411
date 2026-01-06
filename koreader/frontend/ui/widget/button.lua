@@ -224,7 +224,7 @@ function Button:init()
     padding_bottom = self.padding_v,
     padding_left = self.padding_h,
     padding_right = self.padding_h,
-    _refreshMode = "fast",
+    _refresh_mode = "fast",
     self.label_container,
   })
   if self.preselect then

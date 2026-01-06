@@ -514,7 +514,7 @@ function VirtualKey:invert(invert)
   -- Only repaint the key itself, not the full board...
   -- NOTE: We use self[1] (i.e., FrameContainer),
   --     because we fudge self.dimen to include the padding for the gesture hitbox...
-  self[1]._refreshMode = "a2"
+  self[1]._refresh_mode = "a2"
   UIManager:repaintWidget(self[1])
   logger.dbg("update key", self.key)
 end

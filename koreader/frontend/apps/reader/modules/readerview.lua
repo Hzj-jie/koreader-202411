@@ -948,9 +948,7 @@ function ReaderView:rotate(mode, old_mode)
     UIManager:setDirty(self.dialog, "full")
   else
     UIManager:setDirty(nil, "full") -- SetDimensions will only request a partial, we want a flash
-    local new_screen_size = Screen:getSize()
-    UIManager:broadcastEvent(Event:new("SetDimensions", new_screen_size))
-    self.ui:onScreenResize(new_screen_size)
+    UIManager:broadcastEvent(Event:new("SetDimensions", Screen:getSize()))
     UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
   end
   Notification:notify(

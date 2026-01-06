@@ -83,6 +83,9 @@ local ReaderUI = InputContainer:extend({
 
   -- password for document unlock
   password = nil,
+
+  -- size
+  dimen = nil,
 })
 
 function ReaderUI:registerModule(name, ui_module)
@@ -94,6 +97,9 @@ function ReaderUI:registerModule(name, ui_module)
 end
 
 function ReaderUI:init()
+  -- Default size
+  self.dimen = Screen:getSize()
+
   -- Show self at the very beginning to ensure all the UIManager:broadcastEvent
   -- in the following calls can be received by ReaderUI modules.
   UIManager:show(self)
@@ -628,6 +634,13 @@ function ReaderUI:init()
   ReaderUI.instance = self
 end
 
+function ReaderUI:dirtyDimen()
+  -- TODO: This needs optimization.
+  -- Now UIManager:setDirty set the dirty_dimen, but abuses like highlight
+  -- which setDirty of ReaderUI and breaks the logic.
+  return self.dimen
+end
+
 function ReaderUI:registerKeyEvents()
   if Device:hasKeys() then
     self.key_events.Home = { { "Home" } }
@@ -872,6 +885,10 @@ end
 function ReaderUI:onScreenResize(dimen)
   self.dimen = dimen
   self:updateTouchZonesOnScreenResize(dimen)
+end
+
+function ReaderUI:onSetDimensions(dimen)
+  self:onScreenResize(dimen)
 end
 
 function ReaderUI:saveSettings()

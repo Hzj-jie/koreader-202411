@@ -451,8 +451,9 @@ function UIManager:setDirty(widget, refreshMode, region)
     table.insert(self._refresh_func_stack, function()
       local m, r, d = refreshMode()
       r = r or region
-      if widget ~= nil then
-        r = r or widget.dimen
+      if type(widget) == "table" then
+        m = m or widget:refreshMode()
+        r = r or widget:dirtyDimen()
         -- Avoid treating false wrongly.
         if d == nil then
           d = widget.dithered
@@ -470,7 +471,7 @@ function UIManager:setDirty(widget, refreshMode, region)
     self:scheduleRepaintAll()
     return
   end
-  widget._refreshMode = refreshMode or widget._refreshMode
+  widget._refresh_mode = refreshMode or widget._refresh_mode
   widget.dirty_dimen = region or widget.dirty_dimen
   self:scheduleWidgetRepaint(widget)
 end
