@@ -3,6 +3,7 @@ local function mergeWith(b)
     device = {
       "keyboard_layout",
       "external_keyboard",
+      "disable_out_of_order_tap",
       "font_ui_fallbacks",
       "----------------------------",
       "time",
@@ -115,7 +116,6 @@ local function mergeWith(b)
       "----------------------------",
       "ignore_hold_corners",
       "screen_disable_double_tap",
-      "disable_out_of_order_tap",
       "----------------------------",
       "menu_activate",
       "----------------------------",

@@ -1817,36 +1817,31 @@ function Input:waitEvent(now, deadline)
         end
       end
       self:eventAdjustHook(event)
-      if event.type == C.EV_KEY then
-        local handled_ev = self:handleKeyBoardEv(event)
+      local add_to_handled = function(handled_ev)
         if handled_ev then
+          handled_ev.time = time.timeval(event.time)
           table.insert(handled, handled_ev)
         end
+      end
+      if event.type == C.EV_KEY then
+        add_to_handled(self:handleKeyBoardEv(event))
       elseif event.type == C.EV_ABS or event.type == C.EV_SYN then
         local handled_evs = self:handleTouchEv(event)
         -- handleTouchEv only returns an array of Events once it gets a SYN_REPORT,
         -- so more often than not, we just get a nil here ;).
         if handled_evs then
           for _, handled_ev in ipairs(handled_evs) do
+            -- The time comes from MTSlots, do not attach it again.
             table.insert(handled, handled_ev)
           end
         end
       elseif event.type == C.EV_MSC then
-        local handled_ev = self:handleMiscEv(event)
-        if handled_ev then
-          table.insert(handled, handled_ev)
-        end
+        add_to_handled(self:handleMiscEv(event))
       elseif event.type == C.EV_SDL then
-        local handled_ev = self:handleSdlEv(event)
-        if handled_ev then
-          table.insert(handled, handled_ev)
-        end
+        add_to_handled(self:handleSdlEv(event))
       else
         -- Received some other kind of event that we do not know how to specifically handle yet
-        local handled_ev = self:handleGenericEv(event)
-        if handled_ev then
-          table.insert(handled, handled_ev)
-        end
+        add_to_handled(self:handleGenericEv(event))
       end
     end
     return handled
