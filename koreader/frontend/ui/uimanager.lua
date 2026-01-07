@@ -97,11 +97,11 @@ end
 local function cropping_region(widget, x, y, w, h)
   assert(widget ~= nil)
   -- It's possible that the function is called before the paintTo call.
-  if widget.dimen then
-    x = x or widget.dimen.x
-    y = y or widget.dimen.y
-    w = w or widget.dimen.w
-    h = h or widget.dimen.h
+  if widget:getSize() then
+    x = x or widget:getSize().x
+    y = y or widget:getSize().y
+    w = w or widget:getSize().w
+    h = h or widget:getSize().h
   end
 
   if not x or not y or not w or not h then
@@ -1077,7 +1077,7 @@ function UIManager:_repaintDirtyWidgets()
       -- case, it's expected to paintTo a showParent which starts from the top
       -- left of a window.
       local paint_region = (
-        widget.dimen and cropping_region(widget) or {
+        widget:getSize() and cropping_region(widget) or {
           -- window.x and window.y are never used, but keep the potential logic
           -- right.
           x = window.x,
@@ -1312,7 +1312,7 @@ user interactions.
 --]]
 function UIManager:repaintWidget(widget)
   assert(widget ~= nil)
-  assert(widget.dimen ~= nil)
+  assert(widget:getSize() ~= nil)
   local paint_region = cropping_region(widget)
   assert(paint_region ~= nil)
   widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
