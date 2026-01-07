@@ -361,7 +361,7 @@ function TitleBar:init()
       + self.bottom_v_padding
   end
 
-  self.dimen = Geom:new({
+  self.dimen = self.dimen or Geom:new({
     x = 0,
     y = 0,
     w = self.width,

@@ -469,7 +469,7 @@ end
 Resizes the Geom according to the ratio.
 ]]
 function Geom:resize(ratio)
-  assert(ratio ~= nil)
+  assert(type(ratio) == "table")
   local x = self.x + self.w * ratio.ratio_x
   local y = self.y + self.h * ratio.ratio_y
   local w = self.w * ratio.ratio_w
@@ -478,6 +478,17 @@ function Geom:resize(ratio)
   self.y = y
   self.w = w
   self.h = h
+  return self
+end
+
+function Geom:mergeSizeFrom(other)
+  assert(type(other) == "table")
+  if other.w then
+    self.w = other.w
+  end
+  if other.h then
+    self.h = other.h
+  end
   return self
 end
 

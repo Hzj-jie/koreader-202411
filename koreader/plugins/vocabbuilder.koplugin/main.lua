@@ -1398,7 +1398,7 @@ function VocabularyBuilderWidget:init()
   self.item_table = self:getVocabItems()
   self.layout = {}
 
-  self.dimen = Geom:new({
+  self.dimen = self.dimen or Geom:new({
     w = self.width or Screen:getWidth(),
     h = self.height or Screen:getHeight(),
   })

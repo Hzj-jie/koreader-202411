@@ -4,6 +4,7 @@ Button with a big icon image! Designed for touch devices.
 
 local BD = require("ui/bidi")
 local Device = require("device")
+local Geom = require("ui/geometry")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
 local InputContainer = require("ui/widget/container/inputcontainer")
@@ -69,7 +70,7 @@ function IconButton:update()
 
   self.horizontal_group[1].width = self.padding_left
   self.horizontal_group[3].width = self.padding_right
-  self.dimen = self.image:getSize()
+  self.dimen = (self.dimen or Geom:new()):mergeSizeFrom(self.image:getSize())
   self.dimen.w = self.dimen.w + self.padding_left + self.padding_right
 
   self.button[1].width = self.padding_top

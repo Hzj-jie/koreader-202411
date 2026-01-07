@@ -603,6 +603,7 @@ function TouchMenu:init()
       UIManager:broadcastEvent(Event:new("ShowBatteryStatistics"))
     end,
     bordersize = 0,
+    _refresh_mode = "fast",
   })
   self.device_info = HorizontalGroup:new({
     self.time_info,
@@ -721,7 +722,7 @@ end
 
 function TouchMenu:onTimesChange_1M()
   self:_updateTimeInfo()
-  UIManager:setDirty(self.time_info, "fast")
+  UIManager:scheduleWidgetRepaint(self.time_info)
 end
 
 function TouchMenu:_updateTimeInfo()

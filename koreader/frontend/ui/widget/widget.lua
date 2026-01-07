@@ -81,7 +81,7 @@ function Widget:dirtyDimen()
   return self.dirty_dimen or self.dimen or require("device").screen:getSize()
 end
 
--- Get the show(widget) of current widget, use this function should be careful
+-- Get the show(widget) of current widget, using this function should be careful
 -- due to it's slowness.
 function Widget:showParent()
   local window = self:window()
