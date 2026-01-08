@@ -3,6 +3,7 @@ A layout widget that puts objects under each other.
 --]]
 
 local BD = require("ui/bidi")
+local Geom = require("ui/geometry")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 
 local VerticalGroup = WidgetContainer:extend({
@@ -14,7 +15,7 @@ local VerticalGroup = WidgetContainer:extend({
 
 function VerticalGroup:getSize()
   if not self.dimen then
-    self.dimen = { w = 0, h = 0 }
+    self.dimen = Geom:new()
     self._offsets = {}
     for i, widget in ipairs(self) do
       local w_size = widget:getSize()
