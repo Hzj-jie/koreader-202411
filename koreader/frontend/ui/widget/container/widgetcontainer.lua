@@ -25,9 +25,8 @@ function WidgetContainer:getSize()
   elseif self[1] then
     -- return size of first child widget
     return self[1]:getSize()
-  else
-    return Geom:new({ x = 0, y = 0, w = 0, h = 0 })
   end
+  return Geom:new()
 end
 
 --[[--
