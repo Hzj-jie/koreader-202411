@@ -1818,8 +1818,11 @@ function Input:waitEvent(now, deadline)
       end
       self:eventAdjustHook(event)
       local add_to_handled = function(handled_ev)
-        if handled_ev then
+        -- handled_ev can be strings :/
+        if type(handled_ev) == "table" then
           handled_ev.time = time.timeval(event.time)
+        end
+        if handled_ev then
           table.insert(handled, handled_ev)
         end
       end
