@@ -13,9 +13,9 @@ local HorizontalGroup = WidgetContainer:extend({
 })
 
 function HorizontalGroup:getSize()
-  if not self._size then
+  if not self.dimen then
     local _mirroredUI = BD.mirroredUILayout()
-    self._size = { w = 0, h = 0 }
+    self.dimen = { w = 0, h = 0 }
     self._offsets = {}
     if _mirroredUI and self.allow_mirroring then
       util.arrayReverse(self)
@@ -23,23 +23,25 @@ function HorizontalGroup:getSize()
     for i, widget in ipairs(self) do
       local w_size = widget:getSize()
       self._offsets[i] = {
-        x = self._size.w,
+        x = self.dimen.w,
         y = w_size.h,
       }
-      self._size.w = self._size.w + w_size.w
-      if w_size.h > self._size.h then
-        self._size.h = w_size.h
+      self.dimen.w = self.dimen.w + w_size.w
+      if w_size.h > self.dimen.h then
+        self.dimen.h = w_size.h
       end
     end
     if _mirroredUI and self.allow_mirroring then
       util.arrayReverse(self)
     end
   end
-  return self._size
+  return self.dimen
 end
 
 function HorizontalGroup:paintTo(bb, x, y)
-  local size = self:getSize()
+  self:getSize()
+  self.dimen.x = x
+  self.dimen.y = y
   local _mirroredUI = BD.mirroredUILayout()
 
   if _mirroredUI and self.allow_mirroring then
@@ -50,7 +52,7 @@ function HorizontalGroup:paintTo(bb, x, y)
       widget:paintTo(
         bb,
         x + self._offsets[i].x,
-        y + math.floor((size.h - self._offsets[i].y) / 2)
+        y + math.floor((self.dimen.h - self._offsets[i].y) / 2)
       )
     elseif self.align == "top" then
       widget:paintTo(bb, x + self._offsets[i].x, y)
@@ -58,7 +60,7 @@ function HorizontalGroup:paintTo(bb, x, y)
       widget:paintTo(
         bb,
         x + self._offsets[i].x,
-        y + size.h - self._offsets[i].y
+        y + self.dimen.h - self._offsets[i].y
       )
     else
       io.stderr:write("[!] invalid alignment for HorizontalGroup: ", self.align)
@@ -76,7 +78,7 @@ function HorizontalGroup:clear()
 end
 
 function HorizontalGroup:resetLayout()
-  self._size = nil
+  self.dimen = nil
   self._offsets = {}
 end
 

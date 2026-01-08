@@ -329,12 +329,8 @@ end
 
 function TextWidget:getSize()
   self:updateSize()
-  return Geom:new({
-    x = 0,
-    y = 0,
-    w = self._length,
-    h = self.forced_height or self._height,
-  })
+  self.dimen = Geom.newOrMergeFrom(self.dimen, {w = self._length, h = self.fored_height or self._height})
+  return self.dimen
 end
 
 function TextWidget:getWidth()
@@ -375,7 +371,9 @@ function TextWidget:setMaxWidth(max_width)
 end
 
 function TextWidget:paintTo(bb, x, y)
-  self:updateSize()
+  self:getSize()
+  self.dimen.x = x
+  self.dimen.y = y
   if self._is_empty then
     return
   end

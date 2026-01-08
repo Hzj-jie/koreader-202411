@@ -64,14 +64,7 @@ function WidgetContainer:paintTo(bb, x, y)
     return
   end
 
-  if not self.dimen then
-    local content_size = self[1]:getSize()
-    self.dimen =
-      Geom:new({ x = x, y = y, w = content_size.w, h = content_size.h })
-  else
-    self.dimen.x = x
-    self.dimen.y = y
-  end
+  self:mergeDimen(x, y, self[1]:getSize())
 
   if self.align == "top" then
     local contentSize = self[1]:getSize()

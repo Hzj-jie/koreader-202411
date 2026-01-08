@@ -7,6 +7,9 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local CenterContainer = WidgetContainer:extend({})
 
 function CenterContainer:paintTo(bb, x, y)
+  assert(self.dimen ~= nil)
+  self.dimen.x = x
+  self.dimen.y = y
   local content_size = self[1]:getSize()
 
   -- check if content is bigger than container
@@ -20,15 +23,13 @@ function CenterContainer:paintTo(bb, x, y)
     end
   end
 
-  local x_pos = x
-  local y_pos = y
   if self.ignore ~= "height" then
-    y_pos = y + math.floor((self.dimen.h - content_size.h) / 2)
+    y = y + math.floor((self.dimen.h - content_size.h) / 2)
   end
   if self.ignore ~= "width" then
-    x_pos = x + math.floor((self.dimen.w - content_size.w) / 2)
+    x = x + math.floor((self.dimen.w - content_size.w) / 2)
   end
-  self[1]:paintTo(bb, x_pos, y_pos)
+  self[1]:paintTo(bb, x, y)
 end
 
 return CenterContainer

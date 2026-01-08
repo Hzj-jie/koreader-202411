@@ -361,9 +361,7 @@ function TitleBar:init()
       + self.bottom_v_padding
   end
 
-  self.dimen = self.dimen or Geom:new({
-    x = 0,
-    y = 0,
+  self.dimen = Geom.newOrMergeFrom(self.dimen, {
     w = self.width,
     h = self.titlebar_height, -- buttons can overflow this
   })
@@ -398,9 +396,6 @@ function TitleBar:init()
     })
     table.insert(self, self.right_button)
   end
-
-  -- Call our base class's init (especially since OverlapGroup has very peculiar self.dimen semantics...)
-  OverlapGroup.init(self)
 end
 
 function TitleBar:paintTo(bb, x, y)

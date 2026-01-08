@@ -481,15 +481,25 @@ function Geom:resize(ratio)
   return self
 end
 
-function Geom:mergeSizeFrom(other)
+function Geom.newOrMergeFrom(this, other)
+  assert(type(this) == "table" or this == nil)
   assert(type(other) == "table")
-  if other.w then
-    self.w = other.w
+  if this then
+    if other.x ~= nil then
+      this.x = other.x
+    end
+    if other.y ~= nil then
+      this.y = other.y
+    end
+    if other.w ~= nil then
+      this.w = other.w
+    end
+    if other.h ~= nil then
+      this.h = other.h
+    end
+    return this
   end
-  if other.h then
-    self.h = other.h
-  end
-  return self
+  return Geom:new({x = other.x or 0, y = other.y or 0, w = other.w or 0, h = other.h or 0})
 end
 
 --[[--

@@ -255,6 +255,13 @@ function PerceptionExpander:saveSettings(fields)
   self:createUI()
 end
 
+function PerceptionExpander:getSize()
+  if self.is_enabled and self[1] then
+    return self[1]:getSize()
+  end
+  return Geom:new()
+end
+
 function PerceptionExpander:paintTo(bb, x, y)
   if self.is_enabled and self[1] then
     self[1]:paintTo(bb, x, y)

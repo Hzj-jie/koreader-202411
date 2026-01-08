@@ -445,7 +445,7 @@ function ImageWidget:_render()
   self._bb_h = bb_h
 end
 
-function ImageWidget:getSize()
+function ImageWidget:_getSize()
   self:_render()
   -- getSize will be used by the widget stack for centering/padding
   if not self.width or not self.height then
@@ -591,18 +591,8 @@ function ImageWidget:paintTo(bb, x, y)
     return
   end
   -- self:_render is called in getSize method
-  local size = self:getSize()
-  if not self.dimen then
-    self.dimen = Geom:new({
-      x = x,
-      y = y,
-      w = size.w,
-      h = size.h,
-    })
-  else
-    self.dimen.x = x
-    self.dimen.y = y
-  end
+  local size = self:_getSize()
+  self:mergeDimen(x, y, size)
   logger.dbg("blitFrom", x, y, self._offset_x, self._offset_y, size.w, size.h)
   local do_alpha = false
   if self.alpha == true then

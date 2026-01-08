@@ -51,10 +51,7 @@ function IconButton:init()
   table.insert(self.button, VerticalSpan:new({}))
 
   self[1] = self.button
-  self:update()
-end
 
-function IconButton:update()
   if not self.padding_top then
     self.padding_top = self.padding
   end
@@ -70,16 +67,14 @@ function IconButton:update()
 
   self.horizontal_group[1].width = self.padding_left
   self.horizontal_group[3].width = self.padding_right
-  self.dimen = (self.dimen or Geom:new()):mergeSizeFrom(self.image:getSize())
-  self.dimen.w = self.dimen.w + self.padding_left + self.padding_right
+  self.dimen = Geom.newOrMergeFrom(self.dimen, {
+    w = self.width + self.padding_left + self.padding_right,
+    h = self.height + self.padding_top + self.padding_bottom,
+  })
 
   self.button[1].width = self.padding_top
   self.button[3].width = self.padding_bottom
-  self.dimen.h = self.dimen.h + self.padding_top + self.padding_bottom
-  self:initGesListener()
-end
 
-function IconButton:initGesListener()
   self.ges_events = {
     TapIconButton = {
       GestureRange:new({

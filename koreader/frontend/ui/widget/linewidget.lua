@@ -14,6 +14,9 @@ local LineWidget = Widget:extend({
 })
 
 function LineWidget:paintTo(bb, x, y)
+  assert(self.dimen ~= nil)
+  self.dimen.x = x
+  self.dimen.y = y
   if self.style == "none" then
     return
   end

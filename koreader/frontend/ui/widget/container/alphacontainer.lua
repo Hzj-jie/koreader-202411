@@ -26,18 +26,20 @@ local AlphaContainer = WidgetContainer:extend({
 })
 
 function AlphaContainer:paintTo(bb, x, y)
-  local contentSize = self[1]:getSize()
+  self.dimen = self[1]:getSize()
+  self.dimen.x = x
+  self.dimen.y = y
 
   if
     not self.private_bb
-    or self.private_bb:getWidth() ~= contentSize.w
-    or self.private_bb:getHeight() ~= contentSize.h
+    or self.private_bb:getWidth() ~= self.dimen.w
+    or self.private_bb:getHeight() ~= self.dimen.h
   then
     if self.private_bb then
       self.private_bb:free() -- free the one we're going to replace
     end
     -- create a private blitbuffer for our child widget to paint to
-    self.private_bb = Blitbuffer.new(contentSize.w, contentSize.h, bb:getType())
+    self.private_bb = Blitbuffer.new(self.dimen.w, self.dimen.h, bb:getType())
     -- fill it with our usual background color
     self.private_bb:fill(Blitbuffer.COLOR_WHITE)
   end
@@ -52,8 +54,8 @@ function AlphaContainer:paintTo(bb, x, y)
     y,
     0,
     0,
-    contentSize.w,
-    contentSize.h,
+    self.dimen.w,
+    self.dimen.h,
     self.alpha
   )
 end

@@ -66,10 +66,6 @@ function BBoxWidget:init()
   end
 end
 
-function BBoxWidget:getSize()
-  return self.view.dimen
-end
-
 function BBoxWidget:paintTo(bb, x, y)
   self.dimen = self.view.dimen:copy()
   self.dimen.x, self.dimen.y = x, y

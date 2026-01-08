@@ -47,10 +47,7 @@ function PageBrowserWidget:init()
   end
 
   -- Compute non-settings-dependant sizes and options
-  self.dimen = Geom:new({
-    w = Screen:getWidth(),
-    h = Screen:getHeight(),
-  })
+  self.dimen = Screen:getSize()
 
   if Device:hasKeys() then
     self.key_events = {

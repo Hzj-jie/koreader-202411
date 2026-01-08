@@ -118,10 +118,6 @@ function HtmlBoxWidget:_render()
   page:close()
 end
 
-function HtmlBoxWidget:getSize()
-  return self.dimen
-end
-
 function HtmlBoxWidget:getSinglePageHeight()
   if self.page_count == 1 then
     local page = self.document:openPage(1)

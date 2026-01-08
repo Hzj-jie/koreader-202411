@@ -105,9 +105,9 @@ function ReaderView:init()
       (G_reader_settings:read("page_gap_color") or 8) * (1 / 15)
     ),
   }
-  self.visible_area = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
-  self.page_area = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
-  self.dim_area = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
+  self.visible_area = Geom:new()
+  self.page_area = Geom:new()
+  self.dim_area = Geom:new()
 
   -- Zero-init for sanity
   self.img_count = 0
@@ -185,6 +185,11 @@ end
 
 function ReaderView:paintTo(bb, x, y)
   dbg:v("readerview painting", self.visible_area, "to", x, y)
+
+  assert(self.dimen ~= nil)
+  self.dimen.x = x
+  self.dimen.y = y
+
   if util.tableSize(self.highlight.temp) > 0 then
     -- If there is a temp highlight, reduce the refresh level to fast.
     UIManager:forceFastRefresh()
@@ -356,7 +361,7 @@ Get page area on screen for a given page number
 --]]
 function ReaderView:getScreenPageArea(page)
   if self.ui.paging then
-    local area = Geom:new({ x = 0, y = 0 })
+    local area = Geom:new()
     if self.page_scroll then
       for _, state in ipairs(self.page_states) do
         if page ~= state.page then
@@ -819,7 +824,7 @@ function ReaderView:recalculate()
   else
     self.visible_area:setSizeTo(self.dimen)
   end
-  self.state.offset = Geom:new({ x = 0, y = 0 })
+  self.state.offset = Geom:new()
   if self.dimen.h > self.visible_area.h then
     if self.footer_visible and not self.footer.settings.reclaim_height then
       self.state.offset.y = (
@@ -961,14 +966,14 @@ end
 
 function ReaderView:onSetDimensions(dimensions)
   self:resetLayout()
-  self.dimen = dimensions
+  self.dimen = Geom.newOrMergeFrom(self.dimen, dimensions)
   -- recalculate view
   self:recalculate()
 end
 
 function ReaderView:onRestoreDimensions(dimensions)
   self:resetLayout()
-  self.dimen = dimensions
+  self.dimen = Geom.newOrMergeFrom(self.dimen, dimensions)
   -- recalculate view
   self:recalculate()
 end

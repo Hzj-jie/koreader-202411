@@ -80,13 +80,8 @@ local MinimalPaginator = Widget:extend({
   progress = nil,
 })
 
-function MinimalPaginator:getSize()
-  return Geom:new({ w = self.width, h = self.height })
-end
-
 function MinimalPaginator:paintTo(bb, x, y)
-  self.dimen = self:getSize()
-  self.dimen.x, self.dimen.y = x, y
+  self.dimen = Geom:new({ x = x, y = y, w = self.width, h = self.height })
   -- paint background
   bb:paintRoundedRect(
     x,

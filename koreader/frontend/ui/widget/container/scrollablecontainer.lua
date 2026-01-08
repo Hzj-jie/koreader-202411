@@ -447,11 +447,13 @@ function ScrollableContainer:reset()
 end
 
 function ScrollableContainer:paintTo(bb, x, y)
+  assert(self.dimen ~= nil)
+  self.dimen.x = x
+  self.dimen.y = y
+
   if self[1] == nil then
     return
   end
-  self.dimen.x = x
-  self.dimen.y = y
 
   if self._is_scrollable == nil then -- not checked yet
     self:initState()

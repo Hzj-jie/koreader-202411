@@ -98,19 +98,13 @@ VerticalScrollBar.onHoldReleaseScroll = VerticalScrollBar.onTapScroll
 VerticalScrollBar.onPanScroll = VerticalScrollBar.onTapScroll
 VerticalScrollBar.onPanScrollRelease = VerticalScrollBar.onTapScroll
 
-function VerticalScrollBar:getSize()
-  return Geom:new({
-    w = self.width,
-    h = self.height,
-  })
-end
-
 function VerticalScrollBar:set(low, high)
   self.low = low > 0 and low or 0
   self.high = high < 1 and high or 1
 end
 
 function VerticalScrollBar:paintTo(bb, x, y)
+  self.dimen = Geom:new({x = x, y = y, w = self.width, h = self.height})
   if not self.enable then
     return
   end

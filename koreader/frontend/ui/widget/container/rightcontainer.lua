@@ -10,6 +10,9 @@ local RightContainer = WidgetContainer:extend({
 })
 
 function RightContainer:paintTo(bb, x, y)
+  assert(self.dimen ~= nil)
+  self.dimen.x = x
+  self.dimen.y = y
   local contentSize = self[1]:getSize()
   --- @fixme
   -- if contentSize.w > self.dimen.w or contentSize.h > self.dimen.h then
@@ -20,9 +23,8 @@ function RightContainer:paintTo(bb, x, y)
     x = x + (self.dimen.w - contentSize.w)
     -- else: keep x, as in LeftContainer
   end
-  self.dimen.x = x
-  self.dimen.y = y + math.floor((self.dimen.h - contentSize.h) / 2)
-  self[1]:paintTo(bb, self.dimen.x, self.dimen.y)
+  y = y + math.floor((self.dimen.h - contentSize.h) / 2)
+  self[1]:paintTo(bb, x, y)
 end
 
 return RightContainer

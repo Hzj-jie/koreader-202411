@@ -29,6 +29,10 @@ local HorizontalScrollBar = InputContainer:extend({
 function HorizontalScrollBar:init()
   self.extra_touch_on_side =
     math.ceil(self.extra_touch_on_side_heightratio * self.height)
+  self.dimen = Geom:new({
+    w = self.width,
+    h = self.height,
+  })
   if Device:isTouchDevice() then
     local pan_rate = G_named_settings.low_pan_rate_or_scroll()
     self.ges_events = {
@@ -102,19 +106,15 @@ HorizontalScrollBar.onHoldReleaseScroll = HorizontalScrollBar.onTapScroll
 HorizontalScrollBar.onPanScroll = HorizontalScrollBar.onTapScroll
 HorizontalScrollBar.onPanScrollRelease = HorizontalScrollBar.onTapScroll
 
-function HorizontalScrollBar:getSize()
-  return Geom:new({
-    w = self.width,
-    h = self.height,
-  })
-end
-
 function HorizontalScrollBar:set(low, high)
   self.low = low > 0 and low or 0
   self.high = high < 1 and high or 1
 end
 
 function HorizontalScrollBar:paintTo(bb, x, y)
+  assert(self.dimen ~= nil)
+  self.dimen.x = x
+  self.dimen.y = y
   if not self.enable then
     return
   end

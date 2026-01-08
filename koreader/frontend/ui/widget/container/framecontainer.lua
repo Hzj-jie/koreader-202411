@@ -50,7 +50,7 @@ local FrameContainer = WidgetContainer:extend({
   stripe_over_alpha = 1,
 })
 
-function FrameContainer:getSize()
+function FrameContainer:_getSize()
   local content_size = self[1]:getSize()
   self._padding_top = self.padding_top or self.padding
   self._padding_right = self.padding_right or self.padding
@@ -98,18 +98,8 @@ function FrameContainer:onUnfocus()
 end
 
 function FrameContainer:paintTo(bb, x, y)
-  local my_size = self:getSize()
-  if not self.dimen then
-    self.dimen = Geom:new({
-      x = x,
-      y = y,
-      w = my_size.w,
-      h = my_size.h,
-    })
-  else
-    self.dimen.x = x
-    self.dimen.y = y
-  end
+  local my_size = self:_getSize()
+  self:mergeDimen(x, y, my_size)
   local container_width = self.width or my_size.w
   local container_height = self.height or my_size.h
 
