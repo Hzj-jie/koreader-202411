@@ -445,16 +445,16 @@ function ImageWidget:_render()
   self._bb_h = bb_h
 end
 
-function ImageWidget:_updateSize()
+function ImageWidget:calculateSize()
   self:_render()
   -- getSize will be used by the widget stack for centering/padding
   if not self.width or not self.height then
     -- no width/height provided, return bb size to let widget stack do the centering
-    return Geom:new({ w = self._bb:getWidth(), h = self._bb:getHeight() })
+    return { w = self._bb:getWidth(), h = self._bb:getHeight() }
   end
   -- if width or height provided, return them as is, even if image is smaller
   -- and would be centered: we'll do the centering ourselves with offsets
-  return Geom:new({ w = self.width, h = self.height })
+  return { w = self.width, h = self.height }
 end
 
 function ImageWidget:getScaleFactor()
@@ -591,7 +591,7 @@ function ImageWidget:paintTo(bb, x, y)
     return
   end
   -- self:_render is called in getSize method
-  local size = self:_updateSize()
+  local size = self:calculateSize()
   self:mergeDimen(x, y, size)
   logger.dbg("blitFrom", x, y, self._offset_x, self._offset_y, size.w, size.h)
   local do_alpha = false

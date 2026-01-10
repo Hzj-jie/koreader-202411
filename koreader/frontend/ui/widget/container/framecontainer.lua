@@ -50,7 +50,7 @@ local FrameContainer = WidgetContainer:extend({
   stripe_over_alpha = 1,
 })
 
-function FrameContainer:_updateSize()
+function FrameContainer:calculateSize()
   local content_size = self[1]:getSize()
   self._padding_top = self.padding_top or self.padding
   self._padding_right = self.padding_right or self.padding
@@ -98,7 +98,7 @@ function FrameContainer:onUnfocus()
 end
 
 function FrameContainer:paintTo(bb, x, y)
-  self:mergeDimen(x, y, self:_updateSize())
+  self:mergeDimen(x, y, self:calculateSize())
   local container_width = self.width or self.dimen.w
   local container_height = self.height or self.dimen.h
 

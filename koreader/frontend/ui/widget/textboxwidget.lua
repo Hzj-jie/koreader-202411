@@ -211,7 +211,7 @@ function TextBoxWidget:init()
   if self.editable then
     self:moveCursorToCharPos(self.charpos or 1)
   end
-  self.dimen = Geom.newOrMergeFrom(self.dimen, self:_updateSize())
+  self.dimen = Geom.newOrMergeFrom(self.dimen, self:calculateSize())
 
   if Device:isTouchDevice() then
     self.ges_events.TapImage = {
@@ -1348,7 +1348,7 @@ function TextBoxWidget:getCharPos()
   return self.charpos, self.virtual_line_num, self.current_line_num
 end
 
-function TextBoxWidget:_updateSize()
+function TextBoxWidget:calculateSize()
   -- Make sure we actually have a BB, in case we're recycling an instance... (c.f., #8241)
   if not self._bb then
     self:_updateLayout()
@@ -1423,7 +1423,7 @@ function TextBoxWidget:setText(text)
   self:update()
 
   -- Don't break the reference
-  self.dimen = Geom.newOrMergeFrom(self.dimen, self:_updateSize())
+  self.dimen = Geom.newOrMergeFrom(self.dimen, self:calculateSize())
 end
 dbg:guard(TextBoxWidget, "setText", function(self, text)
   assert(type(text) == "string", "Wrong text type (expected string)")
