@@ -52,7 +52,9 @@ function OverlapGroup:paintTo(bb, x, y)
       elseif overlap_align == "center" then
         overlap_align = "center"
       elseif wget.overlap_offset then
-        wget.overlap_offset[1] = self.dimen.w - wget_size.w - wget.overlap_offset[1]
+        wget.overlap_offset[1] = self.dimen.w
+          - wget_size.w
+          - wget.overlap_offset[1]
       else
         overlap_align = "right"
       end

@@ -499,7 +499,12 @@ function Geom.newOrMergeFrom(this, other)
     end
     return this
   end
-  return Geom:new({x = other.x or 0, y = other.y or 0, w = other.w or 0, h = other.h or 0})
+  return Geom:new({
+    x = other.x or 0,
+    y = other.y or 0,
+    w = other.w or 0,
+    h = other.h or 0,
+  })
 end
 
 --[[--

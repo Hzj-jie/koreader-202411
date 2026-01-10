@@ -75,7 +75,7 @@ function Widget:mergeDimen(x, y, content_size)
     self.dimen.x = x
     self.dimen.y = y
   else
-    self.dimen = 
+    self.dimen =
       Geom:new({ x = x, y = y, w = content_size.w, h = content_size.h })
   end
 end

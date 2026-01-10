@@ -104,7 +104,7 @@ function VerticalScrollBar:set(low, high)
 end
 
 function VerticalScrollBar:paintTo(bb, x, y)
-  self.dimen = Geom:new({x = x, y = y, w = self.width, h = self.height})
+  self.dimen = Geom:new({ x = x, y = y, w = self.width, h = self.height })
   if not self.enable then
     return
   end

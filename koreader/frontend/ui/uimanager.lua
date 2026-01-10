@@ -1077,7 +1077,8 @@ function UIManager:_repaintDirtyWidgets()
       -- case, it's expected to paintTo a showParent which starts from the top
       -- left of a window.
       local paint_region = (
-        widget:getSize() and cropping_region(widget) or {
+        widget:getSize() and cropping_region(widget)
+        or {
           -- window.x and window.y are never used, but keep the potential logic
           -- right.
           x = window.x,
@@ -1369,10 +1370,12 @@ end
 -- NOTE: The Event hook mechanism used to dispatch for *every* event, and would actually pass the event along.
 --     We've simplified that to once per input frame, and without passing anything (as we, in fact, have never made use of it).
 function UIManager:handleInputEvent(input_event)
-  if G_reader_settings:nilOrTrue("disable_out_of_order_input")
+  if
+    G_reader_settings:nilOrTrue("disable_out_of_order_input")
     and type(input_event) == "table"
     and input_event.args
-    and #input_event.args > 0 then
+    and #input_event.args > 0
+  then
     if
       input_event.handler == "onGesture"
       -- hold and swipe use the initial time and cannot be compared with the
@@ -1385,8 +1388,10 @@ function UIManager:handleInputEvent(input_event)
       return
     end
 
-    if input_event.handler == "onKeyPress"
-      and self._last_repaint_time > input_event.time then
+    if
+      input_event.handler == "onKeyPress"
+      and self._last_repaint_time > input_event.time
+    then
       logger.dbg("Ignore out of order key press event ", input_event.handler)
       return
     end

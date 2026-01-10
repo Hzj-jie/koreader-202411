@@ -329,7 +329,10 @@ end
 
 function TextWidget:getSize()
   self:updateSize()
-  self.dimen = Geom.newOrMergeFrom(self.dimen, {w = self._length, h = self.fored_height or self._height})
+  self.dimen = Geom.newOrMergeFrom(
+    self.dimen,
+    { w = self._length, h = self.fored_height or self._height }
+  )
   return self.dimen
 end
 
