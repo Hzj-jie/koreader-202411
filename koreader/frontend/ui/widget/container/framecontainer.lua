@@ -50,7 +50,7 @@ local FrameContainer = WidgetContainer:extend({
   stripe_over_alpha = 1,
 })
 
-function FrameContainer:_getSize()
+function FrameContainer:_updateSize()
   local content_size = self[1]:getSize()
   self._padding_top = self.padding_top or self.padding
   self._padding_right = self.padding_right or self.padding
@@ -60,7 +60,7 @@ function FrameContainer:_getSize()
     self._padding_left, self._padding_right =
       self._padding_right, self._padding_left
   end
-  return Geom:new({
+  return {
     w = content_size.w
       + (self.margin + self.bordersize) * 2
       + self._padding_left
@@ -69,7 +69,7 @@ function FrameContainer:_getSize()
       + (self.margin + self.bordersize) * 2
       + self._padding_top
       + self._padding_bottom,
-  })
+  }
 end
 
 function FrameContainer:onFocus()
@@ -98,14 +98,13 @@ function FrameContainer:onUnfocus()
 end
 
 function FrameContainer:paintTo(bb, x, y)
-  local my_size = self:_getSize()
-  self:mergeDimen(x, y, my_size)
-  local container_width = self.width or my_size.w
-  local container_height = self.height or my_size.h
+  self:mergeDimen(x, y, self:_updateSize())
+  local container_width = self.width or self.dimen.w
+  local container_height = self.height or self.dimen.h
 
   local shift_x = 0
   if BD.mirroredUILayout() and self.allow_mirroring then
-    shift_x = container_width - my_size.w
+    shift_x = container_width - self.dimen.w
   end
 
   if self.background then

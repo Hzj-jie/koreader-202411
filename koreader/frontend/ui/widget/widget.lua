@@ -61,13 +61,6 @@ Return size of the widget.
 @treturn ui.geometry.Geom
 --]]
 function Widget:getSize()
-  if not self.dimen then
-    if self._getSize then
-      self.dimen = self:_getSize()
-    else
-      self.dimen = Geom:new()
-    end
-  end
   assert(self.dimen ~= nil)
   return self.dimen
 end
