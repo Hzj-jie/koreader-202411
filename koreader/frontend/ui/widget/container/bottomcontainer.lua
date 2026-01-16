@@ -22,14 +22,4 @@ function BottomContainer:paintTo(bb, x, y)
   )
 end
 
-function BottomContainer:contentRange()
-  local contentSize = self[1]:getSize()
-  return Geom:new({
-    x = (self.dimen.x or 0) + math.floor((self.dimen.w - contentSize.w) / 2),
-    y = (self.dimen.y or 0) + self.dimen.h - contentSize.h,
-    w = contentSize.w,
-    h = contentSize.h,
-  })
-end
-
 return BottomContainer

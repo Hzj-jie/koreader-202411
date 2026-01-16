@@ -780,7 +780,7 @@ function ReaderPaging:getNextPageState(blank_area, image_offset)
     self.view.state.zoom,
     self.view.state.rotation
   )
-  local visible_area = Geom:new({ x = 0, y = 0 })
+  local visible_area = Geom:new()
   visible_area.w, visible_area.h = blank_area.w, blank_area.h
   visible_area.x, visible_area.y = page_area.x, page_area.y
   visible_area =
@@ -808,7 +808,7 @@ function ReaderPaging:getPrevPageState(blank_area, image_offset)
     self.view.state.zoom,
     self.view.state.rotation
   )
-  local visible_area = Geom:new({ x = 0, y = 0 })
+  local visible_area = Geom:new()
   visible_area.w, visible_area.h = blank_area.w, blank_area.h
   visible_area.x = page_area.x
   visible_area.y = page_area.y + page_area.h - visible_area.h
@@ -933,7 +933,7 @@ function ReaderPaging:genPageStatesFromBottom(
     -- We reached the start of document: we may have truncated too much
     -- of the bottom page while scrolling up.
     -- Re-generate everything with first page starting at top
-    offset = Geom:new({ x = 0, y = 0 })
+    offset = Geom:new()
     blank_area:setSizeTo(self.view.visible_area)
     local first_page_state = page_states[1]
     first_page_state.visible_area.y = 0 -- anchor first page at top
