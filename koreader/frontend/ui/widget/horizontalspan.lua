@@ -1,4 +1,5 @@
 local Widget = require("ui/widget/widget")
+local logger = require("logger")
 
 --[[
 Dummy Widget that reserves horizontal space
@@ -6,9 +7,5 @@ Dummy Widget that reserves horizontal space
 local HorizontalSpan = Widget:extend({
   width = 0,
 })
-
-function HorizontalSpan:getSize()
-  return { w = self.width, h = 0 }
-end
 
 return HorizontalSpan
