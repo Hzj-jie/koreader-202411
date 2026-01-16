@@ -70,7 +70,7 @@ function IconButton:update()
 
   self.horizontal_group[1].width = self.padding_left
   self.horizontal_group[3].width = self.padding_right
-  self.dimen = (self.dimen or Geom:new()):mergeSizeFrom(self.image:getSize())
+  self.dimen = Geom.newOrMergeFrom(self.dimen, self.image:getSize())
   self.dimen.w = self.dimen.w + self.padding_left + self.padding_right
 
   self.button[1].width = self.padding_top

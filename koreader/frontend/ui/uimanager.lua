@@ -11,6 +11,7 @@ local ffiUtil = require("ffi/util")
 local util = require("util")
 local time = require("ui/time")
 local _ = require("gettext")
+local dump = require("dump")
 local Input = Device.input
 local Screen = Device.screen
 
@@ -1348,7 +1349,7 @@ function UIManager:invertWidget(widget, x, y, w, h)
     return
   end
 
-  logger.dbg("Explicit widgetInvert:", widgetDebugStr(widget), "@", require("dump")(invert_region))
+  logger.dbg("Explicit widgetInvert:", widgetDebugStr(widget), "@", dump(invert_region))
   Screen.bb:invertRect(
     invert_region.x,
     invert_region.y,

@@ -60,16 +60,17 @@ function FrameContainer:getSize()
     self._padding_left, self._padding_right =
       self._padding_right, self._padding_left
   end
-  return Geom:new({
+  self.dimen = Geom.newOrMergeFrom(self.dimen, {
     w = content_size.w
-      + (self.margin + self.bordersize) * 2
-      + self._padding_left
-      + self._padding_right,
+          + (self.margin + self.bordersize) * 2
+          + self._padding_left
+          + self._padding_right,
     h = content_size.h
-      + (self.margin + self.bordersize) * 2
-      + self._padding_top
-      + self._padding_bottom,
+          + (self.margin + self.bordersize) * 2
+          + self._padding_top
+          + self._padding_bottom
   })
+  return self.dimen
 end
 
 function FrameContainer:onFocus()
