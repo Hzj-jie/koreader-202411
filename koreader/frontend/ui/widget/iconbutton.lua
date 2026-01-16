@@ -76,10 +76,7 @@ function IconButton:update()
   self.button[1].width = self.padding_top
   self.button[3].width = self.padding_bottom
   self.dimen.h = self.dimen.h + self.padding_top + self.padding_bottom
-  self:initGesListener()
-end
 
-function IconButton:initGesListener()
   self.ges_events = {
     TapIconButton = {
       GestureRange:new({
