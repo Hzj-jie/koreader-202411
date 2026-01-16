@@ -3,6 +3,7 @@ A layout widget that puts objects besides each other.
 --]]
 
 local BD = require("ui/bidi")
+local Geom = require("ui/geometry")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local util = require("util")
 
@@ -14,7 +15,7 @@ local HorizontalGroup = WidgetContainer:extend({
 function HorizontalGroup:getSize()
   if not self.dimen then
     local _mirroredUI = BD.mirroredUILayout()
-    self.dimen = { w = 0, h = 0 }
+    self.dimen = Geom:new()
     self._offsets = {}
     if _mirroredUI and self.allow_mirroring then
       util.arrayReverse(self)

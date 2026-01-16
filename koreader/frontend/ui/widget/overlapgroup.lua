@@ -39,8 +39,6 @@ end
 --       instead of at paintTo...
 function OverlapGroup:init()
   self:getSize() -- populate self.dimen
-  -- Regardless of what was passed to the constructor, make sure dimen is actually a Geom
-  self.dimen = Geom:new({ x = 0, y = 0, w = self.dimen.w, h = self.dimen.h })
 end
 
 function OverlapGroup:paintTo(bb, x, y)
