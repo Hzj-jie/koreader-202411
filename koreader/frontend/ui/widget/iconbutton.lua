@@ -70,12 +70,13 @@ function IconButton:update()
 
   self.horizontal_group[1].width = self.padding_left
   self.horizontal_group[3].width = self.padding_right
-  self.dimen = Geom.newOrMergeFrom(self.dimen, self.image:getSize())
-  self.dimen.w = self.dimen.w + self.padding_left + self.padding_right
+  self.dimen = Geom.newOrMergeFrom(self.dimen, {
+    w = self.width + self.padding_left + self.padding_right,
+    h = self.height + self.padding_top + self.padding_bottom,
+  })
 
   self.button[1].width = self.padding_top
   self.button[3].width = self.padding_bottom
-  self.dimen.h = self.dimen.h + self.padding_top + self.padding_bottom
 
   self.ges_events = {
     TapIconButton = {
