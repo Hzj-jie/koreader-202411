@@ -361,12 +361,13 @@ function TitleBar:init()
       + self.bottom_v_padding
   end
 
-  self.dimen = self.dimen or Geom:new({
-    x = 0,
-    y = 0,
-    w = self.width,
-    h = self.titlebar_height, -- buttons can overflow this
-  })
+  self.dimen = self.dimen
+    or Geom:new({
+      x = 0,
+      y = 0,
+      w = self.width,
+      h = self.titlebar_height, -- buttons can overflow this
+    })
 
   if self.has_left_icon then
     self.left_button = IconButton:new({

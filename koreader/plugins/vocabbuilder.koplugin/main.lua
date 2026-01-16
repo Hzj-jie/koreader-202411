@@ -1398,10 +1398,11 @@ function VocabularyBuilderWidget:init()
   self.item_table = self:getVocabItems()
   self.layout = {}
 
-  self.dimen = self.dimen or Geom:new({
-    w = self.width or Screen:getWidth(),
-    h = self.height or Screen:getHeight(),
-  })
+  self.dimen = self.dimen
+    or Geom:new({
+      w = self.width or Screen:getWidth(),
+      h = self.height or Screen:getHeight(),
+    })
 
   if Device:hasKeys() then
     self.key_events.Exit = { { Device.input.group.Back } }

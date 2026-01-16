@@ -948,8 +948,10 @@ function ReaderUI:onExit(seamless)
     UIManager:runWith(
       f,
       -- Need localization.
-      T(_("Saving progress of file %1"),
-          BD.filepath(filemanagerutil.abbreviate(self.document.file)))
+      T(
+        _("Saving progress of file %1"),
+        BD.filepath(filemanagerutil.abbreviate(self.document.file))
+      )
     )
   end
 end
