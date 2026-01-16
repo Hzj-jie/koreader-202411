@@ -16,43 +16,31 @@ local OverlapGroup = WidgetContainer:extend({
   -- It's usually safer to set it to false on the OverlapGroup,
   -- but some thinking is needed when many of them are nested.
   allow_mirroring = true,
-  _size = nil,
 })
 
 function OverlapGroup:getSize()
-  if not self._size then
-    self._size = { w = 0, h = 0 }
-    self._offsets = { x = math.huge, y = math.huge }
+  if not self.dimen then
+    self.dimen = Geom:new()
     for i, widget in ipairs(self) do
       local w_size = widget:getSize()
-      if self._size.h < w_size.h then
-        self._size.h = w_size.h
+      if self.dimen.h < w_size.h then
+        self.dimen.h = w_size.h
       end
-      if self._size.w < w_size.w then
-        self._size.w = w_size.w
+      if self.dimen.w < w_size.w then
+        self.dimen.w = w_size.w
       end
     end
   end
 
-  return self._size
+  return self.dimen
 end
 
 -- NOTE: OverlapGroup is one of those special snowflakes that will compute self.dimen at init,
 --       instead of at paintTo...
 function OverlapGroup:init()
-  self:getSize() -- populate self._size
-  -- sync self._size with self.dimen, self.dimen has higher priority
-  if self.dimen then
-    -- Jump through some extra hoops because this may not be a Geom...
-    if self.dimen.w then
-      self._size.w = self.dimen.w
-    end
-    if self.dimen.h then
-      self._size.h = self.dimen.h
-    end
-  end
+  self:getSize() -- populate self.dimen
   -- Regardless of what was passed to the constructor, make sure dimen is actually a Geom
-  self.dimen = Geom:new({ x = 0, y = 0, w = self._size.w, h = self._size.h })
+  self.dimen = Geom:new({ x = 0, y = 0, w = self.dimen.w, h = self.dimen.h })
 end
 
 function OverlapGroup:paintTo(bb, x, y)

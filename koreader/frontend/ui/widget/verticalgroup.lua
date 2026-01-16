@@ -8,27 +8,26 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local VerticalGroup = WidgetContainer:extend({
   align = "center",
   allow_mirroring = true,
-  _size = nil,
   _offsets = {},
 })
 
 function VerticalGroup:getSize()
-  if not self._size then
-    self._size = { w = 0, h = 0 }
+  if not self.dimen then
+    self.dimen = { w = 0, h = 0 }
     self._offsets = {}
     for i, widget in ipairs(self) do
       local w_size = widget:getSize()
       self._offsets[i] = {
         x = w_size.w,
-        y = self._size.h,
+        y = self.dimen.h,
       }
-      self._size.h = self._size.h + w_size.h
-      if w_size.w > self._size.w then
-        self._size.w = w_size.w
+      self.dimen.h = self.dimen.h + w_size.h
+      if w_size.w > self.dimen.w then
+        self.dimen.w = w_size.w
       end
     end
   end
-  return self._size
+  return self.dimen
 end
 
 function VerticalGroup:paintTo(bb, x, y)
@@ -68,7 +67,7 @@ function VerticalGroup:clear()
 end
 
 function VerticalGroup:resetLayout()
-  self._size = nil
+  self.dimen = nil
   self._offsets = {}
 end
 
