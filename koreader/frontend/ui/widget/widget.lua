@@ -64,7 +64,10 @@ function Widget:getSize()
   if type(self.calculateSize) == "function" then
     self.dimen = Geom.newOrMergeFrom(self.dimen, self:calculateSize())
   elseif self.width ~= nil or self.height ~= nil then
-    self.dimen = Geom.newOrMergeFrom(self.dimen, {w = self.width or 0, h = self.height or 0})
+    self.dimen = Geom.newOrMergeFrom(
+      self.dimen,
+      { w = self.width or 0, h = self.height or 0 }
+    )
   end
   assert(self.dimen ~= nil)
   return self.dimen
@@ -76,7 +79,7 @@ function Widget:mergeDimen(x, y)
     self.dimen.x = x
     self.dimen.y = y
   else
-    self.dimen = Geom:new({x = x, y = y})
+    self.dimen = Geom:new({ x = x, y = y })
   end
 end
 
