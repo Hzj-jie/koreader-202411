@@ -1348,7 +1348,7 @@ function UIManager:invertWidget(widget, x, y, w, h)
     return
   end
 
-  logger.dbg("Explicit widgetInvert:", widgetDebugStr(widget), "@", x, y)
+  logger.dbg("Explicit widgetInvert:", widgetDebugStr(widget), "@", require("dump")(invert_region))
   Screen.bb:invertRect(
     invert_region.x,
     invert_region.y,
