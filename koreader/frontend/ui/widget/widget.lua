@@ -11,6 +11,7 @@ rather than class variables.
 ]]
 
 local EventListener = require("ui/widget/eventlistener")
+local Geom = require("ui/geometry")
 
 --- Widget base class
 -- @table Widget
@@ -60,7 +61,23 @@ Return size of the widget.
 @treturn ui.geometry.Geom
 --]]
 function Widget:getSize()
+  if type(self.calculateSize) == "function" then
+    self.dimen = Geom.newOrMergeFrom(self.dimen, self:calculateSize())
+  elseif self.width ~= nil or self.height ~= nil then
+    self.dimen = Geom.newOrMergeFrom(self.dimen, {w = self.width or 0, h = self.height or 0})
+  end
+  assert(self.dimen ~= nil)
   return self.dimen
+end
+
+function Widget:mergeDimen(x, y)
+  if self.dimen ~= nil then
+    -- Keep the same reference.
+    self.dimen.x = x
+    self.dimen.y = y
+  else
+    self.dimen = Geom:new({x = x, y = y})
+  end
 end
 
 --[[--

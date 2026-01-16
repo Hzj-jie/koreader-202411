@@ -99,24 +99,14 @@ function FrameContainer:onUnfocus()
 end
 
 function FrameContainer:paintTo(bb, x, y)
-  local my_size = self:getSize()
-  if not self.dimen then
-    self.dimen = Geom:new({
-      x = x,
-      y = y,
-      w = my_size.w,
-      h = my_size.h,
-    })
-  else
-    self.dimen.x = x
-    self.dimen.y = y
-  end
-  local container_width = self.width or my_size.w
-  local container_height = self.height or my_size.h
+  self:mergeDimen(x, y)
+  self:getSize()
+  local container_width = self.width or self.dimen.w
+  local container_height = self.height or self.dimen.h
 
   local shift_x = 0
   if BD.mirroredUILayout() and self.allow_mirroring then
-    shift_x = container_width - my_size.w
+    shift_x = container_width - self.dimen.w
   end
 
   if self.background then
