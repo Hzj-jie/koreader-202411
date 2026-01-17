@@ -1354,7 +1354,8 @@ function TextBoxWidget:getSize()
     self:_updateLayout()
   end
 
-  return Geom:new({ x = 0, y = 0, w = self.width, h = self._bb:getHeight() })
+  self.dimen = Geom:new({ x = 0, y = 0, w = self.width, h = self._bb:getHeight() })
+  return self.dimen
 end
 
 function TextBoxWidget:paintTo(bb, x, y)
