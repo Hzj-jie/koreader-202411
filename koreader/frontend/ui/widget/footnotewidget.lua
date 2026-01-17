@@ -338,12 +338,12 @@ function FootnoteWidget:init()
         h = top_border_size,
       }),
     }),
-    VerticalSpan:new({ width = padding_top }),
+    VerticalSpan:new({ height = padding_top }),
     HorizontalGroup:new({
       self.htmlwidget,
       HorizontalSpan:new({ width = padding_right }),
     }),
-    VerticalSpan:new({ width = padding_bottom }),
+    VerticalSpan:new({ height = padding_bottom }),
   })
 
   -- If htmlwidget contains only one page (small footnote content),

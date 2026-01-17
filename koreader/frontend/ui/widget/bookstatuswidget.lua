@@ -180,11 +180,11 @@ function BookStatusWidget:genHeader(title)
   })
   local span_top, span_bottom
   if Screen:getScreenMode() == "landscape" then
-    span_top = VerticalSpan:new({ width = Size.span.horizontal_default })
-    span_bottom = VerticalSpan:new({ width = Size.span.horizontal_default })
+    span_top = VerticalSpan:new({ height = Size.span.horizontal_default })
+    span_bottom = VerticalSpan:new({ height = Size.span.horizontal_default })
   else
-    span_top = VerticalSpan:new({ width = Size.item.height_default })
-    span_bottom = VerticalSpan:new({ width = Size.span.vertical_large })
+    span_top = VerticalSpan:new({ height = Size.item.height_default })
+    span_bottom = VerticalSpan:new({ height = Size.span.vertical_large })
   end
 
   return VerticalGroup:new({
@@ -286,7 +286,7 @@ function BookStatusWidget:genBookInfoGroup()
   -- title
   local book_meta_info_group = VerticalGroup:new({
     align = "center",
-    VerticalSpan:new({ width = height * 0.2 }),
+    VerticalSpan:new({ height = height * 0.2 }),
     TextBoxWidget:new({
       text = props.display_title,
       lang = lang,
@@ -344,7 +344,7 @@ function BookStatusWidget:genBookInfoGroup()
   -- rating
   table.insert(
     book_meta_info_group,
-    VerticalSpan:new({ width = Screen:scaleBySize(30) })
+    VerticalSpan:new({ height = Screen:scaleBySize(30) })
   )
   local rateHeight = Screen:scaleBySize(60)
   table.insert(
@@ -485,7 +485,7 @@ function BookStatusWidget:genSummaryGroup(width)
   table.insert(self.layout, { self.input_note })
 
   return VerticalGroup:new({
-    VerticalSpan:new({ width = Size.span.vertical_large }),
+    VerticalSpan:new({ height = Size.span.vertical_large }),
     CenterContainer:new({
       dimen = Geom:new({ w = width, h = height }),
       self.input_note,
@@ -517,7 +517,7 @@ function BookStatusWidget:generateSwitchGroup(width)
   self:mergeLayoutInVertical(switch)
 
   return VerticalGroup:new({
-    VerticalSpan:new({ width = Screen:scaleBySize(10) }),
+    VerticalSpan:new({ height = Screen:scaleBySize(10) }),
     CenterContainer:new({
       ignore = "height",
       dimen = Geom:new({ w = width, h = height }),

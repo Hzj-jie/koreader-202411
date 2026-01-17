@@ -344,7 +344,7 @@ function SortWidget:init()
     background = Blitbuffer.COLOR_WHITE,
     VerticalGroup:new({
       self.title_bar,
-      VerticalSpan:new({ width = padding_below_title }),
+      VerticalSpan:new({ height = padding_below_title }),
       self.main_content,
     }),
   })
@@ -426,7 +426,7 @@ function SortWidget:_populateItems()
   for idx = idx_offset + 1, page_last do
     table.insert(
       self.main_content,
-      VerticalSpan:new({ width = self.item_margin })
+      VerticalSpan:new({ height = self.item_margin })
     )
     local invert_status = false
     if idx == self.marked then

@@ -820,7 +820,7 @@ function ConfigOption:init()
 
   table.insert(
     vertical_group,
-    VerticalSpan:new({ width = default_option_vpadding })
+    VerticalSpan:new({ height = default_option_vpadding })
   )
   self[1] = vertical_group
   self.dimen = vertical_group:getSize()

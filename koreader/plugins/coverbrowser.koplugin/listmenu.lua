@@ -738,7 +738,7 @@ function ListMenuItem:update()
           dimen = Geom:new({ w = wright_width, h = dimen.h }),
           VerticalGroup:new({
             align = "right",
-            VerticalSpan:new({ width = Screen:scaleBySize(2) }),
+            VerticalSpan:new({ height = Screen:scaleBySize(2) }),
             wfileinfo,
             wpageinfo,
           }),
@@ -801,7 +801,7 @@ function ListMenuItem:update()
   end
   -- Add some pad at top to balance with hidden underline line at bottom
   self._underline_container[1] = VerticalGroup:new({
-    VerticalSpan:new({ width = self.underline_h }),
+    VerticalSpan:new({ height = self.underline_h }),
     widget,
   })
 end

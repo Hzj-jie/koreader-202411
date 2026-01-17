@@ -348,7 +348,7 @@ function MenuDialog:setupPluginMenu()
           HorizontalSpan:new({ width = Size.padding.fullscreen }),
           switch,
         }),
-        VerticalSpan:new({ width = Size.padding.default }),
+        VerticalSpan:new({ height = Size.padding.default }),
         HorizontalGroup:new({
           RightContainer:new({
             dimen = Geom:new({ w = switch_guide_width, h = switch:getSize().h }),
@@ -361,7 +361,7 @@ function MenuDialog:setupPluginMenu()
           HorizontalSpan:new({ width = Size.padding.fullscreen }),
           self.context_switch,
         }),
-        VerticalSpan:new({ width = Size.padding.large }),
+        VerticalSpan:new({ height = Size.padding.large }),
         LineWidget:new({
           background = Blitbuffer.COLOR_GRAY,
           dimen = Geom:new({
@@ -668,7 +668,7 @@ function WordInfoDialog:init()
                 copy_button,
               }),
               self.book_title_button,
-              VerticalSpan:new({ width = Size.padding.default }),
+              VerticalSpan:new({ height = Size.padding.default }),
               has_context and TextBoxWidget:new({
                 text = "..."
                   .. (self.prev_context or ""):gsub("\n", " ")

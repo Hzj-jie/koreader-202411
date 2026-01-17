@@ -280,7 +280,7 @@ function BookMapRow:init()
               w = width - 2 * self.toc_span_border,
               h = tspan_height,
             }),
-            text_widget or VerticalSpan:new({ width = 0 }),
+            text_widget or VerticalSpan:new({ height = 0 }),
           }),
         })
         table.insert(self.pages_frame, span_w)
@@ -319,7 +319,7 @@ function BookMapRow:init()
       + math.ceil(widget.line_glyph_extra_height * 2 / 3)
     if shift_y > 0 then
       widget = VerticalGroup:new({
-        VerticalSpan:new({ width = shift_y }),
+        VerticalSpan:new({ height = shift_y }),
         widget,
       })
     end

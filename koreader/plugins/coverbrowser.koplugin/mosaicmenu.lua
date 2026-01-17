@@ -292,17 +292,17 @@ function FakeCover:init()
 
   local vgroup = VerticalGroup:new({})
   if authors then
-    table.insert(vgroup, VerticalSpan:new({ width = self.top_pad }))
+    table.insert(vgroup, VerticalSpan:new({ height = self.top_pad }))
     table.insert(vgroup, authors_wg)
   end
-  table.insert(vgroup, VerticalSpan:new({ width = inter_pad }))
+  table.insert(vgroup, VerticalSpan:new({ height = inter_pad }))
   if title then
     table.insert(vgroup, title_wg)
   end
-  table.insert(vgroup, VerticalSpan:new({ width = inter_pad }))
+  table.insert(vgroup, VerticalSpan:new({ height = inter_pad }))
   if filename then
     table.insert(vgroup, filename_wg)
-    table.insert(vgroup, VerticalSpan:new({ width = self.bottom_pad }))
+    table.insert(vgroup, VerticalSpan:new({ height = self.bottom_pad }))
   end
 
   if self.file_deleted then
@@ -1022,7 +1022,7 @@ function MosaicMenu:_updateItemsBuildUI()
       line_layout = {}
       table.insert(
         self.item_group,
-        VerticalSpan:new({ width = self.item_margin })
+        VerticalSpan:new({ height = self.item_margin })
       )
       cur_row = HorizontalGroup:new({})
       -- Have items on the possibly non-fully filled last row aligned to the left
@@ -1070,7 +1070,7 @@ function MosaicMenu:_updateItemsBuildUI()
     end
   end
   table.insert(self.layout, line_layout)
-  table.insert(self.item_group, VerticalSpan:new({ width = self.item_margin })) -- bottom padding
+  table.insert(self.item_group, VerticalSpan:new({ height = self.item_margin })) -- bottom padding
   return select_number
 end
 

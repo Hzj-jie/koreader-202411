@@ -273,11 +273,11 @@ function DictQuickLookup:init()
   self.content_width = inner_width - 2 * content_padding_h
 
   -- Spans between components
-  local top_to_word_span = VerticalSpan:new({ width = content_padding_v })
+  local top_to_word_span = VerticalSpan:new({ height = content_padding_v })
   local word_to_definition_span =
-    VerticalSpan:new({ width = content_padding_v })
+    VerticalSpan:new({ height = content_padding_v })
   local definition_to_bottom_span =
-    VerticalSpan:new({ width = content_padding_v })
+    VerticalSpan:new({ height = content_padding_v })
 
   -- Lookup word
   local word_font_face = "tfont"

@@ -91,7 +91,7 @@ function ConfirmBox:init()
   if self._added_widgets then
     table.insert(
       self.text_group,
-      VerticalSpan:new({ width = Size.padding.large })
+      VerticalSpan:new({ height = Size.padding.large })
     )
     for _, widget in ipairs(self._added_widgets) do
       table.insert(self.text_group, widget)
@@ -169,7 +169,7 @@ function ConfirmBox:init()
       align = "left",
       content,
       -- Add same vertical space after than before content
-      VerticalSpan:new({ width = self.margin + self.padding }),
+      VerticalSpan:new({ height = self.margin + self.padding }),
       button_table,
     }),
   })

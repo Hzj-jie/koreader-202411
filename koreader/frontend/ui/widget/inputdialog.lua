@@ -247,8 +247,8 @@ function InputDialog:init()
   -- (these will be adjusted later to center the input text if needed)
   -- (can be disabled by setting condensed=true)
   local padding_width = self.condensed and 0 or Size.padding.default
-  local vspan_before_input_text = VerticalSpan:new({ width = padding_width })
-  local vspan_after_input_text = VerticalSpan:new({ width = padding_width })
+  local vspan_before_input_text = VerticalSpan:new({ height = padding_width })
+  local vspan_after_input_text = VerticalSpan:new({ height = padding_width })
 
   -- Buttons
   -- In case of re-init(), keep backup of original buttons and restore them

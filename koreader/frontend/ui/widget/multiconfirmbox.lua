@@ -138,7 +138,7 @@ function MultiConfirmBox:init()
           align = "left",
           content,
           -- Add same vertical space after than before content
-          VerticalSpan:new({ width = self.margin + self.padding }),
+          VerticalSpan:new({ height = self.margin + self.padding }),
           button_table,
         }),
       }),

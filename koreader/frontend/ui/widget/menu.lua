@@ -934,7 +934,7 @@ function Menu:init()
     self.page_return_arrow,
   })
 
-  local header = self.no_title and VerticalSpan:new({ width = 0 })
+  local header = self.no_title and VerticalSpan:new({ height = 0 })
     or self.title_bar
   local body = self.item_group
   local footer = BottomContainer:new({

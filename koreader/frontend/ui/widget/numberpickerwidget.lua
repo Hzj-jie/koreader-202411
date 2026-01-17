@@ -150,7 +150,7 @@ function NumberPickerWidget:init()
   })
   table.insert(self.layout, { button_down })
 
-  local empty_space = VerticalSpan:new({ width = Size.padding.large })
+  local empty_space = VerticalSpan:new({ height = Size.padding.large })
 
   self.formatted_value = self.value
   if not self.value_table then

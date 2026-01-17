@@ -801,7 +801,7 @@ function PageBrowserWidget:clearTile(grid_idx, in_progress, do_refresh)
       face = Font:getFace("cfont", 20),
     })
   else
-    item_container[1] = VerticalSpan:new({ width = 0 })
+    item_container[1] = VerticalSpan:new({ height = 0 })
   end
   if do_refresh then
     UIManager:setDirty(self, function()

@@ -131,7 +131,7 @@ function FrontLightWidget:layout()
   -- Frontlight
   -- Bigger spans, as ProgressWidget appears to be ever so slightly smaller than ButtonProgressWidget ;).
   local fl_padding_span =
-    VerticalSpan:new({ width = Math.round(self.span * 1.5) })
+    VerticalSpan:new({ height = Math.round(self.span * 1.5) })
   local fl_group_above = HorizontalGroup:new({ align = "center" })
   local fl_group_below = HorizontalGroup:new({ align = "center" })
   local main_group = VerticalGroup:new({ align = "center" })
@@ -245,7 +245,7 @@ function FrontLightWidget:layout()
   -- Warmth
   if self.has_nl then
     -- Smaller spans, as ButtonProgressWidget appears to be ever so slightly taller than ProgressWidget ;).
-    local nl_padding_span = VerticalSpan:new({ width = self.span })
+    local nl_padding_span = VerticalSpan:new({ height = self.span })
     local nl_group_above = HorizontalGroup:new({ align = "center" })
     local nl_group_below = HorizontalGroup:new({ align = "center" })
 
@@ -263,7 +263,7 @@ function FrontLightWidget:layout()
       enabled = true,
     })
     -- We want a wider gap between the two sets of widgets
-    local nl_span = VerticalSpan:new({ width = Size.span.vertical_large * 4 })
+    local nl_span = VerticalSpan:new({ height = Size.span.vertical_large * 4 })
     local nl_header = TextWidget:new({
       text = _("Warmth"),
       face = self.medium_font_face,

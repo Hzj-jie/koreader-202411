@@ -204,9 +204,9 @@ function ButtonDialog:init()
       self.buttontable,
     })
     scontainer = VerticalGroup:new({
-      VerticalSpan:new({ width = Size.padding.buttontable }),
+      VerticalSpan:new({ height = Size.padding.buttontable }),
       self.cropping_widget,
-      VerticalSpan:new({ width = Size.padding.buttontable }),
+      VerticalSpan:new({ height = Size.padding.buttontable }),
     })
   end
   local separator

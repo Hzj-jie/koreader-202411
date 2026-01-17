@@ -200,7 +200,7 @@ function CalculatorUnitsDialog:init()
         }),
       }),
 
-      VerticalSpan:new({ width = Size.span.vertical_large * 2 }),
+      VerticalSpan:new({ height = Size.span.vertical_large * 2 }),
       -- buttons
       CenterContainer:new({
         dimen = Geom:new({

@@ -263,7 +263,7 @@ function SkimToWidget:init()
     HorizontalSpan:new({ width = button_span_unit_width * larger_span_units })
   local top_row_span, bottom_row_span, top_buttons_row, bottom_buttons_row, radius
   if full_mode then
-    top_row_span = VerticalSpan:new({ width = Size.padding.fullscreen })
+    top_row_span = VerticalSpan:new({ height = Size.padding.fullscreen })
     bottom_row_span = top_row_span
     top_buttons_row = HorizontalGroup:new({
       align = "center",
@@ -291,7 +291,7 @@ function SkimToWidget:init()
     })
     radius = Size.radius.window
   else
-    top_row_span = VerticalSpan:new({ width = Size.padding.default })
+    top_row_span = VerticalSpan:new({ height = Size.padding.default })
     top_buttons_row = HorizontalGroup:new({
       align = "center",
       button_chapter_prev,
@@ -318,7 +318,7 @@ function SkimToWidget:init()
     })
     if skim_dialog_position == "top" then
       bottom_row_span, bottom_buttons_row = top_row_span, top_buttons_row
-      top_buttons_row = VerticalSpan:new({ width = 0 })
+      top_buttons_row = VerticalSpan:new({ height = 0 })
       top_row_span = top_buttons_row
     end
   end

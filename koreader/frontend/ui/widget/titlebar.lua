@@ -240,7 +240,7 @@ function TitleBar:init()
   self.title_group = VerticalGroup:new({
     align = self.align,
     overlap_align = self.align,
-    VerticalSpan:new({ width = title_top_padding }),
+    VerticalSpan:new({ height = title_top_padding }),
   })
   if self.align == "left" then
     -- we need to :resetLayout() both VerticalGroup and HorizontalGroup in :setTitle()
@@ -257,7 +257,7 @@ function TitleBar:init()
   if self.subtitle_widget then
     table.insert(
       self.title_group,
-      VerticalSpan:new({ width = self.title_subtitle_v_padding })
+      VerticalSpan:new({ height = self.title_subtitle_v_padding })
     )
     if self.align == "left" then
       local span_width = self.title_h_padding
@@ -318,7 +318,7 @@ function TitleBar:init()
       })
     end
     local filler_and_bottom_line = VerticalGroup:new({
-      VerticalSpan:new({ width = filler_height }),
+      VerticalSpan:new({ height = filler_height }),
       line_widget,
     })
     table.insert(self, filler_and_bottom_line)
@@ -345,7 +345,7 @@ function TitleBar:init()
     local h_padding = self.info_text_h_padding or self.title_h_padding
     local v_padding = self.with_bottom_line and Size.padding.default or 0
     local filler_and_info_text = VerticalGroup:new({
-      VerticalSpan:new({ width = self.titlebar_height + v_padding }),
+      VerticalSpan:new({ height = self.titlebar_height + v_padding }),
       HorizontalGroup:new({
         HorizontalSpan:new({ width = h_padding }),
         TextBoxWidget:new({

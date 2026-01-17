@@ -246,7 +246,7 @@ function CalculatorSettingsDialog:init()
             text = _("Angle ∡"),
             face = self.text_face,
           }),
-          VerticalSpan:new({ width = Size.span.vertical_large * 2 }),
+          VerticalSpan:new({ height = Size.span.vertical_large * 2 }),
           CenterContainer:new({
             dimen = Geom:new({
               w = self.title_bar:getSize().w * 0.4,
@@ -254,7 +254,7 @@ function CalculatorSettingsDialog:init()
             }),
             self.radio_button_table_angle,
           }),
-          VerticalSpan:new({ width = Size.span.vertical_large * 4 }),
+          VerticalSpan:new({ height = Size.span.vertical_large * 4 }),
           TextWidget:new({
             text = _("Number format"),
             face = self.text_face,
@@ -266,7 +266,7 @@ function CalculatorSettingsDialog:init()
             }),
             self.radio_button_table_format,
           }),
-          VerticalSpan:new({ width = Size.span.vertical_large * 4 }),
+          VerticalSpan:new({ height = Size.span.vertical_large * 4 }),
           TextWidget:new({
             text = _("Autoload\ninit.calc"),
             face = self.text_face,
@@ -298,7 +298,7 @@ function CalculatorSettingsDialog:init()
         }),
       }),
 
-      VerticalSpan:new({ width = Size.span.vertical_large * 2 }),
+      VerticalSpan:new({ height = Size.span.vertical_large * 2 }),
       -- buttons
       CenterContainer:new({
         dimen = Geom:new({

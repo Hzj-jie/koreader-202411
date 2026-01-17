@@ -612,7 +612,7 @@ function VirtualKeyPopup:init()
     HorizontalSpan:new({ width = 0 }),
   }
   local v_key_padding =
-    VerticalSpan:new({ width = parent_key.keyboard.key_padding })
+    VerticalSpan:new({ height = parent_key.keyboard.key_padding })
 
   local vertical_group = VerticalGroup:new({ allow_mirroring = false })
   local horizontal_group_extra =
@@ -1129,7 +1129,7 @@ function VirtualKeyboard:addKeys()
       / #self.KEYS
   )
   local h_key_padding = HorizontalSpan:new({ width = self.key_padding })
-  local v_key_padding = VerticalSpan:new({ width = self.key_padding })
+  local v_key_padding = VerticalSpan:new({ height = self.key_padding })
   local vertical_group = VerticalGroup:new({ allow_mirroring = false })
   for i = 1, #self.KEYS do
     local horizontal_group = HorizontalGroup:new({ allow_mirroring = false })

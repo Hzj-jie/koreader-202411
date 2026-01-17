@@ -200,7 +200,7 @@ function NaturalLightWidget:createMainContent(width, height)
   self.exponent = self:adaptableNumber(self.powerd.fl.exponent, 0.1)
 
   local separator = HorizontalSpan:new({ width = Size.span.horizontal_default })
-  local vspan = VerticalSpan:new({ width = Size.span.vertical_large * 2 })
+  local vspan = VerticalSpan:new({ height = Size.span.vertical_large * 2 })
   local vertical_group = VerticalGroup:new({ align = "center" })
   local title_group = HorizontalGroup:new({ align = "center" })
   local white_group = HorizontalGroup:new({ align = "center" })

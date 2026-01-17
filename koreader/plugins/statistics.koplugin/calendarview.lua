@@ -770,7 +770,7 @@ function CalendarDayView:setupView()
   self.pages = #self.kv_pairs <= self.items_per_page + 1 and 1
     or math.ceil(#self.kv_pairs / self.items_per_page)
   self.footer_container[1] = self.pages > 1 and self.page_info
-    or VerticalSpan:new({ width = 0 })
+    or VerticalSpan:new({ height = 0 })
 
   self:_populateBooks()
 end
@@ -905,7 +905,7 @@ function CalendarDayView:_populateBooks()
       self.book_items,
       CenterContainer:new({
         dimen = Geom:new({ w = self.dimen.w - 2 * self.outer_padding, h = 0 }),
-        VerticalSpan:new({ width = 0 }),
+        VerticalSpan:new({ height = 0 }),
       })
     )
   end
@@ -929,7 +929,7 @@ function CalendarDayView:refreshTimeline()
         bordersize = 0,
         padding = 0,
         overlap_offset = { offset_x, self.timeline_offset },
-        VerticalSpan:new({ width = 0 }),
+        VerticalSpan:new({ height = 0 }),
       })
     )
   end
@@ -991,7 +991,7 @@ function CalendarDayView:refreshTimeline()
         overlap_offset = { self.time_text_width, offset_y - Size.border.thin },
         CenterContainer:new({
           dimen = Geom:new({ w = self.timeline_width, h = Size.border.default }),
-          VerticalSpan:new({ width = 0 }),
+          VerticalSpan:new({ height = 0 }),
         }),
       })
     )
@@ -1466,7 +1466,7 @@ function CalendarView:_populateItems()
 
   table.insert(
     self.main_content,
-    VerticalSpan:new({ width = self.inner_padding })
+    VerticalSpan:new({ height = self.inner_padding })
   )
   self.weeks = {}
   local today_s = os.date("%Y-%m-%d", os.time())
@@ -1484,7 +1484,7 @@ function CalendarView:_populateItems()
       if cur_week then
         table.insert(
           self.main_content,
-          VerticalSpan:new({ width = self.inner_padding })
+          VerticalSpan:new({ height = self.inner_padding })
         )
       end
       cur_week = CalendarWeek:new({

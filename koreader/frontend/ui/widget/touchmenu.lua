@@ -675,7 +675,7 @@ function TouchMenu:init()
     HorizontalSpan:new({ width = Size.span.horizontal_default }),
   })
   self.footer_top_margin =
-    VerticalSpan:new({ width = Size.span.vertical_default })
+    VerticalSpan:new({ height = Size.span.vertical_default })
   self.bar:switchToTab(self.last_index or 1)
 end
 

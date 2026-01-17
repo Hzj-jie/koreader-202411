@@ -528,7 +528,7 @@ function KeyValuePage:init()
     VerticalGroup:new({
       align = "left",
       self.title_bar,
-      VerticalSpan:new({ width = span_height }),
+      VerticalSpan:new({ height = span_height }),
       HorizontalGroup:new({
         HorizontalSpan:new({ width = padding }),
         self.main_content,

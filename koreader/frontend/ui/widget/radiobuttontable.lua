@@ -139,7 +139,7 @@ function RadioButtonTable:addHorizontalSep(
   if vspan_before then
     table.insert(
       self.container,
-      VerticalSpan:new({ width = Size.span.vertical_default })
+      VerticalSpan:new({ height = Size.span.vertical_default })
     )
   end
   if add_line then
@@ -158,7 +158,7 @@ function RadioButtonTable:addHorizontalSep(
   if vspan_after then
     table.insert(
       self.container,
-      VerticalSpan:new({ width = Size.span.vertical_default })
+      VerticalSpan:new({ height = Size.span.vertical_default })
     )
   end
 end
