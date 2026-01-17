@@ -1362,7 +1362,7 @@ function TextBoxWidget:getSize()
 end
 
 function TextBoxWidget:paintTo(bb, x, y)
-  self:mergeDimen(x, y)
+  self:mergePosition(x, y)
   bb:blitFrom(self._bb, x, y, 0, 0, self.width, self._bb:getHeight())
 end
 

@@ -66,7 +66,7 @@ function WidgetContainer:paintTo(bb, x, y)
   if not self.dimen then
     self.dimen = self[1]:getSize():copy()
   end
-  self:mergeDimen(x, y)
+  self:mergePosition(x, y)
 
   if self.align == "top" then
     local contentSize = self[1]:getSize()

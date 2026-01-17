@@ -594,7 +594,7 @@ function ImageWidget:paintTo(bb, x, y)
   if self.hide then
     return
   end
-  self:mergeDimen(x, y)
+  self:mergePosition(x, y)
   -- self:_render is called in getSize method
   local size = self:getSize()
   if not self.dimen then

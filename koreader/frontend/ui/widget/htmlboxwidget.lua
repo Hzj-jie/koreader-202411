@@ -128,7 +128,7 @@ function HtmlBoxWidget:getSinglePageHeight()
 end
 
 function HtmlBoxWidget:paintTo(bb, x, y)
-  self:mergeDimen(x, y)
+  self:mergePosition(x, y)
 
   self:_render()
 

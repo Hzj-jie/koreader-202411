@@ -105,7 +105,7 @@ function ProgressWidget:renderMarkerIcon()
 end
 
 function ProgressWidget:paintTo(bb, x, y)
-  self:mergeDimen(x, y)
+  self:mergePosition(x, y)
   local my_size = self:getSize()
   if self.dimen.w == 0 or self.dimen.h == 0 then
     return

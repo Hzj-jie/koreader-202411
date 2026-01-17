@@ -71,7 +71,16 @@ function Widget:getSize()
   return self.dimen
 end
 
-function Widget:mergeDimen(x, y)
+function Widget:mergeSize(w, h)
+  if self.dimen ~= nil then
+    self.dimen.w = w
+    self.dimen.h = h
+  else
+    self.dimen = Geom:new({ w = w, h = h })
+  end
+end
+
+function Widget:mergePosition(x, y)
   if self.dimen ~= nil then
     -- Keep the same reference.
     self.dimen.x = x

@@ -450,7 +450,7 @@ function ScrollableContainer:paintTo(bb, x, y)
   if self[1] == nil then
     return
   end
-  self:mergeDimen(x, y)
+  self:mergePosition(x, y)
 
   if self._is_scrollable == nil then -- not checked yet
     self:initState()

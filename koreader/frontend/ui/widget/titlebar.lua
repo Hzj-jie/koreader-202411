@@ -405,7 +405,7 @@ function TitleBar:paintTo(bb, x, y)
   -- We need to update self.dimen's x and y for any ges.pos:intersectWith(title_bar)
   -- to work. (This is done by FrameContainer, but not by most other widgets... It
   -- should probably be done in all of them, but not sure of side effects...)
-  self:mergeDimen(x, y)
+  self:mergePosition(x, y)
   OverlapGroup.paintTo(self, bb, x, y)
 end
 

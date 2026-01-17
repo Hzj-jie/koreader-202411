@@ -26,7 +26,7 @@ function UnderlineContainer:getSize()
 end
 
 function UnderlineContainer:paintTo(bb, x, y)
-  self:mergeDimen(x, y)
+  self:mergePosition(x, y)
   local container_size = self:getSize()
   local content_size = self[1]:getSize()
   local p_y = y

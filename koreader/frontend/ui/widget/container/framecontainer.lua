@@ -99,7 +99,7 @@ function FrameContainer:onUnfocus()
 end
 
 function FrameContainer:paintTo(bb, x, y)
-  self:mergeDimen(x, y)
+  self:mergePosition(x, y)
   self:getSize()
   local container_width = self.width or self.dimen.w
   local container_height = self.height or self.dimen.h
