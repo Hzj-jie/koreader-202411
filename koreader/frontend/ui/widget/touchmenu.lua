@@ -451,7 +451,6 @@ function TouchMenuBar:init()
       self.bar_sep,
     }),
   })
-  self.dimen = Geom:new({ x = 0, y = 0, w = self.width, h = self.height })
 end
 
 function TouchMenuBar:switchToTab(index)

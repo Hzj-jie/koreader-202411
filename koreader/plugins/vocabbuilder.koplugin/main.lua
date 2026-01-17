@@ -750,7 +750,7 @@ end
 
 function WordInfoDialog:paintTo(...)
   InputContainer.paintTo(self, ...)
-  self.dimen = self[1][1].dimen -- FrameContainer
+  self:mergeSize(self[1][1].dimen) -- FrameContainer
 end
 
 -- values useful for item cells
@@ -803,7 +803,6 @@ local subtitle_height = TextWidget:new({ text = " ", face = subtitle_face })
 
 function VocabItemWidget:init()
   self.layout = {}
-  self.dimen = Geom:new({ w = self.width, h = self.height })
   self.ges_events.Tap = {
     GestureRange:new({
       ges = "tap",
@@ -1398,11 +1397,10 @@ function VocabularyBuilderWidget:init()
   self.item_table = self:getVocabItems()
   self.layout = {}
 
-  self.dimen = self.dimen
-    or Geom:new({
-      w = self.width or Screen:getWidth(),
-      h = self.height or Screen:getHeight(),
-    })
+  self:mergeSize(
+    self.width or Screen:getWidth(),
+    self.height or Screen:getHeight(),
+  )
 
   if Device:hasKeys() then
     self.key_events.Exit = { { Device.input.group.Back } }
