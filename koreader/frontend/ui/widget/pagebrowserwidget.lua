@@ -47,10 +47,7 @@ function PageBrowserWidget:init()
   end
 
   -- Compute non-settings-dependant sizes and options
-  self:mergeSize({
-    w = Screen:getWidth(),
-    h = Screen:getHeight(),
-  })
+  self:mergeSize(Screen:getSize())
 
   if Device:hasKeys() then
     self.key_events = {

@@ -60,16 +60,16 @@ function FrameContainer:getSize()
     self._padding_left, self._padding_right =
       self._padding_right, self._padding_left
   end
-  self:mergeSize({
-    w = content_size.w
+  self:mergeSize(
+    content_size.w
       + (self.margin + self.bordersize) * 2
       + self._padding_left
       + self._padding_right,
-    h = content_size.h
+    content_size.h
       + (self.margin + self.bordersize) * 2
       + self._padding_top
-      + self._padding_bottom,
-  })
+      + self._padding_bottom
+  )
   return self.dimen
 end
 

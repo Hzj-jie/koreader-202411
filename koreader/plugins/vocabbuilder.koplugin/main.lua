@@ -1399,7 +1399,7 @@ function VocabularyBuilderWidget:init()
 
   self:mergeSize(
     self.width or Screen:getWidth(),
-    self.height or Screen:getHeight(),
+    self.height or Screen:getHeight()
   )
 
   if Device:hasKeys() then

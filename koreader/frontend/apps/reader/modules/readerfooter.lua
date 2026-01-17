@@ -812,7 +812,8 @@ function ReaderFooter:updateFooterContainer()
     })
   end
 
-  local vertical_span = VerticalSpan:new({ height = Size.span.vertical_default })
+  local vertical_span =
+    VerticalSpan:new({ height = Size.span.vertical_default })
 
   if
     self.settings.progress_bar_position == "above"

@@ -70,10 +70,10 @@ function IconButton:update()
 
   self.horizontal_group[1].width = self.padding_left
   self.horizontal_group[3].width = self.padding_right
-  self:mergeSize({
-    w = self.width + self.padding_left + self.padding_right,
-    h = self.height + self.padding_top + self.padding_bottom,
-  })
+  self:mergeSize(
+    self.width + self.padding_left + self.padding_right,
+    self.height + self.padding_top + self.padding_bottom
+  )
 
   self.button[1].width = self.padding_top
   self.button[3].width = self.padding_bottom

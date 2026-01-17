@@ -361,10 +361,10 @@ function TitleBar:init()
       + self.bottom_v_padding
   end
 
-  self:mergeSize({
-    w = self.width,
-    h = self.titlebar_height, -- buttons can overflow this
-  })
+  self:mergeSize(
+    self.width,
+    self.titlebar_height -- buttons can overflow this
+  )
 
   if self.has_left_icon then
     self.left_button = IconButton:new({

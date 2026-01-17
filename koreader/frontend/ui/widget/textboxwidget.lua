@@ -1355,10 +1355,7 @@ function TextBoxWidget:getSize()
     self:_updateLayout()
   end
 
-  self:mergeSize({
-    w = self.width,
-    h = self._bb:getHeight(),
-  })
+  self:mergeSize(self.width, self._bb:getHeight())
   return self.dimen
 end
 

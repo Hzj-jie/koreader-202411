@@ -62,7 +62,7 @@ Return size of the widget.
 --]]
 function Widget:getSize()
   if self.width ~= nil or self.height ~= nil then
-    self:mergeSize({ w = self.width or 0, h = self.height or 0 })
+    self:mergeSize(self.width or 0, self.height or 0)
   end
   assert(self.dimen ~= nil)
   return self.dimen

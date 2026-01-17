@@ -18,10 +18,10 @@ local UnderlineContainer = WidgetContainer:extend({
 
 function UnderlineContainer:getSize()
   local contentSize = self[1]:getSize()
-  self:mergeSize({
-    w = contentSize.w,
-    h = contentSize.h + self.linesize + 2 * self.padding,
-  })
+  self:mergeSize(
+    contentSize.w,
+    contentSize.h + self.linesize + 2 * self.padding
+  )
   return self.dimen
 end
 
