@@ -447,17 +447,15 @@ end
 
 function ImageWidget:getSize()
   self:_render()
-  local size
   -- getSize will be used by the widget stack for centering/padding
-  if not self.width or not self.height then
-    -- no width/height provided, return bb size to let widget stack do the centering
-    size = { w = self._bb:getWidth(), h = self._bb:getHeight() }
-  else
+  if self.width and self.height then
     -- if width or height provided, return them as is, even if image is smaller
     -- and would be centered: we'll do the centering ourselves with offsets
-    size = { w = self.width, h = self.height }
+    self:mergeSize(self.width, self.height)
+  else
+    -- no width/height provided, return bb size to let widget stack do the centering
+    self:mergeSize(self._bb:getWidth(), self._bb:getHeight())
   end
-  self:mergeSize(size)
   return self.dimen
 end
 
