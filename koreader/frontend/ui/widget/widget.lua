@@ -106,7 +106,7 @@ function Widget:refreshMode()
   return self._refresh_mode or "ui"
 end
 
-function Widget:dirtyDimen()
+function Widget:dirtyRegion()
   return self.dirty_dimen or self.dimen or require("device").screen:getSize()
 end
 

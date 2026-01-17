@@ -2189,7 +2189,7 @@ function ReaderFooter:_repaint()
     UIManager:scheduleWidgetRepaint(self.view.footer)
   else
     -- If the footer is invisible or might be hidden behind another widget, we need to repaint the full ReaderUI stack.
-    UIManager:setDirty(self.view.dialog, "ui", self:dirtyDimen())
+    UIManager:setDirty(self.view.dialog, "ui", self:dirtyRegion())
   end
 end
 

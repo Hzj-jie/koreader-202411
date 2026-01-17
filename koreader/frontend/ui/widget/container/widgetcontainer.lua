@@ -46,14 +46,14 @@ function WidgetContainer:clear(skip_free)
   end
 end
 
-function WidgetContainer:dirtyDimen()
+function WidgetContainer:dirtyRegion()
   if self.dirty_dimen then
     return self.dirty_dimen
   end
   if self[1] == nil or self[1].dirty_dimen == nil then
-    return Widget.dirtyDimen(self)
+    return Widget.dirtyRegion(self)
   end
-  return self[1]:dirtyDimen()
+  return self[1]:dirtyRegion()
 end
 
 function WidgetContainer:paintTo(bb, x, y)

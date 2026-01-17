@@ -553,7 +553,7 @@ end)
 function UIManager:_scheduleWidgetRefresh(widget, mode, region, dithered)
   if type(widget) == "table" then
     mode = mode or widget:refreshMode()
-    region = region or widget:dirtyDimen()
+    region = region or widget:dirtyRegion()
     -- Avoid treating false wrongly.
     if dithered == nil then
       dithered = widget.dithered
@@ -1018,7 +1018,7 @@ function UIManager:_scheduleRefreshWindowWidget(window, widget)
 
   -- A dirty hack to workaround the groups, they cover the entire screen but
   -- only draw a small portion.
-  local dimen = widget:dirtyDimen()
+  local dimen = widget:dirtyRegion()
   -- window.x and window.y are never used, but keept the potential logic right.
   if window.x > 0 or window.y > 0 then
     dimen = dimen:copy():offsetBy(window.x, window.y)
