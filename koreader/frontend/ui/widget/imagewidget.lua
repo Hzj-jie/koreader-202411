@@ -597,17 +597,6 @@ function ImageWidget:paintTo(bb, x, y)
   self:mergePosition(x, y)
   -- self:_render is called in getSize method
   local size = self:getSize()
-  if not self.dimen then
-    self.dimen = Geom:new({
-      x = x,
-      y = y,
-      w = size.w,
-      h = size.h,
-    })
-  else
-    self.dimen.x = x
-    self.dimen.y = y
-  end
   logger.dbg("blitFrom", x, y, self._offset_x, self._offset_y, size.w, size.h)
   local do_alpha = false
   if self.alpha == true then

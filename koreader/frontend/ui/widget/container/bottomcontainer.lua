@@ -9,6 +9,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local BottomContainer = WidgetContainer:extend({})
 
 function BottomContainer:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   local contentSize = self[1]:getSize()
   --- @fixme
   -- if contentSize.w > self.dimen.w or contentSize.h > self.dimen.h then

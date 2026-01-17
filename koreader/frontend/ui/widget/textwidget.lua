@@ -329,12 +329,11 @@ end
 
 function TextWidget:getSize()
   self:updateSize()
-  return Geom:new({
-    x = 0,
-    y = 0,
+  self:mergeSize({
     w = self._length,
     h = self.forced_height or self._height,
   })
+  return self.dimen
 end
 
 function TextWidget:getWidth()
