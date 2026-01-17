@@ -78,7 +78,7 @@ function Widget:mergeSize(w, h)
     self.dimen.w = w
     self.dimen.h = h
   else
-    self.dimen = Geom:new({ w = w, h = h })
+    self.dimen = Geom:new({ x = 0, y = 0, w = w, h = h })
   end
 end
 
@@ -88,7 +88,7 @@ function Widget:mergePosition(x, y)
     self.dimen.x = x
     self.dimen.y = y
   else
-    self.dimen = Geom:new({ x = x, y = y })
+    self.dimen = Geom:new({ x = x, y = y, w = 0, h = 0 })
   end
 end
 

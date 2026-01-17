@@ -98,9 +98,7 @@ end
 
 function ReaderUI:init()
   -- Default size
-  self.dimen = Screen:getSize()
-  self.dimen.x = 0
-  self.dimen.y = 0
+  self:mergeSize(Screen:getSize())
 
   -- Show self at the very beginning to ensure all the UIManager:broadcastEvent
   -- in the following calls can be received by ReaderUI modules.
