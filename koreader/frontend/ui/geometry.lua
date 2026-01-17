@@ -481,16 +481,10 @@ function Geom:resize(ratio)
   return self
 end
 
-function Geom.newOrMergeFrom(this, other)
+function Geom.newOrMergeSizeFrom(this, other)
   assert(type(this) == "table" or this == nil)
   assert(type(other) == "table")
-  if this then
-    if other.x ~= nil then
-      this.x = other.x
-    end
-    if other.y ~= nil then
-      this.y = other.y
-    end
+  if this ~= nil then
     if other.w ~= nil then
       this.w = other.w
     end

@@ -61,10 +61,8 @@ Return size of the widget.
 @treturn ui.geometry.Geom
 --]]
 function Widget:getSize()
-  if type(self.calculateSize) == "function" then
-    self.dimen = Geom.newOrMergeFrom(self.dimen, self:calculateSize())
-  elseif self.width ~= nil or self.height ~= nil then
-    self.dimen = Geom.newOrMergeFrom(
+  if self.width ~= nil or self.height ~= nil then
+    self.dimen = Geom.newOrMergeSizeFrom(
       self.dimen,
       { w = self.width or 0, h = self.height or 0 }
     )

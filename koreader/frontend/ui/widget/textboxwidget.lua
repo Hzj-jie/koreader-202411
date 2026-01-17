@@ -211,7 +211,7 @@ function TextBoxWidget:init()
   if self.editable then
     self:moveCursorToCharPos(self.charpos or 1)
   end
-  self.dimen = Geom.newOrMergeFrom(self.dimen, self:getSize())
+  self.dimen = Geom.newOrMergeSizeFrom(self.dimen, self:getSize())
 
   if Device:isTouchDevice() then
     self.ges_events.TapImage = {
