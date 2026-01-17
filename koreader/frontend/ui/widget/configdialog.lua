@@ -53,7 +53,7 @@ function OptionTextItem:init()
     bordersize = 0,
     self.underline_container,
   })
-  self.dimen = self[1]:getSize()
+  self:mergeSize(self[1]:getSize())
   -- we need this table per-instance, so we declare it here
   self.ges_events = {
     TapSelect = {
@@ -131,7 +131,7 @@ function OptionIconItem:init()
     bordersize = 0,
     self.underline_container,
   })
-  self.dimen = self[1]:getSize()
+  self:mergeSize(self[1]:getSize())
   -- we need this table per-instance, so we declare it here
   self.ges_events = {
     TapSelect = {
@@ -823,7 +823,7 @@ function ConfigOption:init()
     VerticalSpan:new({ height = default_option_vpadding })
   )
   self[1] = vertical_group
-  self.dimen = vertical_group:getSize()
+  self:mergeSize(self[1]:getSize())
 end
 
 function ConfigOption:_itemGroupToLayoutLine(option_items_group)
@@ -868,7 +868,7 @@ function ConfigPanel:init()
     config = self.config_dialog,
     document = self.document,
   })
-  self.dimen = panel:getSize()
+  self:mergeSize(panel:getSize())
   table.insert(self, panel)
 end
 
@@ -989,7 +989,7 @@ function MenuBar:init()
   table.insert(menu_bar, spacing)
   table.insert(line_bar, spacing_line)
 
-  self.dimen = Geom:new({ x = 0, y = 0, w = Screen:getWidth(), h = bar_height })
+  self:mergeSize(Screen:getWidth(), bar_height)
   local vertical_menu = VerticalGroup:new({
     line_bar,
     menu_bar,
