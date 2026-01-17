@@ -68,6 +68,7 @@ local ListMenuItem = InputContainer:extend({
 })
 
 function ListMenuItem:init()
+  assert(self.dimen ~= nil)
   -- filepath may be provided as 'file' (history, collection) or 'path' (filechooser)
   -- store it as attribute so we can use it elsewhere
   self.filepath = self.entry.file or self.entry.path

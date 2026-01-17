@@ -20,9 +20,8 @@ function LeftContainer:paintTo(bb, x, y)
   if BD.mirroredUILayout() and self.allow_mirroring then
     x = x + (self.dimen.w - contentSize.w) -- as in RightContainer
   end
-  self.dimen.x = x
-  self.dimen.y = y + math.floor((self.dimen.h - contentSize.h) / 2)
-  self[1]:paintTo(bb, self.dimen.x, self.dimen.y)
+  y = y + math.floor((self.dimen.h - contentSize.h) / 2)
+  self[1]:paintTo(bb, x, y)
 end
 
 return LeftContainer
