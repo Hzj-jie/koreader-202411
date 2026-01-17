@@ -26,7 +26,7 @@ local AlphaContainer = WidgetContainer:extend({
 })
 
 function AlphaContainer:paintTo(bb, x, y)
-  self.dimen = self[1]:getSize():copy()
+  self:mergeSize(self[1]:getSize())
   self:mergePosition(x, y)
 
   if
