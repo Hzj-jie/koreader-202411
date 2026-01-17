@@ -85,7 +85,7 @@ function PhysicalKeyboard:init()
   end
   self.key_events.KeyPress = { { all_keys } }
 
-  self.dimen = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
+  self.dimen = Geom:new()
 
   self:setType(self.inputbox.input_type)
 end

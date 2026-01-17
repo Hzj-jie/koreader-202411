@@ -47,7 +47,7 @@ function PageBrowserWidget:init()
   end
 
   -- Compute non-settings-dependant sizes and options
-  self.dimen = Geom:new({
+  self:mergeSize({
     w = Screen:getWidth(),
     h = Screen:getHeight(),
   })

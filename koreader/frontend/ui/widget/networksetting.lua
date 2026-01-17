@@ -80,13 +80,8 @@ local MinimalPaginator = Widget:extend({
   progress = nil,
 })
 
-function MinimalPaginator:getSize()
-  return Geom:new({ w = self.width, h = self.height })
-end
-
 function MinimalPaginator:paintTo(bb, x, y)
-  self.dimen = self:getSize()
-  self.dimen.x, self.dimen.y = x, y
+  self:mergePosition(x, y)
   -- paint background
   bb:paintRoundedRect(
     x,
@@ -120,8 +115,8 @@ local NetworkItem = InputContainer:extend({
 })
 
 function NetworkItem:init()
-  self.dimen = self.dimen
-    or Geom:new({ x = 0, y = 0, w = self.width, h = self.height })
+  -- Populate self.dimen
+  self:getSize()
   if not self.info.ssid then
     self.info.ssid = "[hidden]"
   end

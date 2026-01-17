@@ -375,6 +375,7 @@ function TextWidget:setMaxWidth(max_width)
 end
 
 function TextWidget:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   self:updateSize()
   if self._is_empty then
     return

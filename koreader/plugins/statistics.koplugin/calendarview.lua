@@ -58,6 +58,7 @@ function HistogramWidget:init()
 end
 
 function HistogramWidget:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   local i_x = 0
   for n = 1, self.nb_items do
     if self.do_mirror then

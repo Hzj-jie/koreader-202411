@@ -1426,10 +1426,8 @@ function TextBoxWidget:setText(text)
   self:_computeTextDimensions()
   self:update()
 
-  -- Don't break the reference
-  local new_size = self:getSize()
-  self.dimen.w = new_size.w
-  self.dimen.h = new_size.h
+  -- Don't break the reference, update self.dimen
+  self:getSize()
 end
 dbg:guard(TextBoxWidget, "setText", function(self, text)
   assert(type(text) == "string", "Wrong text type (expected string)")

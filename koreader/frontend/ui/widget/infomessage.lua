@@ -219,10 +219,6 @@ function InfoMessage:onShow()
   return true
 end
 
-function InfoMessage:paintTo(bb, x, y)
-  InputContainer.paintTo(self, bb, x, y)
-end
-
 function InfoMessage:onTapClose()
   UIManager:close(self)
   if self.readonly ~= true then

@@ -102,19 +102,13 @@ HorizontalScrollBar.onHoldReleaseScroll = HorizontalScrollBar.onTapScroll
 HorizontalScrollBar.onPanScroll = HorizontalScrollBar.onTapScroll
 HorizontalScrollBar.onPanScrollRelease = HorizontalScrollBar.onTapScroll
 
-function HorizontalScrollBar:getSize()
-  return Geom:new({
-    w = self.width,
-    h = self.height,
-  })
-end
-
 function HorizontalScrollBar:set(low, high)
   self.low = low > 0 and low or 0
   self.high = high < 1 and high or 1
 end
 
 function HorizontalScrollBar:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   if not self.enable then
     return
   end

@@ -20,13 +20,11 @@ function CenterContainer:paintTo(bb, x, y)
     end
   end
 
-  local x_pos = x
-  local y_pos = y
   if self.ignore ~= "height" then
-    y_pos = y + math.floor((self.dimen.h - content_size.h) / 2)
+    y = y + math.floor((self.dimen.h - content_size.h) / 2)
   end
   if self.ignore ~= "width" then
-    x_pos = x + math.floor((self.dimen.w - content_size.w) / 2)
+    x = x + math.floor((self.dimen.w - content_size.w) / 2)
   end
   self[1]:paintTo(bb, x_pos, y_pos)
 end

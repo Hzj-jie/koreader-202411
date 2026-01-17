@@ -12,12 +12,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 Widget that displays a shortcut icon for menu item.
 --]]
 local ItemShortCutIcon = WidgetContainer:extend({
-  dimen = Geom:new({
-    x = 0,
-    y = 0,
-    w = Screen:scaleBySize(22),
-    h = Screen:scaleBySize(22),
-  }),
+  dimen = nil,
   key = nil,
   bordersize = Size.border.default,
   style = "square",
@@ -27,6 +22,10 @@ function ItemShortCutIcon:init()
   if not self.key then
     return
   end
+  self:mergeSize({
+    w = Screen:scaleBySize(22),
+    h = Screen:scaleBySize(22),
+  })
 
   local background = Blitbuffer.COLOR_WHITE
   if self.style == "grey_square" then
@@ -47,7 +46,7 @@ function ItemShortCutIcon:init()
     background = background,
     dimen = self.dimen:copy(),
     CenterContainer:new({
-      dimen = self.dimen,
+      dimen = self.dimen:copy(),
       TextWidget:new({
         text = self.key,
         face = sc_face,
