@@ -32,8 +32,8 @@ function VerticalGroup:getSize()
 end
 
 function VerticalGroup:paintTo(bb, x, y)
-  self:mergePosition(x, y)
   local size = self:getSize()
+  self:mergePosition(x, y)
   local align = self.align
   if BD.mirroredUILayout() and self.allow_mirroring then
     if align == "left" then

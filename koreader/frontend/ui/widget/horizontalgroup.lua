@@ -39,8 +39,8 @@ function HorizontalGroup:getSize()
 end
 
 function HorizontalGroup:paintTo(bb, x, y)
-  self:mergePosition(x, y)
   local size = self:getSize()
+  self:mergePosition(x, y)
   local _mirroredUI = BD.mirroredUILayout()
 
   if _mirroredUI and self.allow_mirroring then
