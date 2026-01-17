@@ -26,7 +26,7 @@ function CenterContainer:paintTo(bb, x, y)
   if self.ignore ~= "width" then
     x = x + math.floor((self.dimen.w - content_size.w) / 2)
   end
-  self[1]:paintTo(bb, x_pos, y_pos)
+  self[1]:paintTo(bb, x, y)
 end
 
 return CenterContainer
