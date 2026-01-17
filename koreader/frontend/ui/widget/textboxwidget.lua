@@ -1354,12 +1354,15 @@ function TextBoxWidget:getSize()
     self:_updateLayout()
   end
 
-  self.dimen = Geom:new({ x = 0, y = 0, w = self.width, h = self._bb:getHeight() })
+  self.dimen = Geom.newOrMergeSizeFrom(self.dimen, {
+    w = self.width,
+    h = self._bb:getHeight(),
+  })
   return self.dimen
 end
 
 function TextBoxWidget:paintTo(bb, x, y)
-  self.dimen.x, self.dimen.y = x, y
+  self:mergeDimen(x, y)
   bb:blitFrom(self._bb, x, y, 0, 0, self.width, self._bb:getHeight())
 end
 
