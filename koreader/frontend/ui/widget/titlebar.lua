@@ -361,13 +361,10 @@ function TitleBar:init()
       + self.bottom_v_padding
   end
 
-  self.dimen = self.dimen
-    or Geom:new({
-      x = 0,
-      y = 0,
-      w = self.width,
-      h = self.titlebar_height, -- buttons can overflow this
-    })
+  self.dimen = Geom.newOrMergeSizeFrom(self.dimen, {
+    w = self.width,
+    h = self.titlebar_height, -- buttons can overflow this
+  })
 
   if self.has_left_icon then
     self.left_button = IconButton:new({
@@ -408,8 +405,7 @@ function TitleBar:paintTo(bb, x, y)
   -- We need to update self.dimen's x and y for any ges.pos:intersectWith(title_bar)
   -- to work. (This is done by FrameContainer, but not by most other widgets... It
   -- should probably be done in all of them, but not sure of side effects...)
-  self.dimen.x = x
-  self.dimen.y = y
+  self:mergeDimen(x, y)
   OverlapGroup.paintTo(self, bb, x, y)
 end
 
