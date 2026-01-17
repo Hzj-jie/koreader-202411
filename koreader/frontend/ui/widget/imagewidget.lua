@@ -457,7 +457,7 @@ function ImageWidget:getSize()
     -- and would be centered: we'll do the centering ourselves with offsets
     size = { w = self.width, h = self.height }
   end
-  self.dimen = Geom.newOrMergesizeFrom(self.dimen, size)
+  self.dimen = Geom.newOrMergeSizeFrom(self.dimen, size)
   return self.dimen
 end
 
