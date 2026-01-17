@@ -18,7 +18,7 @@ local UnderlineContainer = WidgetContainer:extend({
 
 function UnderlineContainer:getSize()
   local contentSize = self[1]:getSize()
-  self.dimen = Geom.newOrMergeSizeFrom(self.dimen, {
+  self:mergeSize({
     w = contentSize.w,
     h = contentSize.h + self.linesize + 2 * self.padding,
   })

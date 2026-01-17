@@ -481,26 +481,6 @@ function Geom:resize(ratio)
   return self
 end
 
-function Geom.newOrMergeSizeFrom(this, other)
-  assert(type(this) == "table" or this == nil)
-  assert(type(other) == "table")
-  if this ~= nil then
-    if other.w ~= nil then
-      this.w = other.w
-    end
-    if other.h ~= nil then
-      this.h = other.h
-    end
-    return this
-  end
-  return Geom:new({
-    x = other.x or 0,
-    y = other.y or 0,
-    w = other.w or 0,
-    h = other.h or 0,
-  })
-end
-
 --[[--
 Returns a bounding box which encompasses all passed rectangles.
 @tparam Geom rectangles to encompass

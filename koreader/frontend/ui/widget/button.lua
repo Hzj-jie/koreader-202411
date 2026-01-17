@@ -231,7 +231,7 @@ function Button:init()
     self.frame.invert = true
   end
   -- Keep the x, y.
-  self.dimen = Geom.newOrMergeSizeFrom(self.dimen, self.frame:getSize())
+  self:mergeSize(self.frame:getSize())
   self[1] = self.frame
   self.ges_events = {
     TapSelectButton = {

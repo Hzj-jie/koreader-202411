@@ -62,16 +62,18 @@ Return size of the widget.
 --]]
 function Widget:getSize()
   if self.width ~= nil or self.height ~= nil then
-    self.dimen = Geom.newOrMergeSizeFrom(
-      self.dimen,
-      { w = self.width or 0, h = self.height or 0 }
-    )
+    self:mergeSize({ w = self.width or 0, h = self.height or 0 })
   end
   assert(self.dimen ~= nil)
   return self.dimen
 end
 
 function Widget:mergeSize(w, h)
+  if type(w) == "table" then
+    assert(h == nil)
+    h = w.h
+    w = w.w
+  end
   if self.dimen ~= nil then
     self.dimen.w = w
     self.dimen.h = h

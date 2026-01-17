@@ -60,7 +60,7 @@ function FrameContainer:getSize()
     self._padding_left, self._padding_right =
       self._padding_right, self._padding_left
   end
-  self.dimen = Geom.newOrMergeSizeFrom(self.dimen, {
+  self:mergeSize({
     w = content_size.w
       + (self.margin + self.bordersize) * 2
       + self._padding_left

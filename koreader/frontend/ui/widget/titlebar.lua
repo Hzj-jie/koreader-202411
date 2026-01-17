@@ -361,7 +361,7 @@ function TitleBar:init()
       + self.bottom_v_padding
   end
 
-  self.dimen = Geom.newOrMergeSizeFrom(self.dimen, {
+  self:mergeSize({
     w = self.width,
     h = self.titlebar_height, -- buttons can overflow this
   })
