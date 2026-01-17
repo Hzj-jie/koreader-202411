@@ -67,12 +67,14 @@ function BBoxWidget:init()
 end
 
 function BBoxWidget:getSize()
-  return self.view.dimen
+  self:mergeSize(self.view:getSize())
+  return self.dimen
 end
 
 function BBoxWidget:paintTo(bb, x, y)
-  self.dimen = self.view.dimen:copy()
-  self.dimen.x, self.dimen.y = x, y
+  -- Populate self.dimen
+  self:getSize()
+  self:mergePosition(x, y)
 
   -- As getScreenBBox uses view states, screen_bbox initialization is postponed.
   self.screen_bbox = self.screen_bbox or self:getScreenBBox(self.page_bbox)

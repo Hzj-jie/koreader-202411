@@ -961,14 +961,14 @@ end
 
 function ReaderView:onSetDimensions(dimensions)
   self:resetLayout()
-  self.dimen = dimensions
+  self:mergeSize(dimensions)
   -- recalculate view
   self:recalculate()
 end
 
 function ReaderView:onRestoreDimensions(dimensions)
   self:resetLayout()
-  self.dimen = dimensions
+  self:mergeSize(dimensions)
   -- recalculate view
   self:recalculate()
 end
