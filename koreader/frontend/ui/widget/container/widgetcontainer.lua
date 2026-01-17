@@ -22,9 +22,11 @@ function WidgetContainer:getSize()
   if self.dimen then
     -- fixed size
     return self.dimen
-  elseif self[1] then
+  end
+  if self[1] then
     -- return size of first child widget
-    return self[1]:getSize()
+    self:mergeSize(self[1]:getSize())
+    return self.dimen
   end
   return Geom:new()
 end
