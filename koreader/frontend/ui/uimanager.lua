@@ -97,13 +97,13 @@ end
 
 local function cropping_region(widget, x, y, w, h)
   assert(widget ~= nil)
-  -- It's possible that the function is called before the paintTo call.
-  if widget:getSize() then
-    x = x or widget:getSize().x
-    y = y or widget:getSize().y
-    w = w or widget:getSize().w
-    h = h or widget:getSize().h
-  end
+  assert(widget:getSize() ~= nil)
+  -- It's possible that the function is called before the paintTo call, so x or
+  -- y may not present.
+  x = x or widget:getSize().x or 0
+  y = y or widget:getSize().y or 0
+  w = w or widget:getSize().w
+  h = h or widget:getSize().h
 
   if not x or not y or not w or not h then
     logger.warn(
@@ -116,12 +116,13 @@ local function cropping_region(widget, x, y, w, h)
 
   local window = widget:window()
   if window then
+    -- window.x and window.y are never used, but keep the potential logic right.
     x = x + window.x
     y = y + window.y
     local parent = window.widget
     if parent and parent.cropping_widget then
-      -- The main widget parent of this subwidget has a cropping container: see if
-      -- this widget is a child of this cropping container
+      -- The main widget parent of this subwidget has a cropping container: see
+      -- if this widget is a child of this cropping container
       local cropping_widget = parent.cropping_widget
       if util.arrayDfSearch(cropping_widget, widget) then
         -- Invert only what intersects with the cropping container
@@ -1077,15 +1078,7 @@ function UIManager:_repaintDirtyWidgets()
       -- Before the initial paintTo call, widget.dimen isn't available. In the
       -- case, it's expected to paintTo a showParent which starts from the top
       -- left of a window.
-      local paint_region = (
-        widget:getSize() and cropping_region(widget)
-        or {
-          -- window.x and window.y are never used, but keep the potential logic
-          -- right.
-          x = window.x,
-          y = window.y,
-        }
-      )
+      local paint_region = cropping_region(widget)
       assert(paint_region ~= nil)
       widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
       self:_scheduleRefreshWindowWidget(window, widget)
