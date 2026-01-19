@@ -84,13 +84,4 @@ function CheckMark:init()
   self:mergeSize(unchecked_widget:getSize())
 end
 
-function CheckMark:paintTo(bb, x, y)
-  -- TODO: Revise this strange behavior.
-  -- NOTE: Account for alignment/offsets computation being tacked on to self.dimen...
-  --       This is dumb and probably means we're doing something wonky... somewhere, but it works,
-  --       and allows us to keep sensible coordinates in dimen, so that they can be used for hitbox checks.
-  WidgetContainer.paintTo(self, bb, x - self.dimen.x, y - self.dimen.y)
-  self:mergePosition(x, y)
-end
-
 return CheckMark
