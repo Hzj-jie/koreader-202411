@@ -9,12 +9,11 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local VerticalGroup = WidgetContainer:extend({
   align = "center",
   allow_mirroring = true,
-  _offsets = {},
 })
 
 function VerticalGroup:getSize()
-  if not self.dimen then
-    self.dimen = Geom:new()
+  if self._offsets == nil or self:unknownSize() then
+    self:mergeSize(0, 0)
     self._offsets = {}
     for i, widget in ipairs(self) do
       local w_size = widget:getSize()
@@ -28,6 +27,7 @@ function VerticalGroup:getSize()
       end
     end
   end
+  assert(self.dimen ~= nil)
   return self.dimen
 end
 

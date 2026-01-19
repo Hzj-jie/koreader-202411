@@ -19,8 +19,8 @@ local OverlapGroup = WidgetContainer:extend({
 })
 
 function OverlapGroup:getSize()
-  if not self.dimen then
-    self.dimen = Geom:new()
+  if self:unknownSize() then
+    self:mergeSize(0, 0)
     for i, widget in ipairs(self) do
       local w_size = widget:getSize()
       if self.dimen.h < w_size.h then
@@ -31,7 +31,7 @@ function OverlapGroup:getSize()
       end
     end
   end
-
+  assert(self.dimen ~= nil)
   return self.dimen
 end
 

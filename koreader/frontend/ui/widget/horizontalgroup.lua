@@ -13,9 +13,9 @@ local HorizontalGroup = WidgetContainer:extend({
 })
 
 function HorizontalGroup:getSize()
-  if not self.dimen then
+  if self._offsets == nil or self:unknownSize() then
+    self:mergeSize(0, 0)
     local _mirroredUI = BD.mirroredUILayout()
-    self.dimen = Geom:new()
     self._offsets = {}
     if _mirroredUI and self.allow_mirroring then
       util.arrayReverse(self)
@@ -35,6 +35,7 @@ function HorizontalGroup:getSize()
       util.arrayReverse(self)
     end
   end
+  assert(self.dimen ~= nil)
   return self.dimen
 end
 
