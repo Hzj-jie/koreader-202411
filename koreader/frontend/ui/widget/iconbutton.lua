@@ -40,6 +40,9 @@ function IconButton:init()
     width = self.width,
     height = self.height,
   })
+  -- Do not use the width and height as the whole widget size.
+  self.width = nil
+  self.height = nil
   self.horizontal_group = HorizontalGroup:new({})
   table.insert(self.horizontal_group, HorizontalSpan:new({}))
   table.insert(self.horizontal_group, self.image)
@@ -70,9 +73,10 @@ function IconButton:update()
 
   self.horizontal_group[1].width = self.padding_left
   self.horizontal_group[3].width = self.padding_right
+  local contentSize = self.image:getSize()
   self:mergeSize(
-    self.width + self.padding_left + self.padding_right,
-    self.height + self.padding_top + self.padding_bottom
+    contentSize.w + self.padding_left + self.padding_right,
+    contentSize.h + self.padding_top + self.padding_bottom
   )
 
   self.button[1].width = self.padding_top
