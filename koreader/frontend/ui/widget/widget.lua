@@ -82,6 +82,14 @@ function Widget:mergeSize(w, h)
   end
 end
 
+function Widget:initSize(w, h)
+  assert(w ~= nil)
+  assert(h ~= nil)
+  if self.dimen == nil then
+    self.dimen = Geom:new({w = w, h = h })
+  end
+end
+
 function Widget:unknownSize()
   if self.dimen == nil then
     return true
