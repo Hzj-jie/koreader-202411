@@ -82,7 +82,7 @@ function Widget:mergeSize(w, h)
   end
 end
 
-function Widget:backfillSize(w, h)
+function Widget:backupSize(w, h)
   assert(w ~= nil)
   assert(h ~= nil)
   if self.dimen == nil then

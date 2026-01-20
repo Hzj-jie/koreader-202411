@@ -22,7 +22,7 @@ function ItemShortCutIcon:init()
   if not self.key then
     return
   end
-  self:backfillSize(Screen:scaleBySize(22), Screen:scaleBySize(22))
+  self:backupSize(Screen:scaleBySize(22), Screen:scaleBySize(22))
 
   local background = Blitbuffer.COLOR_WHITE
   if self.style == "grey_square" then
