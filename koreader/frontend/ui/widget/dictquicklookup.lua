@@ -1204,7 +1204,7 @@ function DictQuickLookup:onTap(arg, ges_ev)
           self.definition_widget.dimen
             :copy()
             :resize(
-              require("apps/reader/modules/readerview"):getForwardTapZone()
+              require("apps/reader/modules/readerview").getForwardTapZone()
             )
         )
       )

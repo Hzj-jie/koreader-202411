@@ -1598,7 +1598,7 @@ function PageBrowserWidget:onTap(arg, ges)
       ges.pos:intersectWith(
         self.dimen
           :copy()
-          :resize(require("apps/reader/modules/readerview"):getForwardTapZone())
+          :resize(require("apps/reader/modules/readerview").getForwardTapZone())
       )
     )
   then
