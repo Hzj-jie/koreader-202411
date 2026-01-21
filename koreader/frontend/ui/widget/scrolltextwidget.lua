@@ -304,10 +304,10 @@ end
 
 function ScrollTextWidget:onScrollText(arg, ges)
   if ges.direction == "north" then
-    self:scrollText(1)
+    self:onScrollDown()
     return true
   elseif ges.direction == "south" then
-    self:scrollText(-1)
+    self:onScrollUp()
     return true
   end
   -- if swipe west/east, let it propagate up (e.g. for quickdictlookup to
@@ -326,7 +326,7 @@ function ScrollTextWidget:onTapScrollText(arg, ges)
       ges.pos:intersectWith(
         self.dimen
           :copy()
-          :resize(require("apps/reader/modules/readerview"):getForwardTapZone())
+          :resize(require("apps/reader/modules/readerview").getForwardTapZone())
       )
     )
   then
