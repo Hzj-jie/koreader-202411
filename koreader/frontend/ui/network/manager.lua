@@ -157,7 +157,7 @@ end
 function NetworkMgr:_asyncCheckWifiState()
   require("background_jobs").insert({
     when = 10,
-    repeated = 12,  -- up to 2 minutes
+    repeated = 12, -- up to 2 minutes
     executable = function()
       if self:_isWifiConnected() then
         -- Well, do not stop the repeating, it won't waste a dime.
