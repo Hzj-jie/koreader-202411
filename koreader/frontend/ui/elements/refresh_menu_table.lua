@@ -30,6 +30,7 @@ return {
     callback = function()
       UIManager:broadcastEvent(Event:new("SetRefreshRate", 0))
     end,
+    radio = true,
   },
   {
     -- Need localization
@@ -40,6 +41,7 @@ return {
     callback = function()
       UIManager:broadcastEvent(Event:new("SetRefreshRate", 48))
     end,
+    radio = true,
   },
   {
     -- Need localization
@@ -56,6 +58,7 @@ return {
         )
       )
     end,
+    radio = true,
   },
   {
     -- Need localization
@@ -66,6 +69,7 @@ return {
     callback = function()
       UIManager:broadcastEvent(Event:new("SetRefreshRate", 4))
     end,
+    radio = true,
     separator = true,
   },
 }
