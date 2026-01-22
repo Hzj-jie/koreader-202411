@@ -186,10 +186,7 @@ function MovableContainer:paintTo(bb, x, y)
   end
 
   local content_size = self[1]:getSize()
-  if not self.dimen then
-    self.dimen =
-      Geom:new({ x = 0, y = 0, w = content_size.w, h = content_size.h })
-  end
+  self:mergeSize(content_size)
 
   self._orig_x = x
   self._orig_y = y

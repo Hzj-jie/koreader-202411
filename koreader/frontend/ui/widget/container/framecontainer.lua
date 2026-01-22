@@ -23,6 +23,7 @@ local Blitbuffer = require("ffi/blitbuffer")
 local Geom = require("ui/geometry")
 local Size = require("ui/size")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local logger = require("logger")
 
 local FrameContainer = WidgetContainer:extend({
   background = nil,
@@ -50,7 +51,7 @@ local FrameContainer = WidgetContainer:extend({
   stripe_over_alpha = 1,
 })
 
-function FrameContainer:getSize()
+function FrameContainer:_contentSize()
   local content_size = self[1]:getSize()
   self._padding_top = self.padding_top or self.padding
   self._padding_right = self.padding_right or self.padding
@@ -60,15 +61,30 @@ function FrameContainer:getSize()
     self._padding_left, self._padding_right =
       self._padding_right, self._padding_left
   end
-  self:mergeSize(
-    self.width or content_size.w
+  local width = content_size.w
       + (self.margin + self.bordersize) * 2
       + self._padding_left
-      + self._padding_right,
-    content_size.h
+      + self._padding_right
+  local height = content_size.h
       + (self.margin + self.bordersize) * 2
       + self._padding_top
       + self._padding_bottom
+  return width, height
+end
+
+function FrameContainer:getSize()
+  local width, height = self:_contentSize()
+  if self.width and self.width < width then
+    logger.warn("FrameContainer self.width ", tostring(self.width), " < content.width ", tostring(width))
+    self.width = width
+  end
+  if self.height and self.height < height then
+    logger.warn("FrameContainer self.height ", tostring(self.height), " < content.height ", tostring(height))
+    self.height = height
+  end
+  self:mergeSize(
+    self.width or width,
+    self.height or height
   )
   return self.dimen
 end
@@ -100,13 +116,13 @@ end
 
 function FrameContainer:paintTo(bb, x, y)
   self:mergePosition(x, y)
-  self:getSize()
-  local container_width = self.width or self.dimen.w
-  local container_height = self.height or self.dimen.h
+  local width, height = self:_contentSize()
+  local container_width = self.width or width
+  local container_height = self.height or height
 
   local shift_x = 0
   if BD.mirroredUILayout() and self.allow_mirroring then
-    shift_x = container_width - self.dimen.w
+    shift_x = container_width - width
   end
 
   if self.background then
