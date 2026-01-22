@@ -187,6 +187,7 @@ function MovableContainer:paintTo(bb, x, y)
 
   local content_size = self[1]:getSize()
   self:backupSize(content_size)
+  self:backupPosition(0, 0)
 
   self._orig_x = x
   self._orig_y = y

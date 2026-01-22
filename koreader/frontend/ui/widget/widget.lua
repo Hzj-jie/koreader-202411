@@ -105,6 +105,13 @@ function Widget:backupSize(w, h)
   assert(h ~= nil)
   if self.dimen == nil then
     self.dimen = Geom:new({ w = w, h = h })
+  else
+    if self.dimen.w == nil then
+      self.dimen.w = w
+    end
+    if self.dimen.h == nil then
+      self.dimen.h = h
+    end
   end
 end
 
@@ -127,6 +134,21 @@ function Widget:mergePosition(x, y)
     self.dimen.y = y
   else
     self.dimen = Geom:new({ x = x, y = y })
+  end
+end
+
+function Widget:backupPosition(x, y)
+  assert(x ~= nil)
+  assert(y ~= nil)
+  if self.dimen == nil then
+    self.dimen = Geom:new({ x = x, y = y })
+  else
+    if self.dimen.x == nil then
+      self.dimen.x = x
+    end
+    if self.dimen.y == nil then
+      self.dimen.y = y
+    end
   end
 end
 
