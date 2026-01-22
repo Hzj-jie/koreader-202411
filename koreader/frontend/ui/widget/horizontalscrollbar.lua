@@ -118,6 +118,14 @@ function HorizontalScrollBar:paintTo(bb, x, y)
     w = self.width,
     h = self.height + 2 * self.extra_touch_on_side,
   })
+  -- Reset the area first.
+  bb:paintRect(
+    x,
+    y,
+    self.width,
+    self.height,
+    Blitbuffer.COLOR_WHITE
+  )
   bb:paintBorder(
     x,
     y,

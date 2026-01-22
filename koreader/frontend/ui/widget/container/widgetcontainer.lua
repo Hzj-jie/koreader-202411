@@ -19,16 +19,16 @@ local Widget = require("ui/widget/widget")
 local WidgetContainer = Widget:extend({})
 
 function WidgetContainer:getSize()
-  if not self.dimen then
-    -- or fixed size
-    if self[1] then
-      -- return size of first child widget
-      self:mergeSize(self[1]:getSize())
-    else
-      self.dimen = Geom:new()
-    end
+  if self.dimen then
+    -- fixed size
+    return self.dimen
   end
-  return self.dimen
+  if self[1] then
+    -- return size of first child widget
+    self:mergeSize(self[1]:getSize())
+    return self.dimen
+  end
+  return Widget.getSize(self)
 end
 
 --[[--

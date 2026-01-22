@@ -114,6 +114,14 @@ function VerticalScrollBar:paintTo(bb, x, y)
     w = self.width + 2 * self.extra_touch_on_side,
     h = self.height,
   })
+  -- Reset the area first.
+  bb:paintRect(
+    x,
+    y,
+    self.width,
+    self.height,
+    Blitbuffer.COLOR_WHITE
+  )
   bb:paintBorder(
     x,
     y,
