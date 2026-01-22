@@ -312,31 +312,41 @@ function VirtualKey:init()
     TapSelect = {
       GestureRange:new({
         ges = "tap",
-        range = self.dimen,
+        range = function()
+          return self:getSize()
+        end,
       }),
     },
     HoldSelect = {
       GestureRange:new({
         ges = "hold",
-        range = self.dimen,
+        range = function()
+          return self:getSize()
+        end,
       }),
     },
     HoldReleaseKey = {
       GestureRange:new({
         ges = "hold_release",
-        range = self.dimen,
+        range = function()
+          return self:getSize()
+        end,
       }),
     },
     PanReleaseKey = {
       GestureRange:new({
         ges = "pan_release",
-        range = self.dimen,
+        range = function()
+          return self:getSize()
+        end,
       }),
     },
     SwipeKey = {
       GestureRange:new({
         ges = "swipe",
-        range = self.dimen,
+        range = function()
+          return self:getSize()
+        end,
       }),
     },
   }
