@@ -96,6 +96,11 @@ function Widget:mergeSize(w, h)
 end
 
 function Widget:backupSize(w, h)
+  if type(w) == "table" then
+    assert(h == nil)
+    h = w.h
+    w = w.w
+  end
   assert(w ~= nil)
   assert(h ~= nil)
   if self.dimen == nil then

@@ -51,7 +51,7 @@ local FrameContainer = WidgetContainer:extend({
   stripe_over_alpha = 1,
 })
 
-function FrameContainer:_contentSize()
+function FrameContainer:_containerSize()
   local content_size = self[1]:getSize()
   self._padding_top = self.padding_top or self.padding
   self._padding_right = self.padding_right or self.padding
@@ -73,10 +73,10 @@ function FrameContainer:_contentSize()
 end
 
 function FrameContainer:getSize()
-  local width, height = self:_contentSize()
+  local width, height = self:_containerSize()
   if self.width and self.width < width then
     logger.warn(
-      "FrameContainer self.width ",
+      "FixMe: FrameContainer self.width ",
       tostring(self.width),
       " < content.width ",
       tostring(width)
@@ -85,14 +85,14 @@ function FrameContainer:getSize()
   end
   if self.height and self.height < height then
     logger.warn(
-      "FrameContainer self.height ",
+      "FixMe: FrameContainer self.height ",
       tostring(self.height),
       " < content.height ",
       tostring(height)
     )
     self.height = height
   end
-  self:mergeSize(self.width or width, self.height or height)
+  self:mergeSize(self.width or width, height)
   return self.dimen
 end
 
@@ -123,7 +123,7 @@ end
 
 function FrameContainer:paintTo(bb, x, y)
   self:mergePosition(x, y)
-  local width, height = self:_contentSize()
+  local width, height = self:_containerSize()
   local container_width = self.width or width
   local container_height = self.height or height
 
