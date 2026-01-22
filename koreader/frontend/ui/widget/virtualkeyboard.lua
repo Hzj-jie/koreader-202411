@@ -1015,7 +1015,7 @@ function VirtualKeyboard:_refresh(want_flash, fullscreen)
     UIManager:setDirty("all", refresh_type)
     return
   end
-  UIManager:setDirty(self, function()
+  UIManager:setDirty(self.inputbox, function()
     return refresh_type, self.dimen
   end)
 end
