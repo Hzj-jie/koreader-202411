@@ -62,30 +62,37 @@ function FrameContainer:_contentSize()
       self._padding_right, self._padding_left
   end
   local width = content_size.w
-      + (self.margin + self.bordersize) * 2
-      + self._padding_left
-      + self._padding_right
+    + (self.margin + self.bordersize) * 2
+    + self._padding_left
+    + self._padding_right
   local height = content_size.h
-      + (self.margin + self.bordersize) * 2
-      + self._padding_top
-      + self._padding_bottom
+    + (self.margin + self.bordersize) * 2
+    + self._padding_top
+    + self._padding_bottom
   return width, height
 end
 
 function FrameContainer:getSize()
   local width, height = self:_contentSize()
   if self.width and self.width < width then
-    logger.warn("FrameContainer self.width ", tostring(self.width), " < content.width ", tostring(width))
+    logger.warn(
+      "FrameContainer self.width ",
+      tostring(self.width),
+      " < content.width ",
+      tostring(width)
+    )
     self.width = width
   end
   if self.height and self.height < height then
-    logger.warn("FrameContainer self.height ", tostring(self.height), " < content.height ", tostring(height))
+    logger.warn(
+      "FrameContainer self.height ",
+      tostring(self.height),
+      " < content.height ",
+      tostring(height)
+    )
     self.height = height
   end
-  self:mergeSize(
-    self.width or width,
-    self.height or height
-  )
+  self:mergeSize(self.width or width, self.height or height)
   return self.dimen
 end
 

@@ -86,7 +86,7 @@ function Widget:backupSize(w, h)
   assert(w ~= nil)
   assert(h ~= nil)
   if self.dimen == nil then
-    self.dimen = Geom:new({w = w, h = h })
+    self.dimen = Geom:new({ w = w, h = h })
   end
 end
 
