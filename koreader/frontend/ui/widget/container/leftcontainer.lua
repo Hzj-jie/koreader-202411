@@ -24,4 +24,8 @@ function LeftContainer:paintTo(bb, x, y)
   self[1]:paintTo(bb, x, y)
 end
 
+function LeftContainer:dirtyRegion()
+  return self[1]:dirtyRegion()
+end
+
 return LeftContainer

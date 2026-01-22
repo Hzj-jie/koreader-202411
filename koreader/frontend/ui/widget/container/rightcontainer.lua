@@ -24,4 +24,8 @@ function RightContainer:paintTo(bb, x, y)
   self[1]:paintTo(bb, x, y + math.floor((self.dimen.h - contentSize.h) / 2))
 end
 
+function RightContainer:dirtyRegion()
+  return self[1]:dirtyRegion()
+end
+
 return RightContainer

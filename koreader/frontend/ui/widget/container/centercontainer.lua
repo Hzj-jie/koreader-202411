@@ -30,4 +30,8 @@ function CenterContainer:paintTo(bb, x, y)
   self[1]:paintTo(bb, x, y)
 end
 
+function CenterContainer:dirtyRegion()
+  return self[1]:dirtyRegion()
+end
+
 return CenterContainer
