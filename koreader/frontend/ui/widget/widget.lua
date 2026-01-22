@@ -61,11 +61,17 @@ Return size of the widget.
 @treturn ui.geometry.Geom
 --]]
 function Widget:getSize()
+  self:mayMergeWidthAndHeight()
+  assert(self.dimen ~= nil)
+  return self.dimen
+end
+
+-- TODO: This function is for WidgetContainer and should be removed after being
+-- migrated.
+function Widget:mayMergeWidthAndHeight()
   if self.width ~= nil or self.height ~= nil then
     self:mergeSize(self.width or 0, self.height or 0)
   end
-  assert(self.dimen ~= nil)
-  return self.dimen
 end
 
 function Widget:mergeSize(w, h)
@@ -74,6 +80,8 @@ function Widget:mergeSize(w, h)
     h = w.h
     w = w.w
   end
+  assert(w ~= nil)
+  assert(h ~= nil)
   if self.dimen ~= nil then
     self.dimen.w = w
     self.dimen.h = h

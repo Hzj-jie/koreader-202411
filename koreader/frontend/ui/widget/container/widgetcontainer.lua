@@ -28,7 +28,9 @@ function WidgetContainer:getSize()
     self:mergeSize(self[1]:getSize())
     return self.dimen
   end
-  return Widget.getSize(self)
+  -- TODO: Remove, use Widget.getSize(self) instead.
+  self:mayMergeWidthAndHeight()
+  return self.dimen or Geom:new()
 end
 
 --[[--
