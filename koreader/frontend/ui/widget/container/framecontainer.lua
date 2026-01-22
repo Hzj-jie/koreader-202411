@@ -92,7 +92,7 @@ function FrameContainer:getSize()
     )
     self.height = height
   end
-  self:mergeSize(self.width or width, height)
+  self:mergeSize(self.width or width, self.height or height)
   return self.dimen
 end
 
@@ -124,6 +124,9 @@ end
 function FrameContainer:paintTo(bb, x, y)
   self:mergePosition(x, y)
   local width, height = self:_containerSize()
+  -- TODO: Remove. Expose self.dimen, it's wrong, but some uses are not calling
+  -- :getSize()
+  self:getSize()
   local container_width = self.width or width
   local container_height = self.height or height
 
