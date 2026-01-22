@@ -193,10 +193,6 @@ function InfoMessage:onClose()
     self._timeout_func = nil
   end
 
-  if self._delayed_show_action then
-    UIManager:unschedule(self._delayed_show_action)
-    self._delayed_show_action = nil
-  end
   if self.dismiss_callback then
     self.dismiss_callback()
     -- NOTE: Dirty hack for Trapper, which needs to pull a Lazarus on dead widgets while preserving the callback's integrity ;).

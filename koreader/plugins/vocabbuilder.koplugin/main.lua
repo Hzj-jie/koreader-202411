@@ -1081,7 +1081,7 @@ function VocabItemWidget:resetProgress()
   self.item.last_due_time = nil
   self.item.is_dim = false
   self:initItemWidget()
-  UIManager:setDirty(self:showParent(), function()
+  UIManager:setDirty(self, function()
     return "ui", self[1].dimen
   end)
 end
@@ -1097,7 +1097,7 @@ function VocabItemWidget:undo()
   self.item.last_due_time = nil
   self.item.is_dim = false
   self:initItemWidget()
-  UIManager:setDirty(self:showParent(), function()
+  UIManager:setDirty(self, function()
     return "ui", self[1].dimen
   end)
 end
@@ -1201,7 +1201,7 @@ function VocabItemWidget:onGotIt()
   if self:showParent().selected.x == 3 then
     self:showParent().selected.x = 1
   end
-  UIManager:setDirty(self:showParent(), function()
+  UIManager:setDirty(self, function()
     return "ui", self[1].dimen
   end)
 end
@@ -1210,7 +1210,7 @@ function VocabItemWidget:onForgot(no_lookup)
   self.item.forgot_callback(self.item)
   self.item.is_dim = false
   self:initItemWidget()
-  UIManager:setDirty(self:showParent(), function()
+  UIManager:setDirty(self, function()
     return "ui", self[1].dimen
   end)
   if not no_lookup and self.item.callback then
@@ -1873,7 +1873,7 @@ function VocabularyBuilderWidget:_populateItems()
     self.selected = { x = 1, y = 1 }
   end
   UIManager:setDirty(self, function()
-    return "ui", self.dimen
+    return "ui"
   end)
 end
 

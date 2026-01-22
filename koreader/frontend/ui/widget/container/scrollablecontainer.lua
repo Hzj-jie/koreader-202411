@@ -409,7 +409,7 @@ function ScrollableContainer:_scrollBy(dx, dy, ensure_scroll_steps)
   end
   self:_hideTruncatedGridItemsIfRequested()
   self:_updateScrollBars()
-  UIManager:setDirty(self:showParent(), function()
+  UIManager:setDirty(self, function()
     return "ui", self.dimen
   end)
 end

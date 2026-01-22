@@ -310,7 +310,7 @@ function FocusManager:onFocusMove(args)
       -- Trigger a fast repaint, this does not count toward a flashing eink refresh
       -- NOTE: Ideally, we'd only have to repaint the specific subwidget we're highlighting,
       --       but we may not know its exact coordinates, so, redraw the parent widget instead.
-      UIManager:setDirty(self:showParent() or self, "fast")
+      UIManager:setDirty(self, "fast")
       break
     end
   end
@@ -419,7 +419,7 @@ function FocusManager:moveFocusTo(x, y, focus_flags)
         bit.band(focus_flags, FocusManager.NOT_FOCUS) ~= FocusManager.NOT_FOCUS
       then
         target_item:broadcastEvent(Event:new("Focus"))
-        UIManager:setDirty(self:showParent() or self, "fast")
+        UIManager:setDirty(self, "fast")
       end
     end
     return true

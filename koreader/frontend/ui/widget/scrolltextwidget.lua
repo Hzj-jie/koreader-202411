@@ -81,7 +81,8 @@ function ScrollTextWidget:init()
       self:scrollToRatio(ratio, false)
     end,
   })
-  self:updateScrollBar()
+  self:_calculateScrollBar()
+
   local horizontal_group = HorizontalGroup:new({ align = "top" })
   table.insert(horizontal_group, self.text_widget)
   table.insert(
@@ -166,35 +167,43 @@ function ScrollTextWidget:getCharPosLineNum(charpos)
   return line_num -- screen line number
 end
 
-function ScrollTextWidget:updateScrollBar(is_partial)
+function ScrollTextWidget:_calculateScrollBar()
   local low, high = self.text_widget:getVisibleHeightRatios()
   if low ~= self.prev_low or high ~= self.prev_high then
     self.prev_low = low
     self.prev_high = high
     self.v_scroll_bar:set(low, high)
+    return true
+  end
+  return false
+end
 
-    -- Don't even try to refresh dummy widgets used for text height computations...
-    if not self.for_measurement_only then
-      local refreshfunc = "ui"
-      if is_partial then
-        refreshfunc = "partial"
-      end
-      -- Reset transparency if the dialog's MovableContainer is currently translucent...
-      if is_partial and self.dialog.movable and self.dialog.movable.alpha then
-        self.dialog.movable.alpha = nil
-        UIManager:setDirty(self.dialog, function()
-          return refreshfunc, self.dialog.movable.dimen
-        end)
-      else
-        UIManager:setDirty(self.dialog, function()
-          return refreshfunc, self.dimen
-        end)
-      end
-    end
+function ScrollTextWidget:_updateScrollBar(is_partial)
+  if not self:_calculateScrollBar() then
+    return
+  end
 
-    if self.scroll_callback then
-      self.scroll_callback(low, high)
+  -- Don't even try to refresh dummy widgets used for text height computations...
+  if not self.for_measurement_only then
+    local refreshfunc = "ui"
+    if is_partial then
+      refreshfunc = "partial"
     end
+    -- Reset transparency if the dialog's MovableContainer is currently translucent...
+    if is_partial and self.dialog.movable and self.dialog.movable.alpha then
+      self.dialog.movable.alpha = nil
+      UIManager:setDirty(self.dialog, function()
+        return refreshfunc, self.dialog.movable.dimen
+      end)
+    else
+      UIManager:setDirty(self, function()
+        return refreshfunc
+      end)
+    end
+  end
+
+  if self.scroll_callback then
+    self.scroll_callback(self.prev_low, self.prev_high)
   end
 end
 
@@ -218,7 +227,7 @@ function ScrollTextWidget:moveCursorToCharPos(charpos, centered_lines_count)
   else
     self.text_widget:moveCursorToCharPos(charpos)
   end
-  self:updateScrollBar()
+  self:_updateScrollBar()
 end
 
 function ScrollTextWidget:moveCursorToXY(x, y, no_overflow)
@@ -226,57 +235,57 @@ function ScrollTextWidget:moveCursorToXY(x, y, no_overflow)
     x = x - self.scroll_bar_width - self.text_scroll_span
   end
   self.text_widget:moveCursorToXY(x, y, no_overflow)
-  self:updateScrollBar()
+  self:_updateScrollBar()
 end
 
 function ScrollTextWidget:moveCursorLeft()
   self.text_widget:moveCursorLeft()
-  self:updateScrollBar()
+  self:_updateScrollBar()
 end
 
 function ScrollTextWidget:moveCursorRight()
   self.text_widget:moveCursorRight()
-  self:updateScrollBar()
+  self:_updateScrollBar()
 end
 
 function ScrollTextWidget:moveCursorUp()
   self.text_widget:moveCursorUp()
-  self:updateScrollBar()
+  self:_updateScrollBar()
 end
 
 function ScrollTextWidget:moveCursorDown()
   self.text_widget:moveCursorDown()
-  self:updateScrollBar()
+  self:_updateScrollBar()
 end
 
 function ScrollTextWidget:moveCursorHome()
   self.text_widget:moveCursorHome()
-  self:updateScrollBar()
+  self:_updateScrollBar()
 end
 
 function ScrollTextWidget:moveCursorEnd()
   self.text_widget:moveCursorEnd()
-  self:updateScrollBar()
+  self:_updateScrollBar()
 end
 
 function ScrollTextWidget:scrollDown()
   self.text_widget:scrollDown()
-  self:updateScrollBar(true)
+  self:_updateScrollBar(true)
 end
 
 function ScrollTextWidget:scrollUp()
   self.text_widget:scrollUp()
-  self:updateScrollBar(true)
+  self:_updateScrollBar(true)
 end
 
 function ScrollTextWidget:scrollToTop()
   self.text_widget:scrollToTop()
-  self:updateScrollBar(true)
+  self:_updateScrollBar(true)
 end
 
 function ScrollTextWidget:scrollToBottom()
   self.text_widget:scrollToBottom()
-  self:updateScrollBar(true)
+  self:_updateScrollBar(true)
 end
 
 function ScrollTextWidget:scrollText(direction)
@@ -288,7 +297,7 @@ function ScrollTextWidget:scrollText(direction)
   else
     self.text_widget:scrollUp()
   end
-  self:updateScrollBar(true)
+  self:_updateScrollBar(true)
 end
 
 function ScrollTextWidget:scrollToRatio(ratio, force_to_page)
@@ -299,7 +308,7 @@ function ScrollTextWidget:scrollToRatio(ratio, force_to_page)
     force_to_page = true
   end
   self.text_widget:scrollToRatio(ratio, force_to_page)
-  self:updateScrollBar(true)
+  self:_updateScrollBar(true)
 end
 
 function ScrollTextWidget:onScrollText(arg, ges)
@@ -369,7 +378,7 @@ function ScrollTextWidget:onPanReleaseText(arg, ges)
     if self._pan_direction == "north" or self._pan_direction == "south" then
       local nb_lines = Math.round(self._pan_relative_y / self:getLineHeight())
       self.text_widget:scrollLines(-nb_lines)
-      self:updateScrollBar(true)
+      self:_updateScrollBar(true)
     end
     self._pan_direction = nil
     self._pan_relative_x = nil
