@@ -811,7 +811,7 @@ function InputText:_handleChar(key)
   -- These key map maybe single text keys.
   -- It will cause unexpected focus move instead of enter text to InputText
   if not FocusManagerInstance then
-    FocusManagerInstance = FocusManager:new({})
+    FocusManagerInstance = FocusManager:new()
   end
   if FocusManagerInstance:isAlternativeKey(key) then
     return true -- Stop event propagate to FocusManager to void focus move

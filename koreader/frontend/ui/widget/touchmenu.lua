@@ -306,7 +306,7 @@ function TouchMenuBar:init()
   local spacing_width = (self.width - content_width) / (#self.icons * 2)
   local icon_padding = math.min(spacing_width, Screen:scaleBySize(16))
   self.height = icon_height + 2 * Size.padding.default
-  self.bar_icon_group = HorizontalGroup:new({})
+  self.bar_icon_group = HorizontalGroup:new()
   -- build up image widget for menu icon bar
   self.icon_widgets = {}
   -- hold icon separators

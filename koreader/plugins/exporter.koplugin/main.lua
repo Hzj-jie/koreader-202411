@@ -122,7 +122,7 @@ local Exporter = WidgetContainer:extend({
 
 function Exporter:init()
   migrateSettings()
-  self.parser = MyClipping:new({})
+  self.parser = MyClipping:new()
   for _, v in pairs(self.targets) do
     v.path = self.path
   end

@@ -356,11 +356,11 @@ function SetDefaults:ConfirmEdit()
       ),
       ok_callback = function()
         SetDefaults.EditConfirmed = true
-        UIManager:show(SetDefaultsWidget:new({}))
+        UIManager:show(SetDefaultsWidget:new())
       end,
     }))
   else
-    UIManager:show(SetDefaultsWidget:new({}))
+    UIManager:show(SetDefaultsWidget:new())
   end
 end
 

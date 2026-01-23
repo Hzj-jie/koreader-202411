@@ -108,7 +108,7 @@ require("ui/uimanager"):show(test_widget)
 function InputContainer:registerTouchZones(zones)
   local screen_width, screen_height = Screen:getWidth(), Screen:getHeight()
   if not self.touch_zone_dg then
-    self.touch_zone_dg = DepGraph:new({})
+    self.touch_zone_dg = DepGraph:new()
   end
   for _, zone in ipairs(zones) do
     -- override touch zone with the same id to support reregistration

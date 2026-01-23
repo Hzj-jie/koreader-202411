@@ -31,7 +31,7 @@ local KoptInterface = {
   default_context_size = 1024 * 1024,
 }
 
-local ContextCacheItem = CacheItem:new({})
+local ContextCacheItem = CacheItem:new()
 
 function ContextCacheItem:onFree()
   KoptInterface:waitForContext(self.kctx)
@@ -78,7 +78,7 @@ function ContextCacheItem:load(filename)
   end
 end
 
-local OCREngine = CacheItem:new({})
+local OCREngine = CacheItem:new()
 
 function OCREngine:onFree()
   if self.ocrengine.freeOCR then

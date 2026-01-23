@@ -661,7 +661,7 @@ function CalendarDayView:init()
   self.book_item_height = temp_text:getSize().h + 2 * Size.padding.small
   temp_text:free()
 
-  self.book_items = VerticalGroup:new({})
+  self.book_items = VerticalGroup:new()
   self.timeline = OverlapGroup:new({
     dimen = self.dimen:copy(),
   })
@@ -1329,7 +1329,7 @@ function CalendarView:init()
   })
 
   -- week days names header
-  self.day_names = HorizontalGroup:new({})
+  self.day_names = HorizontalGroup:new()
   table.insert(
     self.day_names,
     HorizontalSpan:new({ width = self.outer_padding })
@@ -1401,7 +1401,7 @@ function CalendarView:init()
     test_w:free()
   end
 
-  self.main_content = VerticalGroup:new({})
+  self.main_content = VerticalGroup:new()
   self:_populateItems()
 
   local content = OverlapGroup:new({

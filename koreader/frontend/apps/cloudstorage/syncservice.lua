@@ -75,7 +75,7 @@ function SyncService:generateItemTable()
     text = _("Add service"),
     bold = true,
     callback = function()
-      local cloud_storage = require("apps/cloudstorage/cloudstorage"):new({})
+      local cloud_storage = require("apps/cloudstorage/cloudstorage"):new()
       local onExit = cloud_storage.onExit
       cloud_storage.onExit = function(this)
         onExit(this)

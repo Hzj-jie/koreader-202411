@@ -48,7 +48,7 @@ function ButtonTable:init()
   for i = 1, row_cnt do
     self:addVerticalSpan()
     local buttons_layout_line = {}
-    local horizontal_group = HorizontalGroup:new({})
+    local horizontal_group = HorizontalGroup:new()
     local row = self.buttons[i]
     local column_cnt = #row
     local available_width = self.width - self.sep_width * (column_cnt - 1)

@@ -436,7 +436,7 @@ end
 
 function Device:showLightDialog()
   local FrontLightWidget = require("ui/widget/frontlightwidget")
-  UIManager:show(FrontLightWidget:new({}))
+  UIManager:show(FrontLightWidget:new())
 end
 
 function Device:info()

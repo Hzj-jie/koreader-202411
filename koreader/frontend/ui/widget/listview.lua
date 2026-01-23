@@ -75,7 +75,7 @@ function ListView:init()
   self.item_height = self.item_height or self.items[1]:getSize().h
   self.item_width = self.dimen.w - 2 * padding
   self.items_per_page = math.floor(self.height / self.item_height)
-  self.main_content = VerticalGroup:new({})
+  self.main_content = VerticalGroup:new()
   self:_populateItems()
   self[1] = FrameContainer:new({
     height = self.dimen.h,

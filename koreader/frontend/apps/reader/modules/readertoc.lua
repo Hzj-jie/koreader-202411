@@ -889,7 +889,7 @@ function ReaderToc:onShowToc()
       local v = self.toc[i]
       -- node v has child node(s)
       if v.depth < depth then
-        v.state = self.expand_button:new({})
+        v.state = self.expand_button:new()
       end
       if v.depth < self.collapse_depth then
         table.insert(self.collapsed_toc, 1, v)
@@ -1053,7 +1053,7 @@ function ReaderToc:expandToc(index)
   if cur_node.state then
     cur_node.state:free()
   end
-  cur_node.state = self.collapse_button:new({})
+  cur_node.state = self.collapse_button:new()
   self:updateCurrentNode()
   self.toc_menu:switchItemTable(nil, self.collapsed_toc, -1)
 end
@@ -1075,7 +1075,7 @@ function ReaderToc:collapseToc(index)
     if is_child_node then
       if v.state then
         v.state:free()
-        v.state = self.expand_button:new({})
+        v.state = self.expand_button:new()
         if self.expanded_nodes[v.index] == true then
           self.expanded_nodes[v.index] = nil
         end
@@ -1094,7 +1094,7 @@ function ReaderToc:collapseToc(index)
   end
   -- change state of current node to collapsed
   cur_node.state:free()
-  cur_node.state = self.expand_button:new({})
+  cur_node.state = self.expand_button:new()
   self:updateCurrentNode()
   self.toc_menu:switchItemTable(nil, self.collapsed_toc, -1)
 end

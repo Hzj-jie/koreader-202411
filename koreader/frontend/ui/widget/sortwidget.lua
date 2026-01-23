@@ -328,7 +328,7 @@ function SortWidget:init()
     - padding
   self.items_per_page = math.floor(content_height / line_height)
   self.pages = math.ceil(#self.item_table / self.items_per_page)
-  self.main_content = VerticalGroup:new({})
+  self.main_content = VerticalGroup:new()
 
   self:_populateItems()
 

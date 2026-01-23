@@ -52,7 +52,7 @@ function RadioButtonTable:init()
 
   for i = 1, row_cnt do
     self.radio_buttons_layout[i] = {}
-    local horizontal_group = HorizontalGroup:new({})
+    local horizontal_group = HorizontalGroup:new()
     local row = self.radio_buttons[i]
     local column_cnt = #row
     local sizer_space = (self.sep_width + 2 * self.padding) * (column_cnt - 1)

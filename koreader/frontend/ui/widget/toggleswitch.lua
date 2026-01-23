@@ -55,9 +55,9 @@ function ToggleSwitch:init()
     dim = not self.enabled,
   })
 
-  self.toggle_content = VerticalGroup:new({})
+  self.toggle_content = VerticalGroup:new()
   for i = 1, self.row_count do
-    table.insert(self.toggle_content, HorizontalGroup:new({}))
+    table.insert(self.toggle_content, HorizontalGroup:new())
   end
 
   local item_padding = Size.padding.default -- only used to check if text truncate needed

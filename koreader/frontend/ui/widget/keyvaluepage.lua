@@ -512,7 +512,7 @@ function KeyValuePage:init()
   )
 
   self.pages = math.ceil(#self.kv_pairs / self.items_per_page)
-  self.main_content = VerticalGroup:new({})
+  self.main_content = VerticalGroup:new()
 
   -- set textviewer height to let our title fully visible (but hide the bottom line)
   self.textviewer_width = self.item_width

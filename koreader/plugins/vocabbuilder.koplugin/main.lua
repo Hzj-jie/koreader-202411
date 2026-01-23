@@ -224,7 +224,7 @@ function MenuDialog:setupPluginMenu()
 
   local show_sync_settings = function()
     if not settings.server then
-      local sync_settings = SyncService:new({})
+      local sync_settings = SyncService:new()
       sync_settings.onExit = function(this)
         UIManager:close(this)
       end
@@ -256,7 +256,7 @@ function MenuDialog:setupPluginMenu()
           callback = function()
             UIManager:close(self.sync_dialogue)
             UIManager:close(self)
-            local sync_settings = SyncService:new({})
+            local sync_settings = SyncService:new()
             sync_settings.onExit = function(this)
               UIManager:close(this)
             end
@@ -1424,7 +1424,7 @@ function VocabularyBuilderWidget:init()
       }),
     }
   end
-  self.page_info = HorizontalGroup:new({})
+  self.page_info = HorizontalGroup:new()
   self:refreshFooter()
 
   local bottom_line = LineWidget:new({
@@ -1459,7 +1459,7 @@ function VocabularyBuilderWidget:init()
   })
 
   self:setupItemHeight()
-  self.main_content = VerticalGroup:new({})
+  self.main_content = VerticalGroup:new()
 
   -- calculate item's review button width once
   local temp_button = Button:new({
@@ -1598,7 +1598,7 @@ function VocabularyBuilderWidget:refreshFooter()
     margin = 0,
     callback = function()
       if not settings.server then
-        local sync_settings = SyncService:new({})
+        local sync_settings = SyncService:new()
         sync_settings.onExit = function(this)
           UIManager:close(this)
         end
@@ -1954,7 +1954,7 @@ function VocabularyBuilderWidget:onShowFilter()
         return info.filter
       end,
       hold_callback = function(sort_item, onSuccess)
-        local menu = MenuDialog:new({})
+        local menu = MenuDialog:new()
         menu:setupBookMenu(sort_item, onSuccess)
         UIManager:show(menu)
       end,

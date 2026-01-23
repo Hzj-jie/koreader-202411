@@ -1509,7 +1509,7 @@ Time is in hours and minutes.]]),
             callback = function(touchmenu_instance)
               local server = self.settings.sync_server
               local edit_cb = function()
-                local sync_settings = SyncService:new({})
+                local sync_settings = SyncService:new()
                 sync_settings.onExit = function(this)
                   UIManager:close(this)
                 end

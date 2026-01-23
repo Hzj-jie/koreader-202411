@@ -290,7 +290,7 @@ function FakeCover:init()
     end
   end
 
-  local vgroup = VerticalGroup:new({})
+  local vgroup = VerticalGroup:new()
   if authors then
     table.insert(vgroup, VerticalSpan:new({ height = self.top_pad }))
     table.insert(vgroup, authors_wg)
@@ -1024,7 +1024,7 @@ function MosaicMenu:_updateItemsBuildUI()
         self.item_group,
         VerticalSpan:new({ height = self.item_margin })
       )
-      cur_row = HorizontalGroup:new({})
+      cur_row = HorizontalGroup:new()
       -- Have items on the possibly non-fully filled last row aligned to the left
       local container = self._do_center_partial_rows and CenterContainer
         or LeftContainer

@@ -116,7 +116,7 @@ function MenuItem:init()
   end
 
   -- State button and indentation for tree expand/collapse (for TOC)
-  local state_button = self.entry.state or HorizontalSpan:new({})
+  local state_button = self.entry.state or HorizontalSpan:new()
   local state_indent = self.entry.indent or 0
   local state_width = state_indent + (self.state_w or 0)
   local state_container = LeftContainer:new({
@@ -761,7 +761,7 @@ function Menu:init()
   end
 
   -- group for items
-  self.item_group = VerticalGroup:new({})
+  self.item_group = VerticalGroup:new()
   -- group for page info
   local chevron_left = "chevron.left"
   local chevron_right = "chevron.right"

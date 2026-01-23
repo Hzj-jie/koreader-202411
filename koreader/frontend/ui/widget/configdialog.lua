@@ -270,7 +270,7 @@ function ConfigOption:init()
   local default_item_align_center = 1 - default_name_align_right
 
   -- fill vertical group of config tab
-  local vertical_group = VerticalGroup:new({})
+  local vertical_group = VerticalGroup:new()
   table.insert(
     vertical_group,
     VerticalSpan:new({
@@ -330,7 +330,7 @@ function ConfigOption:init()
           self.config.document
         )
       end
-      local horizontal_group = HorizontalGroup:new({})
+      local horizontal_group = HorizontalGroup:new()
 
       -- Deal with the name on the left
       local name_text = self.options[c].name_text_func
@@ -390,7 +390,7 @@ function ConfigOption:init()
           h = option_height,
         }),
       })
-      local option_items_group = HorizontalGroup:new({})
+      local option_items_group = HorizontalGroup:new()
       local option_items_fixed = false
       local option_items = {}
       if type(self.options[c].item_font_size) == "table" then
@@ -947,8 +947,8 @@ function MenuBar:init()
       h = line_thickness,
     }),
   })
-  local menu_bar = HorizontalGroup:new({})
-  local line_bar = HorizontalGroup:new({})
+  local menu_bar = HorizontalGroup:new()
+  local line_bar = HorizontalGroup:new()
 
   for c = 1, #self.menu_items do
     table.insert(menu_bar, spacing)

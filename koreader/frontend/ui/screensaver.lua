@@ -791,7 +791,7 @@ function Screensaver:show()
 
   -- Setup the gesture lock through an additional invisible widget, so that it works regardless of the configuration.
   if with_gesture_lock then
-    self.screensaver_lock_widget = ScreenSaverLockWidget:new({})
+    self.screensaver_lock_widget = ScreenSaverLockWidget:new()
 
     -- It's flagged as modal, so it'll stay on top
     UIManager:show(self.screensaver_lock_widget)

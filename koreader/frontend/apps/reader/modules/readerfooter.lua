@@ -764,7 +764,7 @@ local option_help_text = {
 
 function ReaderFooter:updateFooterContainer()
   local margin_span = HorizontalSpan:new({ width = self.horizontal_margin })
-  self.vertical_frame = VerticalGroup:new({})
+  self.vertical_frame = VerticalGroup:new()
   if self.settings.bottom_horizontal_separator then
     self.separator_line = LineWidget:new({
       dimen = Geom:new({

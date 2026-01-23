@@ -29,7 +29,7 @@ local _ = require("gettext")
 local N_ = _.ngettext
 local T = require("ffi/util").template
 
-local SingleInstanceDeinflector = Deinflector:new({})
+local SingleInstanceDeinflector = Deinflector:new()
 
 local Japanese = WidgetContainer:extend({
   name = "japanese",
