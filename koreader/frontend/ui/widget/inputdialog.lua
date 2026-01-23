@@ -552,7 +552,7 @@ function InputDialog:onTap(arg, ges)
     -- Poke at keyboard_frame directly, as the top-level dimen never gets updated coordinates...
     if
       self._input_widget.keyboard
-      and ges.pos:notIntersectWith(self._input_widget.keyboard:contentSize())
+      and ges.pos:notIntersectWith(self._input_widget.keyboard:visibleSize())
     then
       self:closeKeyboard()
     end

@@ -1195,7 +1195,7 @@ function VirtualKeyboard:addKeys()
   self:getSize() -- populate dimen
 end
 
-function VirtualKeyboard:contentSize()
+function VirtualKeyboard:visibleSize()
   -- keyboard_frame
   return self[1][1]:getSize()
 end

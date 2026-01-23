@@ -914,7 +914,7 @@ function InputText:getLineHeight()
 end
 
 function InputText:getKeyboardDimen()
-  return self.readonly and Geom:new({ w = 0, h = 0 }) or self.keyboard:contentSize()
+  return self.readonly and Geom:new({ w = 0, h = 0 }) or self.keyboard:visibleSize()
 end
 
 -- calculate current and last (original) line numbers
