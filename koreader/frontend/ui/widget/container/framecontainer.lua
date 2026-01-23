@@ -77,18 +77,18 @@ function FrameContainer:getSize()
   if self.width and self.width < width then
     logger.warn(
       "FixMe: FrameContainer self.width ",
-      tostring(self.width),
+      self.width,
       " < content.width ",
-      tostring(width)
+      width
     )
     self.width = width
   end
   if self.height and self.height < height then
     logger.warn(
       "FixMe: FrameContainer self.height ",
-      tostring(self.height),
+      self.height,
       " < content.height ",
-      tostring(height)
+      height
     )
     self.height = height
   end

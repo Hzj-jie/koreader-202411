@@ -75,11 +75,6 @@ function Widget:mayMergeWidthAndHeight()
   end
 end
 
-function Widget:increaseWidth(value)
-  self:getSize()
-  self.dimen.w = self.dimen.w + value
-end
-
 function Widget:mergeSize(w, h)
   if type(w) == "table" then
     assert(h == nil)
