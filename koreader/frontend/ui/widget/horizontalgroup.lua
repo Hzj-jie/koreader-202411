@@ -13,7 +13,7 @@ local HorizontalGroup = WidgetContainer:extend({
 })
 
 function HorizontalGroup:getSize()
-  if self._offsets == nil or self:unknownSize() then
+  if self._offsets == nil or self.dimen == nil then
     self:mergeSize(0, 0)
     local _mirroredUI = BD.mirroredUILayout()
     self._offsets = {}

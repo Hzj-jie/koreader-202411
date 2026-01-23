@@ -116,18 +116,6 @@ function Widget:backupSize(w, h)
   end
 end
 
-function Widget:unknownSize()
-  if self.dimen == nil then
-    return true
-  end
-  if self.dimen.h == nil or self.dimen.h == 0 then
-    assert(self.dimen.w == nil or self.dimen.w == 0)
-    return true
-  end
-  assert(self.dimen.w ~= nil and self.dimen.w > 0)
-  return false
-end
-
 function Widget:mergePosition(x, y)
   if self.dimen ~= nil then
     -- Keep the same reference.

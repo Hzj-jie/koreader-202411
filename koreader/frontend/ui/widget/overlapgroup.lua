@@ -19,7 +19,7 @@ local OverlapGroup = WidgetContainer:extend({
 })
 
 function OverlapGroup:getSize()
-  if self:unknownSize() then
+  if self.dimen == nil then
     self:mergeSize(0, 0)
     for i, widget in ipairs(self) do
       local w_size = widget:getSize()
