@@ -172,19 +172,6 @@ function SystemStat:putSeparator()
   self.kv_pairs[#self.kv_pairs].separator = true
 end
 
-function SystemStat:_koreaderUptime()
-  local uptime = time.boottime_or_realtime_coarse() - self.start_monotonic_time
-  local suspend = 0
-  if Device:canSuspend() then
-    suspend = Device.total_suspend_time
-  end
-  local standby = 0
-  if Device:canStandby() then
-    standby = Device.total_standby_time
-  end
-  return uptime, suspend, standby
-end
-
 function SystemStat:appendCounters()
   self:put({
     _("KOReader started at"),
@@ -202,7 +189,15 @@ function SystemStat:appendCounters()
       datetime.secondsToDateTime(time.to_s(Device.last_resume_at), nil, true),
     })
   end
-  local uptime, suspend, standby = self:_koreaderUptime()
+  local uptime = time.boottime_or_realtime_coarse() - self.start_monotonic_time
+  local suspend = 0
+  if Device:canSuspend() then
+    suspend = Device.total_suspend_time
+  end
+  local standby = 0
+  if Device:canStandby() then
+    standby = Device.total_standby_time
+  end
   self:put({
     "  " .. _("Up time"),
     datetime.secondsToClockDuration("", time.to_s(uptime), false, true),
@@ -427,14 +422,9 @@ function SystemStat:appendProcessInfo()
     self:put({ "  " .. _("Total ticks"), n1 })
     if self.sys_stat.cpu ~= nil and self.sys_stat.cpu.total ~= nil then
       assert(self.sys_stat.cpu.total > 0) -- Imporssible to be 0.
-      local perc = n1 / self.sys_stat.cpu.total * 100
-      local uptime, suspend, standby = self:_koreaderUptime()
-      if suspend > 0 or standby > 0 then
-        perc = perc * uptime / (uptime - suspend - standby)
-      end
       self:put({
         _("  Processor usage %"),
-        string.format("%.2f", perc),
+        string.format("%.2f", n1 / self.sys_stat.cpu.total * 100),
       })
     end
   end
