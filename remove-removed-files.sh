@@ -22,7 +22,9 @@ for i in frontend/ui/data/onetime_migration.lua \
          frontend/ui/widget/buttondialogtitle.lua \
          frontend/userpatch.lua \
          plugins/gestures.koplugin/migration.lua \
-         plugins/timesync.koplugin ; do
+         plugins/timesync.koplugin \
+         zsync2 \
+         spinning_zsync ; do
   ssh root@$1 rm -rf "$2/koreader/$i"
 done
 
