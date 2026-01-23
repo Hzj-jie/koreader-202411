@@ -331,7 +331,8 @@ function InputDialog:init()
       local pad_height = available_height - self.text_height
       local pad_before = math.ceil(pad_height / 2)
       local pad_after = pad_height - pad_before
-      vspan_before_input_text.height = vspan_before_input_text.height + pad_before
+      vspan_before_input_text.height = vspan_before_input_text.height
+        + pad_before
       vspan_after_input_text.height = vspan_after_input_text.height + pad_after
       if text_height > available_height then
         self.cursor_at_end = false -- stay at start if overflowed
