@@ -310,19 +310,19 @@ function VirtualKey:init()
   --self.dimen = self[1]:getSize()
   self.ges_events = {
     TapSelect = {
-      self:myRange("tap")
+      self:myRange("tap"),
     },
     HoldSelect = {
-      self:myRange("hold")
+      self:myRange("hold"),
     },
     HoldReleaseKey = {
-      self:myRange("hold_release")
+      self:myRange("hold_release"),
     },
     PanReleaseKey = {
-      self:myRange("pan_release")
+      self:myRange("pan_release"),
     },
     SwipeKey = {
-      self:myRange("swipe")
+      self:myRange("swipe"),
     },
   }
   if
