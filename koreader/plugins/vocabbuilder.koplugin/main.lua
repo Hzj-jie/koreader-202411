@@ -681,10 +681,10 @@ function WordInfoDialog:init()
                 face = Font:getFace("smallffont"),
                 alignment = self.title_align or "left",
               }) or VerticalSpan:new({
-                width = Size.padding.default,
+                height = Size.padding.default,
               }),
               VerticalSpan:new({
-                width = has_context and Size.padding.default or 0,
+                height = has_context and Size.padding.default or 0,
               }),
               TextBoxWidget:new({
                 text = self.dates,
@@ -816,10 +816,10 @@ function VocabItemWidget:init()
     }),
   }
   self.v_spacer = VerticalSpan:new({
-    width = math.floor((self.height - word_height - subtitle_height) / 2),
+    height = math.floor((self.height - word_height - subtitle_height) / 2),
   })
   self.point_v_spacer = VerticalSpan:new({
-    width = (self.v_spacer.width + word_height / 2) - point_widget_height / 2,
+    height = (self.v_spacer.width + word_height / 2) - point_widget_height / 2,
   })
   self.margin_span = HorizontalSpan:new({ width = Size.padding.large })
   self:initItemWidget()
@@ -987,7 +987,7 @@ function VocabItemWidget:initItemWidget()
           self.point_v_spacer,
           point_widget,
           VerticalSpan:new({
-            width = self.height
+            height = self.height
               - point_widget_height
               - self.point_v_spacer.width,
           }),
@@ -1798,7 +1798,7 @@ function VocabularyBuilderWidget:_populateItems()
     table.insert(
       self.main_content,
       VerticalSpan:new({
-        width = self.item_margin / (idx == idx_offset + 1 and 2 or 1),
+        height = self.item_margin / (idx == idx_offset + 1 and 2 or 1),
       })
     )
     if #self.item_table == 0 or not self.item_table[idx].word then

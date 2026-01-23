@@ -194,7 +194,7 @@ function MultiInputDialog:init()
         h = self.description_padding + self.description_margin,
       }),
       VerticalSpan:new({
-        width = self.description_padding + self.description_margin,
+        height = self.description_padding + self.description_margin,
       }),
     })
   )

@@ -43,15 +43,15 @@ function IconButton:init()
   -- Do not use the width and height as the whole widget size.
   self.width = nil
   self.height = nil
-  self.horizontal_group = HorizontalGroup:new({})
-  table.insert(self.horizontal_group, HorizontalSpan:new({}))
+  self.horizontal_group = HorizontalGroup:new()
+  table.insert(self.horizontal_group, HorizontalSpan:new())
   table.insert(self.horizontal_group, self.image)
-  table.insert(self.horizontal_group, HorizontalSpan:new({}))
+  table.insert(self.horizontal_group, HorizontalSpan:new())
 
-  self.button = VerticalGroup:new({})
-  table.insert(self.button, VerticalSpan:new({}))
+  self.button = VerticalGroup:new()
+  table.insert(self.button, VerticalSpan:new())
   table.insert(self.button, self.horizontal_group)
-  table.insert(self.button, VerticalSpan:new({}))
+  table.insert(self.button, VerticalSpan:new())
 
   self[1] = self.button
   self:update()
@@ -79,8 +79,8 @@ function IconButton:update()
     contentSize.h + self.padding_top + self.padding_bottom
   )
 
-  self.button[1].width = self.padding_top
-  self.button[3].width = self.padding_bottom
+  self.button[1].height = self.padding_top
+  self.button[3].height = self.padding_bottom
 
   self.ges_events = {
     TapIconButton = {

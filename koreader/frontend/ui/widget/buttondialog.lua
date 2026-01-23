@@ -152,7 +152,7 @@ function ButtonDialog:init()
     })
     title_widget_height = title_widget:getSize().h + Size.line.medium
   else
-    title_widget = VerticalSpan:new({})
+    title_widget = VerticalSpan:new()
     title_widget_height = 0
   end
   self.top_to_content_offset = Size.padding.buttontable
@@ -219,7 +219,7 @@ function ButtonDialog:init()
       }),
     })
   else
-    separator = VerticalSpan:new({})
+    separator = VerticalSpan:new()
   end
   self.movable = MovableContainer:new({
     alpha = self.alpha,

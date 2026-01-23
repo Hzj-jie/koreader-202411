@@ -148,11 +148,11 @@ function KeyboardLayoutDialog:init()
       align = "center",
       self.title_bar,
       VerticalSpan:new({
-        width = Size.span.vertical_large * 2,
+        height = Size.span.vertical_large * 2,
       }),
       self.cropping_widget, -- our ScrollableContainer
       VerticalSpan:new({
-        width = Size.span.vertical_large * 2,
+        height = Size.span.vertical_large * 2,
       }),
       -- buttons
       CenterContainer:new({

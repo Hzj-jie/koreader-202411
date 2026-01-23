@@ -48,7 +48,7 @@ function OpenWithDialog:init()
   self:mergeLayoutInVertical(self.radio_button_table, #self.layout) -- before bottom buttons
 
   local vertical_span = VerticalSpan:new({
-    width = Size.padding.large,
+    height = Size.padding.large,
   })
   self.vgroup = VerticalGroup:new({
     align = "left",

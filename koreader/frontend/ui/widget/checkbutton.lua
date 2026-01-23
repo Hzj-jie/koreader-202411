@@ -80,7 +80,7 @@ function CheckButton:initCheckButton(checked)
   self._verticalgroup = VerticalGroup:new({
     align = "left",
     VerticalSpan:new({
-      width = textbox_shift,
+      height = textbox_shift,
     }),
     self._textwidget,
   })

@@ -64,7 +64,7 @@ function TweakInfoWidget:init()
       width = self.width,
     }),
     VerticalSpan:new({
-      width = Size.padding.large,
+      height = Size.padding.large,
     }),
   })
   if tweak.description then
@@ -79,7 +79,7 @@ function TweakInfoWidget:init()
     table.insert(
       content,
       VerticalSpan:new({
-        width = Size.padding.large,
+        height = Size.padding.large,
       })
     )
   end
@@ -113,7 +113,7 @@ function TweakInfoWidget:init()
     table.insert(
       content,
       VerticalSpan:new({
-        width = Size.padding.large,
+        height = Size.padding.large,
       })
     )
     table.insert(

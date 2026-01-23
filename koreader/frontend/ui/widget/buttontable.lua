@@ -193,7 +193,7 @@ function ButtonTable:addVerticalSpan()
   table.insert(
     self.container,
     VerticalSpan:new({
-      width = Size.span.vertical_default,
+      height = Size.span.vertical_default,
     })
   )
 end
@@ -219,7 +219,7 @@ function ButtonTable:setupGridScrollBehaviour()
   table.insert(
     self.container,
     VerticalSpan:new({
-      width = self.sep_width,
+      height = self.sep_width,
     })
   )
   self.container:getSize() -- have it recompute its offsets and size

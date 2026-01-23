@@ -10,7 +10,7 @@ local VerticalSpan = Widget:extend({
 
 function VerticalSpan:getSize()
   if self.width then
-    logger.warn("FixMe: VerticalSpan should have a height rather than width")
+    logger.warn("FixMe: VerticalSpan should have a height rather than width.")
     self.height = self.width
     self.width = nil
   end

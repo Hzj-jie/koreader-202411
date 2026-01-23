@@ -42,6 +42,7 @@ function OverlapGroup:init()
 end
 
 function OverlapGroup:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   local size = self:getSize()
 
   for i, wget in ipairs(self) do

@@ -139,8 +139,7 @@ function ReaderProgress:genSingleHeader(title)
 
   return VerticalGroup:new({
     VerticalSpan:new({
-      width = Screen:scaleBySize(self.header_span),
-      height = self.screen_height * (1 / 25),
+      height = Screen:scaleBySize(self.header_span),
     }),
     HorizontalGroup:new({
       align = "center",
@@ -153,8 +152,7 @@ function ReaderProgress:genSingleHeader(title)
       padding_span,
     }),
     VerticalSpan:new({
-      width = Size.span.vertical_large,
-      height = self.screen_height * (1 / 25),
+      height = Size.span.vertical_large,
     }),
   })
 end
@@ -190,8 +188,7 @@ function ReaderProgress:genDoubleHeader(title_left, title_right)
 
   return VerticalGroup:new({
     VerticalSpan:new({
-      width = Screen:scaleBySize(25),
-      height = self.screen_height * (1 / 25),
+      height = Screen:scaleBySize(25),
     }),
     HorizontalGroup:new({
       align = "center",
@@ -210,8 +207,7 @@ function ReaderProgress:genDoubleHeader(title_left, title_right)
       padding_span,
     }),
     VerticalSpan:new({
-      width = Size.span.vertical_large,
-      height = self.screen_height * (1 / 25),
+      height = Size.span.vertical_large,
     }),
   })
 end

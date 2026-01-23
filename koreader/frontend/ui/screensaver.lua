@@ -268,7 +268,7 @@ local function addOverlayMessage(widget, widget_height, text)
   if widget_height then
     textw = VerticalGroup:new({
       VerticalSpan:new({
-        width = widget_height,
+        height = widget_height,
       }),
       textw,
     })
