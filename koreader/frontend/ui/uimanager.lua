@@ -146,6 +146,21 @@ local function cropping_region(widget, x, y, w, h)
   return Geom:new({ x = x, y = y, w = w, h = h })
 end
 
+local function _widgetWindow(w)
+  assert(w ~= nil)
+  local window = w:window()
+  if window == nil then
+    -- TODO: Should assert.
+    logger.warn(
+      "Unknown widget ",
+      widgetDebugStr(w),
+      " to repaint, it may not be shown yet, or you may want to send in the ",
+      "show(widget) instead."
+    )
+  end
+  return window
+end
+
 -- This is a singleton
 local UIManager = {
   FULL_REFRESH_COUNT = G_named_settings.default.full_refresh_count(),
@@ -1052,16 +1067,8 @@ function UIManager:_repaintDirtyWidgets()
   end
 
   for w in pairs(self._dirty) do
-    local window = w:window()
-    if window == nil then
-      -- TODO: Should assert.
-      logger.warn(
-        "Unknown widget ",
-        widgetDebugStr(w),
-        " to repaint, it may not be shown yet, or you may want to send in the ",
-        "show(widget) instead."
-      )
-    else
+    local window = _widgetWindow(w)
+    if window ~= nil then
       local index = util.arrayContains(self._window_stack, window)
       assert(index ~= false and index > 0 and index <= #self._window_stack)
       -- Or window will be nil.
@@ -1298,8 +1305,9 @@ function UIManager:scheduleWidgetRepaint(widget)
     return false
   end
 
+  -- Allows a widget being showed later.
   self._dirty[widget] = true
-  return true
+  return _widgetWindow(widget) ~= nil
 end
 
 --[[--
