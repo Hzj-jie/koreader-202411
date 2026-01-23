@@ -695,7 +695,7 @@ end
 
 function FileManagerMenu:exitOrRestart(callback, force)
   CommonMenu:exitOrRestart(function()
-    UIManager:close(self.menu_container)
+    self:_closeFileManagerMenu()
   end, self.ui, callback)
 end
 
