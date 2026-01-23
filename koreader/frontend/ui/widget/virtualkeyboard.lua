@@ -310,44 +310,19 @@ function VirtualKey:init()
   --self.dimen = self[1]:getSize()
   self.ges_events = {
     TapSelect = {
-      GestureRange:new({
-        ges = "tap",
-        range = function()
-          return self:getSize()
-        end,
-      }),
+      self:myRange("tap")
     },
     HoldSelect = {
-      GestureRange:new({
-        ges = "hold",
-        range = function()
-          return self:getSize()
-        end,
-      }),
+      self:myRange("hold")
     },
     HoldReleaseKey = {
-      GestureRange:new({
-        ges = "hold_release",
-        range = function()
-          return self:getSize()
-        end,
-      }),
+      self:myRange("hold_release")
     },
     PanReleaseKey = {
-      GestureRange:new({
-        ges = "pan_release",
-        range = function()
-          return self:getSize()
-        end,
-      }),
+      self:myRange("pan_release")
     },
     SwipeKey = {
-      GestureRange:new({
-        ges = "swipe",
-        range = function()
-          return self:getSize()
-        end,
-      }),
+      self:myRange("swipe")
     },
   }
   if
@@ -365,19 +340,6 @@ function VirtualKey:init()
   then
     self[1].background = Blitbuffer.COLOR_LIGHT_GRAY
   end
-end
-
-function VirtualKey:paintTo(...)
-  InputContainer.paintTo(self, ...)
-
-  -- Fudge self.dimen to include the padding, to make sure said padding is covered by our ges_events range...
-  -- Like Geom, floor coordinates & ceil dims, to fill the gaps without overlaps.
-  local coords_padding = math.floor(self.keyboard.key_padding / 2)
-  local dims_padding = self.keyboard.key_padding -- i.e., coords_padding + math.ceil(self.keyboard.key_padding / 2)
-  self.dimen.x = self.dimen.x - coords_padding
-  self.dimen.w = self[1].dimen.w + dims_padding
-  self.dimen.y = self.dimen.y - coords_padding
-  self.dimen.h = self[1].dimen.h + dims_padding
 end
 
 function VirtualKey:genKeyboardLayoutKeyChars()
@@ -1230,7 +1192,12 @@ function VirtualKeyboard:addKeys()
   })
   -- Point our top-level dimen to the relevant widget, keyboard_frame
   keyboard_frame.dimen = keyboard_frame:getSize()
-  self.dimen = keyboard_frame.dimen
+  self:getSize() -- populate dimen
+end
+
+function VirtualKeyboard:contentSize()
+  -- keyboard_frame
+  return self[1][1]:getSize()
 end
 
 function VirtualKeyboard:setLayer(key)

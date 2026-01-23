@@ -12,6 +12,7 @@ rather than class variables.
 
 local EventListener = require("ui/widget/eventlistener")
 local Geom = require("ui/geometry")
+local GestureRange = require("ui/gesturerange")
 
 --- Widget base class
 -- @table Widget
@@ -194,6 +195,15 @@ function Widget:window()
     end
   end
   return nil
+end
+
+function Widget:myRange(ges)
+  return GestureRange:new({
+    ges = ges,
+    range = function()
+      return self:getSize()
+    end,
+  })
 end
 
 return Widget

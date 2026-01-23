@@ -8,6 +8,7 @@ local CenterContainer = WidgetContainer:extend({})
 
 function CenterContainer:paintTo(bb, x, y)
   self:mergePosition(x, y)
+  self:getSize()
   local content_size = self[1]:getSize()
 
   -- check if content is bigger than container

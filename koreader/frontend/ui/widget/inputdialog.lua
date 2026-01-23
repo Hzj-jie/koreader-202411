@@ -469,10 +469,7 @@ function InputDialog:init()
     self.ges_events.Tap = {
       GestureRange:new({
         ges = "tap",
-        range = Geom:new({
-          w = self.screen_width,
-          h = self.screen_height,
-        }),
+        range = Screen:getSize(),
       }),
     }
   end

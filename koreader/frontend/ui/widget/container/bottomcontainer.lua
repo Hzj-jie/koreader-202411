@@ -10,6 +10,7 @@ local BottomContainer = WidgetContainer:extend({})
 
 function BottomContainer:paintTo(bb, x, y)
   self:mergePosition(x, y)
+  self:getSize()
   local contentSize = self[1]:getSize()
   --- @fixme
   -- if contentSize.w > self.dimen.w or contentSize.h > self.dimen.h then
@@ -21,6 +22,10 @@ function BottomContainer:paintTo(bb, x, y)
     x + math.floor((self.dimen.w - contentSize.w) / 2),
     y + (self.dimen.h - contentSize.h)
   )
+end
+
+function BottomContainer:dirtyRegion()
+  return self[1]:dirtyRegion()
 end
 
 return BottomContainer

@@ -87,36 +87,16 @@ local function initTouchEvents()
     function InputText:initEventListener()
       self.ges_events = {
         TapTextBox = {
-          GestureRange:new({
-            ges = "tap",
-            range = function()
-              return self.dimen
-            end,
-          }),
+          self:myRange("tap")
         },
         HoldTextBox = {
-          GestureRange:new({
-            ges = "hold",
-            range = function()
-              return self.dimen
-            end,
-          }),
+          self:myRange("hold")
         },
         HoldReleaseTextBox = {
-          GestureRange:new({
-            ges = "hold_release",
-            range = function()
-              return self.dimen
-            end,
-          }),
+          self:myRange("hold_release")
         },
         SwipeTextBox = {
-          GestureRange:new({
-            ges = "swipe",
-            range = function()
-              return self.dimen
-            end,
-          }),
+          self:myRange("swipe")
         },
         -- These are just to stop propagation of the event to
         -- parents in case there's a MovableContainer among them
@@ -934,7 +914,7 @@ function InputText:getLineHeight()
 end
 
 function InputText:getKeyboardDimen()
-  return self.readonly and Geom:new({ w = 0, h = 0 }) or self.keyboard.dimen
+  return self.readonly and Geom:new({ w = 0, h = 0 }) or self.keyboard:contentSize()
 end
 
 -- calculate current and last (original) line numbers
