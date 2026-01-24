@@ -25,6 +25,6 @@ for i in frontend/ui/data/onetime_migration.lua \
          plugins/timesync.koplugin \
          zsync2 \
          spinning_zsync ; do
-  ssh root@$1 rm -rf "$2/koreader/$i"
-done
+  echo "$2/koreader/$i"
+done | xargs ssh root@$1 rm -rf
 
