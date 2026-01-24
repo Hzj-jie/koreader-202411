@@ -513,19 +513,11 @@ function TouchMenu:init()
   self.ges_events.TapCloseAllMenus = {
     GestureRange:new({
       ges = "tap",
-      range = Geom:new({
-        x = 0,
-        y = 0,
-        w = Screen:getWidth(),
-        h = Screen:getHeight(),
-      }),
+      range = Screen:getSize(),
     }),
   }
   self.ges_events.Swipe = {
-    GestureRange:new({
-      ges = "swipe",
-      range = self.dimen,
-    }),
+    self:myRange("swipe"),
   }
 
   if Device:hasFewKeys() then
