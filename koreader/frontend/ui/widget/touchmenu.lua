@@ -731,12 +731,13 @@ function TouchMenu:_updateTimeInfo()
   local powerd = Device:getPowerDevice()
   if Device:hasBattery() then
     local batt_lvl = powerd:getCapacity()
+    -- TODO: Support AUX Charging.
     local batt_symbol =
       powerd:getBatterySymbol(powerd:isCharged(), powerd:isCharging(), batt_lvl)
     time_info_txt = BD.wrap(time_info_txt)
       .. " "
-      .. BD.wrap("⌁")
       .. BD.wrap(batt_symbol)
+      .. (powerd:isCharging() and "+" or "")
       .. BD.wrap(batt_lvl .. "%")
 
     if Device:hasAuxBattery() and powerd:isAuxBatteryConnected() then
