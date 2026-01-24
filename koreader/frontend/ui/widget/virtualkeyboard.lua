@@ -90,10 +90,14 @@ function VirtualKey:init()
     self.key_chars = self:genKeyboardLayoutKeyChars()
     self.callback = function()
       self.keyboard:onSwitchingKeyboardLayout()
-      local current = G_reader_settings:read("keyboard_layout")
-      local default = G_reader_settings:read("keyboard_layout_default")
       local keyboard_layouts =
         G_reader_settings:readTableRef("keyboard_layouts")
+      if #keyboard_layouts == 0 then
+        self:_showLayoutDialog()
+        return
+      end
+      local current = G_reader_settings:read("keyboard_layout")
+      local default = G_reader_settings:read("keyboard_layout_default")
       local next_layout = nil
       local layout_index = util.arrayContains(keyboard_layouts, current)
       if layout_index then
@@ -110,7 +114,11 @@ function VirtualKey:init()
         end
       end
       next_layout = next_layout or keyboard_layouts[layout_index] or "en"
-      self.keyboard:setKeyboardLayout(next_layout)
+      if next_layout == current then
+        self:_showLayoutDialog()
+      else
+        self.keyboard:setKeyboardLayout(next_layout)
+      end
     end
     self.hold_callback = function()
       self.keyboard:onSwitchingKeyboardLayout()
@@ -119,11 +127,7 @@ function VirtualKey:init()
           parent_key = self,
         })
       else
-        self.keyboard_layout_dialog = KeyboardLayoutDialog:new({
-          parent = self,
-          keyboard_state = keyboard_state,
-        })
-        UIManager:show(self.keyboard_layout_dialog)
+        self:_showLayoutDialog()
       end
     end
     self.hold_cb_is_popup = true
@@ -342,6 +346,14 @@ function VirtualKey:init()
   end
 end
 
+function VirtualKey:_showLayoutDialog()
+  self.keyboard_layout_dialog = KeyboardLayoutDialog:new({
+    parent = self,
+    keyboard_state = keyboard_state,
+  })
+  UIManager:show(self.keyboard_layout_dialog)
+end
+
 function VirtualKey:genKeyboardLayoutKeyChars()
   local positions = {
     "northeast",
@@ -355,11 +367,7 @@ function VirtualKey:genKeyboardLayoutKeyChars()
     east = { label = "⋮" },
     east_func = function()
       UIManager:close(self.popup)
-      self.keyboard_layout_dialog = KeyboardLayoutDialog:new({
-        parent = self,
-        keyboard_state = keyboard_state,
-      })
-      UIManager:show(self.keyboard_layout_dialog)
+      self:_showLayoutDialog()
     end,
   }
   for i = 1, #keyboard_layouts do
