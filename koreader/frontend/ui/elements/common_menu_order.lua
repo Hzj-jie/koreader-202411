@@ -136,6 +136,7 @@ local function mergeWith(b)
       "book_shortcuts",
       "doc_setting_tweak",
       "terminal",
+      "legacy_terminal",
       "clock",
       "weather",
       "calculator",
