@@ -290,7 +290,7 @@ local KeyValuePage = FocusManager:extend({
   -- alignment of value when key or value overflows its reserved width (for
   -- now: 50%): "left" (stick to key), "right" (stick to screen's right border)
   value_overflow_align = "left",
-  title_bar_align = "left",
+  title_bar_align = "center",
   title_bar_left_icon = nil,
   title_bar_left_icon_tap_callback = nil,
   title_bar_left_icon_hold_callback = nil,
@@ -355,6 +355,16 @@ function KeyValuePage:init()
       end,
       bordersize = 0,
     })
+  -- Use left icon button in the title bar as return button if there isn't one
+  -- predefined.
+  if self.callback_return ~= nil and self.title_bar_left_icon_tap_callback == nil and self.title_bar_left_icon_hold_callback == nil then
+    assert(self.title_bar_left_icon == nil)
+    self.return_button = nil
+    -- Keep self.callback_return, it's used by :onReturn function.
+    self.title_bar_left_icon = self.page_return_arrow.icon
+    self.title_bar_left_icon_tap_callback = self.page_return_arrow.callback
+  end
+
   -- group for page info
   local chevron_left = "chevron.left"
   local chevron_right = "chevron.right"
@@ -404,6 +414,10 @@ function KeyValuePage:init()
     self.page_return_arrow:hide()
   elseif self.callback_return == nil then
     self.page_return_arrow:disable()
+  elseif self.title_bar_left_icon_tap_callback == self.page_return_arrow.callback then
+    assert(self.return_button == nil)
+    assert(self.title_bar_left_icon == self.page_return_arrow.icon)
+    self.page_return_arrow:hide()
   end
   self.return_button = HorizontalGroup:new({
     HorizontalSpan:new({
