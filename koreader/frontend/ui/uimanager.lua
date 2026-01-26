@@ -1382,37 +1382,37 @@ end
 -- NOTE: The Event hook mechanism used to dispatch for *every* event, and would actually pass the event along.
 --     We've simplified that to once per input frame, and without passing anything (as we, in fact, have never made use of it).
 function UIManager:handleInputEvent(input_event)
-  if
-    G_reader_settings:nilOrTrue("disable_out_of_order_input")
-    and type(input_event) == "table"
-    and input_event.args
-    and #input_event.args > 0
-  then
-    if
-      input_event.handler == "onGesture"
-      -- hold and swipe use the initial time and cannot be compared with the
-      -- repaint time.
-      and input_event.args[1].ges == "tap"
-      and input_event.args[1].time
-      and self._last_repaint_time > input_event.args[1].time
-    then
-      logger.dbg("Ignore out of order tap event ", input_event.handler)
-      return
-    end
-
-    if
-      input_event.handler == "onKeyPress"
-      and self._last_repaint_time > input_event.time
-    then
-      logger.dbg("Ignore out of order key press event ", input_event.handler)
-      return
-    end
-  end
-  -- Compare input_event.args[1].time / 1000 / 1000 with os.time()
   local handler = self.event_handlers[input_event]
   if handler then
     handler(input_event)
   else
+    -- Compare input_event.args[1].time / 1000 / 1000 with os.time()
+    if
+      G_reader_settings:nilOrTrue("disable_out_of_order_input")
+      and type(input_event) == "table"
+      and input_event.args
+      and #input_event.args > 0
+    then
+      if
+        input_event.handler == "onGesture"
+        -- hold and swipe use the initial time and cannot be compared with the
+        -- repaint time.
+        and input_event.args[1].ges == "tap"
+        and input_event.args[1].time
+        and self._last_repaint_time > input_event.args[1].time
+      then
+        logger.dbg("Ignore out of order tap event ", input_event.handler)
+        return
+      end
+
+      if
+        input_event.handler == "onKeyPress"
+        and self._last_repaint_time > input_event.time
+      then
+        logger.dbg("Ignore out of order key press event ", input_event.handler)
+        return
+      end
+    end
     self:userInput(input_event)
   end
 end
