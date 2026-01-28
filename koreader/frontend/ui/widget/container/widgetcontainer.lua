@@ -19,7 +19,7 @@ local Widget = require("ui/widget/widget")
 local WidgetContainer = Widget:extend({})
 
 function WidgetContainer:getSize()
-  if self.dimen then
+  if self.dimen and self.dimen.w and self.dimen.h then
     -- fixed size
     return self.dimen
   end

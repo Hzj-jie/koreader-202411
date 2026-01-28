@@ -182,7 +182,6 @@ function MovableContainer:paintTo(bb, x, y)
     return
   end
 
-  self:backupSize(self[1]:getSize())
   self:mergePosition(x, y)
 
   -- If there is a widget passed as anchor, we need to set our initial position
