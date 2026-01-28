@@ -15,6 +15,7 @@ It handles event propagation and painting (with different alignments) for its ch
 
 local Geom = require("ui/geometry")
 local Widget = require("ui/widget/widget")
+local logger = require("logger")
 
 local WidgetContainer = Widget:extend({})
 
