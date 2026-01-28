@@ -308,7 +308,11 @@ function MovableContainer:onMovableSwipe(_, ges)
   if not self.dimen then -- not yet painted
     return false
   end
-  if not ges.pos:intersectWith(self.dimen:copy():offsetBy(self._moved_offset_x, self._moved_offset_y)) then
+  if
+    not ges.pos:intersectWith(
+      self.dimen:copy():offsetBy(self._moved_offset_x, self._moved_offset_y)
+    )
+  then
     -- with swipe, ges.pos is swipe's start position, which should
     -- be on us to consider it
     return false

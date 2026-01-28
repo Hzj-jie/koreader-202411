@@ -357,7 +357,11 @@ function KeyValuePage:init()
     })
   -- Use left icon button in the title bar as return button if there isn't one
   -- predefined.
-  if self.callback_return ~= nil and self.title_bar_left_icon_tap_callback == nil and self.title_bar_left_icon_hold_callback == nil then
+  if
+    self.callback_return ~= nil
+    and self.title_bar_left_icon_tap_callback == nil
+    and self.title_bar_left_icon_hold_callback == nil
+  then
     assert(self.title_bar_left_icon == nil)
     self.return_button = nil
     -- Keep self.callback_return, it's used by :onReturn function.
@@ -414,7 +418,9 @@ function KeyValuePage:init()
     self.page_return_arrow:hide()
   elseif self.callback_return == nil then
     self.page_return_arrow:disable()
-  elseif self.title_bar_left_icon_tap_callback == self.page_return_arrow.callback then
+  elseif
+    self.title_bar_left_icon_tap_callback == self.page_return_arrow.callback
+  then
     assert(self.return_button == nil)
     assert(self.title_bar_left_icon == self.page_return_arrow.icon)
     self.page_return_arrow:hide()
