@@ -306,11 +306,6 @@ function ButtonDialog:onTapClose(arg, ges)
   return true
 end
 
-function ButtonDialog:paintTo(...)
-  FocusManager.paintTo(self, ...)
-  self.dimen = self.movable.dimen
-end
-
 function ButtonDialog:onFocusMove(args)
   local ret = FocusManager.onFocusMove(self, args)
 

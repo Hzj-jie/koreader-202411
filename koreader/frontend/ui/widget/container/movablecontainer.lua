@@ -54,9 +54,6 @@ local MovableContainer = InputContainer:extend({
   _moving = false,
   _move_relative_x = nil,
   _move_relative_y = nil,
-  -- Original painting position from outer widget
-  _orig_x = nil,
-  _orig_y = nil,
 
   -- We cache a compose canvas for alpha handling
   compose_bb = nil,
@@ -185,12 +182,9 @@ function MovableContainer:paintTo(bb, x, y)
     return
   end
 
-  local content_size = self[1]:getSize()
-  self:backupSize(content_size)
-  self:backupPosition(0, 0)
+  self:backupSize(self[1]:getSize())
+  self:mergePosition(x, y)
 
-  self._orig_x = x
-  self._orig_y = y
   -- If there is a widget passed as anchor, we need to set our initial position
   -- related to it. After that, we allow it to be moved like any other movable.
   if self.anchor and not self._anchor_ensured then
@@ -198,8 +192,8 @@ function MovableContainer:paintTo(bb, x, y)
     self._anchor_ensured = true
   end
   -- We just need to shift painting by our _moved_offset_x/y
-  self.dimen.x = x + self._moved_offset_x
-  self.dimen.y = y + self._moved_offset_y
+  x = x + self._moved_offset_x
+  y = y + self._moved_offset_y
 
   if self.alpha then
     -- Create/Recreate the compose cache if we changed screen geometry
@@ -223,22 +217,22 @@ function MovableContainer:paintTo(bb, x, y)
     --       Most InputContainer-based widgets register their touchzones at paintTo time,
     --       and they rely on the target coordinates fed to paintTo for proper on-screen positioning.
     --       As such, we have to compose on a target bb sized canvas, at the expected coordinates.
-    self[1]:paintTo(self.compose_bb, self.dimen.x, self.dimen.y)
+    self[1]:paintTo(self.compose_bb, x, y)
 
     -- and finally blit the canvas to the target blitbuffer at the requested opacity level
     bb:addblitFrom(
       self.compose_bb,
-      self.dimen.x,
-      self.dimen.y,
-      self.dimen.x,
-      self.dimen.y,
+      x,
+      y,
+      x,
+      y,
       self.dimen.w,
       self.dimen.h,
       self.alpha
     )
   else
     -- No alpha, just paint
-    self[1]:paintTo(bb, self.dimen.x, self.dimen.y)
+    self[1]:paintTo(bb, x, y)
   end
 end
 
@@ -256,17 +250,17 @@ function MovableContainer:_moveBy(dx, dy, restrict_to_screen)
     self._moved_offset_y = self._moved_offset_y + Math.round(dy)
     if restrict_to_screen then
       local screen_w, screen_h = Screen:getWidth(), Screen:getHeight()
-      if self._orig_x + self._moved_offset_x < 0 then
-        self._moved_offset_x = -self._orig_x
+      if self.dimen.x + self._moved_offset_x < 0 then
+        self._moved_offset_x = -self.dimen.x
       end
-      if self._orig_y + self._moved_offset_y < 0 then
-        self._moved_offset_y = -self._orig_y
+      if self.dimen.y + self._moved_offset_y < 0 then
+        self._moved_offset_y = -self.dimen.y
       end
-      if self._orig_x + self._moved_offset_x + self.dimen.w > screen_w then
-        self._moved_offset_x = screen_w - self._orig_x - self.dimen.w
+      if self.dimen.x + self._moved_offset_x + self.dimen.w > screen_w then
+        self._moved_offset_x = screen_w - self.dimen.x - self.dimen.w
       end
-      if self._orig_y + self._moved_offset_y + self.dimen.h > screen_h then
-        self._moved_offset_y = screen_h - self._orig_y - self.dimen.h
+      if self.dimen.y + self._moved_offset_y + self.dimen.h > screen_h then
+        self._moved_offset_y = screen_h - self.dimen.y - self.dimen.h
       end
     end
     -- Ensure the offsets are integers, to avoid refresh area glitches
@@ -314,7 +308,7 @@ function MovableContainer:onMovableSwipe(_, ges)
   if not self.dimen then -- not yet painted
     return false
   end
-  if not ges.pos:intersectWith(self.dimen) then
+  if not ges.pos:intersectWith(self.dimen:copy():offsetBy(self._moved_offset_x, self._moved_offset_y)) then
     -- with swipe, ges.pos is swipe's start position, which should
     -- be on us to consider it
     return false

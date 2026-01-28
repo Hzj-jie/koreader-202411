@@ -68,7 +68,8 @@ function Widget:getSize()
 end
 
 -- TODO: This function is for WidgetContainer and should be removed after being
--- migrated.
+-- migrated. Investigate the use of this function, e.g. if Widget:getSize() ever
+-- reachs the if condition.
 function Widget:mayMergeWidthAndHeight()
   if self.width ~= nil or self.height ~= nil then
     self:mergeSize(self.width or 0, self.height or 0)
