@@ -158,13 +158,17 @@ function ScrollableContainer:initState()
     self._crop_h = self:getSize().h
     if self._max_scroll_offset_y > 0 then
       -- Adding a vertical scrollbar reduces the available width: recompute
-      self._max_scroll_offset_x =
-        math.max(0, content_size.w - (self:getSize().w - 3 * self.scroll_bar_width))
+      self._max_scroll_offset_x = math.max(
+        0,
+        content_size.w - (self:getSize().w - 3 * self.scroll_bar_width)
+      )
     end
     if self._max_scroll_offset_x > 0 then
       -- Adding a horizontal scrollbar reduces the available height: recompute
-      self._max_scroll_offset_y =
-        math.max(0, content_size.h - (self:getSize().h - 3 * self.scroll_bar_width))
+      self._max_scroll_offset_y = math.max(
+        0,
+        content_size.h - (self:getSize().h - 3 * self.scroll_bar_width)
+      )
       if self._max_scroll_offset_y > 0 then
         -- And re-compute again if we have to now add a vertical scrollbar
         self._max_scroll_offset_x = math.max(

@@ -255,10 +255,14 @@ function MovableContainer:_moveBy(dx, dy, restrict_to_screen)
       if self:getSize().y + self._moved_offset_y < 0 then
         self._moved_offset_y = -self:getSize().y
       end
-      if self:getSize().x + self._moved_offset_x + self:getSize().w > screen_w then
+      if
+        self:getSize().x + self._moved_offset_x + self:getSize().w > screen_w
+      then
         self._moved_offset_x = screen_w - self:getSize().x - self:getSize().w
       end
-      if self:getSize().y + self._moved_offset_y + self:getSize().h > screen_h then
+      if
+        self:getSize().y + self._moved_offset_y + self:getSize().h > screen_h
+      then
         self._moved_offset_y = screen_h - self:getSize().y - self:getSize().h
       end
     end

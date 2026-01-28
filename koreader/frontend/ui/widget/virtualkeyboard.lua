@@ -771,7 +771,8 @@ function VirtualKeyPopup:init()
     -- Make sure we won't close the popup right away, as that would risk being a *different* key, in order to make that less confusing.
     parent_key.ignore_key_release = true
   elseif
-    position_container:getSize().x + keyboard_frame:getSize().w > Screen:getWidth()
+    position_container:getSize().x + keyboard_frame:getSize().w
+    > Screen:getWidth()
   then
     position_container.dimen.x = Screen:getWidth() - keyboard_frame:getSize().w
     parent_key.ignore_key_release = true
@@ -780,7 +781,8 @@ function VirtualKeyPopup:init()
     position_container.dimen.y = 0
     parent_key.ignore_key_release = true
   elseif
-    position_container:getSize().y + keyboard_frame:getSize().h > Screen:getHeight()
+    position_container:getSize().y + keyboard_frame:getSize().h
+    > Screen:getHeight()
   then
     position_container.dimen.y = Screen:getHeight() - keyboard_frame:getSize().h
     parent_key.ignore_key_release = true

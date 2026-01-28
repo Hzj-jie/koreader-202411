@@ -102,7 +102,11 @@ function HtmlBoxWidget:setContent(
     end
   end
 
-  self.document:layoutDocument(self:getSize().w, self:getSize().h, default_font_size)
+  self.document:layoutDocument(
+    self:getSize().w,
+    self:getSize().h,
+    default_font_size
+  )
 
   self.page_count = self.document:getPages()
 end

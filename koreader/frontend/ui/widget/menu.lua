@@ -264,8 +264,10 @@ function MenuItem:init()
       -- And adjust their baselines for proper centering and alignment
       -- (We made sure the font sizes wouldn't exceed self:getSize().h, so we
       -- get only non-negative pad_top here, and we're moving them down.)
-      local name_missing_pad_top = math.floor((self:getSize().h - name_height) / 2)
-      local mdtr_missing_pad_top = math.floor((self:getSize().h - mdtr_height) / 2)
+      local name_missing_pad_top =
+        math.floor((self:getSize().h - name_height) / 2)
+      local mdtr_missing_pad_top =
+        math.floor((self:getSize().h - mdtr_height) / 2)
       name_baseline = name_baseline + name_missing_pad_top
       mdtr_baseline = mdtr_baseline + mdtr_missing_pad_top
       local baselines_diff = Math.round(name_baseline - mdtr_baseline)

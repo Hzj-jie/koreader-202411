@@ -633,10 +633,16 @@ function ReaderZooming:getZoom(pageno)
   if
     zoom
     and zoom > 10
-    and not DocCache:willAccept(zoom * (self:getSize().w * self:getSize().h + 512))
+    and not DocCache:willAccept(
+      zoom * (self:getSize().w * self:getSize().h + 512)
+    )
   then
     logger.dbg("zoom too large, adjusting")
-    while not DocCache:willAccept(zoom * (self:getSize().w * self:getSize().h + 512)) do
+    while
+      not DocCache:willAccept(
+        zoom * (self:getSize().w * self:getSize().h + 512)
+      )
+    do
       if zoom > 100 then
         zoom = zoom - 50
       elseif zoom > 10 then

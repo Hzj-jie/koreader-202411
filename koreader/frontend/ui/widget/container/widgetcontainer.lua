@@ -31,8 +31,10 @@ function WidgetContainer:getSize()
   -- TODO: Remove, use Widget.getSize(self) instead.
   self:mayMergeWidthAndHeight()
   if self.dimen == nil then
-    logger.warn("FixMe: WidgetContainer:getSize() returns an empty Geom. ",
-                debug.traceback())
+    logger.warn(
+      "FixMe: WidgetContainer:getSize() returns an empty Geom. ",
+      debug.traceback()
+    )
     return Geom:new()
   end
   return self.dimen
@@ -79,7 +81,11 @@ function WidgetContainer:paintTo(bb, x, y)
 
   if self.align == "top" then
     local contentSize = self[1]:getSize()
-    self[1]:paintTo(bb, x + math.floor((self:getSize().w - contentSize.w) / 2), y)
+    self[1]:paintTo(
+      bb,
+      x + math.floor((self:getSize().w - contentSize.w) / 2),
+      y
+    )
   elseif self.align == "bottom" then
     local contentSize = self[1]:getSize()
     self[1]:paintTo(
@@ -96,7 +102,11 @@ function WidgetContainer:paintTo(bb, x, y)
     )
   elseif self.vertical_align == "center" then
     local contentSize = self[1]:getSize()
-    self[1]:paintTo(bb, x, y + math.floor((self:getSize().h - contentSize.h) / 2))
+    self[1]:paintTo(
+      bb,
+      x,
+      y + math.floor((self:getSize().h - contentSize.h) / 2)
+    )
   else
     return self[1]:paintTo(bb, x, y)
   end

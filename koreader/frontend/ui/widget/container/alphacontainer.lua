@@ -38,7 +38,8 @@ function AlphaContainer:paintTo(bb, x, y)
       self.private_bb:free() -- free the one we're going to replace
     end
     -- create a private blitbuffer for our child widget to paint to
-    self.private_bb = Blitbuffer.new(self:getSize().w, self:getSize().h, bb:getType())
+    self.private_bb =
+      Blitbuffer.new(self:getSize().w, self:getSize().h, bb:getType())
     -- fill it with our usual background color
     self.private_bb:fill(Blitbuffer.COLOR_WHITE)
   end

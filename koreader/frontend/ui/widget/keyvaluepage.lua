@@ -492,7 +492,8 @@ function KeyValuePage:init()
   self.title_bar = TitleBar:new({
     title = self.title,
     fullscreen = (
-      self:getSize().w == Screen:getWidth() and self:getSize().h == Screen:getHeight()
+      self:getSize().w == Screen:getWidth()
+      and self:getSize().h == Screen:getHeight()
     ),
     width = self.width,
     align = self.title_bar_align,

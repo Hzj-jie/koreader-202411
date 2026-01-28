@@ -1140,17 +1140,20 @@ function VocabItemWidget:onTap(_, ges)
   if self.has_review_buttons then
     if
       ges.pos.x > self.forgot_button:getSize().x
-      and ges.pos.x < self.forgot_button:getSize().x + self.forgot_button:getSize().w
+      and ges.pos.x
+        < self.forgot_button:getSize().x + self.forgot_button:getSize().w
     then
       self:onForgot()
     elseif
       ges.pos.x > self.got_it_button:getSize().x
-      and ges.pos.x < self.got_it_button:getSize().x + self.got_it_button:getSize().w
+      and ges.pos.x
+        < self.got_it_button:getSize().x + self.got_it_button:getSize().w
     then
       self:onGotIt()
     elseif
       ges.pos.x > self.more_button:getSize().x
-      and ges.pos.x < self.more_button:getSize().x + self.more_button:getSize().w
+      and ges.pos.x
+        < self.more_button:getSize().x + self.more_button:getSize().w
     then
       self:showMore()
     elseif self.item.callback then
@@ -1173,8 +1176,10 @@ function VocabItemWidget:onTap(_, ges)
       end
     else
       if
-        ges.pos.x > self.more_button:getSize().x - self.more_button:getSize().w
-        and ges.pos.x < self.more_button:getSize().x + self.more_button:getSize().w
+        ges.pos.x
+          > self.more_button:getSize().x - self.more_button:getSize().w
+        and ges.pos.x
+          < self.more_button:getSize().x + self.more_button:getSize().w
       then
         if self:showParent().is_edit_mode then
           self:remover()

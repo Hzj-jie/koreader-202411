@@ -311,7 +311,8 @@ function TitleBar:init()
       background = self.bottom_line_color,
     })
     if self.bottom_line_h_padding then
-      line_widget.dimen.w = line_widget:getSize().w - 2 * self.bottom_line_h_padding
+      line_widget.dimen.w = line_widget:getSize().w
+        - 2 * self.bottom_line_h_padding
       line_widget = HorizontalGroup:new({
         HorizontalSpan:new({ width = self.bottom_line_h_padding }),
         line_widget,

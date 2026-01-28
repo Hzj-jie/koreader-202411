@@ -844,14 +844,24 @@ function MosaicMenuItem:paintTo(bb, x, y)
     else
       ix = target:getSize().w - 1
       -- Set alternate dimen to be marked as dirty to include this description in refresh
-      local x_overflow_right = target:getSize().x + ix + d_w - x - self:getSize().w
+      local x_overflow_right = target:getSize().x
+        + ix
+        + d_w
+        - x
+        - self:getSize().w
       if x_overflow_right > 0 then
         self.refresh_dimen = self[1].dimen:copy()
         self.refresh_dimen.w = self.refresh_dimen.w + x_overflow_right
       end
     end
     local iy = 0
-    bb:paintBorder(target:getSize().x + ix, target:getSize().y + iy, d_w, d_h, 1)
+    bb:paintBorder(
+      target:getSize().x + ix,
+      target:getSize().y + iy,
+      d_w,
+      d_h,
+      1
+    )
   end
 end
 

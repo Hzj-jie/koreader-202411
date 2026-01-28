@@ -812,7 +812,8 @@ function TouchMenu:updateItems()
   -- NOTE: Also avoid repainting what's underneath us on initial popup.
   -- NOTE: And we also only need to repaint what's behind us when switching to a smaller menu...
   UIManager:setDirty(
-    (old_dimen and self:getSize().h >= old_dimen.h) and self:showParent() or "all",
+    (old_dimen and self:getSize().h >= old_dimen.h) and self:showParent()
+      or "all",
     function()
       return "ui", old_dimen and old_dimen:combine(self.dimen) or self.dimen
     end

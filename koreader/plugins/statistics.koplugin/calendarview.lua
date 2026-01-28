@@ -897,14 +897,19 @@ function CalendarDayView:_populateBooks()
     self.timeline_height = self.timeline_height - Size.padding.default
   end
   self.hour_height = math.floor(self.timeline_height / 24)
-  self.timeline_width = self:getSize().w - self.outer_padding - self.time_text_width
+  self.timeline_width = self:getSize().w
+    - self.outer_padding
+    - self.time_text_width
 
   if #self.kv_pairs == 0 then
     -- Needed when the first opened day has no data, then move to another day with data
     table.insert(
       self.book_items,
       CenterContainer:new({
-        dimen = Geom:new({ w = self:getSize().w - 2 * self.outer_padding, h = 0 }),
+        dimen = Geom:new({
+          w = self:getSize().w - 2 * self.outer_padding,
+          h = 0,
+        }),
         VerticalSpan:new({ height = 0 }),
       })
     )
@@ -1197,7 +1202,8 @@ function CalendarView:init()
 
   -- 7 days in a week
   self.day_width = math.floor(
-    (self:getSize().w - 2 * self.outer_padding - 6 * self.inner_padding) * (1 / 7)
+    (self:getSize().w - 2 * self.outer_padding - 6 * self.inner_padding)
+      * (1 / 7)
   )
   -- Put back the possible 7px lost in rounding into outer_padding
   self.outer_padding = math.floor(
@@ -1317,7 +1323,8 @@ function CalendarView:init()
 
   self.title_bar = TitleBar:new({
     fullscreen = (
-      self:getSize().w == Screen:getWidth() and self:getSize().h == Screen:getHeight()
+      self:getSize().w == Screen:getWidth()
+      and self:getSize().h == Screen:getHeight()
     ),
     width = self:getSize().w,
     align = "left",

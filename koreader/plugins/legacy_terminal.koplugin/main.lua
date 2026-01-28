@@ -40,15 +40,12 @@ local Terminal = WidgetContainer:new({
 })
 
 function Terminal:onDispatcherRegisterActions()
-  Dispatcher:registerAction(
-    "show_terminal",
-    {
-      category = "none",
-      event = "TerminalStart",
-      title = _("Show terminal"),
-      general = true,
-    }
-  )
+  Dispatcher:registerAction("show_terminal", {
+    category = "none",
+    event = "TerminalStart",
+    title = _("Show terminal"),
+    general = true,
+  })
 end
 
 function Terminal:init()

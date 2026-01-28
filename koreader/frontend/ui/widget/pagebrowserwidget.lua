@@ -252,7 +252,9 @@ function PageBrowserWidget:updateLayout()
   self.view_finder_r = Size.radius.window
   self.view_finder_bw = Size.border.default
   -- Have its top border noticeable above the BookMapRow top border
-  self.view_finder_y = self:getSize().h - self.row_height - 2 * self.view_finder_bw
+  self.view_finder_y = self:getSize().h
+    - self.row_height
+    - 2 * self.view_finder_bw
   -- And put its bottom rounded corner outside of screen
   self.view_finder_h = self.row_height
     + 2 * self.view_finder_bw

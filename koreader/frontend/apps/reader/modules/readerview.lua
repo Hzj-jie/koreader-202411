@@ -388,7 +388,13 @@ end
 
 function ReaderView:drawPageSurround(bb, x, y)
   if self:getSize().h > self.visible_area.h then
-    bb:paintRect(x, y, self:getSize().w, self.state.offset.y, self.outer_page_color)
+    bb:paintRect(
+      x,
+      y,
+      self:getSize().w,
+      self.state.offset.y,
+      self.outer_page_color
+    )
     local bottom_margin = y + self.visible_area.h + self.state.offset.y
     bb:paintRect(
       x,
@@ -399,7 +405,13 @@ function ReaderView:drawPageSurround(bb, x, y)
     )
   end
   if self:getSize().w > self.visible_area.w then
-    bb:paintRect(x, y, self.state.offset.x, self:getSize().h, self.outer_page_color)
+    bb:paintRect(
+      x,
+      y,
+      self.state.offset.x,
+      self:getSize().h,
+      self.outer_page_color
+    )
     bb:paintRect(
       x + self:getSize().w - self.state.offset.x - 1,
       y,
@@ -484,7 +496,13 @@ function ReaderView:getScrollPageRect(page, rect_p)
 end
 
 function ReaderView:drawPageGap(bb, x, y)
-  bb:paintRect(x, y, self:getSize().w, self.page_gap.height, self.page_gap.color)
+  bb:paintRect(
+    x,
+    y,
+    self:getSize().w,
+    self.page_gap.height,
+    self.page_gap.color
+  )
 end
 
 function ReaderView:drawSinglePage(bb, x, y)
