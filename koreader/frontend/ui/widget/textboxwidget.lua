@@ -211,7 +211,7 @@ function TextBoxWidget:init()
   if self.editable then
     self:moveCursorToCharPos(self.charpos or 1)
   end
-  -- Populate self.dimen.
+  -- Populate self:getSize().
   self:getSize()
 
   if Device:isTouchDevice() then
@@ -1216,8 +1216,8 @@ function TextBoxWidget:_renderImage(start_row_idx)
               -- rendered just the same as it was
               return "ui",
                 Geom:new({
-                  x = self.dimen.x + self.width - image.width,
-                  y = self.dimen.y,
+                  x = self:getSize().x + self.width - image.width,
+                  y = self:getSize().y,
                   w = image.width,
                   h = image.height,
                 }),
@@ -1236,8 +1236,8 @@ function TextBoxWidget:_renderImage(start_row_idx)
           -- rendered just the same as it was
           return "ui",
             Geom:new({
-              x = self.dimen.x + self.width - image.width,
-              y = self.dimen.y,
+              x = self:getSize().x + self.width - image.width,
+              y = self:getSize().y,
               w = image.width,
               h = image.height,
             }),
@@ -1435,8 +1435,8 @@ function TextBoxWidget:onTapImage(arg, ges)
     self.line_num_to_image and self.line_num_to_image[self.virtual_line_num]
   then
     local image = self.line_num_to_image[self.virtual_line_num]
-    local tap_x = ges.pos.x - self.dimen.x
-    local tap_y = ges.pos.y - self.dimen.y
+    local tap_x = ges.pos.x - self:getSize().x
+    local tap_y = ges.pos.y - self:getSize().y
     -- Check that this tap is on this image
     if
       tap_x > self.width - image.width
@@ -1456,8 +1456,8 @@ function TextBoxWidget:onTapImage(arg, ges)
           -- rendered just the same as it was
           return "ui",
             Geom:new({
-              x = self.dimen.x + self.width - image.width,
-              y = self.dimen.y,
+              x = self:getSize().x + self.width - image.width,
+              y = self:getSize().y,
               w = image.width,
               h = image.height,
             }),
@@ -1859,8 +1859,8 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
   -- We can also get x outside current view, when a line takes the full width
   -- (which happens when text is justified): move the cursor a bit to the left
   -- (it will be drawn over the right of the last glyph, which should be ok.)
-  if x > self.width - self.cursor_line.dimen.w then
-    x = self.width - self.cursor_line.dimen.w
+  if x > self.width - self.cursor_line:getSize().w then
+    x = self.width - self.cursor_line:getSize().w
   end
   if self.for_measurement_only then
     return -- we're a dummy widget used for computing text height, don't render/refresh anything
@@ -1877,8 +1877,8 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
     self.cursor_restore_x = x
     self.cursor_restore_y = y
     self.cursor_restore_bb = Blitbuffer.new(
-      self.cursor_line.dimen.w,
-      self.cursor_line.dimen.h,
+      self.cursor_line:getSize().w,
+      self.cursor_line:getSize().h,
       self._bb:getType()
     )
     self.cursor_restore_bb:blitFrom(
@@ -1887,8 +1887,8 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
       0,
       x,
       y,
-      self.cursor_line.dimen.w,
-      self.cursor_line.dimen.h
+      self.cursor_line:getSize().w,
+      self.cursor_line:getSize().h
     )
     -- Paint the cursor, and refresh the whole widget
     self.cursor_line:paintTo(self._bb, x, y)
@@ -1908,8 +1908,8 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
           self.cursor_restore_y,
           0,
           0,
-          self.cursor_line.dimen.w,
-          self.cursor_line.dimen.h
+          self.cursor_line:getSize().w,
+          self.cursor_line:getSize().h
         )
         -- remember current values for use in the setDirty funcs, as
         -- we will have overridden them when these are called
@@ -1919,10 +1919,10 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
           UIManager:setDirty(self.dialog or "all", function()
             return "ui",
               Geom:new({
-                x = self.dimen.x + restore_x,
-                y = self.dimen.y + restore_y,
-                w = self.cursor_line.dimen.w,
-                h = self.cursor_line.dimen.h,
+                x = self:getSize().x + restore_x,
+                y = self:getSize().y + restore_y,
+                w = self.cursor_line:getSize().w,
+                h = self.cursor_line:getSize().h,
               })
           end)
         end
@@ -1933,8 +1933,8 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
       self.cursor_restore_x = x
       self.cursor_restore_y = y
       self.cursor_restore_bb = Blitbuffer.new(
-        self.cursor_line.dimen.w,
-        self.cursor_line.dimen.h,
+        self.cursor_line:getSize().w,
+        self.cursor_line:getSize().h,
         self._bb:getType()
       )
       self.cursor_restore_bb:blitFrom(
@@ -1943,24 +1943,24 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
         0,
         x,
         y,
-        self.cursor_line.dimen.w,
-        self.cursor_line.dimen.h
+        self.cursor_line:getSize().w,
+        self.cursor_line:getSize().h
       )
       -- Paint the cursor, and do a small ui refresh of the new cursor area
       self.cursor_line:paintTo(self._bb, x, y)
       UIManager:setDirty(self.dialog or "all", function()
         local cursor_region = Geom:new({
-          x = self.dimen.x + x,
-          y = self.dimen.y + y,
-          w = self.cursor_line.dimen.w,
-          h = self.cursor_line.dimen.h,
+          x = self:getSize().x + x,
+          y = self:getSize().y + y,
+          w = self.cursor_line:getSize().w,
+          h = self.cursor_line:getSize().h,
         })
         if CURSOR_COMBINE_REGIONS and restore_x and restore_y then
           local restore_region = Geom:new({
-            x = self.dimen.x + restore_x,
-            y = self.dimen.y + restore_y,
-            w = self.cursor_line.dimen.w,
-            h = self.cursor_line.dimen.h,
+            x = self:getSize().x + restore_x,
+            y = self:getSize().y + restore_y,
+            w = self.cursor_line:getSize().w,
+            h = self.cursor_line:getSize().h,
           })
           cursor_region = cursor_region:combine(restore_region)
         end
@@ -1978,15 +1978,15 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
           self.cursor_restore_y,
           0,
           0,
-          self.cursor_line.dimen.w,
-          self.cursor_line.dimen.h
+          self.cursor_line:getSize().w,
+          self.cursor_line:getSize().h
         )
         if self.dimen then
           restore_region = Geom:new({
-            x = self.dimen.x + self.cursor_restore_x,
-            y = self.dimen.y + self.cursor_restore_y,
-            w = self.cursor_line.dimen.w,
-            h = self.cursor_line.dimen.h,
+            x = self:getSize().x + self.cursor_restore_x,
+            y = self:getSize().y + self.cursor_restore_y,
+            w = self.cursor_line:getSize().w,
+            h = self.cursor_line:getSize().h,
           })
           if not CURSOR_COMBINE_REGIONS then
             UIManager:setDirty(self.dialog or "all", "ui", restore_region)
@@ -1999,8 +1999,8 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
       self.cursor_restore_x = x
       self.cursor_restore_y = y
       self.cursor_restore_bb = Blitbuffer.new(
-        self.cursor_line.dimen.w,
-        self.cursor_line.dimen.h,
+        self.cursor_line:getSize().w,
+        self.cursor_line:getSize().h,
         self._bb:getType()
       )
       self.cursor_restore_bb:blitFrom(
@@ -2009,17 +2009,17 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
         0,
         x,
         y,
-        self.cursor_line.dimen.w,
-        self.cursor_line.dimen.h
+        self.cursor_line:getSize().w,
+        self.cursor_line:getSize().h
       )
       -- Paint the cursor, and do a small ui refresh of the new cursor area
       self.cursor_line:paintTo(self._bb, x, y)
       if self.dimen then
         local cursor_region = Geom:new({
-          x = self.dimen.x + x,
-          y = self.dimen.y + y,
-          w = self.cursor_line.dimen.w,
-          h = self.cursor_line.dimen.h,
+          x = self:getSize().x + x,
+          y = self:getSize().y + y,
+          w = self.cursor_line:getSize().w,
+          h = self.cursor_line:getSize().h,
         })
         if CURSOR_COMBINE_REGIONS and restore_region then
           cursor_region = cursor_region:combine(restore_region)
@@ -2168,7 +2168,7 @@ function TextBoxWidget:onHoldWord(callback, ges)
     return
   end
 
-  local x, y = ges.pos.x - self.dimen.x, ges.pos.y - self.dimen.y
+  local x, y = ges.pos.x - self:getSize().x, ges.pos.y - self:getSize().y
   local line_num = math.ceil(y / self.line_height_px)
     + self.virtual_line_num
     - 1
@@ -2222,15 +2222,15 @@ local FIND_END = 2
 
 function TextBoxWidget:onHoldStartText(_, ges)
   -- store hold start position and timestamp, will be used on release
-  self.hold_start_x = ges.pos.x - self.dimen.x
-  self.hold_start_y = ges.pos.y - self.dimen.y
+  self.hold_start_x = ges.pos.x - self:getSize().x
+  self.hold_start_y = ges.pos.y - self:getSize().y
 
   -- check coordinates are actually inside our area
   if
     self.hold_start_x < 0
-    or self.hold_start_x > self.dimen.w
+    or self.hold_start_x > self:getSize().w
     or self.hold_start_y < 0
-    or self.hold_start_y > self.dimen.h
+    or self.hold_start_y > self:getSize().h
   then
     self.hold_start_time = nil -- don't process coming HoldRelease event
     return false -- let event be processed by other widgets
@@ -2255,8 +2255,8 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
     return
   end
 
-  local hold_end_x = ges.pos.x - self.dimen.x
-  local hold_end_y = ges.pos.y - self.dimen.y
+  local hold_end_x = ges.pos.x - self:getSize().x
+  local hold_end_y = ges.pos.y - self:getSize().y
 
   -- check we have seen a HoldStart event
   if not self.hold_start_time then
@@ -2266,12 +2266,12 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
   if
     self.hold_start_x < 0
     or hold_end_x < 0
-    or self.hold_start_x > self.dimen.w
-    or hold_end_x > self.dimen.w
+    or self.hold_start_x > self:getSize().w
+    or hold_end_x > self:getSize().w
     or self.hold_start_y < 0
     or hold_end_y < 0
-    or self.hold_start_y > self.dimen.h
-    or hold_end_y > self.dimen.h
+    or self.hold_start_y > self:getSize().h
+    or hold_end_y > self:getSize().h
   then
     return false
   end

@@ -431,7 +431,7 @@ function KeyValuePage:init()
     }),
     self.page_return_arrow,
     HorizontalSpan:new({
-      width = self.dimen.w
+      width = self:getSize().w
         - self.page_return_arrow:getSize().w
         - Size.span.horizontal_small,
     }),
@@ -477,7 +477,7 @@ function KeyValuePage:init()
   })
 
   local padding = Size.padding.large
-  self.item_width = self.dimen.w - 2 * padding
+  self.item_width = self:getSize().w - 2 * padding
 
   local footer = BottomContainer:new({
     dimen = self.dimen:copy(),
@@ -492,7 +492,7 @@ function KeyValuePage:init()
   self.title_bar = TitleBar:new({
     title = self.title,
     fullscreen = (
-      self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
+      self:getSize().w == Screen:getWidth() and self:getSize().h == Screen:getHeight()
     ),
     width = self.width,
     align = self.title_bar_align,
@@ -508,7 +508,7 @@ function KeyValuePage:init()
   })
 
   -- setup main content
-  local available_height = self.dimen.h
+  local available_height = self:getSize().h
     - self.title_bar:getHeight()
     - Size.span.vertical_large -- for above page_info (as title_bar adds one itself)
     - self.page_info:getSize().h
@@ -536,7 +536,7 @@ function KeyValuePage:init()
 
   -- set textviewer height to let our title fully visible (but hide the bottom line)
   self.textviewer_width = self.item_width
-  self.textviewer_height = self.dimen.h
+  self.textviewer_height = self:getSize().h
     - 2
       * (self.title_bar:getHeight() - Size.padding.default - Size.line.thick)
 
@@ -559,8 +559,8 @@ function KeyValuePage:init()
   })
   -- assemble page
   self[1] = FrameContainer:new({
-    width = self.dimen.w,
-    height = self.dimen.h,
+    width = self:getSize().w,
+    height = self:getSize().h,
     padding = 0,
     margin = 0,
     bordersize = 0,

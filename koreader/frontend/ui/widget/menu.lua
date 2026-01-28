@@ -52,12 +52,12 @@ local MenuItem = InputContainer:extend({
 })
 
 function MenuItem:init()
-  self.content_width = self.dimen.w - 2 * Size.padding.fullscreen
+  self.content_width = self:getSize().w - 2 * Size.padding.fullscreen
 
   local shortcut_icon_dimen
   if self.shortcut then
     local icon_width = self.entry.shortcut_icon_width
-      or math.floor(self.dimen.h * 4 / 5)
+      or math.floor(self:getSize().h * 4 / 5)
     shortcut_icon_dimen = Geom:new({
       x = 0,
       y = 0,
@@ -85,7 +85,7 @@ function MenuItem:init()
     },
   }
 
-  local max_item_height = self.dimen.h - 2 * self.linesize
+  local max_item_height = self:getSize().h - 2 * self.linesize
 
   -- We want to show at least one line, so cap the provided font sizes
   local max_font_size = TextBoxWidget:getFontSizeToFitHeight(max_item_height, 1)
@@ -122,7 +122,7 @@ function MenuItem:init()
   local state_container = LeftContainer:new({
     dimen = Geom:new({
       w = math.floor(self.content_width / 2),
-      h = self.dimen.h,
+      h = self:getSize().h,
     }),
     HorizontalGroup:new({
       HorizontalSpan:new({
@@ -246,26 +246,26 @@ function MenuItem:init()
     end
     if self.align_baselines then -- Align baselines of text and mandatory
       -- The container widgets would additionally center these widgets,
-      -- so make sure they all get a height=self.dimen.h so they don't
+      -- so make sure they all get a height=self:getSize().h so they don't
       -- risk being shifted later and becoming misaligned
       local name_baseline = item_name:getBaseline()
       local mdtr_baseline = mandatory_widget:getBaseline()
       local name_height = item_name:getSize().h
       local mdtr_height = mandatory_widget:getSize().h
-      -- Make all the TextWidgets be self.dimen.h
-      item_name.forced_height = self.dimen.h
-      mandatory_widget.forced_height = self.dimen.h
+      -- Make all the TextWidgets be self:getSize().h
+      item_name.forced_height = self:getSize().h
+      mandatory_widget.forced_height = self:getSize().h
       if dots_widget then
-        dots_widget.forced_height = self.dimen.h
+        dots_widget.forced_height = self:getSize().h
       end
       if post_text_widget then
-        post_text_widget.forced_height = self.dimen.h
+        post_text_widget.forced_height = self:getSize().h
       end
       -- And adjust their baselines for proper centering and alignment
-      -- (We made sure the font sizes wouldn't exceed self.dimen.h, so we
+      -- (We made sure the font sizes wouldn't exceed self:getSize().h, so we
       -- get only non-negative pad_top here, and we're moving them down.)
-      local name_missing_pad_top = math.floor((self.dimen.h - name_height) / 2)
-      local mdtr_missing_pad_top = math.floor((self.dimen.h - mdtr_height) / 2)
+      local name_missing_pad_top = math.floor((self:getSize().h - name_height) / 2)
+      local mdtr_missing_pad_top = math.floor((self:getSize().h - mdtr_height) / 2)
       name_baseline = name_baseline + name_missing_pad_top
       mdtr_baseline = mdtr_baseline + mdtr_missing_pad_top
       local baselines_diff = Math.round(name_baseline - mdtr_baseline)
@@ -363,7 +363,7 @@ function MenuItem:init()
   end
 
   local text_container = LeftContainer:new({
-    dimen = Geom:new({ w = self.content_width, h = self.dimen.h }),
+    dimen = Geom:new({ w = self.content_width, h = self:getSize().h }),
     HorizontalGroup:new({
       HorizontalSpan:new({
         width = state_width,
@@ -383,7 +383,7 @@ function MenuItem:init()
     })
   end
   local mandatory_container = RightContainer:new({
-    dimen = Geom:new({ w = self.content_width, h = self.dimen.h }),
+    dimen = Geom:new({ w = self.content_width, h = self:getSize().h }),
     mandatory_widget,
   })
 
@@ -396,12 +396,12 @@ function MenuItem:init()
       x = 0,
       y = 0,
       w = self.content_width,
-      h = self.dimen.h,
+      h = self:getSize().h,
     }),
     HorizontalGroup:new({
       align = "center",
       OverlapGroup:new({
-        dimen = Geom:new({ w = self.content_width, h = self.dimen.h }),
+        dimen = Geom:new({ w = self.content_width, h = self:getSize().h }),
         state_container,
         text_container,
         mandatory_container,
@@ -709,14 +709,14 @@ function Menu:init()
     w = self.width or self.screen_w,
     h = self.height or self.screen_h,
   })
-  if self.dimen.h > self.screen_h then
+  if self:getSize().h > self.screen_h then
     self.dimen.h = self.screen_h
   end
 
   self.border_size = self.is_borderless and 0 or Size.border.window
   self.inner_dimen = Geom:new({
-    w = self.dimen.w - 2 * self.border_size,
-    h = self.dimen.h - 2 * self.border_size,
+    w = self:getSize().w - 2 * self.border_size,
+    h = self:getSize().h - 2 * self.border_size,
   })
 
   self.paths = {} -- per instance table to trace navigation path
@@ -730,7 +730,7 @@ function Menu:init()
     end
     self.title_bar = self.custom_title_bar
       or TitleBar:new({
-        width = self.dimen.w,
+        width = self:getSize().w,
         fullscreen = "true",
         align = "center",
         with_bottom_line = self.with_bottom_line,
@@ -979,7 +979,7 @@ function Menu:init()
     bordersize = self.border_size,
     padding = 0,
     margin = 0,
-    radius = self.is_popout and math.floor(self.dimen.w * (1 / 20)) or 0,
+    radius = self.is_popout and math.floor(self:getSize().w * (1 / 20)) or 0,
     content,
   })
 

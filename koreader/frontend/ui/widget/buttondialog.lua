@@ -313,8 +313,8 @@ function ButtonDialog:onFocusMove(args)
   if self.cropping_widget then
     local focus = self:getFocusItem()
     if self.dimen and focus and focus.dimen then
-      local button_y_offset = focus.dimen.y
-        - self.dimen.y
+      local button_y_offset = focus:getSize().y
+        - self:getSize().y
         - self.top_to_content_offset
       -- NOTE: The final argument ensures we'll always keep the neighboring item visible.
       --       (i.e., the top/bottom of the scrolled view is actually the previous/next item).

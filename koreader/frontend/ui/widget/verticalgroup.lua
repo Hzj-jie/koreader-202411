@@ -19,10 +19,10 @@ function VerticalGroup:getSize()
       local w_size = widget:getSize()
       self._offsets[i] = {
         x = w_size.w,
-        y = self.dimen.h,
+        y = self:getSize().h,
       }
-      self.dimen.h = self.dimen.h + w_size.h
-      if w_size.w > self.dimen.w then
+      self.dimen.h = self:getSize().h + w_size.h
+      if w_size.w > self:getSize().w then
         self.dimen.w = w_size.w
       end
     end

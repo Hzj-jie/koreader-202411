@@ -21,7 +21,7 @@ local SetDefaultsWidget = CenterContainer:extend({
 })
 
 function SetDefaultsWidget:init()
-  -- This would usually be passed to the constructor, as CenterContainer's paintTo does *NOT* set/update self.dimen...
+  -- This would usually be passed to the constructor, as CenterContainer's paintTo does *NOT* set/update self:getSize()...
   self.dimen = Screen:getSize()
 
   -- Then deal with our child widgets and our internal variables

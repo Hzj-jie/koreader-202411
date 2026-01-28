@@ -593,8 +593,8 @@ function ReaderZooming:getZoom(pageno)
     self.view:onBBoxUpdate(nil)
   end
   -- calculate zoom value:
-  local zoom_w = self.dimen.w
-  local zoom_h = self.dimen.h
+  local zoom_w = self:getSize().w
+  local zoom_h = self:getSize().h
   if
     self.ui.view.footer_visible
     and not self.ui.view.footer.settings.reclaim_height
@@ -633,10 +633,10 @@ function ReaderZooming:getZoom(pageno)
   if
     zoom
     and zoom > 10
-    and not DocCache:willAccept(zoom * (self.dimen.w * self.dimen.h + 512))
+    and not DocCache:willAccept(zoom * (self:getSize().w * self:getSize().h + 512))
   then
     logger.dbg("zoom too large, adjusting")
-    while not DocCache:willAccept(zoom * (self.dimen.w * self.dimen.h + 512)) do
+    while not DocCache:willAccept(zoom * (self:getSize().w * self:getSize().h + 512)) do
       if zoom > 100 then
         zoom = zoom - 50
       elseif zoom > 10 then
@@ -666,13 +666,13 @@ function ReaderZooming:getRegionalZoomCenter(pageno, pos)
   local block = self.ui.document:getPageBlock(pageno, pos_x, pos_y)
   local margin = self.ui.document.configurable.page_margin * Screen:getDPI()
   if block then
-    local zoom = self.dimen.w / page_size.w / (block.x1 - block.x0)
+    local zoom = self:getSize().w / page_size.w / (block.x1 - block.x0)
     zoom = zoom / (1 + 3 * margin / zoom / page_size.w)
     local xpos = (block.x0 + block.x1) / 2 * zoom * page_size.w
     local ypos = p_pos.y / p_pos.zoom * zoom
     return zoom, xpos, ypos
   end
-  local zoom = 2 * self.dimen.w / page_size.w
+  local zoom = 2 * self:getSize().w / page_size.w
   return zoom / (1 + 3 * margin / zoom / page_size.w)
 end
 

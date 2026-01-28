@@ -74,24 +74,24 @@ function WidgetContainer:paintTo(bb, x, y)
 
   if self.align == "top" then
     local contentSize = self[1]:getSize()
-    self[1]:paintTo(bb, x + math.floor((self.dimen.w - contentSize.w) / 2), y)
+    self[1]:paintTo(bb, x + math.floor((self:getSize().w - contentSize.w) / 2), y)
   elseif self.align == "bottom" then
     local contentSize = self[1]:getSize()
     self[1]:paintTo(
       bb,
-      x + math.floor((self.dimen.w - contentSize.w) / 2),
-      y + (self.dimen.h - contentSize.h)
+      x + math.floor((self:getSize().w - contentSize.w) / 2),
+      y + (self:getSize().h - contentSize.h)
     )
   elseif self.align == "center" then
     local contentSize = self[1]:getSize()
     self[1]:paintTo(
       bb,
-      x + math.floor((self.dimen.w - contentSize.w) / 2),
-      y + math.floor((self.dimen.h - contentSize.h) / 2)
+      x + math.floor((self:getSize().w - contentSize.w) / 2),
+      y + math.floor((self:getSize().h - contentSize.h) / 2)
     )
   elseif self.vertical_align == "center" then
     local contentSize = self[1]:getSize()
-    self[1]:paintTo(bb, x, y + math.floor((self.dimen.h - contentSize.h) / 2))
+    self[1]:paintTo(bb, x, y + math.floor((self:getSize().h - contentSize.h) / 2))
   else
     return self[1]:paintTo(bb, x, y)
   end

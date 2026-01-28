@@ -174,8 +174,8 @@ function SortWidget:init()
     }
   end
   local padding = Size.padding.large
-  self.width_widget = self.dimen.w - 2 * padding
-  self.item_width = self.dimen.w - 2 * padding
+  self.width_widget = self:getSize().w - 2 * padding
+  self.item_width = self:getSize().w - 2 * padding
   self.footer_center_width = math.floor(self.width_widget * (22 / 100))
   self.footer_button_width = math.floor(self.width_widget * (12 / 100))
   self.item_height = Size.item.height_big
@@ -305,7 +305,7 @@ function SortWidget:init()
   })
   -- setup title bar
   self.title_bar = TitleBar:new({
-    width = self.dimen.w,
+    width = self:getSize().w,
     align = "left",
     with_bottom_line = true,
     bottom_line_color = Blitbuffer.COLOR_DARK_GRAY,
@@ -322,7 +322,7 @@ function SortWidget:init()
   -- setup main content
   self.item_margin = math.floor(self.item_height / 8)
   local line_height = self.item_height + self.item_margin
-  local content_height = self.dimen.h
+  local content_height = self:getSize().h
     - self.title_bar:getHeight()
     - vertical_footer:getSize().h
     - padding
@@ -338,7 +338,7 @@ function SortWidget:init()
       / 2
   end
   local frame_content = FrameContainer:new({
-    height = self.dimen.h,
+    height = self:getSize().h,
     padding = 0,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,
@@ -355,7 +355,7 @@ function SortWidget:init()
   })
   -- assemble page
   self[1] = FrameContainer:new({
-    height = self.dimen.h,
+    height = self:getSize().h,
     padding = 0,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,

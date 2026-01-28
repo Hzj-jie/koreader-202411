@@ -1047,7 +1047,7 @@ function ReaderRolling:onGotoViewRel(diff)
         and 1
       or 0
     ) * self.view.footer:getHeight()
-    local page_visible_height = self.ui.dimen.h - footer_height
+    local page_visible_height = self.ui:getSize().h - footer_height
     local pan_diff = diff * page_visible_height
     if self.view.page_overlap_enable then
       local overlap_lines = G_reader_settings:read("copt_overlap_lines") or 1
@@ -1295,7 +1295,7 @@ function ReaderRolling:_gotoPos(new_pos, do_dim_area)
   -- Don't go past end of document, and ensure last line of the document
   -- is shown just above the footer, whether footer is visible or not
   local max_pos = self.ui.document.info.doc_height
-    - self.ui.dimen.h
+    - self.ui:getSize().h
     + self.view.footer:getHeight()
   if new_pos > max_pos then
     new_pos = max_pos
@@ -1314,17 +1314,17 @@ function ReaderRolling:_gotoPos(new_pos, do_dim_area)
         and 1
       or 0
     ) * self.view.footer:getHeight()
-    local page_visible_height = self.ui.dimen.h - footer_height
+    local page_visible_height = self.ui:getSize().h - footer_height
     local panned_step = new_pos - self.current_pos
     self.view.dim_area.x = 0
     self.view.dim_area.h = page_visible_height - math.abs(panned_step)
-    self.view.dim_area.w = self.ui.dimen.w
+    self.view.dim_area.w = self.ui:getSize().w
     if panned_step < 0 then
       self.view.dim_area.y = page_visible_height - self.view.dim_area.h
     elseif panned_step > 0 then
       self.view.dim_area.y = 0
     end
-    if self.current_pos > max_pos - self.ui.dimen.h / 2 then
+    if self.current_pos > max_pos - self.ui:getSize().h / 2 then
       -- Avoid a fully dimmed page when reaching end of document
       -- (the scroll would bump and not be a full page long)
       self.view.dim_area:clear()

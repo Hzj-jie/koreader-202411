@@ -134,7 +134,7 @@ function MovableContainer:ensureAnchor(x, y)
   end
   -- We try to find the best way to draw our content, depending on
   -- the size of the content and the space available on the screen.
-  local content_w, content_h = self.dimen.w, self.dimen.h
+  local content_w, content_h = self:getSize().w, self:getSize().h
   local screen_w, screen_h = Screen:getWidth(), Screen:getHeight()
   local left, top
   if BD.mirroredUILayout() then
@@ -226,8 +226,8 @@ function MovableContainer:paintTo(bb, x, y)
       y,
       x,
       y,
-      self.dimen.w,
-      self.dimen.h,
+      self:getSize().w,
+      self:getSize().h,
       self.alpha
     )
   else
@@ -250,17 +250,17 @@ function MovableContainer:_moveBy(dx, dy, restrict_to_screen)
     self._moved_offset_y = self._moved_offset_y + Math.round(dy)
     if restrict_to_screen then
       local screen_w, screen_h = Screen:getWidth(), Screen:getHeight()
-      if self.dimen.x + self._moved_offset_x < 0 then
-        self._moved_offset_x = -self.dimen.x
+      if self:getSize().x + self._moved_offset_x < 0 then
+        self._moved_offset_x = -self:getSize().x
       end
-      if self.dimen.y + self._moved_offset_y < 0 then
-        self._moved_offset_y = -self.dimen.y
+      if self:getSize().y + self._moved_offset_y < 0 then
+        self._moved_offset_y = -self:getSize().y
       end
-      if self.dimen.x + self._moved_offset_x + self.dimen.w > screen_w then
-        self._moved_offset_x = screen_w - self.dimen.x - self.dimen.w
+      if self:getSize().x + self._moved_offset_x + self:getSize().w > screen_w then
+        self._moved_offset_x = screen_w - self:getSize().x - self:getSize().w
       end
-      if self.dimen.y + self._moved_offset_y + self.dimen.h > screen_h then
-        self._moved_offset_y = screen_h - self.dimen.y - self.dimen.h
+      if self:getSize().y + self._moved_offset_y + self:getSize().h > screen_h then
+        self._moved_offset_y = screen_h - self:getSize().y - self:getSize().h
       end
     end
     -- Ensure the offsets are integers, to avoid refresh area glitches

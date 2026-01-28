@@ -76,7 +76,7 @@ function ListMenuItem:init()
   -- As done in MenuItem
   -- Squared letter for keyboard navigation
   if self.shortcut then
-    local icon_width = math.floor(self.dimen.h * 2 / 5)
+    local icon_width = math.floor(self:getSize().h * 2 / 5)
     local shortcut_icon_dimen = Geom:new({
       x = 0,
       y = 0,
@@ -825,11 +825,11 @@ function ListMenuItem:paintTo(bb, x, y)
     local target = self[1][1][2]
     local ix
     if BD.mirroredUILayout() then
-      ix = target.dimen.w - self.shortcut_icon.dimen.w
+      ix = target:getSize().w - self.shortcut_icon:getSize().w
     else
       ix = 0
     end
-    local iy = target.dimen.h - self.shortcut_icon.dimen.h
+    local iy = target:getSize().h - self.shortcut_icon:getSize().h
     self.shortcut_icon:paintTo(bb, x + ix, y + iy)
   end
 
@@ -853,22 +853,22 @@ function ListMenuItem:paintTo(bb, x, y)
   then
     local target = self[1][1][2]
     local d_w = Screen:scaleBySize(3)
-    local d_h = math.ceil(target.dimen.h / 4)
+    local d_h = math.ceil(target:getSize().h / 4)
     if self.do_cover_image and target[1][1][1] then
       -- it has an image, align it on image's framecontainer's right border
       target = target[1][1]
       local ix
       if BD.mirroredUILayout() then
-        ix = target.dimen.x - d_w + 1
+        ix = target:getSize().x - d_w + 1
       else
-        ix = target.dimen.x + target.dimen.w - 1
+        ix = target:getSize().x + target:getSize().w - 1
       end
-      bb:paintBorder(ix, target.dimen.y, d_w, d_h, 1)
+      bb:paintBorder(ix, target:getSize().y, d_w, d_h, 1)
     else
       -- no image, align it to the left border
       local ix
       if BD.mirroredUILayout() then
-        ix = target.dimen.x + target.dimen.w - d_w
+        ix = target:getSize().x + target:getSize().w - d_w
       else
         ix = x
       end
@@ -915,7 +915,7 @@ function ListMenu:_recalculateDimen()
       self.others_height = self.others_height + 2
     end
     if not self.no_title then
-      self.others_height = self.others_height + self.title_bar.dimen.h
+      self.others_height = self.others_height + self.title_bar:getSize().h
     end
     if self.page_info then
       self.others_height = self.others_height + self.page_info:getSize().h

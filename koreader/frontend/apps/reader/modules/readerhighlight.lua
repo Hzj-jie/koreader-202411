@@ -1208,17 +1208,17 @@ function ReaderHighlight:onTapXPointerSavedHighlight(ges)
   --     because pos.page isn't super accurate in continuous mode
   --     (it's the page number for what's it the topleft corner of the screen,
   --     i.e., often a bit earlier)...
-  -- Even in page mode, it's safer to use pos and ui.dimen.h
-  -- than pages' xpointers pos, even if ui.dimen.h is a bit
+  -- Even in page mode, it's safer to use pos and ui:getSize().h
+  -- than pages' xpointers pos, even if ui:getSize().h is a bit
   -- larger than pages' heights
   local cur_view_top = self.document:getCurrentPos()
   local cur_view_bottom
   if
     self.view.view_mode == "page" and self.document:getVisiblePageCount() > 1
   then
-    cur_view_bottom = cur_view_top + 2 * self.ui.dimen.h
+    cur_view_bottom = cur_view_top + 2 * self.ui:getSize().h
   else
-    cur_view_bottom = cur_view_top + self.ui.dimen.h
+    cur_view_bottom = cur_view_top + self.ui:getSize().h
   end
   local highlights_tapped = {}
   for hl_i, item in ipairs(self.ui.annotation.annotations) do

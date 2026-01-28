@@ -30,7 +30,7 @@ function ReaderCropping:onPageCrop(mode)
   end
   -- backup original view dimen
   self.orig_view_dimen =
-    Geom:new({ w = self.view.dimen.w, h = self.view.dimen.h })
+    Geom:new({ w = self.view:getSize().w, h = self.view:getSize().h })
   -- backup original view bgcolor
   self.orig_view_bgcolor = self.view.outer_page_color
   self.view.outer_page_color = Blitbuffer.COLOR_DARK_GRAY

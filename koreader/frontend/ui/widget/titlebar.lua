@@ -277,7 +277,7 @@ function TitleBar:init()
 
   -- This TitleBar widget is an OverlapGroup: all sub elements overlap,
   -- and can overflow or underflow. Its height for its containers is
-  -- the one we set as self.dimen.h.
+  -- the one we set as self:getSize().h.
 
   self.titlebar_height = self.title_group:getSize().h
   if self.title_shrink_font_to_fit then
@@ -311,7 +311,7 @@ function TitleBar:init()
       background = self.bottom_line_color,
     })
     if self.bottom_line_h_padding then
-      line_widget.dimen.w = line_widget.dimen.w - 2 * self.bottom_line_h_padding
+      line_widget.dimen.w = line_widget:getSize().w - 2 * self.bottom_line_h_padding
       line_widget = HorizontalGroup:new({
         HorizontalSpan:new({ width = self.bottom_line_h_padding }),
         line_widget,

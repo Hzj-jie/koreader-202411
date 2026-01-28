@@ -370,7 +370,7 @@ function BookMapRow:init()
 
   self[1] = LeftContainer:new({ -- needed only for auto UI mirroring
     dimen = Geom:new({
-      w = self.dimen.w,
+      w = self:getSize().w,
       h = self.hgroup:getSize().h,
     }),
     self.hgroup,
@@ -786,7 +786,7 @@ function BookMapWidget:init()
   -- blank space at bottom below page slots (where we may put hanging markers
   -- for current page and bookmark/highlights)
   self.scrollbar_width = ScrollableContainer:getScrollbarWidth()
-  self.row_width = self.dimen.w - self.scrollbar_width
+  self.row_width = self:getSize().w - self.scrollbar_width
   self.row_left_spacing = self.scrollbar_width
   self.swipe_hint_bar_width = Screen:scaleBySize(6)
 
@@ -809,7 +809,7 @@ function BookMapWidget:init()
     end,
   })
   self.title_bar_h = self.title_bar:getHeight()
-  self.crop_height = self.dimen.h
+  self.crop_height = self:getSize().h
     - self.title_bar_h
     - Size.margin.small
     - self.swipe_hint_bar_width
@@ -857,7 +857,7 @@ function BookMapWidget:init()
   -- when flashing for UI feedback that we want to limit to the cropped area).
   self.cropping_widget = ScrollableContainer:new({
     dimen = Geom:new({
-      w = self.dimen.w,
+      w = self:getSize().w,
       h = self.crop_height,
     }),
     ignore_events = { "swipe" },
@@ -865,8 +865,8 @@ function BookMapWidget:init()
   })
 
   self[1] = FrameContainer:new({
-    width = self.dimen.w,
-    height = self.dimen.h,
+    width = self:getSize().w,
+    height = self:getSize().h,
     padding = 0,
     margin = 0,
     bordersize = 0,

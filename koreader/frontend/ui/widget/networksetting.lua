@@ -86,16 +86,16 @@ function MinimalPaginator:paintTo(bb, x, y)
   bb:paintRoundedRect(
     x,
     y,
-    self.dimen.w,
-    self.dimen.h,
+    self:getSize().w,
+    self:getSize().h,
     Blitbuffer.COLOR_LIGHT_GRAY
   )
   -- paint percentage infill
   bb:paintRect(
     x,
     y,
-    math.ceil(self.dimen.w * self.progress),
-    self.dimen.h,
+    math.ceil(self:getSize().w * self.progress),
+    self:getSize().h,
     Blitbuffer.COLOR_DARK_GRAY
   )
 end

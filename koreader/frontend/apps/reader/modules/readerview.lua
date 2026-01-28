@@ -118,7 +118,7 @@ function ReaderView:init()
     UIManager:broadcastEvent(Event:new("HintPage", self.hinting))
   end
 
-  -- We've subclassed OverlapGroup, go through its init, because it does some funky stuff with self.dimen...
+  -- We've subclassed OverlapGroup, go through its init, because it does some funky stuff with self:getSize()...
   OverlapGroup.init(self)
 end
 
@@ -383,28 +383,28 @@ function ReaderView:getScreenPageArea(page)
 end
 
 function ReaderView:drawPageBackground(bb, x, y)
-  bb:paintRect(x, y, self.dimen.w, self.dimen.h, self.page_bgcolor)
+  bb:paintRect(x, y, self:getSize().w, self:getSize().h, self.page_bgcolor)
 end
 
 function ReaderView:drawPageSurround(bb, x, y)
-  if self.dimen.h > self.visible_area.h then
-    bb:paintRect(x, y, self.dimen.w, self.state.offset.y, self.outer_page_color)
+  if self:getSize().h > self.visible_area.h then
+    bb:paintRect(x, y, self:getSize().w, self.state.offset.y, self.outer_page_color)
     local bottom_margin = y + self.visible_area.h + self.state.offset.y
     bb:paintRect(
       x,
       bottom_margin,
-      self.dimen.w,
+      self:getSize().w,
       self.state.offset.y + self.footer:getHeight(),
       self.outer_page_color
     )
   end
-  if self.dimen.w > self.visible_area.w then
-    bb:paintRect(x, y, self.state.offset.x, self.dimen.h, self.outer_page_color)
+  if self:getSize().w > self.visible_area.w then
+    bb:paintRect(x, y, self.state.offset.x, self:getSize().h, self.outer_page_color)
     bb:paintRect(
-      x + self.dimen.w - self.state.offset.x - 1,
+      x + self:getSize().w - self.state.offset.x - 1,
       y,
       self.state.offset.x + 1,
-      self.dimen.h,
+      self:getSize().h,
       self.outer_page_color
     )
   end
@@ -484,7 +484,7 @@ function ReaderView:getScrollPageRect(page, rect_p)
 end
 
 function ReaderView:drawPageGap(bb, x, y)
-  bb:paintRect(x, y, self.dimen.w, self.page_gap.height, self.page_gap.color)
+  bb:paintRect(x, y, self:getSize().w, self.page_gap.height, self.page_gap.color)
 end
 
 function ReaderView:drawSinglePage(bb, x, y)
@@ -623,15 +623,15 @@ function ReaderView:drawXPointerSavedHighlight(bb, x, y)
   -- showing menu...). We might want to cache these boxes per page (and
   -- clear that cache when page layout change or highlights are added
   -- or removed).
-  -- Even in page mode, it's safer to use pos and ui.dimen.h
-  -- than pages' xpointers pos, even if ui.dimen.h is a bit
+  -- Even in page mode, it's safer to use pos and ui:getSize().h
+  -- than pages' xpointers pos, even if ui:getSize().h is a bit
   -- larger than pages' heights
   local cur_view_top = self.document:getCurrentPos()
   local cur_view_bottom
   if self.view_mode == "page" and self.document:getVisiblePageCount() > 1 then
-    cur_view_bottom = cur_view_top + 2 * self.ui.dimen.h
+    cur_view_bottom = cur_view_top + 2 * self.ui:getSize().h
   else
-    cur_view_bottom = cur_view_top + self.ui.dimen.h
+    cur_view_bottom = cur_view_top + self.ui:getSize().h
   end
   local colorful
   for _, item in ipairs(self.ui.annotation.annotations) do
@@ -821,17 +821,17 @@ function ReaderView:recalculate()
     self.visible_area:setSizeTo(self.dimen)
   end
   self.state.offset = Geom:new()
-  if self.dimen.h > self.visible_area.h then
+  if self:getSize().h > self.visible_area.h then
     if self.footer_visible and not self.footer.settings.reclaim_height then
       self.state.offset.y = (
-        self.dimen.h - (self.visible_area.h + self.footer:getHeight())
+        self:getSize().h - (self.visible_area.h + self.footer:getHeight())
       ) / 2
     else
-      self.state.offset.y = (self.dimen.h - self.visible_area.h) / 2
+      self.state.offset.y = (self:getSize().h - self.visible_area.h) / 2
     end
   end
-  if self.dimen.w > self.visible_area.w then
-    self.state.offset.x = (self.dimen.w - self.visible_area.w) / 2
+  if self:getSize().w > self.visible_area.w then
+    self.state.offset.x = (self:getSize().w - self.visible_area.w) / 2
   end
 
   self:setupNoteMarkPosition()

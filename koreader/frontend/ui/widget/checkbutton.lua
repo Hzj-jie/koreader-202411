@@ -70,7 +70,7 @@ function CheckButton:initCheckButton(checked)
     text = self.text,
     face = self.face,
     width = (self.width or self.parent:getAddedWidgetAvailableWidth())
-      - self._checkmark.dimen.w,
+      - self._checkmark:getSize().w,
     bold = self.bold,
     fgcolor = self.enabled and fgcolor or Blitbuffer.COLOR_DARK_GRAY,
     bgcolor = self.bgcolor,

@@ -758,31 +758,31 @@ function VirtualKeyPopup:init()
 
   local position_container = WidgetContainer:new({
     dimen = {
-      x = parent_key.dimen.x - offset_x,
-      y = parent_key.dimen.y - offset_y,
+      x = parent_key:getSize().x - offset_x,
+      y = parent_key:getSize().y - offset_y,
       h = Screen:getSize().h,
       w = Screen:getSize().w,
     },
     keyboard_frame,
   })
-  if position_container.dimen.x < 0 then
+  if position_container:getSize().x < 0 then
     position_container.dimen.x = 0
     -- We effectively move the popup, which means the key underneath our finger may no longer *exactly* be parent_key.
     -- Make sure we won't close the popup right away, as that would risk being a *different* key, in order to make that less confusing.
     parent_key.ignore_key_release = true
   elseif
-    position_container.dimen.x + keyboard_frame.dimen.w > Screen:getWidth()
+    position_container:getSize().x + keyboard_frame:getSize().w > Screen:getWidth()
   then
-    position_container.dimen.x = Screen:getWidth() - keyboard_frame.dimen.w
+    position_container.dimen.x = Screen:getWidth() - keyboard_frame:getSize().w
     parent_key.ignore_key_release = true
   end
-  if position_container.dimen.y < 0 then
+  if position_container:getSize().y < 0 then
     position_container.dimen.y = 0
     parent_key.ignore_key_release = true
   elseif
-    position_container.dimen.y + keyboard_frame.dimen.h > Screen:getHeight()
+    position_container:getSize().y + keyboard_frame:getSize().h > Screen:getHeight()
   then
-    position_container.dimen.y = Screen:getHeight() - keyboard_frame.dimen.h
+    position_container.dimen.y = Screen:getHeight() - keyboard_frame:getSize().h
     parent_key.ignore_key_release = true
   end
 
@@ -947,10 +947,10 @@ end
 
 function VirtualKeyboard:setKeyboardLayout(layout)
   keyboard_state.force_current_layout = true
-  local prev_keyboard_height = self.dimen and self.dimen.h
+  local prev_keyboard_height = self.dimen and self:getSize().h
   G_reader_settings:save("keyboard_layout", layout)
   self:init()
-  if prev_keyboard_height and self.dimen.h ~= prev_keyboard_height then
+  if prev_keyboard_height and self:getSize().h ~= prev_keyboard_height then
     self:_refresh(true, true)
     -- Keyboard height change: notify parent (InputDialog)
     if

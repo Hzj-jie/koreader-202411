@@ -1311,7 +1311,7 @@ function UIManager:scheduleWidgetRepaint(widget)
 end
 
 --[[--
-Immediately repaint the widget, relying on the widget.dimen. The widget doesn't
+Immediately repaint the widget, relying on the widget:getSize(). The widget doesn't
 need to be in the _window_stack, i.e. not a show(widget).
 
 Use this function is dangerous, it doesn't respect the _window_stack and may
@@ -1340,10 +1340,10 @@ break anything above the widget, and should only be used to show feedbacks for
 user interactions.
 
 @param widget a @{ui.widget.widget|widget} object
-@int x left origin of the rectangle to invert (in the Screen buffer, optional, will use `widget.dimen.x`)
-@int y top origin of the rectangle (in the Screen buffer, optional, will use `widget.dimen.y`)
-@int w width of the rectangle (optional, will use `widget.dimen.w` like `paintTo` would if omitted)
-@int h height of the rectangle (optional, will use `widget.dimen.h` like `paintTo` would if omitted)
+@int x left origin of the rectangle to invert (in the Screen buffer, optional, will use `widget:getSize().x`)
+@int y top origin of the rectangle (in the Screen buffer, optional, will use `widget:getSize().y`)
+@int w width of the rectangle (optional, will use `widget:getSize().w` like `paintTo` would if omitted)
+@int h height of the rectangle (optional, will use `widget:getSize().h` like `paintTo` would if omitted)
 --]]
 function UIManager:invertWidget(widget, x, y, w, h)
   -- TODO: Should assert.

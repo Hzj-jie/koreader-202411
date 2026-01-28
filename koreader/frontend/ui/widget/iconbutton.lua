@@ -128,9 +128,9 @@ function IconButton:onTapIconButton()
   self.image.invert = true
   UIManager:invertWidget(
     self.image,
-    self.dimen.x + h_padding,
-    self.dimen.y + self.padding_top
-    -- It's not necessary to calculate the self.dimen.w - 2 * h_padding,
+    self:getSize().x + h_padding,
+    self:getSize().y + self.padding_top
+    -- It's not necessary to calculate the self:getSize().w - 2 * h_padding,
     -- cropping logic in the widgetInvert will take care of it.
   )
 
@@ -142,8 +142,8 @@ function IconButton:onTapIconButton()
   self.image.invert = false
   UIManager:invertWidget(
     self.image,
-    self.dimen.x + h_padding,
-    self.dimen.y + self.padding_top
+    self:getSize().x + h_padding,
+    self:getSize().y + self.padding_top
   )
 
   -- Callback

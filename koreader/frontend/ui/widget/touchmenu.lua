@@ -108,7 +108,7 @@ function TouchMenuItem:init()
 
   -- text_max_width should be the TouchMenuItem width minus the below
   -- FrameContainer default paddings minus the checked widget width
-  local text_max_width = self.dimen.w
+  local text_max_width = self:getSize().w
     - 2 * Size.padding.default
     - checked_widget:getSize().w
   local text = Menu.getMenuText(self.item)
@@ -144,7 +144,7 @@ function TouchMenuItem:init()
   })
   self.text_truncated = text_widget:isTruncated()
   self.item_frame = FrameContainer:new({
-    width = self.dimen.w,
+    width = self:getSize().w,
     bordersize = 0,
     color = Blitbuffer.COLOR_BLACK,
     HorizontalGroup:new({
@@ -269,7 +269,7 @@ function TouchMenuItem:onTapSelect(_, ges)
   return self:_tapEventHandler(function()
     local tap_on_checkmark = false
     if ges and ges.pos and ges.pos.x then
-      local tap_x = BD.mirroredUILayout() and self.dimen.w - ges.pos.x - 1
+      local tap_x = BD.mirroredUILayout() and self:getSize().w - ges.pos.x - 1
         or ges.pos.x
       if tap_x <= self.checkmark_tap_width then
         tap_on_checkmark = true
@@ -812,7 +812,7 @@ function TouchMenu:updateItems()
   -- NOTE: Also avoid repainting what's underneath us on initial popup.
   -- NOTE: And we also only need to repaint what's behind us when switching to a smaller menu...
   UIManager:setDirty(
-    (old_dimen and self.dimen.h >= old_dimen.h) and self:showParent() or "all",
+    (old_dimen and self:getSize().h >= old_dimen.h) and self:showParent() or "all",
     function()
       return "ui", old_dimen and old_dimen:combine(self.dimen) or self.dimen
     end

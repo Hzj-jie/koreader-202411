@@ -106,7 +106,7 @@ function PageBrowserWidget:init()
   end
 
   -- Put the BookMapRow left and right border outside of screen
-  self.row_width = self.dimen.w + 2 * BookMapRow.pages_frame_border
+  self.row_width = self:getSize().w + 2 * BookMapRow.pages_frame_border
 
   self.title_bar = TitleBar:new({
     fullscreen = true,
@@ -244,15 +244,15 @@ function PageBrowserWidget:updateLayout()
       + 2 * BookMapRow.pages_frame_border
   )
 
-  self.grid_width = self.dimen.w
-  self.grid_height = self.dimen.h - self.title_bar_h - self.row_height
+  self.grid_width = self:getSize().w
+  self.grid_height = self:getSize().h - self.title_bar_h - self.row_height
 
   -- We'll draw some kind of static transparent glass over the BookMapRow,
   -- which should span over the page slots that get their thumbnails shown.
   self.view_finder_r = Size.radius.window
   self.view_finder_bw = Size.border.default
   -- Have its top border noticeable above the BookMapRow top border
-  self.view_finder_y = self.dimen.h - self.row_height - 2 * self.view_finder_bw
+  self.view_finder_y = self:getSize().h - self.row_height - 2 * self.view_finder_bw
   -- And put its bottom rounded corner outside of screen
   self.view_finder_h = self.row_height
     + 2 * self.view_finder_bw
@@ -273,15 +273,15 @@ function PageBrowserWidget:updateLayout()
   end
   self.row = CenterContainer:new({
     dimen = Geom:new({
-      w = self.dimen.w,
+      w = self:getSize().w,
       h = self.row_height,
     }),
     -- Will contain a BookMapRow wider, with l/r borders outside screen
   })
 
   self[1] = FrameContainer:new({
-    width = self.dimen.w,
-    height = self.dimen.h,
+    width = self:getSize().w,
+    height = self:getSize().h,
     padding = 0,
     margin = 0,
     bordersize = 0,
@@ -753,7 +753,7 @@ function PageBrowserWidget:paintTo(bb, x, y)
 
   -- If we would prefer to see the BookMapRow top border always take the full width
   -- so it acts as a separator from the thumbnail grid, add this:
-  -- bb:paintRect(0, self.dimen.h - self.row_height, self.dimen.w, BookMapRow.pages_frame_border, Blitbuffer.COLOR_BLACK)
+  -- bb:paintRect(0, self:getSize().h - self.row_height, self:getSize().w, BookMapRow.pages_frame_border, Blitbuffer.COLOR_BLACK)
   -- And explicitly paint our viewfinder over the BookMapRow
   bb:paintBorder(
     self.view_finder_x,
@@ -1560,16 +1560,16 @@ function PageBrowserWidget:onTap(arg, ges)
           local orig_bordersize = thumb_frame.bordersize
           thumb_frame.bordersize = Size.border.thick * 2
           local b_inc = thumb_frame.bordersize - orig_bordersize
-          thumb_frame.dimen.x = thumb_frame.dimen.x - b_inc
-          thumb_frame.dimen.y = thumb_frame.dimen.y - b_inc
-          thumb_frame.dimen.w = thumb_frame.dimen.w + 2 * b_inc
-          thumb_frame.dimen.h = thumb_frame.dimen.h + 2 * b_inc
+          thumb_frame.dimen.x = thumb_frame:getSize().x - b_inc
+          thumb_frame.dimen.y = thumb_frame:getSize().y - b_inc
+          thumb_frame.dimen.w = thumb_frame:getSize().w + 2 * b_inc
+          thumb_frame.dimen.h = thumb_frame:getSize().h + 2 * b_inc
           UIManager:scheduleWidgetRepaint(thumb_frame)
           Screen:refreshFast(
-            thumb_frame.dimen.x,
-            thumb_frame.dimen.y,
-            thumb_frame.dimen.w,
-            thumb_frame.dimen.h
+            thumb_frame:getSize().x,
+            thumb_frame:getSize().y,
+            thumb_frame:getSize().w,
+            thumb_frame:getSize().h
           )
           -- (refresh "fast" will make gray drawn black and may make the
           -- thumbnail a little uglier - but this enhances the effect

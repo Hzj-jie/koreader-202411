@@ -1139,18 +1139,18 @@ end
 function VocabItemWidget:onTap(_, ges)
   if self.has_review_buttons then
     if
-      ges.pos.x > self.forgot_button.dimen.x
-      and ges.pos.x < self.forgot_button.dimen.x + self.forgot_button.dimen.w
+      ges.pos.x > self.forgot_button:getSize().x
+      and ges.pos.x < self.forgot_button:getSize().x + self.forgot_button:getSize().w
     then
       self:onForgot()
     elseif
-      ges.pos.x > self.got_it_button.dimen.x
-      and ges.pos.x < self.got_it_button.dimen.x + self.got_it_button.dimen.w
+      ges.pos.x > self.got_it_button:getSize().x
+      and ges.pos.x < self.got_it_button:getSize().x + self.got_it_button:getSize().w
     then
       self:onGotIt()
     elseif
-      ges.pos.x > self.more_button.dimen.x
-      and ges.pos.x < self.more_button.dimen.x + self.more_button.dimen.w
+      ges.pos.x > self.more_button:getSize().x
+      and ges.pos.x < self.more_button:getSize().x + self.more_button:getSize().w
     then
       self:showMore()
     elseif self.item.callback then
@@ -1159,9 +1159,9 @@ function VocabItemWidget:onTap(_, ges)
   else
     if BD.mirroredUILayout() then
       if
-        ges.pos.x > self.more_button.dimen.x
+        ges.pos.x > self.more_button:getSize().x
         and ges.pos.x
-          < self.more_button.dimen.x + self.more_button.dimen.w * 2
+          < self.more_button:getSize().x + self.more_button:getSize().w * 2
       then
         if self:showParent().is_edit_mode then
           self:remover()
@@ -1173,8 +1173,8 @@ function VocabItemWidget:onTap(_, ges)
       end
     else
       if
-        ges.pos.x > self.more_button.dimen.x - self.more_button.dimen.w
-        and ges.pos.x < self.more_button.dimen.x + self.more_button.dimen.w
+        ges.pos.x > self.more_button:getSize().x - self.more_button:getSize().w
+        and ges.pos.x < self.more_button:getSize().x + self.more_button:getSize().w
       then
         if self:showParent().is_edit_mode then
           self:remover()
@@ -1442,7 +1442,7 @@ function VocabularyBuilderWidget:init()
   })
   -- setup title bar
   self.title_bar = TitleBar:new({
-    width = self.dimen.w,
+    width = self:getSize().w,
     align = "center",
     title_face = Font:getFace("smallinfofontbold"),
     bottom_line_color = Blitbuffer.COLOR_LIGHT_GRAY,
@@ -1477,7 +1477,7 @@ function VocabularyBuilderWidget:init()
   self:_populateItems()
 
   local frame_content = FrameContainer:new({
-    height = self.dimen.h,
+    height = self:getSize().h,
     padding = 0,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,
@@ -1493,7 +1493,7 @@ function VocabularyBuilderWidget:init()
   })
   -- assemble page
   self[1] = FrameContainer:new({
-    height = self.dimen.h,
+    height = self:getSize().h,
     padding = 0,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,
@@ -1521,8 +1521,8 @@ function VocabularyBuilderWidget:refreshFooter()
 
   self.page_info:clear()
   local padding = Size.padding.large
-  self.width_widget = self.dimen.w - 2 * padding
-  self.item_width = self.dimen.w - 2 * padding
+  self.width_widget = self:getSize().w - 2 * padding
+  self.item_width = self:getSize().w - 2 * padding
   self.footer_center_width = math.floor(self.width_widget * (32 / 100))
   self.footer_button_width = math.floor(self.width_widget * (12 / 100))
   local left_ratio = 10
@@ -1731,7 +1731,7 @@ function VocabularyBuilderWidget:setupItemHeight()
   self.item_height = item_height
   self.item_margin = math.floor(self.item_height / 8)
   local line_height = self.item_height + self.item_margin
-  local content_height = self.dimen.h
+  local content_height = self:getSize().h
     - self.title_bar:getHeight()
     - self.footer_height
     - Size.padding.large

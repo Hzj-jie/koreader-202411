@@ -13,20 +13,20 @@ function CenterContainer:paintTo(bb, x, y)
 
   -- check if content is bigger than container
   if self.ignore_if_over == "height" then -- align upper borders
-    if self.dimen.h < content_size.h then
+    if self:getSize().h < content_size.h then
       self.ignore = "height"
     end
   elseif self.ignore_if_over == "width" then -- align left borders
-    if self.dimen.w < content_size.w then
+    if self:getSize().w < content_size.w then
       self.ignore = "width"
     end
   end
 
   if self.ignore ~= "height" then
-    y = y + math.floor((self.dimen.h - content_size.h) / 2)
+    y = y + math.floor((self:getSize().h - content_size.h) / 2)
   end
   if self.ignore ~= "width" then
-    x = x + math.floor((self.dimen.w - content_size.w) / 2)
+    x = x + math.floor((self:getSize().w - content_size.w) / 2)
   end
   self[1]:paintTo(bb, x, y)
 end

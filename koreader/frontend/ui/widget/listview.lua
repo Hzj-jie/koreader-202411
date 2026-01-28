@@ -73,12 +73,12 @@ function ListView:init()
 
   local padding = self.padding or Size.padding.large
   self.item_height = self.item_height or self.items[1]:getSize().h
-  self.item_width = self.dimen.w - 2 * padding
+  self.item_width = self:getSize().w - 2 * padding
   self.items_per_page = math.floor(self.height / self.item_height)
   self.main_content = VerticalGroup:new()
   self:_populateItems()
   self[1] = FrameContainer:new({
-    height = self.dimen.h,
+    height = self:getSize().h,
     padding = padding,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,

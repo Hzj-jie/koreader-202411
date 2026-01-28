@@ -142,8 +142,8 @@ local function initTouchEvents()
         and #self.charlist > 0
       then -- do not move cursor within a hint
         local textwidget_offset = self.margin + self.bordersize + self.padding
-        local x = ges.pos.x - self._frame_textwidget.dimen.x - textwidget_offset
-        local y = ges.pos.y - self._frame_textwidget.dimen.y - textwidget_offset
+        local x = ges.pos.x - self._frame_textwidget:getSize().x - textwidget_offset
+        local y = ges.pos.y - self._frame_textwidget:getSize().y - textwidget_offset
         self.text_widget:moveCursorToXY(x, y, true) -- restrict_to_view=true
         self:resyncPos()
       end

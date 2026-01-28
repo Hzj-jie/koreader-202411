@@ -407,7 +407,7 @@ function BookDailyItem:init()
     checked = true,
   })
 
-  local title_max_width = self.dimen.w
+  local title_max_width = self:getSize().w
     - 2 * Size.padding.default
     - checked_widget:getSize().w
     - self.value_width
@@ -557,7 +557,7 @@ function CalendarDayView:init()
 
   self.title_bar = TitleBar:new({
     fullscreen = true,
-    width = self.dimen.w,
+    width = self:getSize().w,
     align = "left",
     title = self.title or "Title",
     title_face = Font:getFace("smalltfont", 22),
@@ -570,7 +570,7 @@ function CalendarDayView:init()
   self.titlebar_height = self.title_bar:getHeight()
 
   local padding = Size.padding.large
-  local footer_width = self.dimen.w - 2 * padding
+  local footer_width = self:getSize().w - 2 * padding
   self.footer_center_width = math.floor(footer_width * 0.32)
   self.footer_button_width = math.floor(footer_width * 0.10)
 
@@ -671,14 +671,14 @@ function CalendarDayView:init()
   self:setupView()
 
   self[1] = FrameContainer:new({
-    height = self.dimen.h,
+    height = self:getSize().h,
     padding = 0,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,
     OverlapGroup:new({
       dimen = self.dimen:copy(),
       FrameContainer:new({
-        height = self.dimen.h,
+        height = self:getSize().h,
         padding = 0,
         bordersize = 0,
         background = Blitbuffer.COLOR_WHITE,
@@ -869,7 +869,7 @@ function CalendarDayView:_populateBooks()
   for idx = idx_offset + 1, page_last do
     local item = BookDailyItem:new({
       item = self.kv_pairs[idx],
-      width = self.dimen.w - 2 * self.outer_padding,
+      width = self:getSize().w - 2 * self.outer_padding,
       value_width = value_width,
       height = self.book_item_height,
     })
@@ -879,7 +879,7 @@ function CalendarDayView:_populateBooks()
   self.timeline_offset = self.titlebar_height
     + #self.book_items * self.book_item_height
     + Size.padding.default
-  self.timeline_height = self.dimen.h - self.timeline_offset
+  self.timeline_height = self:getSize().h - self.timeline_offset
   if self.pages > 1 then
     self.footer_page:setText(
       T(_("Page %1 of %2"), self.show_page, self.pages),
@@ -897,14 +897,14 @@ function CalendarDayView:_populateBooks()
     self.timeline_height = self.timeline_height - Size.padding.default
   end
   self.hour_height = math.floor(self.timeline_height / 24)
-  self.timeline_width = self.dimen.w - self.outer_padding - self.time_text_width
+  self.timeline_width = self:getSize().w - self.outer_padding - self.time_text_width
 
   if #self.kv_pairs == 0 then
     -- Needed when the first opened day has no data, then move to another day with data
     table.insert(
       self.book_items,
       CenterContainer:new({
-        dimen = Geom:new({ w = self.dimen.w - 2 * self.outer_padding, h = 0 }),
+        dimen = Geom:new({ w = self:getSize().w - 2 * self.outer_padding, h = 0 }),
         VerticalSpan:new({ height = 0 }),
       })
     )
@@ -1197,14 +1197,14 @@ function CalendarView:init()
 
   -- 7 days in a week
   self.day_width = math.floor(
-    (self.dimen.w - 2 * self.outer_padding - 6 * self.inner_padding) * (1 / 7)
+    (self:getSize().w - 2 * self.outer_padding - 6 * self.inner_padding) * (1 / 7)
   )
   -- Put back the possible 7px lost in rounding into outer_padding
   self.outer_padding = math.floor(
-    (self.dimen.w - 7 * self.day_width - 6 * self.inner_padding) * (1 / 2)
+    (self:getSize().w - 7 * self.day_width - 6 * self.inner_padding) * (1 / 2)
   )
 
-  self.content_width = self.dimen.w - 2 * self.outer_padding
+  self.content_width = self:getSize().w - 2 * self.outer_padding
 
   local now_ts = os.time()
   if not MIN_MONTH then
@@ -1309,17 +1309,17 @@ function CalendarView:init()
   local footer = BottomContainer:new({
     -- (BottomContainer does horizontal centering)
     dimen = Geom:new({
-      w = self.dimen.w,
-      h = self.dimen.h,
+      w = self:getSize().w,
+      h = self:getSize().h,
     }),
     self.page_info,
   })
 
   self.title_bar = TitleBar:new({
     fullscreen = (
-      self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
+      self:getSize().w == Screen:getWidth() and self:getSize().h == Screen:getHeight()
     ),
-    width = self.dimen.w,
+    width = self:getSize().w,
     align = "left",
     title = self.title,
     title_h_padding = self.outer_padding, -- have month name aligned with calendar left edge
@@ -1360,7 +1360,7 @@ function CalendarView:init()
   end
 
   -- At most 6 weeks in a month
-  local available_height = self.dimen.h
+  local available_height = self:getSize().h
     - self.title_bar:getHeight()
     - self.page_info:getSize().h
     - self.day_names:getSize().h
@@ -1406,8 +1406,8 @@ function CalendarView:init()
 
   local content = OverlapGroup:new({
     dimen = Geom:new({
-      w = self.dimen.w,
-      h = self.dimen.h,
+      w = self:getSize().w,
+      h = self:getSize().h,
     }),
     allow_mirroring = false,
     VerticalGroup:new({
@@ -1423,8 +1423,8 @@ function CalendarView:init()
   })
   -- assemble page
   self[1] = FrameContainer:new({
-    width = self.dimen.w,
-    height = self.dimen.h,
+    width = self:getSize().w,
+    height = self:getSize().h,
     padding = 0,
     margin = 0,
     bordersize = 0,

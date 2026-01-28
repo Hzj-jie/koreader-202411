@@ -147,29 +147,29 @@ end
 
 function ScrollableContainer:initState()
   local content_size = self[1]:getSize()
-  self._max_scroll_offset_x = math.max(0, content_size.w - self.dimen.w)
-  self._max_scroll_offset_y = math.max(0, content_size.h - self.dimen.h)
+  self._max_scroll_offset_x = math.max(0, content_size.w - self:getSize().w)
+  self._max_scroll_offset_y = math.max(0, content_size.h - self:getSize().h)
   if self._max_scroll_offset_x == 0 and self._max_scroll_offset_y == 0 then
     -- Inner widget fits entirely: no need for anything scrollable
     self._is_scrollable = false
   else
     self._is_scrollable = true
-    self._crop_w = self.dimen.w
-    self._crop_h = self.dimen.h
+    self._crop_w = self:getSize().w
+    self._crop_h = self:getSize().h
     if self._max_scroll_offset_y > 0 then
       -- Adding a vertical scrollbar reduces the available width: recompute
       self._max_scroll_offset_x =
-        math.max(0, content_size.w - (self.dimen.w - 3 * self.scroll_bar_width))
+        math.max(0, content_size.w - (self:getSize().w - 3 * self.scroll_bar_width))
     end
     if self._max_scroll_offset_x > 0 then
       -- Adding a horizontal scrollbar reduces the available height: recompute
       self._max_scroll_offset_y =
-        math.max(0, content_size.h - (self.dimen.h - 3 * self.scroll_bar_width))
+        math.max(0, content_size.h - (self:getSize().h - 3 * self.scroll_bar_width))
       if self._max_scroll_offset_y > 0 then
         -- And re-compute again if we have to now add a vertical scrollbar
         self._max_scroll_offset_x = math.max(
           0,
-          content_size.w - (self.dimen.w - 3 * self.scroll_bar_width)
+          content_size.w - (self:getSize().w - 3 * self.scroll_bar_width)
         )
       end
     end
@@ -177,12 +177,12 @@ function ScrollableContainer:initState()
     if self._max_scroll_offset_y > 0 then
       self._v_scroll_bar = VerticalScrollBar:new({
         width = self.scroll_bar_width,
-        height = self.dimen.h,
+        height = self:getSize().h,
         scroll_callback = function(ratio)
           self:scrollToRatio(nil, ratio)
         end,
       })
-      self._crop_w = self.dimen.w - 3 * self.scroll_bar_width
+      self._crop_w = self:getSize().w - 3 * self.scroll_bar_width
     end
     if self._max_scroll_offset_x > 0 then
       self._h_scroll_bar_shift = 0
@@ -192,16 +192,16 @@ function ScrollableContainer:initState()
       end
       self._h_scroll_bar = HorizontalScrollBar:new({
         height = self.scroll_bar_width,
-        width = self.dimen.w - self._h_scroll_bar_shift,
+        width = self:getSize().w - self._h_scroll_bar_shift,
         scroll_callback = function(ratio)
           self:scrollToRatio(ratio, nil)
         end,
       })
-      self._crop_h = self.dimen.h - 3 * self.scroll_bar_width
+      self._crop_h = self:getSize().h - 3 * self.scroll_bar_width
     end
     if BD.mirroredUILayout() then
       if self._v_scroll_bar then
-        self._crop_dx = self.dimen.w - self._crop_w
+        self._crop_dx = self:getSize().w - self._crop_w
       end
     end
     if self.step_scroll_grid_func then
@@ -218,8 +218,8 @@ end
 
 function ScrollableContainer:getCropRegion()
   return Geom:new({
-    x = self.dimen.x + self._crop_dx,
-    y = self.dimen.y,
+    x = self:getSize().x + self._crop_dx,
+    y = self:getSize().y,
     w = self._crop_w,
     h = self._crop_h,
   })
@@ -461,7 +461,7 @@ function ScrollableContainer:paintTo(bb, x, y)
   if not self._is_scrollable then
     -- nothing to scroll: pass-through
     if _mirroredUI then -- behave as LeftContainer
-      x = x + (self.dimen.w - self[1]:getSize().w)
+      x = x + (self:getSize().w - self[1]:getSize().w)
     end
     self[1]:paintTo(bb, x, y)
     return
@@ -507,13 +507,13 @@ function ScrollableContainer:paintTo(bb, x, y)
       self._h_scroll_bar:paintTo(
         bb,
         x + self._h_scroll_bar_shift,
-        y + self.dimen.h - 2 * self.scroll_bar_width
+        y + self:getSize().h - 2 * self.scroll_bar_width
       )
     else
       self._h_scroll_bar:paintTo(
         bb,
         x,
-        y + self.dimen.h - 2 * self.scroll_bar_width
+        y + self:getSize().h - 2 * self.scroll_bar_width
       )
     end
   end
@@ -523,7 +523,7 @@ function ScrollableContainer:paintTo(bb, x, y)
     else
       self._v_scroll_bar:paintTo(
         bb,
-        x + self.dimen.w - 2 * self.scroll_bar_width,
+        x + self:getSize().w - 2 * self.scroll_bar_width,
         y
       )
     end

@@ -177,11 +177,11 @@ function ToggleSwitch:circlePosition()
 end
 
 function ToggleSwitch:calculatePosition(gev)
-  local x = (gev.pos.x - self.dimen.x) / self.dimen.w * self.n_pos
+  local x = (gev.pos.x - self:getSize().x) / self:getSize().w * self.n_pos
   if BD.mirroredUILayout() then
     x = self.n_pos - x
   end
-  local y = (gev.pos.y - self.dimen.y) / self.dimen.h * self.row_count
+  local y = (gev.pos.y - self:getSize().y) / self:getSize().h * self.row_count
   return math.max(1, math.ceil(x))
     + math.min(self.row_count - 1, math.floor(y)) * self.n_pos
 end
