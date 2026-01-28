@@ -23,11 +23,11 @@ function HorizontalGroup:getSize()
     for i, widget in ipairs(self) do
       local w_size = widget:getSize()
       self._offsets[i] = {
-        x = self:getSize().w,
+        x = self.dimen.w,
         y = w_size.h,
       }
-      self.dimen.w = self:getSize().w + w_size.w
-      if w_size.h > self:getSize().h then
+      self.dimen.w = self.dimen.w + w_size.w
+      if w_size.h > self.dimen.h then
         self.dimen.h = w_size.h
       end
     end

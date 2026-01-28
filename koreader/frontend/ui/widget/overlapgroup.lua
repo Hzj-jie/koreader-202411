@@ -23,10 +23,10 @@ function OverlapGroup:getSize()
     self:mergeSize(0, 0)
     for i, widget in ipairs(self) do
       local w_size = widget:getSize()
-      if self:getSize().h < w_size.h then
+      if self.dimen.h < w_size.h then
         self.dimen.h = w_size.h
       end
-      if self:getSize().w < w_size.w then
+      if self.dimen.w < w_size.w then
         self.dimen.w = w_size.w
       end
     end
