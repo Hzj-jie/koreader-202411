@@ -150,8 +150,7 @@ function MovableContainer:ensureAnchor(x, y)
   -- We prefer displaying above the anchor if there is room (so it looks like popping up)
   -- except if anchor() returned prefers_pop_down
   local h_remaining_if_above = anchor_dimen.y - content_h
-  local h_remaining_if_below = screen_h
-    - (anchor_dimen.y + anchor_dimen.h + content_h)
+  local h_remaining_if_below = screen_h - (anchor_dimen.y + anchor_dimen.h + content_h)
   if h_remaining_if_above >= 0 and not prefers_pop_down then
     -- Enough room above the anchor
     top = anchor_dimen.y - content_h
@@ -205,8 +204,7 @@ function MovableContainer:paintTo(bb, x, y)
         self.compose_bb:free()
       end
       -- create a canvas for our child widget to paint to
-      self.compose_bb =
-        Blitbuffer.new(bb:getWidth(), bb:getHeight(), bb:getType())
+      self.compose_bb = Blitbuffer.new(bb:getWidth(), bb:getHeight(), bb:getType())
       -- fill it with our usual background color
       self.compose_bb:fill(Blitbuffer.COLOR_WHITE)
     end
@@ -219,16 +217,7 @@ function MovableContainer:paintTo(bb, x, y)
     self[1]:paintTo(self.compose_bb, x, y)
 
     -- and finally blit the canvas to the target blitbuffer at the requested opacity level
-    bb:addblitFrom(
-      self.compose_bb,
-      x,
-      y,
-      x,
-      y,
-      self:getSize().w,
-      self:getSize().h,
-      self.alpha
-    )
+    bb:addblitFrom(self.compose_bb, x, y, x, y, self:getSize().w, self:getSize().h, self.alpha)
   else
     -- No alpha, just paint
     self[1]:paintTo(bb, x, y)
@@ -255,14 +244,10 @@ function MovableContainer:_moveBy(dx, dy, restrict_to_screen)
       if self:getSize().y + self._moved_offset_y < 0 then
         self._moved_offset_y = -self:getSize().y
       end
-      if
-        self:getSize().x + self._moved_offset_x + self:getSize().w > screen_w
-      then
+      if self:getSize().x + self._moved_offset_x + self:getSize().w > screen_w then
         self._moved_offset_x = screen_w - self:getSize().x - self:getSize().w
       end
-      if
-        self:getSize().y + self._moved_offset_y + self:getSize().h > screen_h
-      then
+      if self:getSize().y + self._moved_offset_y + self:getSize().h > screen_h then
         self._moved_offset_y = screen_h - self:getSize().y - self:getSize().h
       end
     end
@@ -311,11 +296,7 @@ function MovableContainer:onMovableSwipe(_, ges)
   if not self.dimen then -- not yet painted
     return false
   end
-  if
-    not ges.pos:intersectWith(
-      self.dimen:copy():offsetBy(self._moved_offset_x, self._moved_offset_y)
-    )
-  then
+  if not ges.pos:intersectWith(self.dimen:copy():offsetBy(self._moved_offset_x, self._moved_offset_y)) then
     -- with swipe, ges.pos is swipe's start position, which should
     -- be on us to consider it
     return false
@@ -383,11 +364,7 @@ function MovableContainer:onMovableHoldPan(_, ges)
     return false
   end
   -- we may sometimes not see the "hold" event
-  if
-    ges.pos:intersectWith(self.dimen)
-    or self._moving
-    or self._touch_pre_pan_was_inside
-  then
+  if ges.pos:intersectWith(self.dimen) or self._moving or self._touch_pre_pan_was_inside then
     self._touch_pre_pan_was_inside = false -- reset it
     self._moving = true
     return true
@@ -429,11 +406,7 @@ function MovableContainer:onMovablePan(_, ges)
   if not self.dimen then -- not yet painted
     return false
   end
-  if
-    ges.pos:intersectWith(self.dimen)
-    or self._moving
-    or self._touch_pre_pan_was_inside
-  then
+  if ges.pos:intersectWith(self.dimen) or self._moving or self._touch_pre_pan_was_inside then
     self._touch_pre_pan_was_inside = false -- reset it
     self._moving = true
     self._move_relative_x = ges.relative.x

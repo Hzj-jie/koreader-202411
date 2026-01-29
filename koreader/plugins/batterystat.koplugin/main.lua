@@ -26,11 +26,7 @@ function State:new(o)
 end
 
 function State:toString()
-  return string.format(
-    "{%d @ %s}",
-    self.percentage,
-    os.date("%c", time.to_s(self.timestamp))
-  )
+  return string.format("{%d @ %s}", self.percentage, os.date("%c", time.to_s(self.timestamp)))
 end
 
 local Usage = {}
@@ -49,8 +45,7 @@ end
 
 function Usage:append(state)
   local curr = State:new()
-  self.percentage = self.percentage
-    + math.abs(state.percentage - curr.percentage)
+  self.percentage = self.percentage + math.abs(state.percentage - curr.percentage)
   self.time = self.time + curr.timestamp - state.timestamp
 end
 
@@ -91,16 +86,12 @@ end
 
 local function duration(number)
   local duration_fmt = G_named_settings.duration_format()
-  return type(number) ~= "number" and number
-    or datetime.secondsToClockDuration(duration_fmt, number, true, true)
+  return type(number) ~= "number" and number or datetime.secondsToClockDuration(duration_fmt, number, true, true)
 end
 
 function Usage:dump(kv_pairs, id)
   local name = id or _("Consumed:")
-  table.insert(
-    kv_pairs,
-    { INDENTATION .. _("Total time:"), duration(time.to_s(self.time)) }
-  )
+  table.insert(kv_pairs, { INDENTATION .. _("Total time:"), duration(time.to_s(self.time)) })
   table.insert(kv_pairs, { INDENTATION .. name, shorten(self.percentage), "%" })
   table.insert(kv_pairs, {
     INDENTATION .. _("Change per hour:"),
@@ -123,9 +114,7 @@ function Usage:dumpCharging(kv_pairs)
 end
 
 local BatteryStat = {
-  settings = LuaSettings:open(
-    DataStorage:getSettingsDir() .. "/battery_stats.lua"
-  ),
+  settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/battery_stats.lua"),
   dump_file = DataStorage:getFullDataDir() .. "/batterystat.log",
   kv_page = nil,
 }

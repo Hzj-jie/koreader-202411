@@ -207,8 +207,7 @@ function FileManagerMenu:setUpdateItemTable()
             text_func = function()
               return T(
                 _("Items per page: %1"),
-                G_reader_settings:readSetting("items_per_page")
-                  or FileChooser.items_per_page_default
+                G_reader_settings:readSetting("items_per_page") or FileChooser.items_per_page_default
               )
             end,
             help_text = _([[This sets the number of items per page in:
@@ -218,9 +217,7 @@ function FileManagerMenu:setUpdateItemTable()
 - Calibre and OPDS browsers/search results]]),
             callback = function(touchmenu_instance)
               local default_value = FileChooser.items_per_page_default
-              local current_value = G_reader_settings:readSetting(
-                "items_per_page"
-              ) or default_value
+              local current_value = G_reader_settings:readSetting("items_per_page") or default_value
               local widget = SpinWidget:new({
                 title_text = _("Items per page"),
                 value = current_value,
@@ -244,8 +241,7 @@ function FileManagerMenu:setUpdateItemTable()
             callback = function(touchmenu_instance)
               local current_value = FileChooser.font_size
               local default_value = FileChooser.getItemFontSize(
-                G_reader_settings:readSetting("items_per_page")
-                  or FileChooser.items_per_page_default
+                G_reader_settings:readSetting("items_per_page") or FileChooser.items_per_page_default
               )
               local widget = SpinWidget:new({
                 title_text = _("Item font size"),
@@ -276,9 +272,7 @@ function FileManagerMenu:setUpdateItemTable()
               return G_reader_settings:isTrue("items_multilines_show_more_text")
             end,
             callback = function()
-              G_reader_settings:flipNilOrFalse(
-                "items_multilines_show_more_text"
-              )
+              G_reader_settings:flipNilOrFalse("items_multilines_show_more_text")
               self.ui:onRefresh()
             end,
             separator = true,
@@ -286,13 +280,10 @@ function FileManagerMenu:setUpdateItemTable()
           {
             text = _("Show opened files in bold"),
             checked_func = function()
-              return G_reader_settings:readSetting("show_file_in_bold")
-                == "opened"
+              return G_reader_settings:readSetting("show_file_in_bold") == "opened"
             end,
             callback = function()
-              if
-                G_reader_settings:readSetting("show_file_in_bold") == "opened"
-              then
+              if G_reader_settings:readSetting("show_file_in_bold") == "opened" then
                 G_reader_settings:saveSetting("show_file_in_bold", false)
               else
                 G_reader_settings:saveSetting("show_file_in_bold", "opened")
@@ -354,14 +345,10 @@ function FileManagerMenu:setUpdateItemTable()
           {
             text = _("Auto-remove deleted or purged items from history"),
             checked_func = function()
-              return G_reader_settings:isTrue(
-                "autoremove_deleted_items_from_history"
-              )
+              return G_reader_settings:isTrue("autoremove_deleted_items_from_history")
             end,
             callback = function()
-              G_reader_settings:flipNilOrFalse(
-                "autoremove_deleted_items_from_history"
-              )
+              G_reader_settings:flipNilOrFalse("autoremove_deleted_items_from_history")
             end,
             separator = true,
           },
@@ -389,12 +376,7 @@ function FileManagerMenu:setUpdateItemTable()
                 G_reader_settings:saveSetting("home_dir", path)
                 self.ui:updateTitleBarPath()
               end
-              filemanagerutil.showChooseDialog(
-                title_header,
-                caller_callback,
-                current_path,
-                default_path
-              )
+              filemanagerutil.showChooseDialog(title_header, caller_callback, current_path, default_path)
             end,
           },
           {
@@ -435,9 +417,7 @@ To:
       {
         text_func = function()
           local default_value = KeyValuePage.getDefaultItemsPerPage()
-          local current_value = G_reader_settings:readSetting(
-            "keyvalues_per_page"
-          ) or default_value
+          local current_value = G_reader_settings:readSetting("keyvalues_per_page") or default_value
           return T(_("Info lists items per page: %1"), current_value)
         end,
         help_text = _([[This sets the number of items per page in:
@@ -448,9 +428,7 @@ To:
         keep_menu_open = true,
         callback = function(touchmenu_instance)
           local default_value = KeyValuePage.getDefaultItemsPerPage()
-          local current_value = G_reader_settings:readSetting(
-            "keyvalues_per_page"
-          ) or default_value
+          local current_value = G_reader_settings:readSetting("keyvalues_per_page") or default_value
           local widget = SpinWidget:new({
             value = current_value,
             value_min = 10,
@@ -501,8 +479,7 @@ To:
     end,
     checked_func = function()
       local collate = FileChooser:getCollate()
-      return collate.can_collate_mixed
-        and G_reader_settings:isTrue("collate_mixed")
+      return collate.can_collate_mixed and G_reader_settings:isTrue("collate_mixed")
     end,
     callback = function()
       G_reader_settings:flipNilOrFalse("collate_mixed")
@@ -519,16 +496,13 @@ To:
   end
 
   -- insert common settings
-  for id, common_setting in
-    pairs(dofile("frontend/ui/elements/common_settings_menu_table.lua"))
-  do
+  for id, common_setting in pairs(dofile("frontend/ui/elements/common_settings_menu_table.lua")) do
     self.menu_items[id] = common_setting
   end
 
   -- Settings > Navigation; this mostly concerns physical keys, and applies *everywhere*
   if Device:hasKeys() then
-    self.menu_items.physical_buttons_setup =
-      dofile("frontend/ui/elements/physical_buttons.lua")
+    self.menu_items.physical_buttons_setup = dofile("frontend/ui/elements/physical_buttons.lua")
   end
 
   -- settings tab - Document submenu
@@ -570,9 +544,7 @@ To:
               -- Also remove from the Cache object references to the cache files we've just deleted
               local Cache = require("cache")
               Cache.cached = {}
-              UIManager:askForRestart(
-                _("Caches cleared. Please restart KOReader.")
-              )
+              UIManager:askForRestart(_("Caches cleared. Please restart KOReader."))
             end,
           }))
         end,
@@ -612,11 +584,7 @@ To:
       },
     },
   }
-  if
-    Device:isKobo()
-    and not Device:isSunxi()
-    and not Device:hasColorScreen()
-  then
+  if Device:isKobo() and not Device:isSunxi() and not Device:hasColorScreen() then
     table.insert(self.menu_items.developer_options.sub_item_table, {
       text = _("Disable forced 8-bit pixel depth"),
       checked_func = function()
@@ -663,10 +631,7 @@ To:
       end,
       callback = function()
         Device.screen:toggleHWDithering()
-        G_reader_settings:saveSetting(
-          "dev_no_hw_dither",
-          not Device.screen.hw_dithering
-        )
+        G_reader_settings:saveSetting("dev_no_hw_dither", not Device.screen.hw_dithering)
         -- Make sure SW dithering gets disabled when we enable HW dithering
         if Device.screen.hw_dithering and Device.screen.sw_dithering then
           G_reader_settings:makeTrue("dev_no_sw_dither")
@@ -687,10 +652,7 @@ To:
       end,
       callback = function()
         Device.screen:toggleSWDithering()
-        G_reader_settings:saveSetting(
-          "dev_no_sw_dither",
-          not Device.screen.sw_dithering
-        )
+        G_reader_settings:saveSetting("dev_no_sw_dither", not Device.screen.sw_dithering)
         -- Make sure HW dithering gets disabled when we enable SW dithering
         if Device.screen.hw_dithering and Device.screen.sw_dithering then
           G_reader_settings:makeTrue("dev_no_hw_dither")
@@ -732,8 +694,7 @@ To:
       checked_func = function()
         local mxcfb_bypass_wait_for
         if G_reader_settings:has("mxcfb_bypass_wait_for") then
-          mxcfb_bypass_wait_for =
-            G_reader_settings:isTrue("mxcfb_bypass_wait_for")
+          mxcfb_bypass_wait_for = G_reader_settings:isTrue("mxcfb_bypass_wait_for")
         else
           mxcfb_bypass_wait_for = not Device:hasReliableMxcWaitFor()
         end
@@ -742,15 +703,11 @@ To:
       callback = function()
         local mxcfb_bypass_wait_for
         if G_reader_settings:has("mxcfb_bypass_wait_for") then
-          mxcfb_bypass_wait_for =
-            G_reader_settings:isTrue("mxcfb_bypass_wait_for")
+          mxcfb_bypass_wait_for = G_reader_settings:isTrue("mxcfb_bypass_wait_for")
         else
           mxcfb_bypass_wait_for = not Device:hasReliableMxcWaitFor()
         end
-        G_reader_settings:saveSetting(
-          "mxcfb_bypass_wait_for",
-          not mxcfb_bypass_wait_for
-        )
+        G_reader_settings:saveSetting("mxcfb_bypass_wait_for", not mxcfb_bypass_wait_for)
         UIManager:askForRestart()
       end,
     })
@@ -877,16 +834,14 @@ To:
   self.menu_items.file_search = {
     -- @translators Search for files by name.
     text = _("File search"),
-    help_text = _(
-      [[Search a book by filename in the current or home folder and its subfolders.
+    help_text = _([[Search a book by filename in the current or home folder and its subfolders.
 
 Wildcards for one '?' or more '*' characters can be used.
 A search for '*' will show all files.
 
 The sorting order is the same as in filemanager.
 
-Tap a book in the search results to open it.]]
-    ),
+Tap a book in the search results to open it.]]),
     callback = function()
       self.ui.filesearcher:onShowFileSearch()
     end,
@@ -901,10 +856,7 @@ Tap a book in the search results to open it.]]
   -- main menu tab
   self.menu_items.open_last_document = {
     text_func = function()
-      if
-        not G_reader_settings:isTrue("open_last_menu_show_filename")
-        or G_reader_settings:hasNot("lastfile")
-      then
+      if not G_reader_settings:isTrue("open_last_menu_show_filename") or G_reader_settings:hasNot("lastfile") then
         return _("Open last document")
       end
       local last_file = G_reader_settings:readSetting("lastfile")
@@ -920,10 +872,7 @@ Tap a book in the search results to open it.]]
     hold_callback = function()
       local last_file = G_reader_settings:readSetting("lastfile")
       UIManager:show(ConfirmBox:new({
-        text = T(
-          _("Would you like to open the last document: %1?"),
-          BD.filepath(last_file)
-        ),
+        text = T(_("Would you like to open the last document: %1?"), BD.filepath(last_file)),
         ok_text = _("OK"),
         ok_callback = function()
           self:onOpenLastDoc()
@@ -932,15 +881,11 @@ Tap a book in the search results to open it.]]
     end,
   }
   -- insert common info
-  for id, common_setting in
-    pairs(dofile("frontend/ui/elements/common_info_menu_table.lua"))
-  do
+  for id, common_setting in pairs(dofile("frontend/ui/elements/common_info_menu_table.lua")) do
     self.menu_items[id] = common_setting
   end
   -- insert common exit for filemanager
-  for id, common_setting in
-    pairs(dofile("frontend/ui/elements/common_exit_menu_table.lua"))
-  do
+  for id, common_setting in pairs(dofile("frontend/ui/elements/common_exit_menu_table.lua")) do
     self.menu_items[id] = common_setting
   end
   if not Device:isTouchDevice() then
@@ -960,8 +905,7 @@ Tap a book in the search results to open it.]]
   local order = require("ui/elements/filemanager_menu_order")
 
   local MenuSorter = require("ui/menusorter")
-  self.tab_item_table =
-    MenuSorter:mergeAndSort("filemanager", self.menu_items, order)
+  self.tab_item_table = MenuSorter:mergeAndSort("filemanager", self.menu_items, order)
 end
 dbg:guard(FileManagerMenu, "setUpdateItemTable", function(self)
   local mock_menu_items = {}
@@ -1013,8 +957,7 @@ function FileManagerMenu:getStartWithMenuTable()
     table.insert(sub_item_table, {
       text = v[1],
       checked_func = function()
-        return v[2]
-          == G_reader_settings:readSetting("start_with", "filemanager")
+        return v[2] == G_reader_settings:readSetting("start_with", "filemanager")
       end,
       callback = function()
         G_reader_settings:saveSetting("start_with", v[2])
@@ -1023,8 +966,7 @@ function FileManagerMenu:getStartWithMenuTable()
   end
   return {
     text_func = function()
-      local start_with = G_reader_settings:readSetting("start_with")
-        or "filemanager"
+      local start_with = G_reader_settings:readSetting("start_with") or "filemanager"
       for i, v in ipairs(start_withs) do
         if v[2] == start_with then
           return T(_("Start with: %1"), v[1])
@@ -1116,9 +1058,7 @@ function FileManagerMenu:_getTabIndexFromLocation(ges)
   if self.tab_item_table == nil then
     self:setUpdateItemTable()
   end
-  local last_tab_index = G_reader_settings:readSetting(
-    "filemanagermenu_tab_index"
-  ) or 1
+  local last_tab_index = G_reader_settings:readSetting("filemanagermenu_tab_index") or 1
   if not ges then
     return last_tab_index
     -- if the start position is far right

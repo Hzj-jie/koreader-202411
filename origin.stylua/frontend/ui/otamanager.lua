@@ -41,8 +41,7 @@ local OTAManager = {
   installed_package = ota_dir .. "koreader.installed.tar",
   package_indexfile = "ota/package.index",
   updated_package = ota_dir .. "koreader.updated.tar",
-  can_pretty_print = lfs.attributes("./fbink", "mode") == "file" and true
-    or false,
+  can_pretty_print = lfs.attributes("./fbink", "mode") == "file" and true or false,
 }
 
 local ota_channels = {
@@ -126,10 +125,7 @@ function OTAManager:checkUpdate()
   )
   socketutil:reset_timeout()
   if code ~= 200 then
-    logger.warn(
-      "cannot find update file:",
-      status or code or "network unreachable"
-    )
+    logger.warn("cannot find update file:", status or code or "network unreachable")
     logger.dbg("Response headers:", headers)
     return
   end
@@ -167,13 +163,7 @@ function OTAManager:checkUpdate()
   end)
   -- return ota package version if package on OTA server has version
   -- larger than the local package version
-  if
-    local_ok
-    and ota_ok
-    and ota_version
-    and local_version
-    and ota_version ~= local_version
-  then
+  if local_ok and ota_ok and ota_version and local_version and ota_version ~= local_version then
     return ota_version, local_version, link, ota_package
   elseif ota_version and ota_version == local_version then
     return 0
@@ -183,9 +173,7 @@ end
 function OTAManager:fetchAndProcessUpdate()
   if Device:hasOTARunning() then
     UIManager:show(InfoMessage:new({
-      text = _(
-        "Download already scheduled. You'll be notified when it's ready."
-      ),
+      text = _("Download already scheduled. You'll be notified when it's ready."),
     }))
     return
   end
@@ -209,9 +197,7 @@ function OTAManager:fetchAndProcessUpdate()
     }))
   elseif ota_version == nil then
     UIManager:show(InfoMessage:new({
-      text = _(
-        "Unable to contact OTA server. Try again later, or try another mirror."
-      ),
+      text = _("Unable to contact OTA server. Try again later, or try another mirror."),
     }))
   elseif ota_version then
     local update_message = T(
@@ -313,9 +299,7 @@ function OTAManager:fetchAndProcessUpdate()
                         os.execute("./fbink -q -y -7 -pm ' '  ' '")
                       end
                       UIManager:show(ConfirmBox:new({
-                        text = _(
-                          "Error updating KOReader. Would you like to delete temporary files?"
-                        ),
+                        text = _("Error updating KOReader. Would you like to delete temporary files?"),
                         ok_callback = function()
                           os.execute("rm -f " .. ota_dir .. "ko*")
                         end,
@@ -388,11 +372,7 @@ function OTAManager:_buildLocalPackage()
     )
   else
     return os.execute(
-      string.format(
-        "./tar --no-recursion -cf %s -C .. -T %s",
-        self.installed_package,
-        self.package_indexfile
-      )
+      string.format("./tar --no-recursion -cf %s -C .. -T %s", self.installed_package, self.package_indexfile)
     )
   end
 end

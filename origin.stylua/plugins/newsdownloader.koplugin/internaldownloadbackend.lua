@@ -15,10 +15,7 @@ function InternalDownloadBackend:getResponseAsString(url, redirectCount)
   end
   logger.dbg("InternalDownloadBackend: url:", url)
   local sink = {}
-  socketutil:set_timeout(
-    socketutil.LARGE_BLOCK_TIMEOUT,
-    socketutil.LARGE_TOTAL_TIMEOUT
-  )
+  socketutil:set_timeout(socketutil.LARGE_BLOCK_TIMEOUT, socketutil.LARGE_TOTAL_TIMEOUT)
   local request = {
     url = url,
     sink = ltn12.sink.table(sink),
@@ -27,24 +24,15 @@ function InternalDownloadBackend:getResponseAsString(url, redirectCount)
   socketutil:reset_timeout()
 
   if code ~= 200 then
-    logger.dbg(
-      "InternalDownloadBackend: HTTP response code <> 200. Response status:",
-      status or code
-    )
+    logger.dbg("InternalDownloadBackend: HTTP response code <> 200. Response status:", status or code)
     if code and code > 299 and code < 400 and headers and headers.location then -- handle 301, 302...
       local redirected_url = headers.location
       logger.dbg("InternalDownloadBackend: Redirecting to url:", redirected_url)
       return self:getResponseAsString(redirected_url, redirectCount + 1)
     else
-      logger.dbg(
-        "InternalDownloadBackend: Unhandled response status:",
-        status or code
-      )
+      logger.dbg("InternalDownloadBackend: Unhandled response status:", status or code)
       logger.dbg("InternalDownloadBackend: Response headers:", headers)
-      error(
-        "InternalDownloadBackend: Don't know how to handle HTTP response status:",
-        status or code
-      )
+      error("InternalDownloadBackend: Don't know how to handle HTTP response status:", status or code)
     end
   end
   return table.concat(sink)

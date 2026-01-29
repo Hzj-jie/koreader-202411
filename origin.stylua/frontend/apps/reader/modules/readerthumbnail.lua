@@ -133,9 +133,7 @@ function ReaderThumbnail:collectPids()
 end
 
 function ReaderThumbnail:setupColor()
-  self.bb_type = self.ui.document.render_color
-      and self.ui.document.color_bb_type
-    or Blitbuffer.TYPE_BB8
+  self.bb_type = self.ui.document.render_color and self.ui.document.color_bb_type or Blitbuffer.TYPE_BB8
 end
 
 function ReaderThumbnail:setupCache()
@@ -145,13 +143,7 @@ function ReaderThumbnail:setupCache()
     -- thumbnail margins) will fit in N * screen size.
     -- With N=5, this should use from 5 to 15 Mb on a classic eInk device.
     local N = 5
-    local max_bytes = math.ceil(
-      N
-        * Screen:getWidth()
-        * Screen:getHeight()
-        * Blitbuffer.TYPE_TO_BPP[self.bb_type]
-        / 8
-    )
+    local max_bytes = math.ceil(N * Screen:getWidth() * Screen:getHeight() * Blitbuffer.TYPE_TO_BPP[self.bb_type] / 8)
     -- We don't really care about limiting any number of slots, so allow
     -- for at least 5 pages of 10x10 tiles
     local avg_itemsize = math.ceil(max_bytes * (1 / 500))
@@ -269,29 +261,16 @@ function ReaderThumbnail:cancelPageThumbnailRequests(batch_id)
   else
     self.thumbnails_requests = {}
   end
-  if
-    self.req_in_progress
-    and (not batch_id or self.req_in_progress.batch_id == batch_id)
-  then
+  if self.req_in_progress and (not batch_id or self.req_in_progress.batch_id == batch_id) then
     -- Kill any reference to the module cancelling it
     self.req_in_progress.when_generated_callback = nil
   end
 end
 
-function ReaderThumbnail:getPageThumbnail(
-  page,
-  width,
-  height,
-  batch_id,
-  when_generated_callback
-)
+function ReaderThumbnail:getPageThumbnail(page, width, height, batch_id, when_generated_callback)
   self:setupCache()
   self.current_target_size_tag = string.format("w%d_h%d", width, height)
-  if
-    self.ui.rolling
-    and Screen.night_mode
-    and self.ui.document.configurable.nightmode_images == 1
-  then
+  if self.ui.rolling and Screen.night_mode and self.ui.document.configurable.nightmode_images == 1 then
     -- We'll get a different bb in this case: it needs its own cache hash
     self.current_target_size_tag = self.current_target_size_tag .. "_nm"
   end
@@ -328,8 +307,7 @@ function ReaderThumbnail:ensureTileGeneration()
   local still_in_progress = false
   if self.req_in_progress then
     local pid_still_to_collect
-    still_in_progress, pid_still_to_collect =
-      self:checkTileGeneration(self.req_in_progress)
+    still_in_progress, pid_still_to_collect = self:checkTileGeneration(self.req_in_progress)
     if pid_still_to_collect then
       has_pids_still_to_collect = true
     end
@@ -362,11 +340,7 @@ function ReaderThumbnail:ensureTileGeneration()
       end
     end
   end
-  if
-    self.req_in_progress
-    or has_pids_still_to_collect
-    or next(self.thumbnails_requests)
-  then
+  if self.req_in_progress or has_pids_still_to_collect or next(self.thumbnails_requests) then
     self._ensureTileGeneration_action()
   else
     if self._standby_prevented then
@@ -377,34 +351,26 @@ function ReaderThumbnail:ensureTileGeneration()
 end
 
 function ReaderThumbnail:startTileGeneration(request)
-  local pid, parent_read_fd = ffiutil.runInSubProcess(
-    function(pid, child_write_fd)
-      -- Get page image as if drawn on the screen
-      local bb = self:_getPageImage(request.page)
-      -- Scale it to fit in the requested size
-      local scale_factor =
-        math.min(request.width / bb:getWidth(), request.height / bb:getHeight())
-      local target_w = math.floor(bb:getWidth() * scale_factor)
-      local target_h = math.floor(bb:getHeight() * scale_factor)
-      -- local time = require("ui/time")
-      -- local start_time = time.now()
-      local tile = TileCacheItem:new({
-        bb = RenderImage:scaleBlitBuffer(bb, target_w, target_h, true),
-        pageno = request.page,
-      })
-      tile.size = tonumber(tile.bb.stride) * tile.bb.h
-      -- logger.info("tile size", tile.bb.w, tile.bb.h, "=>", tile.size)
-      -- logger.info(string.format("  scaling took %.3f seconds, %d bpp", time.to_s(time.since(start_time)), tile.bb:getBpp()))
-      -- bb:free() -- no need to spend time freeing, we're dying soon anyway!
+  local pid, parent_read_fd = ffiutil.runInSubProcess(function(pid, child_write_fd)
+    -- Get page image as if drawn on the screen
+    local bb = self:_getPageImage(request.page)
+    -- Scale it to fit in the requested size
+    local scale_factor = math.min(request.width / bb:getWidth(), request.height / bb:getHeight())
+    local target_w = math.floor(bb:getWidth() * scale_factor)
+    local target_h = math.floor(bb:getHeight() * scale_factor)
+    -- local time = require("ui/time")
+    -- local start_time = time.now()
+    local tile = TileCacheItem:new({
+      bb = RenderImage:scaleBlitBuffer(bb, target_w, target_h, true),
+      pageno = request.page,
+    })
+    tile.size = tonumber(tile.bb.stride) * tile.bb.h
+    -- logger.info("tile size", tile.bb.w, tile.bb.h, "=>", tile.size)
+    -- logger.info(string.format("  scaling took %.3f seconds, %d bpp", time.to_s(time.since(start_time)), tile.bb:getBpp()))
+    -- bb:free() -- no need to spend time freeing, we're dying soon anyway!
 
-      ffiutil.writeToFD(
-        child_write_fd,
-        self.codec.serialize(tile:totable()),
-        true
-      )
-    end,
-    true
-  ) -- with_pipe = true
+    ffiutil.writeToFD(child_write_fd, self.codec.serialize(tile:totable()), true)
+  end, true) -- with_pipe = true
   if pid then
     -- Store these in the request object itself
     request.pid = pid
@@ -419,17 +385,11 @@ function ReaderThumbnail:checkTileGeneration(request)
   local pid, parent_read_fd = request.pid, request.parent_read_fd
   local stuff_to_read = ffiutil.getNonBlockingReadSize(parent_read_fd) ~= 0
   local subprocess_done = ffiutil.isSubProcessDone(pid)
-  logger.dbg(
-    "subprocess_done:",
-    subprocess_done,
-    " stuff_to_read:",
-    stuff_to_read
-  )
+  logger.dbg("subprocess_done:", subprocess_done, " stuff_to_read:", stuff_to_read)
   if stuff_to_read then
     -- local time = require("ui/time")
     -- local start_time = time.now()
-    local result, err =
-      self.codec.deserialize(ffiutil.readAllFromFD(parent_read_fd))
+    local result, err = self.codec.deserialize(ffiutil.readAllFromFD(parent_read_fd))
     if result then
       local tile = TileCacheItem:new({})
       tile:fromtable(result)
@@ -601,7 +561,6 @@ end
 ReaderThumbnail.onDocumentRerendered = ReaderThumbnail.resetCache
 ReaderThumbnail.onDocumentPartiallyRerendered = ReaderThumbnail.resetCache
 -- Emitted When adding/removing/updating bookmarks and highlights
-ReaderThumbnail.onAnnotationsModified =
-  ReaderThumbnail.resetCachedPagesForBookmarks
+ReaderThumbnail.onAnnotationsModified = ReaderThumbnail.resetCachedPagesForBookmarks
 
 return ReaderThumbnail

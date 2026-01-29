@@ -308,8 +308,7 @@ typedef struct {
     check(hdr.emagic[0] == 127, "no support for writing native object files")
   else
     hdr.emagic = "\127ELF"
-    hdr.eosabi = ({ freebsd = 9, netbsd = 2, openbsd = 12, solaris = 6 })[ctx.os]
-      or 0
+    hdr.eosabi = ({ freebsd = 9, netbsd = 2, openbsd = 12, solaris = 6 })[ctx.os] or 0
   end
   hdr.eclass = is64 and 2 or 1
   hdr.eendian = isbe and 2 or 1

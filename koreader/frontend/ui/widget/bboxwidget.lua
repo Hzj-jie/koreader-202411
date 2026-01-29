@@ -51,14 +51,10 @@ function BBoxWidget:init()
     }
   else
     self._confirm_stage = 1 -- 1 for left-top, 2 for right-bottom
-    self.key_events.MoveIndicatorUp =
-      { { "Up" }, event = "MoveIndicator", args = { 0, -1 } }
-    self.key_events.MoveIndicatorDown =
-      { { "Down" }, event = "MoveIndicator", args = { 0, 1 } }
-    self.key_events.MoveIndicatorLeft =
-      { { "Left" }, event = "MoveIndicator", args = { -1, 0 } }
-    self.key_events.MoveIndicatorRight =
-      { { "Right" }, event = "MoveIndicator", args = { 1, 0 } }
+    self.key_events.MoveIndicatorUp = { { "Up" }, event = "MoveIndicator", args = { 0, -1 } }
+    self.key_events.MoveIndicatorDown = { { "Down" }, event = "MoveIndicator", args = { 0, 1 } }
+    self.key_events.MoveIndicatorLeft = { { "Left" }, event = "MoveIndicator", args = { -1, 0 } }
+    self.key_events.MoveIndicatorRight = { { "Right" }, event = "MoveIndicator", args = { 1, 0 } }
   end
   if Device:hasKeys() then
     self.key_events.Exit = { { Device.input.group.Back } }
@@ -80,33 +76,13 @@ function BBoxWidget:paintTo(bb, x, y)
   self.screen_bbox = self.screen_bbox or self:getScreenBBox(self.page_bbox)
   local bbox = self.screen_bbox
   -- top edge
-  bb:invertRect(
-    bbox.x0 + self.linesize,
-    bbox.y0,
-    bbox.x1 - bbox.x0,
-    self.linesize
-  )
+  bb:invertRect(bbox.x0 + self.linesize, bbox.y0, bbox.x1 - bbox.x0, self.linesize)
   -- bottom edge
-  bb:invertRect(
-    bbox.x0 + self.linesize,
-    bbox.y1,
-    bbox.x1 - bbox.x0 - self.linesize,
-    self.linesize
-  )
+  bb:invertRect(bbox.x0 + self.linesize, bbox.y1, bbox.x1 - bbox.x0 - self.linesize, self.linesize)
   -- left edge
-  bb:invertRect(
-    bbox.x0,
-    bbox.y0,
-    self.linesize,
-    bbox.y1 - bbox.y0 + self.linesize
-  )
+  bb:invertRect(bbox.x0, bbox.y0, self.linesize, bbox.y1 - bbox.y0 + self.linesize)
   -- right edge
-  bb:invertRect(
-    bbox.x1,
-    bbox.y0 + self.linesize,
-    self.linesize,
-    bbox.y1 - bbox.y0
-  )
+  bb:invertRect(bbox.x1, bbox.y0 + self.linesize, self.linesize, bbox.y1 - bbox.y0)
   if self._confirm_stage == 1 then
     -- left top indicator
     self:_drawIndicator(bb, bbox.x0, bbox.y0)
@@ -124,18 +100,8 @@ function BBoxWidget:_drawIndicator(bb, x, y)
     h = Size.item.height_default,
   })
   -- paint big cross line +
-  bb:invertRect(
-    rect.x,
-    rect.y + rect.h / 2 - Size.border.thick / 2,
-    rect.w,
-    Size.border.thick
-  )
-  bb:invertRect(
-    rect.x + rect.w / 2 - Size.border.thick / 2,
-    rect.y,
-    Size.border.thick,
-    rect.h
-  )
+  bb:invertRect(rect.x, rect.y + rect.h / 2 - Size.border.thick / 2, rect.w, Size.border.thick)
+  bb:invertRect(rect.x + rect.w / 2 - Size.border.thick / 2, rect.y, Size.border.thick, rect.h)
 end
 
 -- transform page bbox to screen bbox
@@ -165,8 +131,7 @@ end
 function BBoxWidget:inPageArea(ges)
   local offset = self.view.state.offset
   local page_area = self.view.page_area
-  local page_dimen =
-    Geom:new({ x = offset.x, y = offset.y, h = page_area.h, w = page_area.w })
+  local page_dimen = Geom:new({ x = offset.x, y = offset.y, h = page_area.h, w = page_area.w })
   return not ges.pos:notIntersectWith(page_dimen)
 end
 

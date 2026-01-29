@@ -58,15 +58,7 @@ function TileCacheItem:fromtable(t)
   self.created_ts = t.created_ts
   self.persistent = t.persistent
   self.doc_path = t.doc_path
-  self.bb = Blitbuffer.fromstring(
-    t.bb.w,
-    t.bb.h,
-    t.bb.fmt,
-    t.bb.data,
-    t.bb.stride,
-    t.bb.rotation,
-    t.bb.inverse
-  )
+  self.bb = Blitbuffer.fromstring(t.bb.w, t.bb.h, t.bb.fmt, t.bb.data, t.bb.stride, t.bb.rotation, t.bb.inverse)
 end
 
 function TileCacheItem:load(filename)

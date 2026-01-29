@@ -45,9 +45,7 @@ local function convert(doc)
     local optional_params = clone(optional_prm)
     for _, param in ipairs(params or {}) do
       if param.style ~= "header" then
-        if
-          param.required and (param.required == "true" or param.required == "1")
-        then
+        if param.required and (param.required == "true" or param.required == "1") then
           if not required_params then
             required_params = {}
           end
@@ -70,8 +68,7 @@ local function convert(doc)
       local method = meth.name
       local request = meth.request and meth.request[1]
       local params = request and request.param
-      local required_params, optional_params =
-        get_params(params, required_prm, optional_prm)
+      local required_params, optional_params = get_params(params, required_prm, optional_prm)
       local expected_status
       for _, response in ipairs(meth.response or {}) do
         local status = response.status
@@ -96,15 +93,9 @@ local function convert(doc)
 
   local function walk(resource, required_prm, optional_prm)
     for _, _resource in ipairs(resource or {}) do
-      local required_params, optional_params =
-        get_params({}, required_prm, optional_prm)
+      local required_params, optional_params = get_params({}, required_prm, optional_prm)
       walk(_resource.resource, required_params, optional_params)
-      populate(
-        _resource.method,
-        _resource.path,
-        required_params,
-        optional_params
-      )
+      populate(_resource.method, _resource.path, required_params, optional_params)
     end
   end --walk
 

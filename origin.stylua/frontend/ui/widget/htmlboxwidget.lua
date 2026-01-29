@@ -52,23 +52,13 @@ plaintext, search, select, summary, template, textarea, video, xmp {
 }
 ]]
 
-function HtmlBoxWidget:setContent(
-  body,
-  css,
-  default_font_size,
-  is_xhtml,
-  no_css_fixes
-)
+function HtmlBoxWidget:setContent(body, css, default_font_size, is_xhtml, no_css_fixes)
   -- fz_set_user_css is tied to the context instead of the document so to easily support multiple
   -- HTML dictionaries with different CSS, we embed the stylesheet into the HTML instead of using
   -- that function.
   local head = ""
   if css or not no_css_fixes then
-    head = string.format(
-      "<head><style>\n%s\n%s</style></head>",
-      mupdf_css_fixes,
-      css or ""
-    )
+    head = string.format("<head><style>\n%s\n%s</style></head>", mupdf_css_fixes, css or "")
   end
   local html = string.format("<html>%s<body>%s</body></html>", head, body)
 
@@ -84,8 +74,7 @@ function HtmlBoxWidget:setContent(
   -- rules to trigger (ie. <title><p>123</p></title>, which is valid in FB2 snippets, parsed
   -- as title>p, while gumbo-parse would consider "<p>123</p>" as being plain text).
   local ok
-  ok, self.document =
-    pcall(Mupdf.openDocumentFromText, html, is_xhtml and "xhtml" or "html")
+  ok, self.document = pcall(Mupdf.openDocumentFromText, html, is_xhtml and "xhtml" or "html")
   if not ok then
     -- self.document contains the error
     logger.warn("HTML loading error:", self.document)
@@ -176,12 +165,7 @@ function HtmlBoxWidget:getPosFromAbsPos(abs_pos)
   })
 
   -- check if the coordinates are actually inside our area
-  if
-    pos.x < 0
-    or pos.x >= self.dimen.w
-    or pos.y < 0
-    or pos.y >= self.dimen.h
-  then
+  if pos.x < 0 or pos.x >= self.dimen.w or pos.y < 0 or pos.y >= self.dimen.h then
     return nil
   end
 
@@ -217,19 +201,9 @@ function HtmlBoxWidget:getSelectedText(lines, start_pos, end_pos)
     for _, w in ipairs(line) do
       if type(w) == "table" then
         if not found_start then
-          if
-            start_pos.x >= w.x0
-            and start_pos.x < w.x1
-            and start_pos.y >= w.y0
-            and start_pos.y < w.y1
-          then
+          if start_pos.x >= w.x0 and start_pos.x < w.x1 and start_pos.y >= w.y0 and start_pos.y < w.y1 then
             found_start = true
-          elseif
-            end_pos.x >= w.x0
-            and end_pos.x < w.x1
-            and end_pos.y >= w.y0
-            and end_pos.y < w.y1
-          then
+          elseif end_pos.x >= w.x0 and end_pos.x < w.x1 and end_pos.y >= w.y0 and end_pos.y < w.y1 then
             -- We found end_pos before start_pos, switch them
             found_start = true
             start_pos, end_pos = end_pos, start_pos
@@ -240,12 +214,7 @@ function HtmlBoxWidget:getSelectedText(lines, start_pos, end_pos)
           table.insert(words, w.word)
 
           -- Found the end.
-          if
-            end_pos.x >= w.x0
-            and end_pos.x < w.x1
-            and end_pos.y >= w.y0
-            and end_pos.y < w.y1
-          then
+          if end_pos.x >= w.x0 and end_pos.x < w.x1 and end_pos.y >= w.y0 and end_pos.y < w.y1 then
             return words
           end
         end
@@ -293,12 +262,7 @@ function HtmlBoxWidget:getLinkByPosition(pos)
   page:close()
 
   for _, link in ipairs(links) do
-    if
-      pos.x >= link.x0
-      and pos.x < link.x1
-      and pos.y >= link.y0
-      and pos.y < link.y1
-    then
+    if pos.x >= link.x0 and pos.x < link.x1 and pos.y >= link.y0 and pos.y < link.y1 then
       return link
     end
   end

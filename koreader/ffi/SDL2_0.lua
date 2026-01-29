@@ -107,14 +107,8 @@ function S.open(w, h, x, y)
   SDL.SDL_SetMainReady()
 
   if
-    SDL.SDL_Init(
-      bit.bor(
-        SDL.SDL_INIT_VIDEO,
-        SDL.SDL_INIT_EVENTS,
-        SDL.SDL_INIT_JOYSTICK,
-        SDL.SDL_INIT_GAMECONTROLLER
-      )
-    ) ~= 0
+    SDL.SDL_Init(bit.bor(SDL.SDL_INIT_VIDEO, SDL.SDL_INIT_EVENTS, SDL.SDL_INIT_JOYSTICK, SDL.SDL_INIT_GAMECONTROLLER))
+    ~= 0
   then
     error("Cannot initialize SDL: " .. ffi.string(SDL.SDL_GetError()))
   end
@@ -146,23 +140,15 @@ function S.open(w, h, x, y)
   S.stopTextInput()
 
   -- set up screen (window)
-  local pos_x = tonumber(os.getenv("KOREADER_WINDOW_POS_X"))
-    or x
-    or SDL.SDL_WINDOWPOS_UNDEFINED
-  local pos_y = tonumber(os.getenv("KOREADER_WINDOW_POS_Y"))
-    or y
-    or SDL.SDL_WINDOWPOS_UNDEFINED
+  local pos_x = tonumber(os.getenv("KOREADER_WINDOW_POS_X")) or x or SDL.SDL_WINDOWPOS_UNDEFINED
+  local pos_y = tonumber(os.getenv("KOREADER_WINDOW_POS_Y")) or y or SDL.SDL_WINDOWPOS_UNDEFINED
   S.screen = SDL.SDL_CreateWindow(
     "KOReader",
     pos_x,
     pos_y,
     S.win_w,
     S.win_h,
-    bit.bor(
-      full_screen and SDL.SDL_WINDOW_FULLSCREEN or 0,
-      SDL.SDL_WINDOW_RESIZABLE,
-      SDL.SDL_WINDOW_ALLOW_HIGHDPI
-    )
+    bit.bor(full_screen and SDL.SDL_WINDOW_FULLSCREEN or 0, SDL.SDL_WINDOW_RESIZABLE, SDL.SDL_WINDOW_ALLOW_HIGHDPI)
   )
   -- For some mysterious reason, CreateWindow doesn't give a damn about the initial position, and will enforce top-left (we get an SDL_WINDOWEVENT_MOVED), so, force its hand...
   -- What's even more curious is that we still only get a single SDL_WINDOWEVENT_MOVED on startup, except that way it's at the requested coordinates...
@@ -171,10 +157,7 @@ function S.open(w, h, x, y)
   S.renderer = SDL.SDL_CreateRenderer(S.screen, -1, 0)
   local output_w = ffi.new("int[1]", 0)
   local output_h = ffi.new("int[1]", 0)
-  if
-    SDL.SDL_GetRendererOutputSize(S.renderer, output_w, output_h) == 0
-    and tonumber(output_w[0]) ~= w
-  then
+  if SDL.SDL_GetRendererOutputSize(S.renderer, output_w, output_h) == 0 and tonumber(output_w[0]) ~= w then
     -- This is a workaround to obtain a simulacrum of real pixels in scenarios that marketing likes to refer to as "HiDPI".
     -- The utterly deranged idea is to render things at 2x or 3x, so it can subsequently be scaled down in order to assure everything will always be at least a little bit blurry unless you happen to use exactly 2x or 3x, instead of the traditional methods of just rendering at the desired DPI that have worked perfectly fine in Windows and X11 for decades.
     -- Contrary to claims by the blind that macOS is sharp, it's not.
@@ -204,13 +187,7 @@ function S.createTexture(w, h)
   w = w or S.w
   h = h or S.h
 
-  return SDL.SDL_CreateTexture(
-    S.renderer,
-    SDL.SDL_PIXELFORMAT_RGBA32,
-    SDL.SDL_TEXTUREACCESS_STREAMING,
-    w,
-    h
-  )
+  return SDL.SDL_CreateTexture(S.renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, w, h)
 end
 
 function S.setWindowFullscreen(full_screen)
@@ -272,10 +249,7 @@ local function getFingerSlot(event)
     local num_touch_fingers = SDL.SDL_GetNumTouchFingers(event.tfinger.touchId)
     if num_touch_fingers > 1 then
       for i = 0, num_touch_fingers - 1 do
-        if
-          SDL.SDL_GetTouchFinger(event.tfinger.touchId, i).id
-          == event.tfinger.fingerId
-        then
+        if SDL.SDL_GetTouchFinger(event.tfinger.touchId, i).id == event.tfinger.fingerId then
           pointers[tonumber(event.tfinger.fingerId)] = { slot = i }
         end
       end
@@ -289,11 +263,7 @@ end
 local function genTouchDownEvent(event, slot, x, y)
   local is_finger = event.type == SDL.SDL_FINGERDOWN
   genEmuEvent(C.EV_ABS, C.ABS_MT_SLOT, slot)
-  genEmuEvent(
-    C.EV_ABS,
-    C.ABS_MT_TRACKING_ID,
-    is_finger and tonumber(event.tfinger.fingerId) or slot
-  )
+  genEmuEvent(C.EV_ABS, C.ABS_MT_TRACKING_ID, is_finger and tonumber(event.tfinger.fingerId) or slot)
   genEmuEvent(C.EV_ABS, C.ABS_MT_POSITION_X, x)
   genEmuEvent(C.EV_ABS, C.ABS_MT_POSITION_Y, y)
   genEmuEvent(C.EV_SYN, C.SYN_REPORT, 0)
@@ -350,9 +320,7 @@ local function handleJoyAxisMotionEvent(event)
 
   local current_ev_s, current_ev_us = util.gettime()
 
-  local since_last_ev = current_ev_s
-    - last_joystick_event_secs
-    + (current_ev_us - last_joystick_event_usecs) / 1000000
+  local since_last_ev = current_ev_s - last_joystick_event_secs + (current_ev_us - last_joystick_event_usecs) / 1000000
 
   local axis = axis_ev.axis
 
@@ -424,8 +392,7 @@ function S.waitForEvent(sec, usec)
   elseif event.type == SDL.SDL_TEXTINPUT then
     genEmuEvent(C.EV_SDL, SDL.SDL_TEXTINPUT, ffi.string(event.text.text))
   elseif
-    event.type == SDL.SDL_MOUSEMOTION
-      and event.motion.which ~= SDL_TOUCH_MOUSEID
+    event.type == SDL.SDL_MOUSEMOTION and event.motion.which ~= SDL_TOUCH_MOUSEID
     or event.type == SDL.SDL_FINGERMOTION
   then
     local is_finger = event.type == SDL.SDL_FINGERMOTION
@@ -433,35 +400,19 @@ function S.waitForEvent(sec, usec)
 
     if is_finger then
       slot = getFingerSlot(event)
-      genTouchMoveEvent(
-        event,
-        slot,
-        event.tfinger.x * S.w,
-        event.tfinger.y * S.h
-      )
+      genTouchMoveEvent(event, slot, event.tfinger.x * S.w, event.tfinger.y * S.h)
     else
       if pointers[0] and pointers[0].down then
         slot = 0 -- left mouse button down
-        genTouchMoveEvent(
-          event,
-          slot,
-          event.motion.x * scale_x,
-          event.motion.y * scale_y
-        )
+        genTouchMoveEvent(event, slot, event.motion.x * scale_x, event.motion.y * scale_y)
       end
       if pointers[1] and pointers[1].down then
         slot = 1 -- right mouse button down
-        genTouchMoveEvent(
-          event,
-          slot,
-          event.motion.x * scale_x,
-          event.motion.y * scale_y
-        )
+        genTouchMoveEvent(event, slot, event.motion.x * scale_x, event.motion.y * scale_y)
       end
     end
   elseif
-    event.type == SDL.SDL_MOUSEBUTTONUP
-      and event.button.which ~= SDL_TOUCH_MOUSEID
+    event.type == SDL.SDL_MOUSEBUTTONUP and event.button.which ~= SDL_TOUCH_MOUSEID
     or event.type == SDL.SDL_FINGERUP
   then
     local is_finger = event.type == SDL.SDL_FINGERUP
@@ -483,18 +434,11 @@ function S.waitForEvent(sec, usec)
       pointers[slot] = nil
     end
   elseif
-    event.type == SDL.SDL_MOUSEBUTTONDOWN
-      and event.button.which ~= SDL_TOUCH_MOUSEID
+    event.type == SDL.SDL_MOUSEBUTTONDOWN and event.button.which ~= SDL_TOUCH_MOUSEID
     or event.type == SDL.SDL_FINGERDOWN
   then
     local is_finger = event.type == SDL.SDL_FINGERDOWN
-    if
-      not is_finger
-      and not (
-        event.button.button == SDL_BUTTON_LEFT
-        or event.button.button == SDL_BUTTON_RIGHT
-      )
-    then
+    if not is_finger and not (event.button.button == SDL_BUTTON_LEFT or event.button.button == SDL_BUTTON_RIGHT) then
       -- We don't do anything with extra buttons for now.
       return false, C.ENOSYS
     end
@@ -564,10 +508,7 @@ function S.waitForEvent(sec, usec)
       -- send page down
       genEmuEvent(C.EV_KEY, 1073741902, 1)
       -- On the Xbox One controller, start = start but leftstick = menu button
-    elseif
-      button == SDL.SDL_CONTROLLER_BUTTON_START
-      or button == SDL.SDL_CONTROLLER_BUTTON_LEFTSTICK
-    then
+    elseif button == SDL.SDL_CONTROLLER_BUTTON_START or button == SDL.SDL_CONTROLLER_BUTTON_LEFTSTICK then
       -- send F1 (bound to menu in front at the time of writing)
       genEmuEvent(C.EV_KEY, 1073741882, 1)
     elseif button == SDL.SDL_CONTROLLER_BUTTON_DPAD_UP then
@@ -666,12 +607,7 @@ function S.gameControllerRumble(left_intensity, right_intensity, duration)
   right_intensity = right_intensity or 20000
   duration = duration or 200
 
-  return SDL.SDL_GameControllerRumble(
-    S.controller,
-    left_intensity,
-    right_intensity,
-    duration
-  )
+  return SDL.SDL_GameControllerRumble(S.controller, left_intensity, right_intensity, duration)
 end
 
 function S.getPlatform()
@@ -698,10 +634,7 @@ function S.getPowerInfo()
   local charging = false
   local ptr = ffi.new("int[1]", { 0 })
   local battery_info = SDL.SDL_GetPowerInfo(nil, ptr)
-  if
-    battery_info == SDL.SDL_POWERSTATE_UNKNOWN
-    or battery_info == SDL.SDL_POWERSTATE_NO_BATTERY
-  then
+  if battery_info == SDL.SDL_POWERSTATE_UNKNOWN or battery_info == SDL.SDL_POWERSTATE_NO_BATTERY then
     plugged = true
   elseif battery_info == SDL.SDL_POWERSTATE_ON_BATTERY then
     batt = true

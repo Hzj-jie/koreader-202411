@@ -18,14 +18,10 @@
 if not _G.TURBO_SSL then
   return setmetatable({}, {
     __index = function(t, k)
-      error(
-        "TURBO_SSL is not defined and you are trying to use hash functions."
-      )
+      error("TURBO_SSL is not defined and you are trying to use hash functions.")
     end,
     __call = function(t, k)
-      error(
-        "TURBO_SSL is not defined and you are trying to use hash functions."
-      )
+      error("TURBO_SSL is not defined and you are trying to use hash functions.")
     end,
   })
 end
@@ -62,14 +58,8 @@ end
 -- @param str (String)
 function hash.SHA1:update(str)
   assert(self.ctx, "No SHA_CTX in object.")
-  assert(
-    not self.final,
-    "SHA_CTX already finalized. Please create a new context."
-  )
-  assert(
-    lssl.SHA1_Update(self.ctx, str, str:len()) == 1,
-    "Could not update SHA_CTX"
-  )
+  assert(not self.final, "SHA_CTX already finalized. Please create a new context.")
+  assert(lssl.SHA1_Update(self.ctx, str, str:len()) == 1, "Could not update SHA_CTX")
 end
 
 --- Finalize SHA1 context.
@@ -96,8 +86,7 @@ end
 function hash.HMAC(key, digest, raw)
   assert(type(key) == "string", "Key is invalid type: " .. type(key))
   assert(type(digest) == "string", "Can not hash: " .. type(digest))
-  local digest =
-    lssl.HMAC(lssl.EVP_sha1(), key, key:len(), digest, digest:len(), nil, nil)
+  local digest = lssl.HMAC(lssl.EVP_sha1(), key, key:len(), digest, digest:len(), nil, nil)
   hexstr:clear()
   for i = 0, hash.SHA_DIGEST_LENGTH - 1 do
     if raw then

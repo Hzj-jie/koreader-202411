@@ -142,10 +142,7 @@ local function getUrlContent(url, timeout, maxtime)
     return false, "Network or remote server unavailable"
   end
   if not code or code < 200 or code > 299 then -- all 200..299 HTTP codes are OK
-    logger.warn(
-      "HTTP status not okay:",
-      status or code or "network unreachable"
-    )
+    logger.warn("HTTP status not okay:", status or code or "network unreachable")
     logger.dbg("Response headers:", headers)
     return false, "Remote server error or unavailable"
   end
@@ -272,8 +269,7 @@ function Wikipedia:getFullPage(wiki_title, lang)
     local query = result.query
     if query then
       local show_image = G_reader_settings:nilOrTrue("wikipedia_show_image")
-      local show_more_images =
-        G_reader_settings:nilOrTrue("wikipedia_show_more_images")
+      local show_more_images = G_reader_settings:nilOrTrue("wikipedia_show_more_images")
       -- Scale wikipedia normalized (we hope) thumbnails by 4 (adjusted
       -- to screen size/dpi) for full page (and this *4 for highres image)
       local image_size_factor = Screen:scaleBySize(400) / 100.0
@@ -308,12 +304,7 @@ end
 function Wikipedia:getFullPageImages(wiki_title, lang)
   local images = {} -- will be returned, each in a format similar to page.thumbnail
   local result = self:loadPage(wiki_title, lang, WIKIPEDIA_IMAGES, true)
-  if
-    result
-    and result.parse
-    and result.parse.text
-    and result.parse.text["*"]
-  then
+  if result and result.parse and result.parse.text and result.parse.text["*"] then
     local html = result.parse.text["*"] -- html content
     local url = require("socket.url")
     local wiki_base_url = self:getWikiServer(lang)
@@ -322,20 +313,12 @@ function Wikipedia:getFullPageImages(wiki_title, lang)
     -- We first try to catch images in <figure>, which should exclude
     -- wikipedia icons, flags...
     -- (We want to match both typeof="mw:File/Thumb" and typeof="mw:File/Frame", so this [TF][hr][ua]m[be]...
-    for thtml in
-      html:gmatch(
-        [[<figure [^>]*typeof="mw:File/[TF][hr][ua]m[be]"[^>]*>.-</figure>]]
-      )
-    do
+    for thtml in html:gmatch([[<figure [^>]*typeof="mw:File/[TF][hr][ua]m[be]"[^>]*>.-</figure>]]) do
       table.insert(thumbs, thtml)
     end
     -- We then also try to catch images in galleries (which often are less
     -- interesting than those in thumbinner) as a 2nd set.
-    for thtml in
-      html:gmatch(
-        [[<li class="gallerybox".-<div class="thumb".-</div>%s*<div class="gallerytext">.-</div>]]
-      )
-    do
+    for thtml in html:gmatch([[<li class="gallerybox".-<div class="thumb".-</div>%s*<div class="gallerytext">.-</div>]]) do
       table.insert(thumbs, thtml)
     end
     -- We may miss some interesting images in the page's top right table, but
@@ -344,9 +327,7 @@ function Wikipedia:getFullPageImages(wiki_title, lang)
     for _, thtml in ipairs(thumbs) do
       -- We get <a href="/wiki/File:real_file_name.jpg (or /wiki/Fichier:real_file_name.jpg
       -- depending on Wikipedia lang)
-      local filename = thtml:match(
-        [[<a href="/wiki/[^:]*:([^"]*)" class="mw.file.description"]]
-      )
+      local filename = thtml:match([[<a href="/wiki/[^:]*:([^"]*)" class="mw.file.description"]])
       if filename then
         filename = url.unescape(filename)
       end
@@ -452,8 +433,7 @@ local function image_load_bb_func(image, highres)
     -- (TextBoxWidget may have adjusted image.width and height)
     -- We don't get animated GIF multiple frames to keep TextBoxWidget
     -- simple: they will be available when viewed in highres
-    bb =
-      RenderImage:renderImageData(data, #data, false, image.width, image.height)
+    bb = RenderImage:renderImageData(data, #data, false, image.width, image.height)
   else
     -- We provide want_frames=true for highres images, so ImageViewer
     -- can display animated GIF
@@ -471,13 +451,7 @@ local function image_load_bb_func(image, highres)
   end
 end
 
-function Wikipedia:addImages(
-  page,
-  lang,
-  more_images,
-  image_size_factor,
-  hi_image_size_factor
-)
+function Wikipedia:addImages(page, lang, more_images, image_size_factor, hi_image_size_factor)
   -- List of images, table with keys as expected by TextBoxWidget
   page.images = {}
   -- List of wikipedia images data structures (page.thumbnail and images
@@ -501,8 +475,7 @@ function Wikipedia:addImages(
   end
   -- To get more images, we need to make a second request to wikipedia
   if more_images then
-    local ok, images_or_err =
-      pcall(Wikipedia.getFullPageImages, Wikipedia, page.title, lang)
+    local ok, images_or_err = pcall(Wikipedia.getFullPageImages, Wikipedia, page.title, lang)
     if not ok then
       logger.warn("error getting more images", images_or_err)
     else
@@ -541,14 +514,12 @@ function Wikipedia:addImages(
     -- .jpg or .gif to it)
     -- The resize is so done on Wikipedia servers from the source image for
     -- the best quality.
-    local source =
-      wimage.source:gsub("(.*/)%d+(px-[^/]*)", "%1" .. width .. "%2")
+    local source = wimage.source:gsub("(.*/)%d+(px-[^/]*)", "%1" .. width .. "%2")
     -- We build values for a high resolution version of the image, to be displayed
     -- with ImageViewer (x 4 by default)
     local hi_width = width * (hi_image_size_factor or 4)
     local hi_height = height * (hi_image_size_factor or 4)
-    local hi_source =
-      wimage.source:gsub("(.*/)%d+(px-[^/]*)", "%1" .. hi_width .. "%2")
+    local hi_source = wimage.source:gsub("(.*/)%d+(px-[^/]*)", "%1" .. hi_width .. "%2")
     local title = wimage.filename
     if title then
       title = title:gsub("_", " ")
@@ -715,8 +686,7 @@ function Wikipedia:createEpub(epub_path, page, lang, with_images)
   page_cleaned = util.htmlEntitiesToUtf8(page_cleaned):gsub("&", "&#38;")
   page_htmltitle = util.htmlEntitiesToUtf8(page_htmltitle):gsub("&", "&#38;")
   local sections = phtml.sections -- Wikipedia provided TOC
-  local bookid =
-    string.format("wikipedia_%s_%s_%s", lang, phtml.pageid, phtml.revid)
+  local bookid = string.format("wikipedia_%s_%s_%s", lang, phtml.pageid, phtml.revid)
   -- Not sure if this bookid may ever be used by indexing software/calibre, but if it is,
   -- should it changes if content is updated (as now, including the wikipedia revisionId),
   -- or should it stays the same even if revid changes (content of the same book updated).
@@ -807,14 +777,7 @@ function Wikipedia:createEpub(epub_path, page, lang, with_images)
       table.insert(images, cur_image)
       seen_images[src] = cur_image
       -- Use first image of reasonable size (not an icon) and portrait-like as cover-image
-      if
-        not cover_imgid
-        and width
-        and width > 50
-        and height
-        and height > 50
-        and height > width
-      then
+      if not cover_imgid and width and width > 50 and height and height > 50 and height > width then
         cover_imgid = imgid
       end
       imagenum = imagenum + 1
@@ -835,11 +798,7 @@ function Wikipedia:createEpub(epub_path, page, lang, with_images)
     if keep_style then -- for /math/render/svg/
       style = img_tag:match([[style="([^"]*)"]])
     end
-    return string.format(
-      [[<img src="%s" style="%s" alt=""/>]],
-      cur_image.imgpath,
-      style
-    )
+    return string.format([[<img src="%s" style="%s" alt=""/>]], cur_image.imgpath, style)
   end
   html = html:gsub("(<%s*img [^>]*>)", processImg)
   logger.dbg("Images found in html:", images)
@@ -865,9 +824,7 @@ function Wikipedia:createEpub(epub_path, page, lang, with_images)
       if include_images then
         if use_img_2x == nil then
           use_img_2x = UI:confirm(
-            _(
-              "Would you like to use slightly higher quality images? This will result in a bigger file size."
-            ),
+            _("Would you like to use slightly higher quality images? This will result in a bigger file size."),
             _("Standard quality"),
             _("Higher quality")
           )
@@ -940,8 +897,7 @@ function Wikipedia:createEpub(epub_path, page, lang, with_images)
   -- head
   local meta_cover = "<!-- no cover image -->"
   if include_images and cover_imgid then
-    meta_cover =
-      string.format([[<meta name="cover" content="%s"/>]], cover_imgid)
+    meta_cover = string.format([[<meta name="cover" content="%s"/>]], cover_imgid)
   end
   table.insert(
     content_opf_parts,
@@ -977,13 +933,7 @@ function Wikipedia:createEpub(epub_path, page, lang, with_images)
     for inum, img in ipairs(images) do
       table.insert(
         content_opf_parts,
-        string.format(
-          [[    <item id="%s" href="%s" media-type="%s"/>%s]],
-          img.imgid,
-          img.imgpath,
-          img.mimetype,
-          "\n"
-        )
+        string.format([[    <item id="%s" href="%s" media-type="%s"/>%s]], img.imgid, img.imgpath, img.mimetype, "\n")
       )
     end
   end
@@ -1378,22 +1328,14 @@ abbr.abbr {
     -- Some chars in headings are converted to html entities in the
     -- wikipedia-generated HTML. We need to do the same in TOC links
     -- for the links to be valid.
-    local s_anchor = s.anchor
-      :gsub("&", "&amp;")
-      :gsub('"', "&quot;")
-      :gsub(">", "&gt;")
-      :gsub("<", "&lt;")
+    local s_anchor = s.anchor:gsub("&", "&amp;"):gsub('"', "&quot;"):gsub(">", "&gt;"):gsub("<", "&lt;")
     local s_title = string.format("%s %s", s.number, s.line)
     -- Titles may include <i> and other html tags: let's remove them as
     -- our TOC can only display text
     s_title = (s_title:gsub("(%b<>)", ""))
     -- We need to do as for page_htmltitle above. But headings can contain
     -- html entities for < and > that we need to put back as html entities
-    s_title = util
-      .htmlEntitiesToUtf8(s_title)
-      :gsub("&", "&#38;")
-      :gsub(">", "&gt;")
-      :gsub("<", "&lt;")
+    s_title = util.htmlEntitiesToUtf8(s_title):gsub("&", "&#38;"):gsub(">", "&gt;"):gsub("<", "&lt;")
     local s_level = s.toclevel
     if s_level > depth then
       depth = s_level -- max depth required in toc.ncx
@@ -1493,11 +1435,7 @@ abbr.abbr {
     -- Some chars in headings are converted to html entities in the
     -- wikipedia-generated HTML. We need to do the same in TOC links
     -- for the links to be valid.
-    local s_anchor = s.anchor
-      :gsub("&", "&amp;")
-      :gsub('"', "&quot;")
-      :gsub(">", "&gt;")
-      :gsub("<", "&lt;")
+    local s_anchor = s.anchor:gsub("&", "&amp;"):gsub('"', "&quot;"):gsub(">", "&gt;"):gsub("<", "&lt;")
     local s_title = string.format("%s %s", s.number, s.line)
     local s_level = s.toclevel
     if s_level == cur_level then
@@ -1520,10 +1458,7 @@ abbr.abbr {
     end
     cur_level = s_level
     table.insert(toc_html_parts, "\n" .. (" "):rep(cur_level))
-    table.insert(
-      toc_html_parts,
-      string.format([[<li><div><a href="#%s">%s</a></div>]], s_anchor, s_title)
-    )
+    table.insert(toc_html_parts, string.format([[<li><div><a href="#%s">%s</a></div>]], s_anchor, s_title))
   end
   -- close nested <ul>
   table.insert(toc_html_parts, "</li>")
@@ -1537,10 +1472,7 @@ abbr.abbr {
     end
   end
   table.insert(toc_html_parts, '<hr class="koreaderwikitocend"/>\n')
-  html = html:gsub(
-    [[<meta property="mw:PageProp/toc" />]],
-    table.concat(toc_html_parts)
-  )
+  html = html:gsub([[<meta property="mw:PageProp/toc" />]], table.concat(toc_html_parts))
 
   -- ----------------------------------------------------------------
   -- OEBPS/content.html
@@ -1564,8 +1496,7 @@ abbr.abbr {
   -- point to a PNG version of the formula (which is still not perfect, as it does
   -- not adjust to the current html font size, but it is at least readable).
   -- So, remove the whole <math>...</math> content
-  html =
-    html:gsub([[<math xmlns="http://www.w3.org/1998/Math/MathML".-</math>]], "")
+  html = html:gsub([[<math xmlns="http://www.w3.org/1998/Math/MathML".-</math>]], "")
 
   -- Fix internal wikipedia links with full server url (including lang) so
   -- ReaderLink can notice them and deal with them with a LookupWikipedia event.
@@ -1575,16 +1506,9 @@ abbr.abbr {
   -- Do that first (need to be done first) for full links to other language wikipedias
   local cleanOtherLangWikiPageTitle = function(wiki_lang, wiki_page)
     wiki_page = wiki_page:gsub("%?.*", "")
-    return string.format(
-      [[href="https://%s.wikipedia.org/wiki/%s"]],
-      wiki_lang,
-      wiki_page
-    )
+    return string.format([[href="https://%s.wikipedia.org/wiki/%s"]], wiki_lang, wiki_page)
   end
-  html = html:gsub(
-    [[href="https?://([^%.]+).wikipedia.org/wiki/([^"]*)"]],
-    cleanOtherLangWikiPageTitle
-  )
+  html = html:gsub([[href="https?://([^%.]+).wikipedia.org/wiki/([^"]*)"]], cleanOtherLangWikiPageTitle)
   -- Now, do it for same wikipedia short urls
   local cleanWikiPageTitle = function(wiki_page)
     wiki_page = wiki_page:gsub("%?.*", "")
@@ -1596,8 +1520,7 @@ abbr.abbr {
   -- <a href="/w/index.php?title=PageTitle&amp;action=edit&amp;redlink=1" class="new"
   --          title="PageTitle">PageTitle____on</a>
   -- (removal of the href="" will make them non clickable)
-  html =
-    html:gsub([[<a[^>]* class="new"[^>]*>]], [[<a class="newwikinonexistent">]])
+  html = html:gsub([[<a[^>]* class="new"[^>]*>]], [[<a class="newwikinonexistent">]])
 
   -- Fix some other protocol-less links to wikipedia (href="//fr.wikipedia.org/w/index.php..)
   html = html:gsub([[href="//]], [[href="https://]])
@@ -1618,14 +1541,9 @@ abbr.abbr {
 
   -- We can finally build the final HTML with some header of our own
   local saved_on = T(_("Saved on %1"), os.date("%b %d, %Y %H:%M:%S"))
-  local online_version_htmllink = string.format(
-    [[<a href="%s/wiki/%s">%s</a>]],
-    wiki_base_url,
-    page:gsub(" ", "_"),
-    _("online version")
-  )
-  local see_online_version =
-    T(_("See %1 for up-to-date content"), online_version_htmllink)
+  local online_version_htmllink =
+    string.format([[<a href="%s/wiki/%s">%s</a>]], wiki_base_url, page:gsub(" ", "_"), _("online version"))
+  local see_online_version = T(_("See %1 for up-to-date content"), online_version_htmllink)
   -- Set dir= attribute on the HTML tag for RTL languages
   local html_dir = ""
   if self:isWikipediaLanguageRTL(lang) then
@@ -1672,10 +1590,7 @@ abbr.abbr {
       -- Process can be interrupted at this point between each image download
       -- by tapping while the InfoMessage is displayed
       -- We use the fast_refresh option from image #2 for a quicker download
-      local go_on = UI:info(
-        T(_("Retrieving image %1 / %2 …"), inum, nb_images),
-        inum >= 2
-      )
+      local go_on = UI:info(T(_("Retrieving image %1 / %2 …"), inum, nb_images), inum >= 2)
       if not go_on then
         cancelled = true
         break
@@ -1700,11 +1615,7 @@ abbr.abbr {
         end
         epub:add("OEBPS/" .. img.imgpath, content, no_compression)
       else
-        go_on = UI:confirm(
-          T(_("Downloading image %1 failed. Continue anyway?"), inum),
-          _("Stop"),
-          _("Continue")
-        )
+        go_on = UI:confirm(T(_("Downloading image %1 failed. Continue anyway?"), inum), _("Stop"), _("Continue"))
         if not go_on then
           cancelled = true
           break
@@ -1717,9 +1628,7 @@ abbr.abbr {
   if cancelled then
     if
       UI:confirm(
-        _(
-          "Download did not complete.\nDo you want to create an EPUB with the already downloaded images?"
-        ),
+        _("Download did not complete.\nDo you want to create an EPUB with the already downloaded images?"),
         _("Don't create"),
         _("Create")
       )
@@ -1770,8 +1679,7 @@ function Wikipedia:createEpubWithUI(epub_path, page, lang, result_callback)
     -- Trapper) would just abort (no reader crash, no error logged).
     -- So we use pcall to catch any errors, log it, and report
     -- the failure via result_callback.
-    local ok, success =
-      pcall(self.createEpub, self, epub_path, page, lang, true)
+    local ok, success = pcall(self.createEpub, self, epub_path, page, lang, true)
     if ok and success then
       result_callback(true)
     else

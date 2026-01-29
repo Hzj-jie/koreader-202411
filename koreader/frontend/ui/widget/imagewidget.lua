@@ -177,17 +177,12 @@ function ImageWidget:_loadfile()
         -- If NanoSVG is used by renderSVGImageFile, we'll get self._is_straight_alpha=true,
         -- and paintTo() must use alphablitFrom() instead of pmulalphablitFrom() (which is
         -- fine for everything MuPDF renders out)
-        self._bb, self._is_straight_alpha =
-          RenderImage:renderSVGImageFile(self.file, width, height, zoom)
+        self._bb, self._is_straight_alpha = RenderImage:renderSVGImageFile(self.file, width, height, zoom)
 
         -- Ensure we always return a BB, even on failure
         if not self._bb then
-          logger.warn(
-            "ImageWidget: Failed to render SVG image file:",
-            self.file
-          )
-          self._bb =
-            RenderImage:renderCheckerboard(width, height, Screen.bb:getType())
+          logger.warn("ImageWidget: Failed to render SVG image file:", self.file)
+          self._bb = RenderImage:renderCheckerboard(width, height, Screen.bb:getType())
           self._is_straight_alpha = false
         end
       else
@@ -195,18 +190,13 @@ function ImageWidget:_loadfile()
 
         if not self._bb then
           logger.warn("ImageWidget: Failed to render image file:", self.file)
-          self._bb =
-            RenderImage:renderCheckerboard(width, height, Screen.bb:getType())
+          self._bb = RenderImage:renderCheckerboard(width, height, Screen.bb:getType())
           self._is_straight_alpha = false
         end
 
         if scale_for_dpi_here then
           local bb_w, bb_h = self._bb:getWidth(), self._bb:getHeight()
-          self._bb = RenderImage:scaleBlitBuffer(
-            self._bb,
-            math.floor(bb_w * DPI_SCALE),
-            math.floor(bb_h * DPI_SCALE)
-          )
+          self._bb = RenderImage:scaleBlitBuffer(self._bb, math.floor(bb_w * DPI_SCALE), math.floor(bb_h * DPI_SCALE))
         end
       end
 
@@ -216,11 +206,8 @@ function ImageWidget:_loadfile()
       -- and also ensures icon highlights/unhighlights behave sensibly.
       if self.is_icon and not self.alpha then
         local bbtype = self._bb:getType()
-        if
-          bbtype == Blitbuffer.TYPE_BB8A or bbtype == Blitbuffer.TYPE_BBRGB32
-        then
-          local icon_bb =
-            Blitbuffer.new(self._bb.w, self._bb.h, Screen.bb:getType())
+        if bbtype == Blitbuffer.TYPE_BB8A or bbtype == Blitbuffer.TYPE_BBRGB32 then
+          local icon_bb = Blitbuffer.new(self._bb.w, self._bb.h, Screen.bb:getType())
           --- @note: Should match the background color. Which is currently hard-coded as white ;).
           ---        See the note below in paintTo for how to make the dim flag behave in case
           ---        this no longer actually is white ;).
@@ -230,39 +217,15 @@ function ImageWidget:_loadfile()
           -- Remembering that NanoSVG feeds us straight alpha, unlike MµPDF
           if self._is_straight_alpha then
             if Screen.sw_dithering then
-              icon_bb:ditheralphablitFrom(
-                self._bb,
-                0,
-                0,
-                0,
-                0,
-                icon_bb.w,
-                icon_bb.h
-              )
+              icon_bb:ditheralphablitFrom(self._bb, 0, 0, 0, 0, icon_bb.w, icon_bb.h)
             else
               icon_bb:alphablitFrom(self._bb, 0, 0, 0, 0, icon_bb.w, icon_bb.h)
             end
           else
             if Screen.sw_dithering then
-              icon_bb:ditherpmulalphablitFrom(
-                self._bb,
-                0,
-                0,
-                0,
-                0,
-                icon_bb.w,
-                icon_bb.h
-              )
+              icon_bb:ditherpmulalphablitFrom(self._bb, 0, 0, 0, 0, icon_bb.w, icon_bb.h)
             else
-              icon_bb:pmulalphablitFrom(
-                self._bb,
-                0,
-                0,
-                0,
-                0,
-                icon_bb.w,
-                icon_bb.h
-              )
+              icon_bb:pmulalphablitFrom(self._bb, 0, 0, 0, 0, icon_bb.w, icon_bb.h)
             end
           end
 
@@ -285,11 +248,7 @@ function ImageWidget:_loadfile()
           bb = self._bb,
           is_straight_alpha = self._is_straight_alpha,
         }
-        ImageCache:insert(
-          hash,
-          cached,
-          tonumber(cached.bb.stride) * cached.bb.h
-        )
+        ImageCache:insert(hash, cached, tonumber(cached.bb.stride) * cached.bb.h)
       end
     end
   else
@@ -301,12 +260,7 @@ function ImageWidget:_render()
   if self._bb then -- already rendered
     return
   end
-  logger.dbg(
-    "ImageWidget: _render'ing",
-    self.file and self.file or "data",
-    self.width,
-    self.height
-  )
+  logger.dbg("ImageWidget: _render'ing", self.file and self.file or "data", self.width, self.height)
   if self.image then
     self:_loadimage()
   elseif self.file then
@@ -362,8 +316,7 @@ function ImageWidget:_render()
     -- stretch or scale to fit container, depending on self.stretch_limit_percentage
     local screen_ratio = self.width / self.height
     local image_ratio = bb_w / bb_h
-    local ratio_divergence_percent =
-      math.abs(100 - image_ratio / screen_ratio * 100)
+    local ratio_divergence_percent = math.abs(100 - image_ratio / screen_ratio * 100)
     if ratio_divergence_percent > self.stretch_limit_percentage then
       self.scale_factor = 0
     end
@@ -373,10 +326,7 @@ function ImageWidget:_render()
     -- scale to best fit container: compute scale_factor for that
     if self.width and self.height then
       self.scale_factor = math.min(self.width / bb_w, self.height / bb_h)
-      logger.dbg(
-        "ImageWidget: scale to fit, setting scale_factor to",
-        self.scale_factor
-      )
+      logger.dbg("ImageWidget: scale to fit, setting scale_factor to", self.scale_factor)
     else
       -- no width and height provided (inconsistencies from caller),
       self.scale_factor = 1 -- native image size
@@ -386,18 +336,9 @@ function ImageWidget:_render()
   -- replace blitbuffer with a resized one if needed
   if self.scale_factor == nil then
     -- no scaling, but stretch to width and height, only if provided and needed
-    if
-      self.width
-      and self.height
-      and (self.width ~= bb_w or self.height ~= bb_h)
-    then
+    if self.width and self.height and (self.width ~= bb_w or self.height ~= bb_h) then
       logger.dbg("ImageWidget: stretching")
-      self._bb = RenderImage:scaleBlitBuffer(
-        self._bb,
-        self.width,
-        self.height,
-        self._bb_disposable
-      )
+      self._bb = RenderImage:scaleBlitBuffer(self._bb, self.width, self.height, self._bb_disposable)
       self._bb_disposable = true -- new bb will have to be freed
     end
   elseif self.scale_factor ~= 1 then
@@ -570,10 +511,8 @@ function ImageWidget:panBy(x, y)
     self.center_y_ratio = 0.5 + self._max_off_center_y_ratio
   end
   -- new offsets that reflect this new center ratio
-  local new_offset_x =
-    math.floor(self.center_x_ratio * self._bb_w - self.width / 2)
-  local new_offset_y =
-    math.floor(self.center_y_ratio * self._bb_h - self.height / 2)
+  local new_offset_x = math.floor(self.center_x_ratio * self._bb_w - self.width / 2)
+  local new_offset_y = math.floor(self.center_y_ratio * self._bb_h - self.height / 2)
   -- only trigger screen refresh it we actually pan
   if new_offset_x ~= self._offset_x or new_offset_y ~= self._offset_y then
     self._offset_x = new_offset_x
@@ -612,70 +551,22 @@ function ImageWidget:paintTo(bb, x, y)
     if self._is_straight_alpha then
       --- @note: Our icons are already dithered properly, either at encoding time, or at caching time.
       if Screen.sw_dithering and not self.is_icon then
-        bb:ditheralphablitFrom(
-          self._bb,
-          x,
-          y,
-          self._offset_x,
-          self._offset_y,
-          size.w,
-          size.h
-        )
+        bb:ditheralphablitFrom(self._bb, x, y, self._offset_x, self._offset_y, size.w, size.h)
       else
-        bb:alphablitFrom(
-          self._bb,
-          x,
-          y,
-          self._offset_x,
-          self._offset_y,
-          size.w,
-          size.h
-        )
+        bb:alphablitFrom(self._bb, x, y, self._offset_x, self._offset_y, size.w, size.h)
       end
     else
       if Screen.sw_dithering and not self.is_icon then
-        bb:ditherpmulalphablitFrom(
-          self._bb,
-          x,
-          y,
-          self._offset_x,
-          self._offset_y,
-          size.w,
-          size.h
-        )
+        bb:ditherpmulalphablitFrom(self._bb, x, y, self._offset_x, self._offset_y, size.w, size.h)
       else
-        bb:pmulalphablitFrom(
-          self._bb,
-          x,
-          y,
-          self._offset_x,
-          self._offset_y,
-          size.w,
-          size.h
-        )
+        bb:pmulalphablitFrom(self._bb, x, y, self._offset_x, self._offset_y, size.w, size.h)
       end
     end
   else
     if Screen.sw_dithering and not self.is_icon then
-      bb:ditherblitFrom(
-        self._bb,
-        x,
-        y,
-        self._offset_x,
-        self._offset_y,
-        size.w,
-        size.h
-      )
+      bb:ditherblitFrom(self._bb, x, y, self._offset_x, self._offset_y, size.w, size.h)
     else
-      bb:blitFrom(
-        self._bb,
-        x,
-        y,
-        self._offset_x,
-        self._offset_y,
-        size.w,
-        size.h
-      )
+      bb:blitFrom(self._bb, x, y, self._offset_x, self._offset_y, size.w, size.h)
     end
   end
   if self.invert then

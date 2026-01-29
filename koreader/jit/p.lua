@@ -154,13 +154,7 @@ local function prof_top(count1, count2, samples, indent)
     if count2 then
       local r = count2[k]
       if r then
-        prof_top(
-          r,
-          nil,
-          v,
-          (prof_split == 3 or prof_split == 1) and "  -- "
-            or (prof_depth < 0 and "  -> " or "  <- ")
-        )
+        prof_top(r, nil, v, (prof_split == 3 or prof_split == 1) and "  -- " or (prof_depth < 0 and "  -> " or "  <- "))
       end
     end
   end
@@ -200,9 +194,7 @@ local function prof_annotate(count1, samples)
   for _, file in ipairs(files) do
     local f0 = file:byte()
     if f0 == 40 or f0 == 91 then
-      out:write(
-        format("\n====== %s ======\n[Cannot annotate non-file]\n", file)
-      )
+      out:write(format("\n====== %s ======\n[Cannot annotate non-file]\n", file))
       break
     end
     local fp, err = io.open(file)

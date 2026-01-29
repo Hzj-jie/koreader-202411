@@ -141,8 +141,7 @@ function MultiInputDialog:init()
       justified = field.justified or self.justified,
       lang = field.lang or self.lang,
       para_direction_rtl = field.para_direction_rtl or self.para_direction_rtl,
-      auto_para_direction = field.auto_para_direction
-        or self.auto_para_direction,
+      auto_para_direction = field.auto_para_direction or self.auto_para_direction,
       alignment_strict = field.alignment_strict or self.alignment_strict,
       enter_callback = self.enter_callback,
     })
@@ -264,10 +263,7 @@ function MultiInputDialog:onSwitchFocus(inputbox)
   self._input_widget:focus()
   self.focused_field_idx = inputbox.idx
 
-  if
-    (Device:hasKeyboard() or Device:hasScreenKB())
-    and G_reader_settings:isFalse("virtual_keyboard_enabled")
-  then
+  if (Device:hasKeyboard() or Device:hasScreenKB()) and G_reader_settings:isFalse("virtual_keyboard_enabled") then
     -- do not load virtual keyboard when user is hiding it.
     return
   end

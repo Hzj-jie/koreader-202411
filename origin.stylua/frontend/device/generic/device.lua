@@ -313,14 +313,10 @@ function Device:init()
   -- Dithering
   if self:hasEinkScreen() then
     self.screen:setupDithering()
-    if
-      self.screen.hw_dithering and G_reader_settings:isTrue("dev_no_hw_dither")
-    then
+    if self.screen.hw_dithering and G_reader_settings:isTrue("dev_no_hw_dither") then
       self.screen:toggleHWDithering(false)
     end
-    if
-      self.screen.sw_dithering and G_reader_settings:isTrue("dev_no_sw_dither")
-    then
+    if self.screen.sw_dithering and G_reader_settings:isTrue("dev_no_sw_dither") then
       self.screen:toggleSWDithering(false)
     end
     -- NOTE: If device can HW dither (i.e., after setupDithering(), hw_dithering is true, but sw_dithering is false),
@@ -366,9 +362,7 @@ function Device:onPowerEvent(ev)
     if ev == "Power" or ev == "Resume" then
       if self.is_cover_closed then
         -- Don't let power key press wake up device when the cover is in closed state.
-        logger.dbg(
-          "Pressed power while asleep in screen saver mode with a closed sleepcover, going back to suspend..."
-        )
+        logger.dbg("Pressed power while asleep in screen saver mode with a closed sleepcover, going back to suspend...")
         self:rescheduleSuspend()
       else
         logger.dbg("Resuming...")
@@ -377,12 +371,7 @@ function Device:onPowerEvent(ev)
         local widget_was_closed = Screensaver:close()
         if widget_was_closed and self:needsScreenRefreshAfterResume() then
           UIManager:scheduleIn(1, function()
-            self.screen:refreshFull(
-              0,
-              0,
-              self.screen:getWidth(),
-              self.screen:getHeight()
-            )
+            self.screen:refreshFull(0, 0, self.screen:getWidth(), self.screen:getHeight())
           end)
         end
         self.powerd:afterResume()
@@ -396,9 +385,7 @@ function Device:onPowerEvent(ev)
         -- and the user presses the Power button *after* already having woken up the device.
         -- In this case, we want to go back to suspend *without* affecting the screensaver,
         -- so we simply mimic our own behavior when *not* in screen_saver_mode ;).
-        logger.dbg(
-          "Pressed power while awake in screen saver mode, going back to suspend..."
-        )
+        logger.dbg("Pressed power while awake in screen saver mode, going back to suspend...")
         -- Basically, this is the only difference.
         -- We need it because we're actually in a sane post-Resume event state right now.
         self.powerd:beforeSuspend()
@@ -430,12 +417,7 @@ function Device:onPowerEvent(ev)
     --       and on platforms where we defer to a system tool, it'd probably suspend too early!
     --       c.f., #6676
     if self:needsScreenRefreshAfterResume() then
-      self.screen:refreshFull(
-        0,
-        0,
-        self.screen:getWidth(),
-        self.screen:getHeight()
-      )
+      self.screen:refreshFull(0, 0, self.screen:getWidth(), self.screen:getHeight())
     end
     -- NOTE: In the same vein as above, make sure we update the screen *now*, before dealing with Wi-Fi.
     UIManager:forceRePaint()
@@ -483,9 +465,7 @@ function Device:install()
     cancel_callback = function()
       local InfoMessage = require("ui/widget/infomessage")
       UIManager:show(InfoMessage:new({
-        text = _(
-          "The update will be applied the next time KOReader is started."
-        ),
+        text = _("The update will be applied the next time KOReader is started."),
         unmovable = true,
         dismissable = false,
       }))
@@ -505,11 +485,7 @@ function Device:setAutoStandby(isAllowed) end
 
 -- Hardware specific method to set OS-level file associations to launch koreader. Expects boolean map.
 function Device:associateFileExtensions(exts)
-  logger.dbg(
-    "Device:associateFileExtensions():",
-    util.tableSize(exts),
-    "entries, OS handler missing"
-  )
+  logger.dbg("Device:associateFileExtensions():", util.tableSize(exts), "entries, OS handler missing")
 end
 
 -- Hardware specific method to handle usb plug in event
@@ -638,10 +614,7 @@ function Device:exit()
   self:saveSettings()
 
   -- Save current rotation (or the original rotation if ScreenSaver temporarily modified it) to remember it for next startup
-  G_reader_settings:saveSetting(
-    "closed_rotation_mode",
-    self.orig_rotation_mode or self.screen:getRotationMode()
-  )
+  G_reader_settings:saveSetting("closed_rotation_mode", self.orig_rotation_mode or self.screen:getRotationMode())
 
   -- Restore initial HW inversion state
   self.screen:setHWNightmode(self.orig_hw_nightmode)
@@ -684,35 +657,19 @@ function Device:ping4(ip)
   -- NOTE: This is disabled by default, barring custom distro setup during init, c.f., sysctl net.ipv4.ping_group_range
   --       It also requires Linux 3.0+ (https://github.com/torvalds/linux/commit/c319b4d76b9e583a5d88d6bf190e079c4e43213d)
   local socket, socket_type
-  socket = C.socket(
-    C.AF_INET,
-    bit.bor(C.SOCK_DGRAM, C.SOCK_NONBLOCK, C.SOCK_CLOEXEC),
-    C.IPPROTO_ICMP
-  )
+  socket = C.socket(C.AF_INET, bit.bor(C.SOCK_DGRAM, C.SOCK_NONBLOCK, C.SOCK_CLOEXEC), C.IPPROTO_ICMP)
   if socket == -1 then
     local errno = ffi.errno()
-    logger.dbg(
-      "Device:ping4: unprivileged ICMP socket:",
-      ffi.string(C.strerror(errno))
-    )
+    logger.dbg("Device:ping4: unprivileged ICMP socket:", ffi.string(C.strerror(errno)))
 
     -- Try a raw socket
-    socket = C.socket(
-      C.AF_INET,
-      bit.bor(C.SOCK_RAW, C.SOCK_NONBLOCK, C.SOCK_CLOEXEC),
-      C.IPPROTO_ICMP
-    )
+    socket = C.socket(C.AF_INET, bit.bor(C.SOCK_RAW, C.SOCK_NONBLOCK, C.SOCK_CLOEXEC), C.IPPROTO_ICMP)
     if socket == -1 then
       errno = ffi.errno()
       if errno == C.EPERM then
-        logger.dbg(
-          "Device:ping4: opening a RAW ICMP socket requires CAP_NET_RAW capabilities!"
-        )
+        logger.dbg("Device:ping4: opening a RAW ICMP socket requires CAP_NET_RAW capabilities!")
       else
-        logger.dbg(
-          "Device:ping4: raw ICMP socket:",
-          ffi.string(C.strerror(errno))
-        )
+        logger.dbg("Device:ping4: raw ICMP socket:", ffi.string(C.strerror(errno)))
       end
       --- Fall-back to the ping CLI tool, in the hope that it's setuid...
       if self:isKindle() and self:hasDPad() then
@@ -760,14 +717,7 @@ function Device:ping4(ip)
   -- Send the ping
   local start_time = time.now()
   if
-    C.sendto(
-      socket,
-      packet,
-      DEFDATALEN + C.ICMP_MINLEN,
-      0,
-      ffi.cast("struct sockaddr*", addr),
-      ffi.sizeof(addr)
-    ) == -1
+    C.sendto(socket, packet, DEFDATALEN + C.ICMP_MINLEN, 0, ffi.cast("struct sockaddr*", addr), ffi.sizeof(addr)) == -1
   then
     local errno = ffi.errno()
     logger.err("Device:ping4: sendto:", ffi.string(C.strerror(errno)))
@@ -822,10 +772,7 @@ function Device:ping4(ip)
         local icp = ffi.cast("struct icmphdr *", packet + hlen)
         -- Check that we got a *reply* to *our* ping
         -- NOTE: The reply's ident is defined by the kernel for SOCK_DGRAM, so we can't do anything with it!
-        if
-          icp.type == C.ICMP_ECHOREPLY
-          and (socket_type == C.SOCK_DGRAM or icp.un.echo.id == myid)
-        then
+        if icp.type == C.ICMP_ECHOREPLY and (socket_type == C.SOCK_DGRAM or icp.un.echo.id == myid) then
           break
         end
       end
@@ -860,15 +807,9 @@ function Device:getDefaultRoute(interface)
         table.insert(fields, field)
       end
       -- Check the requested interface or anything that isn't lo
-      if
-        (interface and fields[1] == interface)
-        or (not interface and fields[1] ~= "lo")
-      then
+      if (interface and fields[1] == interface) or (not interface and fields[1] ~= "lo") then
         -- We're looking for something that's up & a gateway
-        if
-          bit.band(fields[4], C.RTF_UP) ~= 0
-          and bit.band(fields[4], C.RTF_GATEWAY) ~= 0
-        then
+        if bit.band(fields[4], C.RTF_UP) ~= 0 and bit.band(fields[4], C.RTF_GATEWAY) ~= 0 then
           -- Handle the conversion from network endianness hex string into a human-readable numeric form
           local sockaddr_in = ffi.new("struct sockaddr_in")
           sockaddr_in.sin_family = C.AF_INET
@@ -884,10 +825,7 @@ function Device:getDefaultRoute(interface)
             C.NI_NUMERICHOST
           )
           if s ~= 0 then
-            logger.err(
-              "Device:getDefaultRoute: getnameinfo:",
-              ffi.string(C.gai_strerror(s))
-            )
+            logger.err("Device:getDefaultRoute: getnameinfo:", ffi.string(C.gai_strerror(s)))
             break
           else
             gateway = ffi.string(host)
@@ -912,20 +850,14 @@ function Device:retrieveNetworkInfo()
   local socket = C.socket(C.PF_INET, C.SOCK_DGRAM, C.IPPROTO_IP)
   if socket == -1 then
     local errno = ffi.errno()
-    logger.err(
-      "Device:retrieveNetworkInfo: socket:",
-      ffi.string(C.strerror(errno))
-    )
+    logger.err("Device:retrieveNetworkInfo: socket:", ffi.string(C.strerror(errno)))
     return
   end
 
   local ifaddr = ffi.new("struct ifaddrs *[1]")
   if C.getifaddrs(ifaddr) == -1 then
     local errno = ffi.errno()
-    logger.err(
-      "Device:retrieveNetworkInfo: getifaddrs:",
-      ffi.string(C.strerror(errno))
-    )
+    logger.err("Device:retrieveNetworkInfo: getifaddrs:", ffi.string(C.strerror(errno)))
     return false
   end
 
@@ -948,8 +880,7 @@ function Device:retrieveNetworkInfo()
         local host = ffi.new("char[?]", C.NI_MAXHOST)
         local s = C.getnameinfo(
           ifa.ifa_addr,
-          family == C.AF_INET and ffi.sizeof("struct sockaddr_in")
-            or ffi.sizeof("struct sockaddr_in6"),
+          family == C.AF_INET and ffi.sizeof("struct sockaddr_in") or ffi.sizeof("struct sockaddr_in6"),
           host,
           C.NI_MAXHOST,
           nil,
@@ -957,10 +888,7 @@ function Device:retrieveNetworkInfo()
           C.NI_NUMERICHOST
         )
         if s ~= 0 then
-          logger.err(
-            "Device:retrieveNetworkInfo: getnameinfo:",
-            ffi.string(C.gai_strerror(s))
-          )
+          logger.err("Device:retrieveNetworkInfo: getnameinfo:", ffi.string(C.gai_strerror(s)))
         else
           -- Only print the ifname once
           local ifname = ffi.string(ifa.ifa_name)
@@ -977,10 +905,7 @@ function Device:retrieveNetworkInfo()
             ffi.copy(ifr.ifr_ifrn.ifrn_name, ifa.ifa_name, C.IFNAMSIZ)
             if C.ioctl(socket, C.SIOCGIFHWADDR, ifr) == -1 then
               local errno = ffi.errno()
-              logger.err(
-                "Device:retrieveNetworkInfo: SIOCGIFHWADDR ioctl:",
-                ffi.string(C.strerror(errno))
-              )
+              logger.err("Device:retrieveNetworkInfo: SIOCGIFHWADDR ioctl:", ffi.string(C.strerror(errno)))
             else
               local mac = string.format(
                 "%02X:%02X:%02X:%02X:%02X:%02X",
@@ -1006,10 +931,7 @@ function Device:retrieveNetworkInfo()
               iwr.u.essid.flags = 0
               if C.ioctl(socket, C.SIOCGIWESSID, iwr) == -1 then
                 local errno = ffi.errno()
-                logger.err(
-                  "Device:retrieveNetworkInfo: SIOCGIWESSID ioctl:",
-                  ffi.string(C.strerror(errno))
-                )
+                logger.err("Device:retrieveNetworkInfo: SIOCGIWESSID ioctl:", ffi.string(C.strerror(errno)))
               else
                 local essid_on = iwr.u.data.flags
                 if essid_on ~= 0 then
@@ -1140,11 +1062,7 @@ function Device:unpackArchive(archive, extract_to, with_stripped_root)
   then
     ok = self:untar(archive, extract_to, with_stripped_root)
   else
-    return false,
-      T(
-        _("Couldn't extract archive:\n\n%1\n\nUnrecognized filename extension."),
-        BD.filepath(archive)
-      )
+    return false, T(_("Couldn't extract archive:\n\n%1\n\nUnrecognized filename extension."), BD.filepath(archive))
   end
   if not ok then
     return false, T(_("Extracting archive failed:\n\n%1"), BD.filepath(archive))
@@ -1206,8 +1124,7 @@ function Device:_setEventHandlers(uimgr)
     UIManager.event_handlers.PowerOff = function(message_text)
       local ConfirmBox = require("ui/widget/confirmbox")
       UIManager:show(ConfirmBox:new({
-        text = message_text
-          or _("Are you sure you want to power off the device?"),
+        text = message_text or _("Are you sure you want to power off the device?"),
         ok_text = _("Power off"),
         ok_callback = function()
           UIManager:nextTick(UIManager.poweroff_action)

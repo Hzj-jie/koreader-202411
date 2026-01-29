@@ -47,19 +47,11 @@ function HorizontalGroup:paintTo(bb, x, y)
   end
   for i, widget in ipairs(self) do
     if self.align == "center" then
-      widget:paintTo(
-        bb,
-        x + self._offsets[i].x,
-        y + math.floor((size.h - self._offsets[i].y) / 2)
-      )
+      widget:paintTo(bb, x + self._offsets[i].x, y + math.floor((size.h - self._offsets[i].y) / 2))
     elseif self.align == "top" then
       widget:paintTo(bb, x + self._offsets[i].x, y)
     elseif self.align == "bottom" then
-      widget:paintTo(
-        bb,
-        x + self._offsets[i].x,
-        y + size.h - self._offsets[i].y
-      )
+      widget:paintTo(bb, x + self._offsets[i].x, y + size.h - self._offsets[i].y)
     else
       io.stderr:write("[!] invalid alignment for HorizontalGroup: ", self.align)
     end

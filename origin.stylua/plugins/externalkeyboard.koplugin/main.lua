@@ -55,10 +55,7 @@ local function setupDebugFS()
 
   local found = false
   for line in mounts:lines() do
-    if
-      line:find("^none /sys/kernel/debug debugfs")
-      or line:find("^debugfs /sys/kernel/debug debugfs")
-    then
+    if line:find("^none /sys/kernel/debug debugfs") or line:find("^debugfs /sys/kernel/debug debugfs") then
       found = true
       break
     end
@@ -128,10 +125,7 @@ function ExternalKeyboard:init()
   local role = self:getOTGRole()
   logger.dbg("ExternalKeyboard: role", role)
 
-  if
-    role == USB_ROLE_DEVICE
-    and G_reader_settings:isTrue("external_keyboard_otg_mode_on_start")
-  then
+  if role == USB_ROLE_DEVICE and G_reader_settings:isTrue("external_keyboard_otg_mode_on_start") then
     self:setOTGRole(USB_ROLE_HOST)
     role = USB_ROLE_HOST
   end
@@ -152,8 +146,7 @@ function ExternalKeyboard:addToMainMenu(menu_items)
         end,
         callback = function(touchmenu_instance)
           local role = self:getOTGRole()
-          local new_role = (role == USB_ROLE_DEVICE) and USB_ROLE_HOST
-            or USB_ROLE_DEVICE
+          local new_role = (role == USB_ROLE_DEVICE) and USB_ROLE_HOST or USB_ROLE_DEVICE
           self:setOTGRole(new_role)
         end,
       },
@@ -163,9 +156,7 @@ function ExternalKeyboard:addToMainMenu(menu_items)
           return G_reader_settings:isTrue("external_keyboard_otg_mode_on_start")
         end,
         callback = function(touchmenu_instance)
-          G_reader_settings:flipNilOrFalse(
-            "external_keyboard_otg_mode_on_start"
-          )
+          G_reader_settings:flipNilOrFalse("external_keyboard_otg_mode_on_start")
         end,
       },
       {
@@ -249,22 +240,14 @@ end
 function ExternalKeyboard:_onEvdevInputRemove(event_path)
   -- Check that a keyboard we know about really was disconnected. Another input device could've been unplugged.
   if not ExternalKeyboard.keyboard_fds[event_path] then
-    logger.dbg(
-      "ExternalKeyboard:onEvdevInputRemove:",
-      event_path,
-      "was not a keyboard we knew about"
-    )
+    logger.dbg("ExternalKeyboard:onEvdevInputRemove:", event_path, "was not a keyboard we knew about")
     return
   end
 
   -- Double-check that it's really gone.
   local event_file_attrs = lfs.attributes(event_path, "mode")
   if event_file_attrs ~= nil then
-    logger.warn(
-      "ExternalKeyboard:onEvdevInputRemove:",
-      event_path,
-      "is still connected?!"
-    )
+    logger.warn("ExternalKeyboard:onEvdevInputRemove:", event_path, "is still connected?!")
     return
   end
 
@@ -272,8 +255,7 @@ function ExternalKeyboard:_onEvdevInputRemove(event_path)
   Device.input:close(event_path)
 
   ExternalKeyboard.keyboard_fds[event_path] = nil
-  ExternalKeyboard.connected_keyboards = ExternalKeyboard.connected_keyboards
-    - 1
+  ExternalKeyboard.connected_keyboards = ExternalKeyboard.connected_keyboards - 1
   logger.dbg(
     "ExternalKeyboard: USB keyboard",
     event_path,
@@ -281,13 +263,9 @@ function ExternalKeyboard:_onEvdevInputRemove(event_path)
     ExternalKeyboard.connected_keyboards
   )
   -- If that was the last keyboard we knew about, restore native input-related device caps.
-  if
-    ExternalKeyboard.connected_keyboards == 0
-    and ExternalKeyboard.original_device_values
-  then
+  if ExternalKeyboard.connected_keyboards == 0 and ExternalKeyboard.original_device_values then
     Device.input.event_map = ExternalKeyboard.original_device_values.event_map
-    Device.keyboard_layout =
-      ExternalKeyboard.original_device_values.keyboard_layout
+    Device.keyboard_layout = ExternalKeyboard.original_device_values.keyboard_layout
     Device.hasKeyboard = ExternalKeyboard.original_device_values.hasKeyboard
     Device.hasKeys = ExternalKeyboard.original_device_values.hasKeys
     Device.hasFewKeys = ExternalKeyboard.original_device_values.hasFewKeys
@@ -314,14 +292,10 @@ function ExternalKeyboard:onEvdevInputRemove(path)
   UIManager:scheduleIn(0.5, self._onEvdevInputRemove, self, path)
 end
 
-ExternalKeyboard._broadcastDisconnected = UIManager:debounce(
-  0.5,
-  false,
-  function()
-    InputText.initInputEvents()
-    UIManager:broadcastEvent(Event:new("PhysicalKeyboardDisconnected"))
-  end
-)
+ExternalKeyboard._broadcastDisconnected = UIManager:debounce(0.5, false, function()
+  InputText.initInputEvents()
+  UIManager:broadcastEvent(Event:new("PhysicalKeyboardDisconnected"))
+end)
 
 -- Implement FindKeyboard:find & check via FBInkInput
 local function findKeyboards()
@@ -394,11 +368,7 @@ function ExternalKeyboard:setupKeyboard(data)
 
     keyboard_info = checkKeyboard(event_path)
     if not keyboard_info then
-      logger.dbg(
-        "ExternalKeyboard:setupKeyboard:",
-        event_path,
-        "doesn't look like a keyboard"
-      )
+      logger.dbg("ExternalKeyboard:setupKeyboard:", event_path, "doesn't look like a keyboard")
       return
     end
   end
@@ -415,13 +385,8 @@ function ExternalKeyboard:setupKeyboard(data)
   )
   -- Check if we already know about this event file.
   if ExternalKeyboard.keyboard_fds[keyboard_info.event_path] == nil then
-    local ok, fd = pcall(
-      Device.input.fdopen,
-      Device.input,
-      keyboard_info.event_fd,
-      keyboard_info.event_path,
-      keyboard_info.name
-    )
+    local ok, fd =
+      pcall(Device.input.fdopen, Device.input, keyboard_info.event_fd, keyboard_info.event_path, keyboard_info.name)
     if not ok then
       UIManager:show(InfoMessage:new({
         text = "Error opening keyboard:\n" .. tostring(fd),
@@ -431,8 +396,7 @@ function ExternalKeyboard:setupKeyboard(data)
     end
 
     ExternalKeyboard.keyboard_fds[keyboard_info.event_path] = fd
-    ExternalKeyboard.connected_keyboards = ExternalKeyboard.connected_keyboards
-      + 1
+    ExternalKeyboard.connected_keyboards = ExternalKeyboard.connected_keyboards + 1
     logger.dbg(
       "ExternalKeyboard: USB keyboard",
       keyboard_info.name,
@@ -463,10 +427,7 @@ function ExternalKeyboard:setupKeyboard(data)
   -- Using a new table avoids mutating the original event map.
   local event_map = {}
   util.tableMerge(event_map, Device.input.event_map)
-  util.tableMerge(
-    event_map,
-    dofile("plugins/externalkeyboard.koplugin/event_map_keyboard.lua")
-  )
+  util.tableMerge(event_map, dofile("plugins/externalkeyboard.koplugin/event_map_keyboard.lua"))
   Device.input.event_map = event_map
   Device.hasKeyboard = yes
   Device.hasKeys = yes
@@ -490,9 +451,7 @@ end)
 
 function ExternalKeyboard:showHelp()
   UIManager:show(InfoMessage:new({
-    text = _(
-      "Note that in OTG mode the device will not be recognized as a USB drive by a computer."
-    ),
+    text = _("Note that in OTG mode the device will not be recognized as a USB drive by a computer."),
   }))
 end
 

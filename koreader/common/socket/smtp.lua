@@ -116,9 +116,7 @@ function metat.__index:send(mailt)
 end
 
 function _M.open(server, port, create)
-  local tp = socket.try(
-    tp.connect(server or _M.SERVER, port or _M.PORT, _M.TIMEOUT, create)
-  )
+  local tp = socket.try(tp.connect(server or _M.SERVER, port or _M.PORT, _M.TIMEOUT, create))
   local s = base.setmetatable({ tp = tp }, metat)
   -- make sure tp is closed if we get an exception
   s.try = socket.newtry(function()
@@ -143,12 +141,7 @@ end
 local seqno = 0
 local function newboundary()
   seqno = seqno + 1
-  return string.format(
-    "%s%05d==%05u",
-    os.date("%d%m%Y%H%M%S"),
-    math.random(0, 99999),
-    seqno
-  )
+  return string.format("%s%05d==%05u", os.date("%d%m%Y%H%M%S"), math.random(0, 99999), seqno)
 end
 
 -- send_message forward declaration
@@ -170,10 +163,7 @@ local function send_multipart(mesgt)
   local bd = newboundary()
   local headers = lower_headers(mesgt.headers or {})
   headers["content-type"] = headers["content-type"] or "multipart/mixed"
-  headers["content-type"] = headers["content-type"]
-    .. '; boundary="'
-    .. bd
-    .. '"'
+  headers["content-type"] = headers["content-type"] .. '; boundary="' .. bd .. '"'
   send_headers(headers)
   -- send preamble
   if mesgt.body.preamble then
@@ -198,8 +188,7 @@ end
 local function send_source(mesgt)
   -- make sure we have a content-type
   local headers = lower_headers(mesgt.headers or {})
-  headers["content-type"] = headers["content-type"]
-    or 'text/plain; charset="iso-8859-1"'
+  headers["content-type"] = headers["content-type"] or 'text/plain; charset="iso-8859-1"'
   send_headers(headers)
   -- send body from source
   while true do
@@ -218,8 +207,7 @@ end
 local function send_string(mesgt)
   -- make sure we have a content-type
   local headers = lower_headers(mesgt.headers or {})
-  headers["content-type"] = headers["content-type"]
-    or 'text/plain; charset="iso-8859-1"'
+  headers["content-type"] = headers["content-type"] or 'text/plain; charset="iso-8859-1"'
   send_headers(headers)
   -- send body from string
   coroutine.yield(mesgt.body)
@@ -239,8 +227,7 @@ end
 -- set defaul headers
 local function adjust_headers(mesgt)
   local lower = lower_headers(mesgt.headers)
-  lower["date"] = lower["date"]
-    or os.date("!%a, %d %b %Y %H:%M:%S ") .. (mesgt.zone or _M.ZONE)
+  lower["date"] = lower["date"] or os.date("!%a, %d %b %Y %H:%M:%S ") .. (mesgt.zone or _M.ZONE)
   lower["x-mailer"] = lower["x-mailer"] or socket._VERSION
   -- this can't be overridden
   lower["mime-version"] = "1.0"

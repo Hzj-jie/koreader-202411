@@ -109,10 +109,7 @@ assert(Lua_has_double, "at least 53-bit floating point numbers are required")
 local int_prec, Lua_has_integers = get_precision(1)
 local Lua_has_int64 = Lua_has_integers and int_prec == 64
 local Lua_has_int32 = Lua_has_integers and int_prec == 32
-assert(
-  Lua_has_int64 or Lua_has_int32 or not Lua_has_integers,
-  "Lua integers must be either 32-bit or 64-bit"
-)
+assert(Lua_has_int64 or Lua_has_int32 or not Lua_has_integers, "Lua integers must be either 32-bit or 64-bit")
 
 -- Q:
 --    Does it mean that almost all non-standard configurations are not supported?
@@ -155,9 +152,7 @@ if is_LuaJIT then
   LuaJIT_arch = type(jit) == "table" and jit.arch or ffi and ffi.arch or nil
 else
   -- For vanilla Lua, "bit"/"bit32" libraries are searched in global namespace only.  No attempt is made to load a library if it's not loaded yet.
-  for _, libname in
-    ipairs(_VERSION == "Lua 5.2" and { "bit32", "bit" } or { "bit", "bit32" })
-  do
+  for _, libname in ipairs(_VERSION == "Lua 5.2" and { "bit32", "bit" } or { "bit", "bit32" }) do
     if type(_G[libname]) == "table" and _G[libname].bxor then
       b = _G[libname]
       library_name = libname
@@ -188,10 +183,7 @@ if print_debug_messages then
         or _VERSION
       )
   )
-  print(
-    "   Integer bitwise operators: "
-      .. (Lua_has_int64 and "int64" or Lua_has_int32 and "int32" or "no")
-  )
+  print("   Integer bitwise operators: " .. (Lua_has_int64 and "int64" or Lua_has_int32 and "int32" or "no"))
   print("   32-bit bitwise library:    " .. (library_name or "not found"))
 end
 
@@ -246,10 +238,7 @@ if branch == "FFI" or branch == "LJ" or branch == "LIB32" then
   NOT = b.bnot -- only for LuaJIT
   NORM = b.tobit -- only for LuaJIT
   HEX = b.tohex -- returns string of 8 lowercase hexadecimal digits
-  assert(
-    AND and OR and XOR and SHL and SHR and ROL and ROR and NOT,
-    "Library '" .. library_name .. "' is incomplete"
-  )
+  assert(AND and OR and XOR and SHL and SHR and ROL and ROR and NOT, "Library '" .. library_name .. "' is incomplete")
   XOR_BYTE = XOR -- XOR of two bytes (0..255)
 elseif branch == "EMUL" then
   -- Emulating 32-bit bitwise operations using 53-bit floating point arithmetic
@@ -389,13 +378,10 @@ end
 local sha256_feed_64, sha512_feed_128, md5_feed_64, sha1_feed_64, keccak_feed, blake2s_feed_64, blake2b_feed_128, blake3_feed_64
 
 -- Arrays of SHA-2 "magic numbers" (in "INT64" and "FFI" branches "*_lo" arrays contain 64-bit values)
-local sha2_K_lo, sha2_K_hi, sha2_H_lo, sha2_H_hi, sha3_RC_lo, sha3_RC_hi =
-  {}, {}, {}, {}, {}, {}
+local sha2_K_lo, sha2_K_hi, sha2_H_lo, sha2_H_hi, sha3_RC_lo, sha3_RC_hi = {}, {}, {}, {}, {}, {}
 local sha2_H_ext256 = { [224] = {}, [256] = sha2_H_hi }
-local sha2_H_ext512_lo, sha2_H_ext512_hi =
-  { [384] = {}, [512] = sha2_H_lo }, { [384] = {}, [512] = sha2_H_hi }
-local md5_K, md5_sha1_H =
-  {}, { 0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0 }
+local sha2_H_ext512_lo, sha2_H_ext512_hi = { [384] = {}, [512] = sha2_H_lo }, { [384] = {}, [512] = sha2_H_hi }
+local md5_K, md5_sha1_H = {}, { 0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0 }
 local md5_next_shift = {
   0,
   0,
@@ -428,8 +414,7 @@ local md5_next_shift = {
 }
 local HEX64, lanes_index_base -- defined only for branches that internally use 64-bit integers: "INT64" and "FFI"
 local common_W = {} -- temporary table shared between all calculations (to avoid creating new temporary table every time)
-local common_W_blake2b, common_W_blake2s, v_for_blake2s_feed_64 =
-  common_W, common_W, {}
+local common_W_blake2b, common_W_blake2s, v_for_blake2s_feed_64 = common_W, common_W, {}
 local K_lo_modulo, hi_factor, hi_factor_keccak = 4294967296, 0, 0
 local sigma = {
   { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 },
@@ -506,141 +491,38 @@ if branch == "FFI" then
       end
       for j = 16, 63 do
         local a, b = W[j - 15], W[j - 2]
-        W[j] = NORM(
-          XOR(ROR(a, 7), ROL(a, 14), SHR(a, 3))
-            + XOR(ROL(b, 15), ROL(b, 13), SHR(b, 10))
-            + W[j - 7]
-            + W[j - 16]
-        )
+        W[j] =
+          NORM(XOR(ROR(a, 7), ROL(a, 14), SHR(a, 3)) + XOR(ROL(b, 15), ROL(b, 13), SHR(b, 10)) + W[j - 7] + W[j - 16])
       end
-      local a, b, c, d, e, f, g, h =
-        H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
+      local a, b, c, d, e, f, g, h = H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
       for j = 0, 63, 8 do -- Thanks to Peter Cawley for this workaround (unroll the loop to avoid "PHI shuffling too complex" due to PHIs overlap)
-        local z = NORM(
-          XOR(g, AND(e, XOR(f, g)))
-            + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + (W[j] + K[j + 1] + h)
-        )
+        local z = NORM(XOR(g, AND(e, XOR(f, g))) + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + (W[j] + K[j + 1] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(g, AND(e, XOR(f, g)))
-            + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + (W[j + 1] + K[j + 2] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(g, AND(e, XOR(f, g))) + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + (W[j + 1] + K[j + 2] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(g, AND(e, XOR(f, g)))
-            + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + (W[j + 2] + K[j + 3] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(g, AND(e, XOR(f, g))) + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + (W[j + 2] + K[j + 3] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(g, AND(e, XOR(f, g)))
-            + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + (W[j + 3] + K[j + 4] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(g, AND(e, XOR(f, g))) + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + (W[j + 3] + K[j + 4] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(g, AND(e, XOR(f, g)))
-            + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + (W[j + 4] + K[j + 5] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(g, AND(e, XOR(f, g))) + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + (W[j + 4] + K[j + 5] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(g, AND(e, XOR(f, g)))
-            + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + (W[j + 5] + K[j + 6] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(g, AND(e, XOR(f, g))) + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + (W[j + 5] + K[j + 6] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(g, AND(e, XOR(f, g)))
-            + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + (W[j + 6] + K[j + 7] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(g, AND(e, XOR(f, g))) + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + (W[j + 6] + K[j + 7] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(g, AND(e, XOR(f, g)))
-            + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + (W[j + 7] + K[j + 8] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(g, AND(e, XOR(f, g))) + XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + (W[j + 7] + K[j + 8] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
       end
-      H[1], H[2], H[3], H[4] =
-        NORM(a + H[1]), NORM(b + H[2]), NORM(c + H[3]), NORM(d + H[4])
-      H[5], H[6], H[7], H[8] =
-        NORM(e + H[5]), NORM(f + H[6]), NORM(g + H[7]), NORM(h + H[8])
+      H[1], H[2], H[3], H[4] = NORM(a + H[1]), NORM(b + H[2]), NORM(c + H[3]), NORM(d + H[4])
+      H[5], H[6], H[7], H[8] = NORM(e + H[5]), NORM(f + H[6]), NORM(g + H[7]), NORM(h + H[8])
     end
   end
 
@@ -676,19 +558,9 @@ if branch == "FFI" then
         v[a], v[b], v[c], v[d] = va, vb, vc, vd
       end
 
-      function blake2b_feed_128(
-        H,
-        _,
-        str,
-        offs,
-        size,
-        bytes_compressed,
-        last_block_size,
-        is_last_node
-      )
+      function blake2b_feed_128(H, _, str, offs, size, bytes_compressed, last_block_size, is_last_node)
         -- offs >= 0, size >= 0, size is multiple of 128
-        local h1, h2, h3, h4, h5, h6, h7, h8 =
-          H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
+        local h1, h2, h3, h4, h5, h6, h7, h8 = H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
         for pos = offs, offs + size - 1, 128 do
           if str then
             for j = 1, 16 do
@@ -700,16 +572,9 @@ if branch == "FFI" then
               )
             end
           end
-          v[0x0], v[0x1], v[0x2], v[0x3], v[0x4], v[0x5], v[0x6], v[0x7] =
-            h1, h2, h3, h4, h5, h6, h7, h8
+          v[0x0], v[0x1], v[0x2], v[0x3], v[0x4], v[0x5], v[0x6], v[0x7] = h1, h2, h3, h4, h5, h6, h7, h8
           v[0x8], v[0x9], v[0xA], v[0xB], v[0xD], v[0xE], v[0xF] =
-            sha2_H_lo[1],
-            sha2_H_lo[2],
-            sha2_H_lo[3],
-            sha2_H_lo[4],
-            sha2_H_lo[6],
-            sha2_H_lo[7],
-            sha2_H_lo[8]
+            sha2_H_lo[1], sha2_H_lo[2], sha2_H_lo[3], sha2_H_lo[4], sha2_H_lo[6], sha2_H_lo[7], sha2_H_lo[8]
           bytes_compressed = bytes_compressed + (last_block_size or 128)
           v[0xC] = XOR64(sha2_H_lo[5], bytes_compressed) -- t0 = low_8_bytes(bytes_compressed)
           -- t1 = high_8_bytes(bytes_compressed) = 0,  message length is always below 2^53 bytes
@@ -739,8 +604,7 @@ if branch == "FFI" then
           h7 = XOR64(h7, v[0x6], v[0xE])
           h8 = XOR64(h8, v[0x7], v[0xF])
         end
-        H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] =
-          h1, h2, h3, h4, h5, h6, h7, h8
+        H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] = h1, h2, h3, h4, h5, h6, h7, h8
         return bytes_compressed
       end
     end
@@ -774,13 +638,7 @@ if branch == "FFI" then
         end
         for round_idx = 1, 24 do
           for j = 0, 4 do
-            lanes[25 + j] = XOR64(
-              lanes[j],
-              lanes[j + 5],
-              lanes[j + 10],
-              lanes[j + 15],
-              lanes[j + 20]
-            )
+            lanes[25 + j] = XOR64(lanes[j], lanes[j + 5], lanes[j + 10], lanes[j + 15], lanes[j + 20])
           end
           local D = XOR64(lanes[25], ROL64(lanes[27], 1))
           lanes[1], lanes[6], lanes[11], lanes[16] =
@@ -878,8 +736,7 @@ if branch == "FFI" then
             + W[j - 7]
             + W[j - 16]
         end
-        local a, b, c, d, e, f, g, h =
-          H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
+        local a, b, c, d, e, f, g, h = H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
         for j = 0, 79, 8 do
           local z = XOR64(ROR64(e, 14), ROR64(e, 18), ROL64(e, 23))
             + XOR64(g, AND64(e, XOR64(f, g)))
@@ -888,14 +745,7 @@ if branch == "FFI" then
             + W[j]
           h, g, f, e = g, f, e, z + d
           d, c, b, a =
-            c,
-            b,
-            a,
-            XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(
-              ROR64(a, 28),
-              ROL64(a, 25),
-              ROL64(a, 30)
-            ) + z
+            c, b, a, XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(ROR64(a, 28), ROL64(a, 25), ROL64(a, 30)) + z
           z = XOR64(ROR64(e, 14), ROR64(e, 18), ROL64(e, 23))
             + XOR64(g, AND64(e, XOR64(f, g)))
             + h
@@ -903,14 +753,7 @@ if branch == "FFI" then
             + W[j + 1]
           h, g, f, e = g, f, e, z + d
           d, c, b, a =
-            c,
-            b,
-            a,
-            XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(
-              ROR64(a, 28),
-              ROL64(a, 25),
-              ROL64(a, 30)
-            ) + z
+            c, b, a, XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(ROR64(a, 28), ROL64(a, 25), ROL64(a, 30)) + z
           z = XOR64(ROR64(e, 14), ROR64(e, 18), ROL64(e, 23))
             + XOR64(g, AND64(e, XOR64(f, g)))
             + h
@@ -918,14 +761,7 @@ if branch == "FFI" then
             + W[j + 2]
           h, g, f, e = g, f, e, z + d
           d, c, b, a =
-            c,
-            b,
-            a,
-            XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(
-              ROR64(a, 28),
-              ROL64(a, 25),
-              ROL64(a, 30)
-            ) + z
+            c, b, a, XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(ROR64(a, 28), ROL64(a, 25), ROL64(a, 30)) + z
           z = XOR64(ROR64(e, 14), ROR64(e, 18), ROL64(e, 23))
             + XOR64(g, AND64(e, XOR64(f, g)))
             + h
@@ -933,14 +769,7 @@ if branch == "FFI" then
             + W[j + 3]
           h, g, f, e = g, f, e, z + d
           d, c, b, a =
-            c,
-            b,
-            a,
-            XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(
-              ROR64(a, 28),
-              ROL64(a, 25),
-              ROL64(a, 30)
-            ) + z
+            c, b, a, XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(ROR64(a, 28), ROL64(a, 25), ROL64(a, 30)) + z
           z = XOR64(ROR64(e, 14), ROR64(e, 18), ROL64(e, 23))
             + XOR64(g, AND64(e, XOR64(f, g)))
             + h
@@ -948,14 +777,7 @@ if branch == "FFI" then
             + W[j + 4]
           h, g, f, e = g, f, e, z + d
           d, c, b, a =
-            c,
-            b,
-            a,
-            XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(
-              ROR64(a, 28),
-              ROL64(a, 25),
-              ROL64(a, 30)
-            ) + z
+            c, b, a, XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(ROR64(a, 28), ROL64(a, 25), ROL64(a, 30)) + z
           z = XOR64(ROR64(e, 14), ROR64(e, 18), ROL64(e, 23))
             + XOR64(g, AND64(e, XOR64(f, g)))
             + h
@@ -963,14 +785,7 @@ if branch == "FFI" then
             + W[j + 5]
           h, g, f, e = g, f, e, z + d
           d, c, b, a =
-            c,
-            b,
-            a,
-            XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(
-              ROR64(a, 28),
-              ROL64(a, 25),
-              ROL64(a, 30)
-            ) + z
+            c, b, a, XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(ROR64(a, 28), ROL64(a, 25), ROL64(a, 30)) + z
           z = XOR64(ROR64(e, 14), ROR64(e, 18), ROL64(e, 23))
             + XOR64(g, AND64(e, XOR64(f, g)))
             + h
@@ -978,14 +793,7 @@ if branch == "FFI" then
             + W[j + 6]
           h, g, f, e = g, f, e, z + d
           d, c, b, a =
-            c,
-            b,
-            a,
-            XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(
-              ROR64(a, 28),
-              ROL64(a, 25),
-              ROL64(a, 30)
-            ) + z
+            c, b, a, XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(ROR64(a, 28), ROL64(a, 25), ROL64(a, 30)) + z
           z = XOR64(ROR64(e, 14), ROR64(e, 18), ROL64(e, 23))
             + XOR64(g, AND64(e, XOR64(f, g)))
             + h
@@ -993,14 +801,7 @@ if branch == "FFI" then
             + W[j + 7]
           h, g, f, e = g, f, e, z + d
           d, c, b, a =
-            c,
-            b,
-            a,
-            XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(
-              ROR64(a, 28),
-              ROL64(a, 25),
-              ROL64(a, 30)
-            ) + z
+            c, b, a, XOR64(AND64(XOR64(a, b), c), AND64(a, b)) + XOR64(ROR64(a, 28), ROL64(a, 25), ROL64(a, 30)) + z
         end
         H[1] = a + H[1]
         H[2] = b + H[2]
@@ -1013,11 +814,7 @@ if branch == "FFI" then
       end
     end
   else -- LuaJIT 2.0 doesn't support 64-bit bitwise operations
-    local U = ffi.new(
-      "union{int64_t i64; struct{int32_t "
-        .. (ffi.abi("le") and "lo, hi" or "hi, lo")
-        .. ";} i32;}[3]"
-    )
+    local U = ffi.new("union{int64_t i64; struct{int32_t " .. (ffi.abi("le") and "lo, hi" or "hi, lo") .. ";} i32;}[3]")
     -- this array of unions is used for fast splitting int64 into int32_high and int32_low
 
     -- "xorrific" 64-bit functions :-)
@@ -1028,21 +825,8 @@ if branch == "FFI" then
       -- return XOR64(ROR64(a, 1), ROR64(a, 8), SHR64(a, 7))
       U[0].i64 = a
       local a_lo, a_hi = U[0].i32.lo, U[0].i32.hi
-      local t_lo = XOR(
-        SHR(a_lo, 1),
-        SHL(a_hi, 31),
-        SHR(a_lo, 8),
-        SHL(a_hi, 24),
-        SHR(a_lo, 7),
-        SHL(a_hi, 25)
-      )
-      local t_hi = XOR(
-        SHR(a_hi, 1),
-        SHL(a_lo, 31),
-        SHR(a_hi, 8),
-        SHL(a_lo, 24),
-        SHR(a_hi, 7)
-      )
+      local t_lo = XOR(SHR(a_lo, 1), SHL(a_hi, 31), SHR(a_lo, 8), SHL(a_hi, 24), SHR(a_lo, 7), SHL(a_hi, 25))
+      local t_hi = XOR(SHR(a_hi, 1), SHL(a_lo, 31), SHR(a_hi, 8), SHL(a_lo, 24), SHR(a_hi, 7))
       return t_hi * int64(2 ^ 32) + uint32(int32(t_lo))
     end
 
@@ -1050,21 +834,8 @@ if branch == "FFI" then
       -- return XOR64(ROR64(b, 19), ROL64(b, 3), SHR64(b, 6))
       U[0].i64 = b
       local b_lo, b_hi = U[0].i32.lo, U[0].i32.hi
-      local u_lo = XOR(
-        SHR(b_lo, 19),
-        SHL(b_hi, 13),
-        SHL(b_lo, 3),
-        SHR(b_hi, 29),
-        SHR(b_lo, 6),
-        SHL(b_hi, 26)
-      )
-      local u_hi = XOR(
-        SHR(b_hi, 19),
-        SHL(b_lo, 13),
-        SHL(b_hi, 3),
-        SHR(b_lo, 29),
-        SHR(b_hi, 6)
-      )
+      local u_lo = XOR(SHR(b_lo, 19), SHL(b_hi, 13), SHL(b_lo, 3), SHR(b_hi, 29), SHR(b_lo, 6), SHL(b_hi, 26))
+      local u_hi = XOR(SHR(b_hi, 19), SHL(b_lo, 13), SHL(b_hi, 3), SHR(b_lo, 29), SHR(b_hi, 6))
       return u_hi * int64(2 ^ 32) + uint32(int32(u_lo))
     end
 
@@ -1072,22 +843,8 @@ if branch == "FFI" then
       -- return XOR64(ROR64(e, 14), ROR64(e, 18), ROL64(e, 23))
       U[0].i64 = e
       local e_lo, e_hi = U[0].i32.lo, U[0].i32.hi
-      local u_lo = XOR(
-        SHR(e_lo, 14),
-        SHL(e_hi, 18),
-        SHR(e_lo, 18),
-        SHL(e_hi, 14),
-        SHL(e_lo, 23),
-        SHR(e_hi, 9)
-      )
-      local u_hi = XOR(
-        SHR(e_hi, 14),
-        SHL(e_lo, 18),
-        SHR(e_hi, 18),
-        SHL(e_lo, 14),
-        SHL(e_hi, 23),
-        SHR(e_lo, 9)
-      )
+      local u_lo = XOR(SHR(e_lo, 14), SHL(e_hi, 18), SHR(e_lo, 18), SHL(e_hi, 14), SHL(e_lo, 23), SHR(e_hi, 9))
+      local u_hi = XOR(SHR(e_hi, 14), SHL(e_lo, 18), SHR(e_hi, 18), SHL(e_lo, 14), SHL(e_hi, 23), SHR(e_lo, 9))
       return u_hi * int64(2 ^ 32) + uint32(int32(u_lo))
     end
 
@@ -1095,22 +852,8 @@ if branch == "FFI" then
       -- return XOR64(ROR64(a, 28), ROL64(a, 25), ROL64(a, 30))
       U[0].i64 = a
       local b_lo, b_hi = U[0].i32.lo, U[0].i32.hi
-      local u_lo = XOR(
-        SHR(b_lo, 28),
-        SHL(b_hi, 4),
-        SHL(b_lo, 30),
-        SHR(b_hi, 2),
-        SHL(b_lo, 25),
-        SHR(b_hi, 7)
-      )
-      local u_hi = XOR(
-        SHR(b_hi, 28),
-        SHL(b_lo, 4),
-        SHL(b_hi, 30),
-        SHR(b_lo, 2),
-        SHL(b_hi, 25),
-        SHR(b_lo, 7)
-      )
+      local u_lo = XOR(SHR(b_lo, 28), SHL(b_hi, 4), SHL(b_lo, 30), SHR(b_hi, 2), SHL(b_lo, 25), SHR(b_hi, 7))
+      local u_hi = XOR(SHR(b_hi, 28), SHL(b_lo, 4), SHL(b_hi, 30), SHR(b_lo, 2), SHL(b_hi, 25), SHR(b_lo, 7))
       return u_hi * int64(2 ^ 32) + uint32(int32(u_lo))
     end
 
@@ -1228,13 +971,9 @@ if branch == "FFI" then
             + uint32(int32(OR(SHL(e, 24), SHL(f, 16), SHL(g, 8), h)))
         end
         for j = 16, 79 do
-          W[j] = XORROR64_1(W[j - 15])
-            + XORROR64_2(W[j - 2])
-            + W[j - 7]
-            + W[j - 16]
+          W[j] = XORROR64_1(W[j - 15]) + XORROR64_2(W[j - 2]) + W[j - 7] + W[j - 16]
         end
-        local a, b, c, d, e, f, g, h =
-          H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
+        local a, b, c, d, e, f, g, h = H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
         for j = 0, 79, 8 do
           local z = XORROR64_3(e) + XORROR64_4(e, f, g) + h + K[j + 1] + W[j]
           h, g, f, e = g, f, e, z + d
@@ -1291,19 +1030,9 @@ if branch == "FFI" then
         v[a], v[b], v[c], v[d] = va, vb, vc, vd
       end
 
-      function blake2b_feed_128(
-        H,
-        _,
-        str,
-        offs,
-        size,
-        bytes_compressed,
-        last_block_size,
-        is_last_node
-      )
+      function blake2b_feed_128(H, _, str, offs, size, bytes_compressed, last_block_size, is_last_node)
         -- offs >= 0, size >= 0, size is multiple of 128
-        local h1, h2, h3, h4, h5, h6, h7, h8 =
-          H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
+        local h1, h2, h3, h4, h5, h6, h7, h8 = H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
         for pos = offs, offs + size - 1, 128 do
           if str then
             for j = 1, 16 do
@@ -1315,16 +1044,9 @@ if branch == "FFI" then
               )
             end
           end
-          v[0x0], v[0x1], v[0x2], v[0x3], v[0x4], v[0x5], v[0x6], v[0x7] =
-            h1, h2, h3, h4, h5, h6, h7, h8
+          v[0x0], v[0x1], v[0x2], v[0x3], v[0x4], v[0x5], v[0x6], v[0x7] = h1, h2, h3, h4, h5, h6, h7, h8
           v[0x8], v[0x9], v[0xA], v[0xB], v[0xD], v[0xE], v[0xF] =
-            sha2_H_lo[1],
-            sha2_H_lo[2],
-            sha2_H_lo[3],
-            sha2_H_lo[4],
-            sha2_H_lo[6],
-            sha2_H_lo[7],
-            sha2_H_lo[8]
+            sha2_H_lo[1], sha2_H_lo[2], sha2_H_lo[3], sha2_H_lo[4], sha2_H_lo[6], sha2_H_lo[7], sha2_H_lo[8]
           bytes_compressed = bytes_compressed + (last_block_size or 128)
           v[0xC] = XOR64(sha2_H_lo[5], bytes_compressed) -- t0 = low_8_bytes(bytes_compressed)
           -- t1 = high_8_bytes(bytes_compressed) = 0,  message length is always below 2^53 bytes
@@ -1354,8 +1076,7 @@ if branch == "FFI" then
           h7 = XORROR64_11(h7, v[0x6], v[0xE])
           h8 = XORROR64_11(h8, v[0x7], v[0xF])
         end
-        H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] =
-          h1, h2, h3, h4, h5, h6, h7, h8
+        H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] = h1, h2, h3, h4, h5, h6, h7, h8
         return bytes_compressed
       end
     end
@@ -1374,133 +1095,33 @@ if branch == "FFI" then
       end
       local a, b, c, d = H[1], H[2], H[3], H[4]
       for j = 0, 15, 4 do
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 1] + W[j] + a), 7) + b)
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 2] + W[j + 1] + a), 12) + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 3] + W[j + 2] + a), 17) + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 4] + W[j + 3] + a), 22) + b
-          )
+        a, d, c, b = d, c, b, NORM(ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 1] + W[j] + a), 7) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 2] + W[j + 1] + a), 12) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 3] + W[j + 2] + a), 17) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 4] + W[j + 3] + a), 22) + b)
       end
       for j = 16, 31, 4 do
         local g = 5 * j
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(
-              XOR(c, AND(d, XOR(b, c))) + (K[j + 1] + W[AND(g + 1, 15)] + a),
-              5
-            ) + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(
-              XOR(c, AND(d, XOR(b, c))) + (K[j + 2] + W[AND(g + 6, 15)] + a),
-              9
-            ) + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(
-              XOR(c, AND(d, XOR(b, c))) + (K[j + 3] + W[AND(g - 5, 15)] + a),
-              14
-            ) + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(c, AND(d, XOR(b, c))) + (K[j + 4] + W[AND(g, 15)] + a), 20)
-              + b
-          )
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, AND(d, XOR(b, c))) + (K[j + 1] + W[AND(g + 1, 15)] + a), 5) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, AND(d, XOR(b, c))) + (K[j + 2] + W[AND(g + 6, 15)] + a), 9) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, AND(d, XOR(b, c))) + (K[j + 3] + W[AND(g - 5, 15)] + a), 14) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, AND(d, XOR(b, c))) + (K[j + 4] + W[AND(g, 15)] + a), 20) + b)
       end
       for j = 32, 47, 4 do
         local g = 3 * j
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(ROL(XOR(b, c, d) + (K[j + 1] + W[AND(g + 5, 15)] + a), 4) + b)
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(ROL(XOR(b, c, d) + (K[j + 2] + W[AND(g + 8, 15)] + a), 11) + b)
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(ROL(XOR(b, c, d) + (K[j + 3] + W[AND(g - 5, 15)] + a), 16) + b)
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(ROL(XOR(b, c, d) + (K[j + 4] + W[AND(g - 2, 15)] + a), 23) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(b, c, d) + (K[j + 1] + W[AND(g + 5, 15)] + a), 4) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(b, c, d) + (K[j + 2] + W[AND(g + 8, 15)] + a), 11) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(b, c, d) + (K[j + 3] + W[AND(g - 5, 15)] + a), 16) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(b, c, d) + (K[j + 4] + W[AND(g - 2, 15)] + a), 23) + b)
       end
       for j = 48, 63, 4 do
         local g = 7 * j
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(c, OR(b, NOT(d))) + (K[j + 1] + W[AND(g, 15)] + a), 6) + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(c, OR(b, NOT(d))) + (K[j + 2] + W[AND(g + 7, 15)] + a), 10)
-              + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(c, OR(b, NOT(d))) + (K[j + 3] + W[AND(g - 2, 15)] + a), 15)
-              + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(c, OR(b, NOT(d))) + (K[j + 4] + W[AND(g + 5, 15)] + a), 21)
-              + b
-          )
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, OR(b, NOT(d))) + (K[j + 1] + W[AND(g, 15)] + a), 6) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, OR(b, NOT(d))) + (K[j + 2] + W[AND(g + 7, 15)] + a), 10) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, OR(b, NOT(d))) + (K[j + 3] + W[AND(g - 2, 15)] + a), 15) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, OR(b, NOT(d))) + (K[j + 4] + W[AND(g + 5, 15)] + a), 21) + b)
       end
-      H[1], H[2], H[3], H[4] =
-        NORM(a + H[1]), NORM(b + H[2]), NORM(c + H[3]), NORM(d + H[4])
+      H[1], H[2], H[3], H[4] = NORM(a + H[1]), NORM(b + H[2]), NORM(c + H[3]), NORM(d + H[4])
     end
   end
 
@@ -1520,167 +1141,39 @@ if branch == "FFI" then
       end
       local a, b, c, d, e = H[1], H[2], H[3], H[4], H[5]
       for j = 0, 19, 5 do
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j] + 0x5A827999 + e)) -- constant = floor(2^30 * sqrt(2))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 1] + 0x5A827999 + e)
-          )
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 2] + 0x5A827999 + e)
-          )
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 3] + 0x5A827999 + e)
-          )
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 4] + 0x5A827999 + e)
-          )
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j] + 0x5A827999 + e)) -- constant = floor(2^30 * sqrt(2))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 1] + 0x5A827999 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 2] + 0x5A827999 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 3] + 0x5A827999 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 4] + 0x5A827999 + e))
       end
       for j = 20, 39, 5 do
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j] + 0x6ED9EBA1 + e)) -- 2^30 * sqrt(3)
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 1] + 0x6ED9EBA1 + e))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 2] + 0x6ED9EBA1 + e))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 3] + 0x6ED9EBA1 + e))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 4] + 0x6ED9EBA1 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j] + 0x6ED9EBA1 + e)) -- 2^30 * sqrt(3)
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 1] + 0x6ED9EBA1 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 2] + 0x6ED9EBA1 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 3] + 0x6ED9EBA1 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 4] + 0x6ED9EBA1 + e))
       end
       for j = 40, 59, 5 do
         e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5)
-              + XOR(AND(d, XOR(b, c)), AND(b, c))
-              + (W[j] + 0x8F1BBCDC + e)
-          ) -- 2^30 * sqrt(5)
+          d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(AND(d, XOR(b, c)), AND(b, c)) + (W[j] + 0x8F1BBCDC + e)) -- 2^30 * sqrt(5)
         e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5)
-              + XOR(AND(d, XOR(b, c)), AND(b, c))
-              + (W[j + 1] + 0x8F1BBCDC + e)
-          )
+          d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(AND(d, XOR(b, c)), AND(b, c)) + (W[j + 1] + 0x8F1BBCDC + e))
         e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5)
-              + XOR(AND(d, XOR(b, c)), AND(b, c))
-              + (W[j + 2] + 0x8F1BBCDC + e)
-          )
+          d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(AND(d, XOR(b, c)), AND(b, c)) + (W[j + 2] + 0x8F1BBCDC + e))
         e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5)
-              + XOR(AND(d, XOR(b, c)), AND(b, c))
-              + (W[j + 3] + 0x8F1BBCDC + e)
-          )
+          d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(AND(d, XOR(b, c)), AND(b, c)) + (W[j + 3] + 0x8F1BBCDC + e))
         e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5)
-              + XOR(AND(d, XOR(b, c)), AND(b, c))
-              + (W[j + 4] + 0x8F1BBCDC + e)
-          )
+          d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(AND(d, XOR(b, c)), AND(b, c)) + (W[j + 4] + 0x8F1BBCDC + e))
       end
       for j = 60, 79, 5 do
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j] + 0xCA62C1D6 + e)) -- 2^30 * sqrt(10)
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 1] + 0xCA62C1D6 + e))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 2] + 0xCA62C1D6 + e))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 3] + 0xCA62C1D6 + e))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 4] + 0xCA62C1D6 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j] + 0xCA62C1D6 + e)) -- 2^30 * sqrt(10)
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 1] + 0xCA62C1D6 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 2] + 0xCA62C1D6 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 3] + 0xCA62C1D6 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 4] + 0xCA62C1D6 + e))
       end
-      H[1], H[2], H[3], H[4], H[5] =
-        NORM(a + H[1]),
-        NORM(b + H[2]),
-        NORM(c + H[3]),
-        NORM(d + H[4]),
-        NORM(e + H[5])
+      H[1], H[2], H[3], H[4], H[5] = NORM(a + H[1]), NORM(b + H[2]), NORM(c + H[3]), NORM(d + H[4]), NORM(e + H[5])
     end
   end
 end
@@ -1710,62 +1203,29 @@ if branch == "FFI" and not is_LuaJIT_21 or branch == "LJ" then
       end
       for round_idx = 1, 24 do
         for j = 1, 5 do
-          lanes_lo[25 + j] = XOR(
-            lanes_lo[j],
-            lanes_lo[j + 5],
-            lanes_lo[j + 10],
-            lanes_lo[j + 15],
-            lanes_lo[j + 20]
-          )
+          lanes_lo[25 + j] = XOR(lanes_lo[j], lanes_lo[j + 5], lanes_lo[j + 10], lanes_lo[j + 15], lanes_lo[j + 20])
         end
         for j = 1, 5 do
-          lanes_hi[25 + j] = XOR(
-            lanes_hi[j],
-            lanes_hi[j + 5],
-            lanes_hi[j + 10],
-            lanes_hi[j + 15],
-            lanes_hi[j + 20]
-          )
+          lanes_hi[25 + j] = XOR(lanes_hi[j], lanes_hi[j + 5], lanes_hi[j + 10], lanes_hi[j + 15], lanes_hi[j + 20])
         end
-        local D_lo =
-          XOR(lanes_lo[26], SHL(lanes_lo[28], 1), SHR(lanes_hi[28], 31))
-        local D_hi =
-          XOR(lanes_hi[26], SHL(lanes_hi[28], 1), SHR(lanes_lo[28], 31))
+        local D_lo = XOR(lanes_lo[26], SHL(lanes_lo[28], 1), SHR(lanes_hi[28], 31))
+        local D_hi = XOR(lanes_hi[26], SHL(lanes_hi[28], 1), SHR(lanes_lo[28], 31))
         lanes_lo[2], lanes_hi[2], lanes_lo[7], lanes_hi[7], lanes_lo[12], lanes_hi[12], lanes_lo[17], lanes_hi[17] =
           XOR(SHR(XOR(D_lo, lanes_lo[7]), 20), SHL(XOR(D_hi, lanes_hi[7]), 12)),
           XOR(SHR(XOR(D_hi, lanes_hi[7]), 20), SHL(XOR(D_lo, lanes_lo[7]), 12)),
-          XOR(
-            SHR(XOR(D_lo, lanes_lo[17]), 19),
-            SHL(XOR(D_hi, lanes_hi[17]), 13)
-          ),
-          XOR(
-            SHR(XOR(D_hi, lanes_hi[17]), 19),
-            SHL(XOR(D_lo, lanes_lo[17]), 13)
-          ),
+          XOR(SHR(XOR(D_lo, lanes_lo[17]), 19), SHL(XOR(D_hi, lanes_hi[17]), 13)),
+          XOR(SHR(XOR(D_hi, lanes_hi[17]), 19), SHL(XOR(D_lo, lanes_lo[17]), 13)),
           XOR(SHL(XOR(D_lo, lanes_lo[2]), 1), SHR(XOR(D_hi, lanes_hi[2]), 31)),
           XOR(SHL(XOR(D_hi, lanes_hi[2]), 1), SHR(XOR(D_lo, lanes_lo[2]), 31)),
-          XOR(
-            SHL(XOR(D_lo, lanes_lo[12]), 10),
-            SHR(XOR(D_hi, lanes_hi[12]), 22)
-          ),
-          XOR(
-            SHL(XOR(D_hi, lanes_hi[12]), 10),
-            SHR(XOR(D_lo, lanes_lo[12]), 22)
-          )
+          XOR(SHL(XOR(D_lo, lanes_lo[12]), 10), SHR(XOR(D_hi, lanes_hi[12]), 22)),
+          XOR(SHL(XOR(D_hi, lanes_hi[12]), 10), SHR(XOR(D_lo, lanes_lo[12]), 22))
         local L, H = XOR(D_lo, lanes_lo[22]), XOR(D_hi, lanes_hi[22])
-        lanes_lo[22], lanes_hi[22] =
-          XOR(SHL(L, 2), SHR(H, 30)), XOR(SHL(H, 2), SHR(L, 30))
+        lanes_lo[22], lanes_hi[22] = XOR(SHL(L, 2), SHR(H, 30)), XOR(SHL(H, 2), SHR(L, 30))
         D_lo = XOR(lanes_lo[27], SHL(lanes_lo[29], 1), SHR(lanes_hi[29], 31))
         D_hi = XOR(lanes_hi[27], SHL(lanes_hi[29], 1), SHR(lanes_lo[29], 31))
         lanes_lo[3], lanes_hi[3], lanes_lo[8], lanes_hi[8], lanes_lo[13], lanes_hi[13], lanes_lo[23], lanes_hi[23] =
-          XOR(
-            SHR(XOR(D_lo, lanes_lo[13]), 21),
-            SHL(XOR(D_hi, lanes_hi[13]), 11)
-          ),
-          XOR(
-            SHR(XOR(D_hi, lanes_hi[13]), 21),
-            SHL(XOR(D_lo, lanes_lo[13]), 11)
-          ),
+          XOR(SHR(XOR(D_lo, lanes_lo[13]), 21), SHL(XOR(D_hi, lanes_hi[13]), 11)),
+          XOR(SHR(XOR(D_hi, lanes_hi[13]), 21), SHL(XOR(D_lo, lanes_lo[13]), 11)),
           XOR(SHR(XOR(D_lo, lanes_lo[23]), 3), SHL(XOR(D_hi, lanes_hi[23]), 29)),
           XOR(SHR(XOR(D_hi, lanes_hi[23]), 3), SHL(XOR(D_lo, lanes_lo[23]), 29)),
           XOR(SHL(XOR(D_lo, lanes_lo[8]), 6), SHR(XOR(D_hi, lanes_hi[8]), 26)),
@@ -1773,19 +1233,12 @@ if branch == "FFI" and not is_LuaJIT_21 or branch == "LJ" then
           XOR(SHR(XOR(D_lo, lanes_lo[3]), 2), SHL(XOR(D_hi, lanes_hi[3]), 30)),
           XOR(SHR(XOR(D_hi, lanes_hi[3]), 2), SHL(XOR(D_lo, lanes_lo[3]), 30))
         L, H = XOR(D_lo, lanes_lo[18]), XOR(D_hi, lanes_hi[18])
-        lanes_lo[18], lanes_hi[18] =
-          XOR(SHL(L, 15), SHR(H, 17)), XOR(SHL(H, 15), SHR(L, 17))
+        lanes_lo[18], lanes_hi[18] = XOR(SHL(L, 15), SHR(H, 17)), XOR(SHL(H, 15), SHR(L, 17))
         D_lo = XOR(lanes_lo[28], SHL(lanes_lo[30], 1), SHR(lanes_hi[30], 31))
         D_hi = XOR(lanes_hi[28], SHL(lanes_hi[30], 1), SHR(lanes_lo[30], 31))
         lanes_lo[4], lanes_hi[4], lanes_lo[9], lanes_hi[9], lanes_lo[19], lanes_hi[19], lanes_lo[24], lanes_hi[24] =
-          XOR(
-            SHL(XOR(D_lo, lanes_lo[19]), 21),
-            SHR(XOR(D_hi, lanes_hi[19]), 11)
-          ),
-          XOR(
-            SHL(XOR(D_hi, lanes_hi[19]), 21),
-            SHR(XOR(D_lo, lanes_lo[19]), 11)
-          ),
+          XOR(SHL(XOR(D_lo, lanes_lo[19]), 21), SHR(XOR(D_hi, lanes_hi[19]), 11)),
+          XOR(SHL(XOR(D_hi, lanes_hi[19]), 21), SHR(XOR(D_lo, lanes_lo[19]), 11)),
           XOR(SHL(XOR(D_lo, lanes_lo[4]), 28), SHR(XOR(D_hi, lanes_hi[4]), 4)),
           XOR(SHL(XOR(D_hi, lanes_hi[4]), 28), SHR(XOR(D_lo, lanes_lo[4]), 4)),
           XOR(SHR(XOR(D_lo, lanes_lo[24]), 8), SHL(XOR(D_hi, lanes_hi[24]), 24)),
@@ -1793,19 +1246,12 @@ if branch == "FFI" and not is_LuaJIT_21 or branch == "LJ" then
           XOR(SHR(XOR(D_lo, lanes_lo[9]), 9), SHL(XOR(D_hi, lanes_hi[9]), 23)),
           XOR(SHR(XOR(D_hi, lanes_hi[9]), 9), SHL(XOR(D_lo, lanes_lo[9]), 23))
         L, H = XOR(D_lo, lanes_lo[14]), XOR(D_hi, lanes_hi[14])
-        lanes_lo[14], lanes_hi[14] =
-          XOR(SHL(L, 25), SHR(H, 7)), XOR(SHL(H, 25), SHR(L, 7))
+        lanes_lo[14], lanes_hi[14] = XOR(SHL(L, 25), SHR(H, 7)), XOR(SHL(H, 25), SHR(L, 7))
         D_lo = XOR(lanes_lo[29], SHL(lanes_lo[26], 1), SHR(lanes_hi[26], 31))
         D_hi = XOR(lanes_hi[29], SHL(lanes_hi[26], 1), SHR(lanes_lo[26], 31))
         lanes_lo[5], lanes_hi[5], lanes_lo[15], lanes_hi[15], lanes_lo[20], lanes_hi[20], lanes_lo[25], lanes_hi[25] =
-          XOR(
-            SHL(XOR(D_lo, lanes_lo[25]), 14),
-            SHR(XOR(D_hi, lanes_hi[25]), 18)
-          ),
-          XOR(
-            SHL(XOR(D_hi, lanes_hi[25]), 14),
-            SHR(XOR(D_lo, lanes_lo[25]), 18)
-          ),
+          XOR(SHL(XOR(D_lo, lanes_lo[25]), 14), SHR(XOR(D_hi, lanes_hi[25]), 18)),
+          XOR(SHL(XOR(D_hi, lanes_hi[25]), 14), SHR(XOR(D_lo, lanes_lo[25]), 18)),
           XOR(SHL(XOR(D_lo, lanes_lo[20]), 8), SHR(XOR(D_hi, lanes_hi[20]), 24)),
           XOR(SHL(XOR(D_hi, lanes_hi[20]), 8), SHR(XOR(D_lo, lanes_lo[20]), 24)),
           XOR(SHL(XOR(D_lo, lanes_lo[5]), 27), SHR(XOR(D_hi, lanes_hi[5]), 5)),
@@ -1813,27 +1259,19 @@ if branch == "FFI" and not is_LuaJIT_21 or branch == "LJ" then
           XOR(SHR(XOR(D_lo, lanes_lo[15]), 25), SHL(XOR(D_hi, lanes_hi[15]), 7)),
           XOR(SHR(XOR(D_hi, lanes_hi[15]), 25), SHL(XOR(D_lo, lanes_lo[15]), 7))
         L, H = XOR(D_lo, lanes_lo[10]), XOR(D_hi, lanes_hi[10])
-        lanes_lo[10], lanes_hi[10] =
-          XOR(SHL(L, 20), SHR(H, 12)), XOR(SHL(H, 20), SHR(L, 12))
+        lanes_lo[10], lanes_hi[10] = XOR(SHL(L, 20), SHR(H, 12)), XOR(SHL(H, 20), SHR(L, 12))
         D_lo = XOR(lanes_lo[30], SHL(lanes_lo[27], 1), SHR(lanes_hi[27], 31))
         D_hi = XOR(lanes_hi[30], SHL(lanes_hi[27], 1), SHR(lanes_lo[27], 31))
         lanes_lo[6], lanes_hi[6], lanes_lo[11], lanes_hi[11], lanes_lo[16], lanes_hi[16], lanes_lo[21], lanes_hi[21] =
           XOR(SHL(XOR(D_lo, lanes_lo[11]), 3), SHR(XOR(D_hi, lanes_hi[11]), 29)),
           XOR(SHL(XOR(D_hi, lanes_hi[11]), 3), SHR(XOR(D_lo, lanes_lo[11]), 29)),
-          XOR(
-            SHL(XOR(D_lo, lanes_lo[21]), 18),
-            SHR(XOR(D_hi, lanes_hi[21]), 14)
-          ),
-          XOR(
-            SHL(XOR(D_hi, lanes_hi[21]), 18),
-            SHR(XOR(D_lo, lanes_lo[21]), 14)
-          ),
+          XOR(SHL(XOR(D_lo, lanes_lo[21]), 18), SHR(XOR(D_hi, lanes_hi[21]), 14)),
+          XOR(SHL(XOR(D_hi, lanes_hi[21]), 18), SHR(XOR(D_lo, lanes_lo[21]), 14)),
           XOR(SHR(XOR(D_lo, lanes_lo[6]), 28), SHL(XOR(D_hi, lanes_hi[6]), 4)),
           XOR(SHR(XOR(D_hi, lanes_hi[6]), 28), SHL(XOR(D_lo, lanes_lo[6]), 4)),
           XOR(SHR(XOR(D_lo, lanes_lo[16]), 23), SHL(XOR(D_hi, lanes_hi[16]), 9)),
           XOR(SHR(XOR(D_hi, lanes_hi[16]), 23), SHL(XOR(D_lo, lanes_lo[16]), 9))
-        lanes_lo[1], lanes_hi[1] =
-          XOR(D_lo, lanes_lo[1]), XOR(D_hi, lanes_hi[1])
+        lanes_lo[1], lanes_hi[1] = XOR(D_lo, lanes_lo[1]), XOR(D_hi, lanes_hi[1])
         lanes_lo[1], lanes_lo[2], lanes_lo[3], lanes_lo[4], lanes_lo[5] =
           XOR(lanes_lo[1], AND(NOT(lanes_lo[2]), lanes_lo[3]), RC_lo[round_idx]),
           XOR(lanes_lo[2], AND(NOT(lanes_lo[3]), lanes_lo[4])),
@@ -1914,140 +1352,39 @@ if branch == "LJ" then
       for j = 17, 64 do
         local a, b = W[j - 15], W[j - 2]
         W[j] = NORM(
-          NORM(
-            XOR(ROR(a, 7), ROL(a, 14), SHR(a, 3))
-              + XOR(ROL(b, 15), ROL(b, 13), SHR(b, 10))
-          ) + NORM(W[j - 7] + W[j - 16])
+          NORM(XOR(ROR(a, 7), ROL(a, 14), SHR(a, 3)) + XOR(ROL(b, 15), ROL(b, 13), SHR(b, 10)))
+            + NORM(W[j - 7] + W[j - 16])
         )
       end
-      local a, b, c, d, e, f, g, h =
-        H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
+      local a, b, c, d, e, f, g, h = H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
       for j = 1, 64, 8 do -- Thanks to Peter Cawley for this workaround (unroll the loop to avoid "PHI shuffling too complex" due to PHIs overlap)
-        local z = NORM(
-          XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + XOR(g, AND(e, XOR(f, g)))
-            + (K[j] + W[j] + h)
-        )
+        local z = NORM(XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + XOR(g, AND(e, XOR(f, g))) + (K[j] + W[j] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + XOR(g, AND(e, XOR(f, g)))
-            + (K[j + 1] + W[j + 1] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + XOR(g, AND(e, XOR(f, g))) + (K[j + 1] + W[j + 1] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + XOR(g, AND(e, XOR(f, g)))
-            + (K[j + 2] + W[j + 2] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + XOR(g, AND(e, XOR(f, g))) + (K[j + 2] + W[j + 2] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + XOR(g, AND(e, XOR(f, g)))
-            + (K[j + 3] + W[j + 3] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + XOR(g, AND(e, XOR(f, g))) + (K[j + 3] + W[j + 3] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + XOR(g, AND(e, XOR(f, g)))
-            + (K[j + 4] + W[j + 4] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + XOR(g, AND(e, XOR(f, g))) + (K[j + 4] + W[j + 4] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + XOR(g, AND(e, XOR(f, g)))
-            + (K[j + 5] + W[j + 5] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + XOR(g, AND(e, XOR(f, g))) + (K[j + 5] + W[j + 5] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + XOR(g, AND(e, XOR(f, g)))
-            + (K[j + 6] + W[j + 6] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + XOR(g, AND(e, XOR(f, g))) + (K[j + 6] + W[j + 6] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
-        z = NORM(
-          XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7))
-            + XOR(g, AND(e, XOR(f, g)))
-            + (K[j + 7] + W[j + 7] + h)
-        )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
+        z = NORM(XOR(ROR(e, 6), ROR(e, 11), ROL(e, 7)) + XOR(g, AND(e, XOR(f, g))) + (K[j + 7] + W[j + 7] + h))
         h, g, f, e = g, f, e, NORM(d + z)
-        d, c, b, a =
-          c,
-          b,
-          a,
-          NORM(
-            XOR(AND(a, XOR(b, c)), AND(b, c))
-              + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10))
-              + z
-          )
+        d, c, b, a = c, b, a, NORM(XOR(AND(a, XOR(b, c)), AND(b, c)) + XOR(ROR(a, 2), ROR(a, 13), ROL(a, 10)) + z)
       end
-      H[1], H[2], H[3], H[4] =
-        NORM(a + H[1]), NORM(b + H[2]), NORM(c + H[3]), NORM(d + H[4])
-      H[5], H[6], H[7], H[8] =
-        NORM(e + H[5]), NORM(f + H[6]), NORM(g + H[7]), NORM(h + H[8])
+      H[1], H[2], H[3], H[4] = NORM(a + H[1]), NORM(b + H[2]), NORM(c + H[3]), NORM(d + H[4])
+      H[5], H[6], H[7], H[8] = NORM(e + H[5]), NORM(f + H[6]), NORM(g + H[7]), NORM(h + H[8])
     end
   end
 
@@ -2074,37 +1411,14 @@ if branch == "LJ" then
         end
         for jj = 17 * 2, 80 * 2, 2 do
           local a_lo, a_hi = W[jj - 30], W[jj - 31]
-          local t_lo = XOR(
-            OR(SHR(a_lo, 1), SHL(a_hi, 31)),
-            OR(SHR(a_lo, 8), SHL(a_hi, 24)),
-            OR(SHR(a_lo, 7), SHL(a_hi, 25))
-          )
-          local t_hi = XOR(
-            OR(SHR(a_hi, 1), SHL(a_lo, 31)),
-            OR(SHR(a_hi, 8), SHL(a_lo, 24)),
-            SHR(a_hi, 7)
-          )
+          local t_lo =
+            XOR(OR(SHR(a_lo, 1), SHL(a_hi, 31)), OR(SHR(a_lo, 8), SHL(a_hi, 24)), OR(SHR(a_lo, 7), SHL(a_hi, 25)))
+          local t_hi = XOR(OR(SHR(a_hi, 1), SHL(a_lo, 31)), OR(SHR(a_hi, 8), SHL(a_lo, 24)), SHR(a_hi, 7))
           local b_lo, b_hi = W[jj - 4], W[jj - 5]
-          local u_lo = XOR(
-            OR(SHR(b_lo, 19), SHL(b_hi, 13)),
-            OR(SHL(b_lo, 3), SHR(b_hi, 29)),
-            OR(SHR(b_lo, 6), SHL(b_hi, 26))
-          )
-          local u_hi = XOR(
-            OR(SHR(b_hi, 19), SHL(b_lo, 13)),
-            OR(SHL(b_hi, 3), SHR(b_lo, 29)),
-            SHR(b_hi, 6)
-          )
-          W[jj], W[jj - 1] = ADD64_4(
-            t_lo,
-            t_hi,
-            u_lo,
-            u_hi,
-            W[jj - 14],
-            W[jj - 15],
-            W[jj - 32],
-            W[jj - 33]
-          )
+          local u_lo =
+            XOR(OR(SHR(b_lo, 19), SHL(b_hi, 13)), OR(SHL(b_lo, 3), SHR(b_hi, 29)), OR(SHR(b_lo, 6), SHL(b_hi, 26)))
+          local u_hi = XOR(OR(SHR(b_hi, 19), SHL(b_lo, 13)), OR(SHL(b_hi, 3), SHR(b_lo, 29)), SHR(b_hi, 6))
+          W[jj], W[jj - 1] = ADD64_4(t_lo, t_hi, u_lo, u_hi, W[jj - 14], W[jj - 15], W[jj - 32], W[jj - 33])
         end
         local a_lo, b_lo, c_lo, d_lo, e_lo, f_lo, g_lo, h_lo =
           H_lo[1], H_lo[2], H_lo[3], H_lo[4], H_lo[5], H_lo[6], H_lo[7], H_lo[8]
@@ -2114,63 +1428,25 @@ if branch == "LJ" then
         for j = 1, 80 do
           local t_lo = XOR(g_lo, AND(e_lo, XOR(f_lo, g_lo)))
           local t_hi = XOR(g_hi, AND(e_hi, XOR(f_hi, g_hi)))
-          local u_lo = XOR(
-            OR(SHR(e_lo, 14), SHL(e_hi, 18)),
-            OR(SHR(e_lo, 18), SHL(e_hi, 14)),
-            OR(SHL(e_lo, 23), SHR(e_hi, 9))
-          )
-          local u_hi = XOR(
-            OR(SHR(e_hi, 14), SHL(e_lo, 18)),
-            OR(SHR(e_hi, 18), SHL(e_lo, 14)),
-            OR(SHL(e_hi, 23), SHR(e_lo, 9))
-          )
-          local sum_lo = u_lo % 2 ^ 32
-            + t_lo % 2 ^ 32
-            + h_lo % 2 ^ 32
-            + K_lo[j]
-            + W[2 * j] % 2 ^ 32
-          local z_lo, z_hi =
-            NORM(sum_lo),
-            NORM(
-              u_hi
-                + t_hi
-                + h_hi
-                + K_hi[j]
-                + W[2 * j - 1]
-                + floor(sum_lo / 2 ^ 32)
-            )
+          local u_lo =
+            XOR(OR(SHR(e_lo, 14), SHL(e_hi, 18)), OR(SHR(e_lo, 18), SHL(e_hi, 14)), OR(SHL(e_lo, 23), SHR(e_hi, 9)))
+          local u_hi =
+            XOR(OR(SHR(e_hi, 14), SHL(e_lo, 18)), OR(SHR(e_hi, 18), SHL(e_lo, 14)), OR(SHL(e_hi, 23), SHR(e_lo, 9)))
+          local sum_lo = u_lo % 2 ^ 32 + t_lo % 2 ^ 32 + h_lo % 2 ^ 32 + K_lo[j] + W[2 * j] % 2 ^ 32
+          local z_lo, z_hi = NORM(sum_lo), NORM(u_hi + t_hi + h_hi + K_hi[j] + W[2 * j - 1] + floor(sum_lo / 2 ^ 32))
           zero = zero + zero -- this thick is needed to avoid "PHI shuffling too complex" due to PHIs overlap
           h_lo, h_hi, g_lo, g_hi, f_lo, f_hi =
-            OR(zero, g_lo),
-            OR(zero, g_hi),
-            OR(zero, f_lo),
-            OR(zero, f_hi),
-            OR(zero, e_lo),
-            OR(zero, e_hi)
+            OR(zero, g_lo), OR(zero, g_hi), OR(zero, f_lo), OR(zero, f_hi), OR(zero, e_lo), OR(zero, e_hi)
           local sum_lo = z_lo % 2 ^ 32 + d_lo % 2 ^ 32
           e_lo, e_hi = NORM(sum_lo), NORM(z_hi + d_hi + floor(sum_lo / 2 ^ 32))
           d_lo, d_hi, c_lo, c_hi, b_lo, b_hi =
-            OR(zero, c_lo),
-            OR(zero, c_hi),
-            OR(zero, b_lo),
-            OR(zero, b_hi),
-            OR(zero, a_lo),
-            OR(zero, a_hi)
-          u_lo = XOR(
-            OR(SHR(b_lo, 28), SHL(b_hi, 4)),
-            OR(SHL(b_lo, 30), SHR(b_hi, 2)),
-            OR(SHL(b_lo, 25), SHR(b_hi, 7))
-          )
-          u_hi = XOR(
-            OR(SHR(b_hi, 28), SHL(b_lo, 4)),
-            OR(SHL(b_hi, 30), SHR(b_lo, 2)),
-            OR(SHL(b_hi, 25), SHR(b_lo, 7))
-          )
+            OR(zero, c_lo), OR(zero, c_hi), OR(zero, b_lo), OR(zero, b_hi), OR(zero, a_lo), OR(zero, a_hi)
+          u_lo = XOR(OR(SHR(b_lo, 28), SHL(b_hi, 4)), OR(SHL(b_lo, 30), SHR(b_hi, 2)), OR(SHL(b_lo, 25), SHR(b_hi, 7)))
+          u_hi = XOR(OR(SHR(b_hi, 28), SHL(b_lo, 4)), OR(SHL(b_hi, 30), SHR(b_lo, 2)), OR(SHL(b_hi, 25), SHR(b_lo, 7)))
           t_lo = OR(AND(d_lo, c_lo), AND(b_lo, XOR(d_lo, c_lo)))
           t_hi = OR(AND(d_hi, c_hi), AND(b_hi, XOR(d_hi, c_hi)))
           local sum_lo = z_lo % 2 ^ 32 + t_lo % 2 ^ 32 + u_lo % 2 ^ 32
-          a_lo, a_hi =
-            NORM(sum_lo), NORM(z_hi + t_hi + u_hi + floor(sum_lo / 2 ^ 32))
+          a_lo, a_hi = NORM(sum_lo), NORM(z_hi + t_hi + u_hi + floor(sum_lo / 2 ^ 32))
         end
         H_lo[1], H_hi[1] = ADD64_4(H_lo[1], H_hi[1], a_lo, a_hi, 0, 0, 0, 0)
         H_lo[2], H_hi[2] = ADD64_4(H_lo[2], H_hi[2], b_lo, b_hi, 0, 0, 0, 0)
@@ -2197,37 +1473,14 @@ if branch == "LJ" then
         end
         for jj = 17 * 2, 80 * 2, 2 do
           local a_lo, a_hi = W[jj - 30], W[jj - 31]
-          local t_lo = XOR(
-            OR(SHR(a_lo, 1), SHL(a_hi, 31)),
-            OR(SHR(a_lo, 8), SHL(a_hi, 24)),
-            OR(SHR(a_lo, 7), SHL(a_hi, 25))
-          )
-          local t_hi = XOR(
-            OR(SHR(a_hi, 1), SHL(a_lo, 31)),
-            OR(SHR(a_hi, 8), SHL(a_lo, 24)),
-            SHR(a_hi, 7)
-          )
+          local t_lo =
+            XOR(OR(SHR(a_lo, 1), SHL(a_hi, 31)), OR(SHR(a_lo, 8), SHL(a_hi, 24)), OR(SHR(a_lo, 7), SHL(a_hi, 25)))
+          local t_hi = XOR(OR(SHR(a_hi, 1), SHL(a_lo, 31)), OR(SHR(a_hi, 8), SHL(a_lo, 24)), SHR(a_hi, 7))
           local b_lo, b_hi = W[jj - 4], W[jj - 5]
-          local u_lo = XOR(
-            OR(SHR(b_lo, 19), SHL(b_hi, 13)),
-            OR(SHL(b_lo, 3), SHR(b_hi, 29)),
-            OR(SHR(b_lo, 6), SHL(b_hi, 26))
-          )
-          local u_hi = XOR(
-            OR(SHR(b_hi, 19), SHL(b_lo, 13)),
-            OR(SHL(b_hi, 3), SHR(b_lo, 29)),
-            SHR(b_hi, 6)
-          )
-          W[jj], W[jj - 1] = ADD64_4(
-            t_lo,
-            t_hi,
-            u_lo,
-            u_hi,
-            W[jj - 14],
-            W[jj - 15],
-            W[jj - 32],
-            W[jj - 33]
-          )
+          local u_lo =
+            XOR(OR(SHR(b_lo, 19), SHL(b_hi, 13)), OR(SHL(b_lo, 3), SHR(b_hi, 29)), OR(SHR(b_lo, 6), SHL(b_hi, 26)))
+          local u_hi = XOR(OR(SHR(b_hi, 19), SHL(b_lo, 13)), OR(SHL(b_hi, 3), SHR(b_lo, 29)), SHR(b_hi, 6))
+          W[jj], W[jj - 1] = ADD64_4(t_lo, t_hi, u_lo, u_hi, W[jj - 14], W[jj - 15], W[jj - 32], W[jj - 33])
         end
         local a_lo, b_lo, c_lo, d_lo, e_lo, f_lo, g_lo, h_lo =
           H_lo[1], H_lo[2], H_lo[3], H_lo[4], H_lo[5], H_lo[6], H_lo[7], H_lo[8]
@@ -2236,52 +1489,22 @@ if branch == "LJ" then
         for j = 1, 80 do
           local t_lo = XOR(g_lo, AND(e_lo, XOR(f_lo, g_lo)))
           local t_hi = XOR(g_hi, AND(e_hi, XOR(f_hi, g_hi)))
-          local u_lo = XOR(
-            OR(SHR(e_lo, 14), SHL(e_hi, 18)),
-            OR(SHR(e_lo, 18), SHL(e_hi, 14)),
-            OR(SHL(e_lo, 23), SHR(e_hi, 9))
-          )
-          local u_hi = XOR(
-            OR(SHR(e_hi, 14), SHL(e_lo, 18)),
-            OR(SHR(e_hi, 18), SHL(e_lo, 14)),
-            OR(SHL(e_hi, 23), SHR(e_lo, 9))
-          )
-          local sum_lo = u_lo % 2 ^ 32
-            + t_lo % 2 ^ 32
-            + h_lo % 2 ^ 32
-            + K_lo[j]
-            + W[2 * j] % 2 ^ 32
-          local z_lo, z_hi =
-            NORM(sum_lo),
-            NORM(
-              u_hi
-                + t_hi
-                + h_hi
-                + K_hi[j]
-                + W[2 * j - 1]
-                + floor(sum_lo / 2 ^ 32)
-            )
-          h_lo, h_hi, g_lo, g_hi, f_lo, f_hi =
-            g_lo, g_hi, f_lo, f_hi, e_lo, e_hi
+          local u_lo =
+            XOR(OR(SHR(e_lo, 14), SHL(e_hi, 18)), OR(SHR(e_lo, 18), SHL(e_hi, 14)), OR(SHL(e_lo, 23), SHR(e_hi, 9)))
+          local u_hi =
+            XOR(OR(SHR(e_hi, 14), SHL(e_lo, 18)), OR(SHR(e_hi, 18), SHL(e_lo, 14)), OR(SHL(e_hi, 23), SHR(e_lo, 9)))
+          local sum_lo = u_lo % 2 ^ 32 + t_lo % 2 ^ 32 + h_lo % 2 ^ 32 + K_lo[j] + W[2 * j] % 2 ^ 32
+          local z_lo, z_hi = NORM(sum_lo), NORM(u_hi + t_hi + h_hi + K_hi[j] + W[2 * j - 1] + floor(sum_lo / 2 ^ 32))
+          h_lo, h_hi, g_lo, g_hi, f_lo, f_hi = g_lo, g_hi, f_lo, f_hi, e_lo, e_hi
           local sum_lo = z_lo % 2 ^ 32 + d_lo % 2 ^ 32
           e_lo, e_hi = NORM(sum_lo), NORM(z_hi + d_hi + floor(sum_lo / 2 ^ 32))
-          d_lo, d_hi, c_lo, c_hi, b_lo, b_hi =
-            c_lo, c_hi, b_lo, b_hi, a_lo, a_hi
-          u_lo = XOR(
-            OR(SHR(b_lo, 28), SHL(b_hi, 4)),
-            OR(SHL(b_lo, 30), SHR(b_hi, 2)),
-            OR(SHL(b_lo, 25), SHR(b_hi, 7))
-          )
-          u_hi = XOR(
-            OR(SHR(b_hi, 28), SHL(b_lo, 4)),
-            OR(SHL(b_hi, 30), SHR(b_lo, 2)),
-            OR(SHL(b_hi, 25), SHR(b_lo, 7))
-          )
+          d_lo, d_hi, c_lo, c_hi, b_lo, b_hi = c_lo, c_hi, b_lo, b_hi, a_lo, a_hi
+          u_lo = XOR(OR(SHR(b_lo, 28), SHL(b_hi, 4)), OR(SHL(b_lo, 30), SHR(b_hi, 2)), OR(SHL(b_lo, 25), SHR(b_hi, 7)))
+          u_hi = XOR(OR(SHR(b_hi, 28), SHL(b_lo, 4)), OR(SHL(b_hi, 30), SHR(b_lo, 2)), OR(SHL(b_hi, 25), SHR(b_lo, 7)))
           t_lo = OR(AND(d_lo, c_lo), AND(b_lo, XOR(d_lo, c_lo)))
           t_hi = OR(AND(d_hi, c_hi), AND(b_hi, XOR(d_hi, c_hi)))
           local sum_lo = z_lo % 2 ^ 32 + u_lo % 2 ^ 32 + t_lo % 2 ^ 32
-          a_lo, a_hi =
-            NORM(sum_lo), NORM(z_hi + u_hi + t_hi + floor(sum_lo / 2 ^ 32))
+          a_lo, a_hi = NORM(sum_lo), NORM(z_hi + u_hi + t_hi + floor(sum_lo / 2 ^ 32))
         end
         H_lo[1], H_hi[1] = ADD64_4(H_lo[1], H_hi[1], a_lo, a_hi, 0, 0, 0, 0)
         H_lo[2], H_hi[2] = ADD64_4(H_lo[2], H_hi[2], b_lo, b_hi, 0, 0, 0, 0)
@@ -2308,145 +1531,33 @@ if branch == "LJ" then
       end
       local a, b, c, d = H[1], H[2], H[3], H[4]
       for j = 1, 16, 4 do
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(ROL(XOR(d, AND(b, XOR(c, d))) + (K[j] + W[j] + a), 7) + b)
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 1] + W[j + 1] + a), 12) + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 2] + W[j + 2] + a), 17) + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 3] + W[j + 3] + a), 22) + b
-          )
+        a, d, c, b = d, c, b, NORM(ROL(XOR(d, AND(b, XOR(c, d))) + (K[j] + W[j] + a), 7) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 1] + W[j + 1] + a), 12) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 2] + W[j + 2] + a), 17) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(d, AND(b, XOR(c, d))) + (K[j + 3] + W[j + 3] + a), 22) + b)
       end
       for j = 17, 32, 4 do
         local g = 5 * j - 4
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(c, AND(d, XOR(b, c))) + (K[j] + W[AND(g, 15) + 1] + a), 5)
-              + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(
-              XOR(c, AND(d, XOR(b, c))) + (K[j + 1] + W[AND(g + 5, 15) + 1] + a),
-              9
-            ) + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(
-              XOR(c, AND(d, XOR(b, c)))
-                + (K[j + 2] + W[AND(g + 10, 15) + 1] + a),
-              14
-            ) + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(
-              XOR(c, AND(d, XOR(b, c))) + (K[j + 3] + W[AND(g - 1, 15) + 1] + a),
-              20
-            ) + b
-          )
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, AND(d, XOR(b, c))) + (K[j] + W[AND(g, 15) + 1] + a), 5) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, AND(d, XOR(b, c))) + (K[j + 1] + W[AND(g + 5, 15) + 1] + a), 9) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, AND(d, XOR(b, c))) + (K[j + 2] + W[AND(g + 10, 15) + 1] + a), 14) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, AND(d, XOR(b, c))) + (K[j + 3] + W[AND(g - 1, 15) + 1] + a), 20) + b)
       end
       for j = 33, 48, 4 do
         local g = 3 * j + 2
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(ROL(XOR(b, c, d) + (K[j] + W[AND(g, 15) + 1] + a), 4) + b)
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(b, c, d) + (K[j + 1] + W[AND(g + 3, 15) + 1] + a), 11) + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(b, c, d) + (K[j + 2] + W[AND(g + 6, 15) + 1] + a), 16) + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(b, c, d) + (K[j + 3] + W[AND(g - 7, 15) + 1] + a), 23) + b
-          )
+        a, d, c, b = d, c, b, NORM(ROL(XOR(b, c, d) + (K[j] + W[AND(g, 15) + 1] + a), 4) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(b, c, d) + (K[j + 1] + W[AND(g + 3, 15) + 1] + a), 11) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(b, c, d) + (K[j + 2] + W[AND(g + 6, 15) + 1] + a), 16) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(b, c, d) + (K[j + 3] + W[AND(g - 7, 15) + 1] + a), 23) + b)
       end
       for j = 49, 64, 4 do
         local g = j * 7
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(c, OR(b, NOT(d))) + (K[j] + W[AND(g - 7, 15) + 1] + a), 6)
-              + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(XOR(c, OR(b, NOT(d))) + (K[j + 1] + W[AND(g, 15) + 1] + a), 10)
-              + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(
-              XOR(c, OR(b, NOT(d))) + (K[j + 2] + W[AND(g + 7, 15) + 1] + a),
-              15
-            ) + b
-          )
-        a, d, c, b =
-          d,
-          c,
-          b,
-          NORM(
-            ROL(
-              XOR(c, OR(b, NOT(d))) + (K[j + 3] + W[AND(g - 2, 15) + 1] + a),
-              21
-            ) + b
-          )
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, OR(b, NOT(d))) + (K[j] + W[AND(g - 7, 15) + 1] + a), 6) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, OR(b, NOT(d))) + (K[j + 1] + W[AND(g, 15) + 1] + a), 10) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, OR(b, NOT(d))) + (K[j + 2] + W[AND(g + 7, 15) + 1] + a), 15) + b)
+        a, d, c, b = d, c, b, NORM(ROL(XOR(c, OR(b, NOT(d))) + (K[j + 3] + W[AND(g - 2, 15) + 1] + a), 21) + b)
       end
-      H[1], H[2], H[3], H[4] =
-        NORM(a + H[1]), NORM(b + H[2]), NORM(c + H[3]), NORM(d + H[4])
+      H[1], H[2], H[3], H[4] = NORM(a + H[1]), NORM(b + H[2]), NORM(c + H[3]), NORM(d + H[4])
     end
   end
 
@@ -2466,167 +1577,39 @@ if branch == "LJ" then
       end
       local a, b, c, d, e = H[1], H[2], H[3], H[4], H[5]
       for j = 1, 20, 5 do
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j] + 0x5A827999 + e)) -- constant = floor(2^30 * sqrt(2))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 1] + 0x5A827999 + e)
-          )
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 2] + 0x5A827999 + e)
-          )
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 3] + 0x5A827999 + e)
-          )
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 4] + 0x5A827999 + e)
-          )
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j] + 0x5A827999 + e)) -- constant = floor(2^30 * sqrt(2))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 1] + 0x5A827999 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 2] + 0x5A827999 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 3] + 0x5A827999 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(d, AND(b, XOR(d, c))) + (W[j + 4] + 0x5A827999 + e))
       end
       for j = 21, 40, 5 do
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j] + 0x6ED9EBA1 + e)) -- 2^30 * sqrt(3)
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 1] + 0x6ED9EBA1 + e))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 2] + 0x6ED9EBA1 + e))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 3] + 0x6ED9EBA1 + e))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 4] + 0x6ED9EBA1 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j] + 0x6ED9EBA1 + e)) -- 2^30 * sqrt(3)
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 1] + 0x6ED9EBA1 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 2] + 0x6ED9EBA1 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 3] + 0x6ED9EBA1 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 4] + 0x6ED9EBA1 + e))
       end
       for j = 41, 60, 5 do
         e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5)
-              + XOR(AND(d, XOR(b, c)), AND(b, c))
-              + (W[j] + 0x8F1BBCDC + e)
-          ) -- 2^30 * sqrt(5)
+          d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(AND(d, XOR(b, c)), AND(b, c)) + (W[j] + 0x8F1BBCDC + e)) -- 2^30 * sqrt(5)
         e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5)
-              + XOR(AND(d, XOR(b, c)), AND(b, c))
-              + (W[j + 1] + 0x8F1BBCDC + e)
-          )
+          d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(AND(d, XOR(b, c)), AND(b, c)) + (W[j + 1] + 0x8F1BBCDC + e))
         e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5)
-              + XOR(AND(d, XOR(b, c)), AND(b, c))
-              + (W[j + 2] + 0x8F1BBCDC + e)
-          )
+          d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(AND(d, XOR(b, c)), AND(b, c)) + (W[j + 2] + 0x8F1BBCDC + e))
         e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5)
-              + XOR(AND(d, XOR(b, c)), AND(b, c))
-              + (W[j + 3] + 0x8F1BBCDC + e)
-          )
+          d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(AND(d, XOR(b, c)), AND(b, c)) + (W[j + 3] + 0x8F1BBCDC + e))
         e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(
-            ROL(a, 5)
-              + XOR(AND(d, XOR(b, c)), AND(b, c))
-              + (W[j + 4] + 0x8F1BBCDC + e)
-          )
+          d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(AND(d, XOR(b, c)), AND(b, c)) + (W[j + 4] + 0x8F1BBCDC + e))
       end
       for j = 61, 80, 5 do
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j] + 0xCA62C1D6 + e)) -- 2^30 * sqrt(10)
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 1] + 0xCA62C1D6 + e))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 2] + 0xCA62C1D6 + e))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 3] + 0xCA62C1D6 + e))
-        e, d, c, b, a =
-          d,
-          c,
-          ROR(b, 2),
-          a,
-          NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 4] + 0xCA62C1D6 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j] + 0xCA62C1D6 + e)) -- 2^30 * sqrt(10)
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 1] + 0xCA62C1D6 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 2] + 0xCA62C1D6 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 3] + 0xCA62C1D6 + e))
+        e, d, c, b, a = d, c, ROR(b, 2), a, NORM(ROL(a, 5) + XOR(b, c, d) + (W[j + 4] + 0xCA62C1D6 + e))
       end
-      H[1], H[2], H[3], H[4], H[5] =
-        NORM(a + H[1]),
-        NORM(b + H[2]),
-        NORM(c + H[3]),
-        NORM(d + H[4]),
-        NORM(e + H[5])
+      H[1], H[2], H[3], H[4], H[5] = NORM(a + H[1]), NORM(b + H[2]), NORM(c + H[3]), NORM(d + H[4]), NORM(e + H[5])
     end
   end
 
@@ -2647,34 +1630,22 @@ if branch == "LJ" then
       vc_lo = NORM(z)
       vc_hi = NORM(vc_hi + vd_hi + floor(z / 2 ^ 32))
       vb_lo, vb_hi = XOR(vb_lo, vc_lo), XOR(vb_hi, vc_hi)
-      vb_lo, vb_hi =
-        XOR(SHR(vb_lo, 24), SHL(vb_hi, 8)), XOR(SHR(vb_hi, 24), SHL(vb_lo, 8))
+      vb_lo, vb_hi = XOR(SHR(vb_lo, 24), SHL(vb_hi, 8)), XOR(SHR(vb_hi, 24), SHL(vb_lo, 8))
       z = W[2 * k2 - 1] + (va_lo % 2 ^ 32 + vb_lo % 2 ^ 32)
       va_lo = NORM(z)
       va_hi = NORM(W[2 * k2] + (va_hi + vb_hi + floor(z / 2 ^ 32)))
       vd_lo, vd_hi = XOR(vd_lo, va_lo), XOR(vd_hi, va_hi)
-      vd_lo, vd_hi =
-        XOR(SHR(vd_lo, 16), SHL(vd_hi, 16)), XOR(SHR(vd_hi, 16), SHL(vd_lo, 16))
+      vd_lo, vd_hi = XOR(SHR(vd_lo, 16), SHL(vd_hi, 16)), XOR(SHR(vd_hi, 16), SHL(vd_lo, 16))
       z = vc_lo % 2 ^ 32 + vd_lo % 2 ^ 32
       vc_lo = NORM(z)
       vc_hi = NORM(vc_hi + vd_hi + floor(z / 2 ^ 32))
       vb_lo, vb_hi = XOR(vb_lo, vc_lo), XOR(vb_hi, vc_hi)
-      vb_lo, vb_hi =
-        XOR(SHL(vb_lo, 1), SHR(vb_hi, 31)), XOR(SHL(vb_hi, 1), SHR(vb_lo, 31))
+      vb_lo, vb_hi = XOR(SHL(vb_lo, 1), SHR(vb_hi, 31)), XOR(SHL(vb_hi, 1), SHR(vb_lo, 31))
       v_lo[a], v_lo[b], v_lo[c], v_lo[d] = va_lo, vb_lo, vc_lo, vd_lo
       v_hi[a], v_hi[b], v_hi[c], v_hi[d] = va_hi, vb_hi, vc_hi, vd_hi
     end
 
-    function blake2b_feed_128(
-      H_lo,
-      H_hi,
-      str,
-      offs,
-      size,
-      bytes_compressed,
-      last_block_size,
-      is_last_node
-    )
+    function blake2b_feed_128(H_lo, H_hi, str, offs, size, bytes_compressed, last_block_size, is_last_node)
       -- offs >= 0, size >= 0, size is multiple of 128
       local W = common_W
       local h1_lo, h2_lo, h3_lo, h4_lo, h5_lo, h6_lo, h7_lo, h8_lo =
@@ -2692,25 +1663,11 @@ if branch == "LJ" then
         v_lo[0x0], v_lo[0x1], v_lo[0x2], v_lo[0x3], v_lo[0x4], v_lo[0x5], v_lo[0x6], v_lo[0x7] =
           h1_lo, h2_lo, h3_lo, h4_lo, h5_lo, h6_lo, h7_lo, h8_lo
         v_lo[0x8], v_lo[0x9], v_lo[0xA], v_lo[0xB], v_lo[0xC], v_lo[0xD], v_lo[0xE], v_lo[0xF] =
-          sha2_H_lo[1],
-          sha2_H_lo[2],
-          sha2_H_lo[3],
-          sha2_H_lo[4],
-          sha2_H_lo[5],
-          sha2_H_lo[6],
-          sha2_H_lo[7],
-          sha2_H_lo[8]
+          sha2_H_lo[1], sha2_H_lo[2], sha2_H_lo[3], sha2_H_lo[4], sha2_H_lo[5], sha2_H_lo[6], sha2_H_lo[7], sha2_H_lo[8]
         v_hi[0x0], v_hi[0x1], v_hi[0x2], v_hi[0x3], v_hi[0x4], v_hi[0x5], v_hi[0x6], v_hi[0x7] =
           h1_hi, h2_hi, h3_hi, h4_hi, h5_hi, h6_hi, h7_hi, h8_hi
         v_hi[0x8], v_hi[0x9], v_hi[0xA], v_hi[0xB], v_hi[0xC], v_hi[0xD], v_hi[0xE], v_hi[0xF] =
-          sha2_H_hi[1],
-          sha2_H_hi[2],
-          sha2_H_hi[3],
-          sha2_H_hi[4],
-          sha2_H_hi[5],
-          sha2_H_hi[6],
-          sha2_H_hi[7],
-          sha2_H_hi[8]
+          sha2_H_hi[1], sha2_H_hi[2], sha2_H_hi[3], sha2_H_hi[4], sha2_H_hi[5], sha2_H_hi[6], sha2_H_hi[7], sha2_H_hi[8]
         bytes_compressed = bytes_compressed + (last_block_size or 128)
         local t0_lo = bytes_compressed % 2 ^ 32
         local t0_hi = floor(bytes_compressed / 2 ^ 32)
@@ -2796,25 +1753,10 @@ if branch == "FFI" or branch == "LJ" then
       v[a], v[b], v[c], v[d] = va, vb, vc, vd
     end
 
-    function blake2s_feed_64(
-      H,
-      str,
-      offs,
-      size,
-      bytes_compressed,
-      last_block_size,
-      is_last_node
-    )
+    function blake2s_feed_64(H, str, offs, size, bytes_compressed, last_block_size, is_last_node)
       -- offs >= 0, size >= 0, size is multiple of 64
       local h1, h2, h3, h4, h5, h6, h7, h8 =
-        NORM(H[1]),
-        NORM(H[2]),
-        NORM(H[3]),
-        NORM(H[4]),
-        NORM(H[5]),
-        NORM(H[6]),
-        NORM(H[7]),
-        NORM(H[8])
+        NORM(H[1]), NORM(H[2]), NORM(H[3]), NORM(H[4]), NORM(H[5]), NORM(H[6]), NORM(H[7]), NORM(H[8])
       for pos = offs, offs + size - 1, 64 do
         if str then
           for j = 1, 16 do
@@ -2823,8 +1765,7 @@ if branch == "FFI" or branch == "LJ" then
             W[j] = OR(SHL(d, 24), SHL(c, 16), SHL(b, 8), a)
           end
         end
-        v[0x0], v[0x1], v[0x2], v[0x3], v[0x4], v[0x5], v[0x6], v[0x7] =
-          h1, h2, h3, h4, h5, h6, h7, h8
+        v[0x0], v[0x1], v[0x2], v[0x3], v[0x4], v[0x5], v[0x6], v[0x7] = h1, h2, h3, h4, h5, h6, h7, h8
         v[0x8], v[0x9], v[0xA], v[0xB], v[0xE], v[0xF] =
           NORM(sha2_H_hi[1]),
           NORM(sha2_H_hi[2]),
@@ -2863,22 +1804,11 @@ if branch == "FFI" or branch == "LJ" then
         h7 = XOR(h7, v[0x6], v[0xE])
         h8 = XOR(h8, v[0x7], v[0xF])
       end
-      H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] =
-        h1, h2, h3, h4, h5, h6, h7, h8
+      H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] = h1, h2, h3, h4, h5, h6, h7, h8
       return bytes_compressed
     end
 
-    function blake3_feed_64(
-      str,
-      offs,
-      size,
-      flags,
-      chunk_index,
-      H_in,
-      H_out,
-      wide_output,
-      block_length
-    )
+    function blake3_feed_64(str, offs, size, flags, chunk_index, H_in, H_out, wide_output, block_length)
       -- offs >= 0, size >= 0, size is multiple of 64
       block_length = block_length or 64
       local h1, h2, h3, h4, h5, h6, h7, h8 =
@@ -2899,13 +1829,8 @@ if branch == "FFI" or branch == "LJ" then
             W[j] = OR(SHL(d, 24), SHL(c, 16), SHL(b, 8), a)
           end
         end
-        v[0x0], v[0x1], v[0x2], v[0x3], v[0x4], v[0x5], v[0x6], v[0x7] =
-          h1, h2, h3, h4, h5, h6, h7, h8
-        v[0x8], v[0x9], v[0xA], v[0xB] =
-          NORM(sha2_H_hi[1]),
-          NORM(sha2_H_hi[2]),
-          NORM(sha2_H_hi[3]),
-          NORM(sha2_H_hi[4])
+        v[0x0], v[0x1], v[0x2], v[0x3], v[0x4], v[0x5], v[0x6], v[0x7] = h1, h2, h3, h4, h5, h6, h7, h8
+        v[0x8], v[0x9], v[0xA], v[0xB] = NORM(sha2_H_hi[1]), NORM(sha2_H_hi[2]), NORM(sha2_H_hi[3]), NORM(sha2_H_hi[4])
         v[0xC] = NORM(chunk_index % 2 ^ 32) -- t0 = low_4_bytes(chunk_index)
         v[0xD] = floor(chunk_index / 2 ^ 32) -- t1 = high_4_bytes(chunk_index)
         v[0xE], v[0xF] = block_length, flags
@@ -2938,8 +1863,7 @@ if branch == "FFI" or branch == "LJ" then
         h7 = XOR(v[0x6], v[0xE])
         h8 = XOR(v[0x7], v[0xF])
       end
-      H_out[1], H_out[2], H_out[3], H_out[4], H_out[5], H_out[6], H_out[7], H_out[8] =
-        h1, h2, h3, h4, h5, h6, h7, h8
+      H_out[1], H_out[2], H_out[3], H_out[4], H_out[5], H_out[6], H_out[7], H_out[8] = h1, h2, h3, h4, h5, h6, h7, h8
     end
   end
 end
@@ -4609,8 +3533,7 @@ if branch == "LIB32" or branch == "EMUL" then
   function sha256_feed_64(H, str, offs, size)
     -- offs >= 0, size >= 0, size is multiple of 64
     local W, K = common_W, sha2_K_hi
-    local h1, h2, h3, h4, h5, h6, h7, h8 =
-      H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
+    local h1, h2, h3, h4, h5, h6, h7, h8 = H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
     for pos = offs, offs + size - 1, 64 do
       for j = 1, 16 do
         pos = pos + 4
@@ -4621,18 +3544,10 @@ if branch == "LIB32" or branch == "EMUL" then
         local a, b = W[j - 15], W[j - 2]
         local a7, a18, b17, b19 = a / 2 ^ 7, a / 2 ^ 18, b / 2 ^ 17, b / 2 ^ 19
         W[j] = (
-          XOR(
-            a7 % 1 * (2 ^ 32 - 1) + a7,
-            a18 % 1 * (2 ^ 32 - 1) + a18,
-            (a - a % 2 ^ 3) / 2 ^ 3
-          )
+          XOR(a7 % 1 * (2 ^ 32 - 1) + a7, a18 % 1 * (2 ^ 32 - 1) + a18, (a - a % 2 ^ 3) / 2 ^ 3)
           + W[j - 16]
           + W[j - 7]
-          + XOR(
-            b17 % 1 * (2 ^ 32 - 1) + b17,
-            b19 % 1 * (2 ^ 32 - 1) + b19,
-            (b - b % 2 ^ 10) / 2 ^ 10
-          )
+          + XOR(b17 % 1 * (2 ^ 32 - 1) + b17, b19 % 1 * (2 ^ 32 - 1) + b19, (b - b % 2 ^ 10) / 2 ^ 10)
         ) % 2 ^ 32
       end
       local a, b, c, d, e, f, g, h = h1, h2, h3, h4, h5, h6, h7, h8
@@ -4645,11 +3560,7 @@ if branch == "LIB32" or branch == "EMUL" then
           + h
           + K[j]
           + W[j]
-          + XOR(
-            e6 % 1 * (2 ^ 32 - 1) + e6,
-            e11 % 1 * (2 ^ 32 - 1) + e11,
-            e7_lo + (e7 - e7_lo) / 2 ^ 32
-          )
+          + XOR(e6 % 1 * (2 ^ 32 - 1) + e6, e11 % 1 * (2 ^ 32 - 1) + e11, e7_lo + (e7 - e7_lo) / 2 ^ 32)
         h = g
         g = f
         f = e
@@ -4662,25 +3573,12 @@ if branch == "LIB32" or branch == "EMUL" then
         a = z
           + AND(d, c)
           + AND(b, XOR(d, c))
-          + XOR(
-            b2 % 1 * (2 ^ 32 - 1) + b2,
-            b13 % 1 * (2 ^ 32 - 1) + b13,
-            b10_lo + (b10 - b10_lo) / 2 ^ 32
-          )
+          + XOR(b2 % 1 * (2 ^ 32 - 1) + b2, b13 % 1 * (2 ^ 32 - 1) + b13, b10_lo + (b10 - b10_lo) / 2 ^ 32)
       end
-      h1, h2, h3, h4 =
-        (a + h1) % 2 ^ 32,
-        (b + h2) % 2 ^ 32,
-        (c + h3) % 2 ^ 32,
-        (d + h4) % 2 ^ 32
-      h5, h6, h7, h8 =
-        (e + h5) % 2 ^ 32,
-        (f + h6) % 2 ^ 32,
-        (g + h7) % 2 ^ 32,
-        (h + h8) % 2 ^ 32
+      h1, h2, h3, h4 = (a + h1) % 2 ^ 32, (b + h2) % 2 ^ 32, (c + h3) % 2 ^ 32, (d + h4) % 2 ^ 32
+      h5, h6, h7, h8 = (e + h5) % 2 ^ 32, (f + h6) % 2 ^ 32, (g + h7) % 2 ^ 32, (h + h8) % 2 ^ 32
     end
-    H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] =
-      h1, h2, h3, h4, h5, h6, h7, h8
+    H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] = h1, h2, h3, h4, h5, h6, h7, h8
   end
 
   function sha512_feed_128(H_lo, H_hi, str, offs, size)
@@ -4698,8 +3596,7 @@ if branch == "LIB32" or branch == "EMUL" then
         W[j] = ((a * 256 + b) * 256 + c) * 256 + d
       end
       for jj = 17 * 2, 80 * 2, 2 do
-        local a_hi, a_lo, b_hi, b_lo =
-          W[jj - 31], W[jj - 30], W[jj - 5], W[jj - 4]
+        local a_hi, a_lo, b_hi, b_lo = W[jj - 31], W[jj - 30], W[jj - 5], W[jj - 4]
         local b_hi_6, b_hi_19, b_hi_29, b_lo_19, b_lo_29, a_hi_1, a_hi_7, a_hi_8, a_lo_1, a_lo_8 =
           b_hi % 2 ^ 6,
           b_hi % 2 ^ 19,
@@ -4738,19 +3635,12 @@ if branch == "LIB32" or branch == "EMUL" then
         ) % 2 ^ 32
         W[jj] = tmp2
       end
-      local a_lo, b_lo, c_lo, d_lo, e_lo, f_lo, g_lo, h_lo =
-        h1_lo, h2_lo, h3_lo, h4_lo, h5_lo, h6_lo, h7_lo, h8_lo
-      local a_hi, b_hi, c_hi, d_hi, e_hi, f_hi, g_hi, h_hi =
-        h1_hi, h2_hi, h3_hi, h4_hi, h5_hi, h6_hi, h7_hi, h8_hi
+      local a_lo, b_lo, c_lo, d_lo, e_lo, f_lo, g_lo, h_lo = h1_lo, h2_lo, h3_lo, h4_lo, h5_lo, h6_lo, h7_lo, h8_lo
+      local a_hi, b_hi, c_hi, d_hi, e_hi, f_hi, g_hi, h_hi = h1_hi, h2_hi, h3_hi, h4_hi, h5_hi, h6_hi, h7_hi, h8_hi
       for j = 1, 80 do
         local jj = 2 * j
         local e_lo_9, e_lo_14, e_lo_18, e_hi_9, e_hi_14, e_hi_18 =
-          e_lo % 2 ^ 9,
-          e_lo % 2 ^ 14,
-          e_lo % 2 ^ 18,
-          e_hi % 2 ^ 9,
-          e_hi % 2 ^ 14,
-          e_hi % 2 ^ 18
+          e_lo % 2 ^ 9, e_lo % 2 ^ 14, e_lo % 2 ^ 18, e_hi % 2 ^ 9, e_hi % 2 ^ 14, e_hi % 2 ^ 18
         local tmp1 = (AND(e_lo, f_lo) + AND(-1 - e_lo, g_lo)) % 2 ^ 32
           + h_lo
           + K_lo[j]
@@ -4789,12 +3679,7 @@ if branch == "LIB32" or branch == "EMUL" then
         b_lo = a_lo
         b_hi = a_hi
         local b_lo_2, b_lo_7, b_lo_28, b_hi_2, b_hi_7, b_hi_28 =
-          b_lo % 2 ^ 2,
-          b_lo % 2 ^ 7,
-          b_lo % 2 ^ 28,
-          b_hi % 2 ^ 2,
-          b_hi % 2 ^ 7,
-          b_hi % 2 ^ 28
+          b_lo % 2 ^ 2, b_lo % 2 ^ 7, b_lo % 2 ^ 28, b_hi % 2 ^ 2, b_hi % 2 ^ 7, b_hi % 2 ^ 28
         tmp1 = z_lo
           + (AND(d_lo, c_lo) + AND(b_lo, XOR(d_lo, c_lo))) % 2 ^ 32
           + XOR(
@@ -4870,10 +3755,7 @@ if branch == "LIB32" or branch == "EMUL" then
         end
         s = 27
         for j = 17, 32 do
-          local F = ROR(
-            AND(d, b) + AND(-1 - d, c) + a + K[j] + W[(5 * j - 4) % 16 + 1],
-            s
-          ) + b
+          local F = ROR(AND(d, b) + AND(-1 - d, c) + a + K[j] + W[(5 * j - 4) % 16 + 1], s) + b
           s = md5_next_shift[s]
           a = d
           d = c
@@ -4882,10 +3764,7 @@ if branch == "LIB32" or branch == "EMUL" then
         end
         s = 28
         for j = 33, 48 do
-          local F = ROR(
-            XOR(XOR(b, c), d) + a + K[j] + W[(3 * j + 2) % 16 + 1],
-            s
-          ) + b
+          local F = ROR(XOR(XOR(b, c), d) + a + K[j] + W[(3 * j + 2) % 16 + 1], s) + b
           s = md5_next_shift[s]
           a = d
           d = c
@@ -4894,10 +3773,7 @@ if branch == "LIB32" or branch == "EMUL" then
         end
         s = 26
         for j = 49, 64 do
-          local F = ROR(
-            XOR(c, OR(b, -1 - d)) + a + K[j] + W[(j * 7 - 7) % 16 + 1],
-            s
-          ) + b
+          local F = ROR(XOR(c, OR(b, -1 - d)) + a + K[j] + W[(j * 7 - 7) % 16 + 1], s) + b
           s = md5_next_shift[s]
           a = d
           d = c
@@ -4925,9 +3801,7 @@ if branch == "LIB32" or branch == "EMUL" then
         local a, b, c, d = h1, h2, h3, h4
         local s = 25
         for j = 1, 16 do
-          local z = (AND(b, c) + AND(-1 - b, d) + a + K[j] + W[j])
-            % 2 ^ 32
-            / 2 ^ s
+          local z = (AND(b, c) + AND(-1 - b, d) + a + K[j] + W[j]) % 2 ^ 32 / 2 ^ s
           local y = z % 1
           s = md5_next_shift[s]
           a = d
@@ -4937,15 +3811,7 @@ if branch == "LIB32" or branch == "EMUL" then
         end
         s = 27
         for j = 17, 32 do
-          local z = (
-            AND(d, b)
-            + AND(-1 - d, c)
-            + a
-            + K[j]
-            + W[(5 * j - 4) % 16 + 1]
-          )
-            % 2 ^ 32
-            / 2 ^ s
+          local z = (AND(d, b) + AND(-1 - d, c) + a + K[j] + W[(5 * j - 4) % 16 + 1]) % 2 ^ 32 / 2 ^ s
           local y = z % 1
           s = md5_next_shift[s]
           a = d
@@ -4955,9 +3821,7 @@ if branch == "LIB32" or branch == "EMUL" then
         end
         s = 28
         for j = 33, 48 do
-          local z = (XOR(XOR(b, c), d) + a + K[j] + W[(3 * j + 2) % 16 + 1])
-            % 2 ^ 32
-            / 2 ^ s
+          local z = (XOR(XOR(b, c), d) + a + K[j] + W[(3 * j + 2) % 16 + 1]) % 2 ^ 32 / 2 ^ s
           local y = z % 1
           s = md5_next_shift[s]
           a = d
@@ -4967,9 +3831,7 @@ if branch == "LIB32" or branch == "EMUL" then
         end
         s = 26
         for j = 49, 64 do
-          local z = (XOR(c, OR(b, -1 - d)) + a + K[j] + W[(j * 7 - 7) % 16 + 1])
-            % 2 ^ 32
-            / 2 ^ s
+          local z = (XOR(c, OR(b, -1 - d)) + a + K[j] + W[(j * 7 - 7) % 16 + 1]) % 2 ^ 32 / 2 ^ s
           local y = z % 1
           s = md5_next_shift[s]
           a = d
@@ -5005,13 +3867,7 @@ if branch == "LIB32" or branch == "EMUL" then
       for j = 1, 20 do
         local a5 = a * 2 ^ 5
         local z = a5 % 2 ^ 32
-        z = z
-          + (a5 - z) / 2 ^ 32
-          + AND(b, c)
-          + AND(-1 - b, d)
-          + 0x5A827999
-          + W[j]
-          + e -- constant = floor(2^30 * sqrt(2))
+        z = z + (a5 - z) / 2 ^ 32 + AND(b, c) + AND(-1 - b, d) + 0x5A827999 + W[j] + e -- constant = floor(2^30 * sqrt(2))
         e = d
         d = c
         c = b / 2 ^ 2
@@ -5033,13 +3889,7 @@ if branch == "LIB32" or branch == "EMUL" then
       for j = 41, 60 do
         local a5 = a * 2 ^ 5
         local z = a5 % 2 ^ 32
-        z = z
-          + (a5 - z) / 2 ^ 32
-          + AND(d, c)
-          + AND(b, XOR(d, c))
-          + 0x8F1BBCDC
-          + W[j]
-          + e -- 2^30 * sqrt(5)
+        z = z + (a5 - z) / 2 ^ 32 + AND(d, c) + AND(b, XOR(d, c)) + 0x8F1BBCDC + W[j] + e -- 2^30 * sqrt(5)
         e = d
         d = c
         c = b / 2 ^ 2
@@ -5142,10 +3992,8 @@ if branch == "LIB32" or branch == "EMUL" then
         local C4_hi = XOR(L04_hi, L09_hi, L14_hi, L19_hi, L24_hi)
         local C5_lo = XOR(L05_lo, L10_lo, L15_lo, L20_lo, L25_lo)
         local C5_hi = XOR(L05_hi, L10_hi, L15_hi, L20_hi, L25_hi)
-        local D_lo =
-          XOR(C1_lo, C3_lo * 2 + (C3_hi % 2 ^ 32 - C3_hi % 2 ^ 31) / 2 ^ 31)
-        local D_hi =
-          XOR(C1_hi, C3_hi * 2 + (C3_lo % 2 ^ 32 - C3_lo % 2 ^ 31) / 2 ^ 31)
+        local D_lo = XOR(C1_lo, C3_lo * 2 + (C3_hi % 2 ^ 32 - C3_hi % 2 ^ 31) / 2 ^ 31)
+        local D_hi = XOR(C1_hi, C3_hi * 2 + (C3_lo % 2 ^ 32 - C3_lo % 2 ^ 31) / 2 ^ 31)
         local T0_lo = XOR(D_lo, L02_lo)
         local T0_hi = XOR(D_hi, L02_hi)
         local T1_lo = XOR(D_lo, L07_lo)
@@ -5166,10 +4014,8 @@ if branch == "LIB32" or branch == "EMUL" then
         L17_hi = T2_hi * 2 ^ 10 + (T2_lo % 2 ^ 32 - T2_lo % 2 ^ 22) / 2 ^ 22
         L22_lo = T4_lo * 2 ^ 2 + (T4_hi % 2 ^ 32 - T4_hi % 2 ^ 30) / 2 ^ 30
         L22_hi = T4_hi * 2 ^ 2 + (T4_lo % 2 ^ 32 - T4_lo % 2 ^ 30) / 2 ^ 30
-        D_lo =
-          XOR(C2_lo, C4_lo * 2 + (C4_hi % 2 ^ 32 - C4_hi % 2 ^ 31) / 2 ^ 31)
-        D_hi =
-          XOR(C2_hi, C4_hi * 2 + (C4_lo % 2 ^ 32 - C4_lo % 2 ^ 31) / 2 ^ 31)
+        D_lo = XOR(C2_lo, C4_lo * 2 + (C4_hi % 2 ^ 32 - C4_hi % 2 ^ 31) / 2 ^ 31)
+        D_hi = XOR(C2_hi, C4_hi * 2 + (C4_lo % 2 ^ 32 - C4_lo % 2 ^ 31) / 2 ^ 31)
         T0_lo = XOR(D_lo, L03_lo)
         T0_hi = XOR(D_hi, L03_hi)
         T1_lo = XOR(D_lo, L08_lo)
@@ -5182,22 +4028,16 @@ if branch == "LIB32" or branch == "EMUL" then
         T4_hi = XOR(D_hi, L23_hi)
         L03_lo = (T2_lo % 2 ^ 32 - T2_lo % 2 ^ 21) / 2 ^ 21 + T2_hi * 2 ^ 11
         L03_hi = (T2_hi % 2 ^ 32 - T2_hi % 2 ^ 21) / 2 ^ 21 + T2_lo * 2 ^ 11
-        L08_lo = (T4_lo % 2 ^ 32 - T4_lo % 2 ^ 3) / 2 ^ 3
-          + T4_hi * 2 ^ 29 % 2 ^ 32
-        L08_hi = (T4_hi % 2 ^ 32 - T4_hi % 2 ^ 3) / 2 ^ 3
-          + T4_lo * 2 ^ 29 % 2 ^ 32
+        L08_lo = (T4_lo % 2 ^ 32 - T4_lo % 2 ^ 3) / 2 ^ 3 + T4_hi * 2 ^ 29 % 2 ^ 32
+        L08_hi = (T4_hi % 2 ^ 32 - T4_hi % 2 ^ 3) / 2 ^ 3 + T4_lo * 2 ^ 29 % 2 ^ 32
         L13_lo = T1_lo * 2 ^ 6 + (T1_hi % 2 ^ 32 - T1_hi % 2 ^ 26) / 2 ^ 26
         L13_hi = T1_hi * 2 ^ 6 + (T1_lo % 2 ^ 32 - T1_lo % 2 ^ 26) / 2 ^ 26
         L18_lo = T3_lo * 2 ^ 15 + (T3_hi % 2 ^ 32 - T3_hi % 2 ^ 17) / 2 ^ 17
         L18_hi = T3_hi * 2 ^ 15 + (T3_lo % 2 ^ 32 - T3_lo % 2 ^ 17) / 2 ^ 17
-        L23_lo = (T0_lo % 2 ^ 32 - T0_lo % 2 ^ 2) / 2 ^ 2
-          + T0_hi * 2 ^ 30 % 2 ^ 32
-        L23_hi = (T0_hi % 2 ^ 32 - T0_hi % 2 ^ 2) / 2 ^ 2
-          + T0_lo * 2 ^ 30 % 2 ^ 32
-        D_lo =
-          XOR(C3_lo, C5_lo * 2 + (C5_hi % 2 ^ 32 - C5_hi % 2 ^ 31) / 2 ^ 31)
-        D_hi =
-          XOR(C3_hi, C5_hi * 2 + (C5_lo % 2 ^ 32 - C5_lo % 2 ^ 31) / 2 ^ 31)
+        L23_lo = (T0_lo % 2 ^ 32 - T0_lo % 2 ^ 2) / 2 ^ 2 + T0_hi * 2 ^ 30 % 2 ^ 32
+        L23_hi = (T0_hi % 2 ^ 32 - T0_hi % 2 ^ 2) / 2 ^ 2 + T0_lo * 2 ^ 30 % 2 ^ 32
+        D_lo = XOR(C3_lo, C5_lo * 2 + (C5_hi % 2 ^ 32 - C5_hi % 2 ^ 31) / 2 ^ 31)
+        D_hi = XOR(C3_hi, C5_hi * 2 + (C5_lo % 2 ^ 32 - C5_lo % 2 ^ 31) / 2 ^ 31)
         T0_lo = XOR(D_lo, L04_lo)
         T0_hi = XOR(D_hi, L04_hi)
         T1_lo = XOR(D_lo, L09_lo)
@@ -5208,30 +4048,18 @@ if branch == "LIB32" or branch == "EMUL" then
         T3_hi = XOR(D_hi, L19_hi)
         T4_lo = XOR(D_lo, L24_lo)
         T4_hi = XOR(D_hi, L24_hi)
-        L04_lo = T3_lo * 2 ^ 21 % 2 ^ 32
-          + (T3_hi % 2 ^ 32 - T3_hi % 2 ^ 11) / 2 ^ 11
-        L04_hi = T3_hi * 2 ^ 21 % 2 ^ 32
-          + (T3_lo % 2 ^ 32 - T3_lo % 2 ^ 11) / 2 ^ 11
-        L09_lo = T0_lo * 2 ^ 28 % 2 ^ 32
-          + (T0_hi % 2 ^ 32 - T0_hi % 2 ^ 4) / 2 ^ 4
-        L09_hi = T0_hi * 2 ^ 28 % 2 ^ 32
-          + (T0_lo % 2 ^ 32 - T0_lo % 2 ^ 4) / 2 ^ 4
-        L14_lo = T2_lo * 2 ^ 25 % 2 ^ 32
-          + (T2_hi % 2 ^ 32 - T2_hi % 2 ^ 7) / 2 ^ 7
-        L14_hi = T2_hi * 2 ^ 25 % 2 ^ 32
-          + (T2_lo % 2 ^ 32 - T2_lo % 2 ^ 7) / 2 ^ 7
-        L19_lo = (T4_lo % 2 ^ 32 - T4_lo % 2 ^ 8) / 2 ^ 8
-          + T4_hi * 2 ^ 24 % 2 ^ 32
-        L19_hi = (T4_hi % 2 ^ 32 - T4_hi % 2 ^ 8) / 2 ^ 8
-          + T4_lo * 2 ^ 24 % 2 ^ 32
-        L24_lo = (T1_lo % 2 ^ 32 - T1_lo % 2 ^ 9) / 2 ^ 9
-          + T1_hi * 2 ^ 23 % 2 ^ 32
-        L24_hi = (T1_hi % 2 ^ 32 - T1_hi % 2 ^ 9) / 2 ^ 9
-          + T1_lo * 2 ^ 23 % 2 ^ 32
-        D_lo =
-          XOR(C4_lo, C1_lo * 2 + (C1_hi % 2 ^ 32 - C1_hi % 2 ^ 31) / 2 ^ 31)
-        D_hi =
-          XOR(C4_hi, C1_hi * 2 + (C1_lo % 2 ^ 32 - C1_lo % 2 ^ 31) / 2 ^ 31)
+        L04_lo = T3_lo * 2 ^ 21 % 2 ^ 32 + (T3_hi % 2 ^ 32 - T3_hi % 2 ^ 11) / 2 ^ 11
+        L04_hi = T3_hi * 2 ^ 21 % 2 ^ 32 + (T3_lo % 2 ^ 32 - T3_lo % 2 ^ 11) / 2 ^ 11
+        L09_lo = T0_lo * 2 ^ 28 % 2 ^ 32 + (T0_hi % 2 ^ 32 - T0_hi % 2 ^ 4) / 2 ^ 4
+        L09_hi = T0_hi * 2 ^ 28 % 2 ^ 32 + (T0_lo % 2 ^ 32 - T0_lo % 2 ^ 4) / 2 ^ 4
+        L14_lo = T2_lo * 2 ^ 25 % 2 ^ 32 + (T2_hi % 2 ^ 32 - T2_hi % 2 ^ 7) / 2 ^ 7
+        L14_hi = T2_hi * 2 ^ 25 % 2 ^ 32 + (T2_lo % 2 ^ 32 - T2_lo % 2 ^ 7) / 2 ^ 7
+        L19_lo = (T4_lo % 2 ^ 32 - T4_lo % 2 ^ 8) / 2 ^ 8 + T4_hi * 2 ^ 24 % 2 ^ 32
+        L19_hi = (T4_hi % 2 ^ 32 - T4_hi % 2 ^ 8) / 2 ^ 8 + T4_lo * 2 ^ 24 % 2 ^ 32
+        L24_lo = (T1_lo % 2 ^ 32 - T1_lo % 2 ^ 9) / 2 ^ 9 + T1_hi * 2 ^ 23 % 2 ^ 32
+        L24_hi = (T1_hi % 2 ^ 32 - T1_hi % 2 ^ 9) / 2 ^ 9 + T1_lo * 2 ^ 23 % 2 ^ 32
+        D_lo = XOR(C4_lo, C1_lo * 2 + (C1_hi % 2 ^ 32 - C1_hi % 2 ^ 31) / 2 ^ 31)
+        D_hi = XOR(C4_hi, C1_hi * 2 + (C1_lo % 2 ^ 32 - C1_lo % 2 ^ 31) / 2 ^ 31)
         T0_lo = XOR(D_lo, L05_lo)
         T0_hi = XOR(D_hi, L05_hi)
         T1_lo = XOR(D_lo, L10_lo)
@@ -5244,22 +4072,16 @@ if branch == "LIB32" or branch == "EMUL" then
         T4_hi = XOR(D_hi, L25_hi)
         L05_lo = T4_lo * 2 ^ 14 + (T4_hi % 2 ^ 32 - T4_hi % 2 ^ 18) / 2 ^ 18
         L05_hi = T4_hi * 2 ^ 14 + (T4_lo % 2 ^ 32 - T4_lo % 2 ^ 18) / 2 ^ 18
-        L10_lo = T1_lo * 2 ^ 20 % 2 ^ 32
-          + (T1_hi % 2 ^ 32 - T1_hi % 2 ^ 12) / 2 ^ 12
-        L10_hi = T1_hi * 2 ^ 20 % 2 ^ 32
-          + (T1_lo % 2 ^ 32 - T1_lo % 2 ^ 12) / 2 ^ 12
+        L10_lo = T1_lo * 2 ^ 20 % 2 ^ 32 + (T1_hi % 2 ^ 32 - T1_hi % 2 ^ 12) / 2 ^ 12
+        L10_hi = T1_hi * 2 ^ 20 % 2 ^ 32 + (T1_lo % 2 ^ 32 - T1_lo % 2 ^ 12) / 2 ^ 12
         L15_lo = T3_lo * 2 ^ 8 + (T3_hi % 2 ^ 32 - T3_hi % 2 ^ 24) / 2 ^ 24
         L15_hi = T3_hi * 2 ^ 8 + (T3_lo % 2 ^ 32 - T3_lo % 2 ^ 24) / 2 ^ 24
-        L20_lo = T0_lo * 2 ^ 27 % 2 ^ 32
-          + (T0_hi % 2 ^ 32 - T0_hi % 2 ^ 5) / 2 ^ 5
-        L20_hi = T0_hi * 2 ^ 27 % 2 ^ 32
-          + (T0_lo % 2 ^ 32 - T0_lo % 2 ^ 5) / 2 ^ 5
+        L20_lo = T0_lo * 2 ^ 27 % 2 ^ 32 + (T0_hi % 2 ^ 32 - T0_hi % 2 ^ 5) / 2 ^ 5
+        L20_hi = T0_hi * 2 ^ 27 % 2 ^ 32 + (T0_lo % 2 ^ 32 - T0_lo % 2 ^ 5) / 2 ^ 5
         L25_lo = (T2_lo % 2 ^ 32 - T2_lo % 2 ^ 25) / 2 ^ 25 + T2_hi * 2 ^ 7
         L25_hi = (T2_hi % 2 ^ 32 - T2_hi % 2 ^ 25) / 2 ^ 25 + T2_lo * 2 ^ 7
-        D_lo =
-          XOR(C5_lo, C2_lo * 2 + (C2_hi % 2 ^ 32 - C2_hi % 2 ^ 31) / 2 ^ 31)
-        D_hi =
-          XOR(C5_hi, C2_hi * 2 + (C2_lo % 2 ^ 32 - C2_lo % 2 ^ 31) / 2 ^ 31)
+        D_lo = XOR(C5_lo, C2_lo * 2 + (C2_hi % 2 ^ 32 - C2_hi % 2 ^ 31) / 2 ^ 31)
+        D_hi = XOR(C5_hi, C2_hi * 2 + (C2_lo % 2 ^ 32 - C2_lo % 2 ^ 31) / 2 ^ 31)
         T1_lo = XOR(D_lo, L06_lo)
         T1_hi = XOR(D_hi, L06_hi)
         T2_lo = XOR(D_lo, L11_lo)
@@ -5394,19 +4216,10 @@ if branch == "LIB32" or branch == "EMUL" then
     end
   end
 
-  function blake2s_feed_64(
-    H,
-    str,
-    offs,
-    size,
-    bytes_compressed,
-    last_block_size,
-    is_last_node
-  )
+  function blake2s_feed_64(H, str, offs, size, bytes_compressed, last_block_size, is_last_node)
     -- offs >= 0, size >= 0, size is multiple of 64
     local W = common_W
-    local h1, h2, h3, h4, h5, h6, h7, h8 =
-      H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
+    local h1, h2, h3, h4, h5, h6, h7, h8 = H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
     for pos = offs, offs + size - 1, 64 do
       if str then
         for j = 1, 16 do
@@ -5417,14 +4230,7 @@ if branch == "LIB32" or branch == "EMUL" then
       end
       local v0, v1, v2, v3, v4, v5, v6, v7 = h1, h2, h3, h4, h5, h6, h7, h8
       local v8, v9, vA, vB, vC, vD, vE, vF =
-        sha2_H_hi[1],
-        sha2_H_hi[2],
-        sha2_H_hi[3],
-        sha2_H_hi[4],
-        sha2_H_hi[5],
-        sha2_H_hi[6],
-        sha2_H_hi[7],
-        sha2_H_hi[8]
+        sha2_H_hi[1], sha2_H_hi[2], sha2_H_hi[3], sha2_H_hi[4], sha2_H_hi[5], sha2_H_hi[6], sha2_H_hi[7], sha2_H_hi[8]
       bytes_compressed = bytes_compressed + (last_block_size or 64)
       local t0 = bytes_compressed % 2 ^ 32
       local t1 = (bytes_compressed - t0) / 2 ^ 32
@@ -5544,21 +4350,11 @@ if branch == "LIB32" or branch == "EMUL" then
       h7 = XOR(h7, v6, vE)
       h8 = XOR(h8, v7, vF)
     end
-    H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] =
-      h1, h2, h3, h4, h5, h6, h7, h8
+    H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] = h1, h2, h3, h4, h5, h6, h7, h8
     return bytes_compressed
   end
 
-  function blake2b_feed_128(
-    H_lo,
-    H_hi,
-    str,
-    offs,
-    size,
-    bytes_compressed,
-    last_block_size,
-    is_last_node
-  )
+  function blake2b_feed_128(H_lo, H_hi, str, offs, size, bytes_compressed, last_block_size, is_last_node)
     -- offs >= 0, size >= 0, size is multiple of 128
     local W = common_W
     local h1_lo, h2_lo, h3_lo, h4_lo, h5_lo, h6_lo, h7_lo, h8_lo =
@@ -5578,23 +4374,9 @@ if branch == "LIB32" or branch == "EMUL" then
       local v0_hi, v1_hi, v2_hi, v3_hi, v4_hi, v5_hi, v6_hi, v7_hi =
         h1_hi, h2_hi, h3_hi, h4_hi, h5_hi, h6_hi, h7_hi, h8_hi
       local v8_lo, v9_lo, vA_lo, vB_lo, vC_lo, vD_lo, vE_lo, vF_lo =
-        sha2_H_lo[1],
-        sha2_H_lo[2],
-        sha2_H_lo[3],
-        sha2_H_lo[4],
-        sha2_H_lo[5],
-        sha2_H_lo[6],
-        sha2_H_lo[7],
-        sha2_H_lo[8]
+        sha2_H_lo[1], sha2_H_lo[2], sha2_H_lo[3], sha2_H_lo[4], sha2_H_lo[5], sha2_H_lo[6], sha2_H_lo[7], sha2_H_lo[8]
       local v8_hi, v9_hi, vA_hi, vB_hi, vC_hi, vD_hi, vE_hi, vF_hi =
-        sha2_H_hi[1],
-        sha2_H_hi[2],
-        sha2_H_hi[3],
-        sha2_H_hi[4],
-        sha2_H_hi[5],
-        sha2_H_hi[6],
-        sha2_H_hi[7],
-        sha2_H_hi[8]
+        sha2_H_hi[1], sha2_H_hi[2], sha2_H_hi[3], sha2_H_hi[4], sha2_H_hi[5], sha2_H_hi[6], sha2_H_hi[7], sha2_H_hi[8]
       bytes_compressed = bytes_compressed + (last_block_size or 128)
       local t0_lo = bytes_compressed % 2 ^ 32
       local t0_hi = (bytes_compressed - t0_lo) / 2 ^ 32
@@ -5621,9 +4403,7 @@ if branch == "LIB32" or branch == "EMUL" then
         v8_hi = v8_hi + vC_hi + (z - v8_lo) / 2 ^ 32
         v4_lo, v4_hi = XOR(v4_lo, v8_lo), XOR(v4_hi, v8_hi)
         local z_lo, z_hi = v4_lo % 2 ^ 24, v4_hi % 2 ^ 24
-        v4_lo, v4_hi =
-          (v4_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8,
-          (v4_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
+        v4_lo, v4_hi = (v4_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8, (v4_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
         k = row[2] * 2
         z = v0_lo % 2 ^ 32 + v4_lo % 2 ^ 32 + W[k - 1]
         v0_lo = z % 2 ^ 32
@@ -5631,16 +4411,13 @@ if branch == "LIB32" or branch == "EMUL" then
         vC_lo, vC_hi = XOR(vC_lo, v0_lo), XOR(vC_hi, v0_hi)
         z_lo, z_hi = vC_lo % 2 ^ 16, vC_hi % 2 ^ 16
         vC_lo, vC_hi =
-          (vC_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16,
-          (vC_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
+          (vC_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16, (vC_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
         z = v8_lo % 2 ^ 32 + vC_lo % 2 ^ 32
         v8_lo = z % 2 ^ 32
         v8_hi = v8_hi + vC_hi + (z - v8_lo) / 2 ^ 32
         v4_lo, v4_hi = XOR(v4_lo, v8_lo), XOR(v4_hi, v8_hi)
         z_lo, z_hi = v4_lo % 2 ^ 31, v4_hi % 2 ^ 31
-        v4_lo, v4_hi =
-          z_lo * 2 ^ 1 + (v4_hi - z_hi) / 2 ^ 31 % 2 ^ 1,
-          z_hi * 2 ^ 1 + (v4_lo - z_lo) / 2 ^ 31 % 2 ^ 1
+        v4_lo, v4_hi = z_lo * 2 ^ 1 + (v4_hi - z_hi) / 2 ^ 31 % 2 ^ 1, z_hi * 2 ^ 1 + (v4_lo - z_lo) / 2 ^ 31 % 2 ^ 1
         k = row[3] * 2
         z = v1_lo % 2 ^ 32 + v5_lo % 2 ^ 32 + W[k - 1]
         v1_lo = z % 2 ^ 32
@@ -5651,9 +4428,7 @@ if branch == "LIB32" or branch == "EMUL" then
         v9_hi = v9_hi + vD_hi + (z - v9_lo) / 2 ^ 32
         v5_lo, v5_hi = XOR(v5_lo, v9_lo), XOR(v5_hi, v9_hi)
         z_lo, z_hi = v5_lo % 2 ^ 24, v5_hi % 2 ^ 24
-        v5_lo, v5_hi =
-          (v5_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8,
-          (v5_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
+        v5_lo, v5_hi = (v5_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8, (v5_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
         k = row[4] * 2
         z = v1_lo % 2 ^ 32 + v5_lo % 2 ^ 32 + W[k - 1]
         v1_lo = z % 2 ^ 32
@@ -5661,16 +4436,13 @@ if branch == "LIB32" or branch == "EMUL" then
         vD_lo, vD_hi = XOR(vD_lo, v1_lo), XOR(vD_hi, v1_hi)
         z_lo, z_hi = vD_lo % 2 ^ 16, vD_hi % 2 ^ 16
         vD_lo, vD_hi =
-          (vD_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16,
-          (vD_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
+          (vD_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16, (vD_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
         z = v9_lo % 2 ^ 32 + vD_lo % 2 ^ 32
         v9_lo = z % 2 ^ 32
         v9_hi = v9_hi + vD_hi + (z - v9_lo) / 2 ^ 32
         v5_lo, v5_hi = XOR(v5_lo, v9_lo), XOR(v5_hi, v9_hi)
         z_lo, z_hi = v5_lo % 2 ^ 31, v5_hi % 2 ^ 31
-        v5_lo, v5_hi =
-          z_lo * 2 ^ 1 + (v5_hi - z_hi) / 2 ^ 31 % 2 ^ 1,
-          z_hi * 2 ^ 1 + (v5_lo - z_lo) / 2 ^ 31 % 2 ^ 1
+        v5_lo, v5_hi = z_lo * 2 ^ 1 + (v5_hi - z_hi) / 2 ^ 31 % 2 ^ 1, z_hi * 2 ^ 1 + (v5_lo - z_lo) / 2 ^ 31 % 2 ^ 1
         k = row[5] * 2
         z = v2_lo % 2 ^ 32 + v6_lo % 2 ^ 32 + W[k - 1]
         v2_lo = z % 2 ^ 32
@@ -5681,9 +4453,7 @@ if branch == "LIB32" or branch == "EMUL" then
         vA_hi = vA_hi + vE_hi + (z - vA_lo) / 2 ^ 32
         v6_lo, v6_hi = XOR(v6_lo, vA_lo), XOR(v6_hi, vA_hi)
         z_lo, z_hi = v6_lo % 2 ^ 24, v6_hi % 2 ^ 24
-        v6_lo, v6_hi =
-          (v6_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8,
-          (v6_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
+        v6_lo, v6_hi = (v6_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8, (v6_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
         k = row[6] * 2
         z = v2_lo % 2 ^ 32 + v6_lo % 2 ^ 32 + W[k - 1]
         v2_lo = z % 2 ^ 32
@@ -5691,16 +4461,13 @@ if branch == "LIB32" or branch == "EMUL" then
         vE_lo, vE_hi = XOR(vE_lo, v2_lo), XOR(vE_hi, v2_hi)
         z_lo, z_hi = vE_lo % 2 ^ 16, vE_hi % 2 ^ 16
         vE_lo, vE_hi =
-          (vE_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16,
-          (vE_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
+          (vE_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16, (vE_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
         z = vA_lo % 2 ^ 32 + vE_lo % 2 ^ 32
         vA_lo = z % 2 ^ 32
         vA_hi = vA_hi + vE_hi + (z - vA_lo) / 2 ^ 32
         v6_lo, v6_hi = XOR(v6_lo, vA_lo), XOR(v6_hi, vA_hi)
         z_lo, z_hi = v6_lo % 2 ^ 31, v6_hi % 2 ^ 31
-        v6_lo, v6_hi =
-          z_lo * 2 ^ 1 + (v6_hi - z_hi) / 2 ^ 31 % 2 ^ 1,
-          z_hi * 2 ^ 1 + (v6_lo - z_lo) / 2 ^ 31 % 2 ^ 1
+        v6_lo, v6_hi = z_lo * 2 ^ 1 + (v6_hi - z_hi) / 2 ^ 31 % 2 ^ 1, z_hi * 2 ^ 1 + (v6_lo - z_lo) / 2 ^ 31 % 2 ^ 1
         k = row[7] * 2
         z = v3_lo % 2 ^ 32 + v7_lo % 2 ^ 32 + W[k - 1]
         v3_lo = z % 2 ^ 32
@@ -5711,9 +4478,7 @@ if branch == "LIB32" or branch == "EMUL" then
         vB_hi = vB_hi + vF_hi + (z - vB_lo) / 2 ^ 32
         v7_lo, v7_hi = XOR(v7_lo, vB_lo), XOR(v7_hi, vB_hi)
         z_lo, z_hi = v7_lo % 2 ^ 24, v7_hi % 2 ^ 24
-        v7_lo, v7_hi =
-          (v7_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8,
-          (v7_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
+        v7_lo, v7_hi = (v7_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8, (v7_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
         k = row[8] * 2
         z = v3_lo % 2 ^ 32 + v7_lo % 2 ^ 32 + W[k - 1]
         v3_lo = z % 2 ^ 32
@@ -5721,16 +4486,13 @@ if branch == "LIB32" or branch == "EMUL" then
         vF_lo, vF_hi = XOR(vF_lo, v3_lo), XOR(vF_hi, v3_hi)
         z_lo, z_hi = vF_lo % 2 ^ 16, vF_hi % 2 ^ 16
         vF_lo, vF_hi =
-          (vF_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16,
-          (vF_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
+          (vF_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16, (vF_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
         z = vB_lo % 2 ^ 32 + vF_lo % 2 ^ 32
         vB_lo = z % 2 ^ 32
         vB_hi = vB_hi + vF_hi + (z - vB_lo) / 2 ^ 32
         v7_lo, v7_hi = XOR(v7_lo, vB_lo), XOR(v7_hi, vB_hi)
         z_lo, z_hi = v7_lo % 2 ^ 31, v7_hi % 2 ^ 31
-        v7_lo, v7_hi =
-          z_lo * 2 ^ 1 + (v7_hi - z_hi) / 2 ^ 31 % 2 ^ 1,
-          z_hi * 2 ^ 1 + (v7_lo - z_lo) / 2 ^ 31 % 2 ^ 1
+        v7_lo, v7_hi = z_lo * 2 ^ 1 + (v7_hi - z_hi) / 2 ^ 31 % 2 ^ 1, z_hi * 2 ^ 1 + (v7_lo - z_lo) / 2 ^ 31 % 2 ^ 1
         k = row[9] * 2
         z = v0_lo % 2 ^ 32 + v5_lo % 2 ^ 32 + W[k - 1]
         v0_lo = z % 2 ^ 32
@@ -5741,9 +4503,7 @@ if branch == "LIB32" or branch == "EMUL" then
         vA_hi = vA_hi + vF_hi + (z - vA_lo) / 2 ^ 32
         v5_lo, v5_hi = XOR(v5_lo, vA_lo), XOR(v5_hi, vA_hi)
         z_lo, z_hi = v5_lo % 2 ^ 24, v5_hi % 2 ^ 24
-        v5_lo, v5_hi =
-          (v5_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8,
-          (v5_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
+        v5_lo, v5_hi = (v5_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8, (v5_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
         k = row[10] * 2
         z = v0_lo % 2 ^ 32 + v5_lo % 2 ^ 32 + W[k - 1]
         v0_lo = z % 2 ^ 32
@@ -5751,16 +4511,13 @@ if branch == "LIB32" or branch == "EMUL" then
         vF_lo, vF_hi = XOR(vF_lo, v0_lo), XOR(vF_hi, v0_hi)
         z_lo, z_hi = vF_lo % 2 ^ 16, vF_hi % 2 ^ 16
         vF_lo, vF_hi =
-          (vF_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16,
-          (vF_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
+          (vF_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16, (vF_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
         z = vA_lo % 2 ^ 32 + vF_lo % 2 ^ 32
         vA_lo = z % 2 ^ 32
         vA_hi = vA_hi + vF_hi + (z - vA_lo) / 2 ^ 32
         v5_lo, v5_hi = XOR(v5_lo, vA_lo), XOR(v5_hi, vA_hi)
         z_lo, z_hi = v5_lo % 2 ^ 31, v5_hi % 2 ^ 31
-        v5_lo, v5_hi =
-          z_lo * 2 ^ 1 + (v5_hi - z_hi) / 2 ^ 31 % 2 ^ 1,
-          z_hi * 2 ^ 1 + (v5_lo - z_lo) / 2 ^ 31 % 2 ^ 1
+        v5_lo, v5_hi = z_lo * 2 ^ 1 + (v5_hi - z_hi) / 2 ^ 31 % 2 ^ 1, z_hi * 2 ^ 1 + (v5_lo - z_lo) / 2 ^ 31 % 2 ^ 1
         k = row[11] * 2
         z = v1_lo % 2 ^ 32 + v6_lo % 2 ^ 32 + W[k - 1]
         v1_lo = z % 2 ^ 32
@@ -5771,9 +4528,7 @@ if branch == "LIB32" or branch == "EMUL" then
         vB_hi = vB_hi + vC_hi + (z - vB_lo) / 2 ^ 32
         v6_lo, v6_hi = XOR(v6_lo, vB_lo), XOR(v6_hi, vB_hi)
         z_lo, z_hi = v6_lo % 2 ^ 24, v6_hi % 2 ^ 24
-        v6_lo, v6_hi =
-          (v6_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8,
-          (v6_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
+        v6_lo, v6_hi = (v6_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8, (v6_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
         k = row[12] * 2
         z = v1_lo % 2 ^ 32 + v6_lo % 2 ^ 32 + W[k - 1]
         v1_lo = z % 2 ^ 32
@@ -5781,16 +4536,13 @@ if branch == "LIB32" or branch == "EMUL" then
         vC_lo, vC_hi = XOR(vC_lo, v1_lo), XOR(vC_hi, v1_hi)
         z_lo, z_hi = vC_lo % 2 ^ 16, vC_hi % 2 ^ 16
         vC_lo, vC_hi =
-          (vC_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16,
-          (vC_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
+          (vC_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16, (vC_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
         z = vB_lo % 2 ^ 32 + vC_lo % 2 ^ 32
         vB_lo = z % 2 ^ 32
         vB_hi = vB_hi + vC_hi + (z - vB_lo) / 2 ^ 32
         v6_lo, v6_hi = XOR(v6_lo, vB_lo), XOR(v6_hi, vB_hi)
         z_lo, z_hi = v6_lo % 2 ^ 31, v6_hi % 2 ^ 31
-        v6_lo, v6_hi =
-          z_lo * 2 ^ 1 + (v6_hi - z_hi) / 2 ^ 31 % 2 ^ 1,
-          z_hi * 2 ^ 1 + (v6_lo - z_lo) / 2 ^ 31 % 2 ^ 1
+        v6_lo, v6_hi = z_lo * 2 ^ 1 + (v6_hi - z_hi) / 2 ^ 31 % 2 ^ 1, z_hi * 2 ^ 1 + (v6_lo - z_lo) / 2 ^ 31 % 2 ^ 1
         k = row[13] * 2
         z = v2_lo % 2 ^ 32 + v7_lo % 2 ^ 32 + W[k - 1]
         v2_lo = z % 2 ^ 32
@@ -5801,9 +4553,7 @@ if branch == "LIB32" or branch == "EMUL" then
         v8_hi = v8_hi + vD_hi + (z - v8_lo) / 2 ^ 32
         v7_lo, v7_hi = XOR(v7_lo, v8_lo), XOR(v7_hi, v8_hi)
         z_lo, z_hi = v7_lo % 2 ^ 24, v7_hi % 2 ^ 24
-        v7_lo, v7_hi =
-          (v7_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8,
-          (v7_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
+        v7_lo, v7_hi = (v7_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8, (v7_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
         k = row[14] * 2
         z = v2_lo % 2 ^ 32 + v7_lo % 2 ^ 32 + W[k - 1]
         v2_lo = z % 2 ^ 32
@@ -5811,16 +4561,13 @@ if branch == "LIB32" or branch == "EMUL" then
         vD_lo, vD_hi = XOR(vD_lo, v2_lo), XOR(vD_hi, v2_hi)
         z_lo, z_hi = vD_lo % 2 ^ 16, vD_hi % 2 ^ 16
         vD_lo, vD_hi =
-          (vD_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16,
-          (vD_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
+          (vD_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16, (vD_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
         z = v8_lo % 2 ^ 32 + vD_lo % 2 ^ 32
         v8_lo = z % 2 ^ 32
         v8_hi = v8_hi + vD_hi + (z - v8_lo) / 2 ^ 32
         v7_lo, v7_hi = XOR(v7_lo, v8_lo), XOR(v7_hi, v8_hi)
         z_lo, z_hi = v7_lo % 2 ^ 31, v7_hi % 2 ^ 31
-        v7_lo, v7_hi =
-          z_lo * 2 ^ 1 + (v7_hi - z_hi) / 2 ^ 31 % 2 ^ 1,
-          z_hi * 2 ^ 1 + (v7_lo - z_lo) / 2 ^ 31 % 2 ^ 1
+        v7_lo, v7_hi = z_lo * 2 ^ 1 + (v7_hi - z_hi) / 2 ^ 31 % 2 ^ 1, z_hi * 2 ^ 1 + (v7_lo - z_lo) / 2 ^ 31 % 2 ^ 1
         k = row[15] * 2
         z = v3_lo % 2 ^ 32 + v4_lo % 2 ^ 32 + W[k - 1]
         v3_lo = z % 2 ^ 32
@@ -5831,9 +4578,7 @@ if branch == "LIB32" or branch == "EMUL" then
         v9_hi = v9_hi + vE_hi + (z - v9_lo) / 2 ^ 32
         v4_lo, v4_hi = XOR(v4_lo, v9_lo), XOR(v4_hi, v9_hi)
         z_lo, z_hi = v4_lo % 2 ^ 24, v4_hi % 2 ^ 24
-        v4_lo, v4_hi =
-          (v4_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8,
-          (v4_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
+        v4_lo, v4_hi = (v4_lo - z_lo) / 2 ^ 24 % 2 ^ 8 + z_hi * 2 ^ 8, (v4_hi - z_hi) / 2 ^ 24 % 2 ^ 8 + z_lo * 2 ^ 8
         k = row[16] * 2
         z = v3_lo % 2 ^ 32 + v4_lo % 2 ^ 32 + W[k - 1]
         v3_lo = z % 2 ^ 32
@@ -5841,16 +4586,13 @@ if branch == "LIB32" or branch == "EMUL" then
         vE_lo, vE_hi = XOR(vE_lo, v3_lo), XOR(vE_hi, v3_hi)
         z_lo, z_hi = vE_lo % 2 ^ 16, vE_hi % 2 ^ 16
         vE_lo, vE_hi =
-          (vE_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16,
-          (vE_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
+          (vE_lo - z_lo) / 2 ^ 16 % 2 ^ 16 + z_hi * 2 ^ 16, (vE_hi - z_hi) / 2 ^ 16 % 2 ^ 16 + z_lo * 2 ^ 16
         z = v9_lo % 2 ^ 32 + vE_lo % 2 ^ 32
         v9_lo = z % 2 ^ 32
         v9_hi = v9_hi + vE_hi + (z - v9_lo) / 2 ^ 32
         v4_lo, v4_hi = XOR(v4_lo, v9_lo), XOR(v4_hi, v9_hi)
         z_lo, z_hi = v4_lo % 2 ^ 31, v4_hi % 2 ^ 31
-        v4_lo, v4_hi =
-          z_lo * 2 ^ 1 + (v4_hi - z_hi) / 2 ^ 31 % 2 ^ 1,
-          z_hi * 2 ^ 1 + (v4_lo - z_lo) / 2 ^ 31 % 2 ^ 1
+        v4_lo, v4_hi = z_lo * 2 ^ 1 + (v4_hi - z_hi) / 2 ^ 31 % 2 ^ 1, z_hi * 2 ^ 1 + (v4_lo - z_lo) / 2 ^ 31 % 2 ^ 1
       end
       h1_lo = XOR(h1_lo, v0_lo, v8_lo) % 2 ^ 32
       h2_lo = XOR(h2_lo, v1_lo, v9_lo) % 2 ^ 32
@@ -5876,22 +4618,11 @@ if branch == "LIB32" or branch == "EMUL" then
     return bytes_compressed
   end
 
-  function blake3_feed_64(
-    str,
-    offs,
-    size,
-    flags,
-    chunk_index,
-    H_in,
-    H_out,
-    wide_output,
-    block_length
-  )
+  function blake3_feed_64(str, offs, size, flags, chunk_index, H_in, H_out, wide_output, block_length)
     -- offs >= 0, size >= 0, size is multiple of 64
     block_length = block_length or 64
     local W = common_W
-    local h1, h2, h3, h4, h5, h6, h7, h8 =
-      H_in[1], H_in[2], H_in[3], H_in[4], H_in[5], H_in[6], H_in[7], H_in[8]
+    local h1, h2, h3, h4, h5, h6, h7, h8 = H_in[1], H_in[2], H_in[3], H_in[4], H_in[5], H_in[6], H_in[7], H_in[8]
     H_out = H_out or H_in
     for pos = offs, offs + size - 1, 64 do
       if str then
@@ -5902,8 +4633,7 @@ if branch == "LIB32" or branch == "EMUL" then
         end
       end
       local v0, v1, v2, v3, v4, v5, v6, v7 = h1, h2, h3, h4, h5, h6, h7, h8
-      local v8, v9, vA, vB =
-        sha2_H_hi[1], sha2_H_hi[2], sha2_H_hi[3], sha2_H_hi[4]
+      local v8, v9, vA, vB = sha2_H_hi[1], sha2_H_hi[2], sha2_H_hi[3], sha2_H_hi[4]
       local vC = chunk_index % 2 ^ 32 -- t0 = low_4_bytes(chunk_index)
       local vD = (chunk_index - vC) / 2 ^ 32 -- t1 = high_4_bytes(chunk_index)
       local vE, vF = block_length, flags
@@ -6024,8 +4754,7 @@ if branch == "LIB32" or branch == "EMUL" then
       h7 = XOR(v6, vE)
       h8 = XOR(v7, vF)
     end
-    H_out[1], H_out[2], H_out[3], H_out[4], H_out[5], H_out[6], H_out[7], H_out[8] =
-      h1, h2, h3, h4, h5, h6, h7, h8
+    H_out[1], H_out[2], H_out[3], H_out[4], H_out[5], H_out[6], H_out[7], H_out[8] = h1, h2, h3, h4, h5, h6, h7, h8
   end
 end
 
@@ -6057,8 +4786,7 @@ do
     return result, value
   end
 
-  local idx, step, p, one, sqrt_hi, sqrt_lo =
-    0, { 4, 1, 2, -2, 2 }, 4, { 1 }, sha2_H_hi, sha2_H_lo
+  local idx, step, p, one, sqrt_hi, sqrt_lo = 0, { 4, 1, 2, -2, 2 }, 4, { 1 }, sha2_H_hi, sha2_H_lo
   repeat
     p = p + step[p % 6]
     local d = 1
@@ -6070,8 +4798,7 @@ do
         R = mul({ R - R % 1 }, one, 1.0, 2)
         local _, delta = mul(R, mul(R, R, 1.0, 4), -1.0, 4)
         local hi = R[2] % 65536 * 65536 + floor(R[1] / 256)
-        local lo = R[1] % 256 * 16777216
-          + floor(delta * (2 ^ -56 / 3) * root / p)
+        local lo = R[1] % 256 * 16777216 + floor(delta * (2 ^ -56 / 3) * root / p)
         if idx < 16 then
           root = p ^ (1 / 2)
           R = root * 2 ^ 40
@@ -6108,13 +4835,7 @@ for width = 224, 256, 32 do
       H_hi[j] = XORA5(sha2_H_hi[j])
     end
   end
-  sha512_feed_128(
-    H_lo,
-    H_hi,
-    "SHA-512/" .. tostring(width) .. "\128" .. string_rep("\0", 115) .. "\88",
-    0,
-    128
-  )
+  sha512_feed_128(H_lo, H_hi, "SHA-512/" .. tostring(width) .. "\128" .. string_rep("\0", 115) .. "\88", 0, 128)
   sha2_H_ext512_lo[width] = H_lo
   sha2_H_ext512_hi[width] = H_hi
 end
@@ -6190,8 +4911,7 @@ local function sha256ext(width, message)
       end
     else
       if tail then
-        local final_blocks =
-          { tail, "\128", string_rep("\0", (-9 - length) % 64 + 1) }
+        local final_blocks = { tail, "\128", string_rep("\0", (-9 - length) % 64 + 1) }
         tail = nil
         -- Assuming user data length is shorter than (2^53)-9 bytes
         -- Anyway, it looks very unrealistic that someone would spend more than a year of calculations to process 2^53 bytes of data by using this Lua script :-)
@@ -6226,10 +4946,7 @@ end
 local function sha512ext(width, message)
   -- Create an instance (private objects for current calculation)
   local length, tail, H_lo, H_hi =
-    0.0,
-    "",
-    { unpack(sha2_H_ext512_lo[width]) },
-    not HEX64 and { unpack(sha2_H_ext512_hi[width]) }
+    0.0, "", { unpack(sha2_H_ext512_lo[width]) }, not HEX64 and { unpack(sha2_H_ext512_hi[width]) }
 
   local function partial(message_part)
     if message_part then
@@ -6238,13 +4955,7 @@ local function sha512ext(width, message)
         local offs = 0
         if tail ~= "" and #tail + #message_part >= 128 then
           offs = 128 - #tail
-          sha512_feed_128(
-            H_lo,
-            H_hi,
-            tail .. sub(message_part, 1, offs),
-            0,
-            128
-          )
+          sha512_feed_128(H_lo, H_hi, tail .. sub(message_part, 1, offs), 0, 128)
           tail = ""
         end
         local size = #message_part - offs
@@ -6257,8 +4968,7 @@ local function sha512ext(width, message)
       end
     else
       if tail then
-        local final_blocks =
-          { tail, "\128", string_rep("\0", (-17 - length) % 128 + 9) }
+        local final_blocks = { tail, "\128", string_rep("\0", (-17 - length) % 128 + 9) }
         tail = nil
         -- Assuming user data length is shorter than (2^53)-17 bytes
         -- 2^53 bytes = 2^56 bits, so "bit-counter" fits in 7 bytes
@@ -6320,8 +5030,7 @@ local function md5(message)
       end
     else
       if tail then
-        local final_blocks =
-          { tail, "\128", string_rep("\0", (-9 - length) % 64) }
+        local final_blocks = { tail, "\128", string_rep("\0", (-9 - length) % 64) }
         tail = nil
         length = length * 8 -- convert "byte-counter" to "bit-counter"
         for j = 4, 11 do
@@ -6374,8 +5083,7 @@ local function sha1(message)
       end
     else
       if tail then
-        local final_blocks =
-          { tail, "\128", string_rep("\0", (-9 - length) % 64 + 1) }
+        local final_blocks = { tail, "\128", string_rep("\0", (-9 - length) % 64 + 1) }
         tail = nil
         -- Assuming user data length is shorter than (2^53)-9 bytes
         -- 2^53 bytes = 2^56 bits, so "bit-counter" fits in 7 bytes
@@ -6405,12 +5113,7 @@ local function sha1(message)
   end
 end
 
-local function keccak(
-  block_size_in_bytes,
-  digest_size_in_bytes,
-  is_SHAKE,
-  message
-)
+local function keccak(block_size_in_bytes, digest_size_in_bytes, is_SHAKE, message)
   -- "block_size_in_bytes" is multiple of 8
   if type(digest_size_in_bytes) ~= "number" then
     -- arguments in SHAKE are swapped:
@@ -6420,10 +5123,7 @@ local function keccak(
     error("Argument 'digest_size_in_bytes' must be a number", 2)
   end
   -- Create an instance (private objects for current calculation)
-  local tail, lanes_lo, lanes_hi =
-    "",
-    create_array_of_lanes(),
-    hi_factor_keccak == 0 and create_array_of_lanes()
+  local tail, lanes_lo, lanes_hi = "", create_array_of_lanes(), hi_factor_keccak == 0 and create_array_of_lanes()
   local result
 
   local function partial(message_part)
@@ -6444,14 +5144,7 @@ local function keccak(
         end
         local size = #message_part - offs
         local size_tail = size % block_size_in_bytes
-        keccak_feed(
-          lanes_lo,
-          lanes_hi,
-          message_part,
-          offs,
-          size - size_tail,
-          block_size_in_bytes
-        )
+        keccak_feed(lanes_lo, lanes_hi, message_part, offs, size - size_tail, block_size_in_bytes)
         tail = tail .. sub(message_part, #message_part + 1 - size_tail)
         return partial
       else
@@ -6464,9 +5157,7 @@ local function keccak(
         tail = tail
           .. (
             #tail + 1 == block_size_in_bytes and char(gap_start + 128)
-            or char(gap_start)
-              .. string_rep("\0", (-2 - #tail) % block_size_in_bytes)
-              .. "\128"
+            or char(gap_start) .. string_rep("\0", (-2 - #tail) % block_size_in_bytes) .. "\128"
           )
         keccak_feed(lanes_lo, lanes_hi, tail, 0, #tail, block_size_in_bytes)
         tail = nil
@@ -6489,16 +5180,11 @@ local function keccak(
             end
           else
             for j = 1, qwords_qty do
-              qwords[j] = HEX(lanes_hi[lanes_used + j])
-                .. HEX(lanes_lo[lanes_used + j])
+              qwords[j] = HEX(lanes_hi[lanes_used + j]) .. HEX(lanes_lo[lanes_used + j])
             end
           end
           lanes_used = lanes_used + qwords_qty
-          return gsub(
-            table_concat(qwords, "", 1, qwords_qty),
-            "(..)(..)(..)(..)(..)(..)(..)(..)",
-            "%8%7%6%5%4%3%2%1"
-          ),
+          return gsub(table_concat(qwords, "", 1, qwords_qty), "(..)(..)(..)(..)(..)(..)(..)(..)", "%8%7%6%5%4%3%2%1"),
             qwords_qty * 8
         end
 
@@ -6523,8 +5209,7 @@ local function keccak(
           end
           -- repeats until the length is enough
           while bytes_needed >= 8 do
-            local next_part, next_part_size =
-              get_next_qwords_of_digest(bytes_needed / 8)
+            local next_part, next_part_size = get_next_qwords_of_digest(bytes_needed / 8)
             parts_qty = parts_qty + 1
             parts[parts_qty] = next_part
             bytes_needed = bytes_needed - next_part_size
@@ -6562,19 +5247,15 @@ end
 local hex_to_bin, bin_to_hex, bin_to_base64, base64_to_bin
 do
   function hex_to_bin(hex_string)
-    return (
-      gsub(hex_string, "%x%x", function(hh)
-        return char(tonumber(hh, 16))
-      end)
-    )
+    return (gsub(hex_string, "%x%x", function(hh)
+      return char(tonumber(hh, 16))
+    end))
   end
 
   function bin_to_hex(binary_string)
-    return (
-      gsub(binary_string, ".", function(c)
-        return string_format("%02x", byte(c))
-      end)
-    )
+    return (gsub(binary_string, ".", function(c)
+      return string_format("%02x", byte(c))
+    end))
   end
 
   local base64_symbols = {
@@ -6601,8 +5282,7 @@ do
   function bin_to_base64(binary_string)
     local result = {}
     for pos = 1, #binary_string, 3 do
-      local c1, c2, c3, c4 =
-        byte(sub(binary_string, pos, pos + 2) .. "\0", 1, -1)
+      local c1, c2, c3, c4 = byte(sub(binary_string, pos, pos + 2) .. "\0", 1, -1)
       result[#result + 1] = base64_symbols[floor(c1 / 4)]
         .. base64_symbols[c1 % 4 * 16 + floor(c2 / 16)]
         .. base64_symbols[c3 and c2 % 16 * 4 + floor(c3 / 64) or -1]
@@ -6655,8 +5335,7 @@ local function hmac(hash_func, key, message)
 
   local function partial(message_part)
     if not message_part then
-      result = result
-        or hash_func(pad_and_xor(key, block_size, 0x5C) .. hex_to_bin(append()))
+      result = result or hash_func(pad_and_xor(key, block_size, 0x5C) .. hex_to_bin(append()))
       return result
     elseif result then
       error("Adding more chunks is not allowed after receiving the result", 2)
@@ -6693,15 +5372,13 @@ local function xor_blake2_salt(salt, letter, H_lo, H_hi)
     )
   end
   if H_lo then
-    local offset, blake2_word_size, xor =
-      0, letter == "s" and 4 or 8, letter == "s" and XOR or XORA5
+    local offset, blake2_word_size, xor = 0, letter == "s" and 4 or 8, letter == "s" and XOR or XORA5
     for j = 5, 4 + ceil(salt_size / blake2_word_size) do
       local prev, last
       for _ = 1, blake2_word_size, 4 do
         offset = offset + 4
         local a, b, c, d = byte(salt, offset - 3, offset)
-        local four_bytes = (((d or 0) * 256 + (c or 0)) * 256 + (b or 0)) * 256
-          + (a or 0)
+        local four_bytes = (((d or 0) * 256 + (c or 0)) * 256 + (b or 0)) * 256 + (a or 0)
         prev, last = last, four_bytes
       end
       H_lo[j] = xor(H_lo[j], prev and last * hi_factor + prev or last)
@@ -6712,14 +5389,7 @@ local function xor_blake2_salt(salt, letter, H_lo, H_hi)
   end
 end
 
-local function blake2s(
-  message,
-  key,
-  salt,
-  digest_size_in_bytes,
-  XOF_length,
-  B2_offset
-)
+local function blake2s(message, key, salt, digest_size_in_bytes, XOF_length, B2_offset)
   -- message:  binary string to be hashed (or nil for "chunk-by-chunk" input mode)
   -- key:      (optional) binary string up to 32 bytes, by default empty string
   -- salt:     (optional) binary string up to 16 bytes, by default empty string
@@ -6757,24 +5427,12 @@ local function blake2s(
         local offs = 0
         if tail ~= "" and #tail + #message_part > 64 then
           offs = 64 - #tail
-          bytes_compressed = blake2s_feed_64(
-            H,
-            tail .. sub(message_part, 1, offs),
-            0,
-            64,
-            bytes_compressed
-          )
+          bytes_compressed = blake2s_feed_64(H, tail .. sub(message_part, 1, offs), 0, 64, bytes_compressed)
           tail = ""
         end
         local size = #message_part - offs
         local size_tail = size > 0 and (size - 1) % 64 + 1 or 0
-        bytes_compressed = blake2s_feed_64(
-          H,
-          message_part,
-          offs,
-          size - size_tail,
-          bytes_compressed
-        )
+        bytes_compressed = blake2s_feed_64(H, message_part, offs, size - size_tail, bytes_compressed)
         tail = tail .. sub(message_part, #message_part + 1 - size_tail)
         return partial
       else
@@ -6785,14 +5443,7 @@ local function blake2s(
         if B2_offset then
           blake2s_feed_64(H, nil, 0, 64, 0, 32)
         else
-          blake2s_feed_64(
-            H,
-            tail .. string_rep("\0", 64 - #tail),
-            0,
-            64,
-            bytes_compressed,
-            #tail
-          )
+          blake2s_feed_64(H, tail .. string_rep("\0", 64 - #tail), 0, 64, bytes_compressed, #tail)
         end
         tail = nil
         if not XOF_length or B2_offset then
@@ -6800,15 +5451,7 @@ local function blake2s(
           for j = 1, max_reg do
             H[j] = HEX(H[j])
           end
-          H = sub(
-            gsub(
-              table_concat(H, "", 1, max_reg),
-              "(..)(..)(..)(..)",
-              "%4%3%2%1"
-            ),
-            1,
-            digest_size_in_bytes * 2
-          )
+          H = sub(gsub(table_concat(H, "", 1, max_reg), "(..)(..)(..)(..)", "%4%3%2%1"), 1, digest_size_in_bytes * 2)
         end
       end
       return H
@@ -6830,14 +5473,7 @@ local function blake2s(
   end
 end
 
-local function blake2b(
-  message,
-  key,
-  salt,
-  digest_size_in_bytes,
-  XOF_length,
-  B2_offset
-)
+local function blake2b(message, key, salt, digest_size_in_bytes, XOF_length, B2_offset)
   -- message:  binary string to be hashed (or nil for "chunk-by-chunk" input mode)
   -- key:      (optional) binary string up to 64 bytes, by default empty string
   -- salt:     (optional) binary string up to 32 bytes, by default empty string
@@ -6853,8 +5489,7 @@ local function blake2b(
     error("BLAKE2b key length must not exceed 64 bytes", 2)
   end
   salt = salt or ""
-  local bytes_compressed, tail, H_lo, H_hi =
-    0.0, "", { unpack(sha2_H_lo) }, not HEX64 and { unpack(sha2_H_hi) }
+  local bytes_compressed, tail, H_lo, H_hi = 0.0, "", { unpack(sha2_H_lo) }, not HEX64 and { unpack(sha2_H_hi) }
   if B2_offset then
     if H_hi then
       H_lo[1] = XORA5(H_lo[1], digest_size_in_bytes)
@@ -6867,8 +5502,7 @@ local function blake2b(
     end
     H_lo[3] = XORA5(H_lo[3], 0x4000)
   else
-    H_lo[1] =
-      XORA5(H_lo[1], 0x01010000 + key_length * 256 + digest_size_in_bytes)
+    H_lo[1] = XORA5(H_lo[1], 0x01010000 + key_length * 256 + digest_size_in_bytes)
     if XOF_length then
       if H_hi then
         H_hi[2] = XORA5(H_hi[2], XOF_length)
@@ -6887,26 +5521,12 @@ local function blake2b(
         local offs = 0
         if tail ~= "" and #tail + #message_part > 128 then
           offs = 128 - #tail
-          bytes_compressed = blake2b_feed_128(
-            H_lo,
-            H_hi,
-            tail .. sub(message_part, 1, offs),
-            0,
-            128,
-            bytes_compressed
-          )
+          bytes_compressed = blake2b_feed_128(H_lo, H_hi, tail .. sub(message_part, 1, offs), 0, 128, bytes_compressed)
           tail = ""
         end
         local size = #message_part - offs
         local size_tail = size > 0 and (size - 1) % 128 + 1 or 0
-        bytes_compressed = blake2b_feed_128(
-          H_lo,
-          H_hi,
-          message_part,
-          offs,
-          size - size_tail,
-          bytes_compressed
-        )
+        bytes_compressed = blake2b_feed_128(H_lo, H_hi, message_part, offs, size - size_tail, bytes_compressed)
         tail = tail .. sub(message_part, #message_part + 1 - size_tail)
         return partial
       else
@@ -6917,15 +5537,7 @@ local function blake2b(
         if B2_offset then
           blake2b_feed_128(H_lo, H_hi, nil, 0, 128, 0, 64)
         else
-          blake2b_feed_128(
-            H_lo,
-            H_hi,
-            tail .. string_rep("\0", 128 - #tail),
-            0,
-            128,
-            bytes_compressed,
-            #tail
-          )
+          blake2b_feed_128(H_lo, H_hi, tail .. string_rep("\0", 128 - #tail), 0, 128, bytes_compressed, #tail)
         end
         tail = nil
         if XOF_length and not B2_offset then
@@ -6948,11 +5560,7 @@ local function blake2b(
             end
           end
           H_lo = sub(
-            gsub(
-              table_concat(H_lo, "", 1, max_reg),
-              "(..)(..)(..)(..)(..)(..)(..)(..)",
-              "%8%7%6%5%4%3%2%1"
-            ),
+            gsub(table_concat(H_lo, "", 1, max_reg), "(..)(..)(..)(..)(..)(..)(..)(..)", "%8%7%6%5%4%3%2%1"),
             1,
             digest_size_in_bytes * 2
           )
@@ -7021,8 +5629,7 @@ local function blake2sp(message, key, salt, digest_size_in_bytes)
               tail = tail .. part
             else
               local H = inst[3]
-              bytes_compressed =
-                blake2s_feed_64(H, tail, 0, 64, bytes_compressed)
+              bytes_compressed = blake2s_feed_64(H, tail, 0, 64, bytes_compressed)
               tail = part
             end
             inst[1], inst[2] = bytes_compressed, tail
@@ -7045,15 +5652,7 @@ local function blake2sp(message, key, salt, digest_size_in_bytes)
         for j = 1, 8 do
           local inst = instances[j]
           local bytes_compressed, tail, H = inst[1], inst[2], inst[3]
-          blake2s_feed_64(
-            H,
-            tail .. string_rep("\0", 64 - #tail),
-            0,
-            64,
-            bytes_compressed,
-            #tail,
-            j == 8
-          )
+          blake2s_feed_64(H, tail .. string_rep("\0", 64 - #tail), 0, 64, bytes_compressed, #tail, j == 8)
           if j % 2 == 0 then
             local index = 0
             for k = j - 1, j do
@@ -7064,15 +5663,7 @@ local function blake2sp(message, key, salt, digest_size_in_bytes)
                 common_W_blake2s[index] = H[i]
               end
             end
-            blake2s_feed_64(
-              root_H,
-              nil,
-              0,
-              64,
-              64 * (j / 2 - 1),
-              j == 8 and 64,
-              j == 8
-            )
+            blake2s_feed_64(root_H, nil, 0, 64, 64 * (j / 2 - 1), j == 8 and 64, j == 8)
           end
         end
         instances = nil
@@ -7080,15 +5671,8 @@ local function blake2sp(message, key, salt, digest_size_in_bytes)
         for j = 1, max_reg do
           root_H[j] = HEX(root_H[j])
         end
-        result = sub(
-          gsub(
-            table_concat(root_H, "", 1, max_reg),
-            "(..)(..)(..)(..)",
-            "%4%3%2%1"
-          ),
-          1,
-          digest_size_in_bytes * 2
-        )
+        result =
+          sub(gsub(table_concat(root_H, "", 1, max_reg), "(..)(..)(..)(..)", "%4%3%2%1"), 1, digest_size_in_bytes * 2)
       end
       return result
     end
@@ -7128,8 +5712,7 @@ local function blake2bp(message, key, salt, digest_size_in_bytes)
   local instances, length, first_dword_of_parameter_block, result =
     {}, 0.0, 0x02040000 + key_length * 256 + digest_size_in_bytes
   for j = 1, 4 do
-    local bytes_compressed, tail, H_lo, H_hi =
-      0.0, "", { unpack(sha2_H_lo) }, not HEX64 and { unpack(sha2_H_hi) }
+    local bytes_compressed, tail, H_lo, H_hi = 0.0, "", { unpack(sha2_H_lo) }, not HEX64 and { unpack(sha2_H_hi) }
     instances[j] = { bytes_compressed, tail, H_lo, H_hi }
     H_lo[1] = XORA5(H_lo[1], first_dword_of_parameter_block)
     H_lo[2] = XORA5(H_lo[2], j - 1)
@@ -7154,8 +5737,7 @@ local function blake2bp(message, key, salt, digest_size_in_bytes)
               tail = tail .. part
             else
               local H_lo, H_hi = inst[3], inst[4]
-              bytes_compressed =
-                blake2b_feed_128(H_lo, H_hi, tail, 0, 128, bytes_compressed)
+              bytes_compressed = blake2b_feed_128(H_lo, H_hi, tail, 0, 128, bytes_compressed)
               tail = part
             end
             inst[1], inst[2] = bytes_compressed, tail
@@ -7169,8 +5751,7 @@ local function blake2bp(message, key, salt, digest_size_in_bytes)
       end
     else
       if instances then
-        local root_H_lo, root_H_hi =
-          { unpack(sha2_H_lo) }, not HEX64 and { unpack(sha2_H_hi) }
+        local root_H_lo, root_H_hi = { unpack(sha2_H_lo) }, not HEX64 and { unpack(sha2_H_hi) }
         root_H_lo[1] = XORA5(root_H_lo[1], first_dword_of_parameter_block)
         root_H_lo[3] = XORA5(root_H_lo[3], 0x4001)
         if salt ~= "" then
@@ -7178,18 +5759,8 @@ local function blake2bp(message, key, salt, digest_size_in_bytes)
         end
         for j = 1, 4 do
           local inst = instances[j]
-          local bytes_compressed, tail, H_lo, H_hi =
-            inst[1], inst[2], inst[3], inst[4]
-          blake2b_feed_128(
-            H_lo,
-            H_hi,
-            tail .. string_rep("\0", 128 - #tail),
-            0,
-            128,
-            bytes_compressed,
-            #tail,
-            j == 4
-          )
+          local bytes_compressed, tail, H_lo, H_hi = inst[1], inst[2], inst[3], inst[4]
+          blake2b_feed_128(H_lo, H_hi, tail .. string_rep("\0", 128 - #tail), 0, 128, bytes_compressed, #tail, j == 4)
           if j % 2 == 0 then
             local index = 0
             for k = j - 1, j do
@@ -7204,16 +5775,7 @@ local function blake2bp(message, key, salt, digest_size_in_bytes)
                 end
               end
             end
-            blake2b_feed_128(
-              root_H_lo,
-              root_H_hi,
-              nil,
-              0,
-              128,
-              128 * (j / 2 - 1),
-              j == 4 and 128,
-              j == 4
-            )
+            blake2b_feed_128(root_H_lo, root_H_hi, nil, 0, 128, 128 * (j / 2 - 1), j == 4 and 128, j == 4)
           end
         end
         instances = nil
@@ -7228,11 +5790,7 @@ local function blake2bp(message, key, salt, digest_size_in_bytes)
           end
         end
         result = sub(
-          gsub(
-            table_concat(root_H_lo, "", 1, max_reg),
-            "(..)(..)(..)(..)(..)(..)(..)(..)",
-            "%8%7%6%5%4%3%2%1"
-          ),
+          gsub(table_concat(root_H_lo, "", 1, max_reg), "(..)(..)(..)(..)(..)(..)(..)(..)", "%8%7%6%5%4%3%2%1"),
           1,
           digest_size_in_bytes * 2
         )
@@ -7267,9 +5825,7 @@ local function blake2x(
   key,
   salt
 )
-  local XOF_digest_length_limit, XOF_digest_length, chunk_by_chunk_output = 2
-      ^ (block_size / 2)
-    - 1
+  local XOF_digest_length_limit, XOF_digest_length, chunk_by_chunk_output = 2 ^ (block_size / 2) - 1
   if digest_size_in_bytes == -1 then -- infinite digest
     digest_size_in_bytes = math_huge
     XOF_digest_length = floor(XOF_digest_length_limit)
@@ -7313,8 +5869,7 @@ local function blake2x(
 
         local function get_hash_block(block_no)
           -- block_no = 0...(2^32-1)
-          local size =
-            math_min(block_size, digest_size_in_bytes - block_no * block_size)
+          local size = math_min(block_size, digest_size_in_bytes - block_no * block_size)
           if size <= 0 then
             return ""
           end
@@ -7324,20 +5879,12 @@ local function blake2x(
           for j = half_W_size + 1, 2 * half_W_size do
             common_W_blake2[j] = 0
           end
-          return inner_func(
-            nil,
-            nil,
-            salt,
-            size,
-            XOF_digest_length,
-            floor(block_no)
-          )
+          return inner_func(nil, nil, salt, size, XOF_digest_length, floor(block_no))
         end
 
         local hash = {}
         if chunk_by_chunk_output then
-          local pos, period, cached_block_no, cached_block =
-            0, block_size * 2 ^ 32
+          local pos, period, cached_block_no, cached_block = 0, block_size * 2 ^ 32
 
           local function get_next_part_of_digest(arg1, arg2)
             if arg1 == "seek" then
@@ -7355,11 +5902,7 @@ local function blake2x(
                   cached_block = get_hash_block(block_no)
                 end
                 index = index + 1
-                hash[index] = sub(
-                  cached_block,
-                  block_offset * 2 + 1,
-                  (block_offset + part_size) * 2
-                )
+                hash[index] = sub(cached_block, block_offset * 2 + 1, (block_offset + part_size) * 2)
                 size = size - part_size
                 pos = (pos + part_size) % period
               end
@@ -7397,16 +5940,7 @@ local function blake2xs(digest_size_in_bytes, message, key, salt)
   -- message:  binary string to be hashed (or nil for "chunk-by-chunk" input mode)
   -- key:      (optional) binary string up to 32 bytes, by default empty string
   -- salt:     (optional) binary string up to 16 bytes, by default empty string
-  return blake2x(
-    blake2s,
-    "s",
-    common_W_blake2s,
-    32,
-    digest_size_in_bytes,
-    message,
-    key,
-    salt
-  )
+  return blake2x(blake2s, "s", common_W_blake2s, 32, digest_size_in_bytes, message, key, salt)
 end
 
 local function blake2xb(digest_size_in_bytes, message, key, salt)
@@ -7417,26 +5951,10 @@ local function blake2xb(digest_size_in_bytes, message, key, salt)
   -- message:  binary string to be hashed (or nil for "chunk-by-chunk" input mode)
   -- key:      (optional) binary string up to 64 bytes, by default empty string
   -- salt:     (optional) binary string up to 32 bytes, by default empty string
-  return blake2x(
-    blake2b,
-    "b",
-    common_W_blake2b,
-    64,
-    digest_size_in_bytes,
-    message,
-    key,
-    salt
-  )
+  return blake2x(blake2b, "b", common_W_blake2b, 64, digest_size_in_bytes, message, key, salt)
 end
 
-local function blake3(
-  message,
-  key,
-  digest_size_in_bytes,
-  message_flags,
-  K,
-  return_array
-)
+local function blake3(message, key, digest_size_in_bytes, message_flags, K, return_array)
   -- message:  binary string to be hashed (or nil for "chunk-by-chunk" input mode)
   -- key:      (optional) binary string up to 32 bytes, by default empty string
   -- digest_size_in_bytes: (optional) by default 32
@@ -7462,10 +5980,8 @@ local function blake3(
     end
     message_flags = message_flags + 16 -- flag:KEYED_HASH
   end
-  local tail, H, chunk_index, blocks_in_chunk, stack_size, stack =
-    "", {}, 0, 0, 0, {}
-  local final_H_in, final_block_length, chunk_by_chunk_output, result, wide_output =
-    K
+  local tail, H, chunk_index, blocks_in_chunk, stack_size, stack = "", {}, 0, 0, 0, {}
+  local final_H_in, final_block_length, chunk_by_chunk_output, result, wide_output = K
   local final_compression_flags = 3 -- flags:CHUNK_START,CHUNK_END
 
   local function feed_blocks(str, offs, size)
@@ -7484,15 +6000,7 @@ local function blake3(
         part_size_in_blocks = math_min(size / 64, 15 - blocks_in_chunk)
       end
       local part_size = part_size_in_blocks * 64
-      blake3_feed_64(
-        str,
-        offs,
-        part_size,
-        message_flags + block_flags,
-        chunk_index,
-        H_in,
-        H
-      )
+      blake3_feed_64(str, offs, part_size, message_flags + block_flags, chunk_index, H_in, H)
       offs, size = offs + part_size, size - part_size
       blocks_in_chunk = (blocks_in_chunk + part_size_in_blocks) % 16
       if blocks_in_chunk == 0 then
@@ -7528,17 +6036,7 @@ local function blake3(
         common_W_blake2s[j] = stack[j + 16]
       end
     end
-    blake3_feed_64(
-      nil,
-      0,
-      64,
-      final_compression_flags,
-      block_no,
-      final_H_in,
-      stack,
-      wide_output,
-      final_block_length
-    )
+    blake3_feed_64(nil, 0, 64, final_compression_flags, block_no, final_H_in, stack, wide_output, final_block_length)
     if return_array then
       return stack
     end
@@ -7546,11 +6044,7 @@ local function blake3(
     for j = 1, max_reg do
       stack[j] = HEX(stack[j])
     end
-    return sub(
-      gsub(table_concat(stack, "", 1, max_reg), "(..)(..)(..)(..)", "%4%3%2%1"),
-      1,
-      size * 2
-    )
+    return sub(gsub(table_concat(stack, "", 1, max_reg), "(..)(..)(..)(..)", "%4%3%2%1"), 1, size * 2)
   end
 
   local function partial(message_part)
@@ -7598,8 +6092,7 @@ local function blake3(
             nil,
             final_block_length
           )
-          chunk_index, final_block_length, final_H_in, final_compression_flags =
-            0, 64, K, 4 -- flag:PARENT
+          chunk_index, final_block_length, final_H_in, final_compression_flags = 0, 64, K, 4 -- flag:PARENT
           for j = 1, 8 do
             common_W_blake2s[j] = stack[stack_size + j]
           end
@@ -7640,11 +6133,7 @@ local function blake3(
                   cached_block = get_hash_block(block_no)
                 end
                 index = index + 1
-                stack[index] = sub(
-                  cached_block,
-                  block_offset * 2 + 1,
-                  (block_offset + part_size) * 2
-                )
+                stack[index] = sub(cached_block, block_offset * 2 + 1, (block_offset + part_size) * 2)
                 size = size - part_size
                 pos = pos + part_size
               end
@@ -7677,11 +6166,7 @@ local function blake3(
   end
 end
 
-local function blake3_derive_key(
-  key_material,
-  context_string,
-  derived_key_size_in_bytes
-)
+local function blake3_derive_key(key_material, context_string, derived_key_size_in_bytes)
   -- key_material: (string) your source of entropy to derive a key from (for example, it can be a master password)
   --               set to nil for feeding the key material in "chunk-by-chunk" input mode
   -- context_string: (string) unique description of the derived key

@@ -67,25 +67,15 @@ function tcpserver.TCPServer:initialize(io_loop, ssl_options, max_buffer_size)
     -- readable. However the validity of the keys are not checked until
     -- we create the SSL context.
     if not util.file_exists(ssl_options.cert_file) then
-      error(
-        string.format(
-          "SSL cert_file, %s, does not exist.",
-          ssl_options.cert_file
-        )
-      )
+      error(string.format("SSL cert_file, %s, does not exist.", ssl_options.cert_file))
     end
     if not util.file_exists(ssl_options.key_file) then
-      error(
-        string.format("SSL key_file, %s, does not exist.", ssl_options.key_file)
-      )
+      error(string.format("SSL key_file, %s, does not exist.", ssl_options.key_file))
     end
     -- The ssl_create_context function will raise error and exit by its
     -- own, so there is no need to catch errors.
-    local rc, ctx_or_err = crypto.ssl_create_server_context(
-      self.ssl_options.cert_file,
-      self.ssl_options.key_file,
-      self.ssl_options.ca_path
-    )
+    local rc, ctx_or_err =
+      crypto.ssl_create_server_context(self.ssl_options.cert_file, self.ssl_options.key_file, self.ssl_options.ca_path)
     if rc ~= 0 then
       error(string.format("Could not create SSL context. %s", ctx_or_err))
     end
@@ -129,12 +119,7 @@ function tcpserver.TCPServer:add_sockets(sockets)
   end
   for _, sock in ipairs(sockets) do
     self._sockets[#self._sockets + 1] = sock
-    sockutil.add_accept_handler(
-      sock,
-      self._handle_connection,
-      self.io_loop,
-      self
-    )
+    sockutil.add_accept_handler(sock, self._handle_connection, self.io_loop, self)
   end
 end
 
@@ -173,12 +158,7 @@ function tcpserver.TCPServer:start(procs)
     for _ = 1, procs - 1 do
       local pid = ffi.C.fork()
       if pid ~= 0 then
-        log.devel(
-          string.format(
-            "[tcpserver.lua] Created extra worker process: %d",
-            tonumber(pid)
-          )
-        )
+        log.devel(string.format("[tcpserver.lua] Created extra worker process: %d", tonumber(pid)))
         break
       end
     end
@@ -212,16 +192,10 @@ end
 -- @param address (String) IP address of newly connected client.
 function tcpserver.TCPServer:_handle_connection(connection, address)
   if self.ssl_options ~= nil then
-    local stream = iostream.SSLIOStream(
-      connection,
-      self.ssl_options,
-      self.io_loop,
-      self.max_buffer_size
-    )
+    local stream = iostream.SSLIOStream(connection, self.ssl_options, self.io_loop, self.max_buffer_size)
     self:handle_stream(stream, address)
   else
-    local stream =
-      iostream.IOStream(connection, self.io_loop, self.max_buffer_size)
+    local stream = iostream.IOStream(connection, self.io_loop, self.max_buffer_size)
     self:handle_stream(stream, address)
   end
 end

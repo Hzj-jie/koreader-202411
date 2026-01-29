@@ -132,8 +132,7 @@ function CalculatorSettingsDialog:init()
         is_enter_default = true,
         callback = function()
           UIManager:close(self)
-          local new_angle_mode =
-            self.radio_button_table_angle.checked_button.provider
+          local new_angle_mode = self.radio_button_table_angle.checked_button.provider
           if new_angle_mode ~= self.parent.angle_mode then
             self.parent.angle_mode = new_angle_mode
             if self.parent.angle_mode == "gon" then
@@ -147,27 +146,21 @@ function CalculatorSettingsDialog:init()
             self.parent.status_line = self.parent:getStatusLine()
           end
 
-          local new_format =
-            self.radio_button_table_format.checked_button.provider
+          local new_format = self.radio_button_table_format.checked_button.provider
           if new_format ~= self.parent.number_format then
             self.parent.number_format = new_format
             G_reader_settings:save("calculator_number_format", new_format)
             self.parent.status_line = self.parent:getStatusLine()
           end
 
-          local new_significant =
-            self.radio_button_table_significant.checked_button.provider
+          local new_significant = self.radio_button_table_significant.checked_button.provider
           if new_significant ~= self.parent.significant_places then
             self.parent.significant_places = new_significant
-            G_reader_settings:save(
-              "calculator_significant_places",
-              new_significant
-            )
+            G_reader_settings:save("calculator_significant_places", new_significant)
             self.parent.status_line = self.parent:getStatusLine()
           end
 
-          local new_init_file =
-            self.radio_button_table_init.checked_button.provider
+          local new_init_file = self.radio_button_table_init.checked_button.provider
           if new_init_file ~= self.parent.use_init_file then
             self.parent.use_init_file = new_init_file
             G_reader_settings:save("calculator_use_init_file", new_init_file)
@@ -341,13 +334,7 @@ chooses a path or (an existing) file (borrowed from coverimage)
 @function migrate(a,b) callback to a function to mangle old folder/file with new folder/file.
     Can be used for migrating the contents of the old path to the new one
 ]]
-function CalculatorSettingsDialog:choosePathFile(
-  touchmenu_instance,
-  key,
-  folder_only,
-  new_file,
-  migrate
-)
+function CalculatorSettingsDialog:choosePathFile(touchmenu_instance, key, folder_only, new_file, migrate)
   local old_path, _ = util.splitFilePathName(self[key])
   UIManager:show(PathChooser:new({
     select_directory = folder_only or new_file,

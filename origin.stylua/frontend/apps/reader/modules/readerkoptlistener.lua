@@ -21,14 +21,11 @@ function ReaderKoptListener:onReadSettings(config)
       G_reader_settings:readSetting("kopt_zoom_mode_genus"),
       G_reader_settings:readSetting("kopt_zoom_mode_type")
     )
-  normal_zoom_mode = ReaderZooming.zoom_mode_label[normal_zoom_mode]
-      and normal_zoom_mode
+  normal_zoom_mode = ReaderZooming.zoom_mode_label[normal_zoom_mode] and normal_zoom_mode
     or ReaderZooming.DEFAULT_ZOOM_MODE
   self.normal_zoom_mode = normal_zoom_mode
   self:setZoomMode(normal_zoom_mode)
-  self.ui:handleEvent(
-    Event:new("GammaUpdate", self.document.configurable.contrast, true)
-  ) -- no notification
+  self.ui:handleEvent(Event:new("GammaUpdate", self.document.configurable.contrast, true)) -- no notification
   -- since K2pdfopt v2.21 negative value of word spacing is also used, for config
   -- compatibility we should manually change previous -1 to a more reasonable -0.2
   if self.document.configurable.word_spacing == -1 then
@@ -57,8 +54,7 @@ function ReaderKoptListener:onSetZoomMode(zoom_mode, orig)
 end
 
 function ReaderKoptListener:onFineTuningFontSize(delta)
-  self.document.configurable.font_size = self.document.configurable.font_size
-    + delta
+  self.document.configurable.font_size = self.document.configurable.font_size + delta
 end
 
 function ReaderKoptListener:onZoomUpdate(zoom)
@@ -70,27 +66,17 @@ end
 
 -- misc koptoption handler
 function ReaderKoptListener:onDocLangUpdate(lang)
-  if
-    lang == "chi_sim"
-    or lang == "chi_tra"
-    or lang == "jpn"
-    or lang == "kor"
-  then
-    self.document.configurable.word_spacing =
-      G_defaults:readSetting("DKOPTREADER_CONFIG_WORD_SPACINGS")[1]
+  if lang == "chi_sim" or lang == "chi_tra" or lang == "jpn" or lang == "kor" then
+    self.document.configurable.word_spacing = G_defaults:readSetting("DKOPTREADER_CONFIG_WORD_SPACINGS")[1]
   else
-    self.document.configurable.word_spacing =
-      G_defaults:readSetting("DKOPTREADER_CONFIG_WORD_SPACINGS")[3]
+    self.document.configurable.word_spacing = G_defaults:readSetting("DKOPTREADER_CONFIG_WORD_SPACINGS")[3]
   end
 end
 
 function ReaderKoptListener:onConfigChange(option_name, option_value)
   -- font_size and line_spacing are historically and sadly shared by both mupdf and cre reader modules,
   -- but fortunately they can be distinguished by their different ranges
-  if
-    (option_name == "font_size" or option_name == "line_spacing")
-    and option_value > 5
-  then
+  if (option_name == "font_size" or option_name == "line_spacing") and option_value > 5 then
     return
   end
   self.document.configurable[option_name] = option_value

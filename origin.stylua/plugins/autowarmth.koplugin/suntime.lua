@@ -171,14 +171,7 @@ Set position for later calculations
 @param degree if `nil` latitude and longitude are in radian, else in decimal degree
  --]]
 --
-function SunTime:setPosition(
-  name,
-  latitude,
-  longitude,
-  time_zone,
-  altitude,
-  degree
-)
+function SunTime:setPosition(name, latitude, longitude, time_zone, altitude, degree)
   altitude = altitude or 200
   if degree then
     latitude = latitude * toRad
@@ -209,11 +202,7 @@ function SunTime:setPosition(
   }
   self.time_zone = time_zone or self:getTimezoneOffset()
   --    self.refract = Rad(36.35/60 * .5 ^ (altitude / 5538)) -- constant temperature
-  self.refract = Rad(
-    36.20
-      / 60
-      * (1 - 0.0065 * altitude / (273.15 + self.average_temperature)) ^ 5.255
-  )
+  self.refract = Rad(36.20 / 60 * (1 - 0.0065 * altitude / (273.15 + self.average_temperature)) ^ 5.255)
 
   self.sin_latitude = sin(self.pos.latitude)
   self.cos_latitude = cos(self.pos.latitude)
@@ -281,11 +270,7 @@ function SunTime:initVars(hour)
   -- Time is here in Julian centuries
   local epsilon = 23
     + 26 / 60
-    + (
-        21.406
-        - T
-          * (46.836769 - T * (0.0001831 + T * (0.00200340 + T * (-5.76E-7 - T * 4.34E-8))))
-      )
+    + (21.406 - T * (46.836769 - T * (0.0001831 + T * (0.00200340 + T * (-5.76E-7 - T * 4.34E-8)))))
       / 3600 --°
 
   self.epsilon = epsilon * toRad
@@ -293,17 +278,13 @@ function SunTime:initVars(hour)
   -- see Numerical expressions for precession formulae ...
   -- mean longitude
   local nT = T * (36000.7690 / 35999.3720) -- convert from equinox to date
-  local L = 100.46645683
-    + (nT * (1295977422.83429E-1 + nT * (-2.04411E-2 - nT * 0.00523E-3)))
-      / 3600 --°
+  local L = 100.46645683 + (nT * (1295977422.83429E-1 + nT * (-2.04411E-2 - nT * 0.00523E-3))) / 3600 --°
   self.L = (L - floor(L / 360) * 360) * toRad
 
   -- see Numerical expressions for precession formulae ...
   -- Time is here in Julian centuries
   local omega = 102.93734808
-    + nT
-      * (11612.35290e-1 + nT * (53.27577e-2 + nT * (-0.14095e-3 + nT * (0.11440e-4 + nT * 0.00478e-5))))
-      / 3600 --°
+    + nT * (11612.35290e-1 + nT * (53.27577e-2 + nT * (-0.14095e-3 + nT * (0.11440e-4 + nT * 0.00478e-5)))) / 3600 --°
 
   -- mean anomaly
   local M = L - omega --°
@@ -373,14 +354,10 @@ function SunTime:initVars(hour)
   --                                            ^- astronomical refraction (at altitude)
 
   if after_noon then
-    self.eod = -atan(
-      (sun_radius - average_earth_radius * self.cos_latitude) / self.r
-    ) - self.refract
+    self.eod = -atan((sun_radius - average_earth_radius * self.cos_latitude) / self.r) - self.refract
     self.eod = self.eod + aberration
   else
-    self.eod = -atan(
-      (sun_radius + average_earth_radius * self.cos_latitude) / self.r
-    ) - self.refract
+    self.eod = -atan((sun_radius + average_earth_radius * self.cos_latitude) / self.r) - self.refract
     self.eod = self.eod - aberration
   end
 
@@ -388,8 +365,7 @@ function SunTime:initVars(hour)
 end
 
 function SunTime:getTimeDiff(height)
-  local val = (sin(height) - self.sin_latitude * sin(self.decl))
-    / (self.cos_latitude * cos(self.decl))
+  local val = (sin(height) - self.sin_latitude * sin(self.decl)) / (self.cos_latitude * cos(self.decl))
 
   if abs(val) > 1 then
     return
@@ -401,8 +377,7 @@ end
 -- eod for considering sun diameter and astronomic refraction
 function SunTime:getHeight(time, eod)
   time = time - 12 -- subtrace 12, because JD starts at 12:00
-  local val = cos(self.decl) * self.cos_latitude * cos(pi / 12 * time)
-    + sin(self.decl) * self.sin_latitude
+  local val = cos(self.decl) * self.cos_latitude * cos(pi / 12 * time) + sin(self.decl) * self.sin_latitude
 
   if abs(val) > 1 then
     return
@@ -434,9 +409,7 @@ function SunTime:calculateTime(height, hour, after_noon, no_correct_dst)
     return
   end
 
-  local local_correction = self.time_zone
-    - self.pos.longitude * 12 / pi
-    - self.zgl
+  local local_correction = self.time_zone - self.pos.longitude * 12 / pi - self.zgl
   if not after_noon then
     hour = 12 - timeDiff + local_correction
   else
@@ -454,8 +427,7 @@ end
 -- If height is nil, use newly calculated self.eod
 -- hour gives a start value, default is used when hour == nil
 function SunTime:calculateTimeIter(height, hour, default_hour)
-  local after_noon = (hour and hour > 12)
-    or (default_hour and default_hour > 12)
+  local after_noon = (hour and hour > 12) or (default_hour and default_hour > 12)
 
   if not hour then -- do the iteration with the default value
     hour = self:calculateTime(height, default_hour, after_noon, true)
@@ -474,10 +446,7 @@ function SunTime:calculateNoon(hour)
   self:initVars(hour)
   local aberration_time = aberration / pi * 12 -- aberration in hours (angle/(2pi)*24)
   local dst = self.date.isdst and 1 or 0
-  local local_correction = self.time_zone
-    - self.pos.longitude * 12 / pi
-    + dst
-    - self.zgl
+  local local_correction = self.time_zone - self.pos.longitude * 12 / pi + dst - self.zgl
   if self.pos.latitude >= 0 then -- northern hemisphere
     if pi_2 - self.pos.latitude + self.decl > self.eod then
       if self:getHeight(hour) > 0 then
@@ -501,10 +470,7 @@ function SunTime:calculateMidnight(hour)
   self:initVars(hour)
   local dst = self.date.isdst and 1 or 0
   -- no aberration correction here, as you can't see the sun on her nadir ;-)
-  local local_correction = self.time_zone
-    - self.pos.longitude * 12 / pi
-    + dst
-    - self.zgl
+  local local_correction = self.time_zone - self.pos.longitude * 12 / pi + dst - self.zgl
   if self.pos.latitude >= 0 then -- northern hemisphere
     if pi_2 - self.pos.latitude - self.decl > self.eod then
       if self:getHeight(hour) < 0 then
@@ -580,32 +546,14 @@ function SunTime:calculateTimes(fast_twilight)
   else
     -- Calculate rise and set from scratch, use these values for twilight times
     self.rise = self:calculateTimeIter(nil, 6)
-    self.rise_civil =
-      self:calculateTimeIter(self.civil, self.rise - min_civil_twilight, 6)
-    self.rise_nautic = self:calculateTimeIter(
-      self.nautic,
-      self.rise_civil - min_nautic_twilight,
-      6
-    )
-    self.rise_astronomic = self:calculateTimeIter(
-      self.astronomic,
-      self.rise_nautic - min_astronomic_twilight,
-      6
-    )
+    self.rise_civil = self:calculateTimeIter(self.civil, self.rise - min_civil_twilight, 6)
+    self.rise_nautic = self:calculateTimeIter(self.nautic, self.rise_civil - min_nautic_twilight, 6)
+    self.rise_astronomic = self:calculateTimeIter(self.astronomic, self.rise_nautic - min_astronomic_twilight, 6)
 
     self.set = self:calculateTimeIter(nil, 18)
-    self.set_civil =
-      self:calculateTimeIter(self.civil, self.set + min_civil_twilight, 18)
-    self.set_nautic = self:calculateTimeIter(
-      self.nautic,
-      self.set_civil + min_nautic_twilight,
-      18
-    )
-    self.set_astronomic = self:calculateTimeIter(
-      self.astronomic,
-      self.set_nautic + min_astronomic_twilight,
-      18
-    )
+    self.set_civil = self:calculateTimeIter(self.civil, self.set + min_civil_twilight, 18)
+    self.set_nautic = self:calculateTimeIter(self.nautic, self.set_civil + min_nautic_twilight, 18)
+    self.set_astronomic = self:calculateTimeIter(self.astronomic, self.set_nautic + min_astronomic_twilight, 18)
   end
 
   self.midnight_beginning = self:calculateMidnight(0)

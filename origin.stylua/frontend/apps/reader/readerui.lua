@@ -15,8 +15,7 @@ local Event = require("ui/event")
 local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local FileManagerCollection = require("apps/filemanager/filemanagercollection")
 local FileManagerHistory = require("apps/filemanager/filemanagerhistory")
-local FileManagerFileSearcher =
-  require("apps/filemanager/filemanagerfilesearcher")
+local FileManagerFileSearcher = require("apps/filemanager/filemanagerfilesearcher")
 local FileManagerShortcuts = require("apps/filemanager/filemanagershortcuts")
 local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
@@ -25,8 +24,7 @@ local LanguageSupport = require("languagesupport")
 local NetworkListener = require("ui/network/networklistener")
 local Notification = require("ui/widget/notification")
 local PluginLoader = require("pluginloader")
-local ReaderActivityIndicator =
-  require("apps/reader/modules/readeractivityindicator")
+local ReaderActivityIndicator = require("apps/reader/modules/readeractivityindicator")
 local ReaderAnnotation = require("apps/reader/modules/readerannotation")
 local ReaderBack = require("apps/reader/modules/readerback")
 local ReaderBookmark = require("apps/reader/modules/readerbookmark")
@@ -379,12 +377,7 @@ function ReaderUI:init()
       if not self.document:loadDocument() then
         self:dealWithLoadDocumentFailure()
       end
-      logger.dbg(
-        string.format(
-          "  loading took %.3f seconds",
-          time.to_s(time.since(start_time))
-        )
-      )
+      logger.dbg(string.format("  loading took %.3f seconds", time.to_s(time.since(start_time))))
 
       -- used to read additional settings after the document has been
       -- loaded (but not rendered yet)
@@ -392,12 +385,7 @@ function ReaderUI:init()
 
       start_time = time.now()
       self.document:render()
-      logger.dbg(
-        string.format(
-          "  rendering took %.3f seconds",
-          time.to_s(time.since(start_time))
-        )
-      )
+      logger.dbg(string.format("  rendering took %.3f seconds", time.to_s(time.since(start_time))))
 
       -- Uncomment to output the built DOM (for debugging)
       -- logger.dbg(self.document:getHTMLFromXPointer(".0", 0x6830))
@@ -583,20 +571,13 @@ function ReaderUI:init()
     })
     if ok then
       self:registerModule(plugin_module.name, plugin_or_err)
-      logger.dbg(
-        "RD loaded plugin",
-        plugin_module.name,
-        "at",
-        plugin_module.path
-      )
+      logger.dbg("RD loaded plugin", plugin_module.name, "at", plugin_module.path)
     end
   end
 
   -- Allow others to change settings based on external factors
   -- Must be called after plugins are loaded & before setting are read.
-  self:handleEvent(
-    Event:new("DocSettingsLoad", self.doc_settings, self.document)
-  )
+  self:handleEvent(Event:new("DocSettingsLoad", self.doc_settings, self.document))
   -- we only read settings after all the widgets are initialized
   self:handleEvent(Event:new("ReadSettings", self.doc_settings))
 
@@ -623,10 +604,7 @@ function ReaderUI:init()
     summary.modified = os.date("%Y-%m-%d", os.time())
   end
 
-  if
-    summary.status ~= "complete"
-    or not G_reader_settings:isTrue("history_freeze_finished_books")
-  then
+  if summary.status ~= "complete" or not G_reader_settings:isTrue("history_freeze_finished_books") then
     require("readhistory"):addItem(self.document.file) -- (will update "lastfile")
   end
 
@@ -669,17 +647,14 @@ function ReaderUI:registerKeyEvents()
     self.key_events.Home = { { "Home" } }
     self.key_events.Reload = { { "F5" } }
     if Device:hasDPad() and Device:useDPadAsActionKeys() then
-      self.key_events.KeyContentSelection =
-        { { { "Up", "Down" } }, event = "StartHighlightIndicator" }
+      self.key_events.KeyContentSelection = { { { "Up", "Down" } }, event = "StartHighlightIndicator" }
     end
     if Device:hasScreenKB() or Device:hasSymKey() then
       if Device:hasKeyboard() then
-        self.key_events.KeyToggleWifi =
-          { { "Shift", "Home" }, event = "ToggleWifi" }
+        self.key_events.KeyToggleWifi = { { "Shift", "Home" }, event = "ToggleWifi" }
         self.key_events.OpenLastDoc = { { "Shift", "Back" } }
       else -- Currently exclusively targets Kindle 4.
-        self.key_events.KeyToggleWifi =
-          { { "ScreenKB", "Home" }, event = "ToggleWifi" }
+        self.key_events.KeyToggleWifi = { { "ScreenKB", "Home" }, event = "ToggleWifi" }
         self.key_events.OpenLastDoc = { { "ScreenKB", "Back" } }
       end
     end
@@ -752,20 +727,14 @@ function ReaderUI:showReader(file, provider, seamless)
   file = ffiUtil.realpath(file)
   if lfs.attributes(file, "mode") ~= "file" then
     UIManager:show(InfoMessage:new({
-      text = T(
-        _("File '%1' does not exist."),
-        BD.filepath(filemanagerutil.abbreviate(file))
-      ),
+      text = T(_("File '%1' does not exist."), BD.filepath(filemanagerutil.abbreviate(file))),
     }))
     return
   end
 
   if not DocumentRegistry:hasProvider(file) and provider == nil then
     UIManager:show(InfoMessage:new({
-      text = T(
-        _("File '%1' is not supported."),
-        BD.filepath(filemanagerutil.abbreviate(file))
-      ),
+      text = T(_("File '%1' is not supported."), BD.filepath(filemanagerutil.abbreviate(file))),
     }))
     self:showFileManager(file)
     return
@@ -781,10 +750,7 @@ end
 
 function ReaderUI:showReaderCoroutine(file, provider, seamless)
   UIManager:show(InfoMessage:new({
-    text = T(
-      _("Opening file '%1'."),
-      BD.filepath(filemanagerutil.abbreviate(file))
-    ),
+    text = T(_("Opening file '%1'."), BD.filepath(filemanagerutil.abbreviate(file))),
     timeout = 0.0,
     invisible = seamless,
   }))
@@ -868,8 +834,7 @@ end
 function ReaderUI:unlockDocumentWithPassword(document, try_again)
   logger.dbg("show input password dialog")
   self.password_dialog = InputDialog:new({
-    title = try_again and _("Password is incorrect, try again?")
-      or _("Input document password"),
+    title = try_again and _("Password is incorrect, try again?") or _("Input document password"),
     buttons = {
       {
         {
@@ -949,9 +914,7 @@ function ReaderUI:onClose(full_refresh)
     DocCache:serialize(self.document.file)
     logger.dbg("closing document")
     self:handleEvent(Event:new("CloseDocument"))
-    if
-      self.document:isEdited() and not self.highlight.highlight_write_into_pdf
-    then
+    if self.document:isEdited() and not self.highlight.highlight_write_into_pdf then
       self.document:discardChange()
     end
     self:closeDocument()
@@ -983,13 +946,9 @@ function ReaderUI:dealWithLoadDocumentFailure()
   -- As we are in a coroutine, we can pause and show an InfoMessage before exiting
   local _coroutine = coroutine.running()
   if coroutine then
-    logger.warn(
-      "crengine failed recognizing or parsing this file: unsupported or invalid document"
-    )
+    logger.warn("crengine failed recognizing or parsing this file: unsupported or invalid document")
     UIManager:show(InfoMessage:new({
-      text = _(
-        "Failed recognizing or parsing this file: unsupported or invalid document.\nKOReader will exit now."
-      ),
+      text = _("Failed recognizing or parsing this file: unsupported or invalid document.\nKOReader will exit now."),
       dismiss_callback = function()
         coroutine.resume(_coroutine, false)
       end,
@@ -1000,9 +959,7 @@ function ReaderUI:dealWithLoadDocumentFailure()
     coroutine.yield() -- pause till InfoMessage is dismissed
   end
   -- We have to error and exit the coroutine anyway to avoid any segfault
-  error(
-    "crengine failed recognizing or parsing this file: unsupported or invalid document"
-  )
+  error("crengine failed recognizing or parsing this file: unsupported or invalid document")
 end
 
 function ReaderUI:onHome()
@@ -1060,8 +1017,7 @@ function ReaderUI:onOpenLastDoc()
 end
 
 function ReaderUI:getCurrentPage()
-  return self.paging and self.paging.current_page
-    or self.document:getCurrentPage()
+  return self.paging and self.paging.current_page or self.document:getCurrentPage()
 end
 
 return ReaderUI

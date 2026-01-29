@@ -21,9 +21,7 @@ function OPDSPSE:getLastPage(remote_url, username, password)
   -- create URL's and reference vars
   local chapter = string.match(remote_url, "chapterId=(%w+)")
   local api_key = string.match(remote_url, "opds/(.+)/image")
-  local progress_url = string.match(remote_url, "(.+)/api")
-    .. "/api/Reader/get-progress?chapterId="
-    .. chapter
+  local progress_url = string.match(remote_url, "(.+)/api") .. "/api/Reader/get-progress?chapterId=" .. chapter
   local auth_url = string.match(remote_url, "(.+)/api")
     .. "/api/Plugin/authenticate?apiKey="
     .. api_key
@@ -34,10 +32,7 @@ function OPDSPSE:getLastPage(remote_url, username, password)
   local auth_data = {}
   local auth_code, auth_headers, auth_status
   if auth_parsed.scheme == "http" or auth_parsed.scheme == "https" then
-    socketutil:set_timeout(
-      socketutil.FILE_BLOCK_TIMEOUT,
-      socketutil.FILE_TOTAL_TIMEOUT
-    )
+    socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, socketutil.FILE_TOTAL_TIMEOUT)
     auth_code, auth_headers, auth_status = socket.skip(
       1,
       http.request({
@@ -68,13 +63,8 @@ function OPDSPSE:getLastPage(remote_url, username, password)
     local progress_parsed = url.parse(progress_url)
     local progress_data = {}
     local progress_code, progress_headers, progress_status
-    if
-      progress_parsed.scheme == "http" or progress_parsed.scheme == "https"
-    then
-      socketutil:set_timeout(
-        socketutil.FILE_BLOCK_TIMEOUT,
-        socketutil.FILE_TOTAL_TIMEOUT
-      )
+    if progress_parsed.scheme == "http" or progress_parsed.scheme == "https" then
+      socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, socketutil.FILE_TOTAL_TIMEOUT)
       progress_code, progress_headers, progress_status = socket.skip(
         1,
         http.request({
@@ -99,24 +89,12 @@ function OPDSPSE:getLastPage(remote_url, username, password)
       -- if HTTP GET was successful, pull page number from response
       last_page = progress_data[1]:match('"pageNum":(.+),"seriesId')
     else
-      logger.dbg(
-        "OPDSPSE:getLastPage: Progress Request failed:",
-        progress_status or progress_code
-      )
-      logger.dbg(
-        "OPDSPSE:getLastPage: Progress Response headers:",
-        progress_headers
-      )
+      logger.dbg("OPDSPSE:getLastPage: Progress Request failed:", progress_status or progress_code)
+      logger.dbg("OPDSPSE:getLastPage: Progress Response headers:", progress_headers)
     end
   else
-    logger.dbg(
-      "OPDSPSE:getLastPage: Authentication Request failed:",
-      auth_status or auth_code
-    )
-    logger.dbg(
-      "OPDSPSE:getLastPage: Authentication Response headers:",
-      auth_headers
-    )
+    logger.dbg("OPDSPSE:getLastPage: Authentication Request failed:", auth_status or auth_code)
+    logger.dbg("OPDSPSE:getLastPage: Authentication Response headers:", auth_headers)
   end
 
   -- returns page number. If the HTTP Requests were unsuccessful, defaults to 0.
@@ -139,8 +117,7 @@ function OPDSPSE:streamPages(remote_url, count, continue, username, password)
   setmetatable(page_table, {
     __index = function(_, key)
       if type(key) ~= "number" then
-        local error_bb =
-          RenderImage:renderImageFile("resources/koreader.png", false)
+        local error_bb = RenderImage:renderImageFile("resources/koreader.png", false)
         return error_bb
       else
         local index = key - 1
@@ -153,10 +130,7 @@ function OPDSPSE:streamPages(remote_url, count, continue, username, password)
 
         local code, headers, status
         if parsed.scheme == "http" or parsed.scheme == "https" then
-          socketutil:set_timeout(
-            socketutil.FILE_BLOCK_TIMEOUT,
-            socketutil.FILE_TOTAL_TIMEOUT
-          )
+          socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, socketutil.FILE_TOTAL_TIMEOUT)
           code, headers, status = socket.skip(
             1,
             http.request({
@@ -184,8 +158,7 @@ function OPDSPSE:streamPages(remote_url, count, continue, username, password)
         else
           logger.dbg("OPDSBrowser:streamPages: Request failed:", status or code)
           logger.dbg("OPDSBrowser:streamPages: Response headers:", headers)
-          local error_bb =
-            RenderImage:renderImageFile("resources/koreader.png", false)
+          local error_bb = RenderImage:renderImageFile("resources/koreader.png", false)
           return error_bb
         end
       end

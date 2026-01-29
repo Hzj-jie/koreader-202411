@@ -54,18 +54,11 @@ local defaultOptions = {
 local modeOptions = {}
 
 local function mergeOptions(options, mode)
-  jsonutil.doOptionMerge(
-    options,
-    false,
-    "strings",
-    defaultOptions,
-    mode and modeOptions[mode]
-  )
+  jsonutil.doOptionMerge(options, false, "strings", defaultOptions, mode and modeOptions[mode])
 end
 
 local function getEncoder(options)
-  options = options and util_merge({}, defaultOptions, options)
-    or defaultOptions
+  options = options and util_merge({}, defaultOptions, options) or defaultOptions
   local encodeSet = options.encodeSet
   if options.encodeSetAppend then
     encodeSet = encodeSet .. options.encodeSetAppend
@@ -75,9 +68,7 @@ local function getEncoder(options)
   if options.processor then
     local processor = options.processor
     encodeString = function(s, state)
-      return '"'
-        .. processor(s:gsub("[" .. encodeSet .. "]", encodingMap))
-        .. '"'
+      return '"' .. processor(s:gsub("[" .. encodeSet .. "]", encodingMap)) .. '"'
     end
   else
     encodeString = function(s, state)

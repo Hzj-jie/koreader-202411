@@ -167,8 +167,7 @@ function GifDocument:openPage(number)
     end
 
     -- build palette from frame or global color map
-    local cmap = i.ImageDesc.ColorMap ~= nil and i.ImageDesc.ColorMap
-      or self.giffile.SColorMap
+    local cmap = i.ImageDesc.ColorMap ~= nil and i.ImageDesc.ColorMap or self.giffile.SColorMap
     local palette = {}
     for c = 0, cmap.ColorCount - 1 do
       local color = cmap.Colors[c]
@@ -207,12 +206,7 @@ function GifDocument:close()
   ensure_giflib_loaded()
   local err = ffi.new("int[1]")
   if giflib.DGifCloseFile(self.giffile, err) ~= giflib.GIF_OK then
-    error(
-      string.format(
-        "error closing/deallocating GIF: %s",
-        ffi.string(giflib.GifErrorString(err[0]))
-      )
-    )
+    error(string.format("error closing/deallocating GIF: %s", ffi.string(giflib.GifErrorString(err[0]))))
   end
   self.giffile = nil
 end
@@ -222,21 +216,11 @@ function Pic.openGIFDocument(filename)
   local err = ffi.new("int[1]")
   local giffile = giflib.DGifOpenFileName(filename, err)
   if giffile == nil then
-    error(
-      string.format(
-        "Cannot read GIF file: %s",
-        ffi.string(giflib.GifErrorString(err[0]))
-      )
-    )
+    error(string.format("Cannot read GIF file: %s", ffi.string(giflib.GifErrorString(err[0]))))
   end
   if giflib.DGifSlurp(giffile) ~= giflib.GIF_OK then
     giflib.DGifCloseFile(giffile, err)
-    error(
-      string.format(
-        "Cannot parse GIF file: %s",
-        ffi.string(giflib.GifErrorString(giffile.Error))
-      )
-    )
+    error(string.format("Cannot parse GIF file: %s", ffi.string(giflib.GifErrorString(giffile.Error))))
   end
   return GifDocument:new({ giffile = giffile })
 end
@@ -262,22 +246,12 @@ function Pic.openGIFDocumentFromData(data, size)
   local giffile = giflib.DGifOpen(nil, read_cb, err)
   if giffile == nil then
     read_cb:free()
-    error(
-      string.format(
-        "Cannot read GIF file: %s",
-        ffi.string(giflib.GifErrorString(err[0]))
-      )
-    )
+    error(string.format("Cannot read GIF file: %s", ffi.string(giflib.GifErrorString(err[0]))))
   end
   if giflib.DGifSlurp(giffile) ~= giflib.GIF_OK then
     giflib.DGifCloseFile(giffile, err)
     read_cb:free()
-    error(
-      string.format(
-        "Cannot parse GIF file: %s",
-        ffi.string(giflib.GifErrorString(giffile.Error))
-      )
-    )
+    error(string.format("Cannot parse GIF file: %s", ffi.string(giflib.GifErrorString(giffile.Error))))
   end
   read_cb:free()
   return GifDocument:new({ giffile = giffile })

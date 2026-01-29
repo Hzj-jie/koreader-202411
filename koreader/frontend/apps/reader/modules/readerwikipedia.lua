@@ -33,10 +33,7 @@ function ReaderWikipedia:init()
   self.wiki_languages = {}
   self.ui.menu:registerToMainMenu(self)
   if not wikipedia_history then
-    wikipedia_history = LuaData:open(
-      DataStorage:getSettingsDir() .. "/wikipedia_history.lua",
-      "WikipediaHistory"
-    )
+    wikipedia_history = LuaData:open(DataStorage:getSettingsDir() .. "/wikipedia_history.lua", "WikipediaHistory")
   end
 end
 
@@ -44,8 +41,7 @@ function ReaderWikipedia:registerKeyEvents()
   if Device:hasKeyboard() then
     self.key_events.ShowWikipediaLookup = { { "Alt", "W" }, { "Ctrl", "W" } }
     if Device.k3_alt_plus_key_kernel_translated then
-      self.key_events.ShowWikipediaLookup =
-        { { Device.k3_alt_plus_key_kernel_translated["W"] } }
+      self.key_events.ShowWikipediaLookup = { { Device.k3_alt_plus_key_kernel_translated["W"] } }
     end
   end
 end
@@ -120,13 +116,7 @@ function ReaderWikipedia:addToMainMenu(menu_items)
           text,
           callback = function()
             -- Word had been cleaned before being added to history
-            self:onLookupWikipedia(
-              value.word,
-              true,
-              nil,
-              value.page,
-              value.lang
-            )
+            self:onLookupWikipedia(value.word, true, nil, value.page, value.lang)
           end,
         })
       end
@@ -162,10 +152,7 @@ function ReaderWikipedia:addToMainMenu(menu_items)
             for lang in langs:gmatch("%S+") do
               if not lang:match("^[%a-]+$") then
                 UIManager:show(InfoMessage:new({
-                  text = T(
-                    _("%1 does not look like a valid Wikipedia language."),
-                    lang
-                  ),
+                  text = T(_("%1 does not look like a valid Wikipedia language."), lang),
                 }))
                 return
               end
@@ -214,12 +201,10 @@ function ReaderWikipedia:addToMainMenu(menu_items)
       { -- setting used by dictquicklookup
         text = _("Set Wikipedia 'Save as EPUB' folder"),
         keep_menu_open = true,
-        help_text = _(
-          [[
+        help_text = _([[
 Wikipedia articles can be saved as an EPUB for more comfortable reading.
 
-You can choose an existing folder, or use a default folder named "Wikipedia" in your reader's home folder.]]
-        ),
+You can choose an existing folder, or use a default folder named "Wikipedia" in your reader's home folder.]]),
         callback = function()
           local title_header = _("Current Wikipedia 'Save as EPUB' folder:")
           local current_path = G_reader_settings:read("wikipedia_save_dir")
@@ -230,12 +215,7 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
               lfs.mkdir(path)
             end
           end
-          filemanagerutil.showChooseDialog(
-            title_header,
-            caller_callback,
-            current_path,
-            default_path
-          )
+          filemanagerutil.showChooseDialog(title_header, caller_callback, current_path, default_path)
         end,
       },
       { -- setting used by dictquicklookup
@@ -250,61 +230,36 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
       { -- setting used in wikipedia.lua
         text_func = function()
           local include_images = _("ask")
-          if
-            G_reader_settings:read("wikipedia_epub_include_images") == true
-          then
+          if G_reader_settings:read("wikipedia_epub_include_images") == true then
             include_images = _("always")
-          elseif
-            G_reader_settings:read("wikipedia_epub_include_images") == false
-          then
+          elseif G_reader_settings:read("wikipedia_epub_include_images") == false then
             include_images = _("never")
           end
           return T(_("Include images in EPUB: %1"), include_images)
         end,
         sub_item_table = {
           genChoiceMenuEntry(_("Ask"), "wikipedia_epub_include_images", nil),
-          genChoiceMenuEntry(
-            _("Include images"),
-            "wikipedia_epub_include_images",
-            true
-          ),
-          genChoiceMenuEntry(
-            _("Don't include images"),
-            "wikipedia_epub_include_images",
-            false
-          ),
+          genChoiceMenuEntry(_("Include images"), "wikipedia_epub_include_images", true),
+          genChoiceMenuEntry(_("Don't include images"), "wikipedia_epub_include_images", false),
         },
       },
       { -- setting used in wikipedia.lua
         text_func = function()
           local images_quality = _("ask")
-          if
-            G_reader_settings:read("wikipedia_epub_highres_images") == true
-          then
+          if G_reader_settings:read("wikipedia_epub_highres_images") == true then
             images_quality = _("higher")
-          elseif
-            G_reader_settings:read("wikipedia_epub_highres_images") == false
-          then
+          elseif G_reader_settings:read("wikipedia_epub_highres_images") == false then
             images_quality = _("standard")
           end
           return T(_("Images quality in EPUB: %1"), images_quality)
         end,
         enabled_func = function()
-          return G_reader_settings:read("wikipedia_epub_include_images")
-            ~= false
+          return G_reader_settings:read("wikipedia_epub_include_images") ~= false
         end,
         sub_item_table = {
           genChoiceMenuEntry(_("Ask"), "wikipedia_epub_highres_images", nil),
-          genChoiceMenuEntry(
-            _("Standard quality"),
-            "wikipedia_epub_highres_images",
-            false
-          ),
-          genChoiceMenuEntry(
-            _("Higher quality"),
-            "wikipedia_epub_highres_images",
-            true
-          ),
+          genChoiceMenuEntry(_("Standard quality"), "wikipedia_epub_highres_images", false),
+          genChoiceMenuEntry(_("Higher quality"), "wikipedia_epub_highres_images", true),
         },
         separator = true,
       },
@@ -315,10 +270,7 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         end,
         callback = function()
           self.disable_history = not self.disable_history
-          G_reader_settings:save(
-            "wikipedia_disable_history",
-            self.disable_history
-          )
+          G_reader_settings:save("wikipedia_disable_history", self.disable_history)
         end,
       },
       {
@@ -371,8 +323,7 @@ function ReaderWikipedia:initLanguages(word)
     return
   end
   -- Fill self.wiki_languages with languages to propose
-  local wikipedia_languages = G_reader_settings:readTable("wikipedia_languages")
-    or {}
+  local wikipedia_languages = G_reader_settings:readTable("wikipedia_languages") or {}
   if #wikipedia_languages > 0 then
     -- use this setting, no need to guess: we reference the setting table, so
     -- any update to it will have it saved in settings
@@ -412,13 +363,7 @@ function ReaderWikipedia:initLanguages(word)
   end
 end
 
-function ReaderWikipedia:onLookupWikipedia(
-  word,
-  is_sane,
-  box,
-  get_fullpage,
-  forced_lang
-)
+function ReaderWikipedia:onLookupWikipedia(word, is_sane, box, get_fullpage, forced_lang)
   NetworkMgr:runWhenOnline(function()
     -- Wrapped through Trapper, as we may be using Trapper:dismissableRunInSubprocess() in it
     Trapper:wrap(function()
@@ -444,8 +389,7 @@ function ReaderWikipedia:onLookupWikipedia(
       local display_word = word:gsub("_", " ")
 
       if not self.disable_history then
-        local book_title = self.ui.doc_props and self.ui.doc_props.display_title
-          or _("Wikipedia lookup")
+        local book_title = self.ui.doc_props and self.ui.doc_props.display_title or _("Wikipedia lookup")
         wikipedia_history:addTableItem({
           book_title = book_title,
           time = os.time(),
@@ -458,16 +402,11 @@ function ReaderWikipedia:onLookupWikipedia(
       -- Fix lookup message to include lang and set appropriate error texts
       local lookup_msg, no_result_text, req_failure_text
       if get_fullpage then
-        lookup_msg = T(
-          _("Retrieving Wikipedia %2 article:\n%1"),
-          display_word,
-          lang:upper()
-        )
+        lookup_msg = T(_("Retrieving Wikipedia %2 article:\n%1"), display_word, lang:upper())
         req_failure_text = _("Failed to retrieve Wikipedia article.")
         no_result_text = _("Wikipedia article not found.")
       else
-        lookup_msg =
-          T(_("Searching Wikipedia %2 for:\n%1"), display_word, lang:upper())
+        lookup_msg = T(_("Searching Wikipedia %2 for:\n%1"), display_word, lang:upper())
         req_failure_text = _("Failed searching Wikipedia.")
         no_result_text = _("No results.")
       end
@@ -485,11 +424,7 @@ function ReaderWikipedia:onLookupWikipedia(
         ok, pages = pcall(Wikipedia.searchAndGetIntros, Wikipedia, word, lang)
       end
       Wikipedia:resetTrapWidget()
-      if
-        not ok
-        and pages
-        and string.find(pages, Wikipedia.dismissed_error_code)
-      then
+      if not ok and pages and string.find(pages, Wikipedia.dismissed_error_code) then
         -- So we can display an alternate dummy result
         lookup_cancelled = true
         -- Or we could just not show anything with:
@@ -511,9 +446,7 @@ function ReaderWikipedia:onLookupWikipedia(
           pages = sorted_pages
         end
         for pageid, page in pairs(pages) do
-          local definition = page.extract
-            or (page.length and _("No introduction."))
-            or no_result_text
+          local definition = page.extract or (page.length and _("No introduction.")) or no_result_text
           if page.length then
             -- we get 'length' only for intro results
             -- let's append it to definition so we know
@@ -522,11 +455,7 @@ function ReaderWikipedia:onLookupWikipedia(
             local more_factor = math.ceil(page.length / (1 + definition:len())) -- +1 just in case len()=0
             definition = definition
               .. "\n"
-              .. T(
-                _("(full article : %1 kB, = %2 x this intro length)"),
-                fullkb,
-                more_factor
-              )
+              .. T(_("(full article : %1 kB, = %2 x this intro length)"), fullkb, more_factor)
           end
           local result = {
             dict = T(_("Wikipedia %1"), lang:upper()),
@@ -590,8 +519,7 @@ function ReaderWikipedia:getWikiLanguages(first_lang)
   if DictQuickLookup.rotated_update_wiki_languages_on_close ~= nil then
     -- Flag set by DictQuickLookup when rotating, forwarding the flag
     -- of the rotated out DictQuickLookup instance: trust it
-    update_wiki_languages_on_close =
-      DictQuickLookup.rotated_update_wiki_languages_on_close
+    update_wiki_languages_on_close = DictQuickLookup.rotated_update_wiki_languages_on_close
     DictQuickLookup.rotated_update_wiki_languages_on_close = nil
   else
     -- Not a rotation. Only if it's the first request with the current

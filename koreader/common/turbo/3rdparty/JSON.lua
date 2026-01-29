@@ -15,8 +15,7 @@
 --    3) the 'AUTHOR_NOTE' string below is maintained
 --
 local VERSION = "20170927.26" -- version history at end of file
-local AUTHOR_NOTE =
-  "-[ JSON.lua package by Jeffrey Friedl (http://regex.info/blog/lua/json) version 20170927.26 ]-"
+local AUTHOR_NOTE = "-[ JSON.lua package by Jeffrey Friedl (http://regex.info/blog/lua/json) version 20170927.26 ]-"
 
 --
 -- The 'AUTHOR_NOTE' variable exists so that information about the source
@@ -673,11 +672,7 @@ function OBJDEF:asNumber(item)
   if getmetatable(item) == isNumber then
     -- it's already a JSON number object.
     return item
-  elseif
-    type(item) == "table"
-    and type(item.S) == "string"
-    and type(item.N) == "number"
-  then
+  elseif type(item) == "table" and type(item.S) == "string" and type(item.N) == "number" then
     -- it's a number-object table that lost its metatable, so give it one
     return setmetatable(item, isNumber)
   else
@@ -790,12 +785,7 @@ local function unicode_codepoint_as_utf8(codepoint)
     local midB = math.floor(remainder / 0x40)
     local lowpart = remainder - 0x40 * midB
 
-    return string.char(
-      0xF0 + highpart,
-      0x80 + midA,
-      0x80 + midB,
-      0x80 + lowpart
-    )
+    return string.char(0xF0 + highpart, 0x80 + midA, 0x80 + midB, 0x80 + lowpart)
   end
 end
 
@@ -842,8 +832,7 @@ local function grok_number(self, text, start, options)
   --
   -- Grab the integer part
   --
-  local integer_part = text:match("^-?[1-9]%d*", start)
-    or text:match("^-?0", start)
+  local integer_part = text:match("^-?[1-9]%d*", start) or text:match("^-?0", start)
 
   if not integer_part then
     self:onDecodeError("expected number", text, start, options.etc)
@@ -871,26 +860,17 @@ local function grok_number(self, text, start, options)
   if options.decodeNumbersAsObjects then
     local objectify = false
 
-    if
-      not options.decodeIntegerObjectificationLength
-      and not options.decodeDecimalObjectificationLength
-    then
+    if not options.decodeIntegerObjectificationLength and not options.decodeDecimalObjectificationLength then
       -- no options, so objectify
       objectify = true
     elseif
       (
         options.decodeIntegerObjectificationLength
-        and (
-          integer_part:len() >= options.decodeIntegerObjectificationLength
-          or exponent_part:len() > 0
-        )
+        and (integer_part:len() >= options.decodeIntegerObjectificationLength or exponent_part:len() > 0)
       )
       or (
         options.decodeDecimalObjectificationLength
-        and (
-          decimal_part:len() >= options.decodeDecimalObjectificationLength
-          or exponent_part:len() > 0
-        )
+        and (decimal_part:len() >= options.decodeDecimalObjectificationLength or exponent_part:len() > 0)
       )
     then
       -- have options and they are triggered, so objectify
@@ -913,17 +893,11 @@ local function grok_number(self, text, start, options)
     if
       (
         options.decodeIntegerStringificationLength
-        and (
-          integer_part:len() >= options.decodeIntegerStringificationLength
-          or exponent_part:len() > 0
-        )
+        and (integer_part:len() >= options.decodeIntegerStringificationLength or exponent_part:len() > 0)
       )
       or (
         options.decodeDecimalStringificationLength
-        and (
-          decimal_part:len() >= options.decodeDecimalStringificationLength
-          or exponent_part:len() > 0
-        )
+        and (decimal_part:len() >= options.decodeDecimalStringificationLength or exponent_part:len() > 0)
       )
     then
       return full_number_text, i -- this returns the exact string representation seen in the original JSON
@@ -942,12 +916,7 @@ end
 
 local function grok_string(self, text, start, options)
   if text:sub(start, start) ~= '"' then
-    self:onDecodeError(
-      "expected string's opening quote",
-      text,
-      start,
-      options.etc
-    )
+    self:onDecodeError("expected string's opening quote", text, start, options.etc)
     return nil, start -- in case the error method doesn't abort, return something sensible
   end
 
@@ -990,15 +959,10 @@ local function grok_string(self, text, start, options)
         local codepoint = tonumber(hex, 16)
         if codepoint >= 0xD800 and codepoint <= 0xDBFF then
           -- it's a hi surrogate... see whether we have a following low
-          local lo_surrogate = text:match(
-            "^\\u([dD][cdefCDEF][0123456789aAbBcCdDeEfF][0123456789aAbBcCdDeEfF])",
-            i
-          )
+          local lo_surrogate = text:match("^\\u([dD][cdefCDEF][0123456789aAbBcCdDeEfF][0123456789aAbBcCdDeEfF])", i)
           if lo_surrogate then
             i = i + 6 -- bypass the low surrogate we just read
-            codepoint = 0x2400
-              + (codepoint - 0xD800) * 0x400
-              + tonumber(lo_surrogate, 16)
+            codepoint = 0x2400 + (codepoint - 0xD800) * 0x400 + tonumber(lo_surrogate, 16)
           else
             -- not a proper low, so we'll just leave the first codepoint as is and spit it out.
           end
@@ -1178,12 +1142,7 @@ function OBJDEF:decode(text, etc, options)
     return nil, error_message -- in case the error method doesn't abort, return something sensible
   elseif type(text) ~= "string" then
     local error_message = "expected string argument to JSON:decode()"
-    self:onDecodeError(
-      string.format("%s, got %s", error_message, type(text)),
-      nil,
-      nil,
-      options.etc
-    )
+    self:onDecodeError(string.format("%s, got %s", error_message, type(text)), nil, nil, options.etc)
     return nil, error_message -- in case the error method doesn't abort, return something sensible
   end
 
@@ -1204,10 +1163,7 @@ function OBJDEF:decode(text, etc, options)
   -- Those are perfectly valid encodings for JSON (as per RFC 4627 section 3),
   -- but this package can't handle them.
   --
-  if
-    text:sub(1, 1):byte() == 0
-    or (text:len() >= 2 and text:sub(2, 2):byte() == 0)
-  then
+  if text:sub(1, 1):byte() == 0 or (text:len() >= 2 and text:sub(2, 2):byte() == 0) then
     local error_message = "JSON package groks only UTF-8, sorry"
     self:onDecodeError(error_message, text, nil, options.etc)
     return nil, error_message -- in case the error method doesn't abort, return something sensible
@@ -1220,20 +1176,16 @@ function OBJDEF:decode(text, etc, options)
     options.decodeNumbersAsObjects = self.decodeNumbersAsObjects
   end
   if options.decodeIntegerObjectificationLength == nil then
-    options.decodeIntegerObjectificationLength =
-      self.decodeIntegerObjectificationLength
+    options.decodeIntegerObjectificationLength = self.decodeIntegerObjectificationLength
   end
   if options.decodeDecimalObjectificationLength == nil then
-    options.decodeDecimalObjectificationLength =
-      self.decodeDecimalObjectificationLength
+    options.decodeDecimalObjectificationLength = self.decodeDecimalObjectificationLength
   end
   if options.decodeIntegerStringificationLength == nil then
-    options.decodeIntegerStringificationLength =
-      self.decodeIntegerStringificationLength
+    options.decodeIntegerStringificationLength = self.decodeIntegerStringificationLength
   end
   if options.decodeDecimalStringificationLength == nil then
-    options.decodeDecimalStringificationLength =
-      self.decodeDecimalStringificationLength
+    options.decodeDecimalStringificationLength = self.decodeDecimalStringificationLength
   end
 
   --
@@ -1249,8 +1201,7 @@ function OBJDEF:decode(text, etc, options)
 
       -- if we have something left over now, it's trailing garbage
       if next_i ~= #text + 1 then
-        value, error_message =
-          self:onTrailingGarbage(text, next_i, value, options.etc)
+        value, error_message = self:onTrailingGarbage(text, next_i, value, options.etc)
       end
     end
     return value, error_message
@@ -1301,10 +1252,7 @@ local chars_to_be_escaped_in_JSON_string = "["
 local LINE_SEPARATOR_as_utf8 = unicode_codepoint_as_utf8(0x2028)
 local PARAGRAPH_SEPARATOR_as_utf8 = unicode_codepoint_as_utf8(0x2029)
 local function json_string_literal(value, options)
-  local newval = value:gsub(
-    chars_to_be_escaped_in_JSON_string,
-    backslash_replacement_function
-  )
+  local newval = value:gsub(chars_to_be_escaped_in_JSON_string, backslash_replacement_function)
   if options.stringsAreUtf8 then
     --
     -- This feels really ugly to just look into a string for the sequence of bytes that we know to be a particular utf8 character,
@@ -1312,9 +1260,7 @@ local function json_string_literal(value, options)
     -- I'd rather decode the byte stream into a character stream, but it's not technically needed so
     -- not technically worth it.
     --
-    newval = newval
-      :gsub(LINE_SEPARATOR_as_utf8, "\\u2028")
-      :gsub(PARAGRAPH_SEPARATOR_as_utf8, "\\u2029")
+    newval = newval:gsub(LINE_SEPARATOR_as_utf8, "\\u2028"):gsub(PARAGRAPH_SEPARATOR_as_utf8, "\\u2029")
   end
   return '"' .. newval .. '"'
 end
@@ -1345,10 +1291,7 @@ local function object_or_array(self, T, etc)
     elseif type(key) == "boolean" then
       table.insert(string_keys, tostring(key))
     else
-      self:onEncodeError(
-        "can't encode table with a key of type " .. type(key),
-        etc
-      )
+      self:onEncodeError("can't encode table with a key of type " .. type(key), etc)
     end
   end
 
@@ -1378,10 +1321,7 @@ local function object_or_array(self, T, etc)
     --
 
     if self.noKeyConversion then
-      self:onEncodeError(
-        "a table with both numeric and string keys could be an object or array; aborting",
-        etc
-      )
+      self:onEncodeError("a table with both numeric and string keys could be an object or array; aborting", etc)
     end
 
     --
@@ -1444,10 +1384,7 @@ local function encode_value(self, value, parents, etc, options, indent, for_key)
   --
   -- keys in a JSON object can never be null, so we don't even consider options.null when converting a key value
   --
-  if
-    value == nil
-    or (not for_key and options and options.null and value == options.null)
-  then
+  if value == nil or (not for_key and options and options.null and value == options.null) then
     return "null"
   elseif type(value) == "string" then
     return json_string_literal(value, options)
@@ -1480,23 +1417,13 @@ local function encode_value(self, value, parents, etc, options, indent, for_key)
     return tostring(value)
   elseif type(value) ~= "table" then
     if self.unsupportedTypeEncoder then
-      local user_value, user_error = self:unsupportedTypeEncoder(
-        value,
-        parents,
-        etc,
-        options,
-        indent,
-        for_key
-      )
+      local user_value, user_error = self:unsupportedTypeEncoder(value, parents, etc, options, indent, for_key)
       -- If the user's handler returns a string, use that. If it returns nil plus an error message, bail with that.
       -- If only nil returned, fall through to the default error handler.
       if type(user_value) == "string" then
         return user_value
       elseif user_value ~= nil then
-        self:onEncodeError(
-          "unsupportedTypeEncoder method returned a " .. type(user_value),
-          etc
-        )
+        self:onEncodeError("unsupportedTypeEncoder method returned a " .. type(user_value), etc)
       elseif user_error then
         self:onEncodeError(tostring(user_error), etc)
       end
@@ -1519,10 +1446,7 @@ local function encode_value(self, value, parents, etc, options, indent, for_key)
     end
 
     if parents[T] then
-      self:onEncodeError(
-        "table " .. tostring(T) .. " is a child of itself",
-        etc
-      )
+      self:onEncodeError("table " .. tostring(T) .. " is a child of itself", etc)
     else
       parents[T] = true
     end
@@ -1543,19 +1467,11 @@ local function encode_value(self, value, parents, etc, options, indent, for_key)
 
       local ITEMS = {}
       for i = 1, maximum_number_key do
-        table.insert(
-          ITEMS,
-          encode_value(self, T[i], parents, etc, options, key_indent)
-        )
+        table.insert(ITEMS, encode_value(self, T[i], parents, etc, options, key_indent))
       end
 
       if options.array_newline then
-        result_value = "[\n"
-          .. key_indent
-          .. table.concat(ITEMS, ",\n" .. key_indent)
-          .. "\n"
-          .. indent
-          .. "]"
+        result_value = "[\n" .. key_indent .. table.concat(ITEMS, ",\n" .. key_indent) .. "\n" .. indent .. "]"
       elseif options.pretty then
         result_value = "[ " .. table.concat(ITEMS, ", ") .. " ]"
       else
@@ -1571,54 +1487,27 @@ local function encode_value(self, value, parents, etc, options, indent, for_key)
         local KEYS = {}
         local max_key_length = 0
         for _, key in ipairs(object_keys) do
-          local encoded = encode_value(
-            self,
-            tostring(key),
-            parents,
-            etc,
-            options,
-            indent,
-            true
-          )
+          local encoded = encode_value(self, tostring(key), parents, etc, options, indent, true)
           if options.align_keys then
             max_key_length = math.max(max_key_length, #encoded)
           end
           table.insert(KEYS, encoded)
         end
         local key_indent = indent .. tostring(options.indent or "")
-        local subtable_indent = key_indent
-          .. string.rep(" ", max_key_length)
-          .. (options.align_keys and "  " or "")
+        local subtable_indent = key_indent .. string.rep(" ", max_key_length) .. (options.align_keys and "  " or "")
         local FORMAT = "%s%" .. string.format("%d", max_key_length) .. "s: %s"
 
         local COMBINED_PARTS = {}
         for i, key in ipairs(object_keys) do
-          local encoded_val =
-            encode_value(self, TT[key], parents, etc, options, subtable_indent)
-          table.insert(
-            COMBINED_PARTS,
-            string.format(FORMAT, key_indent, KEYS[i], encoded_val)
-          )
+          local encoded_val = encode_value(self, TT[key], parents, etc, options, subtable_indent)
+          table.insert(COMBINED_PARTS, string.format(FORMAT, key_indent, KEYS[i], encoded_val))
         end
-        result_value = "{\n"
-          .. table.concat(COMBINED_PARTS, ",\n")
-          .. "\n"
-          .. indent
-          .. "}"
+        result_value = "{\n" .. table.concat(COMBINED_PARTS, ",\n") .. "\n" .. indent .. "}"
       else
         local PARTS = {}
         for _, key in ipairs(object_keys) do
-          local encoded_val =
-            encode_value(self, TT[key], parents, etc, options, indent)
-          local encoded_key = encode_value(
-            self,
-            tostring(key),
-            parents,
-            etc,
-            options,
-            indent,
-            true
-          )
+          local encoded_val = encode_value(self, TT[key], parents, etc, options, indent)
+          local encoded_key = encode_value(self, tostring(key), parents, etc, options, indent, true)
           table.insert(PARTS, string.format("%s:%s", encoded_key, encoded_val))
         end
         result_value = "{" .. table.concat(PARTS, ",") .. "}"
@@ -1662,10 +1551,7 @@ end
 
 function OBJDEF:encode_pretty(value, etc, options)
   if type(self) ~= "table" or self.__index ~= OBJDEF then
-    OBJDEF:onEncodeError(
-      "JSON:encode_pretty must be called in method format",
-      etc
-    )
+    OBJDEF:onEncodeError("JSON:encode_pretty must be called in method format", etc)
   end
 
   --

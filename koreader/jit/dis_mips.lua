@@ -1136,26 +1136,9 @@ local function putop(ctx, text, operands)
     end
   end
   if ctx.hexdump > 0 then
-    ctx.out(
-      format(
-        "%08x  %s  %-7s %s%s\n",
-        ctx.addr + pos,
-        tohex(ctx.op),
-        text,
-        concat(operands, ", "),
-        extra
-      )
-    )
+    ctx.out(format("%08x  %s  %-7s %s%s\n", ctx.addr + pos, tohex(ctx.op), text, concat(operands, ", "), extra))
   else
-    ctx.out(
-      format(
-        "%08x  %-7s %s%s\n",
-        ctx.addr + pos,
-        text,
-        concat(operands, ", "),
-        extra
-      )
-    )
+    ctx.out(format("%08x  %-7s %s%s\n", ctx.addr + pos, text, concat(operands, ", "), extra))
   end
   ctx.pos = pos + 4
 end
@@ -1191,8 +1174,7 @@ local function disass_ins(ctx)
       return unknown(ctx)
     end
     if opat.maprs then
-      opat =
-        opat[opat.maprs(band(rshift(op, 21), 31), band(rshift(op, 16), 31))]
+      opat = opat[opat.maprs(band(rshift(op, 21), 31), band(rshift(op, 16), 31))]
     else
       opat = opat[band(rshift(op, opat.shift), opat.mask)] or opat._
     end

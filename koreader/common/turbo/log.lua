@@ -91,13 +91,7 @@ else
     if log.categories.warning == false then
       return
     end
-    io.stdout:write(
-      string.format(
-        "%s %s \r\n",
-        os.date("[S %Y/%m/%d %H:%M:%S]", os.time()),
-        str
-      )
-    )
+    io.stdout:write(string.format("%s %s \r\n", os.date("[S %Y/%m/%d %H:%M:%S]", os.time()), str))
   end
 end
 
@@ -128,13 +122,7 @@ else
     if log.categories.warning == false then
       return
     end
-    io.stdout:write(
-      string.format(
-        "%s %s \r\n",
-        os.date("[I %Y/%m/%d %H:%M:%S]", os.time()),
-        str
-      )
-    )
+    io.stdout:write(string.format("%s %s \r\n", os.date("[I %Y/%m/%d %H:%M:%S]", os.time()), str))
   end
 end
 
@@ -165,13 +153,7 @@ else
     if log.categories.warning == false then
       return
     end
-    io.stdout:write(
-      string.format(
-        "%s %s \r\n",
-        os.date("[W %Y/%m/%d %H:%M:%S]", os.time()),
-        str
-      )
-    )
+    io.stdout:write(string.format("%s %s \r\n", os.date("[W %Y/%m/%d %H:%M:%S]", os.time()), str))
   end
 end
 
@@ -202,13 +184,7 @@ else
     if log.categories.warning == false then
       return
     end
-    io.stdout:write(
-      string.format(
-        "%s %s \r\n",
-        os.date("[E %Y/%m/%d %H:%M:%S]", os.time()),
-        str
-      )
-    )
+    io.stdout:write(string.format("%s %s \r\n", os.date("[E %Y/%m/%d %H:%M:%S]", os.time()), str))
   end
 end
 
@@ -239,13 +215,7 @@ else
     if log.categories.warning == false then
       return
     end
-    io.stdout:write(
-      string.format(
-        "%s %s \r\n",
-        os.date("[D %Y/%m/%d %H:%M:%S]", os.time()),
-        str
-      )
-    )
+    io.stdout:write(string.format("%s %s \r\n", os.date("[D %Y/%m/%d %H:%M:%S]", os.time()), str))
   end
 end
 
@@ -276,13 +246,7 @@ else
     if log.categories.warning == false then
       return
     end
-    io.stdout:write(
-      string.format(
-        "%s %s \r\n",
-        os.date("[d %Y/%m/%d %H:%M:%S]", os.time()),
-        str
-      )
-    )
+    io.stdout:write(string.format("%s %s \r\n", os.date("[d %Y/%m/%d %H:%M:%S]", os.time()), str))
   end
 end
 
@@ -304,13 +268,7 @@ function log.stringify(t, name, indent)
         -- the information is defined through lines
         return string.format(
           "%q",
-          so
-            .. ", defined in ("
-            .. info.linedefined
-            .. "-"
-            .. info.lastlinedefined
-            .. ")"
-            .. info.source
+          so .. ", defined in (" .. info.linedefined .. "-" .. info.lastlinedefined .. ")" .. info.source
         )
       end
     elseif type(o) == "number" or type(o) == "boolean" then

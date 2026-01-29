@@ -163,15 +163,7 @@ end
 local function translateEvent(t, par1, par2)
   -- Much like Input does, detail what we catch when debug logging is enabled
   if DEBUG.is_on then
-    logger.dbg(
-      string.format(
-        "PB event => %d (%s), par1: %s, par2: %s",
-        t,
-        pb_event_map[t],
-        par1,
-        par2
-      )
-    )
+    logger.dbg(string.format("PB event => %d (%s), par1: %s, par2: %s", t, pb_event_map[t], par1, par2))
   end
 
   if not eventq then
@@ -264,13 +256,7 @@ local function translateEvent(t, par1, par2)
     updateTimestamp()
 
     genEmuEvent(C.EV_KEY, par1, 0)
-  elseif
-    t == C.EVT_BACKGROUND
-    or t == C.EVT_FOREGROUND
-    or t == C.EVT_SHOW
-    or t == C.EVT_HIDE
-    or t == C.EVT_EXIT
-  then
+  elseif t == C.EVT_BACKGROUND or t == C.EVT_FOREGROUND or t == C.EVT_SHOW or t == C.EVT_HIDE or t == C.EVT_EXIT then
     updateTimestamp()
 
     -- Handle those as MiscEvent as this makes it easy to return a string directly,
@@ -325,8 +311,7 @@ function input:open()
     -- You must chmod those to be readable by non-root somehow (or run as root)
     for i = 1, max_fds - 1 do
       local input_dev = "/dev/input/event" .. tostring(i)
-      local fd =
-        C.open(input_dev, bit.bor(C.O_RDONLY, C.O_NONBLOCK, C.O_CLOEXEC))
+      local fd = C.open(input_dev, bit.bor(C.O_RDONLY, C.O_NONBLOCK, C.O_CLOEXEC))
       if fd >= 0 then
         poll_fds[poll_fds_count].fd = fd
         poll_fds[poll_fds_count].events = C.POLLIN
@@ -399,12 +384,7 @@ local function waitForEventRaw(timeout)
     -- We have got sleepmode ("autostandby") requested by frontend.
     -- We must be a "properly" foregroun running to do this - no keylock (zzzz), and IsTaskActive must be true.
     -- In any other case, the monitor has the hot potato to manage sleep states
-    if
-      active
-      and inkview.hw_get_keylock() == 0
-      and inkview.GetSleepmode() > 0
-      and now() > next_sleep
-    then
+    if active and inkview.hw_get_keylock() == 0 and inkview.GetSleepmode() > 0 and now() > next_sleep then
       local before = now()
       -- This function may, or may not suspend the device until RTC in specified time,
       -- or GPIO (touch/button/Gsensor) fires. We make RTC wake up every 3 minutes to give
@@ -443,19 +423,10 @@ local function waitForEventRaw(timeout)
     -- monitor would spam queued events to whaetever else gets focus after us.
     if band(poll_fds[0].revents, C.POLLIN) ~= 0 then
       updateTimestamp() -- single 'ts' copy for genEmuEvent inside the loop
-      while
-        rt.mq_receive(poll_fds[0].fd, ffi.cast("char*", hwmsg), hwmsg_len, nil)
-        > 0
-      do
+      while rt.mq_receive(poll_fds[0].fd, ffi.cast("char*", hwmsg), hwmsg_len, nil) > 0 do
         local m = hwmsg[0]
         -- If there's no raw keymapping, emit this one instead
-        if
-          (
-            m.type == C.EVT_KEYDOWN
-            or m.type == C.EVT_KEYUP
-            or m.type == C.EVT_KEYREPEAT
-          ) and not raw_keymap
-        then
+        if (m.type == C.EVT_KEYDOWN or m.type == C.EVT_KEYUP or m.type == C.EVT_KEYREPEAT) and not raw_keymap then
           genEmuEvent(m.type, m.common.par1, m.common.par2)
         end
       end

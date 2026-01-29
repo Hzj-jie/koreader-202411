@@ -76,9 +76,7 @@ function RadioButtonWidget:init()
     if not self.width_factor then
       self.width_factor = 0.6
     end
-    self.width = math.floor(
-      math.min(self.screen_width, self.screen_height) * self.width_factor
-    )
+    self.width = math.floor(math.min(self.screen_width, self.screen_height) * self.width_factor)
   end
   if Device:hasKeys() then
     self.key_events.Exit = { { Device.input.group.Back } }
@@ -120,8 +118,7 @@ function RadioButtonWidget:update()
   self.layout = {}
   if self.default_provider then
     local row, col = self:getButtonIndex(self.default_provider)
-    self.radio_buttons[row][col].text = self.radio_buttons[row][col].text
-      .. "\u{A0}\u{A0}★"
+    self.radio_buttons[row][col].text = self.radio_buttons[row][col].text .. "\u{A0}\u{A0}★"
   end
 
   local value_widget = RadioButtonTable:new({
@@ -244,9 +241,7 @@ function RadioButtonWidget:update()
   })
 
   -- If the device doesn't support Kaleido wfm, or color is disabled, don't bother tweaking the wfm
-  if
-    self.colorful and not (Screen:isColorEnabled() and Device:hasKaleidoWfm())
-  then
+  if self.colorful and not (Screen:isColorEnabled() and Device:hasKaleidoWfm()) then
     self.colorful = false
   end
 

@@ -128,11 +128,7 @@ function turbovisor.restart(self, fd, events)
   if turbo.util.is_in(full_path, self.arg_tbl.ignore) then
     return
   end
-  turbo.log.notice(
-    "[turbovisor.lua] File '"
-      .. full_path
-      .. "' changed, application restarted!"
-  )
+  turbo.log.notice("[turbovisor.lua] File '" .. full_path .. "' changed, application restarted!")
   -- Restart application
   kill_tree(ffi.C.getpid())
   local cpid = ffi.C.fork()

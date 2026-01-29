@@ -47,9 +47,7 @@ local function spinWidgetSetRefresh(touchmenu_instance, refresh_rate_num)
     callback = function(left_value, right_value)
       G_reader_settings:saveSetting(refresh_rate_num, left_value)
       G_reader_settings:saveSetting("night_" .. refresh_rate_num, right_value)
-      UIManager:broadcastEvent(
-        Event:new("SetRefreshRates", left_value, right_value)
-      )
+      UIManager:broadcastEvent(Event:new("SetRefreshRates", left_value, right_value))
       touchmenu_instance:updateItems()
     end,
   })
@@ -95,9 +93,7 @@ return {
         return refreshChecked(custom("refresh_rate_1"))
       end,
       callback = function()
-        UIManager:broadcastEvent(
-          Event:new("SetRefreshRates", custom("refresh_rate_1"))
-        )
+        UIManager:broadcastEvent(Event:new("SetRefreshRates", custom("refresh_rate_1")))
       end,
       hold_callback = function(touchmenu_instance)
         spinWidgetSetRefresh(touchmenu_instance, "refresh_rate_1")
@@ -111,9 +107,7 @@ return {
         return refreshChecked(custom("refresh_rate_2"))
       end,
       callback = function()
-        UIManager:broadcastEvent(
-          Event:new("SetRefreshRates", custom("refresh_rate_2"))
-        )
+        UIManager:broadcastEvent(Event:new("SetRefreshRates", custom("refresh_rate_2")))
       end,
       hold_callback = function(touchmenu_instance)
         spinWidgetSetRefresh(touchmenu_instance, "refresh_rate_2")
@@ -127,9 +121,7 @@ return {
         return refreshChecked(custom("refresh_rate_3"))
       end,
       callback = function()
-        UIManager:broadcastEvent(
-          Event:new("SetRefreshRates", custom("refresh_rate_3"))
-        )
+        UIManager:broadcastEvent(Event:new("SetRefreshRates", custom("refresh_rate_3")))
       end,
       hold_callback = function(touchmenu_instance)
         spinWidgetSetRefresh(touchmenu_instance, "refresh_rate_3")
@@ -157,8 +149,7 @@ return {
     {
       text = _("except on the second page of a new chapter"),
       enabled_func = function()
-        return UIManager.FULL_REFRESH_COUNT == -1
-          or G_reader_settings:isTrue("refresh_on_chapter_boundaries")
+        return UIManager.FULL_REFRESH_COUNT == -1 or G_reader_settings:isTrue("refresh_on_chapter_boundaries")
       end,
       checked_func = function()
         return G_reader_settings:isTrue("no_refresh_on_second_chapter_page")

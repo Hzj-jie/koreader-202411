@@ -20,24 +20,17 @@ function MassStorage:getSettingsMenuTable()
   return {
     {
       text = _("Disable confirmation popup"),
-      help_text = _(
-        [[This will ONLY affect what happens when you plug in the device!]]
-      ),
+      help_text = _([[This will ONLY affect what happens when you plug in the device!]]),
       checked_func = function()
         return not self:requireConfirmation()
       end,
       callback = function()
-        G_reader_settings:saveSetting(
-          "mass_storage_confirmation_disabled",
-          self:requireConfirmation()
-        )
+        G_reader_settings:saveSetting("mass_storage_confirmation_disabled", self:requireConfirmation())
       end,
     },
     {
       text = _("Disable mass storage functionality"),
-      help_text = _(
-        [[In case your device uses an unsupported setup where you know it won't work properly.]]
-      ),
+      help_text = _([[In case your device uses an unsupported setup where you know it won't work properly.]]),
       checked_func = function()
         return not self:isEnabled()
       end,

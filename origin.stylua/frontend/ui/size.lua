@@ -86,8 +86,7 @@ if dbg.is_on then
       local prop_value = rawget(t, k)
       local prop_exists = prop_value ~= nil
       if not prop_exists then
-        local warning = rawget(t, "_name")
-            and string.format("Size.%s.%s", rawget(t, "_name"), k)
+        local warning = rawget(t, "_name") and string.format("Size.%s.%s", rawget(t, "_name"), k)
           or string.format("Size.%s", k)
         error("Size: this property does not exist: " .. warning)
       end

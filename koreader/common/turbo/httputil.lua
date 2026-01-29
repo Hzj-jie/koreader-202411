@@ -138,12 +138,7 @@ function httputil.HTTPParser:parse_url(url)
   end
   self.http_parser_url = ffi.cast("struct http_parser_url *", htpurl)
   ffi.gc(self.http_parser_url, ffi.C.free)
-  local rc = libturbo_parser.http_parser_parse_url(
-    url,
-    url:len(),
-    0,
-    self.http_parser_url
-  )
+  local rc = libturbo_parser.http_parser_parse_url(url, url:len(), 0, self.http_parser_url)
   if rc ~= 0 then
     error("Could not parse URL")
   end
@@ -162,14 +157,10 @@ function httputil.HTTPParser:get_url_field(UF_prop)
   if not self.http_parser_url then
     self:parse_url(self.url)
   end
-  if
-    libturbo_parser.url_field_is_set(self.http_parser_url, UF_prop) == true
-  then
+  if libturbo_parser.url_field_is_set(self.http_parser_url, UF_prop) == true then
     local url = ffi.cast("const char *", self.url)
-    local field = ffi.string(
-      url + self.http_parser_url.field_data[UF_prop].off,
-      self.http_parser_url.field_data[UF_prop].len
-    )
+    local field =
+      ffi.string(url + self.http_parser_url.field_data[UF_prop].off, self.http_parser_url.field_data[UF_prop].len)
     return field
   end
   -- Field is not set.
@@ -205,11 +196,7 @@ end
 --- Get the HTTP version.
 -- @return Currently set version as string or nil if not set.
 function httputil.HTTPParser:get_version()
-  return string.format(
-    "HTTP/%d.%d",
-    self.tpw.parser.http_major,
-    self.tpw.parser.http_minor
-  )
+  return string.format("HTTP/%d.%d", self.tpw.parser.http_major, self.tpw.parser.http_minor)
 end
 
 --- Get the status code.
@@ -373,8 +360,7 @@ function httputil.HTTPParser:parse_header(hdr_str, hdr_t)
   -- using pointers to it.
   self.hdr_str = hdr_str
   self.hdr_t = hdr_t
-  local tpw =
-    libturbo_parser.turbo_parser_wrapper_init(hdr_str, hdr_str:len(), hdr_t)
+  local tpw = libturbo_parser.turbo_parser_wrapper_init(hdr_str, hdr_str:len(), hdr_t)
   if tpw ~= nil then
     ffi.gc(tpw, libturbo_parser.turbo_parser_wrapper_exit)
   else
@@ -386,9 +372,7 @@ function httputil.HTTPParser:parse_header(hdr_str, hdr_t)
       string.format(
         "libturbo_parser could not parse HTTP header. %s %s",
         ffi.string(libturbo_parser.http_errno_name(self.tpw.parser.http_errno)),
-        ffi.string(
-          libturbo_parser.http_errno_description(self.tpw.parser.http_errno)
-        )
+        ffi.string(libturbo_parser.http_errno_description(self.tpw.parser.http_errno))
       )
     )
   end
@@ -502,9 +486,7 @@ function httputil.parse_multipart_data(data, boundary)
       do
         local name, ctype
         local argument = {}
-        for fname, fvalue, content_kvs in
-          boundary_headers:gmatch("([^%c%s:]+):%s*([^\r\n;]*);?([^\n\r]*)")
-        do
+        for fname, fvalue, content_kvs in boundary_headers:gmatch("([^%c%s:]+):%s*([^\r\n;]*);?([^\n\r]*)") do
           if fvalue == "form-data" and fname == "content-disposition" then
             argument[fname] = {}
             local p = 1
@@ -534,9 +516,7 @@ function httputil.parse_multipart_data(data, boundary)
             if fname == "content-type" then
               ctype = fvalue
               fvalue = fvalue:lower()
-            elseif
-              fname == "charset" or fname == "content-transfer-encoding"
-            then
+            elseif fname == "charset" or fname == "content-transfer-encoding" then
               fvalue = fvalue:lower()
             end
             argument[fname] = fvalue
@@ -561,8 +541,7 @@ function httputil.parse_multipart_data(data, boundary)
     end
     ::next_boundary::
     b1 = find_line_start(data, p2 + 1)
-  until (b1 + 1 > #data)
-    or (data:byte(p2 + 1) == DASH and data:byte(p2 + 2) == DASH)
+  until (b1 + 1 > #data) or (data:byte(p2 + 1) == DASH and data:byte(p2 + 2) == DASH)
   return arguments
 end
 
@@ -755,18 +734,10 @@ function httputil.HTTPHeaders:stringify_as_request()
   local buffer = buffer:new()
   for i = 1, #self._fields do
     if self._fields[i] then
-      buffer:append_luastr_right(
-        string.format("%s: %s\r\n", self._fields[i][1], self._fields[i][2])
-      )
+      buffer:append_luastr_right(string.format("%s: %s\r\n", self._fields[i][1], self._fields[i][2]))
     end
   end
-  return string.format(
-    "%s %s %s\r\n%s\r\n",
-    self.method,
-    self.uri,
-    self.version,
-    tostring(buffer)
-  )
+  return string.format("%s %s %s\r\n%s\r\n", self.method, self.uri, self.version, tostring(buffer))
 end
 
 --- Stringify data set in class as a HTTP response header.
@@ -788,13 +759,7 @@ function httputil.HTTPHeaders:stringify_as_response()
       buf:append_luastr_right("\r\n")
     end
   end
-  return string.format(
-    "%s %d %s\r\n%s",
-    self.version,
-    self.status_code,
-    status_codes[self.status_code],
-    tostring(buf)
-  )
+  return string.format("%s %d %s\r\n%s", self.version, self.status_code, status_codes[self.status_code], tostring(buf))
 end
 
 --- Convinience method to return HTTPHeaders:stringify_as_response on string

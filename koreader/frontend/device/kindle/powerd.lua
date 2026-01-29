@@ -26,9 +26,7 @@ end
 -- If we start with the light off (fl_intensity is fl_min), ensure a toggle will set it to the lowest "on" step,
 -- and that we update fl_intensity (by using setIntensity and not setIntensityHW).
 function KindlePowerD:turnOnFrontlightHW(done_callback)
-  self:setIntensity(
-    self.fl_intensity == self.fl_min and self.fl_min + 1 or self.fl_intensity
-  )
+  self:setIntensity(self.fl_intensity == self.fl_min and self.fl_min + 1 or self.fl_intensity)
 
   return false
 end
@@ -62,11 +60,9 @@ function KindlePowerD:frontlightIntensityHW()
   end
   -- Handle the step 0 switcheroo on ! canTurnFrontlightOff devices...
   if self.device:canTurnFrontlightOff() then
-    return LibLipcs:accessor()
-      :get_int_property("com.lab126.powerd", "flIntensity")
+    return LibLipcs:accessor():get_int_property("com.lab126.powerd", "flIntensity")
   end
-  local lipc_fl_intensity =
-    LibLipcs:accessor():get_int_property("com.lab126.powerd", "flIntensity")
+  local lipc_fl_intensity = LibLipcs:accessor():get_int_property("com.lab126.powerd", "flIntensity")
   -- NOTE: If lipc returns 0, compare against what the kernel says,
   --     to avoid breaking on/off detection on devices where lipc 0 doesn't actually turn it off (<= PW3),
   --     c.f., #5986
@@ -110,8 +106,7 @@ function KindlePowerD:setIntensityHW(intensity)
   -- NOTE: This means we *require* a working lipc handle to set the FL:
   --     it knows what the UI values should map to for the specific hardware much better than us.
   -- NOTE: We want to bypass setIntensity's shenanigans and simply restore the light as-is
-  LibLipcs:accessor()
-    :set_int_property("com.lab126.powerd", "flIntensity", intensity)
+  LibLipcs:accessor():set_int_property("com.lab126.powerd", "flIntensity", intensity)
   if turn_it_off then
     -- NOTE: when intensity is 0, we want to *really* kill the light, so do it manually
     -- (asking lipc to set it to 0 would in fact set it to > 0 on ! canTurnFrontlightOff Kindles).
@@ -130,8 +125,7 @@ function KindlePowerD:setIntensityHW(intensity)
 end
 
 function KindlePowerD:frontlightWarmthHW()
-  local nat_warmth = LibLipcs:accessor()
-    :get_int_property("com.lab126.powerd", "currentAmberLevel")
+  local nat_warmth = LibLipcs:accessor():get_int_property("com.lab126.powerd", "currentAmberLevel")
   if nat_warmth then
     -- [0...24] -> [0...100]
     return self:fromNativeWarmth(nat_warmth)
@@ -140,14 +134,12 @@ function KindlePowerD:frontlightWarmthHW()
 end
 
 function KindlePowerD:setWarmthHW(warmth)
-  LibLipcs:accessor()
-    :set_int_property("com.lab126.powerd", "currentAmberLevel", warmth)
+  LibLipcs:accessor():set_int_property("com.lab126.powerd", "currentAmberLevel", warmth)
 end
 
 function KindlePowerD:getCapacityHW()
   if not LibLipcs:isFake(LibLipcs:accessor()) then
-    return LibLipcs:accessor()
-      :get_int_property("com.lab126.powerd", "battLevel")
+    return LibLipcs:accessor():get_int_property("com.lab126.powerd", "battLevel")
   end
   if self.batt_capacity_file then
     return self:read_int_file(self.batt_capacity_file)
@@ -165,8 +157,7 @@ end
 function KindlePowerD:isChargingHW()
   local is_charging
   if not LibLipcs:isFake(LibLipcs:accessor()) then
-    is_charging = LibLipcs:accessor()
-      :get_int_property("com.lab126.powerd", "isCharging")
+    is_charging = LibLipcs:accessor():get_int_property("com.lab126.powerd", "isCharging")
   else
     is_charging = self:read_int_file(self.is_charging_file)
   end
@@ -201,10 +192,7 @@ function KindlePowerD:onToggleHallSensor(toggle)
   end
   ffiUtil.writeToSysfs(toggle, self.hall_file)
 
-  G_reader_settings:save(
-    "kindle_hall_effect_sensor_enabled",
-    toggle == 1 and true or false
-  )
+  G_reader_settings:save("kindle_hall_effect_sensor_enabled", toggle == 1 and true or false)
 end
 
 function KindlePowerD:_readFLIntensity()
@@ -221,8 +209,7 @@ end
 
 -- Kindle only allows setting the RTC via lipc during the ReadyToSuspend state
 function KindlePowerD:setRtcWakeup(seconds_from_now)
-  LibLipcs:accessor()
-    :set_int_property("com.lab126.powerd", "rtcWakeup", seconds_from_now)
+  LibLipcs:accessor():set_int_property("com.lab126.powerd", "rtcWakeup", seconds_from_now)
 end
 
 -- Check the powerd state: are we still in screensaver mode.
@@ -239,10 +226,7 @@ function KindlePowerD:checkUnexpectedWakeup()
     return
   end
 
-  if
-    self.device.wakeup_mgr:isWakeupAlarmScheduled()
-    and self.device.wakeup_mgr:wakeupAction(90)
-  then
+  if self.device.wakeup_mgr:isWakeupAlarmScheduled() and self.device.wakeup_mgr:wakeupAction(90) then
     logger.info("Kindle scheduled wakeup")
   else
     logger.warn("Kindle unscheduled wakeup")
@@ -262,8 +246,7 @@ function KindlePowerD:initWakeupMgr()
     return
   end
 
-  self.device.wakeup_mgr =
-    WakeupMgr:new({ rtc = require("device/kindle/mockrtc") })
+  self.device.wakeup_mgr = WakeupMgr:new({ rtc = require("device/kindle/mockrtc") })
 
   function KindlePowerD:wakeupFromSuspend(ts)
     -- Give the device a few seconds to settle.
@@ -297,8 +280,7 @@ function KindlePowerD:resetT1Timeout()
     os.execute("lipc-set-prop -i com.lab126.powerd touchScreenSaverTimeout 1")
   else
     -- AFAIK, the value is irrelevant
-    LibLipcs:accessor()
-      :set_int_property("com.lab126.powerd", "touchScreenSaverTimeout", 1)
+    LibLipcs:accessor():set_int_property("com.lab126.powerd", "touchScreenSaverTimeout", 1)
   end
 end
 

@@ -1,6 +1,5 @@
 -- Start with the english keyboard layout
-local tr_keyboard =
-  require("util").copyRequire("ui/data/keyboardlayouts/en_keyboard")
+local tr_keyboard = require("util").copyRequire("ui/data/keyboardlayouts/en_keyboard")
 
 local keys = tr_keyboard.keys
 -- Insert 2 additional key at the end of first 3 rows after numeric row.
@@ -54,10 +53,8 @@ table.insert(keys[4], 10, {
 })
 
 -- change order "ḧ ẍ ," to ", ḧ ẍ"
-keys[3][10][3], keys[3][11][3], keys[3][12][3] =
-  keys[3][12][3], keys[3][10][3], keys[3][11][3]
-keys[3][10][4], keys[3][11][4], keys[3][12][4] =
-  keys[3][12][4], keys[3][10][4], keys[3][11][4]
+keys[3][10][3], keys[3][11][3], keys[3][12][3] = keys[3][12][3], keys[3][10][3], keys[3][11][3]
+keys[3][10][4], keys[3][11][4], keys[3][12][4] = keys[3][12][4], keys[3][10][4], keys[3][11][4]
 
 -- Add forward slash and .com symbol to 4th row since we have lot of empty space
 --and most phones do this.

@@ -47,26 +47,21 @@ end
 
 local function genKeyboardLayoutsSubmenu()
   local item_table = {}
-  for lang, keyboard_layout in
-    FFIUtil.orderedPairs(VirtualKeyboard.lang_to_keyboard_layout)
-  do
+  for lang, keyboard_layout in FFIUtil.orderedPairs(VirtualKeyboard.lang_to_keyboard_layout) do
     table.insert(item_table, {
       text_func = function()
-        local text =
-          T("%1 (%2)", Language:getLanguageName(lang), lang:sub(1, 2))
+        local text = T("%1 (%2)", Language:getLanguageName(lang), lang:sub(1, 2))
         if G_reader_settings:read("keyboard_layout_default") == lang then
           text = text .. "   ★"
         end
         return text
       end,
       checked_func = function()
-        local keyboard_layouts =
-          G_reader_settings:readTableRef("keyboard_layouts")
+        local keyboard_layouts = G_reader_settings:readTableRef("keyboard_layouts")
         return util.arrayContains(keyboard_layouts, lang)
       end,
       callback = function()
-        local keyboard_layouts =
-          G_reader_settings:readTableRef("keyboard_layouts")
+        local keyboard_layouts = G_reader_settings:readTableRef("keyboard_layouts")
         local layout_index = util.arrayContains(keyboard_layouts, lang)
         if layout_index then
           table.remove(keyboard_layouts, layout_index)
@@ -129,8 +124,7 @@ end
 local sub_item_table = {
   {
     text_func = function()
-      local activated_keyboards, nb_keyboards =
-        getActivatedKeyboardsStringCount()
+      local activated_keyboards, nb_keyboards = getActivatedKeyboardsStringCount()
       local item_text = T(_("Keyboard layouts: %1"), activated_keyboards)
 
       -- get width of text
@@ -143,12 +137,7 @@ local sub_item_table = {
       local checked_widget = CheckMark:new({ -- for layout, to :getSize()
         checked = true,
       })
-      if
-        item_text_w
-        >= Screen:getWidth()
-          - 2 * Size.padding.default
-          - checked_widget:getSize().w
-      then
+      if item_text_w >= Screen:getWidth() - 2 * Size.padding.default - checked_widget:getSize().w then
         item_text = T(_("Keyboard layouts (%1)"), nb_keyboards)
       end
 
@@ -182,10 +171,7 @@ local sub_item_table = {
       input_dialog = InputDialog:new({
         title = _("Keyboard font size"),
         -- do not use input_type = "number" to see letters on the keyboard
-        input = tostring(
-          G_reader_settings:read("keyboard_key_font_size")
-            or VirtualKeyboard.default_label_size
-        ),
+        input = tostring(G_reader_settings:read("keyboard_key_font_size") or VirtualKeyboard.default_label_size),
         input_hint = "(16 - 30)",
         buttons = {
           {
@@ -203,18 +189,9 @@ local sub_item_table = {
                 local font_size = tonumber(input_dialog:getInputText())
                 if font_size and font_size >= 16 and font_size <= 30 then
                   G_reader_settings:save("keyboard_key_font_size", font_size)
-                  G_reader_settings:save(
-                    "keyboard_key_bold",
-                    check_button_bold.checked
-                  )
-                  G_reader_settings:save(
-                    "keyboard_key_border",
-                    check_button_border.checked
-                  )
-                  G_reader_settings:save(
-                    "keyboard_key_compact",
-                    check_button_compact.checked
-                  )
+                  G_reader_settings:save("keyboard_key_bold", check_button_bold.checked)
+                  G_reader_settings:save("keyboard_key_border", check_button_border.checked)
+                  G_reader_settings:save("keyboard_key_compact", check_button_compact.checked)
                   input_dialog._input_widget:closeKeyboard()
                   input_dialog._input_widget:initKeyboard()
                   input_dialog:showKeyboard()

@@ -59,33 +59,17 @@ end
 
 function AutoTurn:_start()
   if self:_enabled() then
-    logger.dbg(
-      "AutoTurn: start at",
-      time.format_time(UIManager:getElapsedTimeSinceBoot())
-    )
+    logger.dbg("AutoTurn: start at", time.format_time(UIManager:getElapsedTimeSinceBoot()))
     PluginShare.pause_auto_suspend = true
     self:_schedule()
 
     local text
     if self.autoturn_distance == 1 then
-      local time_string = datetime.secondsToClockDuration(
-        "letters",
-        self.autoturn_sec,
-        false,
-        true,
-        true
-      )
-      text = T(
-        _(
-          "Autoturn is now active and will automatically turn the page every %1."
-        ),
-        time_string
-      )
+      local time_string = datetime.secondsToClockDuration("letters", self.autoturn_sec, false, true, true)
+      text = T(_("Autoturn is now active and will automatically turn the page every %1."), time_string)
     else
       text = T(
-        _(
-          "Autoturn is now active and will automatically scroll %1 % of the page every %2 seconds."
-        ),
+        _("Autoturn is now active and will automatically scroll %1 % of the page every %2 seconds."),
         self.autoturn_distance * 100,
         self.autoturn_sec
       )
@@ -136,24 +120,15 @@ end
 function AutoTurn:addToMainMenu(menu_items)
   menu_items.autoturn = {
     text_func = function()
-      local time_string = datetime.secondsToClockDuration(
-        "letters",
-        self.autoturn_sec,
-        false,
-        true,
-        true
-      )
-      return self:_enabled() and T(_("Autoturn: %1"), time_string)
-        or _("Autoturn")
+      local time_string = datetime.secondsToClockDuration("letters", self.autoturn_sec, false, true, true)
+      return self:_enabled() and T(_("Autoturn: %1"), time_string) or _("Autoturn")
     end,
     checked_func = function()
       return self:_enabled()
     end,
     callback = function(menu)
       local DateTimeWidget = require("ui/widget/datetimewidget")
-      local autoturn_seconds = G_reader_settings:read(
-        "autoturn_timeout_seconds"
-      ) or 30
+      local autoturn_seconds = G_reader_settings:read("autoturn_timeout_seconds") or 30
       local autoturn_minutes = math.floor(autoturn_seconds * (1 / 60))
       autoturn_seconds = autoturn_seconds % 60
       local autoturn_spin = DateTimeWidget:new({

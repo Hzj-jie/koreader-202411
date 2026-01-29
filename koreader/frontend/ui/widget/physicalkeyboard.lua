@@ -127,15 +127,9 @@ function PhysicalKeyboard:setupNumericMappingUI()
   local key_rows = VerticalGroup:new()
   local key_margin = Size.margin.tiny
   local row_len = #self.mapping[1]
-  local base_key_width = math.floor(
-    (
-      self.width
-      - row_len * (self.key_padding + 2 * key_margin)
-      - 2 * self.padding
-    ) / 10
-  )
-  local base_key_height =
-    math.floor((self.height - self.key_padding - 2 * self.padding) / 4)
+  local base_key_width =
+    math.floor((self.width - row_len * (self.key_padding + 2 * key_margin) - 2 * self.padding) / 10)
+  local base_key_height = math.floor((self.height - self.key_padding - 2 * self.padding) / 4)
   local key_width = math.floor(base_key_width + self.key_padding)
 
   for i, kb_row in ipairs(self.mapping) do

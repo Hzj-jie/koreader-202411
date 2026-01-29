@@ -1,8 +1,7 @@
 local BasePowerD = require("device/generic/powerd")
 local SysfsLight = require("device/sysfs_light")
 
-local battery_sysfs =
-  "/sys/devices/platform/pmic_battery.1/power_supply/mc13892_bat/"
+local battery_sysfs = "/sys/devices/platform/pmic_battery.1/power_supply/mc13892_bat/"
 
 local CervantesPowerD = BasePowerD:new({
   fl = nil,
@@ -22,10 +21,8 @@ function CervantesPowerD:frontlightWarmthHW()
 end
 
 function CervantesPowerD:_syncLightOnStart()
-  local new_intensity = G_reader_settings:readSetting("frontlight_intensity")
-    or nil
-  local is_frontlight_on = G_reader_settings:readSetting("is_frontlight_on")
-    or nil
+  local new_intensity = G_reader_settings:readSetting("frontlight_intensity") or nil
+  local is_frontlight_on = G_reader_settings:readSetting("is_frontlight_on") or nil
 
   if new_intensity ~= nil then
     self.hw_intensity = new_intensity
@@ -58,10 +55,8 @@ function CervantesPowerD:init()
         end
       end
       -- Does this device's NaturalLight use a custom scale?
-      self.fl_warmth_min = self.device.frontlight_settings.nl_min
-        or self.fl_warmth_min
-      self.fl_warmth_max = self.device.frontlight_settings.nl_max
-        or self.fl_warmth_max
+      self.fl_warmth_min = self.device.frontlight_settings.nl_min or self.fl_warmth_min
+      self.fl_warmth_max = self.device.frontlight_settings.nl_max or self.fl_warmth_max
       -- If this device has a mixer, we can use the ioctl for brightness control, as it's much lower latency.
       if self.device:hasNaturalLightMixer() then
         local kobolight = require("ffi/kobolight")

@@ -29,9 +29,7 @@ local Terminal = WidgetContainer:new({
   command = "",
   dump_file = util.realpath(DataStorage:getDataDir()) .. "/terminal_output.txt",
   items_per_page = 16,
-  settings = LuaSettings:open(
-    DataStorage:getSettingsDir() .. "/terminal_shortcuts.lua"
-  ),
+  settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/terminal_shortcuts.lua"),
   shortcuts_dialog = nil,
   shortcuts_menu = nil,
   --    shortcuts_file = DataStorage:getSettingsDir() .. "/terminal_shortcuts.lua",
@@ -135,10 +133,7 @@ function Terminal:updateItemTable()
     self:insertPageActions(item_table)
   end
   local title = N_("Terminal shortcut", "Terminal shortcuts", #self.shortcuts)
-  self.shortcuts_menu:switchItemTable(
-    tostring(#self.shortcuts) .. " " .. title,
-    item_table
-  )
+  self.shortcuts_menu:switchItemTable(tostring(#self.shortcuts) .. " " .. title, item_table)
   UIManager:show(self.shortcuts_dialog)
 end
 
@@ -417,8 +412,7 @@ function Terminal:terminal()
             UIManager:close(self.input)
             -- so we know which middle button to display in the results:
             self.source = "terminal"
-            self.command =
-              self:ensureWhitelineAfterCommands(self.input:getInputText())
+            self.command = self:ensureWhitelineAfterCommands(self.input:getInputText())
             Trapper:wrap(function()
               self:execute()
             end)
@@ -523,9 +517,7 @@ function Terminal:dump(entries)
     file:write(content)
     file:close()
   else
-    logger.warn(
-      "Failed to dump terminal output " .. content .. " to " .. self.dump_file
-    )
+    logger.warn("Failed to dump terminal output " .. content .. " to " .. self.dump_file)
   end
 end
 

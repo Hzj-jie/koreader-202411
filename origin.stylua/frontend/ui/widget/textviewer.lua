@@ -98,14 +98,12 @@ function TextViewer:init(reinit)
 
   if not reinit then
     local text_types = G_reader_settings:readSetting("textviewer_text_types")
-    local text_settings = text_types and text_types[self.text_type]
-      or self.text_types[self.text_type]
+    local text_settings = text_types and text_types[self.text_type] or self.text_types[self.text_type]
     self.monospace_font = text_settings.monospace_font
     self.text_font_size = text_settings.font_size
     self.justified = text_settings.justified
   end
-  local text_font_face = self.monospace_font and "smallinfont"
-    or "x_smallinfofont"
+  local text_font_face = self.monospace_font and "smallinfont" or "x_smallinfofont"
 
   self._find_next = false
   self._find_next_button = false
@@ -159,20 +157,8 @@ function TextViewer:init(reinit)
           range = range,
         }),
         -- callback function when HoldReleaseText is handled as args
-        args = function(
-          text,
-          hold_duration,
-          start_idx,
-          end_idx,
-          to_source_index_func
-        )
-          self:handleTextSelection(
-            text,
-            hold_duration,
-            start_idx,
-            end_idx,
-            to_source_index_func
-          )
+        args = function(text, hold_duration, start_idx, end_idx, to_source_index_func)
+          self:handleTextSelection(text, hold_duration, start_idx, end_idx, to_source_index_func)
         end,
       },
       -- These will be forwarded to MovableContainer after some checks
@@ -299,9 +285,7 @@ function TextViewer:init(reinit)
     self.button_table:refocusWidget()
   end
 
-  local textw_height = self.height
-    - self.titlebar:getHeight()
-    - self.button_table:getSize().h
+  local textw_height = self.height - self.titlebar:getHeight() - self.button_table:getSize().h
 
   self.scroll_text_w = ScrollTextWidget:new({
     text = self.text,
@@ -548,29 +532,19 @@ function TextViewer:findCallback(input_dialog)
   local start_pos = 1
   if self._find_next then
     local charpos, new_virtual_line_num = self.scroll_text_w:getCharPos()
-    if
-      math.abs(new_virtual_line_num - self._old_virtual_line_num)
-      > self.find_centered_lines_count
-    then
+    if math.abs(new_virtual_line_num - self._old_virtual_line_num) > self.find_centered_lines_count then
       start_pos = self.scroll_text_w:getCharPosAtXY(0, 0) -- first char of the top line
     else
       start_pos = (charpos or 0) + 1 -- previous search result
     end
   end
   local char_pos, search_charlist
-  char_pos, self.charlist, search_charlist = util.stringSearch(
-    self.charlist or self.text,
-    self.search_value,
-    self.case_sensitive,
-    start_pos
-  )
+  char_pos, self.charlist, search_charlist =
+    util.stringSearch(self.charlist or self.text, self.search_value, self.case_sensitive, start_pos)
   local msg
   if char_pos > 0 then
     self:setTextBold(char_pos, #search_charlist)
-    self.scroll_text_w:moveCursorToCharPos(
-      char_pos,
-      self.find_centered_lines_count
-    )
+    self.scroll_text_w:moveCursorToCharPos(char_pos, self.find_centered_lines_count)
     msg = T(_("Found, screen line %1."), self.scroll_text_w:getCharPosLineNum())
     self._find_next = true
     self._old_virtual_line_num = select(2, self.scroll_text_w:getCharPos())
@@ -591,35 +565,21 @@ function TextViewer:findCallback(input_dialog)
   end
 end
 
-function TextViewer:handleTextSelection(
-  text,
-  hold_duration,
-  start_idx,
-  end_idx,
-  to_source_index_func
-)
+function TextViewer:handleTextSelection(text, hold_duration, start_idx, end_idx, to_source_index_func)
   if self.text_selection_callback then
-    self.text_selection_callback(
-      text,
-      hold_duration,
-      start_idx,
-      end_idx,
-      to_source_index_func
-    )
+    self.text_selection_callback(text, hold_duration, start_idx, end_idx, to_source_index_func)
     return
   end
   if Device:hasClipboard() then
     Device.input.setClipboardText(text)
     UIManager:show(Notification:new({
-      text = start_idx == end_idx and _("Word copied to clipboard.")
-        or _("Selection copied to clipboard."),
+      text = start_idx == end_idx and _("Word copied to clipboard.") or _("Selection copied to clipboard."),
     }))
   end
 end
 
 function TextViewer:reinit()
-  local text_settings =
-    G_reader_settings:readSetting("textviewer_text_types", {})
+  local text_settings = G_reader_settings:readSetting("textviewer_text_types", {})
   text_settings[self.text_type] = {
     monospace_font = self.monospace_font,
     font_size = self.text_font_size,
@@ -753,9 +713,7 @@ function TextViewer.openFile(file)
       local ConfirmBox = require("ui/widget/confirmbox")
       UIManager:show(ConfirmBox:new({
         text = T(
-          _(
-            "This file is %2:\n\n%1\n\nAre you sure you want to open it?\n\nOpening big files may take some time."
-          ),
+          _("This file is %2:\n\n%1\n\nAre you sure you want to open it?\n\nOpening big files may take some time."),
           BD.filepath(file),
           util.getFriendlySize(attr.size)
         ),

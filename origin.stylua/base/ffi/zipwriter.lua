@@ -153,9 +153,7 @@ function ZipWriter:close()
     zh:write(numberToByteString(lfh.external_attr, 4)) -- external file attributes
     zh:write(numberToByteString(lfh.offset, 4)) -- relative offset of local header
     zh:write(lfh.file_name)
-    size_of_central_directory = size_of_central_directory
-      + 46
-      + lfh.file_name_length
+    size_of_central_directory = size_of_central_directory + 46 + lfh.file_name_length
   end
   -- End of central directory record
   zh:write(numberToByteString(0x06054b50, 4)) -- signature
@@ -176,16 +174,8 @@ function ZipWriter:open(zipfilepath)
   self.in_open_file = false
   -- set modification date and time of files to now
   local t = os.date("*t")
-  self.started_date = bit.bor(
-    bit.lshift(t.year - 1980, 9),
-    bit.lshift(t.month, 5),
-    bit.lshift(t.day, 0)
-  )
-  self.started_time = bit.bor(
-    bit.lshift(t.hour, 11),
-    bit.lshift(t.min, 5),
-    bit.rshift(t.sec + 2, 1)
-  )
+  self.started_date = bit.bor(bit.lshift(t.year - 1980, 9), bit.lshift(t.month, 5), bit.lshift(t.day, 0))
+  self.started_time = bit.bor(bit.lshift(t.hour, 11), bit.lshift(t.min, 5), bit.rshift(t.sec + 2, 1))
   self.ziphandle = io.open(zipfilepath, "wb")
   if not self.ziphandle then
     return nil

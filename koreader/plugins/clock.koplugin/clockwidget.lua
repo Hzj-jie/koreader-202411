@@ -61,10 +61,8 @@ ClockWidget.init = function(self)
       alpha = true,
     }),
   })
-  self._hours_hand_bb =
-    RenderImage:renderImageFile(tostring(PLUGIN_ROOT) .. "hours.png")
-  self._minutes_hand_bb =
-    RenderImage:renderImageFile(tostring(PLUGIN_ROOT) .. "minutes.png")
+  self._hours_hand_bb = RenderImage:renderImageFile(tostring(PLUGIN_ROOT) .. "hours.png")
+  self._minutes_hand_bb = RenderImage:renderImageFile(tostring(PLUGIN_ROOT) .. "minutes.png")
   self.autoRefreshTime = function()
     UIManager:setDirty("all", function()
       return "ui", self.dimen, true
@@ -135,14 +133,7 @@ ClockWidget._prepareHands = function(self, hours, minutes)
   for __ in pairs(self._hands) do
     n_hands = n_hands + 1
   end
-  logger.dbg(
-    "ClockWidget: hands ready for",
-    hours,
-    minutes,
-    ":",
-    n_hands,
-    "position(s) in memory."
-  )
+  logger.dbg("ClockWidget: hands ready for", hours, minutes, ":", n_hands, "position(s) in memory.")
   return self._hands[idx]
 end
 ClockWidget._updateHands = function(self)

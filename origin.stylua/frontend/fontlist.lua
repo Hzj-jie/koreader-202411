@@ -231,12 +231,7 @@ function FontList:dumpFontList()
   local path = self.cachedir .. "/fontinfo_dump.lua"
   local f = io.open(path, "w")
   if f ~= nil then
-    f:write(
-      serpent.block(
-        self.fontinfo,
-        { indent = "  ", comment = false, nocode = true }
-      )
-    )
+    f:write(serpent.block(self.fontinfo, { indent = "  ", comment = false, nocode = true }))
     f:close()
   else
     return
@@ -246,12 +241,7 @@ function FontList:dumpFontList()
   path = self.cachedir .. "/fontlist_dump.lua"
   f = io.open(path, "w")
   if f ~= nil then
-    f:write(
-      serpent.block(
-        self.fontlist,
-        { indent = "  ", comment = false, nocode = true }
-      )
-    )
+    f:write(serpent.block(self.fontlist, { indent = "  ", comment = false, nocode = true }))
     f:close()
   else
     return
@@ -275,14 +265,9 @@ function FontList:getLocalizedFontName(file, index)
   lang = lang:lower():gsub("_", "-")
   local altname = self.fontinfo[file]
   altname = altname and altname[index + 1]
+  altname = altname and altname.names and (altname.names[lang] or altname.names[lang:match("%w+")])
   altname = altname
-    and altname.names
-    and (altname.names[lang] or altname.names[lang:match("%w+")])
-  altname = altname
-    and (
-      altname[tonumber(HB.HB_OT_NAME_ID_FULL_NAME)]
-      or altname[tonumber(HB.HB_OT_NAME_ID_FONT_FAMILY)]
-    )
+    and (altname[tonumber(HB.HB_OT_NAME_ID_FULL_NAME)] or altname[tonumber(HB.HB_OT_NAME_ID_FONT_FAMILY)])
   if not altname then
     return
   end -- ensure nil
@@ -294,10 +279,7 @@ function FontList:getFontArgFunc()
   local toggle = {}
   local face_list = cre.getFontFaces()
   for _, v in ipairs(face_list) do
-    table.insert(
-      toggle,
-      FontList:getLocalizedFontName(cre.getFontFaceFilenameAndFaceIndex(v)) or v
-    )
+    table.insert(toggle, FontList:getLocalizedFontName(cre.getFontFaceFilenameAndFaceIndex(v)) or v)
   end
   return face_list, toggle
 end

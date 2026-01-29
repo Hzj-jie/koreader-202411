@@ -10,10 +10,7 @@ struct sockaddr {
 ]]
 )
 pcall(ffi.cdef, "int socket(int, int, int) __attribute__((nothrow, leaf));")
-pcall(
-  ffi.cdef,
-  "int bind(int, const struct sockaddr *, unsigned int) __attribute__((nothrow, leaf));"
-)
+pcall(ffi.cdef, "int bind(int, const struct sockaddr *, unsigned int) __attribute__((nothrow, leaf));")
 pcall(ffi.cdef, "int connect(int, const struct sockaddr *, unsigned int);")
 pcall(
   ffi.cdef,

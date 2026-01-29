@@ -462,11 +462,7 @@ local function get_version_eclevel(len, mode, requested_ec_level)
   local minversion = 40
   local maxec_level = requested_ec_level or 1
   local min, max = 1, 4
-  if
-    requested_ec_level
-    and requested_ec_level >= 1
-    and requested_ec_level <= 4
-  then
+  if requested_ec_level and requested_ec_level >= 1 and requested_ec_level <= 4 then
     min = requested_ec_level
     max = requested_ec_level
   end
@@ -531,11 +527,7 @@ end
 --- If the `requested_ec_level` or the `mode` are provided, this will be used if possible.
 --- The mode depends on the characters used in the string `str`. It seems to be
 --- possible to split the QR code to handle multiple modes, but we don't do that.
-local function get_version_eclevel_mode_bistringlength(
-  str,
-  requested_ec_level,
-  mode
-)
+local function get_version_eclevel_mode_bistringlength(str, requested_ec_level, mode)
   local local_mode
   if mode then
     assert(false, "not implemented")
@@ -1540,10 +1532,7 @@ end
 
 -- Return a table that has 0's in the first entries and then the alpha
 -- representation of the generator polynominal
-local function get_generator_polynominal_adjusted(
-  num_ec_codewords,
-  highest_exponent
-)
+local function get_generator_polynominal_adjusted(num_ec_codewords, highest_exponent)
   local gp_alpha = { [0] = 0 }
   for i = 0, highest_exponent - num_ec_codewords - 1 do
     gp_alpha[i] = 0
@@ -1604,8 +1593,7 @@ local function calculate_error_correction(data, num_ec_codewords)
   mp_alpha = convert_to_alpha(mp_int)
 
   while highest_exponent >= num_ec_codewords do
-    gp_alpha =
-      get_generator_polynominal_adjusted(num_ec_codewords, highest_exponent)
+    gp_alpha = get_generator_polynominal_adjusted(num_ec_codewords, highest_exponent)
 
     -- Multiply generator polynomial by first coefficient of the above polynomial
 
@@ -2010,10 +1998,8 @@ local function arrange_codewords_and_calculate_ec(version, ec_level, data)
       size_datablock_bytes = blocks[2 * i][2]
       size_ecblock_bytes = blocks[2 * i][1] - blocks[2 * i][2]
       cpty_ec_bits = cpty_ec_bits + size_ecblock_bytes * 8
-      datablocks[#datablocks + 1] =
-        string.sub(data, pos * 8 + 1, (pos + size_datablock_bytes) * 8)
-      local tmp_tab =
-        calculate_error_correction(datablocks[#datablocks], size_ecblock_bytes)
+      datablocks[#datablocks + 1] = string.sub(data, pos * 8 + 1, (pos + size_datablock_bytes) * 8)
+      local tmp_tab = calculate_error_correction(datablocks[#datablocks], size_ecblock_bytes)
       local tmp_str = ""
       for x = 1, #tmp_tab do
         tmp_str = tmp_str .. binary(tmp_tab[x], 8)
@@ -2194,9 +2180,7 @@ local function add_alignment_pattern(tab_x)
   for x = 1, #ap do
     for y = 1, #ap do
       -- we must not put an alignment pattern on top of the positioning pattern
-      if
-        not (x == 1 and y == 1 or x == #ap and y == 1 or x == 1 and y == #ap)
-      then
+      if not (x == 1 and y == 1 or x == #ap and y == 1 or x == 1 and y == #ap) then
         pos_x = ap[x] + 1
         pos_y = ap[y] + 1
         tab_x[pos_x][pos_y] = 2
@@ -2535,8 +2519,7 @@ local function add_data_to_matrix(matrix, data, mask)
   x, y = size, size
   string.gsub(data, ".?.?.?.?.?.?.?.?", function(byte)
     byte_number = byte_number + 1
-    positions, x, y, dir =
-      get_next_free_positions(matrix, x, y, dir, byte, mask)
+    positions, x, y, dir = get_next_free_positions(matrix, x, y, dir, byte, mask)
     for i = 1, #byte do
       _x = positions[i][1]
       _y = positions[i][2]
@@ -2627,18 +2610,8 @@ local function calculate_penalty(matrix)
         (y < size - 1)
         and (x < size - 1)
         and (
-          (
-            matrix[x][y] < 0
-            and matrix[x + 1][y] < 0
-            and matrix[x][y + 1] < 0
-            and matrix[x + 1][y + 1] < 0
-          )
-          or (
-            matrix[x][y] > 0
-            and matrix[x + 1][y] > 0
-            and matrix[x][y + 1] > 0
-            and matrix[x + 1][y + 1] > 0
-          )
+          (matrix[x][y] < 0 and matrix[x + 1][y] < 0 and matrix[x][y + 1] < 0 and matrix[x + 1][y + 1] < 0)
+          or (matrix[x][y] > 0 and matrix[x + 1][y] > 0 and matrix[x][y + 1] > 0 and matrix[x + 1][y + 1] > 0)
         )
       then
         penalty2 = penalty2 + 3
@@ -2733,8 +2706,7 @@ local function get_matrix_with_lowest_penalty(version, ec_level, data)
   local tab_min_penalty, min_penalty
 
   -- try masks 0-7
-  tab_min_penalty, min_penalty =
-    get_matrix_and_penalty(version, ec_level, data, 0)
+  tab_min_penalty, min_penalty = get_matrix_and_penalty(version, ec_level, data, 0)
   for i = 1, 7 do
     tab, penalty = get_matrix_and_penalty(version, ec_level, data, i)
     if penalty < min_penalty then
@@ -2755,13 +2727,11 @@ end
 -- If ec_level or mode is given, use the ones for generating the qrcode. (mode is not implemented yet)
 local function qrcode(str, ec_level)
   local arranged_data, version, data_raw, mode, len_bitstring
-  version, ec_level, data_raw, mode, len_bitstring =
-    get_version_eclevel_mode_bistringlength(str, ec_level)
+  version, ec_level, data_raw, mode, len_bitstring = get_version_eclevel_mode_bistringlength(str, ec_level)
   data_raw = data_raw .. len_bitstring
   data_raw = data_raw .. encode_data(str, mode)
   data_raw = add_pad_data(version, ec_level, data_raw)
-  arranged_data =
-    arrange_codewords_and_calculate_ec(version, ec_level, data_raw)
+  arranged_data = arrange_codewords_and_calculate_ec(version, ec_level, data_raw)
   if math.fmod(#arranged_data, 8) ~= 0 then
     return false,
       string.format(

@@ -35,11 +35,7 @@ local formatters = {
   },
 }
 
-local function prepareBookContent(
-  book,
-  formatting_options,
-  highlight_formatting
-)
+local function prepareBookContent(book, formatting_options, highlight_formatting)
   local tbl = {}
   local current_chapter = nil
   table.insert(tbl, "# " .. book.title)
@@ -51,21 +47,9 @@ local function prepareBookContent(
       current_chapter = entry.chapter
       table.insert(tbl, "## " .. current_chapter)
     end
-    table.insert(
-      tbl,
-      "### Page "
-        .. entry.page
-        .. " @ "
-        .. os.date("%d %B %Y %I:%M:%S %p", entry.time)
-    )
+    table.insert(tbl, "### Page " .. entry.page .. " @ " .. os.date("%d %B %Y %I:%M:%S %p", entry.time))
     if highlight_formatting then
-      table.insert(
-        tbl,
-        string.format(
-          formatters[formatting_options[entry.drawer]].formatter,
-          entry.text
-        )
-      )
+      table.insert(tbl, string.format(formatters[formatting_options[entry.drawer]].formatter, entry.text))
     else
       table.insert(tbl, entry.text)
     end

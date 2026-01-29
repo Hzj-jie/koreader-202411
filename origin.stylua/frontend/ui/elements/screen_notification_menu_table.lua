@@ -9,18 +9,11 @@ local bor = bit.bor
 local bnot = bit.bnot
 
 local function getMask()
-  return G_reader_settings:readSetting("notification_sources_to_show_mask")
-    or Notification.SOURCE_DEFAULT
+  return G_reader_settings:readSetting("notification_sources_to_show_mask") or Notification.SOURCE_DEFAULT
 end
 
 local function setMask(source)
-  logger.dbg(
-    string.format(
-      "Notification: Updating display mask from %#x to %#x",
-      getMask(),
-      source
-    )
-  )
+  logger.dbg(string.format("Notification: Updating display mask from %#x to %#x", getMask(), source))
   G_reader_settings:saveSetting("notification_sources_to_show_mask", source)
 end
 
@@ -50,47 +43,20 @@ end
 -- NOTE: Default is MORE + DISPATCHER; i.e., BOTTOM_MENU_FINE + BOTTOM_MENU_MORE + BOTTOM_MENU_PROGRESS + DISPATCHER
 return {
   text = _("Notifications"),
-  help_text = _(
-    [[Notification popups may be shown at the top of screen on various occasions.
-This allows selecting which to show or hide.]]
-  ),
+  help_text = _([[Notification popups may be shown at the top of screen on various occasions.
+This allows selecting which to show or hide.]]),
   checked_func = function()
-    local value = G_reader_settings:readSetting(
-      "notification_sources_to_show_mask"
-    ) or Notification.SOURCE_DEFAULT
+    local value = G_reader_settings:readSetting("notification_sources_to_show_mask") or Notification.SOURCE_DEFAULT
     return value ~= 0
   end,
   sub_item_table = {
-    genMenuItem(
-      Notification.SOURCE_BOTTOM_MENU_ICON,
-      _("From bottom menu icons")
-    ),
-    genMenuItem(
-      Notification.SOURCE_BOTTOM_MENU_TOGGLE,
-      _("From bottom menu toggles")
-    ),
-    genMenuItem(
-      Notification.SOURCE_BOTTOM_MENU_FINE,
-      _("From bottom menu ± buttons")
-    ), -- Poor man's +/- w/ \u{207a}\u{2044}\u{208b} doesn't look too great because subscript minus sits on the baseline in most fonts...
-    genMenuItem(
-      Notification.SOURCE_BOTTOM_MENU_MORE,
-      _("From bottom menu ⋮ buttons")
-    ),
-    genMenuItem(
-      Notification.SOURCE_BOTTOM_MENU_PROGRESS,
-      _("From bottom menu progress bars")
-    ),
-    genMenuItem(
-      Notification.SOURCE_DISPATCHER,
-      _("From gestures and profiles")
-    ),
-    genMenuItem(
-      Notification.SOURCE_OTHER,
-      _("From all other sources"),
-      nil,
-      true
-    ),
+    genMenuItem(Notification.SOURCE_BOTTOM_MENU_ICON, _("From bottom menu icons")),
+    genMenuItem(Notification.SOURCE_BOTTOM_MENU_TOGGLE, _("From bottom menu toggles")),
+    genMenuItem(Notification.SOURCE_BOTTOM_MENU_FINE, _("From bottom menu ± buttons")), -- Poor man's +/- w/ \u{207a}\u{2044}\u{208b} doesn't look too great because subscript minus sits on the baseline in most fonts...
+    genMenuItem(Notification.SOURCE_BOTTOM_MENU_MORE, _("From bottom menu ⋮ buttons")),
+    genMenuItem(Notification.SOURCE_BOTTOM_MENU_PROGRESS, _("From bottom menu progress bars")),
+    genMenuItem(Notification.SOURCE_DISPATCHER, _("From gestures and profiles")),
+    genMenuItem(Notification.SOURCE_OTHER, _("From all other sources"), nil, true),
     {
       text = _("Show past notifications"),
       callback = function()

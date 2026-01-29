@@ -54,10 +54,7 @@ function ScreenSaverLockWidget:setupGestureEvents()
         -- We only need to clone one of them
         gesture = "multiswipe"
       end
-      if
-        actions["exit_screensaver"]
-        and (gesture ~= "multiswipe" or not multiswipe_already_met)
-      then
+      if actions["exit_screensaver"] and (gesture ~= "multiswipe" or not multiswipe_already_met) then
         if gesture == "multiswipe" then
           multiswipe_already_met = true
         end
@@ -99,9 +96,8 @@ function ScreenSaverLockWidget:showWaitForGestureMessage()
   -- We just paint an InfoMessage on screen directly: we don't want
   -- another widget that we would need to prevent catching events
   local infomsg = InfoMessage:new({
-    text = self.has_exit_screensaver_gesture and _(
-      "Waiting for specific gesture to exit screensaver."
-    ) or _("No exit screensaver gesture configured. Tap to exit."),
+    text = self.has_exit_screensaver_gesture and _("Waiting for specific gesture to exit screensaver.")
+      or _("No exit screensaver gesture configured. Tap to exit."),
   })
   infomsg:paintTo(Screen.bb, 0, 0)
   infomsg:onShow() -- get the screen refreshed

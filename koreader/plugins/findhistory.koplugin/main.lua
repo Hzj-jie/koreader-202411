@@ -15,8 +15,7 @@ local menuItem = {
 }
 
 local history_file = joinPath(DataStorage:getDataDir(), "history.lua")
-local history_backup_file =
-  joinPath(DataStorage:getDataDir(), "history.lua.backup")
+local history_backup_file = joinPath(DataStorage:getDataDir(), "history.lua.backup")
 
 local function getFilePathFromMetadata(file)
   local noSuffix, suffix = file:match("(.*)%.sdr/metadata%.(.+)%.lua")
@@ -27,10 +26,7 @@ local function doBuildHistory()
   UIManager:runWith(
     function()
       local file = io.popen(
-        "find '"
-          .. G_named_settings.home_dir()
-          .. "' "
-          .. "-name 'metadata.*.lua' -exec stat -c '%N %Y' {} \\;"
+        "find '" .. G_named_settings.home_dir() .. "' " .. "-name 'metadata.*.lua' -exec stat -c '%N %Y' {} \\;"
       )
       local records = {}
       for line in file:lines() do
@@ -58,17 +54,12 @@ local function doBuildHistory()
 end
 
 local function backupAndBuildHistory()
-  if
-    os.execute("mv '" .. history_file .. "' '" .. history_backup_file .. "'")
-    == 0
-  then
+  if os.execute("mv '" .. history_file .. "' '" .. history_backup_file .. "'") == 0 then
     doBuildHistory()
   else
     UIManager:show(ConfirmBox:new({
       text = T(
-        _(
-          "Failed to backup current history view from %1 to %2, still want to proceed?"
-        ),
+        _("Failed to backup current history view from %1 to %2, still want to proceed?"),
         history_file,
         history_backup_file
       ),
@@ -84,9 +75,7 @@ local function buildHistory()
     backupAndBuildHistory()
   else
     UIManager:show(ConfirmBox:new({
-      text = _(
-        "Found an existing history backup file; it will be overwritten. Still want to proceed?"
-      ),
+      text = _("Found an existing history backup file; it will be overwritten. Still want to proceed?"),
       ok_text = _("Proceed"),
       ok_callback = backupAndBuildHistory,
     }))
@@ -94,25 +83,17 @@ local function buildHistory()
 end
 
 local function restoreHistory()
-  if
-    os.execute("mv '" .. history_backup_file .. "' '" .. history_file .. "'")
-    == 0
-  then
+  if os.execute("mv '" .. history_backup_file .. "' '" .. history_file .. "'") == 0 then
     ReadHistory.last_read_time = 0
     ReadHistory:reload()
     --- TODO(hzj-jie): Consider to open the history view directly.
     UIManager:show(InfoMessage:new({
-      text = _(
-        "Last history view has been restored, use main menu to access it."
-      ),
+      text = _("Last history view has been restored, use main menu to access it."),
       timeout = 2,
     }))
   else
     UIManager:show(InfoMessage:new({
-      text = T(
-        _("Failed to restore the last history view from %1."),
-        history_backup_file
-      ),
+      text = T(_("Failed to restore the last history view from %1."), history_backup_file),
     }))
   end
 end

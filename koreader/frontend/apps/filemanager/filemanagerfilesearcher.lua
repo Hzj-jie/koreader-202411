@@ -51,8 +51,7 @@ function FileSearcher:onShowFileSearch(search_string)
     UIManager:close(search_dialog)
     self.case_sensitive = check_button_case.checked
     self.include_subfolders = check_button_subfolders.checked
-    self.include_metadata = check_button_metadata
-      and check_button_metadata.checked
+    self.include_metadata = check_button_metadata and check_button_metadata.checked
     local Trapper = require("ui/trapper")
     Trapper:wrap(function()
       self:doSearch()
@@ -79,12 +78,10 @@ function FileSearcher:onShowFileSearch(search_string)
           end,
         },
         {
-          text = self.ui.file_chooser and _("Current folder")
-            or _("Book folder"),
+          text = self.ui.file_chooser and _("Current folder") or _("Book folder"),
           is_enter_default = true,
           callback = function()
-            self.path = self.ui.file_chooser and self.ui.file_chooser.path
-              or self.ui:getLastDirFile()
+            self.path = self.ui.file_chooser and self.ui.file_chooser.path or self.ui:getLastDirFile()
             _doSearch()
           end,
         },
@@ -127,12 +124,9 @@ function FileSearcher:doSearch()
     local info = InfoMessage:new({ text = _("Searching… (tap to cancel)") })
     UIManager:show(info)
     UIManager:forceRepaint()
-    local completed, dirs, files, no_metadata_count = Trapper:dismissableRunInSubprocess(
-      function()
-        return self:getList()
-      end,
-      info
-    )
+    local completed, dirs, files, no_metadata_count = Trapper:dismissableRunInSubprocess(function()
+      return self:getList()
+    end, info)
     if not completed then
       return
     end
@@ -150,10 +144,7 @@ function FileSearcher:doSearch()
       files[i] = FileChooser:getListItem(nil, f, fullpath, attributes, collate)
     end
     -- If we have a FileChooser instance, use it, to be able to make use of its natsort cache
-    FileSearcher.search_results = (self.ui.file_chooser or FileChooser):genItemTable(
-      dirs,
-      files
-    )
+    FileSearcher.search_results = (self.ui.file_chooser or FileChooser):genItemTable(dirs, files)
   end
   if #FileSearcher.search_results > 0 then
     self:onShowSearchResults(not_cached)
@@ -216,9 +207,7 @@ function FileSearcher:getList()
           elseif
             attributes.mode == "file"
             and not util.stringStartsWith(f, "._")
-            and (FileChooser.show_unsupported or DocumentRegistry:hasProvider(
-              fullpath
-            ))
+            and (FileChooser.show_unsupported or DocumentRegistry:hasProvider(fullpath))
             and FileChooser:show_file(f)
           then
             if self:isFileMatch(f, fullpath, search_string, true) then
@@ -243,21 +232,10 @@ function FileSearcher:isFileMatch(filename, fullpath, search_string, is_file)
   if string.find(filename, search_string) then
     return true
   end
-  if
-    self.include_metadata
-    and is_file
-    and DocumentRegistry:hasProvider(fullpath)
-  then
-    local book_props = self.ui.coverbrowser:getBookInfo(fullpath)
-      or self.ui.bookinfo.getDocProps(fullpath, nil, true) -- do not open the document
+  if self.include_metadata and is_file and DocumentRegistry:hasProvider(fullpath) then
+    local book_props = self.ui.coverbrowser:getBookInfo(fullpath) or self.ui.bookinfo.getDocProps(fullpath, nil, true) -- do not open the document
     if next(book_props) ~= nil then
-      if
-        self.ui.bookinfo:findInProps(
-          book_props,
-          search_string,
-          self.case_sensitive
-        )
-      then
+      if self.ui.bookinfo:findInProps(book_props, search_string, self.case_sensitive) then
         return true
       end
     else
@@ -267,8 +245,7 @@ function FileSearcher:isFileMatch(filename, fullpath, search_string, is_file)
 end
 
 function FileSearcher:showSearchResultsMessage(no_results)
-  local text = no_results
-    and T(_("No results for '%1'."), FileSearcher.search_string)
+  local text = no_results and T(_("No results for '%1'."), FileSearcher.search_string)
   if self.no_metadata_count == 0 then
     UIManager:show(ConfirmBox:new({
       text = text,
@@ -280,15 +257,9 @@ function FileSearcher:showSearchResultsMessage(no_results)
     }))
   else
     local txt = T(
-      N_(
-        "1 book has been skipped.",
-        "%1 books have been skipped.",
-        self.no_metadata_count
-      ),
+      N_("1 book has been skipped.", "%1 books have been skipped.", self.no_metadata_count),
       self.no_metadata_count
-    ) .. "\n" .. _(
-      "Not all books metadata extracted yet.\nExtract metadata now?"
-    )
+    ) .. "\n" .. _("Not all books metadata extracted yet.\nExtract metadata now?")
     text = no_results and text .. "\n\n" .. txt or txt
     UIManager:show(ConfirmBox:new({
       text = text,
@@ -339,11 +310,7 @@ end
 
 function FileSearcher:updateMenu(item_table)
   item_table = item_table or self.search_menu.item_table
-  self.search_menu:switchItemTable(
-    T(_("Search results (%1)"), #item_table),
-    item_table,
-    -1
-  )
+  self.search_menu:switchItemTable(T(_("Search results (%1)"), #item_table), item_table, -1)
 end
 
 function FileSearcher:onMenuHold(item)
@@ -372,39 +339,23 @@ function FileSearcher:showFileDialog(item)
     self.search_menu.close_callback()
   end
   local function update_item_callback()
-    item.mandatory =
-      FileChooser:getMenuItemMandatory(item, FileChooser:getCollate())
+    item.mandatory = FileChooser:getMenuItemMandatory(item, FileChooser:getCollate())
     self:updateMenu()
   end
   local buttons = {}
   if item.is_file then
-    local is_currently_opened = self.ui.document
-      and self.ui.document.file == file
+    local is_currently_opened = self.ui.document and self.ui.document.file == file
     local has_provider = DocumentRegistry:hasProvider(file)
     local has_sidecar = DocSettings:hasSidecarFile(file)
     local doc_settings_or_file = is_currently_opened and self.ui.doc_settings
       or (has_sidecar and DocSettings:open(file) or file)
     if has_provider or has_sidecar then
       bookinfo = self.ui.coverbrowser and self.ui.coverbrowser:getBookInfo(file)
-      table.insert(
-        buttons,
-        filemanagerutil.genStatusButtonsRow(
-          doc_settings_or_file,
-          close_dialog_callback
-        )
-      )
+      table.insert(buttons, filemanagerutil.genStatusButtonsRow(doc_settings_or_file, close_dialog_callback))
       table.insert(buttons, {}) -- separator
       table.insert(buttons, {
-        filemanagerutil.genResetSettingsButton(
-          doc_settings_or_file,
-          close_dialog_callback,
-          is_currently_opened
-        ),
-        self.ui.collections:genAddToCollectionButton(
-          file,
-          close_dialog_callback,
-          update_item_callback
-        ),
+        filemanagerutil.genResetSettingsButton(doc_settings_or_file, close_dialog_callback, is_currently_opened),
+        self.ui.collections:genAddToCollectionButton(file, close_dialog_callback, update_item_callback),
       })
     end
     table.insert(buttons, {
@@ -422,11 +373,7 @@ function FileSearcher:showFileDialog(item)
           FileManager:showDeleteFileDialog(file, post_delete_callback)
         end,
       },
-      filemanagerutil.genBookInformationButton(
-        doc_settings_or_file,
-        bookinfo,
-        close_dialog_callback
-      ),
+      filemanagerutil.genBookInformationButton(doc_settings_or_file, bookinfo, close_dialog_callback),
     })
   end
   table.insert(buttons, {
@@ -447,9 +394,7 @@ function FileSearcher:showFileDialog(item)
       title = title .. "\n\n" .. T(_("Title: %1"), bookinfo.title)
     end
     if bookinfo.authors then
-      title = title
-        .. "\n"
-        .. T(_("Authors: %1"), bookinfo.authors:gsub("[\n\t]", "|"))
+      title = title .. "\n" .. T(_("Authors: %1"), bookinfo.authors:gsub("[\n\t]", "|"))
     end
   end
   dialog = ButtonDialog:new({
@@ -496,10 +441,7 @@ function FileSearcher:showSelectModeDialog()
   local select_count = util.tableSize(self.selected_files)
   local actions_enabled = select_count > 0
   local title = actions_enabled
-      and T(
-        N_("1 file selected", "%1 files selected", select_count),
-        select_count
-      )
+      and T(N_("1 file selected", "%1 files selected", select_count), select_count)
     or _("No files selected")
   local select_dialog
   local buttons = {

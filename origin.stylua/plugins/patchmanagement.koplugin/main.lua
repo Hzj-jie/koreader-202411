@@ -79,46 +79,32 @@ function PatchManagement:getSubMenu(priority)
     -- strip anything after ".lua" in patch_name
     local patch_name = patch:sub(1, patch:find(ext, 1, true) + ext:len() - 1)
     table.insert(sub_menu, {
-      text = patch_name:sub(1, -5)
-        .. (userPatch.execution_status[patch_name] == false and " ⚠" or ""),
+      text = patch_name:sub(1, -5) .. (userPatch.execution_status[patch_name] == false and " ⚠" or ""),
       checked_func = function()
         return patch:find("%.lua$") ~= nil
       end,
       callback = function()
         local extension_pos = patch:find(ext, 1, true)
         if extension_pos then
-          local is_patch_enabled = extension_pos
-            == patch:len() - (ext:len() - 1)
+          local is_patch_enabled = extension_pos == patch:len() - (ext:len() - 1)
           if is_patch_enabled then -- patch name ends with ".lua"
             local disabled_name = patch .. self.disable_ext
-            os.rename(
-              patch_dir .. "/" .. patch,
-              patch_dir .. "/" .. disabled_name
-            )
+            os.rename(patch_dir .. "/" .. patch, patch_dir .. "/" .. disabled_name)
             patch = disabled_name
           else -- patch contains ".lua"
             local enabled_name = patch:sub(1, extension_pos + ext:len() - 1)
-            os.rename(
-              patch_dir .. "/" .. patch,
-              patch_dir .. "/" .. enabled_name
-            )
+            os.rename(patch_dir .. "/" .. patch, patch_dir .. "/" .. enabled_name)
             patch = enabled_name
           end
         end
-        UIManager:askForRestart(
-          _(
-            "Patches changed. Current set of patches will be applied on next restart."
-          )
-        )
+        UIManager:askForRestart(_("Patches changed. Current set of patches will be applied on next restart."))
       end,
       hold_callback = function()
         local patch_fullpath = patch_dir .. "/" .. patch
         if self.ui.texteditor then
           local function done_callback()
             UIManager:askForRestart(
-              _(
-                "Patches might have changed. Current set of patches will be applied on next restart."
-              )
+              _("Patches might have changed. Current set of patches will be applied on next restart.")
             )
           end
           self.ui.texteditor:quickEditFile(patch_fullpath, done_callback, false)
@@ -131,16 +117,14 @@ function PatchManagement:getSubMenu(priority)
   return sub_menu
 end
 
-local about_text = _(
-  [[Patch management allows enabling, disabling or editing user provided patches.
+local about_text = _([[Patch management allows enabling, disabling or editing user provided patches.
 
 The runlevel and priority of a patch can not be modified here. This has to be done manually by renaming the patch prefix.
 
 For more information about user patches, see
 https://github.com/koreader/koreader/wiki/User-patches
 
-Patches are an advanced feature, so be careful what you do!]]
-)
+Patches are an advanced feature, so be careful what you do!]])
 
 function PatchManagement:addToMainMenu(menu_items)
   menu_items.patch_management = {

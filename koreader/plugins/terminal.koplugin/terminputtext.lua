@@ -34,11 +34,7 @@ local function isNum(char)
 end
 
 local function isPrintable(ch)
-  return ch:byte() >= 32
-    or ch == "\010"
-    or ch == "\013"
-    or ch == "\009"
-    or ch == "\011"
+  return ch:byte() >= 32 or ch == "\010" or ch == "\013" or ch == "\009" or ch == "\011"
 end
 
 local TermInputText = InputText:extend({
@@ -188,11 +184,7 @@ function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, param3)
     param1 = param1 == 0 and 1 or param1
     param2 = param2 == 0 and 1 or param2
     self:moveCursorToRowCol(param1, param2)
-    if
-      self.scroll_region_line
-      and param1 <= self.scroll_region_bottom
-      and param1 >= self.scroll_region_top
-    then
+    if self.scroll_region_line and param1 <= self.scroll_region_bottom and param1 >= self.scroll_region_top then
       self.scroll_region_line = param1
     end
     return true
@@ -249,12 +241,7 @@ function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, param3)
       self.scroll_region_bottom = nil
     end
 
-    if
-      self.scroll_region_bottom
-      and param1 < self.maxr
-      and param1 <= param2
-      and param1 > 0
-    then
+    if self.scroll_region_bottom and param1 < self.maxr and param1 <= param2 and param1 > 0 then
       self.scroll_region_top = param1
       self.scroll_region_line = 1
     else
@@ -286,10 +273,7 @@ function TermInputText:interpretAnsiSeq(text)
         self.sequence_state = "esc"
       elseif isPrintable(next_byte) then
         local printable_ends = pos
-        while
-          printable_ends < #text
-          and isPrintable(text:sub(printable_ends + 1, printable_ends + 1))
-        do
+        while printable_ends < #text and isPrintable(text:sub(printable_ends + 1, printable_ends + 1)) do
           printable_ends = printable_ends + 1
         end
         self:addChars(text:sub(pos, printable_ends), true, true)
@@ -388,15 +372,7 @@ function TermInputText:interpretAnsiSeq(text)
         self.sequence_state = "escOtherCmd"
       end
     elseif self.sequence_state == "escOtherCmd" then
-      if
-        not self:_helperVT52VT100(
-          next_byte,
-          self.sequence_mode,
-          param1,
-          param2,
-          param3
-        )
-      then
+      if not self:_helperVT52VT100(next_byte, self.sequence_mode, param1, param2, param3) then
         -- drop other VT100 sequences
         logger.info(
           "Terminal: ANSI-final: not supported",
@@ -544,9 +520,7 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       end
 
       -- go to EOL
-      while
-        self.charlist[self.charpos] and self.charlist[self.charpos] ~= "\n"
-      do
+      while self.charlist[self.charpos] and self.charlist[self.charpos] ~= "\n" do
         self.charpos = self.charpos + 1
       end
 
@@ -610,10 +584,7 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
   end
 end
 dbg:guard(TermInputText, "addChars", function(self, chars)
-  assert(
-    type(chars) == "string",
-    "TermInputText: Wrong chars value type (expected string)!"
-  )
+  assert(type(chars) == "string", "TermInputText: Wrong chars value type (expected string)!")
 end)
 
 -- @fixme: this secondary buffer mode has nothing to do with the meaning of
@@ -868,9 +839,7 @@ function TermInputText:goToEndOfLine(skip_callback)
     if not skip_callback then
       self.strike_callback(esc_seq.cursor_end)
     else
-      while
-        self.charpos <= #self.charlist and self.charlist[self.charpos] ~= "\n"
-      do
+      while self.charpos <= #self.charlist and self.charlist[self.charpos] ~= "\n" do
         self.charpos = self.charpos + 1
       end
     end

@@ -65,8 +65,7 @@ function CoverMenu:updateCache(file, status, do_create, pages)
       local highlight = doc_settings:readSetting("highlight")
       has_highlight = highlight and next(highlight) and true
     end
-    self.cover_info_cache[file] =
-      table.pack(pages, percent_finished, status, has_highlight) -- may be a sparse array
+    self.cover_info_cache[file] = table.pack(pages, percent_finished, status, has_highlight) -- may be a sparse array
   else
     if self.cover_info_cache and self.cover_info_cache[file] then
       if status then
@@ -118,11 +117,8 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
   -- no negative impact on user experience.
   -- But don't do it on every drawing, to not have all of them slow
   -- when memory usage is already high
-  nb_drawings_since_last_collectgarbage = nb_drawings_since_last_collectgarbage
-    + 1
-  if
-    nb_drawings_since_last_collectgarbage >= NB_DRAWINGS_BETWEEN_COLLECTGARBAGE
-  then
+  nb_drawings_since_last_collectgarbage = nb_drawings_since_last_collectgarbage + 1
+  if nb_drawings_since_last_collectgarbage >= NB_DRAWINGS_BETWEEN_COLLECTGARBAGE then
     -- (delay it a bit so this pause is less noticeable)
     UIManager:scheduleIn(0.2, function()
       collectgarbage()
@@ -149,15 +145,13 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
 
   self.show_parent.dithered = self._has_cover_images
   UIManager:setDirty(self.show_parent, function()
-    local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)
-      or self.dimen
+    local refresh_dimen = old_dimen and old_dimen:combine(self.dimen) or self.dimen
     return "ui", refresh_dimen, self.show_parent.dithered
   end)
 
   -- As additionally done in FileChooser:updateItems()
   if self.path_items then
-    self.path_items[self.path] = (self.page - 1) * self.perpage
-      + (select_number or 1)
+    self.path_items[self.path] = (self.page - 1) * self.perpage + (select_number or 1)
   end
 
   -- Deal with items not found in db
@@ -180,9 +174,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
           self.items_update_action = nil
         end
         UIManager:show(InfoMessage:new({
-          text = _(
-            "Start-up of background extraction job failed.\nPlease restart KOReader or your device."
-          ),
+          text = _("Start-up of background extraction job failed.\nPlease restart KOReader or your device."),
         }))
       end
     end)
@@ -216,16 +208,10 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
       end
       if #self.items_to_update > 0 then -- re-schedule myself
         if is_still_extracting then -- we have still chances to get new stuff
-          logger.dbg(
-            "re-scheduling items update:",
-            #self.items_to_update,
-            "still waiting"
-          )
+          logger.dbg("re-scheduling items update:", #self.items_to_update, "still waiting")
           UIManager:scheduleIn(1, self.items_update_action)
         else
-          logger.dbg(
-            "Not all items found, but background extraction has stopped, not re-scheduling"
-          )
+          logger.dbg("Not all items found, but background extraction has stopped, not re-scheduling")
         end
       else
         logger.dbg("items update completed")
@@ -286,8 +272,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
         -- Add some new buttons to original buttons set
         table.insert(orig_buttons, {
           { -- Allow user to ignore some offending cover image
-            text = bookinfo.ignore_cover and _("Unignore cover")
-              or _("Ignore cover"),
+            text = bookinfo.ignore_cover and _("Unignore cover") or _("Ignore cover"),
             enabled = bookinfo.has_cover and true or false,
             callback = function()
               BookInfoManager:setBookInfoProperties(file, {
@@ -298,8 +283,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
             end,
           },
           { -- Allow user to ignore some bad metadata (filename will be used instead)
-            text = bookinfo.ignore_meta and _("Unignore metadata")
-              or _("Ignore metadata"),
+            text = bookinfo.ignore_meta and _("Unignore metadata") or _("Ignore metadata"),
             enabled = bookinfo.has_meta and true or false,
             callback = function()
               BookInfoManager:setBookInfoProperties(file, {
@@ -376,8 +360,7 @@ function CoverMenu:onHistoryMenuHold(item)
       end,
     },
     { -- Allow user to ignore some bad metadata (filename will be used instead)
-      text = bookinfo.ignore_meta and _("Unignore metadata")
-        or _("Ignore metadata"),
+      text = bookinfo.ignore_meta and _("Unignore metadata") or _("Ignore metadata"),
       enabled = bookinfo.has_meta and true or false,
       callback = function()
         BookInfoManager:setBookInfoProperties(file, {
@@ -448,8 +431,7 @@ function CoverMenu:onCollectionsMenuHold(item)
       end,
     },
     { -- Allow user to ignore some bad metadata (filename will be used instead)
-      text = bookinfo.ignore_meta and _("Unignore metadata")
-        or _("Ignore metadata"),
+      text = bookinfo.ignore_meta and _("Unignore metadata") or _("Ignore metadata"),
       enabled = bookinfo.has_meta and true or false,
       callback = function()
         BookInfoManager:setBookInfoProperties(file, {
@@ -549,10 +531,7 @@ function CoverMenu:tapPlus()
         UIManager:close(self.file_dialog)
         local Trapper = require("ui/trapper")
         Trapper:wrap(function()
-          BookInfoManager:extractBooksInDirectory(
-            current_path,
-            current_cover_specs
-          )
+          BookInfoManager:extractBooksInDirectory(current_path, current_cover_specs)
         end)
       end,
     },

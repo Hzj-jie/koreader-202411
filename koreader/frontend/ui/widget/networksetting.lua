@@ -83,21 +83,9 @@ local MinimalPaginator = Widget:extend({
 function MinimalPaginator:paintTo(bb, x, y)
   self:mergePosition(x, y)
   -- paint background
-  bb:paintRoundedRect(
-    x,
-    y,
-    self:getSize().w,
-    self:getSize().h,
-    Blitbuffer.COLOR_LIGHT_GRAY
-  )
+  bb:paintRoundedRect(x, y, self:getSize().w, self:getSize().h, Blitbuffer.COLOR_LIGHT_GRAY)
   -- paint percentage infill
-  bb:paintRect(
-    x,
-    y,
-    math.ceil(self:getSize().w * self.progress),
-    self:getSize().h,
-    Blitbuffer.COLOR_DARK_GRAY
-  )
+  bb:paintRect(x, y, math.ceil(self:getSize().w * self.progress), self:getSize().h, Blitbuffer.COLOR_DARK_GRAY)
 end
 
 function MinimalPaginator:setProgress(progress)
@@ -142,8 +130,7 @@ function NetworkItem:init()
     wifi_icon = string.format(wifi_icon, 0)
   end
 
-  local horizontal_space =
-    HorizontalSpan:new({ width = Size.span.horizontal_default })
+  local horizontal_space = HorizontalSpan:new({ width = Size.span.horizontal_default })
   self.content_container = OverlapGroup:new({
     dimen = self.dimen:copy(),
     LeftContainer:new({
@@ -170,9 +157,7 @@ function NetworkItem:init()
       bordersize = 0,
       padding = 0,
       TextWidget:new({
-        text = (Device:canDisconnectWifi() and _("disconnect") or _(
-          "connected"
-        )),
+        text = (Device:canDisconnectWifi() and _("disconnect") or _("connected")),
         face = Font:getFace("cfont"),
       }),
     })
@@ -299,10 +284,7 @@ end
 function NetworkItem:saveAndConnectToNetwork(password_input)
   local new_passwd = password_input:getInputText()
   -- Dont set a empty password if WPA encryption, go through if it’s an open AP
-  if
-    (new_passwd == nil or #new_passwd == 0)
-    and string.find(self.info.flags, "WPA")
-  then
+  if (new_passwd == nil or #new_passwd == 0) and string.find(self.info.flags, "WPA") then
     UIManager:show(InfoMessage:new({
       text = _("Password cannot be empty."),
     }))
@@ -406,9 +388,7 @@ function NetworkItem:onTapSelect(arg, ges_ev)
       self:disconnect()
     end
   elseif self.info.password then
-    if
-      self.btn_edit_nw and ges_ev.pos:intersectWith(self.btn_edit_nw.dimen)
-    then
+    if self.btn_edit_nw and ges_ev.pos:intersectWith(self.btn_edit_nw.dimen) then
       self:onEditNetwork()
     else
       self:connect()
@@ -436,8 +416,7 @@ local NetworkSetting = InputContainer:extend({
 })
 
 function NetworkSetting:init()
-  self.width = self.width
-    or math.min(Screen:getWidth() * 3 / 4, Screen:scaleBySize(600))
+  self.width = self.width or math.min(Screen:getWidth() * 3 / 4, Screen:scaleBySize(600))
 
   local gray_bg = Blitbuffer.COLOR_GRAY_E
   local items = {}
@@ -478,8 +457,7 @@ function NetworkSetting:init()
     progress = 0,
   })
 
-  self.height = self.height
-    or math.min(Screen:getHeight() * 3 / 4, Screen:scaleBySize(800))
+  self.height = self.height or math.min(Screen:getHeight() * 3 / 4, Screen:scaleBySize(800))
   self.popup = FrameContainer:new({
     background = Blitbuffer.COLOR_WHITE,
     padding = 0,

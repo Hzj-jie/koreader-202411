@@ -31,8 +31,7 @@ function ReaderPageMap:init()
   self.container = nil
   self.max_left_label_width = 0
   self.max_right_label_width = 0
-  self.label_font_size = G_reader_settings:read("pagemap_label_font_size")
-    or self.label_default_font_size
+  self.label_font_size = G_reader_settings:read("pagemap_label_font_size") or self.label_default_font_size
   self.use_textbox_widget = nil
   self.initialized = false
   self.onReaderInited = function()
@@ -94,8 +93,7 @@ function ReaderPageMap:onReadSettings(config)
   if config:has("pagemap_show_page_labels") then
     self.show_page_labels = config:isTrue("pagemap_show_page_labels")
   else
-    self.show_page_labels =
-      G_reader_settings:nilOrTrue("pagemap_show_page_labels")
+    self.show_page_labels = G_reader_settings:nilOrTrue("pagemap_show_page_labels")
   end
   if config:has("pagemap_use_page_labels") then
     self.use_page_labels = config:isTrue("pagemap_use_page_labels")
@@ -133,14 +131,8 @@ function ReaderPageMap:updateVisibleLabels()
   end
   self.container:clear()
   local page_labels = self.ui.document:getPageMapVisiblePageLabels()
-  local footer_height = (
-    (
-        self.view.footer_visible
-        and not self.view.footer.settings.reclaim_height
-      )
-      and 1
-    or 0
-  ) * self.view.footer:getHeight()
+  local footer_height = ((self.view.footer_visible and not self.view.footer.settings.reclaim_height) and 1 or 0)
+    * self.view.footer:getHeight()
   local max_y = Screen:getHeight() - footer_height
   local last_label_bottom_y = 0
   local on_second_page = false
@@ -155,8 +147,7 @@ function ReaderPageMap:updateVisibleLabels()
         last_label_bottom_y = 0 -- reset this
       end
     end
-    local max_label_width = in_left_margin and self.max_left_label_width
-      or self.max_right_label_width
+    local max_label_width = in_left_margin and self.max_left_label_width or self.max_right_label_width
     if max_label_width < self.min_label_width then
       max_label_width = self.min_label_width
     end
@@ -180,8 +171,7 @@ function ReaderPageMap:updateVisibleLabels()
       label_widget,
       allow_mirroring = false,
     })
-    local offset_x = in_left_margin and 0
-      or Screen:getWidth() - frame:getSize().w
+    local offset_x = in_left_margin and 0 or Screen:getWidth() - frame:getSize().w
     local offset_y = page.screen_y
     if offset_y < last_label_bottom_y then
       -- Avoid consecutive labels to overwrite themselbes
@@ -223,8 +213,7 @@ function ReaderPageMap:onShowPageList()
 
   -- We use the per-page and font-size settings set for the ToC
   local items_per_page = G_reader_settings:read("toc_items_per_page") or 14
-  local items_font_size = G_reader_settings:read("toc_items_font_size")
-    or Menu.getItemFontSize(items_per_page)
+  local items_font_size = G_reader_settings:read("toc_items_font_size") or Menu.getItemFontSize(items_per_page)
   local items_with_dots = G_reader_settings:nilOrTrue("toc_items_with_dots")
 
   local pl_menu = Menu:new({
@@ -336,10 +325,8 @@ function ReaderPageMap:addToMainMenu(menu_items)
           return self.ui.document:getPageMapSource() ~= nil
         end,
         callback = function()
-          local text = T(
-            _("Source (book hardcopy edition) of reference page numbers:\n\n%1"),
-            self.ui.document:getPageMapSource()
-          )
+          local text =
+            T(_("Source (book hardcopy edition) of reference page numbers:\n\n%1"), self.ui.document:getPageMapSource())
           local InfoMessage = require("ui/widget/infomessage")
           local infomsg = InfoMessage:new({
             text = text,
@@ -361,18 +348,14 @@ function ReaderPageMap:addToMainMenu(menu_items)
         end,
         callback = function()
           self.use_page_labels = not self.use_page_labels
-          self.ui.doc_settings:save(
-            "pagemap_use_page_labels",
-            self.use_page_labels
-          )
+          self.ui.doc_settings:save("pagemap_use_page_labels", self.use_page_labels)
           -- Reset a few stuff that may use page labels
           UIManager:broadcastEvent("UpdateToc")
           self.ui.annotation:updatePageNumbers(true)
           UIManager:setDirty(self.view.dialog, "partial")
         end,
         hold_callback = function(touchmenu_instance)
-          local use_page_labels =
-            G_reader_settings:isTrue("pagemap_use_page_labels")
+          local use_page_labels = G_reader_settings:isTrue("pagemap_use_page_labels")
           UIManager:show(MultiConfirmBox:new({
             text = use_page_labels
                 and _(
@@ -410,17 +393,13 @@ function ReaderPageMap:addToMainMenu(menu_items)
         end,
         callback = function()
           self.show_page_labels = not self.show_page_labels
-          self.ui.doc_settings:save(
-            "pagemap_show_page_labels",
-            self.show_page_labels
-          )
+          self.ui.doc_settings:save("pagemap_show_page_labels", self.show_page_labels)
           self:resetLayout()
           self:updateVisibleLabels()
           UIManager:setDirty(self.view.dialog, "partial")
         end,
         hold_callback = function(touchmenu_instance)
-          local show_page_labels =
-            G_reader_settings:nilOrTrue("pagemap_show_page_labels")
+          local show_page_labels = G_reader_settings:nilOrTrue("pagemap_show_page_labels")
           UIManager:show(MultiConfirmBox:new({
             text = show_page_labels
                 and _(
@@ -468,10 +447,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
             keep_shown_on_apply = true,
             callback = function(spin)
               self.label_font_size = spin.value
-              G_reader_settings:save(
-                "pagemap_label_font_size",
-                self.label_font_size
-              )
+              G_reader_settings:save("pagemap_label_font_size", self.label_font_size)
               if touchmenu_instance then
                 touchmenu_instance:updateItems()
               end

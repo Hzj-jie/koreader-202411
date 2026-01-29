@@ -148,8 +148,7 @@ function fb:init()
   -- so we do this simple heuristic (for now)
   self.screen_size = self:getRawSize()
   if self.screen_size.w > self.screen_size.h and self.is_always_portrait then
-    self.screen_size.w, self.screen_size.h =
-      self.screen_size.h, self.screen_size.w
+    self.screen_size.w, self.screen_size.h = self.screen_size.h, self.screen_size.w
     -- some framebuffers need to be rotated counter-clockwise (they start in landscape mode)
     io.write("FB: Enforcing portrait mode by doing an initial BB rotation\n")
     self.debug(
@@ -157,14 +156,9 @@ function fb:init()
     )
     self.bb:rotate(-90)
     self.blitbuffer_rotation_mode = self.bb:getRotation()
-    assert(
-      not self.forced_rotation,
-      "If forced HW rotation is used, isAlwaysPortrait should not be set."
-    )
+    assert(not self.forced_rotation, "If forced HW rotation is used, isAlwaysPortrait should not be set.")
   end
-  self.native_rotation_mode = self.forced_rotation
-      and self.forced_rotation.default
-    or self.DEVICE_ROTATED_UPRIGHT
+  self.native_rotation_mode = self.forced_rotation and self.forced_rotation.default or self.DEVICE_ROTATED_UPRIGHT
   self.cur_rotation_mode = self.native_rotation_mode
 end
 
@@ -286,15 +280,8 @@ function fb:setViewport(viewport)
   if not self.full_bb then
     self.full_bb = self.bb
   end
-  self.debug(
-    "fb:setViewport() setting viewport to",
-    viewport.x,
-    viewport.y,
-    viewport.w,
-    viewport.h
-  )
-  self.bb =
-    self.full_bb:viewport(viewport.x, viewport.y, viewport.w, viewport.h)
+  self.debug("fb:setViewport() setting viewport to", viewport.x, viewport.y, viewport.w, viewport.h)
+  self.bb = self.full_bb:viewport(viewport.x, viewport.y, viewport.w, viewport.h)
   self.viewport = viewport
   self.full_bb:fill(Blitbuffer.COLOR_WHITE)
   -- We want the *viewport's* dimensions, as calculateRealCoordinates will adjust the coordinates later.
@@ -485,9 +472,7 @@ end
 function fb:setRotationMode(mode)
   -- This, on the other hand, is responsible for the internal *buffer* rotation,
   -- as such, it's inverted compared to the DEVICE_ROTATED_ constants; i.e., it's in 90° CCW steps).
-  self.bb:rotateAbsolute(
-    -90 * (mode - self.native_rotation_mode - self.blitbuffer_rotation_mode)
-  )
+  self.bb:rotateAbsolute(-90 * (mode - self.native_rotation_mode - self.blitbuffer_rotation_mode))
   if self.viewport then
     self.full_bb:setRotation(self.bb:getRotation())
   end

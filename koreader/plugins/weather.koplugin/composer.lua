@@ -55,10 +55,7 @@ function Composer:createForecastFromDay(data)
   local max_temp
   local min_temp
   local uv = data.day.uv
-  local moon_phase = data.astro.moon_phase
-    .. ", "
-    .. data.astro.moon_illumination
-    .. "%"
+  local moon_phase = data.astro.moon_phase .. ", " .. data.astro.moon_illumination .. "%"
   local moon_rise = data.astro.moonrise
   local moon_set = data.astro.moonset
   local sunrise = data.astro.sunrise

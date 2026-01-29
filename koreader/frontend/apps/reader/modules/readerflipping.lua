@@ -62,8 +62,7 @@ function ReaderFlipping:getRollingRenderingStateIconWidget()
   if not self.rolling_rendering_state_widgets then
     self.rolling_rendering_state_widgets = {}
   end
-  local widget =
-    self.rolling_rendering_state_widgets[self.ui.rolling.rendering_state]
+  local widget = self.rolling_rendering_state_widgets[self.ui.rolling.rendering_state]
   if widget == nil then -- not met yet
     local icon_size = Screen:scaleBySize(32)
     for k, v in pairs(self.ui.rolling.RENDERING_STATE) do -- known states
@@ -86,8 +85,7 @@ function ReaderFlipping:getRollingRenderingStateIconWidget()
         break
       end
     end
-    widget =
-      self.rolling_rendering_state_widgets[self.ui.rolling.rendering_state]
+    widget = self.rolling_rendering_state_widgets[self.ui.rolling.rendering_state]
   end
   return widget or nil -- return nil if cached widget is false
 end
@@ -101,9 +99,7 @@ function ReaderFlipping:paintTo(bb, x, y)
   local widget
   if self.ui.paging and self.view.flipping_visible then
     -- pdf page flipping or bookmark browsing mode
-    widget = self.ui.paging.bookmark_flipping_mode
-        and self.bookmark_flipping_widget
-      or self.flipping_widget
+    widget = self.ui.paging.bookmark_flipping_mode and self.bookmark_flipping_widget or self.flipping_widget
   elseif self.ui.highlight.select_mode then
     -- highlight select mode
     widget = self.select_mode_widget

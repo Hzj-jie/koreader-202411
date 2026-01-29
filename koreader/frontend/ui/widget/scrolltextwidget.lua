@@ -85,10 +85,7 @@ function ScrollTextWidget:init()
 
   local horizontal_group = HorizontalGroup:new({ align = "top" })
   table.insert(horizontal_group, self.text_widget)
-  table.insert(
-    horizontal_group,
-    HorizontalSpan:new({ width = self.text_scroll_span })
-  )
+  table.insert(horizontal_group, HorizontalSpan:new({ width = self.text_scroll_span }))
   table.insert(horizontal_group, self.v_scroll_bar)
   self[1] = horizontal_group
   self.dimen = Geom:new(self[1]:getSize())
@@ -220,10 +217,7 @@ end
 
 function ScrollTextWidget:moveCursorToCharPos(charpos, centered_lines_count)
   if centered_lines_count then
-    self.text_widget:moveCursorToCharPosKeepingViewCentered(
-      charpos,
-      centered_lines_count
-    )
+    self.text_widget:moveCursorToCharPosKeepingViewCentered(charpos, centered_lines_count)
   else
     self.text_widget:moveCursorToCharPos(charpos)
   end
@@ -332,11 +326,7 @@ function ScrollTextWidget:onTapScrollText(arg, ges)
   -- Late initialization to avoid cycle dependency.
   if
     BD.flipIfMirroredUILayout(
-      ges.pos:intersectWith(
-        self.dimen
-          :copy()
-          :resize(require("apps/reader/modules/readerview").getForwardTapZone())
-      )
+      ges.pos:intersectWith(self.dimen:copy():resize(require("apps/reader/modules/readerview").getForwardTapZone()))
     )
   then
     return self:onScrollDown()
@@ -356,8 +346,7 @@ end
 
 function ScrollTextWidget:onScrollDown()
   if
-    self.text_widget.virtual_line_num + self.text_widget:getVisLineCount()
-    <= #self.text_widget.vertical_string_list
+    self.text_widget.virtual_line_num + self.text_widget:getVisLineCount() <= #self.text_widget.vertical_string_list
   then
     self:scrollText(1)
     return true

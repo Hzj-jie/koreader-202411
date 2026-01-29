@@ -92,23 +92,15 @@ local GestureDetector = {
   -- for timestamp clocksource detection
   clock_id = nil,
   -- current values
-  ges_tap_interval = time.ms(
-    G_reader_settings:readSetting("ges_tap_interval_ms") or TAP_INTERVAL_MS
-  ),
+  ges_tap_interval = time.ms(G_reader_settings:readSetting("ges_tap_interval_ms") or TAP_INTERVAL_MS),
   ges_double_tap_interval = time.ms(
-    G_reader_settings:readSetting("ges_double_tap_interval_ms")
-      or DOUBLE_TAP_INTERVAL_MS
+    G_reader_settings:readSetting("ges_double_tap_interval_ms") or DOUBLE_TAP_INTERVAL_MS
   ),
   ges_two_finger_tap_duration = time.ms(
-    G_reader_settings:readSetting("ges_two_finger_tap_duration_ms")
-      or TWO_FINGER_TAP_DURATION_MS
+    G_reader_settings:readSetting("ges_two_finger_tap_duration_ms") or TWO_FINGER_TAP_DURATION_MS
   ),
-  ges_hold_interval = time.ms(
-    G_reader_settings:readSetting("ges_hold_interval_ms") or HOLD_INTERVAL_MS
-  ),
-  ges_swipe_interval = time.ms(
-    G_reader_settings:readSetting("ges_swipe_interval_ms") or SWIPE_INTERVAL_MS
-  ),
+  ges_hold_interval = time.ms(G_reader_settings:readSetting("ges_hold_interval_ms") or HOLD_INTERVAL_MS),
+  ges_swipe_interval = time.ms(G_reader_settings:readSetting("ges_swipe_interval_ms") or SWIPE_INTERVAL_MS),
 }
 
 function GestureDetector:new(o)
@@ -153,8 +145,7 @@ end
 function GestureDetector:newContact(slot)
   -- Check if this new contact might be part of a two finger gesture,
   -- by checking if the current slot is one of the two main slots, and the other is active.
-  local buddy_slot = slot == self.input.main_finger_slot
-      and self.input.main_finger_slot + 1
+  local buddy_slot = slot == self.input.main_finger_slot and self.input.main_finger_slot + 1
     or slot == self.input.main_finger_slot + 1 and self.input.main_finger_slot
   local buddy_contact = buddy_slot and self:getContact(buddy_slot)
 
@@ -184,10 +175,7 @@ function GestureDetector:newContact(slot)
     -- And make sure it has an initial_tev recorded, for misbehaving platforms...
     if not buddy_contact.initial_tev then
       buddy_contact.initial_tev = deepCopyEv(buddy_contact.current_tev)
-      logger.warn(
-        "GestureDetector:newContact recorded an initial_tev out of order for buddy slot",
-        buddy_contact.slot
-      )
+      logger.warn("GestureDetector:newContact recorded an initial_tev out of order for buddy slot", buddy_contact.slot)
     end
   end
 
@@ -203,12 +191,7 @@ function GestureDetector:dropContact(contact)
 
   -- Guard against double drops
   if not self.active_contacts[slot] then
-    logger.warn(
-      "Contact for slot",
-      slot,
-      "has already been dropped! #contacts =",
-      self.contact_count
-    )
+    logger.warn("Contact for slot", slot, "has already been dropped! #contacts =", self.contact_count)
     return
   end
 
@@ -281,10 +264,7 @@ function GestureDetector:isTapBounce(tap1, tap2, interval)
     local x_diff = math.abs(tap1.x - tap2.x)
     local y_diff = math.abs(tap1.y - tap2.y)
 
-    return (
-      x_diff < self.SINGLE_TAP_BOUNCE_DISTANCE
-      and y_diff < self.SINGLE_TAP_BOUNCE_DISTANCE
-    )
+    return (x_diff < self.SINGLE_TAP_BOUNCE_DISTANCE and y_diff < self.SINGLE_TAP_BOUNCE_DISTANCE)
   end
 end
 
@@ -297,9 +277,7 @@ function GestureDetector:isDoubleTap(tap1, tap2)
     local x_diff = math.abs(tap1.x - tap2.x)
     local y_diff = math.abs(tap1.y - tap2.y)
 
-    return (
-      x_diff < self.DOUBLE_TAP_DISTANCE and y_diff < self.DOUBLE_TAP_DISTANCE
-    )
+    return (x_diff < self.DOUBLE_TAP_DISTANCE and y_diff < self.DOUBLE_TAP_DISTANCE)
   end
 end
 
@@ -310,8 +288,7 @@ function Contact:isTwoFingerTap(buddy_contact)
   if time_diff0 < 0 then
     time_diff0 = time.huge
   end
-  local time_diff1 = buddy_contact.current_tev.timev
-    - buddy_contact.initial_tev.timev
+  local time_diff1 = buddy_contact.current_tev.timev - buddy_contact.initial_tev.timev
   if time_diff1 < 0 then
     time_diff1 = time.huge
   end
@@ -320,11 +297,9 @@ function Contact:isTwoFingerTap(buddy_contact)
     and time_diff1 < gesture_detector.ges_two_finger_tap_duration
   then
     local x_diff0 = math.abs(self.current_tev.x - self.initial_tev.x)
-    local x_diff1 =
-      math.abs(buddy_contact.current_tev.x - buddy_contact.initial_tev.x)
+    local x_diff1 = math.abs(buddy_contact.current_tev.x - buddy_contact.initial_tev.x)
     local y_diff0 = math.abs(self.current_tev.y - self.initial_tev.y)
-    local y_diff1 =
-      math.abs(buddy_contact.current_tev.y - buddy_contact.initial_tev.y)
+    local y_diff1 = math.abs(buddy_contact.current_tev.y - buddy_contact.initial_tev.y)
 
     return (
       x_diff0 < gesture_detector.TWO_FINGER_TAP_REGION
@@ -353,11 +328,8 @@ function Contact:getPath(simple, diagonal, initial_tev)
     local v_direction = y_diff < 0 and "north" or "south"
     local h_direction = x_diff < 0 and "west" or "east"
     if
-      (
-        not simple
-        and math.abs(y_diff) > 0.577 * math.abs(x_diff)
-        and math.abs(y_diff) < 1.732 * math.abs(x_diff)
-      ) or (simple and diagonal)
+      (not simple and math.abs(y_diff) > 0.577 * math.abs(x_diff) and math.abs(y_diff) < 1.732 * math.abs(x_diff))
+      or (simple and diagonal)
     then
       direction = v_direction .. h_direction
     elseif math.abs(x_diff) > math.abs(y_diff) then
@@ -419,10 +391,7 @@ function Contact:setState(state_func)
   -- NOTE: Safety net for broken platforms that might screw up slot order...
   if not self.initial_tev then
     self.initial_tev = deepCopyEv(self.current_tev)
-    logger.warn(
-      "Contact:setState recorded an initial_tev out of order for slot",
-      self.slot
-    )
+    logger.warn("Contact:setState recorded an initial_tev out of order for slot", self.slot)
   end
   self.state = state_func
 end
@@ -469,9 +438,7 @@ function GestureDetector:probeClockSource(timev)
   -- clock-threshold <= timev <= clock+threshold
   if timev >= realtime - threshold and timev <= realtime + threshold then
     self.clock_id = C.CLOCK_REALTIME
-    logger.dbg(
-      "GestureDetector:probeClockSource: Touch event timestamps appear to use CLOCK_REALTIME"
-    )
+    logger.dbg("GestureDetector:probeClockSource: Touch event timestamps appear to use CLOCK_REALTIME")
     return
   end
 
@@ -479,32 +446,22 @@ function GestureDetector:probeClockSource(timev)
   local monotonic = time.monotonic_coarse()
   if timev >= monotonic - threshold and timev <= monotonic + threshold then
     self.clock_id = C.CLOCK_MONOTONIC
-    logger.dbg(
-      "GestureDetector:probeClockSource: Touch event timestamps appear to use CLOCK_MONOTONIC"
-    )
+    logger.dbg("GestureDetector:probeClockSource: Touch event timestamps appear to use CLOCK_MONOTONIC")
     return
   end
 
   -- Finally, BOOTTIME
   local boottime = time.boottime()
   -- NOTE: It was implemented in Linux 2.6.39, so, reject 0, which would mean it's unsupported...
-  if
-    boottime ~= 0
-    and timev >= boottime - threshold
-    and timev <= boottime + threshold
-  then
+  if boottime ~= 0 and timev >= boottime - threshold and timev <= boottime + threshold then
     self.clock_id = C.CLOCK_BOOTTIME
-    logger.dbg(
-      "GestureDetector:probeClockSource: Touch event timestamps appear to use CLOCK_BOOTTIME"
-    )
+    logger.dbg("GestureDetector:probeClockSource: Touch event timestamps appear to use CLOCK_BOOTTIME")
     return
   end
 
   -- If we're here, the detection was inconclusive :/
   self.clock_id = -1
-  logger.dbg(
-    "GestureDetector:probeClockSource: Touch event clock source detection was inconclusive"
-  )
+  logger.dbg("GestureDetector:probeClockSource: Touch event clock source detection was inconclusive")
   -- Print all all the gory details in debug mode when this happens...
   logger.dbg("Input frame    :", time.format_time(timev))
   logger.dbg("CLOCK_REALTIME :", time.format_time(realtime))
@@ -560,13 +517,7 @@ function Contact:tapState(new_tap)
         })
         local tap_span = pos0:distance(pos1)
         local tap_pos = pos0:midpoint(pos1)
-        logger.dbg(
-          "two_finger_tap detected @",
-          tap_pos.x,
-          tap_pos.y,
-          "with span",
-          tap_span
-        )
+        logger.dbg("two_finger_tap detected @", tap_pos.x, tap_pos.y, "with span", tap_span)
         -- Don't drop buddy, voidState will handle it
         gesture_detector:dropContact(self)
         return {
@@ -640,18 +591,13 @@ function Contact:handleDoubleTap()
   }
 
   -- Tap interval / bounce detection may be tweaked by a widget (i.e., VirtualKeyboard)
-  local tap_interval = gesture_detector.input.tap_interval_override
-    or gesture_detector.ges_tap_interval
+  local tap_interval = gesture_detector.input.tap_interval_override or gesture_detector.ges_tap_interval
   -- We do tap bounce detection even when double tap is enabled
   -- (so, double tap is triggered when: ges_tap_interval <= delay < ges_double_tap_interval).
   if
     tap_interval ~= 0
     and gesture_detector.previous_tap[slot] ~= nil
-    and gesture_detector:isTapBounce(
-      gesture_detector.previous_tap[slot],
-      cur_tap,
-      tap_interval
-    )
+    and gesture_detector:isTapBounce(gesture_detector.previous_tap[slot], cur_tap, tap_interval)
   then
     logger.dbg("Contact:handleDoubleTap Stopped a tap bounce")
     -- Simply ignore it, and drop this slot as this is a contact lift.
@@ -674,18 +620,11 @@ function Contact:handleDoubleTap()
   if
     not gesture_detector.input.disable_double_tap
     and self.pending_double_tap_timer
-    and gesture_detector:isDoubleTap(
-      gesture_detector.previous_tap[slot],
-      cur_tap
-    )
+    and gesture_detector:isDoubleTap(gesture_detector.previous_tap[slot], cur_tap)
   then
     -- It is a double tap
     ges_ev.ges = "double_tap"
-    logger.dbg(
-      "Contact:handleDoubleTap: double_tap detected @",
-      ges_ev.pos.x,
-      ges_ev.pos.y
-    )
+    logger.dbg("Contact:handleDoubleTap: double_tap detected @", ges_ev.pos.x, ges_ev.pos.y)
     gesture_detector:dropContact(self)
     return ges_ev
   end
@@ -695,11 +634,7 @@ function Contact:handleDoubleTap()
 
   if gesture_detector.input.disable_double_tap then
     -- We can send the event immediately (no need for the timer stuff needed for double tap support)
-    logger.dbg(
-      "Contact:handleDoubleTap: single tap detected @",
-      ges_ev.pos.x,
-      ges_ev.pos.y
-    )
+    logger.dbg("Contact:handleDoubleTap: single tap detected @", ges_ev.pos.x, ges_ev.pos.y)
     gesture_detector:dropContact(self)
     return ges_ev
   end
@@ -711,21 +646,12 @@ function Contact:handleDoubleTap()
     self.pending_double_tap_timer = true
     -- setTimeout will handle computing the deadline in the least lossy way possible given the platform.
     gesture_detector.input:setTimeout(slot, "double_tap", function()
-      if
-        self == gesture_detector:getContact(slot)
-        and self.pending_double_tap_timer
-      then
+      if self == gesture_detector:getContact(slot) and self.pending_double_tap_timer then
         self.pending_double_tap_timer = false
         if self.state == Contact.tapState then
           -- A single or double tap will yield a different contact object, by virtue of dropContact and closure magic ;).
           -- Speaking of closures, this is the original ges_ev from the timer setup.
-          logger.dbg(
-            "double_tap timer detected a single tap in slot",
-            slot,
-            "@",
-            ges_ev.pos.x,
-            ges_ev.pos.y
-          )
+          logger.dbg("double_tap timer detected a single tap in slot", slot, "@", ges_ev.pos.x, ges_ev.pos.y)
           gesture_detector:dropContact(self)
           return ges_ev
         end
@@ -758,9 +684,7 @@ function Contact:handleNonTap(new_tap)
       -- (e.g., it hasn't gone through dropContact because of a contact lift yet),
       -- then check that we're still in a stationary contact down state (i.e., tapState).
       -- NOTE: We need to check that the current contact in this slot is *still* the same object first, because closure ;).
-      if
-        self == gesture_detector:getContact(slot) and self.pending_hold_timer
-      then
+      if self == gesture_detector:getContact(slot) and self.pending_hold_timer then
         self.pending_hold_timer = nil
         if self.state == Contact.tapState and self.down then
           -- NOTE: If we happened to have moved enough, holdState will generate a hold_pan on the *next* event,
@@ -788,9 +712,7 @@ function Contact:handleNonTap(new_tap)
     -- if the contact moved far enough on the X or Y axes...
     if
       (math.abs(tev.x - self.initial_tev.x) >= gesture_detector.PAN_THRESHOLD)
-      or (
-        math.abs(tev.y - self.initial_tev.y) >= gesture_detector.PAN_THRESHOLD
-      )
+      or (math.abs(tev.y - self.initial_tev.y) >= gesture_detector.PAN_THRESHOLD)
     then
       return self:switchState(Contact.panState)
     end
@@ -816,9 +738,7 @@ function Contact:panState(keep_contact)
         -- Neuter its buddy
         -- NOTE: Similar trickery as in handlePan to deal with rotate,
         --       without the panState check for self, because we're obviously in panState...
-        if
-          buddy_contact.state ~= Contact.panState and buddy_contact.mt_immobile
-        then
+        if buddy_contact.state ~= Contact.panState and buddy_contact.mt_immobile then
           buddy_contact.mt_gesture = "rotate"
         else
           buddy_contact.mt_gesture = "swipe"
@@ -853,12 +773,7 @@ function Contact:panState(keep_contact)
           end
 
           if ges_ev then
-            logger.dbg(
-              ges_ev.ges,
-              ges_ev.direction,
-              ges_ev.distance or math.abs(ges_ev.angle),
-              "detected"
-            )
+            logger.dbg(ges_ev.ges, ges_ev.direction, ges_ev.distance or math.abs(ges_ev.angle), "detected")
           end
         end
 
@@ -900,21 +815,12 @@ function Contact:voidState()
   -- We basically don't do anything but drop the slot on contact lift,
   -- if need be deferring to the right state when we're part of a MT gesture.
   if tev.id == -1 then
-    if
-      self.down
-      and buddy_contact
-      and buddy_contact.down
-      and self.mt_gesture
-    then
+    if self.down and buddy_contact and buddy_contact.down and self.mt_gesture then
       -- If we were lifted before our buddy, and we're part of a MT gesture,
       -- defer to the proper state (without switching state ourselves).
       if self.mt_gesture == "tap" then
         return self:tapState()
-      elseif
-        self.mt_gesture == "swipe"
-        or self.mt_gesture == "pan"
-        or self.mt_gesture == "pan_release"
-      then
+      elseif self.mt_gesture == "swipe" or self.mt_gesture == "pan" or self.mt_gesture == "pan_release" then
         return self:panState()
       elseif self.mt_gesture == "rotate" then
         -- NOTE: As usual, rotate requires some trickery,
@@ -960,11 +866,7 @@ function Contact:voidState()
         return self:holdState()
       else
         -- Should absolutely never happen (and, at the time of writing, is technically guaranteed to be unreachable).
-        logger.warn(
-          "Contact:voidState Unknown MT gesture",
-          self.mt_gesture,
-          "cannot handle contact lift properly"
-        )
+        logger.warn("Contact:voidState Unknown MT gesture", self.mt_gesture, "cannot handle contact lift properly")
         -- We're still gone, though.
         gesture_detector:dropContact(self)
       end
@@ -982,9 +884,7 @@ function Contact:voidState()
     if self.mt_immobile then
       if
         (math.abs(tev.x - self.initial_tev.x) >= gesture_detector.PAN_THRESHOLD)
-        or (
-          math.abs(tev.y - self.initial_tev.y) >= gesture_detector.PAN_THRESHOLD
-        )
+        or (math.abs(tev.y - self.initial_tev.y) >= gesture_detector.PAN_THRESHOLD)
       then
         self.mt_immobile = false
         -- NOTE: We've just moved: if we were flagged for a hold gesture (meaning our buddy is still in holdState),
@@ -992,16 +892,10 @@ function Contact:voidState()
         --       (This happens when attempting a rotate, and the hold timer for slot 0 expires
         --       before slot 1 has the chance to switch to panState).
         --       A.K.A., "rotate dirty hack #42" ;).
-        if
-          buddy_contact
-          and buddy_contact.mt_gesture == "hold"
-          and self.mt_gesture == "hold"
-        then
+        if buddy_contact and buddy_contact.mt_gesture == "hold" and self.mt_gesture == "hold" then
           self.mt_gesture = "pan"
           buddy_contact.mt_gesture = "rotate"
-          logger.dbg(
-            "Contact:voidState We moved while pending a hold gesture, swap to a rotate setup"
-          )
+          logger.dbg("Contact:voidState We moved while pending a hold gesture, swap to a rotate setup")
         end
       else
         self.mt_immobile = true
@@ -1047,12 +941,7 @@ function Contact:handleSwipe()
     logger.dbg("multiswipe", multiswipe_directions)
   end
 
-  logger.dbg(
-    "Contact:handleSwipe: swipe",
-    swipe_direction,
-    swipe_distance,
-    "detected"
-  )
+  logger.dbg("Contact:handleSwipe: swipe", swipe_direction, swipe_distance, "detected")
   gesture_detector:dropContact(self)
   return {
     ges = ges,
@@ -1086,11 +975,7 @@ function Contact:handlePan()
     -- NOTE: Small trickery for rotate, which requires both contacts to be in very specific states.
     --       We merge tapState with holdState because it's likely that the hold hasn't taken yet,
     --       and it never will after that because we switch to voidState ;).
-    if
-      buddy_contact.state ~= Contact.panState
-      and buddy_contact.mt_immobile
-      and self.state == Contact.panState
-    then
+    if buddy_contact.state ~= Contact.panState and buddy_contact.mt_immobile and self.state == Contact.panState then
       buddy_contact.mt_gesture = "rotate"
     else
       buddy_contact.mt_gesture = "pan"
@@ -1124,9 +1009,7 @@ function Contact:handlePan()
     }
 
     local msd_cnt = #self.multiswipe_directions
-    local msd_direction_prev = (msd_cnt > 0)
-        and self.multiswipe_directions[msd_cnt][1]
-      or ""
+    local msd_direction_prev = (msd_cnt > 0) and self.multiswipe_directions[msd_cnt][1] or ""
     local prev_ms_ev, fake_initial_tev
 
     if msd_cnt == 0 then
@@ -1160,10 +1043,7 @@ function Contact:handlePan()
     if msd_distance > gesture_detector.MULTISWIPE_THRESHOLD then
       local pan_ev_multiswipe = pan_ev
       -- store a copy of pan_ev without rotation adjustment for multiswipe calculations when rotated
-      if
-        gesture_detector.screen:getTouchRotation()
-        > gesture_detector.screen.DEVICE_ROTATED_UPRIGHT
-      then
+      if gesture_detector.screen:getTouchRotation() > gesture_detector.screen.DEVICE_ROTATED_UPRIGHT then
         pan_ev_multiswipe = util.tableDeepCopy(pan_ev)
       end
       if msd_direction ~= msd_direction_prev then
@@ -1299,13 +1179,7 @@ function Contact:handleTwoFingerPan(buddy_contact)
       buddy_contact.mt_gesture = "hold_pan"
     end
 
-    logger.dbg(
-      "Contact:handleTwoFingerPan:",
-      ges_ev.ges,
-      ges_ev.direction,
-      ges_ev.distance,
-      "detected"
-    )
+    logger.dbg("Contact:handleTwoFingerPan:", ges_ev.ges, ges_ev.direction, ges_ev.distance, "detected")
     return ges_ev
   end
 end
@@ -1397,13 +1271,7 @@ function Contact:holdState(new_hold)
       })
       local tap_span = pos0:distance(pos1)
       local tap_pos = pos0:midpoint(pos1)
-      logger.dbg(
-        "two_finger_hold detected @",
-        tap_pos.x,
-        tap_pos.y,
-        "with span",
-        tap_span
-      )
+      logger.dbg("two_finger_hold detected @", tap_pos.x, tap_pos.y, "with span", tap_span)
       return {
         ges = "two_finger_hold",
         pos = tap_pos,
@@ -1433,20 +1301,13 @@ function Contact:holdState(new_hold)
         -- NOTE: This is simpler than the elaborate trickery this case involves when dealt with via voidState,
         --       because it is specifically aimed at the snow protocol, so we *know* both contacts are lifted
         --       in the same input frame.
-        logger.dbg(
-          "Contact:holdState: Early lift as a rotate pivot, trying for a rotate..."
-        )
+        logger.dbg("Contact:holdState: Early lift as a rotate pivot, trying for a rotate...")
         local ges_ev = buddy_contact:handleTwoFingerPan(self)
         if ges_ev then
           if ges_ev.ges ~= "rotate" then
             ges_ev = nil
           else
-            logger.dbg(
-              ges_ev.ges,
-              ges_ev.direction,
-              math.abs(ges_ev.angle),
-              "detected"
-            )
+            logger.dbg(ges_ev.ges, ges_ev.direction, math.abs(ges_ev.angle), "detected")
           end
         end
         -- Regardless of whether this panned out (pun intended), this is a lift, so we'll defer to voidState next.
@@ -1478,19 +1339,11 @@ function Contact:holdState(new_hold)
         w = 0,
         h = 0,
       })
-      local ges_type = self.mt_gesture == "hold_pan_release"
-          and "two_finger_hold_pan_release"
+      local ges_type = self.mt_gesture == "hold_pan_release" and "two_finger_hold_pan_release"
         or "two_finger_hold_release"
       local tap_span = pos0:distance(pos1)
       local tap_pos = pos0:midpoint(pos1)
-      logger.dbg(
-        ges_type,
-        "detected @",
-        tap_pos.x,
-        tap_pos.y,
-        "with span",
-        tap_span
-      )
+      logger.dbg(ges_type, "detected @", tap_pos.x, tap_pos.y, "with span", tap_span)
       return {
         ges = ges_type,
         pos = tap_pos,
@@ -1520,9 +1373,7 @@ function Contact:holdState(new_hold)
     tev.id ~= -1
     and (
       (math.abs(tev.x - self.initial_tev.x) >= gesture_detector.PAN_THRESHOLD)
-      or (
-        math.abs(tev.y - self.initial_tev.y) >= gesture_detector.PAN_THRESHOLD
-      )
+      or (math.abs(tev.y - self.initial_tev.y) >= gesture_detector.PAN_THRESHOLD)
     )
   then
     -- We've moved enough to count as a pan, defer to the pan handler, but stay in holdState
@@ -1569,10 +1420,7 @@ local ges_coordinate_translation_90 = {
 local function translateGesDirCoordinate(direction, translation_table)
   return translation_table[direction]
 end
-local function translateMultiswipeGesDirCoordinate(
-  multiswipe_directions,
-  translation_table
-)
+local function translateMultiswipeGesDirCoordinate(multiswipe_directions, translation_table)
   return multiswipe_directions:gsub("%S+", translation_table)
 end
 
@@ -1598,43 +1446,24 @@ function GestureDetector:adjustGesCoordinate(ges)
       or ges.ges == "two_finger_pan"
       or ges.ges == "two_finger_hold_pan"
     then
-      ges.direction =
-        translateGesDirCoordinate(ges.direction, ges_coordinate_translation_90)
+      ges.direction = translateGesDirCoordinate(ges.direction, ges_coordinate_translation_90)
       if ges.ges == "multiswipe" then
-        ges.multiswipe_directions = translateMultiswipeGesDirCoordinate(
-          ges.multiswipe_directions,
-          ges_coordinate_translation_90
-        )
-        logger.dbg(
-          "GestureDetector: Landscape translation for multiswipe:",
-          ges.multiswipe_directions
-        )
+        ges.multiswipe_directions =
+          translateMultiswipeGesDirCoordinate(ges.multiswipe_directions, ges_coordinate_translation_90)
+        logger.dbg("GestureDetector: Landscape translation for multiswipe:", ges.multiswipe_directions)
       else
-        logger.dbg(
-          "GestureDetector: Landscape translation for ges:",
-          ges.ges,
-          ges.direction
-        )
+        logger.dbg("GestureDetector: Landscape translation for ges:", ges.ges, ges.direction)
       end
       if ges.relative then
         ges.relative.x, ges.relative.y = -ges.relative.y, ges.relative.x
       end
-    elseif
-      ges.ges == "pinch"
-      or ges.ges == "spread"
-      or ges.ges == "inward_pan"
-      or ges.ges == "outward_pan"
-    then
+    elseif ges.ges == "pinch" or ges.ges == "spread" or ges.ges == "inward_pan" or ges.ges == "outward_pan" then
       if ges.direction == "horizontal" then
         ges.direction = "vertical"
       elseif ges.direction == "vertical" then
         ges.direction = "horizontal"
       end
-      logger.dbg(
-        "GestureDetector: Landscape translation for ges:",
-        ges.ges,
-        ges.direction
-      )
+      logger.dbg("GestureDetector: Landscape translation for ges:", ges.ges, ges.direction)
     end
   elseif mode == self.screen.DEVICE_ROTATED_COUNTER_CLOCKWISE then
     -- in landscape mode rotated 270
@@ -1650,50 +1479,29 @@ function GestureDetector:adjustGesCoordinate(ges)
       or ges.ges == "two_finger_pan"
       or ges.ges == "two_finger_hold_pan"
     then
-      ges.direction =
-        translateGesDirCoordinate(ges.direction, ges_coordinate_translation_270)
+      ges.direction = translateGesDirCoordinate(ges.direction, ges_coordinate_translation_270)
       if ges.ges == "multiswipe" then
-        ges.multiswipe_directions = translateMultiswipeGesDirCoordinate(
-          ges.multiswipe_directions,
-          ges_coordinate_translation_270
-        )
-        logger.dbg(
-          "GestureDetector: Inverted landscape translation for multiswipe:",
-          ges.multiswipe_directions
-        )
+        ges.multiswipe_directions =
+          translateMultiswipeGesDirCoordinate(ges.multiswipe_directions, ges_coordinate_translation_270)
+        logger.dbg("GestureDetector: Inverted landscape translation for multiswipe:", ges.multiswipe_directions)
       else
-        logger.dbg(
-          "GestureDetector: Inverted landscape translation for ges:",
-          ges.ges,
-          ges.direction
-        )
+        logger.dbg("GestureDetector: Inverted landscape translation for ges:", ges.ges, ges.direction)
       end
       if ges.relative then
         ges.relative.x, ges.relative.y = ges.relative.y, -ges.relative.x
       end
-    elseif
-      ges.ges == "pinch"
-      or ges.ges == "spread"
-      or ges.ges == "inward_pan"
-      or ges.ges == "outward_pan"
-    then
+    elseif ges.ges == "pinch" or ges.ges == "spread" or ges.ges == "inward_pan" or ges.ges == "outward_pan" then
       if ges.direction == "horizontal" then
         ges.direction = "vertical"
       elseif ges.direction == "vertical" then
         ges.direction = "horizontal"
       end
-      logger.dbg(
-        "GestureDetector: Inverted landscape translation for ges:",
-        ges.ges,
-        ges.direction
-      )
+      logger.dbg("GestureDetector: Inverted landscape translation for ges:", ges.ges, ges.direction)
     end
   elseif mode == self.screen.DEVICE_ROTATED_UPSIDE_DOWN then
     -- in portrait mode rotated 180
     if ges.pos then
-      ges.pos.x, ges.pos.y =
-        (self.screen:getWidth() - ges.pos.x),
-        (self.screen:getHeight() - ges.pos.y)
+      ges.pos.x, ges.pos.y = (self.screen:getWidth() - ges.pos.x), (self.screen:getHeight() - ges.pos.y)
     end
     if
       ges.ges == "swipe"
@@ -1704,23 +1512,13 @@ function GestureDetector:adjustGesCoordinate(ges)
       or ges.ges == "two_finger_pan"
       or ges.ges == "two_finger_hold_pan"
     then
-      ges.direction =
-        translateGesDirCoordinate(ges.direction, ges_coordinate_translation_180)
+      ges.direction = translateGesDirCoordinate(ges.direction, ges_coordinate_translation_180)
       if ges.ges == "multiswipe" then
-        ges.multiswipe_directions = translateMultiswipeGesDirCoordinate(
-          ges.multiswipe_directions,
-          ges_coordinate_translation_180
-        )
-        logger.dbg(
-          "GestureDetector: Inverted portrait translation for multiswipe:",
-          ges.multiswipe_directions
-        )
+        ges.multiswipe_directions =
+          translateMultiswipeGesDirCoordinate(ges.multiswipe_directions, ges_coordinate_translation_180)
+        logger.dbg("GestureDetector: Inverted portrait translation for multiswipe:", ges.multiswipe_directions)
       else
-        logger.dbg(
-          "GestureDetector: Inverted portrait translation for ges:",
-          ges.ges,
-          ges.direction
-        )
+        logger.dbg("GestureDetector: Inverted portrait translation for ges:", ges.ges, ges.direction)
       end
       if ges.relative then
         ges.relative.x, ges.relative.y = -ges.relative.x, -ges.relative.y

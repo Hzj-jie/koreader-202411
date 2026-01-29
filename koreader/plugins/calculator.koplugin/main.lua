@@ -23,8 +23,7 @@ local CalculatorConvertDialog = require("calculatorconvertdialog")
 local Parser = require("formulaparser/formulaparser")
 
 local VERSION_FILE = "plugins/calculator.koplugin/VERSION"
-local LATEST_VERSION =
-  "https://raw.githubusercontent.com/zwim/calculator.koplugin/master/VERSION"
+local LATEST_VERSION = "https://raw.githubusercontent.com/zwim/calculator.koplugin/master/VERSION"
 
 local Calculator = WidgetContainer:new({
   name = "calculator",
@@ -137,12 +136,7 @@ function Calculator:getStatusLine()
   angle_mode = angle_mode .. (" "):rep(7 - #angle_mode)
   local format = self:getString(self.number_format, self.number_formats)
   format = format .. (" "):rep(12 - #format)
-  return string.format(
-    _("∡ %s\tFormat: %s\t≈%d"),
-    angle_mode,
-    format,
-    self.significant_places
-  )
+  return string.format(_("∡ %s\tFormat: %s\t≈%d"), angle_mode, format, self.significant_places)
 end
 
 function Calculator:generateInputDialog(status_line)
@@ -290,15 +284,13 @@ function Calculator:convertUnit(text_containing_unit)
 
   -- delete multiline --
   if text_containing_unit:find("\n") then
-    text_containing_unit =
-      text_containing_unit:sub(1, text_containing_unit:find("\n") - 1)
+    text_containing_unit = text_containing_unit:sub(1, text_containing_unit:find("\n") - 1)
   end
   -- get only first number (incl. decimal)
   local number_pattern = "%d+[.,]*%d*"
   local text_without_unit = text_containing_unit
   if text_containing_unit:find(number_pattern) then
-    text_without_unit =
-      text_containing_unit:sub(text_containing_unit:find(number_pattern))
+    text_without_unit = text_containing_unit:sub(text_containing_unit:find(number_pattern))
   end
 
   self.history = self.history .. text_without_unit
@@ -315,13 +307,9 @@ function Calculator:convertUnit(text_containing_unit)
 end
 
 function Calculator:onCalculatorStart()
-  self.angle_mode = G_reader_settings:read("calculator_angle_mode")
-    or self.angle_mode
-  self.number_format = G_reader_settings:read("calculator_number_format")
-    or self.number_format
-  self.significant_places = G_reader_settings:read(
-    "calculator_significant_places"
-  ) or self.significant_places
+  self.angle_mode = G_reader_settings:read("calculator_angle_mode") or self.angle_mode
+  self.number_format = G_reader_settings:read("calculator_number_format") or self.number_format
+  self.significant_places = G_reader_settings:read("calculator_significant_places") or self.significant_places
 
   self:addKeyboard()
 
@@ -339,17 +327,14 @@ function Calculator:onCalculatorStart()
 
   -- fill status line with spaces
   local expand = -1 -- expand tabs with x spaces
-  self.input_dialog =
-    self:generateInputDialog(self:expandTabs(self.status_line, 1))
+  self.input_dialog = self:generateInputDialog(self:expandTabs(self.status_line, 1))
   local old_height = self.input_dialog.title_bar:getHeight()
   repeat
     expand = expand + 1
-    self.input_dialog =
-      self:generateInputDialog(self:expandTabs(self.status_line, expand))
+    self.input_dialog = self:generateInputDialog(self:expandTabs(self.status_line, expand))
   until expand > 50 or self.input_dialog.title_bar:getHeight() ~= old_height
 
-  self.input_dialog =
-    self:generateInputDialog(self:expandTabs(self.status_line, expand - 1))
+  self.input_dialog = self:generateInputDialog(self:expandTabs(self.status_line, expand - 1))
   self.input_dialog.ignore_first_hold_release = true
 
   UIManager:show(self.input_dialog)
@@ -378,9 +363,7 @@ function Calculator:dump(old_file, file_name)
     for i = 1, #self.input do
       if self.input[i] then
         file:write("/*i" .. i .. ":*/ " .. self.input[i] .. "\n")
-        file:write(
-          "/*o" .. i .. ":   " .. tostring(Parser:eval("o" .. i)) .. " */\n"
-        )
+        file:write("/*o" .. i .. ":   " .. tostring(Parser:eval("o" .. i)) .. " */\n")
       end
     end
     file:close()
@@ -441,14 +424,9 @@ function Calculator:formatMantissaExponent(val, eng)
     shift_exp = exp % 3
     mantissa = mantissa * 10 ^ shift_exp
   end
-  local ret = ""
-    .. math.floor(mantissa * 10 ^ self.significant_places + 0.5)
-      / (10 ^ self.significant_places)
+  local ret = "" .. math.floor(mantissa * 10 ^ self.significant_places + 0.5) / (10 ^ self.significant_places)
   if mantissa ~= 0 then
-    ret = ret
-      .. "E"
-      .. tostring(exp - shift_exp >= 0 and "+" or "")
-      .. tostring(exp - shift_exp)
+    ret = ret .. "E" .. tostring(exp - shift_exp >= 0 and "+" or "") .. tostring(exp - shift_exp)
   end
   return ret
 end
@@ -476,10 +454,7 @@ function Calculator:formatResult(val, format)
   elseif format == "engineer" then
     ret = self:formatMantissaExponent(val, true)
   elseif format == "auto" or format == "programmer" then
-    if
-      math.abs(val) >= 10 ^ self.upper_bound
-      or math.abs(val) <= 0.1 ^ self.lower_bound
-    then
+    if math.abs(val) >= 10 ^ self.upper_bound or math.abs(val) <= 0.1 ^ self.lower_bound then
       ret = self:formatMantissaExponent(val, false)
     else
       local msp = math.floor(math.log10(math.abs(val))) -- most significant place
@@ -487,8 +462,7 @@ function Calculator:formatResult(val, format)
         msp = 1
       end
       ret = ""
-        .. math.floor(val * 10 ^ (self.significant_places - msp + 1) + 0.5)
-          / 10 ^ (self.significant_places - msp + 1)
+        .. math.floor(val * 10 ^ (self.significant_places - msp + 1) + 0.5) / 10 ^ (self.significant_places - msp + 1)
     end
   end
 
@@ -553,44 +527,22 @@ function Calculator:calculate(input_text)
     elseif last_result ~= nil and not last_err then
       self.input[#self.input + 1] = new_command
       -- last result is stored in "oxxx"
-      Parser:eval(
-        Parser:parse("o" .. #self.input .. "=" .. tostring(last_result))
-      )
+      Parser:eval(Parser:parse("o" .. #self.input .. "=" .. tostring(last_result)))
       -- last result is stored in "ans"
       Parser:eval(Parser:parse("ans=" .. tostring(last_result)))
-      last_result = self:formatResult(
-        last_result,
-        self.number_format,
-        self.significant_places
-      )
+      last_result = self:formatResult(last_result, self.number_format, self.significant_places)
 
       if command_position ~= #input_table then -- an old entry was changed
-        self.history = self.history
-          .. "\ni"
-          .. #self.input
-          .. ": "
-          .. new_command
+        self.history = self.history .. "\ni" .. #self.input .. ": " .. new_command
       else -- a new formula is entered
         local index = input_text:find("\n[^\n]*$")
         if not index then -- first entry
-          self.history = "i"
-            .. #self.input
-            .. ": "
-            .. Parser:text2greek(new_command)
+          self.history = "i" .. #self.input .. ": " .. Parser:text2greek(new_command)
         else
-          self.history = input_text:sub(1, index)
-            .. "i"
-            .. #self.input
-            .. ": "
-            .. Parser:text2greek(new_command)
+          self.history = input_text:sub(1, index) .. "i" .. #self.input .. ": " .. Parser:text2greek(new_command)
         end
       end
-      self.history = self.history
-        .. "\no"
-        .. #self.input
-        .. ": "
-        .. Parser:text2greek(tostring(last_result))
-        .. "\n"
+      self.history = self.history .. "\no" .. #self.input .. ": " .. Parser:text2greek(tostring(last_result)) .. "\n"
     else
       self.history = input_text
       UIManager:show(InfoMessage:new({

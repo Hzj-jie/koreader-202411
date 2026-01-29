@@ -29,12 +29,7 @@ end
 function MoveToArchive:init()
   self:onDispatcherRegisterActions()
   self.ui.menu:registerToMainMenu(self)
-  self.settings = LuaSettings:open(
-    ("%s/%s"):format(
-      DataStorage:getSettingsDir(),
-      "move_to_archive_settings.lua"
-    )
-  )
+  self.settings = LuaSettings:open(("%s/%s"):format(DataStorage:getSettingsDir(), "move_to_archive_settings.lua"))
   self.archive_dir_path = self.settings:read("archive_dir")
   self.last_copied_from_dir = self.settings:read("last_copied_from_dir")
 end
@@ -64,10 +59,7 @@ function MoveToArchive:addToMainMenu(menu_items)
       {
         text = _("Go to archive folder"),
         callback = function()
-          if
-            self.archive_dir_path
-            and util.directoryExists(self.archive_dir_path)
-          then
+          if self.archive_dir_path and util.directoryExists(self.archive_dir_path) then
             self:openFileBrowser(self.archive_dir_path)
           else
             self:showNoArchiveConfirmBox()
@@ -104,8 +96,7 @@ function MoveToArchive:onMoveToArchive(do_copy)
   end
   local document_full_path = self.ui.document.file
   local filename
-  self.last_copied_from_dir, filename =
-    util.splitFilePathName(document_full_path)
+  self.last_copied_from_dir, filename = util.splitFilePathName(document_full_path)
   local dest_file = string.format("%s%s", self.archive_dir_path, filename)
 
   self.settings:save("last_copied_from_dir", self.last_copied_from_dir)
@@ -160,10 +151,7 @@ function MoveToArchive:showNoArchiveConfirmBox()
 end
 
 function MoveToArchive:isActionEnabled()
-  return self.ui.document ~= nil
-    and (
-      (BaseUtil.dirname(self.ui.document.file) .. "/") ~= self.archive_dir_path
-    )
+  return self.ui.document ~= nil and ((BaseUtil.dirname(self.ui.document.file) .. "/") ~= self.archive_dir_path)
 end
 
 function MoveToArchive:openFileBrowser(path)

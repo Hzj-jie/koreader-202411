@@ -81,8 +81,7 @@ function CalculatorUnitsDialog:init()
         callback = function()
           UIManager:close(self.parent.units_dialog)
           --                local value = self.
-          local from =
-            self.radio_button_table_units_from.checked_button.provider
+          local from = self.radio_button_table_units_from.checked_button.provider
           local too = self.radio_button_table_units_too.checked_button.provider
           local comment = "  // "
             .. self.radio_button_table_units_from.checked_button.text
@@ -106,9 +105,7 @@ function CalculatorUnitsDialog:init()
             calc.input_dialog._input_widget:goToEndOfLine()
             calc.input_dialog._input_widget:addChars(")")
             -- do the conversion
-            calc.input_dialog._input_widget:addChars(
-              "*(" .. tostring(from) .. "/" .. tostring(too) .. ")" .. comment
-            )
+            calc.input_dialog._input_widget:addChars("*(" .. tostring(from) .. "/" .. tostring(too) .. ")" .. comment)
           else
             calc.input_dialog._input_widget:addChars(from .. "(")
 

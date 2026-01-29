@@ -26,25 +26,15 @@ modeOptions.strict = {
 }
 
 local function mergeOptions(options, mode)
-  jsonutil.doOptionMerge(
-    options,
-    false,
-    "others",
-    defaultOptions,
-    mode and modeOptions[mode]
-  )
+  jsonutil.doOptionMerge(options, false, "others", defaultOptions, mode and modeOptions[mode])
 end
 local function getEncoder(options)
-  options = options and jsonutil.merge({}, defaultOptions, options)
-    or defaultOptions
+  options = options and jsonutil.merge({}, defaultOptions, options) or defaultOptions
   local function encodeOthers(value, state)
     if value == options.null then
       return "null"
     elseif value == options.undefined then
-      assert(
-        options.allowUndefined,
-        "Invalid value: Unsupported 'Undefined' parameter"
-      )
+      assert(options.allowUndefined, "Invalid value: Unsupported 'Undefined' parameter")
       return "undefined"
     else
       return false

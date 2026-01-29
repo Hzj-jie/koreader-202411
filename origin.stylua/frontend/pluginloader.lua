@@ -17,9 +17,7 @@ local OBSOLETE_PLUGINS = {
 
 local DEPRECATION_MESSAGES = {
   remove = _("This plugin is unmaintained and will be removed soon."),
-  feature = _(
-    "The following features are unmaintained and will be removed soon:"
-  ),
+  feature = _("The following features are unmaintained and will be removed soon:"),
 }
 
 local function deprecationFmt(field)
@@ -42,18 +40,11 @@ end
 local function getMenuTable(plugin)
   local t = {}
   t.name = plugin.name
-  t.fullname = string.format(
-    "%s%s",
-    plugin.fullname or plugin.name,
-    plugin.deprecated and " (" .. _("outdated") .. ")" or ""
-  )
+  t.fullname =
+    string.format("%s%s", plugin.fullname or plugin.name, plugin.deprecated and " (" .. _("outdated") .. ")" or "")
 
   local deprecated, message = deprecationFmt(plugin.deprecated)
-  t.description = string.format(
-    "%s%s",
-    plugin.description,
-    deprecated and "\n\n" .. message or ""
-  )
+  t.description = string.format("%s%s", plugin.description, deprecated and "\n\n" .. message or "")
   return t
 end
 
@@ -98,9 +89,7 @@ function PluginLoader:loadPlugins()
     if type(extra_paths) == "table" then
       for _, extra_path in ipairs(extra_paths) do
         local extra_path_mode = lfs.attributes(extra_path, "mode")
-        if
-          extra_path_mode == "directory" and extra_path ~= DEFAULT_PLUGIN_PATH
-        then
+        if extra_path_mode == "directory" and extra_path ~= DEFAULT_PLUGIN_PATH then
           table.insert(lookup_path_list, extra_path)
         end
       end
@@ -141,18 +130,13 @@ function PluginLoader:loadPlugins()
           mainfile = metafile
         end
         package.path = string.format("%s/?.lua;%s", plugin_root, package_path)
-        package.cpath =
-          string.format("%s/lib/?.so;%s", plugin_root, package_cpath)
+        package.cpath = string.format("%s/lib/?.so;%s", plugin_root, package_cpath)
         local ok, plugin_module = pcall(dofile, mainfile)
         if not ok or not plugin_module then
           logger.warn("Error when loading", mainfile, plugin_module)
-        elseif
-          type(plugin_module.disabled) ~= "boolean"
-          or not plugin_module.disabled
-        then
+        elseif type(plugin_module.disabled) ~= "boolean" or not plugin_module.disabled then
           plugin_module.path = plugin_root
-          plugin_module.name = plugin_module.name
-            or plugin_root:match("/(.-)%.koplugin")
+          plugin_module.name = plugin_module.name or plugin_root:match("/(.-)%.koplugin")
           if plugins_disabled and plugins_disabled[entry:sub(1, -10)] then
             table.insert(self.disabled_plugins, plugin_module)
           else
@@ -221,9 +205,7 @@ function PluginLoader:genPluginManagerSubItem()
       callback = function()
         local UIManager = require("ui/uimanager")
         local _ = require("gettext")
-        local plugins_disabled = G_reader_settings:readSetting(
-          "plugins_disabled"
-        ) or {}
+        local plugins_disabled = G_reader_settings:readSetting("plugins_disabled") or {}
         plugin.enable = not plugin.enable
         if plugin.enable then
           plugins_disabled[plugin.name] = nil

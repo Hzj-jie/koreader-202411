@@ -63,9 +63,7 @@ local CreOptions = {
               "rotation.P.90CW",
               "rotation.P.180UD",
             }
-          elseif
-            Screen:getRotationMode() == Screen.DEVICE_ROTATED_UPSIDE_DOWN
-          then
+          elseif Screen:getRotationMode() == Screen.DEVICE_ROTATED_UPSIDE_DOWN then
             -- P, 180UD
             return {
               "rotation.P.90CW",
@@ -73,9 +71,7 @@ local CreOptions = {
               "rotation.P.90CCW",
               "rotation.P.0UR",
             }
-          elseif
-            Screen:getRotationMode() == Screen.DEVICE_ROTATED_CLOCKWISE
-          then
+          elseif Screen:getRotationMode() == Screen.DEVICE_ROTATED_CLOCKWISE then
             -- L, 90CW
             return {
               "rotation.L.90CCW",
@@ -155,9 +151,7 @@ This is disabled in scroll mode. Switching from page mode with two columns to sc
           G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_XX_HUGE"),
         },
         default_pos = 2,
-        default_value = G_defaults:readSetting(
-          "DCREREADER_CONFIG_H_MARGIN_SIZES_MEDIUM"
-        ),
+        default_value = G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_MEDIUM"),
         event = "SetPageHorizMargins",
         args = {
           G_defaults:readSetting("DCREREADER_CONFIG_H_MARGIN_SIZES_SMALL"),
@@ -220,9 +214,7 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
           G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_XX_HUGE"),
         },
         default_pos = 3,
-        default_value = G_defaults:readSetting(
-          "DCREREADER_CONFIG_T_MARGIN_SIZES_LARGE"
-        ),
+        default_value = G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_LARGE"),
         event = "SetPageTopMargin",
         args = {
           G_defaults:readSetting("DCREREADER_CONFIG_T_MARGIN_SIZES_SMALL"),
@@ -275,9 +267,7 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
           G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_XX_HUGE"),
         },
         default_pos = 3,
-        default_value = G_defaults:readSetting(
-          "DCREREADER_CONFIG_B_MARGIN_SIZES_LARGE"
-        ),
+        default_value = G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_LARGE"),
         event = "SetPageBottomMargin",
         args = {
           G_defaults:readSetting("DCREREADER_CONFIG_B_MARGIN_SIZES_SMALL"),
@@ -325,10 +315,7 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
         name_text = _("View Mode"),
         toggle = { _("page"), _("continuous") },
         values = { 0, 1 },
-        default_value = G_defaults:readSetting("DCREREADER_VIEW_MODE")
-              == "page"
-            and 0
-          or 1,
+        default_value = G_defaults:readSetting("DCREREADER_VIEW_MODE") == "page" and 0 or 1,
         args = { "page", "scroll" },
         event = "SetViewMode",
         name_text_hold_callback = optionsutil.showValues,
@@ -346,13 +333,11 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
         args = { 0, 1, 2, 3 },
         event = "SetBlockRenderingMode",
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _(
-          [[
+        help_text = _([[
 - 'legacy' uses original CR3 block rendering code.
 - 'flat' ensures flat rendering with collapsing margins and accurate page breaks.
 - 'book' additionally allows floats, but limits style support to avoid blank spaces and overflows.
-- 'web' renders as web browsers do, allowing negative margins and possible page overflow.]]
-        ),
+- 'web' renders as web browsers do, allowing negative margins and possible page overflow.]]),
       },
       { -- ReaderTypeset
         name = "render_dpi",
@@ -367,14 +352,12 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
         default_value = 96,
         args = { 0, 48, 96, 167, 212, 300 },
         event = "SetRenderDPI",
-        help_text = _(
-          [[Sets the DPI used to scale absolute CSS units and images:
+        help_text = _([[Sets the DPI used to scale absolute CSS units and images:
 - off: ignore absolute units (old engine behavior).
 - 96¹’¹: at 96 DPI, 1 CSS pixel = 1 screen pixel and images are rendered at their original dimensions.
 - other values scale CSS absolute units and images by a factor (300 DPI = x3, 48 DPI = x0.5)
 Using your device's actual DPI will ensure 1 cm in CSS actually translates to 1 cm on screen.
-Note that your selected font size is not affected by this setting.]]
-        ),
+Note that your selected font size is not affected by this setting.]]),
         name_text_hold_callback = optionsutil.showValues,
         name_text_true_values = true,
         show_true_value_func = function(val) -- add "dpi"
@@ -391,38 +374,20 @@ Note that your selected font size is not affected by this setting.]]
         values = {
           G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_TINY"),
           G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_TINY"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_SMALL"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_SMALL"
-          ),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_SMALL"),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_SMALL"),
           G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_SMALL"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_SMALL"
-          ),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_SMALL"),
           G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_MEDIUM"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_MEDIUM"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XL_MEDIUM"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XXL_MEDIUM"
-          ),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_MEDIUM"),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XL_MEDIUM"),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XXL_MEDIUM"),
           G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_LARGE"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_LARGE"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_LARGE"
-          ),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_LARGE"),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_LARGE"),
         },
         default_pos = 7,
-        default_value = G_defaults:readSetting(
-          "DCREREADER_CONFIG_LINE_SPACE_PERCENT_MEDIUM"
-        ),
+        default_value = G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_MEDIUM"),
         more_options = true,
         more_options_param = {
           value_min = 50,
@@ -435,33 +400,17 @@ Note that your selected font size is not affected by this setting.]]
         args = {
           G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_TINY"),
           G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_TINY"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_SMALL"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_SMALL"
-          ),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_SMALL"),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_SMALL"),
           G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_SMALL"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_SMALL"
-          ),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_SMALL"),
           G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_MEDIUM"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_MEDIUM"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XL_MEDIUM"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XXL_MEDIUM"
-          ),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_L_MEDIUM"),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XL_MEDIUM"),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XXL_MEDIUM"),
           G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_LARGE"),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_LARGE"
-          ),
-          G_defaults:readSetting(
-            "DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_LARGE"
-          ),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_LARGE"),
+          G_defaults:readSetting("DCREREADER_CONFIG_LINE_SPACE_PERCENT_XX_LARGE"),
         },
         name_text_hold_callback = optionsutil.showValues,
         show_true_value_func = function(val) -- add "%"
@@ -476,27 +425,20 @@ Note that your selected font size is not affected by this setting.]]
       { -- ReaderFont
         name = "font_size",
         alt_name_text = _("Font Size"),
-        item_text = tableOfNumbersToTableOfStrings(
-          G_defaults:readSetting("DCREREADER_CONFIG_FONT_SIZES")
-        ),
+        item_text = tableOfNumbersToTableOfStrings(G_defaults:readSetting("DCREREADER_CONFIG_FONT_SIZES")),
         item_align_center = 1.0,
         spacing = 15,
         item_font_size = G_defaults:readSetting("DCREREADER_CONFIG_FONT_SIZES"),
         values = G_defaults:readSetting("DCREREADER_CONFIG_FONT_SIZES"),
-        default_value = G_defaults:readSetting(
-          "DCREREADER_CONFIG_DEFAULT_FONT_SIZE"
-        ),
+        default_value = G_defaults:readSetting("DCREREADER_CONFIG_DEFAULT_FONT_SIZE"),
         args = G_defaults:readSetting("DCREREADER_CONFIG_FONT_SIZES"),
         event = "SetFontSize",
       },
       { -- ReaderFont
         name = "font_fine_tune",
         name_text = _("Font Size"),
-        toggle = Device:isTouchDevice() and { _("decrease"), _("increase") }
-          or nil,
-        item_text = not Device:isTouchDevice()
-            and { _("decrease"), _("increase") }
-          or nil,
+        toggle = Device:isTouchDevice() and { _("decrease"), _("increase") } or nil,
+        item_text = not Device:isTouchDevice() and { _("decrease"), _("increase") } or nil,
         more_options = true,
         more_options_param = {
           value_min = 12,
@@ -528,11 +470,9 @@ Note that your selected font size is not affected by this setting.]]
         more_options_param = {
           name = "word_spacing",
           name_text = _("Word spacing"),
-          info_text = _(
-            [[Set word spacing percentages:
+          info_text = _([[Set word spacing percentages:
 - how much to scale the width of each space character from its regular width,
-- by how much some of them can then be reduced to make more words fit on a line.]]
-          ),
+- by how much some of them can then be reduced to make more words fit on a line.]]),
           left_text = _("Scaling"),
           left_min = 10,
           left_max = 500,
@@ -556,9 +496,7 @@ Note that your selected font size is not affected by this setting.]]
           G_defaults:readSetting("DCREREADER_CONFIG_WORD_SPACING_MEDIUM"),
           G_defaults:readSetting("DCREREADER_CONFIG_WORD_SPACING_LARGE"),
         },
-        default_value = G_defaults:readSetting(
-          "DCREREADER_CONFIG_WORD_SPACING_MEDIUM"
-        ),
+        default_value = G_defaults:readSetting("DCREREADER_CONFIG_WORD_SPACING_MEDIUM"),
         args = {
           G_defaults:readSetting("DCREREADER_CONFIG_WORD_SPACING_SMALL"),
           G_defaults:readSetting("DCREREADER_CONFIG_WORD_SPACING_MEDIUM"),
@@ -586,9 +524,7 @@ Note that your selected font size is not affected by this setting.]]
           unit = "%",
           name = "word_expansion",
           name_text = _("Max word expansion"),
-          info_text = _(
-            [[Set max word expansion as a percentage of the font size.]]
-          ),
+          info_text = _([[Set max word expansion as a percentage of the font size.]]),
           event = "SetWordExpansion",
           other_button = { -- allow fine tuning the hidden cjk_width_scaling option (defined below)
             text = _("CJK scaling"),
@@ -605,9 +541,7 @@ Note that your selected font size is not affected by this setting.]]
           G_defaults:readSetting("DCREREADER_CONFIG_WORD_EXPANSION_SOME"),
           G_defaults:readSetting("DCREREADER_CONFIG_WORD_EXPANSION_MORE"),
         },
-        default_value = G_defaults:readSetting(
-          "DCREREADER_CONFIG_WORD_EXPANSION_NONE"
-        ),
+        default_value = G_defaults:readSetting("DCREREADER_CONFIG_WORD_EXPANSION_NONE"),
         args = {
           G_defaults:readSetting("DCREREADER_CONFIG_WORD_EXPANSION_NONE"),
           G_defaults:readSetting("DCREREADER_CONFIG_WORD_EXPANSION_SOME"),
@@ -764,12 +698,9 @@ If a font variation is not available, as well as for fractional adjustments, it 
         help_text_func = function(configurable, document)
           local cre = require("document/credocument"):engineInit()
           local font_face = document:getFontFace()
-          local available_weights =
-            prettifyCreWeights(cre.getFontFaceAvailableWeights(font_face))
+          local available_weights = prettifyCreWeights(cre.getFontFaceAvailableWeights(font_face))
           return T(
-            _(
-              "The default font '%1' provides the following weight classes: %2."
-            ),
+            _("The default font '%1' provides the following weight classes: %2."),
             font_face,
             table.concat(available_weights, C_("List separator", ", "))
           )
@@ -850,10 +781,8 @@ Whether enabled or disabled, KOReader's own status bar at the bottom of the scre
         args = { false, true },
         event = "ToggleEmbeddedStyleSheet",
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _(
-          [[Enable or disable publisher stylesheets embedded in the book.
-(Note that less radical changes can be achieved via Style Tweaks in the main menu.)]]
-        ),
+        help_text = _([[Enable or disable publisher stylesheets embedded in the book.
+(Note that less radical changes can be achieved via Style Tweaks in the main menu.)]]),
       },
       { -- ReaderTypeset
         name = "embedded_fonts",
@@ -876,15 +805,9 @@ Whether enabled or disabled, KOReader's own status bar at the bottom of the scre
           local font_list = document:getEmbeddedFontList()
           if next(font_list) then
             local font_details = {}
-            table.insert(
-              font_details,
-              _("Embedded fonts provided by the current book:")
-            )
+            table.insert(font_details, _("Embedded fonts provided by the current book:"))
             for name in ffiUtil.orderedPairs(font_list) do
-              table.insert(
-                font_details,
-                name .. (font_list[name] and "" or T("  (%1)", _("not used")))
-              )
+              table.insert(font_details, name .. (font_list[name] and "" or T("  (%1)", _("not used"))))
             end
             return table.concat(font_details, "\n")
           end
@@ -899,10 +822,8 @@ Whether enabled or disabled, KOReader's own status bar at the bottom of the scre
         args = { false, true },
         event = "ToggleImageScaling",
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _(
-          [[- 'fast' uses a fast but inaccurate scaling algorithm when scaling images.
-- 'best' switches to a more costly but vastly more pleasing and accurate algorithm.]]
-        ),
+        help_text = _([[- 'fast' uses a fast but inaccurate scaling algorithm when scaling images.
+- 'best' switches to a more costly but vastly more pleasing and accurate algorithm.]]),
       },
       { -- ReaderTypeset
         name = "nightmode_images",

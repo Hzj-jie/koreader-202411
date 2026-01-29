@@ -233,9 +233,7 @@ function ReaderMenu:setUpdateItemTable()
               local current_file = self.ui.document.file
               self:onTapCloseMenu()
               self.ui:onClose()
-              require("apps/filemanager/filemanagerutil").resetDocumentSettings(
-                current_file
-              )
+              require("apps/filemanager/filemanagerutil").resetDocumentSettings(current_file)
               require("apps/reader/readerui"):showReader(current_file)
             end,
           }))
@@ -265,9 +263,7 @@ function ReaderMenu:setUpdateItemTable()
 
   -- settings tab
   -- insert common settings
-  for id, common_setting in
-    pairs(dofile("frontend/ui/elements/common_settings_menu_table.lua"))
-  do
+  for id, common_setting in pairs(dofile("frontend/ui/elements/common_settings_menu_table.lua")) do
     self.menu_items[id] = common_setting
   end
 
@@ -277,8 +273,7 @@ function ReaderMenu:setUpdateItemTable()
   end
   -- Settings > Navigation; while also related to page turns, this mostly concerns physical keys, and applies *everywhere*
   if Device:hasKeys() then
-    self.menu_items.physical_buttons_setup =
-      dofile("frontend/ui/elements/physical_buttons.lua")
+    self.menu_items.physical_buttons_setup = dofile("frontend/ui/elements/physical_buttons.lua")
   end
   -- insert DjVu render mode submenu just before the last entry (show advanced)
   -- this is a bit of a hack
@@ -291,17 +286,14 @@ function ReaderMenu:setUpdateItemTable()
       text = _("Do not show this book cover on sleep screen"),
       enabled_func = function()
         if self.ui and self.ui.document then
-          local screensaverType =
-            G_reader_settings:readSetting("screensaver_type")
+          local screensaverType = G_reader_settings:readSetting("screensaver_type")
           return screensaverType == "cover" or screensaverType == "disable"
         else
           return false
         end
       end,
       checked_func = function()
-        return self.ui
-          and self.ui.doc_settings
-          and self.ui.doc_settings:isTrue("exclude_screensaver")
+        return self.ui and self.ui.doc_settings and self.ui.doc_settings:isTrue("exclude_screensaver")
       end,
       callback = function()
         if Screensaver:isExcluded() then
@@ -312,8 +304,7 @@ function ReaderMenu:setUpdateItemTable()
         self.ui:saveSettings()
       end,
     }
-    local screensaver_sub_item_table =
-      dofile("frontend/ui/elements/screensaver_menu.lua")
+    local screensaver_sub_item_table = dofile("frontend/ui/elements/screensaver_menu.lua")
     table.insert(screensaver_sub_item_table, ss_book_settings)
     self.menu_items.screensaver = {
       text = _("Sleep screen"),
@@ -328,25 +319,18 @@ function ReaderMenu:setUpdateItemTable()
   }
   -- main menu tab
   -- insert common info
-  for id, common_setting in
-    pairs(dofile("frontend/ui/elements/common_info_menu_table.lua"))
-  do
+  for id, common_setting in pairs(dofile("frontend/ui/elements/common_info_menu_table.lua")) do
     self.menu_items[id] = common_setting
   end
   -- insert common exit for reader
-  for id, common_setting in
-    pairs(dofile("frontend/ui/elements/common_exit_menu_table.lua"))
-  do
+  for id, common_setting in pairs(dofile("frontend/ui/elements/common_exit_menu_table.lua")) do
     self.menu_items[id] = common_setting
   end
 
   self.menu_items.open_previous_document = {
     text_func = function()
       local previous_file = self:getPreviousFile()
-      if
-        not G_reader_settings:isTrue("open_last_menu_show_filename")
-        or not previous_file
-      then
+      if not G_reader_settings:isTrue("open_last_menu_show_filename") or not previous_file then
         return _("Open previous document")
       end
       local path, file_name = util.splitFilePathName(previous_file) -- luacheck: no unused
@@ -361,10 +345,7 @@ function ReaderMenu:setUpdateItemTable()
     hold_callback = function()
       local previous_file = self:getPreviousFile()
       UIManager:show(ConfirmBox:new({
-        text = T(
-          _("Would you like to open the previous document: %1?"),
-          BD.filepath(previous_file)
-        ),
+        text = T(_("Would you like to open the previous document: %1?"), BD.filepath(previous_file)),
         ok_text = _("OK"),
         ok_callback = function()
           self.ui:switchDocument(previous_file)
@@ -377,8 +358,7 @@ function ReaderMenu:setUpdateItemTable()
   local order = require("ui/elements/reader_menu_order")
 
   local MenuSorter = require("ui/menusorter")
-  self.tab_item_table =
-    MenuSorter:mergeAndSort("reader", self.menu_items, order)
+  self.tab_item_table = MenuSorter:mergeAndSort("reader", self.menu_items, order)
 end
 dbg:guard(ReaderMenu, "setUpdateItemTable", function(self)
   local mock_menu_items = {}
@@ -393,10 +373,7 @@ function ReaderMenu:saveDocumentSettingsAsDefault()
   if self.ui.rolling then
     G_reader_settings:saveSetting("cre_font", self.ui.font.font_face)
     G_reader_settings:saveSetting("copt_css", self.ui.document.default_css)
-    G_reader_settings:saveSetting(
-      "style_tweaks",
-      self.ui.styletweak.global_tweaks
-    )
+    G_reader_settings:saveSetting("style_tweaks", self.ui.styletweak.global_tweaks)
     prefix = "copt_"
   else
     prefix = "kopt_"

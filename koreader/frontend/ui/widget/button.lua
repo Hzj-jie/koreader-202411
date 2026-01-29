@@ -86,9 +86,7 @@ function Button:init()
     self.padding_v = self.padding
   end
 
-  local outer_pad_width = 2 * self.padding_h
-    + 2 * self.margin
-    + 2 * self.bordersize -- unscaled_size_check: ignore
+  local outer_pad_width = 2 * self.padding_h + 2 * self.margin + 2 * self.bordersize -- unscaled_size_check: ignore
 
   -- If this button could be made smaller while still not needing truncation
   -- or a smaller font size, we'll set this: it may allow an upper widget to
@@ -106,8 +104,7 @@ function Button:init()
     if self.shortcut then
       text = "[" .. self.shortcut .. "] " .. text
     end
-    local fgcolor = self.enabled and Blitbuffer.COLOR_BLACK
-      or Blitbuffer.COLOR_DARK_GRAY
+    local fgcolor = self.enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY
     local face = Font:getFace(self.text_font_face, self.text_font_size)
     local max_width = self.max_width or self.width
     if max_width then
@@ -132,15 +129,12 @@ function Button:init()
         checkmark_width = tmp:getSize().w
         tmp:free()
       end
-      self._min_needed_width = self.label_widget:getSize().w
-        + checkmark_width
-        + outer_pad_width
+      self._min_needed_width = self.label_widget:getSize().w + checkmark_width + outer_pad_width
     end
     self.did_truncation_tweaks = false
     if self.avoid_text_truncation and self.label_widget:isTruncated() then
       self.did_truncation_tweaks = true
-      local font_size_2_lines =
-        TextBoxWidget:getFontSizeToFitHeight(reference_height, 2, 0)
+      local font_size_2_lines = TextBoxWidget:getFontSizeToFitHeight(reference_height, 2, 0)
       while self.label_widget:isTruncated() do
         local new_size = self.label_widget.face.orig_size - 1
         if new_size <= font_size_2_lines then
@@ -270,12 +264,7 @@ end
 function Button:setText(text, width)
   if text ~= self.text then
     -- Don't trash the frame if we're already a text button, and we're keeping the geometry intact
-    if
-      self.text
-      and width
-      and width == self.width
-      and not self.did_truncation_tweaks
-    then
+    if self.text and width and width == self.width and not self.did_truncation_tweaks then
       self.text = text
       self.label_widget:setText(text)
     else
@@ -489,11 +478,7 @@ function Button:refresh()
   -- e.g., right after a setText or setIcon is a no-go, as those kill the frame.
   --       (Although, setText, if called with the current width, will conserve the frame).
   if not self[1].dimen then
-    logger.dbg(
-      "Button:",
-      tostring(self),
-      "attempted a repaint in an unpainted frame!"
-    )
+    logger.dbg("Button:", tostring(self), "attempted a repaint in an unpainted frame!")
     return
   end
   UIManager:setDirty(self[1], self.enabled and "fast" or "ui")

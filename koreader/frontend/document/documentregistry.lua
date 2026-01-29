@@ -76,8 +76,7 @@ function DocumentRegistry:hasProvider(file, mimetype, include_aux)
   end
   -- associated document or auxiliary provider for file type
   local filetype_provider_key = (G_reader_settings:readTableRef("provider"))[filename_suffix]
-  local provider = filetype_provider_key
-    and self.known_providers[filetype_provider_key]
+  local provider = filetype_provider_key and self.known_providers[filetype_provider_key]
   if provider and (not provider.order or include_aux) then -- excluding auxiliary by default
     return true
   end
@@ -130,11 +129,7 @@ function DocumentRegistry:getProviders(file)
       end
       -- if extension == provider.extension then
       -- stick highest weighted provider at the front
-      if
-        not added
-        and #providers >= 1
-        and provider.weight > providers[1].weight
-      then
+      if not added and #providers >= 1 and provider.weight > providers[1].weight then
         table.insert(providers, 1, provider)
       elseif not added then
         table.insert(providers, provider)
@@ -259,12 +254,7 @@ function DocumentRegistry:openDocument(file, provider)
     end
   else
     self.registry[file].refs = self.registry[file].refs + 1
-    logger.dbg(
-      "DocumentRegistry: Increased refcount to",
-      self.registry[file].refs,
-      "for",
-      file
-    )
+    logger.dbg("DocumentRegistry: Increased refcount to", self.registry[file].refs, "for", file)
   end
   if self.registry[file] then
     return self.registry[file].doc

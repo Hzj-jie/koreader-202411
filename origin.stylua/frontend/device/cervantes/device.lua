@@ -9,8 +9,7 @@ local function no()
 end
 
 local function getProductId()
-  local ntxinfo_pcb =
-    io.popen("/usr/bin/ntxinfo /dev/mmcblk0 | grep pcb | cut -d ':' -f2", "r")
+  local ntxinfo_pcb = io.popen("/usr/bin/ntxinfo /dev/mmcblk0 | grep pcb | cut -d ':' -f2", "r")
   if not ntxinfo_pcb then
     return 0
   end
@@ -107,10 +106,7 @@ local Cervantes4 = Cervantes:extend({
 -- input events
 function Cervantes:initEventAdjustHooks()
   if self.touch_switch_xy and self.touch_mirrored_x then
-    self.input:registerEventAdjustHook(
-      self.input.adjustTouchSwitchAxesAndMirrorX,
-      (self.screen:getWidth() - 1)
-    )
+    self.input:registerEventAdjustHook(self.input.adjustTouchSwitchAxesAndMirrorX, (self.screen:getWidth() - 1))
   end
 
   if self.touch_legacy then
@@ -126,11 +122,7 @@ function Cervantes:init()
   })
 
   -- Automagically set this so we never have to remember to do it manually ;p
-  if
-    self:hasNaturalLight()
-    and self.frontlight_settings
-    and self.frontlight_settings.frontlight_mixer
-  then
+  if self:hasNaturalLight() and self.frontlight_settings and self.frontlight_settings.frontlight_mixer then
     self.hasNaturalLightMixer = yes
   end
 
@@ -155,15 +147,7 @@ function Cervantes:setDateTime(year, month, day, hour, min, sec)
   end
   local command
   if year and month and day then
-    command = string.format(
-      "date -s '%d-%d-%d %d:%d:%d'",
-      year,
-      month,
-      day,
-      hour,
-      min,
-      sec
-    )
+    command = string.format("date -s '%d-%d-%d %d:%d:%d'", year, month, day, hour, min, sec)
   else
     command = string.format("date -s '%d:%d'", hour, min)
   end
@@ -197,10 +181,7 @@ function Cervantes:initNetworkManager(NetworkMgr)
   function NetworkMgr:getNetworkInterfaceName()
     return "eth0"
   end
-  NetworkMgr:setWirelessBackend(
-    "wpa_supplicant",
-    { ctrl_interface = "/var/run/wpa_supplicant/eth0" }
-  )
+  NetworkMgr:setWirelessBackend("wpa_supplicant", { ctrl_interface = "/var/run/wpa_supplicant/eth0" })
   function NetworkMgr:obtainIP()
     os.execute("./obtain-ip.sh")
   end

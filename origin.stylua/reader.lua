@@ -40,9 +40,7 @@ G_defaults = require("luadefaults"):open()
 -- Has to be done before requiring other files because
 -- they might call gettext on load
 local DataStorage = require("datastorage")
-G_reader_settings = require("luasettings"):open(
-  DataStorage:getDataDir() .. "/settings.reader.lua"
-)
+G_reader_settings = require("luasettings"):open(DataStorage:getDataDir() .. "/settings.reader.lua")
 
 -- Apply the JIT opt tweaks ASAP when the C BB is disabled,
 -- because we want to avoid the jit.flush() from bb:enableCBB,
@@ -74,10 +72,7 @@ local dbg = require("dbg")
 if G_reader_settings:isTrue("debug") then
   dbg:turnOn()
 end
-if
-  G_reader_settings:isTrue("debug")
-  and G_reader_settings:isTrue("debug_verbose")
-then
+if G_reader_settings:isTrue("debug") and G_reader_settings:isTrue("debug_verbose") then
   dbg:setVerbose(true)
 end
 
@@ -216,9 +211,7 @@ if Device:hasColorScreen() and not G_reader_settings:has("color_rendering") then
 end
 
 -- Conversely, if color is enabled on a Grayscale screen (e.g., after importing settings from a color device), warn that it'll break stuff and adversely affect performance.
-if
-  G_reader_settings:isTrue("color_rendering") and not Device:hasColorScreen()
-then
+if G_reader_settings:isTrue("color_rendering") and not Device:hasColorScreen() then
   local ConfirmBox = require("ui/widget/confirmbox")
   UIManager:show(ConfirmBox:new({
     text = _(
@@ -277,11 +270,7 @@ else
     last_file = QuickStart:getQuickStart()
   end
 
-  if
-    start_with == "last"
-    and last_file
-    and lfs.attributes(last_file, "mode") ~= "file"
-  then
+  if start_with == "last" and last_file and lfs.attributes(last_file, "mode") ~= "file" then
     UIManager:show(retryLastFile())
     -- We'll want to return from this without actually quitting,
     -- so this is a slightly mangled UIManager:run() call to coerce the main loop into submission...
@@ -295,9 +284,7 @@ else
     exit_code = UIManager:run()
   else
     local FileManager = require("apps/filemanager/filemanager")
-    local home_dir = G_reader_settings:readSetting("home_dir")
-      or Device.home_dir
-      or lfs.currentdir()
+    local home_dir = G_reader_settings:readSetting("home_dir") or Device.home_dir or lfs.currentdir()
     -- Instantiate FM
     FileManager:showFiles(home_dir)
     -- Always open FM modules on top of filemanager, so closing 'em doesn't result in an exit

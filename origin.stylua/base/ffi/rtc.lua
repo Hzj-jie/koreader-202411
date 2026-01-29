@@ -299,9 +299,7 @@ function RTC:validateWakeupAlarmByProximity(task_alarm, proximity)
   if task_alarm then
     print(
       "validateWakeupAlarmByProximity:",
-      "\ntask              @ "
-        .. task_alarm
-        .. os.date(" (%F %T %z)", task_alarm), -- what we were asked to validate
+      "\ntask              @ " .. task_alarm .. os.date(" (%F %T %z)", task_alarm), -- what we were asked to validate
       "\nlast set alarm    @ " .. alarm .. os.date(" (%F %T %z)", alarm), -- the last alarm *we* setup
       "\ncurrent rtc alarm @ " .. alarm_sys .. os.date(" (%F %T %z)", alarm_sys), -- the current rtc alarm
       "\ncurrent rtc time is " .. rtc_now .. os.date(" (%F %T %z)", rtc_now),
@@ -312,9 +310,7 @@ function RTC:validateWakeupAlarmByProximity(task_alarm, proximity)
   -- On dodgy RTCs, some aging batteries are (supposedly) causing reads to report a bogus value...
   -- c.f., https://github.com/koreader/koreader/issues/7994 & https://github.com/koreader/koreader/issues/10996
   if self.dodgy_rtc and alarm_sys <= 1 then
-    print(
-      "A dodgy RTC reported a bogus alarm value, assuming our previously set alarm fired as expected anyway"
-    )
+    print("A dodgy RTC reported a bogus alarm value, assuming our previously set alarm fired as expected anyway")
     alarm_sys = alarm
   end
 

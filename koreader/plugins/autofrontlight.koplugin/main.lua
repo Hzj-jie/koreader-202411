@@ -1,8 +1,6 @@
 local Device = require("device")
 
-if
-  not (Device.isEmulator() or (Device:isKindle() and Device:hasLightSensor()))
-then
+if not (Device.isEmulator() or (Device:isKindle() and Device:hasLightSensor())) then
   return { disabled = true }
 end
 
@@ -41,15 +39,9 @@ function AutoFrontlightPlugin:_action()
     return
   end
   local current_level = Device:ambientBrightnessLevel()
-  logger.dbg(
-    "AutoFrontlight:_action(): Retrieved ambient brightness level: ",
-    current_level
-  )
+  logger.dbg("AutoFrontlight:_action(): Retrieved ambient brightness level: ", current_level)
   if self.last_brightness == current_level then
-    logger.dbg(
-      "AutoFrontlight:_action(): recorded brightness is same as current level ",
-      self.last_brightness
-    )
+    logger.dbg("AutoFrontlight:_action(): recorded brightness is same as current level ", self.last_brightness)
     return
   end
   if current_level <= 1 then

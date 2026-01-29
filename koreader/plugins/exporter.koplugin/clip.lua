@@ -57,11 +57,10 @@ function MyClipping:parseMyClippings()
       line = line:match("^%s*(.-)%s*$") or ""
       if index == 1 then
         title, author = self:parseTitleFromPath(line)
-        clippings[title] = clippings[title]
-          or {
-            title = title,
-            author = author,
-          }
+        clippings[title] = clippings[title] or {
+          title = title,
+          author = author,
+        }
       elseif index == 2 then
         info = self:getInfo(line)
         -- elseif index == 3 then
@@ -124,8 +123,7 @@ function MyClipping:parseTitleFromPath(line)
     dummy, dummy, title, author = line:find("(.-)%s*-%s*(.*)")
   end
   title = title or line:match("^%s*(.-)%s*$")
-  return isEmpty(title) and _("Unknown Book") or title,
-    isEmpty(author) and _("Unknown Author") or author
+  return isEmpty(title) and _("Unknown Book") or title, isEmpty(author) and _("Unknown Author") or author
 end
 
 local keywords = {
@@ -235,8 +233,7 @@ function MyClipping:getImage(image)
   --DEBUG("image", image)
   local doc = DocumentRegistry:openDocument(image.file)
   if doc then
-    local png =
-      doc:clipPagePNGString(image.pos0, image.pos1, image.pboxes, image.drawer)
+    local png = doc:clipPagePNGString(image.pos0, image.pos1, image.pboxes, image.drawer)
     --doc:clipPagePNGFile(image.pos0, image.pos1,
     --image.pboxes, image.drawer, "/tmp/"..md5(png)..".png")
     doc:close()
@@ -249,13 +246,7 @@ end
 function MyClipping:parseAnnotations(annotations, book)
   local settings = G_reader_settings:readTableRef("exporter")
   for _, item in ipairs(annotations) do
-    if
-      item.drawer
-      and not (
-        settings.highlight_styles
-        and settings.highlight_styles[item.drawer] == false
-      )
-    then
+    if item.drawer and not (settings.highlight_styles and settings.highlight_styles[item.drawer] == false) then
       local clipping = {
         sort = "highlight",
         page = item.pageref or item.pageno,
@@ -277,25 +268,13 @@ function MyClipping:parseHighlight(highlights, bookmarks, book)
   -- create a translated pattern that matches bookmark auto-text
   -- see ReaderBookmark:getBookmarkAutoText and ReaderBookmark:getBookmarkPageString
   --- @todo Remove this once we get rid of auto-text or improve the data model.
-  local pattern = "^"
-    .. T(
-      _("Page %1 %2 @ %3"),
-      "%[?%d*%]?%d+",
-      "(.*)",
-      "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d"
-    )
-    .. "$"
+  local pattern = "^" .. T(_("Page %1 %2 @ %3"), "%[?%d*%]?%d+", "(.*)", "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") .. "$"
 
   local orphan_highlights = {}
   local settings = G_reader_settings:readTableRef("exporter")
   for page, items in pairs(highlights) do
     for _, item in ipairs(items) do
-      if
-        not (
-          settings.highlight_styles
-          and settings.highlight_styles[item.drawer] == false
-        )
-      then
+      if not (settings.highlight_styles and settings.highlight_styles[item.drawer] == false) then
         local clipping = {
           sort = "highlight",
           page = page,
@@ -309,10 +288,7 @@ function MyClipping:parseHighlight(highlights, bookmarks, book)
           if bookmark.datetime == item.datetime then
             if bookmark.text then
               local bookmark_quote = bookmark.text:match(pattern)
-              if
-                bookmark_quote ~= clipping.text
-                and bookmark.text ~= clipping.text
-              then
+              if bookmark_quote ~= clipping.text and bookmark.text ~= clipping.text then
                 -- use modified quoted text or entire bookmark text if it's not a match
                 clipping.note = bookmark_quote or bookmark.text
               end
@@ -348,10 +324,7 @@ function MyClipping:parseHighlight(highlights, bookmarks, book)
           clipping.image = self:getImage(image)
         end
         --- @todo Store chapter info when exporting highlights.
-        if
-          (bookmark_found and clipping.text and clipping.text ~= "")
-          or clipping.image
-        then
+        if (bookmark_found and clipping.text and clipping.text ~= "") or clipping.image then
           table.insert(book, { clipping })
         end
       end
@@ -377,16 +350,12 @@ end
 function MyClipping:getTitleAuthor(filepath, props)
   local _, _, doc_name = filepath:find(".*/(.*)")
   local parsed_title, parsed_author = self:parseTitleFromPath(doc_name)
-  return isEmpty(props.title) and parsed_title or props.title,
-    isEmpty(props.authors) and parsed_author or props.authors
+  return isEmpty(props.title) and parsed_title or props.title, isEmpty(props.authors) and parsed_author or props.authors
 end
 
 function MyClipping:getClippingsFromBook(clippings, doc_path)
   local doc_settings = DocSettings:open(doc_path)
-  local props = FileManagerBookInfo.extendProps(
-    doc_settings:readTableRef("doc_props"),
-    doc_path
-  )
+  local props = FileManagerBookInfo.extendProps(doc_settings:readTableRef("doc_props"), doc_path)
   local title, author = self:getTitleAuthor(doc_path, props)
   clippings[title] = {
     file = doc_path,
@@ -395,10 +364,7 @@ function MyClipping:getClippingsFromBook(clippings, doc_path)
     number_of_pages = doc_settings:read("doc_pages"),
   }
   if doc_settings:has("annotations") then
-    self:parseAnnotations(
-      doc_settings:readTableRef("annotations"),
-      clippings[title]
-    )
+    self:parseAnnotations(doc_settings:readTableRef("annotations"), clippings[title])
   end
   if doc_settings:has("highlight") then
     self:parseHighlight(
@@ -431,8 +397,7 @@ end
 
 function MyClipping:parseCurrentDoc(view)
   local clippings = {}
-  local title, author =
-    self:getTitleAuthor(view.document.file, view.ui.doc_props)
+  local title, author = self:getTitleAuthor(view.document.file, view.ui.doc_props)
   clippings[title] = {
     file = view.document.file,
     title = title,

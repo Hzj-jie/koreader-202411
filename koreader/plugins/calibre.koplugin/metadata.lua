@@ -120,13 +120,7 @@ function CalibreMetadata:loadBookList()
   end
   local books, err = rapidjson.load_calibre(self.metadata)
   if not books then
-    logger.warn(
-      string.format(
-        "Unable to load library from json file %s: \n%s",
-        self.metadata,
-        err
-      )
-    )
+    logger.warn(string.format("Unable to load library from json file %s: \n%s", self.metadata, err))
     return rapidjson.array({})
   end
   return books
@@ -270,11 +264,7 @@ function CalibreMetadata:init(dir, is_search)
   local msg
   if is_search then
     self:cleanUnused(is_search)
-    msg = string.format(
-      "(search) in %.3f milliseconds: %d books",
-      time.to_ms(time.since(start_time)),
-      #self.books
-    )
+    msg = string.format("(search) in %.3f milliseconds: %d books", time.to_ms(time.since(start_time)), #self.books)
   else
     local deleted_count = self:prune()
     self:cleanUnused()

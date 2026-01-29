@@ -41,8 +41,7 @@ local AutoDim = WidgetContainer:extend({
 })
 
 function AutoDim:init()
-  self.autodim_starttime_m = G_reader_settings:read("autodim_starttime_minutes")
-    or -1
+  self.autodim_starttime_m = G_reader_settings:read("autodim_starttime_minutes") or -1
 
   self.ui.menu:registerToMainMenu(self)
 
@@ -64,13 +63,7 @@ function AutoDim:addToMainMenu(menu_items)
           self.autodim_starttime_m <= 0 and _("disabled")
           or T(
             _("after %1"),
-            datetime.secondsToClockDuration(
-              "letters",
-              self.autodim_starttime_m * 60,
-              false,
-              false,
-              true
-            )
+            datetime.secondsToClockDuration("letters", self.autodim_starttime_m * 60, false, false, true)
           )
         )
     end,
@@ -80,11 +73,8 @@ function AutoDim:addToMainMenu(menu_items)
     callback = function(menu)
       local idle_dialog = SpinWidget:new({
         title_text = _("Automatic dimmer idle time"),
-        info_text = _(
-          "Start the dimmer after the designated period of inactivity."
-        ),
-        value = self.autodim_starttime_m >= 0 and self.autodim_starttime_m
-          or DEFAULT_AUTODIM_STARTTIME_M,
+        info_text = _("Start the dimmer after the designated period of inactivity."),
+        value = self.autodim_starttime_m >= 0 and self.autodim_starttime_m or DEFAULT_AUTODIM_STARTTIME_M,
         default_value = DEFAULT_AUTODIM_STARTTIME_M,
         value_min = 0.5,
         -- kindle auto-shuts off in roughly 10 minutes.
@@ -178,8 +168,7 @@ function AutoDim:onFrontlightTurnedOff()
 end
 
 function AutoDim:_shouldNotDim()
-  return UIManager:timeSinceLastUserAction()
-    < time.s(self.autodim_starttime_m * 60)
+  return UIManager:timeSinceLastUserAction() < time.s(self.autodim_starttime_m * 60)
 end
 
 function AutoDim:_executable()

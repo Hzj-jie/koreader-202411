@@ -28,9 +28,7 @@ function AutoTurn:_schedule()
     return
   end
 
-  local delay = self.last_action_time
-    + time.s(self.autoturn_sec)
-    - UIManager:getElapsedTimeSinceBoot()
+  local delay = self.last_action_time + time.s(self.autoturn_sec) - UIManager:getElapsedTimeSinceBoot()
 
   if delay <= 0 then
     local top_wg = UIManager:getTopmostVisibleWidget() or {}
@@ -69,24 +67,11 @@ function AutoTurn:_start()
 
     local text
     if self.autoturn_distance == 1 then
-      local time_string = datetime.secondsToClockDuration(
-        "letters",
-        self.autoturn_sec,
-        false,
-        true,
-        true
-      )
-      text = T(
-        _(
-          "Autoturn is now active and will automatically turn the page every %1."
-        ),
-        time_string
-      )
+      local time_string = datetime.secondsToClockDuration("letters", self.autoturn_sec, false, true, true)
+      text = T(_("Autoturn is now active and will automatically turn the page every %1."), time_string)
     else
       text = T(
-        _(
-          "Autoturn is now active and will automatically scroll %1 % of the page every %2 seconds."
-        ),
+        _("Autoturn is now active and will automatically scroll %1 % of the page every %2 seconds."),
         self.autoturn_distance * 100,
         self.autoturn_sec
       )
@@ -102,8 +87,7 @@ end
 
 function AutoTurn:init()
   UIManager.event_hook:registerWidget("InputEvent", self)
-  self.autoturn_sec =
-    G_reader_settings:readSetting("autoturn_timeout_seconds", 0)
+  self.autoturn_sec = G_reader_settings:readSetting("autoturn_timeout_seconds", 0)
   self.autoturn_distance = G_reader_settings:readSetting("autoturn_distance", 1)
   self.enabled = G_reader_settings:isTrue("autoturn_enabled")
   self.ui.menu:registerToMainMenu(self)
@@ -145,23 +129,15 @@ function AutoTurn:addToMainMenu(menu_items)
   menu_items.autoturn = {
     sorting_hint = "navi",
     text_func = function()
-      local time_string = datetime.secondsToClockDuration(
-        "letters",
-        self.autoturn_sec,
-        false,
-        true,
-        true
-      )
-      return self:_enabled() and T(_("Autoturn: %1"), time_string)
-        or _("Autoturn")
+      local time_string = datetime.secondsToClockDuration("letters", self.autoturn_sec, false, true, true)
+      return self:_enabled() and T(_("Autoturn: %1"), time_string) or _("Autoturn")
     end,
     checked_func = function()
       return self:_enabled()
     end,
     callback = function(menu)
       local DateTimeWidget = require("ui/widget/datetimewidget")
-      local autoturn_seconds =
-        G_reader_settings:readSetting("autoturn_timeout_seconds", 30)
+      local autoturn_seconds = G_reader_settings:readSetting("autoturn_timeout_seconds", 30)
       local autoturn_minutes = math.floor(autoturn_seconds * (1 / 60))
       autoturn_seconds = autoturn_seconds % 60
       local autoturn_spin = DateTimeWidget:new({
@@ -185,10 +161,7 @@ function AutoTurn:addToMainMenu(menu_items)
         ok_always_enabled = true,
         callback = function(t)
           self.autoturn_sec = t.min * 60 + t.sec
-          G_reader_settings:saveSetting(
-            "autoturn_timeout_seconds",
-            self.autoturn_sec
-          )
+          G_reader_settings:saveSetting("autoturn_timeout_seconds", self.autoturn_sec)
           self.enabled = true
           G_reader_settings:makeTrue("autoturn_enabled")
           self:_unschedule()
@@ -213,10 +186,7 @@ function AutoTurn:addToMainMenu(menu_items)
         title_text = _("Scrolling distance"),
         callback = function(autoturn_spin)
           self.autoturn_distance = autoturn_spin.value
-          G_reader_settings:saveSetting(
-            "autoturn_distance",
-            autoturn_spin.value
-          )
+          G_reader_settings:saveSetting("autoturn_distance", autoturn_spin.value)
           if self.enabled then
             self:_unschedule()
             self:_start()

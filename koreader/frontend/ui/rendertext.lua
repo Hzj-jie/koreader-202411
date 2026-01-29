@@ -68,9 +68,7 @@ local function utf8Chars(input_text)
         end
       end
       --- @todo check for valid ranges here!
-      return pos + bytes_left + 1,
-        glyph,
-        string.sub(input, pos, pos + bytes_left)
+      return pos + bytes_left + 1, glyph, string.sub(input, pos, pos + bytes_left)
     end
   end
   return read_next_glyph, input_text, 1
@@ -88,12 +86,7 @@ function RenderText:getGlyph(face, charcode, bold)
     bold = false -- don't embolden glyphs already bold
   end
   -- nil is falsy, cache it as such (i.e., we don't want to use tostring here, as that would make it tristate: true/false/nil)
-  local hash = "glyph|"
-    .. face.hash
-    .. "|"
-    .. charcode
-    .. "|"
-    .. (bold and "1" or "0")
+  local hash = "glyph|" .. face.hash .. "|" .. charcode .. "|" .. (bold and "1" or "0")
   local glyph = GlyphCache:check(hash)
   if glyph then
     -- cache hit
@@ -114,12 +107,7 @@ function RenderText:getGlyph(face, charcode, bold)
     end
   end
   if not rendered_glyph then
-    logger.warn(
-      "error rendering glyph (charcode=",
-      charcode,
-      ") for face",
-      face
-    )
+    logger.warn("error rendering glyph (charcode=", charcode, ") for face", face)
     return
   end
   GlyphCache:insert(hash, rendered_glyph)
@@ -219,18 +207,7 @@ end
 -- @int[opt=nil] width maximum rendering width
 -- @tparam[opt] table char_pads array of integers, nb of pixels to add, one for each utf8 char in text
 -- @return int width of rendered bitmap
-function RenderText:renderUtf8Text(
-  dest_bb,
-  x,
-  baseline,
-  face,
-  text,
-  kerning,
-  bold,
-  fgcolor,
-  width,
-  char_pads
-)
+function RenderText:renderUtf8Text(dest_bb, x, baseline, face, text, kerning, bold, fgcolor, width, char_pads)
   if not text then
     logger.warn("renderUtf8Text called without text")
     return 0
@@ -308,8 +285,7 @@ end
 function RenderText:truncateTextByWidth(text, face, max_width, kerning, bold)
   local ellipsis_width = self:getEllipsisWidth(face, bold)
   local new_txt_width = max_width - ellipsis_width
-  local sub_txt =
-    self:getSubTextByWidth(text, face, new_txt_width, kerning, bold)
+  local sub_txt = self:getSubTextByWidth(text, face, new_txt_width, kerning, bold)
   return sub_txt .. ellipsis
 end
 
@@ -326,13 +302,7 @@ function RenderText:getGlyphByIndex(face, glyphindex, bold, bolder)
   if face.is_real_bold then
     bold = false -- don't embolden glyphs already bold
   end
-  local hash = "xglyph|"
-    .. face.hash
-    .. "|"
-    .. glyphindex
-    .. "|"
-    .. (bold and "1" or "0")
-    .. (bolder and "x" or "")
+  local hash = "xglyph|" .. face.hash .. "|" .. glyphindex .. "|" .. (bold and "1" or "0") .. (bolder and "x" or "")
   local glyph = GlyphCache:check(hash)
   if glyph then
     -- cache hit
@@ -346,15 +316,9 @@ function RenderText:getGlyphByIndex(face, glyphindex, bold, bolder)
       embolden_strength = embolden_strength * 1.5
     end
   end
-  local rendered_glyph =
-    face.ftsize:renderGlyphByIndex(glyphindex, embolden_strength)
+  local rendered_glyph = face.ftsize:renderGlyphByIndex(glyphindex, embolden_strength)
   if not rendered_glyph then
-    logger.warn(
-      "error rendering glyph (glyphindex=",
-      glyphindex,
-      ") for face",
-      face
-    )
+    logger.warn("error rendering glyph (glyphindex=", glyphindex, ") for face", face)
     return
   end
   GlyphCache:insert(hash, rendered_glyph)

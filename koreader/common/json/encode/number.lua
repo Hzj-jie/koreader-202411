@@ -21,13 +21,7 @@ modeOptions.strict = {
 }
 
 local function mergeOptions(options, mode)
-  jsonutil.doOptionMerge(
-    options,
-    false,
-    "number",
-    defaultOptions,
-    mode and modeOptions[mode]
-  )
+  jsonutil.doOptionMerge(options, false, "number", defaultOptions, mode and modeOptions[mode])
 end
 
 local function encodeNumber(number, options)
@@ -47,8 +41,7 @@ local function encodeNumber(number, options)
 end
 
 local function getEncoder(options)
-  options = options and jsonutil.merge({}, defaultOptions, options)
-    or defaultOptions
+  options = options and jsonutil.merge({}, defaultOptions, options) or defaultOptions
   return {
     number = function(number, state)
       return encodeNumber(number, options)

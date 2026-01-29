@@ -38,8 +38,7 @@ function AlphaContainer:paintTo(bb, x, y)
       self.private_bb:free() -- free the one we're going to replace
     end
     -- create a private blitbuffer for our child widget to paint to
-    self.private_bb =
-      Blitbuffer.new(self:getSize().w, self:getSize().h, bb:getType())
+    self.private_bb = Blitbuffer.new(self:getSize().w, self:getSize().h, bb:getType())
     -- fill it with our usual background color
     self.private_bb:fill(Blitbuffer.COLOR_WHITE)
   end
@@ -48,16 +47,7 @@ function AlphaContainer:paintTo(bb, x, y)
   self[1]:paintTo(self.private_bb, 0, 0)
 
   -- and finally blit the private blitbuffer to the target blitbuffer at the requested opacity level
-  bb:addblitFrom(
-    self.private_bb,
-    x,
-    y,
-    0,
-    0,
-    self:getSize().w,
-    self:getSize().h,
-    self.alpha
-  )
+  bb:addblitFrom(self.private_bb, x, y, 0, 0, self:getSize().w, self:getSize().h, self.alpha)
 end
 
 function AlphaContainer:onClose()

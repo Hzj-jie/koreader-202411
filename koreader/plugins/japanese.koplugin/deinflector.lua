@@ -97,25 +97,16 @@ function Deinflector:deinflectVerbatim(text)
   for _, current in ipairs(results) do
     for reason, rules in pairs(self.rules) do
       for _, rule in ipairs(rules) do
-        local rulesMatch = current.rules == 0
-          or bit.band(current.rules, rule.rulesIn) ~= 0
+        local rulesMatch = current.rules == 0 or bit.band(current.rules, rule.rulesIn) ~= 0
         local endsWithKana = current.term:sub(-#rule.kanaIn) == rule.kanaIn
         local longEnough = #current.term - #rule.kanaIn + #rule.kanaOut > 0
         if rulesMatch and endsWithKana and longEnough then
           -- Check if we've already found this deinflection. If so,
           -- that means there was a shorter reason path to it and
           -- this deinflection is almost certainly theoretical.
-          local new_term = current.term:sub(1, -#rule.kanaIn - 1)
-            .. rule.kanaOut
+          local new_term = current.term:sub(1, -#rule.kanaIn - 1) .. rule.kanaOut
           if not seen[new_term] then
-            table.insert(
-              results,
-              makeDeinflectionResult(
-                new_term,
-                rule.rulesOut,
-                { reason, unpack(current.reasons) }
-              )
-            )
+            table.insert(results, makeDeinflectionResult(new_term, rule.rulesOut, { reason, unpack(current.reasons) }))
             seen[new_term] = true
           end
         end
@@ -425,8 +416,7 @@ end
 assert(#HALFWIDTH_KATAKANA == #FULLWIDTH_KATAKANA)
 assert(#FULLWIDTH_KATAKANA == #FULLWIDTH_HIRAGANA)
 -- Create fast conversion tables.
-local HALFWIDTH_TO_FULLWIDTH, KATAKANA_TO_HIRAGANA, HIRAGANA_TO_KATAKANA =
-  {}, {}, {}
+local HALFWIDTH_TO_FULLWIDTH, KATAKANA_TO_HIRAGANA, HIRAGANA_TO_KATAKANA = {}, {}, {}
 for i in ipairs(FULLWIDTH_KATAKANA) do
   KATAKANA_TO_HIRAGANA[FULLWIDTH_KATAKANA[i]] = FULLWIDTH_HIRAGANA[i]
   HIRAGANA_TO_KATAKANA[FULLWIDTH_HIRAGANA[i]] = FULLWIDTH_KATAKANA[i]
@@ -495,18 +485,14 @@ local ALL_TEXT_CONVERSIONS = {
     name = "hiragana_to_katakana",
     pretty_name = _("Hiragana to katakana"),
     -- @translators If possible, keep the example Japanese text.
-    help_text = _(
-      "Convert hiragana to katakana (for instance, ひらがな will be converted to ヒラガナ)."
-    ),
+    help_text = _("Convert hiragana to katakana (for instance, ひらがな will be converted to ヒラガナ)."),
     func = kana_mapper(HIRAGANA_TO_KATAKANA),
   },
   {
     name = "katakana_to_hiragana",
     pretty_name = _("Katakana to hiragana"),
     -- @translators If possible, keep the example Japanese text.
-    help_text = _(
-      "Convert katakana to hiragana (for instance, カタカナ will be converted to かたかな)."
-    ),
+    help_text = _("Convert katakana to hiragana (for instance, カタカナ will be converted to かたかな)."),
     func = kana_mapper(KATAKANA_TO_HIRAGANA),
   },
   {
@@ -574,12 +560,7 @@ function Deinflector:deinflect(text)
     for _, mapped_text in ipairs(mapped_texts) do
       if not seen[mapped_text] then
         if text ~= mapped_text then
-          logger.dbg(
-            "japanese.koplugin deinflector: trying converted variant",
-            text,
-            "->",
-            mapped_text
-          )
+          logger.dbg("japanese.koplugin deinflector: trying converted variant", text, "->", mapped_text)
         end
         local results = self:deinflectVerbatim(mapped_text)
         if results then
@@ -603,12 +584,8 @@ function Deinflector:genTextConversionMenuItems()
         return self.enabled_text_conversions[name] or false
       end,
       callback = function(touchmenu_instance)
-        self.enabled_text_conversions[name] =
-          not self.enabled_text_conversions[name]
-        G_reader_settings:save(
-          "language_japanese_text_conversions",
-          self.enabled_text_conversions
-        )
+        self.enabled_text_conversions[name] = not self.enabled_text_conversions[name]
+        G_reader_settings:save("language_japanese_text_conversions", self.enabled_text_conversions)
         if touchmenu_instance then
           touchmenu_instance:updateItems()
         end
@@ -631,14 +608,7 @@ function Deinflector:genMenuItems()
         if nenabled == 0 then
           return _("Text conversions: none enabled")
         else
-          return T(
-            N_(
-              "Text conversions: %1 enabled",
-              "Text conversions: %1 enabled",
-              nenabled
-            ),
-            nenabled
-          )
+          return T(N_("Text conversions: %1 enabled", "Text conversions: %1 enabled", nenabled), nenabled)
         end
       end,
       help_text = _(
@@ -660,15 +630,10 @@ Not every conversion will be applied at once. Instead, all possible combinations
           nrules = nrules + 1
         end
         local nrules_str = T(N_("%1 rule", "%1 rules", nrules), nrules)
-        local nvariants_str =
-          T(N_("%1 variant", "%1 variants", nvariants), nvariants)
+        local nvariants_str = T(N_("%1 variant", "%1 variants", nvariants), nvariants)
         UIManager:show(InfoMessage:new({
           -- @translators %1 is the "%1 rule(s)" string, %2 is the "%1 variant(s)" string.
-          text = T(
-            _("Deinflector has %1 and %2 loaded."),
-            nrules_str,
-            nvariants_str
-          ),
+          text = T(_("Deinflector has %1 and %2 loaded."), nrules_str, nvariants_str),
         }))
       end,
     },
@@ -705,13 +670,7 @@ function Deinflector:init()
     nrules = nrules + 1
     nvariants = nvariants + #variants
   end
-  logger.dbg(
-    "japanese.koplugin deinflector: loaded inflection table with",
-    nrules,
-    "rules and",
-    nvariants,
-    "variants"
-  )
+  logger.dbg("japanese.koplugin deinflector: loaded inflection table with", nrules, "rules and", nvariants, "variants")
 end
 
 --- Create a new Deflector instance.

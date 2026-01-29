@@ -43,8 +43,7 @@ end
 --]]
 
 -- To match FD_ISSET behavior with poll
-local POLLIN_SET =
-  bit.bor(C.POLLRDNORM, C.POLLRDBAND, C.POLLIN, C.POLLHUP, C.POLLERR)
+local POLLIN_SET = bit.bor(C.POLLRDNORM, C.POLLRDBAND, C.POLLIN, C.POLLHUP, C.POLLERR)
 
 local Socket = {
   AF_UNIX = C.AF_UNIX,
@@ -54,11 +53,7 @@ local Socket = {
 
 function Socket.new(domain, stype, protocol)
   local instance = {
-    fd = C.socket(
-      domain,
-      bit.bor(stype, C.SOCK_NONBLOCK, C.SOCK_CLOEXEC),
-      protocol
-    ),
+    fd = C.socket(domain, bit.bor(stype, C.SOCK_NONBLOCK, C.SOCK_CLOEXEC), protocol),
   }
   if instance.fd < 0 then
     return nil
@@ -69,8 +64,7 @@ end
 
 function Socket.__index:connect(saddr, saddr_type)
   while true do
-    local re =
-      C.connect(self.fd, ffi.cast(sockaddr_pt, saddr), ffi.sizeof(saddr_type))
+    local re = C.connect(self.fd, ffi.cast(sockaddr_pt, saddr), ffi.sizeof(saddr_type))
     if re == 0 then
       return 0
     elseif re == -1 then
@@ -97,12 +91,7 @@ function Socket.__index:send(buf, len, flags)
   local pos = 0
   while len > pos do
     -- NOTE: buf is a Lua string, so this isn't as nice as with real pointer arithmetic...
-    local nw = C.send(
-      self.fd,
-      pos == 0 and buf or buf:sub(1 + pos),
-      len - pos,
-      bit.bor(flags, C.MSG_NOSIGNAL)
-    )
+    local nw = C.send(self.fd, pos == 0 and buf or buf:sub(1 + pos), len - pos, bit.bor(flags, C.MSG_NOSIGNAL))
     if nw == -1 then
       local errno = ffi.errno()
       if errno ~= C.EINTR then

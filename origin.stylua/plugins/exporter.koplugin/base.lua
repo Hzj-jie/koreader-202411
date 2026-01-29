@@ -105,8 +105,7 @@ function BaseExporter:getFilePath(t)
   else
     title = self.all_books_title or "all-books"
   end
-  local filename =
-    string.format("%s-%s.%s", self:getTimeStamp(), title, self.extension)
+  local filename = string.format("%s-%s.%s", self:getTimeStamp(), title, self.extension)
   return clipping_dir .. "/" .. util.getSafeFilename(filename)
 end
 

@@ -87,10 +87,7 @@ function web.RequestHandler:initialize(application, request, url_args, options)
   -- Set standard headers by calling the clear method.
   self:clear()
   if self.request.headers:get("Connection") then
-    self.request.connection.stream:set_close_callback(
-      self.on_connection_close,
-      self
-    )
+    self.request.connection.stream:set_close_callback(self.on_connection_close, self)
   end
   self.options = options
   self:on_create(self.options)
@@ -386,10 +383,8 @@ function web.RequestHandler:get_secure_cookie(name, default, max_age)
     local cookietime = tonumber(timestamp)
     assert(util.gettimeofday() - timestamp < max_age, "Cookie has expired.")
   end
-  local hmac_cmp = hash.HMAC(
-    self.application.kwargs.cookie_secret,
-    string.format("%d|%s|%s", len, tostring(timestamp), value)
-  )
+  local hmac_cmp =
+    hash.HMAC(self.application.kwargs.cookie_secret, string.format("%d|%s|%s", len, tostring(timestamp), value))
   assert(
     hmac == hmac_cmp,
     "Secure cookie does not match hash. \
@@ -440,13 +435,8 @@ function web.RequestHandler:set_secure_cookie(name, value, domain, expire_hours)
   if type(value) ~= "string" then
     value = tostring(value)
   end
-  local to_hash =
-    string.format("%d|%s|%s", value:len(), tostring(util.gettimeofday()), value)
-  local cookie = string.format(
-    "%s|%s",
-    hash.HMAC(self.application.kwargs.cookie_secret, to_hash),
-    to_hash
-  )
+  local to_hash = string.format("%d|%s|%s", value:len(), tostring(util.gettimeofday()), value)
+  local cookie = string.format("%s|%s", hash.HMAC(self.application.kwargs.cookie_secret, to_hash), to_hash)
   return self:set_cookie(name, cookie, domain, expire_hours)
 end
 
@@ -640,12 +630,7 @@ local HTAB = string.byte("\t")
 
 local function get_cookie_table(text_cookie)
   if type(text_cookie) ~= "string" then
-    error(
-      string.format(
-        'Expect text_cookie to be "string" but found %s',
-        type(text_cookie)
-      )
-    )
+    error(string.format('Expect text_cookie to be "string" but found %s', type(text_cookie)))
   end
 
   local EXPECT_KEY = 1
@@ -689,10 +674,7 @@ local function get_cookie_table(text_cookie)
         i = j + 1
       end
     elseif state == EXPECT_SP then
-      if
-        string.byte(text_cookie, j) ~= SPACE
-        and string.byte(text_cookie, j) ~= HTAB
-      then
+      if string.byte(text_cookie, j) ~= SPACE and string.byte(text_cookie, j) ~= HTAB then
         state = EXPECT_KEY
         i = j
         j = j - 1
@@ -702,8 +684,7 @@ local function get_cookie_table(text_cookie)
   end
 
   if key ~= nil and value == nil then
-    cookie_table[escape.unescape(key)] =
-      escape.unescape(string.sub(text_cookie, i))
+    cookie_table[escape.unescape(key)] = escape.unescape(string.sub(text_cookie, i))
   end
 
   return cookie_table
@@ -721,8 +702,7 @@ function web.RequestHandler:_parse_cookies()
   elseif cnt > 1 then
     self._cookies = {}
     for i = 1, cnt do
-      self._cookies =
-        util.tablemerge(self._cookies, get_cookie_table(cookie_str[i]))
+      self._cookies = util.tablemerge(self._cookies, get_cookie_table(cookie_str[i]))
     end
   end
 end
@@ -887,9 +867,7 @@ function web._StaticWebCache:get_file(path)
     elseif cf[1] == SWCT_FILE then
       local file = io.open(path, "rb")
       if not file then
-        log.error(
-          string.format("[web.lua] Could not open file for reading; %s.", err)
-        )
+        log.error(string.format("[web.lua] Could not open file for reading; %s.", err))
         return SWCRC_NOT_FOUND
       end
       return SWCRC_TOO_BIG, cf[2], file, cf[4]
@@ -927,9 +905,7 @@ function web._StaticWebCache:get_file(path)
     end
     local file, err = io.open(path, "rb")
     if not file then
-      log.error(
-        string.format("[web.lua] Could not open file for reading; %s.", err)
-      )
+      log.error(string.format("[web.lua] Could not open file for reading; %s.", err))
       return SWCRC_NOT_FOUND
     end
     return SWCRC_TOO_BIG, stat, file, mime
@@ -944,13 +920,7 @@ function web._StaticWebCache:get_file(path)
     else
       self.files[path] = { SWCT_CACHE, stat, buf, nil, sha1sum }
     end
-    log.notice(
-      string.format(
-        "[web.lua] Added %s (%d bytes) to static file cache. ",
-        path,
-        tonumber(buf:len())
-      )
-    )
+    log.notice(string.format("[web.lua] Added %s (%d bytes) to static file cache. ", path, tonumber(buf:len())))
     return SWCRC_CACHE, stat, buf, mime, sha1sum
   else
     log.error(string.format("[web.lua] Could not read file; %s.", buf))
@@ -1026,11 +996,7 @@ function web.StaticFileHandler:_send_next_chunk()
     return
   end
   self.__file_data_ref = data -- Make sure a reference to string is kept.
-  self.request:write_zero_copy(
-    bufferptr(ffi.cast("const char *", data), data:len()),
-    self._send_next_chunk,
-    self
-  )
+  self.request:write_zero_copy(bufferptr(ffi.cast("const char *", data), data:len()), self._send_next_chunk, self)
 end
 
 function web.StaticFileHandler:_send_from_file(stat, file)
@@ -1303,8 +1269,7 @@ function web.Application:__call(request)
         )
       else
         local thread = coroutine.running()
-        local trace =
-          debug.traceback(coroutine.running(), log.stringify(err), 2)
+        local trace = debug.traceback(coroutine.running(), log.stringify(err), 2)
 
         log.error(
           string.format(
@@ -1330,8 +1295,7 @@ function web.Application:__call(request)
       end
     end
   elseif not handlers and self.default_host then
-    handler =
-      web.RedirectHandler(self, request, nil, self.default_host):_execute()
+    handler = web.RedirectHandler(self, request, nil, self.default_host):_execute()
   else
     handler = web.ErrorHandler(self, request, 404)
   end

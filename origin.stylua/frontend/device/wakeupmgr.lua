@@ -78,10 +78,7 @@ function WakeupMgr:addTask(seconds_from_now, callback)
   --       if necessary, setup an alarm chain to work it around...
   --       c.f., https://github.com/koreader/koreader/issues/8039#issuecomment-1263547625
   if self.dodgy_rtc and seconds_from_now > 0xFFFF then
-    logger.info(
-      "WakeupMgr: scheduling a chain of alarms for a wakeup in",
-      seconds_from_now
-    )
+    logger.info("WakeupMgr: scheduling a chain of alarms for a wakeup in", seconds_from_now)
 
     local seconds_left = seconds_from_now
     while seconds_left > 0 do
@@ -91,20 +88,14 @@ function WakeupMgr:addTask(seconds_from_now, callback)
       -- We only need a callback for the final wakeup, we take care of not breaking the chain when an action is pop'ed.
       table.insert(self._task_queue, {
         epoch = epoch,
-        callback = seconds_left == seconds_from_now and callback
-          or self.DummyTaskCallback,
+        callback = seconds_left == seconds_from_now and callback or self.DummyTaskCallback,
       })
 
       seconds_left = seconds_left - 0xFFFF
     end
   else
     local epoch = RTC:secondsFromNowToEpoch(seconds_from_now)
-    logger.info(
-      "WakeupMgr: scheduling wakeup in",
-      seconds_from_now,
-      "->",
-      epoch
-    )
+    logger.info("WakeupMgr: scheduling wakeup in", seconds_from_now, "->", epoch)
 
     table.insert(self._task_queue, {
       epoch = epoch,
@@ -147,12 +138,7 @@ function WakeupMgr:removeTasks(epoch, callback)
     -- NOTE: For the DummyTaskCallback shenanigans, we at least try to only remove those that come earlier than our match...
     if
       (epoch == v.epoch or callback == v.callback)
-      or (
-        self.dodgy_rtc
-        and match_epoch
-        and self.DummyTaskCallback == v.callback
-        and v.epoch < match_epoch
-      )
+      or (self.dodgy_rtc and match_epoch and self.DummyTaskCallback == v.callback and v.epoch < match_epoch)
     then
       if not match_epoch then
         match_epoch = v.epoch
@@ -231,11 +217,7 @@ Set wakeup alarm.
 Simple wrapper for @{ffi.rtc.setWakeupAlarm}.
 --]]
 function WakeupMgr:setWakeupAlarm(epoch, enabled)
-  logger.dbg(
-    "WakeupMgr:setWakeupAlarm for",
-    epoch,
-    os.date("(%F %T %z)", epoch)
-  )
+  logger.dbg("WakeupMgr:setWakeupAlarm for", epoch, os.date("(%F %T %z)", epoch))
   return self.rtc:setWakeupAlarm(epoch, enabled)
 end
 
@@ -302,15 +284,9 @@ function WakeupMgr:isWakeupAlarmScheduled()
   if wakeup_scheduled then
     -- NOTE: This can't return nil given that we're behind an isWakeupAlarmScheduled check.
     local alarm = self.rtc:getWakeupAlarmEpoch()
-    logger.dbg(
-      "WakeupMgr:isWakeupAlarmScheduled: An alarm is scheduled for "
-        .. alarm
-        .. os.date(" (%F %T %z)", alarm)
-    )
+    logger.dbg("WakeupMgr:isWakeupAlarmScheduled: An alarm is scheduled for " .. alarm .. os.date(" (%F %T %z)", alarm))
   else
-    logger.dbg(
-      "WakeupMgr:isWakeupAlarmScheduled: No alarm is currently scheduled."
-    )
+    logger.dbg("WakeupMgr:isWakeupAlarmScheduled: No alarm is currently scheduled.")
   end
   return wakeup_scheduled
 end

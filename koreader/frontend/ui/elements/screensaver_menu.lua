@@ -30,41 +30,17 @@ return {
   {
     text = _("Wallpaper"),
     sub_item_table = {
-      genMenuItem(
-        _("Show book cover on sleep screen"),
-        "screensaver_type",
-        "cover",
-        hasLastFile
-      ),
-      genMenuItem(
-        _("Show custom image or cover on sleep screen"),
-        "screensaver_type",
-        "document_cover"
-      ),
-      genMenuItem(
-        _("Show random image from folder on sleep screen"),
-        "screensaver_type",
-        "random_image"
-      ),
+      genMenuItem(_("Show book cover on sleep screen"), "screensaver_type", "cover", hasLastFile),
+      genMenuItem(_("Show custom image or cover on sleep screen"), "screensaver_type", "document_cover"),
+      genMenuItem(_("Show random image from folder on sleep screen"), "screensaver_type", "random_image"),
       genMenuItem(
         _("Show reading progress on sleep screen"),
         "screensaver_type",
         "readingprogress",
         isReaderProgressEnabled
       ),
-      genMenuItem(
-        _("Show book status on sleep screen"),
-        "screensaver_type",
-        "bookstatus",
-        hasLastFile
-      ),
-      genMenuItem(
-        _("Leave screen as-is"),
-        "screensaver_type",
-        "disable",
-        nil,
-        true
-      ),
+      genMenuItem(_("Show book status on sleep screen"), "screensaver_type", "bookstatus", hasLastFile),
+      genMenuItem(_("Leave screen as-is"), "screensaver_type", "disable", nil, true),
       separator = true,
       {
         text = _("Border fill, rotation, and fit"),
@@ -76,26 +52,13 @@ return {
         sub_item_table = {
           genMenuItem(_("Black fill"), "screensaver_img_background", "black"),
           genMenuItem(_("White fill"), "screensaver_img_background", "white"),
-          genMenuItem(
-            _("No fill"),
-            "screensaver_img_background",
-            "none",
-            nil,
-            true
-          ),
+          genMenuItem(_("No fill"), "screensaver_img_background", "none", nil, true),
           -- separator
           {
             text_func = function()
-              local percentage =
-                G_reader_settings:read("screensaver_stretch_limit_percentage")
-              if
-                G_reader_settings:isTrue("screensaver_stretch_images")
-                and percentage
-              then
-                return T(
-                  _("Stretch to fit screen (with limit: %1 %)"),
-                  percentage
-                )
+              local percentage = G_reader_settings:read("screensaver_stretch_limit_percentage")
+              if G_reader_settings:isTrue("screensaver_stretch_images") and percentage then
+                return T(_("Stretch to fit screen (with limit: %1 %)"), percentage)
               end
               return _("Stretch cover to fit screen")
             end,
@@ -109,14 +72,10 @@ return {
           {
             text = _("Rotate cover for best fit"),
             checked_func = function()
-              return G_reader_settings:isTrue(
-                "screensaver_rotate_auto_for_best_fit"
-              )
+              return G_reader_settings:isTrue("screensaver_rotate_auto_for_best_fit")
             end,
             callback = function(touchmenu_instance)
-              G_reader_settings:flipNilOrFalse(
-                "screensaver_rotate_auto_for_best_fit"
-              )
+              G_reader_settings:flipNilOrFalse("screensaver_rotate_auto_for_best_fit")
               touchmenu_instance:updateItems()
             end,
           },
@@ -130,11 +89,7 @@ return {
           genMenuItem(_("3 seconds"), "screensaver_delay", "3"),
           genMenuItem(_("5 seconds"), "screensaver_delay", "5"),
           genMenuItem(_("Until a tap"), "screensaver_delay", "tap"),
-          genMenuItem(
-            _("Until 'exit sleep screen' gesture"),
-            "screensaver_delay",
-            "gesture"
-          ),
+          genMenuItem(_("Until 'exit sleep screen' gesture"), "screensaver_delay", "gesture"),
         },
       },
       {
@@ -147,8 +102,7 @@ return {
           {
             text = _("Choose image or document cover"),
             enabled_func = function()
-              return G_reader_settings:read("screensaver_type")
-                == "document_cover"
+              return G_reader_settings:read("screensaver_type") == "document_cover"
             end,
             keep_menu_open = true,
             callback = function()
@@ -158,8 +112,7 @@ return {
           {
             text = _("Choose random image folder"),
             enabled_func = function()
-              return G_reader_settings:read("screensaver_type")
-                == "random_image"
+              return G_reader_settings:read("screensaver_type") == "random_image"
             end,
             keep_menu_open = true,
             callback = function()
@@ -205,13 +158,7 @@ return {
         sub_item_table = {
           genMenuItem(_("Black fill"), "screensaver_msg_background", "black"),
           genMenuItem(_("White fill"), "screensaver_msg_background", "white"),
-          genMenuItem(
-            _("No fill"),
-            "screensaver_msg_background",
-            "none",
-            nil,
-            true
-          ),
+          genMenuItem(_("No fill"), "screensaver_msg_background", "none", nil, true),
         },
       },
       {
@@ -222,13 +169,7 @@ return {
         sub_item_table = {
           genMenuItem(_("Top"), "screensaver_message_position", "top"),
           genMenuItem(_("Middle"), "screensaver_message_position", "middle"),
-          genMenuItem(
-            _("Bottom"),
-            "screensaver_message_position",
-            "bottom",
-            nil,
-            true
-          ),
+          genMenuItem(_("Bottom"), "screensaver_message_position", "bottom", nil, true),
         },
       },
       {

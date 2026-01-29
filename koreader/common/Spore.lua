@@ -37,15 +37,7 @@ m.raises = raises
 local function checktype(caller, narg, arg, tname)
   assert(
     type(arg) == tname,
-    "bad argument #"
-      .. tostring(narg)
-      .. " to "
-      .. caller
-      .. " ("
-      .. tname
-      .. " expected, got "
-      .. type(arg)
-      .. ")"
+    "bad argument #" .. tostring(narg) .. " to " .. caller .. " (" .. tname .. " expected, got " .. type(arg) .. ")"
   )
 end
 m.checktype = checktype
@@ -193,44 +185,20 @@ local function populate(obj, spec, opts)
     if type(methname_modifier) == "function" then
       k = methname_modifier(k)
     end
-    v.authentication = opts.authentication
-      or v.authentication
-      or spec.authentication
+    v.authentication = opts.authentication or v.authentication or spec.authentication
     v.base_url = opts.base_url or v.base_url or spec.base_url
-    v.expected_status = opts.expected_status
-      or v.expected_status
-      or spec.expected_status
+    v.expected_status = opts.expected_status or v.expected_status or spec.expected_status
     v.formats = opts.formats or v.formats or spec.formats
-    v.unattended_params = opts.unattended_params
-      or v.unattended_params
-      or spec.unattended_params
+    v.unattended_params = opts.unattended_params or v.unattended_params or spec.unattended_params
     assert(obj[k] == nil, k .. " duplicated")
     assert(v.method, k .. " without field method")
     assert(v.path, k .. " without field path")
-    assert(
-      type(v.expected_status or {}) == "table",
-      "expected_status of " .. k .. " is not an array"
-    )
-    assert(
-      type(v.required_params or {}) == "table",
-      "required_params of " .. k .. " is not an array"
-    )
-    assert(
-      type(v.optional_params or {}) == "table",
-      "optional_params of " .. k .. " is not an array"
-    )
-    assert(
-      type(v.payload or {}) == "table",
-      "payload of " .. k .. " is not an array"
-    )
-    assert(
-      type(v["form-data"] or {}) == "table",
-      "form-data of " .. k .. " is not an hash"
-    )
-    assert(
-      type(v.headers or {}) == "table",
-      "headers of " .. k .. " is not an hash"
-    )
+    assert(type(v.expected_status or {}) == "table", "expected_status of " .. k .. " is not an array")
+    assert(type(v.required_params or {}) == "table", "required_params of " .. k .. " is not an array")
+    assert(type(v.optional_params or {}) == "table", "optional_params of " .. k .. " is not an array")
+    assert(type(v.payload or {}) == "table", "payload of " .. k .. " is not an array")
+    assert(type(v["form-data"] or {}) == "table", "form-data of " .. k .. " is not an hash")
+    assert(type(v.headers or {}) == "table", "headers of " .. k .. " is not an hash")
     assert(v.base_url, k .. ": base_url is missing")
     local uri = url.parse(v.base_url)
     assert(uri, k .. ": base_url is invalid")
@@ -238,10 +206,7 @@ local function populate(obj, spec, opts)
     assert(uri.scheme, k .. ": base_url without scheme")
     if v.required_payload or v.optional_payload then
       assert(not v["form-data"], "payload and form-data are exclusive")
-      assert(
-        not v.payload,
-        "payload and required_payload|optional_payload are exclusive"
-      )
+      assert(not v.payload, "payload and required_payload|optional_payload are exclusive")
     end
     obj[k] = function(self, args)
       return wrap(self, k, v, args)

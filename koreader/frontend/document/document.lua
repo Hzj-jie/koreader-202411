@@ -204,8 +204,7 @@ function Document:getProps(cached_doc_metadata)
   end
   local language = makeNilIfEmpty(props.language or props.Language)
   local keywords = makeNilIfEmpty(props.keywords or props.Keywords)
-  local description =
-    makeNilIfEmpty(props.description or props.Description or props.subject)
+  local description = makeNilIfEmpty(props.description or props.Description or props.subject)
   local identifiers = makeNilIfEmpty(props.identifiers)
   return {
     title = title,
@@ -242,8 +241,7 @@ end
 
 function Document:getNextPage(page)
   local new_page = page + 1
-  return (new_page > 0 and new_page <= self.info.number_of_pages) and new_page
-    or 0
+  return (new_page > 0 and new_page <= self.info.number_of_pages) and new_page or 0
 end
 
 function Document:getPrevPage(page)
@@ -251,8 +249,7 @@ function Document:getPrevPage(page)
     return self.info.number_of_pages
   end
   local new_page = page - 1
-  return (new_page > 0 and new_page <= self.info.number_of_pages) and new_page
-    or 0
+  return (new_page > 0 and new_page <= self.info.number_of_pages) and new_page or 0
 end
 
 function Document:getTotalPagesLeft(page)
@@ -336,9 +333,7 @@ function Document:getUsedBBoxDimensions(pageno, zoom, rotation)
     bbox.y1 = 0
   end
   local ubbox_dimen
-  if
-    (not bbox.x1 or bbox.x0 >= bbox.x1) or (not bbox.y1 or bbox.y0 >= bbox.y1)
-  then
+  if (not bbox.x1 or bbox.x0 >= bbox.x1) or (not bbox.y1 or bbox.y0 >= bbox.y1) then
     -- if document's bbox info is corrupted, we use the page size
     ubbox_dimen = self:getPageDimensions(pageno, zoom, rotation)
   else
@@ -512,18 +507,12 @@ function Document:renderPage(pageno, rect, zoom, rotation, gamma, hinting)
   else
     -- We prefer to render the full page, if it fits into cache...
     size = page_size
-    if
-      not DocCache:willAccept(
-        size.w * size.h * (self.render_color and 4 or 1) + 512
-      )
-    then
+    if not DocCache:willAccept(size.w * size.h * (self.render_color and 4 or 1) + 512) then
       -- ...and if it doesn't...
       logger.dbg("Attempting to render only part of the page:", rect)
       --- @todo figure out how to better segment the page
       if not rect then
-        logger.warn(
-          "No render region was specified, we won't render the page at all!"
-        )
+        logger.warn("No render region was specified, we won't render the page at all!")
         -- no rect specified, abort
         if hinting then
           CanvasContext:enableCPUCores(1)
@@ -543,11 +532,7 @@ function Document:renderPage(pageno, rect, zoom, rotation, gamma, hinting)
     created_ts = os.time(),
     excerpt = size,
     pageno = pageno,
-    bb = Blitbuffer.new(
-      size.w,
-      size.h,
-      self.render_color and self.color_bb_type or nil
-    ),
+    bb = Blitbuffer.new(size.w, size.h, self.render_color and self.color_bb_type or nil),
   })
   tile.size = tonumber(tile.bb.stride) * tile.bb.h + 512 -- estimation
 
@@ -605,25 +590,9 @@ function Document:drawPage(target, x, y, rect, pageno, zoom, rotation, gamma)
   local tile = self:renderPage(pageno, rect, zoom, rotation, gamma)
   -- Enable SW dithering if requested (only available in koptoptions)
   if self.sw_dithering then
-    target:ditherblitFrom(
-      tile.bb,
-      x,
-      y,
-      rect.x - tile.excerpt.x,
-      rect.y - tile.excerpt.y,
-      rect.w,
-      rect.h
-    )
+    target:ditherblitFrom(tile.bb, x, y, rect.x - tile.excerpt.x, rect.y - tile.excerpt.y, rect.w, rect.h)
   else
-    target:blitFrom(
-      tile.bb,
-      x,
-      y,
-      rect.x - tile.excerpt.x,
-      rect.y - tile.excerpt.y,
-      rect.w,
-      rect.h
-    )
+    target:blitFrom(tile.bb, x, y, rect.x - tile.excerpt.x, rect.y - tile.excerpt.y, rect.w, rect.h)
   end
 end
 
@@ -644,8 +613,7 @@ function Document:drawPagePart(pageno, native_rect, rotation)
   if G_reader_settings:isTrue("imageviewer_rotate_auto_for_best_fit") then
     rotate = (canvas_size.w > canvas_size.h) ~= (rect.w > rect.h)
   end
-  local zoom = rotate
-      and math.min(canvas_size.w / rect.h, canvas_size.h / rect.w)
+  local zoom = rotate and math.min(canvas_size.w / rect.h, canvas_size.h / rect.w)
     or math.min(canvas_size.w / rect.w, canvas_size.h / rect.h)
   local scaled_rect = self:transformRect(rect, zoom, rotation)
   -- Stuff it inside rect so renderPage knows we're handling scaling ourselves

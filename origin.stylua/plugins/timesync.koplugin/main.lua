@@ -17,11 +17,7 @@ if os.execute("command -v ntpd >/dev/null") == 0 then
   local path = os.getenv("PATH") or ""
   for p in path:gmatch("([^:]+)") do
     local sym = lfs.symlinkattributes(p .. "/ntpd")
-    if
-      sym
-      and sym.mode == "link"
-      and string.sub(sym.target, -7) == "busybox"
-    then
+    if sym and sym.mode == "link" and string.sub(sym.target, -7) == "busybox" then
       ntp_cmd = "ntpd -q -n -p pool.ntp.org"
       break
     end
@@ -65,18 +61,13 @@ local function syncNTP()
   UIManager:forceRePaint()
   local txt
   if os.execute(ntp_cmd) ~= 0 then
-    txt = _(
-      "Failed to retrieve time from server. Please check your network configuration."
-    )
+    txt = _("Failed to retrieve time from server. Please check your network configuration.")
   else
     txt = currentTime()
     os.execute("hwclock -u -w")
 
     -- On Kindle, do it the native way, too, to make sure the native UI gets the memo...
-    if
-      Device:isKindle()
-      and lfs.attributes("/usr/sbin/setdate", "mode") == "file"
-    then
+    if Device:isKindle() and lfs.attributes("/usr/sbin/setdate", "mode") == "file" then
       os.execute(string.format("/usr/sbin/setdate '%d'", os.time()))
     end
   end

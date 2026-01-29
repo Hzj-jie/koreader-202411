@@ -48,23 +48,13 @@ function Webp.fromData(data, size)
   -- Note: WebPAnimDecoderOptionsInit() and WebPAnimDecoderNew() are inline functions in demux.h.
   -- We need to use their ...Internal() versions.
   local dec_options = ffi.new("WebPAnimDecoderOptions[1]")
-  local ret = libwebpdemux.WebPAnimDecoderOptionsInitInternal(
-    dec_options,
-    libwebpdemux.WEBP_DEMUX_ABI_VERSION
-  )
+  local ret = libwebpdemux.WebPAnimDecoderOptionsInitInternal(dec_options, libwebpdemux.WEBP_DEMUX_ABI_VERSION)
   assert(ret ~= 0, "libwebp WebPAnimDecoderOptionsInit() failed.")
   dec_options[0].color_mode = libwebpdemux.MODE_RGBA
 
-  local decoder = libwebpdemux.WebPAnimDecoderNewInternal(
-    webp_data,
-    dec_options,
-    libwebpdemux.WEBP_DEMUX_ABI_VERSION
-  )
+  local decoder = libwebpdemux.WebPAnimDecoderNewInternal(webp_data, dec_options, libwebpdemux.WEBP_DEMUX_ABI_VERSION)
   -- check for nil for "NULL in case of parsing error, invalid option or memory error"
-  assert(
-    decoder ~= nil,
-    "libwebp WebPAnimDecoderNew() failed (parsing or memory error)."
-  )
+  assert(decoder ~= nil, "libwebp WebPAnimDecoderNew() failed (parsing or memory error).")
 
   local anim_info = ffi.new("WebPAnimInfo[1]")
   ret = libwebpdemux.WebPAnimDecoderGetInfo(decoder, anim_info)
@@ -131,19 +121,11 @@ function Webp:getFrameImage(number, no_copy)
   -- webp frames can be partial and need to be blended over the previous frame)
   local timestamp = ffi.new("int[1]") -- not used by us
   while self.cur_frame < number do
-    local ret = libwebpdemux.WebPAnimDecoderGetNext(
-      self.webp_decoder,
-      self.webp_image,
-      timestamp
-    )
-    assert(
-      ret ~= 0,
-      "libwebp WebPAnimDecoderGetNext() failed (parsing or decoding error, or no more frames)."
-    )
+    local ret = libwebpdemux.WebPAnimDecoderGetNext(self.webp_decoder, self.webp_image, timestamp)
+    assert(ret ~= 0, "libwebp WebPAnimDecoderGetNext() failed (parsing or decoding error, or no more frames).")
     self.cur_frame = self.cur_frame + 1
   end
-  local image_bb =
-    BB.new(self.width, self.height, BB.TYPE_BBRGB32, self.webp_image[0])
+  local image_bb = BB.new(self.width, self.height, BB.TYPE_BBRGB32, self.webp_image[0])
   if no_copy then
     -- If the caller doesn't need this bb to live after next frame image is called,
     -- or if it does some scaling or a copy itself, it can provide no_copy=true.

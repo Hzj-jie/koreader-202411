@@ -61,8 +61,7 @@ function ButtonProgressWidget:update()
   self.buttonprogress_content:clear()
   local button_margin = Size.margin.tiny
   local button_padding = Size.padding.button
-  local button_bordersize = self.thin_grey_style and Size.border.thin
-    or Size.border.button
+  local button_bordersize = self.thin_grey_style and Size.border.thin or Size.border.button
   local buttons_count = self.num_buttons
   local span_count = 0
   if self.fine_tune then
@@ -73,9 +72,7 @@ function ButtonProgressWidget:update()
     buttons_count = buttons_count + 1
     span_count = span_count + 1
   end
-  local button_width_real = (
-    self.width - span_count * self.horizontal_span_width
-  ) / buttons_count
+  local button_width_real = (self.width - span_count * self.horizontal_span_width) / buttons_count
   local button_width = math.floor(button_width_real)
   local button_width_adjust = button_width_real - button_width
   local button_width_to_add = 0
@@ -117,8 +114,7 @@ function ButtonProgressWidget:update()
     if button_width_to_add >= 1 then
       -- One pixel wider to better align the entire widget
       real_button_width = button_width + math.floor(button_width_to_add)
-      button_width_to_add = button_width_to_add
-        - math.floor(button_width_to_add)
+      button_width_to_add = button_width_to_add - math.floor(button_width_to_add)
     end
     local highlighted = i <= self.position
     local is_default = i == self.default_position
@@ -187,8 +183,7 @@ function ButtonProgressWidget:update()
     if button_width_to_add >= 1 then
       -- One pixel wider to better align the entire widget
       real_button_width = button_width + math.floor(button_width_to_add)
-      button_width_to_add = button_width_to_add
-        - math.floor(button_width_to_add)
+      button_width_to_add = button_width_to_add - math.floor(button_width_to_add)
     end
     local button = Button:new({
       text = "＋",

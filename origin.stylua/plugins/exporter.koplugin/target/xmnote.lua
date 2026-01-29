@@ -117,15 +117,8 @@ function XMNoteExporter:makeRequest(endpoint, method, request_body)
   local sink = {}
   local request_body_json = json.encode(request_body)
   local source = ltn12.source.string(request_body_json)
-  socketutil:set_timeout(
-    socketutil.LARGE_BLOCK_TIMEOUT,
-    socketutil.LARGE_TOTAL_TIMEOUT
-  )
-  local url = "http://"
-    .. self.settings.ip
-    .. ":"
-    .. self.server_port
-    .. endpoint
+  socketutil:set_timeout(socketutil.LARGE_BLOCK_TIMEOUT, socketutil.LARGE_TOTAL_TIMEOUT)
+  local url = "http://" .. self.settings.ip .. ":" .. self.server_port .. endpoint
   local request = {
     url = url,
     method = method,
@@ -140,10 +133,7 @@ function XMNoteExporter:makeRequest(endpoint, method, request_body)
   socketutil:reset_timeout()
 
   if code ~= 200 then
-    logger.warn(
-      "XMNoteClient: HTTP response code <> 200. Response status: ",
-      status
-    )
+    logger.warn("XMNoteClient: HTTP response code <> 200. Response status: ", status)
     logger.dbg("Response headers:", headers)
     return nil, status
   end
@@ -151,10 +141,7 @@ function XMNoteExporter:makeRequest(endpoint, method, request_body)
   local response = json.decode(sink[1])
   local api_code = response["code"]
   if api_code ~= nil and api_code ~= 200 then
-    logger.warn(
-      "XMNoteClient: response code <> 200. message: ",
-      response["message"]
-    )
+    logger.warn("XMNoteClient: response code <> 200. message: ", response["message"])
     logger.dbg("Response headers:", headers)
     return nil, status
   end

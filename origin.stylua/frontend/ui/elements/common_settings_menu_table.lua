@@ -88,8 +88,7 @@ common_settings.time = {
     },
     {
       text_func = function()
-        local duration_format =
-          G_reader_settings:readSetting("duration_format", "classic")
+        local duration_format = G_reader_settings:readSetting("duration_format", "classic")
         local text = C_("Time", "Classic")
         if duration_format == "modern" then
           text = C_("Time", "Modern")
@@ -103,8 +102,7 @@ common_settings.time = {
           text_func = function()
             local datetime = require("datetime")
             -- sample text shows 1:23:45
-            local duration_format_str =
-              datetime.secondsToClockDuration("classic", 5025, false)
+            local duration_format_str = datetime.secondsToClockDuration("classic", 5025, false)
             return T(C_("Time", "Classic (%1)"), duration_format_str)
           end,
           checked_func = function()
@@ -119,8 +117,7 @@ common_settings.time = {
           text_func = function()
             local datetime = require("datetime")
             -- sample text shows 1h23'45"
-            local duration_format_str =
-              datetime.secondsToClockDuration("modern", 5025, false)
+            local duration_format_str = datetime.secondsToClockDuration("modern", 5025, false)
             return T(C_("Time", "Modern (%1)"), duration_format_str)
           end,
           checked_func = function()
@@ -135,8 +132,7 @@ common_settings.time = {
           text_func = function()
             local datetime = require("datetime")
             -- sample text shows 1h 23m 45s
-            local duration_format_str =
-              datetime.secondsToClockDuration("letters", 5025, false)
+            local duration_format_str = datetime.secondsToClockDuration("letters", 5025, false)
             return T(C_("Time", "Letters (%1)"), duration_format_str)
           end,
           checked_func = function()
@@ -169,11 +165,7 @@ if Device:setDateTime() then
           if Device:setDateTime(nil, nil, nil, time.hour, time.min) then
             now_t = os.date("*t")
             UIManager:show(InfoMessage:new({
-              text = T(
-                _("Current time: %1:%2"),
-                string.format("%02d", now_t.hour),
-                string.format("%02d", now_t.min)
-              ),
+              text = T(_("Current time: %1:%2"), string.format("%02d", now_t.hour), string.format("%02d", now_t.min)),
             }))
           else
             UIManager:show(InfoMessage:new({
@@ -202,16 +194,7 @@ if Device:setDateTime() then
         info_text = _("Date is in years, months and days."),
         callback = function(time)
           now_t = os.date("*t")
-          if
-            Device:setDateTime(
-              time.year,
-              time.month,
-              time.day,
-              now_t.hour,
-              now_t.min,
-              now_t.sec
-            )
-          then
+          if Device:setDateTime(time.year, time.month, time.day, now_t.hour, now_t.min, now_t.sec) then
             now_t = os.date("*t")
             UIManager:show(InfoMessage:new({
               text = T(
@@ -293,14 +276,10 @@ NetworkMgr:getMenuTable(common_settings)
 common_settings.screen = {
   text = _("Screen"),
 }
-common_settings.screen_rotation =
-  dofile("frontend/ui/elements/screen_rotation_menu_table.lua")
-common_settings.screen_dpi =
-  dofile("frontend/ui/elements/screen_dpi_menu_table.lua")
-common_settings.screen_eink_opt =
-  dofile("frontend/ui/elements/screen_eink_opt_menu_table.lua")
-common_settings.screen_notification =
-  dofile("frontend/ui/elements/screen_notification_menu_table.lua")
+common_settings.screen_rotation = dofile("frontend/ui/elements/screen_rotation_menu_table.lua")
+common_settings.screen_dpi = dofile("frontend/ui/elements/screen_dpi_menu_table.lua")
+common_settings.screen_eink_opt = dofile("frontend/ui/elements/screen_eink_opt_menu_table.lua")
+common_settings.screen_notification = dofile("frontend/ui/elements/screen_notification_menu_table.lua")
 
 if Device:isTouchDevice() then
   common_settings.taps_and_gestures = {
@@ -315,16 +294,13 @@ if Device:isTouchDevice() then
       UIManager:broadcastEvent(Event:new("IgnoreHoldCorners"))
     end,
   }
-  common_settings.screen_disable_double_tab =
-    dofile("frontend/ui/elements/screen_disable_double_tap_table.lua")
-  common_settings.menu_activate =
-    dofile("frontend/ui/elements/menu_activate.lua")
+  common_settings.screen_disable_double_tab = dofile("frontend/ui/elements/screen_disable_double_tap_table.lua")
+  common_settings.menu_activate = dofile("frontend/ui/elements/menu_activate.lua")
 end
 
 -- NOTE: Allow disabling color if it's mistakenly enabled on a Grayscale screen (after a settings import?)
 if Screen:isColorEnabled() or Screen:isColorScreen() then
-  common_settings.color_rendering =
-    dofile("frontend/ui/elements/screen_color_menu_table.lua")
+  common_settings.color_rendering = dofile("frontend/ui/elements/screen_color_menu_table.lua")
 end
 
 -- fullscreen toggle for supported devices
@@ -356,8 +332,7 @@ if Device:isAndroid() then
   end
 
   -- screen timeout options, disabled if device needs wakelocks.
-  common_settings.screen_timeout =
-    require("ui/elements/timeout_android"):getTimeoutMenuTable()
+  common_settings.screen_timeout = require("ui/elements/timeout_android"):getTimeoutMenuTable()
 
   -- haptic feedback override
   common_settings.android_haptic_feedback = {
@@ -367,9 +342,7 @@ if Device:isAndroid() then
     end,
     callback = function()
       G_reader_settings:flipNilOrFalse("haptic_feedback_override")
-      android.setHapticOverride(
-        G_reader_settings:isTrue("haptic_feedback_override")
-      )
+      android.setHapticOverride(G_reader_settings:isTrue("haptic_feedback_override"))
     end,
   }
 
@@ -382,10 +355,7 @@ if Device:isAndroid() then
     callback = function()
       local is_ignored = android.getVolumeKeysIgnored()
       android.setVolumeKeysIgnored(not is_ignored)
-      G_reader_settings:saveSetting(
-        "android_ignore_volume_keys",
-        not is_ignored
-      )
+      G_reader_settings:saveSetting("android_ignore_volume_keys", not is_ignored)
     end,
   }
 
@@ -397,10 +367,7 @@ if Device:isAndroid() then
     callback = function()
       local is_ignored = android.isBackButtonIgnored()
       android.setBackButtonIgnored(not is_ignored)
-      G_reader_settings:saveSetting(
-        "android_ignore_back_button",
-        not is_ignored
-      )
+      G_reader_settings:saveSetting("android_ignore_back_button", not is_ignored)
     end,
   }
 
@@ -419,12 +386,7 @@ You will be prompted with a permission management screen.
 
 Please don't change any settings unless you know what you're doing.]])
 
-        android.settings.requestPermission(
-          "battery",
-          text,
-          _("OK"),
-          _("Cancel")
-        )
+        android.settings.requestPermission("battery", text, _("OK"), _("Cancel"))
       end,
     }
   end
@@ -464,8 +426,7 @@ common_settings.back_to_exit = {
 common_settings.back_in_filemanager = {
   text_func = function()
     local menu_info = ""
-    local back_in_filemanager =
-      G_reader_settings:readSetting("back_in_filemanager", "default") -- set "back_in_filemanager" to "default"
+    local back_in_filemanager = G_reader_settings:readSetting("back_in_filemanager", "default") -- set "back_in_filemanager" to "default"
     if back_in_filemanager == "default" then
       menu_info = _("back to exit")
     elseif back_in_filemanager == "parent_folder" then
@@ -476,31 +437,24 @@ common_settings.back_in_filemanager = {
   sub_item_table = {
     {
       text_func = function()
-        local back_to_exit =
-          G_reader_settings:readSetting("back_to_exit", "prompt")
+        local back_to_exit = G_reader_settings:readSetting("back_to_exit", "prompt")
         return T(_("Back to exit (%1)"), back_to_exit_str[back_to_exit][2])
       end,
       checked_func = function()
-        return G_reader_settings:readSetting("back_in_filemanager", "default")
-          == "default"
+        return G_reader_settings:readSetting("back_in_filemanager", "default") == "default"
       end,
       callback = function()
         G_reader_settings:saveSetting("back_in_filemanager", "default")
       end,
     },
-    genGenericMenuEntry(
-      _("Go to parent folder"),
-      "back_in_filemanager",
-      "parent_folder"
-    ),
+    genGenericMenuEntry(_("Go to parent folder"), "back_in_filemanager", "parent_folder"),
   },
 }
 common_settings.back_in_reader = {
   -- All these options are managed by ReaderBack
   text_func = function()
     local menu_info = ""
-    local back_in_reader =
-      G_reader_settings:readSetting("back_in_reader", "previous_location") -- set "back_in_reader" to "previous_location"
+    local back_in_reader = G_reader_settings:readSetting("back_in_reader", "previous_location") -- set "back_in_reader" to "previous_location"
     if back_in_reader == "default" then
       menu_info = _("back to exit")
     elseif back_in_reader == "filebrowser" then
@@ -515,8 +469,7 @@ common_settings.back_in_reader = {
   sub_item_table = {
     {
       text_func = function()
-        local back_to_exit =
-          G_reader_settings:readSetting("back_to_exit", "prompt")
+        local back_to_exit = G_reader_settings:readSetting("back_to_exit", "prompt")
         return T(_("Back to exit (%1)"), back_to_exit_str[back_to_exit][2])
       end,
       checked_func = function()
@@ -526,21 +479,9 @@ common_settings.back_in_reader = {
         G_reader_settings:saveSetting("back_in_reader", "default")
       end,
     },
-    genGenericMenuEntry(
-      _("Go to file browser"),
-      "back_in_reader",
-      "filebrowser"
-    ),
-    genGenericMenuEntry(
-      _("Go to previous location"),
-      "back_in_reader",
-      "previous_location"
-    ),
-    genGenericMenuEntry(
-      _("Go to previous read page"),
-      "back_in_reader",
-      "previous_read_page"
-    ),
+    genGenericMenuEntry(_("Go to file browser"), "back_in_reader", "filebrowser"),
+    genGenericMenuEntry(_("Go to previous location"), "back_in_reader", "previous_location"),
+    genGenericMenuEntry(_("Go to previous read page"), "back_in_reader", "previous_read_page"),
   },
 }
 -- Kindle keyboard does not have a 'Backspace' key
@@ -574,29 +515,13 @@ local skim_dialog_position_string = {
 }
 common_settings.skim_dialog_position = {
   text_func = function()
-    local position = G_reader_settings:readSetting("skim_dialog_position")
-      or "center"
-    return T(
-      _("Skim dialog position: %1"),
-      skim_dialog_position_string[position]:lower()
-    )
+    local position = G_reader_settings:readSetting("skim_dialog_position") or "center"
+    return T(_("Skim dialog position: %1"), skim_dialog_position_string[position]:lower())
   end,
   sub_item_table = {
-    genGenericMenuEntry(
-      skim_dialog_position_string["top"],
-      "skim_dialog_position",
-      "top"
-    ),
-    genGenericMenuEntry(
-      skim_dialog_position_string["center"],
-      "skim_dialog_position",
-      nil
-    ), -- default
-    genGenericMenuEntry(
-      skim_dialog_position_string["bottom"],
-      "skim_dialog_position",
-      "bottom"
-    ),
+    genGenericMenuEntry(skim_dialog_position_string["top"], "skim_dialog_position", "top"),
+    genGenericMenuEntry(skim_dialog_position_string["center"], "skim_dialog_position", nil), -- default
+    genGenericMenuEntry(skim_dialog_position_string["bottom"], "skim_dialog_position", "bottom"),
   },
 }
 
@@ -665,9 +590,7 @@ local metadata_folder_help_table = {
     'Book view settings, reading progress, highlights, bookmarks and notes (collectively known as metadata) are stored in a separate folder named <book-filename>.sdr (".sdr" meaning "sidecar").'
   ),
   "",
-  _(
-    "You can decide between three locations/methods where these will be saved:"
-  ),
+  _("You can decide between three locations/methods where these will be saved:"),
   _(
     " - alongside the book file itself (the long time default): sdr folders will be visible when you browse your library directories with another file browser or from your computer, which may clutter your vision of your library. But this allows you to move them along when you reorganize your library, and also survives any renaming of parent directories. Also, if you perform directory synchronization or backups, your settings will be part of them."
   ),
@@ -703,8 +626,7 @@ local function genMetadataFolderMenuItem(value)
       return G_reader_settings:readSetting("document_metadata_folder") == value
     end,
     callback = function()
-      local old_value =
-        G_reader_settings:readSetting("document_metadata_folder")
+      local old_value = G_reader_settings:readSetting("document_metadata_folder")
       if value ~= old_value then
         G_reader_settings:saveSetting("document_metadata_folder", value)
         if value == "hash" then
@@ -731,8 +653,7 @@ end
 
 common_settings.document_metadata_location = {
   text_func = function()
-    local value =
-      G_reader_settings:readSetting("document_metadata_folder", "doc")
+    local value = G_reader_settings:readSetting("document_metadata_folder", "doc")
     return T(_("Book metadata location: %1"), metadata_folder_str[value])
   end,
   help_text = metadata_folder_help_text,
@@ -753,9 +674,7 @@ common_settings.document_metadata_location = {
         local hash_text = _("Show documents with hash-based metadata")
         local no_hash_text = _("No documents with hash-based metadata")
         if DocSettings.isHashLocationEnabled() then
-          if
-            G_reader_settings:readSetting("document_metadata_folder") ~= "hash"
-          then
+          if G_reader_settings:readSetting("document_metadata_folder") ~= "hash" then
             return "⚠ " .. hash_text
           end
           return hash_text
@@ -775,8 +694,7 @@ common_settings.document_metadata_location = {
 
 common_settings.document_auto_save = {
   text_func = function()
-    local interval =
-      G_reader_settings:readSetting("auto_save_settings_interval_minutes")
+    local interval = G_reader_settings:readSetting("auto_save_settings_interval_minutes")
     local s_interval
     if interval == false then
       s_interval = _("only on close and suspend")
@@ -816,69 +734,26 @@ common_settings.document_end_action = {
       end,
       separator = true,
     },
-    genGenericMenuEntry(
-      _("Ask with popup dialog"),
-      "end_document_action",
-      "pop-up",
-      "pop-up",
-      true
-    ),
-    genGenericMenuEntry(
-      _("Do nothing"),
-      "end_document_action",
-      "nothing",
-      nil,
-      true
-    ),
-    genGenericMenuEntry(
-      _("Book status"),
-      "end_document_action",
-      "book_status",
-      nil,
-      true
-    ),
-    genGenericMenuEntry(
-      _("Delete file"),
-      "end_document_action",
-      "delete_file",
-      nil,
-      true
-    ),
+    genGenericMenuEntry(_("Ask with popup dialog"), "end_document_action", "pop-up", "pop-up", true),
+    genGenericMenuEntry(_("Do nothing"), "end_document_action", "nothing", nil, true),
+    genGenericMenuEntry(_("Book status"), "end_document_action", "book_status", nil, true),
+    genGenericMenuEntry(_("Delete file"), "end_document_action", "delete_file", nil, true),
     {
       text = _("Open next file"),
       enabled_func = function()
         return G_reader_settings:readSetting("collate") ~= "access"
       end,
       checked_func = function()
-        return G_reader_settings:readSetting("end_document_action")
-          == "next_file"
+        return G_reader_settings:readSetting("end_document_action") == "next_file"
       end,
       radio = true,
       callback = function()
         G_reader_settings:saveSetting("end_document_action", "next_file")
       end,
     },
-    genGenericMenuEntry(
-      _("Go to beginning"),
-      "end_document_action",
-      "goto_beginning",
-      nil,
-      true
-    ),
-    genGenericMenuEntry(
-      _("Return to file browser"),
-      "end_document_action",
-      "file_browser",
-      nil,
-      true
-    ),
-    genGenericMenuEntry(
-      _("Mark book as finished"),
-      "end_document_action",
-      "mark_read",
-      nil,
-      true
-    ),
+    genGenericMenuEntry(_("Go to beginning"), "end_document_action", "goto_beginning", nil, true),
+    genGenericMenuEntry(_("Return to file browser"), "end_document_action", "file_browser", nil, true),
+    genGenericMenuEntry(_("Mark book as finished"), "end_document_action", "mark_read", nil, true),
     genGenericMenuEntry(
       _("Book status and return to file browser"),
       "end_document_action",
@@ -900,8 +775,7 @@ common_settings.keyboard_layout = {
   sub_item_table = dofile("frontend/ui/elements/menu_keyboard_layout.lua"),
 }
 
-common_settings.font_ui_fallbacks =
-  dofile("frontend/ui/elements/font_ui_fallbacks.lua")
+common_settings.font_ui_fallbacks = dofile("frontend/ui/elements/font_ui_fallbacks.lua")
 
 common_settings.units = {
   text_func = function()
@@ -923,13 +797,7 @@ common_settings.units = {
       separator = true,
     },
     genGenericMenuEntry(_("Metric system"), "dimension_units", "mm", nil, true),
-    genGenericMenuEntry(
-      _("Imperial system"),
-      "dimension_units",
-      "in",
-      nil,
-      true
-    ),
+    genGenericMenuEntry(_("Imperial system"), "dimension_units", "in", nil, true),
     genGenericMenuEntry(_("Pixels"), "dimension_units", "px", nil, true),
   },
 }

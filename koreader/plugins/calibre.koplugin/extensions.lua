@@ -35,8 +35,7 @@ local valid_ext = {
 -- then use it instead of default extensions.
 local function getCustomConfig()
   local path = require("datastorage"):getDataDir()
-  local ok, extensions =
-    pcall(dofile, string.format("%s/%s", path, "calibre-extensions.lua"))
+  local ok, extensions = pcall(dofile, string.format("%s/%s", path, "calibre-extensions.lua"))
   if ok then
     return extensions
   end
@@ -44,8 +43,7 @@ end
 
 local CalibreExtensions = {
   outputs = { "epub", "mobi", "docx", "fb2", "pdf", "txt" },
-  default_output = G_reader_settings:read("calibre_wireless_default_format")
-    or "epub",
+  default_output = G_reader_settings:read("calibre_wireless_default_format") or "epub",
   user_overrides = getCustomConfig(),
 }
 

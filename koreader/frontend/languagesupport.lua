@@ -89,15 +89,8 @@ corresponding onHandler method):
 @treturn bool Whether the plugin was successfully registered.
 ]]
 function LanguageSupport:registerPlugin(plugin)
-  if
-    not dbg.dassert(
-      plugin.name ~= nil and plugin.name ~= "",
-      "plugin name must be non-empty"
-    )
-  then
-    logger.warn(
-      "language support: ignoring attempted registration of plugin with empty name"
-    )
+  if not dbg.dassert(plugin.name ~= nil and plugin.name ~= "", "plugin name must be non-empty") then
+    logger.warn("language support: ignoring attempted registration of plugin with empty name")
     return false
   end
   if self.plugins[plugin.name] ~= nil then
@@ -125,14 +118,7 @@ local function callPlugin(plugin, handler_name, ...)
   local ret = { pcall(handler, plugin, ...) }
   local ok = table.remove(ret, 1)
   if not ok then
-    logger.err(
-      "language plugin",
-      plugin,
-      "crashed during",
-      handler_name,
-      "handler:",
-      unpack(ret)
-    )
+    logger.err("language plugin", plugin, "crashed during", handler_name, "handler:", unpack(ret))
     return
   end
   logger.dbg("language plugin", handler_name, "returned", ret)
@@ -156,12 +142,7 @@ function LanguageSupport:_findAndCallPlugin(language_code, handler_name, ...)
   -- language defined but contained text not in the document language.
   for name, plugin in pairs(self.plugins) do
     if not plugin:supportsLanguage(language_code) then
-      logger.dbg(
-        "language support (fallback): trying",
-        name,
-        "plugin's",
-        handler_name
-      )
+      logger.dbg("language support (fallback): trying", name, "plugin's", handler_name)
       local ret = callPlugin(plugin, handler_name, ...)
       if ret ~= nil then
         return unpack(ret)
@@ -176,9 +157,7 @@ local function createDocumentCallbacks(document)
     -- isn't an alternative for PDFs at the moment (not to mention for
     -- quite a few CJK PDFs, MuPDF seems to be unable to create selections
     -- at a character level even using hold-and-pan).
-    logger.dbg(
-      "language support currently cannot expand document selections in non-EPUB formats"
-    )
+    logger.dbg("language support currently cannot expand document selections in non-EPUB formats")
     return
   end
   return {
@@ -206,19 +185,12 @@ function LanguageSupport:improveWordSelection(selection)
   end -- nothing to do
 
   if not self.document then
-    logger.dbg(
-      "language support: cannot improve word selection outside document"
-    )
+    logger.dbg("language support: cannot improve word selection outside document")
     return
   end
 
   local language_code = self.ui.doc_props.language or "unknown"
-  logger.dbg(
-    "language support: improving",
-    language_code,
-    "selection",
-    selection
-  )
+  logger.dbg("language support: improving", language_code, "selection", selection)
 
   -- Rather than requiring each language plugin to use document: methods
   -- correctly, return a set of callbacks that are document-agnostic (and
@@ -229,21 +201,16 @@ function LanguageSupport:improveWordSelection(selection)
     return
   end
 
-  local new_pos0, new_pos1 =
-    unpack(self:_findAndCallPlugin(language_code, "WordSelection", {
-      text = selection.text,
-      pos0 = selection.pos0,
-      pos1 = selection.pos1,
-      callbacks = callbacks,
-    }) or {})
+  local new_pos0, new_pos1 = unpack(self:_findAndCallPlugin(language_code, "WordSelection", {
+    text = selection.text,
+    pos0 = selection.pos0,
+    pos1 = selection.pos1,
+    callbacks = callbacks,
+  }) or {})
   -- If no plugin could update the selection (or after "expansion" the
   -- selection is the same) then we can safely skip all of the subsequent
   -- re-selection work.
-  if
-    not new_pos0
-    or not new_pos1
-    or (new_pos0 == selection.pos0 and new_pos1 == selection.pos1)
-  then
+  if not new_pos0 or not new_pos1 or (new_pos0 == selection.pos0 and new_pos1 == selection.pos1) then
     logger.dbg("language support: no plugin could improve the selection")
     return
   end
@@ -268,12 +235,7 @@ function LanguageSupport:improveWordSelection(selection)
   local new_text = self.document:getTextFromXPointers(new_pos0, new_pos1, true)
   if not new_text then
     -- This really shouldn't happen since we started with some text.
-    logger.warn(
-      "language support: no text found in selection",
-      new_pos0,
-      ":",
-      new_pos1
-    )
+    logger.warn("language support: no text found in selection", new_pos0, ":", new_pos1)
     return
   end
 
@@ -281,11 +243,7 @@ function LanguageSupport:improveWordSelection(selection)
     text = util.cleanupSelectedText(new_text),
     pos0 = new_pos0,
     pos1 = new_pos1,
-    sboxes = self.document:getScreenBoxesFromPositions(
-      new_pos0,
-      new_pos1,
-      true
-    ),
+    sboxes = self.document:getScreenBoxesFromPositions(new_pos0, new_pos1, true),
   }
 end
 
@@ -298,14 +256,8 @@ function LanguageSupport:extraDictionaryFormCandidates(text)
     return
   end -- nothing to do
 
-  local language_code = (self.ui.doc_props and self.ui.doc_props.language)
-    or "unknown"
-  logger.dbg(
-    "language support: convert",
-    text,
-    "to dictionary form (marked as",
-    language_code .. ")"
-  )
+  local language_code = (self.ui.doc_props and self.ui.doc_props.language) or "unknown"
+  logger.dbg("language support: convert", text, "to dictionary form (marked as", language_code .. ")")
 
   return self:_findAndCallPlugin(language_code, "WordLookup", { text = text })
 end
@@ -348,14 +300,12 @@ function LanguageSupport:addToMainMenu(menu_items)
   if #sub_table ~= 0 then
     menu_items.language_support = {
       text = _("Language support plugins"),
-      help_text = _(
-        [[
+      help_text = _([[
 This menu lets you manage KOReader's language support plugins and their associated settings.
 
 These plugins provide language-specific helpers to KOReader, to improve the reading experience with languages that require some extra handling when compared to most European languages.
 
-In order to disable a language plugin, you need to disable it from the Plugin Management menu.]]
-      ),
+In order to disable a language plugin, you need to disable it from the Plugin Management menu.]]),
       sub_item_table = sub_table,
     }
   end

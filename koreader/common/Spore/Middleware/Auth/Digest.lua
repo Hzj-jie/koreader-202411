@@ -31,24 +31,10 @@ function m:call(req)
     local cnonce = m.generate_nonce()
     local uri = path_query(req.url)
     local ha1, ha2, response
-    ha1 =
-      digest("md5", self.username .. ":" .. self.realm .. ":" .. self.password)
+    ha1 = digest("md5", self.username .. ":" .. self.realm .. ":" .. self.password)
     ha2 = digest("md5", req.method .. ":" .. uri)
     if self.qop then
-      response = digest(
-        "md5",
-        ha1
-          .. ":"
-          .. self.nonce
-          .. ":"
-          .. nc
-          .. ":"
-          .. cnonce
-          .. ":"
-          .. self.qop
-          .. ":"
-          .. ha2
-      )
+      response = digest("md5", ha1 .. ":" .. self.nonce .. ":" .. nc .. ":" .. cnonce .. ":" .. self.qop .. ":" .. ha2)
     else
       response = digest("md5", ha1 .. ":" .. self.nonce .. ":" .. ha2)
     end

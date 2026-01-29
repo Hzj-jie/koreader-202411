@@ -40,18 +40,15 @@ function PerceptionExpander:init()
 end
 
 function PerceptionExpander:readSettingsFile()
-  self.settings =
-    LuaSettings:open(DataStorage:getSettingsDir() .. "/perception_expander.lua")
+  self.settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/perception_expander.lua")
 end
 
 function PerceptionExpander:createUI(readSettings)
   if readSettings then
     self.line_thickness = tonumber(self.settings:readSetting("line_thick"))
     self.margin = tonumber(self.settings:readSetting("margin"))
-    self.line_color_intensity =
-      tonumber(self.settings:readSetting("line_color_intensity"))
-    self.shift_each_pages =
-      tonumber(self.settings:readSetting("shift_each_pages"))
+    self.line_color_intensity = tonumber(self.settings:readSetting("line_color_intensity"))
+    self.shift_each_pages = tonumber(self.settings:readSetting("shift_each_pages"))
     self.page_counter = tonumber(self.settings:readSetting("page_counter"))
   end
 
@@ -125,20 +122,12 @@ function PerceptionExpander:showSettingsDialog()
       {
         text = "",
         input_type = "number",
-        hint = T(
-          _("Line color intensity (1-10). Current value: %1"),
-          self.line_color_intensity * 10
-        ),
+        hint = T(_("Line color intensity (1-10). Current value: %1"), self.line_color_intensity * 10),
       },
       {
         text = "",
         input_type = "number",
-        hint = T(
-          _(
-            "Increase margin after pages. Current value: %1\nSet to 0 to disable."
-          ),
-          self.shift_each_pages
-        ),
+        hint = T(_("Increase margin after pages. Current value: %1\nSet to 0 to disable."), self.shift_each_pages),
       },
     },
     buttons = {
@@ -197,9 +186,7 @@ function PerceptionExpander:addToMainMenu(menu_items)
         keep_menu_open = true,
         callback = function()
           UIManager:show(InfoMessage:new({
-            text = _(
-              "For more information see wiki page Perception Expander Plugin"
-            ),
+            text = _("For more information see wiki page Perception Expander Plugin"),
           }))
         end,
       },
@@ -225,8 +212,7 @@ function PerceptionExpander:onPageUpdate(pageno)
     self.page_counter = 0
     self.margin = self.margin + self.margin_shift
     self.left_line.dimen.x = self.screen_width * self.margin
-    self.right_line.dimen.x = self.screen_width
-      - (self.screen_width * self.margin)
+    self.right_line.dimen.x = self.screen_width - (self.screen_width * self.margin)
   else
     self.page_counter = self.page_counter + 1
   end
@@ -234,17 +220,14 @@ end
 
 function PerceptionExpander:saveSettings(fields)
   if fields then
-    self.line_thickness = fields[1] ~= "" and tonumber(fields[1])
-      or self.line_thickness
+    self.line_thickness = fields[1] ~= "" and tonumber(fields[1]) or self.line_thickness
     self.margin = fields[2] ~= "" and tonumber(fields[2]) or self.margin
 
-    local line_intensity = fields[3] ~= "" and tonumber(fields[3])
-      or self.line_color_intensity * 10
+    local line_intensity = fields[3] ~= "" and tonumber(fields[3]) or self.line_color_intensity * 10
     if line_intensity then
       self.line_color_intensity = line_intensity * (1 / 10)
     end
-    self.shift_each_pages = fields[4] ~= "" and tonumber(fields[4])
-      or self.shift_each_pages
+    self.shift_each_pages = fields[4] ~= "" and tonumber(fields[4]) or self.shift_each_pages
   end
 
   self.settings:saveSetting("line_thick", self.line_thickness)

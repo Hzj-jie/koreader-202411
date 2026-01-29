@@ -31,15 +31,7 @@ function LinkBox:init()
 end
 
 function LinkBox:paintTo(bb)
-  bb:paintBorder(
-    self.box.x,
-    self.box.y,
-    self.box.w,
-    self.box.h,
-    self.bordersize,
-    self.color,
-    self.radius
-  )
+  bb:paintBorder(self.box.x, self.box.y, self.box.w, self.box.h, self.bordersize, self.color, self.radius)
 end
 
 function LinkBox:onCloseWidget()

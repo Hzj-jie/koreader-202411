@@ -43,8 +43,7 @@ local function convert(gdoc)
         for _, meth in pairs(resource.methods) do
           local methname = meth.id:gsub("%w+%.", "", 1):gsub("%.", "_")
           local required_params
-          local optional_params =
-            { "alt", "fields", "key", "prettyPrint", "userIp" }
+          local optional_params = { "alt", "fields", "key", "prettyPrint", "userIp" }
           for pname, param in pairs(meth.parameters or {}) do
             if param.required then
               if not required_params then
@@ -60,9 +59,7 @@ local function convert(gdoc)
             method = meth.httpMethod,
             required_params = required_params,
             optional_params = optional_params,
-            required_payload = (meth.httpMethod == "POST")
-              or (meth.httpMethod == "PUT")
-              or nil,
+            required_payload = (meth.httpMethod == "POST") or (meth.httpMethod == "PUT") or nil,
             expected_status = expected_status[meth.httpMethod],
           }
         end
@@ -98,11 +95,7 @@ function m.new_from_discovery(api, opts)
     local r = discovery:get(api)
     return new_from_lua(convert(r.body), opts)
   end
-  error(
-    "bad argument #1 to new_from_discovery (string or table expected, got "
-      .. type(api)
-      .. ")"
-  )
+  error("bad argument #1 to new_from_discovery (string or table expected, got " .. type(api) .. ")")
 end
 
 return m

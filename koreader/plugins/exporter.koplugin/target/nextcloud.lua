@@ -40,18 +40,12 @@ local function makeRequest(url, auth, method, request_body)
       ["OCS-APIRequest"] = "true",
     },
   }
-  socketutil:set_timeout(
-    socketutil.LARGE_BLOCK_TIMEOUT,
-    socketutil.LARGE_TOTAL_TIMEOUT
-  )
+  socketutil:set_timeout(socketutil.LARGE_BLOCK_TIMEOUT, socketutil.LARGE_TOTAL_TIMEOUT)
   local code, headers, status = socket.skip(1, http.request(request))
   socketutil:reset_timeout()
 
   if code ~= 200 then
-    logger.warn(
-      "Nextcloud: HTTP response code <> 200. Response status:",
-      status or code or "network unreachable"
-    )
+    logger.warn("Nextcloud: HTTP response code <> 200. Response status:", status or code or "network unreachable")
     logger.dbg("Response headers:", headers)
     return nil, status
   end
@@ -65,9 +59,7 @@ local function makeRequest(url, auth, method, request_body)
 end
 
 function NextcloudExporter:isReadyToExport()
-  return self.settings.host
-    and self.settings.username
-    and self.settings.password
+  return self.settings.host and self.settings.username and self.settings.password
 end
 
 function NextcloudExporter:getMenuTable()
@@ -179,8 +171,7 @@ function NextcloudExporter:export(t)
   local markdown_settings = plugin_settings.markdown
 
   -- setup Nextcloud variables
-  local url_base =
-    string.format("%s/index.php/apps/notes/api/v1/", self.settings.host)
+  local url_base = string.format("%s/index.php/apps/notes/api/v1/", self.settings.host)
   local auth = mime.b64(self.settings.username .. ":" .. self.settings.password)
   local note_id
   local verb
@@ -198,13 +189,9 @@ function NextcloudExporter:export(t)
 
   -- export each note
   for _, booknotes in pairs(t) do
-    local note = md.prepareBookContent(
-      booknotes,
-      markdown_settings.formatting_options,
-      markdown_settings.highlight_formatting
-    )
-    local note_title =
-      string.format("%s - %s", booknotes.author, booknotes.title)
+    local note =
+      md.prepareBookContent(booknotes, markdown_settings.formatting_options, markdown_settings.highlight_formatting)
+    local note_title = string.format("%s - %s", booknotes.author, booknotes.title)
 
     -- search for existing note, and in that case use its ID for update
     note_id = nil

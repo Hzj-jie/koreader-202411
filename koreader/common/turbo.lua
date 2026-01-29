@@ -70,25 +70,16 @@ turbo.MICRO_VERSION = 3
 -- version 1.2.1 and 0x010300 for version 1.3.
 turbo.VERSION_HEX = 0x020102
 if turbo.MICRO_VERSION then
-  turbo.VERSION = string.format(
-    "%d.%d.%d",
-    turbo.MAJOR_VERSION,
-    turbo.MINOR_VERSION,
-    turbo.MICRO_VERSION
-  )
+  turbo.VERSION = string.format("%d.%d.%d", turbo.MAJOR_VERSION, turbo.MINOR_VERSION, turbo.MICRO_VERSION)
 else
-  turbo.VERSION =
-    string.format("%d.%d", turbo.MAJOR_VERSION, turbo.MINOR_VERSION)
+  turbo.VERSION = string.format("%d.%d", turbo.MAJOR_VERSION, turbo.MINOR_VERSION)
 end
 
 if not jit then
   _G.__TURBO_NO_JIT__ = true
 end
 assert(pcall(require, "ffi"), "No FFI or compatible library available.")
-assert(
-  pcall(require, "bit") or pcall(require, "bit32"),
-  "No bit or compatible library available"
-)
+assert(pcall(require, "bit") or pcall(require, "bit32"), "No bit or compatible library available")
 turbo.platform = require("turbo.platform")
 turbo.log = require("turbo.log")
 if not turbo.platform.__LINUX__ then
@@ -97,10 +88,7 @@ if not turbo.platform.__LINUX__ then
   end
   _G.__TURBO_USE_LUASOCKET__ = true
 elseif _G.__TURBO_USE_LUASOCKET__ then
-  turbo.log.warning(
-    "_G.__TURBO_USE_LUASOCKET__ set,"
-      .. " using LuaSocket (degraded performance)."
-  )
+  turbo.log.warning("_G.__TURBO_USE_LUASOCKET__ set," .. " using LuaSocket (degraded performance).")
 end
 turbo.ioloop = require("turbo.ioloop")
 turbo.escape = require("turbo.escape")

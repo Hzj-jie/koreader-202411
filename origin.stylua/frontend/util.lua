@@ -26,10 +26,7 @@ function util.stripPunctuation(text)
   end
   -- strip ASCII punctuation marks around text
   -- and strip any generic punctuation marks (U+2000 - U+206F) in the text
-  return text
-    :gsub("\226[\128-\131][\128-\191]", "")
-    :gsub("^%p+", "")
-    :gsub("%p+$", "")
+  return text:gsub("\226[\128-\131][\128-\191]", ""):gsub("^%p+", ""):gsub("%p+$", "")
 end
 
 -- Various whitespace trimming helpers, from http://lua-users.org/wiki/CommonFunctions & http://lua-users.org/wiki/StringTrim
@@ -173,9 +170,7 @@ function util.tableEquals(o1, o2, ignore_mt)
 
   for key1, value1 in pairs(o1) do
     local value2 = o2[key1]
-    if
-      value2 == nil or util.tableEquals(value1, value2, ignore_mt) == false
-    then
+    if value2 == nil or util.tableEquals(value1, value2, ignore_mt) == false then
       return false
     end
     keySet[key1] = true
@@ -541,16 +536,9 @@ function util.splitToChars(text)
           end
           hi_surrogate = charcode
           hi_surrogate_uchar = uchar -- will be added if not followed by low surrogate
-        elseif
-          hi_surrogate
-          and charcode
-          and charcode >= 0xDC00
-          and charcode <= 0xDFFF
-        then
+        elseif hi_surrogate and charcode and charcode >= 0xDC00 and charcode <= 0xDFFF then
           -- low surrogate following a high surrogate, good, let's make them a single char
-          charcode = lshift((hi_surrogate - 0xD800), 10)
-            + (charcode - 0xDC00)
-            + 0x10000
+          charcode = lshift((hi_surrogate - 0xD800), 10) + (charcode - 0xDC00) + 0x10000
           table.insert(tab, util.unicodeCodepointToUtf8(charcode))
           hi_surrogate = nil
         else
@@ -830,8 +818,7 @@ function util:calcFreeMem()
   else
     -- Crappy Free + Buffers + Cache version, because the zoneinfo approach is a tad hairy...
     -- So, leave an even larger margin, and only report 75% of that...
-    return math.floor((memfree + buffers + cached) * 0.75) * 1024,
-      memtotal * 1024
+    return math.floor((memfree + buffers + cached) * 0.75) * 1024, memtotal * 1024
   end
 end
 
@@ -927,8 +914,7 @@ function util.makePath(path)
     if lfs.attributes(components, "mode") == nil then
       success, err = lfs.mkdir(components)
       if not success then
-        return nil,
-          err .. " (creating `" .. components .. "` for `" .. path .. "`)"
+        return nil, err .. " (creating `" .. components .. "` for `" .. path .. "`)"
       end
     end
   end
@@ -948,17 +934,11 @@ function util.removePath(path)
       local success, err = lfs.rmdir(component)
       if not success then
         -- Most likely because ENOTEMPTY ;)
-        return nil,
-          err .. " (removing `" .. component .. "` for `" .. path .. "`)"
+        return nil, err .. " (removing `" .. component .. "` for `" .. path .. "`)"
       end
     elseif attr ~= nil then
       return nil,
-        "Encountered a component that isn't a directory"
-          .. " (removing `"
-          .. component
-          .. "` for `"
-          .. path
-          .. "`)"
+        "Encountered a component that isn't a directory" .. " (removing `" .. component .. "` for `" .. path .. "`)"
     end
 
     local parent = ffiUtil.dirname(component)
@@ -986,11 +966,8 @@ end
 function util.diskUsage(dir)
   -- safe way of testing df & awk
   local function doCommand(d)
-    local handle = io.popen(
-      "df -k "
-        .. d
-        .. " 2>/dev/null | awk '$3 ~ /[0-9]+/ { print $2,$3,$4 }' 2>/dev/null || echo ::ERROR::"
-    )
+    local handle =
+      io.popen("df -k " .. d .. " 2>/dev/null | awk '$3 ~ /[0-9]+/ { print $2,$3,$4 }' 2>/dev/null || echo ::ERROR::")
     if not handle then
       return
     end
@@ -1153,22 +1130,13 @@ function util.getFriendlySize(size, right_align)
     return
   end
   if size > 1000 * 1000 * 1000 then
-    return T(
-      C_("Data storage size", "%1 GB"),
-      string.format(frac_format, size / 1000 / 1000 / 1000)
-    )
+    return T(C_("Data storage size", "%1 GB"), string.format(frac_format, size / 1000 / 1000 / 1000))
   end
   if size > 1000 * 1000 then
-    return T(
-      C_("Data storage size", "%1 MB"),
-      string.format(frac_format, size / 1000 / 1000)
-    )
+    return T(C_("Data storage size", "%1 MB"), string.format(frac_format, size / 1000 / 1000))
   end
   if size > 1000 then
-    return T(
-      C_("Data storage size", "%1 kB"),
-      string.format(frac_format, size / 1000)
-    )
+    return T(C_("Data storage size", "%1 kB"), string.format(frac_format, size / 1000))
   else
     return T(C_("Data storage size", "%1 B"), string.format(deci_format, size))
   end
@@ -1229,13 +1197,7 @@ function util.readFromFile(filepath, mode)
   return data
 end
 
-function util.writeToFile(
-  data,
-  filepath,
-  force_flush,
-  lua_dofile_ready,
-  directory_updated
-)
+function util.writeToFile(data, filepath, force_flush, lua_dofile_ready, directory_updated)
   if not filepath then
     return
   end
@@ -1328,11 +1290,7 @@ function util.unicodeCodepointToUtf8(c)
     if c >= 0xD800 and c <= 0xDFFF then
       return "�" -- Surrogates -> U+FFFD REPLACEMENT CHARACTER
     end
-    return string.char(
-      bor(0xE0, rshift(c, 12)),
-      bor(0x80, band(rshift(c, 6), 0x3F)),
-      bor(0x80, band(c, 0x3F))
-    )
+    return string.char(bor(0xE0, rshift(c, 12)), bor(0x80, band(rshift(c, 6), 0x3F)), bor(0x80, band(c, 0x3F)))
   elseif c < 0x110000 then
     return string.char(
       bor(0xF0, rshift(c, 18)),
@@ -1722,12 +1680,7 @@ local WrappedFunction_mt = {
 -- @tparam string target_field_name The name of the field to wrap.
 -- @tparam nil|func new_func If non-nil, this function will be called instead of the original function after wrapping.
 -- @tparam nil|func before_callback If non-nil, this function will be called (with the arguments (target_table, ...)) before the function is called.
-function util.wrapMethod(
-  target_table,
-  target_field_name,
-  new_func,
-  before_callback
-)
+function util.wrapMethod(target_table, target_field_name, new_func, before_callback)
   local old_func = target_table[target_field_name]
   local wrapped = setmetatable({
     target_table = target_table,

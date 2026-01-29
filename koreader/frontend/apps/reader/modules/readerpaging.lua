@@ -63,14 +63,10 @@ function ReaderPaging:registerKeyEvents()
         args = -1,
       }
     elseif G_reader_settings:nilOrFalse("left_right_keys_turn_pages") then
-      self.key_events.GotoNextChapter =
-        { { "Right" }, event = "GotoNextChapter", args = 1 }
-      self.key_events.GotoPrevChapter =
-        { { "Left" }, event = "GotoPrevChapter", args = -1 }
-      self.key_events.GotoNextPage =
-        { { { "RPgFwd", "LPgFwd", " " } }, event = "GotoViewRel", args = 1 }
-      self.key_events.GotoPrevPage =
-        { { { "RPgBack", "LPgBack" } }, event = "GotoViewRel", args = -1 }
+      self.key_events.GotoNextChapter = { { "Right" }, event = "GotoNextChapter", args = 1 }
+      self.key_events.GotoPrevChapter = { { "Left" }, event = "GotoPrevChapter", args = -1 }
+      self.key_events.GotoNextPage = { { { "RPgFwd", "LPgFwd", " " } }, event = "GotoViewRel", args = 1 }
+      self.key_events.GotoPrevPage = { { { "RPgBack", "LPgBack" } }, event = "GotoViewRel", args = -1 }
     end
   elseif Device:hasKeys() then
     self.key_events.GotoNextPage = {
@@ -264,9 +260,7 @@ function ReaderPaging:onToggleBookmarkFlipping()
     self:exitFlippingMode()
     self:_gotoPage(self.bm_flipping_orig_page)
   end
-  UIManager:broadcastEvent(
-    Event:new("SetHinting", not self.bookmark_flipping_mode)
-  )
+  UIManager:broadcastEvent(Event:new("SetHinting", not self.bookmark_flipping_mode))
   UIManager:broadcastEvent(Event:new("ReZoom"))
   UIManager:setDirty(self.view.dialog, "partial")
 end
@@ -279,9 +273,7 @@ function ReaderPaging:enterFlippingMode()
   self.view.document.configurable.text_wrap = 0
   self.view.page_scroll = self.flipping_scroll_mode
   Input.disable_double_tap = false
-  UIManager:broadcastEvent(
-    Event:new("EnterFlippingMode", self.flipping_zoom_mode)
-  )
+  UIManager:broadcastEvent(Event:new("EnterFlippingMode", self.flipping_zoom_mode))
 end
 
 function ReaderPaging:exitFlippingMode()
@@ -309,13 +301,9 @@ function ReaderPaging:pageFlipping(flipping_page, flipping_ges)
   local abs_proportion = flipping_ges.distance / Screen:getHeight()
   local direction = BD.flipDirectionIfMirroredUILayout(flipping_ges.direction)
   if direction == "east" then
-    self:_gotoPage(
-      flipping_page - self.flip_steps[math.ceil(steps * stp_proportion)]
-    )
+    self:_gotoPage(flipping_page - self.flip_steps[math.ceil(steps * stp_proportion)])
   elseif direction == "west" then
-    self:_gotoPage(
-      flipping_page + self.flip_steps[math.ceil(steps * stp_proportion)]
-    )
+    self:_gotoPage(flipping_page + self.flip_steps[math.ceil(steps * stp_proportion)])
   elseif direction == "south" then
     self:_gotoPage(flipping_page - math.floor(whole * abs_proportion))
   elseif direction == "north" then
@@ -335,11 +323,7 @@ function ReaderPaging:bookmarkFlipping(flipping_page, flipping_ges)
 end
 
 function ReaderPaging:enterSkimMode()
-  if
-    self.view.document.configurable.text_wrap ~= 0
-    or self.view.page_scroll
-    or self.view.zoom_mode ~= "page"
-  then
+  if self.view.document.configurable.text_wrap ~= 0 or self.view.page_scroll or self.view.zoom_mode ~= "page" then
     self.skim_backup = {
       text_wrap = self.view.document.configurable.text_wrap,
       page_scroll = self.view.page_scroll,
@@ -369,32 +353,22 @@ function ReaderPaging:exitSkimMode()
   end
 end
 
-function ReaderPaging:onScrollSettingsUpdated(
-  scroll_method,
-  inertial_scroll_enabled,
-  scroll_activation_delay_ms
-)
+function ReaderPaging:onScrollSettingsUpdated(scroll_method, inertial_scroll_enabled, scroll_activation_delay_ms)
   self.scroll_method = scroll_method
   self.scroll_activation_delay = time.ms(scroll_activation_delay_ms)
   if inertial_scroll_enabled then
-    self.ui.scrolling:setInertialScrollCallbacks(
-      function(distance) -- do_scroll_callback
-        if not self.ui.document then
-          return false
-        end
-        UIManager:forceFastRefresh()
-        local top_page, top_position = self:getTopPage(), self:getTopPosition()
-        self:onPanningRel(distance)
-        return not (
-          top_page == self:getTopPage()
-          and top_position == self:getTopPosition()
-        )
-      end,
-      function() -- scroll_done_callback
-        UIManager:resetForceFastRefresh()
-        UIManager:setDirty(self.view.dialog, "partial")
+    self.ui.scrolling:setInertialScrollCallbacks(function(distance) -- do_scroll_callback
+      if not self.ui.document then
+        return false
       end
-    )
+      UIManager:forceFastRefresh()
+      local top_page, top_position = self:getTopPage(), self:getTopPosition()
+      self:onPanningRel(distance)
+      return not (top_page == self:getTopPage() and top_position == self:getTopPosition())
+    end, function() -- scroll_done_callback
+      UIManager:resetForceFastRefresh()
+      UIManager:setDirty(self.view.dialog, "partial")
+    end)
   else
     self.ui.scrolling:setInertialScrollCallbacks(nil, nil)
   end
@@ -480,15 +454,10 @@ function ReaderPaging:onPan(_, ges)
         self._pan_page_states_to_restore = self.view.page_states
       end
       local scroll_now = false
-      if
-        self._pan_activation_time and ges.time >= self._pan_activation_time
-      then
+      if self._pan_activation_time and ges.time >= self._pan_activation_time then
         self._pan_activation_time = false -- We can go on, no need to check again
       end
-      if
-        not self._pan_activation_time
-        and ges.time - self._pan_real_last_time >= self.pan_interval
-      then
+      if not self._pan_activation_time and ges.time - self._pan_real_last_time >= self.pan_interval then
         scroll_now = true
         self._pan_real_last_time = ges.time
       end
@@ -500,10 +469,7 @@ function ReaderPaging:onPan(_, ges)
         self._pan_prev_relative_y = ges.relative.y
         if not self._pan_has_scrolled then
           -- Avoid checking this for each pan, no need once we have scrolled
-          if
-            self.ui.scrolling:cancelInertialScroll()
-            or self.ui.scrolling:cancelledByTouch()
-          then
+          if self.ui.scrolling:cancelInertialScroll() or self.ui.scrolling:cancelledByTouch() then
             -- If this pan or its initial touch did cancel some inertial scrolling,
             -- ignore activation delay to allow continuous scrolling
             self._pan_activation_time = false
@@ -520,9 +486,7 @@ function ReaderPaging:onPan(_, ges)
           scroll_dist = -ges.relative.y
         end
         -- We don't accumulate in _pan_to_scroll_later
-      elseif
-        self.scroll_method == self.ui.scrolling.SCROLL_METHOD_ON_RELEASE
-      then
+      elseif self.scroll_method == self.ui.scrolling.SCROLL_METHOD_ON_RELEASE then
         self._pan_to_scroll_later = -ges.relative.y
         if scroll_now then
           self._pan_has_scrolled = true -- so we really apply it later
@@ -564,10 +528,7 @@ function ReaderPaging:onPanRelease(_, ges)
       self._pan_has_scrolled = false
       -- Don't do any inertial scrolling if pan events come from
       -- a mousewheel (which may have itself some inertia)
-      if
-        (ges and ges.from_mousewheel)
-        or not self.ui.scrolling:startInertialScroll()
-      then
+      if (ges and ges.from_mousewheel) or not self.ui.scrolling:startInertialScroll() then
         UIManager:setDirty(self.view.dialog, "partial")
       end
     end
@@ -581,10 +542,7 @@ function ReaderPaging:onHandledAsSwipe()
     -- top or bottom menus
     if self._pan_has_scrolled then
       self.view.page_states = self._pan_page_states_to_restore
-      self:_gotoPage(
-        self.view.page_states[#self.view.page_states].page,
-        "scrolling"
-      )
+      self:_gotoPage(self.view.page_states[#self.view.page_states].page, "scrolling")
       UIManager:setDirty(self.view.dialog, "ui")
     end
     self._pan_page_states_to_restore = nil
@@ -735,11 +693,7 @@ function ReaderPaging:onInitScrollPageStates(orig_mode)
       local offset = Geom:new()
       -- calculate position in current page
       if self.current_page == self.orig_page then
-        local page_area = self.view:getPageArea(
-          self.view.state.page,
-          self.view.state.zoom,
-          self.view.state.rotation
-        )
+        local page_area = self.view:getPageArea(self.view.state.page, self.view.state.zoom, self.view.state.rotation)
         offset.y = page_area.h * self:getPagePosition(self.current_page)
       end
       local state = self:getNextPageState(blank_area, offset)
@@ -775,16 +729,11 @@ function ReaderPaging:onUpdateScrollPageGamma(gamma)
 end
 
 function ReaderPaging:getNextPageState(blank_area, image_offset)
-  local page_area = self.view:getPageArea(
-    self.view.state.page,
-    self.view.state.zoom,
-    self.view.state.rotation
-  )
+  local page_area = self.view:getPageArea(self.view.state.page, self.view.state.zoom, self.view.state.rotation)
   local visible_area = Geom:new()
   visible_area.w, visible_area.h = blank_area.w, blank_area.h
   visible_area.x, visible_area.y = page_area.x, page_area.y
-  visible_area =
-    visible_area:shrinkInside(page_area, image_offset.x, image_offset.y)
+  visible_area = visible_area:shrinkInside(page_area, image_offset.x, image_offset.y)
   -- shrink blank area by the height of visible area
   blank_area.h = blank_area.h - visible_area.h
   local page_offset = Geom:new({ x = self.view.state.offset.x, y = 0 })
@@ -803,17 +752,12 @@ function ReaderPaging:getNextPageState(blank_area, image_offset)
 end
 
 function ReaderPaging:getPrevPageState(blank_area, image_offset)
-  local page_area = self.view:getPageArea(
-    self.view.state.page,
-    self.view.state.zoom,
-    self.view.state.rotation
-  )
+  local page_area = self.view:getPageArea(self.view.state.page, self.view.state.zoom, self.view.state.rotation)
   local visible_area = Geom:new()
   visible_area.w, visible_area.h = blank_area.w, blank_area.h
   visible_area.x = page_area.x
   visible_area.y = page_area.y + page_area.h - visible_area.h
-  visible_area =
-    visible_area:shrinkInside(page_area, image_offset.x, image_offset.y)
+  visible_area = visible_area:shrinkInside(page_area, image_offset.x, image_offset.y)
   -- shrink blank area by the height of visible area
   blank_area.h = blank_area.h - visible_area.h
   local page_offset = Geom:new({ x = self.view.state.offset.x, y = 0 })
@@ -841,8 +785,7 @@ function ReaderPaging:updateTopPageState(state, blank_area, offset)
   if self.ui.document:getNextPage(state.page) == 0 then -- last page
     visible_area:offsetWithin(state.page_area, offset.x, offset.y)
   else
-    visible_area =
-      visible_area:shrinkInside(state.page_area, offset.x, offset.y)
+    visible_area = visible_area:shrinkInside(state.page_area, offset.x, offset.y)
   end
   -- shrink blank area by the height of visible area
   blank_area.h = blank_area.h - visible_area.h
@@ -859,8 +802,7 @@ function ReaderPaging:updateBottomPageState(state, blank_area, offset)
   if self.ui.document:getPrevPage(state.page) == 0 then -- first page
     visible_area:offsetWithin(state.page_area, offset.x, offset.y)
   else
-    visible_area =
-      visible_area:shrinkInside(state.page_area, offset.x, offset.y)
+    visible_area = visible_area:shrinkInside(state.page_area, offset.x, offset.y)
   end
   -- shrink blank area by the height of visible area
   blank_area.h = blank_area.h - visible_area.h
@@ -899,11 +841,7 @@ function ReaderPaging:genPageStatesFromTop(top_page_state, blank_area, offset)
   return page_states
 end
 
-function ReaderPaging:genPageStatesFromBottom(
-  bottom_page_state,
-  blank_area,
-  offset
-)
+function ReaderPaging:genPageStatesFromBottom(bottom_page_state, blank_area, offset)
   -- scroll up offset should always be less than 0
   if offset.y > 0 then
     offset.y = 0
@@ -954,13 +892,10 @@ function ReaderPaging:onScrollPanRel(diff)
   if diff > 0 then
     -- pan to scroll down
     local first_page_state = copyPageState(self.view.page_states[1])
-    new_page_states =
-      self:genPageStatesFromTop(first_page_state, blank_area, offset)
+    new_page_states = self:genPageStatesFromTop(first_page_state, blank_area, offset)
   elseif diff < 0 then
-    local last_page_state =
-      copyPageState(self.view.page_states[#self.view.page_states])
-    new_page_states =
-      self:genPageStatesFromBottom(last_page_state, blank_area, offset)
+    local last_page_state = copyPageState(self.view.page_states[#self.view.page_states])
+    new_page_states = self:genPageStatesFromBottom(last_page_state, blank_area, offset)
   end
   if #new_page_states == 0 then
     -- if we are already at the top of first page or bottom of the last
@@ -969,10 +904,7 @@ function ReaderPaging:onScrollPanRel(diff)
   end
   self.view.page_states = new_page_states
   -- update current pageno to the very last part in current view
-  self:_gotoPage(
-    self.view.page_states[#self.view.page_states].page,
-    "scrolling"
-  )
+  self:_gotoPage(self.view.page_states[#self.view.page_states].page, "scrolling")
   UIManager:setDirty(self.view.dialog, "partial")
   return true
 end
@@ -991,8 +923,7 @@ function ReaderPaging:onScrollPageRel(page_diff)
     local last_visible_area = last_page_state.visible_area
     if
       self.ui.document:getNextPage(last_page_state.page) == 0
-      and last_visible_area.y + last_visible_area.h
-        >= last_page_state.page_area.h
+      and last_visible_area.y + last_visible_area.h >= last_page_state.page_area.h
     then
       table.insert(self.view.page_states, last_page_state)
       UIManager:broadcastEvent(Event:new("EndOfBook"))
@@ -1006,8 +937,7 @@ function ReaderPaging:onScrollPageRel(page_diff)
       x = 0,
       y = last_visible_area.h - overlap,
     })
-    self.view.page_states =
-      self:genPageStatesFromTop(last_page_state, blank_area, offset)
+    self.view.page_states = self:genPageStatesFromTop(last_page_state, blank_area, offset)
   elseif page_diff < 0 then
     -- page up, first page should be moved to bottom
     local blank_area = Geom:new()
@@ -1018,14 +948,10 @@ function ReaderPaging:onScrollPageRel(page_diff)
       x = 0,
       y = -first_page_state.visible_area.h + overlap,
     })
-    self.view.page_states =
-      self:genPageStatesFromBottom(first_page_state, blank_area, offset)
+    self.view.page_states = self:genPageStatesFromBottom(first_page_state, blank_area, offset)
   end
   -- update current pageno to the very last part in current view
-  self:_gotoPage(
-    self.view.page_states[#self.view.page_states].page,
-    "scrolling"
-  )
+  self:_gotoPage(self.view.page_states[#self.view.page_states].page, "scrolling")
   UIManager:setDirty(self.view.dialog, "partial")
   return true
 end
@@ -1063,10 +989,8 @@ function ReaderPaging:onGotoPageRel(diff)
   end
 
   if self.zoom_mode ~= "free" then
-    x_pan_off =
-      Math.roundAwayFromZero(self.visible_area[w] * h_progress * x_diff)
-    y_pan_off =
-      Math.roundAwayFromZero(self.visible_area[h] * v_progress * y_diff)
+    x_pan_off = Math.roundAwayFromZero(self.visible_area[w] * h_progress * x_diff)
+    y_pan_off = Math.roundAwayFromZero(self.visible_area[h] * v_progress * y_diff)
   end
 
   -- Auxiliary functions to (as much as possible) keep things clear
@@ -1080,17 +1004,14 @@ function ReaderPaging:onGotoPageRel(diff)
     else
       len, _diff = h, y_diff
     end
-    return old_va[axis] + old_va[len] + _diff
-        > self.page_area[axis] + self.page_area[len]
+    return old_va[axis] + old_va[len] + _diff > self.page_area[axis] + self.page_area[len]
       or old_va[axis] + _diff < self.page_area[axis]
   end
   local function goto_end(axis, _diff)
     -- updates view area to the end of line (axis = x) or page (axis = y)
     local len = axis == x and w or h
     _diff = _diff or (axis == x and x_diff or y_diff)
-    new_va[axis] = _diff > 0
-        and old_va[axis] + self.page_area[len] - old_va[len]
-      or self.page_area[axis]
+    new_va[axis] = _diff > 0 and old_va[axis] + self.page_area[len] - old_va[len] or self.page_area[axis]
   end
   local function goto_next_line()
     new_va[y] = old_va[y] + y_pan_off
@@ -1103,8 +1024,7 @@ function ReaderPaging:onGotoPageRel(diff)
       local pdiff = forward and math.ceil(diff) or math.ceil(-diff)
       new_page = self.current_page
       for i = 1, pdiff do
-        local test_page = forward and self.ui.document:getNextPage(new_page)
-          or self.ui.document:getPrevPage(new_page)
+        local test_page = forward and self.ui.document:getNextPage(new_page) or self.ui.document:getPrevPage(new_page)
         if test_page == 0 then -- start or end of document reached
           if forward then
             new_page = self.number_of_pages + 1 -- to trigger EndOfBook below
@@ -1160,8 +1080,7 @@ function ReaderPaging:onGotoPageRel(diff)
   end
 
   -- signal panning update
-  local panned_x, panned_y =
-    math.floor(new_va.x - old_va.x), math.floor(new_va.y - old_va.y)
+  local panned_x, panned_y = math.floor(new_va.x - old_va.x), math.floor(new_va.y - old_va.y)
   self.view:PanningUpdate(panned_x, panned_y)
 
   -- Update dim area in ReaderView
@@ -1170,9 +1089,7 @@ function ReaderPaging:onGotoPageRel(diff)
       self.view.dim_area:clear()
     else
       -- We're post PanningUpdate, recompute via self.visible_area instead of new_va for accuracy, it'll have been updated via ViewRecalculate
-      panned_x, panned_y =
-        math.floor(self.visible_area.x - old_va.x),
-        math.floor(self.visible_area.y - old_va.y)
+      panned_x, panned_y = math.floor(self.visible_area.x - old_va.x), math.floor(self.visible_area.y - old_va.y)
 
       self.view.dim_area.h = self.visible_area.h - math.abs(panned_y)
       self.view.dim_area.w = self.visible_area.w - math.abs(panned_x)
@@ -1224,10 +1141,7 @@ function ReaderPaging:onGotoPage(number, pos)
     if self.view.page_scroll then
       self:onScrollPanRel(rect_s.y - self.view.page_area.y)
     else
-      self.view:PanningUpdate(
-        rect_s.x - self.view.visible_area.x,
-        rect_s.y - self.view.visible_area.y
-      )
+      self.view:PanningUpdate(rect_s.x - self.view.visible_area.x, rect_s.y - self.view.visible_area.y)
     end
   elseif number == self.current_page then
     -- gotoPage emits this event only if the page changes
@@ -1241,8 +1155,7 @@ function ReaderPaging:onGotoRelativePage(number)
   local test_page = new_page
   local forward = number > 0
   for i = 1, math.abs(number) do
-    test_page = forward and self.ui.document:getNextPage(test_page)
-      or self.ui.document:getPrevPage(test_page)
+    test_page = forward and self.ui.document:getNextPage(test_page) or self.ui.document:getPrevPage(test_page)
     if test_page == 0 then -- start or end of document reached
       break
     end
@@ -1292,8 +1205,7 @@ function ReaderPaging:onReflowUpdated()
 end
 
 function ReaderPaging:onToggleReflow()
-  self.view.document.configurable.text_wrap =
-    bit.bxor(self.view.document.configurable.text_wrap, 1)
+  self.view.document.configurable.text_wrap = bit.bxor(self.view.document.configurable.text_wrap, 1)
   self:onReflowUpdated()
 end
 

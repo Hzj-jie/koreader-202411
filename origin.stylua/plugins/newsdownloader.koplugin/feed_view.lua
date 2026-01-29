@@ -10,23 +10,13 @@ local FeedView = {
   FILTER_ELEMENT = "filter_element",
 }
 
-function FeedView:getList(
-  feed_config,
-  callback,
-  edit_feed_attribute_callback,
-  delete_feed_callback
-)
+function FeedView:getList(feed_config, callback, edit_feed_attribute_callback, delete_feed_callback)
   local view_content = {}
   -- Loop through the feed.
   for idx, feed in ipairs(feed_config) do
     local feed_item_content = {}
 
-    local vc_feed_item = FeedView:getItem(
-      idx,
-      feed,
-      edit_feed_attribute_callback,
-      delete_feed_callback
-    )
+    local vc_feed_item = FeedView:getItem(idx, feed, edit_feed_attribute_callback, delete_feed_callback)
 
     if not vc_feed_item then
       logger.warn("NewsDownloader: invalid feed config entry", feed)
@@ -85,11 +75,7 @@ function FeedView:getItem(id, feed, edit_feed_callback, delete_feed_callback)
       _("Download full article"),
       download_full_article,
       callback = function()
-        edit_feed_callback(
-          id,
-          FeedView.DOWNLOAD_FULL_ARTICLE,
-          download_full_article
-        )
+        edit_feed_callback(id, FeedView.DOWNLOAD_FULL_ARTICLE, download_full_article)
       end,
     },
     {

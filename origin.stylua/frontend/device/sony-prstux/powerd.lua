@@ -1,7 +1,6 @@
 local BasePowerD = require("device/generic/powerd")
 
-local base_path =
-  "/sys/devices/platform/imx-i2c.1/i2c-1/1-0049/twl6030_bci/power_supply/twl6030_battery/"
+local base_path = "/sys/devices/platform/imx-i2c.1/i2c-1/1-0049/twl6030_bci/power_supply/twl6030_battery/"
 
 local SonyPRSTUX_PowerD = BasePowerD:new({
   is_charging = nil,

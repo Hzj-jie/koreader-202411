@@ -138,8 +138,7 @@ function metat.__index:send(sendt)
     self:pasvconnect()
   end
   -- get the transfer argument and command
-  local argument = sendt.argument
-    or url.unescape(string.gsub(sendt.path or "", "^[/\\]", ""))
+  local argument = sendt.argument or url.unescape(string.gsub(sendt.path or "", "^[/\\]", ""))
   if argument == "" then
     argument = nil
   end
@@ -182,8 +181,7 @@ function metat.__index:receive(recvt)
   if self.pasvt then
     self:pasvconnect()
   end
-  local argument = recvt.argument
-    or url.unescape(string.gsub(recvt.path or "", "^[/\\]", ""))
+  local argument = recvt.argument or url.unescape(string.gsub(recvt.path or "", "^[/\\]", ""))
   if argument == "" then
     argument = nil
   end
@@ -287,10 +285,7 @@ local function genericform(u)
   local pat = "^type=(.)$"
   if t.params then
     t.type = socket.skip(2, string.find(t.params, pat))
-    socket.try(
-      t.type == "a" or t.type == "i",
-      "invalid type '" .. t.type .. "'"
-    )
+    socket.try(t.type == "a" or t.type == "i", "invalid type '" .. t.type .. "'")
   end
   return t
 end

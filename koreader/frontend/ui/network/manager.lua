@@ -51,11 +51,7 @@ function ConnectivityChecker:_executable()
   if not NetworkMgr:_isWifiConnected() then
     return
   end
-  logger.info(
-    "Wi-Fi successfully restored (after",
-    os.clock() - self.settings_id / 1000,
-    "seconds)!"
-  )
+  logger.info("Wi-Fi successfully restored (after", os.clock() - self.settings_id / 1000, "seconds)!")
   -- Avoid causing timeout due to query online state.
   UIManager:nextTick(function()
     NetworkMgr:_networkConnected()
@@ -73,9 +69,7 @@ function ConnectivityChecker:_callback(job)
 
   -- Handle the UI warning if it's from a beforeWifiAction...
   if self.interactive then
-    UIManager:show(
-      InfoMessage:new({ text = _("Error connecting to the network") })
-    )
+    UIManager:show(InfoMessage:new({ text = _("Error connecting to the network") }))
   end
 
   self:stop()
@@ -126,8 +120,7 @@ function NetworkMgr:_networkDisconnected()
 end
 
 function NetworkMgr:_readNWSettings()
-  self.nw_settings =
-    LuaSettings:open(DataStorage:getSettingsDir() .. "/network.lua")
+  self.nw_settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/network.lua")
 end
 
 -- Common chunk of stuff we have to do when aborting a connection attempt
@@ -148,8 +141,7 @@ function NetworkMgr:_abortWifiConnection()
 end
 
 function NetworkMgr:shouldRestoreWifi()
-  return Device:hasWifiRestore()
-    and G_reader_settings:isTrue("auto_restore_wifi")
+  return Device:hasWifiRestore() and G_reader_settings:isTrue("auto_restore_wifi")
 end
 
 -- Provides a function to reconnect to the wifi after wifi is restored but not
@@ -228,9 +220,7 @@ function NetworkMgr:init()
   -- NOTE: This needs to be delayed because we run on require, while
   -- NetworkListener gets spun up sliiightly later on FM/ReaderUI init...
   UIManager:nextTick(function()
-    self:restoreWifiAndCheckAsync(
-      "NetworkMgr: init will restore Wi-Fi in the background"
-    )
+    self:restoreWifiAndCheckAsync("NetworkMgr: init will restore Wi-Fi in the background")
 
     require("background_jobs").insert({
       when = "best-effort",
@@ -346,10 +336,7 @@ function NetworkMgr:sysfsCarrierConnected()
   -- Read carrier state from sysfs.
   -- NOTE: We can afford to use CLOEXEC, as devices too old for it don't support Wi-Fi anyway ;)
   local out
-  local file = io.open(
-    "/sys/class/net/" .. self:getNetworkInterfaceName() .. "/carrier",
-    "re"
-  )
+  local file = io.open("/sys/class/net/" .. self:getNetworkInterfaceName() .. "/carrier", "re")
 
   -- File only exists while the Wi-Fi module is loaded, but may fail to read until the interface is brought up.
   if file then
@@ -367,10 +354,7 @@ function NetworkMgr:sysfsInterfaceOperational()
   -- Reads the interface's RFC2863 operational state from sysfs, and wait for it to be up
   -- (For Wi-Fi, that means associated & successfully authenticated)
   local out
-  local file = io.open(
-    "/sys/class/net/" .. self:getNetworkInterfaceName() .. "/operstate",
-    "re"
-  )
+  local file = io.open("/sys/class/net/" .. self:getNetworkInterfaceName() .. "/operstate", "re")
 
   -- Possible values: "unknown", "notpresent", "down", "lowerlayerdown", "testing", "dormant", "up"
   -- (c.f., Linux's <Documentation/ABI/testing/sysfs-class-net>)
@@ -405,17 +389,13 @@ function NetworkMgr:ifHasAnAddress()
   local ok
   local ifa = ifaddr[0]
   while ifa ~= nil do
-    if
-      ifa.ifa_addr ~= nil
-      and C.strcmp(ifa.ifa_name, self:getNetworkInterfaceName()) == 0
-    then
+    if ifa.ifa_addr ~= nil and C.strcmp(ifa.ifa_name, self:getNetworkInterfaceName()) == 0 then
       local family = ifa.ifa_addr.sa_family
       if family == C.AF_INET or family == C.AF_INET6 then
         local host = ffi.new("char[?]", C.NI_MAXHOST)
         local s = C.getnameinfo(
           ifa.ifa_addr,
-          family == C.AF_INET and ffi.sizeof("struct sockaddr_in")
-            or ffi.sizeof("struct sockaddr_in6"),
+          family == C.AF_INET and ffi.sizeof("struct sockaddr_in") or ffi.sizeof("struct sockaddr_in6"),
           host,
           C.NI_MAXHOST,
           nil,
@@ -426,12 +406,7 @@ function NetworkMgr:ifHasAnAddress()
           logger.err("NetworkMgr: getnameinfo:", ffi.string(C.gai_strerror(s)))
           ok = false
         else
-          logger.dbg(
-            "NetworkMgr: interface",
-            self:getNetworkInterfaceName(),
-            "is up @",
-            ffi.string(host)
-          )
+          logger.dbg("NetworkMgr: interface", self:getNetworkInterfaceName(), "is up @", ffi.string(host))
           ok = true
         end
         -- Regardless of failure, we only check a single if, so we're done
@@ -559,9 +534,7 @@ function NetworkMgr:toggleWifiOn()
     -- NOTE: This means turnOnWifi was *not* called (this time).
     -- This should almost never happen, but who knows.
     UIManager:show(InfoMessage:new({
-      text = _(
-        "A previous connection attempt is still ongoing, this one will be ignored!"
-      ),
+      text = _("A previous connection attempt is still ongoing, this one will be ignored!"),
       timeout = 3,
     }))
   end
@@ -614,17 +587,13 @@ function NetworkMgr:_beforeWifiAction()
     -- and be surprised by new ones that popped up out of focus while the system settings were opened...
     if ConnectivityChecker:running() then
       -- Like other beforeWifiAction backends, the callback is forfeit anyway
-      logger.warn(
-        "NetworkMgr:promptWifiOn: A previous connection attempt is still ongoing!"
-      )
+      logger.warn("NetworkMgr:promptWifiOn: A previous connection attempt is still ongoing!")
       return
     end
 
     UIManager:show(ConfirmBox:new({
       -- Need localization.
-      text = _("Network connection is required to perform the action.")
-        .. "\n"
-        .. _("Do you want to turn on Wi-Fi?"),
+      text = _("Network connection is required to perform the action.") .. "\n" .. _("Do you want to turn on Wi-Fi?"),
       ok_text = _("Turn on"),
       ok_callback = function()
         self:toggleWifiOn()
@@ -805,9 +774,7 @@ function NetworkMgr:getProxyMenuTable()
       end
       if not proxy() then
         UIManager:show(InfoMessage:new({
-          text = _(
-            "Tip:\nLong press on this menu entry to configure HTTP proxy."
-          ),
+          text = _("Tip:\nLong press on this menu entry to configure HTTP proxy."),
         }))
       end
     end,
@@ -878,9 +845,7 @@ function NetworkMgr:getInfoMenuTable()
 end
 
 function NetworkMgr:getBeforeWifiActionMenuTable()
-  local wifi_enable_action_setting = G_reader_settings:read(
-    "wifi_enable_action"
-  ) or "prompt"
+  local wifi_enable_action_setting = G_reader_settings:read("wifi_enable_action") or "prompt"
   local wifi_enable_actions = {
     turn_on = { _("turn on"), _("Turn on") },
     prompt = { _("prompt"), _("Prompt") },
@@ -903,10 +868,7 @@ function NetworkMgr:getBeforeWifiActionMenuTable()
 
   local t = {
     text_func = function()
-      return T(
-        _("Action when Wi-Fi is off: %1"),
-        wifi_enable_actions[wifi_enable_action_setting][1]
-      )
+      return T(_("Action when Wi-Fi is off: %1"), wifi_enable_actions[wifi_enable_action_setting][1])
     end,
     sub_item_table = {
       action_table("turn_on"),
@@ -957,16 +919,11 @@ function NetworkMgr:getMenuTable(common_settings)
   common_settings.network_dismiss_scan = self:getDismissScanMenuTable()
 
   if Device:hasWifiToggle() then
-    common_settings.network_before_wifi_action =
-      self:getBeforeWifiActionMenuTable()
+    common_settings.network_before_wifi_action = self:getBeforeWifiActionMenuTable()
   end
 end
 
-function NetworkMgr:reconnectOrShowNetworkMenu(
-  complete_callback,
-  interactive,
-  prefer_list
-) -- bool
+function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive, prefer_list) -- bool
   local function scanNetworkList()
     -- NOTE: Fairly hackish workaround for #4387,
     --     rescan if the first scan appeared to yield an empty list.
@@ -1037,20 +994,12 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
   -- Only auto connecting when user did not initiate the operation. I.e. when
   -- user clicks on the "Wi-Fi connection" menu, always prefer showing the
   -- menu.
-  if
-    ssid == nil
-    and (
-      not interactive or G_reader_settings:nilOrTrue("auto_dismiss_wifi_scan")
-    )
-  then
+  if ssid == nil and (not interactive or G_reader_settings:nilOrTrue("auto_dismiss_wifi_scan")) then
     for _, network in ipairs(network_list) do
       if network.password then
         -- If we hit a preferred network and we're not already connected,
         -- attempt to connect to said preferred network....
-        logger.dbg(
-          "NetworkMgr: Attempting to authenticate on preferred network",
-          util.fixUtf8(network.ssid, "�")
-        )
+        logger.dbg("NetworkMgr: Attempting to authenticate on preferred network", util.fixUtf8(network.ssid, "�"))
         local success
         success, err_msg = self:authenticateNetwork(network)
         if success then
@@ -1071,8 +1020,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
   if Device:hasWifiManager() and ssid == nil then
     -- Don't bother if wpa_supplicant doesn't actually have any configured networks...
     local configured_networks = self:getConfiguredNetworks()
-    local has_preferred_networks = configured_networks
-      and #configured_networks > 0
+    local has_preferred_networks = configured_networks and #configured_networks > 0
 
     local iter = has_preferred_networks and 0 or 60
     -- We wait 15s at most (like the restore-wifi-async script)
@@ -1126,8 +1074,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
     --     we've just *started* connecting to the requested network...
     UIManager:show(InfoMessage:new({
       text = T(
-        Device:isKindle() and _("Connecting to network %1…")
-          or _("Connected to network %1"),
+        Device:isKindle() and _("Connecting to network %1…") or _("Connected to network %1"),
         BD.wrap(util.fixUtf8(ssid, "�"))
       ),
       timeout = 3,
@@ -1178,10 +1125,7 @@ end
 function NetworkMgr:ipAddress()
   -- This is a simple way of getting the ip address.
   local std_out = io.popen(
-    string.format(
-      "ip addr show %s | grep 'inet\\b' | awk '{print $2}' | cut -d/ -f1",
-      self:getNetworkInterfaceName()
-    )
+    string.format("ip addr show %s | grep 'inet\\b' | awk '{print $2}' | cut -d/ -f1", self:getNetworkInterfaceName())
   )
   if not std_out then
     return nil
@@ -1191,10 +1135,7 @@ function NetworkMgr:ipAddress()
   return r
 end
 
-if
-  G_reader_settings:read("http_proxy_enabled")
-  and G_reader_settings:read("http_proxy")
-then
+if G_reader_settings:read("http_proxy_enabled") and G_reader_settings:read("http_proxy") then
   NetworkMgr:setHTTPProxy(G_reader_settings:read("http_proxy"))
 elseif G_defaults:read("NETWORK_PROXY") then
   NetworkMgr:setHTTPProxy(G_defaults:read("NETWORK_PROXY"))

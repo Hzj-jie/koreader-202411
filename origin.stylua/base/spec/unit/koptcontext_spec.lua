@@ -68,10 +68,7 @@ describe("KOPTContext module", function()
     page:close()
     kc1:copyDestBMP(kc2)
     assert.are_not.same({ kc1.dst.width, kc1.dst.height }, { 0, 0 })
-    assert.are.same(
-      { kc1.dst.width, kc1.dst.height },
-      { kc2.dst.width, kc2.dst.height }
-    )
+    assert.are.same({ kc1.dst.width, kc1.dst.height }, { kc2.dst.width, kc2.dst.height })
   end)
   it("should be used as reflowing context", function()
     local kc = KOPTContext.new()
@@ -99,8 +96,7 @@ describe("KOPTContext module", function()
     page:toBmp(kc.src, 300)
     page:close()
     k2pdfopt.k2pdfopt_reflow_bmp(kc)
-    local boxes =
-      kc:getReflowedWordBoxes("dst", 0, 0, kc.dst.width, kc.dst.height)
+    local boxes = kc:getReflowedWordBoxes("dst", 0, 0, kc.dst.width, kc.dst.height)
     for i = 1, #boxes do
       for j = 1, #boxes[i] do
         local box = boxes[i][j]
@@ -114,8 +110,7 @@ describe("KOPTContext module", function()
     page:toBmp(kc.src, 300)
     page:close()
     k2pdfopt.k2pdfopt_reflow_bmp(kc)
-    local boxes =
-      kc:getNativeWordBoxes("dst", 0, 0, kc.dst.width, kc.dst.height)
+    local boxes = kc:getNativeWordBoxes("dst", 0, 0, kc.dst.width, kc.dst.height)
     for i = 1, #boxes do
       for j = 1, #boxes[i] do
         local box = boxes[i][j]
@@ -155,19 +150,7 @@ describe("KOPTContext module", function()
     page:toBmp(kc.src, 300)
     page:close()
     k2pdfopt.k2pdfopt_reflow_bmp(kc)
-    local word = kc:getTOCRWord(
-      "dst",
-      280,
-      60,
-      100,
-      40,
-      "data/tessdata",
-      "eng",
-      3,
-      0,
-      0,
-      300
-    )
+    local word = kc:getTOCRWord("dst", 280, 60, 100, 40, "data/tessdata", "eng", 3, 0, 0, 300)
     assert.are_same(word, "Alice")
     kc:freeOCR()
   end)

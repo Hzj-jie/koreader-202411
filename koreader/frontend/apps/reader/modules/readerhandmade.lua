@@ -79,10 +79,7 @@ function ReaderHandMade:onSaveSettings()
     self.ui.doc_settings:delete("handmade_toc")
   end
   self.ui.doc_settings:save("handmade_flows_enabled", self.flows_enabled)
-  self.ui.doc_settings:save(
-    "handmade_flows_edit_enabled",
-    self.flows_edit_enabled
-  )
+  self.ui.doc_settings:save("handmade_flows_edit_enabled", self.flows_edit_enabled)
   if #self.flow_points > 0 then
     self.ui.doc_settings:save("handmade_flow_points", self.flow_points)
   else
@@ -156,13 +153,10 @@ function ReaderHandMade:addToMainMenu(menu_items)
     sub_item_table_func = function()
       return {
         {
-          text = _("About custom table of contents")
-            .. " "
-            .. self.custom_toc_symbol,
+          text = _("About custom table of contents") .. " " .. self.custom_toc_symbol,
           callback = function()
             UIManager:show(InfoMessage:new({
-              text = _(
-                [[
+              text = _([[
 If the book has no table of contents or you would like to substitute it with your own, you can create a custom TOC. The original TOC (if available) will not be altered.
 
 You can create, edit and remove chapters:
@@ -170,8 +164,7 @@ You can create, edit and remove chapters:
 - on a book page, by selecting some text to be used as the chapter title.
 (Once you're done building it and don't want to see the buttons anymore, you can disable Edit mode.)
 
-This custom table of contents is currently limited to a single level and can't have sub-chapters.]]
-              ),
+This custom table of contents is currently limited to a single level and can't have sub-chapters.]]),
             }))
           end,
           keep_menu_open = true,
@@ -202,9 +195,7 @@ This custom table of contents is currently limited to a single level and can't h
           end,
           callback = function(touchmenu_instance)
             UIManager:show(ConfirmBox:new({
-              text = _(
-                "Are you sure you want to clear your custom table of contents?"
-              ),
+              text = _("Are you sure you want to clear your custom table of contents?"),
               ok_callback = function()
                 self.toc = {}
                 UIManager:broadcastEvent(Event:new("UpdateToc"))
@@ -221,8 +212,7 @@ This custom table of contents is currently limited to a single level and can't h
           text = _("About custom hidden flows"),
           callback = function()
             UIManager:show(InfoMessage:new({
-              text = _(
-                [[
+              text = _([[
 Custom hidden flows can be created to exclude sections of the book from your normal reading flow:
 - hidden flows will automatically be skipped when turning pages within the regular flow;
 - pages part of hidden flows are assigned distinct page numbers and won't be considered in the various book & chapter progress and time to read features;
@@ -234,8 +224,7 @@ It can also be handy when interested in reading only a subset of a book.
 In Page browser, you can long-press on a thumbnail to start a hidden flow or restart the regular flow on this page.
 (Once you're done building it and don't want to see the button anymore, you can disable Edit mode.)
 
-Hidden flows are shown with gray or hatched background in Book map and Page browser.]]
-              ),
+Hidden flows are shown with gray or hatched background in Book map and Page browser.]]),
             }))
           end,
           keep_menu_open = true,
@@ -254,10 +243,7 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
         },
         {
           text_func = function()
-            return T(
-              _("Clear inactive marked pages (%1)"),
-              #self.inactive_flow_points
-            )
+            return T(_("Clear inactive marked pages (%1)"), #self.inactive_flow_points)
           end,
           enabled_func = function()
             return #self.inactive_flow_points > 0
@@ -290,9 +276,7 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
           end,
           callback = function(touchmenu_instance)
             UIManager:show(ConfirmBox:new({
-              text = _(
-                "Are you sure you want to clear all your custom hidden flows?"
-              ),
+              text = _("Are you sure you want to clear all your custom hidden flows?"),
               ok_callback = function()
                 self.flow_points = {}
                 self:updateDocFlows()
@@ -393,35 +377,32 @@ function ReaderHandMade:updateHighlightDialog()
     -- We don't want this button to be the last wide one, and rather
     -- keep having the Search button being that one: so plug this one
     -- just before 12_search.
-    self.ui.highlight:addToHighlightDialog(
-      "12_0_make_handmade_toc_item",
-      function(this)
-        return {
-          text_func = function()
-            local selected_text = this.selected_text
-            local pageno, xpointer
-            if self.ui.rolling then
-              xpointer = selected_text.pos0
-            else
-              pageno = selected_text.pos0.page
-            end
-            local text
-            if self:hasPageTocItem(pageno, xpointer) then
-              text = _("Edit TOC chapter")
-            else
-              text = _("Start TOC chapter")
-            end
-            text = text .. " " .. self.custom_toc_symbol
-            return text
-          end,
-          callback = function()
-            local selected_text = this.selected_text
-            this:onExit()
-            self:addOrEditPageTocItem(nil, nil, selected_text)
-          end,
-        }
-      end
-    )
+    self.ui.highlight:addToHighlightDialog("12_0_make_handmade_toc_item", function(this)
+      return {
+        text_func = function()
+          local selected_text = this.selected_text
+          local pageno, xpointer
+          if self.ui.rolling then
+            xpointer = selected_text.pos0
+          else
+            pageno = selected_text.pos0.page
+          end
+          local text
+          if self:hasPageTocItem(pageno, xpointer) then
+            text = _("Edit TOC chapter")
+          else
+            text = _("Start TOC chapter")
+          end
+          text = text .. " " .. self.custom_toc_symbol
+          return text
+        end,
+        callback = function()
+          local selected_text = this.selected_text
+          this:onExit()
+          self:addOrEditPageTocItem(nil, nil, selected_text)
+        end,
+      }
+    end)
   else
     self.ui.highlight:removeFromHighlightDialog("12_0_make_handmade_toc_item")
   end
@@ -470,11 +451,7 @@ function ReaderHandMade:hasPageTocItem(pageno, xpointer)
   return is_match
 end
 
-function ReaderHandMade:addOrEditPageTocItem(
-  pageno,
-  when_updated_callback,
-  selected_text
-)
+function ReaderHandMade:addOrEditPageTocItem(pageno, when_updated_callback, selected_text)
   local xpointer, title
   if selected_text then
     -- If we get selected_text, it's from the highlight dialog after text selection
@@ -506,8 +483,7 @@ function ReaderHandMade:addOrEditPageTocItem(
   end
   local dialog
   dialog = InputDialog:new({
-    title = item_found and _("Edit custom TOC chapter")
-      or _("Create new custom ToC chapter"),
+    title = item_found and _("Edit custom TOC chapter") or _("Create new custom ToC chapter"),
     input = item.title,
     input_hint = _("TOC chapter title"),
     description = T(_([[On page %1.]]), pageno),

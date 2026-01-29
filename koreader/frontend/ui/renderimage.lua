@@ -53,8 +53,7 @@ function RenderImage:renderImageData(data, size, want_frames, width, height)
   local header = ffi.string(buffer, math.min(4, size))
   if header == "GIF8" then
     logger.dbg("GIF file provided, renderImageData: using GifLib")
-    local image =
-      self:renderGifImageDataWithGifLib(data, size, want_frames, width, height)
+    local image = self:renderGifImageDataWithGifLib(data, size, want_frames, width, height)
     if image then
       return image
     end
@@ -62,13 +61,7 @@ function RenderImage:renderImageData(data, size, want_frames, width, height)
   elseif header == "RIFF" then
     -- (The header should be "RIFFxxxxWEBPVP8", but we let libwebp check for what's after "RIFF".)
     logger.dbg("possible WebP file provided, renderImageData: using libwebp")
-    local image = self:renderWebpImageDataWithLibwebp(
-      data,
-      size,
-      want_frames,
-      width,
-      height
-    )
+    local image = self:renderWebpImageDataWithLibwebp(data, size, want_frames, width, height)
     if image then
       return image
     end
@@ -113,14 +106,12 @@ end
 -- @treturn BlitBuffer
 function RenderImage:renderSVGImageDataWithCRengine(data, size, width, height)
   local cre = require("document/credocument"):engineInit()
-  local image_data, image_w, image_h =
-    cre.renderImageData(data, size, width, height)
+  local image_data, image_w, image_h = cre.renderImageData(data, size, width, height)
   if not image_data then
     logger.warn("failed rendering image (SVG/CRengine)")
     return
   end
-  local image =
-    Blitbuffer.new(image_w, image_h, Blitbuffer.TYPE_BBRGB32, image_data)
+  local image = Blitbuffer.new(image_w, image_h, Blitbuffer.TYPE_BBRGB32, image_data)
   return image
 end
 
@@ -132,13 +123,7 @@ end
 -- @int width requested width
 -- @int height requested height
 -- @treturn BlitBuffer or list of frames (each a function returning a Blitbuffer)
-function RenderImage:renderGifImageDataWithGifLib(
-  data,
-  size,
-  want_frames,
-  width,
-  height
-)
+function RenderImage:renderGifImageDataWithGifLib(data, size, want_frames, width, height)
   if not data or not size or size == 0 then
     return
   end
@@ -217,13 +202,7 @@ end
 -- @int width requested width
 -- @int height requested height
 -- @treturn BlitBuffer or list of frames (each a function returning a Blitbuffer)
-function RenderImage:renderWebpImageDataWithLibwebp(
-  data,
-  size,
-  want_frames,
-  width,
-  height
-)
+function RenderImage:renderWebpImageDataWithLibwebp(data, size, want_frames, width, height)
   if not data or not size or size == 0 then
     return
   end
@@ -357,12 +336,7 @@ end
 -- original aspect ratio.
 RenderImage.RENDER_SVG_WITH_NANOSVG = true
 
-function RenderImage:renderSVGImageFileWithNanoSVG(
-  filename,
-  width,
-  height,
-  zoom
-)
+function RenderImage:renderSVGImageFileWithNanoSVG(filename, width, height, zoom)
   if not NnSVG then
     NnSVG = require("libs/libkoreader-nnsvg")
   end
@@ -400,18 +374,7 @@ function RenderImage:renderSVGImageFileWithNanoSVG(
   elseif inner_h < height then
     offset_y = Math.round((height - inner_h) / 2)
   end
-  logger.dbg(
-    "renderSVG",
-    filename,
-    zoom,
-    native_w,
-    native_h,
-    ">",
-    width,
-    height,
-    offset_x,
-    offset_y
-  )
+  logger.dbg("renderSVG", filename, zoom, native_w, native_h, ">", width, height, offset_x, offset_y)
   local bb = Blitbuffer.new(width, height, Blitbuffer.TYPE_BBRGB32)
   svg_image:drawTo(bb, zoom, offset_x, offset_y)
   svg_image:free()
@@ -449,16 +412,7 @@ function RenderImage:renderSVGImageFileWithMupdf(filename, width, height, zoom)
   end
   width = math.ceil(width)
   height = math.ceil(height)
-  logger.dbg(
-    "renderSVG",
-    filename,
-    zoom,
-    native_w,
-    native_h,
-    ">",
-    width,
-    height
-  )
+  logger.dbg("renderSVG", filename, zoom, native_w, native_h, ">", width, height)
   dc:setZoom(zoom)
   -- local bb = page:draw_new(dc, width, height, 0, 0)
   -- MuPDF or our FFI may fail on some icons (appbar.page.fit),

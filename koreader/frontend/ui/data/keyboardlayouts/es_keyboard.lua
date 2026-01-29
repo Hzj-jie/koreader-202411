@@ -1,6 +1,5 @@
 -- Start with the english keyboard layout
-local es_keyboard =
-  require("util").copyRequire("ui/data/keyboardlayouts/en_keyboard")
+local es_keyboard = require("util").copyRequire("ui/data/keyboardlayouts/en_keyboard")
 
 local keys = es_keyboard.keys
 
@@ -21,10 +20,8 @@ keys[4][7][1], keys[3][10][1] = keys[3][10][1], keys[4][7][1]
 keys[4][7][2], keys[3][10][2] = keys[3][10][2], keys[4][7][2]
 
 -- change order ", n m" to "n m ,"
-keys[4][7][1], keys[4][8][1], keys[4][9][1] =
-  keys[4][8][1], keys[4][9][1], keys[4][7][1]
-keys[4][7][2], keys[4][8][2], keys[4][9][2] =
-  keys[4][8][2], keys[4][9][2], keys[4][7][2]
+keys[4][7][1], keys[4][8][1], keys[4][9][1] = keys[4][8][1], keys[4][9][1], keys[4][7][1]
+keys[4][7][2], keys[4][8][2], keys[4][9][2] = keys[4][8][2], keys[4][9][2], keys[4][7][2]
 
 -- Rename "space"
 keys[5][4].label = "espacio"

@@ -1,5 +1,4 @@
-local cs_keyboard =
-  require("util").copyRequire("ui/data/keyboardlayouts/sk_keyboard")
+local cs_keyboard = require("util").copyRequire("ui/data/keyboardlayouts/sk_keyboard")
 
 local keys = cs_keyboard.keys
 

@@ -17,12 +17,7 @@ local function _adjustAreaColours(fb)
   if fb.device.hasColorScreen() then
     fb.debug("adjusting image color saturation")
 
-    inkview.adjustAreaDefault(
-      fb.data,
-      fb._finfo.line_length,
-      fb._vinfo.width,
-      fb._vinfo.height
-    )
+    inkview.adjustAreaDefault(fb.data, fb._finfo.line_length, fb._vinfo.width, fb._vinfo.height)
   end
 end
 
@@ -103,9 +98,7 @@ function framebuffer:init()
 
   self.blitbuffer_rotation_mode = self.bb:getRotation()
   self.screen_size = self:getRawSize()
-  self.native_rotation_mode = self.forced_rotation
-      and self.forced_rotation.default
-    or self.DEVICE_ROTATED_UPRIGHT
+  self.native_rotation_mode = self.forced_rotation and self.forced_rotation.default or self.DEVICE_ROTATED_UPRIGHT
   self.cur_rotation_mode = self.native_rotation_mode
 
   self.debug("FB info (post fixup)", {
@@ -163,10 +156,7 @@ function framebuffer:refreshFastImp(x, y, w, h, dither)
 end
 
 function framebuffer:refreshWaitForLastImp()
-  if
-    self.mech_wait_update_complete
-    and self.dont_wait_for_marker ~= self.marker
-  then
+  if self.mech_wait_update_complete and self.dont_wait_for_marker ~= self.marker then
     self.debug("refresh: inkview waiting for previous update", self.marker)
     -- self:mech_wait_update_complete(self.marker)
     inkview.WaitForUpdateComplete()

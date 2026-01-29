@@ -214,12 +214,10 @@ function InputDialog:init()
     self.border_size = 0
     self.width = self.screen_width - 2 * self.border_size
   else
-    self.width = self.width
-      or math.floor(math.min(self.screen_width, self.screen_height) * 0.8)
+    self.width = self.width or math.floor(math.min(self.screen_width, self.screen_height) * 0.8)
   end
   if self.condensed then
-    self.text_width = self.width
-      - 2 * (self.border_size + self.input_padding + self.input_margin)
+    self.text_width = self.width - 2 * (self.border_size + self.input_padding + self.input_margin)
   else
     self.text_width = self.text_width or math.floor(self.width * 0.9)
   end
@@ -305,9 +303,7 @@ function InputDialog:init()
     local text_height = input_widget:getTextHeight()
     local line_height = input_widget:getLineHeight()
     local input_pad_height = input_widget:getSize().h - text_height
-    local keyboard_height = self.keyboard_visible
-        and input_widget:getKeyboardDimen().h
-      or 0
+    local keyboard_height = self.keyboard_visible and input_widget:getKeyboardDimen().h or 0
     input_widget:closeKeyboard() -- we don't want multiple VKs, as the show/hide tracking assumes there's only one
     input_widget:onClose() -- free() textboxwidget and keyboard
     -- Find out available height
@@ -319,20 +315,14 @@ function InputDialog:init()
       - vspan_after_input_text:getSize().h
       - buttons_container:getSize().h
       - keyboard_height
-    if
-      self.fullscreen
-      or self.use_available_height
-      or text_height > available_height
-    then
+    if self.fullscreen or self.use_available_height or text_height > available_height then
       -- Don't leave unusable space in the text widget, as the user could think
       -- it's an empty line: move that space in pads after and below (for centering)
-      self.text_height = math.floor(available_height / line_height)
-        * line_height
+      self.text_height = math.floor(available_height / line_height) * line_height
       local pad_height = available_height - self.text_height
       local pad_before = math.ceil(pad_height / 2)
       local pad_after = pad_height - pad_before
-      vspan_before_input_text.height = vspan_before_input_text.height
-        + pad_before
+      vspan_before_input_text.height = vspan_before_input_text.height + pad_before
       vspan_after_input_text.height = vspan_after_input_text.height + pad_after
       if text_height > available_height then
         self.cursor_at_end = false -- stay at start if overflowed
@@ -415,10 +405,7 @@ function InputDialog:init()
   if self.add_nav_bar then
     self.curr_line_num = self._input_widget:getLineNums()
     self.go_button = self.button_table:getButtonById("go")
-    self.go_button:setText(
-      "\u{250B}\u{202F}" .. self.curr_line_num,
-      self.go_button.width
-    )
+    self.go_button:setText("\u{250B}\u{202F}" .. self.curr_line_num, self.go_button.width)
   end
 
   -- Combine all
@@ -449,15 +436,12 @@ function InputDialog:init()
   })
   local frame = self.dialog_frame
   if self.is_movable then
-    self.movable =
-      MovableContainer:new({ -- (UIManager expects this as 'self.movable')
-        self.dialog_frame,
-      })
+    self.movable = MovableContainer:new({ -- (UIManager expects this as 'self.movable')
+      self.dialog_frame,
+    })
     frame = self.movable
   end
-  local keyboard_height = self.keyboard_visible
-      and self._input_widget:getKeyboardDimen().h
-    or 0
+  local keyboard_height = self.keyboard_visible and self._input_widget:getKeyboardDimen().h or 0
   self[1] = CenterContainer:new({
     dimen = Geom:new({
       w = self.screen_width,
@@ -551,10 +535,7 @@ function InputDialog:onTap(arg, ges)
     --       so we'll have to double check that it wasn't inside of the whole VirtualKeyboard region,
     --       otherwise we'd risk spuriously closing the keyboard ;p.
     -- Poke at keyboard_frame directly, as the top-level dimen never gets updated coordinates...
-    if
-      self._input_widget.keyboard
-      and ges.pos:notIntersectWith(self._input_widget.keyboard:visibleSize())
-    then
+    if self._input_widget.keyboard and ges.pos:notIntersectWith(self._input_widget.keyboard:visibleSize()) then
       self:closeKeyboard()
     end
   else
@@ -609,10 +590,7 @@ function InputDialog:setAllowNewline(allow)
 end
 
 function InputDialog:onShow()
-  if
-    (Device:hasKeyboard() or Device:hasScreenKB())
-    and G_reader_settings:isFalse("virtual_keyboard_enabled")
-  then
+  if (Device:hasKeyboard() or Device:hasScreenKB()) and G_reader_settings:isFalse("virtual_keyboard_enabled") then
     self:closeKeyboard()
   else
     self:showKeyboard(self.ignore_first_hold_release)
@@ -650,10 +628,7 @@ function InputDialog:isKeyboardVisible()
 end
 
 function InputDialog:lockKeyboard(toggle)
-  if
-    (Device:hasKeyboard() or Device:hasScreenKB())
-    and G_reader_settings:isFalse("virtual_keyboard_enabled")
-  then
+  if (Device:hasKeyboard() or Device:hasScreenKB()) and G_reader_settings:isFalse("virtual_keyboard_enabled") then
     -- do not lock the virtual keyboard when user is hiding it, we still *might* want to activate it via shortcuts ("Shift" + "Home") when in need of special characters or symbols
     return
   end
@@ -752,8 +727,7 @@ end
 
 function InputDialog:onSetRotationMode(mode)
   if self.rotation_enabled and mode ~= nil then -- Text editor only
-    self.rotation_mode_backup = self.rotation_mode_backup
-      or Screen:getRotationMode() -- backup only initial mode
+    self.rotation_mode_backup = self.rotation_mode_backup or Screen:getRotationMode() -- backup only initial mode
     Screen:setRotationMode(mode)
     self:reinit()
     return true -- we are the upper widget, stop event propagation
@@ -900,8 +874,7 @@ function InputDialog:_addSaveCloseButtons()
     callback = function()
       if self._text_modified then
         UIManager:show(MultiConfirmBox:new({
-          text = self.close_unsaved_confirm_text
-            or _("You have unsaved changes."),
+          text = self.close_unsaved_confirm_text or _("You have unsaved changes."),
           cancel_text = self.close_cancel_button_text or _("Cancel"),
           choice1_text = self.close_discard_button_text or _("Discard"),
           choice1_callback = function()
@@ -1055,16 +1028,10 @@ function InputDialog:_addScrollButtons(nav_bar)
                   is_enter_default = true,
                   callback = function()
                     local new_line_num = input_dialog:getInputValue()
-                    if
-                      new_line_num
-                      and new_line_num >= 1
-                      and new_line_num <= last_line_num
-                    then
+                    if new_line_num and new_line_num >= 1 and new_line_num <= last_line_num then
                       UIManager:close(input_dialog)
                       self:toggleKeyboard()
-                      self._input_widget:moveCursorToCharPos(
-                        self._input_widget:getLineCharPos(new_line_num)
-                      )
+                      self._input_widget:moveCursorToCharPos(self._input_widget:getLineCharPos(new_line_num))
                     end
                   end,
                 },
@@ -1095,10 +1062,7 @@ function InputDialog:_addScrollButtons(nav_bar)
         local curr_line_num = self._input_widget:getLineNums()
         if self.curr_line_num ~= curr_line_num then
           self.curr_line_num = curr_line_num
-          self.go_button:setText(
-            "\u{250B}\u{202F}" .. curr_line_num,
-            self.go_button.width
-          )
+          self.go_button:setText("\u{250B}\u{202F}" .. curr_line_num, self.go_button.width)
           self.go_button:refresh()
         end
       end
@@ -1164,12 +1128,7 @@ function InputDialog:findCallback(input_dialog, find_first)
   UIManager:close(input_dialog)
   self:toggleKeyboard()
   local start_pos = find_first and 1 or self._charpos + 1
-  local char_pos = util.stringSearch(
-    self.input,
-    self.search_value,
-    self.case_sensitive,
-    start_pos
-  )
+  local char_pos = util.stringSearch(self.input, self.search_value, self.case_sensitive, start_pos)
   local msg
   if char_pos > 0 then
     self._input_widget:moveCursorToCharPos(char_pos)

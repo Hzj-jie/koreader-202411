@@ -44,13 +44,7 @@ function QRWidget:init()
     for x, col in ipairs(grid) do
       for y, lgn in ipairs(col) do
         if lgn < 0 then
-          bb:paintRect(
-            (x - 1) * sq_size,
-            (y - 1) * sq_size,
-            sq_size,
-            sq_size,
-            white
-          )
+          bb:paintRect((x - 1) * sq_size, (y - 1) * sq_size, sq_size, sq_size, white)
         end
       end
     end

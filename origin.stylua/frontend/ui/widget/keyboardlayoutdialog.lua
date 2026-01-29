@@ -33,8 +33,7 @@ local KeyboardLayoutDialog = FocusManager:extend({
 
 function KeyboardLayoutDialog:init()
   self.layout = {}
-  self.width = self.width
-    or math.floor(math.min(Screen:getWidth(), Screen:getHeight()) * 0.8)
+  self.width = self.width or math.floor(math.min(Screen:getWidth(), Screen:getHeight()) * 0.8)
   self.title_bar = TitleBar:new({
     width = self.width,
     with_bottom_line = true,
@@ -47,16 +46,12 @@ function KeyboardLayoutDialog:init()
   local radio_buttons = {}
 
   local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts", {})
-  local default_layout =
-    G_reader_settings:readSetting("keyboard_layout_default")
+  local default_layout = G_reader_settings:readSetting("keyboard_layout_default")
   self.keyboard_state.force_current_layout = true
   local current_layout = self.parent.keyboard:getKeyboardLayout()
   self.keyboard_state.force_current_layout = false
   for k, _ in FFIUtil.orderedPairs(self.parent.keyboard.lang_to_keyboard_layout) do
-    local text = Language:getLanguageName(k)
-      .. "  ("
-      .. string.sub(k, 1, 2)
-      .. ")"
+    local text = Language:getLanguageName(k) .. "  (" .. string.sub(k, 1, 2) .. ")"
     if util.arrayContains(keyboard_layouts, k) then
       text = text .. "  ✓"
     end
@@ -84,8 +79,7 @@ function KeyboardLayoutDialog:init()
       text = _("Switch to layout"),
       is_enter_default = true,
       callback = function()
-        local provider =
-          self.parent.keyboard_layout_dialog.radio_button_table.checked_button.provider
+        local provider = self.parent.keyboard_layout_dialog.radio_button_table.checked_button.provider
         self.parent.keyboard:setKeyboardLayout(provider)
         UIManager:close(self.parent.keyboard_layout_dialog)
       end,
@@ -94,8 +88,7 @@ function KeyboardLayoutDialog:init()
 
   -- (RadioButtonTable's width and padding setup is a bit fishy: we get
   -- this to look ok by using a CenterContainer to ensure some padding)
-  local scroll_container_inner_width = self.width
-    - ScrollableContainer:getScrollbarWidth()
+  local scroll_container_inner_width = self.width - ScrollableContainer:getScrollbarWidth()
   self.radio_button_table = RadioButtonTable:new({
     radio_buttons = radio_buttons,
     width = scroll_container_inner_width - 2 * Size.padding.large,
@@ -115,15 +108,9 @@ function KeyboardLayoutDialog:init()
   self:mergeLayoutInVertical(self.button_table)
 
   local max_radio_button_container_height = math.floor(
-    Screen:getHeight() * 0.9
-      - self.title_bar:getHeight()
-      - Size.span.vertical_large * 4
-      - self.button_table:getSize().h
+    Screen:getHeight() * 0.9 - self.title_bar:getHeight() - Size.span.vertical_large * 4 - self.button_table:getSize().h
   )
-  local radio_button_container_height = math.min(
-    self.radio_button_table:getSize().h,
-    max_radio_button_container_height
-  )
+  local radio_button_container_height = math.min(self.radio_button_table:getSize().h, max_radio_button_container_height)
 
   -- Our scrollable container needs to be known as widget.cropping_widget in
   -- the widget that is passed to UIManager:show() for UIManager to ensure

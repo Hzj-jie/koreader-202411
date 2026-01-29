@@ -25,11 +25,7 @@ local function format(booknotes)
         table.insert(tbl, wide_space .. clipping.chapter)
         table.insert(tbl, wide_space)
       end
-      local text = T(
-        _("-- Page: %1, added on %2\n"),
-        clipping.page,
-        os.date("%c", clipping.time)
-      )
+      local text = T(_("-- Page: %1, added on %2\n"), clipping.page, os.date("%c", clipping.time))
       table.insert(tbl, wide_space .. wide_space .. text)
       if clipping.text then
         table.insert(tbl, clipping.text)

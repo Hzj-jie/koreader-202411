@@ -61,12 +61,7 @@ function m:finalize(oauth)
   local spore = env.spore
   local payload = spore.method.payload or {}
   if not require("Spore").early_validate then
-    require("Spore").validate(
-      spore.caller,
-      spore.method,
-      spore.params,
-      spore.payload
-    )
+    require("Spore").validate(spore.caller, spore.method, spore.params, spore.payload)
   end
   local path_info = env.PATH_INFO
   local query_string = env.QUERY_STRING

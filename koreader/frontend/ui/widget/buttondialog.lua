@@ -88,9 +88,7 @@ function ButtonDialog:init()
     if not self.width_factor then
       self.width_factor = 0.9 -- default if no width specified
     end
-    self.width = math.floor(
-      math.min(Screen:getWidth(), Screen:getHeight()) * self.width_factor
-    )
+    self.width = math.floor(math.min(Screen:getWidth(), Screen:getHeight()) * self.width_factor)
   end
   if self.dismissable then
     if Device:hasKeys() then
@@ -155,17 +153,12 @@ function ButtonDialog:init()
     title_widget = VerticalSpan:new()
     title_widget_height = 0
   end
-  self.top_to_content_offset = Size.padding.buttontable
-    + Size.margin.default
-    + title_widget_height
+  self.top_to_content_offset = Size.padding.buttontable + Size.margin.default + title_widget_height
 
   -- If the ButtonTable ends up being taller than the screen, wrap it inside a ScrollableContainer.
   -- Ensure some small top and bottom padding, so the scrollbar stand out, and some outer margin
   -- so the this dialog does not take the full height and stand as a popup.
-  local max_height = Screen:getHeight()
-    - 2 * Size.padding.buttontable
-    - 2 * Size.margin.default
-    - title_widget_height
+  local max_height = Screen:getHeight() - 2 * Size.padding.buttontable - 2 * Size.margin.default - title_widget_height
   local height = self.buttontable:getSize().h
   local scontainer, scrollbar_width
   if height > max_height then
@@ -313,9 +306,7 @@ function ButtonDialog:onFocusMove(args)
   if self.cropping_widget then
     local focus = self:getFocusItem()
     if self.dimen and focus and focus.dimen then
-      local button_y_offset = focus:getSize().y
-        - self:getSize().y
-        - self.top_to_content_offset
+      local button_y_offset = focus:getSize().y - self:getSize().y - self.top_to_content_offset
       -- NOTE: The final argument ensures we'll always keep the neighboring item visible.
       --       (i.e., the top/bottom of the scrolled view is actually the previous/next item).
       self.cropping_widget:_scrollBy(0, button_y_offset, true)

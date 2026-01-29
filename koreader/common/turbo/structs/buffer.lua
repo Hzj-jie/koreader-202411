@@ -184,10 +184,7 @@ end
 
 --- Shrink buffer memory usage to its minimum.
 function Buffer:shrink()
-  if
-    self.tbuffer.sz_hint > self.tbuffer.sz
-    or self.tbuffer.sz == self.tbuffer.mem
-  then
+  if self.tbuffer.sz_hint > self.tbuffer.sz or self.tbuffer.sz == self.tbuffer.mem then
     -- Current size is smaller than size hint or current size equals memory
     -- allocated. Bail.
     return self
@@ -239,9 +236,7 @@ end
 function Buffer:__eq(cmp)
   if instanceOf(Buffer, cmp) == true then
     if cmp.tbuffer.sz == self.tbuffer.sz then
-      if
-        ffi.C.memcmp(cmp.tbuffer.data, self.tbuffer.data, self.tbuffer.sz) == 0
-      then
+      if ffi.C.memcmp(cmp.tbuffer.data, self.tbuffer.data, self.tbuffer.sz) == 0 then
         return true
       end
     end

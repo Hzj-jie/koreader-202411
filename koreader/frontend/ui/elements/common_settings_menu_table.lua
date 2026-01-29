@@ -123,9 +123,7 @@ common_settings.night_mode = {
     return G_reader_settings:isTrue("night_mode")
   end,
   callback = function()
-    UIManager:broadcastEvent(
-      Event:new("ToggleNightMode", G_reader_settings:nilOrFalse("night_mode"))
-    )
+    UIManager:broadcastEvent(Event:new("ToggleNightMode", G_reader_settings:nilOrFalse("night_mode")))
   end,
 }
 common_settings.network = {
@@ -136,11 +134,9 @@ NetworkMgr:getMenuTable(common_settings)
 common_settings.screen = {
   text = _("Screen"),
 }
-common_settings.screen_rotation =
-  require("ui/elements/screen_rotation_menu_table")
+common_settings.screen_rotation = require("ui/elements/screen_rotation_menu_table")
 common_settings.screen_dpi = require("ui/elements/screen_dpi_menu_table")
-common_settings.screen_eink_opt =
-  require("ui/elements/screen_eink_opt_menu_table")
+common_settings.screen_eink_opt = require("ui/elements/screen_eink_opt_menu_table")
 
 if Device:isTouchDevice() then
   common_settings.taps_and_gestures = {
@@ -155,8 +151,7 @@ if Device:isTouchDevice() then
       UIManager:broadcastEvent(Event:new("IgnoreHoldCorners"))
     end,
   }
-  common_settings.screen_disable_double_tap =
-    require("ui/elements/screen_disable_double_tap_table")
+  common_settings.screen_disable_double_tap = require("ui/elements/screen_disable_double_tap_table")
   common_settings.menu_activate = require("ui/elements/menu_activate")
 end
 
@@ -177,8 +172,7 @@ common_settings.disable_out_of_order_tap = {
 
 -- NOTE: Allow disabling color if it's mistakenly enabled on a Grayscale screen (after a settings import?)
 if Screen:isColorEnabled() or Screen:isColorScreen() then
-  common_settings.color_rendering =
-    require("ui/elements/screen_color_menu_table")
+  common_settings.color_rendering = require("ui/elements/screen_color_menu_table")
 end
 
 -- fullscreen toggle for supported devices
@@ -210,8 +204,7 @@ if Device:isAndroid() then
   end
 
   -- screen timeout options, disabled if device needs wakelocks.
-  common_settings.screen_timeout =
-    require("ui/elements/timeout_android"):getTimeoutMenuTable()
+  common_settings.screen_timeout = require("ui/elements/timeout_android"):getTimeoutMenuTable()
 
   -- haptic feedback override
   common_settings.android_haptic_feedback = {
@@ -221,9 +214,7 @@ if Device:isAndroid() then
     end,
     callback = function()
       G_reader_settings:flipNilOrFalse("haptic_feedback_override")
-      android.setHapticOverride(
-        G_reader_settings:isTrue("haptic_feedback_override")
-      )
+      android.setHapticOverride(G_reader_settings:isTrue("haptic_feedback_override"))
     end,
   }
 
@@ -267,12 +258,7 @@ You will be prompted with a permission management screen.
 
 Please don't change any settings unless you know what you're doing.]])
 
-        android.settings.requestPermission(
-          "battery",
-          text,
-          _("OK"),
-          _("Cancel")
-        )
+        android.settings.requestPermission("battery", text, _("OK"), _("Cancel"))
       end,
     }
   end
@@ -333,11 +319,7 @@ common_settings.back_in_filemanager = {
         G_reader_settings:save("back_in_filemanager", "default")
       end,
     },
-    genGenericMenuEntry(
-      _("Go to parent folder"),
-      "back_in_filemanager",
-      "parent_folder"
-    ),
+    genGenericMenuEntry(_("Go to parent folder"), "back_in_filemanager", "parent_folder"),
   },
 }
 common_settings.back_in_reader = {
@@ -369,21 +351,9 @@ common_settings.back_in_reader = {
         G_reader_settings:save("back_in_reader", "default")
       end,
     },
-    genGenericMenuEntry(
-      _("Go to file browser"),
-      "back_in_reader",
-      "filebrowser"
-    ),
-    genGenericMenuEntry(
-      _("Go to previous location"),
-      "back_in_reader",
-      "previous_location"
-    ),
-    genGenericMenuEntry(
-      _("Go to previous read page"),
-      "back_in_reader",
-      "previous_read_page"
-    ),
+    genGenericMenuEntry(_("Go to file browser"), "back_in_reader", "filebrowser"),
+    genGenericMenuEntry(_("Go to previous location"), "back_in_reader", "previous_location"),
+    genGenericMenuEntry(_("Go to previous read page"), "back_in_reader", "previous_read_page"),
   },
 }
 -- Kindle keyboard does not have a 'Backspace' key
@@ -418,27 +388,12 @@ local skim_dialog_position_string = {
 common_settings.skim_dialog_position = {
   text_func = function()
     local position = G_reader_settings:read("skim_dialog_position") or "center"
-    return T(
-      _("Skim dialog position: %1"),
-      skim_dialog_position_string[position]:lower()
-    )
+    return T(_("Skim dialog position: %1"), skim_dialog_position_string[position]:lower())
   end,
   sub_item_table = {
-    genGenericMenuEntry(
-      skim_dialog_position_string["top"],
-      "skim_dialog_position",
-      "top"
-    ),
-    genGenericMenuEntry(
-      skim_dialog_position_string["center"],
-      "skim_dialog_position",
-      nil
-    ), -- default
-    genGenericMenuEntry(
-      skim_dialog_position_string["bottom"],
-      "skim_dialog_position",
-      "bottom"
-    ),
+    genGenericMenuEntry(skim_dialog_position_string["top"], "skim_dialog_position", "top"),
+    genGenericMenuEntry(skim_dialog_position_string["center"], "skim_dialog_position", nil), -- default
+    genGenericMenuEntry(skim_dialog_position_string["bottom"], "skim_dialog_position", "bottom"),
   },
 }
 
@@ -458,9 +413,7 @@ local metadata_folder_help_table = {
     'Book view settings, reading progress, highlights, bookmarks and notes (collectively known as metadata) are stored in a separate folder named <book-filename>.sdr (".sdr" meaning "sidecar").'
   ),
   "",
-  _(
-    "You can decide between three locations/methods where these will be saved:"
-  ),
+  _("You can decide between three locations/methods where these will be saved:"),
   _(
     " - alongside the book file itself (the long time default): sdr folders will be visible when you browse your library directories with another file browser or from your computer, which may clutter your vision of your library. But this allows you to move them along when you reorganize your library, and also survives any renaming of parent directories. Also, if you perform directory synchronization or backups, your settings will be part of them."
   ),
@@ -574,13 +527,7 @@ Setting it to some interval may help prevent losing new settings/sidecar data af
 
   -- Some devices with FAT32 storage may not like having settings rewritten too often,
   -- so let that be known. See https://github.com/koreader/koreader/pull/3625
-  if
-    Device:isKobo()
-    or Device:isKindle()
-    or Device:isCervantes()
-    or Device:isPocketBook()
-    or Device:isSonyPRSTUX()
-  then
+  if Device:isKobo() or Device:isKindle() or Device:isCervantes() or Device:isPocketBook() or Device:isSonyPRSTUX() then
     text = text
       .. "\n\n"
       .. _(
@@ -617,34 +564,10 @@ common_settings.document_end_action = {
       end,
       separator = true,
     },
-    genGenericMenuEntry(
-      _("Ask with popup dialog"),
-      "end_document_action",
-      "pop-up",
-      "pop-up",
-      true
-    ),
-    genGenericMenuEntry(
-      _("Do nothing"),
-      "end_document_action",
-      "nothing",
-      nil,
-      true
-    ),
-    genGenericMenuEntry(
-      _("Book status"),
-      "end_document_action",
-      "book_status",
-      nil,
-      true
-    ),
-    genGenericMenuEntry(
-      _("Delete file"),
-      "end_document_action",
-      "delete_file",
-      nil,
-      true
-    ),
+    genGenericMenuEntry(_("Ask with popup dialog"), "end_document_action", "pop-up", "pop-up", true),
+    genGenericMenuEntry(_("Do nothing"), "end_document_action", "nothing", nil, true),
+    genGenericMenuEntry(_("Book status"), "end_document_action", "book_status", nil, true),
+    genGenericMenuEntry(_("Delete file"), "end_document_action", "delete_file", nil, true),
     {
       text = _("Open next file"),
       enabled_func = function()
@@ -658,27 +581,9 @@ common_settings.document_end_action = {
         G_reader_settings:save("end_document_action", "next_file")
       end,
     },
-    genGenericMenuEntry(
-      _("Go to beginning"),
-      "end_document_action",
-      "goto_beginning",
-      nil,
-      true
-    ),
-    genGenericMenuEntry(
-      _("Return to file browser"),
-      "end_document_action",
-      "file_browser",
-      nil,
-      true
-    ),
-    genGenericMenuEntry(
-      _("Mark book as finished"),
-      "end_document_action",
-      "mark_read",
-      nil,
-      true
-    ),
+    genGenericMenuEntry(_("Go to beginning"), "end_document_action", "goto_beginning", nil, true),
+    genGenericMenuEntry(_("Return to file browser"), "end_document_action", "file_browser", nil, true),
+    genGenericMenuEntry(_("Mark book as finished"), "end_document_action", "mark_read", nil, true),
     genGenericMenuEntry(
       _("Book status and return to file browser"),
       "end_document_action",
@@ -722,13 +627,7 @@ common_settings.units = {
       separator = true,
     },
     genGenericMenuEntry(_("Metric system"), "dimension_units", "mm", nil, true),
-    genGenericMenuEntry(
-      _("Imperial system"),
-      "dimension_units",
-      "in",
-      nil,
-      true
-    ),
+    genGenericMenuEntry(_("Imperial system"), "dimension_units", "in", nil, true),
     genGenericMenuEntry(_("Pixels"), "dimension_units", "px", nil, true),
   },
 }

@@ -219,15 +219,9 @@ function ListMenuItem:update()
     self.file_deleted = self.entry.dim -- entry with deleted file from History or selected file from FM
     local fgcolor = self.file_deleted and Blitbuffer.COLOR_DARK_GRAY or nil
 
-    local bookinfo =
-      BookInfoManager:getBookInfo(self.filepath, self.do_cover_image)
+    local bookinfo = BookInfoManager:getBookInfo(self.filepath, self.do_cover_image)
 
-    if
-      bookinfo
-      and self.do_cover_image
-      and not bookinfo.ignore_cover
-      and not self.file_deleted
-    then
+    if bookinfo and self.do_cover_image and not bookinfo.ignore_cover and not self.file_deleted then
       if bookinfo.cover_fetched then
         if bookinfo.has_cover and not self.menu.no_refresh_covers then
           if BookInfoManager.isCachedCoverInvalid(bookinfo, cover_specs) then
@@ -262,12 +256,8 @@ function ListMenuItem:update()
         if bookinfo.has_cover and not bookinfo.ignore_cover then
           cover_bb_used = true
           -- Let ImageWidget do the scaling and give us the final size
-          local _, _, scale_factor = BookInfoManager.getCachedCoverSize(
-            bookinfo.cover_w,
-            bookinfo.cover_h,
-            max_img_w,
-            max_img_h
-          )
+          local _, _, scale_factor =
+            BookInfoManager.getCachedCoverSize(bookinfo.cover_w, bookinfo.cover_h, max_img_w, max_img_h)
           local wimage = ImageWidget:new({
             image = bookinfo.cover_bb,
             scale_factor = scale_factor,
@@ -338,16 +328,12 @@ function ListMenuItem:update()
       if DocSettings:hasSidecarFile(self.filepath) then
         self.been_opened = true
         self.menu:updateCache(self.filepath, nil, true, pages) -- create new cache entry if absent
-        pages, percent_finished, status, has_highlight = unpack(
-          self.menu.cover_info_cache[self.filepath],
-          1,
-          self.menu.cover_info_cache[self.filepath].n
-        )
+        pages, percent_finished, status, has_highlight =
+          unpack(self.menu.cover_info_cache[self.filepath], 1, self.menu.cover_info_cache[self.filepath].n)
       end
       -- right widget, first line
       local directory, filename = util.splitFilePathName(self.filepath) -- luacheck: no unused
-      local filename_without_suffix, filetype =
-        filemanagerutil.splitFileNameType(filename)
+      local filename_without_suffix, filetype = filemanagerutil.splitFileNameType(filename)
       local fileinfo_str
       if bookinfo._no_provider then
         -- for unsupported files: don't show extension on the right,
@@ -356,23 +342,16 @@ function ListMenuItem:update()
         fileinfo_str = self.mandatory
       else
         local mark = has_highlight and "\u{2592}  " or "" -- "medium shade"
-        fileinfo_str = mark
-          .. BD.wrap(filetype)
-          .. "  "
-          .. BD.wrap(self.mandatory)
+        fileinfo_str = mark .. BD.wrap(filetype) .. "  " .. BD.wrap(self.mandatory)
       end
       -- right widget, second line
       if status == "complete" or status == "abandoned" then
         -- Display these instead of the read %
         if pages then
           if status == "complete" then
-            pages_str = T(
-              N_("Finished – 1 page", "Finished – %1 pages", pages),
-              pages
-            )
+            pages_str = T(N_("Finished – 1 page", "Finished – %1 pages", pages), pages)
           else
-            pages_str =
-              T(N_("On hold – 1 page", "On hold – %1 pages", pages), pages)
+            pages_str = T(N_("On hold – 1 page", "On hold – %1 pages", pages), pages)
           end
         else
           pages_str = status == "complete" and _("Finished") or _("On hold")
@@ -380,22 +359,12 @@ function ListMenuItem:update()
       elseif percent_finished then
         if pages then
           if BookInfoManager:getSetting("show_pages_read_as_progress") then
-            pages_str =
-              T(_("Page %1 of %2"), Math.round(percent_finished * pages), pages)
+            pages_str = T(_("Page %1 of %2"), Math.round(percent_finished * pages), pages)
           else
-            pages_str = T(
-              _("%1 % of %2 pages"),
-              math.floor(100 * percent_finished),
-              pages
-            )
+            pages_str = T(_("%1 % of %2 pages"), math.floor(100 * percent_finished), pages)
           end
           if BookInfoManager:getSetting("show_pages_left_in_progress") then
-            pages_str = T(
-              _("%1, %2 to read"),
-              pages_str,
-              Math.round(pages - percent_finished * pages),
-              pages
-            )
+            pages_str = T(_("%1, %2 to read"), pages_str, Math.round(pages - percent_finished * pages), pages)
           end
         else
           pages_str = string.format("%d %%", 100 * percent_finished)
@@ -504,11 +473,7 @@ function ListMenuItem:update()
           for i = 1, #authors do
             authors[i] = BD.auto(authors[i])
           end
-          if
-            #authors > 1
-            and bookinfo.series
-            and series_mode == "series_in_separate_line"
-          then
+          if #authors > 1 and bookinfo.series and series_mode == "series_in_separate_line" then
             authors = { T(_("%1 et al."), authors[1]) }
           elseif #authors > 2 then
             authors = { authors[1], T(_("%1 et al."), authors[2]) }
@@ -524,8 +489,7 @@ function ListMenuItem:update()
       -- add Series metadata if requested
       if bookinfo.series then
         if bookinfo.series_index then
-          bookinfo.series =
-            BD.auto(bookinfo.series .. " #" .. bookinfo.series_index)
+          bookinfo.series = BD.auto(bookinfo.series .. " #" .. bookinfo.series_index)
         else
           bookinfo.series = BD.auto(bookinfo.series)
         end
@@ -537,10 +501,7 @@ function ListMenuItem:update()
           end
         end
         if not authors then
-          if
-            series_mode == "append_series_to_authors"
-            or series_mode == "series_in_separate_line"
-          then
+          if series_mode == "append_series_to_authors" or series_mode == "series_in_separate_line" then
             authors = bookinfo.series
           end
         else
@@ -729,11 +690,10 @@ function ListMenuItem:update()
           face = Font:getFace("cfont", fontsize_info),
           fgcolor = fgcolor,
         })
-        local wpageinfo =
-          TextWidget:new({ -- Empty but needed for similar positioning
-            text = "",
-            face = Font:getFace("cfont", fontsize_info),
-          })
+        local wpageinfo = TextWidget:new({ -- Empty but needed for similar positioning
+          text = "",
+          face = Font:getFace("cfont", fontsize_info),
+        })
         wright_width = wfileinfo:getSize().w
         wright = CenterContainer:new({
           dimen = Geom:new({ w = wright_width, h = dimen.h }),
@@ -761,10 +721,7 @@ function ListMenuItem:update()
         text_widget = TextBoxWidget:new({
           text = text .. hint,
           face = Font:getFace("cfont", fontsize_no_bookinfo),
-          width = dimen.w
-            - 2 * Screen:scaleBySize(10)
-            - wright_width
-            - wright_right_padding,
+          width = dimen.w - 2 * Screen:scaleBySize(10) - wright_width - wright_right_padding,
           alignment = "left",
           fgcolor = fgcolor,
         })
@@ -847,10 +804,7 @@ function ListMenuItem:paintTo(bb, x, y)
   end
 
   -- to which we paint a small indicator if this book has a description
-  if
-    self.has_description
-    and not BookInfoManager:getSetting("no_hint_description")
-  then
+  if self.has_description and not BookInfoManager:getSetting("no_hint_description") then
     local target = self[1][1][2]
     local d_w = Screen:scaleBySize(3)
     local d_h = math.ceil(target:getSize().h / 4)
@@ -931,9 +885,7 @@ function ListMenu:_recalculateDimen()
     self.itemnum_orig = self.path_items[self.path]
     self.focused_path_orig = self.focused_path
   end
-  local available_height = self.inner_dimen.h
-    - self.others_height
-    - Size.line.thin
+  local available_height = self.inner_dimen.h - self.others_height - Size.line.thin
 
   if self.files_per_page == nil then -- first drawing
     -- Default perpage is computed from a base of 64px per ListMenuItem,
@@ -947,12 +899,8 @@ function ListMenu:_recalculateDimen()
     -- to have about the same height as when in portrait mode.
     -- This computation is not strictly correct, as "others_height" would
     -- have a different value in portrait mode. But let's go with that.
-    local portrait_available_height = Screen:getWidth()
-      - self.others_height
-      - Size.line.thin
-    local portrait_item_height = math.floor(
-      portrait_available_height / self.perpage
-    ) - Size.line.thin
+    local portrait_available_height = Screen:getWidth() - self.others_height - Size.line.thin
+    local portrait_item_height = math.floor(portrait_available_height / self.perpage) - Size.line.thin
     self.perpage = Math.round(available_height / portrait_item_height)
   end
 
@@ -964,8 +912,7 @@ function ListMenu:_recalculateDimen()
 
   -- menu item height based on number of items per page
   -- add space for the separator
-  self.item_height = math.floor(available_height / self.perpage)
-    - Size.line.thin
+  self.item_height = math.floor(available_height / self.perpage) - Size.line.thin
   self.item_width = self.inner_dimen.w
   self.item_dimen = Geom:new({
     x = 0,
@@ -1050,11 +997,7 @@ function ListMenu:_updateItemsBuildUI()
     -- this is for focus manager
     table.insert(self.layout, { item_tmp })
 
-    if
-      not item_tmp.bookinfo_found
-      and not item_tmp.is_directory
-      and not item_tmp.file_deleted
-    then
+    if not item_tmp.bookinfo_found and not item_tmp.is_directory and not item_tmp.file_deleted then
       -- Register this item for update
       table.insert(self.items_to_update, item_tmp)
     end

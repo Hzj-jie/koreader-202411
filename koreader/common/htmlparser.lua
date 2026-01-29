@@ -26,16 +26,12 @@ end
 local out = opts.noout and noop or function(f, ...)
   prn("i", f, ...)
 end
-local line = debug
-    and function(lvl)
-      return debug.getinfo(lvl or 2).currentline
-    end
-  or noop
-local dbg = opts.debug
-    and function(f, ...)
-      prn("d", f:gsub("#LINE#", str(line(3))), ...)
-    end
-  or noop
+local line = debug and function(lvl)
+  return debug.getinfo(lvl or 2).currentline
+end or noop
+local dbg = opts.debug and function(f, ...)
+  prn("d", f:gsub("#LINE#", str(line(3))), ...)
+end or noop
 -- }}}
 -- Requires {{{
 local ElementNode = require("htmlparser.ElementNode")
@@ -104,11 +100,7 @@ local function parse(text, limit) -- {{{
         "Consider enabling 'keep_danger_placeholders' option (to silence this error, if parser wasn't failed with current HTML-code) or manually replace few random bytes, to free up the codes."
       )
     else
-      dbg(
-        "[FindPH]:#LINE# Found! || '<'=%d, '>'=%d",
-        tpr["<"]:byte(),
-        tpr[">"]:byte()
-      )
+      dbg("[FindPH]:#LINE# Found! || '<'=%d, '>'=%d", tpr["<"]:byte(), tpr[">"]:byte())
     end
 
     --	dbg("tpr[>] || tpr[] || #busy%d")
@@ -124,9 +116,7 @@ local function parse(text, limit) -- {{{
         dbg("[g]:#LINE# replaced: %s", str(arg[id]))
       end
       dbg(
-        "[g]:#LINE# called, id: %s, arg[id]: %s, args { "
-          .. (("{%s}, "):rep(#arg):gsub(", $", ""))
-          .. " }",
+        "[g]:#LINE# called, id: %s, arg[id]: %s, args { " .. (("{%s}, "):rep(#arg):gsub(", $", "")) .. " }",
         id,
         arg[id],
         ...
@@ -196,30 +186,20 @@ local function parse(text, limit) -- {{{
         .. "[^>]*>", -- include, but not capture everything up to the next ">"
       tpos
     )
-    dbg(
-      "[MainLoop]:#LINE# openstart=%s || tpos=%s || name=%s",
-      str(openstart),
-      str(tpos),
-      str(name)
-    )
+    dbg("[MainLoop]:#LINE# openstart=%s || tpos=%s || name=%s", str(openstart), str(tpos), str(name))
     -- }}}
     if not name then
       break
     end
     -- Some more vars {{{
     index = index + 1
-    local tag =
-      ElementNode:new(index, str(name), (node or {}), descend, openstart, tpos)
+    local tag = ElementNode:new(index, str(name), (node or {}), descend, openstart, tpos)
     node = tag
     local tagloop
     local tagst, apos = tag:gettext(), 1
     -- }}}
     while true do -- TagLoop {{{
-      dbg(
-        "[TagLoop]:#LINE# tag.name=%s, tagloop=%s",
-        str(tag.name),
-        str(tagloop)
-      )
+      dbg("[TagLoop]:#LINE# tag.name=%s, tagloop=%s", str(tag.name), str(tagloop))
       if tagloop == limit then -- {{{
         err(
           "Tag parsing loop reached loop limit (%d). Consider either increasing it or checking HTML-code for syntax errors",
@@ -258,13 +238,7 @@ local function parse(text, limit) -- {{{
           pattern = quote .. "([^" .. quote .. "]*)" .. quote
         end
         start, apos, v = tagst:find(pattern, apos)
-        dbg(
-          "[TagLoop]:#LINE# start=%s || apos=%s || v=%s || pattern=%s",
-          str(start),
-          str(apos),
-          str(v),
-          str(pattern)
-        )
+        dbg("[TagLoop]:#LINE# start=%s || apos=%s || v=%s || pattern=%s", str(start), str(apos), str(v), str(pattern))
       end
       -- }}}
       v = v or ""
@@ -304,8 +278,7 @@ local function parse(text, limit) -- {{{
       end
 
       local closestart, closing, closename
-      closestart, closeend, closing, closename =
-        root._text:find("[^<]*<(/?)([%w-]+)", closeend)
+      closestart, closeend, closing, closename = root._text:find("[^<]*<(/?)([%w-]+)", closeend)
       dbg(
         "[TagCloseLoop]:#LINE# closestart=%s || closeend=%s || closing=%s || closename=%s",
         str(closestart),

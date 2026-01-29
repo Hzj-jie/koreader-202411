@@ -140,11 +140,7 @@ function IconButton:onTapIconButton()
   -- Unhighlight
   --
   self.image.invert = false
-  UIManager:invertWidget(
-    self.image,
-    self:getSize().x + h_padding,
-    self:getSize().y + self.padding_top
-  )
+  UIManager:invertWidget(self.image, self:getSize().x + h_padding, self:getSize().y + self.padding_top)
 
   -- Callback
   --

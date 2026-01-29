@@ -79,13 +79,7 @@ httpserver.HTTPServer = class("HTTPServer", tcpserver.TCPServer)
 -- "ssl_options" =
 --      "key_file" = SSL key file if a SSL enabled server is wanted.
 --      "cert_file" = Certificate file. key_file must also be set.
-function httpserver.HTTPServer:initialize(
-  request_callback,
-  no_keep_alive,
-  io_loop,
-  xheaders,
-  kwargs
-)
+function httpserver.HTTPServer:initialize(request_callback, no_keep_alive, io_loop, xheaders, kwargs)
   self.request_callback = request_callback
   self.no_keep_alive = no_keep_alive
   self.xheaders = xheaders
@@ -98,14 +92,8 @@ end
 -- @param stream (IOStream instance) Stream for the newly connected client.
 -- @param address (String) IP address of newly connected client.
 function httpserver.HTTPServer:handle_stream(stream, address)
-  local http_conn = httpserver.HTTPConnection(
-    stream,
-    address,
-    self.request_callback,
-    self.no_keep_alive,
-    self.xheaders,
-    self.kwargs
-  )
+  local http_conn =
+    httpserver.HTTPConnection(stream, address, self.request_callback, self.no_keep_alive, self.xheaders, self.kwargs)
 end
 
 --- HTTPConnection class.
@@ -114,14 +102,7 @@ end
 -- sections of a HTTP request.
 httpserver.HTTPConnection = class("HTTPConnection")
 
-function httpserver.HTTPConnection:initialize(
-  stream,
-  address,
-  request_callback,
-  no_keep_alive,
-  xheaders,
-  kwargs
-)
+function httpserver.HTTPConnection:initialize(stream, address, request_callback, no_keep_alive, xheaders, kwargs)
   self.stream = stream
   self.address = address
   self.request_callback = request_callback
@@ -195,9 +176,7 @@ function httpserver.HTTPConnection:write_zero_copy(buf, callback, arg)
     self:_set_write_callback(callback, arg)
     self.stream:write_zero_copy(buf, self._on_write_complete, self)
   else
-    log.devel(
-      "[httpserver.lua] Trying to do zero copy operation on closed stream."
-    )
+    log.devel("[httpserver.lua] Trying to do zero copy operation on closed stream.")
   end
 end
 
@@ -219,12 +198,7 @@ end
 -- request headers.
 function httpserver.HTTPConnection:_on_headers(data)
   local headers
-  local status, headers = xpcall(
-    httputil.HTTPParser,
-    _on_headers_error_handler,
-    data,
-    httputil.hdr_t["HTTP_REQUEST"]
-  )
+  local status, headers = xpcall(httputil.HTTPParser, _on_headers_error_handler, data, httputil.hdr_t["HTTP_REQUEST"])
 
   if status == false then
     -- Invalid headers. Close stream.
@@ -233,21 +207,18 @@ function httpserver.HTTPConnection:_on_headers(data)
     return
   end
   self._headers_read = true
-  self._request =
-    httpserver.HTTPRequest:new(headers:get_method(), headers:get_url(), {
-      version = headers:get_version(),
-      connection = self,
-      headers = headers,
-      remote_ip = self.address,
-    })
+  self._request = httpserver.HTTPRequest:new(headers:get_method(), headers:get_url(), {
+    version = headers:get_version(),
+    connection = self,
+    headers = headers,
+    remote_ip = self.address,
+  })
   if self.kwargs.read_body ~= false then
     local content_length = headers:get("Content-Length")
     if content_length then
       content_length = tonumber(content_length)
       -- Set max buffer size to 128MB.
-      self.stream:set_max_buffer_size(
-        self.kwargs.max_body_size or math.max(content_length, 1024 * 18)
-      )
+      self.stream:set_max_buffer_size(self.kwargs.max_body_size or math.max(content_length, 1024 * 18))
       if content_length > self.stream.max_buffer_size then
         log.error("[httpserver.lua] Content-Length too long \
                     compared to current max body size.")
@@ -278,13 +249,8 @@ function httpserver.HTTPConnection:_on_request_body(data)
       --          "+" / "_" / "," / "-" / "." /
       --          "/" / ":" / "=" / "?" / " "
       -- Boundary string is permitted to be quoted.
-      local boundary = content_type:match(
-        "boundary=[\"]?([0-9a-zA-Z'()+_,-./:=? ]*[0-9a-zA-Z'()+_,-./:=?])"
-      )
-      self.arguments = httputil.parse_multipart_data(
-        self._request.body,
-        boundary
-      ) or {}
+      local boundary = content_type:match("boundary=[\"]?([0-9a-zA-Z'()+_,-./:=? ]*[0-9a-zA-Z'()+_,-./:=?])")
+      self.arguments = httputil.parse_multipart_data(self._request.body, boundary) or {}
     end
   end
   self.request_callback(self._request)
@@ -350,10 +316,7 @@ function httpserver.HTTPConnection:_on_max_buffer()
     -- and body arrive in one chunk.
     if not self._headers_read then
       log.error(
-        string.format(
-          "[httpserver.lua] Headers too large for limit %dB.",
-          self.kwargs.max_header_size or 1024 * 18
-        )
+        string.format("[httpserver.lua] Headers too large for limit %dB.", self.kwargs.max_header_size or 1024 * 18)
       )
     else
       log.error(
@@ -407,13 +370,11 @@ function httpserver.HTTPRequest:initialize(method, uri, args)
   self.headers = headers or httputil.HTTPHeaders:new()
   self.body = body or ""
   if connection and connection.xheaders then
-    self.remote_ip = self.headers:get("X-Real-Ip")
-      or self.headers:get("X-Forwarded-For")
+    self.remote_ip = self.headers:get("X-Real-Ip") or self.headers:get("X-Forwarded-For")
     if not self:_valid_ip(self.remote_ip) then
       self.remote_ip = remote_ip
     end
-    self.protocol = self.headers:get("X-Scheme")
-      or self.headers:get("X-Forwarded-Proto")
+    self.protocol = self.headers:get("X-Scheme") or self.headers:get("X-Forwarded-Proto")
     if self.protocol ~= "http" or self.protocol ~= "https" then
       self.protocol = "http"
     end
@@ -421,9 +382,7 @@ function httpserver.HTTPRequest:initialize(method, uri, args)
     self.remote_ip = remote_ip
     if protocol then
       self.protocol = protocol
-    elseif
-      connection and instanceOf(iostream.SSLIOStream, connection.stream)
-    then
+    elseif connection and instanceOf(iostream.SSLIOStream, connection.stream) then
       self.protocol = "https"
     else
       self.protocol = "http"

@@ -342,8 +342,7 @@ function Parser:_parse(str)
         table.insert(same_priority, { opPos, opPos2, i })
       end
       i = i + 1
-    until i > number_of_operators
-      or self.operators[i - 1][3] ~= self.operators[i][3]
+    until i > number_of_operators or self.operators[i - 1][3] ~= self.operators[i][3]
     if same_priority[1] then
       if op[4] == 1 then
         table.sort(same_priority, function(a, b)
@@ -446,8 +445,7 @@ function Parser:_parse(str)
     return { name = str }
   else -- here we have e.g. 5x or 3(2+3) -> split it in 5*x or 3*(2+3)
     local ins_pos = str:find("[%a_(]")
-    local alpha_num = ins_pos
-      and str:sub(ins_pos - 1, ins_pos - 1):gsub("[^%a^%d]", "")
+    local alpha_num = ins_pos and str:sub(ins_pos - 1, ins_pos - 1):gsub("[^%a^%d]", "")
     if ins_pos and alpha_num ~= "" then
       str = str:sub(1, ins_pos - 1) .. "*" .. str:sub(ins_pos)
       return self:_parse(str)
@@ -474,9 +472,7 @@ function Parser.basicOperator(str, operator, right)
       local charRight
       local charLeft
       opPos = opPos + 1
-      while
-        opPos < str_len and (str:sub(opPos, opPos) == "(" or bracketLevel ~= 0)
-      do
+      while opPos < str_len and (str:sub(opPos, opPos) == "(" or bracketLevel ~= 0) do
         if str:sub(opPos, opPos) == "(" then
           bracketLevel = bracketLevel + 1
         elseif str:sub(opPos, opPos) == ")" then
@@ -537,9 +533,7 @@ function Parser.ternaryOperator(str, operator)
   local opPos = 0
   repeat
     opPos = opPos + 1
-    while
-      opPos < str_len and (str:sub(opPos, opPos) == "(" or bracketLevel ~= 0)
-    do
+    while opPos < str_len and (str:sub(opPos, opPos) == "(" or bracketLevel ~= 0) do
       if str:sub(opPos, opPos) == "(" then
         bracketLevel = bracketLevel + 1
       elseif str:sub(opPos, opPos) == ")" then
@@ -553,9 +547,7 @@ function Parser.ternaryOperator(str, operator)
     local opPos1 = opPos
     repeat
       opPos = opPos + 1
-      while
-        opPos < str_len and (str:sub(opPos, opPos) == "(" or bracketLevel ~= 0)
-      do
+      while opPos < str_len and (str:sub(opPos, opPos) == "(" or bracketLevel ~= 0) do
         if str:sub(opPos, opPos) == "(" then
           bracketLevel = bracketLevel + 1
         elseif str:sub(opPos, opPos) == ")" then

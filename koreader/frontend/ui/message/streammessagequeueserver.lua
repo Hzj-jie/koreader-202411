@@ -74,26 +74,13 @@ function StreamMessageQueueServer:waitEvent()
 end
 
 function StreamMessageQueueServer:send(data, id_frame)
-  czmq.zframe_send(
-    ffi.new("zframe_t *[1]", id_frame),
-    self.socket,
-    C.ZFRAME_MORE + C.ZFRAME_REUSE
-  )
-  zmq.zmq_send(
-    czmq.zsock_resolve(self.socket),
-    ffi.cast("unsigned char*", data),
-    #data,
-    C.ZFRAME_MORE
-  )
+  czmq.zframe_send(ffi.new("zframe_t *[1]", id_frame), self.socket, C.ZFRAME_MORE + C.ZFRAME_REUSE)
+  zmq.zmq_send(czmq.zsock_resolve(self.socket), ffi.cast("unsigned char*", data), #data, C.ZFRAME_MORE)
   -- Note: We can't use czmq.zstr_send(self.socket, data), which would stop on the first
   -- null byte in data (Lua strings can have null bytes inside).
 
   -- Close connection
-  czmq.zframe_send(
-    ffi.new("zframe_t *[1]", id_frame),
-    self.socket,
-    C.ZFRAME_MORE
-  )
+  czmq.zframe_send(ffi.new("zframe_t *[1]", id_frame), self.socket, C.ZFRAME_MORE)
   zmq.zmq_send(czmq.zsock_resolve(self.socket), nil, 0, 0)
 end
 

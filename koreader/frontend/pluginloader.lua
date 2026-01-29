@@ -18,9 +18,7 @@ local OBSOLETE_PLUGINS = {
 
 local DEPRECATION_MESSAGES = {
   remove = _("This plugin is unmaintained and will be removed soon."),
-  feature = _(
-    "The following features are unmaintained and will be removed soon:"
-  ),
+  feature = _("The following features are unmaintained and will be removed soon:"),
 }
 
 local INVISIBLE_PLUGINS = {
@@ -47,18 +45,11 @@ end
 local function getMenuTable(plugin)
   local t = {}
   t.name = plugin.name
-  t.fullname = string.format(
-    "%s%s",
-    plugin.fullname or plugin.name,
-    plugin.deprecated and " (" .. _("outdated") .. ")" or ""
-  )
+  t.fullname =
+    string.format("%s%s", plugin.fullname or plugin.name, plugin.deprecated and " (" .. _("outdated") .. ")" or "")
 
   local deprecated, message = deprecationFmt(plugin.deprecated)
-  t.description = string.format(
-    "%s%s",
-    plugin.description,
-    deprecated and "\n\n" .. message or ""
-  )
+  t.description = string.format("%s%s", plugin.description, deprecated and "\n\n" .. message or "")
   return t
 end
 
@@ -120,29 +111,20 @@ function PluginLoader:loadPlugins()
       local mode = lfs.attributes(plugin_root, "mode")
       local plugin_name = entry:sub(1, -10)
       -- valid koreader plugin directory
-      if
-        mode == "directory"
-        and entry:find(".+%.koplugin$")
-        and not OBSOLETE_PLUGINS[plugin_name]
-      then
+      if mode == "directory" and entry:find(".+%.koplugin$") and not OBSOLETE_PLUGINS[plugin_name] then
         local mainfile = plugin_root .. "/main.lua"
         local metafile = plugin_root .. "/_meta.lua"
         if plugins_disabled[plugin_name] then
           mainfile = metafile
         end
         package.path = string.format("%s/?.lua;%s", plugin_root, package_path)
-        package.cpath =
-          string.format("%s/lib/?.so;%s", plugin_root, package_cpath)
+        package.cpath = string.format("%s/lib/?.so;%s", plugin_root, package_cpath)
         local plugin_module = dofile(mainfile)
         assert(plugin_module ~= nil)
-        assert(
-          plugin_module.disabled == nil
-            or type(plugin_module.disabled) == "boolean"
-        )
+        assert(plugin_module.disabled == nil or type(plugin_module.disabled) == "boolean")
         if not plugin_module.disabled then
           plugin_module.path = plugin_root
-          plugin_module.name = plugin_module.name
-            or plugin_root:match("/(.-)%.koplugin")
+          plugin_module.name = plugin_module.name or plugin_root:match("/(.-)%.koplugin")
           if plugins_disabled[plugin_name] then
             table.insert(self.disabled_plugins, plugin_module)
           else
@@ -208,8 +190,7 @@ function PluginLoader:genPluginManagerSubItem()
         callback = function()
           local UIManager = require("ui/uimanager")
           local _ = require("gettext")
-          local plugins_disabled =
-            G_reader_settings:readTableRef("plugins_disabled")
+          local plugins_disabled = G_reader_settings:readTableRef("plugins_disabled")
           plugin.enable = not plugin.enable
           if plugin.enable then
             plugins_disabled[plugin.name] = nil

@@ -44,9 +44,7 @@ local DEFAULT_TEXT_SCAN_LENGTH = 20
 function Japanese:init()
   self.deinflector = SingleInstanceDeinflector
   self.dictionary = (self.ui and self.ui.dictionary) or ReaderDictionary:new()
-  self.max_scan_length = G_reader_settings:read(
-    "language_japanese_text_scan_length"
-  ) or DEFAULT_TEXT_SCAN_LENGTH
+  self.max_scan_length = G_reader_settings:read("language_japanese_text_scan_length") or DEFAULT_TEXT_SCAN_LENGTH
   LanguageSupport:registerPlugin(self)
 end
 
@@ -94,8 +92,7 @@ function Japanese:onWordLookup(args)
 end
 
 -- @todo Switch this to utf8proc_category or something similar.
-local JAPANESE_PUNCTUATION =
-  "「」『』【】〘〙〖〗・･、､,。｡.！!？?　 \n"
+local JAPANESE_PUNCTUATION = "「」『』【】〘〙〖〗・･、､,。｡.！!？?　 \n"
 
 local function isPossibleJapaneseWord(str)
   for c in str:gmatch(util.UTF8_CHAR_PATTERN) do
@@ -159,11 +156,7 @@ function Japanese:onWordSelection(args)
     -- last character requires a linear walk through the string anyway, and
     -- get_next_char_pos() skips over newlines.
     if not isPossibleJapaneseWord(current_text) then
-      logger.dbg(
-        "japanese.koplugin: stopping expansion at",
-        current_text,
-        "because in contains non-word characters"
-      )
+      logger.dbg("japanese.koplugin: stopping expansion at", current_text, "because in contains non-word characters")
       break
     end
 
@@ -184,12 +177,7 @@ function Japanese:onWordSelection(args)
       table.insert(all_words, term)
     end
   until current_end == nil or num_expansions >= self.max_scan_length
-  logger.dbg(
-    "japanese.koplugin: attempted",
-    num_expansions,
-    "expansions up to",
-    current_text
-  )
+  logger.dbg("japanese.koplugin: attempted", num_expansions, "expansions up to", current_text)
 
   -- Calling sdcv is fairly expensive, so reduce the cost by trying every
   -- candidate in one shot and then picking the longest one which gave us a
@@ -216,11 +204,7 @@ function Japanese:genMenuItem()
     {
       text_func = function()
         return T(
-          N_(
-            "Text scan length: %1 character",
-            "Text scan length: %1 characters",
-            self.max_scan_length
-          ),
+          N_("Text scan length: %1 character", "Text scan length: %1 characters", self.max_scan_length),
           self.max_scan_length
         )
       end,
@@ -251,10 +235,7 @@ Default value: %1]]),
           default_value = DEFAULT_TEXT_SCAN_LENGTH,
           callback = function(spin)
             self.max_scan_length = spin.value
-            G_reader_settings:save(
-              "language_japanese_text_scan_length",
-              self.max_scan_length
-            )
+            G_reader_settings:save("language_japanese_text_scan_length", self.max_scan_length)
             if touchmenu_instance then
               touchmenu_instance:updateItems()
             end

@@ -34,15 +34,8 @@ function SSH:init()
 end
 
 function SSH:start()
-  local cmd = string.format(
-    "%s %s %s %s%s %s",
-    "./dropbear",
-    "-E",
-    "-R",
-    "-p",
-    self.SSH_port,
-    "-P /tmp/dropbear_koreader.pid"
-  )
+  local cmd =
+    string.format("%s %s %s %s%s %s", "./dropbear", "-E", "-R", "-p", self.SSH_port, "-P /tmp/dropbear_koreader.pid")
   if self.allow_no_password then
     cmd = string.format("%s %s", cmd, "-n")
   end
@@ -86,8 +79,7 @@ function SSH:start()
       text = T(
         _("SSH server started.\n\nSSH port: %1\n%2"),
         self.SSH_port,
-        Device.retrieveNetworkInfo and Device:retrieveNetworkInfo()
-          or _("Could not retrieve network info.")
+        Device.retrieveNetworkInfo and Device:retrieveNetworkInfo() or _("Could not retrieve network info.")
       ),
     })
     UIManager:show(info)
@@ -218,10 +210,7 @@ function SSH:addToMainMenu(menu_items)
         callback = function()
           local info = InfoMessage:new({
             timeout = 60,
-            text = T(
-              _("Put your public SSH keys in\n%1"),
-              BD.filepath(path .. "/settings/SSH/authorized_keys")
-            ),
+            text = T(_("Put your public SSH keys in\n%1"), BD.filepath(path .. "/settings/SSH/authorized_keys")),
           })
           UIManager:show(info)
         end,

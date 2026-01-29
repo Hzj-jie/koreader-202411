@@ -51,10 +51,7 @@ function iosimple.dial(address, ssl, io)
   assert(type(address) == "string", "No address in call to dial.")
   local protocol, host, port = address:match("^(%a+)://(.+):(%d+)")
   port = tonumber(port)
-  assert(
-    protocol and host,
-    'Invalid address. Use e.g "tcp://turbolua.org:8080".'
-  )
+  assert(protocol and host, 'Invalid address. Use e.g "tcp://turbolua.org:8080".')
 
   io = io or ioloop.instance()
   local sock_t
@@ -77,12 +74,7 @@ function iosimple.dial(address, ssl, io)
     if ssl == true then
       ssl = { verify = true }
     end
-    err, res = crypto.ssl_create_client_context(
-      ssl.cert_file,
-      ssl.key_file,
-      ssl.ca_cert_file,
-      ssl.verify
-    )
+    err, res = crypto.ssl_create_client_context(ssl.cert_file, ssl.key_file, ssl.ca_cert_file, ssl.verify)
     if err ~= 0 then
       error(res)
     end

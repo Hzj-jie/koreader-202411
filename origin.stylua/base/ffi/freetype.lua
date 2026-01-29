@@ -29,9 +29,7 @@ local function new_face(filename, faceindex)
   local facept = ffi.new("FT_Face[1]")
   local err = ft2.FT_New_Face(freetypelib, filename, faceindex, facept)
   if err ~= 0 then
-    error(
-      "Failed to load font '" .. filename .. "', freetype error code: " .. err
-    )
+    error("Failed to load font '" .. filename .. "', freetype error code: " .. err)
   end
   local face = ffi.gc(facept[0], done_face)
   ft2.FT_Reference_Library(freetypelib)
@@ -81,10 +79,7 @@ end
 
 function FTSize_mt.__index:renderGlyph(char, bold)
   assert(ft2.FT_Activate_Size(self) == 0, "failed to activate font size")
-  assert(
-    ft2.FT_Load_Char(self.face, char, ft2.FT_LOAD_RENDER) == 0,
-    "freetype error"
-  )
+  assert(ft2.FT_Load_Char(self.face, char, ft2.FT_LOAD_RENDER) == 0, "freetype error")
   local glyph = self.face.glyph
   if bold then
     ft2.FT_GlyphSlot_Embolden(glyph)
@@ -94,13 +89,7 @@ function FTSize_mt.__index:renderGlyph(char, bold)
   -- bb:getHeight(). For example: ×. This means the char needs to be drawn
   -- above baseline.
   return {
-    bb = Blitbuffer.new(
-      bitmap.width,
-      bitmap.rows,
-      Blitbuffer.TYPE_BB8,
-      bitmap.buffer,
-      bitmap.pitch
-    ):copy(),
+    bb = Blitbuffer.new(bitmap.width, bitmap.rows, Blitbuffer.TYPE_BB8, bitmap.buffer, bitmap.pitch):copy(),
     l = glyph.bitmap_left,
     t = glyph.bitmap_top,
     r = tonumber(glyph.metrics.horiAdvance / 64),
@@ -111,19 +100,14 @@ end
 
 -- For use with glyph index and metrics returned by Harfbuzz
 -- These flags should be sync'ed with those used in xtext.cpp getHbFontData()
-local FT_Load_Glyph_flags =
-  bit.bor(ft2.FT_LOAD_DEFAULT, ft2.FT_LOAD_TARGET_LIGHT)
+local FT_Load_Glyph_flags = bit.bor(ft2.FT_LOAD_DEFAULT, ft2.FT_LOAD_TARGET_LIGHT)
 -- FT_Load_Glyph_flags = bit.bor(FT_Load_Glyph_flags, ft2.FT_LOAD_FORCE_AUTOHINT)
 -- (No hinting, as it would mess synthetized bold)
-FT_Load_Glyph_flags =
-  bit.bor(FT_Load_Glyph_flags, ft2.FT_LOAD_NO_HINTING, ft2.FT_LOAD_NO_AUTOHINT)
+FT_Load_Glyph_flags = bit.bor(FT_Load_Glyph_flags, ft2.FT_LOAD_NO_HINTING, ft2.FT_LOAD_NO_AUTOHINT)
 
 function FTSize_mt.__index:renderGlyphByIndex(index, embolden_half_strength)
   assert(ft2.FT_Activate_Size(self) == 0, "failed to activate font size")
-  assert(
-    ft2.FT_Load_Glyph(self.face, index, FT_Load_Glyph_flags) == 0,
-    "freetype error"
-  )
+  assert(ft2.FT_Load_Glyph(self.face, index, FT_Load_Glyph_flags) == 0, "freetype error")
   local glyph = self.face.glyph
   -- We can't use FT_GlyphSlot_Embolden() as it updates the
   -- glyph metrics from the font, and would mess the adjusments
@@ -131,22 +115,12 @@ function FTSize_mt.__index:renderGlyphByIndex(index, embolden_half_strength)
   -- and FT_Outline_Translate in a way to not move metrics.
   if embolden_half_strength and glyph.format == ft2.FT_GLYPH_FORMAT_OUTLINE then
     ft2.FT_Outline_Embolden(glyph.outline, 2 * embolden_half_strength)
-    ft2.FT_Outline_Translate(
-      glyph.outline,
-      -embolden_half_strength,
-      -embolden_half_strength
-    )
+    ft2.FT_Outline_Translate(glyph.outline, -embolden_half_strength, -embolden_half_strength)
   end
   ft2.FT_Render_Glyph(glyph, ft2.FT_RENDER_MODE_NORMAL)
   local bitmap = glyph.bitmap
   return {
-    bb = Blitbuffer.new(
-      bitmap.width,
-      bitmap.rows,
-      Blitbuffer.TYPE_BB8,
-      bitmap.buffer,
-      bitmap.pitch
-    ):copy(),
+    bb = Blitbuffer.new(bitmap.width, bitmap.rows, Blitbuffer.TYPE_BB8, bitmap.buffer, bitmap.pitch):copy(),
     l = glyph.bitmap_left,
     t = glyph.bitmap_top,
     r = tonumber(glyph.metrics.horiAdvance / 64),
@@ -161,8 +135,7 @@ function FTSize_mt.__index:getEmboldenHalfStrength(factor)
   if not factor then
     factor = 1 / 2 -- (a bit bolder than crengine which uses 3/8)
   end
-  local strength = ft2.FT_MulFix(self.face.units_per_EM, self.metrics.y_scale)
-    / 24
+  local strength = ft2.FT_MulFix(self.face.units_per_EM, self.metrics.y_scale) / 24
   -- Note: this is a 64bit integer cdata, that we need to return
   -- as such. So, we need to do C arithmetic with it, or we'll
   -- have it converted to a Lua number.
@@ -175,13 +148,7 @@ function FTSize_mt.__index:getKerning(leftcharcode, rightcharcode)
   assert(ft2.FT_Activate_Size(self) == 0, "failed to activate font size")
   local kerning = ffi.new("FT_Vector")
   assert(
-    ft2.FT_Get_Kerning(
-      self.face,
-      leftcharcode,
-      rightcharcode,
-      ft2.FT_KERNING_DEFAULT,
-      kerning
-    ) == 0,
+    ft2.FT_Get_Kerning(self.face, leftcharcode, rightcharcode, ft2.FT_KERNING_DEFAULT, kerning) == 0,
     "freetype error when getting kerning."
   )
   return tonumber(kerning.x / 64)
@@ -200,12 +167,10 @@ function FTSize_mt.__index:getInfo()
   local finfo = {
     name = ffi.string(face.family_name),
     -- Style
-    mono = bit.band(tonumber(face.face_flags), ft2.FT_FACE_FLAG_FIXED_WIDTH)
-      ~= 0,
+    mono = bit.band(tonumber(face.face_flags), ft2.FT_FACE_FLAG_FIXED_WIDTH) ~= 0,
     hint = bit.band(tonumber(face.face_flags), ft2.FT_FACE_FLAG_HINTER) ~= 0,
     bold = bit.band(tonumber(face.style_flags), ft2.FT_STYLE_FLAG_BOLD) ~= 0,
-    italic = bit.band(tonumber(face.style_flags), ft2.FT_STYLE_FLAG_ITALIC)
-      ~= 0,
+    italic = bit.band(tonumber(face.style_flags), ft2.FT_STYLE_FLAG_ITALIC) ~= 0,
     serif = nil,
     ui = false,
     names = nil,
@@ -257,10 +222,7 @@ function FT.newFaceSize(filename, pxsize, faceindex)
   end
   local size = new_size(face)
   -- Activate the new size and setup its pixel sizes.
-  if
-    ft2.FT_Activate_Size(size) ~= 0
-    or ft2.FT_Set_Pixel_Sizes(face, 0, pxsize) ~= 0
-  then
+  if ft2.FT_Activate_Size(size) ~= 0 or ft2.FT_Set_Pixel_Sizes(face, 0, pxsize) ~= 0 then
     size:done()
     error("freetype error")
   end

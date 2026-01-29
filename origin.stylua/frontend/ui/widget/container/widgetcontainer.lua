@@ -53,8 +53,7 @@ function WidgetContainer:paintTo(bb, x, y)
 
   if not self.dimen then
     local content_size = self[1]:getSize()
-    self.dimen =
-      Geom:new({ x = 0, y = 0, w = content_size.w, h = content_size.h })
+    self.dimen = Geom:new({ x = 0, y = 0, w = content_size.w, h = content_size.h })
   end
 
   -- NOTE: Clunky `or` left in on the off-chance we're passed a dimen that isn't a proper Geom object...
@@ -65,11 +64,7 @@ function WidgetContainer:paintTo(bb, x, y)
     self[1]:paintTo(bb, x + math.floor((self.dimen.w - contentSize.w) / 2), y)
   elseif self.align == "bottom" then
     local contentSize = self[1]:getSize()
-    self[1]:paintTo(
-      bb,
-      x + math.floor((self.dimen.w - contentSize.w) / 2),
-      y + (self.dimen.h - contentSize.h)
-    )
+    self[1]:paintTo(bb, x + math.floor((self.dimen.w - contentSize.w) / 2), y + (self.dimen.h - contentSize.h))
   elseif self.align == "center" then
     local contentSize = self[1]:getSize()
     self[1]:paintTo(

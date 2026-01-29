@@ -345,12 +345,8 @@ function util.load_libtffi(name)
     end
     if not ok then
       -- Still not OK...
-      error(
-        "Could not load "
-          .. name
-          .. " \
-            Please run makefile and ensure that installation is done correct."
-      )
+      error("Could not load " .. name .. " \
+            Please run makefile and ensure that installation is done correct.")
     end
   end
   return lib

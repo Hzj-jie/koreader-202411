@@ -53,12 +53,9 @@ common_info.report_bug = {
   keep_menu_open = true,
   callback = function(touchmenu_instance)
     local DataStorage = require("datastorage")
-    local log_path =
-      string.format("%s/%s", DataStorage:getDataDir(), "crash.log")
+    local log_path = string.format("%s/%s", DataStorage:getDataDir(), "crash.log")
     local common_msg = T(
-      _(
-        "Please report bugs to \nhttps://github.com/koreader/koreader/issues\n\nVersion:\n%1\n\nDetected device:\n%2"
-      ),
+      _("Please report bugs to \nhttps://github.com/koreader/koreader/issues\n\nVersion:\n%1\n\nDetected device:\n%2"),
       Version:getCurrentRevision(),
       Device:info()
     )
@@ -88,9 +85,9 @@ common_info.report_bug = {
       other_buttons = {
         {
           {
-            text = G_reader_settings:isTrue("debug_verbose") and _(
-              "Disable verbose logging"
-            ) or _("Enable verbose logging"),
+            text = G_reader_settings:isTrue("debug_verbose") and _("Disable verbose logging") or _(
+              "Enable verbose logging"
+            ),
             callback = function()
               -- Flip verbose logging on dismissal
               -- Unlike in the dev options, we flip everything at once.
@@ -99,19 +96,13 @@ common_info.report_bug = {
                 dbg:turnOff()
                 G_reader_settings:makeFalse("debug_verbose")
                 G_reader_settings:makeFalse("debug")
-                Notification:notify(
-                  _("Verbose logging disabled"),
-                  Notification.SOURCE_ALWAYS_SHOW
-                )
+                Notification:notify(_("Verbose logging disabled"), Notification.SOURCE_ALWAYS_SHOW)
               else
                 dbg:turnOn()
                 dbg:setVerbose(true)
                 G_reader_settings:makeTrue("debug")
                 G_reader_settings:makeTrue("debug_verbose")
-                Notification:notify(
-                  _("Verbose logging enabled"),
-                  Notification.SOURCE_ALWAYS_SHOW
-                )
+                Notification:notify(_("Verbose logging enabled"), Notification.SOURCE_ALWAYS_SHOW)
               end
               touchmenu_instance:updateItems()
               -- Also unlike the dev options, explicitly ask for a restart,

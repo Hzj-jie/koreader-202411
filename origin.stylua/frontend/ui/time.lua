@@ -202,9 +202,7 @@ if ffi.os == "Linux" then
   end
   logger.dbg(
     "fts: Preferred MONOTONIC clock source is",
-    PREFERRED_MONOTONIC_CLOCKID == C.CLOCK_MONOTONIC_COARSE
-        and "CLOCK_MONOTONIC_COARSE"
-      or "CLOCK_MONOTONIC"
+    PREFERRED_MONOTONIC_CLOCKID == C.CLOCK_MONOTONIC_COARSE and "CLOCK_MONOTONIC_COARSE" or "CLOCK_MONOTONIC"
   )
   if C.clock_getres(C.CLOCK_REALTIME_COARSE, probe_ts) == 0 then
     if probe_ts.tv_sec == 0 and probe_ts.tv_nsec <= 1000000 then
@@ -213,18 +211,13 @@ if ffi.os == "Linux" then
   end
   logger.dbg(
     "fts: Preferred REALTIME clock source is",
-    PREFERRED_REALTIME_CLOCKID == C.CLOCK_REALTIME_COARSE
-        and "CLOCK_REALTIME_COARSE"
-      or "CLOCK_REALTIME"
+    PREFERRED_REALTIME_CLOCKID == C.CLOCK_REALTIME_COARSE and "CLOCK_REALTIME_COARSE" or "CLOCK_REALTIME"
   )
 
   if C.clock_getres(C.CLOCK_BOOTTIME, probe_ts) == 0 then
     HAVE_BOOTTIME = true
   end
-  logger.dbg(
-    "fts: BOOTTIME clock source is",
-    HAVE_BOOTTIME and "supported" or "NOT supported"
-  )
+  logger.dbg("fts: BOOTTIME clock source is", HAVE_BOOTTIME and "supported" or "NOT supported")
 
   probe_ts = nil --luacheck: ignore
 end
@@ -249,8 +242,7 @@ Which means that, yes, this is a fancier POSIX Epoch ;).
 function time.realtime()
   C.clock_gettime(C.CLOCK_REALTIME, timespec)
   -- TIMESPEC_TO_FTS
-  return tonumber(timespec.tv_sec) * S2FTS
-    + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
+  return tonumber(timespec.tv_sec) * S2FTS + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
 end
 
 --[[--
@@ -265,24 +257,21 @@ On Linux, this will not account for time spent with the device in suspend (unlik
 function time.monotonic()
   C.clock_gettime(C.CLOCK_MONOTONIC, timespec)
   -- TIMESPEC_TO_FTS
-  return tonumber(timespec.tv_sec) * S2FTS
-    + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
+  return tonumber(timespec.tv_sec) * S2FTS + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
 end
 
 --- Ditto, but w/ CLOCK_MONOTONIC_COARSE if it's available and has a 1ms resolution or better (uses CLOCK_MONOTONIC otherwise).
 function time.monotonic_coarse()
   C.clock_gettime(PREFERRED_MONOTONIC_CLOCKID, timespec)
   -- TIMESPEC_TO_FTS
-  return tonumber(timespec.tv_sec) * S2FTS
-    + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
+  return tonumber(timespec.tv_sec) * S2FTS + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
 end
 
 -- Ditto, but w/ CLOCK_REALTIME_COARSE if it's available and has a 1ms resolution or better (uses CLOCK_REALTIME otherwise).
 function time.realtime_coarse()
   C.clock_gettime(PREFERRED_REALTIME_CLOCKID, timespec)
   -- TIMESPEC_TO_FTS
-  return tonumber(timespec.tv_sec) * S2FTS
-    + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
+  return tonumber(timespec.tv_sec) * S2FTS + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
 end
 
 --- Since CLOCK_BOOTIME may not be supported, we offer a few aliases with automatic fallbacks to MONOTONIC or REALTIME
@@ -292,8 +281,7 @@ if HAVE_BOOTTIME then
   function time.boottime()
     C.clock_gettime(C.CLOCK_BOOTTIME, timespec)
     -- TIMESPEC_TO_FTS
-    return tonumber(timespec.tv_sec) * S2FTS
-      + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
+    return tonumber(timespec.tv_sec) * S2FTS + math.floor(tonumber(timespec.tv_nsec) * NS2FTS)
   end
 
   time.boottime_or_monotonic = time.boottime
@@ -302,9 +290,7 @@ if HAVE_BOOTTIME then
   time.boottime_or_realtime_coarse = time.boottime
 else
   function time.boottime()
-    logger.warn(
-      "fts: Attempted to call boottime on a platform where it's unsupported!"
-    )
+    logger.warn("fts: Attempted to call boottime on a platform where it's unsupported!")
     return 0
   end
 

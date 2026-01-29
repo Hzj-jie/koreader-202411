@@ -40,12 +40,7 @@ function ScrollHtmlWidget:init()
     html_link_tapped_callback = self.html_link_tapped_callback,
   })
 
-  self.htmlbox_widget:setContent(
-    self.html_body,
-    self.css,
-    self.default_font_size,
-    self.is_xhtml
-  )
+  self.htmlbox_widget:setContent(self.html_body, self.css, self.default_font_size, self.is_xhtml)
 
   self.v_scroll_bar = VerticalScrollBar:new({
     enable = self.htmlbox_widget.page_count > 1,
@@ -60,10 +55,7 @@ function ScrollHtmlWidget:init()
 
   local horizontal_group = HorizontalGroup:new()
   table.insert(horizontal_group, self.htmlbox_widget)
-  table.insert(
-    horizontal_group,
-    HorizontalSpan:new({ width = self.text_scroll_span })
-  )
+  table.insert(horizontal_group, HorizontalSpan:new({ width = self.text_scroll_span }))
   table.insert(horizontal_group, self.v_scroll_bar)
   self[1] = horizontal_group
 
@@ -202,11 +194,7 @@ function ScrollHtmlWidget:onTapScrollText(arg, ges)
   -- Late initialization to avoid cycle dependency.
   if
     BD.flipIfMirroredUILayout(
-      ges.pos:intersectWith(
-        self.dimen
-          :copy()
-          :resize(require("apps/reader/modules/readerview").getForwardTapZone())
-      )
+      ges.pos:intersectWith(self.dimen:copy():resize(require("apps/reader/modules/readerview").getForwardTapZone()))
     )
   then
     return self:onScrollDown()

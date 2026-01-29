@@ -1599,11 +1599,7 @@ local function putpat(ctx, name, pat)
               end
             else
               sdisp = format(
-                ctx.x64
-                    and not ctx.a32
-                    and not (disp >= 0 and disp <= 0x7fffffff)
-                    and "0xffffffff%08x"
-                  or "0x%08x",
+                ctx.x64 and not ctx.a32 and not (disp >= 0 and disp <= 0x7fffffff) and "0xffffffff%08x" or "0x%08x",
                 disp
               )
             end
@@ -1796,11 +1792,7 @@ map_act = {
     if not mrm then
       return incomplete(ctx)
     end
-    return dispatch(
-      ctx,
-      map_opcgroup[name][((mrm - (mrm % 8)) / 8) % 8 + 1],
-      sub(pat, 2)
-    )
+    return dispatch(ctx, map_opcgroup[name][((mrm - (mrm % 8)) / 8) % 8 + 1], sub(pat, 2))
   end,
 
   -- o16,o32[,o64] variants.

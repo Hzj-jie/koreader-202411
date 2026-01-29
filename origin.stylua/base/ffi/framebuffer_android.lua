@@ -12,8 +12,7 @@ local has_eink_screen, eink_platform = android.isEink()
 -- does the device needs to handle all screen refreshes
 local has_eink_full_support = android.isEinkFull()
 
-local full, partial, full_ui, partial_ui, fast, delay_page, delay_ui, delay_fast =
-  android.getEinkConstants()
+local full, partial, full_ui, partial_ui, fast, delay_page, delay_ui, delay_fast = android.getEinkConstants()
 
 local framebuffer = {}
 
@@ -31,14 +30,7 @@ function framebuffer:_updateFull()
   if eink_platform == "rockchip" then
     android.einkUpdate(full)
   else
-    self:_updatePartial(
-      full,
-      delay_page,
-      0,
-      0,
-      self:getWidth(),
-      self:getHeight()
-    )
+    self:_updatePartial(full, delay_page, 0, 0, self:getWidth(), self:getHeight())
   end
 end
 
@@ -116,27 +108,12 @@ function framebuffer:_updateWindow()
   end
 
   local bb = nil
-  if
-    buffer[0].format == C.WINDOW_FORMAT_RGBA_8888
-    or buffer[0].format == C.WINDOW_FORMAT_RGBX_8888
-  then
-    bb = BB.new(
-      buffer[0].width,
-      buffer[0].height,
-      BB.TYPE_BBRGB32,
-      buffer[0].bits,
-      buffer[0].stride * 4,
-      buffer[0].stride
-    )
+  if buffer[0].format == C.WINDOW_FORMAT_RGBA_8888 or buffer[0].format == C.WINDOW_FORMAT_RGBX_8888 then
+    bb =
+      BB.new(buffer[0].width, buffer[0].height, BB.TYPE_BBRGB32, buffer[0].bits, buffer[0].stride * 4, buffer[0].stride)
   elseif buffer[0].format == C.WINDOW_FORMAT_RGB_565 then
-    bb = BB.new(
-      buffer[0].width,
-      buffer[0].height,
-      BB.TYPE_BBRGB16,
-      buffer[0].bits,
-      buffer[0].stride * 2,
-      buffer[0].stride
-    )
+    bb =
+      BB.new(buffer[0].width, buffer[0].height, BB.TYPE_BBRGB16, buffer[0].bits, buffer[0].stride * 2, buffer[0].stride)
   else
     android.LOGE("unsupported window format!")
   end

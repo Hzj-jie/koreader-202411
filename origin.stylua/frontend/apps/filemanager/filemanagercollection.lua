@@ -43,8 +43,7 @@ end
 -- collection
 
 function FileManagerCollection:getCollectionTitle(collection_name)
-  return collection_name == ReadCollection.default_collection_name
-      and self.default_collection_title -- favorites
+  return collection_name == ReadCollection.default_collection_name and self.default_collection_title -- favorites
     or collection_name
 end
 
@@ -127,8 +126,7 @@ end
 function FileManagerCollection:onMenuHold(item)
   local file = item.file
   self.collfile_dialog = nil
-  self.book_props = self.ui.coverbrowser
-    and self.ui.coverbrowser:getBookInfo(file)
+  self.book_props = self.ui.coverbrowser and self.ui.coverbrowser:getBookInfo(file)
 
   local function close_dialog_callback()
     UIManager:close(self.collfile_dialog)
@@ -142,8 +140,7 @@ function FileManagerCollection:onMenuHold(item)
     self._manager:updateItemTable()
     self._manager.files_updated = true
   end
-  local is_currently_opened = file
-    == (self.ui.document and self.ui.document.file)
+  local is_currently_opened = file == (self.ui.document and self.ui.document.file)
 
   local buttons = {}
   local doc_settings_or_file
@@ -165,25 +162,11 @@ function FileManagerCollection:onMenuHold(item)
       doc_settings_or_file = file
     end
   end
-  table.insert(
-    buttons,
-    filemanagerutil.genStatusButtonsRow(
-      doc_settings_or_file,
-      close_dialog_update_callback
-    )
-  )
+  table.insert(buttons, filemanagerutil.genStatusButtonsRow(doc_settings_or_file, close_dialog_update_callback))
   table.insert(buttons, {}) -- separator
   table.insert(buttons, {
-    filemanagerutil.genResetSettingsButton(
-      doc_settings_or_file,
-      close_dialog_update_callback,
-      is_currently_opened
-    ),
-    self._manager:genAddToCollectionButton(
-      file,
-      close_dialog_callback,
-      close_dialog_update_callback
-    ),
+    filemanagerutil.genResetSettingsButton(doc_settings_or_file, close_dialog_update_callback, is_currently_opened),
+    self._manager:genAddToCollectionButton(file, close_dialog_callback, close_dialog_update_callback),
   })
   table.insert(buttons, {
     {
@@ -204,23 +187,11 @@ function FileManagerCollection:onMenuHold(item)
   })
   table.insert(buttons, {
     filemanagerutil.genShowFolderButton(file, close_dialog_menu_callback),
-    filemanagerutil.genBookInformationButton(
-      doc_settings_or_file,
-      self.book_props,
-      close_dialog_callback
-    ),
+    filemanagerutil.genBookInformationButton(doc_settings_or_file, self.book_props, close_dialog_callback),
   })
   table.insert(buttons, {
-    filemanagerutil.genBookCoverButton(
-      file,
-      self.book_props,
-      close_dialog_callback
-    ),
-    filemanagerutil.genBookDescriptionButton(
-      file,
-      self.book_props,
-      close_dialog_callback
-    ),
+    filemanagerutil.genBookCoverButton(file, self.book_props, close_dialog_callback),
+    filemanagerutil.genBookDescriptionButton(file, self.book_props, close_dialog_callback),
   })
 
   if Device:canExecuteScript(file) then
@@ -271,12 +242,7 @@ function FileManagerCollection:showCollDialog()
             path = G_reader_settings:readSetting("home_dir"),
             select_directory = false,
             onConfirm = function(file)
-              if
-                not ReadCollection:isFileInCollection(
-                  file,
-                  self.coll_menu.collection_name
-                )
-              then
+              if not ReadCollection:isFileInCollection(file, self.coll_menu.collection_name) then
                 ReadCollection:addItem(file, self.coll_menu.collection_name)
                 self:updateItemTable(true) -- show added item
                 self.files_updated = true
@@ -290,13 +256,11 @@ function FileManagerCollection:showCollDialog()
   }
   if self.ui.document then
     local file = self.ui.document.file
-    local is_in_collection =
-      ReadCollection:isFileInCollection(file, self.coll_menu.collection_name)
+    local is_in_collection = ReadCollection:isFileInCollection(file, self.coll_menu.collection_name)
     table.insert(buttons, {
       {
         text_func = function()
-          return is_in_collection and _("Remove current book from collection")
-            or _("Add current book to collection")
+          return is_in_collection and _("Remove current book from collection") or _("Add current book to collection")
         end,
         callback = function()
           UIManager:close(coll_dialog)
@@ -321,14 +285,9 @@ function FileManagerCollection:sortCollection()
   local sort_widget
   sort_widget = SortWidget:new({
     title = _("Arrange books in collection"),
-    item_table = ReadCollection:getOrderedCollection(
-      self.coll_menu.collection_name
-    ),
+    item_table = ReadCollection:getOrderedCollection(self.coll_menu.collection_name),
     callback = function()
-      ReadCollection:updateCollectionOrder(
-        self.coll_menu.collection_name,
-        sort_widget.item_table
-      )
+      ReadCollection:updateCollectionOrder(self.coll_menu.collection_name, sort_widget.item_table)
       self:updateItemTable()
     end,
   })
@@ -343,20 +302,14 @@ end
 
 -- collection list
 
-function FileManagerCollection:onShowCollList(
-  file_or_selected_collections,
-  caller_callback,
-  no_dialog
-)
+function FileManagerCollection:onShowCollList(file_or_selected_collections, caller_callback, no_dialog)
   local title_bar_left_icon
   if file_or_selected_collections ~= nil then -- select mode
     title_bar_left_icon = "check"
     if type(file_or_selected_collections) == "string" then -- checkmark collections containing the file
-      self.selected_collections =
-        ReadCollection:getCollectionsWithFile(file_or_selected_collections)
+      self.selected_collections = ReadCollection:getCollectionsWithFile(file_or_selected_collections)
     else
-      self.selected_collections =
-        util.tableDeepCopy(file_or_selected_collections)
+      self.selected_collections = util.tableDeepCopy(file_or_selected_collections)
     end
   else
     title_bar_left_icon = "appbar.menu"
@@ -376,11 +329,7 @@ function FileManagerCollection:onShowCollList(
     onMenuHold = self.onCollListHold,
     _manager = self,
     _recreate_func = function()
-      self:onShowCollList(
-        file_or_selected_collections,
-        caller_callback,
-        no_dialog
-      )
+      self:onShowCollList(file_or_selected_collections, caller_callback, no_dialog)
     end,
   })
   self.coll_list.close_callback = function(force_close)
@@ -436,13 +385,7 @@ function FileManagerCollection:updateCollListItemTable(do_init, item_number)
       end
     end
   end
-  self.coll_list:switchItemTable(
-    title,
-    item_table,
-    item_number or -1,
-    nil,
-    subtitle
-  )
+  self.coll_list:switchItemTable(title, item_table, item_number or -1, nil, subtitle)
 end
 
 function FileManagerCollection:onCollListChoice(item)
@@ -684,10 +627,7 @@ function FileManagerCollection:genAddToCollectionButton(
       end
       local caller_callback = function(selected_collections)
         if is_single_file then
-          ReadCollection:addRemoveItemMultiple(
-            file_or_files,
-            selected_collections
-          )
+          ReadCollection:addRemoveItemMultiple(file_or_files, selected_collections)
         else -- selected files
           ReadCollection:addItemsMultiple(file_or_files, selected_collections)
         end
@@ -696,10 +636,7 @@ function FileManagerCollection:genAddToCollectionButton(
         end
       end
       -- if selected files, do not checkmark any collection on start
-      self:onShowCollList(
-        is_single_file and file_or_files or {},
-        caller_callback
-      )
+      self:onShowCollList(is_single_file and file_or_files or {}, caller_callback)
     end,
   }
 end

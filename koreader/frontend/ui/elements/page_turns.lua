@@ -11,10 +11,7 @@ local tap_zones = {
   bottom_top = _("Bottom / top"),
 }
 
-if
-  tap_zones[(G_reader_settings:read("page_turns_tap_zones") or "left_right")]
-  == nil
-then
+if tap_zones[(G_reader_settings:read("page_turns_tap_zones") or "left_right")] == nil then
   -- Legacy configuration
   G_reader_settings:delete("page_turns_tap_zones")
 end
@@ -23,15 +20,10 @@ local function genTapZonesMenu(tap_zones_type)
   table.insert(page_turns_tap_zones_sub_items, {
     text = tap_zones[tap_zones_type],
     checked_func = function()
-      return (G_reader_settings:read("page_turns_tap_zones") or "left_right")
-        == tap_zones_type
+      return (G_reader_settings:read("page_turns_tap_zones") or "left_right") == tap_zones_type
     end,
     callback = function()
-      G_reader_settings:save(
-        "page_turns_tap_zones",
-        tap_zones_type,
-        "left_right"
-      )
+      G_reader_settings:save("page_turns_tap_zones", tap_zones_type, "left_right")
       ReaderUI.instance.view:setupTouchZones()
     end,
   })
@@ -42,33 +34,21 @@ genTapZonesMenu("bottom_top")
 
 -- Returns percentage rather than decimal.
 local function getForwardTapZone()
-  return math.floor(
-    (G_reader_settings:read("page_turns_tap_zone_forward_size_ratio") or 0.6)
-      * 100
-  )
+  return math.floor((G_reader_settings:read("page_turns_tap_zone_forward_size_ratio") or 0.6) * 100)
 end
 
 table.insert(page_turns_tap_zones_sub_items, {
   text_func = function()
     local forward_zone = getForwardTapZone()
-    return T(
-      _("Backward / forward tap zone size: %1\xE2\x80\xAF% / %2\xE2\x80\xAF%"),
-      100 - forward_zone,
-      forward_zone
-    )
+    return T(_("Backward / forward tap zone size: %1\xE2\x80\xAF% / %2\xE2\x80\xAF%"), 100 - forward_zone, forward_zone)
   end,
   keep_menu_open = true,
   callback = function(touchmenu_instance)
-    local is_left_right = G_reader_settings:read("page_turns_tap_zones")
-      == "left_right"
+    local is_left_right = G_reader_settings:read("page_turns_tap_zones") == "left_right"
     local forward_zone = getForwardTapZone()
     UIManager:show(require("ui/widget/spinwidget"):new({
-      title_text = is_left_right and _("Tap zone width")
-        or _("Tap zone height"),
-      info_text = (
-        is_left_right and _("Percentage of screen width")
-        or _("Percentage of screen height")
-      )
+      title_text = is_left_right and _("Tap zone width") or _("Tap zone height"),
+      info_text = (is_left_right and _("Percentage of screen width") or _("Percentage of screen height"))
         .. " "
         -- Need localization
         .. _("to move forward.")
@@ -80,11 +60,7 @@ table.insert(page_turns_tap_zones_sub_items, {
       value_hold_step = 5,
       unit = "%",
       callback = function(new_value)
-        G_reader_settings:save(
-          "page_turns_tap_zone_forward_size_ratio",
-          new_value * (1 / 100),
-          0.6
-        )
+        G_reader_settings:save("page_turns_tap_zone_forward_size_ratio", new_value * (1 / 100), 0.6)
         ReaderUI.instance.view:setupTouchZones()
         if touchmenu_instance then
           touchmenu_instance:updateItems()
@@ -117,8 +93,7 @@ local PageTurns = {
     },
     {
       text_func = function()
-        local tap_zones_type = G_reader_settings:read("page_turns_tap_zones")
-          or "left_right"
+        local tap_zones_type = G_reader_settings:read("page_turns_tap_zones") or "left_right"
         return T(_("Tap zones: %1"), tap_zones[tap_zones_type]:lower())
       end,
       enabled_func = function()
@@ -142,8 +117,7 @@ local PageTurns = {
         ReaderUI.instance.view:onToggleReadingOrder()
       end,
       hold_callback = function(touchmenu_instance)
-        local inverse_reading_order =
-          G_reader_settings:isTrue("inverse_reading_order")
+        local inverse_reading_order = G_reader_settings:isTrue("inverse_reading_order")
         local MultiConfirmBox = require("ui/widget/multiconfirmbox")
         UIManager:show(MultiConfirmBox:new({
           text = inverse_reading_order

@@ -32,15 +32,11 @@ end
 
 -- Checking changing directories
 local current = assert(lfs.currentdir())
-local reldir =
-  string.gsub(current, "^.*%" .. sep .. "([^" .. sep .. "])$", "%1")
+local reldir = string.gsub(current, "^.*%" .. sep .. "([^" .. sep .. "])$", "%1")
 assert(lfs.chdir(upper), "could not change to upper directory")
 assert(lfs.chdir(reldir), "could not change back to current directory")
 assert(lfs.currentdir() == current, "error trying to change directories")
-assert(
-  lfs.chdir("this couldn't be an actual directory") == nil,
-  "could change to a non-existent directory"
-)
+assert(lfs.chdir("this couldn't be an actual directory") == nil, "could change to a non-existent directory")
 
 io.write(".")
 io.flush()
@@ -164,20 +160,14 @@ io.flush()
 -- Check consistency of lfs.attributes values
 local attr = lfs.attributes(tmpfile)
 for key, value in pairs(attr) do
-  assert(
-    value == lfs.attributes(tmpfile, key),
-    "lfs.attributes values not consistent"
-  )
+  assert(value == lfs.attributes(tmpfile, key), "lfs.attributes values not consistent")
 end
 
 -- Check that lfs.attributes accepts a table as second argument
 local attr2 = {}
 lfs.attributes(tmpfile, attr2)
 for key, value in pairs(attr2) do
-  assert(
-    value == lfs.attributes(tmpfile, key),
-    "lfs.attributes values with table argument not consistent"
-  )
+  assert(value == lfs.attributes(tmpfile, key), "lfs.attributes values with table argument not consistent")
 end
 
 -- Check that extra arguments are ignored
@@ -186,10 +176,7 @@ lfs.attributes(tmpfile, attr2, nil)
 -- Remove new file and directory
 assert(os.remove(tmpfile), "could not remove new file")
 assert(lfs.rmdir(tmpdir), "could not remove new directory")
-assert(
-  lfs.mkdir(tmpdir .. sep .. "lfs_tmp_dir") == nil,
-  "could create a directory inside a non-existent one"
-)
+assert(lfs.mkdir(tmpdir .. sep .. "lfs_tmp_dir") == nil, "could create a directory inside a non-existent one")
 
 io.write(".")
 io.flush()
@@ -197,18 +184,9 @@ io.flush()
 -- Trying to get attributes of a non-existent file
 local attr_ok, err, errno = lfs.attributes("this couldn't be an actual file")
 assert(attr_ok == nil, "could get attributes of a non-existent file")
-assert(
-  type(err) == "string",
-  "failed lfs.attributes did not return an error message"
-)
-assert(
-  type(errno) == "number",
-  "failed lfs.attributes did not return error code"
-)
-assert(
-  type(lfs.attributes(upper)) == "table",
-  "couldn't get attributes of upper directory"
-)
+assert(type(err) == "string", "failed lfs.attributes did not return an error message")
+assert(type(errno) == "number", "failed lfs.attributes did not return error code")
+assert(type(lfs.attributes(upper)) == "table", "couldn't get attributes of upper directory")
 
 io.write(".")
 io.flush()

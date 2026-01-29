@@ -83,8 +83,7 @@ function ArchiveViewer:openFile(file)
       if item.is_file then
         self:showFileDialog(item.path)
       else
-        local title = item.path == "" and filename
-          or filename .. "/" .. item.path
+        local title = item.path == "" and filename or filename .. "/" .. item.path
         self_menu:switchItemTable(title, self:getItemTable(item.path))
       end
     end,
@@ -126,8 +125,7 @@ function ArchiveViewer:getZipListTable()
   if std_out then
     for line in std_out:lines() do
       -- entry datetime not used so far
-      local fsize, fname =
-        string.match(line, "%s+(%d+)%s+[-0-9]+%s+[0-9:]+%s+(.+)")
+      local fsize, fname = string.match(line, "%s+(%d+)%s+[-0-9]+%s+[0-9:]+%s+(.+)")
       parse_path(fname, fsize or 0)
     end
     std_out:close()
@@ -217,9 +215,7 @@ function ArchiveViewer:showFileDialog(filepath)
     },
   }
   dialog = ButtonDialog:new({
-    title = filepath
-      .. "\n\n"
-      .. _("On extraction, if the file already exists, it will be overwritten."),
+    title = filepath .. "\n\n" .. _("On extraction, if the file already exists, it will be overwritten."),
     width_factor = 0.8,
     buttons = buttons,
   })
@@ -274,14 +270,7 @@ end
 
 function ArchiveViewer:extractFile(filepath)
   if self.arc_type == "zip" then
-    local std_out = io.popen(
-      T(
-        ZIP_EXTRACT_FILE,
-        self.arc_file,
-        filepath,
-        util.splitFilePathName(self.arc_file)
-      )
-    )
+    local std_out = io.popen(T(ZIP_EXTRACT_FILE, self.arc_file, filepath, util.splitFilePathName(self.arc_file)))
     if std_out then
       std_out:close()
     end

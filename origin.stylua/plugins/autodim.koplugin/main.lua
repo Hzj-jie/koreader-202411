@@ -28,14 +28,9 @@ local AutoDim = WidgetContainer:extend({
 })
 
 function AutoDim:init()
-  self.autodim_starttime_m =
-    G_reader_settings:readSetting("autodim_starttime_minutes", -1)
-  self.autodim_duration_s = G_reader_settings:readSetting(
-    "autodim_duration_seconds",
-    DEFAULT_AUTODIM_DURATION_S
-  )
-  self.autodim_fraction =
-    G_reader_settings:readSetting("autodim_fraction", DEFAULT_AUTODIM_FRACTION)
+  self.autodim_starttime_m = G_reader_settings:readSetting("autodim_starttime_minutes", -1)
+  self.autodim_duration_s = G_reader_settings:readSetting("autodim_duration_seconds", DEFAULT_AUTODIM_DURATION_S)
+  self.autodim_fraction = G_reader_settings:readSetting("autodim_fraction", DEFAULT_AUTODIM_FRACTION)
 
   self.last_action_time = UIManager:getElapsedTimeSinceBoot()
 
@@ -64,13 +59,7 @@ function AutoDim:getAutoDimMenu()
           return self.autodim_starttime_m <= 0 and _("Idle time for dimmer")
             or T(
               _("Idle time for dimmer: %1"),
-              datetime.secondsToClockDuration(
-                "letters",
-                self.autodim_starttime_m * 60,
-                false,
-                false,
-                true
-              )
+              datetime.secondsToClockDuration("letters", self.autodim_starttime_m * 60, false, false, true)
             )
         end,
         checked_func = function()
@@ -79,11 +68,8 @@ function AutoDim:getAutoDimMenu()
         callback = function(touchmenu_instance)
           local idle_dialog = SpinWidget:new({
             title_text = _("Automatic dimmer idle time"),
-            info_text = _(
-              "Start the dimmer after the designated period of inactivity."
-            ),
-            value = self.autodim_starttime_m >= 0 and self.autodim_starttime_m
-              or 0.5,
+            info_text = _("Start the dimmer after the designated period of inactivity."),
+            value = self.autodim_starttime_m >= 0 and self.autodim_starttime_m or 0.5,
             default_value = DEFAULT_AUTODIM_STARTTIME_M,
             value_min = 0.5,
             value_max = 60,
@@ -97,10 +83,7 @@ function AutoDim:getAutoDimMenu()
                 return
               end
               self.autodim_starttime_m = spin.value
-              G_reader_settings:saveSetting(
-                "autodim_starttime_minutes",
-                spin.value
-              )
+              G_reader_settings:saveSetting("autodim_starttime_minutes", spin.value)
               self:_schedule_autodim_task()
               if touchmenu_instance then
                 touchmenu_instance:updateItems()
@@ -127,13 +110,7 @@ function AutoDim:getAutoDimMenu()
         text_func = function()
           return T(
             _("Dimmer duration: %1"),
-            datetime.secondsToClockDuration(
-              "letters",
-              self.autodim_duration_s,
-              false,
-              false,
-              true
-            )
+            datetime.secondsToClockDuration("letters", self.autodim_duration_s, false, false, true)
           )
         end,
         enabled_func = function()
@@ -156,10 +133,7 @@ function AutoDim:getAutoDimMenu()
                 return
               end
               self.autodim_duration_s = spin.value
-              G_reader_settings:saveSetting(
-                "autodim_duration_seconds",
-                spin.value
-              )
+              G_reader_settings:saveSetting("autodim_duration_seconds", spin.value)
               self:_schedule_autodim_task()
               if touchmenu_instance then
                 touchmenu_instance:updateItems()
@@ -175,10 +149,7 @@ function AutoDim:getAutoDimMenu()
       },
       {
         text_func = function()
-          return T(
-            _("Dim to %1 % of the regular brightness"),
-            self.autodim_fraction
-          )
+          return T(_("Dim to %1 % of the regular brightness"), self.autodim_fraction)
         end,
         enabled_func = function()
           return self.autodim_starttime_m > 0
@@ -186,9 +157,7 @@ function AutoDim:getAutoDimMenu()
         callback = function(touchmenu_instance)
           local percentage_dialog = SpinWidget:new({
             title_text = _("Dim to percentage"),
-            info_text = _(
-              "The lowest brightness as a percentage of the regular brightness."
-            ),
+            info_text = _("The lowest brightness as a percentage of the regular brightness."),
             value = self.autodim_fraction,
             value_default = DEFAULT_AUTODIM_FRACTION,
             value_min = 0,
@@ -314,8 +283,7 @@ function AutoDim:autodim_task()
   local check_delay = time.s(self.autodim_starttime_m * 60) - idle_duration
   if check_delay <= 0 then
     self.autodim_save_fl = self.autodim_save_fl or Powerd:frontlightIntensity()
-    self.autodim_end_fl =
-      math.floor(self.autodim_save_fl * self.autodim_fraction * (1 / 100) + 0.5)
+    self.autodim_end_fl = math.floor(self.autodim_save_fl * self.autodim_fraction * (1 / 100) + 0.5)
     -- Clamp `self.autodim_end_fl` to 1 if `self.autodim_fraction` ~= 0
     if self.autodim_fraction ~= 0 and self.autodim_end_fl == 0 then
       self.autodim_end_fl = 1
@@ -337,12 +305,9 @@ function AutoDim:autodim_task()
       UIManager:show(self.trap_widget) -- suppress taps during dimming
 
       -- calculate time until the next decrease step
-      self.autodim_step_time_s =
-        math.max(self.autodim_duration_s / fl_diff, 0.001)
+      self.autodim_step_time_s = math.max(self.autodim_duration_s / fl_diff, 0.001)
       self.ramp_event_countdown_startvalue = Device:hasEinkScreen()
-          and math.floor(
-            (1 / AUTODIM_EVENT_FREQUENCY) / self.autodim_step_time_s + 0.5
-          )
+          and math.floor((1 / AUTODIM_EVENT_FREQUENCY) / self.autodim_step_time_s + 0.5)
         or 0
       self.ramp_event_countdown = self.ramp_event_countdown_startvalue
 

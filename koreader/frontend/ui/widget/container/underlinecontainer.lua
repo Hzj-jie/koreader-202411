@@ -18,10 +18,7 @@ local UnderlineContainer = WidgetContainer:extend({
 
 function UnderlineContainer:getSize()
   local contentSize = self[1]:getSize()
-  self:mergeSize(
-    contentSize.w,
-    contentSize.h + self.linesize + 2 * self.padding
-  )
+  self:mergeSize(contentSize.w, contentSize.h + self.linesize + 2 * self.padding)
   return self.dimen
 end
 
@@ -36,13 +33,7 @@ function UnderlineContainer:paintTo(bb, x, y)
     p_y = (container_size.h - content_size.h) + y
   end
   self[1]:paintTo(bb, x, p_y)
-  bb:paintRect(
-    x,
-    y + container_size.h - self.linesize,
-    container_size.w,
-    self.linesize,
-    self.color
-  )
+  bb:paintRect(x, y + container_size.h - self.linesize, container_size.w, self.linesize, self.color)
 end
 
 return UnderlineContainer

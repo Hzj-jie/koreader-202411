@@ -62,9 +62,7 @@ function ToggleSwitch:init()
 
   local item_padding = Size.padding.default -- only used to check if text truncate needed
   local item_border_size = Size.border.thin
-  local frame_inner_width = self.width
-    - 2 * self.toggle_frame.padding
-    - 2 * self.toggle_frame.bordersize
+  local frame_inner_width = self.width - 2 * self.toggle_frame.padding - 2 * self.toggle_frame.bordersize
   -- We'll need to adjust items width and distribute the accumulated fractional part to some
   -- of them for proper visual alignment
   local item_width_real = frame_inner_width / self.n_pos - 2 * item_border_size
@@ -182,8 +180,7 @@ function ToggleSwitch:calculatePosition(gev)
     x = self.n_pos - x
   end
   local y = (gev.pos.y - self.dimen.y) / self.dimen.h * self.row_count
-  return math.max(1, math.ceil(x))
-    + math.min(self.row_count - 1, math.floor(y)) * self.n_pos
+  return math.max(1, math.ceil(x)) + math.min(self.row_count - 1, math.floor(y)) * self.n_pos
 end
 
 function ToggleSwitch:onTapSelect(arg, gev)
@@ -224,14 +221,7 @@ function ToggleSwitch:onTapSelect(arg, gev)
     else
       Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_TOGGLE)
     end
-    self.config:onConfigChoose(
-      self.values,
-      self.name,
-      self.event,
-      self.args,
-      self.position,
-      self.hide_on_apply
-    )
+    self.config:onConfigChoose(self.values, self.name, self.event, self.args, self.position, self.hide_on_apply)
 
     UIManager:setDirty(self.config, function()
       return "ui", self.dimen
@@ -259,13 +249,7 @@ function ToggleSwitch:onHoldSelect(arg, gev)
       position == 1 and "-" or "+"
     )
   else
-    self.config:onMakeDefault(
-      self.name,
-      self.name_text,
-      self.values or self.args,
-      self.toggle,
-      position
-    )
+    self.config:onMakeDefault(self.name, self.name_text, self.values or self.args, self.toggle, position)
   end
   return true
 end

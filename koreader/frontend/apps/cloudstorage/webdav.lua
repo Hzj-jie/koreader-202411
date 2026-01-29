@@ -17,37 +17,18 @@ function WebDav:run(address, user, pass, path, folder_mode)
   return WebDavApi:listFolder(address, user, pass, path, folder_mode)
 end
 
-function WebDav:downloadFile(
-  item,
-  address,
-  username,
-  password,
-  local_path,
-  callback_close
-)
-  local code_response = WebDavApi:downloadFile(
-    WebDavApi:getJoinedPath(address, item.url),
-    username,
-    password,
-    local_path
-  )
+function WebDav:downloadFile(item, address, username, password, local_path, callback_close)
+  local code_response =
+    WebDavApi:downloadFile(WebDavApi:getJoinedPath(address, item.url), username, password, local_path)
   if code_response == 200 then
     local __, filename = util.splitFilePathName(local_path)
-    if
-      G_reader_settings:isTrue("show_unsupported")
-      and not DocumentRegistry:hasProvider(filename)
-    then
+    if G_reader_settings:isTrue("show_unsupported") and not DocumentRegistry:hasProvider(filename) then
       UIManager:show(InfoMessage:new({
         text = T(_("File saved to:\n%1"), BD.filepath(local_path)),
       }))
     else
       UIManager:show(ConfirmBox:new({
-        text = T(
-          _(
-            "File saved to:\n%1\nWould you like to read the downloaded book now?"
-          ),
-          BD.filepath(local_path)
-        ),
+        text = T(_("File saved to:\n%1\nWould you like to read the downloaded book now?"), BD.filepath(local_path)),
         ok_callback = function()
           local Event = require("ui/event")
           UIManager:broadcastEvent(Event:new("SetupShowReader"))
@@ -68,23 +49,11 @@ function WebDav:downloadFile(
   end
 end
 
-function WebDav:uploadFile(
-  url,
-  address,
-  username,
-  password,
-  local_path,
-  callback_close
-)
+function WebDav:uploadFile(url, address, username, password, local_path, callback_close)
   local path = WebDavApi:getJoinedPath(address, url)
   path = WebDavApi:getJoinedPath(path, ffiutil.basename(local_path))
-  local code_response =
-    WebDavApi:uploadFile(path, username, password, local_path)
-  if
-    type(code_response) == "number"
-    and code_response >= 200
-    and code_response < 300
-  then
+  local code_response = WebDavApi:uploadFile(path, username, password, local_path)
+  if type(code_response) == "number" and code_response >= 200 and code_response < 300 then
     UIManager:show(InfoMessage:new({
       text = T(_("File uploaded:\n%1"), BD.filepath(address)),
     }))
@@ -99,20 +68,9 @@ function WebDav:uploadFile(
   end
 end
 
-function WebDav:createFolder(
-  url,
-  address,
-  username,
-  password,
-  folder_name,
-  callback_close
-)
-  local code_response = WebDavApi:createFolder(
-    address .. WebDavApi.urlEncode(url .. "/" .. folder_name),
-    username,
-    password,
-    folder_name
-  )
+function WebDav:createFolder(url, address, username, password, folder_name, callback_close)
+  local code_response =
+    WebDavApi:createFolder(address .. WebDavApi.urlEncode(url .. "/" .. folder_name), username, password, folder_name)
   if code_response == 201 then
     if callback_close then
       callback_close()
@@ -125,8 +83,7 @@ function WebDav:createFolder(
 end
 
 function WebDav:config(item, callback)
-  local text_info =
-    _([[Server address must be of the form http(s)://domain.name/path
+  local text_info = _([[Server address must be of the form http(s)://domain.name/path
 This can point to a sub-directory of the WebDAV server.
 The start folder is appended to the server path.]])
 
@@ -217,8 +174,7 @@ The start folder is appended to the server path.]])
 end
 
 function WebDav:info(item)
-  local info_text =
-    T(_("Type: %1\nName: %2\nAddress: %3"), "WebDAV", item.text, item.address)
+  local info_text = T(_("Type: %1\nName: %2\nAddress: %3"), "WebDAV", item.text, item.address)
   UIManager:show(InfoMessage:new({ text = info_text }))
 end
 

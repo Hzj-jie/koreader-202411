@@ -714,26 +714,9 @@ local function putop(ctx, text, operands)
     end
   end
   if ctx.hexdump > 0 then
-    ctx.out(
-      format(
-        "%08x  %s  %-5s %s%s\n",
-        ctx.addr + pos,
-        tohex(ctx.op),
-        text,
-        concat(operands, ", "),
-        extra
-      )
-    )
+    ctx.out(format("%08x  %s  %-5s %s%s\n", ctx.addr + pos, tohex(ctx.op), text, concat(operands, ", "), extra))
   else
-    ctx.out(
-      format(
-        "%08x  %-5s %s%s\n",
-        ctx.addr + pos,
-        text,
-        concat(operands, ", "),
-        extra
-      )
-    )
+    ctx.out(format("%08x  %-5s %s%s\n", ctx.addr + pos, text, concat(operands, ", "), extra))
   end
   ctx.pos = pos + 4
 end
@@ -814,15 +797,9 @@ end
 
 local function fmtvr(op, vr, sh0, sh1)
   if vr == "s" then
-    return format(
-      "s%d",
-      2 * band(rshift(op, sh0), 15) + band(rshift(op, sh1), 1)
-    )
+    return format("s%d", 2 * band(rshift(op, sh0), 15) + band(rshift(op, sh1), 1))
   else
-    return format(
-      "d%d",
-      band(rshift(op, sh0), 15) + band(rshift(op, sh1 - 4), 16)
-    )
+    return format("d%d", band(rshift(op, sh0), 15) + band(rshift(op, sh1 - 4), 16))
   end
 end
 

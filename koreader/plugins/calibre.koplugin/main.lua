@@ -162,9 +162,7 @@ function Calibre:addToMainMenu(menu_items)
     },
   }
   -- insert the metadata search
-  if
-    G_reader_settings:isTrue("calibre_search_from_reader") or not self.ui.view
-  then
+  if G_reader_settings:isTrue("calibre_search_from_reader") or not self.ui.view then
     menu_items.find_book_in_calibre_catalog = {
       text = _("Calibre metadata search"),
       callback = function()
@@ -240,9 +238,7 @@ function Calibre:getSearchMenuTable()
     {
       text = _("Case sensitive search"),
       checked_func = function()
-        return not G_reader_settings:nilOrTrue(
-          "calibre_search_case_insensitive"
-        )
+        return not G_reader_settings:nilOrTrue("calibre_search_case_insensitive")
       end,
       callback = function()
         G_reader_settings:flipNilOrTrue("calibre_search_case_insensitive")
@@ -398,10 +394,7 @@ function Calibre:getWirelessMenuTable()
                           --default port
                           port = 9090
                         end
-                        G_reader_settings:save(
-                          "calibre_wireless_url",
-                          { address = fields[1], port = port }
-                        )
+                        G_reader_settings:save("calibre_wireless_url", { address = fields[1], port = port })
                       end
                       UIManager:close(url_dialog)
                       if touchmenu_instance then
@@ -435,9 +428,7 @@ function Calibre:getWirelessMenuTable()
                   "%s: %s \n\n%s",
                   _("Supported file formats"),
                   CalibreExtensions:getInfo(),
-                  _(
-                    "Unsupported formats will be converted by calibre to the first format of the list."
-                  )
+                  _("Unsupported formats will be converted by calibre to the first format of the list.")
                 ),
               }))
             end,
@@ -454,14 +445,9 @@ function Calibre:getWirelessMenuTable()
             return false
           end
           submenu[i + 1].callback = function()
-            if
-              type(v) == "string" and v ~= CalibreExtensions.default_output
-            then
+            if type(v) == "string" and v ~= CalibreExtensions.default_output then
               CalibreExtensions.default_output = v
-              G_reader_settings:save(
-                "calibre_wireless_default_format",
-                CalibreExtensions.default_output
-              )
+              G_reader_settings:save("calibre_wireless_default_format", CalibreExtensions.default_output)
             end
           end
         end

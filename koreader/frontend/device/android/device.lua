@@ -177,16 +177,11 @@ function Device:init()
         or ev.code == C.APP_CMD_WINDOW_REDRAW_NEEDED
       then
         this.device.screen:_updateWindow()
-      elseif
-        ev.code == C.APP_CMD_LOST_FOCUS or ev.code == C.APP_CMD_TERM_WINDOW
-      then
+      elseif ev.code == C.APP_CMD_LOST_FOCUS or ev.code == C.APP_CMD_TERM_WINDOW then
         this.device.input:resetState()
       elseif ev.code == C.APP_CMD_CONFIG_CHANGED then
         -- orientation and size changes
-        if
-          android.screen.width ~= android.getScreenWidth()
-          or android.screen.height ~= android.getScreenHeight()
-        then
+        if android.screen.width ~= android.getScreenWidth() or android.screen.height ~= android.getScreenHeight() then
           this.device.screen:resize()
           local new_size = this.device.screen:getSize()
           logger.info("Resizing screen to", new_size)
@@ -195,10 +190,7 @@ function Device:init()
           UIManager:broadcastEvent(Event:new("ScreenResize", new_size))
           UIManager:broadcastEvent(Event:new("RedrawCurrentPage"))
           if FileManager.instance then
-            FileManager.instance:reinit(
-              FileManager.instance.path,
-              FileManager.instance.focused_file
-            )
+            FileManager.instance:reinit(FileManager.instance.path, FileManager.instance.focused_file)
           end
         end
         -- to-do: keyboard connected, disconnected
@@ -273,24 +265,16 @@ function Device:init()
   })
 
   -- disable translation for specific models, where media keys follow gravity, see https://github.com/koreader/koreader/issues/12423
-  if
-    android.prop.model == "moaanmix7" or android.prop.model == "xiaomi_reader"
-  then
+  if android.prop.model == "moaanmix7" or android.prop.model == "xiaomi_reader" then
     self.input:disableRotationMap()
   end
 
   -- check if we have a keyboard
-  if
-    android.lib.AConfiguration_getKeyboard(android.app.config)
-    == C.ACONFIGURATION_KEYBOARD_QWERTY
-  then
+  if android.lib.AConfiguration_getKeyboard(android.app.config) == C.ACONFIGURATION_KEYBOARD_QWERTY then
     self.hasKeyboard = util.yes
   end
   -- check if we have a touchscreen
-  if
-    android.lib.AConfiguration_getTouchscreen(android.app.config)
-    ~= C.ACONFIGURATION_TOUCHSCREEN_NOTOUCH
-  then
+  if android.lib.AConfiguration_getTouchscreen(android.app.config) ~= C.ACONFIGURATION_TOUCHSCREEN_NOTOUCH then
     self.isTouchDevice = util.yes
   end
 
@@ -302,8 +286,7 @@ function Device:init()
     if timeout then
       if
         timeout == C.AKEEP_SCREEN_ON_ENABLED
-        or timeout > C.AKEEP_SCREEN_ON_DISABLED
-          and android.settings.hasPermission("settings")
+        or timeout > C.AKEEP_SCREEN_ON_DISABLED and android.settings.hasPermission("settings")
       then
         android.timeout.set(timeout)
       end
@@ -389,15 +372,7 @@ function Device:retrieveNetworkInfo()
 end
 
 function Device:setViewport(x, y, w, h)
-  logger.info(
-    string.format(
-      "Switching viewport to new geometry [x=%d,y=%d,w=%d,h=%d]",
-      x,
-      y,
-      w,
-      h
-    )
-  )
+  logger.info(string.format("Switching viewport to new geometry [x=%d,y=%d,w=%d,h=%d]", x, y, w, h))
   local viewport = Geom:new({ x = x, y = y, w = w, h = h })
   self.screen:setViewport(viewport)
 end
@@ -454,16 +429,9 @@ function Device:_toggleStatusBarVisibility()
     self.input.eventAdjustHook = Input.eventAdjustHook
   end
 
-  local viewport =
-    Geom:new({ x = 0, y = statusbar_height, w = width, h = new_height })
+  local viewport = Geom:new({ x = 0, y = statusbar_height, w = width, h = new_height })
   logger.info(
-    string.format(
-      "Switching viewport to new geometry [x=%d,y=%d,w=%d,h=%d]",
-      0,
-      statusbar_height,
-      width,
-      new_height
-    )
+    string.format("Switching viewport to new geometry [x=%d,y=%d,w=%d,h=%d]", 0, statusbar_height, width, new_height)
   )
 
   self.screen:setViewport(viewport)
@@ -514,9 +482,7 @@ function Device:info()
 
   local eink_text = ""
   if is_eink then
-    eink_text = "\n"
-      .. T(_("E-ink display supported.\nPlatform: %1"), eink_platform)
-      .. "\n"
+    eink_text = "\n" .. T(_("E-ink display supported.\nPlatform: %1"), eink_platform) .. "\n"
   end
 
   local wakelocks_text = ""
@@ -580,15 +546,8 @@ function Device:showLightDialog()
 end
 
 function Device:_showLightDialog()
-  local title = android.isEink() and _("Frontlight settings")
-    or _("Light settings")
-  android.lights.showDialog(
-    title,
-    _("Brightness"),
-    _("Warmth"),
-    _("OK"),
-    _("Cancel")
-  )
+  local title = android.isEink() and _("Frontlight settings") or _("Light settings")
+  android.lights.showDialog(title, _("Brightness"), _("Warmth"), _("OK"), _("Cancel"))
 
   local action = android.lights.dialogState()
   while action == C.ALIGHTS_DIALOG_OPENED do
@@ -632,9 +591,7 @@ function Device:download(link, name, ok_text)
     }))
   elseif ok == C.ADOWNLOAD_FAILED then
     UIManager:show(ConfirmBox:new({
-      text = _(
-        "Your device seems to be unable to download packages.\nRetry using the browser?"
-      ),
+      text = _("Your device seems to be unable to download packages.\nRetry using the browser?"),
       ok_text = _("Retry"),
       ok_callback = function()
         self:openLink(link)

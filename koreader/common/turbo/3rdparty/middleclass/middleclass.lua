@@ -62,10 +62,7 @@ end
 local function _createLookupMetamethod(klass, name)
   return function(...)
     local method = klass.super[name]
-    assert(
-      type(method) == "function",
-      tostring(klass) .. " doesn't implement metamethod '" .. name .. "'"
-    )
+    assert(type(method) == "function", tostring(klass) .. " doesn't implement metamethod '" .. name .. "'")
     return method(...)
   end
 end
@@ -118,10 +115,7 @@ Object.static.__metamethods = {
 }
 
 function Object.static:allocate()
-  assert(
-    _classes[self],
-    "Make sure that you are using 'Class:allocate' instead of 'Class.allocate'"
-  )
+  assert(_classes[self], "Make sure that you are using 'Class:allocate' instead of 'Class.allocate'")
   return setmetatable({ class = self }, self.__instanceDict)
 end
 
@@ -132,14 +126,8 @@ function Object.static:new(...)
 end
 
 function Object.static:subclass(name)
-  assert(
-    _classes[self],
-    "Make sure that you are using 'Class:subclass' instead of 'Class.subclass'"
-  )
-  assert(
-    type(name) == "string",
-    "You must provide a name(string) for your class"
-  )
+  assert(_classes[self], "Make sure that you are using 'Class:subclass' instead of 'Class.subclass'")
+  assert(type(name) == "string", "You must provide a name(string) for your class")
 
   local subclass = _createClass(name, self)
   _setClassMetamethods(subclass)
@@ -153,10 +141,7 @@ end
 function Object.static:subclassed(other) end
 
 function Object.static:include(...)
-  assert(
-    _classes[self],
-    "Make sure you that you are using 'Class:include' instead of 'Class.include'"
-  )
+  assert(_classes[self], "Make sure you that you are using 'Class:include' instead of 'Class.include'")
   for _, mixin in ipairs({ ... }) do
     _includeMixin(self, mixin)
   end
@@ -175,11 +160,7 @@ function class(name, super, ...)
 end
 
 function instanceOf(aClass, obj)
-  if
-    not _classes[aClass]
-    or type(obj) ~= "table"
-    or not _classes[obj.class]
-  then
+  if not _classes[aClass] or type(obj) ~= "table" or not _classes[obj.class] then
     return false
   end
   if obj.class == aClass then

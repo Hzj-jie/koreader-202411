@@ -124,20 +124,10 @@ end
 -- @param fail_callback (Function) Optional callback for "on error".
 -- @param arg Optional argument for callback.
 if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
-  function iostream.IOStream:connect(
-    address,
-    port,
-    family,
-    callback,
-    fail_callback,
-    arg
-  )
+  function iostream.IOStream:connect(address, port, family, callback, fail_callback, arg)
     assert(type(address) == "string", "Address is not a string.")
     assert(type(port) == "number", "Port is not a number.")
-    assert(
-      (not family or type(family) == "number"),
-      "Family is not a number or nil"
-    )
+    assert((not family or type(family) == "number"), "Family is not a number or nil")
     self._connect_fail_callback = fail_callback
     self._connecting = true
     self._connect_callback = callback
@@ -153,29 +143,17 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
     end
     local ai, err = sockutils.connect_addrinfo(self.socket, servinfo)
     if not ai then
-      self:_handle_connect_fail(
-        "Could not connect to remote server. " .. (err or "")
-      )
+      self:_handle_connect_fail("Could not connect to remote server. " .. (err or ""))
       return
     end
     self:_add_io_state(ioloop.WRITE)
     return 0 -- Too avoid breaking backwards compability.
   end
 else
-  function iostream.IOStream:connect(
-    address,
-    port,
-    family,
-    callback,
-    fail_callback,
-    arg
-  )
+  function iostream.IOStream:connect(address, port, family, callback, fail_callback, arg)
     assert(type(address) == "string", "Address is not a string")
     assert(type(port) == "number", "Port is not a number")
-    assert(
-      (not family or type(family) == "number"),
-      "Family is not a number or nil"
-    )
+    assert((not family or type(family) == "number"), "Family is not a number or nil")
     self._connect_fail_callback = fail_callback
     self._connect_callback = callback
     self._connect_callback_arg = arg
@@ -240,13 +218,7 @@ end
 -- @param streaming_arg Optional argument for callback. If arg is given then
 -- it will be the first argument for the callback and the data will be the
 -- second.
-function iostream.IOStream:read_bytes(
-  num_bytes,
-  callback,
-  arg,
-  streaming_callback,
-  streaming_arg
-)
+function iostream.IOStream:read_bytes(num_bytes, callback, arg, streaming_callback, streaming_arg)
   assert(not self._read_callback, "Already reading.")
   assert(type(num_bytes) == "number", "argument #1, num_bytes, is not a number")
   self._read_bytes = num_bytes
@@ -270,12 +242,7 @@ end
 -- @param streaming_arg Optional argument for callback. If arg is given then
 -- it will be the first argument for the callback and the data will be the
 -- second.
-function iostream.IOStream:read_until_close(
-  callback,
-  arg,
-  streaming_callback,
-  streaming_arg
-)
+function iostream.IOStream:read_until_close(callback, arg, streaming_callback, streaming_arg)
   if self._read_callback then
     error("Already reading.")
   end
@@ -437,8 +404,7 @@ function iostream.IOStream:set_max_buffer_size(sz)
   if sz < TURBO_SOCKET_BUFFER_SZ then
     log.warning(
       string.format(
-        "Max buffer size could not be set to lower value "
-          .. "than _G.TURBO_SOCKET_BUFFER_SZ (%dB).",
+        "Max buffer size could not be set to lower value " .. "than _G.TURBO_SOCKET_BUFFER_SZ (%dB).",
         TURBO_SOCKET_BUFFER_SZ + 8
       )
     )
@@ -612,18 +578,11 @@ function iostream.IOStream:_run_callback(callback, arg, data)
   -- Add callback to IOLoop instead of calling it straight away.
   -- This is to provide a consistent stack growth, while also
   -- yielding to handle other tasks in the IOLoop.
-  self.io_loop:add_callback(
-    _run_callback_protected,
-    { self, callback, data, arg }
-  )
+  self.io_loop:add_callback(_run_callback_protected, { self, callback, data, arg })
 end
 
 function iostream.IOStream:_maybe_run_close_callback()
-  if
-    self:closed() == true
-    and self._close_callback
-    and self._pending_callbacks == 0
-  then
+  if self:closed() == true and self._close_callback and self._pending_callbacks == 0 then
     local cb = self._close_callback
     local arg = self._close_callback_arg
     self._close_callback = nil
@@ -662,22 +621,12 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
     if buffer_left == 0 then
       log.devel("Maximum read buffer size reached. Throttling read.")
       if self._maxb_callback then
-        self:_run_callback(
-          self._maxb_callback,
-          self._maxb_callback_arg,
-          self._read_buffer_size
-        )
+        self:_run_callback(self._maxb_callback, self._maxb_callback_arg, self._read_buffer_size)
       end
       return
     end
     local sz = tonumber(
-      C.recv(
-        self.socket,
-        buf,
-        TURBO_SOCKET_BUFFER_SZ < buffer_left and TURBO_SOCKET_BUFFER_SZ
-          or buffer_left,
-        0
-      )
+      C.recv(self.socket, buf, TURBO_SOCKET_BUFFER_SZ < buffer_left and TURBO_SOCKET_BUFFER_SZ or buffer_left, 0)
     )
     if sz == -1 then
       errno = ffi.errno()
@@ -689,14 +638,7 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
       else
         local fd = self.socket
         self:close()
-        error(
-          string.format(
-            "Error when reading from socket %d. Errno: %d. %s",
-            fd,
-            errno,
-            socket.strerror(errno)
-          )
-        )
+        error(string.format("Error when reading from socket %d. Errno: %d. %s", fd, errno, socket.strerror(errno)))
         return
       end
     end
@@ -713,24 +655,17 @@ else
     if buffer_left == 0 then
       log.devel("Maximum read buffer size reached. Throttling read.")
       if self._maxb_callback then
-        self:_run_callback(
-          self._maxb_callback,
-          self._maxb_callback_arg,
-          self._read_buffer_size
-        )
+        self:_run_callback(self._maxb_callback, self._maxb_callback_arg, self._read_buffer_size)
       end
       return
     end
     -- Put buf in self, to keep reference for ptr after end of function.
-    self._luasocket_buf =
-      buffer(math.min(TURBO_SOCKET_BUFFER_SZ, tonumber(buffer_left)))
+    self._luasocket_buf = buffer(math.min(TURBO_SOCKET_BUFFER_SZ, tonumber(buffer_left)))
     while true do
       -- Ok, so LuaSocket is not really suited for this stuff,
       -- do consecutive calls to exhaust socket and fill up a buffer...
       -- TODO: Make sure that max buffer size is not exceeded.
-      local data, err, partial = self.socket:receive(
-        math.min(TURBO_SOCKET_BUFFER_SZ, tonumber(buffer_left))
-      )
+      local data, err, partial = self.socket:receive(math.min(TURBO_SOCKET_BUFFER_SZ, tonumber(buffer_left)))
       if data then
         self._luasocket_buf:append_luastr_right(data)
       elseif err == "timeout" or err == "wantread" then
@@ -804,17 +739,9 @@ function iostream.IOStream:_read_from_buffer()
     if self._read_bytes ~= nil then
       bytes_to_consume = min(self._read_bytes, bytes_to_consume)
       self._read_bytes = self._read_bytes - bytes_to_consume
-      self:_run_callback(
-        self._streaming_callback,
-        self._streaming_callback_arg,
-        self:_consume(bytes_to_consume)
-      )
+      self:_run_callback(self._streaming_callback, self._streaming_callback_arg, self:_consume(bytes_to_consume))
     else
-      self:_run_callback(
-        self._streaming_callback,
-        self._streaming_callback_arg,
-        self:_consume(bytes_to_consume)
-      )
+      self:_run_callback(self._streaming_callback, self._streaming_callback_arg, self:_consume(bytes_to_consume))
     end
   end
   -- Handle read_bytes.
@@ -836,12 +763,7 @@ function iostream.IOStream:_read_from_buffer()
       local delimiter_sz = self._read_delimiter:len()
       local scan_ptr = ptr + self._read_scan_offset
       sz = sz - self._read_scan_offset
-      local loc = util.str_find(
-        scan_ptr,
-        ffi.cast("char *", self._read_delimiter),
-        sz,
-        delimiter_sz
-      )
+      local loc = util.str_find(scan_ptr, ffi.cast("char *", self._read_delimiter), sz, delimiter_sz)
       if loc then
         loc = loc - ptr
         local delimiter_end = loc + delimiter_sz
@@ -881,11 +803,7 @@ function iostream.IOStream:_read_from_buffer()
         self._streaming_callback = nil
         self._streaming_callback_arg = nil
         self._read_pattern = nil
-        self:_run_callback(
-          callback,
-          arg,
-          self:_consume(s_end + self._read_scan_offset)
-        )
+        self:_run_callback(callback, arg, self:_consume(s_end + self._read_scan_offset))
         self._read_scan_offset = s_end
         return true
       end
@@ -900,8 +818,7 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
     local errno, fd
     local ptr, sz = self._write_buffer:get()
     local buf = ptr + self._write_buffer_offset
-    local num_bytes =
-      tonumber(C.send(self.socket, buf, self._write_buffer_size, 0))
+    local num_bytes = tonumber(C.send(self.socket, buf, self._write_buffer_size, 0))
     if num_bytes == -1 then
       errno = ffi.errno()
       if errno == EWOULDBLOCK or errno == EAGAIN then
@@ -915,13 +832,7 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
       end
       fd = self.socket
       self:close()
-      error(
-        string.format(
-          "Error when writing to fd %d, %s",
-          fd,
-          socket.strerror(errno)
-        )
-      )
+      error(string.format("Error when writing to fd %d, %s", fd, socket.strerror(errno)))
     end
     if num_bytes == 0 then
       return
@@ -963,13 +874,7 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
       end
       fd = self.socket
       self:close()
-      error(
-        string.format(
-          "Error when writing to fd %d, %s",
-          fd,
-          socket.strerror(errno)
-        )
-      )
+      error(string.format("Error when writing to fd %d, %s", fd, socket.strerror(errno)))
     end
     if num_bytes == 0 then
       return
@@ -995,9 +900,7 @@ else
     local ptr, sz = self._write_buffer:get()
     local buf = ptr + self._write_buffer_offset
     -- Not very optimal to create a new string for LuaSocket.
-    local num_bytes, err = self.socket:send(
-      ffi.string(buf, math.min(self._write_buffer_size, 1024 * 128))
-    )
+    local num_bytes, err = self.socket:send(ffi.string(buf, math.min(self._write_buffer_size, 1024 * 128)))
     if err then
       if err == "closed" then
         log.warning(string.format("Connection closed on fd %s.", fd))
@@ -1052,12 +955,7 @@ function iostream.IOStream:_add_io_state(state)
   end
   if not self._state then
     self._state = bitor(ioloop.ERROR, state)
-    self.io_loop:add_handler(
-      self.socket,
-      self._state,
-      self._handle_events,
-      self
-    )
+    self.io_loop:add_handler(self.socket, self._state, self._handle_events, self)
   elseif bitand(self._state, state) == 0 then
     self._state = bitor(self._state, state)
     self.io_loop:update_handler(self.socket, self._state)
@@ -1108,9 +1006,7 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
   function iostream.IOStream:_handle_connect()
     local rc, sockerr = socket.get_socket_error(self.socket)
     if rc == -1 then
-      error(
-        "[iostream.lua] Could not get socket errors, for fd " .. self.socket
-      )
+      error("[iostream.lua] Could not get socket errors, for fd " .. self.socket)
     else
       if sockerr ~= 0 then
         local fd = self.socket
@@ -1118,22 +1014,12 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
         local strerror = socket.strerror(sockerr)
         if self._connect_fail_callback then
           if self._connect_callback_arg then
-            self._connect_fail_callback(
-              self._connect_callback_arg,
-              sockerr,
-              strerror
-            )
+            self._connect_fail_callback(self._connect_callback_arg, sockerr, strerror)
           else
             self._connect_fail_callback(sockerr, strerror)
           end
         else
-          error(
-            string.format(
-              "[iostream.lua] Connect failed: %s, for fd %d",
-              socket.strerror(sockerr),
-              fd
-            )
-          )
+          error(string.format("[iostream.lua] Connect failed: %s, for fd %d", socket.strerror(sockerr), fd))
         end
         return
       end
@@ -1168,9 +1054,7 @@ else
           self._connect_fail_callback(sockerr, strerror)
         end
       else
-        error(
-          string.format("[iostream.lua] Connect failed: %s, for fd %s", err, fd)
-        )
+        error(string.format("[iostream.lua] Connect failed: %s, for fd %s", err, fd))
       end
       return
     end
@@ -1206,13 +1090,7 @@ if _G.TURBO_SSL and platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
   -- @param max_buffer_size (Number) The maximum number of bytes that can be
   -- held in internal buffer before flushing must occur.
   -- If none is set, 104857600 are used as default.
-  function iostream.SSLIOStream:initialize(
-    fd,
-    ssl_options,
-    io_loop,
-    max_buffer_size,
-    args
-  )
+  function iostream.SSLIOStream:initialize(fd, ssl_options, io_loop, max_buffer_size, args)
     self._ssl_options = ssl_options
     -- ssl_options should contain keys with values:
     -- "_ssl_ctx" = SSL_CTX pointer created with context functions in
@@ -1228,15 +1106,7 @@ if _G.TURBO_SSL and platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
     self._server_hostname = nil
   end
 
-  function iostream.SSLIOStream:connect(
-    address,
-    port,
-    family,
-    verify,
-    callback,
-    errhandler,
-    arg
-  )
+  function iostream.SSLIOStream:connect(address, port, family, verify, callback, errhandler, arg)
     -- We steal the on_connect callback from the caller. And make sure that we
     -- do handshaking before anything else.
     self._ssl_connect_callback = callback
@@ -1244,15 +1114,7 @@ if _G.TURBO_SSL and platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
     self._ssl_connect_callback_arg = arg
     self._ssl_hostname = address
     self._ssl_verify = verify == nil and true or verify
-    return iostream.IOStream.connect(
-      self,
-      address,
-      port,
-      family,
-      self._handle_connect,
-      self._connect_errhandler,
-      self
-    )
+    return iostream.IOStream.connect(self, address, port, family, self._handle_connect, self._connect_errhandler, self)
   end
 
   function iostream.SSLIOStream:_connect_errhandler()
@@ -1302,9 +1164,7 @@ if _G.TURBO_SSL and platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
     if self._connecting == true then
       local rc, sockerr = socket.get_socket_error(self.socket)
       if rc == -1 then
-        error(
-          "[iostream.lua] Could not get socket errors, for fd " .. self.socket
-        )
+        error("[iostream.lua] Could not get socket errors, for fd " .. self.socket)
       else
         if sockerr ~= 0 then
           local fd = self.socket
@@ -1318,13 +1178,7 @@ if _G.TURBO_SSL and platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
             self._ssl_connect_callback = nil
             errhandler(arg, sockerr, strerror)
           else
-            error(
-              string.format(
-                "[iostream.lua] Connect failed: %s, for fd %d",
-                socket.strerror(sockerr),
-                fd
-              )
-            )
+            error(string.format("[iostream.lua] Connect failed: %s, for fd %d", socket.strerror(sockerr), fd))
           end
           return
         end
@@ -1353,14 +1207,7 @@ if _G.TURBO_SSL and platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
         else
           local fd = self.socket
           self:close()
-          error(
-            string.format(
-              "Error when reading from socket %d. Errno: %d. %s",
-              fd,
-              errno,
-              socket.strerror(errno)
-            )
-          )
+          error(string.format("Error when reading from socket %d. Errno: %d. %s", fd, errno, socket.strerror(errno)))
         end
       elseif err == crypto.SSL_ERROR_WANT_READ then
         return
@@ -1398,14 +1245,7 @@ if _G.TURBO_SSL and platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
         else
           local fd = self.socket
           self:close()
-          error(
-            string.format(
-              "Error when writing to socket %d. Errno: %d. %s",
-              fd,
-              errno,
-              socket.strerror(errno)
-            )
-          )
+          error(string.format("Error when writing to socket %d. Errno: %d. %s", fd, errno, socket.strerror(errno)))
         end
       elseif err == crypto.SSL_ERROR_WANT_WRITE then
         return
@@ -1457,14 +1297,7 @@ if _G.TURBO_SSL and platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
         else
           local fd = self.socket
           self:close()
-          error(
-            string.format(
-              "Error when writing to socket %d. Errno: %d. %s",
-              fd,
-              errno,
-              socket.strerror(errno)
-            )
-          )
+          error(string.format("Error when writing to socket %d. Errno: %d. %s", fd, errno, socket.strerror(errno)))
         end
       elseif err == crypto.SSL_ERROR_WANT_WRITE then
         return
@@ -1497,12 +1330,7 @@ if _G.TURBO_SSL and platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
 elseif _G.TURBO_SSL then
   iostream.SSLIOStream = class("SSLIOStream", iostream.IOStream)
 
-  function iostream.SSLIOStream:initialize(
-    fd,
-    ssl_options,
-    io_loop,
-    max_buffer_size
-  )
+  function iostream.SSLIOStream:initialize(fd, ssl_options, io_loop, max_buffer_size)
     self._ssl_options = ssl_options
     -- ssl_options should contain keys with values:
     -- "_ssl_ctx" = SSL_CTX pointer created with context functions in
@@ -1518,15 +1346,7 @@ elseif _G.TURBO_SSL then
     self._server_hostname = nil
   end
 
-  function iostream.SSLIOStream:connect(
-    address,
-    port,
-    family,
-    verify,
-    callback,
-    errhandler,
-    arg
-  )
+  function iostream.SSLIOStream:connect(address, port, family, verify, callback, errhandler, arg)
     -- We steal the on_connect callback from the caller. And make sure that we
     -- do handshaking before anything else.
     self._ssl_connect_callback = callback
@@ -1534,15 +1354,7 @@ elseif _G.TURBO_SSL then
     self._ssl_connect_callback_arg = arg
     self._ssl_hostname = address
     self._ssl_verify = verify == nil and true or verify
-    return iostream.IOStream.connect(
-      self,
-      address,
-      port,
-      family,
-      self._handle_connect,
-      self._connect_errhandler,
-      self
-    )
+    return iostream.IOStream.connect(self, address, port, family, self._handle_connect, self._connect_errhandler, self)
   end
 
   function iostream.SSLIOStream:_connect_errhandler()
@@ -1566,12 +1378,7 @@ elseif _G.TURBO_SSL then
       -- Replace LuaSocket object with wrapped one...
       self.io_loop:remove_handler(self.socket)
       self.socket = ssl
-      self.io_loop:add_handler(
-        self.socket,
-        ioloop.READ,
-        self._handle_events,
-        self
-      )
+      self.io_loop:add_handler(self.socket, ioloop.READ, self._handle_events, self)
     end
     -- do the SSL handshaking, returns true when connected, otherwise false
     local res, err = crypto.ssl_do_handshake(self)
@@ -1642,13 +1449,7 @@ elseif _G.TURBO_SSL then
           self._ssl_connect_callback = nil
           errhandler(arg, -1, err)
         else
-          error(
-            string.format(
-              "[iostream.lua] Connect failed: %s, for fd %s",
-              err,
-              fd
-            )
-          )
+          error(string.format("[iostream.lua] Connect failed: %s, for fd %s", err, fd))
         end
         return
       end
@@ -1725,11 +1526,7 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
     packed.ai_protocol = addrinfo.ai_protocol
     packed.ai_addrlen = addrinfo.ai_addrlen
     packed.ai_addr.sa_family = addrinfo.ai_addr.sa_family
-    ffi.copy(
-      packed.ai_addr.sa_data,
-      addrinfo.ai_addr.sa_data,
-      ffi.sizeof(addrinfo.ai_addr.sa_data)
-    )
+    ffi.copy(packed.ai_addr.sa_data, addrinfo.ai_addr.sa_data, ffi.sizeof(addrinfo.ai_addr.sa_data))
     return ffi.string(ffi.cast("unsigned char*", packed), ffi.sizeof(packed))
   end
 
@@ -1745,23 +1542,14 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
     addrinfo.ai_protocol = _packed.ai_protocol
     addrinfo.ai_addrlen = _packed.ai_addrlen
     addrinfo.ai_addr.sa_family = _packed.ai_addr.sa_family
-    ffi.copy(
-      addrinfo.ai_addr.sa_data,
-      _packed.ai_addr.sa_data,
-      ffi.sizeof(addrinfo.ai_addr.sa_data)
-    )
+    ffi.copy(addrinfo.ai_addr.sa_data, _packed.ai_addr.sa_data, ffi.sizeof(addrinfo.ai_addr.sa_data))
     addrinfo.ai_canonname = nil
     addrinfo.ai_next = nil
     -- Return all to avoid losing reference and gc cleaning up the pointers.
     return addrinfo, sockaddr
   end
 
-  function iostream.DNSResolv:_send_resolv_result(
-    servport,
-    success,
-    errdesc,
-    addrinfo
-  )
+  function iostream.DNSResolv:_send_resolv_result(servport, success, errdesc, addrinfo)
     local errno, rc
     local client_address = ffi.new("struct sockaddr_un")
 
@@ -1783,11 +1571,8 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
       )
       os.exit(1)
     end
-    rc = ffi.C.connect(
-      self.client_sockfd,
-      ffi.cast("const struct sockaddr *", client_address),
-      ffi.sizeof(client_address)
-    )
+    rc =
+      ffi.C.connect(self.client_sockfd, ffi.cast("const struct sockaddr *", client_address), ffi.sizeof(client_address))
     if rc ~= 0 then
       -- Main thread probably has not created socket yet. Wait.
       -- Should be done more elegantly...
@@ -1816,13 +1601,10 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
       .. "\r\n\r\n"
       .. (addrinfo and _pack_addrinfo(addrinfo[0]) or "")
       .. "\r\n\r\n"
-    rc =
-      ffi.C.send(self.client_sockfd, ffi.cast("const char*", res), res:len(), 0)
+    rc = ffi.C.send(self.client_sockfd, ffi.cast("const char*", res), res:len(), 0)
     ffi.C.close(self.client_sockfd)
     if rc == -1 then
-      log.error(
-        "[iostream.lua] Could not send data to DNS resolv recipient server."
-      )
+      log.error("[iostream.lua] Could not send data to DNS resolv recipient server.")
     end
     os.exit(1)
   end
@@ -1854,38 +1636,16 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
       end
 
       if
-        ffi.C.bind(
-          self.server_sockfd,
-          ffi.cast("struct sockaddr*", server_address),
-          ffi.sizeof(server_address)
-        ) ~= 0
+        ffi.C.bind(self.server_sockfd, ffi.cast("struct sockaddr*", server_address), ffi.sizeof(server_address)) ~= 0
       then
         errno = ffi.errno()
-        error(
-          string.format(
-            "Errno %d. Could not bind to address. %s",
-            errno,
-            socket.strerror(errno)
-          )
-        )
+        error(string.format("Errno %d. Could not bind to address. %s", errno, socket.strerror(errno)))
       end
       if ffi.C.listen(self.server_sockfd, 1) ~= 0 then
         errno = ffi.errno()
-        error(
-          string.format(
-            "Errno %d. Could not listen to socket fd %d. %s",
-            errno,
-            fd,
-            socket.strerror(errno)
-          )
-        )
+        error(string.format("Errno %d. Could not listen to socket fd %d. %s", errno, fd, socket.strerror(errno)))
       end
-      sockutil.add_accept_handler(
-        self.server_sockfd,
-        iostream.DNSResolv._dns_resolved_callback,
-        self.io_loop,
-        self
-      )
+      sockutil.add_accept_handler(self.server_sockfd, iostream.DNSResolv._dns_resolved_callback, self.io_loop, self)
       return
     end
     -- Fork will continue here.
@@ -1905,11 +1665,7 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
         ffi.C.__res_init()
       end
       local strerr = ffi.string(C.gai_strerror(rc))
-      local errdesc = string.format(
-        "Could not resolve hostname '%s': %s",
-        address,
-        ffi.string(C.gai_strerror(rc))
-      )
+      local errdesc = string.format("Could not resolve hostname '%s': %s", address, ffi.string(C.gai_strerror(rc)))
       self:_send_resolv_result(servport, false, errdesc, nil)
       os.exit(0)
     end

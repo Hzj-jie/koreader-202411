@@ -74,16 +74,12 @@ local function runUserPatchTasks(dir, priority)
         if not ok then
           logger.warn("Patching failed:", err)
           -- Only show InfoMessage, when UIManager is working
-          if
-            priority >= userpatch.late and priority < userpatch.before_exit
-          then
+          if priority >= userpatch.late and priority < userpatch.before_exit then
             -- Only developers (advanced users) will use this mechanism.
             -- A warning on a patch failure after an OTA update will simplify troubleshooting.
             local UIManager = require("ui/uimanager")
             local InfoMessage = require("ui/widget/infomessage")
-            UIManager:show(
-              InfoMessage:new({ text = "Error applying patch:\n" .. fullpath })
-            ) -- no translate
+            UIManager:show(InfoMessage:new({ text = "Error applying patch:\n" .. fullpath })) -- no translate
           end
         end
       end
@@ -97,8 +93,7 @@ end
 function userpatch.applyPatches(priority)
   local patch_dir = data_dir .. "/patches"
   local update_once_marker = package_dir .. "/update_once.marker"
-  local update_once_pending = lfs.attributes(update_once_marker, "mode")
-    == "file"
+  local update_once_pending = lfs.attributes(update_once_marker, "mode") == "file"
 
   if priority >= userpatch.early or update_once_pending then
     local executed_something = runUserPatchTasks(patch_dir, priority)
@@ -163,8 +158,7 @@ function userpatch.registerPatchPluginFunc(plugin_name, patch_func)
     local PluginLoader = require("pluginloader")
     orig_PluginLoader_createPluginInstance = PluginLoader.createPluginInstance
     PluginLoader.createPluginInstance = function(this, plugin, attr)
-      local ok, plugin_or_err =
-        orig_PluginLoader_createPluginInstance(this, plugin, attr)
+      local ok, plugin_or_err = orig_PluginLoader_createPluginInstance(this, plugin, attr)
       if ok and patch_plugin_funcs[plugin.name] then
         for _, patchfunc in ipairs(patch_plugin_funcs[plugin.name]) do
           patchfunc(plugin)

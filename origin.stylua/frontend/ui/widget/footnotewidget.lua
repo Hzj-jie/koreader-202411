@@ -183,8 +183,7 @@ function FootnoteWidget:init()
         -- callback function when HoldReleaseText is handled as args
         args = function(text, hold_duration)
           if self.dialog then
-            local lookup_target = hold_duration < time.s(3) and "LookupWord"
-              or "LookupWikipedia"
+            local lookup_target = hold_duration < time.s(3) and "LookupWord" or "LookupWikipedia"
             self.dialog:handleEvent(Event:new(lookup_target, text))
           end
         end,
@@ -213,15 +212,11 @@ function FootnoteWidget:init()
   -- We may use a font size a bit smaller than the document one (because
   -- footnotes are usually smaller, and because NotoSans is a bit on the
   -- larger size when compared to other fonts at the same size)
-  local font_size =
-    G_reader_settings:readSetting("footnote_popup_absolute_font_size")
+  local font_size = G_reader_settings:readSetting("footnote_popup_absolute_font_size")
   if font_size then
     font_size = Screen:scaleBySize(font_size)
   else
-    font_size = self.doc_font_size
-      + (
-        G_reader_settings:readSetting("footnote_popup_relative_font_size") or -2
-      )
+    font_size = self.doc_font_size + (G_reader_settings:readSetting("footnote_popup_relative_font_size") or -2)
   end
 
   local font_css = ""
@@ -235,8 +230,7 @@ function FootnoteWidget:init()
       local bold = i >= 3
       local italic = i == 2 or i == 4
       -- We assume the font is not from a collection, and ignore the index.
-      local font_path =
-        cre.getFontFaceFilenameAndFaceIndex(self.doc_font_name, bold, italic)
+      local font_path = cre.getFontFaceFilenameAndFaceIndex(self.doc_font_name, bold, italic)
       -- crengine returns the regular filename when requesting a bold that
       -- it has synthesized; but MuPDF would consider it as real bold and
       -- would use it as-is: by not providing the fake bold font file path,
@@ -257,8 +251,7 @@ function FootnoteWidget:init()
       -- If not using our standard font, override "line-height:1.3" (which is fine
       -- with Noto Sans) to use something smaller (looks like MuPDF's default is 1.2
       -- and we can't make it use the font natural line height...)
-      font_css = font_css
-        .. "\nbody { font-family: 'KOReaderFootnoteFont'; line-height: 1.2 !important; }\n"
+      font_css = font_css .. "\nbody { font-family: 'KOReaderFootnoteFont'; line-height: 1.2 !important; }\n"
     end
   end
 
@@ -295,13 +288,10 @@ function FootnoteWidget:init()
   -- and we don't want a scrollbar that large.
   -- Ensute a not too large scrollbar, and bring it closer to the screen
   -- edge, leaving the remaining available room between it and the text.
-  local item_width =
-    math.min(math.ceil(self.doc_margins.right * 2 / 5), Screen:scaleBySize(10))
+  local item_width = math.min(math.ceil(self.doc_margins.right * 2 / 5), Screen:scaleBySize(10))
   local scroll_bar_width = item_width
   local padding_right = item_width
-  local text_scroll_span = self.doc_margins.right
-    - scroll_bar_width
-    - padding_right
+  local text_scroll_span = self.doc_margins.right - scroll_bar_width - padding_right
   if text_scroll_span < padding_right then
     -- With small doc margins, space between text and scrollbar may get
     -- too small: switch it with right padding
@@ -358,11 +348,7 @@ function FootnoteWidget:init()
     -- See if needed:
     -- Add a bit to bottom padding, as getSinglePageHeight() cut can be rough
     -- added_bottom_pad = math.floor(font_size * 0.2)
-    local reduced_height = single_page_height
-      + top_border_size
-      + padding_top
-      + padding_bottom
-      + added_bottom_pad
+    local reduced_height = single_page_height + top_border_size + padding_top + padding_bottom + added_bottom_pad
     vgroup = CenterContainer:new({
       dimen = Geom:new({
         h = reduced_height,

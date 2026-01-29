@@ -16,8 +16,7 @@ local PageOverlap = {
         return text
       end,
       checked_func = function()
-        return ReaderUI.instance.view:isOverlapAllowed()
-          and ReaderUI.instance.view.page_overlap_enable
+        return ReaderUI.instance.view:isOverlapAllowed() and ReaderUI.instance.view.page_overlap_enable
       end,
       callback = function()
         local view = ReaderUI.instance.view
@@ -28,9 +27,7 @@ local PageOverlap = {
           view.page_overlap_enable = not view.page_overlap_enable
         else
           UIManager:show(require("ui/widget/infomessage"):new({
-            text = _(
-              "Page overlap cannot be enabled in the current view mode."
-            ),
+            text = _("Page overlap cannot be enabled in the current view mode."),
             timeout = 2,
           }))
         end
@@ -46,10 +43,7 @@ local PageOverlap = {
 table.insert(PageOverlap.sub_item_table, {
   keep_menu_open = true,
   text_func = function()
-    return T(
-      _("Number of lines: %1"),
-      G_reader_settings:readSetting("copt_overlap_lines") or 1
-    )
+    return T(_("Number of lines: %1"), G_reader_settings:readSetting("copt_overlap_lines") or 1)
   end,
   enabled_func = function()
     return not ReaderUI.instance.document.info.has_pages
@@ -94,8 +88,7 @@ for _, v in ipairs(page_overlap_styles) do
       return text
     end,
     enabled_func = function()
-      return ReaderUI.instance.view:isOverlapAllowed()
-        and ReaderUI.instance.view.page_overlap_enable
+      return ReaderUI.instance.view:isOverlapAllowed() and ReaderUI.instance.view.page_overlap_enable
     end,
     checked_func = function()
       return ReaderUI.instance.view.page_overlap_style == style

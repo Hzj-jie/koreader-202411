@@ -12,9 +12,7 @@ local _ = require("gettext")
 -- read settings and check for language override
 -- has to be done before requiring other files because
 -- they might call gettext on load
-G_reader_settings = require("luasettings"):open(
-  DataStorage:getDataDir() .. "/settings.reader.lua"
-)
+G_reader_settings = require("luasettings"):open(DataStorage:getDataDir() .. "/settings.reader.lua")
 local lang_locale = G_reader_settings:read("language")
 if lang_locale then
   _.changeLang(lang_locale)
@@ -56,26 +54,12 @@ function TestGrid:paintTo(bb)
   h_line = math.floor(bb:getHeight() / 50)
   for i = 1, h_line do
     y_num = i * 50
-    RenderText:renderUtf8Text(
-      bb,
-      0,
-      y_num + 10,
-      Font:getFace("ffont", 12),
-      y_num,
-      true
-    )
+    RenderText:renderUtf8Text(bb, 0, y_num + 10, Font:getFace("ffont", 12), y_num, true)
     bb:paintRect(0, y_num, bb:getWidth(), 1, Blitbuffer.gray(0.7))
   end
   for i = 1, v_line do
     x_num = i * 50
-    RenderText:renderUtf8Text(
-      bb,
-      x_num,
-      10,
-      Font:getFace("ffont", 12),
-      x_num,
-      true
-    )
+    RenderText:renderUtf8Text(bb, x_num, 10, Font:getFace("ffont", 12), x_num, true)
     bb:paintRect(x_num, 0, 1, bb:getHeight(), Blitbuffer.gray(0.7))
   end
 end
@@ -89,25 +73,11 @@ function TestVisible:paintTo(bb)
   -- Only render gridtext not lines at a more central position, so it doesn't interfere with the
   for i = 1, h_line do
     y_num = i * 50
-    RenderText:renderUtf8Text(
-      bb,
-      40,
-      y_num + 10,
-      Font:getFace("ffont", 12),
-      y_num,
-      true
-    )
+    RenderText:renderUtf8Text(bb, 40, y_num + 10, Font:getFace("ffont", 12), y_num, true)
   end
   for i = 1, v_line do
     x_num = i * 50
-    RenderText:renderUtf8Text(
-      bb,
-      x_num,
-      40,
-      Font:getFace("ffont", 12),
-      x_num,
-      true
-    )
+    RenderText:renderUtf8Text(bb, x_num, 40, Font:getFace("ffont", 12), x_num, true)
   end
 
   -- Handtunable minimal and maximal visible coordinates
@@ -117,38 +87,10 @@ function TestVisible:paintTo(bb)
   local y_max = bb:getHeight() - 3 - 12
 
   -- Render extremes on screen
-  RenderText:renderUtf8Text(
-    bb,
-    150,
-    100,
-    Font:getFace("ffont", 22),
-    "x_min = " .. x_min,
-    true
-  )
-  RenderText:renderUtf8Text(
-    bb,
-    500,
-    100,
-    Font:getFace("ffont", 22),
-    "x_max = " .. x_max,
-    true
-  )
-  RenderText:renderUtf8Text(
-    bb,
-    100,
-    150,
-    Font:getFace("ffont", 22),
-    "y_min = " .. y_min,
-    true
-  )
-  RenderText:renderUtf8Text(
-    bb,
-    100,
-    300,
-    Font:getFace("ffont", 22),
-    "y_max = " .. y_max,
-    true
-  )
+  RenderText:renderUtf8Text(bb, 150, 100, Font:getFace("ffont", 22), "x_min = " .. x_min, true)
+  RenderText:renderUtf8Text(bb, 500, 100, Font:getFace("ffont", 22), "x_max = " .. x_max, true)
+  RenderText:renderUtf8Text(bb, 100, 150, Font:getFace("ffont", 22), "y_min = " .. y_min, true)
+  RenderText:renderUtf8Text(bb, 100, 300, Font:getFace("ffont", 22), "y_max = " .. y_max, true)
   RenderText:renderUtf8Text(
     bb,
     100,
@@ -181,14 +123,7 @@ function TestVisible:paintTo(bb)
   --Two lines spaces 600 pixels
   bb:paintRect(100, 600, 1, 250, Blitbuffer.gray(0.7))
   bb:paintRect(700, 600, 1, 250, Blitbuffer.gray(0.7))
-  RenderText:renderUtf8Text(
-    bb,
-    150,
-    670,
-    Font:getFace("ffont", 26),
-    "Measure inches per 600 pixels",
-    true
-  )
+  RenderText:renderUtf8Text(bb, 150, 670, Font:getFace("ffont", 26), "Measure inches per 600 pixels", true)
   RenderText:renderUtf8Text(
     bb,
     150,

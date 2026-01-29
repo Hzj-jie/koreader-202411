@@ -71,8 +71,7 @@ function NetworkListener:onInfoWifiOn()
     local current_network = NetworkMgr:getCurrentNetwork()
     -- this method is only available for some implementations
     if current_network and current_network.ssid then
-      info_text =
-        T(_("Already connected to network %1."), BD.wrap(current_network.ssid))
+      info_text = T(_("Already connected to network %1."), BD.wrap(current_network.ssid))
     else
       info_text = _("Already connected.")
     end
@@ -89,12 +88,7 @@ end
 -- net sysfs entry allows us to get away with a Linux-only solution.
 function NetworkListener:_getTxPackets()
   -- read tx_packets stats from sysfs (for the right network if)
-  local file = io.open(
-    "/sys/class/net/"
-      .. NetworkMgr:getNetworkInterfaceName()
-      .. "/statistics/tx_packets",
-    "rb"
-  )
+  local file = io.open("/sys/class/net/" .. NetworkMgr:getNetworkInterfaceName() .. "/statistics/tx_packets", "rb")
 
   -- file exists only when Wi-Fi module is loaded.
   if not file then
@@ -150,11 +144,7 @@ end
 
 -- Returns a human readable string to indicate the # of pending jobs.
 function NetworkListener:countsOfPendingJobs()
-  return string.format(
-    "%d / %d",
-    util.tableSize(_pending_connected),
-    util.tableSize(_pending_online)
-  )
+  return string.format("%d / %d", util.tableSize(_pending_connected), util.tableSize(_pending_online))
 end
 
 function NetworkListener:pendingJobKeys()
@@ -183,9 +173,7 @@ end
 -- If the platform implements NetworkMgr:restoreWifiAsync, run it as needed
 if Device:hasWifiRestore() then
   function NetworkListener:onResume()
-    NetworkMgr:restoreWifiAndCheckAsync(
-      "NetworkListener: onResume will restore Wi-Fi in the background"
-    )
+    NetworkMgr:restoreWifiAndCheckAsync("NetworkListener: onResume will restore Wi-Fi in the background")
   end
 end
 
@@ -214,11 +202,11 @@ function NetworkListener:onShowNetworkInfo()
         -- Need localization.
         UIManager:show(InfoMessage:new({
           -- Need localization.
-          text = table.concat(Device:retrieveNetworkInfo(), "\n") .. "\n" .. _(
-            "Internet"
-          ) .. " " .. (NetworkMgr:isOnline() and _("online") or _(
-            "offline"
-          )),
+          text = table.concat(Device:retrieveNetworkInfo(), "\n")
+            .. "\n"
+            .. _("Internet")
+            .. " "
+            .. (NetworkMgr:isOnline() and _("online") or _("offline")),
           -- IPv6 addresses are *loooooong*!
           face = Font:getFace("x_smallinfofont"),
         }))

@@ -278,11 +278,7 @@ local function readSimple(pop, peek, tree, links)
   end
 
   -- Test for Horizontal Rule
-  if
-    match(line, PATTERN_RULE1)
-    or match(line, PATTERN_RULE2)
-    or match(line, PATTERN_RULE3)
-  then
+  if match(line, PATTERN_RULE1) or match(line, PATTERN_RULE2) or match(line, PATTERN_RULE3) then
     tree[#tree + 1] = { type = "hr", noclose = true }
     tree[#tree + 1] = NEWLINE
     return pop()
@@ -305,9 +301,7 @@ local function readSimple(pop, peek, tree, links)
       [1] = code,
     }
     tree[#tree + 1] = pre
-    while
-      not (match(pop(), PATTERN_CODEBLOCK) and getIndentLevel(peek()) == indent)
-    do
+    while not (match(pop(), PATTERN_CODEBLOCK) and getIndentLevel(peek()) == indent) do
       code[#code + 1] = peek()
       code[#code + 1] = "\r\n"
     end
@@ -509,15 +503,13 @@ end
 local function renderLinesRaw(stream, options)
   local tree, links = readLineStream(stream)
   local accum = {}
-  local head, tail, insertHead, insertTail, prependHead, appendTail =
-    nil, nil, nil, nil, nil, nil
+  local head, tail, insertHead, insertTail, prependHead, appendTail = nil, nil, nil, nil, nil, nil
   if options then
     assert(type(options) == "table", "Options argument should be a table.")
     if options.tag then
       tail = format("</%s>", options.tag)
       if options.attributes then
-        head =
-          format("<%s %s>", options.tag, renderAttributes(options.attributes))
+        head = format("<%s %s>", options.tag, renderAttributes(options.attributes))
       else
         head = format("<%s>", options.tag)
       end

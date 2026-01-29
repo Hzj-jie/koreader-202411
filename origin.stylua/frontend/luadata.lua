@@ -119,8 +119,7 @@ end
 
 --- Adds item to table.
 function LuaData:addTableItem(table_name, value)
-  local settings_table = self:has(table_name) and self:readSetting(table_name)
-    or {}
+  local settings_table = self:has(table_name) and self:readSetting(table_name) or {}
   table.insert(settings_table, value)
   self.data[table_name] = settings_table
   self:append({
@@ -168,12 +167,7 @@ function LuaData:flush()
   if lfs.attributes(self.file, "mode") == "file" then
     for i = 1, self.max_backups, 1 do
       if lfs.attributes(self.file .. ".old." .. i, "mode") == "file" then
-        logger.dbg(
-          "LuaData: Rename",
-          self.file .. ".old." .. i,
-          "to",
-          self.file .. ".old." .. i + 1
-        )
+        logger.dbg("LuaData: Rename", self.file .. ".old." .. i, "to", self.file .. ".old." .. i + 1)
         os.rename(self.file, self.file .. ".old." .. i + 1)
       else
         break

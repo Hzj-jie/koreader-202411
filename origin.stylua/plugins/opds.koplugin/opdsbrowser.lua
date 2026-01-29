@@ -212,8 +212,7 @@ function OPDSBrowser:editCatalogFromInput(fields, item, no_init)
     new_server = {}
   end
   new_server.title = fields[1]
-  new_server.url = fields[2]:match("^%a+://") and fields[2]
-    or "http://" .. fields[2]
+  new_server.url = fields[2]:match("^%a+://") and fields[2] or "http://" .. fields[2]
   new_server.username = fields[3] ~= "" and fields[3] or nil
   new_server.password = fields[4]
   if not item then
@@ -238,10 +237,7 @@ end
 -- Fetches feed from server
 function OPDSBrowser:fetchFeed(item_url, headers_only)
   local sink = {}
-  socketutil:set_timeout(
-    socketutil.LARGE_BLOCK_TIMEOUT,
-    socketutil.LARGE_TOTAL_TIMEOUT
-  )
+  socketutil:set_timeout(socketutil.LARGE_BLOCK_TIMEOUT, socketutil.LARGE_TOTAL_TIMEOUT)
   local request = {
     url = item_url,
     method = headers_only and "HEAD" or "GET",
@@ -268,18 +264,8 @@ function OPDSBrowser:fetchFeed(item_url, headers_only)
 
   local text, icon
   if headers and code == 301 then
-    text = T(
-      _(
-        "The catalog has been permanently moved. Please update catalog URL to '%1'."
-      ),
-      BD.url(headers.location)
-    )
-  elseif
-    headers
-    and code == 302
-    and item_url:match("^https")
-    and headers.location:match("^http[^s]")
-  then
+    text = T(_("The catalog has been permanently moved. Please update catalog URL to '%1'."), BD.url(headers.location))
+  elseif headers and code == 302 and item_url:match("^https") and headers.location:match("^http[^s]") then
     text = T(
       _(
         "Insecure HTTPS → HTTP downgrade attempted by redirect from:\n\n'%1'\n\nto\n\n'%2'.\n\nPlease inform the server administrator that many clients disallow this because it could be a downgrade attack."
@@ -290,16 +276,10 @@ function OPDSBrowser:fetchFeed(item_url, headers_only)
     icon = "notice-warning"
   else
     local error_message = {
-      ["401"] = _(
-        "Authentication required for catalog. Please add a username and password."
-      ),
-      ["403"] = _(
-        "Failed to authenticate. Please check your username and password."
-      ),
+      ["401"] = _("Authentication required for catalog. Please add a username and password."),
+      ["403"] = _("Failed to authenticate. Please check your username and password."),
       ["404"] = _("Catalog not found."),
-      ["406"] = _(
-        "Cannot get catalog. Server refuses to serve uncompressed content."
-      ),
+      ["406"] = _("Cannot get catalog. Server refuses to serve uncompressed content."),
     }
     text = code and error_message[tostring(code)]
       or T(_("Cannot get catalog. Server response status: %1."), status or code)
@@ -308,9 +288,7 @@ function OPDSBrowser:fetchFeed(item_url, headers_only)
     text = text,
     icon = icon,
   }))
-  logger.dbg(
-    string.format("OPDS: Failed to fetch catalog `%s`: %s", item_url, text)
-  )
+  logger.dbg(string.format("OPDS: Failed to fetch catalog `%s`: %s", item_url, text))
 end
 
 -- Parses feed to catalog
@@ -342,17 +320,9 @@ end
 function OPDSBrowser:getSearchTemplate(osd_url)
   -- parse search descriptor
   local search_descriptor = self:parseFeed(osd_url)
-  if
-    search_descriptor
-    and search_descriptor.OpenSearchDescription
-    and search_descriptor.OpenSearchDescription.Url
-  then
+  if search_descriptor and search_descriptor.OpenSearchDescription and search_descriptor.OpenSearchDescription.Url then
     for _, candidate in ipairs(search_descriptor.OpenSearchDescription.Url) do
-      if
-        candidate.type
-        and candidate.template
-        and candidate.type:find(self.search_template_type)
-      then
+      if candidate.type and candidate.template and candidate.type:find(self.search_template_type) then
         return candidate.template:gsub("{searchTerms}", "%%s")
       end
     end
@@ -365,10 +335,7 @@ function OPDSBrowser:genItemTableFromURL(item_url)
   if not ok then
     logger.info("Cannot get catalog info from", item_url, catalog)
     UIManager:show(InfoMessage:new({
-      text = T(
-        _("Cannot get catalog info from %1"),
-        (item_url and BD.url(item_url) or "nil")
-      ),
+      text = T(_("Cannot get catalog info from %1"), (item_url and BD.url(item_url) or "nil")),
     }))
     catalog = nil
   end
@@ -409,11 +376,7 @@ function OPDSBrowser:genItemTableFromCatalog(catalog, item_url)
           end
         end
         -- Calibre search (also matches the actual template for OpenSearch!)
-        if
-          link.type:find(self.search_template_type)
-          and link.rel
-          and link.rel:find("search")
-        then
+        if link.type:find(self.search_template_type) and link.rel and link.rel:find("search") then
           if link.href and not has_opensearch then
             table.insert(item_table, {
               text = "\u{f002} " .. _("Search"),
@@ -479,23 +442,15 @@ function OPDSBrowser:genItemTableFromCatalog(catalog, item_url)
                 count = count,
               })
             end
-          elseif
-            link.rel == self.thumbnail_rel
-            or link.rel == self.thumbnail_rel_alt
-          then
+          elseif link.rel == self.thumbnail_rel or link.rel == self.thumbnail_rel_alt then
             item.thumbnail = link_href
-          elseif
-            link.rel == self.image_rel or link.rel == self.image_rel_alt
-          then
+          elseif link.rel == self.image_rel or link.rel == self.image_rel_alt then
             item.image = link_href
           end
           -- This statement grabs the catalog items that are
           -- indicated by title="pdf" or whose type is
           -- "application/pdf"
-          if
-            link.title == "pdf"
-            or link.type == "application/pdf" and link.rel ~= "subsection"
-          then
+          if link.title == "pdf" or link.type == "application/pdf" and link.rel ~= "subsection" then
             -- Check for the presence of the pdf suffix and add it
             -- if it's missing.
             local href = link.href
@@ -623,11 +578,7 @@ function OPDSBrowser:showDownloads(item)
   local filename_orig = filename
 
   local function createTitle(path, file) -- title for ButtonDialog
-    return T(
-      _("Download folder:\n%1\n\nDownload filename:\n%2\n\nDownload file type:"),
-      BD.dirpath(path),
-      file
-    )
+    return T(_("Download folder:\n%1\n\nDownload filename:\n%2\n\nDownload file type:"), BD.dirpath(path), file)
   end
 
   local buttons = {} -- buttons for ButtonDialog
@@ -676,9 +627,7 @@ function OPDSBrowser:showDownloads(item)
       if not DocumentRegistry:hasProvider("dummy." .. filetype) then
         filetype = nil
       end
-      if
-        not filetype and DocumentRegistry:hasProvider(nil, acquisition.type)
-      then
+      if not filetype and DocumentRegistry:hasProvider(nil, acquisition.type) then
         filetype = DocumentRegistry:mimeToExt(acquisition.type)
       end
       if filetype then -- supported file type
@@ -686,10 +635,7 @@ function OPDSBrowser:showDownloads(item)
         table.insert(download_buttons, {
           text = text .. "\u{2B07}", -- append DOWNWARDS BLACK ARROW
           callback = function()
-            self:downloadFile(
-              filename .. "." .. string.lower(filetype),
-              acquisition.href
-            )
+            self:downloadFile(filename .. "." .. string.lower(filetype), acquisition.href)
             UIManager:close(self.download_dialog)
           end,
         })
@@ -756,9 +702,7 @@ function OPDSBrowser:showDownloads(item)
                     filename = filename_orig
                   end
                   UIManager:close(dialog)
-                  self.download_dialog:setTitle(
-                    createTitle(self.getCurrentDownloadDir(), filename)
-                  )
+                  self.download_dialog:setTitle(createTitle(self.getCurrentDownloadDir(), filename))
                 end,
               },
             },
@@ -775,13 +719,7 @@ function OPDSBrowser:showDownloads(item)
       text = _("Book cover"),
       enabled = cover_link and true or false,
       callback = function()
-        OPDSPSE:streamPages(
-          cover_link,
-          1,
-          false,
-          self.root_catalog_username,
-          self.root_catalog_password
-        )
+        OPDSPSE:streamPages(cover_link, 1, false, self.root_catalog_username, self.root_catalog_password)
       end,
     },
     {
@@ -808,8 +746,7 @@ end
 
 -- Returns user selected or last opened folder
 function OPDSBrowser.getCurrentDownloadDir()
-  return G_reader_settings:readSetting("download_dir")
-    or G_reader_settings:readSetting("lastdir")
+  return G_reader_settings:readSetting("download_dir") or G_reader_settings:readSetting("lastdir")
 end
 
 -- Downloads a book (with "File already exists" dialog)
@@ -817,9 +754,7 @@ function OPDSBrowser:downloadFile(filename, remote_url)
   local download_dir = self.getCurrentDownloadDir()
 
   filename = util.getSafeFilename(filename, download_dir)
-  local local_path = (download_dir ~= "/" and download_dir or "")
-    .. "/"
-    .. filename
+  local local_path = (download_dir ~= "/" and download_dir or "") .. "/" .. filename
   local_path = util.fixUtf8(local_path, "_")
 
   local function download()
@@ -829,10 +764,7 @@ function OPDSBrowser:downloadFile(filename, remote_url)
 
       local code, headers, status
       if parsed.scheme == "http" or parsed.scheme == "https" then
-        socketutil:set_timeout(
-          socketutil.FILE_BLOCK_TIMEOUT,
-          socketutil.FILE_TOTAL_TIMEOUT
-        )
+        socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, socketutil.FILE_TOTAL_TIMEOUT)
         code, headers, status = socket.skip(
           1,
           http.request({
@@ -855,11 +787,7 @@ function OPDSBrowser:downloadFile(filename, remote_url)
       if code == 200 then
         logger.dbg("File downloaded to", local_path)
         self.file_downloaded_callback(local_path)
-      elseif
-        code == 302
-        and remote_url:match("^https")
-        and headers.location:match("^http[^s]")
-      then
+      elseif code == 302 and remote_url:match("^https") and headers.location:match("^http[^s]") then
         util.removeFile(local_path)
         UIManager:show(InfoMessage:new({
           text = T(
@@ -893,10 +821,7 @@ function OPDSBrowser:downloadFile(filename, remote_url)
 
   if lfs.attributes(local_path) then
     UIManager:show(ConfirmBox:new({
-      text = T(
-        _("The file %1 already exists. Do you want to overwrite it?"),
-        BD.filepath(local_path)
-      ),
+      text = T(_("The file %1 already exists. Do you want to overwrite it?"), BD.filepath(local_path)),
       ok_text = _("Overwrite"),
       ok_callback = function()
         download()
@@ -924,9 +849,7 @@ function OPDSBrowser:onMenuSelect(item)
         self:searchCatalog(item.url)
       end
     else
-      self.catalog_title = item.text
-        or self.catalog_title
-        or self.root_catalog_title
+      self.catalog_title = item.text or self.catalog_title or self.root_catalog_title
       connect_callback = function()
         self:updateCatalog(item.url)
       end

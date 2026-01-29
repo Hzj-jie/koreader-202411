@@ -83,11 +83,7 @@ function CloudStorage:genItemTable(item)
   local item_table = {}
   local added_servers = self.cs_settings:readTableRef("cs_servers")
   for _, server in ipairs(added_servers) do
-    if
-      server.name == item.text
-      and server.password == item.password
-      and server.type == item.type
-    then
+    if server.name == item.text and server.password == item.password and server.type == item.type then
       table.insert(item_table, {
         text = server.name,
         address = server.address,
@@ -159,13 +155,7 @@ function CloudStorage:openCloudServer(url)
     end)
   elseif self.type == "webdav" then
     NetworkMgr:runWhenConnected(function()
-      tbl, e = WebDav:run(
-        self.address,
-        self.username,
-        self.password,
-        url,
-        self.choose_folder_mode
-      )
+      tbl, e = WebDav:run(self.address, self.username, self.password, url, self.choose_folder_mode)
     end)
   end
   if tbl then
@@ -184,9 +174,7 @@ function CloudStorage:openCloudServer(url)
   else
     logger.err("CloudStorage:", e)
     UIManager:show(InfoMessage:new({
-      text = _(
-        "Cannot fetch list of folder contents\nPlease check your configuration or network connection."
-      ),
+      text = _("Cannot fetch list of folder contents\nPlease check your configuration or network connection."),
       timeout = 3,
     }))
     table.remove(self.paths)
@@ -218,35 +206,14 @@ function CloudStorage:onMenuSelect(item)
 end
 
 function CloudStorage:downloadFile(item)
-  local function startDownloadFile(
-    unit_item,
-    address,
-    username,
-    password,
-    path_dir,
-    callback_close
-  )
+  local function startDownloadFile(unit_item, address, username, password, path_dir, callback_close)
     UIManager:scheduleIn(1, function()
       if self.type == "dropbox" then
         DropBox:downloadFile(unit_item, password, path_dir, callback_close)
       elseif self.type == "ftp" then
-        Ftp:downloadFile(
-          unit_item,
-          address,
-          username,
-          password,
-          path_dir,
-          callback_close
-        )
+        Ftp:downloadFile(unit_item, address, username, password, path_dir, callback_close)
       elseif self.type == "webdav" then
-        WebDav:downloadFile(
-          unit_item,
-          address,
-          username,
-          password,
-          path_dir,
-          callback_close
-        )
+        WebDav:downloadFile(unit_item, address, username, password, path_dir, callback_close)
       end
     end)
     UIManager:show(InfoMessage:new({
@@ -265,8 +232,7 @@ function CloudStorage:downloadFile(item)
   end
 
   local cs_settings = self:readSettings()
-  local download_dir = cs_settings:read("download_dir")
-    or G_named_settings.lastdir()
+  local download_dir = cs_settings:read("download_dir") or G_named_settings.lastdir()
   local filename_orig = item.text
   local filename = filename_orig
 
@@ -281,9 +247,7 @@ function CloudStorage:downloadFile(item)
                 self.cs_settings:save("download_dir", path)
                 self.cs_settings:flush()
                 download_dir = path
-                self.download_dialog:setTitle(
-                  createTitle(filename_orig, filename, download_dir)
-                )
+                self.download_dialog:setTitle(createTitle(filename_orig, filename, download_dir))
               end,
             })
             :chooseDir(download_dir)
@@ -315,9 +279,7 @@ function CloudStorage:downloadFile(item)
                       filename = filename_orig
                     end
                     UIManager:close(input_dialog)
-                    self.download_dialog:setTitle(
-                      createTitle(filename_orig, filename, download_dir)
-                    )
+                    self.download_dialog:setTitle(createTitle(filename_orig, filename, download_dir))
                   end,
                 },
               },
@@ -338,9 +300,7 @@ function CloudStorage:downloadFile(item)
         text = _("Download"),
         callback = function()
           UIManager:close(self.download_dialog)
-          local path_dir = (download_dir ~= "/" and download_dir or "")
-            .. "/"
-            .. filename
+          local path_dir = (download_dir ~= "/" and download_dir or "") .. "/" .. filename
           local callback_close = function()
             self:onExit()
           end
@@ -348,25 +308,11 @@ function CloudStorage:downloadFile(item)
             UIManager:show(ConfirmBox:new({
               text = _("File already exists. Would you like to overwrite it?"),
               ok_callback = function()
-                startDownloadFile(
-                  item,
-                  self.address,
-                  self.username,
-                  self.password,
-                  path_dir,
-                  callback_close
-                )
+                startDownloadFile(item, self.address, self.username, self.password, path_dir, callback_close)
               end,
             }))
           else
-            startDownloadFile(
-              item,
-              self.address,
-              self.username,
-              self.password,
-              path_dir,
-              callback_close
-            )
+            startDownloadFile(item, self.address, self.username, self.password, path_dir, callback_close)
           end
         end,
       },
@@ -384,11 +330,7 @@ function CloudStorage:updateSyncFolder(item, source, dest)
   local cs_settings = self:readSettings()
   local cs_servers = cs_settings:readTableRef("cs_servers")
   for _, server in ipairs(cs_servers) do
-    if
-      server.name == item.text
-      and server.password == item.password
-      and server.type == item.type
-    then
+    if server.name == item.text and server.password == item.password and server.type == item.type then
       if source then
         server.sync_source_folder = source
       end
@@ -463,8 +405,7 @@ function CloudStorage:onMenuHold(item)
       table.insert(buttons, {
         {
           text = _("Synchronize now"),
-          enabled = item.sync_source_folder ~= nil
-            and item.sync_dest_folder ~= nil,
+          enabled = item.sync_source_folder ~= nil and item.sync_dest_folder ~= nil,
           callback = function()
             UIManager:close(cs_server_dialog)
             self:synchronizeCloud(item)
@@ -493,12 +434,9 @@ function CloudStorage:synchronizeCloud(item)
     self.address = item.address
     local Trapper = require("ui/trapper")
     Trapper:wrap(function()
-      Trapper:setPausedText(
-        "Download paused.\nDo you want to continue or abort downloading files?"
-      )
+      Trapper:setPausedText("Download paused.\nDo you want to continue or abort downloading files?")
       if self:generateDropBoxAccessToken() then
-        local ok, downloaded_files, failed_files =
-          pcall(self.downloadListFiles, self, item)
+        local ok, downloaded_files, failed_files = pcall(self.downloadListFiles, self, item)
         if ok and downloaded_files then
           if not failed_files then
             failed_files = 0
@@ -518,14 +456,7 @@ function CloudStorage:synchronizeCloud(item)
             if failed_files > 0 then
               text = text
                 .. "\n"
-                .. T(
-                  N_(
-                    "Failed to download 1 file.",
-                    "Failed to download %1 files.",
-                    failed_files
-                  ),
-                  failed_files
-                )
+                .. T(N_("Failed to download 1 file.", "Failed to download %1 files.", failed_files), failed_files)
             end
           end
           UIManager:show(InfoMessage:new({
@@ -535,9 +466,7 @@ function CloudStorage:synchronizeCloud(item)
         else
           Trapper:reset() -- close any last widget not cleaned if error
           UIManager:show(InfoMessage:new({
-            text = _(
-              "No files to download from Dropbox.\nPlease check your configuration and connection."
-            ),
+            text = _("No files to download from Dropbox.\nPlease check your configuration and connection."),
             timeout = 3,
           }))
         end
@@ -588,21 +517,12 @@ function CloudStorage:downloadListFiles(item)
     if file.download then
       proccessed_files = proccessed_files + 1
       print(file.url)
-      local text = string.format(
-        "Downloading file (%d/%d):\n%s",
-        proccessed_files,
-        files_to_download,
-        file.text
-      )
+      local text = string.format("Downloading file (%d/%d):\n%s", proccessed_files, files_to_download, file.text)
       go_on = UI:info(text)
       if not go_on then
         break
       end
-      response = DropBox:downloadFileNoUI(
-        file.url,
-        self.password,
-        item.sync_dest_folder .. "/" .. file.text
-      )
+      response = DropBox:downloadFileNoUI(file.url, self.password, item.sync_dest_folder .. "/" .. file.text)
       if response then
         success_files = success_files + 1
       else
@@ -738,21 +658,9 @@ function CloudStorage:uploadFile(url)
         local url_base = url ~= "/" and url or ""
         UIManager:tickAfterNext(function()
           if self.type == "dropbox" then
-            DropBox:uploadFile(
-              url_base,
-              self.password,
-              file_path,
-              callback_close
-            )
+            DropBox:uploadFile(url_base, self.password, file_path, callback_close)
           elseif self.type == "webdav" then
-            WebDav:uploadFile(
-              url_base,
-              self.address,
-              self.username,
-              self.password,
-              file_path,
-              callback_close
-            )
+            WebDav:uploadFile(url_base, self.address, self.username, self.password, file_path, callback_close)
           end
         end)
       end
@@ -794,21 +702,9 @@ function CloudStorage:createFolder(url)
               self:openCloudServer(url)
             end
             if self.type == "dropbox" then
-              DropBox:createFolder(
-                url_base,
-                self.password,
-                folder_name,
-                callback_close
-              )
+              DropBox:createFolder(url_base, self.password, folder_name, callback_close)
             elseif self.type == "webdav" then
-              WebDav:createFolder(
-                url_base,
-                self.address,
-                self.username,
-                self.password,
-                folder_name,
-                callback_close
-              )
+              WebDav:createFolder(url_base, self.address, self.username, self.password, folder_name, callback_close)
             end
           end,
         },
@@ -876,10 +772,7 @@ function CloudStorage:editCloudServer(item)
     local cs_servers = cs_settings:readTableRef("cs_servers")
     if item.type == "dropbox" then
       for i, server in ipairs(cs_servers) do
-        if
-          server.name == updated_config.text
-          and server.password == updated_config.password
-        then
+        if server.name == updated_config.text and server.password == updated_config.password then
           server.name = fields[1]
           server.password = fields[2]
           server.address = fields[3]
@@ -890,10 +783,7 @@ function CloudStorage:editCloudServer(item)
       end
     elseif item.type == "ftp" then
       for i, server in ipairs(cs_servers) do
-        if
-          server.name == updated_config.text
-          and server.address == updated_config.address
-        then
+        if server.name == updated_config.text and server.address == updated_config.address then
           server.name = fields[1]
           server.address = fields[2]
           server.username = fields[3]
@@ -905,10 +795,7 @@ function CloudStorage:editCloudServer(item)
       end
     elseif item.type == "webdav" then
       for i, server in ipairs(cs_servers) do
-        if
-          server.name == updated_config.text
-          and server.address == updated_config.address
-        then
+        if server.name == updated_config.text and server.address == updated_config.address then
           server.name = fields[1]
           server.address = fields[2]
           server.username = fields[3]
@@ -936,11 +823,7 @@ function CloudStorage:deleteCloudServer(item)
   local cs_settings = self:readSettings()
   local cs_servers = cs_settings:readTableRef("cs_servers")
   for i, server in ipairs(cs_servers) do
-    if
-      server.name == item.text
-      and server.password == item.password
-      and server.type == item.type
-    then
+    if server.name == item.text and server.password == item.password and server.type == item.type then
       table.remove(cs_servers, i)
       break
     end
@@ -968,8 +851,7 @@ function CloudStorage:infoServer(item)
 end
 
 function CloudStorage:readSettings()
-  self.cs_settings =
-    LuaSettings:open(DataStorage:getSettingsDir() .. "/cloudstorage.lua")
+  self.cs_settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/cloudstorage.lua")
   return self.cs_settings
 end
 

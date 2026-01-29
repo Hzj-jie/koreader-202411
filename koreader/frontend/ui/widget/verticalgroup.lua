@@ -45,19 +45,11 @@ function VerticalGroup:paintTo(bb, x, y)
 
   for i, widget in ipairs(self) do
     if align == "center" then
-      widget:paintTo(
-        bb,
-        x + math.floor((size.w - self._offsets[i].x) / 2),
-        y + self._offsets[i].y
-      )
+      widget:paintTo(bb, x + math.floor((size.w - self._offsets[i].x) / 2), y + self._offsets[i].y)
     elseif align == "left" then
       widget:paintTo(bb, x, y + self._offsets[i].y)
     elseif align == "right" then
-      widget:paintTo(
-        bb,
-        x + size.w - self._offsets[i].x,
-        y + self._offsets[i].y
-      )
+      widget:paintTo(bb, x + size.w - self._offsets[i].x, y + self._offsets[i].y)
     end
   end
 end

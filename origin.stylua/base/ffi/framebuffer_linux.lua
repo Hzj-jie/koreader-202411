@@ -59,12 +59,7 @@ function framebuffer:init()
   if self.forced_rotation and not self.forced_rotation.default then
     local r = self:getHWRotation()
     local v = self:getCanonicalRotationMode(r)
-    self.debug(
-      "Initializing 'native' rotation mode - OS reported ",
-      r,
-      "which maps to canonical",
-      v
-    )
+    self.debug("Initializing 'native' rotation mode - OS reported ", r, "which maps to canonical", v)
     self.native_rotation_mode = v
     self.cur_rotation_mode = v
   end
@@ -87,14 +82,8 @@ function framebuffer:reinit()
   self:close(true)
 
   -- Get screen information
-  assert(
-    C.ioctl(self.fd, C.FBIOGET_FSCREENINFO, finfo) == 0,
-    "cannot get fixed screen info"
-  )
-  assert(
-    C.ioctl(self.fd, C.FBIOGET_VSCREENINFO, vinfo) == 0,
-    "cannot get variable screen info"
-  )
+  assert(C.ioctl(self.fd, C.FBIOGET_FSCREENINFO, finfo) == 0, "cannot get fixed screen info")
+  assert(C.ioctl(self.fd, C.FBIOGET_VSCREENINFO, vinfo) == 0, "cannot get variable screen info")
 
   -- Apply frontend kludges (color lux, very old eink...)
   self:fbinfoOverride(finfo, vinfo)
@@ -132,20 +121,10 @@ function framebuffer:reinit()
 
   -- Make sure we never try to map a larger memory region than the fb reports
   -- @warning Feel free to remove this check if it burns. There are chinese things out there that even happily report smem as 0x1000 and such.
-  assert(
-    self.fb_size <= finfo.smem_len or finfo.smem <= 0x1000,
-    "computed fb memory region too large"
-  )
+  assert(self.fb_size <= finfo.smem_len or finfo.smem <= 0x1000, "computed fb memory region too large")
 
   -- @warning The assumption here is that mapping less than whatever reported (but aligned up to a page size) is always ok to do.
-  self.data = C.mmap(
-    nil,
-    PAGE_ALIGN(self.fb_size),
-    bit.bor(C.PROT_READ, C.PROT_WRITE),
-    C.MAP_SHARED,
-    self.fd,
-    0
-  )
+  self.data = C.mmap(nil, PAGE_ALIGN(self.fb_size), bit.bor(C.PROT_READ, C.PROT_WRITE), C.MAP_SHARED, self.fd, 0)
   assert(
     tonumber(ffi.cast("intptr_t", self.data)) ~= C.MAP_FAILED,
     "can not mmap() framebuffer, yres or line_length are probably wrong"
@@ -199,10 +178,7 @@ function framebuffer:setHWNightmode(toggle)
   -- Just flip the grayscale flag.
   -- This shouldn't affect *anything* (layout-wise), which is why we don't touch the mmap or anything else, really.
   vinfo.grayscale = toggle and GRAYSCALE_8BIT_INVERTED or GRAYSCALE_8BIT
-  assert(
-    C.ioctl(self.fd, C.FBIOPUT_VSCREENINFO, vinfo) == 0,
-    "cannot set variable screen info"
-  )
+  assert(C.ioctl(self.fd, C.FBIOPUT_VSCREENINFO, vinfo) == 0, "cannot set variable screen info")
 end
 
 function framebuffer:getHWNightmode()
@@ -227,18 +203,12 @@ end
 function framebuffer:setHWRotation(mode)
   local vinfo = self._vinfo
   vinfo.rotate = self.forced_rotation and self.forced_rotation[mode + 1] or mode
-  assert(
-    C.ioctl(self.fd, C.FBIOPUT_VSCREENINFO, vinfo) == 0,
-    "cannot set variable screen info"
-  )
+  assert(C.ioctl(self.fd, C.FBIOPUT_VSCREENINFO, vinfo) == 0, "cannot set variable screen info")
 end
 
 function framebuffer:getHWRotation()
   local vinfo = self._vinfo
-  assert(
-    C.ioctl(self.fd, C.FBIOGET_VSCREENINFO, vinfo) == 0,
-    "cannot get variable screen info"
-  )
+  assert(C.ioctl(self.fd, C.FBIOGET_VSCREENINFO, vinfo) == 0, "cannot get variable screen info")
   return vinfo.rotate
 end
 
@@ -260,10 +230,7 @@ function framebuffer:setRotationMode(mode)
     local inverse = self.bb:getInverse()
     self:reinit()
     self.bb:setInverse(inverse)
-    assert(
-      self.forced_rotation,
-      "reinit/fb hooks shouldn't flip hw rotation flags"
-    )
+    assert(self.forced_rotation, "reinit/fb hooks shouldn't flip hw rotation flags")
     if self.forced_rotation.restore then
       self:setHWRotation(self.native_rotation_mode)
     end

@@ -62,8 +62,7 @@ function Utf8Proc.cased_dumb(str, is_lower)
     -- get codepoint
     local bytes = libutf8proc.utf8proc_iterate(str_p + pos, -1, codepoint)
     -- cased codepoint
-    local cp = is_lower and libutf8proc.utf8proc_tolower(codepoint[0])
-      or libutf8proc.utf8proc_toupper(codepoint[0])
+    local cp = is_lower and libutf8proc.utf8proc_tolower(codepoint[0]) or libutf8proc.utf8proc_toupper(codepoint[0])
     -- encode cased codepoint and get length of new char*
     local len = libutf8proc.utf8proc_encode_char(cp, tmp_p)
     tmp_p[len] = 0

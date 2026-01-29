@@ -96,9 +96,7 @@ function ReaderScrolling:addToMainMenu(menu_items)
     enabled_func = function()
       -- Make it only enabled when in continuous/scroll mode
       -- (different setting in self.view whether rolling or paging document)
-      if
-        self.view and (self.view.page_scroll or self.view.view_mode == "scroll")
-      then
+      if self.view and (self.view.page_scroll or self.view.view_mode == "scroll") then
         return true
       end
       return false
@@ -106,9 +104,7 @@ function ReaderScrolling:addToMainMenu(menu_items)
     sub_item_table = {
       {
         text = _("Classic scrolling"),
-        help_text = _(
-          [[Classic scrolling will move the document with your finger.]]
-        ),
+        help_text = _([[Classic scrolling will move the document with your finger.]]),
         checked_func = function()
           return self.scroll_method == self.SCROLL_METHOD_CLASSIC
         end,
@@ -121,11 +117,9 @@ function ReaderScrolling:addToMainMenu(menu_items)
       },
       {
         text = _("Turbo scrolling"),
-        help_text = _(
-          [[
+        help_text = _([[
 Turbo scrolling will scroll the document, at each step, by the distance from your initial finger position (rather than by the distance from your previous finger position).
-It allows for faster scrolling without the need to lift and reposition your finger.]]
-        ),
+It allows for faster scrolling without the need to lift and reposition your finger.]]),
         checked_func = function()
           return self.scroll_method == self.SCROLL_METHOD_TURBO
         end,
@@ -138,11 +132,9 @@ It allows for faster scrolling without the need to lift and reposition your fing
       },
       {
         text = _("On-release scrolling"),
-        help_text = _(
-          [[
+        help_text = _([[
 On-release scrolling will scroll the document by the panned distance only on finger up.
-This is interesting on eInk if you only pan to better adjust page vertical position.]]
-        ),
+This is interesting on eInk if you only pan to better adjust page vertical position.]]),
         checked_func = function()
           return self.scroll_method == self.SCROLL_METHOD_ON_RELEASE
         end,
@@ -156,15 +148,11 @@ This is interesting on eInk if you only pan to better adjust page vertical posit
       },
       {
         text_func = function()
-          return T(
-            _("Activation delay: %1 ms"),
-            self.scroll_activation_delay_ms
-          )
+          return T(_("Activation delay: %1 ms"), self.scroll_activation_delay_ms)
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
-          local scroll_activation_delay_default_ms =
-            self:getDefaultScrollActivationDelay_ms()
+          local scroll_activation_delay_default_ms = self:getDefaultScrollActivationDelay_ms()
           local SpinWidget = require("ui/widget/spinwidget")
           local widget = SpinWidget:new({
             title_text = _("Scroll activation delay"),
@@ -206,8 +194,7 @@ Default value: %1 ms]]),
         return self.scroll_method == self.SCROLL_METHOD_CLASSIC
       end,
       checked_func = function()
-        return self.scroll_method == self.SCROLL_METHOD_CLASSIC
-          and self.inertial_scroll
+        return self.scroll_method == self.SCROLL_METHOD_CLASSIC and self.inertial_scroll
       end,
       callback = function()
         self.inertial_scroll = not self.inertial_scroll
@@ -219,24 +206,18 @@ end
 
 function ReaderScrolling:onReaderReady()
   -- We don't know if the gestures plugin is loaded in :init(), but we know it here
-  self.scroll_activation_delay_ms = G_reader_settings:readSetting(
-    "scroll_activation_delay"
-  ) or self:getDefaultScrollActivationDelay_ms()
+  self.scroll_activation_delay_ms = G_reader_settings:readSetting("scroll_activation_delay")
+    or self:getDefaultScrollActivationDelay_ms()
   self:applyScrollSettings()
 end
 
 function ReaderScrolling:applyScrollSettings()
   G_reader_settings:saveSetting("scroll_method", self.scroll_method)
   G_reader_settings:saveSetting("inertial_scroll", self.inertial_scroll)
-  if
-    self.scroll_activation_delay_ms == self:getDefaultScrollActivationDelay_ms()
-  then
+  if self.scroll_activation_delay_ms == self:getDefaultScrollActivationDelay_ms() then
     G_reader_settings:delSetting("scroll_activation_delay")
   else
-    G_reader_settings:saveSetting(
-      "scroll_activation_delay",
-      self.scroll_activation_delay_ms
-    )
+    G_reader_settings:saveSetting("scroll_activation_delay", self.scroll_activation_delay_ms)
   end
   if self.scroll_method == self.SCROLL_METHOD_CLASSIC then
     self._inertial_scroll_enabled = self.inertial_scroll
@@ -273,9 +254,7 @@ function ReaderScrolling:setupTouchZones()
         -- We want its release (which will trigger a tap) to not change pages.
         -- This also allows a pan following this touch to skip any scroll
         -- activation delay
-        self._cancelled_by_touch = self._inertial_scroll_action
-            and self._inertial_scroll_action(false)
-          or false
+        self._cancelled_by_touch = self._inertial_scroll_action and self._inertial_scroll_action(false) or false
       end,
     },
     {
@@ -319,10 +298,7 @@ function ReaderScrolling:isInertialScrollingEnabled()
   return self._inertial_scroll_enabled
 end
 
-function ReaderScrolling:setInertialScrollCallbacks(
-  do_scroll_callback,
-  scroll_done_callback
-)
+function ReaderScrolling:setInertialScrollCallbacks(do_scroll_callback, scroll_done_callback)
   self._do_scroll_callback = do_scroll_callback
   self._scroll_done_callback = scroll_done_callback
 end
@@ -376,18 +352,12 @@ function ReaderScrolling:_setupAction()
       end
 
       -- Initiate inertial scrolling (action=true), unless we should not
-      if
-        UIManager:getTime() - self._last_manual_scroll_timev
-        >= self.pause_before_release_cancel_duration
-      then
+      if UIManager:getTime() - self._last_manual_scroll_timev >= self.pause_before_release_cancel_duration then
         -- but not if no finger move for 0.3s before finger up
         self._last_manual_scroll_dy = 0
         return false
       end
-      if
-        self._last_manual_scroll_duration == 0
-        or self._last_manual_scroll_dy == 0
-      then
+      if self._last_manual_scroll_duration == 0 or self._last_manual_scroll_dy == 0 then
         return false
       end
 
@@ -409,10 +379,7 @@ function ReaderScrolling:_setupAction()
       -- didn't do that could be run before we process any input,
       -- not allowing us to interrupt this inertial scrolling.
       self._just_reschedule = false
-      UIManager:scheduleIn(
-        self._inertial_scroll_interval,
-        self._inertial_scroll_action
-      )
+      UIManager:scheduleIn(self._inertial_scroll_interval, self._inertial_scroll_action)
       -- self._stats_scroll_iterations = 0
       -- self._stats_scroll_distance = 0
       logger.dbg("inertial scrolling started")
@@ -430,16 +397,12 @@ function ReaderScrolling:_setupAction()
     if self._just_reschedule then
       -- just re-schedule this, so a real scrolling is done after the delay
       self._just_reschedule = false
-      UIManager:scheduleIn(
-        self._inertial_scroll_interval,
-        self._inertial_scroll_action
-      )
+      UIManager:scheduleIn(self._inertial_scroll_interval, self._inertial_scroll_action)
       return
     end
 
     -- Decrease velocity at each step
-    self._velocity = self._velocity
-      * self.scroll_friction ^ self._inertial_scroll_interval
+    self._velocity = self._velocity * self.scroll_friction ^ self._inertial_scroll_interval
     local dist = math.floor(self._velocity * self._inertial_scroll_interval)
     if math.abs(dist) < self.end_scroll_dist then
       -- Decrease it even more so scrolling stops sooner

@@ -17,14 +17,9 @@ local ReaderDeviceStatus = WidgetContainer:extend({
 
 function ReaderDeviceStatus:init()
   if Device:hasBattery() then
-    self.battery_interval_m = G_reader_settings:readSetting(
-      "device_status_battery_interval_minutes",
-      10
-    )
-    self.battery_threshold =
-      G_reader_settings:readSetting("device_status_battery_threshold", 20)
-    self.battery_threshold_high =
-      G_reader_settings:readSetting("device_status_battery_threshold_high", 100)
+    self.battery_interval_m = G_reader_settings:readSetting("device_status_battery_interval_minutes", 10)
+    self.battery_threshold = G_reader_settings:readSetting("device_status_battery_threshold", 20)
+    self.battery_threshold_high = G_reader_settings:readSetting("device_status_battery_threshold_high", 100)
     -- `checkLowBatteryLevel` and `checkHighMemoryUsage` are each supposed to start one second past the top of the minute,
     -- as some other periodic activities do (e.g. footer). This means that the processor is woken up less often from standby.
     self.checkLowBatteryLevel = function(sync)
@@ -47,14 +42,8 @@ function ReaderDeviceStatus:init()
           end
           self.battery_confirm_box = ConfirmBox:new({
             text = is_charging
-                and T(
-                  _("High battery level: %1 %\n\nDismiss battery level alert?"),
-                  battery_capacity
-                )
-              or T(
-                _("Low battery level: %1 %\n\nDismiss battery level alert?"),
-                battery_capacity
-              ),
+                and T(_("High battery level: %1 %\n\nDismiss battery level alert?"), battery_capacity)
+              or T(_("Low battery level: %1 %\n\nDismiss battery level alert?"), battery_capacity),
             ok_text = _("Dismiss"),
             dismissable = false,
             ok_callback = function()
@@ -65,19 +54,14 @@ function ReaderDeviceStatus:init()
         end
       end
       local offset = sync and (os.date("%S") - 1) or 0
-      UIManager:scheduleIn(
-        self.battery_interval_m * 60 - offset,
-        self.checkLowBatteryLevel
-      )
+      UIManager:scheduleIn(self.battery_interval_m * 60 - offset, self.checkLowBatteryLevel)
     end
     self:startBatteryChecker()
   end
 
   if not Device:isAndroid() then
-    self.memory_interval_m =
-      G_reader_settings:readSetting("device_status_memory_interval_minutes", 5)
-    self.memory_threshold =
-      G_reader_settings:readSetting("device_status_memory_threshold", 100)
+    self.memory_interval_m = G_reader_settings:readSetting("device_status_memory_interval_minutes", 5)
+    self.memory_threshold = G_reader_settings:readSetting("device_status_memory_threshold", 100)
     -- `checkLowBatteryLevel` and `checkHighMemoryUsage` are each supposed to start one second past the top of the minute,
     -- as some other periodic activities do (e.g. footer). This means that the processor is woken up less often from standby.
     self.checkHighMemoryUsage = function(sync)
@@ -92,10 +76,7 @@ function ReaderDeviceStatus:init()
           end
           if Device:canRestart() then
             local top_wg = UIManager:getTopmostVisibleWidget() or {}
-            if
-              top_wg.name == "ReaderUI"
-              and G_reader_settings:isTrue("device_status_memory_auto_restart")
-            then
+            if top_wg.name == "ReaderUI" and G_reader_settings:isTrue("device_status_memory_auto_restart") then
               UIManager:show(InfoMessage:new({
                 text = _("High memory usage!\n\nKOReader is restarting…"),
                 icon = "notice-warning",
@@ -105,10 +86,7 @@ function ReaderDeviceStatus:init()
               end)
             else
               self.memory_confirm_box = ConfirmBox:new({
-                text = T(
-                  _("High memory usage: %1 MB\n\nRestart KOReader?"),
-                  rss
-                ),
+                text = T(_("High memory usage: %1 MB\n\nRestart KOReader?"), rss),
                 ok_text = _("Restart"),
                 dismissable = false,
                 ok_callback = function()
@@ -137,10 +115,7 @@ function ReaderDeviceStatus:init()
         end
       end
       local offset = sync and (os.date("%S") - 1) or 0
-      UIManager:scheduleIn(
-        self.memory_interval_m * 60 - offset,
-        self.checkHighMemoryUsage
-      )
+      UIManager:scheduleIn(self.memory_interval_m * 60 - offset, self.checkHighMemoryUsage)
     end
     self:startMemoryChecker()
   end
@@ -188,29 +163,19 @@ function ReaderDeviceStatus:addToMainMenu(menu_items)
           title_text = _("Battery check interval"),
           callback = function(spin)
             self.battery_interval_m = spin.value
-            G_reader_settings:saveSetting(
-              "device_status_battery_interval_minutes",
-              self.battery_interval_m
-            )
+            G_reader_settings:saveSetting("device_status_battery_interval_minutes", self.battery_interval_m)
             touchmenu_instance:updateItems()
             powerd:setDismissBatteryStatus(false)
             self:stopBatteryChecker()
             -- schedule first check on a full minute to reduce wakeups from standby)
-            UIManager:scheduleIn(
-              self.battery_interval_m * 60 - os.date("%S") + 1,
-              self.checkLowBatteryLevel
-            )
+            UIManager:scheduleIn(self.battery_interval_m * 60 - os.date("%S") + 1, self.checkLowBatteryLevel)
           end,
         }))
       end,
     })
     table.insert(menu_items.device_status_alarm.sub_item_table, {
       text_func = function()
-        return T(
-          _("Thresholds: %1 % / %2 %"),
-          self.battery_threshold,
-          self.battery_threshold_high
-        )
+        return T(_("Thresholds: %1 % / %2 %"), self.battery_threshold, self.battery_threshold_high)
       end,
       enabled_func = function()
         return G_reader_settings:isTrue("device_status_battery_alarm")
@@ -240,14 +205,8 @@ High level threshold is checked when the device is charging.]]),
           callback = function(left_value, right_value)
             self.battery_threshold = left_value
             self.battery_threshold_high = right_value
-            G_reader_settings:saveSetting(
-              "device_status_battery_threshold",
-              self.battery_threshold
-            )
-            G_reader_settings:saveSetting(
-              "device_status_battery_threshold_high",
-              self.battery_threshold_high
-            )
+            G_reader_settings:saveSetting("device_status_battery_threshold", self.battery_threshold)
+            G_reader_settings:saveSetting("device_status_battery_threshold_high", self.battery_threshold_high)
             touchmenu_instance:updateItems()
             powerd:setDismissBatteryStatus(false)
           end,
@@ -291,17 +250,11 @@ High level threshold is checked when the device is charging.]]),
           title_text = _("Memory check interval"),
           callback = function(spin)
             self.memory_interval_m = spin.value
-            G_reader_settings:saveSetting(
-              "device_status_memory_interval_minutes",
-              self.memory_interval_m
-            )
+            G_reader_settings:saveSetting("device_status_memory_interval_minutes", self.memory_interval_m)
             touchmenu_instance:updateItems()
             self:stopMemoryChecker()
             -- schedule first check on a full minute to reduce wakeups from standby)
-            UIManager:scheduleIn(
-              self.memory_interval_m * 60 - os.date("%S") + 1,
-              self.checkHighMemoryUsage
-            )
+            UIManager:scheduleIn(self.memory_interval_m * 60 - os.date("%S") + 1, self.checkHighMemoryUsage)
           end,
         }))
       end,
@@ -326,10 +279,7 @@ High level threshold is checked when the device is charging.]]),
           title_text = _("Memory alert threshold"),
           callback = function(spin)
             self.memory_threshold = spin.value
-            G_reader_settings:saveSetting(
-              "device_status_memory_threshold",
-              self.memory_threshold
-            )
+            G_reader_settings:saveSetting("device_status_memory_threshold", self.memory_threshold)
             touchmenu_instance:updateItems()
           end,
         }))
@@ -338,8 +288,7 @@ High level threshold is checked when the device is charging.]]),
     table.insert(menu_items.device_status_alarm.sub_item_table, {
       text = _("Automatic restart"),
       enabled_func = function()
-        return G_reader_settings:isTrue("device_status_memory_alarm")
-          and Device:canRestart()
+        return G_reader_settings:isTrue("device_status_memory_alarm") and Device:canRestart()
       end,
       checked_func = function()
         return G_reader_settings:isTrue("device_status_memory_auto_restart")

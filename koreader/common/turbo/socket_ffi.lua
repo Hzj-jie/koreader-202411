@@ -352,17 +352,10 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
   local setopt = ffi.new("int32_t[1]")
   local function set_reuseaddr_opt(fd)
     setopt[0] = 1
-    local rc = ffi.C.setsockopt(
-      fd,
-      SOL.SOL_SOCKET,
-      SO.SO_REUSEADDR,
-      setopt,
-      ffi.sizeof("int32_t")
-    )
+    local rc = ffi.C.setsockopt(fd, SOL.SOL_SOCKET, SO.SO_REUSEADDR, setopt, ffi.sizeof("int32_t"))
     if rc ~= 0 then
       errno = ffi.errno()
-      return -1,
-        string.format("setsockopt SO_REUSEADDR failed. %s", strerror(errno))
+      return -1, string.format("setsockopt SO_REUSEADDR failed. %s", strerror(errno))
     end
     return 0
   end
@@ -370,11 +363,7 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
   --- Create new non blocking socket for use in IOStream.
   -- If family or stream type is not set AF_INET and SOCK_STREAM is used.
   local function new_nonblock_socket(family, stype, protocol)
-    local fd = ffi.C.socket(
-      family or AF.AF_INET,
-      stype or SOCK.SOCK_STREAM,
-      protocol or 0
-    )
+    local fd = ffi.C.socket(family or AF.AF_INET, stype or SOCK.SOCK_STREAM, protocol or 0)
 
     if fd == -1 then
       errno = ffi.errno()
@@ -390,13 +379,7 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
   local value = ffi.new("int32_t[1]")
   local socklen = ffi.new("socklen_t[1]", ffi.sizeof("int32_t"))
   local function get_socket_error(fd)
-    local rc = ffi.C.getsockopt(
-      fd,
-      SOL.SOL_SOCKET,
-      SO.SO_ERROR,
-      ffi.cast("void *", value),
-      socklen
-    )
+    local rc = ffi.C.getsockopt(fd, SOL.SOL_SOCKET, SO.SO_ERROR, ffi.cast("void *", value), socklen)
     if rc ~= 0 then
       return -1
     else
@@ -408,13 +391,7 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
     SOCK,
     util.tablemerge(
       F,
-      util.tablemerge(
-        O,
-        util.tablemerge(
-          AF,
-          util.tablemerge(PF, util.tablemerge(SOL, util.tablemerge(SO, E)))
-        )
-      )
+      util.tablemerge(O, util.tablemerge(AF, util.tablemerge(PF, util.tablemerge(SOL, util.tablemerge(SO, E)))))
     )
   )
 
@@ -440,14 +417,8 @@ else
   local function new_nonblock_socket(family, stype, protocol)
     family = family or AF.AF_INET
     stype = stype or SOCK.SOCK_STREAM
-    assert(
-      family == AF.AF_INET or AF.AF_INET6,
-      "LuaSocket only support AF_INET or AF_INET6"
-    )
-    assert(
-      stype == SOCK.SOCK_DGRAM or SOCK.SOCK_STREAM,
-      "LuaSocket only support SOCK_DGRAM and SOCK_STREAM."
-    )
+    assert(family == AF.AF_INET or AF.AF_INET6, "LuaSocket only support AF_INET or AF_INET6")
+    assert(stype == SOCK.SOCK_DGRAM or SOCK.SOCK_STREAM, "LuaSocket only support SOCK_DGRAM and SOCK_STREAM.")
     local sock
     if stype == SOCK.SOCK_DGRAM then
       sock = luasocket.udp()
@@ -463,13 +434,7 @@ else
     SOCK,
     util.tablemerge(
       F,
-      util.tablemerge(
-        O,
-        util.tablemerge(
-          AF,
-          util.tablemerge(PF, util.tablemerge(SOL, util.tablemerge(SO, E)))
-        )
-      )
+      util.tablemerge(O, util.tablemerge(AF, util.tablemerge(PF, util.tablemerge(SOL, util.tablemerge(SO, E)))))
     )
   )
   return util.tablemerge({

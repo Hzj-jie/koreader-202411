@@ -162,11 +162,7 @@ function KeyValueItem:init()
 
   -- Adjust widgets' max widths if needed
   value_widget:setMaxWidth(value_w)
-  if
-    fit_right_align
-    and value_align_right
-    and value_widget:getWidth() < value_w
-  then
+  if fit_right_align and value_align_right and value_widget:getWidth() < value_w then
     -- Because of truncation at glyph boundaries, value_widget
     -- may be a tad smaller than the specified value_w:
     -- adjust key_w so value is pushed to the screen right border
@@ -314,9 +310,7 @@ function KeyValuePage:init()
     w = self.width or Screen:getWidth(),
     h = self.height or Screen:getHeight(),
   })
-  if
-    self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
-  then
+  if self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight() then
     self.covers_fullscreen = true -- hint for UIManager:_repaint()
   end
 
@@ -411,9 +405,7 @@ function KeyValuePage:init()
     }),
     self.page_return_arrow,
     HorizontalSpan:new({
-      width = self.dimen.w
-        - self.page_return_arrow:getSize().w
-        - Size.span.horizontal_small,
+      width = self.dimen.w - self.page_return_arrow:getSize().w - Size.span.horizontal_small,
     }),
   })
 
@@ -497,8 +489,7 @@ function KeyValuePage:init()
     - 2 * Size.line.thick
   -- account for possibly 2 separator lines added
 
-  self.items_per_page = G_reader_settings:readSetting("keyvalues_per_page")
-    or self.getDefaultItemsPerPage()
+  self.items_per_page = G_reader_settings:readSetting("keyvalues_per_page") or self.getDefaultItemsPerPage()
   if self.single_page and self.items_per_page < #self.kv_pairs then
     self.items_per_page = #self.kv_pairs
   end
@@ -511,19 +502,14 @@ function KeyValuePage:init()
   local TextBoxWidget = require("ui/widget/textboxwidget")
   local line_extra_height = 1.0 -- ~ 2em -- unscaled_size_check: ignore
   -- (gives a font size similar to the fixed one from former implementation at 14 items per page)
-  self.items_font_size = math.min(
-    TextBoxWidget:getFontSizeToFitHeight(self.item_height, 1, line_extra_height),
-    22
-  )
+  self.items_font_size = math.min(TextBoxWidget:getFontSizeToFitHeight(self.item_height, 1, line_extra_height), 22)
 
   self.pages = math.ceil(#self.kv_pairs / self.items_per_page)
   self.main_content = VerticalGroup:new({})
 
   -- set textviewer height to let our title fully visible (but hide the bottom line)
   self.textviewer_width = self.item_width
-  self.textviewer_height = self.dimen.h
-    - 2
-      * (self.title_bar:getHeight() - Size.padding.default - Size.line.thick)
+  self.textviewer_height = self.dimen.h - 2 * (self.title_bar:getHeight() - Size.padding.default - Size.line.thick)
 
   self:_populateItems()
 
@@ -642,10 +628,7 @@ function KeyValuePage:_populateItems()
   if
     (#self.kv_pairs == 0)
     or (#key_widths == 0)
-    or (
-      key_widths[#key_widths] <= key_w
-      and value_widths[#value_widths] <= value_w
-    )
+    or (key_widths[#key_widths] <= key_w and value_widths[#value_widths] <= value_w)
   then
     width_ratio = 1 / 2
   end
@@ -676,8 +659,7 @@ function KeyValuePage:_populateItems()
       if total_cut_count == 0 then
         -- no cross-over
         if key_widths[#key_widths] >= key_w then
-          width_ratio = (key_widths[#key_widths] + middle_padding)
-            / frame_internal_width
+          width_ratio = (key_widths[#key_widths] + middle_padding) / frame_internal_width
         else
           width_ratio = 1 - value_widths[#value_widths] / frame_internal_width
         end
@@ -688,8 +670,7 @@ function KeyValuePage:_populateItems()
       end
     end
     if not width_ratio then
-      width_ratio = (key_widths[least_cut_key_index] + middle_padding)
-        / frame_internal_width
+      width_ratio = (key_widths[least_cut_key_index] + middle_padding) / frame_internal_width
     end
   end
 
@@ -758,9 +739,7 @@ function KeyValuePage:_populateItems()
 
   -- update page information
   if self.pages >= 1 then
-    self.page_info_text:setText(
-      T(_("Page %1 of %2"), self.show_page, self.pages)
-    )
+    self.page_info_text:setText(T(_("Page %1 of %2"), self.show_page, self.pages))
     if self.pages > 1 then
       self.page_info_text:enable()
     else
@@ -784,11 +763,7 @@ function KeyValuePage:_populateItems()
     self.page_info_first_chev:hide()
     self.page_info_last_chev:hide()
   end
-  self:moveFocusTo(
-    1,
-    1,
-    bit.bor(FocusManager.FOCUS_ONLY_ON_NT, FocusManager.NOT_UNFOCUS)
-  )
+  self:moveFocusTo(1, 1, bit.bor(FocusManager.FOCUS_ONLY_ON_NT, FocusManager.NOT_UNFOCUS))
   UIManager:setDirty(self, function()
     return "ui", self.dimen
   end)

@@ -77,8 +77,7 @@ function BookInfo:extract(doc_settings_or_file, book_props)
 
   -- File section
   local has_sidecar = type(doc_settings_or_file) == "table"
-  local file = has_sidecar and doc_settings_or_file:read("doc_path")
-    or doc_settings_or_file
+  local file = has_sidecar and doc_settings_or_file:read("doc_path") or doc_settings_or_file
   local folder, filename = util.splitFilePathName(file)
   local __, filetype = filemanagerutil.splitFileNameType(filename)
   local attr = lfs.attributes(file)
@@ -87,8 +86,7 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   table.insert(kv_pairs, { _("Size:"), sizeStr(attr) })
   table.insert(kv_pairs, {
     _("File date:"),
-    attr ~= nil and os.date("%Y-%m-%d %H:%M:%S", attr.modification)
-      or _("Unknown"),
+    attr ~= nil and os.date("%Y-%m-%d %H:%M:%S", attr.modification) or _("Unknown"),
   })
   table.insert(kv_pairs, {
     _("Folder:"),
@@ -123,8 +121,7 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   local custom_props
   local custom_metadata_file = DocSettings:findCustomMetadataFile(file)
   if custom_metadata_file then
-    self.custom_doc_settings =
-      DocSettings.openSettingsFile(custom_metadata_file)
+    self.custom_doc_settings = DocSettings.openSettingsFile(custom_metadata_file)
     custom_props = self.custom_doc_settings:read("custom_props")
   end
   local values_lang, callback
@@ -179,15 +176,12 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   if self.document then
     local lines_nb, words_nb = self.ui.view:getCurrentPageLineWordCounts()
     local text = lines_nb == 0 and _("number of lines and words not available")
-      or T(N_("1 line", "%1 lines", lines_nb), lines_nb)
-        .. ", "
-        .. T(N_("1 word", "%1 words", words_nb), words_nb)
+      or T(N_("1 line", "%1 lines", lines_nb), lines_nb) .. ", " .. T(N_("1 word", "%1 words", words_nb), words_nb)
     table.insert(kv_pairs, { _("Current page:"), text, separator = true })
   end
 
   -- Summary section
-  local summary = has_sidecar and doc_settings_or_file:readTableRef("summary")
-    or {}
+  local summary = has_sidecar and doc_settings_or_file:readTableRef("summary") or {}
   local rating = summary.rating or 0
   local summary_hold_callback = function()
     self:editSummary(doc_settings_or_file, book_props)
@@ -239,9 +233,7 @@ function BookInfo:show(doc_settings_or_file, book_props)
       self.custom_book_cover = nil
       if self.prop_updated then
         UIManager:broadcastEvent(Event:new("InvalidateMetadataCache", file))
-        UIManager:broadcastEvent(
-          Event:new("BookMetadataChanged", self.prop_updated)
-        )
+        UIManager:broadcastEvent(Event:new("BookMetadataChanged", self.prop_updated))
       end
       if self.summary_updated then -- refresh file browser, sdr folder may appear
         UIManager:broadcastEvent(Event:new("BookMetadataChanged"))
@@ -254,18 +246,15 @@ end
 function BookInfo.getCustomProp(prop_key, filepath)
   local custom_metadata_file = DocSettings:findCustomMetadataFile(filepath)
   return custom_metadata_file
-    and DocSettings.openSettingsFile(custom_metadata_file)
-      :readTableRef("custom_props")[prop_key]
+    and DocSettings.openSettingsFile(custom_metadata_file):readTableRef("custom_props")[prop_key]
 end
 
 -- Returns extended and customized metadata.
 function BookInfo.extendProps(original_props, filepath)
   -- do not customize if filepath is not passed (eg from covermenu)
-  local custom_metadata_file = filepath
-    and DocSettings:findCustomMetadataFile(filepath)
+  local custom_metadata_file = filepath and DocSettings:findCustomMetadataFile(filepath)
   local custom_props = custom_metadata_file
-      and DocSettings.openSettingsFile(custom_metadata_file)
-        :readTableRef("custom_props")
+      and DocSettings.openSettingsFile(custom_metadata_file):readTableRef("custom_props")
     or {}
   original_props = original_props or {}
 
@@ -275,8 +264,7 @@ function BookInfo.extendProps(original_props, filepath)
   end
   props.pages = original_props.pages
   -- if original title is empty, generate it as filename without extension
-  props.display_title = props.title
-    or filemanagerutil.splitFileNameType(filepath)
+  props.display_title = props.title or filemanagerutil.splitFileNameType(filepath)
   return props
 end
 
@@ -312,8 +300,7 @@ function BookInfo.getDocProps(file, book_props, no_open_document)
   if not book_props then
     local custom_metadata_file = DocSettings:findCustomMetadataFile(file)
     if custom_metadata_file then
-      book_props = DocSettings.openSettingsFile(custom_metadata_file)
-        :read("doc_props")
+      book_props = DocSettings.openSettingsFile(custom_metadata_file):read("doc_props")
     end
   end
 
@@ -422,8 +409,7 @@ function BookInfo:getCoverImage(doc, file, force_orig)
   local cover_bb
   -- check for a custom cover (orig cover is forcibly requested in "Book information" only)
   if not force_orig then
-    local custom_cover =
-      DocSettings:findCustomCoverFile(file or (doc and doc.file))
+    local custom_cover = DocSettings:findCustomCoverFile(file or (doc and doc.file))
     if custom_cover then
       local cover_doc = DocumentRegistry:openDocument(custom_cover)
       if cover_doc then
@@ -467,9 +453,7 @@ end
 function BookInfo:setCustomCover(file, book_props)
   if self.custom_book_cover then -- reset custom cover
     if os.remove(self.custom_book_cover) then
-      DocSettings.removeSidecarDir(
-        util.splitFilePathName(self.custom_book_cover)
-      )
+      DocSettings.removeSidecarDir(util.splitFilePathName(self.custom_book_cover))
       self:updateBookInfo(file, book_props, "cover")
     end
   else -- choose an image and set custom cover
@@ -518,9 +502,7 @@ function BookInfo:setCustomMetadata(file, book_props, prop_key, prop_value)
   custom_props[prop_key] = prop_value -- nil when resetting a custom prop
   if next(custom_props) == nil then -- no more custom metadata
     custom_doc_settings:purge()
-    DocSettings.removeSidecarDir(
-      util.splitFilePathName(custom_doc_settings.file)
-    )
+    DocSettings.removeSidecarDir(util.splitFilePathName(custom_doc_settings.file))
     no_custom_metadata = true
   else
     if book_props.pages then -- keep a copy of original 'pages' up to date
@@ -531,12 +513,10 @@ function BookInfo:setCustomMetadata(file, book_props, prop_key, prop_value)
   end
   book_props.display_title = book_props.display_title or display_title -- restore
   -- in memory
-  prop_value = prop_value
-    or custom_doc_settings:readTableRef("doc_props")[prop_key] -- set custom or restore original
+  prop_value = prop_value or custom_doc_settings:readTableRef("doc_props")[prop_key] -- set custom or restore original
   book_props[prop_key] = prop_value
   if prop_key == "title" then -- generate when resetting the customized title and original is empty
-    book_props.display_title = book_props.title
-      or filemanagerutil.splitFileNameType(file)
+    book_props.display_title = book_props.title or filemanagerutil.splitFileNameType(file)
   end
   if self.document and self.document.file == file then -- currently opened document
     self.ui.doc_props[prop_key] = prop_value
@@ -557,14 +537,10 @@ function BookInfo:showCustomEditDialog(file, book_props, prop_key)
   end
   local input_dialog
   input_dialog = InputDialog:new({
-    title = _("Edit book metadata:")
-      .. " "
-      .. self.prop_text[prop_key]:gsub(":", ""),
+    title = _("Edit book metadata:") .. " " .. self.prop_text[prop_key]:gsub(":", ""),
     input = prop,
     input_type = prop_key == "series_index" and "number",
-    allow_newline = prop_key == "authors"
-      or prop_key == "keywords"
-      or prop_key == "description",
+    allow_newline = prop_key == "authors" or prop_key == "keywords" or prop_key == "description",
     buttons = {
       {
         {
@@ -594,10 +570,8 @@ function BookInfo:showCustomDialog(file, book_props, prop_key)
   local original_prop, custom_prop, prop_is_cover
   if prop_key then -- metadata
     if self.custom_doc_settings then
-      original_prop =
-        self.custom_doc_settings:readTableRef("doc_props")[prop_key]
-      custom_prop =
-        self.custom_doc_settings:readTableRef("custom_props")[prop_key]
+      original_prop = self.custom_doc_settings:readTableRef("doc_props")[prop_key]
+      custom_prop = self.custom_doc_settings:readTableRef("custom_props")[prop_key]
     else
       original_prop = book_props[prop_key]
     end
@@ -636,12 +610,10 @@ function BookInfo:showCustomDialog(file, book_props, prop_key)
     {
       {
         text = _("Reset custom"),
-        enabled = custom_prop ~= nil
-          or (prop_is_cover and self.custom_book_cover ~= nil),
+        enabled = custom_prop ~= nil or (prop_is_cover and self.custom_book_cover ~= nil),
         callback = function()
           local confirm_box = ConfirmBox:new({
-            text = prop_is_cover
-                and _("Reset custom cover?\nImage file will be deleted.")
+            text = prop_is_cover and _("Reset custom cover?\nImage file will be deleted.")
               or _("Reset custom book metadata field?"),
             ok_text = _("Reset"),
             ok_callback = function()
@@ -658,8 +630,7 @@ function BookInfo:showCustomDialog(file, book_props, prop_key)
       },
       {
         text = _("Set custom"),
-        enabled = not prop_is_cover
-          or (prop_is_cover and self.custom_book_cover == nil),
+        enabled = not prop_is_cover or (prop_is_cover and self.custom_book_cover == nil),
         callback = function()
           UIManager:close(button_dialog)
           if prop_is_cover then
@@ -672,9 +643,7 @@ function BookInfo:showCustomDialog(file, book_props, prop_key)
     },
   }
   button_dialog = ButtonDialog:new({
-    title = _("Book metadata:")
-      .. " "
-      .. self.prop_text[prop_key]:gsub(":", ""),
+    title = _("Book metadata:") .. " " .. self.prop_text[prop_key]:gsub(":", ""),
     title_align = "center",
     buttons = buttons,
   })
@@ -683,8 +652,7 @@ end
 
 function BookInfo:editSummary(doc_settings_or_file, book_props)
   local has_sidecar = type(doc_settings_or_file) == "table"
-  local summary = has_sidecar and doc_settings_or_file:readTableRef("summary")
-    or {}
+  local summary = has_sidecar and doc_settings_or_file:readTableRef("summary") or {}
   local rating = summary.rating or 0
   local input_dialog
   local rating_buttons_row = {}
@@ -704,8 +672,7 @@ function BookInfo:editSummary(doc_settings_or_file, book_props)
           local note = input_dialog:getInputText()
           summary.note = note ~= "" and note or nil
           summary.rating = (i == 1 and summary.rating == 1) and 0 or i
-          doc_settings_or_file =
-            filemanagerutil.saveSummary(doc_settings_or_file, summary)
+          doc_settings_or_file = filemanagerutil.saveSummary(doc_settings_or_file, summary)
           self.summary_updated = true
           self.kvp_widget:onExit()
           self:show(doc_settings_or_file, book_props)
@@ -734,8 +701,7 @@ function BookInfo:editSummary(doc_settings_or_file, book_props)
             UIManager:close(input_dialog)
             local note = input_dialog:getInputText()
             summary.note = note ~= "" and note or nil
-            doc_settings_or_file =
-              filemanagerutil.saveSummary(doc_settings_or_file, summary)
+            doc_settings_or_file = filemanagerutil.saveSummary(doc_settings_or_file, summary)
             self.summary_updated = true
             self.kvp_widget:onExit()
             self:show(doc_settings_or_file, book_props)
@@ -794,18 +760,14 @@ function BookInfo:moveBookMetadata()
     return books_to_move
   end
   UIManager:show(ConfirmBox:new({
-    text = _(
-      "Scan books in current folder and subfolders for their metadata location?"
-    ),
+    text = _("Scan books in current folder and subfolders for their metadata location?"),
     ok_text = _("Scan"),
     ok_callback = function()
       local books_to_move = scanPath()
       local books_to_move_nb = #books_to_move
       if books_to_move_nb == 0 then
         UIManager:show(InfoMessage:new({
-          text = _(
-            "No books with metadata not in your preferred location found."
-          ),
+          text = _("No books with metadata not in your preferred location found."),
         }))
       else
         UIManager:show(ConfirmBox:new({
@@ -816,9 +778,7 @@ function BookInfo:moveBookMetadata()
               books_to_move_nb
             ),
             books_to_move_nb
-          )
-            .. "\n"
-            .. _("Move book metadata to your preferred location?"),
+          ) .. "\n" .. _("Move book metadata to your preferred location?"),
           ok_text = _("Move"),
           ok_callback = function()
             UIManager:close(self.menu_container)
@@ -847,35 +807,18 @@ function BookInfo.showBooksWithHashBasedMetadata()
     local doc_settings = DocSettings.openSettingsFile(sidecar_file)
     local doc_props = doc_settings:read("doc_props")
     local custom_props = custom_metadata_file
-        and DocSettings.openSettingsFile(custom_metadata_file)
-          :readTableRef("custom_props")
+        and DocSettings.openSettingsFile(custom_metadata_file):readTableRef("custom_props")
       or {}
     local doc_path = doc_settings:read("doc_path")
-    local title = custom_props.title
-      or doc_props.title
-      or filemanagerutil.splitFileNameType(doc_path)
+    local title = custom_props.title or doc_props.title or filemanagerutil.splitFileNameType(doc_path)
     local author = custom_props.authors or doc_props.authors or _("N/A")
-    doc_path = lfs.attributes(doc_path, "mode") == "file" and doc_path
-      or _("N/A")
-    local text = T(
-      _("%1. Title: %2; Author: %3\nDocument: %4"),
-      i,
-      title,
-      author,
-      doc_path
-    )
+    doc_path = lfs.attributes(doc_path, "mode") == "file" and doc_path or _("N/A")
+    local text = T(_("%1. Title: %2; Author: %3\nDocument: %4"), i, title, author, doc_path)
     table.insert(file_info, text)
   end
   local doc_nb = #file_info - 1
   UIManager:show(TextViewer:new({
-    title = T(
-      N_(
-        "1 document with hash-based metadata",
-        "%1 documents with hash-based metadata",
-        doc_nb
-      ),
-      doc_nb
-    ),
+    title = T(N_("1 document with hash-based metadata", "%1 documents with hash-based metadata", doc_nb), doc_nb),
     title_multilines = true,
     text = table.concat(file_info, "\n"),
   }))

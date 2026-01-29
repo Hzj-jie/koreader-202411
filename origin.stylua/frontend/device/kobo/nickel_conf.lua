@@ -171,27 +171,14 @@ Set frontlight level.
 @int new_intensity
 --]]
 function NickelConf.frontLightLevel.set(new_intensity)
-  if
-    type(new_intensity) ~= "number"
-    or (new_intensity < 0 or new_intensity > 100)
-  then
+  if type(new_intensity) ~= "number" or (new_intensity < 0 or new_intensity > 100) then
     return
   end
-  return NickelConf._write_kobo_conf(
-    re_FrontLightLevel,
-    front_light_level_str,
-    new_intensity
-  )
+  return NickelConf._write_kobo_conf(re_FrontLightLevel, front_light_level_str, new_intensity)
 end
 dbg:guard(NickelConf.frontLightLevel, "set", function(new_intensity)
-  assert(
-    type(new_intensity) == "number",
-    "Wrong brightness value type (expected number)!"
-  )
-  assert(
-    new_intensity >= 0 and new_intensity <= 100,
-    "Wrong brightness value given!"
-  )
+  assert(type(new_intensity) == "number", "Wrong brightness value type (expected number)!")
+  assert(new_intensity >= 0 and new_intensity <= 100, "Wrong brightness value given!")
 end)
 
 --[[--
@@ -212,10 +199,7 @@ function NickelConf.frontLightState.set(new_state)
   )
 end
 dbg:guard(NickelConf.frontLightState, "set", function(new_state)
-  assert(
-    type(new_state) == "boolean",
-    "Wrong front light state value type (expected boolean)!"
-  )
+  assert(type(new_state) == "boolean", "Wrong front light state value type (expected boolean)!")
 end)
 
 --[[--
@@ -224,21 +208,11 @@ Set color setting.
 @int new_color >= 1500 and <= 6400
 --]]
 function NickelConf.colorSetting.set(new_color)
-  return NickelConf._write_kobo_conf(
-    re_ColorSetting,
-    color_setting_str,
-    new_color
-  )
+  return NickelConf._write_kobo_conf(re_ColorSetting, color_setting_str, new_color)
 end
 dbg:guard(NickelConf.colorSetting, "set", function(new_color)
-  assert(
-    type(new_color) == "number",
-    "Wrong color value type (expected number)!"
-  )
-  assert(
-    new_color >= 1500 and new_color <= 6400,
-    "Wrong colorSetting value given!"
-  )
+  assert(type(new_color) == "number", "Wrong color value type (expected number)!")
+  assert(new_color >= 1500 and new_color <= 6400, "Wrong colorSetting value given!")
 end)
 
 return NickelConf

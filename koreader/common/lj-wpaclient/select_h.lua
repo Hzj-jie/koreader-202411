@@ -9,10 +9,7 @@ typedef struct {
 } fd_set;
 ]]
 )
-pcall(
-  ffi.cdef,
-  "int select(int, fd_set *restrict, fd_set *restrict, fd_set *restrict, struct timeval *restrict);"
-)
+pcall(ffi.cdef, "int select(int, fd_set *restrict, fd_set *restrict, fd_set *restrict, struct timeval *restrict);")
 
 pcall(ffi.cdef, "static const int POLLRDNORM = 64;")
 pcall(ffi.cdef, "static const int POLLRDBAND = 128;")

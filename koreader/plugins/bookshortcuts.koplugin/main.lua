@@ -14,9 +14,7 @@ local T = FFIUtil.template
 
 local BookShortcuts = WidgetContainer:extend({
   name = "bookshortcuts",
-  shortcuts = LuaSettings:open(
-    DataStorage:getSettingsDir() .. "/bookshortcuts.lua"
-  ),
+  shortcuts = LuaSettings:open(DataStorage:getSettingsDir() .. "/bookshortcuts.lua"),
   updated = false,
 })
 
@@ -56,10 +54,7 @@ function BookShortcuts:onBookShortcut(path)
           end
         end
       else
-        file = ReadHistory:getFileByDirectory(
-          path,
-          G_reader_settings:isTrue("BookShortcuts_recursive_directory")
-        )
+        file = ReadHistory:getFileByDirectory(path, G_reader_settings:isTrue("BookShortcuts_recursive_directory"))
       end
     else
       file = path
@@ -117,10 +112,7 @@ function BookShortcuts:getSubMenuItems()
       text_func = function()
         return T(
           _("Folder action: %1"),
-          (G_reader_settings:read("BookShortcuts_directory_action") or "FM")
-                == "FM"
-              and FM_text
-            or last_text
+          (G_reader_settings:read("BookShortcuts_directory_action") or "FM") == "FM" and FM_text or last_text
         )
       end,
       keep_menu_open = true,
@@ -128,8 +120,7 @@ function BookShortcuts:getSubMenuItems()
         {
           text = last_text,
           checked_func = function()
-            return G_reader_settings:read("BookShortcuts_directory_action")
-              == "Last"
+            return G_reader_settings:read("BookShortcuts_directory_action") == "Last"
           end,
           callback = function()
             G_reader_settings:save("BookShortcuts_directory_action", "Last")
@@ -138,8 +129,7 @@ function BookShortcuts:getSubMenuItems()
         {
           text = FM_text,
           checked_func = function()
-            return G_reader_settings:read("BookShortcuts_directory_action")
-              == "FM"
+            return G_reader_settings:read("BookShortcuts_directory_action") == "FM"
           end,
           callback = function()
             G_reader_settings:save("BookShortcuts_directory_action", "FM")
@@ -154,8 +144,7 @@ function BookShortcuts:getSubMenuItems()
         return G_reader_settings:isTrue("BookShortcuts_recursive_directory")
       end,
       enabled_func = function()
-        return G_reader_settings:read("BookShortcuts_directory_action")
-          == "Last"
+        return G_reader_settings:read("BookShortcuts_directory_action") == "Last"
       end,
       callback = function()
         G_reader_settings:flipNilOrFalse("BookShortcuts_recursive_directory")

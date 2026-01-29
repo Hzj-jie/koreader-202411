@@ -224,9 +224,7 @@ function Mustache.compile(template)
           -- Check if section end is actually opened somewhere.
           if not CHECK_TABLE_SEC(vmtbl, mark + 1, (temp - mark - 1)) then
             error(
-              string.format(
-                "Trying to end section '%s', but it was never opened."
-              ),
+              string.format("Trying to end section '%s', but it was never opened."),
               ffi.string(mark + 1, (temp - mark - 1))
             )
           end
@@ -412,14 +410,7 @@ function Mustache._render_section(vmtbl, obj, i, safe, partials, obj_parents)
           if type(obj[y][arg]) == "table" and #obj[y][arg] ~= 0 then
             -- Nested section
             obj_parents[#obj_parents + 1] = obj[y]
-            local secbuf, new_i = Mustache._render_section(
-              vmtbl,
-              obj[y][arg],
-              i,
-              safe,
-              partials,
-              obj_parents
-            )
+            local secbuf, new_i = Mustache._render_section(vmtbl, obj[y][arg], i, safe, partials, obj_parents)
             i = new_i
             buf:append_right(secbuf:get())
           else
@@ -455,8 +446,7 @@ function Mustache._render_section(vmtbl, obj, i, safe, partials, obj_parents)
         -- used as partial.
         if partials[arg] then
           local partial = Mustache._render_partial(
-            type(partials[arg]) == "string" and Mustache.compile(partials[arg])
-              or partials[arg],
+            type(partials[arg]) == "string" and Mustache.compile(partials[arg]) or partials[arg],
             obj[y],
             obj_parents,
             partials,
@@ -505,12 +495,7 @@ function Mustache._render_partial(vmtbl, obj, obj_parents, partials, safe)
             buf:append_luastr_right(in_parent(arg) or "")
           end
         elseif safe == true then
-          error(
-            string.format(
-              "Mustache.render, missing variable at: \r\n%s",
-              Mustache._template_dump(vmtbl, i)
-            )
-          )
+          error(string.format("Mustache.render, missing variable at: \r\n%s", Mustache._template_dump(vmtbl, i)))
         end
       end
     elseif instr == TKEY then
@@ -530,25 +515,13 @@ function Mustache._render_partial(vmtbl, obj, obj_parents, partials, safe)
             buf:append_luastr_right(in_parent(arg) or "")
           end
         elseif safe == true then
-          error(
-            string.format(
-              "Mustache.render, missing variable at: \r\n%s",
-              Mustache._template_dump(vmtbl, i)
-            )
-          )
+          error(string.format("Mustache.render, missing variable at: \r\n%s", Mustache._template_dump(vmtbl, i)))
         end
       end
     elseif instr == SECS then
       if obj[arg] then
         if type(obj[arg]) == "table" and #obj[arg] ~= 0 then
-          local secbuf, new_i = Mustache._render_section(
-            vmtbl,
-            obj[arg],
-            i,
-            safe,
-            partials,
-            { obj }
-          )
+          local secbuf, new_i = Mustache._render_section(vmtbl, obj[arg], i, safe, partials, { obj })
           i = new_i
           buf:append_right(secbuf:get())
         else
@@ -584,8 +557,7 @@ function Mustache._render_partial(vmtbl, obj, obj_parents, partials, safe)
     elseif instr == PART then
       if partials[arg] then
         local partial = Mustache._render_partial(
-          type(partials[arg]) == "string" and Mustache.compile(partials[arg])
-            or partials[arg],
+          type(partials[arg]) == "string" and Mustache.compile(partials[arg]) or partials[arg],
           obj,
           obj_parents,
           partials,
@@ -622,12 +594,7 @@ function Mustache._render_template(vmtbl, obj, partials, safe)
           buf:append_luastr_right(tostring(obj[arg]))
         end
       elseif safe == true then
-        error(
-          string.format(
-            "Mustache.render, missing variable at: \r\n%s",
-            Mustache._template_dump(vmtbl, i)
-          )
-        )
+        error(string.format("Mustache.render, missing variable at: \r\n%s", Mustache._template_dump(vmtbl, i)))
       end
     elseif instr == TKEY then
       if obj[arg] then
@@ -635,24 +602,12 @@ function Mustache._render_template(vmtbl, obj, partials, safe)
           buf:append_luastr_right(obj[arg])
         end
       elseif safe == true then
-        error(
-          string.format(
-            "Mustache.render, missing variable at: \r\n%s",
-            Mustache._template_dump(vmtbl, i)
-          )
-        )
+        error(string.format("Mustache.render, missing variable at: \r\n%s", Mustache._template_dump(vmtbl, i)))
       end
     elseif instr == SECS then
       if obj[arg] then
         if type(obj[arg]) == "table" and #obj[arg] ~= 0 then
-          local secbuf, new_i = Mustache._render_section(
-            vmtbl,
-            obj[arg],
-            i,
-            safe,
-            partials,
-            { obj }
-          )
+          local secbuf, new_i = Mustache._render_section(vmtbl, obj[arg], i, safe, partials, { obj })
           i = new_i
           buf:append_right(secbuf:get())
         else
@@ -690,8 +645,7 @@ function Mustache._render_template(vmtbl, obj, partials, safe)
       -- Either a template string or a pre-compiled parse table can be
       -- used as partial.
       if partials[arg] then
-        local partial =
-          Mustache.render(partials[arg], obj, partials, allow_blank)
+        local partial = Mustache.render(partials[arg], obj, partials, allow_blank)
 
         buf:append_luastr_right(partial)
       end
@@ -706,9 +660,7 @@ end
 -- @param allow_blank Halt with error if key does not exist in object table.
 function Mustache.render(template, obj, partials, allow_blank)
   if not template then
-    error(
-      "No precompiled template or template string passed to Mustache.render."
-    )
+    error("No precompiled template or template string passed to Mustache.render.")
   end
   if type(template) == "string" then
     template = Mustache.compile(template)

@@ -15,20 +15,12 @@ local T = require("ffi/util").template
 local Ftp = {}
 
 function Ftp:run(address, user, pass, path)
-  local url = FtpApi:generateUrl(
-    address,
-    util.urlEncode(user),
-    util.urlEncode(pass)
-  ) .. path
+  local url = FtpApi:generateUrl(address, util.urlEncode(user), util.urlEncode(pass)) .. path
   return FtpApi:listFolder(url, path)
 end
 
 function Ftp:downloadFile(item, address, user, pass, path, callback_close)
-  local url = FtpApi:generateUrl(
-    address,
-    util.urlEncode(user),
-    util.urlEncode(pass)
-  ) .. item.url
+  local url = FtpApi:generateUrl(address, util.urlEncode(user), util.urlEncode(pass)) .. item.url
   logger.dbg("downloadFile url", url)
   path = util.fixUtf8(path, "_")
   local file, err = io.open(path, "w")
@@ -41,21 +33,13 @@ function Ftp:downloadFile(item, address, user, pass, path, callback_close)
   local response = FtpApi:ftpGet(url, "retr", ltn12.sink.file(file))
   if response ~= nil then
     local __, filename = util.splitFilePathName(path)
-    if
-      G_reader_settings:isTrue("show_unsupported")
-      and not DocumentRegistry:hasProvider(filename)
-    then
+    if G_reader_settings:isTrue("show_unsupported") and not DocumentRegistry:hasProvider(filename) then
       UIManager:show(InfoMessage:new({
         text = T(_("File saved to:\n%1"), BD.filepath(path)),
       }))
     else
       UIManager:show(ConfirmBox:new({
-        text = T(
-          _(
-            "File saved to:\n%1\nWould you like to read the downloaded book now?"
-          ),
-          BD.filepath(path)
-        ),
+        text = T(_("File saved to:\n%1\nWould you like to read the downloaded book now?"), BD.filepath(path)),
         ok_callback = function()
           local Event = require("ui/event")
           UIManager:broadcastEvent(Event:new("SetupShowReader"))
@@ -182,8 +166,7 @@ Username and password are optional.]])
 end
 
 function Ftp:info(item)
-  local info_text =
-    T(_("Type: %1\nName: %2\nAddress: %3"), "FTP", item.text, item.address)
+  local info_text = T(_("Type: %1\nName: %2\nAddress: %3"), "FTP", item.text, item.address)
   UIManager:show(InfoMessage:new({ text = info_text }))
 end
 

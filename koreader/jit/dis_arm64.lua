@@ -1198,26 +1198,9 @@ local function putop(ctx, text, operands)
     end
   end
   if ctx.hexdump > 0 then
-    ctx.out(
-      format(
-        "%08x  %s  %-5s %s%s\n",
-        ctx.addr + pos,
-        tohex(ctx.op),
-        text,
-        concat(operands, ", "),
-        extra
-      )
-    )
+    ctx.out(format("%08x  %s  %-5s %s%s\n", ctx.addr + pos, tohex(ctx.op), text, concat(operands, ", "), extra))
   else
-    ctx.out(
-      format(
-        "%08x  %-5s %s%s\n",
-        ctx.addr + pos,
-        text,
-        concat(operands, ", "),
-        extra
-      )
-    )
+    ctx.out(format("%08x  %-5s %s%s\n", ctx.addr + pos, text, concat(operands, ", "), extra))
   end
   ctx.pos = pos + 4
 end
@@ -1318,18 +1301,8 @@ end
 local function decode_fpmovi(op)
   local lo = rshift(op, 5)
   local hi = rshift(op, 9)
-  lo = bor(
-    band(lo, 1) * 0xff,
-    band(lo, 2) * 0x7f80,
-    band(lo, 4) * 0x3fc000,
-    band(lo, 8) * 0x1fe00000
-  )
-  hi = bor(
-    band(hi, 1) * 0xff,
-    band(hi, 0x80) * 0x1fe,
-    band(hi, 0x100) * 0xff00,
-    band(hi, 0x200) * 0x7f8000
-  )
+  lo = bor(band(lo, 1) * 0xff, band(lo, 2) * 0x7f80, band(lo, 4) * 0x3fc000, band(lo, 8) * 0x1fe00000)
+  hi = bor(band(hi, 1) * 0xff, band(hi, 0x80) * 0x1fe, band(hi, 0x100) * 0xff00, band(hi, 0x200) * 0x7f8000)
   if hi ~= 0 then
     return fmt_hex32(hi) .. tohex(lo)
   else
@@ -1523,12 +1496,7 @@ local function disass_ins(ctx)
       local shf = band(rshift(op, 22), 3)
       local imm12 = band(rshift(op, 10), 0x0fff)
       local rn, rd = band(rshift(op, 5), 31), band(op, 31)
-      if
-        altname == "mov"
-        and shf == 0
-        and imm12 == 0
-        and (rn == 31 or rd == 31)
-      then
+      if altname == "mov" and shf == 0 and imm12 == 0 and (rn == 31 or rd == 31) then
         name = altname
         x = nil
       elseif shf == 0 then
@@ -1544,8 +1512,7 @@ local function disass_ins(ctx)
     elseif p == "2" then
       x = band(rshift(op, 10), 63)
       if altname then
-        local a1, a2, a3, a4, a5, a6 =
-          match(altname, "([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|(.*)")
+        local a1, a2, a3, a4, a5, a6 = match(altname, "([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|(.*)")
         local sf = band(rshift(op, 26), 32)
         local uns = band(rshift(op, 30), 1)
         if prefer_bfx(sf, uns, x, immr) then
@@ -1637,10 +1604,7 @@ local function disass_ins(ctx)
       end
       x = band(rshift(op, 10), 7)
       -- Extension.
-      if
-        opt == 2 + band(rshift(op, 31), 1)
-        and band(rshift(op, second0 and 5 or 0), 31) == 31
-      then
+      if opt == 2 + band(rshift(op, 31), 1) and band(rshift(op, second0 and 5 or 0), 31) == 31 then
         if x == 0 then
           x = nil
         else
@@ -1673,14 +1637,7 @@ local function disass_ins(ctx)
       x = parse_fpimm8(op)
     elseif p == "G" then
       x = "#0x" .. decode_fpmovi(op)
-    elseif
-      p == "g"
-      or p == "f"
-      or p == "x"
-      or p == "w"
-      or p == "d"
-      or p == "s"
-    then
+    elseif p == "g" or p == "f" or p == "x" or p == "w" or p == "d" or p == "s" then
       -- These are handled in D/N/M/A.
     elseif p == "0" then
       if last == "sp" or last == "wsp" then

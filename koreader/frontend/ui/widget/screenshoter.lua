@@ -45,9 +45,7 @@ end
 
 function Screenshoter:onScreenshot(screenshot_name, caller_callback)
   if not screenshot_name then
-    screenshot_name = os.date(
-      self:getScreenshotDir() .. "/" .. self.prefix .. "_%Y-%m-%d_%H%M%S.png"
-    )
+    screenshot_name = os.date(self:getScreenshotDir() .. "/" .. self.prefix .. "_%Y-%m-%d_%H%M%S.png")
   end
   Screen:shot(screenshot_name)
   local file = self.ui and self.ui.document and self.ui.document.file -- currently opened book
@@ -96,22 +94,15 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
     },
   }
   dialog = ButtonDialog:new({
-    title = _("Screenshot saved to:")
-      .. "\n\n"
-      .. BD.filepath(screenshot_name)
-      .. "\n",
+    title = _("Screenshot saved to:") .. "\n\n" .. BD.filepath(screenshot_name) .. "\n",
     modal = true,
     buttons = buttons,
     tap_close_callback = function()
       if caller_callback then
         caller_callback()
       end
-      local current_path = self.ui
-        and self.ui.file_chooser
-        and self.ui.file_chooser.path
-      if
-        current_path and current_path .. "/" == screenshot_name:match(".*/")
-      then
+      local current_path = self.ui and self.ui.file_chooser and self.ui.file_chooser.path
+      if current_path and current_path .. "/" == screenshot_name:match(".*/") then
         self.ui.file_chooser:refreshPath()
       end
     end,
@@ -129,12 +120,7 @@ function Screenshoter:chooseFolder()
   local caller_callback = function(path)
     G_reader_settings:save("screenshot_dir", path)
   end
-  filemanagerutil.showChooseDialog(
-    title_header,
-    caller_callback,
-    current_path,
-    default_path
-  )
+  filemanagerutil.showChooseDialog(title_header, caller_callback, current_path, default_path)
 end
 
 function Screenshoter:onKeyPressShoot()

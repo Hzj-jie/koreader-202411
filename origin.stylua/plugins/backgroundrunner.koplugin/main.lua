@@ -199,9 +199,7 @@ function BackgroundRunner:_execute()
         end
       elseif type(job.when) == "number" then
         if job.when >= 0 then
-          should_execute = (
-            UIManager:getTime() - job.insert_time >= time.s(job.when)
-          )
+          should_execute = (UIManager:getTime() - job.insert_time >= time.s(job.when))
         else
           should_ignore = true
         end

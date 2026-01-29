@@ -25,13 +25,7 @@ local defaultOptions = {
 local modeOptions = {}
 
 local function mergeOptions(options, mode)
-  jsonutil.doOptionMerge(
-    options,
-    false,
-    "array",
-    defaultOptions,
-    mode and modeOptions[mode]
-  )
+  jsonutil.doOptionMerge(options, false, "array", defaultOptions, mode and modeOptions[mode])
 end
 
 --[[
@@ -82,8 +76,7 @@ local function unmarkAfterEncode(tab, state, ...)
   return ...
 end
 local function getEncoder(options)
-  options = options and jsonutil.merge({}, defaultOptions, options)
-    or defaultOptions
+  options = options and jsonutil.merge({}, defaultOptions, options) or defaultOptions
   local function encodeArray(tab, state)
     if not isArray(tab, options) then
       return false
@@ -103,11 +96,7 @@ local function getEncoder(options)
 			end
 		end
 		]]
-    return unmarkAfterEncode(
-      tab,
-      state,
-      compositeEncoder(valueEncoder, "[", "]", ",", tab, encode, state)
-    )
+    return unmarkAfterEncode(tab, state, compositeEncoder(valueEncoder, "[", "]", ",", tab, encode, state))
   end
   return { table = encodeArray }
 end

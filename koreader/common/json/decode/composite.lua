@@ -88,27 +88,9 @@ local function NEXT_VALUE(state)
 end
 
 local function mergeOptions(options, mode)
-  jsonutil.doOptionMerge(
-    options,
-    true,
-    "array",
-    defaultOptions,
-    mode and modeOptions[mode]
-  )
-  jsonutil.doOptionMerge(
-    options,
-    true,
-    "object",
-    defaultOptions,
-    mode and modeOptions[mode]
-  )
-  jsonutil.doOptionMerge(
-    options,
-    true,
-    "calls",
-    defaultOptions,
-    mode and modeOptions[mode]
-  )
+  jsonutil.doOptionMerge(options, true, "array", defaultOptions, mode and modeOptions[mode])
+  jsonutil.doOptionMerge(options, true, "object", defaultOptions, mode and modeOptions[mode])
+  jsonutil.doOptionMerge(options, true, "calls", defaultOptions, mode and modeOptions[mode])
 end
 
 local isPattern
@@ -125,11 +107,7 @@ end
 
 local function generateSingleCallLexer(name, func)
   if type(name) ~= "string" and not isPattern(name) then
-    error(
-      "Invalid functionCalls name: "
-        .. tostring(name)
-        .. " not a string or LPEG pattern"
-    )
+    error("Invalid functionCalls name: " .. tostring(name) .. " not a string or LPEG pattern")
   end
   -- Allow boolean or function to match up w/ encoding permissions
   if type(func) ~= "boolean" and type(func) ~= "function" then
@@ -197,8 +175,7 @@ local function generateLexer(options)
     + lpeg.P(",") * lpeg.Cc(NEXT_VALUE)
   if object_options.identifier then
     -- Add identifier match w/ validation check that it is in key
-    lexer = lexer
-      + lpeg.C(util.identifier) * ignored * lpeg.P(":") * lpeg.Cc(SET_KEY)
+    lexer = lexer + lpeg.C(util.identifier) * ignored * lpeg.P(":") * lpeg.Cc(SET_KEY)
   end
   local callLexers = generateCallLexer(options)
   if callLexers then

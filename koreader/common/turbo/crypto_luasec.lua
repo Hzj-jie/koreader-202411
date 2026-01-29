@@ -24,10 +24,7 @@ local crypto = {} -- crypto namespace
 
 local ok, ssl = pcall(require, "ssl")
 if not ok then
-  log.error(
-    'Could not load "ssl" module (LuaSec). Exiting. '
-      .. "Please install module to enable SSL in Turbo."
-  )
+  log.error('Could not load "ssl" module (LuaSec). Exiting. ' .. "Please install module to enable SSL in Turbo.")
   os.exit(1)
 end
 
@@ -47,13 +44,7 @@ end
 -- @return Return code. 0 if successfull, else a error code and a
 -- SSL error string, or -1 and a error string.
 -- @return Allocated SSL_CTX *. Must not be freed. It is garbage collected.
-function crypto.ssl_create_client_context(
-  cert_file,
-  prv_file,
-  ca_cert_path,
-  verify,
-  sslv
-)
+function crypto.ssl_create_client_context(cert_file, prv_file, ca_cert_path, verify, sslv)
   local params = {
     mode = "client",
     protocol = "sslv23",
@@ -82,12 +73,7 @@ end
 -- code and a SSL
 -- error string, or -1 and a error string.
 -- @return Allocated SSL_CTX *. Must not be freed. It is garbage collected.
-function crypto.ssl_create_server_context(
-  cert_file,
-  prv_file,
-  ca_cert_path,
-  sslv
-)
+function crypto.ssl_create_server_context(cert_file, prv_file, ca_cert_path, sslv)
   local params = {
     mode = "server",
     protocol = "sslv23",

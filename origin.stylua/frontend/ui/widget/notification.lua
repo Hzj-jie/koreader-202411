@@ -41,9 +41,7 @@ local SOURCE_BOTTOM_MENU = SOURCE_BOTTOM_MENU_ICON
 
 -- these values can be changed here
 local SOURCE_SOME = SOURCE_BOTTOM_MENU_FINE
-local SOURCE_MORE = SOURCE_SOME
-  + SOURCE_BOTTOM_MENU_MORE
-  + SOURCE_BOTTOM_MENU_PROGRESS
+local SOURCE_MORE = SOURCE_SOME + SOURCE_BOTTOM_MENU_MORE + SOURCE_BOTTOM_MENU_PROGRESS
 local SOURCE_DEFAULT = SOURCE_MORE + SOURCE_DISPATCHER
 local SOURCE_ALL = SOURCE_BOTTOM_MENU + SOURCE_DISPATCHER + SOURCE_OTHER
 
@@ -159,9 +157,7 @@ end
 -- Display a notification popup if `source` or `self.notify_source` is not masked by the `notification_sources_to_show_mask` setting
 function Notification:notify(arg, source, refresh_after)
   source = source or self.notify_source
-  local mask = G_reader_settings:readSetting(
-    "notification_sources_to_show_mask"
-  ) or SOURCE_DEFAULT
+  local mask = G_reader_settings:readSetting("notification_sources_to_show_mask") or SOURCE_DEFAULT
   if source and (source == SOURCE_ALWAYS_SHOW or band(mask, source) ~= 0) then
     UIManager:show(Notification:new({
       text = arg,
@@ -193,10 +189,7 @@ function Notification:_cleanShownStack()
   -- more than 30s in case no close event was received.
   local expire_time = UIManager:getTime() - time.s(30)
   for i = #Notification._shown_list, 1, -1 do
-    if
-      Notification._shown_list[i]
-      and Notification._shown_list[i] > expire_time
-    then
+    if Notification._shown_list[i] and Notification._shown_list[i] > expire_time then
       break -- still shown (or not yet expired)
     end
     table.remove(Notification._shown_list, i)

@@ -37,12 +37,7 @@ function DjvuDocument:init()
   end
 
   local ok
-  ok, self._document = pcall(
-    djvu.openDocument,
-    self.file,
-    self.render_color,
-    self.djvulibre_cache_size
-  )
+  ok, self._document = pcall(djvu.openDocument, self.file, self.render_color, self.djvulibre_cache_size)
   if not ok then
     error(self._document) -- will contain error message
   end
@@ -82,12 +77,7 @@ function DjvuDocument:getTextFromPositions(spos0, spos1)
 end
 
 function DjvuDocument:getPageBoxesFromPositions(pageno, ppos0, ppos1)
-  return self.koptinterface:getPageBoxesFromPositions(
-    self,
-    pageno,
-    ppos0,
-    ppos1
-  )
+  return self.koptinterface:getPageBoxesFromPositions(self, pageno, ppos0, ppos1)
 end
 
 function DjvuDocument:nativeToPageRectTransform(pageno, rect)
@@ -119,14 +109,7 @@ function DjvuDocument:getUsedBBox(pageno)
 end
 
 function DjvuDocument:clipPagePNGFile(pos0, pos1, pboxes, drawer, filename)
-  return self.koptinterface:clipPagePNGFile(
-    self,
-    pos0,
-    pos1,
-    pboxes,
-    drawer,
-    filename
-  )
+  return self.koptinterface:clipPagePNGFile(self, pos0, pos1, pboxes, drawer, filename)
 end
 
 function DjvuDocument:clipPagePNGString(pos0, pos1, pboxes, drawer)
@@ -146,68 +129,23 @@ function DjvuDocument:getCoverPageImage()
 end
 
 function DjvuDocument:findText(pattern, origin, reverse, case_insensitive, page)
-  return self.koptinterface:findText(
-    self,
-    pattern,
-    origin,
-    reverse,
-    case_insensitive,
-    page
-  )
+  return self.koptinterface:findText(self, pattern, origin, reverse, case_insensitive, page)
 end
 
-function DjvuDocument:findAllText(
-  pattern,
-  case_insensitive,
-  nb_context_words,
-  max_hits
-)
-  return self.koptinterface:findAllText(
-    self,
-    pattern,
-    case_insensitive,
-    nb_context_words,
-    max_hits
-  )
+function DjvuDocument:findAllText(pattern, case_insensitive, nb_context_words, max_hits)
+  return self.koptinterface:findAllText(self, pattern, case_insensitive, nb_context_words, max_hits)
 end
 
 function DjvuDocument:renderPage(pageno, rect, zoom, rotation, gamma, hinting)
-  return self.koptinterface:renderPage(
-    self,
-    pageno,
-    rect,
-    zoom,
-    rotation,
-    gamma,
-    hinting
-  )
+  return self.koptinterface:renderPage(self, pageno, rect, zoom, rotation, gamma, hinting)
 end
 
 function DjvuDocument:hintPage(pageno, zoom, rotation, gamma)
   return self.koptinterface:hintPage(self, pageno, zoom, rotation, gamma)
 end
 
-function DjvuDocument:drawPage(
-  target,
-  x,
-  y,
-  rect,
-  pageno,
-  zoom,
-  rotation,
-  gamma
-)
-  return self.koptinterface:drawPage(
-    self,
-    target,
-    x,
-    y,
-    rect,
-    pageno,
-    zoom,
-    rotation,
-    gamma
-  )
+function DjvuDocument:drawPage(target, x, y, rect, pageno, zoom, rotation, gamma)
+  return self.koptinterface:drawPage(self, target, x, y, rect, pageno, zoom, rotation, gamma)
 end
 
 function DjvuDocument:register(registry)
