@@ -45,3 +45,17 @@ consumption.
 
 Except for some repo setups, most of the changes can be mapped to one or more
 issues to explain the motivations.
+
+## Credits
+
+SortedIteration: ffi/SortedIteration.lua, from
+http://lua-users.org/wiki/SortedIteration. It was previously used in KOReader
+as well, but embedded in ffi/util.lua. See the file itself for the version
+information and local changes.
+
+stylua: stylua, from https://github.com/JohnnyMorganz/StyLua, current version is
+2.1.0.
+
+luacheck: luacheck, from https://github.com/lunarmodules/luacheck, current
+version is 1.2.0.
+
