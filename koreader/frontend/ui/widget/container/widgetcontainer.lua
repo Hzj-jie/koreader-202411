@@ -31,7 +31,7 @@ function WidgetContainer:getSize()
   end
   -- TODO: Remove, use Widget.getSize(self) instead.
   self:mayMergeWidthAndHeight()
-  if self.dimen == nil then
+  if self.dimen == nil or self.dimen.w == nil or self.dimen.h == nil then
     logger.warn(
       "FixMe: WidgetContainer:getSize() returns an empty Geom. ",
       debug.traceback()

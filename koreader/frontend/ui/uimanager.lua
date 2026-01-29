@@ -97,13 +97,18 @@ end
 
 local function cropping_region(widget, x, y, w, h)
   assert(widget ~= nil)
-  assert(widget:getSize() ~= nil)
+  local dimen = widget:getSize()
+  assert(dimen ~= nil)
   -- It's possible that the function is called before the paintTo call, so x or
   -- y may not present.
-  x = x or widget:getSize().x
-  y = y or widget:getSize().y
-  w = w or widget:getSize().w
-  h = h or widget:getSize().h
+  x = x or dimen.x
+  y = y or dimen.y
+  w = w or dimen.w
+  h = h or dimen.h
+
+  if w == 0 and h == 0 then
+    logger.warn("FixMe: widget ", widgetDebugStr(widget), " returns empty Geom.")
+  end
 
   local window = widget:window()
   if window then
