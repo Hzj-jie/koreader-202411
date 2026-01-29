@@ -1,1 +1,0 @@
-../../../koreader/plugins/weather.koplugin/settings.lua
