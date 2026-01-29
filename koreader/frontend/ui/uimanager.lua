@@ -125,7 +125,11 @@ local function cropping_region(widget, x, y, w, h)
   end
 
   if w == 0 and h == 0 then
-    logger.warn("FixMe: widget ", widgetDebugStr(widget), " returns empty Geom.")
+    logger.warn(
+      "FixMe: widget ",
+      widgetDebugStr(widget),
+      " returns empty Geom."
+    )
   end
 
   if window then
