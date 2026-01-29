@@ -729,7 +729,6 @@ function TouchMenu:_updateTimeInfo()
     time_info_txt = BD.wrap(time_info_txt)
       .. " "
       .. BD.wrap(batt_symbol)
-      .. (powerd:isCharging() and "+" or "")
       .. BD.wrap(batt_lvl .. "%")
 
     if Device:hasAuxBattery() and powerd:isAuxBatteryConnected() then
