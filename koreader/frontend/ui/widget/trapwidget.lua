@@ -41,6 +41,7 @@ function TrapWidget:init()
     w = Screen:getWidth(),
     h = Screen:getHeight(),
   })
+  self.dimen = fullscreen
   if Device:hasKeys() then
     self.key_events.AnyKeyPressed = { { Input.group.Any } }
   end
