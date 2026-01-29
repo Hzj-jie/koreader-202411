@@ -106,10 +106,6 @@ local function cropping_region(widget, x, y, w, h)
   w = w or dimen.w
   h = h or dimen.h
 
-  if w == 0 and h == 0 then
-    logger.warn("FixMe: widget ", widgetDebugStr(widget), " returns empty Geom.")
-  end
-
   local window = widget:window()
   if window then
     -- Before the initial paintTo call, widget.dimen isn't available. In the
@@ -126,6 +122,10 @@ local function cropping_region(widget, x, y, w, h)
       " without its dimen."
     )
     return nil
+  end
+
+  if w == 0 and h == 0 then
+    logger.warn("FixMe: widget ", widgetDebugStr(widget), " returns empty Geom.")
   end
 
   if window then
