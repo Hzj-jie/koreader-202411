@@ -233,8 +233,7 @@ function Translator:genSettingsMenu()
         checked_func = function()
           return lang_key
             == (
-              G_reader_settings:readSetting(setting_name)
-              or default_checked_item
+              G_reader_settings:readSetting(setting_name) or default_checked_item
             )
         end,
         callback = function()

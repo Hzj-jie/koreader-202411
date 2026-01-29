@@ -135,8 +135,7 @@ function ReaderPageMap:updateVisibleLabels()
   local page_labels = self.ui.document:getPageMapVisiblePageLabels()
   local footer_height = (
     (
-        self.view.footer_visible
-        and not self.view.footer.settings.reclaim_height
+        self.view.footer_visible and not self.view.footer.settings.reclaim_height
       )
       and 1
     or 0

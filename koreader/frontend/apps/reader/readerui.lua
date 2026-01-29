@@ -924,8 +924,7 @@ function ReaderUI:onExit(seamless)
       logger.dbg("closing document")
       UIManager:broadcastEvent(Event:new("CloseDocument"))
       if
-        self.document:isEdited()
-        and not self.highlight.highlight_write_into_pdf
+        self.document:isEdited() and not self.highlight.highlight_write_into_pdf
       then
         self.document:discardChange()
       end

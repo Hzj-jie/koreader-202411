@@ -1706,8 +1706,7 @@ function ReaderHighlight:_resetHoldTimer(clear)
       -- Multi words selection uses default_highlight_action, and no need for long-hold
       -- if it is already "ask".
       if
-        (G_reader_settings:read("default_highlight_action") or "ask")
-        == "ask"
+        (G_reader_settings:read("default_highlight_action") or "ask") == "ask"
       then
         handle_long_hold = false
       end

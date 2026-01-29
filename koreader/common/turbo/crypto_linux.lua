@@ -285,8 +285,7 @@ function crypto.ssl_do_handshake(SSLIOStream)
     -- In case the socket is O_NONBLOCK break out when we get
     -- SSL_ERROR_WANT_* or equal syscall return code.
     if
-      err == crypto.SSL_ERROR_WANT_READ
-      or err == crypto.SSL_ERROR_WANT_READ
+      err == crypto.SSL_ERROR_WANT_READ or err == crypto.SSL_ERROR_WANT_READ
     then
       return false
     elseif err == crypto.SSL_ERROR_SYSCALL then

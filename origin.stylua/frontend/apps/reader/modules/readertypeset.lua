@@ -199,8 +199,7 @@ function ReaderTypeset:genStyleSheetMenu()
         local css_opt = self.ui.document.is_fb2 and "copt_fb2_css" or "copt_css"
         return text
           .. (
-            css_file == G_reader_settings:readSetting(css_opt) and "   ★"
-            or ""
+            css_file == G_reader_settings:readSetting(css_opt) and "   ★" or ""
           )
       end,
       callback = function()

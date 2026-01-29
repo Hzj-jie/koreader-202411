@@ -207,8 +207,7 @@ function ReaderRolling:onReadSettings(config)
   -- may need tweaking:
   local cre = require("document/credocument"):engineInit()
   if
-    config:read("cre_dom_version")
-    < cre.getDomVersionWithNormalizedXPointers()
+    config:read("cre_dom_version") < cre.getDomVersionWithNormalizedXPointers()
   then
     -- Show some warning when styles "display:" have changed that
     -- bookmarks may break
