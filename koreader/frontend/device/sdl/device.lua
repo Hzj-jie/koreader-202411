@@ -73,7 +73,7 @@ local Device = Generic:extend({
   hasBattery = SDL.getPowerInfo,
   hasKeyboard = util.yes,
   hasKeys = util.yes,
-  hasSymKey = os.getenv("DISABLE_TOUCH") == "1" and yes or no,
+  hasSymKey = os.getenv("DISABLE_TOUCH") == "1" and util.yes or util.no,
   hasDPad = util.yes,
   hasWifiToggle = util.no,
   hasSeamlessWifiToggle = util.no,

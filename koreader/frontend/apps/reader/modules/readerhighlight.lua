@@ -611,7 +611,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
     table.insert(hl_sub_item_table, {
       text_func = function()
         local text = self.highlight_write_into_pdf and _("on") or _("off")
-        if not self.highlight_write_into_pdf == (not G_reader_settings:isTrue("highlight_write_into_pdf")) then
+        if self.highlight_write_into_pdf ~= G_reader_settings:nilOrFalse("highlight_write_into_pdf") then
           text = text .. star
         end
         return T(_("Write highlights into PDF: %1"), text)

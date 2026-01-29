@@ -1090,7 +1090,7 @@ function UIManager:_decideRefreshMode(refresh)
     logger.dbg("_refreshScreen: explicitly disable a2 mode.")
     return "fast"
   end
-  if self:duringForceFastRefresh() and named_settings.low_pan_rate() then
+  if self:duringForceFastRefresh() and G_named_settings.low_pan_rate() then
     -- Downgrade all refreshes to "fast" when ReaderPaging or ReaderScrolling have set this flag
     logger.dbg("_refreshScreen: downgrading all refresh mode to fast during forceFastRefresh.")
     return "fast"

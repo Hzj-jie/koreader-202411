@@ -21,14 +21,15 @@ local T = ffiutil.template
 -- We'll need a bunch of stuff for getifaddrs in NetworkMgr:ifHasAnAddress
 require("ffi/posix_h")
 
--- We unfortunately don't have that one in ffi/posix_h :/
-local EBUSY = 16
-
 local NetworkMgr = {
   -- Cache the last online state to sacrifice the accuracy in return of avoiding
   -- blocking UI for too long.
   was_online = false,
+  EBSY = 16,
 }
+
+-- We unfortunately don't have that one in ffi/posix_h :/
+NetworkMgr.EBUSY = 16
 
 local ConnectivityChecker = {
   settings_id = 0,
@@ -530,7 +531,7 @@ function NetworkMgr:toggleWifiOn()
       timeout = 3,
     }))
     self:_abortWifiConnection()
-  elseif status == EBUSY then
+  elseif status == NetworkMgr.EBUSY then
     -- NOTE: This means turnOnWifi was *not* called (this time).
     -- This should almost never happen, but who knows.
     UIManager:show(InfoMessage:new({

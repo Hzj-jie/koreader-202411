@@ -1156,7 +1156,7 @@ end
 
 -- Tweaked variant used with the more options variant of buttonprogress and fine tune with numpicker
 -- events are not supported
-function ConfigDialog:onConfigMoreChoose(values, default_value_orig, name, event, args, name_text, more_options_param)
+function ConfigDialog:onConfigMoreChoose(values, default_value_orig, name, event, args, name_text, more_options_param, hide_on_apply)
   if not more_options_param then
     more_options_param = {}
   end
@@ -1181,6 +1181,17 @@ function ConfigDialog:onConfigMoreChoose(values, default_value_orig, name, event
           self:update()
         end
       end
+    end
+    local when_applied_callback = nil
+    if type(hide_on_apply) == "number" then -- timeout
+      UIManager:scheduleIn(hide_on_apply, refresh_dialog_func)
+      self.skip_paint = true
+    elseif hide_on_apply then -- anything but nil or false: provide a callback
+      -- This needs the config option to have an "event" key
+      -- The event handler is responsible for calling this callback when
+      -- it considers it appropriate
+      when_applied_callback = refresh_dialog_func
+      self.skip_paint = true
     end
     if values and event then
       if more_options_param.name then

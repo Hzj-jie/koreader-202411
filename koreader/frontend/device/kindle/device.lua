@@ -314,7 +314,7 @@ function Kindle:initNetworkManager(NetworkMgr)
       end
       -- It's impossible to force a sync wifi connection operation, but can only
       -- rely on the NetworkMgr:connectivityCheck to verify the state.
-      return EBUSY
+      return NetworkMgr.EBUSY
     end
   else
     -- If we can't use the lipc Lua bindings, we can't support any kind of interactive Wi-Fi UI...

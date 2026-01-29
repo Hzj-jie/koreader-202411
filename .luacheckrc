@@ -10,6 +10,9 @@ globals = {
   "math.finite",
   "table.pack",
   "table.unpack",
+  -- used by koreader/plugins/exporter.koplugin/template/slt2.lua to check lua
+  -- compatibility.
+  "_ENV",
 }
 -- TODO: Remove in favor of default 120, stylua doesn't work very well and
 -- sometimes leaves the line longer than the 120
@@ -22,6 +25,7 @@ unused = false
 -- TODO: Remove
 ignore = {
   "411", --variable * was previously defined
+  "421", --shadowing definition of variable
   "423", --shadowing definition of loop variable
   "431", --shadowing upvalue
   "432", --shadowing upvalue argument

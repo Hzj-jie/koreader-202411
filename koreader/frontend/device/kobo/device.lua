@@ -36,17 +36,17 @@ local function checkStandby(target_state)
   logger.dbg("Kobo: checking if standby is possible ...")
   local f = io.open("/sys/power/state")
   if not f then
-    return no
+    return util.no
   end
   local mode = f:read()
   f:close()
   logger.dbg("Kobo: available power states:", mode)
   if mode and mode:find(target_state) then
     logger.dbg("Kobo: target standby state '" .. target_state .. "' is supported")
-    return yes
+    return util.yes
   end
   logger.dbg("Kobo: target standby state '" .. target_state .. "' is unsupported")
-  return no
+  return util.no
 end
 
 -- Return the highest core number
