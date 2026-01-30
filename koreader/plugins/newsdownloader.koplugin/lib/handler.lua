@@ -182,7 +182,8 @@ local function getFirstKey(tb)
     --O uso da função next não funciona para pegar o primeiro elemento. Trava aqui
     --k, v = next(tb)
     --return k
-    for k, v in pairs(tb) do
+    -- TODO: Address this luacheck warning.
+    for k, v in pairs(tb) do  -- luacheck: ignore
       return k
     end
     return nil
