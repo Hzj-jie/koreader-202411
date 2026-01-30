@@ -24,7 +24,6 @@ max_comment_line_length = 1000
 unused = false
 -- TODO: Remove
 ignore = {
-  "411", --variable * was previously defined
   "421", --shadowing definition of variable
   "423", --shadowing definition of loop variable
   "431", --shadowing upvalue

@@ -10,7 +10,6 @@ local util = require("util")
 local _ = require("gettext")
 
 -- We're going to need a few <linux/fb.h> & <linux/input.h> constants...
-local ffi = require("ffi")
 local C = ffi.C
 require("ffi/linux_fb_h")
 require("ffi/linux_input_h")

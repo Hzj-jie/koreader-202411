@@ -108,7 +108,7 @@ dateparser.register_format("W3CDTF", function(rest)
       rest = ""
       offset_hours = 0
     else
-      local sign, offset_h, offset_m
+      local sign, offset_h
       sign, offset_h, rest = rest:match("^([+-])(%d%d)%:?(.*)$")
       local offset_m, alt_rest = rest:match("^(%d%d)(.*)$")
       if offset_m then
