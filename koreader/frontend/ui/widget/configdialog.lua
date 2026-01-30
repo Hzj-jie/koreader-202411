@@ -1161,7 +1161,7 @@ function ConfigDialog:onConfigMoreChoose(
   default_value_orig,
   name,
   event,
-  args,
+  args,  -- luacheck: ignore 212
   name_text,
   more_options_param,
   hide_on_apply

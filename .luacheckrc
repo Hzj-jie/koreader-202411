@@ -17,9 +17,17 @@ max_line_length = 1000
 max_string_line_length = 1000
 -- TODO: Should reduce, stylua doesn't format comment.
 max_comment_line_length = 1000
--- TODO: Remove
-unused = false
--- TODO: Remove
 ignore = {
-  "432/self", --shadowing upvalue argument self, allow self being reused.
+  "211/__", -- unused variable __: avoid conflicting with _
+  "212/arg", -- unused argument arg: commonly used by event handlers.
+  "212/self", -- unused argument self
+  "212/__", -- unused argument __: avoid conflicting with _
+  "213", -- unused loop variable
+  "231/__", -- variable __ is never accessed: avoid conflicting with _
+  "432/self", -- shadowing upvalue argument self: allow self being reused.
+  -- TODO: Remove
+  "211", -- unused variable
+  "212", -- unused argument
+  "231", -- variable ? is never accessed
+  "311", -- value assigned to variable ? is unused
 }
