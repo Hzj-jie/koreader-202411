@@ -1094,11 +1094,9 @@ function HttpInspector:exposeEvent(uri, reqinfo)
   for _, action in ipairs(actions) do
     if type(action) == "string" then
       add_html(T("<hr size='1' noshade ><big style='background-color: #dddddd;'>%1</big>", action))
-    elseif action.condition == false then
+    elseif action.condition == false then -- luacheck: ignore 542
       -- Some bottom menu are just disabled on all devices,
       -- so just don't show any disabled action
-      do
-      end -- luacheck: ignore 541
     else
       local active = false
       if action.general or action.device or action.screen then

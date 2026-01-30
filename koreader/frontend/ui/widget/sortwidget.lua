@@ -493,10 +493,8 @@ function SortWidget:onSwipe(arg, ges_ev)
   elseif direction == "south" then
     -- Allow easier closing with swipe down
     self:onExit()
-  elseif direction == "north" then
+  elseif direction == "north" then -- luacheck: ignore 542
     -- no use for now
-    do
-    end -- luacheck: ignore 541
   else -- diagonal swipe
     -- trigger full refresh
     UIManager:setDirty(nil, "full")

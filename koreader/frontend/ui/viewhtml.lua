@@ -297,9 +297,8 @@ function ViewHtml:_handleLongPress(document, css_selectors_offsets, offset_shift
                 if attrname == "id" then -- keep id= full, it can be useful with DocFragment
                   all_attrs = all_attrs .. sel
                 end
-              elseif util.arrayContains(ignore_attrs, attrname) then
-                do
-                end -- luacheck: ignore 541
+              elseif util.arrayContains(ignore_attrs, attrname) then -- luacheck: ignore 542
+                -- do nothing
               elseif util.arrayContains(skip_value_attrs, attrname) then
                 all_attrs = all_attrs .. "[" .. attrname .. "]"
               else

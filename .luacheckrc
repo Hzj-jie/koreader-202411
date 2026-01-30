@@ -25,5 +25,4 @@ unused = false
 -- TODO: Remove
 ignore = {
   "432", --shadowing upvalue argument
-  "541", --empty do..end block
 }

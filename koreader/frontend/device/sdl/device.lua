@@ -260,10 +260,8 @@ function Device:init()
           UIManager:userInput(fake_pan_ev)
           UIManager:userInput(fake_release_ev)
         end
-      elseif ev.code == SDL_MULTIGESTURE then
+      elseif ev.code == SDL_MULTIGESTURE then -- luacheck: ignore 542
         -- no-op for now
-        do
-        end -- luacheck: ignore 541
       elseif ev.code == SDL_DROPFILE then
         local dropped_file_path = ev.value
         if dropped_file_path and dropped_file_path ~= "" then

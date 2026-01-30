@@ -441,10 +441,8 @@ function FootnoteWidget:onSwipeFollow(arg, ges)
       self.close_callback(self.height)
     end
     return true
-  elseif direction == "north" then
+  elseif direction == "north" then -- luacheck: ignore 542
     -- no use for now
-    do
-    end -- luacheck: ignore 541
   else -- diagonal swipe
     -- trigger full refresh
     UIManager:setDirty(nil, "full")

@@ -1500,10 +1500,8 @@ function Menu:onSwipe(arg, ges_ev)
     end
     -- If there is no close button, it's a top level Menu and swipe
     -- up/down may hide/show top menu
-  elseif direction == "north" then
+  elseif direction == "north" then -- luacheck: ignore 542
     -- no use for now
-    do
-    end -- luacheck: ignore 541
   else -- diagonal swipe
     -- trigger full refresh
     UIManager:setDirty(nil, "full")

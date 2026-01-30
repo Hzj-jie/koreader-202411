@@ -470,10 +470,8 @@ When the book's language tag is not among our presets, no specific features will
         -- Output other lang tags
         for __, lang_tag in ipairs(lang_tags) do
           local lang_info = loaded_lang_infos[lang_tag]
-          if lang_tag == main_lang_tag then
+          if lang_tag == main_lang_tag then -- luacheck: ignore 542
             -- Already included
-            do
-            end -- luacheck: ignore 541
           elseif seen_hyph_dicts[lang_info.hyph_dict_name] then
             table.insert(lang_infos, string.format("%s\t\t(%s)", lang_tag, lang_info.hyph_dict_name))
           else
