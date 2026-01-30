@@ -336,14 +336,14 @@ end
 
 function Terminal:terminal()
   local execute_callback = function()
-            UIManager:close(self.input)
-            -- so we know which middle button to display in the results:
-            self.source = "terminal"
-            self.command = self:ensureWhitelineAfterCommands(self.input:getInputText())
-            Trapper:wrap(function()
-              self:execute()
-            end)
-          end
+    UIManager:close(self.input)
+    -- so we know which middle button to display in the results:
+    self.source = "terminal"
+    self.command = self:ensureWhitelineAfterCommands(self.input:getInputText())
+    Trapper:wrap(function()
+      self:execute()
+    end)
+  end
   self.input = InputDialog:new({
     title = _('Enter a command and press "Execute"'),
     input = self.command:gsub("\n+$", ""),
@@ -351,7 +351,7 @@ function Terminal:terminal()
     input_type = "string",
     allow_newline = true,
     cursor_at_end = true,
-    press_callback = execute_callback,  -- Trigger execute on devices with DPad
+    press_callback = execute_callback, -- Trigger execute on devices with DPad
     fullscreen = true,
     buttons = {
       {
@@ -419,7 +419,7 @@ function Terminal:terminal()
         },
         {
           text = _("Execute"),
-          callback =execute_callback, 
+          callback = execute_callback,
         },
       },
     },

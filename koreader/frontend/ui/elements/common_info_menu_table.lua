@@ -129,9 +129,8 @@ common_info.report_bug = {
       other_buttons = {
         {
           {
-            text = G_reader_settings:isTrue("debug_verbose") and _("Disable verbose logging") or _(
-              "Enable verbose logging"
-            ),
+            text = G_reader_settings:isTrue("debug_verbose") and _("Disable verbose logging")
+              or _("Enable verbose logging"),
             callback = function()
               -- Flip verbose logging on dismissal
               -- Unlike in the dev options, we flip everything at once.

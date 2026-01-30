@@ -1471,8 +1471,7 @@ function CalendarView:_populateItems()
         UIManager:show(CalendarDayView:new({
           day_ts = day_ts
             + (self.reader_statistics.settings.calendar_day_start_hour or 0) * 3600
-            + (self.reader_statistics.settings.calendar_day_start_minute or 0)
-              * 60,
+            + (self.reader_statistics.settings.calendar_day_start_minute or 0) * 60,
           reader_statistics = self.reader_statistics,
           close_callback = function(this)
             -- Refresh calendar in case some day stats were reset for some books

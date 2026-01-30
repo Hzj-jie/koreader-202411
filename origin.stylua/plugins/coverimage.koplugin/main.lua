@@ -42,8 +42,7 @@ local function isPathAllowed(path)
     return false
   elseif Device.isAndroid() then
     return path ~= "/sdcard/koreader/cache/"
-      and ffiutil.realpath(path)
-        ~= ffiutil.realpath(android.getExternalStoragePath() .. "/koreader/cache/")
+      and ffiutil.realpath(path) ~= ffiutil.realpath(android.getExternalStoragePath() .. "/koreader/cache/")
   else
     return path ~= "./cache/" and ffiutil.realpath(path) ~= ffiutil.realpath("./cache/")
   end

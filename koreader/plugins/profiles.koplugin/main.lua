@@ -812,8 +812,7 @@ function Profiles:genAutoExecDocConditionalMenuItem(text, event, profile_name, s
               return txt
                 .. ": "
                 .. (
-                  collections_nb == 1
-                    and self.ui.collections:getCollectionTitle(next(collections))
+                  collections_nb == 1 and self.ui.collections:getCollectionTitle(next(collections))
                   or "(" .. collections_nb .. ")"
                 )
             end

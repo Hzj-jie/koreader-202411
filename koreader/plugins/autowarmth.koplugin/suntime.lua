@@ -270,8 +270,7 @@ function SunTime:initVars(hour)
   -- Time is here in Julian centuries
   local epsilon = 23
     + 26 / 60
-    + (21.406 - T * (46.836769 - T * (0.0001831 + T * (0.00200340 + T * (-5.76E-7 - T * 4.34E-8)))))
-      / 3600 --°
+    + (21.406 - T * (46.836769 - T * (0.0001831 + T * (0.00200340 + T * (-5.76E-7 - T * 4.34E-8))))) / 3600 --°
 
   self.epsilon = epsilon * toRad
 

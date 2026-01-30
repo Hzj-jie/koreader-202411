@@ -1156,7 +1156,16 @@ end
 
 -- Tweaked variant used with the more options variant of buttonprogress and fine tune with numpicker
 -- events are not supported
-function ConfigDialog:onConfigMoreChoose(values, default_value_orig, name, event, args, name_text, more_options_param, hide_on_apply)
+function ConfigDialog:onConfigMoreChoose(
+  values,
+  default_value_orig,
+  name,
+  event,
+  args,
+  name_text,
+  more_options_param,
+  hide_on_apply
+)
   if not more_options_param then
     more_options_param = {}
   end

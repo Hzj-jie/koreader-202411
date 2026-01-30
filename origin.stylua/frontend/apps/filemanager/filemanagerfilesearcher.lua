@@ -443,8 +443,7 @@ function FileSearcher:showSelectModeDialog()
   local item_table = self.search_menu.item_table
   local select_count = util.tableSize(self.selected_files)
   local actions_enabled = select_count > 0
-  local title = actions_enabled
-      and T(N_("1 file selected", "%1 files selected", select_count), select_count)
+  local title = actions_enabled and T(N_("1 file selected", "%1 files selected", select_count), select_count)
     or _("No files selected")
   local select_dialog
   local buttons = {

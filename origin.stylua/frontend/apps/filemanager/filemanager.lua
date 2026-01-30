@@ -527,8 +527,7 @@ function FileManager:tapPlus()
     end
     local select_count = util.tableSize(self.selected_files)
     local actions_enabled = select_count > 0
-    title = actions_enabled
-        and T(N_("1 file selected", "%1 files selected", select_count), select_count)
+    title = actions_enabled and T(N_("1 file selected", "%1 files selected", select_count), select_count)
       or _("No files selected")
     buttons = {
       {
@@ -1013,8 +1012,7 @@ function FileManager:pasteSelectedFiles(overwrite)
     end
   end
   if skipped_nb > 0 then -- keep select mode on
-    local text = self.cutfile
-        and T(N_("1 file was not moved", "%1 files were not moved", skipped_nb), skipped_nb)
+    local text = self.cutfile and T(N_("1 file was not moved", "%1 files were not moved", skipped_nb), skipped_nb)
       or T(N_("1 file was not copied", "%1 files were not copied", skipped_nb), skipped_nb)
     UIManager:show(InfoMessage:new({
       text = text,

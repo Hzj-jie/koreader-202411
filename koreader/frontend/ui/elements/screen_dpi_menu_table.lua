@@ -17,8 +17,7 @@ end
 
 local function setDPI(dpi_val)
   local UIManager = require("ui/uimanager")
-  local text = dpi_val
-      and T(_("DPI set to %1. This will take effect after restarting."), dpi_val)
+  local text = dpi_val and T(_("DPI set to %1. This will take effect after restarting."), dpi_val)
     or _("DPI set to auto. This will take effect after restarting.")
   -- If this is set to nil, reader.lua doesn't call setScreenDPI
   G_reader_settings:save("screen_dpi", dpi_val)
