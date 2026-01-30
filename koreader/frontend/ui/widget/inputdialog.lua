@@ -374,6 +374,7 @@ function InputDialog:init()
     input_type = self.input_type,
     text_type = self.text_type,
     enter_callback = not self.allow_newline and self.enter_callback,
+    press_callback = self.press_callback,
     strike_callback = self.strike_callback,
     edit_callback = self._buttons_edit_callback or self.edited_callback, -- self._buttons_edit_callback is nil if no Save/Close buttons
     scroll_callback = self._buttons_scroll_callback, -- nil if no Nav or Scroll buttons
@@ -680,7 +681,7 @@ end
 
 -- fullscreen mode & add_nav_bar breaks some of our usual assumptions about what should happen on "Back" input events...
 function InputDialog:onKeyboardClosed()
-  if self.add_nav_bar and self.fullscreen then
+  if self.add_nav_bar or self.fullscreen then
     -- If the keyboard was closed via a key event (Back), make sure we reinit properly like in toggleKeyboard...
     self.input = self:getInputText()
     self:onExit()
@@ -713,6 +714,9 @@ function InputDialog:onExit()
     -- This lets the caller store/process the current top line num and cursor position via this callback
     self.view_pos_callback(self._top_line_num, self._charpos)
   end
+  -- Avoid calling onKeyboardClosed again.
+  self.add_nav_bar = false
+  self.fullscreen = false
   self:closeKeyboard()
 end
 

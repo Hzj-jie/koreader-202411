@@ -120,6 +120,10 @@ function Widget:dirtyRegion()
   return self.dirty_dimen or self:getSize()
 end
 
+function Widget:scheduleRepaint()
+  require("ui/uimanager"):scheduleWidgetRepaint(self)
+end
+
 -- Get the show(widget) of current widget, using this function should be careful
 -- due to it's slowness.
 function Widget:showParent()

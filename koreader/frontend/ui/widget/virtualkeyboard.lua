@@ -851,7 +851,7 @@ function VirtualKeyboard:init()
   self:initLayer(self.keyboard_layer)
   self.tap_interval_override = time.ms(G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0)
   if Device:hasKeys() then
-    self.key_events.Exit = { { "Back" } }
+    self.key_events.KeyboardBack = { { Device.input.group.Back } }
   end
   if keyboard.wrapInputBox then
     self.uwrap_func = keyboard.wrapInputBox(self.inputbox) or self.uwrap_func
@@ -922,17 +922,23 @@ function VirtualKeyboard:setKeyboardLayout(layout)
   keyboard_state.force_current_layout = false
 end
 
+function VirtualKeyboard:onKeyboardBack()
+  if Device:hasDPad() and self.inputbox and self.inputbox.parent and self.inputbox.parent.deny_keyboard_hiding then
+    return false
+  end
+  self:onExit()
+  return true
+end
+
 function VirtualKeyboard:onExit()
   UIManager:close(self)
-  if self.inputbox and Device:hasDPad() then
+  if Device:hasDPad() and self.inputbox and self.inputbox.parent and self.inputbox.parent.onKeyboardClosed then
     -- Let InputText handle this KeyPress "Back" event to unfocus, otherwise, another extra Back event is needed.
     -- NOTE: Keep in mind InputText is a special snowflake, and implements the raw onKeyPress handler for this!
     -- Also, notify another widget that actually may want to know when *we* get closed, i.e., the parent (Input*Dialog*).
     -- We need to do this manually because InputText's onKeyPress handler will very likely return true,
     -- stopping event propagation (c.f., the last hasDPad branch of said handler).
-    if self.inputbox and self.inputbox.parent and self.inputbox.parent.onKeyboardClosed then
-      self.inputbox.parent:onKeyboardClosed()
-    end
+    self.inputbox.parent:onKeyboardClosed()
     return false
   end
   return true
