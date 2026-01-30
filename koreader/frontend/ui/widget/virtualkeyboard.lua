@@ -923,7 +923,12 @@ function VirtualKeyboard:setKeyboardLayout(layout)
 end
 
 function VirtualKeyboard:onKeyboardBack()
-  if Device:hasDPad() and self.inputbox ~= nil and self.inputbox.parent ~= nil and self.inputbox.parent.deny_keyboard_hiding then
+  if
+    Device:hasDPad()
+    and self.inputbox ~= nil
+    and self.inputbox.parent ~= nil
+    and self.inputbox.parent.deny_keyboard_hiding
+  then
     return false
   end
   self:onExit()
@@ -932,7 +937,12 @@ end
 
 function VirtualKeyboard:onExit()
   UIManager:close(self)
-  if Device:hasDPad() and self.inputbox ~= nil and self.inputbox.parent ~= nil and self.inputbox.parent.onKeyboardClosed ~= nil then
+  if
+    Device:hasDPad()
+    and self.inputbox ~= nil
+    and self.inputbox.parent ~= nil
+    and self.inputbox.parent.onKeyboardClosed ~= nil
+  then
     -- Let InputText handle this KeyPress "Back" event to unfocus, otherwise, another extra Back event is needed.
     -- NOTE: Keep in mind InputText is a special snowflake, and implements the raw onKeyPress handler for this!
     -- Also, notify another widget that actually may want to know when *we* get closed, i.e., the parent (Input*Dialog*).
