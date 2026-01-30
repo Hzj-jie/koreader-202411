@@ -10,9 +10,6 @@ globals = {
   "math.finite",
   "table.pack",
   "table.unpack",
-  -- used by koreader/plugins/exporter.koplugin/template/slt2.lua to check lua
-  -- compatibility.
-  "_ENV",
 }
 -- TODO: Remove in favor of default 120, stylua doesn't work very well and
 -- sometimes leaves the line longer than the 120
