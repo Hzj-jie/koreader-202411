@@ -221,7 +221,7 @@ function InputDialog:init()
   else
     self.text_width = self.text_width or math.floor(self.width * 0.9)
   end
-  if self.readonly or G_reader_settings:isFalse("virtual_keyboard_enabled") then -- hide keyboard if we can't edit
+  if self.readonly then -- hide keyboard if we can't edit
     self.keyboard_visible = false
   end
   if self.fullscreen or self.add_nav_bar then
@@ -590,12 +590,7 @@ function InputDialog:setAllowNewline(allow)
 end
 
 function InputDialog:onShow()
-  if (Device:hasKeyboard() or Device:hasScreenKB()) and G_reader_settings:isFalse("virtual_keyboard_enabled") then
-    self:closeKeyboard()
-  else
-    self:showKeyboard(self.ignore_first_hold_release)
-  end
-
+  self:showKeyboard(self.ignore_first_hold_release)
   UIManager:setDirty(self, function()
     return "ui", self.dialog_frame.dimen
   end)
@@ -628,10 +623,6 @@ function InputDialog:isKeyboardVisible()
 end
 
 function InputDialog:lockKeyboard(toggle)
-  if (Device:hasKeyboard() or Device:hasScreenKB()) and G_reader_settings:isFalse("virtual_keyboard_enabled") then
-    -- do not lock the virtual keyboard when user is hiding it, we still *might* want to activate it via shortcuts ("Shift" + "Home") when in need of special characters or symbols
-    return
-  end
   return self._input_widget:lockKeyboard(toggle)
 end
 

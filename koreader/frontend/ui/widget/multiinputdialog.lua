@@ -263,11 +263,6 @@ function MultiInputDialog:onSwitchFocus(inputbox)
   self._input_widget:focus()
   self.focused_field_idx = inputbox.idx
 
-  if (Device:hasKeyboard() or Device:hasScreenKB()) and G_reader_settings:isFalse("virtual_keyboard_enabled") then
-    -- do not load virtual keyboard when user is hiding it.
-    return
-  end
-  -- Otherwise make sure we have a (new) visible keyboard
   self:showKeyboard()
 end
 

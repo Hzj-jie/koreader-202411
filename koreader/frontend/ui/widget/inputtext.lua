@@ -130,9 +130,7 @@ local function initTouchEvents()
       if self.parent.onSwitchFocus then
         self.parent:onSwitchFocus(self)
       else
-        if G_reader_settings:nilOrTrue("virtual_keyboard_enabled") then
-          self:showKeyboard()
-        end
+        self:showKeyboard()
         -- Make sure we're flagged as in focus again.
         -- NOTE: self:focus() does a full free/reinit cycle, which is completely unnecessary to begin with,
         --       *and* resets cursor position, which is problematic when tapping on an already in-focus field (#12444).
@@ -304,10 +302,7 @@ local function initDPadEvents()
       -- Event sent by focusmanager
       if self.parent.onSwitchFocus then
         self.parent:onSwitchFocus(self)
-      elseif
-        (not Device:hasKeyboard() and not Device:hasScreenKB())
-        or G_reader_settings:isFalse("virtual_keyboard_enabled")
-      then
+      else
         self:showKeyboard()
       end
       self:focus()
@@ -681,9 +676,9 @@ function InputText:_handleControlKeys(key)
       self:rightChar()
       -- NOTE: When we are not showing the virtual keyboard, let focusmanger handle up/down keys, as they  are used to directly move around the widget
       --       seamlessly in and out of text fields and onto virtual buttons like `[cancel] [search dict]`, no need to unfocus first.
-    elseif key["Up"] and G_reader_settings:nilOrTrue("virtual_keyboard_enabled") then
+    elseif key["Up"] then
       self:upLine()
-    elseif key["Down"] and G_reader_settings:nilOrTrue("virtual_keyboard_enabled") then
+    elseif key["Down"] then
       self:downLine()
     elseif key["End"] then
       self:goToEnd()
@@ -694,7 +689,7 @@ function InputText:_handleControlKeys(key)
     elseif key["Tab"] then
       self:addChars("    ")
       -- as stated before, we also don't need to unfocus when there is no keyboard, one less key press to exit widgets, yay!
-    elseif key["Back"] and G_reader_settings:nilOrTrue("virtual_keyboard_enabled") then
+    elseif key["Back"] then
       if self.focused then
         self:unfocus()
       end
