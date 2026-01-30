@@ -913,7 +913,7 @@ function VirtualKeyboard:setKeyboardLayout(layout)
   if prev_keyboard_height and self:getSize().h ~= prev_keyboard_height then
     self:_refresh(true, true)
     -- Keyboard height change: notify parent (InputDialog)
-    if self.inputbox and self.inputbox.parent and self.inputbox.parent.onKeyboardHeightChanged then
+    if self.inputbox ~= nil and self.inputbox.parent ~= nil and self.inputbox.parent.onKeyboardHeightChanged ~= nil then
       self.inputbox.parent:onKeyboardHeightChanged()
     end
   else
@@ -923,7 +923,7 @@ function VirtualKeyboard:setKeyboardLayout(layout)
 end
 
 function VirtualKeyboard:onKeyboardBack()
-  if Device:hasDPad() and self.inputbox and self.inputbox.parent and self.inputbox.parent.deny_keyboard_hiding then
+  if Device:hasDPad() and self.inputbox ~= nil and self.inputbox.parent ~= nil and self.inputbox.parent.deny_keyboard_hiding then
     return false
   end
   self:onExit()
@@ -932,7 +932,7 @@ end
 
 function VirtualKeyboard:onExit()
   UIManager:close(self)
-  if Device:hasDPad() and self.inputbox and self.inputbox.parent and self.inputbox.parent.onKeyboardClosed then
+  if Device:hasDPad() and self.inputbox ~= nil and self.inputbox.parent ~= nil and self.inputbox.parent.onKeyboardClosed ~= nil then
     -- Let InputText handle this KeyPress "Back" event to unfocus, otherwise, another extra Back event is needed.
     -- NOTE: Keep in mind InputText is a special snowflake, and implements the raw onKeyPress handler for this!
     -- Also, notify another widget that actually may want to know when *we* get closed, i.e., the parent (Input*Dialog*).
