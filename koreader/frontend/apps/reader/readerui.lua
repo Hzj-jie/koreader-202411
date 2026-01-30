@@ -691,7 +691,7 @@ end
 function ReaderUI:showReader(file, provider, seamless)
   logger.dbg("show reader ui")
 
-  origin_file = file
+  local origin_file = file
   file = ffiUtil.realpath(file)
   if file == nil or lfs.attributes(file, "mode") ~= "file" then
     UIManager:show(InfoMessage:new({

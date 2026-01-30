@@ -10,9 +10,9 @@ local _ = require("gettext")
 local C_ = _.pgettext
 local T = require("ffi/util").template
 
-battery_status_dismissed = false
-battery_confirm_box = nil
-memory_confirm_box = nil
+local battery_status_dismissed = false
+local battery_confirm_box = nil
+local memory_confirm_box = nil
 
 local ReaderDeviceStatus = WidgetContainer:extend({})
 
