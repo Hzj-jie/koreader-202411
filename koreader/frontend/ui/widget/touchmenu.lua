@@ -1255,7 +1255,6 @@ end
 function TouchMenu:onShowMenuSearch()
   local InputDialog = require("ui/widget/inputdialog")
   local ConfirmBox = require("ui/widget/confirmbox")
-  local Menu = require("ui/widget/menu")
 
   local function show_search_results(search_string)
     local found_menu_items = self:search(search_string)

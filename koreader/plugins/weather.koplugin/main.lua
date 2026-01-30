@@ -243,14 +243,11 @@ function Weather:getSubMenuItems()
             return false
           end
           if result.error ~= nil then
-            local Screen = require("device").screen
-            local sample
-            sample = InfoMessage:new({
+            UIManager:show(InfoMessage:new({
               text = _("Error: " .. result.error.message),
               height = Screen:scaleBySize(400),
               show_icon = true,
-            })
-            UIManager:show(sample)
+            }))
           else
             self:weeklyForecast(result)
           end

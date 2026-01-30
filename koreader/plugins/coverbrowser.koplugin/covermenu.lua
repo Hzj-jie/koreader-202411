@@ -185,7 +185,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
         item:update()
         if item.bookinfo_found then
           logger.dbg("  found", item.text)
-          local show_parent = self:showParent()
+          show_parent = self:showParent()
           assert(show_parent ~= nil)
           show_parent.dithered = item._has_cover_image
           UIManager:setDirty(show_parent, function()

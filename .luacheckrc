@@ -24,7 +24,6 @@ max_comment_line_length = 1000
 unused = false
 -- TODO: Remove
 ignore = {
-  "431", --shadowing upvalue
   "432", --shadowing upvalue argument
   "541", --empty do..end block
 }
