@@ -579,12 +579,14 @@ function InputText:unfocus()
   self.focused = false
   self.text_widget:unfocus()
   self._frame_textwidget.color = Blitbuffer.COLOR_DARK_GRAY
+  self:scheduleRepaint()
 end
 
 function InputText:focus()
   self.focused = true
   self.text_widget:focus()
   self._frame_textwidget.color = Blitbuffer.COLOR_BLACK
+  self:scheduleRepaint()
 end
 
 -- NOTE: This key_map can be used for keyboards without numeric keys, such as on Kindles with keyboards. It is loosely 'inspired' by the symbol layer on the virtual keyboard but,
@@ -684,7 +686,16 @@ function InputText:_handleControlKeys(key)
       self:goToEnd()
     elseif key["Home"] then
       self:goToHome()
-    elseif key["Press"] or key["Enter"] then
+    elseif key["Press"] then
+      -- Unlike "Enter", this is a dedicated "Press" key which represents
+      -- "Enter" on emulator or DPad press on Kindle with keyboard.
+      if self.press_callback then
+        self.press_callback()
+      else
+        -- Otherwise, treat it as Enter.
+        self:addChars("\n")
+      end
+    elseif key["Enter"] then
       self:addChars("\n")
     elseif key["Tab"] then
       self:addChars("    ")
