@@ -347,6 +347,7 @@ function Terminal:terminal()
       {
         {
           text = _("Cancel"),
+          id = "close",
           callback = function()
             UIManager:close(self.input)
           end,
