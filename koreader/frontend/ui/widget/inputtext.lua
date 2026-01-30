@@ -130,7 +130,9 @@ local function initTouchEvents()
       if self.parent.onSwitchFocus then
         self.parent:onSwitchFocus(self)
       else
-        self:showKeyboard()
+        if G_reader_settings:nilOrTrue("virtual_keyboard_enabled") then
+          self:showKeyboard()
+        end
         -- Make sure we're flagged as in focus again.
         -- NOTE: self:focus() does a full free/reinit cycle, which is completely unnecessary to begin with,
         --       *and* resets cursor position, which is problematic when tapping on an already in-focus field (#12444).

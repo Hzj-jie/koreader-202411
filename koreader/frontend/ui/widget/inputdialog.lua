@@ -221,7 +221,7 @@ function InputDialog:init()
   else
     self.text_width = self.text_width or math.floor(self.width * 0.9)
   end
-  if self.readonly then -- hide keyboard if we can't edit
+  if self.readonly or G_reader_settings:isFalse("virtual_keyboard_enabled") then -- hide keyboard if we can't edit
     self.keyboard_visible = false
   end
   if self.fullscreen or self.add_nav_bar then
