@@ -24,5 +24,5 @@ max_comment_line_length = 1000
 unused = false
 -- TODO: Remove
 ignore = {
-  "432", --shadowing upvalue argument
+  "432/self", --shadowing upvalue argument self, allow self being reused.
 }

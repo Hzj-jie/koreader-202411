@@ -1681,18 +1681,18 @@ function UIManager:keyEvents()
     if not w then
       return
     end
-    local function check(w)
-      local c = w.key_events
-      if not c then
-        return
-      end
-      for k, v in pairs(c) do
-        if not v.is_inactive and k ~= "AnyKeyPressed" and k ~= "SelectByShortCut" then
-          key_events[k] = v
-        end
+    -- check w itself
+    local c = w.key_events
+    if not c then
+      return
+    end
+    for k, v in pairs(c) do
+      if not v.is_inactive and k ~= "AnyKeyPressed" and k ~= "SelectByShortCut" then
+        key_events[k] = v
       end
     end
-    check(w)
+
+    -- check w's sub-widgets.
     for _, widget in ipairs(w) do
       check_widget(widget)
     end

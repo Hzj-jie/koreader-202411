@@ -1024,10 +1024,10 @@ function VirtualKeyboard:hideKeyboard()
 end
 
 function VirtualKeyboard:initLayer(layer)
-  local function normalize(layer)
+  local function normalize(l)
     -- to be sure layer is selected properly
-    layer = math.max(layer, self.min_layer)
-    return math.min(layer, self.max_layer)
+    l = math.max(l, self.min_layer)
+    return math.min(l, self.max_layer)
   end
 
   if layer then
