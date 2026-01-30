@@ -156,7 +156,7 @@ function slt2.render_co(t, env)
     if env ~= nil then
       setmetatable(env, mt52)
     end
-    f = assert(load(t.code, t.name, "t", env or _ENV))  -- luacheck: ignore 113
+    f = assert(load(t.code, t.name, "t", env or _ENV)) -- luacheck: ignore 113
   else -- lua 5.1
     if env ~= nil then
       setmetatable(env, mt51)

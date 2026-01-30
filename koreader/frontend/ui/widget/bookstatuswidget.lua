@@ -521,13 +521,13 @@ function BookStatusWidget:onConfigChoose(values, name, event, args, position)
 end
 
 function BookStatusWidget:onSwipe(arg, ges_ev)
+  if ges_ev.direction == "east" or ges_ev.direction == "west" or ges_ev.direction == "north" then
+    -- no use for now
+    return false
+  end
   if ges_ev.direction == "south" then
     -- Allow easier closing with swipe down
-    self:onExit()
-  elseif ges_ev.direction == "east" or
-         ges_ev.direction == "west" or
-         ges_ev.direction == "north" then -- luacheck: ignore 542
-    -- no use for now
+    return self:onExit()
   else -- diagonal swipe
     -- trigger full refresh
     UIManager:setDirty(nil, "full", nil, true)
