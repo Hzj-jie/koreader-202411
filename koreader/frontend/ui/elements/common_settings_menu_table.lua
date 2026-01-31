@@ -1,4 +1,3 @@
-local DateTimeWidget = require("ui/widget/datetimewidget")
 local Device = require("device")
 local DocSettings = require("docsettings")
 local Event = require("ui/event")
@@ -9,8 +8,6 @@ local NetworkMgr = require("ui/network/manager")
 local PowerD = Device:getPowerDevice()
 local UIManager = require("ui/uimanager")
 local _ = require("gettext")
-local N_ = _.ngettext
-local C_ = _.pgettext
 local Screen = Device.screen
 local T = require("ffi/util").template
 

@@ -1061,8 +1061,6 @@ function ReaderPaging:onGotoPageRel(diff)
   new_va[x] = old_va[x] + x_pan_off
   new_va[y] = old_va[y]
 
-  local prev_page = self.current_page
-
   -- Handle cases when the view area gets out of page boundaries
   if not self.page_area:contains(new_va) then
     if not at_end(x) then

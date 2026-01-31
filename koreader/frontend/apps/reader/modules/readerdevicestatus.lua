@@ -107,7 +107,7 @@ function ReaderDeviceStatus:_checkMemoryStatus()
   if not statm then
     return
   end
-  local dummy, rss = statm:read("*number", "*number")
+  local _, rss = statm:read("*number", "*number")
   statm:close()
   rss = math.floor(rss * (4096 / 1024 / 1024))
   if rss < self.memory_threshold then

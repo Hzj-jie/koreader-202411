@@ -4,7 +4,6 @@ local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Size = require("ui/size")
-local Screen = require("device").screen
 
 local VerticalScrollBar = InputContainer:extend({
   enable = true,

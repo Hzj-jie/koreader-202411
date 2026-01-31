@@ -4,7 +4,6 @@ Button with a big icon image! Designed for touch devices.
 
 local BD = require("ui/bidi")
 local Device = require("device")
-local Geom = require("ui/geometry")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
 local InputContainer = require("ui/widget/container/inputcontainer")

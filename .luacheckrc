@@ -26,7 +26,6 @@ ignore = {
   "231/__", -- variable __ is never accessed: avoid conflicting with _
   "432/self", -- shadowing upvalue argument self: allow self being reused.
   -- TODO: Remove
-  "211", -- unused variable
   "212", -- unused argument
   "231", -- variable ? is never accessed
   "311", -- value assigned to variable ? is unused

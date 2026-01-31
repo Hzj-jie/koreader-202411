@@ -1,5 +1,4 @@
 local Widget = require("ui/widget/widget")
-local logger = require("logger")
 
 --[[
 Dummy Widget that reserves horizontal space

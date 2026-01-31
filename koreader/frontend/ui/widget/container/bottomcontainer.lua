@@ -3,7 +3,6 @@ BottomContainer contains its content (1 widget) at the bottom of its own
 dimensions
 --]]
 
-local Geom = require("ui/geometry")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 
 local BottomContainer = WidgetContainer:extend({})

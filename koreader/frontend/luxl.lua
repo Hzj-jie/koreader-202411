@@ -328,14 +328,6 @@ local EVENT_END_DOC = 5 -- End of document
 local EVENT_MARK = 6 -- Internal only; notes position in buffer
 local EVENT_NONE = 7 -- Internal only; should never see this event
 
-local entity_refs = {
-  ["&lt;"] = "<",
-  ["&gt;"] = ">",
-  ["&amp;"] = "&",
-  ["&apos;"] = "'",
-  ["&quot;"] = '"',
-}
-
 -- Map constant values to constant names.
 local STATE_NAMES = {
   [ST_START] = "ST_START",

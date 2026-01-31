@@ -67,34 +67,6 @@ local function widgetDebugStr(widget)
   return widget.name or widget.id or tostring(widget)
 end
 
---[[
-Compares refresh mode.
-
-Will return the mode that takes precedence.
-]]
-local function update_mode(mode1, mode2)
-  if refresh_modes[mode1] > refresh_modes[mode2] then
-    logger.dbg("update_mode: Update refresh mode", mode2, "to", mode1)
-    return mode1
-  else
-    return mode2
-  end
-end
-
---[[
-Compares dither hints.
-
-Dither always wins.
-]]
-local function update_dither(dither1, dither2)
-  if dither1 and not dither2 then
-    logger.dbg("update_dither: Update dither hint", dither2, "to", dither1)
-    return dither1
-  else
-    return dither2
-  end
-end
-
 local function cropping_region(widget, x, y, w, h)
   assert(widget ~= nil)
   local dimen = widget:getSize()

@@ -66,7 +66,6 @@ local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
 local _ = require("gettext")
-local Input = Device.input
 local Screen = Device.screen
 local T = ffiUtil.template
 

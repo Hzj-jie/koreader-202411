@@ -166,7 +166,7 @@ function NumberPickerWidget:init()
                     end
                     code = code:gsub("^=", "return ")
                     local env = { math = math } -- restrict to only math functions
-                    local func, dummy = load(code, "user_sandbox", nil, env)
+                    local func, _ = load(code, "user_sandbox", nil, env)
                     if func then
                       return pcall(func)
                     end

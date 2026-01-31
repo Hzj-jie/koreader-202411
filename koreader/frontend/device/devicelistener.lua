@@ -5,7 +5,6 @@ local Notification = require("ui/widget/notification")
 local Screen = Device.screen
 local UIManager = require("ui/uimanager")
 local bit = require("bit")
-local time = require("ui/time")
 local _ = require("gettext")
 local T = require("ffi/util").template
 

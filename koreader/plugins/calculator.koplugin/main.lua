@@ -22,9 +22,6 @@ local CalculatorSettingsDialog = require("calculatorsettingsdialog")
 local CalculatorConvertDialog = require("calculatorconvertdialog")
 local Parser = require("formulaparser/formulaparser")
 
-local VERSION_FILE = "plugins/calculator.koplugin/VERSION"
-local LATEST_VERSION = "https://raw.githubusercontent.com/zwim/calculator.koplugin/master/VERSION"
-
 local DEFAULT_INIT_FILE = "plugins/calculator.koplugin/init.calc"
 
 local Calculator = WidgetContainer:new({

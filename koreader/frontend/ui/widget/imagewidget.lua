@@ -20,7 +20,6 @@ Show image from memory example:
 
 local Blitbuffer = require("ffi/blitbuffer")
 local Cache = require("cache")
-local Geom = require("ui/geometry")
 local RenderImage = require("ui/renderimage")
 local Screen = require("device").screen
 local UIManager = require("ui/uimanager")

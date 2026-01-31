@@ -21,7 +21,6 @@ local dbg = require("dbg")
 local logger = require("logger")
 local optionsutil = require("ui/data/optionsutil")
 local Size = require("ui/size")
-local time = require("ui/time")
 local util = require("util")
 local _ = require("gettext")
 local Screen = Device.screen
