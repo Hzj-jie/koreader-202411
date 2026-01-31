@@ -1,9 +1,9 @@
 ---------------------------------
 -- Generic input method engine --
 ---------------------------------
-local Utf8Proc = require("ffi/utf8proc")
 local logger = require("logger")
 local util = require("util")
+local Utf8Proc = require("ffi/utf8proc")
 
 local function binarysearch(tbl, value, fcompval, reversed)
   if not fcompval then

@@ -11,12 +11,12 @@ local Size = require("ui/size")
 local SpinWidget = require("ui/widget/spinwidget")
 local UIManager = require("ui/uimanager")
 local Screen = Device.screen
-local _ = require("gettext")
-local dbg = require("dbg")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
+local dbg = require("dbg")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
+local _ = require("gettext")
 local T = FFIUtil.template
 
 local FileManagerMenu = InputContainer:extend({

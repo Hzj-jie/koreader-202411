@@ -25,14 +25,14 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE."
 
-local buffer = require("turbo.structs.buffer")
-local deque = require("turbo.structs.deque")
-local escape = require("turbo.escape")
-local ffi = require("ffi")
 local log = require("turbo.log")
-local platform = require("turbo.platform")
 local status_codes = require("turbo.http_response_codes")
+local deque = require("turbo.structs.deque")
+local buffer = require("turbo.structs.buffer")
+local escape = require("turbo.escape")
 local util = require("turbo.util")
+local platform = require("turbo.platform")
+local ffi = require("ffi")
 local libturbo_parser = util.load_libtffi()
 
 require("turbo.cdef")

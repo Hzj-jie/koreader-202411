@@ -11,9 +11,9 @@ This module translates text using Google Translate.
 
 local Device = require("device")
 local InfoMessage = require("ui/widget/infomessage")
-local JSON = require("json")
 local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
+local JSON = require("json")
 local Screen = require("device").screen
 local ffiutil = require("ffi/util")
 local logger = require("logger")

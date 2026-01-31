@@ -24,9 +24,9 @@ local TextBoxWidget = require("ui/widget/textboxwidget")
 local UnderlineContainer = require("ui/widget/container/underlinecontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
 local logger = require("logger")
 local util = require("util")
+local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 

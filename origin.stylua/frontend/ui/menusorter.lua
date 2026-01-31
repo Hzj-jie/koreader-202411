@@ -5,9 +5,9 @@ menu_items and a separate menu order.
 
 local DataStorage = require("datastorage")
 local FFIUtil = require("ffi/util")
-local _ = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local _ = require("gettext")
 
 local separator_id = "----------------------------"
 

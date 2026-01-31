@@ -1,8 +1,8 @@
 local Generic = require("device/generic/device") -- <= look at this file!
 local PluginShare = require("pluginshare")
-local ffi = require("ffi")
 local logger = require("logger")
 local time = require("ui/time")
+local ffi = require("ffi")
 local util = require("util")
 local C = ffi.C
 require("ffi/linux_input_h")

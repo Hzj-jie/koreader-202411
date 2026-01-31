@@ -22,8 +22,8 @@
 --]]
 
 local BaseUtil = require("ffi/util")
-local logger = require("logger")
 local util = require("util")
+local logger = require("logger")
 
 -- Hangul Syllables
 

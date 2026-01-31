@@ -7,10 +7,10 @@ local Menu = require("ui/widget/menu")
 local MultiInputDialog = require("ui/widget/multiinputdialog")
 local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
-local ffiUtil = require("ffi/util")
 local logger = require("logger")
+local ffiUtil = require("ffi/util")
 local util = require("util")
+local _ = require("gettext")
 local Screen = require("device").screen
 
 local SetDefaultsWidget = CenterContainer:extend({

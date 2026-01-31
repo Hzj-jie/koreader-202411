@@ -1,4 +1,3 @@
-local BaseUtil = require("ffi/util")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local Dispatcher = require("dispatcher")
@@ -9,8 +8,9 @@ local InfoMessage = require("ui/widget/infomessage")
 local LuaSettings = require("frontend/luasettings")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
 local util = require("frontend/util")
+local BaseUtil = require("ffi/util")
+local _ = require("gettext")
 
 local MoveToArchive = WidgetContainer:extend({
   name = "movetoarchive",

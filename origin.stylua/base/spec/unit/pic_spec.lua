@@ -1,5 +1,5 @@
-local BB = require("ffi/blitbuffer")
 local DrawContext = require("ffi/drawcontext")
+local BB = require("ffi/blitbuffer")
 local Pic = require("ffi/pic")
 
 Pic.color = true

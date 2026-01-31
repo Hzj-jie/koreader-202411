@@ -1,5 +1,5 @@
-local Event = require("ui/event")
 local EventListener = require("ui/widget/eventlistener")
+local Event = require("ui/event")
 local ReaderZooming = require("apps/reader/modules/readerzooming")
 local UIManager = require("ui/uimanager")
 

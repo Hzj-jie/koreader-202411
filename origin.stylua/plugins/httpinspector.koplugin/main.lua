@@ -3,13 +3,13 @@
 
 local DataStorage = require("datastorage")
 local Device = require("device")
-local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local Event = require("ui/event")
 local ffiUtil = require("ffi/util")
 local logger = require("logger")
 local util = require("util")
+local _ = require("gettext")
 local T = require("ffi/util").template
 
 local HttpInspector = WidgetContainer:extend({

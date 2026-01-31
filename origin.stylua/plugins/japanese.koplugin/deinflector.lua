@@ -17,10 +17,10 @@ local InfoMessage = require("ui/widget/infomessage")
 local JSON = require("rapidjson")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
-local _ = require("gettext")
 local bit = require("bit")
 local logger = require("logger")
 local util = require("util")
+local _ = require("gettext")
 local N_ = _.ngettext
 local T = require("ffi/util").template
 

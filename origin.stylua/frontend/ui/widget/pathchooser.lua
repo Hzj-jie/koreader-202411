@@ -3,10 +3,10 @@ local ButtonDialog = require("ui/widget/buttondialog")
 local Device = require("device")
 local FileChooser = require("ui/widget/filechooser")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
 local ffiutil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
+local _ = require("gettext")
 local N_ = _.ngettext
 local T = ffiutil.template
 

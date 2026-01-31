@@ -4,9 +4,9 @@ Freetype library interface (text rendering)
 @module ffi.freetype
 --]]
 
-local Blitbuffer = require("ffi/blitbuffer")
 local bit = require("bit")
 local ffi = require("ffi")
+local Blitbuffer = require("ffi/blitbuffer")
 local C = ffi.C
 
 -- the header definitions

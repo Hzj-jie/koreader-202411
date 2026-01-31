@@ -2,10 +2,10 @@
 Text rendering module.
 ]]
 
-local Blitbuffer = require("ffi/blitbuffer")
-local Cache = require("cache")
-local Font = require("ui/font")
 local bit = require("bit")
+local Font = require("ui/font")
+local Cache = require("cache")
+local Blitbuffer = require("ffi/blitbuffer")
 local logger = require("logger")
 
 local band = bit.band

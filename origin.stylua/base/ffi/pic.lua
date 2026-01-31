@@ -1,5 +1,5 @@
-local BB = require("ffi/blitbuffer")
 local ffi = require("ffi")
+local BB = require("ffi/blitbuffer")
 
 local Pic = {}
 

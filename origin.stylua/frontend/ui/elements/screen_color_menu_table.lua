@@ -1,8 +1,8 @@
 local Device = require("device")
 local Event = require("ui/event")
 local Screen = Device.screen
-local CanvasContext = require("document/canvascontext")
 local UIManager = require("ui/uimanager")
+local CanvasContext = require("document/canvascontext")
 local _ = require("gettext")
 
 -- NOTE: Again, make sure this is enabled if for some reason color is enabled on a Grayscale screen...

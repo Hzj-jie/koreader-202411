@@ -7,10 +7,10 @@ local InputDialog = require("ui/widget/inputdialog")
 local LuaSettings = require("luasettings")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
 local ffiUtil = require("ffi/util")
 local logger = require("logger")
 local util = require("util")
+local _ = require("gettext")
 local Screen = Device.screen
 local T = ffiUtil.template
 

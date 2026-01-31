@@ -4,8 +4,8 @@ Interface to k2pdfoptlib backend.
 
 local CacheItem = require("cacheitem")
 local CanvasContext = require("document/canvascontext")
-local DEBUG = require("dbg")
 local DataStorage = require("datastorage")
+local DEBUG = require("dbg")
 local DocCache = require("document/doccache")
 local Document = require("document/document")
 local FFIUtil = require("ffi/util")

@@ -11,8 +11,8 @@ local UIManager = require("ui/uimanager")
 local VirtualKeyboard = require("ui/widget/virtualkeyboard")
 local Screen = Device.screen
 local T = FFIUtil.template
-local _ = require("gettext")
 local util = require("util")
+local _ = require("gettext")
 
 local input_dialog, check_button_bold, check_button_border, check_button_compact
 

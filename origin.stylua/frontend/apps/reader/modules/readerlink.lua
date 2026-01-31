@@ -14,11 +14,11 @@ local LinkBox = require("ui/widget/linkbox")
 local Notification = require("ui/widget/notification")
 local QRMessage = require("ui/widget/qrmessage")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
 local ffiutil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
+local _ = require("gettext")
 local Screen = Device.screen
 local T = ffiutil.template
 

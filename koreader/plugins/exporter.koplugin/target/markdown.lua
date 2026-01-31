@@ -1,6 +1,6 @@
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
 local md = require("template/md")
+local _ = require("gettext")
 local T = require("ffi/util").template
 
 -- markdown exporter

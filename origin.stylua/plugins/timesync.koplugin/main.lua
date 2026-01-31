@@ -34,8 +34,8 @@ local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local T = require("ffi/util").template
-local NetworkMgr = require("ui/network/manager")
 local _ = require("gettext")
+local NetworkMgr = require("ui/network/manager")
 
 local TimeSync = WidgetContainer:extend({
   name = "timesync",

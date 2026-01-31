@@ -1,5 +1,5 @@
-local Geom = require("ui/geometry")
 local TextWidget = require("ui/widget/textwidget")
+local Geom = require("ui/geometry")
 
 --[[
 FixedTextWidget

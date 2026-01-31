@@ -1,12 +1,12 @@
 local InputDialog = require("ui/widget/inputdialog")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
 local http = require("socket.http")
 local json = require("json")
 local logger = require("logger")
 local ltn12 = require("ltn12")
 local socket = require("socket")
 local socketutil = require("socketutil")
+local _ = require("gettext")
 
 -- readwise exporter
 local FlomoExporter = require("base"):new({

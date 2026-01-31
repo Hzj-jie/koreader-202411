@@ -1,5 +1,5 @@
-local KOPTContext = require("ffi/koptcontext")
 local ffi = require("ffi")
+local KOPTContext = require("ffi/koptcontext")
 local mupdf = require("ffi/mupdf")
 local k2pdfopt = ffi.loadlib("k2pdfopt", "2")
 

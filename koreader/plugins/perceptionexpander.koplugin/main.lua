@@ -1,17 +1,17 @@
-local Geom = require("ui/geometry")
-local HorizontalGroup = require("ui/widget/horizontalgroup")
-local InfoMessage = require("ui/widget/infomessage")
+local Widget = require("ui/widget/widget")
 local LineWidget = require("ui/widget/linewidget")
 local MultiInputDialog = require("ui/widget/multiinputdialog")
-local UIManager = require("ui/uimanager")
-local Widget = require("ui/widget/widget")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local HorizontalGroup = require("ui/widget/horizontalgroup")
+local UIManager = require("ui/uimanager")
+local InfoMessage = require("ui/widget/infomessage")
+local Geom = require("ui/geometry")
 local Screen = require("device").screen
 local T = require("ffi/util").template
-local Blitbuffer = require("ffi/blitbuffer")
-local DataStorage = require("datastorage")
-local LuaSettings = require("luasettings")
 local _ = require("gettext")
+local LuaSettings = require("luasettings")
+local DataStorage = require("datastorage")
+local Blitbuffer = require("ffi/blitbuffer")
 
 local PerceptionExpander = Widget:extend({
   is_enabled = nil,

@@ -3,9 +3,9 @@
 
     https://github.com/Wiladams/LAPHLibs
 --]]
-local ffi = require("ffi")
-local luxl = require("luxl")
 local util = require("util")
+local luxl = require("luxl")
+local ffi = require("ffi")
 
 local OPDSParser = {}
 

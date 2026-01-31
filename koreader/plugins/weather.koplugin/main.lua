@@ -5,20 +5,20 @@ A simple plugin for getting the weather forcast on your KOReader
 --]]
 --
 
-local DataStorage = require("datastorage")
 local Dispatcher = require("dispatcher") -- luacheck:ignore
+local DataStorage = require("datastorage")
 local InfoMessage = require("ui/widget/infomessage")
-local InputDialog = require("ui/widget/inputdialog")
-local KeyValuePage = require("ui/widget/keyvaluepage")
-local LuaSettings = require("luasettings")
-local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
-local WeatherApi = require("weatherapi")
+local NetworkMgr = require("ui/network/manager")
+local InputDialog = require("ui/widget/inputdialog")
+local LuaSettings = require("luasettings")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local KeyValuePage = require("ui/widget/keyvaluepage")
+local WeatherApi = require("weatherapi")
 local Screen = require("device").screen
 local Composer = require("composer")
-local _ = require("gettext")
 local ffiutil = require("ffi/util")
+local _ = require("gettext")
 local T = ffiutil.template
 
 local Weather = WidgetContainer:new({

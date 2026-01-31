@@ -12,10 +12,10 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local InfoMessage = require("ui/widget/infomessage")
 local TrapWidget = require("ui/widget/trapwidget")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
 local buffer = require("string.buffer")
 local ffiutil = require("ffi/util")
 local logger = require("logger")
+local _ = require("gettext")
 
 local Trapper = {}
 

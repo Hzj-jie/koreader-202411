@@ -8,10 +8,10 @@
 
 local pairs = pairs
 local tostring = tostring
-local crypto = require("crypto")
-local mime = require("mime")
-local os = require("os")
 local table = require("table")
+local os = require("os")
+local mime = require("mime")
+local crypto = require("crypto")
 local digest = crypto.digest or crypto.evp.digest
 local hmac = crypto.hmac
 local request = require("Spore.Protocols").request

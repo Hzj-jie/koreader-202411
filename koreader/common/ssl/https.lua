@@ -7,10 +7,10 @@
 -- Author: Tomas Guisasola
 ---------------------------------------------------------------------------
 
-local http = require("socket.http")
-local ltn12 = require("ltn12")
 local socket = require("socket")
 local ssl = require("ssl")
+local ltn12 = require("ltn12")
+local http = require("socket.http")
 local url = require("socket.url")
 
 local try = socket.try

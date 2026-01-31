@@ -4,8 +4,8 @@ local Device = require("device")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
 local util = require("util")
+local _ = require("gettext")
 
 local ReaderStatus = WidgetContainer:extend({})
 

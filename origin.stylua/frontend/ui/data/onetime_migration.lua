@@ -3,11 +3,11 @@ Centralizes any and all one time migration concerns.
 --]]
 
 local DataStorage = require("datastorage")
-local SQ3 = require("lua-ljsqlite3/init")
-local _ = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local SQ3 = require("lua-ljsqlite3/init")
 local util = require("util")
+local _ = require("gettext")
 
 -- Date at which the last migration snippet was added
 local CURRENT_MIGRATION_DATE = 20240928

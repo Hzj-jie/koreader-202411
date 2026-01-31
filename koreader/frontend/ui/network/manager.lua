@@ -1,5 +1,5 @@
-local BD = require("ui/bidi")
 local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
+local BD = require("ui/bidi")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local Device = require("device")
@@ -8,12 +8,12 @@ local InfoMessage = require("ui/widget/infomessage")
 local LuaSettings = require("luasettings")
 local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
 local ffi = require("ffi")
 local ffiutil = require("ffi/util")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
+local _ = require("gettext")
 local C = ffi.C
 local T = ffiutil.template
 

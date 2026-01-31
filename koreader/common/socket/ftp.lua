@@ -8,13 +8,13 @@
 -- Declare module and import dependencies
 -----------------------------------------------------------------------------
 local base = _G
-local ltn12 = require("ltn12")
+local table = require("table")
+local string = require("string")
 local math = require("math")
 local socket = require("socket")
-local string = require("string")
-local table = require("table")
-local tp = require("socket.tp")
 local url = require("socket.url")
+local tp = require("socket.tp")
+local ltn12 = require("ltn12")
 socket.ftp = {}
 local _M = socket.ftp
 -----------------------------------------------------------------------------

@@ -10,10 +10,10 @@
 -- able to get there easily.
 --------
 
-local _ = require("gettext")
 local logger = require("logger")
-local time = require("ui/time")
 local util = require("util")
+local time = require("ui/time")
+local _ = require("gettext")
 local C_ = _.pgettext
 local N_ = _.ngettext
 local T = require("ffi/util").template

@@ -14,12 +14,12 @@ local Util = require("util")
 local VirtualKeyboard = require("ui/widget/virtualkeyboard")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local T = require("ffi/util").template
-local _ = require("gettext")
 local logger = require("logger")
 local util = require("ffi/util")
+local _ = require("gettext")
 
-local CalculatorConvertDialog = require("calculatorconvertdialog")
 local CalculatorSettingsDialog = require("calculatorsettingsdialog")
+local CalculatorConvertDialog = require("calculatorconvertdialog")
 local Parser = require("formulaparser/formulaparser")
 
 local DEFAULT_INIT_FILE = "plugins/calculator.koplugin/init.calc"

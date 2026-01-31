@@ -5,11 +5,11 @@ local Geom = require("ui/geometry")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Math = require("optmath")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
 local bit = require("bit")
 local logger = require("logger")
-local time = require("ui/time")
 local util = require("util")
+local time = require("ui/time")
+local _ = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 

@@ -1,9 +1,9 @@
+local bit = require("bit")
 local Device = require("device")
 local Event = require("ui/event")
 local InputContainer = require("ui/widget/container/inputcontainer")
-local UIManager = require("ui/uimanager")
-local bit = require("bit")
 local logger = require("logger")
+local UIManager = require("ui/uimanager")
 local util = require("util")
 --[[
 Wrapper Widget that manages focus for a whole dialog

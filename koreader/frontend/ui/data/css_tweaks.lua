@@ -16,8 +16,8 @@ They may have the following optional attributes:
    "hold / use on all books". If 'false', no conflict check is done.
 ]]
 
-local _ = require("gettext")
 local util = require("util")
+local _ = require("gettext")
 local C_ = _.pgettext
 local T = require("ffi/util").template
 

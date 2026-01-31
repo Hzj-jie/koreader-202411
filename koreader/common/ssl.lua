@@ -5,10 +5,10 @@
 --
 ------------------------------------------------------------------------------
 
-local config = require("ssl.config")
-local context = require("ssl.context")
 local core = require("ssl.core")
+local context = require("ssl.context")
 local x509 = require("ssl.x509")
+local config = require("ssl.config")
 
 local unpack = table.unpack or unpack
 

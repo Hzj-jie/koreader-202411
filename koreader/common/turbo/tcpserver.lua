@@ -16,16 +16,16 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local crypto = require("turbo.crypto")
-local ffi = require("ffi")
-local ioloop = require("turbo.ioloop")
-local iostream = require("turbo.iostream")
 local log = require("turbo.log")
+local util = require("turbo.util")
+local iostream = require("turbo.iostream")
 local platform = require("turbo.platform")
-local platform = require("turbo.platform")
+local ioloop = require("turbo.ioloop")
 local socket = require("turbo.socket_ffi")
 local sockutil = require("turbo.sockutil")
-local util = require("turbo.util")
+local crypto = require("turbo.crypto")
+local platform = require("turbo.platform")
+local ffi = require("ffi")
 local bit = jit and require("bit") or require("bit32")
 require("turbo.cdef")
 require("turbo.3rdparty.middleclass")

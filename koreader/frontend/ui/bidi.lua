@@ -37,8 +37,8 @@ https://material.io/design/usability/bidirectionality.html
 ]]
 
 local Language = require("ui/language")
-local _ = require("gettext")
 local util = require("util")
+local _ = require("gettext")
 
 local Bidi = {
   _mirrored_ui_layout = false,

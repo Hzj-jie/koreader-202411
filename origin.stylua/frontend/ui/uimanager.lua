@@ -5,12 +5,12 @@ This module manages widgets.
 local Device = require("device")
 local Event = require("ui/event")
 local Geom = require("ui/geometry")
-local _ = require("gettext")
 local dbg = require("dbg")
-local ffiUtil = require("ffi/util")
 local logger = require("logger")
-local time = require("ui/time")
+local ffiUtil = require("ffi/util")
 local util = require("util")
+local time = require("ui/time")
+local _ = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 

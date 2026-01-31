@@ -8,12 +8,12 @@ Plugin for automatic dimming of the frontlight after an idle period.
 local Device = require("device")
 local FFIUtil = require("ffi/util")
 local SpinWidget = require("ui/widget/spinwidget")
-local TrapWidget = require("ui/widget/trapwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local TrapWidget = require("ui/widget/trapwidget")
 local datetime = require("datetime")
 local time = require("ui/time")
+local _ = require("gettext")
 local C_ = _.pgettext
 local Powerd = Device.powerd
 local T = FFIUtil.template

@@ -1,13 +1,13 @@
-local Device = require("device")
 local Event = require("ui/event")
+local Device = require("device")
 local InfoMessage = require("ui/widget/infomessage")
 local InputText = require("ui/widget/inputtext")
-local UIManager = require("ui/uimanager")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local UIManager = require("ui/uimanager")
+local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local util = require("util")
+local _ = require("gettext")
 
 local ffi = require("ffi")
 local C = ffi.C

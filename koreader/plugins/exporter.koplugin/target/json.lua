@@ -1,6 +1,6 @@
-local _ = require("gettext")
-local md5 = require("ffi/MD5")
 local rapidjson = require("rapidjson")
+local md5 = require("ffi/MD5")
+local _ = require("gettext")
 
 -- json exporter
 local JsonExporter = require("base"):new({

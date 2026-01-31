@@ -7,8 +7,8 @@ local T = require("ffi/util").template
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local joinPath = require("ffi/util").joinPath
-local _ = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
+local _ = require("gettext")
 
 local menuItem = {
   text = _("Retrieve reading records"),

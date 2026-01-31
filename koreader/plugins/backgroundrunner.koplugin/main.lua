@@ -13,9 +13,9 @@ local CommandRunner = require("commandrunner")
 local PluginShare = require("pluginshare")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
 local logger = require("logger")
 local time = require("ui/time")
+local _ = require("gettext")
 
 -- BackgroundRunner is an experimental feature to execute non-critical jobs in
 -- the background.

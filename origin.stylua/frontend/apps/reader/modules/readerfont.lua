@@ -12,9 +12,9 @@ local Notification = require("ui/widget/notification")
 local Screen = require("device").screen
 local UIManager = require("ui/uimanager")
 local cre -- Delayed loading
-local _ = require("gettext")
 local logger = require("logger")
 local util = require("util")
+local _ = require("gettext")
 local T = require("ffi/util").template
 local C_ = _.pgettext
 local optionsutil = require("ui/data/optionsutil")

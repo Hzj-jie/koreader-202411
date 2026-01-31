@@ -7,10 +7,10 @@ local Device = require("device")
 local DocSettings = require("docsettings")
 local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
 local ffiutil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
+local _ = require("gettext")
 local T = ffiutil.template
 
 local filemanagerutil = {}

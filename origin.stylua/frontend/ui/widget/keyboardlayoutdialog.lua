@@ -5,7 +5,6 @@ This widget displays a keyboard layout dialog.
 local Blitbuffer = require("ffi/blitbuffer")
 local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
-local Device = require("device")
 local FFIUtil = require("ffi/util")
 local FocusManager = require("ui/widget/focusmanager")
 local FrameContainer = require("ui/widget/container/framecontainer")
@@ -19,8 +18,9 @@ local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
 local util = require("util")
+local _ = require("gettext")
+local Device = require("device")
 local Screen = Device.screen
 
 local KeyboardLayoutDialog = FocusManager:extend({

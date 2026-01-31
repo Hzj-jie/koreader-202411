@@ -3,12 +3,12 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local DocumentRegistry = require("document/documentregistry")
 local InfoMessage = require("ui/widget/infomessage")
 local MultiInputDialog = require("ui/widget/multiinputdialog")
-local ReaderUI = require("apps/reader/readerui")
 local UIManager = require("ui/uimanager")
+local ReaderUI = require("apps/reader/readerui")
 local WebDavApi = require("apps/cloudstorage/webdavapi")
-local _ = require("gettext")
-local ffiutil = require("ffi/util")
 local util = require("util")
+local ffiutil = require("ffi/util")
+local _ = require("gettext")
 local T = require("ffi/util").template
 
 local WebDav = {}

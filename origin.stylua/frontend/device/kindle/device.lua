@@ -1,8 +1,8 @@
 local Generic = require("device/generic/device")
 local UIManager
+local time = require("ui/time")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
-local time = require("ui/time")
 
 -- We're going to need a few <linux/fb.h> & <linux/input.h> constants...
 local ffi = require("ffi")

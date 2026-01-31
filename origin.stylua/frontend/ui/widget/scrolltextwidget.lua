@@ -12,8 +12,8 @@ local HorizontalSpan = require("ui/widget/horizontalspan")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Math = require("optmath")
 local TextBoxWidget = require("ui/widget/textboxwidget")
-local UIManager = require("ui/uimanager")
 local VerticalScrollBar = require("ui/widget/verticalscrollbar")
+local UIManager = require("ui/uimanager")
 local Input = Device.input
 local Screen = Device.screen
 

@@ -15,8 +15,8 @@
 -- limitations under the License.
 
 require("turbo.3rdparty.middleclass")
-local ffi = require("ffi")
 local log = require("turbo.log")
+local ffi = require("ffi")
 
 --- Double ended queue class.
 local deque = class("Deque")

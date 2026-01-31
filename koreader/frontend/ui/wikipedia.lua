@@ -1,11 +1,11 @@
 local JSON = require("json")
 local RenderImage = require("ui/renderimage")
 local Screen = require("device").screen
-local _ = require("gettext")
 local ffiutil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
+local _ = require("gettext")
 local T = ffiutil.template
 
 --[[

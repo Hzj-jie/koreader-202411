@@ -1,6 +1,6 @@
-local BB = require("ffi/blitbuffer")
-local android = require("android")
 local ffi = require("ffi")
+local android = require("android")
+local BB = require("ffi/blitbuffer")
 local C = ffi.C
 
 --[[ configuration for devices with an electric paper display controller ]]

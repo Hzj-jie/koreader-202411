@@ -1,5 +1,5 @@
-local Device = require("device")
 local InputContainer = require("ui/widget/container/inputcontainer")
+local Device = require("device")
 local _ = require("gettext")
 
 local ReaderPanning = InputContainer:extend({
