@@ -107,13 +107,6 @@ function IconButton:onTapIconButton()
   if not self.callback then
     return
   end
-  -- Mimic BiDi left/right switcheroos...
-  local h_padding
-  if BD.mirroredUILayout() then
-    h_padding = self.padding_right
-  else
-    h_padding = self.padding_left
-  end
   -- c.f., ui/widget/button for more gnarly details about the implementation, but the flow of the flash_ui codepath essentially goes like this:
   -- 1. Paint the highlight
   -- 2. Refresh the highlighted item (so we can see the highlight)
@@ -125,13 +118,7 @@ function IconButton:onTapIconButton()
   -- Highlight
   --
   self.image.invert = true
-  UIManager:invertWidget(
-    self.image,
-    self:getSize().x + h_padding,
-    self:getSize().y + self.padding_top
-    -- It's not necessary to calculate the self:getSize().w - 2 * h_padding,
-    -- cropping logic in the widgetInvert will take care of it.
-  )
+  UIManager:invertWidget(self.image)
 
   UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
@@ -139,7 +126,7 @@ function IconButton:onTapIconButton()
   -- Unhighlight
   --
   self.image.invert = false
-  UIManager:invertWidget(self.image, self:getSize().x + h_padding, self:getSize().y + self.padding_top)
+  UIManager:invertWidget(self.image)
 
   -- Callback
   --
