@@ -21,13 +21,13 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local coctx = require("turbo.coctx")
+local ffi = require("ffi")
 local log = require("turbo.log")
-local util = require("turbo.util")
+local platform = require("turbo.platform")
 local signal = require("turbo.signal")
 local socket = require("turbo.socket_ffi")
-local coctx = require("turbo.coctx")
-local platform = require("turbo.platform")
-local ffi = require("ffi")
+local util = require("turbo.util")
 local bit = jit and require("bit") or require("bit32")
 require("turbo.3rdparty.middleclass")
 

@@ -4,11 +4,11 @@ Button with a big icon image! Designed for touch devices.
 
 local BD = require("ui/bidi")
 local Device = require("device")
+local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
-local InputContainer = require("ui/widget/container/inputcontainer")
 local IconWidget = require("ui/widget/iconwidget")
-local GestureRange = require("ui/gesturerange")
+local InputContainer = require("ui/widget/container/inputcontainer")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")

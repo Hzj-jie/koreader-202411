@@ -2,8 +2,8 @@ local BasePowerD = require("device/generic/powerd")
 local LibLipcs = require("liblipcs")
 local UIManager
 local WakeupMgr = require("device/wakeupmgr")
-local logger = require("logger")
 local ffiUtil = require("ffi/util")
+local logger = require("logger")
 -- liblipclua, see require below
 
 local KindlePowerD = BasePowerD:new({

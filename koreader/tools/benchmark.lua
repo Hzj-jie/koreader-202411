@@ -13,10 +13,10 @@ G_reader_settings = require("luasettings"):open(DataStorage:getDataDir() .. "/se
 einkfb = require("ffi/framebuffer")
 einkfb.dummy = true
 
+local DEBUG = require("dbg")
 local DocumentRegistry = require("document/documentregistry")
 local Koptinterface = require("document/koptinterface")
 local util = require("ffi/util")
-local DEBUG = require("dbg")
 DEBUG:turnOn()
 
 DEBUG("args", arg)

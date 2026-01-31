@@ -33,13 +33,12 @@ Example:
 
 ]]
 
-local bit = require("bit")
 local Blitbuffer = require("ffi/blitbuffer")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local Font = require("ui/font")
-local Geom = require("ui/geometry")
 local FrameContainer = require("ui/widget/container/framecontainer")
+local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
@@ -49,16 +48,17 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local InputDialog = require("ui/widget/inputdialog")
 local LeftContainer = require("ui/widget/container/leftcontainer")
 local ListView = require("ui/widget/listview")
-local RightContainer = require("ui/widget/container/rightcontainer")
 local NetworkMgr = require("ui/network/manager")
 local OverlapGroup = require("ui/widget/overlapgroup")
+local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
-local util = require("util")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local Widget = require("ui/widget/widget")
 local _ = require("gettext")
+local bit = require("bit")
+local util = require("util")
 local Screen = Device.screen
 
 local band = bit.band

@@ -30,14 +30,14 @@
 --
 --
 
-local log = require("turbo.log")
-local ioloop = require("turbo.ioloop")
 local coctx = require("turbo.coctx")
+local crypto = require("turbo.crypto")
+local ioloop = require("turbo.ioloop")
+local iostream = require("turbo.iostream")
+local log = require("turbo.log")
 local socket = require("turbo.socket_ffi")
 local sockutils = require("turbo.sockutil")
 local util = require("turbo.util")
-local iostream = require("turbo.iostream")
-local crypto = require("turbo.crypto")
 
 local iosimple = {} -- iosimple namespace
 

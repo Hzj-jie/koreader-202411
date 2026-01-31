@@ -3,8 +3,8 @@
 --
 
 local assert = assert
-local os = require("os")
 local mime = require("mime")
+local os = require("os")
 local url = require("socket.url")
 
 local _ENV = nil

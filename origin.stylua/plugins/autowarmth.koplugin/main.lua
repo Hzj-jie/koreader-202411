@@ -7,11 +7,11 @@ Plugin for setting screen warmth based on the sun position and/or a time schedul
 
 local CheckButton = require("ui/widget/checkbutton")
 local ConfirmBox = require("ui/widget/confirmbox")
-local Device = require("device")
 local DateTimeWidget = require("ui/widget/datetimewidget")
-local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
+local Device = require("device")
 local DeviceListener = require("device/devicelistener")
 local Dispatcher = require("dispatcher")
+local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
 local Event = require("ui/event")
 local FFIUtil = require("ffi/util")
 local Font = require("ui/font")
@@ -24,8 +24,8 @@ local SunTime = require("suntime")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local logger = require("logger")
 local _ = require("gettext")
+local logger = require("logger")
 local C_ = _.pgettext
 local Powerd = Device.powerd
 local T = FFIUtil.template

@@ -117,8 +117,8 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local Screen = Device.screen
 local T = require("ffi/util").template
-local util = require("util")
 local _ = require("gettext")
+local util = require("util")
 
 local InputDialog = FocusManager:extend({
   -- TODO: Using is_always_active is wrong, it allows the buttons to receive the

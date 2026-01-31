@@ -14,10 +14,10 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local socket = require("turbo.socket_ffi")
+local ffi = require("ffi")
 local ioloop = require("turbo.ioloop")
 local log = require("turbo.log")
-local ffi = require("ffi")
+local socket = require("turbo.socket_ffi")
 local bit = jit and require("bit") or require("bit32")
 local platform = require("turbo.platform")
 local luasocket

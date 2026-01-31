@@ -21,11 +21,11 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local util = require("turbo.util")
-local escape = require("turbo.escape")
 local buffer = require("turbo.structs.buffer")
-local log = require("turbo.log")
+local escape = require("turbo.escape")
 local ffi = require("ffi")
+local log = require("turbo.log")
+local util = require("turbo.util")
 local bit = jit and require("bit") or require("bit32")
 require("turbo.3rdparty.middleclass")
 

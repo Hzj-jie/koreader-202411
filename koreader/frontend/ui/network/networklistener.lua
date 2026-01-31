@@ -5,9 +5,9 @@ local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
+local _ = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 local T = require("ffi/util").template
 
 local _pending_connected = {}

@@ -23,9 +23,9 @@ local LanguageSupport = require("languagesupport")
 local ReaderDictionary = require("apps/reader/modules/readerdictionary")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local _ = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 local N_ = _.ngettext
 local T = require("ffi/util").template
 

@@ -16,19 +16,19 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local iostream = require("turbo.iostream")
-local platform = require("turbo.platform")
-local ioloop = require("turbo.ioloop")
-local httputil = require("turbo.httputil")
-local util = require("turbo.util")
-local socket = require("turbo.socket_ffi")
-local log = require("turbo.log")
-local http_response_codes = require("turbo.http_response_codes")
-local coctx = require("turbo.coctx")
-local deque = require("turbo.structs.deque")
 local buffer = require("turbo.structs.buffer")
-local escape = require("turbo.escape")
+local coctx = require("turbo.coctx")
 local crypto = require("turbo.crypto")
+local deque = require("turbo.structs.deque")
+local escape = require("turbo.escape")
+local http_response_codes = require("turbo.http_response_codes")
+local httputil = require("turbo.httputil")
+local ioloop = require("turbo.ioloop")
+local iostream = require("turbo.iostream")
+local log = require("turbo.log")
+local platform = require("turbo.platform")
+local socket = require("turbo.socket_ffi")
+local util = require("turbo.util")
 require("turbo.3rdparty.middleclass")
 
 local unpack = util.funpack

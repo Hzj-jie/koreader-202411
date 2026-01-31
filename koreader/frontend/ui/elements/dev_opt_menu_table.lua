@@ -2,9 +2,9 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local FFIUtil = require("ffi/util")
 local UIManager = require("ui/uimanager")
+local _ = require("gettext")
 local dbg = require("dbg")
 local lfs = require("libs/libkoreader-lfs")
-local _ = require("gettext")
 
 local developer_options = {
   text = _("Developer options"),

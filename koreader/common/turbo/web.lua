@@ -21,20 +21,20 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local ffi = require("ffi")
-local log = require("turbo.log")
-local httputil = require("turbo.httputil")
-local httpserver = require("turbo.httpserver")
 local buffer = require("turbo.structs.buffer")
 local bufferptr = require("turbo.structs.bufferptr")
 local escape = require("turbo.escape")
+local ffi = require("ffi")
+local hash = require("turbo.hash")
+local httpserver = require("turbo.httpserver")
+local httputil = require("turbo.httputil")
+local log = require("turbo.log")
+local mime_types = require("turbo.mime_types")
 local platform = require("turbo.platform")
 local response_codes = require("turbo.http_response_codes")
-local mime_types = require("turbo.mime_types")
-local util = require("turbo.util")
-local hash = require("turbo.hash")
 local socket = require("turbo.socket_ffi")
 local syscall = require("turbo.syscall")
+local util = require("turbo.util")
 local fs
 if platform.__WINDOWS__ then
   -- Support for stat'ing in StaticFileHandler on Windows OS.

@@ -26,8 +26,8 @@ if not _G.TURBO_SSL then
   })
 end
 
-local ffi = require("ffi")
 local buffer = require("turbo.structs.buffer")
+local ffi = require("ffi")
 require("turbo.cdef")
 
 local lssl = ffi.load(os.getenv("TURBO_LIBSSL") or "ssl")

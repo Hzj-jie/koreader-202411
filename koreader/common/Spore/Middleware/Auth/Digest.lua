@@ -7,8 +7,8 @@ local time = require("os").time
 local format = require("string").format
 local crypto = require("crypto")
 local digest = crypto.digest or crypto.evp.digest
-local url = require("socket.url")
 local Protocols = require("Spore.Protocols")
+local url = require("socket.url")
 
 local _ENV = nil
 local m = {}

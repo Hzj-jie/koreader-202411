@@ -17,9 +17,9 @@
 local ffi = require("ffi")
 local bit = jit and require("bit") or require("bit32")
 local fs = require("turbo.fs")
+local ioloop = require("turbo.ioloop")
 local log = require("turbo.log")
 local util = require("turbo.util")
-local ioloop = require("turbo.ioloop")
 --local syscall = require "turbo.syscall"
 
 local inotify = {}

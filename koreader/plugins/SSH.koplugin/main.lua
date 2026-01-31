@@ -6,10 +6,10 @@ local InfoMessage = require("ui/widget/infomessage") -- luacheck:ignore
 local InputDialog = require("ui/widget/inputdialog")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local _ = require("gettext")
 local ffiutil = require("ffi/util")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 local T = ffiutil.template
 
 if not Device:isKobo() then

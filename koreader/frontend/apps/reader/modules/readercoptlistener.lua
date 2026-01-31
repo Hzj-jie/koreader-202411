@@ -1,6 +1,6 @@
 local CreUtil = require("creutil")
-local Event = require("ui/event")
 local Device = require("device")
+local Event = require("ui/event")
 local EventListener = require("ui/widget/eventlistener")
 local Geom = require("ui/geometry")
 local UIManager = require("ui/uimanager")

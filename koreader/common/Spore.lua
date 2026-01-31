@@ -11,9 +11,9 @@ local tonumber = tonumber
 local tostring = tostring
 local type = type
 local unpack = require("table").unpack or unpack
+local core = require("Spore.Core")
 local io = require("io")
 local url = require("socket.url")
-local core = require("Spore.Core")
 local slurp = require("Spore.Protocols").slurp
 
 local _ENV = nil

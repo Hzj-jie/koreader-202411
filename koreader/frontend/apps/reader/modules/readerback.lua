@@ -4,9 +4,9 @@ local Event = require("ui/event")
 local EventListener = require("ui/widget/eventlistener")
 local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
+local _ = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 
 -- This module handles the "Back" key (and the "Back" gesture action).
 -- When global setting "back_in_reader" == "previous_read_page", it

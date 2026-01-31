@@ -2,8 +2,8 @@
 -- lua-Spore : <http://fperrad.github.com/lua-Spore/>
 --
 
-local url = require("socket.url")
 local Protocols = require("Spore.Protocols")
+local url = require("socket.url")
 
 local _ENV = nil
 local m = {}

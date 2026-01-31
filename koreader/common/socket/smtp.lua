@@ -9,14 +9,14 @@
 -----------------------------------------------------------------------------
 local base = _G
 local coroutine = require("coroutine")
-local string = require("string")
+local headers = require("socket.headers")
+local ltn12 = require("ltn12")
 local math = require("math")
+local mime = require("mime")
 local os = require("os")
 local socket = require("socket")
+local string = require("string")
 local tp = require("socket.tp")
-local ltn12 = require("ltn12")
-local headers = require("socket.headers")
-local mime = require("mime")
 
 socket.smtp = {}
 local _M = socket.smtp

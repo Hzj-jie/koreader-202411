@@ -31,9 +31,9 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE."
 
-local util = require("turbo.util")
-local platform = require("turbo.platform")
 local ffi = require("ffi")
+local platform = require("turbo.platform")
+local util = require("turbo.util")
 
 local log = {
   ["categories"] = {

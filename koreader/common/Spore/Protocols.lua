@@ -10,10 +10,10 @@ local tostring = tostring
 local type = type
 local unpack = require("table").unpack or unpack
 local io = require("io")
-local math = require("math")
-local string = require("string")
 local ltn12 = require("ltn12") -- luasocket
+local math = require("math")
 local mime = require("mime") -- luasocket
+local string = require("string")
 local url = require("socket.url") -- luasocket
 local tconcat = require("table").concat
 math.randomseed(os.time())

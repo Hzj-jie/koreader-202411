@@ -14,10 +14,10 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local ffi = require("ffi")
 local bit = require("bit")
-local turbo = require("turbo")
+local ffi = require("ffi")
 local fs = require("turbo.fs")
+local turbo = require("turbo")
 
 if not turbo.platform.__LINUX__ then
   error("Turbovisor is only supported on Linux.")

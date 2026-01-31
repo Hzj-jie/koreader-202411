@@ -14,8 +14,8 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local ffi = require("ffi")
 local buffer = require("turbo.structs.buffer")
+local ffi = require("ffi")
 local platform = require("turbo.platform")
 local luasocket
 if not platform.__LINUX__ or _G.__TURBO_USE_LUASOCKET__ then

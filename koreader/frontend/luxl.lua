@@ -17,8 +17,8 @@
 
 ]]
 
-local ffi = require("ffi")
 local bit = require("bit")
+local ffi = require("ffi")
 local band = bit.band
 
 --[[

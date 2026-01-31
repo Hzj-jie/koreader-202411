@@ -9,8 +9,8 @@
 -----------------------------------------------------------------------------
 local string = require("string")
 local base = _G
-local table = require("table")
 local socket = require("socket")
+local table = require("table")
 
 socket.url = {}
 local _M = socket.url

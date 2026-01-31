@@ -9,10 +9,10 @@ local KeyValuePage = require("ui/widget/keyvaluepage")
 local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local Version = require("version")
+local _ = require("gettext")
 local dbg = require("dbg")
 local dump = require("dump")
 local lfs = require("libs/libkoreader-lfs")
-local _ = require("gettext")
 local T = FfiUtil.template
 
 local common_info = {}

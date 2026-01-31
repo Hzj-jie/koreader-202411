@@ -7,8 +7,8 @@ local type = type
 
 local lpeg = require("lpeg")
 
-local util = require("json.decode.util")
 local jsonutil = require("json.util")
+local util = require("json.decode.util")
 
 local rawset = rawset
 

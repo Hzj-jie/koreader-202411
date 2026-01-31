@@ -21,19 +21,19 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-local log = require("turbo.log")
-local ioloop = require("turbo.ioloop")
-local deque = require("turbo.structs.deque")
 local buffer = require("turbo.structs.buffer")
+local deque = require("turbo.structs.deque")
+local ioloop = require("turbo.ioloop")
+local log = require("turbo.log")
+local signal = require("turbo.signal")
 local socket = require("turbo.socket_ffi")
 local sockutils = require("turbo.sockutil")
 local util = require("turbo.util")
-local signal = require("turbo.signal")
 -- __Global value__ _G.TURBO_SSL allows the user to enable the SSL module.
+local coctx = require("turbo.coctx")
 local crypto = require("turbo.crypto")
 local platform = require("turbo.platform")
 local sockutil = require("turbo.sockutil")
-local coctx = require("turbo.coctx")
 local bit = jit and require("bit") or require("bit32")
 local ffi = require("ffi")
 local ssl

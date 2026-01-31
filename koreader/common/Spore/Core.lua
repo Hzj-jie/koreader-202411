@@ -6,9 +6,9 @@ local assert = assert
 local require = require
 local select = select
 local type = type
-local coroutine = require("coroutine")
-local Request = require("Spore.Request")
 local Protocols = require("Spore.Protocols")
+local Request = require("Spore.Request")
+local coroutine = require("coroutine")
 
 local _ENV = nil
 local m = {}

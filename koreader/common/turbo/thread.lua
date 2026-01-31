@@ -14,14 +14,14 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+local coctx = require("turbo.coctx")
 local ffi = require("ffi")
 local ioloop = require("turbo.ioloop")
-local util = require("turbo.util")
+local iostream = require("turbo.iostream")
 local log = require("turbo.log")
 local socket = require("turbo.socket_ffi")
 local sockutil = require("turbo.sockutil")
-local iostream = require("turbo.iostream")
-local coctx = require("turbo.coctx")
+local util = require("turbo.util")
 require("turbo.cdef")
 
 local thread = {}
