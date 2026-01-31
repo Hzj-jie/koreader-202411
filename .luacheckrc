@@ -27,5 +27,4 @@ ignore = {
   "432/self", -- shadowing upvalue argument self: allow self being reused.
   -- TODO: Remove
   "212", -- unused argument
-  "311", -- value assigned to variable ? is unused
 }

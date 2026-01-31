@@ -178,9 +178,8 @@ local xmlParser = function(handler)
     end
     self._handler.parseAttributes = parseAttributes
 
-    local match, endmatch, pos = 0, 0, 1
-    local text, endt1, endt2, tagstr, tagname, attrs, endtext
-    local _, errend, extend
+    local match, pos = 0, 1
+    local text, endt1, endt2, tagstr, tagname, attrs, endtext, endmatch, _, errend, extend
     while match do
       -- Get next tag (first pass - fix exceptions below)
       match, endmatch, text, endt1, tagstr, endt2 = string.find(str, self._XML, pos)

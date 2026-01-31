@@ -990,7 +990,6 @@ function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive, p
   end
 
   -- Next, look for our own preferred networks...
-  local err_msg = _("Connection failed")
   -- Only auto connecting when user did not initiate the operation. I.e. when
   -- user clicks on the "Wi-Fi connection" menu, always prefer showing the
   -- menu.
@@ -1000,8 +999,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(complete_callback, interactive, p
         -- If we hit a preferred network and we're not already connected,
         -- attempt to connect to said preferred network....
         logger.dbg("NetworkMgr: Attempting to authenticate on preferred network", util.fixUtf8(network.ssid, "�"))
-        local success
-        success, err_msg = self:authenticateNetwork(network)
+        local success, err_msg = self:authenticateNetwork(network)
         if success then
           ssid = network.ssid
           network.connected = true
