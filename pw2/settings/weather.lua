@@ -1,1 +1,0 @@
-../../koreader/settings/weather.lua
