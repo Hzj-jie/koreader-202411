@@ -271,9 +271,6 @@ function NumberPickerWidget:init()
   self.dimen = self.frame:getSize()
   self[1] = self.frame
   self:refocusWidget()
-  UIManager:setDirty(self, function()
-    return "ui"
-  end)
 end
 
 --[[--
@@ -288,9 +285,6 @@ function NumberPickerWidget:update()
   self.text_value:setText(tostring(self.formatted_value), self.width)
 
   self:refocusWidget()
-  UIManager:setDirty(self, function()
-    return "ui"
-  end)
   if self.picker_updated_callback then
     self.picker_updated_callback(self.value, self.value_index)
   end
