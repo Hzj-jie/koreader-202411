@@ -59,3 +59,7 @@ stylua: stylua, from https://github.com/JohnnyMorganz/StyLua, current version is
 luacheck: luacheck, from https://github.com/lunarmodules/luacheck, current
 version is 1.2.0.
 
+dropbear: dropbearmulti 2024.85, from
+https://github.com/ryanwoodsmall/static-binaries/blob/master/x86_64/dropbearmulti
+official site: https://matt.ucc.asn.au/dropbear/dropbear.html. The downloaded
+file is dropbearmulti, but renamed to dropbear to work as an ssh server.
