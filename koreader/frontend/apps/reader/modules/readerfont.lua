@@ -745,11 +745,7 @@ end
 function ReaderFont:getFontSettingsTable()
   local settings_table = {}
 
-  if
-    Device:isAndroid()
-    or Device:isDesktop()
-    or Device:isPocketBook()
-  then
+  if Device:isAndroid() or Device:isDesktop() or Device:isPocketBook() then
     for _, item in
       ipairs(require("ui/elements/font_settings"):getSystemFontMenuItems())
     do

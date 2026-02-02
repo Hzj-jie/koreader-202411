@@ -6,11 +6,10 @@ local InfoMessage = require("ui/widget/infomessage") -- luacheck:ignore
 local InputDialog = require("ui/widget/inputdialog")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local ffiutil = require("ffi/util")
 local logger = require("logger")
 local util = require("util")
 local _ = require("gettext")
-local T = ffiutil.template
+local T = require("ffi/util").template
 
 if not Device:isKobo() and not Device:isEmulator() then
   return { disabled = true }
@@ -25,6 +24,8 @@ if not util.pathExists("dropbear") then
   return { disabled = true }
 end
 
+local auto_started = false
+
 local SSH = WidgetContainer:extend({
   name = "SSH",
   is_doc_only = false,
@@ -35,9 +36,24 @@ function SSH:init()
   self.allow_no_password = G_reader_settings:isTrue("SSH_allow_no_password")
   self.ui.menu:registerToMainMenu(self)
   self:onDispatcherRegisterActions()
+  if not auto_started then
+    auto_started = true
+    self:autoStart()
+  end
 end
 
-function SSH:start()
+function SSH:autoStart()
+  if G_reader_settings:isTrue("SSH_autostart") then
+    -- Delay this until after all plugins are loaded
+    UIManager:nextTick(function()
+      if not self:isRunning() then
+        self:start(true)
+      end
+    end)
+  end
+end
+
+function SSH:start(quiet)
   -- Make a hole in the Kindle's firewall
   if Device:isKindle() then
     os.execute(
@@ -80,18 +96,20 @@ function SSH:start()
 
   logger.dbg("[Network] Launching SSH server : ", cmd)
   if os.execute(cmd) == 0 then
-    local info = InfoMessage:new({
-      timeout = 10,
-      -- @translators: %1 is the SSH port, %2 is the network info.
-      text = T(
-        _("SSH server started.\n\nSSH port: %1\n%2"),
-        self.SSH_port,
-        Device.retrieveNetworkInfo
-            and table.concat(Device:retrieveNetworkInfo(), "\n")
-          or _("Could not retrieve network info.")
-      ),
-    })
-    UIManager:show(info)
+    if not quiet then
+      local info = InfoMessage:new({
+        timeout = 10,
+        -- @translators: %1 is the SSH port, %2 is the network info.
+        text = T(
+          _("SSH server started.\n\nSSH port: %1\n%2"),
+          self.SSH_port,
+          Device.retrieveNetworkInfo
+              and table.concat(Device:retrieveNetworkInfo(), "\n")
+            or _("Could not retrieve network info.")
+        ),
+      })
+      UIManager:show(info)
+    end
   else
     local info = InfoMessage:new({
       icon = "notice-warning",
@@ -192,9 +210,6 @@ function SSH:addToMainMenu(menu_items)
         end,
         callback = function(touchmenu_instance)
           self:onToggleSSHServer()
-          -- sleeping might not be needed, but it gives the feeling
-          -- something has been done and feedback is accurate
-          ffiutil.sleep(1)
           touchmenu_instance:updateItems()
         end,
       },
@@ -238,6 +253,17 @@ function SSH:addToMainMenu(menu_items)
         callback = function()
           self.allow_no_password = not self.allow_no_password
           G_reader_settings:flipNilOrFalse("SSH_allow_no_password")
+        end,
+      },
+      {
+        -- Need localization
+        text = _("Auto start SSH server"),
+        checked_func = function()
+          return G_reader_settings:isTrue("SSH_autostart")
+        end,
+        callback = function()
+          G_reader_settings:flipNilOrFalse("SSH_autostart")
+          self:autoStart()
         end,
       },
     },
