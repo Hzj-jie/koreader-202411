@@ -197,8 +197,8 @@ function SSH:addToMainMenu(menu_items)
     sub_item_table = {
       {
         text_func = function()
-            -- Need localization
-            return self:isRunning() and _("Stop SSH server") or _("Stop SSH server")
+          -- Need localization
+          return self:isRunning() and _("Stop SSH server") or _("Stop SSH server")
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
