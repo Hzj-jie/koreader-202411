@@ -28,6 +28,7 @@ function CommonMenu:exitOrRestart(before_exit, ui, after_exit, force)
     if after_exit then
       after_exit()
     end
+    Device:getPowerDevice():turnOnFrontlight()
   end)
 end
 
