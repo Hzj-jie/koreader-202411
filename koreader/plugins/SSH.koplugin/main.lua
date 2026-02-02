@@ -198,11 +198,11 @@ function SSH:addToMainMenu(menu_items)
     text = _("SSH server"),
     sub_item_table = {
       {
-        text = _("SSH server"),
-        keep_menu_open = true,
-        checked_func = function()
-          return self:isRunning()
+        text_func = function()
+            -- Need localization
+            return self:isRunning() and _("Stop SSH server") or _("Stop SSH server")
         end,
+        keep_menu_open = true,
         callback = function(touchmenu_instance)
           self:onToggleSSHServer()
           touchmenu_instance:updateItems()
@@ -216,6 +216,8 @@ function SSH:addToMainMenu(menu_items)
         enabled_func = function()
           return not self:isRunning()
         end,
+        -- Need localization
+        help_text = _("Stop SSH server to configure"),
         callback = function(touchmenu_instance)
           self:show_port_dialog(touchmenu_instance)
         end,
@@ -226,6 +228,8 @@ function SSH:addToMainMenu(menu_items)
         enabled_func = function()
           return not self:isRunning()
         end,
+        -- Need localization
+        help_text = _("Stop SSH server to configure"),
         callback = function()
           local info = InfoMessage:new({
             timeout = 60,
@@ -242,6 +246,8 @@ function SSH:addToMainMenu(menu_items)
         enabled_func = function()
           return not self:isRunning()
         end,
+        -- Need localization
+        help_text = _("Stop SSH server to configure"),
         callback = function()
           self.allow_no_password = not self.allow_no_password
           G_reader_settings:flipNilOrFalse("SSH_allow_no_password")
