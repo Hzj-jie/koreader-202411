@@ -12,7 +12,7 @@ local util = require("util")
 local _ = require("gettext")
 local T = ffiutil.template
 
-if not Device:isKobo() then
+if not Device:isKobo() and not Device:isEmulator() then
   return { disabled = true }
 end
 

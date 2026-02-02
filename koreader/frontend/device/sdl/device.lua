@@ -133,6 +133,7 @@ local Flatpak = Device:extend({
 
 local Emulator = Device:extend({
   model = "Emulator",
+  isDesktop = util.yes,
   isEmulator = util.yes,
   hasBattery = util.yes,
   hasEinkScreen = util.yes,
