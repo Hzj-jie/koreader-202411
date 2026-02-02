@@ -94,7 +94,7 @@ function SSH:start(quiet)
   logger.dbg("[Network] Launching SSH server : ", cmd)
   if os.execute(cmd) == 0 then
     if not quiet then
-      local info = InfoMessage:new({
+      UIManager:show(InfoMessage:new({
         timeout = 10,
         -- @translators: %1 is the SSH port, %2 is the network info.
         text = T(
@@ -103,15 +103,13 @@ function SSH:start(quiet)
           Device.retrieveNetworkInfo and table.concat(Device:retrieveNetworkInfo(), "\n")
             or _("Could not retrieve network info.")
         ),
-      })
-      UIManager:show(info)
+      }))
     end
   else
-    local info = InfoMessage:new({
+    UIManager:show(InfoMessage:new({
       icon = "notice-warning",
       text = _("Failed to start SSH server."),
-    })
-    UIManager:show(info)
+    }))
   end
 end
 
