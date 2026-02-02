@@ -131,12 +131,10 @@ function CheckButton:onTapCheckButton()
   else
     -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-    local highlight_dimen = self.dimen
-
     -- Highlight
     --
     self[1].invert = true
-    UIManager:invertWidget(self[1], highlight_dimen.x, highlight_dimen.y, highlight_dimen.w)
+    UIManager:invertWidget(self[1])
 
     UIManager:forceRepaint()
     UIManager:waitForScreenRefresh()
@@ -144,7 +142,7 @@ function CheckButton:onTapCheckButton()
     -- Unhighlight
     --
     self[1].invert = false
-    UIManager:invertWidget(self[1], highlight_dimen.x, highlight_dimen.y, highlight_dimen.w)
+    UIManager:invertWidget(self[1])
 
     -- Callback
     --

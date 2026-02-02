@@ -82,16 +82,13 @@ local function _widgetWindow(w)
   return window
 end
 
-local function cropping_region(widget, x, y, w, h)
+local function cropping_region(widget)
   assert(widget ~= nil)
   local dimen = widget:getSize()
   assert(dimen ~= nil)
   -- It's possible that the function is called before the paintTo call, so x or
   -- y may not present.
-  x = x or dimen.x
-  y = y or dimen.y
-  w = w or dimen.w
-  h = h or dimen.h
+  local x, y, w, h = dimen.x, dimen.y, dimen.w, dimen.h
 
   local window = _widgetWindow(widget)
   if (not x or not y) and window then
@@ -1296,18 +1293,14 @@ break anything above the widget, and should only be used to show feedbacks for
 user interactions.
 
 @param widget a @{ui.widget.widget|widget} object
-@int x left origin of the rectangle to invert (in the Screen buffer, optional, will use `widget:getSize().x`)
-@int y top origin of the rectangle (in the Screen buffer, optional, will use `widget:getSize().y`)
-@int w width of the rectangle (optional, will use `widget:getSize().w` like `paintTo` would if omitted)
-@int h height of the rectangle (optional, will use `widget:getSize().h` like `paintTo` would if omitted)
 --]]
-function UIManager:invertWidget(widget, x, y, w, h)
+function UIManager:invertWidget(widget)
   -- TODO: Should assert.
   if not widget then
     return
   end
 
-  local invert_region = cropping_region(widget, x, y, w, h)
+  local invert_region = cropping_region(widget)
   if invert_region == nil then
     return
   end

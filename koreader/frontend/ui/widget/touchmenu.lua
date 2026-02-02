@@ -222,13 +222,10 @@ function TouchMenuItem:_tapEventHandler(f)
 
   -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-  -- The item frame's width stops at the text width, but we want it to match the menu's length instead
-  local highlight_dimen = self.item_frame:getSize()
-
   -- Highlight
   --
   self.item_frame.invert = true
-  UIManager:invertWidget(self.item_frame, highlight_dimen.x, highlight_dimen.y, highlight_dimen.w)
+  UIManager:invertWidget(self.item_frame)
 
   UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
@@ -238,7 +235,7 @@ function TouchMenuItem:_tapEventHandler(f)
   self.item_frame.invert = false
   -- NOTE: If the menu is going to be closed, we can safely drop that.
   if self.item.keep_menu_open then
-    UIManager:invertWidget(self.item_frame, highlight_dimen.x, highlight_dimen.y, highlight_dimen.w)
+    UIManager:invertWidget(self.item_frame)
   end
 
   -- Callback
@@ -1084,13 +1081,12 @@ function TouchMenu:openMenu(path, with_animation)
     if not widget then
       return
     end
-    local highlight_dimen = widget:getSize()
     if unhighlight then
       widget.invert = false
-      UIManager:invertWidget(widget, highlight_dimen.x, highlight_dimen.y, highlight_dimen.w)
+      UIManager:invertWidget(widget)
     else
       widget.invert = true
-      UIManager:invertWidget(widget, highlight_dimen.x, highlight_dimen.y, highlight_dimen.w)
+      UIManager:invertWidget(widget)
     end
   end
 
