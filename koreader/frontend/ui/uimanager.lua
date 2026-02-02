@@ -62,9 +62,24 @@ local refresh_methods = {
   full = Screen.refreshFull,
 }
 
-local function widgetDebugStr(widget)
+local function _widgetDebugStr(widget)
   assert(widget ~= nil)
   return widget.name or widget.id or tostring(widget)
+end
+
+local function _widgetWindow(w)
+  assert(w ~= nil)
+  local window = w:window()
+  if window == nil then
+    -- TODO: Should assert.
+    logger.warn(
+      "FixMe: Unknown widget ",
+      _widgetDebugStr(w),
+      " to repaint, it may not be shown yet, or you may want to send in the ",
+      "show(widget) instead."
+    )
+  end
+  return window
 end
 
 local function cropping_region(widget, x, y, w, h)
@@ -78,22 +93,30 @@ local function cropping_region(widget, x, y, w, h)
   w = w or dimen.w
   h = h or dimen.h
 
-  local window = widget:window()
-  if window then
+  local window = _widgetWindow(widget)
+  if (not x or not y) and window then
     -- Before the initial paintTo call, widget.dimen isn't available. In the
     -- case, it's expected to paintTo a showParent which starts from the top
     -- left of a window.
+    if window.widget ~= widget then
+      logger.warn(
+        "FixMe: ",
+        _widgetDebugStr(widget),
+        " is painted directly into its window without its location.",
+        " It should be painted by its parent widget first."
+      )
+    end
     x = x or window.x
     y = y or window.y
   end
 
   if not x or not y or not w or not h then
-    logger.warn("Cannot calculate cropping region of widget ", widgetDebugStr(widget), " without its dimen.")
+    logger.warn("Cannot calculate cropping region of widget ", _widgetDebugStr(widget), " without its dimen.")
     return nil
   end
 
   if w == 0 and h == 0 then
-    logger.warn("FixMe: widget ", widgetDebugStr(widget), " returns empty Geom.")
+    logger.warn("FixMe: widget ", _widgetDebugStr(widget), " returns empty Geom.")
   end
 
   if window then
@@ -117,21 +140,6 @@ local function cropping_region(widget, x, y, w, h)
     end
   end
   return Geom:new({ x = x, y = y, w = w, h = h })
-end
-
-local function _widgetWindow(w)
-  assert(w ~= nil)
-  local window = w:window()
-  if window == nil then
-    -- TODO: Should assert.
-    logger.warn(
-      "Unknown widget ",
-      widgetDebugStr(w),
-      " to repaint, it may not be shown yet, or you may want to send in the ",
-      "show(widget) instead."
-    )
-  end
-  return window
 end
 
 -- This is a singleton
@@ -259,7 +267,7 @@ function UIManager:show(widget)
   end
   assert(not self:isWidgetShown(widget))
 
-  logger.dbg("show widget:", widgetDebugStr(widget))
+  logger.dbg("show widget:", _widgetDebugStr(widget))
 
   -- The window x and y are never used.
   local window = { x = 0, y = 0, widget = widget }
@@ -313,11 +321,11 @@ function UIManager:close(widget)
   end
 
   if not UIManager:isWidgetShown(widget) then
-    logger.warn("FixMe: widget " .. widgetDebugStr(widget) .. " has been closed already. " .. debug.traceback())
+    logger.warn("FixMe: widget " .. _widgetDebugStr(widget) .. " has been closed already. " .. debug.traceback())
     return
   end
 
-  logger.dbg("close widget:", widgetDebugStr(widget))
+  logger.dbg("close widget:", _widgetDebugStr(widget))
   -- First notify the closed widget to save its settings...
   widget:broadcastEvent(Event:new("FlushSettings"))
   -- ...and notify it that it ought to be gone now.
@@ -344,7 +352,7 @@ function UIManager:close(widget)
       end
     else
       if w.dithered then
-        logger.dbg("Lower widget", widgetDebugStr(w), "was dithered, honoring the dithering hint")
+        logger.dbg("Lower widget", _widgetDebugStr(w), "was dithered, honoring the dithering hint")
       end
       -- Set double tap to how the topmost widget with that flag wants it
       if requested_disable_double_tap == nil and w.disable_double_tap ~= nil then
@@ -1042,7 +1050,7 @@ function UIManager:_repaintDirtyWidgets()
   for i = 1, #self._window_stack do
     local window = self._window_stack[i]
     for _, widget in ipairs(dirty_widgets[i]) do
-      logger.dbg("painting widget:", widgetDebugStr(widget))
+      logger.dbg("painting widget:", _widgetDebugStr(widget))
       local paint_region = cropping_region(widget)
       assert(paint_region ~= nil)
       widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
@@ -1304,7 +1312,7 @@ function UIManager:invertWidget(widget, x, y, w, h)
     return
   end
 
-  logger.dbg("Explicit widgetInvert:", widgetDebugStr(widget), "@", dump(invert_region))
+  logger.dbg("Explicit widgetInvert:", _widgetDebugStr(widget), "@", dump(invert_region))
   Screen.bb:invertRect(invert_region.x, invert_region.y, invert_region.w, invert_region.h)
   self:scheduleRefresh("fast", invert_region, widget.dithered)
 end

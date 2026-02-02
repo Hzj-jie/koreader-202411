@@ -454,8 +454,7 @@ function SystemStat:appendStorageInfo()
     return
   end
 
-  local std_out =
-    io.popen("df -h | sed -r 's/ +/ /g' | grep " .. self.storage_filter .. " | cut -d' ' -f 2,4,5,6")
+  local std_out = io.popen("df -h | sed -r 's/ +/ /g' | grep " .. self.storage_filter .. " | cut -d' ' -f 2,4,5,6")
   assert(std_out ~= nil)
 
   self:put({ _("Storage information"), "" })
