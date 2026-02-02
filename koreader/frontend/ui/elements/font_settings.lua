@@ -27,7 +27,7 @@ local function getDir(isUser)
       or "/ebrmain/adobefonts;/ebrmain/fonts"
   elseif Device:isRemarkable() then
     return isUser and LINUX_FONT_PATH or LINUX_SYS_FONT_PATH
-  elseif Device:isDesktop() or Device:isEmulator() then
+  elseif Device:isDesktop() then
     if jit.os == "OSX" then
       return isUser and home .. "/" .. MACOS_FONT_PATH or "/" .. MACOS_FONT_PATH
     else
@@ -84,7 +84,7 @@ function FontSettings:getSystemFontMenuItems()
     },
   }
 
-  if Device:isDesktop() or Device:isEmulator() then
+  if Device:isDesktop() then
     table.insert(t, 2, {
       text = _("Open fonts folder"),
       keep_menu_open = true,

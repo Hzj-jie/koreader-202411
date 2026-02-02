@@ -748,7 +748,6 @@ function ReaderFont:getFontSettingsTable()
   if
     Device:isAndroid()
     or Device:isDesktop()
-    or Device:isEmulator()
     or Device:isPocketBook()
   then
     for _, item in
