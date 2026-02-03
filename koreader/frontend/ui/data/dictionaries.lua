@@ -1,4 +1,4 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- largely thanks to https://tuxor1337.github.io/firedict/dictionaries.html
 local dictionaries = {
@@ -7,7 +7,7 @@ local dictionaries = {
     lang_in = "eng",
     lang_out = "eng",
     entries = 2577,
-    license = _("Public Domain"),
+    license = gettext("Public Domain"),
     url = "http://build.koreader.rocks/download/dict/factbook.tar.gz",
   },
   {
@@ -55,7 +55,7 @@ local dictionaries = {
     lang_in = "fra",
     lang_out = "fra",
     entries = 31934,
-    license = _("Public Domain (copyright expired, published 1935)"),
+    license = gettext("Public Domain (copyright expired, published 1935)"),
     url = "https://gitlab.com/koreader/stardict-dictionaries/uploads/b8e8ba6b8941a78762675ff2ef95d1d1/acadfran.tar.gz",
   },
   {
@@ -63,7 +63,7 @@ local dictionaries = {
     lang_in = "grc",
     lang_out = "deu",
     entries = 98893,
-    license = _("Public Domain (copyright expired, published 1880)"),
+    license = gettext("Public Domain (copyright expired, published 1880)"),
     url = "http://build.koreader.rocks/download/dict/pape_gr-de.tar.gz",
   },
   {
@@ -71,7 +71,7 @@ local dictionaries = {
     lang_in = "lat",
     lang_out = "deu",
     entries = 54831,
-    license = _("Public Domain (copyright expired, published 1913)"),
+    license = gettext("Public Domain (copyright expired, published 1913)"),
     url = "https://gitlab.com/koreader/stardict-dictionaries/uploads/6339585b68ac485bedb8ee67892cb974/georges_lat-de.tar.gz",
   },
   {
@@ -79,7 +79,7 @@ local dictionaries = {
     lang_in = "deu",
     lang_out = "lat",
     entries = 26608,
-    license = _("Public Domain (copyright expired, published 1910)"),
+    license = gettext("Public Domain (copyright expired, published 1910)"),
     url = "https://gitlab.com/koreader/stardict-dictionaries/uploads/a04de66c7376e436913ca288a3ca608b/georges_de-lat.tar.gz",
   },
   {
@@ -87,7 +87,7 @@ local dictionaries = {
     lang_in = "por",
     lang_out = "por",
     entries = 128521,
-    license = _("CC-BY-SA 2.5"),
+    license = gettext("CC-BY-SA 2.5"),
     url = "https://dicionario-aberto.net/resources/stardict-DicAberto.tar.bz2",
   },
   {
@@ -95,7 +95,7 @@ local dictionaries = {
     lang_in = "eng",
     lang_out = "ces",
     entries = 178904, -- ~90000 each way
-    license = _("GNU/FDL"),
+    license = gettext("GNU/FDL"),
     url = "http://http.debian.net/debian/pool/non-free/s/stardict-english-czech/stardict-english-czech_20161201.orig.tar.gz",
   },
   {
@@ -103,7 +103,7 @@ local dictionaries = {
     lang_in = "ces",
     lang_out = "eng",
     entries = 88994,
-    license = _("GNU/FDL"),
+    license = gettext("GNU/FDL"),
     url = "https://github.com/Vuizur/czech-dictionary-extender/releases/download/1.0.0/czech-english-dict.tar.gz",
   },
   {
@@ -111,7 +111,7 @@ local dictionaries = {
     lang_in = "deu",
     lang_out = "ces",
     entries = 2341, -- ~1200 each way
-    license = _("GNU/FDL"),
+    license = gettext("GNU/FDL"),
     url = "http://http.debian.net/debian/pool/non-free/s/stardict-german-czech/stardict-german-czech_20161201.orig.tar.gz",
   },
   {
@@ -119,7 +119,7 @@ local dictionaries = {
     lang_in = "ces",
     lang_out = "deu",
     entries = 2341, -- ~1200 each way
-    license = _("GNU/FDL"),
+    license = gettext("GNU/FDL"),
     url = "http://http.debian.net/debian/pool/non-free/s/stardict-german-czech/stardict-german-czech_20161201.orig.tar.gz",
   },
   -- Dictionaries mirrored from Sourceforge, see https://github.com/koreader/koreader/pull/3176#issuecomment-447085441

@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "externalkeyboard",
-  fullname = _("External keyboard"),
-  description = _([[Manages USB OTG and configures keyboard.]]),
+  fullname = gettext("External keyboard"),
+  description = gettext([[Manages USB OTG and configures keyboard.]]),
 }

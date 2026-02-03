@@ -10,7 +10,7 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = FFIUtil.template
 
 local function getCodename()
@@ -214,7 +214,7 @@ function Device:init()
             local BD = require("ui/bidi")
             UIManager:scheduleIn(0.1, function()
               UIManager:show(InfoMessage:new({
-                text = T(_("Opening file '%1'."), BD.filepath(new_file)),
+                text = T(gettext("Opening file '%1'."), BD.filepath(new_file)),
                 timeout = 0.0,
               }))
             end)
@@ -359,14 +359,14 @@ function Device:retrieveNetworkInfo()
   local ok, type = android.getNetworkInfo()
   ok, type = tonumber(ok), tonumber(type)
   if not ok or not type or type == C.ANETWORK_NONE then
-    return _("Not connected")
+    return gettext("Not connected")
   else
     if type == C.ANETWORK_WIFI then
-      return _("Connected to Wi-Fi")
+      return gettext("Connected to Wi-Fi")
     elseif type == C.ANETWORK_MOBILE then
-      return _("Connected to mobile data network")
+      return gettext("Connected to mobile data network")
     elseif type == C.ANETWORK_ETHERNET then
-      return _("Connected to Ethernet")
+      return gettext("Connected to Ethernet")
     end
   end
 end
@@ -467,7 +467,7 @@ function Device:info()
   local product_type = android.getPlatformName()
 
   local common_text = T(
-    _("%1\n\nOS: Android %2, api %3 on %4\nBuild flavor: %5\n"),
+    gettext("%1\n\nOS: Android %2, api %3 on %4\nBuild flavor: %5\n"),
     android.prop.product,
     getCodename(),
     Device.firmware_rev,
@@ -477,18 +477,18 @@ function Device:info()
 
   local platform_text = ""
   if product_type ~= "android" then
-    platform_text = "\n" .. T(_("Device type: %1"), product_type) .. "\n"
+    platform_text = "\n" .. T(gettext("Device type: %1"), product_type) .. "\n"
   end
 
   local eink_text = ""
   if is_eink then
-    eink_text = "\n" .. T(_("E-ink display supported.\nPlatform: %1"), eink_platform) .. "\n"
+    eink_text = "\n" .. T(gettext("E-ink display supported.\nPlatform: %1"), eink_platform) .. "\n"
   end
 
   local wakelocks_text = ""
   if android.needsWakelocks() then
     wakelocks_text = "\n"
-      .. _(
+      .. gettext(
         "This device needs CPU, screen and touchscreen always on.\nScreen timeout will be ignored while the app is in the foreground!"
       )
       .. "\n"
@@ -546,8 +546,8 @@ function Device:showLightDialog()
 end
 
 function Device:_showLightDialog()
-  local title = android.isEink() and _("Frontlight settings") or _("Light settings")
-  android.lights.showDialog(title, _("Brightness"), _("Warmth"), _("OK"), _("Cancel"))
+  local title = android.isEink() and gettext("Frontlight settings") or gettext("Light settings")
+  android.lights.showDialog(title, gettext("Brightness"), gettext("Warmth"), gettext("OK"), gettext("Cancel"))
 
   local action = android.lights.dialogState()
   while action == C.ALIGHTS_DIALOG_OPENED do
@@ -591,8 +591,8 @@ function Device:download(link, name, ok_text)
     }))
   elseif ok == C.ADOWNLOAD_FAILED then
     UIManager:show(ConfirmBox:new({
-      text = _("Your device seems to be unable to download packages.\nRetry using the browser?"),
-      ok_text = _("Retry"),
+      text = gettext("Your device seems to be unable to download packages.\nRetry using the browser?"),
+      ok_text = gettext("Retry"),
       ok_callback = function()
         self:openLink(link)
       end,
@@ -603,8 +603,8 @@ end
 function Device:install()
   local ConfirmBox = require("ui/widget/confirmbox")
   UIManager:show(ConfirmBox:new({
-    text = _("Update is ready. Install it now?"),
-    ok_text = _("Install"),
+    text = gettext("Update is ready. Install it now?"),
+    ok_text = gettext("Install"),
     ok_callback = function()
       UIManager:broadcastEvent(Event:new("FlushSettings"))
       UIManager:tickAfterNext(function()

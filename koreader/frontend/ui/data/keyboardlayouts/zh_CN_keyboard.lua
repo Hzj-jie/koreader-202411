@@ -1,6 +1,6 @@
 local IME = require("ui/data/keyboardlayouts/generic_ime")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- Start with the english keyboard layout
 -- Explicitly make a new copy since the following logic will modify it.
@@ -69,7 +69,7 @@ py_keyboard.keys[4][5][3] = "》"
 local genMenuItems = function(self)
   return {
     {
-      text = _("Show character candidates"),
+      text = gettext("Show character candidates"),
       checked_func = function()
         return settings.show_candi
       end,

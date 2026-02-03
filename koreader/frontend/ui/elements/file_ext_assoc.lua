@@ -1,5 +1,5 @@
 local Device = require("device")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local function getSupportedExtensions()
   local t = require("document/documentregistry"):getExtensions()
@@ -39,7 +39,7 @@ function ExtAssoc:getSettingsMenuTable()
   local ret = {
     {
       keep_menu_open = true,
-      text = _("Enable all"),
+      text = gettext("Enable all"),
       callback = function(menu)
         self:setAll(true)
         menu:updateItems()
@@ -47,7 +47,7 @@ function ExtAssoc:getSettingsMenuTable()
     },
     {
       keep_menu_open = true,
-      text = _("Disable all"),
+      text = gettext("Disable all"),
       callback = function(menu)
         self:setAll(false)
         menu:updateItems()

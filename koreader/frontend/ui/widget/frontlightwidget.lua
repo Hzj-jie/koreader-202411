@@ -21,8 +21,8 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local time = require("ui/time")
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local Screen = Device.screen
 
 local FrontLightWidget = FocusManager:extend({
@@ -147,7 +147,7 @@ function FrontLightWidget:layout()
     last = self.fl.max,
   })
   local fl_header = TextWidget:new({
-    text = _("Brightness"),
+    text = gettext("Brightness"),
     face = self.medium_font_face,
     bold = true,
     max_width = self.inner_width,
@@ -197,7 +197,7 @@ function FrontLightWidget:layout()
     end,
   })
   local fl_toggle = Button:new({
-    text = _("Toggle"),
+    text = gettext("Toggle"),
     enabled = true,
     width = self.button_width,
     callback = function()
@@ -262,7 +262,7 @@ function FrontLightWidget:layout()
     -- We want a wider gap between the two sets of widgets
     local nl_span = VerticalSpan:new({ height = Size.span.vertical_large * 4 })
     local nl_header = TextWidget:new({
-      text = _("Warmth"),
+      text = gettext("Warmth"),
       face = self.medium_font_face,
       bold = true,
       max_width = self.inner_width,
@@ -316,7 +316,7 @@ function FrontLightWidget:layout()
     -- Aura One R/G/B widget
     if not self.has_nl_mixer and not self.has_nl_api then
       nl_setup = Button:new({
-        text = _("Configure"),
+        text = gettext("Configure"),
         width = self.button_width,
         callback = function()
           UIManager:show(NaturalLight:new({ fl_widget = self }))
@@ -370,7 +370,7 @@ function FrontLightWidget:layout()
 
   -- Common
   local title_bar = TitleBar:new({
-    title = _("Frontlight"),
+    title = gettext("Frontlight"),
     width = self.width,
     align = "left",
     with_bottom_line = true,

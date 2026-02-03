@@ -30,7 +30,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiUtil = require("ffi/util")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 local T = ffiUtil.template
@@ -777,14 +777,14 @@ function Menu:init()
   local buttons = {
     {
       {
-        text = _("Cancel"),
+        text = gettext("Cancel"),
         id = "close",
         callback = function()
           self.page_info_text:closeInputDialog()
         end,
       },
       {
-        text = _("Go to page"),
+        text = gettext("Go to page"),
         is_enter_default = not self.goto_letter,
         callback = function()
           local page = tonumber(self.page_info_text.input_dialog:getInputText())
@@ -798,21 +798,21 @@ function Menu:init()
   }
 
   if self.goto_letter then
-    title_goto = _("Enter letter or page number")
+    title_goto = gettext("Enter letter or page number")
     hint_func = function()
       -- @translators First group is the standard range for alphabetic searches, second group is a page number range
-      return T(_("(a - z) or (1 - %1)"), self.page_num)
+      return T(gettext("(a - z) or (1 - %1)"), self.page_num)
     end
     table.insert(buttons, 1, {
       {
-        text = _("File search"),
+        text = gettext("File search"),
         callback = function()
           self.page_info_text:closeInputDialog()
           UIManager:broadcastEvent(Event:new("ShowFileSearch", self.page_info_text.input_dialog:getInputText()))
         end,
       },
       {
-        text = _("Go to letter"),
+        text = gettext("Go to letter"),
         is_enter_default = true,
         callback = function()
           local search_string = self.page_info_text.input_dialog:getInputText()
@@ -833,7 +833,7 @@ function Menu:init()
       },
     })
   else
-    title_goto = _("Enter page number")
+    title_goto = gettext("Enter page number")
     type_goto = "number"
     hint_func = function()
       return string.format("(1 - %s)", self.page_num)
@@ -1046,7 +1046,7 @@ function Menu:updatePageInfo(select_number)
       self:moveFocusTo(x, y, is_focused and FocusManager.FORCED_FOCUS or FocusManager.FOCUS_ONLY_ON_NT)
     end
     -- update page information
-    self.page_info_text:setText(T(_("Page %1 of %2"), self.page, self.page_num))
+    self.page_info_text:setText(T(gettext("Page %1 of %2"), self.page, self.page_num))
     if self.page_num > 1 then
       self.page_info_text:enable()
     else
@@ -1064,7 +1064,7 @@ function Menu:updatePageInfo(select_number)
     self.page_info_last_chev:enableDisable(self.page < self.page_num)
     self.page_return_arrow:enableDisable(#self.paths > 0)
   else
-    self.page_info_text:setText(_("No items"))
+    self.page_info_text:setText(gettext("No items"))
     self.page_info_text:disableWithoutDimming()
 
     self.page_info_left_chev:hide()

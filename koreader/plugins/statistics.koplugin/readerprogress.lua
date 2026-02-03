@@ -19,7 +19,7 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local datetime = require("datetime")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 
 local LINE_COLOR = Blitbuffer.COLOR_GRAY_9
@@ -107,11 +107,11 @@ function ReaderProgress:getStatusContent(width)
   return VerticalGroup:new({
     align = "left",
     title_bar,
-    self:genSingleHeader(_("Last week")),
+    self:genSingleHeader(gettext("Last week")),
     self:genSummaryWeek(width),
-    self:genSingleHeader(_("Week progress")),
+    self:genSingleHeader(gettext("Week progress")),
     self:genWeekStats(7),
-    self:genDoubleHeader(_("Session"), _("Today")),
+    self:genDoubleHeader(gettext("Session"), gettext("Today")),
     self:genSummaryDay(width),
   })
 end
@@ -319,28 +319,28 @@ function ReaderProgress:genSummaryDay(width)
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = _("Pages"),
+        text = gettext("Pages"),
         face = self.small_font_face,
       }),
     }),
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = _("Time"),
+        text = gettext("Time"),
         face = self.small_font_face,
       }),
     }),
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = _("Pages"),
+        text = gettext("Pages"),
         face = self.small_font_face,
       }),
     }),
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = _("Time"),
+        text = gettext("Time"),
         face = self.small_font_face,
       }),
     }),
@@ -417,7 +417,7 @@ function ReaderProgress:genSummaryWeek(width)
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextBoxWidget:new({
         alignment = "center",
-        text = _("Total\npages"),
+        text = gettext("Total\npages"),
         face = self.small_font_face,
         width = tile_width * 0.95,
       }),
@@ -426,7 +426,7 @@ function ReaderProgress:genSummaryWeek(width)
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextBoxWidget:new({
         alignment = "center",
-        text = _("Total\ntime"),
+        text = gettext("Total\ntime"),
         face = self.small_font_face,
         width = tile_width * 0.95,
       }),
@@ -435,7 +435,7 @@ function ReaderProgress:genSummaryWeek(width)
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextBoxWidget:new({
         alignment = "center",
-        text = _("Average\npages/day"),
+        text = gettext("Average\npages/day"),
         face = self.small_font_face,
         width = tile_width * 0.95,
       }),
@@ -444,7 +444,7 @@ function ReaderProgress:genSummaryWeek(width)
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextBoxWidget:new({
         alignment = "center",
-        text = _("Average\ntime/day"),
+        text = gettext("Average\ntime/day"),
         face = self.small_font_face,
         width = tile_width * 0.95,
       }),

@@ -9,20 +9,20 @@ Example for input of two strings and a number:
 
     local sample_input
     sample_input = MultiInputDialog:new{
-        title = _("Title to show"),
+        title = gettext("Title to show"),
         fields = {
             {
-                description = _("Describe this field"),
+                description = gettext("Describe this field"),
                 -- input_type = nil, -- default for text
-                text = _("First input"),
-                hint = _("Name"),
+                text = gettext("First input"),
+                hint = gettext("Name"),
             },
             {
                 text = "",
-                hint = _("Address"),
+                hint = gettext("Address"),
             },
             {
-                description = _("Enter a number"),
+                description = gettext("Enter a number"),
                 input_type = "number",
                 text = 666,
                 hint = 123,
@@ -31,20 +31,20 @@ Example for input of two strings and a number:
         buttons = {
             {
                 {
-                    text = _("Cancel"),
+                    text = gettext("Cancel"),
                     id = "close",
                     callback = function()
                         UIManager:close(sample_input)
                     end
                 },
                 {
-                    text = _("Info"),
+                    text = gettext("Info"),
                     callback = function()
                         -- do something
                     end
                 },
                 {
-                    text = _("Use settings"),
+                    text = gettext("Use settings"),
                     callback = function(touchmenu_instance)
                         local fields = sample_input:getFields()
                         -- check for user input
@@ -86,7 +86,6 @@ local TextBoxWidget = require("ui/widget/textboxwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
 local Screen = Device.screen
 
 local MultiInputDialog = InputDialog:extend({

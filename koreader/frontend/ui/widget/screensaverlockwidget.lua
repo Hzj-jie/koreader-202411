@@ -5,7 +5,7 @@ local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local UIManager = require("ui/uimanager")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 
 local ScreenSaverLockWidget = InputContainer:extend({
@@ -96,8 +96,8 @@ function ScreenSaverLockWidget:showWaitForGestureMessage()
   -- We just paint an InfoMessage on screen directly: we don't want
   -- another widget that we would need to prevent catching events
   local infomsg = InfoMessage:new({
-    text = self.has_exit_screensaver_gesture and _("Waiting for specific gesture to exit screensaver.")
-      or _("No exit screensaver gesture configured. Tap to exit."),
+    text = self.has_exit_screensaver_gesture and gettext("Waiting for specific gesture to exit screensaver.")
+      or gettext("No exit screensaver gesture configured. Tap to exit."),
   })
   infomsg:paintTo(Screen.bb, 0, 0)
   infomsg:onShow() -- get the screen refreshed

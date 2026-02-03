@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "autostandby",
-  fullname = _("Auto Standby"),
-  description = _([[Put into standby on no input, wake up from standby on UI input]]),
+  fullname = gettext("Auto Standby"),
+  description = gettext([[Put into standby on no input, wake up from standby on UI input]]),
 }

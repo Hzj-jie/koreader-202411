@@ -10,7 +10,7 @@ local UIManager = require("ui/uimanager")
 local dbg = require("dbg")
 local util = require("util")
 local Screen = Device.screen
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local ReaderMenu = InputContainer:extend({
@@ -212,14 +212,14 @@ function ReaderMenu:setUpdateItemTable()
 
   -- typeset tab
   self.menu_items.reset_document_settings = {
-    text = _("Reset document settings to default"),
+    text = gettext("Reset document settings to default"),
     keep_menu_open = true,
     callback = function()
       UIManager:show(ConfirmBox:new({
-        text = _(
+        text = gettext(
           "Reset current document settings to their default values?\n\nReading position, highlights and bookmarks will be kept.\nThe document will be reloaded."
         ),
-        ok_text = _("Reset"),
+        ok_text = gettext("Reset"),
         ok_callback = function()
           local current_file = self.ui.document.file
           self:closeMenu()
@@ -232,17 +232,17 @@ function ReaderMenu:setUpdateItemTable()
   }
 
   self.menu_items.save_document_settings = {
-    text = _("Save document settings as default"),
+    text = gettext("Save document settings as default"),
     keep_menu_open = true,
     callback = function()
       UIManager:show(ConfirmBox:new({
-        text = _("Save current document settings as default values?"),
-        ok_text = _("Save"),
+        text = gettext("Save current document settings as default values?"),
+        ok_text = gettext("Save"),
         ok_callback = function()
           self:closeMenu()
           self:saveDocumentSettingsAsDefault()
           UIManager:show(require("ui/widget/notification"):new({
-            text = _("Default settings updated"),
+            text = gettext("Default settings updated"),
           }))
         end,
       }))
@@ -273,7 +273,7 @@ function ReaderMenu:setUpdateItemTable()
 
   if Device:supportsScreensaver() then
     local ss_book_settings = {
-      text = _("Do not show this book cover on sleep screen"),
+      text = gettext("Do not show this book cover on sleep screen"),
       enabled_func = function()
         if self.ui and self.ui.document then
           local screensaverType = G_reader_settings:read("screensaver_type")
@@ -297,14 +297,14 @@ function ReaderMenu:setUpdateItemTable()
     local screensaver_sub_item_table = require("ui/elements/screensaver_menu")
     table.insert(screensaver_sub_item_table, ss_book_settings)
     self.menu_items.screensaver = {
-      text = _("Sleep screen"),
+      text = gettext("Sleep screen"),
       sub_item_table = screensaver_sub_item_table,
     }
   end
 
   local PluginLoader = require("pluginloader")
   self.menu_items.plugin_management = {
-    text = _("Plugin management"),
+    text = gettext("Plugin management"),
     sub_item_table = PluginLoader:genPluginManagerSubItem(),
   }
 
@@ -323,10 +323,10 @@ function ReaderMenu:setUpdateItemTable()
     text_func = function()
       local previous_file = self:getPreviousFile()
       if not G_reader_settings:isTrue("open_last_menu_show_filename") or not previous_file then
-        return _("Open previous document")
+        return gettext("Open previous document")
       end
       local path, file_name = util.splitFilePathName(previous_file) -- luacheck: no unused
-      return T(_("Previous: %1"), BD.filename(file_name))
+      return T(gettext("Previous: %1"), BD.filename(file_name))
     end,
     enabled_func = function()
       return self:getPreviousFile() ~= nil
@@ -337,8 +337,8 @@ function ReaderMenu:setUpdateItemTable()
     hold_callback = function()
       local previous_file = self:getPreviousFile()
       UIManager:show(ConfirmBox:new({
-        text = T(_("Would you like to open the previous document: %1?"), BD.filepath(previous_file)),
-        ok_text = _("OK"),
+        text = T(gettext("Would you like to open the previous document: %1?"), BD.filepath(previous_file)),
+        ok_text = gettext("OK"),
         ok_callback = function()
           self.ui:switchDocument(previous_file)
         end,
@@ -403,7 +403,7 @@ function ReaderMenu:onShowMenu(tab_index)
   else
     local Menu = require("ui/widget/menu")
     main_menu = Menu:new({
-      title = _("Document menu"),
+      title = gettext("Document menu"),
       item_table = Menu.itemTableFromTouchMenu(self.tab_item_table),
       width = Screen:getWidth() - 100,
     })

@@ -18,7 +18,7 @@ local WeatherApi = require("weatherapi")
 local Screen = require("device").screen
 local Composer = require("composer")
 local ffiutil = require("ffi/util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = ffiutil.template
 
 local Weather = WidgetContainer:new({
@@ -74,7 +74,7 @@ end
 --
 function Weather:addToMainMenu(menu_items)
   menu_items.weather = {
-    text = _("Weather"),
+    text = gettext("Weather"),
     sub_item_table_func = function()
       return self:getSubMenuItems()
     end,
@@ -89,32 +89,32 @@ function Weather:getSubMenuItems()
   self:loadSettings()
   local sub_item_table = {
     {
-      text = _("Settings"),
+      text = gettext("Settings"),
       sub_item_table = {
         {
           text_func = function()
-            return T(_("Postal Code (%1)"), self.postal_code)
+            return T(gettext("Postal Code (%1)"), self.postal_code)
           end,
           keep_menu_open = true,
           callback = function(touchmenu_instance)
             local postal_code = self.postal_code
             local input
             input = InputDialog:new({
-              title = _("Postal Code"),
+              title = gettext("Postal Code"),
               input = postal_code,
-              input_hint = _("Format: " .. self.default_postal_code),
+              input_hint = gettext("Format: " .. self.default_postal_code),
               input_type = "string",
-              description = _(""),
+              description = gettext(""),
               buttons = {
                 {
                   {
-                    text = _("Cancel"),
+                    text = gettext("Cancel"),
                     callback = function()
                       UIManager:close(input)
                     end,
                   },
                   {
-                    text = _("Save"),
+                    text = gettext("Save"),
                     is_enter_default = true,
                     callback = function()
                       self.postal_code = input:getInputValue()
@@ -130,29 +130,29 @@ function Weather:getSubMenuItems()
         },
         {
           text_func = function()
-            return T(_("Auth Token (%1)"), self.api_key)
+            return T(gettext("Auth Token (%1)"), self.api_key)
           end,
           keep_menu_open = true,
           callback = function(touchmenu_instance)
             local api_key = self.api_key
             local input
             input = InputDialog:new({
-              title = _("Auth token"),
+              title = gettext("Auth token"),
               input = api_key,
               input_type = "string",
-              description = _(
+              description = gettext(
                 "An auth token can be obtained from WeatherAPI.com. Simply signup for an account and request a token."
               ),
               buttons = {
                 {
                   {
-                    text = _("Cancel"),
+                    text = gettext("Cancel"),
                     callback = function()
                       UIManager:close(input)
                     end,
                   },
                   {
-                    text = _("Save"),
+                    text = gettext("Save"),
                     is_enter_default = true,
                     callback = function()
                       self.api_key = input:getInputValue()
@@ -168,11 +168,11 @@ function Weather:getSubMenuItems()
         },
         {
           text_func = function()
-            return T(_("Temperature Scale (%1)"), self.temp_scale)
+            return T(gettext("Temperature Scale (%1)"), self.temp_scale)
           end,
           sub_item_table = {
             {
-              text = _("Celsius"),
+              text = gettext("Celsius"),
               checked_func = function()
                 return self:celsius()
               end,
@@ -182,7 +182,7 @@ function Weather:getSubMenuItems()
               end,
             },
             {
-              text = _("Fahrenheit"),
+              text = gettext("Fahrenheit"),
               checked_func = function()
                 return self:fahrenheit()
               end,
@@ -195,11 +195,11 @@ function Weather:getSubMenuItems()
         },
         {
           text_func = function()
-            return T(_("Clock style (%1)"), self.clock_style)
+            return T(gettext("Clock style (%1)"), self.clock_style)
           end,
           sub_item_table = {
             {
-              text = _("12 hour clock"),
+              text = gettext("12 hour clock"),
               checked_func = function()
                 return self:clock_12()
               end,
@@ -209,7 +209,7 @@ function Weather:getSubMenuItems()
               end,
             },
             {
-              text = _("24 hour clock"),
+              text = gettext("24 hour clock"),
               checked_func = function()
                 return self:clock_24()
               end,
@@ -223,7 +223,7 @@ function Weather:getSubMenuItems()
       },
     },
     {
-      text = _("View weather forecast"),
+      text = gettext("View weather forecast"),
       keep_menu_open = true,
       callback = function()
         NetworkMgr:runWhenOnline(function()
@@ -238,7 +238,7 @@ function Weather:getSubMenuItems()
           end
           if result.error ~= nil then
             UIManager:show(InfoMessage:new({
-              text = _("Error: " .. result.error.message),
+              text = gettext("Error: " .. result.error.message),
               height = Screen:scaleBySize(400),
               show_icon = true,
             }))
@@ -265,7 +265,7 @@ function Weather:weeklyForecast(data)
   view_content = KeyValuePage.flattenArray(view_content, vc_weekly)
 
   self.kv = KeyValuePage:new({
-    title = T(_("Weekly forecast for %1"), data.location.name),
+    title = T(gettext("Weekly forecast for %1"), data.location.name),
     return_button = true,
     kv_pairs = view_content,
   })
@@ -304,7 +304,7 @@ function Weather:forecastForDay(data)
 
   -- Add an hourly forecast button to forecast
   table.insert(view_content, {
-    _("Hourly forecast"),
+    gettext("Hourly forecast"),
     "Click to view",
     callback = function()
       self:hourlyForecast(data.hour)
@@ -312,7 +312,7 @@ function Weather:forecastForDay(data)
   })
   -- Create the KV page
   self.kv = KeyValuePage:new({
-    title = T(_("%1 forecast"), day),
+    title = T(gettext("%1 forecast"), day),
     return_button = true,
     kv_pairs = view_content,
   })
@@ -329,7 +329,7 @@ function Weather:hourlyForecast(data)
   end)
 
   self.kv = KeyValuePage:new({
-    title = _("Hourly forecast"),
+    title = gettext("Hourly forecast"),
     value_overflow_align = "right",
     kv_pairs = hourly_kv_pairs,
     callback_return = function()
@@ -363,7 +363,7 @@ function Weather:createForecastForHour(data)
   end
 
   self.kv = KeyValuePage:new({
-    title = T(_("Forecast for %1"), hour),
+    title = T(gettext("Forecast for %1"), hour),
     value_overflow_align = "right",
     kv_pairs = forecast_kv_pairs,
     callback_return = function()

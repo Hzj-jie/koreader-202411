@@ -10,7 +10,7 @@ local datetime = require("datetime")
 local dbg = require("dbg")
 local logger = require("logger")
 local time = require("ui/time")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local State = {}
@@ -80,7 +80,7 @@ end
 
 local function shorten(number)
   if number == "N/A" then
-    return _("N/A")
+    return gettext("N/A")
   end
   return string.format("%.2f%%", number)
 end
@@ -91,25 +91,25 @@ local function duration(number)
 end
 
 function Usage:dump(kv_pairs, id)
-  local name = id or _("Consumed:")
-  table.insert(kv_pairs, { INDENTATION .. _("Total time:"), duration(time.to_s(self.time)) })
+  local name = id or gettext("Consumed:")
+  table.insert(kv_pairs, { INDENTATION .. gettext("Total time:"), duration(time.to_s(self.time)) })
   table.insert(kv_pairs, { INDENTATION .. name, shorten(self.percentage), "%" })
   table.insert(kv_pairs, {
-    INDENTATION .. _("Change per hour:"),
+    INDENTATION .. gettext("Change per hour:"),
     shorten(self:percentageRatePerHour()),
   })
 end
 
 function Usage:dumpRemaining(kv_pairs)
   table.insert(kv_pairs, {
-    INDENTATION .. _("Estimated remaining time:"),
+    INDENTATION .. gettext("Estimated remaining time:"),
     duration(self:remainingTime()),
   })
 end
 
 function Usage:dumpCharging(kv_pairs)
   table.insert(kv_pairs, {
-    INDENTATION .. _("Estimated time for charging:"),
+    INDENTATION .. gettext("Estimated time for charging:"),
     duration(self:chargingTime()),
   })
 end
@@ -222,8 +222,8 @@ end
 function BatteryStat:showStatistics()
   local function askResetData()
     UIManager:show(ConfirmBox:new({
-      text = _("Are you sure that you want to clear battery statistics?"),
-      ok_text = _("Clear"),
+      text = gettext("Are you sure that you want to clear battery statistics?"),
+      ok_text = gettext("Clear"),
       ok_callback = function()
         self:reset(true, true, true)
         self.charging_state = State:new()
@@ -239,7 +239,7 @@ function BatteryStat:showStatistics()
   local kv_pairs = self:dump()
   kv_pairs[#kv_pairs].separator = true
   table.insert(kv_pairs, {
-    _("Tap to reset the data."),
+    gettext("Tap to reset the data."),
     "",
     callback = function()
       UIManager:setDirty(self.kv_page, "fast")
@@ -247,7 +247,7 @@ function BatteryStat:showStatistics()
     end,
   })
   self.kv_page = KeyValuePage:new({
-    title = T(_("Battery statistics (now %1%)"), self.awake_state.percentage),
+    title = T(gettext("Battery statistics (now %1%)"), self.awake_state.percentage),
     kv_pairs = kv_pairs,
   })
   UIManager:show(self.kv_page)
@@ -275,7 +275,7 @@ function BatteryStat:dumpToText()
     return
   end
   local kv_pairs = self:dump()
-  local content = T(_("Dump at %1"), os.date("%c"))
+  local content = T(gettext("Dump at %1"), os.date("%c"))
   for _, pair in ipairs(kv_pairs) do
     content = content .. "\n" .. pair[1]
     if pair[2] ~= nil and pair[2] ~= "" then
@@ -287,16 +287,16 @@ end
 
 function BatteryStat:dump()
   local kv_pairs = {}
-  table.insert(kv_pairs, { _("Awake since last charge"), "" })
+  table.insert(kv_pairs, { gettext("Awake since last charge"), "" })
   self.awake:dump(kv_pairs)
   self.awake:dumpRemaining(kv_pairs)
-  table.insert(kv_pairs, { _("Sleeping since last charge"), "" })
+  table.insert(kv_pairs, { gettext("Sleeping since last charge"), "" })
   self.sleeping:dump(kv_pairs)
   self.sleeping:dumpRemaining(kv_pairs)
-  table.insert(kv_pairs, { _("During last charge"), "" })
-  self.charging:dump(kv_pairs, _("Charged:"))
+  table.insert(kv_pairs, { gettext("During last charge"), "" })
+  self.charging:dump(kv_pairs, gettext("Charged:"))
   self.charging:dumpCharging(kv_pairs)
-  table.insert(kv_pairs, { _("Since last charge"), "" })
+  table.insert(kv_pairs, { gettext("Since last charge"), "" })
   self.discharging:dump(kv_pairs)
   self.discharging:dumpRemaining(kv_pairs)
   return kv_pairs
@@ -312,7 +312,7 @@ function BatteryStatWidget:onDispatcherRegisterActions()
   Dispatcher:registerAction("battery_statistics", {
     category = "none",
     event = "ShowBatteryStatistics",
-    title = _("Battery statistics"),
+    title = gettext("Battery statistics"),
     device = true,
     separator = true,
   })
@@ -329,7 +329,7 @@ end
 
 function BatteryStatWidget:addToMainMenu(menu_items)
   menu_items.battery_statistics = {
-    text = _("Battery statistics"),
+    text = gettext("Battery statistics"),
     keep_menu_open = true,
     callback = function()
       BatteryStat:showStatistics()

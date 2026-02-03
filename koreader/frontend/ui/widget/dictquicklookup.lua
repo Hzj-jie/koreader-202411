@@ -28,8 +28,8 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local Input = Device.input
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -358,7 +358,7 @@ function DictQuickLookup:init()
       {
         {
           id = "save",
-          text = _("Save as EPUB"),
+          text = gettext("Save as EPUB"),
           callback = function()
             local InfoMessage = require("ui/widget/infomessage")
             local ConfirmBox = require("ui/widget/confirmbox")
@@ -381,7 +381,7 @@ function DictQuickLookup:init()
             filename = util.getSafeFilename(filename, dir):gsub("_", " ")
             local epub_path = dir .. "/" .. filename
             UIManager:show(ConfirmBox:new({
-              text = T(_("Save as %1?"), BD.filename(filename)),
+              text = T(gettext("Save as %1?"), BD.filename(filename)),
               ok_callback = function()
                 UIManager:scheduleIn(0.1, function()
                   local Wikipedia = require("ui/wikipedia")
@@ -389,7 +389,7 @@ function DictQuickLookup:init()
                     if success then
                       UIManager:show(ConfirmBox:new({
                         text = T(
-                          _("Article saved to:\n%1\n\nWould you like to read the downloaded article now?"),
+                          gettext("Article saved to:\n%1\n\nWould you like to read the downloaded article now?"),
                           BD.filepath(epub_path)
                         ),
                         ok_callback = function()
@@ -414,7 +414,7 @@ function DictQuickLookup:init()
                       }))
                     else
                       UIManager:show(InfoMessage:new({
-                        text = _("Saving Wikipedia article failed or interrupted."),
+                        text = gettext("Saving Wikipedia article failed or interrupted."),
                       }))
                     end
                   end)
@@ -425,7 +425,7 @@ function DictQuickLookup:init()
         },
         {
           id = "close",
-          text = _("Close"),
+          text = gettext("Close"),
           callback = function()
             self:onExit()
           end,
@@ -456,13 +456,13 @@ function DictQuickLookup:init()
         },
         {
           id = "highlight",
-          text = _("Highlight"),
+          text = gettext("Highlight"),
           enabled = not self:isDocless() and self.highlight ~= nil,
           callback = function()
             self.save_highlight = not self.save_highlight
             -- Just update, repaint and refresh *this* button
             local this = self.button_table:getButtonById("highlight")
-            this:setText(self.save_highlight and _("Unhighlight") or _("Highlight"), this.width)
+            this:setText(self.save_highlight and gettext("Unhighlight") or gettext("Highlight"), this.width)
             this:refresh()
           end,
         },
@@ -488,7 +488,7 @@ function DictQuickLookup:init()
               -- @translators Full Wikipedia article.
               return C_("Button", "Wikipedia full")
             else
-              return _("Wikipedia")
+              return gettext("Wikipedia")
             end
           end,
           callback = function()
@@ -508,7 +508,7 @@ function DictQuickLookup:init()
                   and BD.wrap(self.wiki_languages[1]) .. " > " .. BD.wrap(self.wiki_languages[2])
                 or self.wiki_languages[1]
               ) -- (this " > " will be auro-mirrored by bidi)
-            or _("Search"),
+            or gettext("Search"),
           enabled = self:canSearch(),
           callback = function()
             if self.is_wiki then
@@ -525,7 +525,7 @@ function DictQuickLookup:init()
         },
         {
           id = "close",
-          text = _("Close"),
+          text = gettext("Close"),
           callback = function()
             self:onExit()
           end,
@@ -541,7 +541,7 @@ function DictQuickLookup:init()
       table.insert(buttons, 1, {
         {
           id = "link",
-          text = _("Follow Link"),
+          text = gettext("Follow Link"),
           callback = function()
             local link = self.selected_link.link or self.selected_link
             self.ui.link:onGotoLink(link)
@@ -1061,7 +1061,7 @@ function DictQuickLookup:changeDictionary(index, skip_update)
       else
         self.definition = self.definition .. "\n_______\n"
       end
-      self.definition = self.definition .. T(_("(query : %1)"), self.word)
+      self.definition = self.definition .. T(gettext("(query : %1)"), self.word)
     end
   end
   self.displaydictname = self.dictionary
@@ -1296,13 +1296,13 @@ end
 
 function DictQuickLookup:onLookupInputWord(hint)
   self.input_dialog = InputDialog:new({
-    title = _("Enter a word or phrase to look up"),
+    title = gettext("Enter a word or phrase to look up"),
     input = hint,
     input_hint = hint,
     buttons = {
       {
         {
-          text = _("Translate"),
+          text = gettext("Translate"),
           callback = function()
             local text = self.input_dialog:getInputText()
             if text ~= "" then
@@ -1312,7 +1312,7 @@ function DictQuickLookup:onLookupInputWord(hint)
           end,
         },
         {
-          text = _("Search Wikipedia"),
+          text = gettext("Search Wikipedia"),
           is_enter_default = self.is_wiki,
           callback = function()
             local text = self.input_dialog:getInputText()
@@ -1326,14 +1326,14 @@ function DictQuickLookup:onLookupInputWord(hint)
       },
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(self.input_dialog)
           end,
         },
         {
-          text = _("Search dictionary"),
+          text = gettext("Search dictionary"),
           is_enter_default = not self.is_wiki,
           callback = function()
             local text = self.input_dialog:getInputText()
@@ -1495,7 +1495,7 @@ function DictQuickLookup:showResultsAltMenu()
         UIManager:broadcastEvent(Event:new("LookupWord", first_result.word))
       end
     else
-      text = T(_("%1 results"), #results)
+      text = T(gettext("%1 results"), #results)
     end
     local callback = function()
       local source_button = button_dialog:getButtonById(button_id)

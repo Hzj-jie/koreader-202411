@@ -8,9 +8,9 @@ Example for input a time:
     local time_widget = DateTimeWidget:new{
         hour = 10,
         min = 30,
-        ok_text = _("Set time"),
-        title_text = _("Set time"),
-        info_text = _("Some information"),
+        ok_text = gettext("Set time"),
+        title_text = gettext("Set time"),
+        info_text = gettext("Some information"),
         callback = function(time)
             -- use time.hour and time.min here
         end
@@ -25,8 +25,8 @@ Example for input a date:
         year = 2021,
         month = 12,
         day = 31,
-        ok_text = _("Set date"),
-        title_text = _("Set date"),
+        ok_text = gettext("Set date"),
+        title_text = gettext("Set date"),
         callback = function(time)
             -- use time.year, time.month, time.day here
         end
@@ -41,8 +41,8 @@ Example to input a duration in days, hours and minutes:
         day = 5,
         hour = 12,
         min = 0,
-        ok_text = _("Set"),
-        title_text = _("Set duration"),
+        ok_text = gettext("Set"),
+        title_text = gettext("Set duration"),
         callback = function(time)
             -- use time.day, time.hour, time.min here
         end
@@ -69,7 +69,7 @@ local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -78,8 +78,8 @@ local DateTimeWidget = FocusManager:extend({
   info_text = nil,
   width = nil,
   height = nil,
-  ok_text = _("Apply"),
-  cancel_text = _("Close"),
+  ok_text = gettext("Apply"),
+  cancel_text = gettext("Close"),
   -- Optional extra button on bottom
   extra_text = nil,
   extra_callback = nil,
@@ -286,7 +286,7 @@ function DateTimeWidget:createLayout()
   if self.default_value then
     table.insert(buttons, {
       {
-        text = self.default_text or T(_("Default value: %1"), self.default_value),
+        text = self.default_text or T(gettext("Default value: %1"), self.default_value),
         callback = function()
           if self.default_callback then
             self.default_callback({

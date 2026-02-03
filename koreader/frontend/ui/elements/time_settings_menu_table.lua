@@ -2,16 +2,16 @@ local DateTimeWidget = require("ui/widget/datetimewidget")
 local Device = require("device")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
 -- This affects the topmenu, we want to be able to access it even if !Device:setDateTime()
 local menu = {
-  text = _("Time and date"),
+  text = gettext("Time and date"),
   sub_item_table = {
     {
-      text = _("12-hour clock"),
+      text = gettext("12-hour clock"),
       keep_menu_open = true,
       checked_func = function()
         return G_reader_settings:isTrue("twelve_hour_clock")
@@ -30,7 +30,7 @@ local menu = {
         elseif duration_format == "letters" then
           text = C_("Time", "Letters")
         end
-        return T(_("Duration format: %1"), text)
+        return T(gettext("Duration format: %1"), text)
       end,
       sub_item_table = {
         {
@@ -84,7 +84,7 @@ local menu = {
 }
 if Device:setDateTime() then
   table.insert(menu.sub_item_table, {
-    text = _("Set time"),
+    text = gettext("Set time"),
     keep_menu_open = true,
     callback = function()
       local now_t = os.date("*t")
@@ -93,18 +93,18 @@ if Device:setDateTime() then
       local time_widget = DateTimeWidget:new({
         hour = curr_hour,
         min = curr_min,
-        ok_text = _("Set time"),
-        title_text = _("Set time"),
-        info_text = _("Time is in hours and minutes."),
+        ok_text = gettext("Set time"),
+        title_text = gettext("Set time"),
+        info_text = gettext("Time is in hours and minutes."),
         callback = function(time)
           if Device:setDateTime(nil, nil, nil, time.hour, time.min) then
             now_t = os.date("*t")
             UIManager:show(InfoMessage:new({
-              text = T(_("Current time: %1:%2"), string.format("%02d", now_t.hour), string.format("%02d", now_t.min)),
+              text = T(gettext("Current time: %1:%2"), string.format("%02d", now_t.hour), string.format("%02d", now_t.min)),
             }))
           else
             UIManager:show(InfoMessage:new({
-              text = _("Time couldn't be set"),
+              text = gettext("Time couldn't be set"),
             }))
           end
         end,
@@ -113,7 +113,7 @@ if Device:setDateTime() then
     end,
   })
   table.insert(menu.sub_item_table, {
-    text = _("Set date"),
+    text = gettext("Set date"),
     keep_menu_open = true,
     callback = function()
       local now_t = os.date("*t")
@@ -124,16 +124,16 @@ if Device:setDateTime() then
         year = curr_year,
         month = curr_month,
         day = curr_day,
-        ok_text = _("Set date"),
-        title_text = _("Set date"),
-        info_text = _("Date is in years, months and days."),
+        ok_text = gettext("Set date"),
+        title_text = gettext("Set date"),
+        info_text = gettext("Date is in years, months and days."),
         callback = function(time)
           now_t = os.date("*t")
           if Device:setDateTime(time.year, time.month, time.day, now_t.hour, now_t.min, now_t.sec) then
             now_t = os.date("*t")
             UIManager:show(InfoMessage:new({
               text = T(
-                _("Current date: %1-%2-%3"),
+                gettext("Current date: %1-%2-%3"),
                 now_t.year,
                 string.format("%02d", now_t.month),
                 string.format("%02d", now_t.day)
@@ -141,7 +141,7 @@ if Device:setDateTime() then
             }))
           else
             UIManager:show(InfoMessage:new({
-              text = _("Date couldn't be set"),
+              text = gettext("Date couldn't be set"),
             }))
           end
         end,
@@ -190,16 +190,16 @@ local function add_sync_time()
       local result = std_out:read("*line")
       std_out:close()
       if result ~= nil then
-        return T(_("New time is %1."), result)
+        return T(gettext("New time is %1."), result)
       end
     end
-    return _("Time synchronized.")
+    return gettext("Time synchronized.")
   end
 
   local function syncNTPOnly()
     local txt
     if os.execute(ntp_cmd) ~= 0 then
-      txt = _("Failed to retrieve time from server. Please check your network configuration.")
+      txt = gettext("Failed to retrieve time from server. Please check your network configuration.")
     else
       txt = currentTime()
       os.execute("hwclock -u -w")
@@ -216,7 +216,7 @@ local function add_sync_time()
     local txt
     UIManager:runWith(function()
       txt = syncNTPOnly()
-    end, _("Synchronizing time. This may take several seconds."))
+    end, gettext("Synchronizing time. This may take several seconds."))
 
     UIManager:show(InfoMessage:new({
       text = txt,
@@ -225,7 +225,7 @@ local function add_sync_time()
   end
 
   table.insert(menu.sub_item_table, {
-    text = _("Synchronize time"),
+    text = gettext("Synchronize time"),
     keep_menu_open = true,
     callback = function()
       NetworkMgr:runWhenOnline(function()

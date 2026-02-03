@@ -1,6 +1,7 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "autowarmth",
-  fullname = require("device"):hasNaturalLight() and _("Auto warmth and night mode") or _("Auto night mode"),
-  description = _([[This plugin allows to set the frontlight warmth automagically.]]),
+  fullname = require("device"):hasNaturalLight() and gettext("Auto warmth and night mode")
+    or gettext("Auto night mode"),
+  description = gettext([[This plugin allows to set the frontlight warmth automagically.]]),
 }

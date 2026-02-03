@@ -1,9 +1,9 @@
 local Device = require("device")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 
 local eink_settings_table = {
-  text = _("E-ink settings"),
+  text = gettext("E-ink settings"),
   sub_item_table = {},
 }
 
@@ -15,9 +15,9 @@ end
 
 table.insert(eink_settings_table.sub_item_table, {
   -- Need localization
-  text = _("Use lower refresh rate when appropriate"),
+  text = gettext("Use lower refresh rate when appropriate"),
   -- Need localization
-  help_text = _(
+  help_text = gettext(
     "E-ink may laggy when refreshing, avoid refreshing the screen for the intermedia states, e.g. when scrolling, can be beneficial to reduce the laggy or blur.\nA reloading of the book may be needed to take effect."
   ),
   checked_func = function()
@@ -29,9 +29,9 @@ table.insert(eink_settings_table.sub_item_table, {
 })
 
 table.insert(eink_settings_table.sub_item_table, {
-  text = _("Avoid mandatory black flashes in UI"),
+  text = gettext("Avoid mandatory black flashes in UI"),
   -- Need localization
-  help_text = _(
+  help_text = gettext(
     "Fully rendering a black area can be slow and increase the blur on the E-ink, avoiding full refreshes of the black areas may improve the device responsiveness in exchange of potentially observing partially rendered black areas, especially on menus and buttons."
   ),
   checked_func = function()

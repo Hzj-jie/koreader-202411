@@ -8,7 +8,7 @@ local Utf8Proc = require("ffi/utf8proc")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 -- if sometime in the future crengine is updated to use normalized utf8 for hyphenation
@@ -45,7 +45,7 @@ function ReaderUserHyph:loadDictionary(name, reload, no_scrubbing)
     if ret == self.USER_DICT_ERROR_NOT_SORTED then
       if no_scrubbing then
         UIManager:show(InfoMessage:new({
-          text = T(_("The user dictionary\n%1\nis not alphabetically sorted.\n\nIt will be disabled now."), name),
+          text = T(gettext("The user dictionary\n%1\nis not alphabetically sorted.\n\nIt will be disabled now."), name),
         }))
         logger.warn("UserHyph: Dictionary " .. name .. " is not sorted alphabetically.")
         G_reader_settings:makeFalse("hyph_user_dict")
@@ -55,7 +55,7 @@ function ReaderUserHyph:loadDictionary(name, reload, no_scrubbing)
       end
     elseif ret == self.USER_DICT_MALFORMED then
       UIManager:show(InfoMessage:new({
-        text = T(_("The user dictionary\n%1\nhas corrupted entries.\n\nOnly valid entries will be used."), name),
+        text = T(gettext("The user dictionary\n%1\nhas corrupted entries.\n\nOnly valid entries will be used."), name),
       }))
       logger.warn("UserHyph: Dictionary " .. name .. " has corrupted entries.")
     end
@@ -91,8 +91,8 @@ end
 -- add Menu entry
 function ReaderUserHyph:getMenuEntry()
   return {
-    text = _("Custom hyphenation rules"),
-    help_text = _(
+    text = gettext("Custom hyphenation rules"),
+    help_text = gettext(
       "The hyphenation of a word can be changed from its default by long pressing for 3 seconds and selecting 'Hyphenate'."
     ),
     callback = function()
@@ -285,29 +285,29 @@ function ReaderUserHyph:modifyUserEntry(word)
 
   local input_dialog
   input_dialog = InputDialog:new({
-    title = T(_("Hyphenate: %1"), word),
-    description = _("Add hyphenation positions with hyphens ('-') or spaces (' ')."),
+    title = T(gettext("Hyphenate: %1"), word),
+    description = gettext("Add hyphenation positions with hyphens ('-') or spaces (' ')."),
     input = suggested_hyphenation,
     old_hyph_lowercase = Utf8Proc.lowercase(suggested_hyphenation, NORM),
     input_type = "string",
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(input_dialog)
           end,
         },
         {
-          text = _("Remove"),
+          text = gettext("Remove"),
           callback = function()
             UIManager:close(input_dialog)
             self:updateDictionary(word)
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           is_enter_default = true,
           callback = function()
             local new_suggestion = input_dialog:getInputText()
@@ -323,7 +323,7 @@ function ReaderUserHyph:modifyUserEntry(word)
               UIManager:close(input_dialog)
             else
               UIManager:show(InfoMessage:new({
-                text = _("Invalid hyphenation!"),
+                text = gettext("Invalid hyphenation!"),
               }))
             end
           end,

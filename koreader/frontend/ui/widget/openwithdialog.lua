@@ -15,7 +15,7 @@ local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = require("device").screen
 
 local OpenWithDialog = InputDialog:extend({})
@@ -86,14 +86,14 @@ function OpenWithDialog:init()
 
   self._check_file_button = self._check_file_button
     or CheckButton:new({
-      text = _("Always use this engine for this file"),
+      text = gettext("Always use this engine for this file"),
       enabled = not self.radio_button_table.checked_button.provider.disable_file,
       parent = self,
     })
   self:addWidget(self._check_file_button)
   self._check_global_button = self._check_global_button
     or CheckButton:new({
-      text = _("Always use this engine for file type"),
+      text = gettext("Always use this engine for file type"),
       enabled = not self.radio_button_table.checked_button.provider.disable_type,
       parent = self,
     })

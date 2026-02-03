@@ -21,7 +21,7 @@ local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = require("device").screen
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
@@ -29,7 +29,7 @@ local util = require("util")
 local Parser = require("formulaparser/formulaparser")
 
 local CalculatorSettingsDialog = InputContainer:new({
-  title = _("Calculator settings"),
+  title = gettext("Calculator settings"),
   modal = true,
   stop_events_propagation = true,
   width = math.floor(Screen:getWidth() * 0.8),
@@ -236,7 +236,7 @@ function CalculatorSettingsDialog:init()
         VerticalGroup:new({ -- angle and format
           align = "center",
           TextWidget:new({
-            text = _("Angle ∡"),
+            text = gettext("Angle ∡"),
             face = self.text_face,
           }),
           VerticalSpan:new({ height = Size.span.vertical_large * 2 }),
@@ -249,7 +249,7 @@ function CalculatorSettingsDialog:init()
           }),
           VerticalSpan:new({ height = Size.span.vertical_large * 4 }),
           TextWidget:new({
-            text = _("Number format"),
+            text = gettext("Number format"),
             face = self.text_face,
           }),
           CenterContainer:new({
@@ -261,7 +261,7 @@ function CalculatorSettingsDialog:init()
           }),
           VerticalSpan:new({ height = Size.span.vertical_large * 4 }),
           TextWidget:new({
-            text = _("Autoload\ninit.calc"),
+            text = gettext("Autoload\ninit.calc"),
             face = self.text_face,
           }),
           CenterContainer:new({
@@ -277,7 +277,7 @@ function CalculatorSettingsDialog:init()
           align = "center",
           -- significant
           TextWidget:new({
-            text = _("Significance ≈"),
+            text = gettext("Significance ≈"),
             face = self.text_face,
           }),
 
@@ -358,18 +358,18 @@ function CalculatorSettingsDialog:choosePathFile(touchmenu_instance, key, folder
       elseif new_file and mode == "directory" then -- new filename should be entered or a file could be selected
         local file_input
         file_input = InputDialog:new({
-          title = _("Append filename"),
+          title = gettext("Append filename"),
           input = dir_path .. "/",
           buttons = {
             {
               {
-                text = _("Cancel"),
+                text = gettext("Cancel"),
                 callback = function()
                   UIManager:close(file_input)
                 end,
               },
               {
-                text = _("Save"),
+                text = gettext("Save"),
                 callback = function()
                   local file = file_input:getInputText()
                   if migrate and self[key] and self[key] ~= "" then

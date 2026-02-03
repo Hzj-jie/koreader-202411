@@ -7,7 +7,7 @@ local logger = require("logger")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local ffi = require("ffi")
 local C = ffi.C
@@ -130,10 +130,10 @@ end
 
 function ExternalKeyboard:addToMainMenu(menu_items)
   menu_items.external_keyboard = {
-    text = _("External Keyboard"),
+    text = gettext("External Keyboard"),
     sub_item_table = {
       {
-        text = _("Enable OTG mode to connect peripherals"),
+        text = gettext("Enable OTG mode to connect peripherals"),
         checked_func = function()
           return self:getOTGRole() == USB_ROLE_HOST
         end,
@@ -144,7 +144,7 @@ function ExternalKeyboard:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Always enable OTG mode"),
+        text = gettext("Always enable OTG mode"),
         checked_func = function()
           return G_reader_settings:isTrue("external_keyboard_otg_mode_on_start")
         end,
@@ -153,7 +153,7 @@ function ExternalKeyboard:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Help"),
+        text = gettext("Help"),
         keep_menu_open = true,
         callback = function()
           self:showHelp()
@@ -269,7 +269,7 @@ function ExternalKeyboard:_onEvdevInputRemove(event_path)
   -- Only show this once
   if ExternalKeyboard.connected_keyboards == 0 then
     UIManager:show(InfoMessage:new({
-      text = _("Keyboard disconnected"),
+      text = gettext("Keyboard disconnected"),
       timeout = 1,
     }))
   end
@@ -430,7 +430,7 @@ function ExternalKeyboard:setupKeyboard(data)
   -- Only show this once
   if ExternalKeyboard.connected_keyboards == 1 then
     UIManager:show(InfoMessage:new({
-      text = _("Keyboard connected"),
+      text = gettext("Keyboard connected"),
       timeout = 1,
     }))
   end
@@ -444,7 +444,7 @@ end)
 
 function ExternalKeyboard:showHelp()
   UIManager:show(InfoMessage:new({
-    text = _("Note that in OTG mode the device will not be recognized as a USB drive by a computer."),
+    text = gettext("Note that in OTG mode the device will not be recognized as a USB drive by a computer."),
   }))
 end
 

@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "SSH",
-  fullname = _("SSH"),
-  description = _([[Connect and transfer files to the device using SSH.]]),
+  fullname = gettext("SSH"),
+  description = gettext([[Connect and transfer files to the device using SSH.]]),
 }

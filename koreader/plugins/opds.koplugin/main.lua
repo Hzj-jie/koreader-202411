@@ -1,7 +1,7 @@
 local Dispatcher = require("dispatcher")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local OPDS = WidgetContainer:extend({
   name = "opds",
@@ -12,7 +12,7 @@ function OPDS:onDispatcherRegisterActions()
   Dispatcher:registerAction("opds_show_catalog", {
     category = "none",
     event = "ShowOPDSCatalog",
-    title = _("OPDS Catalog"),
+    title = gettext("OPDS Catalog"),
     filemanager = true,
   })
 end
@@ -47,7 +47,7 @@ end
 function OPDS:addToMainMenu(menu_items)
   if not self.ui.view then
     menu_items.opds = {
-      text = _("OPDS catalog"),
+      text = gettext("OPDS catalog"),
       callback = function()
         self:showCatalog()
       end,

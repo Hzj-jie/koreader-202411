@@ -14,7 +14,7 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local dbg = require("dbg")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 
 local Keyboard -- Conditional instantiation
@@ -165,7 +165,7 @@ local function initTouchEvents()
             local txt = table.concat(self.charlist, "", self.selection_start_pos, selection_end_pos)
             Device.input.setClipboardText(txt)
             UIManager:show(Notification:new({
-              text = _("Selection copied to clipboard."),
+              text = gettext("Selection copied to clipboard."),
             }))
             self.selection_start_pos = nil
             self.do_select = false
@@ -173,7 +173,7 @@ local function initTouchEvents()
           else -- select start
             self.selection_start_pos = self.charpos
             UIManager:show(Notification:new({
-              text = _("Set cursor to end of selection, then long-press in text box."),
+              text = gettext("Set cursor to end of selection, then long-press in text box."),
             }))
           end
           self._hold_handled = true
@@ -183,9 +183,9 @@ local function initTouchEvents()
         local is_clipboard_empty = clipboard_value == ""
         local clipboard_dialog
         clipboard_dialog = require("ui/widget/textviewer"):new({
-          title = _("Clipboard"),
+          title = gettext("Clipboard"),
           show_menu = false,
-          text = is_clipboard_empty and _("(empty)") or clipboard_value,
+          text = is_clipboard_empty and gettext("(empty)") or clipboard_value,
           fgcolor = is_clipboard_empty and Blitbuffer.COLOR_DARK_GRAY or Blitbuffer.COLOR_BLACK,
           width = math.floor(math.min(Screen:getWidth(), Screen:getHeight()) * 0.8),
           height = math.floor(math.max(Screen:getWidth(), Screen:getHeight()) * 0.4),
@@ -195,41 +195,41 @@ local function initTouchEvents()
           buttons_table = {
             {
               {
-                text = _("Copy all"),
+                text = gettext("Copy all"),
                 callback = function()
                   UIManager:close(clipboard_dialog)
                   Device.input.setClipboardText(table.concat(self.charlist))
                   UIManager:show(Notification:new({
-                    text = _("All text copied to clipboard."),
+                    text = gettext("All text copied to clipboard."),
                   }))
                 end,
               },
               {
-                text = _("Copy line"),
+                text = gettext("Copy line"),
                 callback = function()
                   UIManager:close(clipboard_dialog)
                   local txt = table.concat(self.charlist, "", self:getStringPos())
                   Device.input.setClipboardText(txt)
                   UIManager:show(Notification:new({
-                    text = _("Line copied to clipboard."),
+                    text = gettext("Line copied to clipboard."),
                   }))
                 end,
               },
               {
-                text = _("Copy word"),
+                text = gettext("Copy word"),
                 callback = function()
                   UIManager:close(clipboard_dialog)
                   local txt = table.concat(self.charlist, "", self:getStringPos(true))
                   Device.input.setClipboardText(txt)
                   UIManager:show(Notification:new({
-                    text = _("Word copied to clipboard."),
+                    text = gettext("Word copied to clipboard."),
                   }))
                 end,
               },
             },
             {
               {
-                text = _("Delete all"),
+                text = gettext("Delete all"),
                 enabled = #self.charlist > 0,
                 callback = function()
                   UIManager:close(clipboard_dialog)
@@ -237,18 +237,18 @@ local function initTouchEvents()
                 end,
               },
               {
-                text = _("Select"),
+                text = gettext("Select"),
                 callback = function()
                   UIManager:close(clipboard_dialog)
                   UIManager:show(Notification:new({
-                    text = _("Set cursor to start of selection, then long-press in text box."),
+                    text = gettext("Set cursor to start of selection, then long-press in text box."),
                   }))
                   self.do_select = true
                   self:initTextBox()
                 end,
               },
               {
-                text = _("Paste"),
+                text = gettext("Paste"),
                 enabled = not is_clipboard_empty,
                 callback = function()
                   UIManager:close(clipboard_dialog)
@@ -352,7 +352,7 @@ end
 function InputText:isTextEditable(show_warning)
   if show_warning and not self.is_text_editable then
     UIManager:show(Notification:new({
-      text = _("Text may be binary content, and is not editable"),
+      text = gettext("Text may be binary content, and is not editable"),
     }))
   end
   return self.is_text_editable
@@ -441,7 +441,7 @@ function InputText:initTextBox(text, char_added)
   if self.is_password_type and self.show_password_toggle then
     self._check_button = self._check_button
       or CheckButton:new({
-        text = _("Show password"),
+        text = gettext("Show password"),
         parent = self,
         width = self.width,
         callback = function()

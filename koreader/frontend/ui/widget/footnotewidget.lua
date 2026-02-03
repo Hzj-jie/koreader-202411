@@ -16,7 +16,6 @@ local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 local time = require("ui/time")

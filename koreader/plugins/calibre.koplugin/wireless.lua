@@ -20,7 +20,7 @@ local logger = require("logger")
 local rapidjson = require("rapidjson")
 local sha = require("ffi/sha2")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = FFIUtil.template
 
 require("ffi/zeromq_h")
@@ -143,17 +143,17 @@ function CalibreWireless:JSONReceiveCallback(host, port)
       this.password_check_callback = function()
         local msg
         if this.invalid_password then
-          msg = _("Invalid password")
+          msg = gettext("Invalid password")
           this.invalid_password = nil
           this:_disconnect()
           logger.warn("invalid password, disconnecting")
         elseif this.disconnected_by_server then
-          msg = _("Disconnected by calibre")
+          msg = gettext("Disconnected by calibre")
           this.disconnected_by_server = nil
           logger.info("disconnected by calibre")
         else
           msg = T(
-            _("Connected to calibre server at %1"),
+            gettext("Connected to calibre server at %1"),
             BD.ltr(T("%1:%2", this.calibre_socket.host, this.calibre_socket.port))
           )
           logger.info("connected successfully")
@@ -215,7 +215,7 @@ function CalibreWireless:setInboxDir(host, port)
         if warning() then
           UIManager:show(ConfirmBox:new({
             text = T(
-              _([[This folder is already initialized as a %1.
+              gettext([[This folder is already initialized as a %1.
 
 Mixing calibre libraries is not recommended unless you know what you're doing.
 
@@ -223,7 +223,7 @@ Do you want to continue? ]]),
               driver
             ),
 
-            ok_text = _("Continue"),
+            ok_text = gettext("Continue"),
             ok_callback = function()
               save_and_resume()
             end,
@@ -246,7 +246,7 @@ function CalibreWireless:connect()
         address_type = "discovered"
       else
         ok = false
-        err = _("Couldn't discover a calibre instance on the local network")
+        err = gettext("Couldn't discover a calibre instance on the local network")
         address_type = "unavailable"
       end
     else
@@ -262,10 +262,10 @@ function CalibreWireless:connect()
     if not ok then
       host = host or "????"
       port = port or "??"
-      err = err or _("N/A")
+      err = err or gettext("N/A")
       logger.warn(string.format("Cannot connect to %s calibre server at %s:%s (%s)", address_type, host, port, err))
       UIManager:show(InfoMessage:new({
-        text = T(_("Cannot connect to calibre server at %1 (%2)"), BD.ltr(T("%1:%2", host, port)), err),
+        text = T(gettext("Cannot connect to calibre server at %1 (%2)"), BD.ltr(T("%1:%2", host, port)), err),
       }))
     else
       local inbox_dir = G_reader_settings:read("inbox_dir")
@@ -427,19 +427,19 @@ function CalibreWireless:setPassword()
   end
   local password_dialog
   password_dialog = InputDialog:new({
-    title = _("Set a password for calibre wireless server"),
+    title = gettext("Set a password for calibre wireless server"),
     input = G_reader_settings:read("calibre_wireless_password") or "",
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(password_dialog)
           end,
         },
         {
-          text = _("Set password"),
+          text = gettext("Set password"),
           callback = function()
             local pass = password_dialog:getInputText()
             if passwordCheck(pass) then
@@ -550,7 +550,7 @@ function CalibreWireless:sendBook(arg)
     outfile = io.open(filename, "wb")
   else
     local msg = T(
-      _("Can't receive file %1/%2: %3\nNo space left on device"),
+      gettext("Can't receive file %1/%2: %3\nNo space left on device"),
       arg.thisBook + 1,
       arg.totalBooks,
       BD.filepath(filename)
@@ -586,7 +586,7 @@ function CalibreWireless:sendBook(arg)
         -- add book to local database/table
         CalibreMetadata:addBook(arg.metadata)
         UIManager:show(InfoMessage:new({
-          text = T(_("Received file %1/%2: %3"), arg.thisBook + 1, arg.totalBooks, BD.filepath(filename)),
+          text = T(gettext("Received file %1/%2: %3"), arg.thisBook + 1, arg.totalBooks, BD.filepath(filename)),
           timeout = 2,
         }))
         CalibreMetadata:saveBookList()
@@ -615,12 +615,12 @@ function CalibreWireless:sendBook(arg)
     self.error_on_copy = nil
     UIManager:show(ConfirmBox:new({
       text = T(
-        _(
+        gettext(
           "Insufficient disk space.\n\ncalibre %1 will report all books as in device. This might lead to errors. Please reconnect to get updated info"
         ),
         self.calibre.version_string
       ),
-      ok_text = _("Reconnect"),
+      ok_text = gettext("Reconnect"),
       ok_callback = function()
         -- send some info to avoid harmless but annoying exceptions in calibre
         self:getFreeSpace()
@@ -657,9 +657,9 @@ function CalibreWireless:deleteBook(arg)
     if i == #arg.lpaths then
       local msg
       if i == 1 then
-        msg = T(_("Deleted file: %1"), BD.filepath(arg.lpaths[1]))
+        msg = T(gettext("Deleted file: %1"), BD.filepath(arg.lpaths[1]))
       else
-        msg = T(_("Deleted %1 files in %2:\n %3"), #arg.lpaths, BD.filepath(inbox_dir), titles)
+        msg = T(gettext("Deleted %1 files in %2:\n %3"), #arg.lpaths, BD.filepath(inbox_dir), titles)
       end
       UIManager:show(InfoMessage:new({
         text = msg,

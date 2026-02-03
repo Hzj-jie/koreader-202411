@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "texteditor",
-  fullname = _("Text editor"),
-  description = _([[A basic text editor for making small changes to plain text files.]]),
+  fullname = gettext("Text editor"),
+  description = gettext([[A basic text editor for making small changes to plain text files.]]),
 }

@@ -13,7 +13,7 @@ local ffiutil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -323,13 +323,13 @@ function ReaderRolling:onCheckDomStyleCoherence()
     local has_bookmarks_warn_txt = ""
     -- When using an older DOM version, bookmarks may break
     if self.using_non_normalized_xpointers and self.ui.bookmark:hasBookmarks() then
-      has_bookmarks_warn_txt = _(
+      has_bookmarks_warn_txt = gettext(
         "\nNote that this change in styles may render your bookmarks or highlights no more valid.\nIf some of them do not show anymore, you can just revert the change you just made to have them shown again.\n\n"
       )
     end
     UIManager:show(ConfirmBox:new({
       text = T(
-        _(
+        gettext(
           "Styles have changed in such a way that fully reloading the document may be needed for a correct rendering.\n%1Do you want to reload the document?"
         ),
         has_bookmarks_warn_txt
@@ -445,11 +445,11 @@ end
 
 function ReaderRolling:addToMainMenu(menu_items)
   if self.ui.document:hasNonLinearFlows() then
-    local hide_nonlinear_text = _(
+    local hide_nonlinear_text = gettext(
       "When hide non-linear fragments is enabled, any non-linear fragments will be hidden from the normal page flow. Such fragments will always remain accessible through links, the table of contents and the 'Go to' dialog. This only works in single-page mode."
     )
     menu_items.hide_nonlinear_flows = {
-      text = _("Hide non-linear fragments"),
+      text = gettext("Hide non-linear fragments"),
       enabled_func = function()
         -- Custom hidden flows have precedence over publisher hidden non-linear fragments
         return self.view.view_mode == "page"
@@ -465,8 +465,8 @@ function ReaderRolling:addToMainMenu(menu_items)
       hold_callback = function()
         UIManager:show(ConfirmBox:new({
           text = T(
-            hide_nonlinear_text .. "\n\n" .. _("Set default hide non-linear fragments to %1?"),
-            self.hide_nonlinear_flows and _("enabled") or _("disabled")
+            hide_nonlinear_text .. "\n\n" .. gettext("Set default hide non-linear fragments to %1?"),
+            self.hide_nonlinear_flows and gettext("enabled") or gettext("disabled")
           ),
           ok_callback = function()
             G_reader_settings:save("hide_nonlinear_flows", self.hide_nonlinear_flows)
@@ -477,7 +477,7 @@ function ReaderRolling:addToMainMenu(menu_items)
     }
   end
   menu_items.partial_rerendering = {
-    text = _("Enable partial renderings"),
+    text = gettext("Enable partial renderings"),
     enabled_func = function()
       return self.ui.document:canBePartiallyRerendered() == true
     end,
@@ -502,16 +502,16 @@ function ReaderRolling:addToMainMenu(menu_items)
     end,
     hold_callback = function()
       local cre_partial_rerendering = G_reader_settings:nilOrTrue("cre_partial_rerendering")
-      local text = _(
+      local text = gettext(
         [[
 With EPUB documents (having multiple fragments), text appearance adjustments can be made quicker by only rendering the current chapter.
 After such partial renderings, the book and KOReader are in a degraded state: you can turn pages, but some info and features may be broken or disabled (ie. footer info, ToC, statistics…).
 To get back to a sane state, a full rendering will happen in the background, get cached, and the document will be seamlessly reloaded after a brief period of inactivity.]]
       )
       if cre_partial_rerendering then
-        text = text .. "\n\n" .. _("The current default (★) is to enable partial renderings when possible.")
+        text = text .. "\n\n" .. gettext("The current default (★) is to enable partial renderings when possible.")
       else
-        text = text .. "\n\n" .. _("The current default (★) is to always do a full rendering.")
+        text = text .. "\n\n" .. gettext("The current default (★) is to always do a full rendering.")
       end
       local MultiConfirmBox = require("ui/widget/multiconfirmbox")
       UIManager:show(MultiConfirmBox:new({
@@ -521,13 +521,13 @@ To get back to a sane state, a full rendering will happen in the background, get
         face = require("ui/font"):getFace("infofont", 20),
         icon = "cre.render.partial",
         choice1_text_func = function()
-          return cre_partial_rerendering and _("Disable") or _("Disable (★)")
+          return cre_partial_rerendering and gettext("Disable") or gettext("Disable (★)")
         end,
         choice1_callback = function()
           G_reader_settings:makeFalse("cre_partial_rerendering")
         end,
         choice2_text_func = function()
-          return cre_partial_rerendering and _("Enable (★)") or _("Enable")
+          return cre_partial_rerendering and gettext("Enable (★)") or gettext("Enable")
         end,
         choice2_callback = function()
           G_reader_settings:makeTrue("cre_partial_rerendering")
@@ -1595,7 +1595,7 @@ function ReaderRolling:checkXPointersAndProposeDOMVersionUpgrade()
     end
   end
 
-  local text = _([[
+  local text = gettext([[
 This book was first opened, and has been handled since, by an older version of the rendering code.
 Bookmarks and highlights can be upgraded to the latest version of the code.
 
@@ -1604,12 +1604,15 @@ Bookmarks and highlights can be upgraded to the latest version of the code.
 Proceed with this upgrade and reload the book?]])
   local details = {}
   if nb_xpointers_lost == 0 then
-    table.insert(details, _([[All your bookmarks and highlights are valid and will be available after the migration.]]))
+    table.insert(
+      details,
+      gettext([[All your bookmarks and highlights are valid and will be available after the migration.]])
+    )
   else
     table.insert(
       details,
       T(
-        _(
+        gettext(
           [[
 Note that %1 (out of %2) xpaths from your bookmarks and highlights aren't currently found in the book, and may have been lost. You might want to toggle Rendering mode between 'legacy' and 'flat', and re-open this book, and see if they are found again, before proceeding.]]
         ),
@@ -1622,7 +1625,7 @@ Note that %1 (out of %2) xpaths from your bookmarks and highlights aren't curren
     table.insert(
       details,
       T(
-        _(
+        gettext(
           [[
 Note that %1 (out of %2) xpaths from your bookmarks and highlights have been normalized, and may not work on previous KOReader versions (if you're synchronizing your reading between multiple devices, you'll need to update KOReader on all of them).]]
         ),
@@ -1643,15 +1646,15 @@ Note that %1 (out of %2) xpaths from your bookmarks and highlights have been nor
       {
         {
           -- this is the real cancel/do nothing
-          text = _("Not now"),
+          text = gettext("Not now"),
         },
       },
     },
-    cancel_text = _("Not for this book"),
+    cancel_text = gettext("Not for this book"),
     cancel_callback = function()
       self.ui.doc_settings:makeTrue("cre_keep_old_dom_version")
     end,
-    ok_text = _("Upgrade now"),
+    ok_text = gettext("Upgrade now"),
     ok_callback = function()
       -- Allow for ConfirmBox to be closed before migrating
       UIManager:scheduleIn(0.5, function()
@@ -1663,7 +1666,7 @@ Note that %1 (out of %2) xpaths from your bookmarks and highlights have been nor
           -- not be found in the document...
           local InfoMessage = require("ui/widget/infomessage")
           local infomsg = InfoMessage:new({
-            text = _("Upgrading and reloading book…"),
+            text = gettext("Upgrading and reloading book…"),
           })
           UIManager:show(infomsg)
           -- Let this message be shown

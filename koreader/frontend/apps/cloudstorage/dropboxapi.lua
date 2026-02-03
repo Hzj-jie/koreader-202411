@@ -8,7 +8,7 @@ local ltn12 = require("ltn12")
 local socket = require("socket")
 local socketutil = require("socketutil")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local DropBoxApi = {}
 
@@ -234,7 +234,7 @@ function DropBoxApi:listFolder(path, token, folder_mode)
   -- Add special folder.
   if folder_mode then
     table.insert(dropbox_list, 1, {
-      text = _("Long-press to choose current folder"),
+      text = gettext("Long-press to choose current folder"),
       url = path,
       type = "folder_long_press",
     })

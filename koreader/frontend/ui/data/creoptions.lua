@@ -2,8 +2,8 @@ local Device = require("device")
 local Screen = Device.screen
 local ffiUtil = require("ffi/util")
 local optionsutil = require("ui/data/optionsutil")
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local T = ffiUtil.template
 
 -- Get font size numbers as a table of strings
@@ -32,7 +32,7 @@ local usWeightClass = {
 
 local function weightClassToString(weight)
   if usWeightClass[weight] then
-    return T(_("%1 (%2)"), usWeightClass[weight], weight)
+    return T(gettext("%1 (%2)"), usWeightClass[weight], weight)
   else
     return tostring(weight)
   end
@@ -53,7 +53,7 @@ local CreOptions = {
     options = {
       { -- ReaderView
         name = "rotation_mode",
-        name_text = _("Rotation"),
+        name_text = gettext("Rotation"),
         item_icons_func = function()
           if Screen:getRotationMode() == Screen.DEVICE_ROTATED_UPRIGHT then
             -- P, 0UR
@@ -103,8 +103,8 @@ local CreOptions = {
       },
       { -- ReaderRolling
         name = "visible_pages",
-        name_text = _("Two Columns"),
-        toggle = { _("off"), _("on") },
+        name_text = gettext("Two Columns"),
+        toggle = { gettext("off"), gettext("on") },
         values = { 1, 2 },
         default_value = 1,
         args = { 1, 2 },
@@ -125,7 +125,7 @@ local CreOptions = {
           -- and Screen:getScreenMode() == "landscape"
         end,
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _(
+        help_text = gettext(
           [[Render the document on half the screen width and display two pages at once with a single page number. This makes it look like two columns.
 This is disabled in scroll mode. Switching from page mode with two columns to scroll mode will cause the document to be re-rendered.]]
         ),
@@ -137,7 +137,7 @@ This is disabled in scroll mode. Switching from page mode with two columns to sc
     options = {
       { -- ReaderTypeset
         name = "h_page_margins",
-        name_text = _("L/R Margins"),
+        name_text = gettext("L/R Margins"),
         buttonprogress = true,
         values = {
           G_defaults:read("DCREREADER_CONFIG_H_MARGIN_SIZES_SMALL"),
@@ -168,7 +168,7 @@ This is disabled in scroll mode. Switching from page mode with two columns to sc
         name_text_hold_callback = optionsutil.showValuesHMargins,
         more_options = true,
         more_options_param = {
-          name_text = _("Left/Right Margins"),
+          name_text = gettext("Left/Right Margins"),
           widget_width_factor = 0.6,
           left_min = 0,
           left_max = 140,
@@ -182,15 +182,15 @@ This is disabled in scroll mode. Switching from page mode with two columns to sc
       },
       { -- ReaderTypeset
         name = "sync_t_b_page_margins",
-        name_text = _("Sync T/B Margins"),
-        toggle = { _("off"), _("on") },
+        name_text = gettext("Sync T/B Margins"),
+        toggle = { gettext("off"), gettext("on") },
         values = { 0, 1 },
         default_value = 0,
         event = "SyncPageTopBottomMargins",
         args = { false, true },
         hide_on_apply = true,
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _(
+        help_text = gettext(
           [[Keep top and bottom margins synchronized.
 - 'off' allows different top and bottom margins.
 - 'on' keeps top and bottom margins locked, ensuring text is vertically centered in the page.
@@ -200,7 +200,7 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
       },
       { -- ReaderTypeset
         name = "t_page_margin",
-        name_text = _("Top Margin"),
+        name_text = gettext("Top Margin"),
         buttonprogress = true,
         values = {
           G_defaults:read("DCREREADER_CONFIG_T_MARGIN_SIZES_SMALL"),
@@ -235,16 +235,16 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
           -- Allow this to tune both top and bottom margins, handling
           -- 2 setting names (we'll get the exact same DoubleSpinWidget
           -- in the b_page_margin setting just below)
-          name_text = _("Top/Bottom Margins"),
+          name_text = gettext("Top/Bottom Margins"),
           names = { "t_page_margin", "b_page_margin" },
           event = "SetPageTopAndBottomMargin",
           widget_width_factor = 0.6,
-          left_text = _("Top"),
+          left_text = gettext("Top"),
           left_min = 0,
           left_max = 140,
           left_step = 1,
           left_hold_step = 5,
-          right_text = _("Bottom"),
+          right_text = gettext("Bottom"),
           right_min = 0,
           right_max = 140,
           right_step = 1,
@@ -253,7 +253,7 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
       },
       { -- ReaderTypeset
         name = "b_page_margin",
-        name_text = _("Bottom Margin"),
+        name_text = gettext("Bottom Margin"),
         buttonprogress = true,
         values = {
           G_defaults:read("DCREREADER_CONFIG_B_MARGIN_SIZES_SMALL"),
@@ -283,22 +283,22 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
         hide_on_apply = true,
         name_text_hold_callback = optionsutil.showValues,
         name_text_unit = true,
-        help_text = _(
+        help_text = gettext(
           [[In the top menu → Settings → Status bar, you can choose whether the bottom margin applies from the bottom of the screen, or from above the status bar.]]
         ),
         more_options = true,
         more_options_param = {
           -- Similar as for t_page_margin above
-          name_text = _("Top/Bottom Margins"),
+          name_text = gettext("Top/Bottom Margins"),
           names = { "t_page_margin", "b_page_margin" },
           event = "SetPageTopAndBottomMargin",
           widget_width_factor = 0.6,
-          left_text = _("Top"),
+          left_text = gettext("Top"),
           left_min = 0,
           left_max = 140,
           left_step = 1,
           left_hold_step = 5,
-          right_text = _("Bottom"),
+          right_text = gettext("Bottom"),
           right_min = 0,
           right_max = 140,
           right_step = 1,
@@ -312,28 +312,28 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
     options = {
       { -- ReaderView
         name = "view_mode",
-        name_text = _("View Mode"),
-        toggle = { _("page"), _("continuous") },
+        name_text = gettext("View Mode"),
+        toggle = { gettext("page"), gettext("continuous") },
         values = { 0, 1 },
         default_value = G_defaults:read("DCREREADER_VIEW_MODE") == "page" and 0 or 1,
         args = { "page", "scroll" },
         event = "SetViewMode",
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _(
+        help_text = gettext(
           [[- 'page' mode splits the text into pages, at the most acceptable places (page numbers and the number of pages may change when you change fonts, margins, styles, etc.).
 - 'continuous' mode allows you to scroll the text like you would in a web browser (the 'Page Overlap' setting is only available in this mode).]]
         ),
       },
       { -- ReaderTypeset
         name = "block_rendering_mode",
-        name_text = _("Render Mode"),
-        toggle = { _("legacy"), _("flat"), _("book"), _("web") },
+        name_text = gettext("Render Mode"),
+        toggle = { gettext("legacy"), gettext("flat"), gettext("book"), gettext("web") },
         values = { 0, 1, 2, 3 },
         default_value = 2,
         args = { 0, 1, 2, 3 },
         event = "SetBlockRenderingMode",
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _([[
+        help_text = gettext([[
 - 'legacy' uses original CR3 block rendering code.
 - 'flat' ensures flat rendering with collapsing margins and accurate page breaks.
 - 'book' additionally allows floats, but limits style support to avoid blank spaces and overflows.
@@ -341,18 +341,18 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
       },
       { -- ReaderTypeset
         name = "render_dpi",
-        name_text = _("Zoom (dpi)"),
+        name_text = gettext("Zoom (dpi)"),
         more_options = true,
         more_options_param = {
           value_hold_step = 20,
           unit = C_("Resolution", "dpi"),
         },
-        toggle = { _("off"), "48", "96¹’¹", "167", "212", "300" },
+        toggle = { gettext("off"), "48", "96¹’¹", "167", "212", "300" },
         values = { 0, 48, 96, 167, 212, 300 },
         default_value = 96,
         args = { 0, 48, 96, 167, 212, 300 },
         event = "SetRenderDPI",
-        help_text = _([[Sets the DPI used to scale absolute CSS units and images:
+        help_text = gettext([[Sets the DPI used to scale absolute CSS units and images:
 - off: ignore absolute units (old engine behavior).
 - 96¹’¹: at 96 DPI, 1 CSS pixel = 1 screen pixel and images are rendered at their original dimensions.
 - other values scale CSS absolute units and images by a factor (300 DPI = x3, 48 DPI = x0.5)
@@ -364,12 +364,12 @@ Note that your selected font size is not affected by this setting.]]),
           if val == 96 then
             val = "96¹’¹"
           end
-          return val ~= 0 and string.format("%s dpi", val) or _("off")
+          return val ~= 0 and string.format("%s dpi", val) or gettext("off")
         end,
       },
       { -- ReaderFont
         name = "line_spacing",
-        name_text = _("Line Spacing"),
+        name_text = gettext("Line Spacing"),
         buttonprogress = true,
         values = {
           G_defaults:read("DCREREADER_CONFIG_LINE_SPACE_PERCENT_X_TINY"),
@@ -424,7 +424,7 @@ Note that your selected font size is not affected by this setting.]]),
     options = {
       { -- ReaderFont
         name = "font_size",
-        alt_name_text = _("Font Size"),
+        alt_name_text = gettext("Font Size"),
         item_text = tableOfNumbersToTableOfStrings(G_defaults:read("DCREREADER_CONFIG_FONT_SIZES")),
         item_align_center = 1.0,
         spacing = 15,
@@ -436,9 +436,9 @@ Note that your selected font size is not affected by this setting.]]),
       },
       { -- ReaderFont
         name = "font_fine_tune",
-        name_text = _("Font Size"),
-        toggle = Device:isTouchDevice() and { _("decrease"), _("increase") } or nil,
-        item_text = not Device:isTouchDevice() and { _("decrease"), _("increase") } or nil,
+        name_text = gettext("Font Size"),
+        toggle = Device:isTouchDevice() and { gettext("decrease"), gettext("increase") } or nil,
+        item_text = not Device:isTouchDevice() and { gettext("decrease"), gettext("increase") } or nil,
         more_options = true,
         more_options_param = {
           value_min = 12,
@@ -447,7 +447,7 @@ Note that your selected font size is not affected by this setting.]]),
           precision = "%.1f",
           value_hold_step = 4,
           name = "font_size",
-          name_text = _("Font Size"),
+          name_text = gettext("Font Size"),
           event = "SetFontSize",
         },
         values = {},
@@ -457,7 +457,7 @@ Note that your selected font size is not affected by this setting.]]),
         name_text_hold_callback = function(configurable, __, prefix)
           local opt = {
             name = "font_size",
-            name_text = _("Font Size"),
+            name_text = gettext("Font Size"),
             name_text_unit = "pt",
           }
           optionsutil.showValues(configurable, opt, prefix)
@@ -465,20 +465,20 @@ Note that your selected font size is not affected by this setting.]]),
       },
       { -- ReaderFont
         name = "word_spacing",
-        name_text = _("Word Spacing"),
+        name_text = gettext("Word Spacing"),
         more_options = true,
         more_options_param = {
           name = "word_spacing",
-          name_text = _("Word spacing"),
-          info_text = _([[Set word spacing percentages:
+          name_text = gettext("Word spacing"),
+          info_text = gettext([[Set word spacing percentages:
 - how much to scale the width of each space character from its regular width,
 - by how much some of them can then be reduced to make more words fit on a line.]]),
-          left_text = _("Scaling"),
+          left_text = gettext("Scaling"),
           left_min = 10,
           left_max = 500,
           left_step = 1,
           left_hold_step = 10,
-          right_text = _("Reduction"),
+          right_text = gettext("Reduction"),
           right_min = 25,
           right_max = 100,
           right_step = 1,
@@ -503,7 +503,7 @@ Note that your selected font size is not affected by this setting.]]),
           G_defaults:read("DCREREADER_CONFIG_WORD_SPACING_LARGE"),
         },
         event = "SetWordSpacing",
-        help_text = _(
+        help_text = gettext(
           [[Tells the rendering engine by how much to scale the width of each 'space' character in the text from its regular width, and by how much it can additionally reduce them to make more words fit on a line (100% means no reduction).]]
         ),
         name_text_hold_callback = optionsutil.showValues,
@@ -514,7 +514,7 @@ Note that your selected font size is not affected by this setting.]]),
       },
       { -- ReaderFont
         name = "word_expansion",
-        name_text = _("Word Expansion"),
+        name_text = gettext("Word Expansion"),
         more_options = true,
         more_options_param = {
           value_min = 0,
@@ -523,11 +523,11 @@ Note that your selected font size is not affected by this setting.]]),
           value_hold_step = 4,
           unit = "%",
           name = "word_expansion",
-          name_text = _("Max word expansion"),
-          info_text = _([[Set max word expansion as a percentage of the font size.]]),
+          name_text = gettext("Max word expansion"),
+          info_text = gettext([[Set max word expansion as a percentage of the font size.]]),
           event = "SetWordExpansion",
           other_button = { -- allow fine tuning the hidden cjk_width_scaling option (defined below)
-            text = _("CJK scaling"),
+            text = gettext("CJK scaling"),
             other_option = "cjk_width_scaling",
           },
         },
@@ -548,7 +548,7 @@ Note that your selected font size is not affected by this setting.]]),
           G_defaults:read("DCREREADER_CONFIG_WORD_EXPANSION_MORE"),
         },
         event = "SetWordExpansion",
-        help_text = _(
+        help_text = gettext(
           [[On justified lines having too wide spaces, allow distributing the excessive space into words by expanding them with letter spacing. This sets the max allowed letter spacing as a % of the font size.]]
         ),
         name_text_hold_callback = optionsutil.showValues,
@@ -575,13 +575,13 @@ Note that your selected font size is not affected by this setting.]]),
           value_hold_step = 5,
           unit = "%",
           name = "cjk_width_scaling",
-          name_text = _("CJK width scaling"),
-          info_text = _(
+          name_text = gettext("CJK width scaling"),
+          info_text = gettext(
             [[Increase the width of all CJK (Chinese, Japanese, Korean) characters by this percentage. This has the effect of adding space between these glyphs, and might make them easier to distinguish to some readers.]]
           ),
           event = "SetCJKWidthScaling",
           other_button = {
-            text = _("Word expansion"),
+            text = gettext("Word expansion"),
             other_option = "word_expansion",
           },
         },
@@ -593,7 +593,7 @@ Note that your selected font size is not affected by this setting.]]),
     options = {
       { -- ReaderFont
         name = "font_gamma",
-        name_text = _("Contrast"),
+        name_text = gettext("Contrast"),
         buttonprogress = true,
         default_value = 15, -- gamma = 1.0
         default_pos = 2,
@@ -673,7 +673,7 @@ Note that your selected font size is not affected by this setting.]]),
       },
       { -- ReaderFont
         name = "font_base_weight",
-        name_text = _("Font Weight"),
+        name_text = gettext("Font Weight"),
         toggle = { "-1", "-½", "0", "+½", "+1", "+1½", "+3" },
         values = { -1, -0.5, 0, 0.5, 1, 1.5, 3 },
         args = { -1, -0.5, 0, 0.5, 1, 1.5, 3 },
@@ -687,7 +687,7 @@ Note that your selected font size is not affected by this setting.]]),
           precision = "%+.2f",
           value_hold_step = 1,
         },
-        help_text = _(
+        help_text = gettext(
           [[Set the font weight delta from "regular" to apply to all fonts.
 
 - 0 will use the "Regular (400)" variation of a font.
@@ -700,7 +700,7 @@ If a font variation is not available, as well as for fractional adjustments, it 
           local font_face = document:getFontFace()
           local available_weights = prettifyCreWeights(cre.getFontFaceAvailableWeights(font_face))
           return T(
-            _("The default font '%1' provides the following weight classes: %2."),
+            gettext("The default font '%1' provides the following weight classes: %2."),
             font_face,
             table.concat(available_weights, C_("List separator", ", "))
           )
@@ -713,7 +713,7 @@ If a font variation is not available, as well as for fractional adjustments, it 
       },
       { -- ReaderFont
         name = "font_hinting",
-        name_text = _("Font Hinting"),
+        name_text = gettext("Font Hinting"),
         toggle = {
           C_("Font hinting", "off"),
           C_("Font hinting", "native"),
@@ -724,7 +724,7 @@ If a font variation is not available, as well as for fractional adjustments, it 
         args = { 0, 1, 2 },
         event = "SetFontHinting",
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _(
+        help_text = gettext(
           [[Font hinting is the process by which fonts are adjusted for maximum readability on the screen's pixel grid.
 
 - off: no hinting.
@@ -734,14 +734,14 @@ If a font variation is not available, as well as for fractional adjustments, it 
       },
       { -- ReaderFont
         name = "font_kerning",
-        name_text = _("Font Kerning"),
-        toggle = { _("off"), _("fast"), _("good"), _("best") },
+        name_text = gettext("Font Kerning"),
+        toggle = { gettext("off"), gettext("fast"), gettext("good"), gettext("best") },
         values = { 0, 1, 2, 3 },
         default_value = 3,
         args = { 0, 1, 2, 3 },
         event = "SetFontKerning",
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _(
+        help_text = gettext(
           [[Font kerning is the process of adjusting the spacing between individual letter forms, to achieve a visually pleasing result.
 
 - off: no kerning.
@@ -759,14 +759,14 @@ If a font variation is not available, as well as for fractional adjustments, it 
     options = {
       { -- ReaderRolling
         name = "status_line",
-        name_text = _("Alt Status Bar"),
-        toggle = { _("off"), _("on") },
+        name_text = gettext("Alt Status Bar"),
+        toggle = { gettext("off"), gettext("on") },
         values = { 1, 0 }, -- Note that 0 means crengine header status line enabled, and 1 means disabled
         default_value = 1,
         args = { 1, 0 },
         event = "SetStatusLine",
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _(
+        help_text = gettext(
           [[Enable or disable the rendering engine alternative status bar at the top of the screen. The items displayed can be customized via the main menu.
 
 Whether enabled or disabled, KOReader's own status bar at the bottom of the screen can be toggled by tapping.]]
@@ -774,20 +774,20 @@ Whether enabled or disabled, KOReader's own status bar at the bottom of the scre
       },
       { -- ReaderTypeset
         name = "embedded_css",
-        name_text = _("Embedded Style"),
-        toggle = { _("off"), _("on") },
+        name_text = gettext("Embedded Style"),
+        toggle = { gettext("off"), gettext("on") },
         values = { 0, 1 },
         default_value = 1,
         args = { false, true },
         event = "ToggleEmbeddedStyleSheet",
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _([[Enable or disable publisher stylesheets embedded in the book.
+        help_text = gettext([[Enable or disable publisher stylesheets embedded in the book.
 (Note that less radical changes can be achieved via Style Tweaks in the main menu.)]]),
       },
       { -- ReaderTypeset
         name = "embedded_fonts",
-        name_text = _("Embedded Fonts"),
-        toggle = { _("off"), _("on") },
+        name_text = gettext("Embedded Fonts"),
+        toggle = { gettext("off"), gettext("on") },
         values = { 0, 1 },
         default_value = 1,
         args = { false, true },
@@ -797,7 +797,7 @@ Whether enabled or disabled, KOReader's own status bar at the bottom of the scre
             and next(document:getEmbeddedFontList()) ~= nil
         end,
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _(
+        help_text = gettext(
           [[Enable or disable the use of the fonts embedded in the book.
 (Disabling the fonts specified in the publisher stylesheets can also be achieved via Style Tweaks in the main menu.)]]
         ),
@@ -805,9 +805,9 @@ Whether enabled or disabled, KOReader's own status bar at the bottom of the scre
           local font_list = document:getEmbeddedFontList()
           if next(font_list) then
             local font_details = {}
-            table.insert(font_details, _("Embedded fonts provided by the current book:"))
+            table.insert(font_details, gettext("Embedded fonts provided by the current book:"))
             for name in ffiUtil.orderedPairs(font_list) do
-              table.insert(font_details, name .. (font_list[name] and "" or T("  (%1)", _("not used"))))
+              table.insert(font_details, name .. (font_list[name] and "" or T("  (%1)", gettext("not used"))))
             end
             return table.concat(font_details, "\n")
           end
@@ -815,20 +815,20 @@ Whether enabled or disabled, KOReader's own status bar at the bottom of the scre
       },
       { -- ReaderTypeset
         name = "smooth_scaling",
-        name_text = _("Image Scaling"),
-        toggle = { _("fast"), _("best") },
+        name_text = gettext("Image Scaling"),
+        toggle = { gettext("fast"), gettext("best") },
         values = { 0, 1 },
         default_value = 0,
         args = { false, true },
         event = "ToggleImageScaling",
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _([[- 'fast' uses a fast but inaccurate scaling algorithm when scaling images.
+        help_text = gettext([[- 'fast' uses a fast but inaccurate scaling algorithm when scaling images.
 - 'best' switches to a more costly but vastly more pleasing and accurate algorithm.]]),
       },
       { -- ReaderTypeset
         name = "nightmode_images",
-        name_text = _("Invert Images"),
-        toggle = { _("on"), _("off") },
+        name_text = gettext("Invert Images"),
+        toggle = { gettext("on"), gettext("off") },
         values = { 1, 0 },
         default_value = 1,
         args = { true, false },
@@ -837,7 +837,7 @@ Whether enabled or disabled, KOReader's own status bar at the bottom of the scre
           return Screen.night_mode
         end,
         name_text_hold_callback = optionsutil.showValues,
-        help_text = _(
+        help_text = gettext(
           [[Disable the automagic inversion of images when nightmode is enabled. Useful if your book contains mainly inlined mathematical content or scene break art.]]
         ),
       },

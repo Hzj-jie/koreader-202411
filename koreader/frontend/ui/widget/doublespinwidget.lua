@@ -16,7 +16,7 @@ local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -27,20 +27,20 @@ local DoubleSpinWidget = FocusManager:extend({
   width = nil,
   width_factor = nil, -- number between 0 and 1, factor to the smallest of screen width and height
   height = nil,
-  left_text = _("Left"),
+  left_text = gettext("Left"),
   left_min = 1,
   left_max = 20,
   left_value = 1,
   left_precision = nil, -- default "%02d" in NumberPickerWidget
   left_wrap = false,
-  right_text = _("Right"),
+  right_text = gettext("Right"),
   right_min = 1,
   right_max = 20,
   right_value = 1,
   right_precision = nil,
   right_wrap = false,
-  cancel_text = _("Close"),
-  ok_text = _("Apply"),
+  cancel_text = gettext("Close"),
+  ok_text = gettext("Apply"),
   ok_always_enabled = false, -- set to true to enable OK button for unchanged values
   cancel_callback = nil,
   callback = nil,
@@ -217,7 +217,7 @@ function DoubleSpinWidget:update(numberpicker_left_value, numberpicker_right_val
       {
         text = self.default_text
           or T(
-            _("Default values: %1%3 %4 %2%3"),
+            gettext("Default values: %1%3 %4 %2%3"),
             self.left_precision and string.format(self.left_precision, self.left_default) or self.left_default,
             self.right_precision and string.format(self.right_precision, self.right_default) or self.right_default,
             unit,

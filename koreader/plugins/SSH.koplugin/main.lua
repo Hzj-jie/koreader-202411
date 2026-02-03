@@ -8,7 +8,7 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 if not Device:isKobo() and not Device:isEmulator() then
@@ -98,17 +98,17 @@ function SSH:start(quiet)
         timeout = 10,
         -- @translators: %1 is the SSH port, %2 is the network info.
         text = T(
-          _("SSH server started.\n\nSSH port: %1\n%2"),
+          gettext("SSH server started.\n\nSSH port: %1\n%2"),
           self.SSH_port,
           Device.retrieveNetworkInfo and table.concat(Device:retrieveNetworkInfo(), "\n")
-            or _("Could not retrieve network info.")
+            or gettext("Could not retrieve network info.")
         ),
       }))
     end
   else
     UIManager:show(InfoMessage:new({
       icon = "notice-warning",
-      text = _("Failed to start SSH server."),
+      text = gettext("Failed to start SSH server."),
     }))
   end
 end
@@ -120,7 +120,7 @@ end
 function SSH:stop()
   os.execute("cat /tmp/dropbear_koreader.pid | xargs kill")
   UIManager:show(InfoMessage:new({
-    text = T(_("SSH server stopped.")),
+    text = T(gettext("SSH server stopped.")),
     timeout = 2,
   }))
 
@@ -159,21 +159,21 @@ end
 
 function SSH:show_port_dialog(touchmenu_instance)
   self.port_dialog = InputDialog:new({
-    title = _("Choose SSH port"),
+    title = gettext("Choose SSH port"),
     input = self.SSH_port,
     input_type = "number",
     input_hint = self.SSH_port,
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(self.port_dialog)
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           is_enter_default = true,
           callback = function()
             local value = tonumber(self.port_dialog:getInputText())
@@ -193,12 +193,12 @@ end
 
 function SSH:addToMainMenu(menu_items)
   menu_items.ssh = {
-    text = _("SSH server"),
+    text = gettext("SSH server"),
     sub_item_table = {
       {
         text_func = function()
           -- Need localization
-          return self:isRunning() and _("Stop SSH server") or _("Stop SSH server")
+          return self:isRunning() and gettext("Stop SSH server") or gettext("Stop SSH server")
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
@@ -208,36 +208,36 @@ function SSH:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(_("SSH port (%1)"), self.SSH_port)
+          return T(gettext("SSH port (%1)"), self.SSH_port)
         end,
         keep_menu_open = true,
         enabled_func = function()
           return not self:isRunning()
         end,
         -- Need localization
-        help_text = _("Stop SSH server to configure"),
+        help_text = gettext("Stop SSH server to configure"),
         callback = function(touchmenu_instance)
           self:show_port_dialog(touchmenu_instance)
         end,
       },
       {
-        text = _("SSH public key"),
+        text = gettext("SSH public key"),
         keep_menu_open = true,
         enabled_func = function()
           return not self:isRunning()
         end,
         -- Need localization
-        help_text = _("Stop SSH server to configure"),
+        help_text = gettext("Stop SSH server to configure"),
         callback = function()
           local info = InfoMessage:new({
             timeout = 60,
-            text = T(_("Put your public SSH keys in\n%1"), BD.filepath(path .. "/settings/SSH/authorized_keys")),
+            text = T(gettext("Put your public SSH keys in\n%1"), BD.filepath(path .. "/settings/SSH/authorized_keys")),
           })
           UIManager:show(info)
         end,
       },
       {
-        text = _("Login without password (DANGEROUS)"),
+        text = gettext("Login without password (DANGEROUS)"),
         checked_func = function()
           return self.allow_no_password
         end,
@@ -245,7 +245,7 @@ function SSH:addToMainMenu(menu_items)
           return not self:isRunning()
         end,
         -- Need localization
-        help_text = _("Stop SSH server to configure"),
+        help_text = gettext("Stop SSH server to configure"),
         callback = function()
           self.allow_no_password = not self.allow_no_password
           G_reader_settings:flipNilOrFalse("SSH_allow_no_password")
@@ -253,7 +253,7 @@ function SSH:addToMainMenu(menu_items)
       },
       {
         -- Need localization
-        text = _("Auto start SSH server"),
+        text = gettext("Auto start SSH server"),
         checked_func = function()
           return G_reader_settings:isTrue("SSH_autostart")
         end,
@@ -270,7 +270,7 @@ function SSH:onDispatcherRegisterActions()
   Dispatcher:registerAction("toggle_ssh_server", {
     category = "none",
     event = "ToggleSSHServer",
-    title = _("Toggle SSH server"),
+    title = gettext("Toggle SSH server"),
     general = true,
   })
 end

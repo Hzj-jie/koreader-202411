@@ -8,7 +8,7 @@ local UIManager = require("ui/uimanager")
 local ReaderUI = require("apps/reader/readerui")
 local util = require("util")
 local T = require("ffi/util").template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local DropBox = {}
 
@@ -30,11 +30,11 @@ function DropBox:downloadFile(item, password, path, callback_close)
     local __, filename = util.splitFilePathName(path)
     if G_reader_settings:isTrue("show_unsupported") and not DocumentRegistry:hasProvider(filename) then
       UIManager:show(InfoMessage:new({
-        text = T(_("File saved to:\n%1"), BD.filename(path)),
+        text = T(gettext("File saved to:\n%1"), BD.filename(path)),
       }))
     else
       UIManager:show(ConfirmBox:new({
-        text = T(_("File saved to:\n%1\nWould you like to read the downloaded book now?"), BD.filepath(path)),
+        text = T(gettext("File saved to:\n%1\nWould you like to read the downloaded book now?"), BD.filepath(path)),
         ok_callback = function()
           local Event = require("ui/event")
           UIManager:broadcastEvent(Event:new("SetupShowReader"))
@@ -49,7 +49,7 @@ function DropBox:downloadFile(item, password, path, callback_close)
     end
   else
     UIManager:show(InfoMessage:new({
-      text = T(_("Could not save file to:\n%1"), BD.filepath(path)),
+      text = T(gettext("Could not save file to:\n%1"), BD.filepath(path)),
       timeout = 3,
     }))
   end
@@ -65,14 +65,14 @@ function DropBox:uploadFile(url, password, file_path, callback_close)
   local __, filename = util.splitFilePathName(file_path)
   if code_response == 200 then
     UIManager:show(InfoMessage:new({
-      text = T(_("File uploaded:\n%1"), filename),
+      text = T(gettext("File uploaded:\n%1"), filename),
     }))
     if callback_close then
       callback_close()
     end
   else
     UIManager:show(InfoMessage:new({
-      text = T(_("Could not upload file:\n%1"), filename),
+      text = T(gettext("Could not upload file:\n%1"), filename),
     }))
   end
 end
@@ -85,13 +85,13 @@ function DropBox:createFolder(url, password, folder_name, callback_close)
     end
   else
     UIManager:show(InfoMessage:new({
-      text = T(_("Could not create folder:\n%1"), folder_name),
+      text = T(gettext("Could not create folder:\n%1"), folder_name),
     }))
   end
 end
 
 function DropBox:config(item, callback)
-  local text_info = _([[
+  local text_info = gettext([[
 Dropbox access tokens are short-lived (4 hours).
 To generate new access token please use Dropbox refresh token and <APP_KEY>:<APP_SECRET> string.
 
@@ -104,29 +104,29 @@ Some of the previously generated long-lived tokens are still valid.]])
     text_url = item.url
   end
   self.settings_dialog = MultiInputDialog:new({
-    title = _("Dropbox cloud storage"),
+    title = gettext("Dropbox cloud storage"),
     fields = {
       {
         text = text_name,
-        hint = _("Cloud storage displayed name"),
+        hint = gettext("Cloud storage displayed name"),
       },
       {
         text = text_token,
-        hint = _("Dropbox refresh token\nor long-lived token (deprecated)"),
+        hint = gettext("Dropbox refresh token\nor long-lived token (deprecated)"),
       },
       {
         text = text_appkey,
-        hint = _("Dropbox <APP_KEY>:<APP_SECRET>\n(leave blank for long-lived token)"),
+        hint = gettext("Dropbox <APP_KEY>:<APP_SECRET>\n(leave blank for long-lived token)"),
       },
       {
         text = text_url,
-        hint = _("Dropbox folder (/ for root)"),
+        hint = gettext("Dropbox folder (/ for root)"),
       },
     },
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             self.settings_dialog:onExit()
@@ -134,13 +134,13 @@ Some of the previously generated long-lived tokens are still valid.]])
           end,
         },
         {
-          text = _("Info"),
+          text = gettext("Info"),
           callback = function()
             UIManager:show(InfoMessage:new({ text = text_info }))
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           callback = function()
             local fields = self.settings_dialog:getFields()
             if item then
@@ -167,7 +167,7 @@ function DropBox:info(token)
     local space_total = space_usage.allocation and space_usage.allocation.allocated
     UIManager:show(InfoMessage:new({
       text = T(
-        _("Type: %1\nName: %2\nEmail: %3\nCountry: %4\nSpace total: %5\nSpace used: %6"),
+        gettext("Type: %1\nName: %2\nEmail: %3\nCountry: %4\nSpace total: %5\nSpace used: %6"),
         account_type,
         name,
         info.email,

@@ -29,7 +29,7 @@ local ltn12 = require("ltn12")
 local socket = require("socket")
 local socketutil = require("socketutil")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = FFIUtil.template
 
 -- constants
@@ -45,7 +45,7 @@ function Wallabag:onDispatcherRegisterActions()
   Dispatcher:registerAction("wallabag_download", {
     category = "none",
     event = "SynchronizeWallabag",
-    title = _("Wallabag retrieval"),
+    title = gettext("Wallabag retrieval"),
     general = true,
   })
 end
@@ -130,7 +130,7 @@ function Wallabag:init()
   if self.ui and self.ui.link then
     self.ui.link:addToExternalLinkDialog("25_wallabag", function(this, link_url)
       return {
-        text = _("Add to Wallabag"),
+        text = gettext("Add to Wallabag"),
         callback = function()
           UIManager:close(this.external_link_dialog)
           self:addWallabagArticle(link_url)
@@ -142,21 +142,21 @@ end
 
 function Wallabag:addToMainMenu(menu_items)
   menu_items.wallabag = {
-    text = _("Wallabag"),
+    text = gettext("Wallabag"),
     sub_item_table = {
       {
-        text = _("Retrieve new articles from server"),
+        text = gettext("Retrieve new articles from server"),
         callback = function()
           UIManager:broadcastEvent(Event:new("SynchronizeWallabag"))
         end,
       },
       {
-        text = _("Delete finished articles remotely"),
+        text = gettext("Delete finished articles remotely"),
         callback = function()
           local connect_callback = function()
             local num_deleted = self:processLocalFiles("manual")
             UIManager:show(InfoMessage:new({
-              text = T(_("Articles processed.\nDeleted: %1"), num_deleted),
+              text = T(gettext("Articles processed.\nDeleted: %1"), num_deleted),
             }))
             self:refreshCurrentDirIfNeeded()
           end
@@ -167,7 +167,7 @@ function Wallabag:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Go to download folder"),
+        text = gettext("Go to download folder"),
         callback = function()
           if self.ui.document then
             self.ui:onExit()
@@ -180,21 +180,21 @@ function Wallabag:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Settings"),
+        text = gettext("Settings"),
         callback_func = function()
           return nil
         end,
         separator = true,
         sub_item_table = {
           {
-            text = _("Configure Wallabag server"),
+            text = gettext("Configure Wallabag server"),
             keep_menu_open = true,
             callback = function()
               self:editServerSettings()
             end,
           },
           {
-            text = _("Configure Wallabag client"),
+            text = gettext("Configure Wallabag client"),
             keep_menu_open = true,
             callback = function()
               self:editClientSettings()
@@ -204,11 +204,11 @@ function Wallabag:addToMainMenu(menu_items)
             text_func = function()
               local path
               if not self.directory or self.directory == "" then
-                path = _("Not set")
+                path = gettext("Not set")
               else
                 path = filemanagerutil.abbreviate(self.directory)
               end
-              return T(_("Set download folder: %1"), BD.dirpath(path))
+              return T(gettext("Set download folder: %1"), BD.dirpath(path))
             end,
             keep_menu_open = true,
             callback = function(touchmenu_instance)
@@ -220,11 +220,11 @@ function Wallabag:addToMainMenu(menu_items)
             text_func = function()
               local filter
               if not self.filter_tag or self.filter_tag == "" then
-                filter = _("All articles")
+                filter = gettext("All articles")
               else
                 filter = self.filter_tag
               end
-              return T(_("Filter articles by tag: %1"), filter)
+              return T(gettext("Filter articles by tag: %1"), filter)
             end,
             keep_menu_open = true,
             callback = function(touchmenu_instance)
@@ -234,16 +234,16 @@ function Wallabag:addToMainMenu(menu_items)
           {
             text_func = function()
               if not self.ignore_tags or self.ignore_tags == "" then
-                return _("Ignore tags")
+                return gettext("Ignore tags")
               end
-              return T(_("Ignore tags (%1)"), self.ignore_tags)
+              return T(gettext("Ignore tags (%1)"), self.ignore_tags)
             end,
             keep_menu_open = true,
             callback = function(touchmenu_instance)
               self:setTagsDialog(
                 touchmenu_instance,
-                _("Tags to ignore"),
-                _("Enter a comma-separated list of tags to ignore."),
+                gettext("Tags to ignore"),
+                gettext("Enter a comma-separated list of tags to ignore."),
                 self.ignore_tags,
                 function(tags)
                   self.ignore_tags = tags
@@ -254,16 +254,16 @@ function Wallabag:addToMainMenu(menu_items)
           {
             text_func = function()
               if not self.auto_tags or self.auto_tags == "" then
-                return _("Automatic tags")
+                return gettext("Automatic tags")
               end
-              return T(_("Automatic tags (%1)"), self.auto_tags)
+              return T(gettext("Automatic tags (%1)"), self.auto_tags)
             end,
             keep_menu_open = true,
             callback = function(touchmenu_instance)
               self:setTagsDialog(
                 touchmenu_instance,
-                _("Tags to automatically add"),
-                _("Enter a comma-separated list of tags to automatically add to new articles."),
+                gettext("Tags to automatically add"),
+                gettext("Enter a comma-separated list of tags to automatically add to new articles."),
                 self.auto_tags,
                 function(tags)
                   self.auto_tags = tags
@@ -273,11 +273,11 @@ function Wallabag:addToMainMenu(menu_items)
             separator = true,
           },
           {
-            text = _("Article deletion"),
+            text = gettext("Article deletion"),
             separator = true,
             sub_item_table = {
               {
-                text = _("Remotely delete finished articles"),
+                text = gettext("Remotely delete finished articles"),
                 checked_func = function()
                   return self.is_delete_finished
                 end,
@@ -287,7 +287,7 @@ function Wallabag:addToMainMenu(menu_items)
                 end,
               },
               {
-                text = _("Remotely delete 100% read articles"),
+                text = gettext("Remotely delete 100% read articles"),
                 checked_func = function()
                   return self.is_delete_read
                 end,
@@ -297,7 +297,7 @@ function Wallabag:addToMainMenu(menu_items)
                 end,
               },
               {
-                text = _("Remotely delete articles on hold"),
+                text = gettext("Remotely delete articles on hold"),
                 checked_func = function()
                   return self.is_delete_abandoned
                 end,
@@ -308,7 +308,7 @@ function Wallabag:addToMainMenu(menu_items)
                 separator = true,
               },
               {
-                text = _("Mark as finished instead of deleting"),
+                text = gettext("Mark as finished instead of deleting"),
                 checked_func = function()
                   return self.is_archiving_deleted
                 end,
@@ -319,7 +319,7 @@ function Wallabag:addToMainMenu(menu_items)
                 separator = true,
               },
               {
-                text = _("Process deletions when downloading"),
+                text = gettext("Process deletions when downloading"),
                 checked_func = function()
                   return self.is_auto_delete
                 end,
@@ -329,7 +329,7 @@ function Wallabag:addToMainMenu(menu_items)
                 end,
               },
               {
-                text = _("Synchronize remotely deleted files"),
+                text = gettext("Synchronize remotely deleted files"),
                 checked_func = function()
                   return self.is_sync_remote_delete
                 end,
@@ -341,8 +341,8 @@ function Wallabag:addToMainMenu(menu_items)
             },
           },
           {
-            text = _("Send review as tags"),
-            help_text = _(
+            text = gettext("Send review as tags"),
+            help_text = gettext(
               "This allow you to write tags in the review field, separated by commas, which can then be sent to Wallabag."
             ),
             keep_menu_open = true,
@@ -355,7 +355,7 @@ function Wallabag:addToMainMenu(menu_items)
             end,
           },
           {
-            text = _("Remove finished articles from history"),
+            text = gettext("Remove finished articles from history"),
             keep_menu_open = true,
             checked_func = function()
               return self.remove_finished_from_history or false
@@ -366,7 +366,7 @@ function Wallabag:addToMainMenu(menu_items)
             end,
           },
           {
-            text = _("Remove 100% read articles from history"),
+            text = gettext("Remove 100% read articles from history"),
             keep_menu_open = true,
             checked_func = function()
               return self.remove_read_from_history or false
@@ -377,7 +377,7 @@ function Wallabag:addToMainMenu(menu_items)
             end,
           },
           {
-            text = _("Remove articles on hold from history"),
+            text = gettext("Remove articles on hold from history"),
             keep_menu_open = true,
             checked_func = function()
               return self.remove_abandoned_from_history or false
@@ -389,7 +389,7 @@ function Wallabag:addToMainMenu(menu_items)
             separator = true,
           },
           {
-            text = _("Prefer original non-HTML document"),
+            text = gettext("Prefer original non-HTML document"),
             keep_menu_open = true,
             checked_func = function()
               return self.download_original_document
@@ -401,11 +401,11 @@ function Wallabag:addToMainMenu(menu_items)
             separator = true,
           },
           {
-            text = _("Help"),
+            text = gettext("Help"),
             keep_menu_open = true,
             callback = function()
               UIManager:show(InfoMessage:new({
-                text = _(
+                text = gettext(
                   [[Download directory: use a directory that is exclusively used by the Wallabag plugin. Existing files in this directory risk being deleted.
 
 Articles marked as finished or 100% read can be deleted from the server. Those articles can also be deleted automatically when downloading new articles if the 'Process deletions during download' option is enabled.
@@ -418,16 +418,18 @@ The 'Synchronize remotely deleted files' option will remove local files that no 
         },
       },
       {
-        text = _("Info"),
+        text = gettext("Info"),
         keep_menu_open = true,
         callback = function()
           UIManager:show(InfoMessage:new({
             text = T(
-              _([[Wallabag is an open source read-it-later service. This plugin synchronizes with a Wallabag server.
+              gettext(
+                [[Wallabag is an open source read-it-later service. This plugin synchronizes with a Wallabag server.
 
 More details: https://wallabag.org
 
-Downloads to folder: %1]]),
+Downloads to folder: %1]]
+              ),
               BD.dirpath(filemanagerutil.abbreviate(self.directory))
             ),
           }))
@@ -451,12 +453,12 @@ function Wallabag:getBearerToken()
   local directory_empty = isempty(self.directory)
   if server_empty or directory_empty then
     UIManager:show(MultiConfirmBox:new({
-      text = _("Please configure the server settings and set a download folder."),
+      text = gettext("Please configure the server settings and set a download folder."),
       choice1_text_func = function()
         if server_empty then
-          return _("Server (★)")
+          return gettext("Server (★)")
         else
-          return _("Server")
+          return gettext("Server")
         end
       end,
       choice1_callback = function()
@@ -464,9 +466,9 @@ function Wallabag:getBearerToken()
       end,
       choice2_text_func = function()
         if directory_empty then
-          return _("Folder (★)")
+          return gettext("Folder (★)")
         else
-          return _("Folder")
+          return gettext("Folder")
         end
       end,
       choice2_callback = function()
@@ -480,7 +482,7 @@ function Wallabag:getBearerToken()
   local dir_mode = lfs.attributes(self.directory, "mode")
   if dir_mode ~= "directory" then
     UIManager:show(InfoMessage:new({
-      text = _("The download directory is not valid.\nPlease configure it in the settings."),
+      text = gettext("The download directory is not valid.\nPlease configure it in the settings."),
     }))
     return false
   end
@@ -519,7 +521,7 @@ function Wallabag:getBearerToken()
     return true
   else
     UIManager:show(InfoMessage:new({
-      text = _("Could not login to Wallabag server."),
+      text = gettext("Could not login to Wallabag server."),
     }))
     return false
   end
@@ -557,7 +559,7 @@ function Wallabag:getArticleList()
       -- or deleting articles
       logger.warn("Wallabag: download of page #", page, "failed with", err, code)
       UIManager:show(InfoMessage:new({
-        text = _("Requesting article list failed."),
+        text = gettext("Requesting article list failed."),
       }))
       return
     end
@@ -746,12 +748,12 @@ function Wallabag:callAPI(method, apiurl, headers, body, filepath, quiet)
           return result
         else
           UIManager:show(InfoMessage:new({
-            text = _("Server response is not valid."),
+            text = gettext("Server response is not valid."),
           }))
         end
       else
         UIManager:show(InfoMessage:new({
-          text = _("Server response is not valid."),
+          text = gettext("Server response is not valid."),
         }))
       end
       return nil, "json_error"
@@ -761,7 +763,7 @@ function Wallabag:callAPI(method, apiurl, headers, body, filepath, quiet)
       self:removeFailedDownload(filepath)
     elseif not quiet then
       UIManager:show(InfoMessage:new({
-        text = _("Communication with server failed."),
+        text = gettext("Communication with server failed."),
       }))
     end
     logger.dbg("Wallabag: Request failed:", status or code)
@@ -781,7 +783,7 @@ function Wallabag:removeFailedDownload(filepath)
 end
 
 function Wallabag:synchronize()
-  local info = InfoMessage:new({ text = _("Connecting…") })
+  local info = InfoMessage:new({ text = gettext("Connecting…") })
   UIManager:show(info)
   UIManager:forceRepaint()
   UIManager:close(info)
@@ -790,7 +792,7 @@ function Wallabag:synchronize()
     return false
   end
   if self.download_queue and next(self.download_queue) ~= nil then
-    info = InfoMessage:new({ text = _("Adding articles from queue…") })
+    info = InfoMessage:new({ text = gettext("Adding articles from queue…") })
     UIManager:show(info)
     UIManager:forceRepaint()
     for _, articleUrl in ipairs(self.download_queue) do
@@ -803,7 +805,7 @@ function Wallabag:synchronize()
 
   local deleted_count = self:processLocalFiles()
 
-  info = InfoMessage:new({ text = _("Getting article list…") })
+  info = InfoMessage:new({ text = gettext("Getting article list…") })
   UIManager:show(info)
   UIManager:forceRepaint()
   UIManager:close(info)
@@ -816,7 +818,7 @@ function Wallabag:synchronize()
     if articles then
       logger.dbg("Wallabag: number of articles:", #articles)
 
-      info = InfoMessage:new({ text = _("Downloading articles…") })
+      info = InfoMessage:new({ text = gettext("Downloading articles…") })
       UIManager:show(info)
       UIManager:forceRepaint()
       UIManager:close(info)
@@ -835,12 +837,12 @@ function Wallabag:synchronize()
 
       local msg
       if failed_count ~= 0 then
-        msg = _("Processing finished.\n\nArticles downloaded: %1\nDeleted: %2\nFailed: %3")
+        msg = gettext("Processing finished.\n\nArticles downloaded: %1\nDeleted: %2\nFailed: %3")
         info = InfoMessage:new({
           text = T(msg, downloaded_count, deleted_count, failed_count),
         })
       else
-        msg = _("Processing finished.\n\nArticles downloaded: %1\nDeleted: %2")
+        msg = gettext("Processing finished.\n\nArticles downloaded: %1\nDeleted: %2")
         info = InfoMessage:new({ text = T(msg, downloaded_count, deleted_count) })
       end
       UIManager:show(info)
@@ -855,7 +857,7 @@ function Wallabag:processRemoteDeletes(remote_article_ids)
   end
   logger.dbg("Wallabag: articles IDs from server: ", remote_article_ids)
 
-  local info = InfoMessage:new({ text = _("Synchronizing remote deletions…") })
+  local info = InfoMessage:new({ text = gettext("Synchronizing remote deletions…") })
   UIManager:show(info)
   UIManager:forceRepaint()
   UIManager:close(info)
@@ -888,7 +890,7 @@ function Wallabag:processLocalFiles(mode)
 
   local num_deleted = 0
   if self.is_delete_finished or self.is_delete_read or self.is_delete_abandoned then
-    local info = InfoMessage:new({ text = _("Processing local files…") })
+    local info = InfoMessage:new({ text = gettext("Processing local files…") })
     UIManager:show(info)
     UIManager:forceRepaint()
     UIManager:close(info)
@@ -1036,19 +1038,19 @@ end
 
 function Wallabag:setFilterTag(touchmenu_instance)
   self.tag_dialog = InputDialog:new({
-    title = _("Set a single tag to filter articles on"),
+    title = gettext("Set a single tag to filter articles on"),
     input = self.filter_tag,
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(self.tag_dialog)
           end,
         },
         {
-          text = _("OK"),
+          text = gettext("OK"),
           is_enter_default = true,
           callback = function()
             self.filter_tag = self.tag_dialog:getInputText()
@@ -1071,14 +1073,14 @@ function Wallabag:setTagsDialog(touchmenu_instance, title, description, value, c
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(self.tags_dialog)
           end,
         },
         {
-          text = _("Set tags"),
+          text = gettext("Set tags"),
           is_enter_default = true,
           callback = function()
             callback(self.tags_dialog:getInputText())
@@ -1095,7 +1097,7 @@ end
 
 function Wallabag:editServerSettings()
   local text_info = T(
-    _([[
+    gettext([[
 Enter the details of your Wallabag server and account.
 
 Client ID and client secret are long strings so you might prefer to save the empty settings and edit the config file directly in your installation directory:
@@ -1106,50 +1108,50 @@ Restart KOReader after editing the config file.]]),
   )
 
   self.settings_dialog = MultiInputDialog:new({
-    title = _("Wallabag settings"),
+    title = gettext("Wallabag settings"),
     fields = {
       {
         text = self.server_url,
-        --description = T(_("Server URL:")),
-        hint = _("Server URL"),
+        --description = T(gettext("Server URL:")),
+        hint = gettext("Server URL"),
       },
       {
         text = self.client_id,
-        --description = T(_("Client ID and secret")),
-        hint = _("Client ID"),
+        --description = T(gettext("Client ID and secret")),
+        hint = gettext("Client ID"),
       },
       {
         text = self.client_secret,
-        hint = _("Client secret"),
+        hint = gettext("Client secret"),
       },
       {
         text = self.username,
-        --description = T(_("Username and password")),
-        hint = _("Username"),
+        --description = T(gettext("Username and password")),
+        hint = gettext("Username"),
       },
       {
         text = self.password,
         text_type = "password",
-        hint = _("Password"),
+        hint = gettext("Password"),
       },
     },
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(self.settings_dialog)
           end,
         },
         {
-          text = _("Info"),
+          text = gettext("Info"),
           callback = function()
             UIManager:show(InfoMessage:new({ text = text_info }))
           end,
         },
         {
-          text = _("Apply"),
+          text = gettext("Apply"),
           callback = function()
             local myfields = self.settings_dialog:getFields()
             self.server_url = myfields[1]:gsub("/*$", "") -- remove all trailing "/" slashes
@@ -1169,26 +1171,26 @@ end
 
 function Wallabag:editClientSettings()
   self.client_settings_dialog = MultiInputDialog:new({
-    title = _("Wallabag client settings"),
+    title = gettext("Wallabag client settings"),
     fields = {
       {
         text = self.articles_per_sync,
-        description = _("Number of articles"),
+        description = gettext("Number of articles"),
         input_type = "number",
-        hint = _("Number of articles to download per sync"),
+        hint = gettext("Number of articles to download per sync"),
       },
     },
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(self.client_settings_dialog)
           end,
         },
         {
-          text = _("Apply"),
+          text = gettext("Apply"),
           callback = function()
             local myfields = self.client_settings_dialog:getFields()
             self.articles_per_sync = math.max(1, tonumber(myfields[1]) or self.articles_per_sync)
@@ -1263,7 +1265,7 @@ function Wallabag:addWallabagArticle(article_url)
   if not NetworkMgr:isOnline() then
     self:addToDownloadQueue(article_url)
     UIManager:show(InfoMessage:new({
-      text = T(_("Article added to download queue:\n%1"), BD.url(article_url)),
+      text = T(gettext("Article added to download queue:\n%1"), BD.url(article_url)),
       timeout = 1,
     }))
     return
@@ -1272,11 +1274,11 @@ function Wallabag:addWallabagArticle(article_url)
   local wallabag_result = self:addArticle(article_url)
   if wallabag_result then
     UIManager:show(InfoMessage:new({
-      text = T(_("Article added to Wallabag:\n%1"), BD.url(article_url)),
+      text = T(gettext("Article added to Wallabag:\n%1"), BD.url(article_url)),
     }))
   else
     UIManager:show(InfoMessage:new({
-      text = T(_("Error adding link to Wallabag:\n%1"), BD.url(article_url)),
+      text = T(gettext("Error adding link to Wallabag:\n%1"), BD.url(article_url)),
     }))
   end
 

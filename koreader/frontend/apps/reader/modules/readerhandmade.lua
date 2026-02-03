@@ -7,7 +7,7 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local util = require("util")
 local T = require("ffi/util").template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local ReaderHandMade = WidgetContainer:extend({
   custom_toc_symbol = "\u{EAEC}", -- used in a few places
@@ -122,7 +122,7 @@ function ReaderHandMade:addToMainMenu(menu_items)
     return
   end
   menu_items.handmade_toc = {
-    text = _("Custom table of contents") .. " " .. self.custom_toc_symbol,
+    text = gettext("Custom table of contents") .. " " .. self.custom_toc_symbol,
     checked_func = function()
       return self.toc_enabled
     end,
@@ -131,7 +131,7 @@ function ReaderHandMade:addToMainMenu(menu_items)
     end,
   }
   menu_items.handmade_hidden_flows = {
-    text = _("Custom hidden flows"),
+    text = gettext("Custom hidden flows"),
     checked_func = function()
       return self.flows_enabled
     end,
@@ -141,7 +141,7 @@ function ReaderHandMade:addToMainMenu(menu_items)
   }
   --[[ Not yet implemented
     menu_items.handmade_page_numbers = {
-        text = _("Custom page numbers"),
+        text = gettext("Custom page numbers"),
         checked_func = function() return false end,
         callback = function()
         end,
@@ -149,14 +149,14 @@ function ReaderHandMade:addToMainMenu(menu_items)
     ]]
   --
   menu_items.handmade_settings = {
-    text = _("Custom layout features"),
+    text = gettext("Custom layout features"),
     sub_item_table_func = function()
       return {
         {
-          text = _("About custom table of contents") .. " " .. self.custom_toc_symbol,
+          text = gettext("About custom table of contents") .. " " .. self.custom_toc_symbol,
           callback = function()
             UIManager:show(InfoMessage:new({
-              text = _([[
+              text = gettext([[
 If the book has no table of contents or you would like to substitute it with your own, you can create a custom TOC. The original TOC (if available) will not be altered.
 
 You can create, edit and remove chapters:
@@ -170,7 +170,7 @@ This custom table of contents is currently limited to a single level and can't h
           keep_menu_open = true,
         },
         {
-          text = _("Edit mode"),
+          text = gettext("Edit mode"),
           enabled_func = function()
             return self:isHandmadeTocEnabled()
           end,
@@ -184,18 +184,18 @@ This custom table of contents is currently limited to a single level and can't h
         },
         --[[ Not yet implemented
                 {
-                    text = _("Add multiple chapter start page numbers"),
+                    text = gettext("Add multiple chapter start page numbers"),
                 },
                 ]]
         --
         {
-          text = _("Clear custom table of contents"),
+          text = gettext("Clear custom table of contents"),
           enabled_func = function()
             return #self.toc > 0
           end,
           callback = function(touchmenu_instance)
             UIManager:show(ConfirmBox:new({
-              text = _("Are you sure you want to clear your custom table of contents?"),
+              text = gettext("Are you sure you want to clear your custom table of contents?"),
               ok_callback = function()
                 self.toc = {}
                 UIManager:broadcastEvent(Event:new("UpdateToc"))
@@ -209,10 +209,10 @@ This custom table of contents is currently limited to a single level and can't h
           separator = true,
         },
         {
-          text = _("About custom hidden flows"),
+          text = gettext("About custom hidden flows"),
           callback = function()
             UIManager:show(InfoMessage:new({
-              text = _([[
+              text = gettext([[
 Custom hidden flows can be created to exclude sections of the book from your normal reading flow:
 - hidden flows will automatically be skipped when turning pages within the regular flow;
 - pages part of hidden flows are assigned distinct page numbers and won't be considered in the various book & chapter progress and time to read features;
@@ -230,7 +230,7 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
           keep_menu_open = true,
         },
         {
-          text = _("Edit mode"),
+          text = gettext("Edit mode"),
           enabled_func = function()
             return self:isHandmadeHiddenFlowsEnabled()
           end,
@@ -243,14 +243,14 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
         },
         {
           text_func = function()
-            return T(_("Clear inactive marked pages (%1)"), #self.inactive_flow_points)
+            return T(gettext("Clear inactive marked pages (%1)"), #self.inactive_flow_points)
           end,
           enabled_func = function()
             return #self.inactive_flow_points > 0
           end,
           callback = function(touchmenu_instance)
             UIManager:show(ConfirmBox:new({
-              text = _(
+              text = gettext(
                 "Inactive marked pages are pages that you tagged as start hidden flow or restart regular flow, but that other marked pages made them have no effect.\nAre you sure you want to clear them?"
               ),
               ok_callback = function()
@@ -270,13 +270,13 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
           keep_menu_open = true,
         },
         {
-          text = _("Clear all marked pages"),
+          text = gettext("Clear all marked pages"),
           enabled_func = function()
             return #self.flow_points > 0
           end,
           callback = function(touchmenu_instance)
             UIManager:show(ConfirmBox:new({
-              text = _("Are you sure you want to clear all your custom hidden flows?"),
+              text = gettext("Are you sure you want to clear all your custom hidden flows?"),
               ok_callback = function()
                 self.flow_points = {}
                 self:updateDocFlows()
@@ -294,10 +294,10 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
         },
         --[[ Not yet implemented
                 {
-                    text = _("About custom page numbers"),
+                    text = gettext("About custom page numbers"),
                 },
                 {
-                    text = _("Clear custom page numbers"),
+                    text = gettext("Clear custom page numbers"),
                 },
                 ]]
         --
@@ -389,9 +389,9 @@ function ReaderHandMade:updateHighlightDialog()
           end
           local text
           if self:hasPageTocItem(pageno, xpointer) then
-            text = _("Edit TOC chapter")
+            text = gettext("Edit TOC chapter")
           else
-            text = _("Start TOC chapter")
+            text = gettext("Start TOC chapter")
           end
           text = text .. " " .. self.custom_toc_symbol
           return text
@@ -483,21 +483,21 @@ function ReaderHandMade:addOrEditPageTocItem(pageno, when_updated_callback, sele
   end
   local dialog
   dialog = InputDialog:new({
-    title = item_found and _("Edit custom TOC chapter") or _("Create new custom ToC chapter"),
+    title = item_found and gettext("Edit custom TOC chapter") or gettext("Create new custom ToC chapter"),
     input = item.title,
-    input_hint = _("TOC chapter title"),
-    description = T(_([[On page %1.]]), pageno),
+    input_hint = gettext("TOC chapter title"),
+    description = T(gettext([[On page %1.]]), pageno),
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(dialog)
           end,
         },
         {
-          text = item_found and _("Save") or _("Create"),
+          text = item_found and gettext("Save") or gettext("Create"),
           is_enter_default = true,
           callback = function()
             item.title = dialog:getInputText()
@@ -515,7 +515,7 @@ function ReaderHandMade:addOrEditPageTocItem(pageno, when_updated_callback, sele
       item_found
           and {
             {
-              text = _("Remove"),
+              text = gettext("Remove"),
               callback = function()
                 UIManager:close(dialog)
                 table.remove(self.toc, idx)
@@ -527,7 +527,7 @@ function ReaderHandMade:addOrEditPageTocItem(pageno, when_updated_callback, sele
             },
             selected_text
                 and {
-                  text = _("Use selected text"),
+                  text = gettext("Use selected text"),
                   callback = function()
                     -- Just replace the text without saving, to allow editing/fixing it
                     dialog:setInputText(selected_text.text, nil, false)

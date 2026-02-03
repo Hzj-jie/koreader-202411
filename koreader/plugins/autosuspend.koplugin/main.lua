@@ -20,7 +20,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local logger = require("logger")
 local time = require("ui/time")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local default_autoshutdown_timeout_seconds = 3 * 24 * 60 * 60 -- three days
@@ -438,7 +438,7 @@ function AutoSuspend:pickTimeoutValue(touchmenu_instance, title, info, setting, 
     hour_max = hour_max,
     min_max = min_max,
     sec_max = sec_max,
-    ok_text = _("Set timeout"),
+    ok_text = gettext("Set timeout"),
     title_text = title,
     info_text = info,
     callback = function(t)
@@ -459,7 +459,7 @@ function AutoSuspend:pickTimeoutValue(touchmenu_instance, title, info, setting, 
       local time_string =
         datetime.secondsToClockDuration("letters", self[setting], time_scale == 2 or time_scale == 1, true)
       UIManager:show(InfoMessage:new({
-        text = T(_("%1: %2"), title, time_string),
+        text = T(gettext("%1: %2"), title, time_string),
         timeout = 3,
       }))
     end,
@@ -478,7 +478,7 @@ function AutoSuspend:pickTimeoutValue(touchmenu_instance, title, info, setting, 
       end
       time_spinner:update(nil, nil, day, hour, min, sec) -- It is ok to pass nils here.
     end,
-    extra_text = _("Disable"),
+    extra_text = gettext("Disable"),
     extra_callback = function(this)
       self[setting] = -1 -- disable with a negative time/number
       G_reader_settings:save(setting, -1)
@@ -492,7 +492,7 @@ function AutoSuspend:pickTimeoutValue(touchmenu_instance, title, info, setting, 
         touchmenu_instance:updateItems()
       end
       UIManager:show(InfoMessage:new({
-        text = T(_("%1: disabled"), title),
+        text = T(gettext("%1: disabled"), title),
         timeout = 3,
       }))
       this:onExit()
@@ -511,9 +511,9 @@ function AutoSuspend:addToMainMenu(menu_items)
     text_func = function()
       if self.auto_suspend_timeout_seconds and self.auto_suspend_timeout_seconds > 0 then
         local time_string = datetime.secondsToClockDuration("letters", self.auto_suspend_timeout_seconds, true, true)
-        return T(_("Autosuspend timeout: %1"), time_string)
+        return T(gettext("Autosuspend timeout: %1"), time_string)
       else
-        return _("Autosuspend timeout")
+        return gettext("Autosuspend timeout")
       end
     end,
     keep_menu_open = true,
@@ -523,8 +523,8 @@ function AutoSuspend:addToMainMenu(menu_items)
       -- But it might make sense for battery testing.
       self:pickTimeoutValue(
         touchmenu_instance,
-        _("Timeout for autosuspend"),
-        _("Enter time in hours and minutes."),
+        gettext("Timeout for autosuspend"),
+        gettext("Enter time in hours and minutes."),
         "auto_suspend_timeout_seconds",
         default_auto_suspend_timeout_seconds,
         { 60, 24 * 3600 },
@@ -540,9 +540,9 @@ function AutoSuspend:addToMainMenu(menu_items)
       text_func = function()
         if self.autoshutdown_timeout_seconds and self.autoshutdown_timeout_seconds > 0 then
           local time_string = datetime.secondsToClockDuration("letters", self.autoshutdown_timeout_seconds, true, true)
-          return T(_("Autoshutdown timeout: %1"), time_string)
+          return T(gettext("Autoshutdown timeout: %1"), time_string)
         else
-          return _("Autoshutdown timeout")
+          return gettext("Autoshutdown timeout")
         end
       end,
       keep_menu_open = true,
@@ -553,8 +553,8 @@ function AutoSuspend:addToMainMenu(menu_items)
         -- even if the battery can last up to three months.
         self:pickTimeoutValue(
           touchmenu_instance,
-          _("Timeout for autoshutdown"),
-          _("Enter time in days and hours."),
+          gettext("Timeout for autoshutdown"),
+          gettext("Enter time in days and hours."),
           "autoshutdown_timeout_seconds",
           default_autoshutdown_timeout_seconds,
           { 5 * 60, 28 * 24 * 3600 },
@@ -564,7 +564,7 @@ function AutoSuspend:addToMainMenu(menu_items)
     }
   end
   if Device:canStandby() then
-    local standby_help = _(
+    local standby_help = gettext(
       [[Standby puts the device into a power-saving state in which the screen is on and user input can be performed.
 
 Standby can not be entered if Wi-Fi is on.
@@ -575,7 +575,7 @@ Upon user input, the device needs a certain amount of time to wake up. Generally
     if Device:isKobo() and not Device:hasReliableMxcWaitFor() then
       standby_help = standby_help
         .. "\n"
-        .. _(
+        .. gettext(
           [[Your device is known to be extremely unreliable, as such, failure to enter a power-saving state *may* hang the kernel, resulting in a full device hang or a device restart.]]
         )
     end
@@ -588,9 +588,9 @@ Upon user input, the device needs a certain amount of time to wake up. Generally
         if self.auto_standby_timeout_seconds and self.auto_standby_timeout_seconds > 0 then
           local time_string =
             datetime.secondsToClockDuration("letters", self.auto_standby_timeout_seconds, false, true, true)
-          return T(_("Autostandby timeout: %1"), time_string)
+          return T(gettext("Autostandby timeout: %1"), time_string)
         else
-          return _("Autostandby timeout")
+          return gettext("Autostandby timeout")
         end
       end,
       help_text = standby_help,
@@ -602,8 +602,8 @@ Upon user input, the device needs a certain amount of time to wake up. Generally
         -- But or battery testing it might give some sense.
         self:pickTimeoutValue(
           touchmenu_instance,
-          _("Timeout for autostandby"),
-          _("Enter time in minutes and seconds."),
+          gettext("Timeout for autostandby"),
+          gettext("Enter time in minutes and seconds."),
           "auto_standby_timeout_seconds",
           default_auto_standby_timeout_seconds,
           { 1, 15 * 60 },

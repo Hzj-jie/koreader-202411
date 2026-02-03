@@ -10,11 +10,11 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local util = require("frontend/util")
 local BaseUtil = require("ffi/util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local MoveToArchive = WidgetContainer:extend({
   name = "movetoarchive",
-  title = _("Move current book to archive"),
+  title = gettext("Move current book to archive"),
 })
 
 function MoveToArchive:onDispatcherRegisterActions()
@@ -36,7 +36,7 @@ end
 
 function MoveToArchive:addToMainMenu(menu_items)
   menu_items.move_to_archive = {
-    text = _("Move to archive"),
+    text = gettext("Move to archive"),
     sub_item_table = {
       {
         text = self.title,
@@ -48,7 +48,7 @@ function MoveToArchive:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Copy current book to archive"),
+        text = gettext("Copy current book to archive"),
         callback = function()
           self:onMoveToArchive(true)
         end,
@@ -57,7 +57,7 @@ function MoveToArchive:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Go to archive folder"),
+        text = gettext("Go to archive folder"),
         callback = function()
           if self.archive_dir_path and util.directoryExists(self.archive_dir_path) then
             self:openFileBrowser(self.archive_dir_path)
@@ -67,19 +67,19 @@ function MoveToArchive:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Go to last copied/moved from folder"),
+        text = gettext("Go to last copied/moved from folder"),
         callback = function()
           if self.last_copied_from_dir then
             self:openFileBrowser(self.last_copied_from_dir)
           else
             UIManager:show(InfoMessage:new({
-              text = _("No previous folder found."),
+              text = gettext("No previous folder found."),
             }))
           end
         end,
       },
       {
-        text = _("Set archive folder"),
+        text = gettext("Set archive folder"),
         keep_menu_open = true,
         callback = function()
           self:setArchiveDirectory()
@@ -107,10 +107,10 @@ function MoveToArchive:onMoveToArchive(do_copy)
   self.ui:onExit()
   local text
   if do_copy then
-    text = _("Book copied.\nDo you want to open it from the archive folder?")
+    text = gettext("Book copied.\nDo you want to open it from the archive folder?")
     FileManager:copyFileFromTo(document_full_path, self.archive_dir_path)
   else
-    text = _("Book moved.\nDo you want to open it from the archive folder?")
+    text = gettext("Book moved.\nDo you want to open it from the archive folder?")
     FileManager:moveFile(document_full_path, self.archive_dir_path)
     require("readhistory"):updateItem(document_full_path, dest_file) -- (will update "lastfile" if needed)
     require("readcollection"):updateItem(document_full_path, dest_file)
@@ -142,8 +142,8 @@ end
 
 function MoveToArchive:showNoArchiveConfirmBox()
   UIManager:show(ConfirmBox:new({
-    text = _("No archive directory.\nDo you want to set it now?"),
-    ok_text = _("Set archive folder"),
+    text = gettext("No archive directory.\nDo you want to set it now?"),
+    ok_text = gettext("Set archive folder"),
     ok_callback = function()
       self:setArchiveDirectory()
     end,

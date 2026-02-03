@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "qrclipboard",
-  fullname = _("QR from clipboard"),
-  description = _([[This plugin generates a QR code from clipboard content.]]),
+  fullname = gettext("QR from clipboard"),
+  description = gettext([[This plugin generates a QR code from clipboard content.]]),
 }

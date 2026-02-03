@@ -8,7 +8,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local function systemInfo()
   local result = {}
@@ -174,18 +174,18 @@ end
 
 function SystemStat:appendCounters()
   self:put({
-    _("KOReader started at"),
+    gettext("KOReader started at"),
     datetime.secondsToDateTime(time.to_s(self.start_time), nil, true),
   })
   if Device.last_suspend_at then
     self:put({
-      "  " .. _("Last suspend time"),
+      "  " .. gettext("Last suspend time"),
       datetime.secondsToDateTime(time.to_s(Device.last_suspend_at), nil, true),
     })
   end
   if Device.last_resume_at then
     self:put({
-      "  " .. _("Last resume time"),
+      "  " .. gettext("Last resume time"),
       datetime.secondsToDateTime(time.to_s(Device.last_resume_at), nil, true),
     })
   end
@@ -199,13 +199,13 @@ function SystemStat:appendCounters()
     standby = Device.total_standby_time
   end
   self:put({
-    "  " .. _("Up time"),
+    "  " .. gettext("Up time"),
     datetime.secondsToClockDuration("", time.to_s(uptime), false, true),
   })
   if Device:canSuspend() or Device:canStandby() then
     local awake = uptime - suspend - standby
     self:put({
-      "  " .. _("Time spent awake"),
+      "  " .. gettext("Time spent awake"),
       datetime.secondsToClockDuration("", time.to_s(awake), false, true)
         .. " ("
         .. Math.round((awake / uptime) * 100)
@@ -214,7 +214,7 @@ function SystemStat:appendCounters()
   end
   if Device:canSuspend() then
     self:put({
-      "  " .. _("Time in suspend"),
+      "  " .. gettext("Time in suspend"),
       datetime.secondsToClockDuration("", time.to_s(suspend), false, true) .. " (" .. Math.round(
         (suspend / uptime) * 100
       ) .. "%)",
@@ -222,7 +222,7 @@ function SystemStat:appendCounters()
   end
   if Device:canStandby() then
     self:put({
-      "  " .. _("Time in standby"),
+      "  " .. gettext("Time in standby"),
       datetime.secondsToClockDuration("", time.to_s(standby), false, true) .. " (" .. Math.round(
         (standby / uptime) * 100
       ) .. "%)",
@@ -231,38 +231,38 @@ function SystemStat:appendCounters()
   if self.discharge_time then
     -- Need localization.
     self:put({
-      "  " .. _("Start discharging at"),
+      "  " .. gettext("Start discharging at"),
       datetime.secondsToDateTime(time.to_s(self.discharge_time), nil, true),
     })
   end
   self:put({
     -- Need localization
-    "  " .. _("Device model"),
+    "  " .. gettext("Device model"),
     Device.model,
   })
   self:putSeparator()
-  self:put({ _("Counters"), "" })
+  self:put({ gettext("Counters"), "" })
   -- @translators The number of "sleeps", that is the number of times the device has entered standby. This could also be translated as a rendition of a phrase like "entered sleep".
   self:put({
-    _("  Wake-ups") .. " / " .. _("  sleeps"):gsub("^%s+", ""),
+    gettext("  Wake-ups") .. " / " .. gettext("  sleeps"):gsub("^%s+", ""),
     self.wakeup_count,
   })
-  self:put({ _("  Discharge cycles"), self.discharge_count })
+  self:put({ gettext("  Discharge cycles"), self.discharge_count })
   -- no localization.
   self:put({
-    "  " .. _("Background jobs"),
+    "  " .. gettext("Background jobs"),
     #require("pluginshare").backgroundJobs,
   })
   -- no localization.
   self:put({
-    "  " .. _("Pending network jobs"),
+    "  " .. gettext("Pending network jobs"),
     require("ui/network/networklistener"):countsOfPendingJobs(),
     callback = function()
       local msg = ""
       local c, o = require("ui/network/networklistener"):pendingJobKeys()
       if #c > 0 then
         -- Need localization
-        msg = msg .. _("Pending jobs after being connected")
+        msg = msg .. gettext("Pending jobs after being connected")
         for _, k in ipairs(c) do
           msg = msg .. "\n" .. k
         end
@@ -272,7 +272,7 @@ function SystemStat:appendCounters()
           msg = msg .. "\n"
         end
         -- Need localization
-        msg = msg .. _("Pending jobs after being online")
+        msg = msg .. gettext("Pending jobs after being online")
         for _, k in ipairs(o) do
           msg = msg .. "\n" .. k
         end
@@ -293,86 +293,86 @@ function SystemStat:awakeSec()
 end
 
 function SystemStat:appendSystemInfo()
-  self:put({ _("System information"), "" })
+  self:put({ gettext("System information"), "" })
   -- Need localization
   self:put({
-    _("  Number of processes"),
+    gettext("  Number of processes"),
     self.sys_stat.processes.count,
   })
   self:put({
-    "  " .. _("Up time"),
+    "  " .. gettext("Up time"),
     datetime.secondsToClockDuration("", self.sys_stat.uptime.sec, false, true),
   })
   local uptime = self.sys_stat.uptime.sec
   if Device:canSuspend() or Device:canStandby() then
     local awake = self:awakeSec()
     self:put({
-      "  " .. _("Time spent awake"),
+      "  " .. gettext("Time spent awake"),
       datetime.secondsToClockDuration("", awake, false, true) .. " (" .. Math.round((awake / uptime) * 100) .. "%)",
     })
   end
   if Device:canSuspend() then
     local suspend = self.sys_stat.uptime.sec - self:awakeSec()
     self:put({
-      "  " .. _("Time in suspend"),
+      "  " .. gettext("Time in suspend"),
       datetime.secondsToClockDuration("", suspend, false, true) .. " (" .. Math.round((suspend / uptime) * 100) .. "%)",
     })
   end
   -- Need localization
-  self:put({ "  " .. _("Number of processors"), self.sys_stat.cpu.count })
+  self:put({ "  " .. gettext("Number of processors"), self.sys_stat.cpu.count })
   -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
   self:put({
-    _("  Total ticks (million)"),
+    gettext("  Total ticks (million)"),
     string.format("%.2f", self.sys_stat.cpu.total * (1 / 1000000)),
   })
   -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
   self:put({
-    _("  Idle ticks (million)"),
+    gettext("  Idle ticks (million)"),
     string.format("%.2f", self.sys_stat.cpu.idle * (1 / 1000000)),
   })
   if #self.sys_stat.cpu.average > 0 then
     self:put({
-      _("  Processor usage %"),
+      gettext("  Processor usage %"),
       string.format("%.2f", self.sys_stat.cpu.average[1] * 100),
     })
   end
   if #self.sys_stat.cpu.average > 1 then
     -- Need localization
     self:put({
-      "  " .. _("5 minutes usage %"),
+      "  " .. gettext("5 minutes usage %"),
       string.format("%.2f", self.sys_stat.cpu.average[2] * 100),
     })
   end
   if #self.sys_stat.cpu.average > 2 then
     -- Need localization
     self:put({
-      "  " .. _("15 minutes usage %"),
+      "  " .. gettext("15 minutes usage %"),
       string.format("%.2f", self.sys_stat.cpu.average[3] * 100),
     })
   end
   -- Need localization
   self:put({
-    "  " .. _("Usage % during awake"),
+    "  " .. gettext("Usage % during awake"),
     string.format("%.2f", (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total) * 100),
   })
   -- Need localization
   self:put({
-    "  " .. _("Usage % since boot"),
+    "  " .. gettext("Usage % since boot"),
     string.format(
       "%.2f",
       (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total) * 100 * self:awakeSec() / self.sys_stat.uptime.sec
     ),
   })
   self:put({
-    _("  Total memory (MB)"),
+    gettext("  Total memory (MB)"),
     string.format("%.2f", self.sys_stat.memory.total / 1024),
   })
   self:put({
-    _("  Free memory (MB)"),
+    gettext("  Free memory (MB)"),
     string.format("%.2f", self.sys_stat.memory.free / 1024),
   })
   self:put({
-    _("  Available memory (MB)"),
+    gettext("  Available memory (MB)"),
     string.format("%.2f", self.sys_stat.memory.available / 1024),
   })
 end
@@ -389,9 +389,9 @@ function SystemStat:appendProcessInfo()
   if #t == 0 then
     return
   end
-  self:put({ _("Process"), "" })
+  self:put({ gettext("Process"), "" })
 
-  self:put({ _("  ID"), t[1] })
+  self:put({ gettext("  ID"), t[1] })
 
   if #t < 14 then
     return
@@ -405,11 +405,11 @@ function SystemStat:appendProcessInfo()
     -- Need localization
     -- Fairly hard for reader.lua to use so much processor resources, do not
     -- change the unit to millions.
-    self:put({ "  " .. _("Total ticks"), n1 })
+    self:put({ "  " .. gettext("Total ticks"), n1 })
     if self.sys_stat.cpu ~= nil and self.sys_stat.cpu.total ~= nil then
       assert(self.sys_stat.cpu.total > 0) -- Imporssible to be 0.
       self:put({
-        _("  Processor usage %"),
+        gettext("  Processor usage %"),
         string.format("%.2f", n1 / self.sys_stat.cpu.total * 100),
       })
     end
@@ -419,14 +419,14 @@ function SystemStat:appendProcessInfo()
     return
   end
   -- Need localization
-  self:put({ "  " .. _("Priority / nice"), t[18] .. " / " .. t[19] })
+  self:put({ "  " .. gettext("Priority / nice"), t[18] .. " / " .. t[19] })
 
   if #t < 20 then
     return
   end
   n1 = tonumber(t[20])
   if n1 ~= nil then
-    self:put({ _("  Threads"), tostring(n1) })
+    self:put({ gettext("  Threads"), tostring(n1) })
   end
 
   if #t < 23 then
@@ -435,7 +435,7 @@ function SystemStat:appendProcessInfo()
   n1 = tonumber(t[23])
   if n1 ~= nil then
     self:put({
-      _("  Virtual memory (MB)"),
+      gettext("  Virtual memory (MB)"),
       string.format("%.2f", n1 / 1024 / 1024),
     })
   end
@@ -445,7 +445,7 @@ function SystemStat:appendProcessInfo()
   end
   n1 = tonumber(t[24])
   if n1 ~= nil then
-    self:put({ _("  RAM usage (MB)"), string.format("%.2f", n1 / 256) })
+    self:put({ gettext("  RAM usage (MB)"), string.format("%.2f", n1 / 256) })
   end
 end
 
@@ -457,16 +457,16 @@ function SystemStat:appendStorageInfo()
   local std_out = io.popen("df -h | sed -r 's/ +/ /g' | grep " .. self.storage_filter .. " | cut -d' ' -f 2,4,5,6")
   assert(std_out ~= nil)
 
-  self:put({ _("Storage information"), "" })
+  self:put({ gettext("Storage information"), "" })
   for line in std_out:lines() do
     local t = util.splitToArray(line, " ")
     if #t ~= 4 then
-      self:put({ _("  Unexpected"), line })
+      self:put({ gettext("  Unexpected"), line })
     else
-      self:put({ _("  Mount point"), t[4] })
-      self:put({ _("  Available"), t[2] })
-      self:put({ _("  Total"), t[1] })
-      self:put({ _("  Used percentage"), t[3] })
+      self:put({ gettext("  Mount point"), t[4] })
+      self:put({ gettext("  Available"), t[2] })
+      self:put({ gettext("  Total"), t[1] })
+      self:put({ gettext("  Used percentage"), t[3] })
     end
   end
   std_out:close()
@@ -492,7 +492,7 @@ function SystemStat:showStatistics()
   self:putSeparator()
   self:appendSystemInfo()
   UIManager:show(KeyValuePage:new({
-    title = _("System statistics"),
+    title = gettext("System statistics"),
     kv_pairs = self.kv_pairs,
   }))
 end
@@ -507,7 +507,7 @@ function SystemStatWidget:onDispatcherRegisterActions()
   Dispatcher:registerAction("system_statistics", {
     category = "none",
     event = "ShowSysStatistics",
-    title = _("System statistics"),
+    title = gettext("System statistics"),
     device = true,
     separator = true,
   })
@@ -520,7 +520,7 @@ end
 
 function SystemStatWidget:addToMainMenu(menu_items)
   menu_items.system_statistics = {
-    text = _("System statistics"),
+    text = gettext("System statistics"),
     keep_menu_open = true,
     callback = function()
       SystemStat:showStatistics()

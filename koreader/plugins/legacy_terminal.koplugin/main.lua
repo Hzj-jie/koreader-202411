@@ -19,8 +19,8 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
 local util = require("ffi/util")
-local _ = require("gettext")
-local N_ = _.ngettext
+local gettext = require("gettext")
+local N_ = gettext.ngettext
 local Screen = require("device").screen
 local T = util.template
 
@@ -41,7 +41,7 @@ function Terminal:onDispatcherRegisterActions()
   Dispatcher:registerAction("show_terminal", {
     category = "none",
     event = "TerminalStart",
-    title = _("Show terminal"),
+    title = gettext("Show terminal"),
     general = true,
   })
 end
@@ -56,7 +56,7 @@ end
 function Terminal:saveShortcuts()
   self.settings:flush()
   UIManager:show(InfoMessage:new({
-    text = _("Shortcuts saved"),
+    text = gettext("Shortcuts saved"),
     timeout = 2,
   }))
 end
@@ -139,7 +139,7 @@ end
 
 function Terminal:insertPageActions(item_table)
   table.insert(item_table, {
-    text = "   " .. _("to terminal…"),
+    text = "   " .. gettext("to terminal…"),
     deletable = false,
     editable = false,
     callback = function()
@@ -147,7 +147,7 @@ function Terminal:insertPageActions(item_table)
     end,
   })
   table.insert(item_table, {
-    text = "   " .. _("close…"),
+    text = "   " .. gettext("close…"),
     deletable = false,
     editable = false,
     callback = function()
@@ -163,7 +163,7 @@ function Terminal:onMenuHoldShortcuts(item)
       buttons = {
         {
           {
-            text = _("Edit name"),
+            text = gettext("Edit name"),
             enabled = item.editable,
             callback = function()
               UIManager:close(shortcut_shortcuts_dialog)
@@ -175,7 +175,7 @@ function Terminal:onMenuHoldShortcuts(item)
             end,
           },
           {
-            text = _("Edit commands"),
+            text = gettext("Edit commands"),
             enabled = item.editable,
             callback = function()
               UIManager:close(shortcut_shortcuts_dialog)
@@ -189,7 +189,7 @@ function Terminal:onMenuHoldShortcuts(item)
         },
         {
           {
-            text = _("Copy"),
+            text = gettext("Copy"),
             enabled = item.editable,
             callback = function()
               UIManager:close(shortcut_shortcuts_dialog)
@@ -201,7 +201,7 @@ function Terminal:onMenuHoldShortcuts(item)
             end,
           },
           {
-            text = _("Delete"),
+            text = gettext("Delete"),
             enabled = item.deletable,
             callback = function()
               UIManager:close(shortcut_shortcuts_dialog)
@@ -227,7 +227,7 @@ function Terminal:copyCommands(item)
   }
   table.insert(self.shortcuts, new_item)
   UIManager:show(InfoMessage:new({
-    text = _("Shortcut copied"),
+    text = gettext("Shortcut copied"),
     timeout = 2,
   }))
   self:saveShortcuts()
@@ -237,7 +237,7 @@ end
 function Terminal:editCommands(item)
   local edit_dialog
   edit_dialog = InputDialog:new({
-    title = T(_('Edit commands for "%1"'), item.text),
+    title = T(gettext('Edit commands for "%1"'), item.text),
     input = item.commands,
     para_direction_rtl = false, -- force LTR
     input_type = "string",
@@ -247,7 +247,7 @@ function Terminal:editCommands(item)
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           callback = function()
             UIManager:close(edit_dialog)
             edit_dialog = nil
@@ -255,7 +255,7 @@ function Terminal:editCommands(item)
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           callback = function()
             local input = edit_dialog:getInputText()
             UIManager:close(edit_dialog)
@@ -277,7 +277,7 @@ end
 function Terminal:editName(item)
   local edit_dialog
   edit_dialog = InputDialog:new({
-    title = _("Edit name"),
+    title = gettext("Edit name"),
     input = item.text,
     para_direction_rtl = false, -- force LTR
     input_type = "string",
@@ -287,7 +287,7 @@ function Terminal:editName(item)
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           callback = function()
             UIManager:close(edit_dialog)
             edit_dialog = nil
@@ -295,7 +295,7 @@ function Terminal:editName(item)
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           callback = function()
             local input = edit_dialog:getInputText()
             UIManager:close(edit_dialog)
@@ -345,7 +345,7 @@ function Terminal:terminal()
     end)
   end
   self.input = InputDialog:new({
-    title = _('Enter a command and press "Execute"'),
+    title = gettext('Enter a command and press "Execute"'),
     input = self.command:gsub("\n+$", ""),
     para_direction_rtl = false, -- force LTR
     input_type = "string",
@@ -356,21 +356,21 @@ function Terminal:terminal()
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(self.input)
           end,
         },
         {
-          text = _("Shortcuts"),
+          text = gettext("Shortcuts"),
           callback = function()
             UIManager:close(self.input)
             self:manageShortcuts()
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           callback = function()
             local input = self.input:getInputText()
             if input:match("[A-Za-z]") then
@@ -385,7 +385,7 @@ function Terminal:terminal()
 
               local prompt
               prompt = InputDialog:new({
-                title = _("Name"),
+                title = gettext("Name"),
                 input = "",
                 input_type = "text",
                 fullscreen = true,
@@ -395,13 +395,13 @@ function Terminal:terminal()
                 buttons = {
                   {
                     {
-                      text = _("Cancel"),
+                      text = gettext("Cancel"),
                       callback = function()
                         UIManager:close(prompt)
                       end,
                     },
                     {
-                      text = _("Save"),
+                      text = gettext("Save"),
                       is_enter_default = true,
                       callback = function()
                         local newval = prompt:getInputText()
@@ -418,7 +418,7 @@ function Terminal:terminal()
           end,
         },
         {
-          text = _("Execute"),
+          text = gettext("Execute"),
           callback = execute_callback,
         },
       },
@@ -438,7 +438,7 @@ end
 
 function Terminal:execute()
   local wait_msg = InfoMessage:new({
-    text = _("Executing…"),
+    text = gettext("Executing…"),
   })
   UIManager:show(wait_msg)
   local entries = { self.command }
@@ -447,16 +447,16 @@ function Terminal:execute()
   if completed then
     table.insert(entries, result_str)
     self:dump(entries)
-    table.insert(entries, _("Output was also written to"))
+    table.insert(entries, gettext("Output was also written to"))
     table.insert(entries, self.dump_file)
   else
-    table.insert(entries, _("Execution canceled."))
+    table.insert(entries, gettext("Execution canceled."))
   end
   UIManager:close(wait_msg)
   local viewer
   local buttons_table
   local back_button = {
-    text = _("Back"),
+    text = gettext("Back"),
     callback = function()
       UIManager:close(viewer)
       if self.source == "terminal" then
@@ -467,7 +467,7 @@ function Terminal:execute()
     end,
   }
   local close_button = {
-    text = _("Close"),
+    text = gettext("Close"),
     callback = function()
       UIManager:close(viewer)
     end,
@@ -477,7 +477,7 @@ function Terminal:execute()
       {
         back_button,
         {
-          text = _("Shortcuts"),
+          text = gettext("Shortcuts"),
           -- switch to shortcuts:
           callback = function()
             UIManager:close(viewer)
@@ -492,7 +492,7 @@ function Terminal:execute()
       {
         back_button,
         {
-          text = _("Terminal"),
+          text = gettext("Terminal"),
           -- switch to terminal:
           callback = function()
             UIManager:close(viewer)
@@ -504,7 +504,7 @@ function Terminal:execute()
     }
   end
   viewer = TextViewer:new({
-    title = _("Command output"),
+    title = gettext("Command output"),
     text = table.concat(entries, "\n"),
     justified = false,
     text_face = Font:getFace("smallinfont"),
@@ -526,7 +526,7 @@ end
 
 function Terminal:addToMainMenu(menu_items)
   menu_items.legacy_terminal = {
-    text = _("Legacy terminal emulator"),
+    text = gettext("Legacy terminal emulator"),
     keep_menu_open = true,
     callback = function()
       self:onTerminalStart()

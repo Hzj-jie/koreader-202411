@@ -9,7 +9,6 @@ local bit = require("bit")
 local logger = require("logger")
 local util = require("util")
 local time = require("ui/time")
-local _ = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 

@@ -10,12 +10,12 @@ local socket = require("socket")
 local socketutil = require("socketutil")
 local logger = require("logger")
 local T = require("ffi/util").template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- nextcloud notes exporter
 local NextcloudExporter = require("base"):new({
   name = "nextcloud_notes",
-  category = _("KOReader"),
+  category = gettext("KOReader"),
   is_remote = true,
 })
 
@@ -63,9 +63,9 @@ function NextcloudExporter:isReadyToExport()
 end
 
 function NextcloudExporter:getMenuTable()
-  local dialog_title = _("Setup Nextcloud Notes plugin")
+  local dialog_title = gettext("Setup Nextcloud Notes plugin")
   return {
-    text = _("Nextcloud Notes"),
+    text = gettext("Nextcloud Notes"),
     checked_func = function()
       return self:isEnabled()
     end,
@@ -79,20 +79,20 @@ function NextcloudExporter:getMenuTable()
             title = dialog_title,
             fields = {
               {
-                description = _("Nextcloud URL"),
+                description = gettext("Nextcloud URL"),
                 hint = "https://yournextcloud.com",
                 text = self.settings.host,
                 input_type = "string",
               },
               {
-                description = _("Username"),
-                hint = _("Username"),
+                description = gettext("Username"),
+                hint = gettext("Username"),
                 text = self.settings.username,
                 input_type = "string",
               },
               {
-                description = _("App password"),
-                hint = _("Security -> Devices & sessions"),
+                description = gettext("App password"),
+                hint = gettext("Security -> Devices & sessions"),
                 text = self.settings.password,
                 input_type = "string",
               },
@@ -100,13 +100,13 @@ function NextcloudExporter:getMenuTable()
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   callback = function()
                     UIManager:close(url_dialog)
                   end,
                 },
                 {
-                  text = _("OK"),
+                  text = gettext("OK"),
                   callback = function()
                     local fields = url_dialog:getFields()
                     local host = fields[1]
@@ -134,7 +134,7 @@ function NextcloudExporter:getMenuTable()
         end,
       },
       {
-        text = _("Export to Nextcloud Notes"),
+        text = gettext("Export to Nextcloud Notes"),
         checked_func = function()
           return self:isEnabled()
         end,
@@ -143,12 +143,12 @@ function NextcloudExporter:getMenuTable()
         end,
       },
       {
-        text = _("Help"),
+        text = gettext("Help"),
         keep_menu_open = true,
         callback = function()
           UIManager:show(InfoMessage:new({
             text = T(
-              _([[For Nextcloud Notes setup instructions, see %1
+              gettext([[For Nextcloud Notes setup instructions, see %1
 
 Markdown formatting can be configured in:
 Export highlights > Choose formats and services > Markdown.]]),
