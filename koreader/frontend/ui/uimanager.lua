@@ -76,7 +76,8 @@ local function _widgetWindow(w)
       "FixMe: Unknown widget ",
       _widgetDebugStr(w),
       " to repaint, it may not be shown yet, or you may want to send in the ",
-      "show(widget) instead."
+      "show(widget) instead. ",
+      debug.traceback()
     )
   end
   return window
