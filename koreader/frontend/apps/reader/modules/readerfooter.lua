@@ -352,7 +352,7 @@ local footerTextGeneratorMap = {
     if statm then
       local symbol_type = footer.settings.item_prefix
       local prefix = symbol_prefix[symbol_type].mem_usage
-      local dummy, rss = statm:read("*number", "*number")
+      local __, rss = statm:read("*number", "*number")
       statm:close()
       -- we got the nb of 4Kb-pages used, that we convert to MiB
       rss = math.floor(rss * (4096 / 1024 / 1024))

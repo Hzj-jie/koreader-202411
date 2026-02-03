@@ -449,7 +449,7 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
   -- Initialize the new row that we will INSERT
   local dbrow = {}
   -- Actually no need to initialize with nil values:
-  -- for dummy, col in ipairs(BOOKINFO_COLS_SET) do
+  -- for __, col in ipairs(BOOKINFO_COLS_SET) do
   --     dbrow[col] = nil
   -- end
   dbrow.directory = directory

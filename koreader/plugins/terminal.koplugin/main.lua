@@ -118,7 +118,7 @@ function Terminal:getDefaultShellExecutable()
     table.insert(shell, 1, env_shell)
   end
 
-  for dummy, file in ipairs(shell) do
+  for __, file in ipairs(shell) do
     if self:isExecutable(file) then
       self.default_shell_executable = file
       break

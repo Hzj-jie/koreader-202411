@@ -86,7 +86,7 @@ end
 
 local function parse_set_cookie(c, quoted, cookie_table)
   c = c .. ";$last=last;"
-  local __, dummy, n, v, i = string.find(c, "(" .. token_class .. "+)%s*=%s*(.-)%s*;%s*()")
+  local __, ___, n, v, i = string.find(c, "(" .. token_class .. "+)%s*=%s*(.-)%s*;%s*()")
   local cookie = {
     name = n,
     value = unquote(v, quoted),
