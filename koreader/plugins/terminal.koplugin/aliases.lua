@@ -46,7 +46,7 @@ function Aliases:load()
   if file then
     for line in file:lines() do
       line = line:gsub("^ *alias *", "") -- drop alias
-      local _, separator = line:find("^[%a%d][%a%d-_]*%=") -- find separator
+      local dummy, separator = line:find("^[%a%d][%a%d-_]*%=") -- find separator
       if line ~= "" and line:sub(1, 1) ~= "#" and separator then
         local alias_name = line:sub(1, separator - 1)
         local alias_command = line:sub(separator + 1):gsub('"', "")

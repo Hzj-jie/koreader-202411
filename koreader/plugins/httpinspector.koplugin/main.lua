@@ -322,19 +322,19 @@ local getFunctionInfo = function(func, full_code)
     local signature = util.trim(lines[1])
     info.signature = signature
     -- Try to guess (possibly wrongly) a few info from the signature string
-    local _, cnt
-    _, cnt = signature:gsub("%(%)", "") -- check for "()", no arg
+    local dummy, cnt
+    dummy, cnt = signature:gsub("%(%)", "") -- check for "()", no arg
     if cnt > 0 then
       info.nb_args = 0
     else
-      _, cnt = signature:gsub(",", "") -- check for nb of commas
+      dummy, cnt = signature:gsub(",", "") -- check for nb of commas
       info.nb_args = cnt and cnt + 1 or 1
     end
-    _, cnt = signature:gsub("%.%.%.", "") -- check for "...", varargs
+    dummy, cnt = signature:gsub("%.%.%.", "") -- check for "...", varargs
     if cnt > 0 then
       info.nb_args = -1
     end
-    _, cnt = signature:gsub("^[^(]*:", "")
+    dummy, cnt = signature:gsub("^[^(]*:", "")
     info.is_method = cnt > 0
     info.classname = signature:gsub(".-(%w+):.*", "%1")
   else
@@ -858,7 +858,7 @@ function HttpInspector:showFunctionDetails(obj, reqinfo)
   if func_info.no_source then
     add_html(T("Builtin function or from a C module: no source code available."))
   else
-    local _, git_commit = require("version"):getNormalizedCurrentVersion()
+    local dummy, git_commit = require("version"):getNormalizedCurrentVersion()
     local github_uri =
       T("https://github.com/koreader/koreader/blob/%1/%2#L%3", git_commit, func_info.source, func_info.firstline)
     add_html(

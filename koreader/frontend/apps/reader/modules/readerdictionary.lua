@@ -1104,7 +1104,7 @@ function ReaderDictionary:showDownload(downloadable_dicts)
 end
 
 function ReaderDictionary:downloadDictionaryPrep(dict, size)
-  local _, filename = util.splitFilePathName(dict.url)
+  local dummy, filename = util.splitFilePathName(dict.url)
   local download_location = string.format("%s/%s", self.data_dir, filename)
 
   if lfs.attributes(download_location) then
