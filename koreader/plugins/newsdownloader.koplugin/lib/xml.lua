@@ -179,7 +179,7 @@ local xmlParser = function(handler)
     self._handler.parseAttributes = parseAttributes
 
     local match, pos = 0, 1
-    local text, endt1, endt2, tagstr, tagname, attrs, endtext, endmatch, _, errend, extend
+    local text, endt1, endt2, tagstr, tagname, attrs, endtext, endmatch, errend, extend
     while match do
       -- Get next tag (first pass - fix exceptions below)
       match, endmatch, text, endt1, tagstr, endt2 = string.find(str, self._XML, pos)
@@ -197,6 +197,7 @@ local xmlParser = function(handler)
         end
       end
       -- Handle leading text
+      starttext = match
       endtext = match + string.len(text) - 1
       match = match + string.len(text)
       text = self:_parseEntities(self:_stripWS(text))
@@ -277,14 +278,14 @@ local xmlParser = function(handler)
         -- match recursively if necessary eg. <tag attr="123>456">
 
         while 1 do
-          _, errend = string.find(tagstr, self._ATTRERR1)
+          errstart, errend = string.find(tagstr, self._ATTRERR1)
           if errend == nil then
-            _, errend = string.find(tagstr, self._ATTRERR2)
+            errstart, errend = string.find(tagstr, self._ATTRERR2)
             if errend == nil then
               break
             end
           end
-          _, extend, endt2 = string.find(str, self._TAGEXT, endmatch + 1)
+          extstart, extend, endt2 = string.find(str, self._TAGEXT, endmatch + 1)
           tagstr = tagstr .. string.sub(string, endmatch, extend - 1)
           if not match then
             self:_err(self._errstr.xmlErr, pos)
