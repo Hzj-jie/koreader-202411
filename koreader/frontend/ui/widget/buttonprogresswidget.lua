@@ -247,7 +247,7 @@ function ButtonProgressWidget:update()
   end
 
   self:refocusWidget()
-  if self:isPainted() then
+  if self:isShown() then
     UIManager:setDirty(self, function()
       return "ui", self.dimen
     end)

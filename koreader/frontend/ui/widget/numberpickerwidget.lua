@@ -285,7 +285,7 @@ function NumberPickerWidget:update()
   self.text_value:setText(tostring(self.formatted_value), self.width)
 
   self:refocusWidget()
-  if self:isPainted() then
+  if self:isShown() then
     UIManager:setDirty(self, function()
       return "ui", self.dimen
     end)

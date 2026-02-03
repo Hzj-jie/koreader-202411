@@ -739,7 +739,7 @@ function FileManager:tapPlus()
 end
 
 function FileManager:reinit(path, focused_file)
-  assert(UIManager:isWidgetShown(self))
+  assert(UIManager:isTopLevelWidget(self))
   path = path or self.path
   focused_file = focused_file or self.focused_file
   UIManager:flushSettings()

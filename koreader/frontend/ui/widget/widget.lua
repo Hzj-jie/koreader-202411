@@ -121,15 +121,14 @@ function Widget:dirtyRegion()
 end
 
 function Widget:scheduleRepaint()
-  if self:isPainted() then
+  if self:isShown() then
     -- Otherwise the widget hasn't been shown yet and will be paintTo later.
     require("ui/uimanager"):scheduleWidgetRepaint(self)
   end
 end
 
-function Widget:isPainted()
-  local dimen = self:getSize()
-  return dimen.x and dimen.y
+function Widget:isShown()
+  return self:window() ~= nil
 end
 
 -- Get the show(widget) of current widget, using this function should be careful

@@ -263,7 +263,7 @@ function UIManager:show(widget)
     logger.dbg("attempted to show a nil widget")
     return
   end
-  assert(not self:isWidgetShown(widget))
+  assert(not self:isTopLevelWidget(widget))
 
   logger.dbg("show widget:", _widgetDebugStr(widget))
 
@@ -318,7 +318,7 @@ function UIManager:close(widget)
     return
   end
 
-  if not UIManager:isWidgetShown(widget) then
+  if not UIManager:isTopLevelWidget(widget) then
     logger.warn("FixMe: widget " .. _widgetDebugStr(widget) .. " has been closed already. " .. debug.traceback())
     return
   end
@@ -689,7 +689,7 @@ function UIManager:getTopmostVisibleWidget()
 end
 
 --- Same as `isSubwidgetShown`, but only check window-level widgets (e.g., what's directly registered in the window stack), don't recurse.
-function UIManager:isWidgetShown(widget)
+function UIManager:isTopLevelWidget(widget)
   for i = #self._window_stack, 1, -1 do
     if self._window_stack[i].widget == widget then
       return true
