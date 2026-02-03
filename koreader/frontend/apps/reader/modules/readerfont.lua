@@ -4,6 +4,7 @@ local Device = require("device")
 local Event = require("ui/event")
 local Font = require("ui/font")
 local FontList = require("fontlist")
+local InfoMessage = require("ui/widget/infomessage")
 local Input = Device.input
 local InputContainer = require("ui/widget/container/inputcontainer")
 local MultiConfirmBox = require("ui/widget/multiconfirmbox")

@@ -5,6 +5,7 @@ local FocusManager = require("ui/widget/focusmanager")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Font = require("ui/font")
 local Geom = require("ui/geometry")
+local GestureRange = require("ui/gesturerange")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Notification = require("ui/widget/notification")
 local ScrollTextWidget = require("ui/widget/scrolltextwidget")
@@ -101,16 +102,16 @@ local function initTouchEvents()
         -- parents in case there's a MovableContainer among them
         -- Commented for now, as this needs work
         -- HoldPanTextBox = {
-        --     self:myRange("hold_pan"),
+        --     GestureRange:new{ ges = "hold_pan", range = self.dimen }
         -- },
         -- PanTextBox = {
-        --     self:myRange("pan"),
+        --     GestureRange:new{ ges = "pan", range = self.dimen }
         -- },
         -- PanReleaseTextBox = {
-        --     self:myRange("pan_release"),
+        --     GestureRange:new{ ges = "pan_release", range = self.dimen }
         -- },
         -- TouchTextBox = {
-        --     self:myRange("touch"),
+        --     GestureRange:new{ ges = "touch", range = self.dimen }
         -- },
       }
     end

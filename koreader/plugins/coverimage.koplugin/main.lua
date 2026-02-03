@@ -255,7 +255,7 @@ end
 
 function CoverImage:getCacheFile(custom_cover)
   local custom_cover_mtime = custom_cover and lfs.attributes(custom_cover, "modification") or ""
-  local _, document_name = util.splitFilePathName(self.ui.document.file)
+  local dummy, document_name = util.splitFilePathName(self.ui.document.file)
   -- use document_name here. Title may contain characters not allowed on every filesystem (esp. vfat on /sdcard)
   local key = document_name
     .. custom_cover_mtime
@@ -390,7 +390,7 @@ chooses a path or (an existing) file
   Can be used for migrating the contents of the old path to the new one
 ]]
 function CoverImage:choosePathFile(touchmenu_instance, key, folder_only, new_file, migrate)
-  local old_path, _ = util.splitFilePathName(self[key])
+  local old_path, dummy = util.splitFilePathName(self[key])
   UIManager:show(PathChooser:new({
     select_directory = folder_only or new_file,
     select_file = not folder_only,

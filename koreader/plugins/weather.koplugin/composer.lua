@@ -1,3 +1,4 @@
+local logger = require("logger")
 local _ = require("gettext")
 
 local Composer = {
@@ -43,10 +44,12 @@ end
 --
 function Composer:createForecastFromDay(data)
   -- The values I'm interested in seeing
+  local date = data.date
   local condition = data.day.condition.text
   local avg_temp
   local max_temp
   local min_temp
+  local uv = data.day.uv
   local moon_phase = data.astro.moon_phase .. ", " .. data.astro.moon_illumination .. "%"
   local moon_rise = data.astro.moonrise
   local moon_set = data.astro.moonset
@@ -161,6 +164,7 @@ function Composer:forecastForHour(data)
   local precip
   local wind
 
+  local humidity = data.humidity
   local time = data.time
   local condition = data.condition.text
   local uv = data.uv

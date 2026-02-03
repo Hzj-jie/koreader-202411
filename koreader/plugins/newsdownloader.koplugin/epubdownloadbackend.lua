@@ -117,8 +117,8 @@ local function split_set_cookie(s, cookie_table)
   -- split into individual cookies
   local i = 1
   while 1 do
-    local _, __, cookie, next_token
-    _, __, cookie, i, next_token = string.find(s, "(.-)%s*%,%s*()(" .. token_class .. "+)%s*=", i)
+    local _, _, cookie, next_token
+    _, _, cookie, i, next_token = string.find(s, "(.-)%s*%,%s*()(" .. token_class .. "+)%s*=", i)
     if not next_token then
       break
     end

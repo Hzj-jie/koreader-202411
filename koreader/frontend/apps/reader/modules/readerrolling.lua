@@ -14,6 +14,7 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
 local _ = require("gettext")
+local Input = Device.input
 local Screen = Device.screen
 local T = require("ffi/util").template
 

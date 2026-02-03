@@ -14,6 +14,7 @@ Example:
 
 local Blitbuffer = require("ffi/blitbuffer")
 local Font = require("ui/font")
+local Geom = require("ui/geometry")
 local Math = require("optmath")
 local RenderText = require("ui/rendertext")
 local Size = require("ui/size")

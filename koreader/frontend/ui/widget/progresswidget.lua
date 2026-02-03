@@ -30,6 +30,7 @@ Example:
 
 local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
+local Geom = require("ui/geometry")
 local IconWidget = require("ui/widget/iconwidget")
 local Math = require("optmath")
 local Widget = require("ui/widget/widget")

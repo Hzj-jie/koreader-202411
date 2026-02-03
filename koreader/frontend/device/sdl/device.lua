@@ -19,6 +19,10 @@ if jit.os == "Linux" or jit.os == "BSD" or jit.os == "POSIX" then
   end
 end
 
+local function notOSX()
+  return jit.os ~= "OSX"
+end
+
 local function isUrl(s)
   return type(s) == "string" and s:match("*?://")
 end
@@ -123,6 +127,13 @@ local AppImage = Device:extend({
   model = "AppImage",
   ota_model = "appimage",
   isDesktop = util.yes,
+})
+
+local Desktop = Device:extend({
+  model = SDL.getPlatform(),
+  isDesktop = util.yes,
+  canRestart = notOSX,
+  hasExitOptions = notOSX,
 })
 
 local Flatpak = Device:extend({
@@ -457,6 +468,8 @@ if os.getenv("APPIMAGE") then
   return AppImage
 elseif os.getenv("FLATPAK") then
   return Flatpak
+-- elseif os.getenv("KO_MULTIUSER") then
+--   return Desktop
 elseif os.getenv("UBUNTU_APPLICATION_ISOLATION") then
   return UbuntuTouch
 else

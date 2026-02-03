@@ -14,9 +14,15 @@ local InputDialog = require("ui/widget/inputdialog")
 local LuaSettings = require("luasettings")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local KeyValuePage = require("ui/widget/keyvaluepage")
+local ListView = require("ui/widget/listview")
 local WeatherApi = require("weatherapi")
 local Screen = require("device").screen
+local FrameContainer = require("ui/widget/container/framecontainer")
+local Blitbuffer = require("ffi/blitbuffer")
+local TextWidget = require("ui/widget/textwidget")
+local Font = require("ui/font")
 local Composer = require("composer")
+local logger = require("logger")
 local ffiutil = require("ffi/util")
 local _ = require("gettext")
 local T = ffiutil.template
@@ -298,6 +304,7 @@ function Weather:forecastForDay(data)
     day = "Today"
     local vc_current = self.composer:createCurrentForecast(data.current)
     local vc_forecast = self.composer:createForecastForDay(data.forecast.forecastday[1])
+    local location = data.location.name
     view_content = KeyValuePage.flattenArray(view_content, vc_current)
     view_content = KeyValuePage.flattenArray(view_content, vc_forecast)
   end

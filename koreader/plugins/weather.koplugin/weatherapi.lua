@@ -1,3 +1,4 @@
+local UI = require("ui/trapper")
 local http = require("socket.http")
 local socket = require("socket")
 local socketutil = require("socketutil")

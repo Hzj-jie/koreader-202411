@@ -36,6 +36,7 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local _ = require("gettext")
+local Input = Device.input
 local Screen = Device.screen
 
 local ConfirmBox = InputContainer:extend({

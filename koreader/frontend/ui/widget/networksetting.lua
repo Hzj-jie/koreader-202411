@@ -33,6 +33,7 @@ Example:
 
 ]]
 
+local BD = require("ui/bidi")
 local bit = require("bit")
 local Blitbuffer = require("ffi/blitbuffer")
 local CenterContainer = require("ui/widget/container/centercontainer")
@@ -59,6 +60,7 @@ local util = require("util")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local Widget = require("ui/widget/widget")
 local _ = require("gettext")
+local T = require("ffi/util").template
 local Screen = Device.screen
 
 local band = bit.band
