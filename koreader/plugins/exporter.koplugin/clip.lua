@@ -339,7 +339,14 @@ function MyClipping:parseHighlight(highlights, bookmarks, book)
   end
   -- Sort clippings by their position in the book.
   table.sort(book, function(v1, v2)
-    return bookmark_indexes[v1[1].time] > bookmark_indexes[v2[1].time]
+    -- TODO: This seems impossible, but see #400.
+    if bookmark_indexes[v1[1].time] and bookmark_indexes[v2[1].time] then
+      return bookmark_indexes[v1[1].time] > bookmark_indexes[v2[1].time]
+    end
+    if bookmark_indexes[v1[1].time] then
+      return true
+    end
+    return false
   end)
   -- Place orphans at the end
   for _, v in ipairs(orphan_highlights) do
