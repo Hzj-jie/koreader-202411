@@ -97,6 +97,7 @@ function ReaderDeviceStatus:_checkBatteryStatus()
     dismissable = false,
     ok_callback = function()
       battery_status_dismissed = true
+      battery_confirm_box = nil
     end,
   })
   UIManager:show(battery_confirm_box)
