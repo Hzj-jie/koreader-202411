@@ -7,6 +7,7 @@ local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Size = require("ui/size")
+local UIManager = require("ui/uimanager")
 local _ = require("gettext")
 local Screen = Device.screen
 
