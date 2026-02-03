@@ -1189,7 +1189,11 @@ function ReaderStatistics:addToMainMenu(menu_items)
         sub_item_table = {
           {
             text_func = function()
-              return T(gettext("Read page duration limits: %1 s – %2 s"), self.settings.min_sec, self.settings.max_sec)
+              return T(
+                gettext("Read page duration limits: %1 s – %2 s"),
+                self.settings.min_sec,
+                self.settings.max_sec
+              )
             end,
             callback = function(touchmenu_instance)
               local DoubleSpinWidget = require("/ui/widget/doublespinwidget")

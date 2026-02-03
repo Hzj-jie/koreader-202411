@@ -169,7 +169,11 @@ function CoverBrowser:addToMainMenu(menu_items)
     sub_item_table = {
       {
         text_func = function()
-          return T(gettext("Items per page in portrait mosaic mode: %1 × %2"), fc.nb_cols_portrait, fc.nb_rows_portrait)
+          return T(
+            gettext("Items per page in portrait mosaic mode: %1 × %2"),
+            fc.nb_cols_portrait,
+            fc.nb_rows_portrait
+          )
         end,
         -- Best to not "keep_menu_open = true", to see how this apply on the full view
         callback = function()
@@ -218,7 +222,11 @@ function CoverBrowser:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(gettext("Items per page in landscape mosaic mode: %1 × %2"), fc.nb_cols_landscape, fc.nb_rows_landscape)
+          return T(
+            gettext("Items per page in landscape mosaic mode: %1 × %2"),
+            fc.nb_cols_landscape,
+            fc.nb_rows_landscape
+          )
         end,
         callback = function()
           local nb_cols = fc.nb_cols_landscape

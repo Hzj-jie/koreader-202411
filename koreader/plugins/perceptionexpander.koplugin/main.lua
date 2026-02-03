@@ -127,7 +127,10 @@ function PerceptionExpander:showSettingsDialog()
       {
         text = "",
         input_type = "number",
-        hint = T(gettext("Increase margin after pages. Current value: %1\nSet to 0 to disable."), self.shift_each_pages),
+        hint = T(
+          gettext("Increase margin after pages. Current value: %1\nSet to 0 to disable."),
+          self.shift_each_pages
+        ),
       },
     },
     buttons = {

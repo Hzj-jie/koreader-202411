@@ -462,7 +462,10 @@ function ReaderCoptListener:getAltStatusBarMenu()
       },
       {
         text_func = function()
-          return T(gettext("Font size: %1"), G_reader_settings:read("cre_header_status_font_size") or CRE_HEADER_DEFAULT_SIZE)
+          return T(
+            gettext("Font size: %1"),
+            G_reader_settings:read("cre_header_status_font_size") or CRE_HEADER_DEFAULT_SIZE
+          )
         end,
         callback = function()
           local SpinWidget = require("ui/widget/spinwidget")

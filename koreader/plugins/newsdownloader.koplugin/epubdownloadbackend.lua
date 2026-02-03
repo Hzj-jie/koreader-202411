@@ -653,8 +653,11 @@ function EpubDownloadBackend:createEpub(epub_path, html, url, include_images, me
         epub:add("OEBPS/" .. img.imgpath, content, no_compression)
         logger.dbg("Adding OEBPS/" .. img.imgpath)
       else
-        go_on =
-          UI:confirm(T(gettext("Downloading image %1 failed. Continue anyway?"), inum), gettext("Stop"), gettext("Continue"))
+        go_on = UI:confirm(
+          T(gettext("Downloading image %1 failed. Continue anyway?"), inum),
+          gettext("Stop"),
+          gettext("Continue")
+        )
         if not go_on then
           cancelled = true
           break

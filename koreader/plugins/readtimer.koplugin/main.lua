@@ -234,7 +234,10 @@ function ReadTimer:addToMainMenu(menu_items)
     text_func = function()
       if self:scheduled() then
         local user_duration_format = G_named_settings.duration_format()
-        return T(gettext("Read timer (%1)"), datetime.secondsToClockDuration(user_duration_format, self:remaining(), false))
+        return T(
+          gettext("Read timer (%1)"),
+          datetime.secondsToClockDuration(user_duration_format, self:remaining(), false)
+        )
       else
         return gettext("Read timer")
       end

@@ -28,7 +28,10 @@ function WebDav:downloadFile(item, address, username, password, local_path, call
       }))
     else
       UIManager:show(ConfirmBox:new({
-        text = T(gettext("File saved to:\n%1\nWould you like to read the downloaded book now?"), BD.filepath(local_path)),
+        text = T(
+          gettext("File saved to:\n%1\nWould you like to read the downloaded book now?"),
+          BD.filepath(local_path)
+        ),
         ok_callback = function()
           local Event = require("ui/event")
           UIManager:broadcastEvent(Event:new("SetupShowReader"))

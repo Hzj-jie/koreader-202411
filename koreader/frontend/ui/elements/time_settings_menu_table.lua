@@ -100,7 +100,11 @@ if Device:setDateTime() then
           if Device:setDateTime(nil, nil, nil, time.hour, time.min) then
             now_t = os.date("*t")
             UIManager:show(InfoMessage:new({
-              text = T(gettext("Current time: %1:%2"), string.format("%02d", now_t.hour), string.format("%02d", now_t.min)),
+              text = T(
+                gettext("Current time: %1:%2"),
+                string.format("%02d", now_t.hour),
+                string.format("%02d", now_t.min)
+              ),
             }))
           else
             UIManager:show(InfoMessage:new({

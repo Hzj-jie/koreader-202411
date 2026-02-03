@@ -641,7 +641,10 @@ Aliases (shortcuts) to frequently used commands can be placed in:
         callback = function(touchmenu_instance)
           self.shell_dialog = InputDialog:new({
             title = gettext("Shell to use"),
-            description = T(gettext("Here you can select the startup shell.\nDefault: %1"), self:getDefaultShellExecutable()),
+            description = T(
+              gettext("Here you can select the startup shell.\nDefault: %1"),
+              self:getDefaultShellExecutable()
+            ),
             input = G_reader_settings:read("terminal_shell") or self:getDefaultShellExecutable(),
             buttons = {
               {

@@ -922,7 +922,10 @@ Do you want to prune the cache of removed books?]]),
     local all_files = files
     while true do
       info = InfoMessage:new({
-        text = T(gettext("Found %1 books.\nLooking for those not already present in the cache database…"), #all_files),
+        text = T(
+          gettext("Found %1 books.\nLooking for those not already present in the cache database…"),
+          #all_files
+        ),
       })
       UIManager:show(info)
       UIManager:forceRepaint()

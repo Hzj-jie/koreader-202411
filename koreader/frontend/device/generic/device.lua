@@ -1038,7 +1038,8 @@ function Device:unpackArchive(archive, extract_to, with_stripped_root)
   then
     ok = self:untar(archive, extract_to, with_stripped_root)
   else
-    return false, T(gettext("Couldn't extract archive:\n\n%1\n\nUnrecognized filename extension."), BD.filepath(archive))
+    return false,
+      T(gettext("Couldn't extract archive:\n\n%1\n\nUnrecognized filename extension."), BD.filepath(archive))
   end
   if not ok then
     return false, T(gettext("Extracting archive failed:\n\n%1"), BD.filepath(archive))

@@ -331,7 +331,10 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
       -- to be set as a fallback font, and allow it to be set as the
       -- default monospace font.
       UIManager:show(MultiConfirmBox:new({
-        text = T(gettext("Would you like %1 to be used as the default font (★), or the monospace font (🄼)?"), face), -- [M] is U+1F13C
+        text = T(
+          gettext("Would you like %1 to be used as the default font (★), or the monospace font (🄼)?"),
+          face
+        ), -- [M] is U+1F13C
         choice1_text = gettext("Default"),
         choice1_callback = function()
           G_reader_settings:save("cre_font", face)

@@ -325,8 +325,10 @@ function ReaderPageMap:addToMainMenu(menu_items)
           return self.ui.document:getPageMapSource() ~= nil
         end,
         callback = function()
-          local text =
-            T(gettext("Source (book hardcopy edition) of reference page numbers:\n\n%1"), self.ui.document:getPageMapSource())
+          local text = T(
+            gettext("Source (book hardcopy edition) of reference page numbers:\n\n%1"),
+            self.ui.document:getPageMapSource()
+          )
           local InfoMessage = require("ui/widget/infomessage")
           local infomsg = InfoMessage:new({
             text = text,

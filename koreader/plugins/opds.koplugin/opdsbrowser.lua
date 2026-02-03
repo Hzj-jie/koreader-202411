@@ -262,7 +262,8 @@ function OPDSBrowser:fetchFeed(item_url, headers_only)
 
   local text, icon
   if headers and code == 301 then
-    text = T(gettext("The catalog has been permanently moved. Please update catalog URL to '%1'."), BD.url(headers.location))
+    text =
+      T(gettext("The catalog has been permanently moved. Please update catalog URL to '%1'."), BD.url(headers.location))
   elseif headers and code == 302 and item_url:match("^https") and headers.location:match("^http[^s]") then
     text = T(
       gettext(

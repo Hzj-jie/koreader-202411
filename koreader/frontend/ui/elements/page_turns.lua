@@ -40,7 +40,11 @@ end
 table.insert(page_turns_tap_zones_sub_items, {
   text_func = function()
     local forward_zone = getForwardTapZone()
-    return T(gettext("Backward / forward tap zone size: %1\xE2\x80\xAF% / %2\xE2\x80\xAF%"), 100 - forward_zone, forward_zone)
+    return T(
+      gettext("Backward / forward tap zone size: %1\xE2\x80\xAF% / %2\xE2\x80\xAF%"),
+      100 - forward_zone,
+      forward_zone
+    )
   end,
   keep_menu_open = true,
   callback = function(touchmenu_instance)
