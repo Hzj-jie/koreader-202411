@@ -322,8 +322,7 @@ local getFunctionInfo = function(func, full_code)
     local signature = util.trim(lines[1])
     info.signature = signature
     -- Try to guess (possibly wrongly) a few info from the signature string
-    local __, cnt
-    __, cnt = signature:gsub("%(%)", "") -- check for "()", no arg
+    local __, cnt = signature:gsub("%(%)", "") -- check for "()", no arg
     if cnt > 0 then
       info.nb_args = 0
     else

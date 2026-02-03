@@ -171,9 +171,9 @@ function NumberPickerWidget:init()
                       return pcall(func)
                     end
                   end
-                  local __
-                  __, input_value = evaluate_string(input_text)
-                  input_value = dummy and tonumber(input_value)
+                  local eva_result
+                  eva_result, input_value = evaluate_string(input_text)
+                  input_value = eva_result and tonumber(input_value)
                 end
 
                 if turn_off_checks then

@@ -526,7 +526,8 @@ function MosaicMenuItem:update()
       if DocSettings:hasSidecarFile(self.filepath) then
         self.been_opened = true
         self.menu:updateCache(self.filepath, nil, true, bookinfo.pages) -- create new cache entry if absent
-        _, percent_finished, status =
+        local __
+        __, percent_finished, status =
           unpack(self.menu.cover_info_cache[self.filepath], 1, self.menu.cover_info_cache[self.filepath].n)
       end
       self.percent_finished = percent_finished
@@ -546,7 +547,7 @@ function MosaicMenuItem:update()
       if self.do_cover_image and bookinfo.has_cover and not bookinfo.ignore_cover then
         cover_bb_used = true
         -- Let ImageWidget do the scaling and give us a bb that fit
-        local _, _, scale_factor =
+        local __, __, scale_factor =
           BookInfoManager.getCachedCoverSize(bookinfo.cover_w, bookinfo.cover_h, max_img_w, max_img_h)
         local image = ImageWidget:new({
           image = bookinfo.cover_bb,

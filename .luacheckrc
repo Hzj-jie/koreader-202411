@@ -19,13 +19,14 @@ max_string_line_length = 1000
 max_comment_line_length = 1000
 ignore = {
   "211/__", -- unused variable __: avoid conflicting with _
-  "211/___", -- unused variable ___: avoid conflicting with __
   "212/arg", -- unused argument arg: commonly used by event handlers.
   "212/self", -- unused argument self
   "212/__", -- unused argument __: avoid conflicting with _
   "213", -- unused loop variable
   "231/__", -- variable __ is never accessed: avoid conflicting with _
-  "231/___", -- variable ___ is never accessed: avoid conflicting with __
+  "411/__", -- variable __ was previously defined: avoid conflicting with _
+  "412/__", -- variable __ was previously defined as an argument: avoid conflicting with _
+  "423/__", -- shadowing definition of loop variable __: avoid conflicting with _
   "432/self", -- shadowing upvalue argument self: allow self being reused.
   -- TODO: Remove
   "212", -- unused argument

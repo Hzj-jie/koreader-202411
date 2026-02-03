@@ -392,7 +392,7 @@ for __, v in ipairs(LANGUAGES) do
   local lang_tag, lang_aliases, lang_features, lang_name, hyph_filename = unpack(v) -- luacheck: no unused
   LANG_TAG_TO_LANG_NAME[lang_tag] = lang_name
   if lang_aliases and #lang_aliases > 0 then
-    for ___, alias in ipairs(lang_aliases) do
+    for __, alias in ipairs(lang_aliases) do
       LANG_ALIAS_TO_LANG_TAG[alias] = lang_tag
     end
   end

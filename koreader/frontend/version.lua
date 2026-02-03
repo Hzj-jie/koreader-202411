@@ -112,7 +112,7 @@ end
 function Version:updateVersionLog(current_model)
   local last_line = Version:getLastLogLine()
 
-  local __, ___, last_version, last_model = last_line:match("(.-), (.-), (.-), (.-)$")
+  local __, __, last_version, last_model = last_line:match("(.-), (.-), (.-), (.-)$")
   self.last_version = last_version or "last version not found"
   self.last_model = last_model or "last model not found"
 
