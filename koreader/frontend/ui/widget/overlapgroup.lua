@@ -3,7 +3,6 @@ A layout widget that puts objects above each other.
 --]]
 
 local BD = require("ui/bidi")
-local Geom = require("ui/geometry")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 
 local OverlapGroup = WidgetContainer:extend({

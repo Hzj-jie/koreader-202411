@@ -452,7 +452,7 @@ end
 function Device:toggleFullscreen()
   local is_fullscreen = android.isFullscreen()
   logger.dbg(string.format("requesting fullscreen: %s", not is_fullscreen))
-  local dummy, api = canToggleFullscreen()
+  local _, api = canToggleFullscreen()
   if api >= 19 then
     self:_toggleFullscreenImmersive()
   elseif api >= 16 then

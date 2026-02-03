@@ -7,7 +7,6 @@ local Event = require("ui/event")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Screensaver = require("ui/screensaver")
 local UIManager = require("ui/uimanager")
-local logger = require("logger")
 local dbg = require("dbg")
 local util = require("util")
 local Screen = Device.screen

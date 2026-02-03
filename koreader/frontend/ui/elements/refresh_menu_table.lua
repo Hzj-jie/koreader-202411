@@ -2,7 +2,6 @@ local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local _ = require("gettext")
-local T = require("ffi/util").template
 
 return {
   {

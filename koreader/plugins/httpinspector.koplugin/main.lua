@@ -4,7 +4,6 @@
 local DataStorage = require("datastorage")
 local Device = require("device")
 local Event = require("ui/event")
-local InfoMessage = require("ui/widget/infomessage")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -323,19 +322,19 @@ local getFunctionInfo = function(func, full_code)
     local signature = util.trim(lines[1])
     info.signature = signature
     -- Try to guess (possibly wrongly) a few info from the signature string
-    local dummy, cnt
-    dummy, cnt = signature:gsub("%(%)", "") -- check for "()", no arg
+    local _, cnt
+    _, cnt = signature:gsub("%(%)", "") -- check for "()", no arg
     if cnt > 0 then
       info.nb_args = 0
     else
-      dummy, cnt = signature:gsub(",", "") -- check for nb of commas
+      _, cnt = signature:gsub(",", "") -- check for nb of commas
       info.nb_args = cnt and cnt + 1 or 1
     end
-    dummy, cnt = signature:gsub("%.%.%.", "") -- check for "...", varargs
+    _, cnt = signature:gsub("%.%.%.", "") -- check for "...", varargs
     if cnt > 0 then
       info.nb_args = -1
     end
-    dummy, cnt = signature:gsub("^[^(]*:", "")
+    _, cnt = signature:gsub("^[^(]*:", "")
     info.is_method = cnt > 0
     info.classname = signature:gsub(".-(%w+):.*", "%1")
   else
@@ -859,7 +858,7 @@ function HttpInspector:showFunctionDetails(obj, reqinfo)
   if func_info.no_source then
     add_html(T("Builtin function or from a C module: no source code available."))
   else
-    local dummy, git_commit = require("version"):getNormalizedCurrentVersion()
+    local _, git_commit = require("version"):getNormalizedCurrentVersion()
     local github_uri =
       T("https://github.com/koreader/koreader/blob/%1/%2#L%3", git_commit, func_info.source, func_info.firstline)
     add_html(

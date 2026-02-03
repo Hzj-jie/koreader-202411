@@ -24,7 +24,6 @@ local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
 local _ = require("gettext")
-local Input = Device.input
 local T = ffiUtil.template
 local android = Device:isAndroid() and require("android")
 
@@ -1105,7 +1104,7 @@ function ReaderDictionary:showDownload(downloadable_dicts)
 end
 
 function ReaderDictionary:downloadDictionaryPrep(dict, size)
-  local dummy, filename = util.splitFilePathName(dict.url)
+  local _, filename = util.splitFilePathName(dict.url)
   local download_location = string.format("%s/%s", self.data_dir, filename)
 
   if lfs.attributes(download_location) then

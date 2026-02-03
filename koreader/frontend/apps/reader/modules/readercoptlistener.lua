@@ -3,9 +3,7 @@ local Event = require("ui/event")
 local Device = require("device")
 local EventListener = require("ui/widget/eventlistener")
 local Geom = require("ui/geometry")
-local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
-local logger = require("logger")
 local T = require("ffi/util").template
 local _ = require("gettext")
 
