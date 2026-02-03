@@ -1157,10 +1157,13 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
   self:updatePageInfo(select_number)
   self:mergeTitleBarIntoLayout()
 
-  UIManager:setDirty(self, function()
-    local refresh_dimen = old_dimen and old_dimen:combine(self.dimen) or self.dimen
-    return "ui", refresh_dimen
-  end)
+  if self:isPainted() then
+    -- Otherwise the widget hasn't shown yet and will be paintTo later.
+    UIManager:setDirty(self, function()
+      local refresh_dimen = old_dimen and old_dimen:combine(self.dimen) or self.dimen
+      return "ui", refresh_dimen
+    end)
+  end
 end
 
 -- merge TitleBar layout into self FocusManager layout

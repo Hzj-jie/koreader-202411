@@ -247,6 +247,11 @@ function ButtonProgressWidget:update()
   end
 
   self:refocusWidget()
+  if self:isPainted() then
+    UIManager:setDirty(self, function()
+      return "ui", self.dimen
+    end)
+  end
 end
 
 function ButtonProgressWidget:setPosition(position, default_position)
