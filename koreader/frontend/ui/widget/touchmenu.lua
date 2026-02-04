@@ -552,7 +552,9 @@ function TouchMenu:init()
   })
   self.page_info = HorizontalGroup:new({
     self.page_info_left_chev,
+    HorizontalSpan:new({ width = Size.span.horizontal_default }),
     self.page_info_text,
+    HorizontalSpan:new({ width = Size.span.horizontal_default }),
     self.page_info_right_chev,
   })
   -- group for device info
