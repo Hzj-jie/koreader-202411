@@ -1787,24 +1787,26 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
       self.cursor_restore_bb:blitFrom(self._bb, 0, 0, x, y, self.cursor_line:getSize().w, self.cursor_line:getSize().h)
       -- Paint the cursor, and do a small ui refresh of the new cursor area
       self.cursor_line:paintTo(self._bb, x, y)
-      UIManager:setDirty(self.dialog or "all", function()
-        local cursor_region = Geom:new({
-          x = self:getSize().x + x,
-          y = self:getSize().y + y,
-          w = self.cursor_line:getSize().w,
-          h = self.cursor_line:getSize().h,
-        })
-        if CURSOR_COMBINE_REGIONS and restore_x and restore_y then
-          local restore_region = Geom:new({
-            x = self:getSize().x + restore_x,
-            y = self:getSize().y + restore_y,
+      if not self.dialog or self.dialog:isShown() then
+        UIManager:setDirty(self.dialog or "all", function()
+          local cursor_region = Geom:new({
+            x = self:getSize().x + x,
+            y = self:getSize().y + y,
             w = self.cursor_line:getSize().w,
             h = self.cursor_line:getSize().h,
           })
-          cursor_region = cursor_region:combine(restore_region)
-        end
-        return "ui", cursor_region
-      end)
+          if CURSOR_COMBINE_REGIONS and restore_x and restore_y then
+            local restore_region = Geom:new({
+              x = self:getSize().x + restore_x,
+              y = self:getSize().y + restore_y,
+              w = self.cursor_line:getSize().w,
+              h = self.cursor_line:getSize().h,
+            })
+            cursor_region = cursor_region:combine(restore_region)
+          end
+          return "ui", cursor_region
+        end)
+      end
     else -- CURSOR_USE_REFRESH_FUNCS = false
       -- We didn't scroll the view, only the cursor was moved
       local restore_region
