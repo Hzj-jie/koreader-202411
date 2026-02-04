@@ -7,9 +7,9 @@ local PathChooser = require("ui/widget/pathchooser")
 local ReadHistory = require("readhistory")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local gettext = require("gettext")
 local T = FFIUtil.template
 
 local BookShortcuts = WidgetContainer:extend({

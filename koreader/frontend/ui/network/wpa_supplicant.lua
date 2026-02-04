@@ -6,11 +6,11 @@ local crypto = require("ffi/crypto")
 local bin_to_hex = require("ffi/sha2").bin_to_hex
 local FFIUtil = require("ffi/util")
 local InfoMessage = require("ui/widget/infomessage")
-local WpaClient = require("lj-wpaclient/wpaclient")
 local UIManager = require("ui/uimanager")
+local WpaClient = require("lj-wpaclient/wpaclient")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local T = FFIUtil.template
 
 local CLIENT_INIT_ERR_MSG = gettext("Failed to initialize network control client: %1.")

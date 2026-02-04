@@ -6,8 +6,8 @@ end
 
 local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local PluginShare = require("pluginshare")
-local logger = require("logger")
 local gettext = require("gettext")
+local logger = require("logger")
 local T = require("ffi/util").template
 
 local AutoFrontlightPlugin = BackgroundTaskPlugin:extend()

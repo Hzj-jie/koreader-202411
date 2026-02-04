@@ -8,8 +8,8 @@ local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiUtil = require("ffi/util")
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 local T = ffiUtil.template
 
 local ArchiveViewer = WidgetContainer:extend({

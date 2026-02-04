@@ -19,11 +19,11 @@ local UIManager = require("ui/uimanager")
 local ffi = require("ffi")
 local C = ffi.C
 local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local gettext = require("gettext")
 local T = ffiUtil.template
 local android = Device:isAndroid() and require("android")
 

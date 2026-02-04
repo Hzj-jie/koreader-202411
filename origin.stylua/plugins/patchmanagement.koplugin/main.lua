@@ -18,9 +18,9 @@ local InfoMessage = require("ui/widget/infomessage")
 local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local _ = require("gettext")
 local sort = require("sort")
 local userPatch = require("userpatch")
-local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 

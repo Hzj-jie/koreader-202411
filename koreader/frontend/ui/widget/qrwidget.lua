@@ -4,9 +4,9 @@ QRWidget shows a QR code for a given text.
 
 local Blitbuffer = require("ffi/blitbuffer")
 local ImageWidget = require("ui/widget/imagewidget")
+local gettext = require("gettext")
 local logger = require("logger")
 local qrencode = require("ffi/qrencode")
-local gettext = require("gettext")
 
 local QRWidget = ImageWidget:extend({
   scale_factor = nil,

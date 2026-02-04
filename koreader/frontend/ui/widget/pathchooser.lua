@@ -4,9 +4,9 @@ local Device = require("device")
 local FileChooser = require("ui/widget/filechooser")
 local UIManager = require("ui/uimanager")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local gettext = require("gettext")
 local N_ = gettext.ngettext
 local T = ffiutil.template
 

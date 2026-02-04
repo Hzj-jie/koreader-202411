@@ -14,9 +14,9 @@ local NetworkMgr = require("ui/network/manager")
 local PathChooser = require("ui/widget/pathchooser")
 local UIManager = require("ui/uimanager")
 local WebDav = require("apps/cloudstorage/webdav")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
-local gettext = require("gettext")
 local N_ = gettext.ngettext
 local T = require("ffi/util").template
 

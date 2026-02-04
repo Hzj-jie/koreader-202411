@@ -7,8 +7,8 @@ local Math = require("optmath")
 local UIManager = require("ui/uimanager")
 local bit = require("bit")
 local logger = require("logger")
-local util = require("util")
 local time = require("ui/time")
+local util = require("util")
 local Input = Device.input
 local Screen = Device.screen
 

@@ -15,8 +15,8 @@ local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
-local time = require("ui/time")
 local gettext = require("gettext")
+local time = require("ui/time")
 local Screen = Device.screen
 local Input = Device.input
 

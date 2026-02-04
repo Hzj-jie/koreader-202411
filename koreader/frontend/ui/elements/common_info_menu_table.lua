@@ -11,8 +11,8 @@ local UIManager = require("ui/uimanager")
 local Version = require("version")
 local dbg = require("dbg")
 local dump = require("dump")
-local lfs = require("libs/libkoreader-lfs")
 local gettext = require("gettext")
+local lfs = require("libs/libkoreader-lfs")
 local T = FfiUtil.template
 
 local common_info = {}

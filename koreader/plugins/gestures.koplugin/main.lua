@@ -20,8 +20,8 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
 local T = FFIUtil.template
-local time = require("ui/time")
 local gettext = require("gettext")
+local time = require("ui/time")
 local C_ = gettext.pgettext
 
 if not Device:isTouchDevice() then

@@ -1,7 +1,7 @@
 local bit = require("bit")
 local ffi = require("ffi")
-local lfs = require("libs/libkoreader-lfs")
 local ffiUtil = require("ffi/util")
+local lfs = require("libs/libkoreader-lfs")
 local C = ffi.C
 
 require("ffi/posix_h")

@@ -5,10 +5,10 @@ local Device = require("device")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local logger = require("logger")
 local datetime = require("datetime")
-local time = require("ui/time")
 local gettext = require("gettext")
+local logger = require("logger")
+local time = require("ui/time")
 local T = require("ffi/util").template
 
 local ReadTimer = WidgetContainer:extend({

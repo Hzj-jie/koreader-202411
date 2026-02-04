@@ -3,8 +3,8 @@ local Font = require("ui/font")
 local FontList = require("fontlist")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 local T = FFIUtil.template
 
 -- Some "Noto Sans *" fonts are already in ui/font.lua Font.fallbacks,

@@ -1,5 +1,5 @@
-local logger = require("logger")
 local UIManager = require("ui/uimanager")
+local logger = require("logger")
 local time = require("ui/time")
 
 local CommandRunner = {

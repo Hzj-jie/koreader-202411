@@ -9,9 +9,9 @@ local TileCacheItem = require("document/tilecacheitem")
 local UIManager = require("ui/uimanager")
 local Screen = Device.screen
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 
 -- This ReaderThumbnail module provides a service for generating thumbnails
 -- of book pages.

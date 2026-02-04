@@ -1,12 +1,12 @@
 local InputDialog = require("ui/widget/inputdialog")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local http = require("socket.http")
 local json = require("json")
 local logger = require("logger")
 local ltn12 = require("ltn12")
 local socket = require("socket")
 local socketutil = require("socketutil")
-local gettext = require("gettext")
 
 -- readwise exporter
 local MemosExporter = require("base"):new({

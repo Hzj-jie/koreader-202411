@@ -8,12 +8,12 @@ local DataStorage = require("datastorage")
 local Event = require("ui/event")
 local Geom = require("ui/geometry")
 local UIManager -- Updated on UIManager init
-local logger = require("logger")
 local ffi = require("ffi")
+local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
+local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local gettext = require("gettext")
-local ffiUtil = require("ffi/util")
 local C = ffi.C
 local T = ffiUtil.template
 

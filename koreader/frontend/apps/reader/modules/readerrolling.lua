@@ -10,10 +10,10 @@ local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
 local bit = require("bit")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
-local gettext = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 

@@ -14,8 +14,8 @@ local TrapWidget = require("ui/widget/trapwidget")
 local UIManager = require("ui/uimanager")
 local buffer = require("string.buffer")
 local ffiutil = require("ffi/util")
-local logger = require("logger")
 local gettext = require("gettext")
+local logger = require("logger")
 
 local Trapper = {}
 

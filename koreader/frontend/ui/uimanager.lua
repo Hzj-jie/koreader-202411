@@ -6,12 +6,12 @@ local Device = require("device")
 local Event = require("ui/event")
 local Geom = require("ui/geometry")
 local dbg = require("dbg")
-local logger = require("logger")
-local ffiUtil = require("ffi/util")
-local util = require("util")
-local time = require("ui/time")
-local gettext = require("gettext")
 local dump = require("dump")
+local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
+local logger = require("logger")
+local time = require("ui/time")
+local util = require("util")
 local Input = Device.input
 local Screen = Device.screen
 

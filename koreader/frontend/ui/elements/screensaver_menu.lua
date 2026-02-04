@@ -1,6 +1,6 @@
 local Screensaver = require("ui/screensaver")
-local lfs = require("libs/libkoreader-lfs")
 local gettext = require("gettext")
+local lfs = require("libs/libkoreader-lfs")
 local T = require("ffi/util").template
 
 local function hasLastFile()

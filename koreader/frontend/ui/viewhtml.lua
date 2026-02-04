@@ -9,8 +9,8 @@ local InfoMessage = require("ui/widget/infomessage")
 local Notification = require("ui/widget/notification")
 local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 local T = require("ffi/util").template
 
 local ViewHtml = {

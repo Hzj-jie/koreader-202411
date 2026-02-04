@@ -1,9 +1,9 @@
 local BD = require("ui/bidi")
 local Device = require("device")
 local IsoLanguage = require("ui/data/isolanguage")
+local gettext = require("gettext")
 local optionsutil = require("ui/data/optionsutil")
 local util = require("util")
-local gettext = require("gettext")
 local C_ = gettext.pgettext
 local Screen = Device.screen
 

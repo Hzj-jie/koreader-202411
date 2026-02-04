@@ -1,7 +1,7 @@
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 
 local DEFAULT_PLUGIN_PATH = "plugins"
 

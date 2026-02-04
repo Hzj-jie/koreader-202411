@@ -1,15 +1,15 @@
 local A, android = pcall(require, "android") -- luacheck: ignore
 local Event = require("ui/event")
-local Geom = require("ui/geometry")
 local Generic = require("device/generic/device")
+local Geom = require("ui/geometry")
 local UIManager
 local ffi = require("ffi")
 local C = ffi.C
 local FFIUtil = require("ffi/util")
+local _ = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 local T = FFIUtil.template
 
 local function yes()

@@ -1,9 +1,9 @@
 local http = require("socket.http")
+local json = require("json")
+local logger = require("logger")
+local ltn12 = require("ltn12")
 local socket = require("socket")
 local socketutil = require("socketutil")
-local ltn12 = require("ltn12")
-local logger = require("logger")
-local json = require("json")
 
 local WeatherApi = {
   api_key = "2eec368fb9a149dd8a4224549212507",

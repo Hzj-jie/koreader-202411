@@ -2,8 +2,8 @@
 An interface to get input events.
 --]]
 
-local DataStorage = require("datastorage")
 local DEBUG = require("dbg")
+local DataStorage = require("datastorage")
 local Event = require("ui/event")
 local GestureDetector = require("device/gesturedetector")
 local Key = require("device/key")

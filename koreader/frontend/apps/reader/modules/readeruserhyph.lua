@@ -6,9 +6,9 @@ local InputDialog = require("ui/widget/inputdialog")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
-local gettext = require("gettext")
 local T = require("ffi/util").template
 
 -- if sometime in the future crengine is updated to use normalized utf8 for hyphenation

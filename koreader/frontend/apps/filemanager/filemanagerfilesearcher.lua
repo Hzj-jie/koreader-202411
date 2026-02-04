@@ -12,9 +12,9 @@ local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local gettext = require("gettext")
 local N_ = gettext.ngettext
 local T = require("ffi/util").template
 

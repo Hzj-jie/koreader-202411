@@ -1,10 +1,10 @@
 local ConfigDialog = require("ui/widget/configdialog")
+local CreOptions = require("ui/data/creoptions")
 local Device = require("device")
 local Event = require("ui/event")
 local InputContainer = require("ui/widget/container/inputcontainer")
-local UIManager = require("ui/uimanager")
-local CreOptions = require("ui/data/creoptions")
 local KoptOptions = require("ui/data/koptoptions")
+local UIManager = require("ui/uimanager")
 
 local ReaderConfig = InputContainer:extend({
   last_panel_index = 1,
