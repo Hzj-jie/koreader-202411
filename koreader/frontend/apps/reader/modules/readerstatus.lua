@@ -212,7 +212,6 @@ function ReaderStatus:markBook(mark_read)
   local summary = self.ui.doc_settings:readTableRef("summary")
   summary.status = (not mark_read and summary.status == "complete") and "reading" or "complete"
   summary.modified = os.date("%Y-%m-%d", os.time())
-  self.ui.doc_settings:save("summary", summary)
   -- If History is called over Reader, it will read the file to get the book status, so flush
   self.ui.doc_settings:flush()
 end
