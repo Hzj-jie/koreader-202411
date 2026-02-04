@@ -10,11 +10,11 @@ local UIManager = require("ui/uimanager")
 local ffiutil = require("ffi/util")
 local util = require("util")
 
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local server_types = {
-  dropbox = _("Dropbox"),
-  webdav = _("WebDAV"),
+  dropbox = gettext("Dropbox"),
+  webdav = gettext("WebDAV"),
 }
 local indent = ""
 
@@ -22,7 +22,7 @@ local SyncService = Menu:extend({
   no_title = false,
   is_popout = false,
   is_borderless = true,
-  title = _("Cloud sync settings"),
+  title = gettext("Cloud sync settings"),
   title_face = Font:getFace("smallinfofontbold"),
 })
 
@@ -65,12 +65,12 @@ function SyncService:generateItemTable()
   end
   if #item_table > 0 then
     table.insert(item_table, 1, {
-      text = _("Choose cloud service:"),
+      text = gettext("Choose cloud service:"),
       bold = true,
     })
   end
   table.insert(item_table, {
-    text = _("Add service"),
+    text = gettext("Add service"),
     bold = true,
     callback = function()
       local cloud_storage = require("apps/cloudstorage/cloudstorage"):new()
@@ -130,7 +130,8 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
     local income_file_path = file_path .. ".temp" -- file downloaded from server
     local cached_file_path = file_path .. ".sync" -- file uploaded to server last time
 
-    local fail_msg = _("Something went wrong when syncing, please check your network connection and try again later.")
+    local fail_msg =
+      gettext("Something went wrong when syncing, please check your network connection and try again later.")
     local show_msg = function(msg)
       if is_silent then
         return
@@ -141,7 +142,7 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
       }))
     end
     if server.type ~= "dropbox" and server.type ~= "webdav" then
-      show_msg(_("Wrong server type."))
+      show_msg(gettext("Wrong server type."))
       return
     end
     local code_response = 412 -- If-Match header failed
@@ -188,7 +189,7 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
       os.remove(cached_file_path)
       ffiutil.copyFile(file_path, cached_file_path)
       UIManager:show(Notification:new({
-        text = _("Successfully synchronized."),
+        text = gettext("Successfully synchronized."),
         timeout = 2,
       }))
     else

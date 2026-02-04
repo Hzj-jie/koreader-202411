@@ -14,8 +14,8 @@ local logger = require("logger")
 local util = require("util")
 local zstd = require("ffi/zstd")
 local time = require("ui/time")
-local _ = require("gettext")
-local N_ = _.ngettext
+local gettext = require("gettext")
+local N_ = gettext.ngettext
 local T = FFIUtil.template
 
 -- Database definition
@@ -127,11 +127,11 @@ local BOOKINFO_IN_PROGRESS_SQL =
 local UNSUPPORTED_REASONS = {
   not_readable_by_engine = {
     string = "not readable by engine",
-    translation = _("not readable by engine"),
+    translation = gettext("not readable by engine"),
   },
   too_many_interruptions_or_crashes = {
     string = "too many interruptions or crashes",
-    translation = _("too many interruptions or crashes"),
+    translation = gettext("too many interruptions or crashes"),
   },
 }
 
@@ -200,7 +200,7 @@ function BookInfoManager:createDB()
 
     -- Say hi!
     UIManager:show(InfoMessage:new({
-      text = _("Book info cache database updated."),
+      text = gettext("Book info cache database updated."),
       timeout = 3,
     }))
   end
@@ -252,10 +252,10 @@ function BookInfoManager:compactDb()
   local ok, errmsg = pcall(self.db_conn.exec, self.db_conn, "VACUUM;") -- this may take some time
   self:closeDbConnection()
   if not ok then
-    return T(_("Failed compacting database: %1"), errmsg)
+    return T(gettext("Failed compacting database: %1"), errmsg)
   end
   local cur_size = self:getDbSize()
-  return T(_("Cache database size reduced from %1 to %2."), prev_size, cur_size)
+  return T(gettext("Cache database size reduced from %1 to %2."), prev_size, cur_size)
 end
 
 -- Settings management, stored in 'config' table
@@ -619,7 +619,7 @@ function BookInfoManager:removeNonExistantEntries()
   self:openDbConnection()
   local res = self.db_conn:exec("SELECT bcid, directory || filename FROM bookinfo;")
   if not res then
-    return _("Cache is empty. Nothing to prune.")
+    return gettext("Cache is empty. Nothing to prune.")
   end
   local bcids = res[1]
   local filepaths = res[2]
@@ -636,7 +636,7 @@ function BookInfoManager:removeNonExistantEntries()
     stmt:step() -- committed
     stmt:clearbind():reset() -- cleanup
   end
-  return T(_("Removed %1 / %2 entries from cache."), #bcids_to_remove, #bcids)
+  return T(gettext("Removed %1 / %2 entries from cache."), #bcids_to_remove, #bcids)
 end
 
 -- Background extraction management
@@ -811,7 +811,7 @@ function BookInfoManager:extractBooksInDirectory(path, cover_specs)
   local Screen = require("device").screen
 
   local go_on = Trapper:confirm(
-    _([[
+    gettext([[
 This will extract metadata and cover images from books in the current directory.
 Once extraction has started, you can abort at any moment by tapping on the screen.
 
@@ -819,42 +819,42 @@ Cover images will be saved with the adequate size for the current display mode.
 If you later change display mode, they may need to be extracted again.
 
 This extraction may take time and use some battery power: you may wish to keep your device plugged in.]]),
-    _("Cancel"),
-    _("Continue")
+    gettext("Cancel"),
+    gettext("Continue")
   )
   if not go_on then
     return
   end
 
   local recursive = Trapper:confirm(
-    _([[
+    gettext([[
 Also extract book information from books in subdirectories?]]),
     -- @translators Extract book information only for books in this directory.
-    _("Here only"),
+    gettext("Here only"),
     -- @translators Extract book information for books in this directory as well as in subdirectories.
-    _("Here and under")
+    gettext("Here and under")
   )
 
   local refresh_existing = Trapper:confirm(
-    _([[
+    gettext([[
 Do you want to refresh metadata and covers that have already been extracted?]]),
-    _("Don't refresh"),
-    _("Refresh")
+    gettext("Don't refresh"),
+    gettext("Refresh")
   )
 
   local prune = Trapper:confirm(
-    _([[
+    gettext([[
 If you have removed many books, or have renamed some directories, it is good to remove them from the cache database.
 
 Do you want to prune the cache of removed books?]]),
-    _("Don't prune"),
-    _("Prune")
+    gettext("Don't prune"),
+    gettext("Prune")
   )
 
   Trapper:clear()
 
   local confirm_abort = function()
-    return Trapper:confirm(_("Do you want to abort extraction?"), _("Don't abort"), _("Abort"))
+    return Trapper:confirm(gettext("Do you want to abort extraction?"), gettext("Don't abort"), gettext("Abort"))
   end
 
   -- Cancel any background job, before we launch new ones
@@ -864,7 +864,7 @@ Do you want to prune the cache of removed books?]]),
   if prune then
     local summary
     while true do
-      info = InfoMessage:new({ text = _("Pruning cache of removed books…") })
+      info = InfoMessage:new({ text = gettext("Pruning cache of removed books…") })
       UIManager:show(info)
       UIManager:forceRepaint()
       completed, summary = Trapper:dismissableRunInSubprocess(function()
@@ -888,7 +888,7 @@ Do you want to prune the cache of removed books?]]),
 
   local files
   while true do
-    info = InfoMessage:new({ text = _("Looking for books to index…") })
+    info = InfoMessage:new({ text = gettext("Looking for books to index…") })
     UIManager:show(info)
     UIManager:forceRepaint()
     completed, files = Trapper:dismissableRunInSubprocess(function()
@@ -902,7 +902,7 @@ Do you want to prune the cache of removed books?]]),
       end
     elseif not files or #files == 0 then
       UIManager:close(info)
-      info = InfoMessage:new({ text = _("No books were found.") })
+      info = InfoMessage:new({ text = gettext("No books were found.") })
       UIManager:show(info)
       return
     else
@@ -922,7 +922,10 @@ Do you want to prune the cache of removed books?]]),
     local all_files = files
     while true do
       info = InfoMessage:new({
-        text = T(_("Found %1 books.\nLooking for those not already present in the cache database…"), #all_files),
+        text = T(
+          gettext("Found %1 books.\nLooking for those not already present in the cache database…"),
+          #all_files
+        ),
       })
       UIManager:show(info)
       UIManager:forceRepaint()
@@ -954,7 +957,7 @@ Do you want to prune the cache of removed books?]]),
       elseif not files or #files == 0 then
         UIManager:close(info)
         info = InfoMessage:new({
-          text = _("No books were found that need to be indexed."),
+          text = gettext("No books were found that need to be indexed."),
         })
         UIManager:show(info)
         return
@@ -990,7 +993,7 @@ Do you want to prune the cache of removed books?]]),
 
     local orig_moved_offset = info.movable:getMovedOffset()
     info:free()
-    info.text = T(_("Indexing %1 / %2…\n\n%3"), i, nb_files, BD.filename(filename))
+    info.text = T(gettext("Indexing %1 / %2…\n\n%3"), i, nb_files, BD.filename(filename))
     info:init()
     local text_widget = table.remove(info.movable[1][1], 3)
     local text_widget_size = text_widget:getSize()
@@ -1035,7 +1038,7 @@ Do you want to prune the cache of removed books?]]),
   end
   UIManager:close(info)
   info = InfoMessage:new({
-    text = T(_("Processed %1 / %2 books."), nb_done, nb_files)
+    text = T(gettext("Processed %1 / %2 books."), nb_done, nb_files)
       .. "\n"
       .. T(N_("One extracted successfully.", "%1 extracted successfully.", nb_success), nb_success),
   })

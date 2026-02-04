@@ -8,7 +8,6 @@ local FFIUtil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 
 local separator_id = "----------------------------"
 

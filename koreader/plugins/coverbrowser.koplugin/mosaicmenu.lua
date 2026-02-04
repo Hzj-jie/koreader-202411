@@ -26,7 +26,7 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -142,7 +142,7 @@ function FakeCover:init()
       authors[i] = BD.auto(authors[i])
     end
     if #authors > 3 then
-      authors = { authors[1], authors[2], T(_("%1 et al."), authors[3]) }
+      authors = { authors[1], authors[2], T(gettext("%1 et al."), authors[3]) }
     end
     authors = table.concat(authors, "\n")
   elseif authors then
@@ -649,7 +649,7 @@ function MosaicMenuItem:update()
       -- Same as real FakeCover, but let it be squared (like a file)
       local hint = "…" -- display hint it's being loaded
       if self.file_deleted then -- unless file was deleted (can happen with History)
-        hint = _("(deleted)")
+        hint = gettext("(deleted)")
       end
       widget = CenterContainer:new({
         dimen = dimen,

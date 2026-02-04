@@ -25,8 +25,8 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local Screen = Device.screen
 local util = require("util")
 local T = require("ffi/util").template
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 
 local SortItemWidget = InputContainer:extend({
   item = nil,
@@ -248,7 +248,7 @@ function SortWidget:init()
   self.footer_page = Button:new({
     text = "",
     hold_input = {
-      title = _("Enter page number"),
+      title = gettext("Enter page number"),
       input_type = "number",
       hint_func = function()
         return string.format("(1 - %s)", self.pages)
@@ -259,7 +259,7 @@ function SortWidget:init()
           self:goToPage(page)
         end
       end,
-      ok_text = _("Go to page"),
+      ok_text = gettext("Go to page"),
     },
     call_hold_input_on_tap = true,
     bordersize = 0,
@@ -509,7 +509,7 @@ function SortWidget:onShowWidgetMenu()
   local buttons = {
     {
       {
-        text = _("Sort A to Z"),
+        text = gettext("Sort A to Z"),
         align = "left",
         callback = function()
           UIManager:close(dialog)
@@ -519,7 +519,7 @@ function SortWidget:onShowWidgetMenu()
     },
     {
       {
-        text = _("Sort Z to A"),
+        text = gettext("Sort Z to A"),
         align = "left",
         callback = function()
           UIManager:close(dialog)
@@ -529,7 +529,7 @@ function SortWidget:onShowWidgetMenu()
     },
     {
       {
-        text = _("Sort A to Z (natural)"),
+        text = gettext("Sort A to Z (natural)"),
         align = "left",
         callback = function()
           UIManager:close(dialog)
@@ -539,7 +539,7 @@ function SortWidget:onShowWidgetMenu()
     },
     {
       {
-        text = _("Sort Z to A (natural)"),
+        text = gettext("Sort Z to A (natural)"),
         align = "left",
         callback = function()
           UIManager:close(dialog)

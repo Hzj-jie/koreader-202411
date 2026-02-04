@@ -1,6 +1,6 @@
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local ReaderAnnotation = WidgetContainer:extend({
@@ -274,7 +274,7 @@ function ReaderAnnotation:updateItemByXPointer(item)
     chapter = nil
   end
   if not item.drawer then -- page bookmark
-    item.text = chapter and T(_("in %1"), chapter) or nil
+    item.text = chapter and T(gettext("in %1"), chapter) or nil
   end
   item.chapter = chapter
   item.pageno = self.document:getPageFromXPointer(item.page)

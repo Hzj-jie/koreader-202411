@@ -2,3 +2,7 @@ syntax = "LuaJIT"
 column_width = 120
 indent_type = "Spaces"
 indent_width = 2
+
+# TODO: Enable, now it's causing segmentation fault.
+# [sort_requires]
+# enabled = true

@@ -5,7 +5,7 @@ local ffiutil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = ffiutil.template
 
 --[[
@@ -391,7 +391,7 @@ local function image_load_bb_func(image, highres)
   else
     -- We need to let the user know image loading is happening,
     -- with a discreet TrapWidget
-    trap_widget = _("Loading high-res image… (tap to cancel)")
+    trap_widget = gettext("Loading high-res image… (tap to cancel)")
     source = image.hi_source
   end
   -- Image may be big or take some time to be resized on wikipedia servers.
@@ -660,7 +660,7 @@ function Wikipedia:createEpub(epub_path, page, lang, with_images)
   -- Trapper:info() and Trapper:confirm() will just use logger.
   local UI = require("ui/trapper")
 
-  UI:info(_("Retrieving Wikipedia article…"))
+  UI:info(gettext("Retrieving Wikipedia article…"))
   local ok, phtml = pcall(self.getFullPageHtml, self, page, lang)
   if not ok then
     UI:info(phtml) -- display error in InfoMessage
@@ -812,26 +812,26 @@ function Wikipedia:createEpub(epub_path, page, lang, with_images)
       if include_images == nil then
         include_images = UI:confirm(
           T(
-            _(
+            gettext(
               "This article contains %1 images.\nWould you like to download and include them in the generated EPUB file?"
             ),
             #images
           ),
-          _("Don't include"),
-          _("Include")
+          gettext("Don't include"),
+          gettext("Include")
         )
       end
       if include_images then
         if use_img_2x == nil then
           use_img_2x = UI:confirm(
-            _("Would you like to use slightly higher quality images? This will result in a bigger file size."),
-            _("Standard quality"),
-            _("Higher quality")
+            gettext("Would you like to use slightly higher quality images? This will result in a bigger file size."),
+            gettext("Standard quality"),
+            gettext("Higher quality")
           )
         end
       end
     else
-      UI:info(_("This article does not contain any images."))
+      UI:info(gettext("This article does not contain any images."))
       ffiutil.sleep(1) -- Let the user see that
     end
   end
@@ -844,7 +844,7 @@ function Wikipedia:createEpub(epub_path, page, lang, with_images)
     -- the images he chose to not get.
   end
 
-  UI:info(_("Building EPUB…"))
+  UI:info(gettext("Building EPUB…"))
   -- Open the zip file (with .tmp for now, as crengine may still
   -- have a handle to the final epub_path, and we don't want to
   -- delete a good one if we fail/cancel later)
@@ -1540,10 +1540,10 @@ abbr.abbr {
   -- If one day this changes, they'll have to be replaced with href => [Hh][Rr][Ee][Ff] ...
 
   -- We can finally build the final HTML with some header of our own
-  local saved_on = T(_("Saved on %1"), os.date("%b %d, %Y %H:%M:%S"))
+  local saved_on = T(gettext("Saved on %1"), os.date("%b %d, %Y %H:%M:%S"))
   local online_version_htmllink =
-    string.format([[<a href="%s/wiki/%s">%s</a>]], wiki_base_url, page:gsub(" ", "_"), _("online version"))
-  local see_online_version = T(_("See %1 for up-to-date content"), online_version_htmllink)
+    string.format([[<a href="%s/wiki/%s">%s</a>]], wiki_base_url, page:gsub(" ", "_"), gettext("online version"))
+  local see_online_version = T(gettext("See %1 for up-to-date content"), online_version_htmllink)
   -- Set dir= attribute on the HTML tag for RTL languages
   local html_dir = ""
   if self:isWikipediaLanguageRTL(lang) then
@@ -1590,7 +1590,7 @@ abbr.abbr {
       -- Process can be interrupted at this point between each image download
       -- by tapping while the InfoMessage is displayed
       -- We use the fast_refresh option from image #2 for a quicker download
-      local go_on = UI:info(T(_("Retrieving image %1 / %2 …"), inum, nb_images), inum >= 2)
+      local go_on = UI:info(T(gettext("Retrieving image %1 / %2 …"), inum, nb_images), inum >= 2)
       if not go_on then
         cancelled = true
         break
@@ -1615,7 +1615,11 @@ abbr.abbr {
         end
         epub:add("OEBPS/" .. img.imgpath, content, no_compression)
       else
-        go_on = UI:confirm(T(_("Downloading image %1 failed. Continue anyway?"), inum), _("Stop"), _("Continue"))
+        go_on = UI:confirm(
+          T(gettext("Downloading image %1 failed. Continue anyway?"), inum),
+          gettext("Stop"),
+          gettext("Continue")
+        )
         if not go_on then
           cancelled = true
           break
@@ -1628,18 +1632,18 @@ abbr.abbr {
   if cancelled then
     if
       UI:confirm(
-        _("Download did not complete.\nDo you want to create an EPUB with the already downloaded images?"),
-        _("Don't create"),
-        _("Create")
+        gettext("Download did not complete.\nDo you want to create an EPUB with the already downloaded images?"),
+        gettext("Don't create"),
+        gettext("Create")
       )
     then
       cancelled = false
     end
   end
   if cancelled then
-    UI:info(_("Canceled. Cleaning up…"))
+    UI:info(gettext("Canceled. Cleaning up…"))
   else
-    UI:info(_("Packing EPUB…"))
+    UI:info(gettext("Packing EPUB…"))
   end
   epub:close()
   -- This was nearly a no-op, so sleep a bit to make that progress step seen

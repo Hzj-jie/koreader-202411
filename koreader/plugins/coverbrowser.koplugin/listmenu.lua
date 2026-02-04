@@ -29,8 +29,8 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
-local N_ = _.ngettext
+local gettext = require("gettext")
+local N_ = gettext.ngettext
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -353,17 +353,17 @@ function ListMenuItem:update()
             pages_str = T(N_("On hold – 1 page", "On hold – %1 pages", pages), pages)
           end
         else
-          pages_str = status == "complete" and _("Finished") or _("On hold")
+          pages_str = status == "complete" and gettext("Finished") or gettext("On hold")
         end
       elseif percent_finished then
         if pages then
           if BookInfoManager:getSetting("show_pages_read_as_progress") then
-            pages_str = T(_("Page %1 of %2"), Math.round(percent_finished * pages), pages)
+            pages_str = T(gettext("Page %1 of %2"), Math.round(percent_finished * pages), pages)
           else
-            pages_str = T(_("%1 % of %2 pages"), math.floor(100 * percent_finished), pages)
+            pages_str = T(gettext("%1 % of %2 pages"), math.floor(100 * percent_finished), pages)
           end
           if BookInfoManager:getSetting("show_pages_left_in_progress") then
-            pages_str = T(_("%1, %2 to read"), pages_str, Math.round(pages - percent_finished * pages), pages)
+            pages_str = T(gettext("%1, %2 to read"), pages_str, Math.round(pages - percent_finished * pages), pages)
           end
         else
           pages_str = string.format("%d %%", 100 * percent_finished)
@@ -473,9 +473,9 @@ function ListMenuItem:update()
             authors[i] = BD.auto(authors[i])
           end
           if #authors > 1 and bookinfo.series and series_mode == "series_in_separate_line" then
-            authors = { T(_("%1 et al."), authors[1]) }
+            authors = { T(gettext("%1 et al."), authors[1]) }
           elseif #authors > 2 then
-            authors = { authors[1], T(_("%1 et al."), authors[2]) }
+            authors = { authors[1], T(gettext("%1 et al."), authors[2]) }
           end
           authors = table.concat(authors, "\n")
           -- as we'll fit 3 lines instead of 2, we can avoid some loops by starting from a lower font size
@@ -516,7 +516,7 @@ function ListMenuItem:update()
       end
       if bookinfo.unsupported then
         -- Let's show this fact in place of the anyway empty authors slot
-        authors = T(_("(no book information: %1)"), _(bookinfo.unsupported))
+        authors = T(gettext("(no book information: %1)"), gettext(bookinfo.unsupported))
       end
       -- Build title and authors texts with decreasing font size
       -- till it fits in the space available
@@ -708,7 +708,7 @@ function ListMenuItem:update()
       -- A real simple widget, nothing fancy
       local hint = "…" -- display hint it's being loaded
       if self.file_deleted then -- unless file was deleted (can happen with History)
-        hint = " " .. _("(deleted)")
+        hint = " " .. gettext("(deleted)")
       end
       local text = BD.filename(self.text)
       local text_widget

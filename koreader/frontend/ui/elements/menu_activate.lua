@@ -1,11 +1,11 @@
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 return {
-  text = _("Activate menu"),
+  text = gettext("Activate menu"),
   sub_item_table = {
     {
-      text = _("With a tap"),
+      text = gettext("With a tap"),
       checked_func = function()
         return G_named_settings.activate_menu() ~= "swipe"
       end,
@@ -19,7 +19,7 @@ return {
       end,
     },
     {
-      text = _("With a swipe"),
+      text = gettext("With a swipe"),
       checked_func = function()
         return G_named_settings.activate_menu() ~= "tap"
       end,
@@ -34,7 +34,7 @@ return {
       separator = true,
     },
     {
-      text = _("Auto-show bottom menu"),
+      text = gettext("Auto-show bottom menu"),
       checked_func = function()
         return G_reader_settings:nilOrTrue("show_bottom_menu")
       end,

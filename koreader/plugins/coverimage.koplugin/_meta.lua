@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "coverimage",
-  fullname = _("Cover image"),
-  description = _([[Stores cover image to a file.]]),
+  fullname = gettext("Cover image"),
+  description = gettext([[Stores cover image to a file.]]),
 }

@@ -11,7 +11,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local Device = require("device")
 local Screen = Device.screen
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local ReaderCropping = WidgetContainer:extend({})
 
@@ -58,13 +58,13 @@ function ReaderCropping:onPageCrop(mode)
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           callback = function()
             self:onCancelPageCrop()
           end,
         },
         {
-          text = _("Apply crop"),
+          text = gettext("Apply crop"),
           callback = function()
             self:onConfirmPageCrop()
           end,

@@ -4,7 +4,7 @@ local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local ffiutil = require("ffi/util")
 local md5 = require("ffi/sha2").md5
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = ffiutil.template
 
 local MyClipping = {
@@ -122,7 +122,7 @@ function MyClipping:parseTitleFromPath(line)
     __, __, title, author = line:find("(.-)%s*-%s*(.*)")
   end
   title = title or line:match("^%s*(.-)%s*$")
-  return isEmpty(title) and _("Unknown Book") or title, isEmpty(author) and _("Unknown Author") or author
+  return isEmpty(title) and gettext("Unknown Book") or title, isEmpty(author) and gettext("Unknown Author") or author
 end
 
 local keywords = {
@@ -267,7 +267,9 @@ function MyClipping:parseHighlight(highlights, bookmarks, book)
   -- create a translated pattern that matches bookmark auto-text
   -- see ReaderBookmark:getBookmarkAutoText and ReaderBookmark:getBookmarkPageString
   --- @todo Remove this once we get rid of auto-text or improve the data model.
-  local pattern = "^" .. T(_("Page %1 %2 @ %3"), "%[?%d*%]?%d+", "(.*)", "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") .. "$"
+  local pattern = "^"
+    .. T(gettext("Page %1 %2 @ %3"), "%[?%d*%]?%d+", "(.*)", "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d")
+    .. "$"
 
   local orphan_highlights = {}
   local settings = G_reader_settings:readTableRef("exporter")

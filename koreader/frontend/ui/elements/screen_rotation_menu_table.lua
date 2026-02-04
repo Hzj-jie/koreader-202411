@@ -2,7 +2,7 @@ local Device = require("device")
 local Event = require("ui/event")
 local FileManager = require("apps/filemanager/filemanager")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 
 local function genMenuItem(text, mode)
@@ -26,14 +26,14 @@ local function genMenuItem(text, mode)
 end
 
 return {
-  text = _("Rotation"),
+  text = gettext("Rotation"),
   sub_item_table_func = function()
     local rotation_table = {}
 
     if Device:hasGSensor() then
       table.insert(rotation_table, {
-        text = _("Ignore accelerometer rotation events"),
-        help_text = _("This will inhibit automatic rotations triggered by your device's gyro."),
+        text = gettext("Ignore accelerometer rotation events"),
+        help_text = gettext("This will inhibit automatic rotations triggered by your device's gyro."),
         checked_func = function()
           return G_reader_settings:isTrue("input_ignore_gsensor")
         end,
@@ -43,8 +43,8 @@ return {
       })
 
       table.insert(rotation_table, {
-        text = _("Lock auto rotation to current orientation"),
-        help_text = _([[
+        text = gettext("Lock auto rotation to current orientation"),
+        help_text = gettext([[
 When checked, the gyro will only be honored when switching between the two inverse variants of your current rotation,
 i.e., Portrait <-> Inverted Portrait OR Landscape <-> Inverted Landscape.
 Switching between (Inverted) Portrait and (Inverted) Landscape will be inhibited.
@@ -62,8 +62,8 @@ If you need to do so, you'll have to use the UI toggles.]]),
     end
 
     table.insert(rotation_table, {
-      text = _("Keep current rotation across views"),
-      help_text = _(
+      text = gettext("Keep current rotation across views"),
+      help_text = gettext(
         [[
 When checked, the current rotation will be kept when switching between the file browser and the reader, in both directions, and that no matter what the document's saved rotation or the default reader or file browser rotation may be.
 This means that nothing will ever sneak a rotation behind your back, you choose your device's rotation, and it stays that way.
@@ -87,10 +87,10 @@ When unchecked, the default rotation of the file browser and the default/saved r
 
     rotation_table[#rotation_table].separator = true
     table.insert(rotation_table, {
-      text = _("Image viewer rotation"),
+      text = gettext("Image viewer rotation"),
       sub_item_table = {
         {
-          text = _("Invert default rotation in portrait mode"),
+          text = gettext("Invert default rotation in portrait mode"),
           checked_func = function()
             return G_reader_settings:isTrue("imageviewer_rotation_portrait_invert")
           end,
@@ -99,7 +99,7 @@ When unchecked, the default rotation of the file browser and the default/saved r
           end,
         },
         {
-          text = _("Invert default rotation in landscape mode"),
+          text = gettext("Invert default rotation in landscape mode"),
           checked_func = function()
             return G_reader_settings:isTrue("imageviewer_rotation_landscape_invert")
           end,
@@ -109,8 +109,8 @@ When unchecked, the default rotation of the file browser and the default/saved r
           separator = true,
         },
         {
-          text = _("Auto-rotate for best fit"),
-          help_text = _(
+          text = gettext("Auto-rotate for best fit"),
+          help_text = gettext(
             "Auto-rotate the image to best match screen and image aspect ratios on image viewer launch (ie. if in portrait mode, a landscape image will be rotated)."
           ),
           checked_func = function()

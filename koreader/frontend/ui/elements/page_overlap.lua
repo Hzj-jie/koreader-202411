@@ -1,15 +1,15 @@
 local FFIUtil = require("ffi/util")
 local ReaderUI = require("apps/reader/readerui")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = FFIUtil.template
 
 local PageOverlap = {
-  text = _("Page overlap"),
+  text = gettext("Page overlap"),
   sub_item_table = {
     {
       text_func = function()
-        local text = _("Page overlap")
+        local text = gettext("Page overlap")
         if G_reader_settings:isTrue("page_overlap_enable") then
           text = text .. "   ★"
         end
@@ -27,7 +27,7 @@ local PageOverlap = {
           view.page_overlap_enable = not view.page_overlap_enable
         else
           UIManager:show(require("ui/widget/infomessage"):new({
-            text = _("Page overlap cannot be enabled in the current view mode."),
+            text = gettext("Page overlap cannot be enabled in the current view mode."),
             timeout = 2,
           }))
         end
@@ -43,7 +43,7 @@ local PageOverlap = {
 table.insert(PageOverlap.sub_item_table, {
   keep_menu_open = true,
   text_func = function()
-    return T(_("Number of lines: %1"), G_reader_settings:read("copt_overlap_lines") or 1)
+    return T(gettext("Number of lines: %1"), G_reader_settings:read("copt_overlap_lines") or 1)
   end,
   enabled_func = function()
     return not ReaderUI.instance.document.info.has_pages
@@ -53,8 +53,8 @@ table.insert(PageOverlap.sub_item_table, {
   callback = function(touchmenu_instance)
     local SpinWidget = require("ui/widget/spinwidget")
     UIManager:show(SpinWidget:new({
-      title_text = _("Number of overlapped lines"),
-      info_text = _([[
+      title_text = gettext("Number of overlapped lines"),
+      info_text = gettext([[
 When page overlap is enabled, some lines from the previous page will be displayed on the next page.
 You can set how many lines are shown.]]),
       value = G_reader_settings:read("copt_overlap_lines") or 1,
@@ -72,10 +72,10 @@ You can set how many lines are shown.]]),
 })
 
 local page_overlap_styles = {
-  { _("Arrow"), "arrow" },
-  { _("Gray out"), "dim" },
-  { _("Solid line"), "line" },
-  { _("Dashed line"), "dashed_line" },
+  { gettext("Arrow"), "arrow" },
+  { gettext("Gray out"), "dim" },
+  { gettext("Solid line"), "line" },
+  { gettext("Dashed line"), "dashed_line" },
 }
 for _, v in ipairs(page_overlap_styles) do
   local style_text, style = unpack(v)

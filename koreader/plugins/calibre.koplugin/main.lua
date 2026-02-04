@@ -16,8 +16,8 @@ local InfoMessage = require("ui/widget/infomessage")
 local LuaSettings = require("luasettings")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
 local Calibre = WidgetContainer:extend({
@@ -72,48 +72,48 @@ function Calibre:onDispatcherRegisterActions()
   Dispatcher:registerAction("calibre_search", {
     category = "none",
     event = "CalibreSearch",
-    title = _("Calibre metadata search"),
+    title = gettext("Calibre metadata search"),
     general = true,
   })
   Dispatcher:registerAction("calibre_browse_tags", {
     category = "none",
     event = "CalibreBrowseBy",
     arg = "tags",
-    title = _("Browse all calibre tags"),
+    title = gettext("Browse all calibre tags"),
     general = true,
   })
   Dispatcher:registerAction("calibre_browse_series", {
     category = "none",
     event = "CalibreBrowseBy",
     arg = "series",
-    title = _("Browse all calibre series"),
+    title = gettext("Browse all calibre series"),
     general = true,
   })
   Dispatcher:registerAction("calibre_browse_authors", {
     category = "none",
     event = "CalibreBrowseBy",
     arg = "authors",
-    title = _("Browse all calibre authors"),
+    title = gettext("Browse all calibre authors"),
     general = true,
   })
   Dispatcher:registerAction("calibre_browse_titles", {
     category = "none",
     event = "CalibreBrowseBy",
     arg = "title",
-    title = _("Browse all calibre titles"),
+    title = gettext("Browse all calibre titles"),
     general = true,
     separator = true,
   })
   Dispatcher:registerAction("calibre_start_connection", {
     category = "none",
     event = "StartWirelessConnection",
-    title = _("Calibre wireless connect"),
+    title = gettext("Calibre wireless connect"),
     general = true,
   })
   Dispatcher:registerAction("calibre_close_connection", {
     category = "none",
     event = "CloseWirelessConnection",
-    title = _("Calibre wireless disconnect"),
+    title = gettext("Calibre wireless disconnect"),
     general = true,
   })
 end
@@ -127,14 +127,14 @@ end
 function Calibre:addToMainMenu(menu_items)
   menu_items.calibre = {
     -- its name is "calibre", but all our top menu items are uppercase.
-    text = _("Calibre"),
+    text = gettext("Calibre"),
     sub_item_table = {
       {
         text_func = function()
           if CalibreWireless.calibre_socket then
-            return _("Disconnect")
+            return gettext("Disconnect")
           else
-            return _("Connect")
+            return gettext("Connect")
           end
         end,
         separator = true,
@@ -150,12 +150,12 @@ function Calibre:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Search settings"),
+        text = gettext("Search settings"),
         keep_menu_open = true,
         sub_item_table = self:getSearchMenuTable(),
       },
       {
-        text = _("Wireless settings"),
+        text = gettext("Wireless settings"),
         keep_menu_open = true,
         sub_item_table = self:getWirelessMenuTable(),
       },
@@ -164,7 +164,7 @@ function Calibre:addToMainMenu(menu_items)
   -- insert the metadata search
   if G_reader_settings:isTrue("calibre_search_from_reader") or not self.ui.view then
     menu_items.find_book_in_calibre_catalog = {
-      text = _("Calibre metadata search"),
+      text = gettext("Calibre metadata search"),
       callback = function()
         CalibreSearch:ShowSearch()
       end,
@@ -176,7 +176,7 @@ end
 function Calibre:getSearchMenuTable()
   return {
     {
-      text = _("Manage libraries"),
+      text = gettext("Manage libraries"),
       separator = true,
       keep_menu_open = true,
       sub_item_table_func = function()
@@ -200,12 +200,12 @@ function Calibre:getSearchMenuTable()
         -- if there's no result then no libraries are stored
         if #result == 0 then
           table.insert(result, {
-            text = _("No calibre libraries"),
+            text = gettext("No calibre libraries"),
             enabled = false,
           })
         end
         table.insert(result, 1, {
-          text = _("Rescan disk for calibre libraries"),
+          text = gettext("Rescan disk for calibre libraries"),
           separator = true,
           callback = function()
             CalibreSearch:prompt()
@@ -215,19 +215,19 @@ function Calibre:getSearchMenuTable()
       end,
     },
     {
-      text = _("Enable searches in the reader"),
+      text = gettext("Enable searches in the reader"),
       checked_func = function()
         return G_reader_settings:isTrue("calibre_search_from_reader")
       end,
       callback = function()
         G_reader_settings:flipNilOrFalse("calibre_search_from_reader")
         UIManager:show(InfoMessage:new({
-          text = _("This will take effect on next restart."),
+          text = gettext("This will take effect on next restart."),
         }))
       end,
     },
     {
-      text = _("Store metadata in cache"),
+      text = gettext("Store metadata in cache"),
       checked_func = function()
         return G_reader_settings:nilOrTrue("calibre_search_cache_metadata")
       end,
@@ -236,7 +236,7 @@ function Calibre:getSearchMenuTable()
       end,
     },
     {
-      text = _("Case sensitive search"),
+      text = gettext("Case sensitive search"),
       checked_func = function()
         return not G_reader_settings:nilOrTrue("calibre_search_case_insensitive")
       end,
@@ -245,7 +245,7 @@ function Calibre:getSearchMenuTable()
       end,
     },
     {
-      text = _("Search by title"),
+      text = gettext("Search by title"),
       checked_func = function()
         return G_reader_settings:nilOrTrue("calibre_search_find_by_title")
       end,
@@ -254,7 +254,7 @@ function Calibre:getSearchMenuTable()
       end,
     },
     {
-      text = _("Search by authors"),
+      text = gettext("Search by authors"),
       checked_func = function()
         return G_reader_settings:nilOrTrue("calibre_search_find_by_authors")
       end,
@@ -263,7 +263,7 @@ function Calibre:getSearchMenuTable()
       end,
     },
     {
-      text = _("Search by series"),
+      text = gettext("Search by series"),
       checked_func = function()
         return G_reader_settings:isTrue("calibre_search_find_by_series")
       end,
@@ -272,7 +272,7 @@ function Calibre:getSearchMenuTable()
       end,
     },
     {
-      text = _("Search by tag"),
+      text = gettext("Search by tag"),
       checked_func = function()
         return G_reader_settings:isTrue("calibre_search_find_by_tag")
       end,
@@ -281,7 +281,7 @@ function Calibre:getSearchMenuTable()
       end,
     },
     {
-      text = _("Search by path"),
+      text = gettext("Search by path"),
       checked_func = function()
         return G_reader_settings:isTrue("calibre_search_find_by_path")
       end,
@@ -301,7 +301,7 @@ function Calibre:getWirelessMenuTable()
 
   local t = {
     {
-      text = _("Enable wireless client"),
+      text = gettext("Enable wireless client"),
       separator = true,
       enabled_func = function()
         return not CalibreWireless.calibre_socket
@@ -314,14 +314,14 @@ function Calibre:getWirelessMenuTable()
       end,
     },
     {
-      text = _("Set password"),
+      text = gettext("Set password"),
       enabled_func = isEnabled,
       callback = function()
         CalibreWireless:setPassword()
       end,
     },
     {
-      text = _("Set inbox folder"),
+      text = gettext("Set inbox folder"),
       enabled_func = isEnabled,
       callback = function()
         CalibreWireless:setInboxDir()
@@ -329,12 +329,12 @@ function Calibre:getWirelessMenuTable()
     },
     {
       text_func = function()
-        local address = _("automatic")
+        local address = gettext("automatic")
         if G_reader_settings:has("calibre_wireless_url") then
           address = G_reader_settings:read("calibre_wireless_url")
           address = string.format("%s:%s", address["address"], address["port"])
         end
-        return T(_("Server address (%1)"), BD.ltr(address))
+        return T(gettext("Server address (%1)"), BD.ltr(address))
       end,
       enabled_func = isEnabled,
       sub_item_table = {
@@ -362,30 +362,30 @@ function Calibre:getWirelessMenuTable()
               calibre_url_port = calibre_url["port"]
             end
             url_dialog = MultiInputDialog:new({
-              title = _("Set custom calibre address"),
+              title = gettext("Set custom calibre address"),
               fields = {
                 {
                   text = calibre_url_address,
                   input_type = "string",
-                  hint = _("IP Address"),
+                  hint = gettext("IP Address"),
                 },
                 {
                   text = calibre_url_port,
                   input_type = "number",
-                  hint = _("Port"),
+                  hint = gettext("Port"),
                 },
               },
               buttons = {
                 {
                   {
-                    text = _("Cancel"),
+                    text = gettext("Cancel"),
                     id = "close",
                     callback = function()
                       UIManager:close(url_dialog)
                     end,
                   },
                   {
-                    text = _("OK"),
+                    text = gettext("OK"),
                     callback = function()
                       local fields = url_dialog:getFields()
                       if fields[1] ~= "" then
@@ -414,21 +414,21 @@ function Calibre:getWirelessMenuTable()
 
   if not CalibreExtensions:isCustom() then
     table.insert(t, 2, {
-      text = _("File formats"),
+      text = gettext("File formats"),
       enabled_func = isEnabled,
       sub_item_table_func = function()
         local submenu = {
           {
-            text = _("About formats"),
+            text = gettext("About formats"),
             keep_menu_open = true,
             separator = true,
             callback = function()
               UIManager:show(InfoMessage:new({
                 text = string.format(
                   "%s: %s \n\n%s",
-                  _("Supported file formats"),
+                  gettext("Supported file formats"),
                   CalibreExtensions:getInfo(),
-                  _("Unsupported formats will be converted by calibre to the first format of the list.")
+                  gettext("Unsupported formats will be converted by calibre to the first format of the list.")
                 ),
               }))
             end,

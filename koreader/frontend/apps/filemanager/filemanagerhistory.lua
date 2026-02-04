@@ -11,12 +11,12 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Utf8Proc = require("ffi/utf8proc")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local util = require("util")
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
 local FileManagerHistory = WidgetContainer:extend({
-  hist_menu_title = _("History"),
+  hist_menu_title = gettext("History"),
 })
 
 local filter_text = {
@@ -41,7 +41,7 @@ function FileManagerHistory:addToMainMenu(menu_items)
           self:onShowHist()
         end,
         -- Need localization
-        _("Loading reading history…")
+        gettext("Loading reading history…")
       )
     end,
   }
@@ -95,11 +95,11 @@ function FileManagerHistory:updateItemTable()
   end
   local subtitle = ""
   if self.search_string then
-    subtitle = T(_("Search results (%1)"), #item_table)
+    subtitle = T(gettext("Search results (%1)"), #item_table)
   elseif self.selected_collections then
-    subtitle = T(_("Filtered by collections (%1)"), #item_table)
+    subtitle = T(gettext("Filtered by collections (%1)"), #item_table)
   elseif self.filter ~= "all" then
-    subtitle = T(_("Status: %1 (%2)"), filter_text[self.filter]:lower(), #item_table)
+    subtitle = T(gettext("Status: %1 (%2)"), filter_text[self.filter]:lower(), #item_table)
   end
   self.hist_menu:switchItemTable(nil, item_table, -1, nil, subtitle)
 end
@@ -201,7 +201,7 @@ function FileManagerHistory:onMenuHold(item)
   })
   table.insert(buttons, {
     {
-      text = _("Delete"),
+      text = gettext("Delete"),
       enabled = not (item.dim or is_currently_opened),
       callback = function()
         local FileManager = require("apps/filemanager/filemanager")
@@ -209,7 +209,7 @@ function FileManagerHistory:onMenuHold(item)
       end,
     },
     {
-      text = _("Remove from history"),
+      text = gettext("Remove from history"),
       callback = function()
         UIManager:close(self.histfile_dialog)
         -- The item's idx field is tied to the current *view*, so we can only pass it as-is when there's no filtering *at all* involved.
@@ -299,7 +299,7 @@ function FileManagerHistory:showHistDialog()
   local buttons = {}
   local function genFilterButton(filter)
     return {
-      text = T(_("%1 (%2)"), filter_text[filter], self.count[filter]),
+      text = T(gettext("%1 (%2)"), filter_text[filter], self.count[filter]),
       callback = function()
         UIManager:close(hist_dialog)
         self.filter = filter
@@ -323,7 +323,7 @@ function FileManagerHistory:showHistDialog()
   })
   table.insert(buttons, {
     {
-      text = _("Filter by collections"),
+      text = gettext("Filter by collections"),
       callback = function()
         UIManager:close(hist_dialog)
         local caller_callback = function(selected_collections)
@@ -336,7 +336,7 @@ function FileManagerHistory:showHistDialog()
   })
   table.insert(buttons, {
     {
-      text = _("Search in filename and book metadata"),
+      text = gettext("Search in filename and book metadata"),
       callback = function()
         UIManager:close(hist_dialog)
         self:onSearchHistory()
@@ -347,11 +347,11 @@ function FileManagerHistory:showHistDialog()
     table.insert(buttons, {}) -- separator
     table.insert(buttons, {
       {
-        text = _("Clear history of deleted files"),
+        text = gettext("Clear history of deleted files"),
         callback = function()
           local confirmbox = ConfirmBox:new({
-            text = _("Clear history of deleted files?"),
-            ok_text = _("Clear"),
+            text = gettext("Clear history of deleted files?"),
+            ok_text = gettext("Clear"),
             ok_callback = function()
               UIManager:close(hist_dialog)
               require("readhistory"):clearMissing()
@@ -364,7 +364,7 @@ function FileManagerHistory:showHistDialog()
     })
   end
   hist_dialog = ButtonDialog:new({
-    title = _("Filter by book status"),
+    title = gettext("Filter by book status"),
     title_align = "center",
     buttons = buttons,
   })
@@ -374,19 +374,19 @@ end
 function FileManagerHistory:onSearchHistory()
   local search_dialog, check_button_case
   search_dialog = InputDialog:new({
-    title = _("Enter text to search history for"),
+    title = gettext("Enter text to search history for"),
     input = self.search_string,
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(search_dialog)
           end,
         },
         {
-          text = _("Search"),
+          text = gettext("Search"),
           is_enter_default = true,
           callback = function()
             local search_string = search_dialog:getInputText()
@@ -409,7 +409,7 @@ function FileManagerHistory:onSearchHistory()
     },
   })
   check_button_case = CheckButton:new({
-    text = _("Case sensitive"),
+    text = gettext("Case sensitive"),
     checked = self.case_sensitive,
     parent = search_dialog,
     callback = function()

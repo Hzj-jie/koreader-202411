@@ -1,5 +1,5 @@
 local logger = require("logger")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local FeedView = {
   URL = "url",
@@ -59,42 +59,42 @@ function FeedView:getItem(id, feed, edit_feed_callback, delete_feed_callback)
 
   local vc = {
     {
-      _("URL"),
+      gettext("URL"),
       url,
       callback = function()
         edit_feed_callback(id, FeedView.URL, url)
       end,
     },
     {
-      _("Limit"),
+      gettext("Limit"),
       limit,
       callback = function()
         edit_feed_callback(id, FeedView.LIMIT, limit)
       end,
     },
     {
-      _("Download full article"),
+      gettext("Download full article"),
       download_full_article,
       callback = function()
         edit_feed_callback(id, FeedView.DOWNLOAD_FULL_ARTICLE, download_full_article)
       end,
     },
     {
-      _("Include images"),
+      gettext("Include images"),
       include_images,
       callback = function()
         edit_feed_callback(id, FeedView.INCLUDE_IMAGES, include_images)
       end,
     },
     {
-      _("Enable filter"),
+      gettext("Enable filter"),
       enable_filter,
       callback = function()
         edit_feed_callback(id, FeedView.ENABLE_FILTER, enable_filter)
       end,
     },
     {
-      _("Filter element"),
+      gettext("Filter element"),
       filter_element,
       callback = function()
         edit_feed_callback(id, FeedView.FILTER_ELEMENT, filter_element)
@@ -107,7 +107,7 @@ function FeedView:getItem(id, feed, edit_feed_callback, delete_feed_callback)
   if delete_feed_callback then
     table.insert(vc, "---")
     table.insert(vc, {
-      _("Delete feed"),
+      gettext("Delete feed"),
       "",
       callback = function()
         delete_feed_callback(id)

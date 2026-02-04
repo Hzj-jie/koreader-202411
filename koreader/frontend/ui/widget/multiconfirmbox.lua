@@ -4,12 +4,12 @@ Widget that shows a message and cancel/choice1/choice2 buttons
 Example:
 
     UIManager:show(MultiConfirmBox:new{
-        text = T( _("Set %1 as fallback font?"), face),
-        choice1_text = _("Default"),
+        text = T( gettext("Set %1 as fallback font?"), face),
+        choice1_text = gettext("Default"),
         choice1_callback = function()
             -- set as default font
         end,
-        choice2_text = _("Fallback"),
+        choice2_text = gettext("Fallback"),
         choice2_callback = function()
             -- set as fallback font
         end,
@@ -34,19 +34,19 @@ local TextBoxWidget = require("ui/widget/textboxwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = require("device").screen
 
 local MultiConfirmBox = InputContainer:extend({
   modal = true,
-  text = _("no text"),
+  text = gettext("no text"),
   face = Font:getFace("infofont"),
   icon = "notice-question",
-  choice1_text = _("Choice 1"),
+  choice1_text = gettext("Choice 1"),
   choice1_text_func = nil,
-  choice2_text = _("Choice 2"),
+  choice2_text = gettext("Choice 2"),
   choice2_text_func = nil,
-  cancel_text = _("Cancel"),
+  cancel_text = gettext("Cancel"),
   choice1_callback = function() end,
   choice2_callback = function() end,
   cancel_callback = function() end,

@@ -9,7 +9,7 @@ local Device = require("device")
 local QRMessage = require("ui/widget/qrmessage")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local QRClipboard = WidgetContainer:extend({
   name = "qrclipboard",
@@ -22,7 +22,7 @@ end
 
 function QRClipboard:addToMainMenu(menu_items)
   menu_items.qrclipboard = {
-    text = _("QR from clipboard"),
+    text = gettext("QR from clipboard"),
     callback = function()
       UIManager:show(QRMessage:new({
         text = Device.input.getClipboardText(),

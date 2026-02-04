@@ -3,10 +3,10 @@ local Device = require("device")
 local PluginShare = require("pluginshare")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local menuItem = {
-  text = _("Keep alive"),
+  text = gettext("Keep alive"),
   checked_func = function()
     return PluginShare.keepalive
   end,
@@ -23,14 +23,14 @@ end
 
 local function showConfirmBox(touchmenu_instance)
   UIManager:show(ConfirmBox:new({
-    text = _(
+    text = gettext(
       'The system won\'t sleep while this message is showing.\n\nPress "Stay alive" if you prefer to keep the system on even after closing this notification. *This will drain the battery*.\n\nIf KOReader terminates before "Close" is pressed, please start and close the KeepAlive plugin again to ensure settings are reset.'
     ),
-    cancel_text = _("Close"),
+    cancel_text = gettext("Close"),
     cancel_callback = function()
       disableOnMenu(touchmenu_instance)
     end,
-    ok_text = _("Stay alive"),
+    ok_text = gettext("Stay alive"),
     ok_callback = function()
       PluginShare.keepalive = true
       touchmenu_instance:updateItems()
@@ -60,12 +60,12 @@ elseif Device:isSDL() then
   local InfoMessage = require("ui/widget/infomessage")
   disable = function()
     UIManager:show(InfoMessage:new({
-      text = _("This is a dummy implementation of 'disable' function."),
+      text = gettext("This is a dummy implementation of 'disable' function."),
     }))
   end
   enable = function()
     UIManager:show(InfoMessage:new({
-      text = _("This is a dummy implementation of 'enable' function."),
+      text = gettext("This is a dummy implementation of 'enable' function."),
     }))
   end
 else

@@ -1,4 +1,4 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 local Device = require("device")
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -17,8 +17,8 @@ end
 
 local function setDPI(dpi_val)
   local UIManager = require("ui/uimanager")
-  local text = dpi_val and T(_("DPI set to %1. This will take effect after restarting."), dpi_val)
-    or _("DPI set to auto. This will take effect after restarting.")
+  local text = dpi_val and T(gettext("DPI set to %1. This will take effect after restarting."), dpi_val)
+    or gettext("DPI set to auto. This will take effect after restarting.")
   -- If this is set to nil, reader.lua doesn't call setScreenDPI
   G_reader_settings:save("screen_dpi", dpi_val)
   -- Passing a nil properly resets to defaults/auto
@@ -35,8 +35,8 @@ local function spinWidgetSetDPI(touchmenu_instance)
     value_max = 900,
     value_step = 10,
     value_hold_step = 50,
-    ok_text = _("Set DPI"),
-    title_text = _("Set custom screen DPI"),
+    ok_text = gettext("Set DPI"),
+    title_text = gettext("Set custom screen DPI"),
     callback = function(spin)
       G_reader_settings:save("custom_screen_dpi", spin.value)
       setDPI(spin.value)
@@ -56,7 +56,7 @@ local dpi_xxxlarge = 640
 
 local function predefined_dpi_menu_item(text, dpi_value, lower, upper)
   return {
-    text = T(_(text .. " (%1)"), dpi_value),
+    text = T(gettext(text .. " (%1)"), dpi_value),
     checked_func = function()
       if isAutoDPI() then
         return false
@@ -72,11 +72,11 @@ local function predefined_dpi_menu_item(text, dpi_value, lower, upper)
 end
 
 return {
-  text = _("Screen DPI"),
+  text = gettext("Screen DPI"),
   sub_item_table = {
     {
-      text = dpi_auto and T(_("Auto DPI (%1)"), dpi_auto) or _("Auto DPI"),
-      help_text = _(
+      text = dpi_auto and T(gettext("Auto DPI (%1)"), dpi_auto) or gettext("Auto DPI"),
+      help_text = gettext(
         "The DPI of your screen is automatically detected so items can be drawn with the right amount of pixels. This will usually display at (roughly) the same size on different devices, while remaining sharp. Increasing the DPI setting will result in larger text and icons, while a lower DPI setting will look smaller on the screen."
       ),
       checked_func = isAutoDPI,
@@ -95,9 +95,9 @@ return {
       text_func = function()
         local custom_dpi = custom() or dpi_auto
         if custom_dpi then
-          return T(_("Custom DPI: %1 (hold to set)"), custom() or dpi_auto)
+          return T(gettext("Custom DPI: %1 (hold to set)"), custom() or dpi_auto)
         else
-          return _("Custom DPI")
+          return gettext("Custom DPI")
         end
       end,
       checked_func = function()

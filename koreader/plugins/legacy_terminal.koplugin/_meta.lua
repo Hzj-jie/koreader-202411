@@ -1,8 +1,8 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "legacy_terminal",
   -- Need localization
-  fullname = _("Legacy terminal emulator"),
+  fullname = gettext("Legacy terminal emulator"),
   -- Need localization
-  description = _([[KOReader's legacy terminal emulator]]),
+  description = gettext([[KOReader's legacy terminal emulator]]),
 }

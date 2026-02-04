@@ -5,7 +5,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local logger = require("logger")
 local time = require("ui/time")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local AutoTurn = WidgetContainer:extend({
@@ -66,10 +66,10 @@ function AutoTurn:_start()
     local text
     if self.autoturn_distance == 1 then
       local time_string = datetime.secondsToClockDuration("letters", self.autoturn_sec, false, true, true)
-      text = T(_("Autoturn is now active and will automatically turn the page every %1."), time_string)
+      text = T(gettext("Autoturn is now active and will automatically turn the page every %1."), time_string)
     else
       text = T(
-        _("Autoturn is now active and will automatically scroll %1 % of the page every %2 seconds."),
+        gettext("Autoturn is now active and will automatically scroll %1 % of the page every %2 seconds."),
         self.autoturn_distance * 100,
         self.autoturn_sec
       )
@@ -121,7 +121,7 @@ function AutoTurn:addToMainMenu(menu_items)
   menu_items.autoturn = {
     text_func = function()
       local time_string = datetime.secondsToClockDuration("letters", self.autoturn_sec, false, true, true)
-      return self:_enabled() and T(_("Autoturn: %1"), time_string) or _("Autoturn")
+      return self:_enabled() and T(gettext("Autoturn: %1"), time_string) or gettext("Autoturn")
     end,
     checked_func = function()
       return self:_enabled()
@@ -132,16 +132,16 @@ function AutoTurn:addToMainMenu(menu_items)
       local autoturn_minutes = math.floor(autoturn_seconds * (1 / 60))
       autoturn_seconds = autoturn_seconds % 60
       local autoturn_spin = DateTimeWidget:new({
-        title_text = _("Autoturn time"),
-        info_text = _("Enter time in minutes and seconds."),
+        title_text = gettext("Autoturn time"),
+        info_text = gettext("Enter time in minutes and seconds."),
         min = autoturn_minutes,
         min_max = 60 * 24, -- maximum one day
         min_default = 0,
         sec = autoturn_seconds,
         sec_default = 30,
         keep_shown_on_apply = true,
-        ok_text = _("Set timeout"),
-        cancel_text = _("Disable"),
+        ok_text = gettext("Set timeout"),
+        cancel_text = gettext("Disable"),
         cancel_callback = function()
           self.enabled = false
           G_reader_settings:makeFalse("autoturn_enabled")
@@ -173,8 +173,8 @@ function AutoTurn:addToMainMenu(menu_items)
         precision = "%.2f",
         value_step = 0.1,
         value_hold_step = 0.5,
-        ok_text = _("Set distance"),
-        title_text = _("Scrolling distance"),
+        ok_text = gettext("Set distance"),
+        title_text = gettext("Scrolling distance"),
         callback = function(autoturn_spin)
           self.autoturn_distance = autoturn_spin.value
           G_reader_settings:save("autoturn_distance", autoturn_spin.value)

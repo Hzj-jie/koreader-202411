@@ -1,6 +1,6 @@
 local util = require("ffi/util")
 local T = util.template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- myClippings exporter
 local ClippingsExporter = require("base"):new({
@@ -19,7 +19,7 @@ local function format(booknotes)
         local title_str = booknotes.title .. " (" .. (booknotes.author or "Unknown") .. ")"
         table.insert(tbl, title_str)
         local header = T(
-          _("- Your highlight on page %1 | Added on %2"),
+          gettext("- Your highlight on page %1 | Added on %2"),
           clipping.page,
           os.date("%A, %B %d, %Y %I:%M:%S %p", clipping.time)
         )
@@ -31,7 +31,7 @@ local function format(booknotes)
         if clipping.note then
           table.insert(tbl, title_str)
           header = T(
-            _("- Your note on page %1 | Added on %2"),
+            gettext("- Your note on page %1 | Added on %2"),
             clipping.page,
             os.date("%A, %B %d, %Y %I:%M:%S %p", clipping.time)
           )

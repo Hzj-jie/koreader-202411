@@ -1,6 +1,6 @@
 local util = require("ffi/util")
 local T = util.template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- text exporter
 local TextExporter = require("base"):new({
@@ -25,7 +25,7 @@ local function format(booknotes)
         table.insert(tbl, wide_space .. clipping.chapter)
         table.insert(tbl, wide_space)
       end
-      local text = T(_("-- Page: %1, added on %2\n"), clipping.page, os.date("%c", clipping.time))
+      local text = T(gettext("-- Page: %1, added on %2\n"), clipping.page, os.date("%c", clipping.time))
       table.insert(tbl, wide_space .. wide_space .. text)
       if clipping.text then
         table.insert(tbl, clipping.text)
@@ -34,7 +34,7 @@ local function format(booknotes)
         table.insert(tbl, "\n---\n" .. clipping.note)
       end
       if clipping.image then
-        table.insert(tbl, _("<An image>"))
+        table.insert(tbl, gettext("<An image>"))
       end
       table.insert(tbl, "-=-=-=-=-=-")
     end

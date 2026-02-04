@@ -3,8 +3,8 @@ This module contains date translations and helper functions for the KOReader fro
 ]]
 
 local BaseUtil = require("ffi/util")
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local T = BaseUtil.template
 
 local datetime = {}
@@ -12,53 +12,53 @@ local datetime = {}
 datetime.weekDays = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" } -- in Lua wday order
 
 datetime.shortMonthTranslation = {
-  ["Jan"] = _("Jan"),
-  ["Feb"] = _("Feb"),
-  ["Mar"] = _("Mar"),
-  ["Apr"] = _("Apr"),
-  ["May"] = _("May"),
-  ["Jun"] = _("Jun"),
-  ["Jul"] = _("Jul"),
-  ["Aug"] = _("Aug"),
-  ["Sep"] = _("Sep"),
-  ["Oct"] = _("Oct"),
-  ["Nov"] = _("Nov"),
-  ["Dec"] = _("Dec"),
+  ["Jan"] = gettext("Jan"),
+  ["Feb"] = gettext("Feb"),
+  ["Mar"] = gettext("Mar"),
+  ["Apr"] = gettext("Apr"),
+  ["May"] = gettext("May"),
+  ["Jun"] = gettext("Jun"),
+  ["Jul"] = gettext("Jul"),
+  ["Aug"] = gettext("Aug"),
+  ["Sep"] = gettext("Sep"),
+  ["Oct"] = gettext("Oct"),
+  ["Nov"] = gettext("Nov"),
+  ["Dec"] = gettext("Dec"),
 }
 
 datetime.longMonthTranslation = {
-  ["January"] = _("January"),
-  ["February"] = _("February"),
-  ["March"] = _("March"),
-  ["April"] = _("April"),
-  ["May"] = _("May"),
-  ["June"] = _("June"),
-  ["July"] = _("July"),
-  ["August"] = _("August"),
-  ["September"] = _("September"),
-  ["October"] = _("October"),
-  ["November"] = _("November"),
-  ["December"] = _("December"),
+  ["January"] = gettext("January"),
+  ["February"] = gettext("February"),
+  ["March"] = gettext("March"),
+  ["April"] = gettext("April"),
+  ["May"] = gettext("May"),
+  ["June"] = gettext("June"),
+  ["July"] = gettext("July"),
+  ["August"] = gettext("August"),
+  ["September"] = gettext("September"),
+  ["October"] = gettext("October"),
+  ["November"] = gettext("November"),
+  ["December"] = gettext("December"),
 }
 
 datetime.shortDayOfWeekTranslation = {
-  ["Mon"] = _("Mon"),
-  ["Tue"] = _("Tue"),
-  ["Wed"] = _("Wed"),
-  ["Thu"] = _("Thu"),
-  ["Fri"] = _("Fri"),
-  ["Sat"] = _("Sat"),
-  ["Sun"] = _("Sun"),
+  ["Mon"] = gettext("Mon"),
+  ["Tue"] = gettext("Tue"),
+  ["Wed"] = gettext("Wed"),
+  ["Thu"] = gettext("Thu"),
+  ["Fri"] = gettext("Fri"),
+  ["Sat"] = gettext("Sat"),
+  ["Sun"] = gettext("Sun"),
 }
 
 datetime.shortDayOfWeekToLongTranslation = {
-  ["Mon"] = _("Monday"),
-  ["Tue"] = _("Tuesday"),
-  ["Wed"] = _("Wednesday"),
-  ["Thu"] = _("Thursday"),
-  ["Fri"] = _("Friday"),
-  ["Sat"] = _("Saturday"),
-  ["Sun"] = _("Sunday"),
+  ["Mon"] = gettext("Monday"),
+  ["Tue"] = gettext("Tuesday"),
+  ["Wed"] = gettext("Wednesday"),
+  ["Thu"] = gettext("Thursday"),
+  ["Fri"] = gettext("Friday"),
+  ["Sat"] = gettext("Saturday"),
+  ["Sun"] = gettext("Sunday"),
 }
 
 --[[--
@@ -123,7 +123,7 @@ function datetime.secondsToHClock(seconds, withoutSeconds, hmsFormat, withDays, 
   if seconds == 0 then
     if withoutSeconds then
       if hmsFormat then
-        return T(_("%1m"), "0")
+        return T(gettext("%1m"), "0")
       else
         return "0'"
       end
@@ -227,14 +227,14 @@ if jit.os == "Windows" then
     if twelve_hour_clock then
       if os.date("%p", seconds) == "AM" then
         -- @translators This is the time in the morning using a 12-hour clock (%I is the hour, %M the minute).
-        return os.date(_("%I:%M AM"), seconds)
+        return os.date(gettext("%I:%M AM"), seconds)
       else
         -- @translators This is the time in the afternoon using a 12-hour clock (%I is the hour, %M the minute).
-        return os.date(_("%I:%M PM"), seconds)
+        return os.date(gettext("%I:%M PM"), seconds)
       end
     else
       -- @translators This is the time using a 24-hour clock (%H is the hour, %M the minute).
-      return os.date(_("%H:%M"), seconds)
+      return os.date(gettext("%H:%M"), seconds)
     end
   end
 else
@@ -243,27 +243,27 @@ else
       if os.date("%p", seconds) == "AM" then
         if pad_with_spaces then
           -- @translators This is the time in the morning using a 12-hour clock (%_I is the hour, %M the minute).
-          return os.date(_("%_I:%M AM"), seconds)
+          return os.date(gettext("%_I:%M AM"), seconds)
         else
           -- @translators This is the time in the morning using a 12-hour clock (%-I is the hour, %M the minute).
-          return os.date(_("%-I:%M AM"), seconds)
+          return os.date(gettext("%-I:%M AM"), seconds)
         end
       else
         if pad_with_spaces then
           -- @translators This is the time in the afternoon using a 12-hour clock (%_I is the hour, %M the minute).
-          return os.date(_("%_I:%M PM"), seconds)
+          return os.date(gettext("%_I:%M PM"), seconds)
         else
           -- @translators This is the time in the afternoon using a 12-hour clock (%-I is the hour, %M the minute).
-          return os.date(_("%-I:%M PM"), seconds)
+          return os.date(gettext("%-I:%M PM"), seconds)
         end
       end
     else
       if pad_with_spaces then
         -- @translators This is the time using a 24-hour clock (%_H is the hour, %M the minute).
-        return os.date(_("%_H:%M"), seconds)
+        return os.date(gettext("%_H:%M"), seconds)
       else
         -- @translators This is the time using a 24-hour clock (%-H is the hour, %M the minute).
-        return os.date(_("%-H:%M"), seconds)
+        return os.date(gettext("%-H:%M"), seconds)
       end
     end
   end

@@ -4,16 +4,16 @@ local FFIUtil = require("ffi/util")
 local UIManager = require("ui/uimanager")
 local dbg = require("dbg")
 local lfs = require("libs/libkoreader-lfs")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local developer_options = {
-  text = _("Developer options"),
+  text = gettext("Developer options"),
   sub_item_table = {
     {
-      text = _("Clear caches"),
+      text = gettext("Clear caches"),
       callback = function()
         UIManager:show(ConfirmBox:new({
-          text = _("Clear the cache folder?"),
+          text = gettext("Clear the cache folder?"),
           ok_callback = function()
             local DataStorage = require("datastorage")
             local cachedir = DataStorage:getDataDir() .. "/cache"
@@ -24,13 +24,13 @@ local developer_options = {
             -- Also remove from the Cache object references to the cache files we've just deleted
             local Cache = require("cache")
             Cache.cached = {}
-            UIManager:askForRestart(_("Caches cleared. Please restart KOReader."))
+            UIManager:askForRestart(gettext("Caches cleared. Please restart KOReader."))
           end,
         }))
       end,
     },
     {
-      text = _("Enable debug logging"),
+      text = gettext("Enable debug logging"),
       checked_func = function()
         return G_reader_settings:isTrue("debug")
       end,
@@ -46,7 +46,7 @@ local developer_options = {
       end,
     },
     {
-      text = _("Enable verbose debug logging"),
+      text = gettext("Enable verbose debug logging"),
       enabled_func = function()
         return G_reader_settings:isTrue("debug")
       end,
@@ -66,7 +66,7 @@ local developer_options = {
 }
 if Device:isKobo() and not Device:isSunxi() and not Device:hasColorScreen() then
   table.insert(developer_options.sub_item_table, {
-    text = _("Disable forced 8-bit pixel depth"),
+    text = gettext("Disable forced 8-bit pixel depth"),
     checked_func = function()
       return G_reader_settings:isTrue("dev_startup_no_fbdepth")
     end,
@@ -79,7 +79,7 @@ end
 --- @note Currently, only Kobo, rM & PB have a fancy crash display (#5328)
 if Device:isKobo() or Device:isRemarkable() or Device:isPocketBook() then
   table.insert(developer_options.sub_item_table, {
-    text = _("Always abort on crash"),
+    text = gettext("Always abort on crash"),
     checked_func = function()
       return G_reader_settings:isTrue("dev_abort_on_crash")
     end,
@@ -91,7 +91,7 @@ if Device:isKobo() or Device:isRemarkable() or Device:isPocketBook() then
 end
 local Blitbuffer = require("ffi/blitbuffer")
 table.insert(developer_options.sub_item_table, {
-  text = _("Disable C blitter"),
+  text = gettext("Disable C blitter"),
   enabled_func = function()
     return Blitbuffer.has_cblitbuffer
   end,
@@ -105,7 +105,7 @@ table.insert(developer_options.sub_item_table, {
 })
 if Device:hasEinkScreen() and Device:canHWDither() then
   table.insert(developer_options.sub_item_table, {
-    text = _("Disable HW dithering"),
+    text = gettext("Disable HW dithering"),
     checked_func = function()
       return not Device.screen.hw_dithering
     end,
@@ -123,7 +123,7 @@ if Device:hasEinkScreen() and Device:canHWDither() then
 end
 if Device:hasEinkScreen() then
   table.insert(developer_options.sub_item_table, {
-    text = _("Disable SW dithering"),
+    text = gettext("Disable SW dithering"),
     enabled_func = function()
       return Device.screen.fb_bpp == 8
     end,
@@ -147,7 +147,7 @@ if Device:isKobo() and Device:hasColorScreen() then
     -- We default to a flag (G2) that slightly boosts saturation,
     -- but it *is* a destructive process, so we want to allow disabling it.
     -- @translators CFA is a technical term for the technology behind eInk's color panels. It stands for Color Film/Filter Array, leave the abbreviation alone ;).
-    text = _("Disable CFA post-processing"),
+    text = gettext("Disable CFA post-processing"),
     checked_func = function()
       return G_reader_settings:isTrue("no_cfa_post_processing")
     end,
@@ -158,7 +158,7 @@ if Device:isKobo() and Device:hasColorScreen() then
   })
 end
 table.insert(developer_options.sub_item_table, {
-  text = _("Anti-alias rounded corners"),
+  text = gettext("Anti-alias rounded corners"),
   checked_func = function()
     return G_reader_settings:nilOrTrue("anti_alias_ui")
   end,
@@ -170,7 +170,7 @@ table.insert(developer_options.sub_item_table, {
 if Device:hasEinkScreen() and Device:isKobo() then
   table.insert(developer_options.sub_item_table, {
     -- @translators Highly technical (ioctl is a Linux API call, the uppercase stuff is a constant). What's translatable is essentially only the action ("bypass") and the article.
-    text = _("Bypass the WAIT_FOR ioctls"),
+    text = gettext("Bypass the WAIT_FOR ioctls"),
     checked_func = function()
       return G_reader_settings:isTrueOr("mxcfb_bypass_wait_for", not Device:hasReliableMxcWaitFor())
     end,
@@ -186,7 +186,7 @@ end
 if Device:hasEinkScreen() and Device:isPocketBook() then
   table.insert(developer_options.sub_item_table, {
     -- @translators B288 is the codename of the CPU/chipset (SoC stands for 'System on Chip').
-    text = _("Ignore feature bans on B288 SoCs"),
+    text = gettext("Ignore feature bans on B288 SoCs"),
     enabled_func = function()
       return Device:isB288SoC()
     end,
@@ -201,7 +201,7 @@ if Device:hasEinkScreen() and Device:isPocketBook() then
 end
 if Device:isAndroid() then
   table.insert(developer_options.sub_item_table, {
-    text = _("Start compatibility test"),
+    text = gettext("Start compatibility test"),
     callback = function()
       Device:test()
     end,
@@ -209,7 +209,7 @@ if Device:isAndroid() then
 end
 
 table.insert(developer_options.sub_item_table, {
-  text = _("Disable enhanced UI text shaping (xtext)"),
+  text = gettext("Disable enhanced UI text shaping (xtext)"),
   checked_func = function()
     return G_reader_settings:isFalse("use_xtext")
   end,
@@ -219,10 +219,10 @@ table.insert(developer_options.sub_item_table, {
   end,
 })
 table.insert(developer_options.sub_item_table, {
-  text = _("UI layout mirroring and text direction"),
+  text = gettext("UI layout mirroring and text direction"),
   sub_item_table = {
     {
-      text = _("Reverse UI layout mirroring"),
+      text = gettext("Reverse UI layout mirroring"),
       checked_func = function()
         return G_reader_settings:isTrue("dev_reverse_ui_layout_mirroring")
       end,
@@ -232,7 +232,7 @@ table.insert(developer_options.sub_item_table, {
       end,
     },
     {
-      text = _("Reverse UI text direction"),
+      text = gettext("Reverse UI text direction"),
       checked_func = function()
         return G_reader_settings:isTrue("dev_reverse_ui_text_direction")
       end,
@@ -249,9 +249,9 @@ table.insert(developer_options.sub_item_table, {
       G_reader_settings:nilOrTrue("use_cre_call_cache")
       and G_reader_settings:isTrue("use_cre_call_cache_log_stats")
     then
-      return _("Enable CRE call cache (with stats)")
+      return gettext("Enable CRE call cache (with stats)")
     end
-    return _("Enable CRE call cache")
+    return gettext("Enable CRE call cache")
   end,
   checked_func = function()
     return G_reader_settings:nilOrTrue("use_cre_call_cache")
@@ -267,7 +267,7 @@ table.insert(developer_options.sub_item_table, {
   end,
 })
 table.insert(developer_options.sub_item_table, {
-  text = _("Dump the fontlist cache"),
+  text = gettext("Dump the fontlist cache"),
   callback = function()
     local FontList = require("fontlist")
     FontList:dumpFontList()
@@ -276,7 +276,7 @@ table.insert(developer_options.sub_item_table, {
 if Device:isKobo() and Device:canToggleChargingLED() then
   table.insert(developer_options.sub_item_table, {
     -- @translators This is a debug option to help determine cases when standby failed to initiate properly. PM = power management.
-    text = _("Turn on the LED on PM entry failure"),
+    text = gettext("Turn on the LED on PM entry failure"),
     checked_func = function()
       return G_reader_settings:isTrue("pm_debug_entry_failure")
     end,

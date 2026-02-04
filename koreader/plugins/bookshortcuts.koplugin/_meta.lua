@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "bookshortcuts",
-  fullname = _("Book shortcuts"),
-  description = _([[This plugin allows adding a book shortcut to a gesture.]]),
+  fullname = gettext("Book shortcuts"),
+  description = gettext([[This plugin allows adding a book shortcut to a gesture.]]),
 }

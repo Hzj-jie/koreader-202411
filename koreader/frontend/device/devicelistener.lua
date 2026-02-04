@@ -5,7 +5,7 @@ local Notification = require("ui/widget/notification")
 local Screen = Device.screen
 local UIManager = require("ui/uimanager")
 local bit = require("bit")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local DeviceListener = EventListener:extend({})
@@ -94,11 +94,11 @@ if Device:hasFrontlight() then
     local new_text
     if new_intensity <= 0 then
       powerd:turnOffFrontlight()
-      new_text = _("Frontlight disabled.")
+      new_text = gettext("Frontlight disabled.")
     else
       powerd:setIntensity(new_intensity)
       -- Allow powerd adjusting the frontlight intensity.
-      new_text = T(_("Frontlight intensity set to %1."), powerd:frontlightIntensity())
+      new_text = T(gettext("Frontlight intensity set to %1."), powerd:frontlightIntensity())
     end
     powerd:updateResumeFrontlightState()
     Notification:notify(new_text)
@@ -146,7 +146,7 @@ if Device:hasFrontlight() then
     end
     powerd:setWarmth(warmth)
     -- Allow powerd adjusting warmth.
-    Notification:notify(T(_("Warmth set to %1."), powerd:toNativeWarmth(powerd:frontlightWarmth())))
+    Notification:notify(T(gettext("Warmth set to %1."), powerd:toNativeWarmth(powerd:frontlightWarmth())))
     return true
   end
 
@@ -162,9 +162,9 @@ if Device:hasFrontlight() then
     local powerd = Device:getPowerDevice()
     local new_text
     if powerd:isFrontlightOn() then
-      new_text = _("Frontlight disabled.")
+      new_text = gettext("Frontlight disabled.")
     else
-      new_text = _("Frontlight enabled.")
+      new_text = gettext("Frontlight enabled.")
     end
     -- We defer displaying the Notification to PowerD, as the toggle may be a ramp, and we both want to make sure the refresh fencing won't affect it, and that we only display the Notification at the end...
     local notif_source = Notification.notify_source
@@ -172,7 +172,7 @@ if Device:hasFrontlight() then
       Notification:notify(new_text, notif_source)
     end
     if not powerd:toggleFrontlight(notif_cb) then
-      Notification:notify(_("Frontlight unchanged."), notif_source)
+      Notification:notify(gettext("Frontlight unchanged."), notif_source)
     end
     powerd:updateResumeFrontlightState()
   end
@@ -188,9 +188,9 @@ if Device:hasGSensor() then
     Device:toggleGSensor(not G_reader_settings:isTrue("input_ignore_gsensor"))
     local new_text
     if G_reader_settings:isTrue("input_ignore_gsensor") then
-      new_text = _("Accelerometer rotation events off.")
+      new_text = gettext("Accelerometer rotation events off.")
     else
-      new_text = _("Accelerometer rotation events on.")
+      new_text = gettext("Accelerometer rotation events on.")
     end
     Notification:notify(new_text)
     return true
@@ -199,10 +199,10 @@ if Device:hasGSensor() then
   function DeviceListener:onTempGSensorOn()
     local new_text
     if G_reader_settings:nilOrFalse("input_ignore_gsensor") then
-      new_text = _("Accelerometer rotation events already on.")
+      new_text = gettext("Accelerometer rotation events already on.")
     else
       Device:toggleGSensor(true)
-      new_text = _("Accelerometer rotation events on for 5 seconds.")
+      new_text = gettext("Accelerometer rotation events on for 5 seconds.")
       UIManager:scheduleIn(5.0, function()
         Device:toggleGSensor(false)
       end)
@@ -216,9 +216,9 @@ if Device:hasGSensor() then
     Device:lockGSensor(G_reader_settings:isTrue("input_lock_gsensor"))
     local new_text
     if G_reader_settings:isTrue("input_lock_gsensor") then
-      new_text = _("Orientation locked.")
+      new_text = gettext("Orientation locked.")
     else
-      new_text = _("Orientation unlocked.")
+      new_text = gettext("Orientation unlocked.")
     end
     Notification:notify(new_text)
     return true
@@ -278,9 +278,9 @@ function DeviceListener:onSwapPageTurnButtons(side)
     G_reader_settings:flipNilOrFalse("input_invert_left_page_turn_keys")
     Device:invertButtonsLeft()
     if G_reader_settings:isTrue("input_invert_left_page_turn_keys") then
-      new_text = _("Left-side page-turn buttons inverted.")
+      new_text = gettext("Left-side page-turn buttons inverted.")
     else
-      new_text = _("Left-side page-turn buttons no longer inverted.")
+      new_text = gettext("Left-side page-turn buttons no longer inverted.")
     end
   elseif side == "right" then
     -- Revert any prior global inversions first, as we could end up with an all greyed out menu.
@@ -291,9 +291,9 @@ function DeviceListener:onSwapPageTurnButtons(side)
     G_reader_settings:flipNilOrFalse("input_invert_right_page_turn_keys")
     Device:invertButtonsRight()
     if G_reader_settings:isTrue("input_invert_right_page_turn_keys") then
-      new_text = _("Right-side page-turn buttons inverted.")
+      new_text = gettext("Right-side page-turn buttons inverted.")
     else
-      new_text = _("Right-side page-turn buttons no longer inverted.")
+      new_text = gettext("Right-side page-turn buttons no longer inverted.")
     end
   else
     -- Revert any prior inversions first, as we could end up with an all greyed out menu.
@@ -305,7 +305,7 @@ function DeviceListener:onSwapPageTurnButtons(side)
       G_reader_settings:makeFalse("input_invert_right_page_turn_keys")
       G_reader_settings:makeFalse("input_invert_page_turn_keys")
       Device:invertButtons()
-      new_text = _("Page-turn buttons no longer inverted.")
+      new_text = gettext("Page-turn buttons no longer inverted.")
       Notification:notify(new_text)
       return true
     elseif G_reader_settings:isTrue("input_invert_left_page_turn_keys") then
@@ -318,9 +318,9 @@ function DeviceListener:onSwapPageTurnButtons(side)
     G_reader_settings:flipNilOrFalse("input_invert_page_turn_keys")
     Device:invertButtons()
     if G_reader_settings:isTrue("input_invert_page_turn_keys") then
-      new_text = _("Page-turn buttons inverted.")
+      new_text = gettext("Page-turn buttons inverted.")
     else
-      new_text = _("Page-turn buttons no longer inverted.")
+      new_text = gettext("Page-turn buttons no longer inverted.")
     end
   end
   Notification:notify(new_text)

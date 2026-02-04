@@ -15,7 +15,7 @@ local random = require("random")
 local time = require("ui/time")
 local util = require("util")
 local T = require("ffi/util").template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 if G_reader_settings:hasNot("device_id") then
   G_reader_settings:save("device_id", random.uuid())
@@ -24,7 +24,7 @@ end
 local KOSync = WidgetContainer:extend({
   name = "kosync",
   is_doc_only = true,
-  title = _("Register/login to KOReader server"),
+  title = gettext("Register/login to KOReader server"),
 
   push_timestamp = nil,
   pull_timestamp = nil,
@@ -79,11 +79,11 @@ end
 
 local function getNameStrategy(type)
   if type == 1 then
-    return _("Prompt")
+    return gettext("Prompt")
   elseif type == 2 then
-    return _("Auto")
+    return gettext("Auto")
   else
-    return _("Disable")
+    return gettext("Disable")
   end
 end
 
@@ -94,19 +94,21 @@ local function showSyncedMessage()
   -- So instead of using an InfoMessage, shows a notification to avoid blocking
   -- most of the screen would provide a better user experience. Similar to the
   -- notifications used to change the font size.
-  Notification:notify(_("Progress has been synchronized."))
+  Notification:notify(gettext("Progress has been synchronized."))
 end
 
 local function promptLogin()
   UIManager:show(InfoMessage:new({
-    text = _("Please register or login before using the progress synchronization feature."),
+    text = gettext("Please register or login before using the progress synchronization feature."),
     timeout = 3,
   }))
 end
 
 local function showSyncError()
   UIManager:show(InfoMessage:new({
-    text = _("Something went wrong when syncing progress, please check your network connection and try again later."),
+    text = gettext(
+      "Something went wrong when syncing progress, please check your network connection and try again later."
+    ),
     timeout = 3,
   }))
 end
@@ -128,11 +130,11 @@ local function validateUser(user, pass)
   local user_ok = validate(user)
   local pass_ok = validate(pass)
   if not user_ok and not pass_ok then
-    error_message = _("invalid username and password")
+    error_message = gettext("invalid username and password")
   elseif not user_ok then
-    error_message = _("invalid username")
+    error_message = gettext("invalid username")
   elseif not pass_ok then
-    error_message = _("invalid password")
+    error_message = gettext("invalid password")
   end
 
   if not error_message then
@@ -153,13 +155,13 @@ function KOSync:onDispatcherRegisterActions()
   Dispatcher:registerAction("kosync_push_progress", {
     category = "none",
     event = "KOSyncPushProgress",
-    title = _("Push progress from this device"),
+    title = gettext("Push progress from this device"),
     reader = true,
   })
   Dispatcher:registerAction("kosync_pull_progress", {
     category = "none",
     event = "KOSyncPullProgress",
-    title = _("Pull progress from other devices"),
+    title = gettext("Pull progress from other devices"),
     reader = true,
     separator = true,
   })
@@ -180,15 +182,15 @@ end
 
 function KOSync:addToMainMenu(menu_items)
   menu_items.progress_sync = {
-    text = _("Progress sync"),
+    text = gettext("Progress sync"),
     sub_item_table = {
       {
-        text = _("Custom sync server"),
+        text = gettext("Custom sync server"),
         keep_menu_open = true,
         tap_input_func = function()
           return {
             -- @translators Server address defined by user for progress sync.
-            title = _("Custom progress sync server address"),
+            title = gettext("Custom progress sync server address"),
             input = self.settings.custom_server or self.last_custom_server_attempt or "https://",
             allow_blank_input = true,
             callback = function(input)
@@ -199,7 +201,7 @@ function KOSync:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return self.settings.userkey and (_("Logout")) or _("Register") .. " / " .. _("Login")
+          return self.settings.userkey and (gettext("Logout")) or gettext("Register") .. " / " .. gettext("Login")
         end,
         keep_menu_open = true,
         callback_func = function()
@@ -216,13 +218,13 @@ function KOSync:addToMainMenu(menu_items)
         separator = true,
       },
       {
-        text = _("Automatically keep documents in sync"),
+        text = gettext("Automatically keep documents in sync"),
         checked_func = function()
           return self.settings.auto_sync
         end,
         help_text =
           -- Need localization
-          _("Enable the feature will automatically pull and push progress when necessary.") .. "\n\n" .. _(
+          gettext("Enable the feature will automatically pull and push progress when necessary.") .. "\n\n" .. gettext(
             [[This may lead to nagging about toggling WiFi on document close and suspend/resume, depending on the device's connectivity.]]
           ),
         callback = function()
@@ -233,7 +235,7 @@ function KOSync:addToMainMenu(menu_items)
             and not self.settings.auto_sync
           then
             UIManager:show(InfoMessage:new({
-              text = _(
+              text = gettext(
                 "You will have to switch the 'Action when Wi-Fi is off' Network setting to 'turn on' to be able to enable this feature!"
               ),
             }))
@@ -255,11 +257,11 @@ function KOSync:addToMainMenu(menu_items)
       {
         text_func = function()
           -- NOTE: With an up-to-date Sync server, "forward" means *newer*, not necessarily ahead in the document.
-          return T(_("Sync to a newer state (%1)"), getNameStrategy(self.settings.sync_forward))
+          return T(gettext("Sync to a newer state (%1)"), getNameStrategy(self.settings.sync_forward))
         end,
         sub_item_table = {
           {
-            text = _("Silently"),
+            text = gettext("Silently"),
             checked_func = function()
               return self.settings.sync_forward == SYNC_STRATEGY.SILENT
             end,
@@ -268,7 +270,7 @@ function KOSync:addToMainMenu(menu_items)
             end,
           },
           {
-            text = _("Prompt"),
+            text = gettext("Prompt"),
             checked_func = function()
               return self.settings.sync_forward == SYNC_STRATEGY.PROMPT
             end,
@@ -277,7 +279,7 @@ function KOSync:addToMainMenu(menu_items)
             end,
           },
           {
-            text = _("Never"),
+            text = gettext("Never"),
             checked_func = function()
               return self.settings.sync_forward == SYNC_STRATEGY.DISABLE
             end,
@@ -289,11 +291,11 @@ function KOSync:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(_("Sync to an older state (%1)"), getNameStrategy(self.settings.sync_backward))
+          return T(gettext("Sync to an older state (%1)"), getNameStrategy(self.settings.sync_backward))
         end,
         sub_item_table = {
           {
-            text = _("Silently"),
+            text = gettext("Silently"),
             checked_func = function()
               return self.settings.sync_backward == SYNC_STRATEGY.SILENT
             end,
@@ -302,7 +304,7 @@ function KOSync:addToMainMenu(menu_items)
             end,
           },
           {
-            text = _("Prompt"),
+            text = gettext("Prompt"),
             checked_func = function()
               return self.settings.sync_backward == SYNC_STRATEGY.PROMPT
             end,
@@ -311,7 +313,7 @@ function KOSync:addToMainMenu(menu_items)
             end,
           },
           {
-            text = _("Never"),
+            text = gettext("Never"),
             checked_func = function()
               return self.settings.sync_backward == SYNC_STRATEGY.DISABLE
             end,
@@ -323,7 +325,7 @@ function KOSync:addToMainMenu(menu_items)
         separator = true,
       },
       {
-        text = _("Push progress from this device now"),
+        text = gettext("Push progress from this device now"),
         enabled_func = function()
           return self.settings.userkey ~= nil
         end,
@@ -332,7 +334,7 @@ function KOSync:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Pull progress from other devices now"),
+        text = gettext("Pull progress from other devices now"),
         enabled_func = function()
           return self.settings.userkey ~= nil
         end,
@@ -342,10 +344,10 @@ function KOSync:addToMainMenu(menu_items)
         separator = true,
       },
       {
-        text = _("Document matching method"),
+        text = gettext("Document matching method"),
         sub_item_table = {
           {
-            text = _("Binary. Only identical files will be kept in sync."),
+            text = gettext("Binary. Only identical files will be kept in sync."),
             checked_func = function()
               return self.settings.checksum_method == CHECKSUM_METHOD.BINARY
             end,
@@ -354,7 +356,7 @@ function KOSync:addToMainMenu(menu_items)
             end,
           },
           {
-            text = _("Filename. Files with matching names will be kept in sync."),
+            text = gettext("Filename. Files with matching names will be kept in sync."),
             checked_func = function()
               return self.settings.checksum_method == CHECKSUM_METHOD.FILENAME
             end,
@@ -382,7 +384,7 @@ function KOSync:setCustomServer(server)
   UIManager:show(InfoMessage:new({
     -- Need localization
     text = T(
-      _("The new server address %1 is invalid, revert back to %2.\nError: %3"),
+      gettext("The new server address %1 is invalid, revert back to %2.\nError: %3"),
       server,
       prev_server or "default server",
       err
@@ -422,38 +424,38 @@ function KOSync:_login(menu)
       buttons = {
         {
           {
-            text = _("Cancel"),
+            text = gettext("Cancel"),
             id = "close",
             callback = function()
               UIManager:close(dialog)
             end,
           },
           {
-            text = _("Login"),
+            text = gettext("Login"),
             callback = function()
               local username, password = unpack(dialog:getFields())
               local ok, err = validateUser(username, password)
               if not ok then
                 UIManager:show(InfoMessage:new({
-                  text = T(_("Cannot login: %1"), err),
+                  text = T(gettext("Cannot login: %1"), err),
                   timeout = 2,
                 }))
               else
                 UIManager:close(dialog)
                 UIManager:runWith(function()
                   self:_doLogin(username, password, menu)
-                end, _("Logging in. Please wait…"))
+                end, gettext("Logging in. Please wait…"))
               end
             end,
           },
           {
-            text = _("Register"),
+            text = gettext("Register"),
             callback = function()
               local username, password = unpack(dialog:getFields())
               local ok, err = validateUser(username, password)
               if not ok then
                 UIManager:show(InfoMessage:new({
-                  text = T(_("Cannot register: %1"), err),
+                  text = T(gettext("Cannot register: %1"), err),
                   timeout = 2,
                 }))
               else
@@ -462,7 +464,7 @@ function KOSync:_login(menu)
                   self:_doRegister(username, password, menu)
                 end)
                 UIManager:show(InfoMessage:new({
-                  text = _("Registering. Please wait…"),
+                  text = gettext("Registering. Please wait…"),
                   timeout = 1,
                 }))
               end
@@ -484,11 +486,11 @@ function KOSync:_doRegister(username, password, menu)
   if not ok then
     if status then
       UIManager:show(InfoMessage:new({
-        text = _("An error occurred while registering:") .. "\n" .. status,
+        text = gettext("An error occurred while registering:") .. "\n" .. status,
       }))
     else
       UIManager:show(InfoMessage:new({
-        text = _("An unknown error occurred while registering."),
+        text = gettext("An unknown error occurred while registering."),
       }))
     end
   elseif status then
@@ -498,11 +500,11 @@ function KOSync:_doRegister(username, password, menu)
       menu:updateItems()
     end
     UIManager:show(InfoMessage:new({
-      text = _("Registered to KOReader server."),
+      text = gettext("Registered to KOReader server."),
     }))
   else
     UIManager:show(InfoMessage:new({
-      text = body and body.message or _("Unknown server error"),
+      text = body and body.message or gettext("Unknown server error"),
     }))
   end
   Device:setIgnoreInput(false)
@@ -516,11 +518,11 @@ function KOSync:_doLogin(username, password, menu)
   if not ok then
     if status then
       UIManager:show(InfoMessage:new({
-        text = _("An error occurred while logging in:") .. "\n" .. status,
+        text = gettext("An error occurred while logging in:") .. "\n" .. status,
       }))
     else
       UIManager:show(InfoMessage:new({
-        text = _("An unknown error occurred while logging in."),
+        text = gettext("An unknown error occurred while logging in."),
       }))
     end
     Device:setIgnoreInput(false)
@@ -532,11 +534,11 @@ function KOSync:_doLogin(username, password, menu)
       menu:updateItems()
     end
     UIManager:show(InfoMessage:new({
-      text = _("Logged in to KOReader server."),
+      text = gettext("Logged in to KOReader server."),
     }))
   else
     UIManager:show(InfoMessage:new({
-      text = body and body.message or _("Unknown server error"),
+      text = body and body.message or gettext("Unknown server error"),
     }))
   end
   Device:setIgnoreInput(false)
@@ -642,7 +644,7 @@ function KOSync:_updateProgress(interactive)
         if interactive then
           if ok then
             UIManager:show(InfoMessage:new({
-              text = _("Progress has been pushed."),
+              text = gettext("Progress has been pushed."),
               timeout = 3,
             }))
           else
@@ -667,7 +669,7 @@ function KOSync:_updateProgress(interactive)
         NetworkMgr:runWhenOnline(exec, "kosync-push-" .. doc_digest)
       end,
       -- Need localization
-      _("Pushing progress…")
+      gettext("Pushing progress…")
     )
   else
     NetworkMgr:willRerunWhenOnline(exec, "kosync-push-" .. doc_digest)
@@ -719,7 +721,7 @@ function KOSync:_getProgress(interactive)
         if not body.percentage then
           if interactive then
             UIManager:show(InfoMessage:new({
-              text = _("No progress found for this document."),
+              text = gettext("No progress found for this document."),
               timeout = 3,
             }))
           end
@@ -729,7 +731,7 @@ function KOSync:_getProgress(interactive)
         if body.device == Device.model and body.device_id == self.device_id then
           if interactive then
             UIManager:show(InfoMessage:new({
-              text = _("Latest progress is coming from this device."),
+              text = gettext("Latest progress is coming from this device."),
               timeout = 3,
             }))
           end
@@ -744,7 +746,7 @@ function KOSync:_getProgress(interactive)
         if percentage == body.percentage or body.progress == progress then
           if interactive then
             UIManager:show(InfoMessage:new({
-              text = _("The progress has already been synchronized."),
+              text = gettext("The progress has already been synchronized."),
               timeout = 3,
             }))
           end
@@ -774,7 +776,7 @@ function KOSync:_getProgress(interactive)
           elseif self.settings.sync_forward == SYNC_STRATEGY.PROMPT then
             UIManager:show(ConfirmBox:new({
               text = T(
-                _("Sync to latest location %1% from device '%2'?"),
+                gettext("Sync to latest location %1% from device '%2'?"),
                 Math.round(body.percentage * 100),
                 body.device
               ),
@@ -790,7 +792,7 @@ function KOSync:_getProgress(interactive)
           elseif self.settings.sync_backward == SYNC_STRATEGY.PROMPT then
             UIManager:show(ConfirmBox:new({
               text = T(
-                _("Sync to previous location %1% from device '%2'?"),
+                gettext("Sync to previous location %1% from device '%2'?"),
                 Math.round(body.percentage * 100),
                 body.device
               ),
@@ -820,7 +822,7 @@ function KOSync:_getProgress(interactive)
         NetworkMgr:runWhenOnline(exec, "kosync-pull-" .. doc_digest)
       end,
       -- Need localization
-      _("Pulling progress…")
+      gettext("Pulling progress…")
     )
   else
     NetworkMgr:willRerunWhenOnline(exec, "kosync-pull-" .. doc_digest)

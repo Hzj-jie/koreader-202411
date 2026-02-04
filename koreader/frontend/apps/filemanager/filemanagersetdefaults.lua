@@ -10,7 +10,7 @@ local UIManager = require("ui/uimanager")
 local logger = require("logger")
 local ffiUtil = require("ffi/util")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = require("device").screen
 
 local SetDefaultsWidget = CenterContainer:extend({
@@ -71,7 +71,7 @@ function SetDefaultsWidget:init()
 
   local set_dialog
   local cancel_button = {
-    text = _("Cancel"),
+    text = gettext("Cancel"),
     id = "close",
     enabled = true,
     callback = function()
@@ -94,7 +94,7 @@ function SetDefaultsWidget:init()
             {
               cancel_button,
               {
-                text = _("Default"),
+                text = gettext("Default"),
                 enabled = self.state[k].value ~= self.state[k].default_value,
                 callback = function()
                   UIManager:close(set_dialog)
@@ -149,7 +149,7 @@ function SetDefaultsWidget:init()
             {
               cancel_button,
               {
-                text = _("Default"),
+                text = gettext("Default"),
                 enabled = not util.tableEquals(self.state[k].value, self.state[k].default_value),
                 callback = function()
                   UIManager:close(set_dialog)
@@ -157,7 +157,7 @@ function SetDefaultsWidget:init()
                 end,
               },
               {
-                text = _("OK"),
+                text = gettext("OK"),
                 enabled = true,
                 is_enter_default = true,
                 callback = function()
@@ -191,7 +191,7 @@ function SetDefaultsWidget:init()
             {
               cancel_button,
               {
-                text = _("Default"),
+                text = gettext("Default"),
                 enabled = self.state[k].value ~= self.state[k].default_value,
                 callback = function()
                   UIManager:close(set_dialog)
@@ -199,7 +199,7 @@ function SetDefaultsWidget:init()
                 end,
               },
               {
-                text = _("OK"),
+                text = gettext("OK"),
                 is_enter_default = true,
                 enabled = true,
                 callback = function()
@@ -238,7 +238,7 @@ function SetDefaultsWidget:init()
     width = self.screen_width - (Size.margin.fullscreen_popout * 2),
     height = self.screen_height - (Size.margin.fullscreen_popout * 2),
     item_table = self.menu_entries,
-    title = _("Defaults"),
+    title = gettext("Defaults"),
   })
   -- Prevent menu from closing when editing a value
   function self.defaults_menu:onMenuSelect(item)
@@ -297,19 +297,19 @@ function SetDefaultsWidget:saveSettings()
   -- And flush to disk
   G_defaults:flush()
   UIManager:show(InfoMessage:new({
-    text = _("Default settings saved."),
+    text = gettext("Default settings saved."),
   }))
 end
 
 function SetDefaultsWidget:saveBeforeExit(callback)
-  local save_text = _("Save and quit")
+  local save_text = gettext("Save and quit")
   if Device:canRestart() then
-    save_text = _("Save and restart")
+    save_text = gettext("Save and restart")
   end
   if self.settings_changed then
     UIManager:show(ConfirmBox:new({
       dismissable = false,
-      text = _("KOReader needs to be restarted to apply the new default settings."),
+      text = gettext("KOReader needs to be restarted to apply the new default settings."),
       ok_text = save_text,
       ok_callback = function()
         self:saveSettings()
@@ -319,7 +319,7 @@ function SetDefaultsWidget:saveBeforeExit(callback)
           UIManager:quit()
         end
       end,
-      cancel_text = _("Discard changes"),
+      cancel_text = gettext("Discard changes"),
       cancel_callback = function()
         logger.info("discard defaults")
       end,
@@ -332,7 +332,7 @@ local SetDefaults = {}
 function SetDefaults:ConfirmEdit()
   if not SetDefaults.EditConfirmed then
     UIManager:show(ConfirmBox:new({
-      text = _(
+      text = gettext(
         "Some changes will not work until the next restart. Be careful; the wrong settings might crash KOReader!\nAre you sure you want to continue?"
       ),
       ok_callback = function()

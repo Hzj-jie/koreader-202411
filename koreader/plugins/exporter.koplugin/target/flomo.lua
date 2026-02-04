@@ -6,7 +6,7 @@ local logger = require("logger")
 local ltn12 = require("ltn12")
 local socket = require("socket")
 local socketutil = require("socketutil")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- readwise exporter
 local FlomoExporter = require("base"):new({
@@ -51,30 +51,30 @@ end
 function FlomoExporter:getMenuTable()
   return {
     -- @translators Flomo is a note taking app. The name probably doesn't need to be translated.
-    text = _("Flomo"),
+    text = gettext("Flomo"),
     checked_func = function()
       return self:isEnabled()
     end,
     sub_item_table = {
       {
-        text = _("Set Flomo API URL"),
+        text = gettext("Set Flomo API URL"),
         keep_menu_open = true,
         callback = function()
           local auth_dialog
           auth_dialog = InputDialog:new({
-            title = _("Set API URL for Flomo"),
+            title = gettext("Set API URL for Flomo"),
             input = self.settings.api,
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   id = "close",
                   callback = function()
                     UIManager:close(auth_dialog)
                   end,
                 },
                 {
-                  text = _("Set API URL"),
+                  text = gettext("Set API URL"),
                   callback = function()
                     self.settings.api = auth_dialog:getInputText()
                     self:saveSettings()
@@ -88,7 +88,7 @@ function FlomoExporter:getMenuTable()
         end,
       },
       {
-        text = _("Export to Flomo"),
+        text = gettext("Export to Flomo"),
         checked_func = function()
           return self:isEnabled()
         end,

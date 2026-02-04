@@ -8,8 +8,8 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local lfs = require("libs/libkoreader-lfs")
 local optionsutil = require("ui/data/optionsutil")
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local Screen = require("device").screen
 local T = require("ffi/util").template
 
@@ -97,10 +97,10 @@ function ReaderTypeset:onToggleEmbeddedStyleSheet(toggle)
   local text
   if toggle then
     self.configurable.embedded_css = 1
-    text = _("Enabled embedded styles.")
+    text = gettext("Enabled embedded styles.")
   else
     self.configurable.embedded_css = 0
-    text = _("Disabled embedded styles.")
+    text = gettext("Disabled embedded styles.")
   end
   self.ui.document:setEmbeddedStyleSheet(self.configurable.embedded_css)
   UIManager:broadcastEvent(Event:new("UpdatePos"))
@@ -112,10 +112,10 @@ function ReaderTypeset:onToggleEmbeddedFonts(toggle)
   local text
   if toggle then
     self.configurable.embedded_fonts = 1
-    text = _("Enabled embedded fonts.")
+    text = gettext("Enabled embedded fonts.")
   else
     self.configurable.embedded_fonts = 0
-    text = _("Disabled embedded fonts.")
+    text = gettext("Disabled embedded fonts.")
   end
   self.ui.document:setEmbeddedFonts(self.configurable.embedded_fonts)
   UIManager:broadcastEvent(Event:new("UpdatePos"))
@@ -127,7 +127,7 @@ function ReaderTypeset:onToggleImageScaling(toggle)
   self.configurable.smooth_scaling = toggle and 1 or 0
   self.ui.document:setImageScaling(toggle)
   UIManager:broadcastEvent(Event:new("UpdatePos"))
-  local text = T(_("Image scaling set to: %1"), optionsutil:getOptionText("ToggleImageScaling", toggle))
+  local text = T(gettext("Image scaling set to: %1"), optionsutil:getOptionText("ToggleImageScaling", toggle))
   Notification:notify(text)
   return true
 end
@@ -141,7 +141,7 @@ end
 
 function ReaderTypeset:onSetBlockRenderingMode(mode)
   self:setBlockRenderingMode(mode)
-  local text = T(_("Render mode set to: %1"), optionsutil:getOptionText("SetBlockRenderingMode", mode))
+  local text = T(gettext("Render mode set to: %1"), optionsutil:getOptionText("SetBlockRenderingMode", mode))
   Notification:notify(text)
   return true
 end
@@ -150,7 +150,7 @@ function ReaderTypeset:onSetRenderDPI(dpi)
   self.configurable.render_dpi = dpi
   self.ui.document:setRenderDPI(dpi)
   UIManager:broadcastEvent(Event:new("UpdatePos"))
-  local text = T(_("Zoom set to: %1"), optionsutil:getOptionText("SetRenderDPI", dpi))
+  local text = T(gettext("Zoom set to: %1"), optionsutil:getOptionText("SetRenderDPI", dpi))
   Notification:notify(text)
   return true
 end
@@ -210,9 +210,9 @@ function ReaderTypeset:genStyleSheetMenu()
   table.insert(
     style_table,
     getStyleMenuItem(
-      _("None"),
+      gettext("None"),
       "",
-      _(
+      gettext(
         "This sets an empty User-Agent stylesheet, and expects the document stylesheet to style everything (which publishers probably don't).\nThis is mostly only interesting for testing."
       )
     )
@@ -220,9 +220,9 @@ function ReaderTypeset:genStyleSheetMenu()
   table.insert(
     style_table,
     getStyleMenuItem(
-      _("Auto"),
+      gettext("Auto"),
       nil,
-      _("This selects the default and preferred stylesheet for the document type."),
+      gettext("This selects the default and preferred stylesheet for the document type."),
       nil,
       true -- separator
     )
@@ -239,9 +239,9 @@ function ReaderTypeset:genStyleSheetMenu()
     table.insert(
       style_table,
       getStyleMenuItem(
-        _("Traditional book look (epub.css)"),
+        gettext("Traditional book look (epub.css)"),
         css_files["epub.css"],
-        _(
+        gettext(
           [[
 This is our book look-alike stylesheet: it extends the HTML standard stylesheet with styles aimed at making HTML content look more like a paper book (with justified text and indentation on paragraphs) than like a web page.
 It is perfect for unstyled books, and might make styled books more readable.
@@ -256,9 +256,9 @@ It may cause some small issues on some books (miscentered titles, headings or se
     table.insert(
       style_table,
       getStyleMenuItem(
-        _("HTML Standard rendering (html5.css)"),
+        gettext("HTML Standard rendering (html5.css)"),
         css_files["html5.css"],
-        _(
+        gettext(
           [[
 This stylesheet conforms to the HTML Standard rendering suggestions (with a few limitations), similar to what most web browsers use.
 As most publishers nowadays make and test their book with tools based on web browser engines, it is the stylesheet to use to see a book as these publishers intended.
@@ -273,9 +273,9 @@ On unstyled books though, it may give them the look of a web page (left aligned 
     table.insert(
       style_table,
       getStyleMenuItem(
-        _("FictionBook (fb2.css)"),
+        gettext("FictionBook (fb2.css)"),
         css_files["fb2.css"],
-        _([[
+        gettext([[
 This stylesheet is to be used only with FB2 and FB3 documents, which are not classic HTML, and need some specific styling.
 (FictionBook 2 & 3 are open XML-based e-book formats which originated and gained popularity in Russia.)]]),
         true, -- fb2_compatible
@@ -294,7 +294,7 @@ This stylesheet is to be used only with FB2 and FB3 documents, which are not cla
         getStyleMenuItem(
           css,
           css_files[css],
-          _(
+          gettext(
             "This stylesheet is obsolete: don't use it. It is kept solely to be able to open documents last read years ago and to migrate their highlights."
           )
         )
@@ -309,15 +309,15 @@ This stylesheet is to be used only with FB2 and FB3 documents, which are not cla
   end
   table.sort(user_files)
   for __, css in ipairs(user_files) do
-    table.insert(style_table, getStyleMenuItem(css, css_files[css], _("This is a user added stylesheet.")))
+    table.insert(style_table, getStyleMenuItem(css, css_files[css], gettext("This is a user added stylesheet.")))
   end
 
   style_table[#style_table].separator = true
   table.insert(style_table, {
     text_func = function()
-      local text = _("Obsolete")
+      local text = gettext("Obsolete")
       if obsoleted_css[self.css] then
-        text = T(_("Obsolete (%1)"), BD.filename(obsoleted_css[self.css]))
+        text = T(gettext("Obsolete (%1)"), BD.filename(obsoleted_css[self.css]))
       end
       if obsoleted_css[G_reader_settings:read("copt_css")] then
         text = text .. "   ★"
@@ -439,8 +439,8 @@ function ReaderTypeset:addToMainMenu(menu_items)
 end
 
 function ReaderTypeset:makeDefaultStyleSheet(css, name, description, touchmenu_instance)
-  local text = self.ui.document.is_fb2 and T(_("Set default style for FB2 documents to %1?"), BD.filename(name))
-    or T(_("Set default style to %1?"), BD.filename(name))
+  local text = self.ui.document.is_fb2 and T(gettext("Set default style for FB2 documents to %1?"), BD.filename(name))
+    or T(gettext("Set default style to %1?"), BD.filename(name))
   if description then
     text = text .. "\n\n" .. description
   end
@@ -557,7 +557,7 @@ function ReaderTypeset:onSetPageMargins(margins, when_applied_callback)
     -- and call when_applied_callback on dismiss
     UIManager:show(InfoMessage:new({
       text = T(
-        _([[
+        gettext([[
 Margins set to:
 
   left: %1

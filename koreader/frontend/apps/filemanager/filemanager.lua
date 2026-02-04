@@ -38,14 +38,14 @@ local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
-local C_ = _.pgettext
-local N_ = _.ngettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
+local N_ = gettext.ngettext
 local Screen = Device.screen
 local T = ffiUtil.template
 
 local FileManager = InputContainer:extend({
-  title = _("KOReader"),
+  title = gettext("KOReader"),
   root_path = lfs.currentdir(),
 
   clipboard = nil, -- for single file operations
@@ -220,7 +220,7 @@ function FileManager:setupLayout()
           end,
         },
         {
-          text = _("Select"),
+          text = gettext("Select"),
           callback = function()
             UIManager:close(self.file_dialog)
             file_manager:onToggleSelectMode()
@@ -234,7 +234,7 @@ function FileManager:setupLayout()
       },
       {
         {
-          text = _("Cut"),
+          text = gettext("Cut"),
           enabled = is_not_parent_folder,
           callback = function()
             UIManager:close(self.file_dialog)
@@ -242,7 +242,7 @@ function FileManager:setupLayout()
           end,
         },
         {
-          text = _("Delete"),
+          text = gettext("Delete"),
           enabled = is_not_parent_folder,
           callback = function()
             UIManager:close(self.file_dialog)
@@ -250,7 +250,7 @@ function FileManager:setupLayout()
           end,
         },
         {
-          text = _("Rename"),
+          text = gettext("Rename"),
           enabled = is_not_parent_folder,
           callback = function()
             UIManager:close(self.file_dialog)
@@ -285,7 +285,7 @@ function FileManager:setupLayout()
       end
       table.insert(buttons, {
         {
-          text = _("Open with…"),
+          text = gettext("Open with…"),
           callback = function()
             UIManager:close(self.file_dialog)
             file_manager:showOpenWithDialog(file)
@@ -307,7 +307,7 @@ function FileManager:setupLayout()
       if FileManagerConverter:isSupported(file) then
         table.insert(buttons, {
           {
-            text = _("Convert"),
+            text = gettext("Convert"),
             callback = function()
               UIManager:close(self.file_dialog)
               FileManagerConverter:showConvertButtons(file, self)
@@ -319,7 +319,7 @@ function FileManager:setupLayout()
       local folder = ffiUtil.realpath(file)
       table.insert(buttons, {
         {
-          text = _("Set as HOME folder"),
+          text = gettext("Set as HOME folder"),
           enabled_func = function()
             return folder ~= G_named_settings.home_dir()
           end,
@@ -459,8 +459,8 @@ function FileChooser:onBack()
     return true
   elseif back_to_exit == "prompt" then
     UIManager:show(ConfirmBox:new({
-      text = _("Exit KOReader?"),
-      ok_text = _("Exit"),
+      text = gettext("Exit KOReader?"),
+      ok_text = gettext("Exit"),
       ok_callback = function()
         self:onExit()
       end,
@@ -518,7 +518,7 @@ function FileManager:tapPlus()
     local select_count = util.tableSize(self.selected_files)
     local actions_enabled = select_count > 0
     title = actions_enabled and T(N_("1 file selected", "%1 files selected", select_count), select_count)
-      or _("No files selected")
+      or gettext("No files selected")
     buttons = {
       {
         self.collections:genAddToCollectionButton(
@@ -529,7 +529,7 @@ function FileManager:tapPlus()
       },
       {
         {
-          text = _("Show selected files list"),
+          text = gettext("Show selected files list"),
           enabled = actions_enabled,
           callback = function()
             UIManager:close(self.file_dialog)
@@ -537,7 +537,7 @@ function FileManager:tapPlus()
           end,
         },
         {
-          text = _("Copy"),
+          text = gettext("Copy"),
           enabled = actions_enabled,
           callback = function()
             self.cutfile = false
@@ -547,14 +547,14 @@ function FileManager:tapPlus()
       },
       {
         {
-          text = _("Select all files in folder"),
+          text = gettext("Select all files in folder"),
           callback = function()
             UIManager:close(self.file_dialog)
             self.file_chooser:selectAllFilesInFolder(true)
           end,
         },
         {
-          text = _("Move"),
+          text = gettext("Move"),
           enabled = actions_enabled,
           callback = function()
             self.cutfile = true
@@ -564,7 +564,7 @@ function FileManager:tapPlus()
       },
       {
         {
-          text = _("Deselect all"),
+          text = gettext("Deselect all"),
           enabled = actions_enabled,
           callback = function()
             UIManager:close(self.file_dialog)
@@ -575,12 +575,12 @@ function FileManager:tapPlus()
           end,
         },
         {
-          text = _("Delete"),
+          text = gettext("Delete"),
           enabled = actions_enabled,
           callback = function()
             UIManager:show(ConfirmBox:new({
-              text = _("Delete selected files?\nIf you delete a file, it is permanently lost."),
-              ok_text = _("Delete"),
+              text = gettext("Delete selected files?\nIf you delete a file, it is permanently lost."),
+              ok_text = gettext("Delete"),
               ok_callback = function()
                 UIManager:close(self.file_dialog)
                 self:deleteSelectedFiles()
@@ -591,14 +591,14 @@ function FileManager:tapPlus()
       },
       {
         {
-          text = _("Exit select mode"),
+          text = gettext("Exit select mode"),
           callback = function()
             UIManager:close(self.file_dialog)
             self:onToggleSelectMode()
           end,
         },
         {
-          text = _("Export highlights"),
+          text = gettext("Export highlights"),
           enabled = (actions_enabled and self.exporter) and true or false,
           callback = function()
             self.exporter:exportFilesNotes(self.selected_files)
@@ -608,7 +608,7 @@ function FileManager:tapPlus()
       {}, -- separator
       {
         {
-          text = _("New folder"),
+          text = gettext("New folder"),
           callback = function()
             UIManager:close(self.file_dialog)
             self:createFolder()
@@ -622,7 +622,7 @@ function FileManager:tapPlus()
     buttons = {
       {
         {
-          text = _("Select files"),
+          text = gettext("Select files"),
           callback = function()
             UIManager:close(self.file_dialog)
             self:onToggleSelectMode()
@@ -631,7 +631,7 @@ function FileManager:tapPlus()
       },
       {
         {
-          text = _("New folder"),
+          text = gettext("New folder"),
           callback = function()
             UIManager:close(self.file_dialog)
             self:createFolder()
@@ -640,7 +640,7 @@ function FileManager:tapPlus()
       },
       {
         {
-          text = _("Paste"),
+          text = gettext("Paste"),
           enabled = self.clipboard and true or false,
           callback = function()
             UIManager:close(self.file_dialog)
@@ -650,7 +650,7 @@ function FileManager:tapPlus()
       },
       {
         {
-          text = _("Set as HOME folder"),
+          text = gettext("Set as HOME folder"),
           enabled_func = function()
             return self.file_chooser.path ~= G_named_settings.home_dir()
           end,
@@ -662,7 +662,7 @@ function FileManager:tapPlus()
       },
       {
         {
-          text = _("Go to HOME folder"),
+          text = gettext("Go to HOME folder"),
           enabled_func = function()
             return self.file_chooser.path ~= G_named_settings.home_dir() or self.file_chooser.page > 1
           end,
@@ -674,7 +674,7 @@ function FileManager:tapPlus()
       },
       {
         {
-          text = _("Open random document"),
+          text = gettext("Open random document"),
           callback = function()
             UIManager:close(self.file_dialog)
             self:openRandomFile(self.file_chooser.path)
@@ -697,8 +697,8 @@ function FileManager:tapPlus()
       table.insert(buttons, 4, { -- after "Paste" or "Import files here" button
         {
           text_func = function()
-            return Device:isValidPath(self.file_chooser.path) and _("Switch to SDCard")
-              or _("Switch to internal storage")
+            return Device:isValidPath(self.file_chooser.path) and gettext("Switch to SDCard")
+              or gettext("Switch to internal storage")
           end,
           callback = function()
             UIManager:close(self.file_dialog)
@@ -718,7 +718,7 @@ function FileManager:tapPlus()
     if Device:canImportFiles() then
       table.insert(buttons, 4, { -- always after "Paste" button
         {
-          text = _("Import files here"),
+          text = gettext("Import files here"),
           enabled = Device:isValidPath(self.file_chooser.path),
           callback = function()
             UIManager:close(self.file_dialog)
@@ -827,8 +827,8 @@ end
 function FileManager:setHome(path)
   path = path or self.file_chooser.path
   UIManager:show(ConfirmBox:new({
-    text = T(_("Set '%1' as HOME folder?"), BD.dirpath(path)),
-    ok_text = _("Set as HOME"),
+    text = T(gettext("Set '%1' as HOME folder?"), BD.dirpath(path)),
+    ok_text = gettext("Set as HOME"),
     ok_callback = function()
       G_reader_settings:save("home_dir", path)
       if G_reader_settings:isTrue("lock_home_folder") then
@@ -850,30 +850,30 @@ function FileManager:openRandomFile(dir)
       -- Hacky way to ignore less interesting fields.
       if
         type(v) == "table"
-        and v[1] ~= _("Filename:")
-        and v[1] ~= _("Folder:")
-        and v[1] ~= _("Cover image:")
-        and v[2] ~= _("N/A")
+        and v[1] ~= gettext("Filename:")
+        and v[1] ~= gettext("Folder:")
+        and v[1] ~= gettext("Cover image:")
+        and v[2] ~= gettext("N/A")
       then
         info = info .. "\n" .. v[1] .. v[2]
       end
     end
     UIManager:show(MultiConfirmBox:new({
-      text = T(_("Do you want to open %1?"), BD.filename(ffiUtil.basename(random_file))) .. info,
-      choice2_text = _("Open"),
+      text = T(gettext("Do you want to open %1?"), BD.filename(ffiUtil.basename(random_file))) .. info,
+      choice2_text = gettext("Open"),
       choice2_callback = function()
         local ReaderUI = require("apps/reader/readerui")
         ReaderUI:showReader(random_file)
       end,
       -- @translators Another file. This is a button on the open random file dialog. It presents a file with the choices Open/Another.
-      choice1_text = _("Another"),
+      choice1_text = gettext("Another"),
       choice1_callback = function()
         self:openRandomFile(dir)
       end,
     }))
   else
     UIManager:show(InfoMessage:new({
-      text = _("File not found"),
+      text = gettext("File not found"),
     }))
   end
 end
@@ -925,7 +925,7 @@ function FileManager:pasteFileFromClipboard(file)
     else
       local text = self.cutfile and "Failed to move:\n%1\nto:\n%2" or "Failed to copy:\n%1\nto:\n%2"
       UIManager:show(InfoMessage:new({
-        text = T(_(text), BD.filepath(orig_name), BD.dirpath(dest_path)),
+        text = T(gettext(text), BD.filepath(orig_name), BD.dirpath(dest_path)),
         icon = "notice-warning",
       }))
     end
@@ -934,12 +934,12 @@ function FileManager:pasteFileFromClipboard(file)
   local mode_dest = lfs.attributes(dest_file, "mode")
   if mode_dest then -- file or folder with target name already exists
     local can_overwrite = (mode_dest == "file") == is_file
-    local text = can_overwrite == is_file and T(_("File already exists:\n%1"), BD.filename(orig_name))
-      or T(_("Folder already exists:\n%1"), BD.directory(orig_name))
+    local text = can_overwrite == is_file and T(gettext("File already exists:\n%1"), BD.filename(orig_name))
+      or T(gettext("Folder already exists:\n%1"), BD.directory(orig_name))
     if can_overwrite then
       UIManager:show(ConfirmBox:new({
         text = text,
-        ok_text = _("Overwrite"),
+        ok_text = gettext("Overwrite"),
         ok_callback = function()
           doPaste()
         end,
@@ -958,11 +958,11 @@ end
 function FileManager:showCopyMoveSelectedFilesDialog(close_callback)
   local text, ok_text
   if self.cutfile then
-    text = _("Move selected files to the current folder?")
-    ok_text = _("Move")
+    text = gettext("Move selected files to the current folder?")
+    ok_text = gettext("Move")
   else
-    text = _("Copy selected files to the current folder?")
-    ok_text = _("Copy")
+    text = gettext("Copy selected files to the current folder?")
+    ok_text = gettext("Copy")
   end
   local confirmbox, check_button_overwrite
   confirmbox = ConfirmBox:new({
@@ -974,7 +974,7 @@ function FileManager:showCopyMoveSelectedFilesDialog(close_callback)
     end,
   })
   check_button_overwrite = CheckButton:new({
-    text = _("overwrite existing files"),
+    text = gettext("overwrite existing files"),
     checked = true,
     parent = confirmbox,
   })
@@ -1032,18 +1032,18 @@ end
 function FileManager:createFolder()
   local input_dialog, check_button_enter_folder
   input_dialog = InputDialog:new({
-    title = _("New folder"),
+    title = gettext("New folder"),
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(input_dialog)
           end,
         },
         {
-          text = _("Create"),
+          text = gettext("Create"),
           is_enter_default = true,
           callback = function()
             local new_folder_name = input_dialog:getInputText()
@@ -1060,7 +1060,7 @@ function FileManager:createFolder()
               end
             else
               UIManager:show(InfoMessage:new({
-                text = T(_("Failed to create folder:\n%1"), BD.directory(new_folder_name)),
+                text = T(gettext("Failed to create folder:\n%1"), BD.directory(new_folder_name)),
                 icon = "notice-warning",
               }))
             end
@@ -1070,7 +1070,7 @@ function FileManager:createFolder()
     },
   })
   check_button_enter_folder = CheckButton:new({
-    text = _("Enter folder after creation"),
+    text = gettext("Enter folder after creation"),
     checked = false,
     parent = input_dialog,
   })
@@ -1082,21 +1082,21 @@ function FileManager:showDeleteFileDialog(filepath, post_delete_callback, pre_de
   local file = ffiUtil.realpath(filepath)
   if file == nil then
     UIManager:show(InfoMessage:new({
-      text = T(_("File not found:\n%1"), BD.filepath(filepath)),
+      text = T(gettext("File not found:\n%1"), BD.filepath(filepath)),
       icon = "notice-warning",
     }))
     return
   end
   local is_file = isFile(file)
-  local text = (is_file and _("Delete file permanently?") or _("Delete folder permanently?"))
+  local text = (is_file and gettext("Delete file permanently?") or gettext("Delete folder permanently?"))
     .. "\n\n"
     .. BD.filepath(file)
   if is_file and DocSettings:hasSidecarFile(file) then
-    text = text .. "\n\n" .. _("Book settings, highlights and notes will be deleted.")
+    text = text .. "\n\n" .. gettext("Book settings, highlights and notes will be deleted.")
   end
   UIManager:show(ConfirmBox:new({
     text = text,
-    ok_text = _("Delete"),
+    ok_text = gettext("Delete"),
     ok_callback = function()
       if pre_delete_callback then
         pre_delete_callback()
@@ -1126,7 +1126,7 @@ function FileManager:deleteFile(file, is_file)
     end
   end
   UIManager:show(InfoMessage:new({
-    text = T(_("Failed to delete:\n%1"), BD.filepath(file)),
+    text = T(gettext("Failed to delete:\n%1"), BD.filepath(file)),
     icon = "notice-warning",
   }))
 end
@@ -1163,19 +1163,19 @@ end
 function FileManager:showRenameFileDialog(file, is_file)
   local dialog
   dialog = InputDialog:new({
-    title = is_file and _("Rename file") or _("Rename folder"),
+    title = is_file and gettext("Rename file") or gettext("Rename folder"),
     input = ffiUtil.basename(file),
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(dialog)
           end,
         },
         {
-          text = _("Rename"),
+          text = gettext("Rename"),
           callback = function()
             local new_name = dialog:getInputText()
             if new_name ~= "" then
@@ -1209,7 +1209,7 @@ function FileManager:renameFile(file, basename, is_file)
       self:onRefresh()
     else
       UIManager:show(InfoMessage:new({
-        text = T(_("Failed to rename:\n%1\nto:\n%2"), BD.filepath(file), BD.filepath(dest)),
+        text = T(gettext("Failed to rename:\n%1\nto:\n%2"), BD.filepath(file), BD.filepath(dest)),
         icon = "notice-warning",
       }))
     end
@@ -1220,9 +1220,9 @@ function FileManager:renameFile(file, basename, is_file)
     local text, ok_text
     if (mode_dest == "file") ~= is_file then
       if is_file then
-        text = T(_("Folder already exists:\n%1\nFile cannot be renamed."), BD.directory(basename))
+        text = T(gettext("Folder already exists:\n%1\nFile cannot be renamed."), BD.directory(basename))
       else
-        text = T(_("File already exists:\n%1\nFolder cannot be renamed."), BD.filename(basename))
+        text = T(gettext("File already exists:\n%1\nFolder cannot be renamed."), BD.filename(basename))
       end
       UIManager:show(InfoMessage:new({
         text = text,
@@ -1230,11 +1230,11 @@ function FileManager:renameFile(file, basename, is_file)
       }))
     else
       if is_file then
-        text = T(_("File already exists:\n%1\nOverwrite file?"), BD.filename(basename))
-        ok_text = _("Overwrite")
+        text = T(gettext("File already exists:\n%1\nOverwrite file?"), BD.filename(basename))
+        ok_text = gettext("Overwrite")
       else
-        text = T(_("Folder already exists:\n%1\nMove the folder inside it?"), BD.directory(basename))
-        ok_text = _("Move")
+        text = T(gettext("Folder already exists:\n%1\nMove the folder inside it?"), BD.directory(basename))
+        ok_text = gettext("Move")
       end
       UIManager:show(ConfirmBox:new({
         text = text,
@@ -1383,7 +1383,7 @@ function FileManager:showSelectedFilesList()
 
   local menu
   menu = Menu:new({
-    title = T(_("Selected files (%1)"), #selected_files),
+    title = T(gettext("Selected files (%1)"), #selected_files),
     item_table = selected_files,
     is_borderless = true,
     is_popout = false,
@@ -1412,7 +1412,7 @@ function FileManager:showOpenWithDialog(file)
     return {
       {
         -- @translators %1 is the provider name, such as Cool Reader Engine or MuPDF.
-        text = is_unsupported and T(_("%1 ~Unsupported"), provider.provider_name) or provider.provider_name,
+        text = is_unsupported and T(gettext("%1 ~Unsupported"), provider.provider_name) or provider.provider_name,
         checked = provider.provider == file_provider_key,
         provider = provider,
       },
@@ -1450,7 +1450,7 @@ function FileManager:showOpenWithDialog(file)
   if file_associated_provider_key then
     table.insert(buttons, {
       {
-        text = _("Reset default for this file"),
+        text = gettext("Reset default for this file"),
         callback = function()
           DocumentRegistry:setProvider(file, nil, false)
           UIManager:close(dialog)
@@ -1462,7 +1462,7 @@ function FileManager:showOpenWithDialog(file)
   if type_associated_provider_key then
     table.insert(buttons, {
       {
-        text = T(_("Reset default for %1 files"), filename_suffix),
+        text = T(gettext("Reset default for %1 files"), filename_suffix),
         callback = function()
           DocumentRegistry:setProvider(file, nil, true)
           UIManager:close(dialog)
@@ -1475,7 +1475,7 @@ function FileManager:showOpenWithDialog(file)
   if associated_providers ~= nil and next(associated_providers) ~= nil then
     table.insert(buttons, {
       {
-        text = _("View defaults for file types"),
+        text = gettext("View defaults for file types"),
         callback = function()
           local max_len = 0 -- align extensions
           for extension in pairs(associated_providers) do
@@ -1503,21 +1503,21 @@ function FileManager:showOpenWithDialog(file)
   -- row: 2 buttons
   table.insert(buttons, {
     {
-      text = _("Cancel"),
+      text = gettext("Cancel"),
       id = "close",
       callback = function()
         UIManager:close(dialog)
       end,
     },
     {
-      text = _("Open"),
+      text = gettext("Open"),
       is_enter_default = true,
       callback = function()
         local provider = dialog.radio_button_table.checked_button.provider
         if dialog._check_file_button.checked then -- set this file associated provider
           UIManager:show(ConfirmBox:new({
-            text = T(_("Always open '%2' with %1?"), provider.provider_name, filename_pure),
-            ok_text = _("Always"),
+            text = T(gettext("Always open '%2' with %1?"), provider.provider_name, filename_pure),
+            ok_text = gettext("Always"),
             ok_callback = function()
               DocumentRegistry:setProvider(file, provider, false)
               self:openFile(file, provider)
@@ -1526,8 +1526,8 @@ function FileManager:showOpenWithDialog(file)
           }))
         elseif dialog._check_global_button.checked then -- set file type associated provider
           UIManager:show(ConfirmBox:new({
-            text = T(_("Always open %2 files with %1?"), provider.provider_name, filename_suffix),
-            ok_text = _("Always"),
+            text = T(gettext("Always open %2 files with %1?"), provider.provider_name, filename_suffix),
+            ok_text = gettext("Always"),
             ok_callback = function()
               DocumentRegistry:setProvider(file, provider, true)
               self:openFile(file, provider)
@@ -1544,7 +1544,7 @@ function FileManager:showOpenWithDialog(file)
 
   local OpenWithDialog = require("ui/widget/openwithdialog")
   dialog = OpenWithDialog:new({
-    title = T(_("Open %1 with:"), filename_pure),
+    title = T(gettext("Open %1 with:"), filename_pure),
     radio_buttons = radio_buttons,
     buttons = buttons,
   })
@@ -1576,7 +1576,7 @@ end
 -- Dispatcher helpers
 
 function FileManager.getDisplayModeActions()
-  local action_names, action_texts = { "classic" }, { _("Classic (filename only)") }
+  local action_names, action_texts = { "classic" }, { gettext("Classic (filename only)") }
   local ui = FileManager.instance or require("apps/reader/readerui").instance
   if ui.coverbrowser then
     for _, v in ipairs(ui.coverbrowser.modes) do

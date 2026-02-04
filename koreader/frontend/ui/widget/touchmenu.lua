@@ -31,7 +31,7 @@ local Utf8Proc = require("ffi/utf8proc")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local datetime = require("datetime")
-local _ = require("gettext")
+local gettext = require("gettext")
 local ffiUtil = require("ffi/util")
 local util = require("util")
 local T = ffiUtil.template
@@ -750,7 +750,7 @@ function TouchMenu:updateItems()
   table.insert(self.item_group, self.footer)
   if self.page_num > 1 then
     -- @translators %1 is the current page. %2 is the total number of pages. In some languages a good translation might need to reverse this order, for instance: "Total %2, page %1".
-    self.page_info_text:setText(T(_("Page %1 of %2"), self.page, self.page_num))
+    self.page_info_text:setText(T(gettext("Page %1 of %2"), self.page, self.page_num))
   else
     self.page_info_text:setText("")
   end
@@ -1213,7 +1213,7 @@ function TouchMenu:openMenu(path, with_animation)
   -- cancel the delayed final highlight
   local TrapWidget = require("ui/widget/trapwidget")
   trap_widget = TrapWidget:new({
-    text = with_animation and _("Walking you there…") or nil,
+    text = with_animation and gettext("Walking you there…") or nil,
     dismiss_callback = function()
       trap_widget = nil
       if walkStep_scheduled then
@@ -1268,7 +1268,7 @@ function TouchMenu:onShowMenuSearch()
         confirm_box = ConfirmBox:new({
           text = found_menu_items[i][4],
           icon = found_menu_items[i][2],
-          ok_text = _("Open"),
+          ok_text = gettext("Open"),
           ok_callback = function()
             UIManager:close(confirm_box)
             open_menu(i)
@@ -1276,7 +1276,7 @@ function TouchMenu:onShowMenuSearch()
           other_buttons = {
             {
               {
-                text = _("Walk me there"),
+                text = gettext("Walk me there"),
                 callback = function()
                   UIManager:close(confirm_box)
                   open_menu(i, true)
@@ -1305,7 +1305,7 @@ function TouchMenu:onShowMenuSearch()
 
     if #found_menu_items > 0 then
       local results_menu = Menu:new({
-        title = _("Search results"),
+        title = gettext("Search results"),
         item_table = get_current_search_results(),
         width = math.floor(Screen:getWidth() * 0.9),
         height = math.floor(Screen:getHeight() * 0.9),
@@ -1335,27 +1335,27 @@ function TouchMenu:onShowMenuSearch()
       UIManager:show(self.results_menu_container)
     else
       UIManager:show(InfoMessage:new({
-        text = T(_("No menus containing '%1' found."), search_string),
+        text = T(gettext("No menus containing '%1' found."), search_string),
       }))
     end
   end -- show_search_results()
 
   local search_dialog
   search_dialog = InputDialog:new({
-    title = _("Search menu entry"),
-    description = _("Search for a menu entry containing the following text (case insensitive)."),
-    input = G_reader_settings:read("menu_search_string") or _("Help"),
+    title = gettext("Search menu entry"),
+    description = gettext("Search for a menu entry containing the following text (case insensitive)."),
+    input = G_reader_settings:read("menu_search_string") or gettext("Help"),
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(search_dialog)
           end,
         },
         {
-          text = _("Search"),
+          text = gettext("Search"),
           is_enter_default = true,
           callback = function()
             local search_for = search_dialog:getInputText()

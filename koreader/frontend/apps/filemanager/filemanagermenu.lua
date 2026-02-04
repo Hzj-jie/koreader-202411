@@ -16,7 +16,7 @@ local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local dbg = require("dbg")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = FFIUtil.template
 
 local FileManagerMenu = InputContainer:extend({
@@ -147,7 +147,7 @@ function FileManagerMenu:onOpenLastDoc()
   if not last_file or lfs.attributes(last_file, "mode") ~= "file" then
     local InfoMessage = require("ui/widget/infomessage")
     UIManager:show(InfoMessage:new({
-      text = _("Cannot open last document"),
+      text = gettext("Cannot open last document"),
     }))
     return
   end
@@ -169,10 +169,10 @@ function FileManagerMenu:setUpdateItemTable()
 
   -- setting tab
   self.menu_items.filebrowser_settings = {
-    text = _("Settings"),
+    text = gettext("Settings"),
     sub_item_table = {
       {
-        text = _("Show finished books"),
+        text = gettext("Show finished books"),
         checked_func = function()
           return FileChooser.show_finished
         end,
@@ -181,7 +181,7 @@ function FileManagerMenu:setUpdateItemTable()
         end,
       },
       {
-        text = _("Show hidden files"),
+        text = gettext("Show hidden files"),
         checked_func = function()
           return FileChooser.show_hidden
         end,
@@ -190,7 +190,7 @@ function FileManagerMenu:setUpdateItemTable()
         end,
       },
       {
-        text = _("Show unsupported files"),
+        text = gettext("Show unsupported files"),
         checked_func = function()
           return FileChooser.show_unsupported
         end,
@@ -200,16 +200,16 @@ function FileManagerMenu:setUpdateItemTable()
         separator = true,
       },
       {
-        text = _("Classic mode settings"),
+        text = gettext("Classic mode settings"),
         sub_item_table = {
           {
             text_func = function()
               return T(
-                _("Items per page: %1"),
+                gettext("Items per page: %1"),
                 G_reader_settings:read("items_per_page") or FileChooser.items_per_page_default
               )
             end,
-            help_text = _([[This sets the number of items per page in:
+            help_text = gettext([[This sets the number of items per page in:
 - File browser, history and favorites in 'classic' display mode
 - Search results and folder shortcuts
 - File and folder selection
@@ -218,7 +218,7 @@ function FileManagerMenu:setUpdateItemTable()
               local default_value = FileChooser.items_per_page_default
               local current_value = G_reader_settings:read("items_per_page") or default_value
               local widget = SpinWidget:new({
-                title_text = _("Items per page"),
+                title_text = gettext("Items per page"),
                 value = current_value,
                 value_min = 6,
                 value_max = 30,
@@ -235,7 +235,7 @@ function FileManagerMenu:setUpdateItemTable()
           },
           {
             text_func = function()
-              return T(_("Item font size: %1"), FileChooser.font_size)
+              return T(gettext("Item font size: %1"), FileChooser.font_size)
             end,
             callback = function(touchmenu_instance)
               local current_value = FileChooser.font_size
@@ -243,7 +243,7 @@ function FileManagerMenu:setUpdateItemTable()
                 G_reader_settings:read("items_per_page") or FileChooser.items_per_page_default
               )
               local widget = SpinWidget:new({
-                title_text = _("Item font size"),
+                title_text = gettext("Item font size"),
                 value = current_value,
                 value_min = 10,
                 value_max = 72,
@@ -262,7 +262,7 @@ function FileManagerMenu:setUpdateItemTable()
             end,
           },
           {
-            text = _("Shrink item font size to fit more text"),
+            text = gettext("Shrink item font size to fit more text"),
             checked_func = function()
               return G_reader_settings:isTrue("items_multilines_show_more_text")
             end,
@@ -273,7 +273,7 @@ function FileManagerMenu:setUpdateItemTable()
             separator = true,
           },
           {
-            text = _("Show opened files in bold"),
+            text = gettext("Show opened files in bold"),
             checked_func = function()
               return G_named_settings.show_file_in_bold() == "opened"
             end,
@@ -287,7 +287,7 @@ function FileManagerMenu:setUpdateItemTable()
             end,
           },
           {
-            text = _("Show new (not yet opened) files in bold"),
+            text = gettext("Show new (not yet opened) files in bold"),
             checked_func = function()
               return G_named_settings.show_file_in_bold() == "new"
             end,
@@ -303,10 +303,10 @@ function FileManagerMenu:setUpdateItemTable()
         },
       },
       {
-        text = _("History settings"),
+        text = gettext("History settings"),
         sub_item_table = {
           {
-            text = _("Shorten date/time"),
+            text = gettext("Shorten date/time"),
             checked_func = function()
               return G_reader_settings:isTrue("history_datetime_short")
             end,
@@ -316,7 +316,7 @@ function FileManagerMenu:setUpdateItemTable()
             end,
           },
           {
-            text = _("Freeze last read date of finished books"),
+            text = gettext("Freeze last read date of finished books"),
             checked_func = function()
               return G_reader_settings:nilOrTrue("history_freeze_finished_books")
             end,
@@ -326,11 +326,11 @@ function FileManagerMenu:setUpdateItemTable()
             separator = true,
           },
           {
-            text = _("Clear history of deleted files"),
+            text = gettext("Clear history of deleted files"),
             callback = function()
               UIManager:show(ConfirmBox:new({
-                text = _("Clear history of deleted files?"),
-                ok_text = _("Clear"),
+                text = gettext("Clear history of deleted files?"),
+                ok_text = gettext("Clear"),
                 ok_callback = function()
                   require("readhistory"):clearMissing()
                 end,
@@ -338,7 +338,7 @@ function FileManagerMenu:setUpdateItemTable()
             end,
           },
           {
-            text = _("Auto-remove deleted or purged items from history"),
+            text = gettext("Auto-remove deleted or purged items from history"),
             checked_func = function()
               return G_reader_settings:isTrue("autoremove_deleted_items_from_history")
             end,
@@ -348,7 +348,7 @@ function FileManagerMenu:setUpdateItemTable()
             separator = true,
           },
           {
-            text = _("Show filename in Open last/previous menu items"),
+            text = gettext("Show filename in Open last/previous menu items"),
             checked_func = function()
               return G_reader_settings:isTrue("open_last_menu_show_filename")
             end,
@@ -359,19 +359,19 @@ function FileManagerMenu:setUpdateItemTable()
         },
       },
       {
-        text = _("Home folder settings"),
+        text = gettext("Home folder settings"),
         sub_item_table = {
           {
-            text = _("Set home folder"),
+            text = gettext("Set home folder"),
             callback = function()
-              filemanagerutil.showChooseDialog(_("Current home folder:"), function(path)
+              filemanagerutil.showChooseDialog(gettext("Current home folder:"), function(path)
                 G_reader_settings:save("home_dir", path)
                 self.ui:updateTitleBarPath()
               end, G_reader_settings:read("home_dir"), require("util").backup_dir())
             end,
           },
           {
-            text = _("Shorten home folder"),
+            text = gettext("Shorten home folder"),
             checked_func = function()
               return G_reader_settings:nilOrTrue("shorten_home_dir")
             end,
@@ -379,7 +379,7 @@ function FileManagerMenu:setUpdateItemTable()
               G_reader_settings:flipNilOrTrue("shorten_home_dir")
               self.ui:updateTitleBarPath()
             end,
-            help_text = _([[
+            help_text = gettext([[
 "Shorten home folder" will display the home folder itself as "Home" instead of its full path.
 
 Assuming the home folder is:
@@ -390,7 +390,7 @@ To:
 `Manga/Cells at Work`.]]),
           },
           {
-            text = _("Lock home folder"),
+            text = gettext("Lock home folder"),
             enabled_func = function()
               return G_reader_settings:has("home_dir")
             end,
@@ -409,9 +409,9 @@ To:
         text_func = function()
           local default_value = KeyValuePage.getDefaultItemsPerPage()
           local current_value = G_reader_settings:read("keyvalues_per_page") or default_value
-          return T(_("Info lists items per page: %1"), current_value)
+          return T(gettext("Info lists items per page: %1"), current_value)
         end,
-        help_text = _([[This sets the number of items per page in:
+        help_text = gettext([[This sets the number of items per page in:
 - Book information
 - Dictionary and Wikipedia lookup history
 - Reading statistics details
@@ -425,7 +425,7 @@ To:
             value_min = 10,
             value_max = 30,
             default_value = default_value,
-            title_text = _("Info lists items per page"),
+            title_text = gettext("Info lists items per page"),
             callback = function(spin)
               G_reader_settings:save("keyvalues_per_page", spin.value, default_value)
               touchmenu_instance:updateItems()
@@ -443,7 +443,7 @@ To:
 
   self.menu_items.sort_by = self:getSortingMenuTable()
   self.menu_items.reverse_sorting = {
-    text = _("Reverse sorting"),
+    text = gettext("Reverse sorting"),
     checked_func = function()
       return G_reader_settings:isTrue("reverse_collate")
     end,
@@ -453,7 +453,7 @@ To:
     end,
   }
   self.menu_items.sort_mixed = {
-    text = _("Folders and files mixed"),
+    text = gettext("Folders and files mixed"),
     enabled_func = function()
       local collate = FileChooser:getCollate()
       return collate.can_collate_mixed
@@ -471,7 +471,7 @@ To:
 
   if Device:supportsScreensaver() then
     self.menu_items.screensaver = {
-      text = _("Sleep screen"),
+      text = gettext("Sleep screen"),
       sub_item_table = require("ui/elements/screensaver_menu"),
     }
   end
@@ -488,7 +488,7 @@ To:
 
   -- settings tab - Document submenu
   self.menu_items.document_metadata_location_move = {
-    text = _("Move book metadata"),
+    text = gettext("Move book metadata"),
     keep_menu_open = true,
     callback = function()
       self.ui.bookinfo:moveBookMetadata()
@@ -497,7 +497,7 @@ To:
 
   -- tools tab
   self.menu_items.plugin_management = {
-    text = _("Plugin management"),
+    text = gettext("Plugin management"),
     sub_item_table = PluginLoader:genPluginManagerSubItem(),
   }
 
@@ -505,8 +505,8 @@ To:
 
   self.menu_items.file_search = {
     -- @translators Search for files by name.
-    text = _("File search"),
-    help_text = _([[Search a book by filename in the current or home folder and its subfolders.
+    text = gettext("File search"),
+    help_text = gettext([[Search a book by filename in the current or home folder and its subfolders.
 
 Wildcards for one '?' or more '*' characters can be used.
 A search for '*' will show all files.
@@ -519,7 +519,7 @@ Tap a book in the search results to open it.]]),
     end,
   }
   self.menu_items.file_search_results = {
-    text = _("Last file search results"),
+    text = gettext("Last file search results"),
     callback = function()
       self.ui.filesearcher:onShowSearchResults()
     end,
@@ -529,11 +529,11 @@ Tap a book in the search results to open it.]]),
   self.menu_items.open_previous_document = {
     text_func = function()
       if not G_reader_settings:isTrue("open_last_menu_show_filename") or G_reader_settings:hasNot("lastfile") then
-        return _("Open last document")
+        return gettext("Open last document")
       end
       local last_file = G_reader_settings:read("lastfile")
       local path, file_name = util.splitFilePathName(last_file) -- luacheck: no unused
-      return T(_("Last: %1"), BD.filename(file_name))
+      return T(gettext("Last: %1"), BD.filename(file_name))
     end,
     enabled_func = function()
       return G_reader_settings:has("lastfile")
@@ -544,8 +544,8 @@ Tap a book in the search results to open it.]]),
     hold_callback = function()
       local last_file = G_reader_settings:read("lastfile")
       UIManager:show(ConfirmBox:new({
-        text = T(_("Would you like to open the last document: %1?"), BD.filepath(last_file)),
-        ok_text = _("OK"),
+        text = T(gettext("Would you like to open the last document: %1?"), BD.filepath(last_file)),
+        ok_text = gettext("OK"),
         ok_callback = function()
           self:onOpenLastDoc()
         end,
@@ -607,7 +607,7 @@ function FileManagerMenu:getSortingMenuTable()
   return {
     text_func = function()
       local collate = self.ui.file_chooser:getCollate()
-      return T(_("Sort by: %1"), collate.text)
+      return T(gettext("Sort by: %1"), collate.text)
     end,
     sub_item_table = sub_item_table,
   }
@@ -615,11 +615,11 @@ end
 
 function FileManagerMenu:getStartWithMenuTable()
   local start_withs = {
-    { _("file browser"), "filemanager" },
-    { _("history"), "history" },
-    { _("favorites"), "favorites" },
-    { _("folder shortcuts"), "folder_shortcuts" },
-    { _("last file"), "last" },
+    { gettext("file browser"), "filemanager" },
+    { gettext("history"), "history" },
+    { gettext("favorites"), "favorites" },
+    { gettext("folder shortcuts"), "folder_shortcuts" },
+    { gettext("last file"), "last" },
   }
   local sub_item_table = {}
   for i, v in ipairs(start_withs) do
@@ -639,7 +639,7 @@ function FileManagerMenu:getStartWithMenuTable()
       local start_with = G_reader_settings:read("start_with") or "filemanager"
       for i, v in ipairs(start_withs) do
         if v[2] == start_with then
-          return T(_("Start with: %1"), v[1])
+          return T(gettext("Start with: %1"), v[1])
         end
       end
     end,
@@ -678,7 +678,7 @@ function FileManagerMenu:onShowMenu(tab_index)
   else
     local Menu = require("ui/widget/menu")
     main_menu = Menu:new({
-      title = _("File manager menu"),
+      title = gettext("File manager menu"),
       item_table = Menu.itemTableFromTouchMenu(self.tab_item_table),
       width = Screen:getWidth() - (Size.margin.fullscreen_popout * 2),
     })

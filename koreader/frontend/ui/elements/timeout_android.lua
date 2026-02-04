@@ -1,7 +1,7 @@
 local isAndroid, android = pcall(require, "android")
 local ffi = require("ffi")
-local _ = require("gettext")
-local N_ = _.ngettext
+local gettext = require("gettext")
+local N_ = gettext.ngettext
 local T = require("ffi/util").template
 
 if not isAndroid then
@@ -51,14 +51,14 @@ local function saveAndApplyTimeout(timeout)
 end
 
 local function requestWriteSettings()
-  local text = _(
+  local text = gettext(
     [[
 Allow KOReader to modify system settings?
 
 You will be prompted with a permission management screen. You'll need to give KOReader permission and then restart the program.]]
   )
 
-  android.settings.requestPermission("settings", text, _("Allow"), _("Cancel"))
+  android.settings.requestPermission("settings", text, gettext("Allow"), gettext("Cancel"))
 end
 
 local TimeoutHelper = {}
@@ -67,7 +67,7 @@ local TimeoutHelper = {}
 function TimeoutHelper:getTimeoutMenuTable()
   local t = {
     {
-      text = _("Use system settings"),
+      text = gettext("Use system settings"),
       enabled_func = function()
         return canModifyTimeout(system)
       end,
@@ -163,7 +163,7 @@ function TimeoutHelper:getTimeoutMenuTable()
       end,
     },
     {
-      text = _("Keep screen on"),
+      text = gettext("Keep screen on"),
       enabled_func = function()
         return canModifyTimeout(screenOn)
       end,
@@ -178,7 +178,7 @@ function TimeoutHelper:getTimeoutMenuTable()
 
   if not android.settings.hasPermission("settings") then
     table.insert(t, 1, {
-      text = _("Allow system settings override"),
+      text = gettext("Allow system settings override"),
       enabled_func = function()
         return not android.settings.hasPermission("settings")
       end,
@@ -193,7 +193,7 @@ function TimeoutHelper:getTimeoutMenuTable()
   end
 
   return {
-    text = _("Screen Timeout"),
+    text = gettext("Screen Timeout"),
     sub_item_table = t,
   }
 end

@@ -8,10 +8,10 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local joinPath = require("ffi/util").joinPath
 local lfs = require("libs/libkoreader-lfs")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local menuItem = {
-  text = _("Retrieve reading records"),
+  text = gettext("Retrieve reading records"),
 }
 
 local history_file = joinPath(DataStorage:getDataDir(), "history.lua")
@@ -43,12 +43,12 @@ local function doBuildHistory()
       ReadHistory:reload()
     end,
     -- Need localization.
-    _("Searching for reading records…")
+    gettext("Searching for reading records…")
   )
 
   --- TODO(hzj-jie): Consider to open the history view directly.
   UIManager:show(InfoMessage:new({
-    text = _("History view has been updated, use main menu to access it."),
+    text = gettext("History view has been updated, use main menu to access it."),
     timeout = 2,
   }))
 end
@@ -59,11 +59,11 @@ local function backupAndBuildHistory()
   else
     UIManager:show(ConfirmBox:new({
       text = T(
-        _("Failed to backup current history view from %1 to %2, still want to proceed?"),
+        gettext("Failed to backup current history view from %1 to %2, still want to proceed?"),
         history_file,
         history_backup_file
       ),
-      ok_text = _("Proceed"),
+      ok_text = gettext("Proceed"),
       ok_callback = doBuildHistory,
     }))
   end
@@ -75,8 +75,8 @@ local function buildHistory()
     backupAndBuildHistory()
   else
     UIManager:show(ConfirmBox:new({
-      text = _("Found an existing history backup file; it will be overwritten. Still want to proceed?"),
-      ok_text = _("Proceed"),
+      text = gettext("Found an existing history backup file; it will be overwritten. Still want to proceed?"),
+      ok_text = gettext("Proceed"),
       ok_callback = backupAndBuildHistory,
     }))
   end
@@ -88,24 +88,24 @@ local function restoreHistory()
     ReadHistory:reload()
     --- TODO(hzj-jie): Consider to open the history view directly.
     UIManager:show(InfoMessage:new({
-      text = _("Last history view has been restored, use main menu to access it."),
+      text = gettext("Last history view has been restored, use main menu to access it."),
       timeout = 2,
     }))
   else
     UIManager:show(InfoMessage:new({
-      text = T(_("Failed to restore the last history view from %1."), history_backup_file),
+      text = T(gettext("Failed to restore the last history view from %1."), history_backup_file),
     }))
   end
 end
 
 menuItem.callback = function()
   UIManager:show(MultiConfirmBox:new({
-    text = _(
+    text = gettext(
       "This function searches and retrieves all the reading records in the home directory and build the history view.\nThe last history view will be preserved and can be restored."
     ),
-    choice1_text = _("Retrieve"),
+    choice1_text = gettext("Retrieve"),
     choice1_callback = buildHistory,
-    choice2_text = _("Restore"),
+    choice2_text = gettext("Restore"),
     choice2_callback = restoreHistory,
   }))
 end

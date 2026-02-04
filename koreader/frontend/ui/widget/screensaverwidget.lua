@@ -5,7 +5,6 @@ local GestureRange = require("ui/gesturerange")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
 local Screen = Device.screen
 
 local ScreenSaverWidget = InputContainer:extend({

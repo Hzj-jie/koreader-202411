@@ -4,7 +4,7 @@ local FontList = require("fontlist")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = FFIUtil.template
 
 -- Some "Noto Sans *" fonts are already in ui/font.lua Font.fallbacks,
@@ -54,7 +54,7 @@ local genFallbackCandidates = function()
 end
 
 local more_info_text = T(
-  _(
+  gettext(
     [[
 If some book titles, dictionary entries and such are not displayed well but shown as %1 or %2, it may be necessary to download the required fonts for those languages. They can then be enabled as additional UI fallback fonts.
 Fonts for many languages can be downloaded at:
@@ -110,7 +110,7 @@ local getSubMenuItems = function()
 
   local menu_items = {
     {
-      text = _("About additional UI fallback fonts"),
+      text = gettext("About additional UI fallback fonts"),
       callback = function()
         UIManager:show(InfoMessage:new({
           text = more_info_text,
@@ -151,7 +151,7 @@ local getSubMenuItems = function()
           else
             UIManager:show(InfoMessage:new({
               text = T(
-                _(
+                gettext(
                   "The number of allowed additional fallback fonts is limited to %1.\nUncheck some of them if you want to add this one."
                 ),
                 Font.additional_fallback_max_nb
@@ -169,6 +169,6 @@ local getSubMenuItems = function()
 end
 
 return {
-  text = _("Additional UI fallback fonts"),
+  text = gettext("Additional UI fallback fonts"),
   sub_item_table_func = getSubMenuItems,
 }

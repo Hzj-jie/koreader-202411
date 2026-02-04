@@ -12,7 +12,7 @@ local logger = require("logger")
 local ffi = require("ffi")
 local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local ffiUtil = require("ffi/util")
 local C = ffi.C
 local T = ffiUtil.template
@@ -428,8 +428,8 @@ end
 function Device:install()
   local ConfirmBox = require("ui/widget/confirmbox")
   UIManager:show(ConfirmBox:new({
-    text = _("Update is ready. Install it now?"),
-    ok_text = _("Install"),
+    text = gettext("Update is ready. Install it now?"),
+    ok_text = gettext("Install"),
     ok_callback = function()
       local save_quit = function()
         self:saveSettings()
@@ -437,11 +437,11 @@ function Device:install()
       end
       UIManager:broadcastEvent(Event:new("ExitKOReader", save_quit))
     end,
-    cancel_text = _("Later"),
+    cancel_text = gettext("Later"),
     cancel_callback = function()
       local InfoMessage = require("ui/widget/infomessage")
       UIManager:show(InfoMessage:new({
-        text = _("The update will be applied the next time KOReader is started."),
+        text = gettext("The update will be applied the next time KOReader is started."),
         unmovable = true,
         dismissable = false,
       }))
@@ -874,7 +874,7 @@ function Device:retrieveNetworkInfo()
               table.insert(results, "")
             end
             prev_ifname = ifname
-            table.insert(results, T(_("Interface: %1"), ifname))
+            table.insert(results, T(gettext("Interface: %1"), ifname))
             interfaces[ifname] = true
             -- Get its MAC address
             local ifr = ffi.new("struct ifreq")
@@ -892,7 +892,7 @@ function Device:retrieveNetworkInfo()
                 bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[4], 0xFF),
                 bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[5], 0xFF)
               )
-              table.insert(results, T(_("MAC: %1"), mac))
+              table.insert(results, T(gettext("MAC: %1"), mac))
             end
 
             -- Check if it's a wireless interface (c.f., wireless-tools)
@@ -915,31 +915,31 @@ function Device:retrieveNetworkInfo()
                   --[[
                   local token_index = bit.band(essid_on, C.IW_ENCODE_INDEX)
                   if token_index > 1 then
-                    table.insert(results, T(_("SSID: \"%1\" [%2]"), ffi.string(essid), token_index))
+                    table.insert(results, T(gettext("SSID: \"%1\" [%2]"), ffi.string(essid), token_index))
                   else
-                    table.insert(results, T(_("SSID: \"%1\""), ffi.string(essid)))
+                    table.insert(results, T(gettext("SSID: \"%1\""), ffi.string(essid)))
                   end
                   --]]
-                  table.insert(results, T(_('SSID: "%1"'), ffi.string(essid)))
+                  table.insert(results, T(gettext('SSID: "%1"'), ffi.string(essid)))
                 else
-                  table.insert(results, _("SSID: off/any"))
+                  table.insert(results, gettext("SSID: off/any"))
                 end
               end
             end
           end
 
           if family == C.AF_INET then
-            table.insert(results, T(_("IP: %1"), ffi.string(host)))
+            table.insert(results, T(gettext("IP: %1"), ffi.string(host)))
             local gw = self:getDefaultRoute(ifname)
             if gw then
-              table.insert(results, T(_("Default gateway: %1"), gw))
+              table.insert(results, T(gettext("Default gateway: %1"), gw))
               -- If that's a wireless interface, use *that* one for the ping test
               if interfaces[ifname] == "wireless" then
                 default_gw = gw
               end
             end
           else
-            table.insert(results, T(_("IPv6: %1"), ffi.string(host)))
+            table.insert(results, T(gettext("IPv6: %1"), ffi.string(host)))
             --- @todo: Build an IPv6 variant of getDefaultRoute that parses /proc/net/ipv6_route
           end
         end
@@ -961,20 +961,20 @@ function Device:retrieveNetworkInfo()
   if default_gw then
     local ok, rtt = self:ping4(default_gw)
     if ok then
-      table.insert(results, _("Gateway ping successful"))
+      table.insert(results, gettext("Gateway ping successful"))
       if rtt then
         rtt = string.format("%.3f", rtt * 1 / 1000) -- i.e., time.to_ms w/o flooring
-        table.insert(results, T(_("RTT: %1 ms"), rtt))
+        table.insert(results, T(gettext("RTT: %1 ms"), rtt))
       end
     else
-      table.insert(results, _("Gateway ping FAILED"))
+      table.insert(results, gettext("Gateway ping FAILED"))
       if rtt then
         rtt = string.format("%.1f", time.to_s(rtt))
-        table.insert(results, T(_("Timed out after %1 s"), rtt))
+        table.insert(results, T(gettext("Timed out after %1 s"), rtt))
       end
     end
   else
-    table.insert(results, _("No default gateway to ping"))
+    table.insert(results, gettext("No default gateway to ping"))
   end
 
   return results
@@ -1038,10 +1038,11 @@ function Device:unpackArchive(archive, extract_to, with_stripped_root)
   then
     ok = self:untar(archive, extract_to, with_stripped_root)
   else
-    return false, T(_("Couldn't extract archive:\n\n%1\n\nUnrecognized filename extension."), BD.filepath(archive))
+    return false,
+      T(gettext("Couldn't extract archive:\n\n%1\n\nUnrecognized filename extension."), BD.filepath(archive))
   end
   if not ok then
-    return false, T(_("Extracting archive failed:\n\n%1"), BD.filepath(archive))
+    return false, T(gettext("Extracting archive failed:\n\n%1"), BD.filepath(archive))
   end
   return true
 end

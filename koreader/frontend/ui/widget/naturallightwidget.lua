@@ -15,7 +15,7 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 
 local NaturalLightWidget = WidgetContainer:extend({
@@ -138,7 +138,7 @@ end
 
 function NaturalLightWidget:update()
   local title_bar = TitleBar:new({
-    title = _("Natural light configuration"),
+    title = gettext("Natural light configuration"),
     width = self.width,
     align = "left",
     with_bottom_line = true,
@@ -209,37 +209,37 @@ function NaturalLightWidget:createMainContent(width, height)
   local exponent_group = HorizontalGroup:new({ align = "center" })
   local button_group = HorizontalGroup:new({ align = "center" })
   local text_gain = TextBoxWidget:new({
-    text = _("Amplification"),
+    text = gettext("Amplification"),
     face = self.medium_font_face,
     bold = true,
     width = self.textbox_width + 2 * self.button_width,
   })
   local text_offset = TextBoxWidget:new({
-    text = _("Offset"),
+    text = gettext("Offset"),
     face = self.medium_font_face,
     bold = true,
     width = self.textbox_width + self.button_width,
   })
   local text_white = TextBoxWidget:new({
-    text = _("White"),
+    text = gettext("White"),
     face = self.medium_font_face,
     bold = true,
     width = self.text_width,
   })
   local text_red = TextBoxWidget:new({
-    text = _("Red"),
+    text = gettext("Red"),
     face = self.medium_font_face,
     bold = true,
     width = self.text_width,
   })
   local text_green = TextBoxWidget:new({
-    text = _("Green"),
+    text = gettext("Green"),
     face = self.medium_font_face,
     bold = true,
     width = self.text_width,
   })
   local text_exponent = TextBoxWidget:new({
-    text = _("Exponent"),
+    text = gettext("Exponent"),
     face = self.medium_font_face,
     bold = true,
     width = self.text_width,

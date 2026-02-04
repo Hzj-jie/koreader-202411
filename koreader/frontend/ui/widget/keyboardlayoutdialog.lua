@@ -19,7 +19,7 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Device = require("device")
 local Screen = Device.screen
 
@@ -37,7 +37,7 @@ function KeyboardLayoutDialog:init()
   self.title_bar = TitleBar:new({
     width = self.width,
     with_bottom_line = true,
-    title = _("Keyboard layout"),
+    title = gettext("Keyboard layout"),
     bottom_v_padding = 0,
   })
 
@@ -68,14 +68,14 @@ function KeyboardLayoutDialog:init()
 
   table.insert(buttons, {
     {
-      text = _("Cancel"),
+      text = gettext("Cancel"),
       id = "close",
       callback = function()
         UIManager:close(self.parent.keyboard_layout_dialog)
       end,
     },
     {
-      text = _("Switch to layout"),
+      text = gettext("Switch to layout"),
       is_enter_default = true,
       callback = function()
         local provider = self.parent.keyboard_layout_dialog.radio_button_table.checked_button.provider

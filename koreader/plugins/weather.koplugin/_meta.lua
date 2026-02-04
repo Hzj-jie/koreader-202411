@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "weather",
-  fullname = _("Weather"),
-  description = _([[Get the weather forcast]]),
+  fullname = gettext("Weather"),
+  description = gettext([[Get the weather forcast]]),
 }

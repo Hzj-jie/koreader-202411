@@ -10,25 +10,25 @@ Example:
 
     local sample_input
     sample_input = InputDialog:new{
-        title = _("Dialog title"),
+        title = gettext("Dialog title"),
         input = "default value",
         -- A placeholder text shown in the text box.
-        input_hint = _("Hint text"),
+        input_hint = gettext("Hint text"),
         -- input_type = nil, -- default for text
         -- A description shown above the input.
-        description = _("Some more description."),
+        description = gettext("Some more description."),
         -- text_type = "password",
         buttons = {
             {
                 {
-                    text = _("Cancel"),
+                    text = gettext("Cancel"),
                     id = "close",
                     callback = function()
                         UIManager:close(sample_input)
                     end,
                 },
                 {
-                    text = _("Save"),
+                    text = gettext("Save"),
                     -- button with is_enter_default set to true will be
                     -- triggered after user press the enter key from keyboard
                     is_enter_default = true,
@@ -118,7 +118,7 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local Screen = Device.screen
 local T = require("ffi/util").template
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local InputDialog = FocusManager:extend({
   -- TODO: Using is_always_active is wrong, it allows the buttons to receive the
@@ -398,9 +398,9 @@ function InputDialog:init()
   if self.save_callback then
     local save_button = self.button_table:getButtonById("save")
     if self.readonly then
-      save_button:setText(_("Read only"), save_button.width)
+      save_button:setText(gettext("Read only"), save_button.width)
     elseif not self._input_widget:isTextEditable() then
-      save_button:setText(_("Not editable"), save_button.width)
+      save_button:setText(gettext("Not editable"), save_button.width)
     end
   end
   if self.add_nav_bar then
@@ -812,7 +812,7 @@ function InputDialog:_addSaveCloseButtons()
     -- if reset_callback provided, add button to restore
     -- text to some previous state
     table.insert(row, {
-      text = self.reset_button_text or _("Reset"),
+      text = self.reset_button_text or gettext("Reset"),
       id = "reset",
       enabled = self._text_modified,
       callback = function()
@@ -824,12 +824,12 @@ function InputDialog:_addSaveCloseButtons()
             self:setInputText(content)
             self._buttons_edit_callback(false)
             UIManager:show(Notification:new({
-              text = msg or _("Text reset"),
+              text = msg or gettext("Text reset"),
             }))
           else -- nil content, assume failure and show msg
             if msg ~= false then -- false allows for no InfoMessage
               UIManager:show(InfoMessage:new({
-                text = msg or _("Resetting failed."),
+                text = msg or gettext("Resetting failed."),
               }))
             end
           end
@@ -838,7 +838,7 @@ function InputDialog:_addSaveCloseButtons()
     })
   end
   table.insert(row, {
-    text = self.save_button_text or _("Save"),
+    text = self.save_button_text or gettext("Save"),
     id = "save",
     enabled = self._text_modified,
     callback = function()
@@ -850,13 +850,13 @@ function InputDialog:_addSaveCloseButtons()
           if success == false then
             if msg ~= false then -- false allows for no InfoMessage
               UIManager:show(InfoMessage:new({
-                text = msg or _("Saving failed."),
+                text = msg or gettext("Saving failed."),
               }))
             end
           else -- nil or true
             self._buttons_edit_callback(false)
             UIManager:show(Notification:new({
-              text = msg or _("Saved"),
+              text = msg or gettext("Saved"),
             }))
           end
         end
@@ -864,24 +864,24 @@ function InputDialog:_addSaveCloseButtons()
     end,
   })
   table.insert(row, {
-    text = self.close_button_text or _("Close"),
+    text = self.close_button_text or gettext("Close"),
     id = "close",
     callback = function()
       if self._text_modified then
         UIManager:show(MultiConfirmBox:new({
-          text = self.close_unsaved_confirm_text or _("You have unsaved changes."),
-          cancel_text = self.close_cancel_button_text or _("Cancel"),
-          choice1_text = self.close_discard_button_text or _("Discard"),
+          text = self.close_unsaved_confirm_text or gettext("You have unsaved changes."),
+          cancel_text = self.close_cancel_button_text or gettext("Cancel"),
+          choice1_text = self.close_discard_button_text or gettext("Discard"),
           choice1_callback = function()
             if self.close_callback then
               self.close_callback(false)
             end
             UIManager:close(self)
             UIManager:show(Notification:new({
-              text = self.close_discarded_notif_text or _("Changes discarded"),
+              text = self.close_discarded_notif_text or gettext("Changes discarded"),
             }))
           end,
-          choice2_text = self.close_save_button_text or _("Save"),
+          choice2_text = self.close_save_button_text or gettext("Save"),
           choice2_callback = function()
             -- Wrapped via Trapper, to allow save_callback to use Trapper
             -- to show progress or ask questions while saving
@@ -890,7 +890,7 @@ function InputDialog:_addSaveCloseButtons()
               if success == false then
                 if msg ~= false then -- false allows for no InfoMessage
                   UIManager:show(InfoMessage:new({
-                    text = msg or _("Saving failed."),
+                    text = msg or gettext("Saving failed."),
                   }))
                 end
               else -- nil or true
@@ -899,7 +899,7 @@ function InputDialog:_addSaveCloseButtons()
                 end
                 UIManager:close(self)
                 UIManager:show(Notification:new({
-                  text = msg or _("Saved"),
+                  text = msg or gettext("Saved"),
                 }))
               end
             end)
@@ -944,18 +944,18 @@ function InputDialog:_addScrollButtons(nav_bar)
     if self.fullscreen then
       -- Add a button to search for a string in the edited text
       table.insert(row, {
-        text = _("Find"),
+        text = gettext("Find"),
         callback = function()
           self:toggleKeyboard(false) -- hide text editor keyboard
           local input_dialog
           input_dialog = InputDialog:new({
-            title = _("Enter text to search for"),
+            title = gettext("Enter text to search for"),
             stop_events_propagation = true, -- avoid interactions with upper InputDialog
             input = self.search_value,
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   id = "close",
                   callback = function()
                     UIManager:close(input_dialog)
@@ -963,13 +963,13 @@ function InputDialog:_addScrollButtons(nav_bar)
                   end,
                 },
                 {
-                  text = _("Find first"),
+                  text = gettext("Find first"),
                   callback = function()
                     self:findCallback(input_dialog, true)
                   end,
                 },
                 {
-                  text = _("Find next"),
+                  text = gettext("Find next"),
                   is_enter_default = true,
                   callback = function()
                     self:findCallback(input_dialog)
@@ -980,7 +980,7 @@ function InputDialog:_addScrollButtons(nav_bar)
           })
 
           self.check_button_case = CheckButton:new({
-            text = _("Case sensitive"),
+            text = gettext("Case sensitive"),
             checked = self.case_sensitive,
             parent = input_dialog,
             callback = function()
@@ -1003,15 +1003,15 @@ function InputDialog:_addScrollButtons(nav_bar)
           local curr_line_num, last_line_num = self._input_widget:getLineNums()
           local input_dialog
           input_dialog = InputDialog:new({
-            title = _("Enter line number"),
+            title = gettext("Enter line number"),
             -- @translators %1 is the current line number, %2 is the last line number
-            input_hint = T(_("%1 (1 - %2)"), curr_line_num, last_line_num),
+            input_hint = T(gettext("%1 (1 - %2)"), curr_line_num, last_line_num),
             input_type = "number",
             stop_events_propagation = true, -- avoid interactions with upper InputDialog
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   id = "close",
                   callback = function()
                     UIManager:close(input_dialog)
@@ -1019,7 +1019,7 @@ function InputDialog:_addScrollButtons(nav_bar)
                   end,
                 },
                 {
-                  text = _("Go to line"),
+                  text = gettext("Go to line"),
                   is_enter_default = true,
                   callback = function()
                     local new_line_num = input_dialog:getInputValue()
@@ -1127,9 +1127,9 @@ function InputDialog:findCallback(input_dialog, find_first)
   local msg
   if char_pos > 0 then
     self._input_widget:moveCursorToCharPos(char_pos)
-    msg = T(_("Found in line %1."), self.curr_line_num)
+    msg = T(gettext("Found in line %1."), self.curr_line_num)
   else
-    msg = _("Not found.")
+    msg = gettext("Not found.")
   end
   UIManager:show(Notification:new({
     text = msg,
