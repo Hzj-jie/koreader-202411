@@ -859,6 +859,7 @@ function InputText:showKeyboard(ignore_first_hold_release)
   if self.keyboard then
     self.keyboard:showKeyboard(ignore_first_hold_release)
   end
+  self:focus()
   return true
 end
 
@@ -866,6 +867,7 @@ function InputText:closeKeyboard()
   if self.keyboard then
     self.keyboard:hideKeyboard()
   end
+  self:unfocus()
 end
 
 function InputText:isKeyboardVisible()
