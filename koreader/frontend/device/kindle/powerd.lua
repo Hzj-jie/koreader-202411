@@ -23,15 +23,6 @@ function KindlePowerD:init()
   self:initWakeupMgr()
 end
 
-function KindlePowerD:turnOnFrontlight(done_callback)
-  -- If we start with the light off (fl_intensity is fl_min), ensure a toggle will set it to the lowest "on" step,
-  -- and that we update fl_intensity (by using setIntensity and not setIntensityHW).
-  if self.fl_intensity == self.fl_min then
-    self.fl_intensity = self.fl_min + 1
-  end
-  return BasePowerD.turnOnFrontlight(self, done_callback)
-end
-
 function KindlePowerD:frontlightIntensityHW()
   if not self.device:hasFrontlight() then
     return 0

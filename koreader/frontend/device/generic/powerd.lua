@@ -192,9 +192,11 @@ function BasePowerD:turnOnFrontlight(done_callback)
   if self:isFrontlightOn() then
     return false
   end
+  -- It seems very wrong, but if it's expected to turn "on" the frontlight, at
+  -- least set the intensity to fl_min + 1 to make it "on".
   if self.fl_intensity == self.fl_min then
-    return false
-  end --- @fixme what the hell?
+    self.fl_intensity = self.fl_min + 1
+  end
   local cb_handled = self:turnOnFrontlightHW(done_callback)
   self.is_fl_on = true
   self:stateChanged()
