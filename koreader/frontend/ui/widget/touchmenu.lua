@@ -167,8 +167,9 @@ function TouchMenuItem:init()
   for k, v in pairs(self.item) do
     -- on event handlers.
     if k:sub(1, 2) == "on" and type(v) == "function" then
-      self[k] = function()
-        v(self.menu)
+      self[k] = function(this, ...)
+        -- Do not forward self to the handler.
+        v(self.menu, ...)
         -- This event isn't triggered by an user interaction, and the update may
         -- be heavily delayed.
         UIManager:forceRepaintIfFastRefreshEnabled()

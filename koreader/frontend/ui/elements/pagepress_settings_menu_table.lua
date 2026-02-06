@@ -1,12 +1,7 @@
-local DateTimeWidget = require("ui/widget/datetimewidget")
 local Device = require("device")
-local InfoMessage = require("ui/widget/infomessage")
-local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
-local C_ = gettext.pgettext
-local T = require("ffi/util").template
+local Input = Device.input
 
--- This affects the topmenu, we want to be able to access it even if !Device:setDateTime()
 local menu = {
   -- Need localization
   text = gettext("Page press"),
@@ -21,6 +16,9 @@ local menu = {
       end,
       callback = function()
         Device:setPagePressPressure(0)
+      end,
+      onKeyPress = function(__, key)
+        return key:match({ { Input.group.PgFwd } }) or key:match({ { Input.group.PgBack } })
       end,
     },
     {
