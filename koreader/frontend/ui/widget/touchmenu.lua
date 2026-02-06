@@ -167,8 +167,7 @@ function TouchMenuItem:init()
   for k, v in pairs(self.item) do
     -- on event handlers.
     if k:sub(1, 2) == "on" and type(v) == "function" then
-      self[k] = function(this, ...)
-        -- Do not forward self to the handler.
+      self[k] = function(...)
         local r = v(self.menu, ...)
         -- This event isn't triggered by an user interaction, and the update may
         -- be heavily delayed.
@@ -236,7 +235,8 @@ function TouchMenuItem:_tapEventHandler(f)
   --
   self.item_frame.invert = false
   -- NOTE: If the menu is going to be closed, we can safely drop that.
-  if self.item.keep_menu_open then
+  -- If the item has no checked or check_func, menu:updateItems() won't be called.
+  if self.item.keep_menu_open or not (self.item.checked ~= nil or self.item.checked_func ~= nil) then
     UIManager:invertWidget(self.item_frame)
   end
 
@@ -933,7 +933,7 @@ function TouchMenu:onMenuSelect(item, tap_on_checkmark)
     end
     if sub_item_table == nil then
       -- keep menu opened if this item is a check option
-      local callback, refresh = item.callback, item.checked or item.checked_func
+      local callback, refresh = item.callback, item.checked ~= nil or item.checked_func ~= nil
       if item.callback_func then
         callback = item.callback_func()
       end

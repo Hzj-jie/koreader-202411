@@ -1,4 +1,5 @@
 local Device = require("device")
+local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local Input = Device.input
 
@@ -8,6 +9,17 @@ local menu = {
   help_text = gettext("Configure the up and down buttons on both side of the kindle voyage"),
   sub_item_table = {
     {
+      text = gettext("Try PagePress, inverted when pressed"),
+      onKeyPress = function(menu, menuItem, key)
+        if key:match({ Input.group.PgFwd }) or key:match({ Input.group.PgBack }) then
+          UIManager:invertWidget(menuItem)
+          return true
+        end
+        return false
+      end,
+      separator = true,
+    },
+    {
       text = gettext("Low pressure"),
       keep_menu_open = true,
       radio = true,
@@ -16,9 +28,6 @@ local menu = {
       end,
       callback = function()
         Device:setPagePressPressure(0)
-      end,
-      onKeyPress = function(__, key)
-        return key:match({ Input.group.PgFwd }) or key:match({ Input.group.PgBack })
       end,
     },
     {

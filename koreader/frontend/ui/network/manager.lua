@@ -736,6 +736,8 @@ function NetworkMgr:getWifiToggleMenuTable()
       end
     end,
     onNetworkStateChanged = function(menu)
+      -- TODO: Using menuItem:init() and UIManager:scheduleWidgetRepaint(menuItem)
+      -- shows significant blur even on the emulator.
       menu:updateItems()
     end,
     hold_callback = function(menu)
