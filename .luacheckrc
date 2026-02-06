@@ -11,8 +11,8 @@ globals = {
   "table.pack",
   "table.unpack",
 }
--- TODO: Remove in favor of default 120, stylua doesn't work very well and
--- sometimes leaves the line longer than the 120
+-- TODO: Remove in favor of default 80, stylua doesn't work very well and
+-- sometimes leaves the line longer than the 80.
 max_line_length = 1000
 max_string_line_length = 1000
 -- TODO: Should reduce, stylua doesn't format comment.
