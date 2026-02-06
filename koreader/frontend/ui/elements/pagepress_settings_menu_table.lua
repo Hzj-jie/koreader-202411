@@ -18,7 +18,7 @@ local menu = {
         Device:setPagePressPressure(0)
       end,
       onKeyPress = function(__, key)
-        return key:match({ { Input.group.PgFwd } }) or key:match({ { Input.group.PgBack } })
+        return key:match({ Input.group.PgFwd }) or key:match({ Input.group.PgBack })
       end,
     },
     {

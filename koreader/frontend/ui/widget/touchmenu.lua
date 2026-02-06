@@ -169,10 +169,11 @@ function TouchMenuItem:init()
     if k:sub(1, 2) == "on" and type(v) == "function" then
       self[k] = function(this, ...)
         -- Do not forward self to the handler.
-        v(self.menu, ...)
+        local r = v(self.menu, ...)
         -- This event isn't triggered by an user interaction, and the update may
         -- be heavily delayed.
         UIManager:forceRepaintIfFastRefreshEnabled()
+        return r
       end
     end
   end
