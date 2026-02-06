@@ -71,7 +71,7 @@ end
 -- This affects the topmenu, we want to be able to access it even if !Device:setDateTime()
 common_settings.time = require("ui/elements/time_settings_menu_table")
 
-if Device.model == "KindleVoyage" then
+if Device.model == "KindleVoyage" or Device:isEmulator() then
   common_settings.pagepress = require("ui/elements/pagepress_settings_menu_table")
 end
 

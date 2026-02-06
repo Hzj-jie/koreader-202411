@@ -450,6 +450,26 @@ function Emulator:initNetworkManager(NetworkMgr)
   NetworkMgr.isConnected = NetworkMgr.isWifiOn
 end
 
+local _pagePressPressure = 0
+function Emulator:pagePressPressure()
+  return _pagePressPressure
+end
+
+function Emulator:setPagePressPressure(v)
+  assert(v >= 0 and v <= 2)
+  _pagePressPressure = v
+end
+
+local _pagePressFeedback = 0
+function Emulator:pagePressFeedback()
+  return _pagePressFeedback
+end
+
+function Emulator:setPagePressFeedback(v)
+  assert(v >= 0 and v <= 3)
+  _pagePressFeedback = v
+end
+
 io.write("Starting SDL in " .. SDL.getBasePath() .. "\n")
 
 -------------- device probe ------------
