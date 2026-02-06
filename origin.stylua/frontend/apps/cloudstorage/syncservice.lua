@@ -37,8 +37,9 @@ end
 function SyncService:generateItemTable()
   local item_table = {}
   -- select and/or add server
-  local added_servers = LuaSettings:open(DataStorage:getSettingsDir() .. "/cloudstorage.lua"):readSetting("cs_servers")
-    or {}
+  local added_servers = LuaSettings:open(
+    DataStorage:getSettingsDir() .. "/cloudstorage.lua"
+  ):readSetting("cs_servers") or {}
   for _, server in ipairs(added_servers) do
     if server.type == "dropbox" or server.type == "webdav" then
       local item = {
@@ -88,13 +89,17 @@ function SyncService:generateItemTable()
 end
 
 function SyncService.getReadablePath(server)
-  local url = util.stringStartsWith(server.url, "/") and server.url:sub(2) or server.url
+  local url = util.stringStartsWith(server.url, "/") and server.url:sub(2)
+    or server.url
   url = util.urlDecode(url) or url
   url = util.stringEndsWith(url, "/") and url or url .. "/"
   if server.type == "dropbox" then
     url = "/" .. url
   elseif server.type == "webdav" then
-    url = (server.address:sub(-1) == "/" and server.address or server.address .. "/") .. url
+    url = (
+      server.address:sub(-1) == "/" and server.address
+      or server.address .. "/"
+    ) .. url
   end
   if url:sub(-2) == "//" then
     url = url:sub(1, -2)
@@ -150,7 +155,9 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
   local income_file_path = file_path .. ".temp" -- file downloaded from server
   local cached_file_path = file_path .. ".sync" -- file uploaded to server last time
 
-  local fail_msg = _("Something went wrong when syncing, please check your network connection and try again later.")
+  local fail_msg = _(
+    "Something went wrong when syncing, please check your network connection and try again later."
+  )
   local show_msg = function(msg)
     if is_silent then
       return
@@ -166,27 +173,43 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
   end
   local code_response = 412 -- If-Match header failed
   local etag
-  local api = server.type == "dropbox" and require("apps/cloudstorage/dropboxapi")
+  local api = server.type == "dropbox"
+      and require("apps/cloudstorage/dropboxapi")
     or require("apps/cloudstorage/webdavapi")
   local token = server.password
-  if server.type == "dropbox" and not (server.address == nil or server.address == "") then
+  if
+    server.type == "dropbox"
+    and not (server.address == nil or server.address == "")
+  then
     token = api:getAccessToken(server.password, server.address)
   end
   while code_response == 412 do
     os.remove(income_file_path)
     if server.type == "dropbox" then
-      local url_base = server.url:sub(-1) == "/" and server.url or server.url .. "/"
-      code_response, etag = api:downloadFile(url_base .. file_name, token, income_file_path)
+      local url_base = server.url:sub(-1) == "/" and server.url
+        or server.url .. "/"
+      code_response, etag =
+        api:downloadFile(url_base .. file_name, token, income_file_path)
     elseif server.type == "webdav" then
       local path = api:getJoinedPath(server.address, server.url)
       path = api:getJoinedPath(path, file_name)
-      code_response, etag = api:downloadFile(path, server.username, server.password, income_file_path)
+      code_response, etag = api:downloadFile(
+        path,
+        server.username,
+        server.password,
+        income_file_path
+      )
     end
-    if code_response ~= 200 and code_response ~= 404 and not (server.type == "dropbox" and code_response == 409) then
+    if
+      code_response ~= 200
+      and code_response ~= 404
+      and not (server.type == "dropbox" and code_response == 409)
+    then
       show_msg()
       return
     end
-    local ok, cb_return = pcall(sync_cb, file_path, cached_file_path, income_file_path)
+    local ok, cb_return =
+      pcall(sync_cb, file_path, cached_file_path, income_file_path)
     if not ok or not cb_return then
       show_msg()
       if not ok then
@@ -200,11 +223,16 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
     elseif server.type == "webdav" then
       local path = api:getJoinedPath(server.address, server.url)
       path = api:getJoinedPath(path, file_name)
-      code_response = api:uploadFile(path, server.username, server.password, file_path, etag)
+      code_response =
+        api:uploadFile(path, server.username, server.password, file_path, etag)
     end
   end
   os.remove(income_file_path)
-  if type(code_response) == "number" and code_response >= 200 and code_response < 300 then
+  if
+    type(code_response) == "number"
+    and code_response >= 200
+    and code_response < 300
+  then
     os.remove(cached_file_path)
     ffiutil.copyFile(file_path, cached_file_path)
     UIManager:show(Notification:new({

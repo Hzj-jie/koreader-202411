@@ -15,7 +15,9 @@ local logger = require("logger")
 local T = require("ffi/util").template
 
 local AutoFrontlight = {
-  settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/autofrontlight.lua"),
+  settings = LuaSettings:open(
+    DataStorage:getSettingsDir() .. "/autofrontlight.lua"
+  ),
   settings_id = 0,
   enabled = false,
   last_brightness = -1,
@@ -56,9 +58,15 @@ end
 function AutoFrontlight:_action()
   logger.dbg("AutoFrontlight:_action() @ ", os.time())
   local current_level = Device:ambientBrightnessLevel()
-  logger.dbg("AutoFrontlight:_action(): Retrieved ambient brightness level: ", current_level)
+  logger.dbg(
+    "AutoFrontlight:_action(): Retrieved ambient brightness level: ",
+    current_level
+  )
   if self.last_brightness == current_level then
-    logger.dbg("AutoFrontlight:_action(): recorded brightness is same as current level ", self.last_brightness)
+    logger.dbg(
+      "AutoFrontlight:_action(): recorded brightness is same as current level ",
+      self.last_brightness
+    )
     return
   end
   if current_level <= 1 then
@@ -74,7 +82,12 @@ end
 function AutoFrontlight:init()
   self.enabled = self.settings:nilOrTrue("enable")
   self.settings_id = self.settings_id + 1
-  logger.dbg("AutoFrontlight:init() self.enabled: ", self.enabled, " with id ", self.settings_id)
+  logger.dbg(
+    "AutoFrontlight:init() self.enabled: ",
+    self.enabled,
+    " with id ",
+    self.settings_id
+  )
   self:_schedule(self.settings_id)
 end
 
@@ -106,7 +119,10 @@ end
 
 -- For test only.
 function AutoFrontlightWidget:deprecateLastTask()
-  logger.dbg("AutoFrontlightWidget:deprecateLastTask() @ ", AutoFrontlight.settings_id)
+  logger.dbg(
+    "AutoFrontlightWidget:deprecateLastTask() @ ",
+    AutoFrontlight.settings_id
+  )
   AutoFrontlight.settings_id = AutoFrontlight.settings_id + 1
 end
 

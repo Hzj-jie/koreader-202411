@@ -40,7 +40,11 @@ encodet["base64"] = function()
 end
 
 encodet["quoted-printable"] = function(mode)
-  return ltn12.filter.cycle(_M.qp, "", (mode == "binary") and "=0D=0A" or "\r\n")
+  return ltn12.filter.cycle(
+    _M.qp,
+    "",
+    (mode == "binary") and "=0D=0A" or "\r\n"
+  )
 end
 
 -- define the decoding filters

@@ -8,9 +8,11 @@ local C_ = gettext.pgettext
 local Screen = Device.screen
 
 -- The values used for Font Size are not actually font sizes, but kopt zoom levels.
-local FONT_SCALE_FACTORS = { 0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.3, 1.6, 2.0 }
+local FONT_SCALE_FACTORS =
+  { 0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.3, 1.6, 2.0 }
 -- Font sizes used for the font size widget only
-local FONT_SCALE_DISPLAY_SIZE = { 12, 14, 15, 16, 17, 18, 19, 20, 22, 25, 30, 35 }
+local FONT_SCALE_DISPLAY_SIZE =
+  { 12, 14, 15, 16, 17, 18, 19, 20, 22, 25, 30, 35 }
 
 local KOPTREADER_CONFIG_DOC_LANGS_TEXT = {}
 for _, lang in ipairs(G_defaults:read("DKOPTREADER_CONFIG_DOC_LANGS_CODE")) do
@@ -132,7 +134,9 @@ In 'semi-auto' and 'manual' modes, you may need to define areas once on an odd p
         event = "MarginUpdate",
         args = { 0.05, 0.10, 0.25, 0.40, 0.55, 0.70, 0.85, 1.00 },
         name_text_hold_callback = optionsutil.showValues,
-        help_text = gettext([[Set margins to be applied after page-crop and zoom modes are applied.]]),
+        help_text = gettext(
+          [[Set margins to be applied after page-crop and zoom modes are applied.]]
+        ),
         more_options = true,
         more_options_param = {
           value_step = 0.01,
@@ -145,7 +149,13 @@ In 'semi-auto' and 'manual' modes, you may need to define areas once on an odd p
       {
         name = "auto_straighten",
         name_text = gettext("Auto Straighten"),
-        toggle = { gettext("0°"), gettext("5°"), gettext("10°"), gettext("15°"), gettext("25°") },
+        toggle = {
+          gettext("0°"),
+          gettext("5°"),
+          gettext("10°"),
+          gettext("15°"),
+          gettext("25°"),
+        },
         values = { 0, 5, 10, 15, 25 },
         event = "DummyEvent",
         args = { 0, 5, 10, 15, 25 },
@@ -155,8 +165,10 @@ In 'semi-auto' and 'manual' modes, you may need to define areas once on an odd p
         },
         default_value = G_defaults:read("DKOPTREADER_CONFIG_AUTO_STRAIGHTEN"),
         name_text_hold_callback = optionsutil.showValues,
-        help_text = gettext([[Attempt to automatically straighten tilted source pages.
-Will rotate up to specified value.]]),
+        help_text = gettext(
+          [[Attempt to automatically straighten tilted source pages.
+Will rotate up to specified value.]]
+        ),
       },
     },
   },
@@ -221,7 +233,9 @@ Will rotate up to specified value.]]),
         event = "DefineZoom",
         args = { "full", "width", "height" },
         name_text_hold_callback = optionsutil.showValues,
-        help_text = gettext([[Set how the page should be resized to fit the screen.]]),
+        help_text = gettext(
+          [[Set how the page should be resized to fit the screen.]]
+        ),
       },
       {
         name = "zoom_range_number",
@@ -248,13 +262,16 @@ Will rotate up to specified value.]]),
         default_pos = 2,
         default_value = 2,
         show_func = function(configurable)
-          return configurable.zoom_mode_genus == 1 or configurable.zoom_mode_genus == 2
+          return configurable.zoom_mode_genus == 1
+            or configurable.zoom_mode_genus == 2
         end,
         event = "DefineZoom",
         args = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0 },
         hide_on_apply = true,
         name_text_hold_callback = optionsutil.showValues,
-        help_text = gettext([[Set the number of columns or rows into which to split the page.]]),
+        help_text = gettext(
+          [[Set the number of columns or rows into which to split the page.]]
+        ),
       },
       {
         name = "zoom_factor",
@@ -318,7 +335,8 @@ Will rotate up to specified value.]]),
         name = "zoom_direction",
         name_text = gettext("Direction"),
         enabled_func = function(configurable)
-          return optionsutil.enableIfEquals(configurable, "text_wrap", 0) and configurable.zoom_mode_genus < 3
+          return optionsutil.enableIfEquals(configurable, "text_wrap", 0)
+            and configurable.zoom_mode_genus < 3
         end,
         item_icons = {
           "direction.LRTB",
@@ -347,8 +365,10 @@ Will rotate up to specified value.]]),
         args = { 7, 6, 5, 4, 3, 2, 1, 0 },
         hide_on_apply = true,
         name_text_hold_callback = optionsutil.showValues,
-        help_text = gettext([[Set how paging and swiping forward should move the view on the page:
-left to right or reverse, top to bottom or reverse.]]),
+        help_text = gettext(
+          [[Set how paging and swiping forward should move the view on the page:
+left to right or reverse, top to bottom or reverse.]]
+        ),
       },
     },
   },
@@ -364,8 +384,10 @@ left to right or reverse, top to bottom or reverse.]]),
         event = "SetScrollMode",
         args = { false, true },
         name_text_hold_callback = optionsutil.showValues,
-        help_text = gettext([[- 'page' mode shows only one page of the document at a time.
-- 'continuous' mode allows you to scroll the pages like you would in a web browser.]]),
+        help_text = gettext(
+          [[- 'page' mode shows only one page of the document at a time.
+- 'continuous' mode allows you to scroll the pages like you would in a web browser.]]
+        ),
       },
       {
         name = "page_gap_height",
@@ -381,7 +403,9 @@ left to right or reverse, top to bottom or reverse.]]),
         end,
         name_text_hold_callback = optionsutil.showValues,
         name_text_unit = true,
-        help_text = gettext([[In continuous view mode, sets the thickness of the separator between document pages.]]),
+        help_text = gettext(
+          [[In continuous view mode, sets the thickness of the separator between document pages.]]
+        ),
         more_options = true,
         more_options_param = {
           value_step = 1,
@@ -418,7 +442,9 @@ left to right or reverse, top to bottom or reverse.]]),
           return optionsutil.enableIfEquals(configurable, "text_wrap", 1)
         end,
         name_text_hold_callback = optionsutil.showValues,
-        help_text = gettext([[In reflow mode, sets the spacing between lines.]]),
+        help_text = gettext(
+          [[In reflow mode, sets the spacing between lines.]]
+        ),
       },
       {
         name = "justification",
@@ -445,8 +471,10 @@ left to right or reverse, top to bottom or reverse.]]),
           C_("Alignment", "justify"),
         },
         name_text_hold_callback = optionsutil.showValues,
-        help_text = gettext([[In reflow mode, sets the text alignment.
-The first option ("auto") tries to automatically align reflowed text as it is in the original document.]]),
+        help_text = gettext(
+          [[In reflow mode, sets the text alignment.
+The first option ("auto") tries to automatically align reflowed text as it is in the original document.]]
+        ),
       },
     },
   },
@@ -470,8 +498,12 @@ The first option ("auto") tries to automatically align reflowed text as it is in
       {
         name = "font_fine_tune",
         name_text = gettext("Font Size"),
-        toggle = Device:isTouchDevice() and { gettext("decrease"), gettext("increase") } or nil,
-        item_text = not Device:isTouchDevice() and { gettext("decrease"), gettext("increase") } or nil,
+        toggle = Device:isTouchDevice()
+            and { gettext("decrease"), gettext("increase") }
+          or nil,
+        item_text = not Device:isTouchDevice()
+            and { gettext("decrease"), gettext("increase") }
+          or nil,
         values = { -0.05, 0.05 },
         default_value = 0.05,
         event = "FineTuningFontSize",
@@ -500,12 +532,16 @@ The first option ("auto") tries to automatically align reflowed text as it is in
           C_("Word gap", "large"),
         },
         values = G_defaults:read("DKOPTREADER_CONFIG_WORD_SPACINGS"),
-        default_value = G_defaults:read("DKOPTREADER_CONFIG_DEFAULT_WORD_SPACING"),
+        default_value = G_defaults:read(
+          "DKOPTREADER_CONFIG_DEFAULT_WORD_SPACING"
+        ),
         enabled_func = function(configurable)
           return optionsutil.enableIfEquals(configurable, "text_wrap", 1)
         end,
         name_text_hold_callback = optionsutil.showValues,
-        help_text = gettext([[In reflow mode, sets the spacing between words.]]),
+        help_text = gettext(
+          [[In reflow mode, sets the spacing between words.]]
+        ),
       },
       {
         name = "text_wrap",
@@ -583,7 +619,9 @@ This can also be used to remove some gray background or to convert a grayscale o
         advanced = true,
         event = "SWDitheringUpdate",
         args = { false, true },
-        show = Device:hasEinkScreen() and not Device:canHWDither() and Device.screen.fb_bpp == 8,
+        show = Device:hasEinkScreen()
+          and not Device:canHWDither()
+          and Device.screen.fb_bpp == 8,
         name_text_hold_callback = optionsutil.showValues,
         help_text = gettext([[Enable software dithering.]]),
       },
@@ -616,7 +654,9 @@ This can also be used to remove some gray background or to convert a grayscale o
         name_text = gettext("Document Language"),
         toggle = KOPTREADER_CONFIG_DOC_LANGS_TEXT,
         values = G_defaults:read("DKOPTREADER_CONFIG_DOC_LANGS_CODE"),
-        default_value = G_defaults:read("DKOPTREADER_CONFIG_DOC_DEFAULT_LANG_CODE"),
+        default_value = G_defaults:read(
+          "DKOPTREADER_CONFIG_DOC_DEFAULT_LANG_CODE"
+        ),
         event = "DocLangUpdate",
         args = G_defaults:read("DKOPTREADER_CONFIG_DOC_LANGS_CODE"),
         name_text_hold_callback = optionsutil.showValues,
@@ -631,7 +671,9 @@ This can also be used to remove some gray background or to convert a grayscale o
         default_value = 0,
         advanced = true,
         name_text_hold_callback = optionsutil.showValues,
-        help_text = gettext([[Force the use of OCR for text selection, even if the document has a text layer.]]),
+        help_text = gettext(
+          [[Force the use of OCR for text selection, even if the document has a text layer.]]
+        ),
       },
       {
         name = "writing_direction",

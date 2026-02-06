@@ -148,7 +148,11 @@ function BackgroundRunner:_finishJob(job)
     job.blocked = false
   end
   if job.blocked or job.timeout then
-    logger.warn("BackgroundRunner: job [", _debugJobStr(job), "] may be blocked due to timeout")
+    logger.warn(
+      "BackgroundRunner: job [",
+      _debugJobStr(job),
+      "] may be blocked due to timeout"
+    )
   end
   if not job.blocked and self:_shouldRepeat(job) then
     table.insert(PluginShare.backgroundJobs, _clone(job))
@@ -166,7 +170,11 @@ end
 function BackgroundRunner:_executeJob(job)
   assert(job ~= nil)
   if job.executable == nil then
-    logger.dbg("BackgroundRunner: job ", _debugJobStr(job), " has no executable.")
+    logger.dbg(
+      "BackgroundRunner: job ",
+      _debugJobStr(job),
+      " has no executable."
+    )
     return false
   end
 
@@ -183,7 +191,12 @@ function BackgroundRunner:_executeJob(job)
     if status then
       job.result = 0
     else
-      logger.warn("BackgroundRunner: _executeJob ", _debugJobStr(job), " failed, ", err)
+      logger.warn(
+        "BackgroundRunner: _executeJob ",
+        _debugJobStr(job),
+        " failed, ",
+        err
+      )
       job.result = 1
       job.exception = err
       -- trigger the exception at the end to preserve the logs.
@@ -193,7 +206,11 @@ function BackgroundRunner:_executeJob(job)
     self:_finishJob(job)
     return true
   end
-  logger.dbg("BackgroundRunner: job ", _debugJobStr(job), " has no valid executable.")
+  logger.dbg(
+    "BackgroundRunner: job ",
+    _debugJobStr(job),
+    " has no valid executable."
+  )
   return false
 end
 
@@ -236,7 +253,11 @@ function BackgroundRunner:_execute()
       if job.when >= 0 then
         -- Interval of two runs is 1 sec.
         if job.when < 1 then
-          logger.warn("job.when is less than 1 seconds, ", "changing to 1 seconds, ", _debugJobStr(job))
+          logger.warn(
+            "job.when is less than 1 seconds, ",
+            "changing to 1 seconds, ",
+            _debugJobStr(job)
+          )
           job.when = 1
         end
         should_execute = (time.since(job.insert_time) >= time.s(job.when))

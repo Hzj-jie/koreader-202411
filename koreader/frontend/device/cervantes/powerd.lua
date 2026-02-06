@@ -1,7 +1,8 @@
 local BasePowerD = require("device/generic/powerd")
 local SysfsLight = require("device/sysfs_light")
 
-local battery_sysfs = "/sys/devices/platform/pmic_battery.1/power_supply/mc13892_bat/"
+local battery_sysfs =
+  "/sys/devices/platform/pmic_battery.1/power_supply/mc13892_bat/"
 
 local CervantesPowerD = BasePowerD:new({
   fl = nil,
@@ -55,8 +56,10 @@ function CervantesPowerD:init()
         end
       end
       -- Does this device's NaturalLight use a custom scale?
-      self.fl_warmth_min = self.device.frontlight_settings.nl_min or self.fl_warmth_min
-      self.fl_warmth_max = self.device.frontlight_settings.nl_max or self.fl_warmth_max
+      self.fl_warmth_min = self.device.frontlight_settings.nl_min
+        or self.fl_warmth_min
+      self.fl_warmth_max = self.device.frontlight_settings.nl_max
+        or self.fl_warmth_max
       -- If this device has a mixer, we can use the ioctl for brightness control, as it's much lower latency.
       if self.device:hasNaturalLightMixer() then
         local kobolight = require("ffi/kobolight")

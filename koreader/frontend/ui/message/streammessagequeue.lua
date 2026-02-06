@@ -24,7 +24,14 @@ function StreamMessageQueue:start()
   end
   local id_size = ffi.new("size_t[1]", 255)
   local buffer = ffi.new("uint8_t[?]", id_size[0])
-  if zmq.zmq_getsockopt(czmq.zsock_resolve(self.socket), C.ZMQ_IDENTITY, buffer, id_size) ~= 0 then
+  if
+    zmq.zmq_getsockopt(
+      czmq.zsock_resolve(self.socket),
+      C.ZMQ_IDENTITY,
+      buffer,
+      id_size
+    ) ~= 0
+  then
     error("cannot get socket identity for endpoint " .. endpoint)
   end
   self.id = ffi.string(buffer, id_size[0])

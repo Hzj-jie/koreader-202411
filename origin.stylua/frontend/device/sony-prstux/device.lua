@@ -54,7 +54,8 @@ local adjustTouchEvt = function(self, ev)
 end
 
 function SonyPRSTUX:init()
-  self.screen = require("ffi/framebuffer_mxcfb"):new({ device = self, debug = logger.dbg })
+  self.screen =
+    require("ffi/framebuffer_mxcfb"):new({ device = self, debug = logger.dbg })
   self.powerd = require("device/sony-prstux/powerd"):new({ device = self })
   self.input = require("device/input"):new({
     device = self,
@@ -84,7 +85,15 @@ function SonyPRSTUX:setDateTime(year, month, day, hour, min, sec)
   end
   local command
   if year and month and day then
-    command = string.format("date -s '%d-%d-%d %d:%d:%d'", year, month, day, hour, min, sec)
+    command = string.format(
+      "date -s '%d-%d-%d %d:%d:%d'",
+      year,
+      month,
+      day,
+      hour,
+      min,
+      sec
+    )
   else
     command = string.format("date -s '%d:%d'", hour, min)
   end
@@ -164,7 +173,10 @@ function SonyPRSTUX:initNetworkManager(NetworkMgr)
     return "wlan0"
   end
 
-  NetworkMgr:setWirelessBackend("wpa_supplicant", { ctrl_interface = "/var/run/wpa_supplicant/wlan0" })
+  NetworkMgr:setWirelessBackend(
+    "wpa_supplicant",
+    { ctrl_interface = "/var/run/wpa_supplicant/wlan0" }
+  )
 
   function NetworkMgr:obtainIP()
     self:releaseIP()

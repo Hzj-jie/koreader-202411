@@ -46,19 +46,43 @@ local function populateEventMappings()
   if Device:hasDPad() then
     local event_keys = {}
     -- these will all generate the same event, just with different arguments
-    table.insert(event_keys, { "FocusUp", { { "Up" }, event = "FocusMove", args = { 0, -1 } } })
-    table.insert(event_keys, { "FocusRight", { { "Right" }, event = "FocusMove", args = { 1, 0 } } })
-    table.insert(event_keys, { "FocusDown", { { "Down" }, event = "FocusMove", args = { 0, 1 } } })
+    table.insert(
+      event_keys,
+      { "FocusUp", { { "Up" }, event = "FocusMove", args = { 0, -1 } } }
+    )
+    table.insert(
+      event_keys,
+      { "FocusRight", { { "Right" }, event = "FocusMove", args = { 1, 0 } } }
+    )
+    table.insert(
+      event_keys,
+      { "FocusDown", { { "Down" }, event = "FocusMove", args = { 0, 1 } } }
+    )
     table.insert(event_keys, { "Press", { { "Press" }, event = "Press" } })
     local FEW_KEYS_END_INDEX = #event_keys -- Few keys device: only setup up, down, right and press
 
-    table.insert(event_keys, { "FocusLeft", { { "Left" }, event = "FocusMove", args = { -1, 0 } } })
+    table.insert(
+      event_keys,
+      { "FocusLeft", { { "Left" }, event = "FocusMove", args = { -1, 0 } } }
+    )
 
     -- Advanced features: more event handlers can be enabled via settings.reader.lua in a similar manner
-    table.insert(event_keys, { "HoldContext", { { "ContextMenu" }, event = "Hold" } })
-    table.insert(event_keys, { "HoldShift", { { "Shift", "Press" }, event = "Hold" } })
-    table.insert(event_keys, { "HoldScreenKB", { { "ScreenKB", "Press" }, event = "Hold" } })
-    table.insert(event_keys, { "HoldSymAA", { { "Sym", "AA" }, event = "Hold" } })
+    table.insert(
+      event_keys,
+      { "HoldContext", { { "ContextMenu" }, event = "Hold" } }
+    )
+    table.insert(
+      event_keys,
+      { "HoldShift", { { "Shift", "Press" }, event = "Hold" } }
+    )
+    table.insert(
+      event_keys,
+      { "HoldScreenKB", { { "ScreenKB", "Press" }, event = "Hold" } }
+    )
+    table.insert(
+      event_keys,
+      { "HoldSymAA", { { "Sym", "AA" }, event = "Hold" } }
+    )
     -- half rows/columns move, it is helpful for slow device like Kindle DX to move quickly
     table.insert(event_keys, {
       "HalfFocusUp",
@@ -77,8 +101,14 @@ local function populateEventMappings()
       { { "Alt", "Left" }, event = "FocusHalfMove", args = { "left" } },
     })
     -- for PC navigation behavior support
-    table.insert(event_keys, { "FocusNext", { { "Tab" }, event = "FocusNext" } })
-    table.insert(event_keys, { "FocusPrevious", { { "Shift", "Tab" }, event = "FocusPrevious" } })
+    table.insert(
+      event_keys,
+      { "FocusNext", { { "Tab" }, event = "FocusNext" } }
+    )
+    table.insert(
+      event_keys,
+      { "FocusPrevious", { { "Shift", "Tab" }, event = "FocusPrevious" } }
+    )
     local NORMAL_KEYS_END_INDEX = #event_keys
 
     for i = 1, FEW_KEYS_END_INDEX do
@@ -95,7 +125,8 @@ local function populateEventMappings()
       local focus_manager_setting = G_reader_settings:child("focus_manager")
       -- Enable advanced feature, like Hold, FocusNext, FocusPrevious
       -- Can also add extra arrow keys like using A, W, D, S for Left, Up, Right, Down
-      local alternative_keymaps = focus_manager_setting:readSetting("alternative_keymaps")
+      local alternative_keymaps =
+        focus_manager_setting:readSetting("alternative_keymaps")
       if type(alternative_keymaps) == "table" then
         for i = 1, #event_keys do
           local key_name = event_keys[i][1]
@@ -225,11 +256,17 @@ function FocusManager:onFocusMove(args)
   end
   local dx, dy = unpack(args)
 
-  if (dx ~= 0 and not self.movement_allowed.x) or (dy ~= 0 and not self.movement_allowed.y) then
+  if
+    (dx ~= 0 and not self.movement_allowed.x)
+    or (dy ~= 0 and not self.movement_allowed.y)
+  then
     return true
   end
 
-  if not self.layout[self.selected.y] or not self.layout[self.selected.y][self.selected.x] then
+  if
+    not self.layout[self.selected.y]
+    or not self.layout[self.selected.y][self.selected.x]
+  then
     logger.dbg("FocusManager: no currently selected widget found")
     return true
   end
@@ -254,7 +291,12 @@ function FocusManager:onFocusMove(args)
       self.selected.y = self.selected.y + dy
       self.selected.x = self.selected.x + dx
     end
-    logger.dbg("FocusManager cursor position is:", self.selected.x, ",", self.selected.y)
+    logger.dbg(
+      "FocusManager cursor position is:",
+      self.selected.x,
+      ",",
+      self.selected.y
+    )
 
     if
       self.layout[self.selected.y][self.selected.x] ~= current_item
@@ -262,7 +304,9 @@ function FocusManager:onFocusMove(args)
     then
       -- we found a different object to focus
       current_item:handleEvent(Event:new("Unfocus"))
-      self.layout[self.selected.y][self.selected.x]:handleEvent(Event:new("Focus"))
+      self.layout[self.selected.y][self.selected.x]:handleEvent(
+        Event:new("Focus")
+      )
       -- Trigger a fast repaint, this does not count toward a flashing eink refresh
       -- NOTE: Ideally, we'd only have to repaint the specific subwidget we're highlighting,
       --       but we may not know its exact coordinates, so, redraw the parent widget instead.
@@ -311,7 +355,11 @@ FocusManager.NOT_UNFOCUS = 1
 -- do not send a Focus event
 FocusManager.NOT_FOCUS = 2
 -- In some cases, we may only want to send Focus events on non-Touch devices
-FocusManager.FOCUS_ONLY_ON_NT = (Device:hasDPad() and not Device:isTouchDevice()) and 0 or FocusManager.NOT_FOCUS
+FocusManager.FOCUS_ONLY_ON_NT = (
+  Device:hasDPad() and not Device:isTouchDevice()
+)
+    and 0
+  or FocusManager.NOT_FOCUS
 -- And in some cases, we may want to send both events *regardless* of heuristics or device caps
 FocusManager.FORCED_FOCUS = 4
 
@@ -334,12 +382,25 @@ function FocusManager:moveFocusTo(x, y, focus_flags)
     self.selected.x = x
     self.selected.y = y
     -- widget create new layout on update, previous may be removed from new layout.
-    if bit.band(focus_flags, FocusManager.FORCED_FOCUS) == FocusManager.FORCED_FOCUS or Device:hasDPad() then
+    if
+      bit.band(focus_flags, FocusManager.FORCED_FOCUS)
+        == FocusManager.FORCED_FOCUS
+      or Device:hasDPad()
+    then
       -- If FORCED_FOCUS was requested, we want *all* the events: mask out both NOT_ bits
-      if bit.band(focus_flags, FocusManager.FORCED_FOCUS) == FocusManager.FORCED_FOCUS then
-        focus_flags = bit.band(focus_flags, bit.bnot(bit.bor(FocusManager.NOT_UNFOCUS, FocusManager.NOT_FOCUS)))
+      if
+        bit.band(focus_flags, FocusManager.FORCED_FOCUS)
+        == FocusManager.FORCED_FOCUS
+      then
+        focus_flags = bit.band(
+          focus_flags,
+          bit.bnot(bit.bor(FocusManager.NOT_UNFOCUS, FocusManager.NOT_FOCUS))
+        )
       end
-      if bit.band(focus_flags, FocusManager.NOT_UNFOCUS) ~= FocusManager.NOT_UNFOCUS then
+      if
+        bit.band(focus_flags, FocusManager.NOT_UNFOCUS)
+        ~= FocusManager.NOT_UNFOCUS
+      then
         -- NOTE: We can't necessarily guarantee the integrity of self.layout,
         --       as some callers *will* mangle it and call us expecting to fix things ;).
         --       Since we do not want to leave *multiple* items (visually) focused,
@@ -354,7 +415,9 @@ function FocusManager:moveFocusTo(x, y, focus_flags)
           self:handleEvent(Event:new("Unfocus"))
         end
       end
-      if bit.band(focus_flags, FocusManager.NOT_FOCUS) ~= FocusManager.NOT_FOCUS then
+      if
+        bit.band(focus_flags, FocusManager.NOT_FOCUS) ~= FocusManager.NOT_FOCUS
+      then
         target_item:handleEvent(Event:new("Focus"))
         UIManager:setDirty(self.show_parent or self, "fast")
       end
@@ -404,7 +467,10 @@ end
 
 function FocusManager:_verticalStep(dy)
   local x = self.selected.x
-  if type(self.layout[self.selected.y + dy]) ~= "table" or next(self.layout[self.selected.y + dy]) == nil then
+  if
+    type(self.layout[self.selected.y + dy]) ~= "table"
+    or next(self.layout[self.selected.y + dy]) == nil
+  then
     logger.err("[FocusManager] : Malformed layout")
     return false
   end

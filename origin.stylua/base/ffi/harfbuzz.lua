@@ -25,7 +25,13 @@ function hb_face_t:getNames(maxlen)
     local lang = hb.hb_language_to_string(hb_lang)
     if lang ~= nil then
       lang = ffi.string(lang)
-      local got = hb.hb_ot_name_get_utf8(self, name_id, hb_lang, ffi.new("unsigned[1]", maxlen), buf)
+      local got = hb.hb_ot_name_get_utf8(
+        self,
+        name_id,
+        hb_lang,
+        ffi.new("unsigned[1]", maxlen),
+        buf
+      )
       name_id = tonumber(name_id)
       if got > 0 then
         res[lang] = res[lang] or {}

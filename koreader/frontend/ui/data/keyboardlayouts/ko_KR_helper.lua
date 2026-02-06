@@ -150,7 +150,9 @@ end
 
 function HgSylbls:get_combined_char(initial, medial, final)
   -- utf8.char() (i.e., encode)
-  return util.unicodeCodepointToUtf8(HgSylbls:_get_combined_charcode(initial, medial, final))
+  return util.unicodeCodepointToUtf8(
+    HgSylbls:_get_combined_charcode(initial, medial, final)
+  )
 end
 function HgSylbls:_get_combined_charcode(initial, medial, final)
   local len_medial = #HgSylbls.CHARS_MEDIAL
@@ -218,7 +220,13 @@ function HgSylbls:in_vowel_char(char)
     HgSylbls.UNI_HG_COMPAT_VOWEL_UPPER
   )
 end
-function HgSylbls:_in_target_char_group(char, base, upper, compat_base, compat_upper)
+function HgSylbls:_in_target_char_group(
+  char,
+  base,
+  upper,
+  compat_base,
+  compat_upper
+)
   local code = BaseUtil.utf8charcode(char) -- utf8.codepoint() (i.e., decode)
 
   if code == nil then
@@ -331,7 +339,10 @@ function HgFSM:process_char(char)
 end
 
 function HgFSM:process_bsp(char)
-  if HgFSM.fsm_state == HgFSM.STATE.IDLE or HgFSM.fsm_state == HgFSM.STATE.GOT_INITIAL then
+  if
+    HgFSM.fsm_state == HgFSM.STATE.IDLE
+    or HgFSM.fsm_state == HgFSM.STATE.GOT_INITIAL
+  then
     HgFSM:_process_generic_bsp()
   else
     HgFSM:_process_hg_bsp_except_initial()
@@ -342,7 +353,9 @@ end
 function HgFSM:_should_handle_as_target_char(char)
   if HgSylbls:in_consonnant_char(char) then
     return true
-  elseif HgSylbls:in_vowel_char(char) and HgFSM.fsm_state ~= HgFSM.STATE.IDLE then
+  elseif
+    HgSylbls:in_vowel_char(char) and HgFSM.fsm_state ~= HgFSM.STATE.IDLE
+  then
     return true
   end
 
@@ -394,7 +407,10 @@ function HgFSM:_process_hg_char_impl(char)
   elseif HgFSM.fsm_state == HgFSM.STATE.GOT_MEDIAL then
     if HgSylbls:in_vowel_char(char) then
       local dbl_medial_cand = { HgFSM.medial, char }
-      if HgSylbls:is_medial_comb(HgFSM.medial) and HgSylbls:in_medial(dbl_medial_cand) then
+      if
+        HgSylbls:is_medial_comb(HgFSM.medial)
+        and HgSylbls:in_medial(dbl_medial_cand)
+      then
         HgFSM:_process_hg_char_push_medial(dbl_medial_cand, true)
       else
         return false
@@ -410,10 +426,17 @@ function HgFSM:_process_hg_char_impl(char)
     end
   elseif HgFSM.fsm_state == HgFSM.STATE.GOT_FINAL then
     if HgSylbls:in_vowel_char(char) then
-      HgFSM:_process_hg_char_borrow_initial_push_next_medial(nil, HgFSM.final, char)
+      HgFSM:_process_hg_char_borrow_initial_push_next_medial(
+        nil,
+        HgFSM.final,
+        char
+      )
     else
       local dbl_final_cand = { HgFSM.final, char }
-      if HgSylbls:is_final_comb(HgFSM.final) and HgSylbls:in_final(dbl_final_cand) then
+      if
+        HgSylbls:is_final_comb(HgFSM.final)
+        and HgSylbls:in_final(dbl_final_cand)
+      then
         HgFSM:_process_hg_char_push_final(dbl_final_cand, true)
       else
         HgFSM:_process_hg_char_new_hg(char)
@@ -421,7 +444,11 @@ function HgFSM:_process_hg_char_impl(char)
     end
   elseif HgFSM.fsm_state == HgFSM.STATE.GOT_DOUBLE_FINAL then
     if HgSylbls:in_vowel_char(char) then
-      HgFSM:_process_hg_char_borrow_initial_push_next_medial(HgFSM.final[1], HgFSM.final[2], char)
+      HgFSM:_process_hg_char_borrow_initial_push_next_medial(
+        HgFSM.final[1],
+        HgFSM.final[2],
+        char
+      )
     else
       HgFSM:_process_hg_char_new_hg(char)
     end
@@ -455,7 +482,11 @@ function HgFSM:_process_hg_char_push_final(char, is_double)
   HgFSM.final = char
 end
 
-function HgFSM:_process_hg_char_borrow_initial_push_next_medial(curr_final, next_init, next_medial)
+function HgFSM:_process_hg_char_borrow_initial_push_next_medial(
+  curr_final,
+  next_init,
+  next_medial
+)
   local next_init_cand = next_init
   HgFSM.final = curr_final
   HgFSM:_pop_state() -- go to previous state
@@ -476,16 +507,24 @@ function HgFSM:_process_hg_char_update_ui(should_undo_in_initial)
       HgFSM.ui_handler:del_char()
     end
     HgFSM.ui_handler:put_char(HgFSM.initial)
-  elseif HgFSM.fsm_state == HgFSM.STATE.GOT_MEDIAL or HgFSM.fsm_state == HgFSM.STATE.GOT_DOUBLE_MEDIAL then
-    local combined_char = HgSylbls:get_combined_char(HgFSM.initial, HgFSM.medial, nil)
+  elseif
+    HgFSM.fsm_state == HgFSM.STATE.GOT_MEDIAL
+    or HgFSM.fsm_state == HgFSM.STATE.GOT_DOUBLE_MEDIAL
+  then
+    local combined_char =
+      HgSylbls:get_combined_char(HgFSM.initial, HgFSM.medial, nil)
     if HgFSM.do_not_del_in_medial then
       HgFSM.do_not_del_in_medial = false
       HgFSM.ui_handler:put_char(combined_char)
     else
       HgFSM.ui_handler:del_put_char(combined_char)
     end
-  elseif HgFSM.fsm_state == HgFSM.STATE.GOT_FINAL or HgFSM.fsm_state == HgFSM.STATE.GOT_DOUBLE_FINAL then
-    local combined_char = HgSylbls:get_combined_char(HgFSM.initial, HgFSM.medial, HgFSM.final)
+  elseif
+    HgFSM.fsm_state == HgFSM.STATE.GOT_FINAL
+    or HgFSM.fsm_state == HgFSM.STATE.GOT_DOUBLE_FINAL
+  then
+    local combined_char =
+      HgSylbls:get_combined_char(HgFSM.initial, HgFSM.medial, HgFSM.final)
     HgFSM.ui_handler:del_put_char(combined_char)
   end
 end

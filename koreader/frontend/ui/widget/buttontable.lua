@@ -32,7 +32,8 @@ local ButtonTable = FocusManager:extend({
 })
 
 function ButtonTable:init()
-  self.width = self.width or math.floor(math.min(Screen:getWidth(), Screen:getHeight()) * 0.9)
+  self.width = self.width
+    or math.floor(math.min(Screen:getWidth(), Screen:getHeight()) * 0.9)
   self.buttons_layout = {}
   self.button_by_id = {}
   self.container = VerticalGroup:new({ width = self.width })
@@ -60,7 +61,8 @@ function ButtonTable:init()
         unspecified_width_buttons = unspecified_width_buttons + 1
       end
     end
-    local default_button_width = math.floor(available_width / unspecified_width_buttons)
+    local default_button_width =
+      math.floor(available_width / unspecified_width_buttons)
     local min_needed_button_width = -1
     for j = 1, column_cnt do
       local btn_entry = row[j]
@@ -88,18 +90,24 @@ function ButtonTable:init()
         bordersize = 0,
         margin = 0,
         padding = Size.padding.buttontable, -- a bit taller than standalone buttons, for easier tap
-        padding_h = btn_entry.align == "left" and Size.padding.large or Size.padding.button,
+        padding_h = btn_entry.align == "left" and Size.padding.large
+          or Size.padding.button,
         -- allow text to take more of the horizontal space if centered
         avoid_text_truncation = btn_entry.avoid_text_truncation,
         text_font_face = btn_entry.font_face,
         text_font_size = btn_entry.font_size,
         text_font_bold = btn_entry.font_bold,
         shortcut = (
-          (self.enable_shortcut and Menu.ENABLE_SHORTCUT) and Menu.ITEM_SHORTCUTS[(i - 1) * column_cnt + j]
+          (self.enable_shortcut and Menu.ENABLE_SHORTCUT)
+            and Menu.ITEM_SHORTCUTS[(i - 1) * column_cnt + j]
           or nil
         ),
       })
-      if self.shrink_unneeded_width and not btn_entry.width and min_needed_button_width ~= false then
+      if
+        self.shrink_unneeded_width
+        and not btn_entry.width
+        and min_needed_button_width ~= false
+      then
         -- We gather the largest min width of all buttons without a specified width,
         -- and will see how it does when this largest min width is applied to all
         -- buttons (without a specified width): we still want to keep them the same
@@ -119,7 +127,8 @@ function ButtonTable:init()
       end
       local button_dim = button:getSize()
       local vertical_sep = LineWidget:new({
-        background = btn_entry.no_vertical_sep and Blitbuffer.COLOR_WHITE or Blitbuffer.COLOR_GRAY,
+        background = btn_entry.no_vertical_sep and Blitbuffer.COLOR_WHITE
+          or Blitbuffer.COLOR_GRAY,
         dimen = Geom:new({
           w = self.sep_width,
           h = button_dim.h,
@@ -142,9 +151,13 @@ function ButtonTable:init()
     end
     if self.shrink_unneeded_width and table_min_needed_width ~= false then
       if min_needed_button_width then
-        if min_needed_button_width >= 0 and min_needed_button_width < default_button_width then
+        if
+          min_needed_button_width >= 0
+          and min_needed_button_width < default_button_width
+        then
           local row_min_width = self.width
-            - (default_button_width - min_needed_button_width) * unspecified_width_buttons
+            - (default_button_width - min_needed_button_width)
+              * unspecified_width_buttons
           if table_min_needed_width < row_min_width then
             table_min_needed_width = row_min_width
           end
@@ -167,7 +180,9 @@ function ButtonTable:init()
     and table_min_needed_width > 0
     and table_min_needed_width < self.width
   then
-    self.width = table_min_needed_width > self.shrink_min_width and table_min_needed_width or self.shrink_min_width
+    self.width = table_min_needed_width > self.shrink_min_width
+        and table_min_needed_width
+      or self.shrink_min_width
     self.shrink_unneeded_width = false
     self:free()
     self:init()
@@ -187,7 +202,8 @@ function ButtonTable:addVerticalSeparator(black_line)
   table.insert(
     self.container,
     LineWidget:new({
-      background = black_line and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_GRAY,
+      background = black_line and Blitbuffer.COLOR_BLACK
+        or Blitbuffer.COLOR_GRAY,
       dimen = Geom:new({
         w = self.width,
         h = self.sep_width,
@@ -223,7 +239,11 @@ function ButtonTable:setupGridScrollBehaviour()
       }),
     })
   )
-  table.insert(self.container._offsets, 1, { x = self.width, y = -self.sep_width })
+  table.insert(
+    self.container._offsets,
+    1,
+    { x = self.width, y = -self.sep_width }
+  )
   table.insert(
     self.container,
     LineWidget:new({
@@ -234,7 +254,10 @@ function ButtonTable:setupGridScrollBehaviour()
       }),
     })
   )
-  table.insert(self.container._offsets, { x = self.width, y = self.container._size.h + self.sep_width })
+  table.insert(
+    self.container._offsets,
+    { x = self.width, y = self.container._size.h + self.sep_width }
+  )
 end
 
 function ButtonTable:getStepScrollGrid()
@@ -249,7 +272,8 @@ function ButtonTable:getStepScrollGrid()
         top = offsets[idx].y, -- top of our vspan above text
         content_top = offsets[idx + 1].y, -- top of our text widget
         content_bottom = offsets[idx + 2].y - 1, -- bottom of our text widget
-        bottom = idx + 4 <= #self.container and offsets[idx + 4].y - 1 or self.container:getSize().h - 1,
+        bottom = idx + 4 <= #self.container and offsets[idx + 4].y - 1
+          or self.container:getSize().h - 1,
         -- bottom of our vspan + separator below text
         -- To implement when needed:
         -- columns = { array of similar info about each button in that row's HorizontalGroup }

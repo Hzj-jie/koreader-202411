@@ -153,7 +153,8 @@ function MovableContainer:ensureAnchor(x, y)
   -- We prefer displaying above the anchor if there is room (so it looks like popping up)
   -- except if anchor() returned prefers_pop_down
   local h_remaining_if_above = anchor_dimen.y - content_h
-  local h_remaining_if_below = screen_h - (anchor_dimen.y + anchor_dimen.h + content_h)
+  local h_remaining_if_below = screen_h
+    - (anchor_dimen.y + anchor_dimen.h + content_h)
   if h_remaining_if_above >= 0 and not prefers_pop_down then
     -- Enough room above the anchor
     top = anchor_dimen.y - content_h
@@ -186,7 +187,8 @@ function MovableContainer:paintTo(bb, x, y)
 
   local content_size = self[1]:getSize()
   if not self.dimen then
-    self.dimen = Geom:new({ x = 0, y = 0, w = content_size.w, h = content_size.h })
+    self.dimen =
+      Geom:new({ x = 0, y = 0, w = content_size.w, h = content_size.h })
   end
 
   self._orig_x = x
@@ -212,7 +214,8 @@ function MovableContainer:paintTo(bb, x, y)
         self.compose_bb:free()
       end
       -- create a canvas for our child widget to paint to
-      self.compose_bb = Blitbuffer.new(bb:getWidth(), bb:getHeight(), bb:getType())
+      self.compose_bb =
+        Blitbuffer.new(bb:getWidth(), bb:getHeight(), bb:getType())
       -- fill it with our usual background color
       self.compose_bb:fill(Blitbuffer.COLOR_WHITE)
     end
@@ -381,7 +384,11 @@ function MovableContainer:onMovableHoldPan(_, ges)
     return false
   end
   -- we may sometimes not see the "hold" event
-  if ges.pos:intersectWith(self.dimen) or self._moving or self._touch_pre_pan_was_inside then
+  if
+    ges.pos:intersectWith(self.dimen)
+    or self._moving
+    or self._touch_pre_pan_was_inside
+  then
     self._touch_pre_pan_was_inside = false -- reset it
     self._moving = true
     return true
@@ -423,7 +430,11 @@ function MovableContainer:onMovablePan(_, ges)
   if not self.dimen then -- not yet painted
     return false
   end
-  if ges.pos:intersectWith(self.dimen) or self._moving or self._touch_pre_pan_was_inside then
+  if
+    ges.pos:intersectWith(self.dimen)
+    or self._moving
+    or self._touch_pre_pan_was_inside
+  then
     self._touch_pre_pan_was_inside = false -- reset it
     self._moving = true
     self._move_relative_x = ges.relative.x

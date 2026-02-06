@@ -23,7 +23,8 @@ end
 function SwitchPlugin:new(o)
   o = self:extend(o)
   assert(type(o.name) == "string", "name is required")
-  o.settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/" .. o.name .. ".lua")
+  o.settings =
+    LuaSettings:open(DataStorage:getSettingsDir() .. "/" .. o.name .. ".lua")
   o.settings_id = 0
   SwitchPlugin._init(o)
   return o
@@ -36,7 +37,12 @@ function SwitchPlugin:_init()
     self.enabled = not self.settings:nilOrFalse("enable")
   end
   self.settings_id = self.settings_id + 1
-  logger.dbg("SwitchPlugin:_init() self.enabled: ", self.enabled, " with id ", self.settings_id)
+  logger.dbg(
+    "SwitchPlugin:_init() self.enabled: ",
+    self.enabled,
+    " with id ",
+    self.settings_id
+  )
   if self.enabled then
     self:_start()
   else
@@ -84,14 +90,24 @@ function SwitchPlugin:_confirmMessage()
 end
 
 function SwitchPlugin:init()
-  if type(self.menu_item) == "string" and self.ui ~= nil and self.ui.menu ~= nil then
+  if
+    type(self.menu_item) == "string"
+    and self.ui ~= nil
+    and self.ui.menu ~= nil
+  then
     self.ui.menu:registerToMainMenu(self)
   end
 end
 
 function SwitchPlugin:addToMainMenu(menu_items)
-  assert(type(self.menu_item) == "string", "addToMainMenu should not be called without menu_item.")
-  assert(type(self.menu_text) == "string", 'Have you forgotten to set "menu_text"')
+  assert(
+    type(self.menu_item) == "string",
+    "addToMainMenu should not be called without menu_item."
+  )
+  assert(
+    type(self.menu_text) == "string",
+    'Have you forgotten to set "menu_text"'
+  )
   menu_items[self.menu_item] = {
     text = self.menu_text,
     callback = function()

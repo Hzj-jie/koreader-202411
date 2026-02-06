@@ -295,7 +295,14 @@ function HttpInspector:sendResponse(reqinfo, http_code, content_type, body)
   local response = {}
   -- StreamMessageQueueServer:send() closes the connection, so announce
   -- that with HTTP/1.0 and a "Connection: close" header.
-  table.insert(response, T("HTTP/1.0 %1 %2", http_code, HTTP_RESPONSE_CODE[http_code] or "Unspecified"))
+  table.insert(
+    response,
+    T(
+      "HTTP/1.0 %1 %2",
+      http_code,
+      HTTP_RESPONSE_CODE[http_code] or "Unspecified"
+    )
+  )
   -- If no content type provided, let the browser sniff it
   if content_type then
     -- Advertise all our text as being UTF-8
@@ -429,7 +436,8 @@ local _function_info_cache = {}
 -- Get info about a function object
 local getFunctionInfo = function(func, full_code)
   local info = debug.getinfo(func, "S")
-  local src, firstline, lastline = info.source, info.linedefined, info.lastlinedefined
+  local src, firstline, lastline =
+    info.source, info.linedefined, info.lastlinedefined
   if firstline < 0 then
     -- With builtin or C functions, we get: [C] -1 -1
     -- Get something like "function: builtin" or "function: 0x7f5931f03828" instead
@@ -617,7 +625,12 @@ function HttpInspector:onRequest(data, request_id)
       -- / but no /web/index.html created by the user: redirect to our /koreader/
       return self:sendResponse(reqinfo, 302, nil, "/koreader/")
     end
-    return self:sendResponse(reqinfo, 404, CTYPE.TEXT, "Static file not found: koreader/web" .. uri)
+    return self:sendResponse(
+      reqinfo,
+      404,
+      CTYPE.TEXT,
+      "Static file not found: koreader/web" .. uri
+    )
   end
 
   -- Request starts with /koreader/, followed by some predefined entry point
@@ -683,7 +696,12 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
           current_key = fragment
           obj = obj[fragment]
           if obj == nil then
-            return self:sendResponse(reqinfo, 404, CTYPE.TEXT, "No such table/object key: " .. fragment)
+            return self:sendResponse(
+              reqinfo,
+              404,
+              CTYPE.TEXT,
+              "No such table/object key: " .. fragment
+            )
           end
           -- continue loop to process this children of our object
         end
@@ -724,7 +742,11 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
           "Invalid request on function: use a trailing / to call, or ? to get details"
         )
       end
-    elseif obj_type == "cdata" or obj_type == "userdata" or obj_type == "thread" then
+    elseif
+      obj_type == "cdata"
+      or obj_type == "userdata"
+      or obj_type == "thread"
+    then
       -- We can't do much on these Lua types.
       -- But try to guess if it's a BlitBuffer, that we can render as PNG !
       local ok, is_bb = pcall(function()
@@ -743,7 +765,12 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
           end
         end
       end
-      return self:sendResponse(reqinfo, 403, CTYPE.TEXT, "Can't act on object of type: " .. obj_type)
+      return self:sendResponse(
+        reqinfo,
+        403,
+        CTYPE.TEXT,
+        "Can't act on object of type: " .. obj_type
+      )
     else
       -- Simple Lua types: string, number, boolean, nil
       if ftype == "" then
@@ -755,7 +782,12 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
         uri = fragment .. uri -- put back first fragment into uri
         local args, nb_args = getVariablesFromUri(uri)
         if nb_args ~= 1 then
-          return self:sendResponse(reqinfo, 400, CTYPE.TEXT, "Variable assignment needs a single value")
+          return self:sendResponse(
+            reqinfo,
+            400,
+            CTYPE.TEXT,
+            "Variable assignment needs a single value"
+          )
         end
         local value = args[1]
         parent[current_key] = value -- do what is asked: assign it
@@ -764,7 +796,11 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
             reqinfo,
             200,
             CTYPE.TEXT,
-            T("Variable '%1' assigned with: %2", reqinfo.parsed_uri, tostring(value))
+            T(
+              "Variable '%1' assigned with: %2",
+              reqinfo.parsed_uri,
+              tostring(value)
+            )
           )
         else
           value = tostring(value)
@@ -772,21 +808,48 @@ function HttpInspector:exposeObject(obj, uri, reqinfo)
           local add_html = function(h)
             table.insert(html, h)
           end
-          local html_quoted_value = value:gsub("&", "&#38;"):gsub(">", "&gt;"):gsub("<", "&lt;")
-          add_html(T("<title>%1.%2=%3</title>", reqinfo.fragments[2], reqinfo.fragments[1], html_quoted_value))
+          local html_quoted_value =
+            value:gsub("&", "&#38;"):gsub(">", "&gt;"):gsub("<", "&lt;")
           add_html(
-            T("<pre wrap>Variable '%1' assigned with: <span style='color: blue;'>%2</span>", reqinfo.parsed_uri, value)
+            T(
+              "<title>%1.%2=%3</title>",
+              reqinfo.fragments[2],
+              reqinfo.fragments[1],
+              html_quoted_value
+            )
+          )
+          add_html(
+            T(
+              "<pre wrap>Variable '%1' assigned with: <span style='color: blue;'>%2</span>",
+              reqinfo.parsed_uri,
+              value
+            )
           )
           add_html("")
-          add_html(T("<a href='%1/'>Browse back</a> to container object.", reqinfo.prev_parsed_uri))
+          add_html(
+            T(
+              "<a href='%1/'>Browse back</a> to container object.",
+              reqinfo.prev_parsed_uri
+            )
+          )
           html = table.concat(html, "\n")
           return self:sendResponse(reqinfo, 200, CTYPE.HTML, html)
         end
       elseif ftype == "?" then
-        return self:sendResponse(reqinfo, 400, CTYPE.TEXT, "No documentation available on simple types.")
+        return self:sendResponse(
+          reqinfo,
+          400,
+          CTYPE.TEXT,
+          "No documentation available on simple types."
+        )
       else
         -- Nothing else accepted
-        return self:sendResponse(reqinfo, 400, CTYPE.TEXT, "Invalid request on variable")
+        return self:sendResponse(
+          reqinfo,
+          400,
+          CTYPE.TEXT,
+          "Invalid request on variable"
+        )
       end
     end
   end
@@ -836,9 +899,21 @@ function HttpInspector:browseObject(obj, reqinfo)
       local siginfo = (func_info.is_method and "M" or "f")
         .. " "
         .. (func_info.nb_args >= 0 and func_info.nb_args or "*")
-      return T("   <a href='%1?'>%2</a>() %3%4 <em>%5</em>", href, key, pad, siginfo, func_info.signature),
+      return T(
+        "   <a href='%1?'>%2</a>() %3%4 <em>%5</em>",
+        href,
+        key,
+        pad,
+        siginfo,
+        func_info.signature
+      ),
         KIND_FUNCTION
-    elseif value_type == "string" or value_type == "number" or value_type == "boolean" or value_type == "nil" then
+    elseif
+      value_type == "string"
+      or value_type == "number"
+      or value_type == "boolean"
+      or value_type == "nil"
+    then
       -- This is not totally fullproof (\n will be eaten by Javascript prompt(), other stuff may fail or get corrupted),
       -- but it should be ok for simple strings.
       local quoted_value
@@ -853,10 +928,17 @@ function HttpInspector:browseObject(obj, reqinfo)
             :gsub("<", "&lt;")
             :gsub(">", "&gt;")
           .. '\\"'
-        html_value = value:gsub("&", "&amp;"):gsub('"', "&quot;"):gsub(">", "&gt;"):gsub("<", "&lt;")
+        html_value = value
+          :gsub("&", "&amp;")
+          :gsub('"', "&quot;")
+          :gsub(">", "&gt;")
+          :gsub("<", "&lt;")
         if html_value:match("\n") then
           -- Newline in string: make it stand out
-          html_value = T("<span style='display: inline-table; border: 1px dotted blue;'>%1</span>", html_value)
+          html_value = T(
+            "<span style='display: inline-table; border: 1px dotted blue;'>%1</span>",
+            html_value
+          )
         end
       else
         quoted_value = tostring(value)
@@ -903,7 +985,12 @@ function HttpInspector:browseObject(obj, reqinfo)
   -- A little header may help noticing the page is updated (the browser url bar
   -- just above is usually updates before the page is loaded)
   add_html(T("<title>%1</title>", reqinfo.parsed_uri))
-  add_html(T("<pre><big style='background-color: #dddddd;'>%1/</big>", reqinfo.parsed_uri))
+  add_html(
+    T(
+      "<pre><big style='background-color: #dddddd;'>%1/</big>",
+      reqinfo.parsed_uri
+    )
+  )
   local classinfo = guessClassName(obj)
   if classinfo then
     add_html(T("  <em>%1</em> instance", classinfo))
@@ -922,7 +1009,10 @@ function HttpInspector:browseObject(obj, reqinfo)
       if not ignore then
         local snippet, kind = get_html_snippet(key, value, reqinfo.uri)
         if seen_names[key] then
-          add_html_to_obj_kind(kind, prelude .. seen_prefix .. snippet .. seen_suffix)
+          add_html_to_obj_kind(
+            kind,
+            prelude .. seen_prefix .. snippet .. seen_suffix
+          )
         else
           add_html_to_obj_kind(kind, prelude .. snippet)
         end
@@ -963,7 +1053,12 @@ function HttpInspector:showFunctionDetails(obj, reqinfo)
   local base_uri = reqinfo.parsed_uri
   local func_info = getFunctionInfo(obj, true)
   add_html(T("<title>%1?</title>", reqinfo.fragments[1]))
-  add_html(T("<pre wrap><big style='background-color: #dddddd;'>%1</big>", reqinfo.parsed_uri))
+  add_html(
+    T(
+      "<pre wrap><big style='background-color: #dddddd;'>%1</big>",
+      reqinfo.parsed_uri
+    )
+  )
   add_html(T("  <em>%1</em>", func_info.signature))
   add_html("")
   add_html(
@@ -1002,11 +1097,17 @@ function HttpInspector:showFunctionDetails(obj, reqinfo)
   output_sample_uris("/")
   add_html("")
   if func_info.no_source then
-    add_html(T("Builtin function or from a C module: no source code available."))
+    add_html(
+      T("Builtin function or from a C module: no source code available.")
+    )
   else
     local dummy, git_commit = require("version"):getNormalizedCurrentVersion()
-    local github_uri =
-      T("https://github.com/koreader/koreader/blob/%1/%2#L%3", git_commit, func_info.source, func_info.firstline)
+    local github_uri = T(
+      "https://github.com/koreader/koreader/blob/%1/%2#L%3",
+      git_commit,
+      func_info.source,
+      func_info.firstline
+    )
     add_html(
       T(
         "Here's a snippet of the function code (it can be viewed with syntax coloring and line numbers <a href='%1'>on Github</a>):",
@@ -1025,7 +1126,13 @@ function HttpInspector:showFunctionDetails(obj, reqinfo)
 end
 
 -- Call a function or method, send results as JSON or HTML
-function HttpInspector:callFunction(func, instance, args_as_uri, output_html, reqinfo)
+function HttpInspector:callFunction(
+  func,
+  instance,
+  args_as_uri,
+  output_html,
+  reqinfo
+)
   local html = {}
   local add_html = function(h)
     table.insert(html, h)
@@ -1033,9 +1140,15 @@ function HttpInspector:callFunction(func, instance, args_as_uri, output_html, re
   local args, nb_args = getVariablesFromUri(args_as_uri)
   local func_info = getFunctionInfo(func)
   if output_html then
-    add_html(T("<title>%1(%2)</title>", reqinfo.fragments[1], args_as_uri or ""))
     add_html(
-      T("<pre><big style='background-color: #dddddd;'>%1</big> <big>(%2)</big>", reqinfo.parsed_uri, args_as_uri or "")
+      T("<title>%1(%2)</title>", reqinfo.fragments[1], args_as_uri or "")
+    )
+    add_html(
+      T(
+        "<pre><big style='background-color: #dddddd;'>%1</big> <big>(%2)</big>",
+        reqinfo.parsed_uri,
+        args_as_uri or ""
+      )
     )
     add_html(T("  <em>%1</em>", func_info.signature))
     add_html("")
@@ -1048,7 +1161,9 @@ function HttpInspector:callFunction(func, instance, args_as_uri, output_html, re
   end
   local res, nbr, http_code, json, ok, ok2, err, trace
   if func_info.is_method then
-    res = table.pack(xpcall(func, debug.traceback, instance, unpack(args, 1, nb_args)))
+    res = table.pack(
+      xpcall(func, debug.traceback, instance, unpack(args, 1, nb_args))
+    )
   else
     res = table.pack(xpcall(func, debug.traceback, unpack(args, 1, nb_args)))
   end
@@ -1115,7 +1230,10 @@ function HttpInspector:someFunctionForInteractiveTesting(...)
   if select(1, ...) then
     HttpInspector.foo.bar = true -- error
   end
-  return self and self.name or "no self", #(table.pack(...)), "original args follow", ...
+  return self and self.name or "no self",
+    #(table.pack(...)),
+    "original args follow",
+    ...
   -- Copy and append this as args to the url, to get an error:
   -- /true/nil/true/false/"true"/-1.2/"/"/abc/'d"/ef'/
   -- and to get a success:
@@ -1219,7 +1337,12 @@ function HttpInspector:exposeEvent(uri, reqinfo)
         UIManager:sendEvent(ev)
       end
     end)
-    return self:sendResponse(reqinfo, 200, CTYPE.TEXT, T("Event sent: %1", table.concat(ev_names, ", ")))
+    return self:sendResponse(
+      reqinfo,
+      200,
+      CTYPE.TEXT,
+      T("Event sent: %1", table.concat(ev_names, ", "))
+    )
   end
 
   -- No event provided.
@@ -1238,7 +1361,12 @@ function HttpInspector:exposeEvent(uri, reqinfo)
   )
   for _, action in ipairs(actions) do
     if type(action) == "string" then
-      add_html(T("<hr size='1' noshade ><big style='background-color: #dddddd;'>%1</big>", action))
+      add_html(
+        T(
+          "<hr size='1' noshade ><big style='background-color: #dddddd;'>%1</big>",
+          action
+        )
+      )
     elseif action.condition == false then
       -- Some bottom menu are just disabled on all devices,
       -- so just don't show any disabled action
@@ -1269,7 +1397,8 @@ function HttpInspector:exposeEvent(uri, reqinfo)
 
       -- Same messy logic as in Dispatcher:execute() (not everything has been tested).
       local get_base_href = function()
-        return reqinfo.parsed_uri .. (action.event and "/" .. action.event or "")
+        return reqinfo.parsed_uri
+          .. (action.event and "/" .. action.event or "")
       end
       if action.configurable then
         -- Such actions sends a first (possibly single with KOpt settings) event
@@ -1305,13 +1434,23 @@ function HttpInspector:exposeEvent(uri, reqinfo)
           args, toggle = action.args, action.toggle
         end
         if type(args[1]) == "table" then
-          add_html(T("  %1/... unsupported (table arguments)", get_base_href("...")))
+          add_html(
+            T("  %1/... unsupported (table arguments)", get_base_href("..."))
+          )
         else
           for i = 1, #args do
             local href = T("%1/%2", get_base_href(i, true), tostring(args[i]))
             local unit = action.unit and " " .. action.unit or ""
             local default = args[i] == action.default and " (default)" or ""
-            add_html(T("  <a href='%1'>%1</a> \t<b>%2%3%4</b>", href, toggle[i], unit, default))
+            add_html(
+              T(
+                "  <a href='%1'>%1</a> \t<b>%2%3%4</b>",
+                href,
+                toggle[i],
+                unit,
+                default
+              )
+            )
           end
         end
       elseif action.category == "absolutenumber" then
@@ -1340,7 +1479,8 @@ function HttpInspector:exposeEvent(uri, reqinfo)
           table.insert(suggestions, { max, "max" })
         end
         for _, suggestion in ipairs(suggestions) do
-          local href = T("%1/%2", get_base_href(suggestion[1]), tostring(suggestion[1]))
+          local href =
+            T("%1/%2", get_base_href(suggestion[1]), tostring(suggestion[1]))
           add_html(T("  <a href='%1'>%1</a> \t<b>%2</b>", href, suggestion[2]))
         end
       elseif action.category == "incrementalnumber" then
@@ -1358,16 +1498,21 @@ function HttpInspector:exposeEvent(uri, reqinfo)
         end
         table.insert(suggestions, { max, "max" })
         for _, suggestion in ipairs(suggestions) do
-          local href = T("%1/%2", get_base_href(suggestion[1]), tostring(suggestion[1]))
+          local href =
+            T("%1/%2", get_base_href(suggestion[1]), tostring(suggestion[1]))
           add_html(T("  <a href='%1'>%1</a> \t<b>%2</b>", href, suggestion[2]))
         end
       elseif action.category == "arg" then
-        add_html(T("  %1/... unsupported (gesture arguments)", get_base_href("...")))
+        add_html(
+          T("  %1/... unsupported (gesture arguments)", get_base_href("..."))
+        )
       elseif action.category == "configurable" then
         -- No other action event to send
         for i = 1, #action.configurable.values do
           local href = T("%1", get_base_href(i, true))
-          add_html(T("  <a href='%1'>%1</a> \t<b>%2</b>", href, action.toggle[i]))
+          add_html(
+            T("  <a href='%1'>%1</a> \t<b>%2</b>", href, action.toggle[i])
+          )
         end
       else
         -- Should not happen
@@ -1418,7 +1563,12 @@ function HttpInspector:exposeBroadcastEvent(uri, reqinfo)
         UIManager:broadcastEvent(ev)
       end
     end)
-    return self:sendResponse(reqinfo, 200, CTYPE.TEXT, T("Event broadcasted: %1", table.concat(ev_names, ", ")))
+    return self:sendResponse(
+      reqinfo,
+      200,
+      CTYPE.TEXT,
+      T("Event broadcasted: %1", table.concat(ev_names, ", "))
+    )
   end
 
   -- No event provided.
@@ -1428,7 +1578,9 @@ function HttpInspector:exposeBroadcastEvent(uri, reqinfo)
   end
   add_html(T("<title>Broadcast event</title>"))
   add_html(T("<pre>No suggestion, <mark>use at your own risk</mark>."))
-  add_html(T("Usage: <a href='%1'>%1</a>", "/koreader/broadcast/EventName/arg1/arg2"))
+  add_html(
+    T("Usage: <a href='%1'>%1</a>", "/koreader/broadcast/EventName/arg1/arg2")
+  )
   add_html("</pre>")
   html = table.concat(html, "\n")
   return self:sendResponse(reqinfo, 200, CTYPE.HTML, html)

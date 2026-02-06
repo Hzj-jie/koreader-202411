@@ -17,7 +17,11 @@ end
 
 local function setDPI(dpi_val)
   local UIManager = require("ui/uimanager")
-  local text = dpi_val and T(gettext("DPI set to %1. This will take effect after restarting."), dpi_val)
+  local text = dpi_val
+      and T(
+        gettext("DPI set to %1. This will take effect after restarting."),
+        dpi_val
+      )
     or gettext("DPI set to auto. This will take effect after restarting.")
   -- If this is set to nil, reader.lua doesn't call setScreenDPI
   G_reader_settings:save("screen_dpi", dpi_val)
@@ -75,7 +79,8 @@ return {
   text = gettext("Screen DPI"),
   sub_item_table = {
     {
-      text = dpi_auto and T(gettext("Auto DPI (%1)"), dpi_auto) or gettext("Auto DPI"),
+      text = dpi_auto and T(gettext("Auto DPI (%1)"), dpi_auto)
+        or gettext("Auto DPI"),
       help_text = gettext(
         "The DPI of your screen is automatically detected so items can be drawn with the right amount of pixels. This will usually display at (roughly) the same size on different devices, while remaining sharp. Increasing the DPI setting will result in larger text and icons, while a lower DPI setting will look smaller on the screen."
       ),
@@ -90,12 +95,20 @@ return {
     predefined_dpi_menu_item("Large", dpi_large, 200, 280),
     predefined_dpi_menu_item("Extra Large", dpi_xlarge, 280, 400),
     predefined_dpi_menu_item("Extra-Extra Large", dpi_xxlarge, 400, 560),
-    predefined_dpi_menu_item("Extra-Extra-Extra Large", dpi_xxxlarge, 560, 1000000000),
+    predefined_dpi_menu_item(
+      "Extra-Extra-Extra Large",
+      dpi_xxxlarge,
+      560,
+      1000000000
+    ),
     {
       text_func = function()
         local custom_dpi = custom() or dpi_auto
         if custom_dpi then
-          return T(gettext("Custom DPI: %1 (hold to set)"), custom() or dpi_auto)
+          return T(
+            gettext("Custom DPI: %1 (hold to set)"),
+            custom() or dpi_auto
+          )
         else
           return gettext("Custom DPI")
         end

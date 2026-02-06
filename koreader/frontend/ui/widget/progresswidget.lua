@@ -131,7 +131,15 @@ function ProgressWidget:paintTo(bb, x, y)
     -- Otherwise, we have to start with the background.
     bb:paintRoundedRect(x, y, my_size.w, my_size.h, self.bgcolor, self.radius)
     -- Then the border around that.
-    bb:paintBorder(math.floor(x), math.floor(y), my_size.w, my_size.h, self.bordersize, self.bordercolor, self.radius)
+    bb:paintBorder(
+      math.floor(x),
+      math.floor(y),
+      my_size.w,
+      my_size.h,
+      self.bordersize,
+      self.bordercolor,
+      self.radius
+    )
   end
 
   -- Then we can just paint the fill rectangle(s) and tick(s) on top of that.
@@ -147,7 +155,13 @@ function ProgressWidget:paintTo(bb, x, y)
       tick_x = math.floor(tick_x)
       width = math.ceil(width)
 
-      bb:paintRect(x + self.margin_h + self.bordersize + tick_x, fill_y, width, math.ceil(fill_height), self.altcolor)
+      bb:paintRect(
+        x + self.margin_h + self.bordersize + tick_x,
+        fill_y,
+        width,
+        math.ceil(fill_height),
+        self.altcolor
+      )
     end
   end
 
@@ -159,20 +173,34 @@ function ProgressWidget:paintTo(bb, x, y)
       fill_x = math.floor(fill_x)
     end
 
-    bb:paintRect(fill_x, fill_y, math.ceil(fill_width * self.percentage), math.ceil(fill_height), self.fillcolor)
+    bb:paintRect(
+      fill_x,
+      fill_y,
+      math.ceil(fill_width * self.percentage),
+      math.ceil(fill_height),
+      self.fillcolor
+    )
 
     -- Overlay the initial position marker on top of that
     if self.initial_pos_marker and self.initial_percentage >= 0 then
       if self.height <= INITIAL_MARKER_HEIGHT_THRESHOLD then
         self.initial_pos_icon:paintTo(
           bb,
-          Math.round(fill_x + math.ceil(fill_width * self.initial_percentage) - self.height / 4),
+          Math.round(
+            fill_x
+              + math.ceil(fill_width * self.initial_percentage)
+              - self.height / 4
+          ),
           y - Math.round(self.height / 6)
         )
       else
         self.initial_pos_icon:paintTo(
           bb,
-          Math.round(fill_x + math.ceil(fill_width * self.initial_percentage) - self.height / 2),
+          Math.round(
+            fill_x
+              + math.ceil(fill_width * self.initial_percentage)
+              - self.height / 2
+          ),
           y
         )
       end
@@ -231,9 +259,15 @@ function ProgressWidget:setHeight(height)
   self._orig_bordersize = self._orig_bordersize or self.bordersize
   local margin_v_min = self._orig_margin_v > 0 and 1 or 0
   local bordersize_min = self._orig_bordersize > 0 and 1 or 0
-  self.margin_v = math.min(self._orig_margin_v, math.floor((self.height - 2 * self._orig_bordersize - 1) / 2))
+  self.margin_v = math.min(
+    self._orig_margin_v,
+    math.floor((self.height - 2 * self._orig_bordersize - 1) / 2)
+  )
   self.margin_v = math.max(self.margin_v, margin_v_min)
-  self.bordersize = math.min(self._orig_bordersize, math.floor((self.height - 2 * self.margin_v - 1) / 2))
+  self.bordersize = math.min(
+    self._orig_bordersize,
+    math.floor((self.height - 2 * self.margin_v - 1) / 2)
+  )
   self.bordersize = math.max(self.bordersize, bordersize_min)
 
   -- Re-render marker, if any

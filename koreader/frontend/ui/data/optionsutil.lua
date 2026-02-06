@@ -136,7 +136,8 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
     end
     current = arg_table[current]
     if not current then
-      current = option.name_text_true_values and gettext("custom") or value_current
+      current = option.name_text_true_values and gettext("custom")
+        or value_current
     end
     if option.show_true_value_func then
       value_current = option.show_true_value_func(value_current)
@@ -148,7 +149,8 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
       end
       default = arg_table[default]
       if not default then
-        default = option.name_text_true_values and gettext("custom") or value_default
+        default = option.name_text_true_values and gettext("custom")
+          or value_default
       end
       if option.show_true_value_func then
         value_default = option.show_true_value_func(value_default)
@@ -198,7 +200,9 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
     end
   end
   local text
-  local name_text = option.name_text_func and option.name_text_func(configurable) or option.name_text
+  local name_text = option.name_text_func
+      and option.name_text_func(configurable)
+    or option.name_text
   if option.name_text_true_values and option.toggle and option.values then
     local nb_current, nb_default = tonumber(current), tonumber(default)
     if nb_current == nil or nb_default == nil then
@@ -301,11 +305,17 @@ function optionsutil:getOptionText(event, val)
     self:generateOptionText()
   end
   if not event or val == nil then
-    logger.err("[OptionsCatalog:getOptionText] Either event or val not set. This should not happen!")
+    logger.err(
+      "[OptionsCatalog:getOptionText] Either event or val not set. This should not happen!"
+    )
     return ""
   end
   if not self.option_text_table[event] then
-    logger.err("[OptionsCatalog:getOptionText] Event:" .. event .. " not found in option_text_table")
+    logger.err(
+      "[OptionsCatalog:getOptionText] Event:"
+        .. event
+        .. " not found in option_text_table"
+    )
     return ""
   end
 

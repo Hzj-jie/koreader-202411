@@ -29,11 +29,17 @@ local DEFAULT_KEITAI_TAP_INTERVAL_S = 2
 -- information.
 
 local function getKeitaiTapInterval()
-  return time.s(G_reader_settings:read("keyboard_japanese_keitai_tap_interval") or DEFAULT_KEITAI_TAP_INTERVAL_S)
+  return time.s(
+    G_reader_settings:read("keyboard_japanese_keitai_tap_interval")
+      or DEFAULT_KEITAI_TAP_INTERVAL_S
+  )
 end
 
 local function setKeitaiTapInterval(interval)
-  G_reader_settings:save("keyboard_japanese_keitai_tap_interval", time.to_s(interval))
+  G_reader_settings:save(
+    "keyboard_japanese_keitai_tap_interval",
+    time.to_s(interval)
+  )
 end
 
 local function exitKeitaiMode(inputbox)
@@ -50,7 +56,8 @@ local function wrappedAddChars(inputbox, char)
   local within_tap_window
   if keitai_cycle then
     if inputbox._ja_last_tap_time then
-      within_tap_window = time.since(inputbox._ja_last_tap_time) < getKeitaiTapInterval()
+      within_tap_window = time.since(inputbox._ja_last_tap_time)
+        < getKeitaiTapInterval()
     end
     inputbox._ja_last_tap_time = time.monotonic()
   else
@@ -72,7 +79,14 @@ local function wrappedAddChars(inputbox, char)
   end
 
   -- Replace character if there was a valid replacement.
-  logger.dbg("ja_kbd: applying", char, "key to", current_char, "yielded", new_char)
+  logger.dbg(
+    "ja_kbd: applying",
+    char,
+    "key to",
+    current_char,
+    "yielded",
+    new_char
+  )
   if not current_char then
     return
   end -- no character to modify
@@ -93,23 +107,59 @@ local function wrapInputBox(inputbox)
     -- original function.
 
     -- Delete text.
-    table.insert(wrappers, util.wrapMethod(inputbox, "delChar", nil, exitKeitaiMode))
-    table.insert(wrappers, util.wrapMethod(inputbox, "delToStartOfLine", nil, exitKeitaiMode))
-    table.insert(wrappers, util.wrapMethod(inputbox, "clear", nil, exitKeitaiMode))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "delChar", nil, exitKeitaiMode)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "delToStartOfLine", nil, exitKeitaiMode)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "clear", nil, exitKeitaiMode)
+    )
     -- Navigation.
-    table.insert(wrappers, util.wrapMethod(inputbox, "leftChar", nil, exitKeitaiMode))
-    table.insert(wrappers, util.wrapMethod(inputbox, "rightChar", nil, exitKeitaiMode))
-    table.insert(wrappers, util.wrapMethod(inputbox, "upLine", nil, exitKeitaiMode))
-    table.insert(wrappers, util.wrapMethod(inputbox, "downLine", nil, exitKeitaiMode))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "leftChar", nil, exitKeitaiMode)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "rightChar", nil, exitKeitaiMode)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "upLine", nil, exitKeitaiMode)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "downLine", nil, exitKeitaiMode)
+    )
     -- Move to other input box.
-    table.insert(wrappers, util.wrapMethod(inputbox, "unfocus", nil, exitKeitaiMode))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "unfocus", nil, exitKeitaiMode)
+    )
     -- Gestures to move cursor.
-    table.insert(wrappers, util.wrapMethod(inputbox, "onTapTextBox", nil, exitKeitaiMode))
-    table.insert(wrappers, util.wrapMethod(inputbox, "onHoldTextBox", nil, exitKeitaiMode))
-    table.insert(wrappers, util.wrapMethod(inputbox, "onSwipeTextBox", nil, exitKeitaiMode))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "onTapTextBox", nil, exitKeitaiMode)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "onHoldTextBox", nil, exitKeitaiMode)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "onSwipeTextBox", nil, exitKeitaiMode)
+    )
 
     -- addChars is the only method we need a more complicated wrapper for.
-    table.insert(wrappers, util.wrapMethod(inputbox, "addChars", wrappedAddChars, nil))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "addChars", wrappedAddChars, nil)
+    )
 
     return function()
       if inputbox._ja_wrapped then
@@ -131,7 +181,11 @@ local function genMenuItems(self)
         if interval ~= 0 then
           -- @translators Keitai input is a kind of Japanese keyboard input mode (similar to T9 keypad input). See <https://en.wikipedia.org/wiki/Japanese_input_method#Mobile_phones> for more information.
           return T(
-            N_("Keitai tap interval: %1 second", "Keitai tap interval: %1 seconds", time.to_s(interval)),
+            N_(
+              "Keitai tap interval: %1 second",
+              "Keitai tap interval: %1 seconds",
+              time.to_s(interval)
+            ),
             time.to_s(interval)
           )
         else
@@ -149,10 +203,12 @@ local function genMenuItems(self)
         local Screen = require("device").screen
         local items = SpinWidget:new({
           title_text = gettext("Keitai tap interval"),
-          info_text = gettext([[
+          info_text = gettext(
+            [[
 How long to wait (in seconds) for the next tap when in keitai input mode before committing to the current character. During this window, tapping a single key will loop through candidates for the current character being input. Any other input will cause you to leave keitai mode.
 
-If set to 0, keitai input is disabled entirely and only flick input can be used.]]),
+If set to 0, keitai input is disabled entirely and only flick input can be used.]]
+          ),
           width = math.floor(Screen:getWidth() * 0.75),
           value = time.to_s(getKeitaiTapInterval()),
           value_min = 0,

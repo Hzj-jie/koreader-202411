@@ -37,7 +37,15 @@ end
 
 function LinkBox:paintTo(bb)
   assert(self.box ~= nil)
-  bb:paintBorder(self.box.x, self.box.y, self.box.w, self.box.h, self.bordersize, self.color, self.radius)
+  bb:paintBorder(
+    self.box.x,
+    self.box.y,
+    self.box.w,
+    self.box.h,
+    self.bordersize,
+    self.color,
+    self.radius
+  )
 end
 
 function LinkBox:onClose()

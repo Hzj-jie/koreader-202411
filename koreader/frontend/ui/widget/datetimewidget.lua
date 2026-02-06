@@ -117,7 +117,10 @@ function DateTimeWidget:init()
   elseif self.nb_pickers >= 5 then
     width_scale_factor = 0.95
   end
-  self.width = self.width or math.floor(math.min(self.screen_width, self.screen_height) * width_scale_factor)
+  self.width = self.width
+    or math.floor(
+      math.min(self.screen_width, self.screen_height) * width_scale_factor
+    )
   if Device:hasKeys() then
     self.key_events.Exit = { { Device.input.group.Back } }
   end
@@ -145,9 +148,11 @@ function DateTimeWidget:createLayout()
   function dummy_widget:update() end
 
   -- The following calculation is stolen from NumberPickerWidget
-  local number_picker_widgets_width = math.floor(math.min(self.screen_width, self.screen_height) * 0.2)
+  local number_picker_widgets_width =
+    math.floor(math.min(self.screen_width, self.screen_height) * 0.2)
   if self.nb_pickers > 3 then
-    number_picker_widgets_width = math.floor(number_picker_widgets_width * 3 / self.nb_pickers)
+    number_picker_widgets_width =
+      math.floor(number_picker_widgets_width * 3 / self.nb_pickers)
   end
 
   if self.year then
@@ -269,7 +274,11 @@ function DateTimeWidget:createLayout()
   end
 
   -- clean up leading separator
-  if date_group[1] == separator_date or date_group[1] == separator_date_time or date_group[1] == separator_time then
+  if
+    date_group[1] == separator_date
+    or date_group[1] == separator_date_time
+    or date_group[1] == separator_time
+  then
     table.remove(date_group, 1)
   end
 
@@ -286,7 +295,8 @@ function DateTimeWidget:createLayout()
   if self.default_value then
     table.insert(buttons, {
       {
-        text = self.default_text or T(gettext("Default value: %1"), self.default_value),
+        text = self.default_text
+          or T(gettext("Default value: %1"), self.default_value),
         callback = function()
           if self.default_callback then
             self.default_callback({

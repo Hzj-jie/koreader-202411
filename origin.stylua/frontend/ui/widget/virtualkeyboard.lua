@@ -56,7 +56,8 @@ local VirtualKey = InputContainer:extend({
 local ignore_key_release
 
 function VirtualKey:init()
-  local label_font_size = G_reader_settings:readSetting("keyboard_key_font_size", DEFAULT_LABEL_SIZE)
+  local label_font_size =
+    G_reader_settings:readSetting("keyboard_key_font_size", DEFAULT_LABEL_SIZE)
   self.face = Font:getFace("infont", label_font_size)
   self.bold = G_reader_settings:isTrue("keyboard_key_bold")
   if self.keyboard.symbolmode_keys[self.label] ~= nil then
@@ -64,7 +65,10 @@ function VirtualKey:init()
       self.keyboard:setLayer("Sym")
     end
     self.skiptap = true
-  elseif self.keyboard.shiftmode_keys[self.label] ~= nil or self.keyboard.shiftmode_keys[self.key] ~= nil then
+  elseif
+    self.keyboard.shiftmode_keys[self.label] ~= nil
+    or self.keyboard.shiftmode_keys[self.key] ~= nil
+  then
     -- self.key needed because the shift key's label could be the capslock instead of the shift
     local key = self.key or self.label
     local releasable = key == ""
@@ -86,7 +90,8 @@ function VirtualKey:init()
       self.keyboard:onSwitchingKeyboardLayout()
       local current = G_reader_settings:readSetting("keyboard_layout")
       local default = G_reader_settings:readSetting("keyboard_layout_default")
-      local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts", {})
+      local keyboard_layouts =
+        G_reader_settings:readSetting("keyboard_layouts", {})
       local next_layout = nil
       local layout_index = util.arrayContains(keyboard_layouts, current)
       if layout_index then
@@ -187,7 +192,11 @@ function VirtualKey:init()
       if self.close_after_callback_widget then
         UIManager:close(self.close_after_callback_widget)
       end
-      if self.keyboard.shiftmode and not self.keyboard.symbolmode and self.keyboard.release_shift then
+      if
+        self.keyboard.shiftmode
+        and not self.keyboard.symbolmode
+        and self.keyboard.release_shift
+      then
         self.keyboard:setLayer("Shift")
       end
     end
@@ -331,11 +340,16 @@ function VirtualKey:init()
   }
   if
     (
-      (self.keyboard.shiftmode_keys[self.label] ~= nil or self.keyboard.shiftmode_keys[self.key])
-      and self.keyboard.shiftmode
+      (
+        self.keyboard.shiftmode_keys[self.label] ~= nil
+        or self.keyboard.shiftmode_keys[self.key]
+      ) and self.keyboard.shiftmode
     )
     or (self.keyboard.umlautmode_keys[self.label] ~= nil and self.keyboard.umlautmode)
-    or (self.keyboard.symbolmode_keys[self.label] ~= nil and self.keyboard.symbolmode)
+    or (
+      self.keyboard.symbolmode_keys[self.label] ~= nil
+      and self.keyboard.symbolmode
+    )
   then
     self[1].background = Blitbuffer.COLOR_LIGHT_GRAY
   end
@@ -446,7 +460,11 @@ end
 function VirtualKey:onHoldSelect()
   Device:performHapticFeedback("LONG_PRESS")
   -- No visual feedback necessary if we're going to show a popup on top of the key ;).
-  if self.flash_keyboard and not self.skiphold and not self.hold_cb_is_popup then
+  if
+    self.flash_keyboard
+    and not self.skiphold
+    and not self.hold_cb_is_popup
+  then
     self:invert(true)
     UIManager:forceRePaint()
     UIManager:yieldToEPDC()
@@ -624,13 +642,17 @@ function VirtualKeyPopup:init()
     HorizontalSpan:new({ width = parent_key.keyboard.key_padding }),
     HorizontalSpan:new({ width = 0 }),
   }
-  local v_key_padding = VerticalSpan:new({ width = parent_key.keyboard.key_padding })
+  local v_key_padding =
+    VerticalSpan:new({ width = parent_key.keyboard.key_padding })
 
   local vertical_group = VerticalGroup:new({ allow_mirroring = false })
-  local horizontal_group_extra = HorizontalGroup:new({ allow_mirroring = false })
+  local horizontal_group_extra =
+    HorizontalGroup:new({ allow_mirroring = false })
   local horizontal_group_top = HorizontalGroup:new({ allow_mirroring = false })
-  local horizontal_group_middle = HorizontalGroup:new({ allow_mirroring = false })
-  local horizontal_group_bottom = HorizontalGroup:new({ allow_mirroring = false })
+  local horizontal_group_middle =
+    HorizontalGroup:new({ allow_mirroring = false })
+  local horizontal_group_bottom =
+    HorizontalGroup:new({ allow_mirroring = false })
 
   local function horizontalRow(chars, group)
     local layout_horizontal = {}
@@ -735,7 +757,8 @@ function VirtualKeyPopup:init()
   local keyboard_frame = FrameContainer:new({
     margin = 0,
     bordersize = Size.border.default,
-    background = G_reader_settings:nilOrTrue("keyboard_key_border") and Blitbuffer.COLOR_LIGHT_GRAY
+    background = G_reader_settings:nilOrTrue("keyboard_key_border")
+        and Blitbuffer.COLOR_LIGHT_GRAY
       or Blitbuffer.COLOR_WHITE,
     radius = 0,
     padding = parent_key.keyboard.padding,
@@ -745,7 +768,9 @@ function VirtualKeyPopup:init()
         w = parent_key.width * num_columns
           + 2 * Size.border.default
           + (num_columns + 1) * parent_key.keyboard.key_padding,
-        h = parent_key.height * num_rows + 2 * Size.border.default + (num_rows + 1) * parent_key.keyboard.key_padding,
+        h = parent_key.height * num_rows
+          + 2 * Size.border.default
+          + (num_rows + 1) * parent_key.keyboard.key_padding,
       }),
       vertical_group,
     }),
@@ -758,18 +783,23 @@ function VirtualKeyPopup:init()
       ges = "tap",
     }),
   }
-  self.tap_interval_override = time.ms(G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms", 0))
+  self.tap_interval_override =
+    time.ms(G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms", 0))
 
   if Device:hasKeys() then
     self.key_events.Close = { { Device.input.group.Back } }
   end
 
-  local offset_x = 2 * keyboard_frame.bordersize + keyboard_frame.padding + parent_key.keyboard.key_padding
+  local offset_x = 2 * keyboard_frame.bordersize
+    + keyboard_frame.padding
+    + parent_key.keyboard.key_padding
   if columns[1] then
     offset_x = offset_x + parent_key.width + parent_key.keyboard.key_padding
   end
 
-  local offset_y = 2 * keyboard_frame.bordersize + keyboard_frame.padding + parent_key.keyboard.key_padding
+  local offset_y = 2 * keyboard_frame.bordersize
+    + keyboard_frame.padding
+    + parent_key.keyboard.key_padding
   if rows.extra_key_chars then
     offset_y = offset_y + parent_key.height + parent_key.keyboard.key_padding
   end
@@ -791,14 +821,18 @@ function VirtualKeyPopup:init()
     -- We effectively move the popup, which means the key underneath our finger may no longer *exactly* be parent_key.
     -- Make sure we won't close the popup right away, as that would risk being a *different* key, in order to make that less confusing.
     parent_key.ignore_key_release = true
-  elseif position_container.dimen.x + keyboard_frame.dimen.w > Screen:getWidth() then
+  elseif
+    position_container.dimen.x + keyboard_frame.dimen.w > Screen:getWidth()
+  then
     position_container.dimen.x = Screen:getWidth() - keyboard_frame.dimen.w
     parent_key.ignore_key_release = true
   end
   if position_container.dimen.y < 0 then
     position_container.dimen.y = 0
     parent_key.ignore_key_release = true
-  elseif position_container.dimen.y + keyboard_frame.dimen.h > Screen:getHeight() then
+  elseif
+    position_container.dimen.y + keyboard_frame.dimen.h > Screen:getHeight()
+  then
     position_container.dimen.y = Screen:getHeight() - keyboard_frame.dimen.h
     parent_key.ignore_key_release = true
   end
@@ -881,7 +915,8 @@ function VirtualKeyboard:init()
     self.uwrap_func = nil
   end
   local lang = self:getKeyboardLayout()
-  local keyboard_layout = self.lang_to_keyboard_layout[lang] or self.lang_to_keyboard_layout["en"]
+  local keyboard_layout = self.lang_to_keyboard_layout[lang]
+    or self.lang_to_keyboard_layout["en"]
   local keyboard = require("ui/data/keyboardlayouts/" .. keyboard_layout)
   self.KEYS = keyboard.keys or {}
   self.shiftmode_keys = keyboard.shiftmode_keys or {}
@@ -889,12 +924,14 @@ function VirtualKeyboard:init()
   self.utf8mode_keys = keyboard.utf8mode_keys or {}
   self.umlautmode_keys = keyboard.umlautmode_keys or {}
   self.width = Screen:getWidth()
-  local keys_height = G_reader_settings:isTrue("keyboard_key_compact") and 48 or 64
+  local keys_height = G_reader_settings:isTrue("keyboard_key_compact") and 48
+    or 64
   self.height = Screen:scaleBySize(keys_height * #self.KEYS)
   self.min_layer = keyboard.min_layer
   self.max_layer = keyboard.max_layer
   self:initLayer(self.keyboard_layer)
-  self.tap_interval_override = time.ms(G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms", 0))
+  self.tap_interval_override =
+    time.ms(G_reader_settings:readSetting("ges_tap_interval_on_keyboard_ms", 0))
   if Device:hasKeys() then
     self.key_events.Close = { { "Back" } }
   end
@@ -943,12 +980,16 @@ function VirtualKeyboard:_isTextKeyWithoutModifier(seq)
 end
 
 function VirtualKeyboard:getKeyboardLayout()
-  if G_reader_settings:isFalse("keyboard_remember_layout") and not keyboard_state.force_current_layout then
+  if
+    G_reader_settings:isFalse("keyboard_remember_layout")
+    and not keyboard_state.force_current_layout
+  then
     local lang = G_reader_settings:readSetting("keyboard_layout_default")
       or G_reader_settings:readSetting("keyboard_layout", "en")
     G_reader_settings:saveSetting("keyboard_layout", lang)
   end
-  return G_reader_settings:readSetting("keyboard_layout") or G_reader_settings:readSetting("language")
+  return G_reader_settings:readSetting("keyboard_layout")
+    or G_reader_settings:readSetting("language")
 end
 
 function VirtualKeyboard:setKeyboardLayout(layout)
@@ -959,7 +1000,11 @@ function VirtualKeyboard:setKeyboardLayout(layout)
   if prev_keyboard_height and self.dimen.h ~= prev_keyboard_height then
     self:_refresh(true, true)
     -- Keyboard height change: notify parent (InputDialog)
-    if self.inputbox and self.inputbox.parent and self.inputbox.parent.onKeyboardHeightChanged then
+    if
+      self.inputbox
+      and self.inputbox.parent
+      and self.inputbox.parent.onKeyboardHeightChanged
+    then
       self.inputbox.parent:onKeyboardHeightChanged()
     end
   else
@@ -976,7 +1021,11 @@ function VirtualKeyboard:onClose()
     -- Also, notify another widget that actually may want to know when *we* get closed, i.e., the parent (Input*Dialog*).
     -- We need to do this manually because InputText's onKeyPress handler will very likely return true,
     -- stopping event propagation (c.f., the last hasDPad branch of said handler).
-    if self.inputbox and self.inputbox.parent and self.inputbox.parent.onKeyboardClosed then
+    if
+      self.inputbox
+      and self.inputbox.parent
+      and self.inputbox.parent.onKeyboardClosed
+    then
       self.inputbox.parent:onKeyboardClosed()
     end
     return false
@@ -1067,11 +1116,26 @@ function VirtualKeyboard:initLayer(layer)
     layer = math.min(layer, self.max_layer)
     self.keyboard_layer = layer
     -- fill the layer modes
-    self.shiftmode = (layer == 1 or layer == 3 or layer == 5 or layer == 7 or layer == 9 or layer == 11)
-    self.symbolmode = (layer == 3 or layer == 4 or layer == 7 or layer == 8 or layer == 11 or layer == 12)
+    self.shiftmode = (
+      layer == 1
+      or layer == 3
+      or layer == 5
+      or layer == 7
+      or layer == 9
+      or layer == 11
+    )
+    self.symbolmode = (
+      layer == 3
+      or layer == 4
+      or layer == 7
+      or layer == 8
+      or layer == 11
+      or layer == 12
+    )
     self.umlautmode = (layer == 5 or layer == 6 or layer == 7 or layer == 8)
   else -- or, without input parameter, restore layer from current layer modes
-    self.keyboard_layer = VKLayer(self.shiftmode, self.symbolmode, self.umlautmode)
+    self.keyboard_layer =
+      VKLayer(self.shiftmode, self.symbolmode, self.umlautmode)
   end
   self:addKeys()
 end
@@ -1079,10 +1143,14 @@ end
 function VirtualKeyboard:addKeys()
   self:free() -- free previous keys' TextWidgets
   self.layout = {}
-  local base_key_width =
-    math.floor((self.width - (#self.KEYS[1] + 1) * self.key_padding - 2 * self.padding) / #self.KEYS[1])
-  local base_key_height =
-    math.floor((self.height - (#self.KEYS + 1) * self.key_padding - 2 * self.padding) / #self.KEYS)
+  local base_key_width = math.floor(
+    (self.width - (#self.KEYS[1] + 1) * self.key_padding - 2 * self.padding)
+      / #self.KEYS[1]
+  )
+  local base_key_height = math.floor(
+    (self.height - (#self.KEYS + 1) * self.key_padding - 2 * self.padding)
+      / #self.KEYS
+  )
   local h_key_padding = HorizontalSpan:new({ width = self.key_padding })
   local v_key_padding = VerticalSpan:new({ width = self.key_padding })
   local vertical_group = VerticalGroup:new({ allow_mirroring = false })
@@ -1104,11 +1172,20 @@ function VirtualKeyboard:addKeys()
         key = key_chars
         key_chars = nil
       end
-      width_factor = width_factor or self.KEYS[i][j].width or self.KEYS[i].width or 1.0
-      local key_width = math.floor((base_key_width + self.key_padding) * width_factor) - self.key_padding
+      width_factor = width_factor
+        or self.KEYS[i][j].width
+        or self.KEYS[i].width
+        or 1.0
+      local key_width = math.floor(
+        (base_key_width + self.key_padding) * width_factor
+      ) - self.key_padding
       local key_height = base_key_height
       label = label or self.KEYS[i][j].label or key
-      if label == "" and self.shiftmode and (not self.release_shift or self.symbolmode) then
+      if
+        label == ""
+        and self.shiftmode
+        and (not self.release_shift or self.symbolmode)
+      then
         key = label
         label = "" -- capslock symbol
       end
@@ -1142,7 +1219,8 @@ function VirtualKeyboard:addKeys()
   local keyboard_frame = FrameContainer:new({
     margin = 0,
     bordersize = Size.border.default,
-    background = G_reader_settings:nilOrTrue("keyboard_key_border") and Blitbuffer.COLOR_LIGHT_GRAY
+    background = G_reader_settings:nilOrTrue("keyboard_key_border")
+        and Blitbuffer.COLOR_LIGHT_GRAY
       or Blitbuffer.COLOR_WHITE,
     radius = 0,
     padding = self.padding,

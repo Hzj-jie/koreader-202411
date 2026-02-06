@@ -75,7 +75,8 @@ local function bcline(func, pc, prefix)
   local a = band(shr(ins, 8), 0xff)
   local oidx = 6 * band(ins, 0xff)
   local op = sub(bcnames, oidx + 1, oidx + 6)
-  local s = format("%04d %s %-6s %3s ", pc, prefix or "  ", op, ma == 0 and "" or a)
+  local s =
+    format("%04d %s %-6s %3s ", pc, prefix or "  ", op, ma == 0 and "" or a)
   local d = shr(ins, 16)
   if mc == 13 * 128 then -- BCMjump
     return format("%s=> %04d\n", s, pc + d - 0x7fff)

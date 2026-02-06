@@ -37,7 +37,8 @@ function Version:getNormalizedVersion(rev)
   if not rev then
     return
   end
-  local year, month, point, revision = rev:match("v(%d%d%d%d)%.(%d%d)%.?(%d?%d?)-?(%d*)")
+  local year, month, point, revision =
+    rev:match("v(%d%d%d%d)%.(%d%d)%.?(%d?%d?)-?(%d*)")
 
   year = tonumber(year)
   month = tonumber(month)
@@ -46,7 +47,10 @@ function Version:getNormalizedVersion(rev)
 
   local commit = rev:match("-%d*-g(%x*)[%d_%-]*")
   -- NOTE: * 10000 to handle at most 9999 commits since last tag ;).
-  return ((year or 0) * 100 + (month or 0)) * 1000000 + (point or 0) * 10000 + (revision or 0), commit
+  return ((year or 0) * 100 + (month or 0)) * 1000000
+    + (point or 0) * 10000
+    + (revision or 0),
+    commit
 end
 
 --- Returns current version of KOReader.
@@ -55,7 +59,8 @@ end
 -- @see getNormalizedVersion
 function Version:getNormalizedCurrentVersion()
   if not self.version or not self.commit then
-    self.version, self.commit = self:getNormalizedVersion(self:getCurrentRevision())
+    self.version, self.commit =
+      self:getNormalizedVersion(self:getCurrentRevision())
   end
   return self.version, self.commit
 end
@@ -68,7 +73,8 @@ function Version:getShortVersion()
     if not rev or rev == "" then
       return "unknown"
     end
-    local year, month, point, revision = rev:match("v(%d%d%d%d)%.(%d%d)%.?(%d?%d?)-?(%d*)")
+    local year, month, point, revision =
+      rev:match("v(%d%d%d%d)%.(%d%d)%.?(%d?%d?)-?(%d*)")
     self.short = year .. "." .. month
     if point and point ~= "" then
       self.short = self.short .. "." .. point
@@ -112,14 +118,17 @@ end
 function Version:updateVersionLog(current_model)
   local last_line = Version:getLastLogLine()
 
-  local __, __, last_version, last_model = last_line:match("(.-), (.-), (.-), (.-)$")
+  local __, __, last_version, last_model =
+    last_line:match("(.-), (.-), (.-), (.-)$")
   self.last_version = last_version or "last version not found"
   self.last_model = last_model or "last model not found"
 
   if self.rev ~= last_version or current_model ~= last_model then
     -- Appends KOReader git-rev, model and current date to the `VERSION_LOG_FILE`
     -- in the format 'YYYY-mm-dd, HH:MM:SS, git-rev, model'
-    self:appendToLogFile(os.date("%Y-%m-%d, %X, ") .. self.rev .. ", " .. current_model)
+    self:appendToLogFile(
+      os.date("%Y-%m-%d, %X, ") .. self.rev .. ", " .. current_model
+    )
   end
 end
 

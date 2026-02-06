@@ -29,7 +29,8 @@ function ReaderCropping:onPageCrop(mode)
     return
   end
   -- backup original view dimen
-  self.orig_view_dimen = Geom:new({ w = self.view:getSize().w, h = self.view:getSize().h })
+  self.orig_view_dimen =
+    Geom:new({ w = self.view:getSize().w, h = self.view:getSize().h })
   -- backup original view bgcolor
   self.orig_view_bgcolor = self.view.outer_page_color
   self.view.outer_page_color = Blitbuffer.COLOR_DARK_GRAY
@@ -158,7 +159,9 @@ function ReaderCropping:setCropZoomMode(confirmed)
   if confirmed then
     -- if original zoom mode is "page???", set zoom mode to "content???"
     local zoom_mode_type = self.orig_zoom_mode:match("page(.*)")
-    self:setZoomMode(zoom_mode_type and "content" .. zoom_mode_type or self.orig_zoom_mode)
+    self:setZoomMode(
+      zoom_mode_type and "content" .. zoom_mode_type or self.orig_zoom_mode
+    )
     UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
   else
     self:setZoomMode(self.orig_zoom_mode)

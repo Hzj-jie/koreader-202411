@@ -56,7 +56,8 @@ function ReaderProgress:init()
   })
   -- We're full-screen, and the widget is built in a funky way, ensure dimen actually matches the full-screen,
   -- instead of only the content's effective area...
-  self.dimen = Geom:new({ x = 0, y = 0, w = self.screen_width, h = self.screen_height })
+  self.dimen =
+    Geom:new({ x = 0, y = 0, w = self.screen_width, h = self.screen_height })
 
   if Device:hasKeys() then
     -- don't get locked in on non touch devices
@@ -123,7 +124,8 @@ function ReaderProgress:genSingleHeader(title)
     fgcolor = LINE_COLOR,
   })
   local padding_span = HorizontalSpan:new({ width = self.padding })
-  local line_width = (self.screen_width - header_title:getSize().w) / 2 - self.padding * 2
+  local line_width = (self.screen_width - header_title:getSize().w) / 2
+    - self.padding * 2
   local line_container = LeftContainer:new({
     dimen = Geom:new({ w = line_width, h = self.screen_height * (1 / 25) }),
     LineWidget:new({
@@ -230,7 +232,8 @@ function ReaderProgress:genWeekStats(stats_day)
       max_week_time = day_time
     end
   end
-  local top_padding_span = HorizontalSpan:new({ width = Screen:scaleBySize(15) })
+  local top_padding_span =
+    HorizontalSpan:new({ width = Screen:scaleBySize(15) })
   local top_span_group = HorizontalGroup:new({
     align = "center",
     LeftContainer:new({
@@ -260,8 +263,10 @@ function ReaderProgress:genWeekStats(stats_day)
     else
       select_day_time = 0
     end
-    date_format_show = datetime.shortDayOfWeekToLongTranslation[os.date("%a", diff_time)]
-      .. os.date(" (%Y-%m-%d)", diff_time)
+    date_format_show = datetime.shortDayOfWeekToLongTranslation[os.date(
+      "%a",
+      diff_time
+    )] .. os.date(" (%Y-%m-%d)", diff_time)
     local total_group = HorizontalGroup:new({
       align = "center",
       LeftContainer:new({
@@ -270,7 +275,12 @@ function ReaderProgress:genWeekStats(stats_day)
           padding = Size.padding.small,
           text = date_format_show
             .. " — "
-            .. datetime.secondsToClockDuration(user_duration_format, select_day_time, true, true),
+            .. datetime.secondsToClockDuration(
+              user_duration_format,
+              select_day_time,
+              true,
+              true
+            ),
           face = Font:getFace("smallffont"),
         }),
       }),
@@ -367,7 +377,11 @@ function ReaderProgress:genSummaryDay(width)
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = datetime.secondsToClockDuration(user_duration_format, self.current_duration, true),
+        text = datetime.secondsToClockDuration(
+          user_duration_format,
+          self.current_duration,
+          true
+        ),
         face = self.medium_font_face,
       }),
     }),
@@ -381,7 +395,11 @@ function ReaderProgress:genSummaryDay(width)
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = datetime.secondsToClockDuration(user_duration_format, self.today_duration, true),
+        text = datetime.secondsToClockDuration(
+          user_duration_format,
+          self.today_duration,
+          true
+        ),
         face = self.medium_font_face,
       }),
     }),
@@ -472,7 +490,11 @@ function ReaderProgress:genSummaryWeek(width)
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = datetime.secondsToClockDuration(user_duration_format, math.floor(total_time), true),
+        text = datetime.secondsToClockDuration(
+          user_duration_format,
+          math.floor(total_time),
+          true
+        ),
         face = self.medium_font_face,
       }),
     }),
@@ -486,7 +508,11 @@ function ReaderProgress:genSummaryWeek(width)
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = datetime.secondsToClockDuration(user_duration_format, math.floor(total_time) * (1 / 7), true),
+        text = datetime.secondsToClockDuration(
+          user_duration_format,
+          math.floor(total_time) * (1 / 7),
+          true
+        ),
         face = self.medium_font_face,
       }),
     }),
@@ -505,7 +531,11 @@ function ReaderProgress:genSummaryWeek(width)
 end
 
 function ReaderProgress:onSwipe(arg, ges_ev)
-  if ges_ev.direction == "east" or ges_ev.direction == "west" or ges_ev.direction == "north" then
+  if
+    ges_ev.direction == "east"
+    or ges_ev.direction == "west"
+    or ges_ev.direction == "north"
+  then
     -- no use for now
     return false
   end

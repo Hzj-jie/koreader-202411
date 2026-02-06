@@ -224,7 +224,9 @@ function ReaderMenu:setUpdateItemTable()
           local current_file = self.ui.document.file
           self:closeMenu()
           self.ui:onExit()
-          require("apps/filemanager/filemanagerutil").resetDocumentSettings(current_file)
+          require("apps/filemanager/filemanagerutil").resetDocumentSettings(
+            current_file
+          )
           require("apps/reader/readerui"):showReader(current_file)
         end,
       }))
@@ -263,7 +265,8 @@ function ReaderMenu:setUpdateItemTable()
   end
   -- Settings > Navigation; while also related to page turns, this mostly concerns physical keys, and applies *everywhere*
   if Device:hasKeys() then
-    self.menu_items.physical_buttons_setup = require("ui/elements/physical_buttons")
+    self.menu_items.physical_buttons_setup =
+      require("ui/elements/physical_buttons")
   end
   -- insert DjVu render mode submenu just before the last entry (show advanced)
   -- this is a bit of a hack
@@ -283,7 +286,9 @@ function ReaderMenu:setUpdateItemTable()
         end
       end,
       checked_func = function()
-        return self.ui and self.ui.doc_settings and self.ui.doc_settings:isTrue("exclude_screensaver")
+        return self.ui
+          and self.ui.doc_settings
+          and self.ui.doc_settings:isTrue("exclude_screensaver")
       end,
       callback = function()
         if Screensaver:isExcluded() then
@@ -308,7 +313,8 @@ function ReaderMenu:setUpdateItemTable()
     sub_item_table = PluginLoader:genPluginManagerSubItem(),
   }
 
-  self.menu_items.cloud_storage = require("ui/elements/cloud_storage_menu_table")
+  self.menu_items.cloud_storage =
+    require("ui/elements/cloud_storage_menu_table")
   -- main menu tab
   -- insert common info
   for k, v in pairs(require("ui/elements/common_info_menu_table")) do
@@ -322,7 +328,10 @@ function ReaderMenu:setUpdateItemTable()
   self.menu_items.open_previous_document = {
     text_func = function()
       local previous_file = self:getPreviousFile()
-      if not G_reader_settings:isTrue("open_last_menu_show_filename") or not previous_file then
+      if
+        not G_reader_settings:isTrue("open_last_menu_show_filename")
+        or not previous_file
+      then
         return gettext("Open previous document")
       end
       local path, file_name = util.splitFilePathName(previous_file) -- luacheck: no unused
@@ -337,7 +346,10 @@ function ReaderMenu:setUpdateItemTable()
     hold_callback = function()
       local previous_file = self:getPreviousFile()
       UIManager:show(ConfirmBox:new({
-        text = T(gettext("Would you like to open the previous document: %1?"), BD.filepath(previous_file)),
+        text = T(
+          gettext("Would you like to open the previous document: %1?"),
+          BD.filepath(previous_file)
+        ),
         ok_text = gettext("OK"),
         ok_callback = function()
           self.ui:switchDocument(previous_file)
@@ -346,8 +358,11 @@ function ReaderMenu:setUpdateItemTable()
     end,
   }
 
-  self.tab_item_table =
-    require("ui/menusorter"):mergeAndSort("reader", self.menu_items, require("ui/elements/reader_menu_order"))
+  self.tab_item_table = require("ui/menusorter"):mergeAndSort(
+    "reader",
+    self.menu_items,
+    require("ui/elements/reader_menu_order")
+  )
 end
 dbg:guard(ReaderMenu, "setUpdateItemTable", function(self)
   local mock_menu_items = {}

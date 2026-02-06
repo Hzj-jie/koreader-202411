@@ -4,7 +4,8 @@ local LuaData = require("luadata")
 local SQ3 = require("lua-ljsqlite3/init")
 local logger = require("logger")
 
-local db_location = DataStorage:getSettingsDir() .. "/vocabulary_builder.sqlite3"
+local db_location = DataStorage:getSettingsDir()
+  .. "/vocabulary_builder.sqlite3"
 
 local DB_SCHEMA_VERSION = 20240905
 local VOCABULARY_DB_SCHEMA = [[
@@ -44,10 +45,16 @@ function VocabularyBuilder:selectCount(vocab_widget)
   local db_conn = SQ3.open(db_location)
   local sql
   if vocab_widget.search_text_sql then
-    sql = "SELECT count(0) FROM vocabulary WHERE word LIKE '" .. vocab_widget.search_text_sql .. "'"
+    sql = "SELECT count(0) FROM vocabulary WHERE word LIKE '"
+      .. vocab_widget.search_text_sql
+      .. "'"
   else
-    local where_clause = vocab_widget:check_reverse() and " WHERE due_time <= " .. vocab_widget.reload_time or ""
-    sql = "SELECT count(0) FROM vocabulary INNER JOIN title ON filter=true AND title_id=id" .. where_clause .. ";"
+    local where_clause = vocab_widget:check_reverse()
+        and " WHERE due_time <= " .. vocab_widget.reload_time
+      or ""
+    sql = "SELECT count(0) FROM vocabulary INNER JOIN title ON filter=true AND title_id=id"
+      .. where_clause
+      .. ";"
   end
   local count = tonumber(db_conn:rowexec(sql))
   db_conn:close()
@@ -76,35 +83,58 @@ function VocabularyBuilder:createDB()
       logger.warn("[vocab builder db migration]", msg)
     end
     if db_version < 20220608 then
-      ok, re = pcall(db_conn.exec, db_conn, "ALTER TABLE vocabulary ADD prev_context TEXT;")
+      ok, re = pcall(
+        db_conn.exec,
+        db_conn,
+        "ALTER TABLE vocabulary ADD prev_context TEXT;"
+      )
       if not ok then
         log(re)
       end
-      ok, re = pcall(db_conn.exec, db_conn, "ALTER TABLE vocabulary ADD next_context TEXT;")
+      ok, re = pcall(
+        db_conn.exec,
+        db_conn,
+        "ALTER TABLE vocabulary ADD next_context TEXT;"
+      )
       if not ok then
         log(re)
       end
-      ok, re = pcall(db_conn.exec, db_conn, "ALTER TABLE vocabulary ADD title_id INTEGER;")
+      ok, re = pcall(
+        db_conn.exec,
+        db_conn,
+        "ALTER TABLE vocabulary ADD title_id INTEGER;"
+      )
+      if not ok then
+        log(re)
+      end
+      ok, re = pcall(
+        db_conn.exec,
+        db_conn,
+        "INSERT OR IGNORE INTO title (name) SELECT DISTINCT book_title FROM vocabulary;"
+      )
+      if not ok then
+        log(re)
+      end
+      ok, re = pcall(
+        db_conn.exec,
+        db_conn,
+        "UPDATE vocabulary SET title_id = (SELECT id FROM title WHERE name = book_title);"
+      )
       if not ok then
         log(re)
       end
       ok, re =
-        pcall(db_conn.exec, db_conn, "INSERT OR IGNORE INTO title (name) SELECT DISTINCT book_title FROM vocabulary;")
-      if not ok then
-        log(re)
-      end
-      ok, re =
-        pcall(db_conn.exec, db_conn, "UPDATE vocabulary SET title_id = (SELECT id FROM title WHERE name = book_title);")
-      if not ok then
-        log(re)
-      end
-      ok, re = pcall(db_conn.exec, db_conn, "ALTER TABLE vocabulary DROP book_title;")
+        pcall(db_conn.exec, db_conn, "ALTER TABLE vocabulary DROP book_title;")
       if not ok then
         log(re)
       end
     end
     if db_version < 20220730 then
-      ok, re = pcall(db_conn.exec, db_conn, "ALTER TABLE title ADD filter INTEGER NOT NULL DEFAULT 1;")
+      ok, re = pcall(
+        db_conn.exec,
+        db_conn,
+        "ALTER TABLE title ADD filter INTEGER NOT NULL DEFAULT 1;"
+      )
       if not ok then
         log(re)
       end
@@ -122,13 +152,19 @@ function VocabularyBuilder:createDB()
       end
     end
     if db_version < 20240905 then
-      ok, re = pcall(db_conn.exec, db_conn, "ALTER TABLE vocabulary ADD highlight TEXT;")
+      ok, re = pcall(
+        db_conn.exec,
+        db_conn,
+        "ALTER TABLE vocabulary ADD highlight TEXT;"
+      )
       if not ok then
         log(re)
       end
     end
 
-    db_conn:exec("CREATE INDEX IF NOT EXISTS title_id_index ON vocabulary(title_id);")
+    db_conn:exec(
+      "CREATE INDEX IF NOT EXISTS title_id_index ON vocabulary(title_id);"
+    )
     -- Update version
     db_conn:exec(string.format("PRAGMA user_version=%d;", DB_SCHEMA_VERSION))
   end
@@ -161,7 +197,13 @@ function VocabularyBuilder:insertLookupData(db_conn)
     for i = #lookup_history_table, 1, -1 do
       local value = lookup_history_table[i]
       if not words[value.word] then
-        stmt:bind(value.word, value.book_title or "", value.time, value.time + 5 * 60, value.time)
+        stmt:bind(
+          value.word,
+          value.book_title or "",
+          value.time,
+          value.time + 5 * 60,
+          value.time
+        )
         stmt:step()
         stmt:clearbind():reset()
         words[value.word] = true
@@ -170,7 +212,12 @@ function VocabularyBuilder:insertLookupData(db_conn)
   end
 end
 
-function VocabularyBuilder:_select_items(items, start_idx, reload_time, search_text)
+function VocabularyBuilder:_select_items(
+  items,
+  start_idx,
+  reload_time,
+  search_text
+)
   local conn = SQ3.open(db_location)
   local sql
   if search_text then
@@ -261,7 +308,8 @@ function VocabularyBuilder:gotOrForgot(item, isGot)
   local current_time = os.time()
 
   local due_time
-  local target_review_count = math.max(item.review_count + (isGot and 1 or -1), 0)
+  local target_review_count =
+    math.max(item.review_count + (isGot and 1 or -1), 0)
   local target_count = isGot and item.streak_count + 1 or 0
   if target_count == 0 then
     due_time = current_time + 5 * 60
@@ -280,7 +328,8 @@ function VocabularyBuilder:gotOrForgot(item, isGot)
   elseif target_count == 7 then
     due_time = current_time + 24 * 15 * 3600
   else
-    due_time = current_time + 24 * 3600 * 30 * 2 ^ (math.min(target_count - 8, 6))
+    due_time = current_time
+      + 24 * 3600 * 30 * 2 ^ (math.min(target_count - 8, 6))
   end
 
   item.last_streak_count = item.streak_count
@@ -307,14 +356,22 @@ function VocabularyBuilder:batchUpdateItems(items)
 
   for _, item in ipairs(items) do
     if item.review_time then
-      stmt:bind(item.review_count, item.streak_count, item.review_time, item.due_time, item.word)
+      stmt:bind(
+        item.review_count,
+        item.streak_count,
+        item.review_time,
+        item.due_time,
+        item.word
+      )
       stmt:step()
       stmt:clearbind():reset()
       item.review_time = nil
     end
   end
 
-  conn:exec("DELETE FROM title WHERE NOT EXISTS( SELECT title_id FROM vocabulary WHERE id = title_id );")
+  conn:exec(
+    "DELETE FROM title WHERE NOT EXISTS( SELECT title_id FROM vocabulary WHERE id = title_id );"
+  )
   conn:close()
 end
 
@@ -359,7 +416,11 @@ function VocabularyBuilder:toggleBookFilter(ids)
     id_string = id_string .. (id_string == "" and "" or ",") .. key
   end
   local conn = SQ3.open(db_location)
-  conn:exec("UPDATE title SET filter = (filter | 1) - (filter & 1) WHERE id in (" .. id_string .. ");")
+  conn:exec(
+    "UPDATE title SET filter = (filter | 1) - (filter & 1) WHERE id in ("
+      .. id_string
+      .. ");"
+  )
   conn:close()
 end
 
@@ -368,7 +429,8 @@ function VocabularyBuilder:updateBookIdOfWord(word, id)
     return
   end
   local conn = SQ3.open(db_location)
-  local stmt = conn:prepare("UPDATE vocabulary SET title_id = ? WHERE word = ?;")
+  local stmt =
+    conn:prepare("UPDATE vocabulary SET title_id = ? WHERE word = ?;")
   stmt:bind(id, word)
   stmt:step()
   stmt:clearbind():reset()
@@ -419,7 +481,9 @@ end
 
 function VocabularyBuilder:hasFilteredBook()
   local conn = SQ3.open(db_location)
-  local has_filter = tonumber(conn:rowexec("SELECT count(0) FROM title WHERE filter = false limit 1;"))
+  local has_filter = tonumber(
+    conn:rowexec("SELECT count(0) FROM title WHERE filter = false limit 1;")
+  )
   conn:close()
   return has_filter ~= 0
 end
@@ -437,7 +501,12 @@ end
 function VocabularyBuilder:resetProgress()
   local conn = SQ3.open(db_location)
   local due_time = os.time()
-  conn:exec(string.format("UPDATE vocabulary SET review_count = 0, streak_count = 0, due_time = %d;", due_time))
+  conn:exec(
+    string.format(
+      "UPDATE vocabulary SET review_count = 0, streak_count = 0, due_time = %d;",
+      due_time
+    )
+  )
   conn:close()
 end
 
@@ -451,7 +520,8 @@ end
 function VocabularyBuilder.onSync(local_path, cached_path, income_path)
   -- we try to open income db
   local conn_income = SQ3.open(income_path)
-  local ok1, v1 = pcall(conn_income.rowexec, conn_income, "PRAGMA schema_version")
+  local ok1, v1 =
+    pcall(conn_income.rowexec, conn_income, "PRAGMA schema_version")
   if not ok1 or tonumber(v1) == 0 then
     -- no income db or wrong db, first time sync
     logger.dbg("vocabbuilder open income DB failed", v1)
@@ -459,12 +529,17 @@ function VocabularyBuilder.onSync(local_path, cached_path, income_path)
   end
 
   -- Handle possible inconsistensies in db version
-  pcall(conn_income.exec, conn_income, "ALTER TABLE vocabulary ADD highlight TEXT;")
+  pcall(
+    conn_income.exec,
+    conn_income,
+    "ALTER TABLE vocabulary ADD highlight TEXT;"
+  )
 
   local sql = "attach '" .. income_path:gsub("'", "''") .. "' as income_db;"
   -- then we try to open cached db
   local conn_cached = SQ3.open(cached_path)
-  local ok2, v2 = pcall(conn_cached.rowexec, conn_cached, "PRAGMA schema_version")
+  local ok2, v2 =
+    pcall(conn_cached.rowexec, conn_cached, "PRAGMA schema_version")
   local attached_cache
   if not ok2 or tonumber(v2) == 0 then
     -- no cached or error, no item to delete
@@ -542,7 +617,9 @@ function VocabularyBuilder.onSync(local_path, cached_path, income_path)
     ]]
   conn:exec(sql)
   pcall(conn.exec, conn, "COMMIT;")
-  conn:exec("DETACH income_db;" .. (attached_cache and "DETACH cached_db;" or ""))
+  conn:exec(
+    "DETACH income_db;" .. (attached_cache and "DETACH cached_db;" or "")
+  )
   conn:exec("PRAGMA temp_store = 2;") -- use memory for temp files
   local ok, errmsg = pcall(conn.exec, conn, "VACUUM;") -- we upload a compact file
   if not ok then

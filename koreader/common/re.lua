@@ -104,7 +104,14 @@ local name = m.R("AZ", "az", "__") * m.R("AZ", "az", "__", "09") ^ 0
 
 local arrow = S * "<-"
 
-local seq_follow = m.P("/") + ")" + "}" + ":}" + "~}" + "|}" + (name * arrow) + -1
+local seq_follow = m.P("/")
+  + ")"
+  + "}"
+  + ":}"
+  + "~}"
+  + "|}"
+  + (name * arrow)
+  + -1
 
 name = m.C(name)
 
@@ -127,7 +134,8 @@ end
 
 local num = m.C(m.R("09") ^ 1) * S / tonumber
 
-local String = "'" * m.C((any - "'") ^ 0) * "'" + '"' * m.C((any - '"') ^ 0) * '"'
+local String = "'" * m.C((any - "'") ^ 0) * "'"
+  + '"' * m.C((any - '"') ^ 0) * '"'
 
 local defined = "%"
   * Def
@@ -174,19 +182,29 @@ end
 
 local exp = m.P({
   "Exp",
-  Exp = S * (m.V("Grammar") + m.V("Seq") * ("/" * S * m.V("Seq") % mt.__add) ^ 0),
-  Seq = (m.Cc(m.P("")) * (m.V("Prefix") % mt.__mul) ^ 0) * (#seq_follow + patt_error),
-  Prefix = "&" * S * m.V("Prefix") / mt.__len + "!" * S * m.V("Prefix") / mt.__unm + m.V("Suffix"),
-  Suffix = m.V("Primary") * S * ((m.P("+") * m.Cc(1, mt.__pow) + m.P("*") * m.Cc(0, mt.__pow) + m.P("?") * m.Cc(
-    -1,
-    mt.__pow
-  ) + "^" * (m.Cg(num * m.Cc(mult)) + m.Cg(m.C(m.S("+-") * m.R("09") ^ 1) * m.Cc(mt.__pow))) + "->" * S * (m.Cg(
-    (String + num) * m.Cc(mt.__div)
-  ) + m.P("{}") * m.Cc(nil, m.Ct) + defwithfunc(mt.__div)) + "=>" * S * defwithfunc(mm.Cmt) + ">>" * S * defwithfunc(
-    mt.__mod
-  ) + "~>" * S * defwithfunc(mm.Cf)) % function(a, b, f)
-    return f(a, b)
-  end * S) ^ 0,
+  Exp = S
+    * (m.V("Grammar") + m.V("Seq") * ("/" * S * m.V("Seq") % mt.__add) ^ 0),
+  Seq = (m.Cc(m.P("")) * (m.V("Prefix") % mt.__mul) ^ 0)
+    * (#seq_follow + patt_error),
+  Prefix = "&" * S * m.V("Prefix") / mt.__len
+    + "!" * S * m.V("Prefix") / mt.__unm
+    + m.V("Suffix"),
+  Suffix = m.V("Primary")
+    * S
+    * ((m.P("+") * m.Cc(1, mt.__pow) + m.P("*") * m.Cc(0, mt.__pow) + m.P("?") * m.Cc(
+        -1,
+        mt.__pow
+      ) + "^" * (m.Cg(num * m.Cc(mult)) + m.Cg(
+        m.C(m.S("+-") * m.R("09") ^ 1) * m.Cc(mt.__pow)
+      )) + "->" * S * (m.Cg((String + num) * m.Cc(mt.__div)) + m.P("{}") * m.Cc(
+        nil,
+        m.Ct
+      ) + defwithfunc(mt.__div)) + "=>" * S * defwithfunc(mm.Cmt) + ">>" * S * defwithfunc(
+        mt.__mod
+      ) + "~>" * S * defwithfunc(mm.Cf)) % function(a, b, f)
+        return f(a, b)
+      end * S)
+      ^ 0,
   Primary = "(" * m.V("Exp") * ")"
     + String / mm.P
     + Class
@@ -204,7 +222,9 @@ local exp = m.P({
     + m.P(".") * m.Cc(any)
     + (name * -arrow + "<" * name * ">") * m.Cb("G") / NT,
   Definition = name * arrow * m.V("Exp"),
-  Grammar = m.Cg(m.Cc(true), "G") * ((m.V("Definition") / firstdef) * (m.V("Definition") % adddef) ^ 0) / mm.P,
+  Grammar = m.Cg(m.Cc(true), "G") * ((m.V("Definition") / firstdef) * (m.V(
+    "Definition"
+  ) % adddef) ^ 0) / mm.P,
 })
 
 local pattern = S * m.Cg(m.Cc(false), "G") * exp / mm.P * (-any + patt_error)

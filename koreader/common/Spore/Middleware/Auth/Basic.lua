@@ -9,7 +9,8 @@ local m = {}
 
 function m:call(req)
   if req.env.spore.authentication and self.username and self.password then
-    req.headers["authorization"] = "Basic " .. mime.b64(self.username .. ":" .. self.password)
+    req.headers["authorization"] = "Basic "
+      .. mime.b64(self.username .. ":" .. self.password)
   end
 end
 

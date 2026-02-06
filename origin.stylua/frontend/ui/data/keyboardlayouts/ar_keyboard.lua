@@ -1,5 +1,7 @@
-local en_popup = dofile("frontend/ui/data/keyboardlayouts/keypopup/en_popup.lua")
-local ar_popup = dofile("frontend/ui/data/keyboardlayouts/keypopup/ar_popup.lua")
+local en_popup =
+  dofile("frontend/ui/data/keyboardlayouts/keypopup/en_popup.lua")
+local ar_popup =
+  dofile("frontend/ui/data/keyboardlayouts/keypopup/ar_popup.lua")
 local com = en_popup.com -- comma (,)
 local prd = en_popup.prd -- period (.)
 local _at = en_popup._at

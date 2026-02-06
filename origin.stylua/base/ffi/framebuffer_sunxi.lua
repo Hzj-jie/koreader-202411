@@ -115,7 +115,19 @@ end
 --
 
 -- NOTE: Heavily based on framebuffer_mxcfb's mxc_update ;)
-local function disp_update(fb, ioc_cmd, ioc_data, no_merge, is_flashing, waveform_mode, waveform_info, x, y, w, h)
+local function disp_update(
+  fb,
+  ioc_cmd,
+  ioc_data,
+  no_merge,
+  is_flashing,
+  waveform_mode,
+  waveform_info,
+  x,
+  y,
+  w,
+  h
+)
   local bb = fb.full_bb or fb.bb
 
   -- If we're fresh off a rotation, make it full-screen and no_merge to avoid layer blending glitches...
@@ -160,7 +172,11 @@ local function disp_update(fb, ioc_cmd, ioc_data, no_merge, is_flashing, wavefor
     (
       fb:_isREAGLWaveFormMode(waveform_mode)
       or waveform_mode == C.EINK_GC16_MODE
-      or (is_flashing and fb:_isFlashUIWaveFormMode(waveform_mode) and fb:_isFullScreen(w, h))
+      or (
+        is_flashing
+        and fb:_isFlashUIWaveFormMode(waveform_mode)
+        and fb:_isFullScreen(w, h)
+      )
     )
     and fb.mech_wait_update_complete
     and (marker ~= 0 and marker ~= fb.dont_wait_for_marker)
@@ -168,7 +184,10 @@ local function disp_update(fb, ioc_cmd, ioc_data, no_merge, is_flashing, wavefor
     fb.debug("refresh: wait for completion of (previous) marker", marker)
     if fb:mech_wait_update_complete(marker) == -1 then
       local err = ffi.errno()
-      fb.debug("DISP_EINK_WAIT_FRAME_SYNC_COMPLETE ioctl failed:", ffi.string(C.strerror(err)))
+      fb.debug(
+        "DISP_EINK_WAIT_FRAME_SYNC_COMPLETE ioctl failed:",
+        ffi.string(C.strerror(err))
+      )
     end
   end
 
@@ -204,7 +223,15 @@ local function disp_update(fb, ioc_cmd, ioc_data, no_merge, is_flashing, wavefor
 
   -- Recap the actual details of the ioctl, vs. what UIManager asked for...
   fb.debug(
-    string.format("disp_update: %ux%u region @ (%u, %u) (WFM: %u [flash: %s])", w, h, x, y, waveform_mode, is_flashing)
+    string.format(
+      "disp_update: %ux%u region @ (%u, %u) (WFM: %u [flash: %s])",
+      w,
+      h,
+      x,
+      y,
+      waveform_mode,
+      is_flashing
+    )
   )
 
   if C.ioctl(fb.fd, ioc_cmd, ioc_data) == -1 then
@@ -221,18 +248,32 @@ local function disp_update(fb, ioc_cmd, ioc_data, no_merge, is_flashing, wavefor
     fb.debug("refresh: wait for completion of marker", marker)
     if fb:mech_wait_update_complete(marker) == -1 then
       local err = ffi.errno()
-      fb.debug("DISP_EINK_WAIT_FRAME_SYNC_COMPLETE ioctl failed:", ffi.string(C.strerror(err)))
+      fb.debug(
+        "DISP_EINK_WAIT_FRAME_SYNC_COMPLETE ioctl failed:",
+        ffi.string(C.strerror(err))
+      )
     end
     -- And make sure we won't wait for it again, in case the next refresh trips one of our wait_for_*  heuristics ;).
     fb.dont_wait_for_marker = marker
   end
 end
 
-local function refresh_kobo_sunxi(fb, no_merge, is_flashing, waveform_mode, x, y, w, h)
+local function refresh_kobo_sunxi(
+  fb,
+  no_merge,
+  is_flashing,
+  waveform_mode,
+  x,
+  y,
+  w,
+  h
+)
   -- Store the auxiliary update flags in a separate bitmask we'll bake in later,
   -- as it makes identifying waveform modes easier in disp_update...
   local update_info = 0
-  if waveform_mode == C.EINK_GLR16_MODE or waveform_mode == C.EINK_GLD16_MODE then
+  if
+    waveform_mode == C.EINK_GLR16_MODE or waveform_mode == C.EINK_GLD16_MODE
+  then
     update_info = bor(update_info, C.EINK_REGAL_MODE)
   end
   --[[
@@ -243,7 +284,19 @@ local function refresh_kobo_sunxi(fb, no_merge, is_flashing, waveform_mode, x, y
     end
     --]]
 
-  return disp_update(fb, C.DISP_EINK_UPDATE2, fb.update, no_merge, is_flashing, waveform_mode, update_info, x, y, w, h)
+  return disp_update(
+    fb,
+    C.DISP_EINK_UPDATE2,
+    fb.update,
+    no_merge,
+    is_flashing,
+    waveform_mode,
+    update_info,
+    x,
+    y,
+    w,
+    h
+  )
 end
 
 --[[ framebuffer API ]]
@@ -295,7 +348,10 @@ function framebuffer:refreshA2Imp(x, y, w, h, dither)
 end
 
 function framebuffer:refreshWaitForLastImp()
-  if self.mech_wait_update_complete and self.dont_wait_for_marker ~= self.marker_data[0] then
+  if
+    self.mech_wait_update_complete
+    and self.dont_wait_for_marker ~= self.marker_data[0]
+  then
     self.debug("refresh: waiting for previous update", self.marker_data[0])
     self:mech_wait_update_complete(self.marker_data[0])
     self.dont_wait_for_marker = self.marker_data[0]

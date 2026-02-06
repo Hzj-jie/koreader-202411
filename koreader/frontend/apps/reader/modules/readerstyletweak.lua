@@ -136,7 +136,9 @@ function TweakInfoWidget:init()
   local buttons = {
     {
       {
-        text = self.is_tweak_in_dispatcher and gettext("Don't show in action list") or gettext("Show in action list"),
+        text = self.is_tweak_in_dispatcher and gettext(
+          "Don't show in action list"
+        ) or gettext("Show in action list"),
         callback = function()
           self.toggle_tweak_in_dispatcher_callback()
           UIManager:close(self)
@@ -151,7 +153,8 @@ function TweakInfoWidget:init()
         end,
       },
       {
-        text = self.is_global_default and gettext("Don't use on all books") or gettext("Use on all books"),
+        text = self.is_global_default and gettext("Don't use on all books")
+          or gettext("Use on all books"),
         callback = function()
           self.toggle_global_default_callback()
           UIManager:close(self)
@@ -279,7 +282,8 @@ function ReaderStyleTweak:nbTweaksEnabled(sub_item_table)
   local nb_found = 0
   for _, item in ipairs(sub_item_table) do
     if item.sub_item_table then
-      local sub_nb_enabled, sub_nb_found = self:nbTweaksEnabled(item.sub_item_table)
+      local sub_nb_enabled, sub_nb_found =
+        self:nbTweaksEnabled(item.sub_item_table)
       nb_enabled = nb_enabled + sub_nb_enabled
       nb_found = nb_found + sub_nb_found
     elseif item.tweak_id then
@@ -305,7 +309,8 @@ function ReaderStyleTweak:resolveConflictsBeforeEnabling(id, conflicts_with)
     end
   elseif conflicts_with_type == "table" then
     conflicts_with_func = function(otid)
-      return conflicts_with[otid] ~= nil or util.arrayContains(conflicts_with, otid)
+      return conflicts_with[otid] ~= nil
+        or util.arrayContains(conflicts_with, otid)
     end
   else
     conflicts_with_func = function(otid)
@@ -338,7 +343,10 @@ function ReaderStyleTweak:resolveConflictsBeforeEnabling(id, conflicts_with)
   end
 end
 
-function ReaderStyleTweak:resolveConflictsBeforeMakingDefault(id, conflicts_with)
+function ReaderStyleTweak:resolveConflictsBeforeMakingDefault(
+  id,
+  conflicts_with
+)
   local conflicts_with_type = type(conflicts_with)
   local conflicts_with_func
   if conflicts_with_type == "function" then
@@ -349,7 +357,8 @@ function ReaderStyleTweak:resolveConflictsBeforeMakingDefault(id, conflicts_with
     end
   elseif conflicts_with_type == "table" then
     conflicts_with_func = function(otid)
-      return conflicts_with[otid] ~= nil or util.arrayContains(conflicts_with, otid)
+      return conflicts_with[otid] ~= nil
+        or util.arrayContains(conflicts_with, otid)
     end
   else
     conflicts_with_func = function(otid)
@@ -444,10 +453,12 @@ function ReaderStyleTweak:onReadSettings(config)
   self.doc_tweaks = config:readTable("style_tweaks") or {}
   -- Default globally enabled style tweaks (for new installations)
   -- are defined in css_tweaks.lua
-  self.global_tweaks = G_reader_settings:readTable("style_tweaks") or CssTweaks.DEFAULT_GLOBAL_STYLE_TWEAKS
+  self.global_tweaks = G_reader_settings:readTable("style_tweaks")
+    or CssTweaks.DEFAULT_GLOBAL_STYLE_TWEAKS
   self.book_style_tweak = config:read("book_style_tweak") -- string or nil
   self.book_style_tweak_enabled = config:read("book_style_tweak_enabled")
-  self.book_style_tweak_last_edit_pos = config:read("book_style_tweak_last_edit_pos")
+  self.book_style_tweak_last_edit_pos =
+    config:read("book_style_tweak_last_edit_pos")
   self:updateCssText()
 end
 
@@ -458,10 +469,20 @@ function ReaderStyleTweak:onSaveSettings()
     self.ui.doc_settings:makeFalse("style_tweaks_enabled")
   end
   self.ui.doc_settings:save("style_tweaks", self.doc_tweaks, {})
-  G_reader_settings:save("style_tweaks", self.global_tweaks, CssTweaks.DEFAULT_GLOBAL_STYLE_TWEAKS)
+  G_reader_settings:save(
+    "style_tweaks",
+    self.global_tweaks,
+    CssTweaks.DEFAULT_GLOBAL_STYLE_TWEAKS
+  )
   self.ui.doc_settings:save("book_style_tweak", self.book_style_tweak)
-  self.ui.doc_settings:save("book_style_tweak_enabled", self.book_style_tweak_enabled)
-  self.ui.doc_settings:save("book_style_tweak_last_edit_pos", self.book_style_tweak_last_edit_pos)
+  self.ui.doc_settings:save(
+    "book_style_tweak_enabled",
+    self.book_style_tweak_enabled
+  )
+  self.ui.doc_settings:save(
+    "book_style_tweak_last_edit_pos",
+    self.book_style_tweak_last_edit_pos
+  )
 end
 
 local function dispatcherRegisterStyleTweak(tweak_id, tweak_title)
@@ -479,7 +500,8 @@ local function dispatcherUnregisterStyleTweak(tweak_id)
 end
 
 function ReaderStyleTweak:init()
-  self.tweaks_in_dispatcher = G_reader_settings:readTableRef("style_tweaks_in_dispatcher")
+  self.tweaks_in_dispatcher =
+    G_reader_settings:readTableRef("style_tweaks_in_dispatcher")
   self.tweaks_by_id = {}
   self.tweaks_table = {}
 
@@ -575,18 +597,32 @@ You can enable individual tweaks on this book with a tap, or view more details a
                   self.doc_tweaks[item.id] = nil
                 end
               else
-                if item.conflicts_with and item.global_conflicts_with ~= false then
+                if
+                  item.conflicts_with and item.global_conflicts_with ~= false
+                then
                   -- For hold/makeDefault/global_tweaks, the tweak may provide 'global_conflicts_with':
                   --   if 'false': no conflict checks
                   --   if nil or 'true', use item.conflicts_with
                   --   otherwise, use it instead of item.conflicts_with
-                  if item.global_conflicts_with ~= true and item.global_conflicts_with ~= nil then
-                    self:resolveConflictsBeforeMakingDefault(item.id, item.global_conflicts_with)
+                  if
+                    item.global_conflicts_with ~= true
+                    and item.global_conflicts_with ~= nil
+                  then
+                    self:resolveConflictsBeforeMakingDefault(
+                      item.id,
+                      item.global_conflicts_with
+                    )
                   else
-                    self:resolveConflictsBeforeMakingDefault(item.id, item.conflicts_with)
+                    self:resolveConflictsBeforeMakingDefault(
+                      item.id,
+                      item.conflicts_with
+                    )
                   end
                   -- Remove all references in doc_tweak
-                  self:resolveConflictsBeforeEnabling(item.id, item.conflicts_with)
+                  self:resolveConflictsBeforeEnabling(
+                    item.id,
+                    item.conflicts_with
+                  )
                   self.doc_tweaks[item.id] = nil
                 end
                 self.global_tweaks[item.id] = true
@@ -600,7 +636,9 @@ You can enable individual tweaks on this book with a tap, or view more details a
                 self.tweaks_in_dispatcher[item.id] = nil
                 dispatcherUnregisterStyleTweak(item.id)
                 if self.ui.profiles then
-                  self.ui.profiles:updateProfiles(self.dispatcher_prefix .. item.id)
+                  self.ui.profiles:updateProfiles(
+                    self.dispatcher_prefix .. item.id
+                  )
                 end
               else
                 self.tweaks_in_dispatcher[item.id] = item.title
@@ -664,7 +702,11 @@ You can enable individual tweaks on this book with a tap, or view more details a
           local mode = lfs.attributes(dir .. "/" .. f, "mode")
           if mode == "directory" then
             table.insert(dir_list, f)
-          elseif mode == "file" and string.match(f, "%.css$") and not util.stringStartsWith(f, "._") then
+          elseif
+            mode == "file"
+            and string.match(f, "%.css$")
+            and not util.stringStartsWith(f, "._")
+          then
             table.insert(file_list, f)
           end
         end
@@ -683,19 +725,28 @@ You can enable individual tweaks on this book with a tap, or view more details a
       table.insert(item_table, {
         title = title,
         id = file, -- keep ".css" in id, to distinguish between koreader/user tweaks
-        description = T(gettext("User style tweak at %1"), BD.filepath(filepath)),
+        description = T(
+          gettext("User style tweak at %1"),
+          BD.filepath(filepath)
+        ),
         priority = 10, -- give user tweaks a higher priority
         css_path = filepath,
       })
     end
     if #item_table == 0 then
       table.insert(item_table, {
-        if_empty_menu_title = if_empty_menu_title or gettext("No CSS tweak found in this directory"),
+        if_empty_menu_title = if_empty_menu_title
+          or gettext("No CSS tweak found in this directory"),
       })
     end
   end
-  local if_empty_menu_title = gettext("Add your own tweaks in koreader/styletweaks/")
-  process_tweaks_dir(user_styletweaks_dir, user_tweaks_table, if_empty_menu_title)
+  local if_empty_menu_title =
+    gettext("Add your own tweaks in koreader/styletweaks/")
+  process_tweaks_dir(
+    user_styletweaks_dir,
+    user_tweaks_table,
+    if_empty_menu_title
+  )
   self.tweaks_table[#self.tweaks_table].separator = true
   addTweakMenuItem(self.tweaks_table, user_tweaks_table)
 
@@ -825,14 +876,16 @@ local BOOK_TWEAK_INPUT_HINT = T(
 local CSS_SUGGESTIONS = {
   {
     gettext("Long-press for info ⓘ"),
-    gettext([[
+    gettext(
+      [[
 This menu provides a non-exhaustive CSS syntax and properties list. It also shows some KOReader-specific, non-standard CSS features that can be useful with e-books.
 
 Most of these bits are already used by our categorized 'Style tweaks' (found in the top menu). Long-press on any style-tweak option to see its code and its expected results. Should these not be enough to achieve your desired look, you may need to adjust them slightly: tap once on the CSS code-box to copy the code to the clipboard, paste it here and edit it.
 
 Long-press on any item in this popup to get more information on what it does and what it can help solving.
 
-Tap on the item to insert it: you can then edit it and combine it with others.]]),
+Tap on the item to insert it: you can then edit it and combine it with others.]]
+    ),
     true,
   },
 
@@ -850,10 +903,12 @@ p:not([class]) matches a <p> without any class= attribute.]]),
       },
       {
         "aside > p",
-        gettext([[
+        gettext(
+          [[
 aside > p matches a <p> children of an <aside> element.
 
-aside p (without any intermediate symbol) matches a <p> descendant of an <aside> element.]]),
+aside p (without any intermediate symbol) matches a <p> descendant of an <aside> element.]]
+        ),
       },
       {
         "p + img",
@@ -954,7 +1009,9 @@ You can then paste it here with long-press in the text box.]]),
       },
       {
         "break-before: always !important;",
-        gettext("Start a new page with this element. Use 'avoid' to avoid a new page."),
+        gettext(
+          "Start a new page with this element. Use 'avoid' to avoid a new page."
+        ),
       },
       { "color: black !important;", gettext("Force text to be black.") },
       {
@@ -987,7 +1044,9 @@ You can then paste it here with long-press in the text box.]]),
       },
       {
         "-cr-hint: non-linear-combining;",
-        gettext("Can be set on contiguous footnote blocks to ignore them in the linear pages flow."),
+        gettext(
+          "Can be set on contiguous footnote blocks to ignore them in the linear pages flow."
+        ),
       },
       {
         "-cr-hint: toc-level1;",
@@ -997,7 +1056,9 @@ You can then paste it here with long-press in the text box.]]),
       },
       {
         "-cr-hint: toc-ignore;",
-        gettext("When set on an element, it will be ignored when building the alternative table of contents."),
+        gettext(
+          "When set on an element, it will be ignored when building the alternative table of contents."
+        ),
       },
       {
         "-cr-hint: footnote;",
@@ -1042,7 +1103,9 @@ If used as-is, they will act on ALL elements!]]),
       },
       {
         "::before {content: '\\A0 '}",
-        gettext("Insert a visible non-breakable space before an element, so it sticks to what's before."),
+        gettext(
+          "Insert a visible non-breakable space before an element, so it sticks to what's before."
+        ),
       },
       {
         "::before {content: '\\2060'}",
@@ -1058,7 +1121,9 @@ If used as-is, they will act on ALL elements!]]),
       },
       {
         "::before {content: attr(title)}",
-        gettext("Insert the value of the attribute 'title' at start of an element content."),
+        gettext(
+          "Insert the value of the attribute 'title' at start of an element content."
+        ),
       },
       { "::before {content: '▶ '}", gettext("Prepend a visible marker.") },
       { "::before {content: '● '}", gettext("Prepend a visible marker.") },
@@ -1076,7 +1141,8 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
   local BUTTON_PRETTIFY = gettext("Prettify")
   local BUTTON_CONDENSE = gettext("Condense")
   -- Initial button state differs whether we already have some CSS content
-  local tweak_button_state = self.book_style_tweak and BUTTON_PRETTIFY or BUTTON_USE_SAMPLE
+  local tweak_button_state = self.book_style_tweak and BUTTON_PRETTIFY
+    or BUTTON_USE_SAMPLE
   local toggle_tweak_button = function(state)
     if state then -- use provided state
       tweak_button_state = state
@@ -1132,7 +1198,10 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
               -- will have edited_callback() called, which will do toggle_tweak_button()
             else
               local css_text = editor:getInputText()
-              css_text = util.prettifyCSS(css_text, tweak_button_state == BUTTON_CONDENSE)
+              css_text = util.prettifyCSS(
+                css_text,
+                tweak_button_state == BUTTON_CONDENSE
+              )
               editor:setInputText(css_text, true)
               toggle_tweak_button()
             end
@@ -1187,28 +1256,36 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
                         local sub_title = sub_suggestion[1]
                         local sub_description = sub_suggestion[2]
                         local sub_is_info_only = sub_suggestion[3]
-                        local sub_text = sub_is_info_only and sub_title or BD.ltr(sub_title)
+                        local sub_text = sub_is_info_only and sub_title
+                          or BD.ltr(sub_title)
                         table.insert(sub_buttons, {
                           {
                             text = sub_text,
                             align = "left",
                             callback = function()
                               if sub_is_info_only then
-                                UIManager:show(InfoMessage:new({ text = sub_description }))
+                                UIManager:show(
+                                  InfoMessage:new({ text = sub_description })
+                                )
                                 return
                               end
                               UIManager:close(sub_suggestions_popup_widget)
                               UIManager:close(suggestions_popup_widget)
                               editor:addTextToInput(sub_title)
                             end,
-                            hold_callback = sub_description and function()
-                              UIManager:show(InfoMessage:new({ text = sub_description }))
-                            end,
+                            hold_callback = sub_description
+                              and function()
+                                UIManager:show(
+                                  InfoMessage:new({ text = sub_description })
+                                )
+                              end,
                           },
                         })
                       end
                       local anchor_func = function()
-                        local d = suggestions_popup_widget:getButtonById(title).dimen:copy()
+                        local d = suggestions_popup_widget
+                          :getButtonById(title).dimen
+                          :copy()
                         if BD.mirroredUILayout() then
                           d.x = d.x - d.w + Size.padding.default
                         else
@@ -1229,9 +1306,11 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
                       UIManager:show(sub_suggestions_popup_widget)
                     end
                   end,
-                  hold_callback = description and function()
-                    UIManager:show(InfoMessage:new({ text = description }))
-                  end or nil,
+                  hold_callback = description
+                      and function()
+                        UIManager:show(InfoMessage:new({ text = description }))
+                      end
+                    or nil,
                 },
               })
             end
@@ -1243,7 +1322,10 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
               anchor = function()
                 -- we return prefers_pop_down=true so it pops over the keyboard
                 -- instead of the text if it can
-                return editor.button_table:getButtonById("css_suggestions_button_id").dimen, true
+                return editor.button_table:getButtonById(
+                  "css_suggestions_button_id"
+                ).dimen,
+                  true
               end,
             })
             UIManager:show(suggestions_popup_widget)

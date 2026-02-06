@@ -65,7 +65,9 @@ function SortItemWidget:init()
     checked = true,
   })
 
-  local text_max_width = self.width - 2 * Size.padding.default - checked_widget:getSize().w
+  local text_max_width = self.width
+    - 2 * Size.padding.default
+    - checked_widget:getSize().w
 
   self[1] = FrameContainer:new({
     padding = 0,
@@ -97,7 +99,10 @@ end
 function SortItemWidget:onTap(_, ges)
   if
     self.item.checked_func
-    and (self:showParent().sort_disabled or ges.pos:intersectWith(self.checkmark_widget.dimen))
+    and (
+      self:showParent().sort_disabled
+      or ges.pos:intersectWith(self.checkmark_widget.dimen)
+    )
   then
     if self.item.callback then
       self.item:callback()
@@ -317,7 +322,10 @@ function SortWidget:init()
   -- setup main content
   self.item_margin = math.floor(self.item_height / 8)
   local line_height = self.item_height + self.item_margin
-  local content_height = self:getSize().h - self.title_bar:getHeight() - vertical_footer:getSize().h - padding
+  local content_height = self:getSize().h
+    - self.title_bar:getHeight()
+    - vertical_footer:getSize().h
+    - padding
   self.items_per_page = math.floor(content_height / line_height)
   self.pages = math.ceil(#self.item_table / self.items_per_page)
   self.main_content = VerticalGroup:new()
@@ -326,7 +334,8 @@ function SortWidget:init()
 
   local padding_below_title = 0
   if self.pages > 1 then -- center content vertically
-    padding_below_title = (content_height - self.items_per_page * line_height) / 2
+    padding_below_title = (content_height - self.items_per_page * line_height)
+      / 2
   end
   local frame_content = FrameContainer:new({
     height = self:getSize().h,
@@ -358,7 +367,9 @@ function SortWidget:nextPage()
   if self.show_page < self.pages then
     self.show_page = self.show_page + 1
     if self.marked > 0 then -- put selected item first in the page
-      self:moveItem(self.items_per_page * (self.show_page - 1) + 1 - self.marked)
+      self:moveItem(
+        self.items_per_page * (self.show_page - 1) + 1 - self.marked
+      )
     else
       self:_populateItems()
     end
@@ -369,7 +380,9 @@ function SortWidget:prevPage()
   if self.show_page > 1 then
     self.show_page = self.show_page - 1
     if self.marked > 0 then -- put selected item first in the page
-      self:moveItem(self.items_per_page * (self.show_page - 1) + 1 - self.marked)
+      self:moveItem(
+        self.items_per_page * (self.show_page - 1) + 1 - self.marked
+      )
     else
       self:_populateItems()
     end
@@ -388,7 +401,11 @@ function SortWidget:moveItem(diff)
     if not self.orig_item_table then
       self.orig_item_table = util.tableDeepCopy(self.item_table)
     end
-    table.insert(self.item_table, move_to, table.remove(self.item_table, self.marked))
+    table.insert(
+      self.item_table,
+      move_to,
+      table.remove(self.item_table, self.marked)
+    )
     self.show_page = math.ceil(move_to / self.items_per_page)
     self.marked = move_to
     self:_populateItems()
@@ -407,7 +424,10 @@ function SortWidget:_populateItems()
     page_last = #self.item_table
   end
   for idx = idx_offset + 1, page_last do
-    table.insert(self.main_content, VerticalSpan:new({ height = self.item_margin }))
+    table.insert(
+      self.main_content,
+      VerticalSpan:new({ height = self.item_margin })
+    )
     local invert_status = false
     if idx == self.marked then
       invert_status = true
@@ -434,7 +454,10 @@ function SortWidget:_populateItems()
   end
 
   -- NOTE: We forgo our usual "Page x of y" wording because of space constraints given the way the widget is currently built
-  self.footer_page:setText(T(C_("Pagination", "%1 / %2"), self.show_page, self.pages), self.footer_center_width)
+  self.footer_page:setText(
+    T(C_("Pagination", "%1 / %2"), self.show_page, self.pages),
+    self.footer_center_width
+  )
   if self.pages > 1 then
     self.footer_page:enable()
   else
@@ -465,9 +488,12 @@ function SortWidget:_populateItems()
   end
   self.footer_left:enableDisable(self.show_page > 1)
   self.footer_right:enableDisable(self.show_page < self.pages)
-  self.footer_first_up:enableDisable(self.show_page > 1 or (self.marked > 0 and self.marked > 1))
+  self.footer_first_up:enableDisable(
+    self.show_page > 1 or (self.marked > 0 and self.marked > 1)
+  )
   self.footer_last_down:enableDisable(
-    self.show_page < self.pages or (self.marked > 0 and self.marked < #self.item_table)
+    self.show_page < self.pages
+      or (self.marked > 0 and self.marked < #self.item_table)
   )
   UIManager:setDirty(self, function()
     return "ui", self.dimen
@@ -564,7 +590,10 @@ function SortWidget:sortItems(collate, reverse_collate)
     self.orig_item_table = util.tableDeepCopy(self.item_table)
   end
   local FileChooser = require("ui/widget/filechooser")
-  local sort_func = FileChooser:getSortingFunction(FileChooser.collates[collate], reverse_collate)
+  local sort_func = FileChooser:getSortingFunction(
+    FileChooser.collates[collate],
+    reverse_collate
+  )
   table.sort(self.item_table, sort_func)
   self.show_page = 1
   self.marked = 1 -- enable cancel button

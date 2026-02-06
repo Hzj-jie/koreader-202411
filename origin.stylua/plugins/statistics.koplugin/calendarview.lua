@@ -112,7 +112,8 @@ function CalendarDay:init()
   self.daynum_w = TextWidget:new({
     text = " " .. tostring(self.daynum),
     face = Font:getFace(self.font_face, self.font_size),
-    fgcolor = self.is_future and Blitbuffer.COLOR_GRAY or Blitbuffer.COLOR_BLACK,
+    fgcolor = self.is_future and Blitbuffer.COLOR_GRAY
+      or Blitbuffer.COLOR_BLACK,
     padding = 0,
     bold = true,
   })
@@ -231,10 +232,12 @@ function CalendarWeek:addDay(calday_widget)
             this_book.span_days = prev_book.span_days + 1
             -- Update span_days in all previous books
             for bk = 1, prev_book.span_days do
-              self.days_books[this_day_num - bk][pn].span_days = this_book.span_days
+              self.days_books[this_day_num - bk][pn].span_days =
+                this_book.span_days
             end
             if tn ~= pn then -- swap it with the one at previous day position
-              this_day_books[tn], this_day_books[pn] = this_day_books[pn], this_day_books[tn]
+              this_day_books[tn], this_day_books[pn] =
+                this_day_books[pn], this_day_books[tn]
             end
             break
           end
@@ -264,7 +267,10 @@ function CalendarWeek:update()
   for num, calday in ipairs(self.calday_widgets) do
     table.insert(self.day_container, calday)
     if num < #self.calday_widgets then
-      table.insert(self.day_container, HorizontalSpan:new({ width = self.day_padding }))
+      table.insert(
+        self.day_container,
+        HorizontalSpan:new({ width = self.day_padding })
+      )
     end
   end
 
@@ -285,7 +291,8 @@ function CalendarWeek:update()
   -- font size. It's less precise than the TextWidget equivalent,
   -- but it handles padding as 'em'.
   -- Use a 1.3em line height
-  local inner_font_size = TextBoxWidget:getFontSizeToFitHeight(text_height, 1, 0.3)
+  local inner_font_size =
+    TextBoxWidget:getFontSizeToFitHeight(text_height, 1, 0.3)
   -- If font size gets really small, get a larger one by using a smaller
   -- line height: tall glyphs may bleed on the border, but we won't notice
   -- at such small size, and we'll appreciate the readability.
@@ -308,17 +315,21 @@ function CalendarWeek:update()
   else
     -- No histogram: ensure last book span bottom margin
     -- is equal to bspan_margin_v for a nice fit
-    offset_y_fixup = self.height - self.span_height * (self.nb_book_spans + 1) - bspan_margin_v
+    offset_y_fixup = self.height
+      - self.span_height * (self.nb_book_spans + 1)
+      - bspan_margin_v
   end
 
   for col, day_books in ipairs(self.days_books) do
     for row, book in ipairs(day_books) do
       if book and book.start_day == col then
-        local fgcolor, bgcolor = unpack(SPAN_COLORS[(book.id % #SPAN_COLORS) + 1])
+        local fgcolor, bgcolor =
+          unpack(SPAN_COLORS[(book.id % #SPAN_COLORS) + 1])
         local offset_x = (col - 1) * (self.day_width + self.day_padding)
         local offset_y = row * self.span_height -- 1st real row used by day num
         offset_y = offset_y + offset_y_fixup
-        local width = book.span_days * self.day_width + self.day_padding * (book.span_days - 1)
+        local width = book.span_days * self.day_width
+          + self.day_padding * (book.span_days - 1)
         -- We use two FrameContainers, as (unlike HTML) a FrameContainer
         -- draws the background color outside its borders, in the margins
         local span_w = FrameContainer:new({
@@ -345,7 +356,8 @@ function CalendarWeek:update()
               }),
               TextWidget:new({
                 text = BD.auto(book.title),
-                max_width = width - 2 * (bspan_margin_h + bspan_border + bspan_padding_h),
+                max_width = width
+                  - 2 * (bspan_margin_h + bspan_border + bspan_padding_h),
                 face = Font:getFace(self.font_face, inner_font_size),
                 padding = 0,
                 fgcolor = fgcolor,
@@ -394,8 +406,12 @@ function BookDailyItem:init()
     checked = true,
   })
 
-  local title_max_width = self.dimen.w - 2 * Size.padding.default - checked_widget:getSize().w - self.value_width
-  local fgcolor, bgcolor = unpack(SPAN_COLORS[(self.item.book_id % #SPAN_COLORS) + 1])
+  local title_max_width = self.dimen.w
+    - 2 * Size.padding.default
+    - checked_widget:getSize().w
+    - self.value_width
+  local fgcolor, bgcolor =
+    unpack(SPAN_COLORS[(self.item.book_id % #SPAN_COLORS) + 1])
   self.check_container = CenterContainer:new({
     dimen = Geom:new({ w = checked_widget:getSize().w }),
     self.checkmark_widget,
@@ -530,7 +546,8 @@ function CalendarDayView:init()
   }
   self.outer_padding = Size.padding.large
   self.inner_padding = Size.padding.small
-  local min_month = self.min_month or os.date("%Y-%m", self.reader_statistics:getFirstTimestamp() or os.time())
+  local min_month = self.min_month
+    or os.date("%Y-%m", self.reader_statistics:getFirstTimestamp() or os.time())
   self.min_ts = os.time({
     year = min_month:sub(1, 4),
     month = min_month:sub(6),
@@ -686,7 +703,8 @@ function CalendarDayView:setupView()
   self.is_current_day = now >= self.day_ts and now < self.day_ts + 86400
   if self.is_current_day then
     local date = os.date("*t", now)
-    self.current_day_hour = date.hour - (self.reader_statistics.settings.calendar_day_start_hour or 0)
+    self.current_day_hour = date.hour
+      - (self.reader_statistics.settings.calendar_day_start_hour or 0)
     self.current_hour_second = date.min * 60
       + date.sec
       - (self.reader_statistics.settings.calendar_day_start_minute or 0) * 60
@@ -700,8 +718,10 @@ function CalendarDayView:setupView()
     end
   end
 
-  self.kv_pairs = self.reader_statistics:getBooksFromPeriod(self.day_ts, self.day_ts + 86400)
-  local seconds_books = self.reader_statistics:getReadingDurationBySecond(self.day_ts)
+  self.kv_pairs =
+    self.reader_statistics:getBooksFromPeriod(self.day_ts, self.day_ts + 86400)
+  local seconds_books =
+    self.reader_statistics:getReadingDurationBySecond(self.day_ts)
   for _, kv in ipairs(self.kv_pairs) do
     if seconds_books[kv.book_id] then
       kv.periods = seconds_books[kv.book_id].periods
@@ -724,10 +744,16 @@ function CalendarDayView:setupView()
   end
 
   local temp_check = CheckMark:new({ checked = true })
-  self.time_text_width = temp_check:getSize().w + self.outer_padding + Size.padding.default
+  self.time_text_width = temp_check:getSize().w
+    + self.outer_padding
+    + Size.padding.default
   temp_check:free()
 
-  local font_size = TextWidget:getFontSizeToFitHeight("cfont", self.time_text_width, Size.padding.small)
+  local font_size = TextWidget:getFontSizeToFitHeight(
+    "cfont",
+    self.time_text_width,
+    Size.padding.small
+  )
   self.time_text_face = Font:getFace("cfont", font_size)
   local temp_text = TextWidget:new({
     text = "00:00",
@@ -746,8 +772,10 @@ function CalendarDayView:setupView()
   end
   temp_text:free()
 
-  self.pages = #self.kv_pairs <= self.items_per_page + 1 and 1 or math.ceil(#self.kv_pairs / self.items_per_page)
-  self.footer_container[1] = self.pages > 1 and self.page_info or VerticalSpan:new({ w = 0 })
+  self.pages = #self.kv_pairs <= self.items_per_page + 1 and 1
+    or math.ceil(#self.kv_pairs / self.items_per_page)
+  self.footer_container[1] = self.pages > 1 and self.page_info
+    or VerticalSpan:new({ w = 0 })
 
   self:_populateBooks()
 end
@@ -854,10 +882,15 @@ function CalendarDayView:_populateBooks()
     table.insert(self.layout, { item })
     table.insert(self.book_items, item)
   end
-  self.timeline_offset = self.titlebar_height + #self.book_items * self.book_item_height + Size.padding.default
+  self.timeline_offset = self.titlebar_height
+    + #self.book_items * self.book_item_height
+    + Size.padding.default
   self.timeline_height = self.dimen.h - self.timeline_offset
   if self.pages > 1 then
-    self.footer_page:setText(T(_("Page %1 of %2"), self.show_page, self.pages), self.footer_center_width)
+    self.footer_page:setText(
+      T(_("Page %1 of %2"), self.show_page, self.pages),
+      self.footer_center_width
+    )
     self.footer_page:enable()
 
     self.footer_left:enableDisable(self.show_page > 1)
@@ -891,7 +924,8 @@ function CalendarDayView:refreshTimeline()
   -- Draw decorations first, so read spans can be drawn over them
   -- Vertical lines (first, so horizontal lines can override them if we use another color)
   for i = 0, self.NB_VERTICAL_SEPARATORS_PER_HOUR do
-    local offset_x = self.time_text_width + self.timeline_width * i / self.NB_VERTICAL_SEPARATORS_PER_HOUR
+    local offset_x = self.time_text_width
+      + self.timeline_width * i / self.NB_VERTICAL_SEPARATORS_PER_HOUR
     table.insert(
       self.timeline,
       FrameContainer:new({
@@ -923,7 +957,10 @@ function CalendarDayView:refreshTimeline()
           TextWidget:new({
             text = string.format(
               "%02d:%02d",
-              (i + (self.reader_statistics.settings.calendar_day_start_hour or 0)) % 24,
+              (
+                i
+                + (self.reader_statistics.settings.calendar_day_start_hour or 0)
+              ) % 24,
               self.reader_statistics.settings.calendar_day_start_minute or 0
             ),
             face = self.time_text_face,
@@ -968,15 +1005,20 @@ function CalendarDayView:refreshTimeline()
   -- Current time arrow indicator
   if self.is_current_day then
     -- Get the arrow glyph a bit bigger than what it is with the hour indicator font
-    local font_size = TextWidget:getFontSizeToFitHeight("cfont", self.hour_height * 1.1, 0)
+    local font_size =
+      TextWidget:getFontSizeToFitHeight("cfont", self.hour_height * 1.1, 0)
     local current_time_icon = TextWidget:new({
       text = "\u{25B2}", -- black up-pointing triangle
       face = Font:getFace("cfont", font_size),
       padding = 0,
     })
     local offset_x = self.time_text_width
-      + math.floor(self.timeline_width * self.current_hour_second / 3600 - current_time_icon:getWidth() / 2)
-    local offset_y = self.timeline_offset + self.hour_height * (self.current_day_hour + 1)
+      + math.floor(
+        self.timeline_width * self.current_hour_second / 3600
+          - current_time_icon:getWidth() / 2
+      )
+    local offset_y = self.timeline_offset
+      + self.hour_height * (self.current_day_hour + 1)
     offset_y = offset_y - math.floor(self.hour_height * 0.3) -- move it up so it sits over the horizontal line
     current_time_icon.overlap_offset = { offset_x, offset_y }
     table.insert(self.timeline, current_time_icon)
@@ -984,7 +1026,8 @@ function CalendarDayView:refreshTimeline()
   -- Finally, the read books spans
   for _, v in ipairs(self.kv_pairs) do
     if v.checked and v.periods then
-      local fgcolor, bgcolor = unpack(SPAN_COLORS[(v.book_id % #SPAN_COLORS) + 1])
+      local fgcolor, bgcolor =
+        unpack(SPAN_COLORS[(v.book_id % #SPAN_COLORS) + 1])
       for _, period in ipairs(v.periods) do
         local start_hour = math.floor(period.start / 3600)
         local finish_hour = math.floor(period.finish / 3600)
@@ -993,7 +1036,8 @@ function CalendarDayView:refreshTimeline()
           if start >= 24 * 3600 then
             break
           end
-          local finish = i == finish_hour - start_hour and period.finish or (start_hour + i + 1) * 3600 - 1
+          local finish = i == finish_hour - start_hour and period.finish
+            or (start_hour + i + 1) * 3600 - 1
           local span = self:generateSpan(start, finish, bgcolor, fgcolor, v[1])
           if span then
             table.insert(self.timeline, span)
@@ -1013,10 +1057,17 @@ function CalendarDayView:generateSpan(start, finish, bgcolor, fgcolor, title)
     return
   end
   local start_hour = math.floor(start / 3600)
-  local offset_y = start_hour * self.hour_height + self.inner_padding + self.timeline_offset
-  local offset_x = self.time_text_width + math.floor((start % 3600) / 3600 * self.timeline_width)
+  local offset_y = start_hour * self.hour_height
+    + self.inner_padding
+    + self.timeline_offset
+  local offset_x = self.time_text_width
+    + math.floor((start % 3600) / 3600 * self.timeline_width)
 
-  local font_size = TextWidget:getFontSizeToFitHeight("cfont", self.hour_height - 2 * self.inner_padding, 0.3)
+  local font_size = TextWidget:getFontSizeToFitHeight(
+    "cfont",
+    self.hour_height - 2 * self.inner_padding,
+    0.3
+  )
   local min_width = TextWidget:new({
     text = "…",
     face = Font:getFace("cfont", font_size),
@@ -1115,7 +1166,11 @@ function CalendarDayView:getTitle()
     - (self.reader_statistics.settings.calendar_day_start_minute or 0) * 60
   local day = os.date("%Y-%m-%d", day_ts + 10800) -- use 03:00 to determine date (summer time change)
   local date = os.date("*t", day_ts + 10800)
-  return string.format("%s (%s)", day, datetime.shortDayOfWeekToLongTranslation[CalendarView.weekdays[date.wday]])
+  return string.format(
+    "%s (%s)",
+    day,
+    datetime.shortDayOfWeekToLongTranslation[CalendarView.weekdays[date.wday]]
+  )
 end
 
 function CalendarView:init()
@@ -1123,7 +1178,9 @@ function CalendarView:init()
     w = self.width or Screen:getWidth(),
     h = self.height or Screen:getHeight(),
   })
-  if self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight() then
+  if
+    self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
+  then
     self.covers_fullscreen = true -- hint for UIManager:_repaint()
   end
 
@@ -1151,9 +1208,13 @@ function CalendarView:init()
   self.inner_padding = Size.padding.small
 
   -- 7 days in a week
-  self.day_width = math.floor((self.dimen.w - 2 * self.outer_padding - 6 * self.inner_padding) * (1 / 7))
+  self.day_width = math.floor(
+    (self.dimen.w - 2 * self.outer_padding - 6 * self.inner_padding) * (1 / 7)
+  )
   -- Put back the possible 7px lost in rounding into outer_padding
-  self.outer_padding = math.floor((self.dimen.w - 7 * self.day_width - 6 * self.inner_padding) * (1 / 2))
+  self.outer_padding = math.floor(
+    (self.dimen.w - 7 * self.day_width - 6 * self.inner_padding) * (1 / 2)
+  )
 
   self.content_width = self.dimen.w - 2 * self.outer_padding
 
@@ -1226,7 +1287,11 @@ function CalendarView:init()
       callback = function(input)
         local year, month = input:match("^(%d%d%d%d)-(%d%d)$")
         if year and month then
-          if tonumber(month) >= 1 and tonumber(month) <= 12 and tonumber(year) >= 1000 then
+          if
+            tonumber(month) >= 1
+            and tonumber(month) <= 12
+            and tonumber(year) >= 1000
+          then
             -- Allow seeing arbitrary year-month in the past or future by
             -- not constraining to self.min_month/max_month.
             -- (year >= 1000 to ensure %Y keeps returning 4 digits)
@@ -1280,7 +1345,10 @@ function CalendarView:init()
 
   -- week days names header
   self.day_names = HorizontalGroup:new({})
-  table.insert(self.day_names, HorizontalSpan:new({ width = self.outer_padding }))
+  table.insert(
+    self.day_names,
+    HorizontalSpan:new({ width = self.outer_padding })
+  )
   for i = 0, 6 do
     local dayname = TextWidget:new({
       text = datetime.shortDayOfWeekTranslation[self.weekdays[(self.start_day_of_week - 1 + i) % 7 + 1]],
@@ -1299,7 +1367,10 @@ function CalendarView:init()
       })
     )
     if i < 6 then
-      table.insert(self.day_names, HorizontalSpan:new({ width = self.inner_padding }))
+      table.insert(
+        self.day_names,
+        HorizontalSpan:new({ width = self.inner_padding })
+      )
     end
   end
 
@@ -1308,21 +1379,29 @@ function CalendarView:init()
     - self.title_bar:getHeight()
     - self.page_info:getSize().h
     - self.day_names:getSize().h
-  self.week_height = math.floor((available_height - 7 * self.inner_padding) * (1 / 6))
+  self.week_height =
+    math.floor((available_height - 7 * self.inner_padding) * (1 / 6))
   self.day_border = Size.border.default
   if self.show_hourly_histogram then
     -- day num + nb_book_spans + histogram: ceil() as histogram rarely
     -- reaches 100% and is stuck to bottom
-    self.span_height = math.ceil((self.week_height - 2 * self.day_border) / (self.nb_book_spans + 2))
+    self.span_height = math.ceil(
+      (self.week_height - 2 * self.day_border) / (self.nb_book_spans + 2)
+    )
   else
     -- day num + nb_book_span: floor() to get some room for bottom padding
-    self.span_height = math.floor((self.week_height - 2 * self.day_border) / (self.nb_book_spans + 1))
+    self.span_height = math.floor(
+      (self.week_height - 2 * self.day_border) / (self.nb_book_spans + 1)
+    )
   end
   -- Limit font size to 1/3 of available height, and so that
   -- the day number and the +nb-not-shown do not overlap
   local text_height = math.min(self.span_height, self.week_height / 3)
-  self.span_font_size = TextBoxWidget:getFontSizeToFitHeight(text_height, 1, 0.3)
-  local day_inner_width = self.day_width - 2 * self.day_border - 2 * self.inner_padding
+  self.span_font_size =
+    TextBoxWidget:getFontSizeToFitHeight(text_height, 1, 0.3)
+  local day_inner_width = self.day_width
+    - 2 * self.day_border
+    - 2 * self.inner_padding
   while true do
     local test_w = TextWidget:new({
       text = " 30 + 99 ", -- we want this to be displayed in the available width
@@ -1382,19 +1461,28 @@ function CalendarView:_populateItems()
     -- When hour is unspecified, Lua defaults to noon 12h00
   })
   -- Update title
-  local month_text = datetime.longMonthTranslation[os.date("%B", month_start_ts)] .. os.date(" %Y", month_start_ts)
+  local month_text = datetime.longMonthTranslation[os.date("%B", month_start_ts)]
+    .. os.date(" %Y", month_start_ts)
   self.title_bar:setTitle(month_text)
   -- Update footer
   self.page_info_text:setText(self.cur_month)
   self.page_info_left_chev:enableDisable(self.cur_month > self.min_month)
-  self.page_info_right_chev:enableDisable(self.cur_month < self.max_month or self.browse_future_months)
+  self.page_info_right_chev:enableDisable(
+    self.cur_month < self.max_month or self.browse_future_months
+  )
   self.page_info_first_chev:enableDisable(self.cur_month > self.min_month)
-  self.page_info_last_chev:enableDisable(self.cur_month < self.max_month or self.browse_future_months)
+  self.page_info_last_chev:enableDisable(
+    self.cur_month < self.max_month or self.browse_future_months
+  )
 
-  local ratio_per_hour_by_day = self.reader_statistics:getReadingRatioPerHourByDay(self.cur_month)
+  local ratio_per_hour_by_day =
+    self.reader_statistics:getReadingRatioPerHourByDay(self.cur_month)
   local books_by_day = self.reader_statistics:getReadBookByDay(self.cur_month)
 
-  table.insert(self.main_content, VerticalSpan:new({ width = self.inner_padding }))
+  table.insert(
+    self.main_content,
+    VerticalSpan:new({ width = self.inner_padding })
+  )
   self.weeks = {}
   local today_s = os.date("%Y-%m-%d", os.time())
   local cur_ts = month_start_ts
@@ -1409,7 +1497,10 @@ function CalendarView:_populateItems()
     end
     if not cur_week or cur_date.wday == self.start_day_of_week then
       if cur_week then
-        table.insert(self.main_content, VerticalSpan:new({ width = self.inner_padding }))
+        table.insert(
+          self.main_content,
+          VerticalSpan:new({ width = self.inner_padding })
+        )
       end
       cur_week = CalendarWeek:new({
         height = self.week_height,
@@ -1467,26 +1558,30 @@ function CalendarView:_populateItems()
       ratio_per_hour = ratio_per_hour_by_day[day_s],
       read_books = books_by_day[day_s],
       show_parent = self,
-      callback = not is_future and function()
-        UIManager:show(CalendarDayView:new({
-          day_ts = day_ts
-            + (self.reader_statistics.settings.calendar_day_start_hour or 0) * 3600
-            + (self.reader_statistics.settings.calendar_day_start_minute or 0) * 60,
-          reader_statistics = self.reader_statistics,
-          close_callback = function(this)
-            -- Refresh calendar in case some day stats were reset for some books
-            -- (we don't know if some reset were done... so we refresh the current
-            -- display always - at tickAfterNext so there is no noticeable slowness
-            -- when closing, and the re-painting happening after is not noticeable;
-            -- but if some stat reset were done, this will make a nice noticeable
-            -- repainting showing dynamically reset books disappearing :)
-            UIManager:tickAfterNext(function()
-              self:goToMonth(os.date("%Y-%m", this.day_ts + 10800))
-            end)
-          end,
-          min_month = self.min_month,
-        }))
-      end,
+      callback = not is_future
+        and function()
+          UIManager:show(CalendarDayView:new({
+            day_ts = day_ts
+              + (self.reader_statistics.settings.calendar_day_start_hour or 0) * 3600
+              + (
+                  self.reader_statistics.settings.calendar_day_start_minute or 0
+                )
+                * 60,
+            reader_statistics = self.reader_statistics,
+            close_callback = function(this)
+              -- Refresh calendar in case some day stats were reset for some books
+              -- (we don't know if some reset were done... so we refresh the current
+              -- display always - at tickAfterNext so there is no noticeable slowness
+              -- when closing, and the re-painting happening after is not noticeable;
+              -- but if some stat reset were done, this will make a nice noticeable
+              -- repainting showing dynamically reset books disappearing :)
+              UIManager:tickAfterNext(function()
+                self:goToMonth(os.date("%Y-%m", this.day_ts + 10800))
+              end)
+            end,
+            min_month = self.min_month,
+          }))
+        end,
     })
     cur_week:addDay(calendar_day)
     table.insert(layout_row, calendar_day)
@@ -1495,7 +1590,11 @@ function CalendarView:_populateItems()
   for _, week in ipairs(self.weeks) do
     week:update()
   end
-  self:moveFocusTo(1, 1, bit.bor(FocusManager.FOCUS_ONLY_ON_NT, FocusManager.NOT_UNFOCUS))
+  self:moveFocusTo(
+    1,
+    1,
+    bit.bor(FocusManager.FOCUS_ONLY_ON_NT, FocusManager.NOT_UNFOCUS)
+  )
   UIManager:setDirty(self, function()
     return "ui", self.dimen
   end)

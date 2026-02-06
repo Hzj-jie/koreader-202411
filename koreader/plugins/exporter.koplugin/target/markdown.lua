@@ -11,7 +11,9 @@ local MarkdownExporter = require("base"):new({
 
   init_callback = function(self, settings)
     local changed = false
-    if not settings.formatting_options or settings.highlight_formatting == nil then
+    if
+      not settings.formatting_options or settings.highlight_formatting == nil
+    then
       settings.formatting_options = settings.formatting_options
         or {
           lighten = "italic",
@@ -37,7 +39,11 @@ local formatter_buttons = {
   { gettext("Underline (with <u></u> tags)"), "underline_u_tag" },
 }
 
-function MarkdownExporter:editFormatStyle(drawer_style, label, touchmenu_instance)
+function MarkdownExporter:editFormatStyle(
+  drawer_style,
+  label,
+  touchmenu_instance
+)
   local radio_buttons = {}
   for _idx, v in ipairs(formatter_buttons) do
     table.insert(radio_buttons, {
@@ -108,7 +114,8 @@ function MarkdownExporter:getMenuTable()
           return self.settings.highlight_formatting
         end,
         callback = function()
-          self.settings.highlight_formatting = not self.settings.highlight_formatting
+          self.settings.highlight_formatting =
+            not self.settings.highlight_formatting
         end,
       },
     },
@@ -117,7 +124,9 @@ function MarkdownExporter:getMenuTable()
   for _idx, entry in ipairs(highlight_style) do
     table.insert(menu.sub_item_table, {
       text_func = function()
-        return entry[1] .. ": " .. md.formatters[self.settings.formatting_options[entry[2]]].label
+        return entry[1]
+          .. ": "
+          .. md.formatters[self.settings.formatting_options[entry[2]]].label
       end,
       enabled_func = function()
         return self.settings.highlight_formatting
@@ -138,7 +147,11 @@ function MarkdownExporter:export(t)
     return false
   end
   for idx, book in ipairs(t) do
-    local tbl = md.prepareBookContent(book, self.settings.formatting_options, self.settings.highlight_formatting)
+    local tbl = md.prepareBookContent(
+      book,
+      self.settings.formatting_options,
+      self.settings.highlight_formatting
+    )
     file:write(table.concat(tbl, "\n"))
   end
   file:write("\n\n_Generated at: " .. self:getTimeStamp() .. "_")
@@ -147,7 +160,11 @@ function MarkdownExporter:export(t)
 end
 
 function MarkdownExporter:share(t)
-  local tbl = md.prepareBookContent(t, self.settings.formatting_options, self.settings.highlight_formatting)
+  local tbl = md.prepareBookContent(
+    t,
+    self.settings.formatting_options,
+    self.settings.highlight_formatting
+  )
   table.insert(tbl, "\n_Generated at: " .. self:getTimeStamp() .. "_")
   self:shareText(table.concat(tbl, "\n"))
 end

@@ -137,8 +137,10 @@ function ScrollableContainer:init()
   end
   if Device:hasKeys() then
     self.key_events = {
-      ScrollPageUp = not ignore.key_pg_back and { { Input.group.PgBack } } or nil,
-      ScrollPageDown = not ignore.key_pg_fwd and { { Input.group.PgFwd } } or nil,
+      ScrollPageUp = not ignore.key_pg_back and { { Input.group.PgBack } }
+        or nil,
+      ScrollPageDown = not ignore.key_pg_fwd and { { Input.group.PgFwd } }
+        or nil,
     }
   end
 end
@@ -156,14 +158,23 @@ function ScrollableContainer:initState()
     self._crop_h = self:getSize().h
     if self._max_scroll_offset_y > 0 then
       -- Adding a vertical scrollbar reduces the available width: recompute
-      self._max_scroll_offset_x = math.max(0, content_size.w - (self:getSize().w - 3 * self.scroll_bar_width))
+      self._max_scroll_offset_x = math.max(
+        0,
+        content_size.w - (self:getSize().w - 3 * self.scroll_bar_width)
+      )
     end
     if self._max_scroll_offset_x > 0 then
       -- Adding a horizontal scrollbar reduces the available height: recompute
-      self._max_scroll_offset_y = math.max(0, content_size.h - (self:getSize().h - 3 * self.scroll_bar_width))
+      self._max_scroll_offset_y = math.max(
+        0,
+        content_size.h - (self:getSize().h - 3 * self.scroll_bar_width)
+      )
       if self._max_scroll_offset_y > 0 then
         -- And re-compute again if we have to now add a vertical scrollbar
-        self._max_scroll_offset_x = math.max(0, content_size.w - (self:getSize().w - 3 * self.scroll_bar_width))
+        self._max_scroll_offset_x = math.max(
+          0,
+          content_size.w - (self:getSize().w - 3 * self.scroll_bar_width)
+        )
       end
     end
     -- Scrollbars won't be classic sub-widgets, we'll handle their painting ourselves
@@ -221,13 +232,15 @@ end
 function ScrollableContainer:_updateScrollBars()
   if self._v_scroll_bar then
     local dheight = self._crop_h / (self._max_scroll_offset_y + self._crop_h)
-    local low = self._scroll_offset_y / (self._max_scroll_offset_y + self._crop_h)
+    local low = self._scroll_offset_y
+      / (self._max_scroll_offset_y + self._crop_h)
     local high = low + dheight
     self._v_scroll_bar:set(low, high)
   end
   if self._h_scroll_bar then
     local dwidth = self._crop_w / (self._max_scroll_offset_x + self._crop_w)
-    local low = self._scroll_offset_x / (self._max_scroll_offset_x + self._crop_w)
+    local low = self._scroll_offset_x
+      / (self._max_scroll_offset_x + self._crop_w)
     local high = low + dwidth
     self._h_scroll_bar:set(low, high)
   end
@@ -321,7 +334,11 @@ function ScrollableContainer:_scrollBy(dx, dy, ensure_scroll_steps)
       local new_top_row, new_top_row_fully_visible, new_top_row_content_visible = -- luacheck: no unused
         self:_getStepScrollRowAtY(new_y, true)
       if dy >= 0 then -- Scrolling down
-        if bottom_row and not bottom_row_content_visible and new_y > bottom_row.top then
+        if
+          bottom_row
+          and not bottom_row_content_visible
+          and new_y > bottom_row.top
+        then
           -- If we'd go past the not fully visible original bottom button, have it fully at top
           new_y = bottom_row.top
         else
@@ -384,10 +401,14 @@ function ScrollableContainer:_scrollBy(dx, dy, ensure_scroll_steps)
   if self._scroll_offset_y < 0 and not allow_overflow_y then
     self._scroll_offset_y = 0
   end
-  if self._scroll_offset_x > self._max_scroll_offset_x and not allow_overflow_x then
+  if
+    self._scroll_offset_x > self._max_scroll_offset_x and not allow_overflow_x
+  then
     self._scroll_offset_x = self._max_scroll_offset_x
   end
-  if self._scroll_offset_y > self._max_scroll_offset_y and not allow_overflow_y then
+  if
+    self._scroll_offset_y > self._max_scroll_offset_y and not allow_overflow_y
+  then
     self._scroll_offset_y = self._max_scroll_offset_y
   end
   self:_hideTruncatedGridItemsIfRequested()
@@ -452,7 +473,11 @@ function ScrollableContainer:paintTo(bb, x, y)
 
   local screen_size = Screen:getSize()
   -- Create/Recreate the compose cache if we changed screen geometry
-  if not self._bb or self._bb:getWidth() ~= screen_size.w or self._bb:getHeight() ~= screen_size.h then
+  if
+    not self._bb
+    or self._bb:getWidth() ~= screen_size.w
+    or self._bb:getHeight() ~= screen_size.h
+  then
     if self._bb then
       self._bb:free()
     end
@@ -470,21 +495,41 @@ function ScrollableContainer:paintTo(bb, x, y)
     dx = self._scroll_offset_x
   end
   self[1]:paintTo(self._bb, x - dx, y - self._scroll_offset_y)
-  bb:blitFrom(self._bb, x + self._crop_dx, y, x + self._crop_dx, y, self._crop_w, self._crop_h_limited or self._crop_h)
+  bb:blitFrom(
+    self._bb,
+    x + self._crop_dx,
+    y,
+    x + self._crop_dx,
+    y,
+    self._crop_w,
+    self._crop_h_limited or self._crop_h
+  )
 
   -- Draw our scrollbars over
   if self._h_scroll_bar then
     if _mirroredUI then
-      self._h_scroll_bar:paintTo(bb, x + self._h_scroll_bar_shift, y + self:getSize().h - 2 * self.scroll_bar_width)
+      self._h_scroll_bar:paintTo(
+        bb,
+        x + self._h_scroll_bar_shift,
+        y + self:getSize().h - 2 * self.scroll_bar_width
+      )
     else
-      self._h_scroll_bar:paintTo(bb, x, y + self:getSize().h - 2 * self.scroll_bar_width)
+      self._h_scroll_bar:paintTo(
+        bb,
+        x,
+        y + self:getSize().h - 2 * self.scroll_bar_width
+      )
     end
   end
   if self._v_scroll_bar then
     if _mirroredUI then
       self._v_scroll_bar:paintTo(bb, x + self.scroll_bar_width, y)
     else
-      self._v_scroll_bar:paintTo(bb, x + self:getSize().w - 2 * self.scroll_bar_width, y)
+      self._v_scroll_bar:paintTo(
+        bb,
+        x + self:getSize().w - 2 * self.scroll_bar_width,
+        y
+      )
     end
   end
 end
@@ -607,7 +652,11 @@ function ScrollableContainer:onScrollableHoldPan(_, ges)
   end
   logger.dbg("ScrollableContainer:onScrollableHoldPan", ges)
   -- we may sometimes not see the "hold" event
-  if ges.pos:intersectWith(self.dimen) or self._scrolling or self._touch_pre_pan_was_inside then
+  if
+    ges.pos:intersectWith(self.dimen)
+    or self._scrolling
+    or self._touch_pre_pan_was_inside
+  then
     self._touch_pre_pan_was_inside = false -- reset it
     self._scrolling = true
     return true
@@ -641,7 +690,11 @@ function ScrollableContainer:onScrollablePan(_, ges)
     return false
   end
   logger.dbg("ScrollableContainer:onScrollablePan", ges)
-  if ges.pos:intersectWith(self.dimen) or self._scrolling or self._touch_pre_pan_was_inside then
+  if
+    ges.pos:intersectWith(self.dimen)
+    or self._scrolling
+    or self._touch_pre_pan_was_inside
+  then
     self._touch_pre_pan_was_inside = false -- reset it
     self._scrolling = true
     self._scroll_relative_x = ges.relative.x

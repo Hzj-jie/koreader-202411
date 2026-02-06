@@ -187,12 +187,18 @@ function ReaderStatistics:init()
 end
 
 function ReaderStatistics:_updateFrozen()
-  self.is_doc_not_finished = (self.ui and self.ui.doc_settings:readTableRef("summary").status ~= "complete")
-  self.is_doc_not_frozen = self.is_doc and (self.is_doc_not_finished or not self.settings.freeze_finished_books)
+  self.is_doc_not_finished = (
+    self.ui
+    and self.ui.doc_settings:readTableRef("summary").status ~= "complete"
+  )
+  self.is_doc_not_frozen = self.is_doc
+    and (self.is_doc_not_finished or not self.settings.freeze_finished_books)
 end
 
 function ReaderStatistics:_initData()
-  self.is_doc = (self.document and not require("readhistory"):ignoreFile(self.document.file))
+  self.is_doc = (
+    self.document and not require("readhistory"):ignoreFile(self.document.file)
+  )
   self:_updateFrozen()
 
   -- first execution
@@ -211,18 +217,23 @@ function ReaderStatistics:_initData()
 
   self.data.pages = self.document:getPageCount()
   -- Update these numbers to what's actually stored in the settings
-  self.data.highlights, self.data.notes = self.ui.annotation:getNumberOfHighlightsAndNotes()
+  self.data.highlights, self.data.notes =
+    self.ui.annotation:getNumberOfHighlightsAndNotes()
   self.id_curr_book = self:getIdBookDB()
   if not self.id_curr_book then
     return
   end
-  self.book_read_pages, self.book_read_time = self:getPageTimeTotalStats(self.id_curr_book)
+  self.book_read_pages, self.book_read_time =
+    self:getPageTimeTotalStats(self.id_curr_book)
   if self.book_read_pages > 0 then
     self.avg_time = self.book_read_time / self.book_read_pages
   else
     -- NOTE: Possibly less weird-looking than initializing this to 0?
     self.avg_time = math.floor(0.50 * self.settings.max_sec)
-    logger.dbg("ReaderStatistics: Initializing average time per page at 50% of the max value, i.e.,", self.avg_time)
+    logger.dbg(
+      "ReaderStatistics: Initializing average time per page at 50% of the max value, i.e.,",
+      self.avg_time
+    )
   end
 end
 
@@ -264,7 +275,9 @@ function ReaderStatistics:onDocumentRerendered()
   local new_pagecount = self.document:getPageCount()
 
   if new_pagecount ~= self.data.pages then
-    logger.dbg("ReaderStatistics: Pagecount change, flushing volatile book statistics")
+    logger.dbg(
+      "ReaderStatistics: Pagecount change, flushing volatile book statistics"
+    )
     -- Flush volatile stats to DB for current book, and update pagecount and average time per page stats
     self:insertDB(new_pagecount)
   end
@@ -325,7 +338,8 @@ function ReaderStatistics:getStatsBookStatus(id_curr_book, stat_enable)
          );
   ]]
   local total_days = conn:rowexec(string.format(sql_stmt, id_curr_book))
-  local total_read_pages, total_time_book = conn:rowexec(string.format(STATISTICS_SQL_BOOK_TOTALS_QUERY, id_curr_book))
+  local total_read_pages, total_time_book =
+    conn:rowexec(string.format(STATISTICS_SQL_BOOK_TOTALS_QUERY, id_curr_book))
   conn:close()
 
   if total_time_book == nil then
@@ -342,7 +356,10 @@ function ReaderStatistics:getStatsBookStatus(id_curr_book, stat_enable)
 end
 
 function ReaderStatistics:checkInitDatabase()
-  local convert_to_db = (lfs.attributes(db_location, "mode") == "file" and lfs.attributes(db_location, "size") > 0)
+  local convert_to_db = (
+    lfs.attributes(db_location, "mode") == "file"
+    and lfs.attributes(db_location, "size") > 0
+  )
   local conn = SQ3.open(db_location)
   if convert_to_db then -- if conversion to sqlite DB has already been done
     if not conn:exec("PRAGMA table_info('book');") then
@@ -378,10 +395,20 @@ Do you want to create an empty database?
     -- Check if we need to migrate to a newer schema
     local db_version = tonumber(conn:rowexec("PRAGMA user_version;"))
     if db_version < DB_SCHEMA_VERSION then
-      logger.info("ReaderStatistics: Migrating DB from schema", db_version, "to schema", DB_SCHEMA_VERSION, "...")
+      logger.info(
+        "ReaderStatistics: Migrating DB from schema",
+        db_version,
+        "to schema",
+        DB_SCHEMA_VERSION,
+        "..."
+      )
       -- Backup the existing DB first
       conn:close()
-      local bkp_db_location = db_location .. ".bkp." .. db_version .. "-to-" .. DB_SCHEMA_VERSION
+      local bkp_db_location = db_location
+        .. ".bkp."
+        .. db_version
+        .. "-to-"
+        .. DB_SCHEMA_VERSION
       -- Don't overwrite an existing backup
       if lfs.attributes(bkp_db_location, "mode") == "file" then
         logger.warn(
@@ -429,11 +456,17 @@ Do you want to create an empty database?
         "instead of",
         DB_SCHEMA_VERSION
       )
-      logger.warn("ReaderStatistics: Expect things to break in fun and interesting ways!")
+      logger.warn(
+        "ReaderStatistics: Expect things to break in fun and interesting ways!"
+      )
 
       -- We can't know what might happen, so, back the DB up...
       conn:close()
-      local bkp_db_location = db_location .. ".bkp." .. db_version .. "-to-" .. DB_SCHEMA_VERSION
+      local bkp_db_location = db_location
+        .. ".bkp."
+        .. db_version
+        .. "-to-"
+        .. DB_SCHEMA_VERSION
       -- Don't overwrite an existing backup
       if lfs.attributes(bkp_db_location, "mode") == "file" then
         logger.warn(
@@ -458,7 +491,13 @@ Do you want to create an empty database?
         local quickstart_path = require("ui/quickstart").quickstart_filename
         __, quickstart_filename = util.splitFilePathName(quickstart_path)
       end
-      if #ReadHistory.hist > 1 or (#ReadHistory.hist == 1 and filename_first_history ~= quickstart_filename) then
+      if
+        #ReadHistory.hist > 1
+        or (
+          #ReadHistory.hist == 1
+          and filename_first_history ~= quickstart_filename
+        )
+      then
         local info = InfoMessage:new({
           text = gettext([[
 New version of statistics plugin detected.
@@ -626,7 +665,8 @@ function ReaderStatistics:upgradeDBto20201022(conn)
 end
 
 function ReaderStatistics:upgradeDBto20221111(conn)
-  conn:exec([[
+  conn:exec(
+    [[
     -- We make the index on book's (title, author, md5) unique in order to sync dbs
     -- First we fill null authors with ''
     UPDATE book SET authors = '' WHERE authors IS NULL;
@@ -654,7 +694,8 @@ function ReaderStatistics:upgradeDBto20221111(conn)
      WHERE  id_book = book.id);
     -- Finally we update the index to be unique
     DROP INDEX IF EXISTS book_title_authors_md5;
-    CREATE UNIQUE INDEX book_title_authors_md5 ON book(title, authors, md5);]])
+    CREATE UNIQUE INDEX book_title_authors_md5 ON book(title, authors, md5);]]
+  )
 
   -- Update DB schema version
   conn:exec("PRAGMA user_version=20221111;")
@@ -681,11 +722,14 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
         AND  md5 = ?;
     ]]
     local stmt = conn:prepare(sql_stmt)
-    local result = stmt:reset():bind(self.data.title, self.data.authors, self.doc_md5):step()
+    local result =
+      stmt:reset():bind(self.data.title, self.data.authors, self.doc_md5):step()
     local nr_id = tonumber(result[1])
     if nr_id == 0 then
       local partial_md5 = util.partialMD5(book_stats.file)
-      stmt = conn:prepare("INSERT INTO book VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);")
+      stmt = conn:prepare(
+        "INSERT INTO book VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+      )
       stmt
         :reset()
         :bind(
@@ -715,7 +759,10 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
           AND  md5 = ?;
       ]]
       stmt = conn:prepare(sql_stmt)
-      result = stmt:reset():bind(self.data.title, self.data.authors, self.doc_md5):step()
+      result = stmt
+        :reset()
+        :bind(self.data.title, self.data.authors, self.doc_md5)
+        :step()
       id_book = result[1]
     end
     local sorted_performance = {}
@@ -730,25 +777,39 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
     if avg_time > self.settings.max_sec then
       avg_time = self.settings.max_sec
     end
-    local first_read_page = book_stats.performance_in_pages[sorted_performance[1]]
+    local first_read_page =
+      book_stats.performance_in_pages[sorted_performance[1]]
     if first_read_page > 1 then
       first_read_page = first_read_page - 1
     end
     local start_open_page = sorted_performance[1]
     --first page
-    stmt:reset():bind(id_book, first_read_page, start_open_page - avg_time, avg_time):step()
+    stmt
+      :reset()
+      :bind(id_book, first_read_page, start_open_page - avg_time, avg_time)
+      :step()
     for i = 2, #sorted_performance do
       start_open_page = sorted_performance[i - 1]
       local diff_time = sorted_performance[i] - sorted_performance[i - 1]
       if diff_time <= self.settings.max_sec then
         stmt
           :reset()
-          :bind(id_book, book_stats.performance_in_pages[sorted_performance[i - 1]], start_open_page, diff_time)
+          :bind(
+            id_book,
+            book_stats.performance_in_pages[sorted_performance[i - 1]],
+            start_open_page,
+            diff_time
+          )
           :step()
       elseif diff_time > self.settings.max_sec then --and diff_time <= 2 * avg_time then
         stmt
           :reset()
-          :bind(id_book, book_stats.performance_in_pages[sorted_performance[i - 1]], start_open_page, avg_time)
+          :bind(
+            id_book,
+            book_stats.performance_in_pages[sorted_performance[i - 1]],
+            start_open_page,
+            avg_time
+          )
           :step()
       end
     end
@@ -765,7 +826,9 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
     --last open book
     last_open_book = sorted_performance[#sorted_performance] + avg_time
     conn:exec("COMMIT;")
-    total_read_pages, total_read_time = conn:rowexec(string.format(STATISTICS_SQL_BOOK_TOTALS_QUERY, tonumber(id_book)))
+    total_read_pages, total_read_time = conn:rowexec(
+      string.format(STATISTICS_SQL_BOOK_TOTALS_QUERY, tonumber(id_book))
+    )
     sql_stmt = [[
       UPDATE book
       SET  last_open = ?,
@@ -774,7 +837,10 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
       WHERE  id = ?;
     ]]
     stmt = conn:prepare(sql_stmt)
-    stmt:reset():bind(last_open_book, total_read_time, total_read_pages, id_book):step()
+    stmt
+      :reset()
+      :bind(last_open_book, total_read_time, total_read_pages, id_book)
+      :step()
     stmt:close()
     return true
   end
@@ -807,7 +873,11 @@ function ReaderStatistics:migrateToDB(conn)
       local path = statistics_dir .. curr_file
       if lfs.attributes(path, "mode") == "file" then
         local old_data = self:importFromFile(statistics_dir, curr_file)
-        if old_data and old_data.total_time > 0 and not exclude_titles[old_data.title] then
+        if
+          old_data
+          and old_data.total_time > 0
+          and not exclude_titles[old_data.title]
+        then
           local book_stats = { performance_in_pages = {} }
           for _, v in pairs(old_data.details) do
             book_stats.performance_in_pages[v.time] = v.page
@@ -869,7 +939,9 @@ function ReaderStatistics:getIdBookDB()
       return
     end
     -- Not in the DB yet, initialize it
-    stmt = conn:prepare("INSERT INTO book VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);")
+    stmt = conn:prepare(
+      "INSERT INTO book VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+    )
     stmt
       :reset()
       :bind(
@@ -929,7 +1001,9 @@ function ReaderStatistics:onBookMetadataChanged(prop_updated)
   elseif metadata_key_updated == "language" then
     updated_field = "language"
     updated_value = doc_props.language or "N/A"
-  elseif metadata_key_updated == "series" or metadata_key_updated == "series_index" then
+  elseif
+    metadata_key_updated == "series" or metadata_key_updated == "series_index"
+  then
     updated_field = "series"
     updated_value = "N/A"
     if doc_props.series then
@@ -940,7 +1014,11 @@ function ReaderStatistics:onBookMetadataChanged(prop_updated)
     end
   else
     -- Updated metadata is one we do not store: nothing to do
-    logger.dbg(log_prefix, "not a metadata we care about:", metadata_key_updated)
+    logger.dbg(
+      log_prefix,
+      "not a metadata we care about:",
+      metadata_key_updated
+    )
     return
   end
 
@@ -1000,7 +1078,10 @@ function ReaderStatistics:onBookMetadataChanged(prop_updated)
     local stmt = conn:prepare(sql_stmt)
     local result = stmt:reset():bind(db_title, db_authors, db_md5):step()
     if not result and db_authors_legacy then
-      logger.dbg(log_prefix, "book not present, trying with fallback empty authors")
+      logger.dbg(
+        log_prefix,
+        "book not present, trying with fallback empty authors"
+      )
       result = stmt:reset():bind(db_title, db_authors_legacy, db_md5):step()
     end
     stmt:close()
@@ -1013,7 +1094,14 @@ function ReaderStatistics:onBookMetadataChanged(prop_updated)
     id_book = tonumber(result[1])
     logger.dbg(log_prefix, "found book id in db:", id_book)
   end
-  logger.info(log_prefix, "updating book", id_book, updated_field, "with:", updated_value)
+  logger.info(
+    log_prefix,
+    "updating book",
+    id_book,
+    updated_field,
+    "with:",
+    updated_value
+  )
 
   local sql_stmt = [[
     UPDATE book
@@ -1059,7 +1147,8 @@ function ReaderStatistics:insertDB(updated_pagecount)
 
   local conn = SQ3.open(db_location)
   conn:exec("BEGIN;")
-  local stmt = conn:prepare("INSERT OR IGNORE INTO page_stat_data VALUES(?, ?, ?, ?, ?);")
+  local stmt =
+    conn:prepare("INSERT OR IGNORE INTO page_stat_data VALUES(?, ?, ?, ?, ?);")
   for page, data_list in pairs(self.page_stat) do
     for _, data_tuple in ipairs(data_list) do
       -- See self.page_stat declaration above about the tuple's layout
@@ -1086,16 +1175,25 @@ function ReaderStatistics:insertDB(updated_pagecount)
     WHERE  id = ?;
   ]]
   stmt = conn:prepare(sql_stmt)
-  stmt:reset():bind(updated_pagecount and updated_pagecount or self.data.pages, id_book):step()
+  stmt
+    :reset()
+    :bind(updated_pagecount and updated_pagecount or self.data.pages, id_book)
+    :step()
 
   -- NOTE: See the tail end of the discussions in #6761 for more context on the choice of this heuristic.
   --     Basically, we're counting distinct pages,
   --     while making sure the sum of durations per distinct page is clamped to self.settings.max_sec
   --     This is expressly tailored to a fairer computation of self.avg_time ;).
-  local book_read_pages, book_read_time =
-    conn:rowexec(string.format(STATISTICS_SQL_BOOK_CAPPED_TOTALS_QUERY, self.settings.max_sec, id_book))
+  local book_read_pages, book_read_time = conn:rowexec(
+    string.format(
+      STATISTICS_SQL_BOOK_CAPPED_TOTALS_QUERY,
+      self.settings.max_sec,
+      id_book
+    )
+  )
   -- NOTE: What we cache in the book table is the plain uncapped sum (mainly for deleteBooksByTotalDuration's benefit)...
-  local total_read_pages, total_read_time = conn:rowexec(string.format(STATISTICS_SQL_BOOK_TOTALS_QUERY, id_book))
+  local total_read_pages, total_read_time =
+    conn:rowexec(string.format(STATISTICS_SQL_BOOK_TOTALS_QUERY, id_book))
 
   -- And now update the rest of the book table...
   sql_stmt = [[
@@ -1108,7 +1206,17 @@ function ReaderStatistics:insertDB(updated_pagecount)
     WHERE  id = ?;
   ]]
   stmt = conn:prepare(sql_stmt)
-  stmt:reset():bind(now_ts, self.data.notes, self.data.highlights, total_read_time, total_read_pages, id_book):step()
+  stmt
+    :reset()
+    :bind(
+      now_ts,
+      self.data.notes,
+      self.data.highlights,
+      total_read_time,
+      total_read_pages,
+      id_book
+    )
+    :step()
   stmt:close()
   conn:close()
 
@@ -1134,8 +1242,13 @@ function ReaderStatistics:getPageTimeTotalStats(id_book)
   end
   local conn = SQ3.open(db_location)
   -- NOTE: Similarly, this one is used for time-based estimates and averages, so, use the capped variant
-  local total_pages, total_time =
-    conn:rowexec(string.format(STATISTICS_SQL_BOOK_CAPPED_TOTALS_QUERY, self.settings.max_sec, id_book))
+  local total_pages, total_time = conn:rowexec(
+    string.format(
+      STATISTICS_SQL_BOOK_CAPPED_TOTALS_QUERY,
+      self.settings.max_sec,
+      id_book
+    )
+  )
   conn:close()
 
   if total_pages then
@@ -1167,7 +1280,10 @@ function ReaderStatistics:onToggleStatistics(no_notification)
   end
   if not no_notification then
     local Notification = require("ui/widget/notification")
-    Notification:notify(self.settings.is_enabled and gettext("Statistics enabled") or gettext("Statistics disabled"))
+    Notification:notify(
+      self.settings.is_enabled and gettext("Statistics enabled")
+        or gettext("Statistics disabled")
+    )
   end
 end
 
@@ -1239,7 +1355,8 @@ The max value ensures a page you stay on for a long time (because you fell aslee
               return self.settings.freeze_finished_books
             end,
             callback = function()
-              self.settings.freeze_finished_books = not self.settings.freeze_finished_books
+              self.settings.freeze_finished_books =
+                not self.settings.freeze_finished_books
               self:_updateFrozen()
             end,
             separator = true,
@@ -1292,7 +1409,10 @@ The max value ensures a page you stay on for a long time (because you fell aslee
           },
           {
             text_func = function()
-              return T(gettext("Books per calendar day: %1"), self.settings.calendar_nb_book_spans)
+              return T(
+                gettext("Books per calendar day: %1"),
+                self.settings.calendar_nb_book_spans
+              )
             end,
             callback = function(touchmenu_instance)
               local SpinWidget = require("ui/widget/spinwidget")
@@ -1303,7 +1423,9 @@ The max value ensures a page you stay on for a long time (because you fell aslee
                 default_value = DEFAULT_CALENDAR_NB_BOOK_SPANS,
                 ok_text = gettext("Set"),
                 title_text = gettext("Books per calendar day"),
-                info_text = gettext("Set the max number of book spans to show for a day"),
+                info_text = gettext(
+                  "Set the max number of book spans to show for a day"
+                ),
                 callback = function(spin)
                   self.settings.calendar_nb_book_spans = spin.value
                   touchmenu_instance:updateItems()
@@ -1318,7 +1440,8 @@ The max value ensures a page you stay on for a long time (because you fell aslee
               return self.settings.calendar_show_histogram
             end,
             callback = function()
-              self.settings.calendar_show_histogram = not self.settings.calendar_show_histogram
+              self.settings.calendar_show_histogram =
+                not self.settings.calendar_show_histogram
             end,
           },
           {
@@ -1327,7 +1450,8 @@ The max value ensures a page you stay on for a long time (because you fell aslee
               return self.settings.calendar_browse_future_months
             end,
             callback = function()
-              self.settings.calendar_browse_future_months = not self.settings.calendar_browse_future_months
+              self.settings.calendar_browse_future_months =
+                not self.settings.calendar_browse_future_months
             end,
             separator = true,
           },
@@ -1375,7 +1499,8 @@ Time is in hours and minutes.]]),
               return self.settings.calendar_use_day_time_shift
             end,
             callback = function()
-              self.settings.calendar_use_day_time_shift = not self.settings.calendar_use_day_time_shift
+              self.settings.calendar_use_day_time_shift =
+                not self.settings.calendar_use_day_time_shift
             end,
             separator = true,
           },
@@ -1389,7 +1514,14 @@ Time is in hours and minutes.]]),
                   UIManager:close(this)
                 end
                 sync_settings.onConfirm = function(sv)
-                  if server and (server.type ~= sv.type or server.url ~= sv.url or server.address ~= sv.address) then
+                  if
+                    server
+                    and (
+                      server.type ~= sv.type
+                      or server.url ~= sv.url
+                      or server.address ~= sv.address
+                    )
+                  then
                     SyncService.removeLastSyncDB(db_location)
                   end
                   self.settings.sync_server = sv
@@ -1434,7 +1566,8 @@ Time is in hours and minutes.]]),
                   UIManager:close(dialogue)
                 end,
               }
-              local type = server.type == "dropbox" and " (DropBox)" or " (WebDAV)"
+              local type = server.type == "dropbox" and " (DropBox)"
+                or " (WebDAV)"
               dialogue = ButtonDialog:new({
                 title = T(
                   gettext(
@@ -1500,7 +1633,9 @@ Time is in hours and minutes.]]),
             }))
           else
             UIManager:show(InfoMessage:new({
-              text = gettext("Reading progress is not available.\nThere is no data for the last week."),
+              text = gettext(
+                "Reading progress is not available.\nThere is no data for the last week."
+              ),
             }))
           end
         end,
@@ -1726,7 +1861,8 @@ function ReaderStatistics:getTodayBookStats()
            GROUP  BY id_book, page
         );
   ]]
-  local today_pages, today_duration = conn:rowexec(string.format(sql_stmt, start_today_time))
+  local today_pages, today_duration =
+    conn:rowexec(string.format(sql_stmt, start_today_time))
   conn:close()
 
   if today_pages == nil then
@@ -1752,7 +1888,8 @@ function ReaderStatistics:getCurrentBookStats()
           GROUP  BY id_book, page
          );
   ]]
-  local current_pages, current_duration = conn:rowexec(string.format(sql_stmt, self.start_current_period))
+  local current_pages, current_duration =
+    conn:rowexec(string.format(sql_stmt, self.start_current_period))
   conn:close()
 
   if current_pages == nil then
@@ -1773,7 +1910,9 @@ function ReaderStatistics:getCurrentStat()
   local current_duration, current_pages = self:getCurrentBookStats()
 
   local conn = SQ3.open(db_location)
-  local highlights, notes = conn:rowexec(string.format("SELECT highlights, notes FROM book WHERE id = %d;", id_book))
+  local highlights, notes = conn:rowexec(
+    string.format("SELECT highlights, notes FROM book WHERE id = %d;", id_book)
+  )
   local sql_stmt = [[
     SELECT count(*)
     FROM   (
@@ -1793,7 +1932,8 @@ function ReaderStatistics:getCurrentStat()
     FROM   page_stat
     WHERE  id_book = %d;
   ]]
-  local total_time_book, total_read_pages, first_open = conn:rowexec(string.format(sql_stmt, id_book))
+  local total_time_book, total_read_pages, first_open =
+    conn:rowexec(string.format(sql_stmt, id_book))
   conn:close()
 
   -- NOTE: But, as the "Average time per page" entry is already re-using self.avg_time,
@@ -1825,28 +1965,55 @@ function ReaderStatistics:getCurrentStat()
     total_pages = self.document:getTotalPagesInFlow(flow)
     percent_read = Math.round(100 * current_page / total_pages)
     if flow == 0 then
-      page_progress_string = ("%d // %d (%d%%)"):format(current_page, total_pages, percent_read)
+      page_progress_string = ("%d // %d (%d%%)"):format(
+        current_page,
+        total_pages,
+        percent_read
+      )
     else
-      page_progress_string = ("[%d / %d]%d (%d%%)"):format(current_page, total_pages, flow, percent_read)
+      page_progress_string = ("[%d / %d]%d (%d%%)"):format(
+        current_page,
+        total_pages,
+        flow,
+        percent_read
+      )
     end
   else
     current_page = self.ui:getCurrentPage()
     total_pages = self.data.pages
     percent_read = Math.round(100 * current_page / total_pages)
-    page_progress_string = ("%d / %d (%d%%)"):format(current_page, total_pages, percent_read)
+    page_progress_string = ("%d / %d (%d%%)"):format(
+      current_page,
+      total_pages,
+      percent_read
+    )
   end
 
   local first_open_days_ago = math.floor(tonumber(now_ts - first_open) / 86400)
-  local time_to_read = current_page and ((total_pages - current_page) * self.avg_time) or 0
-  local estimate_days_to_read = math.ceil(time_to_read / (book_read_time / tonumber(total_days)))
-  local estimate_end_of_read_date = datetime.secondsToDate(tonumber(now_ts + estimate_days_to_read * 86400), true)
+  local time_to_read = current_page
+      and ((total_pages - current_page) * self.avg_time)
+    or 0
+  local estimate_days_to_read =
+    math.ceil(time_to_read / (book_read_time / tonumber(total_days)))
+  local estimate_end_of_read_date = datetime.secondsToDate(
+    tonumber(now_ts + estimate_days_to_read * 86400),
+    true
+  )
   local estimates_valid = time_to_read > 0 -- above values could be 'nan' and 'nil'
   local user_duration_format = G_named_settings.duration_format()
-  local avg_page_time_string = datetime.secondsToClockDuration(user_duration_format, self.avg_time, false)
-  local avg_day_time_string =
-    datetime.secondsToClockDuration(user_duration_format, book_read_time / tonumber(total_days), false)
+  local avg_page_time_string =
+    datetime.secondsToClockDuration(user_duration_format, self.avg_time, false)
+  local avg_day_time_string = datetime.secondsToClockDuration(
+    user_duration_format,
+    book_read_time / tonumber(total_days),
+    false
+  )
   local time_to_read_string = estimates_valid
-      and datetime.secondsToClockDuration(user_duration_format, time_to_read, false)
+      and datetime.secondsToClockDuration(
+        user_duration_format,
+        time_to_read,
+        false
+      )
     or gettext("N/A")
 
   -- Use more_arrow to indicate that an option shows another view
@@ -1856,13 +2023,19 @@ function ReaderStatistics:getCurrentStat()
   local estimated_popup = function()
     UIManager:show(InfoMessage:new({
       text = T(
-        N_("There is 1 page (%2%) left to read.", "There are %1 pages (%2%) left to read.", total_pages - current_page),
+        N_(
+          "There is 1 page (%2%) left to read.",
+          "There are %1 pages (%2%) left to read.",
+          total_pages - current_page
+        ),
         total_pages - current_page,
         100 - percent_read
       )
         .. "\n\n"
         .. T(
-          gettext("At the current rate of %1 per page, that will take %2 of reading time."),
+          gettext(
+            "At the current rate of %1 per page, that will take %2 of reading time."
+          ),
           avg_page_time_string,
           time_to_read_string
         )
@@ -1890,15 +2063,18 @@ function ReaderStatistics:getCurrentStat()
     }
     estimated_finish_date = {
       gettext("Estimated finish date") .. " ⓘ",
-      estimates_valid and T(
-        N_("(in 1 day) %2", "(in %1 days) %2", estimate_days_to_read),
-        estimate_days_to_read,
-        estimate_end_of_read_date
-      ) or gettext("N/A"),
+      estimates_valid
+          and T(
+            N_("(in 1 day) %2", "(in %1 days) %2", estimate_days_to_read),
+            estimate_days_to_read,
+            estimate_end_of_read_date
+          )
+        or gettext("N/A"),
       callback = estimated_popup,
     }
   else
-    estimated_time_left = { gettext("Estimated reading time left"), gettext("finished") }
+    estimated_time_left =
+      { gettext("Estimated reading time left"), gettext("finished") }
     local mark_date = self.ui.doc_settings:readTableRef("summary").modified
     estimated_finish_date = {
       gettext("Book marked as finished"),
@@ -1914,14 +2090,26 @@ function ReaderStatistics:getCurrentStat()
     -- Since last resume
     {
       gettext("Time spent reading this session"),
-      datetime.secondsToClockDuration(user_duration_format, current_duration, false),
+      datetime.secondsToClockDuration(
+        user_duration_format,
+        current_duration,
+        false
+      ),
     },
-    { gettext("Pages read this session"), tonumber(current_pages), separator = true },
+    {
+      gettext("Pages read this session"),
+      tonumber(current_pages),
+      separator = true,
+    },
 
     -- Today
     {
       gettext("Time spent reading today") .. " " .. more_arrow,
-      datetime.secondsToClockDuration(user_duration_format, today_duration, false),
+      datetime.secondsToClockDuration(
+        user_duration_format,
+        today_duration,
+        false
+      ),
       callback = function()
         local CalendarView = require("calendarview")
         local title_callback = function(this)
@@ -1937,12 +2125,20 @@ function ReaderStatistics:getCurrentStat()
     -- Time-focused book stats
     {
       gettext("Total time spent on this book"),
-      datetime.secondsToClockDuration(user_duration_format, total_time_book, false),
+      datetime.secondsToClockDuration(
+        user_duration_format,
+        total_time_book,
+        false
+      ),
     },
     -- capped to self.settings.max_sec per distinct page
     {
       gettext("Time spent reading"),
-      datetime.secondsToClockDuration(user_duration_format, book_read_time, false),
+      datetime.secondsToClockDuration(
+        user_duration_format,
+        book_read_time,
+        false
+      ),
     },
     -- estimation, from current page to end of book
     estimated_time_left,
@@ -1986,9 +2182,17 @@ function ReaderStatistics:getCurrentStat()
     { gettext("Current page/Total pages"), page_progress_string },
     {
       gettext("Pages read"),
-      string.format("%d (%d%%)", total_read_pages, Math.round(100 * total_read_pages / self.data.pages)),
+      string.format(
+        "%d (%d%%)",
+        total_read_pages,
+        Math.round(100 * total_read_pages / self.data.pages)
+      ),
     },
-    { gettext("Average time per page"), avg_page_time_string, separator = true },
+    {
+      gettext("Average time per page"),
+      avg_page_time_string,
+      separator = true,
+    },
 
     -- Highlights and notes
     { gettext("Book highlights"), tonumber(highlights) },
@@ -2006,7 +2210,8 @@ function ReaderStatistics:getBookStat(id_book)
     FROM book
     WHERE id = %d;
   ]]
-  local title, authors, pages, last_open, highlights, notes = conn:rowexec(string.format(sql_stmt, id_book))
+  local title, authors, pages, last_open, highlights, notes =
+    conn:rowexec(string.format(sql_stmt, id_book))
 
   -- Due to some bug, some books opened around April 2020 might
   -- have notes and highlight NULL in the DB.
@@ -2038,7 +2243,8 @@ function ReaderStatistics:getBookStat(id_book)
     FROM   page_stat
     WHERE  id_book = %d;
   ]]
-  local total_time_book, total_read_pages, first_open, last_page = conn:rowexec(string.format(sql_stmt, id_book))
+  local total_time_book, total_read_pages, first_open, last_page =
+    conn:rowexec(string.format(sql_stmt, id_book))
   conn:close()
 
   local book_read_pages, book_read_time = self:getPageTimeTotalStats(id_book)
@@ -2076,11 +2282,19 @@ function ReaderStatistics:getBookStat(id_book)
     -- Time-focused book stats
     {
       gettext("Total time spent on this book"),
-      datetime.secondsToClockDuration(user_duration_format, total_time_book, false),
+      datetime.secondsToClockDuration(
+        user_duration_format,
+        total_time_book,
+        false
+      ),
     },
     {
       gettext("Time spent reading"),
-      datetime.secondsToClockDuration(user_duration_format, book_read_time, false),
+      datetime.secondsToClockDuration(
+        user_duration_format,
+        book_read_time,
+        false
+      ),
       separator = true,
     },
 
@@ -2108,7 +2322,11 @@ function ReaderStatistics:getBookStat(id_book)
     },
     {
       gettext("Average time per day"),
-      datetime.secondsToClockDuration(user_duration_format, book_read_time / tonumber(total_days), false),
+      datetime.secondsToClockDuration(
+        user_duration_format,
+        book_read_time / tonumber(total_days),
+        false
+      ),
       separator = true,
     },
 
@@ -2134,15 +2352,28 @@ function ReaderStatistics:getBookStat(id_book)
     -- Page-focused book stats
     {
       gettext("Last read page/Total pages"),
-      string.format("%d / %d (%d%%)", last_page, pages, Math.round(100 * last_page / pages)),
+      string.format(
+        "%d / %d (%d%%)",
+        last_page,
+        pages,
+        Math.round(100 * last_page / pages)
+      ),
     },
     {
       gettext("Pages read"),
-      string.format("%d (%d%%)", total_read_pages, Math.round(100 * total_read_pages / pages)),
+      string.format(
+        "%d (%d%%)",
+        total_read_pages,
+        Math.round(100 * total_read_pages / pages)
+      ),
     },
     {
       gettext("Average time per page"),
-      datetime.secondsToClockDuration(user_duration_format, avg_time_per_page, false),
+      datetime.secondsToClockDuration(
+        user_duration_format,
+        avg_time_per_page,
+        false
+      ),
       separator = true,
     },
 
@@ -2338,9 +2569,14 @@ function ReaderStatistics:getDatesFromAll(sdays, ptype, book_mode)
     elseif ptype == "daily" then
       date_text = result_book[1][i]
     elseif ptype == "weekly" then
-      date_text = T(gettext("%1 Week %2"), os.date("%Y", timestamp), os.date(" %W", timestamp))
+      date_text = T(
+        gettext("%1 Week %2"),
+        os.date("%Y", timestamp),
+        os.date(" %W", timestamp)
+      )
     elseif ptype == "monthly" then
-      date_text = datetime.longMonthTranslation[os.date("%B", timestamp)] .. os.date(" %Y", timestamp)
+      date_text = datetime.longMonthTranslation[os.date("%B", timestamp)]
+        .. os.date(" %Y", timestamp)
     else
       date_text = result_book[1][i]
     end
@@ -2374,7 +2610,11 @@ function ReaderStatistics:getDatesFromAll(sdays, ptype, book_mode)
         date_text,
         T(
           N_("%1 (1 page)", "%1 (%2 pages)", tonumber(result_book[2][i])),
-          datetime.secondsToClockDuration(user_duration_format, tonumber(result_book[3][i]), false),
+          datetime.secondsToClockDuration(
+            user_duration_format,
+            tonumber(result_book[3][i]),
+            false
+          ),
           tonumber(result_book[2][i])
         ),
         callback = function()
@@ -2398,11 +2638,20 @@ function ReaderStatistics:getDatesFromAll(sdays, ptype, book_mode)
         date_text,
         T(
           N_("%1 (1 page)", "%1 (%2 pages)", tonumber(result_book[2][i])),
-          datetime.secondsToClockDuration(user_duration_format, tonumber(result_book[3][i]), false),
+          datetime.secondsToClockDuration(
+            user_duration_format,
+            tonumber(result_book[3][i]),
+            false
+          ),
           tonumber(result_book[2][i])
         ),
         callback = function()
-          self:callbackWeekly(begin_week, begin_week + 7 * 86400, date_text, book_mode)
+          self:callbackWeekly(
+            begin_week,
+            begin_week + 7 * 86400,
+            date_text,
+            book_mode
+          )
         end,
       })
     else
@@ -2415,7 +2664,11 @@ function ReaderStatistics:getDatesFromAll(sdays, ptype, book_mode)
         date_text,
         T(
           N_("%1 (1 page)", "%1 (%2 pages)", tonumber(result_book[2][i])),
-          datetime.secondsToClockDuration(user_duration_format, tonumber(result_book[3][i]), false),
+          datetime.secondsToClockDuration(
+            user_duration_format,
+            tonumber(result_book[3][i]),
+            false
+          ),
           tonumber(result_book[2][i])
         ),
         callback = function()
@@ -2446,7 +2699,8 @@ function ReaderStatistics:getDaysFromPeriod(period_begin, period_end)
     ORDER  BY dates DESC;
   ]]
   local conn = SQ3.open(db_location)
-  local result_book = conn:exec(string.format(sql_stmt_res_book, period_begin, period_end - 1))
+  local result_book =
+    conn:exec(string.format(sql_stmt_res_book, period_begin, period_end - 1))
   conn:close()
 
   if result_book == nil then
@@ -2466,7 +2720,11 @@ function ReaderStatistics:getDaysFromPeriod(period_begin, period_end)
       result_book[1][i],
       T(
         N_("%1 (1 page)", "%1 (%2 pages)", tonumber(result_book[2][i])),
-        datetime.secondsToClockDuration(user_duration_format, tonumber(result_book[3][i]), false),
+        datetime.secondsToClockDuration(
+          user_duration_format,
+          tonumber(result_book[3][i]),
+          false
+        ),
         tonumber(result_book[2][i])
       ),
       callback = function()
@@ -2491,7 +2749,11 @@ function ReaderStatistics:getDaysFromPeriod(period_begin, period_end)
   return results
 end
 
-function ReaderStatistics:getBooksFromPeriod(period_begin, period_end, callback_shows_days)
+function ReaderStatistics:getBooksFromPeriod(
+  period_begin,
+  period_end,
+  callback_shows_days
+)
   local results = {}
   local sql_stmt_res_book = [[
     SELECT  book_tbl.title AS title,
@@ -2504,7 +2766,8 @@ function ReaderStatistics:getBooksFromPeriod(period_begin, period_end, callback_
     ORDER   BY book_tbl.last_open DESC;
   ]]
   local conn = SQ3.open(db_location)
-  local result_book = conn:exec(string.format(sql_stmt_res_book, period_begin + 1, period_end))
+  local result_book =
+    conn:exec(string.format(sql_stmt_res_book, period_begin + 1, period_end))
   conn:close()
 
   if result_book == nil then
@@ -2516,7 +2779,11 @@ function ReaderStatistics:getBooksFromPeriod(period_begin, period_end, callback_
       result_book[1][i],
       T(
         N_("%1 (1 page)", "%1 (%2 pages)", tonumber(result_book[2][i])),
-        datetime.secondsToClockDuration(user_duration_format, tonumber(result_book[3][i]), false),
+        datetime.secondsToClockDuration(
+          user_duration_format,
+          tonumber(result_book[3][i]),
+          false
+        ),
         tonumber(result_book[2][i])
       ),
       duration = tonumber(result_book[3][i]),
@@ -2554,9 +2821,15 @@ function ReaderStatistics:getBooksFromPeriod(period_begin, period_end, callback_
         UIManager:show(self.kv)
       end,
       hold_callback = function(kv_page, kv_item)
-        self:resetStatsForBookForPeriod(result_book[4][i], period_begin, period_end, false, function()
-          kv_page:removeKeyValueItem(kv_item) -- Reset, refresh what's displayed
-        end)
+        self:resetStatsForBookForPeriod(
+          result_book[4][i],
+          period_begin,
+          period_end,
+          false,
+          function()
+            kv_page:removeKeyValueItem(kv_item) -- Reset, refresh what's displayed
+          end
+        )
       end,
     })
   end
@@ -2638,13 +2911,23 @@ function ReaderStatistics:getDatesForBook(id_book)
       result_book[1][i],
       T(
         N_("%1 (1 page)", "%1 (%2 pages)", tonumber(result_book[2][i])),
-        datetime.secondsToClockDuration(user_duration_format, tonumber(result_book[3][i]), false),
+        datetime.secondsToClockDuration(
+          user_duration_format,
+          tonumber(result_book[3][i]),
+          false
+        ),
         tonumber(result_book[2][i])
       ),
       hold_callback = function(kv_page, kv_item)
-        self:resetStatsForBookForPeriod(id_book, result_book[4][i], result_book[5][i], result_book[1][i], function()
-          kv_page:removeKeyValueItem(kv_item) -- Reset, refresh what's displayed
-        end)
+        self:resetStatsForBookForPeriod(
+          id_book,
+          result_book[4][i],
+          result_book[5][i],
+          result_book[1][i],
+          function()
+            kv_page:removeKeyValueItem(kv_item) -- Reset, refresh what's displayed
+          end
+        )
       end,
     })
   end
@@ -2663,7 +2946,10 @@ function ReaderStatistics:resetStatsForBookForPeriod(
   if day_str then
     -- From getDatesForBook(): we are showing a list of days, with book title at top title:
     -- show the day string to confirm the long-press was on the right day
-    confirm_text = T(gettext("Do you want to reset statistics for day %1 for this book?"), day_str)
+    confirm_text = T(
+      gettext("Do you want to reset statistics for day %1 for this book?"),
+      day_str
+    )
     confirm_button_text = C_("Reset statistics for day for book", "Reset")
   else
     -- From getBooksFromPeriod(): we are showing a list of books, with the period as top title:
@@ -2676,7 +2962,10 @@ function ReaderStatistics:resetStatsForBookForPeriod(
     ]]
     local book_title = conn:rowexec(string.format(sql_stmt, id_book))
     conn:close()
-    confirm_text = T(gettext("Do you want to reset statistics for this period for book:\n%1"), book_title)
+    confirm_text = T(
+      gettext("Do you want to reset statistics for this period for book:\n%1"),
+      book_title
+    )
     confirm_button_text = C_("Reset statistics for period for book", "Reset")
   end
   UIManager:show(ConfirmBox:new({
@@ -2748,7 +3037,11 @@ function ReaderStatistics:getTotalStats()
     end
     table.insert(total_stats, {
       book_title,
-      datetime.secondsToClockDuration(user_duration_format, total_time_book, false),
+      datetime.secondsToClockDuration(
+        user_duration_format,
+        total_time_book,
+        false
+      ),
       callback = function()
         local kv = self.kv
         UIManager:close(self.kv)
@@ -2773,7 +3066,11 @@ function ReaderStatistics:getTotalStats()
 
   return T(
     gettext("Total time spent reading: %1"),
-    datetime.secondsToClockDuration(user_duration_format, total_books_time, false)
+    datetime.secondsToClockDuration(
+      user_duration_format,
+      total_books_time,
+      false
+    )
   ),
     total_stats
 end
@@ -2801,8 +3098,14 @@ function ReaderStatistics:genResetBookSubItemTable()
   })
   local reset_minutes = { 1, 5, 15, 30, 60 }
   for _, minutes in ipairs(reset_minutes) do
-    local text =
-      T(N_("Reset stats for books read for < 1 m", "Reset stats for books read for < %1 m", minutes), minutes)
+    local text = T(
+      N_(
+        "Reset stats for books read for < 1 m",
+        "Reset stats for books read for < %1 m",
+        minutes
+      ),
+      minutes
+    )
     table.insert(sub_item_table, {
       text = text,
       keep_menu_open = true,
@@ -2856,11 +3159,18 @@ function ReaderStatistics:resetPerBook()
     if id_book ~= self.id_curr_book then
       table.insert(total_stats, {
         book_title,
-        datetime.secondsToClockDuration(user_duration_format, total_time_book, false),
+        datetime.secondsToClockDuration(
+          user_duration_format,
+          total_time_book,
+          false
+        ),
         id_book,
         callback = function(kv_page, kv_item)
           UIManager:show(ConfirmBox:new({
-            text = T(gettext("Do you want to reset statistics for book:\n%1"), book_title),
+            text = T(
+              gettext("Do you want to reset statistics for book:\n%1"),
+              book_title
+            ),
             cancel_text = gettext("Cancel"),
             cancel_callback = function()
               return
@@ -2899,7 +3209,10 @@ function ReaderStatistics:resetCurrentBook()
   conn:close()
 
   UIManager:show(ConfirmBox:new({
-    text = T(gettext("Do you want to reset statistics for book:\n%1"), book_title),
+    text = T(
+      gettext("Do you want to reset statistics for book:\n%1"),
+      book_title
+    ),
     cancel_text = gettext("Cancel"),
     cancel_callback = function()
       return
@@ -2912,7 +3225,10 @@ function ReaderStatistics:resetCurrentBook()
       self.book_read_pages = 0
       self.book_read_time = 0
       self.avg_time = math.floor(0.50 * self.settings.max_sec)
-      logger.dbg("ReaderStatistics: Initializing average time per page at 50% of the max value, i.e.,", self.avg_time)
+      logger.dbg(
+        "ReaderStatistics: Initializing average time per page at 50% of the max value, i.e.,",
+        self.avg_time
+      )
 
       -- And the current volatile stats
       self:resetVolatileStats(os.time())
@@ -2990,9 +3306,14 @@ function ReaderStatistics:deleteBooksByTotalDuration(max_total_duration_mn)
       end
       conn:close()
       UIManager:show(InfoMessage:new({
-        text = nb_deleted > 0
-            and T(N_("Statistics for 1 book removed.", "Statistics for %1 books removed.", nb_deleted), nb_deleted)
-          or T(gettext("No statistics removed.")),
+        text = nb_deleted > 0 and T(
+          N_(
+            "Statistics for 1 book removed.",
+            "Statistics for %1 books removed.",
+            nb_deleted
+          ),
+          nb_deleted
+        ) or T(gettext("No statistics removed.")),
       }))
     end,
   }))
@@ -3038,7 +3359,10 @@ function ReaderStatistics:onPageUpdate(pageno)
   local then_ts = data_tuple and data_tuple[1]
   -- If we don't have a previous timestamp to compare to, abort early
   if not then_ts then
-    logger.dbg("ReaderStatistics: No timestamp for previous page", self.curr_page)
+    logger.dbg(
+      "ReaderStatistics: No timestamp for previous page",
+      self.curr_page
+    )
     self.page_stat[pageno] = { { now_ts, 0 } }
     self.curr_page = pageno
     return
@@ -3049,7 +3373,9 @@ function ReaderStatistics:onPageUpdate(pageno)
   -- NOTE: If all goes well, given the earlier curr_page != pageno check, curr_duration should always be 0 here.
   -- Compute the difference between now and the previous page's last timestamp
   local diff_time = now_ts - then_ts
-  if diff_time >= self.settings.min_sec and diff_time <= self.settings.max_sec then
+  if
+    diff_time >= self.settings.min_sec and diff_time <= self.settings.max_sec
+  then
     self.mem_read_time = self.mem_read_time + diff_time
     -- If it's the first time we're computing a duration for this page, count it as read
     if #page_data == 1 and curr_duration == 0 then
@@ -3086,7 +3412,8 @@ function ReaderStatistics:onPageUpdate(pageno)
   --     (i.e., the same page may be counted as read both in total and in mem, inflating the pagecount).
   --     Only insertDB will actually check that the count (and as such average time) is actually accurate.
   if self.book_read_pages > 0 or self.mem_read_pages > 0 then
-    self.avg_time = (self.book_read_time + self.mem_read_time) / (self.book_read_pages + self.mem_read_pages)
+    self.avg_time = (self.book_read_time + self.mem_read_time)
+      / (self.book_read_pages + self.mem_read_pages)
   end
 
   -- We're done, update the current page tracker
@@ -3124,7 +3451,8 @@ end
 function ReaderStatistics:onAnnotationsModified(annotations)
   if self.settings.is_enabled then
     if annotations.nb_highlights_added then
-      self.data.highlights = self.data.highlights + annotations.nb_highlights_added
+      self.data.highlights = self.data.highlights
+        + annotations.nb_highlights_added
     end
     if annotations.nb_notes_added then
       self.data.notes = self.data.notes + annotations.nb_notes_added
@@ -3167,7 +3495,10 @@ function ReaderStatistics:onReadingResumed()
       if data_tuple then
         data_tuple[1] = data_tuple[1] + pause_duration
       end
-      if self._reading_paused_curr_page and self._reading_paused_curr_page ~= self.curr_page then
+      if
+        self._reading_paused_curr_page
+        and self._reading_paused_curr_page ~= self.curr_page
+      then
         self._reading_paused_ts = nil
         self:onPageUpdate(self._reading_paused_curr_page)
         self._reading_paused_curr_page = nil
@@ -3230,7 +3561,8 @@ function ReaderStatistics:getReadingRatioPerHourByDay(month)
   -- month; we need the start of the month to be a real date:
   month = month .. "-01"
   local offset = not self.settings.calendar_use_day_time_shift and 0
-    or (self.settings.calendar_day_start_hour or 0) * 3600 + (self.settings.calendar_day_start_minute or 0) * 60
+    or (self.settings.calendar_day_start_hour or 0) * 3600
+      + (self.settings.calendar_day_start_minute or 0) * 60
   local sql_stmt = [[
     SELECT
       strftime('%Y-%m-%d', start_time, 'unixepoch', 'localtime') day,
@@ -3269,7 +3601,8 @@ end
 function ReaderStatistics:getReadBookByDay(month)
   month = month .. "-01"
   local offset = not self.settings.calendar_use_day_time_shift and 0
-    or (self.settings.calendar_day_start_hour or 0) * 3600 + (self.settings.calendar_day_start_minute or 0) * 60
+    or (self.settings.calendar_day_start_hour or 0) * 3600
+      + (self.settings.calendar_day_start_minute or 0) * 60
   local sql_stmt = [[
     SELECT
       strftime('%Y-%m-%d', start_time, 'unixepoch', 'localtime') day,
@@ -3298,11 +3631,15 @@ function ReaderStatistics:getReadBookByDay(month)
   for i = 1, nb do
     -- (We don't care about the duration, we just needed it
     -- to have the books in decreasing duration order)
-    local day, duration, book_id, book_title = res[1][i], res[2][i], res[3][i], res[4][i] -- luacheck: no unused
+    local day, duration, book_id, book_title =
+      res[1][i], res[2][i], res[3][i], res[4][i] -- luacheck: no unused
     if not per_day[day] then
       per_day[day] = {}
     end
-    table.insert(per_day[day], { id = tonumber(book_id), title = tostring(book_title) })
+    table.insert(
+      per_day[day],
+      { id = tonumber(book_id), title = tostring(book_title) }
+    )
   end
   return per_day
 end
@@ -3323,8 +3660,15 @@ function ReaderStatistics:getReadingDurationBySecond(ts)
   ]]
   local conn = SQ3.open(db_location)
   local stmt = conn:prepare(sql_stmt)
-  local res, nb =
-    stmt:reset():bind(ts, ts, ts - self.settings.max_sec - ignorable_gap, ts + 86400 - 1 + ignorable_gap):resultset("i")
+  local res, nb = stmt
+    :reset()
+    :bind(
+      ts,
+      ts,
+      ts - self.settings.max_sec - ignorable_gap,
+      ts + 86400 - 1 + ignorable_gap
+    )
+    :resultset("i")
   stmt:close()
   conn:close()
   local per_book = {}
@@ -3333,7 +3677,10 @@ function ReaderStatistics:getReadingDurationBySecond(ts)
   local done = false
   for i = 1, nb do
     local start, finish, book_id, book_title =
-      tonumber(res[1][i]), tonumber(res[2][i]), tonumber(res[3][i]), tostring(res[4][i])
+      tonumber(res[1][i]),
+      tonumber(res[2][i]),
+      tonumber(res[3][i]),
+      tostring(res[4][i])
     -- This is a bit complex as we want to ensure a page read span continuation
     -- from/to previous/next day if the gap is low enough
     if start >= 0 or finish >= 0 then
@@ -3354,7 +3701,10 @@ function ReaderStatistics:getReadingDurationBySecond(ts)
           }
         end
         local periods = per_book[book_id].periods
-        if book_id == last_book_id and start - last_book_finish <= ignorable_gap then
+        if
+          book_id == last_book_id
+          and start - last_book_finish <= ignorable_gap
+        then
           -- Same book as previous span, no or small gap: previous span/period can be continued
           if #periods > 0 then
             periods[#periods].finish = finish -- extend previous span
@@ -3369,7 +3719,10 @@ function ReaderStatistics:getReadingDurationBySecond(ts)
         end
       else
         -- Page started the next day
-        if book_id == last_book_id and start - last_book_finish <= ignorable_gap then
+        if
+          book_id == last_book_id
+          and start - last_book_finish <= ignorable_gap
+        then
           -- Same book as current day's last span, no or small gap: current day's last
           -- span can be continued: extend it (if it exists) to the end of current day
           if per_book[book_id] then
@@ -3447,7 +3800,8 @@ function ReaderStatistics:getCurrentBookReadPages()
   ]]
   local conn = SQ3.open(db_location)
   local stmt = conn:prepare(sql_stmt)
-  local res, nb = stmt:reset():bind(self.settings.max_sec, self.id_curr_book):resultset("i")
+  local res, nb =
+    stmt:reset():bind(self.settings.max_sec, self.id_curr_book):resultset("i")
   stmt:close()
   conn:close()
   local read_pages = {}
@@ -3490,7 +3844,8 @@ end
 
 function ReaderStatistics.onSync(local_path, cached_path, income_path)
   local conn_income = SQ3.open(income_path)
-  local ok1, v1 = pcall(conn_income.rowexec, conn_income, "PRAGMA schema_version")
+  local ok1, v1 =
+    pcall(conn_income.rowexec, conn_income, "PRAGMA schema_version")
   if not ok1 or tonumber(v1) == 0 then
     -- no income db or wrong db, first time sync
     logger.warn("statistics open income DB failed", v1)
@@ -3500,7 +3855,8 @@ function ReaderStatistics.onSync(local_path, cached_path, income_path)
   local sql = "attach '" .. income_path:gsub("'", "''") .. "' as income_db;"
   -- then we try to open cached db
   local conn_cached = SQ3.open(cached_path)
-  local ok2, v2 = pcall(conn_cached.rowexec, conn_cached, "PRAGMA schema_version")
+  local ok2, v2 =
+    pcall(conn_cached.rowexec, conn_cached, "PRAGMA schema_version")
   local attached_cache
   if not ok2 or tonumber(v2) == 0 then
     -- no cached or error, no item to delete
@@ -3622,7 +3978,9 @@ function ReaderStatistics.onSync(local_path, cached_path, income_path)
   ]]
   conn:exec(sql)
   pcall(conn.exec, conn, "COMMIT;")
-  conn:exec("DETACH income_db;" .. (attached_cache and "DETACH cached_db;" or ""))
+  conn:exec(
+    "DETACH income_db;" .. (attached_cache and "DETACH cached_db;" or "")
+  )
   conn:close()
   return true
 end

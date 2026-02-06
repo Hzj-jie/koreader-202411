@@ -18,7 +18,10 @@ local function makeRequest(endpoint, method, request_body, token)
   local sink = {}
   local request_body_json = json.encode(request_body)
   local source = ltn12.source.string(request_body_json)
-  socketutil:set_timeout(socketutil.LARGE_BLOCK_TIMEOUT, socketutil.LARGE_TOTAL_TIMEOUT)
+  socketutil:set_timeout(
+    socketutil.LARGE_BLOCK_TIMEOUT,
+    socketutil.LARGE_TOTAL_TIMEOUT
+  )
   local request = {
     url = "https://readwise.io/api/v2/" .. endpoint,
     method = method,
@@ -34,7 +37,10 @@ local function makeRequest(endpoint, method, request_body, token)
   socketutil:reset_timeout()
 
   if code ~= 200 then
-    logger.warn("Readwise: HTTP response code <> 200. Response status:", status or code or "network unreachable")
+    logger.warn(
+      "Readwise: HTTP response code <> 200. Response status:",
+      status or code or "network unreachable"
+    )
     logger.dbg("Response headers:", headers)
     return nil, status
   end
@@ -107,7 +113,8 @@ function ReadwiseExporter:createHighlights(booknotes)
       local highlight = {
         text = clipping.text,
         title = booknotes.title,
-        author = booknotes.author ~= "" and booknotes.author:gsub("\n", ", ") or nil, -- optional author
+        author = booknotes.author ~= "" and booknotes.author:gsub("\n", ", ")
+          or nil, -- optional author
         source_type = "koreader",
         category = "books",
         note = clipping.note,
@@ -119,7 +126,12 @@ function ReadwiseExporter:createHighlights(booknotes)
     end
   end
 
-  local result, err = makeRequest("highlights", "POST", { highlights = highlights }, self.settings.token)
+  local result, err = makeRequest(
+    "highlights",
+    "POST",
+    { highlights = highlights },
+    self.settings.token
+  )
   if not result then
     logger.warn("error creating highlights", err)
     return false

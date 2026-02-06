@@ -159,12 +159,19 @@ function framebuffer:init()
   self._finfo = ffi.new("struct fb_fix_screeninfo")
   self._vinfo = ffi.new("struct fb_var_screeninfo")
 
-  local fbfd = C.open(self.fb_node, bit.bor(C.O_RDONLY, C.O_NONBLOCK, C.O_CLOEXEC))
+  local fbfd =
+    C.open(self.fb_node, bit.bor(C.O_RDONLY, C.O_NONBLOCK, C.O_CLOEXEC))
   assert(fbfd ~= -1, "cannot open framebuffer")
 
   -- Get screen information
-  assert(C.ioctl(fbfd, C.FBIOGET_FSCREENINFO, self._finfo) == 0, "cannot get fixed screen info")
-  assert(C.ioctl(fbfd, C.FBIOGET_VSCREENINFO, self._vinfo) == 0, "cannot get variable screen info")
+  assert(
+    C.ioctl(fbfd, C.FBIOGET_FSCREENINFO, self._finfo) == 0,
+    "cannot get fixed screen info"
+  )
+  assert(
+    C.ioctl(fbfd, C.FBIOGET_VSCREENINFO, self._vinfo) == 0,
+    "cannot get variable screen info"
+  )
 
   -- ... and we're actually done with the framebuffer device ;).
   C.close(fbfd)
@@ -177,8 +184,14 @@ function framebuffer:init()
   -- Apply frontend kludges
   self:fbinfoOverride(self._finfo, self._vinfo)
 
-  assert(self._finfo.type == C.FB_TYPE_PACKED_PIXELS, "video type not supported")
-  assert(self._vinfo.xres > 0 and self._vinfo.yres > 0, "invalid framebuffer resolution")
+  assert(
+    self._finfo.type == C.FB_TYPE_PACKED_PIXELS,
+    "video type not supported"
+  )
+  assert(
+    self._vinfo.xres > 0 and self._vinfo.yres > 0,
+    "invalid framebuffer resolution"
+  )
 
   -- We'll map a screen's worth of memory
   self.fb_size = self._finfo.line_length * self._vinfo.yres_virtual
@@ -205,14 +218,18 @@ function framebuffer:init()
   })
 
   -- Make sure we never try to map a larger memory region than the fb reports
-  assert(self.fb_size <= self._finfo.smem_len or self._finfo.smem <= 0x1000, "computed fb memory region too large")
+  assert(
+    self.fb_size <= self._finfo.smem_len or self._finfo.smem <= 0x1000,
+    "computed fb memory region too large"
+  )
 
   -- And now we can start dealing with ION proper...
   self.ion = ffi.new("struct ion_fd_data")
   self.ion.fd = -1
 
   -- Start by registering as an ION client
-  self.ion_fd = C.open(self.ion_node, bit.bor(C.O_RDONLY, C.O_NONBLOCK, C.O_CLOEXEC))
+  self.ion_fd =
+    C.open(self.ion_node, bit.bor(C.O_RDONLY, C.O_NONBLOCK, C.O_CLOEXEC))
   assert(self.ion_fd ~= -1, "cannot open ION handle")
 
   -- Then request a page-aligned carveout mapping large enough to fit our screen
@@ -221,15 +238,31 @@ function framebuffer:init()
   alloc.len = self.alloc_size
   alloc.align = 4096
   alloc.heap_id_mask = C.ION_HEAP_MASK_CARVEOUT
-  assert(C.ioctl(self.ion_fd, C.ION_IOC_ALLOC, alloc) == 0, "cannot allocate ION buffer")
+  assert(
+    C.ioctl(self.ion_fd, C.ION_IOC_ALLOC, alloc) == 0,
+    "cannot allocate ION buffer"
+  )
 
   -- Request a dmabuff handle that we can share & mmap for that alloc
   self.ion.handle = alloc.handle
-  assert(C.ioctl(self.ion_fd, C.ION_IOC_MAP, self.ion) == 0, "cannot get dmabuff handle from ION")
+  assert(
+    C.ioctl(self.ion_fd, C.ION_IOC_MAP, self.ion) == 0,
+    "cannot get dmabuff handle from ION"
+  )
 
   -- And we're back in familiar territory: mmap it!
-  self.data = C.mmap(nil, self.alloc_size, bit.bor(C.PROT_READ, C.PROT_WRITE), C.MAP_SHARED, self.ion.fd, 0)
-  assert(tonumber(ffi.cast("intptr_t", self.data)) ~= C.MAP_FAILED, "can not mmap() ION buffer")
+  self.data = C.mmap(
+    nil,
+    self.alloc_size,
+    bit.bor(C.PROT_READ, C.PROT_WRITE),
+    C.MAP_SHARED,
+    self.ion.fd,
+    0
+  )
+  assert(
+    tonumber(ffi.cast("intptr_t", self.data)) ~= C.MAP_FAILED,
+    "can not mmap() ION buffer"
+  )
 
   -- And point our screen BB at it
   -- @warning Don't ever cache self.bb, as we may replace it at any time later due to rotation.
@@ -247,7 +280,8 @@ function framebuffer:init()
   self.fb_rota = self._vinfo.rotate
 
   -- And finally, register as a DISP client, too
-  self.fd = C.open(self.disp_node, bit.bor(C.O_RDONLY, C.O_NONBLOCK, C.O_CLOEXEC))
+  self.fd =
+    C.open(self.disp_node, bit.bor(C.O_RDONLY, C.O_NONBLOCK, C.O_CLOEXEC))
   assert(self.fd ~= -1, "cannot open DISP handle")
 
   -- Setup the insanity that is the sunxi disp2 layer...
@@ -366,7 +400,10 @@ function framebuffer:close()
   if self.ion and self.ion.handle ~= 0 then
     local handle = ffi.new("struct ion_handle_data")
     handle.handle = self.ion.handle
-    assert(C.ioctl(self.ion_fd, C.ION_IOC_FREE, handle) == 0, "cannot release ION buffer")
+    assert(
+      C.ioctl(self.ion_fd, C.ION_IOC_FREE, handle) == 0,
+      "cannot release ION buffer"
+    )
     self.ion.handle = 0
   end
   if self.ion_fd ~= -1 then

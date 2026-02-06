@@ -27,7 +27,8 @@ function KoboPowerD:_syncKoboLightOnStart()
   local new_intensity = nil
   local is_frontlight_on = nil
   local new_warmth = nil
-  local kobo_light_on_start = tonumber(G_defaults:readSetting("KOBO_LIGHT_ON_START"))
+  local kobo_light_on_start =
+    tonumber(G_defaults:readSetting("KOBO_LIGHT_ON_START"))
 
   if kobo_light_on_start then
     if kobo_light_on_start > 0 then
@@ -98,7 +99,8 @@ function KoboPowerD:init()
   self.is_charging_file = self.battery_sysfs .. "/status"
 
   if self.device:hasAuxBattery() then
-    self.aux_batt_capacity_file = self.aux_battery_sysfs .. "/cilix_bat_capacity"
+    self.aux_batt_capacity_file = self.aux_battery_sysfs
+      .. "/cilix_bat_capacity"
     self.aux_batt_connected_file = self.aux_battery_sysfs .. "/cilix_conn" -- or "active"
     self.aux_batt_charging_file = self.aux_battery_sysfs .. "/charge_status" -- "usb_conn" would not allow us to detect the "Full" state
 
@@ -137,14 +139,16 @@ function KoboPowerD:init()
   if self.device:hasFrontlight() then
     self.device.frontlight_settings = self.device.frontlight_settings or {}
     -- Does this device require non-standard ramping behavior?
-    self.device.frontlight_settings.ramp_off_delay = self.device.frontlight_settings.ramp_off_delay or 0.0
+    self.device.frontlight_settings.ramp_off_delay = self.device.frontlight_settings.ramp_off_delay
+      or 0.0
     --- @note: Newer devices (or at least some PWM controllers) appear to block slightly longer on FL ioctls/sysfs,
     ---        so we only really need a delay on older devices.
     self.device.frontlight_settings.ramp_delay = self.device.frontlight_settings.ramp_delay
       or (self.device:hasNaturalLight() and 0.0 or 0.025)
     -- Some PWM controllers *really* don't like being interleaved between screen refreshes,
     -- so we delay the *start* of the ramp on these.
-    self.device.frontlight_settings.delay_ramp_start = self.device.frontlight_settings.delay_ramp_start or false
+    self.device.frontlight_settings.delay_ramp_start = self.device.frontlight_settings.delay_ramp_start
+      or false
 
     -- If this device has natural light, use the sysfs interface, and ioctl otherwise.
     -- NOTE: On the Forma, nickel still appears to prefer using ntx_io to handle the FL,
@@ -157,8 +161,10 @@ function KoboPowerD:init()
         end
       end
       -- Does this device's NaturalLight use a custom scale?
-      self.fl_warmth_min = self.device.frontlight_settings.nl_min or self.fl_warmth_min
-      self.fl_warmth_max = self.device.frontlight_settings.nl_max or self.fl_warmth_max
+      self.fl_warmth_min = self.device.frontlight_settings.nl_min
+        or self.fl_warmth_min
+      self.fl_warmth_max = self.device.frontlight_settings.nl_max
+        or self.fl_warmth_max
       -- Generic does it *after* init, but we're going to need it *now*...
       self.warmth_scale = 100 / self.fl_warmth_max
       -- If this device has a mixer, we can use the ioctl for brightness control, as it's much lower latency.
@@ -356,8 +362,13 @@ end
 -- That's an attempt at making the *perceived* effect appear as a more linear brightness change.
 -- The whole function gets called at most log(100)/log(0.75) = 17 times,
 -- leading to a 0.025*17 + 0.5 = 0.925s ramp down time (non blocking); can be aborted.
-function KoboPowerD:turnOffFrontlightRamp(curr_ramp_intensity, end_intensity, done_callback)
-  curr_ramp_intensity = math.floor(math.max(curr_ramp_intensity * 0.75, self.fl_min))
+function KoboPowerD:turnOffFrontlightRamp(
+  curr_ramp_intensity,
+  end_intensity,
+  done_callback
+)
+  curr_ramp_intensity =
+    math.floor(math.max(curr_ramp_intensity * 0.75, self.fl_min))
 
   if curr_ramp_intensity > end_intensity then
     self:_setIntensityHW(curr_ramp_intensity)
@@ -395,7 +406,10 @@ function KoboPowerD:turnOffFrontlightHW(done_callback)
       --       otherwise you just see a single delayed step (1%) or two stuttery ones (2%) ;).
       -- FWIW, modern devices with a different PWM controller (i.e., with no controller-specific ramp_off_delay workarounds)
       -- deal with our 2% ramp without stuttering.
-      if self.device.frontlight_settings.ramp_off_delay > 0.0 and self.hw_intensity <= 2 then
+      if
+        self.device.frontlight_settings.ramp_off_delay > 0.0
+        and self.hw_intensity <= 2
+      then
         UIManager:scheduleIn(
           self.device.frontlight_settings.ramp_delay,
           self._endRampDown,
@@ -409,7 +423,11 @@ function KoboPowerD:turnOffFrontlightHW(done_callback)
         if self.device.frontlight_settings.delay_ramp_start then
           UIManager:nextTick(self._startRampDown, self, done_callback)
         else
-          self:turnOffFrontlightRamp(self.hw_intensity, self.fl_min, done_callback)
+          self:turnOffFrontlightRamp(
+            self.hw_intensity,
+            self.fl_min,
+            done_callback
+          )
           self.fl_ramp_down_running = true
         end
       end
@@ -438,11 +456,16 @@ function KoboPowerD:_endRampUp(end_intensity, done_callback)
 end
 
 -- Similar functionality as `Kobo:turnOffFrontlightRamp`, but the other way around ;).
-function KoboPowerD:turnOnFrontlightRamp(curr_ramp_intensity, end_intensity, done_callback)
+function KoboPowerD:turnOnFrontlightRamp(
+  curr_ramp_intensity,
+  end_intensity,
+  done_callback
+)
   if curr_ramp_intensity == 0 then
     curr_ramp_intensity = 1
   else
-    curr_ramp_intensity = math.ceil(math.min(curr_ramp_intensity * 1.5, self.fl_max))
+    curr_ramp_intensity =
+      math.ceil(math.min(curr_ramp_intensity * 1.5, self.fl_max))
   end
 
   if curr_ramp_intensity < end_intensity then
@@ -471,7 +494,11 @@ function KoboPowerD:turnOnFrontlightHW(done_callback)
   -- NOTE: Insane workaround for the first toggle after a startup with the FL off.
   -- The light is actually off, but hw_intensity couldn't have been set to a sane value because of a number of interactions.
   -- So, fix it now, so we pass the isFrontlightOnHW check (which checks if hw_intensity > fl_min).
-  if self.is_fl_on == false and self.hw_intensity > self.fl_min and self.hw_intensity == self.fl_intensity then
+  if
+    self.is_fl_on == false
+    and self.hw_intensity > self.fl_min
+    and self.hw_intensity == self.fl_intensity
+  then
     self.hw_intensity = self.fl_min
   end
   if self:isFrontlightOnHW() then
@@ -482,7 +509,10 @@ function KoboPowerD:turnOnFrontlightHW(done_callback)
     -- We've got nothing to do if we're already ramping up
     if not self.fl_ramp_up_running then
       self:_stopFrontlightRamp()
-      if self.device.frontlight_settings.ramp_off_delay > 0.0 and self.fl_intensity <= 2 then
+      if
+        self.device.frontlight_settings.ramp_off_delay > 0.0
+        and self.fl_intensity <= 2
+      then
         -- NOTE: Match the ramp down behavior on devices with a ramp_off_delay: jump straight to 1 or 2% intensity.
         UIManager:scheduleIn(
           self.device.frontlight_settings.ramp_delay,
@@ -496,7 +526,11 @@ function KoboPowerD:turnOnFrontlightHW(done_callback)
         if self.device.frontlight_settings.delay_ramp_start then
           UIManager:nextTick(self._startRampUp, self, done_callback)
         else
-          self:turnOnFrontlightRamp(self.fl_min, self.fl_intensity, done_callback)
+          self:turnOnFrontlightRamp(
+            self.fl_min,
+            self.fl_intensity,
+            done_callback
+          )
           self.fl_ramp_up_running = true
         end
       end

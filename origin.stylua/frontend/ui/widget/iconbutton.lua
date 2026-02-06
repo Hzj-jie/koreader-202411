@@ -131,7 +131,11 @@ function IconButton:onTapIconButton()
     -- Highlight
     --
     self.image.invert = true
-    UIManager:widgetInvert(self.image, self.dimen.x + h_padding, self.dimen.y + self.padding_top)
+    UIManager:widgetInvert(
+      self.image,
+      self.dimen.x + h_padding,
+      self.dimen.y + self.padding_top
+    )
     UIManager:setDirty(nil, "fast", self.dimen)
 
     UIManager:forceRePaint()
@@ -140,7 +144,11 @@ function IconButton:onTapIconButton()
     -- Unhighlight
     --
     self.image.invert = false
-    UIManager:widgetInvert(self.image, self.dimen.x + h_padding, self.dimen.y + self.padding_top)
+    UIManager:widgetInvert(
+      self.image,
+      self.dimen.x + h_padding,
+      self.dimen.y + self.padding_top
+    )
 
     -- Callback
     --

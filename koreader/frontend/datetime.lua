@@ -84,9 +84,10 @@ function datetime.secondsToClock(seconds, withoutSeconds, withDays)
       return "00:00:00"
     end
   else
-    local round = withoutSeconds and require("optmath").round or function(n)
-      return n
-    end
+    local round = withoutSeconds and require("optmath").round
+      or function(n)
+        return n
+      end
     local days = "0"
     local hours
     if withDays then
@@ -102,10 +103,18 @@ function datetime.secondsToClock(seconds, withoutSeconds, withDays)
         mins = string.format("%02d", 0)
         hours = string.format("%02d", hours + 1)
       end
-      return (days ~= "0" and (days .. C_("Time", "d")) or "") .. hours .. ":" .. mins
+      return (days ~= "0" and (days .. C_("Time", "d")) or "")
+        .. hours
+        .. ":"
+        .. mins
     else
       local secs = string.format("%02d", seconds % 60)
-      return (days ~= "0" and (days .. C_("Time", "d")) or "") .. hours .. ":" .. mins .. ":" .. secs
+      return (days ~= "0" and (days .. C_("Time", "d")) or "")
+        .. hours
+        .. ":"
+        .. mins
+        .. ":"
+        .. secs
     end
   end
 end
@@ -117,7 +126,13 @@ end
 ---- @bool withDays, if true format 1d12h30'10" or 1d 12h 30m 10s
 ---- @bool compact, if set removes all leading zeros (incl. units if necessary) and turns thinspaces into hairspaces (if present)
 ---- @treturn string clock string in the form of 1h30'10" or 1h 30m 10s
-function datetime.secondsToHClock(seconds, withoutSeconds, hmsFormat, withDays, compact)
+function datetime.secondsToHClock(
+  seconds,
+  withoutSeconds,
+  hmsFormat,
+  withDays,
+  compact
+)
   local SECONDS_SYMBOL = '"'
   seconds = tonumber(seconds)
   if seconds == 0 then
@@ -152,7 +167,11 @@ function datetime.secondsToHClock(seconds, withoutSeconds, hmsFormat, withDays, 
         if compact then
           return T(C_("Time", "%1s"), string.format("%d", seconds))
         else
-          return T(C_("Time", "%1m\xE2\x80\x89%2s"), "0", string.format("%d", seconds)) -- use a thin space
+          return T(
+            C_("Time", "%1m\xE2\x80\x89%2s"),
+            "0",
+            string.format("%d", seconds)
+          ) -- use a thin space
         end
       else
         if compact then
@@ -163,7 +182,8 @@ function datetime.secondsToHClock(seconds, withoutSeconds, hmsFormat, withDays, 
       end
     end
   else
-    local time_string = datetime.secondsToClock(seconds, withoutSeconds, withDays)
+    local time_string =
+      datetime.secondsToClock(seconds, withoutSeconds, withDays)
     if withoutSeconds then
       time_string = time_string .. ":"
     end
@@ -180,10 +200,15 @@ function datetime.secondsToHClock(seconds, withoutSeconds, hmsFormat, withDays, 
 
     if hmsFormat then
       time_string = time_string:gsub("0(%d)", "%1") -- delete all leading "0"s
-      time_string = time_string:gsub(C_("Time", "d"), C_("Time", "d") .. "\u{2009}") -- add thin space after "d"
-      time_string = time_string:gsub(C_("Time", "h"), C_("Time", "h") .. "\u{2009}") -- add thin space after "h"
+      time_string =
+        time_string:gsub(C_("Time", "d"), C_("Time", "d") .. "\u{2009}") -- add thin space after "d"
+      time_string =
+        time_string:gsub(C_("Time", "h"), C_("Time", "h") .. "\u{2009}") -- add thin space after "h"
       if not withoutSeconds then
-        time_string = time_string:gsub(C_("Time", "m"), C_("Time", "m") .. "\u{2009}") .. C_("Time", "s") -- add thin space after "m"
+        time_string = time_string:gsub(
+          C_("Time", "m"),
+          C_("Time", "m") .. "\u{2009}"
+        ) .. C_("Time", "s") -- add thin space after "m"
       end
       if compact then
         time_string = time_string:gsub("\u{2009}", "\u{200A}") -- replace thin space with hair space
@@ -203,11 +228,29 @@ end
 ---- @bool withDays, if hours>=24 include days in clock string 1d12h10'10" or 1d 12h 10m 10s
 ---- @bool compact, if set removes all leading zeros (incl. units if necessary) and turns thinspaces into hairspaces (if present)
 ---- @treturn string clock string in the specific format of 1h30', 1h30'10" resp. 1h 30m, 1h 30m 10s
-function datetime.secondsToClockDuration(format, seconds, withoutSeconds, withDays, compact)
+function datetime.secondsToClockDuration(
+  format,
+  seconds,
+  withoutSeconds,
+  withDays,
+  compact
+)
   if format == "modern" then
-    return datetime.secondsToHClock(seconds, withoutSeconds, false, withDays, compact)
+    return datetime.secondsToHClock(
+      seconds,
+      withoutSeconds,
+      false,
+      withDays,
+      compact
+    )
   elseif format == "letters" then
-    return datetime.secondsToHClock(seconds, withoutSeconds, true, withDays, compact)
+    return datetime.secondsToHClock(
+      seconds,
+      withoutSeconds,
+      true,
+      withDays,
+      compact
+    )
   else
     -- Assume "classic" to give safe default
     return datetime.secondsToClock(seconds, withoutSeconds, withDays)
@@ -307,10 +350,12 @@ function datetime.secondsToDateTime(seconds, twelve_hour_clock, use_locale)
   end
   local BD = require("ui/bidi")
   local date_string = datetime.secondsToDate(seconds, use_locale)
-  local time_string = datetime.secondsToHour(seconds, twelve_hour_clock, not use_locale)
+  local time_string =
+    datetime.secondsToHour(seconds, twelve_hour_clock, not use_locale)
 
   -- @translators Use the following placeholders in the desired order: %1 date, %2 time
-  local message_text = T(C_("Date string", "%1 %2"), BD.wrap(date_string), BD.wrap(time_string))
+  local message_text =
+    T(C_("Date string", "%1 %2"), BD.wrap(date_string), BD.wrap(time_string))
   return message_text
 end
 

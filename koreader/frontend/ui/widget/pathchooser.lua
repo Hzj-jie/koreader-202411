@@ -120,7 +120,10 @@ function PathChooser:onMenuHold(item)
       local lastmod = os.date("%Y-%m-%d %H:%M", attr.modification)
       title = title
         .. "\n"
-        .. T(N_("File size: 1 byte", "File size: %1 bytes", attr.size), filesize)
+        .. T(
+          N_("File size: 1 byte", "File size: %1 bytes", attr.size),
+          filesize
+        )
         .. "\n"
         .. T(gettext("Last modified: %1"), lastmod)
         .. "\n"
@@ -166,7 +169,8 @@ function PathChooser:showPlusMenu()
           text = gettext("Folder shortcuts"),
           callback = function()
             UIManager:close(button_dialog)
-            local FileManagerShortcuts = require("apps/filemanager/filemanagershortcuts")
+            local FileManagerShortcuts =
+              require("apps/filemanager/filemanagershortcuts")
             local select_callback = function(path)
               self:changeToPath(path)
             end

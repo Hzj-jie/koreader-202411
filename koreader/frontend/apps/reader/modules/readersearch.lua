@@ -44,14 +44,20 @@ function ReaderSearch:init()
   self:registerKeyEvents()
 
   -- number of words before and after the search string in All search results
-  self.findall_nb_context_words = G_reader_settings:read("fulltext_search_nb_context_words") or 5
-  self.findall_results_per_page = G_reader_settings:read("fulltext_search_results_per_page") or 10
-  self.findall_results_max_lines = G_reader_settings:read("fulltext_search_results_max_lines")
+  self.findall_nb_context_words = G_reader_settings:read(
+    "fulltext_search_nb_context_words"
+  ) or 5
+  self.findall_results_per_page = G_reader_settings:read(
+    "fulltext_search_results_per_page"
+  ) or 10
+  self.findall_results_max_lines =
+    G_reader_settings:read("fulltext_search_results_max_lines")
 
   self.ui.menu:registerToMainMenu(self)
 end
 
-local help_text = gettext([[
+local help_text = gettext(
+  [[
 Regular expressions allow you to search for a matching pattern in a text. The simplest pattern is a simple sequence of characters, such as `James Bond`. There are many different varieties of regular expressions, but we support the ECMAScript syntax. The basics will be explained below.
 
 If you want to search for all occurrences of 'Mister Moore', 'Sir Moore' or 'Alfons Moore' but not for 'Lady Moore'.
@@ -69,7 +75,8 @@ Not a space -> '[^ ]'
 A word -> '[^ ]*[^ ]'
 Last word in a sentence -> '[^ ]*\.'
 
-Complex expressions may lead to an extremely long search time, in which case not all matches will be shown.]])
+Complex expressions may lead to an extremely long search time, in which case not all matches will be shown.]]
+)
 
 local SRELL_ERROR_CODES = {}
 SRELL_ERROR_CODES[102] = gettext("Wrong escape '\\'")
@@ -80,8 +87,10 @@ SRELL_ERROR_CODES[106] = gettext("Mismatched brace '{}'")
 SRELL_ERROR_CODES[107] = gettext("Invalid Range in '{}'")
 SRELL_ERROR_CODES[108] = gettext("Invalid character range")
 SRELL_ERROR_CODES[110] = gettext("No preceding expression in repetition.")
-SRELL_ERROR_CODES[111] = gettext("Expression too complex, some hits will not be shown.")
-SRELL_ERROR_CODES[666] = gettext("Expression may lead to an extremely long search time.")
+SRELL_ERROR_CODES[111] =
+  gettext("Expression too complex, some hits will not be shown.")
+SRELL_ERROR_CODES[666] =
+  gettext("Expression may lead to an extremely long search time.")
 
 function ReaderSearch:registerKeyEvents()
   if Device:hasKeyboard() then
@@ -114,7 +123,10 @@ function ReaderSearch:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(gettext("Words in context: %1"), self.findall_nb_context_words)
+          return T(
+            gettext("Words in context: %1"),
+            self.findall_nb_context_words
+          )
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
@@ -128,7 +140,10 @@ function ReaderSearch:addToMainMenu(menu_items)
             callback = function(spin)
               self.last_search_hash = nil
               self.findall_nb_context_words = spin.value
-              G_reader_settings:save("fulltext_search_nb_context_words", spin.value)
+              G_reader_settings:save(
+                "fulltext_search_nb_context_words",
+                spin.value
+              )
               touchmenu_instance:updateItems()
             end,
           })
@@ -137,21 +152,29 @@ function ReaderSearch:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(gettext("Max lines per result: %1"), self.findall_results_max_lines or gettext("disabled"))
+          return T(
+            gettext("Max lines per result: %1"),
+            self.findall_results_max_lines or gettext("disabled")
+          )
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
           local default_value = 4
           local widget = SpinWidget:new({
             title_text = gettext("Max lines per result"),
-            info_text = gettext("Set maximum number of lines to enable flexible item heights."),
+            info_text = gettext(
+              "Set maximum number of lines to enable flexible item heights."
+            ),
             value = self.findall_results_max_lines or default_value,
             value_min = 1,
             value_max = 10,
             default_value = default_value,
             ok_always_enabled = true,
             callback = function(spin)
-              G_reader_settings:save("fulltext_search_results_max_lines", spin.value)
+              G_reader_settings:save(
+                "fulltext_search_results_max_lines",
+                spin.value
+              )
               self.findall_results_max_lines = spin.value
               self.last_search_hash = nil
               touchmenu_instance:updateItems()
@@ -169,7 +192,9 @@ function ReaderSearch:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          local curr_perpage = self.findall_results_max_lines and gettext("flexible") or self.findall_results_per_page
+          local curr_perpage = self.findall_results_max_lines
+              and gettext("flexible")
+            or self.findall_results_per_page
           return T(gettext("Results per page: %1"), curr_perpage)
         end,
         enabled_func = function()
@@ -185,7 +210,10 @@ function ReaderSearch:addToMainMenu(menu_items)
             default_value = 10,
             callback = function(spin)
               self.findall_results_per_page = spin.value
-              G_reader_settings:save("fulltext_search_results_per_page", spin.value)
+              G_reader_settings:save(
+                "fulltext_search_results_per_page",
+                spin.value
+              )
               touchmenu_instance:updateItems()
             end,
           })
@@ -241,10 +269,17 @@ function ReaderSearch:searchCallback(reverse, text)
   end
 
   if self.use_regex and regex_error ~= 0 then
-    logger.dbg("ReaderSearch: regex error", regex_error, SRELL_ERROR_CODES[regex_error])
+    logger.dbg(
+      "ReaderSearch: regex error",
+      regex_error,
+      SRELL_ERROR_CODES[regex_error]
+    )
     local error_message
     if SRELL_ERROR_CODES[regex_error] then
-      error_message = T(gettext("Invalid regular expression:\n%1"), SRELL_ERROR_CODES[regex_error])
+      error_message = T(
+        gettext("Invalid regular expression:\n%1"),
+        SRELL_ERROR_CODES[regex_error]
+      )
     else
       error_message = gettext("Invalid regular expression.")
     end
@@ -253,7 +288,12 @@ function ReaderSearch:searchCallback(reverse, text)
     UIManager:close(self.input_dialog)
     if reverse then
       self.last_search_hash = nil
-      self:onShowSearchDialog(search_text, reverse, self.use_regex, self.case_insensitive)
+      self:onShowSearchDialog(
+        search_text,
+        reverse,
+        self.use_regex,
+        self.case_insensitive
+      )
     else
       local Trapper = require("ui/trapper")
       Trapper:wrap(function()
@@ -272,7 +312,9 @@ function ReaderSearch:onShowFulltextSearchInput(search_string)
   self.input_dialog = InputDialog:new({
     title = gettext("Enter text to search for"),
     width = math.floor(math.min(Screen:getWidth(), Screen:getHeight()) * 0.9),
-    input = search_string or self.last_search_text or self.ui.doc_settings:read("fulltext_search_last_search_text"),
+    input = search_string
+      or self.last_search_text
+      or self.ui.doc_settings:read("fulltext_search_last_search_text"),
     buttons = {
       {
         {
@@ -331,12 +373,22 @@ function ReaderSearch:onShowFulltextSearchInput(search_string)
   return true
 end
 
-function ReaderSearch:onShowSearchDialog(text, direction, regex, case_insensitive)
+function ReaderSearch:onShowSearchDialog(
+  text,
+  direction,
+  regex,
+  case_insensitive
+)
   local neglect_current_location = false
   local current_page
 
   local function isSlowRegex(pattern)
-    if pattern:find("%[") or pattern:find("%*") or pattern:find("%?") or pattern:find("%.") then
+    if
+      pattern:find("%[")
+      or pattern:find("%*")
+      or pattern:find("%?")
+      or pattern:find("%.")
+    then
       return true
     end
     return false
@@ -351,7 +403,10 @@ function ReaderSearch:onShowSearchDialog(text, direction, regex, case_insensitiv
             current_page = self.ui.paging.current_page
           end
           no_results = false
-          self.ui.link:onGotoLink({ page = res.page - 1 }, neglect_current_location)
+          self.ui.link:onGotoLink(
+            { page = res.page - 1 },
+            neglect_current_location
+          )
           self.view.highlight.temp[res.page] = res
         else
           -- Was previously just:
@@ -419,7 +474,10 @@ function ReaderSearch:onShowSearchDialog(text, direction, regex, case_insensitiv
           end
           if valid_link then
             no_results = false
-            self.ui.link:onGotoLink({ xpointer = valid_link }, neglect_current_location)
+            self.ui.link:onGotoLink(
+              { xpointer = valid_link },
+              neglect_current_location
+            )
           end
         end
         if not neglect_current_location then
@@ -461,7 +519,8 @@ function ReaderSearch:onShowSearchDialog(text, direction, regex, case_insensitiv
   if BD.mirroredUILayout() then
     backward_text, forward_text = forward_text, backward_text
     -- Keep the LTR order of |< and >|:
-    from_start_text, from_end_text = BD.ltr(from_end_text), BD.ltr(from_start_text)
+    from_start_text, from_end_text =
+      BD.ltr(from_end_text), BD.ltr(from_start_text)
   end
   self.wait_button = ButtonDialog:new({
     buttons = { { { text = "⌛" } } },
@@ -470,7 +529,9 @@ function ReaderSearch:onShowSearchDialog(text, direction, regex, case_insensitiv
     if regex and isSlowRegex(pattern) then
       return function()
         self.wait_button.alpha = 0.75
-        self.wait_button.movable:setMovedOffset(self.search_dialog.movable:getMovedOffset())
+        self.wait_button.movable:setMovedOffset(
+          self.search_dialog.movable:getMovedOffset()
+        )
         UIManager:show(self.wait_button)
         UIManager:tickAfterNext(function()
           do_search(func, pattern, param)()
@@ -549,8 +610,15 @@ function ReaderSearch:search(pattern, origin, regex, case_insensitive)
     case_insensitive = true
   end
   Device:setIgnoreInput(true)
-  local retval, words_found =
-    self.ui.document:findText(pattern, origin, direction, case_insensitive, page, regex, self.max_hits)
+  local retval, words_found = self.ui.document:findText(
+    pattern,
+    origin,
+    direction,
+    case_insensitive,
+    page,
+    regex,
+    self.max_hits
+  )
   Device:setIgnoreInput(false)
   self:showErrorNotification(words_found, regex, self.max_hits)
   return retval
@@ -591,7 +659,12 @@ function ReaderSearch:searchFromEnd(pattern, _, regex, case_insensitive)
   return self:search(pattern, -1, regex, case_insensitive)
 end
 
-function ReaderSearch:searchFromCurrent(pattern, direction, regex, case_insensitive)
+function ReaderSearch:searchFromCurrent(
+  pattern,
+  direction,
+  regex,
+  case_insensitive
+)
   self.direction = direction
   self._expect_back_results = direction == 1
   return self:search(pattern, 0, regex, case_insensitive)
@@ -605,11 +678,14 @@ function ReaderSearch:searchNext(pattern, direction, regex, case_insensitive)
 end
 
 function ReaderSearch:findAllText(search_text)
-  local last_search_hash = (self.last_search_text or "") .. tostring(self.case_insensitive) .. tostring(self.use_regex)
+  local last_search_hash = (self.last_search_text or "")
+    .. tostring(self.case_insensitive)
+    .. tostring(self.use_regex)
   local not_cached = self.last_search_hash ~= last_search_hash
   if not_cached then
     local Trapper = require("ui/trapper")
-    local info = InfoMessage:new({ text = gettext("Searching… (tap to cancel)") })
+    local info =
+      InfoMessage:new({ text = gettext("Searching… (tap to cancel)") })
     UIManager:show(info)
     UIManager:forceRepaint()
     local completed, res = Trapper:dismissableRunInSubprocess(function()
@@ -632,12 +708,17 @@ function ReaderSearch:findAllText(search_text)
   if self.findall_results then
     self:onShowFindAllResults(not_cached)
   else
-    UIManager:show(InfoMessage:new({ text = gettext("No results in the document") }))
+    UIManager:show(
+      InfoMessage:new({ text = gettext("No results in the document") })
+    )
   end
 end
 
 function ReaderSearch:onShowFindAllResults(not_cached)
-  if not self.last_search_hash or (not not_cached and self.findall_results == nil) then
+  if
+    not self.last_search_hash
+    or (not not_cached and self.findall_results == nil)
+  then
     -- no cached results, show input dialog
     self:onShowFulltextSearchInput()
     return
@@ -666,8 +747,11 @@ function ReaderSearch:onShowFindAllResults(not_cached)
       end
       item.text = table.concat(text)
 
-      local pageno = self.ui.rolling and self.ui.document:getPageFromXPointer(item.start) or item.start
-      item.mandatory = self.ui.annotation:getPageRef(item.start, pageno) or pageno
+      local pageno = self.ui.rolling
+          and self.ui.document:getPageFromXPointer(item.start)
+        or item.start
+      item.mandatory = self.ui.annotation:getPageRef(item.start, pageno)
+        or pageno
       item.mandatory_dim_func = function()
         return pageno > self.ui:getCurrentPage()
       end
@@ -716,7 +800,8 @@ function ReaderSearch:onShowFindAllResults(not_cached)
       return true
     end,
     close_callback = function()
-      self.findall_results_item_index = self.result_menu:getFirstVisibleItemIndex() -- save page number to reopen
+      self.findall_results_item_index =
+        self.result_menu:getFirstVisibleItemIndex() -- save page number to reopen
       UIManager:close(self.result_menu)
     end,
   })
@@ -760,8 +845,12 @@ function ReaderSearch:showAllResultsMenuDialog()
       {
         text_func = function()
           local pn = self.ui:getCurrentPage()
-          local pn_or_xp = self.ui.rolling and self.ui.rolling:getLastProgress() or pn
-          return T(gettext("Current page: %1"), self.ui.annotation:getPageRef(pn_or_xp, pn) or pn)
+          local pn_or_xp = self.ui.rolling and self.ui.rolling:getLastProgress()
+            or pn
+          return T(
+            gettext("Current page: %1"),
+            self.ui.annotation:getPageRef(pn_or_xp, pn) or pn
+          )
         end,
         callback = function()
           UIManager:close(button_dialog)
@@ -769,7 +858,9 @@ function ReaderSearch:showAllResultsMenuDialog()
           local index
           for i = 1, #item_table do
             local item = item_table[i]
-            local item_page = self.ui.rolling and self.ui.document:getPageFromXPointer(item.start) or item.start
+            local item_page = self.ui.rolling
+                and self.ui.document:getPageFromXPointer(item.start)
+              or item.start
             if item_page == current_page then
               index = i
               break

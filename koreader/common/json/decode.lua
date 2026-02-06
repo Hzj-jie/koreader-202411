@@ -81,14 +81,21 @@ local function generateDecoder(lexer, options)
       if item == marker then
         break
       end
-      if type(item) == "function" and item ~= jsonutil.undefined and item ~= jsonutil.null then
+      if
+        type(item) == "function"
+        and item ~= jsonutil.undefined
+        and item ~= jsonutil.null
+      then
         item(state)
       else
         state:set_value(item)
       end
     end
     if options.initialObject then
-      assert(type(state.previous) == "table", "Initial value not an object or array")
+      assert(
+        type(state.previous) == "table",
+        "Initial value not an object or array"
+      )
     end
     -- Make sure stack is empty
     assert(state.i == 0, "Unclosed elements present")
@@ -114,7 +121,8 @@ local function buildDecoder(mode)
       mod.mergeOptions(mode)
     end
   end
-  local ignored = mode.unicodeWhitespace and util.unicode_ignored or util.ascii_ignored
+  local ignored = mode.unicodeWhitespace and util.unicode_ignored
+    or util.ascii_ignored
   -- Store 'ignored' in the global options table
   mode.ignored = ignored
 

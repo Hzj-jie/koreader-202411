@@ -131,7 +131,8 @@ function Remarkable:init()
   -- os.execute("ps | grep $PPID")
   -- logger.info(string.format("parent process is oxide?: %s", parent_process_is_oxide))
 
-  self.screen = require("ffi/framebuffer_mxcfb"):new({ device = self, debug = logger.dbg })
+  self.screen =
+    require("ffi/framebuffer_mxcfb"):new({ device = self, debug = logger.dbg })
   self.powerd = require("device/remarkable/powerd"):new({
     device = self,
     capacity_file = self.battery_path,
@@ -167,7 +168,8 @@ function Remarkable:init()
 
   if is_mainline then
     self.input_wacom = "/dev/input/by-path/platform-30a20000.i2c-event-mouse"
-    self.input_buttons = "/dev/input/by-path/platform-30370000.snvs:snvs-powerkey-event"
+    self.input_buttons =
+      "/dev/input/by-path/platform-30370000.snvs:snvs-powerkey-event"
     self.input_ts = "/dev/input/touchscreen0"
   end
 
@@ -202,7 +204,10 @@ function Remarkable:init()
     self.input:registerEventAdjustHook(mainlineInputMangling)
   else
     self.input:registerEventAdjustHook(adjustAbsEvt)
-    self.input:registerEventAdjustHook(self.adjustTouchEvent, { mt_scale_x = scalex, mt_scale_y = scaley })
+    self.input:registerEventAdjustHook(
+      self.adjustTouchEvent,
+      { mt_scale_x = scalex, mt_scale_y = scaley }
+    )
   end
 
   -- USB plug/unplug, battery charge/not charging are generated as fake events
@@ -241,7 +246,10 @@ function Remarkable:initNetworkManager(NetworkMgr)
     return "wlan0"
   end
 
-  NetworkMgr:setWirelessBackend("wpa_supplicant", { ctrl_interface = "/var/run/wpa_supplicant/wlan0" })
+  NetworkMgr:setWirelessBackend(
+    "wpa_supplicant",
+    { ctrl_interface = "/var/run/wpa_supplicant/wlan0" }
+  )
 
   NetworkMgr.isWifiOn = NetworkMgr.sysfsWifiOn
   NetworkMgr.isConnected = NetworkMgr.ifHasAnAddress
@@ -253,7 +261,15 @@ function Remarkable:setDateTime(year, month, day, hour, min, sec)
   end
   local command
   if year and month and day then
-    command = string.format("timedatectl set-time '%d-%d-%d %d:%d:%d'", year, month, day, hour, min, sec)
+    command = string.format(
+      "timedatectl set-time '%d-%d-%d %d:%d:%d'",
+      year,
+      month,
+      day,
+      hour,
+      min,
+      sec
+    )
   else
     command = string.format("timedatectl set-time '%d:%d'", hour, min)
   end
@@ -310,7 +326,9 @@ end
 
 if isRm2 then
   if not os.getenv("RM2FB_SHIM") then
-    error("reMarkable2 requires RM2FB to work (https://github.com/ddvk/remarkable2-framebuffer)")
+    error(
+      "reMarkable2 requires RM2FB to work (https://github.com/ddvk/remarkable2-framebuffer)"
+    )
   end
   return Remarkable2
 else

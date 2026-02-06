@@ -83,7 +83,10 @@ local function _form_data(data)
         .. "content-type: application/octet-stream\r\n\r\n"
         .. content
     else
-      p[#p + 1] = 'content-disposition: form-data; name="' .. k .. '"\r\n\r\n' .. v
+      p[#p + 1] = 'content-disposition: form-data; name="'
+        .. k
+        .. '"\r\n\r\n'
+        .. v
     end
   end
 
@@ -123,7 +126,8 @@ local function request(req)
     end
     req.source = ltn12.source.string(payload)
     req.headers["content-length"] = payload:len()
-    req.headers["content-type"] = req.headers["content-type"] or "application/x-www-form-urlencoded"
+    req.headers["content-type"] = req.headers["content-type"]
+      or "application/x-www-form-urlencoded"
   end
 
   if req.method == "POST" then

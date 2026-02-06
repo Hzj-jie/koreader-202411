@@ -29,11 +29,17 @@ local function include_fold(template, start_tag, end_tag, fold_func, init_func)
     start2, end2 = string.find(template, end_tag, end1 + 1, true)
     assert(start2, 'end tag "' .. end_tag .. '" missing')
     do -- recursively include the file
-      local filename = assert(loadstring("return " .. string.sub(template, end1 + 1, start2 - 1)))()
+      local filename = assert(
+        loadstring("return " .. string.sub(template, end1 + 1, start2 - 1))
+      )()
       assert(filename)
       local fin = assert(io.open(filename))
       --- @todo Detect cyclic inclusion?
-      result = fold_func(result, include_fold(fin:read("*a"), start_tag, end_tag, fold_func, init_func), filename)
+      result = fold_func(
+        result,
+        include_fold(fin:read("*a"), start_tag, end_tag, fold_func, init_func),
+        filename
+      )
       fin:close()
     end
     start1, end1 = string.find(template, start_tag_inc, end2 + 1, true)
@@ -45,18 +51,20 @@ end
 -- preprocess included files
 -- @return string
 function slt2.precompile(template, start_tag, end_tag)
-  return table.concat(include_fold(template, start_tag, end_tag, function(acc, v)
-    if type(v) == "string" then
-      table.insert(acc, v)
-    elseif type(v) == "table" then
-      table.insert(acc, table.concat(v))
-    else
-      error("Unknown type: " .. type(v))
-    end
-    return acc
-  end, function()
-    return {}
-  end))
+  return table.concat(
+    include_fold(template, start_tag, end_tag, function(acc, v)
+      if type(v) == "string" then
+        table.insert(acc, v)
+      elseif type(v) == "table" then
+        table.insert(acc, table.concat(v))
+      else
+        error("Unknown type: " .. type(v))
+      end
+      return acc
+    end, function()
+      return {}
+    end)
+  )
 end
 
 -- unique a list, preserve order
@@ -74,23 +82,25 @@ end
 
 -- @return { string }
 function slt2.get_dependency(template, start_tag, end_tag)
-  return stable_uniq(include_fold(template, start_tag, end_tag, function(acc, v, name)
-    if type(v) == "string" then
+  return stable_uniq(
+    include_fold(template, start_tag, end_tag, function(acc, v, name)
+      if type(v) == "string" then
+        return acc
+      elseif type(v) == "table" then
+        if name ~= nil then
+          table.insert(acc, name)
+        end
+        for _, subname in ipairs(v) do
+          table.insert(acc, subname)
+        end
+      else
+        error("Unknown type: " .. type(v))
+      end
       return acc
-    elseif type(v) == "table" then
-      if name ~= nil then
-        table.insert(acc, name)
-      end
-      for _, subname in ipairs(v) do
-        table.insert(acc, subname)
-      end
-    else
-      error("Unknown type: " .. type(v))
-    end
-    return acc
-  end, function()
-    return {}
-  end))
+    end, function()
+      return {}
+    end)
+  )
 end
 
 -- @return { name = string, code = string / function}
@@ -115,19 +125,31 @@ function slt2.loadstring(template, start_tag, end_tag, tmpl_name)
     if start1 > end2 + 1 then
       table.insert(
         lua_code,
-        output_func .. "(" .. string.format("%q", string.sub(template, end2 + 1, start1 - 1)) .. ")"
+        output_func
+          .. "("
+          .. string.format("%q", string.sub(template, end2 + 1, start1 - 1))
+          .. ")"
       )
     end
     start2, end2 = string.find(template, end_tag, end1 + 1, true)
     assert(start2, 'end_tag "' .. end_tag .. '" missing')
     if string.byte(template, end1 + 1) == cEqual then
-      table.insert(lua_code, output_func .. "(" .. string.sub(template, end1 + 2, start2 - 1) .. ")")
+      table.insert(
+        lua_code,
+        output_func .. "(" .. string.sub(template, end1 + 2, start2 - 1) .. ")"
+      )
     else
       table.insert(lua_code, string.sub(template, end1 + 1, start2 - 1))
     end
     start1, end1 = string.find(template, start_tag, end2 + 1, true)
   end
-  table.insert(lua_code, output_func .. "(" .. string.format("%q", string.sub(template, end2 + 1)) .. ")")
+  table.insert(
+    lua_code,
+    output_func
+      .. "("
+      .. string.format("%q", string.sub(template, end2 + 1))
+      .. ")"
+  )
 
   local ret = { name = tmpl_name or "=(slt2.loadstring)" }
   if setfenv == nil then -- lua 5.2

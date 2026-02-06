@@ -89,12 +89,20 @@ function SysfsLight:setNaturalBrightness(brightness, warmth)
     if brightness > 0 then
       -- On Nickel, the values for white/red/green are roughly linearly dependent
       -- on the 4th root of brightness and warmth.
-      white = math.min(self.white_gain * (brightness * (100 - warmth)) ^ self.exponent + self.white_offset, 255)
+      white = math.min(
+        self.white_gain * (brightness * (100 - warmth)) ^ self.exponent
+          + self.white_offset,
+        255
+      )
     end
     if warmth > 0 then
       local brightness_warmth_exp = (brightness * warmth) ^ self.exponent
-      red = math.min(self.red_gain * brightness_warmth_exp + self.red_offset, 255)
-      green = math.min(self.green_gain * brightness_warmth_exp + self.green_offset, 255)
+      red =
+        math.min(self.red_gain * brightness_warmth_exp + self.red_offset, 255)
+      green = math.min(
+        self.green_gain * brightness_warmth_exp + self.green_offset,
+        255
+      )
     end
 
     white = math.max(white, 0)
@@ -111,8 +119,14 @@ function SysfsLight:setNaturalBrightness(brightness, warmth)
 end
 
 dbg:guard(SysfsLight, "setNaturalBrightness", function(self, brightness, warmth)
-  assert(brightness == nil or (brightness >= 0 and brightness <= 100), "Wrong brightness value given!")
-  assert(warmth == nil or (warmth >= 0 and warmth <= 100), "Wrong warmth value given!")
+  assert(
+    brightness == nil or (brightness >= 0 and brightness <= 100),
+    "Wrong brightness value given!"
+  )
+  assert(
+    warmth == nil or (warmth >= 0 and warmth <= 100),
+    "Wrong warmth value given!"
+  )
 end)
 
 function SysfsLight:_set_light_value(sysfs_directory, value)

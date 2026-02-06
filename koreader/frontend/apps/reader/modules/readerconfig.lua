@@ -211,7 +211,10 @@ function ReaderConfig:onReadSettings(config)
 end
 
 function ReaderConfig:onSaveSettings()
-  self.configurable:saveSettings(self.ui.doc_settings, self.options.prefix .. "_")
+  self.configurable:saveSettings(
+    self.ui.doc_settings,
+    self.options.prefix .. "_"
+  )
   self.ui.doc_settings:save("config_panel_index", self.last_panel_index)
 end
 

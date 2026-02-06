@@ -64,7 +64,9 @@ function DoubleSpinWidget:init()
     if not self.width_factor then
       self.width_factor = 0.8 -- default if no width specified
     end
-    self.width = math.floor(math.min(self.screen_width, self.screen_height) * self.width_factor)
+    self.width = math.floor(
+      math.min(self.screen_width, self.screen_height) * self.width_factor
+    )
   end
   if Device:hasKeys() then
     self.key_events.Exit = { { Device.input.group.Back } }
@@ -83,14 +85,18 @@ function DoubleSpinWidget:init()
 
   if self.unit and self.unit ~= "" then
     self.left_precision = self.left_precision and self.left_precision or "%1d"
-    self.right_precision = self.right_precision and self.right_precision or "%1d"
+    self.right_precision = self.right_precision and self.right_precision
+      or "%1d"
   end
 
   -- Actually the widget layout
   self:update()
 end
 
-function DoubleSpinWidget:update(numberpicker_left_value, numberpicker_right_value)
+function DoubleSpinWidget:update(
+  numberpicker_left_value,
+  numberpicker_right_value
+)
   local prev_movable_offset = self.movable and self.movable:getMovedOffset()
   local prev_movable_alpha = self.movable and self.movable.alpha
   self.layout = {}
@@ -218,8 +224,12 @@ function DoubleSpinWidget:update(numberpicker_left_value, numberpicker_right_val
         text = self.default_text
           or T(
             gettext("Default values: %1%3 %4 %2%3"),
-            self.left_precision and string.format(self.left_precision, self.left_default) or self.left_default,
-            self.right_precision and string.format(self.right_precision, self.right_default) or self.right_default,
+            self.left_precision
+                and string.format(self.left_precision, self.left_default)
+              or self.left_default,
+            self.right_precision
+                and string.format(self.right_precision, self.right_default)
+              or self.right_default,
             unit,
             separator
           ),

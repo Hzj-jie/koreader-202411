@@ -215,17 +215,19 @@ function SystemStat:appendCounters()
   if Device:canSuspend() then
     self:put({
       "  " .. gettext("Time in suspend"),
-      datetime.secondsToClockDuration("", time.to_s(suspend), false, true) .. " (" .. Math.round(
-        (suspend / uptime) * 100
-      ) .. "%)",
+      datetime.secondsToClockDuration("", time.to_s(suspend), false, true)
+        .. " ("
+        .. Math.round((suspend / uptime) * 100)
+        .. "%)",
     })
   end
   if Device:canStandby() then
     self:put({
       "  " .. gettext("Time in standby"),
-      datetime.secondsToClockDuration("", time.to_s(standby), false, true) .. " (" .. Math.round(
-        (standby / uptime) * 100
-      ) .. "%)",
+      datetime.secondsToClockDuration("", time.to_s(standby), false, true)
+        .. " ("
+        .. Math.round((standby / uptime) * 100)
+        .. "%)",
     })
   end
   if self.discharge_time then
@@ -308,14 +310,20 @@ function SystemStat:appendSystemInfo()
     local awake = self:awakeSec()
     self:put({
       "  " .. gettext("Time spent awake"),
-      datetime.secondsToClockDuration("", awake, false, true) .. " (" .. Math.round((awake / uptime) * 100) .. "%)",
+      datetime.secondsToClockDuration("", awake, false, true)
+        .. " ("
+        .. Math.round((awake / uptime) * 100)
+        .. "%)",
     })
   end
   if Device:canSuspend() then
     local suspend = self.sys_stat.uptime.sec - self:awakeSec()
     self:put({
       "  " .. gettext("Time in suspend"),
-      datetime.secondsToClockDuration("", suspend, false, true) .. " (" .. Math.round((suspend / uptime) * 100) .. "%)",
+      datetime.secondsToClockDuration("", suspend, false, true)
+        .. " ("
+        .. Math.round((suspend / uptime) * 100)
+        .. "%)",
     })
   end
   -- Need localization
@@ -353,14 +361,20 @@ function SystemStat:appendSystemInfo()
   -- Need localization
   self:put({
     "  " .. gettext("Usage % during awake"),
-    string.format("%.2f", (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total) * 100),
+    string.format(
+      "%.2f",
+      (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total) * 100
+    ),
   })
   -- Need localization
   self:put({
     "  " .. gettext("Usage % since boot"),
     string.format(
       "%.2f",
-      (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total) * 100 * self:awakeSec() / self.sys_stat.uptime.sec
+      (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total)
+        * 100
+        * self:awakeSec()
+        / self.sys_stat.uptime.sec
     ),
   })
   self:put({
@@ -454,7 +468,11 @@ function SystemStat:appendStorageInfo()
     return
   end
 
-  local std_out = io.popen("df -h | sed -r 's/ +/ /g' | grep " .. self.storage_filter .. " | cut -d' ' -f 2,4,5,6")
+  local std_out = io.popen(
+    "df -h | sed -r 's/ +/ /g' | grep "
+      .. self.storage_filter
+      .. " | cut -d' ' -f 2,4,5,6"
+  )
   assert(std_out ~= nil)
 
   self:put({ gettext("Storage information"), "" })

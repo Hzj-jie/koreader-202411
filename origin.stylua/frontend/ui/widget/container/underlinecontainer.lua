@@ -45,7 +45,13 @@ function UnderlineContainer:paintTo(bb, x, y)
     p_y = (container_size.h - content_size.h) + y
   end
   self[1]:paintTo(bb, x, p_y)
-  bb:paintRect(x, y + container_size.h - self.linesize, container_size.w, self.linesize, self.color)
+  bb:paintRect(
+    x,
+    y + container_size.h - self.linesize,
+    container_size.w,
+    self.linesize,
+    self.color
+  )
 end
 
 return UnderlineContainer

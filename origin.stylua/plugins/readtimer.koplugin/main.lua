@@ -81,8 +81,10 @@ function ReadTimer:init()
     return
   end
 
-  self.show_value_in_header = G_reader_settings:readSetting("readtimer_show_value_in_header")
-  self.show_value_in_footer = G_reader_settings:readSetting("readtimer_show_value_in_footer")
+  self.show_value_in_header =
+    G_reader_settings:readSetting("readtimer_show_value_in_header")
+  self.show_value_in_footer =
+    G_reader_settings:readSetting("readtimer_show_value_in_footer")
 
   if self.show_value_in_header then
     self:addAdditionalHeaderContent()
@@ -104,9 +106,17 @@ function ReadTimer:update_status_bars(seconds)
   end
   -- if seconds schedule 1ms later
   if seconds and seconds >= 0 then
-    UIManager:scheduleIn(math.max(math.floor(seconds) % 60, 0.001), self.update_status_bars, self)
+    UIManager:scheduleIn(
+      math.max(math.floor(seconds) % 60, 0.001),
+      self.update_status_bars,
+      self
+    )
   elseif seconds and seconds < 0 and self:scheduled() then
-    UIManager:scheduleIn(math.max(math.floor(self:remaining()) % 60, 0.001), self.update_status_bars, self)
+    UIManager:scheduleIn(
+      math.max(math.floor(self:remaining()) % 60, 0.001),
+      self.update_status_bars,
+      self
+    )
   else
     UIManager:scheduleIn(60, self.update_status_bars, self)
   end
@@ -154,20 +164,26 @@ end
 
 function ReadTimer:addAdditionalHeaderContent()
   if self.ui.crelistener then
-    self.ui.crelistener:addAdditionalHeaderContent(self.additional_header_content_func)
+    self.ui.crelistener:addAdditionalHeaderContent(
+      self.additional_header_content_func
+    )
     self:update_status_bars(-1)
   end
 end
 function ReadTimer:addAdditionalFooterContent()
   if self.ui.view then
-    self.ui.view.footer:addAdditionalFooterContent(self.additional_footer_content_func)
+    self.ui.view.footer:addAdditionalFooterContent(
+      self.additional_footer_content_func
+    )
     self:update_status_bars(-1)
   end
 end
 
 function ReadTimer:removeAdditionalHeaderContent()
   if self.ui.crelistener then
-    self.ui.crelistener:removeAdditionalHeaderContent(self.additional_header_content_func)
+    self.ui.crelistener:removeAdditionalHeaderContent(
+      self.additional_header_content_func
+    )
     self:update_status_bars(-1)
     UIManager:broadcastEvent(Event:new("UpdateHeader"))
   end
@@ -175,7 +191,9 @@ end
 
 function ReadTimer:removeAdditionalFooterContent()
   if self.ui.view then
-    self.ui.view.footer:removeAdditionalFooterContent(self.additional_footer_content_func)
+    self.ui.view.footer:removeAdditionalFooterContent(
+      self.additional_footer_content_func
+    )
     self:update_status_bars(-1)
     UIManager:broadcastEvent(Event:new("UpdateFooter", true))
   end
@@ -205,7 +223,10 @@ function ReadTimer:addCheckboxes(widget)
     parent = widget,
     callback = function()
       self.show_value_in_header = not self.show_value_in_header
-      G_reader_settings:saveSetting("readtimer_show_value_in_header", self.show_value_in_header)
+      G_reader_settings:saveSetting(
+        "readtimer_show_value_in_header",
+        self.show_value_in_header
+      )
       if self.show_value_in_header then
         self:addAdditionalHeaderContent()
       else
@@ -219,7 +240,10 @@ function ReadTimer:addCheckboxes(widget)
     parent = widget,
     callback = function()
       self.show_value_in_footer = not self.show_value_in_footer
-      G_reader_settings:saveSetting("readtimer_show_value_in_footer", self.show_value_in_footer)
+      G_reader_settings:saveSetting(
+        "readtimer_show_value_in_footer",
+        self.show_value_in_footer
+      )
       if self.show_value_in_footer then
         self:addAdditionalFooterContent()
       else
@@ -235,8 +259,16 @@ function ReadTimer:addToMainMenu(menu_items)
   menu_items.read_timer = {
     text_func = function()
       if self:scheduled() then
-        local user_duration_format = G_reader_settings:readSetting("duration_format")
-        return T(_("Read timer (%1)"), datetime.secondsToClockDuration(user_duration_format, self:remaining(), false))
+        local user_duration_format =
+          G_reader_settings:readSetting("duration_format")
+        return T(
+          _("Read timer (%1)"),
+          datetime.secondsToClockDuration(
+            user_duration_format,
+            self:remaining(),
+            false
+          )
+        )
       else
         return _("Read timer")
       end
@@ -268,14 +300,19 @@ function ReadTimer:addToMainMenu(menu_items)
               local seconds = os.difftime(os.time(then_t), os.time())
               if seconds > 0 then
                 self:rescheduleIn(seconds)
-                local user_duration_format = G_reader_settings:readSetting("duration_format")
+                local user_duration_format =
+                  G_reader_settings:readSetting("duration_format")
                 UIManager:show(InfoMessage:new({
                   -- @translators %1:%2 is a clock time (HH:MM), %3 is a duration
                   text = T(
                     _("Timer set for %1:%2.\n\nThat's %3 from now."),
                     string.format("%02d", alarm_time.hour),
                     string.format("%02d", alarm_time.min),
-                    datetime.secondsToClockDuration(user_duration_format, seconds, false)
+                    datetime.secondsToClockDuration(
+                      user_duration_format,
+                      seconds,
+                      false
+                    )
                   ),
                   timeout = 5,
                 }))
@@ -284,7 +321,9 @@ function ReadTimer:addToMainMenu(menu_items)
                 end
               else
                 UIManager:show(InfoMessage:new({
-                  text = _("Timer could not be set. The selected time is in the past."),
+                  text = _(
+                    "Timer could not be set. The selected time is in the past."
+                  ),
                   timeout = 5,
                 }))
               end
@@ -301,7 +340,8 @@ function ReadTimer:addToMainMenu(menu_items)
           local remain_time = {}
           local remain_hours, remain_minutes = self:remainingTime()
           if not remain_hours and not remain_minutes then
-            remain_time = G_reader_settings:readSetting("reader_timer_remain_time")
+            remain_time =
+              G_reader_settings:readSetting("reader_timer_remain_time")
             if remain_time then
               remain_hours = remain_time[1]
               remain_minutes = remain_time[2]
@@ -320,17 +360,25 @@ function ReadTimer:addToMainMenu(menu_items)
               if seconds > 0 then
                 self.last_interval_time = seconds
                 self:rescheduleIn(seconds)
-                local user_duration_format = G_reader_settings:readSetting("duration_format")
+                local user_duration_format =
+                  G_reader_settings:readSetting("duration_format")
                 UIManager:show(InfoMessage:new({
                   -- @translators This is a duration
                   text = T(
                     _("Timer will expire in %1."),
-                    datetime.secondsToClockDuration(user_duration_format, seconds, true)
+                    datetime.secondsToClockDuration(
+                      user_duration_format,
+                      seconds,
+                      true
+                    )
                   ),
                   timeout = 5,
                 }))
                 remain_time = { timer_time.hour, timer_time.min }
-                G_reader_settings:saveSetting("reader_timer_remain_time", remain_time)
+                G_reader_settings:saveSetting(
+                  "reader_timer_remain_time",
+                  remain_time
+                )
                 if touchmenu_instance then
                   touchmenu_instance:updateItems()
                 end

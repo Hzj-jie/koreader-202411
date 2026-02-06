@@ -37,7 +37,8 @@ local function buildEntry(file, order, mandatory)
 end
 
 function ReadCollection:_read()
-  local collection_file_modification_time = lfs.attributes(collection_file, "modification")
+  local collection_file_modification_time =
+    lfs.attributes(collection_file, "modification")
   if collection_file_modification_time then
     if collection_file_modification_time <= self.last_read_time then
       return
@@ -219,7 +220,12 @@ function ReadCollection:removeItemsByPath(path) -- FM: delete folder
   end
 end
 
-function ReadCollection:_updateItem(coll_name, file_name, new_filepath, new_path)
+function ReadCollection:_updateItem(
+  coll_name,
+  file_name,
+  new_filepath,
+  new_path
+)
   local coll = self.coll[coll_name]
   local item_old = coll[file_name]
   local order, mandatory = item_old.order, item_old.mandatory
@@ -265,7 +271,11 @@ function ReadCollection:updateItemsByPath(path, new_path) -- FM: rename folder, 
   for coll_name, coll in pairs(self.coll) do
     for file_name in pairs(coll) do
       if file_name:sub(1, len) == path then
-        self:_updateItem(coll_name, file_name, new_path .. file_name:sub(len + 1))
+        self:_updateItem(
+          coll_name,
+          file_name,
+          new_path .. file_name:sub(len + 1)
+        )
         do_write = true
       end
     end

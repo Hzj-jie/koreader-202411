@@ -13,7 +13,9 @@ local gettext = require("gettext")
 -- has to be done before requiring other files because
 -- they might call gettext on load
 if G_reader_settings == nil then
-  G_reader_settings = require("luasettings"):open(DataStorage:getDataDir() .. "/settings.reader.lua")
+  G_reader_settings = require("luasettings"):open(
+    DataStorage:getDataDir() .. "/settings.reader.lua"
+  )
 end
 local lang_locale = G_reader_settings:read("language")
 if lang_locale then
@@ -47,7 +49,8 @@ function TouchProbe:init()
     file = "tools/kobo-touch-probe.png",
   })
   local screen_w, screen_h = Screen:getWidth(), Screen:getHeight()
-  local img_w, img_h = self.image_widget:getSize().w, self.image_widget:getSize().h
+  local img_w, img_h =
+    self.image_widget:getSize().w, self.image_widget:getSize().h
   self.probe_steps = {
     {
       hint_text = gettext("Tap the lower right corner"),

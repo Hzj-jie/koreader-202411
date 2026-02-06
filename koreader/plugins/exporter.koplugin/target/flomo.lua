@@ -18,7 +18,10 @@ local function makeRequest(method, request_body, api)
   local sink = {}
   local request_body_json = json.encode(request_body)
   local source = ltn12.source.string(request_body_json)
-  socketutil:set_timeout(socketutil.LARGE_BLOCK_TIMEOUT, socketutil.LARGE_TOTAL_TIMEOUT)
+  socketutil:set_timeout(
+    socketutil.LARGE_BLOCK_TIMEOUT,
+    socketutil.LARGE_TOTAL_TIMEOUT
+  )
   local request = {
     url = api,
     method = method,
@@ -32,7 +35,10 @@ local function makeRequest(method, request_body, api)
   socketutil:reset_timeout()
 
   if code ~= 200 then
-    logger.warn("Flomo: HTTP response code <> 200. Response status:", status or code or "network unreachable")
+    logger.warn(
+      "Flomo: HTTP response code <> 200. Response status:",
+      status or code or "network unreachable"
+    )
     logger.dbg("Response headers:", headers)
     return nil, status
   end
@@ -116,7 +122,8 @@ function FlomoExporter:createHighlights(booknotes)
         .. "）\n\n #"
         .. booknotes.title
         .. " #koreader"
-      local result, err = makeRequest("POST", { content = highlight }, self.settings.api)
+      local result, err =
+        makeRequest("POST", { content = highlight }, self.settings.api)
       if not result then
         logger.warn("error creating highlights", err)
         error_number = error_number + 1
@@ -126,7 +133,10 @@ function FlomoExporter:createHighlights(booknotes)
   end
   local success_number = number - error_number
   logger.dbg(
-    "createHighlights success number: " .. success_number .. " createHighlights error number: " .. error_number
+    "createHighlights success number: "
+      .. success_number
+      .. " createHighlights error number: "
+      .. error_number
   )
   return true
 end

@@ -317,7 +317,8 @@ local function select(self, s)
           end
           if "[" == stype and "" ~= quote then
             local value
-            start, pos, value = string.find(part, "(%b" .. quote .. quote .. ")]", pos)
+            start, pos, value =
+              string.find(part, "(%b" .. quote .. quote .. ")]", pos)
             name = name .. eq .. value
           end
           local matched = match(stype, name)

@@ -51,11 +51,15 @@ function ReaderTypeset:onReadSettings(config)
   if config:has("copt_block_rendering_mode") then
     self.block_rendering_mode = config:readSetting("copt_block_rendering_mode")
   else
-    if config:has("last_xpointer") and not config:has("docsettings_reset_done") then
+    if
+      config:has("last_xpointer") and not config:has("docsettings_reset_done")
+    then
       -- We have a last_xpointer: this book was previously opened
       self.block_rendering_mode = 0
     else
-      self.block_rendering_mode = G_reader_settings:readSetting("copt_block_rendering_mode") or 3 -- default to 'web' mode
+      self.block_rendering_mode = G_reader_settings:readSetting(
+        "copt_block_rendering_mode"
+      ) or 3 -- default to 'web' mode
     end
     -- Let ConfigDialog know so it can update it on screen and have it saved on quit
     self.configurable.block_rendering_mode = self.block_rendering_mode
@@ -76,7 +80,9 @@ function ReaderTypeset:onReadSettings(config)
     self.configurable.b_page_margin,
   }
   self:onSetPageMargins(self.unscaled_margins)
-  self.sync_t_b_page_margins = self.configurable.sync_t_b_page_margins == 1 and true or false
+  self.sync_t_b_page_margins = self.configurable.sync_t_b_page_margins == 1
+      and true
+    or false
 
   -- default to disable TXT formatting as it does more harm than good (the setting is not in UI)
   self.txt_preformatted = config:readSetting("txt_preformatted")
@@ -129,7 +135,10 @@ function ReaderTypeset:onToggleImageScaling(toggle)
   self.configurable.smooth_scaling = toggle and 1 or 0
   self.ui.document:setImageScaling(toggle)
   self.ui:handleEvent(Event:new("UpdatePos"))
-  local text = T(_("Image scaling set to: %1"), optionsutil:getOptionText("ToggleImageScaling", toggle))
+  local text = T(
+    _("Image scaling set to: %1"),
+    optionsutil:getOptionText("ToggleImageScaling", toggle)
+  )
   Notification:notify(text)
   return true
 end
@@ -143,7 +152,10 @@ end
 
 function ReaderTypeset:onSetBlockRenderingMode(mode)
   self:setBlockRenderingMode(mode)
-  local text = T(_("Render mode set to: %1"), optionsutil:getOptionText("SetBlockRenderingMode", mode))
+  local text = T(
+    _("Render mode set to: %1"),
+    optionsutil:getOptionText("SetBlockRenderingMode", mode)
+  )
   Notification:notify(text)
   return true
 end
@@ -152,7 +164,8 @@ function ReaderTypeset:onSetRenderDPI(dpi)
   self.configurable.render_dpi = dpi
   self.ui.document:setRenderDPI(dpi)
   self.ui:handleEvent(Event:new("UpdatePos"))
-  local text = T(_("Zoom set to: %1"), optionsutil:getOptionText("SetRenderDPI", dpi))
+  local text =
+    T(_("Zoom set to: %1"), optionsutil:getOptionText("SetRenderDPI", dpi))
   Notification:notify(text)
   return true
 end
@@ -174,17 +187,31 @@ local OBSOLETED_CSS = {
 }
 
 function ReaderTypeset:genStyleSheetMenu()
-  local getStyleMenuItem = function(text, css_file, description, fb2_compatible, separator)
+  local getStyleMenuItem = function(
+    text,
+    css_file,
+    description,
+    fb2_compatible,
+    separator
+  )
     return {
       text_func = function()
         local css_opt = self.ui.document.is_fb2 and "copt_fb2_css" or "copt_css"
-        return text .. (css_file == G_reader_settings:readSetting(css_opt) and "   ★" or "")
+        return text
+          .. (
+            css_file == G_reader_settings:readSetting(css_opt) and "   ★" or ""
+          )
       end,
       callback = function()
         self:setStyleSheet(css_file or self.ui.document.default_css)
       end,
       hold_callback = function(touchmenu_instance)
-        self:makeDefaultStyleSheet(css_file, text, description, touchmenu_instance)
+        self:makeDefaultStyleSheet(
+          css_file,
+          text,
+          description,
+          touchmenu_instance
+        )
       end,
       checked_func = function()
         if not css_file then -- "Auto"
@@ -224,7 +251,9 @@ function ReaderTypeset:genStyleSheetMenu()
     getStyleMenuItem(
       _("Auto"),
       nil,
-      _("This selects the default and preferred stylesheet for the document type."),
+      _(
+        "This selects the default and preferred stylesheet for the document type."
+      ),
       nil,
       true -- separator
     )
@@ -232,7 +261,10 @@ function ReaderTypeset:genStyleSheetMenu()
 
   local css_files = {}
   for f in lfs.dir("./data") do
-    if lfs.attributes("./data/" .. f, "mode") == "file" and string.match(f, "%.css$") then
+    if
+      lfs.attributes("./data/" .. f, "mode") == "file"
+      and string.match(f, "%.css$")
+    then
       css_files[f] = "./data/" .. f
     end
   end
@@ -277,9 +309,11 @@ On unstyled books though, it may give them the look of a web page (left aligned 
       getStyleMenuItem(
         _("FictionBook (fb2.css)"),
         css_files["fb2.css"],
-        _([[
+        _(
+          [[
 This stylesheet is to be used only with FB2 and FB3 documents, which are not classic HTML, and need some specific styling.
-(FictionBook 2 & 3 are open XML-based e-book formats which originated and gained popularity in Russia.)]]),
+(FictionBook 2 & 3 are open XML-based e-book formats which originated and gained popularity in Russia.)]]
+        ),
         true, -- fb2_compatible
         true -- separator
       )
@@ -311,7 +345,14 @@ This stylesheet is to be used only with FB2 and FB3 documents, which are not cla
   end
   table.sort(user_files)
   for __, css in ipairs(user_files) do
-    table.insert(style_table, getStyleMenuItem(css, css_files[css], _("This is a user added stylesheet.")))
+    table.insert(
+      style_table,
+      getStyleMenuItem(
+        css,
+        css_files[css],
+        _("This is a user added stylesheet.")
+      )
+    )
   end
 
   style_table[#style_table].separator = true
@@ -440,8 +481,14 @@ function ReaderTypeset:addToMainMenu(menu_items)
   }
 end
 
-function ReaderTypeset:makeDefaultStyleSheet(css, name, description, touchmenu_instance)
-  local text = self.ui.document.is_fb2 and T(_("Set default style for FB2 documents to %1?"), BD.filename(name))
+function ReaderTypeset:makeDefaultStyleSheet(
+  css,
+  name,
+  description,
+  touchmenu_instance
+)
+  local text = self.ui.document.is_fb2
+      and T(_("Set default style for FB2 documents to %1?"), BD.filename(name))
     or T(_("Set default style to %1?"), BD.filename(name))
   if description then
     text = text .. "\n\n" .. description
@@ -468,7 +515,9 @@ function ReaderTypeset:onSetPageHorizMargins(h_margins, when_applied_callback)
     h_margins[2],
     self.unscaled_margins[4],
   }
-  self.ui:handleEvent(Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback))
+  self.ui:handleEvent(
+    Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback)
+  )
 end
 
 function ReaderTypeset:onSetPageTopMargin(t_margin, when_applied_callback)
@@ -483,7 +532,9 @@ function ReaderTypeset:onSetPageTopMargin(t_margin, when_applied_callback)
     -- Let ConfigDialog know so it can update it on screen and have it saved on quit
     self.configurable.b_page_margin = t_margin
   end
-  self.ui:handleEvent(Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback))
+  self.ui:handleEvent(
+    Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback)
+  )
 end
 
 function ReaderTypeset:onSetPageBottomMargin(b_margin, when_applied_callback)
@@ -498,18 +549,26 @@ function ReaderTypeset:onSetPageBottomMargin(b_margin, when_applied_callback)
     -- Let ConfigDialog know so it can update it on screen and have it saved on quit
     self.configurable.t_page_margin = b_margin
   end
-  self.ui:handleEvent(Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback))
+  self.ui:handleEvent(
+    Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback)
+  )
 end
 
-function ReaderTypeset:onSetPageTopAndBottomMargin(t_b_margins, when_applied_callback)
+function ReaderTypeset:onSetPageTopAndBottomMargin(
+  t_b_margins,
+  when_applied_callback
+)
   local t_margin, b_margin = t_b_margins[1], t_b_margins[2]
-  self.unscaled_margins = { self.unscaled_margins[1], t_margin, self.unscaled_margins[3], b_margin }
+  self.unscaled_margins =
+    { self.unscaled_margins[1], t_margin, self.unscaled_margins[3], b_margin }
   if t_margin ~= b_margin then
     -- Set Sync T/B Margins toggle to off, as user explicitly made them differ
     self.sync_t_b_page_margins = false
     self.configurable.sync_t_b_page_margins = 0
   end
-  self.ui:handleEvent(Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback))
+  self.ui:handleEvent(
+    Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback)
+  )
 end
 
 function ReaderTypeset:onSyncPageTopBottomMargins(toggle, when_applied_callback)
@@ -523,7 +582,8 @@ function ReaderTypeset:onSyncPageTopBottomMargins(toggle, when_applied_callback)
       -- have them possibly not equal), but as these are unscaled here,
       -- and later scaled, the end result could still be different.
       -- So just take the mean and make them equal.
-      local mean_margin = Math.round((self.unscaled_margins[2] + self.unscaled_margins[4]) / 2)
+      local mean_margin =
+        Math.round((self.unscaled_margins[2] + self.unscaled_margins[4]) / 2)
       self.configurable.t_page_margin = mean_margin
       self.configurable.b_page_margin = mean_margin
       self.unscaled_margins = {
@@ -532,7 +592,13 @@ function ReaderTypeset:onSyncPageTopBottomMargins(toggle, when_applied_callback)
         self.unscaled_margins[3],
         mean_margin,
       }
-      self.ui:handleEvent(Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback))
+      self.ui:handleEvent(
+        Event:new(
+          "SetPageMargins",
+          self.unscaled_margins,
+          when_applied_callback
+        )
+      )
       when_applied_callback = nil
     end
   end

@@ -81,7 +81,8 @@ local function analyze_key_capabilities(long_bitmap_arr)
 end
 
 function FindKeyboard:check(event_file_name)
-  local capabilities_long_bitmap_arr = read_key_capabilities("/sys/class/input/" .. event_file_name)
+  local capabilities_long_bitmap_arr =
+    read_key_capabilities("/sys/class/input/" .. event_file_name)
   if capabilities_long_bitmap_arr then
     local keyboard_info = analyze_key_capabilities(capabilities_long_bitmap_arr)
     if keyboard_info.is_keyboard then

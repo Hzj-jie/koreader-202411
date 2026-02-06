@@ -30,9 +30,16 @@ local eink_settings_table = {
 }
 
 if Device:hasEinkScreen() then
-  table.insert(eink_settings_table.sub_item_table, 1, dofile("frontend/ui/elements/refresh_menu_table.lua"))
+  table.insert(
+    eink_settings_table.sub_item_table,
+    1,
+    dofile("frontend/ui/elements/refresh_menu_table.lua")
+  )
   if (Screen.wf_level_max or 0) > 0 then
-    table.insert(eink_settings_table.sub_item_table, dofile("frontend/ui/elements/waveform_level.lua"))
+    table.insert(
+      eink_settings_table.sub_item_table,
+      dofile("frontend/ui/elements/waveform_level.lua")
+    )
   end
 end
 

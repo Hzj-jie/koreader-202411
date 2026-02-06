@@ -54,7 +54,9 @@ local SpinWidget = FocusManager:extend({
 
 function SpinWidget:init()
   -- used to enable ok_button, self.value may be changed in extra callback
-  self.original_value = self.value_table and self.value_table[self.value_index or 1] or self.value
+  self.original_value = self.value_table
+      and self.value_table[self.value_index or 1]
+    or self.value
 
   self.screen_width = Screen:getWidth()
   self.screen_height = Screen:getHeight()
@@ -62,7 +64,9 @@ function SpinWidget:init()
     if not self.width_factor then
       self.width_factor = 0.6 -- default if no width specified
     end
-    self.width = math.floor(math.min(self.screen_width, self.screen_height) * self.width_factor)
+    self.width = math.floor(
+      math.min(self.screen_width, self.screen_height) * self.width_factor
+    )
   end
   if Device:hasKeys() then
     self.key_events.Close = { { Device.input.group.Back } }
@@ -203,7 +207,8 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
     },
     {
       text = self.ok_text,
-      enabled = self.ok_always_enabled or self.original_value ~= value_widget:getValue(),
+      enabled = self.ok_always_enabled
+        or self.original_value ~= value_widget:getValue(),
       callback = function()
         self.value, self.value_index = value_widget:getValue()
         self.original_value = self.value

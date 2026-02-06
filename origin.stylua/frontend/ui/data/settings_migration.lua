@@ -40,7 +40,10 @@ function SettingsMigration:migrateSettings(config)
       old_margins[4]
     )
     -- Format was: {left, top, right, bottom}
-    config:saveSetting("copt_h_page_margins", { old_margins[1], old_margins[3] })
+    config:saveSetting(
+      "copt_h_page_margins",
+      { old_margins[1], old_margins[3] }
+    )
     config:saveSetting("copt_t_page_margin", old_margins[2])
     config:saveSetting("copt_b_page_margin", old_margins[4])
     -- Wipe it
@@ -50,9 +53,16 @@ function SettingsMigration:migrateSettings(config)
   -- Space condensing to Word spacing (https://github.com/koreader/koreader/pull/5655)
   -- From a single number (space condensing) to a table of 2 numbers ({space width scale, space condensing}).
   -- Be conservative and don't change space width scale: use 100%
-  if config:hasNot("copt_word_spacing") and config:has("copt_space_condensing") then
+  if
+    config:hasNot("copt_word_spacing") and config:has("copt_space_condensing")
+  then
     local space_condensing = config:readSetting("copt_space_condensing")
-    logger.info("Migrating old", cfg_class, "CRe space condensing:", space_condensing)
+    logger.info(
+      "Migrating old",
+      cfg_class,
+      "CRe space condensing:",
+      space_condensing
+    )
     config:saveSetting("copt_word_spacing", { 100, space_condensing })
   end
 end

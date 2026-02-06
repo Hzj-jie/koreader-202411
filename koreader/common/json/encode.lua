@@ -78,7 +78,8 @@ end
 ]]
 local function encodeWithMap(value, map, state, isObjectKey)
   local t = type(value)
-  local encoderList = assert(map[t], "Failed to encode value, unhandled type: " .. t)
+  local encoderList =
+    assert(map[t], "Failed to encode value, unhandled type: " .. t)
   for _, encoder in ipairs(encoderList) do
     local ret = encoder(value, state, isObjectKey)
     if false ~= ret then
@@ -110,13 +111,18 @@ end
 		State has at least these values configured: encode, check_unique, already_encoded
 ]]
 function json_encode.getEncoder(options)
-  options = options and util_merge({}, json_encode.default, options) or json_encode.default
+  options = options and util_merge({}, json_encode.default, options)
+    or json_encode.default
   local encode = getBaseEncoder(options)
 
   local function initialEncode(value)
     if options.initialObject then
-      local errorMessage = "Invalid arguments: expects a JSON Object or Array at the root"
-      assert(type(value) == "table" and not isCall(value, options), errorMessage)
+      local errorMessage =
+        "Invalid arguments: expects a JSON Object or Array at the root"
+      assert(
+        type(value) == "table" and not isCall(value, options),
+        errorMessage
+      )
     end
 
     local alreadyEncoded = {}
@@ -125,7 +131,8 @@ function json_encode.getEncoder(options)
       alreadyEncoded[value] = true
     end
 
-    local outputEncoder = options.output and options.output() or output.getDefault()
+    local outputEncoder = options.output and options.output()
+      or output.getDefault()
     local state = {
       encode = encode,
       check_unique = check_unique,

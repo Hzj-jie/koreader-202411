@@ -153,7 +153,8 @@ function PocketBook:init()
           vinfo.yres_virtual = ALIGN(vinfo.yres, 128)
         end
         local line_length = finfo.line_length
-        finfo.line_length = vinfo.xres_virtual * bit.rshift(vinfo.bits_per_pixel, 3)
+        finfo.line_length = vinfo.xres_virtual
+          * bit.rshift(vinfo.bits_per_pixel, 3)
 
         local fb_size = finfo.line_length * vinfo.yres_virtual
         if fb_size > finfo.smem_len then
@@ -170,7 +171,8 @@ function PocketBook:init()
             vinfo.xres_virtual = xres_virtual
             vinfo.yres_virtual = yres_virtual
 
-            vinfo.xres_virtual = bit.lshift(finfo.line_length, 3) / vinfo.bits_per_pixel
+            vinfo.xres_virtual = bit.lshift(finfo.line_length, 3)
+              / vinfo.bits_per_pixel
           end
         end
       end
@@ -251,7 +253,10 @@ function PocketBook:init()
   -- NOTE: `self.input.open` is a method, and we want it to call `self.input.input.open`
   -- with `self.input` as first argument, which the imp supports to get access to
   -- `self.input.raw_input`, hence the double `self.input` arguments.
-  if not self.input.raw_input or (not pcall(self.input.open, self.input, self.input)) then
+  if
+    not self.input.raw_input
+    or (not pcall(self.input.open, self.input, self.input))
+  then
     inkview.OpenScreen()
     -- Raw mode open failed (no permissions?), so we'll run the usual way.
     -- Disable touch coordinate translation as inkview will do that.
@@ -294,7 +299,12 @@ function PocketBook:notifyBookState(title, document)
       fo:close()
     end
   end
-  inkview.SetSubtaskInfo(inkview.GetCurrentTask(), 0, title and (title .. " - koreader") or "koreader", fn or _("N/A"))
+  inkview.SetSubtaskInfo(
+    inkview.GetCurrentTask(),
+    0,
+    title and (title .. " - koreader") or "koreader",
+    fn or _("N/A")
+  )
 end
 
 function PocketBook:setDateTime(year, month, day, hour, min, sec)
@@ -306,7 +316,15 @@ function PocketBook:setDateTime(year, month, day, hour, min, sec)
   su = util.pathExists(su) and (su .. " ") or ""
   local command
   if year and month and day then
-    command = string.format(su .. "/bin/date -s '%d-%d-%d %d:%d:%d'", year, month, day, hour, min, sec)
+    command = string.format(
+      su .. "/bin/date -s '%d-%d-%d %d:%d:%d'",
+      year,
+      month,
+      day,
+      hour,
+      min,
+      sec
+    )
   else
     command = string.format(su .. "/bin/date -s '%d:%d'", hour, min)
   end

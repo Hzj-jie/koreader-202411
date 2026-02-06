@@ -89,7 +89,14 @@ function OptionTextItem:onTapSelect()
   self.underline_container.color = Blitbuffer.COLOR_BLACK
 
   Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_ICON)
-  self.config:onConfigChoose(self.values, self.name, self.event, self.args, self.current_item, self.hide_on_apply)
+  self.config:onConfigChoose(
+    self.values,
+    self.name,
+    self.event,
+    self.args,
+    self.current_item,
+    self.hide_on_apply
+  )
 
   UIManager:setDirty(self.config, function()
     return "fast", self[1].dimen
@@ -166,7 +173,14 @@ function OptionIconItem:onTapSelect()
   self.underline_container.color = Blitbuffer.COLOR_BLACK
 
   Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_ICON)
-  self.config:onConfigChoose(self.values, self.name, self.event, self.args, self.current_item, self.hide_on_apply)
+  self.config:onConfigChoose(
+    self.values,
+    self.name,
+    self.event,
+    self.args,
+    self.current_item,
+    self.hide_on_apply
+  )
 
   UIManager:setDirty(self.config, function()
     return "fast", self[1].dimen
@@ -179,7 +193,13 @@ function OptionIconItem:onTapSelect()
 end
 
 function OptionIconItem:onHoldSelect()
-  self.config:onMakeDefault(self.name, self.name_text, self.values, self.labels or self.values, self.current_item)
+  self.config:onMakeDefault(
+    self.name,
+    self.name_text,
+    self.values,
+    self.labels or self.values,
+    self.current_item
+  )
   return true
 end
 
@@ -220,10 +240,17 @@ function ConfigOption:init()
         ]]
     --
     if show ~= false and show_default then
-      local name_font_face = self.options[c].name_font_face and self.options[c].name_font_face or "cfont"
-      local name_font_size = self.options[c].name_font_size and self.options[c].name_font_size or default_name_font_size
+      local name_font_face = self.options[c].name_font_face
+          and self.options[c].name_font_face
+        or "cfont"
+      local name_font_size = self.options[c].name_font_size
+          and self.options[c].name_font_size
+        or default_name_font_size
       local text = self.options[c].name_text_func
-          and self.options[c].name_text_func(self.config.configurable, self.config.document)
+          and self.options[c].name_text_func(
+            self.config.configurable,
+            self.config.document
+          )
         or self.options[c].name_text
       local face = Font:getFace(name_font_face, name_font_size)
       local txt_width = 0
@@ -241,8 +268,11 @@ function ConfigOption:init()
   -- They will carry the left default_option_hpadding, but the in-between
   -- one (and the right one) will be carried by the option items.
   -- (Both these variables are between 0 and 1 and represent a % of screen width)
-  local default_name_align_right = (max_option_name_width + default_option_hpadding + 2 * padding_small)
-    / Screen:getWidth()
+  local default_name_align_right = (
+    max_option_name_width
+    + default_option_hpadding
+    + 2 * padding_small
+  ) / Screen:getWidth()
   default_name_align_right = math.max(default_name_align_right, 0.25)
   default_name_align_right = math.min(default_name_align_right, 0.5)
   local default_item_align_center = 1 - default_name_align_right
@@ -261,23 +291,39 @@ function ConfigOption:init()
     local show = self.options[c].show
     -- Prefer show_func over show if there's one
     if self.options[c].show_func then
-      show = self.options[c].show_func(self.config.configurable, self.config.document)
+      show = self.options[c].show_func(
+        self.config.configurable,
+        self.config.document
+      )
     end
     if show ~= false and show_default then
-      local name_align = self.options[c].name_align_right and self.options[c].name_align_right
+      local name_align = self.options[c].name_align_right
+          and self.options[c].name_align_right
         or default_name_align_right
-      local item_align = self.options[c].item_align_center and self.options[c].item_align_center
+      local item_align = self.options[c].item_align_center
+          and self.options[c].item_align_center
         or default_item_align_center
-      local name_font_face = self.options[c].name_font_face and self.options[c].name_font_face or "cfont"
-      local name_font_size = self.options[c].name_font_size and self.options[c].name_font_size or default_name_font_size
-      local item_font_face = self.options[c].item_font_face and self.options[c].item_font_face or "cfont"
-      local item_font_size = self.options[c].item_font_size and self.options[c].item_font_size or default_item_font_size
+      local name_font_face = self.options[c].name_font_face
+          and self.options[c].name_font_face
+        or "cfont"
+      local name_font_size = self.options[c].name_font_size
+          and self.options[c].name_font_size
+        or default_name_font_size
+      local item_font_face = self.options[c].item_font_face
+          and self.options[c].item_font_face
+        or "cfont"
+      local item_font_size = self.options[c].item_font_size
+          and self.options[c].item_font_size
+        or default_item_font_size
       local option_height = Screen:scaleBySize(
         self.options[c].height and self.options[c].height
-          or default_option_height + (self.options[c].height or 30) * ((self.options[c].row_count or 1) - 1)
+          or default_option_height
+            + (self.options[c].height or 30) * ((self.options[c].row_count or 1) - 1)
       )
-      local item_spacing_width =
-        Screen:scaleBySize(self.options[c].spacing and self.options[c].spacing or default_items_spacing)
+      local item_spacing_width = Screen:scaleBySize(
+        self.options[c].spacing and self.options[c].spacing
+          or default_items_spacing
+      )
       local enabled = true
       if item_align == 1.0 then
         name_align = 0
@@ -287,13 +333,19 @@ function ConfigOption:init()
         item_align = 0.5
       end
       if self.options[c].enabled_func then
-        enabled = self.options[c].enabled_func(self.config.configurable, self.config.document)
+        enabled = self.options[c].enabled_func(
+          self.config.configurable,
+          self.config.document
+        )
       end
       local horizontal_group = HorizontalGroup:new({})
 
       -- Deal with the name on the left
       local name_text = self.options[c].name_text_func
-          and self.options[c].name_text_func(self.config.configurable, self.config.document)
+          and self.options[c].name_text_func(
+            self.config.configurable,
+            self.config.document
+          )
         or self.options[c].name_text
       if name_text then
         -- the horizontal padding on the left will be ensured by the RightContainer
@@ -312,7 +364,8 @@ function ConfigOption:init()
           bordersize = 0,
           face = face,
           enabled = enabled,
-          allow_hold_when_disabled = self.options[c].name_text_hold_callback ~= nil,
+          allow_hold_when_disabled = self.options[c].name_text_hold_callback
+            ~= nil,
           padding = padding_small,
           text_font_face = name_font_face,
           text_font_size = name_font_size,
@@ -335,8 +388,10 @@ function ConfigOption:init()
       -- Deal with the option widget on the right
       -- The horizontal padding between name and this option widget, and
       -- the one on the right, are ensured by this CenterContainer
-      local option_widget_outer_width = math.floor(item_align * Screen:getWidth())
-      local option_widget_width = option_widget_outer_width - 2 * default_option_hpadding
+      local option_widget_outer_width =
+        math.floor(item_align * Screen:getWidth())
+      local option_widget_width = option_widget_outer_width
+        - 2 * default_option_hpadding
       local option_items_container = CenterContainer:new({
         dimen = Geom:new({
           w = option_widget_outer_width,
@@ -367,7 +422,8 @@ function ConfigOption:init()
       if self.options[c].name then
         if self.options[c].values then
           -- check if current value is stored in configurable or calculated in runtime
-          local val = self.options[c].current_func and self.options[c].current_func()
+          local val = self.options[c].current_func
+              and self.options[c].current_func()
             or self.config.configurable[self.options[c].name]
           local min_diff
           if type(val) == "table" then
@@ -399,7 +455,8 @@ function ConfigOption:init()
           -- end
         elseif self.options[c].args then
           -- check if current arg is stored in configurable or calculated in runtime
-          local arg = self.options[c].current_func and self.options[c].current_func()
+          local arg = self.options[c].current_func
+              and self.options[c].current_func()
             or self.config.configurable[self.options[c].name]
           for idx, arg_ in pairs(self.options[c].args) do
             if arg_ == arg then
@@ -408,7 +465,9 @@ function ConfigOption:init()
             end
           end
         end
-        local default_option_name = self.config.config_options.prefix .. "_" .. self.options[c].name
+        local default_option_name = self.config.config_options.prefix
+          .. "_"
+          .. self.options[c].name
         local default_value = G_reader_settings:readSetting(default_option_name)
         if default_value and self.options[c].values then
           local val = default_value
@@ -448,18 +507,23 @@ function ConfigOption:init()
           local item = OptionTextItem:new({
             TextWidget:new({
               text = self.options[c].item_text[d],
-              face = Font:getFace(item_font_face, option_items_fixed and item_font_size[d] or item_font_size),
+              face = Font:getFace(
+                item_font_face,
+                option_items_fixed and item_font_size[d] or item_font_size
+              ),
             }),
           })
           items_width = items_width + item:getSize().w
         end
-        local max_item_spacing = (option_widget_width - items_width) / items_count
+        local max_item_spacing = (option_widget_width - items_width)
+          / items_count
         local width = math.min(max_item_spacing, item_spacing_width)
         if max_item_spacing < item_spacing_width / 2 then
           width = item_spacing_width / 2
         end
         local horizontal_half_padding = width / 2
-        local max_item_text_width = (option_widget_width - items_count * width) / items_count
+        local max_item_text_width = (option_widget_width - items_count * width)
+          / items_count
         for d = 1, #self.options[c].item_text do
           local option_item
           if option_items_fixed then
@@ -467,12 +531,15 @@ function ConfigOption:init()
               FixedTextWidget:new({
                 text = self.options[c].item_text[d],
                 face = Font:getFace(item_font_face, item_font_size[d]),
-                fgcolor = enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY,
+                fgcolor = enabled and Blitbuffer.COLOR_BLACK
+                  or Blitbuffer.COLOR_DARK_GRAY,
               }),
               underline_padding = padding_button,
               padding_left = d > 1 and horizontal_half_padding,
-              padding_right = d < #self.options[c].item_text and horizontal_half_padding,
-              color = d == current_item and (enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY)
+              padding_right = d < #self.options[c].item_text
+                and horizontal_half_padding,
+              color = d == current_item
+                  and (enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY)
                 or Blitbuffer.COLOR_WHITE,
               enabled = enabled,
             })
@@ -484,12 +551,15 @@ function ConfigOption:init()
                 text = text,
                 max_width = max_item_text_width,
                 face = face,
-                fgcolor = enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY,
+                fgcolor = enabled and Blitbuffer.COLOR_BLACK
+                  or Blitbuffer.COLOR_DARK_GRAY,
               }),
               underline_padding = -padding_button,
               padding_left = d > 1 and horizontal_half_padding,
-              padding_right = d < #self.options[c].item_text and horizontal_half_padding,
-              color = d == current_item and (enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY)
+              padding_right = d < #self.options[c].item_text
+                and horizontal_half_padding,
+              color = d == current_item
+                  and (enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY)
                 or Blitbuffer.COLOR_WHITE,
               enabled = enabled,
             })
@@ -512,15 +582,22 @@ function ConfigOption:init()
 
       -- Icons (ex: columns, text align, with PDF)
       local item_icons = self.options[c].item_icons_func
-          and self.options[c].item_icons_func(self.config.configurable, self.config.document)
+          and self.options[c].item_icons_func(
+            self.config.configurable,
+            self.config.document
+          )
         or self.options[c].item_icons
       if item_icons then
         local items_count = #item_icons
         local icon_max_height = math.min(option_height, max_icon_height)
         local icon_max_width = math.floor(option_widget_width / items_count)
         local icon_size = math.min(icon_max_height, icon_max_width)
-        local max_item_spacing = (option_widget_width - icon_size * items_count) / items_count
-        local horizontal_half_padding = math.min(max_item_spacing, item_spacing_width) / 2
+        local max_item_spacing = (option_widget_width - icon_size * items_count)
+          / items_count
+        local horizontal_half_padding = math.min(
+          max_item_spacing,
+          item_spacing_width
+        ) / 2
         -- Our icons have a bottom padding that makes 10% to 20% of their height (5-9px in our 48px images)
         -- We don't want the underline to be that far away from the image content,
         -- so we use some negative padding to eat a bit on their padding.
@@ -536,7 +613,8 @@ function ConfigOption:init()
             underline_padding = underline_padding,
             padding_left = d > 1 and horizontal_half_padding,
             padding_right = d < items_count and horizontal_half_padding,
-            color = d == current_item and (enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY)
+            color = d == current_item
+                and (enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY)
               or Blitbuffer.COLOR_WHITE,
             enabled = enabled,
           })
@@ -558,9 +636,12 @@ function ConfigOption:init()
       -- Toggles (ex: mostly everything else)
       if self.options[c].toggle then
         local max_toggle_width = option_widget_width
-        local toggle_width = self.options[c].width and Screen:scaleBySize(self.options[c].width) or max_toggle_width
+        local toggle_width = self.options[c].width
+            and Screen:scaleBySize(self.options[c].width)
+          or max_toggle_width
         local row_count = self.options[c].row_count or 1
-        local toggle_height = Screen:scaleBySize(self.options[c].height or (30 * row_count))
+        local toggle_height =
+          Screen:scaleBySize(self.options[c].height or (30 * row_count))
         local toggle = {} -- keep options intact
         for i = 1, #self.options[c].toggle do
           toggle[i] = self.options[c].toggle[i]
@@ -590,14 +671,23 @@ function ConfigOption:init()
                 self.options[c].show_true_value_func
                 and not self.options[c].more_options_param.show_true_value_func
               then
-                self.options[c].more_options_param.show_true_value_func = self.options[c].show_true_value_func
+                self.options[c].more_options_param.show_true_value_func =
+                  self.options[c].show_true_value_func
               end
               Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_MORE)
               local default_value_original
-              if self.options[c].more_options_param and self.options[c].more_options_param.names then
-                local option1 = self.config:findOptionByName(self.options[c].more_options_param.names[1])
-                local option2 = self.config:findOptionByName(self.options[c].more_options_param.names[2])
-                default_value_original = { option1.default_value, option2.default_value }
+              if
+                self.options[c].more_options_param
+                and self.options[c].more_options_param.names
+              then
+                local option1 = self.config:findOptionByName(
+                  self.options[c].more_options_param.names[1]
+                )
+                local option2 = self.config:findOptionByName(
+                  self.options[c].more_options_param.names[2]
+                )
+                default_value_original =
+                  { option1.default_value, option2.default_value }
               else
                 default_value_original = self.options[c].default_value
               end
@@ -624,7 +714,8 @@ function ConfigOption:init()
       -- Progress bar (ex: contrast)
       if self.options[c].buttonprogress then
         local max_buttonprogress_width = option_widget_width
-        local buttonprogress_width = self.options[c].width and Screen:scaleBySize(self.options[c].width)
+        local buttonprogress_width = self.options[c].width
+            and Screen:scaleBySize(self.options[c].width)
           or max_buttonprogress_width
         local switch
         switch = ButtonProgressWidget:new({
@@ -652,10 +743,18 @@ function ConfigOption:init()
             elseif arg == "⋮" then
               Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_MORE)
               local default_value_original
-              if self.options[c].more_options_param and self.options[c].more_options_param.names then
-                local option1 = self.config:findOptionByName(self.options[c].more_options_param.names[1])
-                local option2 = self.config:findOptionByName(self.options[c].more_options_param.names[2])
-                default_value_original = { option1.default_value, option2.default_value }
+              if
+                self.options[c].more_options_param
+                and self.options[c].more_options_param.names
+              then
+                local option1 = self.config:findOptionByName(
+                  self.options[c].more_options_param.names[1]
+                )
+                local option2 = self.config:findOptionByName(
+                  self.options[c].more_options_param.names[2]
+                )
+                default_value_original =
+                  { option1.default_value, option2.default_value }
               else
                 default_value_original = self.options[c].default_value
               end
@@ -669,7 +768,9 @@ function ConfigOption:init()
                 self.options[c].more_options_param
               )
             else
-              Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_PROGRESS)
+              Notification:setNotifySource(
+                Notification.SOURCE_BOTTOM_MENU_PROGRESS
+              )
               self.config:onConfigChoose(
                 self.options[c].values,
                 self.options[c].name,
@@ -720,13 +821,20 @@ function ConfigOption:init()
       -- Add it to our CenterContainer
       table.insert(option_items_container, option_items_group)
       --add line of item to the second last place in the focusmanager so the menubar stay at the bottom
-      table.insert(self.config.layout, #self.config.layout, self:_itemGroupToLayoutLine(option_items_group))
+      table.insert(
+        self.config.layout,
+        #self.config.layout,
+        self:_itemGroupToLayoutLine(option_items_group)
+      )
       table.insert(horizontal_group, option_items_container)
       table.insert(vertical_group, horizontal_group)
     end -- if show ~= false
   end -- for c = 1, #self.options
 
-  table.insert(vertical_group, VerticalSpan:new({ width = default_option_vpadding }))
+  table.insert(
+    vertical_group,
+    VerticalSpan:new({ width = default_option_vpadding })
+  )
   self[1] = vertical_group
   self.dimen = vertical_group:getSize()
 end
@@ -764,9 +872,12 @@ local ConfigPanel = FrameContainer:extend({
 
 function ConfigPanel:init()
   local config_options = self.config_dialog.config_options
-  local default_option = config_options.default_options and config_options.default_options or config_options[1].options
+  local default_option = config_options.default_options
+      and config_options.default_options
+    or config_options[1].options
   local panel = ConfigOption:new({
-    options = self.index and config_options[self.index].options or default_option,
+    options = self.index and config_options[self.index].options
+      or default_option,
     config = self.config_dialog,
     document = self.document,
   })
@@ -807,7 +918,10 @@ function MenuBar:init()
   local available_width = Screen:getWidth() - icons_width
   -- local padding = math.floor(available_width / #self.menu_items / 2) -- all for padding
   -- local padding = math.floor(available_width / #self.menu_items / 2 / 2) -- half padding, half spacing ?
-  local padding = math.min(math.floor(available_width / #self.menu_items / 2), Screen:scaleBySize(20)) -- as in TouchMenuBar
+  local padding = math.min(
+    math.floor(available_width / #self.menu_items / 2),
+    Screen:scaleBySize(20)
+  ) -- as in TouchMenuBar
   if padding > 0 then
     for c = 1, #self.menu_items do
       self.menu_items[c].padding_left = padding
@@ -1028,7 +1142,9 @@ function ConfigDialog:onShowConfigPanel(index)
   --       So we've settled instead for the amount of lines in the panel, as line-height is constant.
   local keep_bg = old_layout_h and #self.layout >= old_layout_h
   UIManager:setDirty((self.is_fresh or keep_bg) and self or "all", function()
-    local refresh_dimen = old_dimen and old_dimen:combine(self.dialog_frame.dimen) or self.dialog_frame.dimen
+    local refresh_dimen = old_dimen
+        and old_dimen:combine(self.dialog_frame.dimen)
+      or self.dialog_frame.dimen
     self.is_fresh = false
     return "ui", refresh_dimen
   end)
@@ -1040,12 +1156,25 @@ function ConfigDialog:onConfigChoice(option_name, option_value)
   return true
 end
 
-function ConfigDialog:onConfigEvent(option_event, option_arg, when_applied_callback)
-  self.ui:handleEvent(Event:new(option_event, option_arg, when_applied_callback))
+function ConfigDialog:onConfigEvent(
+  option_event,
+  option_arg,
+  when_applied_callback
+)
+  self.ui:handleEvent(
+    Event:new(option_event, option_arg, when_applied_callback)
+  )
   return true
 end
 
-function ConfigDialog:onConfigChoose(values, name, event, args, position, hide_on_apply)
+function ConfigDialog:onConfigChoose(
+  values,
+  name,
+  event,
+  args,
+  position,
+  hide_on_apply
+)
   UIManager:tickAfterNext(function()
     -- Repainting may be delayed depending on options
     local refresh_dialog_func = function()
@@ -1084,7 +1213,15 @@ function ConfigDialog:onConfigChoose(values, name, event, args, position, hide_o
 end
 
 -- Tweaked variant used with the fine_tune variant of buttonprogress (direction can only be "-" or "+")
-function ConfigDialog:onConfigFineTuneChoose(values, name, event, args, direction, hide_on_apply, params)
+function ConfigDialog:onConfigFineTuneChoose(
+  values,
+  name,
+  event,
+  args,
+  direction,
+  hide_on_apply,
+  params
+)
   UIManager:tickAfterNext(function()
     -- Repainting may be delayed depending on options
     local refresh_dialog_func = function()
@@ -1173,7 +1310,15 @@ end
 
 -- Tweaked variant used with the more options variant of buttonprogress and fine tune with numpicker
 -- events are not supported
-function ConfigDialog:onConfigMoreChoose(values, default_value_orig, name, event, args, name_text, more_options_param)
+function ConfigDialog:onConfigMoreChoose(
+  values,
+  default_value_orig,
+  name,
+  event,
+  args,
+  name_text,
+  more_options_param
+)
   if not more_options_param then
     more_options_param = {}
   end
@@ -1234,15 +1379,17 @@ function ConfigDialog:onConfigMoreChoose(values, default_value_orig, name, event
             self.configurable[more_options_param.names[1]],
             self.configurable[more_options_param.names[2]],
           }
-          left_default = G_reader_settings:readSetting(self.config_options.prefix .. "_" .. more_options_param.names[1])
-            or default_value_orig[1]
+          left_default = G_reader_settings:readSetting(
+            self.config_options.prefix .. "_" .. more_options_param.names[1]
+          ) or default_value_orig[1]
           right_default = G_reader_settings:readSetting(
             self.config_options.prefix .. "_" .. more_options_param.names[2]
           ) or default_value_orig[2]
         else
           curr_values = self.configurable[name]
-          local default_values = G_reader_settings:readSetting(self.config_options.prefix .. "_" .. name)
-            or default_value_orig
+          local default_values = G_reader_settings:readSetting(
+            self.config_options.prefix .. "_" .. name
+          ) or default_value_orig
           left_default = default_values[1]
           right_default = default_values[2]
         end
@@ -1301,19 +1448,28 @@ function ConfigDialog:onConfigMoreChoose(values, default_value_orig, name, event
             local value_tables = { left_value, right_value }
             local values_string
             if more_options_param.show_true_value_func then
-              values_string = more_options_param.show_true_value_func(value_tables)
+              values_string =
+                more_options_param.show_true_value_func(value_tables)
             else
               values_string = T("%1, %2", left_value, right_value)
             end
             UIManager:show(ConfirmBox:new({
-              text = T(_("Set default %1 to %2?"), (name_text or ""), values_string),
+              text = T(
+                _("Set default %1 to %2?"),
+                (name_text or ""),
+                values_string
+              ),
               ok_text = T(_("Set as default")),
               ok_callback = function()
                 local setting_name
                 if more_options_param.names then
-                  setting_name = self.config_options.prefix .. "_" .. more_options_param.names[1]
+                  setting_name = self.config_options.prefix
+                    .. "_"
+                    .. more_options_param.names[1]
                   G_reader_settings:saveSetting(setting_name, left_value)
-                  setting_name = self.config_options.prefix .. "_" .. more_options_param.names[2]
+                  setting_name = self.config_options.prefix
+                    .. "_"
+                    .. more_options_param.names[2]
                   G_reader_settings:saveSetting(setting_name, right_value)
                 else
                   setting_name = self.config_options.prefix .. "_" .. name
@@ -1340,8 +1496,9 @@ function ConfigDialog:onConfigMoreChoose(values, default_value_orig, name, event
         end
         local curr_items = self.configurable[name]
         local value_index
-        local default_value = G_reader_settings:readSetting(self.config_options.prefix .. "_" .. name)
-          or default_value_orig
+        local default_value = G_reader_settings:readSetting(
+          self.config_options.prefix .. "_" .. name
+        ) or default_value_orig
         if more_options_param.value_table then
           local table_shift = more_options_param.value_table_shift or 0
           value_index = curr_items + table_shift
@@ -1401,7 +1558,11 @@ function ConfigDialog:onConfigMoreChoose(values, default_value_orig, name, event
               value_string = spin.value
             end
             UIManager:show(ConfirmBox:new({
-              text = T(_("Set default %1 to %2?"), (name_text or ""), value_string),
+              text = T(
+                _("Set default %1 to %2?"),
+                (name_text or ""),
+                value_string
+              ),
               ok_text = T(_("Set as default")),
               ok_callback = function()
                 local spin_value
@@ -1413,7 +1574,10 @@ function ConfigDialog:onConfigMoreChoose(values, default_value_orig, name, event
                   spin_value = spin.value
                   widget.default_value = spin.value
                 end
-                G_reader_settings:saveSetting(self.config_options.prefix .. "_" .. name, spin_value)
+                G_reader_settings:saveSetting(
+                  self.config_options.prefix .. "_" .. name,
+                  spin_value
+                )
                 widget:update()
                 self:update()
                 UIManager:setDirty(self, function()
@@ -1422,29 +1586,36 @@ function ConfigDialog:onConfigMoreChoose(values, default_value_orig, name, event
               end,
             }))
           end,
-          option_text = more_options_param.other_button and more_options_param.other_button.text,
-          option_callback = more_options_param.other_button and function()
-            when_applied_callback = nil -- prevent bottom menu from being shown (before being hidden again)
-            widget:onClose()
-            local option = self:findOptionByName(more_options_param.other_button.other_option)
-            local default_value_original
-            if option.more_options_param.names then
-              local option1 = self:findOptionByName(option.more_options_param.names[1])
-              local option2 = self:findOptionByName(option.more_options_param.names[2])
-              default_value_original = { option1.default_value, option2.default_value }
-            else
-              default_value_original = option.default_value
-            end
-            self:onConfigMoreChoose(
-              option.values,
-              default_value_original,
-              option.name,
-              option.event,
-              nil,
-              option.name_text,
-              option.more_options_param
-            )
-          end,
+          option_text = more_options_param.other_button
+            and more_options_param.other_button.text,
+          option_callback = more_options_param.other_button
+            and function()
+              when_applied_callback = nil -- prevent bottom menu from being shown (before being hidden again)
+              widget:onClose()
+              local option = self:findOptionByName(
+                more_options_param.other_button.other_option
+              )
+              local default_value_original
+              if option.more_options_param.names then
+                local option1 =
+                  self:findOptionByName(option.more_options_param.names[1])
+                local option2 =
+                  self:findOptionByName(option.more_options_param.names[2])
+                default_value_original =
+                  { option1.default_value, option2.default_value }
+              else
+                default_value_original = option.default_value
+              end
+              self:onConfigMoreChoose(
+                option.values,
+                default_value_original,
+                option.name,
+                option.event,
+                nil,
+                option.name_text,
+                option.more_options_param
+              )
+            end,
         })
       end
       UIManager:show(widget)
@@ -1473,7 +1644,10 @@ function ConfigDialog:onMakeDefault(name, name_text, values, labels, position)
   end
   -- generic fallback to support table values
   if type(display_value) == "table" then
-    display_value = serpent.block(display_value, { maxlevel = 6, indent = "  ", comment = false, nocode = true })
+    display_value = serpent.block(
+      display_value,
+      { maxlevel = 6, indent = "  ", comment = false, nocode = true }
+    )
   end
 
   UIManager:show(ConfirmBox:new({
@@ -1492,8 +1666,16 @@ end
 
 -- Tweaked variant used with the fine_tune variant of buttonprogress (direction can only be "-" or "+")
 -- NOTE: This sets the defaults to the *current* value, as the -/+ buttons have no fixed value ;).
-function ConfigDialog:onMakeFineTuneDefault(name, name_text, values, labels, direction)
-  local current_value = self.configurable[name] or direction == "-" and labels[1] or labels[#labels]
+function ConfigDialog:onMakeFineTuneDefault(
+  name,
+  name_text,
+  values,
+  labels,
+  direction
+)
+  local current_value = self.configurable[name]
+    or direction == "-" and labels[1]
+    or labels[#labels]
 
   local display_value
   -- known table value, make it pretty
@@ -1508,7 +1690,10 @@ function ConfigDialog:onMakeFineTuneDefault(name, name_text, values, labels, dir
       current_value[2]
     )
   elseif type(current_value) == "table" then
-    display_value = serpent.block(current_value, { maxlevel = 6, indent = "  ", comment = false, nocode = true })
+    display_value = serpent.block(
+      current_value,
+      { maxlevel = 6, indent = "  ", comment = false, nocode = true }
+    )
   else
     display_value = current_value
   end

@@ -28,7 +28,9 @@ end
 
 return {
   __WINDOWS__ = ffi.abi("win"),
-  __UNIX__ = uname:match("Unix") or uname:match("Linux") or uname:match("Darwin") and true or false,
+  __UNIX__ = uname:match("Unix") or uname:match("Linux") or uname:match(
+    "Darwin"
+  ) and true or false,
   __LINUX__ = uname:match("Linux") and true or false,
   __DARWIN__ = uname:match("Darwin") and true or false,
   __ABI32__ = ffi.abi("32bit"),

@@ -56,7 +56,8 @@ local NumberPickerWidget = FocusManager:extend({
 function NumberPickerWidget:init()
   self.screen_width = Screen:getWidth()
   self.screen_height = Screen:getHeight()
-  self.width = self.width or math.floor(math.min(self.screen_width, self.screen_height) * 0.2)
+  self.width = self.width
+    or math.floor(math.min(self.screen_width, self.screen_height) * 0.2)
   if self.value_table then
     self.value_index = self.value_index or 1
     self.value = self.value_table[self.value_index]
@@ -75,16 +76,34 @@ function NumberPickerWidget:init()
     width = self.width,
     callback = function()
       if self.date_month and self.date_year then
-        self.value_max = self:getDaysInMonth(self.date_month:getValue(), self.date_year:getValue())
+        self.value_max = self:getDaysInMonth(
+          self.date_month:getValue(),
+          self.date_year:getValue()
+        )
       end
-      self.value = self:changeValue(self.value, self.value_step, self.value_max, self.value_min, self.wrap)
+      self.value = self:changeValue(
+        self.value,
+        self.value_step,
+        self.value_max,
+        self.value_min,
+        self.wrap
+      )
       self:update()
     end,
     hold_callback = function()
       if self.date_month and self.date_year then
-        self.value_max = self:getDaysInMonth(self.date_month:getValue(), self.date_year:getValue())
+        self.value_max = self:getDaysInMonth(
+          self.date_month:getValue(),
+          self.date_year:getValue()
+        )
       end
-      self.value = self:changeValue(self.value, self.value_hold_step, self.value_max, self.value_min, self.wrap)
+      self.value = self:changeValue(
+        self.value,
+        self.value_hold_step,
+        self.value_max,
+        self.value_min,
+        self.wrap
+      )
       self:update()
     end,
   })
@@ -98,16 +117,34 @@ function NumberPickerWidget:init()
     width = self.width,
     callback = function()
       if self.date_month and self.date_year then
-        self.value_max = self:getDaysInMonth(self.date_month:getValue(), self.date_year:getValue())
+        self.value_max = self:getDaysInMonth(
+          self.date_month:getValue(),
+          self.date_year:getValue()
+        )
       end
-      self.value = self:changeValue(self.value, self.value_step * -1, self.value_max, self.value_min, self.wrap)
+      self.value = self:changeValue(
+        self.value,
+        self.value_step * -1,
+        self.value_max,
+        self.value_min,
+        self.wrap
+      )
       self:update()
     end,
     hold_callback = function()
       if self.date_month and self.date_year then
-        self.value_max = self:getDaysInMonth(self.date_month:getValue(), self.date_year:getValue())
+        self.value_max = self:getDaysInMonth(
+          self.date_month:getValue(),
+          self.date_year:getValue()
+        )
       end
-      self.value = self:changeValue(self.value, self.value_hold_step * -1, self.value_max, self.value_min, self.wrap)
+      self.value = self:changeValue(
+        self.value,
+        self.value_hold_step * -1,
+        self.value_max,
+        self.value_min,
+        self.wrap
+      )
       self:update()
     end,
   })
@@ -125,11 +162,19 @@ function NumberPickerWidget:init()
   if self.value_table == nil then
     callback_input = function()
       if self.date_month and self.date_year then
-        self.value_max = self:getDaysInMonth(self.date_month:getValue(), self.date_year:getValue())
+        self.value_max = self:getDaysInMonth(
+          self.date_month:getValue(),
+          self.date_year:getValue()
+        )
       end
       input_dialog = InputDialog:new({
         title = gettext("Enter number"),
-        input_hint = T("%1 (%2 - %3)", self.formatted_value, self.value_min, self.value_max),
+        input_hint = T(
+          "%1 (%2 - %3)",
+          self.formatted_value,
+          self.value_min,
+          self.value_max
+        ),
         input_type = "number",
         buttons = {
           {
@@ -149,7 +194,10 @@ function NumberPickerWidget:init()
                 local turn_off_checks = false
 
                 -- if the first character of the input string is ":" turn off min-max checks
-                if input_text:match("^:") and G_reader_settings:isTrue("debug_verbose") then
+                if
+                  input_text:match("^:")
+                  and G_reader_settings:isTrue("debug_verbose")
+                then
                   turn_off_checks = true -- turn off checks
                   input_text = input_text:gsub("^:", "") -- shorten input
                   input_value = tonumber(input_text) -- try to get value
@@ -180,7 +228,10 @@ function NumberPickerWidget:init()
                   if not input_value then
                     return
                   end
-                  if input_value < self.value_min or input_value > self.value_max then
+                  if
+                    input_value < self.value_min
+                    or input_value > self.value_max
+                  then
                     UIManager:show(InfoMessage:new({
                       text = T(
                         gettext(
@@ -197,23 +248,35 @@ function NumberPickerWidget:init()
                   return
                 end
 
-                if input_value and input_value >= self.value_min and input_value <= self.value_max then
+                if
+                  input_value
+                  and input_value >= self.value_min
+                  and input_value <= self.value_max
+                then
                   self.value = input_value
                   self:update()
                   UIManager:close(input_dialog)
                 elseif input_value and input_value < self.value_min then
                   UIManager:show(InfoMessage:new({
-                    text = T(gettext("This value should be %1 or more."), self.value_min),
+                    text = T(
+                      gettext("This value should be %1 or more."),
+                      self.value_min
+                    ),
                     timeout = 2,
                   }))
                 elseif input_value and input_value > self.value_max then
                   UIManager:show(InfoMessage:new({
-                    text = T(gettext("This value should be %1 or less."), self.value_max),
+                    text = T(
+                      gettext("This value should be %1 or less."),
+                      self.value_max
+                    ),
                     timeout = 2,
                   }))
                 else
                   UIManager:show(InfoMessage:new({
-                    text = gettext("Invalid value. Please enter a valid value."),
+                    text = gettext(
+                      "Invalid value. Please enter a valid value."
+                    ),
                     timeout = 2,
                   }))
                 end

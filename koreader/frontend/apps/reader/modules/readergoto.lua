@@ -40,7 +40,8 @@ function ReaderGoto:onShowGotoDialog()
   else
     input_hint = T("@%1 (1 - %2)", curr_page, self.document:getPageCount())
   end
-  input_hint = input_hint .. string.format("  %.2f%%", curr_page / self.document:getPageCount() * 100)
+  input_hint = input_hint
+    .. string.format("  %.2f%%", curr_page / self.document:getPageCount() * 100)
   self.goto_dialog = InputDialog:new({
     title = gettext("Enter page number or percentage"),
     input_hint = input_hint,
@@ -131,7 +132,9 @@ function ReaderGoto:gotoPage()
     number = tonumber(number)
     if number then
       if self.ui.document.flows[flow] ~= nil then
-        if number < 1 or number > self.ui.document:getTotalPagesInFlow(flow) then
+        if
+          number < 1 or number > self.ui.document:getTotalPagesInFlow(flow)
+        then
           return
         end
         local page = 0
@@ -189,7 +192,10 @@ function ReaderGoto:onGoToRandomPage()
   if self.pages_pool == nil then
     self.pages_pool = {}
   end
-  if #self.pages_pool == 0 or (#self.pages_pool == 1 and self.pages_pool[1] == current_page) then
+  if
+    #self.pages_pool == 0
+    or (#self.pages_pool == 1 and self.pages_pool[1] == current_page)
+  then
     for i = 1, page_count do
       self.pages_pool[i] = i
     end

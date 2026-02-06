@@ -7,7 +7,8 @@ local dateparser = {}
 local unix_timestamp
 do
   local now = time()
-  local local_UTC_offset_sec = difftime(time(date("!*t", now)), time(date("*t", now)))
+  local local_UTC_offset_sec =
+    difftime(time(date("!*t", now)), time(date("*t", now)))
   unix_timestamp = function(t, offset_sec)
     local success, improper_time = pcall(time, t)
     if not success or not improper_time then
@@ -50,7 +51,8 @@ end
 
 ---return the function responsible for handling format_name date strings
 function dateparser.get_format_function(format_name)
-  return formats[format_name] or nil, ("format %s not registered"):format(format_name)
+  return formats[format_name] or nil,
+    ("format %s not registered"):format(format_name)
 end
 
 ---try to parse date string
@@ -120,7 +122,10 @@ dateparser.register_format("W3CDTF", function(rest)
 
   year = tonumber(year)
   local d = {
-    year = year and (year > 100 and year or (year < 50 and (year + 2000) or (year + 1900))),
+    year = year
+      and (
+        year > 100 and year or (year < 50 and (year + 2000) or (year + 1900))
+      ),
     month = tonumber(month) or 1,
     day = tonumber(day) or 1,
     hour = tonumber(hour) or 0,
@@ -137,46 +142,47 @@ dateparser.register_format("W3CDTF", function(rest)
 end)
 
 do
-  local tz_table = { --taken from http://www.timeanddate.com/library/abbreviations/timezones/
-    A = 1,
-    B = 2,
-    C = 3,
-    D = 4,
-    E = 5,
-    F = 6,
-    G = 7,
-    H = 8,
-    I = 9,
-    K = 10,
-    L = 11,
-    M = 12,
-    N = -1,
-    O = -2,
-    P = -3,
-    Q = -4,
-    R = -5,
-    S = -6,
-    T = -7,
-    U = -8,
-    V = -9,
-    W = -10,
-    X = -11,
-    Y = -12,
-    Z = 0,
+  local tz_table =
+    { --taken from http://www.timeanddate.com/library/abbreviations/timezones/
+      A = 1,
+      B = 2,
+      C = 3,
+      D = 4,
+      E = 5,
+      F = 6,
+      G = 7,
+      H = 8,
+      I = 9,
+      K = 10,
+      L = 11,
+      M = 12,
+      N = -1,
+      O = -2,
+      P = -3,
+      Q = -4,
+      R = -5,
+      S = -6,
+      T = -7,
+      U = -8,
+      V = -9,
+      W = -10,
+      X = -11,
+      Y = -12,
+      Z = 0,
 
-    EST = -5,
-    EDT = -4,
-    CST = -6,
-    CDT = -5,
-    MST = -7,
-    MDT = -6,
-    PST = -8,
-    PDT = -7,
+      EST = -5,
+      EDT = -4,
+      CST = -6,
+      CDT = -5,
+      MST = -7,
+      MDT = -6,
+      PST = -8,
+      PDT = -7,
 
-    GMT = 0,
-    UT = 0,
-    UTC = 0,
-  }
+      GMT = 0,
+      UT = 0,
+      UTC = 0,
+    }
 
   local month_val = {
     Jan = 1,
@@ -219,8 +225,10 @@ do
       rest = alt_rest
       offset_hours = tz_table[tz]
     else
-      offset_sign, offset_h, offset_m, rest = rest:match("^%s+([+-])(%d%d)(%d%d)%s*(.*)$")
-      offset_hours = tonumber(offset_sign .. offset_h) + (tonumber(offset_m) or 0) / 60
+      offset_sign, offset_h, offset_m, rest =
+        rest:match("^%s+([+-])(%d%d)(%d%d)%s*(.*)$")
+      offset_hours = tonumber(offset_sign .. offset_h)
+        + (tonumber(offset_m) or 0) / 60
     end
 
     if #rest > 0 or not (year and day and month and hour and minute) then
@@ -229,7 +237,12 @@ do
 
     year = tonumber(year)
     local d = {
-      year = year and ((year > 100) and year or (year < 50 and (year + 2000) or (year + 1900))),
+      year = year
+        and (
+          (year > 100) and year or (
+            year < 50 and (year + 2000) or (year + 1900)
+          )
+        ),
       month = month,
       day = tonumber(day),
 

@@ -14,9 +14,11 @@ local digit = lpeg.R("09")
 local digits = digit ^ 1
 
 -- Illegal octal declaration
-local illegal_octal_detect = #(lpeg.P("0") * digits) * util.denied("Octal numbers")
+local illegal_octal_detect = #(lpeg.P("0") * digits)
+  * util.denied("Octal numbers")
 
-local int = (lpeg.P("-") + 0) * (lpeg.R("19") * digits + illegal_octal_detect + digit)
+local int = (lpeg.P("-") + 0)
+  * (lpeg.R("19") * digits + illegal_octal_detect + digit)
 
 local frac = lpeg.P(".") * digits
 
@@ -55,7 +57,13 @@ local ninf_value = -1 / 0
 	DEFAULT: nan, inf, frac, exp
 ]]
 local function mergeOptions(options, mode)
-  jsonutil.doOptionMerge(options, false, "number", defaultOptions, mode and modeOptions[mode])
+  jsonutil.doOptionMerge(
+    options,
+    false,
+    "number",
+    defaultOptions,
+    mode and modeOptions[mode]
+  )
 end
 
 local function generateLexer(options)
@@ -86,11 +94,13 @@ local function generateLexer(options)
     ret = ret + #nan * util.denied("NaN", "number.nan")
   end
   if options.inf then
-    ret = ret + ninf / function()
-      return ninf_value
-    end + inf / function()
-      return inf_value
-    end
+    ret = ret
+      + ninf / function()
+        return ninf_value
+      end
+      + inf / function()
+        return inf_value
+      end
   else
     ret = ret + (#ninf + #inf) * util.denied("+/-Inf", "number.inf")
   end

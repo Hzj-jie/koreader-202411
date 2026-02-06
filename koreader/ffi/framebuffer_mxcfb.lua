@@ -102,7 +102,8 @@ end
 
 -- Returns true if waveform_mode arg does *NOT* match the A2 or fast waveform mode for the current device
 function framebuffer:_isNotFastWaveFormMode(waveform_mode)
-  return waveform_mode ~= self.waveform_a2 and waveform_mode ~= self.waveform_fast
+  return waveform_mode ~= self.waveform_a2
+    and waveform_mode ~= self.waveform_fast
 end
 
 -- Returns true if waveform_mode arg does *NOT* match the A2 waveform mode for the current device
@@ -112,7 +113,8 @@ end
 
 -- Returns true if waveform_mode arg matches a Kaleido-specific waveform mode for the current device
 function framebuffer:_isKaleidoWaveFormMode(waveform_mode)
-  return waveform_mode == self.waveform_color or waveform_mode == self.waveform_color_reagl
+  return waveform_mode == self.waveform_color
+    or waveform_mode == self.waveform_color_reagl
 end
 
 -- Returns true if w & h are equal or larger than our visible screen estate (i.e., we asked for a full-screen update)
@@ -178,9 +180,14 @@ local function kobo_mk7_unreliable_mxc_wait_for_update_complete(fb, marker)
     -- Marker sanity check (the driver handles that, too, but it'll throw an EINVAL)
     fb.debug("refresh: wait for completion of buddy marker", marker - 1)
     fb.marker_data.update_marker = marker - 1
-    if C.ioctl(fb.fd, C.MXCFB_WAIT_FOR_UPDATE_COMPLETE_V3, fb.marker_data) == -1 then
+    if
+      C.ioctl(fb.fd, C.MXCFB_WAIT_FOR_UPDATE_COMPLETE_V3, fb.marker_data) == -1
+    then
       local err = ffi.errno()
-      fb.debug("MXCFB_WAIT_FOR_UPDATE_COMPLETE ioctl failed:", ffi.string(C.strerror(err)))
+      fb.debug(
+        "MXCFB_WAIT_FOR_UPDATE_COMPLETE ioctl failed:",
+        ffi.string(C.strerror(err))
+      )
     end
   end
 
@@ -273,7 +280,18 @@ end
 -- Kobo's MXCFB_SEND_UPDATE == 0x4044462e
 -- Pocketbook's MXCFB_SEND_UPDATE == 0x4040462e
 -- Cervantes MXCFB_SEND_UPDATE == 0x4044462e
-local function mxc_update(fb, ioc_cmd, ioc_data, is_flashing, waveform_mode, x, y, w, h, dither)
+local function mxc_update(
+  fb,
+  ioc_cmd,
+  ioc_data,
+  is_flashing,
+  waveform_mode,
+  x,
+  y,
+  w,
+  h,
+  dither
+)
   local bb = fb.full_bb or fb.bb
 
   -- NOTE: If we're requesting hardware dithering on a partial update, make sure the rectangle is using
@@ -283,7 +301,13 @@ local function mxc_update(fb, ioc_cmd, ioc_data, is_flashing, waveform_mode, x, 
   --       (Sidebar: this is probably a kernel issue, the EPDC driver is responsible for the alignment fixup,
   --       c.f., epdc_process_update @ drivers/video/fbdev/mxc/mxc_epdc_v2_fb.c on a Kobo Mk. 7 kernel...).
   -- And regardless of alignment constraints, make sure the rectangle is strictly bounded inside the screen.
-  x, y, w, h = bb:getBoundedRect(x, y, w, h, dither and fb.dither_alignment_constraint or fb.alignment_constraint)
+  x, y, w, h = bb:getBoundedRect(
+    x,
+    y,
+    w,
+    h,
+    dither and fb.dither_alignment_constraint or fb.alignment_constraint
+  )
   -- The ioctl operates in the native rotation, so, make sure we rotate the rectangle as needed
   x, y, w, h = bb:getPhysicalRect(x, y, w, h)
 
@@ -331,7 +355,10 @@ local function mxc_update(fb, ioc_cmd, ioc_data, is_flashing, waveform_mode, x, 
     fb.debug("refresh: wait for submission of (previous) marker", marker)
     if fb:mech_wait_update_submission(marker) == -1 then
       local err = ffi.errno()
-      fb.debug("MXCFB_WAIT_FOR_UPDATE_SUBMISSION ioctl failed:", ffi.string(C.strerror(err)))
+      fb.debug(
+        "MXCFB_WAIT_FOR_UPDATE_SUBMISSION ioctl failed:",
+        ffi.string(C.strerror(err))
+      )
     end
     -- NOTE: We don't set dont_wait_for_marker here,
     --       as we *do* want to chain wait_for_submission & wait_for_complete in some rare instances...
@@ -347,7 +374,11 @@ local function mxc_update(fb, ioc_cmd, ioc_data, is_flashing, waveform_mode, x, 
     (
       fb:_isREAGLWaveFormMode(waveform_mode)
       or waveform_mode == C.WAVEFORM_MODE_GC16
-      or (is_flashing and fb:_isFlashUIWaveFormMode(waveform_mode) and fb:_isFullScreen(w, h))
+      or (
+        is_flashing
+        and fb:_isFlashUIWaveFormMode(waveform_mode)
+        and fb:_isFullScreen(w, h)
+      )
     )
     and fb.mech_wait_update_complete
     and (marker ~= 0 and marker ~= fb.dont_wait_for_marker)
@@ -355,11 +386,15 @@ local function mxc_update(fb, ioc_cmd, ioc_data, is_flashing, waveform_mode, x, 
     fb.debug("refresh: wait for completion of (previous) marker", marker)
     if fb:mech_wait_update_complete(marker) == -1 then
       local err = ffi.errno()
-      fb.debug("MXCFB_WAIT_FOR_UPDATE_COMPLETE ioctl failed:", ffi.string(C.strerror(err)))
+      fb.debug(
+        "MXCFB_WAIT_FOR_UPDATE_COMPLETE ioctl failed:",
+        ffi.string(C.strerror(err))
+      )
     end
   end
 
-  ioc_data.update_mode = is_flashing and C.UPDATE_MODE_FULL or C.UPDATE_MODE_PARTIAL
+  ioc_data.update_mode = is_flashing and C.UPDATE_MODE_FULL
+    or C.UPDATE_MODE_PARTIAL
   ioc_data.waveform_mode = waveform_mode or C.WAVEFORM_MODE_GC16
   ioc_data.update_region.left = x
   ioc_data.update_region.top = y
@@ -423,7 +458,10 @@ local function mxc_update(fb, ioc_cmd, ioc_data, is_flashing, waveform_mode, x, 
 
   -- Handle promotion to FULL for the specific waveform modes that require it...
   -- NOTE: We need to do this here, because we rely on the pre-promotion actual is_flashing in previous heuristics.
-  if fb:_isREAGLWaveFormMode(waveform_mode) or fb:_isKaleidoWaveFormMode(waveform_mode) then
+  if
+    fb:_isREAGLWaveFormMode(waveform_mode)
+    or fb:_isKaleidoWaveFormMode(waveform_mode)
+  then
     -- NOTE: REAGL & Kaleido updates (almost) always need to be full.
     ioc_data.update_mode = C.UPDATE_MODE_FULL
   end
@@ -456,11 +494,16 @@ local function mxc_update(fb, ioc_cmd, ioc_data, is_flashing, waveform_mode, x, 
   --       so we can instead afford to wait for it right now, which *will* block for a while,
   --       but will save us an ioctl before the next refresh, something which, even if it didn't block at all,
   --       would possibly end up being more detrimental to latency/reactivity.
-  if ioc_data.update_mode == C.UPDATE_MODE_FULL and fb.mech_wait_update_complete then
+  if
+    ioc_data.update_mode == C.UPDATE_MODE_FULL and fb.mech_wait_update_complete
+  then
     fb.debug("refresh: wait for completion of marker", marker)
     if fb:mech_wait_update_complete(marker) == -1 then
       local err = ffi.errno()
-      fb.debug("MXCFB_WAIT_FOR_UPDATE_COMPLETE ioctl failed:", ffi.string(C.strerror(err)))
+      fb.debug(
+        "MXCFB_WAIT_FOR_UPDATE_COMPLETE ioctl failed:",
+        ffi.string(C.strerror(err))
+      )
     end
     -- And make sure we won't wait for it again, in case the next refresh trips one of our wait_for_*  heuristics ;).
     fb.dont_wait_for_marker = marker
@@ -477,7 +520,10 @@ local function mxc_update(fb, ioc_cmd, ioc_data, is_flashing, waveform_mode, x, 
     fb.debug("refresh: wait for submission of marker", marker)
     if fb:mech_wait_update_submission(marker) == -1 then
       local err = ffi.errno()
-      fb.debug("MXCFB_WAIT_FOR_UPDATE_SUBMISSION ioctl failed:", ffi.string(C.strerror(err)))
+      fb.debug(
+        "MXCFB_WAIT_FOR_UPDATE_SUBMISSION ioctl failed:",
+        ffi.string(C.strerror(err))
+      )
     end
   end
 
@@ -529,12 +575,25 @@ local function refresh_k51(fb, is_flashing, waveform_mode, x, y, w, h)
     fb.update_data.flags = 0
   end
 
-  return mxc_update(fb, C.MXCFB_SEND_UPDATE, fb.update_data, is_flashing, waveform_mode, x, y, w, h)
+  return mxc_update(
+    fb,
+    C.MXCFB_SEND_UPDATE,
+    fb.update_data,
+    is_flashing,
+    waveform_mode,
+    x,
+    y,
+    w,
+    h
+  )
 end
 
 local function refresh_zelda(fb, is_flashing, waveform_mode, x, y, w, h, dither)
   -- Only for Amazon's driver, try to mostly follow what the stock reader does...
-  if waveform_mode == C.WAVEFORM_MODE_ZELDA_GLR16 or waveform_mode == C.WAVEFORM_MODE_ZELDA_GLD16 then
+  if
+    waveform_mode == C.WAVEFORM_MODE_ZELDA_GLR16
+    or waveform_mode == C.WAVEFORM_MODE_ZELDA_GLD16
+  then
     -- If we're requesting WAVEFORM_MODE_ZELDA_GLR16, it's REAGL all around!
     fb.update_data.hist_bw_waveform_mode = waveform_mode
     fb.update_data.hist_gray_waveform_mode = waveform_mode
@@ -546,7 +605,10 @@ local function refresh_zelda(fb, is_flashing, waveform_mode, x, y, w, h, dither)
   -- Did we request HW dithering on a device where it works?
   if dither and fb.device:canHWDither() then
     fb.update_data.dither_mode = C.EPDC_FLAG_USE_DITHERING_ORDERED
-    if waveform_mode == C.WAVEFORM_MODE_ZELDA_A2 or waveform_mode == C.WAVEFORM_MODE_DU then
+    if
+      waveform_mode == C.WAVEFORM_MODE_ZELDA_A2
+      or waveform_mode == C.WAVEFORM_MODE_DU
+    then
       fb.update_data.quant_bit = 1
     else
       fb.update_data.quant_bit = 7
@@ -565,12 +627,26 @@ local function refresh_zelda(fb, is_flashing, waveform_mode, x, y, w, h, dither)
     fb.update_data.flags = 0
   end
 
-  return mxc_update(fb, C.MXCFB_SEND_UPDATE_ZELDA, fb.update_data, is_flashing, waveform_mode, x, y, w, h, dither)
+  return mxc_update(
+    fb,
+    C.MXCFB_SEND_UPDATE_ZELDA,
+    fb.update_data,
+    is_flashing,
+    waveform_mode,
+    x,
+    y,
+    w,
+    h,
+    dither
+  )
 end
 
 local function refresh_rex(fb, is_flashing, waveform_mode, x, y, w, h, dither)
   -- Only for Amazon's driver, try to mostly follow what the stock reader does...
-  if waveform_mode == C.WAVEFORM_MODE_ZELDA_GLR16 or waveform_mode == C.WAVEFORM_MODE_ZELDA_GLD16 then
+  if
+    waveform_mode == C.WAVEFORM_MODE_ZELDA_GLR16
+    or waveform_mode == C.WAVEFORM_MODE_ZELDA_GLD16
+  then
     -- If we're requesting WAVEFORM_MODE_ZELDA_GLR16, it's REAGL all around!
     fb.update_data.hist_bw_waveform_mode = waveform_mode
     fb.update_data.hist_gray_waveform_mode = waveform_mode
@@ -582,7 +658,10 @@ local function refresh_rex(fb, is_flashing, waveform_mode, x, y, w, h, dither)
   -- Did we request HW dithering on a device where it works?
   if dither and fb.device:canHWDither() then
     fb.update_data.dither_mode = C.EPDC_FLAG_USE_DITHERING_ORDERED
-    if waveform_mode == C.WAVEFORM_MODE_ZELDA_A2 or waveform_mode == C.WAVEFORM_MODE_DU then
+    if
+      waveform_mode == C.WAVEFORM_MODE_ZELDA_A2
+      or waveform_mode == C.WAVEFORM_MODE_DU
+    then
       fb.update_data.quant_bit = 1
     else
       fb.update_data.quant_bit = 7
@@ -601,12 +680,26 @@ local function refresh_rex(fb, is_flashing, waveform_mode, x, y, w, h, dither)
     fb.update_data.flags = 0
   end
 
-  return mxc_update(fb, C.MXCFB_SEND_UPDATE_REX, fb.update_data, is_flashing, waveform_mode, x, y, w, h, dither)
+  return mxc_update(
+    fb,
+    C.MXCFB_SEND_UPDATE_REX,
+    fb.update_data,
+    is_flashing,
+    waveform_mode,
+    x,
+    y,
+    w,
+    h,
+    dither
+  )
 end
 
 local function refresh_mtk(fb, is_flashing, waveform_mode, x, y, w, h, dither)
   -- Actually unused by the driver...
-  if waveform_mode == C.MTK_WAVEFORM_MODE_GLR16 or waveform_mode == C.MTK_WAVEFORM_MODE_GLD16 then
+  if
+    waveform_mode == C.MTK_WAVEFORM_MODE_GLR16
+    or waveform_mode == C.MTK_WAVEFORM_MODE_GLD16
+  then
     -- If we're requesting MTK_WAVEFORM_MODE_GLR16, it's REAGL all around!
     fb.update_data.hist_bw_waveform_mode = waveform_mode
     fb.update_data.hist_gray_waveform_mode = waveform_mode
@@ -625,7 +718,8 @@ local function refresh_mtk(fb, is_flashing, waveform_mode, x, y, w, h, dither)
 
   -- Did we request HW dithering?
   if dither and fb.device:canHWDither() then
-    fb.update_data.flags = bor(fb.update_data.flags, C.MTK_EPDC_FLAG_USE_DITHERING_Y4)
+    fb.update_data.flags =
+      bor(fb.update_data.flags, C.MTK_EPDC_FLAG_USE_DITHERING_Y4)
   end
 
   if fb.swipe_animations then
@@ -633,13 +727,28 @@ local function refresh_mtk(fb, is_flashing, waveform_mode, x, y, w, h, dither)
     -- If direction is L/R and w is smaller or if it is U/D and h is smaller
     -- Being as one genneraly will only want animations on a larger area, and I am too
     -- lazy to test for direction, disable animations when w or h is less than steps.
-    if w >= fb.update_data.swipe_data.steps and h >= fb.update_data.swipe_data.steps then
-      fb.update_data.flags = bor(fb.update_data.flags, C.MTK_EPDC_FLAG_ENABLE_SWIPE)
+    if
+      w >= fb.update_data.swipe_data.steps
+      and h >= fb.update_data.swipe_data.steps
+    then
+      fb.update_data.flags =
+        bor(fb.update_data.flags, C.MTK_EPDC_FLAG_ENABLE_SWIPE)
     end
     fb.swipe_animations = false
   end
 
-  return mxc_update(fb, C.MXCFB_SEND_UPDATE_MTK, fb.update_data, is_flashing, waveform_mode, x, y, w, h, dither)
+  return mxc_update(
+    fb,
+    C.MXCFB_SEND_UPDATE_MTK,
+    fb.update_data,
+    is_flashing,
+    waveform_mode,
+    x,
+    y,
+    w,
+    h,
+    dither
+  )
 end
 
 -- Enable swipe animations. They will be reset at the next refresh.
@@ -675,11 +784,17 @@ end
 
 -- Don't let the driver silently upgrade to REAGL
 function framebuffer:_MTK_ToggleFastMode(toggle)
-  local flags = ffi.new("uint32_t[1]", bor(C.UPDATE_FLAGS_FAST_MODE, toggle and C.UPDATE_FLAGS_MODE_FAST_FLAG or 0))
+  local flags = ffi.new(
+    "uint32_t[1]",
+    bor(C.UPDATE_FLAGS_FAST_MODE, toggle and C.UPDATE_FLAGS_MODE_FAST_FLAG or 0)
+  )
 
   if C.ioctl(self.fd, C.MXCFB_SET_UPDATE_FLAGS_MTK, flags) == -1 then
     local err = ffi.errno()
-    self.debug("MXCFB_SET_UPDATE_FLAGS_MTK ioctl failed:", ffi.string(C.strerror(err)))
+    self.debug(
+      "MXCFB_SET_UPDATE_FLAGS_MTK ioctl failed:",
+      ffi.string(C.strerror(err))
+    )
   end
 end
 
@@ -694,14 +809,36 @@ local function refresh_kobo(fb, is_flashing, waveform_mode, x, y, w, h)
     fb.update_data.flags = 0
   end
 
-  return mxc_update(fb, C.MXCFB_SEND_UPDATE_V1_NTX, fb.update_data, is_flashing, waveform_mode, x, y, w, h)
+  return mxc_update(
+    fb,
+    C.MXCFB_SEND_UPDATE_V1_NTX,
+    fb.update_data,
+    is_flashing,
+    waveform_mode,
+    x,
+    y,
+    w,
+    h
+  )
 end
 
-local function refresh_kobo_mk7(fb, is_flashing, waveform_mode, x, y, w, h, dither)
+local function refresh_kobo_mk7(
+  fb,
+  is_flashing,
+  waveform_mode,
+  x,
+  y,
+  w,
+  h,
+  dither
+)
   -- Did we request HW dithering?
   if dither then
     fb.update_data.dither_mode = C.EPDC_FLAG_USE_DITHERING_ORDERED
-    if waveform_mode == C.WAVEFORM_MODE_A2 or waveform_mode == C.WAVEFORM_MODE_DU then
+    if
+      waveform_mode == C.WAVEFORM_MODE_A2
+      or waveform_mode == C.WAVEFORM_MODE_DU
+    then
       fb.update_data.quant_bit = 1
     else
       fb.update_data.quant_bit = 7
@@ -722,13 +859,34 @@ local function refresh_kobo_mk7(fb, is_flashing, waveform_mode, x, y, w, h, dith
     fb.update_data.flags = 0
   end
 
-  return mxc_update(fb, C.MXCFB_SEND_UPDATE_V2, fb.update_data, is_flashing, waveform_mode, x, y, w, h, dither)
+  return mxc_update(
+    fb,
+    C.MXCFB_SEND_UPDATE_V2,
+    fb.update_data,
+    is_flashing,
+    waveform_mode,
+    x,
+    y,
+    w,
+    h,
+    dither
+  )
 end
 
-local function refresh_kobo_mtk(fb, is_flashing, waveform_mode, x, y, w, h, dither)
+local function refresh_kobo_mtk(
+  fb,
+  is_flashing,
+  waveform_mode,
+  x,
+  y,
+  w,
+  h,
+  dither
+)
   -- Did we request HW dithering?
   if dither and fb.device:canHWDither() then
-    fb.update_data.flags = bor(fb.update_data.flags, C.HWTCON_FLAG_USE_DITHERING)
+    fb.update_data.flags =
+      bor(fb.update_data.flags, C.HWTCON_FLAG_USE_DITHERING)
 
     -- NOTE: We only use A2 for the virtual keyboard, and Nickel forgoes dithering in that context.
     if waveform_mode == C.HWTCON_WAVEFORM_MODE_DU then
@@ -751,7 +909,18 @@ local function refresh_kobo_mtk(fb, is_flashing, waveform_mode, x, y, w, h, dith
     end
     --]]
 
-  return mxc_update(fb, C.HWTCON_SEND_UPDATE, fb.update_data, is_flashing, waveform_mode, x, y, w, h, dither)
+  return mxc_update(
+    fb,
+    C.HWTCON_SEND_UPDATE,
+    fb.update_data,
+    is_flashing,
+    waveform_mode,
+    x,
+    y,
+    w,
+    h,
+    dither
+  )
 end
 
 local function refresh_pocketbook(fb, is_flashing, waveform_mode, x, y, w, h)
@@ -769,7 +938,17 @@ local function refresh_pocketbook(fb, is_flashing, waveform_mode, x, y, w, h)
     fb.update_data.flags = 0
   end
 
-  return mxc_update(fb, C.MXCFB_SEND_UPDATE, fb.update_data, is_flashing, waveform_mode, x, y, w, h)
+  return mxc_update(
+    fb,
+    C.MXCFB_SEND_UPDATE,
+    fb.update_data,
+    is_flashing,
+    waveform_mode,
+    x,
+    y,
+    w,
+    h
+  )
 end
 
 local function refresh_remarkable(fb, is_flashing, waveform_mode, x, y, w, h)
@@ -778,11 +957,31 @@ local function refresh_remarkable(fb, is_flashing, waveform_mode, x, y, w, h)
   else
     fb.update_data.temp = C.TEMP_USE_AMBIENT
   end
-  return mxc_update(fb, C.MXCFB_SEND_UPDATE, fb.update_data, is_flashing, waveform_mode, x, y, w, h)
+  return mxc_update(
+    fb,
+    C.MXCFB_SEND_UPDATE,
+    fb.update_data,
+    is_flashing,
+    waveform_mode,
+    x,
+    y,
+    w,
+    h
+  )
 end
 
 local function refresh_sony_prstux(fb, is_flashing, waveform_mode, x, y, w, h)
-  return mxc_update(fb, C.MXCFB_SEND_UPDATE, fb.update_data, is_flashing, waveform_mode, x, y, w, h)
+  return mxc_update(
+    fb,
+    C.MXCFB_SEND_UPDATE,
+    fb.update_data,
+    is_flashing,
+    waveform_mode,
+    x,
+    y,
+    w,
+    h
+  )
 end
 
 local function refresh_cervantes(fb, is_flashing, waveform_mode, x, y, w, h)
@@ -791,7 +990,17 @@ local function refresh_cervantes(fb, is_flashing, waveform_mode, x, y, w, h)
   else
     fb.update_data.flags = 0
   end
-  return mxc_update(fb, C.MXCFB_SEND_UPDATE, fb.update_data, is_flashing, waveform_mode, x, y, w, h)
+  return mxc_update(
+    fb,
+    C.MXCFB_SEND_UPDATE,
+    fb.update_data,
+    is_flashing,
+    waveform_mode,
+    x,
+    y,
+    w,
+    h
+  )
 end
 
 --[[ framebuffer API ]]
@@ -833,7 +1042,10 @@ function framebuffer:refreshA2Imp(x, y, w, h, dither)
 end
 
 function framebuffer:refreshWaitForLastImp()
-  if self.mech_wait_update_complete and self.dont_wait_for_marker ~= self.marker then
+  if
+    self.mech_wait_update_complete
+    and self.dont_wait_for_marker ~= self.marker
+  then
     self.debug("refresh: waiting for previous update", self.marker)
     self:mech_wait_update_complete(self.marker)
     self.dont_wait_for_marker = self.marker
@@ -951,15 +1163,23 @@ function framebuffer:init()
       -- The stock reader uses 12. valid values are 1 - 60
       self.update_data.swipe_data.steps = 12
     end
-    if self.mech_wait_update_complete == kindle_pearl_mxc_wait_for_update_complete then
+    if
+      self.mech_wait_update_complete
+      == kindle_pearl_mxc_wait_for_update_complete
+    then
       self.marker_data = ffi.new("uint32_t[1]")
-    elseif self.mech_wait_update_complete == kindle_carta_mxc_wait_for_update_complete then
+    elseif
+      self.mech_wait_update_complete
+      == kindle_carta_mxc_wait_for_update_complete
+    then
       self.marker_data = ffi.new("struct mxcfb_update_marker_data")
       -- NOTE: 0 seems to be a fairly safe assumption for "we don't care about collisions".
       --       On a slightly related note, the EPDC_FLAG_TEST_COLLISION flag is for dry-run collision tests, never set it.
       self.marker_data.collision_test = 0
     end
-    if self.mech_wait_update_submission == kindle_mxc_wait_for_update_submission then
+    if
+      self.mech_wait_update_submission == kindle_mxc_wait_for_update_submission
+    then
       self.submission_data = ffi.new("uint32_t[1]")
     end
   elseif self.device:isKobo() then
@@ -1002,7 +1222,8 @@ function framebuffer:init()
         -- Spoiler alert: doesn't actually prevent timeouts.
         -- Which means this branch and imp is basically for show,
         -- as it'll be replaced by stub_mxc_wait_for_update_complete below...
-        self.mech_wait_update_complete = kobo_mk7_unreliable_mxc_wait_for_update_complete
+        self.mech_wait_update_complete =
+          kobo_mk7_unreliable_mxc_wait_for_update_complete
       end
 
       self.waveform_partial = C.WAVEFORM_MODE_REAGL
@@ -1111,14 +1332,17 @@ function framebuffer:init()
       self.marker_data = ffi.new("uint32_t[1]")
     elseif
       self.mech_wait_update_complete == kobo_mk7_mxc_wait_for_update_complete
-      or self.mech_wait_update_complete == kobo_mk7_unreliable_mxc_wait_for_update_complete
+      or self.mech_wait_update_complete
+        == kobo_mk7_unreliable_mxc_wait_for_update_complete
     then
       self.marker_data = ffi.new("struct mxcfb_update_marker_data")
       -- NOTE: 0 seems to be a fairly safe assumption for "we don't care about collisions".
       --       On a slightly related note, the EPDC_FLAG_TEST_COLLISION flag is for dry-run collision tests, never set it.
       self.marker_data.collision_test = 0
     end
-    if self.mech_wait_update_submission == kobo_mtk_wait_for_update_submission then
+    if
+      self.mech_wait_update_submission == kobo_mtk_wait_for_update_submission
+    then
       self.submission_data = ffi.new("uint32_t[1]")
     end
   elseif self.device:isPocketBook() then
@@ -1141,7 +1365,8 @@ function framebuffer:init()
       self.waveform_partial = C.WAVEFORM_MODE_GC16
     elseif level == 2 then
       self.waveform_fast = C.WAVEFORM_MODE_DU
-      self.waveform_partial = self:isB288() and C.WAVEFORM_MODE_GS16 or C.WAVEFORM_MODE_GC16
+      self.waveform_partial = self:isB288() and C.WAVEFORM_MODE_GS16
+        or C.WAVEFORM_MODE_GC16
       -- Level 3 is most aggressive.
       -- Fast (>80ms on B288 Carta), but flickers and may be buggy.
     elseif level == 3 then

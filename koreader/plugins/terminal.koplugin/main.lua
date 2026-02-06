@@ -36,17 +36,26 @@ local function check_prerequisites()
 
   local ptmx = C.open("/dev/ptmx", bit.bor(C.O_RDWR, C.O_NONBLOCK, C.O_CLOEXEC))
   if ptmx == -1 then
-    logger.warn("Terminal: cannot open /dev/ptmx:", ffi.string(C.strerror(ffi.errno())))
+    logger.warn(
+      "Terminal: cannot open /dev/ptmx:",
+      ffi.string(C.strerror(ffi.errno()))
+    )
     return false
   end
 
   if C.grantpt(ptmx) ~= 0 then
-    logger.warn("Terminal: cannot use grantpt:", ffi.string(C.strerror(ffi.errno())))
+    logger.warn(
+      "Terminal: cannot use grantpt:",
+      ffi.string(C.strerror(ffi.errno()))
+    )
     C.close(ptmx)
     return false
   end
   if C.unlockpt(ptmx) ~= 0 then
-    logger.warn("Terminal: cannot use unlockpt:", ffi.string(C.strerror(ffi.errno())))
+    logger.warn(
+      "Terminal: cannot use unlockpt:",
+      ffi.string(C.strerror(ffi.errno()))
+    )
     C.close(ptmx)
     return false
   end
@@ -57,7 +66,9 @@ end
 -- grantpt and friends are necessary (introduced on Android in API 21).
 -- So sorry for the Tolinos with (Android 4.4.x).
 -- Maybe https://f-droid.org/de/packages/jackpal.androidterm/ could be an alternative then.
-if (Device:isAndroid() and Device.firmware_rev < 21) or not check_prerequisites() then
+if
+  (Device:isAndroid() and Device.firmware_rev < 21) or not check_prerequisites()
+then
   logger.warn("Terminal: Device doesn't meet some of the plugin's requirements")
   return { disabled = true }
 end
@@ -94,7 +105,8 @@ local Terminal = WidgetContainer:extend({
 
 function Terminal:isExecutable(file)
   -- check if file is an executable or a command in PATH
-  return os.execute(string.format("test -x %s || command -v %s", file, file)) == 0
+  return os.execute(string.format("test -x %s || command -v %s", file, file))
+    == 0
 end
 
 -- Try SHELL environment variable and some standard shells
@@ -152,17 +164,27 @@ function Terminal:spawnShell(cols, rows)
   self.ptmx = C.open(ptmx_name, bit.bor(C.O_RDWR, C.O_NONBLOCK, C.O_CLOEXEC))
 
   if self.ptmx == -1 then
-    logger.err("Terminal: can not open", ptmx_name .. ":", ffi.string(C.strerror(ffi.errno())))
+    logger.err(
+      "Terminal: can not open",
+      ptmx_name .. ":",
+      ffi.string(C.strerror(ffi.errno()))
+    )
     return false
   end
 
   if C.grantpt(self.ptmx) ~= 0 then
-    logger.err("Terminal: can not grantpt:", ffi.string(C.strerror(ffi.errno())))
+    logger.err(
+      "Terminal: can not grantpt:",
+      ffi.string(C.strerror(ffi.errno()))
+    )
     C.close(self.ptmx)
     return false
   end
   if C.unlockpt(self.ptmx) ~= 0 then
-    logger.err("Terminal: can not unlockpt:", ffi.string(C.strerror(ffi.errno())))
+    logger.err(
+      "Terminal: can not unlockpt:",
+      ffi.string(C.strerror(ffi.errno()))
+    )
     C.close(self.ptmx)
     return false
   end
@@ -188,7 +210,8 @@ function Terminal:spawnShell(cols, rows)
   end
   local profile_file = "./plugins/terminal.koplugin/profile"
   local rlw = get_readline_wrapper()
-  local shell = G_reader_settings:read("terminal_shell") or self:getDefaultShellExecutable()
+  local shell = G_reader_settings:read("terminal_shell")
+    or self:getDefaultShellExecutable()
   local args = {}
   if shell:find("bash") then
     args = { "--rcfile", profile_file }
@@ -243,10 +266,21 @@ function Terminal:spawnShell(cols, rows)
     end
 
     -- Here we attempt to use an existing readline wrapper
-    if (rlw and C.execlp(rlw, rlw, shell, unpack(args)) ~= 0) or C.execlp(shell, shell, unpack(args)) ~= 0 then
+    if
+      (rlw and C.execlp(rlw, rlw, shell, unpack(args)) ~= 0)
+      or C.execlp(shell, shell, unpack(args)) ~= 0
+    then
       -- the following two prints are shown in the terminal emulator.
-      print("Terminal: something has gone really wrong in spawning the shell\n\n:-(\n")
-      print("Maybe an incorrect shell: '" .. shell .. "'\nor  an incorrect wrapper: " .. tostring(rlw) .. "'\n")
+      print(
+        "Terminal: something has gone really wrong in spawning the shell\n\n:-(\n"
+      )
+      print(
+        "Maybe an incorrect shell: '"
+          .. shell
+          .. "'\nor  an incorrect wrapper: "
+          .. tostring(rlw)
+          .. "'\n"
+      )
       os.exit()
     end
     os.exit()
@@ -508,15 +542,22 @@ end
 function Terminal:onTerminalStart(touchmenu_instance)
   self.touchmenu_instance = touchmenu_instance
 
-  self.input_face = Font:getFace("smallinfont", G_reader_settings:read("terminal_font_size") or 14)
+  self.input_face = Font:getFace(
+    "smallinfont",
+    G_reader_settings:read("terminal_font_size") or 14
+  )
   self.ctrl = false
   self.input_dialog = self:generateInputDialog()
   self.input_widget = self.input_dialog._input_widget
 
-  local scroll_bar_width = ScrollTextWidget.scroll_bar_width + ScrollTextWidget.text_scroll_span
-  self.maxc = math.floor((self.input_widget.width - scroll_bar_width) / self:getCharSize())
+  local scroll_bar_width = ScrollTextWidget.scroll_bar_width
+    + ScrollTextWidget.text_scroll_span
+  self.maxc = math.floor(
+    (self.input_widget.width - scroll_bar_width) / self:getCharSize()
+  )
 
-  self.maxr = math.floor(self.input_widget.height / self.input_widget:getLineHeight())
+  self.maxr =
+    math.floor(self.input_widget.height / self.input_widget:getLineHeight())
 
   self.store_position = 1
 
@@ -536,7 +577,8 @@ function Terminal:addToMainMenu(menu_items)
       {
         text = gettext("About terminal emulator"),
         callback = function()
-          local about_text = gettext([[Terminal emulator can start a shell (command prompt).
+          local about_text =
+            gettext([[Terminal emulator can start a shell (command prompt).
 
 There are two environment variables TERMINAL_HOME and TERMINAL_DATA containing the path of the install and the data folders.
 
@@ -548,7 +590,9 @@ Aliases (shortcuts) to frequently used commands can be placed in:
           if not Device:isAndroid() then
             about_text = about_text
               .. "\n\n"
-              .. gettext("You can use 'shfm' as a file manager, '?' shows shfm’s help message.")
+              .. gettext(
+                "You can use 'shfm' as a file manager, '?' shows shfm’s help message."
+              )
           end
 
           UIManager:show(InfoMessage:new({
@@ -560,7 +604,8 @@ Aliases (shortcuts) to frequently used commands can be placed in:
       },
       {
         text_func = function()
-          local state = self.is_shell_open and gettext("running") or gettext("not running")
+          local state = self.is_shell_open and gettext("running")
+            or gettext("not running")
           return T(gettext("Open terminal session (%1)"), state)
         end,
         callback = function(touchmenu_instance)
@@ -584,7 +629,10 @@ Aliases (shortcuts) to frequently used commands can be placed in:
       },
       {
         text_func = function()
-          return T(gettext("Font size: %1"), G_reader_settings:read("terminal_font_size") or 14)
+          return T(
+            gettext("Font size: %1"),
+            G_reader_settings:read("terminal_font_size") or 14
+          )
         end,
         callback = function(touchmenu_instance)
           local cur_size = G_reader_settings:read("terminal_font_size") or 14
@@ -608,7 +656,10 @@ Aliases (shortcuts) to frequently used commands can be placed in:
       },
       {
         text_func = function()
-          return T(gettext("Buffer size: %1 kB"), G_reader_settings:read("terminal_buffer_size") or 16)
+          return T(
+            gettext("Buffer size: %1 kB"),
+            G_reader_settings:read("terminal_buffer_size") or 16
+          )
         end,
         callback = function(touchmenu_instance)
           local cur_buffer = G_reader_settings:read("terminal_buffer_size")
@@ -635,7 +686,8 @@ Aliases (shortcuts) to frequently used commands can be placed in:
         text_func = function()
           return T(
             gettext("Shell executable: %1"),
-            G_reader_settings:read("terminal_shell") or self:getDefaultShellExecutable()
+            G_reader_settings:read("terminal_shell")
+              or self:getDefaultShellExecutable()
           )
         end,
         callback = function(touchmenu_instance)
@@ -645,7 +697,8 @@ Aliases (shortcuts) to frequently used commands can be placed in:
               gettext("Here you can select the startup shell.\nDefault: %1"),
               self:getDefaultShellExecutable()
             ),
-            input = G_reader_settings:read("terminal_shell") or self:getDefaultShellExecutable(),
+            input = G_reader_settings:read("terminal_shell")
+              or self:getDefaultShellExecutable(),
             buttons = {
               {
                 {
@@ -657,7 +710,10 @@ Aliases (shortcuts) to frequently used commands can be placed in:
                 {
                   text = gettext("Default"),
                   callback = function()
-                    G_reader_settings:save("terminal_shell", self:getDefaultShellExecutable())
+                    G_reader_settings:save(
+                      "terminal_shell",
+                      self:getDefaultShellExecutable()
+                    )
                     UIManager:close(self.shell_dialog)
                     if touchmenu_instance then
                       touchmenu_instance:updateItems()

@@ -31,7 +31,11 @@ function LuaDefaults:open(path)
     new.rw = stored
   else
     if existing then
-      logger.warn("LuaDefaults: Failed reading", new.file, "(probably corrupted).")
+      logger.warn(
+        "LuaDefaults: Failed reading",
+        new.file,
+        "(probably corrupted)."
+      )
     end
     -- Fallback to .old if it exists
     ok, stored = pcall(dofile, new.file .. ".old")
@@ -42,7 +46,11 @@ function LuaDefaults:open(path)
       new.rw = stored
     else
       if existing then
-        logger.warn("LuaDefaults: no usable backup file for", new.file, "to read from")
+        logger.warn(
+          "LuaDefaults: no usable backup file for",
+          new.file,
+          "to read from"
+        )
       end
       new.rw = {}
     end
@@ -161,7 +169,13 @@ function LuaDefaults:flush()
     return
   end
   local directory_updated = self:backup() -- LuaSettings
-  util.writeToFile(dump(self.rw, nil, true), self.file, true, true, directory_updated)
+  util.writeToFile(
+    dump(self.rw, nil, true),
+    self.file,
+    true,
+    true,
+    directory_updated
+  )
   return self
 end
 

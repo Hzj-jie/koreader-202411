@@ -216,13 +216,19 @@ local function write_table(value, seen)
   end
   local klen = 0
   for k in pairs(value) do
-    if (type(k) ~= "number" or floor(k) ~= k or k > len or k < 1) and k ~= classkey then
+    if
+      (type(k) ~= "number" or floor(k) ~= k or k > len or k < 1)
+      and k ~= classkey
+    then
       klen = klen + 1
     end
   end
   write_number(klen, seen)
   for k, v in pairs(value) do
-    if (type(k) ~= "number" or floor(k) ~= k or k > len or k < 1) and k ~= classkey then
+    if
+      (type(k) ~= "number" or floor(k) ~= k or k > len or k < 1)
+      and k ~= classkey
+    then
       serialize_value(k, seen)
       serialize_value(v, seen)
     end

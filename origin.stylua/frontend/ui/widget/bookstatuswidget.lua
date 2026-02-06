@@ -118,8 +118,13 @@ end
 
 function BookStatusWidget:getStatHours()
   if stats_book.time then
-    local user_duration_format = G_reader_settings:readSetting("duration_format", "classic")
-    return datetime.secondsToClockDuration(user_duration_format, stats_book.time, false)
+    local user_duration_format =
+      G_reader_settings:readSetting("duration_format", "classic")
+    return datetime.secondsToClockDuration(
+      user_duration_format,
+      stats_book.time,
+      false
+    )
   else
     return _("N/A")
   end
@@ -327,7 +332,10 @@ function BookStatusWidget:genBookInfoGroup()
   )
   -- complete text
   local text_complete = TextWidget:new({
-    text = T(_("%1\xE2\x80\xAF% Completed"), string.format("%1.f", read_percentage * 100)),
+    text = T(
+      _("%1\xE2\x80\xAF% Completed"),
+      string.format("%1.f", read_percentage * 100)
+    ),
     face = self.small_font_face,
   })
   table.insert(
@@ -338,9 +346,15 @@ function BookStatusWidget:genBookInfoGroup()
     })
   )
   -- rating
-  table.insert(book_meta_info_group, VerticalSpan:new({ width = Screen:scaleBySize(30) }))
+  table.insert(
+    book_meta_info_group,
+    VerticalSpan:new({ width = Screen:scaleBySize(30) })
+  )
   local rateHeight = Screen:scaleBySize(60)
-  table.insert(book_meta_info_group, self:generateRateGroup(screen_width, rateHeight, self.summary.rating))
+  table.insert(
+    book_meta_info_group,
+    self:generateRateGroup(screen_width, rateHeight, self.summary.rating)
+  )
 
   -- build the final group
   local book_info_group = HorizontalGroup:new({
@@ -527,7 +541,11 @@ function BookStatusWidget:onSwipe(arg, ges_ev)
   if ges_ev.direction == "south" then
     -- Allow easier closing with swipe down
     self:onClose()
-  elseif ges_ev.direction == "east" or ges_ev.direction == "west" or ges_ev.direction == "north" then
+  elseif
+    ges_ev.direction == "east"
+    or ges_ev.direction == "west"
+    or ges_ev.direction == "north"
+  then
     -- no use for now
     do
     end -- luacheck: ignore 541

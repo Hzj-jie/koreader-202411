@@ -71,7 +71,8 @@ function NetworkListener:onInfoWifiOn()
     local current_network = NetworkMgr:getCurrentNetwork()
     -- this method is only available for some implementations
     if current_network and current_network.ssid then
-      info_text = T(_("Already connected to network %1."), BD.wrap(current_network.ssid))
+      info_text =
+        T(_("Already connected to network %1."), BD.wrap(current_network.ssid))
     else
       info_text = _("Already connected.")
     end
@@ -86,7 +87,8 @@ end
 local default_network_timeout_seconds = 5 * 60
 local max_network_timeout_seconds = 30 * 60
 -- If autostandby is enabled, shorten the timeouts
-local auto_standby = G_reader_settings:readSetting("auto_standby_timeout_seconds", -1)
+local auto_standby =
+  G_reader_settings:readSetting("auto_standby_timeout_seconds", -1)
 if auto_standby > 0 then
   default_network_timeout_seconds = default_network_timeout_seconds / 2
   max_network_timeout_seconds = max_network_timeout_seconds / 2
@@ -100,7 +102,12 @@ local network_activity_noise_margin = 12 -- unscaled_size_check: ignore
 -- net sysfs entry allows us to get away with a Linux-only solution.
 function NetworkListener:_getTxPackets()
   -- read tx_packets stats from sysfs (for the right network if)
-  local file = io.open("/sys/class/net/" .. NetworkMgr:getNetworkInterfaceName() .. "/statistics/tx_packets", "rb")
+  local file = io.open(
+    "/sys/class/net/"
+      .. NetworkMgr:getNetworkInterfaceName()
+      .. "/statistics/tx_packets",
+    "rb"
+  )
 
   -- file exists only when Wi-Fi module is loaded.
   if not file then
@@ -139,8 +146,11 @@ function NetworkListener:_scheduleActivityCheck()
   local tx_packets = NetworkListener:_getTxPackets()
   if NetworkListener._last_tx_packets and tx_packets then
     -- Compute noise threshold based on the current delay
-    local delay_seconds = NetworkListener._activity_check_delay_seconds or default_network_timeout_seconds
-    local noise_threshold = delay_seconds / default_network_timeout_seconds * network_activity_noise_margin
+    local delay_seconds = NetworkListener._activity_check_delay_seconds
+      or default_network_timeout_seconds
+    local noise_threshold = delay_seconds
+      / default_network_timeout_seconds
+      * network_activity_noise_margin
     local delta = tx_packets - NetworkListener._last_tx_packets
     -- If there was no meaningful activity (+/- a couple packets), kill the Wi-Fi
     if delta <= noise_threshold then
@@ -186,14 +196,22 @@ function NetworkListener:_scheduleActivityCheck()
     NetworkListener._activity_check_delay_seconds = NetworkListener._activity_check_delay_seconds
       + default_network_timeout_seconds
 
-    if NetworkListener._activity_check_delay_seconds > max_network_timeout_seconds then
-      NetworkListener._activity_check_delay_seconds = max_network_timeout_seconds
+    if
+      NetworkListener._activity_check_delay_seconds
+      > max_network_timeout_seconds
+    then
+      NetworkListener._activity_check_delay_seconds =
+        max_network_timeout_seconds
     end
   else
-    NetworkListener._activity_check_delay_seconds = default_network_timeout_seconds
+    NetworkListener._activity_check_delay_seconds =
+      default_network_timeout_seconds
   end
 
-  UIManager:scheduleIn(NetworkListener._activity_check_delay_seconds, NetworkListener._scheduleActivityCheck)
+  UIManager:scheduleIn(
+    NetworkListener._activity_check_delay_seconds,
+    NetworkListener._scheduleActivityCheck
+  )
   NetworkListener._activity_check_scheduled = true
   logger.dbg(
     "NetworkListener: network activity check scheduled in",
@@ -245,8 +263,12 @@ end
 -- If the platform implements NetworkMgr:restoreWifiAsync, run it as needed
 if Device:hasWifiRestore() then
   function NetworkListener:onResume()
-    if NetworkMgr.wifi_was_on and G_reader_settings:isTrue("auto_restore_wifi") then
-      logger.dbg("NetworkListener: onResume will restore Wi-Fi in the background")
+    if
+      NetworkMgr.wifi_was_on and G_reader_settings:isTrue("auto_restore_wifi")
+    then
+      logger.dbg(
+        "NetworkListener: onResume will restore Wi-Fi in the background"
+      )
       NetworkMgr:restoreWifiAsync()
       NetworkMgr:scheduleConnectivityCheck()
     end

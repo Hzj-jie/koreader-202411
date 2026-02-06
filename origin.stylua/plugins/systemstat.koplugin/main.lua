@@ -95,17 +95,19 @@ function SystemStat:appendCounters()
   if Device:canSuspend() then
     self:put({
       "  " .. _("Time in suspend"),
-      datetime.secondsToClockDuration("", time.to_s(suspend), false, true) .. " (" .. Math.round(
-        (suspend / uptime) * 100
-      ) .. "%)",
+      datetime.secondsToClockDuration("", time.to_s(suspend), false, true)
+        .. " ("
+        .. Math.round((suspend / uptime) * 100)
+        .. "%)",
     })
   end
   if Device:canStandby() then
     self:put({
       "  " .. _("Time in standby"),
-      datetime.secondsToClockDuration("", time.to_s(standby), false, true) .. " (" .. Math.round(
-        (standby / uptime) * 100
-      ) .. "%)",
+      datetime.secondsToClockDuration("", time.to_s(standby), false, true)
+        .. " ("
+        .. Math.round((standby / uptime) * 100)
+        .. "%)",
     })
   end
   self:put({ _("Counters"), "" })
@@ -288,8 +290,11 @@ function SystemStat:appendStorageInfo()
     return
   end
 
-  local std_out =
-    io.popen("df -h | sed -r 's/ +/ /g' | grep " .. self.storage_filter .. " | sed 's/ /\\t/g' | cut -f 2,4,5,6")
+  local std_out = io.popen(
+    "df -h | sed -r 's/ +/ /g' | grep "
+      .. self.storage_filter
+      .. " | sed 's/ /\\t/g' | cut -f 2,4,5,6"
+  )
   if not std_out then
     return
   end

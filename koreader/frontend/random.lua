@@ -23,9 +23,15 @@ function random.uuid(with_dash)
   array[9] = bit.band(array[9], 191)
   array[9] = bit.bor(array[9], 128)
   if with_dash then
-    return string.format("%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X", unpack(array))
+    return string.format(
+      "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+      unpack(array)
+    )
   else
-    return string.format("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X", unpack(array))
+    return string.format(
+      "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
+      unpack(array)
+    )
   end
 end
 

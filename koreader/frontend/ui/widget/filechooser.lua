@@ -37,7 +37,8 @@ local FileChooser = Menu:extend({
       init_sort_func = function(cache)
         return function(a, b)
           return ffiUtil.strcoll(a.text, b.text)
-        end, cache
+        end,
+          cache
       end,
     },
     natural = {
@@ -49,7 +50,8 @@ local FileChooser = Menu:extend({
         natsort, cache = sort.natsort_cmp(cache)
         return function(a, b)
           return natsort(a.text, b.text)
-        end, cache
+        end,
+          cache
       end,
     },
     access = {
@@ -59,7 +61,8 @@ local FileChooser = Menu:extend({
       init_sort_func = function(cache)
         return function(a, b)
           return a.attr.last_read > b.attr.last_read
-        end, cache
+        end,
+          cache
       end,
       item_func = function(item)
         if item.attr.mode == "file" then
@@ -94,7 +97,8 @@ local FileChooser = Menu:extend({
       init_sort_func = function(cache)
         return function(a, b)
           return a.attr.modification > b.attr.modification
-        end, cache
+        end,
+          cache
       end,
       mandatory_func = function(item)
         return datetime.secondsToDateTime(item.attr.modification)
@@ -107,7 +111,8 @@ local FileChooser = Menu:extend({
       init_sort_func = function(cache)
         return function(a, b)
           return a.attr.size < b.attr.size
-        end, cache
+        end,
+          cache
       end,
     },
     type = {
@@ -155,7 +160,9 @@ local FileChooser = Menu:extend({
         item.percent_finished = util.round_decimal(percent_finished or 0, 2)
       end,
       mandatory_func = function(item)
-        return item.opened and string.format("%d %%", 100 * item.percent_finished) or "–"
+        return item.opened
+            and string.format("%d %%", 100 * item.percent_finished)
+          or "–"
       end,
     },
     percent_unopened_last = {
@@ -186,7 +193,9 @@ local FileChooser = Menu:extend({
         item.percent_finished = util.round_decimal(percent_finished or 0, 2)
       end,
       mandatory_func = function(item)
-        return item.opened and string.format("%d %%", 100 * item.percent_finished) or "–"
+        return item.opened
+            and string.format("%d %%", 100 * item.percent_finished)
+          or "–"
       end,
     },
     percent_natural = {
@@ -229,11 +238,14 @@ local FileChooser = Menu:extend({
           percent_finished = doc_settings:read("percent_finished")
         end
         -- smooth 2 decimal points (0.00) instead of 16 decimal points
-        item.sort_percent = sort_percent or util.round_decimal(percent_finished or -1, 2)
+        item.sort_percent = sort_percent
+          or util.round_decimal(percent_finished or -1, 2)
         item.percent_finished = percent_finished or 0
       end,
       mandatory_func = function(item)
-        return item.opened and string.format("%d %%", 100 * item.percent_finished) or "–"
+        return item.opened
+            and string.format("%d %%", 100 * item.percent_finished)
+          or "–"
       end,
     },
   },
@@ -309,10 +321,18 @@ function FileChooser:show_file(filename, fullpath)
       return false
     end
   end
-  if not self.show_unsupported and self.file_filter ~= nil and not self.file_filter(filename) then
+  if
+    not self.show_unsupported
+    and self.file_filter ~= nil
+    and not self.file_filter(filename)
+  then
     return false
   end
-  if not FileChooser.show_finished and fullpath ~= nil and filemanagerutil.getStatus(fullpath) == "complete" then
+  if
+    not FileChooser.show_finished
+    and fullpath ~= nil
+    and filemanagerutil.getStatus(fullpath) == "complete"
+  then
     return false
   end
   return true
@@ -338,13 +358,22 @@ function FileChooser:getList(path, collate)
         local fullpath = path .. "/" .. f
         local attributes = lfs.attributes(fullpath) or {}
         local item = true
-        if attributes.mode == "directory" and f ~= "." and f ~= ".." and self:show_dir(f) then
+        if
+          attributes.mode == "directory"
+          and f ~= "."
+          and f ~= ".."
+          and self:show_dir(f)
+        then
           if collate then -- when collate == nil count only to display in folder mandatory
             item = self:getListItem(path, f, fullpath, attributes, collate)
           end
           table.insert(dirs, item)
         -- Always ignore macOS resource forks.
-        elseif attributes.mode == "file" and not util.stringStartsWith(f, "._") and self:show_file(f, fullpath) then
+        elseif
+          attributes.mode == "file"
+          and not util.stringStartsWith(f, "._")
+          and self:show_file(f, fullpath)
+        then
           if collate then -- when collate == nil count only to display in folder mandatory
             item = self:getListItem(path, f, fullpath, attributes, collate)
           end
@@ -396,14 +425,17 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
     item.is_file = true
     item.opened = DocSettings:hasSidecarFile(fullpath)
     item.bold = self:showFileInBold(item.opened)
-    item.dim = self.filemanager and self.filemanager.selected_files and self.filemanager.selected_files[item.path]
+    item.dim = self.filemanager
+      and self.filemanager.selected_files
+      and self.filemanager.selected_files[item.path]
     if collate.item_func ~= nil then
       collate.item_func(item)
     end
     item.mandatory = self:getMenuItemMandatory(item, collate)
   else -- folder
     if item.text == "./." then -- added as content of an unreadable directory
-      item.text = gettext("Current folder not readable. Some content may not be shown.")
+      item.text =
+        gettext("Current folder not readable. Some content may not be shown.")
     else
       item.text = item.text .. "/"
       item.bidi_wrap_func = BD.directory
@@ -480,7 +512,13 @@ function FileChooser:genItemTable(dirs, files, path)
   end
 
   if path then -- file browser or PathChooser
-    if path ~= "/" and not (G_reader_settings:isTrue("lock_home_folder") and path == G_named_settings.home_dir()) then
+    if
+      path ~= "/"
+      and not (
+        G_reader_settings:isTrue("lock_home_folder")
+        and path == G_named_settings.home_dir()
+      )
+    then
       table.insert(item_table, 1, {
         text = BD.mirroredUILayout() and BD.ltr("../ ⬆") or "⬆ ../",
         path = path .. "/..",
@@ -534,7 +572,8 @@ end
 
 function FileChooser:updateItems(select_number, no_recalculate_dimen)
   Menu.updateItems(self, select_number, no_recalculate_dimen) -- call parent's updateItems()
-  self.path_items[self.path] = (self.page - 1) * self.perpage + (select_number or 1)
+  self.path_items[self.path] = (self.page - 1) * self.perpage
+    + (select_number or 1)
 end
 
 function FileChooser:refreshPath()
@@ -551,8 +590,15 @@ function FileChooser:refreshPath()
         self.prev_focused_path = self.focused_path
         self.focused_path = nil
       end
-      local subtitle = self.filemanager == nil and BD.directory(filemanagerutil.abbreviate(self.path))
-      self:switchItemTable(nil, self:genItemTableFromPath(self.path), self.path_items[self.path], itemmatch, subtitle)
+      local subtitle = self.filemanager == nil
+        and BD.directory(filemanagerutil.abbreviate(self.path))
+      self:switchItemTable(
+        nil,
+        self:genItemTableFromPath(self.path),
+        self.path_items[self.path],
+        itemmatch,
+        subtitle
+      )
     end,
     -- Need localization.
     T(gettext("Loading contents in %1"), self.path)
@@ -607,7 +653,12 @@ function FileChooser:goHome()
 end
 
 function FileChooser:onFolderUp()
-  if not (G_reader_settings:isTrue("lock_home_folder") and self.path == G_named_settings.home_dir()) then
+  if
+    not (
+      G_reader_settings:isTrue("lock_home_folder")
+      and self.path == G_named_settings.home_dir()
+    )
+  then
     self:changeToPath(string.format("%s/..", self.path), self.path)
   end
 end

@@ -26,7 +26,8 @@ local HorizontalScrollBar = InputContainer:extend({
 })
 
 function HorizontalScrollBar:init()
-  self.extra_touch_on_side = math.ceil(self.extra_touch_on_side_heightratio * self.height)
+  self.extra_touch_on_side =
+    math.ceil(self.extra_touch_on_side_heightratio * self.height)
   if Device:isTouchDevice() then
     local pan_rate = G_named_settings.low_pan_rate_or_scroll()
     self.ges_events = {
@@ -118,12 +119,23 @@ function HorizontalScrollBar:paintTo(bb, x, y)
   })
   -- Reset the area first.
   bb:paintRect(x, y, self.width, self.height, Blitbuffer.COLOR_WHITE)
-  bb:paintBorder(x, y, self.width, self.height, self.bordersize, self.bordercolor, self.radius)
+  bb:paintBorder(
+    x,
+    y,
+    self.width,
+    self.height,
+    self.bordersize,
+    self.bordercolor,
+    self.radius
+  )
   if BD.mirroredUILayout() then
     bb:paintRect(
       x + self.bordersize + (1 - self.high) * self.width,
       y + self.bordersize,
-      math.max((self.width - 2 * self.bordersize) * (self.high - self.low), self.min_thumb_size),
+      math.max(
+        (self.width - 2 * self.bordersize) * (self.high - self.low),
+        self.min_thumb_size
+      ),
       self.height - 2 * self.bordersize,
       self.rectcolor
     )
@@ -131,7 +143,10 @@ function HorizontalScrollBar:paintTo(bb, x, y)
     bb:paintRect(
       x + self.bordersize + self.low * self.width,
       y + self.bordersize,
-      math.max((self.width - 2 * self.bordersize) * (self.high - self.low), self.min_thumb_size),
+      math.max(
+        (self.width - 2 * self.bordersize) * (self.high - self.low),
+        self.min_thumb_size
+      ),
       self.height - 2 * self.bordersize,
       self.rectcolor
     )

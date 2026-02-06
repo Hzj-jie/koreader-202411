@@ -28,13 +28,21 @@ function DropBox:downloadFile(item, password, path, callback_close)
   local code_response = DropBoxApi:downloadFile(item.url, password, path)
   if code_response == 200 then
     local __, filename = util.splitFilePathName(path)
-    if G_reader_settings:isTrue("show_unsupported") and not DocumentRegistry:hasProvider(filename) then
+    if
+      G_reader_settings:isTrue("show_unsupported")
+      and not DocumentRegistry:hasProvider(filename)
+    then
       UIManager:show(InfoMessage:new({
         text = T(gettext("File saved to:\n%1"), BD.filename(path)),
       }))
     else
       UIManager:show(ConfirmBox:new({
-        text = T(gettext("File saved to:\n%1\nWould you like to read the downloaded book now?"), BD.filepath(path)),
+        text = T(
+          gettext(
+            "File saved to:\n%1\nWould you like to read the downloaded book now?"
+          ),
+          BD.filepath(path)
+        ),
         ok_callback = function()
           local Event = require("ui/event")
           UIManager:broadcastEvent(Event:new("SetupShowReader"))
@@ -112,11 +120,15 @@ Some of the previously generated long-lived tokens are still valid.]])
       },
       {
         text = text_token,
-        hint = gettext("Dropbox refresh token\nor long-lived token (deprecated)"),
+        hint = gettext(
+          "Dropbox refresh token\nor long-lived token (deprecated)"
+        ),
       },
       {
         text = text_appkey,
-        hint = gettext("Dropbox <APP_KEY>:<APP_SECRET>\n(leave blank for long-lived token)"),
+        hint = gettext(
+          "Dropbox <APP_KEY>:<APP_SECRET>\n(leave blank for long-lived token)"
+        ),
       },
       {
         text = text_url,
@@ -164,10 +176,13 @@ function DropBox:info(token)
   if info and space_usage then
     local account_type = info.account_type and info.account_type[".tag"]
     local name = info.name and info.name.display_name
-    local space_total = space_usage.allocation and space_usage.allocation.allocated
+    local space_total = space_usage.allocation
+      and space_usage.allocation.allocated
     UIManager:show(InfoMessage:new({
       text = T(
-        gettext("Type: %1\nName: %2\nEmail: %3\nCountry: %4\nSpace total: %5\nSpace used: %6"),
+        gettext(
+          "Type: %1\nName: %2\nEmail: %3\nCountry: %4\nSpace total: %5\nSpace used: %6"
+        ),
         account_type,
         name,
         info.email,

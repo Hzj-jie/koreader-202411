@@ -46,7 +46,8 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
   ioloop.READ = epoll_ffi.EPOLL_EVENTS.EPOLLIN
   ioloop.WRITE = epoll_ffi.EPOLL_EVENTS.EPOLLOUT
   ioloop.PRI = epoll_ffi.EPOLL_EVENTS.EPOLLPRI
-  ioloop.ERROR = bit.bor(epoll_ffi.EPOLL_EVENTS.EPOLLERR, epoll_ffi.EPOLL_EVENTS.EPOLLHUP)
+  ioloop.ERROR =
+    bit.bor(epoll_ffi.EPOLL_EVENTS.EPOLLERR, epoll_ffi.EPOLL_EVENTS.EPOLLHUP)
 elseif _G.__TURBO_USE_LUASOCKET__ then
   -- Load luasocket as a option.
   luasocket = require("socket")
@@ -113,7 +114,12 @@ end
 function ioloop.IOLoop:add_handler(fd, events, handler, arg)
   local rc, errno = self._poll:register(fd, bit.bor(events, ioloop.ERROR))
   if rc ~= 0 then
-    log.notice(string.format("[ioloop.lua] register() in add_handler() failed: %s", socket.strerror(errno)))
+    log.notice(
+      string.format(
+        "[ioloop.lua] register() in add_handler() failed: %s",
+        socket.strerror(errno)
+      )
+    )
     return false
   end
   self._handlers[fd] = { handler, arg }
@@ -128,7 +134,12 @@ end
 function ioloop.IOLoop:update_handler(fd, events)
   local rc, errno = self._poll:modify(fd, bit.bor(events, ioloop.ERROR))
   if rc ~= 0 then
-    log.notice(string.format("[ioloop.lua] modify() in update_handler() failed: %s", socket.strerror(errno)))
+    log.notice(
+      string.format(
+        "[ioloop.lua] modify() in update_handler() failed: %s",
+        socket.strerror(errno)
+      )
+    )
     return false
   end
   return true
@@ -143,7 +154,12 @@ function ioloop.IOLoop:remove_handler(fd)
   end
   local rc, errno = self._poll:unregister(fd)
   if rc ~= 0 then
-    log.notice(string.format("[ioloop.lua] unregister() in remove_handler() failed: %s", socket.strerror(errno)))
+    log.notice(
+      string.format(
+        "[ioloop.lua] unregister() in remove_handler() failed: %s",
+        socket.strerror(errno)
+      )
+    )
     return false
   end
   self._handlers[fd] = nil
@@ -249,7 +265,12 @@ function ioloop.IOLoop:_handle_signalfd_event(fd, events)
   ffi.fill(sigfdsi, sigfdsi_size)
   local r = ffi.C.read(fd, sigfdsi, sigfdsi_size)
   if r ~= sigfdsi_size then
-    log.notice(string.format("[ioloop.lua] read() in _handle_signalfd_event failed: %s", socket.strerror(ffi.errno())))
+    log.notice(
+      string.format(
+        "[ioloop.lua] read() in _handle_signalfd_event failed: %s",
+        socket.strerror(ffi.errno())
+      )
+    )
     return
   end
   local fdsi = sigfdsi[0]
@@ -286,7 +307,10 @@ end
 -- @param arg Optional argument for handler. Handler is called with
 --            this as first argument if set.
 function ioloop.IOLoop:add_signal_handler(signo, handler, arg)
-  assert(signo ~= signal.SIGPIPE, "Cannot add handler for SIGPIPE. Reserved by IOLoop.")
+  assert(
+    signo ~= signal.SIGPIPE,
+    "Cannot add handler for SIGPIPE. Reserved by IOLoop."
+  )
   local mask = ffi.new("sigset_t[1]")
   ffi.C.sigemptyset(mask)
   ffi.C.sigaddset(mask, signo)
@@ -294,11 +318,15 @@ function ioloop.IOLoop:add_signal_handler(signo, handler, arg)
   local sfd = ffi.C.signalfd(-1, mask, 0)
   if sfd == -1 then
     log.notice(
-      string.format("[ioloop.lua] signalfd() in add_signal_handler() failed: %s", socket.strerror(ffi.errno()))
+      string.format(
+        "[ioloop.lua] signalfd() in add_signal_handler() failed: %s",
+        socket.strerror(ffi.errno())
+      )
     )
     return false
   end
-  local r = self:add_handler(sfd, ioloop.READ, self._handle_signalfd_event, self)
+  local r =
+    self:add_handler(sfd, ioloop.READ, self._handle_signalfd_event, self)
   if not r then
     log.notice("[ioloop.lua] add_handler() in add_signal_handler() failed.")
     return false
@@ -438,7 +466,9 @@ if _poll_implementation == "epoll_ffi" then
         self:_run_handler(events[i].data.fd, events[i].events)
       end
     elseif rc == -1 then
-      log.notice(string.format("[ioloop.lua] poll() returned errno %d", ffi.errno()))
+      log.notice(
+        string.format("[ioloop.lua] poll() returned errno %d", ffi.errno())
+      )
     end
   end
 elseif _poll_implementation == "luasocket" then
@@ -486,10 +516,13 @@ function ioloop.IOLoop:wait(timeout)
   local ref
   if timeout then
     local _ioloop = self
-    ref = self:add_timeout(util.gettimemonotonic() + (timeout * 1000), function()
-      timedout = true
-      _ioloop:close()
-    end)
+    ref = self:add_timeout(
+      util.gettimemonotonic() + (timeout * 1000),
+      function()
+        timedout = true
+        _ioloop:close()
+      end
+    )
   end
   self:start()
   assert(self:running() == false, "IO Loop stopped unexpectedly")
@@ -606,7 +639,12 @@ function ioloop.IOLoop:_resume_coroutine(co, arg)
           return -1
         end,
       }
-      log.warning(string.format("[ioloop.lua] Callback yielded with unsupported value, %s.", yield_t))
+      log.warning(
+        string.format(
+          "[ioloop.lua] Callback yielded with unsupported value, %s.",
+          yield_t
+        )
+      )
       return 3
     end
   end
@@ -667,11 +705,21 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
   end
 
   function _EPoll_FFI:register(fd, events)
-    return epoll_ffi.epoll_ctl(self._epoll_fd, epoll_ffi.EPOLL_CTL_ADD, fd, events)
+    return epoll_ffi.epoll_ctl(
+      self._epoll_fd,
+      epoll_ffi.EPOLL_CTL_ADD,
+      fd,
+      events
+    )
   end
 
   function _EPoll_FFI:modify(fd, events)
-    return epoll_ffi.epoll_ctl(self._epoll_fd, epoll_ffi.EPOLL_CTL_MOD, fd, events)
+    return epoll_ffi.epoll_ctl(
+      self._epoll_fd,
+      epoll_ffi.EPOLL_CTL_MOD,
+      fd,
+      events
+    )
   end
 
   function _EPoll_FFI:unregister(fd)

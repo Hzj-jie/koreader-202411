@@ -57,21 +57,38 @@ function FrameContainer:_containerSize()
   self._padding_bottom = self.padding_bottom or self.padding
   self._padding_left = self.padding_left or self.padding
   if BD.mirroredUILayout() and self.allow_mirroring then
-    self._padding_left, self._padding_right = self._padding_right, self._padding_left
+    self._padding_left, self._padding_right =
+      self._padding_right, self._padding_left
   end
-  local width = content_size.w + (self.margin + self.bordersize) * 2 + self._padding_left + self._padding_right
-  local height = content_size.h + (self.margin + self.bordersize) * 2 + self._padding_top + self._padding_bottom
+  local width = content_size.w
+    + (self.margin + self.bordersize) * 2
+    + self._padding_left
+    + self._padding_right
+  local height = content_size.h
+    + (self.margin + self.bordersize) * 2
+    + self._padding_top
+    + self._padding_bottom
   return width, height
 end
 
 function FrameContainer:getSize()
   local width, height = self:_containerSize()
   if self.width and self.width < width then
-    logger.warn("FixMe: FrameContainer self.width ", self.width, " < content.width ", width)
+    logger.warn(
+      "FixMe: FrameContainer self.width ",
+      self.width,
+      " < content.width ",
+      width
+    )
     self.width = width
   end
   if self.height and self.height < height then
-    logger.warn("FixMe: FrameContainer self.height ", self.height, " < content.height ", height)
+    logger.warn(
+      "FixMe: FrameContainer self.height ",
+      self.height,
+      " < content.height ",
+      height
+    )
     self.height = height
   end
   self:mergeSize(self.width or width, self.height or height)
@@ -119,14 +136,35 @@ function FrameContainer:paintTo(bb, x, y)
 
   if self.background then
     if not self.radius or not self.bordersize then
-      bb:paintRoundedRect(x, y, container_width, container_height, self.background, self.radius)
+      bb:paintRoundedRect(
+        x,
+        y,
+        container_width,
+        container_height,
+        self.background,
+        self.radius
+      )
     else
-      bb:paintRoundedRect(x, y, container_width, container_height, self.background, self.radius + self.bordersize)
+      bb:paintRoundedRect(
+        x,
+        y,
+        container_width,
+        container_height,
+        self.background,
+        self.radius + self.bordersize
+      )
     end
   end
   if self.stripe_width and self.stripe_color and not self.stripe_over then
     -- (No support for radius when hatched/stripe)
-    bb:hatchRect(x, y, container_width, container_height, self.stripe_width, self.stripe_color)
+    bb:hatchRect(
+      x,
+      y,
+      container_width,
+      container_height,
+      self.stripe_width,
+      self.stripe_color
+    )
   end
   if self.inner_bordersize > 0 then
     --- @warning This doesn't actually support radius, it'll always be a square.

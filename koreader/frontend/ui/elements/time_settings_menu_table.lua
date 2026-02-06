@@ -37,7 +37,8 @@ local menu = {
           text_func = function()
             local datetime = require("datetime")
             -- sample text shows 1:23:45
-            local duration_format_str = datetime.secondsToClockDuration("classic", 5025, false)
+            local duration_format_str =
+              datetime.secondsToClockDuration("classic", 5025, false)
             return T(C_("Time", "Classic (%1)"), duration_format_str)
           end,
           checked_func = function()
@@ -52,7 +53,8 @@ local menu = {
           text_func = function()
             local datetime = require("datetime")
             -- sample text shows 1h23'45"
-            local duration_format_str = datetime.secondsToClockDuration("modern", 5025, false)
+            local duration_format_str =
+              datetime.secondsToClockDuration("modern", 5025, false)
             return T(C_("Time", "Modern (%1)"), duration_format_str)
           end,
           checked_func = function()
@@ -67,7 +69,8 @@ local menu = {
           text_func = function()
             local datetime = require("datetime")
             -- sample text shows 1h 23m 45s
-            local duration_format_str = datetime.secondsToClockDuration("letters", 5025, false)
+            local duration_format_str =
+              datetime.secondsToClockDuration("letters", 5025, false)
             return T(C_("Time", "Letters (%1)"), duration_format_str)
           end,
           checked_func = function()
@@ -133,7 +136,16 @@ if Device:setDateTime() then
         info_text = gettext("Date is in years, months and days."),
         callback = function(time)
           now_t = os.date("*t")
-          if Device:setDateTime(time.year, time.month, time.day, now_t.hour, now_t.min, now_t.sec) then
+          if
+            Device:setDateTime(
+              time.year,
+              time.month,
+              time.day,
+              now_t.hour,
+              now_t.min,
+              now_t.sec
+            )
+          then
             now_t = os.date("*t")
             UIManager:show(InfoMessage:new({
               text = T(
@@ -173,7 +185,11 @@ local function add_sync_time()
     local path = os.getenv("PATH") or ""
     for p in path:gmatch("([^:]+)") do
       local sym = lfs.symlinkattributes(p .. "/ntpd")
-      if sym and sym.mode == "link" and string.sub(sym.target, -7) == "busybox" then
+      if
+        sym
+        and sym.mode == "link"
+        and string.sub(sym.target, -7) == "busybox"
+      then
         ntp_cmd = "ntpd -q -n -p pool.ntp.org"
         break
       end
@@ -203,13 +219,18 @@ local function add_sync_time()
   local function syncNTPOnly()
     local txt
     if os.execute(ntp_cmd) ~= 0 then
-      txt = gettext("Failed to retrieve time from server. Please check your network configuration.")
+      txt = gettext(
+        "Failed to retrieve time from server. Please check your network configuration."
+      )
     else
       txt = currentTime()
       os.execute("hwclock -u -w")
 
       -- On Kindle, do it the native way, too, to make sure the native UI gets the memo...
-      if Device:isKindle() and lfs.attributes("/usr/sbin/setdate", "mode") == "file" then
+      if
+        Device:isKindle()
+        and lfs.attributes("/usr/sbin/setdate", "mode") == "file"
+      then
         os.execute(string.format("/usr/sbin/setdate '%d'", os.time()))
       end
     end

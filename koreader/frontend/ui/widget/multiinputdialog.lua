@@ -140,7 +140,8 @@ function MultiInputDialog:init()
       justified = field.justified or self.justified,
       lang = field.lang or self.lang,
       para_direction_rtl = field.para_direction_rtl or self.para_direction_rtl,
-      auto_para_direction = field.auto_para_direction or self.auto_para_direction,
+      auto_para_direction = field.auto_para_direction
+        or self.auto_para_direction,
       alignment_strict = field.alignment_strict or self.alignment_strict,
       enter_callback = self.enter_callback,
     })

@@ -779,7 +779,8 @@ local settingsList = {
     event = "ShowBookMap",
     title = _("Book map"),
     reader = true,
-    condition = Device:isTouchDevice() or (Device:hasDPad() and Device:useDPadAsActionKeys()),
+    condition = Device:isTouchDevice()
+      or (Device:hasDPad() and Device:useDPadAsActionKeys()),
   },
   book_map_overview = {
     category = "none",
@@ -787,7 +788,8 @@ local settingsList = {
     arg = true,
     title = _("Book map (overview)"),
     reader = true,
-    condition = Device:isTouchDevice() or (Device:hasDPad() and Device:useDPadAsActionKeys()),
+    condition = Device:isTouchDevice()
+      or (Device:hasDPad() and Device:useDPadAsActionKeys()),
   },
   page_browser = {
     category = "none",
@@ -1305,7 +1307,8 @@ function Dispatcher:init()
       local name = prefix and prefix .. option.name or option.name
       if settingsList[name] ~= nil then
         if option.name ~= nil and option.values ~= nil then
-          settingsList[name].configurable = { name = option.name, values = option.values }
+          settingsList[name].configurable =
+            { name = option.name, values = option.values }
         end
         if settingsList[name].event == nil then
           settingsList[name].event = option.event
@@ -1316,7 +1319,10 @@ function Dispatcher:init()
         if settingsList[name].condition == nil then
           settingsList[name].condition = option.show
         end
-        if settingsList[name].category == "string" or settingsList[name].category == "configurable" then
+        if
+          settingsList[name].category == "string"
+          or settingsList[name].category == "configurable"
+        then
           if settingsList[name].toggle == nil then
             settingsList[name].toggle = option.toggle or option.labels
             if settingsList[name].toggle == nil then
@@ -1337,7 +1343,10 @@ function Dispatcher:init()
           if settingsList[name].min == nil then
             settingsList[name].min = (
               option.more_options_param
-              and (option.more_options_param.value_min or option.more_options_param.left_min)
+              and (
+                option.more_options_param.value_min
+                or option.more_options_param.left_min
+              )
             )
               or (option.args and option.args[1])
               or option.values[1]
@@ -1345,7 +1354,10 @@ function Dispatcher:init()
           if settingsList[name].max == nil then
             settingsList[name].max = (
               option.more_options_param
-              and (option.more_options_param.value_max or option.more_options_param.left_max)
+              and (
+                option.more_options_param.value_max
+                or option.more_options_param.left_max
+              )
             )
               or (option.args and option.args[#option.args])
               or option.values[#option.values]
@@ -1354,7 +1366,8 @@ function Dispatcher:init()
             settingsList[name].default = option.default_value
           end
         end
-        settingsList[name].unit = option.more_options_param and option.more_options_param.unit
+        settingsList[name].unit = option.more_options_param
+          and option.more_options_param.unit
       end
     end
   end
@@ -1444,10 +1457,12 @@ function Dispatcher:getNameFromItem(item, settings, dont_show_value)
       display_value = string.format("%d / %d", unpack(value))
     else
       if not settingsList[item].args and settingsList[item].args_func then
-        settingsList[item].args, settingsList[item].toggle = settingsList[item].args_func()
+        settingsList[item].args, settingsList[item].toggle =
+          settingsList[item].args_func()
       end
       local value_num = util.arrayContains(settingsList[item].args, value)
-      display_value = settingsList[item].toggle[value_num] or string.format("%.1f", value)
+      display_value = settingsList[item].toggle[value_num]
+        or string.format("%.1f", value)
     end
   elseif category == "absolutenumber" then
     display_value = tostring(value)
@@ -1455,7 +1470,10 @@ function Dispatcher:getNameFromItem(item, settings, dont_show_value)
     display_value = value == 0 and _("gesture distance") or tostring(value)
   end
   if display_value then
-    if settingsList[item].unit and (type(value) == "table" or tonumber(display_value)) then
+    if
+      settingsList[item].unit
+      and (type(value) == "table" or tonumber(display_value))
+    then
       -- do not show unit when the setting is "none" ^^
       display_value = display_value .. "\u{202F}" .. settingsList[item].unit
     end
@@ -1466,7 +1484,8 @@ end
 
 -- Converts copt/kopt-options values to args.
 function Dispatcher:getArgFromValue(item, value)
-  local value_num = util.arrayContains(settingsList[item].configurable.values, value)
+  local value_num =
+    util.arrayContains(settingsList[item].configurable.values, value)
   return settingsList[item].args[value_num]
 end
 
@@ -1544,8 +1563,17 @@ function Dispatcher:getDisplayList(settings)
     if type(item) == "number" then
       item = v
     end
-    if settingsList[item] ~= nil and (settingsList[item].condition == nil or settingsList[item].condition == true) then
-      table.insert(item_table, { text = Dispatcher:getNameFromItem(item, settings), key = item })
+    if
+      settingsList[item] ~= nil
+      and (
+        settingsList[item].condition == nil
+        or settingsList[item].condition == true
+      )
+    then
+      table.insert(
+        item_table,
+        { text = Dispatcher:getNameFromItem(item, settings), key = item }
+      )
     end
   end
   return item_table
@@ -1596,15 +1624,24 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
     end
   end
   for __, k in ipairs(dispatcher_menu_order) do
-    if settingsList[k][section] == true and settingsList[k].condition ~= false then
-      if settingsList[k].category == "none" or settingsList[k].category == "arg" then
+    if
+      settingsList[k][section] == true and settingsList[k].condition ~= false
+    then
+      if
+        settingsList[k].category == "none"
+        or settingsList[k].category == "arg"
+      then
         table.insert(menu, {
           text = settingsList[k].title,
           checked_func = function()
             return location[settings] ~= nil and location[settings][k] ~= nil
           end,
           callback = function(touchmenu_instance)
-            local value = (location[settings] == nil or location[settings][k] == nil) and true or nil
+            local value = (
+              location[settings] == nil or location[settings][k] == nil
+            )
+                and true
+              or nil
             setValue(k, value, touchmenu_instance)
           end,
           separator = settingsList[k].separator,
@@ -1620,7 +1657,10 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
           callback = function(touchmenu_instance)
             local SpinWidget = require("ui/widget/spinwidget")
             local precision
-            if settingsList[k].step and math.floor(settingsList[k].step) ~= settingsList[k].step then
+            if
+              settingsList[k].step
+              and math.floor(settingsList[k].step) ~= settingsList[k].step
+            then
               precision = "%0.1f"
             end
             local items = SpinWidget:new({
@@ -1632,7 +1672,11 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
               precision = precision,
               value_hold_step = 5,
               value_max = settingsList[k].max,
-              title_text = Dispatcher:getNameFromItem(k, location[settings], true),
+              title_text = Dispatcher:getNameFromItem(
+                k,
+                location[settings],
+                true
+              ),
               unit = settingsList[k].unit,
               ok_always_enabled = true,
               callback = function(spin)
@@ -1662,7 +1706,10 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
               value = settingsList[k].min
             end
             local precision
-            if settingsList[k].step and math.floor(settingsList[k].step) ~= settingsList[k].step then
+            if
+              settingsList[k].step
+              and math.floor(settingsList[k].step) ~= settingsList[k].step
+            then
               precision = "%0.1f"
             end
             local SpinWidget = require("ui/widget/spinwidget")
@@ -1673,12 +1720,17 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
               precision = precision,
               value_hold_step = 5,
               value_max = settingsList[k].max,
-              title_text = Dispatcher:getNameFromItem(k, location[settings], true),
+              title_text = Dispatcher:getNameFromItem(
+                k,
+                location[settings],
+                true
+              ),
               ok_always_enabled = true,
               callback = function(spin)
                 setValue(k, spin.value, touchmenu_instance)
               end,
-              option_text = caller.profiles == nil and _("Use gesture distance"), -- Gesture manager only
+              option_text = caller.profiles == nil
+                and _("Use gesture distance"), -- Gesture manager only
               option_callback = function()
                 setValue(k, 0, touchmenu_instance)
               end,
@@ -1692,10 +1744,14 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
           end,
           separator = settingsList[k].separator,
         })
-      elseif settingsList[k].category == "string" or settingsList[k].category == "configurable" then
+      elseif
+        settingsList[k].category == "string"
+        or settingsList[k].category == "configurable"
+      then
         local sub_item_table = {}
         if not settingsList[k].args and settingsList[k].args_func then
-          settingsList[k].args, settingsList[k].toggle = settingsList[k].args_func()
+          settingsList[k].args, settingsList[k].toggle =
+            settingsList[k].args_func()
         end
         for i = 1, #settingsList[k].args do
           table.insert(sub_item_table, {
@@ -1753,10 +1809,13 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
     text = _("Nothing"),
     separator = true,
     checked_func = function()
-      return location[settings] ~= nil and Dispatcher:_itemsCount(location[settings]) == 0
+      return location[settings] ~= nil
+        and Dispatcher:_itemsCount(location[settings]) == 0
     end,
     callback = function(touchmenu_instance)
-      local name = location[settings] and location[settings].settings and location[settings].settings.name
+      local name = location[settings]
+        and location[settings].settings
+        and location[settings].settings.name
       location[settings] = {}
       if name then
         location[settings].settings = { name = name }
@@ -1787,7 +1846,9 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
             if
               settingsList[k] ~= nil
               and settingsList[k][section[1]] == true
-              and (settingsList[k].condition == nil or settingsList[k].condition)
+              and (
+                settingsList[k].condition == nil or settingsList[k].condition
+              )
             then
               return true
             end
@@ -1797,7 +1858,9 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
       hold_callback = function(touchmenu_instance)
         if location[settings] ~= nil then
           for k, _ in pairs(location[settings]) do
-            if settingsList[k] ~= nil and settingsList[k][section[1]] == true then
+            if
+              settingsList[k] ~= nil and settingsList[k][section[1]] == true
+            then
               location[settings][k] = nil
               Dispatcher:_removeFromOrder(location, settings, k)
               caller.updated = true
@@ -1823,7 +1886,11 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
       Dispatcher:_sortActions(caller, location, settings, touchmenu_instance)
     end,
     hold_callback = function(touchmenu_instance)
-      if location[settings] and location[settings].settings and location[settings].settings.order then
+      if
+        location[settings]
+        and location[settings].settings
+        and location[settings].settings.order
+      then
         Dispatcher:_removeFromOrder(location, settings)
         caller.updated = true
         if touchmenu_instance then
@@ -1894,7 +1961,8 @@ function Dispatcher:isActionEnabled(action)
     elseif context == "rolling" then
       disabled = action["paging"]
     else -- FM
-      disabled = (action["reader"] or action["rolling"] or action["paging"]) and not action["filemanager"]
+      disabled = (action["reader"] or action["rolling"] or action["paging"])
+        and not action["filemanager"]
     end
   end
   return not disabled
@@ -1932,7 +2000,10 @@ function Dispatcher:_showAsMenu(settings, exec_props)
         callback = function()
           UIManager:close(quickmenu)
           Dispatcher:execute({ [v.key] = settings[v.key] })
-          if keep_open_on_apply and not util.stringStartsWith(v.key, "touch_input") then
+          if
+            keep_open_on_apply
+            and not util.stringStartsWith(v.key, "touch_input")
+          then
             quickmenu:setTitle(title)
             UIManager:show(quickmenu)
           end
@@ -1940,7 +2011,13 @@ function Dispatcher:_showAsMenu(settings, exec_props)
         hold_callback = function()
           if v.key:sub(1, 13) == "profile_exec_" then
             UIManager:close(quickmenu)
-            UIManager:sendEvent(Event:new(settingsList[v.key].event, settingsList[v.key].arg, { qm_show = true }))
+            UIManager:sendEvent(
+              Event:new(
+                settingsList[v.key].event,
+                settingsList[v.key].arg,
+                { qm_show = true }
+              )
+            )
           end
         end,
       },
@@ -1970,8 +2047,11 @@ arguments are:
 --
 function Dispatcher:execute(settings, exec_props)
   if
-    ((exec_props == nil or exec_props.qm_show == nil) and settings.settings and settings.settings.show_as_quickmenu)
-    or (exec_props and exec_props.qm_show)
+    (
+      (exec_props == nil or exec_props.qm_show == nil)
+      and settings.settings
+      and settings.settings.show_as_quickmenu
+    ) or (exec_props and exec_props.qm_show)
   then
     return Dispatcher:_showAsMenu(settings, exec_props)
   end
@@ -1988,7 +2068,9 @@ function Dispatcher:execute(settings, exec_props)
     if Dispatcher:isActionEnabled(settingsList[k]) then
       Notification:setNotifySource(Notification.SOURCE_DISPATCHER)
       if settings.settings and settings.settings.notify then
-        Notification:notify(T(_("Executing profile: %1"), settings.settings.name))
+        Notification:notify(
+          T(_("Executing profile: %1"), settings.settings.name)
+        )
       end
       if settingsList[k].configurable then
         local value = v
@@ -2000,7 +2082,9 @@ function Dispatcher:execute(settings, exec_props)
             end
           end
         end
-        UIManager:sendEvent(Event:new("ConfigChange", settingsList[k].configurable.name, value))
+        UIManager:sendEvent(
+          Event:new("ConfigChange", settingsList[k].configurable.name, value)
+        )
       end
 
       local category = settingsList[k].category

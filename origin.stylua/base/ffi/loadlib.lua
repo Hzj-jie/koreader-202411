@@ -17,7 +17,9 @@ ABI compatibility).
 --]]
 
 local ffi = require("ffi")
-local android = ffi.os == "Linux" and os.getenv("IS_ANDROID") and require("android")
+local android = ffi.os == "Linux"
+  and os.getenv("IS_ANDROID")
+  and require("android")
 local log = android and android.LOGI or print
 
 local monolibtic = {
@@ -76,7 +78,11 @@ local lib_version_format
 
 -- Format library name with `lib_version_format` (when versioned) or `lib_basic_format`.
 local function libname(name, version)
-  return string.format(version and lib_version_format or lib_basic_format, name, version)
+  return string.format(
+    version and lib_version_format or lib_basic_format,
+    name,
+    version
+  )
 end
 
 -- See `ffi.loadlib` for what arguments are expected.

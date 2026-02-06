@@ -27,7 +27,10 @@ end
 function kobolight_mt.__index:setBrightness(brightness)
   assert(brightness >= 0 and brightness <= 100, "Wrong brightness value given!")
 
-  assert(C.ioctl(self.light_fd.ld, 241, ffi.cast("int", brightness)) == 0, "cannot change brightess value")
+  assert(
+    C.ioctl(self.light_fd.ld, 241, ffi.cast("int", brightness)) == 0,
+    "cannot change brightess value"
+  )
 end
 
 function kobolight.open(device)
@@ -35,7 +38,8 @@ function kobolight.open(device)
     light_fd = nil,
   }
 
-  local ld = C.open(device or "/dev/ntx_io", bor(C.O_RDONLY, C.O_NONBLOCK, C.O_CLOEXEC))
+  local ld =
+    C.open(device or "/dev/ntx_io", bor(C.O_RDONLY, C.O_NONBLOCK, C.O_CLOEXEC))
   assert(ld ~= -1, "cannot open ntx_io character device")
   light.light_fd = ffi.gc(ffi.new("light_fd", ld), function(light_fd)
     C.close(light_fd.ld)

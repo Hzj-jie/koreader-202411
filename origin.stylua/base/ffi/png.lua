@@ -31,7 +31,8 @@ function Png.encodeToFile(filename, mem, w, h, n)
     return false, "passed an invalid number of color components"
   end
 
-  local err = lodepng.lodepng_encode_file(filename, mem, w, h, colortype, bitdepth)
+  local err =
+    lodepng.lodepng_encode_file(filename, mem, w, h, colortype, bitdepth)
   if err ~= 0 then
     local err_msg = lodepng.lodepng_error_text(err)
     return false, err_msg
@@ -61,7 +62,13 @@ function Png.decodeFromFile(filename, req_n)
   state[0].info_raw.bitdepth = 8
 
   -- Inspect the PNG data first, to see if we can avoid a color-type conversion
-  local err = lodepng.lodepng_inspect(width, height, state, ffi.cast("const unsigned char*", fdata), #fdata)
+  local err = lodepng.lodepng_inspect(
+    width,
+    height,
+    state,
+    ffi.cast("const unsigned char*", fdata),
+    #fdata
+  )
   if err ~= 0 then
     return false, ffi.string(lodepng.lodepng_error_text(err))
   end
@@ -73,7 +80,10 @@ function Png.decodeFromFile(filename, req_n)
       or state[0].info_png.color.colortype == lodepng.LCT_GREY_ALPHA
     then
       state[0].info_raw.colortype = lodepng.LCT_GREY
-    elseif state[0].info_png.color.colortype == lodepng.LCT_PALETTE and state[0].info_png.color.palettesize <= 16 then
+    elseif
+      state[0].info_png.color.colortype == lodepng.LCT_PALETTE
+      and state[0].info_png.color.palettesize <= 16
+    then
       -- If input is sRGB, but paletted to 16c or less, assume it's the eInk palette, and honor it.
       -- Just expand it to grayscale so BB knows what to do with it ;).
       -- NOTE: A properly encoded image targeting eInk should actually be both dithered down to the 16c eInk palette,
@@ -91,7 +101,10 @@ function Png.decodeFromFile(filename, req_n)
       or state[0].info_png.color.colortype == lodepng.LCT_GREY_ALPHA
     then
       state[0].info_raw.colortype = lodepng.LCT_GREY_ALPHA
-    elseif state[0].info_png.color.colortype == lodepng.LCT_PALETTE and state[0].info_png.color.palettesize <= 16 then
+    elseif
+      state[0].info_png.color.colortype == lodepng.LCT_PALETTE
+      and state[0].info_png.color.palettesize <= 16
+    then
       -- If input is sRGB, but paletted to 16c or less, assume it's the eInk palette, and honor it.
       -- Just expand it to grayscale w/ alpha so BB knows what to do with it ;).
       state[0].info_raw.colortype = lodepng.LCT_GREY_ALPHA
@@ -108,17 +121,25 @@ function Png.decodeFromFile(filename, req_n)
     return false, "requested an invalid number of color components"
   end
 
-  err = lodepng.lodepng_decode(ptr, width, height, state, ffi.cast("const unsigned char*", fdata), #fdata)
+  err = lodepng.lodepng_decode(
+    ptr,
+    width,
+    height,
+    state,
+    ffi.cast("const unsigned char*", fdata),
+    #fdata
+  )
   lodepng.lodepng_state_cleanup(state)
   if err ~= 0 then
     return false, ffi.string(lodepng.lodepng_error_text(err))
   else
-    return true, {
-      width = width[0],
-      height = height[0],
-      data = ptr[0],
-      ncomp = out_n,
-    }
+    return true,
+      {
+        width = width[0],
+        height = height[0],
+        data = ptr[0],
+        ncomp = out_n,
+      }
   end
 end
 

@@ -142,7 +142,9 @@ local function getPluralFunc(pl_tests, nplurals, plural_default)
       plural_func_str = "return function(n) return " .. pl_test .. " end"
     else
       pl_test = logicalCtoLua(pl_test)
-      plural_func_str = "return function(n) if " .. pl_test .. " then return 1 else return 0 end end"
+      plural_func_str = "return function(n) if "
+        .. pl_test
+        .. " then return 1 else return 0 end end"
     end
   end
   logger.dbg("gettext: plural function", plural_func_str)
@@ -160,18 +162,25 @@ local function addTranslation(msgctxt, msgid, msgstr, n)
       if not GetText.context[msgctxt][msgid] then
         GetText.context[msgctxt][msgid] = {}
       end
-      GetText.context[msgctxt][msgid][n] = unescaped_string ~= "" and unescaped_string or nil
+      GetText.context[msgctxt][msgid][n] = unescaped_string ~= ""
+          and unescaped_string
+        or nil
     else
-      GetText.context[msgctxt][msgid] = unescaped_string ~= "" and unescaped_string or nil
+      GetText.context[msgctxt][msgid] = unescaped_string ~= ""
+          and unescaped_string
+        or nil
     end
   else
     if n then
       if not GetText.translation[msgid] then
         GetText.translation[msgid] = {}
       end
-      GetText.translation[msgid][n] = unescaped_string ~= "" and unescaped_string or nil
+      GetText.translation[msgid][n] = unescaped_string ~= ""
+          and unescaped_string
+        or nil
     else
-      GetText.translation[msgid] = unescaped_string ~= "" and unescaped_string or nil
+      GetText.translation[msgid] = unescaped_string ~= "" and unescaped_string
+        or nil
     end
   end
 end
@@ -187,14 +196,24 @@ function GetText_mt.__index.changeLang(new_lang)
 
   -- the "C" locale disables localization altogether
   -- can be various things such as `en_US` or `en_US:en`
-  if new_lang == "C" or new_lang == nil or new_lang == "" or new_lang:match("^en_US") == "en_US" then
+  if
+    new_lang == "C"
+    or new_lang == nil
+    or new_lang == ""
+    or new_lang:match("^en_US") == "en_US"
+  then
     return
   end
 
   -- strip encoding suffix in locale like "zh_CN.utf8"
   new_lang = new_lang:sub(1, new_lang:find(".%."))
 
-  local file = GetText.dirname .. "/" .. new_lang .. "/" .. GetText.textdomain .. ".po"
+  local file = GetText.dirname
+    .. "/"
+    .. new_lang
+    .. "/"
+    .. GetText.textdomain
+    .. ".po"
   local po = io.open(file, "r")
 
   if not po then
@@ -227,19 +246,28 @@ function GetText_mt.__index.changeLang(new_lang)
           local plurals = plural_forms:match("plural=%((.*)%);")
 
           -- Hardcoded workaround for Hebrew which has 4 plural forms.
-          if plurals == "n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && n % 10 == 0) ? 2 : 3)" then
-            plurals = "n == 1 ? 0 : (n == 2) ? 1 : (n > 10 && n % 10 == 0) ? 2 : 3"
+          if
+            plurals
+            == "n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && n % 10 == 0) ? 2 : 3)"
+          then
+            plurals =
+              "n == 1 ? 0 : (n == 2) ? 1 : (n > 10 && n % 10 == 0) ? 2 : 3"
           end
           -- Hardcoded workaround for Latvian.
           if
             plurals
             == "n % 10 == 0 || n % 100 >= 11 && n % 100 <= 19) ? 0 : ((n % 10 == 1 && n % 100 != 11) ? 1 : 2"
           then
-            plurals = "n % 10 == 0 || n % 100 >= 11 && n % 100 <= 19 ? 0 : (n % 10 == 1 && n % 100 != 11) ? 1 : 2"
+            plurals =
+              "n % 10 == 0 || n % 100 >= 11 && n % 100 <= 19 ? 0 : (n % 10 == 1 && n % 100 != 11) ? 1 : 2"
           end
           -- Hardcoded workaround for Romanian which has 3 plural forms.
-          if plurals == "n == 1) ? 0 : ((n == 0 || n != 1 && n % 100 >= 1 && n % 100 <= 19) ? 1 : 2" then
-            plurals = "n == 1 ? 0 : (n == 0 || n != 1 && n % 100 >= 1 && n % 100 <= 19) ? 1 : 2"
+          if
+            plurals
+            == "n == 1) ? 0 : ((n == 0 || n != 1 && n % 100 >= 1 && n % 100 <= 19) ? 1 : 2"
+          then
+            plurals =
+              "n == 1 ? 0 : (n == 0 || n != 1 && n % 100 >= 1 && n % 100 <= 19) ? 1 : 2"
           end
 
           if not plurals then
@@ -261,7 +289,8 @@ function GetText_mt.__index.changeLang(new_lang)
             table.insert(pl_tests, pl_test)
           end
 
-          GetText.getPlural = getPluralFunc(pl_tests, nplurals, GetText.plural_default)
+          GetText.getPlural =
+            getPluralFunc(pl_tests, nplurals, GetText.plural_default)
           if not GetText.getPlural then
             GetText.getPlural = getDefaultPlural
           end
@@ -344,9 +373,11 @@ function GetText_mt.__index.ngettext(msgid, msgid_plural, n)
   local plural = GetText.getPlural(n)
 
   if plural == 0 then
-    return GetText.translation[msgid] and GetText.translation[msgid][plural] or GetText.wrapUntranslated(msgid)
+    return GetText.translation[msgid] and GetText.translation[msgid][plural]
+      or GetText.wrapUntranslated(msgid)
   else
-    return GetText.translation[msgid] and GetText.translation[msgid][plural] or GetText.wrapUntranslated(msgid_plural)
+    return GetText.translation[msgid] and GetText.translation[msgid][plural]
+      or GetText.wrapUntranslated(msgid_plural)
   end
 end
 
@@ -377,10 +408,14 @@ function GetText_mt.__index.npgettext(msgctxt, msgid, msgid_plural, n)
   local plural = GetText.getPlural(n)
 
   if plural == 0 then
-    return GetText.context[msgctxt] and GetText.context[msgctxt][msgid] and GetText.context[msgctxt][msgid][plural]
+    return GetText.context[msgctxt]
+        and GetText.context[msgctxt][msgid]
+        and GetText.context[msgctxt][msgid][plural]
       or GetText.wrapUntranslated(msgid)
   else
-    return GetText.context[msgctxt] and GetText.context[msgctxt][msgid] and GetText.context[msgctxt][msgid][plural]
+    return GetText.context[msgctxt]
+        and GetText.context[msgctxt][msgid]
+        and GetText.context[msgctxt][msgid][plural]
       or GetText.wrapUntranslated(msgid_plural)
   end
 end
@@ -412,7 +447,8 @@ See [gettext contexts](https://www.gnu.org/software/gettext/manual/html_node/Con
     local copy_text = C_("Text", "Copy")
 --]]
 function GetText_mt.__index.pgettext(msgctxt, msgid)
-  return GetText.context[msgctxt] and GetText.context[msgctxt][msgid] or GetText.wrapUntranslated(msgid)
+  return GetText.context[msgctxt] and GetText.context[msgctxt][msgid]
+    or GetText.wrapUntranslated(msgid)
 end
 
 setmetatable(GetText, GetText_mt)

@@ -25,7 +25,8 @@ local VerticalScrollBar = InputContainer:extend({
 })
 
 function VerticalScrollBar:init()
-  self.extra_touch_on_side = math.ceil(self.extra_touch_on_side_width_ratio * self.width)
+  self.extra_touch_on_side =
+    math.ceil(self.extra_touch_on_side_width_ratio * self.width)
   if Device:isTouchDevice() then
     local pan_rate = G_named_settings.low_pan_rate_or_scroll()
     self.ges_events = {
@@ -114,12 +115,23 @@ function VerticalScrollBar:paintTo(bb, x, y)
   })
   -- Reset the area first.
   bb:paintRect(x, y, self.width, self.height, Blitbuffer.COLOR_WHITE)
-  bb:paintBorder(x, y, self.width, self.height, self.bordersize, self.bordercolor, self.radius)
+  bb:paintBorder(
+    x,
+    y,
+    self.width,
+    self.height,
+    self.bordersize,
+    self.bordercolor,
+    self.radius
+  )
   bb:paintRect(
     x + self.bordersize,
     y + self.bordersize + self.low * self.height,
     self.width - 2 * self.bordersize,
-    math.max((self.height - 2 * self.bordersize) * (self.high - self.low), self.min_thumb_size),
+    math.max(
+      (self.height - 2 * self.bordersize) * (self.high - self.low),
+      self.min_thumb_size
+    ),
     self.rectcolor
   )
 end

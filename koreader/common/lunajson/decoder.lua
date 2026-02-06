@@ -1,7 +1,8 @@
 local setmetatable, tonumber, tostring = setmetatable, tonumber, tostring
 local floor, inf = math.floor, math.huge
 local mininteger, tointeger = math.mininteger or nil, math.tointeger or nil
-local byte, char, find, gsub, match, sub = string.byte, string.char, string.find, string.gsub, string.match, string.sub
+local byte, char, find, gsub, match, sub =
+  string.byte, string.char, string.find, string.gsub, string.match, string.sub
 
 local function _decode_error(pos, errmsg)
   error("parse error at " .. pos .. ": " .. errmsg, 2)
@@ -315,7 +316,9 @@ local function newdecoder()
           surrogate_first_error()
         else -- surrogate pair 2nd
           if f_str_surrogate_prev ~= 0 then
-            ucode = 0x10000 + (f_str_surrogate_prev - 0xD800) * 0x400 + (ucode - 0xDC00)
+            ucode = 0x10000
+              + (f_str_surrogate_prev - 0xD800) * 0x400
+              + (ucode - 0xDC00)
             f_str_surrogate_prev = 0
             c1 = floor(ucode / 0x40000)
             ucode = ucode - c1 * 0x40000

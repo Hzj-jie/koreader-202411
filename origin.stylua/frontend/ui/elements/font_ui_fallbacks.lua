@@ -40,7 +40,10 @@ local genFallbackCandidates = function()
     if fontinfo and #fontinfo == 1 then -- Ignore font files with multiple faces
       fontinfo = fontinfo[1]
       if
-        (util.stringStartsWith(fontinfo.name, "Noto Sans ") or fontinfo.name == "Noto Emoji")
+        (
+          util.stringStartsWith(fontinfo.name, "Noto Sans ")
+          or fontinfo.name == "Noto Emoji"
+        )
         and not fontinfo.bold
         and not fontinfo.italic
         and not fontinfo.serif
@@ -81,7 +84,8 @@ local getSubMenuItems = function()
     enabled_names[name] = false
   end
   if G_reader_settings:has("font_ui_fallbacks") then
-    local additional_fallbacks = G_reader_settings:readSetting("font_ui_fallbacks")
+    local additional_fallbacks =
+      G_reader_settings:readSetting("font_ui_fallbacks")
     for i = #additional_fallbacks, 1, -1 do
       local path = additional_fallbacks[i]
       local name = fallback_candidates_path_to_name[path]
@@ -132,7 +136,8 @@ local getSubMenuItems = function()
         return enabled_names[name]
       end,
       callback = function()
-        local additional_fallbacks = G_reader_settings:readSetting("font_ui_fallbacks", {})
+        local additional_fallbacks =
+          G_reader_settings:readSetting("font_ui_fallbacks", {})
         if checked_names[name] then -- enabled: remove it
           for i = #additional_fallbacks, 1, -1 do
             if additional_fallbacks[i] == fontinfo.path then

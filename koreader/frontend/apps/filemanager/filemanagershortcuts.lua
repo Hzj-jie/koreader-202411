@@ -146,7 +146,8 @@ function FileManagerShortcuts:editShortcut(folder, post_callback)
             if item then
               item.text = new_name
             else
-              self.folder_shortcuts[folder] = { text = new_name, time = os.time() }
+              self.folder_shortcuts[folder] =
+                { text = new_name, time = os.time() }
               if post_callback then
                 post_callback()
               end
@@ -168,7 +169,8 @@ function FileManagerShortcuts:addShortcut()
   local path_chooser = PathChooser:new({
     select_directory = true,
     select_file = false,
-    path = self.ui.file_chooser and self.ui.file_chooser.path or self.ui:getLastDirFile(),
+    path = self.ui.file_chooser and self.ui.file_chooser.path
+      or self.ui:getLastDirFile(),
     onConfirm = function(path)
       if self:hasFolderShortcut(path) then
         UIManager:show(InfoMessage:new({
@@ -192,7 +194,11 @@ function FileManagerShortcuts:genShowFolderShortcutsButton(pre_callback)
   }
 end
 
-function FileManagerShortcuts:genAddRemoveShortcutButton(folder, pre_callback, post_callback)
+function FileManagerShortcuts:genAddRemoveShortcutButton(
+  folder,
+  pre_callback,
+  post_callback
+)
   if self:hasFolderShortcut(folder) then
     return {
       text = gettext("Remove from folder shortcuts"),

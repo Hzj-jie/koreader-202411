@@ -29,7 +29,8 @@ function SetDefaultsWidget:init()
   -- Then deal with our child widgets and our internal variables
   self.screen_width = Screen:getWidth()
   self.screen_height = Screen:getHeight()
-  self.dialog_width = math.floor(math.min(self.screen_width, self.screen_height) * 0.95)
+  self.dialog_width =
+    math.floor(math.min(self.screen_width, self.screen_height) * 0.95)
 
   -- Keep track of what's an actual default, and what's been customized without actually touching the real data yet...
   self.state = {}
@@ -100,7 +101,11 @@ function SetDefaultsWidget:init()
                 enabled = self.state[k].value ~= self.state[k].default_value,
                 callback = function()
                   UIManager:close(set_dialog)
-                  self:update_menu_entry(k, self.state[k].default_value, type(self.state[k].default_value))
+                  self:update_menu_entry(
+                    k,
+                    self.state[k].default_value,
+                    type(self.state[k].default_value)
+                  )
                 end,
               },
               {
@@ -153,10 +158,17 @@ function SetDefaultsWidget:init()
               cancel_button,
               {
                 text = _("Default"),
-                enabled = not util.tableEquals(self.state[k].value, self.state[k].default_value),
+                enabled = not util.tableEquals(
+                  self.state[k].value,
+                  self.state[k].default_value
+                ),
                 callback = function()
                   UIManager:close(set_dialog)
-                  self:update_menu_entry(k, self.state[k].default_value, type(self.state[k].default_value))
+                  self:update_menu_entry(
+                    k,
+                    self.state[k].default_value,
+                    type(self.state[k].default_value)
+                  )
                 end,
               },
               {
@@ -167,7 +179,8 @@ function SetDefaultsWidget:init()
                   UIManager:close(set_dialog)
                   local new_table = {}
                   for _, field in ipairs(set_dialog:getFields()) do
-                    local key, value = field:match("^[^= ]+"), field:match("[^= ]+$")
+                    local key, value =
+                      field:match("^[^= ]+"), field:match("[^= ]+$")
                     new_table[tonumber(key) or key] = tonumber(value) or value
                   end
                   self:update_menu_entry(k, new_table, value_type)
@@ -199,7 +212,11 @@ function SetDefaultsWidget:init()
                 enabled = self.state[k].value ~= self.state[k].default_value,
                 callback = function()
                   UIManager:close(set_dialog)
-                  self:update_menu_entry(k, self.state[k].default_value, type(self.state[k].default_value))
+                  self:update_menu_entry(
+                    k,
+                    self.state[k].default_value,
+                    type(self.state[k].default_value)
+                  )
                 end,
               },
               {
@@ -315,7 +332,9 @@ function SetDefaultsWidget:saveBeforeExit(callback)
   if self.settings_changed then
     UIManager:show(ConfirmBox:new({
       dismissable = false,
-      text = _("KOReader needs to be restarted to apply the new default settings."),
+      text = _(
+        "KOReader needs to be restarted to apply the new default settings."
+      ),
       ok_text = save_text,
       ok_callback = function()
         self:saveSettings()

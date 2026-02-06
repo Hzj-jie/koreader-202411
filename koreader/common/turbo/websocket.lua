@@ -161,7 +161,11 @@ function websocket.WebSocketStream:write_message(msg, binary)
   if type(msg) == "table" then
     msg = escape.json_encode(msg)
   end
-  self:_send_frame(true, binary and websocket.opcode.BINARY or websocket.opcode.TEXT, msg)
+  self:_send_frame(
+    true,
+    binary and websocket.opcode.BINARY or websocket.opcode.TEXT,
+    msg
+  )
 end
 
 --- Send a pong reply to the server.
@@ -263,7 +267,13 @@ end
 if le then
   -- Multi-byte lengths must be sent in network byte order, aka
   -- big-endian. Ugh...
-  function websocket.WebSocketStream:_send_frame(finflag, opcode, data, callback, callback_arg)
+  function websocket.WebSocketStream:_send_frame(
+    finflag,
+    opcode,
+    data,
+    callback,
+    callback_arg
+  )
     if self.stream:closed() then
       return
     end
@@ -315,7 +325,12 @@ end
 websocket.WebSocketHandler = class("WebSocketHandler", web.RequestHandler)
 websocket.WebSocketHandler:include(websocket.WebSocketStream)
 
-function websocket.WebSocketHandler:initialize(application, request, url_args, options)
+function websocket.WebSocketHandler:initialize(
+  application,
+  request,
+  url_args,
+  options
+)
   web.RequestHandler.initialize(self, application, request, url_args, options)
   self.stream = request.connection.stream
 end
@@ -350,7 +365,9 @@ function websocket.WebSocketHandler:subprotocol(protocols) end
 --- Main entry point for the Application class.
 function websocket.WebSocketHandler:_execute()
   if self.request.method ~= "GET" then
-    error(web.HTTPError(405, "Method not allowed. Websocket supports GET only."))
+    error(
+      web.HTTPError(405, "Method not allowed. Websocket supports GET only.")
+    )
   end
   local upgrade = self.request.headers:get("Upgrade")
   if not upgrade or upgrade:lower() ~= "websocket" then
@@ -406,13 +423,20 @@ function websocket.WebSocketHandler:_execute()
   -- Set max buffer size to 64MB as it is 16KB at this point...
   self.stream:set_max_buffer_size(1024 * 1024 * 64)
   log.success(
-    string.format([[[websocket.lua] WebSocket opened %s (%s)]], self.request.headers:get_url(), self.request.remote_ip)
+    string.format(
+      [[[websocket.lua] WebSocket opened %s (%s)]],
+      self.request.headers:get_url(),
+      self.request.remote_ip
+    )
   )
   self:_continue_ws()
 end
 
 function websocket.WebSocketHandler:_calculate_ws_accept()
-  assert(escape.base64_decode(self.sec_websocket_key):len() == 16, "Sec-WebSocket-Key is of invalid size.")
+  assert(
+    escape.base64_decode(self.sec_websocket_key):len() == 16,
+    "Sec-WebSocket-Key is of invalid size."
+  )
   local hash = hash.SHA1(self.sec_websocket_key .. websocket.MAGIC)
   return escape.base64_encode(hash:finalize(), 20)
 end
@@ -561,7 +585,11 @@ function websocket.WebSocketClient:initialize(address, kwargs)
   self.address = address
   self.kwargs = kwargs or {}
   self._connect_time = util.gettimemonotonic()
-  self.http_cli = async.HTTPClient(self.kwargs.ssl_options, self.kwargs.ioloop, self.kwargs.max_buffer_size)
+  self.http_cli = async.HTTPClient(
+    self.kwargs.ssl_options,
+    self.kwargs.ioloop,
+    self.kwargs.max_buffer_size
+  )
   local websocket_key = escape.base64_encode(util.rand_str(16))
   -- Reusing async.HTTPClient.
   local _modify_headers_success = true
@@ -581,13 +609,21 @@ function websocket.WebSocketClient:initialize(address, kwargs)
       http_header:add("Sec-WebSocket-Version", "13")
       -- WebSocket Sub-Protocol handling...
       if type(self.kwargs.websocket_protocol) == "string" then
-        http_header:add("Sec-WebSocket-Protocol", self.kwargs.websocket_protocol)
+        http_header:add(
+          "Sec-WebSocket-Protocol",
+          self.kwargs.websocket_protocol
+        )
       elseif self.kwargs.websocket_protocol then
         error('Invalid type of "websocket_protocol" value')
       end
       if type(self.kwargs.modify_headers) == "function" then
         -- User can modify header in callback.
-        _modify_headers_success = self:_protected_call("modify_headers", self.kwargs.modify_headers, self, http_header)
+        _modify_headers_success = self:_protected_call(
+          "modify_headers",
+          self.kwargs.modify_headers,
+          self,
+          http_header
+        )
       end
     end,
   }))
@@ -607,10 +643,23 @@ function websocket.WebSocketClient:initialize(address, kwargs)
     -- Check accept key.
     local accept_key = res.headers:get("Sec-WebSocket-Accept")
     assert(accept_key, "Missing Sec-WebSocket-Accept header field.")
-    local match = escape.base64_encode(hash.SHA1(websocket_key .. websocket.MAGIC):finalize(), 20)
-    assert(accept_key == match, "Sec-WebSocket-Accept does not match what was expected.")
+    local match = escape.base64_encode(
+      hash.SHA1(websocket_key .. websocket.MAGIC):finalize(),
+      20
+    )
+    assert(
+      accept_key == match,
+      "Sec-WebSocket-Accept does not match what was expected."
+    )
     if type(self.kwargs.on_headers) == "function" then
-      if not self:_protected_call("on_headers", self.kwargs.on_headers, self, res.headers) then
+      if
+        not self:_protected_call(
+          "on_headers",
+          self.kwargs.on_headers,
+          self,
+          res.headers
+        )
+      then
         return
       end
       if self:closed() then
@@ -621,21 +670,36 @@ function websocket.WebSocketClient:initialize(address, kwargs)
     end
   else
     -- Handle error.
-    self:_error(websocket.errors.BAD_HTTP_STATUS, strf("Excpected 101, was %d, can not upgrade.", res.code))
+    self:_error(
+      websocket.errors.BAD_HTTP_STATUS,
+      strf("Excpected 101, was %d, can not upgrade.", res.code)
+    )
     return
   end
   -- Store ref. for IOStream in the HTTPClient.
   self.stream = self.http_cli.iostream
   assert(self.stream:closed() == false, "Connection were closed.")
-  log.success(string.format([[[websocket.lua] WebSocketClient connection open %s]], self.address))
+  log.success(
+    string.format(
+      [[[websocket.lua] WebSocketClient connection open %s]],
+      self.address
+    )
+  )
   self:_continue_ws()
 end
 
 function websocket.WebSocketClient:_protected_call(name, func, arg, data)
   local status, err = pcall(func, arg, data)
   if status ~= true then
-    local err_msg = strf('WebSocketClient at %p unhandled error in callback "%s":\n', self, name)
-    self:_error(websocket.errors.CALLBACK_ERROR, err and err_msg .. err or err_msg)
+    local err_msg = strf(
+      'WebSocketClient at %p unhandled error in callback "%s":\n',
+      self,
+      name
+    )
+    self:_error(
+      websocket.errors.CALLBACK_ERROR,
+      err and err_msg .. err or err_msg
+    )
     return false
   end
   return true
@@ -748,8 +812,11 @@ function websocket.WebSocketClient:_handle_opcode(opcode, data)
       end
     end
   else
-    self:_error(websocket.errors.WEBSOCKET_PROTOCOL_ERROR, "WebSocket protocol error: \
-            invalid opcode " .. tostring(opcode))
+    self:_error(
+      websocket.errors.WEBSOCKET_PROTOCOL_ERROR,
+      "WebSocket protocol error: \
+            invalid opcode " .. tostring(opcode)
+    )
     return
   end
 end

@@ -19,7 +19,8 @@ local _ENV = nil
 local function get_error(item)
   local fmt_string = item .. " in string [%q] @ %i:%i"
   return lpeg.P(function(data, index)
-    local line, line_index, bad_char, last_line = util.get_invalid_character_info(data, index)
+    local line, line_index, bad_char, last_line =
+      util.get_invalid_character_info(data, index)
     local err = fmt_string:format(bad_char, line, line_index)
     error(err)
   end) * 1
@@ -53,7 +54,11 @@ local function utf8DecodeUnicode(code1, code2)
   if code1 < 0x08 then
     return string_char(0xC0 + code1 * 4 + floor(code2 / 64), 0x80 + code2 % 64)
   end
-  return string_char(0xE0 + floor(code1 / 16), 0x80 + (code1 % 16) * 4 + floor(code2 / 64), 0x80 + code2 % 64)
+  return string_char(
+    0xE0 + floor(code1 / 16),
+    0x80 + (code1 % 16) * 4 + floor(code2 / 64),
+    0x80 + code2 % 64
+  )
 end
 
 local function decodeX(code)
@@ -62,7 +67,8 @@ local function decodeX(code)
 end
 
 local doSimpleSub = lpeg.C(lpeg.S("'\"\\/bfnrtvz")) / knownReplacements
-local doUniSub = lpeg.P("u") * (lpeg.C(util.hexpair) * lpeg.C(util.hexpair) + bad_unicode)
+local doUniSub = lpeg.P("u")
+  * (lpeg.C(util.hexpair) * lpeg.C(util.hexpair) + bad_unicode)
 local doXSub = lpeg.P("x") * (lpeg.C(util.hexpair) + bad_hex)
 
 local defaultOptions = {
@@ -83,11 +89,18 @@ modeOptions.strict = {
 }
 
 local function mergeOptions(options, mode)
-  jsonutil.doOptionMerge(options, false, "strings", defaultOptions, mode and modeOptions[mode])
+  jsonutil.doOptionMerge(
+    options,
+    false,
+    "strings",
+    defaultOptions,
+    mode and modeOptions[mode]
+  )
 end
 
 local function buildCaptureString(quote, badChars, escapeMatch)
-  local captureChar = (1 - lpeg.S("\\" .. badChars .. quote)) + (lpeg.P("\\") / "" * escapeMatch)
+  local captureChar = (1 - lpeg.S("\\" .. badChars .. quote))
+    + (lpeg.P("\\") / "" * escapeMatch)
   -- During error, force end
   local captureString = captureChar ^ 0 + (-#lpeg.P(quote) * bad_character + -1)
   return lpeg.P(quote) * lpeg.Cs(captureString) * lpeg.P(quote)

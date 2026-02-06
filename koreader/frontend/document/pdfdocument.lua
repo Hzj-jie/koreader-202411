@@ -132,7 +132,12 @@ function PdfDocument:getTextBoxes(pageno)
 end
 
 function PdfDocument:getPageBoxesFromPositions(pageno, ppos0, ppos1)
-  return self.koptinterface:getPageBoxesFromPositions(self, pageno, ppos0, ppos1)
+  return self.koptinterface:getPageBoxesFromPositions(
+    self,
+    pageno,
+    ppos0,
+    ppos1
+  )
 end
 
 function PdfDocument:nativeToPageRectTransform(pageno, rect)
@@ -156,7 +161,12 @@ function PdfDocument:getPageBlock(pageno, x, y)
 end
 
 function PdfDocument:getUsedBBox(pageno)
-  local hash = "pgubbox|" .. self.file .. "|" .. self.reflowable_font_size .. "|" .. pageno
+  local hash = "pgubbox|"
+    .. self.file
+    .. "|"
+    .. self.reflowable_font_size
+    .. "|"
+    .. pageno
   local cached = DocCache:check(hash)
   if cached then
     return cached.ubbox
@@ -190,7 +200,12 @@ function PdfDocument:getUsedBBox(pageno)
 end
 
 function PdfDocument:getPageLinks(pageno)
-  local hash = "pglinks|" .. self.file .. "|" .. self.reflowable_font_size .. "|" .. pageno
+  local hash = "pglinks|"
+    .. self.file
+    .. "|"
+    .. self.reflowable_font_size
+    .. "|"
+    .. pageno
   local cached = DocCache:check(hash)
   if cached then
     return cached.links
@@ -344,7 +359,14 @@ function PdfDocument:getLinkFromPosition(pageno, pos)
 end
 
 function PdfDocument:clipPagePNGFile(pos0, pos1, pboxes, drawer, filename)
-  return self.koptinterface:clipPagePNGFile(self, pos0, pos1, pboxes, drawer, filename)
+  return self.koptinterface:clipPagePNGFile(
+    self,
+    pos0,
+    pos1,
+    pboxes,
+    drawer,
+    filename
+  )
 end
 
 function PdfDocument:clipPagePNGString(pos0, pos1, pboxes, drawer)
@@ -364,15 +386,41 @@ function PdfDocument:getCoverPageImage()
 end
 
 function PdfDocument:findText(pattern, origin, reverse, case_insensitive, page)
-  return self.koptinterface:findText(self, pattern, origin, reverse, case_insensitive, page)
+  return self.koptinterface:findText(
+    self,
+    pattern,
+    origin,
+    reverse,
+    case_insensitive,
+    page
+  )
 end
 
-function PdfDocument:findAllText(pattern, case_insensitive, nb_context_words, max_hits)
-  return self.koptinterface:findAllText(self, pattern, case_insensitive, nb_context_words, max_hits)
+function PdfDocument:findAllText(
+  pattern,
+  case_insensitive,
+  nb_context_words,
+  max_hits
+)
+  return self.koptinterface:findAllText(
+    self,
+    pattern,
+    case_insensitive,
+    nb_context_words,
+    max_hits
+  )
 end
 
 function PdfDocument:renderPage(pageno, rect, zoom, rotation, gamma, hinting)
-  return self.koptinterface:renderPage(self, pageno, rect, zoom, rotation, gamma, hinting)
+  return self.koptinterface:renderPage(
+    self,
+    pageno,
+    rect,
+    zoom,
+    rotation,
+    gamma,
+    hinting
+  )
 end
 
 function PdfDocument:hintPage(pageno, zoom, rotation, gamma)
@@ -380,7 +428,17 @@ function PdfDocument:hintPage(pageno, zoom, rotation, gamma)
 end
 
 function PdfDocument:drawPage(target, x, y, rect, pageno, zoom, rotation, gamma)
-  return self.koptinterface:drawPage(self, target, x, y, rect, pageno, zoom, rotation, gamma)
+  return self.koptinterface:drawPage(
+    self,
+    target,
+    x,
+    y,
+    rect,
+    pageno,
+    zoom,
+    rotation,
+    gamma
+  )
 end
 
 function PdfDocument:register(registry)
@@ -389,7 +447,12 @@ function PdfDocument:register(registry)
   registry:addProvider("cbz", "application/vnd.comicbook+zip", self, 100)
   registry:addProvider("cbz", "application/x-cbz", self, 100) -- Alternative mimetype for OPDS.
   registry:addProvider("cfb", "application/octet-stream", self, 80) -- Compound File Binary, a Microsoft general-purpose file with a file-system-like structure.
-  registry:addProvider("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", self, 80)
+  registry:addProvider(
+    "docx",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    self,
+    80
+  )
   registry:addProvider("epub", "application/epub+zip", self, 50)
   registry:addProvider("epub3", "application/epub+zip", self, 50)
   registry:addProvider("fb2", "application/fb2", self, 80)
@@ -397,13 +460,23 @@ function PdfDocument:register(registry)
   registry:addProvider("html", "text/html", self, 90)
   registry:addProvider("mobi", "application/x-mobipocket-ebook", self, 80)
   registry:addProvider("pdf", "application/pdf", self, 100)
-  registry:addProvider("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", self, 80)
+  registry:addProvider(
+    "pptx",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    self,
+    80
+  )
   registry:addProvider("tar", "application/x-tar", self, 10)
   registry:addProvider("txt", "text/plain", self, 80)
   registry:addProvider("xhtml", "application/xhtml+xml", self, 90)
   registry:addProvider("xml", "application/xml", self, 10)
   registry:addProvider("xps", "application/oxps", self, 100)
-  registry:addProvider("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", self, 80)
+  registry:addProvider(
+    "xlsx",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    self,
+    80
+  )
   registry:addProvider("zip", "application/zip", self, 20)
 
   --- Picture types ---

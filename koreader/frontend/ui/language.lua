@@ -96,7 +96,11 @@ function Language:changeLanguage(lang_locale)
   local UIManager = require("ui/uimanager")
   gettext.changeLang(lang_locale)
   G_reader_settings:save("language", lang_locale)
-  UIManager:askForRestart(gettext("Please restart KOReader for the new language setting to take effect."))
+  UIManager:askForRestart(
+    gettext(
+      "Please restart KOReader for the new language setting to take effect."
+    )
+  )
 end
 
 function Language:genLanguageSubItem(lang_locale)

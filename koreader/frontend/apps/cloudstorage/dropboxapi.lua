@@ -16,7 +16,8 @@ local API_TOKEN = "https://api.dropbox.com/oauth2/token"
 local API_URL_INFO = "https://api.dropboxapi.com/2/users/get_current_account"
 local API_GET_SPACE_USAGE = "https://api.dropboxapi.com/2/users/get_space_usage"
 local API_LIST_FOLDER = "https://api.dropboxapi.com/2/files/list_folder"
-local API_LIST_ADD_FOLDER = "https://api.dropboxapi.com/2/files/list_folder/continue"
+local API_LIST_ADD_FOLDER =
+  "https://api.dropboxapi.com/2/files/list_folder/continue"
 local API_CREATE_FOLDER = "https://api.dropboxapi.com/2/files/create_folder_v2"
 local API_DOWNLOAD_FILE = "https://content.dropboxapi.com/2/files/download"
 local API_UPLOAD_FILE = "https://content.dropboxapi.com/2/files/upload"
@@ -28,7 +29,8 @@ function DropBoxApi:getAccessToken(refresh_token, app_key_colon_secret)
     url = API_TOKEN,
     method = "POST",
     headers = {
-      ["Authorization"] = "Basic " .. require("ffi/sha2").bin_to_base64(app_key_colon_secret),
+      ["Authorization"] = "Basic "
+        .. require("ffi/sha2").bin_to_base64(app_key_colon_secret),
       ["Content-Type"] = "application/x-www-form-urlencoded",
       ["Content-Length"] = string.len(data),
     },
@@ -111,7 +113,10 @@ end
 
 function DropBoxApi:downloadFile(path, token, local_path)
   local data1 = '{"path": "' .. path .. '"}'
-  socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, socketutil.FILE_TOTAL_TIMEOUT)
+  socketutil:set_timeout(
+    socketutil.FILE_BLOCK_TIMEOUT,
+    socketutil.FILE_TOTAL_TIMEOUT
+  )
   local code, headers, status = socket.skip(
     1,
     http.request({
@@ -141,7 +146,10 @@ function DropBoxApi:uploadFile(path, token, file_path, etag, overwrite)
     .. ',"autorename": '
     .. (overwrite and "false" or "true")
     .. ',"mute": false,"strict_conflict": false}'
-  socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, socketutil.FILE_TOTAL_TIMEOUT)
+  socketutil:set_timeout(
+    socketutil.FILE_BLOCK_TIMEOUT,
+    socketutil.FILE_TOTAL_TIMEOUT
+  )
   local code, _, status = socket.skip(
     1,
     http.request({
@@ -165,7 +173,11 @@ function DropBoxApi:uploadFile(path, token, file_path, etag, overwrite)
 end
 
 function DropBoxApi:createFolder(path, token, folder_name)
-  local data = '{"path": "' .. path .. "/" .. folder_name .. '","autorename": false}'
+  local data = '{"path": "'
+    .. path
+    .. "/"
+    .. folder_name
+    .. '","autorename": false}'
   socketutil:set_timeout()
   local code, _, status = socket.skip(
     1,
@@ -213,7 +225,9 @@ function DropBoxApi:listFolder(path, token, folder_mode)
       --show only file with supported formats
     elseif
       tag == "file"
-      and (DocumentRegistry:hasProvider(text) or G_reader_settings:isTrue("show_unsupported"))
+      and (DocumentRegistry:hasProvider(text) or G_reader_settings:isTrue(
+        "show_unsupported"
+      ))
       and not folder_mode
     then
       table.insert(dropbox_file, {
@@ -260,7 +274,13 @@ function DropBoxApi:showFiles(path, token)
   for _, files in ipairs(ls_dropbox.entries) do
     text = files.name
     tag = files[".tag"]
-    if tag == "file" and (DocumentRegistry:hasProvider(text) or G_reader_settings:isTrue("show_unsupported")) then
+    if
+      tag == "file"
+      and (
+        DocumentRegistry:hasProvider(text)
+        or G_reader_settings:isTrue("show_unsupported")
+      )
+    then
       table.insert(dropbox_files, {
         text = text,
         url = files.path_display,

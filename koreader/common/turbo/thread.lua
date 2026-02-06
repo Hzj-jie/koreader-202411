@@ -189,15 +189,25 @@ function thread.Thread:_execute_thread_func()
     -- Child thread encountered error.
     -- Cleanup everything and exit thread.
     local thread = tonumber(ffi.C.getpid())
-    local trace = debug.traceback(coroutine.running(), err, 2):gsub("stack traceback:", "thread traceback")
+    local trace = debug
+      .traceback(coroutine.running(), err, 2)
+      :gsub("stack traceback:", "thread traceback")
     local _str_borders_down = string.rep("/", 80)
     local _str_borders_up = string.rep("\\", 80)
-    local err =
-      string.format("Error in thread. PID %s is dead.\n%s\n%s\n%s", thread, _str_borders_down, trace, _str_borders_up)
+    local err = string.format(
+      "Error in thread. PID %s is dead.\n%s\n%s\n%s",
+      thread,
+      _str_borders_down,
+      trace,
+      _str_borders_up
+    )
 
-    _self.pipe:write("ERRO\r\n\r\n" .. err:len() .. "\r\n\r\n" .. err, function()
-      _self:stop()
-    end)
+    _self.pipe:write(
+      "ERRO\r\n\r\n" .. err:len() .. "\r\n\r\n" .. err,
+      function()
+        _self:stop()
+      end
+    )
   end, self)
 end
 
@@ -215,23 +225,37 @@ function thread.Thread:_connect_to_main_thread()
   if self.client_sockfd < 0 then
     errno = ffi.errno()
     log.error(
-      string.format("[thread.lua ]Errno %d. Could not create Unix socket FD. %s", errno, socket.strerror(errno))
+      string.format(
+        "[thread.lua ]Errno %d. Could not create Unix socket FD. %s",
+        errno,
+        socket.strerror(errno)
+      )
     )
     os.exit(1)
   end
-  rc =
-    ffi.C.connect(self.client_sockfd, ffi.cast("const struct sockaddr *", client_address), ffi.sizeof(client_address))
+  rc = ffi.C.connect(
+    self.client_sockfd,
+    ffi.cast("const struct sockaddr *", client_address),
+    ffi.sizeof(client_address)
+  )
   if rc ~= 0 then
     -- Main thread probably has not created socket yet. Wait.
     -- Should be done more elegantly...
     ffi.C.sleep(1)
-    rc =
-      ffi.C.connect(self.client_sockfd, ffi.cast("const struct sockaddr *", client_address), ffi.sizeof(client_address))
+    rc = ffi.C.connect(
+      self.client_sockfd,
+      ffi.cast("const struct sockaddr *", client_address),
+      ffi.sizeof(client_address)
+    )
   end
   if rc ~= 0 then
     errno = ffi.errno()
     log.error(
-      string.format("[thread.lua] Errno %d. Could not connect to main thread pipe. %s", errno, socket.strerror(errno))
+      string.format(
+        "[thread.lua] Errno %d. Could not connect to main thread pipe. %s",
+        errno,
+        socket.strerror(errno)
+      )
     )
     ffi.C.close(self.client_sockfd)
     os.exit(1)
@@ -267,15 +291,39 @@ function thread.Thread:_create_unix_sock()
     error(msg)
   end
 
-  if ffi.C.bind(self.server_sockfd, ffi.cast("struct sockaddr*", server_address), ffi.sizeof(server_address)) ~= 0 then
+  if
+    ffi.C.bind(
+      self.server_sockfd,
+      ffi.cast("struct sockaddr*", server_address),
+      ffi.sizeof(server_address)
+    ) ~= 0
+  then
     errno = ffi.errno()
-    error(string.format("Errno %d. Could not bind to address. %s", errno, socket.strerror(errno)))
+    error(
+      string.format(
+        "Errno %d. Could not bind to address. %s",
+        errno,
+        socket.strerror(errno)
+      )
+    )
   end
   if ffi.C.listen(self.server_sockfd, 1) ~= 0 then
     errno = ffi.errno()
-    error(string.format("Errno %d. Could not listen to socket fd %d. %s", errno, fd, socket.strerror(errno)))
+    error(
+      string.format(
+        "Errno %d. Could not listen to socket fd %d. %s",
+        errno,
+        fd,
+        socket.strerror(errno)
+      )
+    )
   end
-  sockutil.add_accept_handler(self.server_sockfd, thread.Thread._child_connects, self.io_loop, self)
+  sockutil.add_accept_handler(
+    self.server_sockfd,
+    thread.Thread._child_connects,
+    self.io_loop,
+    self
+  )
   self.ready_to_send = true
 end
 
@@ -315,7 +363,11 @@ function thread.Thread:_child_command_sent(cmd)
   cmd = cmd:sub(1, 4) -- Shave off CRLF
   if cmd == "DATA" then
     self.pipe:read_until("\r\n\r\n", function(num_bytes)
-      _self.pipe:read_bytes(tonumber(num_bytes), thread.Thread._data_sent, _self)
+      _self.pipe:read_bytes(
+        tonumber(num_bytes),
+        thread.Thread._data_sent,
+        _self
+      )
     end)
   elseif cmd == "STOP" then
     _self.pipe:close()
@@ -330,7 +382,11 @@ function thread.Thread:_child_command_sent(cmd)
     end
   elseif cmd == "ERRO" then
     self.pipe:read_until("\r\n\r\n", function(num_bytes)
-      _self.pipe:read_bytes(tonumber(num_bytes), thread.Thread._restore_coctx_with_error, _self)
+      _self.pipe:read_bytes(
+        tonumber(num_bytes),
+        thread.Thread._restore_coctx_with_error,
+        _self
+      )
     end)
   end
 end
@@ -341,7 +397,11 @@ function thread.Thread:_main_command_sent(cmd)
   cmd = cmd:sub(1, 4) -- Shave off CRLF
   if cmd == "DATA" then
     self.pipe:read_until("\r\n\r\n", function(num_bytes)
-      _self.pipe:read_bytes(tonumber(num_bytes), thread.Thread._data_sent, _self)
+      _self.pipe:read_bytes(
+        tonumber(num_bytes),
+        thread.Thread._data_sent,
+        _self
+      )
     end)
   elseif cmd == "STOP" then
     self.pipe:close()

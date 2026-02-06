@@ -70,24 +70,36 @@ function AutoSuspend:_schedule(shutdown_only)
     shutdown_delay_seconds = self.autoshutdown_timeout_seconds
   else
     local now = UIManager:getElapsedTimeSinceBoot()
-    suspend_delay_seconds = self.auto_suspend_timeout_seconds - time.to_number(now - self.last_action_time)
-    shutdown_delay_seconds = self.autoshutdown_timeout_seconds - time.to_number(now - self.last_action_time)
+    suspend_delay_seconds = self.auto_suspend_timeout_seconds
+      - time.to_number(now - self.last_action_time)
+    shutdown_delay_seconds = self.autoshutdown_timeout_seconds
+      - time.to_number(now - self.last_action_time)
   end
 
   -- Try to shutdown first, as we may have been woken up from suspend just for the sole purpose of doing that.
   if self:_enabledShutdown() and shutdown_delay_seconds <= 0 then
     logger.dbg("AutoSuspend: initiating shutdown")
     UIManager:poweroff_action()
-  elseif self:_enabled() and suspend_delay_seconds <= 0 and not shutdown_only then
+  elseif
+    self:_enabled()
+    and suspend_delay_seconds <= 0
+    and not shutdown_only
+  then
     logger.dbg("AutoSuspend: will suspend the device")
     UIManager:suspend()
   else
     if self:_enabled() and not shutdown_only then
-      logger.dbg("AutoSuspend: scheduling next suspend check in", suspend_delay_seconds)
+      logger.dbg(
+        "AutoSuspend: scheduling next suspend check in",
+        suspend_delay_seconds
+      )
       UIManager:scheduleIn(suspend_delay_seconds, self.task)
     end
     if self:_enabledShutdown() then
-      logger.dbg("AutoSuspend: scheduling next shutdown check in", shutdown_delay_seconds)
+      logger.dbg(
+        "AutoSuspend: scheduling next shutdown check in",
+        shutdown_delay_seconds
+      )
       UIManager:scheduleIn(shutdown_delay_seconds, self.task)
     end
   end
@@ -102,14 +114,20 @@ end
 
 function AutoSuspend:_start()
   if self:_enabled() or self:_enabledShutdown() then
-    logger.dbg("AutoSuspend: start suspend/shutdown timer at", time.format_time(self.last_action_time))
+    logger.dbg(
+      "AutoSuspend: start suspend/shutdown timer at",
+      time.format_time(self.last_action_time)
+    )
     self:_schedule()
   end
 end
 
 function AutoSuspend:_start_standby(sleep_in)
   if self:_enabledStandby() then
-    logger.dbg("AutoSuspend: start standby timer at", time.format_time(self.last_action_time))
+    logger.dbg(
+      "AutoSuspend: start standby timer at",
+      time.format_time(self.last_action_time)
+    )
     self:_schedule_standby(sleep_in)
   end
 end
@@ -117,7 +135,10 @@ end
 -- Variant that only re-engages the shutdown timer for onUnexpectedWakeupLimit
 function AutoSuspend:_restart()
   if self:_enabledShutdown() then
-    logger.dbg("AutoSuspend: restart shutdown timer at", time.format_time(self.last_action_time))
+    logger.dbg(
+      "AutoSuspend: restart shutdown timer at",
+      time.format_time(self.last_action_time)
+    )
     self:_schedule(true)
   end
 end
@@ -136,13 +157,21 @@ if Device:isKindle() then
       - time.to_number(now - self.last_action_time)
 
     if self:_enabled() and kindle_t1_reset_seconds <= 0 then
-      logger.dbg("AutoSuspend: will reset the system's t1 timeout, re-scheduling check")
+      logger.dbg(
+        "AutoSuspend: will reset the system's t1 timeout, re-scheduling check"
+      )
       PowerD:resetT1Timeout()
       -- Re-schedule ourselves, as, unlike suspend/shutdown/standby, we don't have a specific Event to handle that for us.
-      UIManager:scheduleIn(default_kindle_t1_timeout_reset_seconds, self.kindle_task)
+      UIManager:scheduleIn(
+        default_kindle_t1_timeout_reset_seconds,
+        self.kindle_task
+      )
     else
       if self:_enabled() then
-        logger.dbg("AutoSuspend: scheduling next t1 timeout check in", kindle_t1_reset_seconds)
+        logger.dbg(
+          "AutoSuspend: scheduling next t1 timeout check in",
+          kindle_t1_reset_seconds
+        )
         UIManager:scheduleIn(kindle_t1_reset_seconds, self.kindle_task)
       end
     end
@@ -157,7 +186,10 @@ if Device:isKindle() then
 
   function AutoSuspend:_start_kindle()
     if self:_enabled() then
-      logger.dbg("AutoSuspend: start t1 timeout timer at", time.format_time(self.last_action_time))
+      logger.dbg(
+        "AutoSuspend: start t1 timeout timer at",
+        time.format_time(self.last_action_time)
+      )
       self:_schedule_kindle()
     end
   end
@@ -170,12 +202,17 @@ end
 
 function AutoSuspend:init()
   logger.dbg("AutoSuspend: init")
-  self.autoshutdown_timeout_seconds =
-    G_reader_settings:readSetting("autoshutdown_timeout_seconds", default_autoshutdown_timeout_seconds)
-  self.auto_suspend_timeout_seconds =
-    G_reader_settings:readSetting("auto_suspend_timeout_seconds", default_auto_suspend_timeout_seconds)
+  self.autoshutdown_timeout_seconds = G_reader_settings:readSetting(
+    "autoshutdown_timeout_seconds",
+    default_autoshutdown_timeout_seconds
+  )
+  self.auto_suspend_timeout_seconds = G_reader_settings:readSetting(
+    "auto_suspend_timeout_seconds",
+    default_auto_suspend_timeout_seconds
+  )
   -- Disabled, until the user opts in.
-  self.auto_standby_timeout_seconds = G_reader_settings:readSetting("auto_standby_timeout_seconds", -1)
+  self.auto_standby_timeout_seconds =
+    G_reader_settings:readSetting("auto_standby_timeout_seconds", -1)
 
   -- We only want those to exist as *instance* members
   self.is_standby_scheduled = false
@@ -270,7 +307,9 @@ function AutoSuspend:_schedule_standby(sleep_in)
     -- Don't enter standby if wifi is on, as this will break in fun and interesting ways (from Wi-Fi issues to kernel deadlocks).
     --logger.dbg("AutoSuspend: WiFi is on, delaying standby")
     standby_delay_seconds = sleep_in
-  elseif Device.powerd:isCharging() and not Device:canPowerSaveWhileCharging() then
+  elseif
+    Device.powerd:isCharging() and not Device:canPowerSaveWhileCharging()
+  then
     -- Don't enter standby when charging on devices where charging *may* prevent entering low power states.
     -- (*May*, because depending on the USB controller, it might depend on what it's plugged to, and how it's setup:
     -- e.g., generally, on those devices, USBNet being enabled is guaranteed to prevent PM).
@@ -280,7 +319,8 @@ function AutoSuspend:_schedule_standby(sleep_in)
     standby_delay_seconds = sleep_in
   else
     local now = UIManager:getElapsedTimeSinceBoot()
-    standby_delay_seconds = sleep_in - time.to_number(now - self.last_action_time)
+    standby_delay_seconds = sleep_in
+      - time.to_number(now - self.last_action_time)
 
     -- If we blow past the deadline on the first call of a scheduling cycle,
     -- make sure we don't go straight to allowStandby, as we haven't called preventStandby yet...
@@ -300,7 +340,10 @@ function AutoSuspend:_schedule_standby(sleep_in)
   else
     -- Reschedule standby for the full or remaining delay
     -- NOTE: This is fairly chatty, given the low delays, but really helpful nonetheless... :/
-    logger.dbg("AutoSuspend: scheduling next standby check in", standby_delay_seconds)
+    logger.dbg(
+      "AutoSuspend: scheduling next standby check in",
+      standby_delay_seconds
+    )
     UIManager:scheduleIn(standby_delay_seconds, self.standby_task)
 
     -- Prevent standby until we actually blow the deadline
@@ -336,7 +379,10 @@ function AutoSuspend:onSuspend()
   self:_unschedule_kindle()
   self:_unschedule_standby()
   if self:_enabledShutdown() and Device.wakeup_mgr then
-    Device.wakeup_mgr:addTask(self.autoshutdown_timeout_seconds, UIManager.poweroff_action)
+    Device.wakeup_mgr:addTask(
+      self.autoshutdown_timeout_seconds,
+      UIManager.poweroff_action
+    )
   end
 
   -- Make sure we won't attempt to standby during suspend
@@ -398,7 +444,15 @@ end
 -- 2 ... display day:hour
 -- 1 ... display hour:min
 -- else ... display min:sec
-function AutoSuspend:pickTimeoutValue(touchmenu_instance, title, info, setting, default_value, range, time_scale)
+function AutoSuspend:pickTimeoutValue(
+  touchmenu_instance,
+  title,
+  info,
+  setting,
+  default_value,
+  range,
+  time_scale
+)
   -- NOTE: if is_day_hour then time.hour stands for days and time.min for hours
 
   local InfoMessage = require("ui/widget/infomessage")
@@ -446,7 +500,9 @@ function AutoSuspend:pickTimeoutValue(touchmenu_instance, title, info, setting, 
     title_text = title,
     info_text = info,
     callback = function(t)
-      self[setting] = (((t.day or 0) * 24 + (t.hour or 0)) * 60 + (t.min or 0)) * 60 + (t.sec or 0)
+      self[setting] = (((t.day or 0) * 24 + (t.hour or 0)) * 60 + (t.min or 0))
+          * 60
+        + (t.sec or 0)
       self[setting] = Math.clamp(self[setting], range[1], range[2])
       G_reader_settings:saveSetting(setting, self[setting])
       if is_standby then
@@ -460,14 +516,23 @@ function AutoSuspend:pickTimeoutValue(touchmenu_instance, title, info, setting, 
       if touchmenu_instance then
         touchmenu_instance:updateItems()
       end
-      local time_string =
-        datetime.secondsToClockDuration("letters", self[setting], time_scale == 2 or time_scale == 1, true)
+      local time_string = datetime.secondsToClockDuration(
+        "letters",
+        self[setting],
+        time_scale == 2 or time_scale == 1,
+        true
+      )
       UIManager:show(InfoMessage:new({
         text = T(_("%1: %2"), title, time_string),
         timeout = 3,
       }))
     end,
-    default_value = datetime.secondsToClockDuration("letters", default_value, time_scale == 2 or time_scale == 1, true),
+    default_value = datetime.secondsToClockDuration(
+      "letters",
+      default_value,
+      time_scale == 2 or time_scale == 1,
+      true
+    ),
     default_callback = function()
       local day, hour, min, sec -- luacheck: ignore 431
       if time_scale == 2 then
@@ -514,8 +579,16 @@ function AutoSuspend:addToMainMenu(menu_items)
       return self:_enabled()
     end,
     text_func = function()
-      if self.auto_suspend_timeout_seconds and self.auto_suspend_timeout_seconds > 0 then
-        local time_string = datetime.secondsToClockDuration("letters", self.auto_suspend_timeout_seconds, true, true)
+      if
+        self.auto_suspend_timeout_seconds
+        and self.auto_suspend_timeout_seconds > 0
+      then
+        local time_string = datetime.secondsToClockDuration(
+          "letters",
+          self.auto_suspend_timeout_seconds,
+          true,
+          true
+        )
         return T(_("Autosuspend timeout: %1"), time_string)
       else
         return _("Autosuspend timeout")
@@ -544,8 +617,16 @@ function AutoSuspend:addToMainMenu(menu_items)
         return self:_enabledShutdown()
       end,
       text_func = function()
-        if self.autoshutdown_timeout_seconds and self.autoshutdown_timeout_seconds > 0 then
-          local time_string = datetime.secondsToClockDuration("letters", self.autoshutdown_timeout_seconds, true, true)
+        if
+          self.autoshutdown_timeout_seconds
+          and self.autoshutdown_timeout_seconds > 0
+        then
+          local time_string = datetime.secondsToClockDuration(
+            "letters",
+            self.autoshutdown_timeout_seconds,
+            true,
+            true
+          )
           return T(_("Autoshutdown timeout: %1"), time_string)
         else
           return _("Autoshutdown timeout")
@@ -592,9 +673,17 @@ Upon user input, the device needs a certain amount of time to wake up. Generally
         return self:_enabledStandby()
       end,
       text_func = function()
-        if self.auto_standby_timeout_seconds and self.auto_standby_timeout_seconds > 0 then
-          local time_string =
-            datetime.secondsToClockDuration("letters", self.auto_standby_timeout_seconds, false, true, true)
+        if
+          self.auto_standby_timeout_seconds
+          and self.auto_standby_timeout_seconds > 0
+        then
+          local time_string = datetime.secondsToClockDuration(
+            "letters",
+            self.auto_standby_timeout_seconds,
+            false,
+            true,
+            true
+          )
           return T(_("Autostandby timeout: %1"), time_string)
         else
           return _("Autostandby timeout")
@@ -643,12 +732,20 @@ function AutoSuspend:AllowStandbyHandler()
   end
 
   if wake_in >= 1 then -- Don't go into standby, if scheduled wakeup is in less than 1 second.
-    logger.dbg("AutoSuspend: entering standby with a wakeup alarm in", wake_in, "s")
+    logger.dbg(
+      "AutoSuspend: entering standby with a wakeup alarm in",
+      wake_in,
+      "s"
+    )
 
     -- This obviously needs a matching implementation in Device, the canonical one being Kobo.
     Device:standby(wake_in)
 
-    logger.dbg("AutoSuspend: left standby after", time.format_time(Device.last_standby_time), "s")
+    logger.dbg(
+      "AutoSuspend: left standby after",
+      time.format_time(Device.last_standby_time),
+      "s"
+    )
 
     -- NOTE: UIManager consumes scheduled tasks before input events,
     --       solely because of where we run inside an UI frame (via UIManager:_standbyTransition):

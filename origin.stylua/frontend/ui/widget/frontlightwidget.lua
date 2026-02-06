@@ -82,7 +82,9 @@ function FrontLightWidget:init()
 
   -- Input
   if Device:hasKeys() then
-    local close_keys = Device:hasFewKeys() and { Device.input.group.Back, "Left" } or Device.input.group.Back
+    local close_keys = Device:hasFewKeys()
+        and { Device.input.group.Back, "Left" }
+      or Device.input.group.Back
     self.key_events.Close = { { close_keys } }
   end
   if Device:isTouchDevice() then
@@ -128,7 +130,8 @@ function FrontLightWidget:layout()
 
   -- Frontlight
   -- Bigger spans, as ProgressWidget appears to be ever so slightly smaller than ButtonProgressWidget ;).
-  local fl_padding_span = VerticalSpan:new({ width = Math.round(self.span * 1.5) })
+  local fl_padding_span =
+    VerticalSpan:new({ width = Math.round(self.span * 1.5) })
   local fl_group_above = HorizontalGroup:new({ align = "center" })
   local fl_group_below = HorizontalGroup:new({ align = "center" })
   local main_group = VerticalGroup:new({ align = "center" })
@@ -333,7 +336,8 @@ function FrontLightWidget:layout()
           UIManager:show(NaturalLight:new({ fl_widget = self }))
         end,
       })
-      nl_spacer_width = math.floor((self.inner_width - 3 * self.button_width) / 2)
+      nl_spacer_width =
+        math.floor((self.inner_width - 3 * self.button_width) / 2)
     else
       nl_spacer_width = self.inner_width - 2 * self.button_width
     end
@@ -488,7 +492,10 @@ function FrontLightWidget:setWarmth(warmth, update_position)
 
   -- If we were not called by ButtonProgressWidget's callback, we'll have to update its progress bar ourselves.
   if update_position then
-    self.nl_progress:setPosition(math.floor(self.nl.cur / self.nl.stride), self.nl_progress.default_position)
+    self.nl_progress:setPosition(
+      math.floor(self.nl.cur / self.nl.stride),
+      self.nl_progress.default_position
+    )
   end
 
   self.nl_level:setText(tostring(self.nl.cur))
@@ -574,7 +581,9 @@ function FrontLightWidget:onTapProgress(arg, ges_ev)
     end
 
     self:refreshBrightnessWidgets()
-  elseif not ges_ev.pos:intersectWith(self.frame.dimen) and ges_ev.ges == "tap" then
+  elseif
+    not ges_ev.pos:intersectWith(self.frame.dimen) and ges_ev.ges == "tap"
+  then
     -- Close when tapping outside.
     self:onClose()
   end

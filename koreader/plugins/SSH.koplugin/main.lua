@@ -86,7 +86,10 @@ function SSH:start(quiet)
     os.execute("mkdir " .. path .. "/settings/SSH")
   end
 
-  local cmd = string.format("./dropbear -E -R -p%s -P /tmp/dropbear_koreader.pid", self.SSH_port)
+  local cmd = string.format(
+    "./dropbear -E -R -p%s -P /tmp/dropbear_koreader.pid",
+    self.SSH_port
+  )
   if self.allow_no_password then
     cmd = cmd .. " -n"
   end
@@ -100,7 +103,8 @@ function SSH:start(quiet)
         text = T(
           gettext("SSH server started.\n\nSSH port: %1\n%2"),
           self.SSH_port,
-          Device.retrieveNetworkInfo and table.concat(Device:retrieveNetworkInfo(), "\n")
+          Device.retrieveNetworkInfo
+              and table.concat(Device:retrieveNetworkInfo(), "\n")
             or gettext("Could not retrieve network info.")
         ),
       }))
@@ -198,7 +202,8 @@ function SSH:addToMainMenu(menu_items)
       {
         text_func = function()
           -- Need localization
-          return self:isRunning() and gettext("Stop SSH server") or gettext("Stop SSH server")
+          return self:isRunning() and gettext("Stop SSH server")
+            or gettext("Stop SSH server")
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
@@ -231,7 +236,10 @@ function SSH:addToMainMenu(menu_items)
         callback = function()
           local info = InfoMessage:new({
             timeout = 60,
-            text = T(gettext("Put your public SSH keys in\n%1"), BD.filepath(path .. "/settings/SSH/authorized_keys")),
+            text = T(
+              gettext("Put your public SSH keys in\n%1"),
+              BD.filepath(path .. "/settings/SSH/authorized_keys")
+            ),
           })
           UIManager:show(info)
         end,

@@ -425,7 +425,8 @@ it was first shown.
 ]]
 function QuickStart:isShown()
   local shown_version = G_reader_settings:read("quickstart_shown_version")
-  return shown_version ~= nil and (shown_version >= self.quickstart_force_show_version)
+  return shown_version ~= nil
+    and (shown_version >= self.quickstart_force_show_version)
 end
 
 --[[-- Generates the quickstart guide in the user's language and returns its location.
@@ -442,19 +443,28 @@ function QuickStart:getQuickStart()
     lfs.mkdir(quickstart_dir)
   end
 
-  local quickstart_filename = ("%s/quickstart-%s-%s.html"):format(quickstart_dir, language, rev)
+  local quickstart_filename = ("%s/quickstart-%s-%s.html"):format(
+    quickstart_dir,
+    language,
+    rev
+  )
   if lfs.attributes(quickstart_filename, "mode") ~= "file" then
     -- purge old quickstart guides
     local iter, dir_obj = lfs.dir(quickstart_dir)
     for f in iter, dir_obj do
       if f:match("quickstart-.*%.html") then
-        local file_abs_path = FFIUtil.realpath(("%s/%s"):format(quickstart_dir, f))
+        local file_abs_path =
+          FFIUtil.realpath(("%s/%s"):format(quickstart_dir, f))
         os.remove(file_abs_path)
         DocSettings:open(file_abs_path):purge()
       end
     end
 
-    local quickstart_html = FileConverter:mdToHtml(quickstart_guide, gettext("KOReader Quickstart Guide"), stylesheet)
+    local quickstart_html = FileConverter:mdToHtml(
+      quickstart_guide,
+      gettext("KOReader Quickstart Guide"),
+      stylesheet
+    )
     if quickstart_html then
       -- Fix links to images, which are in KOReader install directory, which may not
       -- be alongside help/ on some platforms like Android.
@@ -484,7 +494,10 @@ function QuickStart:getQuickStart()
       -- Add the path down to dst from here
       relpath = relpath .. dst
       relpath = relpath:gsub("//", "/") -- make it prettier
-      quickstart_html = quickstart_html:gsub([[src="resources/]], [[src="]] .. relpath .. [[resources/]])
+      quickstart_html = quickstart_html:gsub(
+        [[src="resources/]],
+        [[src="]] .. relpath .. [[resources/]]
+      )
       if Language:isLanguageRTL(language) then
         quickstart_html = quickstart_html:gsub("<html>", '<html dir="rtl">')
       end

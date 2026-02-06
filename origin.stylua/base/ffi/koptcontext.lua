@@ -111,7 +111,10 @@ local function boxaIterBoxes(boxa, count)
   local index = 0
   return function()
     if index < count then
-      local box = _gc_ptr(leptonica.boxaGetBox(boxa, index, leptonica.L_CLONE), boxDestroy)
+      local box = _gc_ptr(
+        leptonica.boxaGetBox(boxa, index, leptonica.L_CLONE),
+        boxDestroy
+      )
       index = index + 1
       return box
     end
@@ -126,7 +129,10 @@ local function boxaIterBoxGeometries(boxa)
     if index < count then
       leptonica.boxaGetBoxGeometry(boxa, index, geo, geo + 1, geo + 2, geo + 3)
       index = index + 1
-      return tonumber(geo[0]), tonumber(geo[1]), tonumber(geo[2]), tonumber(geo[3])
+      return tonumber(geo[0]),
+        tonumber(geo[1]),
+        tonumber(geo[2]),
+        tonumber(geo[3])
     end
   end
 end
@@ -142,7 +148,11 @@ end
 local function boxa_from_table(t)
   local rboxa = leptonica.boxaCreate(#t)
   for i, box in ipairs(t) do
-    leptonica.boxaAddBox(rboxa, leptonica.boxCreate(table.unpack(box)), leptonica.L_NOCOPY)
+    leptonica.boxaAddBox(
+      rboxa,
+      leptonica.boxCreate(table.unpack(box)),
+      leptonica.L_NOCOPY
+    )
   end
   return rboxa
 end
@@ -166,11 +176,18 @@ local function numa_to_string(numa)
   if count == 0 then
     return
   end
-  return ffi.string(leptonica.numaGetFArray(numa, leptonica.L_NOCOPY), 4 * count)
+  return ffi.string(
+    leptonica.numaGetFArray(numa, leptonica.L_NOCOPY),
+    4 * count
+  )
 end
 
 local function numa_from_string(s)
-  return leptonica.numaCreateFromFArray(ffi.cast("l_float32*", s), #s / 4, leptonica.L_COPY)
+  return leptonica.numaCreateFromFArray(
+    ffi.cast("l_float32*", s),
+    #s / 4,
+    leptonica.L_COPY
+  )
 end
 
 function KOPTContext_mt.__index:setBBox(x0, y0, x1, y1)
@@ -283,11 +300,27 @@ end
 function KOPTContext_mt.__index:dstToBlitBuffer()
   local bb
   if self.dst.bpp == 8 then
-    bb = Blitbuffer.new(self.dst.width, self.dst.height, Blitbuffer.TYPE_BB8, self.dst.data):copy()
+    bb = Blitbuffer.new(
+      self.dst.width,
+      self.dst.height,
+      Blitbuffer.TYPE_BB8,
+      self.dst.data
+    )
+      :copy()
   elseif self.dst.bpp == 24 then
-    bb = Blitbuffer.new(self.dst.width, self.dst.height, Blitbuffer.TYPE_BBRGB24, self.dst.data):copy()
+    bb = Blitbuffer.new(
+      self.dst.width,
+      self.dst.height,
+      Blitbuffer.TYPE_BBRGB24,
+      self.dst.data
+    ):copy()
   elseif self.dst.bpp == 32 then
-    bb = Blitbuffer.new(self.dst.width, self.dst.height, Blitbuffer.TYPE_BBRGB32, self.dst.data):copy()
+    bb = Blitbuffer.new(
+      self.dst.width,
+      self.dst.height,
+      Blitbuffer.TYPE_BBRGB32,
+      self.dst.data
+    ):copy()
   end
   return bb
 end
@@ -297,11 +330,25 @@ function KOPTContext_mt.__index:getWordBoxes(bmp, x, y, w, h, box_type)
   local nai
 
   if box_type == 0 then
-    k2pdfopt.k2pdfopt_get_reflowed_word_boxes(self, bmp == "src" and self.src or self.dst, x, y, w, h)
+    k2pdfopt.k2pdfopt_get_reflowed_word_boxes(
+      self,
+      bmp == "src" and self.src or self.dst,
+      x,
+      y,
+      w,
+      h
+    )
     boxa = self.rboxa
     nai = self.rnai
   elseif box_type == 1 then
-    k2pdfopt.k2pdfopt_get_native_word_boxes(self, bmp == "src" and self.src or self.dst, x, y, w, h)
+    k2pdfopt.k2pdfopt_get_native_word_boxes(
+      self,
+      bmp == "src" and self.src or self.dst,
+      x,
+      y,
+      w,
+      h
+    )
     boxa = self.nboxa
     nai = self.nnai
   end
@@ -388,11 +435,24 @@ function KOPTContext_mt.__index:reflowToNativePosTransform(xc, yc, wr, hr)
   end
   if self.rectmaps.n > m then
     local rectmap = self.rectmaps.wrectmap + m
-    local x = rectmap.coords[0].x * self.dev_dpi * self.quality / rectmap.srcdpiw
-    local y = rectmap.coords[0].y * self.dev_dpi * self.quality / rectmap.srcdpih
-    local w = rectmap.coords[2].x * self.dev_dpi * self.quality / rectmap.srcdpiw
-    local h = rectmap.coords[2].y * self.dev_dpi * self.quality / rectmap.srcdpih
-    return (x + w * wr) / self.zoom + self.bbox.x0, (y + h * hr) / self.zoom + self.bbox.y0
+    local x = rectmap.coords[0].x
+      * self.dev_dpi
+      * self.quality
+      / rectmap.srcdpiw
+    local y = rectmap.coords[0].y
+      * self.dev_dpi
+      * self.quality
+      / rectmap.srcdpih
+    local w = rectmap.coords[2].x
+      * self.dev_dpi
+      * self.quality
+      / rectmap.srcdpiw
+    local h = rectmap.coords[2].y
+      * self.dev_dpi
+      * self.quality
+      / rectmap.srcdpih
+    return (x + w * wr) / self.zoom + self.bbox.x0,
+      (y + h * hr) / self.zoom + self.bbox.y0
   end
 end
 
@@ -403,7 +463,10 @@ function KOPTContext_mt.__index:nativeToReflowPosTransform(xc, yc)
     local w = wrmap.coords[2].x * self.dev_dpi * self.quality / wrmap.srcdpiw
     local h = wrmap.coords[2].y * self.dev_dpi * self.quality / wrmap.srcdpih
     local function wrectmap_native_inside(wrmap_inside, x0_inside, y0_inside)
-      return x <= x0_inside and y <= y0_inside and x + w >= x0_inside and y + h >= y0_inside
+      return x <= x0_inside
+        and y <= y0_inside
+        and x + w >= x0_inside
+        and y + h >= y0_inside
     end
     if wrectmap_native_inside(wrmap, x0, y0) then
       return 0
@@ -414,7 +477,8 @@ function KOPTContext_mt.__index:nativeToReflowPosTransform(xc, yc)
   end
 
   local m = 0
-  local x0, y0 = (xc - self.bbox.x0) * self.zoom, (yc - self.bbox.y0) * self.zoom
+  local x0, y0 =
+    (xc - self.bbox.x0) * self.zoom, (yc - self.bbox.y0) * self.zoom
   for i = 0, self.rectmaps.n - 1 do
     if
       wrectmap_native_distance(self.rectmaps.wrectmap + m, x0, y0)
@@ -424,10 +488,23 @@ function KOPTContext_mt.__index:nativeToReflowPosTransform(xc, yc)
     end
   end
   local rectmap = self.rectmaps.wrectmap + m
-  return rectmap.coords[1].x + rectmap.coords[2].x / 2, rectmap.coords[1].y + rectmap.coords[2].y / 2
+  return rectmap.coords[1].x + rectmap.coords[2].x / 2,
+    rectmap.coords[1].y + rectmap.coords[2].y / 2
 end
 
-function KOPTContext_mt.__index:getTOCRWord(bmp, x, y, w, h, datadir, lang, ocr_type, allow_spaces, std_proc, dpi)
+function KOPTContext_mt.__index:getTOCRWord(
+  bmp,
+  x,
+  y,
+  w,
+  h,
+  datadir,
+  lang,
+  ocr_type,
+  allow_spaces,
+  std_proc,
+  dpi
+)
   local word = ffi.new("char[256]")
   local err = k2pdfopt.k2pdfopt_tocr_single_word(
     bmp == "src" and self.src or self.dst,
@@ -499,7 +576,8 @@ function KOPTContext_mt.__index:getPanelFromPage(pos)
     -- pixels darker than X, to do that we invert the image, threshold it,
     -- and invert the result back. Math: ~(~img < X) <=> img > X
     local pix_inverted = _gc_ptr(leptonica.pixInvert(nil, pixg), pixDestroy)
-    local pix_thresholded = _gc_ptr(leptonica.pixThresholdToBinary(pix_inverted, 50), pixDestroy)
+    local pix_thresholded =
+      _gc_ptr(leptonica.pixThresholdToBinary(pix_inverted, 50), pixDestroy)
     leptonica.pixInvert(pix_thresholded, pix_thresholded)
 
     -- find connected components (in our case panels)
@@ -510,7 +588,8 @@ function KOPTContext_mt.__index:getPanelFromPage(pos)
     local res
 
     for box in boxaIterBoxes(bb) do
-      local pix_tmp = _gc_ptr(leptonica.pixClipRectangle(pixs, box, nil), pixDestroy)
+      local pix_tmp =
+        _gc_ptr(leptonica.pixClipRectangle(pixs, box, nil), pixDestroy)
       local w = leptonica.pixGetWidth(pix_tmp)
       local h = leptonica.pixGetHeight(pix_tmp)
       -- check if it's panel or part of the panel, if it's part of the panel skip
@@ -544,7 +623,8 @@ function KOPTContext_mt.__index:getPageBlock(x_rel, y_rel)
     for box in boxaIterBoxes(boxa) do
       leptonica.boxAdjustSides(box, box, -1, 0, -1, 0)
     end
-    local boxatb = _gc_ptr(leptonica.boxaCombineOverlaps(boxa, nil), boxaDestroy)
+    local boxatb =
+      _gc_ptr(leptonica.boxaCombineOverlaps(boxa, nil), boxaDestroy)
     local clipped_box, unclipped_box
     for box_x, box_y, box_w, box_h in boxaIterBoxGeometries(boxatb) do
       if box_x / w <= x_rel and (box_x + box_w) / w >= x_rel then
@@ -568,7 +648,10 @@ function KOPTContext_mt.__index:getPageBlock(x_rel, y_rel)
       end
     end
     if clipped_box ~= nil and unclipped_box ~= nil then
-      local box = _gc_ptr(leptonica.boxOverlapRegion(clipped_box, unclipped_box), boxDestroy)
+      local box = _gc_ptr(
+        leptonica.boxOverlapRegion(clipped_box, unclipped_box),
+        boxDestroy
+      )
       if box ~= nil then
         local box_x, box_y, box_w, box_h = boxGetGeometry(box)
         block = {
@@ -610,8 +693,14 @@ function KOPTContext_mt.__index:getSrcPix(pboxes, drawer)
       local bbox = self.bbox
       local pix2 = _gc_ptr(leptonica.pixConvertTo32(pix1), pixDestroy)
       for _, pbox in ipairs(pboxes) do
-        local box = boxCreate(pbox.x - bbox.x0, pbox.y - bbox.y0, pbox.w, pbox.h)
-        leptonica.pixMultiplyByColor(pix2, pix2, box, ffi.new("uint32_t", color))
+        local box =
+          boxCreate(pbox.x - bbox.x0, pbox.y - bbox.y0, pbox.w, pbox.h)
+        leptonica.pixMultiplyByColor(
+          pix2,
+          pix2,
+          box,
+          ffi.new("uint32_t", color)
+        )
       end
       return pix2
     else
@@ -804,7 +893,10 @@ function KOPTContext.totable(kc)
   context.rectmaps = {
     n = kc.rectmaps.n,
     na = kc.rectmaps.n,
-    wrectmap = ffi.string(kc.rectmaps.wrectmap, ffi.sizeof("WRECTMAP") * kc.rectmaps.n),
+    wrectmap = ffi.string(
+      kc.rectmaps.wrectmap,
+      ffi.sizeof("WRECTMAP") * kc.rectmaps.n
+    ),
   }
 
   return context
@@ -880,7 +972,11 @@ function KOPTContext.fromtable(context)
   kc.rectmaps.na = context.rectmaps.n
   if context.rectmaps.wrectmap ~= "" then
     kc.rectmaps.wrectmap = C.malloc(#context.rectmaps.wrectmap)
-    ffi.copy(kc.rectmaps.wrectmap, context.rectmaps.wrectmap, #context.rectmaps.wrectmap)
+    ffi.copy(
+      kc.rectmaps.wrectmap,
+      context.rectmaps.wrectmap,
+      #context.rectmaps.wrectmap
+    )
   else
     kc.rectmaps.wrectmap = nil
   end

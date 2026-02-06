@@ -93,8 +93,10 @@ function TitleBar:init()
     self.width = Screen:getWidth()
   end
 
-  local left_icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE * self.left_icon_size_ratio)
-  local right_icon_size = Screen:scaleBySize(DGENERIC_ICON_SIZE * self.right_icon_size_ratio)
+  local left_icon_size =
+    Screen:scaleBySize(DGENERIC_ICON_SIZE * self.left_icon_size_ratio)
+  local right_icon_size =
+    Screen:scaleBySize(DGENERIC_ICON_SIZE * self.right_icon_size_ratio)
   self.has_left_icon = false
   self.has_right_icon = false
 
@@ -112,19 +114,26 @@ function TitleBar:init()
 
   if self.align == "center" then
     -- Keep title and subtitle text centered even if single button
-    left_icon_reserved_width = math.max(left_icon_reserved_width, right_icon_reserved_width)
+    left_icon_reserved_width =
+      math.max(left_icon_reserved_width, right_icon_reserved_width)
     right_icon_reserved_width = left_icon_reserved_width
   end
-  local title_max_width = self.width - 2 * self.title_h_padding - left_icon_reserved_width - right_icon_reserved_width
+  local title_max_width = self.width
+    - 2 * self.title_h_padding
+    - left_icon_reserved_width
+    - right_icon_reserved_width
   local subtitle_max_width = self.width - 2 * self.title_h_padding
   if not self.subtitle_fullwidth then
-    subtitle_max_width = subtitle_max_width - left_icon_reserved_width - right_icon_reserved_width
+    subtitle_max_width = subtitle_max_width
+      - left_icon_reserved_width
+      - right_icon_reserved_width
   end
 
   -- Title, subtitle, and their alignment
   local title_face = self.title_face
   if not title_face then
-    title_face = self.fullscreen and self.title_face_fullscreen or self.title_face_not_fullscreen
+    title_face = self.fullscreen and self.title_face_fullscreen
+      or self.title_face_not_fullscreen
   end
   if self.title_multilines then
     self.title_widget = TextBoxWidget:new({
@@ -191,8 +200,10 @@ function TitleBar:init()
         -- title_top_padding = Math.round(self._initial_title_top_padding + self._initial_title_text_baseline - text_baseline)
         -- But then, smaller text is not vertically centered in the title bar.
         -- So, go with just half the baseline difference:
-        title_top_padding =
-          Math.round(self._initial_title_top_padding + (self._initial_title_text_baseline - text_baseline) / 2)
+        title_top_padding = Math.round(
+          self._initial_title_top_padding
+            + (self._initial_title_text_baseline - text_baseline) / 2
+        )
       else
         self._initial_title_top_padding = title_top_padding
         self._initial_title_text_baseline = text_baseline
@@ -244,7 +255,10 @@ function TitleBar:init()
     table.insert(self.title_group, self.title_widget)
   end
   if self.subtitle_widget then
-    table.insert(self.title_group, VerticalSpan:new({ height = self.title_subtitle_v_padding }))
+    table.insert(
+      self.title_group,
+      VerticalSpan:new({ height = self.title_subtitle_v_padding })
+    )
     if self.align == "left" then
       local span_width = self.title_h_padding
       if not self.subtitle_fullwidth then
@@ -281,7 +295,8 @@ function TitleBar:init()
   if self.with_bottom_line then
     -- Be sure we add between the text and the line at least as much padding
     -- as above the text, to keep it vertically centered.
-    local title_bottom_padding = math.max(title_top_padding, Size.padding.default)
+    local title_bottom_padding =
+      math.max(title_top_padding, Size.padding.default)
     local filler_height = self.titlebar_height + title_bottom_padding
     if self.title_shrink_font_to_fit then
       -- Use, or store, the first filler height we have computed,
@@ -296,7 +311,8 @@ function TitleBar:init()
       background = self.bottom_line_color,
     })
     if self.bottom_line_h_padding then
-      line_widget.dimen.w = line_widget:getSize().w - 2 * self.bottom_line_h_padding
+      line_widget.dimen.w = line_widget:getSize().w
+        - 2 * self.bottom_line_h_padding
       line_widget = HorizontalGroup:new({
         HorizontalSpan:new({ width = self.bottom_line_h_padding }),
         line_widget,
@@ -342,7 +358,8 @@ function TitleBar:init()
       }),
     })
     table.insert(self, filler_and_info_text)
-    self.titlebar_height = filler_and_info_text:getSize().h + self.bottom_v_padding
+    self.titlebar_height = filler_and_info_text:getSize().h
+      + self.bottom_v_padding
   end
 
   self:mergeSize(

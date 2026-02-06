@@ -41,7 +41,9 @@ function framebuffer:resize(w, h)
   SDL.win_w = w or tonumber(output_w[0])
   SDL.win_h = h or tonumber(output_h[0])
 
-  if SDL.SDL.SDL_GetRendererOutputSize(SDL.renderer, output_w, output_h) == 0 then
+  if
+    SDL.SDL.SDL_GetRendererOutputSize(SDL.renderer, output_w, output_h) == 0
+  then
     -- This is a workaround to obtain a simulacrum of real pixels in scenarios that marketing likes to refer to as "HiDPI".
     -- The utterly deranged idea is to render things at 2x or 3x, so it can subsequently be scaled down in order to assure everything will always be at least a little bit blurry unless you happen to use exactly 2x or 3x, instead of the traditional methods of just rendering at the desired DPI that have worked perfectly fine in Windows and X11 for decades.
     -- Contrary to claims by the blind that macOS is sharp, it's not.
@@ -122,7 +124,12 @@ function framebuffer:_render(bb, x, y, w, h)
   local sdl_rect = SDL.rect(px, py, pw, ph)
 
   if not bb_emu then
-    SDL.SDL.SDL_UpdateTexture(SDL.texture, sdl_rect, bb_rect.data, bb_rect.stride)
+    SDL.SDL.SDL_UpdateTexture(
+      SDL.texture,
+      sdl_rect,
+      bb_rect.data,
+      bb_rect.stride
+    )
   else
     -- The manual conversion is here deliberately, so as to separate us from possible bugs in the blitter.
     local vbuf = ffi.new("ColorRGB32[?]", pw * ph)
@@ -148,7 +155,9 @@ function framebuffer:refreshFullImp(x, y, w, h)
 
   local bb = self.full_bb or self.bb
   x, y, w, h = bb:getBoundedRect(x, y, w, h)
-  self.debug(string.format("refresh on logical rectangle %dx%d+%d+%d", w, h, x, y))
+  self.debug(
+    string.format("refresh on logical rectangle %dx%d+%d+%d", w, h, x, y)
+  )
 
   local flash = os.getenv("EMULATE_READER_FLASH")
   if flash then

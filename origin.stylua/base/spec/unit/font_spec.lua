@@ -15,7 +15,13 @@ describe("Low level font interfaces", function()
 
       -- First try with HB
       local fontdata = io.open(font, "rb"):read("*a")
-      local blob = hb.hb_blob_create(fontdata, #fontdata, hb.HB_MEMORY_MODE_READONLY, nil, nil)
+      local blob = hb.hb_blob_create(
+        fontdata,
+        #fontdata,
+        hb.HB_MEMORY_MODE_READONLY,
+        nil,
+        nil
+      )
       local face = hb.hb_face_create(blob, 0)
       hb.hb_blob_destroy(blob)
       assert.are.equals(hb.hb_face_get_glyph_count(face), nglyphs)

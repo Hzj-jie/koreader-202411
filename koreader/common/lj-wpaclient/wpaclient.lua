@@ -194,7 +194,11 @@ function WpaClient.__index:scanThenGetResults()
 
     -- Fudge the counter when we're missing the initial scan-started event...
     -- (On sane "OK" runs, CTRL-EVENT-SCAN-STARTED is *always* the first event (if supported...)).
-    if started_scans == 0 and evs[1] and evs[1].msg ~= "CTRL-EVENT-SCAN-STARTED" then
+    if
+      started_scans == 0
+      and evs[1]
+      and evs[1].msg ~= "CTRL-EVENT-SCAN-STARTED"
+    then
       -- NOTE: Should technically *only* happen when string.sub(reply, 1, 9) == "FAIL-BUSY",
       --       but doing this regardless is harmless.
       started_scans = 1
@@ -211,7 +215,8 @@ function WpaClient.__index:scanThenGetResults()
           -- NOTE: Ignore started_scans on platforms without the event...
           found_result = finished_scans == expected_scans
         else
-          found_result = finished_scans == started_scans and finished_scans == expected_scans
+          found_result = finished_scans == started_scans
+            and finished_scans == expected_scans
         end
 
         -- If we get CTRL-EVENT-NETWORK-NOT-FOUND, it means no preferred networks were found during the scan.
@@ -304,7 +309,8 @@ function WpaClient.__index:disableNetworkByID(id)
 end
 
 function WpaClient.__index:setNetwork(id, key, value)
-  local reply, err = self:sendCtrlCmd(string.format("SET_NETWORK %d %s %s", id, key, value))
+  local reply, err =
+    self:sendCtrlCmd(string.format("SET_NETWORK %d %s %s", id, key, value))
   if reply == nil then
     return nil, err
   end

@@ -7,7 +7,9 @@ local AndroidPowerD = BasePowerD:new({
 })
 
 function AndroidPowerD:frontlightIntensityHW()
-  return math.floor(android.getScreenBrightness() / self.bright_diff * self.fl_max)
+  return math.floor(
+    android.getScreenBrightness() / self.bright_diff * self.fl_max
+  )
 end
 
 function AndroidPowerD:setIntensityHW(intensity)
@@ -15,7 +17,9 @@ function AndroidPowerD:setIntensityHW(intensity)
   android.enableFrontlightSwitch()
 
   self.fl_intensity = intensity
-  android.setScreenBrightness(math.floor(intensity * self.bright_diff / self.fl_max))
+  android.setScreenBrightness(
+    math.floor(intensity * self.bright_diff / self.fl_max)
+  )
   self:_decideFrontlightState()
 end
 
@@ -71,7 +75,9 @@ function AndroidPowerD:turnOnFrontlightHW(done_callback)
   -- on devices with a software frontlight switch (e.g Tolinos), enable it
   android.enableFrontlightSwitch()
 
-  android.setScreenBrightness(math.floor(self.fl_intensity * self.bright_diff / self.fl_max))
+  android.setScreenBrightness(
+    math.floor(self.fl_intensity * self.bright_diff / self.fl_max)
+  )
 
   if android.hasStandaloneWarmth() then
     android.setScreenWarmth(math.floor(self.fl_warmth / self.warm_diff))

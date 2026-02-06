@@ -21,10 +21,12 @@ local _FileChooser_updateItems_orig = FileChooser.updateItems
 local _FileChooser_onCloseWidget_orig = FileChooser.onCloseWidget
 
 local FileManagerHistory = require("apps/filemanager/filemanagerhistory")
-local _FileManagerHistory_updateItemTable_orig = FileManagerHistory.updateItemTable
+local _FileManagerHistory_updateItemTable_orig =
+  FileManagerHistory.updateItemTable
 
 local FileManagerCollection = require("apps/filemanager/filemanagercollection")
-local _FileManagerCollection_updateItemTable_orig = FileManagerCollection.updateItemTable
+local _FileManagerCollection_updateItemTable_orig =
+  FileManagerCollection.updateItemTable
 
 local FileManager = require("apps/filemanager/filemanager")
 local _FileManager_tapPlus_orig = FileManager.tapPlus
@@ -71,7 +73,9 @@ function CoverBrowser:init()
   end
 
   -- Set up default display modes on first launch
-  if not G_reader_settings:isTrue("coverbrowser_initial_default_setup_done") then
+  if
+    not G_reader_settings:isTrue("coverbrowser_initial_default_setup_done")
+  then
     -- Only if no display mode has been set yet
     if
       not BookInfoManager:getSetting("filemanager_display_mode")
@@ -85,16 +89,23 @@ function CoverBrowser:init()
     G_reader_settings:makeTrue("coverbrowser_initial_default_setup_done")
   end
 
-  self:setupFileManagerDisplayMode(BookInfoManager:getSetting("filemanager_display_mode"))
-  self:setupHistoryDisplayMode(BookInfoManager:getSetting("history_display_mode"))
-  self:setupCollectionDisplayMode(BookInfoManager:getSetting("collection_display_mode"))
+  self:setupFileManagerDisplayMode(
+    BookInfoManager:getSetting("filemanager_display_mode")
+  )
+  self:setupHistoryDisplayMode(
+    BookInfoManager:getSetting("history_display_mode")
+  )
+  self:setupCollectionDisplayMode(
+    BookInfoManager:getSetting("collection_display_mode")
+  )
   series_mode = BookInfoManager:getSetting("series_mode")
   init_done = true
   BookInfoManager:closeDbConnection() -- will be re-opened if needed
 end
 
 function CoverBrowser:addToMainMenu(menu_items)
-  local sub_item_table, history_sub_item_table, collection_sub_item_table = {}, {}, {}
+  local sub_item_table, history_sub_item_table, collection_sub_item_table =
+    {}, {}, {}
   for i, v in ipairs(self.modes) do
     local text, mode = unpack(v)
     sub_item_table[i] = {
@@ -169,7 +180,11 @@ function CoverBrowser:addToMainMenu(menu_items)
     sub_item_table = {
       {
         text_func = function()
-          return T(_("Items per page in portrait mosaic mode: %1 × %2"), fc.nb_cols_portrait, fc.nb_rows_portrait)
+          return T(
+            _("Items per page in portrait mosaic mode: %1 × %2"),
+            fc.nb_cols_portrait,
+            fc.nb_rows_portrait
+          )
         end,
         -- Best to not "keep_menu_open = true", to see how this apply on the full view
         callback = function()
@@ -201,9 +216,18 @@ function CoverBrowser:addToMainMenu(menu_items)
               end
             end,
             close_callback = function()
-              if fc.nb_cols_portrait ~= nb_cols or fc.nb_rows_portrait ~= nb_rows then
-                BookInfoManager:saveSetting("nb_cols_portrait", fc.nb_cols_portrait)
-                BookInfoManager:saveSetting("nb_rows_portrait", fc.nb_rows_portrait)
+              if
+                fc.nb_cols_portrait ~= nb_cols
+                or fc.nb_rows_portrait ~= nb_rows
+              then
+                BookInfoManager:saveSetting(
+                  "nb_cols_portrait",
+                  fc.nb_cols_portrait
+                )
+                BookInfoManager:saveSetting(
+                  "nb_rows_portrait",
+                  fc.nb_rows_portrait
+                )
                 FileChooser.nb_cols_portrait = fc.nb_cols_portrait
                 FileChooser.nb_rows_portrait = fc.nb_rows_portrait
                 if fc.display_mode_type == "mosaic" and fc.portrait_mode then
@@ -218,7 +242,11 @@ function CoverBrowser:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(_("Items per page in landscape mosaic mode: %1 × %2"), fc.nb_cols_landscape, fc.nb_rows_landscape)
+          return T(
+            _("Items per page in landscape mosaic mode: %1 × %2"),
+            fc.nb_cols_landscape,
+            fc.nb_rows_landscape
+          )
         end,
         callback = function()
           local nb_cols = fc.nb_cols_landscape
@@ -249,12 +277,23 @@ function CoverBrowser:addToMainMenu(menu_items)
               end
             end,
             close_callback = function()
-              if fc.nb_cols_landscape ~= nb_cols or fc.nb_rows_landscape ~= nb_rows then
-                BookInfoManager:saveSetting("nb_cols_landscape", fc.nb_cols_landscape)
-                BookInfoManager:saveSetting("nb_rows_landscape", fc.nb_rows_landscape)
+              if
+                fc.nb_cols_landscape ~= nb_cols
+                or fc.nb_rows_landscape ~= nb_rows
+              then
+                BookInfoManager:saveSetting(
+                  "nb_cols_landscape",
+                  fc.nb_cols_landscape
+                )
+                BookInfoManager:saveSetting(
+                  "nb_rows_landscape",
+                  fc.nb_rows_landscape
+                )
                 FileChooser.nb_cols_landscape = fc.nb_cols_landscape
                 FileChooser.nb_rows_landscape = fc.nb_rows_landscape
-                if fc.display_mode_type == "mosaic" and not fc.portrait_mode then
+                if
+                  fc.display_mode_type == "mosaic" and not fc.portrait_mode
+                then
                   fc.no_refresh_covers = nil
                   fc:updateItems()
                 end
@@ -268,7 +307,10 @@ function CoverBrowser:addToMainMenu(menu_items)
         text_func = function()
           -- default files_per_page should be calculated by ListMenu on the first drawing,
           -- use 10 if ListMenu has not been drawn yet
-          return T(_("Items per page in portrait list mode: %1"), fc.files_per_page or 10)
+          return T(
+            _("Items per page in portrait list mode: %1"),
+            fc.files_per_page or 10
+          )
         end,
         callback = function()
           local files_per_page = fc.files_per_page or 10
@@ -469,7 +511,9 @@ function CoverBrowser:addToMainMenu(menu_items)
               UIManager:close(self.file_dialog)
               UIManager:show(ConfirmBox:new({
                 -- Checking file existences is quite fast, but deleting entries is slow.
-                text = _("Are you sure that you want to prune cache of removed books?\n(This may take a while.)"),
+                text = _(
+                  "Are you sure that you want to prune cache of removed books?\n(This may take a while.)"
+                ),
                 ok_text = _("Prune cache"),
                 ok_callback = function()
                   local InfoMessage = require("ui/widget/infomessage")
@@ -493,7 +537,9 @@ function CoverBrowser:addToMainMenu(menu_items)
               local ConfirmBox = require("ui/widget/confirmbox")
               UIManager:close(self.file_dialog)
               UIManager:show(ConfirmBox:new({
-                text = _("Are you sure that you want to compact cache database?\n(This may take a while.)"),
+                text = _(
+                  "Are you sure that you want to compact cache database?\n(This may take a while.)"
+                ),
                 ok_text = _("Compact database"),
                 ok_callback = function()
                   local InfoMessage = require("ui/widget/infomessage")
@@ -540,8 +586,10 @@ function CoverBrowser.initGrid(menu, display_mode)
   if menu.nb_cols_portrait == nil then
     menu.nb_cols_portrait = BookInfoManager:getSetting("nb_cols_portrait") or 3
     menu.nb_rows_portrait = BookInfoManager:getSetting("nb_rows_portrait") or 3
-    menu.nb_cols_landscape = BookInfoManager:getSetting("nb_cols_landscape") or 4
-    menu.nb_rows_landscape = BookInfoManager:getSetting("nb_rows_landscape") or 2
+    menu.nb_cols_landscape = BookInfoManager:getSetting("nb_cols_landscape")
+      or 4
+    menu.nb_rows_landscape = BookInfoManager:getSetting("nb_rows_landscape")
+      or 2
     -- initial List mode files_per_page will be calculated and saved by ListMenu on the first drawing
     menu.files_per_page = BookInfoManager:getSetting("files_per_page")
   end
@@ -581,7 +629,10 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
   end
   -- remember current mode in module variable
   filemanager_display_mode = display_mode
-  logger.dbg("CoverBrowser: setting FileManager display mode to:", display_mode or "classic")
+  logger.dbg(
+    "CoverBrowser: setting FileManager display mode to:",
+    display_mode or "classic"
+  )
 
   -- init Mosaic and List grid dimensions (in Classic mode used in the settings menu)
   CoverBrowser.initGrid(FileChooser, display_mode)
@@ -691,7 +742,8 @@ local function _FileManagerHistory_updateItemTable(self)
       hist_menu._do_cover_images = display_mode ~= "list_only_meta"
       hist_menu._do_filename_only = display_mode == "list_image_filename"
     end
-    hist_menu._do_hint_opened = BookInfoManager:getSetting("history_hint_opened")
+    hist_menu._do_hint_opened =
+      BookInfoManager:getSetting("history_hint_opened")
   end
 
   -- And do now what the original does
@@ -710,7 +762,10 @@ function CoverBrowser:setupHistoryDisplayMode(display_mode)
   end
   -- remember current mode in module variable
   history_display_mode = display_mode
-  logger.dbg("CoverBrowser: setting History display mode to:", display_mode or "classic")
+  logger.dbg(
+    "CoverBrowser: setting History display mode to:",
+    display_mode or "classic"
+  )
 
   if not init_done and not display_mode then
     return -- starting in classic mode, nothing to patch
@@ -719,7 +774,8 @@ function CoverBrowser:setupHistoryDisplayMode(display_mode)
   -- We only need to replace one FileManagerHistory method
   if not display_mode then -- classic mode
     -- Put back original methods
-    FileManagerHistory.updateItemTable = _FileManagerHistory_updateItemTable_orig
+    FileManagerHistory.updateItemTable =
+      _FileManagerHistory_updateItemTable_orig
     FileManagerHistory.display_mode = nil
   else
     -- Replace original method with the one defined above
@@ -768,7 +824,8 @@ local function _FileManagerCollections_updateItemTable(self)
       coll_menu._do_cover_images = display_mode ~= "list_only_meta"
       coll_menu._do_filename_only = display_mode == "list_image_filename"
     end
-    coll_menu._do_hint_opened = BookInfoManager:getSetting("collections_hint_opened")
+    coll_menu._do_hint_opened =
+      BookInfoManager:getSetting("collections_hint_opened")
   end
 
   -- And do now what the original does
@@ -787,7 +844,10 @@ function CoverBrowser:setupCollectionDisplayMode(display_mode)
   end
   -- remember current mode in module variable
   collection_display_mode = display_mode
-  logger.dbg("CoverBrowser: setting Collection display mode to:", display_mode or "classic")
+  logger.dbg(
+    "CoverBrowser: setting Collection display mode to:",
+    display_mode or "classic"
+  )
 
   if not init_done and not display_mode then
     return -- starting in classic mode, nothing to patch
@@ -796,11 +856,13 @@ function CoverBrowser:setupCollectionDisplayMode(display_mode)
   -- We only need to replace one FileManagerCollection method
   if not display_mode then -- classic mode
     -- Put back original methods
-    FileManagerCollection.updateItemTable = _FileManagerCollection_updateItemTable_orig
+    FileManagerCollection.updateItemTable =
+      _FileManagerCollection_updateItemTable_orig
     FileManagerCollection.display_mode = nil
   else
     -- Replace original method with the one defined above
-    FileManagerCollection.updateItemTable = _FileManagerCollections_updateItemTable
+    FileManagerCollection.updateItemTable =
+      _FileManagerCollections_updateItemTable
     -- And let it know which display_mode we should use
     FileManagerCollection.display_mode = display_mode
   end
@@ -829,7 +891,11 @@ function CoverBrowser:onDocSettingsItemsChanged(file, doc_settings)
   if history_display_mode and self.ui.history and self.ui.history.hist_menu then
     self.ui.history.hist_menu:updateCache(file, status)
   end
-  if collection_display_mode and self.ui.collections and self.ui.collections.coll_menu then
+  if
+    collection_display_mode
+    and self.ui.collections
+    and self.ui.collections.coll_menu
+  then
     self.ui.collections.coll_menu:updateCache(file, status)
   end
 end

@@ -161,8 +161,12 @@ function ImageViewer:init()
     self.image = self._scaled_image_func(1) -- native image size, that we need to know
   end
 
-  if self.image and G_reader_settings:isTrue("imageviewer_rotate_auto_for_best_fit") then
-    self.rotated = (Screen:getWidth() > Screen:getHeight()) ~= (self.image:getWidth() > self.image:getHeight())
+  if
+    self.image
+    and G_reader_settings:isTrue("imageviewer_rotate_auto_for_best_fit")
+  then
+    self.rotated = (Screen:getWidth() > Screen:getHeight())
+      ~= (self.image:getWidth() > self.image:getHeight())
   end
 
   -- Widget layout
@@ -367,9 +371,15 @@ function ImageViewer:update()
   -- Bottom buttons
   if self.buttons_visible then
     local scale_btn = self.button_table:getButtonById("scale")
-    scale_btn:setText(self._scale_to_fit and _("Original size") or _("Scale"), scale_btn.width)
+    scale_btn:setText(
+      self._scale_to_fit and _("Original size") or _("Scale"),
+      scale_btn.width
+    )
     local rotate_btn = self.button_table:getButtonById("rotate")
-    rotate_btn:setText(self.rotated and _("No rotation") or _("Rotate"), rotate_btn.width)
+    rotate_btn:setText(
+      self.rotated and _("No rotation") or _("Rotate"),
+      rotate_btn.width
+    )
     table.insert(self.frame_elements, self.button_container)
   end
   -- Get the available height and update the image widget itself
@@ -439,7 +449,8 @@ function ImageViewer:_new_image_wg()
 
   if self._scaled_image_func then
     local scale_factor_used
-    self.image, scale_factor_used = self._scaled_image_func(self.scale_factor, max_image_w, max_image_h)
+    self.image, scale_factor_used =
+      self._scaled_image_func(self.scale_factor, max_image_w, max_image_h)
     if self.scale_factor == 0 then
       -- onZoomIn/Out need to know the current scale factor, that they won't be
       -- able to fetch from _image_wg as we force it to be 1. So, remember it.
@@ -517,7 +528,11 @@ function ImageViewer:onTap(_, ges)
   end
   if not Device:hasMultitouch() then
     -- Allow saving screenshot with tap in bottom left corner
-    if not self.buttons_visible and ges.pos.x < Screen:getWidth() / 10 and ges.pos.y > Screen:getHeight() * 9 / 10 then
+    if
+      not self.buttons_visible
+      and ges.pos.x < Screen:getWidth() / 10
+      and ges.pos.y > Screen:getHeight() * 9 / 10
+    then
       return self:onSaveImageView()
     end
   end
@@ -571,19 +586,27 @@ function ImageViewer:onSwipe(_, ges)
   local distance = ges.distance
   local sq_distance = math.sqrt(distance * distance / 2)
   if direction == "north" then
-    if ges.pos.x < Screen:getWidth() * 1 / 8 or ges.pos.x > Screen:getWidth() * 7 / 8 then
+    if
+      ges.pos.x < Screen:getWidth() * 1 / 8
+      or ges.pos.x > Screen:getWidth() * 7 / 8
+    then
       -- allow for zooming with vertical swipe on screen sides
       -- (for devices without multi touch where pinch and spread don't work)
       -- c.f., onSpread for details about the choice between screen & scaled image height.
-      local inc = ges.distance / math.min(Screen:getHeight(), self._image_wg:getCurrentHeight())
+      local inc = ges.distance
+        / math.min(Screen:getHeight(), self._image_wg:getCurrentHeight())
       self:onZoomIn(inc)
     else
       self:panBy(0, distance)
     end
   elseif direction == "south" then
-    if ges.pos.x < Screen:getWidth() * 1 / 8 or ges.pos.x > Screen:getWidth() * 7 / 8 then
+    if
+      ges.pos.x < Screen:getWidth() * 1 / 8
+      or ges.pos.x > Screen:getWidth() * 7 / 8
+    then
       -- allow for zooming with vertical swipe on screen sides
-      local dec = ges.distance / math.min(Screen:getHeight(), self._image_wg:getCurrentHeight())
+      local dec = ges.distance
+        / math.min(Screen:getHeight(), self._image_wg:getCurrentHeight())
       self:onZoomOut(dec)
     elseif self.scale_factor == 0 then
       -- When scaled to fit (on initial launch, or after one has tapped
@@ -630,7 +653,10 @@ function ImageViewer:onHoldRelease(_, ges)
     self._panning = false
     self._pan_relative_x = ges.pos.x - self._pan_relative_x
     self._pan_relative_y = ges.pos.y - self._pan_relative_y
-    if math.abs(self._pan_relative_x) < self.pan_threshold and math.abs(self._pan_relative_y) < self.pan_threshold then
+    if
+      math.abs(self._pan_relative_x) < self.pan_threshold
+      and math.abs(self._pan_relative_y) < self.pan_threshold
+    then
       -- Hold with no move (or less than pan_threshold): use this to trigger full refresh
       self.dithered = true
       UIManager:setDirty(nil, "full", nil, true)
@@ -671,7 +697,8 @@ function ImageViewer:_applyNewScaleFactor(new_factor)
   -- We destroy ImageWidget on update, so only request this the first time,
   -- in order to avoid jitter in the results given differing memory consumption at different zoom levels...
   if not self._min_scale_factor or not self._max_scale_factor then
-    self._min_scale_factor, self._max_scale_factor = self._image_wg:getScaleFactorExtrema()
+    self._min_scale_factor, self._max_scale_factor =
+      self._image_wg:getScaleFactorExtrema()
   end
   -- Clamp to sane values
   new_factor = math.min(new_factor, self._max_scale_factor)
@@ -756,7 +783,10 @@ function ImageViewer:onSpread(_, ges)
   -- First, get center ratio we would have had if we did a pan to there,
   -- so we can have the zoom centered on there
   self._center_x_ratio, self._center_y_ratio =
-    self._image_wg:getPanByCenterRatio(ges.pos.x - Screen:getWidth() / 2, ges.pos.y - Screen:getHeight() / 2)
+    self._image_wg:getPanByCenterRatio(
+      ges.pos.x - Screen:getWidth() / 2,
+      ges.pos.y - Screen:getHeight() / 2
+    )
   -- We compute a scaling percentage (which will *modify* the current scaling factor),
   -- based on the gesture distance (it's the sum of the travel of both fingers).
   -- Making this distance relative to the smallest dimension between
@@ -828,8 +858,11 @@ function ImageViewer:onSaveImageView()
     UIManager:forceRePaint()
   end
   local screenshot_dir = Screenshoter:getScreenshotDir()
-  local screenshot_name = os.date(screenshot_dir .. "/ImageViewer_%Y-%m-%d_%H%M%S.png")
-  UIManager:sendEvent(Event:new("Screenshot", screenshot_name, restore_settings_func))
+  local screenshot_name =
+    os.date(screenshot_dir .. "/ImageViewer_%Y-%m-%d_%H%M%S.png")
+  UIManager:sendEvent(
+    Event:new("Screenshot", screenshot_name, restore_settings_func)
+  )
   return true
 end
 
@@ -850,8 +883,15 @@ function ImageViewer:onCloseWidget()
     self.image = nil
   end
   -- also clean _images_list if it provides a method for that
-  if self._images_list and self._images_list_disposable and self._images_list.free then
-    logger.dbg("ImageViewer:onCloseWidget: free self._images_list", self._images_list)
+  if
+    self._images_list
+    and self._images_list_disposable
+    and self._images_list.free
+  then
+    logger.dbg(
+      "ImageViewer:onCloseWidget: free self._images_list",
+      self._images_list
+    )
     self._images_list:free()
   end
   if self._scaled_image_func then

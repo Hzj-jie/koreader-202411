@@ -53,8 +53,12 @@ function ViewHtml:_viewSelectionHTML(
   local html_flags = self.VIEWS[view][2]
   local massage_html = self.VIEWS[view][3]
 
-  local html, css_files, css_selectors_offsets =
-    document:getHTMLFromXPointers(selected_text.pos0, selected_text.pos1, html_flags, true)
+  local html, css_files, css_selectors_offsets = document:getHTMLFromXPointers(
+    selected_text.pos0,
+    selected_text.pos1,
+    html_flags,
+    true
+  )
   if not html then
     UIManager:show(InfoMessage:new({
       text = gettext("Failed getting HTML for selection"),
@@ -98,7 +102,8 @@ function ViewHtml:_viewSelectionHTML(
   end
   if massage_html or hide_stylesheet_elem_content then
     replace_in_html("<stylesheet[^>]*>.-</stylesheet>", function(s)
-      local pre, css_text, post = s:match("(<stylesheet[^>]*>)%s*(.-)%s*(</stylesheet>)")
+      local pre, css_text, post =
+        s:match("(<stylesheet[^>]*>)%s*(.-)%s*(</stylesheet>)")
       if hide_stylesheet_elem_content then
         return pre .. "[...]" .. post
       end
@@ -116,7 +121,13 @@ function ViewHtml:_viewSelectionHTML(
     -- Allow hiding css files buttons if there are too many
     -- and the available height for text is too short
     UIManager:close(textviewer)
-    self:_viewSelectionHTML(document, selected_text, view, not with_css_files_buttons, hide_stylesheet_elem_content)
+    self:_viewSelectionHTML(
+      document,
+      selected_text,
+      view,
+      not with_css_files_buttons,
+      hide_stylesheet_elem_content
+    )
   end
   local buttons_table = {}
   if css_files and with_css_files_buttons then
@@ -179,7 +190,13 @@ function ViewHtml:_viewSelectionHTML(
 
   -- Long-press in the HTML will present a list of CSS selectors related to the element
   -- we pressed on, to be copied to clipboard
-  local text_selection_callback = function(text, hold_duration, start_idx, end_idx, to_source_index_func)
+  local text_selection_callback = function(
+    text,
+    hold_duration,
+    start_idx,
+    end_idx,
+    to_source_index_func
+  )
     if not css_selectors_offsets or css_selectors_offsets == "" then -- no flag provided
       Device.input.setClipboardText(text)
       UIManager:show(Notification:new({
@@ -189,10 +206,22 @@ function ViewHtml:_viewSelectionHTML(
     end
     -- We only work with one index (let's choose start_idx), and we want the offset in the utf8 stream
     local idx = to_source_index_func(start_idx)
-    self:_handleLongPress(document, css_selectors_offsets, offset_shifts, idx, function()
-      UIManager:close(textviewer)
-      self:_viewSelectionHTML(document, selected_text, view, with_css_files_buttons, not hide_stylesheet_elem_content)
-    end)
+    self:_handleLongPress(
+      document,
+      css_selectors_offsets,
+      offset_shifts,
+      idx,
+      function()
+        UIManager:close(textviewer)
+        self:_viewSelectionHTML(
+          document,
+          selected_text,
+          view,
+          with_css_files_buttons,
+          not hide_stylesheet_elem_content
+        )
+      end
+    )
   end
 
   textviewer = TextViewer:new({
@@ -209,7 +238,13 @@ function ViewHtml:_viewSelectionHTML(
   UIManager:show(textviewer)
 end
 
-function ViewHtml:_handleLongPress(document, css_selectors_offsets, offset_shifts, idx, stylesheet_elem_callback)
+function ViewHtml:_handleLongPress(
+  document,
+  css_selectors_offsets,
+  offset_shifts,
+  idx,
+  stylesheet_elem_callback
+)
   -- We want to propose for "copy into clipboard" a few interesting selectors related to the element
   -- the user long-pressed on, which can then be pasted in "Find" when viewing a stylesheet, or
   -- pasted in "Book style tweaks" when willing to tweak the style for this element.
@@ -316,13 +351,19 @@ function ViewHtml:_handleLongPress(document, css_selectors_offsets, offset_shift
           if all_attrs ~= "" and not seen_kind.element then
             -- Propose as selector the selected element with all its attributes (and classnames),
             -- ie. "p.justif1.no-indent[type=main]".
-            table.insert(proposed_selectors, elem .. all_classnames .. all_attrs)
+            table.insert(
+              proposed_selectors,
+              elem .. all_classnames .. all_attrs
+            )
           end
           -- Accumulate into the full ancestor element & classname selector
           if ancestors_classnames_selector ~= "" then
-            ancestors_classnames_selector = " > " .. ancestors_classnames_selector
+            ancestors_classnames_selector = " > "
+              .. ancestors_classnames_selector
           end
-          ancestors_classnames_selector = elem .. all_classnames .. ancestors_classnames_selector
+          ancestors_classnames_selector = elem
+            .. all_classnames
+            .. ancestors_classnames_selector
           seen_kind.element = true -- done with selectors targeting the selected element only
         end
         if elem == "DocFragment" or elem == "FictionBook" then
@@ -349,7 +390,9 @@ function ViewHtml:_handleLongPress(document, css_selectors_offsets, offset_shift
         -- Allow "appending" with long-press, in case we want to gather a few selectors
         -- at once to later work with them in a style tweak
         hold_callback = function()
-          Device.input.setClipboardText(Device.input.getClipboardText() .. "\n" .. text)
+          Device.input.setClipboardText(
+            Device.input.getClipboardText() .. "\n" .. text
+          )
           UIManager:show(Notification:new({
             text = gettext("Selector appended to clipboard."),
           }))
@@ -403,11 +446,19 @@ function ViewHtml:_handleLongPress(document, css_selectors_offsets, offset_shift
   UIManager:show(widget)
 end
 
-function ViewHtml:_showMatchingSelectors(document, ancestors, show_all_ancestors, with_main_stylesheet)
+function ViewHtml:_showMatchingSelectors(
+  document,
+  ancestors,
+  show_all_ancestors,
+  with_main_stylesheet
+)
   local snippets
   if not show_all_ancestors then
     local node_dataindex = ancestors[1][2]
-    snippets = document:getStylesheetsMatchingRulesets(node_dataindex, with_main_stylesheet)
+    snippets = document:getStylesheetsMatchingRulesets(
+      node_dataindex,
+      with_main_stylesheet
+    )
   else
     snippets = {}
     local elements = {}
@@ -426,11 +477,18 @@ function ViewHtml:_showMatchingSelectors(document, ancestors, show_all_ancestors
       table.insert(snippets, "/* \u{259B}" .. ("\u{2580}"):rep(20) .. " */")
       table.insert(snippets, "/* \u{258C}" .. desc .. " */")
       table.insert(snippets, "/* \u{2599}" .. ("\u{2584}"):rep(20) .. " */")
-      util.arrayAppend(snippets, document:getStylesheetsMatchingRulesets(node_dataindex, with_main_stylesheet))
+      util.arrayAppend(
+        snippets,
+        document:getStylesheetsMatchingRulesets(
+          node_dataindex,
+          with_main_stylesheet
+        )
+      )
     end
   end
 
-  local title = show_all_ancestors and gettext("Matching rulesets (all ancestors)")
+  local title = show_all_ancestors
+      and gettext("Matching rulesets (all ancestors)")
     or gettext("Matching rulesets (element only)")
   local css_text = table.concat(snippets, "\n")
   local cssviewer

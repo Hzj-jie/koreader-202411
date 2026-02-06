@@ -80,12 +80,22 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
     end
 
     if type(address) == "string" then
-      rc = ffi.C.inet_pton(family, address, family == AF_INET and serv_addr.sin_addr or serv_addr.sin6_addr)
+      rc = ffi.C.inet_pton(
+        family,
+        address,
+        family == AF_INET and serv_addr.sin_addr or serv_addr.sin6_addr
+      )
       if rc == 0 then
         error(string.format("[sockutil.lua] Invalid address %s", address))
       elseif rc == -1 then
         errno = ffi.errno()
-        error(string.format("[sockutil.lua Errno %d] Could not parse address. %s", errno, socket.strerror(errno)))
+        error(
+          string.format(
+            "[sockutil.lua Errno %d] Could not parse address. %s",
+            errno,
+            socket.strerror(errno)
+          )
+        )
       end
     elseif type(address) == "number" and family == AF_INET then
       if family == AF_INET then
@@ -116,7 +126,12 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
       if errno == EINPROGRESS then
         return p
       end
-      return nil, string.format("Could not connect. Errno %d: %s", errno, socket.strerror(errno) or "")
+      return nil,
+        string.format(
+          "Could not connect. Errno %d: %s",
+          errno,
+          socket.strerror(errno) or ""
+        )
     end
     return p
   end
@@ -157,7 +172,13 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
     local fd = C.socket(family, SOCK_STREAM, 0)
     if fd == -1 then
       errno = ffi.errno()
-      error(string.format("[tcpserver.lua Errno %d] Could not create socket. %s", errno, socket.strerror(errno)))
+      error(
+        string.format(
+          "[tcpserver.lua Errno %d] Could not create socket. %s",
+          errno,
+          socket.strerror(errno)
+        )
+      )
     end
     rc, msg = socket.set_nonblock_flag(fd)
     if rc ~= 0 then
@@ -167,9 +188,21 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
     if rc ~= 0 then
       error("[tcpserver.lua] " .. msg)
     end
-    if C.bind(fd, ffi.cast("struct sockaddr *", serv_addr), ffi.sizeof(serv_addr)) ~= 0 then
+    if
+      C.bind(
+        fd,
+        ffi.cast("struct sockaddr *", serv_addr),
+        ffi.sizeof(serv_addr)
+      ) ~= 0
+    then
       errno = ffi.errno()
-      error(string.format("[tcpserver.lua Errno %d] Could not bind to address. %s", errno, socket.strerror(errno)))
+      error(
+        string.format(
+          "[tcpserver.lua Errno %d] Could not bind to address. %s",
+          errno,
+          socket.strerror(errno)
+        )
+      )
     end
     if C.listen(fd, backlog) ~= 0 then
       errno = ffi.errno()
@@ -196,7 +229,8 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
       --log.devel(string.format(
       --"[tcpserver.lua] Accepting connection on socket fd %d", fd))
 
-      local client_fd = C.accept(fd, ffi.cast("struct sockaddr *", client_addr), client_addr_sz)
+      local client_fd =
+        C.accept(fd, ffi.cast("struct sockaddr *", client_addr), client_addr_sz)
       local family = client_addr.ss_family
       if client_fd == -1 then
         errno = ffi.errno()
@@ -204,7 +238,11 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
           break
         else
           log.error(
-            string.format("[tcpserver.lua Errno %d] Could not accept connection. %s", errno, socket.strerror(errno))
+            string.format(
+              "[tcpserver.lua Errno %d] Could not accept connection. %s",
+              errno,
+              socket.strerror(errno)
+            )
           )
           break
         end
@@ -213,7 +251,13 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
       if family == AF_INET then
         local sockaddr_in = ffi.cast("struct sockaddr_in *", client_addr)
         local s_addr_ptr = ffi.cast("unsigned char *", sockaddr_in.sin_addr)
-        address = string.format("%d.%d.%d.%d", s_addr_ptr[0], s_addr_ptr[1], s_addr_ptr[2], s_addr_ptr[3])
+        address = string.format(
+          "%d.%d.%d.%d",
+          s_addr_ptr[0],
+          s_addr_ptr[1],
+          s_addr_ptr[2],
+          s_addr_ptr[3]
+        )
       else
         local client_sa = ffi.cast("struct sockaddr_in6 *", client_addr)
         local addrbuf = ffi.new("char[?]", INET6_ADDRSTRLEN)
@@ -262,7 +306,12 @@ end
 -- @param arg Optional argument for callback.
 function sockutils.add_accept_handler(sock, callback, io_loop, arg)
   local io_loop = io_loop or ioloop.instance()
-  io_loop:add_handler(sock, ioloop.READ, _add_accept_hander_cb, { callback, arg })
+  io_loop:add_handler(
+    sock,
+    ioloop.READ,
+    _add_accept_hander_cb,
+    { callback, arg }
+  )
 end
 
 return sockutils

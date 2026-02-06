@@ -318,7 +318,9 @@ local function dither_o8x8(x, y, v)
 
   -- map width & height = 8
   -- c = ClampToQuantum((l+(t >= map[(x % mw) + mw * (y % mh)])) * QuantumRange / (L-1));
-  local q = (l + (t >= threshold_map_o8x8[band(x, 7) + (8 * band(y, 7))] and 1 or 0)) * 17
+  local q = (
+    l + (t >= threshold_map_o8x8[band(x, 7) + (8 * band(y, 7))] and 1 or 0)
+  ) * 17
   -- NOTE: For some arcane reason, on ARM (at least), this is noticeably faster than Pillow's CLIP8 macro.
   --       Following this logic with ternary operators yields similar results,
   --       so I'm guessing it's the < 256 part of Pillow's macro that doesn't agree with GCC/ARM...
@@ -335,14 +337,17 @@ end
 function Color4L_mt.__index:blend(color, coverage)
   local alpha = coverage or color:getAlpha()
   -- simplified: we expect a 8bit grayscale "color" as parameter
-  local value = div4080(band(self.a, 0x0F) * 0x11 * bxor(alpha, 0xFF) + color:getR() * alpha)
+  local value = div4080(
+    band(self.a, 0x0F) * 0x11 * bxor(alpha, 0xFF) + color:getR() * alpha
+  )
   self:set(Color4L(value))
 end
 function Color4U_mt.__index:blend(color, coverage)
   local alpha = coverage or color:getAlpha()
   local orig = band(self.a, 0xF0)
   -- simplified: we expect a 8bit grayscale "color" as parameter
-  local value = div255((orig + rshift(orig, 4)) * bxor(alpha, 0xFF) + color:getR() * alpha)
+  local value =
+    div255((orig + rshift(orig, 4)) * bxor(alpha, 0xFF) + color:getR() * alpha)
   self:set(Color4U(value))
 end
 function Color8_mt.__index:blend(color, coverage)
@@ -386,14 +391,16 @@ end
 function Color4L_mt.__index:pmulblend(color)
   local alpha = color:getAlpha()
   -- simplified: we expect a 8bit grayscale "color" as parameter
-  local value = div4080(band(self.a, 0x0F) * 0x11 * bxor(alpha, 0xFF) + color:getR() * 0xFF)
+  local value =
+    div4080(band(self.a, 0x0F) * 0x11 * bxor(alpha, 0xFF) + color:getR() * 0xFF)
   self:set(Color4L(value))
 end
 function Color4U_mt.__index:pmulblend(color)
   local alpha = color:getAlpha()
   local orig = band(self.a, 0xF0)
   -- simplified: we expect a 8bit grayscale "color" as parameter
-  local value = div255((orig + rshift(orig, 4)) * bxor(alpha, 0xFF) + color:getR() * 0xFF)
+  local value =
+    div255((orig + rshift(orig, 4)) * bxor(alpha, 0xFF) + color:getR() * 0xFF)
   self:set(Color4U(value))
 end
 function Color8_mt.__index:pmulblend(color)
@@ -517,7 +524,9 @@ function ColorRGB16_mt.__index:getColor4U()
   return Color4U(band(0xF0, rshift(39919 * r + 39185 * g + 15220 * b, 14)))
 end
 function ColorRGB24_mt.__index:getColor4U()
-  return Color4U(band(0xF0, rshift(4898 * self.r + 9618 * self.g + 1869 * self.b, 14)))
+  return Color4U(
+    band(0xF0, rshift(4898 * self.r + 9618 * self.g + 1869 * self.b, 14))
+  )
 end
 ColorRGB32_mt.__index.getColor4U = ColorRGB24_mt.__index.getColor4U
 
@@ -541,7 +550,9 @@ function ColorRGB16_mt.__index:getColor8()
   return Color8(rshift(39919 * r + 39185 * g + 15220 * b, 14))
 end
 function ColorRGB24_mt.__index:getColor8()
-  return Color8(rshift(4898 * self:getR() + 9618 * self:getG() + 1869 * self:getB(), 14))
+  return Color8(
+    rshift(4898 * self:getR() + 9618 * self:getG() + 1869 * self:getB(), 14)
+  )
 end
 ColorRGB32_mt.__index.getColor8 = ColorRGB24_mt.__index.getColor8
 
@@ -567,10 +578,16 @@ function ColorRGB16_mt.__index:getColor8A()
   return Color8A(rshift(39919 * r + 39185 * g + 15220 * b, 14), 0xFF)
 end
 function ColorRGB24_mt.__index:getColor8A()
-  return Color8A(rshift(4898 * self:getR() + 9618 * self:getG() + 1869 * self:getB(), 14), 0xFF)
+  return Color8A(
+    rshift(4898 * self:getR() + 9618 * self:getG() + 1869 * self:getB(), 14),
+    0xFF
+  )
 end
 function ColorRGB32_mt.__index:getColor8A()
-  return Color8A(rshift(4898 * self:getR() + 9618 * self:getG() + 1869 * self:getB(), 14), self:getAlpha())
+  return Color8A(
+    rshift(4898 * self:getR() + 9618 * self:getG() + 1869 * self:getB(), 14),
+    self:getAlpha()
+  )
 end
 
 -- to ColorRGB16:
@@ -590,7 +607,11 @@ function ColorRGB16_mt.__index:getColorRGB16()
   return ColorRGB16(self.v)
 end
 function ColorRGB24_mt.__index:getColorRGB16()
-  return ColorRGB16(lshift(band(self.r, 0xF8), 8) + lshift(band(self.g, 0xFC), 3) + rshift(self.b, 3))
+  return ColorRGB16(
+    lshift(band(self.r, 0xF8), 8)
+      + lshift(band(self.g, 0xFC), 3)
+      + rshift(self.b, 3)
+  )
 end
 ColorRGB32_mt.__index.getColorRGB16 = ColorRGB24_mt.__index.getColorRGB16
 
@@ -608,7 +629,11 @@ function ColorRGB16_mt.__index:getColorRGB24()
   local r = rshift(self.v, 11)
   local g = band(rshift(self.v, 5), 0x3F)
   local b = band(self.v, 0x001F)
-  return ColorRGB24(lshift(r, 3) + rshift(r, 2), lshift(g, 2) + rshift(g, 4), lshift(b, 3) + rshift(b, 2))
+  return ColorRGB24(
+    lshift(r, 3) + rshift(r, 2),
+    lshift(g, 2) + rshift(g, 4),
+    lshift(b, 3) + rshift(b, 2)
+  )
 end
 function ColorRGB24_mt.__index:getColorRGB24()
   return ColorRGB24(self.r, self.g, self.b)
@@ -631,7 +656,12 @@ function ColorRGB16_mt.__index:getColorRGB32()
   local r = rshift(self.v, 11)
   local g = band(rshift(self.v, 5), 0x3F)
   local b = band(self.v, 0x001F)
-  return ColorRGB32(lshift(r, 3) + rshift(r, 2), lshift(g, 2) + rshift(g, 4), lshift(b, 3) + rshift(b, 2), 0xFF)
+  return ColorRGB32(
+    lshift(r, 3) + rshift(r, 2),
+    lshift(g, 2) + rshift(g, 4),
+    lshift(b, 3) + rshift(b, 2),
+    0xFF
+  )
 end
 function ColorRGB24_mt.__index:getColorRGB32()
   return ColorRGB32(self.r, self.g, self.b, 0xFF)
@@ -714,7 +744,12 @@ function ColorRGB24_mt.__index:invert()
   return ColorRGB24(bxor(self.r, 0xFF), bxor(self.g, 0xFF), bxor(self.b, 0xFF))
 end
 function ColorRGB32_mt.__index:invert()
-  return ColorRGB32(bxor(self.r, 0xFF), bxor(self.g, 0xFF), bxor(self.b, 0xFF), self.alpha)
+  return ColorRGB32(
+    bxor(self.r, 0xFF),
+    bxor(self.g, 0xFF),
+    bxor(self.b, 0xFF),
+    self.alpha
+  )
 end
 
 -- comparison:
@@ -746,13 +781,33 @@ function Color8A_mt:__tostring()
   return "Color8A(" .. self.a .. ", " .. self.alpha .. ")"
 end
 function ColorRGB16_mt:__tostring()
-  return "ColorRGB16(" .. self:getR() .. ", " .. self:getG() .. ", " .. self:getB() .. ")"
+  return "ColorRGB16("
+    .. self:getR()
+    .. ", "
+    .. self:getG()
+    .. ", "
+    .. self:getB()
+    .. ")"
 end
 function ColorRGB24_mt:__tostring()
-  return "ColorRGB24(" .. self:getR() .. ", " .. self:getG() .. ", " .. self:getB() .. ")"
+  return "ColorRGB24("
+    .. self:getR()
+    .. ", "
+    .. self:getG()
+    .. ", "
+    .. self:getB()
+    .. ")"
 end
 function ColorRGB32_mt:__tostring()
-  return "ColorRGB32(" .. self:getR() .. ", " .. self:getG() .. ", " .. self:getB() .. ", " .. self:getAlpha() .. ")"
+  return "ColorRGB32("
+    .. self:getR()
+    .. ", "
+    .. self:getG()
+    .. ", "
+    .. self:getB()
+    .. ", "
+    .. self:getAlpha()
+    .. ")"
 end
 
 local MASK_ALLOCATED = 0x01
@@ -793,7 +848,10 @@ function BB_mt.__index:getRotation()
   return rshift(band(MASK_ROTATED, self.config), SHIFT_ROTATED)
 end
 function BB_mt.__index:setRotation(rotation_mode)
-  self.config = bor(band(self.config, bxor(MASK_ROTATED, 0xFF)), lshift(rotation_mode, SHIFT_ROTATED))
+  self.config = bor(
+    band(self.config, bxor(MASK_ROTATED, 0xFF)),
+    lshift(rotation_mode, SHIFT_ROTATED)
+  )
 end
 function BB_mt.__index:rotateAbsolute(degree)
   local mode = (degree % 360) / 90
@@ -808,7 +866,10 @@ function BB_mt.__index:getInverse()
   return rshift(band(MASK_INVERSE, self.config), SHIFT_INVERSE)
 end
 function BB_mt.__index:setInverse(inverse)
-  self.config = bor(band(self.config, bxor(MASK_INVERSE, 0xFF)), lshift(inverse, SHIFT_INVERSE))
+  self.config = bor(
+    band(self.config, bxor(MASK_INVERSE, 0xFF)),
+    lshift(inverse, SHIFT_INVERSE)
+  )
 end
 function BB_mt.__index:invert()
   self:setInverse(band(self:getInverse() + 1, 1))
@@ -818,7 +879,10 @@ function BB_mt.__index:getAllocated()
   return rshift(band(MASK_ALLOCATED, self.config), SHIFT_ALLOCATED)
 end
 function BB_mt.__index:setAllocated(allocated)
-  self.config = bor(band(self.config, bxor(MASK_ALLOCATED, 0xFF)), lshift(allocated, SHIFT_ALLOCATED))
+  self.config = bor(
+    band(self.config, bxor(MASK_ALLOCATED, 0xFF)),
+    lshift(allocated, SHIFT_ALLOCATED)
+  )
   if allocated == 1 then
     ffi.gc(self, BB.gc)
   else
@@ -901,13 +965,18 @@ function BBRGB32_mt.__index:getBytesPerPixel()
 end
 function BB_mt.__index:isRGB()
   local bb_type = self:getType()
-  if bb_type == TYPE_BBRGB16 or bb_type == TYPE_BBRGB24 or bb_type == TYPE_BBRGB32 then
+  if
+    bb_type == TYPE_BBRGB16
+    or bb_type == TYPE_BBRGB24
+    or bb_type == TYPE_BBRGB32
+  then
     return true
   end
   return false
 end
 function BB_mt.__index:setType(type_id)
-  self.config = bor(band(self.config, bxor(MASK_TYPE, 0xFF)), lshift(type_id, SHIFT_TYPE))
+  self.config =
+    bor(band(self.config, bxor(MASK_TYPE, 0xFF)), lshift(type_id, SHIFT_TYPE))
 end
 function BB_mt.__index:getPhysicalCoordinates(x, y)
   local rotation = self:getRotation()
@@ -1209,8 +1278,10 @@ function BBRGB16_mt.__index:setPixelColorizeRGB32(x, y, mask, color)
     self:getPixelP(px, py)[0]:blend(color, alpha)
   end
 end
-BBRGB24_mt.__index.setPixelColorizeRGB32 = BBRGB16_mt.__index.setPixelColorizeRGB32
-BBRGB32_mt.__index.setPixelColorizeRGB32 = BBRGB16_mt.__index.setPixelColorizeRGB32
+BBRGB24_mt.__index.setPixelColorizeRGB32 =
+  BBRGB16_mt.__index.setPixelColorizeRGB32
+BBRGB32_mt.__index.setPixelColorizeRGB32 =
+  BBRGB16_mt.__index.setPixelColorizeRGB32
 -- Invert
 function BB_mt.__index:setPixelInverted(x, y, color)
   self:setPixel(x, y, color:invert())
@@ -1262,7 +1333,13 @@ generic boundary check for copy operations
 @return adapted target offset, guaranteed within range 0..(target_size-1)
 @return adapted source offset, guaranteed within range 0..(source_size-1)
 --]]
-function BB.checkBounds(length, target_offset, source_offset, target_size, source_size)
+function BB.checkBounds(
+  length,
+  target_offset,
+  source_offset,
+  target_size,
+  source_size
+)
   -- deal with negative offsets
   if target_offset < 0 then
     length = length + target_offset
@@ -1373,7 +1450,17 @@ function BB_mt.__index:getBoundedRect(x, y, w, h, alignment)
   return x, y, w, h
 end
 
-function BB_mt.__index:blitDefault(dest, dest_x, dest_y, offs_x, offs_y, width, height, setter, set_param)
+function BB_mt.__index:blitDefault(
+  dest,
+  dest_x,
+  dest_y,
+  offs_x,
+  offs_y,
+  width,
+  height,
+  setter,
+  set_param
+)
   -- slow default variant:
   local o_y = offs_y
   for y = dest_y, dest_y + height - 1 do
@@ -1394,7 +1481,17 @@ BB_mt.__index.blitToRGB24 = BB_mt.__index.blitDefault
 BB_mt.__index.blitToRGB32 = BB_mt.__index.blitDefault
 
 -- Same to same fast blitting
-function BB8_mt.__index:blitTo8(dest, dest_x, dest_y, offs_x, offs_y, width, height, setter, set_param)
+function BB8_mt.__index:blitTo8(
+  dest,
+  dest_x,
+  dest_y,
+  offs_x,
+  offs_y,
+  width,
+  height,
+  setter,
+  set_param
+)
   -- We can only do fast copy for simple blitting with no processing (setPixel, no rota, no invert)
   if
     setter ~= self.setPixel
@@ -1402,11 +1499,27 @@ function BB8_mt.__index:blitTo8(dest, dest_x, dest_y, offs_x, offs_y, width, hei
     or dest:getRotation() ~= 0
     or (self:getInverse() ~= dest:getInverse())
   then
-    return self:blitDefault(dest, dest_x, dest_y, offs_x, offs_y, width, height, setter, set_param)
+    return self:blitDefault(
+      dest,
+      dest_x,
+      dest_y,
+      offs_x,
+      offs_y,
+      width,
+      height,
+      setter,
+      set_param
+    )
   end
 
   -- Perform block copies only in the simple case of the blit width being equal to width of both buffers of same stride.
-  if offs_x == 0 and dest_x == 0 and width == self.w and width == dest.w and dest.stride == self.stride then
+  if
+    offs_x == 0
+    and dest_x == 0
+    and width == self.w
+    and width == dest.w
+    and dest.stride == self.stride
+  then
     -- Single step for contiguous scanlines (on both sides)
     --print("BB8 to BB8 full copy")
     -- BB8 is 1 byte per pixel
@@ -1426,7 +1539,17 @@ function BB8_mt.__index:blitTo8(dest, dest_x, dest_y, offs_x, offs_y, width, hei
     end
   end
 end
-function BBRGB32_mt.__index:blitToRGB32(dest, dest_x, dest_y, offs_x, offs_y, width, height, setter, set_param)
+function BBRGB32_mt.__index:blitToRGB32(
+  dest,
+  dest_x,
+  dest_y,
+  offs_x,
+  offs_y,
+  width,
+  height,
+  setter,
+  set_param
+)
   -- We can only do fast copy for simple blitting with no processing (setPixel, no rota, no invert)
   if
     setter ~= self.setPixel
@@ -1434,11 +1557,27 @@ function BBRGB32_mt.__index:blitToRGB32(dest, dest_x, dest_y, offs_x, offs_y, wi
     or dest:getRotation() ~= 0
     or (self:getInverse() ~= dest:getInverse())
   then
-    return self:blitDefault(dest, dest_x, dest_y, offs_x, offs_y, width, height, setter, set_param)
+    return self:blitDefault(
+      dest,
+      dest_x,
+      dest_y,
+      offs_x,
+      offs_y,
+      width,
+      height,
+      setter,
+      set_param
+    )
   end
 
   -- Perform block copies only in the simple case of the blit width being equal to width of both buffers of same stride.
-  if offs_x == 0 and dest_x == 0 and width == self.w and width == dest.w and dest.stride == self.stride then
+  if
+    offs_x == 0
+    and dest_x == 0
+    and width == self.w
+    and width == dest.w
+    and dest.stride == self.stride
+  then
     -- Single step for contiguous scanlines (on both sides)
     --print("BBRGB32 to BBRGB32 full copy")
     -- BBRGB32 is 4 bytes per pixel
@@ -1451,21 +1590,47 @@ function BBRGB32_mt.__index:blitToRGB32(dest, dest_x, dest_y, offs_x, offs_y, wi
     local o_y = offs_y
     for y = dest_y, dest_y + height - 1 do
       -- BBRGB32 is 4 bytes per pixel
-      local srcp = ffi.cast(uint8pt_rodata, self.data) + self.stride * o_y + lshift(offs_x, 2)
-      local dstp = ffi.cast(uint8pt, dest.data) + dest.stride * y + lshift(dest_x, 2)
+      local srcp = ffi.cast(uint8pt_rodata, self.data)
+        + self.stride * o_y
+        + lshift(offs_x, 2)
+      local dstp = ffi.cast(uint8pt, dest.data)
+        + dest.stride * y
+        + lshift(dest_x, 2)
       ffi.copy(dstp, srcp, lshift(width, 2))
       o_y = o_y + 1
     end
   end
 end
 
-function BB_mt.__index:blitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height, setter, set_param)
+function BB_mt.__index:blitFrom(
+  source,
+  dest_x,
+  dest_y,
+  offs_x,
+  offs_y,
+  width,
+  height,
+  setter,
+  set_param
+)
   width, height = width or source:getWidth(), height or source:getHeight()
   -- NOTE: If we convince CRe to render to a padded buffer (to match pixel_stride and allow us single-copy blitting),
   --       change the self:get* calls to self:getPhysical* ones ;).
   --       c.f., https://github.com/koreader/koreader-base/pull/878#issuecomment-476312508
-  width, dest_x, offs_x = BB.checkBounds(width, dest_x or 0, offs_x or 0, self:getWidth(), source:getWidth())
-  height, dest_y, offs_y = BB.checkBounds(height, dest_y or 0, offs_y or 0, self:getHeight(), source:getHeight())
+  width, dest_x, offs_x = BB.checkBounds(
+    width,
+    dest_x or 0,
+    offs_x or 0,
+    self:getWidth(),
+    source:getWidth()
+  )
+  height, dest_y, offs_y = BB.checkBounds(
+    height,
+    dest_y or 0,
+    offs_y or 0,
+    self:getHeight(),
+    source:getHeight()
+  )
   if width <= 0 or height <= 0 then
     return
   end
@@ -1485,17 +1650,49 @@ function BB_mt.__index:blitFrom(source, dest_x, dest_y, offs_x, offs_y, width, h
       height
     )
   else
-    source[self.blitfunc](source, self, dest_x, dest_y, offs_x, offs_y, width, height, setter, set_param)
+    source[self.blitfunc](
+      source,
+      self,
+      dest_x,
+      dest_y,
+      offs_x,
+      offs_y,
+      width,
+      height,
+      setter,
+      set_param
+    )
   end
 end
 BB_mt.__index.blitFullFrom = BB_mt.__index.blitFrom
 
 -- blitting with a per-blit alpha value
-function BB_mt.__index:addblitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height, intensity)
+function BB_mt.__index:addblitFrom(
+  source,
+  dest_x,
+  dest_y,
+  offs_x,
+  offs_y,
+  width,
+  height,
+  intensity
+)
   if self:canUseCbbTogether(source) then
     width, height = width or source:getWidth(), height or source:getHeight()
-    width, dest_x, offs_x = BB.checkBounds(width, dest_x or 0, offs_x or 0, self:getWidth(), source:getWidth())
-    height, dest_y, offs_y = BB.checkBounds(height, dest_y or 0, offs_y or 0, self:getHeight(), source:getHeight())
+    width, dest_x, offs_x = BB.checkBounds(
+      width,
+      dest_x or 0,
+      offs_x or 0,
+      self:getWidth(),
+      source:getWidth()
+    )
+    height, dest_y, offs_y = BB.checkBounds(
+      height,
+      dest_y or 0,
+      offs_y or 0,
+      self:getHeight(),
+      source:getHeight()
+    )
     if width <= 0 or height <= 0 then
       return
     end
@@ -1511,17 +1708,47 @@ function BB_mt.__index:addblitFrom(source, dest_x, dest_y, offs_x, offs_y, width
       intensity * 0xFF
     )
   else
-    self:blitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height, self.setPixelAdd, intensity * 0xFF)
+    self:blitFrom(
+      source,
+      dest_x,
+      dest_y,
+      offs_x,
+      offs_y,
+      width,
+      height,
+      self.setPixelAdd,
+      intensity * 0xFF
+    )
   end
 end
 
 -- alpha-pane aware blitting
 -- straight alpha
-function BB_mt.__index:alphablitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height)
+function BB_mt.__index:alphablitFrom(
+  source,
+  dest_x,
+  dest_y,
+  offs_x,
+  offs_y,
+  width,
+  height
+)
   if self:canUseCbbTogether(source) then
     width, height = width or source:getWidth(), height or source:getHeight()
-    width, dest_x, offs_x = BB.checkBounds(width, dest_x or 0, offs_x or 0, self:getWidth(), source:getWidth())
-    height, dest_y, offs_y = BB.checkBounds(height, dest_y or 0, offs_y or 0, self:getHeight(), source:getHeight())
+    width, dest_x, offs_x = BB.checkBounds(
+      width,
+      dest_x or 0,
+      offs_x or 0,
+      self:getWidth(),
+      source:getWidth()
+    )
+    height, dest_y, offs_y = BB.checkBounds(
+      height,
+      dest_y or 0,
+      offs_y or 0,
+      self:getHeight(),
+      source:getHeight()
+    )
     if width <= 0 or height <= 0 then
       return
     end
@@ -1536,15 +1763,44 @@ function BB_mt.__index:alphablitFrom(source, dest_x, dest_y, offs_x, offs_y, wid
       height
     )
   else
-    self:blitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height, self.setPixelBlend)
+    self:blitFrom(
+      source,
+      dest_x,
+      dest_y,
+      offs_x,
+      offs_y,
+      width,
+      height,
+      self.setPixelBlend
+    )
   end
 end
 -- straight alpha w/ dithering (dithering only if target is BB8)
-function BB_mt.__index:ditheralphablitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height)
+function BB_mt.__index:ditheralphablitFrom(
+  source,
+  dest_x,
+  dest_y,
+  offs_x,
+  offs_y,
+  width,
+  height
+)
   if self:canUseCbbTogether(source) then
     width, height = width or source:getWidth(), height or source:getHeight()
-    width, dest_x, offs_x = BB.checkBounds(width, dest_x or 0, offs_x or 0, self:getWidth(), source:getWidth())
-    height, dest_y, offs_y = BB.checkBounds(height, dest_y or 0, offs_y or 0, self:getHeight(), source:getHeight())
+    width, dest_x, offs_x = BB.checkBounds(
+      width,
+      dest_x or 0,
+      offs_x or 0,
+      self:getWidth(),
+      source:getWidth()
+    )
+    height, dest_y, offs_y = BB.checkBounds(
+      height,
+      dest_y or 0,
+      offs_y or 0,
+      self:getHeight(),
+      source:getHeight()
+    )
     if width <= 0 or height <= 0 then
       return
     end
@@ -1559,15 +1815,44 @@ function BB_mt.__index:ditheralphablitFrom(source, dest_x, dest_y, offs_x, offs_
       height
     )
   else
-    self:blitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height, self.setPixelDitherBlend)
+    self:blitFrom(
+      source,
+      dest_x,
+      dest_y,
+      offs_x,
+      offs_y,
+      width,
+      height,
+      self.setPixelDitherBlend
+    )
   end
 end
 -- premultiplied alpha
-function BB_mt.__index:pmulalphablitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height)
+function BB_mt.__index:pmulalphablitFrom(
+  source,
+  dest_x,
+  dest_y,
+  offs_x,
+  offs_y,
+  width,
+  height
+)
   if self:canUseCbbTogether(source) then
     width, height = width or source:getWidth(), height or source:getHeight()
-    width, dest_x, offs_x = BB.checkBounds(width, dest_x or 0, offs_x or 0, self:getWidth(), source:getWidth())
-    height, dest_y, offs_y = BB.checkBounds(height, dest_y or 0, offs_y or 0, self:getHeight(), source:getHeight())
+    width, dest_x, offs_x = BB.checkBounds(
+      width,
+      dest_x or 0,
+      offs_x or 0,
+      self:getWidth(),
+      source:getWidth()
+    )
+    height, dest_y, offs_y = BB.checkBounds(
+      height,
+      dest_y or 0,
+      offs_y or 0,
+      self:getHeight(),
+      source:getHeight()
+    )
     if width <= 0 or height <= 0 then
       return
     end
@@ -1582,15 +1867,44 @@ function BB_mt.__index:pmulalphablitFrom(source, dest_x, dest_y, offs_x, offs_y,
       height
     )
   else
-    self:blitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height, self.setPixelPmulBlend)
+    self:blitFrom(
+      source,
+      dest_x,
+      dest_y,
+      offs_x,
+      offs_y,
+      width,
+      height,
+      self.setPixelPmulBlend
+    )
   end
 end
 -- premultiplied alpha w/ dithering (dithering only if target is BB8)
-function BB_mt.__index:ditherpmulalphablitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height)
+function BB_mt.__index:ditherpmulalphablitFrom(
+  source,
+  dest_x,
+  dest_y,
+  offs_x,
+  offs_y,
+  width,
+  height
+)
   if self:canUseCbbTogether(source) then
     width, height = width or source:getWidth(), height or source:getHeight()
-    width, dest_x, offs_x = BB.checkBounds(width, dest_x or 0, offs_x or 0, self:getWidth(), source:getWidth())
-    height, dest_y, offs_y = BB.checkBounds(height, dest_y or 0, offs_y or 0, self:getHeight(), source:getHeight())
+    width, dest_x, offs_x = BB.checkBounds(
+      width,
+      dest_x or 0,
+      offs_x or 0,
+      self:getWidth(),
+      source:getWidth()
+    )
+    height, dest_y, offs_y = BB.checkBounds(
+      height,
+      dest_y or 0,
+      offs_y or 0,
+      self:getHeight(),
+      source:getHeight()
+    )
     if width <= 0 or height <= 0 then
       return
     end
@@ -1605,16 +1919,45 @@ function BB_mt.__index:ditherpmulalphablitFrom(source, dest_x, dest_y, offs_x, o
       height
     )
   else
-    self:blitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height, self.setPixelDitherPmulBlend)
+    self:blitFrom(
+      source,
+      dest_x,
+      dest_y,
+      offs_x,
+      offs_y,
+      width,
+      height,
+      self.setPixelDitherPmulBlend
+    )
   end
 end
 
 -- simple blitting w/ dithering (dithering only if target is BB8)
-function BB_mt.__index:ditherblitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height)
+function BB_mt.__index:ditherblitFrom(
+  source,
+  dest_x,
+  dest_y,
+  offs_x,
+  offs_y,
+  width,
+  height
+)
   if self:canUseCbbTogether(source) then
     width, height = width or source:getWidth(), height or source:getHeight()
-    width, dest_x, offs_x = BB.checkBounds(width, dest_x or 0, offs_x or 0, self:getWidth(), source:getWidth())
-    height, dest_y, offs_y = BB.checkBounds(height, dest_y or 0, offs_y or 0, self:getHeight(), source:getHeight())
+    width, dest_x, offs_x = BB.checkBounds(
+      width,
+      dest_x or 0,
+      offs_x or 0,
+      self:getWidth(),
+      source:getWidth()
+    )
+    height, dest_y, offs_y = BB.checkBounds(
+      height,
+      dest_y or 0,
+      offs_y or 0,
+      self:getHeight(),
+      source:getHeight()
+    )
     if width <= 0 or height <= 0 then
       return
     end
@@ -1629,16 +1972,45 @@ function BB_mt.__index:ditherblitFrom(source, dest_x, dest_y, offs_x, offs_y, wi
       height
     )
   else
-    self:blitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height, self.setPixelDither)
+    self:blitFrom(
+      source,
+      dest_x,
+      dest_y,
+      offs_x,
+      offs_y,
+      width,
+      height,
+      self.setPixelDither
+    )
   end
 end
 
 -- invert blitting
-function BB_mt.__index:invertblitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height)
+function BB_mt.__index:invertblitFrom(
+  source,
+  dest_x,
+  dest_y,
+  offs_x,
+  offs_y,
+  width,
+  height
+)
   if self:canUseCbbTogether(source) then
     width, height = width or source:getWidth(), height or source:getHeight()
-    width, dest_x, offs_x = BB.checkBounds(width, dest_x or 0, offs_x or 0, self:getWidth(), source:getWidth())
-    height, dest_y, offs_y = BB.checkBounds(height, dest_y or 0, offs_y or 0, self:getHeight(), source:getHeight())
+    width, dest_x, offs_x = BB.checkBounds(
+      width,
+      dest_x or 0,
+      offs_x or 0,
+      self:getWidth(),
+      source:getWidth()
+    )
+    height, dest_y, offs_y = BB.checkBounds(
+      height,
+      dest_y or 0,
+      offs_y or 0,
+      self:getHeight(),
+      source:getHeight()
+    )
     if width <= 0 or height <= 0 then
       return
     end
@@ -1653,18 +2025,48 @@ function BB_mt.__index:invertblitFrom(source, dest_x, dest_y, offs_x, offs_y, wi
       height
     )
   else
-    self:blitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height, self.setPixelInverted)
+    self:blitFrom(
+      source,
+      dest_x,
+      dest_y,
+      offs_x,
+      offs_y,
+      width,
+      height,
+      self.setPixelInverted
+    )
   end
 end
 
 -- colorize area using source blitbuffer as a alpha-map
-function BB_mt.__index:colorblitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height, color)
+function BB_mt.__index:colorblitFrom(
+  source,
+  dest_x,
+  dest_y,
+  offs_x,
+  offs_y,
+  width,
+  height,
+  color
+)
   -- we need color with alpha later:
   local c = color:getColor8A()
   if self:canUseCbbTogether(source) then
     width, height = width or source:getWidth(), height or source:getHeight()
-    width, dest_x, offs_x = BB.checkBounds(width, dest_x or 0, offs_x or 0, self:getWidth(), source:getWidth())
-    height, dest_y, offs_y = BB.checkBounds(height, dest_y or 0, offs_y or 0, self:getHeight(), source:getHeight())
+    width, dest_x, offs_x = BB.checkBounds(
+      width,
+      dest_x or 0,
+      offs_x or 0,
+      self:getWidth(),
+      source:getWidth()
+    )
+    height, dest_y, offs_y = BB.checkBounds(
+      height,
+      dest_y or 0,
+      offs_y or 0,
+      self:getHeight(),
+      source:getHeight()
+    )
     if width <= 0 or height <= 0 then
       return
     end
@@ -1683,17 +2085,48 @@ function BB_mt.__index:colorblitFrom(source, dest_x, dest_y, offs_x, offs_y, wid
     if self:getInverse() == 1 then
       c = c:invert()
     end
-    self:blitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height, self.setPixelColorize, c)
+    self:blitFrom(
+      source,
+      dest_x,
+      dest_y,
+      offs_x,
+      offs_y,
+      width,
+      height,
+      self.setPixelColorize,
+      c
+    )
   end
 end
 
-function BB_mt.__index:colorblitFromRGB32(source, dest_x, dest_y, offs_x, offs_y, width, height, color)
+function BB_mt.__index:colorblitFromRGB32(
+  source,
+  dest_x,
+  dest_y,
+  offs_x,
+  offs_y,
+  width,
+  height,
+  color
+)
   -- Enforce type coercion for safety (plus, we might need a copy for inversion anyway)
   local c = color:getColorRGB32()
   if self:canUseCbbTogether(source) then
     width, height = width or source:getWidth(), height or source:getHeight()
-    width, dest_x, offs_x = BB.checkBounds(width, dest_x or 0, offs_x or 0, self:getWidth(), source:getWidth())
-    height, dest_y, offs_y = BB.checkBounds(height, dest_y or 0, offs_y or 0, self:getHeight(), source:getHeight())
+    width, dest_x, offs_x = BB.checkBounds(
+      width,
+      dest_x or 0,
+      offs_x or 0,
+      self:getWidth(),
+      source:getWidth()
+    )
+    height, dest_y, offs_y = BB.checkBounds(
+      height,
+      dest_y or 0,
+      offs_y or 0,
+      self:getHeight(),
+      source:getHeight()
+    )
     if width <= 0 or height <= 0 then
       return
     end
@@ -1712,7 +2145,17 @@ function BB_mt.__index:colorblitFromRGB32(source, dest_x, dest_y, offs_x, offs_y
     if self:getInverse() == 1 then
       c = c:invert()
     end
-    self:blitFrom(source, dest_x, dest_y, offs_x, offs_y, width, height, self.setPixelColorizeRGB32, c)
+    self:blitFrom(
+      source,
+      dest_x,
+      dest_y,
+      offs_x,
+      offs_y,
+      width,
+      height,
+      self.setPixelColorizeRGB32,
+      c
+    )
   end
 end
 
@@ -1724,7 +2167,14 @@ function BB_mt.__index:scale(new_width, new_height)
   -- uses very simple nearest neighbour scaling
   for y = 0, new_height - 1 do
     for x = 0, new_width - 1 do
-      scaled_bb:setPixel(x, y, self:getPixel(util.idiv(x * self_w, new_width), util.idiv(y * self_h, new_height)))
+      scaled_bb:setPixel(
+        x,
+        y,
+        self:getPixel(
+          util.idiv(x * self_w, new_width),
+          util.idiv(y * self_h, new_height)
+        )
+      )
     end
   end
   return scaled_bb
@@ -1865,7 +2315,8 @@ function BB_mt.__index:invertRect(x, y, w, h)
       -- Single step for contiguous scanlines
       --print("Full invertRect")
       if bbtype == TYPE_BBRGB32 then
-        local p = ffi.cast(uint32pt, ffi.cast(uint8pt, self.data) + self.stride * y)
+        local p =
+          ffi.cast(uint32pt, ffi.cast(uint8pt, self.data) + self.stride * y)
         -- Account for potentially off-screen scanline bits by using self.pixel_stride instead of w,
         -- as we've just assured ourselves that the requested w matches self.w ;).
         for i = 1, self.pixel_stride * h do
@@ -1874,13 +2325,15 @@ function BB_mt.__index:invertRect(x, y, w, h)
           p = p + 1
         end
       elseif bbtype == TYPE_BBRGB16 then
-        local p = ffi.cast(uint16pt, ffi.cast(uint8pt, self.data) + self.stride * y)
+        local p =
+          ffi.cast(uint16pt, ffi.cast(uint8pt, self.data) + self.stride * y)
         for i = 1, self.pixel_stride * h do
           p[0] = bxor(p[0], 0xFFFF)
           p = p + 1
         end
       elseif bbtype == TYPE_BB8A then
-        local p = ffi.cast(uint16pt, ffi.cast(uint8pt, self.data) + self.stride * y)
+        local p =
+          ffi.cast(uint16pt, ffi.cast(uint8pt, self.data) + self.stride * y)
         for i = 1, self.pixel_stride * h do
           p[0] = bxor(p[0], 0x00FF)
           p = p + 1
@@ -1898,7 +2351,10 @@ function BB_mt.__index:invertRect(x, y, w, h)
       --print("Pixel invertRect")
       if bbtype == TYPE_BBRGB32 then
         for j = y, y + h - 1 do
-          local p = ffi.cast(uint32pt, ffi.cast(uint8pt, self.data) + self.stride * j) + x
+          local p = ffi.cast(
+            uint32pt,
+            ffi.cast(uint8pt, self.data) + self.stride * j
+          ) + x
           for i = 0, w - 1 do
             p[0] = bxor(p[0], 0x00FFFFFF)
             p = p + 1
@@ -1906,7 +2362,10 @@ function BB_mt.__index:invertRect(x, y, w, h)
         end
       elseif bbtype == TYPE_BBRGB16 then
         for j = y, y + h - 1 do
-          local p = ffi.cast(uint16pt, ffi.cast(uint8pt, self.data) + self.stride * j) + x
+          local p = ffi.cast(
+            uint16pt,
+            ffi.cast(uint8pt, self.data) + self.stride * j
+          ) + x
           for i = 0, w - 1 do
             p[0] = bxor(p[0], 0xFFFF)
             p = p + 1
@@ -1914,7 +2373,10 @@ function BB_mt.__index:invertRect(x, y, w, h)
         end
       elseif bbtype == TYPE_BB8A then
         for j = y, y + h - 1 do
-          local p = ffi.cast(uint16pt, ffi.cast(uint8pt, self.data) + self.stride * j) + x
+          local p = ffi.cast(
+            uint16pt,
+            ffi.cast(uint8pt, self.data) + self.stride * j
+          ) + x
           for i = 0, w - 1 do
             p[0] = bxor(p[0], 0x00FF)
             p = p + 1
@@ -1957,7 +2419,14 @@ function BB_mt.__index:paintRect(x, y, w, h, value, setter)
     return
   end
   if self:canUseCbb() and setter == self.setPixel then
-    cblitbuffer.BB_fill_rect(ffi.cast(P_BlitBuffer, self), x, y, w, h, value:getColor8().a)
+    cblitbuffer.BB_fill_rect(
+      ffi.cast(P_BlitBuffer, self),
+      x,
+      y,
+      w,
+      h,
+      value:getColor8().a
+    )
   else
     -- We can only do fast filling when there's no complex processing involved (i.e., simple setPixel only)
     if setter == self.setPixel then
@@ -1980,21 +2449,28 @@ function BB_mt.__index:paintRect(x, y, w, h, value, setter)
         --print("Single fill paintRect")
         if bbtype == TYPE_BBRGB32 then
           local src = v:getColorRGB32()
-          local p = ffi.cast(P_ColorRGB32, ffi.cast(uint8pt, self.data) + self.stride * y)
+          local p = ffi.cast(
+            P_ColorRGB32,
+            ffi.cast(uint8pt, self.data) + self.stride * y
+          )
           for i = 1, self.pixel_stride * h do
             p[0] = src
             p = p + 1
           end
         elseif bbtype == TYPE_BBRGB16 then
           local src = v:getColorRGB16()
-          local p = ffi.cast(P_ColorRGB16, ffi.cast(uint8pt, self.data) + self.stride * y)
+          local p = ffi.cast(
+            P_ColorRGB16,
+            ffi.cast(uint8pt, self.data) + self.stride * y
+          )
           for i = 1, self.pixel_stride * h do
             p[0] = src
             p = p + 1
           end
         elseif bbtype == TYPE_BB8A then
           local src = v:getColor8A()
-          local p = ffi.cast(P_Color8A, ffi.cast(uint8pt, self.data) + self.stride * y)
+          local p =
+            ffi.cast(P_Color8A, ffi.cast(uint8pt, self.data) + self.stride * y)
           for i = 1, self.pixel_stride * h do
             p[0] = src
             p = p + 1
@@ -2010,7 +2486,10 @@ function BB_mt.__index:paintRect(x, y, w, h, value, setter)
         if bbtype == TYPE_BBRGB32 then
           local src = v:getColorRGB32()
           for j = y, y + h - 1 do
-            local p = ffi.cast(P_ColorRGB32, ffi.cast(uint8pt, self.data) + self.stride * j) + x
+            local p = ffi.cast(
+              P_ColorRGB32,
+              ffi.cast(uint8pt, self.data) + self.stride * j
+            ) + x
             for i = 0, w - 1 do
               p[0] = src
               p = p + 1
@@ -2024,7 +2503,10 @@ function BB_mt.__index:paintRect(x, y, w, h, value, setter)
         elseif bbtype == TYPE_BBRGB16 then
           local src = v:getColorRGB16()
           for j = y, y + h - 1 do
-            local p = ffi.cast(P_ColorRGB16, ffi.cast(uint8pt, self.data) + self.stride * j) + x
+            local p = ffi.cast(
+              P_ColorRGB16,
+              ffi.cast(uint8pt, self.data) + self.stride * j
+            ) + x
             for i = 0, w - 1 do
               p[0] = src
               p = p + 1
@@ -2033,7 +2515,10 @@ function BB_mt.__index:paintRect(x, y, w, h, value, setter)
         elseif bbtype == TYPE_BB8A then
           local src = v:getColor8A()
           for j = y, y + h - 1 do
-            local p = ffi.cast(P_Color8A, ffi.cast(uint8pt, self.data) + self.stride * j) + x
+            local p = ffi.cast(
+              P_Color8A,
+              ffi.cast(uint8pt, self.data) + self.stride * j
+            ) + x
             for i = 0, w - 1 do
               p[0] = src
               p = p + 1
@@ -2084,7 +2569,8 @@ function BB_mt.__index:paintRectRGB32(x, y, w, h, color, setter)
     return
   end
   -- Type coercion for safety
-  local c = color and color:getColorRGB32() or ColorRGB32(0x80, 0x80, 0x80, 0xFF)
+  local c = color and color:getColorRGB32()
+    or ColorRGB32(0x80, 0x80, 0x80, 0xFF)
   if self:canUseCbb() and setter == self.setPixel then
     cblitbuffer.BB_fill_rect_RGB32(ffi.cast(P_BlitBuffer, self), x, y, w, h, c)
   else
@@ -2105,21 +2591,28 @@ function BB_mt.__index:paintRectRGB32(x, y, w, h, color, setter)
         --print("Single fill paintRect")
         if bbtype == TYPE_BBRGB32 then
           local src = c
-          local p = ffi.cast(P_ColorRGB32, ffi.cast(uint8pt, self.data) + self.stride * y)
+          local p = ffi.cast(
+            P_ColorRGB32,
+            ffi.cast(uint8pt, self.data) + self.stride * y
+          )
           for i = 1, self.pixel_stride * h do
             p[0] = src
             p = p + 1
           end
         elseif bbtype == TYPE_BBRGB16 then
           local src = c:getColorRGB16()
-          local p = ffi.cast(P_ColorRGB16, ffi.cast(uint8pt, self.data) + self.stride * y)
+          local p = ffi.cast(
+            P_ColorRGB16,
+            ffi.cast(uint8pt, self.data) + self.stride * y
+          )
           for i = 1, self.pixel_stride * h do
             p[0] = src
             p = p + 1
           end
         elseif bbtype == TYPE_BB8A then
           local src = c:getColor8A()
-          local p = ffi.cast(P_Color8A, ffi.cast(uint8pt, self.data) + self.stride * y)
+          local p =
+            ffi.cast(P_Color8A, ffi.cast(uint8pt, self.data) + self.stride * y)
           for i = 1, self.pixel_stride * h do
             p[0] = src
             p = p + 1
@@ -2135,7 +2628,10 @@ function BB_mt.__index:paintRectRGB32(x, y, w, h, color, setter)
         if bbtype == TYPE_BBRGB32 then
           local src = c
           for j = y, y + h - 1 do
-            local p = ffi.cast(P_ColorRGB32, ffi.cast(uint8pt, self.data) + self.stride * j) + x
+            local p = ffi.cast(
+              P_ColorRGB32,
+              ffi.cast(uint8pt, self.data) + self.stride * j
+            ) + x
             for i = 0, w - 1 do
               p[0] = src
               p = p + 1
@@ -2144,7 +2640,10 @@ function BB_mt.__index:paintRectRGB32(x, y, w, h, color, setter)
         elseif bbtype == TYPE_BBRGB16 then
           local src = c:getColorRGB16()
           for j = y, y + h - 1 do
-            local p = ffi.cast(P_ColorRGB16, ffi.cast(uint8pt, self.data) + self.stride * j) + x
+            local p = ffi.cast(
+              P_ColorRGB16,
+              ffi.cast(uint8pt, self.data) + self.stride * j
+            ) + x
             for i = 0, w - 1 do
               p[0] = src
               p = p + 1
@@ -2153,7 +2652,10 @@ function BB_mt.__index:paintRectRGB32(x, y, w, h, color, setter)
         elseif bbtype == TYPE_BB8A then
           local src = c:getColor8A()
           for j = y, y + h - 1 do
-            local p = ffi.cast(P_Color8A, ffi.cast(uint8pt, self.data) + self.stride * j) + x
+            local p = ffi.cast(
+              P_Color8A,
+              ffi.cast(uint8pt, self.data) + self.stride * j
+            ) + x
             for i = 0, w - 1 do
               p[0] = src
               p = p + 1
@@ -2277,7 +2779,16 @@ function BB_mt.__index:paintCircle(center_x, center_y, r, c, w)
   end
 end
 
-function BB_mt.__index:paintRoundedCorner(off_x, off_y, w, h, bw, r, c, anti_alias)
+function BB_mt.__index:paintRoundedCorner(
+  off_x,
+  off_y,
+  w,
+  h,
+  bw,
+  r,
+  c,
+  anti_alias
+)
   if 2 * r > h or 2 * r > w or r == 0 then
     -- no operation
     return
@@ -2338,8 +2849,16 @@ function BB_mt.__index:paintRoundedCorner(off_x, off_y, w, h, bw, r, c, anti_ali
       end
 
       for tmp_y = y, y2 + 1, -1 do
-        self:setPixelClamped((w - r) + off_x + x - 1, (h - r) + off_y + tmp_y - 1, c)
-        self:setPixelClamped((w - r) + off_x + tmp_y - 1, (h - r) + off_y + x - 1, c)
+        self:setPixelClamped(
+          (w - r) + off_x + x - 1,
+          (h - r) + off_y + tmp_y - 1,
+          c
+        )
+        self:setPixelClamped(
+          (w - r) + off_x + tmp_y - 1,
+          (h - r) + off_y + x - 1,
+          c
+        )
 
         self:setPixelClamped((w - r) + off_x + tmp_y - 1, r + off_y - x, c)
         self:setPixelClamped((w - r) + off_x + x - 1, r + off_y - tmp_y, c)
@@ -2459,7 +2978,16 @@ function BB_mt.__index:hatchRect(x, y, w, h, sw, c, a)
   c = c or Color8(0)
   sw = ceil(sw)
   if self:canUseCbb() then
-    cblitbuffer.BB_hatch_rect(ffi.cast(P_BlitBuffer, self), x, y, w, h, sw, c, a)
+    cblitbuffer.BB_hatch_rect(
+      ffi.cast(P_BlitBuffer, self),
+      x,
+      y,
+      w,
+      h,
+      sw,
+      c,
+      a
+    )
   else
     local sw2 = sw * 2
     if a < 0xFF then
@@ -2494,12 +3022,27 @@ Draw a progress bar according to following args:
 @load_percent: progress in percent
 @c:  color for loading bar
 --]]
-function BB_mt.__index:progressBar(x, y, w, h, load_m_w, load_m_h, load_percent, c)
+function BB_mt.__index:progressBar(
+  x,
+  y,
+  w,
+  h,
+  load_m_w,
+  load_m_h,
+  load_percent,
+  c
+)
   if load_m_h * 2 > h then
     load_m_h = h / 2
   end
   self:paintBorder(x, y, w, h, 2, 15)
-  self:paintRect(x + load_m_w, y + load_m_h, (w - 2 * load_m_w) * load_percent, (h - 2 * load_m_h), c)
+  self:paintRect(
+    x + load_m_w,
+    y + load_m_h,
+    (w - 2 * load_m_w) * load_percent,
+    (h - 2 * load_m_h),
+    c
+  )
 end
 
 --[[
@@ -2568,7 +3111,14 @@ function BB_mt.__index:multiplyRectRGB(x, y, w, h, color)
     if w <= 0 or h <= 0 then
       return
     end
-    cblitbuffer.BB_blend_RGB_multiply_rect(ffi.cast(P_BlitBuffer, self), x, y, w, h, c)
+    cblitbuffer.BB_blend_RGB_multiply_rect(
+      ffi.cast(P_BlitBuffer, self),
+      x,
+      y,
+      w,
+      h,
+      c
+    )
   else
     self:paintRect(x, y, w, h, c, self.setPixelMultiply)
   end
@@ -2586,13 +3136,21 @@ Blend color values in a rectangular area
 --]]
 function BB_mt.__index:blendRectRGB32(x, y, w, h, color)
   -- Type coercion for safety
-  local c = color and color:getColorRGB32() or ColorRGB32(0x80, 0x80, 0x80, 0xFF)
+  local c = color and color:getColorRGB32()
+    or ColorRGB32(0x80, 0x80, 0x80, 0xFF)
   if self:canUseCbb() then
     x, y, w, h = self:getBoundedRect(x, y, w, h)
     if w <= 0 or h <= 0 then
       return
     end
-    cblitbuffer.BB_blend_RGB32_over_rect(ffi.cast(P_BlitBuffer, self), x, y, w, h, c)
+    cblitbuffer.BB_blend_RGB32_over_rect(
+      ffi.cast(P_BlitBuffer, self),
+      x,
+      y,
+      w,
+      h,
+      c
+    )
   else
     self:paintRect(x, y, w, h, c, self.setPixelBlend)
   end
@@ -2606,7 +3164,8 @@ function BB_mt.__index:copy()
   local buffer = C.malloc(self.stride * self.h)
   assert(buffer ~= nil, "cannot allocate bb copy buffer")
   ffi.copy(buffer, self.data, self.stride * self.h)
-  local copy = mytype(self.w, self.pixel_stride, self.h, self.stride, buffer, self.config)
+  local copy =
+    mytype(self.w, self.pixel_stride, self.h, self.stride, buffer, self.config)
   copy:setAllocated(1)
   return copy
 end
@@ -2621,7 +3180,14 @@ words, a viewport does not create a new buffer with memory.
 --]]
 function BB_mt.__index:viewport(x, y, w, h)
   x, y, w, h = self:getPhysicalRect(x, y, w, h)
-  local viewport = BB.new(w, h, self:getType(), self:getPixelP(x, y), self.stride, self.pixel_stride)
+  local viewport = BB.new(
+    w,
+    h,
+    self:getType(),
+    self:getPixelP(x, y),
+    self.stride,
+    self.pixel_stride
+  )
   viewport:setRotation(self:getRotation())
   viewport:setInverse(self:getInverse())
   return viewport
@@ -2855,7 +3421,10 @@ ffi.metatype("ColorRGB32", ColorRGB32_mt)
 function BB.new(width, height, buffertype, dataptr, stride, pixel_stride)
   local bb = nil
   buffertype = buffertype or TYPE_BB8
-  local bits_per_pixel = assert(BB.TYPE_TO_BPP[tonumber(buffertype)], "unknown buffer type " .. tostring(buffertype))
+  local bits_per_pixel = assert(
+    BB.TYPE_TO_BPP[tonumber(buffertype)],
+    "unknown buffer type " .. tostring(buffertype)
+  )
 
   -- If no stride is given, make up one from buffer width, while ensuring that 4bpp are always aligned on a byte.
   stride = stride or rshift(width * bits_per_pixel + 7, 3)
@@ -2891,7 +3460,15 @@ function BB.compat(oldbuffer)
   return ffi.cast("BlitBuffer4*", oldbuffer)[0]
 end
 
-function BB.fromstring(width, height, buffertype, str, stride, rotation, inverse)
+function BB.fromstring(
+  width,
+  height,
+  buffertype,
+  str,
+  stride,
+  rotation,
+  inverse
+)
   local dataptr = C.malloc(#str)
   ffi.copy(dataptr, str, #str)
   local bb = BB.new(width, height, buffertype, dataptr, stride)
@@ -2933,10 +3510,20 @@ function BB.colorFromString(value)
     )
     -- #rrggbb
   elseif #value == 6 then
-    return ColorRGB32(tonumber(value:sub(1, 2), 16), tonumber(value:sub(3, 4), 16), tonumber(value:sub(5, 6), 16), 0xFF)
+    return ColorRGB32(
+      tonumber(value:sub(1, 2), 16),
+      tonumber(value:sub(3, 4), 16),
+      tonumber(value:sub(5, 6), 16),
+      0xFF
+    )
     -- #vv
   elseif #value == 2 then
-    return ColorRGB32(tonumber(value:sub(1, 2), 16), tonumber(value:sub(1, 2), 16), tonumber(value:sub(1, 2), 16), 0xFF)
+    return ColorRGB32(
+      tonumber(value:sub(1, 2), 16),
+      tonumber(value:sub(1, 2), 16),
+      tonumber(value:sub(1, 2), 16),
+      0xFF
+    )
   else
     return nil
   end

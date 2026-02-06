@@ -91,7 +91,10 @@ function OPDSParser:parse(text)
   text = text:gsub('<content type=".-">', "<content>")
   text = text:gsub("<content>(.-)</content>", function(s)
     return '<content type="text">'
-      .. s:gsub("%p", { ["<"] = "&lt;", [">"] = "&gt;", ['"'] = "&quot;", ["'"] = "&apos;" })
+      .. s:gsub(
+        "%p",
+        { ["<"] = "&lt;", [">"] = "&gt;", ['"'] = "&quot;", ["'"] = "&apos;" }
+      )
       .. "</content>"
   end)
 

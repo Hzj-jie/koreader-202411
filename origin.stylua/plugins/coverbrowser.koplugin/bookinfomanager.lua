@@ -149,7 +149,8 @@ function BookInfoManager:init()
   self.subprocesses_killall_timeout_time = time.s(300) -- cleanup timeout for stuck subprocesses
   -- 300 seconds should be more than enough to open and get info from 9-10 books
   -- Whether to use former blitbuffer:scale() (default to using MuPDF)
-  self.use_legacy_image_scaling = G_reader_settings:isTrue("legacy_image_scaling")
+  self.use_legacy_image_scaling =
+    G_reader_settings:isTrue("legacy_image_scaling")
   -- We will use a temporary directory for crengine cache while indexing
   self.tmpcr3cache = DataStorage:getDataDir() .. "/cache/tmpcr3cache"
 end
@@ -174,7 +175,12 @@ function BookInfoManager:createDB()
   -- Check version
   local db_version = tonumber(db_conn:rowexec("PRAGMA user_version;"))
   if db_version < BOOKINFO_DB_VERSION then
-    logger.warn("BookInfo cache DB schema updated from version", db_version, "to version", BOOKINFO_DB_VERSION)
+    logger.warn(
+      "BookInfo cache DB schema updated from version",
+      db_version,
+      "to version",
+      BOOKINFO_DB_VERSION
+    )
     logger.warn("Deleting existing", self.db_location, "to recreate it")
 
     -- We'll try to preserve settings, though
@@ -395,7 +401,8 @@ function BookInfoManager:getBookInfo(filepath, get_cover)
         local cover_blob = row[num + 4]
         -- The pointer returned by SQLite is only valid until the next step/reset/finalize!
         -- (which means its memory management is entirely in the hands of SQLite)
-        local cover_data, cover_size = zstd.zstd_uncompress_ctx(cover_blob[1], cover_blob[2])
+        local cover_data, cover_size =
+          zstd.zstd_uncompress_ctx(cover_blob[1], cover_blob[2])
         -- Double-check that the size of the uncompressed BB is as expected...
         local expected_cover_size = bbstride * bookinfo["cover_h"]
         assert(
@@ -407,8 +414,14 @@ function BookInfoManager:getBookInfo(filepath, get_cover)
             .. "b"
         )
         -- That one, on the other hand, is on the heap, so we can use it without making a copy.
-        local cover_bb =
-          Blitbuffer.new(bookinfo["cover_w"], bookinfo["cover_h"], bbtype, cover_data, bbstride, bookinfo["cover_w"])
+        local cover_bb = Blitbuffer.new(
+          bookinfo["cover_w"],
+          bookinfo["cover_h"],
+          bbtype,
+          cover_data,
+          bbstride,
+          bookinfo["cover_w"]
+        )
         -- Mark its data pointer as safe to free() on GC
         cover_bb:setAllocated(1)
         bookinfo["cover_bb"] = cover_bb
@@ -439,7 +452,8 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
       self.tmpcr3cache,
       0, -- 0 = previous book caches are removed when opening a book
       true,
-      G_reader_settings:readSetting("cre_storage_size_factor") or default_cre_storage_size_factor
+      G_reader_settings:readSetting("cre_storage_size_factor")
+        or default_cre_storage_size_factor
     )
     self.cre_cache_overriden = true
   end
@@ -473,14 +487,27 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
   -- Increment it and check if we have already tried enough
   if prev_tries < self.max_extract_tries then
     if prev_tries > 0 then
-      logger.dbg("Seen", prev_tries, "previous attempts at info extraction", filepath, ", trying again")
+      logger.dbg(
+        "Seen",
+        prev_tries,
+        "previous attempts at info extraction",
+        filepath,
+        ", trying again"
+      )
     end
     dbrow.in_progress = prev_tries + 1 -- extraction not yet successful
   else
-    logger.info("Seen", prev_tries, "previous attempts at info extraction", filepath, ", too many, ignoring it.")
+    logger.info(
+      "Seen",
+      prev_tries,
+      "previous attempts at info extraction",
+      filepath,
+      ", too many, ignoring it."
+    )
     tried_enough = true
     dbrow.in_progress = 0 -- row will exist, we'll never be called again
-    dbrow.unsupported = UNSUPPORTED_REASONS.too_many_interruptions_or_crashes.string
+    dbrow.unsupported =
+      UNSUPPORTED_REASONS.too_many_interruptions_or_crashes.string
     dbrow.cover_fetched = "Y" -- so we don't try again if we're called later with cover_specs
   end
   -- Insert the temporary "in progress" record (or the definitive "unsupported" record)
@@ -520,7 +547,8 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
     end
     if loaded then
       dbrow.pages = pages
-      local props = FileManagerBookInfo.extendProps(document:getProps(), filepath)
+      local props =
+        FileManagerBookInfo.extendProps(document:getProps(), filepath)
       if next(props) then -- there's at least one item
         dbrow.has_meta = "Y"
       end
@@ -539,7 +567,12 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
           dbrow.cover_sizetag = cbb_w .. "x" .. cbb_h -- store original cover size
           if cbb_w > spec_max_cover_w or cbb_h > spec_max_cover_h then
             -- scale down if bigger than what we will display
-            cbb_w, cbb_h = BookInfoManager.getCachedCoverSize(cbb_w, cbb_h, spec_max_cover_w, spec_max_cover_h)
+            cbb_w, cbb_h = BookInfoManager.getCachedCoverSize(
+              cbb_w,
+              cbb_h,
+              spec_max_cover_w,
+              spec_max_cover_h
+            )
             cover_bb = RenderImage:scaleBlitBuffer(cover_bb, cbb_w, cbb_h, true)
           end
           dbrow.cover_w = cover_bb.w
@@ -547,7 +580,8 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
           dbrow.cover_bb_type = cover_bb:getType()
           dbrow.cover_bb_stride = tonumber(cover_bb.stride)
           local cover_size = cover_bb.stride * cover_bb.h
-          local cover_zst_ptr, cover_zst_size = zstd.zstd_compress(cover_bb.data, cover_size)
+          local cover_zst_ptr, cover_zst_size =
+            zstd.zstd_compress(cover_bb.data, cover_size)
           dbrow.cover_bb_data = SQ3.blob(cover_zst_ptr, cover_zst_size) -- cast to blob for sqlite
           logger.dbg(
             "cover for",
@@ -592,7 +626,8 @@ function BookInfoManager:setBookInfoProperties(filepath, props)
   self:openDbConnection()
   -- Let's do multiple one-column UPDATE (easier than building
   -- a multiple columns UPDATE)
-  local base_query = "UPDATE bookinfo SET %s=? WHERE directory=? AND filename=?;"
+  local base_query =
+    "UPDATE bookinfo SET %s=? WHERE directory=? AND filename=?;"
   for k, v in pairs(props) do
     local this_prop_query = string.format(base_query, k) -- add column name to query
     local stmt = self.db_conn:prepare(this_prop_query)
@@ -617,7 +652,8 @@ end
 
 function BookInfoManager:removeNonExistantEntries()
   self:openDbConnection()
-  local res = self.db_conn:exec("SELECT bcid, directory || filename FROM bookinfo;")
+  local res =
+    self.db_conn:exec("SELECT bcid, directory || filename FROM bookinfo;")
   if not res then
     return _("Cache is empty. Nothing to prune.")
   end
@@ -667,7 +703,11 @@ function BookInfoManager:collectSubprocesses()
       -- the user has not left FileManager or changed page - that would
       -- have caused a terminateBackgroundJobs() - if we're here, it's
       -- that user has left reader in FileBrower and went away)
-      if time.now() > self.subprocesses_last_added_time + self.subprocesses_killall_timeout_time then
+      if
+        time.now()
+        > self.subprocesses_last_added_time
+          + self.subprocesses_killall_timeout_time
+      then
         logger.warn("Some subprocesses were running for too long, killing them")
         self:terminateBackgroundJobs()
         -- we'll collect them next time we're run
@@ -733,7 +773,9 @@ function BookInfoManager:extractInBackground(files)
   -- Run task in sub-process, and remember its pid
   local task_pid = FFIUtil.runInSubProcess(task)
   if not task_pid then
-    logger.warn("Failed launching background extraction sub-process (fork failed)")
+    logger.warn(
+      "Failed launching background extraction sub-process (fork failed)"
+    )
     return false -- let caller know it failed
   end
   -- No straight control flow exists for background task completion here, so we bump prevent
@@ -785,7 +827,10 @@ local function findFilesInDir(path, recursive)
           and attributes.mode == "directory"
           and f ~= "."
           and f ~= ".."
-          and (G_reader_settings:isTrue("show_hidden") or not util.stringStartsWith(f, "."))
+          and (
+            G_reader_settings:isTrue("show_hidden")
+            or not util.stringStartsWith(f, ".")
+          )
         then
           table.insert(new_dirs, fullpath)
           -- Always ignore macOS resource forks, too.
@@ -811,14 +856,16 @@ function BookInfoManager:extractBooksInDirectory(path, cover_specs)
   local Screen = require("device").screen
 
   local go_on = Trapper:confirm(
-    _([[
+    _(
+      [[
 This will extract metadata and cover images from books in the current directory.
 Once extraction has started, you can abort at any moment by tapping on the screen.
 
 Cover images will be saved with the adequate size for the current display mode.
 If you later change display mode, they may need to be extracted again.
 
-This extraction may take time and use some battery power: you may wish to keep your device plugged in.]]),
+This extraction may take time and use some battery power: you may wish to keep your device plugged in.]]
+    ),
     _("Cancel"),
     _("Continue")
   )
@@ -836,8 +883,10 @@ Also extract book information from books in subdirectories?]]),
   )
 
   local refresh_existing = Trapper:confirm(
-    _([[
-Do you want to refresh metadata and covers that have already been extracted?]]),
+    _(
+      [[
+Do you want to refresh metadata and covers that have already been extracted?]]
+    ),
     _("Don't refresh"),
     _("Refresh")
   )
@@ -854,7 +903,11 @@ Do you want to prune the cache of removed books?]]),
   Trapper:clear()
 
   local confirm_abort = function()
-    return Trapper:confirm(_("Do you want to abort extraction?"), _("Don't abort"), _("Abort"))
+    return Trapper:confirm(
+      _("Do you want to abort extraction?"),
+      _("Don't abort"),
+      _("Abort")
+    )
   end
 
   -- Cancel any background job, before we launch new ones
@@ -913,7 +966,10 @@ Do you want to prune the cache of removed books?]]),
 
   if refresh_existing then
     info = InfoMessage:new({
-      text = T(N_("Found 1 book to index.", "Found %1 books to index.", #files), #files),
+      text = T(
+        N_("Found 1 book to index.", "Found %1 books to index.", #files),
+        #files
+      ),
     })
     UIManager:show(info)
     UIManager:forceRePaint()
@@ -922,7 +978,12 @@ Do you want to prune the cache of removed books?]]),
     local all_files = files
     while true do
       info = InfoMessage:new({
-        text = T(_("Found %1 books.\nLooking for those not already present in the cache database…"), #all_files),
+        text = T(
+          _(
+            "Found %1 books.\nLooking for those not already present in the cache database…"
+          ),
+          #all_files
+        ),
       })
       UIManager:show(info)
       UIManager:forceRePaint()
@@ -934,7 +995,10 @@ Do you want to prune the cache of removed books?]]),
           local to_extract = not bookinfo
           if bookinfo and cover_specs and not bookinfo.ignore_cover then
             if bookinfo.cover_fetched then
-              if bookinfo.has_cover and BookInfoManager.isCachedCoverInvalid(bookinfo, cover_specs) then
+              if
+                bookinfo.has_cover
+                and BookInfoManager.isCachedCoverInvalid(bookinfo, cover_specs)
+              then
                 to_extract = true
               end
             else
@@ -964,7 +1028,10 @@ Do you want to prune the cache of removed books?]]),
     end
     UIManager:close(info)
     info = InfoMessage:new({
-      text = T(N_("Found 1 book to index.", "Found %1 books to index."), #files),
+      text = T(
+        N_("Found 1 book to index.", "Found %1 books to index."),
+        #files
+      ),
     })
     UIManager:show(info)
     UIManager:forceRePaint()
@@ -990,7 +1057,8 @@ Do you want to prune the cache of removed books?]]),
 
     local orig_moved_offset = info.movable:getMovedOffset()
     info:free()
-    info.text = T(_("Indexing %1 / %2…\n\n%3"), i, nb_files, BD.filename(filename))
+    info.text =
+      T(_("Indexing %1 / %2…\n\n%3"), i, nb_files, BD.filename(filename))
     info:init()
     local text_widget = table.remove(info.movable[1][1], 3)
     local text_widget_size = text_widget:getSize()
@@ -1035,9 +1103,14 @@ Do you want to prune the cache of removed books?]]),
   end
   UIManager:close(info)
   info = InfoMessage:new({
-    text = T(_("Processed %1 / %2 books."), nb_done, nb_files)
-      .. "\n"
-      .. T(N_("One extracted successfully.", "%1 extracted successfully.", nb_success), nb_success),
+    text = T(_("Processed %1 / %2 books."), nb_done, nb_files) .. "\n" .. T(
+      N_(
+        "One extracted successfully.",
+        "%1 extracted successfully.",
+        nb_success
+      ),
+      nb_success
+    ),
   })
   UIManager:show(info)
 end
@@ -1067,7 +1140,8 @@ function BookInfoManager.isCachedCoverInvalid(bookinfo, cover_specs)
   local max_img_w = cover_specs.max_cover_w
   local max_img_h = cover_specs.max_cover_h
   if img_w > max_img_w or img_h > max_img_h then -- original image bigger than placeholder
-    local new_cover_w, new_cover_h = BookInfoManager.getCachedCoverSize(img_w, img_h, max_img_w, max_img_h)
+    local new_cover_w, new_cover_h =
+      BookInfoManager.getCachedCoverSize(img_w, img_h, max_img_w, max_img_h)
     if new_cover_w > bookinfo.cover_w or new_cover_h > bookinfo.cover_h then -- bigger thumbnail needed
       return true
     end

@@ -256,7 +256,12 @@ local html_escape = { ["<"] = "&lt;", [">"] = "&gt;", ["&"] = "&amp;" }
 
 local function colorize_html(s, t, extra)
   s = gsub(s, "[<>&]", html_escape)
-  return format('<span class="irt_%s%s">%s</span>', irtype_text[t], extra and " irt_extra" or "", s)
+  return format(
+    '<span class="irt_%s%s">%s</span>',
+    irtype_text[t],
+    extra and " irt_extra" or "",
+    s
+  )
 end
 
 local irtype_html = setmetatable({}, {
@@ -433,7 +438,9 @@ local function printsnap(tr, snap)
         out:write(colorize(format("%04d/%04d", ref, ref + 1), 14))
       else
         local m, ot, op1, op2 = traceir(tr, ref)
-        out:write(colorize(format("%04d", ref), band(ot, 31), band(sn, 0x100000) ~= 0))
+        out:write(
+          colorize(format("%04d", ref), band(ot, 31), band(sn, 0x100000) ~= 0)
+        )
       end
       out:write(band(sn, 0x10000) == 0 and " " or "|") -- SNAP_FRAME
     else
@@ -463,7 +470,8 @@ local function ridsp_name(ridsp, ins)
   end
   local rid, slot = band(ridsp, 0xff), shr(ridsp, 8)
   if rid == 253 or rid == 254 then
-    return (slot == 0 or slot == 255) and " {sink" or format(" {%04d", ins - slot)
+    return (slot == 0 or slot == 255) and " {sink"
+      or format(" {%04d", ins - slot)
   end
   if ridsp > 255 then
     return format("[%x]", slot * 4)
@@ -550,7 +558,11 @@ local function dump_ir(tr, dumpsnap, dumpreg)
       else
         out:write(format("%04d ------ LOOP ------------\n", ins))
       end
-    elseif op ~= "NOP   " and op ~= "CARG  " and (dumpreg or op ~= "RENAME") then
+    elseif
+      op ~= "NOP   "
+      and op ~= "CARG  "
+      and (dumpreg or op ~= "RENAME")
+    then
       local rid = band(ridsp, 255)
       if dumpreg then
         out:write(format("%04d %-6s", ins, ridsp_name(ridsp, ins)))
@@ -560,7 +572,8 @@ local function dump_ir(tr, dumpsnap, dumpreg)
       out:write(
         format(
           "%s%s %s %s ",
-          (rid == 254 or rid == 253) and "}" or (band(ot, 128) == 0 and " " or ">"),
+          (rid == 254 or rid == 253) and "}"
+            or (band(ot, 128) == 0 and " " or ">"),
           band(ot, 64) == 0 and " " or "+",
           irtype[t],
           op
@@ -781,7 +794,9 @@ local function dumpon(opt, outfile)
   end
 
   local term = os.getenv("TERM")
-  local colormode = (term and term:match("color") or os.getenv("COLORTERM")) and "A" or "T"
+  local colormode = (term and term:match("color") or os.getenv("COLORTERM"))
+      and "A"
+    or "T"
   if opt then
     opt = gsub(opt, "[TAH]", function(mode)
       colormode = mode

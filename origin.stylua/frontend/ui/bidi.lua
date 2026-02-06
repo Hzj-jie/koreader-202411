@@ -296,7 +296,9 @@ end
 
 function Bidi._filepath_rtl(path)
   local dirpath, filename = util.splitFilePathName(path)
-  return Bidi.ltr(Bidi._path(dirpath) .. Bidi._filename_auto_ext_right(filename))
+  return Bidi.ltr(
+    Bidi._path(dirpath) .. Bidi._filename_auto_ext_right(filename)
+  )
 end
 
 return Bidi

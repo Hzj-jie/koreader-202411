@@ -121,7 +121,8 @@ function InputContainer:registerTouchZones(zones)
       gs_range = GestureRange:new({
         ges = zone.ges,
         rate = zone.rate,
-        range = Geom:new({ x = 0, y = 0, w = screen_width, h = screen_height }):resize(zone.screen_zone),
+        range = Geom:new({ x = 0, y = 0, w = screen_width, h = screen_height })
+          :resize(zone.screen_zone),
       }),
     }
     self.touch_zone_dg:addNode(zone.id)
@@ -198,7 +199,9 @@ function InputContainer:onKeyPress(key)
       for _, oneseq in ipairs(seq) do
         -- NOTE: key is a device/key object, this isn't string.match!
         if key:match(oneseq) then
-          return self:handleEvent(Event:new(seq.event or name, seq.args, key):asUserInput())
+          return self:handleEvent(
+            Event:new(seq.event or name, seq.args, key):asUserInput()
+          )
         end
       end
     end
@@ -219,7 +222,11 @@ function InputContainer:onGesture(ev)
   for name, gsseq in pairs(self.ges_events) do
     for _, gs_range in ipairs(gsseq) do
       if gs_range:match(ev) then
-        if self:handleEvent(Event:new(gsseq.event or name, gsseq.args, ev):asUserInput()) then
+        if
+          self:handleEvent(
+            Event:new(gsseq.event or name, gsseq.args, ev):asUserInput()
+          )
+        then
           return true
         end
       end
@@ -339,7 +346,10 @@ function InputContainer:onInput(input, ignore_first_hold_release)
           text = input.ok_text or gettext("OK"),
           is_enter_default = true,
           callback = function()
-            if input.allow_blank_input or self.input_dialog:getInputText() ~= "" then
+            if
+              input.allow_blank_input
+              or self.input_dialog:getInputText() ~= ""
+            then
               input.callback(self.input_dialog:getInputText())
               self:closeInputDialog()
             end

@@ -78,7 +78,8 @@ function TextEditor:loadSettings()
   -- NOTE: addToHistory assigns a new object
   self.history = self.settings:readTableRef("history")
   self.last_view_pos = self.settings:readTableRef("last_view_pos")
-  self.last_path = self.settings:read("last_path") or ffiutil.realpath(DataStorage:getDataDir())
+  self.last_path = self.settings:read("last_path")
+    or ffiutil.realpath(DataStorage:getDataDir())
   self.font_face = self.settings:read("font_face") or self.normal_font
   self.font_size = self.settings:read("font_size") or self.default_font_size
   -- The font settings could be saved in G_reader_setting if we want them
@@ -94,9 +95,11 @@ function TextEditor:loadSettings()
     self.monospace_font = self.settings:read("monospace_font")
   end
   self.auto_para_direction = self.settings:nilOrTrue("auto_para_direction")
-  self.force_ltr_para_direction = self.settings:isTrue("force_ltr_para_direction")
+  self.force_ltr_para_direction =
+    self.settings:isTrue("force_ltr_para_direction")
   self.qr_code_export = self.settings:nilOrTrue("qr_code_export")
-  self.show_keyboard_on_start = self.settings:nilOrTrue("show_keyboard_on_start")
+  self.show_keyboard_on_start =
+    self.settings:nilOrTrue("show_keyboard_on_start")
 end
 
 function TextEditor:onFlushSettings()
@@ -107,7 +110,10 @@ function TextEditor:onFlushSettings()
     self.settings:save("font_face", self.font_face)
     self.settings:save("font_size", self.font_size)
     self.settings:save("auto_para_direction", self.auto_para_direction)
-    self.settings:save("force_ltr_para_direction", self.force_ltr_para_direction)
+    self.settings:save(
+      "force_ltr_para_direction",
+      self.force_ltr_para_direction
+    )
     self.settings:save("qr_code_export", self.qr_code_export)
     self.settings:save("show_keyboard_on_start", self.show_keyboard_on_start)
     self.settings:flush()
@@ -168,9 +174,11 @@ function TextEditor:getSubMenuItems()
         },
         {
           text = gettext("Auto paragraph direction"),
-          help_text = gettext([[
+          help_text = gettext(
+            [[
 Detect the direction of each paragraph in the text: align to the right paragraphs in languages such as Arabic and Hebrew…, while keeping other paragraphs aligned to the left.
-If disabled, paragraphs align according to KOReader's language default direction.]]),
+If disabled, paragraphs align according to KOReader's language default direction.]]
+          ),
           checked_func = function()
             return self.auto_para_direction
           end,
@@ -203,8 +211,10 @@ Enable this if you are mostly editing code, HTML, CSS…]]),
         },
         {
           text = gettext("Enable QR code export"),
-          help_text = gettext([[
-Export text to QR code, that can be scanned, for example, by a phone.]]),
+          help_text = gettext(
+            [[
+Export text to QR code, that can be scanned, for example, by a phone.]]
+          ),
           checked_func = function()
             return self.qr_code_export
           end,
@@ -286,7 +296,9 @@ Export text to QR code, that can be scanned, for example, by a phone.]]),
           )
         else
           text = T(
-            gettext("File path:\n%1\n\nThis file does not exist anymore.\n\nRemove it from text editor history?"),
+            gettext(
+              "File path:\n%1\n\nThis file does not exist anymore.\n\nRemove it from text editor history?"
+            ),
             BD.filepath(file_path)
           )
         end
@@ -433,7 +445,9 @@ function TextEditor:checkEditFile(file_path, from_history, possibly_new_file)
   if not possibly_new_file and not attr then
     UIManager:show(ConfirmBox:new({
       text = T(
-        gettext("This file does not exist anymore:\n\n%1\n\nDo you want to create it and start editing it?"),
+        gettext(
+          "This file does not exist anymore:\n\n%1\n\nDo you want to create it and start editing it?"
+        ),
         BD.filepath(file_path)
       ),
       ok_text = gettext("Create"),
@@ -452,7 +466,10 @@ function TextEditor:checkEditFile(file_path, from_history, possibly_new_file)
   if attr then -- File exists
     if attr.mode ~= "file" then
       UIManager:show(InfoMessage:new({
-        text = T(gettext("This file is not a regular file:\n\n%1"), BD.filepath(file_path)),
+        text = T(
+          gettext("This file is not a regular file:\n\n%1"),
+          BD.filepath(file_path)
+        ),
       }))
       return
     end
@@ -495,7 +512,11 @@ function TextEditor:checkEditFile(file_path, from_history, possibly_new_file)
       self:editFile(file_path)
     else
       UIManager:show(InfoMessage:new({
-        text = T(gettext("This file can not be created:\n\n%1\n\nReason: %2"), BD.filepath(file_path), err),
+        text = T(
+          gettext("This file can not be created:\n\n%1\n\nReason: %2"),
+          BD.filepath(file_path),
+          err
+        ),
       }))
       return
     end
@@ -597,11 +618,15 @@ function TextEditor:editFile(file_path, readonly)
     end,
     -- File restoring callback
     reset_callback = function(content) -- Will add a Reset button
-      return util.readFromFile(file_path, "rb") or "", gettext("Text reset to last saved content")
+      return util.readFromFile(file_path, "rb") or "",
+        gettext("Text reset to last saved content")
     end,
     -- Close callback
     close_callback = function()
-      if self.input.rotation_mode_backup and self.input.rotation_mode_backup ~= Screen:getRotationMode() then
+      if
+        self.input.rotation_mode_backup
+        and self.input.rotation_mode_backup ~= Screen:getRotationMode()
+      then
         Screen:setRotationMode(self.input.rotation_mode_backup)
       end
       self:execWhenDoneFunc()

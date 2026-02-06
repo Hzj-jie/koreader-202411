@@ -20,7 +20,9 @@ local AutoStandby = WidgetContainer:extend({
   name = "autostandby",
 
   -- static for all plugin instances
-  settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/autostandby.lua"),
+  settings = LuaSettings:open(
+    DataStorage:getSettingsDir() .. "/autostandby.lua"
+  ),
   delay = 0,
   lastInput = 0,
   preventing = false,
@@ -78,11 +80,16 @@ function AutoStandby:addToMainMenu(menu_items)
       end, function()
         return self.settings:read("max")
       end),
-      self:genSpinMenuItem(gettext("Always standby if battery below"), "bat", function()
-        return 0
-      end, function()
-        return 100
-      end),
+      self:genSpinMenuItem(
+        gettext("Always standby if battery below"),
+        "bat",
+        function()
+          return 0
+        end,
+        function()
+          return 100
+        end
+      ),
     },
   }
 end
@@ -103,7 +110,9 @@ function AutoStandby:onInputEvent()
 
   if PowerD:getCapacityHW() <= config.bat then
     -- battery is below threshold, so allow standby aggressively
-    logger.dbg("AutoStandby: battery below threshold, enabling aggressive standby")
+    logger.dbg(
+      "AutoStandby: battery below threshold, enabling aggressive standby"
+    )
     self:allow()
     return
   elseif t > AutoStandby.lastInput + config.max then
@@ -117,7 +126,8 @@ function AutoStandby:onInputEvent()
     AutoStandby.delay = config.min
   elseif t < AutoStandby.lastInput + AutoStandby.delay + config.win then
     -- otherwise widen the delay - "adaptive" - with frequent inputs, but don't grow beyonnd the max
-    AutoStandby.delay = math.min((AutoStandby.delay + 1) * config.mul, config.max)
+    AutoStandby.delay =
+      math.min((AutoStandby.delay + 1) * config.mul, config.max)
     logger.dbg("AutoStandby: increasing standby delay to", AutoStandby.delay)
   end -- equilibrium: when the event arrives beyond delay + win, but still below max, we keep the delay as-is
 

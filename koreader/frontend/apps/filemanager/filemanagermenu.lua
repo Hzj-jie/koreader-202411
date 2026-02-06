@@ -206,7 +206,8 @@ function FileManagerMenu:setUpdateItemTable()
             text_func = function()
               return T(
                 gettext("Items per page: %1"),
-                G_reader_settings:read("items_per_page") or FileChooser.items_per_page_default
+                G_reader_settings:read("items_per_page")
+                  or FileChooser.items_per_page_default
               )
             end,
             help_text = gettext([[This sets the number of items per page in:
@@ -216,7 +217,8 @@ function FileManagerMenu:setUpdateItemTable()
 - Calibre and OPDS browsers/search results]]),
             callback = function(touchmenu_instance)
               local default_value = FileChooser.items_per_page_default
-              local current_value = G_reader_settings:read("items_per_page") or default_value
+              local current_value = G_reader_settings:read("items_per_page")
+                or default_value
               local widget = SpinWidget:new({
                 title_text = gettext("Items per page"),
                 value = current_value,
@@ -225,7 +227,11 @@ function FileManagerMenu:setUpdateItemTable()
                 default_value = default_value,
                 keep_shown_on_apply = true,
                 callback = function(spin)
-                  G_reader_settings:save("items_per_page", spin.value, default_value)
+                  G_reader_settings:save(
+                    "items_per_page",
+                    spin.value,
+                    default_value
+                  )
                   FileChooser:refreshPath()
                   touchmenu_instance:updateItems()
                 end,
@@ -240,7 +246,8 @@ function FileManagerMenu:setUpdateItemTable()
             callback = function(touchmenu_instance)
               local current_value = FileChooser.font_size
               local default_value = FileChooser.getItemFontSize(
-                G_reader_settings:read("items_per_page") or FileChooser.items_per_page_default
+                G_reader_settings:read("items_per_page")
+                  or FileChooser.items_per_page_default
               )
               local widget = SpinWidget:new({
                 title_text = gettext("Item font size"),
@@ -253,7 +260,11 @@ function FileManagerMenu:setUpdateItemTable()
                   -- We can't know if the user has set a size or hit "Use default", but
                   -- assume that if it is the default font size, he will prefer to have
                   -- our default font size if he later updates per-page
-                  G_reader_settings:save("items_font_size", spin.value, default_value)
+                  G_reader_settings:save(
+                    "items_font_size",
+                    spin.value,
+                    default_value
+                  )
                   FileChooser:refreshPath()
                   touchmenu_instance:updateItems()
                 end,
@@ -267,7 +278,9 @@ function FileManagerMenu:setUpdateItemTable()
               return G_reader_settings:isTrue("items_multilines_show_more_text")
             end,
             callback = function()
-              G_reader_settings:flipNilOrFalse("items_multilines_show_more_text")
+              G_reader_settings:flipNilOrFalse(
+                "items_multilines_show_more_text"
+              )
               self.ui:onRefresh()
             end,
             separator = true,
@@ -318,7 +331,9 @@ function FileManagerMenu:setUpdateItemTable()
           {
             text = gettext("Freeze last read date of finished books"),
             checked_func = function()
-              return G_reader_settings:nilOrTrue("history_freeze_finished_books")
+              return G_reader_settings:nilOrTrue(
+                "history_freeze_finished_books"
+              )
             end,
             callback = function()
               G_reader_settings:flipNilOrTrue("history_freeze_finished_books")
@@ -340,10 +355,14 @@ function FileManagerMenu:setUpdateItemTable()
           {
             text = gettext("Auto-remove deleted or purged items from history"),
             checked_func = function()
-              return G_reader_settings:isTrue("autoremove_deleted_items_from_history")
+              return G_reader_settings:isTrue(
+                "autoremove_deleted_items_from_history"
+              )
             end,
             callback = function()
-              G_reader_settings:flipNilOrFalse("autoremove_deleted_items_from_history")
+              G_reader_settings:flipNilOrFalse(
+                "autoremove_deleted_items_from_history"
+              )
             end,
             separator = true,
           },
@@ -364,10 +383,15 @@ function FileManagerMenu:setUpdateItemTable()
           {
             text = gettext("Set home folder"),
             callback = function()
-              filemanagerutil.showChooseDialog(gettext("Current home folder:"), function(path)
-                G_reader_settings:save("home_dir", path)
-                self.ui:updateTitleBarPath()
-              end, G_reader_settings:read("home_dir"), require("util").backup_dir())
+              filemanagerutil.showChooseDialog(
+                gettext("Current home folder:"),
+                function(path)
+                  G_reader_settings:save("home_dir", path)
+                  self.ui:updateTitleBarPath()
+                end,
+                G_reader_settings:read("home_dir"),
+                require("util").backup_dir()
+              )
             end,
           },
           {
@@ -408,7 +432,8 @@ To:
       {
         text_func = function()
           local default_value = KeyValuePage.getDefaultItemsPerPage()
-          local current_value = G_reader_settings:read("keyvalues_per_page") or default_value
+          local current_value = G_reader_settings:read("keyvalues_per_page")
+            or default_value
           return T(gettext("Info lists items per page: %1"), current_value)
         end,
         help_text = gettext([[This sets the number of items per page in:
@@ -419,7 +444,8 @@ To:
         keep_menu_open = true,
         callback = function(touchmenu_instance)
           local default_value = KeyValuePage.getDefaultItemsPerPage()
-          local current_value = G_reader_settings:read("keyvalues_per_page") or default_value
+          local current_value = G_reader_settings:read("keyvalues_per_page")
+            or default_value
           local widget = SpinWidget:new({
             value = current_value,
             value_min = 10,
@@ -427,7 +453,11 @@ To:
             default_value = default_value,
             title_text = gettext("Info lists items per page"),
             callback = function(spin)
-              G_reader_settings:save("keyvalues_per_page", spin.value, default_value)
+              G_reader_settings:save(
+                "keyvalues_per_page",
+                spin.value,
+                default_value
+              )
               touchmenu_instance:updateItems()
             end,
           })
@@ -460,7 +490,8 @@ To:
     end,
     checked_func = function()
       local collate = FileChooser:getCollate()
-      return collate.can_collate_mixed and G_reader_settings:isTrue("collate_mixed")
+      return collate.can_collate_mixed
+        and G_reader_settings:isTrue("collate_mixed")
     end,
     callback = function()
       G_reader_settings:flipNilOrFalse("collate_mixed")
@@ -483,7 +514,8 @@ To:
 
   -- Settings > Navigation; this mostly concerns physical keys, and applies *everywhere*
   if Device:hasKeys() then
-    self.menu_items.physical_buttons_setup = require("ui/elements/physical_buttons")
+    self.menu_items.physical_buttons_setup =
+      require("ui/elements/physical_buttons")
   end
 
   -- settings tab - Document submenu
@@ -501,19 +533,22 @@ To:
     sub_item_table = PluginLoader:genPluginManagerSubItem(),
   }
 
-  self.menu_items.cloud_storage = require("ui/elements/cloud_storage_menu_table")
+  self.menu_items.cloud_storage =
+    require("ui/elements/cloud_storage_menu_table")
 
   self.menu_items.file_search = {
     -- @translators Search for files by name.
     text = gettext("File search"),
-    help_text = gettext([[Search a book by filename in the current or home folder and its subfolders.
+    help_text = gettext(
+      [[Search a book by filename in the current or home folder and its subfolders.
 
 Wildcards for one '?' or more '*' characters can be used.
 A search for '*' will show all files.
 
 The sorting order is the same as in filemanager.
 
-Tap a book in the search results to open it.]]),
+Tap a book in the search results to open it.]]
+    ),
     callback = function()
       self.ui.filesearcher:onShowFileSearch()
     end,
@@ -528,7 +563,10 @@ Tap a book in the search results to open it.]]),
   -- main menu tab
   self.menu_items.open_previous_document = {
     text_func = function()
-      if not G_reader_settings:isTrue("open_last_menu_show_filename") or G_reader_settings:hasNot("lastfile") then
+      if
+        not G_reader_settings:isTrue("open_last_menu_show_filename")
+        or G_reader_settings:hasNot("lastfile")
+      then
         return gettext("Open last document")
       end
       local last_file = G_reader_settings:read("lastfile")
@@ -544,7 +582,10 @@ Tap a book in the search results to open it.]]),
     hold_callback = function()
       local last_file = G_reader_settings:read("lastfile")
       UIManager:show(ConfirmBox:new({
-        text = T(gettext("Would you like to open the last document: %1?"), BD.filepath(last_file)),
+        text = T(
+          gettext("Would you like to open the last document: %1?"),
+          BD.filepath(last_file)
+        ),
         ok_text = gettext("OK"),
         ok_callback = function()
           self:onOpenLastDoc()
@@ -573,8 +614,11 @@ Tap a book in the search results to open it.]]),
     }
   end
 
-  self.tab_item_table =
-    require("ui/menusorter"):mergeAndSort("filemanager", self.menu_items, require("ui/elements/filemanager_menu_order"))
+  self.tab_item_table = require("ui/menusorter"):mergeAndSort(
+    "filemanager",
+    self.menu_items,
+    require("ui/elements/filemanager_menu_order")
+  )
 end
 dbg:guard(FileManagerMenu, "setUpdateItemTable", function(self)
   local mock_menu_items = {}
@@ -710,7 +754,8 @@ function FileManagerMenu:_getTabIndexFromLocation(ges)
   if self.tab_item_table == nil then
     self:setUpdateItemTable()
   end
-  local last_tab_index = G_reader_settings:read("filemanagermenu_tab_index") or 1
+  local last_tab_index = G_reader_settings:read("filemanagermenu_tab_index")
+    or 1
   if not ges then
     return last_tab_index
   -- if the start position is far right

@@ -55,7 +55,8 @@ function ReaderStatus:onEndOfBook()
 
   local collate = G_reader_settings:readSetting("collate")
   local next_file_enabled = collate ~= "access" and collate ~= "date"
-  local settings = G_reader_settings:readSetting("end_document_action") or "pop-up"
+  local settings = G_reader_settings:readSetting("end_document_action")
+    or "pop-up"
   local top_widget = UIManager:getTopmostVisibleWidget() or {}
   if settings == "pop-up" and top_widget.name ~= "end_document" then
     local button_dialog
@@ -64,7 +65,8 @@ function ReaderStatus:onEndOfBook()
         {
           text_func = function()
             local status = self.ui.doc_settings:readSetting("summary").status
-            return status == "complete" and _("Mark as reading") or _("Mark as finished")
+            return status == "complete" and _("Mark as reading")
+              or _("Mark as finished")
           end,
           callback = function()
             UIManager:close(button_dialog)
@@ -118,7 +120,9 @@ function ReaderStatus:onEndOfBook()
     }
     button_dialog = ButtonDialog:new({
       name = "end_document",
-      title = _("You've reached the end of the document.\nWhat would you like to do?"),
+      title = _(
+        "You've reached the end of the document.\nWhat would you like to do?"
+      ),
       title_align = "center",
       buttons = buttons,
     })
@@ -136,7 +140,9 @@ function ReaderStatus:onEndOfBook()
       self:onOpenNextDocumentInFolder()
     else
       UIManager:show(InfoMessage:new({
-        text = _("Could not open next file. Sort by date does not support this feature."),
+        text = _(
+          "Could not open next file. Sort by date does not support this feature."
+        ),
       }))
     end
   elseif settings == "goto_beginning" then
@@ -149,7 +155,9 @@ function ReaderStatus:onEndOfBook()
   elseif settings == "mark_read" then
     self:markBook(true)
     UIManager:show(InfoMessage:new({
-      text = _("You've reached the end of the document.\nThe current book is marked as finished."),
+      text = _(
+        "You've reached the end of the document.\nThe current book is marked as finished."
+      ),
       timeout = 3,
     }))
   elseif settings == "book_status_file_browser" then
@@ -188,7 +196,9 @@ function ReaderStatus:onOpenNextDocumentInFolder()
     end)
   else
     UIManager:show(InfoMessage:new({
-      text = _("This is the last file in the current folder. No next file to open."),
+      text = _(
+        "This is the last file in the current folder. No next file to open."
+      ),
     }))
   end
 end
@@ -203,14 +213,20 @@ function ReaderStatus:deleteFile()
     local path = util.splitFilePathName(self.document.file)
     FileManager:showFiles(path)
   end
-  FileManager:showDeleteFileDialog(self.document.file, post_delete_callback, pre_delete_callback)
+  FileManager:showDeleteFileDialog(
+    self.document.file,
+    post_delete_callback,
+    pre_delete_callback
+  )
 end
 
 -- If mark_read is true then we change status only from reading/abandoned to complete.
 -- Otherwise we change status from reading/abandoned to complete or from complete to reading.
 function ReaderStatus:markBook(mark_read)
   local summary = self.ui.doc_settings:readSetting("summary")
-  summary.status = (not mark_read and summary.status == "complete") and "reading" or "complete"
+  summary.status = (not mark_read and summary.status == "complete")
+      and "reading"
+    or "complete"
   summary.modified = os.date("%Y-%m-%d", os.time())
   -- If History is called over Reader, it will read the file to get the book status, so flush
   self.ui.doc_settings:flush()

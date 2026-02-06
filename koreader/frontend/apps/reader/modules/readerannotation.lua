@@ -25,7 +25,8 @@ function ReaderAnnotation:buildAnnotation(bm, highlights, init)
     if chapter == nil then
       chapter = self.ui.toc:getTocTitleByPage(bm.page)
     end
-    pageno = self.ui.rolling and self.document:getPageFromXPointer(bm.page) or bm.page
+    pageno = self.ui.rolling and self.document:getPageFromXPointer(bm.page)
+      or bm.page
     pageref = self:getPageRef(bm.page, pageno)
   end
   if self.ui.paging and bm.pos0 and not bm.pos0.page then
@@ -40,9 +41,11 @@ function ReaderAnnotation:buildAnnotation(bm, highlights, init)
       hl.color = self.view.highlight.saved_color
       if self.ui.paging then
         if bm.pos0.page == bm.pos1.page then
-          hl.pboxes = self.document:getPageBoxesFromPositions(bm.page, bm.pos0, bm.pos1)
+          hl.pboxes =
+            self.document:getPageBoxesFromPositions(bm.page, bm.pos0, bm.pos1)
         else -- multi-page highlight, restore the first box only
-          hl.pboxes = self.document:getPageBoxesFromPositions(bm.page, bm.pos0, bm.pos0)
+          hl.pboxes =
+            self.document:getPageBoxesFromPositions(bm.page, bm.pos0, bm.pos0)
         end
       end
     end
@@ -79,10 +82,17 @@ function ReaderAnnotation:getHighlightForBookmark(highlights, bookmark)
   end
 end
 
-function ReaderAnnotation:getAnnotationsFromBookmarksHighlights(bookmarks, highlights, init)
+function ReaderAnnotation:getAnnotationsFromBookmarksHighlights(
+  bookmarks,
+  highlights,
+  init
+)
   local annotations = {}
   for i = #bookmarks, 1, -1 do
-    table.insert(annotations, self:buildAnnotation(bookmarks[i], highlights, init))
+    table.insert(
+      annotations,
+      self:buildAnnotation(bookmarks[i], highlights, init)
+    )
   end
   if init then
     self:sortItems(annotations)
@@ -174,14 +184,18 @@ function ReaderAnnotation:migrateToAnnotations(config)
       if config:has("bookmarks_paging") then -- save incompatible old backup
         local bookmarks_paging = config:read("bookmarks_paging")
         local highlights_paging = config:read("highlight_paging")
-        local annotations = self:getAnnotationsFromBookmarksHighlights(bookmarks_paging, highlights_paging)
+        local annotations = self:getAnnotationsFromBookmarksHighlights(
+          bookmarks_paging,
+          highlights_paging
+        )
         config:save("annotations_paging", annotations)
         config:delete("bookmarks_paging")
         config:delete("highlight_paging")
       end
     else -- incompatible format loaded, or empty
       if has_bookmarks then -- save incompatible format if not empty
-        local annotations = self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
+        local annotations =
+          self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
         config:save("annotations_paging", annotations)
       end
       -- load compatible format
@@ -195,14 +209,18 @@ function ReaderAnnotation:migrateToAnnotations(config)
       if config:has("bookmarks_rolling") then
         local bookmarks_rolling = config:read("bookmarks_rolling")
         local highlights_rolling = config:read("highlight_rolling")
-        local annotations = self:getAnnotationsFromBookmarksHighlights(bookmarks_rolling, highlights_rolling)
+        local annotations = self:getAnnotationsFromBookmarksHighlights(
+          bookmarks_rolling,
+          highlights_rolling
+        )
         config:save("annotations_rolling", annotations)
         config:delete("bookmarks_rolling")
         config:delete("highlight_rolling")
       end
     else
       if has_bookmarks then
-        local annotations = self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
+        local annotations =
+          self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
         config:save("annotations_rolling", annotations)
       end
       bookmarks = config:readTableRef("bookmarks_paging")
@@ -212,7 +230,8 @@ function ReaderAnnotation:migrateToAnnotations(config)
     end
   end
 
-  self.annotations = self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights, true)
+  self.annotations =
+    self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights, true)
   -- has("annotations") is meaningful to indicate the finish of migration.
   config:save("annotations", self.annotations)
 end
@@ -236,7 +255,9 @@ end
 function ReaderAnnotation:updatePageNumbers(force_update)
   if force_update or self.needs_update then
     for _, item in ipairs(self.annotations) do
-      item.pageno = self.ui.rolling and self.document:getPageFromXPointer(item.page) or item.page
+      item.pageno = self.ui.rolling
+          and self.document:getPageFromXPointer(item.page)
+        or item.page
       item.pageref = self:getPageRef(item.page, item.pageno)
     end
   end
@@ -364,7 +385,15 @@ function ReaderAnnotation:getMatchFunc()
         (a.datetime ~= nil and b.datetime ~= nil and a.datetime ~= b.datetime)
         or (not a.drawer) ~= not b.drawer
         or a.page ~= b.page
-        or (a.pos0 and (a.pos0.x ~= b.pos0.x or a.pos1.x ~= b.pos1.x or a.pos0.y ~= b.pos0.y or a.pos1.y ~= b.pos1.y))
+        or (
+          a.pos0
+          and (
+            a.pos0.x ~= b.pos0.x
+            or a.pos1.x ~= b.pos1.x
+            or a.pos0.y ~= b.pos0.y
+            or a.pos1.y ~= b.pos1.y
+          )
+        )
       then
         return false
       end
@@ -378,7 +407,8 @@ function ReaderAnnotation:getItemIndex(item, no_binary)
   local doesMatch = self:getMatchFunc()
 
   if not no_binary then
-    local isInOrder = self.ui.rolling and self.isItemInPositionOrderRolling or self.isItemInPositionOrderPaging
+    local isInOrder = self.ui.rolling and self.isItemInPositionOrderRolling
+      or self.isItemInPositionOrderPaging
     local _start, _end, _middle = 1, #self.annotations
     while _start <= _end do
       _middle = bit.rshift(_start + _end, 1)
@@ -401,7 +431,8 @@ function ReaderAnnotation:getItemIndex(item, no_binary)
 end
 
 function ReaderAnnotation:getInsertionIndex(item)
-  local isInOrder = self.ui.rolling and self.isItemInPositionOrderRolling or self.isItemInPositionOrderPaging
+  local isInOrder = self.ui.rolling and self.isItemInPositionOrderRolling
+    or self.isItemInPositionOrderPaging
   local _start, _end, _middle, direction = 1, #self.annotations, 1, 0
   while _start <= _end do
     _middle = bit.rshift(_start + _end, 1)
@@ -416,7 +447,8 @@ end
 
 function ReaderAnnotation:addItem(item)
   item.datetime = os.date("%Y-%m-%d %H:%M:%S")
-  item.pageno = self.ui.rolling and self.document:getPageFromXPointer(item.page) or item.page
+  item.pageno = self.ui.rolling and self.document:getPageFromXPointer(item.page)
+    or item.page
   item.pageref = self:getPageRef(item.page, item.pageno)
   local index = self:getInsertionIndex(item)
   table.insert(self.annotations, index, item)

@@ -16,7 +16,10 @@ local function format(booknotes)
   for __, entry in ipairs(booknotes) do
     for __, clipping in ipairs(entry) do
       if booknotes.title and clipping.text then
-        local title_str = booknotes.title .. " (" .. (booknotes.author or "Unknown") .. ")"
+        local title_str = booknotes.title
+          .. " ("
+          .. (booknotes.author or "Unknown")
+          .. ")"
         table.insert(tbl, title_str)
         local header = T(
           gettext("- Your highlight on page %1 | Added on %2"),

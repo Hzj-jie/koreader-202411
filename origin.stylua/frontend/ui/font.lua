@@ -30,7 +30,9 @@ local Font = {
 
   -- Allow globally not promoting fonts to their bold variants
   -- (and use thinner and narrower synthesized bold instead).
-  use_bold_font_for_bold = G_reader_settings:nilOrTrue("use_bold_font_for_bold"),
+  use_bold_font_for_bold = G_reader_settings:nilOrTrue(
+    "use_bold_font_for_bold"
+  ),
 
   -- Widgets can provide "bold = Font.FORCE_SYNTHETIZED_BOLD" instead
   -- of "bold = true" to explicitly request synthesized bold, which,
@@ -129,9 +131,14 @@ local Font = {
 }
 
 if G_reader_settings and G_reader_settings:has("font_ui_fallbacks") then
-  local additional_fallbacks = G_reader_settings:readSetting("font_ui_fallbacks")
+  local additional_fallbacks =
+    G_reader_settings:readSetting("font_ui_fallbacks")
   for i = #additional_fallbacks, 1, -1 do
-    table.insert(Font.fallbacks, Font.additional_fallback_insert_indice, additional_fallbacks[i])
+    table.insert(
+      Font.fallbacks,
+      Font.additional_fallback_insert_indice,
+      additional_fallbacks[i]
+    )
   end
   logger.dbg("updated Font.fallbacks:", Font.fallbacks)
 end
@@ -198,7 +205,8 @@ local bold_strength_factor = 3 / 8 -- as crengine, lighter
 local _completeFaceProperties = function(face_obj)
   if not face_obj.embolden_half_strength then
     -- Cache this value in case we use bold, to avoid recomputation
-    face_obj.embolden_half_strength = face_obj.ftsize:getEmboldenHalfStrength(bold_strength_factor)
+    face_obj.embolden_half_strength =
+      face_obj.ftsize:getEmboldenHalfStrength(bold_strength_factor)
   end
 end
 
@@ -311,7 +319,8 @@ function Font:getFace(font, size, faceindex)
   else
     -- Build face size if not found
     local builtin_font_location = FontList.fontdir .. "/" .. realname
-    local ok, ftsize = pcall(Freetype.newFaceSize, builtin_font_location, size, faceindex)
+    local ok, ftsize =
+      pcall(Freetype.newFaceSize, builtin_font_location, size, faceindex)
 
     -- Not all fonts are bundled on all platforms because they come with the system.
     -- In that case, search through all font folders for the requested font.
@@ -429,7 +438,8 @@ function Font:getAdjustedFace(face, bold)
   -- so let's make a shallow clone of this face_obj, and have it cached.
   -- (Different hash if real bold accepted or not, as the fallback
   -- fonts list may then be different.)
-  local hash = face.hash .. (bold == Font.FORCE_SYNTHETIZED_BOLD and "synthbold" or "realbold")
+  local hash = face.hash
+    .. (bold == Font.FORCE_SYNTHETIZED_BOLD and "synthbold" or "realbold")
   local face_obj = self.faces[hash]
   if face_obj then
     return face_obj, bold

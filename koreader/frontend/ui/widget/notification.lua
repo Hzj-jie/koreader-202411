@@ -117,7 +117,10 @@ function Notification:_cleanShownStack()
   -- more than 30s in case no close event was received.
   local expire_time = time.monotonic() - time.s(30)
   for i = #Notification._shown_list, 1, -1 do
-    if Notification._shown_list[i] and Notification._shown_list[i] > expire_time then
+    if
+      Notification._shown_list[i]
+      and Notification._shown_list[i] > expire_time
+    then
       break -- still shown (or not yet expired)
     end
     table.remove(Notification._shown_list, i)

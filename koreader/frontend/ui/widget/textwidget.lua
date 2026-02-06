@@ -142,7 +142,14 @@ function TextWidget:updateSize()
 
   -- We never need to draw/size more than one screen width, so limit computation
   -- to that width in case we are given some huge string
-  local tsize = RenderText:sizeUtf8Text(0, Screen:getWidth(), self.face, self._text_to_draw, true, self.bold)
+  local tsize = RenderText:sizeUtf8Text(
+    0,
+    Screen:getWidth(),
+    self.face,
+    self._text_to_draw,
+    true,
+    self.bold
+  )
   -- As text length includes last glyph pen "advance" (for positioning
   -- next char), it's best to use math.floor() instead of math.ceil()
   -- to get rid of a fraction of it in case this text is to be
@@ -160,24 +167,51 @@ function TextWidget:updateSize()
       -- happen at truncation point. But it will do for now.
       local reversed_text = util.utf8Reverse(self._text_to_draw)
       if self.truncate_with_ellipsis then
-        reversed_text = RenderText:truncateTextByWidth(reversed_text, self.face, self.max_width, false, self.bold)
+        reversed_text = RenderText:truncateTextByWidth(
+          reversed_text,
+          self.face,
+          self.max_width,
+          false,
+          self.bold
+        )
       else
-        reversed_text = RenderText:getSubTextByWidth(reversed_text, self.face, self.max_width, false, self.bold)
+        reversed_text = RenderText:getSubTextByWidth(
+          reversed_text,
+          self.face,
+          self.max_width,
+          false,
+          self.bold
+        )
       end
       self._text_to_draw = util.utf8Reverse(reversed_text)
     elseif self.truncate_with_ellipsis then
-      self._text_to_draw =
-        RenderText:truncateTextByWidth(self._text_to_draw, self.face, self.max_width, true, self.bold)
+      self._text_to_draw = RenderText:truncateTextByWidth(
+        self._text_to_draw,
+        self.face,
+        self.max_width,
+        true,
+        self.bold
+      )
     end
     -- Get the adjusted width when limiting to max_width (it might be
     -- smaller than max_width when dropping the truncated glyph).
-    tsize = RenderText:sizeUtf8Text(0, self.max_width, self.face, self._text_to_draw, true, self.bold)
+    tsize = RenderText:sizeUtf8Text(
+      0,
+      self.max_width,
+      self.face,
+      self._text_to_draw,
+      true,
+      self.bold
+    )
     self._length = math.floor(tsize.x)
     self._is_truncated = true
   end
 end
 dbg:guard(TextWidget, "updateSize", function(self)
-  assert(type(self.text) == "string" or type(self.text) == "number", "Wrong self.text type (expected string or number)")
+  assert(
+    type(self.text) == "string" or type(self.text) == "number",
+    "Wrong self.text type (expected string or number)"
+  )
 end)
 
 function TextWidget:_measureWithXText()
@@ -185,7 +219,13 @@ function TextWidget:_measureWithXText()
     xtext = require("libs/libkoreader-xtext")
     TextWidget._xtext_loaded = true
   end
-  self._xtext = xtext.new(self.text, self.face, self.auto_para_direction, self.para_direction_rtl, self.lang)
+  self._xtext = xtext.new(
+    self.text,
+    self.face,
+    self.auto_para_direction,
+    self.para_direction_rtl,
+    self.lang
+  )
   self._xtext:measure()
   self._length = self._xtext:getWidth()
   self._xshaping = nil
@@ -316,7 +356,10 @@ function TextWidget:setText(text)
   self:free()
 end
 dbg:guard(TextWidget, "setText", function(self, text)
-  assert(type(text) == "string" or type(text) == "number", "Wrong text type (expected string or number)")
+  assert(
+    type(text) == "string" or type(text) == "number",
+    "Wrong text type (expected string or number)"
+  )
 end)
 
 function TextWidget:setMaxWidth(max_width)
@@ -350,8 +393,11 @@ function TextWidget:paintTo(bb, x, y)
 
   -- Draw shaped glyphs with the help of xtext
   if not self._xshaping then
-    self._xshaping =
-      self._xtext:shapeLine(self._shape_start, self._shape_end, self._shape_idx_to_substitute_with_ellipsis)
+    self._xshaping = self._xtext:shapeLine(
+      self._shape_start,
+      self._shape_end,
+      self._shape_idx_to_substitute_with_ellipsis
+    )
   end
 
   -- Don't draw outside of BlitBuffer or max_width

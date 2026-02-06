@@ -22,7 +22,10 @@ local function makeRequest(url, method, request_body)
   local sink = {}
   local request_body_json = json.encode(request_body)
   local source = ltn12.source.string(request_body_json)
-  socketutil:set_timeout(socketutil.LARGE_BLOCK_TIMEOUT, socketutil.LARGE_TOTAL_TIMEOUT)
+  socketutil:set_timeout(
+    socketutil.LARGE_BLOCK_TIMEOUT,
+    socketutil.LARGE_TOTAL_TIMEOUT
+  )
   http.request({
     url = url,
     method = method,
@@ -128,7 +131,12 @@ end
 
 -- returns true if the notebook exists
 function JoplinExporter:notebookExist(title)
-  local url = string.format("http://%s:%s/folders?token=%s", self.settings.ip, self.settings.port, self.settings.token)
+  local url = string.format(
+    "http://%s:%s/folders?token=%s",
+    self.settings.ip,
+    self.settings.port,
+    self.settings.token
+  )
   local response, err = makeRequest(url, "GET")
   if not response then
     logger.warn("Joplin notebookExist error", err)
@@ -153,7 +161,12 @@ function JoplinExporter:createNotebook(title, created_time)
     title = title,
     created_time = created_time,
   }
-  local url = string.format("http://%s:%s/folders?token=%s", self.settings.ip, self.settings.port, self.settings.token)
+  local url = string.format(
+    "http://%s:%s/folders?token=%s",
+    self.settings.ip,
+    self.settings.port,
+    self.settings.token
+  )
 
   local response, err = makeRequest(url, "POST", request_body)
   if not response then
@@ -171,7 +184,12 @@ function JoplinExporter:createNote(title, note, parent_id, created_time)
     parent_id = parent_id,
     created_time = created_time,
   }
-  local url = string.format("http://%s:%s/notes?token=%s", self.settings.ip, self.settings.port, self.settings.token)
+  local url = string.format(
+    "http://%s:%s/notes?token=%s",
+    self.settings.ip,
+    self.settings.port,
+    self.settings.token
+  )
 
   local response, err = makeRequest(url, "POST", request_body)
   if not response then
@@ -187,8 +205,13 @@ function JoplinExporter:updateNote(note, note_id)
     body = note,
   }
 
-  local url =
-    string.format("http://%s:%s/notes/%s?token=%s", self.settings.ip, self.settings.port, note_id, self.settings.token)
+  local url = string.format(
+    "http://%s:%s/notes/%s?token=%s",
+    self.settings.ip,
+    self.settings.port,
+    note_id,
+    self.settings.token
+  )
 
   local response, err = makeRequest(url, "PUT", request_body)
   if not response then
@@ -328,7 +351,13 @@ function JoplinExporter:export(t)
   if not self:notebookExist(self.notebook_name) then
     local notebook = self:createNotebook(self.notebook_name)
     if notebook then
-      logger.info("Joplin: created new notebook", "name", self.notebook_name, "id", notebook)
+      logger.info(
+        "Joplin: created new notebook",
+        "name",
+        self.notebook_name,
+        "id",
+        notebook
+      )
       self.settings.notebook_guid = notebook
       self:saveSettings()
     else
@@ -345,8 +374,11 @@ function JoplinExporter:export(t)
   local markdown_settings = plugin_settings.markdown
   local notebook_id = self.settings.notebook_guid
   for _, booknotes in pairs(t) do
-    local note_tbl =
-      md.prepareBookContent(booknotes, markdown_settings.formatting_options, markdown_settings.highlight_formatting)
+    local note_tbl = md.prepareBookContent(
+      booknotes,
+      markdown_settings.formatting_options,
+      markdown_settings.highlight_formatting
+    )
     local note = table.concat(note_tbl, "\n")
     local note_id = self:findNoteByTitle(booknotes.title, notebook_id)
 

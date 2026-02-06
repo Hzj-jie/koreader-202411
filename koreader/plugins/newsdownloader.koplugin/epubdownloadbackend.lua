@@ -66,7 +66,9 @@ local function filter(text, element)
   if not filtered then
     return text
   end
-  return "<!DOCTYPE html><html><head></head><body>" .. filtered .. "</body></html>"
+  return "<!DOCTYPE html><html><head></head><body>"
+    .. filtered
+    .. "</body></html>"
 end
 
 -- From https://github.com/lunarmodules/luasocket/blob/1fad1626900a128be724cba9e9c19a6b2fe2bf6b/samples/cookie.lua
@@ -86,14 +88,16 @@ end
 
 local function parse_set_cookie(c, quoted, cookie_table)
   c = c .. ";$last=last;"
-  local __, __, n, v, i = string.find(c, "(" .. token_class .. "+)%s*=%s*(.-)%s*;%s*()")
+  local __, __, n, v, i =
+    string.find(c, "(" .. token_class .. "+)%s*=%s*(.-)%s*;%s*()")
   local cookie = {
     name = n,
     value = unquote(v, quoted),
     attributes = {},
   }
   while 1 do
-    __, __, n, v, i = string.find(c, "(" .. token_class .. "+)%s*=?%s*(.-)%s*;%s*()", i)
+    __, __, n, v, i =
+      string.find(c, "(" .. token_class .. "+)%s*=?%s*(.-)%s*;%s*()", i)
     if not n or n == "$last" then
       break
     end
@@ -118,7 +122,8 @@ local function split_set_cookie(s, cookie_table)
   local i = 1
   while 1 do
     local __, cookie, next_token
-    __, __, cookie, i, next_token = string.find(s, "(.-)%s*%,%s*()(" .. token_class .. "+)%s*=", i)
+    __, __, cookie, i, next_token =
+      string.find(s, "(.-)%s*%,%s*()(" .. token_class .. "+)%s*=", i)
     if not next_token then
       break
     end
@@ -157,7 +162,19 @@ end
 
 -- Get URL content
 local function getUrlContent(url, cookies, timeout, maxtime, redirectCount)
-  logger.dbg("getUrlContent(", url, ",", cookies, ", ", timeout, ",", maxtime, ",", redirectCount, ")")
+  logger.dbg(
+    "getUrlContent(",
+    url,
+    ",",
+    cookies,
+    ", ",
+    timeout,
+    ",",
+    maxtime,
+    ",",
+    redirectCount,
+    ")"
+  )
   if not redirectCount then
     redirectCount = 0
   elseif redirectCount == max_redirects then
@@ -216,7 +233,10 @@ local function getUrlContent(url, cookies, timeout, maxtime, redirectCount)
       logger.dbg("getUrlContent: Redirecting to url: ", redirected_url)
       return getUrlContent(redirected_url, timeout, maxtime, redirectCount + 1)
     else
-      error("EpubDownloadBackend: Don't know how to handle HTTP response status:", status or code)
+      error(
+        "EpubDownloadBackend: Don't know how to handle HTTP response status:",
+        status or code
+      )
     end
     logger.warn("HTTP status not okay:", status or code)
     return false, "Remote server error or unavailable"
@@ -296,7 +316,15 @@ function EpubDownloadBackend:loadPage(url, cookies)
     local timeout, maxtime = 10, 60
     success, content = getUrlContent(url, cookies, timeout, maxtime)
   end
-  logger.dbg("success:", success, "type(content):", type(content), "content:", content:sub(1, 500), "...")
+  logger.dbg(
+    "success:",
+    success,
+    "type(content):",
+    type(content),
+    "content:",
+    content:sub(1, 500),
+    "..."
+  )
   if not success then
     error(content)
   else
@@ -320,7 +348,15 @@ local ext_to_mimetype = {
   woff = "application/font-woff",
 }
 -- Create an epub file (with possibly images)
-function EpubDownloadBackend:createEpub(epub_path, html, url, include_images, message, filter_enable, filter_element)
+function EpubDownloadBackend:createEpub(
+  epub_path,
+  html,
+  url,
+  include_images,
+  message,
+  filter_enable,
+  filter_element
+)
   logger.dbg("EpubDownloadBackend:createEpub(", epub_path, ")")
   -- Use Trapper to display progress and ask questions through the UI.
   -- We need to have been Trapper.wrap()'ed for UI to be used, otherwise
@@ -401,7 +437,14 @@ function EpubDownloadBackend:createEpub(epub_path, html, url, include_images, me
       table.insert(images, cur_image)
       seen_images[src] = cur_image
       -- Use first image of reasonable size (not an icon) and portrait-like as cover-image
-      if not cover_imgid and width and width > 50 and height and height > 50 and height > width then
+      if
+        not cover_imgid
+        and width
+        and width > 50
+        and height
+        and height > 50
+        and height > width
+      then
         logger.dbg("Found a suitable cover image")
         cover_imgid = imgid
       end
@@ -420,7 +463,11 @@ function EpubDownloadBackend:createEpub(epub_path, html, url, include_images, me
       table.insert(style_props, string.format("height: %spx", cur_image.height))
     end
     local style = table.concat(style_props, "; ")
-    return string.format([[<img src="%s" style="%s" alt=""/>]], cur_image.imgpath, style)
+    return string.format(
+      [[<img src="%s" style="%s" alt=""/>]],
+      cur_image.imgpath,
+      style
+    )
   end
   html = html:gsub("(<%s*img [^>]*>)", processImg)
   logger.dbg("Images found in html:", images)
@@ -486,7 +533,8 @@ function EpubDownloadBackend:createEpub(epub_path, html, url, include_images, me
   -- head
   local meta_cover = "<!-- no cover image -->"
   if include_images and cover_imgid then
-    meta_cover = string.format([[<meta name="cover" content="%s"/>]], cover_imgid)
+    meta_cover =
+      string.format([[<meta name="cover" content="%s"/>]], cover_imgid)
   end
   logger.dbg("meta_cover:", meta_cover)
   table.insert(
@@ -517,7 +565,13 @@ function EpubDownloadBackend:createEpub(epub_path, html, url, include_images, me
     for inum, img in ipairs(images) do
       table.insert(
         content_opf_parts,
-        string.format([[    <item id="%s" href="%s" media-type="%s"/>%s]], img.imgid, img.imgpath, img.mimetype, "\n")
+        string.format(
+          [[    <item id="%s" href="%s" media-type="%s"/>%s]],
+          img.imgid,
+          img.imgpath,
+          img.mimetype,
+          "\n"
+        )
       )
     end
   end
@@ -626,7 +680,15 @@ function EpubDownloadBackend:createEpub(epub_path, html, url, include_images, me
       -- Process can be interrupted at this point between each image download
       -- by tapping while the InfoMessage is displayed
       -- We use the fast_refresh option from image #2 for a quicker download
-      local go_on = UI:info(T(gettext("%1\n\nRetrieving image %2 / %3 …"), message, inum, nb_images), inum >= 2)
+      local go_on = UI:info(
+        T(
+          gettext("%1\n\nRetrieving image %2 / %3 …"),
+          message,
+          inum,
+          nb_images
+        ),
+        inum >= 2
+      )
       if not go_on then
         logger.dbg("cancelled")
         cancelled = true
@@ -670,7 +732,9 @@ function EpubDownloadBackend:createEpub(epub_path, html, url, include_images, me
   if cancelled then
     if
       UI:confirm(
-        gettext("Download did not complete.\nDo you want to create an EPUB with the already downloaded images?"),
+        gettext(
+          "Download did not complete.\nDo you want to create an EPUB with the already downloaded images?"
+        ),
         gettext("Don't create"),
         gettext("Create")
       )

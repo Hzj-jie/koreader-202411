@@ -53,8 +53,10 @@ table.insert(keys[4], 10, {
 })
 
 -- change order "ḧ ẍ ," to ", ḧ ẍ"
-keys[3][10][3], keys[3][11][3], keys[3][12][3] = keys[3][12][3], keys[3][10][3], keys[3][11][3]
-keys[3][10][4], keys[3][11][4], keys[3][12][4] = keys[3][12][4], keys[3][10][4], keys[3][11][4]
+keys[3][10][3], keys[3][11][3], keys[3][12][3] =
+  keys[3][12][3], keys[3][10][3], keys[3][11][3]
+keys[3][10][4], keys[3][11][4], keys[3][12][4] =
+  keys[3][12][4], keys[3][10][4], keys[3][11][4]
 
 -- Add forward slash and .com symbol to 4th row since we have lot of empty space
 --and most phones do this.

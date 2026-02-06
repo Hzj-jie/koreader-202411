@@ -179,7 +179,8 @@ h1 + h6, h2 + h6, h3 + h6, h4 + h6, h5 + h6 { page-break-before: avoid !importan
       title = gettext("Widows and orphans"),
       {
         title = gettext("About widow and orphan lines"),
-        info_text = gettext([[
+        info_text = gettext(
+          [[
 Widows and orphans are lines at the beginning or end of a paragraph, which are left dangling at the top or bottom of a page, separated from the rest of the paragraph.
 The first line of a paragraph alone at the bottom of a page is called an orphan line.
 The last line of a paragraph alone at the top of a page is called a widow line.
@@ -188,7 +189,8 @@ Some people (and publishers) don't like widows and orphans, and can avoid them w
 To avoid widows and orphans, some lines have to be pushed to the next page to accompany what would otherwise be widows and orphans. This may leave some blank space at the bottom of the previous page, which might be more disturbing to others.
 
 The default is to allow widows and orphans.
-These tweaks allow you to change this behavior, and to override publisher rules.]]),
+These tweaks allow you to change this behavior, and to override publisher rules.]]
+        ),
         separator = true,
       },
       -- To avoid duplicating these 2 tweaks into 2 others for ignoring publisher rules,
@@ -235,7 +237,9 @@ DocFragment {
       {
         id = "widows_orphans_all_inherit",
         title = gettext("Ignore publisher orphan and widow rules"),
-        description = gettext("Disable orphan and widow rules specified in embedded styles."),
+        description = gettext(
+          "Disable orphan and widow rules specified in embedded styles."
+        ),
         css = [[
 * {
     orphans: inherit !important;
@@ -253,7 +257,9 @@ DocFragment {
         id = "text_align_most_left",
         conflicts_with = { "text_align_all_left", "text_align_most_justify" },
         title = gettext("Left align most text"),
-        description = gettext("Enforce left alignment of text in common text elements."),
+        description = gettext(
+          "Enforce left alignment of text in common text elements."
+        ),
         css = [[body, p, li { text-align: left !important; }]],
         priority = 2, -- so it overrides the justify below
       },
@@ -261,7 +267,9 @@ DocFragment {
         id = "text_align_all_left",
         conflicts_with = { "text_align_most_left", "text_align_all_justify" },
         title = gettext("Left align all elements"),
-        description = gettext("Enforce left alignment of text in all elements."),
+        description = gettext(
+          "Enforce left alignment of text in all elements."
+        ),
         css = [[* { text-align: left !important; }]],
         priority = 2, -- so it overrides the justify below
         separator = true,
@@ -331,7 +339,9 @@ You may also want to enable, in the top menu → Gear → Taps and gestures → 
         id = "text_align_most_right",
         conflicts_with = "text_align_all_right",
         title = gettext("Right align most text"),
-        description = gettext("Enforce right alignment of text in common text elements."),
+        description = gettext(
+          "Enforce right alignment of text in common text elements."
+        ),
         -- Includes H1..H6 as this is probably most useful for RTL readers
         css = [[body, p, li, h1, h2, h3, h4, h5, h6 { text-align: right !important; }]],
         priority = 3, -- so it overrides the ones from Text alignment
@@ -340,7 +350,9 @@ You may also want to enable, in the top menu → Gear → Taps and gestures → 
         id = "text_align_all_right",
         conflicts_with = "text_align_most_right",
         title = gettext("Right align all elements"),
-        description = gettext("Enforce right alignment of text in all elements."),
+        description = gettext(
+          "Enforce right alignment of text in all elements."
+        ),
         css = [[* { text-align: right !important; }]],
         priority = 3, -- so it overrides the ones from Text alignment
         separator = true,
@@ -369,15 +381,19 @@ h1, h2, h3, h4, h5, h6 { hyphens: none !important; }
       {
         id = "line_break_cre_loose",
         title = gettext("Ignore publisher line-break restrictions"),
-        description = gettext([[
+        description = gettext(
+          [[
 A publisher might use non-breaking spaces and hyphens to avoid line breaking between some words, which is not always necessary and may have been added to make reading easier. This can cause large word spacing on some lines.
-Ignoring them will only use KOReader's own typography rules for line breaking.]]),
+Ignoring them will only use KOReader's own typography rules for line breaking.]]
+        ),
         css = [[* { line-break: -cr-loose; }]],
       },
       {
         id = "ligature_all_no_common_ligature",
         title = gettext("Disable common ligatures"),
-        description = gettext("Disable common ligatures, which are enabled by default in 'best' kerning mode."),
+        description = gettext(
+          "Disable common ligatures, which are enabled by default in 'best' kerning mode."
+        ),
         -- We don't use !important, as this would stop other font-variant properties
         -- from being applied
         css = [[
@@ -397,9 +413,11 @@ These tweaks can help make ruby easier to read or ignore.]]),
         {
           id = "ruby_font_sans_serif",
           title = gettext("Sans-serif font for ruby"),
-          description = gettext([[
+          description = gettext(
+            [[
 Use a sans serif font to display all ruby text for a more 'book-like' feeling.
-Also force the regular text weight when used with lighter or bolder fonts.]]),
+Also force the regular text weight when used with lighter or bolder fonts.]]
+          ),
           css = [[
 rt, rubyBox[T=rt] {
     font-family: "Noto Sans CJK SC" !important;
@@ -417,16 +435,20 @@ rt, rubyBox[T=rt] {
         {
           id = "ruby_most_line_height_larger",
           title = gettext("Larger spacing between ruby lines"),
-          description = gettext([[
+          description = gettext(
+            [[
 Increase line spacing of most text, so that lines keep an even spacing whether or not they include ruby.
-Further small adjustments can be done with 'Line Spacing' in the bottom menu.]]),
+Further small adjustments can be done with 'Line Spacing' in the bottom menu.]]
+          ),
           css = [[p, li { line-height: 2 !important; }]],
           -- no need for priority, this has higher specificity than lineheight_all_inherit below
         },
         {
           id = "ruby_inline",
           title = gettext("Render ruby content inline"),
-          description = gettext("Disable handling of <ruby> tags and render them inline."),
+          description = gettext(
+            "Disable handling of <ruby> tags and render them inline."
+          ),
           css = [[ruby { display: inline !important; }]],
         },
       },
@@ -446,7 +468,9 @@ Further small adjustments can be done with 'Line Spacing' in the bottom menu.]])
       {
         id = "font_family_all_inherit",
         title = gettext("Ignore publisher font families"),
-        description = gettext("Disable font-family specified in embedded styles."),
+        description = gettext(
+          "Disable font-family specified in embedded styles."
+        ),
         css = [[* { font-family: inherit !important; }]],
         separator = true,
       },
@@ -454,7 +478,9 @@ Further small adjustments can be done with 'Line Spacing' in the bottom menu.]])
         id = "font_size_all_inherit",
         conflicts_with = "font_size_most_reset",
         title = gettext("Ignore publisher font sizes"),
-        description = gettext("Disable font-size specified in embedded styles."),
+        description = gettext(
+          "Disable font-size specified in embedded styles."
+        ),
         priority = -1, -- so in-page footnotes smaller can override this
         css = [[* { font-size: inherit !important; }]],
       },
@@ -492,7 +518,9 @@ Further small adjustments can be done with 'Line Spacing' in the bottom menu.]])
       {
         id = "sub_sup_smaller",
         title = gettext("Smaller sub- and superscript"),
-        description = gettext("Prevent sub- and superscript from affecting line-height."),
+        description = gettext(
+          "Prevent sub- and superscript from affecting line-height."
+        ),
         priority = 5, -- so we can override "font_size_all_inherit"
         -- https://friendsofepub.github.io/eBookTricks/
         -- https://github.com/koreader/koreader/issues/3923#issuecomment-386510294
@@ -589,7 +617,9 @@ body, h1, h2, h3, h4, h5, h6, div, li, td, th { text-indent: 0 !important; }
         id = "paragraph_whitespace_half",
         conflicts_with = { "paragraph_whitespace", "paragraph_no_whitespace" },
         title = gettext("Spacing between paragraphs (half)"),
-        description = gettext("Add half a line of whitespace between paragraphs."),
+        description = gettext(
+          "Add half a line of whitespace between paragraphs."
+        ),
         priority = 5,
         css = [[p + p { margin-top: .5em !important; }]],
       },
@@ -638,7 +668,9 @@ body, h1, h2, h3, h4, h5, h6, div, li, td, th { text-indent: 0 !important; }
       {
         id = "table_margin_left_right_auto",
         title = gettext("Center small tables"),
-        description = gettext("Horizontally center tables that do not use the full page width."),
+        description = gettext(
+          "Horizontally center tables that do not use the full page width."
+        ),
         css = [[table { margin-left: auto !important; margin-right: auto !important; }]],
         priority = 3, -- Override "Pages > Ignore margin and padding"
         separator = true,
@@ -820,9 +852,11 @@ After applying these tweaks, the alternative ToC needs to be rebuilt by toggling
       {
         id = "alt_toc_level_example",
         title = gettext("Example of book specific ToC hints"),
-        description = gettext([[
+        description = gettext(
+          [[
 If headings or document fragments do not result in a usable ToC, you can inspect the HTML and look for elements that contain chapter titles. Then you can set hints to their class names.
-This is just an example, that will need to be adapted into a user style tweak.]]),
+This is just an example, that will need to be adapted into a user style tweak.]]
+        ),
         css = [[
 .book_n    { -cr-hint: toc-level1; }
 .part_n    { -cr-hint: toc-level2; }
@@ -860,7 +894,9 @@ This is just an example, that will need to be adapted into a user style tweak.]]
     {
       id = "pure_black_and_white",
       title = gettext("Pure black and white"),
-      description = gettext([[Enforce black text and borders, and remove backgrounds.]]),
+      description = gettext(
+        [[Enforce black text and borders, and remove backgrounds.]]
+      ),
       css = [[
 * {
     color: black !important;
@@ -878,8 +914,10 @@ This is just an example, that will need to be adapted into a user style tweak.]]
       {
         id = "footnote-inpage_fb2",
         title = gettext("In-page FB2 footnotes"),
-        description = gettext([[
-Show FB2 footnote text at the bottom of pages that contain links to them.]]),
+        description = gettext(
+          [[
+Show FB2 footnote text at the bottom of pages that contain links to them.]]
+        ),
         -- Restrict this to FB2 documents, even if we won't probably
         -- match in any other kind of document
         -- (Last selector avoids title bottom margin from collapsing
@@ -904,8 +942,10 @@ body[name="notes"] > title {
       {
         id = "footnote-inpage_fb2_comments",
         title = gettext("In-page FB2 endnotes"),
-        description = gettext([[
-Show FB2 endnote text at the bottom of pages that contain links to them.]]),
+        description = gettext(
+          [[
+Show FB2 endnote text at the bottom of pages that contain links to them.]]
+        ),
         css = [[
 body[name="comments"] section {
     -cr-only-if: fb2-document;
@@ -951,9 +991,11 @@ body[name="comments"] > section
         return util.stringStartsWith(id, "footnote-inpage_epub")
       end,
       title = gettext("In-page EPUB footnotes"),
-      description = gettext([[
+      description = gettext(
+        [[
 Show EPUB footnote text at the bottom of pages that contain links to them.
-This only works with footnotes that have specific attributes set by the publisher.]]),
+This only works with footnotes that have specific attributes set by the publisher.]]
+      ),
       -- Restrict this to non-FB2 documents, as FB2 can have <a type="note">
       css = [[
 *[type~="note"],
@@ -980,9 +1022,11 @@ This only works with footnotes that have specific attributes set by the publishe
         return util.stringStartsWith(id, "footnote-inpage_epub")
       end,
       title = gettext("In-page EPUB footnotes (smaller)"),
-      description = gettext([[
+      description = gettext(
+        [[
 Show EPUB footnote text at the bottom of pages that contain links to them.
-This only works with footnotes that have specific attributes set by the publisher.]]),
+This only works with footnotes that have specific attributes set by the publisher.]]
+      ),
       -- Restrict this to non-FB2 documents, as FB2 can have <a type="note">
       -- and we don't want to have them smaller
       css = [[
@@ -1012,7 +1056,9 @@ This only works with footnotes that have specific attributes set by the publishe
         return util.stringStartsWith(id, "footnote-inpage_wikipedia")
       end,
       title = gettext("In-page Wikipedia footnotes"),
-      description = gettext([[Show footnotes at the bottom of pages in Wikipedia EPUBs.]]),
+      description = gettext(
+        [[Show footnotes at the bottom of pages in Wikipedia EPUBs.]]
+      ),
       css = [[
 ol.references > li {
     -cr-hint: footnote-inpage;
@@ -1033,7 +1079,9 @@ ol.references > li > .mw-cite-backlink { display: none; }
         return util.stringStartsWith(id, "footnote-inpage_wikipedia")
       end,
       title = gettext("In-page Wikipedia footnotes (smaller)"),
-      description = gettext([[Show footnotes at the bottom of pages in Wikipedia EPUBs.]]),
+      description = gettext(
+        [[Show footnotes at the bottom of pages in Wikipedia EPUBs.]]
+      ),
       css = [[
 ol.references > li {
     -cr-hint: footnote-inpage;
@@ -1059,9 +1107,11 @@ ol.references > li > .mw-cite-backlink { display: none; }
         return util.stringStartsWith(id, "footnote-inpage_classic_classnames")
       end,
       title = gettext("In-page classic classname footnotes"),
-      description = gettext([[
+      description = gettext(
+        [[
 Show footnotes with classic classnames at the bottom of pages.
-This tweak can be duplicated as a user style tweak when books contain footnotes wrapped with other class names.]]),
+This tweak can be duplicated as a user style tweak when books contain footnotes wrapped with other class names.]]
+      ),
       css = [[
 .footnote, .footnotes, .fn,
 .note, .note1, .note2, .note3,
@@ -1085,9 +1135,11 @@ This tweak can be duplicated as a user style tweak when books contain footnotes 
         return util.stringStartsWith(id, "footnote-inpage_classic_classnames")
       end,
       title = gettext("In-page classic classname footnotes (smaller)"),
-      description = gettext([[
+      description = gettext(
+        [[
 Show footnotes with classic classnames at the bottom of pages.
-This tweak can be duplicated as a user style tweak when books contain footnotes wrapped with other class names.]]),
+This tweak can be duplicated as a user style tweak when books contain footnotes wrapped with other class names.]]
+      ),
       css = [[
 .footnote, .footnotes, .fn,
 .note, .note1, .note2, .note3,

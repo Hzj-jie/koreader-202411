@@ -176,7 +176,8 @@ function Device:init()
   -- syntax is Lua table syntax, e.g. EMULATE_READER_VIEWPORT="{x=10,w=550,y=5,h=790}"
   local viewport = os.getenv("EMULATE_READER_VIEWPORT")
   if viewport then
-    self.viewport = require("ui/geometry"):new(loadstring("return " .. viewport)())
+    self.viewport =
+      require("ui/geometry"):new(loadstring("return " .. viewport)())
   end
 
   local touchless = os.getenv("DISABLE_TOUCH") == "1"
@@ -204,7 +205,8 @@ function Device:init()
   self.window.height = self.screen.h
   self.powerd = require("device/sdl/powerd"):new({ device = self })
 
-  local ok, re = pcall(self.screen.setWindowIcon, self.screen, "resources/koreader.png")
+  local ok, re =
+    pcall(self.screen.setWindowIcon, self.screen, "resources/koreader.png")
   if not ok then
     logger.warn(re)
   end
@@ -276,7 +278,11 @@ function Device:init()
           ReaderUI:doShowReader(dropped_file_path)
         end
       elseif ev.code == SDL_WINDOWEVENT_RESIZED then
-        device_input.device.screen.resize(device_input.device.screen, ev.value.data1, ev.value.data2)
+        device_input.device.screen.resize(
+          device_input.device.screen,
+          ev.value.data1,
+          ev.value.data2
+        )
         self.window.width = ev.value.data1
         self.window.height = ev.value.data2
 
@@ -298,7 +304,10 @@ function Device:init()
 
         local FileManager = require("apps/filemanager/filemanager")
         if FileManager.instance then
-          FileManager.instance:reinit(FileManager.instance.path, FileManager.instance.focused_file)
+          FileManager.instance:reinit(
+            FileManager.instance.path,
+            FileManager.instance.focused_file
+          )
         end
 
         -- make sure dialogs are displayed
@@ -322,7 +331,10 @@ function Device:init()
   end
 
   if portrait then
-    self.input:registerEventAdjustHook(self.input.adjustTouchSwitchAxesAndMirrorX, (self.screen:getScreenWidth() - 1))
+    self.input:registerEventAdjustHook(
+      self.input.adjustTouchSwitchAxesAndMirrorX,
+      (self.screen:getScreenWidth() - 1)
+    )
   end
 
   Generic.init(self)
@@ -334,7 +346,15 @@ function Device:setDateTime(year, month, day, hour, min, sec)
   end
   local command
   if year and month and day then
-    command = string.format("date -s '%d-%d-%d %d:%d:%d'", year, month, day, hour, min, sec)
+    command = string.format(
+      "date -s '%d-%d-%d %d:%d:%d'",
+      year,
+      month,
+      day,
+      hour,
+      min,
+      sec
+    )
   else
     command = string.format("date -s '%d:%d'", hour, min)
   end

@@ -26,7 +26,12 @@ local function computeCacheSize()
 
   -- If we end up with a not entirely ridiculous cache size, use that...
   if mb_size >= 8 then
-    logger.dbg(string.format("Allocating a %dMB budget for the global document cache", mb_size))
+    logger.dbg(
+      string.format(
+        "Allocating a %dMB budget for the global document cache",
+        mb_size
+      )
+    )
     return doccache_size
   else
     return nil
@@ -51,7 +56,10 @@ local DocCache = Cache:new({
   size = computeCacheSize(),
   -- Average item size is a screen's worth of bitmap, mixed with a few much smaller tables (pgdim, pglinks, etc.), hence the / 3
   avg_itemsize = math.floor(
-    CanvasContext:getWidth() * CanvasContext:getHeight() * (CanvasContext.is_color_rendering_enabled and 4 or 1) / 3
+    CanvasContext:getWidth()
+      * CanvasContext:getHeight()
+      * (CanvasContext.is_color_rendering_enabled and 4 or 1)
+      / 3
   ),
   -- Rely on CacheItem's eviction callback to free resources *immediately* on eviction.
   enable_eviction_cb = true,
@@ -68,7 +76,10 @@ function DocCache:serialize(doc_path)
   local cached_size = 0
   local sorted_caches = {}
   for _, file in pairs(self.cached) do
-    table.insert(sorted_caches, { file = file, time = lfs.attributes(file, "access") })
+    table.insert(
+      sorted_caches,
+      { file = file, time = lfs.attributes(file, "access") }
+    )
     cached_size = cached_size + (lfs.attributes(file, "size") or 0)
   end
   table.sort(sorted_caches, function(v1, v2)

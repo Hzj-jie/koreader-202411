@@ -54,8 +54,10 @@ keys[4][7][3], keys[3][10][3] = keys[3][10][3], keys[4][7][3]
 keys[4][7][4], keys[3][10][4] = keys[3][10][4], keys[4][7][4]
 
 -- change order ", n m" to "n m ,"
-keys[4][7][1], keys[4][8][1], keys[4][9][1] = keys[4][8][1], keys[4][9][1], keys[4][7][1]
-keys[4][7][2], keys[4][8][2], keys[4][9][2] = keys[4][8][2], keys[4][9][2], keys[4][7][2]
+keys[4][7][1], keys[4][8][1], keys[4][9][1] =
+  keys[4][8][1], keys[4][9][1], keys[4][7][1]
+keys[4][7][2], keys[4][8][2], keys[4][9][2] =
+  keys[4][8][2], keys[4][9][2], keys[4][7][2]
 
 -- Rename "space" and resize buttons
 keys[5][4].label = "␣" -- label the Spacebar with Unicode space symbol

@@ -7,7 +7,8 @@ local py_keyboard = dofile("frontend/ui/data/keyboardlayouts/en_keyboard.lua")
 local SETTING_NAME = "keyboard_chinese_pinyin_settings"
 
 local code_map = dofile("frontend/ui/data/keyboardlayouts/zh_pinyin_data.lua")
-local settings = G_reader_settings:readSetting(SETTING_NAME, { show_candi = true })
+local settings =
+  G_reader_settings:readSetting(SETTING_NAME, { show_candi = true })
 local ime = IME:new({
   code_map = code_map,
   partial_separators = { " " },
@@ -124,23 +125,50 @@ local wrapInputBox = function(inputbox)
     -- original function.
 
     -- -- Delete text.
-    table.insert(wrappers, util.wrapMethod(inputbox, "delChar", wrappedDelChar, nil))
-    table.insert(wrappers, util.wrapMethod(inputbox, "delToStartOfLine", nil, clear_stack))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "delChar", wrappedDelChar, nil)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "delToStartOfLine", nil, clear_stack)
+    )
     table.insert(wrappers, util.wrapMethod(inputbox, "clear", nil, clear_stack))
     -- -- Navigation.
     table.insert(wrappers, util.wrapMethod(inputbox, "upLine", nil, separate))
     table.insert(wrappers, util.wrapMethod(inputbox, "downLine", nil, separate))
     -- -- Move to other input box.
     table.insert(wrappers, util.wrapMethod(inputbox, "unfocus", nil, separate))
-    table.insert(wrappers, util.wrapMethod(inputbox, "onCloseKeyboard", nil, separate))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "onCloseKeyboard", nil, separate)
+    )
     -- -- Gestures to move cursor.
-    table.insert(wrappers, util.wrapMethod(inputbox, "onTapTextBox", nil, separate))
-    table.insert(wrappers, util.wrapMethod(inputbox, "onHoldTextBox", nil, separate))
-    table.insert(wrappers, util.wrapMethod(inputbox, "onSwipeTextBox", nil, separate))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "onTapTextBox", nil, separate)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "onHoldTextBox", nil, separate)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "onSwipeTextBox", nil, separate)
+    )
 
-    table.insert(wrappers, util.wrapMethod(inputbox, "addChars", wrappedAddChars, nil))
-    table.insert(wrappers, util.wrapMethod(inputbox, "leftChar", wrappedLeftChar, nil))
-    table.insert(wrappers, util.wrapMethod(inputbox, "rightChar", wrappedRightChar, nil))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "addChars", wrappedAddChars, nil)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "leftChar", wrappedLeftChar, nil)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "rightChar", wrappedRightChar, nil)
+    )
 
     return function()
       if inputbox._py_wrapped then

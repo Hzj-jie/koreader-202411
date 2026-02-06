@@ -532,7 +532,10 @@ local function scalarcb(name, f)
     -- Throw error via sqlite function if necessary.
     local ok, result = pcall(f, unpack(values, 1, nvalues))
     if not ok then
-      local msg = "Lua registered scalar function " .. name .. " error: " .. result
+      local msg = "Lua registered scalar function "
+        .. name
+        .. " error: "
+        .. result
       sql.sqlite3_result_error(context, msg, #msg)
     else
       set_value(context, result)
@@ -568,7 +571,10 @@ local function stepcb(name, f, initstate)
     -- Throw error via sqlite function if necessary.
     local ok, result = pcall(f, state, unpack(values, 1, nvalues))
     if not ok then
-      local msg = "Lua registered step function " .. name .. " error: " .. result
+      local msg = "Lua registered step function "
+        .. name
+        .. " error: "
+        .. result
       sql.sqlite3_result_error(context, msg, #msg)
     end
   end
@@ -583,7 +589,10 @@ local function finalcb(name, f, initstate)
     local ok, result = pcall(f, state)
     -- Throw error via sqlite function if necessary.
     if not ok then
-      local msg = "Lua registered final function " .. name .. " error: " .. result
+      local msg = "Lua registered final function "
+        .. name
+        .. " error: "
+        .. result
       sql.sqlite3_result_error(context, msg, #msg)
     else
       set_value(context, result)
@@ -596,7 +605,8 @@ function conn_mt:setscalar(name, f)
   T_open(self)
   jit.off(stmt_step) -- Necessary to avoid bad calloc in some use cases.
   local cbf = f and scalarcb(name, f) or nil
-  local code = sql.sqlite3_create_function(self._ptr, name, -1, 5, nil, cbf, nil, nil) -- If cbf nil this clears the function is sqlite.
+  local code =
+    sql.sqlite3_create_function(self._ptr, name, -1, 5, nil, cbf, nil, nil) -- If cbf nil this clears the function is sqlite.
   T_okcode(self._ptr, code)
   updatecb(self, "scalar", name, cbf) -- Update and clear old.
 end
@@ -606,7 +616,8 @@ function conn_mt:setaggregate(name, initstate, step, final)
   jit.off(stmt_step) -- Necessary to avoid bad calloc in some use cases.
   local cbs = step and stepcb(name, step, initstate) or nil
   local cbf = final and finalcb(name, final, initstate) or nil
-  local code = sql.sqlite3_create_function(self._ptr, name, -1, 5, nil, nil, cbs, cbf) -- If cbs, cbf nil this clears the function is sqlite.
+  local code =
+    sql.sqlite3_create_function(self._ptr, name, -1, 5, nil, nil, cbs, cbf) -- If cbs, cbf nil this clears the function is sqlite.
   T_okcode(self._ptr, code)
   updatecb(self, "step", name, cbs) -- Update and clear old.
   updatecb(self, "final", name, cbf) -- Update and clear old.

@@ -71,12 +71,14 @@ function CheckButton:initCheckButton(checked)
   self._textwidget = TextBoxWidget:new({
     text = self.text,
     face = self.face,
-    width = (self.width or self.parent:getAddedWidgetAvailableWidth()) - self._checkmark.dimen.w,
+    width = (self.width or self.parent:getAddedWidgetAvailableWidth())
+      - self._checkmark.dimen.w,
     bold = self.bold,
     fgcolor = self.enabled and fgcolor or Blitbuffer.COLOR_DARK_GRAY,
     bgcolor = self.bgcolor,
   })
-  local textbox_shift = math.max(0, self._checkmark.baseline - self._textwidget:getBaseline())
+  local textbox_shift =
+    math.max(0, self._checkmark.baseline - self._textwidget:getBaseline())
   self._verticalgroup = VerticalGroup:new({
     align = "left",
     VerticalSpan:new({
@@ -147,7 +149,12 @@ function CheckButton:onTapCheckButton()
       -- Highlight
       --
       self[1].invert = true
-      UIManager:widgetInvert(self[1], highlight_dimen.x, highlight_dimen.y, highlight_dimen.w)
+      UIManager:widgetInvert(
+        self[1],
+        highlight_dimen.x,
+        highlight_dimen.y,
+        highlight_dimen.w
+      )
       UIManager:setDirty(nil, "fast", highlight_dimen)
 
       UIManager:forceRePaint()
@@ -156,7 +163,12 @@ function CheckButton:onTapCheckButton()
       -- Unhighlight
       --
       self[1].invert = false
-      UIManager:widgetInvert(self[1], highlight_dimen.x, highlight_dimen.y, highlight_dimen.w)
+      UIManager:widgetInvert(
+        self[1],
+        highlight_dimen.x,
+        highlight_dimen.y,
+        highlight_dimen.w
+      )
       UIManager:setDirty(nil, "ui", highlight_dimen)
 
       -- Callback

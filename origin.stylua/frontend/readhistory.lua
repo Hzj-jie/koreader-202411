@@ -18,7 +18,8 @@ local ReadHistory = {
 }
 
 local function getMandatory(date_time)
-  return G_reader_settings:isTrue("history_datetime_short") and os.date(C_("Date string", "%y-%m-%d"), date_time)
+  return G_reader_settings:isTrue("history_datetime_short")
+      and os.date(C_("Date string", "%y-%m-%d"), date_time)
     or datetime.secondsToDateTime(date_time)
 end
 
@@ -103,7 +104,8 @@ end
 --- Reads history table from file.
 -- @treturn boolean true if the history_file has been updated and reloaded.
 function ReadHistory:_read(force_read)
-  local history_file_modification_time = lfs.attributes(history_file, "modification")
+  local history_file_modification_time =
+    lfs.attributes(history_file, "modification")
   if history_file_modification_time == nil then -- no history_file, proceed legacy only
     return true
   end
@@ -178,7 +180,10 @@ function ReadHistory:getFileByDirectory(directory, recursive)
   local real_path = realpath(directory)
   for _, v in ipairs(self.hist) do
     local ipath = realpath(ffiutil.dirname(v.file))
-    if ipath == real_path or (recursive and util.stringStartsWith(ipath, real_path)) then
+    if
+      ipath == real_path
+      or (recursive and util.stringStartsWith(ipath, real_path))
+    then
       return v.file
     end
   end

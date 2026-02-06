@@ -24,7 +24,9 @@ local developer_options = {
             -- Also remove from the Cache object references to the cache files we've just deleted
             local Cache = require("cache")
             Cache.cached = {}
-            UIManager:askForRestart(gettext("Caches cleared. Please restart KOReader."))
+            UIManager:askForRestart(
+              gettext("Caches cleared. Please restart KOReader.")
+            )
           end,
         }))
       end,
@@ -111,7 +113,11 @@ if Device:hasEinkScreen() and Device:canHWDither() then
     end,
     callback = function()
       Device.screen:toggleHWDithering()
-      G_reader_settings:save("dev_no_hw_dither", not Device.screen.hw_dithering, false)
+      G_reader_settings:save(
+        "dev_no_hw_dither",
+        not Device.screen.hw_dithering,
+        false
+      )
       -- Make sure SW dithering gets disabled when we enable HW dithering
       if Device.screen.hw_dithering and Device.screen.sw_dithering then
         G_reader_settings:makeTrue("dev_no_sw_dither")
@@ -132,7 +138,11 @@ if Device:hasEinkScreen() then
     end,
     callback = function()
       Device.screen:toggleSWDithering()
-      G_reader_settings:save("dev_no_sw_dither", not Device.screen.sw_dithering, false)
+      G_reader_settings:save(
+        "dev_no_sw_dither",
+        not Device.screen.sw_dithering,
+        false
+      )
       -- Make sure HW dithering gets disabled when we enable SW dithering
       if Device.screen.hw_dithering and Device.screen.sw_dithering then
         G_reader_settings:makeTrue("dev_no_hw_dither")
@@ -172,12 +182,21 @@ if Device:hasEinkScreen() and Device:isKobo() then
     -- @translators Highly technical (ioctl is a Linux API call, the uppercase stuff is a constant). What's translatable is essentially only the action ("bypass") and the article.
     text = gettext("Bypass the WAIT_FOR ioctls"),
     checked_func = function()
-      return G_reader_settings:isTrueOr("mxcfb_bypass_wait_for", not Device:hasReliableMxcWaitFor())
+      return G_reader_settings:isTrueOr(
+        "mxcfb_bypass_wait_for",
+        not Device:hasReliableMxcWaitFor()
+      )
     end,
     callback = function()
-      local mxcfb_bypass_wait_for =
-        G_reader_settings:isTrueOr("mxcfb_bypass_wait_for", not Device:hasReliableMxcWaitFor())
-      G_reader_settings:save("mxcfb_bypass_wait_for", not mxcfb_bypass_wait_for, not Device:hasReliableMxcWaitFor())
+      local mxcfb_bypass_wait_for = G_reader_settings:isTrueOr(
+        "mxcfb_bypass_wait_for",
+        not Device:hasReliableMxcWaitFor()
+      )
+      G_reader_settings:save(
+        "mxcfb_bypass_wait_for",
+        not mxcfb_bypass_wait_for,
+        not Device:hasReliableMxcWaitFor()
+      )
       UIManager:askForRestart()
     end,
   })

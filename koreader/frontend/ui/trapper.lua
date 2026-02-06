@@ -158,8 +158,10 @@ function Trapper:info(text, fast_refresh)
         -- get cancel_callback called: if tap outside was the
         -- result of a tap error, we want to continue. Cancelling
         -- will need an explicit tap on the ok_text button.
-        cancel_text = self.paused_continue_text and self.paused_continue_text or gettext("Continue"),
-        ok_text = self.paused_abort_text and self.paused_abort_text or gettext("Abort"),
+        cancel_text = self.paused_continue_text and self.paused_continue_text
+          or gettext("Continue"),
+        ok_text = self.paused_abort_text and self.paused_abort_text
+          or gettext("Abort"),
         cancel_callback = function()
           coroutine.resume(_coroutine, true)
         end,
@@ -190,7 +192,11 @@ function Trapper:info(text, fast_refresh)
   end
 
   -- If fast_refresh option, avoid UIManager refresh overhead
-  if fast_refresh and self.current_widget and self.current_widget.is_infomessage then
+  if
+    fast_refresh
+    and self.current_widget
+    and self.current_widget.is_infomessage
+  then
     local orig_moved_offset = self.current_widget.movable:getMovedOffset()
     self.current_widget:free()
     self.current_widget.text = text
@@ -328,7 +334,9 @@ function Trapper:dismissablePopen(cmd, trap_widget_or_string)
   local _coroutine = coroutine.running()
   -- assert(_coroutine ~= nil, "Need to be called from a coroutine")
   if not _coroutine then
-    logger.warn("unwrapped dismissablePopen(), falling back to blocking io.popen()")
+    logger.warn(
+      "unwrapped dismissablePopen(), falling back to blocking io.popen()"
+    )
     local std_out = io.popen(cmd, "r")
     if std_out then
       local output = std_out:read("*all")
@@ -485,10 +493,16 @@ Notes and limitations:
 @treturn boolean completed (`true` if not interrupted, `false` if dismissed)
 @return ... return values of task
 ]]
-function Trapper:dismissableRunInSubprocess(task, trap_widget_or_string, task_returns_simple_string)
+function Trapper:dismissableRunInSubprocess(
+  task,
+  trap_widget_or_string,
+  task_returns_simple_string
+)
   local _coroutine = coroutine.running()
   if not _coroutine then
-    logger.warn("unwrapped dismissableRunInSubprocess(), falling back to blocking in-process run")
+    logger.warn(
+      "unwrapped dismissableRunInSubprocess(), falling back to blocking in-process run"
+    )
     return true, task()
   end
 
@@ -536,31 +550,34 @@ function Trapper:dismissableRunInSubprocess(task, trap_widget_or_string, task_re
   local completed = false
   local ret_values
 
-  local pid, parent_read_fd = ffiutil.runInSubProcess(function(pid, child_write_fd)
-    local output_str = ""
-    if task_returns_simple_string then
-      -- task is assumed to return only a string or nil,
-      -- so avoid a possibly expensive ser/deser roundtrip.
-      local result = task()
-      if type(result) == "string" then
-        output_str = result
-      elseif result ~= nil then
-        logger.warn("returned value from task is not a string:", result)
-      end
-    else
-      -- task may return complex data structures, that we serialize.
-      -- NOTE: LuaJIT's serializer currently doesn't support:
-      --       functions, coroutines, non-numerical FFI cdata & full userdata.
-      local results = table.pack(task())
-      local ok, str = pcall(buffer.encode, results)
-      if not ok then
-        logger.warn("cannot serialize", tostring(results), "->", str)
+  local pid, parent_read_fd = ffiutil.runInSubProcess(
+    function(pid, child_write_fd)
+      local output_str = ""
+      if task_returns_simple_string then
+        -- task is assumed to return only a string or nil,
+        -- so avoid a possibly expensive ser/deser roundtrip.
+        local result = task()
+        if type(result) == "string" then
+          output_str = result
+        elseif result ~= nil then
+          logger.warn("returned value from task is not a string:", result)
+        end
       else
-        output_str = str
+        -- task may return complex data structures, that we serialize.
+        -- NOTE: LuaJIT's serializer currently doesn't support:
+        --       functions, coroutines, non-numerical FFI cdata & full userdata.
+        local results = table.pack(task())
+        local ok, str = pcall(buffer.encode, results)
+        if not ok then
+          logger.warn("cannot serialize", tostring(results), "->", str)
+        else
+          output_str = str
+        end
       end
-    end
-    ffiutil.writeToFD(child_write_fd, output_str, true)
-  end, true) -- with_pipe = true
+      ffiutil.writeToFD(child_write_fd, output_str, true)
+    end,
+    true
+  ) -- with_pipe = true
 
   if pid then
     -- We check regularly if subprocess is done, and we give control
@@ -593,7 +610,10 @@ function Trapper:dismissableRunInSubprocess(task, trap_widget_or_string, task_re
             end
             logger.dbg("collected previously dismissed subprocess")
           else
-            if parent_read_fd and ffiutil.getNonBlockingReadSize(parent_read_fd) ~= 0 then
+            if
+              parent_read_fd
+              and ffiutil.getNonBlockingReadSize(parent_read_fd) ~= 0
+            then
               -- If subprocess started outputting to fd, read from it,
               -- so its write() stops blocking and subprocess can exit
               ffiutil.readAllFromFD(parent_read_fd)
@@ -615,8 +635,14 @@ function Trapper:dismissableRunInSubprocess(task, trap_widget_or_string, task_re
       -- it may still be alive blocking on write() (if data exceeds
       -- the kernel pipe buffer)
       local subprocess_done = ffiutil.isSubProcessDone(pid)
-      local stuff_to_read = parent_read_fd and ffiutil.getNonBlockingReadSize(parent_read_fd) ~= 0
-      logger.dbg("subprocess_done:", subprocess_done, " stuff_to_read:", stuff_to_read)
+      local stuff_to_read = parent_read_fd
+        and ffiutil.getNonBlockingReadSize(parent_read_fd) ~= 0
+      logger.dbg(
+        "subprocess_done:",
+        subprocess_done,
+        " stuff_to_read:",
+        stuff_to_read
+      )
       if subprocess_done or stuff_to_read then
         -- Subprocess is gone or nearly gone
         completed = true

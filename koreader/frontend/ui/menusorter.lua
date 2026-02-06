@@ -20,7 +20,11 @@ local MenuSorter = {
 
 function MenuSorter:readMSSettings(config_prefix)
   if config_prefix then
-    local menu_order = string.format("%s/%s_menu_order.lua", DataStorage:getSettingsDir(), config_prefix)
+    local menu_order = string.format(
+      "%s/%s_menu_order.lua",
+      DataStorage:getSettingsDir(),
+      config_prefix
+    )
 
     if lfs.attributes(menu_order) then
       return require(menu_order) or {}
@@ -117,7 +121,8 @@ function MenuSorter:sort(item_table, order)
     -- now do the submenus
     for i, sub_menu in ipairs(sub_menus) do
       if menu_table[sub_menu] ~= nil then
-        local sub_menu_position = self:findById(menu_table["KOMenu:menu_buttons"], sub_menu)
+        local sub_menu_position =
+          self:findById(menu_table["KOMenu:menu_buttons"], sub_menu)
         if sub_menu_position then
           changed = true
           local sub_menu_content = menu_table[sub_menu]
@@ -175,7 +180,8 @@ function MenuSorter:sort(item_table, order)
         end
       end
     end
-    local sorting_hint_menu = self:findById(menu_table["KOMenu:menu_buttons"], v.sorting_hint)
+    local sorting_hint_menu =
+      self:findById(menu_table["KOMenu:menu_buttons"], v.sorting_hint)
     sorting_hint_menu = sorting_hint_menu.sub_item_table or sorting_hint_menu
     table.insert(sorting_hint_menu, v)
   end

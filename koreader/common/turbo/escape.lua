@@ -107,7 +107,10 @@ do
   local band = bit.band
   local floor = math.floor
 
-  local mime64chars = ffi.new("uint8_t[64]", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
+  local mime64chars = ffi.new(
+    "uint8_t[64]",
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+  )
   local mime64lookup = ffi.new("uint8_t[256]")
   ffi.fill(mime64lookup, 256, 0xFF)
   for i = 0, 63 do

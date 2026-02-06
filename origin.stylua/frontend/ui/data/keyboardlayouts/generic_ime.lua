@@ -37,7 +37,9 @@ local function binarysearch(tbl, value, fcompval, reversed)
         end
       end
       return iMid
-    elseif (reversed and value2 < value) or (not reversed and value2 > value) then
+    elseif
+      (reversed and value2 < value) or (not reversed and value2 > value)
+    then
       iEnd = iMid - 1
     else
       iStart = iMid + 1
@@ -191,10 +193,19 @@ function IME:getCandiWithWildcard(code, from_reset)
         local next = self.iter_map[self.iter_map_last_key]
         self.last_key = stringReplaceAt(self.last_key, i, next)
       else
-        self.last_key = stringReplaceAt(self.last_key, i, self.iter_map[self.last_key:sub(i, i)])
+        self.last_key = stringReplaceAt(
+          self.last_key,
+          i,
+          self.iter_map[self.last_key:sub(i, i)]
+        )
         self.last_candi = self:getCandi(self.last_key)
         if #self.last_candi > 0 then
-          logger.dbg("zh_kbd: got candi with wildchard for key", self.last_key, ":", self.last_candi)
+          logger.dbg(
+            "zh_kbd: got candi with wildchard for key",
+            self.last_key,
+            ":",
+            self.last_candi
+          )
           return self.last_candi
         end
         return self:getCandiWithWildcard(code, from_reset)
@@ -204,7 +215,12 @@ function IME:getCandiWithWildcard(code, from_reset)
   -- all wildcard reset
   self.last_candi = self:getCandi(self.last_key)
   if #self.last_candi > 0 then
-    logger.dbg("zh_kbd: got candi with wildchard for key", self.last_key, ":", self.last_candi)
+    logger.dbg(
+      "zh_kbd: got candi with wildchard for key",
+      self.last_key,
+      ":",
+      self.last_candi
+    )
     return self.last_candi
   elseif not from_reset then
     return self:getCandiWithWildcard(code, true)
@@ -255,7 +271,8 @@ function IME:getHintChars()
   for i = 1, #_stack do
     hint_chars = hint_chars .. _stack[i].char
     if _stack[i].char ~= "" then
-      self.on_stage_char_count = self.on_stage_char_count + #util.splitToChars(_stack[i].char)
+      self.on_stage_char_count = self.on_stage_char_count
+        + #util.splitToChars(_stack[i].char)
     end
   end
   local imex = _stack[#_stack]
@@ -264,7 +281,10 @@ function IME:getHintChars()
     self:show_candi_callback() -- shows candidates
     and #imex.candi ~= 0 -- has candidates
     and (#imex.code > 1 or imex.index > 1) -- more than one key
-    and (#imex.candi > 1 or has_wildcard and imex.candi[1] ~= (imex.last_candi or {})[1])
+    and (
+      #imex.candi > 1
+      or has_wildcard and imex.candi[1] ~= (imex.last_candi or {})[1]
+    )
   then -- one candidate but use wildcard, or more candidates
     hint_chars = hint_chars .. "["
     if #imex.candi > 1 then
@@ -278,7 +298,8 @@ function IME:getHintChars()
       if not (has_wildcard and pos == 1) then
         for i = 1, math.min(#imex.candi - 1, 5) do
           hint_chars = hint_chars .. imex.candi[pos]
-          self.hint_char_count = self.hint_char_count + #util.splitToChars(imex.candi[pos])
+          self.hint_char_count = self.hint_char_count
+            + #util.splitToChars(imex.candi[pos])
           pos = pos == #imex.candi and 1 or pos + 1
           if has_wildcard and pos == 1 then
             break
@@ -293,7 +314,12 @@ function IME:getHintChars()
     hint_chars = hint_chars .. "]"
     self.hint_char_count = self.hint_char_count + 2
   end
-  logger.dbg("zh_kbd: got hint chars:", hint_chars, "with count", self.hint_char_count)
+  logger.dbg(
+    "zh_kbd: got hint chars:",
+    hint_chars,
+    "with count",
+    self.hint_char_count
+  )
   return hint_chars
 end
 
@@ -312,7 +338,12 @@ end
 function IME:tweak_case(new_candi, old_imex, new_stroke_upper)
   if self.has_case then
     local old_chars = util.splitToChars(old_imex.char)
-    logger.dbg("zh_ime: tweak_case old chars", old_chars, "new_candi", new_candi)
+    logger.dbg(
+      "zh_ime: tweak_case old chars",
+      old_chars,
+      "new_candi",
+      new_candi
+    )
     for i = 1, #new_candi do
       local new_chars = util.splitToChars(new_candi[i])
       for j = 1, math.max(#new_chars, #old_chars) do
@@ -322,7 +353,11 @@ function IME:tweak_case(new_candi, old_imex, new_stroke_upper)
           if not old_char and new_stroke_upper then
             -- tweak new_char
             new_chars[j] = Utf8Proc.uppercase_dumb(new_char)
-          elseif old_char and new_char and old_char == Utf8Proc.uppercase_dumb(old_char) then
+          elseif
+            old_char
+            and new_char
+            and old_char == Utf8Proc.uppercase_dumb(old_char)
+          then
             -- tweak new_char when corresponding old char is uppercase
             new_chars[j] = Utf8Proc.uppercase_dumb(new_char)
           end
@@ -403,7 +438,9 @@ function IME:wrappedAddChars(inputbox, char, orig_char)
     self:refreshHintChars(inputbox)
   elseif
     char == self.separator
-    or _stack[1].code ~= "" and self.partial_separators and util.arrayContains(self.partial_separators, char)
+    or _stack[1].code ~= ""
+      and self.partial_separators
+      and util.arrayContains(self.partial_separators, char)
   then
     self:separate(inputbox)
     return
@@ -443,7 +480,8 @@ function IME:wrappedAddChars(inputbox, char, orig_char)
         if self.auto_separate_callback() then -- flush current stack
           self:separate(inputbox)
         end
-        new_candi, imex.last_candi = self:getCandidates(key) or { orig_char or char }, nil -- single stroke
+        new_candi, imex.last_candi =
+          self:getCandidates(key) or { orig_char or char }, nil -- single stroke
 
         self:tweak_case(new_candi, {}, orig_char and orig_char ~= char)
 

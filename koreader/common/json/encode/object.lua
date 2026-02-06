@@ -18,7 +18,13 @@ local defaultOptions = {}
 local modeOptions = {}
 
 local function mergeOptions(options, mode)
-  jsonutil.doOptionMerge(options, false, "object", defaultOptions, mode and modeOptions[mode])
+  jsonutil.doOptionMerge(
+    options,
+    false,
+    "object",
+    defaultOptions,
+    mode and modeOptions[mode]
+  )
 end
 
 --[[
@@ -56,11 +62,16 @@ local function encodeTable(tab, options, state)
 		end
 	end
 	]]
-  return unmarkAfterEncode(tab, state, compositeEncoder(valueEncoder, "{", "}", nil, tab, encode, state))
+  return unmarkAfterEncode(
+    tab,
+    state,
+    compositeEncoder(valueEncoder, "{", "}", nil, tab, encode, state)
+  )
 end
 
 local function getEncoder(options)
-  options = options and jsonutil.merge({}, defaultOptions, options) or defaultOptions
+  options = options and jsonutil.merge({}, defaultOptions, options)
+    or defaultOptions
   return {
     table = function(tab, state)
       return encodeTable(tab, options, state)

@@ -108,14 +108,17 @@ function MenuItem:init()
 
   local shortcut_icon_dimen
   if self.shortcut then
-    local icon_width = self.entry.shortcut_icon_width or math.floor(self.dimen.h * 4 / 5)
+    local icon_width = self.entry.shortcut_icon_width
+      or math.floor(self.dimen.h * 4 / 5)
     shortcut_icon_dimen = Geom:new({
       x = 0,
       y = 0,
       w = icon_width,
       h = icon_width,
     })
-    self.content_width = self.content_width - shortcut_icon_dimen.w - Size.span.horizontal_default
+    self.content_width = self.content_width
+      - shortcut_icon_dimen.w
+      - Size.span.horizontal_default
   end
 
   -- we need this table per-instance, so we declare it here
@@ -144,7 +147,11 @@ function MenuItem:init()
   if self.infont_size > max_font_size then
     self.infont_size = max_font_size
   end
-  if not self.single_line and not self.multilines_show_more_text and not self.items_max_lines then
+  if
+    not self.single_line
+    and not self.multilines_show_more_text
+    and not self.items_max_lines
+  then
     -- For non single line menus (File browser, Bookmarks), if the
     -- user provided font size is large and would not allow showing
     -- more than one line in our item height, just switch to single
@@ -153,7 +160,8 @@ function MenuItem:init()
     -- multilines modes, with TextBoxWidget, words are wrapped to
     -- follow line breaking rules, and the ellipsis might be placed
     -- way earlier than the full width.
-    local min_font_size_2_lines = TextBoxWidget:getFontSizeToFitHeight(max_item_height, 2)
+    local min_font_size_2_lines =
+      TextBoxWidget:getFontSizeToFitHeight(max_item_height, 2)
     if self.font_size > min_font_size_2_lines then
       self.single_line = true
     end
@@ -191,8 +199,10 @@ function MenuItem:init()
   -- Padding before mandatory
   local text_mandatory_padding = 0
   local text_ellipsis_mandatory_padding = 0
-  local mandatory = self.mandatory_func and self.mandatory_func() or self.mandatory
-  local mandatory_dim = self.mandatory_dim_func and self.mandatory_dim_func() or self.mandatory_dim
+  local mandatory = self.mandatory_func and self.mandatory_func()
+    or self.mandatory
+  local mandatory_dim = self.mandatory_dim_func and self.mandatory_dim_func()
+    or self.mandatory_dim
   if mandatory then
     text_mandatory_padding = Size.span.horizontal_default
     -- Smaller padding when ellipsis for better visual feeling
@@ -206,7 +216,10 @@ function MenuItem:init()
   })
   local mandatory_w = mandatory_widget:getWidth()
 
-  local available_width = self.content_width - state_width - text_mandatory_padding - mandatory_w
+  local available_width = self.content_width
+    - state_width
+    - text_mandatory_padding
+    - mandatory_w
   local item_name
 
   -- Whether we show text on a single or multiple lines, we don't want it shortened
@@ -238,7 +251,10 @@ function MenuItem:init()
         bold = self.bold,
         fgcolor = self.dim and Blitbuffer.COLOR_DARK_GRAY or nil,
       })
-      available_width = available_width - post_text_widget:getWidth() - post_text_left_padding - post_text_right_padding
+      available_width = available_width
+        - post_text_widget:getWidth()
+        - post_text_left_padding
+        - post_text_right_padding
     end
     -- No font size change: text will be truncated if it overflows
     item_name = TextWidget:new({
@@ -261,7 +277,11 @@ function MenuItem:init()
       item_name:setMaxWidth(text_max_width_if_ellipsis)
     else
       if self.with_dots then
-        local dots_width = available_width + text_mandatory_padding - w - dots_left_padding - dots_right_padding
+        local dots_width = available_width
+          + text_mandatory_padding
+          - w
+          - dots_left_padding
+          - dots_right_padding
         if dots_width > 0 then
           local dots_text, dots_min_width = self:getDotsText(self.info_face)
           -- Don't show any dots if there would be less than 3
@@ -359,7 +379,8 @@ function MenuItem:init()
         local good_font_size = min_font_size
         local item_name_is_good = true
         while true do
-          local test_font_size = math.floor((good_font_size + bad_font_size) / 2)
+          local test_font_size =
+            math.floor((good_font_size + bad_font_size) / 2)
           if test_font_size == good_font_size then -- +1 would be bad_font_size
             if not item_name_is_good then
               make_item_name(good_font_size)
@@ -382,7 +403,8 @@ function MenuItem:init()
       text = text,
       face = self.face,
       width = available_width,
-      height = self.entry.height and (self.entry.height - 2 * Size.span.vertical_default - self.linesize)
+      height = self.entry.height
+          and (self.entry.height - 2 * Size.span.vertical_default - self.linesize)
         or max_item_height,
       height_adjust = true,
       height_overflow_show_ellipsis = true,
@@ -399,7 +421,8 @@ function MenuItem:init()
         width = state_width,
       }),
       item_name,
-      post_text_widget and HorizontalSpan:new({ width = post_text_left_padding }),
+      post_text_widget
+        and HorizontalSpan:new({ width = post_text_left_padding }),
       post_text_widget,
     }),
   })
@@ -452,7 +475,10 @@ function MenuItem:init()
         style = self.shortcut_style,
       })
     )
-    table.insert(hgroup, HorizontalSpan:new({ width = Size.span.horizontal_default }))
+    table.insert(
+      hgroup,
+      HorizontalSpan:new({ width = Size.span.horizontal_default })
+    )
   end
   table.insert(hgroup, self._underline_container)
   table.insert(hgroup, HorizontalSpan:new({ width = Size.padding.fullscreen }))
@@ -467,7 +493,11 @@ end
 local _dots_cached_info
 function MenuItem:getDotsText(face)
   local screen_w = Screen:getWidth()
-  if not _dots_cached_info or _dots_cached_info.screen_width ~= screen_w or _dots_cached_info.face ~= face then
+  if
+    not _dots_cached_info
+    or _dots_cached_info.screen_width ~= screen_w
+    or _dots_cached_info.face ~= face
+  then
     local unit = "."
     local tmp = TextWidget:new({
       text = unit,
@@ -669,7 +699,9 @@ local Menu = FocusManager:extend({
 })
 
 function Menu:_recalculateDimen(no_recalculate_dimen)
-  local perpage = self.items_per_page or G_reader_settings:readSetting("items_per_page") or self.items_per_page_default
+  local perpage = self.items_per_page
+    or G_reader_settings:readSetting("items_per_page")
+    or self.items_per_page_default
   local font_size = self.items_font_size
     or G_reader_settings:readSetting("items_font_size")
     or Menu.getItemFontSize(perpage)
@@ -690,7 +722,10 @@ function Menu:_recalculateDimen(no_recalculate_dimen)
   local bottom_height = 0
   if self.page_return_arrow and self.page_info_text then
     -- The extra padding is for UX reasons only, to leave a bit of space above the footer.
-    bottom_height = math.max(self.page_return_arrow:getSize().h, self.page_info_text:getSize().h) + Size.padding.button
+    bottom_height = math.max(
+      self.page_return_arrow:getSize().h,
+      self.page_info_text:getSize().h
+    ) + Size.padding.button
   end
   self.available_height = self.inner_dimen.h - top_height - bottom_height
   self.item_dimen = Geom:new({
@@ -866,7 +901,12 @@ function Menu:init()
         text = _("File search"),
         callback = function()
           self.page_info_text:closeInputDialog()
-          UIManager:sendEvent(Event:new("ShowFileSearch", self.page_info_text.input_dialog:getInputText()))
+          UIManager:sendEvent(
+            Event:new(
+              "ShowFileSearch",
+              self.page_info_text.input_dialog:getInputText()
+            )
+          )
         end,
       },
       {
@@ -879,7 +919,8 @@ function Menu:init()
           end
           search_string = Utf8Proc.lowercase(util.fixUtf8(search_string, "?"))
           for k, v in ipairs(self.item_table) do
-            local filename = Utf8Proc.lowercase(util.fixUtf8(ffiUtil.basename(v.path), "?"))
+            local filename =
+              Utf8Proc.lowercase(util.fixUtf8(ffiUtil.basename(v.path), "?"))
             local i = filename:find(search_string)
             if i == 1 and not v.is_go_up then
               self:onGotoPage(self:getPageNumber(k))
@@ -949,7 +990,8 @@ function Menu:init()
     self.page_return_arrow,
   })
 
-  local header = self.no_title and VerticalSpan:new({ width = 0 }) or self.title_bar
+  local header = self.no_title and VerticalSpan:new({ width = 0 })
+    or self.title_bar
   local body = self.item_group
   local footer = BottomContainer:new({
     dimen = self.inner_dimen:copy(),
@@ -1094,7 +1136,12 @@ function Menu:updatePageInfo(select_number)
       -- Reset focus manager accordingly.
       -- NOTE: Since this runs automatically on init,
       --       we use FOCUS_ONLY_ON_NT as we don't want to see the initial underline on Touch devices.
-      self:moveFocusTo(x, y, is_focused and FocusManager.FORCED_FOCUS or FocusManager.FOCUS_ONLY_ON_NT)
+      self:moveFocusTo(
+        x,
+        y,
+        is_focused and FocusManager.FORCED_FOCUS
+          or FocusManager.FOCUS_ONLY_ON_NT
+      )
     end
     -- update page information
     self.page_info_text:setText(T(_("Page %1 of %2"), self.page, self.page_num))
@@ -1145,12 +1192,14 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
     idx_offset = (self.page - 1) * items_nb
     multilines_show_more_text = self.multilines_show_more_text
     if multilines_show_more_text == nil then
-      multilines_show_more_text = G_reader_settings:isTrue("items_multilines_show_more_text")
+      multilines_show_more_text =
+        G_reader_settings:isTrue("items_multilines_show_more_text")
     end
   end
 
   for idx = 1, items_nb do
-    local index = self.items_max_lines and self.page_items[self.page][idx] or idx_offset + idx
+    local index = self.items_max_lines and self.page_items[self.page][idx]
+      or idx_offset + idx
     local item = self.item_table[index]
     if item == nil then
       break
@@ -1208,7 +1257,8 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
   self:mergeTitleBarIntoLayout()
 
   UIManager:setDirty(self.show_parent, function()
-    local refresh_dimen = old_dimen and old_dimen:combine(self.dimen) or self.dimen
+    local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)
+      or self.dimen
     return "ui", refresh_dimen
   end)
 end
@@ -1250,7 +1300,13 @@ end
     and the page number will be the page containing the first item for
     which item.key = value
 --]]
-function Menu:switchItemTable(new_title, new_item_table, itemnumber, itemmatch, new_subtitle)
+function Menu:switchItemTable(
+  new_title,
+  new_item_table,
+  itemnumber,
+  itemmatch,
+  new_subtitle
+)
   local no_recalculate_dimen = true
 
   if new_item_table then
@@ -1286,7 +1342,11 @@ function Menu:switchItemTable(new_title, new_item_table, itemnumber, itemmatch, 
     itemnumber = math.min(itemnumber, #self.item_table)
     self.page = self:getPageNumber(itemnumber)
     -- Draw the focus in FileChooser when it has focused_path (i.e. itemmatch), except ".." item
-    if self.path ~= nil and type(itemmatch) == "table" and not self.item_table[itemnumber].is_go_up then
+    if
+      self.path ~= nil
+      and type(itemmatch) == "table"
+      and not self.item_table[itemnumber].is_go_up
+    then
       self.itemnumber = itemnumber
     end
   end
@@ -1332,7 +1392,9 @@ function Menu:setupItemHeights()
     :getSize().w
   local available_width = self.inner_dimen.w
   if self.is_enable_shortcut then
-    available_width = available_width - line_height - Size.span.horizontal_default
+    available_width = available_width
+      - line_height
+      - Size.span.horizontal_default
   end
 
   self.page_items = {} -- list of all 'items in the page' indexed by page
@@ -1350,9 +1412,15 @@ function Menu:setupItemHeights()
     })
       :getSize().w * 1.08
     local item_available_width = available_width
-      - infont_char_width * (item.mandatory and #tostring(item.mandatory) or 0)
-    local lines_nb = math.min(math.ceil(item_text_width / item_available_width), self.items_max_lines)
-    item.height = lines_nb * line_height + 2 * Size.span.vertical_default + self.linesize
+      - infont_char_width
+        * (item.mandatory and #tostring(item.mandatory) or 0)
+    local lines_nb = math.min(
+      math.ceil(item_text_width / item_available_width),
+      self.items_max_lines
+    )
+    item.height = lines_nb * line_height
+      + 2 * Size.span.vertical_default
+      + self.linesize
     item.shortcut_icon_width = line_height -- letter shortcuts of fixed size (1 line)
 
     -- put items in pages
@@ -1376,7 +1444,11 @@ function Menu:onScreenResize(dimen)
 end
 
 function Menu:onSetRotationMode(rotation)
-  if self._recreate_func and rotation ~= nil and rotation ~= Screen:getRotationMode() then
+  if
+    self._recreate_func
+    and rotation ~= nil
+    and rotation ~= Screen:getRotationMode()
+  then
     UIManager:close(self)
     -- Also re-layout ReaderView or FileManager itself
     if self._manager.ui.view then

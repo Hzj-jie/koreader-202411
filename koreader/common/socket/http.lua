@@ -38,7 +38,8 @@ local SCHEMES = {
     port = 443,
     create = function(t)
       local https = assert(require("ssl.https"), "LuaSocket: LuaSec not found")
-      local tcp = assert(https.tcp, "LuaSocket: Function tcp() not available from LuaSec")
+      local tcp =
+        assert(https.tcp, "LuaSocket: Function tcp() not available from LuaSec")
       return tcp(t)
     end,
   },
@@ -223,7 +224,9 @@ function metat.__index:receivebody(headers, sink, step)
   elseif base.tonumber(headers["content-length"]) then
     mode = "by-length"
   end
-  return self.try(ltn12.pump.all(socket.source(mode, self.c, length), sink, step))
+  return self.try(
+    ltn12.pump.all(socket.source(mode, self.c, length), sink, step)
+  )
 end
 
 function metat.__index:receive09body(status, sink, step)
@@ -280,14 +283,16 @@ local function adjustheaders(reqt)
   }
   -- if we have authentication information, pass it along
   if reqt.user and reqt.password then
-    lower["authorization"] = "Basic " .. (mime.b64(reqt.user .. ":" .. url.unescape(reqt.password)))
+    lower["authorization"] = "Basic "
+      .. (mime.b64(reqt.user .. ":" .. url.unescape(reqt.password)))
   end
   -- if we have proxy authentication information, pass it along
   local proxy = reqt.proxy or _M.PROXY
   if proxy then
     proxy = url.parse(proxy)
     if proxy.user and proxy.password then
-      lower["proxy-authorization"] = "Basic " .. (mime.b64(proxy.user .. ":" .. proxy.password))
+      lower["proxy-authorization"] = "Basic "
+        .. (mime.b64(proxy.user .. ":" .. proxy.password))
     end
   end
   -- override with user headers
@@ -311,7 +316,8 @@ local function adjustrequest(reqt)
     nreqt[i] = v
   end
   -- default to scheme particulars
-  local schemedefs, host, port, method = SCHEMES[nreqt.scheme], nreqt.host, nreqt.port, nreqt.method
+  local schemedefs, host, port, method =
+    SCHEMES[nreqt.scheme], nreqt.host, nreqt.port, nreqt.method
   if not nreqt.create then
     nreqt.create = schemedefs.create(nreqt)
   end
@@ -328,7 +334,11 @@ local function adjustrequest(reqt)
   nreqt.uri = reqt.uri or adjusturi(nreqt)
   -- adjust headers in request
   nreqt.headers = adjustheaders(nreqt)
-  if nreqt.source and not nreqt.headers["content-length"] and not nreqt.headers["transfer-encoding"] then
+  if
+    nreqt.source
+    and not nreqt.headers["content-length"]
+    and not nreqt.headers["transfer-encoding"]
+  then
     nreqt.headers["transfer-encoding"] = "chunked"
   end
 
@@ -364,7 +374,10 @@ local function shouldredirect(reqt, code, headers)
   return (reqt.redirect ~= false)
     and (code == 301 or code == 302 or code == 303 or code == 307)
     and (not reqt.method or reqt.method == "GET" or reqt.method == "HEAD")
-    and ((false == reqt.maxredirects) or ((reqt.nredirects or 0) < (reqt.maxredirects or 5)))
+    and (
+      (false == reqt.maxredirects)
+      or ((reqt.nredirects or 0) < (reqt.maxredirects or 5))
+    )
 end
 
 local function shouldreceivebody(reqt, code)

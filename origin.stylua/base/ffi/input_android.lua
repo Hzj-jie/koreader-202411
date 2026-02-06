@@ -129,7 +129,8 @@ local function motionEventHandler(motion_event)
       bit.band(action, C.AMOTION_EVENT_ACTION_POINTER_INDEX_MASK),
       C.AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT
     )
-    local slot = android.lib.AMotionEvent_getPointerId(motion_event, pointer_index)
+    local slot =
+      android.lib.AMotionEvent_getPointerId(motion_event, pointer_index)
     setPointerDown(slot, true)
     genTouchDownEvent(motion_event, slot, pointer_index)
   elseif flags == C.AMOTION_EVENT_ACTION_UP then
@@ -142,15 +143,18 @@ local function motionEventHandler(motion_event)
       bit.band(action, C.AMOTION_EVENT_ACTION_POINTER_INDEX_MASK),
       C.AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT
     )
-    local slot = android.lib.AMotionEvent_getPointerId(motion_event, pointer_index)
+    local slot =
+      android.lib.AMotionEvent_getPointerId(motion_event, pointer_index)
     setPointerDown(slot, false)
     genTouchUpEvent(motion_event, slot, pointer_index)
   elseif flags == C.AMOTION_EVENT_ACTION_MOVE then
     -- There may be multiple pointers involved, only request the ts once
-    local timev = genInputTimeval(android.lib.AMotionEvent_getEventTime(motion_event))
+    local timev =
+      genInputTimeval(android.lib.AMotionEvent_getEventTime(motion_event))
 
     -- This effectively gives us the size of the current MotionEvent array...
-    local pointer_count = tonumber(android.lib.AMotionEvent_getPointerCount(motion_event))
+    local pointer_count =
+      tonumber(android.lib.AMotionEvent_getPointerCount(motion_event))
     for i = 0, pointer_count - 1 do
       -- So, loop through the array, and if that pointer is still down, move it
       local slot = android.lib.AMotionEvent_getPointerId(motion_event, i)
@@ -202,9 +206,21 @@ local function keyEventHandler(key_event)
     return 1
   end
   if action == C.AKEY_EVENT_ACTION_DOWN then
-    genEmuEvent(C.EV_KEY, code, 1, nil, android.lib.AKeyEvent_getEventTime(key_event))
+    genEmuEvent(
+      C.EV_KEY,
+      code,
+      1,
+      nil,
+      android.lib.AKeyEvent_getEventTime(key_event)
+    )
   elseif action == C.AKEY_EVENT_ACTION_UP then
-    genEmuEvent(C.EV_KEY, code, 0, nil, android.lib.AKeyEvent_getEventTime(key_event))
+    genEmuEvent(
+      C.EV_KEY,
+      code,
+      0,
+      nil,
+      android.lib.AKeyEvent_getEventTime(key_event)
+    )
   end
   return 1 -- event consumed
 end
@@ -235,7 +251,12 @@ function input.waitForEvent(sec, usec)
   --       That list is what the public function processes, and it processes it item by item, returning one item per call.
   --       c.f., https://android.googlesource.com/platform/system/core/+/refs/heads/master/libutils/Looper.cpp
   -- NOTE: We don't use callbacks, so pollOnce is good enough for us, no need to resort to pollAll :).
-  local poll_state = android.lib.ALooper_pollOnce(timeout, fd, events, ffi.cast("void**", source))
+  local poll_state = android.lib.ALooper_pollOnce(
+    timeout,
+    fd,
+    events,
+    ffi.cast("void**", source)
+  )
   if poll_state >= 0 then
     -- NOTE: Since we actually want to process this in Lua-land (i.e., here), and not in C-land,
     --       we do *NOT* make use of the weird delayed callback mechanism afforded by the android_poll_source struct
@@ -257,8 +278,15 @@ function input.waitForEvent(sec, usec)
     elseif poll_state == C.LOOPER_ID_INPUT then
       -- e.g., source[0].process(android.app, source[0]) where process would point to process_input
       local event = ffi.new("AInputEvent*[1]")
-      while android.lib.AInputQueue_getEvent(android.app.inputQueue, event) >= 0 do
-        if android.lib.AInputQueue_preDispatchEvent(android.app.inputQueue, event[0]) == 0 then
+      while
+        android.lib.AInputQueue_getEvent(android.app.inputQueue, event) >= 0
+      do
+        if
+          android.lib.AInputQueue_preDispatchEvent(
+            android.app.inputQueue,
+            event[0]
+          ) == 0
+        then
           local event_type = android.lib.AInputEvent_getType(event[0])
           local handled = 1
           if event_type == C.AINPUT_EVENT_TYPE_MOTION then
@@ -266,7 +294,11 @@ function input.waitForEvent(sec, usec)
           elseif event_type == C.AINPUT_EVENT_TYPE_KEY then
             handled = keyEventHandler(event[0])
           end
-          android.lib.AInputQueue_finishEvent(android.app.inputQueue, event[0], handled)
+          android.lib.AInputQueue_finishEvent(
+            android.app.inputQueue,
+            event[0],
+            handled
+          )
         end
       end
     elseif poll_state == C.LOOPER_ID_USER then

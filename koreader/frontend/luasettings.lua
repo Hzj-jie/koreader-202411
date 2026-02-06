@@ -69,7 +69,12 @@ function LuaSettings:readTableRef(key, default)
   local v = self.data[key]
   if v ~= nil and type(v) ~= "table" then
     -- Should only happen during migrations.
-    logger.warn("LuaSetting ", key, " was not a table, override it with the default value ", dump(default or {}))
+    logger.warn(
+      "LuaSetting ",
+      key,
+      " was not a table, override it with the default value ",
+      dump(default or {})
+    )
     v = nil
   end
   if v == nil then

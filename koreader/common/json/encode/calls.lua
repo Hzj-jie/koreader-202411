@@ -21,7 +21,13 @@ local defaultOptions = {}
 local modeOptions = {}
 
 local function mergeOptions(options, mode)
-  jsonutil.doOptionMerge(options, false, "calls", defaultOptions, mode and modeOptions[mode])
+  jsonutil.doOptionMerge(
+    options,
+    false,
+    "calls",
+    defaultOptions,
+    mode and modeOptions[mode]
+  )
 end
 
 --[[
@@ -31,7 +37,8 @@ end
 		parameters == array of parameters to encode
 ]]
 local function getEncoder(options)
-  options = options and jsonutil.merge({}, defaultOptions, options) or defaultOptions
+  options = options and jsonutil.merge({}, defaultOptions, options)
+    or defaultOptions
   local function encodeCall(value, state)
     if not isCall(value) then
       return false
@@ -50,7 +57,15 @@ local function getEncoder(options)
 			end
 		end
 		]]
-    return compositeEncoder(valueEncoder, name .. "(", ")", ",", params, encode, state)
+    return compositeEncoder(
+      valueEncoder,
+      name .. "(",
+      ")",
+      ",",
+      params,
+      encode,
+      state
+    )
   end
   return {
     table = encodeCall,

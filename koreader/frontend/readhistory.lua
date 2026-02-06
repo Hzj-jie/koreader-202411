@@ -18,7 +18,8 @@ local ReadHistory = {
 }
 
 local function getMandatory(date_time)
-  return G_reader_settings:isTrue("history_datetime_short") and os.date(C_("Date string", "%y-%m-%d"), date_time)
+  return G_reader_settings:isTrue("history_datetime_short")
+      and os.date(C_("Date string", "%y-%m-%d"), date_time)
     or datetime.secondsToDateTime(date_time)
 end
 
@@ -103,11 +104,14 @@ end
 --- Reads history table from file.
 -- @treturn boolean true if the history_file has been updated and reloaded.
 function ReadHistory:_read(force_read)
-  local history_file_modification_time = lfs.attributes(history_file, "modification")
+  local history_file_modification_time =
+    lfs.attributes(history_file, "modification")
   if history_file_modification_time == nil then -- no history_file, proceed legacy only
     return true
   end
-  if not force_read and (history_file_modification_time <= self.last_read_time) then
+  if
+    not force_read and (history_file_modification_time <= self.last_read_time)
+  then
     return false
   end
   self.last_read_time = history_file_modification_time
@@ -183,7 +187,10 @@ function ReadHistory:getFileByDirectory(directory, recursive)
   local real_path = realpath(directory)
   for _, v in ipairs(self.hist) do
     local ipath = realpath(ffiutil.dirname(v.file))
-    if ipath == real_path or (recursive and util.stringStartsWith(ipath, real_path)) then
+    if
+      ipath == real_path
+      or (recursive and util.stringStartsWith(ipath, real_path))
+    then
       return v.file
     end
   end
@@ -330,7 +337,9 @@ end
 
 function ReadHistory:ignoreFile(file)
   local filename = ffiutil.basename(file)
-  if not require("ui/widget/filechooser"):show_file(ffiutil.basename(filename)) then
+  if
+    not require("ui/widget/filechooser"):show_file(ffiutil.basename(filename))
+  then
     return true
   end
   local exclude_files = { -- const

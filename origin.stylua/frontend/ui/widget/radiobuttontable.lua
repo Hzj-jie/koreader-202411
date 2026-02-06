@@ -132,15 +132,24 @@ function RadioButtonTable:init()
   end
 end
 
-function RadioButtonTable:addHorizontalSep(vspan_before, add_line, vspan_after, black_line)
+function RadioButtonTable:addHorizontalSep(
+  vspan_before,
+  add_line,
+  vspan_after,
+  black_line
+)
   if vspan_before then
-    table.insert(self.container, VerticalSpan:new({ width = Size.span.vertical_default }))
+    table.insert(
+      self.container,
+      VerticalSpan:new({ width = Size.span.vertical_default })
+    )
   end
   if add_line then
     table.insert(
       self.container,
       LineWidget:new({
-        background = black_line and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY,
+        background = black_line and Blitbuffer.COLOR_BLACK
+          or Blitbuffer.COLOR_DARK_GRAY,
         dimen = Geom:new({
           w = self.width,
           h = self.sep_width,
@@ -149,7 +158,10 @@ function RadioButtonTable:addHorizontalSep(vspan_before, add_line, vspan_after, 
     )
   end
   if vspan_after then
-    table.insert(self.container, VerticalSpan:new({ width = Size.span.vertical_default }))
+    table.insert(
+      self.container,
+      VerticalSpan:new({ width = Size.span.vertical_default })
+    )
   end
 end
 

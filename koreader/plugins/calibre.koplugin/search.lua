@@ -145,8 +145,10 @@ local function getBookInfo(book)
   end
   -- all entries can be empty, except size, which is always filled by calibre.
   local title = gettext("Title:") .. " " .. book.title or "-"
-  local authors = gettext("Author(s):") .. " " .. getEntries(book.authors) or "-"
-  local size = gettext("Size:") .. " " .. util.getFriendlySize(book.size) or gettext("Unknown")
+  local authors = gettext("Author(s):") .. " " .. getEntries(book.authors)
+    or "-"
+  local size = gettext("Size:") .. " " .. util.getFriendlySize(book.size)
+    or gettext("Unknown")
   local tags = getEntries(book.tags)
   if tags then
     tags = gettext("Tags:") .. " " .. tags
@@ -302,11 +304,18 @@ function CalibreSearch:bookCatalog(t, option)
     entry.info = getBookInfo(book)
     entry.path = book.rootpath .. "/" .. book.lpath
     if series and book.series_index then
-      local major, minor = string.format("%05.2f", book.series_index):match("([^.]+)%.([^.]+)")
+      local major, minor =
+        string.format("%05.2f", book.series_index):match("([^.]+)%.([^.]+)")
       if minor ~= "00" then
         subseries = true
       end
-      entry.text = string.format("%s.%s | %s - %s", major, minor, book.title, book.authors[1])
+      entry.text = string.format(
+        "%s.%s | %s - %s",
+        major,
+        minor,
+        book.title,
+        book.authors[1]
+      )
     else
       entry.text = string.format("%s - %s", book.title, book.authors[1])
     end
@@ -443,18 +452,30 @@ function CalibreSearch:browse(option)
     local source
     if option == "tags" then
       name = gettext("Browse by tags")
-      source = searchByNestedField(self.books, option, search_value, self.case_insensitive)
+      source = searchByNestedField(
+        self.books,
+        option,
+        search_value,
+        self.case_insensitive
+      )
     elseif option == "series" then
       name = gettext("Browse by series")
-      source = searchByField(self.books, option, search_value, self.case_insensitive)
+      source =
+        searchByField(self.books, option, search_value, self.case_insensitive)
     elseif option == "authors" then
       name = gettext("Browse by authors")
-      source = searchByNestedField(self.books, option, search_value, self.case_insensitive)
+      source = searchByNestedField(
+        self.books,
+        option,
+        search_value,
+        self.case_insensitive
+      )
     elseif option == "title" then
       name = gettext("Browse by titles")
       -- This is admittedly only midly useful in the face of the generic search above,
       -- but makes finding duplicate titles easy, at least ;).
-      source = searchByField(self.books, option, search_value, self.case_insensitive)
+      source =
+        searchByField(self.books, option, search_value, self.case_insensitive)
     end
     for k, v in pairs(source) do
       local entry = {}
@@ -516,7 +537,8 @@ function CalibreSearch:switchResults(t, title, is_child, page)
 
   if is_child then
     local path_entry = {}
-    path_entry.page = (self.search_menu.perpage or 1) * (self.search_menu.page or 1)
+    path_entry.page = (self.search_menu.perpage or 1)
+      * (self.search_menu.page or 1)
     table.insert(self.search_menu.paths, path_entry)
   end
   self.search_menu:switchItemTable(title, t, page or 1)
@@ -525,7 +547,12 @@ end
 -- prompt the user for a library scan
 function CalibreSearch:prompt(message)
   local rootdir = getDefaultRootDir()
-  local warning = T(gettext("Scanning libraries can take time. All storage media under %1 will be analyzed"), rootdir)
+  local warning = T(
+    gettext(
+      "Scanning libraries can take time. All storage media under %1 will be analyzed"
+    ),
+    rootdir
+  )
   if message then
     message = message .. "\n\n" .. warning
   end
@@ -563,7 +590,12 @@ function CalibreSearch:prompt(message)
       if count == 0 then
         info_text = gettext("No calibre libraries were found")
       else
-        info_text = T(gettext("Found %1 calibre libraries with %2 books:\n%3"), count, #self.books, paths)
+        info_text = T(
+          gettext("Found %1 calibre libraries with %2 books:\n%3"),
+          count,
+          #self.books,
+          paths
+        )
       end
       UIManager:show(InfoMessage:new({ text = info_text }))
     end,
@@ -594,7 +626,9 @@ function CalibreSearch:findCalibre(root)
           local path = root .. "/" .. entity
           local mode = lfs.attributes(path, "mode")
           if mode == "file" then
-            if entity == "metadata.calibre" or entity == ".metadata.calibre" then
+            if
+              entity == "metadata.calibre" or entity == ".metadata.calibre"
+            then
               local library = {}
               library.path = root
               contains_metadata = true
@@ -629,16 +663,19 @@ function CalibreSearch:getMetadata()
       if not timestamp or not cache_timestamp then
         return false
       end
-      local Y, M, D, h, m, s = timestamp:match("(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)")
+      local Y, M, D, h, m, s =
+        timestamp:match("(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)")
       -- calibre also stores this in UTC (c.f., calibre.utils.date.isoformat)...
       -- But os.time uses mktime, which converts it to *local* time...
       -- Meaning we'll have to jump through a lot of stupid hoops to make the two agree...
-      local meta_timestamp = os.time({ year = Y, month = M, day = D, hour = h, min = m, sec = s })
+      local meta_timestamp =
+        os.time({ year = Y, month = M, day = D, hour = h, min = m, sec = s })
       -- To that end, compute the local timezone's offset to UTC via strftime's %z token...
       local tz = os.date("%z") -- +hhmm or -hhmm
       -- We deal with a time_t, so, convert that to seconds...
       local tz_sign, tz_hours, tz_minutes = tz:match("([+-])(%d%d)(%d%d)")
-      local utc_diff = (tonumber(tz_hours) * 60 * 60) + (tonumber(tz_minutes) * 60)
+      local utc_diff = (tonumber(tz_hours) * 60 * 60)
+        + (tonumber(tz_minutes) * 60)
       if tz_sign == "-" then
         utc_diff = -utc_diff
       end
@@ -666,13 +703,25 @@ function CalibreSearch:getMetadata()
     else
       local is_newer = true
       for path, enabled in pairs(self.libraries) do
-        if enabled and not cacheIsNewer(CalibreMetadata:getDeviceInfo(path, "date_last_connected")) then
+        if
+          enabled
+          and not cacheIsNewer(
+            CalibreMetadata:getDeviceInfo(path, "date_last_connected")
+          )
+        then
           is_newer = false
           break
         end
       end
       if is_newer then
-        logger.info(string.format(template, #cache, "cache", time.to_ms(time.since(start_time))))
+        logger.info(
+          string.format(
+            template,
+            #cache,
+            "cache",
+            time.to_ms(time.since(start_time))
+          )
+        )
         return cache
       else
         logger.warn("cache is older than metadata, ignoring it")
@@ -701,7 +750,14 @@ function CalibreSearch:getMetadata()
       logger.info("Failed to serialize calibre metadata cache:", err)
     end
   end
-  logger.info(string.format(template, #books, "calibre", time.to_ms(time.since(start_time))))
+  logger.info(
+    string.format(
+      template,
+      #books,
+      "calibre",
+      time.to_ms(time.since(start_time))
+    )
+  )
   return books
 end
 

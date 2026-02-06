@@ -26,7 +26,8 @@ local crypto = {} -- crypto namespace
 local lssl = ffi.load(os.getenv("TURBO_LIBSSL") or "ssl")
 local libtffi = util.load_libtffi()
 
-local EWOULDBLOCK, EINPROGRESS, ECONNRESET = socket.EWOULDBLOCK, socket.EINPROGRESS, socket.ECONNRESET
+local EWOULDBLOCK, EINPROGRESS, ECONNRESET =
+  socket.EWOULDBLOCK, socket.EINPROGRESS, socket.ECONNRESET
 
 crypto.X509_FILETYPE_PEM = 1
 crypto.X509_FILETYPE_ASN1 = 2
@@ -94,7 +95,13 @@ end
 -- @return Return code. 0 if successfull, else a OpenSSL error code and a
 -- SSL error string, or -1 and a error string.
 -- @return Allocated SSL_CTX *. Must not be freed. It is garbage collected.
-function crypto.ssl_create_client_context(cert_file, prv_file, ca_cert_path, verify, sslv)
+function crypto.ssl_create_client_context(
+  cert_file,
+  prv_file,
+  ca_cert_path,
+  verify,
+  sslv
+)
   local meth
   local ctx
   local err = 0
@@ -117,12 +124,18 @@ function crypto.ssl_create_client_context(cert_file, prv_file, ca_cert_path, ver
   end
   -- If client certificates are set, load them and verify.
   if type(cert_file) == "string" and type(prv_file) == "string" then
-    if lssl.SSL_CTX_use_certificate_file(ctx, cert_file, crypto.SSL_FILETYPE_PEM) <= 0 then
+    if
+      lssl.SSL_CTX_use_certificate_file(ctx, cert_file, crypto.SSL_FILETYPE_PEM)
+      <= 0
+    then
       err = lssl.ERR_peek_error()
       lssl.ERR_clear_error()
       return err, crypto.ERR_error_string(err)
     end
-    if lssl.SSL_CTX_use_PrivateKey_file(ctx, prv_file, crypto.SSL_FILETYPE_PEM) <= 0 then
+    if
+      lssl.SSL_CTX_use_PrivateKey_file(ctx, prv_file, crypto.SSL_FILETYPE_PEM)
+      <= 0
+    then
       err = lssl.ERR_peek_error()
       lssl.ERR_clear_error()
       return err, crypto.ERR_error_string(err)
@@ -153,7 +166,12 @@ end
 -- code and a SSL
 -- error string, or -1 and a error string.
 -- @return Allocated SSL_CTX *. Must not be freed. It is garbage collected.
-function crypto.ssl_create_server_context(cert_file, prv_file, ca_cert_path, sslv)
+function crypto.ssl_create_server_context(
+  cert_file,
+  prv_file,
+  ca_cert_path,
+  sslv
+)
   local meth
   local ctx
   local err = 0
@@ -177,7 +195,10 @@ function crypto.ssl_create_server_context(cert_file, prv_file, ca_cert_path, ssl
   else
     ffi.gc(ctx, lssl.SSL_CTX_free)
   end
-  if lssl.SSL_CTX_use_certificate_file(ctx, cert_file, crypto.SSL_FILETYPE_PEM) <= 0 then
+  if
+    lssl.SSL_CTX_use_certificate_file(ctx, cert_file, crypto.SSL_FILETYPE_PEM)
+    <= 0
+  then
     err = lssl.ERR_peek_error()
     lssl.ERR_clear_error()
     return err, crypto.ERR_error_string(err)
@@ -187,7 +208,10 @@ function crypto.ssl_create_server_context(cert_file, prv_file, ca_cert_path, ssl
     lssl.ERR_clear_error()
     return err, crypto.ERR_error_string(err)
   end
-  if lssl.SSL_CTX_use_PrivateKey_file(ctx, prv_file, crypto.SSL_FILETYPE_PEM) <= 0 then
+  if
+    lssl.SSL_CTX_use_PrivateKey_file(ctx, prv_file, crypto.SSL_FILETYPE_PEM)
+    <= 0
+  then
     err = lssl.ERR_peek_error()
     lssl.ERR_clear_error()
     return err, crypto.ERR_error_string(err)
@@ -203,7 +227,12 @@ function crypto.ssl_new(ctx, fd_sock, client)
   if ssl == nil then
     err = crypto.lib.ERR_peek_error()
     crypto.lib.ERR_clear_error()
-    error(string.format("Could not do SSL handshake. Failed to create SSL*. %s", crypto.ERR_error_string(err)))
+    error(
+      string.format(
+        "Could not do SSL handshake. Failed to create SSL*. %s",
+        crypto.ERR_error_string(err)
+      )
+    )
   end
 
   ffi.gc(ssl, crypto.lib.SSL_free)
@@ -211,11 +240,13 @@ function crypto.ssl_new(ctx, fd_sock, client)
   if crypto.lib.SSL_set_fd(ssl, fd_sock) <= 0 then
     err = crypto.lib.ERR_peek_error()
     crypto.lib.ERR_clear_error()
-    error(string.format(
-      "Could not do SSL handshake. \
+    error(
+      string.format(
+        "Could not do SSL handshake. \
                 Failed to set socket fd to SSL*. %s",
-      crypto.ERR_error_string(err)
-    ))
+        crypto.ERR_error_string(err)
+      )
+    )
   end
 
   if client then
@@ -253,7 +284,9 @@ function crypto.ssl_do_handshake(SSLIOStream)
     err = crypto.lib.SSL_get_error(ssl, rc)
     -- In case the socket is O_NONBLOCK break out when we get
     -- SSL_ERROR_WANT_* or equal syscall return code.
-    if err == crypto.SSL_ERROR_WANT_READ or err == crypto.SSL_ERROR_WANT_READ then
+    if
+      err == crypto.SSL_ERROR_WANT_READ or err == crypto.SSL_ERROR_WANT_READ
+    then
       return false
     elseif err == crypto.SSL_ERROR_SYSCALL then
       -- Error on socket.
@@ -266,7 +299,14 @@ function crypto.ssl_do_handshake(SSLIOStream)
       elseif errno ~= 0 then
         local fd = SSLIOStream.socket
         SSLIOStream:close()
-        error(string.format("Error when reading from fd %d. " .. "Errno: %d. %s", fd, errno, socket.strerror(errno)))
+        error(
+          string.format(
+            "Error when reading from fd %d. " .. "Errno: %d. %s",
+            fd,
+            errno,
+            socket.strerror(errno)
+          )
+        )
       else
         -- Popular belief ties this branch to disconnects before
         -- handshake is completed.
@@ -284,9 +324,19 @@ function crypto.ssl_do_handshake(SSLIOStream)
     elseif err == crypto.SSL_ERROR_SSL then
       err = crypto.lib.ERR_peek_error()
       crypto.lib.ERR_clear_error()
-      error(string.format("Could not do SSL handshake. SSL error. %s", crypto.ERR_error_string(err)))
+      error(
+        string.format(
+          "Could not do SSL handshake. SSL error. %s",
+          crypto.ERR_error_string(err)
+        )
+      )
     else
-      error(string.format("Could not do SSL handshake. SSL_do_hanshake returned %d", err))
+      error(
+        string.format(
+          "Could not do SSL handshake. SSL_do_hanshake returned %d",
+          err
+        )
+      )
     end
   else
     if client and SSLIOStream._ssl_verify then

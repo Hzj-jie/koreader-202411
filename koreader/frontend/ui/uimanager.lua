@@ -109,12 +109,20 @@ local function cropping_region(widget)
   end
 
   if not x or not y or not w or not h then
-    logger.warn("Cannot calculate cropping region of widget ", _widgetDebugStr(widget), " without its dimen.")
+    logger.warn(
+      "Cannot calculate cropping region of widget ",
+      _widgetDebugStr(widget),
+      " without its dimen."
+    )
     return nil
   end
 
   if w == 0 and h == 0 then
-    logger.warn("FixMe: widget ", _widgetDebugStr(widget), " returns empty Geom.")
+    logger.warn(
+      "FixMe: widget ",
+      _widgetDebugStr(widget),
+      " returns empty Geom."
+    )
   end
 
   if window then
@@ -294,7 +302,9 @@ function UIManager:show(widget)
   -- If input was disabled, re-enable it while this widget is shown so we can actually interact with it.
   -- The only thing that could actually call show in this state is something automatic, so we need to be able to deal with it.
   if UIManager._input_gestures_disabled then
-    logger.dbg("Gestures were disabled, temporarily re-enabling them to allow interaction with widget")
+    logger.dbg(
+      "Gestures were disabled, temporarily re-enabling them to allow interaction with widget"
+    )
     self:setIgnoreTouchInput(false)
     widget._restored_input_gestures = true
   end
@@ -319,7 +329,12 @@ function UIManager:close(widget)
   end
 
   if not UIManager:isTopLevelWidget(widget) then
-    logger.warn("FixMe: widget " .. _widgetDebugStr(widget) .. " has been closed already. " .. debug.traceback())
+    logger.warn(
+      "FixMe: widget "
+        .. _widgetDebugStr(widget)
+        .. " has been closed already. "
+        .. debug.traceback()
+    )
     return
   end
 
@@ -350,10 +365,16 @@ function UIManager:close(widget)
       end
     else
       if w.dithered then
-        logger.dbg("Lower widget", _widgetDebugStr(w), "was dithered, honoring the dithering hint")
+        logger.dbg(
+          "Lower widget",
+          _widgetDebugStr(w),
+          "was dithered, honoring the dithering hint"
+        )
       end
       -- Set double tap to how the topmost widget with that flag wants it
-      if requested_disable_double_tap == nil and w.disable_double_tap ~= nil then
+      if
+        requested_disable_double_tap == nil and w.disable_double_tap ~= nil
+      then
         requested_disable_double_tap = w.disable_double_tap
       end
     end
@@ -363,7 +384,8 @@ function UIManager:close(widget)
   end
   if self._window_stack[1] then
     -- set tap interval override to what the topmost widget specifies (when it doesn't, nil restores the default)
-    Input.tap_interval_override = self._window_stack[#self._window_stack].widget.tap_interval_override
+    Input.tap_interval_override =
+      self._window_stack[#self._window_stack].widget.tap_interval_override
   end
   if widget._restored_input_gestures then
     logger.dbg("Widget is gone, disabling gesture handling again")
@@ -909,7 +931,9 @@ end
 Returns a time (fts) corresponding to the last UI tick plus the time in standby.
 ]]
 function UIManager:getElapsedTimeSinceBoot()
-  return time.monotonic() + Device.total_standby_time + Device.total_suspend_time
+  return time.monotonic()
+    + Device.total_standby_time
+    + Device.total_suspend_time
 end
 
 function UIManager:lastUserActionTime()
@@ -966,7 +990,8 @@ function UIManager:scheduleRefresh(mode, region, dither)
   assert(refresh_modes[mode] ~= nil, "Unknown refresh mode " .. tostring(mode))
 
   -- if no region is specified, use the screen's dimensions
-  region = region or Geom:new({ x = 0, y = 0, w = Screen:getWidth(), h = Screen:getHeight() })
+  region = region
+    or Geom:new({ x = 0, y = 0, w = Screen:getWidth(), h = Screen:getHeight() })
 
   -- if no dithering hint was specified, don't request dithering
   dither = dither or false
@@ -983,7 +1008,10 @@ function UIManager:scheduleRefresh(mode, region, dither)
     "dithering:",
     dither
   )
-  table.insert(self._refresh_stack, { mode = mode, region = region, dither = dither })
+  table.insert(
+    self._refresh_stack,
+    { mode = mode, region = region, dither = dither }
+  )
 end
 
 function UIManager:_scheduleRefreshWindowWidget(window, widget)
@@ -1070,7 +1098,9 @@ function UIManager:_decideRefreshMode(refresh)
   end
   if self:duringForceFastRefresh() and G_named_settings.low_pan_rate() then
     -- Downgrade all refreshes to "fast" when ReaderPaging or ReaderScrolling have set this flag
-    logger.dbg("_refreshScreen: downgrading all refresh mode to fast during forceFastRefresh.")
+    logger.dbg(
+      "_refreshScreen: downgrading all refresh mode to fast during forceFastRefresh."
+    )
     return "fast"
   end
 
@@ -1177,7 +1207,10 @@ function UIManager:_refreshScreen()
     dbg:v("triggering refresh", refresh)
 
     local mode = self:_decideRefreshMode(refresh)
-    assert(refresh_modes[mode] ~= nil, "Unknown refresh mode " .. tostring(mode))
+    assert(
+      refresh_modes[mode] ~= nil,
+      "Unknown refresh mode " .. tostring(mode)
+    )
     --[[
     -- Remember the refresh region
     self._last_refresh_region = refresh.region:copy()
@@ -1306,8 +1339,18 @@ function UIManager:invertWidget(widget)
     return
   end
 
-  logger.dbg("Explicit widgetInvert:", _widgetDebugStr(widget), "@", dump(invert_region))
-  Screen.bb:invertRect(invert_region.x, invert_region.y, invert_region.w, invert_region.h)
+  logger.dbg(
+    "Explicit widgetInvert:",
+    _widgetDebugStr(widget),
+    "@",
+    dump(invert_region)
+  )
+  Screen.bb:invertRect(
+    invert_region.x,
+    invert_region.y,
+    invert_region.w,
+    invert_region.h
+  )
   self:scheduleRefresh("fast", invert_region, widget.dithered)
 end
 
@@ -1327,7 +1370,10 @@ function UIManager:handleInputEvent(input_event)
     handler(input_event)
   else
     -- Compare input_event.args[1].time / 1000 / 1000 with os.time()
-    if G_reader_settings:nilOrTrue("disable_out_of_order_input") and type(input_event) == "table" then
+    if
+      G_reader_settings:nilOrTrue("disable_out_of_order_input")
+      and type(input_event) == "table"
+    then
       if
         input_event.handler == "onGesture"
         and input_event.args
@@ -1344,7 +1390,11 @@ function UIManager:handleInputEvent(input_event)
         return
       end
 
-      if input_event.handler == "onKeyPress" and input_event.time and self._last_repaint_time > input_event.time then
+      if
+        input_event.handler == "onKeyPress"
+        and input_event.time
+        and self._last_repaint_time > input_event.time
+      then
         logger.dbg("Ignore out of order key press event ", input_event.handler)
         return
       end
@@ -1533,7 +1583,8 @@ function UIManager:askForReboot(message_text)
   self:nextTick(function()
     local ConfirmBox = require("ui/widget/confirmbox")
     self:show(ConfirmBox:new({
-      text = message_text or gettext("Are you sure you want to reboot the device?"),
+      text = message_text
+        or gettext("Are you sure you want to reboot the device?"),
       ok_text = gettext("Reboot"),
       ok_callback = function()
         self:nextTick(self.reboot_action)
@@ -1551,7 +1602,8 @@ function UIManager:askForPowerOff(message_text)
   self:nextTick(function()
     local ConfirmBox = require("ui/widget/confirmbox")
     self:show(ConfirmBox:new({
-      text = message_text or gettext("Are you sure you want to power off the device?"),
+      text = message_text
+        or gettext("Are you sure you want to power off the device?"),
       ok_text = gettext("Power off"),
       ok_callback = function()
         self:nextTick(self.poweroff_action)
@@ -1567,7 +1619,8 @@ function UIManager:askForRestart(message_text)
     if Device:canRestart() then
       local ConfirmBox = require("ui/widget/confirmbox")
       self:show(ConfirmBox:new({
-        text = message_text or gettext("This will take effect on next restart."),
+        text = message_text
+          or gettext("This will take effect on next restart."),
         ok_text = gettext("Restart now"),
         ok_callback = function()
           self:broadcastEvent(Event:new("Restart"))
@@ -1576,7 +1629,8 @@ function UIManager:askForRestart(message_text)
       }))
     else
       self:show(require("ui/widget/infomessage"):new({
-        text = message_text or gettext("This will take effect on next restart."),
+        text = message_text
+          or gettext("This will take effect on next restart."),
       }))
     end
   end)
@@ -1594,7 +1648,10 @@ function UIManager:allowStandby()
     "allowing standby that isn't prevented; you have an allow/prevent mismatch somewhere"
   )
   self._prevent_standby_count = self._prevent_standby_count - 1
-  logger.dbg("UIManager:allowStandby, counter decreased to", self._prevent_standby_count)
+  logger.dbg(
+    "UIManager:allowStandby, counter decreased to",
+    self._prevent_standby_count
+  )
 end
 
 --[[--
@@ -1604,18 +1661,25 @@ i.e., something is happening in background, yet UI may tick.
 ]]
 function UIManager:preventStandby()
   self._prevent_standby_count = self._prevent_standby_count + 1
-  logger.dbg("UIManager:preventStandby, counter increased to", self._prevent_standby_count)
+  logger.dbg(
+    "UIManager:preventStandby, counter increased to",
+    self._prevent_standby_count
+  )
 end
 
 -- The allow/prevent calls above can interminently allow standbys, but we're not interested until
 -- the state change crosses UI tick boundary, which is what self._prev_prevent_standby_count is tracking.
 function UIManager:_standbyTransition()
-  if self._prevent_standby_count == 0 and self._prev_prevent_standby_count > 0 then
+  if
+    self._prevent_standby_count == 0 and self._prev_prevent_standby_count > 0
+  then
     -- edge prevent->allow
     logger.dbg("UIManager:_standbyTransition -> AllowStandby")
     Device:setAutoStandby(true)
     self:broadcastEvent(Event:new("AllowStandby"))
-  elseif self._prevent_standby_count > 0 and self._prev_prevent_standby_count == 0 then
+  elseif
+    self._prevent_standby_count > 0 and self._prev_prevent_standby_count == 0
+  then
     -- edge allow->prevent
     logger.dbg("UIManager:_standbyTransition -> PreventStandby")
     Device:setAutoStandby(false)
@@ -1661,7 +1725,11 @@ function UIManager:keyEvents()
       return
     end
     for k, v in pairs(c) do
-      if not v.is_inactive and k ~= "AnyKeyPressed" and k ~= "SelectByShortCut" then
+      if
+        not v.is_inactive
+        and k ~= "AnyKeyPressed"
+        and k ~= "SelectByShortCut"
+      then
         key_events[k] = v
       end
     end

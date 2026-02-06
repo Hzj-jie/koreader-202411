@@ -92,7 +92,8 @@ function m:call(req)
     local payload = spore.payload
     if payload then
       req.headers["content-length"] = payload:len()
-      req.headers["content-type"] = req.headers["content-type"] or "application/x-www-form-urlencoded"
+      req.headers["content-type"] = req.headers["content-type"]
+        or "application/x-www-form-urlencoded"
       if spore.headers and spore.headers["Content-MD5"] == "AWS" then
         req.headers["content-md5"] = digest("md5", payload)
       end
@@ -101,7 +102,9 @@ function m:call(req)
     req.headers["authorization"] = "AWS "
       .. self.aws_access_key
       .. ":"
-      .. mime.b64(hmac.digest("sha1", get_string_to_sign(), self.aws_secret_key, true))
+      .. mime.b64(
+        hmac.digest("sha1", get_string_to_sign(), self.aws_secret_key, true)
+      )
 
     return request(req)
   end

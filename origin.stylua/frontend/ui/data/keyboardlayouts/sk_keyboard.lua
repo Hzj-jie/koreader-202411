@@ -1,5 +1,7 @@
-local en_popup = dofile("frontend/ui/data/keyboardlayouts/keypopup/en_popup.lua")
-local sk_popup = dofile("frontend/ui/data/keyboardlayouts/keypopup/sk_popup.lua")
+local en_popup =
+  dofile("frontend/ui/data/keyboardlayouts/keypopup/en_popup.lua")
+local sk_popup =
+  dofile("frontend/ui/data/keyboardlayouts/keypopup/sk_popup.lua")
 
 local pco = en_popup.pco
 local cop = en_popup.cop

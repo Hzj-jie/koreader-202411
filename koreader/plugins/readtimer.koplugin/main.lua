@@ -83,8 +83,10 @@ function ReadTimer:init()
     end
   end
 
-  self.show_value_in_header = G_reader_settings:read("readtimer_show_value_in_header")
-  self.show_value_in_footer = G_reader_settings:read("readtimer_show_value_in_footer")
+  self.show_value_in_header =
+    G_reader_settings:read("readtimer_show_value_in_header")
+  self.show_value_in_footer =
+    G_reader_settings:read("readtimer_show_value_in_footer")
 
   self.ui.menu:registerToMainMenu(self)
 end
@@ -167,27 +169,35 @@ function ReadTimer:addAdditionalHeaderContent()
   if not self.ui.crelistener then
     return
   end
-  self.ui.crelistener:addAdditionalHeaderContent(self.additional_header_content_func)
+  self.ui.crelistener:addAdditionalHeaderContent(
+    self.additional_header_content_func
+  )
 end
 function ReadTimer:addAdditionalFooterContent()
   if not self.ui.view then
     return
   end
-  self.ui.view.footer:addAdditionalFooterContent(self.additional_footer_content_func)
+  self.ui.view.footer:addAdditionalFooterContent(
+    self.additional_footer_content_func
+  )
 end
 
 function ReadTimer:removeAdditionalHeaderContent()
   if not self.ui.crelistener then
     return
   end
-  self.ui.crelistener:removeAdditionalHeaderContent(self.additional_header_content_func)
+  self.ui.crelistener:removeAdditionalHeaderContent(
+    self.additional_header_content_func
+  )
 end
 
 function ReadTimer:removeAdditionalFooterContent()
   if not self.ui.view then
     return
   end
-  self.ui.view.footer:removeAdditionalFooterContent(self.additional_footer_content_func)
+  self.ui.view.footer:removeAdditionalFooterContent(
+    self.additional_footer_content_func
+  )
 end
 
 function ReadTimer:unschedule()
@@ -213,7 +223,11 @@ function ReadTimer:addCheckboxes(widget)
     parent = widget,
     callback = function()
       self.show_value_in_header = not self.show_value_in_header
-      G_reader_settings:save("readtimer_show_value_in_header", self.show_value_in_header, false)
+      G_reader_settings:save(
+        "readtimer_show_value_in_header",
+        self.show_value_in_header,
+        false
+      )
     end,
   })
   local checkbox_footer = CheckButton:new({
@@ -222,7 +236,10 @@ function ReadTimer:addCheckboxes(widget)
     parent = widget,
     callback = function()
       self.show_value_in_footer = not self.show_value_in_footer
-      G_reader_settings:save("readtimer_show_value_in_footer", self.show_value_in_footer)
+      G_reader_settings:save(
+        "readtimer_show_value_in_footer",
+        self.show_value_in_footer
+      )
     end,
   })
   widget:addWidget(checkbox_header)
@@ -236,7 +253,11 @@ function ReadTimer:addToMainMenu(menu_items)
         local user_duration_format = G_named_settings.duration_format()
         return T(
           gettext("Read timer (%1)"),
-          datetime.secondsToClockDuration(user_duration_format, self:remaining(), false)
+          datetime.secondsToClockDuration(
+            user_duration_format,
+            self:remaining(),
+            false
+          )
         )
       else
         return gettext("Read timer")
@@ -276,7 +297,11 @@ function ReadTimer:addToMainMenu(menu_items)
                     gettext("Timer set for %1:%2.\n\nThat's %3 from now."),
                     string.format("%02d", alarm_time.hour),
                     string.format("%02d", alarm_time.min),
-                    datetime.secondsToClockDuration(user_duration_format, seconds, false)
+                    datetime.secondsToClockDuration(
+                      user_duration_format,
+                      seconds,
+                      false
+                    )
                   ),
                   timeout = 5,
                 }))
@@ -285,7 +310,9 @@ function ReadTimer:addToMainMenu(menu_items)
                 end
               else
                 UIManager:show(InfoMessage:new({
-                  text = gettext("Timer could not be set. The selected time is in the past."),
+                  text = gettext(
+                    "Timer could not be set. The selected time is in the past."
+                  ),
                   timeout = 5,
                 }))
               end
@@ -326,7 +353,11 @@ function ReadTimer:addToMainMenu(menu_items)
                   -- @translators This is a duration
                   text = T(
                     gettext("Timer will expire in %1."),
-                    datetime.secondsToClockDuration(user_duration_format, seconds, true)
+                    datetime.secondsToClockDuration(
+                      user_duration_format,
+                      seconds,
+                      true
+                    )
                   ),
                   timeout = 5,
                 }))

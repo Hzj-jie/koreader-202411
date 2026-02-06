@@ -17,7 +17,10 @@ function m:call(req)
     while nredirect < m.max_redirect do
       local location = res.headers and res.headers["location"]
       local status = res.status
-      if location and (status == 301 or status == 302 or status == 303 or status == 307) then
+      if
+        location
+        and (status == 301 or status == 302 or status == 303 or status == 307)
+      then
         if req.headers["host"] then
           local uri = url.parse(location)
           req.headers["host"] = uri.host

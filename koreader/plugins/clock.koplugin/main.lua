@@ -78,7 +78,9 @@ Clock.onShow = function(self)
   PluginShare.pause_auto_suspend = true
 end
 Clock.onSuspend = function(self)
-  if G_reader_settings:read("clock_on_suspend") and not self._was_suspending then
+  if
+    G_reader_settings:read("clock_on_suspend") and not self._was_suspending
+  then
     UIManager:show(self)
     self._was_suspending = true
   end

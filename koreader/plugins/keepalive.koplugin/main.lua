@@ -48,7 +48,8 @@ if Device:isCervantes() or Device:isKobo() then
 elseif Device:isKindle() then
   local LibLipcs = require("liblipcs")
   local setter = function(v)
-    LibLipcs:accessor():set_int_property("com.lab126.powerd", "preventScreenSaver", v)
+    LibLipcs:accessor()
+      :set_int_property("com.lab126.powerd", "preventScreenSaver", v)
   end
   disable = function()
     setter(0)

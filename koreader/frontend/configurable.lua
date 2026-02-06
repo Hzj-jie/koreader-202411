@@ -31,7 +31,9 @@ function Configurable:loadDefaults(config_options)
         -- thus no default value.
         local settings_key = prefix .. key
         if G_reader_settings:has(settings_key) then
-          if type(default_value) == "number" or type(default_value) == "string" then
+          if
+            type(default_value) == "number" or type(default_value) == "string"
+          then
             self[key] = G_reader_settings:read(settings_key)
           elseif type(default_value) == "table" then
             self[key] = G_reader_settings:readTableRef(settings_key)
@@ -71,7 +73,11 @@ function Configurable:saveSettings(settings, prefix)
   for key, value in pairs(self) do
     if key ~= "defaults" then
       local value_type = type(value)
-      if value_type == "number" or value_type == "string" or value_type == "table" then
+      if
+        value_type == "number"
+        or value_type == "string"
+        or value_type == "table"
+      then
         settings:save(prefix .. key, value, self.defaults[key])
       else
         assert(false)

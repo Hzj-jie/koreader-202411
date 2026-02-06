@@ -183,7 +183,8 @@ local xmlParser = function(handler)
     local errstart, errend, extstart, extend
     while match do
       -- Get next tag (first pass - fix exceptions below)
-      match, endmatch, text, endt1, tagstr, endt2 = string.find(str, self._XML, pos)
+      match, endmatch, text, endt1, tagstr, endt2 =
+        string.find(str, self._XML, pos)
       if not match then
         if string.find(str, self._WS, pos) then
           -- No more text - check document complete
@@ -303,10 +304,16 @@ local xmlParser = function(handler)
           if self._handler.endtag then
             if attrs then
               -- Shouldn't have any attributes in endtag
-              self:_err(string.format("%s (/%s)", self._errstr.endTagErr, tagname), pos)
+              self:_err(
+                string.format("%s (/%s)", self._errstr.endTagErr, tagname),
+                pos
+              )
             end
             if table.remove(self._stack) ~= tagname then
-              self:_err(string.format("%s (/%s)", self._errstr.unmatchedTagErr, tagname), pos)
+              self:_err(
+                string.format("%s (/%s)", self._errstr.unmatchedTagErr, tagname),
+                pos
+              )
             end
             self._handler:endtag(tagname, nil, match, endmatch)
           end
@@ -349,10 +356,12 @@ local xmlParser = function(handler)
   obj._TRAILINGWS = "%s+$"
   obj._WS = "^%s*$"
   obj._DTD1 = "<!DOCTYPE%s+(.-)%s+(SYSTEM)%s+[\"'](.-)[\"']%s*(%b[])%s*>"
-  obj._DTD2 = "<!DOCTYPE%s+(.-)%s+(PUBLIC)%s+[\"'](.-)[\"']%s+[\"'](.-)[\"']%s*(%b[])%s*>"
+  obj._DTD2 =
+    "<!DOCTYPE%s+(.-)%s+(PUBLIC)%s+[\"'](.-)[\"']%s+[\"'](.-)[\"']%s*(%b[])%s*>"
   obj._DTD3 = "<!DOCTYPE%s+(.-)%s*(%b[])%s*>"
   obj._DTD4 = "<!DOCTYPE%s+(.-)%s+(SYSTEM)%s+[\"'](.-)[\"']%s*>"
-  obj._DTD5 = "<!DOCTYPE%s+(.-)%s+(PUBLIC)%s+[\"'](.-)[\"']%s+[\"'](.-)[\"']%s*>"
+  obj._DTD5 =
+    "<!DOCTYPE%s+(.-)%s+(PUBLIC)%s+[\"'](.-)[\"']%s+[\"'](.-)[\"']%s*>"
 
   obj._ATTRERR1 = '=%s*"[^"]*$'
   obj._ATTRERR2 = "=%s*'[^']*$"

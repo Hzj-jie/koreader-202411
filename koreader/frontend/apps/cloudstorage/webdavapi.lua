@@ -66,7 +66,8 @@ function WebDavApi:listFolder(address, user, pass, folder_path, folder_mode)
   end
 
   local sink = {}
-  local data = [[<?xml version="1.0"?><a:propfind xmlns:a="DAV:"><a:prop><a:resourcetype/></a:prop></a:propfind>]]
+  local data =
+    [[<?xml version="1.0"?><a:propfind xmlns:a="DAV:"><a:prop><a:resourcetype/></a:prop></a:propfind>]]
   socketutil:set_timeout()
   local request = {
     url = webdav_url,
@@ -102,7 +103,8 @@ function WebDavApi:listFolder(address, user, pass, folder_path, folder_mode)
       --logger.dbg("WebDav catalog item=", item)
       -- <d:href> is the path and filename of the entry.
       local item_fullpath = item:match("<[^:]*:href[^>]*>(.*)</[^:]*:href>")
-      local item_name = ffiUtil.basename(util.htmlEntitiesToUtf8(util.urlDecode(item_fullpath)))
+      local item_name =
+        ffiUtil.basename(util.htmlEntitiesToUtf8(util.urlDecode(item_fullpath)))
       local is_current_dir = item_name == string.sub(folder_path, -#item_name)
       local is_not_collection = item:find("<[^:]*:resourcetype%s*/>")
         or item:find("<[^:]*:resourcetype></[^:]*:resourcetype>")
@@ -119,7 +121,10 @@ function WebDavApi:listFolder(address, user, pass, folder_path, folder_mode)
         end
       elseif
         is_not_collection
-        and (DocumentRegistry:hasProvider(item_name) or G_reader_settings:isTrue("show_unsupported"))
+        and (
+          DocumentRegistry:hasProvider(item_name)
+          or G_reader_settings:isTrue("show_unsupported")
+        )
       then
         table.insert(webdav_file, {
           text = item_name,
@@ -158,7 +163,10 @@ function WebDavApi:listFolder(address, user, pass, folder_path, folder_mode)
 end
 
 function WebDavApi:downloadFile(file_url, user, pass, local_path)
-  socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, socketutil.FILE_TOTAL_TIMEOUT)
+  socketutil:set_timeout(
+    socketutil.FILE_BLOCK_TIMEOUT,
+    socketutil.FILE_TOTAL_TIMEOUT
+  )
   logger.dbg("WebDavApi: downloading file: ", file_url)
   local code, headers, status = socket.skip(
     1,
@@ -172,14 +180,20 @@ function WebDavApi:downloadFile(file_url, user, pass, local_path)
   )
   socketutil:reset_timeout()
   if code ~= 200 then
-    logger.warn("WebDavApi: Download failure:", status or code or "network unreachable")
+    logger.warn(
+      "WebDavApi: Download failure:",
+      status or code or "network unreachable"
+    )
     logger.dbg("WebDavApi: Response headers:", headers)
   end
   return code, (headers or {}).etag
 end
 
 function WebDavApi:uploadFile(file_url, user, pass, local_path, etag)
-  socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, socketutil.FILE_TOTAL_TIMEOUT)
+  socketutil:set_timeout(
+    socketutil.FILE_BLOCK_TIMEOUT,
+    socketutil.FILE_TOTAL_TIMEOUT
+  )
   local code, _, status = socket.skip(
     1,
     http.request({
@@ -196,13 +210,19 @@ function WebDavApi:uploadFile(file_url, user, pass, local_path, etag)
   )
   socketutil:reset_timeout()
   if type(code) ~= "number" or code < 200 or code > 299 then
-    logger.warn("WebDavApi: upload failure:", status or code or "network unreachable")
+    logger.warn(
+      "WebDavApi: upload failure:",
+      status or code or "network unreachable"
+    )
   end
   return code
 end
 
 function WebDavApi:createFolder(folder_url, user, pass, folder_name)
-  socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, socketutil.FILE_TOTAL_TIMEOUT)
+  socketutil:set_timeout(
+    socketutil.FILE_BLOCK_TIMEOUT,
+    socketutil.FILE_TOTAL_TIMEOUT
+  )
   local code, _, status = socket.skip(
     1,
     http.request({
@@ -214,7 +234,10 @@ function WebDavApi:createFolder(folder_url, user, pass, folder_name)
   )
   socketutil:reset_timeout()
   if code ~= 201 then
-    logger.warn("WebDavApi: create folder failure:", status or code or "network unreachable")
+    logger.warn(
+      "WebDavApi: create folder failure:",
+      status or code or "network unreachable"
+    )
   end
   return code
 end

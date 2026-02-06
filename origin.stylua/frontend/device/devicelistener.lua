@@ -14,7 +14,11 @@ function DeviceListener:onToggleNightMode()
   local night_mode = G_reader_settings:isTrue("night_mode")
   Screen:toggleNightMode()
   -- Make sure CRe will bypass the call cache
-  if self.ui and self.ui.document and self.ui.document.provider == "crengine" then
+  if
+    self.ui
+    and self.ui.document
+    and self.ui.document.provider == "crengine"
+  then
     self.ui.document:resetCallCache()
   end
   UIManager:setDirty("all", "full")
@@ -38,7 +42,8 @@ function DeviceListener:onShowIntensity()
   if powerd:isFrontlightOff() then
     new_text = _("Frontlight disabled.")
   else
-    new_text = T(_("Frontlight intensity set to %1."), powerd:frontlightIntensity())
+    new_text =
+      T(_("Frontlight intensity set to %1."), powerd:frontlightIntensity())
   end
   Notification:notify(new_text)
   return true
@@ -50,7 +55,9 @@ function DeviceListener:onShowWarmth()
   end
   -- Display it in the native scale, like FrontLightWidget
   local powerd = Device:getPowerDevice()
-  Notification:notify(T(_("Warmth set to %1."), powerd:toNativeWarmth(powerd:frontlightWarmth())))
+  Notification:notify(
+    T(_("Warmth set to %1."), powerd:toNativeWarmth(powerd:frontlightWarmth()))
+  )
   return true
 end
 
@@ -104,7 +111,8 @@ if Device:hasFrontlight() then
   -- direction -1 - decrease frontlight
   function DeviceListener:onChangeFlIntensity(ges, direction)
     local powerd = Device:getPowerDevice()
-    local delta = calculateGestureDelta(ges, direction, powerd.fl_min, powerd.fl_max)
+    local delta =
+      calculateGestureDelta(ges, direction, powerd.fl_min, powerd.fl_max)
 
     local new_intensity = powerd:frontlightIntensity() + delta
     -- when new_intensity <= 0, toggle light off
@@ -142,13 +150,20 @@ if Device:hasFrontlight() then
     end
 
     local powerd = Device:getPowerDevice()
-    local delta = calculateGestureDelta(ges, direction, powerd.fl_warmth_min, powerd.fl_warmth_max)
+    local delta = calculateGestureDelta(
+      ges,
+      direction,
+      powerd.fl_warmth_min,
+      powerd.fl_warmth_max
+    )
 
     -- Given that the native warmth ranges are usually pretty restrictive (e.g., [0, 10] or [0, 24]),
     -- do the computations in the native scale, to ensure we always actually *change* something,
     -- in case both the old and new value would round to the same native step,
     -- despite being different in the API scale, which is stupidly fixed at [0, 100]...
-    local warmth = powerd:fromNativeWarmth(powerd:toNativeWarmth(powerd:frontlightWarmth()) + delta)
+    local warmth = powerd:fromNativeWarmth(
+      powerd:toNativeWarmth(powerd:frontlightWarmth()) + delta
+    )
 
     self:onSetFlWarmth(warmth)
     self:onShowWarmth()

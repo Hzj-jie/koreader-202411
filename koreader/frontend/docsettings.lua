@@ -85,7 +85,8 @@ local function getOrderedLocationCandidates()
   if preferred_location == "hash" then
     return { "hash", "doc", "dir" }
   end
-  local candidates = preferred_location == "doc" and { "doc", "dir" } or { "dir", "doc" }
+  local candidates = preferred_location == "doc" and { "doc", "dir" }
+    or { "dir", "doc" }
   if DocSettings.isHashLocationEnabled() then
     table.insert(candidates, "hash")
   end
@@ -113,9 +114,19 @@ function DocSettings:getSidecarDir(doc_path, force_location)
         return path .. ".sdr"
       end
       doc_hash_cache[doc_path] = hsh
-      logger.dbg("DocSettings: Caching new partial MD5 hash for", doc_path, "as", hsh)
+      logger.dbg(
+        "DocSettings: Caching new partial MD5 hash for",
+        doc_path,
+        "as",
+        hsh
+      )
     else
-      logger.dbg("DocSettings: Using cached partial MD5 hash for", doc_path, "as", hsh)
+      logger.dbg(
+        "DocSettings: Using cached partial MD5 hash for",
+        doc_path,
+        "as",
+        hsh
+      )
     end
     -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
     local subpath = string.format("/%s/", hsh:sub(1, 2))
@@ -147,7 +158,9 @@ function DocSettings:findSidecarFile(doc_path, no_legacy)
   local sidecar_filename = DocSettings.getSidecarFilename(doc_path)
   local sidecar_file
   for _, location in ipairs(getOrderedLocationCandidates()) do
-    sidecar_file = self:getSidecarDir(doc_path, location) .. "/" .. sidecar_filename
+    sidecar_file = self:getSidecarDir(doc_path, location)
+      .. "/"
+      .. sidecar_filename
     if isFile(sidecar_file) then
       return sidecar_file, location
     end
@@ -169,7 +182,10 @@ function DocSettings:getHistoryPath(doc_path)
   if doc_path == nil or doc_path == "" then
     return ""
   end
-  return HISTORY_DIR .. "/[" .. doc_path:gsub("(.*/)([^/]+)", "%1] %2"):gsub("/", "#") .. ".lua"
+  return HISTORY_DIR
+    .. "/["
+    .. doc_path:gsub("(.*/)([^/]+)", "%1] %2"):gsub("/", "#")
+    .. ".lua"
 end
 
 function DocSettings:getPathFromHistory(hist_name)
@@ -228,7 +244,10 @@ function DocSettings:open(doc_path)
   local doc_sidecar_file, legacy_sidecar_file
   if isDir(new.doc_sidecar_dir) then
     doc_sidecar_file = new.doc_sidecar_dir .. "/" .. new.sidecar_filename
-    legacy_sidecar_file = new.doc_sidecar_dir .. "/" .. ffiutil.basename(doc_path) .. ".lua"
+    legacy_sidecar_file = new.doc_sidecar_dir
+      .. "/"
+      .. ffiutil.basename(doc_path)
+      .. ".lua"
   end
   new.dir_sidecar_dir = new:getSidecarDir(doc_path, "dir")
   local dir_sidecar_file
@@ -240,7 +259,8 @@ function DocSettings:open(doc_path)
     new.hash_sidecar_dir = new:getSidecarDir(doc_path, "hash")
     hash_sidecar_file = new.hash_sidecar_dir .. "/" .. new.sidecar_filename
   end
-  local history_file = is_history_location_enabled and new:getHistoryPath(doc_path)
+  local history_file = is_history_location_enabled
+    and new:getHistoryPath(doc_path)
 
   -- Candidates list, in order of priority:
   local candidates_list = {
@@ -396,7 +416,11 @@ function DocSettings:purge(sidecar_to_keep, data_to_purge)
   end
 
   -- Remove empty sidecar dirs
-  if data_to_purge.doc_settings or data_to_purge.custom_cover_file or data_to_purge.custom_metadata_file then
+  if
+    data_to_purge.doc_settings
+    or data_to_purge.custom_cover_file
+    or data_to_purge.custom_metadata_file
+  then
     for _, dir in ipairs({
       self.doc_sidecar_dir,
       self.dir_sidecar_dir,
@@ -412,7 +436,10 @@ end
 --- Removes sidecar dir iff empty.
 function DocSettings.removeSidecarDir(dir)
   if dir and isDir(dir) then
-    if dir:match("^" .. DOCSETTINGS_DIR) or dir:match("^" .. DOCSETTINGS_HASH_DIR) then
+    if
+      dir:match("^" .. DOCSETTINGS_DIR)
+      or dir:match("^" .. DOCSETTINGS_HASH_DIR)
+    then
       util.removePath(dir) -- remove empty parent folders
     else
       os.remove(dir) -- keep parent folders
@@ -449,7 +476,10 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
         ffiutil.copyFile(custom_cover_file, new_sidecar_dir .. "/" .. filename)
       end
       if custom_metadata_file then
-        ffiutil.copyFile(custom_metadata_file, new_sidecar_dir .. "/" .. custom_metadata_filename)
+        ffiutil.copyFile(
+          custom_metadata_file,
+          new_sidecar_dir .. "/" .. custom_metadata_filename
+        )
       end
       do_purge = not copy
     end
@@ -531,7 +561,8 @@ end
 
 function DocSettings:flushCustomCover(doc_path, image_file)
   local sidecar_dirs = self:getCustomLocationCandidates(doc_path)
-  local new_cover_filename = "/cover." .. util.getFileNameSuffix(image_file):lower()
+  local new_cover_filename = "/cover."
+    .. util.getFileNameSuffix(image_file):lower()
   for _, sidecar_dir in ipairs(sidecar_dirs) do
     util.makePath(sidecar_dir)
     local new_cover_file = sidecar_dir .. new_cover_filename

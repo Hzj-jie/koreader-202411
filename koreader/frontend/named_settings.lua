@@ -80,7 +80,11 @@ function named_settings.low_pan_rate_or_scroll(value)
 end
 
 function named_settings.flip.low_pan_rate()
-  return G_reader_settings:save("low_pan_rate", not named_settings.low_pan_rate(), require("device"):hasEinkScreen())
+  return G_reader_settings:save(
+    "low_pan_rate",
+    not named_settings.low_pan_rate(),
+    require("device"):hasEinkScreen()
+  )
 end
 
 function named_settings.default.full_refresh_count()
@@ -88,11 +92,16 @@ function named_settings.default.full_refresh_count()
 end
 
 function named_settings.full_refresh_count()
-  return G_reader_settings:read("full_refresh_count") or named_settings.default.full_refresh_count()
+  return G_reader_settings:read("full_refresh_count")
+    or named_settings.default.full_refresh_count()
 end
 
 function named_settings.set.full_refresh_count(rate)
-  return G_reader_settings:save("full_refresh_count", rate, named_settings.default.full_refresh_count())
+  return G_reader_settings:save(
+    "full_refresh_count",
+    rate,
+    named_settings.default.full_refresh_count()
+  )
 end
 
 function named_settings.fast_screen_refresh()
@@ -100,7 +109,8 @@ function named_settings.fast_screen_refresh()
     return true
   end
   return G_reader_settings:isFalse("avoid_flashing_ui")
-    or named_settings.full_refresh_count() < G_named_settings.default.full_refresh_count()
+    or named_settings.full_refresh_count()
+      < G_named_settings.default.full_refresh_count()
 end
 
 return named_settings

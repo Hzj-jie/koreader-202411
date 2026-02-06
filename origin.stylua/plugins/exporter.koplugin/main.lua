@@ -241,7 +241,10 @@ function Exporter:exportClippings(clippings)
             if v.is_remote then
               table.insert(statuses, T(_("%1: Exported successfully."), v.name))
             else
-              table.insert(statuses, T(_("%1: Exported to %2."), v.name, v:getFilePath(exportables)))
+              table.insert(
+                statuses,
+                T(_("%1: Exported to %2."), v.name, v:getFilePath(exportables))
+              )
             end
           else
             table.insert(statuses, T(_("%1: Failed to export."), v.name))
@@ -296,10 +299,16 @@ function Exporter:addToMainMenu(menu_items)
     styles_submenu[i] = {
       text = v[1],
       checked_func = function() -- all styles checked by default
-        return not (settings.highlight_styles and settings.highlight_styles[style] == false)
+        return not (
+          settings.highlight_styles
+          and settings.highlight_styles[style] == false
+        )
       end,
       callback = function()
-        if settings.highlight_styles and settings.highlight_styles[style] == false then
+        if
+          settings.highlight_styles
+          and settings.highlight_styles[style] == false
+        then
           settings.highlight_styles[style] = nil
           if next(settings.highlight_styles) == nil then
             settings.highlight_styles = nil
@@ -384,7 +393,12 @@ function Exporter:chooseFolder()
   local caller_callback = function(path)
     settings.clipping_dir = path
   end
-  filemanagerutil.showChooseDialog(title_header, caller_callback, current_path, default_path)
+  filemanagerutil.showChooseDialog(
+    title_header,
+    caller_callback,
+    current_path,
+    default_path
+  )
 end
 
 return Exporter

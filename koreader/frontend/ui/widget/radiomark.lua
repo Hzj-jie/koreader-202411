@@ -20,11 +20,13 @@ function RadioMark:init()
   local widget = TextWidget:new({
     text = self.checkable and (self.checked and "◉ " or "◯ ") or "",
     face = self.face,
-    fgcolor = self.enabled and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY,
+    fgcolor = self.enabled and Blitbuffer.COLOR_BLACK
+      or Blitbuffer.COLOR_DARK_GRAY,
     para_direction_rtl = self._mirroredUI,
   })
   self.baseline = widget:getBaseline()
-  widget.forced_baseline = self.baseline + math.floor(widget:getSize().h * self.v_shift_ratio)
+  widget.forced_baseline = self.baseline
+    + math.floor(widget:getSize().h * self.v_shift_ratio)
   self[1] = widget
   self.dimen = widget:getSize()
 end

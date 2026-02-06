@@ -67,7 +67,9 @@ end
 if Device:canKeyRepeat() then
   table.insert(PhysicalButtons.sub_item_table, {
     text = gettext("Disable key repeat"),
-    help_text = gettext("Useful if you don't like the behavior or if your device has faulty switches"),
+    help_text = gettext(
+      "Useful if you don't like the behavior or if your device has faulty switches"
+    ),
     checked_func = function()
       return G_reader_settings:isTrue("input_no_key_repeat")
     end,

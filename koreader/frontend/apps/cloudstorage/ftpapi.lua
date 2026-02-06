@@ -16,7 +16,12 @@ function FtpApi:generateUrl(address, user, pass)
   if pass ~= "" then
     colon_sign = ":"
   end
-  local generated_url = "ftp://" .. user .. colon_sign .. pass .. at_sign .. address:gsub("ftp://", "")
+  local generated_url = "ftp://"
+    .. user
+    .. colon_sign
+    .. pass
+    .. at_sign
+    .. address:gsub("ftp://", "")
   return generated_url
 end
 
@@ -58,7 +63,13 @@ function FtpApi:listFolder(address_path, folder_path)
           type = type,
         })
         --show only file with supported formats
-      elseif extension and (DocumentRegistry:hasProvider(item) or G_reader_settings:isTrue("show_unsupported")) then
+      elseif
+        extension
+        and (
+          DocumentRegistry:hasProvider(item)
+          or G_reader_settings:isTrue("show_unsupported")
+        )
+      then
         type = "file"
         table.insert(ftp_file, {
           text = file_name,

@@ -46,7 +46,13 @@ describe("Common modules", function()
     local deser = buffer.decode(ser)
     assert.are.same(t, deser)
 
-    local ss = Blitbuffer.fromstring(deser.w, deser.h, deser.fmt, deser.data, deser.stride)
+    local ss = Blitbuffer.fromstring(
+      deser.w,
+      deser.h,
+      deser.fmt,
+      deser.data,
+      deser.stride
+    )
     assert.are.same(bb.w, ss.w)
     assert.are.same(bb.h, ss.h)
     assert.are.same(bb.stride, ss.stride)

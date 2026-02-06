@@ -24,7 +24,8 @@ local wpa_ctrl = {}
 function event_mt.__index:isAuthSuccessful()
   return (
     string.find(self.msg, "^CTRL%-EVENT%-CONNECTED")
-    or string.match(self.msg, "^WPA: Key negotiation completed with (.+)$") ~= nil
+    or string.match(self.msg, "^WPA: Key negotiation completed with (.+)$")
+      ~= nil
   )
 end
 
@@ -120,11 +121,15 @@ function wpa_ctrl.open(ctrl_sock)
   end
   re = hdl.sock:bind(hdl.local_saddr, sockaddr_un_t)
   if re < 0 then
-    return nil, hdl.sock:closeOnError("Failed to bind socket: " .. hdl.recv_sock_path)
+    return nil,
+      hdl.sock:closeOnError("Failed to bind socket: " .. hdl.recv_sock_path)
   end
   re = hdl.sock:connect(hdl.dest_saddr, sockaddr_un_t)
   if re < 0 then
-    return nil, hdl.sock:closeOnError("Failed to connect to wpa_supplicant control socket: " .. ctrl_sock)
+    return nil,
+      hdl.sock:closeOnError(
+        "Failed to connect to wpa_supplicant control socket: " .. ctrl_sock
+      )
   end
 
   hdl.event_queue = new_event_queue()

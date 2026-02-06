@@ -28,9 +28,11 @@ _M._VERSION = "URL 1.0.3"
 --   escaped representation of string binary
 -----------------------------------------------------------------------------
 function _M.escape(s)
-  return (string.gsub(s, "([^A-Za-z0-9_])", function(c)
-    return string.format("%%%02x", string.byte(c))
-  end))
+  return (
+    string.gsub(s, "([^A-Za-z0-9_])", function(c)
+      return string.format("%%%02x", string.byte(c))
+    end)
+  )
 end
 
 -----------------------------------------------------------------------------
@@ -88,9 +90,11 @@ end
 --   unescaped binary representation of escaped hexadecimal  binary
 -----------------------------------------------------------------------------
 function _M.unescape(s)
-  return (string.gsub(s, "%%(%x%x)", function(hex)
-    return string.char(base.tonumber(hex, 16))
-  end))
+  return (
+    string.gsub(s, "%%(%x%x)", function(hex)
+      return string.char(base.tonumber(hex, 16))
+    end)
+  )
 end
 
 -----------------------------------------------------------------------------
@@ -317,7 +321,8 @@ function _M.absolute(base_url, relative_url)
           end
         end
       else
-        relative_parsed.path = absolute_path(base_parsed.path or "", relative_parsed.path)
+        relative_parsed.path =
+          absolute_path(base_parsed.path or "", relative_parsed.path)
       end
     end
     result = _M.build(relative_parsed)

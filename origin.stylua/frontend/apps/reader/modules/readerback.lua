@@ -89,7 +89,9 @@ function ReaderBack:onReadSettings(config)
 end
 
 function ReaderBack:_onViewPossiblyUpdated()
-  if G_reader_settings:readSetting("back_in_reader") == "previous_read_page" then
+  if
+    G_reader_settings:readSetting("back_in_reader") == "previous_read_page"
+  then
     -- As multiple modules will have their :onPageUpdate()/... called,
     -- and some of them will set up the new page with it, we need to
     -- delay our handling after all of them are called (otherwise,
@@ -115,7 +117,8 @@ ReaderBack.onViewRecalculate = ReaderBack._onViewPossiblyUpdated
 ReaderBack.onPagePositionUpdated = ReaderBack._onViewPossiblyUpdated
 
 function ReaderBack:onBack()
-  local back_in_reader = G_reader_settings:readSetting("back_in_reader", "previous_location")
+  local back_in_reader =
+    G_reader_settings:readSetting("back_in_reader", "previous_location")
   local back_to_exit = G_reader_settings:readSetting("back_to_exit", "prompt")
 
   if back_in_reader == "previous_read_page" then

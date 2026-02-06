@@ -261,7 +261,10 @@ local function newcontext(cfg)
           return nil, msg
         end
       elseif type(cfg.psk) == "table" then
-        if type(cfg.psk.hint) == "string" and type(cfg.psk.callback) == "function" then
+        if
+          type(cfg.psk.hint) == "string"
+          and type(cfg.psk.callback) == "function"
+        then
           succ, msg = context.setpskhint(ctx, cfg.psk.hint)
           if not succ then
             return succ, msg
@@ -330,7 +333,10 @@ local function info(ssl, field)
   str, info.bits, info.algbits, protocol = core.info(ssl)
   if str then
     info.cipher, info.protocol, info.key, info.authentication, info.encryption, info.mac =
-      string.match(str, "^(%S+)%s+(%S+)%s+Kx=(%S+)%s+Au=(%S+)%s+Enc=(%S+)%s+Mac=(%S+)")
+      string.match(
+        str,
+        "^(%S+)%s+(%S+)%s+Kx=(%S+)%s+Au=(%S+)%s+Enc=(%S+)%s+Mac=(%S+)"
+      )
     info.export = (string.match(str, "%sexport%s*$") ~= nil)
   end
   if protocol then

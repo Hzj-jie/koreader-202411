@@ -701,7 +701,10 @@ end
 local function gen_cclass_code(prefix, cclass)
   local next_state = STATE_NAMES[cclass.next_state]
   if cclass.event == EVENT_MARK then
-    code(prefix, "if(ps.mark == 0) then ps.mark = ps.i end -- mark the position\n")
+    code(
+      prefix,
+      "if(ps.mark == 0) then ps.mark = ps.i end -- mark the position\n"
+    )
   elseif cclass.event ~= EVENT_NONE then
     code(prefix, "if(ps.mark > 0) then\n")
     code(prefix, "  return ", cclass.event, ", ", next_state, "_f\n")

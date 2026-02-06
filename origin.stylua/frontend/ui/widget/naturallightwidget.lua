@@ -283,7 +283,10 @@ function NaturalLightWidget:createMainContent(width, height)
     width = math.floor(self.width * 0.2),
     show_parent = self,
     callback = function()
-      G_reader_settings:saveSetting("natural_light_config", self:getCurrentValues())
+      G_reader_settings:saveSetting(
+        "natural_light_config",
+        self:getCurrentValues()
+      )
       self:onClose()
     end,
   })

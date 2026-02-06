@@ -383,8 +383,16 @@ function Input:init()
     self.setClipboardText = function(text)
       return self.input.setClipboardText(text)
     end
-    self.gameControllerRumble = function(left_intensity, right_intensity, duration)
-      return self.input.gameControllerRumble(left_intensity, right_intensity, duration)
+    self.gameControllerRumble = function(
+      left_intensity,
+      right_intensity,
+      duration
+    )
+      return self.input.gameControllerRumble(
+        left_intensity,
+        right_intensity,
+        duration
+      )
     end
   elseif self.device:isAndroid() then
     self.input = require("ffi/input_android")
@@ -472,7 +480,8 @@ function Input:init()
   self.event_map[10041] = "UsbDevicePlugOut"
 
   -- user custom event map
-  local custom_event_map_location = string.format("%s/%s", DataStorage:getSettingsDir(), "event_map.lua")
+  local custom_event_map_location =
+    string.format("%s/%s", DataStorage:getSettingsDir(), "event_map.lua")
   local ok, custom_event_map = pcall(dofile, custom_event_map_location)
   if ok then
     for key, value in pairs(custom_event_map) do
@@ -926,7 +935,11 @@ function Input:handleKeyBoardEv(ev)
   end
 
   -- toggle fullscreen on F11
-  if self:isEvKeyPress(ev) and keycode == "F11" and not self.device:isAlwaysFullscreen() then
+  if
+    self:isEvKeyPress(ev)
+    and keycode == "F11"
+    and not self.device:isAlwaysFullscreen()
+  then
     UIManager:broadcastEvent(Event:new("ToggleFullscreen"))
   end
 
@@ -957,7 +970,12 @@ function Input:handleKeyBoardEv(ev)
   elseif ev.value == KEY_REPEAT then
     -- NOTE: We only care about repeat events from the pageturn buttons...
     --     And we *definitely* don't want to flood the Event queue with useless SleepCover repeats!
-    if keycode == "LPgBack" or keycode == "RPgBack" or keycode == "LPgFwd" or keycode == "RPgFwd" then
+    if
+      keycode == "LPgBack"
+      or keycode == "RPgBack"
+      or keycode == "LPgFwd"
+      or keycode == "RPgFwd"
+    then
       --- @fixme Crappy event staggering!
       --
       -- The Forma & co repeats every 80ms after a 400ms delay, and 500ms roughly corresponds to a flashing update,
@@ -993,7 +1011,12 @@ function Input:handlePowerManagementOnlyEv(ev)
   end
 
   -- Power management synthetic events
-  if keycode == "SleepCoverClosed" or keycode == "SleepCoverOpened" or keycode == "Suspend" or keycode == "Resume" then
+  if
+    keycode == "SleepCoverClosed"
+    or keycode == "SleepCoverOpened"
+    or keycode == "Suspend"
+    or keycode == "Resume"
+  then
     return keycode
   end
 
@@ -1117,7 +1140,13 @@ function Input:handleTouchEv(ev)
       local ges_evs = {}
       for _, touch_ges in ipairs(touch_gestures) do
         self:gestureAdjustHook(touch_ges)
-        table.insert(ges_evs, Event:new("Gesture", self.gesture_detector:adjustGesCoordinate(touch_ges)))
+        table.insert(
+          ges_evs,
+          Event:new(
+            "Gesture",
+            self.gesture_detector:adjustGesCoordinate(touch_ges)
+          )
+        )
       end
       return ges_evs
     end
@@ -1158,7 +1187,13 @@ function Input:handleMixedTouchEv(ev)
       local ges_evs = {}
       for _, touch_ges in ipairs(touch_gestures) do
         self:gestureAdjustHook(touch_ges)
-        table.insert(ges_evs, Event:new("Gesture", self.gesture_detector:adjustGesCoordinate(touch_ges)))
+        table.insert(
+          ges_evs,
+          Event:new(
+            "Gesture",
+            self.gesture_detector:adjustGesCoordinate(touch_ges)
+          )
+        )
       end
       return ges_evs
     end
@@ -1225,7 +1260,13 @@ function Input:handleTouchEvSnow(ev)
       local ges_evs = {}
       for _, touch_ges in ipairs(touch_gestures) do
         self:gestureAdjustHook(touch_ges)
-        table.insert(ges_evs, Event:new("Gesture", self.gesture_detector:adjustGesCoordinate(touch_ges)))
+        table.insert(
+          ges_evs,
+          Event:new(
+            "Gesture",
+            self.gesture_detector:adjustGesCoordinate(touch_ges)
+          )
+        )
       end
       return ges_evs
     end
@@ -1285,7 +1326,13 @@ function Input:handleTouchEvPhoenix(ev)
       local ges_evs = {}
       for _, touch_ges in ipairs(touch_gestures) do
         self:gestureAdjustHook(touch_ges)
-        table.insert(ges_evs, Event:new("Gesture", self.gesture_detector:adjustGesCoordinate(touch_ges)))
+        table.insert(
+          ges_evs,
+          Event:new(
+            "Gesture",
+            self.gesture_detector:adjustGesCoordinate(touch_ges)
+          )
+        )
       end
       return ges_evs
     end
@@ -1334,7 +1381,13 @@ function Input:handleTouchEvLegacy(ev)
       local ges_evs = {}
       for _, touch_ges in ipairs(touch_gestures) do
         self:gestureAdjustHook(touch_ges)
-        table.insert(ges_evs, Event:new("Gesture", self.gesture_detector:adjustGesCoordinate(touch_ges)))
+        table.insert(
+          ges_evs,
+          Event:new(
+            "Gesture",
+            self.gesture_detector:adjustGesCoordinate(touch_ges)
+          )
+        )
       end
       return ges_evs
     end
@@ -1365,7 +1418,8 @@ function Input:handleMiscGyroEv(ev)
 
   local old_rotation = self.device.screen:getRotationMode()
   if self.device:isGSensorLocked() then
-    local matching_orientation = bit.band(rotation, 1) == bit.band(old_rotation, 1)
+    local matching_orientation = bit.band(rotation, 1)
+      == bit.band(old_rotation, 1)
     if rotation and rotation ~= old_rotation and matching_orientation then
       -- Cheaper than a full SetRotationMode event, as we don't need to re-layout anything.
       self.device.screen:setRotationMode(rotation)
@@ -1608,7 +1662,10 @@ function Input:waitEvent(now, deadline)
             if touch_ges then
               self:gestureAdjustHook(touch_ges)
               return {
-                Event:new("Gesture", self.gesture_detector:adjustGesCoordinate(touch_ges)),
+                Event:new(
+                  "Gesture",
+                  self.gesture_detector:adjustGesCoordinate(touch_ges)
+                ),
               }
             end -- if touch_ges
           end -- if poll_deadline reached
@@ -1654,7 +1711,12 @@ function Input:waitEvent(now, deadline)
         -- Retry on EINTR
       else
         -- Warn, report, and go back to UIManager
-        logger.warn("Polling for input events returned an error:", ev, "->", ffi.string(C.strerror(ev)))
+        logger.warn(
+          "Polling for input events returned an error:",
+          ev,
+          "->",
+          ffi.string(C.strerror(ev))
+        )
         break
       end
     elseif ok == nil then

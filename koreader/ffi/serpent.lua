@@ -54,11 +54,13 @@ for _, g in ipairs({
 end
 
 local function s(t, opts)
-  local name, indent, fatal, maxnum = opts.name, opts.indent, opts.fatal, opts.maxnum
+  local name, indent, fatal, maxnum =
+    opts.name, opts.indent, opts.fatal, opts.maxnum
   local sparse, custom, huge = opts.sparse, opts.custom, not opts.nohuge
   local space, maxl = (opts.compact and "" or " "), (opts.maxlevel or math.huge)
   local maxlen, metatostring = tonumber(opts.maxlength), opts.metatostring
-  local iname, comm = "_" .. (name or ""), opts.comment and (tonumber(opts.comment) or math.huge)
+  local iname, comm =
+    "_" .. (name or ""), opts.comment and (tonumber(opts.comment) or math.huge)
   local numformat = opts.numformat or "%.17g"
   local seen, sref, syms, symn = {}, { "local " .. iname .. "={}" }, {}, 0
   local function gensym(val)
@@ -78,7 +80,8 @@ local function s(t, opts)
       )
   end
   local function safestr(s)
-    return type(s) == "number" and (huge and snum[tostring(s)] or numformat:format(s))
+    return type(s) == "number"
+        and (huge and snum[tostring(s)] or numformat:format(s))
       or type(s) ~= "string" and tostring(s) -- escape NEWLINE/010 and EOF/026
       or ("%q"):format(s):gsub("\010", "n"):gsub("\026", "\\026")
   end
@@ -86,12 +89,18 @@ local function s(t, opts)
   if opts.fixradix and (".1f"):format(1.2) ~= "1.2" then
     local origsafestr = safestr
     safestr = function(s)
-      return type(s) == "number" and (nohuge and snum[tostring(s)] or numformat:format(s):gsub(",", "."))
+      return type(s) == "number"
+          and (nohuge and snum[tostring(s)] or numformat
+            :format(s)
+            :gsub(",", "."))
         or origsafestr(s)
     end
   end
   local function comment(s, l)
-    return comm and (l or 0) < comm and " --[[" .. select(2, pcall(tostring, s)) .. "]]" or ""
+    return comm
+        and (l or 0) < comm
+        and " --[[" .. select(2, pcall(tostring, s)) .. "]]"
+      or ""
   end
   local function globerr(s, l)
     return globals[s] and globals[s] .. comment(s, l)
@@ -100,7 +109,9 @@ local function s(t, opts)
   end
   local function safename(path, name) -- generates foo.bar, foo[3], or foo['b a r']
     local n = name == nil and "" or name
-    local plain = type(n) == "string" and n:match("^[%l%u_][%w_]*$") and not keyword[n]
+    local plain = type(n) == "string"
+      and n:match("^[%l%u_][%w_]*$")
+      and not keyword[n]
     local safe = plain and n or "[" .. safestr(n) .. "]"
     return (path or "") .. (plain and path and "." or "") .. safe, safe
   end
@@ -112,14 +123,17 @@ local function s(t, opts)
       end
       table.sort(k, function(a, b)
         -- sort numeric keys first: k[key] is not nil for numerical keys
-        return (k[a] ~= nil and 0 or to[type(a)] or "z") .. (tostring(a):gsub("%d+", padnum))
-          < (k[b] ~= nil and 0 or to[type(b)] or "z") .. (tostring(b):gsub("%d+", padnum))
+        return (k[a] ~= nil and 0 or to[type(a)] or "z")
+            .. (tostring(a):gsub("%d+", padnum))
+          < (k[b] ~= nil and 0 or to[type(b)] or "z")
+            .. (tostring(b):gsub("%d+", padnum))
       end)
     end
   local function val2str(t, name, indent, insref, path, plainindex, level)
     local ttype, level, mt = type(t), (level or 0), getmetatable(t)
     local spath, sname = safename(path, name)
-    local tag = plainindex and ((type(name) == "number") and "" or name .. space .. "=" .. space)
+    local tag = plainindex
+        and ((type(name) == "number") and "" or name .. space .. "=" .. space)
       or (name ~= nil and sname .. space .. "=" .. space or "")
     if seen[t] then -- already seen this element
       sref[#sref + 1] = spath .. space .. "=" .. space .. seen[t]
@@ -171,7 +185,8 @@ local function s(t, opts)
       end
       local sparse = sparse and #o > maxn -- disable sparsness if only numeric keys (shorter output)
       for n, key in ipairs(o) do
-        local value, ktype, plainindex = t[key], type(key), n <= maxn and not sparse
+        local value, ktype, plainindex =
+          t[key], type(key), n <= maxn and not sparse
         if
           opts.valignore and opts.valignore[value] -- skip ignored values; do nothing
           or opts.keyallow and not opts.keyallow[key]
@@ -186,10 +201,18 @@ local function s(t, opts)
             sref[#sref] = val2str(key, sname, indent, sname, iname, true)
           end
           sref[#sref + 1] = "placeholder"
-          local path = seen[t] .. "[" .. tostring(seen[key] or globals[key] or gensym(key)) .. "]"
-          sref[#sref] = path .. space .. "=" .. space .. tostring(seen[value] or val2str(value, nil, indent, path))
+          local path = seen[t]
+            .. "["
+            .. tostring(seen[key] or globals[key] or gensym(key))
+            .. "]"
+          sref[#sref] = path
+            .. space
+            .. "="
+            .. space
+            .. tostring(seen[value] or val2str(value, nil, indent, path))
         else
-          out[#out + 1] = val2str(value, key, indent, nil, seen[t], plainindex, level + 1)
+          out[#out + 1] =
+            val2str(value, key, indent, nil, seen[t], plainindex, level + 1)
           if maxlen then
             maxlen = maxlen - #out[#out]
             if maxlen < 0 then
@@ -200,9 +223,13 @@ local function s(t, opts)
       end
       local prefix = string.rep(indent or "", level)
       local head = indent and "{\n" .. prefix .. indent or "{"
-      local body = table.concat(out, "," .. (indent and "\n" .. prefix .. indent or space))
+      local body =
+        table.concat(out, "," .. (indent and "\n" .. prefix .. indent or space))
       local tail = indent and "\n" .. prefix .. "}" or "}"
-      return (custom and custom(tag, head, body, tail, level) or tag .. head .. body .. tail) .. comment(t, level)
+      return (
+        custom and custom(tag, head, body, tail, level)
+        or tag .. head .. body .. tail
+      ) .. comment(t, level)
     elseif badtype[ttype] then
       seen[t] = insref or spath
       return tag .. globerr(t, level)
@@ -212,7 +239,11 @@ local function s(t, opts)
         return tag .. "function() --[[..skipped..]] end" .. comment(t, level)
       end
       local ok, res = pcall(string.dump, t)
-      local func = ok and "((loadstring or load)(" .. safestr(res) .. ",'@serialized'))" .. comment(t, level)
+      local func = ok
+        and "((loadstring or load)("
+          .. safestr(res)
+          .. ",'@serialized'))"
+          .. comment(t, level)
       return tag .. (func or globerr(t, level))
     else
       return tag .. safestr(t)
@@ -221,9 +252,19 @@ local function s(t, opts)
   local sepr = indent and "\n" or ";" .. space
   local body = val2str(t, name, indent) -- this call also populates sref
   local tail = #sref > 1 and table.concat(sref, sepr) .. sepr or ""
-  local warn = opts.comment and #sref > 1 and space .. "--[[incomplete output with shared/self-references skipped]]"
+  local warn = opts.comment
+      and #sref > 1
+      and space .. "--[[incomplete output with shared/self-references skipped]]"
     or ""
-  return not name and body .. warn or "do local " .. body .. sepr .. tail .. "return " .. name .. sepr .. "end"
+  return not name and body .. warn
+    or "do local "
+      .. body
+      .. sepr
+      .. tail
+      .. "return "
+      .. name
+      .. sepr
+      .. "end"
 end
 
 local function deserialize(data, opts)

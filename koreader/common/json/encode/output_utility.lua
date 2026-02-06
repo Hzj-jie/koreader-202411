@@ -17,7 +17,9 @@ local function buildFunction(nextValues, innerValue, valueWriter, innerWriter)
     -- Prepare the lua-string representation of the separator to put in between values
     local formattedInnerValue = ("%q"):format(innerValue)
     -- Fill in the condition %WRITE_INNER% and the %INNER_VALUE% to actually write
-    putInner = innerWriter:gsub("%%WRITE_INNER%%", "%%1"):gsub("%%INNER_VALUE%%", formattedInnerValue)
+    putInner = innerWriter
+      :gsub("%%WRITE_INNER%%", "%%1")
+      :gsub("%%INNER_VALUE%%", formattedInnerValue)
   end
   -- Template-in the value writer (if present) and its conditional argument
   local functionCode = nextValues:gsub("PUTINNER(%b())", putInner)
@@ -33,7 +35,13 @@ local function buildFunction(nextValues, innerValue, valueWriter, innerWriter)
   return assert(loadstring(functionCode))()
 end
 
-local function prepareEncoder(cacheKey, nextValues, innerValue, valueWriter, innerWriter)
+local function prepareEncoder(
+  cacheKey,
+  nextValues,
+  innerValue,
+  valueWriter,
+  innerWriter
+)
   local cache = outputCache[cacheKey]
   if not cache then
     cache = {}

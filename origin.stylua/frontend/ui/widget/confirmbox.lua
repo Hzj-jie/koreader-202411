@@ -79,7 +79,8 @@ function ConfirmBox:init()
     end
   end
 
-  self.text_widget_width = math.floor(math.min(Screen:getWidth(), Screen:getHeight()) * 2 / 3)
+  self.text_widget_width =
+    math.floor(math.min(Screen:getWidth(), Screen:getHeight()) * 2 / 3)
   local text_widget = TextBoxWidget:new({
     text = self.text,
     face = self.face,
@@ -90,7 +91,10 @@ function ConfirmBox:init()
     text_widget,
   })
   if self._added_widgets then
-    table.insert(self.text_group, VerticalSpan:new({ width = Size.padding.large }))
+    table.insert(
+      self.text_group,
+      VerticalSpan:new({ width = Size.padding.large })
+    )
     for _, widget in ipairs(self._added_widgets) do
       table.insert(self.text_group, widget)
     end

@@ -48,7 +48,8 @@ function SkimToWidget:init()
   end
 
   -- nil for default center full mode; "top" and "bottom" for compact mode
-  local skim_dialog_position = G_reader_settings:readSetting("skim_dialog_position")
+  local skim_dialog_position =
+    G_reader_settings:readSetting("skim_dialog_position")
   local full_mode = not skim_dialog_position
 
   local frame_border_size = Size.border.window
@@ -74,9 +75,12 @@ function SkimToWidget:init()
     progress_bar_height = Screen:scaleBySize(36)
   end
   local nb_span_units = (nb_buttons - 1) - 2 + 2 * larger_span_units
-  local button_width = math.floor((inner_width - nb_span_units * button_span_unit_width) * (1 / nb_buttons))
+  local button_width = math.floor(
+    (inner_width - nb_span_units * button_span_unit_width) * (1 / nb_buttons)
+  )
   -- Update inner_width (possibly smaller because of math.floor())
-  inner_width = nb_buttons * button_width + nb_span_units * button_span_unit_width
+  inner_width = nb_buttons * button_width
+    + nb_span_units * button_span_unit_width
 
   self.curr_page = self.ui:getCurrentPage()
   self.page_count = self.ui.document:getPageCount()
@@ -185,7 +189,8 @@ function SkimToWidget:init()
   local bookmark_disabled_text = "\u{F097}"
   if BD.mirroredUILayout() then
     chapter_next_text, chapter_prev_text = chapter_prev_text, chapter_next_text
-    bookmark_next_text, bookmark_prev_text = bookmark_prev_text, bookmark_next_text
+    bookmark_next_text, bookmark_prev_text =
+      bookmark_prev_text, bookmark_next_text
   end
   local button_chapter_next = Button:new({
     text = chapter_next_text,
@@ -255,7 +260,8 @@ function SkimToWidget:init()
   })
   self.button_bookmark_toggle = Button:new({
     text_func = function()
-      return self.ui.view.dogear_visible and bookmark_enabled_text or bookmark_disabled_text
+      return self.ui.view.dogear_visible and bookmark_enabled_text
+        or bookmark_disabled_text
     end,
     text_font_size = button_font_size,
     radius = 0,
@@ -272,8 +278,10 @@ function SkimToWidget:init()
     end,
   })
 
-  local small_button_span = HorizontalSpan:new({ width = button_span_unit_width })
-  local large_button_span = HorizontalSpan:new({ width = button_span_unit_width * larger_span_units })
+  local small_button_span =
+    HorizontalSpan:new({ width = button_span_unit_width })
+  local large_button_span =
+    HorizontalSpan:new({ width = button_span_unit_width * larger_span_units })
   local top_row_span, bottom_row_span, top_buttons_row, bottom_buttons_row, radius
   if full_mode then
     top_row_span = VerticalSpan:new({ width = Size.padding.fullscreen })
@@ -424,8 +432,14 @@ function SkimToWidget:update()
     self.curr_page = self.page_count
   end
   self.progress_bar.percentage = self.curr_page / self.page_count
-  self.current_page_text:setText(self.current_page_text:text_func(), self.current_page_text.width)
-  self.button_bookmark_toggle:setText(self.button_bookmark_toggle:text_func(), self.button_bookmark_toggle.width)
+  self.current_page_text:setText(
+    self.current_page_text:text_func(),
+    self.current_page_text.width
+  )
+  self.button_bookmark_toggle:setText(
+    self.button_bookmark_toggle:text_func(),
+    self.button_bookmark_toggle.width
+  )
   self:refocusWidget(FocusManager.RENDER_IN_NEXT_TICK)
 end
 

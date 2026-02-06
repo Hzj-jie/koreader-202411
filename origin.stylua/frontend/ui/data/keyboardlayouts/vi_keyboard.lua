@@ -40,24 +40,48 @@ local wrapInputBox = function(inputbox)
     -- original function.
 
     -- -- Delete text.
-    table.insert(wrappers, util.wrapMethod(inputbox, "delChar", wrappedDelChar, nil))
-    table.insert(wrappers, util.wrapMethod(inputbox, "delToStartOfLine", nil, clear_stack))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "delChar", wrappedDelChar, nil)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "delToStartOfLine", nil, clear_stack)
+    )
     table.insert(wrappers, util.wrapMethod(inputbox, "clear", nil, clear_stack))
     -- -- Navigation.
     table.insert(wrappers, util.wrapMethod(inputbox, "leftChar", nil, separate))
-    table.insert(wrappers, util.wrapMethod(inputbox, "rightChar", nil, separate))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "rightChar", nil, separate)
+    )
     table.insert(wrappers, util.wrapMethod(inputbox, "upLine", nil, separate))
     table.insert(wrappers, util.wrapMethod(inputbox, "downLine", nil, separate))
     -- -- Move to other input box.
     table.insert(wrappers, util.wrapMethod(inputbox, "unfocus", nil, separate))
-    table.insert(wrappers, util.wrapMethod(inputbox, "onCloseKeyboard", nil, separate))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "onCloseKeyboard", nil, separate)
+    )
     -- -- Gestures to move cursor.
-    table.insert(wrappers, util.wrapMethod(inputbox, "onTapTextBox", nil, separate))
-    table.insert(wrappers, util.wrapMethod(inputbox, "onHoldTextBox", nil, separate))
-    table.insert(wrappers, util.wrapMethod(inputbox, "onSwipeTextBox", nil, separate))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "onTapTextBox", nil, separate)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "onHoldTextBox", nil, separate)
+    )
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "onSwipeTextBox", nil, separate)
+    )
 
     -- addChars is the only method we need a more complicated wrapper for.
-    table.insert(wrappers, util.wrapMethod(inputbox, "addChars", wrappedAddChars, nil))
+    table.insert(
+      wrappers,
+      util.wrapMethod(inputbox, "addChars", wrappedAddChars, nil)
+    )
 
     return function()
       if inputbox._vi_wrapped then

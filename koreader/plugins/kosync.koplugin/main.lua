@@ -71,7 +71,9 @@ function KOSync:init()
     and G_reader_settings:read("wifi_enable_action") ~= "turn_on"
   then
     self.settings.auto_sync = false
-    logger.warn("KOSync: Automatic sync has been disabled because wifi_enable_action is *not* turn_on")
+    logger.warn(
+      "KOSync: Automatic sync has been disabled because wifi_enable_action is *not* turn_on"
+    )
   end
 
   self.ui.menu:registerToMainMenu(self)
@@ -99,7 +101,9 @@ end
 
 local function promptLogin()
   UIManager:show(InfoMessage:new({
-    text = gettext("Please register or login before using the progress synchronization feature."),
+    text = gettext(
+      "Please register or login before using the progress synchronization feature."
+    ),
     timeout = 3,
   }))
 end
@@ -191,7 +195,9 @@ function KOSync:addToMainMenu(menu_items)
           return {
             -- @translators Server address defined by user for progress sync.
             title = gettext("Custom progress sync server address"),
-            input = self.settings.custom_server or self.last_custom_server_attempt or "https://",
+            input = self.settings.custom_server
+              or self.last_custom_server_attempt
+              or "https://",
             allow_blank_input = true,
             callback = function(input)
               self:setCustomServer(input)
@@ -201,7 +207,8 @@ function KOSync:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return self.settings.userkey and (gettext("Logout")) or gettext("Register") .. " / " .. gettext("Login")
+          return self.settings.userkey and (gettext("Logout"))
+            or gettext("Register") .. " / " .. gettext("Login")
         end,
         keep_menu_open = true,
         callback_func = function()
@@ -224,7 +231,9 @@ function KOSync:addToMainMenu(menu_items)
         end,
         help_text =
           -- Need localization
-          gettext("Enable the feature will automatically pull and push progress when necessary.") .. "\n\n" .. gettext(
+          gettext(
+            "Enable the feature will automatically pull and push progress when necessary."
+          ) .. "\n\n" .. gettext(
             [[This may lead to nagging about toggling WiFi on document close and suspend/resume, depending on the device's connectivity.]]
           ),
         callback = function()
@@ -257,7 +266,10 @@ function KOSync:addToMainMenu(menu_items)
       {
         text_func = function()
           -- NOTE: With an up-to-date Sync server, "forward" means *newer*, not necessarily ahead in the document.
-          return T(gettext("Sync to a newer state (%1)"), getNameStrategy(self.settings.sync_forward))
+          return T(
+            gettext("Sync to a newer state (%1)"),
+            getNameStrategy(self.settings.sync_forward)
+          )
         end,
         sub_item_table = {
           {
@@ -291,7 +303,10 @@ function KOSync:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(gettext("Sync to an older state (%1)"), getNameStrategy(self.settings.sync_backward))
+          return T(
+            gettext("Sync to an older state (%1)"),
+            getNameStrategy(self.settings.sync_backward)
+          )
         end,
         sub_item_table = {
           {
@@ -347,7 +362,9 @@ function KOSync:addToMainMenu(menu_items)
         text = gettext("Document matching method"),
         sub_item_table = {
           {
-            text = gettext("Binary. Only identical files will be kept in sync."),
+            text = gettext(
+              "Binary. Only identical files will be kept in sync."
+            ),
             checked_func = function()
               return self.settings.checksum_method == CHECKSUM_METHOD.BINARY
             end,
@@ -356,7 +373,9 @@ function KOSync:addToMainMenu(menu_items)
             end,
           },
           {
-            text = gettext("Filename. Files with matching names will be kept in sync."),
+            text = gettext(
+              "Filename. Files with matching names will be kept in sync."
+            ),
             checked_func = function()
               return self.settings.checksum_method == CHECKSUM_METHOD.FILENAME
             end,
@@ -384,7 +403,9 @@ function KOSync:setCustomServer(server)
   UIManager:show(InfoMessage:new({
     -- Need localization
     text = T(
-      gettext("The new server address %1 is invalid, revert back to %2.\nError: %3"),
+      gettext(
+        "The new server address %1 is invalid, revert back to %2.\nError: %3"
+      ),
       server,
       prev_server or "default server",
       err
@@ -486,7 +507,9 @@ function KOSync:_doRegister(username, password, menu)
   if not ok then
     if status then
       UIManager:show(InfoMessage:new({
-        text = gettext("An error occurred while registering:") .. "\n" .. status,
+        text = gettext("An error occurred while registering:")
+          .. "\n"
+          .. status,
       }))
     else
       UIManager:show(InfoMessage:new({
@@ -611,7 +634,9 @@ function KOSync:_updateProgress(interactive)
   end
 
   local now = UIManager:getElapsedTimeSinceBoot()
-  if not interactive and now - self.push_timestamp <= API_CALL_DEBOUNCE_DELAY then
+  if
+    not interactive and now - self.push_timestamp <= API_CALL_DEBOUNCE_DELAY
+  then
     logger.dbg("KOSync: We've already pushed progress less than 25s ago!")
     return
   end
@@ -639,7 +664,14 @@ function KOSync:_updateProgress(interactive)
       Device.model,
       device_id,
       function(ok, body)
-        logger.dbg("KOSync: [Push] progress to", percentage * 100, "% =>", progress, "for", filename)
+        logger.dbg(
+          "KOSync: [Push] progress to",
+          percentage * 100,
+          "% =>",
+          progress,
+          "for",
+          filename
+        )
         logger.dbg("KOSync: ok:", ok, "body:", body)
         if interactive then
           if ok then
@@ -689,7 +721,9 @@ function KOSync:_getProgress(interactive)
   end
 
   local now = UIManager:getElapsedTimeSinceBoot()
-  if not interactive and now - self.pull_timestamp <= API_CALL_DEBOUNCE_DELAY then
+  if
+    not interactive and now - self.pull_timestamp <= API_CALL_DEBOUNCE_DELAY
+  then
     logger.dbg("KOSync: We've already pulled progress less than 25s ago!")
     return
   end
@@ -741,7 +775,12 @@ function KOSync:_getProgress(interactive)
         body.percentage = Math.roundPercent(body.percentage)
         local progress = self:_getLastProgress()
         local percentage = self:_getLastPercent()
-        logger.dbg("KOSync: Current progress:", percentage * 100, "% =>", progress)
+        logger.dbg(
+          "KOSync: Current progress:",
+          percentage * 100,
+          "% =>",
+          progress
+        )
 
         if percentage == body.percentage or body.progress == progress then
           if interactive then

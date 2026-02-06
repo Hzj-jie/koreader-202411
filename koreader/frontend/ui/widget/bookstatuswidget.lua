@@ -117,7 +117,11 @@ end
 function BookStatusWidget:getStatHours()
   if stats_book.time then
     local user_duration_format = G_named_settings.duration_format()
-    return datetime.secondsToClockDuration(user_duration_format, stats_book.time, false)
+    return datetime.secondsToClockDuration(
+      user_duration_format,
+      stats_book.time,
+      false
+    )
   else
     return gettext("N/A")
   end
@@ -147,7 +151,9 @@ function BookStatusWidget:getStatusContent(width)
     self:genStatisticsGroup(width),
     self:genHeader(gettext("Review")),
     self:genSummaryGroup(width),
-    self:genHeader(self.readonly and gettext("Book Status") or gettext("Update Status")),
+    self:genHeader(
+      self.readonly and gettext("Book Status") or gettext("Update Status")
+    ),
     self:generateSwitchGroup(width),
   })
   return content
@@ -324,7 +330,10 @@ function BookStatusWidget:genBookInfoGroup()
   )
   -- complete text
   local text_complete = TextWidget:new({
-    text = T(gettext("%1\xE2\x80\xAF% Completed"), string.format("%1.f", read_percentage * 100)),
+    text = T(
+      gettext("%1\xE2\x80\xAF% Completed"),
+      string.format("%1.f", read_percentage * 100)
+    ),
     face = self.small_font_face,
   })
   table.insert(
@@ -335,9 +344,15 @@ function BookStatusWidget:genBookInfoGroup()
     })
   )
   -- rating
-  table.insert(book_meta_info_group, VerticalSpan:new({ height = Screen:scaleBySize(30) }))
+  table.insert(
+    book_meta_info_group,
+    VerticalSpan:new({ height = Screen:scaleBySize(30) })
+  )
   local rateHeight = Screen:scaleBySize(60)
-  table.insert(book_meta_info_group, self:generateRateGroup(screen_width, rateHeight, self.summary.rating))
+  table.insert(
+    book_meta_info_group,
+    self:generateRateGroup(screen_width, rateHeight, self.summary.rating)
+  )
 
   -- build the final group
   local book_info_group = HorizontalGroup:new({
@@ -521,7 +536,11 @@ function BookStatusWidget:onConfigChoose(values, name, event, args, position)
 end
 
 function BookStatusWidget:onSwipe(arg, ges_ev)
-  if ges_ev.direction == "east" or ges_ev.direction == "west" or ges_ev.direction == "north" then
+  if
+    ges_ev.direction == "east"
+    or ges_ev.direction == "west"
+    or ges_ev.direction == "north"
+  then
     -- no use for now
     return false
   end

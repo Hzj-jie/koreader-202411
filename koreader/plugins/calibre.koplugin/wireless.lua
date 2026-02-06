@@ -111,7 +111,8 @@ function CalibreWireless:find_calibre_server()
       if dgram and host then
         -- replied diagram has greet message from calibre and calibre hostname
         -- calibre opds port and calibre socket port we will later connect to
-        local _, _, replied_port = dgram:match("calibre wireless device client %(on (.-)%);(%d+),(%d+)$")
+        local _, _, replied_port =
+          dgram:match("calibre wireless device client %(on (.-)%);(%d+),(%d+)$")
         return host, replied_port
       end
     end
@@ -154,7 +155,9 @@ function CalibreWireless:JSONReceiveCallback(host, port)
         else
           msg = T(
             gettext("Connected to calibre server at %1"),
-            BD.ltr(T("%1:%2", this.calibre_socket.host, this.calibre_socket.port))
+            BD.ltr(
+              T("%1:%2", this.calibre_socket.host, this.calibre_socket.port)
+            )
           )
           logger.info("connected successfully")
         end
@@ -200,7 +203,8 @@ function CalibreWireless:setInboxDir(host, port)
           if not driver then
             return
           end
-          return not driver:lower():match("koreader") and not driver:lower():match("folder")
+          return not driver:lower():match("koreader")
+            and not driver:lower():match("folder")
         end
         local save_and_resume = function()
           logger.info("set inbox directory", inbox)
@@ -246,7 +250,8 @@ function CalibreWireless:connect()
         address_type = "discovered"
       else
         ok = false
-        err = gettext("Couldn't discover a calibre instance on the local network")
+        err =
+          gettext("Couldn't discover a calibre instance on the local network")
         address_type = "unavailable"
       end
     else
@@ -263,9 +268,21 @@ function CalibreWireless:connect()
       host = host or "????"
       port = port or "??"
       err = err or gettext("N/A")
-      logger.warn(string.format("Cannot connect to %s calibre server at %s:%s (%s)", address_type, host, port, err))
+      logger.warn(
+        string.format(
+          "Cannot connect to %s calibre server at %s:%s (%s)",
+          address_type,
+          host,
+          port,
+          err
+        )
+      )
       UIManager:show(InfoMessage:new({
-        text = T(gettext("Cannot connect to calibre server at %1 (%2)"), BD.ltr(T("%1:%2", host, port)), err),
+        text = T(
+          gettext("Cannot connect to calibre server at %1 (%2)"),
+          BD.ltr(T("%1:%2", host, port)),
+          err
+        ),
       }))
     else
       local inbox_dir = G_reader_settings:read("inbox_dir")
@@ -362,7 +379,8 @@ function CalibreWireless:onReceiveJSON(data)
 end
 
 function CalibreWireless:sendJsonData(opname, data)
-  local json, err = rapidjson.encode(rapidjson.array({ self.opcodes[opname], data }))
+  local json, err =
+    rapidjson.encode(rapidjson.array({ self.opcodes[opname], data }))
   if json then
     -- length of json data should be before the real json data
     self.calibre_socket:send(tostring(#json) .. json)
@@ -498,7 +516,9 @@ function CalibreWireless:getBookCount(arg)
   self:sendJsonData("OK", books)
   for index, _ in ipairs(CalibreMetadata.books) do
     local book = CalibreMetadata:getBookId(index)
-    logger.dbg(string.format("sending book id %d/%d", index, #CalibreMetadata.books))
+    logger.dbg(
+      string.format("sending book id %d/%d", index, #CalibreMetadata.books)
+    )
     self:sendJsonData("OK", book)
   end
 end
@@ -521,7 +541,9 @@ function CalibreWireless:noop(arg)
   -- calibre requests more metadata for a book by its index
   if arg.priKey then
     local book = CalibreMetadata:getBookMetadata(arg.priKey)
-    logger.dbg(string.format("sending book metadata %d/%d", self.current, self.pending))
+    logger.dbg(
+      string.format("sending book metadata %d/%d", self.current, self.pending)
+    )
     self:sendJsonData("OK", book)
     if self.current == self.pending then
       self.current = nil
@@ -586,7 +608,12 @@ function CalibreWireless:sendBook(arg)
         -- add book to local database/table
         CalibreMetadata:addBook(arg.metadata)
         UIManager:show(InfoMessage:new({
-          text = T(gettext("Received file %1/%2: %3"), arg.thisBook + 1, arg.totalBooks, BD.filepath(filename)),
+          text = T(
+            gettext("Received file %1/%2: %3"),
+            arg.thisBook + 1,
+            arg.totalBooks,
+            BD.filepath(filename)
+          ),
           timeout = 2,
         }))
         CalibreMetadata:saveBookList()
@@ -646,7 +673,10 @@ function CalibreWireless:deleteBook(arg)
   for i, v in ipairs(arg.lpaths) do
     local book_uuid, index = CalibreMetadata:getBookUuid(v)
     if not index then
-      logger.warn("requested to delete a book no longer on device", arg.lpaths[i])
+      logger.warn(
+        "requested to delete a book no longer on device",
+        arg.lpaths[i]
+      )
     else
       titles = titles .. "\n" .. CalibreMetadata.books[index].title
       util.removeFile(inbox_dir .. "/" .. v)
@@ -659,7 +689,12 @@ function CalibreWireless:deleteBook(arg)
       if i == 1 then
         msg = T(gettext("Deleted file: %1"), BD.filepath(arg.lpaths[1]))
       else
-        msg = T(gettext("Deleted %1 files in %2:\n %3"), #arg.lpaths, BD.filepath(inbox_dir), titles)
+        msg = T(
+          gettext("Deleted %1 files in %2:\n %3"),
+          #arg.lpaths,
+          BD.filepath(inbox_dir),
+          titles
+        )
       end
       UIManager:show(InfoMessage:new({
         text = msg,

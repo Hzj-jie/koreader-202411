@@ -141,8 +141,12 @@ local function initTouchEvents()
         and #self.charlist > 0
       then -- do not move cursor within a hint
         local textwidget_offset = self.margin + self.bordersize + self.padding
-        local x = ges.pos.x - self._frame_textwidget:getSize().x - textwidget_offset
-        local y = ges.pos.y - self._frame_textwidget:getSize().y - textwidget_offset
+        local x = ges.pos.x
+          - self._frame_textwidget:getSize().x
+          - textwidget_offset
+        local y = ges.pos.y
+          - self._frame_textwidget:getSize().y
+          - textwidget_offset
         self.text_widget:moveCursorToXY(x, y, true) -- restrict_to_view=true
         self:resyncPos()
       end
@@ -160,9 +164,15 @@ local function initTouchEvents()
           if self.selection_start_pos then -- select end
             local selection_end_pos = self.charpos - 1
             if self.selection_start_pos > selection_end_pos then
-              self.selection_start_pos, selection_end_pos = selection_end_pos + 1, self.selection_start_pos - 1
+              self.selection_start_pos, selection_end_pos =
+                selection_end_pos + 1, self.selection_start_pos - 1
             end
-            local txt = table.concat(self.charlist, "", self.selection_start_pos, selection_end_pos)
+            local txt = table.concat(
+              self.charlist,
+              "",
+              self.selection_start_pos,
+              selection_end_pos
+            )
             Device.input.setClipboardText(txt)
             UIManager:show(Notification:new({
               text = gettext("Selection copied to clipboard."),
@@ -173,7 +183,9 @@ local function initTouchEvents()
           else -- select start
             self.selection_start_pos = self.charpos
             UIManager:show(Notification:new({
-              text = gettext("Set cursor to end of selection, then long-press in text box."),
+              text = gettext(
+                "Set cursor to end of selection, then long-press in text box."
+              ),
             }))
           end
           self._hold_handled = true
@@ -186,9 +198,14 @@ local function initTouchEvents()
           title = gettext("Clipboard"),
           show_menu = false,
           text = is_clipboard_empty and gettext("(empty)") or clipboard_value,
-          fgcolor = is_clipboard_empty and Blitbuffer.COLOR_DARK_GRAY or Blitbuffer.COLOR_BLACK,
-          width = math.floor(math.min(Screen:getWidth(), Screen:getHeight()) * 0.8),
-          height = math.floor(math.max(Screen:getWidth(), Screen:getHeight()) * 0.4),
+          fgcolor = is_clipboard_empty and Blitbuffer.COLOR_DARK_GRAY
+            or Blitbuffer.COLOR_BLACK,
+          width = math.floor(
+            math.min(Screen:getWidth(), Screen:getHeight()) * 0.8
+          ),
+          height = math.floor(
+            math.max(Screen:getWidth(), Screen:getHeight()) * 0.4
+          ),
           justified = false,
           modal = true,
           stop_events_propagation = true,
@@ -208,7 +225,8 @@ local function initTouchEvents()
                 text = gettext("Copy line"),
                 callback = function()
                   UIManager:close(clipboard_dialog)
-                  local txt = table.concat(self.charlist, "", self:getStringPos())
+                  local txt =
+                    table.concat(self.charlist, "", self:getStringPos())
                   Device.input.setClipboardText(txt)
                   UIManager:show(Notification:new({
                     text = gettext("Line copied to clipboard."),
@@ -219,7 +237,8 @@ local function initTouchEvents()
                 text = gettext("Copy word"),
                 callback = function()
                   UIManager:close(clipboard_dialog)
-                  local txt = table.concat(self.charlist, "", self:getStringPos(true))
+                  local txt =
+                    table.concat(self.charlist, "", self:getStringPos(true))
                   Device.input.setClipboardText(txt)
                   UIManager:show(Notification:new({
                     text = gettext("Word copied to clipboard."),
@@ -241,7 +260,9 @@ local function initTouchEvents()
                 callback = function()
                   UIManager:close(clipboard_dialog)
                   UIManager:show(Notification:new({
-                    text = gettext("Set cursor to start of selection, then long-press in text box."),
+                    text = gettext(
+                      "Set cursor to start of selection, then long-press in text box."
+                    ),
                   }))
                   self.do_select = true
                   self:initTextBox()
@@ -469,7 +490,8 @@ function InputText:initTextBox(text, char_added)
     local text_width = self.width
     if text_width then
       -- Account for the scrollbar that will be used
-      local scroll_bar_width = ScrollTextWidget.scroll_bar_width + ScrollTextWidget.text_scroll_span
+      local scroll_bar_width = ScrollTextWidget.scroll_bar_width
+        + ScrollTextWidget.text_scroll_span
       text_width = text_width - scroll_bar_width
     end
     local text_widget = TextBoxWidget:new({
@@ -538,7 +560,8 @@ function InputText:initTextBox(text, char_added)
     bordersize = self.bordersize,
     padding = self.padding,
     margin = self.margin,
-    color = self.focused and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY,
+    color = self.focused and Blitbuffer.COLOR_BLACK
+      or Blitbuffer.COLOR_DARK_GRAY,
     self.text_widget,
   })
   self._verticalgroup = VerticalGroup:new({
@@ -898,7 +921,8 @@ function InputText:getLineHeight()
 end
 
 function InputText:getKeyboardDimen()
-  return self.readonly and Geom:new({ w = 0, h = 0 }) or self.keyboard:visibleSize()
+  return self.readonly and Geom:new({ w = 0, h = 0 })
+    or self.keyboard:visibleSize()
 end
 
 -- calculate current and last (original) line numbers

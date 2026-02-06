@@ -13,7 +13,8 @@ local logger = require("logger")
 local util = require("util")
 local T = FFIUtil.template
 
-local CLIENT_INIT_ERR_MSG = gettext("Failed to initialize network control client: %1.")
+local CLIENT_INIT_ERR_MSG =
+  gettext("Failed to initialize network control client: %1.")
 
 local WpaSupplicant = {}
 
@@ -108,7 +109,8 @@ function WpaSupplicant:authenticateNetwork(network)
     reply, err = wcli:setNetwork(nw_id, "key_mgmt", "NONE")
     if reply == nil or reply == "FAIL" then
       wcli:removeNetwork(nw_id)
-      return false, T("An error occurred while setting passwordless mode: %1.", err)
+      return false,
+        T("An error occurred while setting passwordless mode: %1.", err)
     end
     -- else it’s a WPA AP
   else
@@ -214,11 +216,17 @@ function WpaSupplicant:getCurrentNetwork()
   -- Start by checking the status before looking for the CURRENT flag...
   local nw
   nw, err = wcli:getConnectedNetwork()
-  logger.dbg("WpaSupplicant:getCurrentNetwork: Connected network:", nw and nw or err)
+  logger.dbg(
+    "WpaSupplicant:getCurrentNetwork: Connected network:",
+    nw and nw or err
+  )
   -- Then fall back to the flag check...
   if nw == nil then
     nw, err = wcli:getCurrentNetwork()
-    logger.dbg("WpaSupplicant:getCurrentNetwork: Current network:", nw and nw or err)
+    logger.dbg(
+      "WpaSupplicant:getCurrentNetwork: Current network:",
+      nw and nw or err
+    )
   end
   wcli:close()
   if nw ~= nil then

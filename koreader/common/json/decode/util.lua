@@ -32,7 +32,8 @@ end
 local function build_report(msg)
   local fmt = msg:gsub("%%", "%%%%") .. " @ character: %i %i:%i [%s] line:\n%s"
   return lpeg.P(function(data, pos)
-    local line, line_index, bad_char, last_line = get_invalid_character_info(data, pos)
+    local line, line_index, bad_char, last_line =
+      get_invalid_character_info(data, pos)
     local text = fmt:format(pos, line, line_index, bad_char, last_line)
     error(text)
   end) * 1
@@ -60,7 +61,8 @@ do
   -- \u0085 \u00A0
   u_space = u_space + lpeg.P(chr(0xC2)) * lpeg.S(chr(0x85) .. chr(0xA0))
   -- \u1680 \u180E
-  u_space = u_space + lpeg.P(chr(0xE1)) * (lpeg.P(chr(0x9A, 0x80)) + chr(0xA0, 0x8E))
+  u_space = u_space
+    + lpeg.P(chr(0xE1)) * (lpeg.P(chr(0x9A, 0x80)) + chr(0xA0, 0x8E))
   -- \u2000 - \u200A, also 200B
   local spacing_end = ""
   for i = 0x80, 0x8b do
@@ -98,7 +100,11 @@ local unicode_ignored = (unicode_space + comment) ^ 0
 -- LPEG <= 0.7 have no version value... so 0.7 is value
 -- LPEG >= 1.1 uses a string for the version instead of function
 local DecimalLpegVersion = lpeg.version
-    and tonumber((type(lpeg.version) == "string" and lpeg.version or lpeg.version()):match("(%d+%.%d+)"))
+    and tonumber(
+      (type(lpeg.version) == "string" and lpeg.version or lpeg.version()):match(
+        "(%d+%.%d+)"
+      )
+    )
   or 0.7
 
 local function setObjectKeyForceNumber(t, key, value)

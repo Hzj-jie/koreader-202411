@@ -145,7 +145,11 @@ local codecs = {
       if as_bytecode then
         local bytecode, err = load("return " .. dump(t))
         if not bytecode then
-          logger.warn("cannot convert table to bytecode", err, "fallback to text")
+          logger.warn(
+            "cannot convert table to bytecode",
+            err,
+            "fallback to text"
+          )
         else
           content = string.dump(bytecode, true)
         end

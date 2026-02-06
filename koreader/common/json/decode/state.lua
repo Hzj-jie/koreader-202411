@@ -49,7 +49,11 @@ function state_ops.put_object_value(self, trailing)
     end
   end
   assert(self.active_key, "Missing key value")
-  object_options.setObjectKey(self.active, self.active_key, self:grab_value(object_options.allowEmptyElement))
+  object_options.setObjectKey(
+    self.active,
+    self.active_key,
+    self:grab_value(object_options.allowEmptyElement)
+  )
   self.active_key = nil
 end
 
@@ -101,7 +105,9 @@ function state_ops.end_array(self)
     -- Not an empty array
     self:put_value(true)
   end
-  if self.active_state ~= #self.active and not self.options.array.ignoreLength then
+  if
+    self.active_state ~= #self.active and not self.options.array.ignoreLength
+  then
     -- Store the length in
     self.active.n = self.active_state
   end
@@ -146,7 +152,10 @@ function state_ops.end_call(self)
   if func == true then
     func = jsonutil.buildCall
   end
-  self.active = func(self.active.name, unpack(self.active, 1, self.active.n or #self.active))
+  self.active = func(
+    self.active.name,
+    unpack(self.active, 1, self.active.n or #self.active)
+  )
 end
 
 function state_ops.unset_value(self)
@@ -175,7 +184,10 @@ function state_ops.set_key(self)
   local value = self:grab_value()
   local value_type = type(value)
   if self.options.object.number then
-    assert(value_type == "string" or value_type == "number", "As configured, a key must be a number or string")
+    assert(
+      value_type == "string" or value_type == "number",
+      "As configured, a key must be a number or string"
+    )
   else
     assert(value_type == "string", "As configured, a key must be a string")
   end

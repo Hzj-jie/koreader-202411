@@ -25,7 +25,9 @@ function OPDSCatalog:init()
     file_downloaded_callback = function(downloaded_file)
       UIManager:show(ConfirmBox:new({
         text = T(
-          gettext("File saved to:\n%1\nWould you like to read the downloaded book now?"),
+          gettext(
+            "File saved to:\n%1\nWould you like to read the downloaded book now?"
+          ),
           BD.filepath(downloaded_file)
         ),
         ok_text = gettext("Read now"),

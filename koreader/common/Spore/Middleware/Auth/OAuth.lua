@@ -29,7 +29,11 @@ function m.generate_timestamp()
 end
 
 function m.generate_nonce()
-  return digest("sha1", tostring(random()) .. "random" .. tostring(time()), "keyyyy")
+  return digest(
+    "sha1",
+    tostring(random()) .. "random" .. tostring(time()),
+    "keyyyy"
+  )
 end
 
 function m:call(req)
@@ -85,10 +89,18 @@ function m:call(req)
     end
     local normalized = tconcat(params, "&")
 
-    return req.method:upper() .. "&" .. escape(base_url) .. "&" .. escape(normalized)
+    return req.method:upper()
+      .. "&"
+      .. escape(base_url)
+      .. "&"
+      .. escape(normalized)
   end -- base_string
 
-  if spore.authentication and self.oauth_consumer_key and self.oauth_consumer_secret then
+  if
+    spore.authentication
+    and self.oauth_consumer_key
+    and self.oauth_consumer_secret
+  then
     oparams = {
       oauth_signature_method = self.oauth_signature_method or "HMAC-SHA1",
       oauth_consumer_key = self.oauth_consumer_key,
@@ -104,7 +116,9 @@ function m:call(req)
 
     req:finalize()
 
-    local signature_key = escape(self.oauth_consumer_secret) .. "&" .. escape(self.oauth_token_secret or "")
+    local signature_key = escape(self.oauth_consumer_secret)
+      .. "&"
+      .. escape(self.oauth_token_secret or "")
     local oauth_signature
     if self.oauth_signature_method == "PLAINTEXT" then
       oauth_signature = escape(signature_key)
@@ -113,7 +127,8 @@ function m:call(req)
       oparams.oauth_nonce = m.generate_nonce()
       local oauth_signature_base_string = base_string()
       if oparams.oauth_signature_method == "HMAC-SHA1" then
-        local hmac_binary = digest("sha1", oauth_signature_base_string, signature_key, true)
+        local hmac_binary =
+          digest("sha1", oauth_signature_base_string, signature_key, true)
         local hmac_b64 = mime.b64(hmac_binary)
         oauth_signature = escape(hmac_b64)
       else

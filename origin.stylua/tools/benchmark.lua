@@ -7,7 +7,9 @@ package.cpath = "common/?.so;common/?.dll;/usr/lib/lua/?.so;" .. package.cpath
 
 local DataStorage = require("datastorage")
 --G_reader_settings = require("docsettings"):open(".reader")
-G_reader_settings = require("luasettings"):open(DataStorage:getDataDir() .. "/settings.reader.lua")
+G_reader_settings = require("luasettings"):open(
+  DataStorage:getDataDir() .. "/settings.reader.lua"
+)
 
 -- global einkfb for Screen (do not show SDL window)
 einkfb = require("ffi/framebuffer")

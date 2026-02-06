@@ -23,9 +23,25 @@ function require(module)
   end
   local loaded = loaded_modules[module]
   if not loaded then
-    print(string.format("%s%s:%s => %s", indent:rep(level), info.short_src, info.currentline, module))
+    print(
+      string.format(
+        "%s%s:%s => %s",
+        indent:rep(level),
+        info.short_src,
+        info.currentline,
+        module
+      )
+    )
   elseif trace_loaded then
-    print(string.format("%s%s:%s -> %s", indent:rep(level), info.short_src, info.currentline, module))
+    print(
+      string.format(
+        "%s%s:%s -> %s",
+        indent:rep(level),
+        info.short_src,
+        info.currentline,
+        module
+      )
+    )
   end
   -- protect require call in case we cannot raise call level when errors happen
   local ok, loaded_module = pcall(_require, module)
@@ -36,7 +52,14 @@ function require(module)
   local elapse = os.clock() - x
   local annot = highlight:rep(math.ceil(math.log10(elapse / threshold))) or ""
   if not loaded then
-    print(string.format("%s%s loading time: %.3f", annot .. indent:rep(level):sub(#annot + 1), module, elapse))
+    print(
+      string.format(
+        "%s%s loading time: %.3f",
+        annot .. indent:rep(level):sub(#annot + 1),
+        module,
+        elapse
+      )
+    )
   end
   loaded_modules[module] = true
   level = level - 1
