@@ -8,6 +8,7 @@ local function mergeWith(b)
       "----------------------------",
       "time",
       "units",
+      "pagepress",
       "device_status_alarm",
       "charging_led", -- if Device:canToggleChargingLED()
       "autostandby",

@@ -1289,6 +1289,32 @@ function KindleVoyage:init()
   end
 end
 
+function KindleVoyage:pagePressPressure()
+  local lipc = LibLipcs:accessor()
+  assert(not LibLipcs:isFake(lipc))
+  return lipc:get_int_property("com.lab126.deviced", "fsrkeypadPressure")
+end
+
+function KindleVoyage:setPagePressPressure(v)
+  assert(v >= 0 and v <= 2)
+  local lipc = LibLipcs:accessor()
+  assert(not LibLipcs:isFake(lipc))
+  lipc:set_int_property("com.lab126.deviced", "fsrkeypadPressure", v)
+end
+
+function KindleVoyage:pagePressFeedback()
+  local lipc = LibLipcs:accessor()
+  assert(not LibLipcs:isFake(lipc))
+  return lipc:get_int_property("com.lab126.deviced", "hapticAmplitude")
+end
+
+function KindleVoyage:setPagePressFeedback(v)
+  assert(v >= 0 and v <= 3)
+  local lipc = LibLipcs:accessor()
+  assert(not LibLipcs:isFake(lipc))
+  lipc:set_int_property("com.lab126.deviced", "hapticAmplitude", v)
+end
+
 function KindlePaperWhite3:init()
   self.screen = require("ffi/framebuffer_mxcfb"):new({ device = self, debug = logger.dbg })
   self.powerd = require("device/kindle/powerd"):new({

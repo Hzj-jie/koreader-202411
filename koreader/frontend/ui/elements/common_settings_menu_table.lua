@@ -71,6 +71,10 @@ end
 -- This affects the topmenu, we want to be able to access it even if !Device:setDateTime()
 common_settings.time = require("ui/elements/time_settings_menu_table")
 
+if Device.model == "KindleVoyage" then
+  common_settings.pagepress = require("ui/elements/pagepress_settings_menu_table")
+end
+
 if Device:isKobo() then
   common_settings.ignore_sleepcover = {
     text = gettext("Ignore all sleepcover events"),
