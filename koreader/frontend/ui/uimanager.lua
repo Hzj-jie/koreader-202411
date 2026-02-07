@@ -1547,6 +1547,7 @@ function UIManager:handleInputEvent(input_event)
     type(input_event) == "table"
     and input_event.args
     and #input_event.args > 0
+    and type(input_event.args[1]) == "table"
     and input_event.args[1].ges == "tap"
     and input_event.args[1].time
     and G_reader_settings:nilOrTrue("disable_out_of_order_taps")
