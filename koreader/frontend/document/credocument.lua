@@ -1312,7 +1312,7 @@ function CreDocument:setTextHyphenationForceAlgorithmic(toggle)
 end
 
 function CreDocument:getTextMainLangDefaultHyphDictionary()
-  local main_lang_tag, main_lang_active_hyph_dict, loaded_lang_infos =
+  local main_lang_tag, __, loaded_lang_infos =
     cre.getTextLangStatus() -- luacheck: no unused
   return loaded_lang_infos[main_lang_tag]
     and loaded_lang_infos[main_lang_tag].hyph_dict_name
@@ -2089,7 +2089,7 @@ function CreDocument:setupCallCache()
       end
       table.insert(res, "  No hit for:")
       for _, k in ipairs(nohit_keys) do
-        local hits, hits_duration, misses, missed_duration =
+        local __, hits_duration, misses, missed_duration =
           unpack(self._call_cache_stats[k]) -- luacheck: no unused
         table.insert(
           res,
@@ -2100,7 +2100,7 @@ function CreDocument:setupCallCache()
       if #notcached_keys > 0 then
         table.insert(res, "  No cache for:")
         for _, k in ipairs(notcached_keys) do
-          local hits, hits_duration, misses, missed_duration =
+          local __, hits_duration, misses, missed_duration =
             unpack(self._call_cache_stats[k]) -- luacheck: no unused
           table.insert(
             res,

@@ -1298,8 +1298,8 @@ function BookMapWidget:update()
   self.vgroup:getSize()
 
   -- Scroll so we get the focus page at the middle of screen
-  local row, row_idx, row_y, row_h = self:getMatchingVGroupRow(
-    function(r, r_y, r_h) -- luacheck: no unused
+  local row, row_idx, row_y, row_h = self:getMatchingVGroupRow( -- luacheck: ignore 311 231
+    function(r, __, __)
       return r.start_page
         and self.focus_page >= r.start_page
         and self.focus_page <= r.end_page
@@ -1308,7 +1308,7 @@ function BookMapWidget:update()
   if row_y then
     local top_y = row_y + row_h / 2 - self.crop_height / 2
     -- Align it so that we don't see any truncated BookMapRow at top
-    row, row_idx, row_y, row_h = self:getMatchingVGroupRow(function(r, r_y, r_h)
+    row, row_idx, row_y, row_h = self:getMatchingVGroupRow(function(__, r_y, r_h)
       return r_y < top_y and r_y + r_h > top_y
     end)
     if row then

@@ -3631,8 +3631,9 @@ function ReaderStatistics:getReadBookByDay(month)
   for i = 1, nb do
     -- (We don't care about the duration, we just needed it
     -- to have the books in decreasing duration order)
-    local day, duration, book_id, book_title =
-      res[1][i], res[2][i], res[3][i], res[4][i] -- luacheck: no unused
+    local day, book_id, book_title =
+      res[1][i], res[3][i], res[4][i]
+    -- duration = res[2][i]
     if not per_day[day] then
       per_day[day] = {}
     end

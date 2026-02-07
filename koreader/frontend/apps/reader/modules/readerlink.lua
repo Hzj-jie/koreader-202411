@@ -664,7 +664,7 @@ function ReaderLink:isXpointerCoherent(a_xpointer)
   local screen_y, screen_x =
     self.document:getScreenPositionFromXPointer(a_xpointer)
   -- Get again link and a_xpointer from this position
-  local re_link_xpointer, re_a_xpointer =
+  local __, re_a_xpointer =
     self.document:getLinkFromPosition({ x = screen_x, y = screen_y }) -- luacheck: no unused
   -- We should get the same a_xpointer. If not, crengine has messed up
   -- and we should not trust this xpointer to get back to this link.
@@ -672,7 +672,7 @@ function ReaderLink:isXpointerCoherent(a_xpointer)
     -- Try it again with screen_x+1 (in the rare cases where screen_x
     -- fails, screen_x+1 usually works - probably something in crengine,
     -- but easier to workaround here that way)
-    re_link_xpointer, re_a_xpointer =
+    __, re_a_xpointer =
       self.document:getLinkFromPosition({ x = screen_x + 1, y = screen_y }) -- luacheck: no unused
     if re_a_xpointer ~= a_xpointer then
       logger.info("noncoherent a_xpointer:", a_xpointer)
