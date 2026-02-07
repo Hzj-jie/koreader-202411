@@ -1378,11 +1378,15 @@ function UIManager:handleInputEvent(input_event)
         input_event.handler == "onGesture"
         and input_event.args
         and #input_event.args > 0
+        and type(input_event.args[1]) == "table"
         -- hold and pan use the initial time and cannot be compared with the
         -- repaint time.
         -- pan_release may use the logic, but it seems less ideal if pan was
         -- not ignored.
-        and (input_event.args[1].ges == "touch" or input_event.args[1].ges == "tap" or input_event.args[1].ges == "swipe" or input_event.args[1].ges == "two_finger_swipe")
+        and (input_event.args[1].ges == "touch"
+             or input_event.args[1].ges == "tap"
+             or input_event.args[1].ges == "swipe"
+             or input_event.args[1].ges == "two_finger_swipe")
         and input_event.args[1].time
         and self._last_repaint_time > input_event.args[1].time
       then
