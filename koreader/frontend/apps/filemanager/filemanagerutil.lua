@@ -97,7 +97,6 @@ function filemanagerutil.resetDocumentSettings(file)
         doc_settings:delete(k)
       end
     end
-    doc_settings:makeTrue("docsettings_reset_done") -- for readertypeset block_rendering_mode
     doc_settings:flush()
   end
 end

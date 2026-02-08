@@ -51,17 +51,12 @@ function ReaderTypeset:onReadSettings(config)
   if config:has("copt_block_rendering_mode") then
     self.block_rendering_mode = config:read("copt_block_rendering_mode")
   else
-    if
-      config:has("last_xpointer") and not config:has("docsettings_reset_done")
-    then
-      -- We have a last_xpointer: this book was previously opened
-      self.block_rendering_mode = 0
-    else
-      self.block_rendering_mode = G_reader_settings:read(
-        "copt_block_rendering_mode"
-      ) or 3 -- default to 'web' mode
-    end
+    self.block_rendering_mode = G_reader_settings:read(
+      "copt_block_rendering_mode"
+    ) or 3 -- default to 'web' mode
     -- Let ConfigDialog know so it can update it on screen and have it saved on quit
+    -- This is mainly for the "or 3" condition, i.e. if there isn't a default
+    -- setting from G_reader_settings, treat the 3 as per-book setting.
     self.configurable.block_rendering_mode = self.block_rendering_mode
   end
   self:setBlockRenderingMode(self.block_rendering_mode)
