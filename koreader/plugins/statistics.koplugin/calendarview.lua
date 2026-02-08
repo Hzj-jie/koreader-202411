@@ -149,7 +149,7 @@ function CalendarDay:init()
     focusable = true,
     focus_border_color = Blitbuffer.COLOR_GRAY,
     OverlapGroup:new({
-      dimen = { w = inner_w },
+      dimen = { w = inner_w, h = inner_h },
       self.daynum_w,
       self.nb_not_shown_w,
       self.histo_w, -- nil if not show_histo
