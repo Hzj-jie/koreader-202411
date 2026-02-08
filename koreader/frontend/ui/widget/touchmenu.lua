@@ -936,7 +936,10 @@ function TouchMenu:backToUpperMenu(no_close)
     self:updateItems()
   elseif not no_close then
     self:_closeMenuOnly()
+  else
+    return false
   end
+  return true
 end
 
 function TouchMenu:_closeMenuOnly()
@@ -1023,7 +1026,10 @@ function TouchMenu:onSwipe(arg, ges_ev)
     -- a swipe south will be emitted when done opening the menu with
     -- swipe, as the event handled for that is pan south).
     self:backToUpperMenu(true)
+  else
+    return false
   end
+  return true
 end
 
 function TouchMenu:onMenuSelect(item, tap_on_checkmark)
@@ -1145,7 +1151,7 @@ function TouchMenu:onExit()
 end
 
 function TouchMenu:onBack()
-  self:backToUpperMenu()
+  return self:backToUpperMenu()
 end
 
 -- Menu search feature
