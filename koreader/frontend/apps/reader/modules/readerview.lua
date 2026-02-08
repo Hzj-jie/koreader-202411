@@ -1286,10 +1286,6 @@ function ReaderView:onClose()
   end
 end
 
-function ReaderView:onReaderReady()
-  self.ui.doc_settings:delete("docsettings_reset_done")
-end
-
 function ReaderView:onTimesChange_15M()
   if G_reader_settings:isFalse("auto_save_settings") then
     -- no auto save
