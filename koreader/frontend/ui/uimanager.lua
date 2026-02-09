@@ -1383,7 +1383,7 @@ function UIManager:handleInputEvent(input_event)
         -- repaint time.
         -- pan_release may use the logic, but it seems less ideal if pan was
         -- not ignored.
-        and (input_event.args[1].ges == "touch" or input_event.args[1].ges == "tap" or input_event.args[1].ges == "swipe" or input_event.args[1].ges == "two_finger_swipe")
+        and util.arrayContains({"touch", "tap", "swipe", "two_finger_swipe"}, input_event.args[1].ges)
         and input_event.args[1].time
         and self._last_repaint_time > input_event.args[1].time
       then
