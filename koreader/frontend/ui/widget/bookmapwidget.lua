@@ -1308,9 +1308,11 @@ function BookMapWidget:update()
   if row_y then
     local top_y = row_y + row_h / 2 - self.crop_height / 2
     -- Align it so that we don't see any truncated BookMapRow at top
-    row, row_idx, row_y, row_h = self:getMatchingVGroupRow(function(__, r_y, r_h)
-      return r_y < top_y and r_y + r_h > top_y
-    end)
+    row, row_idx, row_y, row_h = self:getMatchingVGroupRow(
+      function(__, r_y, r_h)
+        return r_y < top_y and r_y + r_h > top_y
+      end
+    )
     if row then
       if top_y - row_y > row_y + row_h - top_y then
         -- Less adjustment if we scroll to align the next row

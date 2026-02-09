@@ -1312,8 +1312,7 @@ function CreDocument:setTextHyphenationForceAlgorithmic(toggle)
 end
 
 function CreDocument:getTextMainLangDefaultHyphDictionary()
-  local main_lang_tag, __, loaded_lang_infos =
-    cre.getTextLangStatus() -- luacheck: no unused
+  local main_lang_tag, __, loaded_lang_infos = cre.getTextLangStatus() -- luacheck: no unused
   return loaded_lang_infos[main_lang_tag]
     and loaded_lang_infos[main_lang_tag].hyph_dict_name
 end

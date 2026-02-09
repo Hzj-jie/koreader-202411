@@ -239,9 +239,8 @@ do
     local d = {
       year = year
         and (
-          (year > 100) and year or (
-            year < 50 and (year + 2000) or (year + 1900)
-          )
+          (year > 100) and year
+          or (year < 50 and (year + 2000) or (year + 1900))
         ),
       month = month,
       day = tonumber(day),
