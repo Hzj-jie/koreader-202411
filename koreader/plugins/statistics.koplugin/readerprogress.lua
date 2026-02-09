@@ -39,11 +39,9 @@ function ReaderProgress:init()
   self.screen_width = Screen:getWidth()
   self.screen_height = Screen:getHeight()
   if self.screen_width < self.screen_height then
-    self.header_span = 25
     self.stats_span = 20
   else
-    self.header_span = 0
-    self.stats_span = 10
+    self.stats_span = 8
   end
 
   self[1] = FrameContainer:new({
@@ -82,9 +80,11 @@ function ReaderProgress:init()
     }
   end
 
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  if self:isShown() then
+    UIManager:setDirty(self, function()
+      return "ui", self.dimen
+    end)
+  end
 end
 
 function ReaderProgress:getTotalStats(stats_day)
@@ -138,9 +138,6 @@ function ReaderProgress:genSingleHeader(title)
   })
 
   return VerticalGroup:new({
-    VerticalSpan:new({
-      height = Screen:scaleBySize(self.header_span),
-    }),
     HorizontalGroup:new({
       align = "center",
       padding_span,
@@ -308,7 +305,7 @@ function ReaderProgress:genWeekStats(stats_day)
   return CenterContainer:new({
     dimen = Geom:new({
       w = self.screen_width,
-      h = math.floor(self.screen_height * 0.5),
+      h = math.floor(self.screen_height * 0.48),
     }),
     statistics_container,
   })

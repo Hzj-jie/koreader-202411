@@ -729,7 +729,7 @@ function CalendarDayView:setupView()
   self.title = self:getTitle()
 
   self.show_page = 1
-  self.title_bar:setTitle(self.title)
+  self.title_bar:setTitle(self.title, --[[no_refresh]] true)
 
   for _, kv in ipairs(self.kv_pairs) do
     kv.check_cb = function(this)
@@ -1453,7 +1453,7 @@ function CalendarView:_populateItems()
   -- Update title
   local month_text = datetime.longMonthTranslation[os.date("%B", month_start_ts)]
     .. os.date(" %Y", month_start_ts)
-  self.title_bar:setTitle(month_text)
+  self.title_bar:setTitle(month_text, --[[no_refresh]] true)
   -- Update footer
   self.page_info_text:setText(self.cur_month)
   self.page_info_left_chev:enableDisable(self.cur_month > self.min_month)
@@ -1582,9 +1582,11 @@ function CalendarView:_populateItems()
     1,
     bit.bor(FocusManager.FOCUS_ONLY_ON_NT, FocusManager.NOT_UNFOCUS)
   )
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  if self:isShown() then
+    UIManager:setDirty(self, function()
+      return "ui", self.dimen
+    end)
+  end
 end
 
 function CalendarView:showCalendarDayView(reader_statistics)
