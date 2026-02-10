@@ -785,6 +785,7 @@ function DictQuickLookup:init()
     dimen = self.region,
     self.movable,
   })
+  self.movable:setMovedOffset(self.region)
 
   -- NT: add dict_title.left_button and lookup_edit_button to FocusManager.
   -- It is better to add these two buttons into self.movable, but it is not a FocusManager.
