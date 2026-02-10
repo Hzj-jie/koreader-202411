@@ -233,6 +233,7 @@ function MovableContainer:paintTo(bb, x, y)
     -- No alpha, just paint
     self[1]:paintTo(bb, x, y)
   end
+  UIManager:scheduleRefresh("ui", self:_offsetSize())
 end
 
 function MovableContainer:onClose()
@@ -242,8 +243,14 @@ function MovableContainer:onClose()
   end
 end
 
+function MovableContainer:_offsetSize()
+  return self:getSize():copy():offsetBy(self._moved_offset_x, self._moved_offset_y)
+end
+
 function MovableContainer:_moveBy(dx, dy, restrict_to_screen)
   logger.dbg("MovableContainer:_moveBy:", dx, dy)
+  -- No matter what, first refresh the original display area.
+  UIManager:scheduleRefresh("ui", self:_offsetSize())
   if dx and dy then
     self._moved_offset_x = self._moved_offset_x + Math.round(dx)
     self._moved_offset_y = self._moved_offset_y + Math.round(dy)
@@ -296,14 +303,12 @@ function MovableContainer:_moveBy(dx, dy, restrict_to_screen)
     self._moved_offset_x = 0
     self._moved_offset_y = 0
   end
-  -- We need to have all widgets in the area between orig and move position
-  -- redraw themselves
-  local orig_dimen = self.dimen:copy() -- dimen before move/paintTo
-  UIManager:setDirty("all", function()
-    local update_region = orig_dimen:combine(self.dimen)
-    logger.dbg("MovableContainer refresh region", update_region)
-    return "ui", update_region
-  end)
+  -- This widget breaks the assumption of Widget:getSize(), UIManager doesn't
+  -- know which widgets were covered. To make it safe, repaint everything.
+  UIManager:scheduleRepaintAll()
+  -- MovableContainer:paintTo triggers the refresh of the updated region, do
+  -- not need to scheduleRefresh here anymore. This is necessary since a
+  -- MovableContainer may not be _moveBy before paintTo.
 end
 
 function MovableContainer:onMovableSwipe(_, ges)
