@@ -59,6 +59,9 @@ FIXME: Enable this doc section once we've verified all self.dimen are Geom objec
 
 Return size of the widget.
 
+Most of the implementations shouldn't override this function, but setting the
+self.dimen instead.
+
 @treturn ui.geometry.Geom
 --]]
 function Widget:getSize()
@@ -116,6 +119,8 @@ function Widget:refreshMode()
   return self._refresh_mode or "ui"
 end
 
+-- Similar to the :getSize(), most of the implementations should set
+-- self.dirty_dimen instead of overriding.
 function Widget:dirtyRegion()
   return self.dirty_dimen or self:getSize()
 end
@@ -124,6 +129,17 @@ function Widget:scheduleRepaint()
   if self:isShown() then
     -- Otherwise the widget hasn't been shown yet and will be paintTo later.
     require("ui/uimanager"):scheduleWidgetRepaint(self)
+  end
+end
+
+function Widget:scheduleRefresh()
+  if self:isShown() then
+    -- Otherwise the widget hasn't been shown yet and will be paintTo later.
+    require("ui/uimanager"):scheduleRefresh(self:refreshMode(), self:dirtyRegion())
+    -- If an explicit refresh is scheduled, UIManager doesn't need to it again,
+    -- though in theory, the area should be the same except for something like
+    -- MovableContainer.
+    self.delay_refresh = true
   end
 end
 

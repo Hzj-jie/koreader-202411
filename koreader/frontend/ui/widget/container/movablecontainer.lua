@@ -233,11 +233,10 @@ function MovableContainer:paintTo(bb, x, y)
     -- No alpha, just paint
     self[1]:paintTo(bb, x, y)
   end
-  -- TODO: The behavior of WidgetContainer:dirtyRegion() may need to be adjusted
-  -- to avoid this strange assignment.
-  -- self.dirty_dimen = self:dirtyRegion()
+  -- Set dirty_dimen so that WidgetContainer would use it.
+  self:dirtyRegion()
   -- TODO: This scheduleRepaint shouldn't be necessary.
-  UIManager:scheduleRefresh("ui", self:dirtyRegion())
+  self:scheduleRefresh()
 end
 
 function MovableContainer:onClose()
@@ -248,13 +247,14 @@ function MovableContainer:onClose()
 end
 
 function MovableContainer:dirtyRegion()
-  return self:getSize():copy():offsetBy(self._moved_offset_x, self._moved_offset_y)
+  self.dirty_dimen = self:getSize():copy():offsetBy(self._moved_offset_x, self._moved_offset_y)
+  return self.dirty_dimen
 end
 
 function MovableContainer:_moveBy(dx, dy, restrict_to_screen)
   logger.dbg("MovableContainer:_moveBy:", dx, dy)
   -- No matter what, first refresh the original display area.
-  UIManager:scheduleRefresh("ui", self:dirtyRegion())
+  self:scheduleRefresh()
   if dx and dy then
     self._moved_offset_x = self._moved_offset_x + Math.round(dx)
     self._moved_offset_y = self._moved_offset_y + Math.round(dy)
