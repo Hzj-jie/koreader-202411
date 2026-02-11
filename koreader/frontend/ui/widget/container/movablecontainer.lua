@@ -235,8 +235,6 @@ function MovableContainer:paintTo(bb, x, y)
   end
   -- Set dirty_dimen so that WidgetContainer would use it.
   self:dirtyRegion()
-  -- TODO: This scheduleRepaint shouldn't be necessary.
-  self:scheduleRefresh()
 end
 
 function MovableContainer:onClose()
@@ -309,6 +307,7 @@ function MovableContainer:_moveBy(dx, dy, restrict_to_screen)
   end
   -- This widget breaks the assumption of Widget:getSize(), UIManager doesn't
   -- know which widgets were covered. To make it safe, repaint everything.
+  -- TODO: self:scheduleRepaint() should be sufficient.
   UIManager:scheduleRepaintAll()
   -- MovableContainer:paintTo triggers the refresh of the updated region, do
   -- not need to scheduleRefresh here anymore. This is necessary since a

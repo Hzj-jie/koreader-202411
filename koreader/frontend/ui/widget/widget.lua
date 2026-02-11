@@ -136,10 +136,6 @@ function Widget:scheduleRefresh()
   if self:isShown() then
     -- Otherwise the widget hasn't been shown yet and will be paintTo later.
     require("ui/uimanager"):scheduleRefresh(self:refreshMode(), self:dirtyRegion())
-    -- If an explicit refresh is scheduled, UIManager doesn't need to it again,
-    -- though in theory, the area should be the same except for something like
-    -- MovableContainer.
-    self.delay_refresh = true
   end
 end
 

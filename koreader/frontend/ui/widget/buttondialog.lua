@@ -279,18 +279,6 @@ function ButtonDialog:setTitle(title)
   UIManager:setDirty("all", "ui")
 end
 
-function ButtonDialog:onShow()
-  UIManager:setDirty(self, function()
-    return "ui", self.movable.dimen
-  end)
-end
-
-function ButtonDialog:onClose()
-  UIManager:setDirty(nil, function()
-    return "flashui", self.movable.dimen
-  end)
-end
-
 function ButtonDialog:onExit()
   if self.tap_close_callback then
     self.tap_close_callback()
