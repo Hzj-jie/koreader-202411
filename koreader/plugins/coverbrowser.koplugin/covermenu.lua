@@ -259,7 +259,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
       -- Replace it with ours
       -- This causes luacheck warning: "shadowing upvalue argument 'self' on line 34".
       -- Ignoring it (as done in filemanager.lua for the same showFileDialog)
-      self.showFileDialog = function(self, item) -- luacheck: ignore
+      self.showFileDialog = function(self, item)
         local file = item.path
         -- Call original function: it will create a ButtonDialog
         -- and store it as self.file_dialog, and UIManager:show() it.

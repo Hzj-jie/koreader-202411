@@ -344,7 +344,7 @@ function ListMenuItem:update()
         )
       end
       -- right widget, first line
-      local directory, filename = util.splitFilePathName(self.filepath) -- luacheck: no unused
+      local __, filename = util.splitFilePathName(self.filepath)
       local filename_without_suffix, filetype =
         filemanagerutil.splitFileNameType(filename)
       local fileinfo_str

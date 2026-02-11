@@ -1707,7 +1707,7 @@ function Input:waitEvent(now, deadline)
         -- Don't report an error on ETIME, and go back to UIManager
         ev = nil
         break
-      elseif ev == C.EINTR then -- luacheck: ignore
+      elseif ev == C.EINTR then -- luacheck: ignore 542
         -- Retry on EINTR
       else
         -- Warn, report, and go back to UIManager

@@ -203,7 +203,6 @@ function TextBoxWidget:init()
       end
     end
     self.text = table.concat(charlist, "")
-    charlist = nil -- luacheck: no unused
   end
 
   self:_computeTextDimensions()
@@ -1542,7 +1541,7 @@ function TextBoxWidget:scrollLines(nb_lines)
   self:free(false)
   self:_updateLayout()
   if self.editable then
-    local x, y = self:_getXYForCharPos() -- luacheck: no unused
+    local __, y = self:_getXYForCharPos()
     if y < 0 or y >= self.text_height then
       -- move cursor to first line of visible area
       local ln = self.height == nil and 1 or self.virtual_line_num

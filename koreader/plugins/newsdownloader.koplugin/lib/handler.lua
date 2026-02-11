@@ -109,10 +109,11 @@
 local function getFirstKey(tb)
   if type(tb) == "table" then
     --O uso da função next não funciona para pegar o primeiro elemento. Trava aqui
+    -- This comment seems weird, but just keep it as-is.
     --k, v = next(tb)
     --return k
     -- TODO: Address this luacheck warning.
-    for k, v in pairs(tb) do -- luacheck: ignore
+    for k, __ in pairs(tb) do -- luacheck: ignore 512
       return k
     end
     return nil

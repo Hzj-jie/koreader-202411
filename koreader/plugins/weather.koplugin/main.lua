@@ -6,7 +6,6 @@ A simple plugin for getting the weather forcast on your KOReader
 --
 
 local DataStorage = require("datastorage")
-local Dispatcher = require("dispatcher") -- luacheck:ignore
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local KeyValuePage = require("ui/widget/keyvaluepage")

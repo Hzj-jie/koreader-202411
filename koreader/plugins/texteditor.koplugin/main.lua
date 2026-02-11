@@ -270,7 +270,7 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
   }
   for i = 1, math.min(#self.history, self.history_menu_size) do
     local file_path = self.history[i]
-    local directory, filename = util.splitFilePathName(file_path) -- luacheck: no unused
+    local __, filename = util.splitFilePathName(file_path)
     table.insert(sub_item_table, {
       text = T("\u{f016} %1", BD.filename(filename)), -- file symbol
       keep_menu_open = true,
@@ -545,8 +545,8 @@ end
 
 function TextEditor:editFile(file_path, readonly)
   self:addToHistory(file_path)
-  local directory, filename = util.splitFilePathName(file_path) -- luacheck: no unused
-  local filename_without_suffix, filetype = util.splitFileNameSuffix(filename) -- luacheck: no unused
+  local __, filename = util.splitFilePathName(file_path)
+  local __, filetype = util.splitFileNameSuffix(filename)
   local is_lua = filetype:lower() == "lua"
   local para_direction_rtl = nil -- use UI language direction
   if self.force_ltr_para_direction then

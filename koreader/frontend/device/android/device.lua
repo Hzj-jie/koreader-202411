@@ -1,4 +1,4 @@
-local A, android = pcall(require, "android") -- luacheck: ignore
+local __, android = pcall(require, "android")
 local Event = require("ui/event")
 local Generic = require("device/generic/device")
 local Geom = require("ui/geometry")

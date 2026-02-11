@@ -1160,8 +1160,8 @@ local getOrderedDispatcherActions = function()
 end
 
 function HttpInspector:exposeEvent(uri, reqinfo)
-  local ftype, fragment -- luacheck: no unused
-  ftype, fragment, uri = stepUriFragment(uri) -- luacheck: no unused
+  local __, fragment
+  __, fragment, uri = stepUriFragment(uri)
   if fragment then
     -- Event name and args provided.
     -- We may get multiple events, separated by a dummy arg /&/
@@ -1384,8 +1384,8 @@ end
 
 function HttpInspector:exposeBroadcastEvent(uri, reqinfo)
   -- Similar to previous one, without any list.
-  local ftype, fragment -- luacheck: no unused
-  ftype, fragment, uri = stepUriFragment(uri) -- luacheck: no unused
+  local __, fragment
+  __, fragment, uri = stepUriFragment(uri)
   if fragment then
     -- Event name and args provided.
     -- We may get multiple events, separated by a dummy arg /&/

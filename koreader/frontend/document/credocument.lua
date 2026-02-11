@@ -1312,7 +1312,7 @@ function CreDocument:setTextHyphenationForceAlgorithmic(toggle)
 end
 
 function CreDocument:getTextMainLangDefaultHyphDictionary()
-  local main_lang_tag, __, loaded_lang_infos = cre.getTextLangStatus() -- luacheck: no unused
+  local main_lang_tag, __, loaded_lang_infos = cre.getTextLangStatus()
   return loaded_lang_infos[main_lang_tag]
     and loaded_lang_infos[main_lang_tag].hyph_dict_name
 end
@@ -2089,7 +2089,7 @@ function CreDocument:setupCallCache()
       table.insert(res, "  No hit for:")
       for _, k in ipairs(nohit_keys) do
         local __, hits_duration, misses, missed_duration =
-          unpack(self._call_cache_stats[k]) -- luacheck: no unused
+          unpack(self._call_cache_stats[k])
         table.insert(
           res,
           string.format("  %s: %d misses %.3fs", k, misses, missed_duration)
@@ -2100,7 +2100,7 @@ function CreDocument:setupCallCache()
         table.insert(res, "  No cache for:")
         for _, k in ipairs(notcached_keys) do
           local __, hits_duration, misses, missed_duration =
-            unpack(self._call_cache_stats[k]) -- luacheck: no unused
+            unpack(self._call_cache_stats[k])
           table.insert(
             res,
             string.format("  %s: %d calls %.3fs", k, misses, missed_duration)
@@ -2130,7 +2130,8 @@ function CreDocument:setupCallCache()
   for name, func in pairs(CreDocument) do
     if type(func) == "function" then
       -- Various type of wrap
-      local no_wrap = false -- luacheck: no unused
+      -- TODO: Address this luacheck warning, no_wrap is never used.
+      local no_wrap = false -- luacheck: ignore 231
       local add_reset = false
       local add_buffer_trash = false
       local cache_by_tag = false

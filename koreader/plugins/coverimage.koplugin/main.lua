@@ -19,7 +19,7 @@ then
   return { disabled = true }
 end
 
-local A, android = pcall(require, "android") -- luacheck: ignore
+local __, android = pcall(require, "android")
 local Blitbuffer = require("ffi/blitbuffer")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
