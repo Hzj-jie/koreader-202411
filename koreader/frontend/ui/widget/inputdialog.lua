@@ -611,16 +611,10 @@ end
 
 function InputDialog:onShow()
   self:showKeyboard(self.ignore_first_hold_release)
-  UIManager:setDirty(self, function()
-    return "ui", self.dialog_frame.dimen
-  end)
 end
 
 function InputDialog:onClose()
   self:onExit()
-  UIManager:setDirty(nil, self.fullscreen and "full" or function()
-    return "ui", self.dialog_frame.dimen
-  end)
 end
 
 function InputDialog:showKeyboard(ignore_first_hold_release)

@@ -579,10 +579,8 @@ function InputText:initTextBox(text, char_added)
   self.dimen = self._frame:getSize()
   --- @fixme self.parent is not always in the widget stack (BookStatusWidget)
   -- Don't even try to refresh dummy widgets used for text height computations...
-  if not self.for_measurement_only and self.parent:isShown() then
-    UIManager:setDirty(self.parent, function()
-      return "ui", self.dimen
-    end)
+  if not self.for_measurement_only then
+    self:scheduleRepaint()
   end
   if self.edit_callback then
     self.edit_callback(self.is_text_edited)

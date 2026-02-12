@@ -230,9 +230,7 @@ end
 
 function NetworkItem:refresh()
   self:init()
-  UIManager:setDirty(self.setting_ui, function()
-    return "ui", self.dimen
-  end)
+  self:scheduleRepaint()
 end
 
 function NetworkItem:connect()
@@ -497,9 +495,7 @@ function NetworkSetting:init()
         page_update_cb = function(curr_page, total_pages)
           self.pagination:setProgress(curr_page / total_pages)
           -- self.page_text:setText(curr_page .. "/" .. total_pages)
-          UIManager:setDirty(self, function()
-            return "ui", self.popup.dimen
-          end)
+          self:scheduleRepaint()
         end,
       }),
     }),
@@ -545,7 +541,6 @@ function NetworkSetting:onClose()
   if not NetworkMgr.pending_connectivity_check then
     NetworkMgr.pending_connection = false
   end
-  UIManager:setDirty(nil, "ui", self.popup.dimen)
 end
 
 return NetworkSetting
