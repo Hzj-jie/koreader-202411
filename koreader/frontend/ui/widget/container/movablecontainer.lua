@@ -245,7 +245,8 @@ function MovableContainer:onClose()
 end
 
 function MovableContainer:dirtyRegion()
-  self.dirty_dimen = self:getSize():copy():offsetBy(self._moved_offset_x, self._moved_offset_y)
+  self.dirty_dimen =
+    self:getSize():copy():offsetBy(self._moved_offset_x, self._moved_offset_y)
   return self.dirty_dimen
 end
 

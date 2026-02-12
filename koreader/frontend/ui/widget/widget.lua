@@ -135,7 +135,10 @@ end
 function Widget:scheduleRefresh() -- final
   if self:isShown() then
     -- Otherwise the widget hasn't been shown yet and will be paintTo later.
-    require("ui/uimanager"):scheduleRefresh(self:refreshMode(), self:dirtyRegion())
+    require("ui/uimanager"):scheduleRefresh(
+      self:refreshMode(),
+      self:dirtyRegion()
+    )
   end
 end
 
@@ -150,17 +153,27 @@ function Widget:showParent() -- final
   return window ~= nil and window.widget or nil
 end
 
+function Widget:ui_depth() -- final
+  -- Ensure the self._ui_depth is calculated.
+  self:window()
+  -- But it's still possible to return a nil.
+  return self._ui_depth
+end
+
 function Widget:_window() -- final
   local UIManager = require("ui/uimanager")
   -- A fast loop to avoid dfs.
   for w in UIManager:topdown_windows_iter() do
     if w.widget == self then
+      self._ui_depth = 1
       return w
     end
   end
 
   for w in UIManager:topdown_windows_iter() do
-    if require("util").arrayDfSearch(w.widget, self) then
+    local r, d = require("util").arrayDfSearch(w.widget, self)
+    if r then
+      self._ui_depth = d
       return w
     end
   end

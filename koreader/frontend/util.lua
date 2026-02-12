@@ -365,18 +365,22 @@ end
 --- Test whether array t contains a reference to n
 ---- @param t Lua table (array only)
 ---- @param n anything
-function util.arrayDfSearch(t, n)
+function util.arrayDfSearch(t, n, d)
+  if d == nil then
+    d = 1
+  end
   if type(t) ~= "table" then
     return false
   end
 
   if t == n then
-    return true
+    return true, d
   end
 
   for _, v in ipairs(t) do
-    if util.arrayDfSearch(v, n) then
-      return true
+    local r, rd = util.arrayDfSearch(v, n, d + 1)
+    if r then
+      return r, rd
     end
   end
 
