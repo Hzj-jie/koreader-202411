@@ -125,34 +125,32 @@ function Widget:dirtyRegion()
   return self.dirty_dimen or self:getSize()
 end
 
-function Widget:scheduleRepaint()
+function Widget:scheduleRepaint() -- final
   if self:isShown() then
     -- Otherwise the widget hasn't been shown yet and will be paintTo later.
     require("ui/uimanager"):scheduleWidgetRepaint(self)
   end
 end
 
-function Widget:scheduleRefresh()
+function Widget:scheduleRefresh() -- final
   if self:isShown() then
     -- Otherwise the widget hasn't been shown yet and will be paintTo later.
     require("ui/uimanager"):scheduleRefresh(self:refreshMode(), self:dirtyRegion())
   end
 end
 
-function Widget:isShown()
+function Widget:isShown() -- final
   return self:window() ~= nil
 end
 
 -- Get the show(widget) of current widget, using this function should be careful
 -- due to it's slowness.
-function Widget:showParent()
+function Widget:showParent() -- final
   local window = self:window()
   return window ~= nil and window.widget or nil
 end
 
--- Get the window of current widget, use this function should be careful due
--- to it's slowness.
-function Widget:window()
+function Widget:_window() -- final
   local UIManager = require("ui/uimanager")
   -- A fast loop to avoid dfs.
   for w in UIManager:topdown_windows_iter() do
@@ -166,7 +164,18 @@ function Widget:window()
       return w
     end
   end
+
+  -- This is unfortunate, it would trigger the recalculation each time.
   return nil
+end
+
+-- Get the window of current widget, use this function should be careful due
+-- to it's slowness.
+function Widget:window() -- final
+  if self._window_ref == nil then
+    self._window_ref = self:_window()
+  end
+  return self._window_ref
 end
 
 function Widget:myRange(ges)
