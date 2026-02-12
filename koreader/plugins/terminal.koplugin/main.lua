@@ -465,9 +465,9 @@ function Terminal:generateInputDialog()
         {
           text = "☰", -- settings menu
           callback = function()
-            UIManager:close(self.input_widget.keyboard)
+            self.input_widget:closeKeyboard()
             Aliases:show(self.terminal_data .. "/scripts/aliases", function()
-              UIManager:show(self.input_widget.keyboard)
+              self.input_widget:showKeyboard()
               UIManager:setDirty(self.input_dialog, "fast") -- is there a better solution
             end, self)
           end,
