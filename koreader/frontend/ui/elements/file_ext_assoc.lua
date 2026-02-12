@@ -25,7 +25,7 @@ function ExtAssoc:commit()
 end
 
 function ExtAssoc:setAll(state)
-  for k, __ in pairs(getSupportedExtensions()) do
+  for k in pairs(getSupportedExtensions()) do
     self:setOne(k, state)
   end
   self:commit()
@@ -57,7 +57,7 @@ function ExtAssoc:getSettingsMenuTable()
   }
   local exts = getSupportedExtensions()
   local keys = {}
-  for k, __ in pairs(exts) do
+  for k in pairs(exts) do
     table.insert(keys, k)
   end
   table.sort(keys)

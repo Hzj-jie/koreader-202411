@@ -1064,12 +1064,22 @@ function UIManager:_repaintDirtyWidgets()
   end
 
   for i = 1, #self._window_stack do
-    if util.tableSize(dirty_widgets[i]) > 0 then
+    if #dirty_widgets[i] > 0 then
       -- Anything above this window needs to be repainted.
       for j = i + 1, #self._window_stack do
         dirty_widgets[j] = { self._window_stack[j].widget }
       end
       break
+    end
+  end
+
+  for i = 1, #self._window_stack do
+    for j = 1, #dirty_widgets[i] do
+      for k = 1, #dirty_widgets[i] do
+        if j ~= k and util.arrayDfSearch(dirty_widgets[i][j], dirty_widgets[i][k]) then
+          table.remove(dirty_widgets[i], k)
+        end
+      end
     end
   end
 

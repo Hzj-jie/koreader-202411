@@ -113,7 +113,7 @@ local function getFirstKey(tb)
     --k, v = next(tb)
     --return k
     -- TODO: Address this luacheck warning.
-    for k, __ in pairs(tb) do -- luacheck: ignore 512
+    for k in pairs(tb) do -- luacheck: ignore 512
       return k
     end
     return nil
