@@ -142,6 +142,11 @@ function Widget:scheduleRefresh() -- final
   end
 end
 
+-- This function doesn't really mean the Widget has been painted, but it may be
+-- in the queue of being painted immediately. UIManager uses it as a very quick
+-- test to ensure it won't schedule a repaint on anything which isn't in the
+-- window stack yet, i.e. will be painted in random places and / or cover other
+-- elements.
 function Widget:isShown() -- final
   return self:window() ~= nil
 end
