@@ -580,7 +580,8 @@ function InputText:initTextBox(text, char_added)
   --- @fixme self.parent is not always in the widget stack (BookStatusWidget)
   -- Don't even try to refresh dummy widgets used for text height computations...
   if not self.for_measurement_only then
-    self:scheduleRepaint()
+    -- TODO: Scheduling repainting parent seems very wrong.
+    self.parent:scheduleRepaint()
   end
   if self.edit_callback then
     self.edit_callback(self.is_text_edited)

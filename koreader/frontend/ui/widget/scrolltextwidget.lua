@@ -192,8 +192,11 @@ function ScrollTextWidget:_updateScrollBar(is_partial)
     -- Reset transparency if the dialog's MovableContainer is currently translucent...
     if is_partial and self.dialog.movable and self.dialog.movable.alpha then
       self.dialog.movable.alpha = nil
+      -- TODO: setDirty self.dialog seems very wrong.
+      UIManager:setDirty(self.dialog, refreshfunc)
+    else
+      UIManager:setDirty(self, refreshfunc)
     end
-    UIManager:setDirty(self, refreshfunc)
   end
 
   if self.scroll_callback then

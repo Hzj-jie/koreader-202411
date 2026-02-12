@@ -230,7 +230,7 @@ end
 
 function NetworkItem:refresh()
   self:init()
-  self:scheduleRepaint()
+  self.setting_ui:scheduleRepaint()
 end
 
 function NetworkItem:connect()
