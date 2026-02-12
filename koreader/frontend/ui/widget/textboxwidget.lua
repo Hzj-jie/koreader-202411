@@ -1208,7 +1208,7 @@ function TextBoxWidget:_renderImage(start_row_idx)
           if scheduled_for_linenum == self.virtual_line_num then
             -- we are still on the same page
             self:update(true)
-            if self:isShown() then
+            if self:isInWindowStack() then
               UIManager:setDirty(image, function()
                 -- return "ui", self.dimen
                 -- We can refresh only the image area, even if we have just
@@ -1230,7 +1230,7 @@ function TextBoxWidget:_renderImage(start_row_idx)
         -- Image loaded (or not if failure): call us again
         -- with scheduled_update = true so we can draw what we got
         self:update(true)
-        if self:isShown() then
+        if self:isInWindowStack() then
           UIManager:setDirty(image, function()
             -- return "ui", self.dimen
             -- We can refresh only the image area, even if we have just
@@ -1917,7 +1917,7 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
         restore_x = self.cursor_restore_x
         restore_y = self.cursor_restore_y
         if not CURSOR_COMBINE_REGIONS then
-          if self:isShown() then
+          if self:isInWindowStack() then
             UIManager:setDirty(self, function()
               return "ui",
                 Geom:new({
@@ -1951,7 +1951,7 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
       )
       -- Paint the cursor, and do a small ui refresh of the new cursor area
       self.cursor_line:paintTo(self._bb, x, y)
-      if self:isShown() then
+      if self:isInWindowStack() then
         UIManager:setDirty(self, function()
           local cursor_region = Geom:new({
             x = self:getSize().x + x,
@@ -1986,7 +1986,7 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
           self.cursor_line:getSize().w,
           self.cursor_line:getSize().h
         )
-        if self:isShown() then
+        if self:isInWindowStack() then
           restore_region = Geom:new({
             x = self:getSize().x + self.cursor_restore_x,
             y = self:getSize().y + self.cursor_restore_y,
@@ -2019,7 +2019,7 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
       )
       -- Paint the cursor, and do a small ui refresh of the new cursor area
       self.cursor_line:paintTo(self._bb, x, y)
-      if self:isShown() then
+      if self:isInWindowStack() then
         local cursor_region = Geom:new({
           x = self:getSize().x + x,
           y = self:getSize().y + y,

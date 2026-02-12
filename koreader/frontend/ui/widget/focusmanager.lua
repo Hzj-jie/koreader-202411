@@ -419,7 +419,7 @@ function FocusManager:moveFocusTo(x, y, focus_flags)
         bit.band(focus_flags, FocusManager.NOT_FOCUS) ~= FocusManager.NOT_FOCUS
       then
         target_item:broadcastEvent(Event:new("Focus"))
-        if self:isShown() then
+        if self:isInWindowStack() then
           UIManager:setDirty(self, "fast")
         end
       end

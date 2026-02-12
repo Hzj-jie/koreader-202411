@@ -1212,7 +1212,7 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
   self:updatePageInfo(select_number)
   self:mergeTitleBarIntoLayout()
 
-  if self:isShown() then
+  if self:isInWindowStack() then
     -- Otherwise the widget hasn't shown yet and will be paintTo later.
     UIManager:setDirty(self, function()
       local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)

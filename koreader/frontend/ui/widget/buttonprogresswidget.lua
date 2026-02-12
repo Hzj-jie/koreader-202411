@@ -252,7 +252,7 @@ function ButtonProgressWidget:update()
   end
 
   self:refocusWidget()
-  if self:isShown() then
+  if self:isInWindowStack() then
     UIManager:setDirty(self, function()
       return "ui", self.dimen
     end)

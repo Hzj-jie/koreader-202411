@@ -1582,7 +1582,7 @@ function CalendarView:_populateItems()
     1,
     bit.bor(FocusManager.FOCUS_ONLY_ON_NT, FocusManager.NOT_UNFOCUS)
   )
-  if self:isShown() then
+  if self:isInWindowStack() then
     UIManager:setDirty(self, function()
       return "ui", self.dimen
     end)
