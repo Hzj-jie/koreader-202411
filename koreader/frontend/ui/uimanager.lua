@@ -1083,7 +1083,8 @@ function UIManager:_repaintDirtyWidgets()
     for j = 1, #dirty_widgets[i] do
       for k = j + 1, #dirty_widgets[i] do
         if
-          dirty_widgets[i][j]:window_z_index() < dirty_widgets[i][k]:window_z_index()
+          dirty_widgets[i][j]:window_z_index()
+            < dirty_widgets[i][k]:window_z_index()
           and util.arrayDfSearch(dirty_widgets[i][j], dirty_widgets[i][k])
         then
           table.remove(dirty_widgets[i], k)

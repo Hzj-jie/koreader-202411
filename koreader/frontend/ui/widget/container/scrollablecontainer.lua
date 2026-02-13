@@ -326,12 +326,12 @@ function ScrollableContainer:_scrollBy(dx, dy, ensure_scroll_steps)
       new_y = self._max_scroll_offset_y
     else
       allow_overflow_y = true -- this might be an option ?
-      local top_row, top_row_fully_visible, top_row_content_visible = -- luacheck: no unused
+      local top_row, __, top_row_content_visible =
         self:_getStepScrollRowAtY(orig_y, true)
-      local bottom_row, bottom_row_fully_visible, bottom_row_content_visible = -- luacheck: no unused
+      local bottom_row, __, bottom_row_content_visible =
         self:_getStepScrollRowAtY(orig_y + self._crop_h - 1, false)
       local new_view_bottom_y = new_y + self._crop_h - 1
-      local new_top_row, new_top_row_fully_visible, new_top_row_content_visible = -- luacheck: no unused
+      local new_top_row, new_top_row_fully_visible =
         self:_getStepScrollRowAtY(new_y, true)
       if dy >= 0 then -- Scrolling down
         if
@@ -356,7 +356,7 @@ function ScrollableContainer:_scrollBy(dx, dy, ensure_scroll_steps)
           -- If we'd go past the not fully visible original top button, be sure we'll
           -- have its content fully at bottom
           new_y = (top_row.content_bottom or top_row.bottom) - self._crop_h + 1
-          new_top_row, new_top_row_fully_visible, new_top_row_content_visible = -- luacheck: no unused
+          new_top_row, new_top_row_fully_visible =
             self:_getStepScrollRowAtY(new_y, true)
         end
         if not new_top_row and new_y < 0 then
@@ -367,14 +367,13 @@ function ScrollableContainer:_scrollBy(dx, dy, ensure_scroll_steps)
           -- row duplicated at the new bottom.)
           local first_row = self:_getStepScrollRowAtY(0)
           if -new_y < first_row.bottom then
-            new_top_row, new_top_row_fully_visible, new_top_row_content_visible = -- luacheck: no unused
+            new_top_row, new_top_row_fully_visible =
               self:_getStepScrollRowAtY(0, true)
           end
         end
         -- If the new top row is not fully visible, use the next row
         if new_top_row and not new_top_row_fully_visible then
-          new_top_row, new_top_row_fully_visible, new_top_row_content_visible = -- luacheck: no unused
-            self:_getStepScrollRowAtY(new_top_row.bottom + 1, true)
+          new_top_row = self:_getStepScrollRowAtY(new_top_row.bottom + 1, true)
         end
         -- Ensure the new top row is anchored as its top
         if new_top_row then
