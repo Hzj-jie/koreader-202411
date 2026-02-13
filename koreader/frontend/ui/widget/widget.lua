@@ -158,6 +158,7 @@ function Widget:showParent() -- final
   return window ~= nil and window.widget or nil
 end
 
+-- Returns the z-index in the window, not the entire ui stack.
 function Widget:window_z_index() -- final
   -- Ensure the self._window_z_index is calculated.
   self:window()
