@@ -1676,7 +1676,7 @@ end
 function BookMapWidget:onScrollPageUp()
   -- Show previous content, ensuring any truncated widget at top is now full at bottom
   local scroll_offset_y = self.cropping_widget._scroll_offset_y
-  local row, row_idx, row_y, row_h = self:getVGroupRowAtY(-1) -- luacheck: no unused
+  local row, __, row_y, row_h = self:getVGroupRowAtY(-1)
   local to_keep = 0
   if row then
     to_keep = row_h - (scroll_offset_y - row_y)
@@ -1688,7 +1688,7 @@ end
 function BookMapWidget:onScrollPageDown()
   -- Show next content, ensuring any truncated widget at bottom is now full at top
   local scroll_offset_y = self.cropping_widget._scroll_offset_y
-  local row, row_idx, row_y, row_h = self:getVGroupRowAtY(self.crop_height) -- luacheck: no unused
+  local row, __, row_y = self:getVGroupRowAtY(self.crop_height)
   if row then
     self.cropping_widget:_scrollBy(0, row_y - scroll_offset_y)
   else
@@ -1699,7 +1699,7 @@ end
 
 function BookMapWidget:onScrollRowUp()
   local scroll_offset_y = self.cropping_widget._scroll_offset_y
-  local row, row_idx, row_y, row_h = self:getVGroupRowAtY(-1) -- luacheck: no unused
+  local row, __, row_y = self:getVGroupRowAtY(-1)
   if row then
     self.cropping_widget:_scrollBy(0, row_y - scroll_offset_y)
   end
@@ -1708,7 +1708,7 @@ end
 
 function BookMapWidget:onScrollRowDown()
   local scroll_offset_y = self.cropping_widget._scroll_offset_y
-  local row, row_idx, row_y, row_h = self:getVGroupRowAtY(0) -- luacheck: no unused
+  local row, __, row_y, row_h = self:getVGroupRowAtY(0)
   if row then
     self.cropping_widget:_scrollBy(0, row_y + row_h - scroll_offset_y)
   end
@@ -1999,7 +1999,7 @@ function BookMapWidget:onTap(arg, ges)
     return true
   end
   local x, y = ges.pos.x, ges.pos.y
-  local row, row_idx, row_y, row_h = self:getVGroupRowAtY(y - self.title_bar_h) -- luacheck: no unused
+  local row = self:getVGroupRowAtY(y - self.title_bar_h)
   if not row then
     return true
   end
