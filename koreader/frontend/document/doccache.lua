@@ -15,7 +15,7 @@ local DHINTCOUNT = G_defaults:read("DHINTCOUNT")
 local function calcCacheMemSize()
   local min = G_defaults:read("DGLOBAL_CACHE_SIZE_MINIMUM")
   local max = G_defaults:read("DGLOBAL_CACHE_SIZE_MAXIMUM")
-  local memfree = util.calcFreeMem() or 0, 0
+  local memfree = util.calcFreeMem() or 0
   local calc = memfree * G_defaults:read("DGLOBAL_CACHE_FREE_PROPORTION")
   return math.min(max, math.max(min, calc))
 end
