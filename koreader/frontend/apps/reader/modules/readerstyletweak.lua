@@ -551,7 +551,7 @@ You can enable individual tweaks on this book with a tap, or view more details a
       table.insert(menu, {
         text_func = function()
           local text = item.title or "### undefined submenu title ###"
-          local nb_enabled, nb_found = self:nbTweaksEnabled(sub_item_table) -- luacheck: no unused
+          local nb_enabled = self:nbTweaksEnabled(sub_item_table)
           -- We could add nb_enabled/nb_found, but that makes for
           -- a busy/ugly menu
           -- text = string.format("%s (%d/%d)", text, nb_enabled, nb_found)

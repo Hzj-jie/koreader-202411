@@ -389,7 +389,7 @@ local DEFAULT_LANG_TAG = "en-US" -- English_US.pattern is loaded by default in c
 local LANG_TAG_TO_LANG_NAME = {}
 local LANG_ALIAS_TO_LANG_TAG = {}
 for __, v in ipairs(LANGUAGES) do
-  local lang_tag, lang_aliases, __, lang_name, hyph_filename = unpack(v) -- luacheck: no unused
+  local lang_tag, lang_aliases, __, lang_name, hyph_filename = unpack(v)
   LANG_TAG_TO_LANG_NAME[lang_tag] = lang_name
   if lang_aliases and #lang_aliases > 0 then
     for __, alias in ipairs(lang_aliases) do
@@ -441,7 +441,7 @@ When the book's language tag is not among our presets, no specific features will
       local lang_infos = {}
       local seen_hyph_dicts = {} -- to avoid outputting count and size for shared hyph dicts
       local cre = require("document/credocument"):engineInit()
-      local main_lang_tag, __, loaded_lang_infos = cre.getTextLangStatus() -- luacheck: no unused
+      local main_lang_tag, __, loaded_lang_infos = cre.getTextLangStatus()
       -- First output main lang tag
       local main_lang_info = loaded_lang_infos[main_lang_tag]
       table.insert(lang_infos, gettext("Current main language tag:"))
@@ -509,7 +509,7 @@ When the book's language tag is not among our presets, no specific features will
   })
 
   for __, v in ipairs(LANGUAGES) do
-    local lang_tag, lang_aliases, lang_features, lang_name = unpack(v) -- luacheck: no unused
+    local lang_tag, __, lang_features, lang_name = unpack(v)
 
     table.insert(self.language_submenu, {
       text_func = function()
@@ -692,7 +692,7 @@ When the book's language tag is not among our presets, no specific features will
       local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
       local cre = require("document/credocument"):engineInit()
       local __, alg_left_hyphen_min, alg_right_hyphen_min =
-        cre.getSelectedHyphDict() -- luacheck: no unused
+        cre.getSelectedHyphDict()
       local hyph_limits_widget = DoubleSpinWidget:new({
         -- Min (1) and max (10) values are enforced by crengine
         -- Note that when hitting "Use language defaults", we show the default

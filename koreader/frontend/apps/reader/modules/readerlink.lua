@@ -132,7 +132,7 @@ function ReaderLink:init()
     end
   end
   -- For relative local file links
-  local directory, filename = util.splitFilePathName(self.document.file) -- luacheck: no unused
+  local directory = util.splitFilePathName(self.document.file)
   self.document_dir = directory
   -- Migrate these old settings to the new common one
   if
@@ -665,7 +665,7 @@ function ReaderLink:isXpointerCoherent(a_xpointer)
     self.document:getScreenPositionFromXPointer(a_xpointer)
   -- Get again link and a_xpointer from this position
   local __, re_a_xpointer =
-    self.document:getLinkFromPosition({ x = screen_x, y = screen_y }) -- luacheck: no unused
+    self.document:getLinkFromPosition({ x = screen_x, y = screen_y })
   -- We should get the same a_xpointer. If not, crengine has messed up
   -- and we should not trust this xpointer to get back to this link.
   if re_a_xpointer ~= a_xpointer then
@@ -673,7 +673,7 @@ function ReaderLink:isXpointerCoherent(a_xpointer)
     -- fails, screen_x+1 usually works - probably something in crengine,
     -- but easier to workaround here that way)
     __, re_a_xpointer =
-      self.document:getLinkFromPosition({ x = screen_x + 1, y = screen_y }) -- luacheck: no unused
+      self.document:getLinkFromPosition({ x = screen_x + 1, y = screen_y })
     if re_a_xpointer ~= a_xpointer then
       logger.info("noncoherent a_xpointer:", a_xpointer)
       return false

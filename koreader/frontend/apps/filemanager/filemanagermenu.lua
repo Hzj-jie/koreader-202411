@@ -570,7 +570,7 @@ Tap a book in the search results to open it.]]
         return gettext("Open last document")
       end
       local last_file = G_reader_settings:read("lastfile")
-      local path, file_name = util.splitFilePathName(last_file) -- luacheck: no unused
+      local __, file_name = util.splitFilePathName(last_file)
       return T(gettext("Last: %1"), BD.filename(file_name))
     end,
     enabled_func = function()

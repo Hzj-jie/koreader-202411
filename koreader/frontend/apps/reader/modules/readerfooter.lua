@@ -304,7 +304,7 @@ local footerTextGeneratorMap = {
     if footer.pageno then
       if footer.ui.pagemap and footer.ui.pagemap:wantsPageLabels() then
         -- (Page labels might not be numbers)
-        local label, idx, count = footer.ui.pagemap:getCurrentPageLabel(false) -- luacheck: no unused
+        local __, idx, count = footer.ui.pagemap:getCurrentPageLabel(false)
         local remaining = count - idx
         if footer.settings.pages_left_includes_current_page then
           remaining = remaining + 1

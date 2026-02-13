@@ -334,7 +334,7 @@ function ReaderMenu:setUpdateItemTable()
       then
         return gettext("Open previous document")
       end
-      local path, file_name = util.splitFilePathName(previous_file) -- luacheck: no unused
+      local __, file_name = util.splitFilePathName(previous_file)
       return T(gettext("Previous: %1"), BD.filename(file_name))
     end,
     enabled_func = function()
