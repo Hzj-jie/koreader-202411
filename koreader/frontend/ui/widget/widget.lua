@@ -158,11 +158,11 @@ function Widget:showParent() -- final
   return window ~= nil and window.widget or nil
 end
 
-function Widget:ui_depth() -- final
-  -- Ensure the self._ui_depth is calculated.
+function Widget:window_z_index() -- final
+  -- Ensure the self._window_z_index is calculated.
   self:window()
   -- But it's still possible to return a nil.
-  return self._ui_depth
+  return self._window_z_index
 end
 
 function Widget:_window() -- final
@@ -170,7 +170,7 @@ function Widget:_window() -- final
   -- A fast loop to avoid dfs.
   for w in UIManager:topdown_windows_iter() do
     if w.widget == self then
-      self._ui_depth = 1
+      self._window_z_index = 1
       return w
     end
   end
@@ -178,7 +178,7 @@ function Widget:_window() -- final
   for w in UIManager:topdown_windows_iter() do
     local r, d = require("util").arrayDfSearch(w.widget, self)
     if r then
-      self._ui_depth = d
+      self._window_z_index = d
       return w
     end
   end

@@ -1075,7 +1075,7 @@ function UIManager:_repaintDirtyWidgets()
 
   for i = 1, #self._window_stack do
     table.sort(dirty_widgets[i], function(a, b)
-      return a:ui_depth() < b:ui_depth()
+      return a:window_z_index() < b:window_z_index()
     end)
   end
 
@@ -1083,7 +1083,7 @@ function UIManager:_repaintDirtyWidgets()
     for j = 1, #dirty_widgets[i] do
       for k = j + 1, #dirty_widgets[i] do
         if
-          dirty_widgets[i][j]:ui_depth() < dirty_widgets[i][k]:ui_depth()
+          dirty_widgets[i][j]:window_z_index() < dirty_widgets[i][k]:window_z_index()
           and util.arrayDfSearch(dirty_widgets[i][j], dirty_widgets[i][k])
         then
           table.remove(dirty_widgets[i], k)
