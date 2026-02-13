@@ -467,7 +467,7 @@ function CoverImage:choosePathFile(
   new_file,
   migrate
 )
-  local old_path, __ = util.splitFilePathName(self[key])
+  local old_path = util.splitFilePathName(self[key])
   UIManager:show(PathChooser:new({
     select_directory = folder_only or new_file,
     select_file = not folder_only,

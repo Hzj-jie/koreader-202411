@@ -58,7 +58,7 @@ function ReadTimer:init()
     if not self:scheduled() then
       return nil
     end
-    local hours, minutes, __ = self:remainingTime(1)
+    local hours, minutes = self:remainingTime(1)
     local timer_info = string.format("%02d:%02d", hours, minutes)
     if Device:isEmulator() then
       return self.timer_symbol .. timer_info
@@ -73,7 +73,7 @@ function ReadTimer:init()
       return nil
     end
     local item_prefix = self.ui.view.footer.settings.item_prefix
-    local hours, minutes, __ = self:remainingTime(1)
+    local hours, minutes = self:remainingTime(1)
     local timer_info = string.format("%02d:%02d", hours, minutes)
 
     if item_prefix == "icons" or item_prefix == "compact_items" then

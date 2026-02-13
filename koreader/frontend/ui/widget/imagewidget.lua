@@ -470,7 +470,7 @@ function ImageWidget:getScaleFactorExtrema()
 
   -- Compute dynamic limits for the scale factor, based on the screen's area and available memory (if possible).
   -- Extrema eyeballed to be somewhat sensible given our usual screen dimensions and available RAM.
-  local memfree, _ = util.calcFreeMem()
+  local memfree = util.calcFreeMem()
 
   local screen_area = Screen:getWidth() * Screen:getHeight()
   local min_area = math.ceil(screen_area * (1 / 10000))
