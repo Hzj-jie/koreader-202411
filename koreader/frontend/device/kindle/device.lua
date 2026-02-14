@@ -373,7 +373,6 @@ function Kindle:initNetworkManager(NetworkMgr)
       return nil, err
     end
 
-    -- trick ui/widget/networksetting into displaying the correct signal strength icon
     local qualities = {
       [1] = 0,
       [2] = 6,
@@ -417,7 +416,9 @@ function Kindle:initNetworkManager(NetworkMgr)
           network.signal,
           network.signal_max
         ),
-        signal_quality = qualities[network.signal],
+        -- trick ui/widget/networksetting into displaying the correct signal
+        -- strength icon
+        signal_quality = (network.signal - 1) * 25,
         connected = connected,
         flags = network.key_mgmt,
         ssid = network.essid ~= "" and network.essid,

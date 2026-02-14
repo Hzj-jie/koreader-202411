@@ -79,7 +79,9 @@ local function _widgetWindow(w)
       "show(widget) instead. ",
       debug.traceback()
     )
+    return nil
   end
+  assert(window ~= nil)
   return window
 end
 
@@ -1057,9 +1059,20 @@ function UIManager:_repaintDirtyWidgets()
     local window = _widgetWindow(w)
     if window ~= nil then
       local index = util.arrayContains(self._window_stack, window)
-      assert(index ~= false and index > 0 and index <= #self._window_stack)
-      -- Or window will be nil.
-      table.insert(dirty_widgets[index], w)
+      if index == false then
+        -- TODO: Should assert.
+        logger.warn(
+          "FixMe: Widget ",
+          _widgetDebugStr(window),
+          " was marked as dirty before its being closed. The previous ",
+          "scheduleRepaint or setDirty call is unnecessary.",
+          debug.traceback()
+        )
+      else
+        assert(index > 0)
+        assert(index <= #self._window_stack)
+        table.insert(dirty_widgets[index], w)
+      end
     end
   end
 
@@ -1081,7 +1094,13 @@ function UIManager:_repaintDirtyWidgets()
 
   for i = 1, #self._window_stack do
     for j = 1, #dirty_widgets[i] do
+      if dirty_widgets[i][j] == nil then
+        break
+      end
       for k = j + 1, #dirty_widgets[i] do
+        if dirty_widgets[i][k] == nil then
+          break
+        end
         if
           dirty_widgets[i][j]:window_z_index()
             < dirty_widgets[i][k]:window_z_index()

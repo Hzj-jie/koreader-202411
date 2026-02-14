@@ -467,6 +467,20 @@ function Emulator:initNetworkManager(NetworkMgr)
     -- Not accurate.
     return "eth0"
   end
+  function NetworkMgr:getNetworkList()
+    local list = {}
+    for i = 1, 5 do
+      table.insert(list, {
+        signal_level = string.format("%d/5", i),
+        signal_quality = (i - 1) * 25,
+        connected = false,
+        ssid = string.format("fake-ssid-%d", i),
+        flags = "WPA",
+        password = false,
+      })
+    end
+    return list, nil
+  end
   NetworkMgr.isConnected = NetworkMgr.isWifiOn
 end
 
