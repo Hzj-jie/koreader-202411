@@ -148,6 +148,7 @@ function ReaderConfig:initGesListener()
 end
 
 function ReaderConfig:onShowConfigMenu()
+  self:onCloseConfigMenu()
   self.config_dialog = ConfigDialog:new({
     document = self.document,
     ui = self.ui,
