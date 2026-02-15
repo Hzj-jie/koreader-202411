@@ -147,20 +147,19 @@ function ReaderConfig:initGesListener()
 end
 
 function ReaderConfig:onShowConfigMenu()
+  self:onCloseConfigMenu()
+  self.config_dialog = ConfigDialog:new({
+    document = self.document,
+    ui = self.ui,
+    configurable = self.configurable,
+    config_options = self.options,
+    is_always_active = true,
+    close_callback = function()
+      self:_closeCallback()
+    end,
+  })
   UIManager:broadcastEvent(Event:new("DisableHinting"))
-  if self.config_dialog == nil then
-    self.config_dialog = ConfigDialog:new({
-      document = self.document,
-      ui = self.ui,
-      configurable = self.configurable,
-      config_options = self.options,
-      is_always_active = true,
-      close_callback = function()
-        self:_closeCallback()
-      end,
-    })
-    UIManager:show(self.config_dialog)
-  end
+  UIManager:show(self.config_dialog)
   -- show last used panel when opening config dialog
   self.config_dialog:showConfigPanel(self.last_panel_index)
   UIManager:broadcastEvent(Event:new("HandledAsSwipe")) -- cancel any pan scroll made
