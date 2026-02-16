@@ -1209,7 +1209,7 @@ function TextBoxWidget:_renderImage(start_row_idx)
             -- we are still on the same page
             self:update(true)
             if self:isInWindowStack() then
-              UIManager:setDirty(image, function()
+              UIManager:setDirty(self, function()
                 -- return "ui", self.dimen
                 -- We can refresh only the image area, even if we have just
                 -- re-rendered the whole textbox as the text has been
@@ -1231,7 +1231,7 @@ function TextBoxWidget:_renderImage(start_row_idx)
         -- with scheduled_update = true so we can draw what we got
         self:update(true)
         if self:isInWindowStack() then
-          UIManager:setDirty(image, function()
+          UIManager:setDirty(self, function()
             -- return "ui", self.dimen
             -- We can refresh only the image area, even if we have just
             -- re-rendered the whole textbox as the text has been
@@ -1452,7 +1452,7 @@ function TextBoxWidget:onTapImage(arg, ges)
         -- Toggle between image and alt_text
         self.image_show_alt_text = not self.image_show_alt_text
         self:update()
-        UIManager:setDirty(image, function()
+        UIManager:setDirty(self, function()
           -- return "ui", self.dimen
           -- We can refresh only the image area, even if we have just
           -- re-rendered the whole textbox as the text has been
