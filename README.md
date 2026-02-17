@@ -4,10 +4,25 @@ features.
 This repo is derived from the 2024-11 version with essential bug fixes only.
 
 ## Supported platforms
-- kindle pw2
-- kindle legacy
-- kobo
-- linux & wsl with ubuntu 24.04 or upper
+
+- kindle pw2 (pw2.tar.gz)
+- kindle legacy (legacy.tar.gz)
+- kobo (kobo.tar.gz)
+- linux & wsl with ubuntu 24.04 or upper (linux.tar.gz)
+
+Installation is very similar to the original koreader.
+
+When running on the ebook devices, an easy approach is to follow the koreader
+installation guide then replace the koreader folder with the files in the
+cooresponding gz files from
+https://github.com/Hzj-jie/koreader-202411/releases/latest.
+
+When running on linux & wsl with ubuntu 24.04 or upper, unzip the linux.tar.gz
+to any location, and run the run.sh file.
+
+Since there isn't any native changes so far, replacing only the files from a
+koreader installation with the lua files under koreader folder should also work.
+But the combination was never tested.
 
 After running stylua at
 https://github.com/Hzj-jie/koreader-202411/commit/587d93fa241744aa8e03574bdcd3cf3dd92c3244,
@@ -23,7 +38,7 @@ diff -rw koreader/ origin.stylua/
 Unlike the original koreader, building native binaries is not officially
 supported, though it's possible to build in origin/ after running
 install-deps.sh. Indeed the linux native binaries were rebuilt to support
-outdated the Intel Core 2 Duo x64 processor on a Thinkpad X61t.
+the outdated Intel Core 2 Duo x64 processor on a Thinkpad X61t.
 
 Instead, all the native files are placed in their corresponding platform
 folders, e.g. pw2/ for kindle pw2, legacy/ for kindle legacy.
@@ -49,8 +64,8 @@ issues to explain the motivations.
 ## Credits
 
 SortedIteration: ffi/SortedIteration.lua, from
-http://lua-users.org/wiki/SortedIteration. It was previously used in KOReader
-as well, but embedded in ffi/util.lua. See the file itself for the version
+http://lua-users.org/wiki/SortedIteration. It was previously used in koreader
+as well, but embedded in ffi/util.lua. See the file itself contains the version
 information and local changes.
 
 stylua: stylua, from https://github.com/JohnnyMorganz/StyLua, current version is
