@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "opds",
-  fullname = _("OPDS"),
-  description = _([[OPDS allows you to download books from online catalogs.]]),
+  fullname = gettext("OPDS"),
+  description = gettext([[OPDS allows you to download books from online catalogs.]]),
 }

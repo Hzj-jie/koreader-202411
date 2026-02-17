@@ -7,7 +7,7 @@ local ltn12 = require("ltn12")
 local socket = require("socket")
 local socket_url = require("socket.url")
 local socketutil = require("socketutil")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = ffiutil.template
 
 local EpubDownloadBackend = {
@@ -483,7 +483,7 @@ function EpubDownloadBackend:createEpub(
     -- the images he chose to not get.
   end
 
-  UI:info(T(_("%1\n\nBuilding EPUB…"), message))
+  UI:info(T(gettext("%1\n\nBuilding EPUB…"), message))
   -- Open the zip file (with .tmp for now, as crengine may still
   -- have a handle to the final epub_path, and we don't want to
   -- delete a good one if we fail/cancel later)
@@ -681,7 +681,7 @@ function EpubDownloadBackend:createEpub(
       -- by tapping while the InfoMessage is displayed
       -- We use the fast_refresh option from image #2 for a quicker download
       local go_on = UI:info(
-        T(_("%1\n\nRetrieving image %2 / %3 …"), message, inum, nb_images),
+        T(gettext("%1\n\nRetrieving image %2 / %3 …"), message, inum, nb_images),
         inum >= 2
       )
       if not go_on then
@@ -711,9 +711,9 @@ function EpubDownloadBackend:createEpub(
         logger.dbg("Adding OEBPS/" .. img.imgpath)
       else
         go_on = UI:confirm(
-          T(_("Downloading image %1 failed. Continue anyway?"), inum),
-          _("Stop"),
-          _("Continue")
+          T(gettext("Downloading image %1 failed. Continue anyway?"), inum),
+          gettext("Stop"),
+          gettext("Continue")
         )
         if not go_on then
           cancelled = true
@@ -727,20 +727,20 @@ function EpubDownloadBackend:createEpub(
   if cancelled then
     if
       UI:confirm(
-        _(
+        gettext(
           "Download did not complete.\nDo you want to create an EPUB with the already downloaded images?"
         ),
-        _("Don't create"),
-        _("Create")
+        gettext("Don't create"),
+        gettext("Create")
       )
     then
       cancelled = false
     end
   end
   if cancelled then
-    UI:info(_("Canceled. Cleaning up…"))
+    UI:info(gettext("Canceled. Cleaning up…"))
   else
-    UI:info(T(_("%1\n\nPacking EPUB…"), message))
+    UI:info(T(gettext("%1\n\nPacking EPUB…"), message))
   end
   epub:close()
 

@@ -9,7 +9,7 @@
 --
 
 package.path = "frontend/?.lua;base/" .. package.path
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- we can't require util here, some C libraries might not be available
 local function htmlEscape(text)
@@ -24,38 +24,38 @@ local function htmlEscape(text)
 end
 
 local metadata = {
-  summary = _("Ebook reader"),
+  summary = gettext("Ebook reader"),
   desc = {
     paragraphs = {
-      _(
+      gettext(
         "KOReader is an ebook reader optimized for e-ink screens. It can open many formats and provides advanced text adjustments."
       ),
-      _("See below for a selection of its many features:"),
+      gettext("See below for a selection of its many features:"),
     },
     highlights = {
-      _(
+      gettext(
         "Supports both fixed page formats (PDF, DjVu, CBT, CBZ) and reflowable e-book formats (EPUB, FB2, Mobi, DOC, CHM, TXT, HTML). Scanned PDF/DjVu documents can be reflowed. Special flow directions for reading double column PDFs and manga."
       ),
-      _(
+      gettext(
         "Multi-lingual user interface optimized for e-ink screens. Highly customizable reader view with complete typesetting options. Multi-lingual hyphenation dictionaries are bundled in."
       ),
-      _(
+      gettext(
         "Non-Latin script support for books, including the Hebrew, Arabic, Persian, Russian, Chinese, Japanese and Korean languages."
       ),
-      _("Unique Book Map and Page Browser features to navigate your book."),
-      _(
+      gettext("Unique Book Map and Page Browser features to navigate your book."),
+      gettext(
         "Special multi-page highlight mode with many local and online export options."
       ),
-      _(
+      gettext(
         "Can synchronize your reading progress across all your KOReader running devices."
       ),
-      _(
+      gettext(
         "Integrated with Calibre, Wallabag, Wikipedia, Google Translate and other content providers."
       ),
     },
   },
   notes = {
-    _("Release notes available on the link below"),
+    gettext("Release notes available on the link below"),
   },
   screenshots = {
     {
@@ -70,12 +70,12 @@ local metadata = {
     },
   },
   keywords = {
-    _("reader"),
-    _("viewer"),
-    _("dictionary"),
-    _("wikipedia"),
-    _("wallabag"),
-    _("annotations"),
+    gettext("reader"),
+    gettext("viewer"),
+    gettext("dictionary"),
+    gettext("wikipedia"),
+    gettext("wallabag"),
+    gettext("annotations"),
     -- don't translate formats
     "epub",
     "fb2",
@@ -219,13 +219,13 @@ local function htmlDescription(lang)
   local lang = lang or "en"
   local desc = metadata.desc
   local t = {}
-  _.changeLang(lang)
+  gettext.changeLang(lang)
   for i, v in ipairs(desc.paragraphs) do
-    table.insert(t, "<p>" .. htmlEscape(_(v)) .. "</p>")
+    table.insert(t, "<p>" .. htmlEscape(gettext(v)) .. "</p>")
   end
   table.insert(t, "<ul>")
   for i, v in ipairs(desc.highlights) do
-    table.insert(t, "  <li>" .. htmlEscape(_(v)) .. "</li>")
+    table.insert(t, "  <li>" .. htmlEscape(gettext(v)) .. "</li>")
   end
   table.insert(t, "</ul>")
   return table.concat(t, "\n")
@@ -266,22 +266,22 @@ local function genAppstream()
   table.insert(t, '<component type="desktop-application">')
   table.insert(t, metadata.component)
   local orig, translated
-  _.changeLang("en")
+  gettext.changeLang("en")
   orig = metadata.summary
   for __, lang in ipairs(locales) do
-    _.changeLang(lang)
-    translated = _(metadata.summary)
+    gettext.changeLang(lang)
+    translated = gettext(metadata.summary)
     if orig ~= translated or lang == "en" then
       table.insert(t, tag("summary", lang, htmlEscape(translated), 2))
     end
   end
   table.insert(t, "  <description>")
   for i, v in ipairs(desc.paragraphs) do
-    _.changeLang("en")
+    gettext.changeLang("en")
     orig = v
     for __, lang in ipairs(locales) do
-      _.changeLang(lang)
-      translated = _(v)
+      gettext.changeLang(lang)
+      translated = gettext(v)
       if orig ~= translated or lang == "en" then
         table.insert(t, tag("p", lang, htmlEscape(translated), 4))
       end
@@ -289,11 +289,11 @@ local function genAppstream()
   end
   table.insert(t, "    <ul>")
   for i, v in ipairs(desc.highlights) do
-    _.changeLang("en")
+    gettext.changeLang("en")
     orig = v
     for __, lang in ipairs(locales) do
-      _.changeLang(lang)
-      translated = _(v)
+      gettext.changeLang(lang)
+      translated = gettext(v)
       if orig ~= translated or lang == "en" then
         table.insert(t, tag("li", lang, htmlEscape(translated), 6))
       end
@@ -310,11 +310,11 @@ local function genAppstream()
     end
     table.insert(t, tag("image", "en", v.image, 6))
     if v.caption then
-      _.changeLang(en)
+      gettext.changeLang(en)
       orig = v.caption
       for __, lang in ipairs(locales) do
-        _.changeLang(lang)
-        translated = _(v.caption)
+        gettext.changeLang(lang)
+        translated = gettext(v.caption)
         if orig ~= translated or lang == "en" then
           table.insert(t, tag("caption", lang, htmlEscape(translated), 6))
         end
@@ -326,11 +326,11 @@ local function genAppstream()
 
   table.insert(t, "  <keywords>")
   for i, v in ipairs(metadata.keywords) do
-    _.changeLang(en)
+    gettext.changeLang(en)
     orig = v
     for __, lang in ipairs(locales) do
-      _.changeLang(lang)
-      translated = _(v)
+      gettext.changeLang(lang)
+      translated = gettext(v)
       if orig ~= translated or lang == "en" then
         table.insert(t, tag("keyword", lang, htmlEscape(translated), 4))
       end
@@ -344,11 +344,11 @@ local function genAppstream()
       <description>]]
   )
   for i, v in ipairs(metadata.notes) do
-    _.changeLang(en)
+    gettext.changeLang(en)
     orig = v
     for __, lang in ipairs(locales) do
-      _.changeLang(lang)
-      translated = _(v)
+      gettext.changeLang(lang)
+      translated = gettext(v)
       if orig ~= translated or lang == "en" then
         table.insert(t, tag("p", lang, htmlEscape(translated), 8))
       end
@@ -374,7 +374,7 @@ local function genFastlane()
   local short_translated, full_translated
 
   for __, lang in ipairs(locales) do
-    _.changeLang(lang)
+    gettext.changeLang(lang)
     if lang == "en" then
       metadata_dir = "metadata/en-US/"
       metadata_file = metadata_dir .. short
@@ -383,7 +383,7 @@ local function genFastlane()
       writeFile(full_orig, metadata_file)
     else
       metadata_dir = "metadata/" .. lang .. "/"
-      short_translated = _(metadata.summary)
+      short_translated = gettext(metadata.summary)
       full_translated = htmlDescription(lang)
       if short_orig ~= short_translated or full_orig ~= full_translated then
         os.execute("mkdir -p " .. metadata_dir)

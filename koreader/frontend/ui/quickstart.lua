@@ -10,7 +10,7 @@ local FFIUtil = require("ffi/util")
 local T = FFIUtil.template
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local QuickStart = {
   quickstart_force_show_version = 2021070000,
@@ -53,7 +53,7 @@ if Device:hasScreenKB() or Device:hasSymKey() then
   -- On Non-Touch kindle, not showing "Frontlight", showing specific section "Shortcuts"
   table.insert(
     quickstart_guide,
-    _([[
+    gettext([[
 <div class="logo">![KOReader](resources/koreader.svg)</div>
 
 # Quickstart guide
@@ -74,7 +74,7 @@ You can access the complete user manual from [our GitHub page](https://github.co
 else
   table.insert(
     quickstart_guide,
-    _([[
+    gettext([[
 <div class="logo">![KOReader](resources/koreader.svg)</div>
 
 # Quickstart guide
@@ -99,7 +99,7 @@ if Device:hasScreenKB() then
   -- Use correct k4 illustration and appropriate button mapping
   table.insert(
     quickstart_guide,
-    _([[## User interface <a id="ui"></a>
+    gettext([[## User interface <a id="ui"></a>
 
 <div class="img-block">![Touch zones](resources/quickstart/kindle4.png)</div>
 
@@ -111,7 +111,7 @@ elseif Device:hasSymKey() then
   -- Use correct k3 illustration and appropriate button mapping
   table.insert(
     quickstart_guide,
-    _([[## User interface <a id="ui"></a>
+    gettext([[## User interface <a id="ui"></a>
 
 <div class="img-block">![Touch zones](resources/quickstart/kindle3.png)</div>
 
@@ -122,7 +122,7 @@ elseif Device:hasSymKey() then
 else
   table.insert(
     quickstart_guide,
-    _([[## User interface <a id="ui"></a>
+    gettext([[## User interface <a id="ui"></a>
 
 <div class="img-block">![Touch zones](resources/quickstart/touchzones.png)</div>
 
@@ -136,7 +136,7 @@ end
 if Device:hasScreenKB() then
   table.insert(
     quickstart_guide,
-    _([[## User interface tips <a id="uitips"></a>
+    gettext([[## User interface tips <a id="uitips"></a>
 
 - You can change the interface language using:
 
@@ -165,7 +165,7 @@ if Device:hasScreenKB() then
 elseif Device:hasSymKey() then
   table.insert(
     quickstart_guide,
-    _([[## User interface tips <a id="uitips"></a>
+    gettext([[## User interface tips <a id="uitips"></a>
 
 - You can change the interface language using:
 
@@ -194,7 +194,7 @@ elseif Device:hasSymKey() then
 else
   table.insert(
     quickstart_guide,
-    _([[## User interface tips <a id="uitips"></a>
+    gettext([[## User interface tips <a id="uitips"></a>
 
 - You can change the interface language using:
 
@@ -228,7 +228,7 @@ if Device:hasScreenKB() or Device:hasSymKey() then
   -- This NT version removes mentions of gestures
   table.insert(
     quickstart_guide,
-    _([[## Accessing files <a id="afiles"></a>
+    gettext([[## Accessing files <a id="afiles"></a>
 
 The following methods are available for accessing your books and articles:
 
@@ -244,7 +244,7 @@ You can also set KOReader to open with any of these dialogs on startup via:
 else
   table.insert(
     quickstart_guide,
-    _([[## Accessing files <a id="afiles"></a>
+    gettext([[## Accessing files <a id="afiles"></a>
 
 The following methods are available for accessing your books and articles:
 
@@ -264,7 +264,7 @@ end
 -- Transferring files
 table.insert(
   quickstart_guide,
-  _([[## Transferring files <a id="tfiles"></a>
+  gettext([[## Transferring files <a id="tfiles"></a>
 
 In addition to transferring files the same way you would with the built-in reader application, other options are available depending on your device:
 
@@ -281,7 +281,7 @@ In addition to transferring files the same way you would with the built-in reade
 if Device:hasScreenKB() then
   table.insert(
     quickstart_guide,
-    _([[## Shortcuts <a id="short"></a>
+    gettext([[## Shortcuts <a id="short"></a>
 
 The following is a non-exhaustive list of shortcuts available.
 
@@ -307,7 +307,7 @@ When using a virtual keyboard:
 elseif Device:hasSymKey() then
   table.insert(
     quickstart_guide,
-    _([[## Shortcuts <a id="short"></a>
+    gettext([[## Shortcuts <a id="short"></a>
 
 The following is a non-exhaustive list of shortcuts available.
 
@@ -335,7 +335,7 @@ When using a virtual keyboard:
 else
   table.insert(
     quickstart_guide,
-    _([[## Frontlight/backlight <a id="flight"></a>
+    gettext([[## Frontlight/backlight <a id="flight"></a>
 
 You can control your screen light via this menu. If you have warm lighting (normal white LEDs+orange ones) you can control them separately from this dialog:
 
@@ -347,7 +347,7 @@ end
 -- While reading
 table.insert(
   quickstart_guide,
-  _([[## While reading <a id="reading"></a>
+  gettext([[## While reading <a id="reading"></a>
 
 <div class="table"><div>
 
@@ -386,7 +386,7 @@ Change many formatting options
 -- Dictionaries
 table.insert(
   quickstart_guide,
-  _([[## Installing dictionaries <a id="dicts"></a>
+  gettext([[## Installing dictionaries <a id="dicts"></a>
 
 KOReader supports dictionary lookup in EPUB and even in scanned PDF/DJVU documents. To see the dictionary definition or translation, tap and hold a word.
 
@@ -400,7 +400,7 @@ To use the dictionary lookup function, first you need to install one or more dic
 table.insert(
   quickstart_guide,
   T(
-    _([[## More info <a id="more"></a>
+    gettext([[## More info <a id="more"></a>
 
 You can find more information on our GitHub page
 
@@ -462,7 +462,7 @@ function QuickStart:getQuickStart()
 
     local quickstart_html = FileConverter:mdToHtml(
       quickstart_guide,
-      _("KOReader Quickstart Guide"),
+      gettext("KOReader Quickstart Guide"),
       stylesheet
     )
     if quickstart_html then

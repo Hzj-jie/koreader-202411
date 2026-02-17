@@ -10,7 +10,7 @@ local Notification = require("ui/widget/notification")
 local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local ViewHtml = {
@@ -18,17 +18,17 @@ local ViewHtml = {
     -- For available flags, see the "#define WRITENODEEX_*" in crengine/src/lvtinydom.cpp.
     -- Start with valid and classic displayed HTML (with only block nodes indented),
     -- including styles found in <HEAD>, linked CSS files content, and misc info.
-    { _("Switch to standard view"), 0xE830, false },
+    { gettext("Switch to standard view"), 0xE830, false },
 
     -- Each node on a line, with markers and numbers of skipped chars and siblings shown,
     -- with possibly invalid HTML (text nodes not escaped)
-    { _("Switch to debug view"), 0xEB5A, true },
+    { gettext("Switch to debug view"), 0xEB5A, true },
 
     -- Additionally show rendering methods of each node
-    { _("Switch to rendering debug view"), 0xEF5A, true },
+    { gettext("Switch to rendering debug view"), 0xEF5A, true },
 
     -- Or additionally show unicode codepoint of each char
-    { _("Switch to unicode debug view"), 0xEB5E, true },
+    { gettext("Switch to unicode debug view"), 0xEB5E, true },
   },
 }
 
@@ -61,7 +61,7 @@ function ViewHtml:_viewSelectionHTML(
   )
   if not html then
     UIManager:show(InfoMessage:new({
-      text = _("Failed getting HTML for selection"),
+      text = gettext("Failed getting HTML for selection"),
     }))
     return
   end
@@ -133,13 +133,13 @@ function ViewHtml:_viewSelectionHTML(
   if css_files and with_css_files_buttons then
     for i = 1, #css_files do
       local button = {
-        text = T(_("View %1"), BD.filepath(css_files[i])),
+        text = T(gettext("View %1"), BD.filepath(css_files[i])),
         callback = function()
           local css_text = document:getDocumentFileContent(css_files[i])
           local cssviewer
           cssviewer = TextViewer:new({
             title = css_files[i],
-            text = css_text or _("Failed getting CSS content"),
+            text = css_text or gettext("Failed getting CSS content"),
             text_type = "code",
             para_direction_rtl = false,
             auto_para_direction = false,
@@ -147,7 +147,7 @@ function ViewHtml:_viewSelectionHTML(
             buttons_table = {
               {
                 {
-                  text = _("Prettify"),
+                  text = gettext("Prettify"),
                   enabled = css_text and true or false,
                   callback = function()
                     UIManager:close(cssviewer)
@@ -200,7 +200,7 @@ function ViewHtml:_viewSelectionHTML(
     if not css_selectors_offsets or css_selectors_offsets == "" then -- no flag provided
       Device.input.setClipboardText(text)
       UIManager:show(Notification:new({
-        text = _("Selection copied to clipboard."),
+        text = gettext("Selection copied to clipboard."),
       }))
       return
     end
@@ -225,7 +225,7 @@ function ViewHtml:_viewSelectionHTML(
   end
 
   textviewer = TextViewer:new({
-    title = _("Selection HTML"),
+    title = gettext("Selection HTML"),
     text = html,
     text_type = "code",
     para_direction_rtl = false,
@@ -385,7 +385,7 @@ function ViewHtml:_handleLongPress(
         callback = function()
           Device.input.setClipboardText(text)
           UIManager:show(Notification:new({
-            text = _("Selector copied to clipboard."),
+            text = gettext("Selector copied to clipboard."),
           }))
         end,
         -- Allow "appending" with long-press, in case we want to gather a few selectors
@@ -395,7 +395,7 @@ function ViewHtml:_handleLongPress(
             Device.input.getClipboardText() .. "\n" .. text
           )
           UIManager:show(Notification:new({
-            text = _("Selector appended to clipboard."),
+            text = gettext("Selector appended to clipboard."),
           }))
         end,
       },
@@ -413,7 +413,7 @@ function ViewHtml:_handleLongPress(
   table.insert(copy_buttons, {})
   table.insert(copy_buttons, {
     {
-      text = _("Show matched stylesheets rules (element only)"),
+      text = gettext("Show matched stylesheets rules (element only)"),
       callback = function()
         self:_showMatchingSelectors(document, ancestors, false)
       end,
@@ -425,7 +425,7 @@ function ViewHtml:_handleLongPress(
   })
   table.insert(copy_buttons, {
     {
-      text = _("Show matched stylesheets rules (all ancestors)"),
+      text = gettext("Show matched stylesheets rules (all ancestors)"),
       callback = function()
         self:_showMatchingSelectors(document, ancestors, true)
       end,
@@ -438,7 +438,7 @@ function ViewHtml:_handleLongPress(
 
   local ButtonDialog = require("ui/widget/buttondialog")
   local widget = ButtonDialog:new({
-    title = _("Copy to clipboard:"),
+    title = gettext("Copy to clipboard:"),
     title_align = "center",
     width_factor = 0.8,
     use_info_style = false,
@@ -488,13 +488,13 @@ function ViewHtml:_showMatchingSelectors(
     end
   end
 
-  local title = show_all_ancestors and _("Matching rulesets (all ancestors)")
-    or _("Matching rulesets (element only)")
+  local title = show_all_ancestors and gettext("Matching rulesets (all ancestors)")
+    or gettext("Matching rulesets (element only)")
   local css_text = table.concat(snippets, "\n")
   local cssviewer
   cssviewer = TextViewer:new({
     title = title,
-    text = css_text or _("No matching rulesets"),
+    text = css_text or gettext("No matching rulesets"),
     text_type = "code",
     para_direction_rtl = false,
     auto_para_direction = false,
@@ -502,7 +502,7 @@ function ViewHtml:_showMatchingSelectors(
     buttons_table = {
       {
         {
-          text = _("Prettify"),
+          text = gettext("Prettify"),
           enabled = css_text and true or false,
           callback = function()
             UIManager:close(cssviewer)

@@ -26,7 +26,7 @@ local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 
 -- Default settings
@@ -60,7 +60,7 @@ if G_reader_settings:hasNot("screensaver_hide_fallback_msg") then
 end
 
 local Screensaver = {
-  default_screensaver_message = _("Sleeping"),
+  default_screensaver_message = gettext("Sleeping"),
 
   -- State values
   show_message = nil,
@@ -79,7 +79,7 @@ local Screensaver = {
 if Device:isEmulator() then
   Screensaver.default_screensaver_message = Screensaver.default_screensaver_message
     .. "\n"
-    .. _("(Press F2 to resume)")
+    .. gettext("(Press F2 to resume)")
 end
 
 local function _getRandomImage(dir)
@@ -99,7 +99,7 @@ function Screensaver:getAvgTimePerPage()
 end
 
 function Screensaver:_calcAverageTimeForPages(pages)
-  local sec = _("N/A")
+  local sec = gettext("N/A")
   local average_time_per_page = self:getAvgTimePerPage()
 
   -- Compare average_time_per_page against itself to make sure it's not nan
@@ -140,12 +140,12 @@ function Screensaver:expandSpecial(message, fallback)
   local totalpages = 0
   local percent = 0
   local currentpage = 0
-  local title = _("N/A")
-  local authors = _("N/A")
-  local series = _("N/A")
-  local time_left_chapter = _("N/A")
-  local time_left_document = _("N/A")
-  local batt_lvl = _("N/A")
+  local title = gettext("N/A")
+  local authors = gettext("N/A")
+  local series = gettext("N/A")
+  local time_left_chapter = gettext("N/A")
+  local time_left_document = gettext("N/A")
+  local batt_lvl = gettext("N/A")
   local props
 
   local ReaderUI = require("apps/reader/readerui")
@@ -292,7 +292,7 @@ local function addOverlayMessage(widget, widget_height, text)
 end
 
 function Screensaver:chooseFolder()
-  local title_header = _("Current random image folder:")
+  local title_header = gettext("Current random image folder:")
   local current_path = G_reader_settings:read("screensaver_dir")
   local caller_callback = function(path)
     G_reader_settings:save("screensaver_dir", path)
@@ -302,7 +302,7 @@ end
 
 function Screensaver:chooseFile()
   local title_header, current_path, file_filter, caller_callback
-  title_header = _("Current image or document cover:")
+  title_header = gettext("Current image or document cover:")
   current_path = G_reader_settings:read("screensaver_document_cover")
   file_filter = function(filename)
     return DocumentRegistry:hasProvider(filename)
@@ -347,8 +347,8 @@ function Screensaver:setMessage()
     or self.default_screensaver_message
   local input_dialog
   input_dialog = InputDialog:new({
-    title = _("Sleep screen message"),
-    description = _([[
+    title = gettext("Sleep screen message"),
+    description = gettext([[
 Enter a custom message to be displayed on the sleep screen. The following escape sequences are available:
   %T title
   %A author(s)
@@ -363,14 +363,14 @@ Enter a custom message to be displayed on the sleep screen. The following escape
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(input_dialog)
           end,
         },
         {
-          text = _("Set message"),
+          text = gettext("Set message"),
           is_enter_default = true,
           callback = function()
             G_reader_settings:save(
@@ -394,8 +394,8 @@ function Screensaver:setStretchLimit(touchmenu_instance)
     value_max = 25,
     default_value = 8,
     unit = "%",
-    title_text = _("Set maximum stretch limit"),
-    ok_text = _("Set"),
+    title_text = gettext("Set maximum stretch limit"),
+    ok_text = gettext("Set"),
     ok_always_enabled = true,
     callback = function(spin)
       G_reader_settings:save("screensaver_stretch_limit_percentage", spin.value)
@@ -404,14 +404,14 @@ function Screensaver:setStretchLimit(touchmenu_instance)
         touchmenu_instance:updateItems()
       end
     end,
-    extra_text = _("Disable stretch"),
+    extra_text = gettext("Disable stretch"),
     extra_callback = function()
       G_reader_settings:makeFalse("screensaver_stretch_images")
       if touchmenu_instance then
         touchmenu_instance:updateItems()
       end
     end,
-    option_text = _("Full stretch"),
+    option_text = gettext("Full stretch"),
     option_callback = function()
       G_reader_settings:makeTrue("screensaver_stretch_images")
       G_reader_settings:delete("screensaver_stretch_limit_percentage")

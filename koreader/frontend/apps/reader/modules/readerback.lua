@@ -6,7 +6,7 @@ local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- This module handles the "Back" key (and the "Back" gesture action).
 -- When global setting "back_in_reader" == "previous_read_page", it
@@ -140,7 +140,7 @@ function ReaderBack:onBack()
       -- it's disabled, in which case we always show this notification)
       self.back_resist = true
       UIManager:show(Notification:new({
-        text = _("Location history is empty."),
+        text = gettext("Location history is empty."),
       }))
       return true
     else
@@ -178,8 +178,8 @@ function ReaderBack:onBack()
     return true
   elseif back_to_exit == "prompt" then
     UIManager:show(ConfirmBox:new({
-      text = _("Exit KOReader?"),
-      ok_text = _("Exit"),
+      text = gettext("Exit KOReader?"),
+      ok_text = gettext("Exit"),
       ok_callback = function()
         UIManager:broadcastEvent(Event:new("Close"))
       end,

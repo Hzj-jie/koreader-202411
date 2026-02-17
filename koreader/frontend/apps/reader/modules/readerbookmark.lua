@@ -18,8 +18,8 @@ local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
 local util = require("util")
-local _ = require("gettext")
-local N_ = _.ngettext
+local gettext = require("gettext")
+local N_ = gettext.ngettext
 local Screen = require("device").screen
 local T = require("ffi/util").template
 
@@ -31,9 +31,9 @@ local ReaderBookmark = InputContainer:extend({
     bookmark = "\u{F097}\u{2002}", -- "empty bookmark"
   },
   display_type = {
-    highlight = _("highlights"),
-    note = _("notes"),
-    bookmark = _("page bookmarks"),
+    highlight = gettext("highlights"),
+    note = gettext("notes"),
+    bookmark = gettext("page bookmarks"),
   },
 })
 
@@ -81,7 +81,7 @@ ReaderBookmark.onPhysicalKeyboardConnected = ReaderBookmark.registerKeyEvents
 
 function ReaderBookmark:addToMainMenu(menu_items)
   menu_items.bookmarks = {
-    text = _("Bookmarks"),
+    text = gettext("Bookmarks"),
     callback = function()
       self:onShowBookmark()
     end,
@@ -92,8 +92,8 @@ function ReaderBookmark:addToMainMenu(menu_items)
   then
     menu_items.toggle_bookmark = {
       text_func = function()
-        return self:isPageBookmarked() and _("Remove bookmark for current page")
-          or _("Bookmark current page")
+        return self:isPageBookmarked() and gettext("Remove bookmark for current page")
+          or gettext("Bookmark current page")
       end,
       callback = function()
         self:onToggleBookmark()
@@ -102,7 +102,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
   end
   if self.ui.paging then
     menu_items.bookmark_browsing_mode = {
-      text = _("Bookmark browsing mode"),
+      text = gettext("Bookmark browsing mode"),
       checked_func = function()
         return self.ui.paging.bookmark_flipping_mode
       end,
@@ -113,21 +113,21 @@ function ReaderBookmark:addToMainMenu(menu_items)
     }
   end
   menu_items.bookmarks_settings = {
-    text = _("Bookmarks"),
+    text = gettext("Bookmarks"),
     sub_item_table = {
       {
         text_func = function()
           return T(
-            _("Max lines per bookmark: %1"),
-            self.items_max_lines or _("disabled")
+            gettext("Max lines per bookmark: %1"),
+            self.items_max_lines or gettext("disabled")
           )
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
           local default_value = 4
           local spin_wodget = SpinWidget:new({
-            title_text = _("Max lines per bookmark"),
-            info_text = _(
+            title_text = gettext("Max lines per bookmark"),
+            info_text = gettext(
               "Set maximum number of lines to enable flexible item heights."
             ),
             value = self.items_max_lines or default_value,
@@ -140,7 +140,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
               self.items_max_lines = spin.value
               touchmenu_instance:updateItems()
             end,
-            extra_text = _("Disable"),
+            extra_text = gettext("Disable"),
             extra_callback = function()
               G_reader_settings:delete("bookmarks_items_max_lines")
               self.items_max_lines = nil
@@ -152,9 +152,9 @@ function ReaderBookmark:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          local curr_perpage = self.items_max_lines and _("flexible")
+          local curr_perpage = self.items_max_lines and gettext("flexible")
             or G_reader_settings:read("bookmarks_items_per_page")
-          return T(_("Bookmarks per page: %1"), curr_perpage)
+          return T(gettext("Bookmarks per page: %1"), curr_perpage)
         end,
         enabled_func = function()
           return not self.items_max_lines
@@ -164,7 +164,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
           local curr_perpage =
             G_reader_settings:read("bookmarks_items_per_page")
           local items = SpinWidget:new({
-            title_text = _("Bookmarks per page"),
+            title_text = gettext("Bookmarks per page"),
             value = curr_perpage,
             value_min = 6,
             value_max = 24,
@@ -185,7 +185,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
           local curr_font_size = G_reader_settings:read(
             "bookmarks_items_font_size"
           ) or default_font_size
-          return T(_("Bookmark font size: %1"), curr_font_size)
+          return T(gettext("Bookmark font size: %1"), curr_font_size)
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
@@ -196,7 +196,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
             "bookmarks_items_font_size"
           ) or default_font_size
           local items_font = SpinWidget:new({
-            title_text = _("Bookmark font size"),
+            title_text = gettext("Bookmark font size"),
             value = curr_font_size,
             value_min = 10,
             value_max = 72,
@@ -210,7 +210,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Shrink bookmark font size to fit more text"),
+        text = gettext("Shrink bookmark font size to fit more text"),
         enabled_func = function()
           return not self.items_max_lines
         end,
@@ -229,7 +229,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(_("Show in items: %1"), self:genShowInItemsMenuItems())
+          return T(gettext("Show in items: %1"), self:genShowInItemsMenuItems())
         end,
         sub_item_table = {
           self:genShowInItemsMenuItems("text"),
@@ -238,7 +238,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
         },
       },
       {
-        text = _("Show separator between items"),
+        text = gettext("Show separator between items"),
         checked_func = function()
           return G_reader_settings:isTrue("bookmarks_items_show_separator")
         end,
@@ -249,14 +249,14 @@ function ReaderBookmark:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(_("Sort by: %1"), self:genSortByMenuItems())
+          return T(gettext("Sort by: %1"), self:genSortByMenuItems())
         end,
         sub_item_table = {
           self:genSortByMenuItems("page"),
           self:genSortByMenuItems("date", true),
           -- separator
           {
-            text = _("Reverse sorting"),
+            text = gettext("Reverse sorting"),
             checked_func = function()
               return G_reader_settings:isTrue("bookmarks_items_reverse_sorting")
             end,
@@ -271,7 +271,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
     },
   }
   menu_items.bookmark_search = {
-    text = _("Bookmark search"),
+    text = gettext("Bookmark search"),
     enabled_func = function()
       return self.ui.annotation:hasAnnotations()
     end,
@@ -283,9 +283,9 @@ end
 
 function ReaderBookmark:genShowInItemsMenuItems(value)
   local strings = {
-    text = _("highlighted text"),
-    all = _("highlighted text and note"),
-    note = _("note if set, otherwise highlighted text"),
+    text = gettext("highlighted text"),
+    all = gettext("highlighted text and note"),
+    note = gettext("note if set, otherwise highlighted text"),
   }
   if value == nil then
     value = G_reader_settings:read("bookmarks_items_text_type") or "note"
@@ -306,12 +306,12 @@ end
 
 function ReaderBookmark:genSortByMenuItems(value, separator)
   local strings = {
-    page = _("page number"),
-    date = _("date"),
+    page = gettext("page number"),
+    date = gettext("date"),
   }
   local strings_reverse = {
-    page = _("page number, reverse"),
-    date = _("date, reverse"),
+    page = gettext("page number, reverse"),
+    date = gettext("date, reverse"),
   }
   if value == nil then
     local curr_value = G_reader_settings:read("bookmarks_items_sorting")
@@ -375,7 +375,7 @@ function ReaderBookmark:toggleBookmark(pageno)
       chapter = nil
     else
       -- @translators In which chapter title (%1) a note is found.
-      text = T(_("in %1"), chapter)
+      text = T(gettext("in %1"), chapter)
     end
     item = {
       page = pn_or_xp,
@@ -661,7 +661,7 @@ function ReaderBookmark:isBookmarkAutoText(bookmark)
   end
   local page = self:getBookmarkPageString(bookmark.page)
   local auto_text =
-    T(_("Page %1 %2 @ %3"), page, bookmark.notes, bookmark.datetime)
+    T(gettext("Page %1 %2 @ %3"), page, bookmark.notes, bookmark.datetime)
   return bookmark.text == auto_text
 end
 
@@ -736,7 +736,7 @@ function ReaderBookmark:onShowBookmark()
     covers_fullscreen = true, -- hint for UIManager:_repaint()
   })
   local bm_menu = Menu:new({
-    title = T(_("Bookmarks (%1)"), #item_table),
+    title = T(gettext("Bookmarks (%1)"), #item_table),
     item_table = item_table,
     is_borderless = true,
     is_popout = false,
@@ -820,11 +820,11 @@ function ReaderBookmark:onShowBookmark()
           self.select_count
         )
       else
-        dialog_title = _("No bookmarks selected")
+        dialog_title = gettext("No bookmarks selected")
       end
       table.insert(buttons, {
         {
-          text = _("Select all"),
+          text = gettext("Select all"),
           enabled = more_selections_enabled,
           callback = function()
             UIManager:close(bm_dialog)
@@ -836,7 +836,7 @@ function ReaderBookmark:onShowBookmark()
           end,
         },
         {
-          text = _("Select page"),
+          text = gettext("Select page"),
           enabled = more_selections_enabled,
           callback = function()
             UIManager:close(bm_dialog)
@@ -856,7 +856,7 @@ function ReaderBookmark:onShowBookmark()
       })
       table.insert(buttons, {
         {
-          text = _("Deselect all"),
+          text = gettext("Deselect all"),
           enabled = actions_enabled,
           callback = function()
             UIManager:close(bm_dialog)
@@ -871,12 +871,12 @@ function ReaderBookmark:onShowBookmark()
           end,
         },
         {
-          text = _("Delete note"),
+          text = gettext("Delete note"),
           enabled = actions_enabled,
           callback = function()
             UIManager:show(ConfirmBox:new({
-              text = _("Delete bookmark notes?"),
-              ok_text = _("Delete"),
+              text = gettext("Delete bookmark notes?"),
+              ok_text = gettext("Delete"),
               ok_callback = function()
                 UIManager:close(bm_dialog)
                 for _, v in ipairs(item_table) do
@@ -893,19 +893,19 @@ function ReaderBookmark:onShowBookmark()
       })
       table.insert(buttons, {
         {
-          text = _("Exit select mode"),
+          text = gettext("Exit select mode"),
           callback = function()
             UIManager:close(bm_dialog)
             self:toggleSelectMode()
           end,
         },
         {
-          text = _("Remove"),
+          text = gettext("Remove"),
           enabled = actions_enabled and not bookmark.ui.highlight.select_mode,
           callback = function()
             UIManager:show(ConfirmBox:new({
-              text = _("Remove selected bookmarks?"),
-              ok_text = _("Remove"),
+              text = gettext("Remove selected bookmarks?"),
+              ok_text = gettext("Remove"),
               ok_callback = function()
                 UIManager:close(bm_dialog)
                 for i = #item_table, 1, -1 do
@@ -923,7 +923,7 @@ function ReaderBookmark:onShowBookmark()
         },
       })
     else -- select mode off
-      dialog_title = _("Filter by bookmark type")
+      dialog_title = gettext("Filter by bookmark type")
       local actions_enabled = #item_table > 0
       local type_count = { highlight = 0, note = 0, bookmark = 0 }
       for _, item in ipairs(bookmark.ui.annotation.annotations) do
@@ -933,7 +933,7 @@ function ReaderBookmark:onShowBookmark()
       local genBookmarkTypeButton = function(item_type)
         return {
           text = bookmark.display_prefix[item_type] .. T(
-            _("%1 (%2)"),
+            gettext("%1 (%2)"),
             bookmark.display_type[item_type],
             type_count[item_type]
           ),
@@ -947,7 +947,7 @@ function ReaderBookmark:onShowBookmark()
       end
       table.insert(buttons, {
         {
-          text = _("All (reset filters)"),
+          text = gettext("All (reset filters)"),
           callback = function()
             UIManager:close(bm_dialog)
             self:onExit()
@@ -963,7 +963,7 @@ function ReaderBookmark:onShowBookmark()
       table.insert(buttons, {}) -- separator
       table.insert(buttons, {
         {
-          text = _("Filter by edited highlighted text"),
+          text = gettext("Filter by edited highlighted text"),
           callback = function()
             UIManager:close(bm_dialog)
             bookmark:filterByEditedText()
@@ -972,7 +972,7 @@ function ReaderBookmark:onShowBookmark()
       })
       table.insert(buttons, {
         {
-          text = _("Filter by highlight style"),
+          text = gettext("Filter by highlight style"),
           callback = function()
             UIManager:close(bm_dialog)
             bookmark:filterByHighlightStyle()
@@ -982,7 +982,7 @@ function ReaderBookmark:onShowBookmark()
       table.insert(buttons, {}) -- separator
       table.insert(buttons, {
         {
-          text = _("Current page"),
+          text = gettext("Current page"),
           callback = function()
             UIManager:close(bm_dialog)
             local idx
@@ -1000,7 +1000,7 @@ function ReaderBookmark:onShowBookmark()
           end,
         },
         {
-          text = _("Latest bookmark"),
+          text = gettext("Latest bookmark"),
           enabled = actions_enabled
             and not (
               bookmark.match_table
@@ -1023,7 +1023,7 @@ function ReaderBookmark:onShowBookmark()
       })
       table.insert(buttons, {
         {
-          text = _("Select bookmarks"),
+          text = gettext("Select bookmarks"),
           enabled = actions_enabled,
           callback = function()
             UIManager:close(bm_dialog)
@@ -1031,7 +1031,7 @@ function ReaderBookmark:onShowBookmark()
           end,
         },
         {
-          text = _("Search bookmarks"),
+          text = gettext("Search bookmarks"),
           enabled = actions_enabled,
           callback = function()
             UIManager:close(bm_dialog)
@@ -1077,24 +1077,24 @@ function ReaderBookmark:updateBookmarkList(item_table, item_number)
 
   local title
   if item_table then
-    title = T(_("Bookmarks (%1)"), #item_table)
+    title = T(gettext("Bookmarks (%1)"), #item_table)
   end
 
   local subtitle
   if bm_menu.select_count then
-    subtitle = T(_("Selected: %1"), bm_menu.select_count)
+    subtitle = T(gettext("Selected: %1"), bm_menu.select_count)
   else
     if self.show_edited_only then
-      subtitle = _("Filter: edited highlighted text")
+      subtitle = gettext("Filter: edited highlighted text")
     elseif self.show_drawer_only then
-      subtitle = _("Highlight style:")
+      subtitle = gettext("Highlight style:")
         .. " "
         .. self.ui.highlight
           :getHighlightStyleString(self.show_drawer_only)
           :lower()
     elseif self.match_table then
       if self.match_table.search_str then
-        subtitle = T(_("Query: %1"), self.match_table.search_str)
+        subtitle = T(gettext("Query: %1"), self.match_table.search_str)
       else
         local types = {}
         for type, type_string in pairs(self.display_type) do
@@ -1104,7 +1104,7 @@ function ReaderBookmark:updateBookmarkList(item_table, item_number)
         end
         table.sort(types)
         subtitle = #types > 0
-          and _("Bookmark type:") .. " " .. table.concat(types, ", ")
+          and gettext("Bookmark type:") .. " " .. table.concat(types, ", ")
       end
     else
       subtitle = ""
@@ -1160,9 +1160,9 @@ end
 function ReaderBookmark:_getDialogHeader(bookmark)
   local page_str = bookmark.mandatory
     or self:getBookmarkPageString(bookmark.page)
-  return T(_("Page: %1"), page_str)
+  return T(gettext("Page: %1"), page_str)
     .. "   "
-    .. T(_("Time: %1"), bookmark.datetime)
+    .. T(gettext("Time: %1"), bookmark.datetime)
 end
 
 function ReaderBookmark:showBookmarkDetails(item_or_index)
@@ -1233,14 +1233,14 @@ function ReaderBookmark:showBookmarkDetails(item_or_index)
   local buttons_table = {
     {
       {
-        text = _("Reset text"),
+        text = gettext("Reset text"),
         enabled = item.text_edited and not_select_mode or false,
         callback = function()
           self:setHighlightedText(item_or_index, nil, edit_details_callback)
         end,
       },
       {
-        text = _("Edit text"),
+        text = gettext("Edit text"),
         enabled = item.drawer and not_select_mode or false,
         callback = function()
           self:editHighlightedText(item_or_index, edit_details_callback)
@@ -1249,12 +1249,12 @@ function ReaderBookmark:showBookmarkDetails(item_or_index)
     },
     {
       {
-        text = _("Remove bookmark"),
+        text = gettext("Remove bookmark"),
         enabled = not_select_mode,
         callback = function()
           UIManager:show(ConfirmBox:new({
-            text = _("Remove this bookmark?"),
-            ok_text = _("Remove"),
+            text = gettext("Remove this bookmark?"),
+            ok_text = gettext("Remove"),
             ok_callback = function()
               UIManager:close(textviewer)
               self:removeItem(item, not bm_menu and item_idx)
@@ -1267,7 +1267,7 @@ function ReaderBookmark:showBookmarkDetails(item_or_index)
         end,
       },
       {
-        text = item.note and _("Edit note") or _("Add note"),
+        text = item.note and gettext("Edit note") or gettext("Add note"),
         enabled = not_select_mode,
         callback = function()
           self:setBookmarkNote(item_or_index, nil, nil, edit_details_callback)
@@ -1276,13 +1276,13 @@ function ReaderBookmark:showBookmarkDetails(item_or_index)
     },
     {
       {
-        text = _("Close"),
+        text = gettext("Close"),
         callback = function()
           textviewer:onExit()
         end,
       },
       {
-        text = _("Go to bookmark"),
+        text = gettext("Go to bookmark"),
         enabled = not (bm_menu and bm_menu.select_count),
         callback = function()
           _goToBookmark()
@@ -1325,7 +1325,7 @@ function ReaderBookmark:showBookmarkDetails(item_or_index)
   }
 
   textviewer = TextViewer:new({
-    title = T(_("Bookmark details (%1/%2)"), item_idx, items_nb),
+    title = T(gettext("Bookmark details (%1/%2)"), item_idx, items_nb),
     text = text,
     text_type = "bookmark",
     buttons_table = buttons_table,
@@ -1360,7 +1360,7 @@ function ReaderBookmark:setBookmarkNote(
   end
   local input_dialog
   input_dialog = InputDialog:new({
-    title = _("Edit note"),
+    title = gettext("Edit note"),
     description = "   " .. self:_getDialogHeader(annotation),
     input = input_text,
     allow_newline = true,
@@ -1369,7 +1369,7 @@ function ReaderBookmark:setBookmarkNote(
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             -- NOTE: We'll want a full refresh on close, as the CRe highlight may extend past our own dimensions,
@@ -1381,13 +1381,13 @@ function ReaderBookmark:setBookmarkNote(
           end,
         },
         {
-          text = _("Paste"), -- insert highlighted text
+          text = gettext("Paste"), -- insert highlighted text
           callback = function()
             input_dialog:addTextToInput(annotation.text)
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           is_enter_default = true,
           callback = function()
             local value = input_dialog:getInputText()
@@ -1439,7 +1439,7 @@ function ReaderBookmark:editHighlightedText(item_or_index, caller_callback)
   end
   local input_dialog
   input_dialog = InputDialog:new({
-    title = _("Edit highlighted text"),
+    title = gettext("Edit highlighted text"),
     description = "   " .. self:_getDialogHeader(item),
     input = item.text_orig or item.text,
     allow_newline = true,
@@ -1448,14 +1448,14 @@ function ReaderBookmark:editHighlightedText(item_or_index, caller_callback)
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(input_dialog)
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           is_enter_default = true,
           callback = function()
             self:setHighlightedText(
@@ -1510,18 +1510,18 @@ function ReaderBookmark:onSearchBookmark()
   local input_dialog
   local check_button_case, separator, check_button_bookmark, check_button_highlight, check_button_note
   input_dialog = InputDialog:new({
-    title = _("Search bookmarks"),
+    title = gettext("Search bookmarks"),
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(input_dialog)
           end,
         },
         {
-          text = _("Search"),
+          text = gettext("Search"),
           is_enter_default = true,
           callback = function()
             local search_str = input_dialog:getInputText()
@@ -1558,7 +1558,7 @@ function ReaderBookmark:onSearchBookmark()
     },
   })
   check_button_case = CheckButton:new({
-    text = " " .. _("Case sensitive"),
+    text = " " .. gettext("Case sensitive"),
     checked = false,
     parent = input_dialog,
   })

@@ -10,11 +10,11 @@ local WpaClient = require("lj-wpaclient/wpaclient")
 local UIManager = require("ui/uimanager")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = FFIUtil.template
 
 local CLIENT_INIT_ERR_MSG =
-  _("Failed to initialize network control client: %1.")
+  gettext("Failed to initialize network control client: %1.")
 
 local WpaSupplicant = {}
 
@@ -130,9 +130,9 @@ function WpaSupplicant:authenticateNetwork(network)
   local cnt = 0
   local failure_cnt = 0
   local max_retry = 30
-  local info = InfoMessage:new({ text = _("Authenticating…") })
+  local info = InfoMessage:new({ text = gettext("Authenticating…") })
   local success = false
-  local msg = _("Authenticated")
+  local msg = gettext("Authenticated")
   UIManager:show(info)
   UIManager:forceRePaint()
   while cnt < max_retry do
@@ -174,7 +174,7 @@ function WpaSupplicant:authenticateNetwork(network)
       elseif ev:isAuthFailed() then
         failure_cnt = failure_cnt + 1
         if failure_cnt > 3 then
-          success, msg = false, _("Failed to authenticate")
+          success, msg = false, gettext("Failed to authenticate")
           break
         end
       end
@@ -190,7 +190,7 @@ function WpaSupplicant:authenticateNetwork(network)
   UIManager:close(info)
   UIManager:forceRePaint()
   if cnt >= max_retry then
-    success, msg = false, _("Timed out")
+    success, msg = false, gettext("Timed out")
   end
   return success, msg
 end

@@ -1,25 +1,25 @@
 local Device = require("device")
 local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local exit_settings = {}
 
 exit_settings.exit_menu = {
-  text = _("Exit"),
+  text = gettext("Exit"),
   hold_callback = function()
     UIManager:broadcastEvent("ExitKOReader")
   end,
   -- submenu entries will be appended by xyz_menu_order_lua
 }
 exit_settings.exit = {
-  text = _("Exit"),
+  text = gettext("Exit"),
   callback = function()
     UIManager:broadcastEvent("ExitKOReader")
   end,
 }
 exit_settings.restart_koreader = {
-  text = _("Restart KOReader"),
+  text = gettext("Restart KOReader"),
   callback = function()
     UIManager:broadcastEvent(Event:new("Restart"))
   end,
@@ -31,7 +31,7 @@ if not Device:canRestart() then
 end
 if Device:canSuspend() then
   exit_settings.sleep = {
-    text = _("Sleep"),
+    text = gettext("Sleep"),
     callback = function()
       UIManager:suspend()
     end,
@@ -39,7 +39,7 @@ if Device:canSuspend() then
 end
 if Device:canReboot() then
   exit_settings.reboot = {
-    text = _("Reboot the device"),
+    text = gettext("Reboot the device"),
     keep_menu_open = true,
     callback = function()
       UIManager:askForReboot()
@@ -48,7 +48,7 @@ if Device:canReboot() then
 end
 if Device:canPowerOff() then
   exit_settings.poweroff = {
-    text = _("Power off"),
+    text = gettext("Power off"),
     keep_menu_open = true,
     callback = function()
       UIManager:askForPowerOff()

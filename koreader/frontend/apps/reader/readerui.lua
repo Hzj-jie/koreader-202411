@@ -67,7 +67,7 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 local T = ffiUtil.template
@@ -717,7 +717,7 @@ function ReaderUI:showReader(file, provider, seamless)
   if file == nil or lfs.attributes(file, "mode") ~= "file" then
     UIManager:show(InfoMessage:new({
       text = T(
-        _("File '%1' does not exist."),
+        gettext("File '%1' does not exist."),
         BD.filepath(filemanagerutil.abbreviate(origin_file))
       ),
     }))
@@ -727,7 +727,7 @@ function ReaderUI:showReader(file, provider, seamless)
   if not DocumentRegistry:hasProvider(file) and provider == nil then
     UIManager:show(InfoMessage:new({
       text = T(
-        _("File '%1' is not supported."),
+        gettext("File '%1' is not supported."),
         BD.filepath(filemanagerutil.abbreviate(file))
       ),
     }))
@@ -742,7 +742,7 @@ function ReaderUI:showReader(file, provider, seamless)
     self:showReaderCoroutine(file, provider, seamless)
   else
     UIManager:show(InfoMessage:new({
-      text = _("No reader engine for this file or invalid file."),
+      text = gettext("No reader engine for this file or invalid file."),
     }))
     self:showFileManager(file)
   end
@@ -764,9 +764,9 @@ function ReaderUI:showReaderCoroutine(file, provider, seamless)
         Device:setIgnoreInput(false)
         -- Need localization.
         UIManager:show(InfoMessage:new({
-          text = _("Unfortunately KOReader crashed.")
+          text = gettext("Unfortunately KOReader crashed.")
             .. "\n"
-            .. _(
+            .. gettext(
               "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help developers to improve it."
             ),
         }))
@@ -775,7 +775,7 @@ function ReaderUI:showReaderCoroutine(file, provider, seamless)
     end,
     InfoMessage:new({
       text = T(
-        _("Opening file '%1'."),
+        gettext("Opening file '%1'."),
         BD.filepath(filemanagerutil.abbreviate(file))
       ),
       invisible = seamless,
@@ -794,7 +794,7 @@ function ReaderUI:doShowReader(file, provider, seamless)
   local document = DocumentRegistry:openDocument(file, provider)
   if not document then
     UIManager:show(InfoMessage:new({
-      text = _("No reader engine for this file or invalid file."),
+      text = gettext("No reader engine for this file or invalid file."),
     }))
     self:showFileManager(file)
     return
@@ -834,12 +834,12 @@ end
 function ReaderUI:unlockDocumentWithPassword(document, try_again)
   logger.dbg("show input password dialog")
   self.password_dialog = InputDialog:new({
-    title = try_again and _("Password is incorrect, try again?")
-      or _("Input document password"),
+    title = try_again and gettext("Password is incorrect, try again?")
+      or gettext("Input document password"),
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             self:closeDialog()
@@ -847,7 +847,7 @@ function ReaderUI:unlockDocumentWithPassword(document, try_again)
           end,
         },
         {
-          text = _("OK"),
+          text = gettext("OK"),
           callback = function()
             local success = self:onVerifyPassword(document)
             self:closeDialog()
@@ -897,7 +897,7 @@ function ReaderUI:onFlushSettings(show_notification)
   self:saveSettings()
   if show_notification then
     -- Invoked from dispatcher to explicitly flush settings
-    Notification:notify(_("Book metadata saved."))
+    Notification:notify(gettext("Book metadata saved."))
   end
 end
 
@@ -945,7 +945,7 @@ function ReaderUI:onExit(seamless)
       f,
       -- Need localization.
       T(
-        _("Saving progress of file %1"),
+        gettext("Saving progress of file %1"),
         BD.filepath(filemanagerutil.abbreviate(self.document.file))
       )
     )
@@ -972,7 +972,7 @@ function ReaderUI:dealWithLoadDocumentFailure()
       "crengine failed recognizing or parsing this file: unsupported or invalid document"
     )
     UIManager:show(InfoMessage:new({
-      text = _(
+      text = gettext(
         "Failed recognizing or parsing this file: unsupported or invalid document.\nKOReader will exit now."
       ),
       dismiss_callback = function()

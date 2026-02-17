@@ -23,7 +23,7 @@ local Input = Device.input
 local Screen = Device.screen
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- We use the BookMapRow widget, a local widget defined in bookmapwidget.lua,
 -- that we made available via BookMapWidget itself
@@ -32,7 +32,7 @@ local BookMapRow = BookMapWidget.BookMapRow
 
 -- PageBrowserWidget: shows thumbnails of pages
 local PageBrowserWidget = InputContainer:extend({
-  title = _("Page browser"),
+  title = gettext("Page browser"),
   -- Focus page: will be put at the best place in the thumbnail grid
   -- (that is, the grid will pick thumbnails from pages before and
   -- after it, and more pages after than before)
@@ -975,7 +975,7 @@ function PageBrowserWidget:showMenu()
   local buttons = {
     {
       {
-        text = _("About page browser"),
+        text = gettext("About page browser"),
         align = "left",
         callback = function()
           self:showAbout()
@@ -984,7 +984,7 @@ function PageBrowserWidget:showMenu()
     },
     {
       {
-        text = _("Available gestures"),
+        text = gettext("Available gestures"),
         align = "left",
         callback = function()
           self:showGestures()
@@ -993,7 +993,7 @@ function PageBrowserWidget:showMenu()
     },
     {
       {
-        text = _("Preload next/prev thumbnails"),
+        text = gettext("Preload next/prev thumbnails"),
         checked_func = function()
           return G_reader_settings:isTrue("page_browser_preload_thumbnails")
         end,
@@ -1008,7 +1008,7 @@ function PageBrowserWidget:showMenu()
     },
     {
       {
-        text = _("Thumbnail columns"),
+        text = gettext("Thumbnail columns"),
         callback = function() end,
         align = "left",
       },
@@ -1039,7 +1039,7 @@ function PageBrowserWidget:showMenu()
     },
     {
       {
-        text = _("Thumbnail rows"),
+        text = gettext("Thumbnail rows"),
         callback = function() end,
         align = "left",
       },
@@ -1070,7 +1070,7 @@ function PageBrowserWidget:showMenu()
     },
     {
       {
-        text = _("Thumbnail page numbers"),
+        text = gettext("Thumbnail page numbers"),
         callback = function() end,
         align = "left",
       },
@@ -1101,7 +1101,7 @@ function PageBrowserWidget:showMenu()
     },
     {
       {
-        text = _("Chapters in bottom ribbon"),
+        text = gettext("Chapters in bottom ribbon"),
         callback = function() end,
         align = "left",
       },
@@ -1145,7 +1145,7 @@ end
 
 function PageBrowserWidget:showAbout()
   UIManager:show(InfoMessage:new({
-    text = _([[
+    text = gettext([[
 Page browser shows thumbnails of pages.
 
 The bottom ribbon displays an extract of the book map around the pages displayed:
@@ -1163,7 +1163,7 @@ end
 
 function PageBrowserWidget:showGestures()
   UIManager:show(InfoMessage:new({
-    text = _([[
+    text = gettext([[
 Swipe along the top or left screen edge to change the number of columns or rows of thumbnails.
 
 Swipe vertically to move one row, horizontally to move one screen.
@@ -1676,7 +1676,7 @@ function PageBrowserWidget:onThumbnailHold(page, ges)
   local buttons = {
     {
       {
-        text = _("Toggle page bookmark"),
+        text = gettext("Toggle page bookmark"),
         align = "left",
         callback = function()
           UIManager:close(button_dialog)
@@ -1693,7 +1693,7 @@ function PageBrowserWidget:onThumbnailHold(page, ges)
         -- Note: we may have multiple chapters on a same page: we will show the first, which
         -- would need to be removed to access the second... We may want to show as many
         -- buttons as there are chapters, with the start of the chapter title as its text.
-        text = (has_toc_item and _("Edit or remove TOC chapter") or _(
+        text = (has_toc_item and gettext("Edit or remove TOC chapter") or gettext(
           "Start TOC chapter here"
         )) .. " " .. self.ui.handmade.custom_toc_symbol,
         align = "left",
@@ -1710,8 +1710,8 @@ function PageBrowserWidget:onThumbnailHold(page, ges)
     local is_in_hidden_flow = self.ui.handmade:isInHiddenFlow(page)
     table.insert(buttons, {
       {
-        text = is_in_hidden_flow and _("Restart regular flow here")
-          or _("Start hidden flow here"),
+        text = is_in_hidden_flow and gettext("Restart regular flow here")
+          or gettext("Start hidden flow here"),
         align = "left",
         callback = function()
           UIManager:close(button_dialog)

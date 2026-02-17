@@ -25,8 +25,8 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
-local N_ = _.ngettext
+local gettext = require("gettext")
+local N_ = gettext.ngettext
 local T = require("ffi/util").template
 
 local SingleInstanceDeinflector = Deinflector:new({})
@@ -224,7 +224,7 @@ function Japanese:genMenuItem()
           self.max_scan_length
         )
       end,
-      help_text = _(
+      help_text = gettext(
         "Number of characters to look ahead when trying to expand tap-and-hold word selection in documents."
       ),
       keep_menu_open = true,
@@ -232,9 +232,9 @@ function Japanese:genMenuItem()
         local SpinWidget = require("ui/widget/spinwidget")
         local Screen = require("device").screen
         local items = SpinWidget:new({
-          title_text = _("Text scan length"),
+          title_text = gettext("Text scan length"),
           info_text = T(
-            _([[
+            gettext([[
 The maximum number of characters to look ahead when trying to expand tap-and-hold word selection in documents.
 Larger values allow longer phrases to be selected automatically, but with the trade-off that selections may become slower.
 
@@ -247,7 +247,7 @@ Default value: %1]]),
           value_max = 1000,
           value_step = 1,
           value_hold_step = 10,
-          ok_text = _("Set scan length"),
+          ok_text = gettext("Set scan length"),
           default_value = DEFAULT_TEXT_SCAN_LENGTH,
           callback = function(spin)
             self.max_scan_length = spin.value
@@ -268,7 +268,7 @@ Default value: %1]]),
   util.arrayAppend(sub_item_table, self.deinflector:genMenuItems())
 
   return {
-    text = _("Japanese"),
+    text = gettext("Japanese"),
     sub_item_table = sub_item_table,
   }
 end

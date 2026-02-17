@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "batterystat",
-  fullname = _("Battery statistics"),
-  description = _([[Collects and displays battery statistics.]]),
+  fullname = gettext("Battery statistics"),
+  description = gettext([[Collects and displays battery statistics.]]),
 }

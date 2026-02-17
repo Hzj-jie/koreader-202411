@@ -6,7 +6,7 @@ It can be used as a callback on a button or menu item.
 Example:
   callback = function()
     require("ui/downloadmgr"):new{
-      title = _("Choose download directory"),
+      title = gettext("Choose download directory"),
       onConfirm = function(path)
         logger.dbg("set download directory to", path)
         G_reader_settings:save("download_dir", path)
@@ -21,7 +21,7 @@ Example:
 local PathChooser = require("ui/widget/pathchooser")
 local UIManager = require("ui/uimanager")
 local util = require("ffi/util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local DownloadMgr = {
   onConfirm = function() end,

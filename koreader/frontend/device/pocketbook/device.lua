@@ -7,7 +7,7 @@ local C = ffi.C
 local inkview = ffi.load("inkview")
 local band = require("bit").band
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 require("ffi/posix_h")
 require("ffi/linux_input_h")
@@ -295,7 +295,7 @@ function PocketBook:notifyBookState(title, document)
     inkview.GetCurrentTask(),
     0,
     title and (title .. " - koreader") or "koreader",
-    fn or _("N/A")
+    fn or gettext("N/A")
   )
 end
 

@@ -16,7 +16,7 @@ local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local wikipedia_history = nil
@@ -52,20 +52,20 @@ end
 
 function ReaderWikipedia:lookupInput()
   self.input_dialog = InputDialog:new({
-    title = _("Enter a word or phrase to look up"),
+    title = gettext("Enter a word or phrase to look up"),
     input = "",
     input_type = "text",
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(self.input_dialog)
           end,
         },
         {
-          text = _("Search Wikipedia"),
+          text = gettext("Search Wikipedia"),
           is_enter_default = true,
           callback = function()
             if self.input_dialog:getInputText() == "" then
@@ -85,13 +85,13 @@ end
 
 function ReaderWikipedia:addToMainMenu(menu_items)
   menu_items.wikipedia_lookup = {
-    text = _("Wikipedia lookup"),
+    text = gettext("Wikipedia lookup"),
     callback = function()
       self:onShowWikipediaLookup()
     end,
   }
   menu_items.wikipedia_history = {
-    text = _("Wikipedia history"),
+    text = gettext("Wikipedia history"),
     enabled_func = function()
       return wikipedia_history:notEmpty()
     end,
@@ -132,7 +132,7 @@ function ReaderWikipedia:addToMainMenu(menu_items)
         })
       end
       UIManager:show(KeyValuePage:new({
-        title = _("Wikipedia history"),
+        title = gettext("Wikipedia history"),
         value_overflow_align = "right",
         kv_pairs = kv_pairs,
       }))
@@ -150,10 +150,10 @@ function ReaderWikipedia:addToMainMenu(menu_items)
     }
   end
   menu_items.wikipedia_settings = {
-    text = _("Wikipedia settings"),
+    text = gettext("Wikipedia settings"),
     sub_item_table = {
       {
-        text = _("Set Wikipedia languages"),
+        text = gettext("Set Wikipedia languages"),
         keep_menu_open = true,
         callback = function()
           local wikilang_input
@@ -164,7 +164,7 @@ function ReaderWikipedia:addToMainMenu(menu_items)
               if not lang:match("^[%a-]+$") then
                 UIManager:show(InfoMessage:new({
                   text = T(
-                    _("%1 does not look like a valid Wikipedia language."),
+                    gettext("%1 does not look like a valid Wikipedia language."),
                     lang
                   ),
                 }))
@@ -184,24 +184,24 @@ function ReaderWikipedia:addToMainMenu(menu_items)
           self:initLanguages()
           local curr_languages = table.concat(self.wiki_languages, " ")
           wikilang_input = InputDialog:new({
-            title = _("Wikipedia languages"),
+            title = gettext("Wikipedia languages"),
             input = curr_languages,
             input_hint = "en fr zh",
             input_type = "text",
-            description = _(
+            description = gettext(
               "Enter one or more Wikipedia language codes (the 2 or 3 letters before .wikipedia.org), in the order you wish to see them available, separated by a space. For example:\n  en fr zh\n\nFull list at https://en.wikipedia.org/wiki/List_of_Wikipedias"
             ),
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   id = "close",
                   callback = function()
                     UIManager:close(wikilang_input)
                   end,
                 },
                 {
-                  text = _("Save"),
+                  text = gettext("Save"),
                   is_enter_default = true,
                   callback = save_wikilang,
                 },
@@ -214,16 +214,16 @@ function ReaderWikipedia:addToMainMenu(menu_items)
         separator = true,
       },
       { -- setting used by dictquicklookup
-        text = _("Set Wikipedia 'Save as EPUB' folder"),
+        text = gettext("Set Wikipedia 'Save as EPUB' folder"),
         keep_menu_open = true,
-        help_text = _(
+        help_text = gettext(
           [[
 Wikipedia articles can be saved as an EPUB for more comfortable reading.
 
 You can choose an existing folder, or use a default folder named "Wikipedia" in your reader's home folder.]]
         ),
         callback = function()
-          local title_header = _("Current Wikipedia 'Save as EPUB' folder:")
+          local title_header = gettext("Current Wikipedia 'Save as EPUB' folder:")
           local current_path = G_reader_settings:read("wikipedia_save_dir")
           local default_path = DictQuickLookup.getWikiSaveEpubDefaultDir()
           local caller_callback = function(path)
@@ -241,7 +241,7 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         end,
       },
       { -- setting used by dictquicklookup
-        text = _("Save Wikipedia EPUB in current book folder"),
+        text = gettext("Save Wikipedia EPUB in current book folder"),
         checked_func = function()
           return G_reader_settings:isTrue("wikipedia_save_in_book_dir")
         end,
@@ -251,29 +251,29 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
       },
       { -- setting used in wikipedia.lua
         text_func = function()
-          local include_images = _("ask")
+          local include_images = gettext("ask")
           if
             G_reader_settings:read("wikipedia_epub_include_images")
             == true
           then
-            include_images = _("always")
+            include_images = gettext("always")
           elseif
             G_reader_settings:read("wikipedia_epub_include_images")
             == false
           then
-            include_images = _("never")
+            include_images = gettext("never")
           end
-          return T(_("Include images in EPUB: %1"), include_images)
+          return T(gettext("Include images in EPUB: %1"), include_images)
         end,
         sub_item_table = {
-          genChoiceMenuEntry(_("Ask"), "wikipedia_epub_include_images", nil),
+          genChoiceMenuEntry(gettext("Ask"), "wikipedia_epub_include_images", nil),
           genChoiceMenuEntry(
-            _("Include images"),
+            gettext("Include images"),
             "wikipedia_epub_include_images",
             true
           ),
           genChoiceMenuEntry(
-            _("Don't include images"),
+            gettext("Don't include images"),
             "wikipedia_epub_include_images",
             false
           ),
@@ -281,33 +281,33 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
       },
       { -- setting used in wikipedia.lua
         text_func = function()
-          local images_quality = _("ask")
+          local images_quality = gettext("ask")
           if
             G_reader_settings:read("wikipedia_epub_highres_images")
             == true
           then
-            images_quality = _("higher")
+            images_quality = gettext("higher")
           elseif
             G_reader_settings:read("wikipedia_epub_highres_images")
             == false
           then
-            images_quality = _("standard")
+            images_quality = gettext("standard")
           end
-          return T(_("Images quality in EPUB: %1"), images_quality)
+          return T(gettext("Images quality in EPUB: %1"), images_quality)
         end,
         enabled_func = function()
           return G_reader_settings:read("wikipedia_epub_include_images")
             ~= false
         end,
         sub_item_table = {
-          genChoiceMenuEntry(_("Ask"), "wikipedia_epub_highres_images", nil),
+          genChoiceMenuEntry(gettext("Ask"), "wikipedia_epub_highres_images", nil),
           genChoiceMenuEntry(
-            _("Standard quality"),
+            gettext("Standard quality"),
             "wikipedia_epub_highres_images",
             false
           ),
           genChoiceMenuEntry(
-            _("Higher quality"),
+            gettext("Higher quality"),
             "wikipedia_epub_highres_images",
             true
           ),
@@ -315,7 +315,7 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         separator = true,
       },
       {
-        text = _("Enable Wikipedia history"),
+        text = gettext("Enable Wikipedia history"),
         checked_func = function()
           return not self.disable_history
         end,
@@ -328,15 +328,15 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         end,
       },
       {
-        text = _("Clean Wikipedia history"),
+        text = gettext("Clean Wikipedia history"),
         enabled_func = function()
           return wikipedia_history:notEmpty()
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
           UIManager:show(ConfirmBox:new({
-            text = _("Clean Wikipedia history?"),
-            ok_text = _("Clean"),
+            text = gettext("Clean Wikipedia history?"),
+            ok_text = gettext("Clean"),
             ok_callback = function()
               -- empty data table to replace current one
               wikipedia_history:reset()
@@ -347,7 +347,7 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         separator = true,
       },
       { -- setting used in wikipedia.lua
-        text = _("Show image in search results"),
+        text = gettext("Show image in search results"),
         checked_func = function()
           return G_reader_settings:nilOrTrue("wikipedia_show_image")
         end,
@@ -356,7 +356,7 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         end,
       },
       { -- setting used in wikipedia.lua
-        text = _("Show more images in full article"),
+        text = gettext("Show more images in full article"),
         enabled_func = function()
           return G_reader_settings:nilOrTrue("wikipedia_show_image")
         end,
@@ -451,7 +451,7 @@ function ReaderWikipedia:onLookupWikipedia(
 
       if not self.disable_history then
         local book_title = self.ui.doc_props and self.ui.doc_props.display_title
-          or _("Wikipedia lookup")
+          or gettext("Wikipedia lookup")
         wikipedia_history:addTableItem({
           book_title = book_title,
           time = os.time(),
@@ -465,17 +465,17 @@ function ReaderWikipedia:onLookupWikipedia(
       local lookup_msg, no_result_text, req_failure_text
       if get_fullpage then
         lookup_msg = T(
-          _("Retrieving Wikipedia %2 article:\n%1"),
+          gettext("Retrieving Wikipedia %2 article:\n%1"),
           display_word,
           lang:upper()
         )
-        req_failure_text = _("Failed to retrieve Wikipedia article.")
-        no_result_text = _("Wikipedia article not found.")
+        req_failure_text = gettext("Failed to retrieve Wikipedia article.")
+        no_result_text = gettext("Wikipedia article not found.")
       else
         lookup_msg =
-          T(_("Searching Wikipedia %2 for:\n%1"), display_word, lang:upper())
-        req_failure_text = _("Failed searching Wikipedia.")
-        no_result_text = _("No results.")
+          T(gettext("Searching Wikipedia %2 for:\n%1"), display_word, lang:upper())
+        req_failure_text = gettext("Failed searching Wikipedia.")
+        no_result_text = gettext("No results.")
       end
       -- This is hacky, it relies on ReaderDictionary:showDict to close
       -- self.lookup_progress_msg.
@@ -518,7 +518,7 @@ function ReaderWikipedia:onLookupWikipedia(
         end
         for pageid, page in pairs(pages) do
           local definition = page.extract
-            or (page.length and _("No introduction."))
+            or (page.length and gettext("No introduction."))
             or no_result_text
           if page.length then
             -- we get 'length' only for intro results
@@ -529,13 +529,13 @@ function ReaderWikipedia:onLookupWikipedia(
             definition = definition
               .. "\n"
               .. T(
-                _("(full article : %1 kB, = %2 x this intro length)"),
+                gettext("(full article : %1 kB, = %2 x this intro length)"),
                 fullkb,
                 more_factor
               )
           end
           local result = {
-            dict = T(_("Wikipedia %1"), lang:upper()),
+            dict = T(gettext("Wikipedia %1"), lang:upper()),
             word = page.title,
             definition = definition,
             is_wiki_fullpage = get_fullpage,
@@ -550,7 +550,7 @@ function ReaderWikipedia:onLookupWikipedia(
         -- dummy results
         local definition
         if lookup_cancelled then
-          definition = _("Wikipedia request interrupted.")
+          definition = gettext("Wikipedia request interrupted.")
         elseif ok then
           definition = no_result_text
         else
@@ -559,7 +559,7 @@ function ReaderWikipedia:onLookupWikipedia(
         end
         results = {
           {
-            dict = T(_("Wikipedia %1"), lang:upper()),
+            dict = T(gettext("Wikipedia %1"), lang:upper()),
             word = word,
             definition = definition,
             is_wiki_fullpage = get_fullpage,

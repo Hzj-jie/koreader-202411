@@ -1,7 +1,7 @@
 local ffi = require("ffi")
 local logger = require("logger")
 local MessageQueue = require("ui/message/messagequeue")
-local _ = require("ffi/zeromq_h")
+local gettext = require("ffi/zeromq_h")
 local czmq = ffi.loadlib("czmq", "4")
 local filemq = ffi.loadlib("fmq", "1")
 

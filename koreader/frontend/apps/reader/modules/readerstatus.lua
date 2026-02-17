@@ -5,7 +5,7 @@ local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local ReaderStatus = WidgetContainer:extend({})
 
@@ -15,7 +15,7 @@ end
 
 function ReaderStatus:addToMainMenu(menu_items)
   menu_items.book_status = {
-    text = _("Book status"),
+    text = gettext("Book status"),
     callback = function()
       self:onShowBookStatus()
     end,
@@ -64,8 +64,8 @@ function ReaderStatus:onEndOfBook()
         {
           text_func = function()
             local status = self.ui.doc_settings:readTableRef("summary").status
-            return status == "complete" and _("Mark as reading")
-              or _("Mark as finished")
+            return status == "complete" and gettext("Mark as reading")
+              or gettext("Mark as finished")
           end,
           callback = function()
             UIManager:close(button_dialog)
@@ -73,7 +73,7 @@ function ReaderStatus:onEndOfBook()
           end,
         },
         {
-          text = _("Book status"),
+          text = gettext("Book status"),
           callback = function()
             UIManager:close(button_dialog)
             self:onShowBookStatus()
@@ -82,14 +82,14 @@ function ReaderStatus:onEndOfBook()
       },
       {
         {
-          text = _("Go to beginning"),
+          text = gettext("Go to beginning"),
           callback = function()
             UIManager:close(button_dialog)
             self.ui.gotopage:onGoToBeginning()
           end,
         },
         {
-          text = _("Open next file"),
+          text = gettext("Open next file"),
           enabled = next_file_enabled,
           callback = function()
             UIManager:close(button_dialog)
@@ -99,14 +99,14 @@ function ReaderStatus:onEndOfBook()
       },
       {
         {
-          text = _("Delete file"),
+          text = gettext("Delete file"),
           callback = function()
             UIManager:close(button_dialog)
             self:deleteFile()
           end,
         },
         {
-          text = _("File browser"),
+          text = gettext("File browser"),
           callback = function()
             UIManager:close(button_dialog)
             -- Ditto
@@ -119,7 +119,7 @@ function ReaderStatus:onEndOfBook()
     }
     button_dialog = ButtonDialog:new({
       name = "end_document",
-      title = _(
+      title = gettext(
         "You've reached the end of the document.\nWhat would you like to do?"
       ),
       title_align = "center",
@@ -131,7 +131,7 @@ function ReaderStatus:onEndOfBook()
   elseif settings == "next_file" then
     if next_file_enabled then
       local info = InfoMessage:new({
-        text = _("Searching next file…"),
+        text = gettext("Searching next file…"),
       })
       UIManager:show(info)
       UIManager:forceRePaint()
@@ -139,7 +139,7 @@ function ReaderStatus:onEndOfBook()
       self:onOpenNextDocumentInFolder()
     else
       UIManager:show(InfoMessage:new({
-        text = _(
+        text = gettext(
           "Could not open next file. Sort by date does not support this feature."
         ),
       }))
@@ -154,7 +154,7 @@ function ReaderStatus:onEndOfBook()
   elseif settings == "mark_read" then
     self:markBook(true)
     UIManager:show(InfoMessage:new({
-      text = _(
+      text = gettext(
         "You've reached the end of the document.\nThe current book is marked as finished."
       ),
       timeout = 3,
@@ -195,7 +195,7 @@ function ReaderStatus:onOpenNextDocumentInFolder()
     end)
   else
     UIManager:show(InfoMessage:new({
-      text = _(
+      text = gettext(
         "This is the last file in the current folder. No next file to open."
       ),
     }))

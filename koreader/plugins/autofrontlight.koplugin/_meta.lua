@@ -1,8 +1,8 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "autofrontlight",
-  fullname = _("Auto frontlight"),
-  description = _(
+  fullname = gettext("Auto frontlight"),
+  description = gettext(
     [[Automatically turns the frontlight on and off once brightness in the environment reaches a certain level.]]
   ),
 }

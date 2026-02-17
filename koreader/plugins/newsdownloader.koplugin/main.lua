@@ -19,7 +19,7 @@ local dateparser = require("lib.dateparser")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = FFIUtil.template
 
 local NewsDownloader = WidgetContainer:extend({
@@ -85,7 +85,7 @@ end
 
 function NewsDownloader:addToMainMenu(menu_items)
   menu_items.news_downloader = {
-    text = _("News downloader (RSS/Atom)"),
+    text = gettext("News downloader (RSS/Atom)"),
     sub_item_table_func = function()
       return self:getSubMenuItems()
     end,
@@ -97,13 +97,13 @@ function NewsDownloader:getSubMenuItems()
   local sub_item_table
   sub_item_table = {
     {
-      text = _("Go to news folder"),
+      text = gettext("Go to news folder"),
       callback = function()
         self:openDownloadsFolder()
       end,
     },
     {
-      text = _("Sync news feeds"),
+      text = gettext("Sync news feeds"),
       keep_menu_open = true,
       callback = function(touchmenu_instance)
         NetworkMgr:runWhenOnline(function()
@@ -112,7 +112,7 @@ function NewsDownloader:getSubMenuItems()
       end,
     },
     {
-      text = _("Edit news feeds"),
+      text = gettext("Edit news feeds"),
       keep_menu_open = true,
       callback = function()
         local Trapper = require("ui/trapper")
@@ -122,17 +122,17 @@ function NewsDownloader:getSubMenuItems()
       end,
     },
     {
-      text = _("Settings"),
+      text = gettext("Settings"),
       sub_item_table = {
         {
-          text = _("Set download folder"),
+          text = gettext("Set download folder"),
           keep_menu_open = true,
           callback = function()
             self:setCustomDownloadDirectory()
           end,
         },
         {
-          text = _("Never download images"),
+          text = gettext("Never download images"),
           keep_menu_open = true,
           checked_func = function()
             return self.settings:isTrue("never_download_images")
@@ -143,15 +143,15 @@ function NewsDownloader:getSubMenuItems()
           end,
         },
         {
-          text = _("Delete all downloaded items"),
+          text = gettext("Delete all downloaded items"),
           keep_menu_open = true,
           callback = function()
             local Trapper = require("ui/trapper")
             Trapper:wrap(function()
               local should_delete = Trapper:confirm(
-                _("Are you sure you want to delete all downloaded items?"),
-                _("Cancel"),
-                _("Delete")
+                gettext("Are you sure you want to delete all downloaded items?"),
+                gettext("Cancel"),
+                gettext("Delete")
               )
               if should_delete then
                 self:removeNewsButKeepFeedConfig()
@@ -165,12 +165,12 @@ function NewsDownloader:getSubMenuItems()
       },
     },
     {
-      text = _("About"),
+      text = gettext("About"),
       keep_menu_open = true,
       callback = function()
         UIManager:show(InfoMessage:new({
           text = T(
-            _(
+            gettext(
               "News downloader retrieves RSS and Atom news entries and stores them to:\n%1\n\nEach entry is a separate EPUB file that can be browsed by KOReader.\nFeeds can be configured with download limits and other customization through the Edit Feeds menu item."
             ),
             BD.dirpath(self.download_dir)
@@ -226,7 +226,7 @@ function NewsDownloader:loadConfigAndProcessFeeds(touchmenu_instance)
   if not ok or not feed_config then
     UI:info(
       T(
-        _("Invalid configuration file. Detailed error message:\n%1"),
+        gettext("Invalid configuration file. Detailed error message:\n%1"),
         feed_config
       )
     )
@@ -237,12 +237,12 @@ function NewsDownloader:loadConfigAndProcessFeeds(touchmenu_instance)
     logger.err("NewsDownloader: empty feed list.", self.feed_config_path)
     local should_edit_feed_list = UI:confirm(
       T(
-        _(
+        gettext(
           "Feed list is empty. If you want to download news, you'll have to add a feed first."
         )
       ),
-      _("Close"),
-      _("Edit feed list")
+      gettext("Close"),
+      gettext("Edit feed list")
     )
     if should_edit_feed_list then
       -- Show the user a blank feed view so they can
@@ -276,7 +276,7 @@ function NewsDownloader:loadConfigAndProcessFeeds(touchmenu_instance)
     -- Check if the two required attributes are set.
     if url and limit then
       feed_message =
-        T(_("Processing %1/%2:\n%3"), idx, total_feed_entries, BD.url(url))
+        T(gettext("Processing %1/%2:\n%3"), idx, total_feed_entries, BD.url(url))
       UI:info(feed_message)
       -- Process the feed source.
       self:processFeedSource(
@@ -297,7 +297,7 @@ function NewsDownloader:loadConfigAndProcessFeeds(touchmenu_instance)
 
   if #unsupported_feeds_urls <= 0 then
     -- When no errors are present, we get a happy message.
-    feed_message = _("Downloading news finished.")
+    feed_message = gettext("Downloading news finished.")
   else
     -- When some errors are present, we get a sour message that includes
     -- information about the source of the error.
@@ -311,18 +311,18 @@ function NewsDownloader:loadConfigAndProcessFeeds(touchmenu_instance)
       end
     end
     -- Tell the user there were problems.
-    feed_message = _("Downloading news finished with errors.")
+    feed_message = gettext("Downloading news finished with errors.")
     -- Display a dialogue that requires the user to acknowledge
     -- that errors occurred.
     UI:confirm(
       T(
-        _([[
+        gettext([[
 Could not process some feeds.
 Unsupported format in: %1. Please
 review your feed configuration file.]]),
         unsupported_urls
       ),
-      _("Continue"),
+      gettext("Continue"),
       ""
     )
   end
@@ -334,9 +334,9 @@ review your feed configuration file.]]),
   if touchmenu_instance then
     -- Ask the user if they want to go to their downloads folder
     -- or if they'd rather remain at the menu.
-    feed_message = feed_message .. "\n" .. _("Go to download folder?")
+    feed_message = feed_message .. "\n" .. gettext("Go to download folder?")
     local should_go_to_downloads =
-      UI:confirm(feed_message, _("Close"), _("Go to downloads"))
+      UI:confirm(feed_message, gettext("Close"), gettext("Go to downloads"))
     if should_go_to_downloads then
       -- Go to downloads folder.
       UI:clear()
@@ -384,9 +384,9 @@ function NewsDownloader:processFeedSource(
   if not ok or not feeds then
     local error_message
     if not ok then
-      error_message = _("(Reason: Failed to download content)")
+      error_message = gettext("(Reason: Failed to download content)")
     else
-      error_message = _("(Reason: Error during feed deserialization)")
+      error_message = gettext("(Reason: Error during feed deserialization)")
     end
     table.insert(unsupported_feeds_urls, {
       url,
@@ -444,11 +444,11 @@ function NewsDownloader:processFeedSource(
   if not ok or (not is_rss and not is_atom) then
     local error_message
     if not ok then
-      error_message = _("(Reason: Failed to download content)")
+      error_message = gettext("(Reason: Failed to download content)")
     elseif not is_rss then
-      error_message = _("(Reason: Couldn't process RSS)")
+      error_message = gettext("(Reason: Couldn't process RSS)")
     elseif not is_atom then
-      error_message = _("(Reason: Couldn't process Atom)")
+      error_message = gettext("(Reason: Couldn't process Atom)")
     end
     table.insert(unsupported_feeds_urls, {
       url,
@@ -521,7 +521,7 @@ function NewsDownloader:processFeed(
     end
     -- Create a message to display during processing.
     local article_message =
-      T(_("%1\n\nFetching article %2/%3:"), message, index, total_items)
+      T(gettext("%1\n\nFetching article %2/%3:"), message, index, total_items)
     -- Get the feed description.
     local feed_description
     if feed_type == FEED_TYPE_RSS then
@@ -598,7 +598,7 @@ function NewsDownloader:downloadFeed(
     logger.dbg("NewsDownloader:", news_file_path, "already exists. Skipping")
   else
     logger.dbg("NewsDownloader: News file will be stored to :", news_file_path)
-    local article_message = T(_("%1\n%2"), message, title_with_date)
+    local article_message = T(gettext("%1\n%2"), message, title_with_date)
     local link = getFeedLink(feed.link)
     local html = DownloadBackend:loadPage(link, cookies)
     DownloadBackend:createEpub(
@@ -631,8 +631,8 @@ function NewsDownloader:createFromDescription(
     logger.dbg("NewsDownloader:", news_file_path, "already exists. Skipping")
   else
     logger.dbg("NewsDownloader: News file will be stored to :", news_file_path)
-    local article_message = T(_("%1\n%2"), message, title_with_date)
-    local footer = _(
+    local article_message = T(gettext("%1\n%2"), message, title_with_date)
+    local footer = gettext(
       "This is just a description of the feed. To download the full article instead, go to the News Downloader settings and change 'download_full_article' to 'true'."
     )
 
@@ -674,7 +674,7 @@ function NewsDownloader:removeNewsButKeepFeedConfig()
     end
   end
   UIManager:show(InfoMessage:new({
-    text = _("All downloaded news feed items deleted."),
+    text = gettext("All downloaded news feed items deleted."),
   }))
 end
 
@@ -704,14 +704,14 @@ end
 
 function NewsDownloader:viewFeedList()
   local UI = require("ui/trapper")
-  UI:info(_("Loading news feed list…"))
+  UI:info(gettext("Loading news feed list…"))
   -- Protected call to see if feed config path returns a file that can be opened.
   local ok, feed_config = pcall(dofile, self.feed_config_path)
   if not ok or not feed_config then
     local change_feed_config = UI:confirm(
-      _("Could not open feed list. Feeds configuration file is invalid."),
-      _("Close"),
-      _("View file")
+      gettext("Could not open feed list. Feeds configuration file is invalid."),
+      gettext("Close"),
+      gettext("View file")
     )
     if change_feed_config then
       self:changeFeedConfig()
@@ -737,7 +737,7 @@ function NewsDownloader:viewFeedList()
   end)
   -- Add a "Add new feed" button with callback
   table.insert(view_content, {
-    _("Add new feed"),
+    gettext("Add new feed"),
     "",
     callback = function()
       -- Prepare the view with all the callbacks for editing the attributes
@@ -756,7 +756,7 @@ function NewsDownloader:viewFeedList()
     UIManager:close(self.kv)
   end
   self.kv = KeyValuePage:new({
-    title = _("RSS/Atom feeds"),
+    title = gettext("RSS/Atom feeds"),
     value_overflow_align = "right",
     kv_pairs = view_content,
     callback_return = function()
@@ -771,7 +771,7 @@ function NewsDownloader:viewFeedItem(data)
     UIManager:close(self.kv)
   end
   self.kv = KeyValuePage:new({
-    title = _("Edit Feed"),
+    title = gettext("Edit Feed"),
     value_overflow_align = "left",
     kv_pairs = data,
     callback_return = function()
@@ -796,15 +796,15 @@ function NewsDownloader:editFeedAttribute(id, key, value)
     local description
 
     if key == FeedView.URL then
-      title = _("Edit feed URL")
+      title = gettext("Edit feed URL")
       input_type = "string"
     elseif key == FeedView.LIMIT then
-      title = _("Edit feed limit")
-      description = _("Set to 0 for no limit to how many items are downloaded")
+      title = gettext("Edit feed limit")
+      description = gettext("Set to 0 for no limit to how many items are downloaded")
       input_type = "number"
     elseif key == FeedView.FILTER_ELEMENT then
-      title = _("Edit filter element.")
-      description = _(
+      title = gettext("Edit filter element.")
+      description = gettext(
         "Filter based on the given CSS selector. E.g.: name_of_css.element.class"
       )
       input_type = "string"
@@ -821,7 +821,7 @@ function NewsDownloader:editFeedAttribute(id, key, value)
       buttons = {
         {
           {
-            text = _("Cancel"),
+            text = gettext("Cancel"),
             id = "close",
             callback = function()
               UIManager:close(input_dialog)
@@ -829,7 +829,7 @@ function NewsDownloader:editFeedAttribute(id, key, value)
             end,
           },
           {
-            text = _("Save"),
+            text = gettext("Save"),
             is_enter_default = true,
             callback = function()
               UIManager:close(input_dialog)
@@ -845,22 +845,22 @@ function NewsDownloader:editFeedAttribute(id, key, value)
   else
     local text
     if key == FeedView.DOWNLOAD_FULL_ARTICLE then
-      text = _("Download full article?")
+      text = gettext("Download full article?")
     elseif key == FeedView.INCLUDE_IMAGES then
-      text = _("Include images?")
+      text = gettext("Include images?")
     elseif key == FeedView.ENABLE_FILTER then
-      text = _("Enable CSS filter?")
+      text = gettext("Enable CSS filter?")
     end
 
     local multi_box
     multi_box = MultiConfirmBox:new({
       text = text,
-      choice1_text = _("Yes"),
+      choice1_text = gettext("Yes"),
       choice1_callback = function()
         UIManager:close(multi_box)
         self:updateFeedConfig(id, key, true)
       end,
-      choice2_text = _("No"),
+      choice2_text = gettext("No"),
       choice2_callback = function()
         UIManager:close(multi_box)
         self:updateFeedConfig(id, key, false)
@@ -898,7 +898,7 @@ function NewsDownloader:updateFeedConfig(id, key, value)
   if not ok or not feed_config then
     UI:info(
       T(
-        _("Invalid configuration file. Detailed error message:\n%1"),
+        gettext("Invalid configuration file. Detailed error message:\n%1"),
         feed_config
       )
     )
@@ -1008,7 +1008,7 @@ function NewsDownloader:deleteFeed(id)
   if not ok or not feed_config then
     UI:info(
       T(
-        _("Invalid configuration file. Detailed error message:\n%1"),
+        gettext("Invalid configuration file. Detailed error message:\n%1"),
         feed_config
       )
     )
@@ -1037,15 +1037,15 @@ end
 
 function NewsDownloader:saveConfig(config)
   local UI = require("ui/trapper")
-  UI:info(_("Saving news feed list…"))
+  UI:info(gettext("Saving news feed list…"))
   local persist = Persist:new({
     path = self.feed_config_path,
   })
   local ok = persist:save(config)
   if not ok then
-    UI:info(_("Could not save news feed config."))
+    UI:info(gettext("Could not save news feed config."))
   else
-    UI:info(_("News feed config updated successfully."))
+    UI:info(gettext("News feed config updated successfully."))
   end
   UI:reset()
 end
@@ -1060,7 +1060,7 @@ function NewsDownloader:changeFeedConfig()
     self.feed_config_path
   )
   config_editor = InputDialog:new({
-    title = T(_("Config: %1"), BD.filepath(self.feed_config_path)),
+    title = T(gettext("Config: %1"), BD.filepath(self.feed_config_path)),
     input = config,
     input_type = "string",
     para_direction_rtl = false, -- force LTR
@@ -1081,15 +1081,15 @@ function NewsDownloader:changeFeedConfig()
             feed_config_file = io.open(self.feed_config_path, "w")
             feed_config_file:write(content)
             feed_config_file:close()
-            return true, _("Configuration saved")
+            return true, gettext("Configuration saved")
           else
-            return false, T(_("Configuration invalid: %1"), syntax_error)
+            return false, T(gettext("Configuration invalid: %1"), syntax_error)
           end
         else
-          return false, T(_("Configuration invalid: %1"), parse_error)
+          return false, T(gettext("Configuration invalid: %1"), parse_error)
         end
       end
-      return false, _("Configuration empty")
+      return false, gettext("Configuration empty")
     end,
   })
   UIManager:show(config_editor)

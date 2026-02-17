@@ -8,7 +8,7 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local SpinWidget = require("ui/widget/spinwidget")
 local UIManager = require("ui/uimanager")
 local logger = require("logger")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -27,15 +27,15 @@ local ReaderZooming = InputContainer:extend({
     "manual",
   },
   zoom_mode_label = { -- const
-    page = _("page") .. " - " .. _("full"),
-    pagewidth = _("page") .. " - " .. _("width"),
-    pageheight = _("page") .. " - " .. _("height"),
-    content = _("content") .. " - " .. _("full"),
-    contentwidth = _("content") .. " - " .. _("width"),
-    contentheight = _("content") .. " - " .. _("height"),
-    columns = _("columns"),
-    rows = _("rows"),
-    manual = _("manual"),
+    page = gettext("page") .. " - " .. gettext("full"),
+    pagewidth = gettext("page") .. " - " .. gettext("width"),
+    pageheight = gettext("page") .. " - " .. gettext("height"),
+    content = gettext("content") .. " - " .. gettext("full"),
+    contentwidth = gettext("content") .. " - " .. gettext("width"),
+    contentheight = gettext("content") .. " - " .. gettext("height"),
+    columns = gettext("columns"),
+    rows = gettext("rows"),
+    manual = gettext("manual"),
   },
   zoom_genus_to_mode = { -- const
     [4] = "page",
@@ -117,11 +117,11 @@ local ReaderZooming = InputContainer:extend({
   current_page = 1,
   rotation = 0,
   paged_modes = { -- const
-    page = _("Zoom to fit page works best with page view."),
-    pageheight = _("Zoom to fit page height works best with page view."),
-    contentheight = _("Zoom to fit content height works best with page view."),
-    content = _("Zoom to fit content works best with page view."),
-    columns = _("Zoom to fit columns works best with page view."),
+    page = gettext("Zoom to fit page works best with page view."),
+    pageheight = gettext("Zoom to fit page height works best with page view."),
+    contentheight = gettext("Zoom to fit content height works best with page view."),
+    content = gettext("Zoom to fit content works best with page view."),
+    columns = gettext("Zoom to fit columns works best with page view."),
   },
 })
 
@@ -398,10 +398,10 @@ function ReaderZooming:onDefineZoom(btn, when_applied_callback)
   settings.zoom_overlap_h = config.zoom_overlap_h
   settings.zoom_overlap_v = config.zoom_overlap_v
   if btn == "set_zoom_overlap_h" then
-    self:_zoomPanChange(_("Set horizontal overlap"), "zoom_overlap_h")
+    self:_zoomPanChange(gettext("Set horizontal overlap"), "zoom_overlap_h")
     settings.zoom_overlap_h = self.zoom_overlap_h
   elseif btn == "set_zoom_overlap_v" then
-    self:_zoomPanChange(_("Set vertical overlap"), "zoom_overlap_v")
+    self:_zoomPanChange(gettext("Set vertical overlap"), "zoom_overlap_v")
     settings.zoom_overlap_v = self.zoom_overlap_v
   end
 
@@ -462,7 +462,7 @@ function ReaderZooming:onDefineZoom(btn, when_applied_callback)
     -- show an InfoMessage with the values, and call when_applied_callback on dismiss
     UIManager:show(InfoMessage:new({
       text = T(
-        _([[Zoom set to:
+        gettext([[Zoom set to:
 
     mode: %1
     number of columns: %2
@@ -695,7 +695,7 @@ function ReaderZooming:setZoomMode(mode, no_warning, is_reflowed)
     local message
     if self.paged_modes[mode] then
       message = T(
-        _(
+        gettext(
           [[
 %1
 
@@ -704,7 +704,7 @@ In combination with continuous view (scroll mode), this can cause unexpected ver
         self.paged_modes[mode]
       )
     elseif self.zoom_mode == "manual" then
-      message = _([[
+      message = gettext([[
 Manual zoom works best with page view.
 
 Please enable page view instead of continuous view (scroll mode).]])
@@ -777,7 +777,7 @@ function ReaderZooming:_zoomPanChange(text, setting)
     value_max = 90,
     value_step = 1,
     value_hold_step = 10,
-    ok_text = _("Set"),
+    ok_text = gettext("Set"),
     title_text = text,
     callback = function(spin)
       UIManager:broadcastEvent(
@@ -788,7 +788,7 @@ function ReaderZooming:_zoomPanChange(text, setting)
 end
 
 function ReaderZooming:onZoomFactorChange()
-  self:_zoomFactorChange(_("Set Zoom factor"), false, "%.1f")
+  self:_zoomFactorChange(gettext("Set Zoom factor"), false, "%.1f")
 end
 
 function ReaderZooming:onSetZoomPan(settings, no_redraw)

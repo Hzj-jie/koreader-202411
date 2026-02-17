@@ -21,7 +21,7 @@ local rapidjson = require("rapidjson")
 local sort = require("sort")
 local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 -- get root dir for disk scans
@@ -144,17 +144,17 @@ local function getBookInfo(book)
     return id
   end
   -- all entries can be empty, except size, which is always filled by calibre.
-  local title = _("Title:") .. " " .. book.title or "-"
-  local authors = _("Author(s):") .. " " .. getEntries(book.authors) or "-"
-  local size = _("Size:") .. " " .. util.getFriendlySize(book.size)
-    or _("Unknown")
+  local title = gettext("Title:") .. " " .. book.title or "-"
+  local authors = gettext("Author(s):") .. " " .. getEntries(book.authors) or "-"
+  local size = gettext("Size:") .. " " .. util.getFriendlySize(book.size)
+    or gettext("Unknown")
   local tags = getEntries(book.tags)
   if tags then
-    tags = _("Tags:") .. " " .. tags
+    tags = gettext("Tags:") .. " " .. tags
   end
   local series
   if book.series and book.series ~= rapidjson.null then
-    series = _("Series:") .. " " .. book.series
+    series = gettext("Series:") .. " " .. book.series
   end
   return string.format(
     "%s\n%s\n%s%s%s",
@@ -198,12 +198,12 @@ local CalibreSearch = WidgetContainer:extend({
 
 function CalibreSearch:ShowSearch()
   self.search_dialog = InputDialog:new({
-    title = _("Calibre metadata search"),
+    title = gettext("Calibre metadata search"),
     input = self.search_value,
     buttons = {
       {
         {
-          text = _("Browse series"),
+          text = gettext("Browse series"),
           enabled = true,
           callback = function()
             self.search_value = self.search_dialog:getInputText()
@@ -212,7 +212,7 @@ function CalibreSearch:ShowSearch()
           end,
         },
         {
-          text = _("Browse tags"),
+          text = gettext("Browse tags"),
           enabled = true,
           callback = function()
             self.search_value = self.search_dialog:getInputText()
@@ -223,7 +223,7 @@ function CalibreSearch:ShowSearch()
       },
       {
         {
-          text = _("Browse authors"),
+          text = gettext("Browse authors"),
           enabled = true,
           callback = function()
             self.search_value = self.search_dialog:getInputText()
@@ -232,7 +232,7 @@ function CalibreSearch:ShowSearch()
           end,
         },
         {
-          text = _("Browse titles"),
+          text = gettext("Browse titles"),
           enabled = true,
           callback = function()
             self.search_value = self.search_dialog:getInputText()
@@ -243,7 +243,7 @@ function CalibreSearch:ShowSearch()
       },
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           enabled = true,
           callback = function()
@@ -253,7 +253,7 @@ function CalibreSearch:ShowSearch()
         },
         {
           -- @translators Search for books in calibre Library, via on-device metadata (as setup by Calibre's 'Send To Device').
-          text = _("Search books"),
+          text = gettext("Search books"),
           enabled = true,
           callback = function()
             self.search_value = self.search_dialog:getInputText()
@@ -351,7 +351,7 @@ function CalibreSearch:find(option)
     local libs, err = self.cache_libs:load()
     if not libs then
       logger.warn("no calibre libraries", err)
-      self:prompt(_("No calibre libraries"))
+      self:prompt(gettext("No calibre libraries"))
       return
     else
       self.libraries = libs
@@ -364,7 +364,7 @@ function CalibreSearch:find(option)
   -- this shouldn't happen unless the user disabled all libraries or they are empty.
   if #self.books == 0 then
     logger.warn("no metadata to search, aborting")
-    self:prompt(_("No results in metadata"))
+    self:prompt(gettext("No results in metadata"))
     return
   end
 
@@ -446,12 +446,12 @@ function CalibreSearch:browse(option)
   local menu_entries = {}
 
   if option == "find" then
-    name = _("Books")
+    name = gettext("Books")
     menu_entries = self:bookCatalog(self:findBooks(self.search_value))
   else
     local source
     if option == "tags" then
-      name = _("Browse by tags")
+      name = gettext("Browse by tags")
       source = searchByNestedField(
         self.books,
         option,
@@ -459,11 +459,11 @@ function CalibreSearch:browse(option)
         self.case_insensitive
       )
     elseif option == "series" then
-      name = _("Browse by series")
+      name = gettext("Browse by series")
       source =
         searchByField(self.books, option, search_value, self.case_insensitive)
     elseif option == "authors" then
-      name = _("Browse by authors")
+      name = gettext("Browse by authors")
       source = searchByNestedField(
         self.books,
         option,
@@ -471,7 +471,7 @@ function CalibreSearch:browse(option)
         self.case_insensitive
       )
     elseif option == "title" then
-      name = _("Browse by titles")
+      name = gettext("Browse by titles")
       -- This is admittedly only midly useful in the face of the generic search above,
       -- but makes finding duplicate titles easy, at least ;).
       source =
@@ -527,7 +527,7 @@ end
 -- update search results
 function CalibreSearch:switchResults(t, title, is_child, page)
   if not title then
-    title = _("Search results")
+    title = gettext("Search results")
   end
 
   local natsort = sort.natsort_cmp(self.natsort_cache)
@@ -548,7 +548,7 @@ end
 function CalibreSearch:prompt(message)
   local rootdir = getDefaultRootDir()
   local warning = T(
-    _(
+    gettext(
       "Scanning libraries can take time. All storage media under %1 will be analyzed"
     ),
     rootdir
@@ -558,7 +558,7 @@ function CalibreSearch:prompt(message)
   end
   UIManager:show(ConfirmBox:new({
     text = message or warning,
-    ok_text = _("Scan") .. " " .. rootdir,
+    ok_text = gettext("Scan") .. " " .. rootdir,
     ok_callback = function()
       self.libraries = {}
       local count, paths = self:scan(rootdir)
@@ -579,7 +579,7 @@ function CalibreSearch:prompt(message)
       if ok then
         local sd_count, sd_paths = self:scan(sd_path)
         count = count + sd_count
-        paths = paths .. "\n" .. _("SD card") .. ": " .. sd_paths
+        paths = paths .. "\n" .. gettext("SD card") .. ": " .. sd_paths
       end
 
       lfs.mkdir(self.cache_dir)
@@ -588,10 +588,10 @@ function CalibreSearch:prompt(message)
       self.books = self:getMetadata()
       local info_text
       if count == 0 then
-        info_text = _("No calibre libraries were found")
+        info_text = gettext("No calibre libraries were found")
       else
         info_text = T(
-          _("Found %1 calibre libraries with %2 books:\n%3"),
+          gettext("Found %1 calibre libraries with %2 books:\n%3"),
           count,
           #self.books,
           paths

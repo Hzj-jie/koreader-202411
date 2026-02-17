@@ -22,9 +22,9 @@ local datetime = require("datetime")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
-local C_ = _.pgettext
-local N_ = _.ngettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
+local N_ = gettext.ngettext
 local T = FFIUtil.template
 
 local statistics_dir = DataStorage:getDataDir() .. "/statistics/"
@@ -82,32 +82,32 @@ function ReaderStatistics:onDispatcherRegisterActions()
   Dispatcher:registerAction("toggle_statistics", {
     category = "none",
     event = "ToggleStatistics",
-    title = _("Toggle statistics"),
+    title = gettext("Toggle statistics"),
     general = true,
   })
   Dispatcher:registerAction("stats_calendar_view", {
     category = "none",
     event = "ShowCalendarView",
-    title = _("Statistics calendar view"),
+    title = gettext("Statistics calendar view"),
     general = true,
   })
   Dispatcher:registerAction("stats_calendar_day_view", {
     category = "none",
     event = "ShowCalendarDayView",
-    title = _("Statistics today's timeline"),
+    title = gettext("Statistics today's timeline"),
     general = true,
   })
   Dispatcher:registerAction("stats_sync", {
     category = "none",
     event = "SyncBookStats",
-    title = _("Synchronize book statistics"),
+    title = gettext("Synchronize book statistics"),
     general = true,
     separator = true,
   })
   Dispatcher:registerAction("book_statistics", {
     category = "none",
     event = "ShowBookStats",
-    title = _("Book statistics"),
+    title = gettext("Book statistics"),
     reader = true,
   })
 end
@@ -365,24 +365,24 @@ function ReaderStatistics:checkInitDatabase()
     if not conn:exec("PRAGMA table_info('book');") then
       UIManager:show(ConfirmBox:new({
         text = T(
-          _([[
+          gettext([[
 Cannot open database in %1.
 The database may have been moved or deleted.
 Do you want to create an empty database?
 ]]),
           BD.filepath(db_location)
         ),
-        cancel_text = _("Close"),
+        cancel_text = gettext("Close"),
         cancel_callback = function()
           return
         end,
-        ok_text = _("Create"),
+        ok_text = gettext("Create"),
         ok_callback = function()
           local conn_new = SQ3.open(db_location)
           self:createDB(conn_new)
           conn_new:close()
           UIManager:show(InfoMessage:new({
-            text = _("A new empty database has been created."),
+            text = gettext("A new empty database has been created."),
             timeout = 3,
           }))
           if self.document then
@@ -446,7 +446,7 @@ Do you want to create an empty database?
 
       logger.info("ReaderStatistics: DB migration complete")
       UIManager:show(InfoMessage:new({
-        text = _("Statistics database updated."),
+        text = gettext("Statistics database updated."),
         timeout = 3,
       }))
     elseif db_version > DB_SCHEMA_VERSION then
@@ -499,7 +499,7 @@ Do you want to create an empty database?
         )
       then
         local info = InfoMessage:new({
-          text = _([[
+          text = gettext([[
 New version of statistics plugin detected.
 Statistics data needs to be converted into the new database format.
 This may take a few minutes.
@@ -1281,18 +1281,18 @@ function ReaderStatistics:onToggleStatistics(no_notification)
   if not no_notification then
     local Notification = require("ui/widget/notification")
     Notification:notify(
-      self.settings.is_enabled and _("Statistics enabled")
-        or _("Statistics disabled")
+      self.settings.is_enabled and gettext("Statistics enabled")
+        or gettext("Statistics disabled")
     )
   end
 end
 
 function ReaderStatistics:addToMainMenu(menu_items)
   menu_items.statistics = {
-    text = _("Reading statistics"),
+    text = gettext("Reading statistics"),
     sub_item_table = {
       {
-        text = _("Enabled"),
+        text = gettext("Enabled"),
         checked_func = function()
           return self.settings.is_enabled
         end,
@@ -1301,12 +1301,12 @@ function ReaderStatistics:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Settings"),
+        text = gettext("Settings"),
         sub_item_table = {
           {
             text_func = function()
               return T(
-                _("Read page duration limits: %1 s – %2 s"),
+                gettext("Read page duration limits: %1 s – %2 s"),
                 self.settings.min_sec,
                 self.settings.max_sec
               )
@@ -1332,8 +1332,8 @@ function ReaderStatistics:addToMainMenu(menu_items)
                 is_range = true,
                 -- @translators This is the time unit for seconds.
                 unit = C_("Time", "s"),
-                title_text = _("Read page duration limits"),
-                info_text = _(
+                title_text = gettext("Read page duration limits"),
+                info_text = gettext(
                   [[
 Set min and max time spent (in seconds) on a page for it to be counted as read in statistics.
 The min value ensures pages you quickly browse and skip are not included.
@@ -1350,7 +1350,7 @@ The max value ensures a page you stay on for a long time (because you fell aslee
             keep_menu_open = true,
           },
           {
-            text = _("Freeze statistics of finished books"),
+            text = gettext("Freeze statistics of finished books"),
             checked_func = function()
               return self.settings.freeze_finished_books
             end,
@@ -1364,7 +1364,7 @@ The max value ensures a page you stay on for a long time (because you fell aslee
           {
             text_func = function()
               return T(
-                _("Calendar weeks start on %1"),
+                gettext("Calendar weeks start on %1"),
                 datetime.shortDayOfWeekToLongTranslation[datetime.weekDays[self.settings.calendar_start_day_of_week]]
               )
             end,
@@ -1410,7 +1410,7 @@ The max value ensures a page you stay on for a long time (because you fell aslee
           {
             text_func = function()
               return T(
-                _("Books per calendar day: %1"),
+                gettext("Books per calendar day: %1"),
                 self.settings.calendar_nb_book_spans
               )
             end,
@@ -1421,9 +1421,9 @@ The max value ensures a page you stay on for a long time (because you fell aslee
                 value_min = 1,
                 value_max = 5,
                 default_value = DEFAULT_CALENDAR_NB_BOOK_SPANS,
-                ok_text = _("Set"),
-                title_text = _("Books per calendar day"),
-                info_text = _(
+                ok_text = gettext("Set"),
+                title_text = gettext("Books per calendar day"),
+                info_text = gettext(
                   "Set the max number of book spans to show for a day"
                 ),
                 callback = function(spin)
@@ -1435,7 +1435,7 @@ The max value ensures a page you stay on for a long time (because you fell aslee
             keep_menu_open = true,
           },
           {
-            text = _("Show hourly histogram in calendar days"),
+            text = gettext("Show hourly histogram in calendar days"),
             checked_func = function()
               return self.settings.calendar_show_histogram
             end,
@@ -1445,7 +1445,7 @@ The max value ensures a page you stay on for a long time (because you fell aslee
             end,
           },
           {
-            text = _("Allow browsing coming months"),
+            text = gettext("Allow browsing coming months"),
             checked_func = function()
               return self.settings.calendar_browse_future_months
             end,
@@ -1459,7 +1459,7 @@ The max value ensures a page you stay on for a long time (because you fell aslee
             text_func = function()
               -- @translators %1 is the time in the format 00:00
               return T(
-                _("Daily timeline starts at %1"),
+                gettext("Daily timeline starts at %1"),
                 string.format(
                   "%02d:%02d",
                   self.settings.calendar_day_start_hour or 0,
@@ -1475,9 +1475,9 @@ The max value ensures a page you stay on for a long time (because you fell aslee
                 min_max = 50,
                 min_step = 10, -- we have vertical lines every 10mn, keep them meaningful
                 min_hold_step = 30,
-                ok_text = _("Set time"),
-                title_text = _("Daily timeline starts at"),
-                info_text = _([[
+                ok_text = gettext("Set time"),
+                title_text = gettext("Daily timeline starts at"),
+                info_text = gettext([[
 Set the time when the daily timeline should start.
 
 If you read past midnight, and would like this reading session to be displayed on the same screen with your previous evening reading sessions, use a value such as 04:00.
@@ -1494,7 +1494,7 @@ Time is in hours and minutes.]]),
             keep_menu_open = true,
           },
           {
-            text = _("Also use in calendar view"),
+            text = gettext("Also use in calendar view"),
             checked_func = function()
               return self.settings.calendar_use_day_time_shift
             end,
@@ -1505,7 +1505,7 @@ Time is in hours and minutes.]]),
             separator = true,
           },
           {
-            text = _("Cloud sync"),
+            text = gettext("Cloud sync"),
             callback = function(touchmenu_instance)
               local server = self.settings.sync_server
               local edit_cb = function()
@@ -1535,16 +1535,16 @@ Time is in hours and minutes.]]),
               end
               local dialogue
               local delete_button = {
-                text = _("Delete"),
+                text = gettext("Delete"),
                 callback = function()
                   UIManager:close(dialogue)
                   UIManager:show(ConfirmBox:new({
-                    text = _("Delete server info?"),
-                    cancel_text = _("Cancel"),
+                    text = gettext("Delete server info?"),
+                    cancel_text = gettext("Cancel"),
                     cancel_callback = function()
                       return
                     end,
-                    ok_text = _("Delete"),
+                    ok_text = gettext("Delete"),
                     ok_callback = function()
                       self.settings.sync_server = nil
                       SyncService.removeLastSyncDB(db_location)
@@ -1554,14 +1554,14 @@ Time is in hours and minutes.]]),
                 end,
               }
               local edit_button = {
-                text = _("Edit"),
+                text = gettext("Edit"),
                 callback = function()
                   UIManager:close(dialogue)
                   edit_cb()
                 end,
               }
               local close_button = {
-                text = _("Close"),
+                text = gettext("Close"),
                 callback = function()
                   UIManager:close(dialogue)
                 end,
@@ -1570,7 +1570,7 @@ Time is in hours and minutes.]]),
                 or " (WebDAV)"
               dialogue = ButtonDialog:new({
                 title = T(
-                  _(
+                  gettext(
                     "Cloud storage:\n%1\n\nFolder path:\n%2\n\nSet up the same cloud folder on each device to sync across your devices."
                   ),
                   server.name .. " " .. type,
@@ -1590,12 +1590,12 @@ Time is in hours and minutes.]]),
         },
       },
       {
-        text = _("Reset statistics"),
+        text = gettext("Reset statistics"),
         sub_item_table = self:genResetBookSubItemTable(),
         separator = true,
       },
       {
-        text = _("Synchronize now"),
+        text = gettext("Synchronize now"),
         callback = function()
           self:onSyncBookStats()
         end,
@@ -1606,7 +1606,7 @@ Time is in hours and minutes.]]),
         separator = true,
       },
       {
-        text = _("Current book"),
+        text = gettext("Current book"),
         keep_menu_open = true,
         callback = function()
           self:onShowBookStats()
@@ -1616,7 +1616,7 @@ Time is in hours and minutes.]]),
         end,
       },
       {
-        text = _("Reading progress"),
+        text = gettext("Reading progress"),
         keep_menu_open = true,
         callback = function()
           self:insertDB()
@@ -1633,7 +1633,7 @@ Time is in hours and minutes.]]),
             }))
           else
             UIManager:show(InfoMessage:new({
-              text = _(
+              text = gettext(
                 "Reading progress is not available.\nThere is no data for the last week."
               ),
             }))
@@ -1641,21 +1641,21 @@ Time is in hours and minutes.]]),
         end,
       },
       {
-        text = _("Time range"),
+        text = gettext("Time range"),
         keep_menu_open = true,
         callback = function()
           self:statMenu()
         end,
       },
       {
-        text = _("Calendar view"),
+        text = gettext("Calendar view"),
         keep_menu_open = true,
         callback = function()
           self:onShowCalendarView()
         end,
       },
       {
-        text = _("Today's timeline"),
+        text = gettext("Today's timeline"),
         keep_menu_open = true,
         callback = function()
           self:onShowCalendarDayView()
@@ -1667,11 +1667,11 @@ end
 
 function ReaderStatistics:statMenu()
   self.kv = KeyValuePage:new({
-    title = _("Time range statistics"),
+    title = gettext("Time range statistics"),
     return_button = true,
     kv_pairs = {
       {
-        _("All books"),
+        gettext("All books"),
         "",
         callback = function()
           local kv = self.kv
@@ -1693,13 +1693,13 @@ function ReaderStatistics:statMenu()
         end,
       },
       {
-        _("Books by week"),
+        gettext("Books by week"),
         "",
         callback = function()
           local kv = self.kv
           UIManager:close(self.kv)
           self.kv = KeyValuePage:new({
-            title = _("Books by week"),
+            title = gettext("Books by week"),
             value_overflow_align = "right",
             kv_pairs = self:getDatesFromAll(0, "weekly", true),
             callback_return = function()
@@ -1714,13 +1714,13 @@ function ReaderStatistics:statMenu()
         end,
       },
       {
-        _("Books by month"),
+        gettext("Books by month"),
         "",
         callback = function()
           local kv = self.kv
           UIManager:close(self.kv)
           self.kv = KeyValuePage:new({
-            title = _("Books by month"),
+            title = gettext("Books by month"),
             value_overflow_align = "right",
             kv_pairs = self:getDatesFromAll(0, "monthly", true),
             callback_return = function()
@@ -1736,13 +1736,13 @@ function ReaderStatistics:statMenu()
         separator = true,
       },
       {
-        _("Last week"),
+        gettext("Last week"),
         "",
         callback = function()
           local kv = self.kv
           UIManager:close(self.kv)
           self.kv = KeyValuePage:new({
-            title = _("Last week"),
+            title = gettext("Last week"),
             value_overflow_align = "right",
             kv_pairs = self:getDatesFromAll(7, "daily_weekday"),
             callback_return = function()
@@ -1757,13 +1757,13 @@ function ReaderStatistics:statMenu()
         end,
       },
       {
-        _("Last month by day"),
+        gettext("Last month by day"),
         "",
         callback = function()
           local kv = self.kv
           UIManager:close(self.kv)
           self.kv = KeyValuePage:new({
-            title = _("Last month by day"),
+            title = gettext("Last month by day"),
             value_overflow_align = "right",
             kv_pairs = self:getDatesFromAll(30, "daily_weekday"),
             callback_return = function()
@@ -1778,13 +1778,13 @@ function ReaderStatistics:statMenu()
         end,
       },
       {
-        _("Last year by day"),
+        gettext("Last year by day"),
         "",
         callback = function()
           local kv = self.kv
           UIManager:close(self.kv)
           self.kv = KeyValuePage:new({
-            title = _("Last year by day"),
+            title = gettext("Last year by day"),
             value_overflow_align = "right",
             kv_pairs = self:getDatesFromAll(365, "daily"),
             callback_return = function()
@@ -1799,13 +1799,13 @@ function ReaderStatistics:statMenu()
         end,
       },
       {
-        _("Last year by week"),
+        gettext("Last year by week"),
         "",
         callback = function()
           local kv = self.kv
           UIManager:close(self.kv)
           self.kv = KeyValuePage:new({
-            title = _("Last year by week"),
+            title = gettext("Last year by week"),
             value_overflow_align = "right",
             kv_pairs = self:getDatesFromAll(365, "weekly"),
             callback_return = function()
@@ -1820,13 +1820,13 @@ function ReaderStatistics:statMenu()
         end,
       },
       {
-        _("All stats by month"),
+        gettext("All stats by month"),
         "",
         callback = function()
           local kv = self.kv
           UIManager:close(self.kv)
           self.kv = KeyValuePage:new({
-            title = _("All stats by month"),
+            title = gettext("All stats by month"),
             value_overflow_align = "right",
             kv_pairs = self:getDatesFromAll(0, "monthly"),
             callback_return = function()
@@ -2014,7 +2014,7 @@ function ReaderStatistics:getCurrentStat()
         time_to_read,
         false
       )
-    or _("N/A")
+    or gettext("N/A")
 
   -- Use more_arrow to indicate that an option shows another view
   -- Use " ⓘ" to indicate that an option will show an info message
@@ -2033,7 +2033,7 @@ function ReaderStatistics:getCurrentStat()
       )
         .. "\n\n"
         .. T(
-          _(
+          gettext(
             "At the current rate of %1 per page, that will take %2 of reading time."
           ),
           avg_page_time_string,
@@ -2057,26 +2057,26 @@ function ReaderStatistics:getCurrentStat()
   local estimated_time_left, estimated_finish_date
   if self.is_doc_not_frozen then
     estimated_time_left = {
-      _("Estimated reading time left") .. " ⓘ",
+      gettext("Estimated reading time left") .. " ⓘ",
       time_to_read_string,
       callback = estimated_popup,
     }
     estimated_finish_date = {
-      _("Estimated finish date") .. " ⓘ",
+      gettext("Estimated finish date") .. " ⓘ",
       estimates_valid
           and T(
             N_("(in 1 day) %2", "(in %1 days) %2", estimate_days_to_read),
             estimate_days_to_read,
             estimate_end_of_read_date
           )
-        or _("N/A"),
+        or gettext("N/A"),
       callback = estimated_popup,
     }
   else
-    estimated_time_left = { _("Estimated reading time left"), _("finished") }
+    estimated_time_left = { gettext("Estimated reading time left"), gettext("finished") }
     local mark_date = self.ui.doc_settings:readTableRef("summary").modified
     estimated_finish_date = {
-      _("Book marked as finished"),
+      gettext("Book marked as finished"),
       datetime.secondsToDate(datetime.stringToSeconds(mark_date), true),
     }
   end
@@ -2088,18 +2088,18 @@ function ReaderStatistics:getCurrentStat()
 
     -- Since last resume
     {
-      _("Time spent reading this session"),
+      gettext("Time spent reading this session"),
       datetime.secondsToClockDuration(
         user_duration_format,
         current_duration,
         false
       ),
     },
-    { _("Pages read this session"), tonumber(current_pages), separator = true },
+    { gettext("Pages read this session"), tonumber(current_pages), separator = true },
 
     -- Today
     {
-      _("Time spent reading today") .. " " .. more_arrow,
+      gettext("Time spent reading today") .. " " .. more_arrow,
       datetime.secondsToClockDuration(
         user_duration_format,
         today_duration,
@@ -2108,18 +2108,18 @@ function ReaderStatistics:getCurrentStat()
       callback = function()
         local CalendarView = require("calendarview")
         local title_callback = function(this)
-          return T(_("Today (%1)"), datetime.secondsToDate(now_ts, true))
+          return T(gettext("Today (%1)"), datetime.secondsToDate(now_ts, true))
         end
         CalendarView:showCalendarDayView(self, title_callback)
       end,
     },
-    { _("Pages read today"), tonumber(today_pages), separator = true },
+    { gettext("Pages read today"), tonumber(today_pages), separator = true },
 
     -- Current book statistics (includes re-reads)
 
     -- Time-focused book stats
     {
-      _("Total time spent on this book"),
+      gettext("Total time spent on this book"),
       datetime.secondsToClockDuration(
         user_duration_format,
         total_time_book,
@@ -2128,7 +2128,7 @@ function ReaderStatistics:getCurrentStat()
     },
     -- capped to self.settings.max_sec per distinct page
     {
-      _("Time spent reading"),
+      gettext("Time spent reading"),
       datetime.secondsToClockDuration(
         user_duration_format,
         book_read_time,
@@ -2140,13 +2140,13 @@ function ReaderStatistics:getCurrentStat()
 
     -- Day-focused book stats
     {
-      _("Days reading this book") .. " " .. more_arrow,
+      gettext("Days reading this book") .. " " .. more_arrow,
       tonumber(total_days),
       callback = function()
         local kv = self.kv
         UIManager:close(self.kv)
         self.kv = KeyValuePage:new({
-          title = T(_("Days reading %1"), self.data.title),
+          title = T(gettext("Days reading %1"), self.data.title),
           value_overflow_align = "right",
           kv_pairs = self:getDatesForBook(id_book),
           callback_return = function()
@@ -2160,11 +2160,11 @@ function ReaderStatistics:getCurrentStat()
         UIManager:show(self.kv)
       end,
     },
-    { _("Average time per day"), avg_day_time_string, separator = true },
+    { gettext("Average time per day"), avg_day_time_string, separator = true },
 
     -- Date-focused book stats
     {
-      _("Book start date"),
+      gettext("Book start date"),
       T(
         N_("(1 day ago) %2", "(%1 days ago) %2", first_open_days_ago),
         first_open_days_ago,
@@ -2174,20 +2174,20 @@ function ReaderStatistics:getCurrentStat()
     estimated_finish_date,
 
     -- Page-focused book stats
-    { _("Current page/Total pages"), page_progress_string },
+    { gettext("Current page/Total pages"), page_progress_string },
     {
-      _("Pages read"),
+      gettext("Pages read"),
       string.format(
         "%d (%d%%)",
         total_read_pages,
         Math.round(100 * total_read_pages / self.data.pages)
       ),
     },
-    { _("Average time per page"), avg_page_time_string, separator = true },
+    { gettext("Average time per page"), avg_page_time_string, separator = true },
 
     -- Highlights and notes
-    { _("Book highlights"), tonumber(highlights) },
-    { _("Book notes"), tonumber(notes) },
+    { gettext("Book highlights"), tonumber(highlights) },
+    { gettext("Book notes"), tonumber(notes) },
   }
 end
 
@@ -2267,12 +2267,12 @@ function ReaderStatistics:getBookStat(id_book)
   local more_arrow = BD.mirroredUILayout() and "◂" or "▸"
   return {
     -- Book metadata
-    { _("Title"), title },
-    { _("Author(s)"), authors, separator = true },
+    { gettext("Title"), title },
+    { gettext("Author(s)"), authors, separator = true },
 
     -- Time-focused book stats
     {
-      _("Total time spent on this book"),
+      gettext("Total time spent on this book"),
       datetime.secondsToClockDuration(
         user_duration_format,
         total_time_book,
@@ -2280,7 +2280,7 @@ function ReaderStatistics:getBookStat(id_book)
       ),
     },
     {
-      _("Time spent reading"),
+      gettext("Time spent reading"),
       datetime.secondsToClockDuration(
         user_duration_format,
         book_read_time,
@@ -2291,13 +2291,13 @@ function ReaderStatistics:getBookStat(id_book)
 
     -- Day-focused book stats
     {
-      _("Days reading this book") .. " " .. more_arrow,
+      gettext("Days reading this book") .. " " .. more_arrow,
       tonumber(total_days),
       callback = function()
         local kv = self.kv
         UIManager:close(self.kv)
         self.kv = KeyValuePage:new({
-          title = T(_("Days reading %1"), title),
+          title = T(gettext("Days reading %1"), title),
           value_overflow_align = "right",
           kv_pairs = self:getDatesForBook(id_book),
           callback_return = function()
@@ -2312,7 +2312,7 @@ function ReaderStatistics:getBookStat(id_book)
       end,
     },
     {
-      _("Average time per day"),
+      gettext("Average time per day"),
       datetime.secondsToClockDuration(
         user_duration_format,
         book_read_time / tonumber(total_days),
@@ -2323,7 +2323,7 @@ function ReaderStatistics:getBookStat(id_book)
 
     -- Date-focused book stats
     {
-      _("Book start date"),
+      gettext("Book start date"),
       T(
         N_("(1 day ago) %2", "(%1 days ago) %2", first_open_days_ago),
         first_open_days_ago,
@@ -2331,7 +2331,7 @@ function ReaderStatistics:getBookStat(id_book)
       ),
     },
     {
-      _("Last read date"),
+      gettext("Last read date"),
       T(
         N_("(1 day ago) %2", "(%1 days ago) %2", last_open_days_ago),
         last_open_days_ago,
@@ -2342,7 +2342,7 @@ function ReaderStatistics:getBookStat(id_book)
 
     -- Page-focused book stats
     {
-      _("Last read page/Total pages"),
+      gettext("Last read page/Total pages"),
       string.format(
         "%d / %d (%d%%)",
         last_page,
@@ -2351,7 +2351,7 @@ function ReaderStatistics:getBookStat(id_book)
       ),
     },
     {
-      _("Pages read"),
+      gettext("Pages read"),
       string.format(
         "%d (%d%%)",
         total_read_pages,
@@ -2359,7 +2359,7 @@ function ReaderStatistics:getBookStat(id_book)
       ),
     },
     {
-      _("Average time per page"),
+      gettext("Average time per page"),
       datetime.secondsToClockDuration(
         user_duration_format,
         avg_time_per_page,
@@ -2369,8 +2369,8 @@ function ReaderStatistics:getBookStat(id_book)
     },
 
     -- Highlights
-    { _("Book highlights"), highlights },
-    { _("Book notes"), notes },
+    { gettext("Book highlights"), highlights },
+    { gettext("Book notes"), notes },
   }
 end
 
@@ -2436,7 +2436,7 @@ function ReaderStatistics:callbackMonthly(begin, finish, date_text, book_mode)
   UIManager:close(kv)
   if book_mode then
     self.kv = KeyValuePage:new({
-      title = T(_("Books read in %1"), date_text),
+      title = T(gettext("Books read in %1"), date_text),
       value_align = "right",
       kv_pairs = self:getBooksFromPeriod(begin, finish),
       callback_return = function()
@@ -2469,7 +2469,7 @@ function ReaderStatistics:callbackWeekly(begin, finish, date_text, book_mode)
   UIManager:close(kv)
   if book_mode then
     self.kv = KeyValuePage:new({
-      title = T(_("Books read in %1"), date_text),
+      title = T(gettext("Books read in %1"), date_text),
       value_align = "right",
       kv_pairs = self:getBooksFromPeriod(begin, finish),
       callback_return = function()
@@ -2561,7 +2561,7 @@ function ReaderStatistics:getDatesFromAll(sdays, ptype, book_mode)
       date_text = result_book[1][i]
     elseif ptype == "weekly" then
       date_text =
-        T(_("%1 Week %2"), os.date("%Y", timestamp), os.date(" %W", timestamp))
+        T(gettext("%1 Week %2"), os.date("%Y", timestamp), os.date(" %W", timestamp))
     elseif ptype == "monthly" then
       date_text = datetime.longMonthTranslation[os.date("%B", timestamp)]
         .. os.date(" %Y", timestamp)
@@ -2719,7 +2719,7 @@ function ReaderStatistics:getDaysFromPeriod(period_begin, period_end)
         local kv = self.kv
         UIManager:close(kv)
         self.kv = KeyValuePage:new({
-          title = T(_("Books read %1"), result_book[1][i]),
+          title = T(gettext("Books read %1"), result_book[1][i]),
           value_align = "right",
           kv_pairs = self:getBooksFromPeriod(time_begin, time_begin + 86400),
           callback_return = function()
@@ -2781,7 +2781,7 @@ function ReaderStatistics:getBooksFromPeriod(
         UIManager:close(self.kv)
         if callback_shows_days then -- not used currently by any code
           self.kv = KeyValuePage:new({
-            title = T(_("Days reading %1"), result_book[1][i]),
+            title = T(gettext("Days reading %1"), result_book[1][i]),
             kv_pairs = self:getDatesForBook(tonumber(result_book[4][i])),
             value_overflow_align = "right",
             callback_return = function()
@@ -2935,7 +2935,7 @@ function ReaderStatistics:resetStatsForBookForPeriod(
     -- From getDatesForBook(): we are showing a list of days, with book title at top title:
     -- show the day string to confirm the long-press was on the right day
     confirm_text =
-      T(_("Do you want to reset statistics for day %1 for this book?"), day_str)
+      T(gettext("Do you want to reset statistics for day %1 for this book?"), day_str)
     confirm_button_text = C_("Reset statistics for day for book", "Reset")
   else
     -- From getBooksFromPeriod(): we are showing a list of books, with the period as top title:
@@ -2949,14 +2949,14 @@ function ReaderStatistics:resetStatsForBookForPeriod(
     local book_title = conn:rowexec(string.format(sql_stmt, id_book))
     conn:close()
     confirm_text = T(
-      _("Do you want to reset statistics for this period for book:\n%1"),
+      gettext("Do you want to reset statistics for this period for book:\n%1"),
       book_title
     )
     confirm_button_text = C_("Reset statistics for period for book", "Reset")
   end
   UIManager:show(ConfirmBox:new({
     text = confirm_text,
-    cancel_text = _("Cancel"),
+    cancel_text = gettext("Cancel"),
     cancel_callback = function()
       return
     end,
@@ -3051,7 +3051,7 @@ function ReaderStatistics:getTotalStats()
   conn:close()
 
   return T(
-    _("Total time spent reading: %1"),
+    gettext("Total time spent reading: %1"),
     datetime.secondsToClockDuration(
       user_duration_format,
       total_books_time,
@@ -3064,7 +3064,7 @@ end
 function ReaderStatistics:genResetBookSubItemTable()
   local sub_item_table = {}
   table.insert(sub_item_table, {
-    text = _("Reset statistics for the current book"),
+    text = gettext("Reset statistics for the current book"),
     keep_menu_open = true,
     callback = function()
       self:resetCurrentBook()
@@ -3075,7 +3075,7 @@ function ReaderStatistics:genResetBookSubItemTable()
     separator = true,
   })
   table.insert(sub_item_table, {
-    text = _("Reset statistics per book"),
+    text = gettext("Reset statistics per book"),
     keep_menu_open = true,
     callback = function()
       self:resetPerBook()
@@ -3154,14 +3154,14 @@ function ReaderStatistics:resetPerBook()
         callback = function(kv_page, kv_item)
           UIManager:show(ConfirmBox:new({
             text = T(
-              _("Do you want to reset statistics for book:\n%1"),
+              gettext("Do you want to reset statistics for book:\n%1"),
               book_title
             ),
-            cancel_text = _("Cancel"),
+            cancel_text = gettext("Cancel"),
             cancel_callback = function()
               return
             end,
-            ok_text = _("Reset"),
+            ok_text = gettext("Reset"),
             ok_callback = function()
               self:deleteBook(id_book)
               kv_page:removeKeyValueItem(kv_item) -- Reset, refresh what's displayed
@@ -3174,7 +3174,7 @@ function ReaderStatistics:resetPerBook()
   conn:close()
 
   kv_reset_book = KeyValuePage:new({
-    title = _("Reset book statistics"),
+    title = gettext("Reset book statistics"),
     value_align = "right",
     kv_pairs = total_stats,
   })
@@ -3195,12 +3195,12 @@ function ReaderStatistics:resetCurrentBook()
   conn:close()
 
   UIManager:show(ConfirmBox:new({
-    text = T(_("Do you want to reset statistics for book:\n%1"), book_title),
-    cancel_text = _("Cancel"),
+    text = T(gettext("Do you want to reset statistics for book:\n%1"), book_title),
+    cancel_text = gettext("Cancel"),
     cancel_callback = function()
       return
     end,
-    ok_text = _("Reset"),
+    ok_text = gettext("Reset"),
     ok_callback = function()
       self:deleteBook(self.id_curr_book)
 
@@ -3252,7 +3252,7 @@ function ReaderStatistics:deleteBooksByTotalDuration(max_total_duration_mn)
       ),
       max_total_duration_mn
     ),
-    ok_text = _("Remove"),
+    ok_text = gettext("Remove"),
     ok_callback = function()
       -- Allow following SQL statements to work even when doc less by
       -- using -1 as the book id, as real book ids are positive.
@@ -3296,7 +3296,7 @@ function ReaderStatistics:deleteBooksByTotalDuration(max_total_duration_mn)
             nb_deleted
           ),
           nb_deleted
-        ) or T(_("No statistics removed.")),
+        ) or T(gettext("No statistics removed.")),
       }))
     end,
   }))
@@ -3759,7 +3759,7 @@ function ReaderStatistics:onShowBookStats()
     return
   end
   self.kv = KeyValuePage:new({
-    title = _("Current statistics"),
+    title = gettext("Current statistics"),
     kv_pairs = self:getCurrentStat(),
     value_align = "right",
   })
@@ -3816,7 +3816,7 @@ function ReaderStatistics:onSyncBookStats()
   end
 
   UIManager:show(InfoMessage:new({
-    text = _("Syncing book statistics. This may take a while."),
+    text = gettext("Syncing book statistics. This may take a while."),
     timeout = 1,
   }))
 

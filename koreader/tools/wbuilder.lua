@@ -7,7 +7,7 @@ require("setupkoenv")
 G_defaults = require("luadefaults"):open()
 
 local DataStorage = require("datastorage")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- read settings and check for language override
 -- has to be done before requiring other files because
@@ -17,7 +17,7 @@ G_reader_settings = require("luasettings"):open(
 )
 local lang_locale = G_reader_settings:read("language")
 if lang_locale then
-  _.changeLang(lang_locale)
+  gettext.changeLang(lang_locale)
 end
 local Device = require("device")
 local CanvasContext = require("document/canvascontext")

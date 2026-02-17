@@ -14,8 +14,8 @@ local Utf8Proc = require("ffi/utf8proc")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local _ = require("gettext")
-local N_ = _.ngettext
+local gettext = require("gettext")
+local N_ = gettext.ngettext
 local T = require("ffi/util").template
 
 local FileSearcher = InputContainer:extend({
@@ -59,19 +59,19 @@ function FileSearcher:onShowFileSearch(search_string)
     end)
   end
   search_dialog = InputDialog:new({
-    title = _("Enter text to search for in filename"),
+    title = gettext("Enter text to search for in filename"),
     input = search_string or FileSearcher.search_string,
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(search_dialog)
           end,
         },
         {
-          text = _("Home folder"),
+          text = gettext("Home folder"),
           enabled = G_reader_settings:has("home_dir"),
           callback = function()
             self.path = G_reader_settings:read("home_dir")
@@ -79,8 +79,8 @@ function FileSearcher:onShowFileSearch(search_string)
           end,
         },
         {
-          text = self.ui.file_chooser and _("Current folder")
-            or _("Book folder"),
+          text = self.ui.file_chooser and gettext("Current folder")
+            or gettext("Book folder"),
           is_enter_default = true,
           callback = function()
             self.path = self.ui.file_chooser and self.ui.file_chooser.path
@@ -92,20 +92,20 @@ function FileSearcher:onShowFileSearch(search_string)
     },
   })
   check_button_case = CheckButton:new({
-    text = _("Case sensitive"),
+    text = gettext("Case sensitive"),
     checked = self.case_sensitive,
     parent = search_dialog,
   })
   search_dialog:addWidget(check_button_case)
   check_button_subfolders = CheckButton:new({
-    text = _("Include subfolders"),
+    text = gettext("Include subfolders"),
     checked = self.include_subfolders,
     parent = search_dialog,
   })
   search_dialog:addWidget(check_button_subfolders)
   if self.ui.coverbrowser then
     check_button_metadata = CheckButton:new({
-      text = _("Also search in book metadata"),
+      text = gettext("Also search in book metadata"),
       checked = self.include_metadata,
       parent = search_dialog,
     })
@@ -125,7 +125,7 @@ function FileSearcher:doSearch()
   local not_cached = FileSearcher.search_hash ~= search_hash
   if not_cached then
     local Trapper = require("ui/trapper")
-    local info = InfoMessage:new({ text = _("Searching… (tap to cancel)") })
+    local info = InfoMessage:new({ text = gettext("Searching… (tap to cancel)") })
     UIManager:show(info)
     UIManager:forceRePaint()
     local completed, dirs, files, no_metadata_count = Trapper:dismissableRunInSubprocess(
@@ -269,12 +269,12 @@ end
 
 function FileSearcher:showSearchResultsMessage(no_results)
   local text = no_results
-    and T(_("No results for '%1'."), FileSearcher.search_string)
+    and T(gettext("No results for '%1'."), FileSearcher.search_string)
   if self.no_metadata_count == 0 then
     UIManager:show(ConfirmBox:new({
       text = text,
       icon = "notice-info",
-      ok_text = _("File search"),
+      ok_text = gettext("File search"),
       ok_callback = function()
         self:onShowFileSearch()
       end,
@@ -287,13 +287,13 @@ function FileSearcher:showSearchResultsMessage(no_results)
         self.no_metadata_count
       ),
       self.no_metadata_count
-    ) .. "\n" .. _(
+    ) .. "\n" .. gettext(
       "Not all books metadata extracted yet.\nExtract metadata now?"
     )
     text = no_results and text .. "\n\n" .. txt or txt
     UIManager:show(ConfirmBox:new({
       text = text,
-      ok_text = _("Extract"),
+      ok_text = gettext("Extract"),
       ok_callback = function()
         if not no_results then
           self.search_menu.close_callback()
@@ -311,7 +311,7 @@ function FileSearcher:onShowSearchResults(not_cached)
   end
 
   self.search_menu = Menu:new({
-    subtitle = T(_("Query: %1"), FileSearcher.search_string),
+    subtitle = T(gettext("Query: %1"), FileSearcher.search_string),
     covers_fullscreen = true, -- hint for UIManager:_repaint()
     is_borderless = true,
     is_popout = false,
@@ -342,7 +342,7 @@ end
 function FileSearcher:updateMenu(item_table)
   item_table = item_table or self.search_menu.item_table
   self.search_menu:switchItemTable(
-    T(_("Search results (%1)"), #item_table),
+    T(gettext("Search results (%1)"), #item_table),
     item_table,
     -1
   )
@@ -411,7 +411,7 @@ function FileSearcher:showFileDialog(item)
     end
     table.insert(buttons, {
       {
-        text = _("Delete"),
+        text = gettext("Delete"),
         enabled = not is_currently_opened,
         callback = function()
           local function post_delete_callback()
@@ -434,7 +434,7 @@ function FileSearcher:showFileDialog(item)
   table.insert(buttons, {
     filemanagerutil.genShowFolderButton(file, close_dialog_menu_callback),
     {
-      text = _("Open"),
+      text = gettext("Open"),
       enabled = DocumentRegistry:hasProvider(file, nil, true), -- allow auxiliary providers
       callback = function()
         close_dialog_menu_callback()
@@ -446,12 +446,12 @@ function FileSearcher:showFileDialog(item)
   local title = file
   if bookinfo then
     if bookinfo.title then
-      title = title .. "\n\n" .. T(_("Title: %1"), bookinfo.title)
+      title = title .. "\n\n" .. T(gettext("Title: %1"), bookinfo.title)
     end
     if bookinfo.authors then
       title = title
         .. "\n"
-        .. T(_("Authors: %1"), bookinfo.authors:gsub("[\n\t]", "|"))
+        .. T(gettext("Authors: %1"), bookinfo.authors:gsub("[\n\t]", "|"))
     end
   end
   dialog = ButtonDialog:new({
@@ -502,12 +502,12 @@ function FileSearcher:showSelectModeDialog()
         N_("1 file selected", "%1 files selected", select_count),
         select_count
       )
-    or _("No files selected")
+    or gettext("No files selected")
   local select_dialog
   local buttons = {
     {
       {
-        text = _("Deselect all"),
+        text = gettext("Deselect all"),
         enabled = actions_enabled,
         callback = function()
           UIManager:close(select_dialog)
@@ -521,7 +521,7 @@ function FileSearcher:showSelectModeDialog()
         end,
       },
       {
-        text = _("Select all"),
+        text = gettext("Select all"),
         callback = function()
           UIManager:close(select_dialog)
           for _, item in ipairs(item_table) do
@@ -536,7 +536,7 @@ function FileSearcher:showSelectModeDialog()
     },
     {
       {
-        text = _("Exit select mode"),
+        text = gettext("Exit select mode"),
         callback = function()
           UIManager:close(select_dialog)
           self.selected_files = nil
@@ -550,7 +550,7 @@ function FileSearcher:showSelectModeDialog()
         end,
       },
       {
-        text = _("Select in file browser"),
+        text = gettext("Select in file browser"),
         enabled = actions_enabled,
         callback = function()
           UIManager:close(select_dialog)

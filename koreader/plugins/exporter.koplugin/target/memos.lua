@@ -6,7 +6,7 @@ local logger = require("logger")
 local ltn12 = require("ltn12")
 local socket = require("socket")
 local socketutil = require("socketutil")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- readwise exporter
 local MemosExporter = require("base"):new({
@@ -57,30 +57,30 @@ end
 
 function MemosExporter:getMenuTable()
   return {
-    text = _("Memos"),
+    text = gettext("Memos"),
     checked_func = function()
       return self:isEnabled()
     end,
     sub_item_table = {
       {
-        text = _("Set Memos API URL"),
+        text = gettext("Set Memos API URL"),
         keep_menu_open = true,
         callback = function()
           local auth_dialog
           auth_dialog = InputDialog:new({
-            title = _("Set API URL for Memos"),
+            title = gettext("Set API URL for Memos"),
             input = self.settings.api,
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   id = "close",
                   callback = function()
                     UIManager:close(auth_dialog)
                   end,
                 },
                 {
-                  text = _("Set API URL"),
+                  text = gettext("Set API URL"),
                   callback = function()
                     self.settings.api = auth_dialog:getInputText()
                     self:saveSettings()
@@ -95,24 +95,24 @@ function MemosExporter:getMenuTable()
         end,
       },
       {
-        text = _("Set Memos token"),
+        text = gettext("Set Memos token"),
         keep_menu_open = true,
         callback = function()
           local token_dialog
           token_dialog = InputDialog:new({
-            title = _("Memos token"),
+            title = gettext("Memos token"),
             input = self.settings.token,
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   id = "close",
                   callback = function()
                     UIManager:close(token_dialog)
                   end,
                 },
                 {
-                  text = _("Set token"),
+                  text = gettext("Set token"),
                   callback = function()
                     self.settings.token = token_dialog:getInputText()
                     self:saveSettings()
@@ -127,7 +127,7 @@ function MemosExporter:getMenuTable()
         end,
       },
       {
-        text = _("Export to Memos"),
+        text = gettext("Export to Memos"),
         checked_func = function()
           return self:isEnabled()
         end,

@@ -1,6 +1,6 @@
 local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local function custom(refresh_rate_num)
@@ -29,21 +29,21 @@ local function spinWidgetSetRefresh(touchmenu_instance, refresh_rate_num)
   local left, right = custom(refresh_rate_num)
   local DoubleSpinWidget = require("ui/widget/doublespinwidget")
   local items = DoubleSpinWidget:new({
-    info_text = _("For every chapter set -1"),
+    info_text = gettext("For every chapter set -1"),
     left_value = left,
     left_min = -1,
     left_max = 200,
     left_step = 1,
     left_hold_step = 10,
-    left_text = _("Regular"),
+    left_text = gettext("Regular"),
     right_value = right,
     right_min = -1,
     right_max = 200,
     right_step = 1,
     right_hold_step = 10,
-    right_text = _("Night"),
-    ok_text = _("Set refresh"),
-    title_text = _("Set custom refresh rate"),
+    right_text = gettext("Night"),
+    ok_text = gettext("Set refresh"),
+    title_text = gettext("Set custom refresh rate"),
     callback = function(left_value, right_value)
       G_reader_settings:save(refresh_rate_num, left_value)
       G_reader_settings:save("night_" .. refresh_rate_num, right_value)
@@ -57,11 +57,11 @@ local function spinWidgetSetRefresh(touchmenu_instance, refresh_rate_num)
 end
 
 return {
-  text = _("Full refresh rate"),
+  text = gettext("Full refresh rate"),
   separator = true,
   sub_item_table = {
     {
-      text = _("Never"),
+      text = gettext("Never"),
       checked_func = function()
         return refreshChecked(0, 0)
       end,
@@ -70,7 +70,7 @@ return {
       end,
     },
     {
-      text = _("Every page"),
+      text = gettext("Every page"),
       checked_func = function()
         return refreshChecked(1, 1)
       end,
@@ -79,7 +79,7 @@ return {
       end,
     },
     {
-      text = _("Every 6 pages"),
+      text = gettext("Every 6 pages"),
       checked_func = function()
         return refreshChecked(6, 6)
       end,
@@ -89,7 +89,7 @@ return {
     },
     {
       text_func = function()
-        return T(_("Custom 1: %1:%2 pages"), custom("refresh_rate_1"))
+        return T(gettext("Custom 1: %1:%2 pages"), custom("refresh_rate_1"))
       end,
       checked_func = function()
         return refreshChecked(custom("refresh_rate_1"))
@@ -105,7 +105,7 @@ return {
     },
     {
       text_func = function()
-        return T(_("Custom 2: %1:%2 pages"), custom("refresh_rate_2"))
+        return T(gettext("Custom 2: %1:%2 pages"), custom("refresh_rate_2"))
       end,
       checked_func = function()
         return refreshChecked(custom("refresh_rate_2"))
@@ -121,7 +121,7 @@ return {
     },
     {
       text_func = function()
-        return T(_("Custom 3: %1:%2 pages"), custom("refresh_rate_3"))
+        return T(gettext("Custom 3: %1:%2 pages"), custom("refresh_rate_3"))
       end,
       checked_func = function()
         return refreshChecked(custom("refresh_rate_3"))
@@ -136,7 +136,7 @@ return {
       end,
     },
     {
-      text = _("Every chapter"),
+      text = gettext("Every chapter"),
       checked_func = function()
         return refreshChecked(-1, -1)
       end,
@@ -146,7 +146,7 @@ return {
       separator = true,
     },
     {
-      text = _("Always flash on chapter boundaries"),
+      text = gettext("Always flash on chapter boundaries"),
       checked_func = function()
         return G_reader_settings:isTrue("refresh_on_chapter_boundaries")
       end,
@@ -155,7 +155,7 @@ return {
       end,
     },
     {
-      text = _("except on the second page of a new chapter"),
+      text = gettext("except on the second page of a new chapter"),
       enabled_func = function()
         return UIManager.FULL_REFRESH_COUNT == -1
           or G_reader_settings:isTrue("refresh_on_chapter_boundaries")
@@ -168,7 +168,7 @@ return {
       end,
     },
     {
-      text = _("Always flash on pages with images"),
+      text = gettext("Always flash on pages with images"),
       checked_func = function()
         return G_reader_settings:nilOrTrue("refresh_on_pages_with_images")
       end,

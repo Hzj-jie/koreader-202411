@@ -8,14 +8,14 @@ local UIManager = require("ui/uimanager")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local FileConverter = {
   formats_from = {
     md = {
       -- @translators See <https://en.wikipedia.org/wiki/Markdown>. In languages written in the Latin alphabet this is unlikely to change.
-      name = _("Markdown"),
+      name = gettext("Markdown"),
       from = "markdown",
     },
   },
@@ -79,11 +79,11 @@ function FileConverter:showConvertButtons(file, ui)
   local filename_suffix = util.getFileNameSuffix(file)
   local filetype_name = self.formats_from[filename_suffix].name
   self.convert_dialog = ButtonDialog:new({
-    title = T(_("Convert %1 to:"), filetype_name),
+    title = T(gettext("Convert %1 to:"), filetype_name),
     buttons = {
       {
         {
-          text = _("HTML"),
+          text = gettext("HTML"),
           callback = function()
             local html = self:_mdFileToHtml(file, filename_pure)
             if not html then
@@ -92,8 +92,8 @@ function FileConverter:showConvertButtons(file, ui)
             local filename_html = file .. ".html"
             if lfs.attributes(filename_html, "mode") == "file" then
               UIManager:show(ConfirmBox:new({
-                text = _("Overwrite existing HTML file?"),
-                ok_text = _("Overwrite"),
+                text = gettext("Overwrite existing HTML file?"),
+                ok_text = gettext("Overwrite"),
                 ok_callback = function()
                   util.writeToFile(html, filename_html)
                   UIManager:close(self.convert_dialog)

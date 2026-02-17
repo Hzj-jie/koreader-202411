@@ -11,10 +11,10 @@ function CommonMenu:exitOrRestart(before_exit, ui, after_exit, force)
   -- Only restart sets a callback, which suits us just fine for this check ;)
   if after_exit and not force and not Device:isStartupScriptUpToDate() then
     UIManager:show(ConfirmBox:new({
-      text = _(
+      text = gettext(
         "KOReader's startup script has been updated. You'll need to completely exit KOReader to finalize the update."
       ),
-      ok_text = _("Restart anyway"),
+      ok_text = gettext("Restart anyway"),
       ok_callback = function()
         self:exitOrRestart(before_exit, ui, after_exit, true)
       end,

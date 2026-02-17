@@ -10,7 +10,7 @@ local logger = require("logger")
 local ffiUtil = require("ffi/util")
 local util = require("util")
 local time = require("ui/time")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 
@@ -73,7 +73,7 @@ function UIManager:init()
     self:broadcastEvent(Event:new("PowerOff"))
     self:broadcastEvent("ExitKOReader")
     local Screensaver = require("ui/screensaver")
-    Screensaver:setup("poweroff", _("Powered off"))
+    Screensaver:setup("poweroff", gettext("Powered off"))
     Screensaver:show()
     self:nextTick(function()
       Device:saveSettings()
@@ -91,7 +91,7 @@ function UIManager:init()
     self:broadcastEvent(Event:new("Reboot"))
     self:broadcastEvent("ExitKOReader")
     local Screensaver = require("ui/screensaver")
-    Screensaver:setup("reboot", _("Rebooting…"))
+    Screensaver:setup("reboot", gettext("Rebooting…"))
     Screensaver:show()
     self:nextTick(function()
       Device:saveSettings()
@@ -1740,8 +1740,8 @@ function UIManager:askForReboot(message_text)
   self:nextTick(function()
     local ConfirmBox = require("ui/widget/confirmbox")
     self:show(ConfirmBox:new({
-      text = message_text or _("Are you sure you want to reboot the device?"),
-      ok_text = _("Reboot"),
+      text = message_text or gettext("Are you sure you want to reboot the device?"),
+      ok_text = gettext("Reboot"),
       ok_callback = function()
         self:nextTick(self.reboot_action)
       end,
@@ -1759,8 +1759,8 @@ function UIManager:askForPowerOff(message_text)
     local ConfirmBox = require("ui/widget/confirmbox")
     self:show(ConfirmBox:new({
       text = message_text
-        or _("Are you sure you want to power off the device?"),
-      ok_text = _("Power off"),
+        or gettext("Are you sure you want to power off the device?"),
+      ok_text = gettext("Power off"),
       ok_callback = function()
         self:nextTick(self.poweroff_action)
       end,
@@ -1775,16 +1775,16 @@ function UIManager:askForRestart(message_text)
     if Device:canRestart() then
       local ConfirmBox = require("ui/widget/confirmbox")
       self:show(ConfirmBox:new({
-        text = message_text or _("This will take effect on next restart."),
-        ok_text = _("Restart now"),
+        text = message_text or gettext("This will take effect on next restart."),
+        ok_text = gettext("Restart now"),
         ok_callback = function()
           self:broadcastEvent(Event:new("Restart"))
         end,
-        cancel_text = _("Restart later"),
+        cancel_text = gettext("Restart later"),
       }))
     else
       self:show(require("ui/widget/infomessage"):new({
-        text = message_text or _("This will take effect on next restart."),
+        text = message_text or gettext("This will take effect on next restart."),
       }))
     end
   end)

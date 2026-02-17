@@ -14,7 +14,7 @@ local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -33,8 +33,8 @@ local SpinWidget = FocusManager:extend({
   value_hold_step = 4,
   precision = nil, -- default "%02d" in NumberPickerWidget
   wrap = false,
-  cancel_text = _("Close"),
-  ok_text = _("Apply"),
+  cancel_text = gettext("Close"),
+  ok_text = gettext("Apply"),
   ok_always_enabled = false, -- set to true to enable OK button for unchanged value
   cancel_callback = nil,
   callback = nil,
@@ -151,7 +151,7 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
     end
     table.insert(buttons, {
       {
-        text = T(_("Default value: %1%2"), value, unit),
+        text = T(gettext("Default value: %1%2"), value, unit),
         callback = function()
           if value_widget.value_table then
             value_widget.value_index = self.default_value

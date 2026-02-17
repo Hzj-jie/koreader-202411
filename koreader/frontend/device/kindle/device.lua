@@ -7,7 +7,7 @@ local time = require("ui/time")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- We're going to need a few <linux/fb.h> & <linux/input.h> constants...
 local ffi = require("ffi")
@@ -117,10 +117,10 @@ local function kindleGetScanList()
 end
 
 local function kindleScanThenGetResults()
-  local _ = require("gettext")
+  local gettext = require("gettext")
   local lipc = LibLipcs:accessor()
   if LibLipcs:isFake(lipc) then
-    return nil, _("Unable to communicate with the Wi-Fi backend")
+    return nil, gettext("Unable to communicate with the Wi-Fi backend")
   end
 
   lipc:set_string_property("com.lab126.wifid", "scan", "") -- trigger a scan
@@ -167,7 +167,7 @@ local function kindleScanThenGetResults()
     return kindleGetScanList()
   end
   logger.warn("kindleScanThenGetResults: Timed-out scanning for Wi-Fi networks")
-  return nil, _("Scanning for Wi-Fi networks timed out")
+  return nil, gettext("Scanning for Wi-Fi networks timed out")
 end
 
 local function kindleEnableWifi(toggle)
@@ -305,9 +305,9 @@ function Kindle:retrieveNetworkInfo()
   local profile = kindleGetCurrentProfile()
   local ssid
   if profile == nil then
-    ssid = _("SSID: off/any")
+    ssid = gettext("SSID: off/any")
   else
-    ssid = T(_('SSID: "%1"'), ffi.string(profile.essid))
+    ssid = T(gettext('SSID: "%1"'), ffi.string(profile.essid))
   end
   for _, value in ipairs(results) do
     if value == ssid then

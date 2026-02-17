@@ -12,7 +12,7 @@ local VirtualKeyboard = require("ui/widget/virtualkeyboard")
 local Screen = Device.screen
 local T = FFIUtil.template
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local input_dialog, check_button_bold, check_button_border, check_button_compact
 
@@ -75,7 +75,7 @@ local function genKeyboardLayoutsSubmenu()
             table.insert(keyboard_layouts, lang)
           else -- no more space in the 'globe' popup
             UIManager:show(InfoMessage:new({
-              text = _("Up to four layouts can be enabled."),
+              text = gettext("Up to four layouts can be enabled."),
               timeout = 2,
             }))
           end
@@ -108,7 +108,7 @@ local function genLayoutSpecificSubmenu()
             return keyboard:genMenuItems()
           else
             return {
-              text = _("Not implemented"),
+              text = gettext("Not implemented"),
             }
           end
         end,
@@ -119,7 +119,7 @@ local function genLayoutSpecificSubmenu()
   -- Be a little more user-friendly than an empty menu ;).
   if #item_table == 0 then
     table.insert(item_table, {
-      text = _("Not available for any of your active layouts"),
+      text = gettext("Not available for any of your active layouts"),
     })
   end
 
@@ -131,7 +131,7 @@ local sub_item_table = {
     text_func = function()
       local activated_keyboards, nb_keyboards =
         getActivatedKeyboardsStringCount()
-      local item_text = T(_("Keyboard layouts: %1"), activated_keyboards)
+      local item_text = T(gettext("Keyboard layouts: %1"), activated_keyboards)
 
       -- get width of text
       local tmp = TextWidget:new({
@@ -149,7 +149,7 @@ local sub_item_table = {
           - 2 * Size.padding.default
           - checked_widget:getSize().w
       then
-        item_text = T(_("Keyboard layouts (%1)"), nb_keyboards)
+        item_text = T(gettext("Keyboard layouts (%1)"), nb_keyboards)
       end
 
       return item_text
@@ -157,12 +157,12 @@ local sub_item_table = {
     sub_item_table_func = genKeyboardLayoutsSubmenu,
   },
   {
-    text = _("Layout-specific keyboard settings"),
+    text = gettext("Layout-specific keyboard settings"),
     -- Lazy-loaded to avoid pinning potentially unnecessary data
     sub_item_table_func = genLayoutSpecificSubmenu,
   },
   {
-    text = _("Remember last layout"),
+    text = gettext("Remember last layout"),
     checked_func = function()
       return G_reader_settings:nilOrTrue("keyboard_remember_layout")
     end,
@@ -172,7 +172,7 @@ local sub_item_table = {
     separator = true,
   },
   {
-    text = _("Keyboard appearance settings"),
+    text = gettext("Keyboard appearance settings"),
     keep_menu_open = true,
     enabled_func = function()
       return G_reader_settings:nilOrTrue("virtual_keyboard_enabled")
@@ -180,7 +180,7 @@ local sub_item_table = {
     callback = function(touchmenu_instance)
       local InputDialog = require("ui/widget/inputdialog")
       input_dialog = InputDialog:new({
-        title = _("Keyboard font size"),
+        title = gettext("Keyboard font size"),
         -- do not use input_type = "number" to see letters on the keyboard
         input = tostring(
           G_reader_settings:read("keyboard_key_font_size")
@@ -190,14 +190,14 @@ local sub_item_table = {
         buttons = {
           {
             {
-              text = _("Close"),
+              text = gettext("Close"),
               id = "close",
               callback = function()
                 UIManager:close(input_dialog)
               end,
             },
             {
-              text = _("Apply"),
+              text = gettext("Apply"),
               is_enter_default = true,
               callback = function()
                 local font_size = tonumber(input_dialog:getInputText())
@@ -229,19 +229,19 @@ local sub_item_table = {
       })
 
       check_button_bold = CheckButton:new({
-        text = _("in bold"),
+        text = gettext("in bold"),
         checked = G_reader_settings:isTrue("keyboard_key_bold"),
         parent = input_dialog,
       })
       input_dialog:addWidget(check_button_bold)
       check_button_border = CheckButton:new({
-        text = _("with border"),
+        text = gettext("with border"),
         checked = G_reader_settings:nilOrTrue("keyboard_key_border"),
         parent = input_dialog,
       })
       input_dialog:addWidget(check_button_border)
       check_button_compact = CheckButton:new({
-        text = _("compact"),
+        text = gettext("compact"),
         checked = G_reader_settings:isTrue("keyboard_key_compact"),
         parent = input_dialog,
       })
@@ -255,8 +255,8 @@ local sub_item_table = {
 if Device:hasKeyboard() or Device:hasScreenKB() then
   -- we use same pos. 4 as below so we are always above "keyboard appearance settings"
   table.insert(sub_item_table, 4, {
-    text = _("Show virtual keyboard"),
-    help_text = _(
+    text = gettext("Show virtual keyboard"),
+    help_text = gettext(
       "Enable this setting to always display the virtual keyboard within a text input field. When a field is selected (in focus), you can temporarily toggle the keyboard on/off by pressing 'Shift' (or 'ScreenKB') + 'Home'."
     ),
     checked_func = function()
@@ -267,11 +267,11 @@ if Device:hasKeyboard() or Device:hasScreenKB() then
       if G_reader_settings:isFalse("virtual_keyboard_enabled") then
         local keyboard_infomessage
         if Device:hasScreenKB() then
-          keyboard_infomessage = _(
+          keyboard_infomessage = gettext(
             "When a text field is selected (in focus), you can temporarily bring up the virtual keyboard by pressing 'ScreenKB' + 'Home'."
           )
         else
-          keyboard_infomessage = _(
+          keyboard_infomessage = gettext(
             "When a text field is selected (in focus), you can temporarily bring up the virtual keyboard by pressing 'Shift' + 'Home'."
           )
         end
@@ -285,7 +285,7 @@ end
 if Device:isTouchDevice() then
   -- same pos. 4 as above so if both conditions are met we are above "Show virtual keyboard"
   table.insert(sub_item_table, 4, {
-    text = _("Swipe to input additional characters"),
+    text = gettext("Swipe to input additional characters"),
     checked_func = function()
       return G_reader_settings:nilOrTrue("keyboard_swipes_enabled")
     end,

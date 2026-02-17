@@ -8,7 +8,7 @@ local ReaderUI = require("apps/reader/readerui")
 local WebDavApi = require("apps/cloudstorage/webdavapi")
 local util = require("util")
 local ffiutil = require("ffi/util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local WebDav = {}
@@ -38,12 +38,12 @@ function WebDav:downloadFile(
       and not DocumentRegistry:hasProvider(filename)
     then
       UIManager:show(InfoMessage:new({
-        text = T(_("File saved to:\n%1"), BD.filepath(local_path)),
+        text = T(gettext("File saved to:\n%1"), BD.filepath(local_path)),
       }))
     else
       UIManager:show(ConfirmBox:new({
         text = T(
-          _(
+          gettext(
             "File saved to:\n%1\nWould you like to read the downloaded book now?"
           ),
           BD.filepath(local_path)
@@ -62,7 +62,7 @@ function WebDav:downloadFile(
     end
   else
     UIManager:show(InfoMessage:new({
-      text = T(_("Could not save file to:\n%1"), BD.filepath(local_path)),
+      text = T(gettext("Could not save file to:\n%1"), BD.filepath(local_path)),
       timeout = 3,
     }))
   end
@@ -86,14 +86,14 @@ function WebDav:uploadFile(
     and code_response < 300
   then
     UIManager:show(InfoMessage:new({
-      text = T(_("File uploaded:\n%1"), BD.filepath(address)),
+      text = T(gettext("File uploaded:\n%1"), BD.filepath(address)),
     }))
     if callback_close then
       callback_close()
     end
   else
     UIManager:show(InfoMessage:new({
-      text = T(_("Could not upload file:\n%1"), BD.filepath(address)),
+      text = T(gettext("Could not upload file:\n%1"), BD.filepath(address)),
       timeout = 3,
     }))
   end
@@ -119,57 +119,57 @@ function WebDav:createFolder(
     end
   else
     UIManager:show(InfoMessage:new({
-      text = T(_("Could not create folder:\n%1"), folder_name),
+      text = T(gettext("Could not create folder:\n%1"), folder_name),
     }))
   end
 end
 
 function WebDav:config(item, callback)
   local text_info =
-    _([[Server address must be of the form http(s)://domain.name/path
+    gettext([[Server address must be of the form http(s)://domain.name/path
 This can point to a sub-directory of the WebDAV server.
 The start folder is appended to the server path.]])
 
   local title, text_name, text_address, text_username, text_password, text_folder
   if item then
-    title = _("Edit WebDAV account")
+    title = gettext("Edit WebDAV account")
     text_name = item.text
     text_address = item.address
     text_username = item.username
     text_password = item.password
     text_folder = item.url
   else
-    title = _("Add WebDAV account")
+    title = gettext("Add WebDAV account")
   end
   self.settings_dialog = MultiInputDialog:new({
     title = title,
     fields = {
       {
         text = text_name,
-        hint = _("Server display name"),
+        hint = gettext("Server display name"),
       },
       {
         text = text_address,
-        hint = _("WebDAV address, for example https://example.com/dav"),
+        hint = gettext("WebDAV address, for example https://example.com/dav"),
       },
       {
         text = text_username,
-        hint = _("Username"),
+        hint = gettext("Username"),
       },
       {
         text = text_password,
         text_type = "password",
-        hint = _("Password"),
+        hint = gettext("Password"),
       },
       {
         text = text_folder,
-        hint = _("Start folder, for example /books"),
+        hint = gettext("Start folder, for example /books"),
       },
     },
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             self.settings_dialog:onExit()
@@ -177,13 +177,13 @@ The start folder is appended to the server path.]])
           end,
         },
         {
-          text = _("Info"),
+          text = gettext("Info"),
           callback = function()
             UIManager:show(InfoMessage:new({ text = text_info }))
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           callback = function()
             local fields = self.settings_dialog:getFields()
             if fields[1] ~= "" and fields[2] ~= "" then
@@ -205,7 +205,7 @@ The start folder is appended to the server path.]])
               UIManager:close(self.settings_dialog)
             else
               UIManager:show(InfoMessage:new({
-                text = _("Please fill in all fields."),
+                text = gettext("Please fill in all fields."),
               }))
             end
           end,
@@ -219,7 +219,7 @@ end
 
 function WebDav:info(item)
   local info_text =
-    T(_("Type: %1\nName: %2\nAddress: %3"), "WebDAV", item.text, item.address)
+    T(gettext("Type: %1\nName: %2\nAddress: %3"), "WebDAV", item.text, item.address)
   UIManager:show(InfoMessage:new({ text = info_text }))
 end
 

@@ -15,8 +15,8 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local time = require("ui/time")
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local Powerd = Device.powerd
 local T = require("ffi/util").template
 
@@ -57,13 +57,13 @@ end
 function AutoDim:addToMainMenu(menu_items)
   menu_items.autodim = {
     text_func = function()
-      return _("Automatic dimmer")
+      return gettext("Automatic dimmer")
         .. ": "
         -- Need localization.
         .. (
-          self.autodim_starttime_m <= 0 and _("disabled")
+          self.autodim_starttime_m <= 0 and gettext("disabled")
           or T(
-            _("after %1"),
+            gettext("after %1"),
             datetime.secondsToClockDuration(
               "letters",
               self.autodim_starttime_m * 60,
@@ -79,8 +79,8 @@ function AutoDim:addToMainMenu(menu_items)
     end,
     callback = function(menu)
       local idle_dialog = SpinWidget:new({
-        title_text = _("Automatic dimmer idle time"),
-        info_text = _(
+        title_text = gettext("Automatic dimmer idle time"),
+        info_text = gettext(
           "Start the dimmer after the designated period of inactivity."
         ),
         value = self.autodim_starttime_m >= 0 and self.autodim_starttime_m
@@ -103,7 +103,7 @@ function AutoDim:addToMainMenu(menu_items)
           self:_scheduleAutoDimTask()
           menu:updateItems()
         end,
-        extra_text = _("Disable"),
+        extra_text = gettext("Disable"),
         extra_callback = function()
           self.autodim_starttime_m = -1
           G_reader_settings:save("autodim_starttime_minutes", -1)

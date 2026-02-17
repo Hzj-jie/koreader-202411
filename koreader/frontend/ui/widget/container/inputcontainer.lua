@@ -43,7 +43,7 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
 local Screen = Device.screen
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local InputContainer = WidgetContainer:extend({
   vertical_align = "top",
@@ -340,11 +340,11 @@ function InputContainer:onIgnoreTouchInput(toggle)
   local Notification = require("ui/widget/notification")
   if toggle == true then
     if self:setIgnoreTouchInput(true) then
-      Notification:notify(_("Disabled touch input"))
+      Notification:notify(gettext("Disabled touch input"))
     end
   elseif toggle == false then
     if self:setIgnoreTouchInput(false) then
-      Notification:notify(_("Restored touch input"))
+      Notification:notify(gettext("Restored touch input"))
     end
   else
     -- Toggle the current state
@@ -365,14 +365,14 @@ function InputContainer:onInput(input, ignore_first_hold_release)
     buttons = input.buttons or {
       {
         {
-          text = input.cancel_text or _("Cancel"),
+          text = input.cancel_text or gettext("Cancel"),
           id = "close",
           callback = function()
             self:closeInputDialog()
           end,
         },
         {
-          text = input.ok_text or _("OK"),
+          text = input.ok_text or gettext("OK"),
           is_enter_default = true,
           callback = function()
             if

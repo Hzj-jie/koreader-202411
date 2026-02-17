@@ -28,7 +28,7 @@ local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 local Screen = Device.screen
 
@@ -170,7 +170,7 @@ function NumberPickerWidget:init()
         )
       end
       input_dialog = InputDialog:new({
-        title = _("Enter number"),
+        title = gettext("Enter number"),
         input_hint = T(
           "%1 (%2 - %3)",
           self.formatted_value,
@@ -181,14 +181,14 @@ function NumberPickerWidget:init()
         buttons = {
           {
             {
-              text = _("Cancel"),
+              text = gettext("Cancel"),
               id = "close",
               callback = function()
                 UIManager:close(input_dialog)
               end,
             },
             {
-              text = _("OK"),
+              text = gettext("OK"),
               is_enter_default = true,
               callback = function()
                 local input_text = input_dialog:getInputText()
@@ -236,7 +236,7 @@ function NumberPickerWidget:init()
                   then
                     UIManager:show(InfoMessage:new({
                       text = T(
-                        _(
+                        gettext(
                           "ATTENTION:\nPrefixing the input with ':' disables sanity checks!\nThis value should be in the range of %1 - %2.\nUndefined behavior may occur."
                         ),
                         self.value_min,
@@ -261,7 +261,7 @@ function NumberPickerWidget:init()
                 elseif input_value and input_value < self.value_min then
                   UIManager:show(InfoMessage:new({
                     text = T(
-                      _("This value should be %1 or more."),
+                      gettext("This value should be %1 or more."),
                       self.value_min
                     ),
                     timeout = 2,
@@ -269,14 +269,14 @@ function NumberPickerWidget:init()
                 elseif input_value and input_value > self.value_max then
                   UIManager:show(InfoMessage:new({
                     text = T(
-                      _("This value should be %1 or less."),
+                      gettext("This value should be %1 or less."),
                       self.value_max
                     ),
                     timeout = 2,
                   }))
                 else
                   UIManager:show(InfoMessage:new({
-                    text = _("Invalid value. Please enter a valid value."),
+                    text = gettext("Invalid value. Please enter a valid value."),
                     timeout = 2,
                   }))
                 end

@@ -16,7 +16,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local T = require("ffi/util").template
 local logger = require("logger")
 local util = require("ffi/util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local CalculatorSettingsDialog = require("calculatorsettingsdialog")
 local CalculatorConvertDialog = require("calculatorconvertdialog")
@@ -41,17 +41,17 @@ local Calculator = WidgetContainer:new({
   input = {},
   angle_mode = "degree", -- don't translate
   angle_modes = {
-    { "radiant", _("Radiant") },
-    { "degree", _("Degree") },
-    { "gon", _("Gon") },
+    { "radiant", gettext("Radiant") },
+    { "degree", gettext("Degree") },
+    { "gon", gettext("Gon") },
   },
   number_format = "auto", -- don't translate
   number_formats = {
-    { "scientific", _("Scientific") },
-    { "engineer", _("Engineer") },
-    { "auto", _("Auto") },
-    { "programmer", _("Programmer") },
-    { "native", _("Native") },
+    { "scientific", gettext("Scientific") },
+    { "engineer", gettext("Engineer") },
+    { "auto", gettext("Auto") },
+    { "programmer", gettext("Programmer") },
+    { "native", gettext("Native") },
   },
   significant_places = 5, -- decimal places
   lower_bound = 4, -- switch to scientific if <=10^lower_bound
@@ -73,7 +73,7 @@ function Calculator:init()
   if self.ui.highlight then
     self.ui.highlight:addToHighlightDialog("13_convert", function(this)
       return {
-        text = _("Convert Unit"),
+        text = gettext("Convert Unit"),
         show_in_highlight_dialog_func = function()
           return this.selected_text.text:find("^%p*%d+") ~= nil
         end,
@@ -105,7 +105,7 @@ end
 
 function Calculator:addToMainMenu(menu_items)
   menu_items.calculator = {
-    text = _("Calculator"),
+    text = gettext("Calculator"),
     keep_menu_open = true,
     callback = function()
       self:onCalculatorStart()
@@ -117,7 +117,7 @@ function Calculator:onDispatcherRegisterActions()
   Dispatcher:registerAction("show_calculator", {
     category = "none",
     event = "CalculatorStart",
-    title = _("Calculator"),
+    title = gettext("Calculator"),
     device = true,
   })
 end
@@ -138,7 +138,7 @@ function Calculator:getStatusLine()
   local format = self:getString(self.number_format, self.number_formats)
   format = format .. (" "):rep(12 - #format)
   return string.format(
-    _("∡ %s\tFormat: %s\t≈%d"),
+    gettext("∡ %s\tFormat: %s\t≈%d"),
     angle_mode,
     format,
     self.significant_places
@@ -146,13 +146,13 @@ function Calculator:getStatusLine()
 end
 
 function Calculator:generateInputDialog(status_line)
-  local hint = _([[Enter your calculations and press '⮠'
+  local hint = gettext([[Enter your calculations and press '⮠'
 '♺' Convert, '⎚' Clear, '⇧' Load,
 '⇩' Store, '☰' Settings, '✕' Close
 or type 'help()⮠']])
 
   return InputDialog:new({
-    title = _("Calculator"),
+    title = gettext("Calculator"),
     input_hint = hint,
     description = status_line,
     description_face = Font:getFace("scfont"),
@@ -191,9 +191,9 @@ or type 'help()⮠']])
           text = "⇧",
           callback = function(touchmenu_instance)
             UIManager:show(MultiConfirmBox:new({
-              text = T(_("Use file %1"), self.calculator_input_path),
+              text = T(gettext("Use file %1"), self.calculator_input_path),
               cancel_text = "✕", --cancel
-              choice1_text = _("Select"),
+              choice1_text = gettext("Select"),
               choice1_callback = function()
                 UIManager:close(self.input_dialog)
                 CalculatorSettingsDialog.choosePathFile(
@@ -216,9 +216,9 @@ or type 'help()⮠']])
           text = "⇩",
           callback = function(touchmenu_instance)
             UIManager:show(MultiConfirmBox:new({
-              text = T(_("Use file %1"), self.calculator_output_path),
+              text = T(gettext("Use file %1"), self.calculator_output_path),
               cancel_text = "✕", --cancel
-              choice1_text = _("Select"),
+              choice1_text = gettext("Select"),
               choice1_callback = function()
                 UIManager:close(self.input_dialog)
                 CalculatorSettingsDialog.choosePathFile(
@@ -594,7 +594,7 @@ function Calculator:calculate(input_text)
     else
       self.history = input_text
       UIManager:show(InfoMessage:new({
-        text = last_err or _("Input error"),
+        text = last_err or gettext("Input error"),
       }))
     end
     self.history = self.history:gsub("\n\n", "\n")

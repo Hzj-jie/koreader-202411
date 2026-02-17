@@ -6,8 +6,8 @@ local UIManager = require("ui/uimanager")
 local ffiutil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local _ = require("gettext")
-local N_ = _.ngettext
+local gettext = require("gettext")
+local N_ = gettext.ngettext
 local T = ffiutil.template
 
 local PathChooser = FileChooser:extend({
@@ -27,11 +27,11 @@ local PathChooser = FileChooser:extend({
 function PathChooser:init()
   if self.title == true then -- default title depending on options
     if self.select_directory and not self.select_file then
-      self.title = _("Long-press to choose a folder")
+      self.title = gettext("Long-press to choose a folder")
     elseif not self.select_directory and self.select_file then
-      self.title = _("Long-press to choose a file")
+      self.title = gettext("Long-press to choose a file")
     else
-      self.title = _("Long-press to choose")
+      self.title = gettext("Long-press to choose")
     end
   end
   if not self.show_files then
@@ -115,7 +115,7 @@ function PathChooser:onMenuHold(item)
   end
   local title
   if attr.mode == "file" then
-    title = _("Choose this file?") .. "\n\n" .. BD.filepath(path) .. "\n"
+    title = gettext("Choose this file?") .. "\n\n" .. BD.filepath(path) .. "\n"
     if self.detailed_file_info then
       local filesize = util.getFormattedSize(attr.size)
       local lastmod = os.date("%Y-%m-%d %H:%M", attr.modification)
@@ -126,13 +126,13 @@ function PathChooser:onMenuHold(item)
           filesize
         )
         .. "\n"
-        .. T(_("Last modified: %1"), lastmod)
+        .. T(gettext("Last modified: %1"), lastmod)
         .. "\n"
     end
   elseif attr.mode == "directory" then
-    title = _("Choose this folder?") .. "\n\n" .. BD.dirpath(path) .. "\n"
+    title = gettext("Choose this folder?") .. "\n\n" .. BD.dirpath(path) .. "\n"
   else -- just in case we get something else
-    title = _("Choose this path?") .. "\n\n" .. BD.path(path) .. "\n"
+    title = gettext("Choose this path?") .. "\n\n" .. BD.path(path) .. "\n"
   end
   local onConfirm = self.onConfirm
   self.button_dialog = ButtonDialog:new({
@@ -140,13 +140,13 @@ function PathChooser:onMenuHold(item)
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           callback = function()
             UIManager:close(self.button_dialog)
           end,
         },
         {
-          text = _("Choose"),
+          text = gettext("Choose"),
           callback = function()
             if onConfirm then
               onConfirm(path)
@@ -167,7 +167,7 @@ function PathChooser:showPlusMenu()
     buttons = {
       {
         {
-          text = _("Folder shortcuts"),
+          text = gettext("Folder shortcuts"),
           callback = function()
             UIManager:close(button_dialog)
             local FileManagerShortcuts =
@@ -181,7 +181,7 @@ function PathChooser:showPlusMenu()
       },
       {
         {
-          text = _("New folder"),
+          text = gettext("New folder"),
           callback = function()
             UIManager:close(button_dialog)
             local FileManager = require("apps/filemanager/filemanager")

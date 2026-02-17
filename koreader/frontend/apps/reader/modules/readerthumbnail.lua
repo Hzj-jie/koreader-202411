@@ -11,7 +11,7 @@ local Screen = Device.screen
 local ffiutil = require("ffi/util")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- This ReaderThumbnail module provides a service for generating thumbnails
 -- of book pages.
@@ -76,7 +76,7 @@ end
 
 function ReaderThumbnail:addToMainMenu(menu_items)
   menu_items.book_map = {
-    text = _("Book map"),
+    text = gettext("Book map"),
     callback = function()
       self:onShowBookMap()
     end,
@@ -92,7 +92,7 @@ function ReaderThumbnail:addToMainMenu(menu_items)
     return
   end
   menu_items.page_browser = {
-    text = _("Page browser"),
+    text = gettext("Page browser"),
     callback = function()
       self:onShowPageBrowser()
     end,

@@ -4,8 +4,8 @@ Widget that shows a confirmation alert with a message and Cancel/OK buttons.
 Example:
 
     UIManager:show(ConfirmBox:new{
-        text = _("Save the document?"),
-        ok_text = _("Save"),  -- ok_text defaults to _("OK")
+        text = gettext("Save the document?"),
+        ok_text = gettext("Save"),  -- ok_text defaults to gettext("OK")
         ok_callback = function()
             -- save document
         end,
@@ -35,18 +35,18 @@ local TextBoxWidget = require("ui/widget/textboxwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 
 local ConfirmBox = InputContainer:extend({
   modal = true,
   keep_dialog_open = false,
-  text = _("no text"),
+  text = gettext("no text"),
   face = Font:getFace("infofont"),
   icon = "notice-question",
-  ok_text = _("OK"),
-  cancel_text = _("Cancel"),
+  ok_text = gettext("OK"),
+  cancel_text = gettext("Cancel"),
   ok_callback = function() end,
   cancel_callback = function() end,
   other_buttons = nil,

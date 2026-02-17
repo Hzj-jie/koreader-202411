@@ -11,7 +11,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiUtil = require("ffi/util")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = ffiUtil.template
 
 -- A plugin gets instantiated on each document load and reader/FM switch.
@@ -1130,13 +1130,13 @@ local getOrderedDispatcherActions = function()
   end
   -- Copied and pasted from Dispatcher (we can't reach that the same way as above)
   local section_list = {
-    { "general", _("General") },
-    { "device", _("Device") },
-    { "screen", _("Screen and lights") },
-    { "filemanager", _("File browser") },
-    { "reader", _("Reader") },
-    { "rolling", _("Reflowable documents (epub, fb2, txt…)") },
-    { "paging", _("Fixed layout documents (pdf, djvu, pics…)") },
+    { "general", gettext("General") },
+    { "device", gettext("Device") },
+    { "screen", gettext("Screen and lights") },
+    { "filemanager", gettext("File browser") },
+    { "reader", gettext("Reader") },
+    { "rolling", gettext("Reflowable documents (epub, fb2, txt…)") },
+    { "paging", gettext("Fixed layout documents (pdf, djvu, pics…)") },
   }
   _dispatcher_actions = {}
   for _, section in ipairs(section_list) do
@@ -1453,20 +1453,20 @@ end
 
 function HttpInspectorWidget:addToMainMenu(menu_items)
   menu_items.httpremote = {
-    text = _("Remotely control KOReader"),
+    text = gettext("Remotely control KOReader"),
     help_text_func = function()
       local text = HELP_TEXT .. "\n\n"
       -- Need localization.
       if NetworkMgr:isOnline() and HttpInspector:isRunning() then
         text = text
           .. T(
-            _("Navigate to %1 from a browser to control KOReader."),
+            gettext("Navigate to %1 from a browser to control KOReader."),
             NetworkMgr:ipAddress()
           )
       elseif NetworkMgr:isOnline() then
         text = text
           .. T(
-            _(
+            gettext(
               "After starting the HTTP server, navigate to %1 from a browser to control KOReader."
             ),
             NetworkMgr:ipAddress()
@@ -1475,7 +1475,7 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
         -- If the http server has been enabled, very likely the user knows
         -- what does it mean and no extra "Starting the HTTP server"
         -- infomation is needed.
-        text = text .. _("Turn on the network connection to use the feature.")
+        text = text .. gettext("Turn on the network connection to use the feature.")
       end
       return text
     end,
@@ -1483,11 +1483,11 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
       {
         text_func = function()
           if HttpInspector:isRunning() then
-            return _("Stop HTTP server")
+            return gettext("Stop HTTP server")
               .. " - "
-              .. T(_("Listening on port %1"), HttpInspector.port)
+              .. T(gettext("Listening on port %1"), HttpInspector.port)
           end
-          return _("Start HTTP server")
+          return gettext("Start HTTP server")
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
@@ -1503,7 +1503,7 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
         separator = true,
       },
       {
-        text = _("Auto start HTTP server"),
+        text = gettext("Auto start HTTP server"),
         checked_func = function()
           return G_reader_settings:isTrue("httpinspector_autostart")
         end,
@@ -1513,31 +1513,31 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(_("Port: %1"), HttpInspector.port)
+          return T(gettext("Port: %1"), HttpInspector.port)
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
           local InputDialog = require("ui/widget/inputdialog")
           local port_dialog
           port_dialog = InputDialog:new({
-            title = _("Set custom port"),
+            title = gettext("Set custom port"),
             input = HttpInspector.port,
             input_type = "number",
-            input_hint = _("Port number (default is 8080)"):gsub(
+            input_hint = gettext("Port number (default is 8080)"):gsub(
               "8080",
               DEFAULT_PORT
             ),
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   id = "close",
                   callback = function()
                     UIManager:close(port_dialog)
                   end,
                 },
                 {
-                  text = _("OK"),
+                  text = gettext("OK"),
                   -- keep_menu_open = true,
                   callback = function()
                     local port = port_dialog:getInputValue()

@@ -1,6 +1,6 @@
 -- high level wrapper module for gettext
 
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local Language = {
   language_names = {
@@ -94,10 +94,10 @@ end
 
 function Language:changeLanguage(lang_locale)
   local UIManager = require("ui/uimanager")
-  _.changeLang(lang_locale)
+  gettext.changeLang(lang_locale)
   G_reader_settings:save("language", lang_locale)
   UIManager:askForRestart(
-    _("Please restart KOReader for the new language setting to take effect.")
+    gettext("Please restart KOReader for the new language setting to take effect.")
   )
 end
 
@@ -121,7 +121,7 @@ function Language:getLangMenuTable()
   -- cache menu table
   if not self.LangMenuTable then
     self.LangMenuTable = {
-      text = _("Language"),
+      text = gettext("Language"),
       -- NOTE: language with no translation are commented out for now
       sub_item_table = {
         self:genLanguageSubItem("C"),

@@ -38,7 +38,7 @@ https://material.io/design/usability/bidirectionality.html
 
 local Language = require("ui/language")
 local util = require("util")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local Bidi = {
   _mirrored_ui_layout = false,
@@ -102,7 +102,7 @@ function Bidi.setup(lang)
   end
   -- If RTL UI text, let's have untranslated strings (so english) still rendered LTR
   if Bidi._rtl_ui_text then
-    _.wrapUntranslated = function(text)
+    gettext.wrapUntranslated = function(text)
       -- We need to split by line and wrap each line as LTR (as the
       -- paragraph direction will still be RTL).
       local parts = {}
@@ -116,7 +116,7 @@ function Bidi.setup(lang)
       return table.concat(parts)
     end
   else
-    _.wrapUntranslated = _.wrapUntranslated_nowrap
+    gettext.wrapUntranslated = gettext.wrapUntranslated_nowrap
   end
 end
 

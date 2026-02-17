@@ -1,37 +1,37 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local formatters = {
   none = {
     formatter = "%s",
-    label = _("None"),
+    label = gettext("None"),
   },
   bold = {
     formatter = "**%s**",
-    label = _("Bold"),
+    label = gettext("Bold"),
   },
   highlight = {
     formatter = "==%s==",
-    label = _("Highlight"),
+    label = gettext("Highlight"),
   },
   italic = {
     formatter = "*%s*",
-    label = _("Italic"),
+    label = gettext("Italic"),
   },
   bold_italic = {
     formatter = "**_%s_**",
-    label = _("Bold italic"),
+    label = gettext("Bold italic"),
   },
   underline_markdownit = {
     formatter = "++%s++",
-    label = _("Underline (Markdownit style, with ++)"),
+    label = gettext("Underline (Markdownit style, with ++)"),
   },
   underline_u_tag = {
     formatter = "<u>%s</u>",
-    label = _("Underline (with <u></u> tags)"),
+    label = gettext("Underline (with <u></u> tags)"),
   },
   strikethrough = {
     formatter = "~~%s~~",
-    label = _("Strikethrough"),
+    label = gettext("Strikethrough"),
   },
 }
 
@@ -43,7 +43,7 @@ local function prepareBookContent(
   local tbl = {}
   local current_chapter = nil
   table.insert(tbl, "# " .. book.title)
-  local author = book.author or _("N/A")
+  local author = book.author or gettext("N/A")
   table.insert(tbl, "##### " .. author:gsub("\n", ", ") .. "\n")
   for _, note in ipairs(book) do
     local entry = note[1]

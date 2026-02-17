@@ -24,8 +24,8 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local logger = require("logger")
 local T = require("ffi/util").template
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local Screen = Device.screen
 
 local MODE = {
@@ -166,7 +166,7 @@ local footerTextGeneratorMap = {
       then
         return ""
       else
-        return T(_("%1 Off"), prefix)
+        return T(gettext("%1 Off"), prefix)
       end
     end
   end,
@@ -185,7 +185,7 @@ local footerTextGeneratorMap = {
       then
         return ""
       else
-        return T(_("%1 Off"), prefix)
+        return T(gettext("%1 Off"), prefix)
       end
     end
   end,
@@ -421,17 +421,17 @@ local footerTextGeneratorMap = {
     else
       local prefix = symbol_prefix[symbol_type].wifi_status
       if NetworkMgr:isOnline() then
-        return T(_("%1 Online"), prefix)
+        return T(gettext("%1 Online"), prefix)
       elseif NetworkMgr:isConnected() then
-        return T(_("%1 Connected"), prefix)
+        return T(gettext("%1 Connected"), prefix)
       elseif NetworkMgr:isWifiOn() then
-        return T(_("%1 On"), prefix)
+        return T(gettext("%1 On"), prefix)
       elseif
         footer.settings.all_at_once and footer.settings.hide_empty_generators
       then
         return ""
       else
-        return T(_("%1 Off"), prefix)
+        return T(gettext("%1 Off"), prefix)
       end
     end
   end,
@@ -447,7 +447,7 @@ local footerTextGeneratorMap = {
       if symbol_type == "icons" or symbol_type == "compact_items" then
         return symbol_prefix.icons.page_turning_inverted
       else
-        return T(_("%1 On"), prefix)
+        return T(gettext("%1 On"), prefix)
       end
     elseif
       footer.settings.all_at_once and footer.settings.hide_empty_generators
@@ -457,7 +457,7 @@ local footerTextGeneratorMap = {
       if symbol_type == "icons" or symbol_type == "compact_items" then
         return symbol_prefix.icons.page_turning_regular
       else
-        return T(_("%1 Off"), prefix)
+        return T(gettext("%1 Off"), prefix)
       end
     end
   end,
@@ -683,29 +683,29 @@ end
 function ReaderFooter:set_custom_text(touchmenu_instance)
   local text_dialog
   text_dialog = MultiInputDialog:new({
-    title = _("Enter a custom text"),
+    title = gettext("Enter a custom text"),
     fields = {
       {
         text = self.custom_text or "",
-        description = _("Custom string:"),
+        description = gettext("Custom string:"),
       },
       {
         text = self.custom_text_repetitions,
-        description = _("Number of repetitions:"),
+        description = gettext("Number of repetitions:"),
         input_type = "number",
       },
     },
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(text_dialog)
           end,
         },
         {
-          text = _("Set"),
+          text = gettext("Set"),
           callback = function()
             local inputs = text_dialog:getFields()
             local new_text, new_repetitions = inputs[1], inputs[2]
@@ -749,14 +749,14 @@ end
 
 -- Help text string, or function, to be shown, or executed, on a long press on menu item
 local option_help_text = {
-  pages_left_book = _(
+  pages_left_book = gettext(
     "Can be configured to include or exclude the current page."
   ),
-  percentage = _(
+  percentage = gettext(
     "Progress percentage can be shown with zero, one or two decimal places."
   ),
-  mem_usage = _("Show memory usage in MiB."),
-  reclaim_height = _(
+  mem_usage = gettext("Show memory usage in MiB."),
+  reclaim_height = gettext(
     "When the status bar is hidden, this setting will utilize the entirety of screen real estate (for your book) and will temporarily overlap the text when the status bar is shown."
   ),
   custom_text = ReaderFooter.set_custom_text,
@@ -983,59 +983,59 @@ end
 function ReaderFooter:textOptionTitles(option)
   local symbol = self.settings.item_prefix
   local option_titles = {
-    all_at_once = _("Show all selected items at once"),
-    reclaim_height = _("Overlap status bar"),
+    all_at_once = gettext("Show all selected items at once"),
+    reclaim_height = gettext("Overlap status bar"),
     bookmark_count = T(
-      _("Bookmark count (%1)"),
+      gettext("Bookmark count (%1)"),
       symbol_prefix[symbol].bookmark_count
     ),
-    page_progress = T(_("Current page (%1)"), "/"),
+    page_progress = T(gettext("Current page (%1)"), "/"),
     pages_left_book = T(
-      _("Pages left in book (%1)"),
+      gettext("Pages left in book (%1)"),
       symbol_prefix[symbol].pages_left_book
     ),
     time = symbol_prefix[symbol].time
-        and T(_("Current time (%1)"), symbol_prefix[symbol].time)
-      or _("Current time"),
-    chapter_progress = T(_("Current page in chapter (%1)"), " ⁄⁄ "),
+        and T(gettext("Current time (%1)"), symbol_prefix[symbol].time)
+      or gettext("Current time"),
+    chapter_progress = T(gettext("Current page in chapter (%1)"), " ⁄⁄ "),
     pages_left = T(
-      _("Pages left in chapter (%1)"),
+      gettext("Pages left in chapter (%1)"),
       symbol_prefix[symbol].pages_left
     ),
-    battery = T(_("Battery percentage (%1)"), symbol_prefix[symbol].battery),
+    battery = T(gettext("Battery percentage (%1)"), symbol_prefix[symbol].battery),
     percentage = symbol_prefix[symbol].percentage
-        and T(_("Progress percentage (%1)"), symbol_prefix[symbol].percentage)
-      or _("Progress percentage"),
+        and T(gettext("Progress percentage (%1)"), symbol_prefix[symbol].percentage)
+      or gettext("Progress percentage"),
     book_time_to_read = symbol_prefix[symbol].book_time_to_read and T(
-      _("Time left to finish book (%1)"),
+      gettext("Time left to finish book (%1)"),
       symbol_prefix[symbol].book_time_to_read
-    ) or _("Time left to finish book"),
+    ) or gettext("Time left to finish book"),
     chapter_time_to_read = T(
-      _("Time left to finish chapter (%1)"),
+      gettext("Time left to finish chapter (%1)"),
       symbol_prefix[symbol].chapter_time_to_read
     ),
     frontlight = T(
-      _("Brightness level (%1)"),
+      gettext("Brightness level (%1)"),
       symbol_prefix[symbol].frontlight
     ),
     frontlight_warmth = T(
-      _("Warmth level (%1)"),
+      gettext("Warmth level (%1)"),
       symbol_prefix[symbol].frontlight_warmth
     ),
     mem_usage = T(
-      _("KOReader memory usage (%1)"),
+      gettext("KOReader memory usage (%1)"),
       symbol_prefix[symbol].mem_usage
     ),
-    wifi_status = T(_("Wi-Fi status (%1)"), symbol_prefix[symbol].wifi_status),
+    wifi_status = T(gettext("Wi-Fi status (%1)"), symbol_prefix[symbol].wifi_status),
     page_turning_inverted = T(
-      _("Page turning inverted (%1)"),
+      gettext("Page turning inverted (%1)"),
       symbol_prefix[symbol].page_turning_inverted
     ),
-    book_author = _("Book author"),
-    book_title = _("Book title"),
-    book_chapter = _("Chapter title"),
+    book_author = gettext("Book author"),
+    book_title = gettext("Book title"),
+    book_chapter = gettext("Chapter title"),
     custom_text = T(
-      _("Custom text (long-press to edit): '%1'%2"),
+      gettext("Custom text (long-press to edit): '%1'%2"),
       self.custom_text,
       self.custom_text_repetitions > 1
           and string.format(" × %d", self.custom_text_repetitions)
@@ -1048,7 +1048,7 @@ end
 function ReaderFooter:addToMainMenu(menu_items)
   local sub_items = {}
   menu_items.status_bar = {
-    text = _("Status bar"),
+    text = gettext("Status bar"),
     sub_item_table = sub_items,
   }
 
@@ -1061,7 +1061,7 @@ function ReaderFooter:addToMainMenu(menu_items)
   local DTAP_ZONE_MINIBAR = G_defaults:read("DTAP_ZONE_MINIBAR")
   if DTAP_ZONE_MINIBAR.h == 0 or DTAP_ZONE_MINIBAR.w == 0 then
     table.insert(sub_items, {
-      text = _("Toggle mode"),
+      text = gettext("Toggle mode"),
       enabled_func = function()
         return not self.view.flipping_visible
       end,
@@ -1154,11 +1154,11 @@ function ReaderFooter:addToMainMenu(menu_items)
   end
 
   table.insert(sub_items, {
-    text = _("Progress bar"),
+    text = gettext("Progress bar"),
     separator = true,
     sub_item_table = {
       {
-        text = _("Show progress bar"),
+        text = gettext("Show progress bar"),
         checked_func = function()
           return not self.settings.disable_progress_bar
         end,
@@ -1178,8 +1178,8 @@ function ReaderFooter:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Show chapter-progress bar instead"),
-        help_text = _(
+        text = gettext("Show chapter-progress bar instead"),
+        help_text = gettext(
           "Show progress bar for the current chapter, instead of the whole book."
         ),
         enabled_func = function()
@@ -1194,7 +1194,7 @@ function ReaderFooter:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(_("Position: %1"), self:genProgressBarPositionMenuItems())
+          return T(gettext("Position: %1"), self:genProgressBarPositionMenuItems())
         end,
         enabled_func = function()
           return not self.settings.disable_progress_bar
@@ -1209,9 +1209,9 @@ function ReaderFooter:addToMainMenu(menu_items)
       {
         text_func = function()
           if self.settings.progress_style_thin then
-            return _("Thickness and height: thin")
+            return gettext("Thickness and height: thin")
           else
-            return _("Thickness and height: thick")
+            return gettext("Thickness and height: thick")
           end
         end,
         enabled_func = function()
@@ -1219,7 +1219,7 @@ function ReaderFooter:addToMainMenu(menu_items)
         end,
         sub_item_table = {
           {
-            text = _("Thick"),
+            text = gettext("Thick"),
             checked_func = function()
               return not self.settings.progress_style_thin
             end,
@@ -1232,7 +1232,7 @@ function ReaderFooter:addToMainMenu(menu_items)
             end,
           },
           {
-            text = _("Thin"),
+            text = gettext("Thin"),
             checked_func = function()
               return self.settings.progress_style_thin
             end,
@@ -1249,7 +1249,7 @@ function ReaderFooter:addToMainMenu(menu_items)
               local height = self.settings.progress_style_thin
                   and self.settings.progress_style_thin_height
                 or self.settings.progress_style_thick_height
-              return T(_("Height: %1"), height)
+              return T(gettext("Height: %1"), height)
             end,
             callback = function(touchmenu_instance)
               local value, value_min, value_max, default_value
@@ -1271,7 +1271,7 @@ function ReaderFooter:addToMainMenu(menu_items)
                 value_hold_step = 2,
                 value_max = value_max,
                 default_value = default_value,
-                title_text = _("Progress bar height"),
+                title_text = gettext("Progress bar height"),
                 keep_shown_on_apply = true,
                 callback = function(spin)
                   if self.settings.progress_style_thin then
@@ -1292,9 +1292,9 @@ function ReaderFooter:addToMainMenu(menu_items)
       {
         text_func = function()
           local value = self.settings.progress_margin
-              and _("same as book margins")
+              and gettext("same as book margins")
             or self.settings.progress_margin_width
-          return T(_("Margins: %1"), value)
+          return T(gettext("Margins: %1"), value)
         end,
         enabled_func = function()
           return not self.settings.disable_progress_bar
@@ -1303,7 +1303,7 @@ function ReaderFooter:addToMainMenu(menu_items)
         callback = function(touchmenu_instance)
           local spin_widget
           spin_widget = SpinWidget:new({
-            title_text = _("Progress bar margins"),
+            title_text = gettext("Progress bar margins"),
             value = self.settings.progress_margin_width,
             value_min = 0,
             value_max = 140, -- max creoptions h_page_margins
@@ -1317,7 +1317,7 @@ function ReaderFooter:addToMainMenu(menu_items)
               touchmenu_instance:updateItems()
             end,
             extra_text = not self.ui.document.info.has_pages
-              and _("Same as book margins"),
+              and gettext("Same as book margins"),
             extra_callback = function()
               local h_margins = self.ui.document.configurable.h_page_margins
               local value = math.floor((h_margins[1] + h_margins[2]) / 2)
@@ -1336,7 +1336,7 @@ function ReaderFooter:addToMainMenu(menu_items)
       {
         text_func = function()
           return T(
-            _("Minimum progress bar width: %1\xE2\x80\xAF%"),
+            gettext("Minimum progress bar width: %1\xE2\x80\xAF%"),
             self.settings.progress_bar_min_width_pct
           ) -- U+202F NARROW NO-BREAK SPACE
         end,
@@ -1353,8 +1353,8 @@ function ReaderFooter:addToMainMenu(menu_items)
             value_hold_step = 20,
             value_max = 50,
             unit = "%",
-            title_text = _("Minimum progress bar width"),
-            text = _(
+            title_text = gettext("Minimum progress bar width"),
+            text = gettext(
               "Minimum percentage of screen width assigned to progress bar"
             ),
             keep_shown_on_apply = true,
@@ -1372,7 +1372,7 @@ function ReaderFooter:addToMainMenu(menu_items)
         separator = true,
       },
       {
-        text = _("Show initial-position marker"),
+        text = gettext("Show initial-position marker"),
         checked_func = function()
           return self.settings.initial_marker == true
         end,
@@ -1386,7 +1386,7 @@ function ReaderFooter:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Show chapter markers"),
+        text = gettext("Show chapter markers"),
         checked_func = function()
           return self.settings.toc_markers == true
             and not self.settings.chapter_progress_bar
@@ -1405,7 +1405,7 @@ function ReaderFooter:addToMainMenu(menu_items)
       {
         text_func = function()
           return T(
-            _("Chapter marker width: %1"),
+            gettext("Chapter marker width: %1"),
             self:genProgressBarChapterMarkerWidthMenuItems()
           )
         end,
@@ -1426,7 +1426,7 @@ function ReaderFooter:addToMainMenu(menu_items)
   -- footer_items
   local footer_items = {}
   table.insert(sub_items, {
-    text = _("Status bar items"),
+    text = gettext("Status bar items"),
     sub_item_table = footer_items,
   })
   table.insert(footer_items, getMinibarOption("page_progress"))
@@ -1458,10 +1458,10 @@ function ReaderFooter:addToMainMenu(menu_items)
   -- configure footer_items
   table.insert(sub_items, {
     separator = true,
-    text = _("Configure items"),
+    text = gettext("Configure items"),
     sub_item_table = {
       {
-        text = _("Arrange items in status bar"),
+        text = gettext("Arrange items in status bar"),
         separator = true,
         callback = function()
           local item_table = {}
@@ -1474,7 +1474,7 @@ function ReaderFooter:addToMainMenu(menu_items)
           local SortWidget = require("ui/widget/sortwidget")
           local sort_item
           sort_item = SortWidget:new({
-            title = _("Arrange items"),
+            title = gettext("Arrange items"),
             item_table = item_table,
             callback = function()
               for i = 1, #sort_item.item_table do
@@ -1491,8 +1491,8 @@ function ReaderFooter:addToMainMenu(menu_items)
       },
       getMinibarOption("all_at_once", self._updateFooterTextGenerator),
       {
-        text = _("Hide inactive items"),
-        help_text = _(
+        text = gettext("Hide inactive items"),
+        help_text = gettext(
           [[This option will hide inactive items from appearing on the status bar. For example, if the frontlight is 'off' (i.e 0 brightness), no symbols or values will be displayed until the brightness is set to a value >= 1.]]
         ),
         enabled_func = function()
@@ -1508,8 +1508,8 @@ function ReaderFooter:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Include current page in pages left"),
-        help_text = _(
+        text = gettext("Include current page in pages left"),
+        help_text = gettext(
           [[
 By default, KOReader does not include the current page when calculating pages left. For example, in a book or chapter with n pages the 'pages left' item will range from 'n−1' to 0 (last page).
 With this feature enabled, the current page is factored in, resulting in the count going from n to 1 instead.]]
@@ -1529,7 +1529,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
       {
         text_func = function()
           return T(
-            _("Progress percentage format: %1"),
+            gettext("Progress percentage format: %1"),
             self:genProgressPercentageFormatMenuItems()
           )
         end,
@@ -1544,10 +1544,10 @@ With this feature enabled, the current page is factored in, resulting in the cou
         text_func = function()
           local font_weight = ""
           if self.settings.text_font_bold == true then
-            font_weight = ", " .. _("bold")
+            font_weight = ", " .. gettext("bold")
           end
           return T(
-            _("Item font: %1%2"),
+            gettext("Item font: %1%2"),
             self.settings.text_font_size,
             font_weight
           )
@@ -1555,11 +1555,11 @@ With this feature enabled, the current page is factored in, resulting in the cou
         sub_item_table = {
           {
             text_func = function()
-              return T(_("Item font size: %1"), self.settings.text_font_size)
+              return T(gettext("Item font size: %1"), self.settings.text_font_size)
             end,
             callback = function(touchmenu_instance)
               local items_font = SpinWidget:new({
-                title_text = _("Item font size"),
+                title_text = gettext("Item font size"),
                 value = self.settings.text_font_size,
                 value_min = 8,
                 value_max = 36,
@@ -1589,7 +1589,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
             keep_menu_open = true,
           },
           {
-            text = _("Items in bold"),
+            text = gettext("Items in bold"),
             checked_func = function()
               return self.settings.text_font_bold == true
             end,
@@ -1609,7 +1609,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
       },
       {
         text_func = function()
-          return T(_("Item symbols: %1"), self:genItemSymbolsMenuItems())
+          return T(gettext("Item symbols: %1"), self:genItemSymbolsMenuItems())
         end,
         sub_item_table = {
           self:genItemSymbolsMenuItems("icons"),
@@ -1619,7 +1619,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
       },
       {
         text_func = function()
-          return T(_("Item separator: %1"), self:genItemSeparatorMenuItems())
+          return T(gettext("Item separator: %1"), self:genItemSeparatorMenuItems())
         end,
         sub_item_table = {
           self:genItemSeparatorMenuItems("bar"),
@@ -1629,28 +1629,28 @@ With this feature enabled, the current page is factored in, resulting in the cou
         },
       },
       {
-        text = _("Item max width"),
+        text = gettext("Item max width"),
         sub_item_table = {
           self:genItemMaxWidthMenuItems(
-            _("Book-author item"),
-            _("Book-author item: %1\xE2\x80\xAF%"),
+            gettext("Book-author item"),
+            gettext("Book-author item: %1\xE2\x80\xAF%"),
             "book_author_max_width_pct"
           ), -- U+202F NARROW NO-BREAK SPACE
           self:genItemMaxWidthMenuItems(
-            _("Book-title item"),
-            _("Book-title item: %1\xE2\x80\xAF%"),
+            gettext("Book-title item"),
+            gettext("Book-title item: %1\xE2\x80\xAF%"),
             "book_title_max_width_pct"
           ),
           self:genItemMaxWidthMenuItems(
-            _("Chapter-title item"),
-            _("Chapter-title item: %1\xE2\x80\xAF%"),
+            gettext("Chapter-title item"),
+            gettext("Chapter-title item: %1\xE2\x80\xAF%"),
             "book_chapter_max_width_pct"
           ),
         },
       },
       {
         text_func = function()
-          return T(_("Alignment: %1"), self:genAlignmentMenuItems())
+          return T(gettext("Alignment: %1"), self:genAlignmentMenuItems())
         end,
         enabled_func = function()
           return self.settings.disable_progress_bar
@@ -1664,7 +1664,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
       },
       {
         text_func = function()
-          return T(_("Height: %1"), self.settings.container_height)
+          return T(gettext("Height: %1"), self.settings.container_height)
         end,
         callback = function(touchmenu_instance)
           local spin_widget = SpinWidget:new({
@@ -1672,7 +1672,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
             value_min = 7,
             value_max = 98,
             default_value = DEFAULT_SETTINGS.container_height,
-            title_text = _("Items container height"),
+            title_text = gettext("Items container height"),
             keep_shown_on_apply = true,
             callback = function(spin)
               self.settings.container_height = spin.value
@@ -1690,7 +1690,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
       {
         text_func = function()
           return T(
-            _("Bottom margin: %1"),
+            gettext("Bottom margin: %1"),
             self.settings.container_bottom_padding
           )
         end,
@@ -1700,7 +1700,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
             value_min = 0,
             value_max = 49,
             default_value = DEFAULT_SETTINGS.container_bottom_padding,
-            title_text = _("Container bottom margin"),
+            title_text = gettext("Container bottom margin"),
             keep_shown_on_apply = true,
             callback = function(spin)
               self.settings.container_bottom_padding = spin.value
@@ -1727,11 +1727,11 @@ With this feature enabled, the current page is factored in, resulting in the cou
           <= DEFAULT_SETTINGS.battery_hide_threshold
         then
           return T(
-            _("Hide battery item when higher than: %1\xE2\x80\xAF%"),
+            gettext("Hide battery item when higher than: %1\xE2\x80\xAF%"),
             self.settings.battery_hide_threshold
           ) -- U+202F NARROW NO-BREAK SPACE
         else
-          return _("Hide battery item at custom threshold")
+          return gettext("Hide battery item at custom threshold")
         end
       end,
       checked_func = function()
@@ -1750,7 +1750,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
           default_value = max_pct,
           unit = "%",
           value_hold_step = 10,
-          title_text = _("Minimum threshold to hide battery item"),
+          title_text = gettext("Minimum threshold to hide battery item"),
           callback = function(spin)
             self.settings.battery_hide_threshold = spin.value
             self:refreshFooter()
@@ -1758,7 +1758,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
               touchmenu_instance:updateItems()
             end
           end,
-          extra_text = _("Disable"),
+          extra_text = gettext("Disable"),
           extra_callback = function()
             self.settings.battery_hide_threshold = max_pct + 1
             self:refreshFooter()
@@ -1775,7 +1775,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
     })
   end
   table.insert(sub_items, {
-    text = _("Show status bar separator"),
+    text = gettext("Show status bar separator"),
     checked_func = function()
       return self.settings.bottom_horizontal_separator == true
     end,
@@ -1788,7 +1788,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
   if Device:isTouchDevice() then
     table.insert(sub_items, getMinibarOption("reclaim_height"))
     table.insert(sub_items, {
-      text = _("Lock status bar"),
+      text = gettext("Lock status bar"),
       checked_func = function()
         return self.settings.lock_tap == true
       end,
@@ -1797,7 +1797,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
       end,
     })
     table.insert(sub_items, {
-      text = _("Long-press on status bar to skim"),
+      text = gettext("Long-press on status bar to skim"),
       checked_func = function()
         return self.settings.skim_widget_on_hold == true
       end,
@@ -1813,9 +1813,9 @@ end
 
 function ReaderFooter:genProgressBarPositionMenuItems(value)
   local strings = {
-    above = _("Above items"),
-    alongside = _("Alongside items"),
-    below = _("Below items"),
+    above = gettext("Above items"),
+    alongside = gettext("Alongside items"),
+    below = gettext("Below items"),
   }
   if value == nil then
     return strings[self.settings.progress_bar_position]:lower()
@@ -1838,9 +1838,9 @@ end
 
 function ReaderFooter:genProgressBarChapterMarkerWidthMenuItems(value)
   local strings = {
-    _("Thin"),
-    _("Medium"),
-    _("Thick"),
+    gettext("Thin"),
+    gettext("Medium"),
+    gettext("Thick"),
   }
   if value == nil then
     return strings[self.settings.toc_markers_width]:lower()
@@ -1860,9 +1860,9 @@ end
 
 function ReaderFooter:genProgressPercentageFormatMenuItems(value)
   local strings = {
-    ["0"] = _("No decimal places (%1)"),
-    ["1"] = _("1 decimal place (%1)"),
-    ["2"] = _("2 decimal places (%1)"),
+    ["0"] = gettext("No decimal places (%1)"),
+    ["1"] = gettext("1 decimal place (%1)"),
+    ["2"] = gettext("2 decimal places (%1)"),
   }
   local progressPercentage = function(digits)
     local symbol_type = self.settings.item_prefix
@@ -1923,10 +1923,10 @@ end
 
 function ReaderFooter:genItemSeparatorMenuItems(value)
   local strings = {
-    bar = _("Vertical bar (|)"),
-    bullet = _("Bullet (•)"),
-    dot = _("Dot (·)"),
-    none = _("No separator"),
+    bar = gettext("Vertical bar (|)"),
+    bullet = gettext("Bullet (•)"),
+    dot = gettext("Dot (·)"),
+    none = gettext("No separator"),
   }
   if value == nil then
     return strings[self.settings.items_separator]:lower()
@@ -1951,7 +1951,7 @@ function ReaderFooter:genItemMaxWidthMenuItems(title_text, item_text, setting)
     callback = function(touchmenu_instance)
       local spin_widget = SpinWidget:new({
         title_text = title_text,
-        info_text = _("Maximum percentage of screen width used for the item"),
+        info_text = gettext("Maximum percentage of screen width used for the item"),
         value = self.settings[setting],
         value_min = 10,
         value_max = 100,
@@ -1974,9 +1974,9 @@ end
 
 function ReaderFooter:genAlignmentMenuItems(value)
   local strings = {
-    left = _("Left"),
-    center = _("Center"),
-    right = _("Right"),
+    left = gettext("Left"),
+    center = gettext("Center"),
+    right = gettext("Right"),
   }
   if value == nil then
     return strings[self.settings.align]:lower()
@@ -2142,7 +2142,7 @@ end
 function ReaderFooter:getAvgTimePerPage() end
 
 function ReaderFooter:getDataFromStatistics(title, pages)
-  local sec = _("N/A")
+  local sec = gettext("N/A")
   local average_time_per_page = self:getAvgTimePerPage()
   local user_duration_format = G_named_settings.duration_format()
   if average_time_per_page then

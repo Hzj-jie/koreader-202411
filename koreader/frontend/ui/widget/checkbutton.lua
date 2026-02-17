@@ -7,7 +7,7 @@ Example:
     local CheckButton = require("ui/widget/CheckButton")
     local parent_widget = OverlapGroup:new{}
     table.insert(parent_widget, CheckButton:new{
-        text = _("Show password"),
+        text = gettext("Show password"),
         callback = function() end,
     })
     UIManager:show(parent_widget)

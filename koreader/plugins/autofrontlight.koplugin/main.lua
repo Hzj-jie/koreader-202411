@@ -9,7 +9,7 @@ end
 local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local PluginShare = require("pluginshare")
 local logger = require("logger")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local AutoFrontlightPlugin = BackgroundTaskPlugin:extend()
@@ -24,13 +24,13 @@ function AutoFrontlightPlugin:new(o)
     AutoFrontlightPlugin._action(o)
   end
   o.menu_item = "auto_frontlight"
-  o.menu_text = _("Auto frontlight")
+  o.menu_text = gettext("Auto frontlight")
   o.full_confirm_message = function()
     return T(
-      _(
+      gettext(
         "Auto frontlight detects the brightness of the environment and automatically turn on and off the frontlight.\nFrontlight will be turned off to save battery in bright environment, and turned on in dark environment.\nDo you want to %1 it?"
       ),
-      o.enabled and _("disable") or _("enable")
+      o.enabled and gettext("disable") or gettext("enable")
     )
   end
   return BackgroundTaskPlugin.new(self, o)

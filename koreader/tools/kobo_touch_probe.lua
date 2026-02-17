@@ -6,7 +6,7 @@ package.path = "common/?.lua;frontend/?.lua;" .. package.path
 package.cpath = "common/?.so;common/?.dll;/usr/lib/lua/?.so;" .. package.cpath
 
 local DataStorage = require("datastorage")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- read settings and check for language override
 -- but don't re-read if already done, to avoid causing problems for unit tests
@@ -19,7 +19,7 @@ if G_reader_settings == nil then
 end
 local lang_locale = G_reader_settings:read("language")
 if lang_locale then
-  _.changeLang(lang_locale)
+  gettext.changeLang(lang_locale)
 end
 local InputContainer = require("ui/widget/container/inputcontainer")
 local CenterContainer = require("ui/widget/container/centercontainer")
@@ -53,14 +53,14 @@ function TouchProbe:init()
     self.image_widget:getSize().w, self.image_widget:getSize().h
   self.probe_steps = {
     {
-      hint_text = _("Tap the lower right corner"),
+      hint_text = gettext("Tap the lower right corner"),
       hint_icon_pos = {
         x = screen_w - img_w,
         y = screen_h - img_h,
       },
     },
     {
-      hint_text = _("Tap the upper right corner"),
+      hint_text = gettext("Tap the upper right corner"),
       hint_icon_pos = {
         x = screen_w - img_w,
         y = 0,

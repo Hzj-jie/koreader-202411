@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "calculator",
-  fullname = _("Calculator"),
-  description = _([[Calculates simple and complex math fourmulas.]]),
+  fullname = gettext("Calculator"),
+  description = gettext([[Calculates simple and complex math fourmulas.]]),
 }

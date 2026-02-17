@@ -11,7 +11,7 @@ local socket = require("socket")
 local socketutil = require("socketutil")
 local util = require("ffi/util")
 local T = util.template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- xmnote exporter
 local XMNoteExporter = require("base"):new({
@@ -22,29 +22,29 @@ local XMNoteExporter = require("base"):new({
 
 function XMNoteExporter:getMenuTable()
   return {
-    text = _("XMNote"),
+    text = gettext("XMNote"),
     checked_func = function()
       return self:isEnabled()
     end,
     sub_item_table = {
       {
-        text = _("Set XMNote IP"),
+        text = gettext("Set XMNote IP"),
         keep_menu_open = true,
         callback = function()
           local url_dialog
           url_dialog = InputDialog:new({
-            title = _("Set XMNote IP"),
+            title = gettext("Set XMNote IP"),
             input = self.settings.ip,
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   callback = function()
                     UIManager:close(url_dialog)
                   end,
                 },
                 {
-                  text = _("Set IP"),
+                  text = gettext("Set IP"),
                   callback = function()
                     local ip = url_dialog:getInputText()
                     self.settings.ip = ip
@@ -60,7 +60,7 @@ function XMNoteExporter:getMenuTable()
         end,
       },
       {
-        text = _("Export to XMNote"),
+        text = gettext("Export to XMNote"),
         checked_func = function()
           return self:isEnabled()
         end,
@@ -69,12 +69,12 @@ function XMNoteExporter:getMenuTable()
         end,
       },
       {
-        text = _("Help"),
+        text = gettext("Help"),
         keep_menu_open = true,
         callback = function()
           UIManager:show(InfoMessage:new({
             text = T(
-              _(
+              gettext(
                 [[Before starting the export process, please make sure that your mobile and KOReader are connected to the same local network. Open XMNote and go to "My" - "Import Highlights" - "Import via API". At the bottom of the interface, you will find the IP address of your mobile device. Enter this IP address into KOReader to complete the configuration.]]
               ),
               BD.dirpath(DataStorage:getDataDir())

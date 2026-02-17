@@ -6,8 +6,8 @@ local SpinWidget = require("ui/widget/spinwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local powerd = Device:getPowerDevice()
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
 battery_status_dismissed = false
@@ -50,11 +50,11 @@ function ReaderDeviceStatus:_checkBatteryStatus()
   if Device:canSuspend() and not is_charging and battery_capacity <= 5 then
     UIManager:show(InfoMessage:new({
       -- Need localization
-      text = _(
+      text = gettext(
         "Battery level drops below the critical zone.\n\nSuspending the device…"
       )
         .. "\n\n"
-        .. _("Waiting for 3 seconds to proceed."),
+        .. gettext("Waiting for 3 seconds to proceed."),
       icon = "notice-warning",
       timeout = 3,
     }))
@@ -86,20 +86,20 @@ function ReaderDeviceStatus:_checkBatteryStatus()
   if is_charging then
     assert(battery_capacity > self.battery_threshold_high)
     text = T(
-      _("High battery level: %1 %\n\nDismiss battery level alert?"),
+      gettext("High battery level: %1 %\n\nDismiss battery level alert?"),
       battery_capacity
     )
   else
     assert(not is_charging and battery_capacity <= self.battery_threshold)
     text = T(
-      _("Low battery level: %1 %\n\nDismiss battery level alert?"),
+      gettext("Low battery level: %1 %\n\nDismiss battery level alert?"),
       battery_capacity
     )
     if Device:canSuspend() then
       text = text
         .. "\n\n"
         -- Need localization
-        .. _(
+        .. gettext(
           "When battery level drops below the critical zone, "
             .. "the device will be put into suspension automatically."
         )
@@ -107,7 +107,7 @@ function ReaderDeviceStatus:_checkBatteryStatus()
   end
   battery_confirm_box = ConfirmBox:new({
     text = text,
-    ok_text = _("Dismiss"),
+    ok_text = gettext("Dismiss"),
     dismissable = false,
     ok_callback = function()
       battery_status_dismissed = true
@@ -138,10 +138,10 @@ function ReaderDeviceStatus:_checkMemoryStatus()
       and G_reader_settings:isTrue("device_status_memory_auto_restart")
     then
       UIManager:show(InfoMessage:new({
-        text = _("High memory usage!\n\nKOReader is restarting…")
+        text = gettext("High memory usage!\n\nKOReader is restarting…")
           .. "\n\n"
           -- Need localization
-          .. _("Waiting for 3 seconds to proceed."),
+          .. gettext("Waiting for 3 seconds to proceed."),
         icon = "notice-warning",
       }))
       UIManager:scheduleIn(3, function()
@@ -149,12 +149,12 @@ function ReaderDeviceStatus:_checkMemoryStatus()
       end)
     else
       memory_confirm_box = ConfirmBox:new({
-        text = T(_("High memory usage: %1 MB\n\nRestart KOReader?"), rss),
-        ok_text = _("Restart"),
+        text = T(gettext("High memory usage: %1 MB\n\nRestart KOReader?"), rss),
+        ok_text = gettext("Restart"),
         dismissable = false,
         ok_callback = function()
           UIManager:show(InfoMessage:new({
-            text = _("High memory usage!\n\nKOReader is restarting…"),
+            text = gettext("High memory usage!\n\nKOReader is restarting…"),
             icon = "notice-warning",
           }))
           UIManager:nextTick(function()
@@ -166,8 +166,8 @@ function ReaderDeviceStatus:_checkMemoryStatus()
     end
   else
     memory_confirm_box = ConfirmBox:new({
-      text = T(_("High memory usage: %1 MB\n\nExit KOReader?"), rss),
-      ok_text = _("Exit"),
+      text = T(gettext("High memory usage: %1 MB\n\nExit KOReader?"), rss),
+      ok_text = gettext("Exit"),
       dismissable = false,
       ok_callback = function()
         UIManager:broadcastEvent("ExitKOReader")
@@ -199,13 +199,13 @@ function ReaderDeviceStatus:addToMainMenu(menu_items)
   end
 
   menu_items.device_status_alarm = {
-    text = _("Device status alerts"),
+    text = gettext("Device status alerts"),
     sub_item_table = {},
   }
 
   if Device:hasBattery() then
     table.insert(menu_items.device_status_alarm.sub_item_table, {
-      text = _("Battery level"),
+      text = gettext("Battery level"),
       checked_func = function()
         return G_reader_settings:isTrue("device_status_battery_alarm")
       end,
@@ -216,7 +216,7 @@ function ReaderDeviceStatus:addToMainMenu(menu_items)
     table.insert(menu_items.device_status_alarm.sub_item_table, {
       text_func = function()
         return T(
-          _("Thresholds: %1 % / %2 %"),
+          gettext("Thresholds: %1 % / %2 %"),
           self.battery_threshold,
           self.battery_threshold_high
         )
@@ -229,16 +229,16 @@ function ReaderDeviceStatus:addToMainMenu(menu_items)
         local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
         local thresholds_widget
         thresholds_widget = DoubleSpinWidget:new({
-          title_text = _("Battery level alert thresholds"),
-          info_text = _([[
+          title_text = gettext("Battery level alert thresholds"),
+          info_text = gettext([[
 Low level threshold is checked when the device is not charging.
 High level threshold is checked when the device is charging.]]),
-          left_text = _("Low"),
+          left_text = gettext("Low"),
           left_value = self.battery_threshold,
           left_min = 10,
           left_max = math.min(self.battery_threshold_high, 40),
           left_hold_step = 5,
-          right_text = _("High"),
+          right_text = gettext("High"),
           right_value = self.battery_threshold_high,
           right_min = math.max(self.battery_threshold, 60),
           right_max = 100,
@@ -269,7 +269,7 @@ High level threshold is checked when the device is charging.]]),
   end
   if not Device:isAndroid() then
     table.insert(menu_items.device_status_alarm.sub_item_table, {
-      text = _("High memory usage"),
+      text = gettext("High memory usage"),
       checked_func = function()
         return G_reader_settings:isTrue("device_status_memory_alarm")
       end,
@@ -279,7 +279,7 @@ High level threshold is checked when the device is charging.]]),
     })
     table.insert(menu_items.device_status_alarm.sub_item_table, {
       text_func = function()
-        return T(_("Threshold: %1 MB"), self.memory_threshold)
+        return T(gettext("Threshold: %1 MB"), self.memory_threshold)
       end,
       enabled_func = function()
         return G_reader_settings:isTrue("device_status_memory_alarm")
@@ -293,7 +293,7 @@ High level threshold is checked when the device is charging.]]),
           unit = C_("Data storage size", "MB"),
           value_step = 5,
           value_hold_step = 10,
-          title_text = _("Memory alert threshold"),
+          title_text = gettext("Memory alert threshold"),
           callback = function(spin)
             self.memory_threshold = spin.value
             G_reader_settings:save(
@@ -306,7 +306,7 @@ High level threshold is checked when the device is charging.]]),
       end,
     })
     table.insert(menu_items.device_status_alarm.sub_item_table, {
-      text = _("Automatic restart"),
+      text = gettext("Automatic restart"),
       enabled_func = function()
         return G_reader_settings:isTrue("device_status_memory_alarm")
           and Device:canRestart()

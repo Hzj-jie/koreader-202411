@@ -7,7 +7,7 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local UIManager = require("ui/uimanager")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local Screen = require("device").screen
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local Screenshoter = InputContainer:extend({
   prefix = "Screenshot",
@@ -55,14 +55,14 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
   local buttons = {
     {
       {
-        text = _("Delete"),
+        text = gettext("Delete"),
         callback = function()
           os.remove(screenshot_name)
           dialog:onExit()
         end,
       },
       {
-        text = _("Set as book cover"),
+        text = gettext("Set as book cover"),
         enabled = file and true or false,
         callback = function()
           self.ui.bookinfo:setCustomCoverFromImage(file, screenshot_name)
@@ -73,7 +73,7 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
     },
     {
       {
-        text = _("View"),
+        text = gettext("View"),
         callback = function()
           local ImageViewer = require("ui/widget/imageviewer")
           local image_viewer = ImageViewer:new({
@@ -86,7 +86,7 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
         end,
       },
       {
-        text = _("Set as wallpaper"),
+        text = gettext("Set as wallpaper"),
         callback = function()
           G_reader_settings:save("screensaver_type", "image_file")
           G_reader_settings:save("screensaver_image", screenshot_name)
@@ -96,7 +96,7 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
     },
   }
   dialog = ButtonDialog:new({
-    title = _("Screenshot saved to:")
+    title = gettext("Screenshot saved to:")
       .. "\n\n"
       .. BD.filepath(screenshot_name)
       .. "\n",
@@ -123,7 +123,7 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
 end
 
 function Screenshoter:chooseFolder()
-  local title_header = _("Current screenshot folder:")
+  local title_header = gettext("Current screenshot folder:")
   local current_path = G_reader_settings:read("screenshot_dir")
   local default_path = self.default_dir
   local caller_callback = function(path)

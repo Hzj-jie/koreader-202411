@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "archiveviewer",
-  fullname = _("Archive viewer"),
-  description = _([[Enables exploring the content of zip archives.]]),
+  fullname = gettext("Archive viewer"),
+  description = gettext([[Enables exploring the content of zip archives.]]),
 }

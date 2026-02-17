@@ -1,5 +1,5 @@
 local logger = require("logger")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local Composer = {
   settings = {},
@@ -154,7 +154,7 @@ function Composer:hourlyView(data, callback)
     end
 
     table.insert(view_content, {
-      _(time),
+      gettext(time),
       cell .. hourly_forecast[i + 1].condition.text,
       callback = function()
         callback(hourly_forecast[i + 1])
