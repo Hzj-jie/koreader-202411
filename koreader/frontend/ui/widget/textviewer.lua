@@ -15,9 +15,9 @@ local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local CheckButton = require("ui/widget/checkbutton")
 local Device = require("device")
-local Geom = require("ui/geometry")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
+local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local InputDialog = require("ui/widget/inputdialog")
@@ -31,9 +31,9 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local T = require("ffi/util").template
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local gettext = require("gettext")
 local Screen = Device.screen
 
 local TextViewer = InputContainer:extend({
@@ -571,7 +571,10 @@ function TextViewer:findCallback(input_dialog)
       char_pos,
       self.find_centered_lines_count
     )
-    msg = T(gettext("Found, screen line %1."), self.scroll_text_w:getCharPosLineNum())
+    msg = T(
+      gettext("Found, screen line %1."),
+      self.scroll_text_w:getCharPosLineNum()
+    )
     self._find_next = true
     self._old_virtual_line_num = select(2, self.scroll_text_w:getCharPos())
   else
@@ -584,7 +587,8 @@ function TextViewer:findCallback(input_dialog)
   }))
   if self._find_next_button ~= self._find_next then
     self._find_next_button = self._find_next
-    local button_text = self._find_next and gettext("Find next") or gettext("Find")
+    local button_text = self._find_next and gettext("Find next")
+      or gettext("Find")
     local find_button = self.button_table:getButtonById("find")
     find_button:setText(button_text, find_button.width)
     find_button:refresh()

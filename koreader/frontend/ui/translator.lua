@@ -11,9 +11,9 @@ This module translates text using Google Translate.
 
 local Device = require("device")
 local InfoMessage = require("ui/widget/infomessage")
+local JSON = require("json")
 local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
-local JSON = require("json")
 local Screen = require("device").screen
 local ffiutil = require("ffi/util")
 local logger = require("logger")
@@ -247,7 +247,10 @@ function Translator:genSettingsMenu()
       {
         text_func = function()
           local __, name = self:getDocumentLanguage()
-          return T(gettext("Translate from book language: %1"), name or gettext("N/A"))
+          return T(
+            gettext("Translate from book language: %1"),
+            name or gettext("N/A")
+          )
         end,
         help_text = gettext(
           [[
@@ -291,7 +294,10 @@ This is useful:
       {
         text_func = function()
           local lang = G_reader_settings:read("translator_from_language")
-          return T(gettext("Translate from: %1"), self:getLanguageName(lang, ""))
+          return T(
+            gettext("Translate from: %1"),
+            self:getLanguageName(lang, "")
+          )
         end,
         help_text = gettext(
           "If a specific source language is manually selected, it will be used everywhere, in all your books."
@@ -715,7 +721,10 @@ function Translator:_showTranslation(
   end
 
   textviewer = TextViewer:new({
-    title = T(gettext("Translation from %1"), self:getLanguageName(source_lang, "?")),
+    title = T(
+      gettext("Translation from %1"),
+      self:getLanguageName(source_lang, "?")
+    ),
     title_multilines = true,
     -- Showing the translation target language in this title may make
     -- it quite long and wrapped, taking valuable vertical spacing

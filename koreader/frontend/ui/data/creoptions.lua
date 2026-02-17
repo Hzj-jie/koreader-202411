@@ -1,8 +1,8 @@
 local Device = require("device")
 local Screen = Device.screen
 local ffiUtil = require("ffi/util")
-local optionsutil = require("ui/data/optionsutil")
 local gettext = require("gettext")
+local optionsutil = require("ui/data/optionsutil")
 local C_ = gettext.pgettext
 local T = ffiUtil.template
 
@@ -338,7 +338,12 @@ In the top menu → Settings → Status bar, you can choose whether the bottom m
       { -- ReaderTypeset
         name = "block_rendering_mode",
         name_text = gettext("Render Mode"),
-        toggle = { gettext("legacy"), gettext("flat"), gettext("book"), gettext("web") },
+        toggle = {
+          gettext("legacy"),
+          gettext("flat"),
+          gettext("book"),
+          gettext("web"),
+        },
         values = { 0, 1, 2, 3 },
         default_value = 2,
         args = { 0, 1, 2, 3 },
@@ -456,7 +461,8 @@ Note that your selected font size is not affected by this setting.]]
       { -- ReaderFont
         name = "font_fine_tune",
         name_text = gettext("Font Size"),
-        toggle = Device:isTouchDevice() and { gettext("decrease"), gettext("increase") }
+        toggle = Device:isTouchDevice()
+            and { gettext("decrease"), gettext("increase") }
           or nil,
         item_text = not Device:isTouchDevice()
             and { gettext("decrease"), gettext("increase") }
@@ -768,7 +774,12 @@ If a font variation is not available, as well as for fractional adjustments, it 
       { -- ReaderFont
         name = "font_kerning",
         name_text = gettext("Font Kerning"),
-        toggle = { gettext("off"), gettext("fast"), gettext("good"), gettext("best") },
+        toggle = {
+          gettext("off"),
+          gettext("fast"),
+          gettext("good"),
+          gettext("best"),
+        },
         values = { 0, 1, 2, 3 },
         default_value = 3,
         args = { 0, 1, 2, 3 },
@@ -847,7 +858,10 @@ Whether enabled or disabled, KOReader's own status bar at the bottom of the scre
             for name in ffiUtil.orderedPairs(font_list) do
               table.insert(
                 font_details,
-                name .. (font_list[name] and "" or T("  (%1)", gettext("not used")))
+                name
+                  .. (
+                    font_list[name] and "" or T("  (%1)", gettext("not used"))
+                  )
               )
             end
             return table.concat(font_details, "\n")

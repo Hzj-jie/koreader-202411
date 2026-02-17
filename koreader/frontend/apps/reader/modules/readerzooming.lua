@@ -7,8 +7,8 @@ local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local SpinWidget = require("ui/widget/spinwidget")
 local UIManager = require("ui/uimanager")
-local logger = require("logger")
 local gettext = require("gettext")
+local logger = require("logger")
 local Input = Device.input
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -119,7 +119,9 @@ local ReaderZooming = InputContainer:extend({
   paged_modes = { -- const
     page = gettext("Zoom to fit page works best with page view."),
     pageheight = gettext("Zoom to fit page height works best with page view."),
-    contentheight = gettext("Zoom to fit content height works best with page view."),
+    contentheight = gettext(
+      "Zoom to fit content height works best with page view."
+    ),
     content = gettext("Zoom to fit content works best with page view."),
     columns = gettext("Zoom to fit columns works best with page view."),
   },

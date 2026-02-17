@@ -1,8 +1,8 @@
 local Device = require("device")
 local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
-local logger = require("logger")
 local gettext = require("gettext")
+local logger = require("logger")
 
 local MassStorage = {}
 

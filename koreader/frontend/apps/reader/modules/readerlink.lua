@@ -15,10 +15,10 @@ local Notification = require("ui/widget/notification")
 local QRMessage = require("ui/widget/qrmessage")
 local UIManager = require("ui/uimanager")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local Screen = Device.screen
 local T = ffiutil.template
 
@@ -1009,7 +1009,10 @@ function ReaderLink:onGotoLink(
       }))
     else
       UIManager:show(InfoMessage:new({
-        text = T(gettext("Link to unsupported local file:\n%1"), BD.url(link_url)),
+        text = T(
+          gettext("Link to unsupported local file:\n%1"),
+          BD.url(link_url)
+        ),
       }))
     end
     return true

@@ -8,17 +8,17 @@ This plugin processes dictionary word lookups and uses spaced repetition to help
 local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
-local DB = require("db")
 local Button = require("ui/widget/button")
 local ButtonDialog = require("ui/widget/buttondialog")
 local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local ConfirmBox = require("ui/widget/confirmbox")
+local DB = require("db")
 local Device = require("device")
 local Dispatcher = require("dispatcher")
 local Event = require("ui/event")
-local Font = require("ui/font")
 local FocusManager = require("ui/widget/focusmanager")
+local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
@@ -33,22 +33,22 @@ local LeftContainer = require("ui/widget/container/leftcontainer")
 local LineWidget = require("ui/widget/linewidget")
 local MovableContainer = require("ui/widget/container/movablecontainer")
 local Notification = require("ui/widget/notification")
-local RightContainer = require("ui/widget/container/rightcontainer")
 local OverlapGroup = require("ui/widget/overlapgroup")
+local RightContainer = require("ui/widget/container/rightcontainer")
 local Screen = Device.screen
 local Size = require("ui/size")
 local SortWidget = require("ui/widget/sortwidget")
 local SyncService = require("frontend/apps/cloudstorage/syncservice")
-local TextWidget = require("ui/widget/textwidget")
 local TextBoxWidget = require("ui/widget/textboxwidget")
+local TextWidget = require("ui/widget/textwidget")
 local TitleBar = require("ui/widget/titlebar")
 local ToggleSwitch = require("ui/widget/toggleswitch")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
@@ -1122,13 +1122,13 @@ function VocabItemWidget:showMore()
     title = self.item.word,
     highlighted_word = self.item.highlight,
     book_title = self.item.book_title,
-    dates = gettext("Added on")
-      .. " "
-      .. os.date("%Y-%m-%d", self.item.create_time)
-      .. " | "
-      .. gettext("Review scheduled at")
-      .. " "
-      .. os.date("%Y-%m-%d %H:%M", self.item.due_time),
+    dates = gettext("Added on") .. " " .. os.date(
+      "%Y-%m-%d",
+      self.item.create_time
+    ) .. " | " .. gettext("Review scheduled at") .. " " .. os.date(
+      "%Y-%m-%d %H:%M",
+      self.item.due_time
+    ),
     prev_context = self.item.prev_context,
     next_context = self.item.next_context,
     remove_callback = function()

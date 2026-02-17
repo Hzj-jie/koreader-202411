@@ -1,5 +1,6 @@
 local Version = require("version")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local http = require("socket.http")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
@@ -7,7 +8,6 @@ local ltn12 = require("ltn12")
 local socket = require("socket")
 local socket_url = require("socket.url")
 local socketutil = require("socketutil")
-local gettext = require("gettext")
 local T = ffiutil.template
 
 local EpubDownloadBackend = {
@@ -681,7 +681,12 @@ function EpubDownloadBackend:createEpub(
       -- by tapping while the InfoMessage is displayed
       -- We use the fast_refresh option from image #2 for a quicker download
       local go_on = UI:info(
-        T(gettext("%1\n\nRetrieving image %2 / %3 …"), message, inum, nb_images),
+        T(
+          gettext("%1\n\nRetrieving image %2 / %3 …"),
+          message,
+          inum,
+          nb_images
+        ),
         inum >= 2
       )
       if not go_on then

@@ -6,9 +6,9 @@ local InfoMessage = require("ui/widget/infomessage")
 local MultiConfirmBox = require("ui/widget/multiconfirmbox")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local C_ = gettext.pgettext
 local T = require("ffi/util").template
 local Screen = Device.screen
@@ -618,13 +618,15 @@ When the book's language tag is not among our presets, no specific features will
             "Would you like to respect or ignore embedded lang tags by default?\n\nRespecting them will use relevant typographic rules to render their content, while ignoring them will always use the main language typography rules\n\nThe current default (★) is to ignore them."
           ),
         choice1_text_func = function()
-          return text_lang_embedded_langs and gettext("Ignore") or gettext("Ignore (★)")
+          return text_lang_embedded_langs and gettext("Ignore")
+            or gettext("Ignore (★)")
         end,
         choice1_callback = function()
           G_reader_settings:makeFalse("text_lang_embedded_langs")
         end,
         choice2_text_func = function()
-          return text_lang_embedded_langs and gettext("Respect (★)") or gettext("Respect")
+          return text_lang_embedded_langs and gettext("Respect (★)")
+            or gettext("Respect")
         end,
         choice2_callback = function()
           G_reader_settings:makeTrue("text_lang_embedded_langs")
@@ -769,13 +771,15 @@ These settings will apply to all books with any hyphenation dictionary.
             "Would you like to enable or disable trusting soft hyphens by default?\n\nThe current default (★) is disabled."
           ),
         choice1_text_func = function()
-          return hyph_trust_soft_hyphens and gettext("Disable") or gettext("Disable (★)")
+          return hyph_trust_soft_hyphens and gettext("Disable")
+            or gettext("Disable (★)")
         end,
         choice1_callback = function()
           G_reader_settings:makeFalse("hyph_trust_soft_hyphens")
         end,
         choice2_text_func = function()
-          return hyph_trust_soft_hyphens and gettext("Enable (★)") or gettext("Enable")
+          return hyph_trust_soft_hyphens and gettext("Enable (★)")
+            or gettext("Enable")
         end,
         choice2_callback = function()
           G_reader_settings:makeTrue("hyph_trust_soft_hyphens")
@@ -845,13 +849,15 @@ These settings will apply to all books with any hyphenation dictionary.
             "Would you like to enable or disable algorithmic hyphenation by default?\n\nThe current default (★) is disabled."
           ),
         choice1_text_func = function()
-          return hyph_force_algorithmic and gettext("Disable") or gettext("Disable (★)")
+          return hyph_force_algorithmic and gettext("Disable")
+            or gettext("Disable (★)")
         end,
         choice1_callback = function()
           G_reader_settings:makeFalse("hyph_force_algorithmic")
         end,
         choice2_text_func = function()
-          return hyph_force_algorithmic and gettext("Enable (★)") or gettext("Enable")
+          return hyph_force_algorithmic and gettext("Enable (★)")
+            or gettext("Enable")
         end,
         choice2_callback = function()
           G_reader_settings:makeTrue("hyph_force_algorithmic")
@@ -894,13 +900,15 @@ These settings will apply to all books with any hyphenation dictionary.
             "Would you like to enable or disable hyphenation with soft hyphens only by default?\n\nThe current default (★) is disabled."
           ),
         choice1_text_func = function()
-          return hyph_soft_hyphens_only and gettext("Disable") or gettext("Disable (★)")
+          return hyph_soft_hyphens_only and gettext("Disable")
+            or gettext("Disable (★)")
         end,
         choice1_callback = function()
           G_reader_settings:makeFalse("hyph_soft_hyphens_only")
         end,
         choice2_text_func = function()
-          return hyph_soft_hyphens_only and gettext("Enable (★)") or gettext("Enable")
+          return hyph_soft_hyphens_only and gettext("Enable (★)")
+            or gettext("Enable")
         end,
         choice2_callback = function()
           G_reader_settings:makeTrue("hyph_soft_hyphens_only")
@@ -987,13 +995,15 @@ function ReaderTypography:makeDefaultFloatingPunctuation()
         "Would you like to enable or disable hanging punctuation by default?\n\nThe current default (★) is disabled."
       ),
     choice1_text_func = function()
-      return floating_punctuation and gettext("Disable") or gettext("Disable (★)")
+      return floating_punctuation and gettext("Disable")
+        or gettext("Disable (★)")
     end,
     choice1_callback = function()
       G_reader_settings:makeFalse("floating_punctuation")
     end,
     choice2_text_func = function()
-      return floating_punctuation and gettext("Enable (★)") or gettext("Enable")
+      return floating_punctuation and gettext("Enable (★)")
+        or gettext("Enable")
     end,
     choice2_callback = function()
       G_reader_settings:makeTrue("floating_punctuation")
@@ -1199,7 +1209,10 @@ function ReaderTypography:onPreRenderDocument(config)
   -- Add a menu item to language sub-menu, whether the lang is known or not, so the
   -- user can see it and switch from and back to it easily
   table.insert(self.language_submenu, 1, {
-    text = T(gettext("Book language: %1"), self.book_lang_tag or gettext("N/A")),
+    text = T(
+      gettext("Book language: %1"),
+      self.book_lang_tag or gettext("N/A")
+    ),
     callback = function()
       UIManager:show(InfoMessage:new({
         text = T(

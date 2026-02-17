@@ -2,15 +2,15 @@
 ]]
 local DataStorage = require("datastorage")
 local Device = require("device")
-local FileConverter = require("apps/filemanager/filemanagerconverter")
 local DocSettings = require("docsettings")
+local FFIUtil = require("ffi/util")
+local FileConverter = require("apps/filemanager/filemanagerconverter")
 local Language = require("ui/language")
 local Version = require("version")
-local FFIUtil = require("ffi/util")
 local T = FFIUtil.template
+local _ = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local _ = require("gettext")
 
 local QuickStart = {
   quickstart_force_show_version = 2021070000,

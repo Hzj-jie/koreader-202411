@@ -1,5 +1,5 @@
-local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local BD = require("ui/bidi")
+local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local Device = require("device")
@@ -11,10 +11,10 @@ local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local ffi = require("ffi")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local gettext = require("gettext")
 local C = ffi.C
 local T = ffiutil.template
 
@@ -792,7 +792,10 @@ function NetworkMgr:getProxyMenuTable()
   end
   return {
     text_func = function()
-      return T(gettext("HTTP proxy %1"), (proxy_enabled() and BD.url(proxy()) or ""))
+      return T(
+        gettext("HTTP proxy %1"),
+        (proxy_enabled() and BD.url(proxy()) or "")
+      )
     end,
     checked_func = function()
       return proxy_enabled()

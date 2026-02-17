@@ -7,11 +7,11 @@ Plugin for setting screen warmth based on the sun position and/or a time schedul
 
 local CheckButton = require("ui/widget/checkbutton")
 local ConfirmBox = require("ui/widget/confirmbox")
-local Device = require("device")
 local DateTimeWidget = require("ui/widget/datetimewidget")
-local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
+local Device = require("device")
 local DeviceListener = require("device/devicelistener")
 local Dispatcher = require("dispatcher")
+local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
 local Event = require("ui/event")
 local FFIUtil = require("ffi/util")
 local Font = require("ui/font")
@@ -24,8 +24,8 @@ local SunTime = require("suntime")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local logger = require("logger")
 local gettext = require("gettext")
+local logger = require("logger")
 local C_ = gettext.pgettext
 local Powerd = Device.powerd
 local T = FFIUtil.template
@@ -691,8 +691,9 @@ To use the sun's position, a geographical location must be entered. The calculat
 function AutoWarmth:getSubMenuItems()
   return {
     {
-      text = Device:hasNaturalLight() and gettext("About auto warmth and night mode")
-        or gettext("About auto night mode"),
+      text = Device:hasNaturalLight() and gettext(
+        "About auto warmth and night mode"
+      ) or gettext("About auto night mode"),
       callback = function()
         UIManager:show(InfoMessage:new({
           text = about_text,
@@ -750,13 +751,18 @@ function AutoWarmth:getSubMenuItems()
       enabled_func = function()
         return self.activate ~= 0
       end,
-      text = Device:hasNaturalLight() and gettext("Warmth and night mode settings")
-        or gettext("Night mode settings"),
+      text = Device:hasNaturalLight() and gettext(
+        "Warmth and night mode settings"
+      ) or gettext("Night mode settings"),
       sub_item_table = self:getWarmthMenu(),
     },
     self:getFlOffDuringDayMenu(),
     self:getTimesMenu(gettext("Currently active parameters")),
-    self:getTimesMenu(gettext("Sun position information for"), true, activate_sun),
+    self:getTimesMenu(
+      gettext("Sun position information for"),
+      true,
+      activate_sun
+    ),
     self:getTimesMenu(
       gettext("Fixed schedule information"),
       false,
@@ -949,7 +955,11 @@ function AutoWarmth:getLocationMenu()
     },
     {
       text_func = function()
-        return T(gettext("Coordinates: (%1°, %2°)"), self.latitude, self.longitude)
+        return T(
+          gettext("Coordinates: (%1°, %2°)"),
+          self.latitude,
+          self.longitude
+        )
       end,
       callback = function(touchmenu_instance)
         local location_widget = DoubleSpinWidget:new({
@@ -1337,15 +1347,20 @@ function AutoWarmth:getWarmthMenu()
       separator = true,
     },
     {
-      text = Device:hasNaturalLight() and gettext("Set warmth and night mode for:")
-        or gettext("Set night mode for:"),
+      text = Device:hasNaturalLight() and gettext(
+        "Set warmth and night mode for:"
+      ) or gettext("Set night mode for:"),
       enabled = false,
     },
     getWarmthMenuEntry(gettext("Solar noon"), 6, false),
     getWarmthMenuEntry(gettext("Sunset and sunrise"), 5),
     getWarmthMenuEntry(gettext("Darkest time of civil twilight"), 4),
     getWarmthMenuEntry(gettext("Darkest time of nautical twilight"), 3, false),
-    getWarmthMenuEntry(gettext("Darkest time of astronomical twilight"), 2, false),
+    getWarmthMenuEntry(
+      gettext("Darkest time of astronomical twilight"),
+      2,
+      false
+    ),
     getWarmthMenuEntry(gettext("Solar midnight"), 1, false),
   }
 
@@ -1454,7 +1469,14 @@ function AutoWarmth:showTimesInfo(title, location, activator, request_easy)
     text = title
       .. location_string
       .. ":\n\n"
-      .. info_line(0, gettext("Solar midnight:"), times[1], 1, face, request_easy)
+      .. info_line(
+        0,
+        gettext("Solar midnight:"),
+        times[1],
+        1,
+        face,
+        request_easy
+      )
       .. add_line(2, gettext("Dawn"), request_easy)
       .. info_line(4, gettext("Astronomic:"), times[2], 2, face, request_easy)
       .. info_line(4, gettext("Nautical:"), times[3], 3, face, request_easy)

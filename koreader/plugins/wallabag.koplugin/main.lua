@@ -22,6 +22,7 @@ local ReadHistory = require("readhistory")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
+local gettext = require("gettext")
 local http = require("socket.http")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
@@ -29,7 +30,6 @@ local ltn12 = require("ltn12")
 local socket = require("socket")
 local socketutil = require("socketutil")
 local util = require("util")
-local gettext = require("gettext")
 local T = FFIUtil.template
 
 -- constants
@@ -163,7 +163,10 @@ function Wallabag:addToMainMenu(menu_items)
           local connect_callback = function()
             local num_deleted = self:processLocalFiles("manual")
             UIManager:show(InfoMessage:new({
-              text = T(gettext("Articles processed.\nDeleted: %1"), num_deleted),
+              text = T(
+                gettext("Articles processed.\nDeleted: %1"),
+                num_deleted
+              ),
             }))
             self:refreshCurrentDirIfNeeded()
           end
@@ -892,7 +895,9 @@ function Wallabag:synchronize()
           text = T(msg, downloaded_count, deleted_count, failed_count),
         })
       else
-        msg = gettext("Processing finished.\n\nArticles downloaded: %1\nDeleted: %2")
+        msg = gettext(
+          "Processing finished.\n\nArticles downloaded: %1\nDeleted: %2"
+        )
         info =
           InfoMessage:new({ text = T(msg, downloaded_count, deleted_count) })
       end
@@ -949,7 +954,8 @@ function Wallabag:processLocalFiles(mode)
     or self.is_delete_read
     or self.is_delete_abandoned
   then
-    local info = InfoMessage:new({ text = gettext("Processing local files…") })
+    local info =
+      InfoMessage:new({ text = gettext("Processing local files…") })
     UIManager:show(info)
     UIManager:forceRePaint()
     UIManager:close(info)
@@ -1351,7 +1357,10 @@ function Wallabag:addWallabagArticle(article_url)
   if not NetworkMgr:isOnline() then
     self:addToDownloadQueue(article_url)
     UIManager:show(InfoMessage:new({
-      text = T(gettext("Article added to download queue:\n%1"), BD.url(article_url)),
+      text = T(
+        gettext("Article added to download queue:\n%1"),
+        BD.url(article_url)
+      ),
       timeout = 1,
     }))
     return
@@ -1364,7 +1373,10 @@ function Wallabag:addWallabagArticle(article_url)
     }))
   else
     UIManager:show(InfoMessage:new({
-      text = T(gettext("Error adding link to Wallabag:\n%1"), BD.url(article_url)),
+      text = T(
+        gettext("Error adding link to Wallabag:\n%1"),
+        BD.url(article_url)
+      ),
     }))
   end
 

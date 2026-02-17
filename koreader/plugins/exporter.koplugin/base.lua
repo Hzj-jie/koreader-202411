@@ -8,8 +8,8 @@ Each target should inherit from this class and implement *at least* an `export` 
 
 local DataStorage = require("datastorage")
 local Device = require("device")
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 
 local BaseExporter = {
   clipping_dir = DataStorage:getFullDataDir() .. "/clipboard",

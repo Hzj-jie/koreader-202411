@@ -1,5 +1,5 @@
-local logger = require("logger")
 local gettext = require("gettext")
+local logger = require("logger")
 
 local Composer = {
   settings = {},

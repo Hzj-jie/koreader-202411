@@ -14,12 +14,12 @@ local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Utf8Proc = require("ffi/utf8proc")
+local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local gettext = require("gettext")
 local N_ = gettext.ngettext
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -178,7 +178,8 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   -- Current page
   if self.document then
     local lines_nb, words_nb = self.ui.view:getCurrentPageLineWordCounts()
-    local text = lines_nb == 0 and gettext("number of lines and words not available")
+    local text = lines_nb == 0
+        and gettext("number of lines and words not available")
       or T(N_("1 line", "%1 lines", lines_nb), lines_nb)
         .. ", "
         .. T(N_("1 word", "%1 words", words_nb), words_nb)
@@ -216,7 +217,10 @@ function BookInfo:extract(doc_settings_or_file, book_props)
     table.insert(
       kv_pairs,
       -- Need localization
-      { gettext("Setting file size:"), sizeStr(doc_settings_or_file:fileAttribute()) }
+      {
+        gettext("Setting file size:"),
+        sizeStr(doc_settings_or_file:fileAttribute()),
+      }
     )
   end
 

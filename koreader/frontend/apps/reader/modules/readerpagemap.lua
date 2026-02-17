@@ -340,7 +340,9 @@ function ReaderPageMap:addToMainMenu(menu_items)
         end,
         callback = function()
           local text = T(
-            gettext("Source (book hardcopy edition) of reference page numbers:\n\n%1"),
+            gettext(
+              "Source (book hardcopy edition) of reference page numbers:\n\n%1"
+            ),
             self.ui.document:getPageMapSource()
           )
           local InfoMessage = require("ui/widget/infomessage")
@@ -385,7 +387,8 @@ function ReaderPageMap:addToMainMenu(menu_items)
                 "The default (★) for newly opened books that have a reference page numbers map is to not use these reference page numbers and keep using the renderer page numbers.\n\nWould you like to change it?"
               ),
             choice1_text_func = function()
-              return use_page_labels and gettext("Renderer") or gettext("Renderer (★)")
+              return use_page_labels and gettext("Renderer")
+                or gettext("Renderer (★)")
             end,
             choice1_callback = function()
               G_reader_settings:makeFalse("pagemap_use_page_labels")
@@ -394,7 +397,8 @@ function ReaderPageMap:addToMainMenu(menu_items)
               end
             end,
             choice2_text_func = function()
-              return use_page_labels and gettext("Reference (★)") or gettext("Reference")
+              return use_page_labels and gettext("Reference (★)")
+                or gettext("Reference")
             end,
             choice2_callback = function()
               G_reader_settings:makeTrue("pagemap_use_page_labels")
@@ -433,7 +437,8 @@ function ReaderPageMap:addToMainMenu(menu_items)
                 "The default (★) for newly opened books that have a reference page numbers map is to not show reference page number labels in the margin.\n\nWould you like to change it?"
               ),
             choice1_text_func = function()
-              return show_page_labels and gettext("Hide") or gettext("Hide (★)")
+              return show_page_labels and gettext("Hide")
+                or gettext("Hide (★)")
             end,
             choice1_callback = function()
               G_reader_settings:makeFalse("pagemap_show_page_labels")
@@ -442,7 +447,8 @@ function ReaderPageMap:addToMainMenu(menu_items)
               end
             end,
             choice2_text_func = function()
-              return show_page_labels and gettext("Show (★)") or gettext("Show")
+              return show_page_labels and gettext("Show (★)")
+                or gettext("Show")
             end,
             choice2_callback = function()
               G_reader_settings:makeTrue("pagemap_show_page_labels")

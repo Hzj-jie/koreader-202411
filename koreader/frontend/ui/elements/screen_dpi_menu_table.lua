@@ -1,5 +1,5 @@
-local gettext = require("gettext")
 local Device = require("device")
+local gettext = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -79,7 +79,8 @@ return {
   text = gettext("Screen DPI"),
   sub_item_table = {
     {
-      text = dpi_auto and T(gettext("Auto DPI (%1)"), dpi_auto) or gettext("Auto DPI"),
+      text = dpi_auto and T(gettext("Auto DPI (%1)"), dpi_auto)
+        or gettext("Auto DPI"),
       help_text = gettext(
         "The DPI of your screen is automatically detected so items can be drawn with the right amount of pixels. This will usually display at (roughly) the same size on different devices, while remaining sharp. Increasing the DPI setting will result in larger text and icons, while a lower DPI setting will look smaller on the screen."
       ),
@@ -104,7 +105,10 @@ return {
       text_func = function()
         local custom_dpi = custom() or dpi_auto
         if custom_dpi then
-          return T(gettext("Custom DPI: %1 (hold to set)"), custom() or dpi_auto)
+          return T(
+            gettext("Custom DPI: %1 (hold to set)"),
+            custom() or dpi_auto
+          )
         else
           return gettext("Custom DPI")
         end

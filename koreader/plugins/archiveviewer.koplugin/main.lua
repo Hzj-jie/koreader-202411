@@ -8,8 +8,8 @@ local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiUtil = require("ffi/util")
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 local T = ffiUtil.template
 
 local ArchiveViewer = WidgetContainer:extend({
@@ -219,7 +219,9 @@ function ArchiveViewer:showFileDialog(filepath)
   dialog = ButtonDialog:new({
     title = filepath
       .. "\n\n"
-      .. gettext("On extraction, if the file already exists, it will be overwritten."),
+      .. gettext(
+        "On extraction, if the file already exists, it will be overwritten."
+      ),
     width_factor = 0.8,
     buttons = buttons,
   })

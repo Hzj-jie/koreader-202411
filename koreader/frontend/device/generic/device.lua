@@ -8,12 +8,12 @@ local DataStorage = require("datastorage")
 local Event = require("ui/event")
 local Geom = require("ui/geometry")
 local UIManager -- Updated on UIManager init
-local logger = require("logger")
 local ffi = require("ffi")
+local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
+local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local gettext = require("gettext")
-local ffiUtil = require("ffi/util")
 local C = ffi.C
 local T = ffiUtil.template
 
@@ -997,7 +997,10 @@ function Device:retrieveNetworkInfo()
                     table.insert(results, T(gettext("SSID: \"%1\""), ffi.string(essid)))
                   end
                   --]]
-                  table.insert(results, T(gettext('SSID: "%1"'), ffi.string(essid)))
+                  table.insert(
+                    results,
+                    T(gettext('SSID: "%1"'), ffi.string(essid))
+                  )
                 else
                   table.insert(results, gettext("SSID: off/any"))
                 end
@@ -1117,12 +1120,15 @@ function Device:unpackArchive(archive, extract_to, with_stripped_root)
   else
     return false,
       T(
-        gettext("Couldn't extract archive:\n\n%1\n\nUnrecognized filename extension."),
+        gettext(
+          "Couldn't extract archive:\n\n%1\n\nUnrecognized filename extension."
+        ),
         BD.filepath(archive)
       )
   end
   if not ok then
-    return false, T(gettext("Extracting archive failed:\n\n%1"), BD.filepath(archive))
+    return false,
+      T(gettext("Extracting archive failed:\n\n%1"), BD.filepath(archive))
   end
   return true
 end

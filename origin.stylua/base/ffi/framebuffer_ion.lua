@@ -1,6 +1,6 @@
-local ffi = require("ffi")
-local bit = require("bit")
 local BB = require("ffi/blitbuffer")
+local bit = require("bit")
+local ffi = require("ffi")
 local C = ffi.C
 
 require("ffi/linux_fb_h")

@@ -42,7 +42,9 @@ local metadata = {
       gettext(
         "Non-Latin script support for books, including the Hebrew, Arabic, Persian, Russian, Chinese, Japanese and Korean languages."
       ),
-      gettext("Unique Book Map and Page Browser features to navigate your book."),
+      gettext(
+        "Unique Book Map and Page Browser features to navigate your book."
+      ),
       gettext(
         "Special multi-page highlight mode with many local and online export options."
       ),

@@ -19,9 +19,9 @@ local Button = require("ui/widget/button")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local FocusManager = require("ui/widget/focusmanager")
+local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
-local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local Size = require("ui/size")
@@ -276,7 +276,9 @@ function NumberPickerWidget:init()
                   }))
                 else
                   UIManager:show(InfoMessage:new({
-                    text = gettext("Invalid value. Please enter a valid value."),
+                    text = gettext(
+                      "Invalid value. Please enter a valid value."
+                    ),
                     timeout = 2,
                   }))
                 end

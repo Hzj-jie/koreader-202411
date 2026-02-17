@@ -9,12 +9,12 @@ local InfoMessage = require("ui/widget/infomessage")
 local RenderImage = require("ui/renderimage")
 local SQ3 = require("lua-ljsqlite3/init")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local time = require("ui/time")
 local util = require("util")
 local zstd = require("ffi/zstd")
-local time = require("ui/time")
-local gettext = require("gettext")
 local N_ = gettext.ngettext
 local T = FFIUtil.template
 
@@ -261,7 +261,11 @@ function BookInfoManager:compactDb()
     return T(gettext("Failed compacting database: %1"), errmsg)
   end
   local cur_size = self:getDbSize()
-  return T(gettext("Cache database size reduced from %1 to %2."), prev_size, cur_size)
+  return T(
+    gettext("Cache database size reduced from %1 to %2."),
+    prev_size,
+    cur_size
+  )
 end
 
 -- Settings management, stored in 'config' table
@@ -672,7 +676,11 @@ function BookInfoManager:removeNonExistantEntries()
     stmt:step() -- committed
     stmt:clearbind():reset() -- cleanup
   end
-  return T(gettext("Removed %1 / %2 entries from cache."), #bcids_to_remove, #bcids)
+  return T(
+    gettext("Removed %1 / %2 entries from cache."),
+    #bcids_to_remove,
+    #bcids
+  )
 end
 
 -- Background extraction management
@@ -917,7 +925,8 @@ Do you want to prune the cache of removed books?]]),
   if prune then
     local summary
     while true do
-      info = InfoMessage:new({ text = gettext("Pruning cache of removed books…") })
+      info =
+        InfoMessage:new({ text = gettext("Pruning cache of removed books…") })
       UIManager:show(info)
       UIManager:forceRePaint()
       completed, summary = Trapper:dismissableRunInSubprocess(function()
@@ -1057,8 +1066,12 @@ Do you want to prune the cache of removed books?]]),
 
     local orig_moved_offset = info.movable:getMovedOffset()
     info:free()
-    info.text =
-      T(gettext("Indexing %1 / %2…\n\n%3"), i, nb_files, BD.filename(filename))
+    info.text = T(
+      gettext("Indexing %1 / %2…\n\n%3"),
+      i,
+      nb_files,
+      BD.filename(filename)
+    )
     info:init()
     local text_widget = table.remove(info.movable[1][1], 3)
     local text_widget_size = text_widget:getSize()
@@ -1103,14 +1116,16 @@ Do you want to prune the cache of removed books?]]),
   end
   UIManager:close(info)
   info = InfoMessage:new({
-    text = T(gettext("Processed %1 / %2 books."), nb_done, nb_files) .. "\n" .. T(
-      N_(
-        "One extracted successfully.",
-        "%1 extracted successfully.",
+    text = T(gettext("Processed %1 / %2 books."), nb_done, nb_files)
+      .. "\n"
+      .. T(
+        N_(
+          "One extracted successfully.",
+          "%1 extracted successfully.",
+          nb_success
+        ),
         nb_success
       ),
-      nb_success
-    ),
   })
   UIManager:show(info)
 end

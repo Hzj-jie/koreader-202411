@@ -16,8 +16,8 @@ They may have the following optional attributes:
    "hold / use on all books". If 'false', no conflict check is done.
 ]]
 
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
@@ -267,7 +267,9 @@ DocFragment {
         id = "text_align_all_left",
         conflicts_with = { "text_align_most_left", "text_align_all_justify" },
         title = gettext("Left align all elements"),
-        description = gettext("Enforce left alignment of text in all elements."),
+        description = gettext(
+          "Enforce left alignment of text in all elements."
+        ),
         css = [[* { text-align: left !important; }]],
         priority = 2, -- so it overrides the justify below
         separator = true,
@@ -348,7 +350,9 @@ You may also want to enable, in the top menu → Gear → Taps and gestures → 
         id = "text_align_all_right",
         conflicts_with = "text_align_most_right",
         title = gettext("Right align all elements"),
-        description = gettext("Enforce right alignment of text in all elements."),
+        description = gettext(
+          "Enforce right alignment of text in all elements."
+        ),
         css = [[* { text-align: right !important; }]],
         priority = 3, -- so it overrides the ones from Text alignment
         separator = true,
@@ -464,7 +468,9 @@ Further small adjustments can be done with 'Line Spacing' in the bottom menu.]]
       {
         id = "font_family_all_inherit",
         title = gettext("Ignore publisher font families"),
-        description = gettext("Disable font-family specified in embedded styles."),
+        description = gettext(
+          "Disable font-family specified in embedded styles."
+        ),
         css = [[* { font-family: inherit !important; }]],
         separator = true,
       },
@@ -472,7 +478,9 @@ Further small adjustments can be done with 'Line Spacing' in the bottom menu.]]
         id = "font_size_all_inherit",
         conflicts_with = "font_size_most_reset",
         title = gettext("Ignore publisher font sizes"),
-        description = gettext("Disable font-size specified in embedded styles."),
+        description = gettext(
+          "Disable font-size specified in embedded styles."
+        ),
         priority = -1, -- so in-page footnotes smaller can override this
         css = [[* { font-size: inherit !important; }]],
       },
@@ -609,7 +617,9 @@ body, h1, h2, h3, h4, h5, h6, div, li, td, th { text-indent: 0 !important; }
         id = "paragraph_whitespace_half",
         conflicts_with = { "paragraph_whitespace", "paragraph_no_whitespace" },
         title = gettext("Spacing between paragraphs (half)"),
-        description = gettext("Add half a line of whitespace between paragraphs."),
+        description = gettext(
+          "Add half a line of whitespace between paragraphs."
+        ),
         priority = 5,
         css = [[p + p { margin-top: .5em !important; }]],
       },

@@ -3,8 +3,8 @@ local DocSettings = require("docsettings")
 local InfoMessage = require("ui/widget/infomessage")
 local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
-local logger = require("logger")
 local gettext = require("gettext")
+local logger = require("logger")
 
 local BookInfoManager = require("bookinfomanager")
 
@@ -359,7 +359,8 @@ function CoverMenu:onHistoryMenuHold(item)
   -- Add some new buttons to original buttons set
   table.insert(orig_buttons, {
     { -- Allow user to ignore some offending cover image
-      text = bookinfo.ignore_cover and gettext("Unignore cover") or gettext("Ignore cover"),
+      text = bookinfo.ignore_cover and gettext("Unignore cover")
+        or gettext("Ignore cover"),
       enabled = bookinfo.has_cover and true or false,
       callback = function()
         BookInfoManager:setBookInfoProperties(file, {
@@ -431,7 +432,8 @@ function CoverMenu:onCollectionsMenuHold(item)
   -- Add some new buttons to original buttons set
   table.insert(orig_buttons, {
     { -- Allow user to ignore some offending cover image
-      text = bookinfo.ignore_cover and gettext("Unignore cover") or gettext("Ignore cover"),
+      text = bookinfo.ignore_cover and gettext("Unignore cover")
+        or gettext("Ignore cover"),
       enabled = bookinfo.has_cover and true or false,
       callback = function()
         BookInfoManager:setBookInfoProperties(file, {

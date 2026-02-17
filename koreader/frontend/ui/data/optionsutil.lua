@@ -136,7 +136,8 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
     end
     current = arg_table[current]
     if not current then
-      current = option.name_text_true_values and gettext("custom") or value_current
+      current = option.name_text_true_values and gettext("custom")
+        or value_current
     end
     if option.show_true_value_func then
       value_current = option.show_true_value_func(value_current)
@@ -148,7 +149,8 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
       end
       default = arg_table[default]
       if not default then
-        default = option.name_text_true_values and gettext("custom") or value_default
+        default = option.name_text_true_values and gettext("custom")
+          or value_default
       end
       if option.show_true_value_func then
         value_default = option.show_true_value_func(value_default)

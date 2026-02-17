@@ -8,8 +8,8 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local dbg = require("dbg")
-local time = require("ui/time")
 local gettext = require("gettext")
+local time = require("ui/time")
 local T = require("ffi/util").template
 
 local State = {}
@@ -257,7 +257,10 @@ function BatteryStat:showStatistics()
     end,
   })
   self.kv_page = KeyValuePage:new({
-    title = T(gettext("Battery statistics (now %1%)"), self.awake_state.percentage),
+    title = T(
+      gettext("Battery statistics (now %1%)"),
+      self.awake_state.percentage
+    ),
     kv_pairs = kv_pairs,
   })
   UIManager:show(self.kv_page)

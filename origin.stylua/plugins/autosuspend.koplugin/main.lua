@@ -11,10 +11,10 @@ local PluginShare = require("pluginshare")
 local PowerD = Device:getPowerDevice()
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local _ = require("gettext")
 local datetime = require("datetime")
 local logger = require("logger")
 local time = require("ui/time")
-local _ = require("gettext")
 local T = require("ffi/util").template
 
 local default_autoshutdown_timeout_seconds = 3 * 24 * 60 * 60 -- three days

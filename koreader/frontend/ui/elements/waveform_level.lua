@@ -1,6 +1,6 @@
-local gettext = require("gettext")
 local Device = require("device")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 

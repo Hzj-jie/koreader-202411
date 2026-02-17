@@ -21,9 +21,9 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local Input = Device.input
 local Screen = Device.screen
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 
 -- We use the BookMapRow widget, a local widget defined in bookmapwidget.lua,
 -- that we made available via BookMapWidget itself
@@ -1693,9 +1693,12 @@ function PageBrowserWidget:onThumbnailHold(page, ges)
         -- Note: we may have multiple chapters on a same page: we will show the first, which
         -- would need to be removed to access the second... We may want to show as many
         -- buttons as there are chapters, with the start of the chapter title as its text.
-        text = (has_toc_item and gettext("Edit or remove TOC chapter") or gettext(
-          "Start TOC chapter here"
-        )) .. " " .. self.ui.handmade.custom_toc_symbol,
+        text = (
+          has_toc_item and gettext("Edit or remove TOC chapter")
+          or gettext("Start TOC chapter here")
+        )
+          .. " "
+          .. self.ui.handmade.custom_toc_symbol,
         align = "left",
         callback = function()
           UIManager:close(button_dialog)

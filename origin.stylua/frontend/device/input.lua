@@ -2,16 +2,16 @@
 An interface to get input events.
 --]]
 
-local DataStorage = require("datastorage")
 local DEBUG = require("dbg")
+local DataStorage = require("datastorage")
 local Event = require("ui/event")
 local GestureDetector = require("device/gesturedetector")
 local Key = require("device/key")
 local UIManager
+local _ = require("gettext")
 local framebuffer = require("ffi/framebuffer")
 local logger = require("logger")
 local time = require("ui/time")
-local _ = require("gettext")
 
 -- We're going to need a few <linux/input.h> constants...
 local ffi = require("ffi")

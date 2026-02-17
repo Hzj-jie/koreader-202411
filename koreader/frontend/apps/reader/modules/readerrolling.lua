@@ -10,10 +10,10 @@ local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
 local bit = require("bit")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
-local gettext = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -500,7 +500,8 @@ function ReaderRolling:addToMainMenu(menu_items)
             hide_nonlinear_text
               .. "\n\n"
               .. gettext("Set default hide non-linear fragments to %1?"),
-            self.hide_nonlinear_flows and gettext("enabled") or gettext("disabled")
+            self.hide_nonlinear_flows and gettext("enabled")
+              or gettext("disabled")
           ),
           ok_callback = function()
             G_reader_settings:save(
@@ -556,7 +557,9 @@ To get back to a sane state, a full rendering will happen in the background, get
       else
         text = text
           .. "\n\n"
-          .. gettext("The current default (★) is to always do a full rendering.")
+          .. gettext(
+            "The current default (★) is to always do a full rendering."
+          )
       end
       local MultiConfirmBox = require("ui/widget/multiconfirmbox")
       UIManager:show(MultiConfirmBox:new({
@@ -566,13 +569,15 @@ To get back to a sane state, a full rendering will happen in the background, get
         face = require("ui/font"):getFace("infofont", 20),
         icon = "cre.render.partial",
         choice1_text_func = function()
-          return cre_partial_rerendering and gettext("Disable") or gettext("Disable (★)")
+          return cre_partial_rerendering and gettext("Disable")
+            or gettext("Disable (★)")
         end,
         choice1_callback = function()
           G_reader_settings:makeFalse("cre_partial_rerendering")
         end,
         choice2_text_func = function()
-          return cre_partial_rerendering and gettext("Enable (★)") or gettext("Enable")
+          return cre_partial_rerendering and gettext("Enable (★)")
+            or gettext("Enable")
         end,
         choice2_callback = function()
           G_reader_settings:makeTrue("cre_partial_rerendering")

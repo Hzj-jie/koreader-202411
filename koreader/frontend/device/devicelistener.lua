@@ -5,8 +5,8 @@ local Notification = require("ui/widget/notification")
 local Screen = Device.screen
 local UIManager = require("ui/uimanager")
 local bit = require("bit")
-local time = require("ui/time")
 local gettext = require("gettext")
+local time = require("ui/time")
 local T = require("ffi/util").template
 
 local DeviceListener = EventListener:extend({})
@@ -113,8 +113,10 @@ if Device:hasFrontlight() then
     else
       powerd:setIntensity(new_intensity)
       -- Allow powerd adjusting the frontlight intensity.
-      new_text =
-        T(gettext("Frontlight intensity set to %1."), powerd:frontlightIntensity())
+      new_text = T(
+        gettext("Frontlight intensity set to %1."),
+        powerd:frontlightIntensity()
+      )
     end
     powerd:updateResumeFrontlightState()
     Notification:notify(new_text)

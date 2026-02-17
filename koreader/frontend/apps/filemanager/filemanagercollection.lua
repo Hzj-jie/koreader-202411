@@ -295,7 +295,8 @@ function FileManagerCollection:showCollDialog()
     table.insert(buttons, {
       {
         text_func = function()
-          return is_in_collection and gettext("Remove current book from collection")
+          return is_in_collection
+              and gettext("Remove current book from collection")
             or gettext("Add current book to collection")
         end,
         callback = function()
@@ -426,7 +427,8 @@ function FileManagerCollection:updateCollListItemTable(do_init, item_number)
   local subtitle
   if self.selected_collections then
     local selected_nb = util.tableSize(self.selected_collections)
-    subtitle = self.selected_collections and T(gettext("Selected: %1"), selected_nb)
+    subtitle = self.selected_collections
+      and T(gettext("Selected: %1"), selected_nb)
     if do_init and selected_nb > 0 then -- show first collection containing the long-pressed book
       for i, item in ipairs(item_table) do
         if self.selected_collections[item.name] then

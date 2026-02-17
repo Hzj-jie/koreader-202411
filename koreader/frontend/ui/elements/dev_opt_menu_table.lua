@@ -3,8 +3,8 @@ local Device = require("device")
 local FFIUtil = require("ffi/util")
 local UIManager = require("ui/uimanager")
 local dbg = require("dbg")
-local lfs = require("libs/libkoreader-lfs")
 local gettext = require("gettext")
+local lfs = require("libs/libkoreader-lfs")
 
 local developer_options = {
   text = gettext("Developer options"),

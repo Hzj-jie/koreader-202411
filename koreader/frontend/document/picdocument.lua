@@ -1,6 +1,6 @@
+local CanvasContext = require("document/canvascontext")
 local Document = require("document/document")
 local DrawContext = require("ffi/drawcontext")
-local CanvasContext = require("document/canvascontext")
 local pic = nil
 
 local PicDocument = Document:extend({

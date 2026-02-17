@@ -1,7 +1,7 @@
-local Button = require("ui/widget/button")
-local ButtonProgressWidget = require("ui/widget/buttonprogresswidget")
 local Blitbuffer = require("ffi/blitbuffer")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
+local Button = require("ui/widget/button")
+local ButtonProgressWidget = require("ui/widget/buttonprogresswidget")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
@@ -27,10 +27,10 @@ local UIManager = require("ui/uimanager")
 local UnderlineContainer = require("ui/widget/container/underlinecontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
+local _ = require("gettext")
 local logger = require("logger")
 local serpent = require("ffi/serpent")
 local util = require("util")
-local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 

@@ -22,10 +22,10 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local C_ = gettext.pgettext
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -136,8 +136,9 @@ function TweakInfoWidget:init()
   local buttons = {
     {
       {
-        text = self.is_tweak_in_dispatcher and gettext("Don't show in action list")
-          or gettext("Show in action list"),
+        text = self.is_tweak_in_dispatcher and gettext(
+          "Don't show in action list"
+        ) or gettext("Show in action list"),
         callback = function()
           self.toggle_tweak_in_dispatcher_callback()
           UIManager:close(self)
@@ -725,7 +726,10 @@ You can enable individual tweaks on this book with a tap, or view more details a
       table.insert(item_table, {
         title = title,
         id = file, -- keep ".css" in id, to distinguish between koreader/user tweaks
-        description = T(gettext("User style tweak at %1"), BD.filepath(filepath)),
+        description = T(
+          gettext("User style tweak at %1"),
+          BD.filepath(filepath)
+        ),
         priority = 10, -- give user tweaks a higher priority
         css_path = filepath,
       })
@@ -737,7 +741,8 @@ You can enable individual tweaks on this book with a tap, or view more details a
       })
     end
   end
-  local if_empty_menu_title = gettext("Add your own tweaks in koreader/styletweaks/")
+  local if_empty_menu_title =
+    gettext("Add your own tweaks in koreader/styletweaks/")
   process_tweaks_dir(
     user_styletweaks_dir,
     user_tweaks_table,

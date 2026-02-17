@@ -3,23 +3,23 @@ local DataStorage = require("datastorage")
 --local DownloadBackend = require("internaldownloadbackend")
 --local DownloadBackend = require("luahttpdownloadbackend")
 local DownloadBackend = require("epubdownloadbackend")
-local ReadHistory = require("readhistory")
 local FFIUtil = require("ffi/util")
 local FeedView = require("feed_view")
 local InfoMessage = require("ui/widget/infomessage")
-local LuaSettings = require("frontend/luasettings")
-local UIManager = require("ui/uimanager")
-local KeyValuePage = require("ui/widget/keyvaluepage")
 local InputDialog = require("ui/widget/inputdialog")
+local KeyValuePage = require("ui/widget/keyvaluepage")
+local LuaSettings = require("frontend/luasettings")
 local MultiConfirmBox = require("ui/widget/multiconfirmbox")
 local NetworkMgr = require("ui/network/manager")
 local Persist = require("persist")
+local ReadHistory = require("readhistory")
+local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local dateparser = require("lib.dateparser")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local T = FFIUtil.template
 
 local NewsDownloader = WidgetContainer:extend({
@@ -275,8 +275,12 @@ function NewsDownloader:loadConfigAndProcessFeeds(touchmenu_instance)
     local credentials = feed.credentials
     -- Check if the two required attributes are set.
     if url and limit then
-      feed_message =
-        T(gettext("Processing %1/%2:\n%3"), idx, total_feed_entries, BD.url(url))
+      feed_message = T(
+        gettext("Processing %1/%2:\n%3"),
+        idx,
+        total_feed_entries,
+        BD.url(url)
+      )
       UI:info(feed_message)
       -- Process the feed source.
       self:processFeedSource(
@@ -800,7 +804,8 @@ function NewsDownloader:editFeedAttribute(id, key, value)
       input_type = "string"
     elseif key == FeedView.LIMIT then
       title = gettext("Edit feed limit")
-      description = gettext("Set to 0 for no limit to how many items are downloaded")
+      description =
+        gettext("Set to 0 for no limit to how many items are downloaded")
       input_type = "number"
     elseif key == FeedView.FILTER_ELEMENT then
       title = gettext("Edit filter element.")

@@ -362,7 +362,9 @@ function KOSync:addToMainMenu(menu_items)
         text = gettext("Document matching method"),
         sub_item_table = {
           {
-            text = gettext("Binary. Only identical files will be kept in sync."),
+            text = gettext(
+              "Binary. Only identical files will be kept in sync."
+            ),
             checked_func = function()
               return self.settings.checksum_method == CHECKSUM_METHOD.BINARY
             end,
@@ -401,7 +403,9 @@ function KOSync:setCustomServer(server)
   UIManager:show(InfoMessage:new({
     -- Need localization
     text = T(
-      gettext("The new server address %1 is invalid, revert back to %2.\nError: %3"),
+      gettext(
+        "The new server address %1 is invalid, revert back to %2.\nError: %3"
+      ),
       server,
       prev_server or "default server",
       err
@@ -504,7 +508,9 @@ function KOSync:_doRegister(username, password, menu)
   if not ok then
     if status then
       UIManager:show(InfoMessage:new({
-        text = gettext("An error occurred while registering:") .. "\n" .. status,
+        text = gettext("An error occurred while registering:")
+          .. "\n"
+          .. status,
       }))
     else
       UIManager:show(InfoMessage:new({

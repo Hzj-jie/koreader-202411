@@ -5,27 +5,27 @@ A simple plugin for getting the weather forcast on your KOReader
 --]]
 --
 
-local Dispatcher = require("dispatcher") -- luacheck:ignore
 local DataStorage = require("datastorage")
+local Dispatcher = require("dispatcher") -- luacheck:ignore
 local InfoMessage = require("ui/widget/infomessage")
-local UIManager = require("ui/uimanager")
-local NetworkMgr = require("ui/network/manager")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
-local LuaSettings = require("luasettings")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local ListView = require("ui/widget/listview")
+local LuaSettings = require("luasettings")
+local NetworkMgr = require("ui/network/manager")
+local UIManager = require("ui/uimanager")
 local WeatherApi = require("weatherapi")
+local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Screen = require("device").screen
-local FrameContainer = require("ui/widget/container/framecontainer")
 local Blitbuffer = require("ffi/blitbuffer")
-local TextWidget = require("ui/widget/textwidget")
-local Font = require("ui/font")
 local Composer = require("composer")
-local logger = require("logger")
+local Font = require("ui/font")
+local FrameContainer = require("ui/widget/container/framecontainer")
+local TextWidget = require("ui/widget/textwidget")
 local ffiutil = require("ffi/util")
 local gettext = require("gettext")
+local logger = require("logger")
 local T = ffiutil.template
 
 local Weather = WidgetContainer:new({

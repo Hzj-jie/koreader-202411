@@ -1,5 +1,5 @@
-local util = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
+local util = require("ffi/util")
 
 local function waitForSubProcessDone(pid)
   for i = 1, 20 do

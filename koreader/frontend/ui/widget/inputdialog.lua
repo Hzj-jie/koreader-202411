@@ -117,8 +117,8 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local Screen = Device.screen
 local T = require("ffi/util").template
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 
 local InputDialog = FocusManager:extend({
   -- TODO: Using is_always_active is wrong, it allows the buttons to receive the
@@ -919,7 +919,8 @@ function InputDialog:_addSaveCloseButtons()
             end
             UIManager:close(self)
             UIManager:show(Notification:new({
-              text = self.close_discarded_notif_text or gettext("Changes discarded"),
+              text = self.close_discarded_notif_text
+                or gettext("Changes discarded"),
             }))
           end,
           choice2_text = self.close_save_button_text or gettext("Save"),
@@ -1046,7 +1047,11 @@ function InputDialog:_addScrollButtons(nav_bar)
           input_dialog = InputDialog:new({
             title = gettext("Enter line number"),
             -- @translators %1 is the current line number, %2 is the last line number
-            input_hint = T(gettext("%1 (1 - %2)"), curr_line_num, last_line_num),
+            input_hint = T(
+              gettext("%1 (1 - %2)"),
+              curr_line_num,
+              last_line_num
+            ),
             input_type = "number",
             stop_events_propagation = true, -- avoid interactions with upper InputDialog
             buttons = {

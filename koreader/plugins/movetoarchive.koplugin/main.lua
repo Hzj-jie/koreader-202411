@@ -1,3 +1,4 @@
+local BaseUtil = require("ffi/util")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local Dispatcher = require("dispatcher")
@@ -8,9 +9,8 @@ local InfoMessage = require("ui/widget/infomessage")
 local LuaSettings = require("frontend/luasettings")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local util = require("frontend/util")
-local BaseUtil = require("ffi/util")
 local gettext = require("gettext")
+local util = require("frontend/util")
 
 local MoveToArchive = WidgetContainer:extend({
   name = "movetoarchive",
@@ -116,10 +116,12 @@ function MoveToArchive:onMoveToArchive(do_copy)
   self.ui:onExit()
   local text
   if do_copy then
-    text = gettext("Book copied.\nDo you want to open it from the archive folder?")
+    text =
+      gettext("Book copied.\nDo you want to open it from the archive folder?")
     FileManager:copyFileFromTo(document_full_path, self.archive_dir_path)
   else
-    text = gettext("Book moved.\nDo you want to open it from the archive folder?")
+    text =
+      gettext("Book moved.\nDo you want to open it from the archive folder?")
     FileManager:moveFile(document_full_path, self.archive_dir_path)
     require("readhistory"):updateItem(document_full_path, dest_file) -- (will update "lastfile" if needed)
     require("readcollection"):updateItem(document_full_path, dest_file)

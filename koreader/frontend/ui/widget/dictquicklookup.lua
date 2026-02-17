@@ -4,10 +4,10 @@ local ButtonDialog = require("ui/widget/buttondialog")
 local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
-local Geom = require("ui/geometry")
 local Event = require("ui/event")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
+local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local IconButton = require("ui/widget/iconbutton")
 local InputContainer = require("ui/widget/container/inputcontainer")
@@ -26,10 +26,10 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local C_ = gettext.pgettext
 local Input = Device.input
 local Screen = Device.screen
@@ -495,7 +495,8 @@ function DictQuickLookup:init()
             -- Just update, repaint and refresh *this* button
             local this = self.button_table:getButtonById("highlight")
             this:setText(
-              self.save_highlight and gettext("Unhighlight") or gettext("Highlight"),
+              self.save_highlight and gettext("Unhighlight")
+                or gettext("Highlight"),
               this.width
             )
             this:refresh()

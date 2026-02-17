@@ -19,11 +19,11 @@ local UIManager = require("ui/uimanager")
 local ffi = require("ffi")
 local C = ffi.C
 local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local gettext = require("gettext")
 local Input = Device.input
 local T = ffiUtil.template
 local android = Device:isAndroid() and require("android")
@@ -983,8 +983,9 @@ function ReaderDictionary:startSdcv(word, dict_names, fuzzy_search)
       {
         dict = gettext("Not available"),
         word = word,
-        definition = lookup_cancelled and gettext("Dictionary lookup interrupted.")
-          or gettext("No results."),
+        definition = lookup_cancelled and gettext(
+          "Dictionary lookup interrupted."
+        ) or gettext("No results."),
         no_result = true,
         lookup_cancelled = lookup_cancelled,
       },
@@ -1209,7 +1210,9 @@ function ReaderDictionary:downloadDictionary(dict, download_location, continue)
     if file_size then
       UIManager:show(ConfirmBox:new({
         text = T(
-          gettext("Dictionary filesize is %1 (%2 bytes). Continue with download?"),
+          gettext(
+            "Dictionary filesize is %1 (%2 bytes). Continue with download?"
+          ),
           util.getFriendlySize(file_size),
           util.getFormattedSize(file_size)
         ),
@@ -1255,7 +1258,8 @@ function ReaderDictionary:downloadDictionary(dict, download_location, continue)
     logger.dbg("ReaderDictionary: Request failed:", status or code)
     logger.dbg("ReaderDictionary: Response headers:", headers)
     UIManager:show(InfoMessage:new({
-      text = gettext("Could not save file to:\n") .. BD.filepath(download_location),
+      text = gettext("Could not save file to:\n")
+        .. BD.filepath(download_location),
       --timeout = 3,
     }))
     return false
@@ -1345,10 +1349,15 @@ function ReaderDictionary:onTogglePreferredDict(dict)
     table.insert(self.preferred_dictionaries, 1, dict)
   end
   UIManager:show(InfoMessage:new({
-    text = removed and T(
-      gettext("%1 is no longer a preferred dictionary for this document."),
-      dict
-    ) or T(gettext("%1 is now the preferred dictionary for this document."), dict),
+    text = removed
+        and T(
+          gettext("%1 is no longer a preferred dictionary for this document."),
+          dict
+        )
+      or T(
+        gettext("%1 is now the preferred dictionary for this document."),
+        dict
+      ),
     timeout = 2,
   }))
   self:updateSdcvDictNamesOptions()
@@ -1370,14 +1379,16 @@ Fuzzy search can match epuisante, épuisante and épuisantes to épuisant, even 
 
 The current default (★) is enabled.]])),
     choice1_text_func = function()
-      return disable_fuzzy_search and gettext("Disable (★)") or gettext("Disable")
+      return disable_fuzzy_search and gettext("Disable (★)")
+        or gettext("Disable")
     end,
     choice1_callback = function()
       G_reader_settings:makeTrue("disable_fuzzy_search")
       touchmenu_instance:updateItems()
     end,
     choice2_text_func = function()
-      return disable_fuzzy_search and gettext("Enable") or gettext("Enable (★)")
+      return disable_fuzzy_search and gettext("Enable")
+        or gettext("Enable (★)")
     end,
     choice2_callback = function()
       G_reader_settings:makeFalse("disable_fuzzy_search")

@@ -5,9 +5,9 @@ local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local _pending_connected = {}
@@ -71,8 +71,10 @@ function NetworkListener:onInfoWifiOn()
     local current_network = NetworkMgr:getCurrentNetwork()
     -- this method is only available for some implementations
     if current_network and current_network.ssid then
-      info_text =
-        T(gettext("Already connected to network %1."), BD.wrap(current_network.ssid))
+      info_text = T(
+        gettext("Already connected to network %1."),
+        BD.wrap(current_network.ssid)
+      )
     else
       info_text = gettext("Already connected.")
     end
@@ -214,11 +216,14 @@ function NetworkListener:onShowNetworkInfo()
         -- Need localization.
         UIManager:show(InfoMessage:new({
           -- Need localization.
-          text = table.concat(Device:retrieveNetworkInfo(), "\n") .. "\n" .. gettext(
-            "Internet"
-          ) .. " " .. (NetworkMgr:isOnline() and gettext("online") or gettext(
-            "offline"
-          )),
+          text = table.concat(Device:retrieveNetworkInfo(), "\n")
+            .. "\n"
+            .. gettext("Internet")
+            .. " "
+            .. (
+              NetworkMgr:isOnline() and gettext("online")
+              or gettext("offline")
+            ),
           -- IPv6 addresses are *loooooong*!
           face = Font:getFace("x_smallinfofont"),
         }))

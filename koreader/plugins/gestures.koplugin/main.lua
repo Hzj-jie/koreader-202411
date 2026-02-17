@@ -20,8 +20,8 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
 local T = FFIUtil.template
-local time = require("ui/time")
 local gettext = require("gettext")
+local time = require("ui/time")
 local C_ = gettext.pgettext
 
 if not Device:isTouchDevice() then
@@ -226,14 +226,21 @@ end
 
 function Gestures:gestureTitleFunc(ges)
   local title = gestures_list[ges] or self:friendlyMultiswipeName(ges)
-  return T(gettext("%1   (%2)"), title, Dispatcher:menuTextFunc(self.gestures[ges]))
+  return T(
+    gettext("%1   (%2)"),
+    title,
+    Dispatcher:menuTextFunc(self.gestures[ges])
+  )
 end
 
 function Gestures:genMenu(ges)
   local sub_items = {}
   if gestures_list[ges] ~= nil then
     table.insert(sub_items, {
-      text = T(gettext("%1 (default)"), Dispatcher:menuTextFunc(self.defaults[ges])),
+      text = T(
+        gettext("%1 (default)"),
+        Dispatcher:menuTextFunc(self.defaults[ges])
+      ),
       keep_menu_open = true,
       separator = true,
       checked_func = function()

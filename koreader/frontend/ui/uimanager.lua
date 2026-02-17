@@ -6,11 +6,11 @@ local Device = require("device")
 local Event = require("ui/event")
 local Geom = require("ui/geometry")
 local dbg = require("dbg")
-local logger = require("logger")
 local ffiUtil = require("ffi/util")
-local util = require("util")
-local time = require("ui/time")
 local gettext = require("gettext")
+local logger = require("logger")
+local time = require("ui/time")
+local util = require("util")
 local Input = Device.input
 local Screen = Device.screen
 
@@ -1740,7 +1740,8 @@ function UIManager:askForReboot(message_text)
   self:nextTick(function()
     local ConfirmBox = require("ui/widget/confirmbox")
     self:show(ConfirmBox:new({
-      text = message_text or gettext("Are you sure you want to reboot the device?"),
+      text = message_text
+        or gettext("Are you sure you want to reboot the device?"),
       ok_text = gettext("Reboot"),
       ok_callback = function()
         self:nextTick(self.reboot_action)
@@ -1775,7 +1776,8 @@ function UIManager:askForRestart(message_text)
     if Device:canRestart() then
       local ConfirmBox = require("ui/widget/confirmbox")
       self:show(ConfirmBox:new({
-        text = message_text or gettext("This will take effect on next restart."),
+        text = message_text
+          or gettext("This will take effect on next restart."),
         ok_text = gettext("Restart now"),
         ok_callback = function()
           self:broadcastEvent(Event:new("Restart"))
@@ -1784,7 +1786,8 @@ function UIManager:askForRestart(message_text)
       }))
     else
       self:show(require("ui/widget/infomessage"):new({
-        text = message_text or gettext("This will take effect on next restart."),
+        text = message_text
+          or gettext("This will take effect on next restart."),
       }))
     end
   end)

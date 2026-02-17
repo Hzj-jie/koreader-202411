@@ -7,11 +7,11 @@ local InputDialog = require("ui/widget/inputdialog")
 local Menu = require("ui/widget/menu")
 local ReadCollection = require("readcollection")
 local UIManager = require("ui/uimanager")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Utf8Proc = require("ffi/utf8proc")
+local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
@@ -101,8 +101,11 @@ function FileManagerHistory:updateItemTable()
   elseif self.selected_collections then
     subtitle = T(gettext("Filtered by collections (%1)"), #item_table)
   elseif self.filter ~= "all" then
-    subtitle =
-      T(gettext("Status: %1 (%2)"), filter_text[self.filter]:lower(), #item_table)
+    subtitle = T(
+      gettext("Status: %1 (%2)"),
+      filter_text[self.filter]:lower(),
+      #item_table
+    )
   end
   self.hist_menu:switchItemTable(nil, item_table, -1, nil, subtitle)
 end

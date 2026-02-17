@@ -10,8 +10,8 @@ local ReadCollection = require("readcollection")
 local SortWidget = require("ui/widget/sortwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local _ = require("gettext")
+local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local T = require("ffi/util").template
 local util = require("util")
 

@@ -1,13 +1,13 @@
 local Generic = require("device/generic/device") -- <= look at this file!
 local Geom = require("ui/geometry")
 local UIManager
-local logger = require("logger")
 local ffi = require("ffi")
+local logger = require("logger")
 local C = ffi.C
 local inkview = ffi.load("inkview")
 local band = require("bit").band
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 
 require("ffi/posix_h")
 require("ffi/linux_input_h")

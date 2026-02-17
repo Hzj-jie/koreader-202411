@@ -8,9 +8,9 @@ local LuaSettings = require("luasettings")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local Screen = Device.screen
 local T = ffiUtil.template
 
@@ -168,7 +168,11 @@ function Profiles:getSubMenuItems()
             },
             self:genAutoExecMenuItem(gettext("on KOReader start"), "Start", k),
             self:genAutoExecMenuItem(gettext("on wake-up"), "Resume", k),
-            self:genAutoExecMenuItem(gettext("on rotation"), "SetRotationMode", k),
+            self:genAutoExecMenuItem(
+              gettext("on rotation"),
+              "SetRotationMode",
+              k
+            ),
             self:genAutoExecMenuItem(
               gettext("on showing folder"),
               "PathChanged",
@@ -176,7 +180,11 @@ function Profiles:getSubMenuItems()
               true
             ),
             -- separator
-            self:genAutoExecMenuItem(gettext("on book opening"), "ReaderReadyAll", k),
+            self:genAutoExecMenuItem(
+              gettext("on book opening"),
+              "ReaderReadyAll",
+              k
+            ),
             self:genAutoExecMenuItem(
               gettext("on book closing"),
               "CloseDocumentAll",
@@ -699,7 +707,12 @@ function Profiles:genAutoExecDocConditionalMenuItem(
         { gettext("if book is in collections"), "collections" },
       }
       local sub_item_table = {
-        self:genAutoExecMenuItem(gettext("always"), event_always, profile_name, true),
+        self:genAutoExecMenuItem(
+          gettext("always"),
+          event_always,
+          profile_name,
+          true
+        ),
         -- separator
         {
           text = conditions[1][1], -- orientation

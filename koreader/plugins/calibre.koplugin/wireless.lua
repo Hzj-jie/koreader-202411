@@ -10,17 +10,17 @@ local CalibreSearch = require("search")
 local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local FFIUtil = require("ffi/util")
-local InputDialog = require("ui/widget/inputdialog")
 local InfoMessage = require("ui/widget/infomessage")
+local InputDialog = require("ui/widget/inputdialog")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local rapidjson = require("rapidjson")
 local sha = require("ffi/sha2")
 local util = require("util")
-local gettext = require("gettext")
 local T = FFIUtil.template
 
 require("ffi/zeromq_h")
@@ -250,7 +250,8 @@ function CalibreWireless:connect()
         address_type = "discovered"
       else
         ok = false
-        err = gettext("Couldn't discover a calibre instance on the local network")
+        err =
+          gettext("Couldn't discover a calibre instance on the local network")
         address_type = "unavailable"
       end
     else

@@ -5,8 +5,8 @@ This plugin provides a terminal emulator (VT52 (+some ANSI and some VT100))
 ]]
 
 local Device = require("device")
-local logger = require("logger")
 local ffi = require("ffi")
+local logger = require("logger")
 local C = ffi.C
 require("ffi/posix_h")
 
@@ -74,21 +74,21 @@ then
 end
 
 local Aliases = require("aliases")
-local Dispatcher = require("dispatcher")
 local DataStorage = require("datastorage")
+local Dispatcher = require("dispatcher")
 local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local MultiConfirmBox = require("ui/widget/multiconfirmbox")
 local ScrollTextWidget = require("ui/widget/scrolltextwidget")
 local SpinWidget = require("ui/widget/spinwidget")
-local UIManager = require("ui/uimanager")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local TermInputText = require("terminputtext")
 local TextWidget = require("ui/widget/textwidget")
+local UIManager = require("ui/uimanager")
+local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local bit = require("bit")
-local lfs = require("libs/libkoreader-lfs")
 local gettext = require("gettext")
+local lfs = require("libs/libkoreader-lfs")
 local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
@@ -605,7 +605,8 @@ Aliases (shortcuts) to frequently used commands can be placed in:
       },
       {
         text_func = function()
-          local state = self.is_shell_open and gettext("running") or gettext("not running")
+          local state = self.is_shell_open and gettext("running")
+            or gettext("not running")
           return T(gettext("Open terminal session (%1)"), state)
         end,
         callback = function(touchmenu_instance)

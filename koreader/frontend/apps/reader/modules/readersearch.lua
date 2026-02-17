@@ -11,8 +11,8 @@ local SpinWidget = require("ui/widget/spinwidget")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
-local logger = require("logger")
 local gettext = require("gettext")
+local logger = require("logger")
 local C_ = gettext.pgettext
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -123,7 +123,10 @@ function ReaderSearch:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(gettext("Words in context: %1"), self.findall_nb_context_words)
+          return T(
+            gettext("Words in context: %1"),
+            self.findall_nb_context_words
+          )
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
@@ -189,7 +192,8 @@ function ReaderSearch:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          local curr_perpage = self.findall_results_max_lines and gettext("flexible")
+          local curr_perpage = self.findall_results_max_lines
+              and gettext("flexible")
             or self.findall_results_per_page
           return T(gettext("Results per page: %1"), curr_perpage)
         end,
@@ -272,8 +276,10 @@ function ReaderSearch:searchCallback(reverse, text)
     )
     local error_message
     if SRELL_ERROR_CODES[regex_error] then
-      error_message =
-        T(gettext("Invalid regular expression:\n%1"), SRELL_ERROR_CODES[regex_error])
+      error_message = T(
+        gettext("Invalid regular expression:\n%1"),
+        SRELL_ERROR_CODES[regex_error]
+      )
     else
       error_message = gettext("Invalid regular expression.")
     end
@@ -679,7 +685,8 @@ function ReaderSearch:findAllText(search_text)
   local not_cached = self.last_search_hash ~= last_search_hash
   if not_cached then
     local Trapper = require("ui/trapper")
-    local info = InfoMessage:new({ text = gettext("Searching… (tap to cancel)") })
+    local info =
+      InfoMessage:new({ text = gettext("Searching… (tap to cancel)") })
     UIManager:show(info)
     UIManager:forceRePaint()
     local completed, res = Trapper:dismissableRunInSubprocess(function()
@@ -702,7 +709,9 @@ function ReaderSearch:findAllText(search_text)
   if self.findall_results then
     self:onShowFindAllResults(not_cached)
   else
-    UIManager:show(InfoMessage:new({ text = gettext("No results in the document") }))
+    UIManager:show(
+      InfoMessage:new({ text = gettext("No results in the document") })
+    )
   end
 end
 

@@ -4,8 +4,8 @@ local DocumentRegistry = require("document/documentregistry")
 local DropBoxApi = require("apps/cloudstorage/dropboxapi")
 local InfoMessage = require("ui/widget/infomessage")
 local MultiInputDialog = require("ui/widget/multiinputdialog")
-local UIManager = require("ui/uimanager")
 local ReaderUI = require("apps/reader/readerui")
+local UIManager = require("ui/uimanager")
 local util = require("util")
 local T = require("ffi/util").template
 local gettext = require("gettext")
@@ -120,7 +120,9 @@ Some of the previously generated long-lived tokens are still valid.]])
       },
       {
         text = text_token,
-        hint = gettext("Dropbox refresh token\nor long-lived token (deprecated)"),
+        hint = gettext(
+          "Dropbox refresh token\nor long-lived token (deprecated)"
+        ),
       },
       {
         text = text_appkey,

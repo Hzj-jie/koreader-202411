@@ -11,8 +11,8 @@ local UIManager = require("ui/uimanager")
 local Version = require("version")
 local dbg = require("dbg")
 local dump = require("dump")
-local lfs = require("libs/libkoreader-lfs")
 local gettext = require("gettext")
+local lfs = require("libs/libkoreader-lfs")
 local T = FfiUtil.template
 
 local common_info = {}
@@ -168,7 +168,9 @@ common_info.report_bug = {
 }
 common_info.about = {
   -- Concatenation to avoid changing translations.
-  text = gettext("About") .. " - " .. T(gettext("Version: %1"), Version:getShortVersion()),
+  text = gettext("About")
+    .. " - "
+    .. T(gettext("Version: %1"), Version:getShortVersion()),
   keep_menu_open = true,
   callback = function()
     UIManager:show(InfoMessage:new({

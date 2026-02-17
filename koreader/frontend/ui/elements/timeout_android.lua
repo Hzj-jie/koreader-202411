@@ -58,7 +58,12 @@ Allow KOReader to modify system settings?
 You will be prompted with a permission management screen. You'll need to give KOReader permission and then restart the program.]]
   )
 
-  android.settings.requestPermission("settings", text, gettext("Allow"), gettext("Cancel"))
+  android.settings.requestPermission(
+    "settings",
+    text,
+    gettext("Allow"),
+    gettext("Cancel")
+  )
 end
 
 local TimeoutHelper = {}

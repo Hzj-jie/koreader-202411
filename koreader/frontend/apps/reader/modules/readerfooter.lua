@@ -997,15 +997,22 @@ function ReaderFooter:textOptionTitles(option)
     time = symbol_prefix[symbol].time
         and T(gettext("Current time (%1)"), symbol_prefix[symbol].time)
       or gettext("Current time"),
-    chapter_progress = T(gettext("Current page in chapter (%1)"), " ⁄⁄ "),
+    chapter_progress = T(
+      gettext("Current page in chapter (%1)"),
+      " ⁄⁄ "
+    ),
     pages_left = T(
       gettext("Pages left in chapter (%1)"),
       symbol_prefix[symbol].pages_left
     ),
-    battery = T(gettext("Battery percentage (%1)"), symbol_prefix[symbol].battery),
-    percentage = symbol_prefix[symbol].percentage
-        and T(gettext("Progress percentage (%1)"), symbol_prefix[symbol].percentage)
-      or gettext("Progress percentage"),
+    battery = T(
+      gettext("Battery percentage (%1)"),
+      symbol_prefix[symbol].battery
+    ),
+    percentage = symbol_prefix[symbol].percentage and T(
+      gettext("Progress percentage (%1)"),
+      symbol_prefix[symbol].percentage
+    ) or gettext("Progress percentage"),
     book_time_to_read = symbol_prefix[symbol].book_time_to_read and T(
       gettext("Time left to finish book (%1)"),
       symbol_prefix[symbol].book_time_to_read
@@ -1026,7 +1033,10 @@ function ReaderFooter:textOptionTitles(option)
       gettext("KOReader memory usage (%1)"),
       symbol_prefix[symbol].mem_usage
     ),
-    wifi_status = T(gettext("Wi-Fi status (%1)"), symbol_prefix[symbol].wifi_status),
+    wifi_status = T(
+      gettext("Wi-Fi status (%1)"),
+      symbol_prefix[symbol].wifi_status
+    ),
     page_turning_inverted = T(
       gettext("Page turning inverted (%1)"),
       symbol_prefix[symbol].page_turning_inverted
@@ -1194,7 +1204,10 @@ function ReaderFooter:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(gettext("Position: %1"), self:genProgressBarPositionMenuItems())
+          return T(
+            gettext("Position: %1"),
+            self:genProgressBarPositionMenuItems()
+          )
         end,
         enabled_func = function()
           return not self.settings.disable_progress_bar
@@ -1555,7 +1568,10 @@ With this feature enabled, the current page is factored in, resulting in the cou
         sub_item_table = {
           {
             text_func = function()
-              return T(gettext("Item font size: %1"), self.settings.text_font_size)
+              return T(
+                gettext("Item font size: %1"),
+                self.settings.text_font_size
+              )
             end,
             callback = function(touchmenu_instance)
               local items_font = SpinWidget:new({
@@ -1619,7 +1635,10 @@ With this feature enabled, the current page is factored in, resulting in the cou
       },
       {
         text_func = function()
-          return T(gettext("Item separator: %1"), self:genItemSeparatorMenuItems())
+          return T(
+            gettext("Item separator: %1"),
+            self:genItemSeparatorMenuItems()
+          )
         end,
         sub_item_table = {
           self:genItemSeparatorMenuItems("bar"),
@@ -1951,7 +1970,9 @@ function ReaderFooter:genItemMaxWidthMenuItems(title_text, item_text, setting)
     callback = function(touchmenu_instance)
       local spin_widget = SpinWidget:new({
         title_text = title_text,
-        info_text = gettext("Maximum percentage of screen width used for the item"),
+        info_text = gettext(
+          "Maximum percentage of screen width used for the item"
+        ),
         value = self.settings[setting],
         value_min = 10,
         value_max = 100,

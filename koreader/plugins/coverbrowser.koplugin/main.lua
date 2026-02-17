@@ -1,7 +1,7 @@
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local logger = require("logger")
 local gettext = require("gettext")
+local logger = require("logger")
 local T = require("ffi/util").template
 local BookInfoManager = require("bookinfomanager")
 
@@ -54,7 +54,10 @@ local CoverBrowser = WidgetContainer:extend({
     { gettext("Classic (filename only)") },
     { gettext("Mosaic with cover images"), "mosaic_image" },
     { gettext("Mosaic with text covers"), "mosaic_text" },
-    { gettext("Detailed list with cover images and metadata"), "list_image_meta" },
+    {
+      gettext("Detailed list with cover images and metadata"),
+      "list_image_meta",
+    },
     { gettext("Detailed list with metadata, no images"), "list_only_meta" },
     {
       gettext("Detailed list with cover images and filenames"),

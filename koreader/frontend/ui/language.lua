@@ -97,7 +97,9 @@ function Language:changeLanguage(lang_locale)
   gettext.changeLang(lang_locale)
   G_reader_settings:save("language", lang_locale)
   UIManager:askForRestart(
-    gettext("Please restart KOReader for the new language setting to take effect.")
+    gettext(
+      "Please restart KOReader for the new language setting to take effect."
+    )
   )
 end
 

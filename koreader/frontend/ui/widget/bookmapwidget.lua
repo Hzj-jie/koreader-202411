@@ -29,9 +29,9 @@ local Widget = require("ui/widget/widget")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Input = Device.input
 local Screen = Device.screen
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 
 -- BookMapRow (reused by PageBrowserWidget)
 local BookMapRow = WidgetContainer:extend({
@@ -791,7 +791,8 @@ function BookMapWidget:init()
   self.row_left_spacing = self.scrollbar_width
   self.swipe_hint_bar_width = Screen:scaleBySize(6)
 
-  local title = self.overview_mode and gettext("Book map (overview)") or gettext("Book map")
+  local title = self.overview_mode and gettext("Book map (overview)")
+    or gettext("Book map")
   self.title_bar = TitleBar:new({
     fullscreen = true,
     title = title,

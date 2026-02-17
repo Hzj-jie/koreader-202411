@@ -96,10 +96,9 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
     },
   }
   dialog = ButtonDialog:new({
-    title = gettext("Screenshot saved to:")
-      .. "\n\n"
-      .. BD.filepath(screenshot_name)
-      .. "\n",
+    title = gettext("Screenshot saved to:") .. "\n\n" .. BD.filepath(
+      screenshot_name
+    ) .. "\n",
     modal = true,
     buttons = buttons,
     tap_close_callback = function()

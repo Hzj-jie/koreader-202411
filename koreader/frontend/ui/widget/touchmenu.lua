@@ -31,8 +31,8 @@ local Utf8Proc = require("ffi/utf8proc")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local datetime = require("datetime")
-local gettext = require("gettext")
 local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
 local util = require("util")
 local T = ffiUtil.template
 local Input = Device.input
@@ -852,7 +852,9 @@ function TouchMenu:updateItems()
   table.insert(self.item_group, self.footer)
   if self.page_num > 1 then
     -- @translators %1 is the current page. %2 is the total number of pages. In some languages a good translation might need to reverse this order, for instance: "Total %2, page %1".
-    self.page_info_text:setText(T(gettext("Page %1 of %2"), self.page, self.page_num))
+    self.page_info_text:setText(
+      T(gettext("Page %1 of %2"), self.page, self.page_num)
+    )
   else
     self.page_info_text:setText("")
   end

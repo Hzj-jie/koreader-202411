@@ -1,4 +1,5 @@
 local Version = require("version")
+local _ = require("gettext")
 local ffiutil = require("ffi/util")
 local http = require("socket.http")
 local lfs = require("libs/libkoreader-lfs")
@@ -7,7 +8,6 @@ local ltn12 = require("ltn12")
 local socket = require("socket")
 local socket_url = require("socket.url")
 local socketutil = require("socketutil")
-local _ = require("gettext")
 local T = ffiutil.template
 
 local EpubDownloadBackend = {

@@ -29,9 +29,9 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 local T = ffiUtil.template
@@ -1104,7 +1104,9 @@ function Menu:updatePageInfo(select_number)
       )
     end
     -- update page information
-    self.page_info_text:setText(T(gettext("Page %1 of %2"), self.page, self.page_num))
+    self.page_info_text:setText(
+      T(gettext("Page %1 of %2"), self.page, self.page_num)
+    )
     if self.page_num > 1 then
       self.page_info_text:enable()
     else

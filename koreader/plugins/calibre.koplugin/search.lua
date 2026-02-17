@@ -7,21 +7,21 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local Device = require("device")
 local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
-local filemanagerutil = require("apps/filemanager/filemanagerutil")
-local InputDialog = require("ui/widget/inputdialog")
 local InfoMessage = require("ui/widget/infomessage")
+local InputDialog = require("ui/widget/inputdialog")
 local Menu = require("ui/widget/menu")
 local Persist = require("persist")
+local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local Screen = require("device").screen
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local rapidjson = require("rapidjson")
 local sort = require("sort")
 local time = require("ui/time")
 local util = require("util")
-local gettext = require("gettext")
 local T = require("ffi/util").template
 
 -- get root dir for disk scans
@@ -145,7 +145,8 @@ local function getBookInfo(book)
   end
   -- all entries can be empty, except size, which is always filled by calibre.
   local title = gettext("Title:") .. " " .. book.title or "-"
-  local authors = gettext("Author(s):") .. " " .. getEntries(book.authors) or "-"
+  local authors = gettext("Author(s):") .. " " .. getEntries(book.authors)
+    or "-"
   local size = gettext("Size:") .. " " .. util.getFriendlySize(book.size)
     or gettext("Unknown")
   local tags = getEntries(book.tags)

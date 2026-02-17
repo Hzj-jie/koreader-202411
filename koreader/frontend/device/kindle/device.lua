@@ -3,11 +3,11 @@ local LibLipcs = require("liblipcs")
 local UIManager
 local T = require("ffi/util").template
 local ffi = require("ffi")
-local time = require("ui/time")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local time = require("ui/time")
 local util = require("util")
-local gettext = require("gettext")
 
 -- We're going to need a few <linux/fb.h> & <linux/input.h> constants...
 local ffi = require("ffi")

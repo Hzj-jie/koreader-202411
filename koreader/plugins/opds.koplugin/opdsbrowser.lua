@@ -8,9 +8,10 @@ local InputDialog = require("ui/widget/inputdialog")
 local Menu = require("ui/widget/menu")
 local MultiInputDialog = require("ui/widget/multiinputdialog")
 local NetworkMgr = require("ui/network/manager")
-local OPDSParser = require("opdsparser")
 local OPDSPSE = require("opdspse")
+local OPDSParser = require("opdsparser")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local http = require("socket.http")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
@@ -19,7 +20,6 @@ local socket = require("socket")
 local socketutil = require("socketutil")
 local url = require("socket.url")
 local util = require("util")
-local gettext = require("gettext")
 local T = require("ffi/util").template
 
 -- cache catalog parsed from feed xml
@@ -302,7 +302,10 @@ function OPDSBrowser:fetchFeed(item_url, headers_only)
       ),
     }
     text = code and error_message[tostring(code)]
-      or T(gettext("Cannot get catalog. Server response status: %1."), status or code)
+      or T(
+        gettext("Cannot get catalog. Server response status: %1."),
+        status or code
+      )
   end
   UIManager:show(InfoMessage:new({
     text = text,
@@ -624,7 +627,9 @@ function OPDSBrowser:showDownloads(item)
 
   local function createTitle(path, file) -- title for ButtonDialog
     return T(
-      gettext("Download folder:\n%1\n\nDownload filename:\n%2\n\nDownload file type:"),
+      gettext(
+        "Download folder:\n%1\n\nDownload filename:\n%2\n\nDownload file type:"
+      ),
       BD.dirpath(path),
       file
     )

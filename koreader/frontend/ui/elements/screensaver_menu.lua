@@ -1,6 +1,6 @@
 local Screensaver = require("ui/screensaver")
-local lfs = require("libs/libkoreader-lfs")
 local gettext = require("gettext")
+local lfs = require("libs/libkoreader-lfs")
 local T = require("ffi/util").template
 
 local function hasLastFile()
@@ -74,8 +74,16 @@ return {
             or G_reader_settings:read("screensaver_type") == "random_image"
         end,
         sub_item_table = {
-          genMenuItem(gettext("Black fill"), "screensaver_img_background", "black"),
-          genMenuItem(gettext("White fill"), "screensaver_img_background", "white"),
+          genMenuItem(
+            gettext("Black fill"),
+            "screensaver_img_background",
+            "black"
+          ),
+          genMenuItem(
+            gettext("White fill"),
+            "screensaver_img_background",
+            "white"
+          ),
           genMenuItem(
             gettext("No fill"),
             "screensaver_img_background",
@@ -203,8 +211,16 @@ return {
             and G_reader_settings:isTrue("screensaver_show_message")
         end,
         sub_item_table = {
-          genMenuItem(gettext("Black fill"), "screensaver_msg_background", "black"),
-          genMenuItem(gettext("White fill"), "screensaver_msg_background", "white"),
+          genMenuItem(
+            gettext("Black fill"),
+            "screensaver_msg_background",
+            "black"
+          ),
+          genMenuItem(
+            gettext("White fill"),
+            "screensaver_msg_background",
+            "white"
+          ),
           genMenuItem(
             gettext("No fill"),
             "screensaver_msg_background",
@@ -221,7 +237,11 @@ return {
         end,
         sub_item_table = {
           genMenuItem(gettext("Top"), "screensaver_message_position", "top"),
-          genMenuItem(gettext("Middle"), "screensaver_message_position", "middle"),
+          genMenuItem(
+            gettext("Middle"),
+            "screensaver_message_position",
+            "middle"
+          ),
           genMenuItem(
             gettext("Bottom"),
             "screensaver_message_position",

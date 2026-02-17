@@ -10,19 +10,19 @@ local FFIUtil = require("ffi/util")
 local InfoMessage = require("ui/widget/infomessage")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local Math = require("optmath")
+local ReadHistory = require("readhistory")
 local ReaderFooter = require("apps/reader/modules/readerfooter")
 local ReaderProgress = require("readerprogress")
-local ReadHistory = require("readhistory")
-local Screensaver = require("ui/screensaver")
 local SQ3 = require("lua-ljsqlite3/init")
+local Screensaver = require("ui/screensaver")
 local SyncService = require("frontend/apps/cloudstorage/syncservice")
 local UIManager = require("ui/uimanager")
 local Widget = require("ui/widget/widget")
 local datetime = require("datetime")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local C_ = gettext.pgettext
 local N_ = gettext.ngettext
 local T = FFIUtil.template
@@ -2073,7 +2073,8 @@ function ReaderStatistics:getCurrentStat()
       callback = estimated_popup,
     }
   else
-    estimated_time_left = { gettext("Estimated reading time left"), gettext("finished") }
+    estimated_time_left =
+      { gettext("Estimated reading time left"), gettext("finished") }
     local mark_date = self.ui.doc_settings:readTableRef("summary").modified
     estimated_finish_date = {
       gettext("Book marked as finished"),
@@ -2095,7 +2096,11 @@ function ReaderStatistics:getCurrentStat()
         false
       ),
     },
-    { gettext("Pages read this session"), tonumber(current_pages), separator = true },
+    {
+      gettext("Pages read this session"),
+      tonumber(current_pages),
+      separator = true,
+    },
 
     -- Today
     {
@@ -2183,7 +2188,11 @@ function ReaderStatistics:getCurrentStat()
         Math.round(100 * total_read_pages / self.data.pages)
       ),
     },
-    { gettext("Average time per page"), avg_page_time_string, separator = true },
+    {
+      gettext("Average time per page"),
+      avg_page_time_string,
+      separator = true,
+    },
 
     -- Highlights and notes
     { gettext("Book highlights"), tonumber(highlights) },
@@ -2560,8 +2569,11 @@ function ReaderStatistics:getDatesFromAll(sdays, ptype, book_mode)
     elseif ptype == "daily" then
       date_text = result_book[1][i]
     elseif ptype == "weekly" then
-      date_text =
-        T(gettext("%1 Week %2"), os.date("%Y", timestamp), os.date(" %W", timestamp))
+      date_text = T(
+        gettext("%1 Week %2"),
+        os.date("%Y", timestamp),
+        os.date(" %W", timestamp)
+      )
     elseif ptype == "monthly" then
       date_text = datetime.longMonthTranslation[os.date("%B", timestamp)]
         .. os.date(" %Y", timestamp)
@@ -2934,8 +2946,10 @@ function ReaderStatistics:resetStatsForBookForPeriod(
   if day_str then
     -- From getDatesForBook(): we are showing a list of days, with book title at top title:
     -- show the day string to confirm the long-press was on the right day
-    confirm_text =
-      T(gettext("Do you want to reset statistics for day %1 for this book?"), day_str)
+    confirm_text = T(
+      gettext("Do you want to reset statistics for day %1 for this book?"),
+      day_str
+    )
     confirm_button_text = C_("Reset statistics for day for book", "Reset")
   else
     -- From getBooksFromPeriod(): we are showing a list of books, with the period as top title:
@@ -3195,7 +3209,10 @@ function ReaderStatistics:resetCurrentBook()
   conn:close()
 
   UIManager:show(ConfirmBox:new({
-    text = T(gettext("Do you want to reset statistics for book:\n%1"), book_title),
+    text = T(
+      gettext("Do you want to reset statistics for book:\n%1"),
+      book_title
+    ),
     cancel_text = gettext("Cancel"),
     cancel_callback = function()
       return

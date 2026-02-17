@@ -6,9 +6,9 @@ local Math = require("optmath")
 local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local optionsutil = require("ui/data/optionsutil")
-local gettext = require("gettext")
 local C_ = gettext.pgettext
 local Screen = require("device").screen
 local T = require("ffi/util").template
@@ -159,8 +159,10 @@ function ReaderTypeset:onSetRenderDPI(dpi)
   self.configurable.render_dpi = dpi
   self.ui.document:setRenderDPI(dpi)
   UIManager:broadcastEvent(Event:new("UpdatePos"))
-  local text =
-    T(gettext("Zoom set to: %1"), optionsutil:getOptionText("SetRenderDPI", dpi))
+  local text = T(
+    gettext("Zoom set to: %1"),
+    optionsutil:getOptionText("SetRenderDPI", dpi)
+  )
   Notification:notify(text)
   return true
 end
@@ -481,7 +483,10 @@ function ReaderTypeset:makeDefaultStyleSheet(
   touchmenu_instance
 )
   local text = self.ui.document.is_fb2
-      and T(gettext("Set default style for FB2 documents to %1?"), BD.filename(name))
+      and T(
+        gettext("Set default style for FB2 documents to %1?"),
+        BD.filename(name)
+      )
     or T(gettext("Set default style to %1?"), BD.filename(name))
   if description then
     text = text .. "\n\n" .. description

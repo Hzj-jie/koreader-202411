@@ -1,9 +1,9 @@
 local BD = require("ui/bidi")
 local Device = require("device")
 local IsoLanguage = require("ui/data/isolanguage")
+local gettext = require("gettext")
 local optionsutil = require("ui/data/optionsutil")
 local util = require("util")
-local gettext = require("gettext")
 local C_ = gettext.pgettext
 local Screen = Device.screen
 
@@ -149,7 +149,13 @@ In 'semi-auto' and 'manual' modes, you may need to define areas once on an odd p
       {
         name = "auto_straighten",
         name_text = gettext("Auto Straighten"),
-        toggle = { gettext("0°"), gettext("5°"), gettext("10°"), gettext("15°"), gettext("25°") },
+        toggle = {
+          gettext("0°"),
+          gettext("5°"),
+          gettext("10°"),
+          gettext("15°"),
+          gettext("25°"),
+        },
         values = { 0, 5, 10, 15, 25 },
         event = "DummyEvent",
         args = { 0, 5, 10, 15, 25 },
@@ -436,7 +442,9 @@ left to right or reverse, top to bottom or reverse.]]
           return optionsutil.enableIfEquals(configurable, "text_wrap", 1)
         end,
         name_text_hold_callback = optionsutil.showValues,
-        help_text = gettext([[In reflow mode, sets the spacing between lines.]]),
+        help_text = gettext(
+          [[In reflow mode, sets the spacing between lines.]]
+        ),
       },
       {
         name = "justification",
@@ -490,7 +498,8 @@ The first option ("auto") tries to automatically align reflowed text as it is in
       {
         name = "font_fine_tune",
         name_text = gettext("Font Size"),
-        toggle = Device:isTouchDevice() and { gettext("decrease"), gettext("increase") }
+        toggle = Device:isTouchDevice()
+            and { gettext("decrease"), gettext("increase") }
           or nil,
         item_text = not Device:isTouchDevice()
             and { gettext("decrease"), gettext("increase") }
@@ -530,7 +539,9 @@ The first option ("auto") tries to automatically align reflowed text as it is in
           return optionsutil.enableIfEquals(configurable, "text_wrap", 1)
         end,
         name_text_hold_callback = optionsutil.showValues,
-        help_text = gettext([[In reflow mode, sets the spacing between words.]]),
+        help_text = gettext(
+          [[In reflow mode, sets the spacing between words.]]
+        ),
       },
       {
         name = "text_wrap",

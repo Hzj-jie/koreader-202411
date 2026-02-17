@@ -28,9 +28,9 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local N_ = gettext.ngettext
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -375,13 +375,17 @@ function ListMenuItem:update()
               T(N_("On hold – 1 page", "On hold – %1 pages", pages), pages)
           end
         else
-          pages_str = status == "complete" and gettext("Finished") or gettext("On hold")
+          pages_str = status == "complete" and gettext("Finished")
+            or gettext("On hold")
         end
       elseif percent_finished then
         if pages then
           if BookInfoManager:getSetting("show_pages_read_as_progress") then
-            pages_str =
-              T(gettext("Page %1 of %2"), Math.round(percent_finished * pages), pages)
+            pages_str = T(
+              gettext("Page %1 of %2"),
+              Math.round(percent_finished * pages),
+              pages
+            )
           else
             pages_str = T(
               gettext("%1 % of %2 pages"),
@@ -556,7 +560,8 @@ function ListMenuItem:update()
       end
       if bookinfo.unsupported then
         -- Let's show this fact in place of the anyway empty authors slot
-        authors = T(gettext("(no book information: %1)"), gettext(bookinfo.unsupported))
+        authors =
+          T(gettext("(no book information: %1)"), gettext(bookinfo.unsupported))
       end
       -- Build title and authors texts with decreasing font size
       -- till it fits in the space available

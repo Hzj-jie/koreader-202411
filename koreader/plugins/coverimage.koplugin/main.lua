@@ -27,14 +27,14 @@ local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local PathChooser = require("ui/widget/pathchooser")
-local UIManager = require("ui/uimanager")
 local RenderImage = require("ui/renderimage")
+local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local C_ = gettext.pgettext
 local Screen = require("device").screen
 local T = require("ffi/util").template
@@ -176,7 +176,9 @@ function CoverImage:createCoverImage(doc_settings)
           )
         then
           UIManager:show(InfoMessage:new({
-            text = gettext("Error writing file") .. "\n" .. self.cover_image_path,
+            text = gettext("Error writing file")
+              .. "\n"
+              .. self.cover_image_path,
             show_icon = true,
           }))
         end
@@ -812,7 +814,10 @@ end
 
 function CoverImage:menuEntryBackground(color, color_translatable)
   return {
-    text = T(gettext("Fit to screen, %1 background"), gettext(color_translatable)),
+    text = T(
+      gettext("Fit to screen, %1 background"),
+      gettext(color_translatable)
+    ),
     checked_func = function()
       return self.cover_image_background == color
     end,

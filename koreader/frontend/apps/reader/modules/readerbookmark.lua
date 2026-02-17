@@ -17,8 +17,8 @@ local SpinWidget = require("ui/widget/spinwidget")
 local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 local N_ = gettext.ngettext
 local Screen = require("device").screen
 local T = require("ffi/util").template
@@ -92,7 +92,8 @@ function ReaderBookmark:addToMainMenu(menu_items)
   then
     menu_items.toggle_bookmark = {
       text_func = function()
-        return self:isPageBookmarked() and gettext("Remove bookmark for current page")
+        return self:isPageBookmarked()
+            and gettext("Remove bookmark for current page")
           or gettext("Bookmark current page")
       end,
       callback = function()

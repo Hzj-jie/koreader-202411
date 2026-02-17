@@ -6,10 +6,10 @@ local InfoMessage = require("ui/widget/infomessage")
 local MultiInputDialog = require("ui/widget/multiinputdialog")
 local ReaderUI = require("apps/reader/readerui")
 local UIManager = require("ui/uimanager")
-local ltn12 = require("ltn12")
-local logger = require("logger")
-local util = require("util")
 local gettext = require("gettext")
+local logger = require("logger")
+local ltn12 = require("ltn12")
+local util = require("util")
 local T = require("ffi/util").template
 
 local Ftp = {}
@@ -34,7 +34,11 @@ function Ftp:downloadFile(item, address, user, pass, path, callback_close)
   local file, err = io.open(path, "w")
   if not file then
     UIManager:show(InfoMessage:new({
-      text = T(gettext("Could not save file to %1:\n%2"), BD.filepath(path), err),
+      text = T(
+        gettext("Could not save file to %1:\n%2"),
+        BD.filepath(path),
+        err
+      ),
     }))
     return
   end
@@ -182,8 +186,12 @@ Username and password are optional.]])
 end
 
 function Ftp:info(item)
-  local info_text =
-    T(gettext("Type: %1\nName: %2\nAddress: %3"), "FTP", item.text, item.address)
+  local info_text = T(
+    gettext("Type: %1\nName: %2\nAddress: %3"),
+    "FTP",
+    item.text,
+    item.address
+  )
   UIManager:show(InfoMessage:new({ text = info_text }))
 end
 

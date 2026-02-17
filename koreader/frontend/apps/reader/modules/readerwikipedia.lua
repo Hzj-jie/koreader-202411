@@ -8,15 +8,15 @@ local KeyValuePage = require("ui/widget/keyvaluepage")
 local LuaData = require("luadata")
 local NetworkMgr = require("ui/network/manager")
 local ReaderDictionary = require("apps/reader/modules/readerdictionary")
-local Trapper = require("ui/trapper")
 local Translator = require("ui/translator")
+local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local Wikipedia = require("ui/wikipedia")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local wikipedia_history = nil
@@ -223,7 +223,8 @@ Wikipedia articles can be saved as an EPUB for more comfortable reading.
 You can choose an existing folder, or use a default folder named "Wikipedia" in your reader's home folder.]]
         ),
         callback = function()
-          local title_header = gettext("Current Wikipedia 'Save as EPUB' folder:")
+          local title_header =
+            gettext("Current Wikipedia 'Save as EPUB' folder:")
           local current_path = G_reader_settings:read("wikipedia_save_dir")
           local default_path = DictQuickLookup.getWikiSaveEpubDefaultDir()
           local caller_callback = function(path)
@@ -266,7 +267,11 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
           return T(gettext("Include images in EPUB: %1"), include_images)
         end,
         sub_item_table = {
-          genChoiceMenuEntry(gettext("Ask"), "wikipedia_epub_include_images", nil),
+          genChoiceMenuEntry(
+            gettext("Ask"),
+            "wikipedia_epub_include_images",
+            nil
+          ),
           genChoiceMenuEntry(
             gettext("Include images"),
             "wikipedia_epub_include_images",
@@ -300,7 +305,11 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
             ~= false
         end,
         sub_item_table = {
-          genChoiceMenuEntry(gettext("Ask"), "wikipedia_epub_highres_images", nil),
+          genChoiceMenuEntry(
+            gettext("Ask"),
+            "wikipedia_epub_highres_images",
+            nil
+          ),
           genChoiceMenuEntry(
             gettext("Standard quality"),
             "wikipedia_epub_highres_images",
@@ -472,8 +481,11 @@ function ReaderWikipedia:onLookupWikipedia(
         req_failure_text = gettext("Failed to retrieve Wikipedia article.")
         no_result_text = gettext("Wikipedia article not found.")
       else
-        lookup_msg =
-          T(gettext("Searching Wikipedia %2 for:\n%1"), display_word, lang:upper())
+        lookup_msg = T(
+          gettext("Searching Wikipedia %2 for:\n%1"),
+          display_word,
+          lang:upper()
+        )
         req_failure_text = gettext("Failed searching Wikipedia.")
         no_result_text = gettext("No results.")
       end

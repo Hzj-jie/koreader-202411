@@ -1,6 +1,6 @@
 local IME = require("ui/data/keyboardlayouts/generic_ime")
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 
 -- Start with the english keyboard layout
 -- Explicitly make a new copy since the following logic will modify it.

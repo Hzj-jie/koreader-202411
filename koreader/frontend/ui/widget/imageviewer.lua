@@ -8,20 +8,20 @@ local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local Event = require("ui/event")
+local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
-local FrameContainer = require("ui/widget/container/framecontainer")
 local ImageWidget = require("ui/widget/imagewidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local ProgressWidget = require("ui/widget/progresswidget")
 local Screenshoter = require("ui/widget/screenshoter")
 local Size = require("ui/size")
 local TitleBar = require("ui/widget/titlebar")
+local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local UIManager = require("ui/uimanager")
-local logger = require("logger")
 local gettext = require("gettext")
+local logger = require("logger")
 local Screen = Device.screen
 
 local ImageViewer = InputContainer:extend({
@@ -193,7 +193,8 @@ function ImageViewer:init()
     {
       {
         id = "scale",
-        text = self._scale_to_fit and gettext("Original size") or gettext("Scale"),
+        text = self._scale_to_fit and gettext("Original size")
+          or gettext("Scale"),
         callback = function()
           self.scale_factor = self._scale_to_fit and 1 or 0
           self._scale_to_fit = not self._scale_to_fit

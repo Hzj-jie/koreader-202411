@@ -12,9 +12,9 @@ local Notification = require("ui/widget/notification")
 local Screen = require("device").screen
 local UIManager = require("ui/uimanager")
 local cre -- Delayed loading
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local T = require("ffi/util").template
 local C_ = gettext.pgettext
 local optionsutil = require("ui/data/optionsutil")
@@ -698,7 +698,9 @@ Enabling this will ignore such font names and make sure your preferred family fo
               self.font_family_fonts[family_tag] = nil
             else
               self.font_family_fonts[family_tag] = v
-              Notification:notify(gettext("Font family font set for this book only."))
+              Notification:notify(
+                gettext("Font family font set for this book only.")
+              )
               -- Be sure it is shown before the re-rendering (which may take some time)
               UIManager:forceRePaint()
             end

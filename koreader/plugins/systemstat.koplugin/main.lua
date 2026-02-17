@@ -6,9 +6,9 @@ local Math = require("optmath")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
+local gettext = require("gettext")
 local time = require("ui/time")
 local util = require("util")
-local gettext = require("gettext")
 
 local function systemInfo()
   local result = {}

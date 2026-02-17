@@ -1,6 +1,6 @@
 local Event = require("ui/event")
-local Geom = require("ui/geometry")
 local Generic = require("device/generic/device")
+local Geom = require("ui/geometry")
 local UIManager
 local SDL = require("ffi/SDL2_0")
 local ffi = require("ffi")

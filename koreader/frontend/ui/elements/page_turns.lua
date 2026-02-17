@@ -52,7 +52,9 @@ table.insert(page_turns_tap_zones_sub_items, {
   text_func = function()
     local forward_zone = getForwardTapZone()
     return T(
-      gettext("Backward / forward tap zone size: %1\xE2\x80\xAF% / %2\xE2\x80\xAF%"),
+      gettext(
+        "Backward / forward tap zone size: %1\xE2\x80\xAF% / %2\xE2\x80\xAF%"
+      ),
       100 - forward_zone,
       forward_zone
     )
@@ -154,7 +156,8 @@ local PageTurns = {
               "The default (★) for newly opened books is left-to-right (LTR) page turning.\n\nWould you like to change it?"
             ),
           choice1_text_func = function()
-            return inverse_reading_order and gettext("LTR") or gettext("LTR (★)")
+            return inverse_reading_order and gettext("LTR")
+              or gettext("LTR (★)")
           end,
           choice1_callback = function()
             G_reader_settings:makeFalse("inverse_reading_order")
@@ -163,7 +166,8 @@ local PageTurns = {
             end
           end,
           choice2_text_func = function()
-            return inverse_reading_order and gettext("RTL (★)") or gettext("RTL")
+            return inverse_reading_order and gettext("RTL (★)")
+              or gettext("RTL")
           end,
           choice2_callback = function()
             G_reader_settings:makeTrue("inverse_reading_order")

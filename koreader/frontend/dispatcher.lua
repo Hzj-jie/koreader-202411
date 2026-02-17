@@ -30,17 +30,17 @@ Each setting contains:
 --
 
 local CreOptions = require("ui/data/creoptions")
-local KoptOptions = require("ui/data/koptoptions")
 local Device = require("device")
 local Event = require("ui/event")
 local FileManager = require("apps/filemanager/filemanager")
+local KoptOptions = require("ui/data/koptoptions")
 local Notification = require("ui/widget/notification")
 local ReaderHighlight = require("apps/reader/modules/readerhighlight")
 local ReaderZooming = require("apps/reader/modules/readerzooming")
 local Screen = Device.screen
 local UIManager = require("ui/uimanager")
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 local NC_ = gettext.npgettext
 local T = require("ffi/util").template
 
@@ -1467,7 +1467,8 @@ function Dispatcher:getNameFromItem(item, settings, dont_show_value)
   elseif category == "absolutenumber" then
     display_value = tostring(value)
   elseif category == "incrementalnumber" then
-    display_value = value == 0 and gettext("gesture distance") or tostring(value)
+    display_value = value == 0 and gettext("gesture distance")
+      or tostring(value)
   end
   if display_value then
     if

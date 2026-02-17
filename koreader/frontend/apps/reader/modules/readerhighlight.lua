@@ -9,17 +9,17 @@ local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Notification = require("ui/widget/notification")
 local RadioButtonWidget = require("ui/widget/radiobuttonwidget")
+local Size = require("ui/size")
 local SpinWidget = require("ui/widget/spinwidget")
 local TextViewer = require("ui/widget/textviewer")
 local Translator = require("ui/translator")
 local UIManager = require("ui/uimanager")
 local dbg = require("dbg")
-local logger = require("logger")
-local util = require("util")
-local Size = require("ui/size")
 local ffiUtil = require("ffi/util")
-local time = require("ui/time")
 local gettext = require("gettext")
+local logger = require("logger")
+local time = require("ui/time")
+local util = require("util")
 local C_ = gettext.pgettext
 local N_ = gettext.ngettext
 local T = ffiUtil.template
@@ -645,7 +645,8 @@ function ReaderHighlight:addToMainMenu(menu_items)
   if self.document.is_pdf then
     table.insert(hl_sub_item_table, {
       text_func = function()
-        local text = self.highlight_write_into_pdf and gettext("on") or gettext("off")
+        local text = self.highlight_write_into_pdf and gettext("on")
+          or gettext("off")
         if
           not self.highlight_write_into_pdf
           == (not G_reader_settings:isTrue("highlight_write_into_pdf"))

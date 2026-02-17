@@ -8,9 +8,9 @@ local DocSettings = require("docsettings")
 local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local gettext = require("gettext")
 local T = ffiutil.template
 
 local filemanagerutil = {}
@@ -234,7 +234,9 @@ function filemanagerutil.genResetSettingsButton(
         end,
       })
       check_button_settings = CheckButton:new({
-        text = gettext("document settings, progress, bookmarks, highlights, notes"),
+        text = gettext(
+          "document settings, progress, bookmarks, highlights, notes"
+        ),
         checked = has_sidecar_file,
         enabled = has_sidecar_file,
         parent = confirmbox,

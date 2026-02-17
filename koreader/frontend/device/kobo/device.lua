@@ -3,11 +3,11 @@ local Geom = require("ui/geometry")
 local UIManager
 local WakeupMgr = require("device/wakeupmgr")
 local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local gettext = require("gettext")
 
 -- We're going to need a few <linux/fb.h> & <linux/input.h> constants...
 local ffi = require("ffi")

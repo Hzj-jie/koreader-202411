@@ -3,12 +3,12 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local DocumentRegistry = require("document/documentregistry")
 local InfoMessage = require("ui/widget/infomessage")
 local MultiInputDialog = require("ui/widget/multiinputdialog")
-local UIManager = require("ui/uimanager")
 local ReaderUI = require("apps/reader/readerui")
+local UIManager = require("ui/uimanager")
 local WebDavApi = require("apps/cloudstorage/webdavapi")
-local util = require("util")
 local ffiutil = require("ffi/util")
 local gettext = require("gettext")
+local util = require("util")
 local T = require("ffi/util").template
 
 local WebDav = {}
@@ -218,8 +218,12 @@ The start folder is appended to the server path.]])
 end
 
 function WebDav:info(item)
-  local info_text =
-    T(gettext("Type: %1\nName: %2\nAddress: %3"), "WebDAV", item.text, item.address)
+  local info_text = T(
+    gettext("Type: %1\nName: %2\nAddress: %3"),
+    "WebDAV",
+    item.text,
+    item.address
+  )
   UIManager:show(InfoMessage:new({ text = info_text }))
 end
 

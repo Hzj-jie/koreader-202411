@@ -1,6 +1,6 @@
 local IME = require("ui/data/keyboardlayouts/generic_ime")
-local util = require("util")
 local _ = require("gettext")
+local util = require("util")
 
 -- Start with the english keyboard layout
 local py_keyboard = dofile("frontend/ui/data/keyboardlayouts/en_keyboard.lua")

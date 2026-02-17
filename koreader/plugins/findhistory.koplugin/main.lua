@@ -7,8 +7,8 @@ local T = require("ffi/util").template
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local joinPath = require("ffi/util").joinPath
-local lfs = require("libs/libkoreader-lfs")
 local gettext = require("gettext")
+local lfs = require("libs/libkoreader-lfs")
 
 local menuItem = {
   text = gettext("Retrieve reading records"),
@@ -52,7 +52,9 @@ local function doBuildHistory()
 
   --- TODO(hzj-jie): Consider to open the history view directly.
   UIManager:show(InfoMessage:new({
-    text = gettext("History view has been updated, use main menu to access it."),
+    text = gettext(
+      "History view has been updated, use main menu to access it."
+    ),
     timeout = 2,
   }))
 end

@@ -18,9 +18,9 @@ local JSON = require("rapidjson")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
 local bit = require("bit")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local N_ = gettext.ngettext
 local T = require("ffi/util").template
 

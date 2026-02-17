@@ -20,8 +20,8 @@ Example:
 
 local PathChooser = require("ui/widget/pathchooser")
 local UIManager = require("ui/uimanager")
-local util = require("ffi/util")
 local gettext = require("gettext")
+local util = require("ffi/util")
 
 local DownloadMgr = {
   onConfirm = function() end,

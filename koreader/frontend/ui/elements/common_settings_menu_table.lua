@@ -321,7 +321,10 @@ common_settings.back_in_filemanager = {
     {
       text_func = function()
         local back_to_exit = G_named_settings.back_to_exit()
-        return T(gettext("Back to exit (%1)"), back_to_exit_str[back_to_exit][2])
+        return T(
+          gettext("Back to exit (%1)"),
+          back_to_exit_str[back_to_exit][2]
+        )
       end,
       checked_func = function()
         return G_named_settings.back_in_filemanager() == "default"
@@ -357,7 +360,10 @@ common_settings.back_in_reader = {
     {
       text_func = function()
         local back_to_exit = G_named_settings.back_to_exit()
-        return T(gettext("Back to exit (%1)"), back_to_exit_str[back_to_exit][2])
+        return T(
+          gettext("Back to exit (%1)"),
+          back_to_exit_str[back_to_exit][2]
+        )
       end,
       checked_func = function()
         return G_named_settings.back_in_reader() == "default"
@@ -718,7 +724,13 @@ common_settings.units = {
       end,
       separator = true,
     },
-    genGenericMenuEntry(gettext("Metric system"), "dimension_units", "mm", nil, true),
+    genGenericMenuEntry(
+      gettext("Metric system"),
+      "dimension_units",
+      "mm",
+      nil,
+      true
+    ),
     genGenericMenuEntry(
       gettext("Imperial system"),
       "dimension_units",

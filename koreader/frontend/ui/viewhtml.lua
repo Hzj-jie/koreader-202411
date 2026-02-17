@@ -9,8 +9,8 @@ local InfoMessage = require("ui/widget/infomessage")
 local Notification = require("ui/widget/notification")
 local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
-local util = require("util")
 local gettext = require("gettext")
+local util = require("util")
 local T = require("ffi/util").template
 
 local ViewHtml = {
@@ -488,7 +488,8 @@ function ViewHtml:_showMatchingSelectors(
     end
   end
 
-  local title = show_all_ancestors and gettext("Matching rulesets (all ancestors)")
+  local title = show_all_ancestors
+      and gettext("Matching rulesets (all ancestors)")
     or gettext("Matching rulesets (element only)")
   local css_text = table.concat(snippets, "\n")
   local cssviewer

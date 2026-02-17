@@ -37,8 +37,8 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local T = require("ffi/util").template
-local logger = require("logger")
 local gettext = require("gettext")
+local logger = require("logger")
 
 -- migrate settings from old "evernote.koplugin" or from previous (monolithic) "exporter.koplugin"
 local function migrateSettings()
@@ -238,11 +238,18 @@ function Exporter:exportClippings(clippings)
           local status = v:export(exportables)
           if status then
             if v.is_remote then
-              table.insert(statuses, T(gettext("%1: Exported successfully."), v.name))
+              table.insert(
+                statuses,
+                T(gettext("%1: Exported successfully."), v.name)
+              )
             else
               table.insert(
                 statuses,
-                T(gettext("%1: Exported to %2."), v.name, v:getFilePath(exportables))
+                T(
+                  gettext("%1: Exported to %2."),
+                  v.name,
+                  v:getFilePath(exportables)
+                )
               )
             end
           else

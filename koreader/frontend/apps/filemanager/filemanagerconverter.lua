@@ -5,10 +5,10 @@ This module is responsible for converting files.
 local ButtonDialog = require("ui/widget/buttondialog")
 local ConfirmBox = require("ui/widget/confirmbox")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local FileConverter = {

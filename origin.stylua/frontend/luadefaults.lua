@@ -5,9 +5,9 @@ Subclass of LuaSettings dedicated to handling the legacy global constants.
 local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
 local dump = require("dump")
-local util = require("util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local util = require("util")
 
 local LuaDefaults = LuaSettings:extend({
   ro = nil, -- will contain the defaults.lua k/v pairs (const)

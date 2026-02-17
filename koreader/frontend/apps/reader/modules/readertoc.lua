@@ -6,16 +6,16 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local Event = require("ui/event")
 local Font = require("ui/font")
-local GestureRange = require("ui/gesturerange")
 local Geom = require("ui/geometry")
+local GestureRange = require("ui/gesturerange")
 local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Menu = require("ui/widget/menu")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
-local logger = require("logger")
 local gettext = require("gettext")
+local logger = require("logger")
 local N_ = gettext.ngettext
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -1149,7 +1149,9 @@ function ReaderToc:addToMainMenu(menu_items)
   -- Alternative ToC (only available with CRE documents)
   if self.ui.document:canHaveAlternativeToc() then
     menu_items.toc_alt_toc = {
-      text = gettext("Alternative table of contents") .. " " .. self.alt_toc_symbol,
+      text = gettext("Alternative table of contents")
+        .. " "
+        .. self.alt_toc_symbol,
       help_text_func = function()
         local help_text = gettext([[
 An alternative table of contents can be built from document headings <H1> to <H6>.

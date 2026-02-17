@@ -1,7 +1,7 @@
 local Device = require("device")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local gettext = require("gettext")
 
 --[[ Font settings for systems with multiple font dirs ]]
 --
