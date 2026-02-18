@@ -63,6 +63,20 @@ issues to explain the motivations.
 
 ## Credits
 
+KOReader 2024.11 "Slang", from
+https://github.com/koreader/koreader/releases/tag/v2024.11. Source codes are all
+coming from
+https://github.com/koreader/koreader/archive/refs/tags/v2024.11.tar.gz,
+including all the lua files. Native binaries are coming from the following
+packages.
+
+- pw2: https://github.com/koreader/koreader/releases/download/v2024.11/koreader-kindlepw2-v2024.11.zip
+- legacy: https://github.com/koreader/koreader/releases/download/v2024.11/koreader-kindle-legacy-v2024.11.zip
+- linux and origin.linux: originally from
+  https://github.com/koreader/koreader/releases/download/v2024.11/koreader-linux-x86\_64-v2024.11.tar.xz,
+  but rebuilt to run on outdated Intel Core 2 Duo x64.
+- kobo: https://github.com/koreader/koreader/releases/download/v2024.11/koreader-kobo-v2024.11.zip
+
 SortedIteration: ffi/SortedIteration.lua, from
 http://lua-users.org/wiki/SortedIteration. It was previously used in koreader
 as well, but embedded in ffi/util.lua. See the file itself contains the version
