@@ -11,7 +11,7 @@ local InputDialog = require("ui/widget/inputdialog")
 local LuaSettings = require("luasettings")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = FFIUtil.template
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local lfs = require("libs/libkoreader-lfs")
@@ -48,7 +48,7 @@ end
 
 function DocSettingTweak:addToMainMenu(menu_items)
   menu_items.doc_setting_tweak = {
-    text = _("Tweak document settings"),
+    text = gettext("Tweak document settings"),
     callback = function()
       DocSettingTweak:editDirectoryDefaults()
     end,
@@ -60,7 +60,7 @@ function DocSettingTweak:editDirectoryDefaults()
   local config_editor
   config_editor = InputDialog:new({
     title = T(
-      _("Directory Defaults: %1"),
+      gettext("Directory Defaults: %1"),
       BD.filepath(directory_defaults_path)
     ),
     input = defaults,
@@ -81,16 +81,16 @@ function DocSettingTweak:editDirectoryDefaults()
           local syntax_okay, syntax_error = pcall(loadstring(content))
           if syntax_okay then
             if not util.writeToFile(content, directory_defaults_path) then
-              return false, _("Missing defaults file")
+              return false, gettext("Missing defaults file")
             end
             DocSettingTweak:loadDefaults()
-            return true, _("Defaults saved")
+            return true, gettext("Defaults saved")
           end
-          return false, T(_("Defaults invalid: %1"), syntax_error)
+          return false, T(gettext("Defaults invalid: %1"), syntax_error)
         end
-        return false, T(_("Defaults invalid: %1"), parse_error)
+        return false, T(gettext("Defaults invalid: %1"), parse_error)
       end
-      return false, _("Defaults empty")
+      return false, gettext("Defaults empty")
     end,
   })
   UIManager:show(config_editor)

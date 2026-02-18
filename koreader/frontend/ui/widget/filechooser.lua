@@ -1,20 +1,20 @@
 local BD = require("ui/bidi")
-local datetime = require("datetime")
 local Device = require("device")
 local DocSettings = require("docsettings")
 local DocumentRegistry = require("document/documentregistry")
 local Event = require("ui/event")
 local FileManagerShortcuts = require("apps/filemanager/filemanagershortcuts")
-local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local Menu = require("ui/widget/menu")
 local ReadCollection = require("readcollection")
 local UIManager = require("ui/uimanager")
+local datetime = require("datetime")
 local ffi = require("ffi")
 local ffiUtil = require("ffi/util")
+local filemanagerutil = require("apps/filemanager/filemanagerutil")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local sort = require("sort")
 local util = require("util")
-local _ = require("gettext")
 local Screen = Device.screen
 local T = ffiUtil.template
 
@@ -31,7 +31,7 @@ local FileChooser = Menu:extend({
   goto_letter = true,
   collates = {
     strcoll = {
-      text = _("name"),
+      text = gettext("name"),
       menu_order = 10,
       can_collate_mixed = true,
       init_sort_func = function(cache)
@@ -42,7 +42,7 @@ local FileChooser = Menu:extend({
       end,
     },
     natural = {
-      text = _("name (natural sorting)"),
+      text = gettext("name (natural sorting)"),
       menu_order = 20,
       can_collate_mixed = true,
       init_sort_func = function(cache)
@@ -55,7 +55,7 @@ local FileChooser = Menu:extend({
       end,
     },
     access = {
-      text = _("last read date"),
+      text = gettext("last read date"),
       menu_order = 30,
       can_collate_mixed = true,
       init_sort_func = function(cache)
@@ -91,7 +91,7 @@ local FileChooser = Menu:extend({
       end,
     },
     date = {
-      text = _("date modified"),
+      text = gettext("date modified"),
       menu_order = 40,
       can_collate_mixed = true,
       init_sort_func = function(cache)
@@ -105,7 +105,7 @@ local FileChooser = Menu:extend({
       end,
     },
     size = {
-      text = _("size"),
+      text = gettext("size"),
       menu_order = 50,
       can_collate_mixed = false,
       init_sort_func = function(cache)
@@ -116,7 +116,7 @@ local FileChooser = Menu:extend({
       end,
     },
     type = {
-      text = _("type"),
+      text = gettext("type"),
       menu_order = 60,
       can_collate_mixed = false,
       init_sort_func = function(cache)
@@ -133,7 +133,7 @@ local FileChooser = Menu:extend({
       end,
     },
     percent_unopened_first = {
-      text = _("percent - unopened first"),
+      text = gettext("percent - unopened first"),
       menu_order = 70,
       can_collate_mixed = false,
       init_sort_func = function(cache)
@@ -166,7 +166,7 @@ local FileChooser = Menu:extend({
       end,
     },
     percent_unopened_last = {
-      text = _("percent - unopened last"),
+      text = gettext("percent - unopened last"),
       menu_order = 80,
       can_collate_mixed = false,
       init_sort_func = function(cache)
@@ -200,7 +200,7 @@ local FileChooser = Menu:extend({
     },
     percent_natural = {
       -- sort 90% > 50% > 0% > on hold > unopened > 100% or finished
-      text = _("percent – unopened – finished last"),
+      text = gettext("percent – unopened – finished last"),
       menu_order = 90,
       can_collate_mixed = false,
       init_sort_func = function(cache)
@@ -435,7 +435,7 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
   else -- folder
     if item.text == "./." then -- added as content of an unreadable directory
       item.text =
-        _("Current folder not readable. Some content may not be shown.")
+        gettext("Current folder not readable. Some content may not be shown.")
     else
       item.text = item.text .. "/"
       item.bidi_wrap_func = BD.directory
@@ -527,7 +527,7 @@ function FileChooser:genItemTable(dirs, files, path)
     end
     if self.show_current_dir_for_hold then
       table.insert(item_table, 1, {
-        text = _("Long-press to choose current folder"),
+        text = gettext("Long-press to choose current folder"),
         path = path .. "/.",
       })
     end
@@ -601,7 +601,7 @@ function FileChooser:refreshPath()
       )
     end,
     -- Need localization.
-    T(_("Loading contents in %1"), self.path)
+    T(gettext("Loading contents in %1"), self.path)
   )
 end
 

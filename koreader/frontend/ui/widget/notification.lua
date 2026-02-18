@@ -15,14 +15,14 @@ local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
+local gettext = require("gettext")
 local time = require("ui/time")
-local _ = require("gettext")
 local Screen = Device.screen
 local Input = Device.input
 
 local Notification = InputContainer:extend({
   face = Font:getFace("x_smallinfofont"),
-  text = _("N/A"),
+  text = gettext("N/A"),
   margin = Size.margin.default,
   padding = Size.padding.default,
   timeout = 2, -- default to 2 seconds

@@ -1,6 +1,6 @@
 local isAndroid, android = pcall(require, "android")
-local ffi = require("ffi")
 local _ = require("gettext")
+local ffi = require("ffi")
 local N_ = _.ngettext
 local T = require("ffi/util").template
 

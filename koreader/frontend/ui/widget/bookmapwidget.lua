@@ -29,9 +29,9 @@ local Widget = require("ui/widget/widget")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Input = Device.input
 local Screen = Device.screen
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 
 -- BookMapRow (reused by PageBrowserWidget)
 local BookMapRow = WidgetContainer:extend({
@@ -791,7 +791,8 @@ function BookMapWidget:init()
   self.row_left_spacing = self.scrollbar_width
   self.swipe_hint_bar_width = Screen:scaleBySize(6)
 
-  local title = self.overview_mode and _("Book map (overview)") or _("Book map")
+  local title = self.overview_mode and gettext("Book map (overview)")
+    or gettext("Book map")
   self.title_bar = TitleBar:new({
     fullscreen = true,
     title = title,
@@ -1343,8 +1344,8 @@ function BookMapWidget:onShowBookMapMenu()
   local buttons = {
     {
       {
-        text = self.overview_mode and _("About book map (overview)")
-          or _("About book map"),
+        text = self.overview_mode and gettext("About book map (overview)")
+          or gettext("About book map"),
         align = "left",
         callback = function()
           self:showAbout()
@@ -1353,7 +1354,7 @@ function BookMapWidget:onShowBookMapMenu()
     },
     {
       {
-        text = _("Available gestures"),
+        text = gettext("Available gestures"),
         align = "left",
         callback = function()
           self:showGestures()
@@ -1362,7 +1363,7 @@ function BookMapWidget:onShowBookMapMenu()
     },
     {
       {
-        text = _("Page browser on tap"),
+        text = gettext("Page browser on tap"),
         checked_func = function()
           return G_reader_settings:nilOrTrue("book_map_tap_to_page_browser")
         end,
@@ -1374,7 +1375,7 @@ function BookMapWidget:onShowBookMapMenu()
     },
     {
       {
-        text = _("Alternative theme"),
+        text = gettext("Alternative theme"),
         checked_func = function()
           return G_reader_settings:isTrue("book_map_alt_theme")
         end,
@@ -1388,7 +1389,7 @@ function BookMapWidget:onShowBookMapMenu()
     },
     not self.overview_mode and {
       {
-        text = _("Switch current/initial view"),
+        text = gettext("Switch current/initial view"),
         align = "left",
         enabled_func = function()
           return self.toc_depth > 0
@@ -1400,7 +1401,7 @@ function BookMapWidget:onShowBookMapMenu()
     },
     not self.overview_mode and {
       {
-        text = _("Switch grid/flat views"),
+        text = gettext("Switch grid/flat views"),
         align = "left",
         enabled_func = function()
           return self.toc_depth > 0
@@ -1414,7 +1415,7 @@ function BookMapWidget:onShowBookMapMenu()
     },
     {
       {
-        text = _("Chapter levels"),
+        text = gettext("Chapter levels"),
         callback = function() end,
         align = "left",
       },
@@ -1445,7 +1446,7 @@ function BookMapWidget:onShowBookMapMenu()
     },
     not self.overview_mode and {
       {
-        text = _("Page-slot width"),
+        text = gettext("Page-slot width"),
         callback = function() end,
         align = "left",
         -- Below, minus increases page per row and plus decreases it.
@@ -1478,7 +1479,7 @@ function BookMapWidget:onShowBookMapMenu()
     },
     {
       {
-        text = _("10-page markers"),
+        text = gettext("10-page markers"),
         callback = function() end,
         align = "left",
       },
@@ -1537,7 +1538,7 @@ function BookMapWidget:onShowBookMapMenu()
 end
 
 function BookMapWidget:showAbout()
-  local text = _([[
+  local text = gettext([[
 Book map provides a summary of a book's content, showing chapters and pages visually. If statistics are enabled, black bars represent pages already read (gray for pages read in the current session), with varying heights based on reading time.
 
 Map legend:
@@ -1551,14 +1552,14 @@ Map legend:
   if self.overview_mode then
     text = text
       .. "\n\n"
-      .. _(
+      .. gettext(
         [[
 When in overview mode, the book map is always displayed in grid mode to fit on one screen. The chapter levels can be easily adjusted for the most convenient overview experience.]]
       )
   else
     text = text
       .. "\n\n"
-      .. _(
+      .. gettext(
         [[
 When you first open a book, the book map will begin in grid mode, displaying all chapter levels on one screen for a comprehensive overview of the book's content.]]
       )
@@ -1569,21 +1570,21 @@ end
 function BookMapWidget:showGestures()
   local text
   if not Device:isTouchDevice() then
-    text = _([[
+    text = gettext([[
 Use settings in this menu to change the level of chapters to include in the book map, the view type (grid or flat) and the width of page slots.
 
 Use "ScreenKB/Shift" + "Up/Down" to scroll or use the page turn buttons to move at a faster rate.
 
 Press back to exit the book map.]])
   elseif self.overview_mode then
-    text = _([[
+    text = gettext([[
 Tap on a location in the book to browse thumbnails of the pages there.
 
 Swipe along the left screen edge to change the level of chapters to include in the book map.
 
 Any multiswipe will close the book map.]])
   else
-    text = _([[
+    text = gettext([[
 Tap on a location in the book to browse thumbnails of the pages there.
 
 Swipe along the left screen edge to change the level of chapters to include in the book map, and the type of book map (grid or flat) when crossing the level 0.

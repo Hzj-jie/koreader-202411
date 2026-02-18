@@ -8,8 +8,8 @@ Each target should inherit from this class and implement *at least* an `export` 
 
 local DataStorage = require("datastorage")
 local Device = require("device")
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
 
 local BaseExporter = {
   clipping_dir = DataStorage:getFullDataDir() .. "/clipboard",
@@ -158,7 +158,7 @@ end
 Shares text with other apps
 ]]
 function BaseExporter:shareText(text, title)
-  local reason = _("Share") .. " " .. self.name
+  local reason = gettext("Share") .. " " .. self.name
   Device:doShareText(text, reason, title, self.mimetype)
 end
 

@@ -2,10 +2,10 @@ local Event = require("ui/event")
 local PluginShare = require("pluginshare")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local _ = require("gettext")
 local datetime = require("datetime")
 local logger = require("logger")
 local time = require("ui/time")
-local _ = require("gettext")
 local T = require("ffi/util").template
 
 local AutoTurn = WidgetContainer:extend({

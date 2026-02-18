@@ -5,9 +5,9 @@ ReaderView module handles all the screen painting for document browsing.
 local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local Device = require("device")
+local Event = require("ui/event")
 local Font = require("ui/font")
 local Geom = require("ui/geometry")
-local Event = require("ui/event")
 local IconWidget = require("ui/widget/iconwidget")
 local InfoMessage = require("ui/widget/infomessage")
 local Notification = require("ui/widget/notification")
@@ -15,15 +15,15 @@ local OverlapGroup = require("ui/widget/overlapgroup")
 local ReaderDogear = require("apps/reader/modules/readerdogear")
 local ReaderFlipping = require("apps/reader/modules/readerflipping")
 local ReaderFooter = require("apps/reader/modules/readerfooter")
+local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local dbg = require("dbg")
+local gettext = require("gettext")
 local logger = require("logger")
 local optionsutil = require("ui/data/optionsutil")
-local Size = require("ui/size")
 local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -959,7 +959,7 @@ function ReaderView:rotate(mode, old_mode)
   end
   Notification:notify(
     T(
-      _("Rotation mode set to: %1"),
+      gettext("Rotation mode set to: %1"),
       optionsutil:getOptionText("SetRotationMode", mode)
     )
   )
@@ -992,7 +992,7 @@ function ReaderView:onSetScrollMode(page_scroll)
     and self.document.configurable.text_wrap == 0
   then
     UIManager:show(InfoMessage:new({
-      text = _(
+      text = gettext(
         [[
 Continuous view (scroll mode) works best with zoom to page width, zoom to content width or zoom to rows.
 
@@ -1148,7 +1148,7 @@ function ReaderView:onGammaUpdate(gamma, no_notification)
     UIManager:broadcastEvent(Event:new("UpdateScrollPageGamma", gamma))
   end
   if not no_notification then
-    Notification:notify(T(_("Contrast set to: %1."), gamma))
+    Notification:notify(T(gettext("Contrast set to: %1."), gamma))
   end
 end
 
@@ -1173,18 +1173,22 @@ end
 -- For KOptOptions
 function ReaderView:onHWDitheringUpdate(toggle)
   self.document.hw_dithering = toggle
-  Notification:notify(T(_("Hardware dithering set to: %1."), tostring(toggle)))
+  Notification:notify(
+    T(gettext("Hardware dithering set to: %1."), tostring(toggle))
+  )
 end
 
 function ReaderView:onSWDitheringUpdate(toggle)
   self.document.sw_dithering = toggle
-  Notification:notify(T(_("Software dithering set to: %1."), tostring(toggle)))
+  Notification:notify(
+    T(gettext("Software dithering set to: %1."), tostring(toggle))
+  )
 end
 
 function ReaderView:onFontSizeUpdate(font_size)
   if self.ui.paging then
     UIManager:broadcastEvent(Event:new("ReZoom", font_size))
-    Notification:notify(T(_("Font zoom set to: %1."), font_size))
+    Notification:notify(T(gettext("Font zoom set to: %1."), font_size))
   end
 end
 
@@ -1207,7 +1211,7 @@ function ReaderView:onSetViewMode(new_mode)
     UIManager:broadcastEvent(Event:new("ChangeViewMode"))
     Notification:notify(
       T(
-        _("View mode set to: %1"),
+        gettext("View mode set to: %1"),
         optionsutil:getOptionText("SetViewMode", new_mode)
       )
     )
@@ -1217,7 +1221,7 @@ end
 function ReaderView:onPageGapUpdate(page_gap)
   self.page_gap.height = Screen:scaleBySize(page_gap)
   Notification:notify(
-    T(_("Page gap set to %1."), optionsutil.formatFlexSize(page_gap))
+    T(gettext("Page gap set to %1."), optionsutil.formatFlexSize(page_gap))
   )
   return true
 end
@@ -1265,14 +1269,14 @@ function ReaderView:getRenderModeMenuTable()
   end
   return {
     -- @translators Selects which layers of the DjVu image should be rendered.  Valid  rendering  modes are color, black, mask, foreground, and background. See http://djvu.sourceforge.net/ and https://en.wikipedia.org/wiki/DjVu for more information about the format.
-    text = _("DjVu render mode"),
+    text = gettext("DjVu render mode"),
     sub_item_table = {
-      make_mode(_("COLOUR (works for both colour and b&w pages)"), 0),
-      make_mode(_("BLACK & WHITE (for b&w pages only, much faster)"), 1),
-      make_mode(_("COLOUR ONLY (slightly faster than COLOUR)"), 2),
-      make_mode(_("MASK ONLY (for b&w pages only)"), 3),
-      make_mode(_("COLOUR BACKGROUND (show only background)"), 4),
-      make_mode(_("COLOUR FOREGROUND (show only foreground)"), 5),
+      make_mode(gettext("COLOUR (works for both colour and b&w pages)"), 0),
+      make_mode(gettext("BLACK & WHITE (for b&w pages only, much faster)"), 1),
+      make_mode(gettext("COLOUR ONLY (slightly faster than COLOUR)"), 2),
+      make_mode(gettext("MASK ONLY (for b&w pages only)"), 3),
+      make_mode(gettext("COLOUR BACKGROUND (show only background)"), 4),
+      make_mode(gettext("COLOUR FOREGROUND (show only foreground)"), 5),
     },
   }
 end
@@ -1315,7 +1319,7 @@ function ReaderView:onToggleReadingOrder()
   self:setupTouchZones()
   local is_rtl = self.inverse_reading_order ~= BD.mirroredUILayout() -- mirrored reading
   Notification:notify(
-    is_rtl and _("RTL page turning.") or _("LTR page turning.")
+    is_rtl and gettext("RTL page turning.") or gettext("LTR page turning.")
   )
   return true
 end

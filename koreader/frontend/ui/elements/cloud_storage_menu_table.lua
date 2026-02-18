@@ -1,8 +1,8 @@
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 return {
-  text = _("Cloud storage"),
+  text = gettext("Cloud storage"),
   callback = function()
     local cloud_storage = require("apps/cloudstorage/cloudstorage"):new({})
     UIManager:show(cloud_storage)

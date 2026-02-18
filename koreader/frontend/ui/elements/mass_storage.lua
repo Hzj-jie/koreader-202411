@@ -1,8 +1,8 @@
 local Device = require("device")
 local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
 
 local MassStorage = {}
 
@@ -19,8 +19,8 @@ end
 function MassStorage:getSettingsMenuTable()
   return {
     {
-      text = _("Disable confirmation popup"),
-      help_text = _(
+      text = gettext("Disable confirmation popup"),
+      help_text = gettext(
         [[This will ONLY affect what happens when you plug in the device!]]
       ),
       checked_func = function()
@@ -34,8 +34,8 @@ function MassStorage:getSettingsMenuTable()
       end,
     },
     {
-      text = _("Disable mass storage functionality"),
-      help_text = _(
+      text = gettext("Disable mass storage functionality"),
+      help_text = gettext(
         [[In case your device uses an unsupported setup where you know it won't work properly.]]
       ),
       checked_func = function()
@@ -51,7 +51,7 @@ end
 -- mass storage actions
 function MassStorage:getActionsMenuTable()
   return {
-    text = _("Start USB storage"),
+    text = gettext("Start USB storage"),
     enabled_func = function()
       return self:isEnabled()
     end,
@@ -77,8 +77,8 @@ function MassStorage:start(with_confirmation)
   if ask then
     local ConfirmBox = require("ui/widget/confirmbox")
     self.usbms_widget = ConfirmBox:new({
-      text = _("Share storage via USB?"),
-      ok_text = _("Share"),
+      text = gettext("Share storage via USB?"),
+      ok_text = gettext("Share"),
       ok_callback = function()
         -- save settings before activating USBMS:
         UIManager:flushSettings()

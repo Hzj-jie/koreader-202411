@@ -9,11 +9,11 @@ end
 local PowerD = Device:getPowerDevice()
 local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
+local SpinWidget = require("ui/widget/spinwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local SpinWidget = require("ui/widget/spinwidget")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
 
 local AutoStandby = WidgetContainer:extend({
   is_doc_only = false,
@@ -55,11 +55,11 @@ end
 
 function AutoStandby:addToMainMenu(menu_items)
   menu_items.autostandby = {
-    text = _("Auto-standby settings"),
+    text = gettext("Auto-standby settings"),
     sub_item_table = {
       {
         keep_menu_open = true,
-        text = _("Allow auto-standby"),
+        text = gettext("Allow auto-standby"),
         checked_func = function()
           return self:isAllowedByConfig()
         end,
@@ -67,21 +67,21 @@ function AutoStandby:addToMainMenu(menu_items)
           self.settings:save("forbidden", self:isAllowedByConfig()):flush()
         end,
       },
-      self:genSpinMenuItem(_("Min input idle seconds"), "min", function()
+      self:genSpinMenuItem(gettext("Min input idle seconds"), "min", function()
         return 0
       end, function()
         return self.settings:read("max")
       end),
-      self:genSpinMenuItem(_("Max input idle seconds"), "max", function()
+      self:genSpinMenuItem(gettext("Max input idle seconds"), "max", function()
         return 0
       end),
-      self:genSpinMenuItem(_("Input window seconds"), "win", function()
+      self:genSpinMenuItem(gettext("Input window seconds"), "win", function()
         return 0
       end, function()
         return self.settings:read("max")
       end),
       self:genSpinMenuItem(
-        _("Always standby if battery below"),
+        gettext("Always standby if battery below"),
         "bat",
         function()
           return 0
@@ -181,7 +181,7 @@ function AutoStandby:genSpinMenuItem(text, cfg, min, max)
         value_min = min and min() or 0,
         value_max = max and max() or 9999,
         value_hold_step = 10,
-        ok_text = _("Update"),
+        ok_text = gettext("Update"),
         title_text = text,
         callback = function(spin)
           self.settings:save(cfg, spin.value):flush()

@@ -24,8 +24,8 @@ local Blitbuffer = require("ffi/blitbuffer")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
 local Button = require("ui/widget/button")
 local Device = require("device")
-local Font = require("ui/font")
 local FocusManager = require("ui/widget/focusmanager")
+local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
@@ -45,7 +45,7 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local Input = Device.input
 local Screen = Device.screen
 local T = require("ffi/util").template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local KeyValueItem = InputContainer:extend({
   show_parent = nil,
@@ -442,7 +442,7 @@ function KeyValuePage:init()
     or Button:new({
       text = "",
       hold_input = {
-        title = _("Enter page number"),
+        title = gettext("Enter page number"),
         input_type = "number",
         hint_func = function()
           return string.format("(1 - %s)", self.pages)
@@ -453,7 +453,7 @@ function KeyValuePage:init()
             self:goToPage(page)
           end
         end,
-        ok_text = _("Go to page"),
+        ok_text = gettext("Go to page"),
       },
       call_hold_input_on_tap = true,
       bordersize = 0,
@@ -756,7 +756,7 @@ function KeyValuePage:_populateItems()
   -- update page information
   if self.pages >= 1 then
     self.page_info_text:setText(
-      T(_("Page %1 of %2"), self.show_page, self.pages)
+      T(gettext("Page %1 of %2"), self.show_page, self.pages)
     )
     if self.pages > 1 then
       self.page_info_text:enable()
@@ -773,7 +773,7 @@ function KeyValuePage:_populateItems()
     self.page_info_first_chev:enableDisable(self.show_page > 1)
     self.page_info_last_chev:enableDisable(self.show_page < self.pages)
   else
-    self.page_info_text:setText(_("No items"))
+    self.page_info_text:setText(gettext("No items"))
     self.page_info_text:disableWithoutDimming()
 
     self.page_info_left_chev:hide()

@@ -1,13 +1,13 @@
 local CreUtil = require("creutil")
-local Event = require("ui/event")
 local Device = require("device")
+local Event = require("ui/event")
 local EventListener = require("ui/widget/eventlistener")
 local Geom = require("ui/geometry")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local logger = require("logger")
 local T = require("ffi/util").template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local ReaderCoptListener = EventListener:extend({})
 
@@ -370,7 +370,7 @@ function ReaderCoptListener:onUpdateHeader()
   self:_updateHeader()
 end
 
-local about_text = _([[
+local about_text = gettext([[
 In CRE documents, an alternative status bar can be displayed at the top of the screen, with or without the regular bottom status bar.
 
 Enabling this alt status bar, per document or by default, can be done in the bottom menu.
@@ -379,12 +379,12 @@ The alternative status bar can be configured here.]])
 
 function ReaderCoptListener:getAltStatusBarMenu()
   return {
-    text = _("Alt status bar"),
+    text = gettext("Alt status bar"),
     separator = true,
     help_text = about_text,
     sub_item_table = {
       {
-        text = _("Book title"),
+        text = gettext("Book title"),
         checked_func = function()
           return self.title == 1
         end,
@@ -394,7 +394,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
         end,
       },
       {
-        text = _("Book author"),
+        text = gettext("Book author"),
         checked_func = function()
           return self.author == 1
         end,
@@ -408,7 +408,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
         end,
       },
       {
-        text = _("Current time"),
+        text = gettext("Current time"),
         checked_func = function()
           return self.clock == 1
         end,
@@ -418,7 +418,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
         end,
       },
       {
-        text = _("Current page"),
+        text = gettext("Current page"),
         checked_func = function()
           return self.page_number == 1
         end,
@@ -432,7 +432,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
         end,
       },
       {
-        text = _("Total pages"),
+        text = gettext("Total pages"),
         checked_func = function()
           return self.page_count == 1
         end,
@@ -446,7 +446,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
         end,
       },
       {
-        text = _("Progress percentage"),
+        text = gettext("Progress percentage"),
         checked_func = function()
           return self.reading_percent == 1
         end,
@@ -460,7 +460,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
         end,
       },
       {
-        text = _("Chapter marks"),
+        text = gettext("Chapter marks"),
         checked_func = function()
           return self.chapter_marks == 1
         end,
@@ -475,12 +475,12 @@ function ReaderCoptListener:getAltStatusBarMenu()
       },
       {
         text_func = function()
-          local status = _("Battery status")
+          local status = gettext("Battery status")
           if self.battery == 1 then
             if self.battery_percent == 1 then
-              status = _("Battery status: percentage")
+              status = gettext("Battery status: percentage")
             else
-              status = _("Battery status: icon")
+              status = gettext("Battery status: icon")
             end
           end
           return status
@@ -490,7 +490,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
         end,
         sub_item_table = {
           {
-            text = _("Battery icon"),
+            text = gettext("Battery icon"),
             checked_func = function()
               return self.battery == 1 and self.battery_percent == 0
             end,
@@ -518,7 +518,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
             end,
           },
           {
-            text = _("Battery percentage"),
+            text = gettext("Battery percentage"),
             checked_func = function()
               return self.battery == 1 and self.battery_percent == 1
             end,
@@ -550,7 +550,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
       {
         text_func = function()
           return T(
-            _("Font size: %1"),
+            gettext("Font size: %1"),
             G_reader_settings:read("cre_header_status_font_size")
               or CRE_HEADER_DEFAULT_SIZE
           )
@@ -566,8 +566,8 @@ function ReaderCoptListener:getAltStatusBarMenu()
             value_max = 36,
             default_value = 14,
             keep_shown_on_apply = true,
-            title_text = _("Size of top status bar"),
-            ok_text = _("Set size"),
+            title_text = gettext("Size of top status bar"),
+            ok_text = gettext("Set size"),
             callback = function(spin)
               self:setAndSave(
                 "cre_header_status_font_size",

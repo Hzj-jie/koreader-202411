@@ -8,7 +8,7 @@ local Font = require("ui/font")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = require("device").screen
 local ffiUtil = require("ffi/util")
 
@@ -124,7 +124,7 @@ local temperature_table = {
 }
 
 local CalculatorConvertDialog = InputContainer:new({
-  title = title or _("Convert"),
+  title = title or gettext("Convert"),
   modal = true,
   width = math.floor(Screen:getWidth() * 0.8),
   face = Font:getFace("cfont", 22),
@@ -205,7 +205,7 @@ function CalculatorConvertDialog:init()
       end,
     },
     ["07_power"] = {
-      text = _("Power"),
+      text = gettext("Power"),
       callback = function()
         UIManager:close(self)
         self.units_dialog = CalculatorUnitsDialog:new({
@@ -272,7 +272,7 @@ function CalculatorConvertDialog:init()
   end
 
   self[1] = ButtonDialog:new({
-    title = self.title or _("♺ Convert"),
+    title = self.title or gettext("♺ Convert"),
     title_align = "center",
     buttons = highlight_buttons,
   })

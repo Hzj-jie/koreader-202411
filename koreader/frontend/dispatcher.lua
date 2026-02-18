@@ -30,18 +30,18 @@ Each setting contains:
 --
 
 local CreOptions = require("ui/data/creoptions")
-local KoptOptions = require("ui/data/koptoptions")
 local Device = require("device")
 local Event = require("ui/event")
 local FileManager = require("apps/filemanager/filemanager")
+local KoptOptions = require("ui/data/koptoptions")
 local Notification = require("ui/widget/notification")
 local ReaderHighlight = require("apps/reader/modules/readerhighlight")
 local ReaderZooming = require("apps/reader/modules/readerzooming")
 local Screen = Device.screen
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
-local NC_ = _.npgettext
+local NC_ = gettext.npgettext
 local T = require("ffi/util").template
 
 local Dispatcher = {
@@ -54,43 +54,43 @@ local settingsList = {
   reading_progress = {
     category = "none",
     event = "ShowReaderProgress",
-    title = _("Reading progress"),
+    title = gettext("Reading progress"),
     general = true,
   },
   open_previous_document = {
     category = "none",
     event = "OpenLastDoc",
-    title = _("Open previous document"),
+    title = gettext("Open previous document"),
     general = true,
   },
   history = {
     category = "none",
     event = "ShowHist",
-    title = _("History"),
+    title = gettext("History"),
     general = true,
   },
   history_search = {
     category = "none",
     event = "SearchHistory",
-    title = _("History search"),
+    title = gettext("History search"),
     general = true,
   },
   favorites = {
     category = "none",
     event = "ShowColl",
-    title = _("Favorites"),
+    title = gettext("Favorites"),
     general = true,
   },
   collections = {
     category = "none",
     event = "ShowCollList",
-    title = _("Collections"),
+    title = gettext("Collections"),
     general = true,
   },
   filemanager = {
     category = "none",
     event = "Home",
-    title = _("File browser"),
+    title = gettext("File browser"),
     general = true,
     separator = true,
   },
@@ -98,13 +98,13 @@ local settingsList = {
   dictionary_lookup = {
     category = "none",
     event = "ShowDictionaryLookup",
-    title = _("Dictionary lookup"),
+    title = gettext("Dictionary lookup"),
     general = true,
   },
   wikipedia_lookup = {
     category = "none",
     event = "ShowWikipediaLookup",
-    title = _("Wikipedia lookup"),
+    title = gettext("Wikipedia lookup"),
     general = true,
     separator = true,
   },
@@ -112,19 +112,19 @@ local settingsList = {
   show_menu = {
     category = "none",
     event = "ShowMenu",
-    title = _("Show menu"),
+    title = gettext("Show menu"),
     general = true,
   },
   menu_search = {
     category = "none",
     event = "MenuSearch",
-    title = _("Menu search"),
+    title = gettext("Menu search"),
     general = true,
   },
   screenshot = {
     category = "none",
     event = "Screenshot",
-    title = _("Screenshot"),
+    title = gettext("Screenshot"),
     general = true,
     separator = true,
   },
@@ -134,48 +134,48 @@ local settingsList = {
   exit_screensaver = {
     category = "none",
     event = "ExitScreensaver",
-    title = _("Exit sleep screen"),
+    title = gettext("Exit sleep screen"),
     device = true,
   },
   start_usbms = {
     category = "none",
     event = "RequestUSBMS",
-    title = _("Start USB storage"),
+    title = gettext("Start USB storage"),
     device = true,
     condition = Device:canToggleMassStorage(),
   },
   suspend = {
     category = "none",
     event = "RequestSuspend",
-    title = _("Sleep"),
+    title = gettext("Sleep"),
     device = true,
     condition = Device:canSuspend(),
   },
   restart = {
     category = "none",
     event = "Restart",
-    title = _("Restart KOReader"),
+    title = gettext("Restart KOReader"),
     device = true,
     condition = Device:canRestart(),
   },
   reboot = {
     category = "none",
     event = "RequestReboot",
-    title = _("Reboot the device"),
+    title = gettext("Reboot the device"),
     device = true,
     condition = Device:canReboot(),
   },
   poweroff = {
     category = "none",
     event = "RequestPowerOff",
-    title = _("Power off"),
+    title = gettext("Power off"),
     device = true,
     condition = Device:canPowerOff(),
   },
   exit = {
     category = "none",
     event = "Exit",
-    title = _("Exit KOReader"),
+    title = gettext("Exit KOReader"),
     device = true,
     separator = true,
   },
@@ -183,7 +183,7 @@ local settingsList = {
   toggle_hold_corners = {
     category = "none",
     event = "IgnoreHoldCorners",
-    title = _("Toggle long-press on corners"),
+    title = gettext("Toggle long-press on corners"),
     device = true,
     condition = Device:isTouchDevice(),
   },
@@ -191,7 +191,7 @@ local settingsList = {
     category = "none",
     event = "IgnoreTouchInput",
     arg = false,
-    title = _("Enable touch input"),
+    title = gettext("Enable touch input"),
     device = true,
     condition = Device:isTouchDevice(),
   },
@@ -199,14 +199,14 @@ local settingsList = {
     category = "none",
     event = "IgnoreTouchInput",
     arg = true,
-    title = _("Disable touch input"),
+    title = gettext("Disable touch input"),
     device = true,
     condition = Device:isTouchDevice(),
   },
   toggle_touch_input = {
     category = "none",
     event = "IgnoreTouchInput",
-    title = _("Toggle touch input"),
+    title = gettext("Toggle touch input"),
     device = true,
     separator = true,
     condition = Device:isTouchDevice(),
@@ -216,7 +216,7 @@ local settingsList = {
     category = "none",
     event = "SwapPageTurnButtons",
     arg = "left",
-    title = _("Invert left-side page-turn buttons"),
+    title = gettext("Invert left-side page-turn buttons"),
     device = true,
     condition = Device:hasDPad() and Device:useDPadAsActionKeys(),
   },
@@ -224,14 +224,14 @@ local settingsList = {
     category = "none",
     event = "SwapPageTurnButtons",
     arg = "right",
-    title = _("Invert right-side page-turn buttons"),
+    title = gettext("Invert right-side page-turn buttons"),
     device = true,
     condition = Device:hasDPad() and Device:useDPadAsActionKeys(),
   },
   swap_page_turn_buttons = {
     category = "none",
     event = "SwapPageTurnButtons",
-    title = _("Invert page-turn buttons"),
+    title = gettext("Invert page-turn buttons"),
     device = true,
     condition = Device:hasKeys(),
     separator = true,
@@ -240,7 +240,7 @@ local settingsList = {
   toggle_key_repeat = {
     category = "none",
     event = "ToggleKeyRepeat",
-    title = _("Toggle key repeat"),
+    title = gettext("Toggle key repeat"),
     device = true,
     condition = Device:hasKeys() and Device:canKeyRepeat(),
     separator = true,
@@ -248,47 +248,47 @@ local settingsList = {
   toggle_gsensor = {
     category = "none",
     event = "ToggleGSensor",
-    title = _("Toggle accelerometer"),
+    title = gettext("Toggle accelerometer"),
     device = true,
     condition = Device:hasGSensor(),
   },
   temp_gsensor_on = {
     category = "none",
     event = "TempGSensorOn",
-    title = _("Enable accelerometer for 5 seconds"),
+    title = gettext("Enable accelerometer for 5 seconds"),
     device = true,
     condition = Device:hasGSensor(),
   },
   lock_gsensor = {
     category = "none",
     event = "LockGSensor",
-    title = _("Lock auto rotation to current orientation"),
+    title = gettext("Lock auto rotation to current orientation"),
     device = true,
     condition = Device:hasGSensor(),
   },
   toggle_rotation = {
     category = "none",
     event = "SwapRotation",
-    title = _("Toggle orientation"),
+    title = gettext("Toggle orientation"),
     device = true,
   },
   invert_rotation = {
     category = "none",
     event = "InvertRotation",
-    title = _("Invert rotation"),
+    title = gettext("Invert rotation"),
     device = true,
   },
   iterate_rotation = {
     category = "none",
     event = "IterateRotation",
-    title = _("Rotate by 90° CW"),
+    title = gettext("Rotate by 90° CW"),
     device = true,
   },
   iterate_rotation_ccw = {
     category = "none",
     event = "IterateRotation",
     arg = true,
-    title = _("Rotate by 90° CCW"),
+    title = gettext("Rotate by 90° CCW"),
     device = true,
     separator = true,
   },
@@ -296,35 +296,35 @@ local settingsList = {
   wifi_on = {
     category = "none",
     event = "InfoWifiOn",
-    title = _("Turn on Wi-Fi"),
+    title = gettext("Turn on Wi-Fi"),
     device = true,
     condition = Device:hasWifiToggle(),
   },
   wifi_off = {
     category = "none",
     event = "InfoWifiOff",
-    title = _("Turn off Wi-Fi"),
+    title = gettext("Turn off Wi-Fi"),
     device = true,
     condition = Device:hasWifiToggle(),
   },
   toggle_wifi = {
     category = "none",
     event = "ToggleWifi",
-    title = _("Toggle Wi-Fi"),
+    title = gettext("Toggle Wi-Fi"),
     device = true,
     condition = Device:hasWifiToggle(),
   },
   toggle_fullscreen = {
     category = "none",
     event = "ToggleFullscreen",
-    title = _("Toggle Fullscreen"),
+    title = gettext("Toggle Fullscreen"),
     device = true,
     condition = not Device:isAlwaysFullscreen(),
   },
   show_network_info = {
     category = "none",
     event = "ShowNetworkInfo",
-    title = _("Show network info"),
+    title = gettext("Show network info"),
     device = true,
     separator = true,
   },
@@ -334,14 +334,14 @@ local settingsList = {
   show_frontlight_dialog = {
     category = "none",
     event = "ShowFlDialog",
-    title = _("Show frontlight dialog"),
+    title = gettext("Show frontlight dialog"),
     screen = true,
     condition = Device:hasFrontlight(),
   },
   toggle_frontlight = {
     category = "none",
     event = "ToggleFrontlight",
-    title = _("Toggle frontlight"),
+    title = gettext("Toggle frontlight"),
     screen = true,
     condition = Device:hasFrontlight(),
   },
@@ -350,7 +350,7 @@ local settingsList = {
     event = "SetFlIntensity",
     min = 0,
     max = Device:getPowerDevice().fl_max,
-    title = _("Set frontlight brightness"),
+    title = gettext("Set frontlight brightness"),
     screen = true,
     condition = Device:hasFrontlight(),
   },
@@ -359,7 +359,7 @@ local settingsList = {
     event = "IncreaseFlIntensity",
     min = 1,
     max = Device:getPowerDevice().fl_max,
-    title = _("Increase frontlight brightness"),
+    title = gettext("Increase frontlight brightness"),
     screen = true,
     condition = Device:hasFrontlight(),
   },
@@ -368,7 +368,7 @@ local settingsList = {
     event = "DecreaseFlIntensity",
     min = 1,
     max = Device:getPowerDevice().fl_max,
-    title = _("Decrease frontlight brightness"),
+    title = gettext("Decrease frontlight brightness"),
     screen = true,
     condition = Device:hasFrontlight(),
   },
@@ -377,7 +377,7 @@ local settingsList = {
     event = "SetFlWarmth",
     min = 0,
     max = 100,
-    title = _("Set frontlight warmth"),
+    title = gettext("Set frontlight warmth"),
     screen = true,
     condition = Device:hasNaturalLight(),
   },
@@ -386,7 +386,7 @@ local settingsList = {
     event = "IncreaseFlWarmth",
     min = 1,
     max = Device:getPowerDevice().fl_warmth_max,
-    title = _("Increase frontlight warmth"),
+    title = gettext("Increase frontlight warmth"),
     screen = true,
     condition = Device:hasNaturalLight(),
   },
@@ -395,7 +395,7 @@ local settingsList = {
     event = "DecreaseFlWarmth",
     min = 1,
     max = Device:getPowerDevice().fl_warmth_max,
-    title = _("Decrease frontlight warmth"),
+    title = gettext("Decrease frontlight warmth"),
     screen = true,
     condition = Device:hasNaturalLight(),
     separator = true,
@@ -403,23 +403,23 @@ local settingsList = {
   night_mode = {
     category = "none",
     event = "ToggleNightMode",
-    title = _("Toggle night mode"),
+    title = gettext("Toggle night mode"),
     screen = true,
   },
   set_night_mode = {
     category = "string",
     event = "SetNightMode",
-    title = _("Set night mode"),
+    title = gettext("Set night mode"),
     screen = true,
     args = { true, false },
-    toggle = { _("on"), _("off") },
+    toggle = { gettext("on"), gettext("off") },
     separator = true,
   },
   ----
   full_refresh = {
     category = "none",
     event = "FullRefresh",
-    title = _("Full screen refresh"),
+    title = gettext("Full screen refresh"),
     screen = true,
   },
   set_refresh_rate = {
@@ -427,7 +427,7 @@ local settingsList = {
     event = "SetBothRefreshRates",
     min = -1,
     max = 200,
-    title = _("Full refresh rate (always)"),
+    title = gettext("Full refresh rate (always)"),
     screen = true,
     condition = Device:hasEinkScreen(),
   },
@@ -436,7 +436,7 @@ local settingsList = {
     event = "SetDayRefreshRate",
     min = -1,
     max = 200,
-    title = _("Full refresh rate (not in night mode)"),
+    title = gettext("Full refresh rate (not in night mode)"),
     screen = true,
     condition = Device:hasEinkScreen(),
   },
@@ -445,55 +445,55 @@ local settingsList = {
     event = "SetNightRefreshRate",
     min = -1,
     max = 200,
-    title = _("Full refresh rate (in night mode)"),
+    title = gettext("Full refresh rate (in night mode)"),
     screen = true,
     condition = Device:hasEinkScreen(),
   },
   set_flash_on_chapter_boundaries = {
     category = "string",
     event = "SetFlashOnChapterBoundaries",
-    title = _("Always flash on chapter boundaries"),
+    title = gettext("Always flash on chapter boundaries"),
     screen = true,
     condition = Device:hasEinkScreen(),
     args = { true, false },
-    toggle = { _("on"), _("off") },
+    toggle = { gettext("on"), gettext("off") },
   },
   toggle_flash_on_chapter_boundaries = {
     category = "none",
     event = "ToggleFlashOnChapterBoundaries",
-    title = _("Toggle flashing on chapter boundaries"),
+    title = gettext("Toggle flashing on chapter boundaries"),
     screen = true,
     condition = Device:hasEinkScreen(),
   },
   set_no_flash_on_second_chapter_page = {
     category = "string",
     event = "SetNoFlashOnSecondChapterPage",
-    title = _("Never flash on chapter's 2nd page"),
+    title = gettext("Never flash on chapter's 2nd page"),
     screen = true,
     condition = Device:hasEinkScreen(),
     args = { true, false },
-    toggle = { _("on"), _("off") },
+    toggle = { gettext("on"), gettext("off") },
   },
   toggle_no_flash_on_second_chapter_page = {
     category = "none",
     event = "ToggleNoFlashOnSecondChapterPage",
-    title = _("Toggle flashing on chapter's 2nd page"),
+    title = gettext("Toggle flashing on chapter's 2nd page"),
     screen = true,
     condition = Device:hasEinkScreen(),
   },
   set_flash_on_pages_with_images = {
     category = "string",
     event = "SetFlashOnPagesWithImages",
-    title = _("Always flash on pages with images"),
+    title = gettext("Always flash on pages with images"),
     screen = true,
     condition = Device:hasEinkScreen(),
     args = { true, false },
-    toggle = { _("on"), _("off") },
+    toggle = { gettext("on"), gettext("off") },
   },
   toggle_flash_on_pages_with_images = {
     category = "none",
     event = "ToggleFlashOnPagesWithImages",
-    title = _("Toggle flashing on pages with images"),
+    title = gettext("Toggle flashing on pages with images"),
     screen = true,
     condition = Device:hasEinkScreen(),
     separator = true,
@@ -504,31 +504,31 @@ local settingsList = {
   set_display_mode = {
     category = "string",
     event = "SetDisplayMode",
-    title = _("Set display mode"),
+    title = gettext("Set display mode"),
     args_func = FileManager.getDisplayModeActions,
     filemanager = true,
   },
   set_sort_by = {
     category = "string",
     event = "SetSortBy",
-    title = _("Sort by"),
+    title = gettext("Sort by"),
     args_func = FileManager.getSortByActions,
     filemanager = true,
   },
   set_reverse_sorting = {
     category = "string",
     event = "SetReverseSorting",
-    title = _("Reverse sorting"),
+    title = gettext("Reverse sorting"),
     args = { true, false },
-    toggle = { _("on"), _("off") },
+    toggle = { gettext("on"), gettext("off") },
     filemanager = true,
   },
   set_mixed_sorting = {
     category = "string",
     event = "SetMixedSorting",
-    title = _("Folders and files mixed"),
+    title = gettext("Folders and files mixed"),
     args = { true, false },
-    toggle = { _("on"), _("off") },
+    toggle = { gettext("on"), gettext("off") },
     filemanager = true,
     separator = true,
   },
@@ -536,44 +536,44 @@ local settingsList = {
   show_plus_menu = {
     category = "none",
     event = "ShowPlusMenu",
-    title = _("Show plus menu"),
+    title = gettext("Show plus menu"),
     filemanager = true,
   },
   toggle_select_mode = {
     category = "none",
     event = "ToggleSelectMode",
-    title = _("Toggle select mode"),
+    title = gettext("Toggle select mode"),
     filemanager = true,
   },
   refresh_content = {
     category = "none",
     event = "RefreshContent",
-    title = _("Refresh content"),
+    title = gettext("Refresh content"),
     filemanager = true,
   },
   folder_shortcuts = {
     category = "none",
     event = "ShowFolderShortcutsDialog",
-    title = _("Folder shortcuts"),
+    title = gettext("Folder shortcuts"),
     filemanager = true,
   },
   file_search = {
     category = "none",
     event = "ShowFileSearch",
-    title = _("File search"),
+    title = gettext("File search"),
     filemanager = true,
   },
   file_search_results = {
     category = "none",
     event = "ShowSearchResults",
-    title = _("Last file search results"),
+    title = gettext("Last file search results"),
     filemanager = true,
   },
   ----
   folder_up = {
     category = "none",
     event = "FolderUp",
-    title = _("Folder up"),
+    title = gettext("Folder up"),
     filemanager = true,
   },
   -- go_to
@@ -583,7 +583,7 @@ local settingsList = {
   open_next_document_in_folder = {
     category = "none",
     event = "OpenNextDocumentInFolder",
-    title = _("Open next document in folder"),
+    title = gettext("Open next document in folder"),
     reader = true,
     separator = true,
   },
@@ -591,19 +591,19 @@ local settingsList = {
   show_config_menu = {
     category = "none",
     event = "ShowConfigMenu",
-    title = _("Show bottom menu"),
+    title = gettext("Show bottom menu"),
     reader = true,
   },
   toggle_status_bar = {
     category = "none",
     event = "ToggleFooterMode",
-    title = _("Toggle status bar"),
+    title = gettext("Toggle status bar"),
     reader = true,
   },
   toggle_chapter_progress_bar = {
     category = "none",
     event = "ToggleChapterProgressBar",
-    title = _("Toggle chapter progress bar"),
+    title = gettext("Toggle chapter progress bar"),
     reader = true,
     separator = true,
   },
@@ -611,31 +611,31 @@ local settingsList = {
   prev_chapter = {
     category = "none",
     event = "GotoPrevChapter",
-    title = _("Previous chapter"),
+    title = gettext("Previous chapter"),
     reader = true,
   },
   next_chapter = {
     category = "none",
     event = "GotoNextChapter",
-    title = _("Next chapter"),
+    title = gettext("Next chapter"),
     reader = true,
   },
   first_page = {
     category = "none",
     event = "GoToBeginning",
-    title = _("First page"),
+    title = gettext("First page"),
     reader = true,
   },
   last_page = {
     category = "none",
     event = "GoToEnd",
-    title = _("Last page"),
+    title = gettext("Last page"),
     reader = true,
   },
   random_page = {
     category = "none",
     event = "GoToRandomPage",
-    title = _("Random page"),
+    title = gettext("Random page"),
     reader = true,
   },
   page_jmp = {
@@ -643,50 +643,50 @@ local settingsList = {
     event = "GotoViewRel",
     min = -100,
     max = 100,
-    title = _("Turn pages"),
+    title = gettext("Turn pages"),
     reader = true,
   },
   go_to = {
     category = "none",
     event = "ShowGotoDialog",
-    title = _("Go to page"),
+    title = gettext("Go to page"),
     filemanager = true,
     reader = true,
   },
   skim = {
     category = "none",
     event = "ShowSkimtoDialog",
-    title = _("Skim document"),
+    title = gettext("Skim document"),
     reader = true,
   },
   prev_bookmark = {
     category = "none",
     event = "GotoPreviousBookmarkFromPage",
-    title = _("Previous bookmark"),
+    title = gettext("Previous bookmark"),
     reader = true,
   },
   next_bookmark = {
     category = "none",
     event = "GotoNextBookmarkFromPage",
-    title = _("Next bookmark"),
+    title = gettext("Next bookmark"),
     reader = true,
   },
   first_bookmark = {
     category = "none",
     event = "GotoFirstBookmark",
-    title = _("First bookmark"),
+    title = gettext("First bookmark"),
     reader = true,
   },
   last_bookmark = {
     category = "none",
     event = "GotoLastBookmark",
-    title = _("Last bookmark"),
+    title = gettext("Last bookmark"),
     reader = true,
   },
   latest_bookmark = {
     category = "none",
     event = "GoToLatestBookmark",
-    title = _("Latest bookmark"),
+    title = gettext("Latest bookmark"),
     reader = true,
     separator = true,
   },
@@ -694,7 +694,7 @@ local settingsList = {
   back = {
     category = "none",
     event = "Back",
-    title = _("Back"),
+    title = gettext("Back"),
     filemanager = true,
     reader = true,
   },
@@ -702,41 +702,41 @@ local settingsList = {
     category = "none",
     event = "GoBackLink",
     arg = true,
-    title = _("Back to previous location"),
+    title = gettext("Back to previous location"),
     reader = true,
   },
   next_location = {
     category = "none",
     event = "GoForwardLink",
     arg = true,
-    title = _("Forward to next location"),
+    title = gettext("Forward to next location"),
     reader = true,
   },
   follow_nearest_link = {
     category = "arg",
     event = "GoToPageLink",
     arg = { pos = { x = 0, y = 0 } },
-    title = _("Follow nearest link"),
+    title = gettext("Follow nearest link"),
     reader = true,
   },
   follow_nearest_internal_link = {
     category = "arg",
     event = "GoToInternalPageLink",
     arg = { pos = { x = 0, y = 0 } },
-    title = _("Follow nearest internal link"),
+    title = gettext("Follow nearest internal link"),
     reader = true,
   },
   select_prev_page_link = {
     category = "none",
     event = "SelectPrevPageLink",
-    title = _("Select previous link in current page"),
+    title = gettext("Select previous link in current page"),
     reader = true,
     condition = not Device:isTouchDevice(),
   },
   select_next_page_link = {
     category = "none",
     event = "SelectNextPageLink",
-    title = _("Select next link in current page"),
+    title = gettext("Select next link in current page"),
     reader = true,
     condition = not Device:isTouchDevice(),
   },
@@ -744,14 +744,14 @@ local settingsList = {
     category = "none",
     event = "AddCurrentLocationToStack",
     arg = true,
-    title = _("Add current location to history"),
+    title = gettext("Add current location to history"),
     reader = true,
   },
   clear_location_history = {
     category = "none",
     event = "ClearLocationStack",
     arg = true,
-    title = _("Clear location history"),
+    title = gettext("Clear location history"),
     reader = true,
     separator = true,
   },
@@ -759,25 +759,25 @@ local settingsList = {
   fulltext_search = {
     category = "none",
     event = "ShowFulltextSearchInput",
-    title = _("Fulltext search"),
+    title = gettext("Fulltext search"),
     reader = true,
   },
   fulltext_search_findall_results = {
     category = "none",
     event = "ShowFindAllResults",
-    title = _("Last fulltext search results"),
+    title = gettext("Last fulltext search results"),
     reader = true,
   },
   toc = {
     category = "none",
     event = "ShowToc",
-    title = _("Table of contents"),
+    title = gettext("Table of contents"),
     reader = true,
   },
   book_map = {
     category = "none",
     event = "ShowBookMap",
-    title = _("Book map"),
+    title = gettext("Book map"),
     reader = true,
     condition = Device:isTouchDevice()
       or (Device:hasDPad() and Device:useDPadAsActionKeys()),
@@ -786,7 +786,7 @@ local settingsList = {
     category = "none",
     event = "ShowBookMap",
     arg = true,
-    title = _("Book map (overview)"),
+    title = gettext("Book map (overview)"),
     reader = true,
     condition = Device:isTouchDevice()
       or (Device:hasDPad() and Device:useDPadAsActionKeys()),
@@ -794,26 +794,26 @@ local settingsList = {
   page_browser = {
     category = "none",
     event = "ShowPageBrowser",
-    title = _("Page browser"),
+    title = gettext("Page browser"),
     reader = true,
     condition = Device:isTouchDevice(),
   },
   bookmarks = {
     category = "none",
     event = "ShowBookmark",
-    title = _("Bookmarks"),
+    title = gettext("Bookmarks"),
     reader = true,
   },
   bookmark_search = {
     category = "none",
     event = "SearchBookmark",
-    title = _("Bookmark search"),
+    title = gettext("Bookmark search"),
     reader = true,
   },
   toggle_bookmark = {
     category = "none",
     event = "ToggleBookmark",
-    title = _("Toggle bookmark"),
+    title = gettext("Toggle bookmark"),
     reader = true,
     separator = true,
   },
@@ -821,25 +821,25 @@ local settingsList = {
   book_status = {
     category = "none",
     event = "ShowBookStatus",
-    title = _("Book status"),
+    title = gettext("Book status"),
     reader = true,
   },
   book_info = {
     category = "none",
     event = "ShowBookInfo",
-    title = _("Book information"),
+    title = gettext("Book information"),
     reader = true,
   },
   book_description = {
     category = "none",
     event = "ShowBookDescription",
-    title = _("Book description"),
+    title = gettext("Book description"),
     reader = true,
   },
   book_cover = {
     category = "none",
     event = "ShowBookCover",
-    title = _("Book cover"),
+    title = gettext("Book cover"),
     reader = true,
     separator = true,
   },
@@ -847,7 +847,7 @@ local settingsList = {
   translate_page = {
     category = "none",
     event = "TranslateCurrentPage",
-    title = _("Translate current page"),
+    title = gettext("Translate current page"),
     reader = true,
     separator = true,
   },
@@ -855,28 +855,28 @@ local settingsList = {
   toggle_page_change_animation = {
     category = "none",
     event = "TogglePageChangeAnimation",
-    title = _("Toggle page turn animations"),
+    title = gettext("Toggle page turn animations"),
     reader = true,
     condition = Device:canDoSwipeAnimation(),
   },
   toggle_inverse_reading_order = {
     category = "none",
     event = "ToggleReadingOrder",
-    title = _("Toggle page turn direction"),
+    title = gettext("Toggle page turn direction"),
     reader = true,
     condition = Device:isTouchDevice(),
   },
   toggle_handmade_toc = {
     category = "none",
     event = "ToggleHandmadeToc",
-    title = _("Toggle custom TOC"),
+    title = gettext("Toggle custom TOC"),
     reader = true,
     condition = Device:isTouchDevice(),
   },
   toggle_handmade_flows = {
     category = "none",
     event = "ToggleHandmadeFlows",
-    title = _("Toggle custom hidden flows"),
+    title = gettext("Toggle custom hidden flows"),
     reader = true,
     separator = true,
     condition = Device:isTouchDevice(),
@@ -885,20 +885,20 @@ local settingsList = {
   set_highlight_action = {
     category = "string",
     event = "SetHighlightAction",
-    title = _("Set highlight action"),
+    title = gettext("Set highlight action"),
     args_func = ReaderHighlight.getHighlightActions,
     reader = true,
   },
   cycle_highlight_action = {
     category = "none",
     event = "CycleHighlightAction",
-    title = _("Cycle highlight action"),
+    title = gettext("Cycle highlight action"),
     reader = true,
   },
   cycle_highlight_style = {
     category = "none",
     event = "CycleHighlightStyle",
-    title = _("Cycle highlight style"),
+    title = gettext("Cycle highlight style"),
     reader = true,
     separator = true,
   },
@@ -907,7 +907,7 @@ local settingsList = {
     category = "none",
     event = "FlushSettings",
     arg = true,
-    title = _("Save book metadata"),
+    title = gettext("Save book metadata"),
     reader = true,
     separator = true,
   },
@@ -917,7 +917,7 @@ local settingsList = {
   set_font = {
     category = "string",
     event = "SetFont",
-    title = _("Font face"),
+    title = gettext("Font face"),
     rolling = true,
     args_func = require("fontlist").getFontArgFunc,
   },
@@ -927,7 +927,7 @@ local settingsList = {
     min = 0.5,
     max = 255,
     step = 0.5,
-    title = _("Increase font size"),
+    title = gettext("Increase font size"),
     rolling = true,
   },
   decrease_font = {
@@ -936,7 +936,7 @@ local settingsList = {
     min = 0.5,
     max = 255,
     step = 0.5,
-    title = _("Decrease font size"),
+    title = gettext("Decrease font size"),
     rolling = true,
   },
 
@@ -944,32 +944,32 @@ local settingsList = {
   toggle_page_flipping = {
     category = "none",
     event = "TogglePageFlipping",
-    title = _("Toggle page flipping"),
+    title = gettext("Toggle page flipping"),
     paging = true,
   },
   toggle_bookmark_flipping = {
     category = "none",
     event = "ToggleBookmarkFlipping",
-    title = _("Toggle bookmark flipping"),
+    title = gettext("Toggle bookmark flipping"),
     paging = true,
   },
   toggle_reflow = {
     category = "none",
     event = "ToggleReflow",
-    title = _("Toggle reflow"),
+    title = gettext("Toggle reflow"),
     paging = true,
   },
   zoom = {
     category = "string",
     event = "SetZoomMode",
-    title = _("Zoom mode"),
+    title = gettext("Zoom mode"),
     args_func = ReaderZooming.getZoomModeActions,
     paging = true,
   },
   zoom_factor_change = {
     category = "none",
     event = "ZoomFactorChange",
-    title = _("Change zoom factor"),
+    title = gettext("Change zoom factor"),
     paging = true,
     separator = true,
   },
@@ -977,7 +977,7 @@ local settingsList = {
   panel_zoom_toggle = {
     category = "none",
     event = "TogglePanelZoomSetting",
-    title = _("Toggle panel zoom"),
+    title = gettext("Toggle panel zoom"),
     paging = true,
     separator = true,
   },
@@ -988,7 +988,7 @@ local settingsList = {
   font_size = {
     category = "absolutenumber",
     rolling = true,
-    title = _("Font size"),
+    title = gettext("Font size"),
     step = 0.5,
   },
   word_spacing = { category = "string", rolling = true },
@@ -1011,7 +1011,7 @@ local settingsList = {
   ----
   view_mode = { category = "string", rolling = true },
   block_rendering_mode = { category = "string", rolling = true },
-  render_dpi = { category = "string", title = _("Zoom"), rolling = true },
+  render_dpi = { category = "string", title = gettext("Zoom"), rolling = true },
   line_spacing = {
     category = "absolutenumber",
     rolling = true,
@@ -1042,12 +1042,12 @@ local settingsList = {
   kopt_font_size = {
     category = "string",
     paging = true,
-    title = _("Font Size"),
+    title = gettext("Font Size"),
   },
   kopt_font_fine_tune = {
     category = "string",
     paging = true,
-    title = _("Change font size"),
+    title = gettext("Change font size"),
   },
   kopt_word_spacing = { category = "configurable", paging = true },
   kopt_text_wrap = { category = "string", paging = true },
@@ -1443,7 +1443,7 @@ end
 -- Returns a display name for the item.
 function Dispatcher:getNameFromItem(item, settings, dont_show_value)
   if settingsList[item] == nil then
-    return _("Unknown item")
+    return gettext("Unknown item")
   end
   local value = settings and settings[item]
   local title = settingsList[item].title
@@ -1467,7 +1467,8 @@ function Dispatcher:getNameFromItem(item, settings, dont_show_value)
   elseif category == "absolutenumber" then
     display_value = tostring(value)
   elseif category == "incrementalnumber" then
-    display_value = value == 0 and _("gesture distance") or tostring(value)
+    display_value = value == 0 and gettext("gesture distance")
+      or tostring(value)
   end
   if display_value then
     if
@@ -1540,7 +1541,7 @@ function Dispatcher:menuTextFunc(settings)
   if settings then
     local count = Dispatcher:_itemsCount(settings)
     if count == 0 then
-      return _("Nothing")
+      return gettext("Nothing")
     elseif count == 1 then
       local item = next(settings)
       if item == "settings" then
@@ -1550,7 +1551,7 @@ function Dispatcher:menuTextFunc(settings)
     end
     return T(NC_("Dispatcher", "1 action", "%1 actions", count), count)
   end
-  return _("Pass through")
+  return gettext("Pass through")
 end
 
 -- Get a list of all enabled actions to display in a menu.
@@ -1585,7 +1586,7 @@ function Dispatcher:_sortActions(caller, location, settings, touchmenu_instance)
   local SortWidget = require("ui/widget/sortwidget")
   local sort_widget
   sort_widget = SortWidget:new({
-    title = _("Arrange actions"),
+    title = gettext("Arrange actions"),
     item_table = display_list,
     callback = function()
       if location[settings] and next(location[settings]) ~= nil then
@@ -1730,7 +1731,7 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
                 setValue(k, spin.value, touchmenu_instance)
               end,
               option_text = caller.profiles == nil
-                and _("Use gesture distance"), -- Gesture manager only
+                and gettext("Use gesture distance"), -- Gesture manager only
               option_callback = function()
                 setValue(k, 0, touchmenu_instance)
               end,
@@ -1806,7 +1807,7 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
   Dispatcher:init()
   menu.ignored_by_menu_search = true -- all those would be duplicated
   table.insert(menu, {
-    text = _("Nothing"),
+    text = gettext("Nothing"),
     separator = true,
     checked_func = function()
       return location[settings] ~= nil
@@ -1827,13 +1828,13 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
     end,
   })
   local section_list = {
-    { "general", _("General") },
-    { "device", _("Device") },
-    { "screen", _("Screen and lights") },
-    { "filemanager", _("File browser") },
-    { "reader", _("Reader") },
-    { "rolling", _("Reflowable documents (epub, fb2, txt…)") },
-    { "paging", _("Fixed layout documents (pdf, djvu, pics…)") },
+    { "general", gettext("General") },
+    { "device", gettext("Device") },
+    { "screen", gettext("Screen and lights") },
+    { "filemanager", gettext("File browser") },
+    { "reader", gettext("Reader") },
+    { "rolling", gettext("Reflowable documents (epub, fb2, txt…)") },
+    { "paging", gettext("Fixed layout documents (pdf, djvu, pics…)") },
   }
   for _, section in ipairs(section_list) do
     local submenu = {}
@@ -1875,7 +1876,7 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
     })
   end
   table.insert(menu, {
-    text = _("Arrange actions"),
+    text = gettext("Arrange actions"),
     checked_func = function()
       return location[settings] ~= nil
         and location[settings].settings ~= nil
@@ -1899,7 +1900,7 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
     end,
   })
   table.insert(menu, {
-    text = _("Show as QuickMenu"),
+    text = gettext("Show as QuickMenu"),
     checked_func = function()
       return location[settings] ~= nil
         and location[settings].settings ~= nil
@@ -1924,7 +1925,7 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
     end,
   })
   table.insert(menu, {
-    text = _("Keep QuickMenu open"),
+    text = gettext("Keep QuickMenu open"),
     checked_func = function()
       return location[settings] ~= nil
         and location[settings].settings ~= nil
@@ -1968,7 +1969,7 @@ function Dispatcher:isActionEnabled(action)
 end
 
 function Dispatcher:_showAsMenu(settings, exec_props)
-  local title = settings.settings.name or _("QuickMenu")
+  local title = settings.settings.name or gettext("QuickMenu")
   local keep_open_on_apply = settings.settings.keep_open_on_apply
   local display_list = Dispatcher:getDisplayList(settings)
   local quickmenu
@@ -1976,7 +1977,7 @@ function Dispatcher:_showAsMenu(settings, exec_props)
   if exec_props and exec_props.qm_show then
     table.insert(buttons, {
       {
-        text = _("Execute all"),
+        text = gettext("Execute all"),
         align = "left",
         font_face = "smallinfofont",
         font_size = 22,
@@ -2067,7 +2068,7 @@ function Dispatcher:execute(settings, exec_props)
     if Dispatcher:isActionEnabled(settingsList[k]) then
       if settings.settings and settings.settings.notify then
         Notification:notify(
-          T(_("Executing profile: %1"), settings.settings.name)
+          T(gettext("Executing profile: %1"), settings.settings.name)
         )
       end
       if settingsList[k].configurable then

@@ -15,10 +15,10 @@ local Notification = require("ui/widget/notification")
 local QRMessage = require("ui/widget/qrmessage")
 local UIManager = require("ui/uimanager")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 local Screen = Device.screen
 local T = ffiutil.template
 
@@ -154,7 +154,7 @@ function ReaderLink:init()
   self._external_link_buttons = {}
   self._external_link_buttons["10_copy"] = function(this, link_url)
     return {
-      text = _("Copy"),
+      text = gettext("Copy"),
       callback = function()
         Device.input.setClipboardText(link_url)
         UIManager:close(this.external_link_dialog)
@@ -163,7 +163,7 @@ function ReaderLink:init()
   end
   self._external_link_buttons["20_qrcode"] = function(this, link_url)
     return {
-      text = _("Show QR code"),
+      text = gettext("Show QR code"),
       callback = function()
         UIManager:close(this.external_link_dialog)
         UIManager:show(QRMessage:new({
@@ -176,7 +176,7 @@ function ReaderLink:init()
   end
   self._external_link_buttons["30_browser"] = function(this, link_url)
     return {
-      text = _("Open in browser"),
+      text = gettext("Open in browser"),
       callback = function()
         UIManager:close(this.external_link_dialog)
         Device:openLink(link_url)
@@ -190,7 +190,7 @@ function ReaderLink:init()
   end
   self._external_link_buttons["40_wiki_lookup"] = function(this, link_url)
     return {
-      text = _("Read online"),
+      text = gettext("Read online"),
       callback = function()
         UIManager:nextTick(function()
           UIManager:close(this.external_link_dialog)
@@ -212,7 +212,7 @@ function ReaderLink:init()
         if wiki_lang and wiki_page then
           logger.dbg("Wikipedia link:", wiki_lang, wiki_page)
           local text = T(
-            _("Would you like to read this Wikipedia %1 article?\n\n%2\n"),
+            gettext("Would you like to read this Wikipedia %1 article?\n\n%2\n"),
             wiki_lang:upper(),
             wiki_page:gsub("_", " ")
           )
@@ -225,7 +225,7 @@ function ReaderLink:init()
   end
   self._external_link_buttons["45_wiki_saved"] = function(this, link_url)
     return {
-      text = _("Read EPUB"),
+      text = gettext("Read EPUB"),
       callback = function()
         UIManager:scheduleIn(0.1, function()
           UIManager:close(this.external_link_dialog)
@@ -237,7 +237,7 @@ function ReaderLink:init()
         local wiki_lang, wiki_page, wiki_epub_fullpath = is_wiki_page(link_url)
         if wiki_lang and wiki_page and wiki_epub_fullpath then
           local text = T(
-            _(
+            gettext(
               "This article has previously been saved as EPUB. You may wish to read the saved EPUB instead."
             )
           )
@@ -248,7 +248,7 @@ function ReaderLink:init()
   end
   self._external_link_buttons["90_cancel"] = function(this, link_url)
     return {
-      text = _("Cancel"),
+      text = gettext("Cancel"),
       callback = function()
         UIManager:close(this.external_link_dialog)
       end,
@@ -353,7 +353,7 @@ end
 function ReaderLink:addToMainMenu(menu_items)
   -- insert table to main reader menu
   menu_items.go_to_previous_location = {
-    text = _("Go back to previous location"),
+    text = gettext("Go back to previous location"),
     enabled_func = function()
       return self.location_stack and #self.location_stack > 0
     end,
@@ -362,8 +362,8 @@ function ReaderLink:addToMainMenu(menu_items)
     end,
     hold_callback = function(touchmenu_instance)
       UIManager:show(ConfirmBox:new({
-        text = _("Clear location history?"),
-        ok_text = _("Clear"),
+        text = gettext("Clear location history?"),
+        ok_text = gettext("Clear"),
         ok_callback = function()
           self:onClearLocationStack()
           touchmenu_instance:closeMenu()
@@ -372,7 +372,7 @@ function ReaderLink:addToMainMenu(menu_items)
     end,
   }
   menu_items.go_to_next_location = {
-    text = _("Go forward to next location"),
+    text = gettext("Go forward to next location"),
     enabled_func = function()
       return self.forward_location_stack and #self.forward_location_stack > 0
     end,
@@ -381,8 +381,8 @@ function ReaderLink:addToMainMenu(menu_items)
     end,
     hold_callback = function(touchmenu_instance)
       UIManager:show(ConfirmBox:new({
-        text = _("Clear forward location history?"),
-        ok_text = _("Clear"),
+        text = gettext("Clear forward location history?"),
+        ok_text = gettext("Clear"),
         ok_callback = function()
           self:onClearForwardLocationStack()
           touchmenu_instance:closeMenu()
@@ -395,10 +395,10 @@ function ReaderLink:addToMainMenu(menu_items)
     return
   end
   menu_items.follow_links = {
-    text = _("Links"),
+    text = gettext("Links"),
     sub_item_table = {
       {
-        text = _("Tap to follow links"),
+        text = gettext("Tap to follow links"),
         checked_func = isTapToFollowLinksOn,
         callback = function()
           G_reader_settings:save(
@@ -406,10 +406,10 @@ function ReaderLink:addToMainMenu(menu_items)
             not isTapToFollowLinksOn()
           )
         end,
-        help_text = _([[Tap on links to follow them.]]),
+        help_text = gettext([[Tap on links to follow them.]]),
       },
       {
-        text = _("Ignore external links on tap"),
+        text = gettext("Ignore external links on tap"),
         enabled_func = isTapToFollowLinksOn,
         checked_func = isTapIgnoreExternalLinksEnabled,
         callback = function()
@@ -418,7 +418,7 @@ function ReaderLink:addToMainMenu(menu_items)
             not isTapIgnoreExternalLinksEnabled()
           )
         end,
-        help_text = _(
+        help_text = gettext(
           [[
 Ignore taps on external links. Useful with Wikipedia EPUBs to make page turning easier.
 You can still follow them from the dictionary window or the selection menu after holding on them.]]
@@ -426,7 +426,7 @@ You can still follow them from the dictionary window or the selection menu after
         separator = true,
       },
       {
-        text = _("Swipe to go back"),
+        text = gettext("Swipe to go back"),
         checked_func = isSwipeToGoBackEnabled,
         callback = function()
           G_reader_settings:save(
@@ -434,12 +434,12 @@ You can still follow them from the dictionary window or the selection menu after
             not isSwipeToGoBackEnabled()
           )
         end,
-        help_text = _(
+        help_text = gettext(
           [[Swipe to the right to go back to the previous location after you have followed a link. When the location stack is empty, swiping to the right takes you to the previous page.]]
         ),
       },
       {
-        text = _("Swipe to follow nearest link"),
+        text = gettext("Swipe to follow nearest link"),
         checked_func = isSwipeToFollowNearestLinkEnabled,
         callback = function()
           G_reader_settings:save(
@@ -447,12 +447,12 @@ You can still follow them from the dictionary window or the selection menu after
             not isSwipeToFollowNearestLinkEnabled()
           )
         end,
-        help_text = _(
+        help_text = gettext(
           [[Swipe to the left to follow the link nearest to where you started the swipe. This is useful when a small font is used and tapping on small links is tedious.]]
         ),
       },
       {
-        text = _("Ignore external links on swipe"),
+        text = gettext("Ignore external links on swipe"),
         enabled_func = isSwipeToFollowNearestLinkEnabled,
         checked_func = isSwipeIgnoreExternalLinksEnabled,
         callback = function()
@@ -461,7 +461,7 @@ You can still follow them from the dictionary window or the selection menu after
             not isSwipeIgnoreExternalLinksEnabled()
           )
         end,
-        help_text = _(
+        help_text = gettext(
           [[
 Ignore external links near swipe. Useful with Wikipedia EPUBs to follow only footnotes with swipe.
 You can still follow external links from the dictionary window or the selection menu after holding on them.]]
@@ -469,7 +469,7 @@ You can still follow external links from the dictionary window or the selection 
         separator = true,
       },
       {
-        text = _("Swipe to jump to latest bookmark"),
+        text = gettext("Swipe to jump to latest bookmark"),
         checked_func = isSwipeToJumpToLatestBookmarkEnabled,
         callback = function()
           G_reader_settings:save(
@@ -477,7 +477,7 @@ You can still follow external links from the dictionary window or the selection 
             not isSwipeToJumpToLatestBookmarkEnabled()
           )
         end,
-        help_text = _(
+        help_text = gettext(
           [[
 Swipe to the left to go the most recently bookmarked page.
 This can be useful to quickly swipe back and forth between what you are reading and some reference page (for example notes, a map or a characters list).
@@ -494,7 +494,7 @@ If any of the other Swipe to follow link options is enabled, this will work only
   if self.ui.rolling then
     -- Tap section
     table.insert(menu_items.follow_links.sub_item_table, 2, {
-      text = _("Allow larger tap area around links"),
+      text = gettext("Allow larger tap area around links"),
       enabled_func = isTapToFollowLinksOn,
       checked_func = isLargerTapAreaToFollowLinksEnabled,
       callback = function()
@@ -503,12 +503,12 @@ If any of the other Swipe to follow link options is enabled, this will work only
           not isLargerTapAreaToFollowLinksEnabled()
         )
       end,
-      help_text = _(
+      help_text = gettext(
         [[Extends the tap area around internal links. Useful with a small font where tapping on small footnote links may be tedious.]]
       ),
     })
     table.insert(menu_items.follow_links.sub_item_table, 4, {
-      text = _("Show footnotes in popup"),
+      text = gettext("Show footnotes in popup"),
       enabled_func = function()
         return isTapToFollowLinksOn() or isSwipeToFollowNearestLinkEnabled()
       end,
@@ -519,7 +519,7 @@ If any of the other Swipe to follow link options is enabled, this will work only
           not isFootnoteLinkInPopupEnabled()
         )
       end,
-      help_text = _(
+      help_text = gettext(
         [[
 Show internal link target content in a footnote popup when it looks like it might be a footnote, instead of following the link.
 
@@ -531,12 +531,12 @@ From the footnote popup, you can jump to the footnote location in the book by sw
     })
     local footnote_popup_settings_items = {}
     table.insert(menu_items.follow_links.sub_item_table, 5, {
-      text = _("Footnote popup settings"),
+      text = gettext("Footnote popup settings"),
       sub_item_table = footnote_popup_settings_items,
       separator = true,
     })
     table.insert(footnote_popup_settings_items, {
-      text = _("Show more links as footnotes"),
+      text = gettext("Show more links as footnotes"),
       enabled_func = function()
         return isFootnoteLinkInPopupEnabled()
           and (isTapToFollowLinksOn() or isSwipeToFollowNearestLinkEnabled())
@@ -548,13 +548,13 @@ From the footnote popup, you can jump to the footnote location in the book by sw
           not isPreferFootnoteEnabled()
         )
       end,
-      help_text = _(
+      help_text = gettext(
         [[Loosen footnote detection rules to show more links as footnotes.]]
       ),
       separator = true,
     })
     table.insert(footnote_popup_settings_items, {
-      text = _("Use book font as popup font"),
+      text = gettext("Use book font as popup font"),
       enabled_func = function()
         return isFootnoteLinkInPopupEnabled()
           and (isTapToFollowLinksOn() or isSwipeToFollowNearestLinkEnabled())
@@ -565,12 +565,12 @@ From the footnote popup, you can jump to the footnote location in the book by sw
       callback = function()
         G_reader_settings:flipNilOrFalse("footnote_popup_use_book_font")
       end,
-      help_text = _(
+      help_text = gettext(
         [[Display the footnote popup text with the font set as the document font (the book text may still render with a different font if the book uses embedded fonts).]]
       ),
     })
     table.insert(footnote_popup_settings_items, {
-      text = _("Set footnote popup font size"),
+      text = gettext("Set footnote popup font size"),
       enabled_func = function()
         return isFootnoteLinkInPopupEnabled()
           and (isTapToFollowLinksOn() or isSwipeToFollowNearestLinkEnabled())
@@ -591,9 +591,9 @@ From the footnote popup, you can jump to the footnote location in the book by sw
               value_min = 12,
               value_max = 255,
               precision = "%d",
-              ok_text = _("Set font size"),
-              title_text = _("Set footnote popup font size"),
-              info_text = _(
+              ok_text = gettext("Set font size"),
+              title_text = gettext("Set footnote popup font size"),
+              info_text = gettext(
                 [[
 The footnote popup font can adjust to the font size you've set for the document, but you can specify here a fixed absolute font size to be used instead.]]
               ),
@@ -604,7 +604,7 @@ The footnote popup font can adjust to the font size you've set for the document,
                   spin.value
                 )
               end,
-              extra_text = _("Set a relative font size instead"),
+              extra_text = gettext("Set a relative font size instead"),
               extra_callback = function()
                 UIManager:close(spin_widget)
                 spin_widget = get_font_size_widget(false)
@@ -620,9 +620,9 @@ The footnote popup font can adjust to the font size you've set for the document,
               value_min = -10,
               value_max = 5,
               precision = "%+d",
-              ok_text = _("Set font size"),
-              title_text = _("Set footnote popup font size"),
-              info_text = _([[
+              ok_text = gettext("Set font size"),
+              title_text = gettext("Set footnote popup font size"),
+              info_text = gettext([[
 The footnote popup font adjusts to the font size you've set for the document.
 You can specify here how much smaller or larger it should be relative to the document font size.
 A negative value will make it smaller, while a positive one will make it larger.
@@ -634,7 +634,7 @@ The recommended value is -2.]]),
                   spin.value
                 )
               end,
-              extra_text = _("Set an absolute font size instead"),
+              extra_text = gettext("Set an absolute font size instead"),
               extra_callback = function()
                 UIManager:close(spin_widget)
                 spin_widget = get_font_size_widget(true)
@@ -649,7 +649,7 @@ The recommended value is -2.]]),
         spin_widget = get_font_size_widget(show_absolute_font_size_widget)
         UIManager:show(spin_widget)
       end,
-      help_text = _(
+      help_text = gettext(
         [[
 The footnote popup font adjusts to the font size you've set for the document.
 This allows you to specify how much smaller or larger it should be relative to the document font size.]]
@@ -848,14 +848,14 @@ end
 function ReaderLink:onAddCurrentLocationToStack(show_notification)
   self:addCurrentLocationToStack()
   if show_notification then
-    Notification:notify(_("Current location added to history."))
+    Notification:notify(gettext("Current location added to history."))
   end
   return true
 end
 
 function ReaderLink:onAddCurrentLocationToStackNonTouch()
   self:addCurrentLocationToStack()
-  Notification:notify(_("Current location added to history."))
+  Notification:notify(gettext("Current location added to history."))
   return true
 end
 
@@ -874,7 +874,7 @@ function ReaderLink:onClearLocationStack(show_notification)
   self.location_stack = {}
   self:onClearForwardLocationStack()
   if show_notification then
-    Notification:notify(_("Location history cleared."))
+    Notification:notify(gettext("Location history cleared."))
   end
   return true
 end
@@ -998,7 +998,7 @@ function ReaderLink:onGotoLink(
       end
       UIManager:show(ConfirmBox:new({
         text = T(
-          _("Would you like to read this local document?\n\n%1\n"),
+          gettext("Would you like to read this local document?\n\n%1\n"),
           BD.filepath(display_filename)
         ),
         ok_callback = function()
@@ -1009,7 +1009,10 @@ function ReaderLink:onGotoLink(
       }))
     else
       UIManager:show(InfoMessage:new({
-        text = T(_("Link to unsupported local file:\n%1"), BD.url(link_url)),
+        text = T(
+          gettext("Link to unsupported local file:\n%1"),
+          BD.url(link_url)
+        ),
       }))
     end
     return true
@@ -1017,7 +1020,7 @@ function ReaderLink:onGotoLink(
 
   -- Not supported
   UIManager:show(InfoMessage:new({
-    text = T(_("Invalid or external link:\n%1"), BD.url(link_url)),
+    text = T(gettext("Invalid or external link:\n%1"), BD.url(link_url)),
     -- no timeout to allow user to type that link in his web browser
   }))
   -- don't propagate, user will notice and tap elsewhere if he wants to change page
@@ -1061,7 +1064,7 @@ function ReaderLink:onGoBackLink(show_notification_if_empty)
     UIManager:broadcastEvent(Event:new("RestoreBookLocation", saved_location))
     return true
   elseif show_notification_if_empty then
-    Notification:notify(_("Location history is empty."))
+    Notification:notify(gettext("Location history is empty."))
   end
 end
 
@@ -1100,7 +1103,7 @@ function ReaderLink:onSwipe(arg, ges)
         self.swipe_back_resist = false
         -- Make that gesture don't do anything, and show a Notification
         -- so the user knows why
-        Notification:notify(_("Location history is empty."))
+        Notification:notify(gettext("Location history is empty."))
         return true
       end
     end
@@ -1689,7 +1692,7 @@ function ReaderLink:getButtonsForExternalLinkDialog(link_url)
   local buttons = { {} }
   local columns = 2
 
-  local default_title = T(_("External link:\n\n%1"), BD.url(link_url))
+  local default_title = T(gettext("External link:\n\n%1"), BD.url(link_url))
   local title = default_title
 
   for idx, fn_button in ffiutil.orderedPairs(self._external_link_buttons) do

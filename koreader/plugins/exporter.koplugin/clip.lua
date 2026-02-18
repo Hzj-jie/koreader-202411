@@ -1,10 +1,10 @@
-local DocumentRegistry = require("document/documentregistry")
 local DocSettings = require("docsettings")
+local DocumentRegistry = require("document/documentregistry")
 local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local ffiutil = require("ffi/util")
 local md5 = require("ffi/sha2").md5
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
 local T = ffiutil.template
 
 local MyClipping = {
@@ -124,8 +124,8 @@ function MyClipping:parseTitleFromPath(line)
     dummy, dummy, title, author = line:find("(.-)%s*-%s*(.*)")
   end
   title = title or line:match("^%s*(.-)%s*$")
-  return isEmpty(title) and _("Unknown Book") or title,
-    isEmpty(author) and _("Unknown Author") or author
+  return isEmpty(title) and gettext("Unknown Book") or title,
+    isEmpty(author) and gettext("Unknown Author") or author
 end
 
 local keywords = {
@@ -279,7 +279,7 @@ function MyClipping:parseHighlight(highlights, bookmarks, book)
   --- @todo Remove this once we get rid of auto-text or improve the data model.
   local pattern = "^"
     .. T(
-      _("Page %1 %2 @ %3"),
+      gettext("Page %1 %2 @ %3"),
       "%[?%d*%]?%d+",
       "(.*)",
       "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d"

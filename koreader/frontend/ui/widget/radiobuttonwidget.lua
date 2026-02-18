@@ -6,15 +6,15 @@ Example:
     local RadioButtonWidget = require("ui/widget/radiobuttonwidget")
 
     local radio_buttons = {
-        { {text = _("Radio 1"), provider = 1} },
-        { {text = _("Radio 2"), provider = 2, checked = true} },
-        { {text = _("Radio 3"), provider = "identifier"} },
+        { {text = gettext("Radio 1"), provider = 1} },
+        { {text = gettext("Radio 2"), provider = 2, checked = true} },
+        { {text = gettext("Radio 3"), provider = "identifier"} },
     }
     UIManager:show(RadioButtonWidget:new{
-        title_text = _("Example Title"),
-        info_text = _("Some more information"),
-        cancel_text = _("Close"),
-        ok_text = _("Apply"),
+        title_text = gettext("Example Title"),
+        info_text = gettext("Some more information"),
+        cancel_text = gettext("Close"),
+        ok_text = gettext("Apply"),
         width_factor = 0.9,
         radio_buttons = radio_buttons,
         callback = function(radio)
@@ -33,8 +33,8 @@ local Blitbuffer = require("ffi/blitbuffer")
 local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
-local FrameContainer = require("ui/widget/container/framecontainer")
 local FocusManager = require("ui/widget/focusmanager")
+local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
@@ -45,7 +45,7 @@ local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 
 local RadioButtonWidget = FocusManager:extend({
@@ -55,8 +55,8 @@ local RadioButtonWidget = FocusManager:extend({
   width_factor = nil,
   height = nil,
   radio_buttons = nil, -- row x column table
-  cancel_text = _("Close"),
-  ok_text = _("Apply"),
+  cancel_text = gettext("Close"),
+  ok_text = gettext("Apply"),
   cancel_callback = nil,
   callback = nil,
   close_callback = nil,

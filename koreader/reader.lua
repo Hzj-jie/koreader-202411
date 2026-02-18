@@ -69,9 +69,9 @@ local lang_locale = G_reader_settings:read("language")
 if os.getenv("KO_RTL") then
   lang_locale = "ar"
 end
-local _ = require("gettext")
+local gettext = require("gettext")
 if lang_locale then
-  _.changeLang(lang_locale)
+  gettext.changeLang(lang_locale)
 end
 
 -- Try to turn the C blitter on/off, and synchronize setting so that UI config reflects real state
@@ -204,7 +204,7 @@ if Device:hasColorScreen() and not G_reader_settings:has("color_rendering") then
   G_reader_settings:makeTrue("color_rendering")
   local InfoMessage = require("ui/widget/infomessage")
   UIManager:show(InfoMessage:new({
-    text = _(
+    text = gettext(
       "Documents will be rendered in color on this device.\nIf your device is grayscale, you can disable color rendering in the screen sub-menu for reduced memory usage."
     ),
   }))
@@ -216,14 +216,14 @@ if
 then
   local ConfirmBox = require("ui/widget/confirmbox")
   UIManager:show(ConfirmBox:new({
-    text = _(
+    text = gettext(
       "Color rendering is mistakenly enabled on your grayscale device.\nThis will subtly break some features, and adversely affect performance."
     ),
-    cancel_text = _("Ignore"),
+    cancel_text = gettext("Ignore"),
     cancel_callback = function()
       return
     end,
-    ok_text = _("Disable"),
+    ok_text = gettext("Disable"),
     ok_callback = function()
       local Event = require("ui/event")
       G_reader_settings:delete("color_rendering")
@@ -241,7 +241,7 @@ local start_with = G_reader_settings:read("start_with") or "filemanager"
 local function retryLastFile()
   local ConfirmBox = require("ui/widget/confirmbox")
   return ConfirmBox:new({
-    text = _(
+    text = gettext(
       "Cannot open last file.\nThis could be because it was deleted or because external storage is still being mounted.\nDo you want to retry?"
     ),
     ok_callback = function()

@@ -6,9 +6,9 @@ local InfoMessage = require("ui/widget/infomessage")
 local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local Version = require("version")
+local _ = require("gettext")
 local dbg = require("dbg")
 local lfs = require("libs/libkoreader-lfs")
-local _ = require("gettext")
 local T = require("ffi/util").template
 
 local common_info = {}

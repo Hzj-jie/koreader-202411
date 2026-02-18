@@ -2,16 +2,16 @@ local BBoxWidget = require("ui/widget/bboxwidget")
 local Blitbuffer = require("ffi/blitbuffer")
 local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
+local Device = require("device")
 local Event = require("ui/event")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local Math = require("optmath")
 local UIManager = require("ui/uimanager")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
-local Device = require("device")
+local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Screen = Device.screen
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local ReaderCropping = WidgetContainer:extend({})
 
@@ -59,13 +59,13 @@ function ReaderCropping:onPageCrop(mode)
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           callback = function()
             self:onCancelPageCrop()
           end,
         },
         {
-          text = _("Apply crop"),
+          text = gettext("Apply crop"),
           callback = function()
             self:onConfirmPageCrop()
           end,

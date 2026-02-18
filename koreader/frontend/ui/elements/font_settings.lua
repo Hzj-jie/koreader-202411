@@ -1,7 +1,7 @@
 local Device = require("device")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 
 --[[ Font settings for systems with multiple font dirs ]]
 --
@@ -74,7 +74,7 @@ end
 function FontSettings:getSystemFontMenuItems()
   local t = {
     {
-      text = _("Enable system fonts"),
+      text = gettext("Enable system fonts"),
       checked_func = usesSystemFonts,
       callback = function()
         G_reader_settings:save("system_fonts", not usesSystemFonts())
@@ -86,7 +86,7 @@ function FontSettings:getSystemFontMenuItems()
 
   if Device:isDesktop() then
     table.insert(t, 2, {
-      text = _("Open fonts folder"),
+      text = gettext("Open fonts folder"),
       keep_menu_open = true,
       callback = openFontDir,
     })

@@ -1,17 +1,17 @@
-local Widget = require("ui/widget/widget")
+local Geom = require("ui/geometry")
+local HorizontalGroup = require("ui/widget/horizontalgroup")
+local InfoMessage = require("ui/widget/infomessage")
 local LineWidget = require("ui/widget/linewidget")
 local MultiInputDialog = require("ui/widget/multiinputdialog")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local HorizontalGroup = require("ui/widget/horizontalgroup")
 local UIManager = require("ui/uimanager")
-local InfoMessage = require("ui/widget/infomessage")
-local Geom = require("ui/geometry")
+local Widget = require("ui/widget/widget")
+local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Screen = require("device").screen
 local T = require("ffi/util").template
-local _ = require("gettext")
-local LuaSettings = require("luasettings")
-local DataStorage = require("datastorage")
 local Blitbuffer = require("ffi/blitbuffer")
+local DataStorage = require("datastorage")
+local LuaSettings = require("luasettings")
+local gettext = require("gettext")
 
 local PerceptionExpander = Widget:extend({
   is_enabled = nil,
@@ -109,23 +109,26 @@ end
 
 function PerceptionExpander:showSettingsDialog()
   self.settings_dialog = MultiInputDialog:new({
-    title = _("Perception expander settings"),
+    title = gettext("Perception expander settings"),
     fields = {
       {
         text = "",
         input_type = "number",
-        hint = T(_("Line thickness. Current value: %1"), self.line_thickness),
+        hint = T(
+          gettext("Line thickness. Current value: %1"),
+          self.line_thickness
+        ),
       },
       {
         text = "",
         input_type = "number",
-        hint = T(_("Margin from edges. Current value: %1"), self.margin),
+        hint = T(gettext("Margin from edges. Current value: %1"), self.margin),
       },
       {
         text = "",
         input_type = "number",
         hint = T(
-          _("Line color intensity (1-10). Current value: %1"),
+          gettext("Line color intensity (1-10). Current value: %1"),
           self.line_color_intensity * 10
         ),
       },
@@ -133,7 +136,7 @@ function PerceptionExpander:showSettingsDialog()
         text = "",
         input_type = "number",
         hint = T(
-          _(
+          gettext(
             "Increase margin after pages. Current value: %1\nSet to 0 to disable."
           ),
           self.shift_each_pages
@@ -143,7 +146,7 @@ function PerceptionExpander:showSettingsDialog()
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             self.settings_dialog:onExit()
@@ -151,7 +154,7 @@ function PerceptionExpander:showSettingsDialog()
           end,
         },
         {
-          text = _("Apply"),
+          text = gettext("Apply"),
           callback = function()
             self:saveSettings(self.settings_dialog:getFields())
             self.settings_dialog:onExit()
@@ -168,10 +171,10 @@ end
 
 function PerceptionExpander:addToMainMenu(menu_items)
   menu_items.speed_reading_module_perception_expander = {
-    text = _("Speed reading module - perception expander"),
+    text = gettext("Speed reading module - perception expander"),
     sub_item_table = {
       {
-        text = _("Enable"),
+        text = gettext("Enable"),
         checked_func = function()
           return self.is_enabled
         end,
@@ -185,18 +188,18 @@ function PerceptionExpander:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Settings"),
+        text = gettext("Settings"),
         keep_menu_open = true,
         callback = function()
           self:showSettingsDialog()
         end,
       },
       {
-        text = _("About"),
+        text = gettext("About"),
         keep_menu_open = true,
         callback = function()
           UIManager:show(InfoMessage:new({
-            text = _(
+            text = gettext(
               "For more information see wiki page Perception Expander Plugin"
             ),
           }))

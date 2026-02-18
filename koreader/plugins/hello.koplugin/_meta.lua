@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "hello",
-  fullname = _("Hello"),
-  description = _([[This is a debugging plugin.]]),
+  fullname = gettext("Hello"),
+  description = gettext([[This is a debugging plugin.]]),
 }

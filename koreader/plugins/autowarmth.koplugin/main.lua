@@ -7,11 +7,11 @@ Plugin for setting screen warmth based on the sun position and/or a time schedul
 
 local CheckButton = require("ui/widget/checkbutton")
 local ConfirmBox = require("ui/widget/confirmbox")
-local Device = require("device")
 local DateTimeWidget = require("ui/widget/datetimewidget")
-local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
+local Device = require("device")
 local DeviceListener = require("device/devicelistener")
 local Dispatcher = require("dispatcher")
+local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
 local Event = require("ui/event")
 local FFIUtil = require("ffi/util")
 local Font = require("ui/font")
@@ -24,9 +24,9 @@ local SunTime = require("suntime")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
-local C_ = _.pgettext
+local C_ = gettext.pgettext
 local Powerd = Device.powerd
 local T = FFIUtil.template
 local Screen = require("device").screen
@@ -132,55 +132,55 @@ function AutoWarmth:onDispatcherRegisterActions()
   Dispatcher:registerAction("show_ephemeris", {
     category = "none",
     event = "ShowEphemeris",
-    title = _("Show ephemeris"),
+    title = gettext("Show ephemeris"),
     general = true,
   })
   Dispatcher:registerAction("auto_warmth_off", {
     category = "none",
     event = "AutoWarmthOff",
-    title = _("Auto warmth off"),
+    title = gettext("Auto warmth off"),
     screen = true,
   })
   Dispatcher:registerAction("auto_warmth_activate_sun", {
     category = "none",
     event = "AutoWarmthMode",
     arg = activate_sun,
-    title = _("Auto warmth use sun position"),
+    title = gettext("Auto warmth use sun position"),
     screen = true,
   })
   Dispatcher:registerAction("auto_warmth_activate_schedule", {
     category = "none",
     event = "AutoWarmthMode",
     arg = activate_schedule,
-    title = _("Auto warmth use schedule"),
+    title = gettext("Auto warmth use schedule"),
     screen = true,
   })
   Dispatcher:registerAction("auto_warmth_activate_closer_midnight", {
     category = "none",
     event = "AutoWarmthMode",
     arg = activate_closer_midnight,
-    title = _("Auto warmth use closer midnight"),
+    title = gettext("Auto warmth use closer midnight"),
     screen = true,
   })
   Dispatcher:registerAction("auto_warmth_activate_closer_noon", {
     category = "none",
     event = "AutoWarmthMode",
     arg = activate_closer_noon,
-    title = _("Auto warmth use closer noon"),
+    title = gettext("Auto warmth use closer noon"),
     screen = true,
   })
 
   Dispatcher:registerAction("auto_warmth_cycle_trough", {
     category = "none",
     event = "AutoWarmthMode",
-    title = _("Auto warmth cycle through modes"),
+    title = gettext("Auto warmth cycle through modes"),
     screen = true,
   })
 end
 
 function AutoWarmth:onShowEphemeris()
   self:showTimesInfo(
-    _("Information about the sun in"),
+    gettext("Information about the sun in"),
     true,
     activate_sun,
     false
@@ -204,15 +204,15 @@ function AutoWarmth:onAutoWarmthMode(forced_method)
   end
   local notify_text
   if self.activate == 0 then
-    notify_text = _("Auto warmth turned off")
+    notify_text = gettext("Auto warmth turned off")
   elseif self.activate == activate_sun then
-    notify_text = _("Auto warmth use sun position")
+    notify_text = gettext("Auto warmth use sun position")
   elseif self.activate == activate_schedule then
-    notify_text = _("Auto warmth use schedule")
+    notify_text = gettext("Auto warmth use schedule")
   elseif self.activate == activate_closer_midnight then
-    notify_text = _("Auto warmth use whatever is closer to midnight")
+    notify_text = gettext("Auto warmth use whatever is closer to midnight")
   elseif self.activate == activate_closer_noon then
-    notify_text = _("Auto warmth use whatever is closer to noon")
+    notify_text = gettext("Auto warmth use whatever is closer to noon")
   end
   G_reader_settings:save("autowarmth_activate", self.activate)
   Notification:notify(notify_text)
@@ -274,13 +274,13 @@ function AutoWarmth:_onToggleNightMode()
     local radio_buttons = {
       {
         {
-          text = _("Show this warning again"),
+          text = gettext("Show this warning again"),
           provider = function() end,
         },
       },
       {
         {
-          text = _("Hide the warning until the next book is opened"),
+          text = gettext("Hide the warning until the next book is opened"),
           provider = function()
             self.hide_nightmode_warning = true
           end,
@@ -288,7 +288,7 @@ function AutoWarmth:_onToggleNightMode()
       },
       {
         {
-          text = _("Disable AutoWarmth's nightmode control"),
+          text = gettext("Disable AutoWarmth's nightmode control"),
           provider = function()
             self.control_nightmode = false
             G_reader_settings:makeFalse("autowarmth_control_nightmode")
@@ -298,8 +298,8 @@ function AutoWarmth:_onToggleNightMode()
       },
     }
     UIManager:show(RadioButtonWidget:new({
-      title_text = _("Night mode changed"),
-      info_text = _("The AutoWarmth plugin might change it again."),
+      title_text = gettext("Night mode changed"),
+      info_text = gettext("The AutoWarmth plugin might change it again."),
       width_factor = 0.9,
       radio_buttons = radio_buttons,
       callback = function(radio)
@@ -647,8 +647,8 @@ end
 
 function AutoWarmth:addToMainMenu(menu_items)
   menu_items.autowarmth = {
-    text = Device:hasNaturalLight() and _("Auto warmth and night mode")
-      or _("Auto night mode"),
+    text = Device:hasNaturalLight() and gettext("Auto warmth and night mode")
+      or gettext("Auto night mode"),
     checked_func = function()
       return self.activate ~= 0
     end,
@@ -674,7 +674,7 @@ function AutoWarmth:updateItems(touchmenu_instance)
   UIManager:broadcastEvent("UpdateFooter")
 end
 
-local about_text = _(
+local about_text = gettext(
   [[Set the frontlight warmth (if available) and night mode based on a time schedule or the sun's position.
 
 There are three types of twilight:
@@ -691,8 +691,9 @@ To use the sun's position, a geographical location must be entered. The calculat
 function AutoWarmth:getSubMenuItems()
   return {
     {
-      text = Device:hasNaturalLight() and _("About auto warmth and night mode")
-        or _("About auto night mode"),
+      text = Device:hasNaturalLight() and gettext(
+        "About auto warmth and night mode"
+      ) or gettext("About auto night mode"),
       callback = function()
         UIManager:show(InfoMessage:new({
           text = about_text,
@@ -703,18 +704,18 @@ function AutoWarmth:getSubMenuItems()
       separator = true,
     },
     {
-      text = _("Activate"),
+      text = gettext("Activate"),
       checked_func = function()
         return self.activate ~= 0
       end,
       sub_item_table = self:getActivateMenu(),
     },
     {
-      text = _("Expert mode"),
+      text = gettext("Expert mode"),
       checked_func = function()
         return not self.easy_mode
       end,
-      help_text = _(
+      help_text = gettext(
         "In the expert mode, different types of twilight can be used in addition to civil twilight."
       ),
       callback = function(touchmenu_instance)
@@ -736,11 +737,11 @@ function AutoWarmth:getSubMenuItems()
       keep_menu_open = true,
     },
     {
-      text = _("Location settings"),
+      text = gettext("Location settings"),
       sub_item_table = self:getLocationMenu(),
     },
     {
-      text = _("Fixed schedule settings"),
+      text = gettext("Fixed schedule settings"),
       enabled_func = function()
         return self.activate ~= activate_sun and self.activate ~= 0
       end,
@@ -750,15 +751,20 @@ function AutoWarmth:getSubMenuItems()
       enabled_func = function()
         return self.activate ~= 0
       end,
-      text = Device:hasNaturalLight() and _("Warmth and night mode settings")
-        or _("Night mode settings"),
+      text = Device:hasNaturalLight() and gettext(
+        "Warmth and night mode settings"
+      ) or gettext("Night mode settings"),
       sub_item_table = self:getWarmthMenu(),
     },
     self:getFlOffDuringDayMenu(),
-    self:getTimesMenu(_("Currently active parameters")),
-    self:getTimesMenu(_("Sun position information for"), true, activate_sun),
+    self:getTimesMenu(gettext("Currently active parameters")),
     self:getTimesMenu(
-      _("Fixed schedule information"),
+      gettext("Sun position information for"),
+      true,
+      activate_sun
+    ),
+    self:getTimesMenu(
+      gettext("Fixed schedule information"),
       false,
       activate_schedule
     ),
@@ -777,11 +783,11 @@ function AutoWarmth:getFlOffDuringDayMenu()
         and not self.easy_mode
       then
         return T(
-          _("Frontlight off during day: %1 min offset"),
+          gettext("Frontlight off during day: %1 min offset"),
           math.floor(self.fl_off_during_day_offset_s / 60)
         )
       else
-        return _("Frontlight off during day")
+        return gettext("Frontlight off during day")
       end
     end,
     callback = function(touchmenu_instance)
@@ -796,8 +802,8 @@ function AutoWarmth:getFlOffDuringDayMenu()
       else
         -- hard limit offset to 15 min after sunset and 30 mins before sunset; sunrise vice versa
         UIManager:show(SpinWidget:new({
-          title_text = _("Offset for frontlight off"),
-          info_text = _([[At this time the frontlight will be turned
+          title_text = gettext("Offset for frontlight off"),
+          info_text = gettext([[At this time the frontlight will be turned
   • off after sunrise and
   • on before sunset.]]),
           ok_always_enabled = true,
@@ -811,7 +817,7 @@ function AutoWarmth:getFlOffDuringDayMenu()
           value_step = 5,
           value_hold_step = 10,
           unit = "min",
-          ok_text = _("Set"),
+          ok_text = gettext("Set"),
           callback = function(spin)
             self.fl_off_during_day_offset_s = spin.value * 60
             G_reader_settings:save(
@@ -826,7 +832,7 @@ function AutoWarmth:getFlOffDuringDayMenu()
               self:updateItems(touchmenu_instance)
             end
           end,
-          extra_text = _("Disable"),
+          extra_text = gettext("Disable"),
           extra_callback = function()
             self.fl_off_during_day = nil
             G_reader_settings:save("autowarmth_fl_off_during_day", nil)
@@ -845,7 +851,7 @@ function AutoWarmth:getFlOffDuringDayMenu()
     end,
     hold_callback = function()
       UIManager:show(InfoMessage:new({
-        text = _(
+        text = gettext(
           [[This feature turns your front light on at sunset and off at sunrise according to the “Current Active Parameters” in this plugin.
 
 You can override this change by manually turning the front light on/off. At the next sunrise/sunset, AutoWarmth will toggle again if needed.
@@ -878,25 +884,25 @@ function AutoWarmth:getActivateMenu()
 
   return {
     getActivateMenuEntry(
-      _("According to the sun's position"),
-      _("Only use the times calculated from the position of the sun."),
+      gettext("According to the sun's position"),
+      gettext("Only use the times calculated from the position of the sun."),
       activate_sun
     ),
     getActivateMenuEntry(
-      _("According to the fixed schedule"),
-      _("Only use the times from the fixed schedule."),
+      gettext("According to the fixed schedule"),
+      gettext("Only use the times from the fixed schedule."),
       activate_schedule
     ),
     getActivateMenuEntry(
-      _("Whatever is closer to noon"),
-      _(
+      gettext("Whatever is closer to noon"),
+      gettext(
         "Use the times from the sun position or schedule that are closer to noon."
       ),
       activate_closer_noon
     ),
     getActivateMenuEntry(
-      _("Whatever is closer to midnight"),
-      _(
+      gettext("Whatever is closer to midnight"),
+      gettext(
         "Use the times from the sun position or schedule that are closer to midnight."
       ),
       activate_closer_midnight
@@ -909,27 +915,27 @@ function AutoWarmth:getLocationMenu()
     {
       text_func = function()
         if self.location ~= "" then
-          return T(_("Location: %1"), self.location)
+          return T(gettext("Location: %1"), self.location)
         else
-          return _("Location")
+          return gettext("Location")
         end
       end,
       callback = function(touchmenu_instance)
         local location_name_dialog
         location_name_dialog = InputDialog:new({
-          title = _("Location name"),
+          title = gettext("Location name"),
           input = self.location,
           buttons = {
             {
               {
-                text = _("Cancel"),
+                text = gettext("Cancel"),
                 id = "close",
                 callback = function()
                   UIManager:close(location_name_dialog)
                 end,
               },
               {
-                text = _("OK"),
+                text = gettext("OK"),
                 callback = function()
                   self.location = location_name_dialog:getInputText()
                   G_reader_settings:save("autowarmth_location", self.location)
@@ -949,22 +955,26 @@ function AutoWarmth:getLocationMenu()
     },
     {
       text_func = function()
-        return T(_("Coordinates: (%1°, %2°)"), self.latitude, self.longitude)
+        return T(
+          gettext("Coordinates: (%1°, %2°)"),
+          self.latitude,
+          self.longitude
+        )
       end,
       callback = function(touchmenu_instance)
         local location_widget = DoubleSpinWidget:new({
-          title_text = _("Set location"),
-          info_text = _(
+          title_text = gettext("Set location"),
+          info_text = gettext(
             "Enter decimal degrees, northern hemisphere and eastern length are '+'."
           ),
-          left_text = _("Latitude"),
+          left_text = gettext("Latitude"),
           left_value = self.latitude,
           left_min = -90,
           left_max = 90,
           left_step = 0.1,
           left_hold_step = 5,
           left_precision = "%0.2f",
-          right_text = _("Longitude"),
+          right_text = gettext("Longitude"),
           right_value = self.longitude,
           right_min = -180,
           right_max = 180,
@@ -991,12 +1001,12 @@ function AutoWarmth:getLocationMenu()
     },
     {
       text_func = function()
-        return T(_("Altitude: %1 m"), self.altitude)
+        return T(gettext("Altitude: %1 m"), self.altitude)
       end,
       callback = function(touchmenu_instance)
         UIManager:show(SpinWidget:new({
-          title_text = _("Altitude"),
-          info_text = _("Enter the altitude in meters above sea level."),
+          title_text = gettext("Altitude"),
+          info_text = gettext("Enter the altitude in meters above sea level."),
           value = self.altitude,
           value_min = -100,
           value_max = 15000, -- intercontinental flight
@@ -1004,7 +1014,7 @@ function AutoWarmth:getLocationMenu()
           value_step = 10,
           value_hold_step = 100,
           unit = C_("Length", "m"),
-          ok_text = _("Set"),
+          ok_text = gettext("Set"),
           callback = function(spin)
             self.altitude = spin.value
             G_reader_settings:save("autowarmth_altitude", self.altitude)
@@ -1013,7 +1023,7 @@ function AutoWarmth:getLocationMenu()
               self:updateItems(touchmenu_instance)
             end
           end,
-          extra_text = _("Default"),
+          extra_text = gettext("Default"),
           extra_callback = function()
             self.altitude = 200
             G_reader_settings:save("autowarmth_altitude", self.altitude)
@@ -1046,7 +1056,7 @@ function AutoWarmth:getScheduleMenu()
       mode = mode,
       text_func = function()
         return T(
-          _("%1: %2"),
+          gettext("%1: %2"),
           text,
           self:hoursToClock(self.scheduler_times[num])
         )
@@ -1062,13 +1072,13 @@ function AutoWarmth:getScheduleMenu()
           mm = math.floor(frac(self.scheduler_times[num]) * 60 + 0.5)
         end
         UIManager:show(DateTimeWidget:new({
-          title_text = _("Set time"),
-          info_text = _("Enter time in hours and minutes."),
+          title_text = gettext("Set time"),
+          info_text = gettext("Enter time in hours and minutes."),
           hour = hh,
           hour_min = -1,
           hour_max = 24,
           min = mm,
-          ok_text = _("Set time"),
+          ok_text = gettext("Set time"),
           callback = function(time)
             local new_time = time.hour + time.min * (1 / 60)
             local function get_valid_time(n, dir)
@@ -1081,7 +1091,7 @@ function AutoWarmth:getScheduleMenu()
             end
             if num > 1 and new_time < get_valid_time(num, -1) then
               UIManager:show(ConfirmBox:new({
-                text = _(
+                text = gettext(
                   "This time is before the previous time.\nAdjust the previous time?"
                 ),
                 ok_callback = function()
@@ -1101,7 +1111,7 @@ function AutoWarmth:getScheduleMenu()
               num < midnight_index and new_time > get_valid_time(num, 1)
             then
               UIManager:show(ConfirmBox:new({
-                text = _(
+                text = gettext(
                   "This time is after the subsequent time.\nAdjust the subsequent time?"
                 ),
                 ok_callback = function()
@@ -1121,7 +1131,7 @@ function AutoWarmth:getScheduleMenu()
               store_times(touchmenu_instance, new_time, num)
             end
           end,
-          extra_text = _("Invalidate"),
+          extra_text = gettext("Invalidate"),
           extra_callback = function()
             store_times(touchmenu_instance, nil, num)
           end,
@@ -1132,17 +1142,17 @@ function AutoWarmth:getScheduleMenu()
   end
 
   local retval = {
-    getScheduleMenuEntry(_("Solar midnight (previous day)"), 1, false),
-    getScheduleMenuEntry(_("Astronomical dawn"), 2, false),
-    getScheduleMenuEntry(_("Nautical dawn"), 3, false),
-    getScheduleMenuEntry(_("Civil dawn"), 4),
-    getScheduleMenuEntry(_("Sunrise"), 5),
-    getScheduleMenuEntry(_("Solar noon"), 6, false),
-    getScheduleMenuEntry(_("Sunset"), 7),
-    getScheduleMenuEntry(_("Civil dusk"), 8),
-    getScheduleMenuEntry(_("Nautical dusk"), 9, false),
-    getScheduleMenuEntry(_("Astronomical dusk"), 10, false),
-    getScheduleMenuEntry(_("Solar midnight"), 11, false),
+    getScheduleMenuEntry(gettext("Solar midnight (previous day)"), 1, false),
+    getScheduleMenuEntry(gettext("Astronomical dawn"), 2, false),
+    getScheduleMenuEntry(gettext("Nautical dawn"), 3, false),
+    getScheduleMenuEntry(gettext("Civil dawn"), 4),
+    getScheduleMenuEntry(gettext("Sunrise"), 5),
+    getScheduleMenuEntry(gettext("Solar noon"), 6, false),
+    getScheduleMenuEntry(gettext("Sunset"), 7),
+    getScheduleMenuEntry(gettext("Civil dusk"), 8),
+    getScheduleMenuEntry(gettext("Nautical dusk"), 9, false),
+    getScheduleMenuEntry(gettext("Astronomical dusk"), 10, false),
+    getScheduleMenuEntry(gettext("Solar midnight"), 11, false),
   }
 
   return tidy_menu(retval, self.easy_mode)
@@ -1159,16 +1169,16 @@ function AutoWarmth:getWarmthMenu()
         if Device:hasNaturalLight() and self.control_warmth then
           if self.control_nightmode then
             if self.warmth[num] <= 100 then
-              return T(_("%1: %2 %"), text, self.warmth[num])
+              return T(gettext("%1: %2 %"), text, self.warmth[num])
             else
-              return T(_("%1: 100 % + ☾"), text)
+              return T(gettext("%1: 100 % + ☾"), text)
             end
           else
             if self.warmth[num] <= 100 then
-              return T(_("%1: %2 %"), text, self.warmth[num])
+              return T(gettext("%1: %2 %"), text, self.warmth[num])
             else
               return T(
-                _("%1: %2 %"),
+                gettext("%1: %2 %"),
                 text,
                 math.max(self.warmth[num] - 1000, 0)
               )
@@ -1176,9 +1186,9 @@ function AutoWarmth:getWarmthMenu()
           end
         else
           if self.warmth[num] <= 100 then
-            return T(_("%1: ☼"), text)
+            return T(gettext("%1: ☼"), text)
           else
-            return T(_("%1: ☾"), text)
+            return T(gettext("%1: ☾"), text)
           end
         end
       end,
@@ -1186,7 +1196,7 @@ function AutoWarmth:getWarmthMenu()
         if Device:hasNaturalLight() and self.control_warmth then
           local warmth_spinner = SpinWidget:new({
             title_text = text,
-            info_text = _("Enter percentage of warmth."),
+            info_text = gettext("Enter percentage of warmth."),
             value = self.warmth[num] <= 100 and self.warmth[num]
               or math.max(self.warmth[num] - 1000, 0), -- mask nightmode
             value_min = 0,
@@ -1195,7 +1205,7 @@ function AutoWarmth:getWarmthMenu()
             value_step = math.floor(100 / device_max_warmth),
             value_hold_step = 10,
             unit = "%",
-            ok_text = _("Set"),
+            ok_text = gettext("Set"),
             ok_always_enabled = true,
             callback = function(spin)
               self.warmth[num] = spin.value
@@ -1221,7 +1231,7 @@ function AutoWarmth:getWarmthMenu()
 
           if self.control_nightmode then
             self.night_mode_check_box = CheckButton:new({
-              text = _("Night mode"),
+              text = gettext("Night mode"),
               checked = self.warmth[num] > 100,
               parent = warmth_spinner,
             })
@@ -1230,8 +1240,8 @@ function AutoWarmth:getWarmthMenu()
           UIManager:show(warmth_spinner)
         else
           UIManager:show(ConfirmBox:new({
-            text = _("Night mode"),
-            ok_text = _("Turn on"),
+            text = gettext("Night mode"),
+            ok_text = gettext("Turn on"),
             ok_callback = function()
               if self.warmth[num] <= 100 then
                 self.warmth[num] = self.warmth[num] + 1000
@@ -1243,7 +1253,7 @@ function AutoWarmth:getWarmthMenu()
                 end
               end
             end,
-            cancel_text = _("Turn off"),
+            cancel_text = gettext("Turn off"),
             cancel_callback = function()
               if self.warmth[num] > 100 then
                 self.warmth[num] = math.max(self.warmth[num] - 1000, 0) -- delete night mode
@@ -1258,7 +1268,7 @@ function AutoWarmth:getWarmthMenu()
             other_buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                 },
               },
             },
@@ -1274,16 +1284,16 @@ function AutoWarmth:getWarmthMenu()
       text_func = function()
         if Device:hasNaturalLight() then
           return T(
-            _("Control: %1%2%3"),
-            self.control_warmth and _("warmth") or "",
+            gettext("Control: %1%2%3"),
+            self.control_warmth and gettext("warmth") or "",
             self.control_warmth
                 and self.control_nightmode
-                and T(" %1 ", _("and"))
+                and T(" %1 ", gettext("and"))
               or "",
-            self.control_nightmode and _("night mode") or ""
+            self.control_nightmode and gettext("night mode") or ""
           )
         else
-          return _("Control: night mode")
+          return gettext("Control: night mode")
         end
       end,
       checked_func = function()
@@ -1296,13 +1306,13 @@ function AutoWarmth:getWarmthMenu()
       hold_callback = function()
         if Device:hasNaturalLight() then
           UIManager:show(InfoMessage:new({
-            text = _(
+            text = gettext(
               "Tapping here chooses between the different AutoWarmth modes: 'warmth only', 'warmth and night mode', 'night mode only'."
             ),
           }))
         else
           UIManager:show(InfoMessage:new({
-            text = _("Your device supports 'night mode' control only."),
+            text = gettext("Your device supports 'night mode' control only."),
           }))
         end
       end,
@@ -1337,16 +1347,21 @@ function AutoWarmth:getWarmthMenu()
       separator = true,
     },
     {
-      text = Device:hasNaturalLight() and _("Set warmth and night mode for:")
-        or _("Set night mode for:"),
+      text = Device:hasNaturalLight() and gettext(
+        "Set warmth and night mode for:"
+      ) or gettext("Set night mode for:"),
       enabled = false,
     },
-    getWarmthMenuEntry(_("Solar noon"), 6, false),
-    getWarmthMenuEntry(_("Sunset and sunrise"), 5),
-    getWarmthMenuEntry(_("Darkest time of civil twilight"), 4),
-    getWarmthMenuEntry(_("Darkest time of nautical twilight"), 3, false),
-    getWarmthMenuEntry(_("Darkest time of astronomical twilight"), 2, false),
-    getWarmthMenuEntry(_("Solar midnight"), 1, false),
+    getWarmthMenuEntry(gettext("Solar noon"), 6, false),
+    getWarmthMenuEntry(gettext("Sunset and sunrise"), 5),
+    getWarmthMenuEntry(gettext("Darkest time of civil twilight"), 4),
+    getWarmthMenuEntry(gettext("Darkest time of nautical twilight"), 3, false),
+    getWarmthMenuEntry(
+      gettext("Darkest time of astronomical twilight"),
+      2,
+      false
+    ),
+    getWarmthMenuEntry(gettext("Solar midnight"), 1, false),
   }
 
   return tidy_menu(retval, self.easy_mode)
@@ -1454,37 +1469,44 @@ function AutoWarmth:showTimesInfo(title, location, activator, request_easy)
     text = title
       .. location_string
       .. ":\n\n"
-      .. info_line(0, _("Solar midnight:"), times[1], 1, face, request_easy)
-      .. add_line(2, _("Dawn"), request_easy)
-      .. info_line(4, _("Astronomic:"), times[2], 2, face, request_easy)
-      .. info_line(4, _("Nautical:"), times[3], 3, face, request_easy)
+      .. info_line(
+        0,
+        gettext("Solar midnight:"),
+        times[1],
+        1,
+        face,
+        request_easy
+      )
+      .. add_line(2, gettext("Dawn"), request_easy)
+      .. info_line(4, gettext("Astronomic:"), times[2], 2, face, request_easy)
+      .. info_line(4, gettext("Nautical:"), times[3], 3, face, request_easy)
       .. info_line(
         request_easy and 0 or 4,
-        request_easy and _("Twilight:") or _("Civil:"),
+        request_easy and gettext("Twilight:") or gettext("Civil:"),
         times[4],
         4,
         face
       )
-      .. add_line(2, _("Dawn"), request_easy)
-      .. info_line(0, _("Sunrise:"), times[5], 5, face)
+      .. add_line(2, gettext("Dawn"), request_easy)
+      .. info_line(0, gettext("Sunrise:"), times[5], 5, face)
       .. "\n"
-      .. info_line(0, _("Solar noon:"), times[6], 6, face, request_easy)
+      .. info_line(0, gettext("Solar noon:"), times[6], 6, face, request_easy)
       .. add_line(0, "", request_easy)
-      .. info_line(0, _("Sunset:"), times[7], 7, face)
-      .. add_line(2, _("Dusk"), request_easy)
+      .. info_line(0, gettext("Sunset:"), times[7], 7, face)
+      .. add_line(2, gettext("Dusk"), request_easy)
       .. info_line(
         request_easy and 0 or 4,
-        request_easy and _("Twilight:") or _("Civil:"),
+        request_easy and gettext("Twilight:") or gettext("Civil:"),
         times[8],
         8,
         face
       )
-      .. info_line(4, _("Nautical:"), times[9], 9, face, request_easy)
-      .. info_line(4, _("Astronomic:"), times[10], 10, face, request_easy)
-      .. add_line(2, _("Dusk"), request_easy)
+      .. info_line(4, gettext("Nautical:"), times[9], 9, face, request_easy)
+      .. info_line(4, gettext("Astronomic:"), times[10], 10, face, request_easy)
+      .. add_line(2, gettext("Dusk"), request_easy)
       .. info_line(
         0,
-        _("Solar midnight:"),
+        gettext("Solar midnight:"),
         times[midnight_index],
         midnight_index,
         face,
@@ -1494,13 +1516,13 @@ function AutoWarmth:showTimesInfo(title, location, activator, request_easy)
       .. add_line(0, "", not self.fl_off_during_day)
       .. add_line(
         0,
-        _("Toggle frontlight off between"),
+        gettext("Toggle frontlight off between"),
         not self.fl_off_during_day
       )
       .. add_line(
         4,
         T(
-          _("%1 and %2"),
+          gettext("%1 and %2"),
           times[5]
               and self:hoursToClock(
                 times[5] + self.fl_off_during_day_offset_s * (1 / 3600)

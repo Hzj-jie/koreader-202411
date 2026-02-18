@@ -3,9 +3,9 @@ local DataStorage = require("datastorage")
 local FT = require("ffi/freetype")
 local HB = require("ffi/harfbuzz")
 local Persist = require("persist")
-local util = require("util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local util = require("util")
 
 local FontList = {
   fontdir = "./fonts",
@@ -259,10 +259,10 @@ function FontList:dumpFontList()
 
   local InfoMessage = require("ui/widget/infomessage")
   local UIManager = require("ui/uimanager")
-  local _ = require("gettext")
+  local gettext = require("gettext")
   local T = require("ffi/util").template
   UIManager:show(InfoMessage:new({
-    text = T(_("Fontlist data has been dumped in:\n%1"), self.cachedir),
+    text = T(gettext("Fontlist data has been dumped in:\n%1"), self.cachedir),
   }))
 end
 

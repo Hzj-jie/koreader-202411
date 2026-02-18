@@ -694,7 +694,7 @@ be required. There are no provisions for escaping place markers.
 
 @usage
   output = util.template(
-    _("Hello %1, welcome to %2."),
+    gettext("Hello %1, welcome to %2."),
     name,
     company
   )

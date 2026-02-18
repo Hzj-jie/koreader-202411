@@ -1,12 +1,12 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "autodim",
-  fullname = _("Automatic dimmer"),
-  description = _(
+  fullname = gettext("Automatic dimmer"),
+  description = gettext(
     "This plugin allows dimming the frontlight after a period of inactivity."
   )
     .. "\n"
-    .. _(
+    .. gettext(
       -- Need localization.
       "KOReader is in idle mode when the frontlight is dimmed."
     ),

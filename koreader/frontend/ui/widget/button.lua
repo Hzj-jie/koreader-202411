@@ -4,7 +4,7 @@ A button widget that shows text or an icon and handles callback when tapped.
 @usage
     local Button = require("ui/widget/button")
     local button = Button:new{
-        text = _("Press me!"),
+        text = gettext("Press me!"),
         enabled = false, -- defaults to true
         callback = some_callback_function,
         width = Screen:scaleBySize(50),
@@ -28,7 +28,7 @@ local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 local logger = require("logger")
 

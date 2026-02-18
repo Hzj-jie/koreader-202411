@@ -2,13 +2,13 @@ local Blitbuffer = require("ffi/blitbuffer")
 local Button = require("ui/widget/button")
 local Device = require("device")
 local FocusManager = require("ui/widget/focusmanager")
+local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
-local FrameContainer = require("ui/widget/container/framecontainer")
 local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 
 local ButtonProgressWidget = FocusManager:extend({

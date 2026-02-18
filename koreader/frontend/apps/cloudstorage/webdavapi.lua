@@ -1,13 +1,13 @@
 local DocumentRegistry = require("document/documentregistry")
 local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
 local http = require("socket.http")
+local lfs = require("libs/libkoreader-lfs")
+local logger = require("logger")
 local ltn12 = require("ltn12")
 local socket = require("socket")
 local socketutil = require("socketutil")
 local util = require("util")
-local _ = require("gettext")
-local logger = require("logger")
-local lfs = require("libs/libkoreader-lfs")
 
 local WebDavApi = {}
 
@@ -153,7 +153,7 @@ function WebDavApi:listFolder(address, user, pass, folder_path, folder_mode)
   end
   if folder_mode then
     table.insert(webdav_list, 1, {
-      text = _("Long-press to choose current folder"),
+      text = gettext("Long-press to choose current folder"),
       url = folder_path,
       type = "folder_long_press",
       bold = true,

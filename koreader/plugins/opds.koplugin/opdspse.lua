@@ -1,15 +1,15 @@
-local http = require("socket.http")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
+local RenderImage = require("ui/renderimage")
+local http = require("socket.http")
 local logger = require("logger")
 local ltn12 = require("ltn12")
-local RenderImage = require("ui/renderimage")
 local Screen = require("device").screen
+local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local socket = require("socket")
 local socketutil = require("socketutil")
-local UIManager = require("ui/uimanager")
 local url = require("socket.url")
-local _ = require("gettext")
 local T = require("ffi/util").template
 
 local OPDSPSE = {}
@@ -55,7 +55,7 @@ function OPDSPSE:getLastPage(remote_url, username, password)
     socketutil:reset_timeout()
   else
     UIManager:show(InfoMessage:new({
-      text = T(_("Invalid protocol:\n%1"), auth_parsed.scheme),
+      text = T(gettext("Invalid protocol:\n%1"), auth_parsed.scheme),
     }))
   end
 
@@ -91,7 +91,7 @@ function OPDSPSE:getLastPage(remote_url, username, password)
       socketutil:reset_timeout()
     else
       UIManager:show(InfoMessage:new({
-        text = T(_("Invalid protocol:\n%1"), progress_parsed.scheme),
+        text = T(gettext("Invalid protocol:\n%1"), progress_parsed.scheme),
       }))
     end
 
@@ -172,7 +172,7 @@ function OPDSPSE:streamPages(remote_url, count, continue, username, password)
           socketutil:reset_timeout()
         else
           UIManager:show(InfoMessage:new({
-            text = T(_("Invalid protocol:\n%1"), parsed.scheme),
+            text = T(gettext("Invalid protocol:\n%1"), parsed.scheme),
           }))
         end
 
@@ -213,20 +213,20 @@ end
 function OPDSPSE:jumpToPage(viewer, count)
   local input_dialog
   input_dialog = InputDialog:new({
-    title = _("Enter page number"),
+    title = gettext("Enter page number"),
     input_type = "number",
     input_hint = "(" .. "1 - " .. count .. ")",
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(input_dialog)
           end,
         },
         {
-          text = _("Stream"),
+          text = gettext("Stream"),
           is_enter_default = true,
           callback = function()
             local page_num = input_dialog:getInputValue()

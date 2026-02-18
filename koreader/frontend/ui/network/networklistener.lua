@@ -5,9 +5,9 @@ local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 local T = require("ffi/util").template
 
 local _pending_connected = {}
@@ -71,10 +71,12 @@ function NetworkListener:onInfoWifiOn()
     local current_network = NetworkMgr:getCurrentNetwork()
     -- this method is only available for some implementations
     if current_network and current_network.ssid then
-      info_text =
-        T(_("Already connected to network %1."), BD.wrap(current_network.ssid))
+      info_text = T(
+        gettext("Already connected to network %1."),
+        BD.wrap(current_network.ssid)
+      )
     else
-      info_text = _("Already connected.")
+      info_text = gettext("Already connected.")
     end
     UIManager:show(InfoMessage:new({
       text = info_text,
@@ -194,7 +196,7 @@ function NetworkListener:onShowNetworkInfo()
     -- This shouldn't happen, but in case something is very weird happening
     -- right between showing the network menu and the ShowNetworkInfo event.
     UIManager:show(InfoMessage:new({
-      text = _("Wi-Fi off."),
+      text = gettext("Wi-Fi off."),
       timeout = 3,
     }))
     return
@@ -214,21 +216,24 @@ function NetworkListener:onShowNetworkInfo()
         -- Need localization.
         UIManager:show(InfoMessage:new({
           -- Need localization.
-          text = table.concat(Device:retrieveNetworkInfo(), "\n") .. "\n" .. _(
-            "Internet"
-          ) .. " " .. (NetworkMgr:isOnline() and _("online") or _(
-            "offline"
-          )),
+          text = table.concat(Device:retrieveNetworkInfo(), "\n")
+            .. "\n"
+            .. gettext("Internet")
+            .. " "
+            .. (
+              NetworkMgr:isOnline() and gettext("online")
+              or gettext("offline")
+            ),
           -- IPv6 addresses are *loooooong*!
           face = Font:getFace("x_smallinfofont"),
         }))
       end,
       -- Need localization.
-      _("Retrieving network information…")
+      gettext("Retrieving network information…")
     )
   else
     UIManager:show(InfoMessage:new({
-      text = _("Could not retrieve network info."),
+      text = gettext("Could not retrieve network info."),
       timeout = 3,
     }))
   end

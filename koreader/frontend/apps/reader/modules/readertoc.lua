@@ -6,17 +6,17 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local Event = require("ui/event")
 local Font = require("ui/font")
-local GestureRange = require("ui/gesturerange")
 local Geom = require("ui/geometry")
+local GestureRange = require("ui/gesturerange")
 local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Menu = require("ui/widget/menu")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
-local N_ = _.ngettext
+local N_ = gettext.ngettext
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -71,7 +71,7 @@ function ReaderToc:registerKeyEvents()
 end
 
 function ReaderToc:getTitle()
-  local title = _("Table of contents")
+  local title = gettext("Table of contents")
   -- Handmade ToC has precedence over alternative ToC
   if self.ui.handmade:isHandmadeTocEnabled() then
     title = title .. " " .. self.ui.handmade.custom_toc_symbol
@@ -1144,21 +1144,23 @@ function ReaderToc:addToMainMenu(menu_items)
   }
   -- ToC (and other navigation) settings
   menu_items.navi_settings = {
-    text = _("Settings"),
+    text = gettext("Settings"),
   }
   -- Alternative ToC (only available with CRE documents)
   if self.ui.document:canHaveAlternativeToc() then
     menu_items.toc_alt_toc = {
-      text = _("Alternative table of contents") .. " " .. self.alt_toc_symbol,
+      text = gettext("Alternative table of contents")
+        .. " "
+        .. self.alt_toc_symbol,
       help_text_func = function()
-        local help_text = _([[
+        local help_text = gettext([[
 An alternative table of contents can be built from document headings <H1> to <H6>.
 If the document contains no headings, or all are ignored, the alternative ToC will be built from document fragments and will point to the start of each individual HTML file in the EPUB.
 
 Some of the headings can be ignored, and hints can be set to other non-heading elements in a user style tweak, so they can be used as ToC items.
 See Style tweaks → Miscellaneous → Alternative ToC hints.]])
         if self.ui.handmade:isHandmadeTocEnabled() then
-          help_text = _(
+          help_text = gettext(
             [[To use the alternative ToC, disable your custom table of contents first.]]
           ) .. "\n\n" .. help_text
         end
@@ -1173,7 +1175,7 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
       callback = function(touchmenu_instance)
         if self.ui.document:isTocAlternativeToc() then
           UIManager:show(ConfirmBox:new({
-            text = _(
+            text = gettext(
               "The table of contents for this book is currently an alternative one built from the document headings.\nDo you want to get back the original table of contents? (The book will be reloaded.)"
             ),
             ok_callback = function()
@@ -1190,7 +1192,7 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
           }))
         else
           UIManager:show(ConfirmBox:new({
-            text = _(
+            text = gettext(
               "Do you want to use an alternative table of contents built from the document headings?"
             ),
             ok_callback = function()
@@ -1254,7 +1256,7 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
         nb_ticks
       )
     end,
-    help_text = _(
+    help_text = gettext(
       [[The progress bars in the footer and the skim dialog can become cramped when the table of contents is complex. This allows you to restrict the number of tick marks.]]
     ),
     enabled_func = function()
@@ -1277,8 +1279,8 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
         toc_ticks_levels[#toc_ticks_levels].separator = true
       end
       table.insert(toc_ticks_levels, {
-        text = _("Bind chapter navigation to ticks"),
-        help_text = _(
+        text = gettext("Bind chapter navigation to ticks"),
+        help_text = gettext(
           [[Entries from ToC levels that are ignored in the progress bars will still be used for chapter navigation and 'page/time left until next chapter' in the footer.
 Enabling this option will restrict chapter navigation to progress bar ticks.]]
         ),
@@ -1295,8 +1297,8 @@ Enabling this option will restrict chapter navigation to progress bar ticks.]]
         end,
       })
       table.insert(toc_ticks_levels, {
-        text = _("Chapter titles from ticks only"),
-        help_text = _(
+        text = gettext("Chapter titles from ticks only"),
+        help_text = gettext(
           [[Entries from ToC levels that are ignored in the progress bars will still be used for displaying the title of the current chapter in the footer and in bookmarks.
 Enabling this option will restrict display to the chapter titles of progress bar ticks.]]
         ),
@@ -1316,7 +1318,7 @@ Enabling this option will restrict display to the chapter titles of progress bar
     end,
   }
   menu_items.toc_items_per_page = {
-    text = _("ToC entries per page"),
+    text = gettext("ToC entries per page"),
     keep_menu_open = true,
     callback = function()
       local SpinWidget = require("ui/widget/spinwidget")
@@ -1327,7 +1329,7 @@ Enabling this option will restrict display to the chapter titles of progress bar
         value_min = 6,
         value_max = 24,
         default_value = self.toc_items_per_page_default,
-        title_text = _("ToC entries per page"),
+        title_text = gettext("ToC entries per page"),
         callback = function(spin)
           G_reader_settings:save("toc_items_per_page", spin.value)
           -- We need to reset the TOC so cached expand/collapsed icons
@@ -1340,7 +1342,7 @@ Enabling this option will restrict display to the chapter titles of progress bar
     end,
   }
   menu_items.toc_items_font_size = {
-    text = _("ToC entry font size"),
+    text = gettext("ToC entry font size"),
     keep_menu_open = true,
     callback = function()
       local SpinWidget = require("ui/widget/spinwidget")
@@ -1354,7 +1356,7 @@ Enabling this option will restrict display to the chapter titles of progress bar
         value_min = 10,
         value_max = 72,
         default_value = default_font_size,
-        title_text = _("ToC entry font size"),
+        title_text = gettext("ToC entry font size"),
         callback = function(spin)
           G_reader_settings:save("toc_items_font_size", spin.value)
         end,
@@ -1363,7 +1365,7 @@ Enabling this option will restrict display to the chapter titles of progress bar
     end,
   }
   menu_items.toc_items_show_chapter_length = {
-    text = _("Show chapter length"),
+    text = gettext("Show chapter length"),
     keep_menu_open = true,
     checked_func = function()
       return not G_reader_settings:nilOrFalse("toc_items_show_chapter_length")
@@ -1374,7 +1376,7 @@ Enabling this option will restrict display to the chapter titles of progress bar
     end,
   }
   menu_items.toc_items_with_dots = {
-    text = _("Dot leaders"),
+    text = gettext("Dot leaders"),
     keep_menu_open = true,
     checked_func = function()
       return G_reader_settings:nilOrTrue("toc_items_with_dots")

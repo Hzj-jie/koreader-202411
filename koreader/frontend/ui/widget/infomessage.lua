@@ -6,11 +6,11 @@ It vanishes on key press or after a given timeout.
 Example:
     local InfoMessage = require("ui/widget/infomessage")
     local UIManager = require("ui/uimanager")
-    local _ = require("gettext")
+    local gettext = require("gettext")
     local Screen = require("device").screen
     local sample
     sample = InfoMessage:new{
-        text = _("Some message"),
+        text = gettext("Some message"),
         -- Usually the height of a InfoMessage is self-adaptive. If this field is actively set, a
         -- scrollbar may be shown. This variable is usually helpful to display a large chunk of text
         -- which may exceed the height of the screen.
@@ -40,7 +40,7 @@ local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 

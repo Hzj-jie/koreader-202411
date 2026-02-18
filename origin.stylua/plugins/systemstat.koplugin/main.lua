@@ -4,10 +4,10 @@ local KeyValuePage = require("ui/widget/keyvaluepage")
 local Math = require("optmath")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local _ = require("gettext")
 local datetime = require("datetime")
 local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
 
 local SystemStat = {
   start_time = time.realtime(),

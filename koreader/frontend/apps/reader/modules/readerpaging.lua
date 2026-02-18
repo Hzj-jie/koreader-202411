@@ -6,10 +6,10 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local Math = require("optmath")
 local UIManager = require("ui/uimanager")
 local bit = require("bit")
+local gettext = require("gettext")
 local logger = require("logger")
-local util = require("util")
 local time = require("ui/time")
-local _ = require("gettext")
+local util = require("util")
 local Input = Device.input
 local Screen = Device.screen
 

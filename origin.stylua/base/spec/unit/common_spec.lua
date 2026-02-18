@@ -2,11 +2,11 @@ package.path = "common/?.lua;" .. package.path
 package.cpath = "common/?.so;" .. package.cpath
 require("ffi_wrapper")
 
-local url = require("socket.url")
+local Blitbuffer = require("ffi/blitbuffer")
+local buffer = require("string.buffer")
 local http = require("socket.http")
 local https = require("ssl.https")
-local buffer = require("string.buffer")
-local Blitbuffer = require("ffi/blitbuffer")
+local url = require("socket.url")
 
 describe("Common modules", function()
   it("should get response from HTTP request #internet", function()

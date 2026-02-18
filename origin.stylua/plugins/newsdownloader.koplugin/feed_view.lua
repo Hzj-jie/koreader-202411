@@ -1,5 +1,5 @@
-local logger = require("logger")
 local _ = require("gettext")
+local logger = require("logger")
 
 local FeedView = {
   URL = "url",

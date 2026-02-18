@@ -3,8 +3,8 @@ local DocSettings = require("docsettings")
 local InfoMessage = require("ui/widget/infomessage")
 local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
 
 local BookInfoManager = require("bookinfomanager")
 
@@ -174,7 +174,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
           self.items_update_action = nil
         end
         UIManager:show(InfoMessage:new({
-          text = _(
+          text = gettext(
             "Start-up of background extraction job failed.\nPlease restart KOReader or your device."
           ),
         }))
@@ -280,8 +280,8 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
         -- Add some new buttons to original buttons set
         table.insert(orig_buttons, {
           { -- Allow user to ignore some offending cover image
-            text = bookinfo.ignore_cover and _("Unignore cover")
-              or _("Ignore cover"),
+            text = bookinfo.ignore_cover and gettext("Unignore cover")
+              or gettext("Ignore cover"),
             enabled = bookinfo.has_cover and true or false,
             callback = function()
               BookInfoManager:setBookInfoProperties(file, {
@@ -292,8 +292,8 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
             end,
           },
           { -- Allow user to ignore some bad metadata (filename will be used instead)
-            text = bookinfo.ignore_meta and _("Unignore metadata")
-              or _("Ignore metadata"),
+            text = bookinfo.ignore_meta and gettext("Unignore metadata")
+              or gettext("Ignore metadata"),
             enabled = bookinfo.has_meta and true or false,
             callback = function()
               BookInfoManager:setBookInfoProperties(file, {
@@ -306,7 +306,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
         })
         table.insert(orig_buttons, {
           { -- Allow a new extraction (multiple interruptions, book replaced)...
-            text = _("Refresh cached book information"),
+            text = gettext("Refresh cached book information"),
             callback = function()
               -- Wipe the cache
               self:updateCache(file)
@@ -359,7 +359,8 @@ function CoverMenu:onHistoryMenuHold(item)
   -- Add some new buttons to original buttons set
   table.insert(orig_buttons, {
     { -- Allow user to ignore some offending cover image
-      text = bookinfo.ignore_cover and _("Unignore cover") or _("Ignore cover"),
+      text = bookinfo.ignore_cover and gettext("Unignore cover")
+        or gettext("Ignore cover"),
       enabled = bookinfo.has_cover and true or false,
       callback = function()
         BookInfoManager:setBookInfoProperties(file, {
@@ -370,8 +371,8 @@ function CoverMenu:onHistoryMenuHold(item)
       end,
     },
     { -- Allow user to ignore some bad metadata (filename will be used instead)
-      text = bookinfo.ignore_meta and _("Unignore metadata")
-        or _("Ignore metadata"),
+      text = bookinfo.ignore_meta and gettext("Unignore metadata")
+        or gettext("Ignore metadata"),
       enabled = bookinfo.has_meta and true or false,
       callback = function()
         BookInfoManager:setBookInfoProperties(file, {
@@ -384,7 +385,7 @@ function CoverMenu:onHistoryMenuHold(item)
   })
   table.insert(orig_buttons, {
     { -- Allow a new extraction (multiple interruptions, book replaced)...
-      text = _("Refresh cached book information"),
+      text = gettext("Refresh cached book information"),
       callback = function()
         -- Wipe the cache
         self:updateCache(file)
@@ -431,7 +432,8 @@ function CoverMenu:onCollectionsMenuHold(item)
   -- Add some new buttons to original buttons set
   table.insert(orig_buttons, {
     { -- Allow user to ignore some offending cover image
-      text = bookinfo.ignore_cover and _("Unignore cover") or _("Ignore cover"),
+      text = bookinfo.ignore_cover and gettext("Unignore cover")
+        or gettext("Ignore cover"),
       enabled = bookinfo.has_cover and true or false,
       callback = function()
         BookInfoManager:setBookInfoProperties(file, {
@@ -442,8 +444,8 @@ function CoverMenu:onCollectionsMenuHold(item)
       end,
     },
     { -- Allow user to ignore some bad metadata (filename will be used instead)
-      text = bookinfo.ignore_meta and _("Unignore metadata")
-        or _("Ignore metadata"),
+      text = bookinfo.ignore_meta and gettext("Unignore metadata")
+        or gettext("Ignore metadata"),
       enabled = bookinfo.has_meta and true or false,
       callback = function()
         BookInfoManager:setBookInfoProperties(file, {
@@ -456,7 +458,7 @@ function CoverMenu:onCollectionsMenuHold(item)
   })
   table.insert(orig_buttons, {
     { -- Allow a new extraction (multiple interruptions, book replaced)...
-      text = _("Refresh cached book information"),
+      text = gettext("Refresh cached book information"),
       callback = function()
         -- Wipe the cache
         self:updateCache(file)
@@ -538,7 +540,7 @@ function CoverMenu:tapPlus()
   table.insert(orig_buttons, {}) -- separator
   table.insert(orig_buttons, {
     {
-      text = _("Extract and cache book information"),
+      text = gettext("Extract and cache book information"),
       callback = function()
         UIManager:close(self.file_dialog)
         local Trapper = require("ui/trapper")

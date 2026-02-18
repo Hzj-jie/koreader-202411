@@ -1,6 +1,6 @@
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local md = require("template/md")
-local _ = require("gettext")
 local T = require("ffi/util").template
 
 -- markdown exporter
@@ -29,14 +29,14 @@ local MarkdownExporter = require("base"):new({
 })
 
 local formatter_buttons = {
-  { _("None"), "none" },
-  { _("Bold"), "bold" },
-  { _("Bold italic"), "bold_italic" },
-  { _("Highlight"), "highlight" },
-  { _("Italic"), "italic" },
-  { _("Strikethrough"), "strikethrough" },
-  { _("Underline (Markdownit style, with ++)"), "underline_markdownit" },
-  { _("Underline (with <u></u> tags)"), "underline_u_tag" },
+  { gettext("None"), "none" },
+  { gettext("Bold"), "bold" },
+  { gettext("Bold italic"), "bold_italic" },
+  { gettext("Highlight"), "highlight" },
+  { gettext("Italic"), "italic" },
+  { gettext("Strikethrough"), "strikethrough" },
+  { gettext("Underline (Markdownit style, with ++)"), "underline_markdownit" },
+  { gettext("Underline (with <u></u> tags)"), "underline_u_tag" },
 }
 
 function MarkdownExporter:editFormatStyle(
@@ -55,7 +55,7 @@ function MarkdownExporter:editFormatStyle(
     })
   end
   UIManager:show(require("ui/widget/radiobuttonwidget"):new({
-    title_text = T(_("Formatting style for %1"), label),
+    title_text = T(gettext("Formatting style for %1"), label),
     width_factor = 0.8,
     radio_buttons = radio_buttons,
     callback = function(radio)
@@ -86,21 +86,21 @@ function MarkdownExporter:onInit()
 end
 
 local highlight_style = {
-  { _("Lighten"), "lighten" },
-  { _("Underline"), "underscore" },
-  { _("Strikeout"), "strikeout" },
-  { _("Invert"), "invert" },
+  { gettext("Lighten"), "lighten" },
+  { gettext("Underline"), "underscore" },
+  { gettext("Strikeout"), "strikeout" },
+  { gettext("Invert"), "invert" },
 }
 
 function MarkdownExporter:getMenuTable()
   local menu = {
-    text = _("Markdown"),
+    text = gettext("Markdown"),
     checked_func = function()
       return self:isEnabled()
     end,
     sub_item_table = {
       {
-        text = _("Export to Markdown"),
+        text = gettext("Export to Markdown"),
         checked_func = function()
           return self:isEnabled()
         end,
@@ -109,7 +109,7 @@ function MarkdownExporter:getMenuTable()
         end,
       },
       {
-        text = _("Format highlights based on style"),
+        text = gettext("Format highlights based on style"),
         checked_func = function()
           return self.settings.highlight_formatting
         end,

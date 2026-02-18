@@ -5,10 +5,10 @@ local Device = require("device")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local logger = require("logger")
 local datetime = require("datetime")
+local gettext = require("gettext")
+local logger = require("logger")
 local time = require("ui/time")
-local _ = require("gettext")
 local T = require("ffi/util").template
 
 local ReadTimer = WidgetContainer:extend({
@@ -28,18 +28,18 @@ function ReadTimer:init()
     end
 
     self.time = 0
-    local tip_text = _("Time is up")
+    local tip_text = gettext("Time is up")
     -- only interval support repeat
     if self.last_interval_time > 0 then
       logger.dbg("can_repeat, show confirm_box")
       local confirm_box = ConfirmBox:new({
         text = tip_text,
-        ok_text = _("Repeat"),
+        ok_text = gettext("Repeat"),
         ok_callback = function()
           logger.dbg("Schedule a new time:", self.last_interval_time)
           self:rescheduleIn(self.last_interval_time)
         end,
-        cancel_text = _("Done"),
+        cancel_text = gettext("Done"),
         cancel_callback = function()
           self.last_interval_time = 0
           self:unschedule()
@@ -218,7 +218,7 @@ end
 
 function ReadTimer:addCheckboxes(widget)
   local checkbox_header = CheckButton:new({
-    text = _("Show timer in alt status bar"),
+    text = gettext("Show timer in alt status bar"),
     checked = self.show_value_in_header,
     parent = widget,
     callback = function()
@@ -231,7 +231,7 @@ function ReadTimer:addCheckboxes(widget)
     end,
   })
   local checkbox_footer = CheckButton:new({
-    text = _("Show timer in status bar"),
+    text = gettext("Show timer in status bar"),
     checked = self.show_value_in_footer,
     parent = widget,
     callback = function()
@@ -252,7 +252,7 @@ function ReadTimer:addToMainMenu(menu_items)
       if self:scheduled() then
         local user_duration_format = G_named_settings.duration_format()
         return T(
-          _("Read timer (%1)"),
+          gettext("Read timer (%1)"),
           datetime.secondsToClockDuration(
             user_duration_format,
             self:remaining(),
@@ -260,7 +260,7 @@ function ReadTimer:addToMainMenu(menu_items)
           )
         )
       else
-        return _("Read timer")
+        return gettext("Read timer")
       end
     end,
     checked_func = function()
@@ -268,7 +268,7 @@ function ReadTimer:addToMainMenu(menu_items)
     end,
     sub_item_table = {
       {
-        text = _("Set time"),
+        text = gettext("Set time"),
         keep_menu_open = true,
         callback = function(touchmenu_instance)
           local now_t = os.date("*t")
@@ -277,9 +277,9 @@ function ReadTimer:addToMainMenu(menu_items)
           local time_widget = DateTimeWidget:new({
             hour = curr_hour,
             min = curr_min,
-            ok_text = _("Set alarm"),
-            title_text = _("New alarm"),
-            info_text = _("Enter a time in hours and minutes."),
+            ok_text = gettext("Set alarm"),
+            title_text = gettext("New alarm"),
+            info_text = gettext("Enter a time in hours and minutes."),
             callback = function(alarm_time)
               self.last_interval_time = 0
               self:unschedule()
@@ -294,7 +294,7 @@ function ReadTimer:addToMainMenu(menu_items)
                 UIManager:show(InfoMessage:new({
                   -- @translators %1:%2 is a clock time (HH:MM), %3 is a duration
                   text = T(
-                    _("Timer set for %1:%2.\n\nThat's %3 from now."),
+                    gettext("Timer set for %1:%2.\n\nThat's %3 from now."),
                     string.format("%02d", alarm_time.hour),
                     string.format("%02d", alarm_time.min),
                     datetime.secondsToClockDuration(
@@ -310,7 +310,7 @@ function ReadTimer:addToMainMenu(menu_items)
                 end
               else
                 UIManager:show(InfoMessage:new({
-                  text = _(
+                  text = gettext(
                     "Timer could not be set. The selected time is in the past."
                   ),
                   timeout = 5,
@@ -323,7 +323,7 @@ function ReadTimer:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Set interval"),
+        text = gettext("Set interval"),
         keep_menu_open = true,
         callback = function(touchmenu_instance)
           local remain_time = {}
@@ -339,9 +339,9 @@ function ReadTimer:addToMainMenu(menu_items)
             hour = remain_hours or 0,
             min = remain_minutes or 0,
             hour_max = 17,
-            ok_text = _("Set timer"),
-            title_text = _("Set reader timer"),
-            info_text = _("Enter a time in hours and minutes."),
+            ok_text = gettext("Set timer"),
+            title_text = gettext("Set reader timer"),
+            info_text = gettext("Enter a time in hours and minutes."),
             callback = function(timer_time)
               self:unschedule()
               local seconds = timer_time.hour * 3600 + timer_time.min * 60
@@ -352,7 +352,7 @@ function ReadTimer:addToMainMenu(menu_items)
                 UIManager:show(InfoMessage:new({
                   -- @translators This is a duration
                   text = T(
-                    _("Timer will expire in %1."),
+                    gettext("Timer will expire in %1."),
                     datetime.secondsToClockDuration(
                       user_duration_format,
                       seconds,
@@ -375,7 +375,7 @@ function ReadTimer:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Stop timer"),
+        text = gettext("Stop timer"),
         keep_menu_open = true,
         enabled_func = function()
           return self:scheduled()

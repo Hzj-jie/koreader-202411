@@ -1,7 +1,7 @@
-local Button = require("ui/widget/button")
-local ButtonProgressWidget = require("ui/widget/buttonprogresswidget")
 local Blitbuffer = require("ffi/blitbuffer")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
+local Button = require("ui/widget/button")
+local ButtonProgressWidget = require("ui/widget/buttonprogresswidget")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
@@ -27,10 +27,10 @@ local UIManager = require("ui/uimanager")
 local UnderlineContainer = require("ui/widget/container/underlinecontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
+local gettext = require("gettext")
 local logger = require("logger")
 local serpent = require("ffi/serpent")
 local util = require("util")
-local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -1368,7 +1368,7 @@ function ConfigDialog:onConfigMoreChoose(
         end
         widget = DoubleSpinWidget:new({
           width_factor = more_options_param.widget_width_factor,
-          title_text = name_text or _("Set values"),
+          title_text = name_text or gettext("Set values"),
           info_text = more_options_param.info_text,
           left_text = more_options_param.left_text,
           right_text = more_options_param.right_text,
@@ -1404,7 +1404,7 @@ function ConfigDialog:onConfigMoreChoose(
               self:update()
             end
           end,
-          extra_text = _("Set as default"),
+          extra_text = gettext("Set as default"),
           extra_callback = function(left_value, right_value)
             local value_tables = { left_value, right_value }
             local values_string
@@ -1416,11 +1416,11 @@ function ConfigDialog:onConfigMoreChoose(
             end
             UIManager:show(ConfirmBox:new({
               text = T(
-                _("Set default %1 to %2?"),
+                gettext("Set default %1 to %2?"),
                 (name_text or ""),
                 values_string
               ),
-              ok_text = T(_("Set as default")),
+              ok_text = T(gettext("Set as default")),
               ok_callback = function()
                 local setting_name
                 if more_options_param.names then
@@ -1467,7 +1467,7 @@ function ConfigDialog:onConfigMoreChoose(
         end
         widget = SpinWidget:new({
           width_factor = more_options_param.widget_width_factor,
-          title_text = name_text or _("Set value"),
+          title_text = name_text or gettext("Set value"),
           info_text = more_options_param.info_text,
           value = curr_items,
           value_index = value_index,
@@ -1505,7 +1505,7 @@ function ConfigDialog:onConfigMoreChoose(
               self:update()
             end
           end,
-          extra_text = _("Set as default"),
+          extra_text = gettext("Set as default"),
           extra_callback = function(spin)
             local value_string
             if more_options_param.show_true_value_func then
@@ -1515,11 +1515,11 @@ function ConfigDialog:onConfigMoreChoose(
             end
             UIManager:show(ConfirmBox:new({
               text = T(
-                _("Set default %1 to %2?"),
+                gettext("Set default %1 to %2?"),
                 (name_text or ""),
                 value_string
               ),
-              ok_text = T(_("Set as default")),
+              ok_text = T(gettext("Set as default")),
               ok_callback = function()
                 local spin_value
                 if more_options_param.value_table then
@@ -1589,7 +1589,7 @@ function ConfigDialog:onMakeDefault(name, name_text, values, labels, position)
     -- known table value, make it pretty
   elseif name == "h_page_margins" then
     display_value = T(
-      _([[
+      gettext([[
 
   left:  %1
   right: %2
@@ -1607,8 +1607,12 @@ function ConfigDialog:onMakeDefault(name, name_text, values, labels, position)
   end
 
   UIManager:show(ConfirmBox:new({
-    text = T(_("Set default %1 to %2?"), (name_text or ""), display_value),
-    ok_text = T(_("Set as default")),
+    text = T(
+      gettext("Set default %1 to %2?"),
+      (name_text or ""),
+      display_value
+    ),
+    ok_text = T(gettext("Set as default")),
     ok_callback = function()
       name = self.config_options.prefix .. "_" .. name
       G_reader_settings:save(name, values[position])
@@ -1637,7 +1641,7 @@ function ConfigDialog:onMakeFineTuneDefault(
   -- known table value, make it pretty
   if name == "h_page_margins" then
     display_value = T(
-      _([[
+      gettext([[
 
   left:  %1
   right: %2
@@ -1655,8 +1659,12 @@ function ConfigDialog:onMakeFineTuneDefault(
   end
 
   UIManager:show(ConfirmBox:new({
-    text = T(_("Set default %1 to %2?"), (name_text or ""), display_value),
-    ok_text = T(_("Set as default")),
+    text = T(
+      gettext("Set default %1 to %2?"),
+      (name_text or ""),
+      display_value
+    ),
+    ok_text = T(gettext("Set as default")),
     ok_callback = function()
       name = self.config_options.prefix .. "_" .. name
       G_reader_settings:save(name, current_value)

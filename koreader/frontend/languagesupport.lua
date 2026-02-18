@@ -22,9 +22,9 @@ of a text fragment).
 
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local dbg = require("dbg")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 
 -- Shared among all LanguageSupport instances to make sure we don't lose
 -- plugins when reloading different viewers.
@@ -347,8 +347,8 @@ function LanguageSupport:addToMainMenu(menu_items)
   -- Only show the menu item if there are some plugins enabled.
   if #sub_table ~= 0 then
     menu_items.language_support = {
-      text = _("Language support plugins"),
-      help_text = _(
+      text = gettext("Language support plugins"),
+      help_text = gettext(
         [[
 This menu lets you manage KOReader's language support plugins and their associated settings.
 

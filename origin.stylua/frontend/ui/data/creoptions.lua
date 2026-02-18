@@ -1,8 +1,8 @@
 local Device = require("device")
 local Screen = Device.screen
+local _ = require("gettext")
 local ffiUtil = require("ffi/util")
 local optionsutil = require("ui/data/optionsutil")
-local _ = require("gettext")
 local C_ = _.pgettext
 local T = ffiUtil.template
 

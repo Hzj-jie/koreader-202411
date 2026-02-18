@@ -1,5 +1,5 @@
-local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local BD = require("ui/bidi")
+local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local Device = require("device")
@@ -11,10 +11,10 @@ local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local ffi = require("ffi")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
 local C = ffi.C
 local T = ffiutil.template
 
@@ -74,7 +74,7 @@ function ConnectivityChecker:_callback(job)
   -- Handle the UI warning if it's from a beforeWifiAction...
   if self.interactive then
     UIManager:show(
-      InfoMessage:new({ text = _("Error connecting to the network") })
+      InfoMessage:new({ text = gettext("Error connecting to the network") })
     )
   end
 
@@ -516,7 +516,7 @@ function NetworkMgr:toggleWifiOn()
   end
 
   local info = InfoMessage:new({
-    text = _("Turning on Wi-Fi…"),
+    text = gettext("Turning on Wi-Fi…"),
   })
   UIManager:show(info)
   UIManager:forceRePaint()
@@ -551,7 +551,7 @@ function NetworkMgr:toggleWifiOn()
   -- If turnOnWifi failed, abort early
   if status == false then
     UIManager:show(InfoMessage:new({
-      text = _("Error connecting to the network"),
+      text = gettext("Error connecting to the network"),
       timeout = 3,
     }))
     self:_abortWifiConnection()
@@ -559,7 +559,7 @@ function NetworkMgr:toggleWifiOn()
     -- NOTE: This means turnOnWifi was *not* called (this time).
     -- This should almost never happen, but who knows.
     UIManager:show(InfoMessage:new({
-      text = _(
+      text = gettext(
         "A previous connection attempt is still ongoing, this one will be ignored!"
       ),
       timeout = 3,
@@ -575,7 +575,7 @@ function NetworkMgr:toggleWifiOff(interactive)
   local info
   if interactive then
     info = InfoMessage:new({
-      text = _("Turning off Wi-Fi…"),
+      text = gettext("Turning off Wi-Fi…"),
     })
     UIManager:show(info)
     UIManager:forceRePaint()
@@ -622,10 +622,10 @@ function NetworkMgr:_beforeWifiAction()
 
     UIManager:show(ConfirmBox:new({
       -- Need localization.
-      text = _("Network connection is required to perform the action.")
+      text = gettext("Network connection is required to perform the action.")
         .. "\n"
-        .. _("Do you want to turn on Wi-Fi?"),
-      ok_text = _("Turn on"),
+        .. gettext("Do you want to turn on Wi-Fi?"),
+      ok_text = gettext("Turn on"),
       ok_callback = function()
         self:toggleWifiOn()
       end,
@@ -682,7 +682,7 @@ function NetworkMgr:runWhenOnline(callback, key)
   if self:willRerunWhenOnline(callback, key) then
     Notification:notify(
       -- Need localization
-      _("Action will be performed after network being online")
+      gettext("Action will be performed after network being online")
     )
     self:_beforeWifiAction()
     return false
@@ -698,7 +698,7 @@ function NetworkMgr:runWhenConnected(callback, key)
   if self:willRerunWhenConnected(callback, key) then
     Notification:notify(
       -- Need localization
-      _("Action will be performed after network being connected")
+      gettext("Action will be performed after network being connected")
     )
     self:_beforeWifiAction()
     return false
@@ -737,7 +737,7 @@ end
 function NetworkMgr:getWifiMenuTable()
   if Device:isAndroid() then
     return {
-      text = _("Wi-Fi settings"),
+      text = gettext("Wi-Fi settings"),
       callback = function()
         self:_openSettings()
       end,
@@ -749,7 +749,7 @@ end
 
 function NetworkMgr:getWifiToggleMenuTable()
   return {
-    text = _("Wi-Fi connection"),
+    text = gettext("Wi-Fi connection"),
     enabled_func = function()
       return Device:hasWifiToggle()
     end,
@@ -792,7 +792,10 @@ function NetworkMgr:getProxyMenuTable()
   end
   return {
     text_func = function()
-      return T(_("HTTP proxy %1"), (proxy_enabled() and BD.url(proxy()) or ""))
+      return T(
+        gettext("HTTP proxy %1"),
+        (proxy_enabled() and BD.url(proxy()) or "")
+      )
     end,
     checked_func = function()
       return proxy_enabled()
@@ -805,14 +808,14 @@ function NetworkMgr:getProxyMenuTable()
       end
       if not proxy() then
         UIManager:show(InfoMessage:new({
-          text = _(
+          text = gettext(
             "Tip:\nLong press on this menu entry to configure HTTP proxy."
           ),
         }))
       end
     end,
     hold_input = {
-      title = _("Enter proxy address"),
+      title = gettext("Enter proxy address"),
       hint = proxy(),
       callback = function(input)
         self:setHTTPProxy(input)
@@ -823,12 +826,12 @@ end
 
 function NetworkMgr:getPowersaveMenuTable()
   return {
-    text = _("Disable Wi-Fi connection when inactive"),
+    text = gettext("Disable Wi-Fi connection when inactive"),
     help_text = Device:isKindle()
-        and _(
+        and gettext(
           [[This is unlikely to function properly on a stock Kindle, given how much network activity the framework generates.]]
         )
-      or _(
+      or gettext(
         [[This will automatically turn Wi-Fi off after a generous period of network inactivity, without disrupting workflows that require a network connection, so you can just keep reading without worrying about battery drain.]]
       ),
     checked_func = function()
@@ -842,9 +845,9 @@ end
 
 function NetworkMgr:getRestoreMenuTable()
   return {
-    text = _("Restore Wi-Fi connection on resume"),
+    text = gettext("Restore Wi-Fi connection on resume"),
     -- i.e., *everything* flips wifi_was_on true, but only direct user interaction (i.e., Menu & Gestures) will flip it off.
-    help_text = _(
+    help_text = gettext(
       [[This will attempt to automatically and silently re-connect to Wi-Fi on startup or on resume if Wi-Fi used to be enabled the last time you used KOReader, and you did not explicitly disable it.]]
     ),
     checked_func = function()
@@ -861,7 +864,7 @@ end
 
 function NetworkMgr:getInfoMenuTable()
   return {
-    text = _("Network info"),
+    text = gettext("Network info"),
     keep_menu_open = true,
     enabled_func = function()
       -- Technically speaking self:isConnected() == true means
@@ -882,11 +885,11 @@ function NetworkMgr:getBeforeWifiActionMenuTable()
     "wifi_enable_action"
   ) or "prompt"
   local wifi_enable_actions = {
-    turn_on = { _("turn on"), _("Turn on") },
-    prompt = { _("prompt"), _("Prompt") },
+    turn_on = { gettext("turn on"), gettext("Turn on") },
+    prompt = { gettext("prompt"), gettext("Prompt") },
   }
   if Device:isAndroid() then
-    wifi_enable_actions.ignore = { _("ignore"), _("Ignore") }
+    wifi_enable_actions.ignore = { gettext("ignore"), gettext("Ignore") }
   end
   local action_table = function(wifi_enable_action)
     return {
@@ -904,7 +907,7 @@ function NetworkMgr:getBeforeWifiActionMenuTable()
   local t = {
     text_func = function()
       return T(
-        _("Action when Wi-Fi is off: %1"),
+        gettext("Action when Wi-Fi is off: %1"),
         wifi_enable_actions[wifi_enable_action_setting][1]
       )
     end,
@@ -923,9 +926,9 @@ end
 function NetworkMgr:getDismissScanMenuTable()
   return {
     -- Need localization
-    text = _("Automatically connect to the known Wi-Fi"),
+    text = gettext("Automatically connect to the known Wi-Fi"),
     -- Need localization
-    help_text = _(
+    help_text = gettext(
       "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known network automatically after turning on Wi-Fi."
     ),
     checked_func = function()
@@ -985,7 +988,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
       if err == nil or err == "" then
         -- Kindle won't return errors.
         -- Need localization.
-        err = _("No available wifi networks found.")
+        err = gettext("No available wifi networks found.")
       end
       UIManager:show(InfoMessage:new({ text = err }))
     end
@@ -994,7 +997,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
 
   local network_list
   if interactive then
-    local info = InfoMessage:new({ text = _("Scanning for networks…") })
+    local info = InfoMessage:new({ text = gettext("Scanning for networks…") })
     UIManager:show(info)
     UIManager:forceRePaint()
     network_list = scanNetworkList()
@@ -1033,7 +1036,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
   end
 
   -- Next, look for our own preferred networks...
-  local err_msg = _("Connection failed")
+  local err_msg = gettext("Connection failed")
   -- Only auto connecting when user did not initiate the operation. I.e. when
   -- user clicks on the "Wi-Fi connection" menu, always prefer showing the
   -- menu.
@@ -1126,8 +1129,8 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
     --     we've just *started* connecting to the requested network...
     UIManager:show(InfoMessage:new({
       text = T(
-        Device:isKindle() and _("Connecting to network %1…")
-          or _("Connected to network %1"),
+        Device:isKindle() and gettext("Connecting to network %1…")
+          or gettext("Connected to network %1"),
         BD.wrap(util.fixUtf8(ssid, "�"))
       ),
       timeout = 3,

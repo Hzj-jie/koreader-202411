@@ -3,7 +3,7 @@ local InputDialog = require("ui/widget/inputdialog")
 local SkimToWidget = require("ui/widget/skimtowidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local ReaderGoto = WidgetContainer:extend({})
@@ -14,13 +14,13 @@ end
 
 function ReaderGoto:addToMainMenu(menu_items)
   menu_items.go_to = {
-    text = _("Go to page"),
+    text = gettext("Go to page"),
     callback = function()
       self:onShowGotoDialog()
     end,
   }
   menu_items.skim_to = {
-    text = _("Skim document"),
+    text = gettext("Skim document"),
     callback = function()
       self:onShowSkimtoDialog()
     end,
@@ -43,24 +43,24 @@ function ReaderGoto:onShowGotoDialog()
   input_hint = input_hint
     .. string.format("  %.2f%%", curr_page / self.document:getPageCount() * 100)
   self.goto_dialog = InputDialog:new({
-    title = _("Enter page number or percentage"),
+    title = gettext("Enter page number or percentage"),
     input_hint = input_hint,
     input_type = "number",
-    description = self.document:hasHiddenFlows() and _([[
+    description = self.document:hasHiddenFlows() and gettext([[
 x for an absolute page number
 [x] for a page number in the main (linear) flow
 [x]y for a page number in the non-linear fragment y]]) or nil,
     buttons = {
       {
         {
-          text = _("Skim"),
+          text = gettext("Skim"),
           callback = function()
             self:close()
             self:onShowSkimtoDialog()
           end,
         },
         {
-          text = _("Go to %"),
+          text = gettext("Go to %"),
           callback = function()
             self:gotoPercent()
           end,
@@ -68,14 +68,14 @@ x for an absolute page number
       },
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             self:close()
           end,
         },
         {
-          text = _("Go to page"),
+          text = gettext("Go to page"),
           is_enter_default = true,
           callback = function()
             self:gotoPage()

@@ -1,14 +1,14 @@
 local Device = require("device")
 local ReaderUI = require("apps/reader/readerui")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local page_turns_tap_zones_sub_items = {} -- build the Tap zones submenu
 local tap_zones = {
-  left_right = _("Left / right"),
-  top_bottom = _("Top / bottom"),
-  bottom_top = _("Bottom / top"),
+  left_right = gettext("Left / right"),
+  top_bottom = gettext("Top / bottom"),
+  bottom_top = gettext("Bottom / top"),
 }
 
 if
@@ -52,7 +52,9 @@ table.insert(page_turns_tap_zones_sub_items, {
   text_func = function()
     local forward_zone = getForwardTapZone()
     return T(
-      _("Backward / forward tap zone size: %1\xE2\x80\xAF% / %2\xE2\x80\xAF%"),
+      gettext(
+        "Backward / forward tap zone size: %1\xE2\x80\xAF% / %2\xE2\x80\xAF%"
+      ),
       100 - forward_zone,
       forward_zone
     )
@@ -63,17 +65,17 @@ table.insert(page_turns_tap_zones_sub_items, {
       == "left_right"
     local forward_zone = getForwardTapZone()
     UIManager:show(require("ui/widget/spinwidget"):new({
-      title_text = is_left_right and _("Tap zone width")
-        or _("Tap zone height"),
+      title_text = is_left_right and gettext("Tap zone width")
+        or gettext("Tap zone height"),
       info_text = (
-        is_left_right and _("Percentage of screen width")
-        or _("Percentage of screen height")
+        is_left_right and gettext("Percentage of screen width")
+        or gettext("Percentage of screen height")
       )
         .. " "
         -- Need localization
-        .. _("to move forward.")
+        .. gettext("to move forward.")
         .. "\n"
-        .. _("Tapping the rest area will move backward."),
+        .. gettext("Tapping the rest area will move backward."),
       value = forward_zone,
       value_min = 20,
       value_max = 80,
@@ -95,10 +97,10 @@ table.insert(page_turns_tap_zones_sub_items, {
 })
 
 local PageTurns = {
-  text = _("Page turns"),
+  text = gettext("Page turns"),
   sub_item_table = {
     {
-      text = _("With taps"),
+      text = gettext("With taps"),
       checked_func = function()
         return G_reader_settings:nilOrFalse("page_turns_disable_tap")
       end,
@@ -107,7 +109,7 @@ local PageTurns = {
       end,
     },
     {
-      text = _("With swipes"),
+      text = gettext("With swipes"),
       checked_func = function()
         return G_reader_settings:nilOrFalse("page_turns_disable_swipe")
       end,
@@ -119,7 +121,7 @@ local PageTurns = {
       text_func = function()
         local tap_zones_type = G_reader_settings:read("page_turns_tap_zones")
           or "left_right"
-        return T(_("Tap zones: %1"), tap_zones[tap_zones_type]:lower())
+        return T(gettext("Tap zones: %1"), tap_zones[tap_zones_type]:lower())
       end,
       enabled_func = function()
         return G_reader_settings:nilOrFalse("page_turns_disable_tap")
@@ -129,7 +131,7 @@ local PageTurns = {
     },
     {
       text_func = function()
-        local text = _("Invert page turn taps and swipes")
+        local text = gettext("Invert page turn taps and swipes")
         if G_reader_settings:isTrue("inverse_reading_order") then
           text = text .. "   ★"
         end
@@ -147,14 +149,15 @@ local PageTurns = {
         local MultiConfirmBox = require("ui/widget/multiconfirmbox")
         UIManager:show(MultiConfirmBox:new({
           text = inverse_reading_order
-              and _(
+              and gettext(
                 "The default (★) for newly opened books is right-to-left (RTL) page turning.\n\nWould you like to change it?"
               )
-            or _(
+            or gettext(
               "The default (★) for newly opened books is left-to-right (LTR) page turning.\n\nWould you like to change it?"
             ),
           choice1_text_func = function()
-            return inverse_reading_order and _("LTR") or _("LTR (★)")
+            return inverse_reading_order and gettext("LTR")
+              or gettext("LTR (★)")
           end,
           choice1_callback = function()
             G_reader_settings:makeFalse("inverse_reading_order")
@@ -163,7 +166,8 @@ local PageTurns = {
             end
           end,
           choice2_text_func = function()
-            return inverse_reading_order and _("RTL (★)") or _("RTL")
+            return inverse_reading_order and gettext("RTL (★)")
+              or gettext("RTL")
           end,
           choice2_callback = function()
             G_reader_settings:makeTrue("inverse_reading_order")
@@ -175,7 +179,7 @@ local PageTurns = {
       end,
     },
     {
-      text = _("Also invert document-related dialogs"),
+      text = gettext("Also invert document-related dialogs"),
       checked_func = function()
         return G_reader_settings:isTrue("invert_ui_layout_mirroring")
       end,
@@ -185,14 +189,14 @@ local PageTurns = {
       callback = function()
         G_reader_settings:flipNilOrFalse("invert_ui_layout_mirroring")
       end,
-      help_text = _(
+      help_text = gettext(
         [[
 When enabled the UI direction for the Table of Contents, Book Map, and Page Browser dialogs will follow the page turn direction instead of the default UI direction.]]
       ),
       separator = true,
     },
     Device:canDoSwipeAnimation() and {
-      text = _("Page turn animations"),
+      text = gettext("Page turn animations"),
       checked_func = function()
         return G_reader_settings:isTrue("swipe_animations")
       end,

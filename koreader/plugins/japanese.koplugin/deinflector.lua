@@ -18,10 +18,10 @@ local JSON = require("rapidjson")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
 local bit = require("bit")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
-local N_ = _.ngettext
+local N_ = gettext.ngettext
 local T = require("ffi/util").template
 
 local Deinflector = {}
@@ -484,36 +484,36 @@ end
 local ALL_TEXT_CONVERSIONS = {
   {
     name = "halfwidth_to_fullwidth",
-    pretty_name = _("Halfwidth to fullwidth kana"),
+    pretty_name = gettext("Halfwidth to fullwidth kana"),
     -- @translators If possible, keep the example Japanese text.
-    help_text = _(
+    help_text = gettext(
       "Convert half-width katakana to full-width katakana (for instance, ｶﾀｶﾅ will be converted to カタカナ)."
     ),
     func = kana_mapper(HALFWIDTH_TO_FULLWIDTH),
   },
   {
     name = "hiragana_to_katakana",
-    pretty_name = _("Hiragana to katakana"),
+    pretty_name = gettext("Hiragana to katakana"),
     -- @translators If possible, keep the example Japanese text.
-    help_text = _(
+    help_text = gettext(
       "Convert hiragana to katakana (for instance, ひらがな will be converted to ヒラガナ)."
     ),
     func = kana_mapper(HIRAGANA_TO_KATAKANA),
   },
   {
     name = "katakana_to_hiragana",
-    pretty_name = _("Katakana to hiragana"),
+    pretty_name = gettext("Katakana to hiragana"),
     -- @translators If possible, keep the example Japanese text.
-    help_text = _(
+    help_text = gettext(
       "Convert katakana to hiragana (for instance, カタカナ will be converted to かたかな)."
     ),
     func = kana_mapper(KATAKANA_TO_HIRAGANA),
   },
   {
     name = "collapse_emphatic",
-    pretty_name = _("Collapse emphatic sequences"),
+    pretty_name = gettext("Collapse emphatic sequences"),
     -- @translators If possible, keep the example Japanese text.
-    help_text = _(
+    help_text = gettext(
       "Collapse any character sequences which are sometimes used as emphasis in speech (for instance, すっっごーーい will be converted to both すっごーい and すごい)."
     ),
     func = collapse_emphatic,
@@ -629,7 +629,7 @@ function Deinflector:genMenuItems()
           end
         end
         if nenabled == 0 then
-          return _("Text conversions: none enabled")
+          return gettext("Text conversions: none enabled")
         else
           return T(
             N_(
@@ -641,7 +641,7 @@ function Deinflector:genMenuItems()
           )
         end
       end,
-      help_text = _(
+      help_text = gettext(
         [[
 Configure which text conversions to apply when trying to deinflect Japanese text. These primarily include conversions between different kinds of kana, in order to make sure that a word written using different kana to your installed dictionaries can still be looked up.
 
@@ -651,7 +651,7 @@ Not every conversion will be applied at once. Instead, all possible combinations
     },
     {
       -- @translators A deinflector is a program which converts a word into its dictionary form, similar to deconjugation in European languages. See <https://en.wikipedia.org/wiki/Japanese_verb_conjugation> for more detail.
-      text = _("Deinflector information"),
+      text = gettext("Deinflector information"),
       keep_menu_open = true,
       callback = function()
         local nrules, nvariants = 0, 0
@@ -665,7 +665,7 @@ Not every conversion will be applied at once. Instead, all possible combinations
         UIManager:show(InfoMessage:new({
           -- @translators %1 is the "%1 rule(s)" string, %2 is the "%1 variant(s)" string.
           text = T(
-            _("Deinflector has %1 and %2 loaded."),
+            gettext("Deinflector has %1 and %2 loaded."),
             nrules_str,
             nvariants_str
           ),

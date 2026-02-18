@@ -7,11 +7,11 @@ local InputDialog = require("ui/widget/inputdialog")
 local Menu = require("ui/widget/menu")
 local ReadCollection = require("readcollection")
 local UIManager = require("ui/uimanager")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Utf8Proc = require("ffi/utf8proc")
+local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local _ = require("gettext")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local util = require("util")
-local _ = require("gettext")
 local C_ = _.pgettext
 local T = require("ffi/util").template
 

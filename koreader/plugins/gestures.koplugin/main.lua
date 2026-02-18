@@ -20,9 +20,9 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
 local T = FFIUtil.template
+local gettext = require("gettext")
 local time = require("ui/time")
-local _ = require("gettext")
-local C_ = _.pgettext
+local C_ = gettext.pgettext
 
 if not Device:isTouchDevice() then
   return { disabled = true }
@@ -40,33 +40,33 @@ local gestures_path =
   FFIUtil.joinPath(DataStorage:getSettingsDir(), "gestures.lua")
 
 local gestures_list = {
-  tap_top_left_corner = _("Top left"),
-  tap_top_right_corner = _("Top right"),
-  tap_left_bottom_corner = _("Bottom left"),
-  tap_right_bottom_corner = _("Bottom right"),
-  hold_top_left_corner = _("Top left"),
-  hold_top_right_corner = _("Top right"),
-  hold_bottom_left_corner = _("Bottom left"),
-  hold_bottom_right_corner = _("Bottom right"),
-  one_finger_swipe_left_edge_down = _("Left edge down"),
-  one_finger_swipe_left_edge_up = _("Left edge up"),
-  one_finger_swipe_right_edge_down = _("Right edge down"),
-  one_finger_swipe_right_edge_up = _("Right edge up"),
-  one_finger_swipe_top_edge_right = _("Top edge right"),
-  one_finger_swipe_top_edge_left = _("Top edge left"),
-  one_finger_swipe_bottom_edge_right = _("Bottom edge right"),
-  one_finger_swipe_bottom_edge_left = _("Bottom edge left"),
-  double_tap_left_side = _("Left side"),
-  double_tap_right_side = _("Right side"),
-  double_tap_top_left_corner = _("Top left"),
-  double_tap_top_right_corner = _("Top right"),
-  double_tap_bottom_left_corner = _("Bottom left"),
-  double_tap_bottom_right_corner = _("Bottom right"),
-  two_finger_tap_top_left_corner = _("Top left"),
-  two_finger_tap_top_right_corner = _("Top right"),
-  two_finger_tap_bottom_left_corner = _("Bottom left"),
-  two_finger_tap_bottom_right_corner = _("Bottom right"),
-  short_diagonal_swipe = _("Short diagonal swipe"),
+  tap_top_left_corner = gettext("Top left"),
+  tap_top_right_corner = gettext("Top right"),
+  tap_left_bottom_corner = gettext("Bottom left"),
+  tap_right_bottom_corner = gettext("Bottom right"),
+  hold_top_left_corner = gettext("Top left"),
+  hold_top_right_corner = gettext("Top right"),
+  hold_bottom_left_corner = gettext("Bottom left"),
+  hold_bottom_right_corner = gettext("Bottom right"),
+  one_finger_swipe_left_edge_down = gettext("Left edge down"),
+  one_finger_swipe_left_edge_up = gettext("Left edge up"),
+  one_finger_swipe_right_edge_down = gettext("Right edge down"),
+  one_finger_swipe_right_edge_up = gettext("Right edge up"),
+  one_finger_swipe_top_edge_right = gettext("Top edge right"),
+  one_finger_swipe_top_edge_left = gettext("Top edge left"),
+  one_finger_swipe_bottom_edge_right = gettext("Bottom edge right"),
+  one_finger_swipe_bottom_edge_left = gettext("Bottom edge left"),
+  double_tap_left_side = gettext("Left side"),
+  double_tap_right_side = gettext("Right side"),
+  double_tap_top_left_corner = gettext("Top left"),
+  double_tap_top_right_corner = gettext("Top right"),
+  double_tap_bottom_left_corner = gettext("Bottom left"),
+  double_tap_bottom_right_corner = gettext("Bottom right"),
+  two_finger_tap_top_left_corner = gettext("Top left"),
+  two_finger_tap_top_right_corner = gettext("Top right"),
+  two_finger_tap_bottom_left_corner = gettext("Bottom left"),
+  two_finger_tap_bottom_right_corner = gettext("Bottom right"),
+  short_diagonal_swipe = gettext("Short diagonal swipe"),
   two_finger_swipe_east = "⇒",
   two_finger_swipe_west = "⇐",
   two_finger_swipe_south = "⇓",
@@ -75,10 +75,10 @@ local gestures_list = {
   two_finger_swipe_northwest = "⇖",
   two_finger_swipe_southeast = "⇘",
   two_finger_swipe_southwest = "⇙",
-  spread_gesture = _("Spread"),
-  pinch_gesture = _("Pinch"),
-  rotate_cw = _("Rotate clockwise ⤸ 90°"),
-  rotate_ccw = _("Rotate counterclockwise ⤹ 90°"),
+  spread_gesture = gettext("Spread"),
+  pinch_gesture = gettext("Pinch"),
+  rotate_cw = gettext("Rotate clockwise ⤸ 90°"),
+  rotate_ccw = gettext("Rotate counterclockwise ⤹ 90°"),
   multiswipe = "", -- otherwise registerGesture() won't pick up on multiswipes
   multiswipe_west_east = "⬅ ➡",
   multiswipe_east_west = "➡ ⬅",
@@ -117,7 +117,7 @@ local gestures_list = {
   multiswipe_southeast_northeast_northwest = "⬊ ⬈ ⬉",
 }
 
-local multiswipes_info_text = _(
+local multiswipes_info_text = gettext(
   [[
 Multiswipes allow you to perform complex gestures built up out of multiple swipe directions, never losing touch with the screen.
 
@@ -226,14 +226,21 @@ end
 
 function Gestures:gestureTitleFunc(ges)
   local title = gestures_list[ges] or self:friendlyMultiswipeName(ges)
-  return T(_("%1   (%2)"), title, Dispatcher:menuTextFunc(self.gestures[ges]))
+  return T(
+    gettext("%1   (%2)"),
+    title,
+    Dispatcher:menuTextFunc(self.gestures[ges])
+  )
 end
 
 function Gestures:genMenu(ges)
   local sub_items = {}
   if gestures_list[ges] ~= nil then
     table.insert(sub_items, {
-      text = T(_("%1 (default)"), Dispatcher:menuTextFunc(self.defaults[ges])),
+      text = T(
+        gettext("%1 (default)"),
+        Dispatcher:menuTextFunc(self.defaults[ges])
+      ),
       keep_menu_open = true,
       separator = true,
       checked_func = function()
@@ -246,7 +253,7 @@ function Gestures:genMenu(ges)
     })
   end
   table.insert(sub_items, {
-    text = _("Pass through"),
+    text = gettext("Pass through"),
     keep_menu_open = true,
     checked_func = function()
       return self.gestures[ges] == nil
@@ -258,7 +265,7 @@ function Gestures:genMenu(ges)
   })
   Dispatcher:addSubMenu(self, sub_items, self.gestures, ges)
   table.insert(sub_items, {
-    text = _("Anchor QuickMenu to gesture position"),
+    text = gettext("Anchor QuickMenu to gesture position"),
     checked_func = function()
       return self.gestures[ges] ~= nil
         and self.gestures[ges].settings ~= nil
@@ -283,7 +290,7 @@ function Gestures:genMenu(ges)
     end,
   })
   table.insert(sub_items, {
-    text = _("Always active"),
+    text = gettext("Always active"),
     checked_func = function()
       return self.gestures[ges] ~= nil
         and self.gestures[ges].settings ~= nil
@@ -415,19 +422,19 @@ end
 function Gestures:multiswipeRecorder(touchmenu_instance)
   local multiswipe_recorder
   multiswipe_recorder = InputDialog:new({
-    title = _("Multiswipe recorder"),
-    input_hint = _("Make a multiswipe gesture"),
+    title = gettext("Multiswipe recorder"),
+    input_hint = gettext("Make a multiswipe gesture"),
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(multiswipe_recorder)
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           is_enter_default = true,
           callback = function()
             local recorded_multiswipe = multiswipe_recorder._raw_multiswipe
@@ -438,7 +445,7 @@ function Gestures:multiswipeRecorder(touchmenu_instance)
 
             if gestures_list[recorded_multiswipe] ~= nil then
               UIManager:show(InfoMessage:new({
-                text = _("Recorded multiswipe already exists."),
+                text = gettext("Recorded multiswipe already exists."),
                 show_icon = false,
                 timeout = 5,
               }))
@@ -491,12 +498,12 @@ end
 function Gestures:genCustomMultiswipeSubmenu()
   local submenu = {
     {
-      text = _("Multiswipe recorder"),
+      text = gettext("Multiswipe recorder"),
       keep_menu_open = true,
       callback = function(touchmenu_instance)
         self:multiswipeRecorder(touchmenu_instance)
       end,
-      help_text = _(
+      help_text = gettext(
         "The number of possible multiswipe gestures is theoretically infinite. With the multiswipe recorder you can easily record your own."
       ),
     },
@@ -505,10 +512,10 @@ function Gestures:genCustomMultiswipeSubmenu()
     local hold_callback = function(touchmenu_instance)
       UIManager:show(ConfirmBox:new({
         text = T(
-          _("Remove custom multiswipe %1?"),
+          gettext("Remove custom multiswipe %1?"),
           self:friendlyMultiswipeName(item)
         ),
-        ok_text = _("Remove"),
+        ok_text = gettext("Remove"),
         ok_callback = function()
           -- remove from list of custom multiswipes
           self.custom_multiswipes[item] = nil
@@ -538,18 +545,18 @@ end
 
 function Gestures:addIntervals(menu_items)
   menu_items.gesture_intervals = {
-    text = _("Gesture intervals"),
+    text = gettext("Gesture intervals"),
     sub_item_table = {
       {
-        text = _("Text selection rate"),
+        text = gettext("Text selection rate"),
         keep_menu_open = true,
         callback = function()
           local default_value = G_named_settings.low_pan_rate_or_full(5.0)
           local current_value = G_reader_settings:read("hold_pan_rate")
             or default_value
           local items = SpinWidget:new({
-            title_text = _("Text selection rate"),
-            info_text = _([[
+            title_text = gettext("Text selection rate"),
+            info_text = gettext([[
 The rate is how often screen will be refreshed per second while selecting text.
 Higher values mean faster screen updates, but also use more CPU.]]),
             width = math.floor(Screen:getWidth() * 0.75),
@@ -559,7 +566,7 @@ Higher values mean faster screen updates, but also use more CPU.]]),
             value_step = 1,
             value_hold_step = 15,
             unit = C_("Frequency", "Hz"),
-            ok_text = _("Set rate"),
+            ok_text = gettext("Set rate"),
             default_value = default_value,
             callback = function(spin)
               G_reader_settings:save("hold_pan_rate", spin.value)
@@ -571,12 +578,12 @@ Higher values mean faster screen updates, but also use more CPU.]]),
         separator = true,
       },
       {
-        text = _("Tap interval"),
+        text = gettext("Tap interval"),
         keep_menu_open = true,
         callback = function()
           local items = SpinWidget:new({
-            title_text = _("Tap interval"),
-            info_text = _(
+            title_text = gettext("Tap interval"),
+            info_text = gettext(
               [[
 Any other taps made within this interval after a first tap will be considered accidental and ignored.
 
@@ -589,7 +596,7 @@ The interval value is in milliseconds and can range from 0 (0 seconds) to 2000 (
             value_step = 50,
             value_hold_step = 200,
             unit = C_("Time", "ms"),
-            ok_text = _("Set interval"),
+            ok_text = gettext("Set interval"),
             default_value = GestureDetector.TAP_INTERVAL_MS,
             callback = function(spin)
               G_reader_settings:save("ges_tap_interval_ms", spin.value)
@@ -600,12 +607,12 @@ The interval value is in milliseconds and can range from 0 (0 seconds) to 2000 (
         end,
       },
       {
-        text = _("Tap interval on keyboard"),
+        text = gettext("Tap interval on keyboard"),
         keep_menu_open = true,
         callback = function()
           local items = SpinWidget:new({
-            title_text = _("Tap interval on keyboard"),
-            info_text = _(
+            title_text = gettext("Tap interval on keyboard"),
+            info_text = gettext(
               [[
 Any other taps made within this interval after a first tap will be considered accidental and ignored.
 
@@ -620,7 +627,7 @@ The interval value is in milliseconds and can range from 0 (0 seconds) to 2000 (
             value_step = 50,
             value_hold_step = 200,
             unit = C_("Time", "ms"),
-            ok_text = _("Set interval"),
+            ok_text = gettext("Set interval"),
             default_value = 0,
             callback = function(spin)
               G_reader_settings:save(
@@ -633,12 +640,12 @@ The interval value is in milliseconds and can range from 0 (0 seconds) to 2000 (
         end,
       },
       {
-        text = _("Double tap interval"),
+        text = gettext("Double tap interval"),
         keep_menu_open = true,
         callback = function()
           local items = SpinWidget:new({
-            title_text = _("Double tap interval"),
-            info_text = _(
+            title_text = gettext("Double tap interval"),
+            info_text = gettext(
               [[
 When double tap is enabled, this sets the time to wait for the second tap. A single tap will take at least this long to be detected.
 
@@ -651,7 +658,7 @@ The interval value is in milliseconds and can range from 100 (0.1 seconds) to 20
             value_step = 100,
             value_hold_step = 500,
             unit = C_("Time", "ms"),
-            ok_text = _("Set interval"),
+            ok_text = gettext("Set interval"),
             default_value = GestureDetector.DOUBLE_TAP_INTERVAL_MS,
             callback = function(spin)
               G_reader_settings:save("ges_double_tap_interval_ms", spin.value)
@@ -662,12 +669,12 @@ The interval value is in milliseconds and can range from 100 (0.1 seconds) to 20
         end,
       },
       {
-        text = _("Two finger tap duration"),
+        text = gettext("Two finger tap duration"),
         keep_menu_open = true,
         callback = function()
           local items = SpinWidget:new({
-            title_text = _("Two finger tap duration"),
-            info_text = _(
+            title_text = gettext("Two finger tap duration"),
+            info_text = gettext(
               [[
 This sets the allowed duration of any of the two fingers touch/release for the combined event to be considered a two finger tap.
 
@@ -680,7 +687,7 @@ The duration value is in milliseconds and can range from 100 (0.1 seconds) to 20
             value_step = 100,
             value_hold_step = 500,
             unit = C_("Time", "ms"),
-            ok_text = _("Set duration"),
+            ok_text = gettext("Set duration"),
             default_value = GestureDetector.TWO_FINGER_TAP_DURATION_MS,
             callback = function(spin)
               G_reader_settings:save(
@@ -694,12 +701,12 @@ The duration value is in milliseconds and can range from 100 (0.1 seconds) to 20
         end,
       },
       {
-        text = _("Long-press interval"),
+        text = gettext("Long-press interval"),
         keep_menu_open = true,
         callback = function()
           local items = SpinWidget:new({
-            title_text = _("Long-press interval"),
-            info_text = _(
+            title_text = gettext("Long-press interval"),
+            info_text = gettext(
               [[
 If a touch is not released in this interval, it is considered a long-press. On document text, single word selection will then be triggered.
 
@@ -712,7 +719,7 @@ The interval value is in milliseconds and can range from 100 (0.1 seconds) to 20
             value_step = 100,
             value_hold_step = 500,
             unit = C_("Time", "ms"),
-            ok_text = _("Set interval"),
+            ok_text = gettext("Set interval"),
             default_value = GestureDetector.HOLD_INTERVAL_MS,
             callback = function(spin)
               G_reader_settings:save("ges_hold_interval_ms", spin.value)
@@ -723,12 +730,12 @@ The interval value is in milliseconds and can range from 100 (0.1 seconds) to 20
         end,
       },
       {
-        text = _("Swipe interval"),
+        text = gettext("Swipe interval"),
         keep_menu_open = true,
         callback = function()
           local items = SpinWidget:new({
-            title_text = _("Swipe interval"),
-            info_text = _(
+            title_text = gettext("Swipe interval"),
+            info_text = gettext(
               [[
 This sets the maximum delay between the start and the end of a swipe for it to be considered a swipe. Above this interval, it's considered panning.
 
@@ -741,7 +748,7 @@ The interval value is in milliseconds and can range from 100 (0.1 seconds) to 20
             value_step = 100,
             unit = C_("Time", "ms"),
             value_hold_step = 500,
-            ok_text = _("Set interval"),
+            ok_text = gettext("Set interval"),
             default_value = GestureDetector.SWIPE_INTERVAL_MS,
             callback = function(spin)
               G_reader_settings:save("ges_swipe_interval_ms", spin.value)
@@ -757,10 +764,10 @@ end
 
 function Gestures:addToMainMenu(menu_items)
   menu_items.gesture_manager = {
-    text = _("Gesture manager"),
+    text = gettext("Gesture manager"),
     sub_item_table = {
       {
-        text = _("Turn on multiswipes"),
+        text = gettext("Turn on multiswipes"),
         checked_func = function()
           return self.multiswipes_enabled
         end,
@@ -772,14 +779,14 @@ function Gestures:addToMainMenu(menu_items)
         help_text = multiswipes_info_text,
       },
       {
-        text = _("Multiswipes"),
+        text = gettext("Multiswipes"),
         sub_item_table = self:genMultiswipeMenu(),
         enabled_func = function()
           return self.multiswipes_enabled
         end,
       },
       {
-        text = _("Custom multiswipes"),
+        text = gettext("Custom multiswipes"),
         sub_item_table = self:genCustomMultiswipeSubmenu(),
         enabled_func = function()
           return self.multiswipes_enabled
@@ -787,7 +794,7 @@ function Gestures:addToMainMenu(menu_items)
         separator = true,
       },
       {
-        text = _("Tap corner"),
+        text = gettext("Tap corner"),
         sub_item_table = self:genSubItemTable({
           "tap_top_left_corner",
           "tap_top_right_corner",
@@ -796,7 +803,7 @@ function Gestures:addToMainMenu(menu_items)
         }),
       },
       {
-        text = _("Long-press on corner"),
+        text = gettext("Long-press on corner"),
         sub_item_table = self:genSubItemTable({
           "hold_top_left_corner",
           "hold_top_right_corner",
@@ -805,7 +812,7 @@ function Gestures:addToMainMenu(menu_items)
         }),
       },
       {
-        text = _("One-finger swipe"),
+        text = gettext("One-finger swipe"),
         sub_item_table = self:genSubItemTable({
           "short_diagonal_swipe",
           "one_finger_swipe_left_edge_down",
@@ -819,7 +826,7 @@ function Gestures:addToMainMenu(menu_items)
         }),
       },
       {
-        text = _("Double tap"),
+        text = gettext("Double tap"),
         enabled_func = function()
           return self.ges_mode == "gesture_reader"
             and self.ui.disable_double_tap ~= true
@@ -838,7 +845,7 @@ function Gestures:addToMainMenu(menu_items)
 
   if Device:hasMultitouch() then
     table.insert(menu_items.gesture_manager.sub_item_table, {
-      text = _("Two-finger tap corner"),
+      text = gettext("Two-finger tap corner"),
       sub_item_table = self:genSubItemTable({
         "two_finger_tap_top_left_corner",
         "two_finger_tap_top_right_corner",
@@ -847,7 +854,7 @@ function Gestures:addToMainMenu(menu_items)
       }),
     })
     table.insert(menu_items.gesture_manager.sub_item_table, {
-      text = _("Two-finger swipe"),
+      text = gettext("Two-finger swipe"),
       sub_item_table = self:genSubItemTable({
         "two_finger_swipe_east",
         "two_finger_swipe_west",
@@ -860,14 +867,14 @@ function Gestures:addToMainMenu(menu_items)
       }),
     })
     table.insert(menu_items.gesture_manager.sub_item_table, {
-      text = _("Spread and pinch"),
+      text = gettext("Spread and pinch"),
       sub_item_table = self:genSubItemTable({
         "spread_gesture",
         "pinch_gesture",
       }),
     })
     table.insert(menu_items.gesture_manager.sub_item_table, {
-      text = _("Two-finger rotation"),
+      text = gettext("Two-finger rotation"),
       sub_item_table = self:genSubItemTable({ "rotate_cw", "rotate_ccw" }),
     })
   end
@@ -1285,7 +1292,7 @@ end
 function Gestures:gestureAction(action, ges)
   if G_reader_settings:isTrue("gestures_migrated") then
     UIManager:show(InfoMessage:new({
-      text = _(
+      text = gettext(
         "Gestures have been upgraded. You may now set more than one action per gesture."
       ),
       show_icon = false,
@@ -1310,15 +1317,15 @@ end
 function Gestures:multiswipeAction(multiswipe_directions, ges)
   if self.multiswipes_enabled == nil then
     UIManager:show(ConfirmBox:new({
-      text = _("You have just performed your first multiswipe gesture.")
+      text = gettext("You have just performed your first multiswipe gesture.")
         .. "\n\n"
         .. multiswipes_info_text,
-      ok_text = _("Turn on"),
+      ok_text = gettext("Turn on"),
       ok_callback = function()
         G_reader_settings:makeTrue("multiswipes_enabled")
         self.multiswipes_enabled = true
       end,
-      cancel_text = _("Turn off"),
+      cancel_text = gettext("Turn off"),
       cancel_callback = function()
         G_reader_settings:makeFalse("multiswipes_enabled")
         self.multiswipes_enabled = false

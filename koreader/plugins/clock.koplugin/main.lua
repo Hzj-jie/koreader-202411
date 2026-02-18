@@ -8,9 +8,9 @@ local PluginShare = require("pluginshare")
 local UIManager = require("ui/uimanager")
 local Input = Device.input
 local Screen = Device.screen
-local Size = require("ui/size")
-local _ = require("gettext")
 local ClockWidget = require("clockwidget")
+local Size = require("ui/size")
+local gettext = require("gettext")
 local Clock = InputContainer:new({
   name = "clock",
   is_doc_only = false,
@@ -58,7 +58,7 @@ Clock.init = function(self)
 end
 Clock.addToMainMenu = function(self, menu_items)
   menu_items.clock = {
-    text = _("Clock"),
+    text = gettext("Clock"),
     callback = function()
       self:onClockShow()
     end,
@@ -113,7 +113,7 @@ Clock.onDispatcherRegisterAction = function(self)
   return Dispatcher:registerAction("clock_show", {
     category = "none",
     event = "ClockShow",
-    title = _("Show clock"),
+    title = gettext("Show clock"),
     device = true,
   })
 end

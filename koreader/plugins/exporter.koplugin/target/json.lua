@@ -1,6 +1,6 @@
-local rapidjson = require("rapidjson")
+local gettext = require("gettext")
 local md5 = require("ffi/MD5")
-local _ = require("gettext")
+local rapidjson = require("rapidjson")
 
 -- json exporter
 local JsonExporter = require("base"):new({
@@ -14,13 +14,13 @@ local JsonExporter = require("base"):new({
 
 function JsonExporter:getMenuTable()
   return {
-    text = _("Json"),
+    text = gettext("Json"),
     checked_func = function()
       return self:isEnabled()
     end,
     sub_item_table = {
       {
-        text = _("Export to Json"),
+        text = gettext("Export to Json"),
         checked_func = function()
           return self:isEnabled()
         end,
@@ -29,7 +29,7 @@ function JsonExporter:getMenuTable()
         end,
       },
       {
-        text = _("Include book checksum in export"),
+        text = gettext("Include book checksum in export"),
         checked_func = function()
           return self.settings.bookChecksum
         end,

@@ -11,16 +11,16 @@ local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local FocusManager = require("ui/widget/focusmanager")
 local Font = require("ui/font")
+local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
-local FrameContainer = require("ui/widget/container/framecontainer")
 local Notification = require("ui/widget/notification")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 
 local ToggleLabel = TextWidget:extend({
@@ -244,7 +244,7 @@ function ToggleSwitch:onHoldSelect(arg, gev)
     --- @note Ugly hack for the only widget that uses a dual toggle for fine-tuning (others prefer a buttonprogress)
     self.config:onMakeFineTuneDefault(
       "font_size",
-      _("Font Size"),
+      gettext("Font Size"),
       self.values or self.args,
       self.toggle,
       position == 1 and "-" or "+"

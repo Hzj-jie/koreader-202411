@@ -14,8 +14,8 @@ local TrapWidget = require("ui/widget/trapwidget")
 local UIManager = require("ui/uimanager")
 local buffer = require("string.buffer")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
 
 local Trapper = {}
 
@@ -153,15 +153,15 @@ function Trapper:info(text, fast_refresh)
       -- Don't just return false without confirmation (this tap may have been
       -- made by error, and we don't want to just cancel a long running job)
       local abort_box = ConfirmBox:new({
-        text = self.paused_text and self.paused_text or _("Paused"),
+        text = self.paused_text and self.paused_text or gettext("Paused"),
         -- ok and cancel reversed, as tapping outside will
         -- get cancel_callback called: if tap outside was the
         -- result of a tap error, we want to continue. Cancelling
         -- will need an explicit tap on the ok_text button.
         cancel_text = self.paused_continue_text and self.paused_continue_text
-          or _("Continue"),
+          or gettext("Continue"),
         ok_text = self.paused_abort_text and self.paused_abort_text
-          or _("Abort"),
+          or gettext("Abort"),
         cancel_callback = function()
           coroutine.resume(_coroutine, true)
         end,

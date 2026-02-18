@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "clock",
-  fullname = _("Clock"),
-  description = _([[A fullscreen analog clock.]]),
+  fullname = gettext("Clock"),
+  description = gettext([[A fullscreen analog clock.]]),
 }

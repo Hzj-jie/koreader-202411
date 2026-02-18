@@ -34,13 +34,12 @@ Example:
 ]]
 
 local BD = require("ui/bidi")
-local bit = require("bit")
 local Blitbuffer = require("ffi/blitbuffer")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local Font = require("ui/font")
-local Geom = require("ui/geometry")
 local FrameContainer = require("ui/widget/container/framecontainer")
+local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
@@ -50,16 +49,17 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local InputDialog = require("ui/widget/inputdialog")
 local LeftContainer = require("ui/widget/container/leftcontainer")
 local ListView = require("ui/widget/listview")
-local RightContainer = require("ui/widget/container/rightcontainer")
 local NetworkMgr = require("ui/network/manager")
 local OverlapGroup = require("ui/widget/overlapgroup")
+local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
-local util = require("util")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local Widget = require("ui/widget/widget")
-local _ = require("gettext")
+local bit = require("bit")
+local gettext = require("gettext")
+local util = require("util")
 local T = require("ffi/util").template
 local Screen = Device.screen
 
@@ -67,7 +67,7 @@ local band = bit.band
 
 local function obtainIP()
   --- @todo check for DHCP result
-  local info = InfoMessage:new({ text = _("Obtaining IP address…") })
+  local info = InfoMessage:new({ text = gettext("Obtaining IP address…") })
   UIManager:show(info)
   UIManager:forceRePaint()
   NetworkMgr:obtainIP()
@@ -174,9 +174,10 @@ function NetworkItem:init()
       bordersize = 0,
       padding = 0,
       TextWidget:new({
-        text = (Device:canDisconnectWifi() and _("disconnect") or _(
-          "connected"
-        )),
+        text = (
+          Device:canDisconnectWifi() and gettext("disconnect")
+          or gettext("connected")
+        ),
         face = Font:getFace("cfont"),
       }),
     })
@@ -197,7 +198,7 @@ function NetworkItem:init()
       bordersize = 0,
       padding = 0,
       TextWidget:new({
-        text = _("edit"),
+        text = gettext("edit"),
         face = Font:getFace("cfont"),
       }),
     })
@@ -253,7 +254,7 @@ function NetworkItem:connect()
     obtainIP()
     self.info.connected = true
     self.setting_ui:setConnectedItem(self)
-    text = _("Connected.")
+    text = gettext("Connected.")
   else
     text = err_msg
   end
@@ -282,7 +283,7 @@ function NetworkItem:disconnect(will_reconnect)
       NetworkMgr:disconnectNetwork(self.info)
       NetworkMgr:releaseIP()
     else
-      local info = InfoMessage:new({ text = _("Disconnecting…") })
+      local info = InfoMessage:new({ text = gettext("Disconnecting…") })
       UIManager:show(info)
       UIManager:forceRePaint()
 
@@ -308,7 +309,7 @@ function NetworkItem:saveAndConnectToNetwork(password_input)
     and string.find(self.info.flags, "WPA")
   then
     UIManager:show(InfoMessage:new({
-      text = _("Password cannot be empty."),
+      text = gettext("Password cannot be empty."),
     }))
   else
     if new_passwd ~= self.info.password then
@@ -327,20 +328,20 @@ function NetworkItem:onEditNetwork()
   password_input = InputDialog:new({
     title = self.display_ssid,
     input = self.info.password,
-    input_hint = _("password (leave empty for open networks)"),
+    input_hint = gettext("password (leave empty for open networks)"),
     input_type = "text",
     text_type = "password",
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(password_input)
           end,
         },
         {
-          text = _("Forget"),
+          text = gettext("Forget"),
           callback = function()
             NetworkMgr:deleteNetwork(self.info)
             self.info.password = nil
@@ -351,7 +352,7 @@ function NetworkItem:onEditNetwork()
           end,
         },
         {
-          text = _("Connect"),
+          text = gettext("Connect"),
           is_enter_default = true,
           callback = function()
             self:saveAndConnectToNetwork(password_input)
@@ -370,20 +371,20 @@ function NetworkItem:onAddNetwork()
   password_input = InputDialog:new({
     title = self.display_ssid,
     input = "",
-    input_hint = _("password (leave empty for open networks)"),
+    input_hint = gettext("password (leave empty for open networks)"),
     input_type = "text",
     text_type = "password",
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(password_input)
           end,
         },
         {
-          text = _("Connect"),
+          text = gettext("Connect"),
           is_enter_default = true,
           callback = function()
             self:saveAndConnectToNetwork(password_input)
@@ -402,7 +403,7 @@ function NetworkItem:onTapSelect(arg, ges_ev)
   -- so we exclude WEP instead (more encryption to exclude? not really future proof)
   if string.find(self.info.flags, "WEP") then
     UIManager:show(InfoMessage:new({
-      text = _("Networks with WEP encryption are not supported."),
+      text = gettext("Networks with WEP encryption are not supported."),
     }))
     return
   end

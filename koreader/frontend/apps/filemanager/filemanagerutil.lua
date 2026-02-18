@@ -8,9 +8,9 @@ local DocSettings = require("docsettings")
 local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local _ = require("gettext")
 local T = ffiutil.template
 
 local filemanagerutil = {}
@@ -22,7 +22,7 @@ function filemanagerutil.abbreviate(path)
   if G_reader_settings:nilOrTrue("shorten_home_dir") then
     local home_dir = G_named_settings.home_dir()
     if path == home_dir or path == home_dir .. "/" then
-      return _("Home")
+      return gettext("Home")
     end
     local len = home_dir:len()
     local start = path:sub(1, len)
@@ -126,10 +126,10 @@ end
 
 function filemanagerutil.statusToString(status)
   local status_to_text = {
-    new = _("Unread"),
-    reading = _("Reading"),
-    abandoned = _("On hold"),
-    complete = _("Finished"),
+    new = gettext("Unread"),
+    reading = gettext("Reading"),
+    abandoned = gettext("On hold"),
+    complete = gettext("Finished"),
   }
 
   return status_to_text[status]
@@ -192,7 +192,7 @@ function filemanagerutil.genResetSettingsButton(
   local custom_metadata_file = DocSettings:findCustomMetadataFile(file)
   local has_custom_metadata_file = custom_metadata_file and true or false
   return {
-    text = _("Reset"),
+    text = gettext("Reset"),
     enabled = not button_disabled
       and (
         has_sidecar_file
@@ -205,12 +205,12 @@ function filemanagerutil.genResetSettingsButton(
       local check_button_settings, check_button_cover, check_button_metadata
       local confirmbox = ConfirmBox:new({
         text = T(
-          _("Reset this document?")
+          gettext("Reset this document?")
             .. "\n\n%1\n\n"
-            .. _("Information will be permanently lost."),
+            .. gettext("Information will be permanently lost."),
           BD.filepath(file)
         ),
-        ok_text = _("Reset"),
+        ok_text = gettext("Reset"),
         ok_callback = function()
           local data_to_purge = {
             doc_settings = check_button_settings.checked,
@@ -234,21 +234,23 @@ function filemanagerutil.genResetSettingsButton(
         end,
       })
       check_button_settings = CheckButton:new({
-        text = _("document settings, progress, bookmarks, highlights, notes"),
+        text = gettext(
+          "document settings, progress, bookmarks, highlights, notes"
+        ),
         checked = has_sidecar_file,
         enabled = has_sidecar_file,
         parent = confirmbox,
       })
       confirmbox:addWidget(check_button_settings)
       check_button_cover = CheckButton:new({
-        text = _("custom cover image"),
+        text = gettext("custom cover image"),
         checked = has_custom_cover_file,
         enabled = has_custom_cover_file,
         parent = confirmbox,
       })
       confirmbox:addWidget(check_button_cover)
       check_button_metadata = CheckButton:new({
-        text = _("custom book metadata"),
+        text = gettext("custom book metadata"),
         checked = has_custom_metadata_file,
         enabled = has_custom_metadata_file,
         parent = confirmbox,
@@ -265,7 +267,7 @@ function filemanagerutil.genShowFolderButton(
   button_disabled
 )
   return {
-    text = _("Show folder"),
+    text = gettext("Show folder"),
     enabled = not button_disabled,
     callback = function()
       caller_callback()
@@ -289,7 +291,7 @@ function filemanagerutil.genBookInformationButton(
   button_disabled
 )
   return {
-    text = _("Book information"),
+    text = gettext("Book information"),
     enabled = not button_disabled,
     callback = function()
       caller_callback()
@@ -311,7 +313,7 @@ function filemanagerutil.genBookCoverButton(
 )
   local has_cover = book_props and book_props.has_cover
   return {
-    text = _("Book cover"),
+    text = gettext("Book cover"),
     enabled = (not button_disabled and (not book_props or has_cover)) and true
       or false,
     callback = function()
@@ -331,7 +333,7 @@ function filemanagerutil.genBookDescriptionButton(
 )
   local description = book_props and book_props.description
   return {
-    text = _("Book description"),
+    text = gettext("Book description"),
     -- enabled for deleted books if description is kept in CoverBrowser bookinfo cache
     enabled = (not (button_disabled or book_props) or description) and true
       or false,
@@ -349,13 +351,13 @@ function filemanagerutil.genExecuteScriptButton(file, caller_callback)
   local InfoMessage = require("ui/widget/infomessage")
   return {
     -- @translators This is the script's programming language (e.g., shell or python)
-    text = T(_("Execute %1 script"), util.getScriptType(file)),
+    text = T(gettext("Execute %1 script"), util.getScriptType(file)),
     callback = function()
       caller_callback()
       local script_is_running_msg = InfoMessage:new({
         -- @translators %1 is the script's programming language (e.g., shell or python), %2 is the filename
         text = T(
-          _("Running %1 script %2…"),
+          gettext("Running %1 script %2…"),
           util.getScriptType(file),
           BD.filename(ffiutil.basename(file))
         ),
@@ -373,13 +375,13 @@ function filemanagerutil.genExecuteScriptButton(file, caller_callback)
         UIManager:close(script_is_running_msg)
         if rv == 0 then
           UIManager:show(InfoMessage:new({
-            text = _("The script exited successfully."),
+            text = gettext("The script exited successfully."),
           }))
         else
           --- @note: Lua 5.1 returns the raw return value from the os's system call. Counteract this madness.
           UIManager:show(InfoMessage:new({
             text = T(
-              _("The script returned a non-zero status code: %1!"),
+              gettext("The script returned a non-zero status code: %1!"),
               bit.rshift(rv, 8)
             ),
             icon = "notice-warning",
@@ -403,7 +405,7 @@ function filemanagerutil.showChooseDialog(
   local buttons = {
     {
       {
-        text = is_file and _("Choose file") or _("Choose folder"),
+        text = is_file and gettext("Choose file") or gettext("Choose folder"),
         callback = function()
           UIManager:close(dialog)
           if path then
@@ -433,7 +435,7 @@ function filemanagerutil.showChooseDialog(
   if default_path then
     table.insert(buttons, {
       {
-        text = _("Use default"),
+        text = gettext("Use default"),
         enabled = path ~= default_path,
         callback = function()
           UIManager:close(dialog)
@@ -444,7 +446,7 @@ function filemanagerutil.showChooseDialog(
   end
   local title_value = path
       and (is_file and BD.filepath(path) or BD.dirpath(path))
-    or _("not set")
+    or gettext("not set")
   local ButtonDialog = require("ui/widget/buttondialog")
   dialog = ButtonDialog:new({
     title = title_header .. "\n\n" .. title_value .. "\n",

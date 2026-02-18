@@ -2,14 +2,14 @@
 A pure Lua implementation of a gettext subset.
 
 Example:
-    local _ = require("gettext")           -- @{gettext.gettext|gettext}()
-    local C_ = _.pgettext                  -- @{pgettext}()
-    local N_ = _.ngettext                  -- @{ngettext}()
-    local NC_ = _.npgettext                -- @{npgettext}()
+    local gettext = require("gettext")           -- @{gettext.gettext|gettext}()
+    local C_ = gettext.pgettext                  -- @{pgettext}()
+    local N_ = gettext.ngettext                  -- @{ngettext}()
+    local NC_ = gettext.npgettext                -- @{npgettext}()
     local T = require("ffi/util").template -- @{ffi.util.template}()
 
     -- The most common use case with regular @{gettext.gettext|gettext}().
-    local simple_string = _("item")
+    local simple_string = gettext("item")
 
     -- A more complex example. The correct plural form will be automatically
     -- selected by @{ngettext}() based on the number.
@@ -56,8 +56,8 @@ Returns a translation.
 @treturn string translation
 
 @usage
-    local _ = require("gettext")
-    local translation = _("A meaningful message.")
+    local gettext = require("gettext")
+    local translation = gettext("A meaningful message.")
 --]]
 function GetText_mt.__call(gettext, msgid)
   return gettext.translation[msgid] and gettext.translation[msgid][0]
@@ -363,8 +363,8 @@ See @{ffi.util.template}() for more information about the template function.
 @treturn string translation
 
 @usage
-    local _ = require("gettext")
-    local N_ = _.ngettext
+    local gettext = require("gettext")
+    local N_ = gettext.ngettext
     local T = require("ffi/util").template
 
     local items_string = T(N_("1 item", "%1 items", num_items), num_items)
@@ -397,8 +397,8 @@ Please refer there for more information.
 @treturn string translation
 
 @usage
-    local _ = require("gettext")
-    local NC_ = _.npgettext
+    local gettext = require("gettext")
+    local NC_ = gettext.npgettext
     local T = require("ffi/util").template
 
     local statistics_items_string = T(NC_("Statistics", "1 item", "%1 items", num_items), num_items)
@@ -440,8 +440,8 @@ See [gettext contexts](https://www.gnu.org/software/gettext/manual/html_node/Con
 @treturn string translation
 
 @usage
-    local _ = require("gettext")
-    local C_ = _.pgettext
+    local gettext = require("gettext")
+    local C_ = gettext.pgettext
 
     local copy_file = C_("File", "Copy")
     local copy_text = C_("Text", "Copy")

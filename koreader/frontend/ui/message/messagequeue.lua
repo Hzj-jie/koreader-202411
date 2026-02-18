@@ -1,8 +1,8 @@
-local ffi = require("ffi")
 local Event = require("ui/event")
+local ffi = require("ffi")
 local logger = require("logger")
 
-local _ = require("ffi/zeromq_h")
+local gettext = require("ffi/zeromq_h")
 local czmq = ffi.loadlib("czmq", "4")
 
 local MessageQueue = {}

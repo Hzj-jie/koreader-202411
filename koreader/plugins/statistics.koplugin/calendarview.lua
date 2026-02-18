@@ -27,7 +27,7 @@ local Widget = require("ui/widget/widget")
 local datetime = require("datetime")
 local Input = Device.input
 local Screen = Device.screen
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local HistogramWidget = Widget:extend({
@@ -627,7 +627,7 @@ function CalendarDayView:init()
   self.footer_page = Button:new({
     text = "",
     hold_input = {
-      title = _("Enter page number"),
+      title = gettext("Enter page number"),
       input_type = "number",
       hint_func = function()
         return string.format("(1 - %s)", self.pages)
@@ -638,7 +638,7 @@ function CalendarDayView:init()
           self:goToPage(page)
         end
       end,
-      ok_text = _("Go to page"),
+      ok_text = gettext("Go to page"),
     },
     call_hold_input_on_tap = true,
     bordersize = 0,
@@ -888,7 +888,7 @@ function CalendarDayView:_populateBooks()
   self.timeline_height = self.dimen.h - self.timeline_offset
   if self.pages > 1 then
     self.footer_page:setText(
-      T(_("Page %1 of %2"), self.show_page, self.pages),
+      T(gettext("Page %1 of %2"), self.show_page, self.pages),
       self.footer_center_width
     )
     self.footer_page:enable()
@@ -1280,7 +1280,7 @@ function CalendarView:init()
   self.page_info_text = Button:new({
     text = "",
     hold_input = {
-      title = _("Enter month"),
+      title = gettext("Enter month"),
       input_func = function()
         return self.cur_month
       end,
@@ -1301,7 +1301,7 @@ function CalendarView:init()
         end
         local InfoMessage = require("ui/widget/infomessage")
         UIManager:show(InfoMessage:new({
-          text = _("Invalid year-month string (YYYY-MM)"),
+          text = gettext("Invalid year-month string (YYYY-MM)"),
         }))
       end,
     },

@@ -16,9 +16,9 @@ They may have the following optional attributes:
    "hold / use on all books". If 'false', no conflict check is done.
 ]]
 
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
-local C_ = _.pgettext
+local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
 -- Default globally enabled style tweaks, for new installations
@@ -33,87 +33,87 @@ local CssTweaks = {
     title = C_("Style tweaks category", "Pages and margins"),
     {
       id = "margin_body_0",
-      title = _("Ignore publisher page margins"),
-      description = _(
+      title = gettext("Ignore publisher page margins"),
+      description = gettext(
         "Force page margins to be 0, and may allow KOReader's margin settings to work on books where they would not."
       ),
       css = [[body { margin: 0 !important; }]],
     },
     {
-      title = _("Horizontal margins"),
+      title = gettext("Horizontal margins"),
       {
         id = "margin_horizontal_all_0",
         conflicts_with = "paragraph_no_horizontal_margin",
-        title = _("Ignore all horizontal margins"),
+        title = gettext("Ignore all horizontal margins"),
         css = [[* { margin-left: 0 !important; margin-right: 0 !important; }]],
       },
       {
         id = "padding_horizontal_all_0",
         conflicts_with = "paragraph_no_horizontal_padding",
-        title = _("Ignore all horizontal padding"),
+        title = gettext("Ignore all horizontal padding"),
         css = [[* { padding-left: 0 !important; padding-right: 0 !important; }]],
         separator = true,
       },
       {
         id = "paragraph_no_horizontal_margin",
         conflicts_with = "margin_horizontal_all_0",
-        title = _("Ignore horizontal paragraph margins"),
+        title = gettext("Ignore horizontal paragraph margins"),
         css = [[p, li { margin-left: 0 !important; margin-right: 0 !important; }]],
       },
       {
         id = "paragraph_no_horizontal_padding",
         conflicts_with = "padding_horizontal_all_0",
-        title = _("Ignore horizontal paragraph padding"),
+        title = gettext("Ignore horizontal paragraph padding"),
         css = [[p, li { padding-left: 0 !important; padding-right: 0 !important; }]],
       },
     },
     {
-      title = _("Vertical margins"),
+      title = gettext("Vertical margins"),
       {
         id = "margin_vertical_all_0",
         conflicts_with = "paragraph_no_vertical_margin",
-        title = _("Ignore all vertical margins"),
+        title = gettext("Ignore all vertical margins"),
         css = [[* { margin-top: 0 !important; margin-bottom: 0 !important; }]],
       },
       {
         id = "padding_vertical_all_0",
         conflicts_with = "paragraph_no_vertical_padding",
-        title = _("Ignore all vertical padding"),
+        title = gettext("Ignore all vertical padding"),
         css = [[* { padding-top: 0 !important; padding-bottom: 0 !important; }]],
         separator = true,
       },
       {
         id = "paragraph_no_vertical_margin",
         conflicts_with = "margin_vertical_all_0",
-        title = _("Ignore vertical paragraph margins"),
+        title = gettext("Ignore vertical paragraph margins"),
         css = [[p, li { margin-top: 0 !important; margin-bottom: 0 !important; }]],
       },
       {
         id = "paragraph_no_vertical_padding",
         conflicts_with = "padding_vertical_all_0",
-        title = _("Ignore vertical paragraph padding"),
+        title = gettext("Ignore vertical paragraph padding"),
         css = [[p, li { padding-top: 0 !important; padding-bottom: 0 !important; }]],
       },
       separator = true,
     },
     {
-      title = _("Page breaks and blank pages"),
+      title = gettext("Page breaks and blank pages"),
       {
         id = "titles_page-break-before_avoid ",
-        title = _("Avoid blank page on chapter start"),
+        title = gettext("Avoid blank page on chapter start"),
         priority = 2, -- so it can override the one put back by publisher_page-break-before_avoid
         css = [[h1, h2, h3 { page-break-before: auto !important; }]],
       },
       {
         id = "docfragment_page-break-before_avoid ",
-        title = _("Avoid blank page on chapter end"),
+        title = gettext("Avoid blank page on chapter end"),
         priority = 2, -- so it can override the one put back by publisher_page-break-before_avoid
         css = [[DocFragment { page-break-before: auto !important; }]],
       },
       {
         id = "publisher_page-breaks_avoid ",
-        title = _("Avoid publisher page breaks"),
-        description = _(
+        title = gettext("Avoid publisher page breaks"),
+        description = gettext(
           "Disable all publisher page breaks, keeping only KOReader's epub.css ones.\nWhen combined with the two previous tweaks, all page-breaks are disabled."
         ),
         css = [[
@@ -127,15 +127,15 @@ h1, h2, h3, h4, h5, h6 { page-break-after: avoid !important; }
         separator = true,
       },
       {
-        title = _("New page on headings"),
+        title = gettext("New page on headings"),
         {
           id = "h1_page-break-before_always",
-          title = _("New page on <H1>"),
+          title = gettext("New page on <H1>"),
           css = [[h1 { page-break-before: always !important; }]],
         },
         {
           id = "h2_page-break-before_always",
-          title = _("New page on <H2>"),
+          title = gettext("New page on <H2>"),
           css = [[
 h2 { page-break-before: always !important; }
 h1 + h2 { page-break-before: avoid !important; }
@@ -143,7 +143,7 @@ h1 + h2 { page-break-before: avoid !important; }
         },
         {
           id = "h3_page-break-before_always",
-          title = _("New page on <H3>"),
+          title = gettext("New page on <H3>"),
           css = [[
 h3 { page-break-before: always !important; }
 h1 + h3, h2 + h3 { page-break-before: avoid !important; }
@@ -151,7 +151,7 @@ h1 + h3, h2 + h3 { page-break-before: avoid !important; }
         },
         {
           id = "h4_page-break-before_always",
-          title = _("New page on <H4>"),
+          title = gettext("New page on <H4>"),
           css = [[
 h4 { page-break-before: always !important; }
 h1 + h4, h2 + h4, h3 + h4 { page-break-before: avoid !important; }
@@ -159,7 +159,7 @@ h1 + h4, h2 + h4, h3 + h4 { page-break-before: avoid !important; }
         },
         {
           id = "h5_page-break-before_always",
-          title = _("New page on <H5>"),
+          title = gettext("New page on <H5>"),
           css = [[
 h5 { page-break-before: always !important; }
 h1 + h5, h2 + h5, h3 + h5, h4 + h5 { page-break-before: avoid !important; }
@@ -167,7 +167,7 @@ h1 + h5, h2 + h5, h3 + h5, h4 + h5 { page-break-before: avoid !important; }
         },
         {
           id = "h6_page-break-before_always",
-          title = _("New page on <H6>"),
+          title = gettext("New page on <H6>"),
           css = [[
 h6 { page-break-before: always !important; }
 h1 + h6, h2 + h6, h3 + h6, h4 + h6, h5 + h6 { page-break-before: avoid !important; }
@@ -176,10 +176,10 @@ h1 + h6, h2 + h6, h3 + h6, h4 + h6, h5 + h6 { page-break-before: avoid !importan
       },
     },
     {
-      title = _("Widows and orphans"),
+      title = gettext("Widows and orphans"),
       {
-        title = _("About widow and orphan lines"),
-        info_text = _(
+        title = gettext("About widow and orphan lines"),
+        info_text = gettext(
           [[
 Widows and orphans are lines at the beginning or end of a paragraph, which are left dangling at the top or bottom of a page, separated from the rest of the paragraph.
 The first line of a paragraph alone at the bottom of a page is called an orphan line.
@@ -202,8 +202,8 @@ These tweaks allow you to change this behavior, and to override publisher rules.
       {
         id = "widows_orphans_avoid",
         conflicts_with = "widows_avoid_orphans_allow",
-        title = _("Avoid widows and orphans"),
-        description = _(
+        title = gettext("Avoid widows and orphans"),
+        description = gettext(
           "Avoid widow and orphan lines, allowing for some possible blank space at the bottom of pages."
         ),
         css = [[
@@ -218,8 +218,8 @@ DocFragment {
       {
         id = "widows_avoid_orphans_allow",
         conflicts_with = "widows_orphans_avoid",
-        title = _("Avoid widows but allow orphans"),
-        description = _(
+        title = gettext("Avoid widows but allow orphans"),
+        description = gettext(
           [[
 Avoid widow lines, but allow orphan lines, allowing for some possible blank space at the bottom of pages.
 Allowing orphans avoids ambiguous blank space at the bottom of a page, which could otherwise be confused with real spacing between paragraphs.]]
@@ -236,8 +236,8 @@ DocFragment {
       },
       {
         id = "widows_orphans_all_inherit",
-        title = _("Ignore publisher orphan and widow rules"),
-        description = _(
+        title = gettext("Ignore publisher orphan and widow rules"),
+        description = gettext(
           "Disable orphan and widow rules specified in embedded styles."
         ),
         css = [[
@@ -250,14 +250,14 @@ DocFragment {
     },
   },
   {
-    title = _("Text"),
+    title = gettext("Text"),
     {
-      title = _("Text alignment"),
+      title = gettext("Text alignment"),
       {
         id = "text_align_most_left",
         conflicts_with = { "text_align_all_left", "text_align_most_justify" },
-        title = _("Left align most text"),
-        description = _(
+        title = gettext("Left align most text"),
+        description = gettext(
           "Enforce left alignment of text in common text elements."
         ),
         css = [[body, p, li { text-align: left !important; }]],
@@ -266,8 +266,10 @@ DocFragment {
       {
         id = "text_align_all_left",
         conflicts_with = { "text_align_most_left", "text_align_all_justify" },
-        title = _("Left align all elements"),
-        description = _("Enforce left alignment of text in all elements."),
+        title = gettext("Left align all elements"),
+        description = gettext(
+          "Enforce left alignment of text in all elements."
+        ),
         css = [[* { text-align: left !important; }]],
         priority = 2, -- so it overrides the justify below
         separator = true,
@@ -275,8 +277,8 @@ DocFragment {
       {
         id = "text_align_most_justify",
         conflicts_with = { "text_align_most_left", "text_align_all_justify" },
-        title = _("Justify most text"),
-        description = _(
+        title = gettext("Justify most text"),
+        description = gettext(
           "Text justification is the default, but it may be overridden by publisher styles. This will re-enable it for most common text elements."
         ),
         css = [[
@@ -291,8 +293,8 @@ pre {
       {
         id = "text_align_all_justify",
         conflicts_with = { "text_align_all_left", "text_align_most_justify" },
-        title = _("Justify all elements"),
-        description = _(
+        title = gettext("Justify all elements"),
+        description = gettext(
           "Text justification is the default, but it may be overridden by publisher styles. This will force justification on all elements, some of which may not be centered as expected."
         ),
         css = [[
@@ -306,16 +308,16 @@ pre {
       },
       {
         id = "headings_align_center",
-        title = _("Center headings"),
+        title = gettext("Center headings"),
         css = [[h1, h2, h3, h4, h5, h6 { text-align: center !important; }]],
         priority = 4, -- so it overrides the ones above
       },
     },
     {
-      title = _("Text direction"),
+      title = gettext("Text direction"),
       {
-        title = _("About text direction"),
-        info_text = _(
+        title = gettext("About text direction"),
+        info_text = gettext(
           [[
 Languages like Arabic or Hebrew use right-to-left writing systems (Right-To-Left or RTL). This doesn't only affect text layout, but also list item bullets and numbers, which have to be put on the right side of the page, as well as tables, where the cells are laid out from right to left.
 
@@ -329,15 +331,15 @@ You may also want to enable, in the top menu → Gear → Taps and gestures → 
       {
         id = "body_direction_rtl",
         conflicts_with = "body_direction_ltr",
-        title = _("Document direction RTL"),
+        title = gettext("Document direction RTL"),
         css = [[body { direction: rtl !important; }]],
         priority = 2, -- so it overrides the LTR one below
       },
       {
         id = "text_align_most_right",
         conflicts_with = "text_align_all_right",
-        title = _("Right align most text"),
-        description = _(
+        title = gettext("Right align most text"),
+        description = gettext(
           "Enforce right alignment of text in common text elements."
         ),
         -- Includes H1..H6 as this is probably most useful for RTL readers
@@ -347,8 +349,10 @@ You may also want to enable, in the top menu → Gear → Taps and gestures → 
       {
         id = "text_align_all_right",
         conflicts_with = "text_align_most_right",
-        title = _("Right align all elements"),
-        description = _("Enforce right alignment of text in all elements."),
+        title = gettext("Right align all elements"),
+        description = gettext(
+          "Enforce right alignment of text in all elements."
+        ),
         css = [[* { text-align: right !important; }]],
         priority = 3, -- so it overrides the ones from Text alignment
         separator = true,
@@ -356,17 +360,17 @@ You may also want to enable, in the top menu → Gear → Taps and gestures → 
       {
         id = "body_direction_ltr",
         conflicts_with = "body_direction_rtl",
-        title = _("Document direction LTR"),
+        title = gettext("Document direction LTR"),
         css = [[body { direction: ltr !important; }]],
       },
       separator = true,
     },
     {
-      title = _("Hyphenation, ligatures, ruby"),
+      title = gettext("Hyphenation, ligatures, ruby"),
       {
         id = "hyphenate_all_auto",
-        title = _("Allow hyphenation on all text"),
-        description = _(
+        title = gettext("Allow hyphenation on all text"),
+        description = gettext(
           "Allow hyphenation on all text (except headings), in case the publisher has disabled it."
         ),
         css = [[
@@ -376,8 +380,8 @@ h1, h2, h3, h4, h5, h6 { hyphens: none !important; }
       },
       {
         id = "line_break_cre_loose",
-        title = _("Ignore publisher line-break restrictions"),
-        description = _(
+        title = gettext("Ignore publisher line-break restrictions"),
+        description = gettext(
           [[
 A publisher might use non-breaking spaces and hyphens to avoid line breaking between some words, which is not always necessary and may have been added to make reading easier. This can cause large word spacing on some lines.
 Ignoring them will only use KOReader's own typography rules for line breaking.]]
@@ -386,8 +390,8 @@ Ignoring them will only use KOReader's own typography rules for line breaking.]]
       },
       {
         id = "ligature_all_no_common_ligature",
-        title = _("Disable common ligatures"),
-        description = _(
+        title = gettext("Disable common ligatures"),
+        description = gettext(
           "Disable common ligatures, which are enabled by default in 'best' kerning mode."
         ),
         -- We don't use !important, as this would stop other font-variant properties
@@ -398,18 +402,18 @@ Ignoring them will only use KOReader's own typography rules for line breaking.]]
         separator = true,
       },
       {
-        title = _("Ruby"),
+        title = gettext("Ruby"),
         {
-          title = _("About ruby"),
-          info_text = _([[
+          title = gettext("About ruby"),
+          info_text = gettext([[
 Ruby characters are small glosses on writing in Asian languages (Hanzi, Kanji, Hanja, etc.) to show the pronunciation of the logographs.
 These tweaks can help make ruby easier to read or ignore.]]),
           separator = true,
         },
         {
           id = "ruby_font_sans_serif",
-          title = _("Sans-serif font for ruby"),
-          description = _(
+          title = gettext("Sans-serif font for ruby"),
+          description = gettext(
             [[
 Use a sans serif font to display all ruby text for a more 'book-like' feeling.
 Also force the regular text weight when used with lighter or bolder fonts.]]
@@ -423,15 +427,15 @@ rt, rubyBox[T=rt] {
         },
         {
           id = "ruby_font_size_larger",
-          title = _("Larger ruby text size"),
-          description = _("Increase ruby text size."),
+          title = gettext("Larger ruby text size"),
+          description = gettext("Increase ruby text size."),
           css = [[rt, rubyBox[T=rt] { font-size: 50% !important; }]],
           separator = true,
         },
         {
           id = "ruby_most_line_height_larger",
-          title = _("Larger spacing between ruby lines"),
-          description = _(
+          title = gettext("Larger spacing between ruby lines"),
+          description = gettext(
             [[
 Increase line spacing of most text, so that lines keep an even spacing whether or not they include ruby.
 Further small adjustments can be done with 'Line Spacing' in the bottom menu.]]
@@ -441,8 +445,8 @@ Further small adjustments can be done with 'Line Spacing' in the bottom menu.]]
         },
         {
           id = "ruby_inline",
-          title = _("Render ruby content inline"),
-          description = _(
+          title = gettext("Render ruby content inline"),
+          description = gettext(
             "Disable handling of <ruby> tags and render them inline."
           ),
           css = [[ruby { display: inline !important; }]],
@@ -451,11 +455,11 @@ Further small adjustments can be done with 'Line Spacing' in the bottom menu.]]
       separator = true,
     },
     {
-      title = _("Font size and families"),
+      title = gettext("Font size and families"),
       {
         id = "font_no_presentational_hints",
-        title = _("Ignore font related HTML presentational hints"),
-        description = _(
+        title = gettext("Ignore font related HTML presentational hints"),
+        description = gettext(
           "Ignore HTML attributes that contribute to styles on the elements <body> (bgcolor, text…) and <font> (face, size, color…)."
         ),
         css = [[body, font { -cr-hint: no-presentational; }]],
@@ -463,24 +467,28 @@ Further small adjustments can be done with 'Line Spacing' in the bottom menu.]]
       },
       {
         id = "font_family_all_inherit",
-        title = _("Ignore publisher font families"),
-        description = _("Disable font-family specified in embedded styles."),
+        title = gettext("Ignore publisher font families"),
+        description = gettext(
+          "Disable font-family specified in embedded styles."
+        ),
         css = [[* { font-family: inherit !important; }]],
         separator = true,
       },
       {
         id = "font_size_all_inherit",
         conflicts_with = "font_size_most_reset",
-        title = _("Ignore publisher font sizes"),
-        description = _("Disable font-size specified in embedded styles."),
+        title = gettext("Ignore publisher font sizes"),
+        description = gettext(
+          "Disable font-size specified in embedded styles."
+        ),
         priority = -1, -- so in-page footnotes smaller can override this
         css = [[* { font-size: inherit !important; }]],
       },
       {
         id = "font_size_most_reset",
         conflicts_with = "font_size_all_inherit",
-        title = _("Reset main text font size"),
-        description = _(
+        title = gettext("Reset main text font size"),
+        description = gettext(
           "Disable font-size set on the main text (keeping possibly larger headings untouched), so that KOReader's font size is used."
         ),
         priority = -1, -- so in-page footnotes smaller can override this
@@ -488,19 +496,19 @@ Further small adjustments can be done with 'Line Spacing' in the bottom menu.]]
       },
     },
     {
-      title = _("Line heights"),
+      title = gettext("Line heights"),
       {
         id = "lineheight_all_inherit",
-        title = _("Ignore publisher line heights"),
-        description = _(
+        title = gettext("Ignore publisher line heights"),
+        description = gettext(
           "Disable line-height specified in embedded styles, and may allow KOReader's line spacing settings to work on books where they would not."
         ),
         css = [[* { line-height: inherit !important; }]],
       },
       {
         id = "lineheight_all_normal_strut_confined",
-        title = _("Enforce steady line heights"),
-        description = _(
+        title = gettext("Enforce steady line heights"),
+        description = gettext(
           "Prevent inline content like sub- and superscript from changing their paragraph line height."
         ),
         -- strut-confined is among the few cr-hints that are inherited
@@ -509,8 +517,8 @@ Further small adjustments can be done with 'Line Spacing' in the bottom menu.]]
       },
       {
         id = "sub_sup_smaller",
-        title = _("Smaller sub- and superscript"),
-        description = _(
+        title = gettext("Smaller sub- and superscript"),
+        description = gettext(
           "Prevent sub- and superscript from affecting line-height."
         ),
         priority = 5, -- so we can override "font_size_all_inherit"
@@ -524,11 +532,11 @@ sub { font-size: 50% !important; vertical-align: sub !important; }
     },
   },
   {
-    title = _("Paragraphs"),
+    title = gettext("Paragraphs"),
     {
       id = "paragraph_web_browser_style",
-      title = _("Generic web browser paragraph style"),
-      description = _(
+      title = gettext("Generic web browser paragraph style"),
+      description = gettext(
         [[
 Display paragraphs as browsers do, in full-block style without indentation or justification, discarding KOReader's book paragraph style.
 This might be needed with some documents that expect this style as the default, and only use CSS when it needs to diverge from this default.]]
@@ -545,8 +553,8 @@ p {
     },
     {
       id = "cjk_tailored",
-      title = _("Tailor widths and text-indent for CJK"),
-      description = _(
+      title = gettext("Tailor widths and text-indent for CJK"),
+      description = gettext(
         [[
 Adjust paragraph width and text-indent to be an integer multiple of the font size, so that lines of Chinese and Japanese characters don't need space added between glyphs for text justification.]]
       ),
@@ -554,18 +562,18 @@ Adjust paragraph width and text-indent to be an integer multiple of the font siz
       separator = true,
     },
     {
-      title = _("Paragraph first-line indentation"),
+      title = gettext("Paragraph first-line indentation"),
       {
         id = "paragraph_no_indent",
-        title = _("No indentation on first paragraph line"),
-        description = _("Do not indent the first line of paragraphs."),
+        title = gettext("No indentation on first paragraph line"),
+        description = gettext("Do not indent the first line of paragraphs."),
         css = [[p { text-indent: 0 !important; }]],
         separator = true,
       },
       {
         id = "paragraph_indent",
-        title = _("Indentation on first paragraph line"),
-        description = _(
+        title = gettext("Indentation on first paragraph line"),
+        description = gettext(
           "Indentation on the first line of a paragraph is the default, but it may be overridden by publisher styles. This will force KOReader's defaults on common elements."
         ),
         css = [[
@@ -575,8 +583,8 @@ body, h1, h2, h3, h4, h5, h6, div, li, td, th { text-indent: 0 !important; }
       },
       {
         id = "paragraph_first_no_indent",
-        title = _("No indentation on first paragraph"),
-        description = _(
+        title = gettext("No indentation on first paragraph"),
+        description = gettext(
           "Do not indent the first line of the first paragraph of its container. This might be needed to correctly display drop caps, while still having indentation on following paragraphs."
         ),
         priority = 2, -- so it can override 'paragraph_indent'
@@ -584,8 +592,8 @@ body, h1, h2, h3, h4, h5, h6, div, li, td, th { text-indent: 0 !important; }
       },
       {
         id = "paragraph_following_no_indent",
-        title = _("No indentation on following paragraphs"),
-        description = _(
+        title = gettext("No indentation on following paragraphs"),
+        description = gettext(
           "Do not indent the first line of following paragraphs, but leave the first paragraph of its container untouched."
         ),
         priority = 2, -- so it can override 'paragraph_indent'
@@ -593,31 +601,33 @@ body, h1, h2, h3, h4, h5, h6, div, li, td, th { text-indent: 0 !important; }
       },
     },
     {
-      title = _("Spacing between paragraphs"),
+      title = gettext("Spacing between paragraphs"),
       {
         id = "paragraph_whitespace",
         conflicts_with = {
           "paragraph_whitespace_half",
           "paragraph_no_whitespace",
         },
-        title = _("Spacing between paragraphs"),
-        description = _("Add a line of whitespace between paragraphs."),
+        title = gettext("Spacing between paragraphs"),
+        description = gettext("Add a line of whitespace between paragraphs."),
         priority = 5, -- Override "Ignore margins and paddings" above
         css = [[p + p { margin-top: 1em !important; }]],
       },
       {
         id = "paragraph_whitespace_half",
         conflicts_with = { "paragraph_whitespace", "paragraph_no_whitespace" },
-        title = _("Spacing between paragraphs (half)"),
-        description = _("Add half a line of whitespace between paragraphs."),
+        title = gettext("Spacing between paragraphs (half)"),
+        description = gettext(
+          "Add half a line of whitespace between paragraphs."
+        ),
         priority = 5,
         css = [[p + p { margin-top: .5em !important; }]],
       },
       {
         id = "paragraph_no_whitespace",
         conflicts_with = { "paragraph_whitespace", "paragraph_whitespace_half" },
-        title = _("No spacing between paragraphs"),
-        description = _(
+        title = gettext("No spacing between paragraphs"),
+        description = gettext(
           "No whitespace between paragraphs is the default, but it may be overridden by publisher styles. This will re-enable it for paragraphs and list items."
         ),
         priority = 5,
@@ -626,13 +636,13 @@ body, h1, h2, h3, h4, h5, h6, div, li, td, th { text-indent: 0 !important; }
     },
   },
   {
-    title = _("Tables, links, images"),
+    title = gettext("Tables, links, images"),
     {
-      title = _("Tables"),
+      title = gettext("Tables"),
       {
         id = "table_no_presentational_hints",
-        title = _("Ignore tables related HTML presentational hints"),
-        description = _(
+        title = gettext("Ignore tables related HTML presentational hints"),
+        description = gettext(
           "Ignore HTML attributes that contribute to styles on the <table> element and its sub-elements (ie. align, valign, frame, rules, border, cellpadding, cellspacing…)."
         ),
         css = [[table, caption, colgroup, col, thead, tbody, tfoot, tr, td, th { -cr-hint: no-presentational; }]],
@@ -640,8 +650,8 @@ body, h1, h2, h3, h4, h5, h6, div, li, td, th { text-indent: 0 !important; }
       },
       {
         id = "table_full_width",
-        title = _("Full-width tables"),
-        description = _(
+        title = gettext("Full-width tables"),
+        description = gettext(
           "Make table expand to the full width of the page. (Tables with small content now use only the width needed to display that content. This restores the previous behavior.)"
         ),
         css = [[table { width: 100% !important; }]],
@@ -649,16 +659,16 @@ body, h1, h2, h3, h4, h5, h6, div, li, td, th { text-indent: 0 !important; }
       },
       {
         id = "table_td_width_auto",
-        title = _("Ignore publisher table and cell widths"),
-        description = _(
+        title = gettext("Ignore publisher table and cell widths"),
+        description = gettext(
           "Ignore table and cells widths specified by the publisher, and let the engine decide the most appropriate widths."
         ),
         css = [[table, td, th { width: auto !important; }]],
       },
       {
         id = "table_margin_left_right_auto",
-        title = _("Center small tables"),
-        description = _(
+        title = gettext("Center small tables"),
+        description = gettext(
           "Horizontally center tables that do not use the full page width."
         ),
         css = [[table { margin-left: auto !important; margin-right: auto !important; }]],
@@ -667,14 +677,14 @@ body, h1, h2, h3, h4, h5, h6, div, li, td, th { text-indent: 0 !important; }
       },
       {
         id = "td_vertical_align_none",
-        title = _("Ignore publisher vertical alignment in tables"),
+        title = gettext("Ignore publisher vertical alignment in tables"),
         -- Using "vertical-align: top" would vertical-align children text nodes to top.
         -- "vertical-align: baseline" has no meaning in table rendering, and is as fine
         css = [[td { vertical-align: baseline !important; }]],
       },
       {
         id = "table_row_odd_even",
-        title = _("Alternate background color of table rows"),
+        title = gettext("Alternate background color of table rows"),
         css = [[
 tr:nth-child(odd)  { background-color: #EEE !important; }
 tr:nth-child(even) { background-color: #CCC !important; }
@@ -682,73 +692,73 @@ tr:nth-child(even) { background-color: #CCC !important; }
       },
       {
         id = "table_force_border",
-        title = _("Show borders on all tables"),
+        title = gettext("Show borders on all tables"),
         css = [[
 table, tcaption, tr, th, td { border: black solid 1px; border-collapse: collapse; }
                 ]],
       },
     },
     {
-      title = _("Links"),
+      title = gettext("Links"),
       {
         id = "a_black",
         conflicts_with = "a_blue",
-        title = _("Links always black"),
+        title = gettext("Links always black"),
         css = [[a, a * { color: black !important; }]],
       },
       {
         id = "a_blue",
         conflicts_with = "a_black",
-        title = _("Links always blue"),
+        title = gettext("Links always blue"),
         css = [[a, a * { color: blue !important; }]],
         separator = true,
       },
       {
         id = "a_bold",
         conflicts_with = "a_not_bold",
-        title = _("Links always bold"),
+        title = gettext("Links always bold"),
         css = [[a, a * { font-weight: bold !important; }]],
       },
       {
         id = "a_not_bold",
         conflicts_with = "a_bold",
-        title = _("Links never bold"),
+        title = gettext("Links never bold"),
         css = [[a, a * { font-weight: normal !important; }]],
         separator = true,
       },
       {
         id = "a_italic",
         conflicts_with = "a_not_italic",
-        title = _("Links always italic"),
+        title = gettext("Links always italic"),
         css = [[a, a * { font-style: italic !important; }]],
       },
       {
         id = "a_not_italic",
         conflicts_with = "a_italic",
-        title = _("Links never italic"),
+        title = gettext("Links never italic"),
         css = [[a, a * { font-style: normal !important; }]],
         separator = true,
       },
       {
         id = "a_underline",
         conflicts_with = "a_not_underline",
-        title = _("Links always underlined"),
+        title = gettext("Links always underlined"),
         css = [[a[href], a[href] * { text-decoration: underline !important; }]],
         -- Have it apply only on real links with a href=, not on anchors
       },
       {
         id = "a_not_underline",
         conflicts_with = "a_underline",
-        title = _("Links never underlined"),
+        title = gettext("Links never underlined"),
         css = [[a, a * { text-decoration: none !important; }]],
       },
     },
     {
-      title = _("Images"),
+      title = gettext("Images"),
       {
         id = "image_full_width",
-        title = _("Full-width images"),
-        description = _(
+        title = gettext("Full-width images"),
+        description = gettext(
           "Useful for books containing only images, when they are smaller than your screen. May stretch images in some cases."
         ),
         -- This helped me once with a book. Will mess with aspect ratio
@@ -765,8 +775,8 @@ width: 100% !important;
       {
         id = "almost_image_full_width",
         -- Need localization
-        title = _("Almost full-width images"),
-        description = _(
+        title = gettext("Almost full-width images"),
+        description = gettext(
           "Useful for books containing only images, when they are smaller than your screen. May stretch images in some cases."
         ),
         css = [[
@@ -779,18 +789,18 @@ width: 85% !important;
       },
       {
         id = "image_valign_middle",
-        title = _("Vertically center-align images relative to text"),
+        title = gettext("Vertically center-align images relative to text"),
         css = [[img { vertical-align: middle; }]],
       },
     },
   },
   {
-    title = _("Miscellaneous"),
+    title = gettext("Miscellaneous"),
     {
-      title = _("Alternative ToC hints"),
+      title = gettext("Alternative ToC hints"),
       {
-        title = _("About alternative ToC"),
-        info_text = _(
+        title = gettext("About alternative ToC"),
+        info_text = gettext(
           [[
 An alternative table of contents can be built via a dedicated option in the "Settings" menu below the "Table of contents" menu entry.
 
@@ -805,44 +815,44 @@ After applying these tweaks, the alternative ToC needs to be rebuilt by toggling
       },
       {
         id = "alt_toc_ignore_h_all",
-        title = _("Ignore all <H1> to <H6>"),
+        title = gettext("Ignore all <H1> to <H6>"),
         css = [[h1, h2, h3, h4, h5, h6 { -cr-hint: toc-ignore; }]],
       },
       {
         id = "alt_toc_ignore_h1",
-        title = _("Ignore <H1>"),
+        title = gettext("Ignore <H1>"),
         css = [[h1 { -cr-hint: toc-ignore; }]],
       },
       {
         id = "alt_toc_ignore_h2",
-        title = _("Ignore <H2>"),
+        title = gettext("Ignore <H2>"),
         css = [[h2 { -cr-hint: toc-ignore; }]],
       },
       {
         id = "alt_toc_ignore_h3",
-        title = _("Ignore <H3>"),
+        title = gettext("Ignore <H3>"),
         css = [[h3 { -cr-hint: toc-ignore; }]],
       },
       {
         id = "alt_toc_ignore_h4",
-        title = _("Ignore <H4>"),
+        title = gettext("Ignore <H4>"),
         css = [[h4 { -cr-hint: toc-ignore; }]],
       },
       {
         id = "alt_toc_ignore_h5",
-        title = _("Ignore <H5>"),
+        title = gettext("Ignore <H5>"),
         css = [[h5 { -cr-hint: toc-ignore; }]],
       },
       {
         id = "alt_toc_ignore_h6",
-        title = _("Ignore <H6>"),
+        title = gettext("Ignore <H6>"),
         css = [[h6 { -cr-hint: toc-ignore; }]],
         separator = true,
       },
       {
         id = "alt_toc_level_example",
-        title = _("Example of book specific ToC hints"),
-        description = _(
+        title = gettext("Example of book specific ToC hints"),
+        description = gettext(
           [[
 If headings or document fragments do not result in a usable ToC, you can inspect the HTML and look for elements that contain chapter titles. Then you can set hints to their class names.
 This is just an example, that will need to be adapted into a user style tweak.]]
@@ -857,22 +867,22 @@ This is just an example, that will need to be adapted into a user style tweak.]]
       separator = true,
     },
     {
-      title = _("List items"),
+      title = gettext("List items"),
       {
         id = "ul_li_type_disc",
-        title = _("Force bullets with unordered lists"),
+        title = gettext("Force bullets with unordered lists"),
         css = [[ul > li { list-style-type: disc !important; }]],
       },
       {
         id = "ol_li_type_decimal",
-        title = _("Force decimal numbers with ordered lists"),
+        title = gettext("Force decimal numbers with ordered lists"),
         css = [[ol > li { list-style-type: decimal !important; }]],
       },
     },
     {
       id = "no_pseudo_element_before_after",
-      title = _("Disable before/after pseudo elements"),
-      description = _(
+      title = gettext("Disable before/after pseudo elements"),
+      description = gettext(
         [[Disable generated text from ::before and ::after pseudo elements, usually used to add cosmetic text around some content.]]
       ),
       css = [[
@@ -883,8 +893,8 @@ This is just an example, that will need to be adapted into a user style tweak.]]
     },
     {
       id = "pure_black_and_white",
-      title = _("Pure black and white"),
-      description = _(
+      title = gettext("Pure black and white"),
+      description = gettext(
         [[Enforce black text and borders, and remove backgrounds.]]
       ),
       css = [[
@@ -898,13 +908,13 @@ This is just an example, that will need to be adapted into a user style tweak.]]
     },
   },
   {
-    title = _("In-page footnotes"),
+    title = gettext("In-page footnotes"),
     {
-      title = _("In-page FB2 footnotes"),
+      title = gettext("In-page FB2 footnotes"),
       {
         id = "footnote-inpage_fb2",
-        title = _("In-page FB2 footnotes"),
-        description = _(
+        title = gettext("In-page FB2 footnotes"),
+        description = gettext(
           [[
 Show FB2 footnote text at the bottom of pages that contain links to them.]]
         ),
@@ -931,8 +941,8 @@ body[name="notes"] > title {
       },
       {
         id = "footnote-inpage_fb2_comments",
-        title = _("In-page FB2 endnotes"),
-        description = _(
+        title = gettext("In-page FB2 endnotes"),
+        description = gettext(
           [[
 Show FB2 endnote text at the bottom of pages that contain links to them.]]
         ),
@@ -956,8 +966,8 @@ body[name="comments"] > title {
       },
       {
         id = "fb2_footnotes_regular_font_size",
-        title = _("Keep regular font size"),
-        description = _(
+        title = gettext("Keep regular font size"),
+        description = gettext(
           [[
 FB2 footnotes and endnotes get a smaller font size when displayed in-page. This allows them to be shown with the normal font size.]]
         ),
@@ -980,8 +990,8 @@ body[name="comments"] > section
       global_conflicts_with = function(id)
         return util.stringStartsWith(id, "footnote-inpage_epub")
       end,
-      title = _("In-page EPUB footnotes"),
-      description = _(
+      title = gettext("In-page EPUB footnotes"),
+      description = gettext(
         [[
 Show EPUB footnote text at the bottom of pages that contain links to them.
 This only works with footnotes that have specific attributes set by the publisher.]]
@@ -1011,8 +1021,8 @@ This only works with footnotes that have specific attributes set by the publishe
       global_conflicts_with = function(id)
         return util.stringStartsWith(id, "footnote-inpage_epub")
       end,
-      title = _("In-page EPUB footnotes (smaller)"),
-      description = _(
+      title = gettext("In-page EPUB footnotes (smaller)"),
+      description = gettext(
         [[
 Show EPUB footnote text at the bottom of pages that contain links to them.
 This only works with footnotes that have specific attributes set by the publisher.]]
@@ -1045,8 +1055,8 @@ This only works with footnotes that have specific attributes set by the publishe
       global_conflicts_with = function(id)
         return util.stringStartsWith(id, "footnote-inpage_wikipedia")
       end,
-      title = _("In-page Wikipedia footnotes"),
-      description = _(
+      title = gettext("In-page Wikipedia footnotes"),
+      description = gettext(
         [[Show footnotes at the bottom of pages in Wikipedia EPUBs.]]
       ),
       css = [[
@@ -1068,8 +1078,8 @@ ol.references > li > .mw-cite-backlink { display: none; }
       global_conflicts_with = function(id)
         return util.stringStartsWith(id, "footnote-inpage_wikipedia")
       end,
-      title = _("In-page Wikipedia footnotes (smaller)"),
-      description = _(
+      title = gettext("In-page Wikipedia footnotes (smaller)"),
+      description = gettext(
         [[Show footnotes at the bottom of pages in Wikipedia EPUBs.]]
       ),
       css = [[
@@ -1096,8 +1106,8 @@ ol.references > li > .mw-cite-backlink { display: none; }
       global_conflicts_with = function(id)
         return util.stringStartsWith(id, "footnote-inpage_classic_classnames")
       end,
-      title = _("In-page classic classname footnotes"),
-      description = _(
+      title = gettext("In-page classic classname footnotes"),
+      description = gettext(
         [[
 Show footnotes with classic classnames at the bottom of pages.
 This tweak can be duplicated as a user style tweak when books contain footnotes wrapped with other class names.]]
@@ -1124,8 +1134,8 @@ This tweak can be duplicated as a user style tweak when books contain footnotes 
       global_conflicts_with = function(id)
         return util.stringStartsWith(id, "footnote-inpage_classic_classnames")
       end,
-      title = _("In-page classic classname footnotes (smaller)"),
-      description = _(
+      title = gettext("In-page classic classname footnotes (smaller)"),
+      description = gettext(
         [[
 Show footnotes with classic classnames at the bottom of pages.
 This tweak can be duplicated as a user style tweak when books contain footnotes wrapped with other class names.]]
@@ -1157,7 +1167,7 @@ This tweak can be duplicated as a user style tweak when books contain footnotes 
     -- inherit some of these properties, that we wish to reset too.
     (function()
       local sub_table = {
-        title = _("In-page footnote font size"),
+        title = gettext("In-page footnote font size"),
       }
       for __, rem in ipairs({ 1.0, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65 }) do
         local pct = rem * 100
@@ -1166,7 +1176,7 @@ This tweak can be duplicated as a user style tweak when books contain footnotes 
           conflicts_with = function(id)
             return util.stringStartsWith(id, "inpage_footnote_font-size_")
           end,
-          title = T(_("Footnote font size: %1 %"), pct),
+          title = T(gettext("Footnote font size: %1 %"), pct),
           css = T(
             [[
 *, autoBoxing {
@@ -1182,10 +1192,10 @@ This tweak can be duplicated as a user style tweak when books contain footnotes 
       return sub_table
     end)(),
     {
-      title = _("In-page footnote fix-up"),
+      title = gettext("In-page footnote fix-up"),
       {
         id = "inpage_footnote_text-indent_0",
-        title = _("No footnote indentation"),
+        title = gettext("No footnote indentation"),
         css = [[
 *, autoBoxing {
     -cr-hint: late;
@@ -1196,7 +1206,7 @@ This tweak can be duplicated as a user style tweak when books contain footnotes 
       },
       {
         id = "inpage_footnote_text_justify",
-        title = _("Justify footnote text"),
+        title = gettext("Justify footnote text"),
         css = [[
 *, autoBoxing {
     -cr-hint: late;
@@ -1207,8 +1217,8 @@ This tweak can be duplicated as a user style tweak when books contain footnotes 
       },
       {
         id = "inpage_footnote_no_block_spacing",
-        title = _("Remove block margins"),
-        description = _([[
+        title = gettext("Remove block margins"),
+        description = gettext([[
 Remove block margin and padding inside inpage footnotes.]]),
         css = [[
 *, autoBoxing {
@@ -1221,8 +1231,8 @@ Remove block margin and padding inside inpage footnotes.]]),
       },
       {
         id = "inpage_footnote_no_inline_spacing",
-        title = _("Remove cosmetic spacing"),
-        description = _([[
+        title = gettext("Remove cosmetic spacing"),
+        description = gettext([[
 Remove inline margin and padding inside inpage footnotes.]]),
         css = [[
 *, autoBoxing {
@@ -1235,8 +1245,8 @@ Remove inline margin and padding inside inpage footnotes.]]),
       },
       {
         id = "inpage_footnote_all_inline",
-        title = _("Inline all footnote content"),
-        description = _([[
+        title = gettext("Inline all footnote content"),
+        description = gettext([[
 If the footnote number is on a single line and the footnote text on the next line, or if there are variable levels of indentation, this tweak can make all the footnote content become a single paragraph.
 This will break any complex footnote containing quotes or lists.]]),
         priority = 5,
@@ -1257,8 +1267,8 @@ This will break any complex footnote containing quotes or lists.]]),
       },
       {
         id = "inpage_footnote_regularize_text",
-        title = _("Regularize text size on inline elements"),
-        description = _(
+        title = gettext("Regularize text size on inline elements"),
+        description = gettext(
           [[
 If the footnote text uses variable or absolute font sizes, line height or vertical alignments, which would make it too irregular, you can reset all of them to get a leaner text (to the expense of losing superscripts).]]
         ),
@@ -1275,8 +1285,8 @@ If the footnote text uses variable or absolute font sizes, line height or vertic
       },
       {
         id = "inpage_footnote_combine_non_linear",
-        title = _("Combine footnotes in a non-linear flow"),
-        description = _(
+        title = gettext("Combine footnotes in a non-linear flow"),
+        description = gettext(
           [[
 This will mark each section of consecutive footnotes (at their original location in the book) as being non-linear.
 The menu checkbox "Hide non-linear fragments" will then be available after the document is reopened, allowing to hide these sections from the regular flow: they will be skipped when turning pages and not considered in the various book & chapter progress and time to read features.]]
@@ -1294,7 +1304,7 @@ The menu checkbox "Hide non-linear fragments" will then be available after the d
   },
   -- No current need for workarounds
   -- {
-  --     title = _("Workarounds"),
+  --     title = gettext("Workarounds"),
   -- },
 }
 

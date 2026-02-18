@@ -7,9 +7,9 @@ local PathChooser = require("ui/widget/pathchooser")
 local ReadHistory = require("readhistory")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local _ = require("gettext")
 local T = FFIUtil.template
 
 local BookShortcuts = WidgetContainer:extend({
@@ -85,7 +85,7 @@ end
 
 function BookShortcuts:addToMainMenu(menu_items)
   menu_items.book_shortcuts = {
-    text = _("Book shortcuts"),
+    text = gettext("Book shortcuts"),
     sub_item_table_func = function()
       return self:getSubMenuItems()
     end,
@@ -93,12 +93,12 @@ function BookShortcuts:addToMainMenu(menu_items)
 end
 
 function BookShortcuts:getSubMenuItems()
-  local FM_text = _("file browser")
-  local last_text = _("last book")
+  local FM_text = gettext("file browser")
+  local last_text = gettext("last book")
 
   local sub_item_table = {
     {
-      text = _("New shortcut"),
+      text = gettext("New shortcut"),
       keep_menu_open = true,
       callback = function(touchmenu_instance)
         local path_chooser = PathChooser:new({
@@ -116,7 +116,7 @@ function BookShortcuts:getSubMenuItems()
     {
       text_func = function()
         return T(
-          _("Folder action: %1"),
+          gettext("Folder action: %1"),
           (G_reader_settings:read("BookShortcuts_directory_action") or "FM")
                 == "FM"
               and FM_text
@@ -148,7 +148,7 @@ function BookShortcuts:getSubMenuItems()
       },
     },
     {
-      text = _("Recursively search folders"),
+      text = gettext("Recursively search folders"),
       keep_menu_open = true,
       checked_func = function()
         return G_reader_settings:isTrue("BookShortcuts_recursive_directory")
@@ -171,8 +171,8 @@ function BookShortcuts:getSubMenuItems()
       end,
       hold_callback = function(touchmenu_instance)
         UIManager:show(ConfirmBox:new({
-          text = _("Do you want to delete this shortcut?"),
-          ok_text = _("Delete"),
+          text = gettext("Do you want to delete this shortcut?"),
+          ok_text = gettext("Delete"),
           ok_callback = function()
             self:deleteShortcut(k)
             touchmenu_instance.item_table = self:getSubMenuItems()

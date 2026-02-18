@@ -6,20 +6,20 @@ function Settings:createAuthDialog(value, default_value, callback)
   local input
 
   input = InputDialog:new({
-    title = _("Auth token"),
+    title = gettext("Auth token"),
     input = value,
     input_type = "string",
-    description = _("WeatherAPI auth token"),
+    description = gettext("WeatherAPI auth token"),
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           callback = function()
             UIManager:close(input)
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           is_enter_default = true,
           callback = callback(input),
         },

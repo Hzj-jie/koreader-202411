@@ -3,8 +3,8 @@ local Button = require("ui/widget/button")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
-local Font = require("ui/font")
 local FocusManager = require("ui/widget/focusmanager")
+local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
@@ -26,8 +26,8 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local datetime = require("datetime")
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -112,7 +112,7 @@ function BookStatusWidget:getStatDays()
   if stats_book.days then
     return tostring(stats_book.days)
   else
-    return _("N/A")
+    return gettext("N/A")
   end
 end
 
@@ -125,7 +125,7 @@ function BookStatusWidget:getStatHours()
       false
     )
   else
-    return _("N/A")
+    return gettext("N/A")
   end
 end
 
@@ -133,7 +133,7 @@ function BookStatusWidget:getStatReadPages()
   if stats_book.pages then
     return string.format("%s/%s", stats_book.pages, self.total_pages)
   else
-    return _("N/A")
+    return gettext("N/A")
   end
 end
 
@@ -150,11 +150,13 @@ function BookStatusWidget:getStatusContent(width)
     align = "left",
     title_bar,
     self:genBookInfoGroup(),
-    self:genHeader(_("Statistics")),
+    self:genHeader(gettext("Statistics")),
     self:genStatisticsGroup(width),
-    self:genHeader(_("Review")),
+    self:genHeader(gettext("Review")),
     self:genSummaryGroup(width),
-    self:genHeader(self.readonly and _("Book Status") or _("Update Status")),
+    self:genHeader(
+      self.readonly and gettext("Book Status") or gettext("Update Status")
+    ),
     self:generateSwitchGroup(width),
   })
   return content
@@ -332,7 +334,7 @@ function BookStatusWidget:genBookInfoGroup()
   -- complete text
   local text_complete = TextWidget:new({
     text = T(
-      _("%1\xE2\x80\xAF% Completed"),
+      gettext("%1\xE2\x80\xAF% Completed"),
       string.format("%1.f", read_percentage * 100)
     ),
     face = self.small_font_face,
@@ -411,21 +413,21 @@ function BookStatusWidget:genStatisticsGroup(width)
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = _("Days"),
+        text = gettext("Days"),
         face = self.small_font_face,
       }),
     }),
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = _("Time"),
+        text = gettext("Time"),
         face = self.small_font_face,
       }),
     }),
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = _("Read pages"),
+        text = gettext("Read pages"),
         face = self.small_font_face,
       }),
     }),
@@ -483,7 +485,7 @@ function BookStatusWidget:genSummaryGroup(width)
     padding = text_padding,
     parent = self,
     readonly = self.readonly,
-    hint = _("A few words about the book"),
+    hint = gettext("A few words about the book"),
   })
   table.insert(self.layout, { self.input_note })
 
@@ -508,7 +510,7 @@ function BookStatusWidget:generateSwitchGroup(width)
 
   local switch = ToggleSwitch:new({
     width = math.floor(width * 0.6),
-    toggle = { _("Reading"), _("On hold"), _("Finished") },
+    toggle = { gettext("Reading"), gettext("On hold"), gettext("Finished") },
     args = { "reading", "abandoned", "complete" },
     values = { 1, 2, 3 },
     enabled = not self.readonly,
@@ -576,7 +578,7 @@ end
 
 function BookStatusWidget:onSwitchFocus(inputbox)
   self.note_dialog = InputDialog:new({
-    title = _("Review"),
+    title = gettext("Review"),
     input = self.input_note:getText(),
     scroll = true,
     allow_newline = true,
@@ -584,14 +586,14 @@ function BookStatusWidget:onSwitchFocus(inputbox)
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             self:closeInputDialog()
           end,
         },
         {
-          text = _("Save review"),
+          text = gettext("Save review"),
           is_enter_default = true,
           callback = function()
             local note = self.note_dialog:getInputText()

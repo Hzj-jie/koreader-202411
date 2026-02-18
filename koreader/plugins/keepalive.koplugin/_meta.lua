@@ -1,8 +1,8 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "keepalive",
-  fullname = _("Keep alive"),
-  description = _(
+  fullname = gettext("Keep alive"),
+  description = gettext(
     [[Keeps the device awake to prevent automatic Wi-Fi disconnects.]]
   ),
 }

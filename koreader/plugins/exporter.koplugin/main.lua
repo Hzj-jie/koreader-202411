@@ -37,8 +37,8 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local T = require("ffi/util").template
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
 
 -- migrate settings from old "evernote.koplugin" or from previous (monolithic) "exporter.koplugin"
 local function migrateSettings()
@@ -134,13 +134,13 @@ function Exporter:onDispatcherRegisterActions()
   Dispatcher:registerAction("export_current_notes", {
     category = "none",
     event = "ExportCurrentNotes",
-    title = _("Export all notes in current book"),
+    title = gettext("Export all notes in current book"),
     reader = true,
   })
   Dispatcher:registerAction("export_all_notes", {
     category = "none",
     event = "ExportAllNotes",
-    title = _("Export all notes in all books in history"),
+    title = gettext("Export all notes in all books in history"),
     reader = true,
     filemanager = true,
   })
@@ -238,15 +238,22 @@ function Exporter:exportClippings(clippings)
           local status = v:export(exportables)
           if status then
             if v.is_remote then
-              table.insert(statuses, T(_("%1: Exported successfully."), v.name))
+              table.insert(
+                statuses,
+                T(gettext("%1: Exported successfully."), v.name)
+              )
             else
               table.insert(
                 statuses,
-                T(_("%1: Exported to %2."), v.name, v:getFilePath(exportables))
+                T(
+                  gettext("%1: Exported to %2."),
+                  v.name,
+                  v:getFilePath(exportables)
+                )
               )
             end
           else
-            table.insert(statuses, T(_("%1: Failed to export."), v.name))
+            table.insert(statuses, T(gettext("%1: Failed to export."), v.name))
           end
           v.timestamp = nil
         end
@@ -258,7 +265,7 @@ function Exporter:exportClippings(clippings)
     end)
 
     UIManager:show(InfoMessage:new({
-      text = _("Exporting may take several seconds…"),
+      text = gettext("Exporting may take several seconds…"),
       timeout = 1,
     }))
   end
@@ -275,7 +282,7 @@ function Exporter:addToMainMenu(menu_items)
     formats_submenu[#formats_submenu + 1] = v:getMenuTable()
     if v.shareable then
       share_submenu[#share_submenu + 1] = {
-        text = T(_("Share as %1"), v.name),
+        text = T(gettext("Share as %1"), v.name),
         callback = function()
           local clippings = self:getDocumentClippings()
           local document
@@ -320,10 +327,10 @@ function Exporter:addToMainMenu(menu_items)
     }
   end
   local menu = {
-    text = _("Export highlights"),
+    text = gettext("Export highlights"),
     sub_item_table = {
       {
-        text = _("Export all notes in current book"),
+        text = gettext("Export all notes in current book"),
         enabled_func = function()
           return self:isReadyToExport()
         end,
@@ -332,7 +339,7 @@ function Exporter:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Export all notes in all books in history"),
+        text = gettext("Export all notes in all books in history"),
         enabled_func = function()
           return self:isReady()
         end,
@@ -342,23 +349,23 @@ function Exporter:addToMainMenu(menu_items)
         separator = #share_submenu == 0,
       },
       {
-        text = _("Choose formats and services"),
+        text = gettext("Choose formats and services"),
         sub_item_table = formats_submenu,
       },
       {
-        text = _("Choose highlight styles"),
+        text = gettext("Choose highlight styles"),
         sub_item_table = styles_submenu,
         separator = true,
       },
       {
-        text = _("Choose export folder"),
+        text = gettext("Choose export folder"),
         keep_menu_open = true,
         callback = function()
           self:chooseFolder()
         end,
       },
       {
-        text = _("Use book folder for single export"),
+        text = gettext("Use book folder for single export"),
         checked_func = function()
           return settings.clipping_dir_book
         end,
@@ -373,7 +380,7 @@ function Exporter:addToMainMenu(menu_items)
       return v1.text < v2.text
     end)
     table.insert(menu.sub_item_table, 3, {
-      text = _("Share all notes in this book"),
+      text = gettext("Share all notes in this book"),
       enabled_func = function()
         return self:isDocReady()
       end,
@@ -386,7 +393,7 @@ end
 
 function Exporter:chooseFolder()
   local settings = G_reader_settings:readTableRef("exporter")
-  local title_header = _("Current export folder:")
+  local title_header = gettext("Current export folder:")
   local current_path = settings.clipping_dir
   local default_path = DataStorage:getFullDataDir() .. "/clipboard"
   local caller_callback = function(path)

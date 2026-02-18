@@ -1,7 +1,7 @@
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 
 local DEFAULT_PLUGIN_PATH = "plugins"
 
@@ -17,8 +17,8 @@ local OBSOLETE_PLUGINS = {
 }
 
 local DEPRECATION_MESSAGES = {
-  remove = _("This plugin is unmaintained and will be removed soon."),
-  feature = _(
+  remove = gettext("This plugin is unmaintained and will be removed soon."),
+  feature = gettext(
     "The following features are unmaintained and will be removed soon:"
   ),
 }
@@ -50,7 +50,7 @@ local function getMenuTable(plugin)
   t.fullname = string.format(
     "%s%s",
     plugin.fullname or plugin.name,
-    plugin.deprecated and " (" .. _("outdated") .. ")" or ""
+    plugin.deprecated and " (" .. gettext("outdated") .. ")" or ""
   )
 
   local deprecated, message = deprecationFmt(plugin.deprecated)
@@ -207,7 +207,7 @@ function PluginLoader:genPluginManagerSubItem()
         end,
         callback = function()
           local UIManager = require("ui/uimanager")
-          local _ = require("gettext")
+          local gettext = require("gettext")
           local plugins_disabled =
             G_reader_settings:readTableRef("plugins_disabled")
           plugin.enable = not plugin.enable

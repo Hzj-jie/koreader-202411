@@ -8,20 +8,20 @@ local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local Event = require("ui/event")
+local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
-local FrameContainer = require("ui/widget/container/framecontainer")
 local ImageWidget = require("ui/widget/imagewidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local ProgressWidget = require("ui/widget/progresswidget")
 local Screenshoter = require("ui/widget/screenshoter")
 local Size = require("ui/size")
 local TitleBar = require("ui/widget/titlebar")
+local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
 local Screen = Device.screen
 
 local ImageViewer = InputContainer:extend({
@@ -48,7 +48,7 @@ local ImageViewer = InputContainer:extend({
 
   fullscreen = false, -- false will add some padding around widget (so footer can be visible)
   with_title_bar = true,
-  title_text = _("Viewing image"), -- default title text
+  title_text = gettext("Viewing image"), -- default title text
   -- A caption can be toggled with tap on title_text (so, it needs with_title_bar=true):
   caption = nil,
   caption_visible = true, -- caption visible by default
@@ -193,7 +193,8 @@ function ImageViewer:init()
     {
       {
         id = "scale",
-        text = self._scale_to_fit and _("Original size") or _("Scale"),
+        text = self._scale_to_fit and gettext("Original size")
+          or gettext("Scale"),
         callback = function()
           self.scale_factor = self._scale_to_fit and 1 or 0
           self._scale_to_fit = not self._scale_to_fit
@@ -205,7 +206,7 @@ function ImageViewer:init()
       },
       {
         id = "rotate",
-        text = self.rotated and _("No rotation") or _("Rotate"),
+        text = self.rotated and gettext("No rotation") or gettext("Rotate"),
         callback = function()
           self.rotated = not self.rotated and true or false
           self:update()
@@ -213,7 +214,7 @@ function ImageViewer:init()
       },
       {
         id = "close",
-        text = _("Close"),
+        text = gettext("Close"),
         callback = function()
           self:onExit()
         end,
@@ -372,12 +373,12 @@ function ImageViewer:update()
   if self.buttons_visible then
     local scale_btn = self.button_table:getButtonById("scale")
     scale_btn:setText(
-      self._scale_to_fit and _("Original size") or _("Scale"),
+      self._scale_to_fit and gettext("Original size") or gettext("Scale"),
       scale_btn.width
     )
     local rotate_btn = self.button_table:getButtonById("rotate")
     rotate_btn:setText(
-      self.rotated and _("No rotation") or _("Rotate"),
+      self.rotated and gettext("No rotation") or gettext("Rotate"),
       rotate_btn.width
     )
     table.insert(self.frame_elements, self.button_container)
@@ -920,7 +921,7 @@ end
 -- Register DocumentRegistry auxiliary provider.
 function ImageViewer:register(registry)
   registry:addAuxProvider({
-    provider_name = _("Image viewer"),
+    provider_name = gettext("Image viewer"),
     provider = "imageviewer",
     order = 10, -- order in OpenWith dialog
     enabled_func = function(file)

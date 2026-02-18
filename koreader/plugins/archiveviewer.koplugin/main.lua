@@ -8,13 +8,13 @@ local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
 local T = ffiUtil.template
 
 local ArchiveViewer = WidgetContainer:extend({
   name = "archiveviewer",
-  fullname = _("Archive viewer"),
+  fullname = gettext("Archive viewer"),
   arc_file = nil, -- archive
   -- list_table is a flat table containing archive files and folders
   -- key - a full path of the folder ("/" for root), for all folders and subfolders of any level
@@ -201,14 +201,14 @@ function ArchiveViewer:showFileDialog(filepath)
   local buttons = {
     {
       {
-        text = _("Extract"),
+        text = gettext("Extract"),
         callback = function()
           UIManager:close(dialog)
           self:extractFile(filepath)
         end,
       },
       {
-        text = _("View"),
+        text = gettext("View"),
         callback = function()
           UIManager:close(dialog)
           self:viewFile(filepath)
@@ -219,7 +219,9 @@ function ArchiveViewer:showFileDialog(filepath)
   dialog = ButtonDialog:new({
     title = filepath
       .. "\n\n"
-      .. _("On extraction, if the file already exists, it will be overwritten."),
+      .. gettext(
+        "On extraction, if the file already exists, it will be overwritten."
+      ),
     width_factor = 0.8,
     buttons = buttons,
   })

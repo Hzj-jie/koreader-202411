@@ -1,14 +1,14 @@
 local Device = require("device")
 local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- This whole menu is hidden behind a hasKeys device cap.
 local PhysicalButtons = {
-  text = _("Physical buttons"), -- Mainly so as to differentiate w/ "Page Turns" when in readermenu...
+  text = gettext("Physical buttons"), -- Mainly so as to differentiate w/ "Page Turns" when in readermenu...
   sub_item_table = {
     {
-      text = _("Invert page-turn buttons"),
+      text = gettext("Invert page-turn buttons"),
       enabled_func = function()
         return not (
           G_reader_settings:isTrue("input_invert_left_page_turn_keys")
@@ -28,7 +28,7 @@ local PhysicalButtons = {
 
 if Device:hasDPad() and Device:useDPadAsActionKeys() then
   table.insert(PhysicalButtons.sub_item_table, {
-    text = _("Invert left-side page-turn buttons"),
+    text = gettext("Invert left-side page-turn buttons"),
     enabled_func = function()
       return not G_reader_settings:isTrue("input_invert_page_turn_keys")
     end,
@@ -40,7 +40,7 @@ if Device:hasDPad() and Device:useDPadAsActionKeys() then
     end,
   })
   table.insert(PhysicalButtons.sub_item_table, {
-    text = _("Invert right-side page-turn buttons"),
+    text = gettext("Invert right-side page-turn buttons"),
     enabled_func = function()
       return not G_reader_settings:isTrue("input_invert_page_turn_keys")
     end,
@@ -53,7 +53,7 @@ if Device:hasDPad() and Device:useDPadAsActionKeys() then
     separator = true,
   })
   table.insert(PhysicalButtons.sub_item_table, {
-    text = _("Use left and right keys for page turning"),
+    text = gettext("Use left and right keys for page turning"),
     checked_func = function()
       return G_reader_settings:isTrue("left_right_keys_turn_pages")
     end,
@@ -66,8 +66,8 @@ end
 
 if Device:canKeyRepeat() then
   table.insert(PhysicalButtons.sub_item_table, {
-    text = _("Disable key repeat"),
-    help_text = _(
+    text = gettext("Disable key repeat"),
+    help_text = gettext(
       "Useful if you don't like the behavior or if your device has faulty switches"
     ),
     checked_func = function()

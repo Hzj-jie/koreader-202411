@@ -5,11 +5,11 @@ It vanishes on key press or after a given timeout.
 
 Example:
     local UIManager = require("ui/uimanager")
-    local _ = require("gettext")
+    local gettext = require("gettext")
     local Screen = require("device").screen
     local sample
     sample = QRMessage:new{
-        text = _("my message"),
+        text = gettext("my message"),
         height = Screen:scaleBySize(400),
         width = Screen:scaleBySize(400),
         timeout = 5,  -- This widget will vanish in 5 seconds.
@@ -23,8 +23,8 @@ local Device = require("device")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
-local QRWidget = require("ui/widget/qrwidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
+local QRWidget = require("ui/widget/qrwidget")
 local UIManager = require("ui/uimanager")
 local Input = Device.input
 local Screen = Device.screen
