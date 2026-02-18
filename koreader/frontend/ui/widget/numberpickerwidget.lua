@@ -348,11 +348,7 @@ function NumberPickerWidget:update()
   self.text_value:setText(tostring(self.formatted_value), self.width)
 
   self:refocusWidget()
-  if self:isInWindowStack() then
-    UIManager:setDirty(self, function()
-      return "ui", self.dimen
-    end)
-  end
+  self:scheduleRepaint()
   if self.picker_updated_callback then
     self.picker_updated_callback(self.value, self.value_index)
   end

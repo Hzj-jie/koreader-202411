@@ -142,6 +142,13 @@ function Widget:scheduleRefresh() -- final
   end
 end
 
+-- Use with caution, UIManager:setDirty is a deprecated function.
+function Widget:setDirty(...) -- final
+  if self:isInWindowStack() then
+    require("ui/uimanager"):setDirty(self, ...)
+  end
+end
+
 -- This function doesn't really mean the Widget has been painted, but it may be
 -- in the queue of being painted immediately. UIManager uses it as a very quick
 -- test to ensure it won't schedule a repaint on anything which isn't in the

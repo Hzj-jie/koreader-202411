@@ -252,11 +252,7 @@ function ButtonProgressWidget:update()
   end
 
   self:refocusWidget()
-  if self:isInWindowStack() then
-    UIManager:setDirty(self, function()
-      return "ui", self.dimen
-    end)
-  end
+  self:scheduleRepaint()
 end
 
 function ButtonProgressWidget:setPosition(position, default_position)

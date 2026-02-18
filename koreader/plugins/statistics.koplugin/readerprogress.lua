@@ -80,11 +80,7 @@ function ReaderProgress:init()
     }
   end
 
-  if self:isInWindowStack() then
-    UIManager:setDirty(self, function()
-      return "ui", self.dimen
-    end)
-  end
+  self:scheduleRepaint()
 end
 
 function ReaderProgress:getTotalStats(stats_day)

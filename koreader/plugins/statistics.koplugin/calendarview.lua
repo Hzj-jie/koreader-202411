@@ -1582,11 +1582,7 @@ function CalendarView:_populateItems()
     1,
     bit.bor(FocusManager.FOCUS_ONLY_ON_NT, FocusManager.NOT_UNFOCUS)
   )
-  if self:isInWindowStack() then
-    UIManager:setDirty(self, function()
-      return "ui", self.dimen
-    end)
-  end
+  self:scheduleRepaint()
 end
 
 function CalendarView:showCalendarDayView(reader_statistics)

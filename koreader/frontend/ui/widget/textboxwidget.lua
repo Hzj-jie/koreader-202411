@@ -1204,44 +1204,40 @@ function TextBoxWidget:_renderImage(start_row_idx)
           if scheduled_for_linenum == self.virtual_line_num then
             -- we are still on the same page
             self:update(true)
-            if self:isInWindowStack() then
-              UIManager:setDirty(self, function()
-                -- return "ui", self.dimen
-                -- We can refresh only the image area, even if we have just
-                -- re-rendered the whole textbox as the text has been
-                -- rendered just the same as it was
-                return "ui",
-                  Geom:new({
-                    x = self:getSize().x + self.width - image.width,
-                    y = self:getSize().y,
-                    w = image.width,
-                    h = image.height,
-                  }),
-                  true -- Request dithering
-              end)
-            end
+            self:setDirty(function()
+              -- return "ui", self.dimen
+              -- We can refresh only the image area, even if we have just
+              -- re-rendered the whole textbox as the text has been
+              -- rendered just the same as it was
+              return "ui",
+                Geom:new({
+                  x = self:getSize().x + self.width - image.width,
+                  y = self:getSize().y,
+                  w = image.width,
+                  h = image.height,
+                }),
+                true -- Request dithering
+            end)
           end
         end)
       else
         -- Image loaded (or not if failure): call us again
         -- with scheduled_update = true so we can draw what we got
         self:update(true)
-        if self:isInWindowStack() then
-          UIManager:setDirty(self, function()
-            -- return "ui", self.dimen
-            -- We can refresh only the image area, even if we have just
-            -- re-rendered the whole textbox as the text has been
-            -- rendered just the same as it was
-            return "ui",
-              Geom:new({
-                x = self:getSize().x + self.width - image.width,
-                y = self:getSize().y,
-                w = image.width,
-                h = image.height,
-              }),
-              true -- Request dithering
-          end)
-        end
+        self:setDirty(function()
+          -- return "ui", self.dimen
+          -- We can refresh only the image area, even if we have just
+          -- re-rendered the whole textbox as the text has been
+          -- rendered just the same as it was
+          return "ui",
+            Geom:new({
+              x = self:getSize().x + self.width - image.width,
+              y = self:getSize().y,
+              w = image.width,
+              h = image.height,
+            }),
+            true -- Request dithering
+        end)
       end
     end
     -- Wrap it with Trapper, as load_bb_func may be using some of its
@@ -1913,17 +1909,15 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
         restore_x = self.cursor_restore_x
         restore_y = self.cursor_restore_y
         if not CURSOR_COMBINE_REGIONS then
-          if self:isInWindowStack() then
-            UIManager:setDirty(self, function()
-              return "ui",
-                Geom:new({
-                  x = self:getSize().x + restore_x,
-                  y = self:getSize().y + restore_y,
-                  w = self.cursor_line:getSize().w,
-                  h = self.cursor_line:getSize().h,
-                })
-            end)
-          end
+          self:setDirty(function()
+            return "ui",
+              Geom:new({
+                x = self:getSize().x + restore_x,
+                y = self:getSize().y + restore_y,
+                w = self.cursor_line:getSize().w,
+                h = self.cursor_line:getSize().h,
+              })
+          end)
         end
         self.cursor_restore_bb:free()
         self.cursor_restore_bb = nil
@@ -1947,26 +1941,24 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
       )
       -- Paint the cursor, and do a small ui refresh of the new cursor area
       self.cursor_line:paintTo(self._bb, x, y)
-      if self:isInWindowStack() then
-        UIManager:setDirty(self, function()
-          local cursor_region = Geom:new({
-            x = self:getSize().x + x,
-            y = self:getSize().y + y,
+      self:setDirty(function()
+        local cursor_region = Geom:new({
+          x = self:getSize().x + x,
+          y = self:getSize().y + y,
+          w = self.cursor_line:getSize().w,
+          h = self.cursor_line:getSize().h,
+        })
+        if CURSOR_COMBINE_REGIONS and restore_x and restore_y then
+          local restore_region = Geom:new({
+            x = self:getSize().x + restore_x,
+            y = self:getSize().y + restore_y,
             w = self.cursor_line:getSize().w,
             h = self.cursor_line:getSize().h,
           })
-          if CURSOR_COMBINE_REGIONS and restore_x and restore_y then
-            local restore_region = Geom:new({
-              x = self:getSize().x + restore_x,
-              y = self:getSize().y + restore_y,
-              w = self.cursor_line:getSize().w,
-              h = self.cursor_line:getSize().h,
-            })
-            cursor_region = cursor_region:combine(restore_region)
-          end
-          return "ui", cursor_region
-        end)
-      end
+          cursor_region = cursor_region:combine(restore_region)
+        end
+        return "ui", cursor_region
+      end)
     else -- CURSOR_USE_REFRESH_FUNCS = false
       -- We didn't scroll the view, only the cursor was moved
       local restore_region
