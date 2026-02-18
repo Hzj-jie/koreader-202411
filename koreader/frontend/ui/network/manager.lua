@@ -24,11 +24,9 @@ local NetworkMgr = {
   -- Cache the last online state to sacrifice the accuracy in return of avoiding
   -- blocking UI for too long.
   was_online = false,
-  EBSY = 16,
+  -- We unfortunately don't have that one in ffi/posix_h :/
+  EBUSY = 16,
 }
-
--- We unfortunately don't have that one in ffi/posix_h :/
-NetworkMgr.EBUSY = 16
 
 local ConnectivityChecker = {
   settings_id = 0,
