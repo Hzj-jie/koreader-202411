@@ -81,7 +81,6 @@ local function _widgetWindow(w)
     )
     return nil
   end
-  assert(window ~= nil)
   return window
 end
 
@@ -1039,6 +1038,10 @@ function UIManager:_scheduleRefreshWindowWidget(window, widget)
   self:scheduleRefresh(widget:refreshMode(), dimen, widget.dithered)
 end
 
+function UIManager:findWindow(window)
+  return util.arrayContains(self._window_stack, window)
+end
+
 function UIManager:_repaintDirtyWidgets()
   if util.tableSize(self._dirty) == 0 then
     return
@@ -1057,23 +1060,22 @@ function UIManager:_repaintDirtyWidgets()
 
   for w in pairs(self._dirty) do
     local window = _widgetWindow(w)
-    if window ~= nil then
-      local index = util.arrayContains(self._window_stack, window)
-      if index == false then
-        -- TODO: Should assert.
-        logger.warn(
-          "FixMe: Widget ",
-          _widgetDebugStr(window),
-          " was marked as dirty before its being closed. The previous ",
-          "scheduleRepaint or setDirty call is unnecessary.",
-          debug.traceback()
-        )
-      else
-        assert(index > 0)
-        assert(index <= #self._window_stack)
-        table.insert(dirty_widgets[index], w)
-      end
+    if window == nil then
+      -- TODO: Should assert.
+      logger.warn(
+        "FixMe: Widget ",
+        _widgetDebugStr(window),
+        " was marked as dirty before its being closed. The previous ",
+        "scheduleRepaint or setDirty call is unnecessary.",
+        debug.traceback()
+      )
     end
+    local index = self:findWindow(window)
+    -- Otherwise the window should be nil.
+    assert(index ~= false)
+    assert(index > 0)
+    assert(index <= #self._window_stack)
+    table.insert(dirty_widgets[index], w)
   end
 
   for i = 1, #self._window_stack do

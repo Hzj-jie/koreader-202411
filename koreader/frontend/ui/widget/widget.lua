@@ -168,8 +168,11 @@ end
 -- Returns the z-index in the window, not the entire ui stack.
 function Widget:window_z_index() -- final
   -- Ensure the self._window_z_index is calculated.
-  self:window()
-  -- But it's still possible to return a nil.
+  if self:window() == nil then
+    -- But it's still possible to return a nil if 1) window is closed, 2) widget
+    -- hasn't been shown yet.
+    self._window_z_index = nil
+  end
   return self._window_z_index
 end
 
@@ -200,6 +203,10 @@ end
 function Widget:window() -- final
   if self._window_ref == nil then
     self._window_ref = self:_window()
+  elseif require("ui/uimanager"):findWindow(self._window_ref) == false then
+    -- The window has been closed, it may trigger another self:_window() call,
+    -- but components shouldn't use a closed window anymore.
+    self._window_ref = nil
   end
   return self._window_ref
 end
