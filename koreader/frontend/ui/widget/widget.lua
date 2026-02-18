@@ -126,14 +126,14 @@ function Widget:dirtyRegion()
 end
 
 function Widget:scheduleRepaint() -- final
-  if self:isInWindowStack() then
+  if self:_isInWindowStack() then
     -- Otherwise the widget hasn't been shown yet and will be paintTo later.
     require("ui/uimanager"):scheduleWidgetRepaint(self)
   end
 end
 
 function Widget:scheduleRefresh() -- final
-  if self:isInWindowStack() then
+  if self:_isInWindowStack() then
     -- Otherwise the widget hasn't been shown yet and will be paintTo later.
     require("ui/uimanager"):scheduleRefresh(
       self:refreshMode(),
@@ -144,7 +144,7 @@ end
 
 -- Use with caution, UIManager:setDirty is a deprecated function.
 function Widget:setDirty(...) -- final
-  if self:isInWindowStack() then
+  if self:_isInWindowStack() then
     require("ui/uimanager"):setDirty(self, ...)
   end
 end
@@ -154,7 +154,7 @@ end
 -- test to ensure it won't schedule a repaint on anything which isn't in the
 -- window stack yet, i.e. will be painted in random places and / or cover other
 -- elements.
-function Widget:isInWindowStack() -- final
+function Widget:_isInWindowStack() -- final
   return self:window() ~= nil
 end
 

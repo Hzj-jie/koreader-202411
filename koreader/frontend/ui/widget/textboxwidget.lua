@@ -1974,16 +1974,14 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
           self.cursor_line:getSize().w,
           self.cursor_line:getSize().h
         )
-        if self:isInWindowStack() then
-          restore_region = Geom:new({
-            x = self:getSize().x + self.cursor_restore_x,
-            y = self:getSize().y + self.cursor_restore_y,
-            w = self.cursor_line:getSize().w,
-            h = self.cursor_line:getSize().h,
-          })
-          if not CURSOR_COMBINE_REGIONS then
-            UIManager:setDirty(self, "ui", restore_region)
-          end
+        restore_region = Geom:new({
+          x = self:getSize().x + self.cursor_restore_x,
+          y = self:getSize().y + self.cursor_restore_y,
+          w = self.cursor_line:getSize().w,
+          h = self.cursor_line:getSize().h,
+        })
+        if not CURSOR_COMBINE_REGIONS then
+          self:setDirty("ui", restore_region)
         end
         self.cursor_restore_bb:free()
         self.cursor_restore_bb = nil
@@ -2007,18 +2005,16 @@ function TextBoxWidget:moveCursorToCharPos(charpos)
       )
       -- Paint the cursor, and do a small ui refresh of the new cursor area
       self.cursor_line:paintTo(self._bb, x, y)
-      if self:isInWindowStack() then
-        local cursor_region = Geom:new({
-          x = self:getSize().x + x,
-          y = self:getSize().y + y,
-          w = self.cursor_line:getSize().w,
-          h = self.cursor_line:getSize().h,
-        })
-        if CURSOR_COMBINE_REGIONS and restore_region then
-          cursor_region = cursor_region:combine(restore_region)
-        end
-        UIManager:setDirty(self, "ui", cursor_region)
+      local cursor_region = Geom:new({
+        x = self:getSize().x + x,
+        y = self:getSize().y + y,
+        w = self.cursor_line:getSize().w,
+        h = self.cursor_line:getSize().h,
+      })
+      if CURSOR_COMBINE_REGIONS and restore_region then
+        cursor_region = cursor_region:combine(restore_region)
       end
+      self:setDirty("ui", cursor_region)
     end
   end
 end
