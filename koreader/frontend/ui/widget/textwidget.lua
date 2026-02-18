@@ -21,7 +21,6 @@ local Widget = require("ui/widget/widget")
 local Screen = require("device").screen
 local dbg = require("dbg")
 local util = require("util")
-local xtext -- Delayed (and optional) loading
 
 local TextWidget = Widget:extend({
   text = nil,
@@ -215,11 +214,7 @@ dbg:guard(TextWidget, "updateSize", function(self)
 end)
 
 function TextWidget:_measureWithXText()
-  if not self._xtext_loaded then
-    xtext = require("libs/libkoreader-xtext")
-    TextWidget._xtext_loaded = true
-  end
-  self._xtext = xtext.new(
+  self._xtext = require("libs/libkoreader-xtext").new(
     self.text,
     self.face,
     self.auto_para_direction,

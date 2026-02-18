@@ -30,7 +30,6 @@ local dbg = require("dbg")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local xtext -- Delayed (and optional) loading
 local Screen = require("device").screen
 
 local TextBoxWidget = InputContainer:extend({
@@ -307,10 +306,7 @@ function TextBoxWidget:_evalCharWidthList()
 end
 
 function TextBoxWidget:_measureWithXText()
-  if not self._xtext_loaded then
-    xtext = require("libs/libkoreader-xtext")
-    TextBoxWidget._xtext_loaded = true
-  end
+  local xtext = require("libs/libkoreader-xtext")
   if type(self.charlist) == "table" then
     self._xtext = xtext.new(
       self.charlist,
