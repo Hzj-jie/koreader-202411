@@ -1951,13 +1951,13 @@ function ReaderHighlight:onHoldPan(_, ges)
           -- Switch from page mode to scroll mode
           local restore_page_mode_xpointer = self.ui.document:getXPointer() -- top of current page
           self.restore_page_mode_func = function()
-            UIManager:broadcastEvent(Event:new("SetViewMode", "page"))
+            UIManager:broadcastEvent(Event:new("SetViewMode", "page", --[[quiet=]] true))
             self.ui.rolling:onGotoXPointer(
               restore_page_mode_xpointer,
               self.selected_text_start_xpointer
             )
           end
-          UIManager:broadcastEvent(Event:new("SetViewMode", "scroll"))
+          UIManager:broadcastEvent(Event:new("SetViewMode", "scroll", --[[quiet=]] true))
         end
         -- (using rolling:onGotoViewRel(1/3) has some strange side effects)
         local scroll_distance = math.floor(self.screen_h * 1 / 3)
