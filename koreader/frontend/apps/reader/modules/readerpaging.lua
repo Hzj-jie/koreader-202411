@@ -381,7 +381,6 @@ function ReaderPaging:onScrollSettingsUpdated(
         if not self.ui.document then
           return false
         end
-        UIManager:forceFastRefresh()
         local top_page, top_position = self:getTopPage(), self:getTopPosition()
         self:onPanningRel(distance)
         return not (
@@ -390,7 +389,6 @@ function ReaderPaging:onScrollSettingsUpdated(
         )
       end,
       function() -- scroll_done_callback
-        UIManager:resetForceFastRefresh()
         UIManager:setDirty(self.view.dialog, "partial")
       end
     )

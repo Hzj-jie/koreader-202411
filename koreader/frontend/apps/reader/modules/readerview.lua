@@ -185,12 +185,6 @@ end
 function ReaderView:paintTo(bb, x, y)
   self:mergePosition(x, y)
   dbg:v("readerview painting", self.visible_area, "to", x, y)
-  if util.tableSize(self.highlight.temp) > 0 then
-    -- If there is a temp highlight, reduce the refresh level to fast.
-    UIManager:forceFastRefresh()
-  else
-    UIManager:resetForceFastRefresh()
-  end
 
   if self.page_scroll then
     self:drawPageBackground(bb, x, y)

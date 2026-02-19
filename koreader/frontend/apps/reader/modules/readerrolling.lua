@@ -608,13 +608,11 @@ function ReaderRolling:onScrollSettingsUpdated(
         if not self.ui.document then
           return false
         end
-        UIManager:forceFastRefresh()
         local prev_pos = self.current_pos
         self:_gotoPos(prev_pos + distance)
         return self.current_pos ~= prev_pos
       end,
       function() -- scroll_done_callback
-        UIManager:resetForceFastRefresh()
         if self.ui.document then
           self.xpointer = self.ui.document:getXPointer()
         end

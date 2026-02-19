@@ -1355,6 +1355,8 @@ function ReaderHighlight:updateHighlight(index, side, direction, move_by_char)
       end
     end
   end
+  -- Do not promote refresh during the highlighting.
+  UIManager:ignoreNextRefreshPromote()
   UIManager:setDirty(self.dialog, "ui")
 end
 
@@ -1851,6 +1853,8 @@ function ReaderHighlight:onHold(arg, ges)
       end
     end
 
+    -- Do not promote refresh during the highlighting.
+    UIManager:ignoreNextRefreshPromote()
     if self.ui.paging then
       self.view.highlight.temp[self.hold_pos.page] = self.selected_text.sboxes
       -- Unfortunately, getWordFromPosition() may not return good coordinates,
@@ -1894,6 +1898,9 @@ function ReaderHighlight:onHoldPan(_, ges)
 
   self.holdpan_pos = self.view:screenToPageTransform(ges.pos)
   logger.dbg("holdpan position in page", self.holdpan_pos)
+
+  -- Do not promote refresh during the highlighting.
+  UIManager:ignoreNextRefreshPromote()
 
   if
     self.ui.rolling

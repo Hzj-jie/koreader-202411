@@ -1128,6 +1128,10 @@ function UIManager:_repaintDirtyWidgets()
   self._dirty = {}
 end
 
+function UIManager:ignoreNextRefreshPromote()
+  self._refresh_count = self._refresh_count - 1
+end
+
 function UIManager:_decideRefreshMode(refresh)
   local mode = refresh.mode
   local region = refresh.region
