@@ -1216,17 +1216,19 @@ function ReaderView:onMarginUpdate()
   UIManager:broadcastEvent(Event:new("ReZoom"))
 end
 
-function ReaderView:onSetViewMode(new_mode)
+function ReaderView:onSetViewMode(new_mode, quiet)
   if new_mode ~= self.view_mode then
     self.view_mode = new_mode
     self.document:setViewMode(new_mode)
     UIManager:broadcastEvent(Event:new("ChangeViewMode"))
-    Notification:notify(
-      T(
-        gettext("View mode set to: %1"),
-        optionsutil:getOptionText("SetViewMode", new_mode)
+    if quiet ~= true then
+      Notification:notify(
+        T(
+          gettext("View mode set to: %1"),
+          optionsutil:getOptionText("SetViewMode", new_mode)
+        )
       )
-    )
+    end
   end
 end
 
