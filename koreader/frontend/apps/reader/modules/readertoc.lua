@@ -146,8 +146,10 @@ function ReaderToc:onPageUpdate(pageno)
 
   if
     not UIManager:fullRefreshPromoteEnabled()
-    and ((pageno > self.pageno and self:isChapterStart(pageno))
-    or (pageno < self.pageno and self:isChapterEnd(pageno)))
+    and (
+      (pageno > self.pageno and self:isChapterStart(pageno))
+      or (pageno < self.pageno and self:isChapterEnd(pageno))
+    )
   then
     UIManager:scheduleRefresh("full")
   end
