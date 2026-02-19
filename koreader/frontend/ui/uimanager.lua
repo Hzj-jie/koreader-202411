@@ -1275,11 +1275,14 @@ function UIManager:_refreshScreen()
       -- like footer or clock.
       if refresh_modes[mode] >= refresh_modes["flashui"] then
         self._refresh_count = 0
+        large_refresh = false
       else
         large_refresh = true
       end
     end
   end
+  -- The behavior is not very consistent, and heavily relies on the order of all
+  -- the refreshes. But it should be good enough.
   if large_refresh then
     self._refresh_count = self._refresh_count + 1
   end
