@@ -1118,7 +1118,7 @@ function CalendarDayView:onSwipe(arg, ges_ev)
     -- no use for now
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
     return false
@@ -1666,7 +1666,7 @@ function CalendarView:onSwipe(arg, ges_ev)
     -- no use for now
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
     return false
@@ -1684,7 +1684,7 @@ end
 function CalendarView:onExit()
   UIManager:close(self)
   -- Remove ghosting
-  UIManager:setDirty(nil, "full")
+  UIManager:scheduleRefresh("full")
   return true
 end
 

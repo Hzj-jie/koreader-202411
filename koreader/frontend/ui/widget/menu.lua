@@ -1582,7 +1582,7 @@ function Menu:onSwipe(arg, ges_ev)
     -- no use for now
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
   end
 end
 

@@ -1465,7 +1465,7 @@ function PageBrowserWidget:onSwipe(arg, ges)
   else
     -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
     return false

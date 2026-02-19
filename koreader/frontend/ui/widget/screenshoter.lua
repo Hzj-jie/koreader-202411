@@ -117,7 +117,7 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
   })
   UIManager:show(dialog)
   -- trigger full refresh
-  UIManager:setDirty(nil, "full")
+  UIManager:scheduleRefresh("full")
   return true
 end
 

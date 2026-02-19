@@ -1274,7 +1274,7 @@ function DictQuickLookup:onSwipe(arg, ges)
         self.refresh_callback()
       end
       -- trigger a full-screen HQ flashing refresh
-      UIManager:setDirty(nil, "full")
+      UIManager:scheduleRefresh("full")
       -- a long diagonal swipe may also be used for taking a screenshot,
       -- so let it propagate
       return false

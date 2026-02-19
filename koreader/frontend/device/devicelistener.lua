@@ -392,7 +392,7 @@ function DeviceListener:onFullRefresh()
   if self.ui and self.ui.view then
     UIManager:broadcastEvent("UpdateFooter")
   end
-  UIManager:setDirty(nil, "full")
+  UIManager:scheduleRefresh("full")
 end
 
 -- On resume, make sure we restore Gestures handling in InputContainer, to avoid confusion for scatter-brained users ;).

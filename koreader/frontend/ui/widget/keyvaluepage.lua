@@ -828,7 +828,7 @@ function KeyValuePage:onSwipe(arg, ges_ev)
     -- no use for now
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
     return false

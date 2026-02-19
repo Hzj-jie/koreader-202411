@@ -307,7 +307,7 @@ local function initTouchEvents()
         end
         -- Trigger a full-screen HQ flashing refresh so
         -- the keyboard can also be fully redrawn
-        UIManager:setDirty(nil, "full")
+        UIManager:scheduleRefresh("full")
       end
       -- Let it propagate in any case (a long diagonal swipe may also be
       -- used for taking a screenshot)

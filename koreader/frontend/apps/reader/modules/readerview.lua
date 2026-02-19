@@ -305,7 +305,7 @@ function ReaderView:paintTo(bb, x, y)
       end
       -- Request a flashing update while we're at it, but only if it's the first time we're painting it
       if self.state.drawn == false then
-        UIManager:setDirty(nil, "full")
+        UIManager:scheduleRefresh("full")
       end
     end
     self.state.drawn = true
@@ -959,7 +959,7 @@ function ReaderView:rotate(mode, old_mode)
     -- No layout change, just rotate & repaint with a flash
     UIManager:setDirty(self.dialog, "full")
   else
-    UIManager:setDirty(nil, "full") -- SetDimensions will only request a partial, we want a flash
+    UIManager:scheduleRefresh("full") -- SetDimensions will only request a partial, we want a flash
     UIManager:broadcastEvent(Event:new("SetDimensions", Screen:getSize()))
     UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
   end
