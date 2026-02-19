@@ -2487,13 +2487,20 @@ function ReaderHighlight:lookupWikipedia()
   end
 end
 
+function ReaderHighlight:_closeHighlightDialog()
+  if self.highlight_dialog == nil then
+    return
+  end
+  local d = self.highlight_dialog
+  self.highlight_dialog = nil
+  -- ReaderHighlight:onExit won't trigger the close again.
+  UIManager:close(d)
+end
+
 function ReaderHighlight:onHighlightSearch()
   logger.dbg("search highlight")
   -- First, if our dialog is still shown, close it.
-  if self.highlight_dialog then
-    UIManager:close(self.highlight_dialog)
-    self.highlight_dialog = nil
-  end
+  self:_closeHighlightDialog()
   self:highlightFromHoldPos()
   if self.selected_text then
     local text =
@@ -2886,10 +2893,7 @@ function ReaderHighlight:onSaveSettings()
 end
 
 function ReaderHighlight:onExit()
-  if self.highlight_dialog then
-    UIManager:close(self.highlight_dialog)
-    self.highlight_dialog = nil
-  end
+  self:_closeHighlightDialog()
   -- clear highlighted text
   self:clear()
 end
