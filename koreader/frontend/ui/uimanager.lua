@@ -1059,22 +1059,14 @@ function UIManager:_repaintDirtyWidgets()
 
   for w in pairs(self._dirty) do
     local window = _widgetWindow(w)
-    if window == nil then
-      -- TODO: Should assert.
-      logger.warn(
-        "FixMe: Widget ",
-        _widgetDebugStr(window),
-        " was marked as dirty before its being closed. The previous ",
-        "scheduleRepaint or setDirty call is unnecessary.",
-        debug.traceback()
-      )
+    if window ~= nil then
+      local index = self:findWindow(window)
+      -- Otherwise the window should be nil.
+      assert(index ~= false)
+      assert(index > 0)
+      assert(index <= #self._window_stack)
+      table.insert(dirty_widgets[index], w)
     end
-    local index = self:findWindow(window)
-    -- Otherwise the window should be nil.
-    assert(index ~= false)
-    assert(index > 0)
-    assert(index <= #self._window_stack)
-    table.insert(dirty_widgets[index], w)
   end
 
   for i = 1, #self._window_stack do
