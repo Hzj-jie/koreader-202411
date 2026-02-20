@@ -125,6 +125,14 @@ function Widget:dirtyRegion()
   return self.dirty_dimen or self:getSize()
 end
 
+-- See UIManager:repaintWidget, use this function is dangerous.
+function Widget:repaint() -- final
+  if self:_isInWindowStack() then
+    -- Otherwise the widget hasn't been shown yet and will be paintTo later.
+    require("ui/uimanager"):repaintWidget(self)
+  end
+end
+
 function Widget:scheduleRepaint() -- final
   if self:_isInWindowStack() then
     -- Otherwise the widget hasn't been shown yet and will be paintTo later.

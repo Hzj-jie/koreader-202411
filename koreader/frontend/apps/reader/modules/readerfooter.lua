@@ -2189,28 +2189,21 @@ function ReaderFooter:_repaint()
   end
 
   -- If there was a visibility change, notify ReaderView
-  if self.visibility_change then
-    self.visibility_change = nil
-    UIManager:broadcastEvent(Event:new("ReaderFooterVisibilityChange"))
-  end
-
-  -- NOTE: Getting the dimensions of the widget is impossible without having drawn it first,
-  --     so, we'll fudge it if need be...
-  --     i.e., when it's no longer visible, because there's nothing to draw ;).
-  self.dirty_dimen = self.footer_content:getSize()
-  if self.dirty_dimen then
-    -- Note, footer_content is inside of several alignment groups, it doesn't
-    -- know its own x and y on the screen.
-    self.dirty_dimen.y = self._saved_screen_height - self.dirty_dimen.h
-  end
-  -- If self.footer_content.dimen is nil, i.e. the first paint, just refresh the
-  -- entire screen.
-  -- If we're making the footer visible (or it already is), we don't need to repaint ReaderUI behind it
-  if self.view.footer_visible and top_wg.name == "ReaderUI" then
-    UIManager:scheduleWidgetRepaint(self.footer_content)
+  if self.visibility_change or (not self.view.footer_visible or top_wg.name ~= "ReaderUI") then
+    if self.visibility_change then
+      self.visibility_change = nil
+      UIManager:broadcastEvent(Event:new("ReaderFooterVisibilityChange"))
+    end
+    -- If the footer is invisible or might be hidden behind another widget, we
+    -- need to repaint the full ReaderUI stack.
+    self.view.dialog:scheduleRepaint()
+    -- Immediately repaint to avoid waiting for next repainting cycle.
+    UIManager:forceRepaint()
   else
-    -- If the footer is invisible or might be hidden behind another widget, we need to repaint the full ReaderUI stack.
-    UIManager:setDirty(self.view.dialog, "ui", self:dirtyRegion())
+    -- The ReaderFooter isn't a dedicated widget, it's painted to the bb by
+    -- ReaderView. To optimize the update, simply repaint footer_content if the
+    -- widget is shown.
+    self.footer_content:repaint()
   end
 end
 
