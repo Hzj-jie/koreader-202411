@@ -2197,7 +2197,7 @@ function ReaderFooter:_repaint()
   -- NOTE: Getting the dimensions of the widget is impossible without having drawn it first,
   --     so, we'll fudge it if need be...
   --     i.e., when it's no longer visible, because there's nothing to draw ;).
-  self.dirty_dimen = self.footer_content.dimen
+  self.dirty_dimen = self.footer_content:getSize()
   if self.dirty_dimen then
     -- Note, footer_content is inside of several alignment groups, it doesn't
     -- know its own x and y on the screen.
@@ -2207,7 +2207,7 @@ function ReaderFooter:_repaint()
   -- entire screen.
   -- If we're making the footer visible (or it already is), we don't need to repaint ReaderUI behind it
   if self.view.footer_visible and top_wg.name == "ReaderUI" then
-    UIManager:scheduleWidgetRepaint(self.view.footer)
+    UIManager:scheduleWidgetRepaint(self.footer_content)
   else
     -- If the footer is invisible or might be hidden behind another widget, we need to repaint the full ReaderUI stack.
     UIManager:setDirty(self.view.dialog, "ui", self:dirtyRegion())
@@ -2225,8 +2225,19 @@ function ReaderFooter:onUpdateFooter()
   self:_updateFooterPos()
 end
 
+function ReaderFooter:_isPageMode()
+  -- self.pageno is optional in "Pos" mode; checking pageno == number is not
+  -- suficient to differentiate the modes.
+  return type(self.pageno) == "number" and type(self.position) ~= "number"
+end
+
+function ReaderFooter:_isPosMode()
+  -- self.pageno is optional.
+  return type(self.position) == "number"
+end
+
 function ReaderFooter:_updateFooterPage()
-  if type(self.pageno) ~= "number" or type(self.position) == "number" then
+  if not self:_isPageMode() then
     return
   end
   if self.settings.chapter_progress_bar then
@@ -2249,8 +2260,7 @@ function ReaderFooter:_updateFooterPage()
 end
 
 function ReaderFooter:_updateFooterPos()
-  -- self.pageno is optional.
-  if type(self.position) ~= "number" then
+  if not self:_isPosMode() then
     return
   end
   if self.settings.chapter_progress_bar then

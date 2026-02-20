@@ -29,7 +29,7 @@ function BackgroundJobs.insert(job)
 end
 
 BackgroundJobs.insert({
-  when = 60,
+  when = 1,
   repeated = true,
   executable = function()
     require("ui/uimanager"):broadcastEvent("TimesChange_1M")
