@@ -650,7 +650,7 @@ function DictQuickLookup:init()
     self.definition_height = nb_lines * self.definition_line_height
     local pad = self.height - others_height - self.definition_height
     -- put that unused height on the above span
-    word_to_definition_span.width = word_to_definition_span.width + pad
+    word_to_definition_span.height = word_to_definition_span.height + pad
   else
     -- Definition height was previously computed as 0.5*0.7*screen_height, so keep
     -- it that way. Components will add themselves to that.
