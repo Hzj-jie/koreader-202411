@@ -373,14 +373,6 @@ function Kindle:initNetworkManager(NetworkMgr)
       return nil, err
     end
 
-    local qualities = {
-      [1] = 0,
-      [2] = 6,
-      [3] = 31,
-      [4] = 56,
-      [5] = 81,
-    }
-
     local network_list = {}
     local saved_profiles = kindleGetSavedNetworks()
     local current_profile = kindleGetCurrentProfile()

@@ -7,7 +7,6 @@ local Geom = require("ui/geometry")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
 local Size = require("ui/size")
-local UIManager = require("ui/uimanager")
 local Screen = Device.screen
 
 local ButtonProgressWidget = FocusManager:extend({
