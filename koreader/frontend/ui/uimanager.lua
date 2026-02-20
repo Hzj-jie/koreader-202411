@@ -149,15 +149,14 @@ local function cropping_region(widget)
   return Geom:new({ x = x, y = y, w = w, h = h })
 end
 
+-- How long to wait between ZMQ wakeups: 50ms.
+local ZMQ_TIMEOUT = 50 * 1000
+
 -- This is a singleton
 local UIManager = {
-  FULL_REFRESH_COUNT = G_named_settings.default.full_refresh_count(),
-
-  -- How long to wait between ZMQ wakeups: 50ms.
-  ZMQ_TIMEOUT = 50 * 1000,
-
   event_handlers = nil,
 
+  _full_refresh_count = G_named_settings.default.full_refresh_count(),
   _window_stack = {},
   _task_queue = {},
   _task_queue_dirty = false,
@@ -660,12 +659,12 @@ function UIManager:removeZMQ(zeromq)
   end
 end
 
---- Returns the full refresh rate for e-ink screens (`FULL_REFRESH_COUNT`).
+--- Returns the full refresh rate for e-ink screens (`_full_refresh_count`).
 function UIManager:updateRefreshRate()
   local function refresh_count()
     local r = G_named_settings.full_refresh_count()
     -- Never fully refresh screen.
-    if r == 0 then
+    if r <= 0 then
       return 0
     end
     -- Double the refresh rate in night_mode, black area would be way larger,
@@ -678,7 +677,7 @@ function UIManager:updateRefreshRate()
     end
     return r
   end
-  self.FULL_REFRESH_COUNT = refresh_count()
+  self._full_refresh_count = refresh_count()
 end
 
 function UIManager:toggleNightMode()
@@ -1133,7 +1132,7 @@ function UIManager:ignoreNextRefreshPromote()
 end
 
 function UIManager:fullRefreshPromoteEnabled()
-  return self.FULL_REFRESH_COUNT > 0
+  return self._full_refresh_count > 0
 end
 
 function UIManager:_decideRefreshMode(refresh)
@@ -1155,7 +1154,7 @@ function UIManager:_decideRefreshMode(refresh)
 
   if
     self:fullRefreshPromoteEnabled()
-    and self._refresh_count >= self.FULL_REFRESH_COUNT
+    and self._refresh_count >= self._full_refresh_count
     and region:area() >= Screen:getArea() * 0.5
   then
     if region:area() >= Screen:getArea() * 0.8 then
@@ -1514,7 +1513,7 @@ function UIManager:handleInput()
 
   -- If we have any ZMQs registered, ZMQ_TIMEOUT is another upper bound.
   if self._zeromqs[1] then
-    wait_us = math.min(wait_us or math.huge, self.ZMQ_TIMEOUT)
+    wait_us = math.min(wait_us or math.huge, ZMQ_TIMEOUT)
   end
 
   -- We pass that on as an absolute deadline, not a relative wait time.
