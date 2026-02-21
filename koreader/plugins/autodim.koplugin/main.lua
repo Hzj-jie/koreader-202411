@@ -7,7 +7,6 @@ Plugin for automatic dimming of the frontlight after an idle period.
 
 local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local Device = require("device")
-local Event = require("ui/event")
 local PluginShare = require("pluginshare")
 local SpinWidget = require("ui/widget/spinwidget")
 local TrapWidget = require("ui/widget/trapwidget")

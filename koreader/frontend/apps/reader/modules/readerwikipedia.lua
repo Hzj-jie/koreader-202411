@@ -80,7 +80,6 @@ function ReaderWikipedia:lookupInput()
     },
   })
   UIManager:show(self.input_dialog)
-  self.input_dialog:showKeyboard()
 end
 
 function ReaderWikipedia:addToMainMenu(menu_items)
@@ -209,7 +208,6 @@ function ReaderWikipedia:addToMainMenu(menu_items)
             },
           })
           UIManager:show(wikilang_input)
-          wikilang_input:showKeyboard()
         end,
         separator = true,
       },
@@ -254,13 +252,11 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         text_func = function()
           local include_images = gettext("ask")
           if
-            G_reader_settings:read("wikipedia_epub_include_images")
-            == true
+            G_reader_settings:read("wikipedia_epub_include_images") == true
           then
             include_images = gettext("always")
           elseif
-            G_reader_settings:read("wikipedia_epub_include_images")
-            == false
+            G_reader_settings:read("wikipedia_epub_include_images") == false
           then
             include_images = gettext("never")
           end
@@ -288,13 +284,11 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         text_func = function()
           local images_quality = gettext("ask")
           if
-            G_reader_settings:read("wikipedia_epub_highres_images")
-            == true
+            G_reader_settings:read("wikipedia_epub_highres_images") == true
           then
             images_quality = gettext("higher")
           elseif
-            G_reader_settings:read("wikipedia_epub_highres_images")
-            == false
+            G_reader_settings:read("wikipedia_epub_highres_images") == false
           then
             images_quality = gettext("standard")
           end

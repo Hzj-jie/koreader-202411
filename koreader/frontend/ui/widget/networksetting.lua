@@ -33,7 +33,6 @@ Example:
 
 ]]
 
-local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
@@ -60,7 +59,6 @@ local Widget = require("ui/widget/widget")
 local bit = require("bit")
 local gettext = require("gettext")
 local util = require("util")
-local T = require("ffi/util").template
 local Screen = Device.screen
 
 local band = bit.band
@@ -69,7 +67,7 @@ local function obtainIP()
   --- @todo check for DHCP result
   local info = InfoMessage:new({ text = gettext("Obtaining IP address…") })
   UIManager:show(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   NetworkMgr:obtainIP()
   UIManager:close(info)
 end
@@ -80,27 +78,22 @@ local MinimalPaginator = Widget:extend({
   progress = nil,
 })
 
-function MinimalPaginator:getSize()
-  return Geom:new({ w = self.width, h = self.height })
-end
-
 function MinimalPaginator:paintTo(bb, x, y)
-  self.dimen = self:getSize()
-  self.dimen.x, self.dimen.y = x, y
+  self:mergePosition(x, y)
   -- paint background
   bb:paintRoundedRect(
     x,
     y,
-    self.dimen.w,
-    self.dimen.h,
+    self:getSize().w,
+    self:getSize().h,
     Blitbuffer.COLOR_LIGHT_GRAY
   )
   -- paint percentage infill
   bb:paintRect(
     x,
     y,
-    math.ceil(self.dimen.w * self.progress),
-    self.dimen.h,
+    math.ceil(self:getSize().w * self.progress),
+    self:getSize().h,
     Blitbuffer.COLOR_DARK_GRAY
   )
 end
@@ -120,7 +113,8 @@ local NetworkItem = InputContainer:extend({
 })
 
 function NetworkItem:init()
-  self.dimen = Geom:new({ x = 0, y = 0, w = self.width, h = self.height })
+  -- Populate self.dimen
+  self:getSize()
   if not self.info.ssid then
     self.info.ssid = "[hidden]"
   end
@@ -236,9 +230,7 @@ end
 
 function NetworkItem:refresh()
   self:init()
-  UIManager:setDirty(self.setting_ui, function()
-    return "ui", self.dimen
-  end)
+  self.setting_ui:scheduleRepaint()
 end
 
 function NetworkItem:connect()
@@ -285,7 +277,7 @@ function NetworkItem:disconnect(will_reconnect)
     else
       local info = InfoMessage:new({ text = gettext("Disconnecting…") })
       UIManager:show(info)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
 
       NetworkMgr:disconnectNetwork(self.info)
       NetworkMgr:releaseIP()
@@ -362,7 +354,6 @@ function NetworkItem:onEditNetwork()
     },
   })
   UIManager:show(password_input)
-  password_input:showKeyboard()
   return true
 end
 
@@ -394,7 +385,6 @@ function NetworkItem:onAddNetwork()
     },
   })
   UIManager:show(password_input)
-  password_input:showKeyboard()
   return true
 end
 
@@ -444,7 +434,10 @@ local NetworkSetting = InputContainer:extend({
 
 function NetworkSetting:init()
   self.width = self.width
-    or math.min(Screen:getWidth() * 3 / 4, Screen:scaleBySize(600))
+    or math.min(
+      Screen:getWidth() - Screen:scaleBySize(50),
+      Screen:scaleBySize(600)
+    )
 
   local gray_bg = Blitbuffer.COLOR_GRAY_E
   local items = {}
@@ -502,9 +495,7 @@ function NetworkSetting:init()
         page_update_cb = function(curr_page, total_pages)
           self.pagination:setProgress(curr_page / total_pages)
           -- self.page_text:setText(curr_page .. "/" .. total_pages)
-          UIManager:setDirty(self, function()
-            return "ui", self.popup.dimen
-          end)
+          self:scheduleRepaint()
         end,
       }),
     }),
@@ -550,7 +541,6 @@ function NetworkSetting:onClose()
   if not NetworkMgr.pending_connectivity_check then
     NetworkMgr.pending_connection = false
   end
-  UIManager:setDirty(nil, "ui", self.popup.dimen)
 end
 
 return NetworkSetting

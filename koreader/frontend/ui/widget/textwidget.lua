@@ -14,7 +14,6 @@ Example:
 
 local Blitbuffer = require("ffi/blitbuffer")
 local Font = require("ui/font")
-local Geom = require("ui/geometry")
 local Math = require("optmath")
 local RenderText = require("ui/rendertext")
 local Size = require("ui/size")
@@ -324,12 +323,8 @@ end
 
 function TextWidget:getSize()
   self:updateSize()
-  return Geom:new({
-    x = 0,
-    y = 0,
-    w = self._length,
-    h = self.forced_height or self._height,
-  })
+  self:mergeSize(self._length, self.forced_height or self._height)
+  return self.dimen
 end
 
 function TextWidget:getWidth()
@@ -370,6 +365,7 @@ function TextWidget:setMaxWidth(max_width)
 end
 
 function TextWidget:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   self:updateSize()
   if self._is_empty then
     return

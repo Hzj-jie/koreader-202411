@@ -31,6 +31,7 @@ local TrapWidget = InputContainer:extend({
   face = Font:getFace("infofont"),
   -- Whether to resend the event caught and used for dismissal
   resend_event = false,
+  invisible = true, -- This is a dirty hint for UIManager to ignore this widget.
 })
 
 function TrapWidget:init()
@@ -40,6 +41,7 @@ function TrapWidget:init()
     w = Screen:getWidth(),
     h = Screen:getHeight(),
   })
+  self.dimen = full_screen
   if Device:hasKeys() then
     self.key_events.AnyKeyPressed = { { Input.group.Any } }
   end
@@ -60,6 +62,7 @@ function TrapWidget:init()
     }
   end
   if self.text then
+    self.invisible = false
     local textw = TextWidget:new({
       text = self.text,
       face = self.face,
@@ -103,10 +106,6 @@ function TrapWidget:init()
         }),
       }),
     })
-  else
-    -- So that UIManager knows no refresh is needed and
-    -- avoids some unnecessary refreshes
-    self.invisible = true
   end
 end
 

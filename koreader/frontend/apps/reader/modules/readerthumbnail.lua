@@ -431,7 +431,7 @@ function ReaderThumbnail:checkTileGeneration(request)
     local result, err =
       self.codec.deserialize(ffiutil.readAllFromFD(parent_read_fd))
     if result then
-      local tile = TileCacheItem:new({})
+      local tile = TileCacheItem:new()
       tile:fromtable(result)
       if self.tile_cache then
         self.tile_cache:insert(request.hash, tile)

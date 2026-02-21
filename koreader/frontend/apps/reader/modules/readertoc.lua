@@ -139,32 +139,20 @@ function ReaderToc:onDocumentRerendered()
 end
 
 function ReaderToc:onPageUpdate(pageno)
-  if
-    UIManager.FULL_REFRESH_COUNT == -1
-    or G_reader_settings:isTrue("refresh_on_chapter_boundaries")
-  then
-    local flash_on_second =
-      G_reader_settings:nilOrFalse("no_refresh_on_second_chapter_page")
-    local paging_forward, paging_backward
-    if flash_on_second then
-      if self.pageno then
-        if pageno > self.pageno then
-          paging_forward = true
-        elseif pageno < self.pageno then
-          paging_backward = true
-        end
-      end
-    end
-
-    if paging_backward and self:isChapterEnd(pageno) then
-      UIManager:setDirty(nil, "full")
-    elseif self:isChapterStart(pageno) then
-      UIManager:setDirty(nil, "full")
-    elseif paging_forward and self:isChapterSecondPage(pageno) then
-      UIManager:setDirty(nil, "full")
-    end
+  if not self.pageno then
+    self.pageno = pageno
+    return
   end
 
+  if
+    not UIManager:fullRefreshPromoteEnabled()
+    and (
+      (pageno > self.pageno and self:isChapterStart(pageno))
+      or (pageno < self.pageno and self:isChapterEnd(pageno))
+    )
+  then
+    UIManager:scheduleRefresh("full")
+  end
   self.pageno = pageno
 end
 
@@ -657,18 +645,6 @@ function ReaderToc:isChapterStart(cur_pageno)
   return _start
 end
 
-function ReaderToc:isChapterSecondPage(cur_pageno)
-  local ticks = self:getTocTicksFlattened(true)
-  local _second = false
-  for _, page in ipairs(ticks) do
-    if page + 1 == cur_pageno then
-      _second = true
-      break
-    end
-  end
-  return _second
-end
-
 function ReaderToc:isChapterEnd(cur_pageno)
   local ticks = self:getTocTicksFlattened(true)
   local _end = false
@@ -891,7 +867,6 @@ function ReaderToc:onShowToc()
     icon_width = icon_size,
     icon_height = icon_size,
     bordersize = 0,
-    show_parent = self,
     callback = function(index)
       self:expandToc(index)
     end,
@@ -904,7 +879,6 @@ function ReaderToc:onShowToc()
     icon_width = icon_size,
     icon_height = icon_size,
     bordersize = 0,
-    show_parent = self,
     callback = function(index)
       self:collapseToc(index)
     end,
@@ -918,7 +892,7 @@ function ReaderToc:onShowToc()
       local v = self.toc[i]
       -- node v has child node(s)
       if v.depth < depth then
-        v.state = self.expand_button:new({})
+        v.state = self.expand_button:new()
       end
       if v.depth < self.collapse_depth then
         table.insert(self.collapsed_toc, 1, v)
@@ -965,7 +939,6 @@ function ReaderToc:onShowToc()
 
   local menu_container = CenterContainer:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     toc_menu,
   })
 
@@ -1018,9 +991,6 @@ function ReaderToc:onShowToc()
     UIManager:close(menu_container)
     BD.resetInvert()
   end
-
-  toc_menu.show_parent = menu_container
-
   self.toc_menu = toc_menu
 
   self:updateCurrentNode()
@@ -1086,7 +1056,7 @@ function ReaderToc:expandToc(index)
   if cur_node.state then
     cur_node.state:free()
   end
-  cur_node.state = self.collapse_button:new({})
+  cur_node.state = self.collapse_button:new()
   self:updateCurrentNode()
   self.toc_menu:switchItemTable(nil, self.collapsed_toc, -1)
 end
@@ -1108,7 +1078,7 @@ function ReaderToc:collapseToc(index)
     if is_child_node then
       if v.state then
         v.state:free()
-        v.state = self.expand_button:new({})
+        v.state = self.expand_button:new()
         if self.expanded_nodes[v.index] == true then
           self.expanded_nodes[v.index] = nil
         end
@@ -1127,7 +1097,7 @@ function ReaderToc:collapseToc(index)
   end
   -- change state of current node to collapsed
   cur_node.state:free()
-  cur_node.state = self.expand_button:new({})
+  cur_node.state = self.expand_button:new()
   self:updateCurrentNode()
   self.toc_menu:switchItemTable(nil, self.collapsed_toc, -1)
 end

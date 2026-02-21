@@ -9,7 +9,6 @@ local GestureRange = require("ui/gesturerange")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Mupdf = require("ffi/mupdf")
 local Screen = Device.screen
-local UIManager = require("ui/uimanager")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
@@ -102,7 +101,11 @@ function HtmlBoxWidget:setContent(
     end
   end
 
-  self.document:layoutDocument(self.dimen.w, self.dimen.h, default_font_size)
+  self.document:layoutDocument(
+    self:getSize().w,
+    self:getSize().h,
+    default_font_size
+  )
 
   self.page_count = self.document:getPages()
 end
@@ -114,26 +117,21 @@ function HtmlBoxWidget:_render()
   local page = self.document:openPage(self.page_number)
   self.document:setColorRendering(Screen:isColorEnabled())
   local dc = DrawContext.new()
-  self.bb = page:draw_new(dc, self.dimen.w, self.dimen.h, 0, 0)
+  self.bb = page:draw_new(dc, self:getSize().w, self:getSize().h, 0, 0)
   page:close()
-end
-
-function HtmlBoxWidget:getSize()
-  return self.dimen
 end
 
 function HtmlBoxWidget:getSinglePageHeight()
   if self.page_count == 1 then
     local page = self.document:openPage(1)
-    local x0, y0, x1, y1 = page:getUsedBBox() -- luacheck: no unused
+    local __, __, __, y1 = page:getUsedBBox()
     page:close()
     return math.ceil(y1) -- no content after y1
   end
 end
 
 function HtmlBoxWidget:paintTo(bb, x, y)
-  self.dimen.x = x
-  self.dimen.y = y
+  self:mergePosition(x, y)
 
   self:_render()
 
@@ -171,16 +169,16 @@ end
 
 function HtmlBoxWidget:getPosFromAbsPos(abs_pos)
   local pos = Geom:new({
-    x = abs_pos.x - self.dimen.x,
-    y = abs_pos.y - self.dimen.y,
+    x = abs_pos.x - self:getSize().x,
+    y = abs_pos.y - self:getSize().y,
   })
 
   -- check if the coordinates are actually inside our area
   if
     pos.x < 0
-    or pos.x >= self.dimen.w
+    or pos.x >= self:getSize().w
     or pos.y < 0
-    or pos.y >= self.dimen.h
+    or pos.y >= self:getSize().h
   then
     return nil
   end

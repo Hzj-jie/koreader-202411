@@ -8,7 +8,6 @@ local UIManager = require("ui/uimanager")
 local Screen = Device.screen
 local Size = require("ui/size")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local gettext = require("gettext")
 local logger = require("logger")
 local date
 date = os.date

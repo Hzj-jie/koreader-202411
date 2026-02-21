@@ -62,34 +62,6 @@ function InputContainer:_init()
   self._ordered_touch_zones = {}
 end
 
-function InputContainer:paintTo(bb, x, y)
-  if self[1] == nil then
-    return
-  end
-  if self.skip_paint then
-    return
-  end
-
-  if not self.dimen then
-    local content_size = self[1]:getSize()
-    self.dimen = Geom:new({
-      x = x,
-      y = y,
-      w = content_size.w,
-      h = content_size.h,
-    })
-  else
-    self.dimen.x = x
-    self.dimen.y = y
-  end
-  if self.vertical_align == "center" then
-    local content_size = self[1]:getSize()
-    self[1]:paintTo(bb, x, y + math.floor((self.dimen.h - content_size.h) / 2))
-  else
-    self[1]:paintTo(bb, x, y)
-  end
-end
-
 --[[--
 
 Register touch zones into this InputContainer.
@@ -136,7 +108,7 @@ require("ui/uimanager"):show(test_widget)
 function InputContainer:registerTouchZones(zones)
   local screen_width, screen_height = Screen:getWidth(), Screen:getHeight()
   if not self.touch_zone_dg then
-    self.touch_zone_dg = DepGraph:new({})
+    self.touch_zone_dg = DepGraph:new()
   end
   for _, zone in ipairs(zones) do
     -- override touch zone with the same id to support reregistration

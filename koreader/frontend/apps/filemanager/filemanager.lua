@@ -119,9 +119,7 @@ end
 FileManager.onPathChanged = FileManager.updateTitleBarPath
 
 function FileManager:setupLayout()
-  self.show_parent = self.show_parent or self
   self.title_bar = TitleBar:new({
-    show_parent = self.show_parent,
     fullscreen = "true",
     align = "center",
     title = self.title,
@@ -149,7 +147,6 @@ function FileManager:setupLayout()
   local file_chooser = FileChooser:new({
     path = self.root_path,
     focused_path = self.focused_file,
-    show_parent = self.show_parent,
     height = Screen:getHeight(),
     is_popout = false,
     is_borderless = true,
@@ -799,7 +796,7 @@ function FileManager:tapPlus()
 end
 
 function FileManager:reinit(path, focused_file)
-  assert(UIManager:isWidgetShown(self))
+  assert(UIManager:isTopLevelWidget(self))
   path = path or self.path
   focused_file = focused_file or self.focused_file
   UIManager:flushSettings()
@@ -1153,7 +1150,6 @@ function FileManager:createFolder()
   })
   input_dialog:addWidget(check_button_enter_folder)
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
 end
 
 function FileManager:showDeleteFileDialog(
@@ -1278,7 +1274,6 @@ function FileManager:showRenameFileDialog(file, is_file)
     },
   })
   UIManager:show(dialog)
-  dialog:showKeyboard()
 end
 
 function FileManager:renameFile(file, basename, is_file)
@@ -1366,7 +1361,6 @@ function FileManager:showFiles(path, focused_file, selected_files)
   -- FileManager shows itself.
   FileManager:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     root_path = path,
     focused_file = focused_file,
     selected_files = selected_files,

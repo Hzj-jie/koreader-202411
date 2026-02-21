@@ -362,31 +362,25 @@ function util.arrayContains(t, v, cb)
   return false
 end
 
---- Test whether array t contains a reference to array n (at any depth at or below m)
+--- Test whether array t contains a reference to n
 ---- @param t Lua table (array only)
----- @param n Lua table (array only)
----- @int m Max nesting level
-function util.arrayReferences(t, n, m, l)
-  if not m then
-    m = 15
+---- @param n anything
+function util.arrayDfSearch(t, n, d)
+  if d == nil then
+    d = 1
   end
-  if not l then
-    l = 0
-  end
-  if l > m then
+  if type(t) ~= "table" then
     return false
   end
 
-  if type(t) == "table" then
-    if t == n then
-      return true, l
-    end
+  if t == n then
+    return true, d
+  end
 
-    for _, v in ipairs(t) do
-      local matched, depth = util.arrayReferences(v, n, m, l + 1)
-      if matched then
-        return matched, depth
-      end
+  for _, v in ipairs(t) do
+    local r, rd = util.arrayDfSearch(v, n, d + 1)
+    if r then
+      return r, rd
     end
   end
 
@@ -1787,6 +1781,12 @@ end
 
 function util.no()
   return false
+end
+
+function util.copyRequire(f)
+  local v = require(f)
+  assert(type(v) == "table")
+  return util.tableDeepCopy(v)
 end
 
 return util

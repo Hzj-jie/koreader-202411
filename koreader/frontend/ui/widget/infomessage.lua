@@ -40,7 +40,6 @@ local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local gettext = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 
@@ -72,8 +71,6 @@ local InfoMessage = InputContainer:extend({
   lang = nil,
   para_direction_rtl = nil,
   auto_para_direction = nil,
-  -- Only have it painted after this delay (dismissing still works before it's shown)
-  show_delay = nil,
 })
 
 function InfoMessage:init()
@@ -186,11 +183,6 @@ function InfoMessage:init()
       self:init()
     end
   end
-
-  if self.show_delay then
-    -- Don't have UIManager setDirty us yet
-    self.invisible = true
-  end
 end
 
 function InfoMessage:onClose()
@@ -200,10 +192,6 @@ function InfoMessage:onClose()
     self._timeout_func = nil
   end
 
-  if self._delayed_show_action then
-    UIManager:unschedule(self._delayed_show_action)
-    self._delayed_show_action = nil
-  end
   if self.dismiss_callback then
     self.dismiss_callback()
     -- NOTE: Dirty hack for Trapper, which needs to pull a Lazarus on dead widgets while preserving the callback's integrity ;).
@@ -211,33 +199,10 @@ function InfoMessage:onClose()
       self.dismiss_callback = nil
     end
   end
-
-  if self.invisible then
-    -- Still invisible, no setDirty needed
-    return
-  end
-
-  UIManager:setDirty(nil, function()
-    return "ui", self.movable.dimen
-  end)
 end
 
 function InfoMessage:onShow()
   -- triggered by the UIManager after we got successfully show()'n (not yet painted)
-  if self.show_delay and self.invisible then
-    -- Let us be shown after this delay
-    self._delayed_show_action = function()
-      self._delayed_show_action = nil
-      self.invisible = false
-      self:onShow()
-    end
-    UIManager:scheduleIn(self.show_delay, self._delayed_show_action)
-    return true
-  end
-  -- set our region to be dirty, so UImanager will call our paintTo()
-  UIManager:setDirty(self, function()
-    return "ui", self.movable.dimen
-  end)
   -- schedule a close on timeout, if any
   if self.timeout then
     self._timeout_func = function()
@@ -247,19 +212,6 @@ function InfoMessage:onShow()
     UIManager:scheduleIn(self.timeout, self._timeout_func)
   end
   return true
-end
-
-function InfoMessage:getVisibleArea()
-  if not self.invisible then
-    return self.movable.dimen
-  end
-end
-
-function InfoMessage:paintTo(bb, x, y)
-  if self.invisible then
-    return
-  end
-  InputContainer.paintTo(self, bb, x, y)
 end
 
 function InfoMessage:onTapClose()

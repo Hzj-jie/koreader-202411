@@ -58,6 +58,7 @@ function HistogramWidget:init()
 end
 
 function HistogramWidget:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   local i_x = 0
   for n = 1, self.nb_items do
     if self.do_mirror then
@@ -148,7 +149,7 @@ function CalendarDay:init()
     focusable = true,
     focus_border_color = Blitbuffer.COLOR_GRAY,
     OverlapGroup:new({
-      dimen = { w = inner_w },
+      dimen = { w = inner_w, h = inner_h },
       self.daynum_w,
       self.nb_not_shown_w,
       self.histo_w, -- nil if not show_histo
@@ -406,7 +407,7 @@ function BookDailyItem:init()
     checked = true,
   })
 
-  local title_max_width = self.dimen.w
+  local title_max_width = self:getSize().w
     - 2 * Size.padding.default
     - checked_widget:getSize().w
     - self.value_width
@@ -431,7 +432,7 @@ function BookDailyItem:init()
         self.check_container,
         CenterContainer:new({
           dimen = Geom:new({ w = Size.padding.default, h = self.height }),
-          HorizontalSpan:new({ w = Size.padding.default }),
+          HorizontalSpan:new({ width = Size.padding.default }),
         }),
         OverlapGroup:new({
           dimen = Geom:new({ w = title_max_width, h = self.height }),
@@ -506,7 +507,7 @@ end
 
 function BookDailyItem:onHold()
   if self.item.hold_callback then
-    self.item.hold_callback(self.show_parent, self.item)
+    self.item.hold_callback(self:showParent(), self.item)
   end
   return true
 end
@@ -556,7 +557,7 @@ function CalendarDayView:init()
 
   self.title_bar = TitleBar:new({
     fullscreen = true,
-    width = self.dimen.w,
+    width = self:getSize().w,
     align = "left",
     title = self.title or "Title",
     title_face = Font:getFace("smalltfont", 22),
@@ -564,13 +565,12 @@ function CalendarDayView:init()
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self,
   })
 
   self.titlebar_height = self.title_bar:getHeight()
 
   local padding = Size.padding.large
-  local footer_width = self.dimen.w - 2 * padding
+  local footer_width = self:getSize().w - 2 * padding
   self.footer_center_width = math.floor(footer_width * 0.32)
   self.footer_button_width = math.floor(footer_width * 0.10)
 
@@ -592,7 +592,6 @@ function CalendarDayView:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_right = Button:new({
     icon = chevron_right,
@@ -602,7 +601,6 @@ function CalendarDayView:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_first_up = Button:new({
     icon = chevron_first,
@@ -612,7 +610,6 @@ function CalendarDayView:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_last_down = Button:new({
     icon = chevron_last,
@@ -622,7 +619,6 @@ function CalendarDayView:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_page = Button:new({
     text = "",
@@ -646,7 +642,6 @@ function CalendarDayView:init()
     text_font_face = "pgfont",
     text_font_bold = false,
     width = self.footer_center_width,
-    show_parent = self,
   })
   self.page_info = HorizontalGroup:new({
     self.footer_first_up,
@@ -666,7 +661,7 @@ function CalendarDayView:init()
   self.book_item_height = temp_text:getSize().h + 2 * Size.padding.small
   temp_text:free()
 
-  self.book_items = VerticalGroup:new({})
+  self.book_items = VerticalGroup:new()
   self.timeline = OverlapGroup:new({
     dimen = self.dimen:copy(),
   })
@@ -676,14 +671,14 @@ function CalendarDayView:init()
   self:setupView()
 
   self[1] = FrameContainer:new({
-    height = self.dimen.h,
+    height = self:getSize().h,
     padding = 0,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,
     OverlapGroup:new({
       dimen = self.dimen:copy(),
       FrameContainer:new({
-        height = self.dimen.h,
+        height = self:getSize().h,
         padding = 0,
         bordersize = 0,
         background = Blitbuffer.COLOR_WHITE,
@@ -734,7 +729,7 @@ function CalendarDayView:setupView()
   self.title = self:getTitle()
 
   self.show_page = 1
-  self.title_bar:setTitle(self.title)
+  self.title_bar:setTitle(self.title, --[[no_refresh]] true)
 
   for _, kv in ipairs(self.kv_pairs) do
     kv.check_cb = function(this)
@@ -775,7 +770,7 @@ function CalendarDayView:setupView()
   self.pages = #self.kv_pairs <= self.items_per_page + 1 and 1
     or math.ceil(#self.kv_pairs / self.items_per_page)
   self.footer_container[1] = self.pages > 1 and self.page_info
-    or VerticalSpan:new({ w = 0 })
+    or VerticalSpan:new({ height = 0 })
 
   self:_populateBooks()
 end
@@ -874,10 +869,9 @@ function CalendarDayView:_populateBooks()
   for idx = idx_offset + 1, page_last do
     local item = BookDailyItem:new({
       item = self.kv_pairs[idx],
-      width = self.dimen.w - 2 * self.outer_padding,
+      width = self:getSize().w - 2 * self.outer_padding,
       value_width = value_width,
       height = self.book_item_height,
-      show_parent = self,
     })
     table.insert(self.layout, { item })
     table.insert(self.book_items, item)
@@ -885,7 +879,7 @@ function CalendarDayView:_populateBooks()
   self.timeline_offset = self.titlebar_height
     + #self.book_items * self.book_item_height
     + Size.padding.default
-  self.timeline_height = self.dimen.h - self.timeline_offset
+  self.timeline_height = self:getSize().h - self.timeline_offset
   if self.pages > 1 then
     self.footer_page:setText(
       T(gettext("Page %1 of %2"), self.show_page, self.pages),
@@ -903,15 +897,20 @@ function CalendarDayView:_populateBooks()
     self.timeline_height = self.timeline_height - Size.padding.default
   end
   self.hour_height = math.floor(self.timeline_height / 24)
-  self.timeline_width = self.dimen.w - self.outer_padding - self.time_text_width
+  self.timeline_width = self:getSize().w
+    - self.outer_padding
+    - self.time_text_width
 
   if #self.kv_pairs == 0 then
     -- Needed when the first opened day has no data, then move to another day with data
     table.insert(
       self.book_items,
       CenterContainer:new({
-        dimen = Geom:new({ w = self.dimen.w - 2 * self.outer_padding, h = 0 }),
-        VerticalSpan:new({ w = 0 }),
+        dimen = Geom:new({
+          w = self:getSize().w - 2 * self.outer_padding,
+          h = 0,
+        }),
+        VerticalSpan:new({ height = 0 }),
       })
     )
   end
@@ -935,7 +934,7 @@ function CalendarDayView:refreshTimeline()
         bordersize = 0,
         padding = 0,
         overlap_offset = { offset_x, self.timeline_offset },
-        VerticalSpan:new({ w = 0 }),
+        VerticalSpan:new({ height = 0 }),
       })
     )
   end
@@ -997,7 +996,7 @@ function CalendarDayView:refreshTimeline()
         overlap_offset = { self.time_text_width, offset_y - Size.border.thin },
         CenterContainer:new({
           dimen = Geom:new({ w = self.timeline_width, h = Size.border.default }),
-          VerticalSpan:new({ w = 0 }),
+          VerticalSpan:new({ height = 0 }),
         }),
       })
     )
@@ -1091,7 +1090,7 @@ function CalendarDayView:generateSpan(start, finish, bgcolor, fgcolor, title)
         padding = 0,
         fgcolor = fgcolor,
         max_width = width,
-      }) or HorizontalSpan:new({ w = 0 }),
+      }) or HorizontalSpan:new({ width = 0 }),
     }),
   })
 end
@@ -1115,13 +1114,11 @@ function CalendarDayView:onSwipe(arg, ges_ev)
   elseif direction == "south" then
     -- Allow easier closing with swipe down
     self:onExit()
-  elseif direction == "north" then
+  elseif direction == "north" then -- luacheck: ignore 542
     -- no use for now
-    do
-    end -- luacheck: ignore 541
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
     return false
@@ -1178,12 +1175,6 @@ function CalendarView:init()
     w = self.width or Screen:getWidth(),
     h = self.height or Screen:getHeight(),
   })
-  if
-    self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
-  then
-    self.covers_fullscreen = true -- hint for UIManager:_repaint()
-  end
-
   if Device:hasKeys() then
     self.key_events.Exit = { { Input.group.Back } }
     self.key_events.NextMonth = { { Input.group.PgFwd } }
@@ -1209,14 +1200,15 @@ function CalendarView:init()
 
   -- 7 days in a week
   self.day_width = math.floor(
-    (self.dimen.w - 2 * self.outer_padding - 6 * self.inner_padding) * (1 / 7)
+    (self:getSize().w - 2 * self.outer_padding - 6 * self.inner_padding)
+      * (1 / 7)
   )
   -- Put back the possible 7px lost in rounding into outer_padding
   self.outer_padding = math.floor(
-    (self.dimen.w - 7 * self.day_width - 6 * self.inner_padding) * (1 / 2)
+    (self:getSize().w - 7 * self.day_width - 6 * self.inner_padding) * (1 / 2)
   )
 
-  self.content_width = self.dimen.w - 2 * self.outer_padding
+  self.content_width = self:getSize().w - 2 * self.outer_padding
 
   local now_ts = os.time()
   if not MIN_MONTH then
@@ -1247,7 +1239,6 @@ function CalendarView:init()
       self:prevMonth()
     end,
     bordersize = 0,
-    show_parent = self,
   })
   self.page_info_right_chev = Button:new({
     icon = chevron_right,
@@ -1255,7 +1246,6 @@ function CalendarView:init()
       self:nextMonth()
     end,
     bordersize = 0,
-    show_parent = self,
   })
   self.page_info_first_chev = Button:new({
     icon = chevron_first,
@@ -1263,7 +1253,6 @@ function CalendarView:init()
       self:goToMonth(self.min_month)
     end,
     bordersize = 0,
-    show_parent = self,
   })
   self.page_info_last_chev = Button:new({
     icon = chevron_last,
@@ -1271,7 +1260,6 @@ function CalendarView:init()
       self:goToMonth(self.max_month)
     end,
     bordersize = 0,
-    show_parent = self,
   })
   self.page_info_spacer = HorizontalSpan:new({
     width = Screen:scaleBySize(32),
@@ -1325,26 +1313,28 @@ function CalendarView:init()
   local footer = BottomContainer:new({
     -- (BottomContainer does horizontal centering)
     dimen = Geom:new({
-      w = self.dimen.w,
-      h = self.dimen.h,
+      w = self:getSize().w,
+      h = self:getSize().h,
     }),
     self.page_info,
   })
 
   self.title_bar = TitleBar:new({
-    fullscreen = self.covers_fullscreen,
-    width = self.dimen.w,
+    fullscreen = (
+      self:getSize().w == Screen:getWidth()
+      and self:getSize().h == Screen:getHeight()
+    ),
+    width = self:getSize().w,
     align = "left",
     title = self.title,
     title_h_padding = self.outer_padding, -- have month name aligned with calendar left edge
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self,
   })
 
   -- week days names header
-  self.day_names = HorizontalGroup:new({})
+  self.day_names = HorizontalGroup:new()
   table.insert(
     self.day_names,
     HorizontalSpan:new({ width = self.outer_padding })
@@ -1375,7 +1365,7 @@ function CalendarView:init()
   end
 
   -- At most 6 weeks in a month
-  local available_height = self.dimen.h
+  local available_height = self:getSize().h
     - self.title_bar:getHeight()
     - self.page_info:getSize().h
     - self.day_names:getSize().h
@@ -1416,13 +1406,13 @@ function CalendarView:init()
     test_w:free()
   end
 
-  self.main_content = VerticalGroup:new({})
+  self.main_content = VerticalGroup:new()
   self:_populateItems()
 
   local content = OverlapGroup:new({
     dimen = Geom:new({
-      w = self.dimen.w,
-      h = self.dimen.h,
+      w = self:getSize().w,
+      h = self:getSize().h,
     }),
     allow_mirroring = false,
     VerticalGroup:new({
@@ -1438,8 +1428,8 @@ function CalendarView:init()
   })
   -- assemble page
   self[1] = FrameContainer:new({
-    width = self.dimen.w,
-    height = self.dimen.h,
+    width = self:getSize().w,
+    height = self:getSize().h,
     padding = 0,
     margin = 0,
     bordersize = 0,
@@ -1463,7 +1453,7 @@ function CalendarView:_populateItems()
   -- Update title
   local month_text = datetime.longMonthTranslation[os.date("%B", month_start_ts)]
     .. os.date(" %Y", month_start_ts)
-  self.title_bar:setTitle(month_text)
+  self.title_bar:setTitle(month_text, --[[no_refresh]] true)
   -- Update footer
   self.page_info_text:setText(self.cur_month)
   self.page_info_left_chev:enableDisable(self.cur_month > self.min_month)
@@ -1481,7 +1471,7 @@ function CalendarView:_populateItems()
 
   table.insert(
     self.main_content,
-    VerticalSpan:new({ width = self.inner_padding })
+    VerticalSpan:new({ height = self.inner_padding })
   )
   self.weeks = {}
   local today_s = os.date("%Y-%m-%d", os.time())
@@ -1499,7 +1489,7 @@ function CalendarView:_populateItems()
       if cur_week then
         table.insert(
           self.main_content,
-          VerticalSpan:new({ width = self.inner_padding })
+          VerticalSpan:new({ height = self.inner_padding })
         )
       end
       cur_week = CalendarWeek:new({
@@ -1513,7 +1503,6 @@ function CalendarView:_populateItems()
         span_height = self.span_height,
         font_face = self.font_face,
         font_size = self.span_font_size,
-        show_parent = self,
       })
       layout_row = {}
       table.insert(self.layout, layout_row)
@@ -1528,7 +1517,6 @@ function CalendarView:_populateItems()
             height = self.week_height,
             width = self.day_width,
             border = self.day_border,
-            show_parent = self,
           }))
           day = day + 1
           if day == 8 then
@@ -1557,7 +1545,6 @@ function CalendarView:_populateItems()
       width = self.day_width,
       ratio_per_hour = ratio_per_hour_by_day[day_s],
       read_books = books_by_day[day_s],
-      show_parent = self,
       callback = not is_future
         and function()
           UIManager:show(CalendarDayView:new({
@@ -1595,9 +1582,7 @@ function CalendarView:_populateItems()
     1,
     bit.bor(FocusManager.FOCUS_ONLY_ON_NT, FocusManager.NOT_UNFOCUS)
   )
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  self:scheduleRepaint()
 end
 
 function CalendarView:showCalendarDayView(reader_statistics)
@@ -1677,13 +1662,11 @@ function CalendarView:onSwipe(arg, ges_ev)
   elseif direction == "south" then
     -- Allow easier closing with swipe down
     self:onExit()
-  elseif direction == "north" then
+  elseif direction == "north" then -- luacheck: ignore 542
     -- no use for now
-    do
-    end -- luacheck: ignore 541
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
     return false
@@ -1701,7 +1684,7 @@ end
 function CalendarView:onExit()
   UIManager:close(self)
   -- Remove ghosting
-  UIManager:setDirty(nil, "full")
+  UIManager:scheduleRefresh("full")
   return true
 end
 

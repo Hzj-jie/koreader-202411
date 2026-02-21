@@ -5,7 +5,6 @@ local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local UIManager = require("ui/uimanager")
-local gettext = require("gettext")
 local Screen = Device.screen
 
 local ScreenSaverWidget = InputContainer:extend({
@@ -89,7 +88,7 @@ function ScreenSaverWidget:onClose()
   end
 
   -- Make it full-screen (self.main_frame.dimen might be in a different orientation, and it's already full-screen anyway...)
-  UIManager:setDirty(nil, "full")
+  UIManager:scheduleRefresh("full")
 
   -- Will come after the Resume event, iff screensaver_delay is set.
   -- Comes *before* it otherwise.
