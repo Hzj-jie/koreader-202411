@@ -1103,7 +1103,10 @@ function UIManager:_repaintDirtyWidgets()
           -- its content has been changed.
           -- TODO: This shouldn't be necessary, but some widget doesn't do the
           -- right thing. E.g. ReaderUI.
-          self:_scheduleRefreshWindowWidget(self._window_stack[i], dirty_widgets[i][k])
+          self:_scheduleRefreshWindowWidget(
+            self._window_stack[i],
+            dirty_widgets[i][k]
+          )
           table.remove(dirty_widgets[i], k)
         end
       end
