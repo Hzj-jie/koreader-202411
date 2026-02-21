@@ -2189,7 +2189,10 @@ function ReaderFooter:_repaint()
   end
 
   -- If there was a visibility change, notify ReaderView
-  if self.visibility_change or (not self.view.footer_visible or top_wg.name ~= "ReaderUI") then
+  if
+    self.visibility_change
+    or (not self.view.footer_visible or top_wg.name ~= "ReaderUI")
+  then
     if self.visibility_change then
       self.visibility_change = nil
       UIManager:broadcastEvent(Event:new("ReaderFooterVisibilityChange"))
