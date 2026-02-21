@@ -1099,6 +1099,11 @@ function UIManager:_repaintDirtyWidgets()
             < dirty_widgets[i][k]:window_z_index()
           and util.arrayDfSearch(dirty_widgets[i][j], dirty_widgets[i][k])
         then
+          -- Still refresh its dirty region in case the ancestor doesn't think
+          -- its content has been changed.
+          -- TODO: This shouldn't be necessary, but some widget doesn't do the
+          -- right thing. E.g. ReaderUI.
+          self:_scheduleRefreshWindowWidget(self._window_stack[i], dirty_widgets[i][k])
           table.remove(dirty_widgets[i], k)
         end
       end

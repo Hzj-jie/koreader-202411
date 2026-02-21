@@ -2177,15 +2177,15 @@ function ReaderFooter:getDataFromStatistics(title, pages)
 end
 
 function ReaderFooter:_repaint()
-  print(debug.traceback())
   -- NOTE: This is essentially preventing us from truly using "fast" for panning,
   --     since it'll get coalesced in the "fast" panning update, upgrading it to "ui".
   -- NOTE: That's assuming using "fast" for pans was a good idea, which, it turned out, not so much ;).
   -- NOTE: We skip repaints on page turns/pos update, as that's redundant (and slow).
-  local top_wg = UIManager:getTopmostVisibleWidget() or {}
-  if top_wg.name ~= "ReaderUI" then
+  if (UIManager:getTopmostVisibleWidget() or {}).name ~= "ReaderUI" then
     -- If the top most widget is not the ReaderUI, footer doesn't need to be
     -- repainted.
+    -- This behavior is questionable, but it can be safer to avoid repainting
+    -- everything above the footer.
     return
   end
   --[[ -- The behavior is questionable.
