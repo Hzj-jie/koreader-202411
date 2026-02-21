@@ -2177,30 +2177,34 @@ function ReaderFooter:getDataFromStatistics(title, pages)
 end
 
 function ReaderFooter:_repaint()
+  print(debug.traceback())
   -- NOTE: This is essentially preventing us from truly using "fast" for panning,
   --     since it'll get coalesced in the "fast" panning update, upgrading it to "ui".
   -- NOTE: That's assuming using "fast" for pans was a good idea, which, it turned out, not so much ;).
   -- NOTE: We skip repaints on page turns/pos update, as that's redundant (and slow).
   local top_wg = UIManager:getTopmostVisibleWidget() or {}
-  if G_named_settings.fast_screen_refresh() and top_wg.name ~= "ReaderUI" then
-    -- If the top most widget is not the ReaderUI, and it's not expected to
-    -- "fast" refreshing the screen, footer doesn't need to be repainted.
+  if top_wg.name ~= "ReaderUI" then
+    -- If the top most widget is not the ReaderUI, footer doesn't need to be
+    -- repainted.
     return
   end
+  --[[ -- The behavior is questionable.
+  if not G_named_settings.fast_screen_refresh() then
+    -- It's not expected to "fast" refreshing the screen, footer doesn't need to
+    -- be repainted.
+    return
+  end
+  ]]
 
-  -- If there was a visibility change, notify ReaderView
-  if
-    self.visibility_change
-    or (not self.view.footer_visible or top_wg.name ~= "ReaderUI")
-  then
-    if self.visibility_change then
-      self.visibility_change = nil
-      UIManager:broadcastEvent(Event:new("ReaderFooterVisibilityChange"))
-    end
+  if self.visibility_change then
+    self.visibility_change = nil
+    UIManager:broadcastEvent(Event:new("ReaderFooterVisibilityChange"))
     -- If the footer is invisible or might be hidden behind another widget, we
-    -- need to repaint the full ReaderUI stack.
+    -- need to repaint the full ReaderUI stack, but only when the visibility
+    -- changed.
     self.view.dialog:scheduleRepaint()
-  else
+  elseif self.view.footer_visible then
+    -- Or if footer is visible, repaint itself.
     self.footer_content:scheduleRepaint()
   end
 end
