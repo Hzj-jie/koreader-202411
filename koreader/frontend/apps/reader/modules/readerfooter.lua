@@ -2200,13 +2200,8 @@ function ReaderFooter:_repaint()
     -- If the footer is invisible or might be hidden behind another widget, we
     -- need to repaint the full ReaderUI stack.
     self.view.dialog:scheduleRepaint()
-    -- Immediately repaint to avoid waiting for next repainting cycle.
-    UIManager:forceRepaint()
   else
-    -- The ReaderFooter isn't a dedicated widget, it's painted to the bb by
-    -- ReaderView. To optimize the update, simply repaint footer_content if the
-    -- widget is shown.
-    self.footer_content:repaint()
+    self.footer_content:scheduleRepaint()
   end
 end
 
