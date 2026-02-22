@@ -902,6 +902,9 @@ function ReaderUI:onFlushSettings(show_notification)
 end
 
 function ReaderUI:onExit(seamless)
+  UIManager:broadcastEvent(Event:new("CloseReaderMenu"))
+  UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
+  self.highlight:onExit() -- close highlight dialog if any
   if self.document == nil then
     -- This shouldn't happen, but who knows who would call ReaderUI:onExit?
     return
@@ -1005,9 +1008,6 @@ function ReaderUI:_loadDocument(file, seamless)
   self.tearing_down = true
   self.dithered = nil
 
-  UIManager:broadcastEvent(Event:new("CloseReaderMenu"))
-  UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
-  self.highlight:onExit() -- close highlight dialog if any
   self:onExit(seamless)
 
   self:showReader(file, nil, seamless)
