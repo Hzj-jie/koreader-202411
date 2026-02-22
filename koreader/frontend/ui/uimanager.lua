@@ -62,13 +62,17 @@ local refresh_methods = {
   full = Screen.refreshFull,
 }
 
+local function _isWidget(widget)
+  return widget ~= nil and type(widget) == "table"
+end
+
 local function _widgetDebugStr(widget)
-  assert(widget ~= nil)
+  assert(_isWidget(widget))
   return widget.name or widget.id or tostring(widget)
 end
 
 local function _widgetWindow(w)
-  assert(w ~= nil)
+  assert(_isWidget(w))
   local window = w:window()
   if window == nil then
     -- TODO: Should assert.
@@ -85,7 +89,7 @@ local function _widgetWindow(w)
 end
 
 local function cropping_region(widget)
-  assert(widget ~= nil)
+  assert(_isWidget(widget))
   local dimen = widget:getSize()
   assert(dimen ~= nil)
   -- It's possible that the function is called before the paintTo call, so x or
@@ -267,8 +271,8 @@ If refreshtype is omitted, no refresh will be enqueued at this time.
 ]]
 function UIManager:show(widget)
   -- TODO: Should assert
-  if not widget then
-    logger.dbg("attempted to show a nil widget")
+  if not _isWidget(widget) then
+    logger.warn("FixMe: Attempted to show a nil widget. ", debug.traceback())
     return
   end
   assert(not self:isTopLevelWidget(widget))
@@ -323,8 +327,8 @@ If refreshtype is omitted, no extra refresh will be enqueued at this time, leavi
 ]]
 function UIManager:close(widget)
   -- TODO: Should assert
-  if not widget then
-    logger.dbg("attempted to close a nil widget")
+  if not _isWidget(widget) then
+    logger.warn("FixMe: Attempted to close a nil widget. ", debug.traceback())
     return
   end
 
@@ -1015,9 +1019,9 @@ function UIManager:scheduleRefresh(mode, region, dither)
 end
 
 function UIManager:_scheduleRefreshWindowWidget(window, widget)
-  assert(window ~= nil)
+  assert(window ~= nil and type(window) == "table")
   widget = widget or window.widget
-  assert(widget ~= nil)
+  assert(_isWidget(widget))
   if widget.invisible then
     return
   end
@@ -1339,7 +1343,8 @@ _window_stack eventually before the next repaint or it will be ignored.
 --]]
 function UIManager:scheduleWidgetRepaint(widget)
   -- TODO: Should assert.
-  if not widget then
+  if not _isWidget(widget) then
+    logger.warn("FixMe: Attempted to repaint a nil widget. ", debug.traceback())
     return false
   end
 
@@ -1352,11 +1357,7 @@ end
 Ignore pending widget repaint if any.
 --]]
 function UIManager:ignoreWidgetRepaint(widget)
-  -- TODO: Should assert.
-  if not widget then
-    return false
-  end
-
+  assert(_isWidget(widget))
   if self._dirty[widget] then
     self._dirty[widget] = nil
     return true
@@ -1373,7 +1374,7 @@ break anything above the widget, and should only be used to show feedbacks for
 user interactions.
 --]]
 function UIManager:repaintWidget(widget)
-  assert(widget ~= nil)
+  assert(_isWidget(widget))
   assert(widget:getSize() ~= nil)
   local paint_region = cropping_region(widget)
   assert(paint_region ~= nil)
@@ -1396,11 +1397,7 @@ user interactions.
 @param widget a @{ui.widget.widget|widget} object
 --]]
 function UIManager:invertWidget(widget)
-  -- TODO: Should assert.
-  if not widget then
-    return
-  end
-
+  assert(_isWidget(widget))
   local invert_region = cropping_region(widget)
   if invert_region == nil then
     return
