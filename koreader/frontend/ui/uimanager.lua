@@ -1348,6 +1348,16 @@ function UIManager:scheduleWidgetRepaint(widget)
   return _widgetWindow(widget) ~= nil
 end
 
+function UIManager:ignoreWidgetRepaint(widget)
+  -- TODO: Should assert.
+  if not widget then
+    return false
+  end
+
+  -- Ignore pending widget repaint if any.
+  self._dirty[widget] = nil
+end
+
 --[[--
 Immediately repaint the widget, relying on the widget:getSize(). The widget doesn't
 need to be in the _window_stack, i.e. not a show(widget).

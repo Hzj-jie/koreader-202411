@@ -1398,6 +1398,8 @@ function TextBoxWidget:free(full)
     self.vertical_string_list = {}
     self.line_num_to_image = nil
   end
+
+  UIManager:ignoreWidgetRepaint(self)
 end
 
 function TextBoxWidget:update(scheduled_update)
