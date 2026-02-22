@@ -207,6 +207,11 @@ function Widget:window() -- final
     -- The window has been closed, it may trigger another self:_window() call,
     -- but components shouldn't use a closed window anymore.
     self._window_ref = nil
+  elseif G_defaults:isTrue("DEV_MODE") then
+    if self._window_ref ~= self:_window() then
+      -- Unfortunately, nothing else can be used to identify the widget.
+      require("logger").warn("FixMe: self._window_ref ~= self:_window(), ".. (self.name or self.id or tostring(self)))
+    end
   end
   return self._window_ref
 end
