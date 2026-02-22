@@ -1334,8 +1334,8 @@ function UIManager:waitForScreenRefresh()
 end
 
 --[[--
-Schedule a widget to be repainted, it or its show_parent must be in the
-_window_stack.
+Schedule a widget to be repainted, it or its Widget:showParent() must be in the
+_window_stack eventually before the next repaint or it will be ignored.
 --]]
 function UIManager:scheduleWidgetRepaint(widget)
   -- TODO: Should assert.
@@ -1348,14 +1348,20 @@ function UIManager:scheduleWidgetRepaint(widget)
   return _widgetWindow(widget) ~= nil
 end
 
+--[[--
+Ignore pending widget repaint if any.
+--]]
 function UIManager:ignoreWidgetRepaint(widget)
   -- TODO: Should assert.
   if not widget then
     return false
   end
 
-  -- Ignore pending widget repaint if any.
-  self._dirty[widget] = nil
+  if self._dirty[widget] then
+    self._dirty[widget] = nil
+    return true
+  end
+  return false
 end
 
 --[[--
