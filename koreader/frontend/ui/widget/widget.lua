@@ -210,7 +210,10 @@ function Widget:window() -- final
   elseif G_defaults:isTrue("DEV_MODE") then
     if self._window_ref ~= self:_window() then
       -- Unfortunately, nothing else can be used to identify the widget.
-      require("logger").warn("FixMe: self._window_ref ~= self:_window(), ".. (self.name or self.id or tostring(self)))
+      require("logger").warn(
+        "FixMe: self._window_ref ~= self:_window(), "
+          .. (self.name or self.id or tostring(self))
+      )
     end
   end
   return self._window_ref
