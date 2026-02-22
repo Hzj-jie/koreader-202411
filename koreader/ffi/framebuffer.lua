@@ -509,7 +509,7 @@ end
 function fb:setNightmode(night_mode)
   if self.device:canHWInvert() then
     -- If the device supports global inversion via the grayscale flag, do that.
-    self:setHWNightmode(self.night_mode)
+    self:setHWNightmode(night_mode)
   else
     if self:reverseNightmode() then
       night_mode = not night_mode
