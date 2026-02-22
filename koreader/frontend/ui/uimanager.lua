@@ -1037,6 +1037,10 @@ function UIManager:_scheduleRefreshWindowWidget(window, widget)
   self:scheduleRefresh(widget:refreshMode(), dimen, widget.dithered)
 end
 
+function UIManager:findWindow(window)
+  return util.arrayContains(self._window_stack, window)
+end
+
 function UIManager:_repaintDirtyWidgets()
   if util.tableSize(self._dirty) == 0 then
     return
@@ -1056,7 +1060,7 @@ function UIManager:_repaintDirtyWidgets()
   for w in pairs(self._dirty) do
     local window = _widgetWindow(w)
     if window ~= nil then
-      local index = util.arrayContains(self._window_stack, window)
+      local index = self:findWindow(window)
       -- Otherwise the window should be nil.
       assert(index ~= false)
       assert(index > 0)

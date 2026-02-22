@@ -201,8 +201,14 @@ end
 -- Get the window of current widget, use this function should be careful due
 -- to it's slowness.
 function Widget:window() -- final
-  -- TODO: Caching the self:_window() result breaks Terminal.
-  return self:_window()
+  if self._window_ref == nil then
+    self._window_ref = self:_window()
+  elseif require("ui/uimanager"):findWindow(self._window_ref) == false then
+    -- The window has been closed, it may trigger another self:_window() call,
+    -- but components shouldn't use a closed window anymore.
+    self._window_ref = nil
+  end
+  return self._window_ref
 end
 
 function Widget:myRange(ges)
