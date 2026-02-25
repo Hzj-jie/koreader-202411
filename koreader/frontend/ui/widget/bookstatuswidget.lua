@@ -261,7 +261,7 @@ function BookStatusWidget:setStar(num)
   -- Individual stars are Button, w/ flash_ui, they'll have their own flash.
   -- And we need to redraw the full widget, because we don't know the coordinates of stars_container :/.
   self:refocusWidget()
-  UIManager:setDirty(self, "ui", nil, true)
+  self:setDirty("ui", nil, true)
   return true
 end
 
