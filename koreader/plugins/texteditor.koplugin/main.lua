@@ -104,8 +104,6 @@ end
 
 function TextEditor:onFlushSettings()
   if self.settings then
-    self.settings:save("history", self.history)
-    self.settings:save("last_view_pos", self.last_view_pos)
     self.settings:save("last_path", self.last_path)
     self.settings:save("font_face", self.font_face)
     self.settings:save("font_size", self.font_size)
