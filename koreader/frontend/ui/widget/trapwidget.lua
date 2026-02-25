@@ -111,7 +111,11 @@ end
 
 function TrapWidget:_dismissAndResend(evtype, ev)
   self.dismiss_callback()
-  UIManager:close(self)
+  if UIManager:isTopLevelWidget(self) then
+    -- In case some users would like to close the TrapWidget in
+    -- dismiss_callback but some others not.
+    UIManager:close(self)
+  end
   if self.resend_event and evtype and ev then
     -- There may be some timing issues that could cause crashes, as we
     -- use nextTick, if the dismiss_callback uses UIManager:scheduleIn()
