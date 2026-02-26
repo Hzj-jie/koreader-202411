@@ -63,7 +63,12 @@ local refresh_methods = {
 }
 
 local function _isWidget(widget)
-  return widget ~= nil and type(widget) == "table"
+  if widget ~= nil and type(widget) == "table" then
+    return true
+  end
+  logger.warn("FixMe: Attempted to check a nil widget or not a table. ",
+              debug.traceback())
+  return false
 end
 
 local function _widgetDebugStr(widget)
@@ -270,11 +275,6 @@ If refreshtype is omitted, no refresh will be enqueued at this time.
 @param widget a @{ui.widget.widget|widget} object
 ]]
 function UIManager:show(widget)
-  -- TODO: Should assert
-  if not _isWidget(widget) then
-    logger.warn("FixMe: Attempted to show a nil widget. ", debug.traceback())
-    return
-  end
   assert(not self:isTopLevelWidget(widget))
 
   logger.dbg("show widget:", _widgetDebugStr(widget))
@@ -325,22 +325,8 @@ If refreshtype is omitted, no extra refresh will be enqueued at this time, leavi
 
 @param widget a @{ui.widget.widget|widget} object
 ]]
-function UIManager:close(widget)
-  -- TODO: Should assert
-  if not _isWidget(widget) then
-    logger.warn("FixMe: Attempted to close a nil widget. ", debug.traceback())
-    return
-  end
-
-  if not UIManager:isTopLevelWidget(widget) then
-    logger.warn(
-      "FixMe: widget "
-        .. _widgetDebugStr(widget)
-        .. " has been closed already. "
-        .. debug.traceback()
-    )
-    return
-  end
+function UIManager:_close(widget)
+  assert(UIManager:isTopLevelWidget(widget))
 
   logger.dbg("close widget:", _widgetDebugStr(widget))
   -- First notify the closed widget to save its settings...
@@ -395,6 +381,26 @@ function UIManager:close(widget)
     logger.dbg("Widget is gone, disabling gesture handling again")
     self:setIgnoreTouchInput(true)
   end
+end
+
+function UIManager:close(widget)
+  if not UIManager:isTopLevelWidget(widget) then
+    logger.warn(
+      "FixMe: widget "
+        .. _widgetDebugStr(widget)
+        .. " has been closed already. "
+        .. debug.traceback()
+    )
+    return
+  end
+  self:_close(widget)
+end
+
+function UIManager:closeIfShown(widget)
+  if not UIManager:isTopLevelWidget(widget) then
+    return
+  end
+  self:_close(widget)
 end
 
 --- Shift the execution times of all scheduled tasks.
@@ -716,6 +722,11 @@ end
 
 --- Same as `isSubwidgetShown`, but only check window-level widgets (e.g., what's directly registered in the window stack), don't recurse.
 function UIManager:isTopLevelWidget(widget)
+  -- TODO: Should assert
+  if not _isWidget(widget) then
+    return false
+  end
+
   for i = #self._window_stack, 1, -1 do
     if self._window_stack[i].widget == widget then
       return true
@@ -1344,7 +1355,6 @@ _window_stack eventually before the next repaint or it will be ignored.
 function UIManager:scheduleWidgetRepaint(widget)
   -- TODO: Should assert.
   if not _isWidget(widget) then
-    logger.warn("FixMe: Attempted to repaint a nil widget. ", debug.traceback())
     return false
   end
 
