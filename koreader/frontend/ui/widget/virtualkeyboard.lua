@@ -756,45 +756,28 @@ function VirtualKeyPopup:init()
     offset_y = offset_y + parent_key.height + parent_key.keyboard.key_padding
   end
 
-  local position_container = WidgetContainer:new({
-    dimen = {
-      x = parent_key:getSize().x - offset_x,
-      y = parent_key:getSize().y - offset_y,
-      h = Screen:getSize().h,
-      w = Screen:getSize().w,
-    },
-    keyboard_frame,
-  })
-  if position_container:getSize().x < 0 then
-    position_container.dimen.x = 0
+  self[1] = keyboard_frame
+  self:mergeSize(Screen:getSize())
+  self.dimen.x = parent_key:getSize().x - offset_x
+  self.dimen.y = parent_key:getSize().y - offset_y
+  if self.dimen.x < 0 then
+    self.dimen.x = 0
     -- We effectively move the popup, which means the key underneath our finger may no longer *exactly* be parent_key.
     -- Make sure we won't close the popup right away, as that would risk being a *different* key, in order to make that less confusing.
     parent_key.ignore_key_release = true
-  elseif
-    position_container:getSize().x + keyboard_frame:getSize().w
-    > Screen:getWidth()
-  then
-    position_container.dimen.x = Screen:getWidth() - keyboard_frame:getSize().w
+  elseif self.dimen.x + keyboard_frame:getSize().w > Screen:getWidth() then
+    self.dimen.x = Screen:getWidth() - keyboard_frame:getSize().w
     parent_key.ignore_key_release = true
   end
-  if position_container:getSize().y < 0 then
-    position_container.dimen.y = 0
+  if self.dimen.y < 0 then
+    self.dimen.y = 0
     parent_key.ignore_key_release = true
-  elseif
-    position_container:getSize().y + keyboard_frame:getSize().h
-    > Screen:getHeight()
-  then
-    position_container.dimen.y = Screen:getHeight() - keyboard_frame:getSize().h
+  elseif self.dimen.y + keyboard_frame:getSize().h > Screen:getHeight() then
+    self.dimen.y = Screen:getHeight() - keyboard_frame:getSize().h
     parent_key.ignore_key_release = true
   end
-
-  self[1] = position_container
 
   UIManager:show(self)
-  -- Ensure the post-paint refresh will be able to grab updated coordinates from keyboard_frame by using a refresh function
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
 end
 
 local VirtualKeyboard = FocusManager:extend({
