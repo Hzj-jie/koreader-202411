@@ -1,4 +1,3 @@
-local UI = require("ui/trapper")
 local http = require("socket.http")
 local json = require("json")
 local logger = require("logger")

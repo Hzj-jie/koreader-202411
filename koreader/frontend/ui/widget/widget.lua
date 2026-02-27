@@ -11,6 +11,8 @@ rather than class variables.
 ]]
 
 local EventListener = require("ui/widget/eventlistener")
+local Geom = require("ui/geometry")
+local GestureRange = require("ui/gesturerange")
 
 --- Widget base class
 -- @table Widget
@@ -57,10 +59,50 @@ FIXME: Enable this doc section once we've verified all self.dimen are Geom objec
 
 Return size of the widget.
 
+Most of the implementations shouldn't override this function, but setting the
+self.dimen instead.
+
 @treturn ui.geometry.Geom
 --]]
 function Widget:getSize()
+  self:mayMergeWidthAndHeight()
+  assert(self.dimen ~= nil)
   return self.dimen
+end
+
+-- TODO: This function is for WidgetContainer and should be removed after being
+-- migrated. Investigate the use of this function, e.g. if Widget:getSize() ever
+-- reachs the if condition.
+function Widget:mayMergeWidthAndHeight()
+  if self.width ~= nil or self.height ~= nil then
+    self:mergeSize(self.width or 0, self.height or 0)
+  end
+end
+
+function Widget:mergeSize(w, h)
+  if type(w) == "table" then
+    assert(h == nil)
+    h = w.h
+    w = w.w
+  end
+  assert(w ~= nil)
+  assert(h ~= nil)
+  if self.dimen ~= nil then
+    self.dimen.w = w
+    self.dimen.h = h
+  else
+    self.dimen = Geom:new({ w = w, h = h })
+  end
+end
+
+function Widget:mergePosition(x, y)
+  if self.dimen ~= nil then
+    -- Keep the same reference.
+    self.dimen.x = x
+    self.dimen.y = y
+  else
+    self.dimen = Geom:new({ x = x, y = y })
+  end
 end
 
 --[[--
@@ -72,5 +114,118 @@ If it's the screen BlitBuffer, then widget will show up on screen refresh.
 @int y y offset within the BlitBuffer
 ]]
 function Widget:paintTo(bb, x, y) end
+
+function Widget:refreshMode()
+  return self._refresh_mode or "ui"
+end
+
+-- Similar to the :getSize(), most of the implementations should set
+-- self.dirty_dimen instead of overriding.
+function Widget:dirtyRegion()
+  return self.dirty_dimen or self:getSize()
+end
+
+function Widget:scheduleRepaint() -- final
+  if self:_isInWindowStack() then
+    -- Otherwise the widget hasn't been shown yet and will be paintTo later.
+    require("ui/uimanager"):scheduleWidgetRepaint(self)
+  end
+end
+
+function Widget:scheduleRefresh() -- final
+  if self:_isInWindowStack() then
+    -- Otherwise the widget hasn't been shown yet and will be paintTo later.
+    require("ui/uimanager"):scheduleRefresh(
+      self:refreshMode(),
+      self:dirtyRegion()
+    )
+  end
+end
+
+-- Use with caution, UIManager:setDirty is a deprecated function.
+function Widget:setDirty(...) -- final
+  if self:_isInWindowStack() then
+    require("ui/uimanager"):setDirty(self, ...)
+  end
+end
+
+-- This function doesn't really mean the Widget has been painted, but it may be
+-- in the queue of being painted immediately. UIManager uses it as a very quick
+-- test to ensure it won't schedule a repaint on anything which isn't in the
+-- window stack yet, i.e. will be painted in random places and / or cover other
+-- elements.
+function Widget:_isInWindowStack() -- final
+  return self:window() ~= nil
+end
+
+-- Get the show(widget) of current widget, using this function should be careful
+-- due to it's slowness.
+function Widget:showParent() -- final
+  local window = self:window()
+  return window ~= nil and window.widget or nil
+end
+
+-- Returns the z-index in the window, not the entire ui stack.
+function Widget:window_z_index() -- final
+  -- Ensure the self._window_z_index is calculated.
+  if self:window() == nil then
+    -- But it's still possible to return a nil if 1) window is closed, 2) widget
+    -- hasn't been shown yet.
+    self._window_z_index = nil
+  end
+  return self._window_z_index
+end
+
+function Widget:_window() -- final
+  local UIManager = require("ui/uimanager")
+  -- A fast loop to avoid dfs.
+  for w in UIManager:topdown_windows_iter() do
+    if w.widget == self then
+      self._window_z_index = 1
+      return w
+    end
+  end
+
+  for w in UIManager:topdown_windows_iter() do
+    local r, d = require("util").arrayDfSearch(w.widget, self)
+    if r then
+      self._window_z_index = d
+      return w
+    end
+  end
+
+  -- This is unfortunate, it would trigger the recalculation each time.
+  return nil
+end
+
+-- Get the window of current widget, use this function should be careful due
+-- to it's slowness.
+function Widget:window() -- final
+  if self._window_ref == nil then
+    self._window_ref = self:_window()
+  elseif require("ui/uimanager"):findWindow(self._window_ref) == false then
+    -- The window has been closed, it may trigger another self:_window() call,
+    -- but components shouldn't use a closed window anymore.
+    self._window_ref = nil
+  elseif G_defaults:isTrue("DEV_MODE") then
+    if self._window_ref ~= self:_window() then
+      -- Unfortunately, nothing else can be used to identify the widget.
+      require("logger").warn(
+        "FixMe: self._window_ref ~= self:_window(), "
+          .. (self.name or self.id or tostring(self))
+      )
+    end
+  end
+  return self._window_ref
+end
+
+function Widget:myRange(ges)
+  return GestureRange:new({
+    ges = ges,
+    range = function()
+      return self:getSize()
+    end,
+  })
+end
 
 return Widget

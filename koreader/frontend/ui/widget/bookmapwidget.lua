@@ -280,7 +280,7 @@ function BookMapRow:init()
               w = width - 2 * self.toc_span_border,
               h = tspan_height,
             }),
-            text_widget or VerticalSpan:new({ width = 0 }),
+            text_widget or VerticalSpan:new({ height = 0 }),
           }),
         })
         table.insert(self.pages_frame, span_w)
@@ -319,7 +319,7 @@ function BookMapRow:init()
       + math.ceil(widget.line_glyph_extra_height * 2 / 3)
     if shift_y > 0 then
       widget = VerticalGroup:new({
-        VerticalSpan:new({ width = shift_y }),
+        VerticalSpan:new({ height = shift_y }),
         widget,
       })
     end
@@ -370,7 +370,7 @@ function BookMapRow:init()
 
   self[1] = LeftContainer:new({ -- needed only for auto UI mirroring
     dimen = Geom:new({
-      w = self.dimen.w,
+      w = self:getSize().w,
       h = self.hgroup:getSize().h,
     }),
     self.hgroup,
@@ -716,7 +716,6 @@ function BookMapWidget:init()
     w = Screen:getWidth(),
     h = Screen:getHeight(),
   })
-  self.covers_fullscreen = true -- hint for UIManager:_repaint()
 
   if Device:hasKeys() then
     self.key_events.Exit = { { Device.input.group.Back } }
@@ -787,7 +786,7 @@ function BookMapWidget:init()
   -- blank space at bottom below page slots (where we may put hanging markers
   -- for current page and bookmark/highlights)
   self.scrollbar_width = ScrollableContainer:getScrollbarWidth()
-  self.row_width = self.dimen.w - self.scrollbar_width
+  self.row_width = self:getSize().w - self.scrollbar_width
   self.row_left_spacing = self.scrollbar_width
   self.swipe_hint_bar_width = Screen:scaleBySize(6)
 
@@ -809,10 +808,9 @@ function BookMapWidget:init()
     close_hold_callback = function()
       self:onExit(true)
     end,
-    show_parent = self,
   })
   self.title_bar_h = self.title_bar:getHeight()
-  self.crop_height = self.dimen.h
+  self.crop_height = self:getSize().h
     - self.title_bar_h
     - Size.margin.small
     - self.swipe_hint_bar_width
@@ -860,17 +858,16 @@ function BookMapWidget:init()
   -- when flashing for UI feedback that we want to limit to the cropped area).
   self.cropping_widget = ScrollableContainer:new({
     dimen = Geom:new({
-      w = self.dimen.w,
+      w = self:getSize().w,
       h = self.crop_height,
     }),
-    show_parent = self,
     ignore_events = { "swipe" },
     self.vgroup,
   })
 
   self[1] = FrameContainer:new({
-    width = self.dimen.w,
-    height = self.dimen.h,
+    width = self:getSize().w,
+    height = self:getSize().h,
     padding = 0,
     margin = 0,
     bordersize = 0,
@@ -1267,7 +1264,6 @@ function BookMapWidget:update()
     local row = BookMapRow:new({
       height = self.row_height,
       width = self.row_width,
-      show_parent = self,
       left_spacing = cur_left_spacing,
       nb_toc_spans = self.nb_toc_spans,
       span_height = self.span_height,
@@ -1302,8 +1298,8 @@ function BookMapWidget:update()
   self.vgroup:getSize()
 
   -- Scroll so we get the focus page at the middle of screen
-  local row, row_idx, row_y, row_h = self:getMatchingVGroupRow(
-    function(r, r_y, r_h) -- luacheck: no unused
+  local row, row_idx, row_y, row_h = self:getMatchingVGroupRow( -- luacheck: ignore 311 231
+    function(r, __, __)
       return r.start_page
         and self.focus_page >= r.start_page
         and self.focus_page <= r.end_page
@@ -1312,9 +1308,11 @@ function BookMapWidget:update()
   if row_y then
     local top_y = row_y + row_h / 2 - self.crop_height / 2
     -- Align it so that we don't see any truncated BookMapRow at top
-    row, row_idx, row_y, row_h = self:getMatchingVGroupRow(function(r, r_y, r_h)
-      return r_y < top_y and r_y + r_h > top_y
-    end)
+    row, row_idx, row_y, row_h = self:getMatchingVGroupRow(
+      function(__, r_y, r_h)
+        return r_y < top_y and r_y + r_h > top_y
+      end
+    )
     if row then
       if top_y - row_y > row_y + row_h - top_y then
         -- Less adjustment if we scroll to align the next row
@@ -1678,7 +1676,7 @@ end
 function BookMapWidget:onScrollPageUp()
   -- Show previous content, ensuring any truncated widget at top is now full at bottom
   local scroll_offset_y = self.cropping_widget._scroll_offset_y
-  local row, row_idx, row_y, row_h = self:getVGroupRowAtY(-1) -- luacheck: no unused
+  local row, __, row_y, row_h = self:getVGroupRowAtY(-1)
   local to_keep = 0
   if row then
     to_keep = row_h - (scroll_offset_y - row_y)
@@ -1690,7 +1688,7 @@ end
 function BookMapWidget:onScrollPageDown()
   -- Show next content, ensuring any truncated widget at bottom is now full at top
   local scroll_offset_y = self.cropping_widget._scroll_offset_y
-  local row, row_idx, row_y, row_h = self:getVGroupRowAtY(self.crop_height) -- luacheck: no unused
+  local row, __, row_y = self:getVGroupRowAtY(self.crop_height)
   if row then
     self.cropping_widget:_scrollBy(0, row_y - scroll_offset_y)
   else
@@ -1701,7 +1699,7 @@ end
 
 function BookMapWidget:onScrollRowUp()
   local scroll_offset_y = self.cropping_widget._scroll_offset_y
-  local row, row_idx, row_y, row_h = self:getVGroupRowAtY(-1) -- luacheck: no unused
+  local row, __, row_y = self:getVGroupRowAtY(-1)
   if row then
     self.cropping_widget:_scrollBy(0, row_y - scroll_offset_y)
   end
@@ -1710,7 +1708,7 @@ end
 
 function BookMapWidget:onScrollRowDown()
   local scroll_offset_y = self.cropping_widget._scroll_offset_y
-  local row, row_idx, row_y, row_h = self:getVGroupRowAtY(0) -- luacheck: no unused
+  local row, __, row_y, row_h = self:getVGroupRowAtY(0)
   if row then
     self.cropping_widget:_scrollBy(0, row_y + row_h - scroll_offset_y)
   end
@@ -1896,7 +1894,7 @@ function BookMapWidget:onSwipe(arg, ges)
     return true
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
     return false
@@ -2001,7 +1999,7 @@ function BookMapWidget:onTap(arg, ges)
     return true
   end
   local x, y = ges.pos.x, ges.pos.y
-  local row, row_idx, row_y, row_h = self:getVGroupRowAtY(y - self.title_bar_h) -- luacheck: no unused
+  local row = self:getVGroupRowAtY(y - self.title_bar_h)
   if not row then
     return true
   end

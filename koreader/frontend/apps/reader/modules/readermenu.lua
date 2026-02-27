@@ -8,7 +8,6 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local Screensaver = require("ui/screensaver")
 local UIManager = require("ui/uimanager")
 local dbg = require("dbg")
-local logger = require("logger")
 local util = require("util")
 local Screen = Device.screen
 local gettext = require("gettext")
@@ -335,7 +334,7 @@ function ReaderMenu:setUpdateItemTable()
       then
         return gettext("Open previous document")
       end
-      local path, file_name = util.splitFilePathName(previous_file) -- luacheck: no unused
+      local __, file_name = util.splitFilePathName(previous_file)
       return T(gettext("Previous: %1"), BD.filename(file_name))
     end,
     enabled_func = function()
@@ -404,7 +403,6 @@ function ReaderMenu:onShowMenu(tab_index)
   end
 
   local menu_container = CenterContainer:new({
-    covers_header = true,
     ignore = "height",
     dimen = Screen:getSize(),
   })
@@ -416,7 +414,6 @@ function ReaderMenu:onShowMenu(tab_index)
       width = Screen:getWidth(),
       last_index = tab_index,
       tab_item_table = self.tab_item_table,
-      show_parent = menu_container,
     })
   else
     local Menu = require("ui/widget/menu")
@@ -424,7 +421,6 @@ function ReaderMenu:onShowMenu(tab_index)
       title = gettext("Document menu"),
       item_table = Menu.itemTableFromTouchMenu(self.tab_item_table),
       width = Screen:getWidth() - 100,
-      show_parent = menu_container,
     })
   end
 

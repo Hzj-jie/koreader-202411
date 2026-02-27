@@ -7,8 +7,6 @@ local Geom = require("ui/geometry")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
 local Size = require("ui/size")
-local UIManager = require("ui/uimanager")
-local gettext = require("gettext")
 local Screen = Device.screen
 
 local ButtonProgressWidget = FocusManager:extend({
@@ -38,7 +36,7 @@ function ButtonProgressWidget:init()
     dim = not self.enabled,
   })
 
-  self.buttonprogress_content = HorizontalGroup:new({})
+  self.buttonprogress_content = HorizontalGroup:new()
   self.horizontal_span_width = 0
   if self.fine_tune or self.more_options then
     self.horizontal_span = HorizontalSpan:new({
@@ -253,9 +251,7 @@ function ButtonProgressWidget:update()
   end
 
   self:refocusWidget()
-  UIManager:setDirty(self.show_parent, function()
-    return "ui", self.dimen
-  end)
+  self:scheduleRepaint()
 end
 
 function ButtonProgressWidget:setPosition(position, default_position)

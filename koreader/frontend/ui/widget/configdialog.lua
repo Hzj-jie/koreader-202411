@@ -18,7 +18,6 @@ local IconButton = require("ui/widget/iconbutton")
 local IconWidget = require("ui/widget/iconwidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local LineWidget = require("ui/widget/linewidget")
-local Notification = require("ui/widget/notification")
 local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
@@ -28,7 +27,6 @@ local UnderlineContainer = require("ui/widget/container/underlinecontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local gettext = require("gettext")
-local logger = require("logger")
 local serpent = require("ffi/serpent")
 local util = require("util")
 local Screen = Device.screen
@@ -53,7 +51,7 @@ function OptionTextItem:init()
     bordersize = 0,
     self.underline_container,
   })
-  self.dimen = self[1]:getSize()
+  self:mergeSize(self[1]:getSize())
   -- we need this table per-instance, so we declare it here
   self.ges_events = {
     TapSelect = {
@@ -131,7 +129,7 @@ function OptionIconItem:init()
     bordersize = 0,
     self.underline_container,
   })
-  self.dimen = self[1]:getSize()
+  self:mergeSize(self[1]:getSize())
   -- we need this table per-instance, so we declare it here
   self.ges_events = {
     TapSelect = {
@@ -270,11 +268,11 @@ function ConfigOption:init()
   local default_item_align_center = 1 - default_name_align_right
 
   -- fill vertical group of config tab
-  local vertical_group = VerticalGroup:new({})
+  local vertical_group = VerticalGroup:new()
   table.insert(
     vertical_group,
     VerticalSpan:new({
-      width = default_option_vpadding,
+      height = default_option_vpadding,
     })
   )
 
@@ -330,7 +328,7 @@ function ConfigOption:init()
           self.config.document
         )
       end
-      local horizontal_group = HorizontalGroup:new({})
+      local horizontal_group = HorizontalGroup:new()
 
       -- Deal with the name on the left
       local name_text = self.options[c].name_text_func
@@ -390,7 +388,7 @@ function ConfigOption:init()
           h = option_height,
         }),
       })
-      local option_items_group = HorizontalGroup:new({})
+      local option_items_group = HorizontalGroup:new()
       local option_items_fixed = false
       local option_items = {}
       if type(self.options[c].item_font_size) == "table" then
@@ -795,7 +793,6 @@ function ConfigOption:init()
               )
             end
           end,
-          show_parent = self.config,
           enabled = enabled,
           fine_tune = self.options[c].fine_tune,
           fine_tune_param = self.options[c].fine_tune_param,
@@ -821,10 +818,10 @@ function ConfigOption:init()
 
   table.insert(
     vertical_group,
-    VerticalSpan:new({ width = default_option_vpadding })
+    VerticalSpan:new({ height = default_option_vpadding })
   )
   self[1] = vertical_group
-  self.dimen = vertical_group:getSize()
+  self:mergeSize(self[1]:getSize())
 end
 
 function ConfigOption:_itemGroupToLayoutLine(option_items_group)
@@ -869,7 +866,7 @@ function ConfigPanel:init()
     config = self.config_dialog,
     document = self.document,
   })
-  self.dimen = panel:getSize()
+  self:mergeSize(panel:getSize())
   table.insert(self, panel)
 end
 
@@ -891,7 +888,6 @@ function MenuBar:init()
     self.menu_items = {}
     for c = 1, #config_options do
       local menu_icon = IconButton:new({
-        show_parent = self.config_dialog,
         icon = config_options[c].icon,
         width = icon_width,
         height = icon_height,
@@ -949,8 +945,8 @@ function MenuBar:init()
       h = line_thickness,
     }),
   })
-  local menu_bar = HorizontalGroup:new({})
-  local line_bar = HorizontalGroup:new({})
+  local menu_bar = HorizontalGroup:new()
+  local line_bar = HorizontalGroup:new()
 
   for c = 1, #self.menu_items do
     table.insert(menu_bar, spacing)
@@ -991,7 +987,7 @@ function MenuBar:init()
   table.insert(menu_bar, spacing)
   table.insert(line_bar, spacing_line)
 
-  self.dimen = Geom:new({ x = 0, y = 0, w = Screen:getWidth(), h = bar_height })
+  self:mergeSize(Screen:getWidth(), bar_height)
   local vertical_menu = VerticalGroup:new({
     line_bar,
     menu_bar,
@@ -1303,9 +1299,10 @@ function ConfigDialog:onConfigMoreChoose(
   default_value_orig,
   name,
   event,
-  args,
+  args, -- luacheck: ignore 212
   name_text,
-  more_options_param
+  more_options_param,
+  hide_on_apply
 )
   if not more_options_param then
     more_options_param = {}
@@ -1331,6 +1328,17 @@ function ConfigDialog:onConfigMoreChoose(
           self:update()
         end
       end
+    end
+    local when_applied_callback = nil
+    if type(hide_on_apply) == "number" then -- timeout
+      UIManager:scheduleIn(hide_on_apply, refresh_dialog_func)
+      self.skip_paint = true
+    elseif hide_on_apply then -- anything but nil or false: provide a callback
+      -- This needs the config option to have an "event" key
+      -- The event handler is responsible for calling this callback when
+      -- it considers it appropriate
+      when_applied_callback = refresh_dialog_func
+      self.skip_paint = true
     end
     if values and event then
       if more_options_param.name then

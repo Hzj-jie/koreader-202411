@@ -223,7 +223,6 @@ function CalculatorSettingsDialog:init()
     button_font_size = 20,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
 
   self.dialog_frame = FrameContainer:new({
@@ -247,7 +246,7 @@ function CalculatorSettingsDialog:init()
             text = gettext("Angle ∡"),
             face = self.text_face,
           }),
-          VerticalSpan:new({ width = Size.span.vertical_large * 2 }),
+          VerticalSpan:new({ height = Size.span.vertical_large * 2 }),
           CenterContainer:new({
             dimen = Geom:new({
               w = self.title_bar:getSize().w * 0.4,
@@ -255,7 +254,7 @@ function CalculatorSettingsDialog:init()
             }),
             self.radio_button_table_angle,
           }),
-          VerticalSpan:new({ width = Size.span.vertical_large * 4 }),
+          VerticalSpan:new({ height = Size.span.vertical_large * 4 }),
           TextWidget:new({
             text = gettext("Number format"),
             face = self.text_face,
@@ -267,7 +266,7 @@ function CalculatorSettingsDialog:init()
             }),
             self.radio_button_table_format,
           }),
-          VerticalSpan:new({ width = Size.span.vertical_large * 4 }),
+          VerticalSpan:new({ height = Size.span.vertical_large * 4 }),
           TextWidget:new({
             text = gettext("Autoload\ninit.calc"),
             face = self.text_face,
@@ -299,7 +298,7 @@ function CalculatorSettingsDialog:init()
         }),
       }),
 
-      VerticalSpan:new({ width = Size.span.vertical_large * 2 }),
+      VerticalSpan:new({ height = Size.span.vertical_large * 2 }),
       -- buttons
       CenterContainer:new({
         dimen = Geom:new({
@@ -349,7 +348,7 @@ function CalculatorSettingsDialog:choosePathFile(
   new_file,
   migrate
 )
-  local old_path, _ = util.splitFilePathName(self[key])
+  local old_path = util.splitFilePathName(self[key])
   UIManager:show(PathChooser:new({
     select_directory = folder_only or new_file,
     select_file = not folder_only,
@@ -401,7 +400,6 @@ function CalculatorSettingsDialog:choosePathFile(
           },
         })
         UIManager:show(file_input)
-        file_input:showKeyboard()
       elseif mode == "file" then -- just select an existing file
         if migrate then
           migrate(self, self[key], dir_path)

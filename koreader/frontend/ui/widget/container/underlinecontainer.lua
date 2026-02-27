@@ -4,7 +4,6 @@ a line under its child node.
 --]]
 
 local Blitbuffer = require("ffi/blitbuffer")
-local Geom = require("ui/geometry")
 local Size = require("ui/size")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 
@@ -18,25 +17,16 @@ local UnderlineContainer = WidgetContainer:extend({
 
 function UnderlineContainer:getSize()
   local contentSize = self[1]:getSize()
-  return Geom:new({
-    w = contentSize.w,
-    h = contentSize.h + self.linesize + 2 * self.padding,
-  })
+  self:mergeSize(
+    contentSize.w,
+    contentSize.h + self.linesize + 2 * self.padding
+  )
+  return self.dimen
 end
 
 function UnderlineContainer:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   local container_size = self:getSize()
-  if not self.dimen then
-    self.dimen = Geom:new({
-      x = x,
-      y = y,
-      w = container_size.w,
-      h = container_size.h,
-    })
-  else
-    self.dimen.x = x
-    self.dimen.y = y
-  end
   local content_size = self[1]:getSize()
   local p_y = y
   if self.vertical_align == "center" then

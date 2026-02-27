@@ -141,12 +141,15 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
   self:updatePageInfo(select_number)
   Menu.mergeTitleBarIntoLayout(self)
 
-  self.show_parent.dithered = self._has_cover_images
-  UIManager:setDirty(self.show_parent, function()
-    local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)
-      or self.dimen
-    return "ui", refresh_dimen, self.show_parent.dithered
-  end)
+  local show_parent = self:showParent()
+  if show_parent ~= nil then
+    show_parent.dithered = self._has_cover_images
+    UIManager:setDirty(show_parent, function()
+      local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)
+        or self.dimen
+      return "ui", refresh_dimen, show_parent.dithered
+    end)
+  end
 
   -- As additionally done in FileChooser:updateItems()
   if self.path_items then
@@ -191,17 +194,18 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
         item:update()
         if item.bookinfo_found then
           logger.dbg("  found", item.text)
-          self.show_parent.dithered = item._has_cover_image
-          local refreshfunc = function()
+          show_parent = self:showParent()
+          assert(show_parent ~= nil)
+          show_parent.dithered = item._has_cover_image
+          UIManager:setDirty(show_parent, function()
             if item.refresh_dimen then
               -- MosaicMenuItem may exceed its own dimen in its paintTo
               -- with its "description" hint
-              return "ui", item.refresh_dimen, self.show_parent.dithered
+              return "ui", item.refresh_dimen, show_parent.dithered
             else
-              return "ui", item[1].dimen, self.show_parent.dithered
+              return "ui", item[1].dimen, show_parent.dithered
             end
-          end
-          UIManager:setDirty(self.show_parent, refreshfunc)
+          end)
           table.remove(self.items_to_update, i)
         else
           logger.dbg("  not yet found", item.text)
@@ -255,7 +259,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
       -- Replace it with ours
       -- This causes luacheck warning: "shadowing upvalue argument 'self' on line 34".
       -- Ignoring it (as done in filemanager.lua for the same showFileDialog)
-      self.showFileDialog = function(self, item) -- luacheck: ignore
+      self.showFileDialog = function(self, item)
         local file = item.path
         -- Call original function: it will create a ButtonDialog
         -- and store it as self.file_dialog, and UIManager:show() it.

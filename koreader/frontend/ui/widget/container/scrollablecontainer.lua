@@ -147,29 +147,33 @@ end
 
 function ScrollableContainer:initState()
   local content_size = self[1]:getSize()
-  self._max_scroll_offset_x = math.max(0, content_size.w - self.dimen.w)
-  self._max_scroll_offset_y = math.max(0, content_size.h - self.dimen.h)
+  self._max_scroll_offset_x = math.max(0, content_size.w - self:getSize().w)
+  self._max_scroll_offset_y = math.max(0, content_size.h - self:getSize().h)
   if self._max_scroll_offset_x == 0 and self._max_scroll_offset_y == 0 then
     -- Inner widget fits entirely: no need for anything scrollable
     self._is_scrollable = false
   else
     self._is_scrollable = true
-    self._crop_w = self.dimen.w
-    self._crop_h = self.dimen.h
+    self._crop_w = self:getSize().w
+    self._crop_h = self:getSize().h
     if self._max_scroll_offset_y > 0 then
       -- Adding a vertical scrollbar reduces the available width: recompute
-      self._max_scroll_offset_x =
-        math.max(0, content_size.w - (self.dimen.w - 3 * self.scroll_bar_width))
+      self._max_scroll_offset_x = math.max(
+        0,
+        content_size.w - (self:getSize().w - 3 * self.scroll_bar_width)
+      )
     end
     if self._max_scroll_offset_x > 0 then
       -- Adding a horizontal scrollbar reduces the available height: recompute
-      self._max_scroll_offset_y =
-        math.max(0, content_size.h - (self.dimen.h - 3 * self.scroll_bar_width))
+      self._max_scroll_offset_y = math.max(
+        0,
+        content_size.h - (self:getSize().h - 3 * self.scroll_bar_width)
+      )
       if self._max_scroll_offset_y > 0 then
         -- And re-compute again if we have to now add a vertical scrollbar
         self._max_scroll_offset_x = math.max(
           0,
-          content_size.w - (self.dimen.w - 3 * self.scroll_bar_width)
+          content_size.w - (self:getSize().w - 3 * self.scroll_bar_width)
         )
       end
     end
@@ -177,12 +181,12 @@ function ScrollableContainer:initState()
     if self._max_scroll_offset_y > 0 then
       self._v_scroll_bar = VerticalScrollBar:new({
         width = self.scroll_bar_width,
-        height = self.dimen.h,
+        height = self:getSize().h,
         scroll_callback = function(ratio)
           self:scrollToRatio(nil, ratio)
         end,
       })
-      self._crop_w = self.dimen.w - 3 * self.scroll_bar_width
+      self._crop_w = self:getSize().w - 3 * self.scroll_bar_width
     end
     if self._max_scroll_offset_x > 0 then
       self._h_scroll_bar_shift = 0
@@ -192,16 +196,16 @@ function ScrollableContainer:initState()
       end
       self._h_scroll_bar = HorizontalScrollBar:new({
         height = self.scroll_bar_width,
-        width = self.dimen.w - self._h_scroll_bar_shift,
+        width = self:getSize().w - self._h_scroll_bar_shift,
         scroll_callback = function(ratio)
           self:scrollToRatio(ratio, nil)
         end,
       })
-      self._crop_h = self.dimen.h - 3 * self.scroll_bar_width
+      self._crop_h = self:getSize().h - 3 * self.scroll_bar_width
     end
     if BD.mirroredUILayout() then
       if self._v_scroll_bar then
-        self._crop_dx = self.dimen.w - self._crop_w
+        self._crop_dx = self:getSize().w - self._crop_w
       end
     end
     if self.step_scroll_grid_func then
@@ -218,8 +222,8 @@ end
 
 function ScrollableContainer:getCropRegion()
   return Geom:new({
-    x = self.dimen.x + self._crop_dx,
-    y = self.dimen.y,
+    x = self:getSize().x + self._crop_dx,
+    y = self:getSize().y,
     w = self._crop_w,
     h = self._crop_h,
   })
@@ -322,12 +326,12 @@ function ScrollableContainer:_scrollBy(dx, dy, ensure_scroll_steps)
       new_y = self._max_scroll_offset_y
     else
       allow_overflow_y = true -- this might be an option ?
-      local top_row, top_row_fully_visible, top_row_content_visible = -- luacheck: no unused
+      local top_row, __, top_row_content_visible =
         self:_getStepScrollRowAtY(orig_y, true)
-      local bottom_row, bottom_row_fully_visible, bottom_row_content_visible = -- luacheck: no unused
+      local bottom_row, __, bottom_row_content_visible =
         self:_getStepScrollRowAtY(orig_y + self._crop_h - 1, false)
       local new_view_bottom_y = new_y + self._crop_h - 1
-      local new_top_row, new_top_row_fully_visible, new_top_row_content_visible = -- luacheck: no unused
+      local new_top_row, new_top_row_fully_visible =
         self:_getStepScrollRowAtY(new_y, true)
       if dy >= 0 then -- Scrolling down
         if
@@ -352,7 +356,7 @@ function ScrollableContainer:_scrollBy(dx, dy, ensure_scroll_steps)
           -- If we'd go past the not fully visible original top button, be sure we'll
           -- have its content fully at bottom
           new_y = (top_row.content_bottom or top_row.bottom) - self._crop_h + 1
-          new_top_row, new_top_row_fully_visible, new_top_row_content_visible = -- luacheck: no unused
+          new_top_row, new_top_row_fully_visible =
             self:_getStepScrollRowAtY(new_y, true)
         end
         if not new_top_row and new_y < 0 then
@@ -363,14 +367,13 @@ function ScrollableContainer:_scrollBy(dx, dy, ensure_scroll_steps)
           -- row duplicated at the new bottom.)
           local first_row = self:_getStepScrollRowAtY(0)
           if -new_y < first_row.bottom then
-            new_top_row, new_top_row_fully_visible, new_top_row_content_visible = -- luacheck: no unused
+            new_top_row, new_top_row_fully_visible =
               self:_getStepScrollRowAtY(0, true)
           end
         end
         -- If the new top row is not fully visible, use the next row
         if new_top_row and not new_top_row_fully_visible then
-          new_top_row, new_top_row_fully_visible, new_top_row_content_visible = -- luacheck: no unused
-            self:_getStepScrollRowAtY(new_top_row.bottom + 1, true)
+          new_top_row = self:_getStepScrollRowAtY(new_top_row.bottom + 1, true)
         end
         -- Ensure the new top row is anchored as its top
         if new_top_row then
@@ -409,7 +412,7 @@ function ScrollableContainer:_scrollBy(dx, dy, ensure_scroll_steps)
   end
   self:_hideTruncatedGridItemsIfRequested()
   self:_updateScrollBars()
-  UIManager:setDirty(self.show_parent, function()
+  UIManager:setDirty(self, function()
     return "ui", self.dimen
   end)
 end
@@ -450,8 +453,7 @@ function ScrollableContainer:paintTo(bb, x, y)
   if self[1] == nil then
     return
   end
-  self.dimen.x = x
-  self.dimen.y = y
+  self:mergePosition(x, y)
 
   if self._is_scrollable == nil then -- not checked yet
     self:initState()
@@ -462,7 +464,7 @@ function ScrollableContainer:paintTo(bb, x, y)
   if not self._is_scrollable then
     -- nothing to scroll: pass-through
     if _mirroredUI then -- behave as LeftContainer
-      x = x + (self.dimen.w - self[1]:getSize().w)
+      x = x + (self:getSize().w - self[1]:getSize().w)
     end
     self[1]:paintTo(bb, x, y)
     return
@@ -508,13 +510,13 @@ function ScrollableContainer:paintTo(bb, x, y)
       self._h_scroll_bar:paintTo(
         bb,
         x + self._h_scroll_bar_shift,
-        y + self.dimen.h - 2 * self.scroll_bar_width
+        y + self:getSize().h - 2 * self.scroll_bar_width
       )
     else
       self._h_scroll_bar:paintTo(
         bb,
         x,
-        y + self.dimen.h - 2 * self.scroll_bar_width
+        y + self:getSize().h - 2 * self.scroll_bar_width
       )
     end
   end
@@ -524,7 +526,7 @@ function ScrollableContainer:paintTo(bb, x, y)
     else
       self._v_scroll_bar:paintTo(
         bb,
-        x + self.dimen.w - 2 * self.scroll_bar_width,
+        x + self:getSize().w - 2 * self.scroll_bar_width,
         y
       )
     end
@@ -718,9 +720,9 @@ end
 
 function ScrollableContainer:_notifyParentOfPageScroll()
   -- For ButtonDialog's focus shenanigans, as we ourselves are not a FocusManager
-  if self.show_parent and self.show_parent._onPageScrollToRow then
+  if self:showParent() and self:showParent()._onPageScrollToRow then
     local top_row = self:_getStepScrollRowAtY(self._scroll_offset_y, true)
-    self.show_parent:_onPageScrollToRow(top_row and top_row.row_num or 1)
+    self:showParent():_onPageScrollToRow(top_row and top_row.row_num or 1)
   end
 end
 

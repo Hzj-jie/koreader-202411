@@ -168,7 +168,7 @@ function slt2.loadfile(filename, start_tag, end_tag)
   return slt2.loadstring(all, start_tag, end_tag, filename)
 end
 
-local mt52 = { __index = _ENV }
+local mt52 = { __index = _ENV } -- luacheck: ignore 113
 local mt51 = { __index = _G }
 
 -- @return a coroutine function
@@ -178,7 +178,7 @@ function slt2.render_co(t, env)
     if env ~= nil then
       setmetatable(env, mt52)
     end
-    f = assert(load(t.code, t.name, "t", env or _ENV))
+    f = assert(load(t.code, t.name, "t", env or _ENV)) -- luacheck: ignore 113
   else -- lua 5.1
     if env ~= nil then
       setmetatable(env, mt51)

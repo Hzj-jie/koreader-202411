@@ -58,7 +58,7 @@ end
 
 function metat.__index:login(user, password)
   self.try(self.tp:command("user", user or _M.USER))
-  local code, _ = self.try(self.tp:check({ "2..", 331 }))
+  local code = self.try(self.tp:check({ "2..", 331 }))
   if code == 331 then
     self.try(self.tp:command("pass", password or _M.PASSWORD))
     self.try(self.tp:check("2.."))
@@ -146,7 +146,7 @@ function metat.__index:send(sendt)
   local command = sendt.command or "stor"
   -- send the transfer command and check the reply
   self.try(self.tp:command(command, argument))
-  local code, _ = self.try(self.tp:check({ "2..", "1.." }))
+  local code = self.try(self.tp:check({ "2..", "1.." }))
   -- if there is not a pasvt table, then there is a server
   -- and we already sent a PORT command
   if not self.pasvt then

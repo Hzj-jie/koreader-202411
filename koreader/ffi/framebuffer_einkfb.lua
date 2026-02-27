@@ -29,4 +29,14 @@ function framebuffer:refreshFullImp(x, y, w, h)
   einkfb_update(self, C.fx_update_full, x, y, w, h)
 end
 
+function framebuffer:reverseNightmode()
+  return true
+end
+
+function framebuffer:initInvert()
+  -- classic eink framebuffer driver has grayscale values inverted (i.e. 0xF = black, 0 = white)
+  -- technically a device quirk, but hopefuly generic enough to warrant being here
+  self.bb:invert()
+end
+
 return require("ffi/framebuffer_linux"):extend(framebuffer)

@@ -535,8 +535,7 @@ function httputil.parse_multipart_data(data, boundary)
               ctype = fvalue
               fvalue = fvalue:lower()
             elseif
-              fname == "charset"
-              or fname == "content-transfer-encoding"
+              fname == "charset" or fname == "content-transfer-encoding"
             then
               fvalue = fvalue:lower()
             end

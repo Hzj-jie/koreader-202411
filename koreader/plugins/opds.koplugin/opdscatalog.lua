@@ -17,7 +17,6 @@ local OPDSCatalog = WidgetContainer:extend({
 function OPDSCatalog:init()
   local opds_browser = OPDSBrowser:new({
     title = self.title,
-    show_parent = self,
     is_popout = false,
     is_borderless = true,
     close_callback = function()
@@ -70,7 +69,6 @@ function OPDSCatalog:showCatalog()
   logger.dbg("show OPDS catalog")
   UIManager:show(OPDSCatalog:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
   }))
 end
 

@@ -25,7 +25,6 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
@@ -246,7 +245,6 @@ function DictQuickLookup:init()
     end,
     -- visual hint: title left aligned for dict, centered for Wikipedia
     align = self.is_wiki and "center" or "left",
-    show_parent = self,
     lang = self.lang_out,
     left_icon = "appbar.menu",
     left_icon_tap_callback = function()
@@ -274,11 +272,11 @@ function DictQuickLookup:init()
   self.content_width = inner_width - 2 * content_padding_h
 
   -- Spans between components
-  local top_to_word_span = VerticalSpan:new({ width = content_padding_v })
+  local top_to_word_span = VerticalSpan:new({ height = content_padding_v })
   local word_to_definition_span =
-    VerticalSpan:new({ width = content_padding_v })
+    VerticalSpan:new({ height = content_padding_v })
   local definition_to_bottom_span =
-    VerticalSpan:new({ width = content_padding_v })
+    VerticalSpan:new({ height = content_padding_v })
 
   -- Lookup word
   local word_font_face = "tfont"
@@ -315,7 +313,6 @@ function DictQuickLookup:init()
       self:onLookupInputWord(self.lookupword)
     end,
     overlap_align = "right",
-    show_parent = self,
   })
   local lookup_edit_button_w = lookup_edit_button:getSize().w
   -- Nb of results (if set)
@@ -599,7 +596,6 @@ function DictQuickLookup:init()
     width = buttons_width,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
 
   -- Margin from screen edges
@@ -654,7 +650,7 @@ function DictQuickLookup:init()
     self.definition_height = nb_lines * self.definition_line_height
     local pad = self.height - others_height - self.definition_height
     -- put that unused height on the above span
-    word_to_definition_span.width = word_to_definition_span.width + pad
+    word_to_definition_span.height = word_to_definition_span.height + pad
   else
     -- Definition height was previously computed as 0.5*0.7*screen_height, so keep
     -- it that way. Components will add themselves to that.
@@ -789,6 +785,7 @@ function DictQuickLookup:init()
     dimen = self.region,
     self.movable,
   })
+  self.movable:setMovedOffset(self.region)
 
   -- NT: add dict_title.left_button and lookup_edit_button to FocusManager.
   -- It is better to add these two buttons into self.movable, but it is not a FocusManager.
@@ -1277,7 +1274,7 @@ function DictQuickLookup:onSwipe(arg, ges)
         self.refresh_callback()
       end
       -- trigger a full-screen HQ flashing refresh
-      UIManager:setDirty(nil, "full")
+      UIManager:scheduleRefresh("full")
       -- a long diagonal swipe may also be used for taking a screenshot,
       -- so let it propagate
       return false
@@ -1403,7 +1400,6 @@ function DictQuickLookup:onLookupInputWord(hint)
     },
   })
   UIManager:show(self.input_dialog)
-  self.input_dialog:showKeyboard()
 end
 
 function DictQuickLookup:lookupWikipedia(get_fullpage, word, is_sane, lang)

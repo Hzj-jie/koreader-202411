@@ -17,7 +17,6 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local gettext = require("gettext")
 local Screen = Device.screen
 
 local SkimToWidget = FocusManager:extend({})
@@ -102,7 +101,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToPage(self.curr_page - 1)
     end,
@@ -113,7 +111,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToPage(self.curr_page - 10)
     end,
@@ -124,7 +121,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToPage(self.curr_page + 1)
     end,
@@ -135,7 +131,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToPage(self.curr_page + 10)
     end,
@@ -153,7 +148,6 @@ function SkimToWidget:init()
     bordersize = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self.callback_switch_to_goto()
     end,
@@ -168,7 +162,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToOrigPage()
     end,
@@ -192,7 +185,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       local page = self.ui.toc:getNextChapter(self.curr_page)
       if page and page >= 1 and page <= self.page_count then
@@ -209,7 +201,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       local page = self.ui.toc:getPreviousChapter(self.curr_page)
       if page and page >= 1 and page <= self.page_count then
@@ -226,7 +217,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToByEvent("GotoNextBookmarkFromPage")
     end,
@@ -240,7 +230,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self:goToByEvent("GotoPreviousBookmarkFromPage")
     end,
@@ -257,7 +246,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       UIManager:broadcastEvent(Event:new("ToggleBookmark"))
       self:update()
@@ -274,7 +262,7 @@ function SkimToWidget:init()
     HorizontalSpan:new({ width = button_span_unit_width * larger_span_units })
   local top_row_span, bottom_row_span, top_buttons_row, bottom_buttons_row, radius
   if full_mode then
-    top_row_span = VerticalSpan:new({ width = Size.padding.fullscreen })
+    top_row_span = VerticalSpan:new({ height = Size.padding.fullscreen })
     bottom_row_span = top_row_span
     top_buttons_row = HorizontalGroup:new({
       align = "center",
@@ -302,7 +290,7 @@ function SkimToWidget:init()
     })
     radius = Size.radius.window
   else
-    top_row_span = VerticalSpan:new({ width = Size.padding.default })
+    top_row_span = VerticalSpan:new({ height = Size.padding.default })
     top_buttons_row = HorizontalGroup:new({
       align = "center",
       button_chapter_prev,
@@ -329,7 +317,7 @@ function SkimToWidget:init()
     })
     if skim_dialog_position == "top" then
       bottom_row_span, bottom_buttons_row = top_row_span, top_buttons_row
-      top_buttons_row = VerticalSpan:new({ width = 0 })
+      top_buttons_row = VerticalSpan:new({ height = 0 })
       top_row_span = top_buttons_row
     end
   end

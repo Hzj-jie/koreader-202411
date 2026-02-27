@@ -15,7 +15,6 @@ local PathChooser = FileChooser:extend({
   -- if let to true, a generic title will be set in init()
   no_title = false,
   is_popout = false,
-  covers_fullscreen = true, -- set it to false if you set is_popout = true
   is_borderless = true,
   select_directory = true, -- allow selecting directories
   select_file = true, -- allow selecting files

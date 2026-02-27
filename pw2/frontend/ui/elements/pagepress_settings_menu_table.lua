@@ -1,0 +1,1 @@
+../../../../koreader/frontend/ui/elements/pagepress_settings_menu_table.lua

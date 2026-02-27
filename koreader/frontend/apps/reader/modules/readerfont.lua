@@ -4,7 +4,6 @@ local Device = require("device")
 local Event = require("ui/event")
 local Font = require("ui/font")
 local FontList = require("fontlist")
-local InfoMessage = require("ui/widget/infomessage")
 local Input = Device.input
 local InputContainer = require("ui/widget/container/inputcontainer")
 local MultiConfirmBox = require("ui/widget/multiconfirmbox")
@@ -702,7 +701,7 @@ Enabling this will ignore such font names and make sure your preferred family fo
                 gettext("Font family font set for this book only.")
               )
               -- Be sure it is shown before the re-rendering (which may take some time)
-              UIManager:forceRePaint()
+              UIManager:forceRepaint()
             end
             self:updateFontFamilyFonts()
           end,

@@ -4,7 +4,6 @@
 local DataStorage = require("datastorage")
 local Device = require("device")
 local Event = require("ui/event")
-local InfoMessage = require("ui/widget/infomessage")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -333,19 +332,18 @@ local getFunctionInfo = function(func, full_code)
     local signature = util.trim(lines[1])
     info.signature = signature
     -- Try to guess (possibly wrongly) a few info from the signature string
-    local dummy, cnt
-    dummy, cnt = signature:gsub("%(%)", "") -- check for "()", no arg
+    local __, cnt = signature:gsub("%(%)", "") -- check for "()", no arg
     if cnt > 0 then
       info.nb_args = 0
     else
-      dummy, cnt = signature:gsub(",", "") -- check for nb of commas
+      __, cnt = signature:gsub(",", "") -- check for nb of commas
       info.nb_args = cnt and cnt + 1 or 1
     end
-    dummy, cnt = signature:gsub("%.%.%.", "") -- check for "...", varargs
+    __, cnt = signature:gsub("%.%.%.", "") -- check for "...", varargs
     if cnt > 0 then
       info.nb_args = -1
     end
-    dummy, cnt = signature:gsub("^[^(]*:", "")
+    __, cnt = signature:gsub("^[^(]*:", "")
     info.is_method = cnt > 0
     info.classname = signature:gsub(".-(%w+):.*", "%1")
   else
@@ -958,7 +956,7 @@ function HttpInspector:showFunctionDetails(obj, reqinfo)
       T("Builtin function or from a C module: no source code available.")
     )
   else
-    local dummy, git_commit = require("version"):getNormalizedCurrentVersion()
+    local __, git_commit = require("version"):getNormalizedCurrentVersion()
     local github_uri = T(
       "https://github.com/koreader/koreader/blob/%1/%2#L%3",
       git_commit,
@@ -1162,8 +1160,8 @@ local getOrderedDispatcherActions = function()
 end
 
 function HttpInspector:exposeEvent(uri, reqinfo)
-  local ftype, fragment -- luacheck: no unused
-  ftype, fragment, uri = stepUriFragment(uri) -- luacheck: no unused
+  local __, fragment
+  __, fragment, uri = stepUriFragment(uri)
   if fragment then
     -- Event name and args provided.
     -- We may get multiple events, separated by a dummy arg /&/
@@ -1224,11 +1222,9 @@ function HttpInspector:exposeEvent(uri, reqinfo)
           action
         )
       )
-    elseif action.condition == false then
+    elseif action.condition == false then -- luacheck: ignore 542
       -- Some bottom menu are just disabled on all devices,
       -- so just don't show any disabled action
-      do
-      end -- luacheck: ignore 541
     else
       local active = false
       if action.general or action.device or action.screen then
@@ -1388,8 +1384,8 @@ end
 
 function HttpInspector:exposeBroadcastEvent(uri, reqinfo)
   -- Similar to previous one, without any list.
-  local ftype, fragment -- luacheck: no unused
-  ftype, fragment, uri = stepUriFragment(uri) -- luacheck: no unused
+  local __, fragment
+  __, fragment, uri = stepUriFragment(uri)
   if fragment then
     -- Event name and args provided.
     -- We may get multiple events, separated by a dummy arg /&/
@@ -1563,7 +1559,6 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
             },
           })
           UIManager:show(port_dialog)
-          port_dialog:showKeyboard()
         end,
       },
     },

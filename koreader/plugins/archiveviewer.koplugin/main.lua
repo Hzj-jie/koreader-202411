@@ -75,7 +75,6 @@ function ArchiveViewer:openFile(file)
   self.menu = Menu:new({
     title = filename,
     item_table = self:getItemTable(),
-    covers_fullscreen = true,
     is_borderless = true,
     is_popout = false,
     title_multilines = true,

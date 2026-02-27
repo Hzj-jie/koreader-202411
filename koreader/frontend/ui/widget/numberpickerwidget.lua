@@ -74,7 +74,6 @@ function NumberPickerWidget:init()
     radius = 0,
     text_font_size = 24,
     width = self.width,
-    show_parent = self.show_parent,
     callback = function()
       if self.date_month and self.date_year then
         self.value_max = self:getDaysInMonth(
@@ -116,7 +115,6 @@ function NumberPickerWidget:init()
     radius = 0,
     text_font_size = 24,
     width = self.width,
-    show_parent = self.show_parent,
     callback = function()
       if self.date_month and self.date_year then
         self.value_max = self:getDaysInMonth(
@@ -152,7 +150,7 @@ function NumberPickerWidget:init()
   })
   table.insert(self.layout, { button_down })
 
-  local empty_space = VerticalSpan:new({ width = Size.padding.large })
+  local empty_space = VerticalSpan:new({ height = Size.padding.large })
 
   self.formatted_value = self.value
   if not self.value_table then
@@ -216,14 +214,14 @@ function NumberPickerWidget:init()
                     end
                     code = code:gsub("^=", "return ")
                     local env = { math = math } -- restrict to only math functions
-                    local func, dummy = load(code, "user_sandbox", nil, env)
+                    local func = load(code, "user_sandbox", nil, env)
                     if func then
                       return pcall(func)
                     end
                   end
-                  local dummy
-                  dummy, input_value = evaluate_string(input_text)
-                  input_value = dummy and tonumber(input_value)
+                  local eva_result
+                  eva_result, input_value = evaluate_string(input_text)
+                  input_value = eva_result and tonumber(input_value)
                 end
 
                 if turn_off_checks then
@@ -288,7 +286,6 @@ function NumberPickerWidget:init()
         },
       })
       UIManager:show(input_dialog)
-      input_dialog:showKeyboard()
     end
   end
 
@@ -307,7 +304,6 @@ function NumberPickerWidget:init()
     text_font_face = self.spinner_face.font,
     text_font_size = self.spinner_face.orig_size,
     width = self.width,
-    show_parent = self.show_parent,
     callback = callback_input,
   })
   if callback_input then
@@ -338,9 +334,6 @@ function NumberPickerWidget:init()
   self.dimen = self.frame:getSize()
   self[1] = self.frame
   self:refocusWidget()
-  UIManager:setDirty(self.show_parent, function()
-    return "ui", self.dimen
-  end)
 end
 
 --[[--
@@ -355,9 +348,7 @@ function NumberPickerWidget:update()
   self.text_value:setText(tostring(self.formatted_value), self.width)
 
   self:refocusWidget()
-  UIManager:setDirty(self.show_parent, function()
-    return "ui", self.dimen
-  end)
+  self:scheduleRepaint()
   if self.picker_updated_callback then
     self.picker_updated_callback(self.value, self.value_index)
   end

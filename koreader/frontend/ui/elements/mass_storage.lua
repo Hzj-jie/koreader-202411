@@ -1,5 +1,4 @@
 local Device = require("device")
-local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local logger = require("logger")

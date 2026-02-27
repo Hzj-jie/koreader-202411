@@ -259,7 +259,7 @@ local unreadable_dir_content = {}
 -- Still keep it as a class function to avoid back and forth with ":" and ".".
 function FileChooser:show_dir(dirname)
   -- NOTE: Input is *always* a relative entry name
-  exclude_dirs = { -- const
+  local exclude_dirs = { -- const
     -- KOReader / Kindle
     "%.sdr$",
     -- Kobo
@@ -297,7 +297,7 @@ function FileChooser:show_dir(dirname)
 end
 
 function FileChooser:show_file(filename, fullpath)
-  exclude_files = { -- const
+  local exclude_files = { -- const
     -- Kobo
     "^BookReader%.sqlite",
     "^KoboReader%.sqlite",

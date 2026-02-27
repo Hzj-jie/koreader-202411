@@ -20,7 +20,6 @@ local fb = {
   native_rotation_mode = nil,
   cur_rotation_mode = nil,
   blitbuffer_rotation_mode = nil,
-  night_mode = false,
   hw_dithering = false, -- will be setup via setupDithering @ startup by reader.lua
   sw_dithering = false, -- will be setup via setupDithering @ startup by reader.lua
   swipe_animations = false, -- will be toggled at page turn by the frontend
@@ -167,6 +166,11 @@ function fb:init()
       and self.forced_rotation.default
     or self.DEVICE_ROTATED_UPRIGHT
   self.cur_rotation_mode = self.native_rotation_mode
+end
+
+-- See framebuffer_einkfb.
+function fb:reverseNightmode()
+  return false
 end
 
 -- This method must be called just before drawing a sequence of blits into a framebuffer.
@@ -375,6 +379,10 @@ function fb:getHeight()
   return self.bb:getHeight()
 end
 
+function fb:getArea()
+  return self:getWidth() * self:getHeight()
+end
+
 function fb:getScreenWidth()
   return self.screen_size.w
 end
@@ -498,18 +506,23 @@ function fb:setWindowTitle(new_title)
   end
 end
 
-function fb:toggleNightMode()
-  self.night_mode = not self.night_mode
+function fb:setNightmode(night_mode)
   if self.device:canHWInvert() then
     -- If the device supports global inversion via the grayscale flag, do that.
-    self:setHWNightmode(self.night_mode)
+    self:setHWNightmode(night_mode)
   else
+    if self:reverseNightmode() then
+      night_mode = not night_mode
+    end
     -- Only do SW inversion if the HW can't...
-    self.bb:invert()
-    if self.viewport then
-      -- invert and blank out the full framebuffer when we are working on a viewport
-      self.full_bb:setInverse(self.bb:getInverse())
-      self.full_bb:fill(Blitbuffer.COLOR_WHITE)
+    if (self.bb:getInverse() == 1) ~= night_mode then
+      -- flip
+      self.bb:invert()
+      if self.viewport then
+        -- invert and blank out the full framebuffer when we are working on a viewport
+        self.full_bb:setInverse(self.bb:getInverse())
+        self.full_bb:fill(Blitbuffer.COLOR_WHITE)
+      end
     end
   end
 end

@@ -45,7 +45,7 @@ function ReaderDogear:setupDogear(new_dogear_size)
       height = self.dogear_size,
       alpha = true, -- Keep the alpha layer intact
     })
-    self.top_pad = VerticalSpan:new({ width = self.dogear_y_offset })
+    self.top_pad = VerticalSpan:new({ height = self.dogear_y_offset })
     self.vgroup = VerticalGroup:new({
       self.top_pad,
       self.icon,

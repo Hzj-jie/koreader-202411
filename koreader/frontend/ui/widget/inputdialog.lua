@@ -213,7 +213,6 @@ function InputDialog:init()
     self.is_movable = false
     self.border_size = 0
     self.width = self.screen_width - 2 * self.border_size
-    self.covers_fullscreen = true -- hint for UIManager:_repaint()
   else
     self.width = self.width
       or math.floor(math.min(self.screen_width, self.screen_height) * 0.8)
@@ -230,13 +229,6 @@ function InputDialog:init()
   if self.fullscreen or self.add_nav_bar then
     self.deny_keyboard_hiding = true
   end
-  if
-    (Device:hasKeyboard() or Device:hasScreenKB())
-    and G_reader_settings:isFalse("virtual_keyboard_enabled")
-  then
-    self.keyboard_visible = false
-    self.skip_first_show_keyboard = true
-  end
 
   -- Title & description
   self.title_bar = TitleBar:new({
@@ -249,15 +241,14 @@ function InputDialog:init()
     info_text = self.description,
     left_icon = self.title_bar_left_icon,
     left_icon_tap_callback = self.title_bar_left_icon_tap_callback,
-    show_parent = self,
   })
 
   -- Vertical spaces added before and after InputText
   -- (these will be adjusted later to center the input text if needed)
   -- (can be disabled by setting condensed=true)
   local padding_width = self.condensed and 0 or Size.padding.default
-  local vspan_before_input_text = VerticalSpan:new({ width = padding_width })
-  local vspan_after_input_text = VerticalSpan:new({ width = padding_width })
+  local vspan_before_input_text = VerticalSpan:new({ height = padding_width })
+  local vspan_after_input_text = VerticalSpan:new({ height = padding_width })
 
   -- Buttons
   -- In case of re-init(), keep backup of original buttons and restore them
@@ -277,7 +268,6 @@ function InputDialog:init()
     width = self.width - 2 * self.button_padding,
     buttons = self.buttons,
     zero_sep = true,
-    show_parent = self,
   })
   local buttons_container = CenterContainer:new({
     dimen = Geom:new({
@@ -341,8 +331,9 @@ function InputDialog:init()
       local pad_height = available_height - self.text_height
       local pad_before = math.ceil(pad_height / 2)
       local pad_after = pad_height - pad_before
-      vspan_before_input_text.width = vspan_before_input_text.width + pad_before
-      vspan_after_input_text.width = vspan_after_input_text.width + pad_after
+      vspan_before_input_text.height = vspan_before_input_text.height
+        + pad_before
+      vspan_after_input_text.height = vspan_after_input_text.height + pad_after
       if text_height > available_height then
         self.cursor_at_end = false -- stay at start if overflowed
       end
@@ -393,6 +384,7 @@ function InputDialog:init()
     input_type = self.input_type,
     text_type = self.text_type,
     enter_callback = not self.allow_newline and self.enter_callback,
+    press_callback = self.press_callback,
     strike_callback = self.strike_callback,
     edit_callback = self._buttons_edit_callback or self.edited_callback, -- self._buttons_edit_callback is nil if no Save/Close buttons
     scroll_callback = self._buttons_scroll_callback, -- nil if no Nav or Scroll buttons
@@ -479,10 +471,7 @@ function InputDialog:init()
     self.ges_events.Tap = {
       GestureRange:new({
         ges = "tap",
-        range = Geom:new({
-          w = self.screen_width,
-          h = self.screen_height,
-        }),
+        range = Screen:getSize(),
       }),
     }
   end
@@ -565,8 +554,7 @@ function InputDialog:onTap(arg, ges)
     -- Poke at keyboard_frame directly, as the top-level dimen never gets updated coordinates...
     if
       self._input_widget.keyboard
-      and self._input_widget.keyboard.dimen
-      and ges.pos:notIntersectWith(self._input_widget.keyboard.dimen)
+      and ges.pos:notIntersectWith(self._input_widget.keyboard:visibleSize())
     then
       self:closeKeyboard()
     end
@@ -622,24 +610,14 @@ function InputDialog:setAllowNewline(allow)
 end
 
 function InputDialog:onShow()
-  UIManager:setDirty(self, function()
-    return "ui", self.dialog_frame.dimen
-  end)
+  self:showKeyboard(self.ignore_first_hold_release)
 end
 
 function InputDialog:onClose()
   self:onExit()
-  UIManager:setDirty(nil, self.fullscreen and "full" or function()
-    return "ui", self.dialog_frame.dimen
-  end)
 end
 
 function InputDialog:showKeyboard(ignore_first_hold_release)
-  -- Don't initiate virtual keyboard when user has a physical keyboard and G_setting(vk_enabled) unchecked.
-  if self.skip_first_show_keyboard then
-    self.skip_first_show_keyboard = nil
-    return
-  end
   -- NOTE: There's no VirtualKeyboard widget instantiated at all when readonly,
   --       and our input widget handles that itself, so we don't need any guards here.
   --       (In which case, isKeyboardVisible will return `nil`, same as if we had a VK instantiated but *never* shown).
@@ -659,13 +637,6 @@ function InputDialog:isKeyboardVisible()
 end
 
 function InputDialog:lockKeyboard(toggle)
-  if
-    (Device:hasKeyboard() or Device:hasScreenKB())
-    and G_reader_settings:isFalse("virtual_keyboard_enabled")
-  then
-    -- do not lock the virtual keyboard when user is hiding it, we still *might* want to activate it via shortcuts ("Shift" + "Home") when in need of special characters or symbols
-    return
-  end
   return self._input_widget:lockKeyboard(toggle)
 end
 
@@ -723,7 +694,7 @@ end
 
 -- fullscreen mode & add_nav_bar breaks some of our usual assumptions about what should happen on "Back" input events...
 function InputDialog:onKeyboardClosed()
-  if self.add_nav_bar and self.fullscreen then
+  if self.add_nav_bar or self.fullscreen then
     -- If the keyboard was closed via a key event (Back), make sure we reinit properly like in toggleKeyboard...
     self.input = self:getInputText()
     self:onExit()
@@ -756,6 +727,9 @@ function InputDialog:onExit()
     -- This lets the caller store/process the current top line num and cursor position via this callback
     self.view_pos_callback(self._top_line_num, self._charpos)
   end
+  -- Avoid calling onKeyboardClosed again.
+  self.add_nav_bar = false
+  self.fullscreen = false
   self:closeKeyboard()
 end
 

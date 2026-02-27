@@ -101,7 +101,6 @@ function DoubleSpinWidget:update(
   local prev_movable_alpha = self.movable and self.movable.alpha
   self.layout = {}
   local left_widget = NumberPickerWidget:new({
-    show_parent = self,
     value = numberpicker_left_value or self.left_value,
     value_min = self.left_min,
     value_max = self.left_max,
@@ -113,7 +112,6 @@ function DoubleSpinWidget:update(
   })
   self:mergeLayoutInHorizontal(left_widget)
   local right_widget = NumberPickerWidget:new({
-    show_parent = self,
     value = numberpicker_right_value or self.right_value,
     value_min = self.right_min,
     value_max = self.right_max,
@@ -208,7 +206,6 @@ function DoubleSpinWidget:update(
     title = self.title_text,
     title_shrink_font_to_fit = true,
     info_text = self.info_text,
-    show_parent = self,
   })
 
   local buttons = {}
@@ -294,7 +291,6 @@ function DoubleSpinWidget:update(
     width = self.width - 2 * Size.padding.default,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
   self:mergeLayoutInVertical(button_table)
 

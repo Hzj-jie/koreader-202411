@@ -22,7 +22,6 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
-local logger = require("logger")
 local T = require("ffi/util").template
 local gettext = require("gettext")
 local C_ = gettext.pgettext
@@ -305,7 +304,7 @@ local footerTextGeneratorMap = {
     if footer.pageno then
       if footer.ui.pagemap and footer.ui.pagemap:wantsPageLabels() then
         -- (Page labels might not be numbers)
-        local label, idx, count = footer.ui.pagemap:getCurrentPageLabel(false) -- luacheck: no unused
+        local __, idx, count = footer.ui.pagemap:getCurrentPageLabel(false)
         local remaining = count - idx
         if footer.settings.pages_left_includes_current_page then
           remaining = remaining + 1
@@ -392,7 +391,7 @@ local footerTextGeneratorMap = {
     if statm then
       local symbol_type = footer.settings.item_prefix
       local prefix = symbol_prefix[symbol_type].mem_usage
-      local dummy, rss = statm:read("*number", "*number")
+      local __, rss = statm:read("*number", "*number")
       statm:close()
       -- we got the nb of 4Kb-pages used, that we convert to MiB
       rss = math.floor(rss * (4096 / 1024 / 1024))
@@ -496,6 +495,7 @@ local ReaderFooter = WidgetContainer:extend({
   settings = nil, -- table
   -- added to expose them to unit tests
   textGeneratorMap = footerTextGeneratorMap,
+  _refresh_mode = "ui",
 })
 
 local DEFAULT_SETTINGS = {
@@ -744,7 +744,6 @@ function ReaderFooter:set_custom_text(touchmenu_instance)
     },
   })
   UIManager:show(text_dialog)
-  text_dialog:showKeyboard()
 end
 
 -- Help text string, or function, to be shown, or executed, on a long press on menu item
@@ -764,7 +763,7 @@ local option_help_text = {
 
 function ReaderFooter:updateFooterContainer()
   local margin_span = HorizontalSpan:new({ width = self.horizontal_margin })
-  self.vertical_frame = VerticalGroup:new({})
+  self.vertical_frame = VerticalGroup:new()
   if self.settings.bottom_horizontal_separator then
     self.separator_line = LineWidget:new({
       dimen = Geom:new({
@@ -773,7 +772,7 @@ function ReaderFooter:updateFooterContainer()
       }),
     })
     local vertical_span =
-      VerticalSpan:new({ width = Size.span.vertical_default })
+      VerticalSpan:new({ height = Size.span.vertical_default })
     table.insert(self.vertical_frame, self.separator_line)
     table.insert(self.vertical_frame, vertical_span)
   end
@@ -812,7 +811,8 @@ function ReaderFooter:updateFooterContainer()
     })
   end
 
-  local vertical_span = VerticalSpan:new({ width = Size.span.vertical_default })
+  local vertical_span =
+    VerticalSpan:new({ height = Size.span.vertical_default })
 
   if
     self.settings.progress_bar_position == "above"
@@ -2181,51 +2181,31 @@ function ReaderFooter:_repaint()
   --     since it'll get coalesced in the "fast" panning update, upgrading it to "ui".
   -- NOTE: That's assuming using "fast" for pans was a good idea, which, it turned out, not so much ;).
   -- NOTE: We skip repaints on page turns/pos update, as that's redundant (and slow).
-  local top_wg = UIManager:getTopmostVisibleWidget() or {}
-  if
-    top_wg.name ~= "ReaderUI"
-    and (top_wg.covers_fullscreen or top_wg.covers_footer)
-  then
-    -- If the top most widget covers the footer, but it's not the ReaderUI,
-    -- footer doesn't need to be repainted.
+  if (UIManager:getTopmostVisibleWidget() or {}).name ~= "ReaderUI" then
+    -- If the top most widget is not the ReaderUI, footer doesn't need to be
+    -- repainted.
+    -- This behavior is questionable, but it can be safer to avoid repainting
+    -- everything above the footer.
     return
   end
+  --[[ -- The behavior is questionable.
+  if not G_named_settings.fast_screen_refresh() then
+    -- It's not expected to "fast" refreshing the screen, footer doesn't need to
+    -- be repainted.
+    return
+  end
+  ]]
 
-  -- If there was a visibility change, notify ReaderView
   if self.visibility_change then
     self.visibility_change = nil
     UIManager:broadcastEvent(Event:new("ReaderFooterVisibilityChange"))
-  end
-
-  -- NOTE: Getting the dimensions of the widget is impossible without having drawn it first,
-  --     so, we'll fudge it if need be...
-  --     i.e., when it's no longer visible, because there's nothing to draw ;).
-  local refresh_dim = self.footer_content.dimen
-  -- No more content...
-  if not self.view.footer_visible and not refresh_dim then
-    -- So, instead, rely on self:getHeight to compute self.footer_content's height early...
-    refresh_dim = self.dimen
-    refresh_dim.h = self:getHeight()
-    refresh_dim.y = self._saved_screen_height - refresh_dim.h
-  end
-  -- If we're making the footer visible (or it already is), we don't need to repaint ReaderUI behind it
-  if self.view.footer_visible and top_wg.name == "ReaderUI" then
-    -- Unfortunately, it's not a modal (we never show() it), so it's not in the window stack,
-    -- instead, it's baked inside ReaderUI, so it gets slightly trickier...
-    -- NOTE: self.view.footer -> self ;).
-
-    -- c.f., ReaderView:paintTo()
-    UIManager:widgetRepaint(self.view.footer, 0, 0)
-    -- We've painted it first to ensure self.footer_content.dimen is sane
-    UIManager:setDirty(nil, function()
-      return self.view.currently_scrolling and "fast" or "ui",
-        self.footer_content.dimen
-    end)
-  else
-    -- If the footer is invisible or might be hidden behind another widget, we need to repaint the full ReaderUI stack.
-    UIManager:setDirty(self.view.dialog, function()
-      return self.view.currently_scrolling and "fast" or "ui", refresh_dim
-    end)
+    -- If the footer is invisible or might be hidden behind another widget, we
+    -- need to repaint the full ReaderUI stack, but only when the visibility
+    -- changed.
+    self.view.dialog:scheduleRepaint()
+  elseif self.view.footer_visible then
+    -- Or if footer is visible, repaint itself.
+    self.footer_content:scheduleRepaint()
   end
 end
 
@@ -2240,8 +2220,19 @@ function ReaderFooter:onUpdateFooter()
   self:_updateFooterPos()
 end
 
+function ReaderFooter:_isPageMode()
+  -- self.pageno is optional in "Pos" mode; checking pageno == number is not
+  -- suficient to differentiate the modes.
+  return type(self.pageno) == "number" and type(self.position) ~= "number"
+end
+
+function ReaderFooter:_isPosMode()
+  -- self.pageno is optional.
+  return type(self.position) == "number"
+end
+
 function ReaderFooter:_updateFooterPage()
-  if type(self.pageno) ~= "number" or type(self.position) == "number" then
+  if not self:_isPageMode() then
     return
   end
   if self.settings.chapter_progress_bar then
@@ -2264,8 +2255,7 @@ function ReaderFooter:_updateFooterPage()
 end
 
 function ReaderFooter:_updateFooterPos()
-  -- self.pageno is optional.
-  if type(self.position) ~= "number" then
+  if not self:_isPosMode() then
     return
   end
   if self.settings.chapter_progress_bar then

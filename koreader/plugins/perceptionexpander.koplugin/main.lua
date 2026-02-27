@@ -166,7 +166,6 @@ function PerceptionExpander:showSettingsDialog()
     },
   })
   UIManager:show(self.settings_dialog)
-  self.settings_dialog:showKeyboard()
 end
 
 function PerceptionExpander:addToMainMenu(menu_items)

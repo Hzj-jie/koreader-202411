@@ -199,7 +199,6 @@ function TextViewer:init(reinit)
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self,
   })
 
   -- Callback to enable/disable buttons, for at-top/at-bottom feedback
@@ -289,7 +288,6 @@ function TextViewer:init(reinit)
     width = self.width - 2 * self.button_padding,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
 
   -- NT: add titlebar.left_button (hamburger menu) to FocusManager.
@@ -421,7 +419,7 @@ function TextViewer:onSwipe(arg, ges)
       return true
     else
       -- trigger a full-screen HQ flashing refresh
-      UIManager:setDirty(nil, "full")
+      UIManager:scheduleRefresh("full")
       -- a long diagonal swipe may also be used for taking a screenshot,
       -- so let it propagate
       return false
@@ -532,9 +530,9 @@ function TextViewer:findDialog()
     end,
   })
   input_dialog:addWidget(check_button_case)
+  input_dialog.ignore_first_hold_release = true
 
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard(true)
 end
 
 function TextViewer:findCallback(input_dialog)

@@ -320,10 +320,8 @@ function AutoWarmth:setEventHandlers()
   self.onSuspend = self._onSuspend
   if self.control_nightmode then
     self.onToggleNightMode = self._onToggleNightMode
-    self.onSetNightMode = self._onToggleNightMode
   else
     self.onToggleNightMode = nil
-    self.onSetNightMode = nil
   end
   if self.fl_off_during_day then
     self.onToggleFrontlight = self._onToggleFrontlight
@@ -949,7 +947,6 @@ function AutoWarmth:getLocationMenu()
           },
         })
         UIManager:show(location_name_dialog)
-        location_name_dialog:showKeyboard()
       end,
       keep_menu_open = true,
     },

@@ -30,7 +30,6 @@ local gmatch = string.gmatch
 local byte = string.byte
 local find = string.find
 local lower = string.lower
-local tonumber = tonumber -- luacheck: no unused
 local type = type
 local pcall = pcall
 
@@ -185,7 +184,7 @@ local function getIndentLevel(line)
   return level
 end
 
-local function stripIndent(line, level, ignorepattern) -- luacheck: no unused args
+local function stripIndent(line, level, ignorepattern)
   local currentLevel = -1
   for i = 1, #line do
     if byte(line, i) == byte("\t") then
@@ -201,7 +200,7 @@ local function stripIndent(line, level, ignorepattern) -- luacheck: no unused ar
       local front = ""
       for j = 1, currentLevel - level do
         front = front .. " "
-      end -- luacheck: no unused args
+      end
       return front .. sub(line, i, -1)
     end
   end
@@ -458,10 +457,6 @@ function readLineStream(stream, tree, links)
   return tree, links
 end
 
-local function read(str) -- luacheck: no unused
-  return readLineStream(stringLineStream(str))
-end
-
 --------------------------------------------------------------------------------
 -- Rendering
 --------------------------------------------------------------------------------
@@ -585,7 +580,7 @@ return setmetatable({
   renderLineIterator = renderLineIterator,
   renderTable = renderTable,
 }, {
-  __call = function(self, ...) -- luacheck: no unused args
+  __call = function(self, ...)
     return render(...)
   end,
 })

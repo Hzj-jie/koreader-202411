@@ -40,7 +40,6 @@ function KeyboardLayoutDialog:init()
     with_bottom_line = true,
     title = gettext("Keyboard layout"),
     bottom_v_padding = 0,
-    show_parent = self,
   })
 
   local buttons = {}
@@ -100,7 +99,6 @@ function KeyboardLayoutDialog:init()
     width = scroll_container_inner_width - 2 * Size.padding.large,
     focused = true,
     parent = self,
-    show_parent = self,
   })
   self:mergeLayoutInVertical(self.radio_button_table)
 
@@ -109,7 +107,6 @@ function KeyboardLayoutDialog:init()
     width = self.width - 2 * Size.padding.default,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
   self:mergeLayoutInVertical(self.button_table)
 
@@ -133,7 +130,6 @@ function KeyboardLayoutDialog:init()
       w = self.width,
       h = radio_button_container_height,
     }),
-    show_parent = self,
     CenterContainer:new({
       dimen = Geom:new({
         w = scroll_container_inner_width,
@@ -152,11 +148,11 @@ function KeyboardLayoutDialog:init()
       align = "center",
       self.title_bar,
       VerticalSpan:new({
-        width = Size.span.vertical_large * 2,
+        height = Size.span.vertical_large * 2,
       }),
       self.cropping_widget, -- our ScrollableContainer
       VerticalSpan:new({
-        width = Size.span.vertical_large * 2,
+        height = Size.span.vertical_large * 2,
       }),
       -- buttons
       CenterContainer:new({

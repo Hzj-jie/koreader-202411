@@ -563,7 +563,6 @@ function ReaderHandMade:addOrEditPageTocItem(
     },
   })
   UIManager:show(dialog)
-  dialog:showKeyboard()
   return true
 end
 

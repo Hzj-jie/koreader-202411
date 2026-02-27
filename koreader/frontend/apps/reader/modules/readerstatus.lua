@@ -134,7 +134,7 @@ function ReaderStatus:onEndOfBook()
         text = gettext("Searching next file…"),
       })
       UIManager:show(info)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
       UIManager:close(info)
       self:onOpenNextDocumentInFolder()
     else
@@ -227,7 +227,6 @@ function ReaderStatus:markBook(mark_read)
       and "reading"
     or "complete"
   summary.modified = os.date("%Y-%m-%d", os.time())
-  self.ui.doc_settings:save("summary", summary)
   -- If History is called over Reader, it will read the file to get the book status, so flush
   self.ui.doc_settings:flush()
 end

@@ -123,7 +123,6 @@ function ButtonDialog:init()
     width = self.width - 2 * Size.border.window - 2 * Size.padding.button,
     shrink_unneeded_width = self.shrink_unneeded_width,
     shrink_min_width = self.shrink_min_width,
-    show_parent = self,
     enable_shortcut = true,
   })
   local buttontable_width = self.buttontable:getSize().w -- may be shrunk
@@ -153,7 +152,7 @@ function ButtonDialog:init()
     })
     title_widget_height = title_widget:getSize().h + Size.line.medium
   else
-    title_widget = VerticalSpan:new({})
+    title_widget = VerticalSpan:new()
     title_widget_height = 0
   end
   self.top_to_content_offset = Size.padding.buttontable
@@ -201,14 +200,13 @@ function ButtonDialog:init()
         w = buttontable_width + scrollbar_width,
         h = max_height,
       }),
-      show_parent = self,
       step_scroll_grid = step_scroll_grid,
       self.buttontable,
     })
     scontainer = VerticalGroup:new({
-      VerticalSpan:new({ width = Size.padding.buttontable }),
+      VerticalSpan:new({ height = Size.padding.buttontable }),
       self.cropping_widget,
-      VerticalSpan:new({ width = Size.padding.buttontable }),
+      VerticalSpan:new({ height = Size.padding.buttontable }),
     })
   end
   local separator
@@ -221,7 +219,7 @@ function ButtonDialog:init()
       }),
     })
   else
-    separator = VerticalSpan:new({})
+    separator = VerticalSpan:new()
   end
   self.movable = MovableContainer:new({
     alpha = self.alpha,
@@ -281,18 +279,6 @@ function ButtonDialog:setTitle(title)
   UIManager:setDirty("all", "ui")
 end
 
-function ButtonDialog:onShow()
-  UIManager:setDirty(self, function()
-    return "ui", self.movable.dimen
-  end)
-end
-
-function ButtonDialog:onClose()
-  UIManager:setDirty(nil, function()
-    return "flashui", self.movable.dimen
-  end)
-end
-
 function ButtonDialog:onExit()
   if self.tap_close_callback then
     self.tap_close_callback()
@@ -308,11 +294,6 @@ function ButtonDialog:onTapClose(arg, ges)
   return true
 end
 
-function ButtonDialog:paintTo(...)
-  FocusManager.paintTo(self, ...)
-  self.dimen = self.movable.dimen
-end
-
 function ButtonDialog:onFocusMove(args)
   local ret = FocusManager.onFocusMove(self, args)
 
@@ -320,8 +301,8 @@ function ButtonDialog:onFocusMove(args)
   if self.cropping_widget then
     local focus = self:getFocusItem()
     if self.dimen and focus and focus.dimen then
-      local button_y_offset = focus.dimen.y
-        - self.dimen.y
+      local button_y_offset = focus:getSize().y
+        - self:getSize().y
         - self.top_to_content_offset
       -- NOTE: The final argument ensures we'll always keep the neighboring item visible.
       --       (i.e., the top/bottom of the scrolled view is actually the previous/next item).

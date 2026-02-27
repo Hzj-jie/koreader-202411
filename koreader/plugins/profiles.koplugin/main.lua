@@ -358,7 +358,6 @@ function Profiles:editProfileName(editCallback, old_name)
     },
   })
   UIManager:show(name_input)
-  name_input:showKeyboard()
 end
 
 function Profiles:getProfileFromCurrentBookSettings(new_name)
@@ -670,7 +669,6 @@ function Profiles:genAutoExecPathChangedMenuItem(
               buttons = buttons,
             })
             UIManager:show(dialog)
-            dialog:showKeyboard()
           end,
         }
       end
@@ -899,7 +897,6 @@ function Profiles:genAutoExecDocConditionalMenuItem(
                     buttons = buttons,
                   })
                   UIManager:show(dialog)
-                  dialog:showKeyboard()
                 end,
                 hold_callback = function(touchmenu_instance)
                   util.tableRemoveValue(
@@ -1009,7 +1006,6 @@ function Profiles:genAutoExecDocConditionalMenuItem(
               buttons = buttons,
             })
             UIManager:show(dialog)
-            dialog:showKeyboard()
           end,
           hold_callback = function(touchmenu_instance)
             util.tableRemoveValue(

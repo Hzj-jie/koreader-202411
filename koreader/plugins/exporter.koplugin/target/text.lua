@@ -19,8 +19,8 @@ local function format(booknotes)
     table.insert(tbl, wide_space .. booknotes.title)
     table.insert(tbl, wide_space)
   end
-  for ___, entry in ipairs(booknotes) do
-    for ____, clipping in ipairs(entry) do
+  for __, entry in ipairs(booknotes) do
+    for __, clipping in ipairs(entry) do
       if clipping.chapter then
         table.insert(tbl, wide_space .. clipping.chapter)
         table.insert(tbl, wide_space)

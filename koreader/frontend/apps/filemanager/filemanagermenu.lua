@@ -8,7 +8,6 @@ local FFIUtil = require("ffi/util")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local PluginLoader = require("pluginloader")
-local SetDefaults = require("apps/filemanager/filemanagersetdefaults")
 local Size = require("ui/size")
 local SpinWidget = require("ui/widget/spinwidget")
 local UIManager = require("ui/uimanager")
@@ -17,7 +16,6 @@ local dbg = require("dbg")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
-local logger = require("logger")
 local util = require("util")
 local T = FFIUtil.template
 
@@ -572,7 +570,7 @@ Tap a book in the search results to open it.]]
         return gettext("Open last document")
       end
       local last_file = G_reader_settings:read("lastfile")
-      local path, file_name = util.splitFilePathName(last_file) -- luacheck: no unused
+      local __, file_name = util.splitFilePathName(last_file)
       return T(gettext("Last: %1"), BD.filename(file_name))
     end,
     enabled_func = function()
@@ -695,7 +693,7 @@ end
 
 function FileManagerMenu:exitOrRestart(callback, force)
   CommonMenu:exitOrRestart(function()
-    UIManager:close(self.menu_container)
+    self:_closeFileManagerMenu()
   end, self.ui, callback)
 end
 
@@ -720,7 +718,6 @@ function FileManagerMenu:onShowMenu(tab_index)
       width = Screen:getWidth(),
       last_index = tab_index,
       tab_item_table = self.tab_item_table,
-      show_parent = menu_container,
     })
   else
     local Menu = require("ui/widget/menu")
@@ -728,7 +725,6 @@ function FileManagerMenu:onShowMenu(tab_index)
       title = gettext("File manager menu"),
       item_table = Menu.itemTableFromTouchMenu(self.tab_item_table),
       width = Screen:getWidth() - (Size.margin.fullscreen_popout * 2),
-      show_parent = menu_container,
     })
   end
 

@@ -39,14 +39,11 @@ function ReaderProgress:init()
   self.screen_width = Screen:getWidth()
   self.screen_height = Screen:getHeight()
   if self.screen_width < self.screen_height then
-    self.header_span = 25
     self.stats_span = 20
   else
-    self.header_span = 0
-    self.stats_span = 10
+    self.stats_span = 8
   end
 
-  self.covers_fullscreen = true -- hint for UIManager:_repaint()
   self[1] = FrameContainer:new({
     width = self.screen_width,
     height = self.screen_height,
@@ -83,9 +80,7 @@ function ReaderProgress:init()
     }
   end
 
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  self:scheduleRepaint()
 end
 
 function ReaderProgress:getTotalStats(stats_day)
@@ -105,7 +100,6 @@ function ReaderProgress:getStatusContent(width)
     close_callback = not self.readonly and function()
       self:onExit()
     end,
-    show_parent = self,
   })
   return VerticalGroup:new({
     align = "left",
@@ -140,10 +134,6 @@ function ReaderProgress:genSingleHeader(title)
   })
 
   return VerticalGroup:new({
-    VerticalSpan:new({
-      width = Screen:scaleBySize(self.header_span),
-      height = self.screen_height * (1 / 25),
-    }),
     HorizontalGroup:new({
       align = "center",
       padding_span,
@@ -155,8 +145,7 @@ function ReaderProgress:genSingleHeader(title)
       padding_span,
     }),
     VerticalSpan:new({
-      width = Size.span.vertical_large,
-      height = self.screen_height * (1 / 25),
+      height = Size.span.vertical_large,
     }),
   })
 end
@@ -192,8 +181,7 @@ function ReaderProgress:genDoubleHeader(title_left, title_right)
 
   return VerticalGroup:new({
     VerticalSpan:new({
-      width = Screen:scaleBySize(25),
-      height = self.screen_height * (1 / 25),
+      height = Screen:scaleBySize(25),
     }),
     HorizontalGroup:new({
       align = "center",
@@ -212,8 +200,7 @@ function ReaderProgress:genDoubleHeader(title_left, title_right)
       padding_span,
     }),
     VerticalSpan:new({
-      width = Size.span.vertical_large,
-      height = self.screen_height * (1 / 25),
+      height = Size.span.vertical_large,
     }),
   })
 end
@@ -314,7 +301,7 @@ function ReaderProgress:genWeekStats(stats_day)
   return CenterContainer:new({
     dimen = Geom:new({
       w = self.screen_width,
-      h = math.floor(self.screen_height * 0.5),
+      h = math.floor(self.screen_height * 0.48),
     }),
     statistics_container,
   })
@@ -537,20 +524,20 @@ function ReaderProgress:genSummaryWeek(width)
 end
 
 function ReaderProgress:onSwipe(arg, ges_ev)
-  if ges_ev.direction == "south" then
-    -- Allow easier closing with swipe up/down
-    self:onExit()
-  elseif
+  if
     ges_ev.direction == "east"
     or ges_ev.direction == "west"
     or ges_ev.direction == "north"
   then
     -- no use for now
-    do
-    end -- luacheck: ignore 541
+    return false
+  end
+  if ges_ev.direction == "south" then
+    -- Allow easier closing with swipe up/down
+    return self:onExit()
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
     return false

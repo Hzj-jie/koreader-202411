@@ -48,7 +48,7 @@ function ButtonTable:init()
   for i = 1, row_cnt do
     self:addVerticalSpan()
     local buttons_layout_line = {}
-    local horizontal_group = HorizontalGroup:new({})
+    local horizontal_group = HorizontalGroup:new()
     local row = self.buttons[i]
     local column_cnt = #row
     local available_width = self.width - self.sep_width * (column_cnt - 1)
@@ -78,8 +78,8 @@ function ButtonTable:init()
         enabled = btn_entry.enabled,
         enabled_func = btn_entry.enabled_func,
         callback = function()
-          if self.show_parent and self.show_parent.movable then
-            self.show_parent.movable:resetEventState()
+          if self:showParent() and self:showParent().movable then
+            self:showParent().movable:resetEventState()
           end
           btn_entry.callback()
         end,
@@ -97,7 +97,6 @@ function ButtonTable:init()
         text_font_face = btn_entry.font_face,
         text_font_size = btn_entry.font_size,
         text_font_bold = btn_entry.font_bold,
-        show_parent = self.show_parent,
         shortcut = (
           (self.enable_shortcut and Menu.ENABLE_SHORTCUT)
             and Menu.ITEM_SHORTCUTS[(i - 1) * column_cnt + j]
@@ -194,7 +193,7 @@ function ButtonTable:addVerticalSpan()
   table.insert(
     self.container,
     VerticalSpan:new({
-      width = Size.span.vertical_default,
+      height = Size.span.vertical_default,
     })
   )
 end
@@ -220,7 +219,7 @@ function ButtonTable:setupGridScrollBehaviour()
   table.insert(
     self.container,
     VerticalSpan:new({
-      width = self.sep_width,
+      height = self.sep_width,
     })
   )
   self.container:getSize() -- have it recompute its offsets and size

@@ -6,6 +6,7 @@ local Device = require("device")
 local Event = require("ui/event")
 local Geom = require("ui/geometry")
 local dbg = require("dbg")
+local dump = require("dump")
 local ffiUtil = require("ffi/util")
 local gettext = require("gettext")
 local logger = require("logger")
@@ -14,23 +15,157 @@ local util = require("util")
 local Input = Device.input
 local Screen = Device.screen
 
-local DEFAULT_FULL_REFRESH_COUNT = 6
+-- When a mode is not supported by the hardware, the next level will be
+-- automatically used.
+
+-- precedence of refresh modes:
+local refresh_modes = {
+  -- Break grayscale on kobo aura hd and kindles, very likely shouldn't be used
+  -- at all. Supported by sunxi and mxcfb.
+  a2 = 1,
+  -- The dirtiest way of changing the display, but unlike a2, it at least keeps
+  -- everything readable, but the grayscale may not be very accurate. Supported
+  -- by pocketbook, sunxi, android and mxcfb.
+  fast = 2,
+  -- The default way of showing anything related to the ui. Supported by
+  -- pocketbook, sunxi, android and mxcfb.
+  ui = 3,
+  -- Allow partially updating the screen without flashing the screen. Supported
+  -- by pocketbook, sunxi, android, mxcfb and einkfb.
+  partial = 4,
+  -- Useless, supported only by sunxi.
+  ["[ui]"] = 5,
+  -- Useless, supported only by sunxi.
+  ["[partial]"] = 6,
+  -- UI + a screen flashing, cause flickering, clean the black areas.
+  -- Supported by pocketbook, sunxi, android and mxcfb.
+  flashui = 7,
+  -- Partial + a screen flashing, cause flickering, clean the black areas.
+  -- Supported by pocketbook, sunxi, android and mxcfb.
+  flashpartial = 8,
+  -- A full screen flashing, cause flickering, clean the black areas.
+  -- Supported by pocketbook, sunxi, android, mxcfb and einkfb.
+  full = 9,
+}
+-- NOTE: We might want to introduce a "force_a2" that points to fast, but has the highest priority,
+--     for the few cases where we might *really* want to enforce fast (for stuff like panning or skimming?).
+-- refresh methods in framebuffer implementation
+local refresh_methods = {
+  a2 = Screen.refreshA2,
+  fast = Screen.refreshFast,
+  ui = Screen.refreshUI,
+  partial = Screen.refreshPartial,
+  ["[ui]"] = Screen.refreshNoMergeUI,
+  ["[partial]"] = Screen.refreshNoMergePartial,
+  flashui = Screen.refreshFlashUI,
+  flashpartial = Screen.refreshFlashPartial,
+  full = Screen.refreshFull,
+}
+
+local function _isWidget(widget)
+  if widget ~= nil and type(widget) == "table" then
+    return true
+  end
+  logger.warn("FixMe: Attempted to check a nil widget or not a table. ",
+              debug.traceback())
+  return false
+end
+
+local function _widgetDebugStr(widget)
+  assert(_isWidget(widget))
+  return widget.name or widget.id or tostring(widget)
+end
+
+local function _widgetWindow(w)
+  assert(_isWidget(w))
+  local window = w:window()
+  if window == nil then
+    -- TODO: Should assert.
+    logger.warn(
+      "FixMe: Unknown widget ",
+      _widgetDebugStr(w),
+      " to repaint, it may not be shown yet, or you may want to send in the ",
+      "show(widget) instead. ",
+      debug.traceback()
+    )
+    return nil
+  end
+  return window
+end
+
+local function cropping_region(widget)
+  assert(_isWidget(widget))
+  local dimen = widget:getSize()
+  assert(dimen ~= nil)
+  -- It's possible that the function is called before the paintTo call, so x or
+  -- y may not present.
+  local x, y, w, h = dimen.x, dimen.y, dimen.w, dimen.h
+
+  local window = _widgetWindow(widget)
+  if (not x or not y) and window then
+    -- Before the initial paintTo call, widget.dimen isn't available. In the
+    -- case, it's expected to paintTo a showParent which starts from the top
+    -- left of a window.
+    if window.widget ~= widget then
+      logger.warn(
+        "FixMe: ",
+        _widgetDebugStr(widget),
+        " is painted directly into its window without its location.",
+        " It should be painted by its parent widget first."
+      )
+    end
+    x = x or window.x
+    y = y or window.y
+  end
+
+  if not x or not y or not w or not h then
+    logger.warn(
+      "Cannot calculate cropping region of widget ",
+      _widgetDebugStr(widget),
+      " without its dimen."
+    )
+    return nil
+  end
+
+  if w == 0 and h == 0 then
+    logger.warn(
+      "FixMe: widget ",
+      _widgetDebugStr(widget),
+      " returns empty Geom."
+    )
+  end
+
+  if window then
+    -- window.x and window.y are never used, but keep the potential logic right.
+    x = x + window.x
+    y = y + window.y
+    local parent = window.widget
+    if parent and parent.cropping_widget then
+      -- The main widget parent of this subwidget has a cropping container: see
+      -- if this widget is a child of this cropping container
+      local cropping_widget = parent.cropping_widget
+      if util.arrayDfSearch(cropping_widget, widget) then
+        -- Invert only what intersects with the cropping container
+        return cropping_widget:getCropRegion():intersect(Geom:new({
+          x = x,
+          y = y,
+          w = w,
+          h = h,
+        }))
+      end
+    end
+  end
+  return Geom:new({ x = x, y = y, w = w, h = h })
+end
+
+-- How long to wait between ZMQ wakeups: 50ms.
+local ZMQ_TIMEOUT = 50 * 1000
 
 -- This is a singleton
 local UIManager = {
-  -- trigger a full refresh when counter reaches FULL_REFRESH_COUNT
-  FULL_REFRESH_COUNT = G_reader_settings:isTrue("night_mode")
-      and G_reader_settings:read("night_full_refresh_count")
-    or G_reader_settings:read("full_refresh_count")
-    or DEFAULT_FULL_REFRESH_COUNT,
-  refresh_count = 0,
-  currently_scrolling = false,
-
-  -- How long to wait between ZMQ wakeups: 50ms.
-  ZMQ_TIMEOUT = 50 * 1000,
-
   event_handlers = nil,
 
+  _full_refresh_count = G_named_settings.default.full_refresh_count(),
   _window_stack = {},
   _task_queue = {},
   _task_queue_dirty = false,
@@ -45,6 +180,8 @@ local UIManager = {
   _prev_prevent_standby_count = 0,
   _input_gestures_disabled = false,
   _last_user_action_time = 0,
+  _force_fast_refresh = false,
+  _refresh_count = 0,
 }
 
 function UIManager:init()
@@ -106,6 +243,7 @@ function UIManager:init()
 
   -- The first user action is always the one starts koreader.
   self:updateLastUserActionTime()
+  self:updateRefreshRate()
 
   -- Tell Device that we're now available, so that it can setup PM event handlers
   Device:_UIManagerReady(self)
@@ -119,11 +257,6 @@ end
 function UIManager:setIgnoreTouchInput(state)
   local InputContainer = require("ui/widget/container/inputcontainer")
   InputContainer:setIgnoreTouchInput(state)
-end
-
-function UIManager:_widgetDebugStr(widget)
-  assert(widget ~= nil)
-  return widget.name or widget.id or tostring(widget)
 end
 
 --[[--
@@ -140,24 +273,14 @@ For more details about refreshtype, refreshregion & refreshdither see the descri
 If refreshtype is omitted, no refresh will be enqueued at this time.
 
 @param widget a @{ui.widget.widget|widget} object
-@string refreshtype `"full"`, `"flashpartial"`, `"flashui"`, `"[partial]"`, `"[ui]"`, `"partial"`, `"ui"`, `"fast"`, `"a2"` (optional)
-@param refreshregion a rectangle @{ui.geometry.Geom|Geom} object (optional, requires refreshtype to be set)
-@int x horizontal screen offset (optional, `0` if omitted)
-@int y vertical screen offset (optional, `0` if omitted)
-@bool refreshdither `true` if widget requires dithering (optional, requires refreshtype to be set)
-@see setDirty
 ]]
-function UIManager:show(widget, refreshtype, refreshregion, x, y, refreshdither)
-  assert(not self:isWidgetShown(widget))
+function UIManager:show(widget)
+  assert(not self:isTopLevelWidget(widget))
 
-  -- TODO: Should assert
-  if not widget then
-    logger.dbg("attempted to show a nil widget")
-    return
-  end
-  logger.dbg("show widget:", widget.id or widget.name or tostring(widget))
+  logger.dbg("show widget:", _widgetDebugStr(widget))
 
-  local window = { x = x or 0, y = y or 0, widget = widget }
+  -- The window x and y are never used.
+  local window = { x = 0, y = 0, widget = widget }
   -- put this window on top of the topmost non-modal window
   for i = #self._window_stack, 0, -1 do
     local top_window = self._window_stack[i]
@@ -173,8 +296,7 @@ function UIManager:show(widget, refreshtype, refreshregion, x, y, refreshdither)
       break
     end
   end
-  -- and schedule it to be painted
-  self:setDirty(widget, refreshtype, refreshregion, refreshdither)
+  self._dirty[widget] = true
   -- tell the widget that it is shown now
   widget:handleEvent(Event:new("Show"))
   -- check if this widget disables double tap gesture
@@ -202,19 +324,11 @@ For more details about refreshtype, refreshregion & refreshdither see the descri
 If refreshtype is omitted, no extra refresh will be enqueued at this time, leaving only those from the uncovered widgets.
 
 @param widget a @{ui.widget.widget|widget} object
-@string refreshtype `"full"`, `"flashpartial"`, `"flashui"`, `"[partial]"`, `"[ui]"`, `"partial"`, `"ui"`, `"fast"`, `"a2"` (optional)
-@param refreshregion a rectangle @{ui.geometry.Geom|Geom} object (optional, requires refreshtype to be set)
-@bool refreshdither `true` if the refresh requires dithering (optional, requires refreshtype to be set)
-@see setDirty
 ]]
-function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
-  -- TODO: Should assert
-  if not widget then
-    logger.dbg("attempted to close a nil widget")
-    return
-  end
-  logger.dbg("close widget:", widget.name or widget.id or tostring(widget))
-  local dirty = false
+function UIManager:_close(widget)
+  assert(UIManager:isTopLevelWidget(widget))
+
+  logger.dbg("close widget:", _widgetDebugStr(widget))
   -- First notify the closed widget to save its settings...
   widget:broadcastEvent(Event:new("FlushSettings"))
   -- ...and notify it that it ought to be gone now.
@@ -222,43 +336,31 @@ function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
   -- Make sure it's disabled by default and check if there are any widgets that want it disabled or enabled.
   Input.disable_double_tap = true
   local requested_disable_double_tap = nil
-  local is_covered = false
-  local start_idx = 1
   -- Then remove all references to that widget on stack and refresh.
   for i = #self._window_stack, 1, -1 do
     local w = self._window_stack[i].widget
     if w == widget then
       self._dirty[w] = nil
+      self:_scheduleRefreshWindowWidget(self._window_stack[i])
       table.remove(self._window_stack, i)
-      dirty = true
-    else
-      if not is_covered then
-        -- If anything else on the stack not already hidden by (i.e., below) a fullscreen widget was dithered, honor the hint
-        if w.dithered then
-          refreshdither = true
-          logger.dbg(
-            "Lower widget",
-            self:_widgetDebugStr(w),
-            "was dithered, honoring the dithering hint"
-          )
-        end
-
-        -- Remember the uppermost widget that covers the full screen, so we don't bother calling setDirty on hidden (i.e., lower) widgets in the following dirty loop.
-        -- _repaint already does that later on to skip the actual paintTo calls, so this ensures we limit the refresh queue to stuff that will actually get painted.
-        if w.covers_fullscreen then
-          is_covered = true
-          start_idx = i
-          logger.dbg(
-            "Lower widget",
-            self:_widgetDebugStr(w),
-            "covers the full screen"
-          )
-          if i > 1 then
-            logger.dbg("not refreshing", i - 1, "covered widget(s)")
-          end
-        end
+      -- Unfortunately, here the logic needs to mark the ones *below* dirty,
+      -- so :forceRepaint() cannot help. Though indeed the :forceRepaint() would
+      -- still redraw everything *above* the dirty one, the logic here should
+      -- not break any potential improvements.
+      -- TODO: Similar to the UIManager:show, an optimization can be calculating
+      -- the covered area and not repainting all the invisible widgets, but it's
+      -- hard to demonstrate the importance.
+      for j = 1, i - 1 do
+        self._dirty[self._window_stack[j].widget] = true
       end
-
+    else
+      if w.dithered then
+        logger.dbg(
+          "Lower widget",
+          _widgetDebugStr(w),
+          "was dithered, honoring the dithering hint"
+        )
+      end
       -- Set double tap to how the topmost widget with that flag wants it
       if
         requested_disable_double_tap == nil and w.disable_double_tap ~= nil
@@ -275,17 +377,30 @@ function UIManager:close(widget, refreshtype, refreshregion, refreshdither)
     Input.tap_interval_override =
       self._window_stack[#self._window_stack].widget.tap_interval_override
   end
-  if dirty and not widget.invisible then
-    -- schedule the remaining visible (i.e., uncovered) widgets to be painted
-    for i = start_idx, #self._window_stack do
-      self:setDirty(self._window_stack[i].widget)
-    end
-    self:_refresh(refreshtype or "ui", refreshregion, refreshdither)
-  end
   if widget._restored_input_gestures then
     logger.dbg("Widget is gone, disabling gesture handling again")
     self:setIgnoreTouchInput(true)
   end
+end
+
+function UIManager:close(widget)
+  if not UIManager:isTopLevelWidget(widget) then
+    logger.warn(
+      "FixMe: widget "
+        .. _widgetDebugStr(widget)
+        .. " has been closed already. "
+        .. debug.traceback()
+    )
+    return
+  end
+  self:_close(widget)
+end
+
+function UIManager:closeIfShown(widget)
+  if not UIManager:isTopLevelWidget(widget) then
+    return
+  end
+  self:_close(widget)
 end
 
 --- Shift the execution times of all scheduled tasks.
@@ -456,262 +571,51 @@ dbg:guard(UIManager, "unschedule", function(self, action)
   assert(action ~= nil)
 end)
 
---[[--
-Mark a window-level widget as dirty, enqueuing a repaint & refresh request for that widget, to be processed on the next UI tick.
-
-The second parameter (refreshtype) can either specify a refreshtype
-(optionally in combination with a refreshregion - which is suggested,
-and an even more optional refreshdither flag if the content requires dithering);
-or a function that returns a refreshtype, refreshregion tuple (or a refreshtype, refreshregion, refreshdither triple),
-which will be called *after* painting the widget.
-This is an interesting distinction, because a widget's geometry,
-usually stored in a field named `dimen`, is (generally) only computed at painting time (e.g., during `paintTo`).
-The TL;DR being: if you already know the region, you can pass everything by value directly,
-(it'll make for slightly more readable debug logs),
-but if the region will only be known after the widget has been painted, pass a function.
-Note that, technically, it means that stuff passed by value will be enqueued earlier in the refresh stack.
-In practice, since the stack of (both types of) refreshes is optimized into as few actual refresh ioctls as possible,
-and that during the next `_repaint` tick (which is when `paintTo` for dirty widgets happens),
-this shouldn't change much in the grand scheme of things, but it ought to be noted ;).
-
-See `_repaint` for more details about how the repaint & refresh queues are processed,
-and `handleInput` for more details about when those queues are actually drained.
-What you should essentially remember is that `setDirty` doesn't actually "do" anything visible on its own.
-It doesn't block, and when it returns, nothing new has actually been painted or refreshed.
-It just appends stuff to the paint and/or refresh queues.
-
-Here's a quick rundown of what each refreshtype should be used for:
-
-* `full`: high-fidelity flashing refresh (e.g., large images).
-      Highest quality, but highest latency.
-      Don't abuse if you only want a flash (in this case, prefer `flashui` or `flashpartial`).
-* `partial`: medium fidelity refresh (e.g., text on a white background).
-       Can be promoted to flashing after `FULL_REFRESH_COUNT` refreshes.
-       Don't abuse to avoid spurious flashes.
-       In practice, this means this should mostly always be limited to ReaderUI.
-* `[partial]`: variant of partial that asks the driver not to merge this update with surrounding ones.
-         Equivalent to partial on platforms where this distinction is not implemented.
-* `ui`: medium fidelity refresh (e.g., mixed content).
-    Should apply to most UI elements.
-    When in doubt, use this.
-* `[ui]`: variant of ui that asks the driver not to merge this update with surrounding ones.
-      Equivalent to ui on platforms where this distinction is not implemented.
-* `fast`: low fidelity refresh (e.g., monochrome content (technically, from any to B&W)).
-      Should apply to most highlighting effects achieved through inversion.
-      Note that if your highlighted element contains text,
-      you might want to keep the unhighlight refresh as `"ui"` instead, for crisper text.
-      (Or optimize that refresh away entirely, if you can get away with it).
-* `a2`:   low fidelity refresh (e.g., monochrome content (technically, from B&W to B&W only)).
-      Should be limited to very specific use-cases (e.g., keyboard)
-* `flashui`: like `ui`, but flashing.
-       Can be used when showing a UI element for the first time, or when closing one, to avoid ghosting.
-* `flashpartial`: like `partial`, but flashing (and not counting towards flashing promotions).
-          Can be used when closing an UI element (usually over ReaderUI), to avoid ghosting.
-          You can even drop the region in these cases, to ensure a fullscreen flash.
-          NOTE: On REAGL devices, `flashpartial` will NOT actually flash (by design).
-            As such, even onClose, you might prefer `flashui` in most instances.
-
-NOTE: You'll notice a trend on UI elements that are usually shown *over* some kind of text (generally ReaderUI)
-of using `"ui"` onShow & onUpdate, but `"partial"` onClose.
-This is by design: `"partial"` is what the reader (ReaderUI) uses, as it's tailor-made for pure text
-over a white background, so this ensures we resume the usual flow of the reader.
-The same dynamic is true for their flashing counterparts, in the rare instances we enforce flashes.
-Any kind of `"partial"` refresh *will* count towards a flashing promotion after `FULL_REFRESH_COUNT` refreshes,
-so making sure your stuff only applies to the proper region is key to avoiding spurious large black flashes.
-That said, depending on your use case, using `"ui"` onClose can be a perfectly valid decision,
-and will ensure never seeing a flash because of that widget.
-Remember that the FM uses `"ui"`, so, if said widgets are shown over the FM,
-prefer using `"ui"` or `"flashui"` onClose.
-
-The final parameter (refreshdither) is an optional hint for devices with hardware dithering support that this repaint
-could benefit from dithering (e.g., because it contains an image).
-
-As far as the actual lifecycle of a widget goes, the rules are:
-
-* What you `show`, you `close`.
-* If you know the dimensions of the widget (or simply of the region you want to refresh), you can pass it directly:
-  * to `show` (as `show` calls `setDirty`),
-  * to `close` (as `close` will also call `setDirty` on the remaining dirty and visible widgets,
-    and will also enqueue a refresh based on that if there are dirty widgets).
-* Otherwise, you can use, respectively, a widget's `Show` & `CloseWidget` handlers for that via `setDirty` calls.
-  This can also be useful if *child* widgets have specific needs (e.g., flashing, dithering) that they want to inject in the refresh queue.
-* Remember that events propagate children first (in array order, starting at the top), and that if *any* event handler returns true,
-  the propagation of that specific event for this widget tree stops *immediately*.
-  (This generally means that, unless you know what you're doing (e.g., a widget that will *always* be used as a parent),
-   you generally *don't* want to return true in `Show` or `CloseWidget` handlers).
-* If any widget requires freeing non-Lua resources (e.g., FFI/C), having a `free` method called from its `CloseWidget` handler is ideal:
-  this'll ensure that *any* widget including it will be sure that resources are freed when it (or its parent) are closed.
-* Note that there *is* a `Close` event, but it has very specific use-cases, generally involving *programmatically* `close`ing a `show`n widget:
-  * It is broadcast (e.g., sent to every widget in the window stack; the same rules about propagation apply, but only per *window-level widget*)
-    at poweroff/reboot.
-  * It can also be used as a keypress handler by @{ui.widget.container.inputcontainer|InputContainer}, generally bound to the Back key.
-
-Please refrain from implementing custom `onExit` methods if that's not their intended purpose ;).
-
-On the subject of widgets and child widgets,
-you might have noticed an unspoken convention across the codebase of widgets having a field called `show_parent`.
-Since handling this is entirely at the programmer's behest, here's how we usually use it:
-Basically, we cascade a field named `show_parent` to every child widget that matter
-(e.g., those that serve an UI purpose, as opposed to, say, a container).
-This ensures that every subwidget can reference its actual parent
-(ideally, all the way to the window-level widget it belongs to, i.e., the one that was passed to `show`, hence the name ;)),
-to, among other things, flag the right widget for repaint via `setDirty` (c.f., those pesky debug warnings when that's done wrong ;p) when they want to request a repaint.
-This is why you often see stuff doing, when instantiating a new widget, `FancyWidget:new{ show_parent = self.show_parent or self }`;
-meaning, if I'm already a subwidget, cascade my parent, otherwise, it means I'm a window-level widget, so cascade myself as that widget's parent ;).
-
-Another convention (that a few things rely on) is naming a (persistent) MovableContainer wrapping a full widget `movable`, accessible as an instance field.
-This is useful when it's used for transparency purposes, which, e.g., `setDirty` and @{ui.widget.button|Button} rely on to handle updating translucent widgets properly,
-by checking if self.show_parent.movable exists and is currently translucent ;).
-
-When I mentioned passing the *right* widget to `setDirty` earlier, what I meant is that `setDirty` will only actually flag a widget for repaint
-*if* that widget is a window-level widget (that is, a widget that was passed to `show` earlier and hasn't been `close`'d yet),
-hence the `self.show_parent` convention detailed above to get at the proper widget from within a subwidget ;).
-Otherwise, you'll notice in debug mode that a debug guard will shout at you if that contract is broken,
-and what happens in practice is the same thing as if an explicit `nil` were passed: no widgets will actually be flagged for repaint,
-and only the *refresh* matching the requested region *will* be enqueued.
-This is why you'll find a number of valid use-cases for passing a `nil` here, when you *just* want a screen refresh without a repaint :).
-The string `"all"` is also accepted in place of a widget, and will do the obvious thing: flag the *full* window stack, bottom to top, for repaint,
-while still honoring the refresh region (e.g., this doesn't enforce a full-screen refresh).
-
-@usage
-
-UIManager:setDirty(self.widget, "partial")
-UIManager:setDirty(self.widget, "partial", Geom:new{x=10,y=10,w=100,h=50})
-UIManager:setDirty(self.widget, function() return "ui", self.someelement.dimen end)
-
-@param widget a window-level widget object, `"all"`, or `nil`
-@param refreshtype `"full"`, `"flashpartial"`, `"flashui"`, `"[partial]"`, `"[ui]"`, `"partial"`, `"ui"`, `"fast"`, `"a2"` (or a lambda, see description above)
-@param refreshregion a rectangle @{ui.geometry.Geom|Geom} object (optional, omitting it means the region will cover the full screen)
-@bool refreshdither `true` if widget requires dithering (optional)
-]]
-function UIManager:setDirty(widget, refreshtype, refreshregion, refreshdither)
-  local widget_name
-  if widget then
-    widget_name = widget.name or widget.id or tostring(widget)
-    if widget == "all" then
-      -- special case: set all top-level widgets as being "dirty".
-      for _, window in ipairs(self._window_stack) do
-        local w = window.widget
-        self._dirty[w] = true
-        -- If any of 'em were dithered, honor their dithering hint
-        if w.dithered then
-          -- NOTE: That works when refreshtype is NOT a function,
-          --     which is why _repaint does another pass of this check ;).
-          logger.dbg(
-            "setDirty on all widgets: found a dithered widget, infecting the refresh queue"
-          )
-          refreshdither = true
-        end
-      end
-    elseif not widget.invisible then
-      -- NOTE: If our widget is translucent, or belongs to a translucent MovableContainer,
-      --     we'll want to flag everything below it as dirty, too,
-      --     because doing transparency right requires having an up to date background against which to blend.
-      --     (The typecheck is because some widgets use an alpha boolean trap for internal alpha handling (e.g., ImageWidget)).
-      local handle_alpha = false
-      -- NOTE: We only ever check the dirty flag on top-level widgets, so only set it there!
-      --     Enable verbose debug to catch misbehaving widgets via our post-guard.
-      for i = #self._window_stack, 1, -1 do
-        local w = self._window_stack[i].widget
-        if handle_alpha then
-          self._dirty[w] = true
-          logger.dbg(
-            "setDirty: Marking as dirty widget:",
-            self:_widgetDebugStr(w),
-            "because it's below translucent widget:",
-            widget_name
-          )
-          -- Stop flagging widgets at the uppermost one that covers the full screen
-          if w.covers_fullscreen then
-            break
-          end
-        end
-
-        if w == widget then
-          self._dirty[widget] = true
-
-          -- We've got a match, now check if it's translucent...
-          handle_alpha = (
-            widget.alpha
-            and type(widget.alpha) == "number"
-            and widget.alpha < 1
-            and widget.alpha > 0
-          )
-            or (
-              widget.movable
-              and widget.movable.alpha
-              and widget.movable.alpha < 1
-              and widget.movable.alpha > 0
-            )
-          -- We shouldn't be seeing the same widget at two different spots in the stack, so, we're done,
-          -- except when we need to keep looping to flag widgets below us in order to handle a translucent widget...
-          if not handle_alpha then
-            break
-          end
-        end
-      end
-      -- Again, if it's flagged as dithered, honor that
-      if widget.dithered then
-        refreshdither = true
-      end
-    end
-  else
-    -- Another special case: if we did NOT specify a widget, but requested a full refresh nonetheless (i.e., a diagonal swipe),
-    -- we'll want to check the window stack in order to honor dithering...
-    if refreshtype == "full" then
-      for i = #self._window_stack, 1, -1 do
-        -- If any of 'em were dithered, honor their dithering hint
-        if self._window_stack[i].widget.dithered then
-          logger.dbg(
-            "setDirty full on no specific widget: found a dithered widget, infecting the refresh queue"
-          )
-          refreshdither = true
-          -- One is enough ;)
-          break
-        end
-      end
+function UIManager:_scheduleWidgetRefresh(widget, mode, region, dithered)
+  if type(widget) == "table" then
+    mode = mode or widget:refreshMode()
+    region = region or widget:dirtyRegion()
+    -- Avoid treating false wrongly.
+    if dithered == nil then
+      dithered = widget.dithered
     end
   end
-  -- handle refresh information
-  if type(refreshtype) == "function" then
-    -- callback, will be issued after painting
-    table.insert(self._refresh_func_stack, refreshtype)
-    if dbg.is_on then
-      -- NOTE: It's too early to tell what the function will return (especially the region), because the widget hasn't been painted yet.
-      --     Consuming the lambda now also appears have nasty side-effects that render it useless later, subtly breaking a whole lot of things...
-      --     Thankfully, we can track them in _refresh()'s logging very soon after that...
-      logger.dbg("setDirty via a func from widget", widget_name)
-    end
-  else
-    -- otherwise, enqueue refresh
-    self:_refresh(refreshtype, refreshregion, refreshdither)
-    if dbg.is_on then
-      if refreshregion then
-        logger.dbg(
-          "setDirty",
-          refreshtype,
-          "from widget",
-          widget_name,
-          "w/ region",
-          refreshregion.x,
-          refreshregion.y,
-          refreshregion.w,
-          refreshregion.h,
-          "dithering:",
-          refreshdither
-        )
+  self:scheduleRefresh(mode, region, dithered)
+end
+
+-- A workaround to handle most of the existing logic
+function UIManager:setDirty(widget, refreshMode, region)
+  if type(refreshMode) == "function" then
+    -- Have to repaint the widget first; still use :setDirty to handle various
+    -- conditions of the widget itself.
+    if widget ~= nil then
+      -- Indeed it shouldn't be necessary to provide extra function if a widget
+      -- will be repainted, but anyway, it's how most of the logic is
+      -- implemented now.
+      if widget == "all" then
+        self:scheduleRepaintAll()
       else
-        logger.dbg(
-          "setDirty",
-          refreshtype,
-          "from widget",
-          widget_name,
-          "w/ NO region; dithering:",
-          refreshdither
-        )
+        widget.delay_refresh = true
+        self:scheduleWidgetRepaint(widget)
       end
     end
+    table.insert(self._refresh_func_stack, function()
+      local m, r, d = refreshMode()
+      self:_scheduleWidgetRefresh(widget, m, r, d)
+    end)
+    return
   end
+  if widget == nil then
+    self:scheduleRefresh(refreshMode, region)
+    return
+  end
+  if widget == "all" then
+    self:scheduleRepaintAll()
+    return
+  end
+  widget.delay_refresh = true
+  self:scheduleWidgetRepaint(widget)
+  self:_scheduleWidgetRefresh(widget, refreshMode, region)
 end
 --[[
 -- NOTE: While nice in theory, this is *extremely* verbose in practice,
@@ -765,79 +669,42 @@ function UIManager:removeZMQ(zeromq)
   end
 end
 
---[[--
-Sets the full refresh rate for e-ink screens (`FULL_REFRESH_COUNT`).
-
-This is the amount of `"partial"` refreshes before the next one gets promoted to `"full"`.
-
-Also makes the refresh rate persistent in global reader settings.
-
-@see setDirty
---]]
-function UIManager:setRefreshRate(rate, night_rate)
-  logger.dbg("set screen full refresh rate", rate, night_rate)
-
-  if G_reader_settings:isTrue("night_mode") then
-    if night_rate then
-      self.FULL_REFRESH_COUNT = night_rate
+--- Returns the full refresh rate for e-ink screens (`_full_refresh_count`).
+function UIManager:updateRefreshRate()
+  local function refresh_count()
+    local r = G_named_settings.full_refresh_count()
+    -- Never fully refresh screen.
+    if r <= 0 then
+      return 0
     end
-  else
-    if rate then
-      self.FULL_REFRESH_COUNT = rate
+    -- Double the refresh rate in night_mode, black area would be way larger,
+    -- and causes more blur.
+    if G_reader_settings:isTrue("night_mode") then
+      r = math.floor(r / 2)
     end
+    if r < 1 then
+      return 1
+    end
+    return r
   end
-
-  if rate then
-    G_reader_settings:save("full_refresh_count", rate)
-  end
-  if night_rate then
-    G_reader_settings:save("night_full_refresh_count", night_rate)
-  end
+  self._full_refresh_count = refresh_count()
 end
 
---- Returns the full refresh rate for e-ink screens (`FULL_REFRESH_COUNT`).
-function UIManager:getRefreshRate()
-  return G_reader_settings:read("full_refresh_count")
-    or DEFAULT_FULL_REFRESH_COUNT,
-    G_reader_settings:read("night_full_refresh_count")
-      or G_reader_settings:read("full_refresh_count")
-      or DEFAULT_FULL_REFRESH_COUNT
-end
-
---- Toggles Night Mode (i.e., inverted rendering).
-function UIManager:ToggleNightMode(night_mode)
-  if night_mode then
-    self.FULL_REFRESH_COUNT = G_reader_settings:read("night_full_refresh_count")
-      or G_reader_settings:read("full_refresh_count")
-      or DEFAULT_FULL_REFRESH_COUNT
-  else
-    self.FULL_REFRESH_COUNT = G_reader_settings:read("full_refresh_count")
-      or DEFAULT_FULL_REFRESH_COUNT
-  end
-end
-
---- Get n.th topmost widget
-function UIManager:getNthTopWidget(n)
-  n = n and n - 1 or 0
-  if #self._window_stack - n < 1 then
-    -- No or not enough widgets in the stack, bye!
-    return nil
-  end
-
-  local widget = self._window_stack[#self._window_stack - n].widget
-  return widget
+function UIManager:toggleNightMode()
+  self:onRotation()
+  self:updateRefreshRate()
 end
 
 --- Top-to-bottom widgets iterator
 --- NOTE: VirtualKeyboard can be instantiated multiple times, and is a modal,
 --    so don't be surprised if you find a couple of instances of it at the top ;).
-function UIManager:topdown_widgets_iter()
+function UIManager:topdown_windows_iter()
   local n = #self._window_stack
   local i = n + 1
   return function()
     i = i - 1
     if i > 0 then
-      return self._window_stack[i].widget
+      return self._window_stack[i]
     end
   end
 end
@@ -846,27 +713,20 @@ end
 function UIManager:getTopmostVisibleWidget()
   for i = #self._window_stack, 1, -1 do
     local widget = self._window_stack[i].widget
-    -- Skip invisible widgets (e.g., TrapWidget)
+    -- This is a dirty hack to skip invisible widgets (i.e., TrapWidget)
     if not widget.invisible then
       return widget
     end
   end
 end
 
---- Check if a widget is still in the window stack, or is a subwidget of a widget still in the window stack.
-function UIManager:isSubwidgetShown(widget, max_depth)
-  for i = #self._window_stack, 1, -1 do
-    local w = self._window_stack[i].widget
-    local matched, depth = util.arrayReferences(w, widget, max_depth)
-    if matched then
-      return matched, depth, w
-    end
-  end
-  return false
-end
-
 --- Same as `isSubwidgetShown`, but only check window-level widgets (e.g., what's directly registered in the window stack), don't recurse.
-function UIManager:isWidgetShown(widget)
+function UIManager:isTopLevelWidget(widget)
+  -- TODO: Should assert
+  if not _isWidget(widget) then
+    return false
+  end
+
   for i = #self._window_stack, 1, -1 do
     if self._window_stack[i].widget == widget then
       return true
@@ -1107,66 +967,24 @@ function UIManager:timeSinceLastUserAction()
   return self:getElapsedTimeSinceBoot() - self:lastUserActionTime()
 end
 
--- precedence of refresh modes:
-local refresh_modes = {
-  a2 = 1,
-  fast = 2,
-  ui = 3,
-  partial = 4,
-  ["[ui]"] = 5,
-  ["[partial]"] = 6,
-  flashui = 7,
-  flashpartial = 8,
-  full = 9,
-}
--- NOTE: We might want to introduce a "force_a2" that points to fast, but has the highest priority,
---     for the few cases where we might *really* want to enforce fast (for stuff like panning or skimming?).
--- refresh methods in framebuffer implementation
-local refresh_methods = {
-  a2 = Screen.refreshA2,
-  fast = Screen.refreshFast,
-  ui = Screen.refreshUI,
-  partial = Screen.refreshPartial,
-  ["[ui]"] = Screen.refreshNoMergeUI,
-  ["[partial]"] = Screen.refreshNoMergePartial,
-  flashui = Screen.refreshFlashUI,
-  flashpartial = Screen.refreshFlashPartial,
-  full = Screen.refreshFull,
-}
-
---[[
-Compares refresh mode.
-
-Will return the mode that takes precedence.
-]]
-local function update_mode(mode1, mode2)
-  if refresh_modes[mode1] > refresh_modes[mode2] then
-    logger.dbg("update_mode: Update refresh mode", mode2, "to", mode1)
-    return mode1
-  else
-    return mode2
-  end
+function UIManager:forceFastRefresh()
+  self._force_fast_refresh = true
 end
 
---[[
-Compares dither hints.
+function UIManager:resetForceFastRefresh()
+  self._force_fast_refresh = false
+end
 
-Dither always wins.
-]]
-local function update_dither(dither1, dither2)
-  if dither1 and not dither2 then
-    logger.dbg("update_dither: Update dither hint", dither2, "to", dither1)
-    return dither1
-  else
-    return dither2
-  end
+function UIManager:duringForceFastRefresh()
+  return self._force_fast_refresh
 end
 
 --[[--
 Enqueues a refresh.
 
-Widgets call this in their `paintTo()` method in order to notify
-UIManager that a certain part of the screen is to be refreshed.
+It's very uncommon to call this function directly out of UIManager, but it's
+still usable. It notifies UIManager that a certain part of the screen needs to
+be refreshed and will be performed later.
 
 @string mode
   refresh mode (`"full"`, `"flashpartial"`, `"flashui"`, `"[partial]"`, `"[ui]"`, `"partial"`, `"ui"`, `"fast"`, `"a2"`)
@@ -1177,67 +995,14 @@ UIManager that a certain part of the screen is to be refreshed.
 @bool dither
   A hint to request hardware dithering (if supported).
   Optional, no dithering requested if not specified or not supported.
-
-@local Not to be used outside of UIManager!
 ]]
-function UIManager:_refresh(mode, region, dither)
-  if not mode then
-    -- This is most likely from a `show` or `close` that wasn't passed specific refresh details,
-    -- (which is the vast majority of them), in which case we drop it to avoid enqueuing a useless full-screen refresh.
+function UIManager:scheduleRefresh(mode, region, dither)
+  if mode == nil then
+    logger.warn("No mode provided when scheduleRefresh ", debug.traceback())
     return
   end
 
-  -- Downgrade all refreshes to "fast" when ReaderPaging or ReaderScrolling have set this flag
-  if self.currently_scrolling then
-    mode = "fast"
-  end
-
-  -- Reset the refresh counter on any explicit full refresh
-  if not region and mode == "full" then
-    self.refresh_count = 0
-  end
-
-  -- Handle downgrading flashing modes to non-flashing modes, according to user settings.
-  -- NOTE: Do it before "full" promotion and collision checks/update_mode.
-  if G_reader_settings:nilOrTrue("avoid_flashing_ui") then
-    if mode == "flashui" then
-      mode = "ui"
-      logger.dbg("_refresh: downgraded flashui refresh to", mode)
-    elseif mode == "flashpartial" then
-      mode = "partial"
-      logger.dbg("_refresh: downgraded flashpartial refresh to", mode)
-    elseif mode == "partial" and region then
-      mode = "ui"
-      logger.dbg("_refresh: downgraded regional partial refresh to", mode)
-    end
-  end
-  -- special case: "partial" refreshes
-  -- will get promoted every self.FULL_REFRESH_COUNT refreshes
-  -- since _refresh can be called multiple times via setDirty called in
-  -- different widgets before a real screen repaint, we should make sure
-  -- refresh_count is incremented by only once at most for each repaint
-  -- NOTE: Ideally, we'd only check for "partial"" w/ no region set (that neatly narrows it down to just the reader).
-  --     In practice, we also want to promote refreshes in a few other places, except purely text-poor UI elements.
-  --     (Putting "ui" in that list is problematic with a number of UI elements, most notably, ReaderHighlight,
-  --     because it is implemented as "ui" over the full viewport, since we can't devise a proper bounding box).
-  --     So we settle for only "partial", but treating full-screen ones slightly differently.
-  if
-    mode == "partial"
-    and self.FULL_REFRESH_COUNT > 0
-    and not self.refresh_counted
-  then
-    self.refresh_count = (self.refresh_count + 1) % self.FULL_REFRESH_COUNT
-    if self.refresh_count == self.FULL_REFRESH_COUNT - 1 then
-      -- NOTE: Promote to "full" if no region (reader), to "flashui" otherwise (UI)
-      if region then
-        mode = "flashui"
-      else
-        mode = "full"
-      end
-      logger.dbg("_refresh: promote refresh to", mode)
-    end
-    self.refresh_counted = true
-  end
+  assert(refresh_modes[mode] ~= nil, "Unknown refresh mode " .. tostring(mode))
 
   -- if no region is specified, use the screen's dimensions
   region = region
@@ -1245,28 +1010,6 @@ function UIManager:_refresh(mode, region, dither)
 
   -- if no dithering hint was specified, don't request dithering
   dither = dither or false
-
-  -- NOTE: While, ideally, we shouldn't merge refreshes w/ different waveform modes,
-  --     this allows us to optimize away a number of quirks of our rendering stack
-  --     (e.g., multiple setDirty calls queued when showing/closing a widget because of update mechanisms),
-  --     as well as a few actually effective merges
-  --     (e.g., the disappearance of a selection HL with the following menu update).
-  for i, refresh in ipairs(self._refresh_stack) do
-    -- Check for collisions with refreshes that are already enqueued.
-    -- NOTE: We use the open range variant, as we want to combine rectangles that share an edge (like the EPDC).
-    if region:openIntersectWith(refresh.region) then
-      -- combine both refreshes' regions
-      local combined = region:combine(refresh.region)
-      -- update the mode, if needed
-      mode = update_mode(mode, refresh.mode)
-      -- dithering hints are viral, one is enough to infect the whole queue
-      dither = update_dither(dither, refresh.dither)
-      -- remove colliding refresh
-      table.remove(self._refresh_stack, i)
-      -- and try again with combined data
-      return self:_refresh(mode, combined, dither)
-    end
-  end
 
   -- if we've stopped hitting collisions, enqueue the refresh
   logger.dbg(
@@ -1286,6 +1029,287 @@ function UIManager:_refresh(mode, region, dither)
   )
 end
 
+function UIManager:_scheduleRefreshWindowWidget(window, widget)
+  assert(window ~= nil and type(window) == "table")
+  widget = widget or window.widget
+  assert(_isWidget(widget))
+  if widget.invisible then
+    return
+  end
+  -- A dirty hack to workaround the :setDirty calls.
+  if widget.delay_refresh then
+    widget.delay_refresh = nil
+    return
+  end
+
+  -- A dirty hack to workaround the groups, they cover the entire screen but
+  -- only draw a small portion.
+  local dimen = widget:dirtyRegion()
+  -- window.x and window.y are never used, but keept the potential logic right.
+  if window.x > 0 or window.y > 0 then
+    dimen = dimen:copy():offsetBy(window.x, window.y)
+  end
+  self:scheduleRefresh(widget:refreshMode(), dimen, widget.dithered)
+end
+
+function UIManager:findWindow(window)
+  return util.arrayContains(self._window_stack, window)
+end
+
+function UIManager:_repaintDirtyWidgets()
+  if util.tableSize(self._dirty) == 0 then
+    return
+  end
+
+  -- TODO: A potential improvement is calculating the covered area from
+  -- for i = #self._window_stack, 1, -1 do
+  -- and ignore anything covered by other widget. But considering the number of
+  -- widgets showing up in the stack, it's very hard to demonstrate if it's even
+  -- necessary.
+
+  local dirty_widgets = {}
+  for _ = 1, #self._window_stack do
+    table.insert(dirty_widgets, {})
+  end
+
+  for w in pairs(self._dirty) do
+    local window = _widgetWindow(w)
+    if window ~= nil then
+      local index = self:findWindow(window)
+      -- Otherwise the window should be nil.
+      assert(index ~= false)
+      assert(index > 0)
+      assert(index <= #self._window_stack)
+      table.insert(dirty_widgets[index], w)
+    end
+  end
+
+  for i = 1, #self._window_stack do
+    if #dirty_widgets[i] > 0 then
+      -- Anything above this window needs to be repainted.
+      for j = i + 1, #self._window_stack do
+        dirty_widgets[j] = { self._window_stack[j].widget }
+      end
+      break
+    end
+  end
+
+  for i = 1, #self._window_stack do
+    table.sort(dirty_widgets[i], function(a, b)
+      return a:window_z_index() < b:window_z_index()
+    end)
+  end
+
+  for i = 1, #self._window_stack do
+    for j = 1, #dirty_widgets[i] do
+      if dirty_widgets[i][j] == nil then
+        break
+      end
+      for k = j + 1, #dirty_widgets[i] do
+        if dirty_widgets[i][k] == nil then
+          break
+        end
+        if
+          dirty_widgets[i][j]:window_z_index()
+            < dirty_widgets[i][k]:window_z_index()
+          and util.arrayDfSearch(dirty_widgets[i][j], dirty_widgets[i][k])
+        then
+          -- Still refresh its dirty region in case the ancestor doesn't think
+          -- its content has been changed.
+          -- TODO: This shouldn't be necessary, but some widget doesn't do the
+          -- right thing. E.g. ReaderUI.
+          self:_scheduleRefreshWindowWidget(
+            self._window_stack[i],
+            dirty_widgets[i][k]
+          )
+          table.remove(dirty_widgets[i], k)
+        end
+      end
+    end
+  end
+
+  for i = 1, #self._window_stack do
+    local window = self._window_stack[i]
+    for _, widget in ipairs(dirty_widgets[i]) do
+      logger.dbg("painting widget:", _widgetDebugStr(widget))
+      local paint_region = cropping_region(widget)
+      assert(paint_region ~= nil)
+      widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
+      self:_scheduleRefreshWindowWidget(window, widget)
+    end
+  end
+
+  self._dirty = {}
+end
+
+function UIManager:ignoreNextRefreshPromote()
+  self._refresh_count = self._refresh_count - 1
+end
+
+function UIManager:fullRefreshPromoteEnabled()
+  return self._full_refresh_count > 0
+end
+
+function UIManager:_decideRefreshMode(refresh)
+  local mode = refresh.mode
+  local region = refresh.region
+  assert(refresh_modes[mode] ~= nil, "Unknown refresh mode " .. tostring(mode))
+  assert(region ~= nil)
+  if mode == "a2" then
+    logger.dbg("_refreshScreen: explicitly disable a2 mode.")
+    return "fast"
+  end
+  if self:duringForceFastRefresh() and G_named_settings.low_pan_rate() then
+    -- Downgrade all refreshes to "fast" when ReaderPaging or ReaderScrolling have set this flag
+    logger.dbg(
+      "_refreshScreen: downgrading all refresh mode to fast during forceFastRefresh."
+    )
+    return "fast"
+  end
+
+  if
+    self:fullRefreshPromoteEnabled()
+    and self._refresh_count >= self._full_refresh_count
+    and region:area() >= Screen:getArea() * 0.5
+  then
+    if region:area() >= Screen:getArea() * 0.8 then
+      logger.dbg("_refreshScreen: promote ", mode, " refresh to full")
+      return "full"
+    else
+      logger.dbg("_refresh: promote ", mode, " refresh to flashui")
+      return "flashui"
+    end
+  end
+
+  -- Handle downgrading flashing modes to non-flashing modes, according to user settings.
+  -- NOTE: Do it before "full" promotion and collision checks/update_mode.
+  if G_reader_settings:nilOrTrue("avoid_flashing_ui") then
+    if mode == "flashui" then
+      logger.dbg("_refresh: downgraded flashui refresh to ui")
+      return "ui"
+    elseif mode == "flashpartial" then
+      logger.dbg("_refresh: downgraded flashpartial refresh to partial")
+      return "partial"
+    elseif mode == "partial" then
+      logger.dbg("_refresh: downgraded partial refresh to ui")
+      return "ui"
+    elseif mode == "full" then
+      logger.dbg("_refresh: downgraded full refresh to partial")
+      return "partial"
+    end
+  else
+    if mode == "fast" then
+      logger.dbg("_refresh: promote fast refresh to ui")
+      return "ui"
+    end
+  end
+
+  -- No adjustments happened, return the original input.
+  return mode
+end
+
+function UIManager:_mergeRefreshStack()
+  assert(#self._refresh_stack > 0)
+  local r = self._refresh_stack
+  table.sort(r, function(a, b)
+    if refresh_modes[a.mode] < refresh_modes[b.mode] then
+      return true
+    elseif refresh_modes[a.mode] > refresh_modes[b.mode] then
+      return false
+    end
+    -- Same refresh mode, prefer not dither.
+    if a.dither == false and b.dither == true then
+      return true
+    elseif a.dither == true and b.dither == false then
+      return false
+    end
+    -- Same refresh mode and dither, prefer smaller area - note, they do not
+    -- need to contain each other, but a smaller rect cannot include a larger
+    -- one.
+    return Geom.smallerThan(a.region, b.region)
+  end)
+
+  local i = 1
+  -- r is changing.
+  while i <= #r do
+    for j = 1, i - 1 do
+      if r[i].region:contains(r[j].region) then
+        -- Remove j
+        table.remove(r, j)
+        -- Retry
+        i = i - 2
+        break
+      end
+    end
+    i = i + 1
+  end
+
+  self._refresh_stack = {}
+  return r
+end
+
+function UIManager:_refreshScreen()
+  -- execute pending refresh functions
+  for _, refreshfunc in ipairs(self._refresh_func_stack) do
+    refreshfunc()
+  end
+  self._refresh_func_stack = {}
+
+  if #self._refresh_stack == 0 then
+    return
+  end
+
+  local refresh_stack = self:_mergeRefreshStack()
+  -- execute refreshes:
+  local large_refresh = false
+  for _, refresh in ipairs(refresh_stack) do
+    -- If HW dithering is disabled, unconditionally drop the dither flag
+    if not Screen.hw_dithering then
+      refresh.dither = nil
+    end
+    dbg:v("triggering refresh", refresh)
+
+    local mode = self:_decideRefreshMode(refresh)
+    assert(
+      refresh_modes[mode] ~= nil,
+      "Unknown refresh mode " .. tostring(mode)
+    )
+    --[[
+    -- Remember the refresh region
+    self._last_refresh_region = refresh.region:copy()
+    --]]
+    refresh_methods[mode](
+      Screen,
+      refresh.region.x,
+      refresh.region.y,
+      refresh.region.w,
+      refresh.region.h,
+      refresh.dither
+    )
+    -- This implementation sits on the safer side to only drop the upcoming
+    -- refresh mode promotion when a "flash" type refresh affects over 1/2
+    -- screen.
+    -- In theory, multiple partial "flash" type refreshes may cover the entire
+    -- screen already without needing another full "flash". But tracking it
+    -- would be very painful.
+    if refresh.region:area() >= Screen:getArea() * 0.5 then
+      -- Record how many partial refreshes happened, but ignore any small areas
+      -- like footer or clock.
+      if refresh_modes[mode] >= refresh_modes["flashui"] then
+        self._refresh_count = 0
+        large_refresh = false
+      else
+        large_refresh = true
+      end
+    end
+  end
+  -- The behavior is not very consistent, and heavily relies on the order of all
+  -- the refreshes. But it should be good enough.
+  if large_refresh then
+    self._refresh_count = self._refresh_count + 1
+  end
+end
+
 --[[--
 Repaints dirty widgets.
 
@@ -1296,131 +1320,24 @@ in which case, nothing is repainted, but the refreshes are still drained and exe
 
 @local Not to be used outside of UIManager!
 --]]
-function UIManager:_repaint()
-  -- flag in which we will record if we did any repaints at all
-  -- will trigger a refresh if set.
-  local dirty = false
-  -- remember if any of our repaints were dithered
-  local dithered = false
+function UIManager:forceRepaint()
+  Screen:beforePaint()
+  self:_repaintDirtyWidgets()
 
-  -- We don't need to call paintTo() on widgets that are under
-  -- a widget that covers the full screen
-  local start_idx = 1
-  for i = #self._window_stack, 1, -1 do
-    if self._window_stack[i].widget.covers_fullscreen then
-      start_idx = i
-      if i > 1 then
-        logger.dbg("not painting", i - 1, "covered widget(s)")
-      end
-      break
-    end
-  end
+  self:_refreshScreen()
+  Screen:afterPaint()
 
-  -- Show IDs of covered widgets when debugging
-  --[[
-  if start_idx > 1 then
-    for i = 1, start_idx-1 do
-      local widget = self._window_stack[i].widget
-      logger.dbg("NOT painting widget:", self:_widgetDebugStr(widget))
-    end
-  end
-  --]]
-
-  for i = start_idx, #self._window_stack do
-    local window = self._window_stack[i]
-    local widget = window.widget
-    -- paint if current widget or any widget underneath is dirty
-    if dirty or self._dirty[widget] then
-      -- pass hint to widget that we got when setting widget dirty
-      -- the widget can use this to decide which parts should be refreshed
-      logger.dbg("painting widget:", self:_widgetDebugStr(widget))
-      Screen:beforePaint()
-      -- NOTE: Nothing actually seems to use the final argument?
-      --     Could be used by widgets to know whether they're being repainted because they're actually dirty (it's true),
-      --     or because something below them was (it's nil).
-      widget:paintTo(Screen.bb, window.x, window.y, self._dirty[widget])
-
-      -- and remove from list after painting
-      self._dirty[widget] = nil
-
-      -- trigger a repaint for every widget above us, too
-      dirty = true
-
-      -- if any of 'em were dithered, we'll want to dither the final refresh
-      if widget.dithered then
-        logger.dbg("_repaint: it was dithered, infecting the refresh queue")
-        dithered = true
-      end
-    end
-  end
-
-  -- execute pending refresh functions
-  for _, refreshfunc in ipairs(self._refresh_func_stack) do
-    local refreshtype, region, dither = refreshfunc()
-    -- honor dithering hints from *anywhere* in the dirty stack
-    dither = update_dither(dither, dithered)
-    if refreshtype then
-      self:_refresh(refreshtype, region, dither)
-    end
-  end
-  self._refresh_func_stack = {}
-
-  -- We should have at least one refresh if we did repaint.
-  -- If we don't, add one now and log a warning if we are debugging.
-  if dirty and not self._refresh_stack[1] then
-    logger.dbg(
-      "no refresh got enqueued. Will do a partial full screen refresh, which might be inefficient"
-    )
-    self:_refresh("partial")
-  end
-
-  -- execute refreshes:
-  for _, refresh in ipairs(self._refresh_stack) do
-    -- Honor dithering hints from *anywhere* in the dirty stack
-    refresh.dither = update_dither(refresh.dither, dithered)
-    -- If HW dithering is disabled, unconditionally drop the dither flag
-    if not Screen.hw_dithering then
-      refresh.dither = nil
-    end
-    dbg:v("triggering refresh", refresh)
-
-    --[[
-    -- Remember the refresh region
-    self._last_refresh_region = refresh.region:copy()
-    --]]
-    refresh_methods[refresh.mode](
-      Screen,
-      refresh.region.x,
-      refresh.region.y,
-      refresh.region.w,
-      refresh.region.h,
-      refresh.dither
-    )
-  end
-
-  -- Don't trigger afterPaint if we did not, in fact, paint anything
-  if dirty then
-    Screen:afterPaint()
-  end
-  -- In comparison, no matter if anything was painted, at this time point, the
-  -- screen should be updated into the latest status.
+  -- No matter if anything was painted, at this time point, the screen should be
+  -- updated into the latest status.
   self._last_repaint_time = time.realtime_coarse()
-
-  self._refresh_stack = {}
-  self.refresh_counted = false
-end
-
---- Explicitly drain the paint & refresh queues *now*, instead of waiting for the next UI tick.
-function UIManager:forceRePaint()
-  self:_repaint()
-end
-
-function UIManager:avoidFlashOnNextRepaint()
-  -- Avoid going through the "partial" to "full" refresh promotion: pretend we already checked that.
-  self.refresh_counted = true
 end
 
 function UIManager:waitForScreenRefresh()
+  if Device:isEmulator() then
+    -- 100ms to make the animations more visible.
+    ffiUtil.usleep(100000)
+    return
+  end
   if not Device:hasEinkScreen() then
     return
   end
@@ -1432,104 +1349,83 @@ function UIManager:waitForScreenRefresh()
 end
 
 --[[--
-Used to repaint a specific sub-widget that isn't on the `_window_stack` itself.
-
-Useful to avoid repainting a complex widget when we just want to invert an icon, for instance.
-No safety checks on x & y *by design*. I want this to blow up if used wrong.
-
-This is an explicit repaint *now*: it bypasses and ignores the paint queue (unlike `setDirty`).
-
-@param widget a @{ui.widget.widget|widget} object
-@int x left origin of widget (in the Screen buffer, optional, will use `widget.dimen.x`)
-@int y top origin of widget (in the Screen buffer, optional, will use `widget.dimen.y`)
-]]
-function UIManager:widgetRepaint(widget, x, y)
+Schedule a widget to be repainted, it or its Widget:showParent() must be in the
+_window_stack eventually before the next repaint or it will be ignored.
+--]]
+function UIManager:scheduleWidgetRepaint(widget)
   -- TODO: Should assert.
-  if not widget then
-    return
+  if not _isWidget(widget) then
+    return false
   end
 
-  -- It's possible that the function is called before the paintTo call.
-  if widget.dimen then
-    x = x or widget.dimen.x
-    y = y or widget.dimen.y
-  end
-
-  logger.dbg("Explicit widgetRepaint:", self:_widgetDebugStr(widget), "@", x, y)
-  if widget.show_parent and widget.show_parent.cropping_widget then
-    -- The main widget parent of this subwidget has a cropping container: see if
-    -- this widget is a child of this cropping container
-    local cropping_widget = widget.show_parent.cropping_widget
-    if util.arrayReferences(cropping_widget, widget) then
-      -- Delegate the painting of this subwidget to its cropping widget container
-      cropping_widget:paintTo(
-        Screen.bb,
-        cropping_widget.dimen.x,
-        cropping_widget.dimen.y
-      )
-      return
-    end
-  end
-  widget:paintTo(Screen.bb, x, y)
+  -- Allows a widget being showed later.
+  self._dirty[widget] = true
+  return _widgetWindow(widget) ~= nil
 end
 
 --[[--
-Same idea as `widgetRepaint`, but does a simple `bb:invertRect` on the Screen buffer, without actually going through the widget's `paintTo` method.
+Ignore pending widget repaint if any.
+--]]
+function UIManager:ignoreWidgetRepaint(widget)
+  assert(_isWidget(widget))
+  if self._dirty[widget] then
+    self._dirty[widget] = nil
+    return true
+  end
+  return false
+end
+
+--[[--
+Immediately repaint the widget, relying on the widget:getSize(). The widget doesn't
+need to be in the _window_stack, i.e. not a show(widget).
+
+Use this function is dangerous, it doesn't respect the _window_stack and may
+break anything above the widget, and should only be used to show feedbacks for
+user interactions.
+--]]
+function UIManager:repaintWidget(widget)
+  assert(_isWidget(widget))
+  assert(widget:getSize() ~= nil)
+  local paint_region = cropping_region(widget)
+  assert(paint_region ~= nil)
+  widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
+  -- Explicitly using "fast" to reduce the cost of showing feedbacks.
+  self:scheduleRefresh("fast", paint_region, widget.dithered)
+end
+
+--[[--
+Same idea as `widgetRepaint`, but does a simple `bb:invertRect` on the Screen
+buffer, without actually going through the widget's `paintTo` method.
+
+Unlike :repaintWidget, it allows inverting a subset of the widget with optional
+geometry parameters.
+
+Use this function is dangerous, it doesn't respect the _window_stack and may
+break anything above the widget, and should only be used to show feedbacks for
+user interactions.
 
 @param widget a @{ui.widget.widget|widget} object
-@int x left origin of the rectangle to invert (in the Screen buffer, optional, will use `widget.dimen.x`)
-@int y top origin of the rectangle (in the Screen buffer, optional, will use `widget.dimen.y`)
-@int w width of the rectangle (optional, will use `widget.dimen.w` like `paintTo` would if omitted)
-@int h height of the rectangle (optional, will use `widget.dimen.h` like `paintTo` would if omitted)
-@see widgetRepaint
 --]]
-function UIManager:widgetInvert(widget, x, y, w, h)
-  -- TODO: Should assert.
-  if not widget then
+function UIManager:invertWidget(widget)
+  assert(_isWidget(widget))
+  local invert_region = cropping_region(widget)
+  if invert_region == nil then
     return
   end
 
-  -- It's possible that the function is called before the paintTo call.
-  if widget.dimen then
-    x = x or widget.dimen.x
-    y = y or widget.dimen.y
-    w = w or widget.dimen.w
-    h = h or widget.dimen.h
-  end
-  if not x or not y or not w or not h then
-    logger.warn(
-      "Cannot invert widget ",
-      self:_widgetDebugStr(widget),
-      " without its dimen."
-    )
-    return
-  end
-
-  logger.dbg("Explicit widgetInvert:", self:_widgetDebugStr(widget), "@", x, y)
-  if widget.show_parent and widget.show_parent.cropping_widget then
-    -- The main widget parent of this subwidget has a cropping container: see if
-    -- this widget is a child of this cropping container
-    local cropping_widget = widget.show_parent.cropping_widget
-    if util.arrayReferences(cropping_widget, widget) then
-      -- Invert only what intersects with the cropping container
-      local widget_region = Geom:new({
-        x = x,
-        y = y,
-        w = w,
-        h = h,
-      })
-      local crop_region = cropping_widget:getCropRegion()
-      local invert_region = crop_region:intersect(widget_region)
-      Screen.bb:invertRect(
-        invert_region.x,
-        invert_region.y,
-        invert_region.w,
-        invert_region.h
-      )
-      return
-    end
-  end
-  Screen.bb:invertRect(x, y, w or widget.dimen.w, h or widget.dimen.h)
+  logger.dbg(
+    "Explicit widgetInvert:",
+    _widgetDebugStr(widget),
+    "@",
+    dump(invert_region)
+  )
+  Screen.bb:invertRect(
+    invert_region.x,
+    invert_region.y,
+    invert_region.w,
+    invert_region.h
+  )
+  self:scheduleRefresh("fast", invert_region, widget.dithered)
 end
 
 function UIManager:setInputTimeout(timeout)
@@ -1543,25 +1439,44 @@ end
 -- NOTE: The Event hook mechanism used to dispatch for *every* event, and would actually pass the event along.
 --     We've simplified that to once per input frame, and without passing anything (as we, in fact, have never made use of it).
 function UIManager:handleInputEvent(input_event)
-  if
-    type(input_event) == "table"
-    and input_event.args
-    and #input_event.args > 0
-    and type(input_event.args[1]) == "table"
-    and input_event.args[1].ges == "tap"
-    and input_event.args[1].time
-    and G_reader_settings:nilOrTrue("disable_out_of_order_taps")
-  then
-    if self._last_repaint_time > input_event.args[1].time then
-      logger.dbg("Ignore out of order event " .. input_event.handler)
-      return
-    end
-  end
-  -- Compare input_event.args[1].time / 1000 / 1000 with os.time()
   local handler = self.event_handlers[input_event]
   if handler then
     handler(input_event)
   else
+    -- Compare input_event.args[1].time / 1000 / 1000 with os.time()
+    if
+      G_reader_settings:nilOrTrue("disable_out_of_order_input")
+      and type(input_event) == "table"
+    then
+      if
+        input_event.handler == "onGesture"
+        and input_event.args
+        and #input_event.args > 0
+        and type(input_event.args[1]) == "table"
+        -- hold and pan use the initial time and cannot be compared with the
+        -- repaint time.
+        -- pan_release may use the logic, but it seems less ideal if pan was
+        -- not ignored.
+        and util.arrayContains(
+          { "touch", "tap", "swipe", "two_finger_tap", "two_finger_swipe" },
+          input_event.args[1].ges
+        )
+        and input_event.args[1].time
+        and self._last_repaint_time > input_event.args[1].time
+      then
+        logger.dbg("Ignore out of order tap event ", input_event.handler)
+        return
+      end
+
+      if
+        input_event.handler == "onKeyPress"
+        and input_event.time
+        and self._last_repaint_time > input_event.time
+      then
+        logger.dbg("Ignore out of order key press event ", input_event.handler)
+        return
+      end
+    end
     self:userInput(input_event)
   end
 end
@@ -1606,7 +1521,7 @@ function UIManager:handleInput()
       end
     end
 
-    self:_repaint()
+    self:forceRepaint()
   until not self._task_queue_dirty
 
   -- NOTE: Compute deadline *before* processing ZMQs, in order to be able to catch tasks scheduled *during*
@@ -1621,7 +1536,7 @@ function UIManager:handleInput()
 
   -- If we have any ZMQs registered, ZMQ_TIMEOUT is another upper bound.
   if self._zeromqs[1] then
-    wait_us = math.min(wait_us or math.huge, self.ZMQ_TIMEOUT)
+    wait_us = math.min(wait_us or math.huge, ZMQ_TIMEOUT)
   end
 
   -- We pass that on as an absolute deadline, not a relative wait time.
@@ -1679,9 +1594,15 @@ function UIManager:handleInput()
   end
 end
 
+function UIManager:scheduleRepaintAll()
+  for _, window in ipairs(self._window_stack) do
+    self._dirty[window.widget] = true
+  end
+end
+
 function UIManager:onRotation()
-  self:setDirty("all", "full")
-  self:forceRePaint()
+  self:scheduleRepaintAll()
+  self:forceRepaint()
 end
 
 function UIManager:initLooper()
@@ -1876,22 +1797,22 @@ function UIManager:keyEvents()
     if not w then
       return
     end
-    local function check(w)
-      local c = w.key_events
-      if not c then
-        return
-      end
-      for k, v in pairs(c) do
-        if
-          not v.is_inactive
-          and k ~= "AnyKeyPressed"
-          and k ~= "SelectByShortCut"
-        then
-          key_events[k] = v
-        end
+    -- check w itself
+    local c = w.key_events
+    if not c then
+      return
+    end
+    for k, v in pairs(c) do
+      if
+        not v.is_inactive
+        and k ~= "AnyKeyPressed"
+        and k ~= "SelectByShortCut"
+      then
+        key_events[k] = v
       end
     end
-    check(w)
+
+    -- check w's sub-widgets.
     for _, widget in ipairs(w) do
       check_widget(widget)
     end
@@ -1914,7 +1835,7 @@ function UIManager:runWith(func, widget)
     })
   end
   self:show(widget)
-  self:forceRePaint()
+  self:forceRepaint()
   local wait_time = time.monotonic()
   func()
   wait_time = time.ms(200) - (time.monotonic() - wait_time)
@@ -1922,6 +1843,12 @@ function UIManager:runWith(func, widget)
     ffiUtil.usleep(wait_time)
   end
   self:close(widget)
+end
+
+function UIManager:forceRepaintIfFastRefreshEnabled()
+  if G_named_settings.fast_screen_refresh() then
+    self:forceRepaint()
+  end
 end
 
 UIManager:init()

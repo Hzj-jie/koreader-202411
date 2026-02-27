@@ -835,7 +835,7 @@ end
 function Wallabag:synchronize()
   local info = InfoMessage:new({ text = gettext("Connecting…") })
   UIManager:show(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:close(info)
 
   if self:getBearerToken() == false then
@@ -844,7 +844,7 @@ function Wallabag:synchronize()
   if self.download_queue and next(self.download_queue) ~= nil then
     info = InfoMessage:new({ text = gettext("Adding articles from queue…") })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     for _, articleUrl in ipairs(self.download_queue) do
       self:addArticle(articleUrl)
     end
@@ -857,7 +857,7 @@ function Wallabag:synchronize()
 
   info = InfoMessage:new({ text = gettext("Getting article list…") })
   UIManager:show(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:close(info)
 
   local remote_article_ids = {}
@@ -870,7 +870,7 @@ function Wallabag:synchronize()
 
       info = InfoMessage:new({ text = gettext("Downloading articles…") })
       UIManager:show(info)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
       UIManager:close(info)
       for _, article in ipairs(articles) do
         logger.dbg("Wallabag: processing article ID: ", article.id)
@@ -916,7 +916,7 @@ function Wallabag:processRemoteDeletes(remote_article_ids)
   local info =
     InfoMessage:new({ text = gettext("Synchronizing remote deletions…") })
   UIManager:show(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:close(info)
   local deleted_count = 0
   for entry in lfs.dir(self.directory) do
@@ -957,7 +957,7 @@ function Wallabag:processLocalFiles(mode)
     local info =
       InfoMessage:new({ text = gettext("Processing local files…") })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     UIManager:close(info)
     for entry in lfs.dir(self.directory) do
       if entry ~= "." and entry ~= ".." then
@@ -1143,7 +1143,6 @@ function Wallabag:setFilterTag(touchmenu_instance)
     },
   })
   UIManager:show(self.tag_dialog)
-  self.tag_dialog:showKeyboard()
 end
 
 function Wallabag:setTagsDialog(
@@ -1180,7 +1179,6 @@ function Wallabag:setTagsDialog(
     },
   })
   UIManager:show(self.tags_dialog)
-  self.tags_dialog:showKeyboard()
 end
 
 function Wallabag:editServerSettings()
@@ -1255,7 +1253,6 @@ Restart KOReader after editing the config file.]]),
     },
   })
   UIManager:show(self.settings_dialog)
-  self.settings_dialog:showKeyboard()
 end
 
 function Wallabag:editClientSettings()
@@ -1292,7 +1289,6 @@ function Wallabag:editClientSettings()
     },
   })
   UIManager:show(self.client_settings_dialog)
-  self.client_settings_dialog:showKeyboard()
 end
 
 function Wallabag:setDownloadDirectory(touchmenu_instance)

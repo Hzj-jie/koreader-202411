@@ -195,7 +195,7 @@ if Device:hasEinkScreen() and Device:isKobo() then
       G_reader_settings:save(
         "mxcfb_bypass_wait_for",
         not mxcfb_bypass_wait_for,
-        not Devide:hasReliableMxcWaitFor()
+        not Device:hasReliableMxcWaitFor()
       )
       UIManager:askForRestart()
     end,

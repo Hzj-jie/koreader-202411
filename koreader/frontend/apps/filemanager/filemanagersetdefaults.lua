@@ -21,10 +21,8 @@ local SetDefaultsWidget = CenterContainer:extend({
 })
 
 function SetDefaultsWidget:init()
-  -- This would usually be passed to the constructor, as CenterContainer's paintTo does *NOT* set/update self.dimen...
+  -- This would usually be passed to the constructor, as CenterContainer's paintTo does *NOT* set/update self:getSize()...
   self.dimen = Screen:getSize()
-  -- Don't refresh the FM behind us. May leave stray bits of overflowed InputDialog behind in the popout border space.
-  self.covers_fullscreen = true
 
   -- Then deal with our child widgets and our internal variables
   self.screen_width = Screen:getWidth()
@@ -130,7 +128,6 @@ function SetDefaultsWidget:init()
           width = self.dialog_width,
         })
         UIManager:show(set_dialog)
-        set_dialog:showKeyboard()
       end
 
       table.insert(self.menu_entries, {
@@ -191,7 +188,6 @@ function SetDefaultsWidget:init()
           width = self.dialog_width,
         })
         UIManager:show(set_dialog)
-        set_dialog:showKeyboard()
       end
 
       table.insert(self.menu_entries, {
@@ -244,7 +240,6 @@ function SetDefaultsWidget:init()
           width = self.dialog_width,
         })
         UIManager:show(set_dialog)
-        set_dialog:showKeyboard()
       end
 
       table.insert(self.menu_entries, {
@@ -259,7 +254,6 @@ function SetDefaultsWidget:init()
   self.defaults_menu = Menu:new({
     width = self.screen_width - (Size.margin.fullscreen_popout * 2),
     height = self.screen_height - (Size.margin.fullscreen_popout * 2),
-    show_parent = self,
     item_table = self.menu_entries,
     title = gettext("Defaults"),
   })
@@ -362,11 +356,11 @@ function SetDefaults:ConfirmEdit()
       ),
       ok_callback = function()
         SetDefaults.EditConfirmed = true
-        UIManager:show(SetDefaultsWidget:new({}))
+        UIManager:show(SetDefaultsWidget:new())
       end,
     }))
   else
-    UIManager:show(SetDefaultsWidget:new({}))
+    UIManager:show(SetDefaultsWidget:new())
   end
 end
 

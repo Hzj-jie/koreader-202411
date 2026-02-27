@@ -408,7 +408,7 @@ local settingsList = {
   },
   set_night_mode = {
     category = "string",
-    event = "SetNightMode",
+    event = "ToggleNightMode",
     title = gettext("Set night mode"),
     screen = true,
     args = { true, false },
@@ -424,79 +424,12 @@ local settingsList = {
   },
   set_refresh_rate = {
     category = "absolutenumber",
-    event = "SetBothRefreshRates",
+    event = "SetRefreshRate",
     min = -1,
     max = 200,
     title = gettext("Full refresh rate (always)"),
     screen = true,
     condition = Device:hasEinkScreen(),
-  },
-  set_day_refresh_rate = {
-    category = "absolutenumber",
-    event = "SetDayRefreshRate",
-    min = -1,
-    max = 200,
-    title = gettext("Full refresh rate (not in night mode)"),
-    screen = true,
-    condition = Device:hasEinkScreen(),
-  },
-  set_night_refresh_rate = {
-    category = "absolutenumber",
-    event = "SetNightRefreshRate",
-    min = -1,
-    max = 200,
-    title = gettext("Full refresh rate (in night mode)"),
-    screen = true,
-    condition = Device:hasEinkScreen(),
-  },
-  set_flash_on_chapter_boundaries = {
-    category = "string",
-    event = "SetFlashOnChapterBoundaries",
-    title = gettext("Always flash on chapter boundaries"),
-    screen = true,
-    condition = Device:hasEinkScreen(),
-    args = { true, false },
-    toggle = { gettext("on"), gettext("off") },
-  },
-  toggle_flash_on_chapter_boundaries = {
-    category = "none",
-    event = "ToggleFlashOnChapterBoundaries",
-    title = gettext("Toggle flashing on chapter boundaries"),
-    screen = true,
-    condition = Device:hasEinkScreen(),
-  },
-  set_no_flash_on_second_chapter_page = {
-    category = "string",
-    event = "SetNoFlashOnSecondChapterPage",
-    title = gettext("Never flash on chapter's 2nd page"),
-    screen = true,
-    condition = Device:hasEinkScreen(),
-    args = { true, false },
-    toggle = { gettext("on"), gettext("off") },
-  },
-  toggle_no_flash_on_second_chapter_page = {
-    category = "none",
-    event = "ToggleNoFlashOnSecondChapterPage",
-    title = gettext("Toggle flashing on chapter's 2nd page"),
-    screen = true,
-    condition = Device:hasEinkScreen(),
-  },
-  set_flash_on_pages_with_images = {
-    category = "string",
-    event = "SetFlashOnPagesWithImages",
-    title = gettext("Always flash on pages with images"),
-    screen = true,
-    condition = Device:hasEinkScreen(),
-    args = { true, false },
-    toggle = { gettext("on"), gettext("off") },
-  },
-  toggle_flash_on_pages_with_images = {
-    category = "none",
-    event = "ToggleFlashOnPagesWithImages",
-    title = gettext("Toggle flashing on pages with images"),
-    screen = true,
-    condition = Device:hasEinkScreen(),
-    separator = true,
   },
   ----
 
@@ -1135,14 +1068,6 @@ local dispatcher_menu_order = {
   ----
   "full_refresh",
   "set_refresh_rate",
-  "set_day_refresh_rate",
-  "set_night_refresh_rate",
-  "set_flash_on_chapter_boundaries",
-  "toggle_flash_on_chapter_boundaries",
-  "set_no_flash_on_second_chapter_page",
-  "toggle_no_flash_on_second_chapter_page",
-  "set_flash_on_pages_with_images",
-  "toggle_flash_on_pages_with_images",
   ----
 
   -- File browser
@@ -1392,8 +1317,6 @@ Adds settings at runtime.
     function Hello:init()
         self:onDispatcherRegisterActions()
     end
-
-
 @param name the key to use in the table
 @param value a table per settingsList above
 --]]

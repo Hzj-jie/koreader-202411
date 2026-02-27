@@ -91,7 +91,6 @@ function FlomoExporter:getMenuTable()
             },
           })
           UIManager:show(auth_dialog)
-          auth_dialog:showKeyboard()
         end,
       },
       {

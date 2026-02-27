@@ -48,6 +48,9 @@ The following don't concern us and we can survive if the values are bogus:
                       Should be `vinfo.yres_virtual` >= `vinfo.yres`.
 --]]
 
+-- See framebuffer_einkfb.
+function framebuffer:initInvert() end
+
 function framebuffer:init()
   self._finfo = ffi.new("struct fb_fix_screeninfo")
   self._vinfo = ffi.new("struct fb_var_screeninfo")
@@ -168,11 +171,7 @@ function framebuffer:reinit()
   -- Same for the current hardware rotation, it's potentially useful info on the Kobo Forma
   self.fb_rota = vinfo.rotate
 
-  if ffi.string(finfo.id, 7) == "eink_fb" then
-    -- classic eink framebuffer driver has grayscale values inverted (i.e. 0xF = black, 0 = white)
-    -- technically a device quirk, but hopefuly generic enough to warrant being here
-    self.bb:invert()
-  end
+  self:initInvert()
 
   self.screen_size = self:getRawSize()
   self.bb:fill(BB.COLOR_WHITE)

@@ -6,7 +6,6 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local Math = require("optmath")
 local UIManager = require("ui/uimanager")
 local bit = require("bit")
-local gettext = require("gettext")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
@@ -382,7 +381,6 @@ function ReaderPaging:onScrollSettingsUpdated(
         if not self.ui.document then
           return false
         end
-        UIManager.currently_scrolling = true
         local top_page, top_position = self:getTopPage(), self:getTopPosition()
         self:onPanningRel(distance)
         return not (
@@ -391,7 +389,6 @@ function ReaderPaging:onScrollSettingsUpdated(
         )
       end,
       function() -- scroll_done_callback
-        UIManager.currently_scrolling = false
         UIManager:setDirty(self.view.dialog, "partial")
       end
     )
@@ -410,7 +407,7 @@ function ReaderPaging:onSwipe(_, ges)
     return true
   else
     self._pan_started = false
-    UIManager.currently_scrolling = false
+    UIManager:resetForceFastRefresh()
     self._pan_page_states_to_restore = nil
   end
   local direction = BD.flipDirectionIfMirroredUILayout(ges.direction)
@@ -535,7 +532,7 @@ function ReaderPaging:onPan(_, ges)
         self._pan_to_scroll_later = 0
         if dist ~= 0 then
           self._pan_has_scrolled = true
-          UIManager.currently_scrolling = true
+          UIManager:forceFastRefresh()
           self:onPanningRel(dist)
         end
       else
@@ -559,7 +556,7 @@ function ReaderPaging:onPanRelease(_, ges)
     end
     self._pan_started = false
     self._pan_page_states_to_restore = nil
-    UIManager.currently_scrolling = false
+    UIManager:resetForceFastRefresh()
     if self._pan_has_scrolled then
       self._pan_has_scrolled = false
       -- Don't do any inertial scrolling if pan events come from
@@ -590,7 +587,7 @@ function ReaderPaging:onHandledAsSwipe()
     self._pan_page_states_to_restore = nil
     self._pan_started = false
     self._pan_has_scrolled = false
-    UIManager.currently_scrolling = false
+    UIManager:resetForceFastRefresh()
   end
   return true
 end
@@ -780,7 +777,7 @@ function ReaderPaging:getNextPageState(blank_area, image_offset)
     self.view.state.zoom,
     self.view.state.rotation
   )
-  local visible_area = Geom:new({ x = 0, y = 0 })
+  local visible_area = Geom:new()
   visible_area.w, visible_area.h = blank_area.w, blank_area.h
   visible_area.x, visible_area.y = page_area.x, page_area.y
   visible_area =
@@ -808,7 +805,7 @@ function ReaderPaging:getPrevPageState(blank_area, image_offset)
     self.view.state.zoom,
     self.view.state.rotation
   )
-  local visible_area = Geom:new({ x = 0, y = 0 })
+  local visible_area = Geom:new()
   visible_area.w, visible_area.h = blank_area.w, blank_area.h
   visible_area.x = page_area.x
   visible_area.y = page_area.y + page_area.h - visible_area.h
@@ -933,7 +930,7 @@ function ReaderPaging:genPageStatesFromBottom(
     -- We reached the start of document: we may have truncated too much
     -- of the bottom page while scrolling up.
     -- Re-generate everything with first page starting at top
-    offset = Geom:new({ x = 0, y = 0 })
+    offset = Geom:new()
     blank_area:setSizeTo(self.view.visible_area)
     local first_page_state = page_states[1]
     first_page_state.visible_area.y = 0 -- anchor first page at top
@@ -1140,8 +1137,6 @@ function ReaderPaging:onGotoPageRel(diff)
   -- Move the view area towards line end
   new_va[x] = old_va[x] + x_pan_off
   new_va[y] = old_va[y]
-
-  local prev_page = self.current_page
 
   -- Handle cases when the view area gets out of page boundaries
   if not self.page_area:contains(new_va) then

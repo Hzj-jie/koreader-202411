@@ -130,7 +130,7 @@ function Terminal:getDefaultShellExecutable()
     table.insert(shell, 1, env_shell)
   end
 
-  for dummy, file in ipairs(shell) do
+  for __, file in ipairs(shell) do
     if self:isExecutable(file) then
       self.default_shell_executable = file
       break
@@ -465,9 +465,9 @@ function Terminal:generateInputDialog()
         {
           text = "☰", -- settings menu
           callback = function()
-            UIManager:close(self.input_widget.keyboard)
+            self.input_widget:closeKeyboard()
             Aliases:show(self.terminal_data .. "/scripts/aliases", function()
-              UIManager:show(self.input_widget.keyboard)
+              self.input_widget:showKeyboard()
               UIManager:setDirty(self.input_dialog, "fast") -- is there a better solution
             end, self)
           end,
@@ -566,7 +566,6 @@ function Terminal:onTerminalStart(touchmenu_instance)
   if self:spawnShell(self.maxc, self.maxr) then
     UIManager:show(self.input_dialog)
     UIManager:scheduleIn(0.25, Terminal.refresh, self, true)
-    self.input_dialog:showKeyboard(true)
   end
 end
 
@@ -746,7 +745,6 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             },
           })
           UIManager:show(self.shell_dialog)
-          self.shell_dialog:showKeyboard()
         end,
         keep_menu_open = true,
       },

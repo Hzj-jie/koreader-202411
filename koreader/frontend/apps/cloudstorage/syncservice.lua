@@ -20,7 +20,6 @@ local indent = ""
 
 local SyncService = Menu:extend({
   no_title = false,
-  show_parent = nil,
   is_popout = false,
   is_borderless = true,
   title = gettext("Cloud sync settings"),
@@ -76,7 +75,7 @@ function SyncService:generateItemTable()
     text = gettext("Add service"),
     bold = true,
     callback = function()
-      local cloud_storage = require("apps/cloudstorage/cloudstorage"):new({})
+      local cloud_storage = require("apps/cloudstorage/cloudstorage"):new()
       local onExit = cloud_storage.onExit
       cloud_storage.onExit = function(this)
         onExit(this)

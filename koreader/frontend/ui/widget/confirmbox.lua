@@ -36,7 +36,6 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local gettext = require("gettext")
-local Input = Device.input
 local Screen = Device.screen
 
 local ConfirmBox = InputContainer:extend({
@@ -91,7 +90,7 @@ function ConfirmBox:init()
   if self._added_widgets then
     table.insert(
       self.text_group,
-      VerticalSpan:new({ width = Size.padding.large })
+      VerticalSpan:new({ height = Size.padding.large })
     )
     for _, widget in ipairs(self._added_widgets) do
       table.insert(self.text_group, widget)
@@ -158,7 +157,6 @@ function ConfirmBox:init()
     width = content:getSize().w,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
 
   local frame = FrameContainer:new({
@@ -170,7 +168,7 @@ function ConfirmBox:init()
       align = "left",
       content,
       -- Add same vertical space after than before content
-      VerticalSpan:new({ width = self.margin + self.padding }),
+      VerticalSpan:new({ height = self.margin + self.padding }),
       button_table,
     }),
   })

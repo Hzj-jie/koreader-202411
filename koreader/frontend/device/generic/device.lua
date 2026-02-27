@@ -36,7 +36,9 @@ local Device = {
   -- hardware feature tests: (these are functions!)
   hasBattery = util.yes,
   hasAuxBattery = util.no,
+  -- Has an almost full keyboard, e.g. Kindle 2, 3, DX and DXG.
   hasKeyboard = util.no,
+  -- Has some physical keys, not include power button.
   hasKeys = util.no,
   hasScreenKB = util.no, -- in practice only some Kindles
   hasSymKey = util.no, -- in practice only some Kindles
@@ -44,6 +46,7 @@ local Device = {
   hasDPad = util.no,
   useDPadAsActionKeys = util.no,
   hasExitOptions = util.yes,
+  -- Has very limited physical keys, used only on pocketbook models.
   hasFewKeys = util.no,
   hasWifiToggle = util.yes,
   hasSeamlessWifiToggle = util.yes, -- Can toggle Wi-Fi without focus loss and extra user interaction (i.e., not Android)
@@ -268,7 +271,7 @@ function Device:init()
   -- But as implementations come from base, they just return a Geom-like table...
   self.screen.getSize = function()
     local rect = self.screen.getRawSize(self.screen)
-    return Geom:new({ x = rect.x, y = rect.y, w = rect.w, h = rect.h })
+    return Geom:new({ x = rect.x or 0, y = rect.y or 0, w = rect.w, h = rect.h })
   end
 
   -- DPI
@@ -279,9 +282,7 @@ function Device:init()
 
   -- Night mode
   self.orig_hw_nightmode = self.screen:getHWNightmode()
-  if G_reader_settings:isTrue("night_mode") then
-    self.screen:toggleNightMode()
-  end
+  self.screen:setNightmode(G_reader_settings:isTrue("night_mode"))
 
   -- Ensure the proper rotation on startup.
   -- We default to the rotation KOReader closed with.
@@ -416,7 +417,7 @@ function Device:handlePowerEvent(ev)
       )
     end
     -- NOTE: In the same vein as above, make sure we update the screen *now*, before dealing with Wi-Fi.
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     -- NOTE: This side of the check needs to be laxer, some platforms can handle Wi-Fi without WifiManager ;).
     if self:hasWifiToggle() then
       -- NOTE: wifi_was_on does not necessarily mean that Wi-Fi is *currently* on! It means *we* enabled it.
@@ -435,7 +436,7 @@ end
 
 function Device:showLightDialog()
   local FrontLightWidget = require("ui/widget/frontlightwidget")
-  UIManager:show(FrontLightWidget:new({}))
+  UIManager:show(FrontLightWidget:new())
 end
 
 function Device:info()
@@ -619,7 +620,7 @@ function Device:exit()
   )
 
   -- Restore initial HW inversion state
-  self.screen:setHWNightmode(self.orig_hw_nightmode)
+  self.screen:setNightmode(self.orig_hw_nightmode)
 
   -- Tear down the fb backend
   self.screen:close()

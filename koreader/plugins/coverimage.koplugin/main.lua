@@ -19,7 +19,7 @@ then
   return { disabled = true }
 end
 
-local A, android = pcall(require, "android") -- luacheck: ignore
+local __, android = pcall(require, "android")
 local Blitbuffer = require("ffi/blitbuffer")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
@@ -305,7 +305,7 @@ function CoverImage:getCacheFile(custom_cover)
   local custom_cover_mtime = custom_cover
       and lfs.attributes(custom_cover, "modification")
     or ""
-  local dummy, document_name = util.splitFilePathName(self.ui.document.file)
+  local __, document_name = util.splitFilePathName(self.ui.document.file)
   -- use document_name here. Title may contain characters not allowed on every filesystem (esp. vfat on /sdcard)
   local key = document_name
     .. custom_cover_mtime
@@ -467,7 +467,7 @@ function CoverImage:choosePathFile(
   new_file,
   migrate
 )
-  local old_path, dummy = util.splitFilePathName(self[key])
+  local old_path = util.splitFilePathName(self[key])
   UIManager:show(PathChooser:new({
     select_directory = folder_only or new_file,
     select_file = not folder_only,
@@ -520,7 +520,6 @@ function CoverImage:choosePathFile(
           },
         })
         UIManager:show(file_input)
-        file_input:showKeyboard()
       elseif mode == "file" then -- just select an existing file
         if migrate then
           migrate(self, self[key], dir_path)

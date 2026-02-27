@@ -16,7 +16,6 @@ local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local gettext = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 local time = require("ui/time")
@@ -338,12 +337,12 @@ function FootnoteWidget:init()
         h = top_border_size,
       }),
     }),
-    VerticalSpan:new({ width = padding_top }),
+    VerticalSpan:new({ height = padding_top }),
     HorizontalGroup:new({
       self.htmlwidget,
       HorizontalSpan:new({ width = padding_right }),
     }),
-    VerticalSpan:new({ width = padding_bottom }),
+    VerticalSpan:new({ height = padding_bottom }),
   })
 
   -- If htmlwidget contains only one page (small footnote content),
@@ -452,13 +451,11 @@ function FootnoteWidget:onSwipeFollow(arg, ges)
       self.close_callback(self.height)
     end
     return true
-  elseif direction == "north" then
+  elseif direction == "north" then -- luacheck: ignore 542
     -- no use for now
-    do
-    end -- luacheck: ignore 541
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
   end

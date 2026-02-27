@@ -20,9 +20,9 @@ Example:
 
 local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
-local Geom = require("ui/geometry")
 local Size = require("ui/size")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local logger = require("logger")
 
 local FrameContainer = WidgetContainer:extend({
   background = nil,
@@ -50,7 +50,7 @@ local FrameContainer = WidgetContainer:extend({
   stripe_over_alpha = 1,
 })
 
-function FrameContainer:getSize()
+function FrameContainer:_containerSize()
   local content_size = self[1]:getSize()
   self._padding_top = self.padding_top or self.padding
   self._padding_right = self.padding_right or self.padding
@@ -60,16 +60,39 @@ function FrameContainer:getSize()
     self._padding_left, self._padding_right =
       self._padding_right, self._padding_left
   end
-  return Geom:new({
-    w = content_size.w
-      + (self.margin + self.bordersize) * 2
-      + self._padding_left
-      + self._padding_right,
-    h = content_size.h
-      + (self.margin + self.bordersize) * 2
-      + self._padding_top
-      + self._padding_bottom,
-  })
+  local width = content_size.w
+    + (self.margin + self.bordersize) * 2
+    + self._padding_left
+    + self._padding_right
+  local height = content_size.h
+    + (self.margin + self.bordersize) * 2
+    + self._padding_top
+    + self._padding_bottom
+  return width, height
+end
+
+function FrameContainer:getSize()
+  local width, height = self:_containerSize()
+  if self.width and self.width < width then
+    logger.warn(
+      "FixMe: FrameContainer self.width ",
+      self.width,
+      " < content.width ",
+      width
+    )
+    self.width = width
+  end
+  if self.height and self.height < height then
+    logger.warn(
+      "FixMe: FrameContainer self.height ",
+      self.height,
+      " < content.height ",
+      height
+    )
+    self.height = height
+  end
+  self:mergeSize(self.width or width, self.height or height)
+  return self.dimen
 end
 
 function FrameContainer:onFocus()
@@ -98,24 +121,17 @@ function FrameContainer:onUnfocus()
 end
 
 function FrameContainer:paintTo(bb, x, y)
-  local my_size = self:getSize()
-  if not self.dimen then
-    self.dimen = Geom:new({
-      x = x,
-      y = y,
-      w = my_size.w,
-      h = my_size.h,
-    })
-  else
-    self.dimen.x = x
-    self.dimen.y = y
-  end
-  local container_width = self.width or my_size.w
-  local container_height = self.height or my_size.h
+  self:mergePosition(x, y)
+  local width, height = self:_containerSize()
+  -- TODO: Remove. Expose self.dimen, it's wrong, but some uses are not calling
+  -- :getSize()
+  self:getSize()
+  local container_width = self.width or width
+  local container_height = self.height or height
 
   local shift_x = 0
   if BD.mirroredUILayout() and self.allow_mirroring then
-    shift_x = container_width - my_size.w
+    shift_x = container_width - width
   end
 
   if self.background then

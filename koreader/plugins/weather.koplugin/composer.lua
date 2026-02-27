@@ -1,5 +1,4 @@
 local gettext = require("gettext")
-local logger = require("logger")
 
 local Composer = {
   settings = {},
@@ -18,8 +17,6 @@ end
 -- @returns array
 --
 function Composer:createCurrentForecast(data)
-  local view_content = {}
-
   local condition = data.condition.text
   local feelslike
 
@@ -29,7 +26,7 @@ function Composer:createCurrentForecast(data)
     feelslike = data.feelslike_f .. " °F"
   end
 
-  view_content = {
+  return {
     {
       "Currently feels like ",
       feelslike,
@@ -40,21 +37,16 @@ function Composer:createCurrentForecast(data)
     },
     "---",
   }
-
-  return view_content
 end
 --
 -- Takes data.forecast.forecastday
 --
 function Composer:createForecastFromDay(data)
-  local view_content = {}
   -- The values I'm interested in seeing
-  local date = data.date
   local condition = data.day.condition.text
   local avg_temp
   local max_temp
   local min_temp
-  local uv = data.day.uv
   local moon_phase = data.astro.moon_phase
     .. ", "
     .. data.astro.moon_illumination
@@ -75,7 +67,7 @@ function Composer:createForecastFromDay(data)
   end
 
   -- Set and order the data
-  view_content = {
+  return {
     {
       "High of",
       max_temp,
@@ -116,8 +108,6 @@ function Composer:createForecastFromDay(data)
     },
     "---",
   }
-
-  return view_content
 end
 ---
 ---
@@ -166,8 +156,6 @@ function Composer:hourlyView(data, callback)
 end
 
 function Composer:forecastForHour(data)
-  local view_content = {}
-
   local feelslike
   local windchill
   local heatindex
@@ -176,7 +164,6 @@ function Composer:forecastForHour(data)
   local precip
   local wind
 
-  local humidity = data.humidity
   local time = data.time
   local condition = data.condition.text
   local uv = data.uv
@@ -199,7 +186,7 @@ function Composer:forecastForHour(data)
     wind = data.wind_mph .. " MPH"
   end
 
-  view_content = {
+  return {
     {
       "Time",
       time,
@@ -244,8 +231,6 @@ function Composer:forecastForHour(data)
       uv,
     },
   }
-
-  return view_content
 end
 --
 --
@@ -258,9 +243,9 @@ function Composer:createWeeklyForecast(data, callback)
   for _, r in ipairs(data.forecast.forecastday) do
     local date = r.date
     local condition = r.day.condition.text
-    local avg_temp = nil
-    local max_temp = nil
-    local min_temp = nil
+    local avg_temp
+    local max_temp
+    local min_temp
 
     if self.settings:celsius() then
       avg_temp = r.day.avgtemp_c .. "°C"

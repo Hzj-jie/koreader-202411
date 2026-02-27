@@ -471,13 +471,13 @@ function SystemStat:appendStorageInfo()
   local std_out = io.popen(
     "df -h | sed -r 's/ +/ /g' | grep "
       .. self.storage_filter
-      .. " | sed 's/ /\\t/g' | cut -f 2,4,5,6"
+      .. " | cut -d' ' -f 2,4,5,6"
   )
   assert(std_out ~= nil)
 
   self:put({ gettext("Storage information"), "" })
   for line in std_out:lines() do
-    local t = util.splitToArray(line, "\t")
+    local t = util.splitToArray(line, " ")
     if #t ~= 4 then
       self:put({ gettext("  Unexpected"), line })
     else

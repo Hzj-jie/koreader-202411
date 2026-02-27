@@ -10,7 +10,6 @@ local time = require("ui/time")
 local util = require("util")
 
 -- We're going to need a few <linux/fb.h> & <linux/input.h> constants...
-local ffi = require("ffi")
 local C = ffi.C
 require("ffi/linux_fb_h")
 require("ffi/linux_input_h")
@@ -117,7 +116,6 @@ local function kindleGetScanList()
 end
 
 local function kindleScanThenGetResults()
-  local gettext = require("gettext")
   local lipc = LibLipcs:accessor()
   if LibLipcs:isFake(lipc) then
     return nil, gettext("Unable to communicate with the Wi-Fi backend")
@@ -327,7 +325,7 @@ function Kindle:initNetworkManager(NetworkMgr)
       end
       -- It's impossible to force a sync wifi connection operation, but can only
       -- rely on the NetworkMgr:connectivityCheck to verify the state.
-      return EBUSY
+      return NetworkMgr.EBUSY
     end
   else
     -- If we can't use the lipc Lua bindings, we can't support any kind of interactive Wi-Fi UI...
@@ -375,15 +373,6 @@ function Kindle:initNetworkManager(NetworkMgr)
       return nil, err
     end
 
-    -- trick ui/widget/networksetting into displaying the correct signal strength icon
-    local qualities = {
-      [1] = 0,
-      [2] = 6,
-      [3] = 31,
-      [4] = 56,
-      [5] = 81,
-    }
-
     local network_list = {}
     local saved_profiles = kindleGetSavedNetworks()
     local current_profile = kindleGetCurrentProfile()
@@ -419,7 +408,9 @@ function Kindle:initNetworkManager(NetworkMgr)
           network.signal,
           network.signal_max
         ),
-        signal_quality = qualities[network.signal],
+        -- trick ui/widget/networksetting into displaying the correct signal
+        -- strength icon
+        signal_quality = (network.signal - 1) * 25,
         connected = connected,
         flags = network.key_mgmt,
         ssid = network.essid ~= "" and network.essid,
@@ -1391,6 +1382,32 @@ function KindleVoyage:init()
       1
     )
   end
+end
+
+function KindleVoyage:pagePressPressure()
+  local lipc = LibLipcs:accessor()
+  assert(not LibLipcs:isFake(lipc))
+  return lipc:get_int_property("com.lab126.deviced", "fsrkeypadPressure")
+end
+
+function KindleVoyage:setPagePressPressure(v)
+  assert(v >= 0 and v <= 2)
+  local lipc = LibLipcs:accessor()
+  assert(not LibLipcs:isFake(lipc))
+  lipc:set_int_property("com.lab126.deviced", "fsrkeypadPressure", v)
+end
+
+function KindleVoyage:pagePressFeedback()
+  local lipc = LibLipcs:accessor()
+  assert(not LibLipcs:isFake(lipc))
+  return lipc:get_int_property("com.lab126.deviced", "hapticAmplitude")
+end
+
+function KindleVoyage:setPagePressFeedback(v)
+  assert(v >= 0 and v <= 3)
+  local lipc = LibLipcs:accessor()
+  assert(not LibLipcs:isFake(lipc))
+  lipc:set_int_property("com.lab126.deviced", "hapticAmplitude", v)
 end
 
 function KindlePaperWhite3:init()

@@ -467,7 +467,7 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
   -- Initialize the new row that we will INSERT
   local dbrow = {}
   -- Actually no need to initialize with nil values:
-  -- for dummy, col in ipairs(BOOKINFO_COLS_SET) do
+  -- for __, col in ipairs(BOOKINFO_COLS_SET) do
   --     dbrow[col] = nil
   -- end
   dbrow.directory = directory
@@ -928,7 +928,7 @@ Do you want to prune the cache of removed books?]]),
       info =
         InfoMessage:new({ text = gettext("Pruning cache of removed books…") })
       UIManager:show(info)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
       completed, summary = Trapper:dismissableRunInSubprocess(function()
         return self:removeNonExistantEntries()
       end, info)
@@ -940,7 +940,7 @@ Do you want to prune the cache of removed books?]]),
         UIManager:close(info)
         info = InfoMessage:new({ text = summary })
         UIManager:show(info)
-        UIManager:forceRePaint()
+        UIManager:forceRepaint()
         FFIUtil.sleep(2) -- Let the user see that
         break
       end
@@ -952,7 +952,7 @@ Do you want to prune the cache of removed books?]]),
   while true do
     info = InfoMessage:new({ text = gettext("Looking for books to index…") })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     completed, files = Trapper:dismissableRunInSubprocess(function()
       local filepaths = findFilesInDir(path, recursive)
       table.sort(filepaths)
@@ -981,7 +981,7 @@ Do you want to prune the cache of removed books?]]),
       ),
     })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     FFIUtil.sleep(2) -- Let the user see that
   else
     local all_files = files
@@ -995,7 +995,7 @@ Do you want to prune the cache of removed books?]]),
         ),
       })
       UIManager:show(info)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
       FFIUtil.sleep(2) -- Let the user see that
       completed, files = Trapper:dismissableRunInSubprocess(function()
         files = {}
@@ -1043,7 +1043,7 @@ Do you want to prune the cache of removed books?]]),
       ),
     })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     FFIUtil.sleep(2) -- Let the user see that
   end
   UIManager:close(info)

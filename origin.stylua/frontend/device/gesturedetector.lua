@@ -298,8 +298,7 @@ function GestureDetector:isDoubleTap(tap1, tap2)
     local y_diff = math.abs(tap1.y - tap2.y)
 
     return (
-      x_diff < self.DOUBLE_TAP_DISTANCE
-      and y_diff < self.DOUBLE_TAP_DISTANCE
+      x_diff < self.DOUBLE_TAP_DISTANCE and y_diff < self.DOUBLE_TAP_DISTANCE
     )
   end
 end

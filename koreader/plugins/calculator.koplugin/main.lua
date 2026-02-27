@@ -22,9 +22,7 @@ local CalculatorConvertDialog = require("calculatorconvertdialog")
 local CalculatorSettingsDialog = require("calculatorsettingsdialog")
 local Parser = require("formulaparser/formulaparser")
 
-local VERSION_FILE = "plugins/calculator.koplugin/VERSION"
-local LATEST_VERSION =
-  "https://raw.githubusercontent.com/zwim/calculator.koplugin/master/VERSION"
+local DEFAULT_INIT_FILE = "plugins/calculator.koplugin/init.calc"
 
 local Calculator = WidgetContainer:new({
   name = "calculator",
@@ -33,9 +31,10 @@ local Calculator = WidgetContainer:new({
     or util.realpath(DataStorage:getDataDir()) .. "/output.calc",
   calculator_input_path = G_reader_settings:read("calculator_input_path")
     or util.realpath(DataStorage:getDataDir()) .. "/input.calc",
-  init_file = "plugins/calculator.koplugin/init.calc",
+  init_file = DEFAULT_INIT_FILE,
   use_init_file = G_reader_settings:read("calculator_use_init_file") or "yes",
-  load_file = G_reader_settings:read("calculator_init_path") or init_file,
+  load_file = G_reader_settings:read("calculator_init_path")
+    or DEFAULT_INIT_FILE,
   history = "",
   i_num = 1, -- number of next input
   input = {},
@@ -350,9 +349,9 @@ function Calculator:onCalculatorStart()
 
   self.input_dialog =
     self:generateInputDialog(self:expandTabs(self.status_line, expand - 1))
+  self.input_dialog.ignore_first_hold_release = true
 
   UIManager:show(self.input_dialog)
-  self.input_dialog:showKeyboard(true)
 end
 
 function Calculator:load(old_file, file_name)

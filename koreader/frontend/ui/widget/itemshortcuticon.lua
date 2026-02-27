@@ -2,8 +2,6 @@ local Blitbuffer = require("ffi/blitbuffer")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
-local Geom = require("ui/geometry")
-local Screen = require("device").screen
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -12,12 +10,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 Widget that displays a shortcut icon for menu item.
 --]]
 local ItemShortCutIcon = WidgetContainer:extend({
-  dimen = Geom:new({
-    x = 0,
-    y = 0,
-    w = Screen:scaleBySize(22),
-    h = Screen:scaleBySize(22),
-  }),
+  dimen = nil,
   key = nil,
   bordersize = Size.border.default,
   style = "square",
@@ -27,6 +20,7 @@ function ItemShortCutIcon:init()
   if not self.key then
     return
   end
+  assert(self.dimen)
 
   local background = Blitbuffer.COLOR_WHITE
   if self.style == "grey_square" then
@@ -47,7 +41,7 @@ function ItemShortCutIcon:init()
     background = background,
     dimen = self.dimen:copy(),
     CenterContainer:new({
-      dimen = self.dimen,
+      dimen = self.dimen:copy(),
       TextWidget:new({
         text = self.key,
         face = sc_face,

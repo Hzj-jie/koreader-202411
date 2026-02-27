@@ -434,7 +434,6 @@ function PocketBook:setEventHandlers(uimgr)
     self.powerd:afterResume()
   end
   UIManager.event_handlers.Exit = function()
-    local Event = require("ui/event")
     UIManager:broadcastEvent("ExitKOReader")
     UIManager:quit(0)
   end

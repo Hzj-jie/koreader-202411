@@ -122,7 +122,7 @@ local Exporter = WidgetContainer:extend({
 
 function Exporter:init()
   migrateSettings()
-  self.parser = MyClipping:new({})
+  self.parser = MyClipping:new()
   for _, v in pairs(self.targets) do
     v.path = self.path
   end
@@ -182,9 +182,11 @@ function Exporter:onExportCurrentNotes()
   if not self:isReadyToExport() then
     return
   end
-  self.ui.annotation:updatePageNumbers(true)
-  local clippings = self:getDocumentClippings()
-  self:exportClippings(clippings)
+  UIManager:runWith(function()
+    self.ui.annotation:updatePageNumbers(true)
+    local clippings = self:getDocumentClippings()
+    self:exportClippings(clippings)
+  end, gettext("Exporting may take several seconds…"))
 end
 
 --- Parse and export highlights from all the documents in History
@@ -193,31 +195,35 @@ function Exporter:onExportAllNotes()
   if not self:isReady() then
     return
   end
-  local clippings = {}
-  clippings = updateHistoryClippings(clippings, self.parser:parseHistory())
-  if Device:isKindle() then
-    clippings = updateMyClippings(clippings, self.parser:parseMyClippings())
-  end
-  for title, booknotes in pairs(clippings) do
-    -- chapter number is zero
-    if #booknotes == 0 then
-      clippings[title] = nil
+  UIManager:runWith(function()
+    local clippings = {}
+    clippings = updateHistoryClippings(clippings, self.parser:parseHistory())
+    if Device:isKindle() then
+      clippings = updateMyClippings(clippings, self.parser:parseMyClippings())
     end
-  end
-  self:exportClippings(clippings)
+    for title, booknotes in pairs(clippings) do
+      -- chapter number is zero
+      if #booknotes == 0 then
+        clippings[title] = nil
+      end
+    end
+    self:exportClippings(clippings)
+  end, gettext("Exporting may take several seconds…"))
 end
 
 --- Parse and export highlights from selected documents.
 -- @tparam table files list of files as a table of {[file_path] = true}
 function Exporter:exportFilesNotes(files)
-  local clippings = self.parser:parseFiles(files)
-  for title, booknotes in pairs(clippings) do
-    -- chapter number is zero
-    if #booknotes == 0 then
-      clippings[title] = nil
+  UIManager:runWith(function()
+    local clippings = self.parser:parseFiles(files)
+    for title, booknotes in pairs(clippings) do
+      -- chapter number is zero
+      if #booknotes == 0 then
+        clippings[title] = nil
+      end
     end
-  end
-  self:exportClippings(clippings)
+    self:exportClippings(clippings)
+  end, gettext("Exporting may take several seconds…"))
 end
 
 function Exporter:exportClippings(clippings)
@@ -229,44 +235,37 @@ function Exporter:exportClippings(clippings)
     table.insert(exportables, booknotes)
   end
   local export_callback = function()
-    UIManager:nextTick(function()
-      local timestamp = os.time()
-      local statuses = {}
-      for k, v in pairs(self.targets) do
-        if v:isEnabled() then
-          v.timestamp = timestamp
-          local status = v:export(exportables)
-          if status then
-            if v.is_remote then
-              table.insert(
-                statuses,
-                T(gettext("%1: Exported successfully."), v.name)
-              )
-            else
-              table.insert(
-                statuses,
-                T(
-                  gettext("%1: Exported to %2."),
-                  v.name,
-                  v:getFilePath(exportables)
-                )
-              )
-            end
+    local timestamp = os.time()
+    local statuses = {}
+    for k, v in pairs(self.targets) do
+      if v:isEnabled() then
+        v.timestamp = timestamp
+        local status = v:export(exportables)
+        if status then
+          if v.is_remote then
+            table.insert(
+              statuses,
+              T(gettext("%1: Exported successfully."), v.name)
+            )
           else
-            table.insert(statuses, T(gettext("%1: Failed to export."), v.name))
+            table.insert(
+              statuses,
+              T(
+                gettext("%1: Exported to %2."),
+                v.name,
+                v:getFilePath(exportables)
+              )
+            )
           end
-          v.timestamp = nil
+        else
+          table.insert(statuses, T(gettext("%1: Failed to export."), v.name))
         end
+        v.timestamp = nil
       end
-      UIManager:show(InfoMessage:new({
-        text = table.concat(statuses, "\n"),
-        timeout = 3,
-      }))
-    end)
-
+    end
     UIManager:show(InfoMessage:new({
-      text = gettext("Exporting may take several seconds…"),
-      timeout = 1,
+      text = table.concat(statuses, "\n"),
+      timeout = 3,
     }))
   end
   if self:requiresNetwork() then
