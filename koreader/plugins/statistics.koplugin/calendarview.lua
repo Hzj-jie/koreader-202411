@@ -1045,9 +1045,7 @@ function CalendarDayView:refreshTimeline()
       end
     end
   end
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  self:scheduleRepaint()
 end
 
 function CalendarDayView:generateSpan(start, finish, bgcolor, fgcolor, title)
