@@ -50,7 +50,7 @@ local FrameContainer = WidgetContainer:extend({
   stripe_over_alpha = 1,
 })
 
-function FrameContainer:_containerSize()
+function FrameContainer:_contentSize()
   local content_size = self[1]:getSize()
   self._padding_top = self.padding_top or self.padding
   self._padding_right = self.padding_right or self.padding
@@ -72,25 +72,7 @@ function FrameContainer:_containerSize()
 end
 
 function FrameContainer:getSize()
-  local width, height = self:_containerSize()
-  if self.width and self.width < width then
-    logger.warn(
-      "FixMe: FrameContainer self.width ",
-      self.width,
-      " < content.width ",
-      width
-    )
-    self.width = width
-  end
-  if self.height and self.height < height then
-    logger.warn(
-      "FixMe: FrameContainer self.height ",
-      self.height,
-      " < content.height ",
-      height
-    )
-    self.height = height
-  end
+  local width, height = self:_contentSize()
   self:mergeSize(self.width or width, self.height or height)
   return self.dimen
 end
@@ -122,16 +104,13 @@ end
 
 function FrameContainer:paintTo(bb, x, y)
   self:mergePosition(x, y)
-  local width, height = self:_containerSize()
-  -- TODO: Remove. Expose self.dimen, it's wrong, but some uses are not calling
-  -- :getSize()
+  local width, height = self:_contentSize()
+  -- Expose self.dimen for further use.
   self:getSize()
-  local container_width = self.width or width
-  local container_height = self.height or height
 
   local shift_x = 0
   if BD.mirroredUILayout() and self.allow_mirroring then
-    shift_x = container_width - width
+    shift_x = self.dimen.w - width
   end
 
   if self.background then
@@ -139,8 +118,8 @@ function FrameContainer:paintTo(bb, x, y)
       bb:paintRoundedRect(
         x,
         y,
-        container_width,
-        container_height,
+        self.dimen.w,
+        self.dimen.h,
         self.background,
         self.radius
       )
@@ -148,8 +127,8 @@ function FrameContainer:paintTo(bb, x, y)
       bb:paintRoundedRect(
         x,
         y,
-        container_width,
-        container_height,
+        self.dimen.w,
+        self.dimen.h,
         self.background,
         self.radius + self.bordersize
       )
@@ -160,8 +139,8 @@ function FrameContainer:paintTo(bb, x, y)
     bb:hatchRect(
       x,
       y,
-      container_width,
-      container_height,
+      self.dimen.w,
+      self.dimen.h,
       self.stripe_width,
       self.stripe_color
     )
@@ -171,8 +150,8 @@ function FrameContainer:paintTo(bb, x, y)
     bb:paintInnerBorder(
       x + self.margin,
       y + self.margin,
-      container_width - self.margin * 2,
-      container_height - self.margin * 2,
+      self.dimen.w - self.margin * 2,
+      self.dimen.h - self.margin * 2,
       self.inner_bordersize,
       self.color,
       self.radius
@@ -183,8 +162,8 @@ function FrameContainer:paintTo(bb, x, y)
     bb:paintBorder(
       x + self.margin,
       y + self.margin,
-      container_width - self.margin * 2,
-      container_height - self.margin * 2,
+      self.dimen.w - self.margin * 2,
+      self.dimen.h - self.margin * 2,
       self.bordersize,
       self.color,
       self.radius,
@@ -205,8 +184,8 @@ function FrameContainer:paintTo(bb, x, y)
     bb:hatchRect(
       x + pad,
       y + pad,
-      container_width - pad * 2,
-      container_height - pad * 2,
+      self.dimen.w - pad * 2,
+      self.dimen.h - pad * 2,
       self.stripe_width,
       self.stripe_color,
       self.stripe_over_alpha
@@ -216,16 +195,16 @@ function FrameContainer:paintTo(bb, x, y)
     bb:invertRect(
       x + self.bordersize,
       y + self.bordersize,
-      container_width - 2 * self.bordersize,
-      container_height - 2 * self.bordersize
+      self.dimen.w - 2 * self.bordersize,
+      self.dimen.h - 2 * self.bordersize
     )
   end
   if self.dim then
     bb:lightenRect(
       x + self.bordersize,
       y + self.bordersize,
-      container_width - 2 * self.bordersize,
-      container_height - 2 * self.bordersize
+      self.dimen.w - 2 * self.bordersize,
+      self.dimen.h - 2 * self.bordersize
     )
   end
 end
