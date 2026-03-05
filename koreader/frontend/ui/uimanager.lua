@@ -275,7 +275,7 @@ If refreshtype is omitted, no refresh will be enqueued at this time.
 @param widget a @{ui.widget.widget|widget} object
 ]]
 function UIManager:show(widget)
-  assert(not self:isTopLevelWidget(widget))
+  assert(not self:isWindowWidget(widget))
 
   logger.dbg("show widget:", _widgetDebugStr(widget))
 
@@ -326,7 +326,7 @@ If refreshtype is omitted, no extra refresh will be enqueued at this time, leavi
 @param widget a @{ui.widget.widget|widget} object
 ]]
 function UIManager:_close(widget)
-  assert(UIManager:isTopLevelWidget(widget))
+  assert(UIManager:isWindowWidget(widget))
 
   logger.dbg("close widget:", _widgetDebugStr(widget))
   -- First notify the closed widget to save its settings...
@@ -384,7 +384,7 @@ function UIManager:_close(widget)
 end
 
 function UIManager:close(widget)
-  if not UIManager:isTopLevelWidget(widget) then
+  if not UIManager:isWindowWidget(widget) then
     logger.warn(
       "FixMe: widget "
         .. _widgetDebugStr(widget)
@@ -397,7 +397,7 @@ function UIManager:close(widget)
 end
 
 function UIManager:closeIfShown(widget)
-  if not UIManager:isTopLevelWidget(widget) then
+  if not UIManager:isWindowWidget(widget) then
     return
   end
   self:_close(widget)
@@ -721,7 +721,7 @@ function UIManager:getTopmostVisibleWidget()
 end
 
 --- Same as `isSubwidgetShown`, but only check window-level widgets (e.g., what's directly registered in the window stack), don't recurse.
-function UIManager:isTopLevelWidget(widget)
+function UIManager:isWindowWidget(widget)
   -- TODO: Should assert
   if not _isWidget(widget) then
     return false
