@@ -18,8 +18,8 @@ function LineWidget:paintTo(bb, x, y)
     return
   end
   if self.style == "dashed" then
-    for i = 0, self.dimen.w - 20, 20 do
-      bb:paintRect(x + i, y, 16, self.dimen.h, self.background)
+    for i = 0, self:getSize().w - 20, 20 do
+      bb:paintRect(x + i, y, 16, self:getSize().h, self.background)
     end
   else
     if self.empty_segments then
@@ -27,18 +27,18 @@ function LineWidget:paintTo(bb, x, y)
         x,
         y,
         self.empty_segments[1].s,
-        self.dimen.h,
+        self:getSize().h,
         self.background
       )
       bb:paintRect(
         x + self.empty_segments[1].e,
         y,
-        self.dimen.w - x - self.empty_segments[1].e,
-        self.dimen.h,
+        self:getSize().w - x - self.empty_segments[1].e,
+        self:getSize().h,
         self.background
       )
     else
-      bb:paintRect(x, y, self.dimen.w, self.dimen.h, self.background)
+      bb:paintRect(x, y, self:getSize().w, self:getSize().h, self.background)
     end
   end
 end

@@ -58,7 +58,7 @@ function ScrollHtmlWidget:init()
 
   self:_updateScrollBar()
 
-  local horizontal_group = HorizontalGroup:new({})
+  local horizontal_group = HorizontalGroup:new()
   table.insert(horizontal_group, self.htmlbox_widget)
   table.insert(
     horizontal_group,

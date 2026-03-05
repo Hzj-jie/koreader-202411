@@ -224,7 +224,7 @@ function MenuDialog:setupPluginMenu()
 
   local show_sync_settings = function()
     if not settings.server then
-      local sync_settings = SyncService:new({})
+      local sync_settings = SyncService:new()
       sync_settings.onExit = function(this)
         UIManager:close(this)
       end
@@ -256,7 +256,7 @@ function MenuDialog:setupPluginMenu()
           callback = function()
             UIManager:close(self.sync_dialogue)
             UIManager:close(self)
-            local sync_settings = SyncService:new({})
+            local sync_settings = SyncService:new()
             sync_settings.onExit = function(this)
               UIManager:close(this)
             end
@@ -323,11 +323,9 @@ function MenuDialog:setupPluginMenu()
       { filter_button, edit_button },
       { reset_button, clean_button },
     },
-    show_parent = self,
   })
   self:mergeLayoutInVertical(buttons)
 
-  self.covers_fullscreen = true
   self[1] = CenterContainer:new({
     dimen = size,
     FrameContainer:new({
@@ -350,7 +348,7 @@ function MenuDialog:setupPluginMenu()
           HorizontalSpan:new({ width = Size.padding.fullscreen }),
           switch,
         }),
-        VerticalSpan:new({ width = Size.padding.default }),
+        VerticalSpan:new({ height = Size.padding.default }),
         HorizontalGroup:new({
           RightContainer:new({
             dimen = Geom:new({ w = switch_guide_width, h = switch:getSize().h }),
@@ -363,7 +361,7 @@ function MenuDialog:setupPluginMenu()
           HorizontalSpan:new({ width = Size.padding.fullscreen }),
           self.context_switch,
         }),
-        VerticalSpan:new({ width = Size.padding.large }),
+        VerticalSpan:new({ height = Size.padding.large }),
         LineWidget:new({
           background = Blitbuffer.COLOR_GRAY,
           dimen = Geom:new({
@@ -388,17 +386,18 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
     callback = function()
       self:onExit()
       -- first show_parent is sortWidget, second is vocabBuilderWidget
-      self.show_parent.show_parent:showChangeBookTitleDialog(
-        sort_item,
-        onSuccess
-      )
+      -- TODO: This is wrong, a widget shouldn't be shown twice.
+      self
+        :showParent()
+        :showParent()
+        :showChangeBookTitleDialog(sort_item, onSuccess)
     end,
   }
   local select_single_button = {
     text = gettext("Select only this book"),
     callback = function()
       self:onExit()
-      for _, item in pairs(self.show_parent.item_table) do
+      for _, item in pairs(self:showParent().item_table) do
         if item == sort_item then
           if not item.checked_func() then
             item.callback() -- toggle checkmark
@@ -407,43 +406,43 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
           item.callback()
         end
       end
-      self.show_parent:goToPage(self.show_parent.show_page)
+      self:showParent():goToPage(self:showParent().show_page)
     end,
   }
   local select_all_button = {
     text = gettext("Select all books"),
     callback = function()
       self:onExit()
-      for _, item in pairs(self.show_parent.item_table) do
+      for _, item in pairs(self:showParent().item_table) do
         if not item.checked_func() then
           item.callback()
         end
       end
-      self.show_parent:goToPage(self.show_parent.show_page)
+      self:showParent():goToPage(self:showParent().show_page)
     end,
   }
   local select_page_all_button = {
     text = gettext("Select all books on this page"),
     callback = function()
       self:onExit()
-      for _, content in pairs(self.show_parent.main_content) do
+      for _, content in pairs(self:showParent().main_content) do
         if content.item and not content.item.checked_func() then
           content.item.callback()
         end
       end
-      self.show_parent:goToPage(self.show_parent.show_page)
+      self:showParent():goToPage(self:showParent().show_page)
     end,
   }
   local deselect_page_all_button = {
     text = gettext("Deselect all books on this page"),
     callback = function()
       self:onExit()
-      for _, content in pairs(self.show_parent.main_content) do
+      for _, content in pairs(self:showParent().main_content) do
         if content.item and content.item.checked_func() then
           content.item.callback()
         end
       end
-      self.show_parent:goToPage(self.show_parent.show_page)
+      self:showParent():goToPage(self:showParent().show_page)
     end,
   }
   local buttons = ButtonTable:new({
@@ -455,10 +454,8 @@ function MenuDialog:setupBookMenu(sort_item, onSuccess)
       { select_page_all_button },
       { deselect_page_all_button },
     },
-    show_parent = self,
   })
 
-  self.covers_fullscreen = true
   self[1] = CenterContainer:new({
     dimen = size,
     FrameContainer:new({
@@ -499,12 +496,12 @@ function MenuDialog:onExit()
   return true
 end
 
-function MenuDialog:onChangeContextStatus(args, position)
+function MenuDialog:onChangeContextStatus(__, position)
   settings.with_context = position == 2
   saveSettings()
 end
 
-function MenuDialog:onChangeEnableStatus(args, position)
+function MenuDialog:onChangeEnableStatus(__, position)
   settings.enabled = position == 2
   saveSettings()
 end
@@ -606,7 +603,6 @@ function WordInfoDialog:init()
   local focus_button = ButtonTable:new({
     width = width,
     buttons = buttons,
-    show_parent = self,
   })
 
   local copy_button = Button:new({
@@ -637,7 +633,6 @@ function WordInfoDialog:init()
         )
       end)
     end,
-    show_parent = self,
   })
 
   table.insert(self.layout, { copy_button })
@@ -673,7 +668,7 @@ function WordInfoDialog:init()
                 copy_button,
               }),
               self.book_title_button,
-              VerticalSpan:new({ width = Size.padding.default }),
+              VerticalSpan:new({ height = Size.padding.default }),
               has_context and TextBoxWidget:new({
                 text = "..."
                   .. (self.prev_context or ""):gsub("\n", " ")
@@ -686,10 +681,10 @@ function WordInfoDialog:init()
                 face = Font:getFace("smallffont"),
                 alignment = self.title_align or "left",
               }) or VerticalSpan:new({
-                width = Size.padding.default,
+                height = Size.padding.default,
               }),
               VerticalSpan:new({
-                width = has_context and Size.padding.default or 0,
+                height = has_context and Size.padding.default or 0,
               }),
               TextBoxWidget:new({
                 text = self.dates,
@@ -755,7 +750,7 @@ end
 
 function WordInfoDialog:paintTo(...)
   InputContainer.paintTo(self, ...)
-  self.dimen = self[1][1].dimen -- FrameContainer
+  self:mergeSize(self[1][1].dimen) -- FrameContainer
 end
 
 -- values useful for item cells
@@ -778,7 +773,6 @@ local VocabItemWidget = InputContainer:extend({
   width = nil,
   height = nil,
   review_button_width = nil,
-  show_parent = nil,
   item = nil,
   forgot_button = nil,
   got_it_button = nil,
@@ -809,7 +803,6 @@ local subtitle_height = TextWidget:new({ text = " ", face = subtitle_face })
 
 function VocabItemWidget:init()
   self.layout = {}
-  self.dimen = Geom:new({ w = self.width, h = self.height })
   self.ges_events.Tap = {
     GestureRange:new({
       ges = "tap",
@@ -823,10 +816,10 @@ function VocabItemWidget:init()
     }),
   }
   self.v_spacer = VerticalSpan:new({
-    width = math.floor((self.height - word_height - subtitle_height) / 2),
+    height = math.floor((self.height - word_height - subtitle_height) / 2),
   })
   self.point_v_spacer = VerticalSpan:new({
-    width = (self.v_spacer.width + word_height / 2) - point_widget_height / 2,
+    height = (self.v_spacer.width + word_height / 2) - point_widget_height / 2,
   })
   self.margin_span = HorizontalSpan:new({ width = Size.padding.large })
   self:initItemWidget()
@@ -836,7 +829,7 @@ function VocabItemWidget:initItemWidget()
   for i = 1, #self.layout do
     self.layout[i] = nil
   end
-  if not self.show_parent.is_edit_mode then
+  if not self:showParent().is_edit_mode then
     self.more_button = Button:new({
       text = (self.item.prev_context or self.item.next_context) and "⋯"
         or "⋮",
@@ -846,7 +839,6 @@ function VocabItemWidget:initItemWidget()
       end,
       width = ellipsis_button_width,
       bordersize = 0,
-      show_parent = self,
     })
   else
     self.more_button = IconButton:new({
@@ -863,7 +855,7 @@ function VocabItemWidget:initItemWidget()
 
   local right_side_width
   local right_widget
-  if not self.show_parent.is_edit_mode and self.item.due_time <= os.time() then
+  if not self:showParent().is_edit_mode and self.item.due_time <= os.time() then
     self.has_review_buttons = true
     right_side_width = self.review_button_width * 2
       + Size.padding.large * 2
@@ -875,7 +867,6 @@ function VocabItemWidget:initItemWidget()
       callback = function()
         self:onForgot()
       end,
-      show_parent = self,
     })
 
     self.got_it_button = Button:new({
@@ -885,7 +876,6 @@ function VocabItemWidget:initItemWidget()
         self:onGotIt()
       end,
       width = self.review_button_width,
-      show_parent = self,
     })
     right_widget = HorizontalGroup:new({
       dimen = Geom:new({ w = 0, h = self.height }),
@@ -997,7 +987,7 @@ function VocabItemWidget:initItemWidget()
           self.point_v_spacer,
           point_widget,
           VerticalSpan:new({
-            width = self.height
+            height = self.height
               - point_widget_height
               - self.point_v_spacer.width,
           }),
@@ -1080,7 +1070,7 @@ end
 
 function VocabItemWidget:remover()
   self.item.remove_callback(self.item)
-  self.show_parent:removeAt(self.index)
+  self:showParent():removeAt(self.index)
 end
 
 function VocabItemWidget:resetProgress()
@@ -1091,7 +1081,7 @@ function VocabItemWidget:resetProgress()
   self.item.last_due_time = nil
   self.item.is_dim = false
   self:initItemWidget()
-  UIManager:setDirty(self.show_parent, function()
+  UIManager:setDirty(self, function()
     return "ui", self[1].dimen
   end)
 end
@@ -1107,7 +1097,7 @@ function VocabItemWidget:undo()
   self.item.last_due_time = nil
   self.item.is_dim = false
   self:initItemWidget()
-  UIManager:setDirty(self.show_parent, function()
+  UIManager:setDirty(self, function()
     return "ui", self[1].dimen
   end)
 end
@@ -1149,18 +1139,21 @@ end
 function VocabItemWidget:onTap(_, ges)
   if self.has_review_buttons then
     if
-      ges.pos.x > self.forgot_button.dimen.x
-      and ges.pos.x < self.forgot_button.dimen.x + self.forgot_button.dimen.w
+      ges.pos.x > self.forgot_button:getSize().x
+      and ges.pos.x
+        < self.forgot_button:getSize().x + self.forgot_button:getSize().w
     then
       self:onForgot()
     elseif
-      ges.pos.x > self.got_it_button.dimen.x
-      and ges.pos.x < self.got_it_button.dimen.x + self.got_it_button.dimen.w
+      ges.pos.x > self.got_it_button:getSize().x
+      and ges.pos.x
+        < self.got_it_button:getSize().x + self.got_it_button:getSize().w
     then
       self:onGotIt()
     elseif
-      ges.pos.x > self.more_button.dimen.x
-      and ges.pos.x < self.more_button.dimen.x + self.more_button.dimen.w
+      ges.pos.x > self.more_button:getSize().x
+      and ges.pos.x
+        < self.more_button:getSize().x + self.more_button:getSize().w
     then
       self:showMore()
     elseif self.item.callback then
@@ -1169,11 +1162,11 @@ function VocabItemWidget:onTap(_, ges)
   else
     if BD.mirroredUILayout() then
       if
-        ges.pos.x > self.more_button.dimen.x
+        ges.pos.x > self.more_button:getSize().x
         and ges.pos.x
-          < self.more_button.dimen.x + self.more_button.dimen.w * 2
+          < self.more_button:getSize().x + self.more_button:getSize().w * 2
       then
-        if self.show_parent.is_edit_mode then
+        if self:showParent().is_edit_mode then
           self:remover()
         else
           self:showMore()
@@ -1183,10 +1176,12 @@ function VocabItemWidget:onTap(_, ges)
       end
     else
       if
-        ges.pos.x > self.more_button.dimen.x - self.more_button.dimen.w
-        and ges.pos.x < self.more_button.dimen.x + self.more_button.dimen.w
+        ges.pos.x
+          > self.more_button:getSize().x - self.more_button:getSize().w
+        and ges.pos.x
+          < self.more_button:getSize().x + self.more_button:getSize().w
       then
-        if self.show_parent.is_edit_mode then
+        if self:showParent().is_edit_mode then
           self:remover()
         else
           self:showMore()
@@ -1208,10 +1203,10 @@ function VocabItemWidget:onGotIt()
   self.item.got_it_callback(self.item)
   self.item.is_dim = true
   self:initItemWidget()
-  if self.show_parent.selected.x == 3 then
-    self.show_parent.selected.x = 1
+  if self:showParent().selected.x == 3 then
+    self:showParent().selected.x = 1
   end
-  UIManager:setDirty(self.show_parent, function()
+  UIManager:setDirty(self, function()
     return "ui", self[1].dimen
   end)
 end
@@ -1220,7 +1215,7 @@ function VocabItemWidget:onForgot(no_lookup)
   self.item.forgot_callback(self.item)
   self.item.is_dim = false
   self:initItemWidget()
-  UIManager:setDirty(self.show_parent, function()
+  UIManager:setDirty(self, function()
     return "ui", self[1].dimen
   end)
   if not no_lookup and self.item.callback then
@@ -1246,7 +1241,7 @@ function VocabItemWidget:onShowBookAssignment(title_changed_cb)
       end,
       hold_callback = function(sort_item, onSuccess)
         local book_title = self.item.book_title
-        self.show_parent:showChangeBookTitleDialog(sort_item, function()
+        self:showParent():showChangeBookTitleDialog(sort_item, function()
           onSuccess()
           if book_title == info.name then
             if book == book_title then
@@ -1299,10 +1294,9 @@ function VocabItemWidget:onShowBookAssignment(title_changed_cb)
                       return new_book_title == book
                     end,
                     hold_callback = function(sort_item, onSuccess)
-                      self.show_parent:showChangeBookTitleDialog(
-                        sort_item,
-                        onSuccess
-                      )
+                      self
+                        :showParent()
+                        :showChangeBookTitleDialog(sort_item, onSuccess)
                     end,
                   })
                   sort_widget:goToPage(sort_widget.show_page)
@@ -1318,7 +1312,6 @@ function VocabItemWidget:onShowBookAssignment(title_changed_cb)
         },
       })
       UIManager:show(dialog)
-      dialog:showKeyboard()
     end,
   })
 
@@ -1357,7 +1350,7 @@ function VocabItemWidget:onDictButtonsReady(dict_popup, buttons)
           id = "got_it",
           text = gettext("Got it"),
           callback = function()
-            self.show_parent:gotItFromDict(self.item.word)
+            self:showParent():gotItFromDict(self.item.word)
             dict_popup:onExit()
           end,
         }
@@ -1371,7 +1364,7 @@ function VocabItemWidget:onDictButtonsReady(dict_popup, buttons)
           id = "forgot",
           text = gettext("Forgot"),
           callback = function()
-            self.show_parent:forgotFromDict(self.item.word)
+            self:showParent():forgotFromDict(self.item.word)
             dict_popup:onExit()
           end,
         }
@@ -1409,10 +1402,10 @@ function VocabularyBuilderWidget:init()
   self.item_table = self:getVocabItems()
   self.layout = {}
 
-  self.dimen = Geom:new({
-    w = self.width or Screen:getWidth(),
-    h = self.height or Screen:getHeight(),
-  })
+  self:mergeSize(
+    self.width or Screen:getWidth(),
+    self.height or Screen:getHeight()
+  )
 
   if Device:hasKeys() then
     self.key_events.Exit = { { Device.input.group.Back } }
@@ -1436,7 +1429,7 @@ function VocabularyBuilderWidget:init()
       }),
     }
   end
-  self.page_info = HorizontalGroup:new({})
+  self.page_info = HorizontalGroup:new()
   self:refreshFooter()
 
   local bottom_line = LineWidget:new({
@@ -1454,7 +1447,7 @@ function VocabularyBuilderWidget:init()
   })
   -- setup title bar
   self.title_bar = TitleBar:new({
-    width = self.dimen.w,
+    width = self:getSize().w,
     align = "center",
     title_face = Font:getFace("smallinfofontbold"),
     bottom_line_color = Blitbuffer.COLOR_LIGHT_GRAY,
@@ -1468,11 +1461,10 @@ function VocabularyBuilderWidget:init()
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self,
   })
 
   self:setupItemHeight()
-  self.main_content = VerticalGroup:new({})
+  self.main_content = VerticalGroup:new()
 
   -- calculate item's review button width once
   local temp_button = Button:new({
@@ -1490,7 +1482,7 @@ function VocabularyBuilderWidget:init()
   self:_populateItems()
 
   local frame_content = FrameContainer:new({
-    height = self.dimen.h,
+    height = self:getSize().h,
     padding = 0,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,
@@ -1506,7 +1498,7 @@ function VocabularyBuilderWidget:init()
   })
   -- assemble page
   self[1] = FrameContainer:new({
-    height = self.dimen.h,
+    height = self:getSize().h,
     padding = 0,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,
@@ -1534,8 +1526,8 @@ function VocabularyBuilderWidget:refreshFooter()
 
   self.page_info:clear()
   local padding = Size.padding.large
-  self.width_widget = self.dimen.w - 2 * padding
-  self.item_width = self.dimen.w - 2 * padding
+  self.width_widget = self:getSize().w - 2 * padding
+  self.item_width = self:getSize().w - 2 * padding
   self.footer_center_width = math.floor(self.width_widget * (32 / 100))
   self.footer_button_width = math.floor(self.width_widget * (12 / 100))
   local left_ratio = 10
@@ -1565,7 +1557,6 @@ function VocabularyBuilderWidget:refreshFooter()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_right = Button:new({
     icon = chevron_right,
@@ -1575,7 +1566,6 @@ function VocabularyBuilderWidget:refreshFooter()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_first_up = Button:new({
     icon = chevron_first,
@@ -1585,7 +1575,6 @@ function VocabularyBuilderWidget:refreshFooter()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_last_down = Button:new({
     icon = chevron_last,
@@ -1595,7 +1584,6 @@ function VocabularyBuilderWidget:refreshFooter()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   local footer_height = self.footer_last_down:getSize().h
   local sync_size = TextWidget:getFontSizeToFitHeight(
@@ -1613,10 +1601,9 @@ function VocabularyBuilderWidget:refreshFooter()
     padding_h = Size.padding.large,
     padding_v = Size.padding.button,
     margin = 0,
-    show_parent = self,
     callback = function()
       if not settings.server then
-        local sync_settings = SyncService:new({})
+        local sync_settings = SyncService:new()
         sync_settings.onExit = function(this)
           UIManager:close(this)
         end
@@ -1650,7 +1637,6 @@ function VocabularyBuilderWidget:refreshFooter()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_page = Button:new({
     text = "",
@@ -1674,7 +1660,6 @@ function VocabularyBuilderWidget:refreshFooter()
     text_font_face = "pgfont",
     text_font_bold = false,
     width = self.footer_center_width,
-    show_parent = self,
   })
   table.insert(
     self.page_info,
@@ -1744,7 +1729,6 @@ If no wildcard is used, the searched text will be enclosed with two %'s by defau
     },
   })
   UIManager:show(dialog)
-  dialog:showKeyboard()
 end
 
 function VocabularyBuilderWidget:setupItemHeight()
@@ -1752,7 +1736,7 @@ function VocabularyBuilderWidget:setupItemHeight()
   self.item_height = item_height
   self.item_margin = math.floor(self.item_height / 8)
   local line_height = self.item_height + self.item_margin
-  local content_height = self.dimen.h
+  local content_height = self:getSize().h
     - self.title_bar:getHeight()
     - self.footer_height
     - Size.padding.large
@@ -1819,7 +1803,7 @@ function VocabularyBuilderWidget:_populateItems()
     table.insert(
       self.main_content,
       VerticalSpan:new({
-        width = self.item_margin / (idx == idx_offset + 1 and 2 or 1),
+        height = self.item_margin / (idx == idx_offset + 1 and 2 or 1),
       })
     )
     if #self.item_table == 0 or not self.item_table[idx].word then
@@ -1831,7 +1815,6 @@ function VocabularyBuilderWidget:_populateItems()
       review_button_width = self.review_button_width,
       item = self.item_table[idx],
       index = idx,
-      show_parent = self,
     })
     table.insert(self.layout, #self.layout, item.layout)
     table.insert(self.main_content, item)
@@ -1895,7 +1878,7 @@ function VocabularyBuilderWidget:_populateItems()
     self.selected = { x = 1, y = 1 }
   end
   UIManager:setDirty(self, function()
-    return "ui", self.dimen
+    return "ui"
   end)
 end
 
@@ -1976,9 +1959,7 @@ function VocabularyBuilderWidget:onShowFilter()
         return info.filter
       end,
       hold_callback = function(sort_item, onSuccess)
-        local menu = MenuDialog:new({
-          show_parent = sort_widget,
-        })
+        local menu = MenuDialog:new()
         menu:setupBookMenu(sort_item, onSuccess)
         UIManager:show(menu)
       end,
@@ -1997,7 +1978,6 @@ function VocabularyBuilderWidget:onShowFilter()
 
       UIManager:setDirty(nil, "ui")
     end,
-    show_parent = self,
   })
 
   if Device:hasKeys() then
@@ -2061,7 +2041,6 @@ function VocabularyBuilderWidget:showChangeBookTitleDialog(sort_item, onSuccess)
     },
   })
   UIManager:show(dialog)
-  dialog:showKeyboard()
 end
 
 function VocabularyBuilderWidget:reloadItems()
@@ -2099,7 +2078,7 @@ function VocabularyBuilderWidget:onSwipe(arg, ges_ev)
     self:onShowFilter()
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
     return false

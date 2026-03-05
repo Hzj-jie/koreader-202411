@@ -68,7 +68,7 @@ end
 function Document:_init()
   self.links = {}
   self.bbox = {}
-  self.configurable = Configurable:new({})
+  self.configurable = Configurable:new()
   self.info = {
     -- whether the document is pageable
     has_pages = false,

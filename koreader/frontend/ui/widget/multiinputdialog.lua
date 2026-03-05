@@ -67,8 +67,6 @@ Example for input of two strings and a number:
     }
     UIManager:show(sample_input)
     sample_input:showKeyboard()
-
-
 It is strongly recommended to use a text describing the action to be
 executed, as demonstrated in the example above. If the resulting phrase would be
 longer than three words it should just read "OK".
@@ -88,7 +86,6 @@ local TextBoxWidget = require("ui/widget/textboxwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local gettext = require("gettext")
 local Screen = Device.screen
 
 local MultiInputDialog = InputDialog:extend({
@@ -196,7 +193,7 @@ function MultiInputDialog:init()
         h = self.description_padding + self.description_margin,
       }),
       VerticalSpan:new({
-        width = self.description_padding + self.description_margin,
+        height = self.description_padding + self.description_margin,
       }),
     })
   )
@@ -266,14 +263,6 @@ function MultiInputDialog:onSwitchFocus(inputbox)
   self._input_widget:focus()
   self.focused_field_idx = inputbox.idx
 
-  if
-    (Device:hasKeyboard() or Device:hasScreenKB())
-    and G_reader_settings:isFalse("virtual_keyboard_enabled")
-  then
-    -- do not load virtual keyboard when user is hiding it.
-    return
-  end
-  -- Otherwise make sure we have a (new) visible keyboard
   self:showKeyboard()
 end
 

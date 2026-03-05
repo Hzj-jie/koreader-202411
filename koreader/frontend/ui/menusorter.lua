@@ -5,7 +5,6 @@ menu_items and a separate menu order.
 
 local DataStorage = require("datastorage")
 local FFIUtil = require("ffi/util")
-local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")

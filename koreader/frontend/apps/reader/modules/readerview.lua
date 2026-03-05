@@ -22,7 +22,6 @@ local dbg = require("dbg")
 local gettext = require("gettext")
 local logger = require("logger")
 local optionsutil = require("ui/data/optionsutil")
-local time = require("ui/time")
 local util = require("util")
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -70,9 +69,6 @@ local ReaderView = OverlapGroup:extend({
   dogear_visible = false,
   -- in flipping state
   flipping_visible = false,
-  -- might be directly updated by readerpaging/readerrolling when
-  -- they handle some panning/scrolling, to request "fast" refreshes
-  currently_scrolling = false,
 
   -- image content stats of the current page, if supported by the Document engine
   img_count = nil,
@@ -108,9 +104,9 @@ function ReaderView:init()
       (G_reader_settings:read("page_gap_color") or 8) * (1 / 15)
     ),
   }
-  self.visible_area = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
-  self.page_area = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
-  self.dim_area = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
+  self.visible_area = Geom:new()
+  self.page_area = Geom:new()
+  self.dim_area = Geom:new()
 
   -- Zero-init for sanity
   self.img_count = 0
@@ -121,7 +117,7 @@ function ReaderView:init()
     UIManager:broadcastEvent(Event:new("HintPage", self.hinting))
   end
 
-  -- We've subclassed OverlapGroup, go through its init, because it does some funky stuff with self.dimen...
+  -- We've subclassed OverlapGroup, go through its init, because it does some funky stuff with self:getSize()...
   OverlapGroup.init(self)
 end
 
@@ -167,7 +163,7 @@ readerui.view:registerViewModule('dummy_image', dummy_image)
 ]]
 function ReaderView:registerViewModule(name, widget)
   if not widget.paintTo then
-    print(name .. " view module does not have paintTo method!")
+    logger.err(name .. " view module does not have paintTo method!")
     return
   end
   widget.view = self
@@ -187,7 +183,9 @@ function ReaderView:resetLayout()
 end
 
 function ReaderView:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   dbg:v("readerview painting", self.visible_area, "to", x, y)
+
   if self.page_scroll then
     self:drawPageBackground(bb, x, y)
   else
@@ -262,9 +260,7 @@ function ReaderView:paintTo(bb, x, y)
     colorful = self:drawSavedHighlight(bb, x, y)
   end
   -- draw temporary highlight
-  if self.highlight.temp then
-    self:drawTempHighlight(bb, x, y)
-  end
+  self:drawTempHighlight(bb, x, y)
   -- draw highlight position indicator for non-touch
   if self.highlight.indicator then
     self:drawHighlightIndicator(bb, x, y)
@@ -308,11 +304,8 @@ function ReaderView:paintTo(bb, x, y)
         self.dialog.dithered = true
       end
       -- Request a flashing update while we're at it, but only if it's the first time we're painting it
-      if
-        self.state.drawn == false
-        and G_reader_settings:nilOrTrue("refresh_on_pages_with_images")
-      then
-        UIManager:setDirty(nil, "full")
+      if self.state.drawn == false then
+        UIManager:scheduleRefresh("full")
       end
     end
     self.state.drawn = true
@@ -357,7 +350,7 @@ Get page area on screen for a given page number
 --]]
 function ReaderView:getScreenPageArea(page)
   if self.ui.paging then
-    local area = Geom:new({ x = 0, y = 0 })
+    local area = Geom:new()
     if self.page_scroll then
       for _, state in ipairs(self.page_states) do
         if page ~= state.page then
@@ -383,28 +376,40 @@ function ReaderView:getScreenPageArea(page)
 end
 
 function ReaderView:drawPageBackground(bb, x, y)
-  bb:paintRect(x, y, self.dimen.w, self.dimen.h, self.page_bgcolor)
+  bb:paintRect(x, y, self:getSize().w, self:getSize().h, self.page_bgcolor)
 end
 
 function ReaderView:drawPageSurround(bb, x, y)
-  if self.dimen.h > self.visible_area.h then
-    bb:paintRect(x, y, self.dimen.w, self.state.offset.y, self.outer_page_color)
+  if self:getSize().h > self.visible_area.h then
+    bb:paintRect(
+      x,
+      y,
+      self:getSize().w,
+      self.state.offset.y,
+      self.outer_page_color
+    )
     local bottom_margin = y + self.visible_area.h + self.state.offset.y
     bb:paintRect(
       x,
       bottom_margin,
-      self.dimen.w,
+      self:getSize().w,
       self.state.offset.y + self.footer:getHeight(),
       self.outer_page_color
     )
   end
-  if self.dimen.w > self.visible_area.w then
-    bb:paintRect(x, y, self.state.offset.x, self.dimen.h, self.outer_page_color)
+  if self:getSize().w > self.visible_area.w then
     bb:paintRect(
-      x + self.dimen.w - self.state.offset.x - 1,
+      x,
+      y,
+      self.state.offset.x,
+      self:getSize().h,
+      self.outer_page_color
+    )
+    bb:paintRect(
+      x + self:getSize().w - self.state.offset.x - 1,
       y,
       self.state.offset.x + 1,
-      self.dimen.h,
+      self:getSize().h,
       self.outer_page_color
     )
   end
@@ -484,7 +489,13 @@ function ReaderView:getScrollPageRect(page, rect_p)
 end
 
 function ReaderView:drawPageGap(bb, x, y)
-  bb:paintRect(x, y, self.dimen.w, self.page_gap.height, self.page_gap.color)
+  bb:paintRect(
+    x,
+    y,
+    self:getSize().w,
+    self.page_gap.height,
+    self.page_gap.color
+  )
 end
 
 function ReaderView:drawSinglePage(bb, x, y)
@@ -623,15 +634,15 @@ function ReaderView:drawXPointerSavedHighlight(bb, x, y)
   -- showing menu...). We might want to cache these boxes per page (and
   -- clear that cache when page layout change or highlights are added
   -- or removed).
-  -- Even in page mode, it's safer to use pos and ui.dimen.h
-  -- than pages' xpointers pos, even if ui.dimen.h is a bit
+  -- Even in page mode, it's safer to use pos and ui:getSize().h
+  -- than pages' xpointers pos, even if ui:getSize().h is a bit
   -- larger than pages' heights
   local cur_view_top = self.document:getCurrentPos()
   local cur_view_bottom
   if self.view_mode == "page" and self.document:getVisiblePageCount() > 1 then
-    cur_view_bottom = cur_view_top + 2 * self.ui.dimen.h
+    cur_view_bottom = cur_view_top + 2 * self.ui:getSize().h
   else
-    cur_view_bottom = cur_view_top + self.ui.dimen.h
+    cur_view_bottom = cur_view_top + self.ui:getSize().h
   end
   local colorful
   for _, item in ipairs(self.ui.annotation.annotations) do
@@ -820,28 +831,25 @@ function ReaderView:recalculate()
   else
     self.visible_area:setSizeTo(self.dimen)
   end
-  self.state.offset = Geom:new({ x = 0, y = 0 })
-  if self.dimen.h > self.visible_area.h then
+  self.state.offset = Geom:new()
+  if self:getSize().h > self.visible_area.h then
     if self.footer_visible and not self.footer.settings.reclaim_height then
       self.state.offset.y = (
-        self.dimen.h - (self.visible_area.h + self.footer:getHeight())
+        self:getSize().h - (self.visible_area.h + self.footer:getHeight())
       ) / 2
     else
-      self.state.offset.y = (self.dimen.h - self.visible_area.h) / 2
+      self.state.offset.y = (self:getSize().h - self.visible_area.h) / 2
     end
   end
-  if self.dimen.w > self.visible_area.w then
-    self.state.offset.x = (self.dimen.w - self.visible_area.w) / 2
+  if self:getSize().w > self.visible_area.w then
+    self.state.offset.x = (self:getSize().w - self.visible_area.w) / 2
   end
 
   self:setupNoteMarkPosition()
 
   -- Flag a repaint so self:paintTo will be called
   -- NOTE: This is also unfortunately called during panning, essentially making sure we'll never be using "fast" for pans ;).
-  UIManager:setDirty(
-    self.dialog,
-    self.currently_scrolling and "fast" or "partial"
-  )
+  UIManager:setDirty(self.dialog, "partial")
 end
 
 function ReaderView:PanningUpdate(dx, dy)
@@ -951,10 +959,8 @@ function ReaderView:rotate(mode, old_mode)
     -- No layout change, just rotate & repaint with a flash
     UIManager:setDirty(self.dialog, "full")
   else
-    UIManager:setDirty(nil, "full") -- SetDimensions will only request a partial, we want a flash
-    local new_screen_size = Screen:getSize()
-    UIManager:broadcastEvent(Event:new("SetDimensions", new_screen_size))
-    self.ui:onScreenResize(new_screen_size)
+    UIManager:scheduleRefresh("full") -- SetDimensions will only request a partial, we want a flash
+    UIManager:broadcastEvent(Event:new("SetDimensions", Screen:getSize()))
     UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
   end
   Notification:notify(
@@ -967,14 +973,14 @@ end
 
 function ReaderView:onSetDimensions(dimensions)
   self:resetLayout()
-  self.dimen = dimensions
+  self:mergeSize(dimensions)
   -- recalculate view
   self:recalculate()
 end
 
 function ReaderView:onRestoreDimensions(dimensions)
   self:resetLayout()
-  self.dimen = dimensions
+  self:mergeSize(dimensions)
   -- recalculate view
   self:recalculate()
 end

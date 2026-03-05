@@ -64,7 +64,7 @@ function TweakInfoWidget:init()
       width = self.width,
     }),
     VerticalSpan:new({
-      width = Size.padding.large,
+      height = Size.padding.large,
     }),
   })
   if tweak.description then
@@ -79,7 +79,7 @@ function TweakInfoWidget:init()
     table.insert(
       content,
       VerticalSpan:new({
-        width = Size.padding.large,
+        height = Size.padding.large,
       })
     )
   end
@@ -113,7 +113,7 @@ function TweakInfoWidget:init()
     table.insert(
       content,
       VerticalSpan:new({
-        width = Size.padding.large,
+        height = Size.padding.large,
       })
     )
     table.insert(
@@ -167,7 +167,6 @@ function TweakInfoWidget:init()
     width = content:getSize().w,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
 
   self.movable = MovableContainer:new({
@@ -552,7 +551,7 @@ You can enable individual tweaks on this book with a tap, or view more details a
       table.insert(menu, {
         text_func = function()
           local text = item.title or "### undefined submenu title ###"
-          local nb_enabled, nb_found = self:nbTweaksEnabled(sub_item_table) -- luacheck: no unused
+          local nb_enabled = self:nbTweaksEnabled(sub_item_table)
           -- We could add nb_enabled/nb_found, but that makes for
           -- a busy/ugly menu
           -- text = string.format("%s (%d/%d)", text, nb_enabled, nb_found)
@@ -1441,9 +1440,9 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
     end,
     close_discarded_notif_text = NOT_MODIFIED_MSG,
   })
-  UIManager:show(editor)
-  editor:showKeyboard(true)
   -- ignore first hold release, as we may be invoked from hold
+  editor.ignore_first_hold_release = true
+  UIManager:show(editor)
 end
 
 return ReaderStyleTweak

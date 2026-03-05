@@ -91,7 +91,6 @@ function MemosExporter:getMenuTable()
             },
           })
           UIManager:show(auth_dialog)
-          auth_dialog:showKeyboard()
         end,
       },
       {
@@ -123,7 +122,6 @@ function MemosExporter:getMenuTable()
             },
           })
           UIManager:show(token_dialog)
-          token_dialog:showKeyboard()
         end,
       },
       {

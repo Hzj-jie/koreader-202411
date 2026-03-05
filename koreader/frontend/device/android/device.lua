@@ -1,4 +1,4 @@
-local A, android = pcall(require, "android") -- luacheck: ignore
+local __, android = pcall(require, "android")
 local Event = require("ui/event")
 local Generic = require("device/generic/device")
 local Geom = require("ui/geometry")
@@ -227,7 +227,7 @@ function Device:init()
               }))
             end)
             UIManager:scheduleIn(0.2, function()
-              require("apps/reader/readerui"):doShowReader(new_file)
+              require("apps/reader/readerui"):showReader(new_file)
             end)
           else
             -- check if we're resuming from importing content.
@@ -484,7 +484,7 @@ end
 function Device:toggleFullscreen()
   local is_fullscreen = android.isFullscreen()
   logger.dbg(string.format("requesting fullscreen: %s", not is_fullscreen))
-  local dummy, api = canToggleFullscreen()
+  local __, api = canToggleFullscreen()
   if api >= 19 then
     self:_toggleFullscreenImmersive()
   elseif api >= 16 then

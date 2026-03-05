@@ -507,10 +507,10 @@ Please wait…
 ]]),
         })
         UIManager:show(info)
-        UIManager:forceRePaint()
+        UIManager:forceRepaint()
         local nr_book = self:migrateToDB(conn)
         UIManager:close(info)
-        UIManager:forceRePaint()
+        UIManager:forceRepaint()
         UIManager:show(InfoMessage:new({
           text = T(
             N_(
@@ -1509,7 +1509,7 @@ Time is in hours and minutes.]]),
             callback = function(touchmenu_instance)
               local server = self.settings.sync_server
               local edit_cb = function()
-                local sync_settings = SyncService:new({})
+                local sync_settings = SyncService:new()
                 sync_settings.onExit = function(this)
                   UIManager:close(this)
                 end
@@ -3631,8 +3631,8 @@ function ReaderStatistics:getReadBookByDay(month)
   for i = 1, nb do
     -- (We don't care about the duration, we just needed it
     -- to have the books in decreasing duration order)
-    local day, duration, book_id, book_title =
-      res[1][i], res[2][i], res[3][i], res[4][i] -- luacheck: no unused
+    local day, book_id, book_title = res[1][i], res[3][i], res[4][i]
+    -- duration = res[2][i]
     if not per_day[day] then
       per_day[day] = {}
     end

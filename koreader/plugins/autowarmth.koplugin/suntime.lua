@@ -527,8 +527,6 @@ Calculates the ephemeris and twilight times
 
 @usage
 SunTime:calculateTimes(fast_twilight)
-
-
 Times are in hours or `nil` if not applicable.
 
 You can then access:

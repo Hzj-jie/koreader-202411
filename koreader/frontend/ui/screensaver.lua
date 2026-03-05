@@ -268,7 +268,7 @@ local function addOverlayMessage(widget, widget_height, text)
   if widget_height then
     textw = VerticalGroup:new({
       VerticalSpan:new({
-        width = widget_height,
+        height = widget_height,
       }),
       textw,
     })
@@ -384,7 +384,6 @@ Enter a custom message to be displayed on the sleep screen. The following escape
     },
   })
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
 end
 
 function Screensaver:setStretchLimit(touchmenu_instance)
@@ -672,8 +671,6 @@ function Screensaver:show()
     widget = Screensaver.getReaderProgress()
   end
 
-  -- Assume that we'll be covering the full-screen by default (either because of a widget, or a background fill).
-  local covers_fullscreen = true
   -- Speaking of, set that background fill up...
   local background
   if self.screensaver_background == "black" then
@@ -717,11 +714,6 @@ function Screensaver:show()
         G_reader_settings:read(self.prefix .. "screensaver_message_position")
     else
       message_pos = G_reader_settings:read("screensaver_message_position")
-    end
-
-    -- The only case where we *won't* cover the full-screen is when we only display a message and no background.
-    if widget == nil and self.screensaver_background == "none" then
-      covers_fullscreen = false
     end
 
     local message_widget
@@ -790,7 +782,6 @@ function Screensaver:show()
     self.screensaver_widget = ScreenSaverWidget:new({
       widget = widget,
       background = background,
-      covers_fullscreen = covers_fullscreen,
     })
     self.screensaver_widget.modal = true
     self.screensaver_widget.dithered = true
@@ -800,7 +791,7 @@ function Screensaver:show()
 
   -- Setup the gesture lock through an additional invisible widget, so that it works regardless of the configuration.
   if with_gesture_lock then
-    self.screensaver_lock_widget = ScreenSaverLockWidget:new({})
+    self.screensaver_lock_widget = ScreenSaverLockWidget:new()
 
     -- It's flagged as modal, so it'll stay on top
     UIManager:show(self.screensaver_lock_widget)

@@ -189,8 +189,7 @@ function Device:init()
       then
         this.device.screen:_updateWindow()
       elseif
-        ev.code == C.APP_CMD_LOST_FOCUS
-        or ev.code == C.APP_CMD_TERM_WINDOW
+        ev.code == C.APP_CMD_LOST_FOCUS or ev.code == C.APP_CMD_TERM_WINDOW
       then
         this.device.input:resetState()
       elseif ev.code == C.APP_CMD_CONFIG_CHANGED then

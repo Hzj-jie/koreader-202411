@@ -30,7 +30,13 @@ function LinkBox:init()
   end
 end
 
+function LinkBox:getSize()
+  assert(self.box ~= nil)
+  return self.box
+end
+
 function LinkBox:paintTo(bb)
+  assert(self.box ~= nil)
   bb:paintBorder(
     self.box.x,
     self.box.y,

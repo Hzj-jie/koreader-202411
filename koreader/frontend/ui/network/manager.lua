@@ -6,7 +6,6 @@ local Device = require("device")
 local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
 local LuaSettings = require("luasettings")
-local MultiConfirmBox = require("ui/widget/multiconfirmbox")
 local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local ffi = require("ffi")
@@ -21,13 +20,12 @@ local T = ffiutil.template
 -- We'll need a bunch of stuff for getifaddrs in NetworkMgr:ifHasAnAddress
 require("ffi/posix_h")
 
--- We unfortunately don't have that one in ffi/posix_h :/
-local EBUSY = 16
-
 local NetworkMgr = {
   -- Cache the last online state to sacrifice the accuracy in return of avoiding
   -- blocking UI for too long.
   was_online = false,
+  -- We unfortunately don't have that one in ffi/posix_h :/
+  EBUSY = 16,
 }
 
 local ConnectivityChecker = {
@@ -519,7 +517,7 @@ function NetworkMgr:toggleWifiOn()
     text = gettext("Turning on Wi-Fi…"),
   })
   UIManager:show(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
 
   -- Some implementations (usually, hasWifiManager) can report whether they were successful
   local function requestToTurnOnWifi()
@@ -555,7 +553,7 @@ function NetworkMgr:toggleWifiOn()
       timeout = 3,
     }))
     self:_abortWifiConnection()
-  elseif status == EBUSY then
+  elseif status == NetworkMgr.EBUSY then
     -- NOTE: This means turnOnWifi was *not* called (this time).
     -- This should almost never happen, but who knows.
     UIManager:show(InfoMessage:new({
@@ -578,7 +576,7 @@ function NetworkMgr:toggleWifiOff(interactive)
       text = gettext("Turning off Wi-Fi…"),
     })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   end
 
   raiseNetworkEvent("Disconnecting")
@@ -765,6 +763,8 @@ function NetworkMgr:getWifiToggleMenuTable()
       end
     end,
     onNetworkStateChanged = function(menu)
+      -- TODO: Using menuItem:init() and UIManager:scheduleWidgetRepaint(menuItem)
+      -- shows significant blur even on the emulator.
       menu:updateItems()
     end,
     hold_callback = function(menu)
@@ -999,7 +999,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
   if interactive then
     local info = InfoMessage:new({ text = gettext("Scanning for networks…") })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     network_list = scanNetworkList()
     UIManager:close(info)
   else
@@ -1036,7 +1036,6 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
   end
 
   -- Next, look for our own preferred networks...
-  local err_msg = gettext("Connection failed")
   -- Only auto connecting when user did not initiate the operation. I.e. when
   -- user clicks on the "Wi-Fi connection" menu, always prefer showing the
   -- menu.
@@ -1054,8 +1053,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
           "NetworkMgr: Attempting to authenticate on preferred network",
           util.fixUtf8(network.ssid, "�")
         )
-        local success
-        success, err_msg = self:authenticateNetwork(network)
+        local success, err_msg = self:authenticateNetwork(network)
         if success then
           ssid = network.ssid
           network.connected = true
@@ -1136,7 +1134,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
       timeout = 3,
       dismiss_callback = complete_callback,
     }))
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   elseif complete_callback then
     complete_callback()
   end

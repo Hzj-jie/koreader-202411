@@ -156,7 +156,6 @@ function OPDSBrowser:addEditCatalog(item)
     },
   })
   UIManager:show(dialog)
-  dialog:showKeyboard()
 end
 
 -- Shows dialog to add a subcatalog to the root list
@@ -195,7 +194,6 @@ function OPDSBrowser:addSubCatalog(item_url)
     },
   })
   UIManager:show(dialog)
-  dialog:showKeyboard()
 end
 
 -- Saves catalog properties from input dialog
@@ -613,7 +611,6 @@ function OPDSBrowser:searchCatalog(item_url)
     },
   })
   UIManager:show(dialog)
-  dialog:showKeyboard()
 end
 
 -- Shows dialog to download / stream a book
@@ -770,7 +767,6 @@ function OPDSBrowser:showDownloads(item)
           },
         })
         UIManager:show(dialog)
-        dialog:showKeyboard()
       end,
     },
   })

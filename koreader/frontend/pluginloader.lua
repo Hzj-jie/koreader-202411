@@ -207,7 +207,6 @@ function PluginLoader:genPluginManagerSubItem()
         end,
         callback = function()
           local UIManager = require("ui/uimanager")
-          local gettext = require("gettext")
           local plugins_disabled =
             G_reader_settings:readTableRef("plugins_disabled")
           plugin.enable = not plugin.enable

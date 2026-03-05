@@ -48,8 +48,8 @@ DEBUG:turnOn()
 -----------------------------------------------------
 -- widget that paints the grid on the background
 -----------------------------------------------------
-TestGrid = Widget:new({})
-TestVisible = Widget:new({})
+TestGrid = Widget:new()
+TestVisible = Widget:new()
 
 function TestGrid:paintTo(bb)
   v_line = math.floor(bb:getWidth() / 50)
@@ -490,7 +490,7 @@ end
 
 function testTouchProbe()
   local TouchProbe = require("tools/kobo_touch_probe")
-  UIManager:show(TouchProbe:new({}))
+  UIManager:show(TouchProbe:new())
 end
 
 function testNetworkSetting()

@@ -19,10 +19,6 @@ if jit.os == "Linux" or jit.os == "BSD" or jit.os == "POSIX" then
   end
 end
 
-local function notOSX()
-  return jit.os ~= "OSX"
-end
-
 local function isUrl(s)
   return type(s) == "string" and s:match("*?://")
 end
@@ -73,7 +69,7 @@ local Device = Generic:extend({
   hasBattery = SDL.getPowerInfo,
   hasKeyboard = util.yes,
   hasKeys = util.yes,
-  hasSymKey = os.getenv("DISABLE_TOUCH") == "1" and yes or no,
+  hasSymKey = os.getenv("DISABLE_TOUCH") == "1" and util.yes or util.no,
   hasDPad = util.yes,
   hasWifiToggle = util.no,
   hasSeamlessWifiToggle = util.no,
@@ -127,13 +123,6 @@ local AppImage = Device:extend({
   model = "AppImage",
   ota_model = "appimage",
   isDesktop = util.yes,
-})
-
-local Desktop = Device:extend({
-  model = SDL.getPlatform(),
-  isDesktop = util.yes,
-  canRestart = notOSX,
-  hasExitOptions = notOSX,
 })
 
 local Flatpak = Device:extend({
@@ -263,15 +252,12 @@ function Device:init()
           UIManager:userInput(fake_pan_ev)
           UIManager:userInput(fake_release_ev)
         end
-      elseif ev.code == SDL_MULTIGESTURE then
+      elseif ev.code == SDL_MULTIGESTURE then -- luacheck: ignore 542
         -- no-op for now
-        do
-        end -- luacheck: ignore 541
       elseif ev.code == SDL_DROPFILE then
         local dropped_file_path = ev.value
         if dropped_file_path and dropped_file_path ~= "" then
-          local ReaderUI = require("apps/reader/readerui")
-          ReaderUI:doShowReader(dropped_file_path)
+          require("apps/reader/readerui"):showReader(dropped_file_path)
         end
       elseif ev.code == SDL_WINDOWEVENT_RESIZED then
         device_input.device.screen.resize(
@@ -481,7 +467,41 @@ function Emulator:initNetworkManager(NetworkMgr)
     -- Not accurate.
     return "eth0"
   end
+  function NetworkMgr:getNetworkList()
+    local list = {}
+    for i = 1, 5 do
+      table.insert(list, {
+        signal_level = string.format("%d/5", i),
+        signal_quality = (i - 1) * 25,
+        connected = false,
+        ssid = string.format("fake-ssid-%d", i),
+        flags = "WPA",
+        password = false,
+      })
+    end
+    return list, nil
+  end
   NetworkMgr.isConnected = NetworkMgr.isWifiOn
+end
+
+local _pagePressPressure = 0
+function Emulator:pagePressPressure()
+  return _pagePressPressure
+end
+
+function Emulator:setPagePressPressure(v)
+  assert(v >= 0 and v <= 2)
+  _pagePressPressure = v
+end
+
+local _pagePressFeedback = 0
+function Emulator:pagePressFeedback()
+  return _pagePressFeedback
+end
+
+function Emulator:setPagePressFeedback(v)
+  assert(v >= 0 and v <= 3)
+  _pagePressFeedback = v
 end
 
 io.write("Starting SDL in " .. SDL.getBasePath() .. "\n")
@@ -491,8 +511,6 @@ if os.getenv("APPIMAGE") then
   return AppImage
 elseif os.getenv("FLATPAK") then
   return Flatpak
--- elseif os.getenv("KO_MULTIUSER") then
---   return Desktop
 elseif os.getenv("UBUNTU_APPLICATION_ISOLATION") then
   return UbuntuTouch
 else

@@ -10,9 +10,9 @@ local gettext = require("gettext")
 local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
-battery_status_dismissed = false
-battery_confirm_box = nil
-memory_confirm_box = nil
+local battery_status_dismissed = false
+local battery_confirm_box = nil
+local memory_confirm_box = nil
 
 local ReaderDeviceStatus = WidgetContainer:extend({})
 
@@ -111,6 +111,7 @@ function ReaderDeviceStatus:_checkBatteryStatus()
     dismissable = false,
     ok_callback = function()
       battery_status_dismissed = true
+      battery_confirm_box = nil
     end,
   })
   UIManager:show(battery_confirm_box)
@@ -121,7 +122,7 @@ function ReaderDeviceStatus:_checkMemoryStatus()
   if not statm then
     return
   end
-  local dummy, rss = statm:read("*number", "*number")
+  local __, rss = statm:read("*number", "*number")
   statm:close()
   rss = math.floor(rss * (4096 / 1024 / 1024))
   if rss < self.memory_threshold then
