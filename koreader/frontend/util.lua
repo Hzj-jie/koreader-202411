@@ -369,14 +369,12 @@ function util.arrayDfSearch(t, n, d)
   if d == nil then
     d = 1
   end
-  if type(t) ~= "table" then
-    return false
-  end
-
   if t == n then
     return true, d
   end
-
+  if type(t) ~= "table" then
+    return false
+  end
   for _, v in ipairs(t) do
     local r, rd = util.arrayDfSearch(v, n, d + 1)
     if r then
