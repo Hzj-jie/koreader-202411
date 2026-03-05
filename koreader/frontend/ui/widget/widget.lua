@@ -189,6 +189,8 @@ function Widget:_window() -- final
   for w in UIManager:topdown_windows_iter() do
     local r, d = require("util").arrayDfSearch(w.widget, self)
     if r then
+      -- d == 1 should be handled above.
+      assert(d > 1)
       self._window_z_index = d
       return w
     end
@@ -204,8 +206,8 @@ function Widget:window() -- final
   if self._window_ref == nil then
     self._window_ref = self:_window()
   elseif require("ui/uimanager"):findWindow(self._window_ref) == false then
-    -- The window has been closed, it may trigger another self:_window() call,
-    -- but components shouldn't use a closed window anymore.
+    -- The window has been closed, it may trigger another self:_window() call
+    -- later, but components shouldn't use a closed window anymore.
     self._window_ref = nil
   elseif G_defaults:isTrue("DEV_MODE") then
     if self._window_ref ~= self:_window() then
