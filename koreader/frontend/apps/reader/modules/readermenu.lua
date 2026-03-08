@@ -69,21 +69,10 @@ function ReaderMenu:registerKeyEvents()
   if not Device:hasKeys() then
     return
   end
-  if Device:isTouchDevice() then
+  if Device:hasFewKeys() then
+    self.key_events.PressMenu = { { { "Menu", "Right" } } }
+  else
     self.key_events.PressMenu = { { "Menu" } }
-    if Device:hasFewKeys() then
-      self.key_events.PressMenu = { { { "Menu", "Right" } } }
-    end
-  end
-  if not Device:isTouchDevice() or Device:isEmulator() then
-    -- Map Menu key to top menu only, because the bottom menu is only designed for touch devices.
-    --- @fixme: Is this still the case?
-    ---     (Swapping between top and bottom might not be implemented, though, so it might still be a good idea).
-    self.key_events.ShowMenu = { { "Menu" } }
-    if Device:hasFewKeys() then
-      self.key_events.ShowMenu = { { { "Menu", "Right" } } }
-    end
-    self.key_events.ShowKeyboardShortcuts = { { "Shift", "S" } }
   end
 end
 
@@ -393,7 +382,7 @@ function ReaderMenu:exitOrRestart(callback, force)
   end, self.ui, callback)
 end
 
-function ReaderMenu:onShowMenu(tab_index)
+function ReaderMenu:_showMenu(tab_index)
   if self.tab_item_table == nil then
     self:setUpdateItemTable()
   end
@@ -450,7 +439,7 @@ function ReaderMenu:onSetDimensions(dimen)
   -- This widget doesn't support in-place layout updates, so, close & reopen
   if self.menu_container then
     self:onCloseReaderMenu()
-    self:onShowMenu()
+    self:_showMenu()
   end
 
   -- update gesture zones according to new screen dimen
@@ -478,10 +467,10 @@ end
 
 function ReaderMenu:onSwipeShowMenu(ges)
   if self.activation_menu ~= "tap" and ges.direction == "south" then
-    if G_reader_settings:nilOrTrue("show_bottom_menu") then
+    if G_named_settings.show_bottom_menu() then
       UIManager:broadcastEvent(Event:new("ShowConfigMenu"))
     end
-    self:onShowMenu(self:_getTabIndexFromLocation(ges))
+    self:_showMenu(self:_getTabIndexFromLocation(ges))
     UIManager:broadcastEvent(Event:new("HandledAsSwipe")) -- cancel any pan scroll made
     return true
   end
@@ -489,19 +478,19 @@ end
 
 function ReaderMenu:onTapShowMenu(ges)
   if self.activation_menu ~= "swipe" then
-    if G_reader_settings:nilOrTrue("show_bottom_menu") then
+    if G_named_settings.show_bottom_menu() then
       UIManager:broadcastEvent(Event:new("ShowConfigMenu"))
     end
-    self:onShowMenu(self:_getTabIndexFromLocation(ges))
+    self:_showMenu(self:_getTabIndexFromLocation(ges))
     return true
   end
 end
 
 function ReaderMenu:onPressMenu()
-  if G_reader_settings:nilOrTrue("show_bottom_menu") then
+  if G_named_settings.show_bottom_menu() then
     UIManager:broadcastEvent(Event:new("ShowConfigMenu"))
   end
-  self:onShowMenu()
+  self:_showMenu()
   return true
 end
 
@@ -519,7 +508,7 @@ function ReaderMenu:onSaveSettings()
 end
 
 function ReaderMenu:onMenuSearch()
-  self:onShowMenu()
+  self:_showMenu()
   UIManager:broadcastEvent(Event:new("ShowMenuSearch"))
 end
 
