@@ -735,8 +735,10 @@ function ReaderUI:showReader(file, provider, seamless)
         gettext("File '%1' is not supported."),
         BD.filepath(filemanagerutil.abbreviate(file))
       ),
+      dismiss_callback = function()
+        self:showFileManager(file)
+      end,
     }))
-    self:showFileManager(file)
     return
   end
 
