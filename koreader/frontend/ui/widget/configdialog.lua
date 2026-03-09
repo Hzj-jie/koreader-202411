@@ -1060,12 +1060,13 @@ function ConfigDialog:init()
     local back_group = util.tableDeepCopy(Device.input.group.Back)
     if Device:hasFewKeys() then
       table.insert(back_group, "Left")
-      self.key_events.Exit = { { back_group } }
     else
       table.insert(back_group, "Menu")
       table.insert(back_group, "AA")
-      self.key_events.Exit = { { back_group } }
     end
+    self.key_events.Exit = { { back_group } }
+    self.key_events.NextPage = { { Device.input.group.PgFwd } }
+    self.key_events.PrevPage = { { Device.input.group.PgBack } }
   end
 end
 
@@ -1116,6 +1117,22 @@ function ConfigDialog:onClose()
   UIManager:setDirty(nil, function()
     return "partial", self.dialog_frame.dimen
   end)
+end
+
+function ConfigDialog:onNextPage()
+  local i = self.panel_index + 1
+  if i > #self.config_options then
+    i = 1
+  end
+  self:showConfigPanel(i)
+end
+
+function ConfigDialog:onPrevPage()
+  local i = self.panel_index - 1
+  if i <= 0 then
+    i = #self.config_options
+  end
+  self:showConfigPanel(i)
 end
 
 function ConfigDialog:showConfigPanel(index)
