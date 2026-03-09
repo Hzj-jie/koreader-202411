@@ -18,7 +18,9 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local gettext = require("gettext")
 local Screen = require("device").screen
 
-local OpenWithDialog = InputDialog:extend({})
+local OpenWithDialog = InputDialog:extend({
+  readonly = true,
+})
 
 function OpenWithDialog:init()
   -- init title and buttons in base class
