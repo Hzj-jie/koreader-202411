@@ -6,26 +6,18 @@ A simple plugin for getting the weather forcast on your KOReader
 --
 
 local DataStorage = require("datastorage")
-local Dispatcher = require("dispatcher") -- luacheck:ignore
-local InfoMessage = require("ui/widget/infomessage")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local KeyValuePage = require("ui/widget/keyvaluepage")
-local ListView = require("ui/widget/listview")
 local LuaSettings = require("luasettings")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local WeatherApi = require("weatherapi")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Screen = require("device").screen
-local Blitbuffer = require("ffi/blitbuffer")
 local Composer = require("composer")
-local Font = require("ui/font")
-local FrameContainer = require("ui/widget/container/framecontainer")
-local TextWidget = require("ui/widget/textwidget")
 local ffiutil = require("ffi/util")
 local gettext = require("gettext")
-local logger = require("logger")
 local T = ffiutil.template
 
 local Weather = WidgetContainer:new({
@@ -135,7 +127,6 @@ function Weather:getSubMenuItems()
               },
             })
             UIManager:show(input)
-            input:showKeyboard()
           end,
         },
         {
@@ -174,7 +165,6 @@ function Weather:getSubMenuItems()
               },
             })
             UIManager:show(input)
-            input:showKeyboard()
           end,
         },
         {
@@ -248,14 +238,11 @@ function Weather:getSubMenuItems()
             return false
           end
           if result.error ~= nil then
-            local Screen = require("device").screen
-            local sample
-            sample = InfoMessage:new({
+            UIManager:show(InfoMessage:new({
               text = gettext("Error: " .. result.error.message),
               height = Screen:scaleBySize(400),
               show_icon = true,
-            })
-            UIManager:show(sample)
+            }))
           else
             self:weeklyForecast(result)
           end
@@ -313,7 +300,6 @@ function Weather:forecastForDay(data)
     local vc_current = self.composer:createCurrentForecast(data.current)
     local vc_forecast =
       self.composer:createForecastForDay(data.forecast.forecastday[1])
-    local location = data.location.name
     view_content = KeyValuePage.flattenArray(view_content, vc_current)
     view_content = KeyValuePage.flattenArray(view_content, vc_forecast)
   end

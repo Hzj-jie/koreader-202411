@@ -14,7 +14,6 @@ local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
-local Input = Device.input
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -207,8 +206,7 @@ function ReaderRolling:onReadSettings(config)
   -- may need tweaking:
   local cre = require("document/credocument"):engineInit()
   if
-    config:read("cre_dom_version")
-    < cre.getDomVersionWithNormalizedXPointers()
+    config:read("cre_dom_version") < cre.getDomVersionWithNormalizedXPointers()
   then
     -- Show some warning when styles "display:" have changed that
     -- bookmarks may break
@@ -610,13 +608,11 @@ function ReaderRolling:onScrollSettingsUpdated(
         if not self.ui.document then
           return false
         end
-        UIManager.currently_scrolling = true
         local prev_pos = self.current_pos
         self:_gotoPos(prev_pos + distance)
         return self.current_pos ~= prev_pos
       end,
       function() -- scroll_done_callback
-        UIManager.currently_scrolling = false
         if self.ui.document then
           self.xpointer = self.ui.document:getXPointer()
         end
@@ -638,7 +634,7 @@ function ReaderRolling:onSwipe(_, ges)
     return true
   else
     self._pan_started = false
-    UIManager.currently_scrolling = false
+    UIManager:resetForceFastRefresh()
   end
   local direction = BD.flipDirectionIfMirroredUILayout(ges.direction)
   if direction == "west" then
@@ -744,7 +740,7 @@ function ReaderRolling:onPan(_, ges)
         self._pan_to_scroll_later = 0
         if dist ~= 0 then
           self._pan_has_scrolled = true
-          UIManager.currently_scrolling = true
+          UIManager:forceFastRefresh()
           self:_gotoPos(self.current_pos + dist)
           -- (We'll update self.xpointer only when done moving, at
           -- release/swipe time as it might be expensive)
@@ -762,7 +758,7 @@ function ReaderRolling:onPanRelease(_, ges)
     self:_gotoPos(self.current_pos + self._pan_to_scroll_later)
   end
   self._pan_started = false
-  UIManager.currently_scrolling = false
+  UIManager:resetForceFastRefresh()
   if self._pan_has_scrolled then
     self._pan_has_scrolled = false
     self.xpointer = self.ui.document:getXPointer()
@@ -785,7 +781,7 @@ function ReaderRolling:onHandledAsSwipe()
     self:_gotoPos(self._pan_pos_at_pan_start)
     self._pan_started = false
     self._pan_has_scrolled = false
-    UIManager.currently_scrolling = false
+    UIManager:resetForceFastRefresh()
     -- No specific refresh: the swipe/multiswipe might show other stuff,
     -- and we'd want to avoid a flashing refresh
   end
@@ -1052,7 +1048,7 @@ function ReaderRolling:onGotoViewRel(diff)
         and 1
       or 0
     ) * self.view.footer:getHeight()
-    local page_visible_height = self.ui.dimen.h - footer_height
+    local page_visible_height = self.ui:getSize().h - footer_height
     local pan_diff = diff * page_visible_height
     if self.view.page_overlap_enable then
       local overlap_lines = G_reader_settings:read("copt_overlap_lines") or 1
@@ -1300,7 +1296,7 @@ function ReaderRolling:_gotoPos(new_pos, do_dim_area)
   -- Don't go past end of document, and ensure last line of the document
   -- is shown just above the footer, whether footer is visible or not
   local max_pos = self.ui.document.info.doc_height
-    - self.ui.dimen.h
+    - self.ui:getSize().h
     + self.view.footer:getHeight()
   if new_pos > max_pos then
     new_pos = max_pos
@@ -1319,17 +1315,17 @@ function ReaderRolling:_gotoPos(new_pos, do_dim_area)
         and 1
       or 0
     ) * self.view.footer:getHeight()
-    local page_visible_height = self.ui.dimen.h - footer_height
+    local page_visible_height = self.ui:getSize().h - footer_height
     local panned_step = new_pos - self.current_pos
     self.view.dim_area.x = 0
     self.view.dim_area.h = page_visible_height - math.abs(panned_step)
-    self.view.dim_area.w = self.ui.dimen.w
+    self.view.dim_area.w = self.ui:getSize().w
     if panned_step < 0 then
       self.view.dim_area.y = page_visible_height - self.view.dim_area.h
     elseif panned_step > 0 then
       self.view.dim_area.y = 0
     end
-    if self.current_pos > max_pos - self.ui.dimen.h / 2 then
+    if self.current_pos > max_pos - self.ui:getSize().h / 2 then
       -- Avoid a fully dimmed page when reaching end of document
       -- (the scroll would bump and not be a full page long)
       self.view.dim_area:clear()
@@ -1337,7 +1333,7 @@ function ReaderRolling:_gotoPos(new_pos, do_dim_area)
   else
     self.view.dim_area:clear()
   end
-  if self.current_pos and not UIManager.currently_scrolling then
+  if self.current_pos and not UIManager:duringForceFastRefresh() then
     UIManager:broadcastEvent(
       Event:new("PageChangeAnimation", new_pos > self.current_pos)
     )

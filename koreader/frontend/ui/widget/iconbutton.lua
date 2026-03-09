@@ -2,7 +2,6 @@
 Button with a big icon image! Designed for touch devices.
 --]]
 
-local BD = require("ui/bidi")
 local Device = require("device")
 local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
@@ -21,7 +20,6 @@ local IconButton = InputContainer:extend({
   icon_rotation_angle = 0,
   dimen = nil,
   -- show_parent is used for UIManager:setDirty, so we can trigger repaint
-  show_parent = nil,
   width = Screen:scaleBySize(DGENERIC_ICON_SIZE), -- our icons are square
   height = Screen:scaleBySize(DGENERIC_ICON_SIZE),
   padding = 0,
@@ -40,18 +38,18 @@ function IconButton:init()
     width = self.width,
     height = self.height,
   })
-
-  self.show_parent = self.show_parent or self
-
-  self.horizontal_group = HorizontalGroup:new({})
-  table.insert(self.horizontal_group, HorizontalSpan:new({}))
+  -- Do not use the width and height as the whole widget size.
+  self.width = nil
+  self.height = nil
+  self.horizontal_group = HorizontalGroup:new()
+  table.insert(self.horizontal_group, HorizontalSpan:new())
   table.insert(self.horizontal_group, self.image)
-  table.insert(self.horizontal_group, HorizontalSpan:new({}))
+  table.insert(self.horizontal_group, HorizontalSpan:new())
 
-  self.button = VerticalGroup:new({})
-  table.insert(self.button, VerticalSpan:new({}))
+  self.button = VerticalGroup:new()
+  table.insert(self.button, VerticalSpan:new())
   table.insert(self.button, self.horizontal_group)
-  table.insert(self.button, VerticalSpan:new({}))
+  table.insert(self.button, VerticalSpan:new())
 
   self[1] = self.button
   self:update()
@@ -73,16 +71,15 @@ function IconButton:update()
 
   self.horizontal_group[1].width = self.padding_left
   self.horizontal_group[3].width = self.padding_right
-  self.dimen = self.image:getSize()
-  self.dimen.w = self.dimen.w + self.padding_left + self.padding_right
+  local contentSize = self.image:getSize()
+  self:mergeSize(
+    contentSize.w + self.padding_left + self.padding_right,
+    contentSize.h + self.padding_top + self.padding_bottom
+  )
 
-  self.button[1].width = self.padding_top
-  self.button[3].width = self.padding_bottom
-  self.dimen.h = self.dimen.h + self.padding_top + self.padding_bottom
-  self:initGesListener()
-end
+  self.button[1].height = self.padding_top
+  self.button[3].height = self.padding_bottom
 
-function IconButton:initGesListener()
   self.ges_events = {
     TapIconButton = {
       GestureRange:new({
@@ -109,13 +106,6 @@ function IconButton:onTapIconButton()
   if not self.callback then
     return
   end
-  -- Mimic BiDi left/right switcheroos...
-  local h_padding
-  if BD.mirroredUILayout() then
-    h_padding = self.padding_right
-  else
-    h_padding = self.padding_left
-  end
   -- c.f., ui/widget/button for more gnarly details about the implementation, but the flow of the flash_ui codepath essentially goes like this:
   -- 1. Paint the highlight
   -- 2. Refresh the highlighted item (so we can see the highlight)
@@ -127,26 +117,15 @@ function IconButton:onTapIconButton()
   -- Highlight
   --
   self.image.invert = true
-  UIManager:widgetInvert(
-    self.image,
-    self.dimen.x + h_padding,
-    self.dimen.y + self.padding_top
-    -- It's not necessary to calculate the self.dimen.w - 2 * h_padding,
-    -- cropping logic in the widgetInvert will take care of it.
-  )
-  UIManager:setDirty(nil, "fast", self.dimen)
+  UIManager:invertWidget(self.image)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
 
   -- Unhighlight
   --
   self.image.invert = false
-  UIManager:widgetInvert(
-    self.image,
-    self.dimen.x + h_padding,
-    self.dimen.y + self.padding_top
-  )
+  UIManager:invertWidget(self.image)
 
   -- Callback
   --
@@ -158,7 +137,7 @@ function IconButton:onTapIconButton()
   --       This changes nothing in practice, since we follow by explicitly requesting to drain the refresh queue ;).
   UIManager:setDirty(nil, "fast", self.dimen)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   return true
 end
 

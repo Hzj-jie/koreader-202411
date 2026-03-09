@@ -2,7 +2,6 @@ local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
 local Button = require("ui/widget/button")
-local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local Event = require("ui/event")
 local FocusManager = require("ui/widget/focusmanager")
@@ -52,12 +51,12 @@ local MenuItem = InputContainer:extend({
 })
 
 function MenuItem:init()
-  self.content_width = self.dimen.w - 2 * Size.padding.fullscreen
+  self.content_width = self:getSize().w - 2 * Size.padding.fullscreen
 
   local shortcut_icon_dimen
   if self.shortcut then
     local icon_width = self.entry.shortcut_icon_width
-      or math.floor(self.dimen.h * 4 / 5)
+      or math.floor(self:getSize().h * 4 / 5)
     shortcut_icon_dimen = Geom:new({
       x = 0,
       y = 0,
@@ -85,7 +84,7 @@ function MenuItem:init()
     },
   }
 
-  local max_item_height = self.dimen.h - 2 * self.linesize
+  local max_item_height = self:getSize().h - 2 * self.linesize
 
   -- We want to show at least one line, so cap the provided font sizes
   local max_font_size = TextBoxWidget:getFontSizeToFitHeight(max_item_height, 1)
@@ -116,13 +115,13 @@ function MenuItem:init()
   end
 
   -- State button and indentation for tree expand/collapse (for TOC)
-  local state_button = self.entry.state or HorizontalSpan:new({})
+  local state_button = self.entry.state or HorizontalSpan:new()
   local state_indent = self.entry.indent or 0
   local state_width = state_indent + (self.state_w or 0)
   local state_container = LeftContainer:new({
     dimen = Geom:new({
       w = math.floor(self.content_width / 2),
-      h = self.dimen.h,
+      h = self:getSize().h,
     }),
     HorizontalGroup:new({
       HorizontalSpan:new({
@@ -246,26 +245,28 @@ function MenuItem:init()
     end
     if self.align_baselines then -- Align baselines of text and mandatory
       -- The container widgets would additionally center these widgets,
-      -- so make sure they all get a height=self.dimen.h so they don't
+      -- so make sure they all get a height=self:getSize().h so they don't
       -- risk being shifted later and becoming misaligned
       local name_baseline = item_name:getBaseline()
       local mdtr_baseline = mandatory_widget:getBaseline()
       local name_height = item_name:getSize().h
       local mdtr_height = mandatory_widget:getSize().h
-      -- Make all the TextWidgets be self.dimen.h
-      item_name.forced_height = self.dimen.h
-      mandatory_widget.forced_height = self.dimen.h
+      -- Make all the TextWidgets be self:getSize().h
+      item_name.forced_height = self:getSize().h
+      mandatory_widget.forced_height = self:getSize().h
       if dots_widget then
-        dots_widget.forced_height = self.dimen.h
+        dots_widget.forced_height = self:getSize().h
       end
       if post_text_widget then
-        post_text_widget.forced_height = self.dimen.h
+        post_text_widget.forced_height = self:getSize().h
       end
       -- And adjust their baselines for proper centering and alignment
-      -- (We made sure the font sizes wouldn't exceed self.dimen.h, so we
+      -- (We made sure the font sizes wouldn't exceed self:getSize().h, so we
       -- get only non-negative pad_top here, and we're moving them down.)
-      local name_missing_pad_top = math.floor((self.dimen.h - name_height) / 2)
-      local mdtr_missing_pad_top = math.floor((self.dimen.h - mdtr_height) / 2)
+      local name_missing_pad_top =
+        math.floor((self:getSize().h - name_height) / 2)
+      local mdtr_missing_pad_top =
+        math.floor((self:getSize().h - mdtr_height) / 2)
       name_baseline = name_baseline + name_missing_pad_top
       mdtr_baseline = mdtr_baseline + mdtr_missing_pad_top
       local baselines_diff = Math.round(name_baseline - mdtr_baseline)
@@ -363,7 +364,7 @@ function MenuItem:init()
   end
 
   local text_container = LeftContainer:new({
-    dimen = Geom:new({ w = self.content_width, h = self.dimen.h }),
+    dimen = Geom:new({ w = self.content_width, h = self:getSize().h }),
     HorizontalGroup:new({
       HorizontalSpan:new({
         width = state_width,
@@ -383,7 +384,7 @@ function MenuItem:init()
     })
   end
   local mandatory_container = RightContainer:new({
-    dimen = Geom:new({ w = self.content_width, h = self.dimen.h }),
+    dimen = Geom:new({ w = self.content_width, h = self:getSize().h }),
     mandatory_widget,
   })
 
@@ -396,12 +397,12 @@ function MenuItem:init()
       x = 0,
       y = 0,
       w = self.content_width,
-      h = self.dimen.h,
+      h = self:getSize().h,
     }),
     HorizontalGroup:new({
       align = "center",
       OverlapGroup:new({
-        dimen = Geom:new({ w = self.content_width, h = self.dimen.h }),
+        dimen = Geom:new({ w = self.content_width, h = self:getSize().h }),
         state_container,
         text_container,
         mandatory_container,
@@ -503,23 +504,21 @@ function MenuItem:onTapSelect(arg, ges)
   -- Highlight
   --
   self[1].invert = true
-  UIManager:widgetInvert(self[1])
-  UIManager:setDirty(nil, "fast", self[1].dimen)
+  UIManager:invertWidget(self[1])
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
 
   -- Unhighlight
   --
   self[1].invert = false
-  UIManager:widgetInvert(self[1])
-  UIManager:setDirty(nil, "ui", self[1].dimen)
+  UIManager:invertWidget(self[1])
 
   -- Callback
   --
   self.menu:onMenuSelect(self.entry, pos)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   return true
 end
 
@@ -534,23 +533,21 @@ function MenuItem:onHoldSelect(arg, ges)
   -- Highlight
   --
   self[1].invert = true
-  UIManager:widgetInvert(self[1])
-  UIManager:setDirty(nil, "fast", self[1].dimen)
+  UIManager:invertWidget(self[1])
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
 
   -- Unhighlight
   --
   self[1].invert = false
-  UIManager:widgetInvert(self[1])
-  UIManager:setDirty(nil, "ui", self[1].dimen)
+  UIManager:invertWidget(self[1])
 
   -- Callback
   --
   self.menu:onMenuHold(self.entry, pos)
 
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   return true
 end
 
@@ -600,9 +597,6 @@ Widget that displays menu
 local Menu = FocusManager:extend({
   ENABLE_SHORTCUT = ENABLE_SHORTCUT,
   ITEM_SHORTCUTS = ITEM_SHORTCUTS,
-
-  show_parent = nil,
-
   no_title = false,
   title = "",
   custom_title_bar = nil,
@@ -704,7 +698,6 @@ function Menu:_recalculateDimen(no_recalculate_dimen)
 end
 
 function Menu:init()
-  self.show_parent = self.show_parent or self
   self.item_table = self.item_table or {}
   self.item_table_stack = {}
   self.page = 1
@@ -717,14 +710,14 @@ function Menu:init()
     w = self.width or self.screen_w,
     h = self.height or self.screen_h,
   })
-  if self.dimen.h > self.screen_h then
+  if self:getSize().h > self.screen_h then
     self.dimen.h = self.screen_h
   end
 
   self.border_size = self.is_borderless and 0 or Size.border.window
   self.inner_dimen = Geom:new({
-    w = self.dimen.w - 2 * self.border_size,
-    h = self.dimen.h - 2 * self.border_size,
+    w = self:getSize().w - 2 * self.border_size,
+    h = self:getSize().h - 2 * self.border_size,
   })
 
   self.paths = {} -- per instance table to trace navigation path
@@ -738,7 +731,7 @@ function Menu:init()
     end
     self.title_bar = self.custom_title_bar
       or TitleBar:new({
-        width = self.dimen.w,
+        width = self:getSize().w,
         fullscreen = "true",
         align = "center",
         with_bottom_line = self.with_bottom_line,
@@ -765,12 +758,11 @@ function Menu:init()
         close_callback = function()
           self:onExit()
         end,
-        show_parent = self.show_parent or self,
       })
   end
 
   -- group for items
-  self.item_group = VerticalGroup:new({})
+  self.item_group = VerticalGroup:new()
   -- group for page info
   local chevron_left = "chevron.left"
   local chevron_right = "chevron.right"
@@ -787,7 +779,6 @@ function Menu:init()
         self:onPrevPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_right_chev = self.page_info_right_chev
     or Button:new({
@@ -796,7 +787,6 @@ function Menu:init()
         self:onNextPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_first_chev = self.page_info_first_chev
     or Button:new({
@@ -805,7 +795,6 @@ function Menu:init()
         self:onFirstPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_last_chev = self.page_info_last_chev
     or Button:new({
@@ -814,7 +803,6 @@ function Menu:init()
         self:onLastPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_spacer = HorizontalSpan:new({
     width = Screen:scaleBySize(32),
@@ -937,7 +925,6 @@ function Menu:init()
         end
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
       readonly = self.return_arrow_propagation,
     })
   self.page_return_arrow:hide()
@@ -948,7 +935,7 @@ function Menu:init()
     self.page_return_arrow,
   })
 
-  local header = self.no_title and VerticalSpan:new({ width = 0 })
+  local header = self.no_title and VerticalSpan:new({ height = 0 })
     or self.title_bar
   local body = self.item_group
   local footer = BottomContainer:new({
@@ -993,7 +980,7 @@ function Menu:init()
     bordersize = self.border_size,
     padding = 0,
     margin = 0,
-    radius = self.is_popout and math.floor(self.dimen.w * (1 / 20)) or 0,
+    radius = self.is_popout and math.floor(self:getSize().w * (1 / 20)) or 0,
     content,
   })
 
@@ -1074,6 +1061,12 @@ function Menu:init()
   end
   if not self.path_items then -- not FileChooser
     self:updateItems(1, true)
+  end
+
+  if self.close_callback == nil then
+    self.close_callback = function()
+      UIManager:close(self)
+    end
   end
 end
 
@@ -1184,7 +1177,6 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
     end
     local item_tmp = MenuItem:new({
       idx = index,
-      show_parent = self.show_parent,
       state_w = self.state_w,
       text = Menu.getMenuText(item),
       bidi_wrap_func = item.bidi_wrap_func,
@@ -1220,7 +1212,8 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
   self:updatePageInfo(select_number)
   self:mergeTitleBarIntoLayout()
 
-  UIManager:setDirty(self.show_parent, function()
+  -- Otherwise the widget hasn't shown yet and will be paintTo later.
+  self:setDirty(function()
     local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)
       or self.dimen
     return "ui", refresh_dimen
@@ -1462,9 +1455,7 @@ function Menu:onMenuSelect(item)
       end
     end
     self:onMenuChoice(item)
-    if self.close_callback then
-      self.close_callback()
-    end
+    self.close_callback()
   else
     -- save menu title for later resume
     self.item_table.title = self.title
@@ -1562,10 +1553,7 @@ function Menu:onExit()
 end
 
 function Menu:_closeAllMenus()
-  UIManager:close(self)
-  if self.close_callback then
-    self.close_callback()
-  end
+  self.close_callback()
   return true
 end
 
@@ -1590,13 +1578,11 @@ function Menu:onSwipe(arg, ges_ev)
     end
     -- If there is no close button, it's a top level Menu and swipe
     -- up/down may hide/show top menu
-  elseif direction == "north" then
+  elseif direction == "north" then -- luacheck: ignore 542
     -- no use for now
-    do
-    end -- luacheck: ignore 541
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
   end
 end
 

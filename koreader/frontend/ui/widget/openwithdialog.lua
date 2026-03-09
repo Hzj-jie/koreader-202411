@@ -18,7 +18,9 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local gettext = require("gettext")
 local Screen = require("device").screen
 
-local OpenWithDialog = InputDialog:extend({})
+local OpenWithDialog = InputDialog:extend({
+  readonly = true,
+})
 
 function OpenWithDialog:init()
   -- init title and buttons in base class
@@ -48,7 +50,7 @@ function OpenWithDialog:init()
   self:mergeLayoutInVertical(self.radio_button_table, #self.layout) -- before bottom buttons
 
   local vertical_span = VerticalSpan:new({
-    width = Size.padding.large,
+    height = Size.padding.large,
   })
   self.vgroup = VerticalGroup:new({
     align = "left",

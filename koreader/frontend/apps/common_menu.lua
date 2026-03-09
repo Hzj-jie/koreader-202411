@@ -1,6 +1,7 @@
 local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 
 local CommonMenu = {}
 

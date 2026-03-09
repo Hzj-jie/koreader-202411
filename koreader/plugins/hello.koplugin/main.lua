@@ -10,7 +10,9 @@ if true then
   return { disabled = true }
 end
 
-local Dispatcher = require("dispatcher") -- luacheck:ignore
+-- luacheck: ignore 511
+
+local Dispatcher = require("dispatcher")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")

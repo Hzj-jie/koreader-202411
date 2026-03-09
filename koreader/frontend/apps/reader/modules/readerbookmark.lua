@@ -734,7 +734,6 @@ function ReaderBookmark:onShowBookmark()
 
   self.bookmark_menu = CenterContainer:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
   })
   local bm_menu = Menu:new({
     title = T(gettext("Bookmarks (%1)"), #item_table),
@@ -761,7 +760,6 @@ function ReaderBookmark:onShowBookmark()
         direction = BD.flipDirectionIfMirroredUILayout("east"),
       }),
     },
-    show_parent = self.bookmark_menu,
   })
   table.insert(self.bookmark_menu, bm_menu)
 
@@ -1428,7 +1426,6 @@ function ReaderBookmark:setBookmarkNote(
     },
   })
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
 end
 
 function ReaderBookmark:editHighlightedText(item_or_index, caller_callback)
@@ -1471,7 +1468,6 @@ function ReaderBookmark:editHighlightedText(item_or_index, caller_callback)
     },
   })
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
 end
 
 function ReaderBookmark:setHighlightedText(item_or_index, text, caller_callback)
@@ -1603,7 +1599,6 @@ function ReaderBookmark:onSearchBookmark()
   input_dialog:addWidget(check_button_bookmark)
 
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
   return true
 end
 

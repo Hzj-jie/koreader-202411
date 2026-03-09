@@ -112,7 +112,7 @@ socket.sourcet["http-chunked"] = function(sock, headers)
       -- was it the last chunk?
       if size > 0 then
         -- if not, get chunk and skip terminating CRLF
-        local chunk, err, _ = sock:receive(size)
+        local chunk, err = sock:receive(size)
         if chunk then
           sock:receive()
         end

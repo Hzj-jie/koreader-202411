@@ -74,7 +74,7 @@ function Trapper:clear()
   if self:isWrapped() then
     if self.current_widget then
       UIManager:close(self.current_widget)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
       self.current_widget = nil
     end
   end
@@ -175,7 +175,7 @@ function Trapper:info(text, fast_refresh)
       UIManager:close(abort_box)
       if not go_on then
         UIManager:close(self.current_widget)
-        UIManager:forceRePaint()
+        UIManager:forceRepaint()
         return false
       end
       if self.current_widget then
@@ -185,7 +185,7 @@ function Trapper:info(text, fast_refresh)
         self.current_widget:init()
         UIManager:show(self.current_widget)
       end
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
     end
     -- go_on_func returned result = true, or abort_box did not abort:
     -- continue processing
@@ -223,7 +223,7 @@ function Trapper:info(text, fast_refresh)
     })
     logger.dbg("Showing InfoMessage:", text)
     UIManager:show(self.current_widget)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   end
   return true
 end
@@ -360,7 +360,7 @@ function Trapper:dismissablePopen(cmd, trap_widget_or_string)
         text = trap_widget_or_string,
       })
       UIManager:show(trap_widget)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
     else
       -- Use an invisible TrapWidget that resend event, but not if
       -- trap_widget_or_string is false (rather than nil or true)
@@ -446,7 +446,7 @@ function Trapper:dismissablePopen(cmd, trap_widget_or_string)
     -- Remove our own trap_widget
     UIManager:close(trap_widget)
     if not own_trap_widget_invisible then
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
     end
   end
   -- return what we got or not to our caller
@@ -520,7 +520,7 @@ function Trapper:dismissableRunInSubprocess(
         text = trap_widget_or_string,
       })
       UIManager:show(trap_widget)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
     else
       -- Use an invisible TrapWidget that resend event, but not if
       -- trap_widget_or_string is false (rather than nil or true)
@@ -688,7 +688,7 @@ function Trapper:dismissableRunInSubprocess(
     -- Remove our own trap_widget
     UIManager:close(trap_widget)
     if not own_trap_widget_invisible then
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
     end
   end
   -- return what we got or not to our caller

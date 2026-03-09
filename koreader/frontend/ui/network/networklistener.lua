@@ -221,8 +221,7 @@ function NetworkListener:onShowNetworkInfo()
             .. gettext("Internet")
             .. " "
             .. (
-              NetworkMgr:isOnline() and gettext("online")
-              or gettext("offline")
+              NetworkMgr:isOnline() and gettext("online") or gettext("offline")
             ),
           -- IPv6 addresses are *loooooong*!
           face = Font:getFace("x_smallinfofont"),

@@ -162,7 +162,6 @@ function FileManagerShortcuts:editShortcut(folder, post_callback)
     },
   })
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
 end
 
 function FileManagerShortcuts:addShortcut()
@@ -227,7 +226,6 @@ end
 function FileManagerShortcuts:onShowFolderShortcutsDialog(select_callback)
   self.shortcuts_menu = Menu:new({
     title = self.title,
-    covers_fullscreen = true,
     is_borderless = true,
     is_popout = false,
     select_callback = select_callback, -- called from PathChooser titlebar left button

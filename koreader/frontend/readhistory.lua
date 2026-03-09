@@ -336,13 +336,13 @@ function ReadHistory:removeItem(item, idx, no_flush)
 end
 
 function ReadHistory:ignoreFile(file)
-  filename = ffiutil.basename(file)
+  local filename = ffiutil.basename(file)
   if
     not require("ui/widget/filechooser"):show_file(ffiutil.basename(filename))
   then
     return true
   end
-  exclude_files = { -- const
+  local exclude_files = { -- const
     "^batterystat%.log$",
     "^crash%.log$",
     "^crash%.prev%.log$",
@@ -357,14 +357,14 @@ function ReadHistory:ignoreFile(file)
   return false
 end
 
-function ReadHistory:_ignoreItem(file)
+function ReadHistory:_ignoreItem(file, ts)
   -- Expect file to be a realpath(file)
   if not file or (ts and lfs.attributes(file, "mode") ~= "file") then
     return true -- bad legacy item
   end
   -- Note, the logic won't impact the existing items, but only the ones newly
   -- added.
-  path = ffiutil.dirname(file)
+  local path = ffiutil.dirname(file)
   if not require("ui/widget/filechooser"):show_dir(ffiutil.basename(path)) then
     return true
   end
@@ -375,7 +375,7 @@ end
 -- If item time (ts) is passed, add item to the history list at this time position.
 function ReadHistory:addItem(file, ts, no_flush)
   file = realpath(file)
-  if self:_ignoreItem(file) then
+  if self:_ignoreItem(file, ts) then
     return
   end
   local index = self:getIndexByFile(file)

@@ -25,7 +25,7 @@ function BookShortcuts:onDispatcherRegisterActions()
     if util.pathExists(k) then
       local title = k
       if lfs.attributes(k, "mode") == "file" then
-        local directory, filename = util.splitFilePathName(k) -- luacheck: no unused
+        local __, filename = util.splitFilePathName(k)
         title = filename
       end
       Dispatcher:registerAction(k, {

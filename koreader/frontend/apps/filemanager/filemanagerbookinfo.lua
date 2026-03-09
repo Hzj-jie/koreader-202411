@@ -224,7 +224,7 @@ function BookInfo:extract(doc_settings_or_file, book_props)
     )
   end
 
-  return kv_pairs
+  return kv_pairs, file, values_lang
 end
 
 -- Shows book information.
@@ -232,11 +232,12 @@ function BookInfo:show(doc_settings_or_file, book_props)
   self.prop_updated = nil
   self.summary_updated = nil
 
-  local KeyValuePage = require("ui/widget/keyvaluepage")
-  self.kvp_widget = KeyValuePage:new({
+  local kv_pairs, file, values_lang =
+    self:extract(doc_settings_or_file, book_props)
+  self.kvp_widget = require("ui/widget/keyvaluepage"):new({
     title = self.title,
     value_overflow_align = "right",
-    kv_pairs = self:extract(doc_settings_or_file, book_props),
+    kv_pairs = kv_pairs,
     values_lang = values_lang,
     close_callback = function()
       self.custom_doc_settings = nil
@@ -592,7 +593,6 @@ function BookInfo:showCustomEditDialog(file, book_props, prop_key)
     },
   })
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
 end
 
 function BookInfo:showCustomDialog(file, book_props, prop_key)
@@ -749,8 +749,8 @@ function BookInfo:editSummary(doc_settings_or_file, book_props)
       },
     },
   })
+  input_dialog.ignore_first_hold_release = true
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard(true)
 end
 
 function BookInfo:moveBookMetadata()

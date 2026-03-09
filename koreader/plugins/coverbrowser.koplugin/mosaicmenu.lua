@@ -21,11 +21,9 @@ local ProgressWidget = require("ui/widget/progresswidget")
 local ReadCollection = require("readcollection")
 local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
-local TextWidget = require("ui/widget/textwidget")
 local UnderlineContainer = require("ui/widget/container/underlinecontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
@@ -290,19 +288,19 @@ function FakeCover:init()
     end
   end
 
-  local vgroup = VerticalGroup:new({})
+  local vgroup = VerticalGroup:new()
   if authors then
-    table.insert(vgroup, VerticalSpan:new({ width = self.top_pad }))
+    table.insert(vgroup, VerticalSpan:new({ height = self.top_pad }))
     table.insert(vgroup, authors_wg)
   end
-  table.insert(vgroup, VerticalSpan:new({ width = inter_pad }))
+  table.insert(vgroup, VerticalSpan:new({ height = inter_pad }))
   if title then
     table.insert(vgroup, title_wg)
   end
-  table.insert(vgroup, VerticalSpan:new({ width = inter_pad }))
+  table.insert(vgroup, VerticalSpan:new({ height = inter_pad }))
   if filename then
     table.insert(vgroup, filename_wg)
-    table.insert(vgroup, VerticalSpan:new({ width = self.bottom_pad }))
+    table.insert(vgroup, VerticalSpan:new({ height = self.bottom_pad }))
   end
 
   if self.file_deleted then
@@ -324,7 +322,6 @@ end
 local MosaicMenuItem = InputContainer:extend({
   entry = nil, -- table, mandatory
   text = nil,
-  show_parent = nil,
   dimen = nil,
   _underline_container = nil,
   do_cover_image = false,
@@ -344,7 +341,7 @@ function MosaicMenuItem:init()
   -- As done in MenuItem
   -- Squared letter for keyboard navigation
   if self.shortcut then
-    local icon_width = math.floor(self.dimen.h * 1 / 5)
+    local icon_width = math.floor(self:getSize().h * 1 / 5)
     local shortcut_icon_dimen = Geom:new({
       x = 0,
       y = 0,
@@ -554,7 +551,8 @@ function MosaicMenuItem:update()
       if DocSettings:hasSidecarFile(self.filepath) then
         self.been_opened = true
         self.menu:updateCache(self.filepath, nil, true, bookinfo.pages) -- create new cache entry if absent
-        dummy, percent_finished, status = unpack(
+        local __
+        __, percent_finished, status = unpack(
           self.menu.cover_info_cache[self.filepath],
           1,
           self.menu.cover_info_cache[self.filepath].n
@@ -581,7 +579,7 @@ function MosaicMenuItem:update()
       then
         cover_bb_used = true
         -- Let ImageWidget do the scaling and give us a bb that fit
-        local _, _, scale_factor = BookInfoManager.getCachedCoverSize(
+        local __, __, scale_factor = BookInfoManager.getCachedCoverSize(
           bookinfo.cover_w,
           bookinfo.cover_h,
           max_img_w,
@@ -736,7 +734,7 @@ function MosaicMenuItem:paintTo(bb, x, y)
     local target = self
     local ix
     if BD.mirroredUILayout() then
-      ix = target.dimen.w - self.shortcut_icon.dimen.w
+      ix = target:getSize().w - self.shortcut_icon:getSize().w
     else
       ix = 0
     end
@@ -754,11 +752,11 @@ function MosaicMenuItem:paintTo(bb, x, y)
     -- top right corner
     local ix, rect_ix
     if BD.mirroredUILayout() then
-      ix = math.floor((self.width - target.dimen.w) / 2)
+      ix = math.floor((self.width - target:getSize().w) / 2)
       rect_ix = target.bordersize
     else
       ix = self.width
-        - math.ceil((self.width - target.dimen.w) / 2)
+        - math.ceil((self.width - target:getSize().w) / 2)
         - corner_mark_size
       rect_ix = 0
     end
@@ -766,26 +764,26 @@ function MosaicMenuItem:paintTo(bb, x, y)
     local rect_size = corner_mark_size - target.bordersize
     bb:paintRect(
       x + ix + rect_ix,
-      target.dimen.y + target.bordersize,
+      target:getSize().y + target.bordersize,
       rect_size,
       rect_size,
       Blitbuffer.COLOR_GRAY
     )
-    collection_mark:paintTo(bb, x + ix, target.dimen.y + iy)
+    collection_mark:paintTo(bb, x + ix, target:getSize().y + iy)
   end
 
   if self.do_hint_opened and self.been_opened then
     -- bottom right corner
     local ix
     if BD.mirroredUILayout() then
-      ix = math.floor((self.width - target.dimen.w) / 2)
+      ix = math.floor((self.width - target:getSize().w) / 2)
     else
       ix = self.width
-        - math.ceil((self.width - target.dimen.w) / 2)
+        - math.ceil((self.width - target:getSize().w) / 2)
         - corner_mark_size
     end
     local iy = self.height
-      - math.ceil((self.height - target.dimen.h) / 2)
+      - math.ceil((self.height - target:getSize().h) / 2)
       - corner_mark_size
     -- math.ceil() makes it looks better than math.floor()
     if self.status == "abandoned" then
@@ -830,29 +828,39 @@ function MosaicMenuItem:paintTo(bb, x, y)
   then
     -- On book's right (for similarity to ListMenuItem)
     local d_w = Screen:scaleBySize(3)
-    local d_h = math.ceil(target.dimen.h / 8)
-    -- Paint it directly relative to target.dimen.x/y which has been computed at this point
+    local d_h = math.ceil(target:getSize().h / 8)
+    -- Paint it directly relative to target:getSize().x/y which has been computed at this point
     local ix
     if BD.mirroredUILayout() then
       ix = -d_w + 1
       -- Set alternate dimen to be marked as dirty to include this description in refresh
-      local x_overflow_left = x - target.dimen.x + ix -- positive if overflow
+      local x_overflow_left = x - target:getSize().x + ix -- positive if overflow
       if x_overflow_left > 0 then
         self.refresh_dimen = self[1].dimen:copy()
         self.refresh_dimen.x = self.refresh_dimen.x - x_overflow_left
         self.refresh_dimen.w = self.refresh_dimen.w + x_overflow_left
       end
     else
-      ix = target.dimen.w - 1
+      ix = target:getSize().w - 1
       -- Set alternate dimen to be marked as dirty to include this description in refresh
-      local x_overflow_right = target.dimen.x + ix + d_w - x - self.dimen.w
+      local x_overflow_right = target:getSize().x
+        + ix
+        + d_w
+        - x
+        - self:getSize().w
       if x_overflow_right > 0 then
         self.refresh_dimen = self[1].dimen:copy()
         self.refresh_dimen.w = self.refresh_dimen.w + x_overflow_right
       end
     end
     local iy = 0
-    bb:paintBorder(target.dimen.x + ix, target.dimen.y + iy, d_w, d_h, 1)
+    bb:paintBorder(
+      target:getSize().x + ix,
+      target:getSize().y + iy,
+      d_w,
+      d_h,
+      1
+    )
   end
 end
 
@@ -908,7 +916,7 @@ function MosaicMenu:_recalculateDimen()
       self.others_height = self.others_height + 2
     end
     if not self.no_title then
-      self.others_height = self.others_height + self.title_bar.dimen.h
+      self.others_height = self.others_height + self.title_bar:getSize().h
     end
     if self.page_info then
       self.others_height = self.others_height + self.page_info:getSize().h
@@ -1023,9 +1031,9 @@ function MosaicMenu:_updateItemsBuildUI()
       line_layout = {}
       table.insert(
         self.item_group,
-        VerticalSpan:new({ width = self.item_margin })
+        VerticalSpan:new({ height = self.item_margin })
       )
-      cur_row = HorizontalGroup:new({})
+      cur_row = HorizontalGroup:new()
       -- Have items on the possibly non-fully filled last row aligned to the left
       local container = self._do_center_partial_rows and CenterContainer
         or LeftContainer
@@ -1047,7 +1055,6 @@ function MosaicMenu:_updateItemsBuildUI()
       width = self.item_width,
       entry = entry,
       text = Menu.getMenuText(entry),
-      show_parent = self.show_parent,
       mandatory = entry.mandatory,
       dimen = self.item_dimen:copy(),
       shortcut = item_shortcut,
@@ -1072,7 +1079,7 @@ function MosaicMenu:_updateItemsBuildUI()
     end
   end
   table.insert(self.layout, line_layout)
-  table.insert(self.item_group, VerticalSpan:new({ width = self.item_margin })) -- bottom padding
+  table.insert(self.item_group, VerticalSpan:new({ height = self.item_margin })) -- bottom padding
   return select_number
 end
 

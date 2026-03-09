@@ -323,8 +323,27 @@ function ReaderScrolling:setInertialScrollCallbacks(
   do_scroll_callback,
   scroll_done_callback
 )
-  self._do_scroll_callback = do_scroll_callback
-  self._scroll_done_callback = scroll_done_callback
+  if do_scroll_callback == nil then
+    self._do_scroll_callback = function()
+      return false
+    end
+  else
+    self._do_scroll_callback = function()
+      local r = do_scroll_callback()
+      if r then
+        UIManager:forceFastRefresh()
+      end
+      return r
+    end
+  end
+  if scroll_done_callback == nil then
+    self._scroll_done_callback = function() end
+  else
+    self._scroll_done_callback = function()
+      UIManager:resetForceFastRefresh()
+      scroll_done_callback()
+    end
+  end
 end
 
 function ReaderScrolling:startInertialScroll()

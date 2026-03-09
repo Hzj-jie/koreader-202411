@@ -648,8 +648,8 @@ function ReaderHighlight:addToMainMenu(menu_items)
         local text = self.highlight_write_into_pdf and gettext("on")
           or gettext("off")
         if
-          not self.highlight_write_into_pdf
-          == (not G_reader_settings:isTrue("highlight_write_into_pdf"))
+          self.highlight_write_into_pdf
+          ~= G_reader_settings:nilOrFalse("highlight_write_into_pdf")
         then
           text = text .. star
         end
@@ -1209,17 +1209,17 @@ function ReaderHighlight:onTapXPointerSavedHighlight(ges)
   --     because pos.page isn't super accurate in continuous mode
   --     (it's the page number for what's it the topleft corner of the screen,
   --     i.e., often a bit earlier)...
-  -- Even in page mode, it's safer to use pos and ui.dimen.h
-  -- than pages' xpointers pos, even if ui.dimen.h is a bit
+  -- Even in page mode, it's safer to use pos and ui:getSize().h
+  -- than pages' xpointers pos, even if ui:getSize().h is a bit
   -- larger than pages' heights
   local cur_view_top = self.document:getCurrentPos()
   local cur_view_bottom
   if
     self.view.view_mode == "page" and self.document:getVisiblePageCount() > 1
   then
-    cur_view_bottom = cur_view_top + 2 * self.ui.dimen.h
+    cur_view_bottom = cur_view_top + 2 * self.ui:getSize().h
   else
-    cur_view_bottom = cur_view_top + self.ui.dimen.h
+    cur_view_bottom = cur_view_top + self.ui:getSize().h
   end
   local highlights_tapped = {}
   for hl_i, item in ipairs(self.ui.annotation.annotations) do
@@ -1355,6 +1355,8 @@ function ReaderHighlight:updateHighlight(index, side, direction, move_by_char)
       end
     end
   end
+  -- Do not promote refresh during the highlighting.
+  UIManager:ignoreNextRefreshPromote()
   UIManager:setDirty(self.dialog, "ui")
 end
 
@@ -1707,8 +1709,7 @@ function ReaderHighlight:_resetHoldTimer(clear)
       -- Multi words selection uses default_highlight_action, and no need for long-hold
       -- if it is already "ask".
       if
-        (G_reader_settings:read("default_highlight_action") or "ask")
-        == "ask"
+        (G_reader_settings:read("default_highlight_action") or "ask") == "ask"
       then
         handle_long_hold = false
       end
@@ -1852,6 +1853,8 @@ function ReaderHighlight:onHold(arg, ges)
       end
     end
 
+    -- Do not promote refresh during the highlighting.
+    UIManager:ignoreNextRefreshPromote()
     if self.ui.paging then
       self.view.highlight.temp[self.hold_pos.page] = self.selected_text.sboxes
       -- Unfortunately, getWordFromPosition() may not return good coordinates,
@@ -1895,6 +1898,9 @@ function ReaderHighlight:onHoldPan(_, ges)
 
   self.holdpan_pos = self.view:screenToPageTransform(ges.pos)
   logger.dbg("holdpan position in page", self.holdpan_pos)
+
+  -- Do not promote refresh during the highlighting.
+  UIManager:ignoreNextRefreshPromote()
 
   if
     self.ui.rolling
@@ -2481,13 +2487,20 @@ function ReaderHighlight:lookupWikipedia()
   end
 end
 
+function ReaderHighlight:_closeHighlightDialog()
+  if self.highlight_dialog == nil then
+    return
+  end
+  local d = self.highlight_dialog
+  self.highlight_dialog = nil
+  -- ReaderHighlight:onExit won't trigger the close again.
+  UIManager:close(d)
+end
+
 function ReaderHighlight:onHighlightSearch()
   logger.dbg("search highlight")
   -- First, if our dialog is still shown, close it.
-  if self.highlight_dialog then
-    UIManager:close(self.highlight_dialog)
-    self.highlight_dialog = nil
-  end
+  self:_closeHighlightDialog()
   self:highlightFromHoldPos()
   if self.selected_text then
     local text =
@@ -2880,10 +2893,7 @@ function ReaderHighlight:onSaveSettings()
 end
 
 function ReaderHighlight:onExit()
-  if self.highlight_dialog then
-    UIManager:close(self.highlight_dialog)
-    self.highlight_dialog = nil
-  end
+  self:_closeHighlightDialog()
   -- clear highlighted text
   self:clear()
 end

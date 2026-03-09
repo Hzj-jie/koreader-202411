@@ -22,7 +22,10 @@ for i in frontend/ui/data/onetime_migration.lua \
          frontend/ui/widget/buttondialogtitle.lua \
          frontend/userpatch.lua \
          plugins/gestures.koplugin/migration.lua \
-         plugins/timesync.koplugin ; do
-  ssh root@$1 rm -rf "$2/koreader/$i"
-done
+         plugins/timesync.koplugin \
+         plugins/weather.koplugin/settings.lua \
+         zsync2 \
+         spinning_zsync ; do
+  echo "$2/koreader/$i"
+done | xargs ssh root@$1 rm -rf
 

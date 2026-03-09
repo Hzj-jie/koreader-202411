@@ -2,7 +2,7 @@
 Helper to manage background jobs.
 --]]
 
-BackgroundJobs = {}
+local BackgroundJobs = {}
 
 function BackgroundJobs.insert(job)
   local jobs = require("pluginshare").backgroundJobs

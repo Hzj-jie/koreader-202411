@@ -131,7 +131,7 @@ function FrontLightWidget:layout()
   -- Frontlight
   -- Bigger spans, as ProgressWidget appears to be ever so slightly smaller than ButtonProgressWidget ;).
   local fl_padding_span =
-    VerticalSpan:new({ width = Math.round(self.span * 1.5) })
+    VerticalSpan:new({ height = Math.round(self.span * 1.5) })
   local fl_group_above = HorizontalGroup:new({ align = "center" })
   local fl_group_below = HorizontalGroup:new({ align = "center" })
   local main_group = VerticalGroup:new({ align = "center" })
@@ -159,7 +159,6 @@ function FrontLightWidget:layout()
     text = "−",
     enabled = self.fl.cur ~= self.fl.min,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.cur - 1)
     end,
@@ -168,7 +167,6 @@ function FrontLightWidget:layout()
     text = "＋",
     enabled = self.fl.cur ~= self.fl.max,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.cur + 1)
     end,
@@ -189,7 +187,6 @@ function FrontLightWidget:layout()
     text = C_("Extrema", "Min"),
     enabled = true,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.min + 1)
     end, -- min is 1 (We use 0 to mean "toggle")
@@ -198,7 +195,6 @@ function FrontLightWidget:layout()
     text = C_("Extrema", "Max"),
     enabled = true,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.max)
     end,
@@ -207,7 +203,6 @@ function FrontLightWidget:layout()
     text = gettext("Toggle"),
     enabled = true,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.min)
     end,
@@ -250,7 +245,7 @@ function FrontLightWidget:layout()
   -- Warmth
   if self.has_nl then
     -- Smaller spans, as ButtonProgressWidget appears to be ever so slightly taller than ProgressWidget ;).
-    local nl_padding_span = VerticalSpan:new({ width = self.span })
+    local nl_padding_span = VerticalSpan:new({ height = self.span })
     local nl_group_above = HorizontalGroup:new({ align = "center" })
     local nl_group_below = HorizontalGroup:new({ align = "center" })
 
@@ -265,11 +260,10 @@ function FrontLightWidget:layout()
       callback = function(i)
         self:setWarmth(Math.round(i * self.nl.stride), false)
       end,
-      show_parent = self,
       enabled = true,
     })
     -- We want a wider gap between the two sets of widgets
-    local nl_span = VerticalSpan:new({ width = Size.span.vertical_large * 4 })
+    local nl_span = VerticalSpan:new({ height = Size.span.vertical_large * 4 })
     local nl_header = TextWidget:new({
       text = gettext("Warmth"),
       face = self.medium_font_face,
@@ -280,7 +274,6 @@ function FrontLightWidget:layout()
       text = "−",
       enabled = self.nl.cur ~= self.nl.min,
       width = self.button_width,
-      show_parent = self,
       callback = function()
         self:setWarmth(self.nl.cur - 1, true)
       end,
@@ -289,7 +282,6 @@ function FrontLightWidget:layout()
       text = "＋",
       enabled = self.nl.cur ~= self.nl.max,
       width = self.button_width,
-      show_parent = self,
       callback = function()
         self:setWarmth(self.nl.cur + 1, true)
       end,
@@ -310,7 +302,6 @@ function FrontLightWidget:layout()
       text = C_("Extrema", "Min"),
       enabled = true,
       width = self.button_width,
-      show_parent = self,
       callback = function()
         self:setWarmth(self.nl.min, true)
       end,
@@ -319,7 +310,6 @@ function FrontLightWidget:layout()
       text = C_("Extrema", "Max"),
       enabled = true,
       width = self.button_width,
-      show_parent = self,
       callback = function()
         self:setWarmth(self.nl.max, true)
       end,
@@ -331,7 +321,6 @@ function FrontLightWidget:layout()
       nl_setup = Button:new({
         text = gettext("Configure"),
         width = self.button_width,
-        show_parent = self,
         callback = function()
           UIManager:show(NaturalLight:new({ fl_widget = self }))
         end,
@@ -393,7 +382,6 @@ function FrontLightWidget:layout()
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self,
   })
   local inner_frame = FrameContainer:new({
     padding = Size.padding.button,
