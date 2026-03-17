@@ -67,6 +67,7 @@ local function _isWidget(widget)
     return true
   end
   logger.warn("FixMe: Attempted to check a nil widget or not a table. ",
+              widget,
               debug.traceback())
   return false
 end
@@ -275,6 +276,10 @@ If refreshtype is omitted, no refresh will be enqueued at this time.
 @param widget a @{ui.widget.widget|widget} object
 ]]
 function UIManager:show(widget)
+  if not _isWidget(widget) then
+    return
+  end
+
   assert(not self:isWindowWidget(widget))
 
   logger.dbg("show widget:", _widgetDebugStr(widget))
@@ -326,7 +331,7 @@ If refreshtype is omitted, no extra refresh will be enqueued at this time, leavi
 @param widget a @{ui.widget.widget|widget} object
 ]]
 function UIManager:_close(widget)
-  assert(UIManager:isWindowWidget(widget))
+  assert(self:isWindowWidget(widget))
 
   logger.dbg("close widget:", _widgetDebugStr(widget))
   -- First notify the closed widget to save its settings...
@@ -384,7 +389,12 @@ function UIManager:_close(widget)
 end
 
 function UIManager:close(widget)
-  if not UIManager:isWindowWidget(widget) then
+  if not _isWidget(widget) then
+    -- _isWidget will log.
+    return
+  end
+
+  if not self:isWindowWidget(widget) then
     logger.warn(
       "FixMe: widget "
         .. _widgetDebugStr(widget)
@@ -397,10 +407,21 @@ function UIManager:close(widget)
 end
 
 function UIManager:closeIfShown(widget)
-  if not UIManager:isWindowWidget(widget) then
+  if not _isWidget(widget) then
+    return
+  end
+
+  if not self:isWindowWidget(widget) then
     return
   end
   self:_close(widget)
+end
+
+function UIManager:closeIfNotNil(widget)
+  if widget == nil then
+    return
+  end
+  self:close(widget)
 end
 
 --- Shift the execution times of all scheduled tasks.

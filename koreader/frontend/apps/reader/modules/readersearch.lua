@@ -285,7 +285,7 @@ function ReaderSearch:searchCallback(reverse, text)
     end
     UIManager:show(InfoMessage:new({ text = error_message }))
   else
-    UIManager:close(self.input_dialog)
+    UIManager:closeIfNotNil(self.input_dialog)
     if reverse then
       self.last_search_hash = nil
       self:onShowSearchDialog(
