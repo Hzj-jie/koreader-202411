@@ -66,9 +66,11 @@ local function _isWidget(widget)
   if widget ~= nil and type(widget) == "table" then
     return true
   end
-  logger.warn("FixMe: Attempted to check a nil widget or not a table. ",
-              widget,
-              debug.traceback())
+  logger.warn(
+    "FixMe: Attempted to check a nil widget or not a table. ",
+    widget,
+    debug.traceback()
+  )
   return false
 end
 
