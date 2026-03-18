@@ -390,6 +390,8 @@ function UIManager:_close(widget)
   end
 end
 
+-- The three close functions functional wise are identical but log different
+-- warning messages.
 function UIManager:close(widget)
   if not _isWidget(widget) then
     -- _isWidget will log.
@@ -405,25 +407,21 @@ function UIManager:close(widget)
     )
     return
   end
+
   self:_close(widget)
 end
 
 function UIManager:closeIfShown(widget)
-  if not _isWidget(widget) then
-    return
+  -- Still log if widget is nil or not a Widget.
+  if _isWidget(widget) and self:isWindowWidget(widget) then
+    self:_close(widget)
   end
-
-  if not self:isWindowWidget(widget) then
-    return
-  end
-  self:_close(widget)
 end
 
 function UIManager:closeIfNotNil(widget)
-  if widget == nil then
-    return
+  if widget ~= nil then
+    self:close(widget)
   end
-  self:close(widget)
 end
 
 --- Shift the execution times of all scheduled tasks.
