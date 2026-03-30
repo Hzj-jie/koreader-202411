@@ -1,4 +1,3 @@
-local DateTimeWidget = require("ui/widget/datetimewidget")
 local Device = require("device")
 local DocSettings = require("docsettings")
 local Event = require("ui/event")
@@ -9,8 +8,6 @@ local NetworkMgr = require("ui/network/manager")
 local PowerD = Device:getPowerDevice()
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
-local N_ = gettext.ngettext
-local C_ = gettext.pgettext
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -74,6 +71,11 @@ end
 -- This affects the topmenu, we want to be able to access it even if !Device:setDateTime()
 common_settings.time = require("ui/elements/time_settings_menu_table")
 
+if Device.model == "KindleVoyage" or Device:isEmulator() then
+  common_settings.pagepress =
+    require("ui/elements/pagepress_settings_menu_table")
+end
+
 if Device:isKobo() then
   common_settings.ignore_sleepcover = {
     text = gettext("Ignore all sleepcover events"),
@@ -123,7 +125,9 @@ common_settings.night_mode = {
     return G_reader_settings:isTrue("night_mode")
   end,
   callback = function()
-    UIManager:broadcastEvent(Event:new("ToggleNightMode"))
+    UIManager:broadcastEvent(
+      Event:new("ToggleNightMode", G_reader_settings:nilOrFalse("night_mode"))
+    )
   end,
 }
 common_settings.network = {
@@ -155,22 +159,23 @@ if Device:isTouchDevice() then
   }
   common_settings.screen_disable_double_tap =
     require("ui/elements/screen_disable_double_tap_table")
-  common_settings.disable_out_of_order_tap = {
-    -- Need localization
-    text = gettext("Disable out of order taps"),
-    -- Need localization
-    help_text = gettext(
-      "Disallow taps or other interactions being sent to the UI elements before they are showing up.\nIt's highly suggested keeping this configuration enabled to avoid unexpectedly triggering user actions."
-    ),
-    checked_func = function()
-      return G_reader_settings:nilOrTrue("disable_out_of_order_taps")
-    end,
-    callback = function()
-      G_reader_settings:flipNilOrTrue("disable_out_of_order_taps")
-    end,
-  }
   common_settings.menu_activate = require("ui/elements/menu_activate")
 end
+
+common_settings.disable_out_of_order_tap = {
+  -- Need localization
+  text = gettext("Disable out of order interactions"),
+  -- Need localization
+  help_text = gettext(
+    "Disallow taps or keyboard presses being sent to the UI elements before they are showing up.\nE-ink screens are slow and take noticeable time to update the content. Users may feel laggy, tap the screen or press the keyboard multiple times, and cause the following actions to interact with the unshown UI elements and trigger unexpected actions.\nThis feature decides if a user action is expected or caused by the delay of screen refreshing, and drops the unexpected ones.\nIt's highly suggested keeping this configuration enabled unless you feel the UI interactions are less responsive."
+  ),
+  checked_func = function()
+    return G_reader_settings:nilOrTrue("disable_out_of_order_input")
+  end,
+  callback = function()
+    G_reader_settings:flipNilOrTrue("disable_out_of_order_input")
+  end,
+}
 
 -- NOTE: Allow disabling color if it's mistakenly enabled on a Grayscale screen (after a settings import?)
 if Screen:isColorEnabled() or Screen:isColorScreen() then

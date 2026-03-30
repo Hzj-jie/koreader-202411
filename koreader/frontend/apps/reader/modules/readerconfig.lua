@@ -5,7 +5,6 @@ local Event = require("ui/event")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local KoptOptions = require("ui/data/koptoptions")
 local UIManager = require("ui/uimanager")
-local gettext = require("gettext")
 
 local ReaderConfig = InputContainer:extend({
   last_panel_index = 1,
@@ -155,15 +154,14 @@ function ReaderConfig:onShowConfigMenu()
     configurable = self.configurable,
     config_options = self.options,
     is_always_active = true,
-    covers_footer = true,
     close_callback = function()
       self:_closeCallback()
     end,
   })
   UIManager:broadcastEvent(Event:new("DisableHinting"))
+  UIManager:show(self.config_dialog)
   -- show last used panel when opening config dialog
   self.config_dialog:showConfigPanel(self.last_panel_index)
-  UIManager:show(self.config_dialog)
   UIManager:broadcastEvent(Event:new("HandledAsSwipe")) -- cancel any pan scroll made
 
   return true

@@ -95,7 +95,6 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
   local prev_movable_alpha = self.movable and self.movable.alpha
   self.layout = {}
   local value_widget = NumberPickerWidget:new({
-    show_parent = self,
     value = numberpicker_value or self.value,
     value_table = self.value_table,
     value_index = numberpicker_value_index or self.value_index,
@@ -123,7 +122,6 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
     title = self.title_text,
     title_shrink_font_to_fit = true,
     info_text = self.info_text,
-    show_parent = self,
   })
 
   local buttons = {}
@@ -228,7 +226,6 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
     width = self.width - 2 * Size.padding.default,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
   self:mergeLayoutInVertical(ok_cancel_buttons)
   self.vgroup = VerticalGroup:new({

@@ -24,7 +24,6 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local Input = Device.input
 local T = ffiUtil.template
 local android = Device:isAndroid() and require("android")
 
@@ -795,7 +794,6 @@ function ReaderDictionary:onShowDictionaryLookup()
     },
   })
   UIManager:show(self.dictionary_lookup_dialog)
-  self.dictionary_lookup_dialog:showKeyboard()
   return true
 end
 
@@ -1089,7 +1087,7 @@ function ReaderDictionary:showLookupMsg(text)
     -- a repaint.
   })
   UIManager:show(self.lookup_progress_msg)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
 end
 
 function ReaderDictionary:showDict(word, results, boxes, link)
@@ -1136,7 +1134,7 @@ end
 
 function ReaderDictionary:showDownload(downloadable_dicts)
   local kv_pairs = {}
-  for dummy, dict in ipairs(downloadable_dicts) do
+  for __, dict in ipairs(downloadable_dicts) do
     table.insert(kv_pairs, {
       dict.name,
       "",
@@ -1168,7 +1166,7 @@ function ReaderDictionary:showDownload(downloadable_dicts)
 end
 
 function ReaderDictionary:downloadDictionaryPrep(dict, size)
-  local dummy, filename = util.splitFilePathName(dict.url)
+  local __, filename = util.splitFilePathName(dict.url)
   local download_location = string.format("%s/%s", self.data_dir, filename)
 
   if lfs.attributes(download_location) then

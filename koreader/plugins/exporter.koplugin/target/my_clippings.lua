@@ -13,8 +13,8 @@ local ClippingsExporter = require("base"):new({
 local function format(booknotes)
   local tbl = {}
 
-  for ___, entry in ipairs(booknotes) do
-    for ____, clipping in ipairs(entry) do
+  for __, entry in ipairs(booknotes) do
+    for __, clipping in ipairs(entry) do
       if booknotes.title and clipping.text then
         local title_str = booknotes.title
           .. " ("

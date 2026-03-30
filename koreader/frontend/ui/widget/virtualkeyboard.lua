@@ -90,10 +90,14 @@ function VirtualKey:init()
     self.key_chars = self:genKeyboardLayoutKeyChars()
     self.callback = function()
       self.keyboard:onSwitchingKeyboardLayout()
-      local current = G_reader_settings:read("keyboard_layout")
-      local default = G_reader_settings:read("keyboard_layout_default")
       local keyboard_layouts =
         G_reader_settings:readTableRef("keyboard_layouts")
+      if #keyboard_layouts == 0 then
+        self:_showLayoutDialog()
+        return
+      end
+      local current = G_reader_settings:read("keyboard_layout")
+      local default = G_reader_settings:read("keyboard_layout_default")
       local next_layout = nil
       local layout_index = util.arrayContains(keyboard_layouts, current)
       if layout_index then
@@ -110,7 +114,11 @@ function VirtualKey:init()
         end
       end
       next_layout = next_layout or keyboard_layouts[layout_index] or "en"
-      self.keyboard:setKeyboardLayout(next_layout)
+      if next_layout == current then
+        self:_showLayoutDialog()
+      else
+        self.keyboard:setKeyboardLayout(next_layout)
+      end
     end
     self.hold_callback = function()
       self.keyboard:onSwitchingKeyboardLayout()
@@ -119,11 +127,7 @@ function VirtualKey:init()
           parent_key = self,
         })
       else
-        self.keyboard_layout_dialog = KeyboardLayoutDialog:new({
-          parent = self,
-          keyboard_state = keyboard_state,
-        })
-        UIManager:show(self.keyboard_layout_dialog)
+        self:_showLayoutDialog()
       end
     end
     self.hold_cb_is_popup = true
@@ -310,34 +314,19 @@ function VirtualKey:init()
   --self.dimen = self[1]:getSize()
   self.ges_events = {
     TapSelect = {
-      GestureRange:new({
-        ges = "tap",
-        range = self.dimen,
-      }),
+      self:myRange("tap"),
     },
     HoldSelect = {
-      GestureRange:new({
-        ges = "hold",
-        range = self.dimen,
-      }),
+      self:myRange("hold"),
     },
     HoldReleaseKey = {
-      GestureRange:new({
-        ges = "hold_release",
-        range = self.dimen,
-      }),
+      self:myRange("hold_release"),
     },
     PanReleaseKey = {
-      GestureRange:new({
-        ges = "pan_release",
-        range = self.dimen,
-      }),
+      self:myRange("pan_release"),
     },
     SwipeKey = {
-      GestureRange:new({
-        ges = "swipe",
-        range = self.dimen,
-      }),
+      self:myRange("swipe"),
     },
   }
   if
@@ -357,17 +346,12 @@ function VirtualKey:init()
   end
 end
 
-function VirtualKey:paintTo(...)
-  InputContainer.paintTo(self, ...)
-
-  -- Fudge self.dimen to include the padding, to make sure said padding is covered by our ges_events range...
-  -- Like Geom, floor coordinates & ceil dims, to fill the gaps without overlaps.
-  local coords_padding = math.floor(self.keyboard.key_padding / 2)
-  local dims_padding = self.keyboard.key_padding -- i.e., coords_padding + math.ceil(self.keyboard.key_padding / 2)
-  self.dimen.x = self.dimen.x - coords_padding
-  self.dimen.w = self[1].dimen.w + dims_padding
-  self.dimen.y = self.dimen.y - coords_padding
-  self.dimen.h = self[1].dimen.h + dims_padding
+function VirtualKey:_showLayoutDialog()
+  self.keyboard_layout_dialog = KeyboardLayoutDialog:new({
+    parent = self,
+    keyboard_state = keyboard_state,
+  })
+  UIManager:show(self.keyboard_layout_dialog)
 end
 
 function VirtualKey:genKeyboardLayoutKeyChars()
@@ -383,11 +367,7 @@ function VirtualKey:genKeyboardLayoutKeyChars()
     east = { label = "⋮" },
     east_func = function()
       UIManager:close(self.popup)
-      self.keyboard_layout_dialog = KeyboardLayoutDialog:new({
-        parent = self,
-        keyboard_state = keyboard_state,
-      })
-      UIManager:show(self.keyboard_layout_dialog)
+      self:_showLayoutDialog()
     end,
   }
   for i = 1, #keyboard_layouts do
@@ -398,34 +378,6 @@ function VirtualKey:genKeyboardLayoutKeyChars()
     end
   end
   return key_chars
-end
-
--- NOTE: We currently don't ever set want_flash to true (c.f., our invert method).
-function VirtualKey:update_keyboard(want_flash, want_a2)
-  -- NOTE: We use "a2" for the highlights.
-  --     We flash the *full* keyboard when we release a hold.
-  if want_flash then
-    UIManager:setDirty(self.keyboard, function()
-      return "flashui", self.keyboard.dimen
-    end)
-  else
-    local refresh_type = "ui"
-    if want_a2 then
-      refresh_type = "a2"
-    end
-    -- Only repaint the key itself, not the full board...
-    -- NOTE: We use self[1] (i.e., FrameContainer),
-    --     because we fudge self.dimen to include the padding for the gesture hitbox...
-    UIManager:widgetRepaint(self[1])
-    logger.dbg("update key", self.key)
-    UIManager:setDirty(nil, refresh_type, self[1].dimen)
-
-    -- NOTE: On MTK, we'd have to forcibly stall a bit for the highlights to actually show.
-    --[[
-    UIManager:forceRePaint()
-    UIManager:waitForScreenRefresh()
-    --]]
-  end
 end
 
 function VirtualKey:onFocus()
@@ -442,14 +394,14 @@ function VirtualKey:onTapSelect(skip_flash)
   self.keyboard.ignore_first_hold_release = false
   if not skip_flash and not self.skiptap then
     self:invert(true)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     UIManager:waitForScreenRefresh()
 
     self:invert(false)
     if self.callback then
       self.callback()
     end
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   else
     if self.callback then
       self.callback()
@@ -463,7 +415,7 @@ function VirtualKey:onHoldSelect()
   -- No visual feedback necessary if we're going to show a popup on top of the key ;).
   if not self.skiphold and not self.hold_cb_is_popup then
     self:invert(true)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     UIManager:waitForScreenRefresh()
 
     -- NOTE: We do *NOT* set hold to true here,
@@ -473,7 +425,7 @@ function VirtualKey:onHoldSelect()
     if self.hold_callback then
       self.hold_callback()
     end
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   else
     if self.hold_callback then
       self.hold_callback()
@@ -488,14 +440,14 @@ function VirtualKey:onSwipeKey(arg, ges)
   end
   Device:performHapticFeedback("KEYBOARD_TAP")
   self:invert(true)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   UIManager:waitForScreenRefresh()
 
   self:invert(false)
   if self.swipe_callback then
     self.swipe_callback(ges)
   end
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   return true
 end
 
@@ -532,13 +484,19 @@ function VirtualKey:onPanReleaseKey()
 end
 
 -- NOTE: We currently don't ever set hold to true (c.f., our onHoldSelect method)
-function VirtualKey:invert(invert, hold)
+function VirtualKey:invert(invert)
   if invert then
-    self[1].inner_bordersize = self.focused_bordersize
+    self[1].background = Blitbuffer.COLOR_LIGHT_GRAY
   else
-    self[1].inner_bordersize = 0
+    self[1].background = Blitbuffer.COLOR_WHITE
   end
-  self:update_keyboard(hold, true)
+
+  -- Only repaint the key itself, not the full board...
+  -- NOTE: We use self[1] (i.e., FrameContainer),
+  --     because we fudge self.dimen to include the padding for the gesture hitbox...
+  self[1]._refresh_mode = "a2"
+  UIManager:repaintWidget(self[1])
+  logger.dbg("update key", self.key)
 end
 
 VirtualKeyPopup = FocusManager:extend({
@@ -634,7 +592,7 @@ function VirtualKeyPopup:init()
     HorizontalSpan:new({ width = 0 }),
   }
   local v_key_padding =
-    VerticalSpan:new({ width = parent_key.keyboard.key_padding })
+    VerticalSpan:new({ height = parent_key.keyboard.key_padding })
 
   local vertical_group = VerticalGroup:new({ allow_mirroring = false })
   local horizontal_group_extra =
@@ -798,43 +756,28 @@ function VirtualKeyPopup:init()
     offset_y = offset_y + parent_key.height + parent_key.keyboard.key_padding
   end
 
-  local position_container = WidgetContainer:new({
-    dimen = {
-      x = parent_key.dimen.x - offset_x,
-      y = parent_key.dimen.y - offset_y,
-      h = Screen:getSize().h,
-      w = Screen:getSize().w,
-    },
-    keyboard_frame,
-  })
-  if position_container.dimen.x < 0 then
-    position_container.dimen.x = 0
+  self[1] = keyboard_frame
+  self:mergeSize(Screen:getSize())
+  self.dimen.x = parent_key:getSize().x - offset_x
+  self.dimen.y = parent_key:getSize().y - offset_y
+  if self.dimen.x < 0 then
+    self.dimen.x = 0
     -- We effectively move the popup, which means the key underneath our finger may no longer *exactly* be parent_key.
     -- Make sure we won't close the popup right away, as that would risk being a *different* key, in order to make that less confusing.
     parent_key.ignore_key_release = true
-  elseif
-    position_container.dimen.x + keyboard_frame.dimen.w > Screen:getWidth()
-  then
-    position_container.dimen.x = Screen:getWidth() - keyboard_frame.dimen.w
+  elseif self.dimen.x + keyboard_frame:getSize().w > Screen:getWidth() then
+    self.dimen.x = Screen:getWidth() - keyboard_frame:getSize().w
     parent_key.ignore_key_release = true
   end
-  if position_container.dimen.y < 0 then
-    position_container.dimen.y = 0
+  if self.dimen.y < 0 then
+    self.dimen.y = 0
     parent_key.ignore_key_release = true
-  elseif
-    position_container.dimen.y + keyboard_frame.dimen.h > Screen:getHeight()
-  then
-    position_container.dimen.y = Screen:getHeight() - keyboard_frame.dimen.h
+  elseif self.dimen.y + keyboard_frame:getSize().h > Screen:getHeight() then
+    self.dimen.y = Screen:getHeight() - keyboard_frame:getSize().h
     parent_key.ignore_key_release = true
   end
-
-  self[1] = position_container
 
   UIManager:show(self)
-  -- Ensure the post-paint refresh will be able to grab updated coordinates from keyboard_frame by using a refresh function
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
 end
 
 local VirtualKeyboard = FocusManager:extend({
@@ -926,7 +869,7 @@ function VirtualKeyboard:init()
   self.tap_interval_override =
     time.ms(G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0)
   if Device:hasKeys() then
-    self.key_events.Exit = { { "Back" } }
+    self.key_events.KeyboardBack = { { Device.input.group.Back } }
   end
   if keyboard.wrapInputBox then
     self.uwrap_func = keyboard.wrapInputBox(self.inputbox) or self.uwrap_func
@@ -989,16 +932,16 @@ end
 
 function VirtualKeyboard:setKeyboardLayout(layout)
   keyboard_state.force_current_layout = true
-  local prev_keyboard_height = self.dimen and self.dimen.h
+  local prev_keyboard_height = self.dimen and self:getSize().h
   G_reader_settings:save("keyboard_layout", layout)
   self:init()
-  if prev_keyboard_height and self.dimen.h ~= prev_keyboard_height then
+  if prev_keyboard_height and self:getSize().h ~= prev_keyboard_height then
     self:_refresh(true, true)
     -- Keyboard height change: notify parent (InputDialog)
     if
-      self.inputbox
-      and self.inputbox.parent
-      and self.inputbox.parent.onKeyboardHeightChanged
+      self.inputbox ~= nil
+      and self.inputbox.parent ~= nil
+      and self.inputbox.parent.onKeyboardHeightChanged ~= nil
     then
       self.inputbox.parent:onKeyboardHeightChanged()
     end
@@ -1008,21 +951,33 @@ function VirtualKeyboard:setKeyboardLayout(layout)
   keyboard_state.force_current_layout = false
 end
 
+function VirtualKeyboard:onKeyboardBack()
+  if
+    Device:hasDPad()
+    and self.inputbox ~= nil
+    and self.inputbox.parent ~= nil
+    and self.inputbox.parent.deny_keyboard_hiding
+  then
+    return false
+  end
+  self:onExit()
+  return true
+end
+
 function VirtualKeyboard:onExit()
   UIManager:close(self)
-  if self.inputbox and Device:hasDPad() then
+  if
+    Device:hasDPad()
+    and self.inputbox ~= nil
+    and self.inputbox.parent ~= nil
+    and self.inputbox.parent.onKeyboardClosed ~= nil
+  then
     -- Let InputText handle this KeyPress "Back" event to unfocus, otherwise, another extra Back event is needed.
     -- NOTE: Keep in mind InputText is a special snowflake, and implements the raw onKeyPress handler for this!
     -- Also, notify another widget that actually may want to know when *we* get closed, i.e., the parent (Input*Dialog*).
     -- We need to do this manually because InputText's onKeyPress handler will very likely return true,
     -- stopping event propagation (c.f., the last hasDPad branch of said handler).
-    if
-      self.inputbox
-      and self.inputbox.parent
-      and self.inputbox.parent.onKeyboardClosed
-    then
-      self.inputbox.parent:onKeyboardClosed()
-    end
+    self.inputbox.parent:onKeyboardClosed()
     return false
   end
   return true
@@ -1037,9 +992,8 @@ function VirtualKeyboard:_refresh(want_flash, fullscreen)
     UIManager:setDirty("all", refresh_type)
     return
   end
-  UIManager:setDirty(self, function()
-    return refresh_type, self.dimen
-  end)
+  -- TOOD: Why does the inputbox need to be repainted?
+  self.inputbox:scheduleRepaint()
 end
 
 function VirtualKeyboard:onShow()
@@ -1098,10 +1052,10 @@ function VirtualKeyboard:hideKeyboard()
 end
 
 function VirtualKeyboard:initLayer(layer)
-  local function normalize(layer)
+  local function normalize(l)
     -- to be sure layer is selected properly
-    layer = math.max(layer, self.min_layer)
-    return math.min(layer, self.max_layer)
+    l = math.max(l, self.min_layer)
+    return math.min(l, self.max_layer)
   end
 
   if layer then
@@ -1151,7 +1105,7 @@ function VirtualKeyboard:addKeys()
       / #self.KEYS
   )
   local h_key_padding = HorizontalSpan:new({ width = self.key_padding })
-  local v_key_padding = VerticalSpan:new({ width = self.key_padding })
+  local v_key_padding = VerticalSpan:new({ height = self.key_padding })
   local vertical_group = VerticalGroup:new({ allow_mirroring = false })
   for i = 1, #self.KEYS do
     local horizontal_group = HorizontalGroup:new({ allow_mirroring = false })
@@ -1242,7 +1196,12 @@ function VirtualKeyboard:addKeys()
   })
   -- Point our top-level dimen to the relevant widget, keyboard_frame
   keyboard_frame.dimen = keyboard_frame:getSize()
-  self.dimen = keyboard_frame.dimen
+  self:getSize() -- populate dimen
+end
+
+function VirtualKeyboard:visibleSize()
+  -- keyboard_frame
+  return self[1][1]:getSize()
 end
 
 function VirtualKeyboard:setLayer(key)

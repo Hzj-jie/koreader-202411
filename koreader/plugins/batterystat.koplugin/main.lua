@@ -9,6 +9,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local dbg = require("dbg")
 local gettext = require("gettext")
+local logger = require("logger")
 local time = require("ui/time")
 local T = require("ffi/util").template
 

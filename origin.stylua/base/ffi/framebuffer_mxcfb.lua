@@ -495,8 +495,7 @@ local function mxc_update(
   --       but will save us an ioctl before the next refresh, something which, even if it didn't block at all,
   --       would possibly end up being more detrimental to latency/reactivity.
   if
-    ioc_data.update_mode == C.UPDATE_MODE_FULL
-    and fb.mech_wait_update_complete
+    ioc_data.update_mode == C.UPDATE_MODE_FULL and fb.mech_wait_update_complete
   then
     fb.debug("refresh: wait for completion of marker", marker)
     if fb:mech_wait_update_complete(marker) == -1 then

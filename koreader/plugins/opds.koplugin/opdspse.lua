@@ -240,7 +240,6 @@ function OPDSPSE:jumpToPage(viewer, count)
     },
   })
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
 end
 
 return OPDSPSE

@@ -151,7 +151,6 @@ function CalculatorUnitsDialog:init()
     button_font_size = 20,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
 
   self.dialog_frame = FrameContainer:new({
@@ -201,7 +200,7 @@ function CalculatorUnitsDialog:init()
         }),
       }),
 
-      VerticalSpan:new({ width = Size.span.vertical_large * 2 }),
+      VerticalSpan:new({ height = Size.span.vertical_large * 2 }),
       -- buttons
       CenterContainer:new({
         dimen = Geom:new({

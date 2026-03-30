@@ -2,7 +2,7 @@ local BD = require("ui/bidi")
 local DataStorage = require("datastorage")
 local Device = require("device")
 local Dispatcher = require("dispatcher")
-local InfoMessage = require("ui/widget/infomessage") -- luacheck:ignore
+local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -97,7 +97,7 @@ function SSH:start(quiet)
   logger.dbg("[Network] Launching SSH server : ", cmd)
   if os.execute(cmd) == 0 then
     if not quiet then
-      local info = InfoMessage:new({
+      UIManager:show(InfoMessage:new({
         timeout = 10,
         -- @translators: %1 is the SSH port, %2 is the network info.
         text = T(
@@ -107,15 +107,13 @@ function SSH:start(quiet)
               and table.concat(Device:retrieveNetworkInfo(), "\n")
             or gettext("Could not retrieve network info.")
         ),
-      })
-      UIManager:show(info)
+      }))
     end
   else
-    local info = InfoMessage:new({
+    UIManager:show(InfoMessage:new({
       icon = "notice-warning",
       text = gettext("Failed to start SSH server."),
-    })
-    UIManager:show(info)
+    }))
   end
 end
 
@@ -195,7 +193,6 @@ function SSH:show_port_dialog(touchmenu_instance)
     },
   })
   UIManager:show(self.port_dialog)
-  self.port_dialog:showKeyboard()
 end
 
 function SSH:addToMainMenu(menu_items)
@@ -203,11 +200,12 @@ function SSH:addToMainMenu(menu_items)
     text = gettext("SSH server"),
     sub_item_table = {
       {
-        text = gettext("SSH server"),
-        keep_menu_open = true,
-        checked_func = function()
-          return self:isRunning()
+        text_func = function()
+          -- Need localization
+          return self:isRunning() and gettext("Stop SSH server")
+            or gettext("Stop SSH server")
         end,
+        keep_menu_open = true,
         callback = function(touchmenu_instance)
           self:onToggleSSHServer()
           touchmenu_instance:updateItems()
@@ -221,6 +219,8 @@ function SSH:addToMainMenu(menu_items)
         enabled_func = function()
           return not self:isRunning()
         end,
+        -- Need localization
+        help_text = gettext("Stop SSH server to configure"),
         callback = function(touchmenu_instance)
           self:show_port_dialog(touchmenu_instance)
         end,
@@ -231,6 +231,8 @@ function SSH:addToMainMenu(menu_items)
         enabled_func = function()
           return not self:isRunning()
         end,
+        -- Need localization
+        help_text = gettext("Stop SSH server to configure"),
         callback = function()
           local info = InfoMessage:new({
             timeout = 60,
@@ -250,6 +252,8 @@ function SSH:addToMainMenu(menu_items)
         enabled_func = function()
           return not self:isRunning()
         end,
+        -- Need localization
+        help_text = gettext("Stop SSH server to configure"),
         callback = function()
           self.allow_no_password = not self.allow_no_password
           G_reader_settings:flipNilOrFalse("SSH_allow_no_password")

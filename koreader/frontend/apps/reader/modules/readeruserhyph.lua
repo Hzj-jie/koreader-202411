@@ -368,7 +368,6 @@ function ReaderUserHyph:modifyUserEntry(word)
     },
   })
   UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
 end
 
 return ReaderUserHyph

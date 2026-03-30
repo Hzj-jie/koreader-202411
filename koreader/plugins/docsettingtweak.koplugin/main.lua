@@ -13,7 +13,6 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local gettext = require("gettext")
 local T = FFIUtil.template
-local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
 
@@ -94,7 +93,6 @@ function DocSettingTweak:editDirectoryDefaults()
     end,
   })
   UIManager:show(config_editor)
-  config_editor:showKeyboard()
 end
 
 function DocSettingTweak:onDocSettingsLoad(doc_settings, document)

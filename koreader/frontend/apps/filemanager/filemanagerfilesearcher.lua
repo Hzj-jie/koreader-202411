@@ -112,7 +112,6 @@ function FileSearcher:onShowFileSearch(search_string)
     search_dialog:addWidget(check_button_metadata)
   end
   UIManager:show(search_dialog)
-  search_dialog:showKeyboard()
   return true
 end
 
@@ -128,7 +127,7 @@ function FileSearcher:doSearch()
     local info =
       InfoMessage:new({ text = gettext("Searching… (tap to cancel)") })
     UIManager:show(info)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     local completed, dirs, files, no_metadata_count = Trapper:dismissableRunInSubprocess(
       function()
         return self:getList()
@@ -313,7 +312,6 @@ function FileSearcher:onShowSearchResults(not_cached)
 
   self.search_menu = Menu:new({
     subtitle = T(gettext("Query: %1"), FileSearcher.search_string),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     is_borderless = true,
     is_popout = false,
     title_bar_fm_style = true,

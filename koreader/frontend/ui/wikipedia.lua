@@ -893,7 +893,7 @@ function Wikipedia:createEpub(epub_path, page, lang, with_images)
   -- delete a good one if we fail/cancel later)
   local epub_path_tmp = epub_path .. ".tmp"
   local ZipWriter = require("ffi/zipwriter")
-  local epub = ZipWriter:new({})
+  local epub = ZipWriter:new()
   if not epub:open(epub_path_tmp) then
     return false
   end
