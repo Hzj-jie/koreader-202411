@@ -7,10 +7,8 @@ This repo is derived from the 2024-11 version with essential bug fixes only.
 
 As of
 https://github.com/Hzj-jie/koreader-202411/commit/a4bf6dec1ab513cbdf3a3e3b9014f3963aaba6a6,
-there will likely no other significant changes anymore due to the fact that
+there will be likely no other significant changes anymore due to the fact that
 legacy e-reader experience has very limited room to upgrade.
-
-Bugs will still be fixed though.
 
 ## Supported platforms
 
