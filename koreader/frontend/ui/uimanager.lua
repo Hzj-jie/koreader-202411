@@ -76,7 +76,7 @@ end
 
 local function _widgetDebugStr(widget)
   assert(_isWidget(widget))
-  return widget.name or widget.id or tostring(widget)
+  return widget:debugStr()
 end
 
 local function _widgetWindow(w)

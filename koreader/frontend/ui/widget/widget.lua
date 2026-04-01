@@ -200,6 +200,20 @@ function Widget:_window() -- final
   return nil
 end
 
+function Widget:debugStr()
+  return self.name or self.id or tostring(self)
+end
+
+local function _windowDebugStr(window)
+  if window == nil then
+    return "(window)nil"
+  end
+  if window.widget == nil then
+    return "(widget)nil"
+  end
+  return window.widget:debugStr()
+end
+
 -- Get the window of current widget, use this function should be careful due
 -- to it's slowness.
 function Widget:window() -- final
@@ -214,7 +228,15 @@ function Widget:window() -- final
       -- Unfortunately, nothing else can be used to identify the widget.
       require("logger").warn(
         "FixMe: self._window_ref ~= self:_window(), "
-          .. (self.name or self.id or tostring(self))
+          .. tostring(self._window_ref)
+          .. " vs "
+          .. tostring(self._window())
+          .. " for "
+          .. self:debugStr()
+          .. ", _window_ref.widget "
+          .. _windowDebugStr(self._window_ref)
+          .. ", _window().widget "
+          .. _windowDebugStr(self:_window())
       )
     end
   end
