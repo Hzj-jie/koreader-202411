@@ -1643,9 +1643,10 @@ function BookMapWidget:getMatchingVGroupRow(check_func)
   -- to keep public copies of these data in here
   for i = 1, #self.vgroup do
     local row = self.vgroup[i]
+    self.vgroup[i]:getSize()
     local y = self.vgroup._offsets[i].y
     local h = (
-      i < #self.vgroup and self.vgroup._offsets[i + 1].y or self.vgroup._size.h
+      i < #self.vgroup and self.vgroup._offsets[i + 1].y or self.vgroup.dimen.h
     ) - y
     if check_func(row, y, h) then
       return row, i, y, h
