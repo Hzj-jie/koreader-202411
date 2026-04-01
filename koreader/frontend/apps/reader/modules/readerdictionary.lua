@@ -230,7 +230,8 @@ end
 function ReaderDictionary:addToMainMenu(menu_items)
   menu_items.search_settings =
     { -- submenu with Dict, Wiki, Translation settings
-      text = gettext("Settings"),
+      -- Need localization
+      text = gettext("Search preferences"),
     }
   menu_items.dictionary_lookup = {
     text = gettext("Dictionary lookup"),
