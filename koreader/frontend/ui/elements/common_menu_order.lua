@@ -146,7 +146,6 @@ local function mergeWith(b)
     },
     search = {
       "search_settings",
-      "findhistory",
       "----------------------------",
       "dictionary_lookup",
       "dictionary_lookup_history",
@@ -163,6 +162,7 @@ local function mergeWith(b)
     main = {
       "history",
       "open_previous_document",
+      "findhistory",
       "----------------------------",
       "favorites",
       "collections",
