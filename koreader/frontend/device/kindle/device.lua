@@ -978,6 +978,7 @@ local KindleDXG = Kindle:extend({
   canUseCBB = util.no, -- 4bpp
   canUseWAL = util.no, -- Kernel too old to support mmap'ed I/O on /mnt/us
   supportsScreensaver = util.yes, -- The first ad-supported device was the K3
+  hasGSensor = util.yes,
 })
 
 local Kindle3 = Kindle:extend({
