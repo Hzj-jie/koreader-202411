@@ -173,7 +173,8 @@ function FileManagerMenu:setUpdateItemTable()
 
   -- setting tab
   self.menu_items.filebrowser_settings = {
-    text = gettext("Settings"),
+    -- Need localization
+    text = gettext("File browser settings"),
     sub_item_table = {
       {
         text = gettext("Show finished books"),
