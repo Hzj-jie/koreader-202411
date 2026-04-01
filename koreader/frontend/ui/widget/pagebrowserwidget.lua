@@ -730,9 +730,7 @@ function PageBrowserWidget:update()
       end
     end
   end
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  self:scheduleRepaint()
   if G_reader_settings:isTrue("page_browser_preload_thumbnails") then
     self:preloadNextPrevScreenThumbnails()
   end

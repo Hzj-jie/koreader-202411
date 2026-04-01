@@ -1330,9 +1330,7 @@ function BookMapWidget:update()
   end
   self.initial_scroll_offset_y = self.cropping_widget._scroll_offset_y
 
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  self:scheduleRepaint()
 end
 
 function BookMapWidget:onShowBookMapMenu()
