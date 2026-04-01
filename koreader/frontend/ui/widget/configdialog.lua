@@ -1385,7 +1385,7 @@ function ConfigDialog:onConfigMoreChoose(
           ) or default_value_orig[2]
         else
           curr_values = self.configurable[name]
-          local default_values = G_reader_settings:read(
+          local default_values = G_reader_settings:readTable(
             self.config_options.prefix .. "_" .. name
           ) or default_value_orig
           left_default = default_values[1]
