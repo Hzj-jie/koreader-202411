@@ -1195,6 +1195,8 @@ function Device:_afterResume()
   end
 
   self.last_resume_at = time.realtime()
+  -- In case the last suspend event wasn't caught by koreader.
+  self.last_suspend_at = self.last_suspend_at or self.last_resume_at
   self.total_suspend_time = self.total_suspend_time
     + (self.last_resume_at - self.last_suspend_at)
   -- This is a hacky way to ensure the resume can be treated as an input.
