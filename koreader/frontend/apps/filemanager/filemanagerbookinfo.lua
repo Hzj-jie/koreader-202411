@@ -87,7 +87,7 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   table.insert(kv_pairs, { gettext("Size:"), sizeStr(attr) })
   table.insert(kv_pairs, {
     -- Need localization
-    gettext("Last read:"),
+    gettext("Last open:"),
     attr ~= nil and os.date("%Y-%m-%d %H:%M:%S", attr.access)
       or gettext("Unknown"),
   })
