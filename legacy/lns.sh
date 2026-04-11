@@ -29,3 +29,6 @@ rm -rf plugins/gestures.koplugin/
 # issue #325
 rm -rf plugins/terminal.koplugin/
 
+# too heavy for old devices
+rm -rf plugins/coverbrowser.koplugin/
+
