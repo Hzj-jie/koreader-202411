@@ -335,6 +335,12 @@ You may also want to enable, in the top menu → Gear → Taps and gestures → 
         css = [[body { direction: rtl !important; }]],
         priority = 2, -- so it overrides the LTR one below
       },
+      -- {
+      --   id = "body_writing_mode_vertical_rl",
+      --   -- Need localization
+      --   title = gettext("Traditional Chinese vertial and RTL"),
+      --   css = [[body { writing-mode: vertical-rl !important; }]],
+      -- },
       {
         id = "text_align_most_right",
         conflicts_with = "text_align_all_right",
