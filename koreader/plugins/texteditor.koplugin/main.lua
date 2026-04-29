@@ -351,19 +351,20 @@ function TextEditor:removeFromHistory(file_path)
 end
 
 function TextEditor:addToHistory(file_path)
-  local new_history = {}
-  table.insert(new_history, file_path)
+  table.insert(self.history, 1, file_path)
   -- Trim history and cleanup duplicates
-  local seen = {}
-  seen[file_path] = true
-  while #self.history > 0 and #new_history < self.history_keep_size do
-    local item = table.remove(self.history, 1)
-    if not seen[item] then
-      table.insert(new_history, item)
-      seen[item] = true
+  for i, v in ipairs(self.history) do
+    if i > 1 then
+      if v == file_path then
+        table.remove(self.history, i)
+        return
+      end
     end
   end
-  self.history = new_history
+  -- Otherwise remove the last one if count is over the limit.
+  if #self.history > self.history_keep_size then
+    table.remove(self.history)
+  end
 end
 
 function TextEditor:newFile()
