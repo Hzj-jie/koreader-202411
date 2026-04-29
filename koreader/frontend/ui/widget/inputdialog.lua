@@ -685,8 +685,11 @@ function InputDialog:toggleKeyboard(force_toggle)
     self:lockKeyboard(true)
   end
 
-  -- Clear the FocusManager highlight, because that gets lost in the mess somehow...
-  self.button_table:getButtonById("keyboard"):onUnfocus()
+  local keyboard_button = self.button_table:getButtonById("keyboard")
+  if keyboard_button then
+    -- Clear the FocusManager highlight, because that gets lost in the mess somehow...
+    keyboard_button:onUnfocus()
+  end
 
   -- Make sure we refresh the nav bar, as it will have moved, and it belongs to us, not to VK or our input widget...
   self:refreshButtons()
