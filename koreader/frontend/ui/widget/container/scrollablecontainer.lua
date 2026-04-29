@@ -19,7 +19,6 @@ local GestureRange = require("ui/gesturerange")
 local HorizontalScrollBar = require("ui/widget/horizontalscrollbar")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Math = require("optmath")
-local UIManager = require("ui/uimanager")
 local VerticalScrollBar = require("ui/widget/verticalscrollbar")
 local Input = Device.input
 local Screen = Device.screen

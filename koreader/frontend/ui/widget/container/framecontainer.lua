@@ -22,7 +22,6 @@ local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local Size = require("ui/size")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local logger = require("logger")
 
 local FrameContainer = WidgetContainer:extend({
   background = nil,
@@ -104,7 +103,7 @@ end
 
 function FrameContainer:paintTo(bb, x, y)
   self:mergePosition(x, y)
-  local width, height = self:_contentSize()
+  local width, _ = self:_contentSize()
   -- Expose self.dimen for further use.
   self:getSize()
 
