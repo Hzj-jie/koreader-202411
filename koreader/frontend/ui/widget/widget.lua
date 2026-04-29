@@ -10,6 +10,8 @@ method, it will be called. use this to set _instance_ variables
 rather than class variables.
 ]]
 
+local CACHE_WINDOW_REF = false
+
 local EventListener = require("ui/widget/eventlistener")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
@@ -217,6 +219,10 @@ end
 -- Get the window of current widget, use this function should be careful due
 -- to it's slowness.
 function Widget:window() -- final
+  if not CACHE_WINDOW_REF then
+    return self:_window()
+  end
+
   if self._window_ref == nil then
     self._window_ref = self:_window()
   elseif require("ui/uimanager"):findWindow(self._window_ref) == false then

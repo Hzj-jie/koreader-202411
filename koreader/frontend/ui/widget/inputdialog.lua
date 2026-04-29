@@ -730,9 +730,6 @@ function InputDialog:onExit()
     -- This lets the caller store/process the current top line num and cursor position via this callback
     self.view_pos_callback(self._top_line_num, self._charpos)
   end
-  -- Avoid calling onKeyboardClosed again.
-  self.add_nav_bar = false
-  self.fullscreen = false
   self:closeKeyboard()
 end
 
@@ -747,16 +744,7 @@ function InputDialog:onSetRotationMode(mode)
 end
 
 function InputDialog:refreshButtons()
-  -- Using what ought to be enough:
-  --   return "ui", self.button_table.dimen
-  -- causes 2 non-intersecting refreshes (because if our buttons
-  -- change, the text widget did) that may sometimes cause
-  -- the button_table to become white.
-  -- Safer to refresh the whole widget so the refreshes can
-  -- be merged into one.
-  UIManager:setDirty(self, function()
-    return "ui", self.dialog_frame.dimen
-  end)
+  self:scheduleRepaint()
 end
 
 function InputDialog:_backupRestoreButtons()
