@@ -478,7 +478,7 @@ function httputil.parse_multipart_data(data, boundary)
       v1 = b1
       repeat
         h1 = v1
-        v1 = find_line_start(data, v1)
+        v1, skipped = find_line_start(data, v1)
         if v1 == nil then
           goto next_boundary
         end

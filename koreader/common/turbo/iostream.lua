@@ -991,7 +991,8 @@ if platform.__LINUX__ and not _G.__TURBO_USE_LUASOCKET__ then
   end
 else
   function iostream.IOStream:_handle_write_nonconst()
-    local errno, fd
+    local errno
+    local fd = self.socket
     local ptr, sz = self._write_buffer:get()
     local buf = ptr + self._write_buffer_offset
     -- Not very optimal to create a new string for LuaSocket.
@@ -1004,7 +1005,6 @@ else
       else
         log.warning(string.format("Error on fd %s. %s", fd, err))
       end
-      fd = self.socket
       self:close()
       return
     end
