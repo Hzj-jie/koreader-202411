@@ -64,7 +64,7 @@ end
 
 function fs.glob(pattern)
   local re = -1
-  glob_t = ffi.new("glob_t[1]")
+  local glob_t = ffi.new("glob_t[1]")
   re = ffi.C.glob(pattern, 0, nil, glob_t)
   if re ~= 0 then
     ffi.C.globfree(glob_t)
