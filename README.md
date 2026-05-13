@@ -1,101 +1,80 @@
-Tired of applying unnecessary changes introducing bugs, and removal of useful
-features.
+# KOReader Customization (2024.11 Derivative)
 
-This repo is derived from the 2024-11 version with essential bug fixes only.
+A focused, highly stabilized derivative of **KOReader 2024.11 "Slang"**, engineered to maintain core compatibility while delivering essential bug fixes, reducing structural bloat, and hardening the underlying execution framework against silent logic failures.
 
-## Latest state
+## 🎯 Core Philosophy
+This repository is developed for users who value long-term stability over continuous downstream feature churn. It intentionally bypasses unnecessary modifications that introduce regressions or remove valuable workflows, preserving the high-fidelity E-Ink reading experience on targeted devices.
 
-As of
-https://github.com/Hzj-jie/koreader-202411/commit/a4bf6dec1ab513cbdf3a3e3b9014f3963aaba6a6,
-there will be likely no other significant changes anymore due to the fact that
-legacy e-reader experience has very limited room to upgrade.
+---
 
-## Supported platforms
+## 📦 Supported Platforms
+Native binaries are isolated from the platform-independent Lua core and organized into dedicated deployment directories:
+*   **Kindle Paperwhite 2**: `pw2/` (`pw2.tar.gz`)
+*   **Kindle Legacy**: `legacy/` (`legacy.tar.gz`)
+*   **Kobo Architecture**: `kobo/` (`kobo.tar.gz`)
+*   **Linux & WSL (Ubuntu 24.04+)**: `linux/` (`linux.tar.gz`)
 
-- kindle pw2 (pw2.tar.gz)
-- kindle legacy (legacy.tar.gz)
-- kobo (kobo.tar.gz)
-- linux & wsl with ubuntu 24.04 or upper (linux.tar.gz)
+### Installation
+Deploying this build closely mirrors the official KOReader setup workflow:
+1.  **E-Ink Devices**: Complete the standard KOReader installation process on your device, then overwrite the base `koreader/` directory with the extracted contents of the corresponding platform release archive from the [Latest Release](https://github.com/Hzj-jie/koreader-202411/releases/latest).
+2.  **Linux & WSL Environments**: Extract `linux.tar.gz` to your desired path and execute the bundled `run.sh` entry script.
 
-Installation is very similar to the original koreader.
+> [!NOTE]
+> Because this fork focuses on pure Lua enhancements, replacing just the source `.lua` files from an official installation with the contents of the active `koreader/` directory should functionally succeed, though complete integration testing across unverified configurations is highly recommended.
 
-When running on the ebook devices, an easy approach is to follow the koreader
-installation guide then replace the koreader folder with the files in the
-cooresponding gz files from
-https://github.com/Hzj-jie/koreader-202411/releases/latest.
+---
 
-When running on linux & wsl with ubuntu 24.04 or upper, unzip the linux.tar.gz
-to any location, and run the run.sh file.
+## 🏗️ Repository Architecture
+To streamline maintenance and ensure reliable formatting, this repository adopts a strict structural separation:
+*   `koreader/`: Contains all platform-independent Lua application source code and shared assets.
+*   `kindle/`: Houses logic and scripts shared across various Kindle device models.
+*   `origin/`: Retains pristine copies of upstream files to serve as an unformatted historical reference.
+*   `origin.stylua/`: Contains pure source files formatted against the project's `StyLua` rules, establishing the formatting baseline.
 
-Since there isn't any native changes so far, replacing only the files from a
-koreader installation with the lua files under koreader folder should also work.
-But the combination was never tested.
-
-After running stylua at
-https://github.com/Hzj-jie/koreader-202411/commit/587d93fa241744aa8e03574bdcd3cf3dd92c3244,
-diff against the baseline becomes pointless. But a copy of original files can
-still be found under origin/ as the reference; or diff by
-
-```
+To compare the active logic directly against the styled upstream baseline, execute:
+```bash
 diff -rw koreader/ origin.stylua/
 ```
 
-## Repo structure
+*(Note: Native compilation is not officially supported directly inside this tree, though building within `origin/` after executing `install-deps.sh` remains possible. The bundled Linux binaries are specifically rebuilt to ensure backwards compatibility with legacy Intel Core 2 Duo architectures).*
 
-Unlike the original koreader, building native binaries is not officially
-supported, though it's possible to build in origin/ after running
-install-deps.sh. Indeed the linux native binaries were rebuilt to support
-the outdated Intel Core 2 Duo x64 processor on a Thinkpad X61t.
+---
 
-Instead, all the native files are placed in their corresponding platform
-folders, e.g. pw2/ for kindle pw2, legacy/ for kindle legacy.
+## 🚀 Active Customizations & Fixes
+Compared to the upstream baseline, this customized branch incorporates the following primary structural and logic modifications:
 
-koreader/ includes all the lua, or platform independent files.
+### 🗑️ Pruned Modules (Complexity Reduction)
+To minimize runtime bloat and maintenance overhead, several components were pruned:
+*   **Plugins**: `timesync.koplugin` and `patchmanagement.koplugin`
+*   **Frontend**: `frontend/userpatch.lua`
+*   **Platform Integration**: `platform/android/llapp_main.lua`
+*   **Legacy Migrations**: `plugins/gestures.koplugin/migration.lua`
 
-kindle/ includes the shared files across different kindle variants.
+### ➕ Added Capabilities
+Custom modules provide specialized offline and browser workflows tailored to the environment:
+*   **Weather Plugin**: Full localized integration of `plugins/weather.koplugin` (`composer.lua`, `weatherapi.lua`).
+*   **Web Portal**: A browser-based remote control interface integrated under `web/`, allowing users to drive application actions and states directly over a regular browser.
 
-Multiple lns.sh scripts are used to symbol-link files from koreader/ to the
-platform folder.
+### ✏️ Core & UI Enhancements
+Modifications across active Lua sources address specific application behavior and layout improvements:
+*   **Core Logic**: Tweaks directly inside `reader.lua` and helpers like `frontend/util.lua`.
+*   **Refined Widgets**: Layout and behavioral updates in standard widgets (`touchmenu.lua`, `virtualkeyboard.lua`, `textwidget.lua`, `verticalscrollbar.lua`).
+*   **Augmented Exporters**: The `exporter.koplugin` module natively targets external note backends including **Flomo, Joplin, Memos, Nextcloud, and Readwise**.
+*   **Plugin Tuning**: Specific behavioral adjustments inside `calibre`, `coverbrowser`, `newsdownloader`, and `statistics`.
 
-## Principle of changes
+### 🛡️ Framework Security Hardening
+The underlying networking engine (`Turbo.lua`) and FFI bindings were scrubbed of operator precedence and leakage bugs to guarantee robust execution:
+*   **Strict SSL Checks**: Fixed boolean precedence (`not type(...) == "string"`) in `tcpserver.lua` to strictly reject invalid configurations.
+*   **Resilient Handshakes**: Patched a duplicate check typo in `crypto_linux.lua` to cleanly handle `WANT_WRITE` non-blocking yields.
+*   **Parser Integrity**: Captured missing string buffer returns in `httputil.lua` to prevent boundary header skips from aborting on their first iteration.
+*   **Safe IO & Memory**: Initialized unassigned socket descriptors in `iostream.lua` to silence trace crashes, properly scoped global memory objects (`glob_t`) in `fs.lua`, and verified read payload sizes (`not len() == sz`) in `web.lua`.
 
-So far, all the changes are limited to lua files, there isn't a need of changing
-anything native yet. Most of the changes fixed annoying bugs or usability
-issues, but there are some slightly out of the scope, to improve the code
-health, reduce the complexity, improve the user experience or reduce power
-consumption.
+---
 
-Except for some repo setups, most of the changes can be mapped to one or more
-issues to explain the motivations.
-
-## Credits
-
-KOReader 2024.11 "Slang", from
-https://github.com/koreader/koreader/releases/tag/v2024.11. Source codes are all
-coming from
-https://github.com/koreader/koreader/archive/refs/tags/v2024.11.tar.gz,
-including all the lua files. Native binaries are coming from the following
-packages.
-
-- pw2: https://github.com/koreader/koreader/releases/download/v2024.11/koreader-kindlepw2-v2024.11.zip
-- legacy: https://github.com/koreader/koreader/releases/download/v2024.11/koreader-kindle-legacy-v2024.11.zip
-- linux and origin.linux: originally from
-  https://github.com/koreader/koreader/releases/download/v2024.11/koreader-linux-x86\_64-v2024.11.tar.xz,
-  but rebuilt to run on outdated Intel Core 2 Duo x64.
-- kobo: https://github.com/koreader/koreader/releases/download/v2024.11/koreader-kobo-v2024.11.zip
-
-SortedIteration: ffi/SortedIteration.lua, from
-http://lua-users.org/wiki/SortedIteration. It was previously used in koreader
-as well, but embedded in ffi/util.lua. See the file itself contains the version
-information and local changes.
-
-stylua: stylua, from https://github.com/JohnnyMorganz/StyLua, current version is
-2.1.0.
-
-luacheck: luacheck, from https://github.com/lunarmodules/luacheck, current
-version is 1.2.0.
-
-dropbear: dropbearmulti 2024.85, from
-https://github.com/ryanwoodsmall/static-binaries/blob/master/x86_64/dropbearmulti
-official site: https://matt.ucc.asn.au/dropbear/dropbear.html. The downloaded
-file is dropbearmulti, but renamed to dropbear to work as an ssh server.
+## 📜 Credits & Upstream Sources
+This build incorporates logic and binaries from the following critical upstream packages:
+*   **KOReader 2024.11 "Slang"**: Base framework and source distributions from the [v2024.11 Release](https://github.com/koreader/koreader/releases/tag/v2024.11).
+*   **Platform Distributions**: Bundled resources derived from official release packages (`koreader-kindlepw2-v2024.11.zip`, `koreader-kindle-legacy-v2024.11.zip`, `koreader-kobo-v2024.11.zip`).
+*   **SortedIteration**: Embedded ordered traversal utilities sourced from [Lua-Users SortedIteration](http://lua-users.org/wiki/SortedIteration).
+*   **Formatting & Linting**: Integration powered by **StyLua v2.1.0** and **Luacheck v1.2.0**.
+*   **Embedded Server**: SSH server operations backed by **Dropbearmulti 2024.85** static binaries.
