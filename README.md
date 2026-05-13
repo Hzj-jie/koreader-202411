@@ -43,6 +43,14 @@ diff -rw koreader/ origin.stylua/
 ## 🚀 Active Customizations & Fixes
 Compared to the upstream baseline, this customized branch incorporates the following primary structural and logic modifications:
 
+### ✏️ Core & UI Enhancements
+Modifications across active Lua sources address specific application behavior, layout improvements, and advanced rendering logic:
+*   **UI Manager Framework**: Deep architectural overhaul inside `uimanager.lua` (originating from [PR #428](https://github.com/Hzj-jie/koreader-202411/pull/428)) that redesigned sub-widget rendering paths to completely eliminate unnecessary full-screen E-Ink flashes during highlights, footer updates, and chapter boundaries. It also introduces custom embedded OS confirmation dialogs (`askForReboot`, `askForPowerOff`) and powerful new framework operations (`keyEvents()`, `runWith()`).
+*   **Core Logic**: Tweaks directly inside `reader.lua` and helpers like `frontend/util.lua`.
+*   **Refined Widgets**: Layout and behavioral updates in standard widgets (`touchmenu.lua`, `virtualkeyboard.lua`, `textwidget.lua`, `verticalscrollbar.lua`).
+*   **Augmented Exporters**: The `exporter.koplugin` module natively targets external note backends including **Flomo, Joplin, Memos, Nextcloud, and Readwise**.
+*   **Plugin Tuning**: Specific behavioral adjustments inside `calibre`, `coverbrowser`, `newsdownloader`, and `statistics`.
+
 ### 🗑️ Pruned Modules (Complexity Reduction)
 To minimize runtime bloat and maintenance overhead, several components were pruned:
 *   **Plugins**: `timesync.koplugin` and `patchmanagement.koplugin`
@@ -54,13 +62,6 @@ To minimize runtime bloat and maintenance overhead, several components were prun
 Custom modules provide specialized offline and browser workflows tailored to the environment:
 *   **Weather Plugin**: Full localized integration of `plugins/weather.koplugin` (`composer.lua`, `weatherapi.lua`).
 *   **Web Portal**: A browser-based remote control interface integrated under `web/`, allowing users to drive application actions and states directly over a regular browser.
-
-### ✏️ Core & UI Enhancements
-Modifications across active Lua sources address specific application behavior and layout improvements:
-*   **Core Logic**: Tweaks directly inside `reader.lua` and helpers like `frontend/util.lua`.
-*   **Refined Widgets**: Layout and behavioral updates in standard widgets (`touchmenu.lua`, `virtualkeyboard.lua`, `textwidget.lua`, `verticalscrollbar.lua`).
-*   **Augmented Exporters**: The `exporter.koplugin` module natively targets external note backends including **Flomo, Joplin, Memos, Nextcloud, and Readwise**.
-*   **Plugin Tuning**: Specific behavioral adjustments inside `calibre`, `coverbrowser`, `newsdownloader`, and `statistics`.
 
 ### 🛡️ Framework Security Hardening
 The underlying networking engine (`Turbo.lua`) and FFI bindings were scrubbed of operator precedence and leakage bugs to guarantee robust execution:
