@@ -2700,4 +2700,5 @@ function ReaderFooter:onClose()
   self:free()
 end
 
+ReaderFooter.default_settings = DEFAULT_SETTINGS
 return ReaderFooter
