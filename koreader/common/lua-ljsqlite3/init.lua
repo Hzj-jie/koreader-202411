@@ -426,6 +426,7 @@ function conn_mt:prepare(stmtstr)
   local code = sql.sqlite3_prepare_v2(self._ptr, stmtstr, #stmtstr, aptr, nil)
   T_okcode(self._ptr, code)
   local stmt = stmt_ct(aptr[0], false, self._ptr, code)
+  connstmt[self] = connstmt[self] or setmetatable({}, { __mode = "k" })
   connstmt[self][stmt] = true
   return stmt
 end
