@@ -13,7 +13,7 @@ fi
 # Anchor execution context directly inside the selected platform directory
 cd "$(dirname "$0")"/"$PLATFORM_DIR"
 
-export TESSDATA_DIR="$PWD/data"
+
 
 # Strictly enforce relative Lua 5.1 module paths via symlink structures and block host mixing
 export LUA_PATH="./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;;"

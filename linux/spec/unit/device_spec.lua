@@ -25,7 +25,18 @@ describe("device module", function()
                     scaleBySize = fb.scaleBySize,
                     setWindowTitle = function() end,
                     refreshFull = function() end,
+                    refreshA2 = function() end,
+                    refreshFast = function() end,
+                    refreshUI = function() end,
+                    refreshPartial = function() end,
+                    refreshNoMergeUI = function() end,
+                    refreshNoMergePartial = function() end,
+                    refreshFlashUI = function() end,
+                    refreshFlashPartial = function() end,
                     getHWNightmode = function() return false end,
+                    setNightmode = function() end,
+                    beforePaint = function() end,
+                    afterPaint = function() end,
                     setupDithering = function() end,
                 }
             end
@@ -46,6 +57,9 @@ describe("device module", function()
         stub(mock_input, "open")
         stub(os, "getenv")
         stub(os, "execute")
+        G_reader_settings:save("plugins_disabled", {
+            statistics = true,
+        })
     end)
 
     after_each(function()
@@ -369,7 +383,7 @@ describe("device module", function()
 
             local sample_pdf = "spec/front/unit/data/tall.pdf"
             local ReaderUI = require("apps/reader/readerui")
-            ReaderUI:doShowReader(sample_pdf)
+            ReaderUI:showReader(sample_pdf)
             local readerui = ReaderUI.instance
             stub(readerui, "onFlushSettings")
             UIManager.event_handlers.PowerPress()
@@ -411,7 +425,7 @@ describe("device module", function()
 
             local sample_pdf = "spec/front/unit/data/tall.pdf"
             local ReaderUI = require("apps/reader/readerui")
-            ReaderUI:doShowReader(sample_pdf)
+            ReaderUI:showReader(sample_pdf)
             local readerui = ReaderUI.instance
             stub(readerui, "onFlushSettings")
             UIManager.event_handlers.PowerPress()
@@ -459,7 +473,7 @@ describe("device module", function()
 
             local sample_pdf = "spec/front/unit/data/tall.pdf"
             local ReaderUI = require("apps/reader/readerui")
-            ReaderUI:doShowReader(sample_pdf)
+            ReaderUI:showReader(sample_pdf)
             local readerui = ReaderUI.instance
             stub(readerui, "onFlushSettings")
             UIManager.event_handlers.PowerPress()
@@ -486,7 +500,7 @@ describe("device module", function()
 
             local sample_pdf = "spec/front/unit/data/tall.pdf"
             local ReaderUI = require("apps/reader/readerui")
-            ReaderUI:doShowReader(sample_pdf)
+            ReaderUI:showReader(sample_pdf)
             local readerui = ReaderUI.instance
             stub(readerui, "onFlushSettings")
             -- UIManager.event_handlers.PowerPress() -- We only fake a Release event on the Emu
