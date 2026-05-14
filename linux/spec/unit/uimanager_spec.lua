@@ -1,5 +1,5 @@
 describe("UIManager spec", function()
-    local time, UIManager
+    local time, UIManager, Widget
     local now, wait_until
     local noop = function() end
 
@@ -8,6 +8,9 @@ describe("UIManager spec", function()
         require("mock_time"):install()
         time = require("ui/time")
         UIManager = require("ui/uimanager")
+        Widget = require("ui/widget/widget"):extend({
+          dimen = require("ui/geometry"):new({ x = 0, y = 0, w = 100, h = 200 })
+        })
     end)
 
     it("should consume due tasks", function()
@@ -224,7 +227,6 @@ describe("UIManager spec", function()
     end)
 
     describe("modal widgets", function()
-        local Widget = require("ui/widget/widget"):extend()
         it("should insert modal widget on top", function()
             -- first modal widget
             UIManager:show(Widget:new({
@@ -367,11 +369,11 @@ describe("UIManager spec", function()
     it("should handle stack change when broadcasting events", function()
         UIManager._window_stack = {
             {
-                widget = {
+                widget = Widget:new({
                     handleEvent = function()
                         UIManager._window_stack[1] = nil
                     end
-                }
+                })
             },
         }
         UIManager:broadcastEvent("foo")
@@ -381,41 +383,41 @@ describe("UIManager spec", function()
         -- Test making a hole in the middle of the stack.
         UIManager._window_stack = {
             {
-                widget = {
+                widget = Widget:new({
                     handleEvent = function()
                         assert.truthy(true)
                     end
-                }
+                })
             },
             {
-                widget = {
+                widget = Widget:new({
                     handleEvent = function()
                         assert.falsy(true)
                     end
-                }
+                })
             },
             {
-                widget = {
+                widget = Widget:new({
                     handleEvent = function()
                         assert.falsy(true)
                     end
-                }
+                })
             },
             {
-                widget = {
+                widget = Widget:new({
                     handleEvent = function()
                         table.remove(UIManager._window_stack, #UIManager._window_stack - 2)
                         table.remove(UIManager._window_stack, #UIManager._window_stack - 2)
                         table.remove(UIManager._window_stack, #UIManager._window_stack - 1)
                     end
-                }
+                })
             },
             {
-                widget = {
+                widget = Widget:new({
                     handleEvent = function()
                         assert.truthy(true)
                     end
-                }
+                })
             },
         }
         UIManager:broadcastEvent("foo")
@@ -423,26 +425,26 @@ describe("UIManager spec", function()
 
         -- Test inserting a new widget in the stack
         local new_widget = {
-            widget = {
+            widget = Widget:new({
                 handleEvent = function()
                     assert.truthy(true)
                 end
-            }
+            })
         }
         UIManager._window_stack = {
             {
-                widget = {
+                widget = Widget:new({
                     handleEvent = function()
                         table.insert(UIManager._window_stack, new_widget)
                     end
-                }
+                })
             },
             {
-                widget = {
+                widget = Widget:new({
                     handleEvent = function()
                         assert.truthy(true)
                     end
-                }
+                })
             },
         }
         UIManager:broadcastEvent("foo")
@@ -450,17 +452,17 @@ describe("UIManager spec", function()
     end)
 
     it("should handle stack change when closing widgets", function()
-        local widget_1 = {handleEvent = function()end}
-        local widget_2  = {
+        local widget_1 = Widget:new({handleEvent = function()end})
+        local widget_2  = Widget:new({
             handleEvent = function()
                 UIManager:close(widget_1)
             end
-        }
-        local widget_3 = {handleEvent = function()end}
+        })
+        local widget_3 = Widget:new({handleEvent = function()end})
         UIManager._window_stack = {
-            {widget = widget_1},
-            {widget = widget_2},
-            {widget = widget_3},
+            {x = 0, y = 0, widget = widget_1},
+            {x = 0, y = 0, widget = widget_2},
+            {x = 0, y = 0, widget = widget_3},
         }
         UIManager:close(widget_2)
 
