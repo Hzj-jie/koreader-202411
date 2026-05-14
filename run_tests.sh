@@ -21,7 +21,7 @@ export LUA_CPATH="./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua
 
 cleanup() {
     echo "[*] Purging test execution residues inside $PLATFORM_DIR/..."
-    rm -rf cache/ defaults.defaults_spec.lua docsettings/ docsettingspec/ help/ history.lua readerbookmark.pdf readerhighlight.pdf settings/ testdata/
+    rm -rf cache/ defaults.defaults_spec.lua docsettings/ docsettingspec/ dummy-test-file* file.sdr/ help/ history.lua ota/ readerbookmark.pdf readerbookmark.sdr/ readerhighlight.pdf readerhighlight.sdr/ screenshots/ settings/ styletweaks/ testdata/ this-is-not-a-valid-file*
 }
 # Guarantee cleanup executes upon script termination (regardless of exit status)
 trap cleanup EXIT
