@@ -16,6 +16,7 @@ describe("device module", function()
                     getRawSize = function() return {w = 600, h = 800} end,
                     getWidth = function() return 600 end,
                     getHeight = function() return 800 end,
+                    getArea = function() return 600 * 800 end,
                     getDPI = function() return 72 end,
                     setViewport = function() end,
                     getRotationMode = function() return 0 end,
