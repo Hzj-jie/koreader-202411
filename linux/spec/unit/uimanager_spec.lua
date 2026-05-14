@@ -452,13 +452,13 @@ describe("UIManager spec", function()
     end)
 
     it("should handle stack change when closing widgets", function()
-        local widget_1 = Widget:new({handleEvent = function()end})
+        local widget_1 = Widget:new()
         local widget_2  = Widget:new({
             handleEvent = function()
                 UIManager:close(widget_1)
             end
         })
-        local widget_3 = Widget:new({handleEvent = function()end})
+        local widget_3 = Widget:new()
         UIManager._window_stack = {
             {x = 0, y = 0, widget = widget_1},
             {x = 0, y = 0, widget = widget_2},
