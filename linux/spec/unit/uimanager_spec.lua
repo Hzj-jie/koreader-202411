@@ -229,18 +229,12 @@ describe("UIManager spec", function()
             -- first modal widget
             UIManager:show(Widget:new({
                 x_prefix_test_number = 1,
-                modal = true,
-                handleEvent = function()
-                    return true
-                end
+                modal = true
             }))
             -- regular widget, should go under modal widget
             UIManager:show(Widget:new({
                 x_prefix_test_number = 2,
-                modal = nil,
-                handleEvent = function()
-                    return true
-                end
+                modal = nil
             }))
 
             assert.equals(2, UIManager._window_stack[1].widget.x_prefix_test_number)
@@ -249,10 +243,7 @@ describe("UIManager spec", function()
         it("should insert second modal widget on top of first modal widget", function()
             UIManager:show(Widget:new({
                 x_prefix_test_number = 3,
-                modal = true,
-                handleEvent = function()
-                    return true
-                end
+                modal = true
             }))
 
             assert.equals(2, UIManager._window_stack[1].widget.x_prefix_test_number)
@@ -294,7 +285,7 @@ describe("UIManager spec", function()
             {widget = {handleEvent = function()end}},
         }
 
-        UIManager:sendEvent("foo")
+        UIManager:userInput("foo")
         assert.falsy(call_signals[1])
         assert.falsy(call_signals[2])
         assert.truthy(call_signals[3])
@@ -332,7 +323,7 @@ describe("UIManager spec", function()
             {widget = {handleEvent = function()end}},
         }
 
-        UIManager:sendEvent("foo")
+        UIManager:userInput("foo")
         assert.is.same(call_signals[1], 1)
         assert.is.same(call_signals[2], 0)
         assert.is.same(call_signals[3], 1)
@@ -367,7 +358,7 @@ describe("UIManager spec", function()
             },
         }
 
-        UIManager:sendEvent("foo")
+        UIManager:userInput("foo")
         assert.is.same(1, call_signals[1])
         assert.is.same(1, call_signals[2])
         assert.is.same(1, call_signals[3])
