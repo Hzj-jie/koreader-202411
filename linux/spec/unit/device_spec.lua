@@ -379,7 +379,7 @@ describe("device module", function()
 
             local UIManager = require("ui/uimanager")
             -- Generic's onPowerEvent may request a repaint, but we can't do that
-            stub(UIManager, "forceRePaint")
+            stub(UIManager, "forceRepaint")
             UIManager:init()
 
             local sample_pdf = "spec/front/unit/data/tall.pdf"
@@ -391,7 +391,7 @@ describe("device module", function()
             UIManager.event_handlers.PowerRelease()
             assert.stub(readerui.onFlushSettings).was_called()
 
-            UIManager.forceRePaint:revert()
+            UIManager.forceRepaint:revert()
             Device.initNetworkManager:revert()
             Device.suspend:revert()
             readerui.onFlushSettings:revert()
@@ -421,7 +421,7 @@ describe("device module", function()
             package.loaded.device = Device
 
             local UIManager = require("ui/uimanager")
-            stub(UIManager, "forceRePaint")
+            stub(UIManager, "forceRepaint")
             UIManager:init()
 
             local sample_pdf = "spec/front/unit/data/tall.pdf"
@@ -433,7 +433,7 @@ describe("device module", function()
             UIManager.event_handlers.PowerRelease()
             assert.stub(readerui.onFlushSettings).was_called()
 
-            UIManager.forceRePaint:revert()
+            UIManager.forceRepaint:revert()
             Device.initNetworkManager:revert()
             Device.suspend:revert()
             readerui.onFlushSettings:revert()
@@ -469,7 +469,7 @@ describe("device module", function()
             package.loaded.device = Device
 
             local UIManager = require("ui/uimanager")
-            stub(UIManager, "forceRePaint")
+            stub(UIManager, "forceRepaint")
             UIManager:init()
 
             local sample_pdf = "spec/front/unit/data/tall.pdf"
@@ -481,7 +481,7 @@ describe("device module", function()
             UIManager.event_handlers.PowerRelease()
             assert.stub(readerui.onFlushSettings).was_called()
 
-            UIManager.forceRePaint:revert()
+            UIManager.forceRepaint:revert()
             Device.initNetworkManager:revert()
             Device.suspend:revert()
             readerui.onFlushSettings:revert()
