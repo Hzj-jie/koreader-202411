@@ -21,7 +21,7 @@ local function check()
 end
 
 describe("UIManager checkTasks benchmark", function()
-    local now = time.now()
+    local now = time.monotonic()
     local wait_until -- luacheck: no unused
     UIManager:quit()
 
@@ -38,7 +38,7 @@ describe("UIManager checkTasks benchmark", function()
 end)
 
 describe("UIManager schedule simple benchmark", function()
-    local now = time.now()
+    local now = time.monotonic()
     UIManager:quit()
 
     for i=1, NB_TESTS/2 do
@@ -50,7 +50,7 @@ end)
 describe("UIManager more sophisticated schedule benchmark", function()
     -- This BM is doing schedulings like the are done in real usage
     -- with autosuspend, autodim, autowarmth and friends.
-    local now = time.now()
+    local now = time.monotonic()
     UIManager:quit()
 
     local function standby_dummy() end
@@ -142,7 +142,7 @@ describe("UIManager schedule massive ridiculous tests", function()
 end)
 
 describe("UIManager unschedule benchmark", function()
-    local now = time.now()
+    local now = time.monotonic()
     UIManager:quit()
 
     for i=NB_TESTS, 1, -1 do

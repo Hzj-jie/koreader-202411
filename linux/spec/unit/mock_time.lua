@@ -99,7 +99,7 @@ function MockTime:install()
         logger.dbg("MockTime:Time.boottime: ", self.boottime_or_realtime_coarse)
         return time:new{ sec = self.boottime_or_realtime_coarse }
     end
-    time.now = function()
+    time.monotonic = function()
         logger.dbg("MockTime:Time.now: ", self.monotonic)
         return time:new{ sec = self.monotonic }
     end
@@ -163,7 +163,7 @@ function MockTime:install()
         logger.dbg("MockTime:Time.boottime: ", self.boottime_or_realtime_coarse_time)
         return self.boottime_or_realtime_coarse_time
     end
-    time.now = function()
+    time.monotonic = function()
         logger.dbg("MockTime:Time.now: ", self.monotonic)
         return self.monotonic_time
     end
@@ -194,7 +194,7 @@ function MockTime:uninstall()
         time.boottime_or_realtime_coarse = self.original_tv_boottime_or_realtime_coarse
     end
     if self.original_tv_now ~= nil then
-        time.now = self.original_tv_now
+        time.monotonic = self.original_tv_now
     end
 end
 

@@ -125,11 +125,11 @@ describe("Time module", function()
     it("should calculate durations", function()
         local time1 = time.s(5) + time.us(500000)
         local function now() return time.s(10) end
-        local now_save = time.now
-        time.now = now
+        local now_save = time.monotonic
+        time.monotonic = now
         assert.is.equal(time.to_s(time.s(4) + time.us(500000)), time.to_s(time.since(time1)))
         assert.is.equal(time.to_ms(time.s(4) + time.us(500000)), time.to_ms(time.since(time1)))
         assert.is.equal(time.to_us(time.s(4) + time.us(500000)), time.to_us(time.since(time1)))
-        time.now = now_save
+        time.monotonic = now_save
     end)
 end)

@@ -14,7 +14,7 @@ describe("UIManager spec", function()
     end)
 
     it("should consume due tasks", function()
-        now = time.now()
+        now = time.monotonic()
         local future = now + time.s(60000)
         local future2 = future + time.s(5)
         UIManager:quit()
@@ -33,7 +33,7 @@ describe("UIManager spec", function()
     end)
 
     it("should calculate wait_until properly in checkTasks routine", function()
-        now = time.now()
+        now = time.monotonic()
         local future_time = now + time.s(60000)
         UIManager:quit()
         UIManager._task_queue = {
@@ -48,7 +48,7 @@ describe("UIManager spec", function()
     end)
 
     it("should return nil wait_until properly in checkTasks routine", function()
-        now = time.now()
+        now = time.monotonic()
         UIManager:quit()
         UIManager._task_queue = {
             { time = now, action = noop, args = {} },
@@ -61,7 +61,7 @@ describe("UIManager spec", function()
     end)
 
     it("should insert new task properly in empty task queue", function()
-        now = time.now()
+        now = time.monotonic()
         UIManager:quit()
         assert.are.same(0, #UIManager._task_queue)
         UIManager:scheduleIn(50, 'foo')
@@ -70,7 +70,7 @@ describe("UIManager spec", function()
     end)
 
     it("should insert new task properly in single task queue", function()
-        now = time.now()
+        now = time.monotonic()
         local future_time = now + time.s(10000)
         UIManager:quit()
         UIManager._task_queue = {
@@ -97,7 +97,7 @@ describe("UIManager spec", function()
     end)
 
     it("should insert new task in descendant order", function()
-        now = time.now()
+        now = time.monotonic()
         UIManager:quit()
         UIManager._task_queue = {
             { time = now, action = '3', args = {} },
@@ -125,7 +125,7 @@ describe("UIManager spec", function()
     it("should insert new tasks with same times before existing tasks", function()
         local ffiutil = require("ffi/util")
 
-        now = time.now()
+        now = time.monotonic()
         UIManager:quit()
 
         -- insert task "5s" between "now" and "10s"
@@ -137,12 +137,12 @@ describe("UIManager spec", function()
         assert.are.same("5s", UIManager._task_queue[2].action)
 
         -- insert task in place of "10s", as it'll expire shortly after "10s"
-        -- NOTE: Can't use this here right now, as time.now, which is used internally,
+        -- NOTE: Can't use this here right now, as time.monotonic, which is used internally,
         -- may or may not have moved, depending on host's performance and clock granularity
         -- (especially if host is fast and/or COARSE is available).
         -- But a short wait fixes this here.
         ffiutil.usleep(1000)
-        UIManager:scheduleIn(10, 'foo') -- is a bit later than "10s", as time.now() is used internally
+        UIManager:scheduleIn(10, 'foo') -- is a bit later than "10s", as time.monotonic() is used internally
         assert.are.same('foo', UIManager._task_queue[1].action)
 
         -- insert task in place of "10s", which was just shifted by foo
@@ -157,7 +157,7 @@ describe("UIManager spec", function()
         UIManager:schedule(now + time.s(5), 'nix')
         assert.are.same('nix', UIManager._task_queue[5].action)
         -- "barba" replaces "nix"
-        UIManager:scheduleIn(5, 'barba') -- is a bit later than "5s", as time.now() is used internally
+        UIManager:scheduleIn(5, 'barba') -- is a bit later than "5s", as time.monotonic() is used internally
         assert.are.same('barba', UIManager._task_queue[5].action)
 
         -- "mama is scheduled now and as such inserted in "now"'s place
@@ -165,7 +165,7 @@ describe("UIManager spec", function()
         assert.are.same('mama', UIManager._task_queue[8].action)
 
         -- "papa" is shortly after "now", so inserted in its place
-        -- NOTE: For the same reason as above, test this last, as time.now may not have moved...
+        -- NOTE: For the same reason as above, test this last, as time.monotonic may not have moved...
         UIManager:nextTick('papa') -- is a bit later than "now"
         assert.are.same('papa', UIManager._task_queue[8].action)
 
@@ -175,7 +175,7 @@ describe("UIManager spec", function()
     end)
 
     it("should unschedule all the tasks with the same action", function()
-        now = time.now()
+        now = time.monotonic()
         UIManager:quit()
         UIManager._task_queue = {
             { time = now, action = '3', args = {} },
@@ -194,7 +194,7 @@ describe("UIManager spec", function()
     end)
 
     it("should not have race between unschedule and _checkTasks", function()
-        now = time.now()
+        now = time.monotonic()
         local run_count = 0
         local task_to_remove = function()
             run_count = run_count + 1

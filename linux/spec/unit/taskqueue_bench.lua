@@ -8,7 +8,7 @@ local NB_TESTS = 40000
 local noop = function() end
 
 describe("UIManager simple checkTasks and scheduling benchmark", function()
-    local now = time.now()
+    local now = time.monotonic()
     local wait_until -- luacheck: no unused
     UIManager:quit()
     UIManager._task_queue = {}
@@ -30,7 +30,7 @@ describe("UIManager more advanced checkTasks and scheduling benchmark", function
     -- Additional _checkTask is called to better simulate bench this too.
     local wait_until -- luacheck: no unused
 
-    local now = time.now()
+    local now = time.monotonic()
     UIManager:quit()
 
     local function standby_dummy() end
