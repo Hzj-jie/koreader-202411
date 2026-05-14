@@ -225,6 +225,7 @@ describe("device module", function()
                 end
             }
             package.loaded["liblipclua"] = mock_lipc
+            package.loaded["libopenlipclua"] = mock_lipc
 
             before_each(function()
                 os.getenv.invokes(function(e)
