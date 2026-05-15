@@ -11,13 +11,18 @@ describe("FileManager module", function()
         lfs = require("libs/libkoreader-lfs")
         util = require("ffi/util")
     end)
+    after_each(function()
+        if FileManager.instance then
+            FileManager.instance:onClose()
+        end
+        UIManager:quit()
+    end)
     it("should show file manager", function()
         UIManager:quit()
         local filemanager = FileManager:new{
             dimen = Screen:getSize(),
             root_path = "spec/unit/data",
         }
-        UIManager:show(filemanager)
         UIManager:scheduleIn(1, function() filemanager:onClose() end)
         UIManager:run()
     end)
