@@ -19,7 +19,7 @@ describe("ReaderLink module", function()
     local function fastforward_ui_events()
         -- Fast forward all scheduled tasks.
         UIManager:shiftScheduledTasksBy(-1e9)
-        UIManager:run()
+        UIManager:handleInput()
     end
 
     after_each(function()
@@ -64,8 +64,7 @@ describe("ReaderLink module", function()
             }
         end)
 
-        -- NOTE: fastforward_ui_events() hangs forever in non-hermetic headless mode
-        it("should jump to links in page mode #notest", function()
+        it("should jump to links in page mode", function()
             readerui:handleEvent(Event:new("SetScrollMode", false))
             readerui:handleEvent(Event:new("SetZoomMode", "page"))
             readerui.paging:onGotoPage(1)
@@ -74,8 +73,7 @@ describe("ReaderLink module", function()
             assert.is.same(22, readerui.paging.current_page)
         end)
 
-        -- NOTE: fastforward_ui_events() hangs forever in non-hermetic headless mode
-        it("should jump to links in scroll mode #notest", function()
+        it("should jump to links in scroll mode", function()
             readerui:handleEvent(Event:new("SetScrollMode", true))
             readerui:handleEvent(Event:new("SetZoomMode", "page"))
             readerui.paging:onGotoPage(1)
@@ -88,8 +86,7 @@ describe("ReaderLink module", function()
                 or readerui.paging.current_page == 20)
         end)
 
-        -- NOTE: fastforward_ui_events() hangs forever in non-hermetic headless mode
-        it("should be able to go back after link jump in page mode #notest", function()
+        it("should be able to go back after link jump in page mode", function()
             readerui:handleEvent(Event:new("SetScrollMode", false))
             readerui:handleEvent(Event:new("SetZoomMode", "page"))
             readerui.paging:onGotoPage(1)
@@ -100,8 +97,7 @@ describe("ReaderLink module", function()
             assert.is.same(1, readerui.paging.current_page)
         end)
 
-        -- NOTE: fastforward_ui_events() hangs forever in non-hermetic headless mode
-        it("should be able to go back after link jump in scroll mode #notest", function()
+        it("should be able to go back after link jump in scroll mode", function()
             readerui:handleEvent(Event:new("SetScrollMode", true))
             readerui:handleEvent(Event:new("SetZoomMode", "page"))
             readerui.paging:onGotoPage(1)
@@ -120,8 +116,7 @@ describe("ReaderLink module", function()
 
         before_each()
 
-        -- NOTE: fastforward_ui_events() hangs forever in non-hermetic headless mode
-        it("should be able to go back to the same position after link jump in scroll mode #notest", function()
+        it("should be able to go back to the same position after link jump in scroll mode", function()
             local expected_page_states = {
                 {
                     gamma = 1,
