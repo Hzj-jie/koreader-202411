@@ -140,11 +140,11 @@ end
 -- SQLITE_*, OPEN_*
 
 if not pcall(ffi.typeof, "sqlite3") then
-ffi.cdef(table.concat(sqlconstants))
-sqlconstants = nil
+  ffi.cdef(table.concat(sqlconstants))
+  sqlconstants = nil
 
--- sqlite3*, ljsqlite3_*
-ffi.cdef([[
+  -- sqlite3*, ljsqlite3_*
+  ffi.cdef([[
 // Typedefs.
 typedef struct sqlite3 sqlite3;
 typedef struct sqlite3_stmt sqlite3_stmt;

@@ -1,16 +1,16 @@
 describe("input module", function()
-    local Input
-    local ffi, C
-    setup(function()
-        require("commonrequire")
-        ffi = require("ffi")
-        C = ffi.C
-        require("ffi/linux_input_h")
-        Input = require("device").input
-    end)
+  local Input
+  local ffi, C
+  setup(function()
+    require("commonrequire")
+    ffi = require("ffi")
+    C = ffi.C
+    require("ffi/linux_input_h")
+    Input = require("device").input
+  end)
 
-    describe("handleTouchEvPhoenix", function()
---[[
+  describe("handleTouchEvPhoenix", function()
+    --[[
 -- a touch looks something like this (from H2Ov1)
 Event: time 1510346968.993890, type 3 (EV_ABS), code 57 (ABS_MT_TRACKING_ID), value 1
 Event: time 1510346968.994362, type 3 (EV_ABS), code 48 (ABS_MT_TOUCH_MAJOR), value 1
@@ -41,47 +41,47 @@ Event: time 1510346969.076887, type 3 (EV_ABS), code 54 (ABS_MT_POSITION_Y), val
 Event: time 1510346969.076898, ++++++++++++++ SYN_MT_REPORT ++++++++++++
 Event: time 1510346969.076908, -------------- SYN_REPORT ------------
 ]]
-        it("should set cur_slot correctly", function()
-            local ev
-            ev = {
-                type = C.EV_ABS,
-                code = C.ABS_MT_TRACKING_ID,
-                value = 1,
-            }
-            Input:handleTouchEvPhoenix(ev)
-            assert.is_equal(1, Input.cur_slot)
-            ev = {
-                type = C.EV_ABS,
-                code = C.ABS_MT_TOUCH_MAJOR,
-                value = 1,
-            }
-            Input:handleTouchEvPhoenix(ev)
-            assert.is_equal(1, Input.cur_slot)
-            ev = {
-                type = C.EV_ABS,
-                code = C.ABS_MT_WIDTH_MAJOR,
-                value = 1,
-            }
-            Input:handleTouchEvPhoenix(ev)
-            assert.is_equal(1, Input.cur_slot)
-            ev = {
-                type = C.EV_ABS,
-                code = C.ABS_MT_POSITION_X,
-                value = 1012,
-            }
-            Input:handleTouchEvPhoenix(ev)
-            assert.is_equal(1, Input.cur_slot)
-            ev = {
-                type = C.EV_ABS,
-                code = C.ABS_MT_POSITION_Y,
-                value = 914,
-            }
-            Input:handleTouchEvPhoenix(ev)
-            assert.is_equal(1, Input.cur_slot)
+    it("should set cur_slot correctly", function()
+      local ev
+      ev = {
+        type = C.EV_ABS,
+        code = C.ABS_MT_TRACKING_ID,
+        value = 1,
+      }
+      Input:handleTouchEvPhoenix(ev)
+      assert.is_equal(1, Input.cur_slot)
+      ev = {
+        type = C.EV_ABS,
+        code = C.ABS_MT_TOUCH_MAJOR,
+        value = 1,
+      }
+      Input:handleTouchEvPhoenix(ev)
+      assert.is_equal(1, Input.cur_slot)
+      ev = {
+        type = C.EV_ABS,
+        code = C.ABS_MT_WIDTH_MAJOR,
+        value = 1,
+      }
+      Input:handleTouchEvPhoenix(ev)
+      assert.is_equal(1, Input.cur_slot)
+      ev = {
+        type = C.EV_ABS,
+        code = C.ABS_MT_POSITION_X,
+        value = 1012,
+      }
+      Input:handleTouchEvPhoenix(ev)
+      assert.is_equal(1, Input.cur_slot)
+      ev = {
+        type = C.EV_ABS,
+        code = C.ABS_MT_POSITION_Y,
+        value = 914,
+      }
+      Input:handleTouchEvPhoenix(ev)
+      assert.is_equal(1, Input.cur_slot)
 
-            -- EV_SYN
-            -- depends on gesture_detector
-            --[[
+      -- EV_SYN
+      -- depends on gesture_detector
+      --[[
             ev = {
                 type = C.EV_SYN,
                 code = C.SYN_REPORT,
@@ -91,43 +91,42 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
             assert.is_equal(1, Input.cur_slot)
             ]]
 
-            -- this value=2 stuff doesn't happen IRL, just testing logic
-            ev = {
-                type = C.EV_ABS,
-                code = C.ABS_MT_TRACKING_ID,
-                value = 2,
-            }
-            Input:handleTouchEvPhoenix(ev)
-            assert.is_equal(2, Input.cur_slot)
-            ev = {
-                type = C.EV_ABS,
-                code = C.ABS_MT_TOUCH_MAJOR,
-                value = 2,
-            }
-            Input:handleTouchEvPhoenix(ev)
-            assert.is_equal(2, Input.cur_slot)
-            ev = {
-                type = C.EV_ABS,
-                code = C.ABS_MT_WIDTH_MAJOR,
-                value = 2,
-            }
-            Input:handleTouchEvPhoenix(ev)
-            assert.is_equal(2, Input.cur_slot)
-            ev = {
-                type = C.EV_ABS,
-                code = C.ABS_MT_POSITION_X,
-                value = 1012,
-            }
-            Input:handleTouchEvPhoenix(ev)
-            assert.is_equal(2, Input.cur_slot)
-            ev = {
-                type = C.EV_ABS,
-                code = C.ABS_MT_POSITION_Y,
-                value = 914,
-            }
-            Input:handleTouchEvPhoenix(ev)
-            assert.is_equal(2, Input.cur_slot)
-        end)
+      -- this value=2 stuff doesn't happen IRL, just testing logic
+      ev = {
+        type = C.EV_ABS,
+        code = C.ABS_MT_TRACKING_ID,
+        value = 2,
+      }
+      Input:handleTouchEvPhoenix(ev)
+      assert.is_equal(2, Input.cur_slot)
+      ev = {
+        type = C.EV_ABS,
+        code = C.ABS_MT_TOUCH_MAJOR,
+        value = 2,
+      }
+      Input:handleTouchEvPhoenix(ev)
+      assert.is_equal(2, Input.cur_slot)
+      ev = {
+        type = C.EV_ABS,
+        code = C.ABS_MT_WIDTH_MAJOR,
+        value = 2,
+      }
+      Input:handleTouchEvPhoenix(ev)
+      assert.is_equal(2, Input.cur_slot)
+      ev = {
+        type = C.EV_ABS,
+        code = C.ABS_MT_POSITION_X,
+        value = 1012,
+      }
+      Input:handleTouchEvPhoenix(ev)
+      assert.is_equal(2, Input.cur_slot)
+      ev = {
+        type = C.EV_ABS,
+        code = C.ABS_MT_POSITION_Y,
+        value = 914,
+      }
+      Input:handleTouchEvPhoenix(ev)
+      assert.is_equal(2, Input.cur_slot)
     end)
-
+  end)
 end)
