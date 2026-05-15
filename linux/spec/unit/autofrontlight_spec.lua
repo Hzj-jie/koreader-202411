@@ -1,6 +1,16 @@
 describe("AutoFrontlight widget tests", function()
     local Device, PowerD, MockTime, class, AutoFrontlight, UIManager
 
+    local function setAmbientBrightnessAndRun(brightness)
+        Device.brightness = brightness
+        MockTime:increase(2)
+        UIManager:handleInput()
+    end
+
+    local function assertFrontlightLevel(expected)
+        assert.are.equal(expected, Device:getPowerDevice().frontlight)
+    end
+
     setup(function()
         require("commonrequire")
         package.unloadAll()
@@ -51,6 +61,7 @@ describe("AutoFrontlight widget tests", function()
 
         requireBackgroundRunner()
         class = dofile("plugins/autofrontlight.koplugin/main.lua")
+        AutoFrontlight = class:new()
         notifyBackgroundJobsUpdated()
 
         -- Ensure the background runner has succeeded set the job.insert_sec.
@@ -68,78 +79,60 @@ describe("AutoFrontlight widget tests", function()
     end)
 
     it("should automatically turn on or off frontlight", function()
-        AutoFrontlight = class:new()
-        Device.brightness = 3
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(0, Device:getPowerDevice().frontlight)
-        Device.brightness = 0
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(2, Device:getPowerDevice().frontlight)
-        Device.brightness = 1
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(2, Device:getPowerDevice().frontlight)
-        Device.brightness = 2
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(2, Device:getPowerDevice().frontlight)
-        Device.brightness = 3
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(0, Device:getPowerDevice().frontlight)
-        Device.brightness = 4
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(0, Device:getPowerDevice().frontlight)
-        Device.brightness = 3
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(0, Device:getPowerDevice().frontlight)
-        Device.brightness = 2
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(0, Device:getPowerDevice().frontlight)
-        Device.brightness = 1
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(2, Device:getPowerDevice().frontlight)
-        Device.brightness = 0
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(2, Device:getPowerDevice().frontlight)
+        -- Set the initial state to AutoFrontlight widget.
+        setAmbientBrightnessAndRun(0)
+
+        setAmbientBrightnessAndRun(3)
+        assertFrontlightLevel(0)
+        setAmbientBrightnessAndRun(0)
+        assertFrontlightLevel(2)
+        setAmbientBrightnessAndRun(1)
+        assertFrontlightLevel(2)
+        setAmbientBrightnessAndRun(2)
+        assertFrontlightLevel(2)
+        setAmbientBrightnessAndRun(3)
+        assertFrontlightLevel(0)
+        setAmbientBrightnessAndRun(4)
+        assertFrontlightLevel(0)
+        setAmbientBrightnessAndRun(3)
+        assertFrontlightLevel(0)
+        setAmbientBrightnessAndRun(2)
+        assertFrontlightLevel(0)
+        setAmbientBrightnessAndRun(1)
+        assertFrontlightLevel(2)
+        setAmbientBrightnessAndRun(0)
+        assertFrontlightLevel(2)
     end)
 
     it("should turn on frontlight at the beginning", function()
+        -- Set the initial state to AutoFrontlight widget.
+        setAmbientBrightnessAndRun(3)
+
         Device:getPowerDevice():turnOffFrontlight()
-        Device.brightness = 0
-        AutoFrontlight = class:new()
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(2, Device:getPowerDevice().frontlight)
+        setAmbientBrightnessAndRun(0)
+        assertFrontlightLevel(2)
     end)
 
     it("should turn off frontlight at the beginning", function()
+        -- Set the initial state to AutoFrontlight widget.
+        setAmbientBrightnessAndRun(0)
+
         Device:getPowerDevice():turnOnFrontlight()
-        Device.brightness = 3
-        AutoFrontlight = class:new()
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(0, Device:getPowerDevice().frontlight)
+        setAmbientBrightnessAndRun(3)
+        assertFrontlightLevel(0)
     end)
 
     it("should handle configuration update", function()
+        -- Set the initial state to AutoFrontlight widget.
+        setAmbientBrightnessAndRun(3)
+
         Device:getPowerDevice():turnOffFrontlight()
-        Device.brightness = 0
-        AutoFrontlight = class:new()
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(2, Device:getPowerDevice().frontlight)
+        setAmbientBrightnessAndRun(0)
+        assertFrontlightLevel(2)
         AutoFrontlight:flipSetting()
-        Device.brightness = 3
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(2, Device:getPowerDevice().frontlight)
+        -- The last AutoFrontlight job is in the queue and will be executed first before the flipped setting to take effect.
+        setAmbientBrightnessAndRun(0)
+        setAmbientBrightnessAndRun(3)
+        assertFrontlightLevel(2)
     end)
 end)
