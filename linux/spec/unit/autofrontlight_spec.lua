@@ -18,6 +18,7 @@ describe("AutoFrontlight widget tests", function()
         PowerD.setIntensityHW = function(self, intensity)
             self.frontlight = intensity
         end
+        PowerD.resetT1Timeout = function() end
     end)
 
     teardown(function()
@@ -58,7 +59,7 @@ describe("AutoFrontlight widget tests", function()
     end)
 
     after_each(function()
-        AutoFrontlight:deprecateLastTask()
+        AutoFrontlight:onClose()
         -- Ensure the scheduled task from this test case won't impact others.
         MockTime:increase(2)
         UIManager:handleInput()
