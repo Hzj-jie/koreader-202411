@@ -49,6 +49,7 @@ require("libs/libkoreader-lfs").mkdir(DataStorage:getHistoryDir()) -- for legacy
 os.remove(DataStorage:getDataDir() .. "/defaults.tests.lua")
 os.remove(DataStorage:getDataDir() .. "/defaults.tests.lua.old")
 G_defaults = require("luadefaults"):open(DataStorage:getDataDir() .. "/defaults.tests.lua")
+G_defaults:save("DCREREADER_CONFIG_DEFAULT_FONT_SIZE", 22)
 
 -- global reader settings
 os.remove(DataStorage:getDataDir() .. "/settings.tests.lua")

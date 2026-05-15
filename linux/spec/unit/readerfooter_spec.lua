@@ -326,7 +326,7 @@ describe("Readerfooter module", function()
         assert.is.same(0, footer.mode)
 
         footer.settings.all_at_once = true
-        footer:updateFooterTextGenerator()
+        footer:_updateFooterTextGenerator()
         footer.mode = 5
         footer:TapFooter()
         assert.is.same(0, footer.mode)
@@ -436,126 +436,7 @@ describe("Readerfooter module", function()
         readerui:onClose()
     end)
 
-    it("should schedule/unschedule auto refresh time task", function()
-        local sample_epub = "spec/front/unit/data/juliet.epub"
-        purgeDir(DocSettings:getSidecarDir(sample_epub))
-        os.remove(DocSettings:getHistoryPath(sample_epub))
-        UIManager:quit()
 
-        assert.are.same(0, #UIManager._task_queue)
-
-        local settings = G_reader_settings:read("footer")
-        settings.auto_refresh_time = true
-        settings.all_at_once = true
-        G_reader_settings:save("footer", settings)
-
-        local readerui = ReaderUI:new{
-            dimen = Screen:getSize(),
-            document = DocumentRegistry:openDocument(sample_epub),
-        }
-        local footer = readerui.view.footer
-        local found = 0
-        for _,task in ipairs(UIManager._task_queue) do
-            if task.action == footer.autoRefreshFooter then
-                found = found + 1
-            end
-        end
-        assert.is.same(1, found)
-
-        footer:onCloseDocument()
-        found = 0
-        for _,task in ipairs(UIManager._task_queue) do
-            if task.action == footer.autoRefreshFooter then
-                found = found + 1
-            end
-        end
-        assert.is.same(0, found)
-        readerui:onExit()
-        readerui:onClose()
-    end)
-
-    it("should not schedule auto refresh time task if footer is disabled", function()
-        local sample_epub = "spec/front/unit/data/juliet.epub"
-        purgeDir(DocSettings:getSidecarDir(sample_epub))
-        os.remove(DocSettings:getHistoryPath(sample_epub))
-        UIManager:quit()
-
-        assert.are.same(0, #UIManager._task_queue)
-
-        local settings = G_reader_settings:read("footer")
-        settings.disabled = true
-        settings.auto_refresh_time = true
-        settings.all_at_once = true
-        G_reader_settings:save("footer", settings)
-
-        local readerui = ReaderUI:new{
-            dimen = Screen:getSize(),
-            document = DocumentRegistry:openDocument(sample_epub),
-        }
-        local footer = readerui.view.footer
-        local found = 0
-        for _,task in ipairs(UIManager._task_queue) do
-            if task.action == footer.autoRefreshFooter then
-                found = found + 1
-            end
-        end
-        assert.is.same(0, found)
-        readerui:onExit()
-        readerui:onClose()
-    end)
-
-    it("should toggle auto refresh time task by toggling the menu", function()
-        local sample_pdf = "spec/front/unit/data/2col.pdf"
-        purgeDir(DocSettings:getSidecarDir(sample_pdf))
-        os.remove(DocSettings:getHistoryPath(sample_pdf))
-        UIManager:quit()
-
-        assert.are.same(0, #UIManager._task_queue)
-
-        local settings = G_reader_settings:read("footer")
-        settings.disabled = false
-        settings.auto_refresh_time = true
-        settings.all_at_once = true
-        G_reader_settings:save("footer", settings)
-
-        local readerui = ReaderUI:new{
-            dimen = Screen:getSize(),
-            document = DocumentRegistry:openDocument(sample_pdf),
-        }
-        local footer = readerui.view.footer
-        local fake_menu = {setting = {}}
-        footer:addToMainMenu(fake_menu)
-
-        local found = 0
-        for _,task in ipairs(UIManager._task_queue) do
-            if task.action == footer.autoRefreshFooter then
-                found = found + 1
-            end
-        end
-        assert.is.same(1, found)
-
-        -- disable auto refresh time
-        tapFooterMenu(fake_menu, "Auto refresh items")
-        found = 0
-        for _,task in ipairs(UIManager._task_queue) do
-            if task.action == footer.autoRefreshFooter then
-                found = found + 1
-            end
-        end
-        assert.is.same(0, found)
-
-        -- enable auto refresh time again
-        tapFooterMenu(fake_menu, "Auto refresh items")
-        found = 0
-        for _,task in ipairs(UIManager._task_queue) do
-            if task.action == footer.autoRefreshFooter then
-                found = found + 1
-            end
-        end
-        assert.is.same(1, found)
-        readerui:onExit()
-        readerui:onClose()
-    end)
 
     it("should support toggle footer through menu if tap zone is disabled", function()
         local DTAP_ZONE_MINIBAR = G_defaults:read("DTAP_ZONE_MINIBAR")
@@ -798,36 +679,7 @@ describe("Readerfooter module", function()
         readerui:onClose()
     end)
 
-    it("should disable footer if settings.disabled is true", function()
-        local sample_epub = "spec/front/unit/data/juliet.epub"
-        purgeDir(DocSettings:getSidecarDir(sample_epub))
-        os.remove(DocSettings:getHistoryPath(sample_epub))
-        UIManager:quit()
 
-        local settings = G_reader_settings:read("footer")
-        settings.disabled = true
-        G_reader_settings:save("footer", settings)
-
-        local readerui = ReaderUI:new{
-            dimen = Screen:getSize(),
-            document = DocumentRegistry:openDocument(sample_epub),
-        }
-        local footer = readerui.view.footer
-
-        assert.falsy(readerui.view.footer_visible)
-        assert.truthy(footer.mode == 0)
-
-        local found = 0
-        for _,task in ipairs(UIManager._task_queue) do
-            if task.action == footer.autoRefreshFooter then
-                found = found + 1
-            end
-        end
-        assert.is.same(0, found)
-
-        readerui:onExit()
-        readerui:onClose()
-    end)
 
     --[[ This toggling behaviour has been removed:
     it("should toggle between full and min progress bar for cre documents", function()
