@@ -30,17 +30,17 @@ describe("luasettings module", function()
         assert.True(Settings:hasNot("abc"))
         assert.False(Settings:isTrue("abc"))
 
-        Settings:flipTrue("abc")
+        Settings:flipNilOrFalse("abc")
         assert.True(Settings:has("abc"))
         assert.True(Settings:isTrue("abc"))
         assert.True(Settings:nilOrTrue("abc"))
-        Settings:flipTrue("abc")
+        Settings:flipNilOrFalse("abc")
         assert.False(Settings:has("abc"))
         assert.False(Settings:isTrue("abc"))
         assert.True(Settings:nilOrTrue("abc"))
     end)
 
-    it("should create child settings", function()
+    it("should handle child table settings", function()
         Settings:delete("key")
 
         Settings:save("key", {
@@ -49,21 +49,18 @@ describe("luasettings module", function()
             d = false,
         })
 
-        local child = Settings:child("key")
+        local child = Settings:readTableRef("key")
 
         assert.is_not_nil(child)
-        assert.True(child:has("a"))
-        assert.are.equal(child:read("a"), "b")
-        assert.True(child:has("c"))
-        assert.False(child:isTrue("c")) -- It's a string, not a bool!
-        assert.True(child:has("d"))
-        assert.True(child:isFalse("d"))
-        assert.False(child:isTrue("e"))
-        child:flipTrue("e")
-        child:close()
+        assert.are.equal(child.a, "b")
+        assert.are.equal(child.c, "True")
+        assert.are.equal(child.d, false)
+        assert.is_nil(child.e)
+        child.e = true
+        Settings:save("key", child)
 
-        child = Settings:child("key")
-        assert.True(child:isTrue("e"))
+        child = Settings:readTableRef("key")
+        assert.True(child.e == true)
     end)
 
     describe("table wrapper", function()
@@ -72,9 +69,10 @@ describe("luasettings module", function()
         end)
 
         it("should add item to table", function()
-            Settings:addTableItem("key", 1)
-            Settings:addTableItem("key", 2)
-            Settings:addTableItem("key", 3)
+            local t = Settings:readTableRef("key")
+            table.insert(t, 1)
+            table.insert(t, 2)
+            table.insert(t, 3)
 
             assert.are.equal(1, Settings:read("key")[1])
             assert.are.equal(2, Settings:read("key")[2])
@@ -82,7 +80,8 @@ describe("luasettings module", function()
         end)
 
         it("should remove item from table", function()
-            Settings:removeTableItem("key", 1)
+            local t = Settings:readTableRef("key")
+            table.remove(t, 1)
 
             assert.are.equal(2, Settings:read("key")[1])
             assert.are.equal(3, Settings:read("key")[2])
