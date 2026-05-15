@@ -257,8 +257,8 @@ describe("device module", function()
                     "fsrkeypadPrevEnable",
                     "fsrkeypadNextEnable"
                 } do
-                    assert.stub(fw_lipc_handle.set_int_property).was.called_with(
-                        fw_lipc_handle, "com.lab126.deviced", fsr_prop, 1
+                    assert.spy(fw_lipc_handle.l.set_int_property).was.called_with(
+                        fw_lipc_handle.l, "com.lab126.deviced", fsr_prop, 1
                     )
                 end
             end)
@@ -387,15 +387,18 @@ describe("device module", function()
             local ReaderUI = require("apps/reader/readerui")
             ReaderUI:showReader(sample_pdf)
             local readerui = ReaderUI.instance
-            stub(readerui, "onFlushSettings")
+            -- Busted stub table is incompatible with EventListener:handleEvent array check
+            local onFlushSettings_called = 0
+            readerui.onFlushSettings = function(self, ...)
+                onFlushSettings_called = onFlushSettings_called + 1
+            end
             UIManager.event_handlers.PowerPress()
             UIManager.event_handlers.PowerRelease()
-            assert.stub(readerui.onFlushSettings).was_called()
+            assert.is.same(1, onFlushSettings_called)
 
             UIManager.forceRepaint:revert()
             Device.initNetworkManager:revert()
             Device.suspend:revert()
-            readerui.onFlushSettings:revert()
             Device.screen_saver_mode = false
             readerui:onClose()
         end)
@@ -429,15 +432,17 @@ describe("device module", function()
             local ReaderUI = require("apps/reader/readerui")
             ReaderUI:showReader(sample_pdf)
             local readerui = ReaderUI.instance
-            stub(readerui, "onFlushSettings")
+            local onFlushSettings_called = 0
+            readerui.onFlushSettings = function(self, ...)
+                onFlushSettings_called = onFlushSettings_called + 1
+            end
             UIManager.event_handlers.PowerPress()
             UIManager.event_handlers.PowerRelease()
-            assert.stub(readerui.onFlushSettings).was_called()
+            assert.is.same(1, onFlushSettings_called)
 
             UIManager.forceRepaint:revert()
             Device.initNetworkManager:revert()
             Device.suspend:revert()
-            readerui.onFlushSettings:revert()
             Device.screen_saver_mode = false
             readerui:onClose()
         end)
@@ -477,15 +482,17 @@ describe("device module", function()
             local ReaderUI = require("apps/reader/readerui")
             ReaderUI:showReader(sample_pdf)
             local readerui = ReaderUI.instance
-            stub(readerui, "onFlushSettings")
+            local onFlushSettings_called = 0
+            readerui.onFlushSettings = function(self, ...)
+                onFlushSettings_called = onFlushSettings_called + 1
+            end
             UIManager.event_handlers.PowerPress()
             UIManager.event_handlers.PowerRelease()
-            assert.stub(readerui.onFlushSettings).was_called()
+            assert.is.same(1, onFlushSettings_called)
 
             UIManager.forceRepaint:revert()
             Device.initNetworkManager:revert()
             Device.suspend:revert()
-            readerui.onFlushSettings:revert()
             Device.screen_saver_mode = false
             readerui:onClose()
         end)
@@ -504,14 +511,16 @@ describe("device module", function()
             local ReaderUI = require("apps/reader/readerui")
             ReaderUI:showReader(sample_pdf)
             local readerui = ReaderUI.instance
-            stub(readerui, "onFlushSettings")
+            local onFlushSettings_called = 0
+            readerui.onFlushSettings = function(self, ...)
+                onFlushSettings_called = onFlushSettings_called + 1
+            end
             -- UIManager.event_handlers.PowerPress() -- We only fake a Release event on the Emu
             UIManager.event_handlers.PowerRelease()
-            assert.stub(readerui.onFlushSettings).was_called()
+            assert.is.same(1, onFlushSettings_called)
 
             Device.initNetworkManager:revert()
             Device.suspend:revert()
-            readerui.onFlushSettings:revert()
             Device.screen_saver_mode = false
             readerui:onClose()
         end)
