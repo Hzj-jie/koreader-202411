@@ -27,6 +27,10 @@ describe("BackgroundRunner widget tests", function()
         require("util").clearTable(PluginShare.backgroundJobs)
     end)
 
+    after_each(function()
+        requireBackgroundRunner():allowBlockingJobs(false)
+    end)
+
     it("should start job", function()
         local executed = false
         table.insert(PluginShare.backgroundJobs, {
@@ -96,7 +100,8 @@ describe("BackgroundRunner widget tests", function()
         assert.are.equal(10, executed)
     end)
 
-    pending("should block long job", function()
+    it("should block long job", function()
+        requireBackgroundRunner():allowBlockingJobs(true)
         local executed = 0
         local job = {
             when = 1,
@@ -233,7 +238,8 @@ describe("BackgroundRunner widget tests", function()
         assert.is_false(job.bad_command)
     end)
 
-    pending("should block long binary job", function()
+    it("should block long binary job", function()
+        requireBackgroundRunner():allowBlockingJobs(true)
         local job = {
             when = 1,
             repeated = true,
