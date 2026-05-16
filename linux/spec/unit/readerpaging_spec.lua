@@ -95,6 +95,7 @@ describe("Readerpaging module", function()
         it("should scroll backward on the first page without crash", function()
             local sample_djvu = "spec/front/unit/data/djvu3spec.djvu"
             -- Unsafe second // ReaderUI instance!
+            ReaderUI.instance = nil
             local tmp_readerui = ReaderUI:new{
                 dimen = Screen:getSize(),
                 document = DocumentRegistry:openDocument(sample_djvu),
@@ -109,6 +110,7 @@ describe("Readerpaging module", function()
         it("should scroll forward on the last page without crash", function()
             local sample_djvu = "spec/front/unit/data/djvu3spec.djvu"
             -- Unsafe second // ReaderUI instance!
+            ReaderUI.instance = nil
             local tmp_readerui = ReaderUI:new{
                 dimen = Screen:getSize(),
                 document = DocumentRegistry:openDocument(sample_djvu),

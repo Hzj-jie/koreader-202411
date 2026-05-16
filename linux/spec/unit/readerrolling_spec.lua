@@ -84,6 +84,7 @@ describe("Readerrolling module", function()
         it("should emit EndOfBook event at the end sample txt", function()
             local sample_txt = "spec/front/unit/data/sample.txt"
             -- Unsafe second // ReaderUI instance!
+            ReaderUI.instance = nil
             local txt_readerui = ReaderUI:new{
                 dimen = Screen:getSize(),
                 document = DocumentRegistry:openDocument(sample_txt),
