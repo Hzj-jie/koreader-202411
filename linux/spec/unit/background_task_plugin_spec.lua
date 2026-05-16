@@ -3,28 +3,23 @@ describe("BackgroundTaskPlugin", function()
     local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
     local MockTime = require("mock_time")
     local UIManager = require("ui/uimanager")
+    local runner
 
-    local BackgroundTaskPlugin_schedule_orig = BackgroundTaskPlugin._schedule
     setup(function()
         MockTime:install()
         local Device = require("device")
         Device.input.waitEvent = function() end
         UIManager:setRunForeverMode()
-        requireBackgroundRunner()
-        -- Monkey patch this method to notify BackgroundRunner
-        -- as it is not accessible to UIManager in these tests
-        BackgroundTaskPlugin._schedule = function(...)
-            BackgroundTaskPlugin_schedule_orig(...)
-            notifyBackgroundJobsUpdated()
-        end
+        runner = requireBackgroundRunner()
+        UIManager:show(runner)
     end)
 
     teardown(function()
         MockTime:uninstall()
+        UIManager:close(runner)
         package.unloadAll()
         require("document/canvascontext"):init(require("device"))
         stopBackgroundRunner()
-        BackgroundTaskPlugin._schedule = BackgroundTaskPlugin_schedule_orig
     end)
 
     local createTestPlugin = function(executable)
@@ -89,10 +84,10 @@ describe("BackgroundTaskPlugin", function()
         assert.are.equal(5, executed)  -- The job is from last settings_id.
         MockTime:increase(2)
         UIManager:handleInput()
-        assert.are.equal(5, executed)  -- The new job has just been inserted.
+        assert.are.equal(6, executed)  -- The new job has just been inserted.
         MockTime:increase(2)
         UIManager:handleInput()
-        assert.are.equal(6, executed)  -- The job is from current settings_id.
+        assert.are.equal(7, executed)  -- The job is from current settings_id.
 
         -- Ensure test_plugin is stopped.
         test_plugin:flipSetting()
@@ -135,10 +130,10 @@ describe("BackgroundTaskPlugin", function()
         assert.are.equal(5, test_plugin.executed)  -- The job is from last settings_id.
         MockTime:increase(2)
         UIManager:handleInput()
-        assert.are.equal(5, test_plugin.executed)  -- The new job has just been inserted.
+        assert.are.equal(6, test_plugin.executed)  -- The new job has just been inserted.
         MockTime:increase(2)
         UIManager:handleInput()
-        assert.are.equal(6, test_plugin.executed)  -- The job is from current settings_id.
+        assert.are.equal(7, test_plugin.executed)  -- The job is from current settings_id.
 
         -- Ensure test_plugin is stopped.
         test_plugin:flipSetting()
