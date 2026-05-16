@@ -160,6 +160,9 @@ describe("ReaderBookmark module", function()
         it("should sort bookmarks with ascending page numbers", function()
             local pages = {1, 20, 5, 30, 10, 40, 15, 25, 35, 45}
             for _, page in ipairs(pages) do
+                if not UIManager:isWindowWidget(readerui) then
+                    UIManager:show(readerui)
+                end
                 readerui.paging:onGotoPage(page)
                 toggler_dogear(readerui)
             end
@@ -172,6 +175,9 @@ describe("ReaderBookmark module", function()
         it("should keep descending page numbers after removing bookmarks", function()
             local pages = {1, 30, 10, 40, 20}
             for _, page in ipairs(pages) do
+                if not UIManager:isWindowWidget(readerui) then
+                    UIManager:show(readerui)
+                end
                 readerui.paging:onGotoPage(page)
                 toggler_dogear(readerui)
             end

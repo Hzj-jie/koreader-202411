@@ -54,7 +54,7 @@ describe("MenuSorter module", function()
         assert.is_true(test_menu[1][1].sub_item_table[1].id == "third1")
         assert.is_true(test_menu[1][1].sub_item_table[2].id == "third2")
     end)
-    it("should put orphans in the first menu", function()
+    it("should error if orphans do not have sorting_hint", function()
         local menu_items = {
             ["KOMenu:menu_buttons"] = {},
             main = {text="Main"},
@@ -69,21 +69,14 @@ describe("MenuSorter module", function()
             setting = {},
         }
 
-        local test_menu = MenuSorter:sort(menu_items, order)
-
-        -- all three should be in the first menu
-        assert.is_true(#test_menu[1] == 3)
-        for _, menu_item in ipairs(test_menu[1]) do
-            -- it should have an id
-            assert.is_true(type(menu_item.id) == "string")
-            -- it should have NEW: prepended
-            assert.is_true(string.sub(menu_item.text,1,string.len(MenuSorter.orphaned_prefix))==MenuSorter.orphaned_prefix)
-        end
+        assert.has_error(function()
+            MenuSorter:sort(menu_items, order)
+        end)
     end)
     it("should put orphans with sorting_hint in the right menu", function()
         local menu_items = {
             ["KOMenu:menu_buttons"] = {},
-            main = {text="Main"},
+            main = {text="Main", sorting_hint="setting"},
             search = {text="Search", sorting_hint="tools",},
             tools = {text="Tools"},
             setting = {text="Settings"},
@@ -141,8 +134,9 @@ describe("MenuSorter module", function()
                     ["text"] = "Submenu"
                 },
                 [3] = {
+                    ["sorting_hint"] = "setting",
                     ["new"] = true,
-                    ["text"] = "NEW: Main",
+                    ["text"] = "Main",
                     ["id"] = "main"
                 },
                 ["id"] = "setting",
@@ -156,11 +150,11 @@ describe("MenuSorter module", function()
     it("should display submenu of orphaned submenu", function()
         local menu_items = {
             ["KOMenu:menu_buttons"] = {},
-            main = {text="Main"},
-            search = {text="Search"},
-            tools = {text="Tools"},
+            main = {text="Main", sorting_hint="setting"},
+            search = {text="Search", sorting_hint="setting"},
+            tools = {text="Tools", sorting_hint="setting"},
             setting = {text="Settings"},
-            submenu = {text="Submenu"},
+            submenu = {text="Submenu", sorting_hint="setting"},
             submenu_item1 = {text="Submenu item 1"},
             submenu_item2 = {text="Submenu item 2"},
         }
@@ -190,7 +184,7 @@ describe("MenuSorter module", function()
             ["KOMenu:menu_buttons"] = {},
             main = {text="Main"},
             search = {text="Search"},
-            tools = {text="Tools"},
+            tools = {text="Tools", sorting_hint="setting"},
             setting = {text="Settings"},
         }
         local order = {

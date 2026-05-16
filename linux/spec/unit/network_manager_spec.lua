@@ -1,5 +1,6 @@
 describe("network_manager module", function()
     local Device
+    local UIManager
     local turn_on_wifi_called
     local turn_off_wifi_called
     local obtain_ip_called
@@ -16,6 +17,7 @@ describe("network_manager module", function()
     setup(function()
         require("commonrequire")
         Device = require("device")
+        UIManager = require("ui/uimanager")
         function Device:initNetworkManager(NetworkMgr)
             function NetworkMgr:turnOnWifi(callback)
                 turn_on_wifi_called = turn_on_wifi_called + 1
@@ -56,17 +58,19 @@ describe("network_manager module", function()
         clearState()
         G_reader_settings:save("wifi_was_on", true)
         local network_manager = require("ui/network/manager") --luacheck: ignore
+        UIManager:_checkTasks()
         assert.is.same(turn_on_wifi_called, 1)
         assert.is.same(turn_off_wifi_called, 0)
         assert.is.same(obtain_ip_called, 1)
         assert.is.same(release_ip_called, 0)
     end)
 
-    it("should not restore wifi in init if wifi was off", function()
+    it("should not restore wifi in init if auto_restore_wifi is off", function()
         package.loaded["ui/network/manager"] = nil
         clearState()
-        G_reader_settings:save("wifi_was_on", false)
+        G_reader_settings:save("auto_restore_wifi", false)
         local network_manager = require("ui/network/manager") --luacheck: ignore
+        UIManager:_checkTasks()
         assert.is.same(turn_on_wifi_called, 0)
         assert.is.same(turn_off_wifi_called, 0)
         assert.is.same(obtain_ip_called, 0)

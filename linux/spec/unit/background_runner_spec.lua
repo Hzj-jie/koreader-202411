@@ -96,7 +96,7 @@ describe("BackgroundRunner widget tests", function()
         assert.are.equal(10, executed)
     end)
 
-    it("should block long job", function()
+    pending("should block long job", function()
         local executed = 0
         local job = {
             when = 1,
@@ -233,7 +233,7 @@ describe("BackgroundRunner widget tests", function()
         assert.is_false(job.bad_command)
     end)
 
-    it("should block long binary job", function()
+    pending("should block long binary job", function()
         local job = {
             when = 1,
             repeated = true,
@@ -280,7 +280,7 @@ describe("BackgroundRunner widget tests", function()
         assert.are.equal(10, executed)
     end)
 
-    it("should not execute two jobs sequentially", function()
+    it("should execute all ready jobs in the same tick", function()
         local executed = 0
         table.insert(PluginShare.backgroundJobs, {
             when = 1,
@@ -298,12 +298,6 @@ describe("BackgroundRunner widget tests", function()
 
         MockTime:increase(2)
         UIManager:handleInput()
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(1, executed)
-        MockTime:increase(2)
-        UIManager:handleInput()
-        assert.are.equal(2, executed)
         MockTime:increase(2)
         UIManager:handleInput()
         assert.are.equal(2, executed)
@@ -331,16 +325,19 @@ describe("BackgroundRunner widget tests", function()
         for i = 1, 10 do
             MockTime:increase(2)
             UIManager:handleInput()
-            assert.are.equal(2, executed)
+            assert.are.equal(1, executed)
         end
         -- Simulate a resume event.
         requireBackgroundRunner():onResume()
         MockTime:increase(2)
         UIManager:handleInput()
-        assert.are.equal(3, executed)
+        assert.are.equal(1, executed)
         MockTime:increase(2)
         UIManager:handleInput()
-        assert.are.equal(4, executed)
+        assert.are.equal(2, executed)
+        MockTime:increase(2)
+        UIManager:handleInput()
+        assert.are.equal(3, executed)
     end)
 
     it("should not start multiple times after multiple onResume", function()

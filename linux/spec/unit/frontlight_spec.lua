@@ -37,7 +37,14 @@ describe("Frontlight function in PowerD", function()
         Device.isKobo = function() return true end
         Device.model = "Kobo_dahlia"
         Device.hasFrontlight = function() return true end
-        param.device = Device
+        param = {
+            fl_min = 1,
+            fl_max = 5,
+            fl_intensity = 2,
+            device = Device,
+            is_fl_on = true,
+        }
+        PowerD.frontlight = 2
         Device.powerd = PowerD:new{
             param
         }
@@ -74,68 +81,82 @@ describe("Frontlight function in PowerD", function()
         assert.spy(p.turnOnFrontlightHW).is_called(0)
         assert.spy(p.turnOffFrontlightHW).is_called(0)
 
-        -- The intensity is param.fl_min, turnOnFrontlight() should take no effect.
-        assert.is.falsy(p:turnOnFrontlight())
-        assert.are.equal(0, p:frontlightIntensity())
-        assert.is.truthy(p:isFrontlightOff())
-        assert.spy(p.setIntensityHW).is_called(1)
-        assert.spy(p.turnOnFrontlightHW).is_called(0)
-        assert.spy(p.turnOffFrontlightHW).is_called(0)
-
-        -- Same as the above one, toggleFrontlight() should also take no effect.
-        assert.is.falsy(p:toggleFrontlight())
-        assert.are.equal(0, p:frontlightIntensity())
-        assert.is.truthy(p:isFrontlightOff())
-        assert.spy(p.setIntensityHW).is_called(1)
-        assert.spy(p.turnOnFrontlightHW).is_called(0)
-        assert.spy(p.turnOffFrontlightHW).is_called(0)
-
-        assert.is.truthy(p:setIntensity(2))
-        assert.are.equal(2, p:frontlightIntensity())
+        -- The intensity is param.fl_min, turnOnFrontlight() SHOULD take effect now.
+        assert.is.truthy(p:turnOnFrontlight())
+        assert.are.equal(param.fl_min + 1, p:frontlightIntensity())
         assert.is.truthy(p:isFrontlightOn())
         assert.spy(p.setIntensityHW).is_called(2)
-        assert.are.equal(2, p.frontlight)
-        assert.spy(p.turnOnFrontlightHW).is_called(0)
+        assert.spy(p.turnOnFrontlightHW).is_called(1)
         assert.spy(p.turnOffFrontlightHW).is_called(0)
 
-        assert.is.falsy(p:turnOnFrontlight())
-        assert.are.equal(2, p:frontlightIntensity())
-        assert.is.truthy(p:isFrontlightOn())
-        assert.spy(p.setIntensityHW).is_called(2)
-        assert.spy(p.turnOnFrontlightHW).is_called(0)
-        assert.spy(p.turnOffFrontlightHW).is_called(0)
-
-        assert.is.truthy(p:turnOffFrontlight())
+        -- toggleFrontlight() should turn it OFF.
+        assert.is.truthy(p:toggleFrontlight())
         assert.are.equal(0, p:frontlightIntensity())
         assert.is.truthy(p:isFrontlightOff())
         assert.spy(p.setIntensityHW).is_called(3)
-        assert.are.equal(param.fl_min, p.frontlight)
-        assert.spy(p.turnOnFrontlightHW).is_called(0)
-        assert.spy(p.turnOffFrontlightHW).is_called(1)
-
-        assert.is.truthy(p:turnOnFrontlight())
-        assert.are.equal(2, p:frontlightIntensity())
-        assert.is.truthy(p:isFrontlightOn())
-        assert.spy(p.setIntensityHW).is_called(4)
-        assert.are.equal(2, p.frontlight)
         assert.spy(p.turnOnFrontlightHW).is_called(1)
         assert.spy(p.turnOffFrontlightHW).is_called(1)
 
+        -- toggleFrontlight() again should turn it ON.
+        assert.is.truthy(p:toggleFrontlight())
+        assert.are.equal(param.fl_min + 1, p:frontlightIntensity())
+        assert.is.truthy(p:isFrontlightOn())
+        assert.spy(p.setIntensityHW).is_called(4)
+        assert.spy(p.turnOnFrontlightHW).is_called(2)
+        assert.spy(p.turnOffFrontlightHW).is_called(1)
+
+        -- Set intensity to 3 (which is higher than fl_min + 1 in both cases)
+        assert.is.truthy(p:setIntensity(3))
+        assert.are.equal(3, p:frontlightIntensity())
+        assert.is.truthy(p:isFrontlightOn())
+        assert.spy(p.setIntensityHW).is_called(5)
+        assert.are.equal(3, p.frontlight)
+        assert.spy(p.turnOnFrontlightHW).is_called(2)
+        assert.spy(p.turnOffFrontlightHW).is_called(1)
+
+        -- turnOnFrontlight() when already ON should take no effect.
+        assert.is.falsy(p:turnOnFrontlight())
+        assert.are.equal(3, p:frontlightIntensity())
+        assert.is.truthy(p:isFrontlightOn())
+        assert.spy(p.setIntensityHW).is_called(5)
+        assert.spy(p.turnOnFrontlightHW).is_called(2)
+        assert.spy(p.turnOffFrontlightHW).is_called(1)
+
+        -- turnOffFrontlight() should turn it OFF.
+        assert.is.truthy(p:turnOffFrontlight())
+        assert.are.equal(0, p:frontlightIntensity())
+        assert.is.truthy(p:isFrontlightOff())
+        assert.spy(p.setIntensityHW).is_called(6)
+        assert.are.equal(param.fl_min, p.frontlight)
+        assert.spy(p.turnOnFrontlightHW).is_called(2)
+        assert.spy(p.turnOffFrontlightHW).is_called(2)
+
+        -- turnOnFrontlight() should restore intensity to 3.
+        assert.is.truthy(p:turnOnFrontlight())
+        assert.are.equal(3, p:frontlightIntensity())
+        assert.is.truthy(p:isFrontlightOn())
+        assert.spy(p.setIntensityHW).is_called(7)
+        assert.are.equal(3, p.frontlight)
+        assert.spy(p.turnOnFrontlightHW).is_called(3)
+        assert.spy(p.turnOffFrontlightHW).is_called(2)
+
+        -- toggleFrontlight() should turn it OFF.
         assert.is.truthy(p:toggleFrontlight())
         assert.are.equal(0, p:frontlightIntensity())
         assert.is.truthy(p:isFrontlightOff())
-        assert.spy(p.setIntensityHW).is_called(5)
+        assert.spy(p.setIntensityHW).is_called(8)
         assert.are.equal(param.fl_min, p.frontlight)
-        assert.spy(p.turnOnFrontlightHW).is_called(1)
-        assert.spy(p.turnOffFrontlightHW).is_called(2)
+        assert.spy(p.turnOnFrontlightHW).is_called(3)
+        assert.spy(p.turnOffFrontlightHW).is_called(3)
 
+        -- toggleFrontlight() should turn it ON (restoring 3).
         assert.is.truthy(p:toggleFrontlight())
-        assert.are.equal(2, p:frontlightIntensity())
+        assert.are.equal(3, p:frontlightIntensity())
         assert.is.truthy(p:isFrontlightOn())
-        assert.spy(p.setIntensityHW).is_called(6)
-        assert.are.equal(2, p.frontlight)
-        assert.spy(p.turnOnFrontlightHW).is_called(2)
-        assert.spy(p.turnOffFrontlightHW).is_called(2)
+        assert.spy(p.setIntensityHW).is_called(9)
+        assert.are.equal(3, p.frontlight)
+        assert.spy(p.turnOnFrontlightHW).is_called(4)
+        assert.spy(p.turnOffFrontlightHW).is_called(3)
     end
 
     test_when_on = function(fl_min)

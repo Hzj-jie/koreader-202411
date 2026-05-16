@@ -1,5 +1,5 @@
 describe("Readerview module", function()
-    local DocumentRegistry, Blitbuffer, ReaderUI, UIManager, Event, Screen
+    local DocumentRegistry, Blitbuffer, ReaderUI, UIManager, Event, Screen, DocSettings
 
     setup(function()
         require("commonrequire")
@@ -11,6 +11,18 @@ describe("Readerview module", function()
         UIManager = require("ui/uimanager")
         Event = require("ui/event")
         Screen = require("device").screen
+        DocSettings = require("docsettings")
+    end)
+
+    before_each(function()
+        DocSettings:open("spec/front/unit/data/leaves.epub"):purge()
+        DocSettings:open("spec/front/unit/data/2col.pdf"):purge()
+    end)
+
+    after_each(function()
+        if ReaderUI.instance then
+            ReaderUI.instance:onClose()
+        end
     end)
 
     it("should stop hinting on document close event", function()
@@ -38,7 +50,7 @@ describe("Readerview module", function()
         end
         assert.is.truthy(found)
 
-        readerui:onClose()
+        readerui:broadcastEvent(Event:new("Close"))
 
         for i = #UIManager._task_queue, 1, -1 do
             local task = UIManager._task_queue[i]

@@ -5,6 +5,6 @@ describe("eink optimization setting", function()
 
     it("should be correctly loaded", function()
         G_reader_settings:save("low_pan_rate", true)
-        assert.Equals(require("device").screen.low_pan_rate, true)
+        assert.Equals(G_named_settings.low_pan_rate(), true)
     end)
 end)
