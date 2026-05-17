@@ -392,7 +392,7 @@ function ImageViewer:update()
   --       page turns will show color quantization artefacts (i.e., banding) like crazy,
   --       while a long touch will trigger a dithered, flashing full-refresh that'll make everything shiny :).
   self.dithered = true
-  UIManager:setDirty(self, function()
+  self:setDirty(function()
     local update_region = self.main_frame.dimen:combine(orig_dimen)
     return wfm_mode, update_region, true
   end)
