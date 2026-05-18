@@ -1,16 +1,21 @@
 describe("UIManager spec", function()
-    local time, UIManager, Widget
+    local time, UIManager, Widget, MockTime
     local now, wait_until
     local noop = function() end
 
     setup(function()
         require("commonrequire")
-        require("mock_time"):install()
+        MockTime = require("mock_time")
+        MockTime:install()
         time = require("ui/time")
         UIManager = require("ui/uimanager")
         Widget = require("ui/widget/widget"):extend({
           dimen = require("ui/geometry"):new({ x = 0, y = 0, w = 100, h = 200 })
         })
+    end)
+
+    teardown(function()
+        MockTime:uninstall()
     end)
 
     it("should consume due tasks", function()
@@ -123,8 +128,6 @@ describe("UIManager spec", function()
     end)
 
     it("should insert new tasks with same times before existing tasks", function()
-        local ffiutil = require("ffi/util")
-
         now = time.monotonic()
         UIManager:quit()
 
@@ -137,11 +140,7 @@ describe("UIManager spec", function()
         assert.are.same("5s", UIManager._task_queue[2].action)
 
         -- insert task in place of "10s", as it'll expire shortly after "10s"
-        -- NOTE: Can't use this here right now, as time.monotonic, which is used internally,
-        -- may or may not have moved, depending on host's performance and clock granularity
-        -- (especially if host is fast and/or COARSE is available).
-        -- But a short wait fixes this here.
-        ffiutil.usleep(1000)
+        MockTime:increase(0.001)
         UIManager:scheduleIn(10, 'foo') -- is a bit later than "10s", as time.monotonic() is used internally
         assert.are.same('foo', UIManager._task_queue[1].action)
 
