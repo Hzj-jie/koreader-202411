@@ -13,6 +13,10 @@ describe("Readerpaging module", function()
         ReaderUI = require("apps/reader/readerui")
         Screen = require("device").screen
     end)
+    
+    teardown(function()
+        UIManager.getNthTopWidget:revert()
+    end)
 
     describe("Page mode", function()
         setup(function()
