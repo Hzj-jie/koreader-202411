@@ -30,20 +30,20 @@ describe("Readerpaging module", function()
         it("should emit EndOfBook event at the end", function()
             UIManager:quit()
             UIManager:show(readerui)
+            local called = false
             UIManager:nextTick(function()
+                readerui:handleEvent(Event:new("SetScrollMode", false))
+                readerui.zooming:setZoomMode("pageheight")
+                paging:onGotoPage(readerui.document:getPageCount())
+                readerui.onEndOfBook = function()
+                    called = true
+                end
+                paging:onGotoViewRel(1)
                 UIManager:close(readerui)
                 -- We haven't torn it down yet
                 ReaderUI.instance = readerui
             end)
             UIManager:run()
-            readerui:handleEvent(Event:new("SetScrollMode", false))
-            readerui.zooming:setZoomMode("pageheight")
-            paging:onGotoPage(readerui.document:getPageCount())
-            local called = false
-            readerui.onEndOfBook = function()
-                called = true
-            end
-            paging:onGotoViewRel(1)
             assert.is.truthy(called)
             readerui.onEndOfBook = nil
             UIManager:quit()
@@ -71,22 +71,22 @@ describe("Readerpaging module", function()
         it("should emit EndOfBook event at the end", function()
             UIManager:quit()
             UIManager:show(readerui)
+            local called = false
             UIManager:nextTick(function()
+                paging.page_positions = {}
+                readerui:handleEvent(Event:new("SetScrollMode", true))
+                paging:onGotoPage(readerui.document:getPageCount())
+                readerui.zooming:setZoomMode("pageheight")
+                readerui.onEndOfBook = function()
+                    called = true
+                end
+                paging:onGotoViewRel(1)
+                paging:onGotoViewRel(1)
                 UIManager:close(readerui)
                 -- We haven't torn it down yet
                 ReaderUI.instance = readerui
             end)
             UIManager:run()
-            paging.page_positions = {}
-            readerui:handleEvent(Event:new("SetScrollMode", true))
-            paging:onGotoPage(readerui.document:getPageCount())
-            readerui.zooming:setZoomMode("pageheight")
-            local called = false
-            readerui.onEndOfBook = function()
-                called = true
-            end
-            paging:onGotoViewRel(1)
-            paging:onGotoViewRel(1)
             assert.is.truthy(called)
             readerui.onEndOfBook = nil
             UIManager:quit()
