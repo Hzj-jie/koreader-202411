@@ -1042,7 +1042,9 @@ function ReaderDictionary:stardictLookup(
   end
 
   -- If the user disabled all the dictionaries, go away.
-  if dict_names == nil or #dict_names == 0 then
+  -- Note, it's explicitly allowed the dict_names being nil and falling back to
+  -- search all the dictionaries.
+  if dict_names and #dict_names == 0 then
     -- Dummy result
     local nope = {
       {
