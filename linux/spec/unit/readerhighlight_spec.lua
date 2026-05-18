@@ -78,23 +78,16 @@ describe("Readerhighlight module", function()
     describe("highlight for EPUB documents", function()
         local page = 10
         local readerui, selection_spy
-        setup(function()
-            local sample_epub = "spec/front/unit/data/juliet.epub"
+        local sample_epub = DataStorage:getDataDir() .. "/juliet.epub"
+        before_each(function()
+            UIManager:quit()
+            require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", sample_epub)
             readerui = ReaderUI:new{
                 dimen = Screen:getSize(),
                 document = DocumentRegistry:openDocument(sample_epub),
             }
             selection_spy = spy.on(readerui.languagesupport, "improveWordSelection")
-        end)
-        teardown(function()
-            readerui:onExit()
-            readerui:onClose()
-        end)
-        before_each(function()
-            UIManager:quit()
             readerui.rolling:onGotoPage(page)
-            UIManager:show(readerui)
-            selection_spy:clear()
             --- @fixme HACK: Mock UIManager:run x and y for readerui.dimen
             --- @todo Refactor readerview's dimen handling so we can get rid of
             -- this workaround
@@ -103,6 +96,10 @@ describe("Readerhighlight module", function()
         after_each(function()
             readerui.highlight:clear()
             readerui.annotation.annotations = {}
+            readerui:onExit()
+            readerui:onClose()
+            os.remove(sample_epub)
+            os.execute("rm -rf " .. sample_epub:gsub("%.epub$", ".sdr"))
         end)
         it("should highlight single word", function()
             highlight_single_word(readerui, Geom:new{ x = 400, y = 70 })
