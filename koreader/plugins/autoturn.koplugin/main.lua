@@ -1,136 +1,123 @@
+local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local Event = require("ui/event")
 local PluginShare = require("pluginshare")
 local UIManager = require("ui/uimanager")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local gettext = require("gettext")
 local logger = require("logger")
 local time = require("ui/time")
 local T = require("ffi/util").template
 
-local AutoTurn = WidgetContainer:extend({
-  name = "autoturn",
+local AutoTurn = BackgroundTaskPlugin:extend({
   is_doc_only = true,
-  autoturn_sec = 0,
-  autoturn_distance = 1,
-  enabled = false,
-  task = nil,
 })
+
+function AutoTurn:new(o)
+  o = o or {}
+  o.name = "autoturn"
+  o.default_enable = false
+  o.when = "asap"
+  local instance
+  o.executable = function()
+    AutoTurn._action(instance or o)
+  end
+  o.menu_item = "autoturn"
+
+  instance = BackgroundTaskPlugin.new(self, o)
+  return instance
+end
+
+function AutoTurn:_init()
+  self.autoturn_sec = self.settings:read("autoturn_timeout_seconds") or 0
+  self.autoturn_distance = self.settings:read("autoturn_distance") or 1
+  BackgroundTaskPlugin._init(self)
+end
 
 function AutoTurn:_enabled()
   return self.enabled and self.autoturn_sec > 0
 end
 
-function AutoTurn:_schedule()
-  if not self:_enabled() then
-    logger.dbg("AutoTurn:_schedule is disabled")
+function AutoTurn:_action()
+  if PluginShare.DeviceIdling == true or not self:_enabled() or (UIManager:getTopmostVisibleWidget() or {}).name ~= "ReaderUI"  then
     return
   end
 
+  -- This is tricky, if user explicitly turns or whatever, wait until next time.
   local delay = time.s(self.autoturn_sec) - UIManager:timeSinceLastUserAction()
-
-  if delay <= 0 then
-    local top_wg = UIManager:getTopmostVisibleWidget() or {}
-    if top_wg.name == "ReaderUI" then
-      logger.dbg("AutoTurn: go to next page")
-      UIManager:broadcastEvent(Event:new("GotoViewRel", self.autoturn_distance))
-      -- Treat it as a user action.
-      UIManager:updateLastUserActionTime()
-    end
-    logger.dbg("AutoTurn: schedule in", self.autoturn_sec)
-    UIManager:scheduleIn(self.autoturn_sec, self.task)
-    self.scheduled = true
-  else
-    local delay_s = time.to_number(delay)
-    logger.dbg("AutoTurn: schedule in", delay_s, "s")
-    UIManager:scheduleIn(delay_s, self.task)
-    self.scheduled = true
+  if delay > 0 then
+    return
   end
-end
 
-function AutoTurn:_unschedule()
-  PluginShare.pause_auto_suspend = false
-  if self.scheduled then
-    logger.dbg("AutoTurn: unschedule")
-    UIManager:unschedule(self.task)
-    self.scheduled = false
-  end
+  logger.dbg("AutoTurn: go to next page")
+  UIManager:broadcastEvent(Event:new("GotoViewRel", self.autoturn_distance))
+  -- Treat it as a user action.
+  UIManager:updateLastUserActionTime()
 end
 
 function AutoTurn:_start()
-  if self:_enabled() then
-    logger.dbg(
-      "AutoTurn: start at",
-      time.format_time(UIManager:getElapsedTimeSinceBoot())
+  if not self:_enabled() then
+    return
+  end
+
+  BackgroundTaskPlugin._start(self)
+  PluginShare.pause_auto_suspend = true
+
+  -- Show info message if enabled and started
+  logger.dbg(
+    "AutoTurn: start at",
+    time.format_time(UIManager:getElapsedTimeSinceBoot())
+  )
+  local text
+  if self.autoturn_distance == 1 then
+    local time_string = datetime.secondsToClockDuration(
+      "letters",
+      self.autoturn_sec,
+      false,
+      true,
+      true
     )
-    PluginShare.pause_auto_suspend = true
-    self:_schedule()
-
-    local text
-    if self.autoturn_distance == 1 then
-      local time_string = datetime.secondsToClockDuration(
-        "letters",
-        self.autoturn_sec,
-        false,
-        true,
-        true
-      )
-      text = T(
-        gettext(
-          "Autoturn is now active and will automatically turn the page every %1."
-        ),
-        time_string
-      )
-    else
-      text = T(
-        gettext(
-          "Autoturn is now active and will automatically scroll %1 % of the page every %2 seconds."
-        ),
-        self.autoturn_distance * 100,
-        self.autoturn_sec
-      )
-    end
-
-    local InfoMessage = require("ui/widget/infomessage")
-    UIManager:show(InfoMessage:new({
-      text = text,
-      timeout = 3,
-    }))
+    text = T(
+      gettext(
+        "Autoturn is now active and will automatically turn the page every %1."
+      ),
+      time_string
+    )
+  else
+    text = T(
+      gettext(
+        "Autoturn is now active and will automatically scroll %1 % of the page every %2 seconds."
+      ),
+      self.autoturn_distance * 100,
+      self.autoturn_sec
+    )
   end
+
+  local InfoMessage = require("ui/widget/infomessage")
+  UIManager:show(InfoMessage:new({
+    text = text,
+    timeout = 3,
+  }))
 end
 
-function AutoTurn:init()
-  self.autoturn_sec = G_reader_settings:read("autoturn_timeout_seconds") or 0
-  self.autoturn_distance = G_reader_settings:read("autoturn_distance") or 1
-  self.enabled = G_reader_settings:isTrue("autoturn_enabled")
-  self.ui.menu:registerToMainMenu(self)
-  self.task = function()
-    self:_schedule()
-  end
-  self:_start()
+function AutoTurn:_stop()
+  BackgroundTaskPlugin._stop(self)
+  PluginShare.pause_auto_suspend = false
 end
+
 
 function AutoTurn:onClose()
-  logger.dbg("AutoTurn: onClose")
-  self:_unschedule()
-  self.task = nil
+  BackgroundTaskPlugin.onClose(self)
+  PluginShare.pause_auto_suspend = false
 end
 
-function AutoTurn:onCloseDocument()
-  logger.dbg("AutoTurn: onCloseDocument")
-  self:_unschedule()
-end
+AutoTurn.onCloseDocument = AutoTurn.onClose
+AutoTurn.onSuspend = AutoTurn.onClose
 
--- We do not want autoturn to turn pages during the suspend process.
--- Unschedule it and restart after resume.
-function AutoTurn:onSuspend()
-  logger.dbg("AutoTurn: onSuspend")
-  self:_unschedule()
-end
-
-function AutoTurn:_onResume()
+function AutoTurn:onResume()
   logger.dbg("AutoTurn: onResume")
-  self:_start()
+  if self:_enabled() then
+    self:_start()
+  end
 end
 
 function AutoTurn:addToMainMenu(menu_items)
@@ -151,9 +138,7 @@ function AutoTurn:addToMainMenu(menu_items)
     end,
     callback = function(menu)
       local DateTimeWidget = require("ui/widget/datetimewidget")
-      local autoturn_seconds = G_reader_settings:read(
-        "autoturn_timeout_seconds"
-      ) or 30
+      local autoturn_seconds = self.settings:read("autoturn_timeout_seconds") or 30
       local autoturn_minutes = math.floor(autoturn_seconds * (1 / 60))
       autoturn_seconds = autoturn_seconds % 60
       local autoturn_spin = DateTimeWidget:new({
@@ -168,29 +153,26 @@ function AutoTurn:addToMainMenu(menu_items)
         ok_text = gettext("Set timeout"),
         cancel_text = gettext("Disable"),
         cancel_callback = function()
-          self.enabled = false
-          G_reader_settings:makeFalse("autoturn_enabled")
-          self:_unschedule()
+          self.settings:makeFalse("enable")
+          self:_init()
+          self:onFlushSettings()
           menu:updateItems()
-          self.onResume = nil
         end,
         ok_always_enabled = true,
         callback = function(t)
           self.autoturn_sec = t.min * 60 + t.sec
-          G_reader_settings:save("autoturn_timeout_seconds", self.autoturn_sec)
-          self.enabled = true
-          G_reader_settings:makeTrue("autoturn_enabled")
-          self:_unschedule()
-          self:_start()
+          self.settings:save("autoturn_timeout_seconds", self.autoturn_sec)
+          self.settings:makeTrue("enable")
+          self:_init()
+          self:onFlushSettings()
           menu:updateItems()
-          self.onResume = self._onResume
         end,
       })
       UIManager:show(autoturn_spin)
     end,
     hold_callback = function(menu)
       local SpinWidget = require("ui/widget/spinwidget")
-      local curr_items = G_reader_settings:read("autoturn_distance") or 1
+      local curr_items = self.settings:read("autoturn_distance") or 1
       local autoturn_spin = SpinWidget:new({
         value = curr_items,
         value_min = -20,
@@ -202,11 +184,11 @@ function AutoTurn:addToMainMenu(menu_items)
         title_text = gettext("Scrolling distance"),
         callback = function(autoturn_spin)
           self.autoturn_distance = autoturn_spin.value
-          G_reader_settings:save("autoturn_distance", autoturn_spin.value)
+          self.settings:save("autoturn_distance", autoturn_spin.value)
           if self.enabled then
-            self:_unschedule()
-            self:_start()
+            self:_init()
           end
+          self:onFlushSettings()
           menu:updateItems()
         end,
       })

@@ -1,15 +1,77 @@
 describe("AutoTurn plugin tests", function()
-    local UIManager, PluginShare, Device, AutoTurn, time
-    local mock_menu
-    local mock_time_since_action, mock_topmost_widget
+    local UIManager, PluginShare, Device, time, MockTime
+    local mock_menu, mock_topmost_widget
+    local class, widget
+
+    local function runBackgroundTasks(sec)
+        MockTime:increase(sec)
+        UIManager:handleInput()
+    end
+
+    local function getPageTurnCalls()
+        local page_turns = {}
+        if UIManager.broadcastEvent.calls then
+            for _, call in ipairs(UIManager.broadcastEvent.calls) do
+                local ev = call.vals[2]
+                if ev and type(ev) == "table" and ev.handler == "onGotoViewRel" then
+                    table.insert(page_turns, ev)
+                end
+            end
+        end
+        return page_turns
+    end
+
+    local function assertPageTurnCalled(distance)
+        local page_turns = getPageTurnCalls()
+        assert.is_true(#page_turns > 0, "Expected onGotoViewRel to be called, but it wasn't")
+        if distance then
+            local found = false
+            for _, ev in ipairs(page_turns) do
+                if ev.args and ev.args[1] == distance then
+                    found = true
+                    break
+                end
+            end
+            assert.is_true(found, "Expected onGotoViewRel with distance " .. tostring(distance) .. " to be called")
+        end
+    end
+
+    local function assertPageTurnNotCalled()
+        local page_turns = getPageTurnCalls()
+        assert.are.equal(0, #page_turns, "Expected onGotoViewRel NOT to be called, but it was")
+    end
+
+    local function saveAutoTurnSettings(settings)
+        local LuaSettings = require("luasettings")
+        local DataStorage = require("datastorage")
+        local autoturn_settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/autoturn.lua")
+        if settings.enable ~= nil then
+            if settings.enable then
+                autoturn_settings:makeTrue("enable")
+            else
+                autoturn_settings:makeFalse("enable")
+            end
+        end
+        if settings.timeout ~= nil then
+            autoturn_settings:save("autoturn_timeout_seconds", settings.timeout)
+        end
+        if settings.distance ~= nil then
+            autoturn_settings:save("autoturn_distance", settings.distance)
+        end
+        autoturn_settings:flush()
+    end
 
     setup(function()
         require("commonrequire")
         package.unloadAll()
         require("document/canvascontext"):init(require("device"))
+
+        MockTime = require("mock_time")
+        MockTime:install()
     end)
 
     teardown(function()
+        MockTime:uninstall()
         package.unloadAll()
         require("document/canvascontext"):init(require("device"))
     end)
@@ -20,55 +82,66 @@ describe("AutoTurn plugin tests", function()
         Device = require("device")
         time = require("ui/time")
 
-        mock_time_since_action = time.s(0)
+        Device.input.waitEvent = function() end
+        UIManager:setRunForeverMode()
+        requireBackgroundRunner()
+
         mock_topmost_widget = { name = "ReaderUI" }
 
-        stub(UIManager, "scheduleIn")
-        stub(UIManager, "unschedule")
         stub(UIManager, "getTopmostVisibleWidget", function()
             return mock_topmost_widget
         end)
-        stub(UIManager, "broadcastEvent")
-        stub(UIManager, "updateLastUserActionTime")
+        spy.on(UIManager, "broadcastEvent")
+        spy.on(UIManager, "updateLastUserActionTime")
         stub(UIManager, "show")
-        stub(UIManager, "timeSinceLastUserAction", function()
-            return mock_time_since_action
-        end)
 
         mock_menu = {
             registerToMainMenu = spy.new(function() end),
             updateItems = spy.new(function() end)
         }
 
-        -- Reset G_reader_settings keys we use
+        -- Clean up local autoturn.lua settings
+        local LuaSettings = require("luasettings")
+        local DataStorage = require("datastorage")
+        local autoturn_settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/autoturn.lua")
+        autoturn_settings:purge()
+
+        -- Reset G_reader_settings keys we might fallback to
         G_reader_settings:delete("autoturn_timeout_seconds")
         G_reader_settings:delete("autoturn_distance")
-        G_reader_settings:delete("autoturn_enabled")
+
+        -- Clear background jobs to prevent test leakage
+        PluginShare.backgroundJobs = {}
+
+        UIManager._last_user_action_time = UIManager:getElapsedTimeSinceBoot()
     end)
 
     after_each(function()
-        UIManager.scheduleIn:revert()
-        UIManager.unschedule:revert()
+        if widget then
+            widget:onClose()
+            runBackgroundTasks(2)
+            widget = nil
+        end
+
         UIManager.getTopmostVisibleWidget:revert()
         UIManager.broadcastEvent:revert()
         UIManager.updateLastUserActionTime:revert()
         UIManager.show:revert()
-        UIManager.timeSinceLastUserAction:revert()
 
         G_reader_settings:delete("autoturn_timeout_seconds")
         G_reader_settings:delete("autoturn_distance")
-        G_reader_settings:delete("autoturn_enabled")
 
+        stopBackgroundRunner()
         package.unload("plugins/autoturn.koplugin/main")
         PluginShare.pause_auto_suspend = nil
+        PluginShare.DeviceIdling = nil
     end)
 
     it("should load settings and register to menu on init", function()
-        G_reader_settings:save("autoturn_timeout_seconds", 45)
-        G_reader_settings:makeTrue("autoturn_enabled")
+        saveAutoTurnSettings({ enable = true, timeout = 45 })
 
-        local class = dofile("plugins/autoturn.koplugin/main.lua")
-        local widget = class:new{ ui = { menu = mock_menu } }
+        class = dofile("plugins/autoturn.koplugin/main.lua")
+        widget = class:new{ ui = { menu = mock_menu } }
         widget:init()
 
         assert.are.equal(45, widget.autoturn_sec)
@@ -77,157 +150,130 @@ describe("AutoTurn plugin tests", function()
         assert.spy(mock_menu.registerToMainMenu).was_called_with(mock_menu, match.ref(widget))
     end)
 
-    it("should not schedule autoturn if disabled or timeout is 0", function()
-        -- Case A: Enabled but timeout is 0
-        G_reader_settings:save("autoturn_timeout_seconds", 0)
-        G_reader_settings:makeTrue("autoturn_enabled")
-
-        local class = dofile("plugins/autoturn.koplugin/main.lua")
-        local widget = class:new{ ui = { menu = mock_menu } }
-        widget:init()
-
-        assert.is_nil(PluginShare.pause_auto_suspend)
-        assert.stub(UIManager.scheduleIn).was_not_called()
-
-        -- Reset for Case B
-        UIManager.scheduleIn:clear()
-        package.unload("plugins/autoturn.koplugin/main")
-
-        -- Case B: Disabled but timeout > 0
-        G_reader_settings:save("autoturn_timeout_seconds", 45)
-        G_reader_settings:makeFalse("autoturn_enabled")
+    it("should not schedule autoturn if timeout is 0", function()
+        saveAutoTurnSettings({ enable = true, timeout = 0 })
 
         class = dofile("plugins/autoturn.koplugin/main.lua")
         widget = class:new{ ui = { menu = mock_menu } }
         widget:init()
 
         assert.is_nil(PluginShare.pause_auto_suspend)
-        assert.stub(UIManager.scheduleIn).was_not_called()
+
+        -- Trigger ticks
+        notifyBackgroundJobsUpdated()
+        runBackgroundTasks(2)
+        assertPageTurnNotCalled()
     end)
 
-    it("should schedule autoturn task if enabled and timeout > 0", function()
-        G_reader_settings:save("autoturn_timeout_seconds", 45)
-        G_reader_settings:makeTrue("autoturn_enabled")
+    it("should not schedule autoturn if disabled", function()
+        saveAutoTurnSettings({ enable = false, timeout = 45 })
 
-        local class = dofile("plugins/autoturn.koplugin/main.lua")
-        local widget = class:new{ ui = { menu = mock_menu } }
+        class = dofile("plugins/autoturn.koplugin/main.lua")
+        widget = class:new{ ui = { menu = mock_menu } }
+        widget:init()
+
+        assert.is_false(widget.enabled)
+        assert.is_false(PluginShare.pause_auto_suspend or false)
+
+        notifyBackgroundJobsUpdated()
+        runBackgroundTasks(45)
+        assertPageTurnNotCalled()
+    end)
+
+    it("should pause auto suspend when active, and resume on stop", function()
+        saveAutoTurnSettings({ enable = true, timeout = 45 })
+
+        class = dofile("plugins/autoturn.koplugin/main.lua")
+        widget = class:new{ ui = { menu = mock_menu } }
         widget:init()
 
         assert.is_true(PluginShare.pause_auto_suspend)
-        assert.is_true(widget.scheduled)
-        assert.stub(UIManager.scheduleIn).was_called_with(UIManager, 45, match.is_function())
+
+        widget:_stop()
+        assert.is_false(PluginShare.pause_auto_suspend)
     end)
 
-    it("should trigger page turn and reschedule when timeout expires", function()
-        G_reader_settings:save("autoturn_timeout_seconds", 45)
-        G_reader_settings:makeTrue("autoturn_enabled")
+    it("should trigger page turn when timeout expires", function()
+        saveAutoTurnSettings({ enable = true, timeout = 10, distance = 2 })
 
-        local class = dofile("plugins/autoturn.koplugin/main.lua")
-        local widget = class:new{ ui = { menu = mock_menu } }
+        class = dofile("plugins/autoturn.koplugin/main.lua")
+        widget = class:new{ ui = { menu = mock_menu } }
         widget:init()
 
-        -- Clear init schedule calls
-        UIManager.scheduleIn:clear()
+        notifyBackgroundJobsUpdated()
 
-        -- Configure UIManager stubs for expiration
-        mock_time_since_action = time.s(45)
-        mock_topmost_widget = { name = "ReaderUI" }
+        -- Initial tick to setup background runner's internal timer
+        runBackgroundTasks(2)
+        assertPageTurnNotCalled()
 
-        -- Trigger the task manually
-        widget.task()
+        -- Wait until 10 seconds elapsed
+        runBackgroundTasks(10)
 
-        -- Verify event broadcasted
-        assert.stub(UIManager.broadcastEvent).was_called(1)
-        local call = UIManager.broadcastEvent.calls[1]
-        local ev = call.vals[2]
-        assert.is_table(ev)
-        assert.are.equal("onGotoViewRel", ev.handler)
-        assert.are.equal(1, ev.args[1])
+        -- Verify page turned
+        assertPageTurnCalled(2)
 
-        -- Verify user action time updated
+        -- Verify user action updated
         assert.stub(UIManager.updateLastUserActionTime).was_called(1)
-
-        -- Verify rescheduled
-        assert.stub(UIManager.scheduleIn).was_called_with(UIManager, 45, widget.task)
     end)
 
-    it("should unschedule task and reset pause_auto_suspend on close/close-document/suspend", function()
-        -- Case A: onClose
-        G_reader_settings:save("autoturn_timeout_seconds", 45)
-        G_reader_settings:makeTrue("autoturn_enabled")
+    it("should not trigger page turn if topmost widget is not ReaderUI", function()
+        saveAutoTurnSettings({ enable = true, timeout = 10 })
 
-        local class = dofile("plugins/autoturn.koplugin/main.lua")
-        local widget = class:new{ ui = { menu = mock_menu } }
-        widget:init()
-
-        assert.is_true(PluginShare.pause_auto_suspend)
-        assert.is_true(widget.scheduled)
-        local task_ref = widget.task
-
-        UIManager.unschedule:clear()
-        widget:onClose()
-
-        assert.is_false(PluginShare.pause_auto_suspend)
-        assert.is_false(widget.scheduled)
-        assert.is_nil(widget.task)
-        assert.stub(UIManager.unschedule).was_called_with(UIManager, task_ref)
-
-        -- Case B: onCloseDocument
-        package.unload("plugins/autoturn.koplugin/main")
-        PluginShare.pause_auto_suspend = nil
-
+        class = dofile("plugins/autoturn.koplugin/main.lua")
         widget = class:new{ ui = { menu = mock_menu } }
         widget:init()
 
-        assert.is_true(PluginShare.pause_auto_suspend)
-        assert.is_true(widget.scheduled)
-        task_ref = widget.task
+        notifyBackgroundJobsUpdated()
+        runBackgroundTasks(2)
 
-        UIManager.unschedule:clear()
-        widget:onCloseDocument()
+        -- Set top widget to something else (e.g. a menu)
+        mock_topmost_widget = { name = "Menu" }
 
-        assert.is_false(PluginShare.pause_auto_suspend)
-        assert.is_false(widget.scheduled)
-        assert.stub(UIManager.unschedule).was_called_with(UIManager, task_ref)
+        runBackgroundTasks(10)
 
-        -- Case C: onSuspend
-        package.unload("plugins/autoturn.koplugin/main")
-        PluginShare.pause_auto_suspend = nil
+        -- Page turn should not be called
+        assertPageTurnNotCalled()
+    end)
 
+    it("should not trigger page turn if device is suspended/idling", function()
+        saveAutoTurnSettings({ enable = true, timeout = 10 })
+
+        class = dofile("plugins/autoturn.koplugin/main.lua")
         widget = class:new{ ui = { menu = mock_menu } }
         widget:init()
 
-        assert.is_true(PluginShare.pause_auto_suspend)
-        assert.is_true(widget.scheduled)
-        task_ref = widget.task
+        notifyBackgroundJobsUpdated()
+        runBackgroundTasks(2)
 
-        UIManager.unschedule:clear()
-        widget:onSuspend()
+        -- Set device idling
+        PluginShare.DeviceIdling = true
 
-        assert.is_false(PluginShare.pause_auto_suspend)
-        assert.is_false(widget.scheduled)
-        assert.stub(UIManager.unschedule).was_called_with(UIManager, task_ref)
+        runBackgroundTasks(10)
+
+        assertPageTurnNotCalled()
     end)
 
     it("should restart scheduling on resume", function()
-        G_reader_settings:save("autoturn_timeout_seconds", 45)
-        G_reader_settings:makeTrue("autoturn_enabled")
+        saveAutoTurnSettings({ enable = true, timeout = 10 })
 
-        local class = dofile("plugins/autoturn.koplugin/main.lua")
-        local widget = class:new{ ui = { menu = mock_menu } }
+        class = dofile("plugins/autoturn.koplugin/main.lua")
+        widget = class:new{ ui = { menu = mock_menu } }
         widget:init()
 
-        -- Clear stubs after init
-        UIManager.scheduleIn:clear()
-        PluginShare.pause_auto_suspend = nil
+        notifyBackgroundJobsUpdated()
+        runBackgroundTasks(2)
 
-        widget:_onResume()
+        -- Simulate suspend/resume
+        widget:onSuspend()
+        runBackgroundTasks(1)
+        runBackgroundTasks(9)
+        assertPageTurnNotCalled()
 
+        widget:onResume()
+        notifyBackgroundJobsUpdated()
         assert.is_true(PluginShare.pause_auto_suspend)
-        assert.is_true(widget.scheduled)
-        assert.stub(UIManager.scheduleIn).was_called_with(UIManager, 45, widget.task)
+
+        runBackgroundTasks(10)
+        assertPageTurnCalled()
     end)
 end)
-
-
-
