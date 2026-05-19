@@ -386,7 +386,7 @@ Enter a custom message to be displayed on the sleep screen. The following escape
   UIManager:show(input_dialog)
 end
 
-function Screensaver:setStretchLimit(touchmenu_instance)
+function Screensaver:setStretchLimit(menu)
   UIManager:show(SpinWidget:new({
     value = G_reader_settings:read("screensaver_stretch_limit_percentage") or 8,
     value_min = 0,
@@ -399,23 +399,23 @@ function Screensaver:setStretchLimit(touchmenu_instance)
     callback = function(spin)
       G_reader_settings:save("screensaver_stretch_limit_percentage", spin.value)
       G_reader_settings:makeTrue("screensaver_stretch_images")
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
     end,
     extra_text = gettext("Disable stretch"),
     extra_callback = function()
       G_reader_settings:makeFalse("screensaver_stretch_images")
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
     end,
     option_text = gettext("Full stretch"),
     option_callback = function()
       G_reader_settings:makeTrue("screensaver_stretch_images")
       G_reader_settings:delete("screensaver_stretch_limit_percentage")
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
     end,
   }))

@@ -492,8 +492,8 @@ function Terminal:generateInputDialog()
 
                 UIManager:unschedule(Terminal.refresh)
                 UIManager:close(self.input_dialog)
-                if self.touchmenu_instance then
-                  self.touchmenu_instance:updateItems()
+                if self.menu then
+                  self.menu:updateItems()
                 end
               end,
               choice2_text = gettext("Quit"),
@@ -502,8 +502,8 @@ function Terminal:generateInputDialog()
                 self:killShell()
                 UIManager:unschedule(Terminal.refresh)
                 UIManager:close(self.input_dialog)
-                if self.touchmenu_instance then
-                  self.touchmenu_instance:updateItems()
+                if self.menu then
+                  self.menu:updateItems()
                 end
               end,
             }))
@@ -539,8 +539,8 @@ function Terminal:onClose()
   self:killShell()
 end
 
-function Terminal:onTerminalStart(touchmenu_instance)
-  self.touchmenu_instance = touchmenu_instance
+function Terminal:onTerminalStart(menu)
+  self.menu = menu
 
   self.input_face = Font:getFace(
     "smallinfont",
@@ -608,8 +608,8 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             or gettext("not running")
           return T(gettext("Open terminal session (%1)"), state)
         end,
-        callback = function(touchmenu_instance)
-          self:onTerminalStart(touchmenu_instance)
+        callback = function(menu)
+          self:onTerminalStart(menu)
         end,
         keep_menu_open = true,
       },
@@ -618,10 +618,10 @@ Aliases (shortcuts) to frequently used commands can be placed in:
         enabled_func = function()
           return self:killShell(true) >= 0
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           self:killShell()
-          if touchmenu_instance then
-            touchmenu_instance:updateItems()
+          if menu then
+            menu:updateItems()
           end
         end,
         keep_menu_open = true,
@@ -634,7 +634,7 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             G_reader_settings:read("terminal_font_size") or 14
           )
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local cur_size = G_reader_settings:read("terminal_font_size") or 14
           local size_spin = SpinWidget:new({
             value = cur_size,
@@ -645,8 +645,8 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             title_text = gettext("Terminal emulator font size"),
             callback = function(spin)
               G_reader_settings:save("terminal_font_size", spin.value)
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
           })
@@ -661,7 +661,7 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             G_reader_settings:read("terminal_buffer_size") or 16
           )
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local cur_buffer = G_reader_settings:read("terminal_buffer_size")
           local buffer_spin = SpinWidget:new({
             value = cur_buffer,
@@ -673,8 +673,8 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             title_text = gettext("Terminal emulator buffer size (kB)"),
             callback = function(spin)
               G_reader_settings:save("terminal_buffer_size", spin.value)
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
           })
@@ -690,7 +690,7 @@ Aliases (shortcuts) to frequently used commands can be placed in:
               or self:getDefaultShellExecutable()
           )
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           self.shell_dialog = InputDialog:new({
             title = gettext("Shell to use"),
             description = T(
@@ -715,8 +715,8 @@ Aliases (shortcuts) to frequently used commands can be placed in:
                       self:getDefaultShellExecutable()
                     )
                     UIManager:close(self.shell_dialog)
-                    if touchmenu_instance then
-                      touchmenu_instance:updateItems()
+                    if menu then
+                      menu:updateItems()
                     end
                   end,
                 },
@@ -731,8 +731,8 @@ Aliases (shortcuts) to frequently used commands can be placed in:
                     if self:isExecutable(new_shell) then
                       G_reader_settings:save("terminal_shell", new_shell)
                       UIManager:close(self.shell_dialog)
-                      if touchmenu_instance then
-                        touchmenu_instance:updateItems()
+                      if menu then
+                        menu:updateItems()
                       end
                     else
                       UIManager:show(InfoMessage:new({

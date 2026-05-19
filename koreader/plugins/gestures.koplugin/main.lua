@@ -419,7 +419,7 @@ function Gestures:safeMultiswipeName(multiswipe)
   return multiswipe:gsub(" ", "_")
 end
 
-function Gestures:multiswipeRecorder(touchmenu_instance)
+function Gestures:multiswipeRecorder(menu)
   local multiswipe_recorder
   multiswipe_recorder = InputDialog:new({
     title = gettext("Multiswipe recorder"),
@@ -454,17 +454,17 @@ function Gestures:multiswipeRecorder(touchmenu_instance)
 
             self.custom_multiswipes[recorded_multiswipe] = true
             self.updated = true
-            --touchmenu_instance.item_table = self:genMultiswipeMenu()
-            -- We need to update touchmenu_instance.item_table in-place for the upper
+            --menu.item_table = self:genMultiswipeMenu()
+            -- We need to update menu.item_table in-place for the upper
             -- menu to have it updated too
-            local item_table = touchmenu_instance.item_table
+            local item_table = menu.item_table
             while #item_table > 0 do
               table.remove(item_table, #item_table)
             end
             for __, v in ipairs(self:genCustomMultiswipeSubmenu()) do
               table.insert(item_table, v)
             end
-            touchmenu_instance:updateItems()
+            menu:updateItems()
             UIManager:close(multiswipe_recorder)
           end,
         },
@@ -500,8 +500,8 @@ function Gestures:genCustomMultiswipeSubmenu()
     {
       text = gettext("Multiswipe recorder"),
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
-        self:multiswipeRecorder(touchmenu_instance)
+      callback = function(menu)
+        self:multiswipeRecorder(menu)
       end,
       help_text = gettext(
         "The number of possible multiswipe gestures is theoretically infinite. With the multiswipe recorder you can easily record your own."
@@ -509,7 +509,7 @@ function Gestures:genCustomMultiswipeSubmenu()
     },
   }
   for item in FFIUtil.orderedPairs(self.custom_multiswipes) do
-    local hold_callback = function(touchmenu_instance)
+    local hold_callback = function(menu)
       UIManager:show(ConfirmBox:new({
         text = T(
           gettext("Remove custom multiswipe %1?"),
@@ -524,17 +524,17 @@ function Gestures:genCustomMultiswipeSubmenu()
           self.settings_data.data["gesture_reader"][item] = nil
           self.updated = true
 
-          --touchmenu_instance.item_table = self:genMultiswipeMenu()
-          -- We need to update touchmenu_instance.item_table in-place for the upper
+          --menu.item_table = self:genMultiswipeMenu()
+          -- We need to update menu.item_table in-place for the upper
           -- menu to have it updated too
-          local item_table = touchmenu_instance.item_table
+          local item_table = menu.item_table
           while #item_table > 0 do
             table.remove(item_table, #item_table)
           end
           for __, v in ipairs(self:genCustomMultiswipeSubmenu()) do
             table.insert(item_table, v)
           end
-          touchmenu_instance:updateItems()
+          menu:updateItems()
         end,
       }))
     end

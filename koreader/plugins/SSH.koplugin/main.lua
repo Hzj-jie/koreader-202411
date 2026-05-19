@@ -161,7 +161,7 @@ function SSH:onToggleSSHServer()
   end
 end
 
-function SSH:show_port_dialog(touchmenu_instance)
+function SSH:show_port_dialog(menu)
   self.port_dialog = InputDialog:new({
     title = gettext("Choose SSH port"),
     input = self.SSH_port,
@@ -185,7 +185,7 @@ function SSH:show_port_dialog(touchmenu_instance)
               self.SSH_port = value
               G_reader_settings:save("SSH_port", self.SSH_port)
               UIManager:close(self.port_dialog)
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end
           end,
         },
@@ -206,9 +206,9 @@ function SSH:addToMainMenu(menu_items)
             or gettext("Stop SSH server")
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           self:onToggleSSHServer()
-          touchmenu_instance:updateItems()
+          menu:updateItems()
         end,
       },
       {
@@ -221,8 +221,8 @@ function SSH:addToMainMenu(menu_items)
         end,
         -- Need localization
         help_text = gettext("Stop SSH server to configure"),
-        callback = function(touchmenu_instance)
-          self:show_port_dialog(touchmenu_instance)
+        callback = function(menu)
+          self:show_port_dialog(menu)
         end,
       },
       {

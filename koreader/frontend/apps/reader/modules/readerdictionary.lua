@@ -287,10 +287,10 @@ function ReaderDictionary:addToMainMenu(menu_items)
         enabled_func = function()
           return self:getNumberOfDictionaries() > 0
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           self:showDictionariesMenu(function()
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end)
         end,
@@ -326,8 +326,8 @@ function ReaderDictionary:addToMainMenu(menu_items)
             self.disable_fuzzy_search_fm = not self.disable_fuzzy_search_fm
           end
         end,
-        hold_callback = function(touchmenu_instance)
-          self:toggleFuzzyDefault(touchmenu_instance)
+        hold_callback = function(menu)
+          self:toggleFuzzyDefault(menu)
         end,
         separator = true,
       },
@@ -350,14 +350,14 @@ function ReaderDictionary:addToMainMenu(menu_items)
           return lookup_history:notEmpty()
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           UIManager:show(ConfirmBox:new({
             text = gettext("Clean dictionary lookup history?"),
             ok_text = gettext("Clean"),
             ok_callback = function()
               -- empty data table to replace current one
               lookup_history:reset()
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           }))
         end,
@@ -386,7 +386,7 @@ function ReaderDictionary:addToMainMenu(menu_items)
           local font_size = G_named_settings.dict_font_size()
           return T(gettext("Font size: %1"), font_size)
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local SpinWidget = require("ui/widget/spinwidget")
           local font_size = G_named_settings.dict_font_size()
           local items_font = SpinWidget:new({
@@ -397,8 +397,8 @@ function ReaderDictionary:addToMainMenu(menu_items)
             title_text = gettext("Dictionary font size"),
             callback = function(spin)
               G_reader_settings:save("dict_font_size", spin.value)
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
           })
@@ -1365,7 +1365,7 @@ function ReaderDictionary:onTogglePreferredDict(dict)
   return true
 end
 
-function ReaderDictionary:toggleFuzzyDefault(touchmenu_instance)
+function ReaderDictionary:toggleFuzzyDefault(menu)
   local disable_fuzzy_search = G_reader_settings:isTrue("disable_fuzzy_search")
   UIManager:show(MultiConfirmBox:new({
     text = T(disable_fuzzy_search and gettext([[
@@ -1385,7 +1385,7 @@ The current default (★) is enabled.]])),
     end,
     choice1_callback = function()
       G_reader_settings:makeTrue("disable_fuzzy_search")
-      touchmenu_instance:updateItems()
+      menu:updateItems()
     end,
     choice2_text_func = function()
       return disable_fuzzy_search and gettext("Enable")
@@ -1393,7 +1393,7 @@ The current default (★) is enabled.]])),
     end,
     choice2_callback = function()
       G_reader_settings:makeFalse("disable_fuzzy_search")
-      touchmenu_instance:updateItems()
+      menu:updateItems()
     end,
   }))
 end

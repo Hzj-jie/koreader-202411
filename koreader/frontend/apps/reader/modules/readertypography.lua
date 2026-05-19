@@ -549,7 +549,7 @@ When the book's language tag is not among our presets, no specific features will
         UIManager:broadcastEvent(Event:new("TypographyLanguageChanged"))
         UIManager:broadcastEvent(Event:new("UpdatePos"))
       end,
-      hold_callback = function(touchmenu_instance)
+      hold_callback = function(menu)
         UIManager:show(MultiConfirmBox:new({
           -- No real need for a way to remove default one, we can just
           -- toggle between setting a default OR a fallback (if a default
@@ -566,16 +566,16 @@ When the book's language tag is not among our presets, no specific features will
           choice1_callback = function()
             G_reader_settings:save("text_lang_default", lang_tag)
             G_reader_settings:delete("text_lang_fallback")
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
           choice2_text = C_("Typography", "Fallback"),
           choice2_callback = function()
             G_reader_settings:save("text_lang_fallback", lang_tag)
             G_reader_settings:delete("text_lang_default")
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
         }))

@@ -453,7 +453,7 @@ end
 --[[--
 chooses a path or (an existing) file
 
-@touchmenu_instance for updating of the menu
+@menu for updating of the menu
 @string key is the G_reader_setting key which is used and changed
 @boolean folder_only just selects a path, no file handling
 @boolean new_file allows to enter a new filename, or use just an existing file
@@ -461,7 +461,7 @@ chooses a path or (an existing) file
   Can be used for migrating the contents of the old path to the new one
 ]]
 function CoverImage:choosePathFile(
-  touchmenu_instance,
+  menu,
   key,
   folder_only,
   new_file,
@@ -484,8 +484,8 @@ function CoverImage:choosePathFile(
         end
         self[key] = dir_path
         G_reader_settings:save(key, dir_path)
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        if menu then
+          menu:updateItems()
         end
       elseif new_file and mode == "directory" then -- new filename should be entered or a file could be selected
         local file_input
@@ -510,8 +510,8 @@ function CoverImage:choosePathFile(
                   end
                   self[key] = file
                   G_reader_settings:save(key, file)
-                  if touchmenu_instance then
-                    touchmenu_instance:updateItems()
+                  if menu then
+                    menu:updateItems()
                   end
                   UIManager:close(file_input)
                 end,
@@ -526,8 +526,8 @@ function CoverImage:choosePathFile(
         end
         self[key] = dir_path
         G_reader_settings:save(key, dir_path)
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        if menu then
+          menu:updateItems()
         end
       end
     end,
@@ -537,7 +537,7 @@ end
 --[[--
 Update a specific G_reader_setting's value via a Spinner
 
-@touchmenu_instance used for updating the menu
+@menu used for updating the menu
 @string setting is the G_reader_setting key which is used and changed
 @string title shown in the spinner
 @int min minimum value of the spinner
@@ -546,7 +546,7 @@ Update a specific G_reader_setting's value via a Spinner
 @function callback to call, when spinner changed the value
 ]]
 function CoverImage:sizeSpinner(
-  touchmenu_instance,
+  menu,
   setting,
   title,
   min,
@@ -570,8 +570,8 @@ function CoverImage:sizeSpinner(
       if callback then
         callback(self)
       end
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
     end,
   }))
@@ -635,9 +635,9 @@ function CoverImage:menuEntryCache()
         checked_func = function()
           return self.cover_image_cache_maxfiles >= 0
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           self:sizeSpinner(
-            touchmenu_instance,
+            menu,
             "cover_image_cache_maxfiles",
             gettext("Number of covers"),
             -1,
@@ -665,9 +665,9 @@ function CoverImage:menuEntryCache()
         checked_func = function()
           return self.cover_image_cache_maxsize >= 0
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           self:sizeSpinner(
-            touchmenu_instance,
+            menu,
             "cover_image_cache_maxsize",
             gettext("Cache size"),
             -1,
@@ -750,12 +750,12 @@ function CoverImage:menuEntrySetPath(
     checked_func = function()
       return isFileOk(self[key]) or (isPathAllowed(self[key]) and folder_only)
     end,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       UIManager:show(ConfirmBox:new({
         text = info,
         ok_callback = function()
           self:choosePathFile(
-            touchmenu_instance,
+            menu,
             key,
             folder_only,
             new_file,
@@ -772,8 +772,8 @@ function CoverImage:menuEntrySetPath(
                 end
                 self[key] = default
                 G_reader_settings:save(key, default)
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                if menu then
+                  menu:updateItems()
                 end
               end,
             },
@@ -862,12 +862,12 @@ function CoverImage:menuEntrySBF()
             self.cover_image_stretch_limit
           )
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local function createCover()
             self:createCoverImage(self.ui.doc_settings)
           end
           self:sizeSpinner(
-            touchmenu_instance,
+            menu,
             "cover_image_stretch_limit",
             gettext("Set stretch threshold"),
             0,

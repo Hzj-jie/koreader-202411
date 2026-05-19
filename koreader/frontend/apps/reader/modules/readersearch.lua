@@ -129,7 +129,7 @@ function ReaderSearch:addToMainMenu(menu_items)
           )
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local widget = SpinWidget:new({
             title_text = gettext("Words in context"),
             value = self.findall_nb_context_words,
@@ -144,7 +144,7 @@ function ReaderSearch:addToMainMenu(menu_items)
                 "fulltext_search_nb_context_words",
                 spin.value
               )
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           })
           UIManager:show(widget)
@@ -158,7 +158,7 @@ function ReaderSearch:addToMainMenu(menu_items)
           )
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local default_value = 4
           local widget = SpinWidget:new({
             title_text = gettext("Max lines per result"),
@@ -177,14 +177,14 @@ function ReaderSearch:addToMainMenu(menu_items)
               )
               self.findall_results_max_lines = spin.value
               self.last_search_hash = nil
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
             extra_text = gettext("Disable"),
             extra_callback = function()
               G_reader_settings:delete("fulltext_search_results_max_lines")
               self.findall_results_max_lines = nil
               self.last_search_hash = nil
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           })
           UIManager:show(widget)
@@ -201,7 +201,7 @@ function ReaderSearch:addToMainMenu(menu_items)
           return not self.findall_results_max_lines
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local widget = SpinWidget:new({
             title_text = gettext("Results per page"),
             value = self.findall_results_per_page,
@@ -214,7 +214,7 @@ function ReaderSearch:addToMainMenu(menu_items)
                 "fulltext_search_results_per_page",
                 spin.value
               )
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           })
           UIManager:show(widget)

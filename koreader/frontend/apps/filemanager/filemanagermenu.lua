@@ -220,7 +220,7 @@ function FileManagerMenu:setUpdateItemTable()
 - Search results and folder shortcuts
 - File and folder selection
 - Calibre and OPDS browsers/search results]]),
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               local default_value = FileChooser.items_per_page_default
               local current_value = G_reader_settings:read("items_per_page")
                 or default_value
@@ -238,7 +238,7 @@ function FileManagerMenu:setUpdateItemTable()
                     default_value
                   )
                   FileChooser:refreshPath()
-                  touchmenu_instance:updateItems()
+                  menu:updateItems()
                 end,
               })
               UIManager:show(widget)
@@ -248,7 +248,7 @@ function FileManagerMenu:setUpdateItemTable()
             text_func = function()
               return T(gettext("Item font size: %1"), FileChooser.font_size)
             end,
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               local current_value = FileChooser.font_size
               local default_value = FileChooser.getItemFontSize(
                 G_reader_settings:read("items_per_page")
@@ -271,7 +271,7 @@ function FileManagerMenu:setUpdateItemTable()
                     default_value
                   )
                   FileChooser:refreshPath()
-                  touchmenu_instance:updateItems()
+                  menu:updateItems()
                 end,
               })
               UIManager:show(widget)
@@ -447,7 +447,7 @@ To:
 - Reading statistics details
 - A few other plugins]]),
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local default_value = KeyValuePage.getDefaultItemsPerPage()
           local current_value = G_reader_settings:read("keyvalues_per_page")
             or default_value
@@ -463,7 +463,7 @@ To:
                 spin.value,
                 default_value
               )
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           })
           UIManager:show(widget)

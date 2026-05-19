@@ -97,7 +97,7 @@ function Weather:getSubMenuItems()
             return T(gettext("Postal Code (%1)"), self.postal_code)
           end,
           keep_menu_open = true,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             local postal_code = self.postal_code
             local input
             input = InputDialog:new({
@@ -120,7 +120,7 @@ function Weather:getSubMenuItems()
                     callback = function()
                       self.postal_code = input:getInputValue()
                       UIManager:close(input)
-                      touchmenu_instance:updateItems()
+                      menu:updateItems()
                     end,
                   },
                 },
@@ -134,7 +134,7 @@ function Weather:getSubMenuItems()
             return T(gettext("Auth Token (%1)"), self.api_key)
           end,
           keep_menu_open = true,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             local api_key = self.api_key
             local input
             input = InputDialog:new({
@@ -158,7 +158,7 @@ function Weather:getSubMenuItems()
                     callback = function()
                       self.api_key = input:getInputValue()
                       UIManager:close(input)
-                      touchmenu_instance:updateItems()
+                      menu:updateItems()
                     end,
                   },
                 },
@@ -188,7 +188,7 @@ function Weather:getSubMenuItems()
                 return self:fahrenheit()
               end,
               keep_menu_open = true,
-              callback = function(_touchmenu_instance)
+              callback = function(_menu)
                 self.temp_scale = "F"
               end,
             },
@@ -215,7 +215,7 @@ function Weather:getSubMenuItems()
                 return self:clock_24()
               end,
               keep_menu_open = true,
-              callback = function(_touchmenu_instance)
+              callback = function(_menu)
                 self.clock_style = "24"
               end,
             },

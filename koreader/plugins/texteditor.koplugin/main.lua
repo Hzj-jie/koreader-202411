@@ -140,7 +140,7 @@ function TextEditor:getSubMenuItems()
             return T(gettext("Text font size: %1"), self.font_size)
           end,
           keep_menu_open = true,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             local SpinWidget = require("ui/widget/spinwidget")
             local font_size = self.font_size
             UIManager:show(SpinWidget:new({
@@ -151,7 +151,7 @@ function TextEditor:getSubMenuItems()
               title_text = gettext("Text font size"),
               callback = function(spin)
                 self.font_size = spin.value
-                touchmenu_instance:updateItems()
+                menu:updateItems()
               end,
             }))
           end,
@@ -227,7 +227,7 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
             return #self.history > 0
           end,
           keep_menu_open = true,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             UIManager:show(ConfirmBox:new({
               text = gettext("Clean text editor history?"),
               ok_text = gettext("Clean"),
@@ -240,7 +240,7 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
                     table.remove(sub_item_table)
                   end
                 end
-                touchmenu_instance:updateItems()
+                menu:updateItems()
               end,
             }))
           end,
@@ -251,16 +251,16 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
     {
       text = gettext("New file"),
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
-        self:setupWhenDoneFunc(touchmenu_instance)
+      callback = function(menu)
+        self:setupWhenDoneFunc(menu)
         self:newFile()
       end,
     },
     {
       text = gettext("Open file"),
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
-        self:setupWhenDoneFunc(touchmenu_instance)
+      callback = function(menu)
+        self:setupWhenDoneFunc(menu)
         self:chooseFile()
       end,
       separator = true,
@@ -272,12 +272,12 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
     table.insert(sub_item_table, {
       text = T("\u{f016} %1", BD.filename(filename)), -- file symbol
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
-        self:setupWhenDoneFunc(touchmenu_instance)
+      callback = function(menu)
+        self:setupWhenDoneFunc(menu)
         self:checkEditFile(file_path, true)
       end,
       _texteditor_id = file_path, -- for removal from menu itself
-      hold_callback = function(touchmenu_instance)
+      hold_callback = function(menu)
         -- Show full path and some info, and propose to remove from history
         local text
         local attr = lfs.attributes(file_path)
@@ -312,7 +312,7 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
                 break
               end
             end
-            touchmenu_instance:updateItems()
+            menu:updateItems()
           end,
         }))
       end,
@@ -321,16 +321,16 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
   return sub_item_table
 end
 
-function TextEditor:setupWhenDoneFunc(touchmenu_instance)
+function TextEditor:setupWhenDoneFunc(menu)
   -- This will keep a reference to the TouchMenu instance, that may not
   -- get released if file opening is aborted while in the file selection
   -- widgets and dialogs (quite complicated to call a resetWhenDoneFunc()
   -- in every abort case). But :getSubMenuItems() will release it when
   -- the TextEditor menu is opened again.
   self.whenDoneFunc = function()
-    touchmenu_instance.item_table = self:getSubMenuItems()
-    touchmenu_instance.page = 1
-    touchmenu_instance:updateItems()
+    menu.item_table = self:getSubMenuItems()
+    menu.page = 1
+    menu:updateItems()
   end
 end
 

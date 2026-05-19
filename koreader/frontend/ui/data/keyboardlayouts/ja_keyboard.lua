@@ -197,7 +197,7 @@ local function genMenuItems(self)
         "How long to wait for the next tap when in keitai input mode before committing to the current character. During this window, tapping a single key will loop through candidates for the current character being input. Any other input will cause you to leave keitai mode."
       ),
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local SpinWidget = require("ui/widget/spinwidget")
         local UIManager = require("ui/uimanager")
         local Screen = require("device").screen
@@ -219,8 +219,8 @@ If set to 0, keitai input is disabled entirely and only flick input can be used.
           default_value = DEFAULT_KEITAI_TAP_INTERVAL_S,
           callback = function(spin)
             setKeitaiTapInterval(time.s(spin.value))
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
         })

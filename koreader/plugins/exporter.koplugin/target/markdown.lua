@@ -42,7 +42,7 @@ local formatter_buttons = {
 function MarkdownExporter:editFormatStyle(
   drawer_style,
   label,
-  touchmenu_instance
+  menu
 )
   local radio_buttons = {}
   for _idx, v in ipairs(formatter_buttons) do
@@ -60,7 +60,7 @@ function MarkdownExporter:editFormatStyle(
     radio_buttons = radio_buttons,
     callback = function(radio)
       self.settings.formatting_options[drawer_style] = radio.provider
-      touchmenu_instance:updateItems()
+      menu:updateItems()
     end,
   }))
 end
@@ -132,8 +132,8 @@ function MarkdownExporter:getMenuTable()
         return self.settings.highlight_formatting
       end,
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
-        self:editFormatStyle(entry[2], entry[1], touchmenu_instance)
+      callback = function(menu)
+        self:editFormatStyle(entry[2], entry[1], menu)
       end,
     })
   end

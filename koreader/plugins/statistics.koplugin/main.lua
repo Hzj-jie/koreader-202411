@@ -1311,7 +1311,7 @@ function ReaderStatistics:addToMainMenu(menu_items)
                 self.settings.max_sec
               )
             end,
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
               local durations_widget
               durations_widget = DoubleSpinWidget:new({
@@ -1342,7 +1342,7 @@ The max value ensures a page you stay on for a long time (because you fell aslee
                 callback = function(min, max)
                   self.settings.min_sec = min
                   self.settings.max_sec = max
-                  touchmenu_instance:updateItems()
+                  menu:updateItems()
                 end,
               })
               UIManager:show(durations_widget)
@@ -1414,7 +1414,7 @@ The max value ensures a page you stay on for a long time (because you fell aslee
                 self.settings.calendar_nb_book_spans
               )
             end,
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               local SpinWidget = require("ui/widget/spinwidget")
               UIManager:show(SpinWidget:new({
                 value = self.settings.calendar_nb_book_spans,
@@ -1428,7 +1428,7 @@ The max value ensures a page you stay on for a long time (because you fell aslee
                 ),
                 callback = function(spin)
                   self.settings.calendar_nb_book_spans = spin.value
-                  touchmenu_instance:updateItems()
+                  menu:updateItems()
                 end,
               }))
             end,
@@ -1467,7 +1467,7 @@ The max value ensures a page you stay on for a long time (because you fell aslee
                 )
               )
             end,
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               local DateTimeWidget = require("ui/widget/datetimewidget")
               local start_of_day_widget = DateTimeWidget:new({
                 hour = self.settings.calendar_day_start_hour or 0,
@@ -1486,7 +1486,7 @@ Time is in hours and minutes.]]),
                 callback = function(time)
                   self.settings.calendar_day_start_hour = time.hour
                   self.settings.calendar_day_start_minute = time.min
-                  touchmenu_instance:updateItems()
+                  menu:updateItems()
                 end,
               })
               UIManager:show(start_of_day_widget)
@@ -1506,7 +1506,7 @@ Time is in hours and minutes.]]),
           },
           {
             text = gettext("Cloud sync"),
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               local server = self.settings.sync_server
               local edit_cb = function()
                 local sync_settings = SyncService:new()
@@ -1525,7 +1525,7 @@ Time is in hours and minutes.]]),
                     SyncService.removeLastSyncDB(db_location)
                   end
                   self.settings.sync_server = sv
-                  touchmenu_instance:updateItems()
+                  menu:updateItems()
                 end
                 UIManager:show(sync_settings)
               end
@@ -1548,7 +1548,7 @@ Time is in hours and minutes.]]),
                     ok_callback = function()
                       self.settings.sync_server = nil
                       SyncService.removeLastSyncDB(db_location)
-                      touchmenu_instance:updateItems()
+                      menu:updateItems()
                     end,
                   }))
                 end,

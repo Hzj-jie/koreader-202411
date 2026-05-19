@@ -372,7 +372,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
           self.ui.annotation:updatePageNumbers(true)
           UIManager:setDirty(self.view.dialog, "partial")
         end,
-        hold_callback = function(touchmenu_instance)
+        hold_callback = function(menu)
           local use_page_labels =
             G_reader_settings:isTrue("pagemap_use_page_labels")
           UIManager:show(MultiConfirmBox:new({
@@ -389,8 +389,8 @@ function ReaderPageMap:addToMainMenu(menu_items)
             end,
             choice1_callback = function()
               G_reader_settings:makeFalse("pagemap_use_page_labels")
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
             choice2_text_func = function()
@@ -399,8 +399,8 @@ function ReaderPageMap:addToMainMenu(menu_items)
             end,
             choice2_callback = function()
               G_reader_settings:makeTrue("pagemap_use_page_labels")
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
           }))
@@ -422,7 +422,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
           self:updateVisibleLabels()
           UIManager:setDirty(self.view.dialog, "partial")
         end,
-        hold_callback = function(touchmenu_instance)
+        hold_callback = function(menu)
           local show_page_labels =
             G_reader_settings:nilOrTrue("pagemap_show_page_labels")
           UIManager:show(MultiConfirmBox:new({
@@ -439,8 +439,8 @@ function ReaderPageMap:addToMainMenu(menu_items)
             end,
             choice1_callback = function()
               G_reader_settings:makeFalse("pagemap_show_page_labels")
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
             choice2_text_func = function()
@@ -449,8 +449,8 @@ function ReaderPageMap:addToMainMenu(menu_items)
             end,
             choice2_callback = function()
               G_reader_settings:makeTrue("pagemap_show_page_labels")
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
           }))
@@ -463,7 +463,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
         enabled_func = function()
           return self.show_page_labels
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local SpinWidget = require("ui/widget/spinwidget")
           local spin_w = SpinWidget:new({
             value = self.label_font_size,
@@ -478,8 +478,8 @@ function ReaderPageMap:addToMainMenu(menu_items)
                 "pagemap_label_font_size",
                 self.label_font_size
               )
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
               self:resetLayout()
               self:updateVisibleLabels()

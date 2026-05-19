@@ -226,7 +226,7 @@ function ReaderDeviceStatus:addToMainMenu(menu_items)
         return G_reader_settings:isTrue("device_status_battery_alarm")
       end,
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local DoubleSpinWidget = require("/ui/widget/doublespinwidget")
         local thresholds_widget
         thresholds_widget = DoubleSpinWidget:new({
@@ -259,7 +259,7 @@ High level threshold is checked when the device is charging.]]),
               self.battery_threshold_high,
               95
             )
-            touchmenu_instance:updateItems()
+            menu:updateItems()
             battery_status_dismissed = false
           end,
         })
@@ -286,7 +286,7 @@ High level threshold is checked when the device is charging.]]),
         return G_reader_settings:isTrue("device_status_memory_alarm")
       end,
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         UIManager:show(SpinWidget:new({
           value = self.memory_threshold,
           value_min = 20,
@@ -301,7 +301,7 @@ High level threshold is checked when the device is charging.]]),
               "device_status_memory_threshold",
               self.memory_threshold
             )
-            touchmenu_instance:updateItems()
+            menu:updateItems()
           end,
         }))
       end,

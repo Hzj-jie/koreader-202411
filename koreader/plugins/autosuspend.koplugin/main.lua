@@ -441,7 +441,7 @@ end
 -- 1 ... display hour:min
 -- else ... display min:sec
 function AutoSuspend:pickTimeoutValue(
-  touchmenu_instance,
+  menu,
   title,
   info,
   setting,
@@ -509,8 +509,8 @@ function AutoSuspend:pickTimeoutValue(
         self:_unschedule()
         self:_start()
       end
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
       local time_string = datetime.secondsToClockDuration(
         "letters",
@@ -553,8 +553,8 @@ function AutoSuspend:pickTimeoutValue(
       else
         self:_unschedule()
       end
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
       UIManager:show(InfoMessage:new({
         text = T(gettext("%1: disabled"), title),
@@ -590,12 +590,12 @@ function AutoSuspend:addToMainMenu(menu_items)
       end
     end,
     keep_menu_open = true,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       -- 60 sec (1') is the minimum and 24*3600 sec (1day) is the maximum suspend time.
       -- A suspend time of one day seems to be excessive.
       -- But it might make sense for battery testing.
       self:pickTimeoutValue(
-        touchmenu_instance,
+        menu,
         gettext("Timeout for autosuspend"),
         gettext("Enter time in hours and minutes."),
         "auto_suspend_timeout_seconds",
@@ -627,13 +627,13 @@ function AutoSuspend:addToMainMenu(menu_items)
         end
       end,
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         -- 5*60 sec (5') is the minimum and 28*24*3600 (28days) is the maximum shutdown time.
         -- Minimum time has to be big enough, to avoid start-stop death scenarios.
         -- Maximum more than four weeks seems a bit excessive if you want to enable authoshutdown,
         -- even if the battery can last up to three months.
         self:pickTimeoutValue(
-          touchmenu_instance,
+          menu,
           gettext("Timeout for autoshutdown"),
           gettext("Enter time in days and hours."),
           "autoshutdown_timeout_seconds",
@@ -684,13 +684,13 @@ Upon user input, the device needs a certain amount of time to wake up. Generally
       end,
       help_text = standby_help,
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         -- 4 sec is the minimum and 15*60 sec (15min) is the maximum standby time.
         -- We need a minimum time, so that scheduled function have a chance to execute.
         -- A standby time of 15 min seem excessive.
         -- But or battery testing it might give some sense.
         self:pickTimeoutValue(
-          touchmenu_instance,
+          menu,
           gettext("Timeout for autostandby"),
           gettext("Enter time in minutes and seconds."),
           "auto_standby_timeout_seconds",

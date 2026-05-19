@@ -100,7 +100,7 @@ common_info.report_bug = {
     return label
   end,
   keep_menu_open = true,
-  callback = function(touchmenu_instance)
+  callback = function(menu)
     local log_path =
       string.format("%s/%s", DataStorage:getDataDir(), "crash.log")
     local common_msg = T(
@@ -155,7 +155,7 @@ common_info.report_bug = {
                 G_reader_settings:makeTrue("debug_verbose")
                 Notification:notify(gettext("Verbose logging enabled"))
               end
-              touchmenu_instance:updateItems()
+              menu:updateItems()
               -- Also unlike the dev options, explicitly ask for a restart,
               -- to make sure framebuffer pulls in a logger.dbg ref that doesn't point to noop on init ;).
               UIManager:askForRestart()

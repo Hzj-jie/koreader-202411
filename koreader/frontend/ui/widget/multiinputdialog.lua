@@ -45,7 +45,7 @@ Example for input of two strings and a number:
                 },
                 {
                     text = gettext("Use settings"),
-                    callback = function(touchmenu_instance)
+                    callback = function(menu)
                         local fields = sample_input:getFields()
                         -- check for user input
                         if fields[1] ~= "" and fields[2] ~= ""
@@ -54,8 +54,8 @@ Example for input of two strings and a number:
                             UIManager:close(sample_input)
                             -- If we have a touch menu: Update menu entries,
                             -- when called from a menu
-                            if touchmenu_instance then
-                                touchmenu_instance:updateItems()
+                            if menu then
+                                menu:updateItems()
                             end
                         else
                             -- not all fields where entered

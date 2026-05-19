@@ -1487,7 +1487,7 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
           return gettext("Start HTTP server")
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           if HttpInspector:isRunning() then
             should_run = false
             HttpInspector:stop()
@@ -1495,7 +1495,7 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
             should_run = true
             HttpInspector:start()
           end
-          touchmenu_instance:updateItems()
+          menu:updateItems()
         end,
         separator = true,
       },
@@ -1513,7 +1513,7 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
           return T(gettext("Port: %1"), HttpInspector.port)
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local InputDialog = require("ui/widget/inputdialog")
           local port_dialog
           port_dialog = InputDialog:new({
@@ -1552,7 +1552,7 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
                       end
                     end
                     UIManager:close(port_dialog)
-                    touchmenu_instance:updateItems()
+                    menu:updateItems()
                   end,
                 },
               },

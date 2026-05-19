@@ -110,8 +110,8 @@ return {
             checked_func = function()
               return G_reader_settings:isTrue("screensaver_stretch_images")
             end,
-            callback = function(touchmenu_instance)
-              Screensaver:setStretchLimit(touchmenu_instance)
+            callback = function(menu)
+              Screensaver:setStretchLimit(menu)
             end,
           },
           {
@@ -121,11 +121,11 @@ return {
                 "screensaver_rotate_auto_for_best_fit"
               )
             end,
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               G_reader_settings:flipNilOrFalse(
                 "screensaver_rotate_auto_for_best_fit"
               )
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           },
         },

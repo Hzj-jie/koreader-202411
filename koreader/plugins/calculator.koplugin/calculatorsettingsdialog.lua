@@ -334,7 +334,7 @@ end
 --[[--
 chooses a path or (an existing) file (borrowed from coverimage)
 
-@touchmenu_instance for updating of the menu
+@menu for updating of the menu
 @string key is the G_reader_setting key which is used and changed
 @boolean folder_only just selects a path, no file handling
 @boolean new_file allows to enter a new filename, or use just an existing file
@@ -342,7 +342,7 @@ chooses a path or (an existing) file (borrowed from coverimage)
     Can be used for migrating the contents of the old path to the new one
 ]]
 function CalculatorSettingsDialog:choosePathFile(
-  touchmenu_instance,
+  menu,
   key,
   folder_only,
   new_file,
@@ -365,8 +365,8 @@ function CalculatorSettingsDialog:choosePathFile(
         end
         self[key] = dir_path
         G_reader_settings:save(key, dir_path)
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        if menu then
+          menu:updateItems()
         end
       elseif new_file and mode == "directory" then -- new filename should be entered or a file could be selected
         local file_input
@@ -390,8 +390,8 @@ function CalculatorSettingsDialog:choosePathFile(
                   end
                   self[key] = file
                   G_reader_settings:save(key, file)
-                  if touchmenu_instance then
-                    touchmenu_instance:updateItems()
+                  if menu then
+                    menu:updateItems()
                   end
                   UIManager:close(file_input)
                 end,
@@ -406,8 +406,8 @@ function CalculatorSettingsDialog:choosePathFile(
         end
         self[key] = dir_path
         G_reader_settings:save(key, dir_path)
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        if menu then
+          menu:updateItems()
         end
       end
     end,

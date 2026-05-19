@@ -125,9 +125,9 @@ function ReaderBookmark:addToMainMenu(menu_items)
       checked_func = function()
         return self.ui.paging.bookmark_flipping_mode
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         self.ui.paging:onToggleBookmarkFlipping()
-        touchmenu_instance:closeMenu()
+        menu:closeMenu()
       end,
     }
   end
@@ -142,7 +142,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
           )
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local default_value = 4
           local spin_wodget = SpinWidget:new({
             title_text = gettext("Max lines per bookmark"),
@@ -157,13 +157,13 @@ function ReaderBookmark:addToMainMenu(menu_items)
             callback = function(spin)
               G_reader_settings:save("bookmarks_items_max_lines", spin.value)
               self.items_max_lines = spin.value
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
             extra_text = gettext("Disable"),
             extra_callback = function()
               G_reader_settings:delete("bookmarks_items_max_lines")
               self.items_max_lines = nil
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           })
           UIManager:show(spin_wodget)
@@ -179,7 +179,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
           return not self.items_max_lines
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local curr_perpage = get_bookmarks_items_per_page()
           local items = SpinWidget:new({
             title_text = gettext("Bookmarks per page"),
@@ -189,7 +189,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
             default_value = Menu.items_per_page_default,
             callback = function(spin)
               save_bookmarks_items_per_page(spin.value)
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           })
           UIManager:show(items)
@@ -201,7 +201,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
           return T(gettext("Bookmark font size: %1"), curr_font_size)
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local curr_perpage = get_bookmarks_items_per_page()
           local default_font_size = Menu.getItemFontSize(curr_perpage)
           local curr_font_size = get_bookmarks_items_font_size()
@@ -213,7 +213,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
             default_value = default_font_size,
             callback = function(spin)
               save_bookmarks_items_font_size(spin.value)
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           })
           UIManager:show(items_font)

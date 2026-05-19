@@ -336,14 +336,14 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
           return wikipedia_history:notEmpty()
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           UIManager:show(ConfirmBox:new({
             text = gettext("Clean Wikipedia history?"),
             ok_text = gettext("Clean"),
             ok_callback = function()
               -- empty data table to replace current one
               wikipedia_history:reset()
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           }))
         end,

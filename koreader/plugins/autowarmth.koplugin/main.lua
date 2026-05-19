@@ -667,8 +667,8 @@ local function tidy_menu(menu, request)
   return menu
 end
 
-function AutoWarmth:updateItems(touchmenu_instance)
-  touchmenu_instance:updateItems()
+function AutoWarmth:updateItems(menu)
+  menu:updateItems()
   UIManager:broadcastEvent("UpdateFooter")
 end
 
@@ -716,7 +716,7 @@ function AutoWarmth:getSubMenuItems()
       help_text = gettext(
         "In the expert mode, different types of twilight can be used in addition to civil twilight."
       ),
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         self.easy_mode = not self.easy_mode
         G_reader_settings:save("autowarmth_easy_mode", self.easy_mode)
         if self.easy_mode then
@@ -727,9 +727,9 @@ function AutoWarmth:getSubMenuItems()
           ) or 0
         end
         self:scheduleMidnightUpdate()
-        if touchmenu_instance then
-          touchmenu_instance.item_table = self:getSubMenuItems()
-          self:updateItems(touchmenu_instance)
+        if menu then
+          menu.item_table = self:getSubMenuItems()
+          self:updateItems(menu)
         end
       end,
       keep_menu_open = true,
@@ -788,7 +788,7 @@ function AutoWarmth:getFlOffDuringDayMenu()
         return gettext("Frontlight off during day")
       end
     end,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       if self.easy_mode then
         self.fl_off_during_day = not self.fl_off_during_day
         G_reader_settings:save(
@@ -826,8 +826,8 @@ function AutoWarmth:getFlOffDuringDayMenu()
             G_reader_settings:save("autowarmth_fl_off_during_day", true)
             self:scheduleMidnightUpdate()
             self:toggleFrontlight()
-            if touchmenu_instance then
-              self:updateItems(touchmenu_instance)
+            if menu then
+              self:updateItems(menu)
             end
           end,
           extra_text = gettext("Disable"),
@@ -836,15 +836,15 @@ function AutoWarmth:getFlOffDuringDayMenu()
             G_reader_settings:save("autowarmth_fl_off_during_day", nil)
             self:scheduleMidnightUpdate()
             self:toggleFrontlight()
-            if touchmenu_instance then
-              self:updateItems(touchmenu_instance)
+            if menu then
+              self:updateItems(menu)
             end
           end,
         }))
       end
 
-      if touchmenu_instance then
-        self:updateItems(touchmenu_instance)
+      if menu then
+        self:updateItems(menu)
       end
     end,
     hold_callback = function()
@@ -918,7 +918,7 @@ function AutoWarmth:getLocationMenu()
           return gettext("Location")
         end
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local location_name_dialog
         location_name_dialog = InputDialog:new({
           title = gettext("Location name"),
@@ -938,8 +938,8 @@ function AutoWarmth:getLocationMenu()
                   self.location = location_name_dialog:getInputText()
                   G_reader_settings:save("autowarmth_location", self.location)
                   UIManager:close(location_name_dialog)
-                  if touchmenu_instance then
-                    self:updateItems(touchmenu_instance)
+                  if menu then
+                    self:updateItems(menu)
                   end
                 end,
               },
@@ -958,7 +958,7 @@ function AutoWarmth:getLocationMenu()
           self.longitude
         )
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local location_widget = DoubleSpinWidget:new({
           title_text = gettext("Set location"),
           info_text = gettext(
@@ -987,8 +987,8 @@ function AutoWarmth:getLocationMenu()
             G_reader_settings:save("autowarmth_longitude", self.longitude)
             G_reader_settings:save("autowarmth_timezone", self.timezone)
             self:scheduleMidnightUpdate()
-            if touchmenu_instance then
-              self:updateItems(touchmenu_instance)
+            if menu then
+              self:updateItems(menu)
             end
           end,
         })
@@ -1000,7 +1000,7 @@ function AutoWarmth:getLocationMenu()
       text_func = function()
         return T(gettext("Altitude: %1 m"), self.altitude)
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         UIManager:show(SpinWidget:new({
           title_text = gettext("Altitude"),
           info_text = gettext("Enter the altitude in meters above sea level."),
@@ -1016,8 +1016,8 @@ function AutoWarmth:getLocationMenu()
             self.altitude = spin.value
             G_reader_settings:save("autowarmth_altitude", self.altitude)
             self:scheduleMidnightUpdate()
-            if touchmenu_instance then
-              self:updateItems(touchmenu_instance)
+            if menu then
+              self:updateItems(menu)
             end
           end,
           extra_text = gettext("Default"),
@@ -1025,8 +1025,8 @@ function AutoWarmth:getLocationMenu()
             self.altitude = 200
             G_reader_settings:save("autowarmth_altitude", self.altitude)
             self:scheduleMidnightUpdate()
-            if touchmenu_instance then
-              self:updateItems(touchmenu_instance)
+            if menu then
+              self:updateItems(menu)
             end
           end,
         }))
@@ -1037,12 +1037,12 @@ function AutoWarmth:getLocationMenu()
 end
 
 function AutoWarmth:getScheduleMenu()
-  local function store_times(touchmenu_instance, new_time, num)
+  local function store_times(menu, new_time, num)
     self.scheduler_times[num] = new_time
     G_reader_settings:save("autowarmth_scheduler_times", self.scheduler_times)
     self:scheduleMidnightUpdate()
-    if touchmenu_instance then
-      self:updateItems(touchmenu_instance)
+    if menu then
+      self:updateItems(menu)
     end
   end
   -- mode == nil ... show always
@@ -1061,7 +1061,7 @@ function AutoWarmth:getScheduleMenu()
       checked_func = function()
         return self.scheduler_times[num] ~= nil
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local hh = 12
         local mm = 0
         if self.scheduler_times[num] then
@@ -1101,7 +1101,7 @@ function AutoWarmth:getScheduleMenu()
                       end
                     end
                   end
-                  store_times(touchmenu_instance, new_time, num)
+                  store_times(menu, new_time, num)
                 end,
               }))
             elseif
@@ -1121,16 +1121,16 @@ function AutoWarmth:getScheduleMenu()
                       end
                     end
                   end
-                  store_times(touchmenu_instance, new_time, num)
+                  store_times(menu, new_time, num)
                 end,
               }))
             else
-              store_times(touchmenu_instance, new_time, num)
+              store_times(menu, new_time, num)
             end
           end,
           extra_text = gettext("Invalidate"),
           extra_callback = function()
-            store_times(touchmenu_instance, nil, num)
+            store_times(menu, nil, num)
           end,
         }))
       end,
@@ -1189,7 +1189,7 @@ function AutoWarmth:getWarmthMenu()
           end
         end
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         if Device:hasNaturalLight() and self.control_warmth then
           local warmth_spinner = SpinWidget:new({
             title_text = text,
@@ -1220,8 +1220,8 @@ function AutoWarmth:getWarmthMenu()
               self.warmth[#self.warmth - num + 1] = self.warmth[num]
               G_reader_settings:save("autowarmth_warmth", self.warmth)
               self:scheduleMidnightUpdate()
-              if touchmenu_instance then
-                self:updateItems(touchmenu_instance)
+              if menu then
+                self:updateItems(menu)
               end
             end,
           })
@@ -1245,8 +1245,8 @@ function AutoWarmth:getWarmthMenu()
                 self.warmth[#self.warmth - num + 1] = self.warmth[num]
                 G_reader_settings:save("autowarmth_warmth", self.warmth)
                 self:scheduleMidnightUpdate()
-                if touchmenu_instance then
-                  self:updateItems(touchmenu_instance)
+                if menu then
+                  self:updateItems(menu)
                 end
               end
             end,
@@ -1257,8 +1257,8 @@ function AutoWarmth:getWarmthMenu()
                 self.warmth[#self.warmth - num + 1] = self.warmth[num]
                 G_reader_settings:save("autowarmth_warmth", self.warmth)
                 self:scheduleMidnightUpdate()
-                if touchmenu_instance then
-                  self:updateItems(touchmenu_instance)
+                if menu then
+                  self:updateItems(menu)
                 end
               end
             end,
@@ -1313,7 +1313,7 @@ function AutoWarmth:getWarmthMenu()
           }))
         end
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         if Device:hasNaturalLight() then
           if self.control_warmth and self.control_nightmode then
             self.control_warmth = true
@@ -1336,8 +1336,8 @@ function AutoWarmth:getWarmthMenu()
           G_reader_settings:flipNilOrFalse("autowarmth_control_nightmode")
         end
         self:scheduleMidnightUpdate()
-        if touchmenu_instance then
-          self:updateItems(touchmenu_instance)
+        if menu then
+          self:updateItems(menu)
         end
       end,
       keep_menu_open = true,

@@ -200,7 +200,7 @@ This custom table of contents is currently limited to a single level and can't h
           enabled_func = function()
             return #self.toc > 0
           end,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             UIManager:show(ConfirmBox:new({
               text = gettext(
                 "Are you sure you want to clear your custom table of contents?"
@@ -208,8 +208,8 @@ This custom table of contents is currently limited to a single level and can't h
               ok_callback = function()
                 self.toc = {}
                 UIManager:broadcastEvent(Event:new("UpdateToc"))
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                if menu then
+                  menu:updateItems()
                 end
               end,
             }))
@@ -262,7 +262,7 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
           enabled_func = function()
             return #self.inactive_flow_points > 0
           end,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             UIManager:show(ConfirmBox:new({
               text = gettext(
                 "Inactive marked pages are pages that you tagged as start hidden flow or restart regular flow, but that other marked pages made them have no effect.\nAre you sure you want to clear them?"
@@ -275,8 +275,8 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
                 UIManager:broadcastEvent(Event:new("UpdateToc"))
                 UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
                 self.ui.annotation:setNeedsUpdateFlag()
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                if menu then
+                  menu:updateItems()
                 end
               end,
             }))
@@ -288,7 +288,7 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
           enabled_func = function()
             return #self.flow_points > 0
           end,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             UIManager:show(ConfirmBox:new({
               text = gettext(
                 "Are you sure you want to clear all your custom hidden flows?"
@@ -299,8 +299,8 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
                 UIManager:broadcastEvent(Event:new("UpdateToc"))
                 UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
                 self.ui.annotation:setNeedsUpdateFlag()
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                if menu then
+                  menu:updateItems()
                 end
               end,
             }))

@@ -360,13 +360,13 @@ function ReaderLink:addToMainMenu(menu_items)
     callback = function()
       self:onGoBackLink()
     end,
-    hold_callback = function(touchmenu_instance)
+    hold_callback = function(menu)
       UIManager:show(ConfirmBox:new({
         text = gettext("Clear location history?"),
         ok_text = gettext("Clear"),
         ok_callback = function()
           self:onClearLocationStack()
-          touchmenu_instance:closeMenu()
+          menu:closeMenu()
         end,
       }))
     end,
@@ -379,13 +379,13 @@ function ReaderLink:addToMainMenu(menu_items)
     callback = function()
       self:onGoForwardLink()
     end,
-    hold_callback = function(touchmenu_instance)
+    hold_callback = function(menu)
       UIManager:show(ConfirmBox:new({
         text = gettext("Clear forward location history?"),
         ok_text = gettext("Clear"),
         ok_callback = function()
           self:onClearForwardLocationStack()
-          touchmenu_instance:closeMenu()
+          menu:closeMenu()
         end,
       }))
     end,

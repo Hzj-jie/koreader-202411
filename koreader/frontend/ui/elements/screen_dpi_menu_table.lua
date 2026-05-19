@@ -30,7 +30,7 @@ local function setDPI(dpi_val)
   UIManager:askForRestart(text)
 end
 
-local function spinWidgetSetDPI(touchmenu_instance)
+local function spinWidgetSetDPI(menu)
   local SpinWidget = require("ui/widget/spinwidget")
   local UIManager = require("ui/uimanager")
   local items = SpinWidget:new({
@@ -44,7 +44,7 @@ local function spinWidgetSetDPI(touchmenu_instance)
     callback = function(spin)
       G_reader_settings:save("custom_screen_dpi", spin.value)
       setDPI(spin.value)
-      touchmenu_instance:updateItems()
+      menu:updateItems()
     end,
   })
   UIManager:show(items)
@@ -120,15 +120,15 @@ return {
         local _dpi, _custom = dpi(), custom()
         return _custom and _dpi == _custom
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         if custom() then
           setDPI(custom() or dpi_auto)
         else
-          spinWidgetSetDPI(touchmenu_instance)
+          spinWidgetSetDPI(menu)
         end
       end,
-      hold_callback = function(touchmenu_instance)
-        spinWidgetSetDPI(touchmenu_instance)
+      hold_callback = function(menu)
+        spinWidgetSetDPI(menu)
       end,
       radio = true,
     },

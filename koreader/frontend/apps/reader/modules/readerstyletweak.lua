@@ -586,7 +586,7 @@ You can enable individual tweaks on this book with a tap, or view more details a
           end
           return title
         end,
-        hold_callback = function(touchmenu_instance)
+        hold_callback = function(menu)
           UIManager:show(TweakInfoWidget:new({
             tweak = item,
             is_global_default = self.global_tweaks[item.id],
@@ -627,7 +627,7 @@ You can enable individual tweaks on this book with a tap, or view more details a
                 end
                 self.global_tweaks[item.id] = true
               end
-              touchmenu_instance:updateItems()
+              menu:updateItems()
               self:updateCssText(true) -- apply it immediately
             end,
             is_tweak_in_dispatcher = self.tweaks_in_dispatcher[item.id],
@@ -644,7 +644,7 @@ You can enable individual tweaks on this book with a tap, or view more details a
                 self.tweaks_in_dispatcher[item.id] = item.title
                 dispatcherRegisterStyleTweak(item.id, item.title)
               end
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           }))
         end,
@@ -766,18 +766,18 @@ You can enable individual tweaks on this book with a tap, or view more details a
     checked_func = function()
       return self.book_style_tweak_enabled
     end,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       if self.book_style_tweak then
         -- There is a tweak: toggle it on tap, like other tweaks
         self.book_style_tweak_enabled = not self.book_style_tweak_enabled
         self:updateCssText(true) -- apply it immediately
       else
         -- No tweak defined: launch editor
-        self:editBookTweak(touchmenu_instance)
+        self:editBookTweak(menu)
       end
     end,
-    hold_callback = function(touchmenu_instance)
-      self:editBookTweak(touchmenu_instance)
+    hold_callback = function(menu)
+      self:editBookTweak(menu)
     end,
   }
   table.insert(self.tweaks_table, book_tweak_item)
@@ -1132,7 +1132,7 @@ If used as-is, they will act on ALL elements!]]),
   },
 }
 
-function ReaderStyleTweak:editBookTweak(touchmenu_instance)
+function ReaderStyleTweak:editBookTweak(menu)
   local InputDialog = require("ui/widget/inputdialog")
   local editor -- our InputDialog instance
   local tweak_button_id = "editBookTweakButton"
@@ -1417,12 +1417,12 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
       if should_apply then
         -- Let menu be closed and previous page be refreshed,
         -- so one can see how the text is changed by the tweak.
-        touchmenu_instance:closeMenu()
+        menu:closeMenu()
         UIManager:scheduleIn(0.2, function()
           self:updateCssText(true) -- have it applied
         end)
       else
-        touchmenu_instance:updateItems()
+        menu:updateItems()
       end
       editor.save_callback_called = true
       return true, msg

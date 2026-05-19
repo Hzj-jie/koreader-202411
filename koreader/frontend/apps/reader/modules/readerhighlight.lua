@@ -493,9 +493,9 @@ function ReaderHighlight:addToMainMenu(menu_items)
       callback = function()
         self.view.highlight.saved_drawer = style
       end,
-      hold_callback = function(touchmenu_instance)
+      hold_callback = function(menu)
         G_reader_settings:save("highlight_drawing_style", style)
-        touchmenu_instance:updateItems()
+        menu:updateItems()
       end,
     })
   end
@@ -522,16 +522,16 @@ function ReaderHighlight:addToMainMenu(menu_items)
       return self.view.highlight.saved_drawer ~= "invert"
     end,
     keep_menu_open = true,
-    callback = function(touchmenu_instance) -- set color for new highlights in this book
+    callback = function(menu) -- set color for new highlights in this book
       local function apply_color(color)
         self.view.highlight.saved_color = color
-        touchmenu_instance:updateItems()
+        menu:updateItems()
       end
       self:showHighlightColorDialog(apply_color)
     end,
-    hold_callback = function(touchmenu_instance) -- set color for new highlights in new books
+    hold_callback = function(menu) -- set color for new highlights in new books
       G_reader_settings:save("highlight_color", self.view.highlight.saved_color)
-      touchmenu_instance:updateItems()
+      menu:updateItems()
     end,
   })
   table.insert(hl_sub_item_table, {
@@ -544,7 +544,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
     enabled_func = function()
       return self.view.highlight.saved_drawer == "lighten"
     end,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       local spin_widget = SpinWidget:new({
         value = G_reader_settings:read("highlight_lighten_factor"),
         value_min = 0,
@@ -560,7 +560,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
           G_reader_settings:save("highlight_lighten_factor", spin.value)
           self.view.highlight.lighten_factor = spin.value
           UIManager:setDirty(self.dialog, "ui")
-          touchmenu_instance:updateItems()
+          menu:updateItems()
         end,
       })
       UIManager:show(spin_widget)
@@ -575,7 +575,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
         end
       end
     end,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       local notemark = self.view.highlight.note_mark or "none"
       local radio_buttons = {}
       for _, v in ipairs(note_mark) do
@@ -602,7 +602,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
           end
           self.view:setupNoteMarkPosition()
           UIManager:setDirty(self.ui, "ui")
-          touchmenu_instance:updateItems()
+          menu:updateItems()
           UIManager:close(radio)
         end,
       }))
@@ -689,9 +689,9 @@ If you wish your highlights to be saved in the document, just move it to a writa
               }))
             end
           end,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             G_reader_settings:makeTrue("highlight_write_into_pdf")
-            touchmenu_instance:updateItems()
+            menu:updateItems()
           end,
         },
         {
@@ -708,9 +708,9 @@ If you wish your highlights to be saved in the document, just move it to a writa
           callback = function()
             self.highlight_write_into_pdf = false
           end,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             G_reader_settings:delete("highlight_write_into_pdf")
-            touchmenu_instance:updateItems()
+            menu:updateItems()
           end,
         },
         {
@@ -876,7 +876,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
         )
       end,
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local items = SpinWidget:new({
           title_text = gettext("Highlight very-long-press interval"),
           info_text = gettext(
@@ -898,8 +898,8 @@ If you wish your highlights to be saved in the document, just move it to a writa
               "highlight_long_hold_threshold_s",
               spin.value
             )
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
         })
@@ -945,7 +945,7 @@ Except when in two columns mode, where this is limited to showing only the previ
           G_reader_settings:read("highlight_non_touch_factor") or 4
         )
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local curr_val = G_reader_settings:read("highlight_non_touch_factor")
           or 4
         local spin_widget = SpinWidget:new({
@@ -961,8 +961,8 @@ Except when in two columns mode, where this is limited to showing only the previ
           ),
           callback = function(spin)
             G_reader_settings:save("highlight_non_touch_factor", spin.value)
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
         })
@@ -999,7 +999,7 @@ Except when in two columns mode, where this is limited to showing only the previ
         return not self.view.highlight.disabled
           and G_reader_settings:nilOrTrue("highlight_non_touch_spedup")
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local curr_val = G_reader_settings:read("highlight_non_touch_interval")
           or 1
         local spin_widget = SpinWidget:new({
@@ -1015,8 +1015,8 @@ Except when in two columns mode, where this is limited to showing only the previ
           ),
           callback = function(spin)
             G_reader_settings:save("highlight_non_touch_interval", spin.value)
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
         })

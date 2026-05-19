@@ -160,8 +160,8 @@ function ReaderFont:setupFaceMenuTable()
         -- a gesture/profile), which may be convenient for some users.
         self:addToRecentlySelectedList(v)
       end,
-      hold_callback = function(touchmenu_instance)
-        self:makeDefault(v, is_monospace, touchmenu_instance)
+      hold_callback = function(menu)
+        self:makeDefault(v, is_monospace, menu)
       end,
       checked_func = function()
         return v == self.font_face
@@ -354,7 +354,7 @@ function ReaderFont:onSetFont(face)
   end
 end
 
-function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
+function ReaderFont:makeDefault(face, is_monospace, menu)
   if face then
     if is_monospace then
       -- If the font is monospace, assume it wouldn't be a candidate
@@ -370,8 +370,8 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
         choice1_text = gettext("Default"),
         choice1_callback = function()
           G_reader_settings:save("cre_font", face)
-          if touchmenu_instance then
-            touchmenu_instance:updateItems()
+          if menu then
+            menu:updateItems()
           end
         end,
         choice2_text = C_("Font", "Monospace"),
@@ -381,8 +381,8 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
           local current_face = self.font_face
           self.font_face = nil
           self:onSetFont(current_face)
-          if touchmenu_instance then
-            touchmenu_instance:updateItems()
+          if menu then
+            menu:updateItems()
           end
         end,
       }))
@@ -398,8 +398,8 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
       choice1_text = gettext("Default"),
       choice1_callback = function()
         G_reader_settings:save("cre_font", face)
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        if menu then
+          menu:updateItems()
         end
       end,
       choice2_text = C_("Font", "Fallback"),
@@ -407,8 +407,8 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
         G_reader_settings:save("fallback_font", face)
         self.ui.document:setupFallbackFontFaces()
         UIManager:broadcastEvent(Event:new("UpdatePos"))
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        if menu then
+          menu:updateItems()
         end
       end,
     }))
@@ -631,12 +631,12 @@ Enabling this will ignore such font names and make sure your preferred family fo
             self.font_family_fonts[family_tag] = false
             self:updateFontFamilyFonts()
           end,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             g_font_family_fonts[family_tag] = nil
             self.font_family_fonts[family_tag] = nil
             self:updateFontFamilyFonts()
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
           checked_func = function()
@@ -705,12 +705,12 @@ Enabling this will ignore such font names and make sure your preferred family fo
             end
             self:updateFontFamilyFonts()
           end,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             g_font_family_fonts[family_tag] = v
             self.font_family_fonts[family_tag] = nil
             self:updateFontFamilyFonts()
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
           checked_func = function()

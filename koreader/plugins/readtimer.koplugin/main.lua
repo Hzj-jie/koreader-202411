@@ -270,7 +270,7 @@ function ReadTimer:addToMainMenu(menu_items)
       {
         text = gettext("Set time"),
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local now_t = os.date("*t")
           local curr_hour = now_t.hour
           local curr_min = now_t.min
@@ -305,8 +305,8 @@ function ReadTimer:addToMainMenu(menu_items)
                   ),
                   timeout = 5,
                 }))
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                if menu then
+                  menu:updateItems()
                 end
               else
                 UIManager:show(InfoMessage:new({
@@ -325,7 +325,7 @@ function ReadTimer:addToMainMenu(menu_items)
       {
         text = gettext("Set interval"),
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local remain_time = {}
           local remain_hours, remain_minutes = self:remainingTime()
           if not remain_hours and not remain_minutes then
@@ -363,8 +363,8 @@ function ReadTimer:addToMainMenu(menu_items)
                 }))
                 remain_time = { timer_time.hour, timer_time.min }
                 G_reader_settings:save("reader_timer_remain_time", remain_time)
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                if menu then
+                  menu:updateItems()
                 end
               end
             end,
@@ -380,10 +380,10 @@ function ReadTimer:addToMainMenu(menu_items)
         enabled_func = function()
           return self:scheduled()
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           self.last_interval_time = 0
           self:unschedule()
-          touchmenu_instance:updateItems()
+          menu:updateItems()
         end,
       },
     },

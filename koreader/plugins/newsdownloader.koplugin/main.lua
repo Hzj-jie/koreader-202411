@@ -105,9 +105,9 @@ function NewsDownloader:getSubMenuItems()
     {
       text = gettext("Sync news feeds"),
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         NetworkMgr:runWhenOnline(function()
-          self:loadConfigAndProcessFeedsWithUI(touchmenu_instance)
+          self:loadConfigAndProcessFeedsWithUI(menu)
         end)
       end,
     },
@@ -218,7 +218,7 @@ function NewsDownloader:lazyInitialization()
   end
 end
 
-function NewsDownloader:loadConfigAndProcessFeeds(touchmenu_instance)
+function NewsDownloader:loadConfigAndProcessFeeds(menu)
   local UI = require("ui/trapper")
   logger.dbg("force repaint due to upcoming blocking calls")
 
@@ -333,9 +333,9 @@ review your feed configuration file.]]),
   -- Clear the info widgets before displaying the next ui widget.
   UI:clear()
   -- Check to see if this method was called from the menu. If it was,
-  -- we will have gotten a touchmenu_instance. This will context gives the user
+  -- we will have gotten a menu. This will context gives the user
   -- two options about what to do next, which are handled by this block.
-  if touchmenu_instance then
+  if menu then
     -- Ask the user if they want to go to their downloads folder
     -- or if they'd rather remain at the menu.
     feed_message = feed_message .. "\n" .. gettext("Go to download folder?")
@@ -345,15 +345,15 @@ review your feed configuration file.]]),
       -- Go to downloads folder.
       UI:clear()
       self:openDownloadsFolder()
-      touchmenu_instance:closeMenu()
+      menu:closeMenu()
     end
   end
 end
 
-function NewsDownloader:loadConfigAndProcessFeedsWithUI(touchmenu_instance)
+function NewsDownloader:loadConfigAndProcessFeedsWithUI(menu)
   local Trapper = require("ui/trapper")
   Trapper:wrap(function()
-    self:loadConfigAndProcessFeeds(touchmenu_instance)
+    self:loadConfigAndProcessFeeds(menu)
   end)
 end
 

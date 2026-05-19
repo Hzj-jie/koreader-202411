@@ -200,12 +200,12 @@ function ReaderTypeset:genStyleSheetMenu()
       callback = function()
         self:setStyleSheet(css_file or self.ui.document.default_css)
       end,
-      hold_callback = function(touchmenu_instance)
+      hold_callback = function(menu)
         self:makeDefaultStyleSheet(
           css_file,
           text,
           description,
-          touchmenu_instance
+          menu
         )
       end,
       checked_func = function()
@@ -480,7 +480,7 @@ function ReaderTypeset:makeDefaultStyleSheet(
   css,
   name,
   description,
-  touchmenu_instance
+  menu
 )
   local text = self.ui.document.is_fb2
       and T(
@@ -499,8 +499,8 @@ function ReaderTypeset:makeDefaultStyleSheet(
       else
         G_reader_settings:save("copt_css", css)
       end
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
     end,
   }))

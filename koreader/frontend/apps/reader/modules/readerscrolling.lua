@@ -162,7 +162,7 @@ This is interesting on eInk if you only pan to better adjust page vertical posit
           )
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local scroll_activation_delay_default_ms =
             self:getDefaultScrollActivationDelay_ms()
           local SpinWidget = require("ui/widget/spinwidget")
@@ -188,8 +188,8 @@ Default value: %1 ms]]),
             callback = function(spin)
               self.scroll_activation_delay_ms = spin.value
               self:applyScrollSettings()
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
           })

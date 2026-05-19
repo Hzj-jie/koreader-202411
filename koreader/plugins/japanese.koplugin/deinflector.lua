@@ -602,15 +602,15 @@ function Deinflector:genTextConversionMenuItems()
       checked_func = function()
         return self.enabled_text_conversions[name] or false
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         self.enabled_text_conversions[name] =
           not self.enabled_text_conversions[name]
         G_reader_settings:save(
           "language_japanese_text_conversions",
           self.enabled_text_conversions
         )
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        if menu then
+          menu:updateItems()
         end
       end,
     })

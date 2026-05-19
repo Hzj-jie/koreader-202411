@@ -60,7 +60,7 @@ table.insert(page_turns_tap_zones_sub_items, {
     )
   end,
   keep_menu_open = true,
-  callback = function(touchmenu_instance)
+  callback = function(menu)
     local is_left_right = G_reader_settings:read("page_turns_tap_zones")
       == "left_right"
     local forward_zone = getForwardTapZone()
@@ -88,8 +88,8 @@ table.insert(page_turns_tap_zones_sub_items, {
           0.6
         )
         ReaderUI.instance.view:setupTouchZones()
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        if menu then
+          menu:updateItems()
         end
       end,
     }))
@@ -143,7 +143,7 @@ local PageTurns = {
       callback = function()
         ReaderUI.instance.view:onToggleReadingOrder()
       end,
-      hold_callback = function(touchmenu_instance)
+      hold_callback = function(menu)
         local inverse_reading_order =
           G_reader_settings:isTrue("inverse_reading_order")
         local MultiConfirmBox = require("ui/widget/multiconfirmbox")
@@ -161,8 +161,8 @@ local PageTurns = {
           end,
           choice1_callback = function()
             G_reader_settings:makeFalse("inverse_reading_order")
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
           choice2_text_func = function()
@@ -171,8 +171,8 @@ local PageTurns = {
           end,
           choice2_callback = function()
             G_reader_settings:makeTrue("inverse_reading_order")
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
         }))

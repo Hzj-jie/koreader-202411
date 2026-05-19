@@ -143,7 +143,7 @@ function ExternalKeyboard:addToMainMenu(menu_items)
         checked_func = function()
           return self:getOTGRole() == USB_ROLE_HOST
         end,
-        callback = function(_touchmenu_instance)
+        callback = function(_menu)
           local role = self:getOTGRole()
           local new_role = (role == USB_ROLE_DEVICE) and USB_ROLE_HOST
             or USB_ROLE_DEVICE
@@ -155,7 +155,7 @@ function ExternalKeyboard:addToMainMenu(menu_items)
         checked_func = function()
           return G_reader_settings:isTrue("external_keyboard_otg_mode_on_start")
         end,
-        callback = function(_touchmenu_instance)
+        callback = function(_menu)
           G_reader_settings:flipNilOrFalse(
             "external_keyboard_otg_mode_on_start"
           )
