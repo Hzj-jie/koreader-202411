@@ -862,7 +862,7 @@ This may help with Greek words among Latin text (as Latin fonts often do not hav
         keep_shown_on_apply = true,
         callback = function(spin)
           local scale = spin.value
-          G_reader_settings:save("cre_monospace_scaling", scale)
+          G_reader_settings:save("cre_monospace_scaling", scale, 100)
           self.ui.document:setMonospaceFontScaling(scale)
           UIManager:broadcastEvent(Event:new("UpdatePos"))
         end,

@@ -1230,19 +1230,29 @@ function PageBrowserWidget:saveSettings(reset)
   else
     self.ui.doc_settings:save("page_browser_toc_depth", self.nb_toc_spans)
   end
-  self.ui.doc_settings:save("page_browser_nb_rows", self.nb_rows)
-  self.ui.doc_settings:save("page_browser_nb_cols", self.nb_cols)
+  self.ui.doc_settings:save(
+    "page_browser_nb_rows",
+    self.nb_rows,
+    G_reader_settings:read("page_browser_nb_rows") or 2
+  )
+  self.ui.doc_settings:save(
+    "page_browser_nb_cols",
+    self.nb_cols,
+    G_reader_settings:read("page_browser_nb_cols") or 3
+  )
   self.ui.doc_settings:save(
     "page_browser_thumbnails_pagenums",
-    self.thumbnails_pagenums
+    self.thumbnails_pagenums,
+    G_reader_settings:read("page_browser_thumbnails_pagenums") or 2
   )
   -- We also save nb_rows/nb_cols as global settings, so they will apply on other books
   -- where they were not already set
-  G_reader_settings:save("page_browser_nb_rows", self.nb_rows)
-  G_reader_settings:save("page_browser_nb_cols", self.nb_cols)
+  G_reader_settings:save("page_browser_nb_rows", self.nb_rows, 2)
+  G_reader_settings:save("page_browser_nb_cols", self.nb_cols, 3)
   G_reader_settings:save(
     "page_browser_thumbnails_pagenums",
-    self.thumbnails_pagenums
+    self.thumbnails_pagenums,
+    2
   )
 end
 

@@ -678,7 +678,7 @@ function FileManagerMenu:getStartWithMenuTable()
         return v[2] == (G_reader_settings:read("start_with") or "filemanager")
       end,
       callback = function()
-        G_reader_settings:save("start_with", v[2])
+        G_reader_settings:save("start_with", v[2], "filemanager")
       end,
       radio = true,
     })

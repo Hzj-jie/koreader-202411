@@ -1418,7 +1418,11 @@ function TouchMenu:onShowMenuSearch()
           callback = function()
             local search_for = search_dialog:getInputText()
             search_for = Utf8Proc.lowercase(search_for)
-            G_reader_settings:save("menu_search_string", search_for)
+            G_reader_settings:save(
+              "menu_search_string",
+              search_for,
+              Utf8Proc.lowercase(gettext("Help"))
+            )
             UIManager:close(search_dialog)
             show_search_results(search_for)
           end,

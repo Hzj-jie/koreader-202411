@@ -63,6 +63,21 @@ describe("luasettings module", function()
         assert.True(child.e == true)
     end)
 
+    it("should prune keys when saved with default value", function()
+        Settings:delete("test_prune")
+        assert.True(Settings:hasNot("test_prune"))
+
+        -- Save non-default value
+        Settings:save("test_prune", "value", "default")
+        assert.True(Settings:has("test_prune"))
+        assert.are.equal(Settings:read("test_prune"), "value")
+
+        -- Save default value
+        Settings:save("test_prune", "default", "default")
+        assert.True(Settings:hasNot("test_prune"))
+        assert.is_nil(Settings:read("test_prune"))
+    end)
+
     describe("table wrapper", function()
         setup(function()
             Settings:delete("key")

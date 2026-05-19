@@ -632,7 +632,8 @@ The interval value is in milliseconds and can range from 0 (0 seconds) to 2000 (
             callback = function(spin)
               G_reader_settings:save(
                 "ges_tap_interval_on_keyboard_ms",
-                spin.value
+                spin.value,
+                0
               )
             end,
           })
