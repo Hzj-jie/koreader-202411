@@ -5,14 +5,8 @@ return {
   ["autodim_starttime_minutes"] = 4,
   ["autoremove_deleted_items_from_history"] = true,
 
-  ["bookmarks_items_font_size"] = 19,
-  ["bookmarks_items_per_page"] = 14,
-
   ["closed_rotation_mode"] = 2,
   ["collate"] = "access",
-  ["copt_block_rendering_mode"] = 2,
-  ["copt_font_size"] = 16,
-  ["copt_line_spacing"] = 100,
   ["coverbrowser_initial_default_setup_done"] = true,
   ["cre_font"] = "Microsoft YaHei",
   ["cre_fonts_recently_selected"] = {

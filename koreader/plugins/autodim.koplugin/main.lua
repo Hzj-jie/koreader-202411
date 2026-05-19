@@ -98,14 +98,14 @@ function AutoDim:addToMainMenu(menu_items)
             return
           end
           self.autodim_starttime_m = spin.value
-          G_reader_settings:save("autodim_starttime_minutes", spin.value)
+          G_reader_settings:save("autodim_starttime_minutes", spin.value, -1)
           self:_scheduleAutoDimTask()
           menu:updateItems()
         end,
         extra_text = gettext("Disable"),
         extra_callback = function()
           self.autodim_starttime_m = -1
-          G_reader_settings:save("autodim_starttime_minutes", -1)
+          G_reader_settings:save("autodim_starttime_minutes", -1, -1)
           self:_scheduleAutoDimTask()
           menu:updateItems()
         end,

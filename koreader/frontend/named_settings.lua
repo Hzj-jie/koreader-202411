@@ -24,6 +24,10 @@ function named_settings.activate_menu()
   return G_reader_settings:read("activate_menu") or "swipe_tap"
 end
 
+function named_settings.set.activate_menu(value)
+  return G_reader_settings:save("activate_menu", value, "swipe_tap")
+end
+
 function named_settings.auto_standby_timeout_seconds()
   return G_reader_settings:read("auto_standby_timeout_seconds") or -1
 end
