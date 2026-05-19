@@ -203,7 +203,7 @@ function ReaderConfig:onCloseConfigMenu()
 end
 
 function ReaderConfig:onReadSettings(config)
-  self.configurable:loadSettings(config, self.options.prefix .. "_")
+  self.configurable:load(config, self.options.prefix .. "_")
   local config_panel_index = config:read("config_panel_index")
   if config_panel_index then
     config_panel_index = math.min(config_panel_index, #self.options)
@@ -212,7 +212,7 @@ function ReaderConfig:onReadSettings(config)
 end
 
 function ReaderConfig:onSaveSettings()
-  self.configurable:saveSettings(
+  self.configurable:save(
     self.ui.doc_settings,
     self.options.prefix .. "_"
   )

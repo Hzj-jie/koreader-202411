@@ -52,7 +52,7 @@ function Configurable:loadDefaults(config_options)
   self.defaults = defaults
 end
 
-function Configurable:loadSettings(settings, prefix)
+function Configurable:load(settings, prefix)
   for key, value in pairs(self) do
     local settings_key = prefix .. key
     if settings:has(settings_key) then
@@ -69,7 +69,7 @@ function Configurable:loadSettings(settings, prefix)
   end
 end
 
-function Configurable:saveSettings(settings, prefix)
+function Configurable:save(settings, prefix)
   for key, value in pairs(self) do
     if key ~= "defaults" then
       local value_type = type(value)

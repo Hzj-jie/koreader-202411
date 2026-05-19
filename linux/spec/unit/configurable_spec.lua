@@ -123,7 +123,7 @@ describe("Configurable", function()
         end)
     end)
 
-    describe("loadSettings", function()
+    describe("load", function()
         it("should load settings from provided settings object with prefix", function()
             local mock_settings_data = {
                 pref_opt1 = "loaded1",
@@ -149,7 +149,7 @@ describe("Configurable", function()
                 opt3 = { val = 3 },
             })
 
-            conf:loadSettings(mock_settings, "pref_")
+            conf:load(mock_settings, "pref_")
 
             assert.are.equal("loaded1", conf.opt1)
             assert.are.equal(200, conf.opt2)
@@ -167,12 +167,12 @@ describe("Configurable", function()
             })
 
             assert.has_error(function()
-                conf:loadSettings(mock_settings, "pref_")
+                conf:load(mock_settings, "pref_")
             end)
         end)
     end)
 
-    describe("saveSettings", function()
+    describe("save", function()
         it("should save settings to provided settings object with prefix and defaults", function()
             local saved_data = {}
             local mock_settings = {
@@ -192,7 +192,7 @@ describe("Configurable", function()
                 }
             })
 
-            conf:saveSettings(mock_settings, "pref_")
+            conf:save(mock_settings, "pref_")
 
             assert.are.same({
                 pref_opt1 = { value = "val1", default = "default1" },
@@ -211,7 +211,7 @@ describe("Configurable", function()
 
             local conf = Configurable:new({
                 opt1 = "val1",
-                opt_bool = true, -- should assert/error in saveSettings if it tries to save it
+                opt_bool = true, -- should assert/error in save if it tries to save it
                 defaults = {
                     opt1 = "default1",
                     opt_bool = false,
@@ -220,7 +220,7 @@ describe("Configurable", function()
 
             -- configurable.lua:83 has assert(false) for non-string/number/table
             assert.has_error(function()
-                conf:saveSettings(mock_settings, "pref_")
+                conf:save(mock_settings, "pref_")
             end)
         end)
     end)
