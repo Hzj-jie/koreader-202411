@@ -52,7 +52,8 @@ local function save_bookmarks_items_font_size(value)
   return G_reader_settings:save(
     "bookmarks_items_font_size",
     value,
-    G_reader_settings:read("items_font_size") or get_default_bookmarks_font_size()
+    G_reader_settings:read("items_font_size")
+      or get_default_bookmarks_font_size()
   )
 end
 
@@ -73,7 +74,8 @@ local ReaderBookmark = InputContainer:extend({
 function ReaderBookmark:init()
   self:registerKeyEvents()
 
-  self.items_text = G_reader_settings:read("bookmarks_items_text_type") or "note"
+  self.items_text = G_reader_settings:read("bookmarks_items_text_type")
+    or "note"
   self.items_max_lines = G_reader_settings:read("bookmarks_items_max_lines")
 
   self.ui.menu:registerToMainMenu(self)
@@ -322,7 +324,8 @@ function ReaderBookmark:genSortByMenuItems(value, separator)
     date = gettext("date, reverse"),
   }
   if value == nil then
-    local curr_value = G_reader_settings:read("bookmarks_items_sorting") or "page"
+    local curr_value = G_reader_settings:read("bookmarks_items_sorting")
+      or "page"
     if G_reader_settings:isTrue("bookmarks_items_reverse_sorting") then
       return strings_reverse[curr_value]
     else
@@ -332,7 +335,8 @@ function ReaderBookmark:genSortByMenuItems(value, separator)
   return {
     text = strings[value],
     checked_func = function()
-      return value == (G_reader_settings:read("bookmarks_items_sorting") or "page")
+      return value
+        == (G_reader_settings:read("bookmarks_items_sorting") or "page")
     end,
     radio = true,
     callback = function()
