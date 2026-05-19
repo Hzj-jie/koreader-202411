@@ -10,17 +10,9 @@ return {
   ["calculator_use_init_file"] = "yes",
   ["closed_rotation_mode"] = 2,
   ["collate"] = "access",
-  ["copt_b_page_margin"] = 10,
   ["copt_block_rendering_mode"] = 2,
-  ["copt_font_gamma"] = 15,
   ["copt_font_size"] = 16,
-  ["copt_h_page_margins"] = {
-    [1] = 5,
-    [2] = 5,
-  },
   ["copt_line_spacing"] = 100,
-  ["copt_status_line"] = 0,
-  ["copt_t_page_margin"] = 10,
   ["coverbrowser_initial_default_setup_done"] = true,
   ["cre_font"] = "Microsoft YaHei",
   ["cre_fonts_recently_selected"] = {
@@ -56,7 +48,6 @@ return {
   ["cre_header_page_number"] = 0,
   ["cre_header_status_font_size"] = 20,
   ["dev_no_c_blitter"] = false,
-  ["disable_kobolight"] = true,
   ["exporter"] = {
     ["html"] = {
       ["enabled"] = false,
@@ -90,7 +81,6 @@ return {
   },
   ["fallback_font"] = "Noto Sans CJK SC",
   ["filemanagermenu_tab_index"] = 5,
-  ["fl_last_level"] = 80,
   ["floating_punctuation"] = 1,
   ["footer"] = {
     ["align"] = "center",
@@ -144,7 +134,6 @@ return {
   },
   ["history_filter"] = "all",
   ["home_dir"] = "/mnt/us/documents",
-  ["hyph_alg_default"] = "@algorithm",
   ["hyph_force_algorithmic"] = true,
   ["inertial_scroll"] = false,
   ["keyboard_chinese_pinyin_settings"] = {
@@ -165,7 +154,6 @@ return {
   ["kosync"] = {
     ["auto_sync"] = true,
     ["checksum_method"] = 0,
-    ["pages_before_update"] = 5,
     ["sync_backward"] = 1,
     ["sync_forward"] = 2,
   },
@@ -173,8 +161,6 @@ return {
   ["multiswipes_enabled"] = false,
   ["night_mode"] = false,
   ["open_last_menu_show_filename"] = true,
-  ["ota_channel"] = "nightly",
-  ["ota_server"] = "http://ota.koreader.rocks/",
   ["page_turns_disable_swipe"] = true,
   ["page_turns_disable_tap"] = true,
   ["panel_zoom_enabled"] = {
@@ -232,7 +218,6 @@ return {
   ["vocabulary_builder"] = {
     ["enabled"] = true,
   },
-  ["wifi_disable_action"] = "leave_on",
   ["wifi_enable_action"] = "turn_on",
   ["wifi_was_on"] = true,
   ["wikipedia_languages"] = {
