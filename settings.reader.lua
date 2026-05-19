@@ -4,10 +4,10 @@ return {
   ["auto_restore_wifi"] = true,
   ["autodim_starttime_minutes"] = 4,
   ["autoremove_deleted_items_from_history"] = true,
-  ["autowarmth_easy_mode"] = true,
+
   ["bookmarks_items_font_size"] = 19,
   ["bookmarks_items_per_page"] = 14,
-  ["calculator_use_init_file"] = "yes",
+
   ["closed_rotation_mode"] = 2,
   ["collate"] = "access",
   ["copt_block_rendering_mode"] = 2,
@@ -47,7 +47,7 @@ return {
   ["cre_header_page_count"] = 0,
   ["cre_header_page_number"] = 0,
   ["cre_header_status_font_size"] = 20,
-  ["dev_no_c_blitter"] = false,
+
   ["exporter"] = {
     ["html"] = {
       ["enabled"] = false,
@@ -132,7 +132,7 @@ return {
     ["toc_markers_width"] = 2,
     ["wifi_status"] = true,
   },
-  ["history_filter"] = "all",
+
   ["home_dir"] = "/mnt/us/documents",
   ["hyph_force_algorithmic"] = true,
   ["inertial_scroll"] = false,
@@ -158,8 +158,7 @@ return {
     ["sync_forward"] = 2,
   },
   ["low_pan_rate"] = true,
-  ["multiswipes_enabled"] = false,
-  ["night_mode"] = false,
+
   ["open_last_menu_show_filename"] = true,
   ["page_turns_disable_swipe"] = true,
   ["page_turns_disable_tap"] = true,
@@ -180,17 +179,13 @@ return {
   },
   ["quickstart_shown_version"] = 201905000025,
   ["reader_footer_mode"] = 1,
-  ["reverse_collate"] = false,
   ["screensaver_delay"] = "disable",
   ["screensaver_dir"] = "/mnt/us/screensaver",
-  ["screensaver_hide_fallback_msg"] = false,
   ["screensaver_img_background"] = "black",
   ["screensaver_message"] = "%T %S %A Page %c / %t Battery %b%",
   ["screensaver_message_position"] = "bottom",
   ["screensaver_msg_background"] = "none",
-  ["screensaver_rotate_auto_for_best_fit"] = false,
   ["screensaver_show_message"] = true,
-  ["screensaver_stretch_images"] = false,
   ["screensaver_type"] = "random_image",
   ["scroll_method"] = "classic",
   ["show_hidden"] = true,
@@ -214,7 +209,7 @@ return {
   },
   ["style_tweaks_in_dispatcher"] = {},
   ["text_lang_default"] = "en",
-  ["toc_items_per_page"] = 14,
+
   ["vocabulary_builder"] = {
     ["enabled"] = true,
   },
