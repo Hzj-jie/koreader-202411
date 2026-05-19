@@ -10,7 +10,7 @@ function Remarkable_PowerD:frontlightIntensityHW()
   return 0
 end
 
-function Remarkable_PowerD:setIntensityHW(intensity) end
+function Remarkable_PowerD:setIntensityHW(_intensity) end
 
 function Remarkable_PowerD:getCapacityHW()
   return self:read_int_file(self.capacity_file)

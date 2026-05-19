@@ -62,7 +62,7 @@ function TextEditor:registerDocumentRegistryAuxProvider()
   })
 end
 
-function TextEditor:isFileTypeSupported(file)
+function TextEditor:isFileTypeSupported(_file)
   return true
 end
 
@@ -616,7 +616,7 @@ function TextEditor:editFile(file_path, readonly)
       end
     end,
     -- File restoring callback
-    reset_callback = function(content) -- Will add a Reset button
+    reset_callback = function(_content) -- Will add a Reset button
       return util.readFromFile(file_path, "rb") or "",
         gettext("Text reset to last saved content")
     end,
@@ -634,7 +634,7 @@ function TextEditor:editFile(file_path, readonly)
       end
     end,
     -- File saving callback
-    save_callback = function(content, closing) -- Will add Save/Close buttons
+    save_callback = function(content, _closing) -- Will add Save/Close buttons
       if readonly then
         -- We shouldn't be called if read-only, but just in case
         return false, gettext("File is read only")

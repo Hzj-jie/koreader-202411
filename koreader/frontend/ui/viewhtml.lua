@@ -192,9 +192,9 @@ function ViewHtml:_viewSelectionHTML(
   -- we pressed on, to be copied to clipboard
   local text_selection_callback = function(
     text,
-    hold_duration,
+    _hold_duration,
     start_idx,
-    end_idx,
+    _end_idx,
     to_source_index_func
   )
     if not css_selectors_offsets or css_selectors_offsets == "" then -- no flag provided

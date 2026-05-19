@@ -630,11 +630,11 @@ function Input:registerGestureAdjustHook(hook, hook_params)
   end
 end
 
-function Input:eventAdjustHook(ev)
+function Input:eventAdjustHook(_ev)
   -- do nothing by default
 end
 
-function Input:gestureAdjustHook(ges)
+function Input:gestureAdjustHook(_ges)
   -- do nothing by default
 end
 
@@ -1052,7 +1052,7 @@ function Input:handlePowerManagementOnlyEv(ev)
 end
 
 -- Empty event handler used to send input to the void
-function Input:voidEv(ev)
+function Input:voidEv(_ev)
   return
 end
 
@@ -1061,15 +1061,15 @@ function Input:handleGenericEv(ev)
   return Event:new("GenericInput", ev)
 end
 
-function Input:handleMiscEv(ev)
+function Input:handleMiscEv(_ev)
   -- overwritten by device implementation
 end
 
-function Input:handleGyroEv(ev)
+function Input:handleGyroEv(_ev)
   -- setup by the Generic device implementation (for proper toggle handling)
 end
 
-function Input:handleSdlEv(ev)
+function Input:handleSdlEv(_ev)
   -- overwritten by device implementation
 end
 

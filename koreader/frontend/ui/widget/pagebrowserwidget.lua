@@ -1529,7 +1529,7 @@ function PageBrowserWidget:onSpread(arg, ges)
   return true
 end
 
-function PageBrowserWidget:onMultiSwipe(arg, ges)
+function PageBrowserWidget:onMultiSwipe(arg)
   -- All swipes gestures are used for navigation.
   -- Allow for quick closing with any multiswipe.
   self:onExit()

@@ -901,7 +901,7 @@ function ListMenuItem:onTapSelect(arg)
   return true
 end
 
-function ListMenuItem:onHoldSelect(arg, ges)
+function ListMenuItem:onHoldSelect(arg, _ges)
   self.menu:onMenuHold(self.entry)
   return true
 end

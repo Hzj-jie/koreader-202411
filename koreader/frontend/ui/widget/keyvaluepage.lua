@@ -835,7 +835,7 @@ function KeyValuePage:onSwipe(arg, ges_ev)
   end
 end
 
-function KeyValuePage:onMultiSwipe(arg, ges_ev)
+function KeyValuePage:onMultiSwipe(arg)
   -- For consistency with other fullscreen widgets where swipe south can't be
   -- used to close and where we then allow any multiswipe to close, allow any
   -- multiswipe to close this widget too.

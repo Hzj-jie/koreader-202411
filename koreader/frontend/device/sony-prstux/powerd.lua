@@ -19,7 +19,7 @@ function SonyPRSTUX_PowerD:frontlightIntensityHW()
   end
 end
 
-function SonyPRSTUX_PowerD:setIntensityHW(intensity) end
+function SonyPRSTUX_PowerD:setIntensityHW(_intensity) end
 
 function SonyPRSTUX_PowerD:getCapacityHW()
   return self:read_int_file(self.capacity_file)

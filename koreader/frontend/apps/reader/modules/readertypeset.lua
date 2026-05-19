@@ -460,7 +460,7 @@ function ReaderTypeset:setBlockRenderingMode(mode)
   UIManager:broadcastEvent(Event:new("UpdatePos"))
 end
 
-function ReaderTypeset:ensureSanerBlockRenderingFlags(mode)
+function ReaderTypeset:ensureSanerBlockRenderingFlags(_mode)
   -- Called by ReaderRolling:onReadSettings() when old
   -- DOM version requested, before normalized xpointers,
   -- asking us to unset some of the flags set previously.
@@ -569,7 +569,7 @@ function ReaderTypeset:onSetPageTopAndBottomMargin(
   )
 end
 
-function ReaderTypeset:onSyncPageTopBottomMargins(toggle, when_applied_callback)
+function ReaderTypeset:onSyncPageTopBottomMargins(_toggle, when_applied_callback)
   self.sync_t_b_page_margins = not self.sync_t_b_page_margins
   if self.sync_t_b_page_margins then
     -- Adjust current top and bottom margins if needed

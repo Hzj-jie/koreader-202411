@@ -486,7 +486,7 @@ function ReaderBookmark:onPageUpdate(pageno)
   self:setDogearVisibility(pn_or_xp)
 end
 
-function ReaderBookmark:onPosUpdate(pos)
+function ReaderBookmark:onPosUpdate(_pos)
   local pn_or_xp = self.ui.document:getXPointer()
   self:setDogearVisibility(pn_or_xp)
 end

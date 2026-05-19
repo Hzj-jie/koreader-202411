@@ -1368,12 +1368,12 @@ function TouchMenu:onShowMenuSearch()
         single_line = true,
         items_per_page = 10,
         items_font_size = Menu.getItemFontSize(10),
-        onMenuSelect = function(item, pos)
+        onMenuSelect = function(_, pos)
           if pos.callback then
             pos.callback()
           end
         end,
-        onMenuHold = function(item, pos)
+        onMenuHold = function(_, pos)
           if pos.hold_callback then
             pos.hold_callback()
           end

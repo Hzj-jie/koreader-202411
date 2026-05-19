@@ -61,7 +61,7 @@ function ConnectivityChecker:_executable()
   self:stop()
 end
 
-function ConnectivityChecker:_callback(job)
+function ConnectivityChecker:_callback(_job)
   -- Up to 60s.
   if os.clock() - self.settings_id / 1000 < 60 then
     return
@@ -255,7 +255,7 @@ end
 -- NOTE: These *must* run or appropriately forward complete_callback (e.g., to reconnectOrShowNetworkMenu),
 --     as said callback is responsible for schedulig the connectivity check,
 --     which, in turn, is responsible for the Event signaling!
-function NetworkMgr:_turnOnWifi(complete_callback, interactive) end
+function NetworkMgr:_turnOnWifi(_complete_callback, _interactive) end
 function NetworkMgr:_turnOffWifi() end
 
 --- There are three states of the network.
@@ -318,8 +318,8 @@ function NetworkMgr:getNetworkInterfaceName() end
 function NetworkMgr:getConfiguredNetworks() end -- From the *backend*, e.g., wpa_cli list_networks (as opposed to `getAllSavedNetworks`)
 function NetworkMgr:getNetworkList() end
 function NetworkMgr:getCurrentNetwork() end
-function NetworkMgr:authenticateNetwork(network) end
-function NetworkMgr:disconnectNetwork(network) end
+function NetworkMgr:authenticateNetwork(_network) end
+function NetworkMgr:disconnectNetwork(_network) end
 -- NOTE: This is currently only called on hasWifiManager platforms!
 function NetworkMgr:obtainIP() end
 function NetworkMgr:releaseIP() end
@@ -754,7 +754,7 @@ function NetworkMgr:getWifiToggleMenuTable()
     checked_func = function()
       return self:isWifiOn()
     end,
-    callback = function(menu)
+    callback = function(_menu)
       -- interactive
       if self:isWifiOn() then
         self:toggleWifiOff(true)
@@ -856,7 +856,7 @@ function NetworkMgr:getRestoreMenuTable()
     enabled_func = function()
       return Device:hasWifiRestore()
     end,
-    callback = function(menu)
+    callback = function(_menu)
       G_reader_settings:flipNilOrFalse("auto_restore_wifi")
     end,
   }

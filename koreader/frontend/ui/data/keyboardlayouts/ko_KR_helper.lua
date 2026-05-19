@@ -338,7 +338,7 @@ function HgFSM:process_char(char)
   end
 end
 
-function HgFSM:process_bsp(char)
+function HgFSM:process_bsp()
   if
     HgFSM.fsm_state == HgFSM.STATE.IDLE
     or HgFSM.fsm_state == HgFSM.STATE.GOT_INITIAL
@@ -366,7 +366,7 @@ function HgFSM:_process_generic_char(char)
   HgFSM:clean_state()
   HgFSM.ui_handler:put_char(char)
 end
-function HgFSM:_process_generic_bsp(char)
+function HgFSM:_process_generic_bsp()
   HgFSM:clean_state()
   HgFSM.ui_handler:del_char()
 end

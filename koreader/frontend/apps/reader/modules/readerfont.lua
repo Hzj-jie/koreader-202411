@@ -931,7 +931,7 @@ function ReaderFont:sortFaceList(face_list)
       seen_fonts[face] = true
     end
     -- Remove no-longer-there fonts from our list
-    util.arrayRemove(self.fonts_recently_selected, function(t, i, j)
+    util.arrayRemove(self.fonts_recently_selected, function(t, i, _j)
       return seen_fonts[t[i]]
     end)
   end

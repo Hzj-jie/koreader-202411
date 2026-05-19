@@ -178,7 +178,7 @@ function Remarkable:init()
     --       we use a custom input handler that'll ignore ABS_ coordinates from the panel...
     self.input.handleTouchEv = self.input.handleMixedTouchEv
     local mt_height = self.mt_height
-    local mainlineInputMangling = function(this, ev)
+    local mainlineInputMangling = function(_this, ev)
       if ev.type == C.EV_ABS then
         -- Mirror Y for the touch panel
         if ev.code == C.ABS_MT_POSITION_Y then

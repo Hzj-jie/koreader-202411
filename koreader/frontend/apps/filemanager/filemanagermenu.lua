@@ -696,7 +696,7 @@ function FileManagerMenu:getStartWithMenuTable()
   }
 end
 
-function FileManagerMenu:exitOrRestart(callback, force)
+function FileManagerMenu:exitOrRestart(callback, _force)
   CommonMenu:exitOrRestart(function()
     self:_closeFileManagerMenu()
   end, self.ui, callback)
@@ -789,7 +789,7 @@ function FileManagerMenu:onSwipeShowMenu(ges)
   end
 end
 
-function FileManagerMenu:onSetDimensions(dimen)
+function FileManagerMenu:onSetDimensions(_dimen)
   -- This widget doesn't support in-place layout updates, so, close & reopen
   if self.menu_container then
     self:_closeFileManagerMenu()

@@ -1191,7 +1191,7 @@ function ReaderTypography:onReadSettings(config)
   UIManager:broadcastEvent(Event:new("TypographyLanguageChanged"))
 end
 
-function ReaderTypography:onPreRenderDocument(config)
+function ReaderTypography:onPreRenderDocument(_config)
   -- This is called after the document has been loaded,
   -- when we know and can access the document language.
   local doc_language = FileManagerBookInfo.getCustomProp(

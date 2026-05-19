@@ -83,7 +83,7 @@ function ReaderBack:_addPreviousLocationToStack()
 end
 
 -- Called when loading new document
-function ReaderBack:onReadSettings(config)
+function ReaderBack:onReadSettings(_config)
   self.location_stack = {}
   self.cur_location = nil
 end

@@ -372,7 +372,7 @@ function ReaderHandMade:setupToc(no_event)
   if self.toc_enabled then
     -- If enabled, plug one method into the document object,
     -- so it is used instead of the method from its class.
-    self.document.getToc = function(this)
+    self.document.getToc = function(_this)
       -- ReaderToc may add fields to ToC items: return a copy,
       -- so the one we will save doesn't get polluted.
       return util.tableDeepCopy(self.toc)
@@ -676,13 +676,13 @@ function ReaderHandMade:setupFlows(no_event)
     self:updateDocFlows()
     -- If enabled, plug some methods into the document object,
     -- so they are used instead of the methods from its class.
-    self.document.hasHiddenFlows = function(this)
+    self.document.hasHiddenFlows = function(_this)
       return true
     end
-    self.document.cacheFlows = function(this)
+    self.document.cacheFlows = function(_this)
       return
     end
-    self.document.getPageFlow = function(this, page)
+    self.document.getPageFlow = function(_this, page)
       for i, flow in ipairs(self.flows) do
         if page < flow[1] then
           return 0 -- page is not in a hidden flow
@@ -693,13 +693,13 @@ function ReaderHandMade:setupFlows(no_event)
       end
       return 0
     end
-    self.document.getFirstPageInFlow = function(this, flow)
+    self.document.getFirstPageInFlow = function(_this, flow)
       return self.flows[flow][1]
     end
-    self.document.getTotalPagesInFlow = function(this, flow)
+    self.document.getTotalPagesInFlow = function(_this, flow)
       return self.flows[flow][2]
     end
-    self.document.getPageNumberInFlow = function(this, page)
+    self.document.getPageNumberInFlow = function(_this, page)
       local nb_hidden_pages = 0
       for i, flow in ipairs(self.flows) do
         if page < flow[1] then
@@ -712,7 +712,7 @@ function ReaderHandMade:setupFlows(no_event)
       end
       return page - nb_hidden_pages
     end
-    self.document.getLastLinearPage = function(this)
+    self.document.getLastLinearPage = function(_this)
       return self.last_linear_page
     end
     -- We can reuse as-is these ones from CreDocument, which uses the ones defined above.

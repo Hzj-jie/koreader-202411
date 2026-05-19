@@ -60,7 +60,7 @@ function ReaderDogear:setupDogear(new_dogear_size)
   end
 end
 
-function ReaderDogear:onReadSettings(config)
+function ReaderDogear:onReadSettings(_config)
   if self.ui.rolling then
     -- Adjust to CreDocument margins (as done in ReaderTypeset)
     local configurable = self.ui.document.configurable

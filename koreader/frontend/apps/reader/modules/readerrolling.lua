@@ -1256,7 +1256,7 @@ function ReaderRolling:onRedrawCurrentView()
   return true
 end
 
-function ReaderRolling:onSetDimensions(dimen)
+function ReaderRolling:onSetDimensions(_dimen)
   if not self.ui:ready() then
     -- ReaderUI:init() not yet done: just set document dimensions
     self.ui.document:setViewDimen(Screen:getSize())
@@ -1661,7 +1661,7 @@ function ReaderRolling:checkXPointersAndProposeDOMVersionUpgrade()
   end
 
   -- To be provided to applyFuncToXPointersSlots()
-  local migrateXPointer = function(obj, slot, info)
+  local migrateXPointer = function(obj, slot, _info)
     local xp = obj[slot]
     if not xp then
       return

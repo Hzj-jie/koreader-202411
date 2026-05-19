@@ -239,7 +239,7 @@ function InputContainer:onGesture(ev)
 end
 
 -- Will be overloaded by the Gestures plugin, if enabled, for use in _onGestureFiltered
-function InputContainer:_isGestureAlwaysActive(ges, multiswipe_directions)
+function InputContainer:_isGestureAlwaysActive(_ges, _multiswipe_directions)
   -- If the plugin isn't enabled, IgnoreTouchInput can still be emitted by Dispatcher (e.g., via Profile or QuickMenu).
   -- Regardless of that, we still want to block all gestures anyway, as our own onResume handler will ensure
   -- that the standard onGesture handler is restored on the next resume cycle,

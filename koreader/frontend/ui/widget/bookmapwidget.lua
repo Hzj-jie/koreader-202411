@@ -1299,7 +1299,7 @@ function BookMapWidget:update()
 
   -- Scroll so we get the focus page at the middle of screen
   local row, row_idx, row_y, row_h = self:getMatchingVGroupRow( -- luacheck: ignore 311 231
-    function(r, __, __)
+    function(r, _y, _h)
       return r.start_page
         and self.focus_page >= r.start_page
         and self.focus_page <= r.end_page
@@ -1309,7 +1309,7 @@ function BookMapWidget:update()
     local top_y = row_y + row_h / 2 - self.crop_height / 2
     -- Align it so that we don't see any truncated BookMapRow at top
     row, row_idx, row_y, row_h = self:getMatchingVGroupRow(
-      function(__, r_y, r_h)
+      function(_row, r_y, r_h)
         return r_y < top_y and r_y + r_h > top_y
       end
     )
@@ -1656,7 +1656,7 @@ function BookMapWidget:getVGroupRowAtY(y)
   -- y is expected relative to the ScrollableContainer crop top
   -- (if y is from a screen coordinate, subtract 'self.title_bar_h' before calling this)
   y = y + self.cropping_widget._scroll_offset_y
-  return self:getMatchingVGroupRow(function(r, r_y, r_h)
+  return self:getMatchingVGroupRow(function(_, r_y, r_h)
     return y >= r_y and y < r_y + r_h
   end)
 end
@@ -1984,7 +1984,7 @@ function BookMapWidget:onSpread(arg, ges)
   return true
 end
 
-function BookMapWidget:onMultiSwipe(arg, ges)
+function BookMapWidget:onMultiSwipe(arg)
   -- Swipe south (the usual shortcut for closing a full screen window)
   -- is used for navigation. Swipe left/right are free, but a little
   -- unusual for the purpose of closing.
@@ -2030,13 +2030,13 @@ function BookMapWidget:paintTo(bb, x, y)
   -- Paint regular sub widgets the classic way
   InputContainer.paintTo(self, bb, x, y)
   -- And explicitly paint "swipe" hints along the left and bottom borders
-  self:paintLeftVerticalSwipeHint(bb, x, y)
+  self:paintLeftVerticalSwipeHint(bb)
   if not self.overview_mode then
-    self:paintBottomHorizontalSwipeHint(bb, x, y)
+    self:paintBottomHorizontalSwipeHint(bb)
   end
 end
 
-function BookMapWidget:paintLeftVerticalSwipeHint(bb, x, y)
+function BookMapWidget:paintLeftVerticalSwipeHint(bb)
   -- Vertical bar with a part of it darker, as a scale showing
   -- selected flat_map and toc_depth. In gray so it's visible
   -- when you look at it, but not distracting when you don't.
@@ -2085,7 +2085,7 @@ function BookMapWidget:paintLeftVerticalSwipeHint(bb, x, y)
   )
 end
 
-function BookMapWidget:paintBottomHorizontalSwipeHint(bb, x, y)
+function BookMapWidget:paintBottomHorizontalSwipeHint(bb)
   -- Horizontal bar with a part of it darker, as a scale showing
   -- selected pages_per_row.
   local h = self.hs_hint_info

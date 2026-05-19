@@ -330,7 +330,7 @@ function ReaderHighlight:setupTouchZones()
         "tap_forward",
         "tap_backward",
       },
-      handler = function(ges)
+      handler = function(_ges)
         return self:onTapSelectModeIcon()
       end,
     },
@@ -1730,14 +1730,14 @@ function ReaderHighlight:_resetHoldTimer(clear)
   end
 end
 
-function ReaderHighlight:onTogglePanelZoomSetting(arg, ges)
+function ReaderHighlight:onTogglePanelZoomSetting(arg, _ges)
   if self.ui.rolling then
     return
   end
   self.panel_zoom_enabled = not self.panel_zoom_enabled
 end
 
-function ReaderHighlight:onToggleFallbackTextSelection(arg, ges)
+function ReaderHighlight:onToggleFallbackTextSelection(arg, _ges)
   if self.ui.rolling then
     return
   end
@@ -2131,7 +2131,7 @@ end
 dbg:guard(
   ReaderHighlight,
   "lookup",
-  function(self, selected_text, selected_link)
+  function(self, selected_text, _selected_link)
     assert(
       selected_text ~= nil,
       "lookup must not be called with nil selected_text!"
@@ -2157,7 +2157,7 @@ function ReaderHighlight:getSelectedWordContext(nb_words)
   end
 end
 
-function ReaderHighlight:viewSelectionHTML(debug_view, no_css_files_buttons)
+function ReaderHighlight:viewSelectionHTML(_debug_view, _no_css_files_buttons)
   if
     self.selected_text
     and self.selected_text.pos0

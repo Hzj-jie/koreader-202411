@@ -318,7 +318,7 @@ function SetDefaultsWidget:saveSettings()
   }))
 end
 
-function SetDefaultsWidget:saveBeforeExit(callback)
+function SetDefaultsWidget:saveBeforeExit(_callback)
   local save_text = gettext("Save and quit")
   if Device:canRestart() then
     save_text = gettext("Save and restart")

@@ -329,7 +329,7 @@ function Kindle:initNetworkManager(NetworkMgr)
     end
   else
     -- If we can't use the lipc Lua bindings, we can't support any kind of interactive Wi-Fi UI...
-    function NetworkMgr:_turnOnWifi(complete_callback, interactive)
+    function NetworkMgr:_turnOnWifi(complete_callback, _interactive)
       kindleEnableWifi(1)
       if complete_callback then
         complete_callback()
@@ -829,7 +829,7 @@ function Kindle:UIManagerReady(uimgr)
   UIManager = uimgr
 end
 
-function Kindle:setEventHandlers(uimgr)
+function Kindle:setEventHandlers(_uimgr)
   -- These custom fake events *will* pass an argument...
   self.input.fake_event_args.IntoSS = {}
   self.input.fake_event_args.OutOfSS = {}
@@ -1425,7 +1425,7 @@ function KindlePaperWhite3:init()
 end
 
 -- HAL for gyro orientation switches (EV_ABS:ABS_PRESSURE (?!) w/ custom values to EV_MSC:MSC_GYRO w/ our own custom values)
-local function OasisGyroTranslation(this, ev)
+local function OasisGyroTranslation(_this, ev)
   local DEVICE_ORIENTATION_PORTRAIT_LEFT = 15
   local DEVICE_ORIENTATION_PORTRAIT_RIGHT = 17
   local DEVICE_ORIENTATION_PORTRAIT = 19
@@ -1512,7 +1512,7 @@ function KindleOasis:init()
 end
 
 -- HAL for gyro orientation switches (EV_ABS:ABS_PRESSURE (?!) w/ custom values to EV_MSC:MSC_GYRO w/ our own custom values)
-local function KindleGyroTransform(this, ev)
+local function KindleGyroTransform(_this, ev)
   -- See source code:
   -- c.f., drivers/input/misc/accel/bma2x2.c for KOA2/KOA3
   -- c.f., drivers/input/misc/kx132/kx132.h for KS

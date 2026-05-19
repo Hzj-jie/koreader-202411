@@ -849,7 +849,7 @@ function CreDocument:getNextVisibleChar(xp)
 end
 
 function CreDocument:getSelectedWordContext(
-  word,
+  _word,
   nb_words,
   pos0,
   pos1,
@@ -891,7 +891,7 @@ function CreDocument:getSelectedWordContext(
   return prev, next
 end
 
-function CreDocument:drawCurrentView(target, x, y, rect, pos)
+function CreDocument:drawCurrentView(target, x, y, rect, _pos)
   if self.buffer and (self.buffer.w ~= rect.w or self.buffer.h ~= rect.h) then
     self.buffer:free()
     self.buffer = nil
@@ -952,11 +952,11 @@ function CreDocument:drawCurrentViewByPage(target, x, y, rect, page)
   self:drawCurrentView(target, x, y, rect)
 end
 
-function CreDocument:hintPage(pageno, zoom, rotation) end
+function CreDocument:hintPage(_pageno, _zoom, _rotation) end
 
-function CreDocument:drawPage(target, x, y, rect, pageno, zoom, rotation) end
+function CreDocument:drawPage(_target, _x, _y, _rect, _pageno, _zoom, _rotation) end
 
-function CreDocument:renderPage(pageno, rect, zoom, rotation) end
+function CreDocument:renderPage(_pageno, _rect, _zoom, _rotation) end
 
 function CreDocument:getPageMargins()
   return self._document:getPageMargins()
@@ -1137,7 +1137,7 @@ function CreDocument:goBack()
   self._document:goBack()
 end
 
-function CreDocument:goForward(link)
+function CreDocument:goForward(_link)
   logger.dbg("CreDocument: go forward")
   self._document:goForward()
 end
@@ -1613,7 +1613,7 @@ function CreDocument:findText(
   origin,
   direction,
   case_insensitive,
-  page,
+  _page,
   regex,
   max_hits
 )
@@ -1933,7 +1933,7 @@ function CreDocument:setupCallCache()
     end
     self._current_call_cache_tag = tag
   end
-  self._callCacheGetCurrentTag = function(tag)
+  self._callCacheGetCurrentTag = function(_tag)
     return self._current_call_cache_tag
   end
   -- per current tag cache

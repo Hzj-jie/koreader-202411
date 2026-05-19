@@ -12,7 +12,7 @@ local menu = {
   sub_item_table = {
     {
       text = gettext("Try PagePress, inverted when pressed"),
-      onKeyPress = function(menu, menuItem, key)
+      onKeyPress = function(_menu, menuItem, key)
         if
           key:match({ Input.group.PgFwd }) or key:match({ Input.group.PgBack })
         then

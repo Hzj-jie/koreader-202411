@@ -63,7 +63,7 @@ function ReaderKoptListener:onFineTuningFontSize(delta)
     + delta
 end
 
-function ReaderKoptListener:onZoomUpdate(zoom)
+function ReaderKoptListener:onZoomUpdate(_zoom)
   -- an exceptional case is reflow mode
   if self.document.configurable.text_wrap == 1 then
     self.view.state.zoom = 1.0

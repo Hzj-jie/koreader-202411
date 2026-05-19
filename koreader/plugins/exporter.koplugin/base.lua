@@ -81,7 +81,7 @@ Exports a table of booknotes to local format or remote service
 @param t table of booknotes
 @treturn bool success
 ]]
-function BaseExporter:export(t) end
+function BaseExporter:export(_t) end
 
 --[[--
 File path where the exporter writes its output

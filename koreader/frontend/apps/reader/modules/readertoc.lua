@@ -156,7 +156,7 @@ function ReaderToc:onPageUpdate(pageno)
   self.pageno = pageno
 end
 
-function ReaderToc:onPosUpdate(pos, pageno)
+function ReaderToc:onPosUpdate(_pos, pageno)
   if pageno then
     self.pageno = pageno
   end

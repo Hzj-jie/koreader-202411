@@ -556,7 +556,7 @@ function ReaderView:drawScrollView(bb, x, y)
   )
 end
 
-function ReaderView:drawHighlightIndicator(bb, x, y)
+function ReaderView:drawHighlightIndicator(bb, _x, _y)
   local rect = self.highlight.indicator
   -- paint big cross line +
   bb:paintRect(

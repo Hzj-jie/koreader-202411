@@ -1395,7 +1395,7 @@ function Menu:setupItemHeights()
   end
 end
 
-function Menu:onScreenResize(dimen)
+function Menu:onScreenResize(_dimen)
   self:init()
   return false
 end
@@ -1480,7 +1480,7 @@ end
 override this function to process the item hold in a different manner
 ]]
 --
-function Menu:onMenuHold(item)
+function Menu:onMenuHold(_item)
   return true
 end
 
@@ -1597,7 +1597,7 @@ function Menu:onPan(arg, ges_ev)
   return true
 end
 
-function Menu:onMultiSwipe(arg, ges_ev)
+function Menu:onMultiSwipe(arg, _ges_ev)
   -- For consistency with other fullscreen widgets where swipe south can't be
   -- used to close and where we then allow any multiswipe to close, allow any
   -- multiswipe to close this widget too.

@@ -15,7 +15,7 @@ function ReaderCoptListener:init()
   self.additional_header_content = {} -- place, where additional header content can be inserted.
 end
 
-function ReaderCoptListener:onReadSettings(config)
+function ReaderCoptListener:onReadSettings(_config)
   local view_mode_name = self.document.configurable.view_mode == 0 and "page"
     or "scroll"
   -- Let crengine know of the view mode before rendering, as it can
@@ -227,7 +227,7 @@ function ReaderCoptListener:onPageUpdate(pageno)
   self:updatePageInfoOverride(pageno)
 end
 
-function ReaderCoptListener:onPosUpdate(pos, pageno)
+function ReaderCoptListener:onPosUpdate(_pos, pageno)
   self:updatePageInfoOverride(pageno)
 end
 

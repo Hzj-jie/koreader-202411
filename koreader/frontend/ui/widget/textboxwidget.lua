@@ -2231,7 +2231,7 @@ function TextBoxWidget:onHoldStartText(_, ges)
   return true
 end
 
-function TextBoxWidget:onHoldPanText(_, ges)
+function TextBoxWidget:onHoldPanText(_arg, _ges)
   -- We don't highlight the currently selected text, but just let this
   -- event pop up if we are not currently selecting text
   if not self.hold_start_time then

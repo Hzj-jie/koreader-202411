@@ -211,7 +211,7 @@ function Gestures:init()
   self:initGesture()
   -- Overload InputContainer's stub to allow it to recognize "always active" gestures
   InputContainer.isGestureAlwaysActive = function(
-    this,
+    _this,
     ges,
     multiswipe_directions
   )

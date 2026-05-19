@@ -313,7 +313,7 @@ function ReaderStyleTweak:resolveConflictsBeforeEnabling(id, conflicts_with)
         or util.arrayContains(conflicts_with, otid)
     end
   else
-    conflicts_with_func = function(otid)
+    conflicts_with_func = function(_otid)
       return false
     end
   end
@@ -361,7 +361,7 @@ function ReaderStyleTweak:resolveConflictsBeforeMakingDefault(
         or util.arrayContains(conflicts_with, otid)
     end
   else
-    conflicts_with_func = function(otid)
+    conflicts_with_func = function(_otid)
       return false
     end
   end
@@ -1367,7 +1367,7 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
       end
     end,
     reset_button_text = gettext("Restore"),
-    reset_callback = function(content) -- Will add a Reset button
+    reset_callback = function(_content) -- Will add a Reset button
       return self.book_style_tweak or "", gettext("Book tweak restored")
     end,
     save_button_text = SAVE_BUTTON_LABEL,

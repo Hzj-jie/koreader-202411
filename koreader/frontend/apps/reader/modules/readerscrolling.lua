@@ -34,7 +34,7 @@ local ReaderScrolling = WidgetContainer:extend({
   pause_before_release_cancel_duration = time.ms(300),
 
   -- Callbacks to be updated by readerrolling or readerpaging
-  _do_scroll_callback = function(distance)
+  _do_scroll_callback = function(_distance)
     return false
   end,
   _scroll_done_callback = function() end,

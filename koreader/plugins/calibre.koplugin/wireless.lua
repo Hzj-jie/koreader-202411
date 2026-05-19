@@ -133,7 +133,7 @@ function CalibreWireless:checkCalibreServer(host, port)
 end
 
 -- Standard JSON/control opcodes receive callback
-function CalibreWireless:JSONReceiveCallback(host, port)
+function CalibreWireless:JSONReceiveCallback(_host, _port)
   -- NOTE: Closure trickery because we need a reference to *this* self *inside* the callback,
   --       which will be called as a function from another object (namely, StreamMessageQueue).
   local this = self

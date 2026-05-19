@@ -115,7 +115,7 @@ If it's the screen BlitBuffer, then widget will show up on screen refresh.
 @int x x offset within the BlitBuffer
 @int y y offset within the BlitBuffer
 ]]
-function Widget:paintTo(bb, x, y) end
+function Widget:paintTo(_bb, _x, _y) end
 
 function Widget:refreshMode()
   return self._refresh_mode or "ui"

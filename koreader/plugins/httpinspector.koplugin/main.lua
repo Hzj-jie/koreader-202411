@@ -263,7 +263,7 @@ end
 -- May fail if recursive references, use with pcall()
 local getAsJsonString = function(obj)
   local encoder_options = {}
-  encoder_options.preProcess = function(value, isObjectKey)
+  encoder_options.preProcess = function(value, _isObjectKey)
     local value_type = type(value)
     if value_type == "function" then
       return "function"

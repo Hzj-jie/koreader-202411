@@ -884,7 +884,7 @@ function MosaicMenuItem:onTapSelect(arg)
   return true
 end
 
-function MosaicMenuItem:onHoldSelect(arg, ges)
+function MosaicMenuItem:onHoldSelect(arg, _ges)
   self.menu:onMenuHold(self.entry)
   return true
 end

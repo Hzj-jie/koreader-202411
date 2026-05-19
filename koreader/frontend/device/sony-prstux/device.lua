@@ -199,7 +199,7 @@ function SonyPRSTUX:UIManagerReady(uimgr)
   UIManager = uimgr
 end
 
-function SonyPRSTUX:setEventHandlers(uimgr)
+function SonyPRSTUX:setEventHandlers(_uimgr)
   UIManager.event_handlers.Suspend = function()
     self:intoScreenSaver()
     self:suspend()

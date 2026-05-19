@@ -760,7 +760,7 @@ function ReaderZooming:setNumberOf(what, num, overlap)
   return zoom_factor
 end
 
-function ReaderZooming:_zoomFactorChange(title_text, direction, precision)
+function ReaderZooming:_zoomFactorChange(title_text, direction, _precision)
   local zoom_factor, overlap = self:getNumberOf(direction)
   UIManager:show(SpinWidget:new({
     value = zoom_factor,

@@ -1123,7 +1123,7 @@ function CalendarDayView:onSwipe(arg, ges_ev)
   end
 end
 
-function CalendarDayView:onMultiSwipe(arg, ges_ev)
+function CalendarDayView:onMultiSwipe(arg, _ges_ev)
   self:onExit()
   return true
 end
@@ -1671,7 +1671,7 @@ function CalendarView:onSwipe(arg, ges_ev)
   end
 end
 
-function CalendarView:onMultiSwipe(arg, ges_ev)
+function CalendarView:onMultiSwipe(arg, _ges_ev)
   -- For consistency with other fullscreen widgets where swipe south can't be
   -- used to close and where we then allow any multiswipe to close, allow any
   -- multiswipe to close this widget too.

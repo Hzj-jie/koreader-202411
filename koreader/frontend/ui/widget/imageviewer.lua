@@ -626,7 +626,7 @@ function ImageViewer:onSwipe(_, ges)
   return true
 end
 
-function ImageViewer:onMultiSwipe(_, ges)
+function ImageViewer:onMultiSwipe(_arg, _ges)
   -- As swipe south to close is only enabled when scaled to fit, but not
   -- when we are zoomed in/out, allow any multiswipe to close.
   self:onExit()
@@ -668,7 +668,7 @@ function ImageViewer:onPan(_, ges)
   return true
 end
 
-function ImageViewer:onPanRelease(_, ges)
+function ImageViewer:onPanRelease(_arg, _ges)
   if self._panning then
     self._panning = false
     self:panBy(-self._pan_relative_x, -self._pan_relative_y)

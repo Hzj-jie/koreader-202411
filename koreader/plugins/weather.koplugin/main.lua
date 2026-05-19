@@ -188,7 +188,7 @@ function Weather:getSubMenuItems()
                 return self:fahrenheit()
               end,
               keep_menu_open = true,
-              callback = function(touchmenu_instance)
+              callback = function(_touchmenu_instance)
                 self.temp_scale = "F"
               end,
             },
@@ -215,7 +215,7 @@ function Weather:getSubMenuItems()
                 return self:clock_24()
               end,
               keep_menu_open = true,
-              callback = function(touchmenu_instance)
+              callback = function(_touchmenu_instance)
                 self.clock_style = "24"
               end,
             },

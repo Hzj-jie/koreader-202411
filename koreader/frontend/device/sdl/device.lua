@@ -307,7 +307,7 @@ function Device:init()
 
   if self.input.gameControllerRumble(0, 0, 0) then
     self.isHapticFeedbackEnabled = util.yes
-    self.performHapticFeedback = function(type)
+    self.performHapticFeedback = function(_type)
       self.input.gameControllerRumble()
     end
   end
@@ -368,7 +368,7 @@ function Device:UIManagerReady(uimgr)
   UIManager = uimgr
 end
 
-function Device:setEventHandlers(uimgr)
+function Device:setEventHandlers(_uimgr)
   if not self:canSuspend() then
     -- If we can't suspend, we have no business even trying to, as we may not have overloaded `Device:simulateResume`.
     -- Instead, rely on the Generic Suspend/Resume handlers.

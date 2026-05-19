@@ -188,7 +188,7 @@ function Notification:onGesture(ev)
 end
 
 -- Since toasts do *not* prevent event propagation, if we let this go through to InputContainer, shit happens...
-function Notification:onIgnoreTouchInput(toggle)
+function Notification:onIgnoreTouchInput(_toggle)
   return true
 end
 -- Do the same for other Events caught by our base class

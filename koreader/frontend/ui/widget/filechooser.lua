@@ -701,12 +701,12 @@ function FileChooser:onMenuHold(item)
   return true
 end
 
-function FileChooser:fileSelect(item)
+function FileChooser:fileSelect(_item)
   UIManager:close(self)
   return true
 end
 
-function FileChooser:fileHold(item)
+function FileChooser:fileHold(_item)
   return true
 end
 

@@ -2112,7 +2112,7 @@ function ReaderStatistics:getCurrentStat()
       ),
       callback = function()
         local CalendarView = require("calendarview")
-        local title_callback = function(this)
+        local title_callback = function(_this)
           return T(gettext("Today (%1)"), datetime.secondsToDate(now_ts, true))
         end
         CalendarView:showCalendarDayView(self, title_callback)
@@ -3319,7 +3319,7 @@ function ReaderStatistics:deleteBooksByTotalDuration(max_total_duration_mn)
   }))
 end
 
-function ReaderStatistics:onPosUpdate(pos, pageno)
+function ReaderStatistics:onPosUpdate(_pos, pageno)
   if self.curr_page ~= pageno then
     self:onPageUpdate(pageno)
   end

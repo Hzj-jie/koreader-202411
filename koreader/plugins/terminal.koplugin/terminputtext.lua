@@ -78,7 +78,7 @@ function TermInputText:init()
 end
 
 -- disable positioning cursor by tap in emulator mode
-function TermInputText:onTapTextBox(arg, ges)
+function TermInputText:onTapTextBox(arg, _ges)
   return true
 end
 
@@ -156,7 +156,7 @@ function TermInputText:restoreBuffer(buffer)
   end
 end
 
-function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, param3)
+function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, _param3)
   if cmd == "A" then -- cursor up
     param1 = param1 == 0 and 1 or param1
     for i = 1, param1 do

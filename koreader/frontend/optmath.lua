@@ -121,7 +121,7 @@ function Math.clamp(value, min, max)
   end
   return value
 end
-dbg:guard(Math, "minmax", function(value, min, max)
+dbg:guard(Math, "minmax", function(_value, min, max)
   assert(
     min ~= nil and max ~= nil,
     "Math.clamp: min " .. min .. " and max " .. nil .. " must not be nil"

@@ -496,17 +496,17 @@ function MenuDialog:onExit()
   return true
 end
 
-function MenuDialog:onChangeContextStatus(__, position)
+function MenuDialog:onChangeContextStatus(_args, position)
   settings.with_context = position == 2
   saveSettings()
 end
 
-function MenuDialog:onChangeEnableStatus(__, position)
+function MenuDialog:onChangeEnableStatus(_args, position)
   settings.enabled = position == 2
   saveSettings()
 end
 
-function MenuDialog:onConfigChoose(values, name, event, args, position)
+function MenuDialog:onConfigChoose(values, _name, event, args, position)
   UIManager:tickAfterNext(function()
     if values then
       if event == "ChangeEnableStatus" then
@@ -1194,7 +1194,7 @@ function VocabItemWidget:onTap(_, ges)
   return true
 end
 
-function VocabItemWidget:onHold(_, ges)
+function VocabItemWidget:onHold(_arg, _ges)
   self:onShowBookAssignment()
   return true
 end

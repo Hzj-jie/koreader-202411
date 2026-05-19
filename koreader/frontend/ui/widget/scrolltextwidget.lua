@@ -371,7 +371,7 @@ function ScrollTextWidget:onPanText(arg, ges)
   return true
 end
 
-function ScrollTextWidget:onPanReleaseText(arg, ges)
+function ScrollTextWidget:onPanReleaseText(arg)
   if self._pan_direction and self._pan_relative_y then -- went thru onPanText
     if self._pan_direction == "north" or self._pan_direction == "south" then
       local nb_lines = Math.round(self._pan_relative_y / self:getLineHeight())

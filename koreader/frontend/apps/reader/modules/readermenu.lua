@@ -376,7 +376,7 @@ function ReaderMenu:saveDocumentSettingsAsDefault()
   end
 end
 
-function ReaderMenu:exitOrRestart(callback, force)
+function ReaderMenu:exitOrRestart(callback, _force)
   CommonMenu:exitOrRestart(function()
     self:closeMenu()
   end, self.ui, callback)
@@ -435,7 +435,7 @@ function ReaderMenu:onCloseReaderMenu()
   return true
 end
 
-function ReaderMenu:onSetDimensions(dimen)
+function ReaderMenu:onSetDimensions(_dimen)
   -- This widget doesn't support in-place layout updates, so, close & reopen
   if self.menu_container then
     self:onCloseReaderMenu()

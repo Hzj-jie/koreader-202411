@@ -11,7 +11,7 @@ local M = {}
 function M:new(o)
   -- platform specific function to check availability of apps at runtime.
   if not o.check or type(o.check) ~= "function" then
-    o.check = function(app)
+    o.check = function(_app)
       return false
     end
   end

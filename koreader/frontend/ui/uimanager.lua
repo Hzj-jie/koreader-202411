@@ -480,7 +480,7 @@ function UIManager:scheduleIn(seconds, action, ...)
   local when = time.monotonic() + time.s(seconds)
   self:schedule(when, action, ...)
 end
-dbg:guard(UIManager, "scheduleIn", function(self, seconds, action)
+dbg:guard(UIManager, "scheduleIn", function(self, seconds, _)
   assert(seconds >= 0, "Only positive seconds allowed")
 end)
 

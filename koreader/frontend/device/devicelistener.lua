@@ -26,7 +26,7 @@ end
 
 -- frontlight controller
 if Device:hasFrontlight() then
-  local function calculateGestureDelta(ges, direction, min, max)
+  local function calculateGestureDelta(ges, direction, max)
     local delta_int
     if type(ges) == "table" then
       local gesture_multiplier
@@ -79,7 +79,7 @@ if Device:hasFrontlight() then
     end
     local powerd = Device:getPowerDevice()
     local delta =
-      calculateGestureDelta(ges, direction, powerd.fl_min, powerd.fl_max)
+      calculateGestureDelta(ges, direction, powerd.fl_max)
     return self:onSetFlIntensity(powerd:frontlightIntensity() + delta)
   end
 
@@ -133,7 +133,6 @@ if Device:hasFrontlight() then
     local delta = calculateGestureDelta(
       ges,
       direction,
-      powerd.fl_warmth_min,
       powerd.fl_warmth_max
     )
 

@@ -101,7 +101,7 @@ function socketutil.table_sink(t)
 
   local start_ts = os.time()
   t = t or {}
-  local f = function(chunk, err)
+  local f = function(chunk, _err)
     if chunk then
       if os.time() - start_ts > socketutil.total_timeout then
         return nil, socketutil.SINK_TIMEOUT_CODE
@@ -121,7 +121,7 @@ function socketutil.file_sink(handle, io_err)
 
   if handle then
     local start_ts = os.time()
-    return function(chunk, err)
+    return function(chunk, _err)
       if not chunk then
         handle:close()
         return 1

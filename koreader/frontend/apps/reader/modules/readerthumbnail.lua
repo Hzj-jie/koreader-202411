@@ -378,7 +378,7 @@ end
 
 function ReaderThumbnail:startTileGeneration(request)
   local pid, parent_read_fd = ffiutil.runInSubProcess(
-    function(pid, child_write_fd)
+    function(_pid, child_write_fd)
       -- Get page image as if drawn on the screen
       local bb = self:_getPageImage(request.page)
       -- Scale it to fit in the requested size

@@ -1168,7 +1168,7 @@ function ReaderDictionary:showDownload(downloadable_dicts)
   UIManager:show(self.download_window)
 end
 
-function ReaderDictionary:downloadDictionaryPrep(dict, size)
+function ReaderDictionary:downloadDictionaryPrep(dict, _size)
   local __, filename = util.splitFilePathName(dict.url)
   local download_location = string.format("%s/%s", self.data_dir, filename)
 

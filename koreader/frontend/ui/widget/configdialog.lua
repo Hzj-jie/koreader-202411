@@ -399,7 +399,7 @@ function ConfigOption:init()
       -- Find out currently selected and default items indexes
       local current_item = nil
       local default_item = self.options[c].default_pos
-      local function value_diff(val1, val2, name)
+      local function value_diff(val1, val2)
         assert(type(val1) == type(val2))
         if type(val1) == "number" then
           return math.abs(val1 - val2)
@@ -419,20 +419,19 @@ function ConfigOption:init()
           if type(val) == "table" then
             min_diff = value_diff(
               val[1],
-              self.options[c].values[1][1],
-              self.options[c].name
+              self.options[c].values[1][1]
             )
           else
             min_diff =
-              value_diff(val, self.options[c].values[1], self.options[c].name)
+              value_diff(val, self.options[c].values[1])
           end
 
           local diff
           for index, val_ in pairs(self.options[c].values) do
             if type(val) == "table" then
-              diff = value_diff(val[1], val_[1], self.options[c].name)
+              diff = value_diff(val[1], val_[1])
             else
-              diff = value_diff(val, val_, self.options[c].name)
+              diff = value_diff(val, val_)
             end
             if val == val_ then
               current_item = index
@@ -1066,7 +1065,7 @@ function ConfigDialog:init()
   end
 end
 
-function ConfigDialog:updateConfigPanel(index) end
+function ConfigDialog:updateConfigPanel(_index) end
 
 function ConfigDialog:update()
   self:moveFocusTo(1, 1, FocusManager.NOT_FOCUS) -- reset selected for re-created layout
@@ -1654,7 +1653,7 @@ end
 function ConfigDialog:onMakeFineTuneDefault(
   name,
   name_text,
-  values,
+  _values,
   labels,
   direction
 )

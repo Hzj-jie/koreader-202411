@@ -246,7 +246,7 @@ function ReaderLink:init()
       end,
     }
   end
-  self._external_link_buttons["90_cancel"] = function(this, link_url)
+  self._external_link_buttons["90_cancel"] = function(this, _link_url)
     return {
       text = gettext("Cancel"),
       callback = function()
@@ -309,7 +309,7 @@ end
 
 ReaderLink.onPhysicalKeyboardConnected = ReaderLink.registerKeyEvents
 
-function ReaderLink:onReadSettings(config)
+function ReaderLink:onReadSettings(_config)
   -- called when loading new document
   self:onClearLocationStack()
 end
@@ -1430,7 +1430,7 @@ function ReaderLink:onPosUpdate()
   end
 end
 
-function ReaderLink:onGoToLatestBookmark(ges)
+function ReaderLink:onGoToLatestBookmark(_ges)
   local latest_bookmark = self.ui.bookmark:getLatestBookmark()
   if latest_bookmark then
     if self.ui.paging then

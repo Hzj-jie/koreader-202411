@@ -476,12 +476,12 @@ function Device:install()
 end
 
 -- Hardware specific method to track opened/closed books (nil on book close)
-function Device:notifyBookState(title, document) end
+function Device:notifyBookState(_title, _document) end
 
 -- Hardware specific method for UI to signal allowed/disallowed standby.
 -- The device is allowed to enter standby only from within waitForEvents,
 -- and only if allowed state is true at the time of waitForEvents() invocation.
-function Device:setAutoStandby(isAllowed) end
+function Device:setAutoStandby(_isAllowed) end
 
 -- Hardware specific method to set OS-level file associations to launch koreader. Expects boolean map.
 function Device:associateFileExtensions(exts)
@@ -520,7 +520,7 @@ function Device:supportsScreensaver()
 end
 
 -- Device specific method to set datetime
-function Device:setDateTime(year, month, day, hour, min, sec) end
+function Device:setDateTime(_year, _month, _day, _hour, _min, _sec) end
 
 -- Device specific method if any setting needs being saved
 function Device:saveSettings() end
@@ -535,7 +535,7 @@ function Device:simulateSuspend() end
 function Device:simulateResume() end
 
 -- Put device into standby, input devices (buttons, touchscreen ...) stay enabled
-function Device:standby(max_duration) end
+function Device:standby(_max_duration) end
 
 -- Returns a string, used to determine the platform to fetch OTA updates
 function Device:otaModel()
@@ -547,10 +547,10 @@ Device specific method for performing haptic feedback.
 
 @string type Type of haptic feedback. See <https://developer.android.com/reference/android/view/HapticFeedbackConstants.html>.
 --]]
-function Device:performHapticFeedback(type) end
+function Device:performHapticFeedback(_type) end
 
 -- Device specific method for toggling input events
-function Device:setIgnoreInput(enable)
+function Device:setIgnoreInput(_enable)
   return true
 end
 
@@ -589,14 +589,14 @@ function Device:lockGSensor(toggle)
 end
 
 -- Device specific method for toggling the charging LED
-function Device:toggleChargingLED(toggle) end
+function Device:toggleChargingLED(_toggle) end
 
 -- Device specific method for setting the charging LED to the right state
 function Device:setupChargingLED() end
 
 -- Device specific method for enabling a specific amount of CPU cores
 -- (Should only be implemented on embedded platforms where we can afford to control that without screwing with the system).
-function Device:enableCPUCores(amount) end
+function Device:enableCPUCores(_amount) end
 
 -- NOTE: For this to work, all three must be implemented, and getKeyRepeat must be run on init (c.f., Kobo)!
 -- Device specific method to get the current key repeat setup (and is responsible for setting the canKeyRepeat cap)
@@ -608,7 +608,7 @@ function Device:restoreKeyRepeat() end
 -- NOTE: This one is for the user-facing toggle, it *ignores* the stock delay/period combo,
 --     opting instead for a hard-coded one (as we can't guarantee that key repeat is actually setup properly or at all).
 -- Device specific method to toggle key repeat
-function Device:toggleKeyRepeat(toggle) end
+function Device:toggleKeyRepeat(_toggle) end
 
 --[[
 prepare for application shutdown
@@ -1065,7 +1065,7 @@ function Device:retrieveNetworkInfo()
   return results
 end
 
-function Device:setTime(hour, min)
+function Device:setTime(_hour, _min)
   return false
 end
 
@@ -1169,10 +1169,10 @@ function Device:_UIManagerReady(uimgr)
   end)
 end
 -- In case implementations *also* need a reference to UIManager, *this* is the one to implement!
-function Device:UIManagerReady(uimgr) end
+function Device:UIManagerReady(_uimgr) end
 
 -- Devices can add additional event handlers by implementing this method.
-function Device:setEventHandlers(uimgr)
+function Device:setEventHandlers(_uimgr)
   -- These will most probably be overwritten by device-specific `setEventHandlers` implementations
   UIManager.event_handlers.Suspend = function()
     self.powerd:beforeSuspend()

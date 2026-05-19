@@ -153,7 +153,7 @@ local function initTouchEvents()
       return true
     end
 
-    function InputText:onHoldTextBox(arg, ges)
+    function InputText:onHoldTextBox(_arg, _ges)
       if self.parent.onSwitchFocus then
         self.parent:onSwitchFocus(self)
       end
@@ -285,7 +285,7 @@ local function initTouchEvents()
       return true
     end
 
-    function InputText:onHoldReleaseTextBox(arg, ges)
+    function InputText:onHoldReleaseTextBox(_arg, _ges)
       if self._hold_handled then
         self._hold_handled = nil
         return true
@@ -1190,7 +1190,7 @@ function InputText:setText(text, keep_edited_state)
     self:checkTextEditability()
   end
 end
-dbg:guard(InputText, "setText", function(self, text, keep_edited_state)
+dbg:guard(InputText, "setText", function(self, text, _keep_edited_state)
   assert(type(text) == "string", "Wrong text type (expected string)")
 end)
 
