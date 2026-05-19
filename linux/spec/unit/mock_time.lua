@@ -135,9 +135,12 @@ function MockTime:install()
 
         -- Store both REALTIME & MONOTONIC clocks for fts
     self.realtime_time = os.time() * 1e6
+    self.realtime_coarse_time = self.realtime_time
     local timespec_time = ffi.new("struct timespec")
     C.clock_gettime(C.CLOCK_MONOTONIC_COARSE, timespec_time)
-    self.monotonic = tonumber(timespec.tv_sec) * 1e6
+    self.monotonic_time = tonumber(timespec_time.tv_sec) * 1e6 + math.floor(tonumber(timespec_time.tv_nsec) / 1000)
+    self.boottime_time = self.monotonic_time
+    self.boottime_or_realtime_coarse_time = self.monotonic_time
 
     time.realtime = function()
         logger.dbg("MockTime:Time.realtime: ", self.realtime_time)
@@ -275,12 +278,17 @@ function MockTime:set(value)
         return false
     end
     self.realtime = math.floor(value)
+    self.realtime_time = self.realtime * 1e6
+    self.realtime_coarse_time = self.realtime_time
     logger.dbg("MockTime:set (realtime) ", self.realtime)
     self.monotonic = math.floor(value)
+    self.monotonic_time = self.monotonic * 1e6
     logger.dbg("MockTime:set (monotonic) ", self.monotonic)
     self.boottime = math.floor(value)
+    self.boottime_time = self.boottime * 1e6
     logger.dbg("MockTime:set (boottime) ", self.boottime)
     self.boottime_or_realtime_coarse = math.floor(value)
+    self.boottime_or_realtime_coarse_time = self.boottime_or_realtime_coarse * 1e6
     logger.dbg("MockTime:set (boottime) ", self.boottime_or_realtime_coarse)
     return true
 end
