@@ -23,6 +23,39 @@ local N_ = gettext.ngettext
 local Screen = require("device").screen
 local T = require("ffi/util").template
 
+local function get_bookmarks_items_per_page()
+  return G_reader_settings:read("bookmarks_items_per_page")
+    or G_reader_settings:read("items_per_page")
+    or Menu.items_per_page_default
+end
+
+local function save_bookmarks_items_per_page(value)
+  return G_reader_settings:save(
+    "bookmarks_items_per_page",
+    value,
+    G_reader_settings:read("items_per_page") or Menu.items_per_page_default
+  )
+end
+
+local function get_default_bookmarks_font_size()
+  local perpage = get_bookmarks_items_per_page()
+  return Menu.getItemFontSize(perpage)
+end
+
+local function get_bookmarks_items_font_size()
+  return G_reader_settings:read("bookmarks_items_font_size")
+    or G_reader_settings:read("items_font_size")
+    or get_default_bookmarks_font_size()
+end
+
+local function save_bookmarks_items_font_size(value)
+  return G_reader_settings:save(
+    "bookmarks_items_font_size",
+    value,
+    G_reader_settings:read("items_font_size") or get_default_bookmarks_font_size()
+  )
+end
+
 local ReaderBookmark = InputContainer:extend({
   -- mark the type of a bookmark with a symbol + non-expandable space
   display_prefix = {
@@ -40,24 +73,7 @@ local ReaderBookmark = InputContainer:extend({
 function ReaderBookmark:init()
   self:registerKeyEvents()
 
-  if G_reader_settings:hasNot("bookmarks_items_per_page") then
-    -- The Bookmarks items per page and items' font size can now be
-    -- configured. Previously, the ones set for the file browser
-    -- were used. Initialize them from these ones.
-    local items_per_page = G_reader_settings:read("items_per_page")
-      or Menu.items_per_page_default
-    G_reader_settings:save("bookmarks_items_per_page", items_per_page)
-    local items_font_size = G_reader_settings:read("items_font_size")
-    if
-      items_font_size
-      and items_font_size ~= Menu.getItemFontSize(items_per_page)
-    then
-      -- Keep the user items font size if it's not the default for items_per_page
-      G_reader_settings:save("bookmarks_items_font_size", items_font_size)
-    end
-  end
-  self.items_text = G_reader_settings:read("bookmarks_items_text_type")
-    or "note"
+  self.items_text = G_reader_settings:read("bookmarks_items_text_type") or "note"
   self.items_max_lines = G_reader_settings:read("bookmarks_items_max_lines")
 
   self.ui.menu:registerToMainMenu(self)
@@ -154,7 +170,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
       {
         text_func = function()
           local curr_perpage = self.items_max_lines and gettext("flexible")
-            or G_reader_settings:read("bookmarks_items_per_page")
+            or get_bookmarks_items_per_page()
           return T(gettext("Bookmarks per page: %1"), curr_perpage)
         end,
         enabled_func = function()
@@ -162,8 +178,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
-          local curr_perpage =
-            G_reader_settings:read("bookmarks_items_per_page")
+          local curr_perpage = get_bookmarks_items_per_page()
           local items = SpinWidget:new({
             title_text = gettext("Bookmarks per page"),
             value = curr_perpage,
@@ -171,7 +186,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
             value_max = 24,
             default_value = Menu.items_per_page_default,
             callback = function(spin)
-              G_reader_settings:save("bookmarks_items_per_page", spin.value)
+              save_bookmarks_items_per_page(spin.value)
               touchmenu_instance:updateItems()
             end,
           })
@@ -180,22 +195,14 @@ function ReaderBookmark:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          local curr_perpage =
-            G_reader_settings:read("bookmarks_items_per_page")
-          local default_font_size = Menu.getItemFontSize(curr_perpage)
-          local curr_font_size = G_reader_settings:read(
-            "bookmarks_items_font_size"
-          ) or default_font_size
+          local curr_font_size = get_bookmarks_items_font_size()
           return T(gettext("Bookmark font size: %1"), curr_font_size)
         end,
         keep_menu_open = true,
         callback = function(touchmenu_instance)
-          local curr_perpage =
-            G_reader_settings:read("bookmarks_items_per_page")
+          local curr_perpage = get_bookmarks_items_per_page()
           local default_font_size = Menu.getItemFontSize(curr_perpage)
-          local curr_font_size = G_reader_settings:read(
-            "bookmarks_items_font_size"
-          ) or default_font_size
+          local curr_font_size = get_bookmarks_items_font_size()
           local items_font = SpinWidget:new({
             title_text = gettext("Bookmark font size"),
             value = curr_font_size,
@@ -203,7 +210,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
             value_max = 72,
             default_value = default_font_size,
             callback = function(spin)
-              G_reader_settings:save("bookmarks_items_font_size", spin.value)
+              save_bookmarks_items_font_size(spin.value)
               touchmenu_instance:updateItems()
             end,
           })
@@ -300,7 +307,7 @@ function ReaderBookmark:genShowInItemsMenuItems(value)
     radio = true,
     callback = function()
       self.items_text = value
-      G_reader_settings:save("bookmarks_items_text_type", value)
+      G_reader_settings:save("bookmarks_items_text_type", value, "note")
     end,
   }
 end
@@ -315,8 +322,7 @@ function ReaderBookmark:genSortByMenuItems(value, separator)
     date = gettext("date, reverse"),
   }
   if value == nil then
-    local curr_value = G_reader_settings:read("bookmarks_items_sorting")
-      or "page"
+    local curr_value = G_reader_settings:read("bookmarks_items_sorting") or "page"
     if G_reader_settings:isTrue("bookmarks_items_reverse_sorting") then
       return strings_reverse[curr_value]
     else
@@ -326,15 +332,11 @@ function ReaderBookmark:genSortByMenuItems(value, separator)
   return {
     text = strings[value],
     checked_func = function()
-      return value
-        == (G_reader_settings:read("bookmarks_items_sorting") or "page")
+      return value == (G_reader_settings:read("bookmarks_items_sorting") or "page")
     end,
     radio = true,
     callback = function()
-      G_reader_settings:save(
-        "bookmarks_items_sorting",
-        value ~= "page" and value or nil
-      )
+      G_reader_settings:save("bookmarks_items_sorting", value, "page")
     end,
     separator = separator,
   }
@@ -724,9 +726,8 @@ function ReaderBookmark:onShowBookmark()
     table.sort(item_table, sort_func)
   end
 
-  local items_per_page = G_reader_settings:read("bookmarks_items_per_page")
-  local items_font_size = G_reader_settings:read("bookmarks_items_font_size")
-    or Menu.getItemFontSize(items_per_page)
+  local items_per_page = get_bookmarks_items_per_page()
+  local items_font_size = get_bookmarks_items_font_size()
   local multilines_show_more_text =
     G_reader_settings:isTrue("bookmarks_items_multilines_show_more_text")
   local show_separator =
