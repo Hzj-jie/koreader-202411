@@ -239,7 +239,11 @@ describe("FocusManager module", function()
     local focusmanager = FocusManager:new({})
     focusmanager.extra_key_events = {
       Hold = { { "Sym", "AA" }, event = "Hold" },
-      HalfFocusUp = { { "Alt", "Up" }, event = "FocusHalfMove", args = { "up" } },
+      HalfFocusUp = {
+        { "Alt", "Up" },
+        event = "FocusHalfMove",
+        args = { "up" },
+      },
     }
     local m = Input.modifiers
     m.Sym = true

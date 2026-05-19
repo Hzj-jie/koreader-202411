@@ -38,7 +38,11 @@ function AutoTurn:_enabled()
 end
 
 function AutoTurn:_action()
-  if PluginShare.DeviceIdling == true or not self:_enabled() or (UIManager:getTopmostVisibleWidget() or {}).name ~= "ReaderUI"  then
+  if
+    PluginShare.DeviceIdling == true
+    or not self:_enabled()
+    or (UIManager:getTopmostVisibleWidget() or {}).name ~= "ReaderUI"
+  then
     return
   end
 
@@ -104,7 +108,6 @@ function AutoTurn:_stop()
   PluginShare.pause_auto_suspend = false
 end
 
-
 function AutoTurn:onClose()
   BackgroundTaskPlugin.onClose(self)
   PluginShare.pause_auto_suspend = false
@@ -138,7 +141,8 @@ function AutoTurn:addToMainMenu(menu_items)
     end,
     callback = function(menu)
       local DateTimeWidget = require("ui/widget/datetimewidget")
-      local autoturn_seconds = self.settings:read("autoturn_timeout_seconds") or 30
+      local autoturn_seconds = self.settings:read("autoturn_timeout_seconds")
+        or 30
       local autoturn_minutes = math.floor(autoturn_seconds * (1 / 60))
       autoturn_seconds = autoturn_seconds % 60
       local autoturn_spin = DateTimeWidget:new({

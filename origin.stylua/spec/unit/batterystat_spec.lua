@@ -4,8 +4,7 @@ describe("BatteryState plugin tests #nocov", function()
   local stat =
     function() --luacheck: ignore
       return module:new():stat()
-    end, 
-setup(function()
+    end, setup(function()
       require("commonrequire")
       package.unloadAll()
       require("document/canvascontext"):init(require("device"))
