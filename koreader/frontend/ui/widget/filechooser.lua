@@ -451,12 +451,12 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
 end
 
 function FileChooser:getCollate()
-  local collate_id = G_reader_settings:read("collate") or "strcoll"
+  local collate_id = G_named_settings.collate()
   local collate = self.collates[collate_id]
   if collate ~= nil then
     return collate, collate_id
   else
-    G_reader_settings:save("collate", "strcoll")
+    G_named_settings.set.collate("strcoll")
     return self.collates.strcoll, "strcoll"
   end
 end

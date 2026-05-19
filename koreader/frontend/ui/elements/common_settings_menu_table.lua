@@ -656,7 +656,7 @@ common_settings.document_end_action = {
     {
       text = gettext("Open next file"),
       enabled_func = function()
-        return G_reader_settings:read("collate") ~= "access"
+        return G_named_settings.collate() ~= "access"
       end,
       checked_func = function()
         return G_reader_settings:read("end_document_action") == "next_file"

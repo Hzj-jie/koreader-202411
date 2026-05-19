@@ -644,7 +644,7 @@ function FileManagerMenu:getSortingMenuTable()
         return k == id
       end,
       callback = function()
-        G_reader_settings:save("collate", k)
+        G_named_settings.set.collate(k)
         self.ui.file_chooser:clearSortingCache()
         self.ui.file_chooser:refreshPath()
       end,

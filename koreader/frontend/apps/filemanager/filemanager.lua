@@ -1746,7 +1746,7 @@ function FileManager.getSortByActions()
 end
 
 function FileManager:onSetSortBy(mode)
-  G_reader_settings:save("collate", mode)
+  G_named_settings.set.collate(mode)
   self.file_chooser:clearSortingCache()
   self.file_chooser:refreshPath()
   return true

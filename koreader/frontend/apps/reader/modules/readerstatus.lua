@@ -53,7 +53,7 @@ function ReaderStatus:onEndOfBook()
     self:markBook(true)
   end
 
-  local collate = G_reader_settings:read("collate")
+  local collate = G_named_settings.collate()
   local next_file_enabled = collate ~= "access" and collate ~= "date"
   local settings = G_reader_settings:read("end_document_action") or "pop-up"
   local top_widget = UIManager:getTopmostVisibleWidget() or {}

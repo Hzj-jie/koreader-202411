@@ -113,6 +113,14 @@ function named_settings.fast_screen_refresh()
       < G_named_settings.default.full_refresh_count()
 end
 
+function named_settings.collate()
+  return G_reader_settings:read("collate") or "strcoll"
+end
+
+function named_settings.set.collate(value)
+  return G_reader_settings:save("collate", value, "strcoll")
+end
+
 function named_settings.show_bottom_menu()
   return not require("device"):isTouchDevice()
     or G_reader_settings:nilOrTrue("show_bottom_menu")
