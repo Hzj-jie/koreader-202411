@@ -126,6 +126,104 @@ describe("ReaderBookmark module", function()
             local bm_xpointer = readerui.bookmark:getNextBookmarkedPage(xpointer)
             assert.are.same(15, readerui.document:getPageFromXPointer(bm_xpointer))
         end)
+        it("should correctly order bookmarks with isBookmarkInPageOrder", function()
+            local bookmark_mod = readerui.bookmark
+            local bm_page5 = { page = readerui.document:getPageXPointer(5) }
+            local bm_page10 = { page = readerui.document:getPageXPointer(10) }
+
+            assert.truthy(bookmark_mod:isBookmarkInPageOrder(bm_page5, bm_page10))
+            assert.falsy(bookmark_mod:isBookmarkInPageOrder(bm_page10, bm_page5))
+
+            local page_bm = { page = readerui.document:getPageXPointer(5) }
+            local highlight_bm = { page = readerui.document:getPageXPointer(5), drawer = true }
+
+            assert.truthy(bookmark_mod:isBookmarkInPageOrder(page_bm, highlight_bm))
+            assert.falsy(bookmark_mod:isBookmarkInPageOrder(highlight_bm, page_bm))
+        end)
+        it("should get correct bookmark type", function()
+            local bookmark_mod = readerui.bookmark
+
+            local bm = { page = 5 }
+            assert.are.same("bookmark", bookmark_mod.getBookmarkType(bm))
+
+            local hl = { page = 5, drawer = true }
+            assert.are.same("highlight", bookmark_mod.getBookmarkType(hl))
+
+            local note = { page = 5, drawer = true, note = "some note" }
+            assert.are.same("note", bookmark_mod.getBookmarkType(note))
+        end)
+        it("should correctly match bookmarks with doesBookmarkMatchTable", function()
+            local bookmark_mod = readerui.bookmark
+
+            bookmark_mod.match_table = {
+                search_str = "test",
+                bookmark = true,
+                highlight = true,
+                note = true,
+                case_sensitive = false,
+            }
+
+            local bm_match = { type = "bookmark", text_orig = "This is a Test page" }
+            local bm_no_match = { type = "bookmark", text_orig = "Other text" }
+
+            assert.truthy(bookmark_mod:doesBookmarkMatchTable(bm_match))
+            assert.falsy(bookmark_mod:doesBookmarkMatchTable(bm_no_match))
+
+            bookmark_mod.match_table.case_sensitive = true
+            assert.falsy(bookmark_mod:doesBookmarkMatchTable(bm_match))
+
+            bookmark_mod.match_table.search_str = "Test"
+            assert.truthy(bookmark_mod:doesBookmarkMatchTable(bm_match))
+
+            local note_match = { type = "note", text_orig = "Highlight", note = "My special test note" }
+            bookmark_mod.match_table.case_sensitive = false
+            bookmark_mod.match_table.search_str = "test"
+            assert.truthy(bookmark_mod:doesBookmarkMatchTable(note_match))
+
+            bookmark_mod.match_table = nil
+        end)
+        it("should return the latest bookmark based on datetime", function()
+            local bookmark_mod = readerui.bookmark
+            local orig_annotations = bookmark_mod.ui.annotation.annotations
+
+            bookmark_mod.ui.annotation.annotations = {
+                { page = 1, datetime = "2026-05-18 10:00:00", text = "first" },
+                { page = 2, datetime = "2026-05-18 12:00:00", text = "latest" },
+                { page = 3, datetime = "2026-05-18 11:00:00", text = "second" },
+            }
+
+            local latest, latest_idx = bookmark_mod:getLatestBookmark()
+            assert.are.same("latest", latest.text)
+            assert.are.same(2, latest_idx)
+
+            bookmark_mod.ui.annotation.annotations = orig_annotations
+        end)
+        it("should return a list of bookmarked pages and their types", function()
+            local bookmark_mod = readerui.bookmark
+            local orig_annotations = bookmark_mod.ui.annotation.annotations
+
+            local xp5 = readerui.document:getPageXPointer(5)
+            local xp10 = readerui.document:getPageXPointer(10)
+            bookmark_mod.ui.annotation.annotations = {
+                { page = xp5, drawer = nil },
+                { page = xp5, drawer = true },
+                { page = xp10, drawer = true, note = "note" },
+            }
+
+            local pages = bookmark_mod:getBookmarkedPages()
+
+            assert.truthy(pages[5])
+            assert.truthy(pages[5]["bookmark"])
+            assert.truthy(pages[5]["highlight"])
+            assert.falsy(pages[5]["note"])
+
+            assert.truthy(pages[10])
+            assert.truthy(pages[10]["note"])
+            assert.falsy(pages[10]["bookmark"])
+            assert.falsy(pages[10]["highlight"])
+
+            bookmark_mod.ui.annotation.annotations = orig_annotations
+        end)
     end)
 
     describe("PDF document", function()
