@@ -79,16 +79,67 @@ local function _widgetDebugStr(widget)
   return widget:debugStr()
 end
 
-local function _widgetWindow(w)
+
+
+-- How long to wait between ZMQ wakeups: 50ms.
+local ZMQ_TIMEOUT = 50 * 1000
+
+-- This is a singleton
+local UIManager = {
+  event_handlers = nil,
+
+  _full_refresh_count = G_named_settings.default.full_refresh_count(),
+  _window_stack = {},
+  _task_queue = {},
+  _task_queue_dirty = false,
+  _dirty = {},
+  _zeromqs = {},
+  _refresh_stack = {},
+  _refresh_func_stack = {},
+  _entered_poweroff_stage = false,
+  _exit_code = nil,
+  _gated_quit = nil,
+  _prevent_standby_count = 0,
+  _prev_prevent_standby_count = 0,
+  _input_gestures_disabled = false,
+  _last_user_action_time = 0,
+  _force_fast_refresh = false,
+  _refresh_count = 0,
+}
+
+function UIManager:_windowStackDebugList()
+  local stack_details = {}
+  for idx, win in ipairs(self._window_stack) do
+    table.insert(
+      stack_details,
+      string.format(
+        "[%d] %s (addr: %s)",
+        idx,
+        win.widget:debugStr(),
+        tostring(win.widget)
+      )
+    )
+  end
+  return table.concat(stack_details, ", ")
+end
+
+function UIManager:_widgetWindow(w)
   assert(_isWidget(w))
   local window = w:window()
   if window == nil then
-    -- TODO: Should assert.
     logger.warn(
       "FixMe: Unknown widget ",
       _widgetDebugStr(w),
-      " to repaint, it may not be shown yet, or you may want to send in the ",
-      "show(widget) instead. ",
+      "\n  Current UIManager address: ",
+      tostring(self),
+      "\n  Current UIManager _window_stack size: ",
+      #self._window_stack,
+      "\n  Current UIManager _window_stack: { ",
+      self:_windowStackDebugList(),
+      " }",
+      "\n  Target widget: ",
+      require("util").tableDebugIdentity(w),
+      " ",
       debug.traceback()
     )
     return nil
@@ -96,7 +147,7 @@ local function _widgetWindow(w)
   return window
 end
 
-local function cropping_region(widget)
+function UIManager:cropping_region(widget)
   assert(_isWidget(widget))
   local dimen = widget:getSize()
   assert(dimen ~= nil)
@@ -104,7 +155,7 @@ local function cropping_region(widget)
   -- y may not present.
   local x, y, w, h = dimen.x, dimen.y, dimen.w, dimen.h
 
-  local window = _widgetWindow(widget)
+  local window = self:_widgetWindow(widget)
   if (not x or not y) and window then
     -- Before the initial paintTo call, widget.dimen isn't available. In the
     -- case, it's expected to paintTo a showParent which starts from the top
@@ -160,32 +211,6 @@ local function cropping_region(widget)
   end
   return Geom:new({ x = x, y = y, w = w, h = h })
 end
-
--- How long to wait between ZMQ wakeups: 50ms.
-local ZMQ_TIMEOUT = 50 * 1000
-
--- This is a singleton
-local UIManager = {
-  event_handlers = nil,
-
-  _full_refresh_count = G_named_settings.default.full_refresh_count(),
-  _window_stack = {},
-  _task_queue = {},
-  _task_queue_dirty = false,
-  _dirty = {},
-  _zeromqs = {},
-  _refresh_stack = {},
-  _refresh_func_stack = {},
-  _entered_poweroff_stage = false,
-  _exit_code = nil,
-  _gated_quit = nil,
-  _prevent_standby_count = 0,
-  _prev_prevent_standby_count = 0,
-  _input_gestures_disabled = false,
-  _last_user_action_time = 0,
-  _force_fast_refresh = false,
-  _refresh_count = 0,
-}
 
 function UIManager:init()
   self.event_handlers = {
@@ -303,6 +328,7 @@ function UIManager:show(widget)
       break
     end
   end
+
   self._dirty[widget] = true
   -- tell the widget that it is shown now
   widget:handleEvent(Event:new("Show"))
@@ -347,7 +373,11 @@ function UIManager:_close(widget)
   for i = #self._window_stack, 1, -1 do
     local w = self._window_stack[i].widget
     if w == widget then
-      self._dirty[w] = nil
+      for k in pairs(self._dirty) do
+        if k == w or util.arrayDfSearch(w, k) then
+          self._dirty[k] = nil
+        end
+      end
       self:_scheduleRefreshWindowWidget(self._window_stack[i])
       table.remove(self._window_stack, i)
       -- Unfortunately, here the logic needs to mark the ones *below* dirty,
@@ -774,6 +804,7 @@ function UIManager:quit(exit_code, implicit)
     end
   end
   self._task_queue_dirty = false
+  self:clearRenderStack()
   self._window_stack = {}
   self._task_queue = {}
   for i = #self._zeromqs, 1, -1 do
@@ -1094,7 +1125,7 @@ function UIManager:_repaintDirtyWidgets()
   end
 
   for w in pairs(self._dirty) do
-    local window = _widgetWindow(w)
+    local window = self:_widgetWindow(w)
     if window ~= nil then
       local index = self:findWindow(window)
       -- Otherwise the window should be nil.
@@ -1153,7 +1184,7 @@ function UIManager:_repaintDirtyWidgets()
     local window = self._window_stack[i]
     for _, widget in ipairs(dirty_widgets[i]) do
       logger.dbg("painting widget:", _widgetDebugStr(widget))
-      local paint_region = cropping_region(widget)
+      local paint_region = self:cropping_region(widget)
       assert(paint_region ~= nil)
       widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
       self:_scheduleRefreshWindowWidget(window, widget)
@@ -1381,7 +1412,7 @@ function UIManager:scheduleWidgetRepaint(widget)
 
   -- Allows a widget being showed later.
   self._dirty[widget] = true
-  return _widgetWindow(widget) ~= nil
+  return self:_widgetWindow(widget) ~= nil
 end
 
 --[[--
@@ -1407,7 +1438,7 @@ user interactions.
 function UIManager:repaintWidget(widget)
   assert(_isWidget(widget))
   assert(widget:getSize() ~= nil)
-  local paint_region = cropping_region(widget)
+  local paint_region = self:cropping_region(widget)
   assert(paint_region ~= nil)
   widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
   -- Explicitly using "fast" to reduce the cost of showing feedbacks.
@@ -1429,7 +1460,7 @@ user interactions.
 --]]
 function UIManager:invertWidget(widget)
   assert(_isWidget(widget))
-  local invert_region = cropping_region(widget)
+  local invert_region = self:cropping_region(widget)
   if invert_region == nil then
     return
   end

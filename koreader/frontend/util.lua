@@ -1781,6 +1781,46 @@ function util.no()
   return false
 end
 
+--- Returns a debug identity string of a table (e.g., a widget), including address,
+--- instance keys, and prototype class keys.
+---- @param t table
+---- @treturn string
+function util.tableDebugIdentity(t)
+  if type(t) ~= "table" then
+    return tostring(t)
+  end
+
+  local addr = tostring(t)
+  local keys = {}
+  for k, v in pairs(t) do
+    if type(v) ~= "function" then
+      table.insert(keys, tostring(k) .. ":" .. tostring(v))
+    end
+  end
+  table.sort(keys)
+
+  local mt = getmetatable(t)
+  local mt_keys = {}
+  local mt_info = "none"
+  if mt and mt.__index and type(mt.__index) == "table" then
+    mt_info = tostring(mt.__index.typename or mt.__index.id or mt.__index)
+    for k, v in pairs(mt.__index) do
+      if type(v) ~= "function" then
+        table.insert(mt_keys, tostring(k) .. ":" .. tostring(v))
+      end
+    end
+    table.sort(mt_keys)
+  end
+
+  return string.format(
+    "%s { Class: %s, Instance Keys: { %s }, Class/Proto Keys: { %s } }",
+    addr,
+    mt_info,
+    table.concat(keys, ", "),
+    table.concat(mt_keys, ", ")
+  )
+end
+
 function util.copyRequire(f)
   local v = require(f)
   assert(type(v) == "table")

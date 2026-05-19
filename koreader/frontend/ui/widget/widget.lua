@@ -203,7 +203,7 @@ function Widget:_window() -- final
 end
 
 function Widget:debugStr()
-  return self.name or self.id or tostring(self)
+  return self.name or self.id or require("util").tableDebugIdentity(self)
 end
 
 local function _windowDebugStr(window)
