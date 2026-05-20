@@ -39,11 +39,7 @@ local formatter_buttons = {
   { gettext("Underline (with <u></u> tags)"), "underline_u_tag" },
 }
 
-function MarkdownExporter:editFormatStyle(
-  drawer_style,
-  label,
-  menu
-)
+function MarkdownExporter:editFormatStyle(drawer_style, label, menu)
   local radio_buttons = {}
   for _idx, v in ipairs(formatter_buttons) do
     table.insert(radio_buttons, {

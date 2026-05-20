@@ -201,12 +201,7 @@ function ReaderTypeset:genStyleSheetMenu()
         self:setStyleSheet(css_file or self.ui.document.default_css)
       end,
       hold_callback = function(menu)
-        self:makeDefaultStyleSheet(
-          css_file,
-          text,
-          description,
-          menu
-        )
+        self:makeDefaultStyleSheet(css_file, text, description, menu)
       end,
       checked_func = function()
         if not css_file then -- "Auto"
@@ -476,12 +471,7 @@ function ReaderTypeset:addToMainMenu(menu_items)
   }
 end
 
-function ReaderTypeset:makeDefaultStyleSheet(
-  css,
-  name,
-  description,
-  menu
-)
+function ReaderTypeset:makeDefaultStyleSheet(css, name, description, menu)
   local text = self.ui.document.is_fb2
       and T(
         gettext("Set default style for FB2 documents to %1?"),
@@ -569,7 +559,10 @@ function ReaderTypeset:onSetPageTopAndBottomMargin(
   )
 end
 
-function ReaderTypeset:onSyncPageTopBottomMargins(_toggle, when_applied_callback)
+function ReaderTypeset:onSyncPageTopBottomMargins(
+  _toggle,
+  when_applied_callback
+)
   self.sync_t_b_page_margins = not self.sync_t_b_page_margins
   if self.sync_t_b_page_margins then
     -- Adjust current top and bottom margins if needed

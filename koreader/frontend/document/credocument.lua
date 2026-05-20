@@ -954,7 +954,16 @@ end
 
 function CreDocument:hintPage(_pageno, _zoom, _rotation) end
 
-function CreDocument:drawPage(_target, _x, _y, _rect, _pageno, _zoom, _rotation) end
+function CreDocument:drawPage(
+  _target,
+  _x,
+  _y,
+  _rect,
+  _pageno,
+  _zoom,
+  _rotation
+)
+end
 
 function CreDocument:renderPage(_pageno, _rect, _zoom, _rotation) end
 

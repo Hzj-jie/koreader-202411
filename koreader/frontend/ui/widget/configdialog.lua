@@ -417,13 +417,9 @@ function ConfigOption:init()
             or self.config.configurable[self.options[c].name]
           local min_diff
           if type(val) == "table" then
-            min_diff = value_diff(
-              val[1],
-              self.options[c].values[1][1]
-            )
+            min_diff = value_diff(val[1], self.options[c].values[1][1])
           else
-            min_diff =
-              value_diff(val, self.options[c].values[1])
+            min_diff = value_diff(val, self.options[c].values[1])
           end
 
           local diff

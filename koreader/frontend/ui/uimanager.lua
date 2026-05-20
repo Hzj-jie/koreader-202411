@@ -79,8 +79,6 @@ local function _widgetDebugStr(widget)
   return widget:debugStr()
 end
 
-
-
 -- How long to wait between ZMQ wakeups: 50ms.
 local ZMQ_TIMEOUT = 50 * 1000
 

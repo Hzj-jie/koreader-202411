@@ -1513,7 +1513,12 @@ end
 Get text and text boxes from screen positions for native page.
 ]]
 --
-function KoptInterface:getTextFromNativePositions(_doc, native_boxes, pos0, pos1)
+function KoptInterface:getTextFromNativePositions(
+  _doc,
+  native_boxes,
+  pos0,
+  pos1
+)
   local native_text_boxes = self:getTextFromBoxes(native_boxes, pos0, pos1)
   local text_boxes = {
     text = native_text_boxes.text,

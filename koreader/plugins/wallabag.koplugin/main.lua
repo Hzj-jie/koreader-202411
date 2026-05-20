@@ -1145,13 +1145,7 @@ function Wallabag:setFilterTag(menu)
   UIManager:show(self.tag_dialog)
 end
 
-function Wallabag:setTagsDialog(
-  menu,
-  title,
-  description,
-  value,
-  callback
-)
+function Wallabag:setTagsDialog(menu, title, description, value, callback)
   self.tags_dialog = InputDialog:new({
     title = title,
     description = description,
