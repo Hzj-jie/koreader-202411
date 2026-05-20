@@ -93,7 +93,7 @@ local highlight_style = {
 }
 
 function MarkdownExporter:getMenuTable()
-  local menu = {
+  local menus = {
     text = gettext("Markdown"),
     checked_func = function()
       return self:isEnabled()
@@ -122,7 +122,7 @@ function MarkdownExporter:getMenuTable()
   }
 
   for _idx, entry in ipairs(highlight_style) do
-    table.insert(menu.sub_item_table, {
+    table.insert(menus.sub_item_table, {
       text_func = function()
         return entry[1]
           .. ": "
@@ -137,7 +137,7 @@ function MarkdownExporter:getMenuTable()
       end,
     })
   end
-  return menu
+  return menus
 end
 
 function MarkdownExporter:export(t)

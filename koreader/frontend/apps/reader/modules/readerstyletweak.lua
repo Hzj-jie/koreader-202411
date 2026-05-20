@@ -542,13 +542,13 @@ You can enable individual tweaks on this book with a tap, or view more details a
   -- css_tweaks.lua, or like the one we build from user styletweaks
   -- directory files and sub-directories)
   local addTweakMenuItem
-  addTweakMenuItem = function(menu, item)
+  addTweakMenuItem = function(menus, item)
     if type(item) == "table" and #item > 0 then -- sub-menu
       local sub_item_table = {}
       for _, it in ipairs(item) do
         addTweakMenuItem(sub_item_table, it) -- recurse
       end
-      table.insert(menu, {
+      table.insert(menus, {
         text_func = function()
           local text = item.title or "### undefined submenu title ###"
           local nb_enabled = self:nbTweaksEnabled(sub_item_table)
@@ -570,7 +570,7 @@ You can enable individual tweaks on this book with a tap, or view more details a
         item.priority = 0
       end
       self.tweaks_by_id[item.id] = item
-      table.insert(menu, {
+      table.insert(menus, {
         tweak_id = item.id,
         enabled_func = is_enabled,
         checked_func = function()
@@ -655,7 +655,7 @@ You can enable individual tweaks on this book with a tap, or view more details a
         separator = item.separator,
       })
     elseif item.info_text then -- informative menu item
-      table.insert(menu, {
+      table.insert(menus, {
         text = item.title or "### undefined menu title ###",
         -- No check box.
         -- Show the info text when either tap or hold
@@ -673,7 +673,7 @@ You can enable individual tweaks on this book with a tap, or view more details a
         separator = item.separator,
       })
     else
-      table.insert(menu, {
+      table.insert(menus, {
         text = item.if_empty_menu_title or gettext("This section is empty"),
         enabled = false,
       })
@@ -786,9 +786,9 @@ You can enable individual tweaks on this book with a tap, or view more details a
   self:onDispatcherRegisterActions()
 end
 
-function ReaderStyleTweak:addToMainMenu(menu_items)
+function ReaderStyleTweak:addToMainMenu(menus)
   -- insert table to main reader menu
-  menu_items.style_tweaks = {
+  menus.style_tweaks = {
     text_func = function()
       if self.enabled and self.nb_enabled_tweaks > 0 then
         return T(gettext("Style tweaks (%1)"), self.nb_enabled_tweaks)

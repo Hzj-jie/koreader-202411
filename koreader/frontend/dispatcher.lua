@@ -1530,7 +1530,7 @@ function Dispatcher:_sortActions(caller, location, settings, menu)
   UIManager:show(sort_widget)
 end
 
-function Dispatcher:_addItem(caller, menu, location, settings, section)
+function Dispatcher:_addItem(caller, menus, location, settings, section)
   local function setValue(k, value, menu)
     if value ~= nil then
       if location[settings] == nil then
@@ -1555,7 +1555,7 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
         settingsList[k].category == "none"
         or settingsList[k].category == "arg"
       then
-        table.insert(menu, {
+        table.insert(menus, {
           text = settingsList[k].title,
           checked_func = function()
             return location[settings] ~= nil and location[settings][k] ~= nil
@@ -1571,7 +1571,7 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
           separator = settingsList[k].separator,
         })
       elseif settingsList[k].category == "absolutenumber" then
-        table.insert(menu, {
+        table.insert(menus, {
           text_func = function()
             return Dispatcher:getNameFromItem(k, location[settings])
           end,
@@ -1617,7 +1617,7 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
           separator = settingsList[k].separator,
         })
       elseif settingsList[k].category == "incrementalnumber" then
-        table.insert(menu, {
+        table.insert(menus, {
           text_func = function()
             return Dispatcher:getNameFromItem(k, location[settings])
           end,
@@ -1694,7 +1694,7 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
             end,
           })
         end
-        table.insert(menu, {
+        table.insert(menus, {
           text_func = function()
             return Dispatcher:getNameFromItem(k, location[settings])
           end,
@@ -1726,10 +1726,10 @@ example usage:
     Dispatcher:addSubMenu(self, sub_items, self.data, "profile1")
 --]]
 --
-function Dispatcher:addSubMenu(caller, menu, location, settings)
+function Dispatcher:addSubMenu(caller, menus, location, settings)
   Dispatcher:init()
-  menu.ignored_by_menu_search = true -- all those would be duplicated
-  table.insert(menu, {
+  menus.ignored_by_menu_search = true -- all those would be duplicated
+  table.insert(menus, {
     text = gettext("Nothing"),
     separator = true,
     checked_func = function()
@@ -1762,7 +1762,7 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
   for _, section in ipairs(section_list) do
     local submenu = {}
     Dispatcher:_addItem(caller, submenu, location, settings, section[1])
-    table.insert(menu, {
+    table.insert(menus, {
       text = section[2],
       checked_func = function()
         if location[settings] ~= nil then
@@ -1798,7 +1798,7 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
       sub_item_table = submenu,
     })
   end
-  table.insert(menu, {
+  table.insert(menus, {
     text = gettext("Arrange actions"),
     checked_func = function()
       return location[settings] ~= nil
@@ -1822,7 +1822,7 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
       end
     end,
   })
-  table.insert(menu, {
+  table.insert(menus, {
     text = gettext("Show as QuickMenu"),
     checked_func = function()
       return location[settings] ~= nil
@@ -1847,7 +1847,7 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
       end
     end,
   })
-  table.insert(menu, {
+  table.insert(menus, {
     text = gettext("Keep QuickMenu open"),
     checked_func = function()
       return location[settings] ~= nil
