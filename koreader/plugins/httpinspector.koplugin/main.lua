@@ -1015,7 +1015,11 @@ function HttpInspector:callFunction(
     add_html("")
   end
   local res, nbr, http_code, json, ok, ok2, err, trace
-  if func_info.is_method then
+  local is_method = func_info.is_method
+  if not is_method and instance and guessClassName(instance) then
+    is_method = true
+  end
+  if is_method then
     res = table.pack(
       xpcall(func, debug.traceback, instance, unpack(args, 1, nb_args))
     )
@@ -1431,6 +1435,7 @@ local HttpInspectorWidget = WidgetContainer:extend({
 })
 
 function HttpInspectorWidget:init()
+  HttpInspector.ui = self.ui
   self.ui.menu:registerToMainMenu(self)
 end
 
