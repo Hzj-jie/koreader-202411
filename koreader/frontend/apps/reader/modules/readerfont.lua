@@ -457,8 +457,7 @@ function ReaderFont:gesToFontSize(ges)
         / math.min(Screen:getWidth(), Screen:getHeight())
     )
   end
-  local delta_int = self.steps[step] or self.steps[#self.steps]
-  return delta_int
+  return self.steps[step] or self.steps[#self.steps]
 end
 
 function ReaderFont:onIncreaseFontSize(ges)

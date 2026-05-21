@@ -66,8 +66,7 @@ function FileConverter:_mdFileToHtml(file, title)
   end
   local content = f:read("*all")
   f:close()
-  local html = self:mdToHtml(content, title)
-  return html
+  return self:mdToHtml(content, title)
 end
 
 function FileConverter:isSupported(file)

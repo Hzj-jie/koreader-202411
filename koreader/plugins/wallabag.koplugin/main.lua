@@ -1106,8 +1106,7 @@ function Wallabag:getArticleID(path)
     logger.warn("Wallabag: getArticleID: no match! ")
     return
   end
-  local id = path:sub(offset + prefix_len, endpos - 1)
-  return id
+  return path:sub(offset + prefix_len, endpos - 1)
 end
 
 function Wallabag:refreshCurrentDirIfNeeded()
