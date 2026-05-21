@@ -19,16 +19,39 @@ local TARGET_DOCUMENTS = {
   "test/sample.pdf",
   "test/sample.txt",
 }
--- Headless vs Headful viewport mode configuration
-local HEADFUL = false
+-- SSH session context detection to prevent remote high-latency GUI rendering delays
+local is_ssh = (os.getenv("SSH_CLIENT") ~= nil)
+  or (os.getenv("SSH_TTY") ~= nil)
+  or (os.getenv("SSH_CONNECTION") ~= nil)
+
+-- Reachable active X11 display screen query auto-detection
+local has_screen = false
+if os.getenv("DISPLAY") and not is_ssh then
+  local ok = os.execute("xset -q >/dev/null 2>&1")
+  if ok == 0 or ok == true then
+    has_screen = true
+  end
+end
+
+-- Resolve baseline viewport execution mode (Headless vs. Headful)
+local HEADFUL = has_screen
+
+-- CLI flag overrides
 for i = 1, #arg do
   if arg[i] == "--headful" then
     HEADFUL = true
+  elseif arg[i] == "--headless" then
+    HEADFUL = false
   end
 end
+
+-- Environment variable overrides
 local env_headful = os.getenv("HEADFUL")
+local env_headless = os.getenv("HEADLESS")
 if env_headful == "1" or env_headful == "true" then
   HEADFUL = true
+elseif env_headless == "1" or env_headless == "true" then
+  HEADFUL = false
 end
 
 -- Recursive mkdir (only supports absolute paths)
