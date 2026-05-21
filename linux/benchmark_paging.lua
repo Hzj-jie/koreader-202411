@@ -1,5 +1,6 @@
-#!./luajit
--- configure search paths first
+#!/usr/bin/env ./luajit
+-- Comparative pagination benchmark runner
+
 require("setupkoenv")
 
 local lfs = require("libs/libkoreader-lfs")
@@ -100,8 +101,7 @@ local function wait_for_ready()
       print(string.format("Server is ready! Document loaded successfully. Total pages: %d", val))
       return val
     end
-    -- sleep for 200ms
-    ffiUtil.usleep(200 * 1000)
+    ffiUtil.usleep(200 * 1000) -- sleep for 200ms
   end
   
   error("KOReader emulator did not start up within 15 seconds.")
@@ -141,8 +141,7 @@ local function run_benchmark(total_pages)
         success_poll = true
         break
       end
-      -- Poll very fast (10ms)
-      ffiUtil.usleep(10 * 1000)
+      ffiUtil.usleep(10 * 1000) -- Poll very fast (10ms)
     end
     
     local s2, u2 = ffiUtil.gettime()
@@ -163,7 +162,6 @@ end
 
 local function shutdown_emulator()
   print("Shutting down emulator gracefully...")
-  -- Request quit via UIManager (closes connection, ignore network error)
   pcall(http.request, BASE_URL .. "/UIManager/quit/")
   print("Shutdown complete.")
 end
@@ -267,7 +265,6 @@ local function main()
   -- wait 2 seconds for graceful exit, otherwise kill forcefully
   local graceful_exit = false
   for i = 1, 10 do
-    -- check if pid still exists
     local p = io.popen("ps -p " .. pid)
     local res = p:read("*all")
     p:close()
