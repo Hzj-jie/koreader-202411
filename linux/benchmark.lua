@@ -181,13 +181,10 @@ local function wait_for_ready()
 end
 
 local function is_modal_open()
-  local success, code = http_get(BASE_URL .. "/UIManager/_window_stack/2")
+  -- Query the widget name property to avoid expensive recursive JSON serialization (which causes HTTP 500 and CPU starvation)
+  local success = http_get(BASE_URL .. "/UIManager/_window_stack/2/widget/name")
   if success then
-    -- Returned 200 OK (widget serialized successfully!)
-    return true
-  end
-  if code == "500" then
-    -- Returned 500 Internal Error, indicating index 2 exists but is a recursive layout structure
+    -- Returned 200 OK (widget name property exists or is nil, but index 2 exists!)
     return true
   end
   -- Returned 404 Not Found, indicating index 2 does not exist (only permanent base ReaderUI is active)
@@ -216,9 +213,10 @@ local function close_modal()
   end
 
   -- Probe to detect if the open modal is an InputDialog
-  local success_probe, code_probe =
-    http_get(BASE_URL .. "/UIManager/_window_stack/2/widget/_input_widget")
-  local is_input_dialog = success_probe or (code_probe == "500")
+  -- Probe bordersize of _input_widget to confirm presence safely without recursive serialization overhead
+  local success_probe =
+    http_get(BASE_URL .. "/UIManager/_window_stack/2/widget/_input_widget/bordersize")
+  local is_input_dialog = success_probe
 
   if is_input_dialog then
     -- 1. Trigger "Exit" event first to close the virtual keyboard if open
@@ -268,6 +266,18 @@ local function run_benchmark(total_pages)
       total_pages
     )
   )
+
+  -- Clean up any unexpected startup modals/notices first (e.g. DB migrations warning notice)
+  while is_modal_open() do
+    print("[*] Dismissing unexpected startup modal window...")
+    local success_close = close_modal()
+    if not success_close then
+      print("\nError: Failed to clear startup modal from window stack!")
+      break
+    end
+    ffiUtil.usleep(100 * 1000) -- sleep 100ms
+  end
+
   local page_durations = {}
   local dict_durations = {}
   local keydict_durations = {}
