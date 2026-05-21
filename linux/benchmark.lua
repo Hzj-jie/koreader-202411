@@ -181,10 +181,10 @@ local function wait_for_ready()
 end
 
 local function is_modal_open()
-  -- Query the widget name property to avoid expensive recursive JSON serialization (which causes HTTP 500 and CPU starvation)
-  local success = http_get(BASE_URL .. "/UIManager/_window_stack/2/widget/name")
+  -- Query the window x coordinate property (guaranteed to be a simple non-nil number) to check presence safely without recursive serialization
+  local success = http_get(BASE_URL .. "/UIManager/_window_stack/2/x")
   if success then
-    -- Returned 200 OK (widget name property exists or is nil, but index 2 exists!)
+    -- Returned 200 OK (window entry exists!)
     return true
   end
   -- Returned 404 Not Found, indicating index 2 does not exist (only permanent base ReaderUI is active)
