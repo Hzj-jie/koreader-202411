@@ -18,6 +18,17 @@ local TARGET_DOCUMENTS = {
   "test/leaves.epub",
   "test/sample.txt",
 }
+-- Headless vs Headful viewport mode configuration
+local HEADFUL = false
+for i = 1, #arg do
+  if arg[i] == "--headful" then
+    HEADFUL = true
+  end
+end
+local env_headful = os.getenv("HEADFUL")
+if env_headful == "1" or env_headful == "true" then
+  HEADFUL = true
+end
 
 -- Recursive mkdir (only supports absolute paths)
 local function mkdir_p(path)
@@ -315,12 +326,22 @@ end
 local function run_single_document_benchmark(book_path)
   setup_environment()
 
-  -- Launch emulator under xvfb-run (auto display) with software rendering
-  local emulator_cmd = string.format(
-    "HOME=%s KO_MULTIUSER=1 SDL_RENDER_DRIVER=software xvfb-run -a ./run.sh %s > /tmp/benchmark_koreader_emulator.log 2>&1 & echo $!",
-    BENCHMARK_HOME,
-    book_path
-  )
+  local emulator_cmd
+  if HEADFUL then
+    -- Launch natively on host display with full hardware GPU/OpenGL acceleration
+    emulator_cmd = string.format(
+      "HOME=%s KO_MULTIUSER=1 ./run.sh %s > /tmp/benchmark_koreader_emulator.log 2>&1 & echo $!",
+      BENCHMARK_HOME,
+      book_path
+    )
+  else
+    -- Launch headlessly under xvfb-run with forced software rendering to bypass sandboxed workstation freezes
+    emulator_cmd = string.format(
+      "HOME=%s KO_MULTIUSER=1 SDL_RENDER_DRIVER=software xvfb-run -a ./run.sh %s > /tmp/benchmark_koreader_emulator.log 2>&1 & echo $!",
+      BENCHMARK_HOME,
+      book_path
+    )
+  end
 
   print(
     "\n----------------------------------------------------------------------------------"
