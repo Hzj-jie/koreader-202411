@@ -11,7 +11,11 @@ local lfs = require("libs/libkoreader-lfs")
 local BENCHMARK_HOME = "/tmp/koreader_benchmark"
 local PORT = 8088
 local BASE_URL = string.format("http://localhost:%d/koreader", PORT)
-
+local pwd = lfs.currentdir()
+local is_baseline = pwd:find("origin.linux") ~= nil
+local EMULATOR_LOG_PATH = is_baseline
+    and "/tmp/benchmark_koreader_emulator_baseline.log"
+  or "/tmp/benchmark_koreader_emulator_master.log"
 -- Multi-document target configurations (portable reflowable formats only)
 local TARGET_DOCUMENTS = {
   "test/juliet.epub",
@@ -106,6 +110,7 @@ return {
   ["debug_verbose"] = true,
   ["httpinspector_autostart"] = true,
   ["httpinspector_port"] = %d,
+  ["quickstart_shown_version"] = 2999010100,
   ["plugins_disabled"] = {
     ["autowarmth"] = true,
     ["calibre"] = true,
@@ -210,32 +215,46 @@ local function close_modal()
     return true
   end
 
-  -- 1. Trigger "Exit" event (closes virtual keyboard on both branches, or master DictQuickLookup)
-  http_get(BASE_URL .. "/event/Exit")
+  -- Probe to detect if the open modal is an InputDialog
+  local success_probe, code_probe =
+    http_get(BASE_URL .. "/UIManager/_window_stack/2/widget/_input_widget")
+  local is_input_dialog = success_probe or (code_probe == "500")
 
-  -- Poll for close (up to 500ms timeout)
-  if wait_for_modal_close() then
-    return true
-  end
+  if is_input_dialog then
+    -- 1. Trigger "Exit" event first to close the virtual keyboard if open
+    http_get(BASE_URL .. "/event/Exit")
+    ffiUtil.usleep(50 * 1000)
 
-  -- 2. Trigger "CloseDialog" event (closes InputDialog modal window on both branches)
-  http_get(BASE_URL .. "/event/CloseDialog")
+    -- 2. Trigger "CloseDialog" to dismiss the InputDialog modal
+    http_get(BASE_URL .. "/event/CloseDialog")
+    if wait_for_modal_close() then
+      return true
+    end
+  else
+    -- 3. It's a DictQuickLookup modal!
+    -- Trigger "Exit" event first (closes DictQuickLookup on master target immediately)
+    if not is_baseline then
+      http_get(BASE_URL .. "/event/Exit")
+      if wait_for_modal_close() then
+        return true
+      end
+    end
 
-  -- Poll for close (up to 500ms timeout)
-  if wait_for_modal_close() then
-    return true
-  end
+    -- Trigger baseline "Close" event (closes DictQuickLookup on baseline target)
+    local success_close = http_get(BASE_URL .. "/event/Close")
+    if success_close and wait_for_modal_close() then
+      return true
+    end
 
-  -- 3. Trigger baseline "Close" event (closes baseline DictQuickLookup popup)
-  local success_close = http_get(BASE_URL .. "/event/Close")
-  if not success_close then
-    print("\nError: Failed to send baseline Close event!")
-    return false
-  end
-
-  -- Poll for close (up to 500ms timeout)
-  if wait_for_modal_close() then
-    return true
+    -- Retry (after 200ms sleep to let slow db queries finalize under system load spikes)
+    print(
+      "\nWarning: Baseline quick-lookup close timed out, retrying event after 200ms..."
+    )
+    ffiUtil.usleep(200 * 1000)
+    success_close = http_get(BASE_URL .. "/event/Close")
+    if success_close and wait_for_modal_close() then
+      return true
+    end
   end
 
   print("\nError: Failed to close popup modal container widget!")
@@ -405,12 +424,7 @@ local function run_benchmark(total_pages)
     keydict = keydict_durations,
     bookmark = bookmark_durations,
   }
-end
 
-local function shutdown_emulator()
-  print("Shutting down emulator gracefully...")
-  pcall(http.request, BASE_URL .. "/UIManager/quit/")
-  print("Shutdown complete.")
 end
 
 local function get_children(pid)
@@ -567,7 +581,7 @@ local function print_comparative_report(results)
   )
 end
 
-local function run_single_document_benchmark(book_path)
+local function start_emulator(book_path)
   -- Forcefully wipe out any pre-existing book SDR metadata state to force the document to open pristine-clean on page 1
   local book_sdr = book_path:gsub("%.%w+$", ".sdr")
   os.execute("rm -rf " .. book_sdr)
@@ -578,23 +592,25 @@ local function run_single_document_benchmark(book_path)
   if HEADFUL then
     -- Launch natively on host display with full hardware GPU/OpenGL acceleration
     emulator_cmd = string.format(
-      "HOME=%s KO_MULTIUSER=1 ./run.sh %s > /tmp/benchmark_koreader_emulator.log 2>&1 & echo $!",
+      "HOME=%s KO_MULTIUSER=1 ./run.sh %s > %s 2>&1 & echo $!",
       BENCHMARK_HOME,
-      book_path
+      book_path,
+      EMULATOR_LOG_PATH
     )
   else
     -- Launch headlessly under xvfb-run with forced software rendering to bypass sandboxed workstation freezes
     emulator_cmd = string.format(
-      "HOME=%s KO_MULTIUSER=1 SDL_RENDER_DRIVER=software xvfb-run -a ./run.sh %s > /tmp/benchmark_koreader_emulator.log 2>&1 & echo $!",
+      "HOME=%s KO_MULTIUSER=1 SDL_RENDER_DRIVER=software xvfb-run -a ./run.sh %s > %s 2>&1 & echo $!",
       BENCHMARK_HOME,
-      book_path
+      book_path,
+      EMULATOR_LOG_PATH
     )
   end
 
   print(
     "\n----------------------------------------------------------------------------------"
   )
-  print("LAUNCHING EMULATOR TARGET: " .. book_path)
+  print("LAUNCHING EMULATOR SESSION WITH TARGET: " .. book_path)
   print(
     "----------------------------------------------------------------------------------"
   )
@@ -604,17 +620,43 @@ local function run_single_document_benchmark(book_path)
   pipe:close()
 
   if not pid then
-    return nil, "Failed to retrieve emulator background PID."
+    error("Failed to retrieve emulator background PID.")
   end
 
-  local durations = {}
-  local ok, err = pcall(function()
-    local total_pages = wait_for_ready()
-    durations = run_benchmark(total_pages)
-  end)
+  -- Wait for the first document to be ready
+  local total_pages = wait_for_ready()
+  return pid, total_pages
+end
 
-  -- Clean up
-  pcall(shutdown_emulator)
+local function open_document_in_session(book_path)
+  -- Wiping target book sdr state first (to force start from page 1!)
+  local book_sdr = book_path:gsub("%.%w+$", ".sdr")
+  os.execute("rm -rf " .. book_sdr)
+
+  print(
+    "\n----------------------------------------------------------------------------------"
+  )
+  print("SWITCHING TARGET DOCUMENT IN SESSION: " .. book_path)
+  print(
+    "----------------------------------------------------------------------------------"
+  )
+
+  -- Send open file command (enclosed in single quotes to protect slashes)
+  local url = BASE_URL .. "/ui/showReader/'" .. book_path .. "'"
+  pcall(http_get, url) -- ignore connection close errors on session transfer!
+
+  -- Wait 1.5 seconds for old document close and new startup routines to initialize
+  ffiUtil.usleep(1500 * 1000)
+
+  -- Wait for the new session to become ready and load the document!
+  local total_pages = wait_for_ready()
+  return total_pages
+end
+
+local function stop_emulator(pid)
+  print("Shutting down emulator session gracefully...")
+  pcall(http.request, BASE_URL .. "/UIManager/quit/")
+
   -- wait 2 seconds for graceful exit, otherwise kill forcefully
   local graceful_exit = false
   for i = 1, 10 do
@@ -634,38 +676,78 @@ local function run_single_document_benchmark(book_path)
     )
     kill_recursive(pid)
   end
+  print("Emulator session stopped.")
+end
 
-  if not ok then
-    print(
-      "\nBenchmark failed for " .. book_path .. ": " .. tostring(err),
-      io.stderr
-    )
-    print("Tail of emulator logs:")
-    os.execute("tail -n 20 /tmp/benchmark_koreader_emulator.log")
-    return nil, err
-  end
-
-  return durations
+local function is_process_alive(pid)
+  local p = io.popen("ps -p " .. pid)
+  local res = p:read("*all")
+  p:close()
+  return res:find(tostring(pid)) ~= nil
 end
 
 local function main()
   print(
-    "Starting multi-document comparative benchmarking suite (paging through the entire book)..."
+    "Starting multi-document comparative benchmarking suite (active session single-run switcher)..."
   )
   local results = {}
-  for _, doc in ipairs(TARGET_DOCUMENTS) do
-    local durations = run_single_document_benchmark(doc)
-    local entry = { book_path = doc }
-    if durations then
-      entry.metrics = {
-        turns = calculate_metrics(durations.turns),
-        dict = calculate_metrics(durations.dict),
-        keydict = calculate_metrics(durations.keydict),
-        bookmark = calculate_metrics(durations.bookmark),
-      }
+  local pid
+  local ok_main, err_main = pcall(function()
+    for idx, doc in ipairs(TARGET_DOCUMENTS) do
+      local durations
+      local ok, err
+      local entry = { book_path = doc }
+
+      if idx == 1 then
+        -- 1. Start emulator on the first target book
+        local total_pages
+        ok, err = pcall(function()
+          pid, total_pages = start_emulator(doc)
+          durations = run_benchmark(total_pages)
+        end)
+      else
+        -- 2. Open subsequent target books directly in the running session
+        if pid and is_process_alive(pid) then
+          ok, err = pcall(function()
+            local total_pages = open_document_in_session(doc)
+            durations = run_benchmark(total_pages)
+          end)
+        else
+          ok = false
+          err = "Emulator session is dead."
+        end
+      end
+
+      if ok and durations then
+        entry.metrics = {
+          turns = calculate_metrics(durations.turns),
+          dict = calculate_metrics(durations.dict),
+          keydict = calculate_metrics(durations.keydict),
+          bookmark = calculate_metrics(durations.bookmark),
+        }
+      else
+        print(
+          string.format("\nBenchmark failed for %s: %s", doc, tostring(err)),
+          io.stderr
+        )
+        if pid and is_process_alive(pid) then
+          print("Tail of emulator logs:")
+          os.execute("tail -n 20 " .. EMULATOR_LOG_PATH)
+        end
+      end
+      table.insert(results, entry)
     end
-    table.insert(results, entry)
+  end)
+
+  -- Always stop the running emulator session at the end of execution!
+  if pid then
+    pcall(stop_emulator, pid)
   end
+
+  if not ok_main then
+    print("\nGlobal execution failed: " .. tostring(err_main), io.stderr)
+  end
+
   print_comparative_report(results)
 end
 
