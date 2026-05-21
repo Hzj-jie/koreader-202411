@@ -104,7 +104,7 @@ function TermInputText:trimBuffer(new_size)
     end
     -- remove first n chars
     table.move(self.charlist, n + 1, #self.charlist, 1)
-    for dummy = 1, n do
+    for _ = 1, n do
       self.charlist[#self.charlist] = nil
     end
 
@@ -159,7 +159,7 @@ end
 function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, _param3)
   if cmd == "A" then -- cursor up
     param1 = param1 == 0 and 1 or param1
-    for i = 1, param1 do
+    for _ = 1, param1 do
       if self.scroll_region_line then
         self:scrollRegionDown()
       end
@@ -168,19 +168,19 @@ function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, _param3)
     return true
   elseif cmd == "B" then -- cursor down
     param1 = param1 == 0 and 1 or param1
-    for i = 1, param1 do
+    for _ = 1, param1 do
       self:moveCursorDown(true)
     end
     return true
   elseif cmd == "C" then -- cursor right
     param1 = param1 == 0 and 1 or param1
-    for i = 1, param1 do
+    for _ = 1, param1 do
       self:rightChar(true)
     end
     return true
   elseif cmd == "D" then -- cursor left
     param1 = param1 == 0 and 1 or param1
-    for i = 1, param1 do
+    for _ = 1, param1 do
       self:leftChar(true)
     end
     return true
@@ -428,7 +428,7 @@ function TermInputText:scrollRegionDown(column)
     self.scroll_region_line = self.scroll_region_line - 1
   else -- scroll down
     local pos = self.charpos
-    for i = self.scroll_region_line, self.scroll_region_bottom do
+    for _ = self.scroll_region_line, self.scroll_region_bottom do
       while pos > 1 and self.charlist[pos] ~= "\n" do
         pos = pos + 1
       end
@@ -444,7 +444,7 @@ function TermInputText:scrollRegionDown(column)
     end
 
     pos = self.charpos
-    for i = column, self.maxc - column + 1 do
+    for _ = column, self.maxc - column + 1 do
       table.insert(self.charlist, pos, ".")
       pos = pos + 1
     end
@@ -458,7 +458,7 @@ function TermInputText:scrollRegionUp(column)
     self.scroll_region_line = self.scroll_region_line + 1
   else -- scroll up
     local pos = self.charpos
-    for i = self.scroll_region_line, self.scroll_region_top + 1, -1 do
+    for _ = self.scroll_region_line, self.scroll_region_top + 1, -1 do
       while pos > 1 and self.charlist[pos] ~= "\n" do
         pos = pos - 1
       end
@@ -477,12 +477,12 @@ function TermInputText:scrollRegionUp(column)
     end
 
     pos = self.charpos + 1
-    for i = column, self.maxc - column do
+    for _ = column, self.maxc - column do
       table.insert(self.charlist, pos, " ")
       pos = pos + 1
     end
     table.insert(self.charlist, pos, "\n")
-    for i = 1, column - 1 do
+    for _ = 1, column - 1 do
       table.insert(self.charlist, pos, " ")
       pos = pos + 1
     end
@@ -641,8 +641,8 @@ end
 function TermInputText:formatTerminal(clear)
   local i = self.store_position or 1
   -- so we end up in a maxr x maxc array for positioning
-  for r = 1, self.maxr do
-    for c = 1, self.maxc do
+  for _ = 1, self.maxr do
+    for _ = 1, self.maxc do
       if not self.charlist[i] then -- end of text
         table.insert(self.charlist, i, "\n")
       end
@@ -732,7 +732,7 @@ function TermInputText:reverseLineFeed(skip_callback)
   if self.charpos > 1 then
     self.charpos = self.charpos + 1
   end
-  for i = 1, 80 do
+  for _ = 1, 80 do
     table.insert(self.charlist, self.charpos, " ")
   end
 end

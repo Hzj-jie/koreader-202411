@@ -41,7 +41,7 @@ local formatter_buttons = {
 
 function MarkdownExporter:editFormatStyle(drawer_style, label, menu)
   local radio_buttons = {}
-  for _idx, v in ipairs(formatter_buttons) do
+  for _, v in ipairs(formatter_buttons) do
     table.insert(radio_buttons, {
       {
         text = v[1],
@@ -117,7 +117,7 @@ function MarkdownExporter:getMenuTable()
     },
   }
 
-  for _idx, entry in ipairs(highlight_style) do
+  for _, entry in ipairs(highlight_style) do
     table.insert(menus.sub_item_table, {
       text_func = function()
         return entry[1]
@@ -142,7 +142,7 @@ function MarkdownExporter:export(t)
   if not file then
     return false
   end
-  for idx, book in ipairs(t) do
+  for _, book in ipairs(t) do
     local tbl = md.prepareBookContent(
       book,
       self.settings.formatting_options,

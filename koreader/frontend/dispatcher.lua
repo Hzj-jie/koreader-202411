@@ -1547,7 +1547,7 @@ function Dispatcher:_addItem(caller, menus, location, settings, section)
       menu:updateItems()
     end
   end
-  for __, k in ipairs(dispatcher_menu_order) do
+  for _, k in ipairs(dispatcher_menu_order) do
     if
       settingsList[k][section] == true and settingsList[k].condition ~= false
     then

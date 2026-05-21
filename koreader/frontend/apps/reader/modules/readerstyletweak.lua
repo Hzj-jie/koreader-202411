@@ -366,7 +366,7 @@ function ReaderStyleTweak:resolveConflictsBeforeMakingDefault(
     end
   end
   local to_remove = {}
-  for other_id, other_enabled in pairs(self.global_tweaks) do
+  for other_id in pairs(self.global_tweaks) do
     -- We also reset the provided "id" for a complete cleanup,
     -- it is expected the caller will re-enable it
     if other_id == id or conflicts_with_func(other_id) then
@@ -379,7 +379,7 @@ function ReaderStyleTweak:resolveConflictsBeforeMakingDefault(
   -- Also remove the provided "id" and any conflicting one from doc_tweaks (where
   -- they may be false and prevent this new default to apply to current book)
   to_remove = {}
-  for other_id, other_enabled in pairs(self.doc_tweaks) do
+  for other_id in pairs(self.doc_tweaks) do
     if other_id == id or conflicts_with_func(other_id) then
       table.insert(to_remove, other_id)
     end
@@ -398,7 +398,7 @@ end
 function ReaderStyleTweak:updateCssText(apply)
   if self.enabled then
     local tweaks = {}
-    for id, enabled in pairs(self.global_tweaks) do
+    for id in pairs(self.global_tweaks) do
       -- there are only enabled tweaks in global_tweaks, but we don't
       -- add them here if they appear in doc_tweaks (if enabled in
       -- doc_tweaks, they'll be added below; if disabled, they should
@@ -407,7 +407,7 @@ function ReaderStyleTweak:updateCssText(apply)
         table.insert(tweaks, self.tweaks_by_id[id])
       end
     end
-    for id, enabled in pairs(self.doc_tweaks) do
+    for id in pairs(self.doc_tweaks) do
       -- there are enabled (true) and disabled (false) tweaks in doc_tweaks
       if self.doc_tweaks[id] == true then
         table.insert(tweaks, self.tweaks_by_id[id])
@@ -714,12 +714,12 @@ You can enable individual tweaks on this book with a tap, or view more details a
     end
     table.sort(dir_list)
     table.sort(file_list)
-    for __, subdir in ipairs(dir_list) do
+    for _, subdir in ipairs(dir_list) do
       local sub_item_table = { title = subdir:gsub("_", " ") }
       process_tweaks_dir(dir .. "/" .. subdir, sub_item_table)
       table.insert(item_table, sub_item_table)
     end
-    for __, file in ipairs(file_list) do
+    for _, file in ipairs(file_list) do
       local title = file:gsub("%.css$", ""):gsub("_", " ")
       local filepath = dir .. "/" .. file
       table.insert(item_table, {
