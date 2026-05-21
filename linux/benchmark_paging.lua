@@ -271,6 +271,7 @@ local function run_benchmark(total_pages)
   local page_durations = {}
   local dict_durations = {}
   local keydict_durations = {}
+  local keysearch_durations = {}
   local bookmark_durations = {}
 
   local current_page = 1
@@ -393,6 +394,49 @@ local function run_benchmark(total_pages)
       table.insert(keydict_durations, k_duration)
     end
 
+    -- 2b. Simulate keyboard fulltext search input (no submit) every 24 pages
+    if target_page % 24 == 0 then
+      io.write(" [Keyboard Search 'Shakespeare']...")
+      io.stdout:flush()
+      local ks1, ku1 = ffiUtil.gettime()
+
+      -- Spawn input keyboard dialog
+      local success_show = http_get(BASE_URL .. "/event/ShowFulltextSearchInput")
+      if not success_show then
+        print("\nError: Failed to spawn fulltext search keyboard dialog!")
+        break
+      end
+      ffiUtil.usleep(100 * 1000)
+
+      if not is_modal_open() then
+        print("\nError: Keyboard search dialog failed to map to stack!")
+        break
+      end
+
+      -- Inject typing search string (no newline to avoid triggering actual search)
+      local success_type = http_get(
+        BASE_URL
+          .. "/UIManager/_window_stack/2/widget/_input_widget/addChars/Shakespeare"
+      )
+      if not success_type then
+        print("\nError: Failed to inject typing search sequence!")
+        break
+      end
+      ffiUtil.usleep(100 * 1000) -- Allow UI to update after typing
+
+      -- Dismiss search keyboard dialog using stack-aware close_modal helper
+      local success_close = close_modal()
+      if not success_close then
+        print("\nError: Failed to close keyboard search dialog!")
+        break
+      end
+
+      local ks2, ku2 = ffiUtil.gettime()
+      local k_duration = (ks2 - ks1) * 1000 + (ku2 - ku1) / 1000 -- in ms
+      io.write(string.format(" Done (%.2f ms)", k_duration))
+      table.insert(keysearch_durations, k_duration)
+    end
+
     -- 3. Simulate book dogear bookmark toggle every 15 pages
     if target_page % 15 == 0 then
       io.write(" [Toggle Bookmark]...")
@@ -422,6 +466,7 @@ local function run_benchmark(total_pages)
     turns = page_durations,
     dict = dict_durations,
     keydict = keydict_durations,
+    keysearch = keysearch_durations,
     bookmark = bookmark_durations,
   }
 
@@ -492,17 +537,17 @@ end
 
 local function print_comparative_report(results)
   print(
-    "\n====================================================================================================================="
+    "\n============================================================================================================================================="
   )
   print(
-    "                                 KOREADER PAGINATION COMPARATIVE BENCHMARK HARNESS"
+    "                                                 KOREADER PAGINATION COMPARATIVE BENCHMARK HARNESS"
   )
   print(
-    "====================================================================================================================="
+    "============================================================================================================================================="
   )
   print(
     string.format(
-      "%-19s | %-6s | %-5s | %-12s | %-4s | %-12s | %-7s | %-12s | %-4s | %-12s",
+      "%-19s | %-6s | %-5s | %-12s | %-4s | %-12s | %-7s | %-12s | %-9s | %-12s | %-4s | %-12s",
       "Document Path",
       "Format",
       "Turns",
@@ -511,12 +556,14 @@ local function print_comparative_report(results)
       "Avg Dict Lat",
       "KeyDict",
       "Avg KeyDict",
+      "KeySearch",
+      "Avg KeySrch",
       "Book",
       "Avg Book Lat"
     )
   )
   print(
-    "---------------------------------------------------------------------------------------------------------------------"
+    "---------------------------------------------------------------------------------------------------------------------------------------------"
   )
   for _, res in ipairs(results) do
     local ext = res.book_path:match("%.(%w+)$") or "unknown"
@@ -537,6 +584,12 @@ local function print_comparative_report(results)
           and string.format("%.2f ms", res.metrics.keydict.avg)
         or "N/A"
 
+      local keysearch_count = res.metrics.keysearch and res.metrics.keysearch.count
+        or 0
+      local keysearch_avg = keysearch_count > 0
+          and string.format("%.2f ms", res.metrics.keysearch.avg)
+        or "N/A"
+
       local book_count = res.metrics.bookmark and res.metrics.bookmark.count
         or 0
       local book_avg = book_count > 0
@@ -545,7 +598,7 @@ local function print_comparative_report(results)
 
       print(
         string.format(
-          "%-19s | %-6s | %-5d | %-12s | %-4d | %-12s | %-7d | %-12s | %-4d | %-12s",
+          "%-19s | %-6s | %-5d | %-12s | %-4d | %-12s | %-7d | %-12s | %-9d | %-12s | %-4d | %-12s",
           res.book_path,
           ext:upper(),
           turn_count,
@@ -554,6 +607,8 @@ local function print_comparative_report(results)
           dict_avg,
           keydict_count,
           keydict_avg,
+          keysearch_count,
+          keysearch_avg,
           book_count,
           book_avg
         )
@@ -561,11 +616,13 @@ local function print_comparative_report(results)
     else
       print(
         string.format(
-          "%-19s | %-6s | %-5s | %-12s | %-4s | %-12s | %-7s | %-12s | %-4s | %-12s",
+          "%-19s | %-6s | %-5s | %-12s | %-4s | %-12s | %-7s | %-12s | %-9s | %-12s | %-4s | %-12s",
           res.book_path,
           ext:upper(),
           "0",
           "CRASHED/FAIL",
+          "0",
+          "N/A",
           "0",
           "N/A",
           "0",
@@ -577,7 +634,7 @@ local function print_comparative_report(results)
     end
   end
   print(
-    "====================================================================================================================="
+    "============================================================================================================================================="
   )
 end
 
@@ -723,6 +780,7 @@ local function main()
           turns = calculate_metrics(durations.turns),
           dict = calculate_metrics(durations.dict),
           keydict = calculate_metrics(durations.keydict),
+          keysearch = calculate_metrics(durations.keysearch),
           bookmark = calculate_metrics(durations.bookmark),
         }
       else
