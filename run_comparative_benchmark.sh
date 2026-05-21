@@ -30,7 +30,7 @@ echo "--------------------------------------------------------------------------
 echo ">>> [1/2] RUNNING SWEEP: BASELINE PRISTINE UPSTREAM (origin.linux/)"
 echo "--------------------------------------------------------------------------------"
 pushd origin.linux > /dev/null
-./luajit benchmark_paging.lua "$@" > /tmp/origin_benchmark_raw.txt 2>&1
+./luajit benchmark.lua "$@" > /tmp/origin_benchmark_raw.txt 2>&1
 popd > /dev/null
 echo ">>> [1/2] Baseline pristine sweep completed successfully!"
 echo ""
@@ -40,7 +40,7 @@ echo "--------------------------------------------------------------------------
 echo ">>> [2/2] RUNNING SWEEP: DEVELOPMENTAL BRANCH (linux/)"
 echo "--------------------------------------------------------------------------------"
 pushd linux > /dev/null
-./luajit benchmark_paging.lua "$@" > /tmp/master_benchmark_raw.txt 2>&1
+./luajit benchmark.lua "$@" > /tmp/master_benchmark_raw.txt 2>&1
 popd > /dev/null
 echo ">>> [2/2] Developmental optimized sweep completed successfully!"
 echo ""
