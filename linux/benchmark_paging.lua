@@ -175,42 +175,66 @@ local function wait_for_ready()
   error("KOReader emulator did not start up within 15 seconds.")
 end
 
-local function close_modal()
-  -- Query current window stack count dynamically over HTTP REST
-  local success_stack, stack =
-    get_json_val(BASE_URL .. "/UIManager/_window_stack")
-  if not success_stack then
-    print("\nError: Failed to query UIManager window stack!")
-    return false
+local function is_modal_open()
+  local success, code = http_get(BASE_URL .. "/UIManager/_window_stack/2")
+  if success then
+    -- Returned 200 OK (widget serialized successfully!)
+    return true
   end
-  local initial_count = #stack
+  if code == "500" then
+    -- Returned 500 Internal Error, indicating index 2 exists but is a recursive layout structure
+    return true
+  end
+  -- Returned 404 Not Found, indicating index 2 does not exist (only permanent base ReaderUI is active)
+  return false
+end
 
-  -- 1. Trigger refactored widget destruction "Exit" event (developmental branch master target)
-  http_get(BASE_URL .. "/event/Exit")
+local function wait_for_modal_close()
+  local poll_start = ffiUtil.gettime()
+  while true do
+    if not is_modal_open() then
+      return true
+    end
+    local now = ffiUtil.gettime()
+    if (now - poll_start) >= 0.5 then -- 500ms timeout
+      break
+    end
+    ffiUtil.usleep(20 * 1000) -- Check every 20ms
+  end
+  return false
+end
 
-  -- Sleep 50ms to allow event looper processing tick
-  ffiUtil.usleep(50 * 1000)
-
-  -- Re-query window stack count
-  local success_stack2, stack2 =
-    get_json_val(BASE_URL .. "/UIManager/_window_stack")
-  if success_stack2 and #stack2 < initial_count then
-    -- Widget was successfully destroyed and popped off the stack! Bypassing is 100% safe.
+local function close_modal()
+  if not is_modal_open() then
+    -- No modal is open, bypassing is 100% safe
     return true
   end
 
-  -- 2. If stack count is identical, trigger baseline "Close" event (pristine release origin target)
+  -- 1. Trigger "Exit" event (closes virtual keyboard on both branches, or master DictQuickLookup)
+  http_get(BASE_URL .. "/event/Exit")
+
+  -- Poll for close (up to 500ms timeout)
+  if wait_for_modal_close() then
+    return true
+  end
+
+  -- 2. Trigger "CloseDialog" event (closes InputDialog modal window on both branches)
+  http_get(BASE_URL .. "/event/CloseDialog")
+
+  -- Poll for close (up to 500ms timeout)
+  if wait_for_modal_close() then
+    return true
+  end
+
+  -- 3. Trigger baseline "Close" event (closes baseline DictQuickLookup popup)
   local success_close = http_get(BASE_URL .. "/event/Close")
   if not success_close then
     print("\nError: Failed to send baseline Close event!")
     return false
   end
 
-  -- Sleep 50ms to verify window closure
-  ffiUtil.usleep(50 * 1000)
-  local success_stack3, stack3 =
-    get_json_val(BASE_URL .. "/UIManager/_window_stack")
-  if success_stack3 and #stack3 < initial_count then
+  -- Poll for close (up to 500ms timeout)
+  if wait_for_modal_close() then
     return true
   end
 
@@ -227,6 +251,7 @@ local function run_benchmark(total_pages)
   )
   local page_durations = {}
   local dict_durations = {}
+  local keydict_durations = {}
   local bookmark_durations = {}
 
   local current_page = 1
@@ -276,8 +301,8 @@ local function run_benchmark(total_pages)
     table.insert(page_durations, duration)
     current_page = target_page
 
-    -- 1. Simulate dictionary quick-lookup every 10 pages
-    if target_page % 10 == 0 then
+    -- 1. Simulate standard selection quick-lookup every 10 pages (except on keyboard lookup turns!)
+    if target_page % 10 == 0 and target_page % 20 ~= 0 then
       io.write(" [Lookup 'Shakespeare']...")
       io.stdout:flush()
       local ds1, du1 = ffiUtil.gettime()
@@ -306,7 +331,50 @@ local function run_benchmark(total_pages)
       table.insert(dict_durations, d_duration)
     end
 
-    -- 2. Simulate book dogear bookmark toggle every 15 pages
+    -- 2. Simulate keyboard dictionary search + submit + modal dismissal every 20 pages
+    if target_page % 20 == 0 then
+      io.write(" [Keyboard Lookup 'Shakespeare']...")
+      io.stdout:flush()
+      local ks1, ku1 = ffiUtil.gettime()
+
+      -- Spawn input keyboard dialog
+      local success_show = http_get(BASE_URL .. "/event/ShowDictionaryLookup")
+      if not success_show then
+        print("\nError: Failed to spawn dictionary lookup keyboard dialog!")
+        break
+      end
+      ffiUtil.usleep(100 * 1000)
+
+      if not is_modal_open() then
+        print("\nError: Keyboard lookup dialog failed to map to stack!")
+        break
+      end
+
+      -- Inject typing search string + confirm submit newline character ("Shakespeare\n")
+      local success_type = http_get(
+        BASE_URL
+          .. "/UIManager/_window_stack/2/widget/_input_widget/addChars/Shakespeare%0A"
+      )
+      if not success_type then
+        print("\nError: Failed to inject typing search sequence!")
+        break
+      end
+      ffiUtil.usleep(500 * 1000) -- Allow definitions modal popup window to load
+
+      -- Dismiss search lookup result popup modal using stack-aware close_modal helper
+      local success_close = close_modal()
+      if not success_close then
+        print("\nError: Failed to close keyboard lookup results modal window!")
+        break
+      end
+
+      local ks2, ku2 = ffiUtil.gettime()
+      local k_duration = (ks2 - ks1) * 1000 + (ku2 - ku1) / 1000 -- in ms
+      io.write(string.format(" Done (%.2f ms)", k_duration))
+      table.insert(keydict_durations, k_duration)
+    end
+
+    -- 3. Simulate book dogear bookmark toggle every 15 pages
     if target_page % 15 == 0 then
       io.write(" [Toggle Bookmark]...")
       io.stdout:flush()
@@ -319,7 +387,7 @@ local function run_benchmark(total_pages)
         break
       end
 
-      -- Sleep 50ms to allow metadata settings state flush to disk
+      -- Sleep 50ms to allow settings settings metadata flush to disk
       ffiUtil.usleep(50 * 1000)
 
       local bs2, bu2 = ffiUtil.gettime()
@@ -334,6 +402,7 @@ local function run_benchmark(total_pages)
   return {
     turns = page_durations,
     dict = dict_durations,
+    keydict = keydict_durations,
     bookmark = bookmark_durations,
   }
 end
@@ -409,29 +478,31 @@ end
 
 local function print_comparative_report(results)
   print(
-    "\n===================================================================================================="
+    "\n====================================================================================================================="
   )
   print(
-    "                       KOREADER PAGINATION COMPARATIVE BENCHMARK HARNESS"
+    "                                 KOREADER PAGINATION COMPARATIVE BENCHMARK HARNESS"
   )
   print(
-    "===================================================================================================="
+    "====================================================================================================================="
   )
   print(
     string.format(
-      "%-22s | %-6s | %-5s | %-16s | %-4s | %-16s | %-4s | %-16s",
+      "%-19s | %-6s | %-5s | %-12s | %-4s | %-12s | %-7s | %-12s | %-4s | %-12s",
       "Document Path",
       "Format",
       "Turns",
-      "Avg Turn Latency",
+      "Avg Turn Lat",
       "Dict",
-      "Avg Dict Latency",
+      "Avg Dict Lat",
+      "KeyDict",
+      "Avg KeyDict",
       "Book",
-      "Avg Book Latency"
+      "Avg Book Lat"
     )
   )
   print(
-    "----------------------------------------------------------------------------------------------------"
+    "---------------------------------------------------------------------------------------------------------------------"
   )
   for _, res in ipairs(results) do
     local ext = res.book_path:match("%.(%w+)$") or "unknown"
@@ -446,6 +517,12 @@ local function print_comparative_report(results)
           and string.format("%.2f ms", res.metrics.dict.avg)
         or "N/A"
 
+      local keydict_count = res.metrics.keydict and res.metrics.keydict.count
+        or 0
+      local keydict_avg = keydict_count > 0
+          and string.format("%.2f ms", res.metrics.keydict.avg)
+        or "N/A"
+
       local book_count = res.metrics.bookmark and res.metrics.bookmark.count
         or 0
       local book_avg = book_count > 0
@@ -454,13 +531,15 @@ local function print_comparative_report(results)
 
       print(
         string.format(
-          "%-22s | %-6s | %-5d | %-16s | %-4d | %-16s | %-4d | %-16s",
+          "%-19s | %-6s | %-5d | %-12s | %-4d | %-12s | %-7d | %-12s | %-4d | %-12s",
           res.book_path,
           ext:upper(),
           turn_count,
           turn_avg,
           dict_count,
           dict_avg,
+          keydict_count,
+          keydict_avg,
           book_count,
           book_avg
         )
@@ -468,11 +547,13 @@ local function print_comparative_report(results)
     else
       print(
         string.format(
-          "%-22s | %-6s | %-5s | %-16s | %-4s | %-16s | %-4s | %-16s",
+          "%-19s | %-6s | %-5s | %-12s | %-4s | %-12s | %-7s | %-12s | %-4s | %-12s",
           res.book_path,
           ext:upper(),
           "0",
           "CRASHED/FAIL",
+          "0",
+          "N/A",
           "0",
           "N/A",
           "0",
@@ -482,7 +563,7 @@ local function print_comparative_report(results)
     end
   end
   print(
-    "===================================================================================================="
+    "====================================================================================================================="
   )
 end
 
@@ -579,6 +660,7 @@ local function main()
       entry.metrics = {
         turns = calculate_metrics(durations.turns),
         dict = calculate_metrics(durations.dict),
+        keydict = calculate_metrics(durations.keydict),
         bookmark = calculate_metrics(durations.bookmark),
       }
     end
