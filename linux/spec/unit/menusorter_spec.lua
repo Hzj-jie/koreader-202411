@@ -279,7 +279,6 @@ describe("MenuSorter module", function()
         after_each(function()
             if test_file_path then
                 os.remove(test_file_path)
-                package.loaded["settings/test_menu_order"] = nil
             end
         end)
 
@@ -309,24 +308,26 @@ describe("MenuSorter module", function()
             end)
         end)
 
-        it("should return the raw non-table value if file returns non-table", function()
+        it("should crash if file returns non-table", function()
             local f = io.open(test_file_path, "w")
             assert.is_truthy(f)
             f:write("return 'this is a string, not a table'\n")
             f:close()
 
-            local settings = MenuSorter:_readMSSettings("test")
-            assert.equals("this is a string, not a table", settings)
+            assert.has_error(function()
+                MenuSorter:_readMSSettings("test")
+            end)
         end)
 
-        it("should return true if file returns nil (require behavior)", function()
+        it("should crash if file returns nil", function()
             local f = io.open(test_file_path, "w")
             assert.is_truthy(f)
             f:write("return nil\n")
             f:close()
 
-            local settings = MenuSorter:_readMSSettings("test")
-            assert.is_true(settings)
+            assert.has_error(function()
+                MenuSorter:_readMSSettings("test")
+            end)
         end)
     end)
 
@@ -343,7 +344,6 @@ describe("MenuSorter module", function()
         after_each(function()
             if test_file_path then
                 os.remove(test_file_path)
-                package.loaded["settings/test_menu_order"] = nil
             end
         end)
 
@@ -425,6 +425,62 @@ describe("MenuSorter module", function()
             assert.has_error(function()
                 MenuSorter:mergeAndSort("test", menu_items, default_order)
             end)
+        end)
+
+        it("should successfully load user overrides even if settings path contains dots (like ~/.config/koreader)", function()
+            local DataStorage = require("datastorage")
+            local lfs = require("libs/libkoreader-lfs")
+
+            local original_getSettingsDir = DataStorage.getSettingsDir
+
+            -- Create a directory containing a dot
+            local base_settings_dir = original_getSettingsDir(DataStorage)
+            local dot_settings_dir = base_settings_dir .. "/mock.config.dir"
+            lfs.mkdir(dot_settings_dir)
+
+            -- Mock getSettingsDir to return the path with dot
+            stub(DataStorage, "getSettingsDir", function()
+                return dot_settings_dir
+            end)
+
+            local dot_test_file_path = dot_settings_dir .. "/test_menu_order.lua"
+            local f = io.open(dot_test_file_path, "w")
+            assert.is_truthy(f)
+            f:write([[
+                return {
+                    ["KOMenu:menu_buttons"] = { "tools", "search" },
+                    ["KOMenu:disabled"] = { "main", "setting" },
+                }
+            ]])
+            f:close()
+
+            local menu_items = {
+                ["KOMenu:menu_buttons"] = {},
+                main = { text = "Main" },
+                search = { text = "Search" },
+                tools = { text = "Tools" },
+                setting = { text = "Settings" },
+            }
+            local default_order = {
+                ["KOMenu:menu_buttons"] = { "setting", "tools", "search", "main" },
+                setting = {},
+                tools = {},
+                search = {},
+                main = {},
+            }
+
+            -- Call public mergeAndSort
+            local test_menu = MenuSorter:mergeAndSort("test", menu_items, default_order)
+
+            -- Assert that overrides were loaded successfully under the dot directory!
+            assert.equals("tools", test_menu[1].id)
+            assert.equals("search", test_menu[2].id)
+            assert.equals(2, #test_menu)
+
+            -- Cleanup
+            DataStorage.getSettingsDir:revert()
+            os.remove(dot_test_file_path)
+            lfs.rmdir(dot_settings_dir)
         end)
     end)
 end)

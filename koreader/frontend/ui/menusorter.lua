@@ -21,22 +21,15 @@ local MenuSorter = {
 function MenuSorter:_readMSSettings(config_prefix)
   if config_prefix then
     local menu_order = string.format(
-      "%s/%s_menu_order",
+      "%s/%s_menu_order.lua",
       DataStorage:getSettingsDir(),
       config_prefix
     )
 
-    -- Strip leading "./" to ensure we pass a clean relative module name
-    -- to require() (e.g. "settings/prefix_menu_order" instead of "./settings/prefix_menu_order").
-    -- Lua's require() replaces all dots with directory separators, so a leading "./"
-    -- becomes "/settings/..." which require() treats as an absolute path, preventing
-    -- matching against "?.lua" template in package.path.
-    if menu_order:sub(1, 2) == "./" then
-      menu_order = menu_order:sub(3)
-    end
-
-    if lfs.attributes(menu_order .. ".lua") then
-      return require(menu_order) or {}
+    if lfs.attributes(menu_order) then
+      local ret = dofile(menu_order)
+      assert(type(ret) == "table", "Menu order file must return a table!")
+      return ret
     end
   end
   return {}
