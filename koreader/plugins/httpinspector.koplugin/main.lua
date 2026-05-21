@@ -993,8 +993,8 @@ function HttpInspector:callFunction(
     table.insert(html, h)
   end
   local args, nb_args = getVariablesFromUri(args_as_uri)
-  local func_info = getFunctionInfo(func)
   if output_html then
+    local func_info = getFunctionInfo(func)
     add_html(
       T("<title>%1(%2)</title>", reqinfo.fragments[1], args_as_uri or "")
     )
@@ -1015,11 +1015,7 @@ function HttpInspector:callFunction(
     add_html("")
   end
   local res, nbr, http_code, json, ok, ok2, err, trace
-  local is_method = func_info.is_method
-  if not is_method and instance and guessClassName(instance) then
-    is_method = true
-  end
-  if is_method then
+  if instance and guessClassName(instance) then
     res = table.pack(
       xpcall(func, debug.traceback, instance, unpack(args, 1, nb_args))
     )
