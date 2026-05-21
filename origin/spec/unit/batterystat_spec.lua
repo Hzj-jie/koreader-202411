@@ -21,21 +21,7 @@ describe("BatteryState plugin tests #nocov", function()
     end)
 
     before_each(function()
-        local Device = require("device")
-        local PowerD = Device:getPowerDevice()
-        stub(PowerD, "isCharging")
-        PowerD.isCharging.returns(false)
-        stub(PowerD, "isCharged")
-        PowerD.isCharged.returns(false)
-
         module = dofile("plugins/batterystat.koplugin/main.lua")
-    end)
-
-    after_each(function()
-        local Device = require("device")
-        local PowerD = Device:getPowerDevice()
-        PowerD.isCharging:revert()
-        PowerD.isCharged:revert()
     end)
 
     it("should record charging time", function()
