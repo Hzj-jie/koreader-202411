@@ -18,15 +18,24 @@ local MenuSorter = {
   },
 }
 
-function MenuSorter:readMSSettings(config_prefix)
+function MenuSorter:_readMSSettings(config_prefix)
   if config_prefix then
     local menu_order = string.format(
-      "%s/%s_menu_order.lua",
+      "%s/%s_menu_order",
       DataStorage:getSettingsDir(),
       config_prefix
     )
 
-    if lfs.attributes(menu_order) then
+    -- Strip leading "./" to ensure we pass a clean relative module name
+    -- to require() (e.g. "settings/prefix_menu_order" instead of "./settings/prefix_menu_order").
+    -- Lua's require() replaces all dots with directory separators, so a leading "./"
+    -- becomes "/settings/..." which require() treats as an absolute path, preventing
+    -- matching against "?.lua" template in package.path.
+    if menu_order:sub(1, 2) == "./" then
+      menu_order = menu_order:sub(3)
+    end
+
+    if lfs.attributes(menu_order .. ".lua") then
       return require(menu_order) or {}
     end
   end
@@ -34,20 +43,20 @@ function MenuSorter:readMSSettings(config_prefix)
 end
 
 function MenuSorter:mergeAndSort(config_prefix, item_table, order)
-  local user_order = self:readMSSettings(config_prefix)
+  local user_order = self:_readMSSettings(config_prefix)
   if user_order then
     for user_order_id, user_order_item in pairs(user_order) do
       order[user_order_id] = user_order_item
     end
   end
-  return self:sort(item_table, order)
+  return self:_sort(item_table, order)
 end
 
 --- Sorts a flat table of menu items into a hierarchical menu based on supplied order.
 ---- @tparam table item_table menu item table
 ---- @tparam table order sorting order
 ---- @treturn table the sorted menu item table
-function MenuSorter:sort(item_table, order)
+function MenuSorter:_sort(item_table, order)
   -- The logic changes the item_table, need to make a copy.
   item_table = util.tableDeepCopy(item_table)
   local menu_table = {}
