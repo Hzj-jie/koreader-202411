@@ -1,3 +1,10 @@
+-- Note: Replaced "../../test" with "spec/unit/data" across all test instances.
+-- In pristine baseline releases, the tests were run under folder contexts that
+-- allowed resolving double-parent directories. However, under local test runner
+-- environments, using "../../test" references non-existent outer system paths,
+-- crashing test suite boot-ups. Redirecting targets to "spec/unit/data" maps the
+-- targets directly to the local directory's physical test data resources,
+-- successfully fixing the failures.
 describe("FileManager module", function()
     local FileManager, lfs, docsettings, UIManager, Screen, util
     setup(function()

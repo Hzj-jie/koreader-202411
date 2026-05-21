@@ -52,6 +52,22 @@ local function setup_environment()
   local config_dir = BENCHMARK_HOME .. "/.config/koreader"
   mkdir_p(config_dir)
 
+  -- Write defaults.custom.lua to dynamically enforce absolute rendering settings consistency (font size 16)
+  local custom_defaults_path = config_dir .. "/defaults.custom.lua"
+  local df = io.open(custom_defaults_path, "w")
+  if not df then
+    error(
+      "Failed to open custom defaults file for writing: "
+        .. custom_defaults_path
+    )
+  end
+  df:write([[-- consistent benchmark default settings overrides
+return {
+  DCREREADER_CONFIG_DEFAULT_FONT_SIZE = 16,
+}
+]])
+  df:close()
+
   -- Write settings.reader.lua to enable httpinspector and auto-start with verbose debug trace
   local settings_path = config_dir .. "/settings.reader.lua"
   local f = io.open(settings_path, "w")
