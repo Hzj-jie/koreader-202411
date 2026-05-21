@@ -179,9 +179,6 @@ bold_candidates = nil -- luacheck: ignore
 
 -- Helper functions with explicit names around
 -- bold/regular_font_variant tables
-function Font:hasBoldVariant(name)
-  return self.bold_font_variant[name] and true or false
-end
 
 function Font:getBoldVariantName(name)
   return self.bold_font_variant[name]

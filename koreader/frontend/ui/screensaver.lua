@@ -422,9 +422,6 @@ function Screensaver:setStretchLimit(menu)
 end
 
 -- When called after setup(), may not match the saved settings, because it accounts for fallbacks that might have kicked in.
-function Screensaver:getMode()
-  return self.screensaver_type
-end
 
 function Screensaver:modeExpectsPortrait()
   return self.screensaver_type ~= "message"

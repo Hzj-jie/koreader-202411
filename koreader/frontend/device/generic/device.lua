@@ -1065,9 +1065,6 @@ function Device:retrieveNetworkInfo()
   return results
 end
 
-function Device:setTime(_hour, _min)
-  return false
-end
 
 -- Return an integer value to indicate the brightness of the environment. The value should be in
 -- range [0, 4].

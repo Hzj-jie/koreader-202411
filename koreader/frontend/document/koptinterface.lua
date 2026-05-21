@@ -1824,15 +1824,5 @@ end
 --[[--
 Log reflow duration.
 --]]
-function KoptInterface:logReflowDuration(pageno, dur)
-  local file = io.open("reflow_dur_log.txt", "a+")
-  if file then
-    if file:seek("end") == 0 then -- write the header only once
-      file:write("PAGE\tDUR\n")
-    end
-    file:write(string.format("%s\t%s\n", pageno, dur))
-    file:close()
-  end
-end
 
 return KoptInterface

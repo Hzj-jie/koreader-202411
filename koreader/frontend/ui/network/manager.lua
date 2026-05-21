@@ -340,26 +340,6 @@ function NetworkMgr:sysfsWifiOn()
   return util.pathExists("/sys/class/net/" .. self:getNetworkInterfaceName())
 end
 
-function NetworkMgr:sysfsCarrierConnected()
-  -- Read carrier state from sysfs.
-  -- NOTE: We can afford to use CLOEXEC, as devices too old for it don't support Wi-Fi anyway ;)
-  local out
-  local file = io.open(
-    "/sys/class/net/" .. self:getNetworkInterfaceName() .. "/carrier",
-    "re"
-  )
-
-  -- File only exists while the Wi-Fi module is loaded, but may fail to read until the interface is brought up.
-  if file then
-    -- 0 means the interface is down, 1 that it's up
-    -- (technically, it reflects the state of the physical link (e.g., plugged in or not for Ethernet))
-    -- This does *NOT* represent network association state for Wi-Fi (it'll return 1 as soon as ifup)!
-    out = file:read("*number")
-    file:close()
-  end
-
-  return out == 1
-end
 
 function NetworkMgr:sysfsInterfaceOperational()
   -- Reads the interface's RFC2863 operational state from sysfs, and wait for it to be up

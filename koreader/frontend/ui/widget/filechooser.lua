@@ -663,20 +663,6 @@ function FileChooser:onFolderUp()
   end
 end
 
-function FileChooser:changePageToPath(path)
-  if not path then
-    return
-  end
-  for num, item in ipairs(self.item_table) do
-    if not item.is_file and item.path == path then
-      local page = math.floor((num - 1) / self.perpage) + 1
-      if page ~= self.page then
-        self:onGotoPage(page)
-      end
-      break
-    end
-  end
-end
 
 function FileChooser:toggleShowFilesMode(mode)
   -- modes: "show_finished", "show_hidden", "show_unsupported"

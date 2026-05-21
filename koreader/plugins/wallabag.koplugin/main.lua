@@ -1335,13 +1335,6 @@ function Wallabag:readSettings()
   return wb_settings
 end
 
-function Wallabag:saveWBSettings(setting)
-  if not self.wb_settings then
-    self.wb_settings = self:readSettings()
-  end
-  self.wb_settings:save("wallabag", setting)
-  self.wb_settings:flush()
-end
 
 function Wallabag:addWallabagArticle(article_url)
   if not NetworkMgr:isOnline() then

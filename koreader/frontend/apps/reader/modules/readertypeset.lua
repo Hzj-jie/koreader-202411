@@ -382,15 +382,6 @@ function ReaderTypeset:setStyleSheet(new_css)
 end
 
 -- Not used
-function ReaderTypeset:setEmbededStyleSheetOnly()
-  if self.css ~= nil then
-    -- clear applied css
-    self.ui.document:setStyleSheet("")
-    self.ui.document:setEmbeddedStyleSheet(1)
-    self.css = nil
-    UIManager:broadcastEvent(Event:new("UpdatePos"))
-  end
-end
 
 -- crengine enhanced block rendering feature/flags (see crengine/include/lvrend.h):
 --                                               legacy flat book web

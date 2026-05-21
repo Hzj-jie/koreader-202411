@@ -170,13 +170,6 @@ function InputContainer:unRegisterTouchZones(zones)
   end
 end
 
-function InputContainer:checkRegisterTouchZone(id)
-  if self.touch_zone_dg then
-    return self.touch_zone_dg:checkNode(id)
-  else
-    return false
-  end
-end
 
 --[[--
 Updates touch zones based on new screen dimensions.

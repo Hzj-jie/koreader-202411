@@ -191,15 +191,9 @@ function PluginLoader:createPluginInstance(plugin, attr)
 end
 
 --- Checks if a specific plugin is instantiated
-function PluginLoader:isPluginLoaded(name)
-  return self.loaded_plugins[name] ~= nil
-end
 
 --- Returns the current instance of a specific Plugin (if any)
 --- (NOTE: You can also usually access it via self.ui[plugin_name])
-function PluginLoader:getPluginInstance(name)
-  return self.loaded_plugins[name]
-end
 
 -- *MUST* be called on destruction of whatever called createPluginInstance!
 function PluginLoader:finalize()

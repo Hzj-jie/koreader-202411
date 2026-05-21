@@ -604,10 +604,6 @@ function InputDialog:isTextEdited()
   return self._input_widget:isTextEdited()
 end
 
-function InputDialog:setAllowNewline(allow)
-  self.allow_newline = allow
-  self._input_widget.enter_callback = not allow and self.enter_callback
-end
 
 function InputDialog:onShow()
   self:showKeyboard(self.ignore_first_hold_release)

@@ -315,9 +315,6 @@ function ReaderScrolling:setupTouchZones()
   end
 end
 
-function ReaderScrolling:isInertialScrollingEnabled()
-  return self._inertial_scroll_enabled
-end
 
 function ReaderScrolling:setInertialScrollCallbacks(
   do_scroll_callback,

@@ -1102,10 +1102,6 @@ function VocabItemWidget:undo()
   end)
 end
 
-function VocabItemWidget:removeAndClose()
-  self:remover()
-  UIManager:close(self.dialogue)
-end
 
 function VocabItemWidget:showMore()
   local dialogue = WordInfoDialog:new({

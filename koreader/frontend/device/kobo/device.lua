@@ -769,7 +769,6 @@ function Kobo:init()
   end
 
   -- Just to be safe, we absolutely don't want to call open on this, so just use stat
-  self.has_wakeup_count = util.pathExists("/sys/power/wakeup_count")
 
   -- Automagic sysfs discovery
   if self.automagic_sysfs then
@@ -1269,24 +1268,6 @@ local function getCodeName()
   return codename
 end
 
-function Kobo:getFirmwareVersion()
-  local version_file = io.open("/mnt/onboard/.kobo/version", "re")
-  if not version_file then
-    self.firmware_rev = "none"
-    return
-  end
-  local version_str = version_file:read("*line")
-  version_file:close()
-
-  local i = 1
-  for field in version_str:gmatch("([^,]+)") do
-    if i == 3 then
-      self.firmware_rev = field
-      break
-    end
-    i = i + 1
-  end
-end
 
 local function getProductId()
   -- Try to get it from the env first (KSM only)

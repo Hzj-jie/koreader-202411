@@ -345,8 +345,5 @@ function BackgroundRunnerWidget:onBackgroundJobsUpdated()
   self:init()
 end
 
-function BackgroundRunnerWidget:allowBlockingJobs(v)
-  ALLOW_BLOCKING_JOBS = v
-end
 
 return BackgroundRunnerWidget

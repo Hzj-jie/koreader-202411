@@ -1629,11 +1629,6 @@ function Menu.getItemFontSize(perpage)
   return math.floor(24 - ((perpage - 6) * (1 / 18)) * 10)
 end
 
-function Menu.getItemMandatoryFontSize(perpage)
-  -- Get adjusted font size for the given nb of items per page:
-  -- "mandatory" font size between 12 and 18 for better matching
-  return math.floor(18 - (perpage - 6) * (1 / 3))
-end
 
 --- Adds > to touch menu items with a submenu
 local arrow_left = "◂" -- U+25C2 BLACK LEFT-POINTING SMALL TRIANGLE

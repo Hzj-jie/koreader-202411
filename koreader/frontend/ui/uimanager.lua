@@ -820,11 +820,6 @@ dbg:guard(UIManager, "quit", function(self, exit_code)
 end)
 
 -- Disable automatic UIManager quit; for testing purposes
-function UIManager:setRunForeverMode()
-  self._gated_quit = function()
-    return false
-  end
-end
 
 -- Enable automatic UIManager quit; for testing purposes
 function UIManager:unsetRunForeverMode()

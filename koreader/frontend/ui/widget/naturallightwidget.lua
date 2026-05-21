@@ -38,7 +38,6 @@ local NaturalLightWidget = WidgetContainer:extend({
 
 function NaturalLightWidget:init()
   self.medium_font_face = Font:getFace("ffont")
-  self.nl_bar = {}
   self.screen_width = Screen:getWidth()
   self.screen_height = Screen:getHeight()
   self.span = math.ceil(self.screen_height * 0.01)

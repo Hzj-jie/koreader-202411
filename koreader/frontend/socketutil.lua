@@ -114,28 +114,5 @@ function socketutil.table_sink(t)
 end
 
 --- Custom version of `ltn12.sink.file` that honors total_timeout
-function socketutil.file_sink(handle, io_err)
-  if socketutil.total_timeout < 0 then
-    return ltn12.sink.file(handle, io_err)
-  end
-
-  if handle then
-    local start_ts = os.time()
-    return function(chunk, _err)
-      if not chunk then
-        handle:close()
-        return 1
-      else
-        if os.time() - start_ts > socketutil.total_timeout then
-          handle:close()
-          return nil, socketutil.SINK_TIMEOUT_CODE
-        end
-        return handle:write(chunk)
-      end
-    end
-  else
-    return nil, io_err or "unable to open file"
-  end
-end
 
 return socketutil

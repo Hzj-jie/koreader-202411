@@ -742,12 +742,6 @@ end
 
 -- quickly open and edit a file
 -- calls the done_callback function on close
-function TextEditor:quickEditFile(file_path, done_callback, possible_new_file)
-  if done_callback then
-    self.whenDoneFunc = done_callback
-  end
-  self:checkEditFile(file_path, possible_new_file or false)
-end
 
 -- TitleBar left button tap
 function TextEditor:showMenu()

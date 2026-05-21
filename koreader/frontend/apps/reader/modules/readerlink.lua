@@ -262,9 +262,6 @@ end
 -- overriding the default behaviour of treating these as filepaths.
 -- Registering the "file" scheme also overrides its default handling.
 -- Registered schemes are reset on each initialisation of ReaderLink.
-function ReaderLink:registerScheme(scheme)
-  table.insert(self.supported_external_schemes, scheme)
-end
 
 function ReaderLink:onGesture() end
 
@@ -1682,11 +1679,6 @@ function ReaderLink:addToExternalLinkDialog(idx, fn_button)
   self._external_link_buttons[idx] = fn_button
 end
 
-function ReaderLink:removeFromExternalLinkDialog(idx)
-  local button = self._external_link_buttons[idx]
-  self._external_link_buttons[idx] = nil
-  return button
-end
 
 function ReaderLink:getButtonsForExternalLinkDialog(link_url)
   local buttons = { {} }

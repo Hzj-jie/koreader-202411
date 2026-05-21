@@ -183,10 +183,6 @@ function HgSylbls:_final_idx(char)
   return HgSylbls.IDX_FINAL[char]
 end
 
-function HgSylbls:in_intial(char)
-  -- double initial can be typed directly from 2-beolsik kbd, hence no table of two chars
-  return HgSylbls.IDX_INITIAL[char] ~= nil
-end
 function HgSylbls:in_medial(char)
   char = HgSylbls:_2elem_tbl_to_str(char)
   return HgSylbls.IDX_MEDIAL[char] ~= nil

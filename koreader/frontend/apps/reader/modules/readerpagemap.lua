@@ -33,7 +33,6 @@ function ReaderPageMap:init()
   self.max_right_label_width = 0
   self.label_font_size = G_reader_settings:read("pagemap_label_font_size")
     or self.label_default_font_size
-  self.use_textbox_widget = nil
   self.initialized = false
   self.onReaderInited = function()
     self:_postInit()

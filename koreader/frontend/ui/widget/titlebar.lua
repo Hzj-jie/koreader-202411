@@ -469,20 +469,6 @@ function TitleBar:setRightIcon(icon)
 end
 
 -- layout for FocusManager
-function TitleBar:generateHorizontalLayout()
-  local row = {}
-  if self.left_button then
-    table.insert(row, self.left_button)
-  end
-  if self.right_button then
-    table.insert(row, self.right_button)
-  end
-  local layout = {}
-  if #row > 0 then
-    table.insert(layout, row)
-  end
-  return layout
-end
 
 function TitleBar:generateVerticalLayout()
   local layout = {}

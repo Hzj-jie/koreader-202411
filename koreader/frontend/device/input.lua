@@ -660,17 +660,7 @@ function Input:adjustABS_Scale(ev, by)
   end
 end
 
-function Input:adjustABS_MirrorX(ev, max_x)
-  if ev.code == C.ABS_X or ev.code == C.ABS_MT_POSITION_X then
-    ev.value = max_x - ev.value
-  end
-end
 
-function Input:adjustABS_MirrorY(ev, max_y)
-  if ev.code == C.ABS_Y or ev.code == C.ABS_MT_POSITION_Y then
-    ev.value = max_y - ev.value
-  end
-end
 
 function Input:adjustABS_SwitchAxesAndMirrorX(ev, max_x)
   if ev.code == C.ABS_X then
@@ -998,58 +988,6 @@ end
 
 -- Mangled variant of handleKeyBoardEv that will only handle power management related keys.
 -- (Used when blocking input during suspend via sleep cover).
-function Input:handlePowerManagementOnlyEv(ev)
-  local keycode = self.event_map[ev.code]
-  if not keycode then
-    -- Do not handle keypress for keys we don't know
-    return
-  end
-
-  -- We'll need to parse the synthetic event map, because SleepCover* events are synthetic.
-  if self.event_map_adapter[keycode] then
-    keycode = self.event_map_adapter[keycode](ev)
-  end
-
-  -- Power management synthetic events
-  if
-    keycode == "SleepCoverClosed"
-    or keycode == "SleepCoverOpened"
-    or keycode == "Suspend"
-    or keycode == "Resume"
-  then
-    return keycode
-  end
-
-  if self.fake_event_set[keycode] then
-    if self.fake_event_args[keycode] then
-      table.insert(self.fake_event_args[keycode], ev.value)
-    end
-    return keycode
-  end
-
-  if keycode == "Power" then
-    -- Kobo generates Power keycode only, we need to decide whether it's
-    -- power-on or power-off ourselves.
-    if ev.value == KEY_PRESS then
-      return "PowerPress"
-    elseif ev.value == KEY_RELEASE then
-      return "PowerRelease"
-    end
-  end
-
-  -- Make sure we don't leave modifiers in an inconsistent state
-  if self.modifiers[keycode] ~= nil then
-    if ev.value == KEY_PRESS then
-      self.modifiers[keycode] = true
-    elseif ev.value == KEY_RELEASE then
-      self.modifiers[keycode] = false
-    end
-    return
-  end
-
-  -- Nothing to see, move along!
-  return
-end
 
 -- Empty event handler used to send input to the void
 function Input:voidEv(_ev)
@@ -1529,9 +1467,6 @@ function Input:isEvKeyPress(ev)
   return ev.value == KEY_PRESS
 end
 
-function Input:isEvKeyRepeat(ev)
-  return ev.value == KEY_REPEAT
-end
 
 function Input:isEvKeyRelease(ev)
   return ev.value == KEY_RELEASE

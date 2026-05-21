@@ -1327,15 +1327,6 @@ function CreDocument:getTextMainLangDefaultHyphDictionary()
 end
 
 -- To use the old crengine hyphenation manager (only one global hyphenation method)
-function CreDocument:setHyphDictionary(new_hyph_dictionary)
-  if new_hyph_dictionary then
-    logger.dbg("CreDocument: set hyphenation dictionary", new_hyph_dictionary)
-    self._document:setStringProperty(
-      "crengine.hyphenation.directory",
-      new_hyph_dictionary
-    )
-  end
-end
 
 function CreDocument:setHyphLeftHyphenMin(value)
   -- default crengine value is 2: reset it if no value provided
@@ -1374,11 +1365,6 @@ function CreDocument:setRenderDPI(value)
   self._document:setIntProperty("crengine.render.dpi", value or 96)
 end
 
-function CreDocument:setRenderScaleFontWithDPI(toggle)
-  -- whether to scale font with DPI, or keep the current size
-  logger.dbg("CreDocument: set render scale font with dpi", toggle)
-  self._document:setIntProperty("crengine.render.scale.font.with.dpi", toggle)
-end
 
 function CreDocument:clearSelection()
   logger.dbg("clear selection")

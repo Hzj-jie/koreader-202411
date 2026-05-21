@@ -1018,23 +1018,6 @@ function ReaderTypography:getCurrentDefaultHyphDictLanguage()
   return hyph_dict_name
 end
 
-function ReaderTypography:parseLanguageTag(lang_tag)
-  -- Parse an RFC 5646 language tag, like "en-US" or "en".
-  -- https://tools.ietf.org/html/rfc5646
-
-  -- We are mostly interested in the language and region parts.
-  local language = nil
-  local region = nil
-
-  for part in util.gsplit(lang_tag, "-", false) do
-    if not language then
-      language = string.lower(part)
-    elseif string.len(part) == 2 and not string.match(part, "[^%a]") then
-      region = string.upper(part)
-    end
-  end
-  return language, region
-end
 
 function ReaderTypography:fixLangTag(lang_tag)
   -- EPUB language is an RFC 5646 language tag.

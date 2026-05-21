@@ -1081,19 +1081,6 @@ end
 
 -- Handy function for testing the above, to be called with:
 --   /koreader/ui/httpinspector/someFunctionForInteractiveTesting?/
-function HttpInspector:someFunctionForInteractiveTesting(...)
-  if select(1, ...) then
-    HttpInspector.foo.bar = true -- error
-  end
-  return self and self.name or "no self",
-    #(table.pack(...)),
-    "original args follow",
-    ...
-  -- Copy and append this as args to the url, to get an error:
-  -- /true/nil/true/false/"true"/-1.2/"/"/abc/'d"/ef'/
-  -- and to get a success:
-  -- /false/nil/true/false/"true"/-1.2/"/"/abc/'d"/ef'/
-end
 
 local _dispatcher_actions
 

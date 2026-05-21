@@ -530,17 +530,8 @@ function ImageWidget:getCurrentDiagonal()
 end
 
 -- And now, getters for the original, unscaled dimensions.
-function ImageWidget:getOriginalWidth()
-  return self._img_w
-end
 
-function ImageWidget:getOriginalHeight()
-  return self._img_h
-end
 
-function ImageWidget:getOriginalDiagonal()
-  return math.sqrt(self._img_w ^ 2 + self._img_h ^ 2)
-end
 
 function ImageWidget:getPanByCenterRatio(x, y)
   -- returns center ratio (without limits check) we would get with this panBy
