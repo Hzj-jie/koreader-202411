@@ -16,6 +16,7 @@ local BASE_URL = string.format("http://localhost:%d/koreader", PORT)
 local TARGET_DOCUMENTS = {
   "test/juliet.epub",
   "test/leaves.epub",
+  "test/sample.pdf",
   "test/sample.txt",
 }
 -- Headless vs Headful viewport mode configuration
@@ -324,6 +325,10 @@ local function print_comparative_report(results)
 end
 
 local function run_single_document_benchmark(book_path)
+  -- Forcefully wipe out any pre-existing book SDR metadata state to force the document to open pristine-clean on page 1
+  local book_sdr = book_path:gsub("%.%w+$", ".sdr")
+  os.execute("rm -rf " .. book_sdr)
+
   setup_environment()
 
   local emulator_cmd
