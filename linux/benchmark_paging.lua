@@ -175,6 +175,49 @@ local function wait_for_ready()
   error("KOReader emulator did not start up within 15 seconds.")
 end
 
+local function close_modal()
+  -- Query current window stack count dynamically over HTTP REST
+  local success_stack, stack =
+    get_json_val(BASE_URL .. "/UIManager/_window_stack")
+  if not success_stack then
+    print("\nError: Failed to query UIManager window stack!")
+    return false
+  end
+  local initial_count = #stack
+
+  -- 1. Trigger refactored widget destruction "Exit" event (developmental branch master target)
+  http_get(BASE_URL .. "/event/Exit")
+
+  -- Sleep 50ms to allow event looper processing tick
+  ffiUtil.usleep(50 * 1000)
+
+  -- Re-query window stack count
+  local success_stack2, stack2 =
+    get_json_val(BASE_URL .. "/UIManager/_window_stack")
+  if success_stack2 and #stack2 < initial_count then
+    -- Widget was successfully destroyed and popped off the stack! Bypassing is 100% safe.
+    return true
+  end
+
+  -- 2. If stack count is identical, trigger baseline "Close" event (pristine release origin target)
+  local success_close = http_get(BASE_URL .. "/event/Close")
+  if not success_close then
+    print("\nError: Failed to send baseline Close event!")
+    return false
+  end
+
+  -- Sleep 50ms to verify window closure
+  ffiUtil.usleep(50 * 1000)
+  local success_stack3, stack3 =
+    get_json_val(BASE_URL .. "/UIManager/_window_stack")
+  if success_stack3 and #stack3 < initial_count then
+    return true
+  end
+
+  print("\nError: Failed to close popup modal container widget!")
+  return false
+end
+
 local function run_benchmark(total_pages)
   print(
     string.format(
@@ -250,11 +293,8 @@ local function run_benchmark(total_pages)
       -- Sleep 100ms to allow dictionary popup modal window to render
       ffiUtil.usleep(100 * 1000)
 
-      -- Dismiss lookup popup modal window (runs both Exit and Close event targets
-      -- consecutively to achieve absolute compatibility with both baseline onClose and
-      -- developmental onExit refactored widget destruction methods)
-      http_get(BASE_URL .. "/event/Exit")
-      local success_close = http_get(BASE_URL .. "/event/Close")
+      -- Dismiss lookup popup modal window using stack-aware close_modal helper
+      local success_close = close_modal()
       if not success_close then
         print("\nError: Failed to close dictionary popup modal window!")
         break
