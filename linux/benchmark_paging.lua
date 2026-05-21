@@ -178,18 +178,18 @@ end
 local function run_benchmark(total_pages)
   print(
     string.format(
-      "\nStarting benchmark: Paging through %d pages...",
+      "\nStarting benchmark: Simulating book reading through %d pages...",
       total_pages
     )
   )
   local page_durations = {}
+  local dict_durations = {}
+  local bookmark_durations = {}
 
   local current_page = 1
   for turn = 1, total_pages - 1 do
     local target_page = current_page + 1
-    io.write(
-      string.format("Turning to page %d/%d...", target_page, total_pages)
-    )
+    io.write(string.format("Page %d/%d: Paging...", target_page, total_pages))
     io.stdout:flush()
 
     local s1, u1 = ffiUtil.gettime()
@@ -229,12 +229,73 @@ local function run_benchmark(total_pages)
       break
     end
 
-    print(string.format(" Done in %.2f ms", duration))
+    io.write(string.format(" Done (%.2f ms)", duration))
     table.insert(page_durations, duration)
     current_page = target_page
+
+    -- 1. Simulate dictionary quick-lookup every 10 pages
+    if target_page % 10 == 0 then
+      io.write(" [Lookup 'Shakespeare']...")
+      io.stdout:flush()
+      local ds1, du1 = ffiUtil.gettime()
+
+      -- Trigger lookup
+      local success_lookup =
+        http_get(BASE_URL .. "/broadcast/LookupWord/Shakespeare")
+      if not success_lookup then
+        print("\nError: Failed to trigger dictionary lookup event!")
+        break
+      end
+
+      -- Sleep 100ms to allow dictionary popup modal window to render
+      ffiUtil.usleep(100 * 1000)
+
+      -- Dismiss lookup popup modal window (runs both Exit and Close event targets
+      -- consecutively to achieve absolute compatibility with both baseline onClose and
+      -- developmental onExit refactored widget destruction methods)
+      http_get(BASE_URL .. "/event/Exit")
+      local success_close = http_get(BASE_URL .. "/event/Close")
+      if not success_close then
+        print("\nError: Failed to close dictionary popup modal window!")
+        break
+      end
+
+      local ds2, du2 = ffiUtil.gettime()
+      local d_duration = (ds2 - ds1) * 1000 + (du2 - du1) / 1000 -- in ms
+      io.write(string.format(" Done (%.2f ms)", d_duration))
+      table.insert(dict_durations, d_duration)
+    end
+
+    -- 2. Simulate book dogear bookmark toggle every 15 pages
+    if target_page % 15 == 0 then
+      io.write(" [Toggle Bookmark]...")
+      io.stdout:flush()
+      local bs1, bu1 = ffiUtil.gettime()
+
+      -- Trigger toggle
+      local success_bookmark = http_get(BASE_URL .. "/broadcast/ToggleBookmark")
+      if not success_bookmark then
+        print("\nError: Failed to toggle page bookmark!")
+        break
+      end
+
+      -- Sleep 50ms to allow metadata settings state flush to disk
+      ffiUtil.usleep(50 * 1000)
+
+      local bs2, bu2 = ffiUtil.gettime()
+      local b_duration = (bs2 - bs1) * 1000 + (bu2 - bu1) / 1000 -- in ms
+      io.write(string.format(" Done (%.2f ms)", b_duration))
+      table.insert(bookmark_durations, b_duration)
+    end
+
+    print("") -- Complete line
   end
 
-  return page_durations
+  return {
+    turns = page_durations,
+    dict = dict_durations,
+    bookmark = bookmark_durations,
+  }
 end
 
 local function shutdown_emulator()
@@ -308,58 +369,80 @@ end
 
 local function print_comparative_report(results)
   print(
-    "\n=================================================================================="
+    "\n===================================================================================================="
   )
-  print("                KOREADER PAGINATION COMPARATIVE BENCHMARK HARNESS")
   print(
-    "=================================================================================="
+    "                       KOREADER PAGINATION COMPARATIVE BENCHMARK HARNESS"
+  )
+  print(
+    "===================================================================================================="
   )
   print(
     string.format(
-      "%-25s | %-6s | %-5s | %-12s | %-18s | %-8s",
+      "%-22s | %-6s | %-5s | %-16s | %-4s | %-16s | %-4s | %-16s",
       "Document Path",
       "Format",
       "Turns",
-      "Avg Latency",
-      "Min/Max Latency",
-      "StdDev"
+      "Avg Turn Latency",
+      "Dict",
+      "Avg Dict Latency",
+      "Book",
+      "Avg Book Latency"
     )
   )
   print(
-    "----------------------------------------------------------------------------------"
+    "----------------------------------------------------------------------------------------------------"
   )
   for _, res in ipairs(results) do
     local ext = res.book_path:match("%.(%w+)$") or "unknown"
     if res.metrics then
-      local min_max =
-        string.format("%.1f/%.1f ms", res.metrics.min_val, res.metrics.max_val)
+      local turn_count = res.metrics.turns and res.metrics.turns.count or 0
+      local turn_avg = res.metrics.turns
+          and string.format("%.2f ms", res.metrics.turns.avg)
+        or "N/A"
+
+      local dict_count = res.metrics.dict and res.metrics.dict.count or 0
+      local dict_avg = dict_count > 0
+          and string.format("%.2f ms", res.metrics.dict.avg)
+        or "N/A"
+
+      local book_count = res.metrics.bookmark and res.metrics.bookmark.count
+        or 0
+      local book_avg = book_count > 0
+          and string.format("%.2f ms", res.metrics.bookmark.avg)
+        or "N/A"
+
       print(
         string.format(
-          "%-25s | %-6s | %-5d | %8.2f ms | %-18s | %6.2f ms",
+          "%-22s | %-6s | %-5d | %-16s | %-4d | %-16s | %-4d | %-16s",
           res.book_path,
           ext:upper(),
-          res.metrics.count,
-          res.metrics.avg,
-          min_max,
-          res.metrics.stddev
+          turn_count,
+          turn_avg,
+          dict_count,
+          dict_avg,
+          book_count,
+          book_avg
         )
       )
     else
       print(
         string.format(
-          "%-25s | %-6s | %-5s | %-12s | %-18s | %-8s",
+          "%-22s | %-6s | %-5s | %-16s | %-4s | %-16s | %-4s | %-16s",
           res.book_path,
           ext:upper(),
           "0",
           "CRASHED/FAIL",
+          "0",
           "N/A",
+          "0",
           "N/A"
         )
       )
     end
   end
   print(
-    "=================================================================================="
+    "===================================================================================================="
   )
 end
 
@@ -453,7 +536,11 @@ local function main()
     local durations = run_single_document_benchmark(doc)
     local entry = { book_path = doc }
     if durations then
-      entry.metrics = calculate_metrics(durations)
+      entry.metrics = {
+        turns = calculate_metrics(durations.turns),
+        dict = calculate_metrics(durations.dict),
+        bookmark = calculate_metrics(durations.bookmark),
+      }
     end
     table.insert(results, entry)
   end
