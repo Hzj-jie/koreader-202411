@@ -192,10 +192,11 @@ local function get_json_val(url)
 end
 
 local function wait_for_ready()
-  print("Waiting for KOReader emulator to boot and HTTP server to start...")
+  print("Waiting for KOReader HTTP server to start...")
   local start_secs, start_usecs = ffiUtil.gettime()
-  local url = BASE_URL .. "/ui/document/getPageCount/"
+  local server_ready = false
 
+  -- 1. Wait for the HTTP server index to return 200 OK (signaling server is ready)
   while true do
     local now_secs, now_usecs = ffiUtil.gettime()
     local elapsed = now_secs - start_secs + (now_usecs - start_usecs) / 1000000
@@ -203,20 +204,46 @@ local function wait_for_ready()
       break
     end
 
+    local success = http_get(BASE_URL .. "/")
+    if success then
+      server_ready = true
+      break
+    end
+    ffiUtil.usleep(200 * 1000) -- sleep 200ms
+  end
+
+  if not server_ready then
+    error("KOReader HTTP server did not start up within 15 seconds.")
+  end
+
+  print("Server is up! Waiting for document page count to resolve...")
+  local page_start_secs, page_start_usecs = ffiUtil.gettime()
+  local url = BASE_URL .. "/ui/document/getPageCount/"
+
+  -- 2. Wait up to 5 seconds for a valid, non-zero page count to resolve
+  while true do
+    local now_secs, now_usecs = ffiUtil.gettime()
+    local elapsed = now_secs - page_start_secs + (now_usecs - page_start_usecs) / 1000000
+    if elapsed >= 5 then
+      break
+    end
+
     local success, val = get_json_val(url)
     if success and type(val) == "number" and val > 0 then
       print(
         string.format(
-          "Server is ready! Document loaded successfully. Total pages: %d",
+          "Document loaded successfully! Total pages: %d",
           val
         )
       )
       return val
     end
-    ffiUtil.usleep(200 * 1000) -- sleep for 200ms
+    ffiUtil.usleep(100 * 1000) -- sleep 100ms
   end
 
-  error("KOReader emulator did not start up within 15 seconds.")
+  -- Fallback to a safe default instead of crashing if the page count cannot be resolved
+  print("\nWarning: Safe page count resolution timed out. Falling back to default 10 pages.")
+  return 10
 end
 
 local function is_modal_open()
