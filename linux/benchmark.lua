@@ -15,6 +15,7 @@ local BASE_URL
 local SSH_TARGET
 local DEVICE_DIR = "/tmp"
 local IS_REAL_DEVICE
+local IS_LOCAL_IP
 local pwd = lfs.currentdir()
 local is_baseline = pwd:find("origin.linux") ~= nil
 local EMULATOR_LOG_PATH = is_baseline
@@ -86,11 +87,32 @@ do
     PORT = PORT or 8080 -- default HTTP port for real devices
     SSH_TARGET = SSH_TARGET or string.format("root@%s", IP_ADDRESS)
     BASE_URL = string.format("http://%s:%d/koreader", IP_ADDRESS, PORT)
-    print(string.format("[*] Target Mode: Real Device (%s:%d)", IP_ADDRESS, PORT))
-    print(string.format("[*] SSH Target: %s", SSH_TARGET))
+
+    -- Detect if target IP is local to bypass network-overhead SSH/SCP operations
+    if IP_ADDRESS == "localhost" or IP_ADDRESS == "127.0.0.1" then
+      IS_LOCAL_IP = true
+    else
+      local p = io.popen("hostname -I")
+      if p then
+        local host_ips = p:read("*all")
+        p:close()
+        local padded_ips = " " .. host_ips:gsub("\r?\n", " ") .. " "
+        if padded_ips:find("%s" .. IP_ADDRESS:gsub("%.", "%%.") .. "%s") then
+          IS_LOCAL_IP = true
+        end
+      end
+    end
+
+    if IS_LOCAL_IP then
+      print(string.format("[*] Target Mode: Local Real Device (%s:%d) [Bypassing SSH/SCP with direct local filesystem cp/rm]", IP_ADDRESS, PORT))
+    else
+      print(string.format("[*] Target Mode: Remote Real Device (%s:%d)", IP_ADDRESS, PORT))
+      print(string.format("[*] SSH Target: %s", SSH_TARGET))
+    end
     print(string.format("[*] Remote Directory: %s", DEVICE_DIR))
   else
     IS_REAL_DEVICE = false
+    IS_LOCAL_IP = false
     PORT = PORT or 8088 -- default HTTP port for emulator
     BASE_URL = string.format("http://localhost:%d/koreader", PORT)
     print(string.format("[*] Target Mode: Local Emulator (localhost:%d)", PORT))
@@ -382,7 +404,7 @@ local function run_benchmark(total_pages)
         success_poll = true
         break
       end
-      ffiUtil.usleep(10 * 1000) -- Poll very fast (10ms)
+      ffiUtil.usleep(50 * 1000) -- Poll once per 50ms
     end
 
     local s2, u2 = ffiUtil.gettime()
@@ -715,13 +737,60 @@ local function print_comparative_report(results)
 end
 
 local function run_remote_cmd(cmd)
-  local remote_cmd = string.format("ssh %s %q", SSH_TARGET, cmd)
-  return os.execute(remote_cmd)
+  if IS_LOCAL_IP then
+    return os.execute(cmd)
+  else
+    local remote_cmd = string.format("ssh %s %q", SSH_TARGET, cmd)
+    return os.execute(remote_cmd)
+  end
 end
 
 local function copy_to_device(local_path, remote_path)
-  local scp_cmd = string.format("scp %s %s:%s", local_path, SSH_TARGET, remote_path)
-  return os.execute(scp_cmd)
+  if IS_LOCAL_IP then
+    local cp_cmd = string.format("cp %s %s", local_path, remote_path)
+    return os.execute(cp_cmd)
+  else
+    local scp_cmd = string.format("scp %s %s:%s", local_path, SSH_TARGET, remote_path)
+    return os.execute(scp_cmd)
+  end
+end
+
+local function wait_for_server_up()
+  local start_secs, start_usecs = ffiUtil.gettime()
+  while true do
+    local now_secs, now_usecs = ffiUtil.gettime()
+    local elapsed = now_secs - start_secs + (now_usecs - start_usecs) / 1000000
+    if elapsed >= 10 then -- 10 seconds timeout is plenty
+      return false
+    end
+    local success = http_get(BASE_URL .. "/")
+    if success then
+      return true
+    end
+    ffiUtil.usleep(100 * 1000) -- 100ms
+  end
+end
+
+local function open_book_on_device(book_path)
+  local quoted_path = "'" .. book_path .. "'"
+
+  print("[*] Enforcing File Manager home screen context via onHome...")
+  pcall(http_get, BASE_URL .. "/ui/onHome/")
+
+  -- Sleep 500ms to allow the old Reader session to teardown and server to stop if applicable
+  ffiUtil.usleep(500 * 1000)
+
+  -- Wait for the File Manager server session to become responsive
+  if not wait_for_server_up() then
+    error("Target device HTTP server did not become responsive after returning to home.")
+  end
+
+  print("[*] Active screen: File Manager. Opening document...")
+  local url = BASE_URL .. "/ui/openFile/" .. quoted_path
+  local success_open = http_get(url)
+  if not success_open then
+    error("Failed to send openFile command to target device!")
+  end
 end
 
 local function start_emulator(book_path)
@@ -744,9 +813,7 @@ local function start_emulator(book_path)
     print("OPENING DOCUMENT ON TARGET DEVICE: " .. remote_path)
     print("----------------------------------------------------------------------------------")
 
-    -- Send open file command over REST
-    local url = BASE_URL .. "/ui/showReader/'" .. remote_path .. "'"
-    pcall(http_get, url)
+    open_book_on_device(remote_path)
 
     -- Wait for the session to load the document!
     local total_pages = wait_for_ready()
@@ -818,8 +885,7 @@ local function open_document_in_session(book_path)
     print("SWITCHING TARGET DOCUMENT ON DEVICE: " .. remote_path)
     print("----------------------------------------------------------------------------------")
 
-    local url = BASE_URL .. "/ui/showReader/'" .. remote_path .. "'"
-    pcall(http_get, url)
+    open_book_on_device(remote_path)
 
     -- Wait 1.5 seconds for old document close and new startup routines to initialize
     ffiUtil.usleep(1500 * 1000)
