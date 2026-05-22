@@ -9,8 +9,12 @@ local json = require("json")
 local lfs = require("libs/libkoreader-lfs")
 
 local BENCHMARK_HOME = "/tmp/koreader_benchmark"
-local PORT = 8088
-local BASE_URL = string.format("http://localhost:%d/koreader", PORT)
+local IP_ADDRESS
+local PORT
+local BASE_URL
+local SSH_TARGET
+local DEVICE_DIR = "/tmp"
+local IS_REAL_DEVICE
 local pwd = lfs.currentdir()
 local is_baseline = pwd:find("origin.linux") ~= nil
 local EMULATOR_LOG_PATH = is_baseline
@@ -40,22 +44,57 @@ end
 -- Resolve baseline viewport execution mode (Headless vs. Headful)
 local HEADFUL = has_screen
 
--- CLI flag overrides
-for i = 1, #arg do
-  if arg[i] == "--headful" then
+do
+  -- CLI flag overrides
+  local i = 1
+  while i <= #arg do
+    if arg[i] == "--headful" then
+      HEADFUL = true
+      i = i + 1
+    elseif arg[i] == "--headless" then
+      HEADFUL = false
+      i = i + 1
+    elseif arg[i] == "--ip" and arg[i+1] then
+      IP_ADDRESS = arg[i+1]
+      i = i + 2
+    elseif arg[i] == "--port" and arg[i+1] then
+      PORT = tonumber(arg[i+1])
+      i = i + 2
+    elseif arg[i] == "--ssh-target" and arg[i+1] then
+      SSH_TARGET = arg[i+1]
+      i = i + 2
+    elseif arg[i] == "--device-dir" and arg[i+1] then
+      DEVICE_DIR = arg[i+1]
+      i = i + 2
+    else
+      i = i + 1
+    end
+  end
+
+  -- Environment variable overrides
+  local env_headful = os.getenv("HEADFUL")
+  local env_headless = os.getenv("HEADLESS")
+  if env_headful == "1" or env_headful == "true" then
     HEADFUL = true
-  elseif arg[i] == "--headless" then
+  elseif env_headless == "1" or env_headless == "true" then
     HEADFUL = false
   end
-end
 
--- Environment variable overrides
-local env_headful = os.getenv("HEADFUL")
-local env_headless = os.getenv("HEADLESS")
-if env_headful == "1" or env_headful == "true" then
-  HEADFUL = true
-elseif env_headless == "1" or env_headless == "true" then
-  HEADFUL = false
+  -- Resolve final configuration based on execution mode
+  if IP_ADDRESS then
+    IS_REAL_DEVICE = true
+    PORT = PORT or 8080 -- default HTTP port for real devices
+    SSH_TARGET = SSH_TARGET or string.format("root@%s", IP_ADDRESS)
+    BASE_URL = string.format("http://%s:%d/koreader", IP_ADDRESS, PORT)
+    print(string.format("[*] Target Mode: Real Device (%s:%d)", IP_ADDRESS, PORT))
+    print(string.format("[*] SSH Target: %s", SSH_TARGET))
+    print(string.format("[*] Remote Directory: %s", DEVICE_DIR))
+  else
+    IS_REAL_DEVICE = false
+    PORT = PORT or 8088 -- default HTTP port for emulator
+    BASE_URL = string.format("http://localhost:%d/koreader", PORT)
+    print(string.format("[*] Target Mode: Local Emulator (localhost:%d)", PORT))
+  end
 end
 
 -- Recursive mkdir (only supports absolute paths)
@@ -648,76 +687,143 @@ local function print_comparative_report(results)
   )
 end
 
+local function run_remote_cmd(cmd)
+  local remote_cmd = string.format("ssh %s %q", SSH_TARGET, cmd)
+  return os.execute(remote_cmd)
+end
+
+local function copy_to_device(local_path, remote_path)
+  local scp_cmd = string.format("scp %s %s:%s", local_path, SSH_TARGET, remote_path)
+  return os.execute(scp_cmd)
+end
+
 local function start_emulator(book_path)
-  -- Forcefully wipe out any pre-existing book SDR metadata state to force the document to open pristine-clean on page 1
-  local book_sdr = book_path:gsub("%.%w+$", ".sdr")
-  os.execute("rm -rf " .. book_sdr)
+  if IS_REAL_DEVICE then
+    local filename = book_path:match("([^/]+)$")
+    local remote_path = DEVICE_DIR .. "/" .. filename
+    local remote_sdr = remote_path:gsub("%.%w+$", ".sdr")
 
-  setup_environment()
+    print("[*] Preparing target device...")
+    run_remote_cmd(string.format("mkdir -p %s", DEVICE_DIR))
+    run_remote_cmd(string.format("rm -rf %s", remote_sdr))
 
-  local emulator_cmd
-  if HEADFUL then
-    -- Launch natively on host display with full hardware GPU/OpenGL acceleration
-    emulator_cmd = string.format(
-      "HOME=%s KO_MULTIUSER=1 ./run.sh %s > %s 2>&1 & echo $!",
-      BENCHMARK_HOME,
-      book_path,
-      EMULATOR_LOG_PATH
-    )
+    print(string.format("[*] Copying book to device: %s -> %s", book_path, remote_path))
+    local ok = copy_to_device(book_path, remote_path)
+    if ok ~= 0 and ok ~= true then
+      error("Failed to copy book to device via scp!")
+    end
+
+    print("\n----------------------------------------------------------------------------------")
+    print("OPENING DOCUMENT ON TARGET DEVICE: " .. remote_path)
+    print("----------------------------------------------------------------------------------")
+
+    -- Send open file command over REST
+    local url = BASE_URL .. "/ui/showReader/'" .. remote_path .. "'"
+    pcall(http_get, url)
+
+    -- Wait for the session to load the document!
+    local total_pages = wait_for_ready()
+    return nil, total_pages -- No local PID!
   else
-    -- Launch headlessly under xvfb-run with forced software rendering to bypass sandboxed workstation freezes
-    emulator_cmd = string.format(
-      "HOME=%s KO_MULTIUSER=1 SDL_RENDER_DRIVER=software xvfb-run -a ./run.sh %s > %s 2>&1 & echo $!",
-      BENCHMARK_HOME,
-      book_path,
-      EMULATOR_LOG_PATH
+    -- Forcefully wipe out any pre-existing book SDR metadata state to force the document to open pristine-clean on page 1
+    local book_sdr = book_path:gsub("%.%w+$", ".sdr")
+    os.execute("rm -rf " .. book_sdr)
+
+    setup_environment()
+
+    local emulator_cmd
+    if HEADFUL then
+      -- Launch natively on host display with full hardware GPU/OpenGL acceleration
+      emulator_cmd = string.format(
+        "HOME=%s KO_MULTIUSER=1 ./run.sh %s > %s 2>&1 & echo $!",
+        BENCHMARK_HOME,
+        book_path,
+        EMULATOR_LOG_PATH
+      )
+    else
+      -- Launch headlessly under xvfb-run with forced software rendering to bypass sandboxed workstation freezes
+      emulator_cmd = string.format(
+        "HOME=%s KO_MULTIUSER=1 SDL_RENDER_DRIVER=software xvfb-run -a ./run.sh %s > %s 2>&1 & echo $!",
+        BENCHMARK_HOME,
+        book_path,
+        EMULATOR_LOG_PATH
+      )
+    end
+
+    print(
+      "\n----------------------------------------------------------------------------------"
     )
+    print("LAUNCHING EMULATOR SESSION WITH TARGET: " .. book_path)
+    print(
+      "----------------------------------------------------------------------------------"
+    )
+
+    local pipe = io.popen(emulator_cmd)
+    local pid = tonumber(pipe:read("*line"))
+    pipe:close()
+
+    if not pid then
+      error("Failed to retrieve emulator background PID.")
+    end
+
+    -- Wait for the first document to be ready
+    local total_pages = wait_for_ready()
+    return pid, total_pages
   end
-
-  print(
-    "\n----------------------------------------------------------------------------------"
-  )
-  print("LAUNCHING EMULATOR SESSION WITH TARGET: " .. book_path)
-  print(
-    "----------------------------------------------------------------------------------"
-  )
-
-  local pipe = io.popen(emulator_cmd)
-  local pid = tonumber(pipe:read("*line"))
-  pipe:close()
-
-  if not pid then
-    error("Failed to retrieve emulator background PID.")
-  end
-
-  -- Wait for the first document to be ready
-  local total_pages = wait_for_ready()
-  return pid, total_pages
 end
 
 local function open_document_in_session(book_path)
-  -- Wiping target book sdr state first (to force start from page 1!)
-  local book_sdr = book_path:gsub("%.%w+$", ".sdr")
-  os.execute("rm -rf " .. book_sdr)
+  if IS_REAL_DEVICE then
+    local filename = book_path:match("([^/]+)$")
+    local remote_path = DEVICE_DIR .. "/" .. filename
+    local remote_sdr = remote_path:gsub("%.%w+$", ".sdr")
 
-  print(
-    "\n----------------------------------------------------------------------------------"
-  )
-  print("SWITCHING TARGET DOCUMENT IN SESSION: " .. book_path)
-  print(
-    "----------------------------------------------------------------------------------"
-  )
+    print("[*] Preparing target device for next document...")
+    run_remote_cmd(string.format("rm -rf %s", remote_sdr))
 
-  -- Send open file command (enclosed in single quotes to protect slashes)
-  local url = BASE_URL .. "/ui/showReader/'" .. book_path .. "'"
-  pcall(http_get, url) -- ignore connection close errors on session transfer!
+    print(string.format("[*] Copying book to device: %s -> %s", book_path, remote_path))
+    local ok = copy_to_device(book_path, remote_path)
+    if ok ~= 0 and ok ~= true then
+      error("Failed to copy book to device via scp!")
+    end
 
-  -- Wait 1.5 seconds for old document close and new startup routines to initialize
-  ffiUtil.usleep(1500 * 1000)
+    print("\n----------------------------------------------------------------------------------")
+    print("SWITCHING TARGET DOCUMENT ON DEVICE: " .. remote_path)
+    print("----------------------------------------------------------------------------------")
 
-  -- Wait for the new session to become ready and load the document!
-  local total_pages = wait_for_ready()
-  return total_pages
+    local url = BASE_URL .. "/ui/showReader/'" .. remote_path .. "'"
+    pcall(http_get, url)
+
+    -- Wait 1.5 seconds for old document close and new startup routines to initialize
+    ffiUtil.usleep(1500 * 1000)
+
+    -- Wait for the new session to become ready and load the document!
+    local total_pages = wait_for_ready()
+    return total_pages
+  else
+    -- Wiping target book sdr state first (to force start from page 1!)
+    local book_sdr = book_path:gsub("%.%w+$", ".sdr")
+    os.execute("rm -rf " .. book_sdr)
+
+    print(
+      "\n----------------------------------------------------------------------------------"
+    )
+    print("SWITCHING TARGET DOCUMENT IN SESSION: " .. book_path)
+    print(
+      "----------------------------------------------------------------------------------"
+    )
+
+    -- Send open file command (enclosed in single quotes to protect slashes)
+    local url = BASE_URL .. "/ui/showReader/'" .. book_path .. "'"
+    pcall(http_get, url) -- ignore connection close errors on session transfer!
+
+    -- Wait 1.5 seconds for old document close and new startup routines to initialize
+    ffiUtil.usleep(1500 * 1000)
+
+    -- Wait for the new session to become ready and load the document!
+    local total_pages = wait_for_ready()
+    return total_pages
+  end
 end
 
 local function stop_emulator(pid)
@@ -774,7 +880,8 @@ local function main()
         end)
       else
         -- 2. Open subsequent target books directly in the running session
-        if pid and is_process_alive(pid) then
+        local is_alive = IS_REAL_DEVICE or (pid and is_process_alive(pid))
+        if is_alive then
           ok, err = pcall(function()
             local total_pages = open_document_in_session(doc)
             durations = run_benchmark(total_pages)
