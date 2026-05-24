@@ -17,6 +17,14 @@ local function url_encode(str)
   return str
 end
 
+local function quote_arg(arg)
+  local quote_char = '"'
+  if arg:find('"') and not arg:find("'") then
+    quote_char = "'"
+  end
+  return quote_char .. arg .. quote_char
+end
+
 local BENCHMARK_HOME = "/tmp/koreader_benchmark"
 local IP_ADDRESS
 local PORT
@@ -273,8 +281,9 @@ local function wait_for_ready()
   end
 
   -- Fallback to a safe default instead of crashing if the page count cannot be resolved
-  print("\nWarning: Safe page count resolution timed out. Falling back to default 10 pages.")
-  return 10
+  -- (Use a small default of 3 pages to avoid exceeding end-of-book boundaries on tiny files)
+  print("\nWarning: Safe page count resolution timed out. Falling back to default 3 pages.")
+  return 3
 end
 
 local function is_modal_open()
@@ -783,8 +792,8 @@ local function wait_for_server_up()
 end
 
 local function open_book_on_device(book_path)
-  -- Use double-quotes to protect single quotes (apostrophes) inside paths, and URL-encode
-  local quoted_path = '"' .. book_path .. '"'
+  -- Use dynamic quotes to protect both single/double quote edge-cases safely, and URL-encode
+  local quoted_path = quote_arg(book_path)
 
   print("[*] Enforcing File Manager home screen context via onHome...")
   pcall(http_get, BASE_URL .. "/ui/onHome/")
@@ -918,8 +927,8 @@ local function open_document_in_session(book_path)
       "----------------------------------------------------------------------------------"
     )
 
-    -- Send open file command (enclosed in double quotes and URL-encoded to protect spaces and special characters)
-    local url = BASE_URL .. "/ui/showReader/" .. url_encode('"' .. book_path .. '"')
+    -- Send open file command (enclosed in dynamic quotes and URL-encoded to protect spaces and special characters)
+    local url = BASE_URL .. "/ui/showReader/" .. url_encode(quote_arg(book_path))
     pcall(http_get, url) -- ignore connection close errors on session transfer!
 
     -- Wait 1.5 seconds for old document close and new startup routines to initialize
