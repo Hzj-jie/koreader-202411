@@ -112,4 +112,57 @@ describe("Readertoc module", function()
             readerui:onClose()
         end)
     end)
+
+    describe("safe nil TOC behavior", function()
+        it("should safely handle document returning nil TOC", function()
+            local ReaderToc = require("apps/reader/modules/readertoc")
+            local sample_epub = "spec/front/unit/data/leaves.epub"
+
+            -- Open standard document
+            local doc = DocumentRegistry:openDocument(sample_epub)
+            -- Mock getToc to return nil explicitly
+            doc.getToc = function()
+                return nil
+            end
+
+            -- Instantiate a safe mock of ReaderUI context
+            local mock_readerui = {
+                dialog = {},
+                view = {},
+                document = doc,
+                doc_settings = require("docsettings"):open(sample_epub),
+                menu = {
+                    registerToMainMenu = function() end,
+                },
+                registerModule = function() end,
+            }
+
+            -- Instantiate ReaderToc with our mock context
+            local readertoc = ReaderToc:new({
+                dialog = mock_readerui.dialog,
+                view = mock_readerui.view,
+                ui = mock_readerui,
+            })
+
+            -- Trigger full fillToc load path
+            readertoc:fillToc()
+
+            -- Verify toc is initialized as a safe empty table instead of remaining nil
+            assert.is_table(readertoc.toc)
+            assert.are.equal(#readertoc.toc, 0)
+
+            -- Verify downstream methods do not crash on empty TOC
+            local depth = readertoc:getMaxDepth()
+            assert.are.equal(depth, 0)
+
+            local index = readertoc:getTocIndexByPage(1)
+            assert.is_nil(index)
+
+            local safe_title = readertoc:getTocTitleByPage(1)
+            assert.are.equal(safe_title, "")
+
+            -- Cleanup
+            doc:close()
+        end)
+    end)
 end)

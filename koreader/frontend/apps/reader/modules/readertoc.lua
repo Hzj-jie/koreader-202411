@@ -176,7 +176,7 @@ function ReaderToc:fillToc()
       end
     end
   end
-  self.toc = self.ui.document:getToc()
+  self.toc = self.ui.document:getToc() or {}
   self:validateAndFixToc()
 end
 
