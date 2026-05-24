@@ -998,9 +998,11 @@ function ReaderUI:dealWithLoadDocumentFailure()
 end
 
 function ReaderUI:onHome()
-  local file = self.document.file
+  local file = self.document and self.document.file
   self:onExit()
-  self:showFileManager(file)
+  if not require("apps/filemanager/filemanager").instance then
+    self:showFileManager(file)
+  end
   return true
 end
 

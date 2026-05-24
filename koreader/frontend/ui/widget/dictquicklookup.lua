@@ -981,13 +981,16 @@ function DictQuickLookup:onClose()
         for _, im in ipairs(r.images) do
           if im.bb then
             im.bb:free()
+            im.bb = nil
           end
           if im.hi_bb then
             im.hi_bb:free()
+            im.hi_bb = nil
           end
         end
       end
     end
+    self.images_cleanup_needed = nil
   end
 
   -- Drop our ref from the static class member

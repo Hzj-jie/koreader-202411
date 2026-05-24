@@ -74,4 +74,23 @@ describe("Readerui module", function()
         new_readerui:onExit()
         new_readerui:onClose()
     end)
+
+    it("should safely return to File Manager via onHome when document is nil", function()
+        -- Since the previous test has already closed the global readerui, its document is nil
+        assert.is_nil(readerui.document)
+
+        local show_filemanager_called = false
+        local original_showFileManager = readerui.showFileManager
+        readerui.showFileManager = function(self, f)
+            show_filemanager_called = true
+            assert.is_nil(f)
+        end
+
+        local success = readerui:onHome()
+        assert.is_true(success)
+        assert.is_true(show_filemanager_called)
+
+        -- Restore original function
+        readerui.showFileManager = original_showFileManager
+    end)
 end)
