@@ -8,6 +8,15 @@ local http = require("socket.http")
 local json = require("json")
 local lfs = require("libs/libkoreader-lfs")
 
+local function url_encode(str)
+  if not str then return nil end
+  -- Strict percent-encoding without CRLF normalization for newlines
+  str = str:gsub("([^%w%-%_%.%~])", function(c)
+    return string.format("%%%02X", string.byte(c))
+  end)
+  return str
+end
+
 local BENCHMARK_HOME = "/tmp/koreader_benchmark"
 local IP_ADDRESS
 local PORT
@@ -427,7 +436,7 @@ local function run_benchmark(total_pages)
 
       -- Trigger lookup
       local success_lookup =
-        http_get(BASE_URL .. "/broadcast/LookupWord/Shakespeare")
+        http_get(BASE_URL .. "/broadcast/LookupWord/" .. url_encode('"Shakespeare"'))
       if not success_lookup then
         print("\nError: Failed to trigger dictionary lookup event!")
         break
@@ -471,7 +480,8 @@ local function run_benchmark(total_pages)
       -- Inject typing search string + confirm submit newline character ("Shakespeare\n")
       local success_type = http_get(
         BASE_URL
-          .. "/UIManager/_window_stack/2/widget/_input_widget/addChars/Shakespeare%0A"
+          .. "/UIManager/_window_stack/2/widget/_input_widget/addChars/"
+          .. url_encode('"Shakespeare\n"')
       )
       if not success_type then
         print("\nError: Failed to inject typing search sequence!")
@@ -514,7 +524,8 @@ local function run_benchmark(total_pages)
       -- Inject typing search string (no newline to avoid triggering actual search)
       local success_type = http_get(
         BASE_URL
-          .. "/UIManager/_window_stack/2/widget/_input_widget/addChars/Shakespeare"
+          .. "/UIManager/_window_stack/2/widget/_input_widget/addChars/"
+          .. url_encode('"Shakespeare"')
       )
       if not success_type then
         print("\nError: Failed to inject typing search sequence!")
@@ -772,7 +783,8 @@ local function wait_for_server_up()
 end
 
 local function open_book_on_device(book_path)
-  local quoted_path = "'" .. book_path .. "'"
+  -- Use double-quotes to protect single quotes (apostrophes) inside paths, and URL-encode
+  local quoted_path = '"' .. book_path .. '"'
 
   print("[*] Enforcing File Manager home screen context via onHome...")
   pcall(http_get, BASE_URL .. "/ui/onHome/")
@@ -786,7 +798,7 @@ local function open_book_on_device(book_path)
   end
 
   print("[*] Active screen: File Manager. Opening document...")
-  local url = BASE_URL .. "/ui/openFile/" .. quoted_path
+  local url = BASE_URL .. "/ui/openFile/" .. url_encode(quoted_path)
   local success_open = http_get(url)
   if not success_open then
     error("Failed to send openFile command to target device!")
@@ -827,17 +839,17 @@ local function start_emulator(book_path)
 
     local emulator_cmd
     if HEADFUL then
-      -- Launch natively on host display with full hardware GPU/OpenGL acceleration
+      -- Launch natively on host display with full hardware GPU/OpenGL acceleration (use %q to quote shell argument safely)
       emulator_cmd = string.format(
-        "HOME=%s KO_MULTIUSER=1 ./run.sh %s > %s 2>&1 & echo $!",
+        "HOME=%s KO_MULTIUSER=1 ./run.sh %q > %s 2>&1 & echo $!",
         BENCHMARK_HOME,
         book_path,
         EMULATOR_LOG_PATH
       )
     else
-      -- Launch headlessly under xvfb-run with forced software rendering to bypass sandboxed workstation freezes
+      -- Launch headlessly under xvfb-run with forced software rendering to bypass sandboxed workstation freezes (use %q to quote shell argument safely)
       emulator_cmd = string.format(
-        "HOME=%s KO_MULTIUSER=1 SDL_RENDER_DRIVER=software xvfb-run -a ./run.sh %s > %s 2>&1 & echo $!",
+        "HOME=%s KO_MULTIUSER=1 SDL_RENDER_DRIVER=software xvfb-run -a ./run.sh %q > %s 2>&1 & echo $!",
         BENCHMARK_HOME,
         book_path,
         EMULATOR_LOG_PATH
@@ -906,8 +918,8 @@ local function open_document_in_session(book_path)
       "----------------------------------------------------------------------------------"
     )
 
-    -- Send open file command (enclosed in single quotes to protect slashes)
-    local url = BASE_URL .. "/ui/showReader/'" .. book_path .. "'"
+    -- Send open file command (enclosed in double quotes and URL-encoded to protect spaces and special characters)
+    local url = BASE_URL .. "/ui/showReader/" .. url_encode('"' .. book_path .. '"')
     pcall(http_get, url) -- ignore connection close errors on session transfer!
 
     -- Wait 1.5 seconds for old document close and new startup routines to initialize
