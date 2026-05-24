@@ -257,6 +257,10 @@ function GestureDetector:feedEvent(tevs)
       -- This is what allows us to only do this once on contact creation ;).
       contact.current_tev = tev
     end
+    -- Universal safe-guard to heal contacts with missing initial event logs before executing state logic
+    if not contact.initial_tev and contact.current_tev then
+      contact.initial_tev = deepCopyEv(contact.current_tev)
+    end
     local ges = contact.state(contact)
     if ges then
       table.insert(gestures, ges)

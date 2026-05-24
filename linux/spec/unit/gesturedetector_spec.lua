@@ -1,5 +1,13 @@
 describe("gesturedetector module", function()
     local GestureDetector
+    local mock_screen = {
+        scaleByDPI = function(self, v) return v end
+    }
+    local mock_input = {
+        main_finger_slot = 0,
+        clearTimeout = function() end,
+    }
+
     setup(function()
         require("commonrequire")
         GestureDetector = require("device/gesturedetector")
@@ -54,14 +62,6 @@ describe("gesturedetector module", function()
     end)
 
     it("should handle isTwoFingerTap safely when buddy contact has nil initial_tev", function()
-        local mock_screen = {
-            scaleByDPI = function(self, v) return v end
-        }
-        local mock_input = {
-            main_finger_slot = 0,
-            clearTimeout = function() end,
-        }
-
         local gd = GestureDetector:new({
             screen = mock_screen,
             input = mock_input,
@@ -85,5 +85,39 @@ describe("gesturedetector module", function()
 
         -- Verify it returns false gracefully instead of raising a nil dereference crash
         assert.is_false(is_tap)
+    end)
+
+    it("should automatically heal a contact missing initial_tev during feedEvent", function()
+        local gd = GestureDetector:new({
+            screen = mock_screen,
+            input = mock_input,
+            active_contacts = {},
+            contact_count = 0,
+        })
+
+        -- Prepare a single mock event frame to feed to this slot
+        local mock_event = { slot = 0, timev = 1005, x = 20, y = 30, id = 3 }
+
+        -- Create a contact that bypasses standard initialState down events (so initial_tev is nil)
+        local contact = gd:newContact(0)
+        contact.down = true
+        contact.initial_tev = nil -- Explicitly nil out initial_tev
+        contact.current_tev = mock_event -- Pre-bind current_tev to simulate real runtime environment
+
+        contact.state = function(self)
+            -- Simple dummy state function that just checks initial_tev (will crash if nil!)
+            assert.is_table(self.initial_tev)
+            assert.are.equal(self.initial_tev.x, self.current_tev.x)
+            return "dummy_gesture"
+        end
+
+        -- Feed the event!
+        local gestures = gd:feedEvent({ mock_event })
+
+        -- Verify it was successfully parsed, the healing block was hit, and state didn't crash!
+        assert.are.equal(#gestures, 1)
+        assert.are.equal(gestures[1], "dummy_gesture")
+        assert.is_table(contact.initial_tev)
+        assert.are.equal(contact.initial_tev.x, 20)
     end)
 end)
