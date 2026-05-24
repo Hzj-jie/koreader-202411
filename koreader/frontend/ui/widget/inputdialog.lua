@@ -604,7 +604,6 @@ function InputDialog:isTextEdited()
   return self._input_widget:isTextEdited()
 end
 
-
 function InputDialog:onShow()
   self:showKeyboard(self.ignore_first_hold_release)
 end

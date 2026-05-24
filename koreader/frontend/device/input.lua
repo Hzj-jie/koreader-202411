@@ -660,8 +660,6 @@ function Input:adjustABS_Scale(ev, by)
   end
 end
 
-
-
 function Input:adjustABS_SwitchAxesAndMirrorX(ev, max_x)
   if ev.code == C.ABS_X then
     ev.code = C.ABS_Y
@@ -1466,7 +1464,6 @@ end
 function Input:isEvKeyPress(ev)
   return ev.value == KEY_PRESS
 end
-
 
 function Input:isEvKeyRelease(ev)
   return ev.value == KEY_RELEASE

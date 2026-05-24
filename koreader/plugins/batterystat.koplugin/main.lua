@@ -26,7 +26,6 @@ function State:new(o)
   return o
 end
 
-
 local Usage = {}
 local INDENTATION = "   " -- Three spaces.
 

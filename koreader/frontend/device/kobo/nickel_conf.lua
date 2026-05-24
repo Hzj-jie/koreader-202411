@@ -23,7 +23,6 @@ local re_ColorSetting = "^" .. color_setting_str .. "%s*=%s*([0-9]+)%s*$"
 local re_PowerOptionsSection = "^%[PowerOptions%]%s*"
 local re_AnySection = "^%[.*%]%s*"
 
-
 function NickelConf._read_kobo_conf(re_Match)
   local value
   local correct_section = false

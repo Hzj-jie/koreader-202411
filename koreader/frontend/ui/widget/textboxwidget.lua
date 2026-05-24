@@ -1249,7 +1249,6 @@ function TextBoxWidget:_renderImage(start_row_idx)
   end
 end
 
-
 function TextBoxWidget:getVisLineCount()
   return self.lines_per_page
 end

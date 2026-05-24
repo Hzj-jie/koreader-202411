@@ -170,7 +170,6 @@ function InputContainer:unRegisterTouchZones(zones)
   end
 end
 
-
 --[[--
 Updates touch zones based on new screen dimensions.
 

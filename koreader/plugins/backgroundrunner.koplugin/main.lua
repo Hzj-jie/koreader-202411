@@ -345,5 +345,4 @@ function BackgroundRunnerWidget:onBackgroundJobsUpdated()
   self:init()
 end
 
-
 return BackgroundRunnerWidget

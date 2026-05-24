@@ -663,7 +663,6 @@ function FileChooser:onFolderUp()
   end
 end
 
-
 function FileChooser:toggleShowFilesMode(mode)
   -- modes: "show_finished", "show_hidden", "show_unsupported"
   FileChooser[mode] = not FileChooser[mode]

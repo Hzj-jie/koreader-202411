@@ -1268,7 +1268,6 @@ local function getCodeName()
   return codename
 end
 
-
 local function getProductId()
   -- Try to get it from the env first (KSM only)
   local product_id = os.getenv("MODEL_NUMBER")

@@ -1061,7 +1061,6 @@ function ConfigDialog:init()
   end
 end
 
-
 function ConfigDialog:update()
   self:moveFocusTo(1, 1, FocusManager.NOT_FOCUS) -- reset selected for re-created layout
   self.layout = {}

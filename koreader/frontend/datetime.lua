@@ -354,7 +354,11 @@ function datetime.secondsToDateTime(seconds, twelve_hour_clock, use_locale)
     datetime.secondsToHour(seconds, twelve_hour_clock, not use_locale)
 
   -- @translators Use the following placeholders in the desired order: %1 date, %2 time
-  return T(C_("Date string", "%1 %2"), BD.wrap(date_string), BD.wrap(time_string))
+  return T(
+    C_("Date string", "%1 %2"),
+    BD.wrap(date_string),
+    BD.wrap(time_string)
+  )
 end
 
 --- Converts a date+time string to seconds

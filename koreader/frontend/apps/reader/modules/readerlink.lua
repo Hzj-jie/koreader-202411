@@ -1679,7 +1679,6 @@ function ReaderLink:addToExternalLinkDialog(idx, fn_button)
   self._external_link_buttons[idx] = fn_button
 end
 
-
 function ReaderLink:getButtonsForExternalLinkDialog(link_url)
   local buttons = { {} }
   local columns = 2

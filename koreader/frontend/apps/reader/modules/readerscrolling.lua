@@ -315,7 +315,6 @@ function ReaderScrolling:setupTouchZones()
   end
 end
 
-
 function ReaderScrolling:setInertialScrollCallbacks(
   do_scroll_callback,
   scroll_done_callback

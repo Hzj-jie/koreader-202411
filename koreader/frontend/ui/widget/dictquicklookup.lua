@@ -969,7 +969,6 @@ function DictQuickLookup:update()
   end)
 end
 
-
 function DictQuickLookup:onClose()
   -- Our TextBoxWidget/HtmlBoxWidget/TextWidget/ImageWidget are proper child widgets,
   -- so this event will propagate to 'em, and they'll free their resources.

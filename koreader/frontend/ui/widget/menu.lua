@@ -1629,7 +1629,6 @@ function Menu.getItemFontSize(perpage)
   return math.floor(24 - ((perpage - 6) * (1 / 18)) * 10)
 end
 
-
 --- Adds > to touch menu items with a submenu
 local arrow_left = "◂" -- U+25C2 BLACK LEFT-POINTING SMALL TRIANGLE
 local arrow_right = "▸" -- U+25B8 BLACK RIGHT-POINTING SMALL TRIANGLE

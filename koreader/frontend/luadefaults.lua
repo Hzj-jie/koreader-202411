@@ -105,7 +105,6 @@ function LuaDefaults:getDataTables()
   return self.ro, self.rw
 end
 
-
 -- NOP unsupported LuaSettings APIs
 function LuaDefaults:reset() end
 

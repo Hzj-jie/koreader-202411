@@ -1365,7 +1365,6 @@ function CreDocument:setRenderDPI(value)
   self._document:setIntProperty("crengine.render.dpi", value or 96)
 end
 
-
 function CreDocument:clearSelection()
   logger.dbg("clear selection")
   self._document:clearSelection()

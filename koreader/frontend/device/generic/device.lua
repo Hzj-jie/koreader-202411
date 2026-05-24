@@ -1065,7 +1065,6 @@ function Device:retrieveNetworkInfo()
   return results
 end
 
-
 -- Return an integer value to indicate the brightness of the environment. The value should be in
 -- range [0, 4].
 -- 0: dark.

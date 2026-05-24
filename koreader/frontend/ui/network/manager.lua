@@ -340,7 +340,6 @@ function NetworkMgr:sysfsWifiOn()
   return util.pathExists("/sys/class/net/" .. self:getNetworkInterfaceName())
 end
 
-
 function NetworkMgr:sysfsInterfaceOperational()
   -- Reads the interface's RFC2863 operational state from sysfs, and wait for it to be up
   -- (For Wi-Fi, that means associated & successfully authenticated)

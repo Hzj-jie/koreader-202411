@@ -1018,7 +1018,6 @@ function ReaderTypography:getCurrentDefaultHyphDictLanguage()
   return hyph_dict_name
 end
 
-
 function ReaderTypography:fixLangTag(lang_tag)
   -- EPUB language is an RFC 5646 language tag.
   --   http://www.idpf.org/epub/301/spec/epub-publications.html#sec-opf-dclanguage

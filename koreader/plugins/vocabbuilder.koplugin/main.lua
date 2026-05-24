@@ -1102,7 +1102,6 @@ function VocabItemWidget:undo()
   end)
 end
 
-
 function VocabItemWidget:showMore()
   local dialogue = WordInfoDialog:new({
     title = self.item.word,

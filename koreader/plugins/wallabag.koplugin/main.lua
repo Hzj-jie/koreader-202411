@@ -1334,7 +1334,6 @@ function Wallabag:readSettings()
   return wb_settings
 end
 
-
 function Wallabag:addWallabagArticle(article_url)
   if not NetworkMgr:isOnline() then
     self:addToDownloadQueue(article_url)
