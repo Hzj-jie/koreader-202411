@@ -52,4 +52,38 @@ describe("gesturedetector module", function()
             assert.are.equal("east", adjustTest("two_finger_pan", "north", 1))
         end)
     end)
+
+    it("should handle isTwoFingerTap safely when buddy contact has nil initial_tev", function()
+        local mock_screen = {
+            scaleByDPI = function(self, v) return v end
+        }
+        local mock_input = {
+            main_finger_slot = 0,
+            clearTimeout = function() end,
+        }
+
+        local gd = GestureDetector:new({
+            screen = mock_screen,
+            input = mock_input,
+            active_contacts = {},
+            contact_count = 0,
+        })
+
+        -- Create slot 0 contact and immediately bind its current touch event
+        local contactA = gd:newContact(0)
+        contactA.down = true
+        contactA.current_tev = { timev = 1000, x = 10, y = 20, id = 1 }
+
+        -- Create slot 1 contact (it will automatically link contactA as buddy and copy its initial_tev)
+        local contactB = gd:newContact(1)
+        contactB.down = true
+        contactB.current_tev = { timev = 1001, x = 15, y = 25, id = 2 }
+        contactB.initial_tev = nil -- Explicitly nil the buddy's initial_tev to simulate the platform bug
+
+        -- Call isTwoFingerTap on contactA passing the buddy contactB
+        local is_tap = contactA:isTwoFingerTap(contactB)
+
+        -- Verify it returns false gracefully instead of raising a nil dereference crash
+        assert.is_false(is_tap)
+    end)
 end)

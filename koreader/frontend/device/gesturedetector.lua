@@ -304,6 +304,12 @@ end
 function Contact:isTwoFingerTap(buddy_contact)
   local gesture_detector = self.ges_dec
 
+  -- Guard against missing or malformed event logs in raw C touch events during out-of-order multi-touch sequences
+  if not self.initial_tev or not buddy_contact.initial_tev or not self.current_tev or not buddy_contact.current_tev then
+    logger.warn("Contact:isTwoFingerTap: skipped due to missing event logs in slot active state context!")
+    return false
+  end
+
   local time_diff0 = self.current_tev.timev - self.initial_tev.timev
   if time_diff0 < 0 then
     time_diff0 = time.huge
