@@ -229,7 +229,7 @@ local FileChooser = Menu:extend({
           local summary = doc_settings:readTableRef("summary")
 
           -- books marked as "finished" or "on hold" should be considered the same as 100% and less than 0% respectively
-          if summary.status == "complete" then
+          if summary and summary.status == "complete" then
             sort_percent = 1.0
           elseif summary and summary.status == "abandoned" then
             sort_percent = -0.01
