@@ -225,4 +225,40 @@ describe("datetime module", function()
                             datetime.secondsToDateTime(time_s + 86400, true, true))
         end)
     end)
+
+    describe("stringToSeconds()", function()
+        it("should convert a valid date string to seconds", function()
+            local time = { year=2022, month=11, day=20, hour=9, min=57, sec=39 }
+            local time_s = os.time(time)
+            local parsed_s = datetime.stringToSeconds("2022-11-20 09:57:39")
+            assert.are.equal(time_s, parsed_s)
+        end)
+        it("should return nil gracefully for nil/invalid inputs", function()
+            assert.is_nil(datetime.stringToSeconds(nil))
+            assert.is_nil(datetime.stringToSeconds(12345))
+            assert.is_nil(datetime.stringToSeconds(""))
+            assert.is_nil(datetime.stringToSeconds("2022/11/20"))
+            assert.is_nil(datetime.stringToSeconds("invalid-date-string"))
+        end)
+        it("should handle 32-bit epoch overflow safety by returning nil on errors", function()
+            -- Mock os.time to simulate a 32-bit environment epoch constraint
+            local original_os_time = os.time
+            os.time = function(t)
+                if t.year and tonumber(t.year) >= 2038 then
+                    error("time result cannot be represented")
+                end
+                return original_os_time(t)
+            end
+
+            -- Year 3000 will now raise our mocked 32-bit timezone overflow error
+            -- The pcall check must catch it safely and return nil
+            assert.is_nil(datetime.stringToSeconds("3000-01-01 00:00:00"))
+
+            -- Year 2020 (below threshold) is still parsed successfully
+            assert.is_number(datetime.stringToSeconds("2020-01-01 00:00:00"))
+
+            -- Restore original function
+            os.time = original_os_time
+        end)
+    end)
 end)

@@ -365,9 +365,16 @@ end
 ---- @string "YYYY-MM-DD HH:MM:SS", time may be absent
 ---- @treturn seconds
 function datetime.stringToSeconds(datetime_string)
+  if not datetime_string or type(datetime_string) ~= "string" then
+    return nil
+  end
   local year, month, day = datetime_string:match("(%d+)-(%d+)-(%d+)")
+  if not year or not month or not day then
+    return nil
+  end
   local hour, min, sec = datetime_string:match("(%d+):(%d+):(%d+)")
-  return os.time({
+  -- Wrap in pcall to protect against platform-specific time epoch overflows (e.g. year > 2038 on 32-bit systems)
+  local ok, seconds = pcall(os.time, {
     year = year,
     month = month,
     day = day,
@@ -375,6 +382,10 @@ function datetime.stringToSeconds(datetime_string)
     min = min or 0,
     sec = sec or 0,
   })
+  if ok then
+    return seconds
+  end
+  return nil
 end
 
 return datetime
