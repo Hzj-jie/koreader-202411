@@ -4,6 +4,7 @@ Only PowerOptions:FrontLightLevel is currently supported.
 ]]
 
 local dbg = require("dbg")
+local util = require("util")
 
 local NickelConf = {}
 NickelConf.frontLightLevel = {}
@@ -22,6 +23,12 @@ local re_FrontLightState = "^" .. front_light_state_str .. "%s*=%s*(.+)%s*$"
 local re_ColorSetting = "^" .. color_setting_str .. "%s*=%s*([0-9]+)%s*$"
 local re_PowerOptionsSection = "^%[PowerOptions%]%s*"
 local re_AnySection = "^%[.*%]%s*"
+
+if util.isTesting() then
+  function NickelConf._set_kobo_conf_path(new_path)
+    kobo_conf_path = new_path
+  end
+end
 
 function NickelConf._read_kobo_conf(re_Match)
   local value

@@ -4,6 +4,7 @@ Simple math helper functions
 
 local bit = require("bit")
 local dbg = require("dbg")
+local util = require("util")
 
 local Math = {}
 
@@ -101,6 +102,11 @@ The optional argument func specifies a one-argument ordering function.
 @tparam func func
 @treturn dynamic maximum element of a table
 ]]
+if util.isTesting() then
+  function Math.tmax(tab, func)
+    return tmin_max(tab, func, "max")
+  end
+end
 
 --[[--
 Restricts a value within an interval.

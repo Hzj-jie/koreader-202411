@@ -81,6 +81,15 @@ function LuaDefaults:hasBeenCustomized(key)
 end
 
 --- Checks if setting has NOT been customized.
+if util.isTesting() then
+  function LuaDefaults:hasNotBeenCustomized(key)
+    return self.rw[key] == nil
+  end
+
+  function LuaDefaults:readDefaultSetting(key)
+    return self.ro[key]
+  end
+end
 
 --- Checks if setting is `true` (boolean).
 function LuaDefaults:isTrue(key)
@@ -104,6 +113,8 @@ end
 function LuaDefaults:getDataTables()
   return self.ro, self.rw
 end
+
+
 
 -- NOP unsupported LuaSettings APIs
 function LuaDefaults:reset() end
