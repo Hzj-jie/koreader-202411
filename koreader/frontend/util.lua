@@ -25,6 +25,17 @@ function util.isTesting()
     or _G.describe ~= nil
 end
 
+if util.isTesting() then
+  --- Clear all the elements from an array without reassignment.
+  --- @table t the array to be cleared
+  function util.clearTable(t)
+    local c = #t
+    for i = 0, c do
+      t[i] = nil
+    end
+  end
+end
+
 ---- Strips all punctuation marks and spaces from a string.
 ---- @string text the string to be stripped
 ---- @treturn string stripped text

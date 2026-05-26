@@ -15,6 +15,7 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
 local time = require("ui/time")
+local util = require("util")
 
 -- BackgroundRunner is an experimental feature to execute non-critical jobs in
 -- the background.
@@ -343,6 +344,12 @@ end
 function BackgroundRunnerWidget:onBackgroundJobsUpdated()
   logger.dbg("BackgroundRunnerWidget:onBackgroundJobsUpdated()")
   self:init()
+end
+
+if util.isTesting() then
+  function BackgroundRunnerWidget:allowBlockingJobs(v)
+    ALLOW_BLOCKING_JOBS = v
+  end
 end
 
 return BackgroundRunnerWidget
