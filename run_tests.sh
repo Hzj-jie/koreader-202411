@@ -48,9 +48,19 @@ fi
 export LUA_PATH="./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;;"
 export LUA_CPATH="./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
 
+# Set up a private, fresh, and unique sandboxed configuration path to isolate Busted filesystem operations
+export KO_MULTIUSER=1
+export XDG_CONFIG_HOME="/tmp/koreader_busted_sandbox_$$"
+mkdir -p "$XDG_CONFIG_HOME"
+
 cleanup() {
     echo "[*] Purging test execution residues inside $PLATFORM_DIR/..."
     rm -rf cache/ defaults.defaults_spec.lua docsettings/ docsettingspec/ dummy-test-file* dummy-luadata-file* batterystat.log file.sdr/ help/ history.lua ota/ readerbookmark.pdf readerbookmark.sdr/ readerhighlight.pdf readerhighlight.sdr/ readerhighlight.epub juliet.epub juliet.sdr/ screenshots/ settings/ styletweaks/ testdata/ this-is-not-a-valid-file* settings.tests.lua
+
+    if [ -d "$XDG_CONFIG_HOME" ]; then
+        echo "[*] Purging sandbox environment folder at $XDG_CONFIG_HOME..."
+        rm -rf "$XDG_CONFIG_HOME"
+    fi
 }
 # Guarantee cleanup executes upon script termination (regardless of exit status)
 trap cleanup EXIT
