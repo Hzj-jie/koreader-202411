@@ -34,6 +34,23 @@ fi
 # Anchor execution context directly inside the selected platform directory
 cd "$(dirname "$0")"/"$PLATFORM_DIR"
 
+PLATFORM_PATH="$(pwd)"
+SANDBOX_DIR="/tmp/koreader_sandbox_$$"
+mkdir -p "$SANDBOX_DIR"
+
+# Symlink all files and directories except user/test storage directories
+for entry in "$PLATFORM_PATH"/* "$PLATFORM_PATH"/.*; do
+    name="$(basename "$entry")"
+    if [ "$name" != "." ] && [ "$name" != ".." ] && [ "$name" != "*" ]; then
+        if [ "$name" != "settings" ] && [ "$name" != "cache" ] && [ "$name" != "docsettings" ] && [ "$name" != "history" ] && [ "$name" != "screenshots" ]; then
+            ln -s "$entry" "$SANDBOX_DIR/$name"
+        fi
+    fi
+done
+
+# Now execute busted inside the sandbox!
+pushd "$SANDBOX_DIR" > /dev/null
+
 # Verify that the specified test file exists if provided
 if [ -n "$TEST_FILE" ]; then
     if [ ! -e "$TEST_FILE" ]; then
@@ -42,25 +59,14 @@ if [ -n "$TEST_FILE" ]; then
     fi
 fi
 
-
-
 # Strictly enforce relative Lua 5.1 module paths via symlink structures and block host mixing
 export LUA_PATH="./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;;"
 export LUA_CPATH="./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
 
-# Set up a private, fresh, and unique sandboxed configuration path to isolate Busted filesystem operations
-export KO_MULTIUSER=1
-export XDG_CONFIG_HOME="/tmp/koreader_busted_sandbox_$$"
-mkdir -p "$XDG_CONFIG_HOME"
-
 cleanup() {
-    echo "[*] Purging test execution residues inside $PLATFORM_DIR/..."
-    rm -rf cache/ defaults.defaults_spec.lua docsettings/ docsettingspec/ dummy-test-file* dummy-luadata-file* batterystat.log file.sdr/ help/ history.lua ota/ readerbookmark.pdf readerbookmark.sdr/ readerhighlight.pdf readerhighlight.sdr/ readerhighlight.epub juliet.epub juliet.sdr/ screenshots/ settings/ styletweaks/ testdata/ this-is-not-a-valid-file* settings.tests.lua
-
-    if [ -d "$XDG_CONFIG_HOME" ]; then
-        echo "[*] Purging sandbox environment folder at $XDG_CONFIG_HOME..."
-        rm -rf "$XDG_CONFIG_HOME"
-    fi
+    echo "[*] Purging sandbox environment folder at $SANDBOX_DIR..."
+    popd > /dev/null 2>&1
+    rm -rf "$SANDBOX_DIR"
 }
 # Guarantee cleanup executes upon script termination (regardless of exit status)
 trap cleanup EXIT
