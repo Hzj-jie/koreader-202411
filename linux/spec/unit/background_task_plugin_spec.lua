@@ -140,4 +140,28 @@ describe("BackgroundTaskPlugin", function()
         MockTime:increase(2)
         UIManager:handleInput()
     end)
+
+    it("should pass callback and environment to background jobs", function()
+        local callback_called = false
+        local test_plugin = BackgroundTaskPlugin:new({
+            name = "test_plugin_cb",
+            default_enable = true,
+            when = 2,
+            executable = function() end,
+            callback = function(job)
+                callback_called = true
+                assert.are.equal("test_env", job.environment)
+            end,
+            environment = "test_env",
+        })
+        MockTime:increase(2)
+        UIManager:handleInput()
+        MockTime:increase(2)
+        UIManager:handleInput()
+        assert.is_true(callback_called)
+
+        test_plugin:flipSetting()
+        MockTime:increase(2)
+        UIManager:handleInput()
+    end)
 end)
