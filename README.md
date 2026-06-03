@@ -45,30 +45,15 @@ Compared to the upstream baseline, this customized branch incorporates the follo
 
 ### ✏️ Core & UI Enhancements
 Modifications across active Lua sources address specific application behavior, layout improvements, and advanced rendering logic:
-*   **UI Manager Framework**: Deep architectural overhaul inside `uimanager.lua` (originating from [PR #428](https://github.com/Hzj-jie/koreader-202411/pull/428)) that redesigned sub-widget rendering paths to completely eliminate unnecessary full-screen E-Ink flashes during highlights, footer updates, and chapter boundaries. It also introduces custom embedded OS confirmation dialogs (`askForReboot`, `askForPowerOff`) and powerful new framework operations (`keyEvents()`, `runWith()`).
-*   **Core Logic**: Tweaks directly inside `reader.lua` and helpers like `frontend/util.lua`.
-*   **Refined Widgets**: Layout and behavioral updates in standard widgets (`touchmenu.lua`, `virtualkeyboard.lua`, `textwidget.lua`, `verticalscrollbar.lua`).
-*   **Augmented Exporters**: The `exporter.koplugin` module natively targets external note backends including **Flomo, Joplin, Memos, Nextcloud, and Readwise**.
-*   **Plugin Tuning**: Specific behavioral adjustments inside `calibre`, `coverbrowser`, `newsdownloader`, and `statistics`.
+*   **UI Manager Framework (PR #428)**: Deep architectural overhaul inside `uimanager.lua` that redesigned sub-widget rendering paths to completely eliminate unnecessary full-screen E-Ink flashes during highlights, footer updates, and chapter boundaries. It also introduces custom embedded OS confirmation dialogs (`askForReboot`, `askForPowerOff`) and powerful new framework operations (`keyEvents()`, `runWith()`).
+*   **TouchMenu Keyboard Shortcuts (Commit 50e806cf)**: Introduced physical keyboard shortcut bindings (`Q`, `W`, `E`, `R`, `T`, `A`, `S`, `D`, `F`, `G`) for visible items in hierarchical touch menus, complete with visual key-hint overlays.
+*   **Settings Framework Overhaul (Commit 7a0cc257, 452c9a04)**: Introduced a centralized `G_named_settings` abstraction layer to manage configuration defaults in one place, and upgraded `LuaSettings` to dynamically prevent the serialization of default values to disk, reducing settings file bloat.
+*   **Background Task Plugin Framework (Commits 2a6c63a9, c7fbdc64, d8592e1b)**: Introduced `BackgroundTaskPlugin` (extending `SwitchPlugin`) to unify and simplify plugins performing background work (like `AutoFrontlight`, `AutoTurn`, and `AutoDim`). By leveraging a centralized `BackgroundTaskRunner` instead of manual `UIManager:scheduleIn` timers, it decouples background tasks from UI widgets, centralizes user activity tracking via `UIManager:timeSinceLastUserAction()`, and improves overall system stability.
 
-### 🗑️ Pruned Modules (Complexity Reduction)
-To minimize runtime bloat and maintenance overhead, several components were pruned:
-*   **Plugins**: `timesync.koplugin` and `patchmanagement.koplugin`
-*   **Frontend**: `frontend/userpatch.lua`
-*   **Platform Integration**: `platform/android/llapp_main.lua`
-*   **Legacy Migrations**: `plugins/gestures.koplugin/migration.lua`
-
-### ➕ Added Capabilities
-Custom modules provide specialized offline and browser workflows tailored to the environment:
-*   **Weather Plugin**: Full localized integration of `plugins/weather.koplugin` (`composer.lua`, `weatherapi.lua`).
-*   **Web Portal**: A browser-based remote control interface integrated under `web/`, allowing users to drive application actions and states directly over a regular browser.
-
-### 🛡️ Framework Security Hardening
-The underlying networking engine (`Turbo.lua`) and FFI bindings were scrubbed of operator precedence and leakage bugs to guarantee robust execution:
-*   **Strict SSL Checks**: Fixed boolean precedence (`not type(...) == "string"`) in `tcpserver.lua` to strictly reject invalid configurations.
-*   **Resilient Handshakes**: Patched a duplicate check typo in `crypto_linux.lua` to cleanly handle `WANT_WRITE` non-blocking yields.
-*   **Parser Integrity**: Captured missing string buffer returns in `httputil.lua` to prevent boundary header skips from aborting on their first iteration.
-*   **Safe IO & Memory**: Initialized unassigned socket descriptors in `iostream.lua` to silence trace crashes, properly scoped global memory objects (`glob_t`) in `fs.lua`, and verified read payload sizes (`not len() == sz`) in `web.lua`.
+### 📶 Network Management Component
+Refined network state monitoring and wifi manager to simplify logic and prevent runtime crashes:
+*   **Background Connection Checker (PR #216)**: Replaced synchronous blocking connection checks with an asynchronous background checker to monitor Wi-Fi status smoothly.
+*   **Network Manager Rework (PR #144)**: Simplified the behavior of connection routines (`runWhen*` and `willRerunWhen*`) to prevent runtime crashes during state transitions.
 
 ---
 
