@@ -11,21 +11,22 @@ function CenterContainer:paintTo(bb, x, y)
   self:getSize()
   local content_size = self[1]:getSize()
 
+  local ignore = self.ignore
   -- check if content is bigger than container
   if self.ignore_if_over == "height" then -- align upper borders
     if self:getSize().h < content_size.h then
-      self.ignore = "height"
+      ignore = "height"
     end
   elseif self.ignore_if_over == "width" then -- align left borders
     if self:getSize().w < content_size.w then
-      self.ignore = "width"
+      ignore = "width"
     end
   end
 
-  if self.ignore ~= "height" then
+  if ignore ~= "height" then
     y = y + math.floor((self:getSize().h - content_size.h) / 2)
   end
-  if self.ignore ~= "width" then
+  if ignore ~= "width" then
     x = x + math.floor((self:getSize().w - content_size.w) / 2)
   end
   self[1]:paintTo(bb, x, y)
