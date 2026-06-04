@@ -139,6 +139,12 @@ describe("datetime module", function()
             assert.is_equal("2'00\"",
                             datetime.secondsToHClock(120))
         end)
+        it("should handle nil/invalid inputs gracefully", function()
+            assert.is_equal("--",
+                            datetime.secondsToHClock(nil))
+            assert.is_equal("--",
+                            datetime.secondsToHClock("invalid"))
+        end)
     end)
 
     describe("secondsToClockDuration()", function()
@@ -181,6 +187,14 @@ describe("datetime module", function()
                             datetime.secondsToClockDuration("classic", 208890, false, false))
             assert.is_equal("2d10:01:30",
                             datetime.secondsToClockDuration("classic", 208890, false, true))
+        end)
+        it("should handle nil/invalid inputs gracefully", function()
+            assert.is_equal("--",
+                            datetime.secondsToClockDuration("modern", nil))
+            assert.is_equal("--",
+                            datetime.secondsToClockDuration("letters", nil))
+            assert.is_equal("--:--:--",
+                            datetime.secondsToClockDuration("classic", nil))
         end)
     end)
 

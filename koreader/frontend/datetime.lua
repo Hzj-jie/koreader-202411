@@ -135,6 +135,9 @@ function datetime.secondsToHClock(
 )
   local SECONDS_SYMBOL = '"'
   seconds = tonumber(seconds)
+  if not seconds then
+    return "--"
+  end
   if seconds == 0 then
     if withoutSeconds then
       if hmsFormat then
