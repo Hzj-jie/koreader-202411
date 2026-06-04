@@ -152,4 +152,34 @@ describe("InputContainer widget", function()
         assert.is.same('readerhighlight_hold_release', ic._ordered_touch_zones[8].def.id)
         assert.is.same('readerhighlight_hold_pan', ic._ordered_touch_zones[9].def.id)
     end)
+
+    it("should unregister touch zones and clean up memory", function()
+        local ic = InputContainer:new{}
+        local zones = {
+            {
+                id = "foo",
+                ges = "tap",
+                screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 1, ratio_h = 1 },
+                handler = function() end,
+            },
+            {
+                id = "bar",
+                ges = "tap",
+                screen_zone = { ratio_x = 0, ratio_y = 0, ratio_w = 0.5, ratio_h = 1 },
+                handler = function() end,
+            }
+        }
+        ic:registerTouchZones(zones)
+        assert.is.same(#ic._ordered_touch_zones, 2)
+        assert.is_not_nil(ic._zones["foo"])
+        assert.is_not_nil(ic._zones["bar"])
+
+        -- Unregister "foo"
+        ic:unRegisterTouchZones({ zones[1] })
+
+        assert.is.same(#ic._ordered_touch_zones, 1)
+        assert.is.same("bar", ic._ordered_touch_zones[1].def.id)
+        assert.is_nil(ic._zones["foo"]) -- Verify memory cleanup!
+        assert.is_not_nil(ic._zones["bar"])
+    end)
 end)

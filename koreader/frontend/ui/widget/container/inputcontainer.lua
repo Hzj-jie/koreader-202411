@@ -149,16 +149,10 @@ function InputContainer:unRegisterTouchZones(zones)
         self.touch_zone_dg:removeNode(zone.id)
         if zone.overrides then
           for _, override_zone_id in ipairs(zone.overrides) do
-            --self.touch_zone_dg:removeNodeDep(override_zone_id, zone.id)
             self.touch_zone_dg:removeNodeDep(override_zone_id, zone.id)
           end
         end
-        for _, id in ipairs(self._ordered_touch_zones) do
-          if id.def.id == zone.id then
-            table.remove(self._ordered_touch_zones, i)
-            break
-          end
-        end
+        self._zones[zone.id] = nil
       end
     end
     self._ordered_touch_zones = {}
