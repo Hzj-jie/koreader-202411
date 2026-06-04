@@ -205,7 +205,7 @@ end
 
 function CheckButton:disable()
   self.enabled = false
-  self:initCheckButton(false)
+  self:initCheckButton(self.checked)
   UIManager:setDirty(self.parent, function()
     return "ui", self.dimen
   end)
