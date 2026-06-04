@@ -240,7 +240,10 @@ function LuaSettings:flush()
   end
   -- Do not save anything meaningless.
   if self.data == nil or next(self.data) == nil then
-    return
+    if lfs.attributes(self.file, "mode") == "file" then
+      os.remove(self.file)
+    end
+    return self
   end
   util.writeToFile(dump(self.data), self.file, true)
   return self

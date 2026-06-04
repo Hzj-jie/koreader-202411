@@ -102,4 +102,30 @@ describe("luasettings module", function()
             assert.are.equal(3, Settings:read("key")[2])
         end)
     end)
+
+    it("should clear file on flush when all keys are deleted", function()
+        local LuaSettings = require("frontend/luasettings")
+        local lfs = require("libs/libkoreader-lfs")
+        local test_file = "test_flush_empty.lua"
+
+        os.remove(test_file)
+
+        local settings = LuaSettings:open(test_file)
+        settings:save("key", "value")
+        settings:flush()
+
+        assert.is_true(lfs.attributes(test_file, "mode") == "file")
+        local content = dofile(test_file)
+        assert.are.equal("value", content.key)
+
+        settings:delete("key")
+        settings:flush()
+
+        -- If the bug is present, the file will still exist and contain the old value.
+        -- We expect the file to either be deleted or contain an empty table.
+        -- If we implement it by deleting the file:
+        assert.is_nil(lfs.attributes(test_file, "mode"))
+
+        os.remove(test_file)
+    end)
 end)
