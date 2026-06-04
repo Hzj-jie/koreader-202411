@@ -80,6 +80,9 @@ function FrameContainer:onFocus()
   if not self.focusable then
     return false
   end
+  if self._focused then
+    return true
+  end
   self._origin_bordersize = self.bordersize
   self._origin_border_color = self.color
   self.bordersize = self.focus_border_size
