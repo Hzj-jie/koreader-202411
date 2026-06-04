@@ -266,6 +266,22 @@ describe("MenuSorter module", function()
         assert.is_true(test_menu[1][3].id == "third4")
     end)
 
+    it("should handle invalid sorting_hint gracefully without crashing", function()
+        local menu_items = {
+            ["KOMenu:menu_buttons"] = {},
+            main = {text="Main", sorting_hint="non_existent_menu"},
+        }
+        local order = {
+            ["KOMenu:menu_buttons"] = {},
+        }
+
+        local test_menu
+        assert.has_no.errors(function()
+            test_menu = MenuSorter:_sort(menu_items, order)
+        end)
+        assert.equals(0, #test_menu)
+    end)
+
     describe("_readMSSettings", function()
         local test_file_path
         setup(function()
