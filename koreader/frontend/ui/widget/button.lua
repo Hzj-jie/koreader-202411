@@ -276,9 +276,11 @@ function Button:setText(text, width)
       and not self.did_truncation_tweaks
     then
       self.text = text
+      self.icon = nil
       self.label_widget:setText(text)
     else
       self.text = text
+      self.icon = nil
       self.width = width
       self.label_widget:free()
       self:init()
@@ -289,6 +291,7 @@ end
 function Button:setIcon(icon, width)
   if icon ~= self.icon then
     self.icon = icon
+    self.text = nil
     self.width = width
     self.label_widget:free()
     self:init()

@@ -34,4 +34,26 @@ describe("Button widget", function()
 
         assert.spy(spy_update).was_called()
     end)
+
+    it("should allow changing from text to icon and vice versa", function()
+        local b = Button:new({
+            text = "Click me",
+        })
+
+        assert.is_equal("Click me", b.text)
+        assert.is_nil(b.icon)
+        assert.is_equal("Click me", b.label_widget.text)
+
+        -- Change to icon
+        b:setIcon("home")
+        assert.is_nil(b.text)
+        assert.is_equal("home", b.icon)
+        assert.is_equal("home", b.label_widget.icon)
+
+        -- Change back to text
+        b:setText("Back to text")
+        assert.is_equal("Back to text", b.text)
+        assert.is_nil(b.icon)
+        assert.is_equal("Back to text", b.label_widget.text)
+    end)
 end)
