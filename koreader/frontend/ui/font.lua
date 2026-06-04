@@ -276,11 +276,15 @@ end
 function Font:getFace(font, size, faceindex)
   -- default to content font
   if not font then
-    font = "cfont"
+    font = self.fontmap.cfont
   end
 
   if not size then
     size = self.sizemap[font]
+  end
+  if not size then
+    logger.warn("Font size not found for font:", font, "using default cfont size")
+    size = self.sizemap.cfont
   end
   -- original size before scaling by screen DPI
   local orig_size = size
@@ -397,9 +401,7 @@ end
 -- @treturn ui.font.FontFaceObj face face to use for drawing
 -- @treturn bool bold adjusted bold properties
 function Font:getAdjustedFace(face, bold)
-  if not face then
-    face = self:getFace()
-  end
+  face = face or self:getFace()
   if face.is_real_bold then
     -- No adjustment needed: main real bold font will ensure
     -- fallback fonts use their associated bold font or
