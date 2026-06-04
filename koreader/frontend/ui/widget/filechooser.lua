@@ -329,7 +329,7 @@ function FileChooser:show_file(filename, fullpath)
     return false
   end
   if
-    not FileChooser.show_finished
+    not self.show_finished
     and fullpath ~= nil
     and filemanagerutil.getStatus(fullpath) == "complete"
   then

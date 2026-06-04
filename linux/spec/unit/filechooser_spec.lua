@@ -47,4 +47,30 @@ describe("FileChooser module", function()
         -- Clean up doc settings cache residues
         DocSettings:open(sample_epub):purge()
     end)
+
+    it("should respect instance's show_finished setting", function()
+        local filemanagerutil = require("apps/filemanager/filemanagerutil")
+        local original_getStatus = filemanagerutil.getStatus
+
+        filemanagerutil.getStatus = function(path)
+            if path == "test_complete.epub" then
+                return "complete"
+            end
+            return "incomplete"
+        end
+
+        local fc_show = FileChooser:new({
+            dimen = Screen:getSize(),
+            show_finished = true,
+        })
+        assert.is_true(fc_show:show_file("test_complete.epub", "test_complete.epub"))
+
+        local fc_hide = FileChooser:new({
+            dimen = Screen:getSize(),
+            show_finished = false,
+        })
+        assert.is_false(fc_hide:show_file("test_complete.epub", "test_complete.epub"))
+
+        filemanagerutil.getStatus = original_getStatus
+    end)
 end)
