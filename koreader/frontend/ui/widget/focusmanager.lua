@@ -270,6 +270,11 @@ function FocusManager:onFocusMove(args)
     logger.dbg("FocusManager: no currently selected widget found")
     return true
   end
+  local start_x, start_y = self.selected.x, self.selected.y
+  local visited = {}
+  visited[start_y] = {}
+  visited[start_y][start_x] = true
+
   local current_item = self.layout[self.selected.y][self.selected.x]
   while true do
     if not self.layout[self.selected.y + dy] then
@@ -291,6 +296,16 @@ function FocusManager:onFocusMove(args)
       self.selected.y = self.selected.y + dy
       self.selected.x = self.selected.x + dx
     end
+
+    if visited[self.selected.y] and visited[self.selected.y][self.selected.x] then
+      self.selected.x = start_x
+      self.selected.y = start_y
+      break
+    end
+    if not visited[self.selected.y] then
+      visited[self.selected.y] = {}
+    end
+    visited[self.selected.y][self.selected.x] = true
     logger.dbg(
       "FocusManager cursor position is:",
       self.selected.x,

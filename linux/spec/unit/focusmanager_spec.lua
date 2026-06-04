@@ -229,4 +229,29 @@ describe("FocusManager module", function()
         assert.is_false(focusmanager:isAlternativeKey(Key:new("AA", m)))
         assert.is_false(focusmanager:isAlternativeKey(Key:new("Up", m)))
     end)
+
+    it("should not loop infinitely when navigating layout with only inactive items", function()
+        local TextWidget = require("ui/widget/textwidget")
+        local wi = TextWidget:new{ is_inactive = true }
+
+        local focusmanager = FocusManager:new{}
+        focusmanager.layout = {
+            { wi, wi }
+        }
+        focusmanager.selected = { y = 1, x = 1 }
+
+        local calls = 0
+        local original_wrapAroundX = focusmanager._wrapAroundX
+        focusmanager._wrapAroundX = function(self, dx)
+            calls = calls + 1
+            if calls > 5 then
+                error("Infinite loop detected in _wrapAroundX!")
+            end
+            return original_wrapAroundX(self, dx)
+        end
+
+        assert.has_no.errors(function()
+            Right(focusmanager)
+        end)
+    end)
 end)
