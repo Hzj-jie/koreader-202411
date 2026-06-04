@@ -353,6 +353,9 @@ function Button:disableWithoutDimming()
   self.enabled = false
   if self.text then
     self.label_widget.fgcolor = Blitbuffer.COLOR_BLACK
+    if self.label_widget.update then
+      self.label_widget:update()
+    end
   else
     self.label_widget.dim = false
   end
