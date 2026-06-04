@@ -778,7 +778,7 @@ function InputDialog:disableButton(id)
 end
 
 function InputDialog:_addSaveCloseButtons()
-  if not self.buttons then
+  if not self.buttons or #self.buttons == 0 then
     self.buttons = { {} }
   end
   -- Callback to enable/disable Reset/Save buttons, for feedback when text modified
@@ -927,7 +927,7 @@ function InputDialog:_addScrollButtons(nav_bar)
     row = {} -- Empty additional buttons row
     table.insert(self.buttons, row)
   else -- Add the Up / Down buttons to the first row
-    if not self.buttons then
+    if not self.buttons or #self.buttons == 0 then
       self.buttons = { {} }
     end
     row = self.buttons[1]
