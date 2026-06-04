@@ -224,32 +224,104 @@ end
 
 -- for tab key
 function FocusManager:onFocusNext()
-  if not self.layout then
-    return false
-  end
-  local x, y = self.selected.x, self.selected.y
-  local row = self.layout[y]
-  local dx, dy = 1, 0
-  if not row[x + dx] then -- beyond end of column, go to next row
-    dx, dy = 0, 1
-  end
-  return self:onFocusMove({ dx, dy })
+  return self:_moveFocusSequence(true)
 end
 
 -- for backtab key
 function FocusManager:onFocusPrevious()
+  return self:_moveFocusSequence(false)
+end
+
+--[[--
+Sequential logical navigation (Tab/Backtab).
+Flattens the 2D layout grid into a 1D sequence of active focusable items,
+ensuring every widget is visited in reading order (left-to-right, top-to-bottom)
+without skipping items in ragged rows or wrapping layout boundaries.
+Contrast with directional navigation (onFocusMove) which uses 2D spatial relationships.
+--]]
+function FocusManager:_moveFocusSequence(forward)
   if not self.layout then
     return false
   end
-  local x, y = self.selected.x, self.selected.y
-  local row = self.layout[y]
-  local dx, dy = -1, 0
-  if not row[x + dx] then -- beyond start of column, go to previous row
-    dx, dy = 0, -1
+
+  -- Gather all active focusable items in reading order, correctly handling holes.
+  local items = {}
+  for y = 1, #self.layout do
+    local row = self.layout[y]
+    if row then
+      local max_x = 0
+      for k in pairs(row) do
+        if type(k) == "number" and k > max_x then
+          max_x = k
+        end
+      end
+      for x = 1, max_x do
+        local item = row[x]
+        if item and not item.is_inactive then
+          table.insert(items, { x = x, y = y, item = item })
+        end
+      end
+    end
   end
-  return self:onFocusMove({ dx, dy })
+
+  if #items == 0 then
+    return false
+  end
+
+  -- Find index of the currently selected widget
+  local current_idx
+  for idx, entry in ipairs(items) do
+    if entry.x == self.selected.x and entry.y == self.selected.y then
+      current_idx = idx
+      break
+    end
+  end
+
+  local next_entry
+  if current_idx then
+    local next_idx
+    if forward then
+      next_idx = current_idx + 1
+      if next_idx > #items then
+        next_idx = 1 -- wrap around
+      end
+    else
+      next_idx = current_idx - 1
+      if next_idx < 1 then
+        next_idx = #items -- wrap around
+      end
+    end
+    next_entry = items[next_idx]
+  else
+    next_entry = forward and items[1] or items[#items]
+  end
+
+  if next_entry then
+    local prev_item = self:getFocusItem()
+    self.selected.x = next_entry.x
+    self.selected.y = next_entry.y
+    local new_item = self:getFocusItem()
+    if prev_item ~= new_item then
+      if prev_item then
+        prev_item:broadcastEvent(Event:new("Unfocus"))
+      end
+      if new_item then
+        new_item:broadcastEvent(Event:new("Focus"))
+      end
+      UIManager:setDirty(self, "fast")
+    end
+    return true
+  end
+  return false
 end
 
+--[[--
+Directional navigation (Arrow Keys / D-Pad).
+Uses 2D spatial relationships (dx/dy vectors) to navigate the grid.
+Tries to find the next active widget in the given direction.
+Contrast with sequential navigation (_moveFocusSequence) which ignores
+geometry and visits items in logical Tab order.
+--]]
 function FocusManager:onFocusMove(args)
   if not self.layout then -- allow parent focus manager to handle the event
     return false
@@ -314,8 +386,8 @@ function FocusManager:onFocusMove(args)
     )
 
     if
-      self.layout[self.selected.y][self.selected.x] ~= current_item
-      or not self.layout[self.selected.y][self.selected.x].is_inactive
+      (self.selected.x ~= start_x or self.selected.y ~= start_y)
+      and not self.layout[self.selected.y][self.selected.x].is_inactive
     then
       -- we found a different object to focus
       current_item:broadcastEvent(Event:new("Unfocus"))

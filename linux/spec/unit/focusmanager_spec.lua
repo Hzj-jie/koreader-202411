@@ -118,6 +118,17 @@ describe("FocusManager module", function()
         Next(focusmanager)
         assert.are.same({y = 2,x = 2}, focusmanager.selected)
     end)
+    it("should move to first item of next row on Next at end of row", function()
+        local w = layout[1][1]
+        local focusmanager = FocusManager:new{}
+        focusmanager.layout = {
+            {w, w, w},
+            {w, w},
+        }
+        focusmanager.selected = {y = 1, x = 3}
+        Next(focusmanager)
+        assert.are.same({y = 2, x = 1}, focusmanager.selected)
+    end)
     it("should move next left", function()
         local focusmanager = FocusManager:new{}
         focusmanager.layout = layout
@@ -131,6 +142,17 @@ describe("FocusManager module", function()
         focusmanager.selected = {y = 3,x = 2}
         Previous(focusmanager)
         assert.are.same({y = 2,x = 2}, focusmanager.selected)
+    end)
+    it("should move to last item of previous row on Previous at start of row", function()
+        local w = layout[1][1]
+        local focusmanager = FocusManager:new{}
+        focusmanager.layout = {
+            {w, w},
+            {w, w, w},
+        }
+        focusmanager.selected = {y = 2, x = 1}
+        Previous(focusmanager)
+        assert.are.same({y = 1, x = 2}, focusmanager.selected)
     end)
     it("should move half rows or columns", function()
         local focusmanager = FocusManager:new{}
@@ -253,5 +275,20 @@ describe("FocusManager module", function()
         assert.has_no.errors(function()
             Right(focusmanager)
         end)
+    end)
+    it("should not focus inactive widget even if it is different", function()
+        local TextWidget = require("ui/widget/textwidget")
+        local wi1 = TextWidget:new{ is_inactive = true, name = "wi1" }
+        local wi2 = TextWidget:new{ is_inactive = true, name = "wi2" }
+        local w3 = TextWidget:new{ name = "w3" }
+
+        local focusmanager = FocusManager:new{}
+        focusmanager.layout = {
+            { wi1, wi2, w3 }
+        }
+        focusmanager.selected = { y = 1, x = 1 }
+
+        Right(focusmanager)
+        assert.are.same({y = 1, x = 3}, focusmanager.selected)
     end)
 end)
