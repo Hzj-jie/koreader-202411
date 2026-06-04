@@ -304,6 +304,13 @@ function util.tableRemoveValue(t, ...)
   end
 end
 
+--- Checks if an array-like table is empty (nil or has 0 elements).
+---- @param t Lua table (array)
+---- @treturn bool true if table is nil or empty
+function util.arrayIsEmpty(t)
+  return not t or #t == 0
+end
+
 --- Append all elements from t2 into t1.
 ---- @param t1 Lua table
 ---- @param t2 Lua table

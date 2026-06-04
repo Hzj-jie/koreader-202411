@@ -1066,7 +1066,7 @@ end
 Get word and word box around `pos`.
 --]]
 function KoptInterface:getWordFromBoxes(boxes, pos)
-  if not pos or not boxes or #boxes == 0 then
+  if not pos or util.arrayIsEmpty(boxes) then
     return {}
   end
   local i, j = getWordBoxIndices(boxes, pos)
@@ -1090,7 +1090,7 @@ end
 Get text and text boxes between `pos0` and `pos1`.
 --]]
 function KoptInterface:getTextFromBoxes(boxes, pos0, pos1)
-  if not pos0 or not pos1 or #boxes == 0 then
+  if not pos0 or not pos1 or util.arrayIsEmpty(boxes) then
     return {}
   end
   local line_text = ""
@@ -1343,7 +1343,7 @@ end
 
 function KoptInterface:getSelectedWordContext(word, nb_words, pos)
   local boxes = self.last_text_boxes
-  if not pos or not boxes or #boxes == 0 then
+  if not pos or util.arrayIsEmpty(boxes) then
     return
   end
   local i, j = getWordBoxIndices(boxes, pos)
