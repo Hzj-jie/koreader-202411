@@ -276,7 +276,7 @@ end
 function Font:getFace(font, size, faceindex)
   -- default to content font
   if not font then
-    font = self.fontmap.cfont
+    font = "cfont"
   end
 
   if not size then
@@ -397,6 +397,9 @@ end
 -- @treturn ui.font.FontFaceObj face face to use for drawing
 -- @treturn bool bold adjusted bold properties
 function Font:getAdjustedFace(face, bold)
+  if not face then
+    face = self:getFace()
+  end
   if face.is_real_bold then
     -- No adjustment needed: main real bold font will ensure
     -- fallback fonts use their associated bold font or

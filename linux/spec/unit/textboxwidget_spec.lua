@@ -54,4 +54,16 @@ describe("TextBoxWidget module", function()
         end, {pos={x=20,y=80}})
         ]]--
     end)
+
+    it("should handle nil face gracefully by falling back to default face", function()
+        local tw
+        assert.has_no.errors(function()
+            tw = TextBoxWidget:new{
+                dimen = {x = 0, y = 0},
+                text = 'Hello World',
+            }
+        end)
+        assert.is_not_nil(tw.face)
+        assert.are.equal(tw.face.realname, Font.fontmap.cfont)
+    end)
 end)
