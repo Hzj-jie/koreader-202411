@@ -64,7 +64,6 @@ function filemanagerutil.getRandomFile(dir, match_func)
       end
     end
     if #files > 0 then
-      math.randomseed(os.time())
       return dir .. files[math.random(#files)]
     end
   end

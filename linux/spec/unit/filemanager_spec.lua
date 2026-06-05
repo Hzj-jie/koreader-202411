@@ -168,4 +168,28 @@ describe("FileManager module", function()
         UIManager.show = old_show
         filemanager:onClose()
     end)
+
+    it("getRandomFile should be random even when called quickly", function()
+        local filemanagerutil = require("apps/filemanager/filemanagerutil")
+        local dir = "spec/unit/data"
+        local match_func = function(file)
+            return file:match("%.pdf$") ~= nil
+        end
+
+        local results = {}
+        for i = 1, 10 do
+            table.insert(results, filemanagerutil.getRandomFile(dir, match_func))
+        end
+
+        local file = results[1]
+        local identical_count = 1
+        for i = 2, 10 do
+            if results[i] == file then
+                identical_count = identical_count + 1
+            end
+        end
+
+        -- If this fails, it means they were all identical (deterministic)
+        assert.is_true(identical_count < 10)
+    end)
 end)

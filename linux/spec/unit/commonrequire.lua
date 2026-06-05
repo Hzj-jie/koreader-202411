@@ -144,3 +144,5 @@ notifyBackgroundJobsUpdated = function()
         background_runner:onBackgroundJobsUpdated()
     end
 end
+
+math.randomseed(os.time() + os.clock() * 1000)
