@@ -196,6 +196,7 @@ return {
     ["movetoarchive"] = true,
     ["profiles"] = true,
     ["wallabag"] = true,
+    ["statistics"] = true,
   }
 }
 ]],
@@ -257,7 +258,7 @@ local function wait_for_ready()
 
   print("Server is up! Waiting for document page count to resolve...")
   local page_start_secs, page_start_usecs = ffiUtil.gettime()
-  local url = BASE_URL .. "/ui/document/getPageCount/"
+  local url = BASE_URL .. "/ui/view/footer/pages"
 
   -- 2. Wait up to 5 seconds for a valid, non-zero page count to resolve
   while true do
@@ -487,11 +488,11 @@ local function run_benchmark(total_pages)
       end
 
       -- Inject typing search string + confirm submit newline character ("Shakespeare\n")
-      local success_type = http_get(
-        BASE_URL
-          .. "/UIManager/_window_stack/2/widget/_input_widget/addChars/"
-          .. url_encode('"Shakespeare\n"')
-      )
+      local success_type = http_get(BASE_URL .. "/event/TextInput/" .. url_encode("Shakespeare"))
+      if success_type then
+        ffiUtil.usleep(100 * 1000)
+        success_type = http_get(BASE_URL .. "/event/TextInput/" .. url_encode("\n"))
+      end
       if not success_type then
         print("\nError: Failed to inject typing search sequence!")
         break
@@ -531,11 +532,7 @@ local function run_benchmark(total_pages)
       end
 
       -- Inject typing search string (no newline to avoid triggering actual search)
-      local success_type = http_get(
-        BASE_URL
-          .. "/UIManager/_window_stack/2/widget/_input_widget/addChars/"
-          .. url_encode('"Shakespeare"')
-      )
+      local success_type = http_get(BASE_URL .. "/event/TextInput/" .. url_encode("Shakespeare"))
       if not success_type then
         print("\nError: Failed to inject typing search sequence!")
         break

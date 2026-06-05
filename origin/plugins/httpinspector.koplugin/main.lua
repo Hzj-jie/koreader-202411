@@ -919,8 +919,8 @@ function HttpInspector:callFunction(func, instance, args_as_uri, output_html, re
     local html = {}
     local add_html = function(h) table.insert(html, h) end
     local args, nb_args = getVariablesFromUri(args_as_uri)
+    local func_info = getFunctionInfo(func)
     if output_html then
-        local func_info = getFunctionInfo(func)
         add_html(T("<title>%1(%2)</title>", reqinfo.fragments[1], args_as_uri or ""))
         add_html(T("<pre><big style='background-color: #dddddd;'>%1</big> <big>(%2)</big>", reqinfo.parsed_uri, args_as_uri or ""))
         add_html(T("  <em>%1</em>", func_info.signature))
@@ -933,13 +933,7 @@ function HttpInspector:callFunction(func, instance, args_as_uri, output_html, re
         add_html("")
     end
     local res, nbr, http_code, json, ok, ok2, err, trace
-    
-    -- FIXME/HACK: KOReader dynamically wraps class methods in anonymous closures
-    -- during runtime caching (e.g. self[name] = function(...) in credocument.lua).
-    -- This fools the static signature parser (getFunctionInfo) which expects ':' for methods.
-    -- To prevent calling class methods as standard functions (which omits 'self' and crashes),
-    -- we dynamically override is_method to true if the target is verified to be a class instance.
-    if instance and guessClassName(instance) then
+    if func_info.is_method then
         res = table.pack(xpcall(func, debug.traceback, instance, unpack(args, 1, nb_args)))
     else
         res = table.pack(xpcall(func, debug.traceback, unpack(args, 1, nb_args)))

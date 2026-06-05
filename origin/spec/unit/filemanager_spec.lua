@@ -1,10 +1,3 @@
--- Note: Replaced "../../test" with "spec/unit/data" across all test instances.
--- In pristine baseline releases, the tests were run under folder contexts that
--- allowed resolving double-parent directories. However, under local test runner
--- environments, using "../../test" references non-existent outer system paths,
--- crashing test suite boot-ups. Redirecting targets to "spec/unit/data" maps the
--- targets directly to the local directory's physical test data resources,
--- successfully fixing the failures.
 describe("FileManager module", function()
     local FileManager, lfs, docsettings, UIManager, Screen, util
     setup(function()
@@ -22,7 +15,7 @@ describe("FileManager module", function()
         UIManager:quit()
         local filemanager = FileManager:new{
             dimen = Screen:getSize(),
-            root_path = "spec/unit/data",
+            root_path = "../../test",
         }
         UIManager:show(filemanager)
         UIManager:scheduleIn(1, function() filemanager:onClose() end)
@@ -31,7 +24,7 @@ describe("FileManager module", function()
     it("should show error on non-existent file", function()
         local filemanager = FileManager:new{
             dimen = Screen:getSize(),
-            root_path = "spec/unit/data",
+            root_path = "../../test",
         }
         local old_show = UIManager.show
         local tmp_fn = "/abc/123/test/foo.bar.baz.tmp.epub.pdf"
@@ -46,11 +39,11 @@ describe("FileManager module", function()
     it("should not delete not empty sidecar folder", function()
         local filemanager = FileManager:new{
             dimen = Screen:getSize(),
-            root_path = "spec/unit/data",
+            root_path = "../../test",
         }
 
-        local tmp_fn = "spec/unit/data/2col.test.tmp.foo"
-        util.copyFile("spec/unit/data/2col.pdf", tmp_fn)
+        local tmp_fn = "../../test/2col.test.tmp.foo"
+        util.copyFile("../../test/2col.pdf", tmp_fn)
 
         local tmp_sidecar = docsettings:getSidecarDir(util.realpath(tmp_fn))
         lfs.mkdir(tmp_sidecar)
@@ -84,11 +77,11 @@ describe("FileManager module", function()
     it("should delete document with its settings", function()
         local filemanager = FileManager:new{
             dimen = Screen:getSize(),
-            root_path = "spec/unit/data",
+            root_path = "../../test",
         }
 
-        local tmp_fn = "spec/unit/data/2col.test.tmp.pdf"
-        util.copyFile("spec/unit/data/2col.pdf", tmp_fn)
+        local tmp_fn = "../../test/2col.test.tmp.pdf"
+        util.copyFile("../../test/2col.pdf", tmp_fn)
 
         local tmp_sidecar = docsettings:getSidecarDir(util.realpath(tmp_fn))
         lfs.mkdir(tmp_sidecar)

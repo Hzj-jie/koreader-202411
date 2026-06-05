@@ -35,7 +35,8 @@ fi
 cd "$(dirname "$0")"/"$PLATFORM_DIR"
 
 PLATFORM_PATH="$(pwd)"
-SANDBOX_DIR="/tmp/koreader_sandbox_$$"
+SANDBOX_ROOT="/tmp/koreader_sandbox_$$"
+SANDBOX_DIR="$SANDBOX_ROOT/run/context"
 mkdir -p "$SANDBOX_DIR"
 
 # Symlink all files and directories except user/test storage directories
@@ -47,6 +48,9 @@ for entry in "$PLATFORM_PATH"/* "$PLATFORM_PATH"/.*; do
         fi
     fi
 done
+
+# Create a symlink for the test folder in SANDBOX_ROOT so that ../../test from SANDBOX_DIR resolves correctly
+ln -s "$PLATFORM_PATH/test" "$SANDBOX_ROOT/test"
 
 # Now execute busted inside the sandbox!
 pushd "$SANDBOX_DIR" > /dev/null
@@ -64,9 +68,9 @@ export LUA_PATH="./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua
 export LUA_CPATH="./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
 
 cleanup() {
-    echo "[*] Purging sandbox environment folder at $SANDBOX_DIR..."
+    echo "[*] Purging sandbox environment folder at $SANDBOX_ROOT..."
     popd > /dev/null 2>&1
-    rm -rf "$SANDBOX_DIR"
+    rm -rf "$SANDBOX_ROOT"
 }
 # Guarantee cleanup executes upon script termination (regardless of exit status)
 trap cleanup EXIT
