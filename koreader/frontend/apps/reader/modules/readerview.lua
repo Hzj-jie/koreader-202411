@@ -1067,6 +1067,9 @@ function ReaderView:shouldInvertBiDiLayoutMirroring()
 end
 
 function ReaderView:onPageUpdate(new_page_no)
+  if self.state.page == new_page_no and self.page_area then
+    return
+  end
   self.state.page = new_page_no
   self.state.drawn = false
   self:recalculate()
@@ -1074,6 +1077,9 @@ function ReaderView:onPageUpdate(new_page_no)
 end
 
 function ReaderView:onPosUpdate(new_pos)
+  if self.state.pos == new_pos then
+    return
+  end
   self.state.pos = new_pos
   self:recalculate()
   self.highlight.temp = {}
