@@ -30,7 +30,10 @@ describe("KeyboardLayoutDialog", function()
         -- Mock UIManager:close
         local UIManager = require("ui/uimanager")
         local old_close = UIManager.close
-        UIManager.close = spy.new(function() end)
+        local close_calls = {}
+        UIManager.close = function(self, widget)
+            table.insert(close_calls, { self, widget })
+        end
 
         -- Find "Switch to layout" button
         local switch_btn = dialog.button_table.buttons_layout[1][2]
@@ -44,7 +47,9 @@ describe("KeyboardLayoutDialog", function()
         -- Verify setKeyboardLayout was called with "fr"
         assert.spy(mock_keyboard.setKeyboardLayout).was_called_with(mock_keyboard, "fr")
         -- Verify UIManager:close was called with dialog (self)
-        assert.spy(UIManager.close).was_called_with(UIManager, dialog)
+        assert.are.equal(1, #close_calls)
+        assert.are.equal(UIManager, close_calls[1][1])
+        assert.are.equal(dialog, close_calls[1][2])
 
         -- Trigger onClose to verify leak fix
         dialog:onClose()
