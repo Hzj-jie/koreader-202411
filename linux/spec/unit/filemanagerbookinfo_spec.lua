@@ -20,6 +20,7 @@ describe("BookInfo", function()
 
   local original_lfs_attributes
   local original_lfs_dir
+  local original_ffiutil_realpath
 
   local function clear_table(t)
     for k in pairs(t) do
@@ -33,6 +34,15 @@ describe("BookInfo", function()
   end)
 
   before_each(function()
+    local ffiutil = require("ffi/util")
+    original_ffiutil_realpath = ffiutil.realpath
+    ffiutil.realpath = spy.new(function(path)
+      if path:sub(1, 7) == "/books/" or path:sub(1, 7) == "/dummy/" or path == "/books" then
+        return path
+      end
+      return original_ffiutil_realpath(path)
+    end)
+
     -- Safe overriding of lfs attributes
     local real_lfs = require("libs/libkoreader-lfs")
     original_lfs_attributes = real_lfs.attributes
@@ -244,6 +254,9 @@ describe("BookInfo", function()
     local real_lfs = require("libs/libkoreader-lfs")
     real_lfs.attributes = original_lfs_attributes
     real_lfs.dir = original_lfs_dir
+
+    local ffiutil = require("ffi/util")
+    ffiutil.realpath = original_ffiutil_realpath
 
     package.loaded["apps/filemanager/filemanagerbookinfo"] = nil
     package.loaded["ui/widget/container/widgetcontainer"] = nil
