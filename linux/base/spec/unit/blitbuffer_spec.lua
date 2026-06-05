@@ -298,6 +298,17 @@ describe("Blitbuffer unit tests", function()
                         Blitbuffer.ColorRGB32(128, 120, 123, 1))
         end)
 
+        it("should handle color comparison with invalid types safely", function()
+            local c = Blitbuffer.Color8(127)
+            assert.False(c == nil)
+            assert.False(c == 5)
+            assert.False(c == "white")
+
+            local Geom = require("ui/geometry")
+            local g = Geom:new({w = 100, h = 100})
+            assert.False(c == g)
+        end)
+
         it("should do color comparison with conversion correctly", function()
             assert.True(Blitbuffer.Color8(127) ==
                         Blitbuffer.ColorRGB24(127, 127, 127))
