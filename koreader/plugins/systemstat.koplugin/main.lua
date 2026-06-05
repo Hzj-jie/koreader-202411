@@ -421,11 +421,24 @@ function SystemStat:appendProcessInfo()
     -- change the unit to millions.
     self:put({ "  " .. gettext("Total ticks"), n1 })
     if self.sys_stat.cpu ~= nil and self.sys_stat.cpu.total ~= nil then
-      assert(self.sys_stat.cpu.total > 0) -- Imporssible to be 0.
+      assert(self.sys_stat.cpu.total > 0) -- Impossible to be 0.
       self:put({
-        gettext("  Processor usage %"),
+        gettext("  Processor usage % during awake"),
         string.format("%.2f", n1 / self.sys_stat.cpu.total * 100),
       })
+      if self.sys_stat.uptime.sec and self.sys_stat.uptime.sec > 0 then
+        self:put({
+          gettext("  Processor usage % since boot"),
+          string.format(
+            "%.2f",
+            n1
+              / self.sys_stat.cpu.total
+              * 100
+              * self:awakeSec()
+              / self.sys_stat.uptime.sec
+          ),
+        })
+      end
     end
   end
 
