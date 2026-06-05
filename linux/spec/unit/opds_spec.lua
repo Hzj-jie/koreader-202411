@@ -261,6 +261,7 @@ describe("OPDS module #nocov", function()
     local socketutil
     local OPDSParser, OPDSBrowser
     local orig_path, orig_lbt, orig_ltt, orig_fbt, orig_ftt
+    local orig_http_request
 
     setup(function()
         orig_path = package.path
@@ -269,6 +270,29 @@ describe("OPDS module #nocov", function()
         socketutil = require("socketutil")
         OPDSParser = require("opdsparser")
         OPDSBrowser = require("opdsbrowser")
+
+        -- Mock HTTP request to return static search descriptors
+        local http = require("socket.http")
+        orig_http_request = http.request
+        http.request = function(request)
+            local url_str = type(request) == "table" and request.url or request
+            if type(request) == "table" and url_str then
+                if string.find(url_str, "gutenberg.org") or string.find(url_str, "feedbooks.com") or string.find(url_str, "flibusta.is") then
+                    if string.find(url_str, "xml") or string.find(url_str, "opensearch") then
+                        local osd = [=[<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+  <ShortName>Mock Search</ShortName>
+  <Url type="application/atom+xml" template="/search?query={searchTerms}"/>
+</OpenSearchDescription>]=]
+                        if request.sink then
+                            request.sink(osd)
+                        end
+                        return 1, 200, { ["content-type"] = "application/opensearchdescription+xml" }, "HTTP/1.1 200 OK"
+                    end
+                end
+            end
+            return orig_http_request(request)
+        end
 
         -- Make the timeouts more lenient to avoid spurious test failures
         orig_lbt = socketutil.LARGE_BLOCK_TIMEOUT
@@ -282,6 +306,9 @@ describe("OPDS module #nocov", function()
     end)
 
     teardown(function()
+        local http = require("socket.http")
+        http.request = orig_http_request
+
         package.path = orig_path
         socketutil.LARGE_BLOCK_TIMEOUT = orig_lbt
         socketutil.LARGE_TOTAL_TIMEOUT = orig_ltt

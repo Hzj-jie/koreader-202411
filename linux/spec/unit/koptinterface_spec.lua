@@ -1,31 +1,35 @@
 describe("Koptinterface module", function()
     local DocCache, DocumentRegistry, Koptinterface
-    setup(function()
-        require("commonrequire")
-        DocCache = require("document/doccache")
-        DocumentRegistry = require("document/documentregistry")
-        Koptinterface = require("document/koptinterface")
-    end)
-
     local tall_pdf = "spec/front/unit/data/tall.pdf"
     local complex_pdf = "spec/front/unit/data/sample.pdf"
     local paper_pdf = "spec/front/unit/data/paper.pdf"
     local doc, complex_doc, paper_doc
 
-    before_each(function()
+    setup(function()
+        require("commonrequire")
+        DocCache = require("document/doccache")
+        DocumentRegistry = require("document/documentregistry")
+        Koptinterface = require("document/koptinterface")
+
         doc = DocumentRegistry:openDocument(tall_pdf)
         complex_doc = DocumentRegistry:openDocument(complex_pdf)
         paper_doc = DocumentRegistry:openDocument(paper_pdf)
-        doc.configurable.text_wrap = 0
-        complex_doc.configurable.text_wrap = 0
-        paper_doc.configurable.text_wrap = 0
-        DocCache:clear()
     end)
 
-    after_each(function()
+    teardown(function()
         doc:close()
         complex_doc:close()
         paper_doc:close()
+    end)
+
+    before_each(function()
+        doc.configurable.text_wrap = 0
+        complex_doc.configurable.text_wrap = 0
+        paper_doc.configurable.text_wrap = 0
+        doc.bbox = {}
+        complex_doc.bbox = {}
+        paper_doc.bbox = {}
+        DocCache:clear()
     end)
 
     it("should get auto bbox", function()

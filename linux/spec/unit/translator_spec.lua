@@ -2,9 +2,31 @@ local dutch_wikipedia_text = "Wikipedia is een meertalige encyclopedie, waarvan 
 local Translator
 
 describe("Translator module", function()
+    local orig_http_request
     setup(function()
         require("commonrequire")
         Translator = require("ui/translator")
+
+        local http = require("socket.http")
+        orig_http_request = http.request
+        http.request = function(request)
+            local url_str = type(request) == "table" and request.url or request
+            if type(request) == "table" and url_str then
+                if string.find(url_str, "translate.googleapis.com") then
+                    local response_json = [=[[[["Wikipedia is a multilingual encyclopedia, the content of which is freely available. Anyone can add knowledge here!", "Wikipedia is een meertalige encyclopedie, waarvan de inhoud vrij beschikbaar is. Iedereen kan hier kennis toevoegen!", null, null, 3]], null, "nl"]]=]
+                    if request.sink then
+                        request.sink(response_json)
+                    end
+                    return 1, 200, { ["content-type"] = "application/json" }, "HTTP/1.1 200 OK"
+                end
+            end
+            return orig_http_request(request)
+        end
+    end)
+
+    teardown(function()
+        local http = require("socket.http")
+        http.request = orig_http_request
     end)
     it("should return server", function()
         assert.is.same("https://translate.googleapis.com/", Translator:getTransServer())
