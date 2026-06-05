@@ -1,8 +1,9 @@
 local original_os_exit = os.exit
+local exit_code = 0
 os.exit = function(code, close)
-    -- Intercept Busted's exit and force it to exit without running finalizers (close=false)
-    -- to prevent exit-time FFI finalization race condition segfaults.
-    original_os_exit(code or 0, false)
+    -- Intercept Busted's exit call, record the exit code, and return.
+    -- Busted will finish its execution flow and return to our script.
+    exit_code = code or 0
 end
 
 -- Load helper first (fallback to ffi/loadlib.lua if test_helper.lua does not exist or fails)
@@ -11,15 +12,20 @@ if not pcall(dofile, "test_helper.lua") then
 end
 
 -- Busted runner on Lua 5.1/LuaJIT throws error() on test failures instead of calling os.exit.
--- We wrap it in pcall to catch the failure path, then call original_os_exit safely.
+-- We wrap it in pcall to catch the failure path, then handle exit safely.
 local ok, err = pcall(function()
     require("busted.runner")({ standalone = false })
 end)
 
 if not ok then
-    -- If Busted aborted with error() or threw a real runner crash, exit with failure code
-    original_os_exit(1, false)
-else
-    -- Fallback exit code (though Busted's runner normally calls os.exit which is caught above)
-    original_os_exit(0, false)
+    exit_code = 1
 end
+
+-- Force a garbage collection sweep to finalize all unreachable test-created cdata/FFI objects
+-- while C libraries are still loaded in memory. This will surface any real finalizer bugs
+-- (like double-frees) during the test run instead of hiding them.
+collectgarbage("collect")
+collectgarbage("collect")
+
+-- Exit cleanly without VM teardown to prevent exit-time finalization race conditions.
+original_os_exit(exit_code, false)
