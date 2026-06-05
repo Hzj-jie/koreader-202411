@@ -944,11 +944,19 @@ function NetworkMgr:getMenuTable(common_settings)
   end
 end
 
+-- Attempts to reconnect to a known network or shows the network selection menu.
+-- @tparam function complete_callback Callback triggered upon successful connection.
+-- @tparam boolean interactive True if triggered by direct user action (shows dialogs/info).
+-- @tparam boolean prefer_list True to force showing the network list even if already connected.
+-- @treturn bool|nil
+--   * true: Successfully connected to a network.
+--   * false: Explicit failure (e.g. scanning failed, should abort).
+--   * nil: Connection attempt is ongoing in the background or the network list dialog is shown (should NOT abort).
 function NetworkMgr:reconnectOrShowNetworkMenu(
   complete_callback,
   interactive,
   prefer_list
-) -- bool
+) -- bool|nil
   local function scanNetworkList()
     -- NOTE: Fairly hackish workaround for #4387,
     --     rescan if the first scan appeared to yield an empty list.
@@ -1048,38 +1056,6 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
   -- This happens when we break too early from re-scans triggered by wpa_supplicant itself,
   -- which shouldn't really ever happen since https://github.com/koreader/lj-wpaclient/pull/11
   -- c.f., WpaClient:scanThenGetResults in lj-wpaclient for more details.
-  if Device:hasWifiManager() and ssid == nil then
-    -- Don't bother if wpa_supplicant doesn't actually have any configured networks...
-    local configured_networks = self:getConfiguredNetworks()
-    local has_preferred_networks = configured_networks
-      and #configured_networks > 0
-
-    local iter = has_preferred_networks and 0 or 60
-    -- We wait 15s at most (like the restore-wifi-async script)
-    while ssid == nil and iter < 60 do
-      -- Check every 250ms
-      iter = iter + 1
-      ffiutil.usleep(250 * 1e+3)
-
-      local nw = self:getCurrentNetwork()
-      if nw then
-        ssid = nw.ssid
-        -- Flag it as connected in the list
-        for _, network in ipairs(network_list) do
-          if ssid == network.ssid then
-            network.connected = true
-          end
-        end
-        logger.dbg(
-          "NetworkMgr: wpa_supplicant automatically connected to network",
-          util.fixUtf8(ssid, "�"),
-          "(after",
-          iter * 0.25,
-          "seconds)"
-        )
-      end
-    end
-  end
 
   -- Connected, get ip address first anyway.
   if ssid ~= nil then
@@ -1096,7 +1072,11 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
         connect_callback = complete_callback,
       }))
     end
-    return (ssid ~= nil)
+    if ssid ~= nil then
+      return true
+    else
+      return nil
+    end
   end
 
   if interactive then
