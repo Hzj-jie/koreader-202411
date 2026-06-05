@@ -82,8 +82,7 @@ function KeyboardLayoutDialog:init()
       text = gettext("Switch to layout"),
       is_enter_default = true,
       callback = function()
-        local provider =
-          self.radio_button_table.checked_button.provider
+        local provider = self.radio_button_table.checked_button.provider
         self.parent.keyboard:setKeyboardLayout(provider)
         UIManager:close(self)
       end,

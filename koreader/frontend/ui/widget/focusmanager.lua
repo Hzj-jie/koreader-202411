@@ -369,7 +369,9 @@ function FocusManager:onFocusMove(args)
       self.selected.x = self.selected.x + dx
     end
 
-    if visited[self.selected.y] and visited[self.selected.y][self.selected.x] then
+    if
+      visited[self.selected.y] and visited[self.selected.y][self.selected.x]
+    then
       self.selected.x = start_x
       self.selected.y = start_y
       break

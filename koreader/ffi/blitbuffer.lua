@@ -758,7 +758,9 @@ end
 
 -- comparison:
 function ColorRGB32_mt:__eq(color)
-  if not color then return false end
+  if not color then
+    return false
+  end
   local t = type(color)
   if t == "cdata" then
     local ok, has_method = pcall(has_getColorRGB32, color)

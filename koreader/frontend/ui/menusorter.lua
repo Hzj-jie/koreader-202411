@@ -188,7 +188,12 @@ function MenuSorter:_sort(item_table, order)
       sorting_hint_menu = sorting_hint_menu.sub_item_table or sorting_hint_menu
       table.insert(sorting_hint_menu, v)
     else
-      logger.warn("MenuSorter: sorting_hint target not found:", v.sorting_hint, "for item:", k)
+      logger.warn(
+        "MenuSorter: sorting_hint target not found:",
+        v.sorting_hint,
+        "for item:",
+        k
+      )
     end
   end
   return menu_table["KOMenu:menu_buttons"]

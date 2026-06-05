@@ -283,7 +283,11 @@ function Font:getFace(font, size, faceindex)
     size = self.sizemap[font]
   end
   if not size then
-    logger.warn("Font size not found for font:", font, "using default cfont size")
+    logger.warn(
+      "Font size not found for font:",
+      font,
+      "using default cfont size"
+    )
     size = self.sizemap.cfont
   end
   -- original size before scaling by screen DPI
