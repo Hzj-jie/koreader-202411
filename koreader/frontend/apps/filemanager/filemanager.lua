@@ -950,6 +950,9 @@ function FileManager:cutFile(file)
 end
 
 function FileManager:pasteFileFromClipboard(file)
+  if not self.clipboard then
+    return
+  end
   local orig_file = ffiUtil.realpath(self.clipboard)
   local orig_name = ffiUtil.basename(orig_file)
   local dest_path = ffiUtil.realpath(file or self.file_chooser.path)
@@ -1046,6 +1049,9 @@ function FileManager:showCopyMoveSelectedFilesDialog(close_callback)
 end
 
 function FileManager:pasteSelectedFiles(overwrite)
+  if not self.selected_files then
+    return
+  end
   local dest_path = ffiUtil.realpath(self.file_chooser.path)
   local ok_files = {}
   for orig_file in pairs(self.selected_files) do
@@ -1215,6 +1221,9 @@ function FileManager:deleteFile(file, is_file)
 end
 
 function FileManager:deleteSelectedFiles()
+  if not self.selected_files then
+    return
+  end
   local ok_files = {}
   for orig_file in pairs(self.selected_files) do
     local file_abs_path = ffiUtil.realpath(orig_file)
@@ -1465,6 +1474,9 @@ function FileManager:onShowFolderMenu()
 end
 
 function FileManager:showSelectedFilesList()
+  if not self.selected_files then
+    return
+  end
   local selected_files = {}
   for file in pairs(self.selected_files) do
     table.insert(selected_files, {

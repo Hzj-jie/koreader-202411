@@ -117,4 +117,55 @@ describe("FileManager module", function()
         assert.is_nil(lfs.attributes(tmp_sidecar))
         assert.is_nil(lfs.attributes(tmp_history))
     end)
+
+    it("should handle pasteFileFromClipboard safely when clipboard is empty", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+
+        filemanager.clipboard = nil
+
+        -- This should not crash
+        filemanager:pasteFileFromClipboard()
+
+        filemanager:onClose()
+    end)
+
+    it("should handle deleteSelectedFiles safely when selected_files is empty/nil", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+        filemanager.selected_files = nil
+        filemanager:deleteSelectedFiles()
+        filemanager:onClose()
+    end)
+
+    it("should handle pasteSelectedFiles safely when selected_files is empty/nil", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+        filemanager.selected_files = nil
+        filemanager:pasteSelectedFiles(true)
+        filemanager:onClose()
+    end)
+
+    it("should handle showSelectedFilesList safely when selected_files is empty/nil", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+        filemanager.selected_files = nil
+        local old_show = UIManager.show
+        UIManager.show = function(self, w)
+            if w.close_callback then
+                w.close_callback()
+            end
+        end
+        filemanager:showSelectedFilesList()
+        UIManager.show = old_show
+        filemanager:onClose()
+    end)
 end)
