@@ -18,6 +18,7 @@ local ok, err = pcall(function()
 end)
 
 if not ok then
+    io.stderr:write("RUNNER ERROR: " .. tostring(err) .. "\n")
     exit_code = 1
 end
 
