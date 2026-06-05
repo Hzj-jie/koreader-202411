@@ -44,30 +44,38 @@ diff -rw koreader/ origin.stylua/
 Compared to the upstream baseline, this customized branch incorporates the following primary structural and logic modifications:
 
 ### ✏️ Core & UI Enhancements
-Modifications across active Lua sources address specific application behavior, layout improvements, and advanced rendering logic:
-*   **UI Manager Framework (PR #428)**: Deep architectural overhaul inside `uimanager.lua` that redesigned sub-widget rendering paths to completely eliminate unnecessary full-screen E-Ink flashes during highlights, footer updates, and chapter boundaries. It also introduces custom embedded OS confirmation dialogs (`askForReboot`, `askForPowerOff`) and powerful new framework operations (`keyEvents()`, `runWith()`).
-*   **Event System Overhaul (PR #178)**: Refactored the event dispatching architecture to prefer `UIManager:broadcastEvent` and `UIManager:userInput` over direct `self.ui:handleEvent` calls. This ensures system events like `"Close"` and `"FlushSettings"` are correctly propagated down the widget hierarchy, enabling automated cleanup of child widgets and preventing resource leaks (e.g., lingering virtual keyboard instances).
-*   **TouchMenu Keyboard Shortcuts (Commit 50e806cf)**: Introduced physical keyboard shortcut bindings for visible items in hierarchical touch menus, complete with visual key-hint overlays.
-*   **Settings Framework Overhaul (Commit 7a0cc257, 452c9a04)**: Introduced a centralized `G_named_settings` abstraction layer to manage configuration defaults in one place, and upgraded `LuaSettings` to dynamically prevent the serialization of default values to disk, reducing settings file bloat.
-*   **Centralized Activity Tracking & Hook Removal (Commit d8592e1b)**: Retired the legacy `event_hooks` (`HookContainer`) framework, eliminating potential memory leaks and dispatcher overhead. Replaced it with centralized user activity tracking inside `UIManager` (`timeSinceLastUserAction()`), simplifying idle-time logic across `AutoTurn`, `AutoSuspend`, `AutoDim`, and `ReaderRolling` modules.
-*   **Reading History Filtering (Commits 4626678c, a59238de)**: Hardened the reading history manager (`readhistory.lua`) to ignore non-book items. It dynamically filters out crash logs (`crash.log`, `koreader.crash.*.log`), battery logs (`batterystat.log`), and helper HTMLs, and integrates with `FileChooser` rules to prevent system metadata (e.g., `.DS_Store`, calibre files) and settings directories (`.sdr`) from cluttering the history and statistics views.
-*   **Background Task Plugin Framework (Commits 2a6c63a9, c7fbdc64, d8592e1b, d22a5a99)**: Introduced `BackgroundTaskPlugin` (extending `SwitchPlugin`) to unify and simplify plugins performing background work (like `AutoFrontlight`, `AutoTurn`, and `AutoDim`). By leveraging a centralized `BackgroundTaskRunner` instead of manual `UIManager:scheduleIn` timers, it decouples background tasks from UI widgets, centralizes user activity tracking via `UIManager:timeSinceLastUserAction()`, and improves overall system stability. Also resolved a critical framework issue (Commit d22a5a99) by ensuring task callbacks and environments are correctly propagated, which fixed silent timeout hangs in `ConnectivityChecker`.
+Modifications address specific application behavior, layout improvements, and advanced rendering logic:
+*   **Improved Rendering Control (PR #428)**: Redesigned the rendering and screen refresh paths to optimize display updates, significantly reducing screen refreshes and eliminating unnecessary display flickering (especially on E-Ink devices).
+*   **TouchMenu & InputBox Keyboard Shortcuts**: Introduced physical keyboard shortcuts for items in menus (with visual key-hint overlays) and optimized text input boxes so that system-wide keyboard shortcuts remain responsive even while typing (Commit 50e806cf, Commit 52d08951 / PR #428).
+*   **Centralized Activity Tracking (Commit d8592e1b)**: Introduced a centralized user activity tracker to simplify and improve the reliability of idle-time detection used by automatic page turning, automatic suspension, and screen dimming features.
+*   **Consistent Page-Turn Tap Zones**: Updated dictionary popups, the page browser, and scrollable text/HTML views to respect the user's custom page-turn tap zones instead of forcing a hardcoded left/right split (Commit d6e97f25 / Fix #139). Additionally, simplified the tap zone configuration by removing the separate backward zone ratio setting, ensuring the entire screen is always utilized for either forward or backward page turns without leaving dead zones (Commit 38fc7806 / Fix #233, #120).
+*   **Simplified Notification System**: Streamlined the notification system by removing complex source-filtering categories and past notification history, ensuring all notifications are displayed directly without background filtering overhead or settings menu clutter (Commits 84fcc886, 52db342d, d907be89 / Issue #252).
+*   **Kindle DX/DXG Keyboard Optimization**: Tailored the physical keyboard "Sym" key map for Kindle DX and DXG (which lack dedicated number keys) to map the top row of letter keys to numbers, making number entry more intuitive (Commit deaf9ecc / Fix #370).
+*   **Reading History Filtering**: Filters out non-book files (like logs and settings folders) from the reading history manager to keep history and statistics views clean (Commits 4626678c, a59238de).
+*   **Critical Battery Auto-Suspension**: Automatically suspends the device with a 3-second warning when the battery level drops below 5% to prevent complete battery depletion (Commits c7dc3c29, 8174f417 / Issue #224).
+*   **Rich Book Information**: Displays extra details in the Book Info dialog for books with sidecar settings, including bookmarks count, saved settings count, and settings file size (PR #298 / Fix #282).
+*   **Visual Busy Feedback**: Shows an hourglass icon during long-running tasks like opening books or loading history to indicate the system is processing (PR #298).
+*   **Page Button Tab Navigation**: Allows using physical Page Up / Page Down buttons to cycle through tabs in settings menus and configuration dialogs (Commit 8c8e6f01, Commit 8395a8b1).
+
+### 🌐 Web-Based Remote Control
+Provides a browser-based remote control interface, allowing users to drive application actions and states directly over a regular browser.
 
 ### 📶 Network Management Component
 Refined network state monitoring and wifi manager to simplify logic and prevent runtime crashes:
-*   **Background Connection Checker (PR #216)**: Replaced synchronous blocking connection checks with an asynchronous background checker to monitor Wi-Fi status smoothly.
-*   **Network Manager Rework (PR #144)**: Simplified the behavior of connection routines (`runWhen*` and `willRerunWhen*`) to prevent runtime crashes during state transitions.
-
-### ➕ Added Capabilities
-*   **Web Portal**: A browser-based remote control interface integrated under `web/`, allowing users to drive application actions and states directly over a regular browser.
+*   **Network Manager Rework (PR #144)**: Simplified network connection management to prevent crashes when transitioning between different network states (like connecting or disconnecting).
+*   **Background Connection Checker (PR #216)**: Replaced blocking network status checks with an asynchronous background checker to monitor Wi-Fi status smoothly without freezing the user interface.
 
 ### 🛡️ Stability & Hardening
-Fixed numerous potential runtime crashes and logic errors across core modules to improve overall reliability:
-*   **Input & Gestures**: Secured `GestureDetector` against missing event tables and added state healing guards; fixed `UIManager:handleInputEvent` crashes on malformed input arguments.
-*   **UI Components**: Prevented crashes in `ImageView` (when not shown), `InputDialog` (during text search), and `BookMap`.
-*   **Navigation & Documents**: Secured the `Table of Contents` module against missing TOC data and stabilized `UIManager` back-to-home navigation.
-*   **Plugins & Network**: Resolved crashes in `KOSync` (during offline states and custom server lookups), `NetworkListener` (handling missing packet stats), and `statistics` (missing settings or page stats).
-*   **Core Utilities**: Secured `datetime.stringToSeconds` against nil inputs/epoch overflows, fixed `readhistory` crashes on empty files, and resolved a double-free bug in `DictQuickLookup`.
+Improvements to event handling, resource management, and core systems to ensure a more robust and responsive experience:
+*   **Input & Gestures**: More accurate input and gesture detection, ensuring malformed inputs or complex multi-finger taps are processed safely. Also refactored the event dispatching architecture (PR #178) to guarantee reliable user input and system event propagation through the UI hierarchy, preventing resource leaks like stuck virtual keyboards.
+*   **Background Operations**: Refactored background operations (Commits 2a6c63a9, c7fbdc64, d8592e1b, d22a5a99) to use a unified task runner for automated jobs (such as automatic frontlight adjustments, clock updates, and network connectivity checks), separating background tasks from user interface elements to improve system responsiveness and reliability.
+*   **Settings & Storage**: Upgraded the settings framework to improve storage efficiency and data safety, optimizing disk write operations to prevent configuration data loss or file corruption during saves (Commit 7a0cc257, 452c9a04).
+*   **Various crash preventions**: In components like image views, input dialogs, book map, Table of Contents navigation, synchronization, network listener, statistics plugin, date/time utility, reading history, and dictionary quick lookup.
+
+### ⚡ Performance & Efficiency
+Optimizations to reduce startup time, save battery, and extend device storage life:
+*   **Optimized Storage Utilization**: Streamlined how configuration files are written to disk and saved, preventing redundant write operations and optimizing settings serialization to protect storage lifespan and reduce processing overhead (Commit caa044c2 / Fix #301, PR #298).
+*   **Faster Startup & Plugin Loading**: Optimized the plugin loader to filter out obsolete plugins during the initial directory scan, reducing startup overhead (Commit e6782844).
 
 ---
 
