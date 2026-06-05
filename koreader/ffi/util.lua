@@ -261,7 +261,7 @@ function util.purgeDir(dir)
     if f ~= "." and f ~= ".." then
       local fullpath = util.joinPath(dir, f)
       local attributes = lfs.attributes(fullpath)
-      if attributes.mode == "directory" then
+      if attributes and attributes.mode == "directory" then
         ok, err = util.purgeDir(fullpath)
       else
         ok, err = os.remove(fullpath)
