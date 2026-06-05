@@ -22,7 +22,8 @@ local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
 local N_ = gettext.ngettext
 local Screen = Device.screen
-local T = require("ffi/util").template
+local ffiutil = require("ffi/util")
+local T = ffiutil.template
 
 local BookInfo = WidgetContainer:extend({
   title = gettext("Book information"),
@@ -769,6 +770,11 @@ function BookInfo:moveBookMetadata()
       ["/sys"] = true,
     }
     local books_to_move = {}
+    local start_path = ffiutil.realpath(file_chooser.path)
+    local visited = {}
+    if start_path then
+      visited[start_path] = true
+    end
     local dirs = { file_chooser.path }
     while #dirs ~= 0 do
       local new_dirs = {}
@@ -788,7 +794,11 @@ function BookInfo:moveBookMetadata()
               and file_chooser:show_dir(f)
               and not sys_folders[fullpath]
             then
-              table.insert(new_dirs, fullpath)
+              local real_path = ffiutil.realpath(fullpath)
+              if real_path and not visited[real_path] then
+                visited[real_path] = true
+                table.insert(new_dirs, fullpath)
+              end
             elseif
               attributes.mode == "file"
               and not util.stringStartsWith(f, "._")

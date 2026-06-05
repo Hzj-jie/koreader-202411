@@ -192,4 +192,45 @@ describe("FileManager module", function()
         -- If this fails, it means they were all identical (deterministic)
         assert.is_true(identical_count < 10)
     end)
+
+    it("moveBookMetadata should not loop forever on circular symlinks", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+
+        local temp_dir = "spec/unit/data/loop_test"
+        local ffiutil = require("ffi/util")
+        ffiutil.purgeDir(temp_dir) -- Clean up any leftovers from crashed runs
+
+        lfs.mkdir(temp_dir)
+        local target_dir = temp_dir .. "/dir"
+        lfs.mkdir(target_dir)
+        local link_path = target_dir .. "/link"
+        -- Create circular symlink: dir/link -> dir
+        -- We use relative link to make it work
+        os.execute("ln -s . " .. link_path)
+
+        local old_show = UIManager.show
+        UIManager.show = function(self, w)
+            if w.ok_callback then
+                w.ok_callback()
+            elseif w.close_callback then
+                w.close_callback()
+            end
+        end
+
+        local old_path = filemanager.file_chooser.path
+        filemanager.file_chooser.path = ffiutil.realpath(temp_dir)
+
+        -- This should not hang
+        filemanager.bookinfo:moveBookMetadata()
+
+        filemanager.file_chooser.path = old_path
+        UIManager.show = old_show
+        ffiutil.purgeDir(temp_dir)
+
+        filemanager:onClose()
+    end)
 end)
+
