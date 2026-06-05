@@ -55,11 +55,7 @@ ln -s "$PLATFORM_PATH/test" "$SANDBOX_ROOT/test"
 # Now execute busted inside the sandbox!
 pushd "$SANDBOX_DIR" > /dev/null
 
-# Determine which test helper to use (prefer test_helper.lua if present)
-HELPER="./ffi/loadlib.lua"
-if [ -e "./test_helper.lua" ]; then
-    HELPER="./test_helper.lua"
-fi
+
 
 # Verify that the specified test file exists if provided
 if [ -n "$TEST_FILE" ]; then
@@ -83,24 +79,21 @@ trap cleanup EXIT
 
 if [ -n "$TEST_FILE" ]; then
     echo "[*] Executing specific test path '$TEST_FILE' inside $PLATFORM_DIR/..."
-    ./luajit -e 'require "busted.runner" {standalone = false}' /dev/null \
+    ./luajit test_runner.lua \
         --exclude-tags=notest \
-        --helper="$HELPER" \
         --output=gtest \
         "$TEST_FILE" || true
 else
     echo "[*] Executing Base Framework Layer Suite inside $PLATFORM_DIR/..."
-    ./luajit -e 'require "busted.runner" {standalone = false}' /dev/null \
+    ./luajit test_runner.lua \
         --exclude-tags=notest \
-        --helper="$HELPER" \
         --output=gtest \
         --sort-files \
         base/spec/unit || true
 
     echo "[*] Executing Frontend Application Suite inside $PLATFORM_DIR/..."
-    ./luajit -e 'require "busted.runner" {standalone = false}' /dev/null \
+    ./luajit test_runner.lua \
         --exclude-tags=notest \
-        --helper="$HELPER" \
         --output=gtest \
         --sort-files \
         spec/unit || true
