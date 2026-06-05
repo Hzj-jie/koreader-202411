@@ -68,6 +68,7 @@ fi
 # Strictly enforce relative Lua 5.1 module paths via symlink structures and block host mixing
 export LUA_PATH="./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;;"
 export LUA_CPATH="./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
+export SDL_VIDEODRIVER=dummy
 
 cleanup() {
     echo "[*] Purging sandbox environment folder at $SANDBOX_ROOT..."
