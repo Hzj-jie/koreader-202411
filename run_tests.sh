@@ -55,8 +55,6 @@ ln -s "$PLATFORM_PATH/test" "$SANDBOX_ROOT/test"
 # Now execute busted inside the sandbox!
 pushd "$SANDBOX_DIR" > /dev/null
 
-
-
 # Verify that the specified test file exists if provided
 if [ -n "$TEST_FILE" ]; then
     if [ ! -e "$TEST_FILE" ]; then
@@ -64,11 +62,6 @@ if [ -n "$TEST_FILE" ]; then
         exit 1
     fi
 fi
-
-# Strictly enforce relative Lua 5.1 module paths via symlink structures and block host mixing
-export LUA_PATH="./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;;"
-export LUA_CPATH="./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
-export SDL_VIDEODRIVER=dummy
 
 cleanup() {
     echo "[*] Purging sandbox environment folder at $SANDBOX_ROOT..."
@@ -78,24 +71,10 @@ cleanup() {
 # Guarantee cleanup executes upon script termination (regardless of exit status)
 trap cleanup EXIT
 
+# Run the test runner, delegating arguments. The runner manages environment paths and exit sequences.
+export SDL_VIDEODRIVER=dummy
 if [ -n "$TEST_FILE" ]; then
-    echo "[*] Executing specific test path '$TEST_FILE' inside $PLATFORM_DIR/..."
-    ./luajit test_runner.lua \
-        --exclude-tags=notest \
-        --output=gtest \
-        "$TEST_FILE" || true
+    ./luajit test_runner.lua "$TEST_FILE" || true
 else
-    echo "[*] Executing Base Framework Layer Suite inside $PLATFORM_DIR/..."
-    ./luajit test_runner.lua \
-        --exclude-tags=notest \
-        --output=gtest \
-        --sort-files \
-        base/spec/unit || true
-
-    echo "[*] Executing Frontend Application Suite inside $PLATFORM_DIR/..."
-    ./luajit test_runner.lua \
-        --exclude-tags=notest \
-        --output=gtest \
-        --sort-files \
-        spec/unit || true
+    ./luajit test_runner.lua || true
 fi

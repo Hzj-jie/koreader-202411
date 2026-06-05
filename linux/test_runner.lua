@@ -6,13 +6,35 @@ os.exit = function(code, close)
     exit_code = code or 0
 end
 
--- Load helper first (fallback to ffi/loadlib.lua if test_helper.lua does not exist or fails)
+-- 1. Configure relative module search paths directly in Lua to avoid global env dependencies
+package.path = "./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;;"
+package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
+
+-- 2. Load framework unit test helpers
 if not pcall(dofile, "test_helper.lua") then
     dofile("ffi/loadlib.lua")
 end
 
--- Busted runner on Lua 5.1/LuaJIT throws error() on test failures instead of calling os.exit.
--- We wrap it in pcall to catch the failure path, then handle exit safely.
+-- 3. Reconstruct arguments list with default test runner options
+local targets = {}
+if #arg == 0 then
+    targets = { "base/spec/unit", "spec/unit" }
+else
+    for i = 1, #arg do
+        table.insert(targets, arg[i])
+    end
+end
+
+_G.arg = {
+    "--exclude-tags=notest",
+    "--output=gtest",
+    "--sort-files",
+}
+for _, target in ipairs(targets) do
+    table.insert(_G.arg, target)
+end
+
+-- 4. Execute Busted runner
 local ok, err = pcall(function()
     require("busted.runner")({ standalone = false })
 end)
@@ -22,11 +44,9 @@ if not ok then
     exit_code = 1
 end
 
--- Force a garbage collection sweep to finalize all unreachable test-created cdata/FFI objects
--- while C libraries are still loaded in memory. This will surface any real finalizer bugs
--- (like double-frees) during the test run instead of hiding them.
+-- 5. Clean up and finalize all unreachable FFI objects while C dynamic libraries are still loaded
 collectgarbage("collect")
 collectgarbage("collect")
 
--- Exit cleanly without VM teardown to prevent exit-time finalization race conditions.
+-- 6. Exit cleanly bypassing out-of-order VM teardown crashes
 original_os_exit(exit_code, false)
