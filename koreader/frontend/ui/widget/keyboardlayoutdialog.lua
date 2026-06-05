@@ -75,7 +75,7 @@ function KeyboardLayoutDialog:init()
       text = gettext("Cancel"),
       id = "close",
       callback = function()
-        UIManager:close(self.parent.keyboard_layout_dialog)
+        UIManager:close(self)
       end,
     },
     {
@@ -83,9 +83,9 @@ function KeyboardLayoutDialog:init()
       is_enter_default = true,
       callback = function()
         local provider =
-          self.parent.keyboard_layout_dialog.radio_button_table.checked_button.provider
+          self.radio_button_table.checked_button.provider
         self.parent.keyboard:setKeyboardLayout(provider)
-        UIManager:close(self.parent.keyboard_layout_dialog)
+        UIManager:close(self)
       end,
     },
   })
@@ -190,6 +190,9 @@ function KeyboardLayoutDialog:onClose()
   UIManager:setDirty(nil, function()
     return "ui", self.movable.dimen
   end)
+  if self.parent then
+    self.parent.keyboard_layout_dialog = nil
+  end
 end
 
 function KeyboardLayoutDialog:onCloseDialog()
