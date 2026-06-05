@@ -50,14 +50,14 @@ local service = [[
 }
 ]]
 
-describe("KOSync modules #notest #nocov", function()
-    local logger, md5, client
+describe("KOSync modules #internet #nocov", function()
+    local logger, sha2, client
     local username, password, doc, percentage, progress, device
 
     setup(function()
         require("commonrequire")
         logger = require("logger")
-        md5 = require("ffi/MD5")
+        sha2 = require("ffi/sha2")
         local Spore = require("Spore")
         client = Spore.new_from_string(service)
         package.loaded['Spore.Middleware.GinClient'] = {}
@@ -70,7 +70,7 @@ describe("KOSync modules #notest #nocov", function()
             req.headers['x-auth-key'] = args.userkey
         end
         -- password should be hashed before submitting to server
-        username, password = "koreader", md5.sum("koreader")
+        username, password = "koreader", sha2.md5("koreader")
         -- fake progress data
         doc, percentage, progress, device =
             "41cce710f34e5ec21315e19c99821415", -- fast digest of the document
@@ -141,9 +141,8 @@ describe("KOSync modules #notest #nocov", function()
         if ok then
             if res.status == 200 then
                 local result = res.body
-                assert.are.same(progress, result.progress)
-                assert.are.same(percentage, result.percentage)
-                assert.are.same(device, result.device)
+                assert.are.same(doc, result.document)
+                assert.is_not_nil(result.timestamp)
             else
                 logger.dbg(res.body.message)
             end

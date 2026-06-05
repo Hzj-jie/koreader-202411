@@ -1,10 +1,10 @@
-describe("HTTP client module #notest #nocov", function()
+describe("HTTP client module #internet #nocov", function()
     local UIManager
     setup(function()
         require("commonrequire")
         UIManager = require("ui/uimanager")
         -- Set true to test httpclient
-        G_defaults:makeFalse("DUSE_TURBO_LIB")
+        G_defaults:makeTrue("DUSE_TURBO_LIB")
     end)
     teardown(function()
         G_defaults:delete("DUSE_TURBO_LIB")
