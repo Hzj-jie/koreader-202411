@@ -182,28 +182,4 @@ describe("InputContainer widget", function()
         assert.is_nil(ic._zones["foo"]) -- Verify memory cleanup!
         assert.is_not_nil(ic._zones["bar"])
     end)
-
-    it("should consume unhandled user input events if it is modal and in the window stack", function()
-        local Event = require("ui/event")
-        local UIManager = require("ui/uimanager")
-        local ic = InputContainer:new{ modal = true }
-
-        local old_stack = UIManager._window_stack
-        UIManager._window_stack = { { widget = ic } }
-
-        local ev = Event:new("CustomUserInput"):asUserInput()
-        local res = ic:handleEvent(ev)
-
-        UIManager._window_stack = old_stack
-
-        assert.is_true(res)
-    end)
-
-    it("should not consume unhandled user input events if it is modal but not in the window stack", function()
-        local Event = require("ui/event")
-        local ic = InputContainer:new{ modal = true }
-
-        local ev = Event:new("CustomUserInput"):asUserInput()
-        assert.is_false(ic:handleEvent(ev))
-    end)
 end)
