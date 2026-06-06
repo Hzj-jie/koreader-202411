@@ -655,4 +655,121 @@ describe("UIManager spec", function()
             assert.is.same(1, parent_calls)
         end)
     end)
+
+    describe("E2E event propagation and broadcasting scenarios", function()
+        before_each(function()
+            UIManager._window_stack = {}
+        end)
+
+        after_each(function()
+            UIManager._window_stack = {}
+        end)
+
+        it("should route userInput to top widget and verify sequential walk behavior on master", function()
+            local base_received = false
+            local middle_received = false
+            local top_received = false
+
+            local base = Widget:new({
+                is_always_active = true, -- but it's base (index 1), so it should be protected/skipped on master
+                onTap = function()
+                    base_received = true
+                    return true
+                end,
+            })
+            local middle = Widget:new({
+                -- not always active, so it should be skipped on master
+                onTap = function()
+                    middle_received = true
+                    return true
+                end,
+            })
+            local top = Widget:new({
+                onTap = function()
+                    top_received = true
+                    return false
+                end, -- propagates
+            })
+
+            UIManager:show(base)
+            UIManager:show(middle)
+            UIManager:show(top)
+
+            local Event = require("ui/event")
+            UIManager:userInput(Event:new("Tap"):asUserInput())
+
+            assert.is_true(top_received)
+            assert.is_false(middle_received) -- Skipped on master
+            assert.is_true(base_received) -- Base is called as fallback on master
+        end)
+
+        it("should broadcast programmatic event to all widgets in the stack top-to-bottom", function()
+            local order = {}
+            local w1 = Widget:new({
+                onCustom = function()
+                    table.insert(order, "bottom")
+                    return true
+                end,
+            })
+            local w2 = Widget:new({
+                onCustom = function()
+                    table.insert(order, "middle")
+                    return true
+                end,
+            })
+            local w3 = Widget:new({
+                onCustom = function()
+                    table.insert(order, "top")
+                    return true
+                end,
+            })
+
+            UIManager:show(w1)
+            UIManager:show(w2)
+            UIManager:show(w3)
+
+            UIManager:broadcastEvent("Custom")
+
+            -- Broadcast is sent to all widgets regardless of return value, from top to bottom
+            assert.is.same({ "top", "middle", "bottom" }, order)
+        end)
+
+        it("should handle stack mutation (closing a widget) during broadcastEvent safely", function()
+            local w1_received = false
+            local w2_closed_self = false
+            local w3_received = false
+
+            local w1 = Widget:new({
+                onCustom = function()
+                    w1_received = true
+                    return true
+                end,
+            })
+            local w2 = Widget:new({
+                onCustom = function(self)
+                    w2_closed_self = true
+                    UIManager:close(self) -- mutate stack
+                    return true
+                end,
+            })
+            local w3 = Widget:new({
+                onCustom = function()
+                    w3_received = true
+                    return true
+                end,
+            })
+
+            UIManager:show(w1)
+            UIManager:show(w2)
+            UIManager:show(w3)
+
+            assert.has_no.errors(function()
+                UIManager:broadcastEvent("Custom")
+            end)
+
+            assert.is_true(w3_received)
+            assert.is_true(w2_closed_self)
+            assert.is_true(w1_received) -- Still receives it safely!
+        end)
+    end)
 end)
