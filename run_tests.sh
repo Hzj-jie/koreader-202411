@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# KOReader Test Suite Sandboxed Execution Entry.
+# usage: ./run_tests.sh [platform_directory] [test_file]
+
 set -eo pipefail
 
 # Parse command line arguments to extract the target platform directory and optional test file/directory
@@ -31,91 +34,20 @@ if [ ! -d "$PLATFORM_DIR" ]; then
     exit 1
 fi
 
-# Anchor execution context directly inside the selected platform directory
-cd "$(dirname "$0")"/"$PLATFORM_DIR"
-
-PLATFORM_PATH="$(pwd)"
-SANDBOX_ROOT="/tmp/koreader_sandbox_$$"
-SANDBOX_DIR="$SANDBOX_ROOT/run/context"
-mkdir -p "$SANDBOX_DIR"
-
-# Symlink all files and directories except user/test storage directories
-for entry in "$PLATFORM_PATH"/* "$PLATFORM_PATH"/.*; do
-    name="$(basename "$entry")"
-    if [ "$name" != "." ] && [ "$name" != ".." ] && [ "$name" != "*" ]; then
-        if [ "$name" != "settings" ] && [ "$name" != "cache" ] && [ "$name" != "docsettings" ] && [ "$name" != "history" ] && [ "$name" != "screenshots" ]; then
-            ln -s "$entry" "$SANDBOX_DIR/$name"
-        fi
-    fi
-done
-
-# Create a symlink for the test folder in SANDBOX_ROOT so that ../../test from SANDBOX_DIR resolves correctly
-ln -s "$PLATFORM_PATH/test" "$SANDBOX_ROOT/test"
-
-# Now execute busted inside the sandbox!
-pushd "$SANDBOX_DIR" > /dev/null
-
 # Verify that the specified test file exists if provided
-if [ -n "$TEST_FILE" ] && [ "$TEST_FILE" != "--bench" ] && [ "$TEST_FILE" != "--benchmark" ]; then
-    if [ ! -e "$TEST_FILE" ]; then
+if [ -n "$TEST_FILE" ]; then
+    if [ ! -e "$PLATFORM_DIR/$TEST_FILE" ]; then
         echo "[!] Error: Test file or directory '$TEST_FILE' does not exist inside $PLATFORM_DIR/."
         exit 1
     fi
 fi
 
-cleanup() {
-    echo "[*] Purging sandbox environment folder at $SANDBOX_ROOT..."
-    popd > /dev/null 2>&1
-    rm -rf "$SANDBOX_ROOT"
-}
-# Guarantee cleanup executes upon script termination (regardless of exit status)
-trap cleanup EXIT
+# Prepare and enter sandbox
+source ./prepare_sandbox_env.sh "$PLATFORM_DIR"
 
-# Run the test runner, delegating arguments. The runner manages environment paths and exit sequences.
+# Run the test runner
 export SDL_VIDEODRIVER=dummy
-if [ "$TEST_FILE" = "--bench" ] || [ "$TEST_FILE" = "--benchmark" ]; then
-    benches=(
-        "spec/unit/uimanager_bench.lua"
-        "spec/unit/taskqueue_bench.lua"
-        "spec/unit/benchmark.lua"
-    )
-    echo "================================================================================"
-    echo "          📊 RUNNING KOREADER BENCHMARKS"
-    echo "================================================================================"
-    results=()
-    durations=()
-    for file in "${benches[@]}"; do
-        echo "[*] Running $file..."
-        start_time=$(date +%s.%N)
-        set +e
-        ./luajit test_runner.lua "$file"
-        status=$?
-        set -e
-        end_time=$(date +%s.%N)
-        elapsed=$(awk -v start="$start_time" -v end="$end_time" 'BEGIN { printf "%.3f", end - start }')
-        echo "[+] Completed in $elapsed seconds"
-        echo ""
-        results+=("$status")
-        durations+=("$elapsed")
-    done
-    echo "================================================================================"
-    echo "          📊 BENCHMARK SUMMARY"
-    echo "================================================================================"
-    printf "%-35s | %-15s | %-10s\n" "Benchmark File" "Time (seconds)" "Status"
-    echo "--------------------------------------------------------------------------------"
-    for i in "${!benches[@]}"; do
-        file="${benches[$i]}"
-        elapsed="${durations[$i]}"
-        status_code="${results[$i]}"
-        if [ "$status_code" -eq 0 ]; then
-            status="SUCCESS"
-        else
-            status="FAILED"
-        fi
-        printf "%-35s | %-15s | %-10s\n" "$file" "$elapsed" "$status"
-    done
-    echo "================================================================================"
-elif [ -n "$TEST_FILE" ]; then
+if [ -n "$TEST_FILE" ]; then
     ./luajit test_runner.lua "$TEST_FILE" || true
 else
     ./luajit test_runner.lua || true
