@@ -19,7 +19,7 @@ local gettext = require("gettext")
 local Screen = Device.screen
 
 local NaturalLightWidget = WidgetContainer:extend({
-  modal = true,
+  is_always_active = true,
   width = nil,
   height = nil,
   textbox_width = 0.1,

@@ -121,7 +121,12 @@ local gettext = require("gettext")
 local util = require("util")
 
 local InputDialog = FocusManager:extend({
-  modal = true,
+  -- TODO: Using is_always_active is wrong, it allows the buttons to receive the
+  -- tap events even when they are not visible.
+  -- Currently the hacky solution is to use stop_events_propagation from the top
+  -- most widget to consume the events, which is also wrong since it blocks
+  -- widgets which really need to receive the events.
+  is_always_active = true,
   title = "",
   input = "",
   input_hint = "",

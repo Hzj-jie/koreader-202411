@@ -219,7 +219,9 @@ function InputContainer:onGesture(ev)
       end
     end
   end
-  return self.modal or false
+  if self.stop_events_propagation then
+    return true
+  end
 end
 
 -- Will be overloaded by the Gestures plugin, if enabled, for use in _onGestureFiltered

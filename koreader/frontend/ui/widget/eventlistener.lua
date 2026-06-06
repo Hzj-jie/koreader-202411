@@ -48,32 +48,38 @@ call is ignored.
 ]]
 function EventListener:handleEvent(event)
   if self[event.handler] == nil then
-    return (self.modal or false) and event:isUserInput()
+    return false
   end
-
+  local r = false
   if type(self[event.handler]) == "function" then
-    local r = self:_runEvent(self[event.handler], event)
-    if r then
-      return true
-    end
+    r = self:_runEvent(self[event.handler], event)
   else
     assert(type(self[event.handler]) == "table")
-    local r = false
     for _, v in ipairs(self[event.handler]) do
-      local res = self:_runEvent(v, event)
-      if res then
-        r = true
-      end
-    end
-    if r then
-      return true
+      r = r or self:_runEvent(v, event)
     end
   end
-
-  if not event:isUserInput() or self.modal then
-    return true
+  if not event:isUserInput() then
+    r = true
   end
-  return false
+  --[[--
+  if r then
+    if type(self[event.handler]) == "function" then
+      print("EventListener:handleEvent:",
+            event.handler,
+            "handled by",
+            debug.getinfo(self[event.handler], "S").short_src,
+            self)
+    else
+      print("EventListener:handleEvent:",
+            event.handler,
+            "handled by",
+            debug.getinfo(self[event.handler][1], "S").short_src,
+            self)
+    end
+  end
+  --]]
+  return r
 end
 
 function EventListener:broadcastEvent(event) --> void

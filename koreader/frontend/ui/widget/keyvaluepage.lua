@@ -296,7 +296,7 @@ local KeyValuePage = FocusManager:extend({
   title_bar_left_icon_hold_callback = nil,
 
   -- Take ownership of the entire screen.
-  modal = true,
+  stop_events_propagation = true,
 })
 
 function KeyValuePage:init()

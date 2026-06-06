@@ -468,7 +468,6 @@ end
 TouchMenu widget for hierarchical menus
 --]]
 local TouchMenu = FocusManager:extend({
-  modal = true,
   tab_item_table = nil, -- mandatory
   -- for returning in multi-level menus
   item_table_stack = nil,

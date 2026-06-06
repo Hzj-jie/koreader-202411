@@ -24,7 +24,9 @@ local util = require("util")
 local Screen = Device.screen
 
 local KeyboardLayoutDialog = FocusManager:extend({
+  is_always_active = true,
   modal = true,
+  stop_events_propagation = true,
   keyboard_state = nil,
   width = nil,
 })

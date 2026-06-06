@@ -895,14 +895,24 @@ function UIManager:userInput(event)
     return
   end
 
-  -- Propagate sequentially down the stack
+  -- If the event was not consumed (no handler returned true), active widgets (from top to bottom) can access it.
+  -- NOTE: _window_stack can shrink/grow when widgets are closed (CloseWidget & Close events) or opened.
+  --     Simply looping in reverse would only cover the list shrinking, and that only by a *single* element,
+  --     something we can't really guarantee, hence the more dogged iterator below,
+  --     which relies on a hash check of already processed widgets (LuaJIT actually hashes the table's GC reference),
+  --     rather than a simple loop counter, and will in fact iterate *at least* #items ^ 2 times.
+  --     Thankfully, that list should be very small, so the overhead should be minimal.
   local i = #self._window_stack
   while i > 0 do
     local widget = self._window_stack[i].widget
     if not checked_widgets[widget] then
       checked_widgets[widget] = true
-      if widget:handleEvent(event) then
-        return
+      if widget.is_always_active then
+        -- Widget itself is flagged always active, let it handle the event
+        -- NOTE: is_always_active widgets are currently widgets that want to show a VirtualKeyboard or listen to Dispatcher events
+        if widget:handleEvent(event) then
+          return
+        end
       end
       -- As mentioned above, event handlers might have shown/closed widgets,
       -- so all bets are off on our old window tally being accurate, so let's take it from the top again ;).
