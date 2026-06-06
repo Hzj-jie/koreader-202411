@@ -89,6 +89,7 @@ function EventListener:handleEvent(event)
 end
 
 function EventListener:isModal()
+  -- Coerce to boolean explicitly to avoid returning nil if self.modal is undefined.
   return (self.modal == true) and require("ui/uimanager"):isWindowWidget(self)
 end
 
