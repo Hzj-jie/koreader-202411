@@ -219,7 +219,7 @@ function InputContainer:onGesture(ev)
       end
     end
   end
-  return self:isShownModal() or false
+  return self:isShownModal()
 end
 
 -- Will be overloaded by the Gestures plugin, if enabled, for use in _onGestureFiltered
