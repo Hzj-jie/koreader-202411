@@ -519,39 +519,8 @@ describe("UIManager spec", function()
 
             UIManager:userInput(tap_event)
 
-            -- Base view is protected from overlays by default
-            assert.is.same(0, base_calls)
-            assert.is.same(1, overlay_calls)
-        end)
-
-        it("should protect base view even if it has is_always_active flag (flag ignored)", function()
-            local base_calls = 0
-            local overlay_calls = 0
-
-            local base_view = Widget:new({
-                is_always_active = true,
-                onTap = function()
-                    base_calls = base_calls + 1
-                    return true
-                end
-            })
-            local overlay = Widget:new({
-                onTap = function()
-                    overlay_calls = overlay_calls + 1
-                    return false -- propagate
-                end
-            })
-
-            UIManager:show(base_view)
-            UIManager:show(overlay)
-
-            local Event = require("ui/event")
-            local tap_event = Event:new("Tap"):asUserInput()
-
-            UIManager:userInput(tap_event)
-
-            -- Base view is still protected because is_always_active is ignored
-            assert.is.same(0, base_calls)
+            -- Under a consistent non-modal model, propagation reaches the base view
+            assert.is.same(1, base_calls)
             assert.is.same(1, overlay_calls)
         end)
 
