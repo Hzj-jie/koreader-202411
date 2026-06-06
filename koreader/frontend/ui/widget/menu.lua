@@ -595,6 +595,7 @@ local ITEM_SHORTCUTS = {
 Widget that displays menu
 --]]
 local Menu = FocusManager:extend({
+  modal = true,
   ENABLE_SHORTCUT = ENABLE_SHORTCUT,
   ITEM_SHORTCUTS = ITEM_SHORTCUTS,
   no_title = false,
