@@ -263,6 +263,7 @@ function(external_project)
         endif()
         if(DEFINED _CMAKE_ARGS)
             list(APPEND CMD COMMAND ${CMAKE_COMMAND} -G Ninja
+                -DCMAKE_POLICY_VERSION_MINIMUM=3.5
                 -S ${SOURCE_DIR}/${_SOURCE_SUBDIR}
                 -B ${BINARY_DIR} ${_CMAKE_ARGS}
             )

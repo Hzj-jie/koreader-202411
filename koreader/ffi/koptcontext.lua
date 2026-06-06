@@ -75,6 +75,12 @@ local Blitbuffer = require("ffi/blitbuffer")
 local leptonica = ffi.loadlib("leptonica", "6")
 local k2pdfopt = ffi.loadlib("k2pdfopt", "2")
 
+local ocr_cleanup_anchor = ffi.gc(ffi.new("char[1]"), function()
+  if k2pdfopt.k2pdfopt_tocr_end then
+    k2pdfopt.k2pdfopt_tocr_end()
+  end
+end)
+
 local KOPTContext = {
   k2pdfopt = k2pdfopt, -- offer the libraries' functions to other users
 }

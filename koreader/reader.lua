@@ -307,6 +307,11 @@ local function exitReader()
   -- Shutdown hardware abstraction (it'll also flush G_reader_settings to disk)
   Device:exit()
 
+  local koptinterface = package.loaded["document/koptinterface"]
+  if koptinterface and koptinterface.cleanUp then
+    koptinterface:cleanUp()
+  end
+
   if Profiler then
     Profiler.stop()
   end

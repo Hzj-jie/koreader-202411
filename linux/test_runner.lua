@@ -42,6 +42,10 @@ if not ok then
 end
 
 -- 4. Clean up and finalize all unreachable FFI objects while C dynamic libraries are still loaded
+local doccache = package.loaded["document/doccache"]
+if doccache then
+    doccache:clear()
+end
 collectgarbage("collect")
 collectgarbage("collect")
 

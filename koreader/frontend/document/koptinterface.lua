@@ -1821,8 +1821,11 @@ function KoptInterface:findAllText(
   end
 end
 
---[[--
-Log reflow duration.
---]]
+function KoptInterface:cleanUp()
+  if DocCache:check(self.ocrengine) then
+    DocCache:delete(self.ocrengine)
+  end
+end
 
 return KoptInterface
+

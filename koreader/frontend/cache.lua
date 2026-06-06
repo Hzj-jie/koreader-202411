@@ -90,6 +90,10 @@ function Cache:insert(key, object)
   --self:_insertion_stats(key, object.size)
 end
 
+function Cache:delete(key)
+  self.cache:delete(key)
+end
+
 --[[
 function Cache:set(key, object, size)
     self.cache:set(key, object, size)
