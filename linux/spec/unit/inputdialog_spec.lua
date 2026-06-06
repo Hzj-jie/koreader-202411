@@ -28,4 +28,16 @@ describe("InputDialog widget", function()
         end)
         assert.is_not_nil(dialog)
     end)
+
+    it("should set and get input text correctly", function()
+        local dialog = InputDialog:new({
+            title = "Test",
+            input = "initial text",
+        })
+
+        assert.is.same("initial text", dialog:getInputText())
+
+        dialog:setInputText("new text")
+        assert.is.same("new text", dialog:getInputText())
+    end)
 end)
