@@ -183,7 +183,7 @@ describe("InputContainer widget", function()
         assert.is_not_nil(ic._zones["bar"])
     end)
 
-    it("should consume unhandled user input events if it is modal and in the window stack", function()
+it("should consume unhandled user input events if it is modal and in the window stack", function()
         local Event = require("ui/event")
         local UIManager = require("ui/uimanager")
         local ic = InputContainer:new{ modal = true }
@@ -205,5 +205,60 @@ describe("InputContainer widget", function()
 
         local ev = Event:new("CustomUserInput"):asUserInput()
         assert.is_false(ic:handleEvent(ev))
+    end)
+
+    it("should handle key press mapping", function()
+        local triggered_event = nil
+        local ic = InputContainer:new({
+            key_events = {
+                MyAction = {
+                    { "Ctrl", "A" },
+                    event = "CustomEventName",
+                    args = { foo = "bar" },
+                },
+            },
+            handleEvent = function(self, event)
+                triggered_event = event
+                return true
+            end,
+        })
+
+        -- Mock a key matching Ctrl+A
+        local mock_key = {
+            match = function(self, seq)
+                return seq[1] == "Ctrl" and seq[2] == "A"
+            end,
+        }
+
+        local res = ic:onKeyPress(mock_key)
+
+        assert.is_true(res)
+        assert.is_not_nil(triggered_event)
+        assert.is.same("onCustomEventName", triggered_event.handler)
+        assert.is.same("bar", triggered_event.args[1].foo)
+    end)
+
+    it("should respect event blocking on gesture match failure", function()
+        local UIManager = require("ui/uimanager")
+        local ic_no_stop = InputContainer:new({})
+        local ic_with_stop = InputContainer:new({
+            stop_events_propagation = true,
+            modal = true,
+        })
+
+        local old_stack = UIManager._window_stack
+        UIManager._window_stack = { { widget = ic_with_stop } }
+
+        local ev = {
+            ges = "tap",
+        }
+
+        local no_stop_res = ic_no_stop:onGesture(ev)
+        local with_stop_res = ic_with_stop:onGesture(ev)
+
+        UIManager._window_stack = old_stack
+
+        assert.is_falsy(no_stop_res)
+        assert.is_true(with_stop_res)
     end)
 end)
