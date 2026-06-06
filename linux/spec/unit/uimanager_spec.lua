@@ -251,6 +251,39 @@ describe("UIManager spec", function()
             assert.equals(1, UIManager._window_stack[2].widget.x_prefix_test_number)
             assert.equals(3, UIManager._window_stack[3].widget.x_prefix_test_number)
         end)
+        it("should place toasts above modals, and modals above standard widgets", function()
+            UIManager._window_stack = {}
+
+            local standard = Widget:new({ id = "standard" })
+            local modal = Widget:new({ id = "modal", modal = true })
+            local toast = Widget:new({ id = "toast", toast = true })
+
+            UIManager:show(standard)
+            UIManager:show(toast)
+            UIManager:show(modal)
+
+            assert.is.same(3, #UIManager._window_stack)
+            assert.is.same("standard", UIManager._window_stack[1].widget.id)
+            assert.is.same("modal", UIManager._window_stack[2].widget.id)
+            assert.is.same("toast", UIManager._window_stack[3].widget.id)
+        end)
+    end)
+
+    it("should manage isWindowWidget and onClose triggers on close", function()
+        UIManager._window_stack = {}
+        local closed = false
+        local test_widget = Widget:new({
+            onClose = function()
+                closed = true
+            end
+        })
+
+        UIManager:show(test_widget)
+        assert.is_true(UIManager:isWindowWidget(test_widget))
+
+        UIManager:close(test_widget)
+        assert.is_false(UIManager:isWindowWidget(test_widget))
+        assert.is_true(closed)
     end)
 
     it("should check active widgets in order", function()
