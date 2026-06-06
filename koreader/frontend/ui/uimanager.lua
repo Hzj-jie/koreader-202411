@@ -866,53 +866,29 @@ function UIManager:userInput(event)
     event = Event:new(event)
   end
   event:asUserInput()
-  local top_widget
+
   local checked_widgets = {}
-  -- Toast widgets, which, by contract, must be at the top of the window stack, never stop event propagation.
-  for i = #self._window_stack, 1, -1 do
-    local widget = self._window_stack[i].widget
-    -- Whether it's a toast or not, we'll call handleEvent now,
-    -- so we'll want to skip it during the table walk later.
-    checked_widgets[widget] = true
-    if widget.toast then
-      -- We never stop event propagation on toasts, but we still want to send the event to them.
-      -- (In particular, because we want them to close on user input).
-      widget:handleEvent(event)
-    else
-      -- The first widget to consume events as designed is the topmost non-toast one
-      top_widget = widget
+
+  -- Protect the base view (index 1) if there is any non-toast overlay above it
+  local has_non_toast_overlay = false
+  for idx = #self._window_stack, 2, -1 do
+    if not self._window_stack[idx].widget.toast then
+      has_non_toast_overlay = true
       break
     end
   end
-
-  -- Extremely unlikely, but we can't exclude the possibility of *everything* being a toast ;).
-  -- In which case, the event has nowhere else to go, so, we're done.
-  if not top_widget then
-    return
+  if has_non_toast_overlay then
+    checked_widgets[self._window_stack[1].widget] = true
   end
 
-  if top_widget:handleEvent(event) then
-    return
-  end
-
-  -- If the event was not consumed (no handler returned true), active widgets (from top to bottom) can access it.
-  -- NOTE: _window_stack can shrink/grow when widgets are closed (CloseWidget & Close events) or opened.
-  --     Simply looping in reverse would only cover the list shrinking, and that only by a *single* element,
-  --     something we can't really guarantee, hence the more dogged iterator below,
-  --     which relies on a hash check of already processed widgets (LuaJIT actually hashes the table's GC reference),
-  --     rather than a simple loop counter, and will in fact iterate *at least* #items ^ 2 times.
-  --     Thankfully, that list should be very small, so the overhead should be minimal.
+  -- Propagate sequentially down the stack
   local i = #self._window_stack
   while i > 0 do
     local widget = self._window_stack[i].widget
     if not checked_widgets[widget] then
       checked_widgets[widget] = true
-      if widget.is_always_active then
-        -- Widget itself is flagged always active, let it handle the event
-        -- NOTE: is_always_active widgets are currently widgets that want to show a VirtualKeyboard or listen to Dispatcher events
-        if widget:handleEvent(event) then
-          return
-        end
+      if widget:handleEvent(event) then
+        return
       end
       -- As mentioned above, event handlers might have shown/closed widgets,
       -- so all bets are off on our old window tally being accurate, so let's take it from the top again ;).

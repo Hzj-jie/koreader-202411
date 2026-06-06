@@ -256,9 +256,9 @@ describe("UIManager spec", function()
     it("should check active widgets in order", function()
         local call_signals = {false, false, false}
         UIManager._window_stack = {
+            {widget = {handleEvent = function()end}}, -- dummy base view
             {
                 widget = {
-                    is_always_active = true,
                     handleEvent = function()
                         call_signals[1] = true
                         return true
@@ -267,7 +267,6 @@ describe("UIManager spec", function()
             },
             {
                 widget = {
-                    is_always_active = true,
                     handleEvent = function()
                         call_signals[2] = true
                         return true
@@ -276,7 +275,6 @@ describe("UIManager spec", function()
             },
             {
                 widget = {
-                    is_always_active = true,
                     handleEvent = function()
                         call_signals[3] = true
                         return true
@@ -296,9 +294,9 @@ describe("UIManager spec", function()
         -- scenario 1: 2nd widget removes the 3rd widget in the stack
         local call_signals = {0, 0, 0}
         UIManager._window_stack = {
+            {widget = {handleEvent = function()end}}, -- dummy base view
             {
                 widget = {
-                    is_always_active = true,
                     handleEvent = function()
                         call_signals[1] = call_signals[1] + 1
                     end
@@ -306,7 +304,6 @@ describe("UIManager spec", function()
             },
             {
                 widget = {
-                    is_always_active = true,
                     handleEvent = function()
                         call_signals[2] = call_signals[2] + 1
                     end
@@ -314,10 +311,9 @@ describe("UIManager spec", function()
             },
             {
                 widget = {
-                    is_always_active = true,
                     handleEvent = function()
                         call_signals[3] = call_signals[3] + 1
-                        table.remove(UIManager._window_stack, 2)
+                        table.remove(UIManager._window_stack, 3)
                     end
                 }
             },
@@ -332,9 +328,9 @@ describe("UIManager spec", function()
         -- scenario 2: top widget removes itself
         call_signals = {0, 0, 0}
         UIManager._window_stack = {
+            {widget = {handleEvent = function()end}}, -- dummy base view
             {
                 widget = {
-                    is_always_active = true,
                     handleEvent = function()
                         call_signals[1] = call_signals[1] + 1
                     end
@@ -342,7 +338,6 @@ describe("UIManager spec", function()
             },
             {
                 widget = {
-                    is_always_active = true,
                     handleEvent = function()
                         call_signals[2] = call_signals[2] + 1
                     end
@@ -350,10 +345,9 @@ describe("UIManager spec", function()
             },
             {
                 widget = {
-                    is_always_active = true,
                     handleEvent = function()
                         call_signals[3] = call_signals[3] + 1
-                        table.remove(UIManager._window_stack, 3)
+                        table.remove(UIManager._window_stack, 4)
                     end
                 }
             },
@@ -363,6 +357,31 @@ describe("UIManager spec", function()
         assert.is.same(1, call_signals[1])
         assert.is.same(1, call_signals[2])
         assert.is.same(1, call_signals[3])
+    end)
+
+    it("should allow events to propagate through toast widgets", function()
+        local call_signals = {0, 0}
+        UIManager._window_stack = {
+            {
+                widget = {
+                    handleEvent = function()
+                        call_signals[1] = call_signals[1] + 1
+                    end
+                }
+            },
+            {
+                widget = {
+                    toast = true,
+                    handleEvent = function()
+                        call_signals[2] = call_signals[2] + 1
+                    end
+                }
+            },
+        }
+
+        UIManager:userInput("foo")
+        assert.is.same(1, call_signals[1])
+        assert.is.same(1, call_signals[2])
     end)
 
     it("should handle stack change when broadcasting events", function()
