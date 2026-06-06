@@ -522,12 +522,12 @@ describe("UIManager spec", function()
 
             UIManager:userInput(tap_event)
 
-            -- On master, base view doesn't have is_always_active, so it is skipped.
+            -- Base view is protected from overlays by default
             assert.is.same(0, base_calls)
             assert.is.same(1, overlay_calls)
         end)
 
-        it("should test event propagation with is_always_active base view", function()
+        it("should protect base view even if it has is_always_active flag (flag ignored)", function()
             local base_calls = 0
             local overlay_calls = 0
 
@@ -553,24 +553,23 @@ describe("UIManager spec", function()
 
             UIManager:userInput(tap_event)
 
-            -- On master, base view is always active, so it receives the event if overlay propagates it.
-            assert.is.same(1, base_calls)
+            -- Base view is still protected because is_always_active is ignored
+            assert.is.same(0, base_calls)
             assert.is.same(1, overlay_calls)
         end)
 
-        it("should test modal widget has no effect on event consumption on master", function()
+        it("should block event propagation if overlay is modal", function()
             local base_calls = 0
             local overlay_calls = 0
 
             local base_view = Widget:new({
-                is_always_active = true,
                 onTap = function()
                     base_calls = base_calls + 1
                     return true
                 end
             })
             local overlay = Widget:new({
-                modal = true, -- modal = true on master has no event consumption effect by itself
+                modal = true,
                 onTap = function()
                     overlay_calls = overlay_calls + 1
                     return false -- propagate
@@ -585,7 +584,38 @@ describe("UIManager spec", function()
 
             UIManager:userInput(tap_event)
 
-            -- On master, overlay returns false, so it propagates, and base receives it!
+            -- Modal overlay consumes user inputs, so propagation stops
+            assert.is.same(0, base_calls)
+            assert.is.same(1, overlay_calls)
+        end)
+
+        it("should propagate events to base view if overlay is toast", function()
+            local base_calls = 0
+            local overlay_calls = 0
+
+            local base_view = Widget:new({
+                onTap = function()
+                    base_calls = base_calls + 1
+                    return true
+                end
+            })
+            local overlay = Widget:new({
+                toast = true,
+                onTap = function()
+                    overlay_calls = overlay_calls + 1
+                    return false -- propagate
+                end
+            })
+
+            UIManager:show(base_view)
+            UIManager:show(overlay)
+
+            local Event = require("ui/event")
+            local tap_event = Event:new("Tap"):asUserInput()
+
+            UIManager:userInput(tap_event)
+
+            -- Toast overlay is non-blocking, so propagation reaches base view
             assert.is.same(1, base_calls)
             assert.is.same(1, overlay_calls)
         end)
