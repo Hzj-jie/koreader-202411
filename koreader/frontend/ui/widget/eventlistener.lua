@@ -48,7 +48,7 @@ call is ignored.
 ]]
 function EventListener:handleEvent(event)
   if self[event.handler] == nil then
-    return (self.modal or false) and event:isUserInput()
+    return self:isModal() and event:isUserInput()
   end
   if self.toast and event:isUserInput() then
     if type(self[event.handler]) == "function" then
@@ -81,20 +81,15 @@ function EventListener:handleEvent(event)
     end
   end
 
-  local is_modal = false
-  if self.modal then
-    local UIManager = require("ui/uimanager")
-    for _, w in ipairs(UIManager._window_stack) do
-      if w.widget == self then
-        is_modal = true
-        break
-      end
-    end
-  end
+  local is_modal = self:isModal()
   if not event:isUserInput() or is_modal then
     return true
   end
   return false
+end
+
+function EventListener:isModal()
+  return self.modal and require("ui/uimanager"):isWindowWidget(self)
 end
 
 function EventListener:broadcastEvent(event) --> void
