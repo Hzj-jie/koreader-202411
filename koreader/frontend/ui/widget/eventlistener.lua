@@ -89,7 +89,7 @@ function EventListener:handleEvent(event)
 end
 
 function EventListener:isModal()
-  return self.modal and require("ui/uimanager"):isWindowWidget(self)
+  return not not (self.modal and require("ui/uimanager"):isWindowWidget(self))
 end
 
 function EventListener:broadcastEvent(event) --> void

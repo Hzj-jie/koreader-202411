@@ -699,8 +699,8 @@ describe("UIManager spec", function()
             UIManager:userInput(Event:new("Tap"):asUserInput())
 
             assert.is_true(top_received)
-            assert.is_false(middle_received) -- Skipped on master
-            assert.is_true(base_received) -- Base is called as fallback on master
+            assert.is_true(middle_received) -- Middle receives it and consumes it on refactor branch
+            assert.is_false(base_received) -- Base is protected and not called since middle consumed it
         end)
 
         it("should broadcast programmatic event to all widgets in the stack top-to-bottom", function()
