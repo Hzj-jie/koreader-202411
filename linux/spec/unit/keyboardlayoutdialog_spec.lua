@@ -102,4 +102,68 @@ describe("KeyboardLayoutDialog UI component", function()
 
         UIManager.close = old_close
     end)
+
+    it("should instantiate with only one language layout in lang_to_keyboard_layout", function()
+        local mock_keyboard = {
+            lang_to_keyboard_layout = {
+                en_US = {},
+            },
+            getKeyboardLayout = function()
+                return "en_US"
+            end,
+        }
+        local mock_parent = {
+            keyboard = mock_keyboard,
+        }
+        local mock_keyboard_state = {}
+
+        local dialog = KeyboardLayoutDialog:new({
+            parent = mock_parent,
+            keyboard_state = mock_keyboard_state,
+        })
+        assert.is_not_nil(dialog)
+        assert.is_not_nil(dialog.radio_button_table)
+        -- The table has one row containing one radio button
+        assert.is.same(1, #dialog.radio_button_table.radio_buttons)
+    end)
+
+    it("should throw error when lang_to_keyboard_layout is empty", function()
+        local mock_keyboard = {
+            lang_to_keyboard_layout = {},
+            getKeyboardLayout = function()
+                return nil
+            end,
+        }
+        local mock_parent = {
+            keyboard = mock_keyboard,
+        }
+        local mock_keyboard_state = {}
+
+        assert.has.errors(function()
+            KeyboardLayoutDialog:new({
+                parent = mock_parent,
+                keyboard_state = mock_keyboard_state,
+            })
+        end)
+    end)
+
+    it("should throw error when lang_to_keyboard_layout is nil", function()
+        local mock_keyboard = {
+            lang_to_keyboard_layout = nil,
+            getKeyboardLayout = function()
+                return nil
+            end,
+        }
+        local mock_parent = {
+            keyboard = mock_keyboard,
+        }
+        local mock_keyboard_state = {}
+
+        assert.has.errors(function()
+            KeyboardLayoutDialog:new({
+                parent = mock_parent,
+                keyboard_state = mock_keyboard_state,
+            })
+        end)
+    end)
 end)
