@@ -56,7 +56,7 @@ ln -s "$PLATFORM_PATH/test" "$SANDBOX_ROOT/test"
 pushd "$SANDBOX_DIR" > /dev/null
 
 # Verify that the specified test file exists if provided
-if [ -n "$TEST_FILE" ]; then
+if [ -n "$TEST_FILE" ] && [ "$TEST_FILE" != "--bench" ] && [ "$TEST_FILE" != "--benchmark" ]; then
     if [ ! -e "$TEST_FILE" ]; then
         echo "[!] Error: Test file or directory '$TEST_FILE' does not exist inside $PLATFORM_DIR/."
         exit 1
@@ -73,7 +73,49 @@ trap cleanup EXIT
 
 # Run the test runner, delegating arguments. The runner manages environment paths and exit sequences.
 export SDL_VIDEODRIVER=dummy
-if [ -n "$TEST_FILE" ]; then
+if [ "$TEST_FILE" = "--bench" ] || [ "$TEST_FILE" = "--benchmark" ]; then
+    benches=(
+        "spec/unit/uimanager_bench.lua"
+        "spec/unit/taskqueue_bench.lua"
+        "spec/unit/benchmark.lua"
+    )
+    echo "================================================================================"
+    echo "          📊 RUNNING KOREADER BENCHMARKS"
+    echo "================================================================================"
+    results=()
+    durations=()
+    for file in "${benches[@]}"; do
+        echo "[*] Running $file..."
+        start_time=$(date +%s.%N)
+        set +e
+        ./luajit test_runner.lua "$file"
+        status=$?
+        set -e
+        end_time=$(date +%s.%N)
+        elapsed=$(awk -v start="$start_time" -v end="$end_time" 'BEGIN { printf "%.3f", end - start }')
+        echo "[+] Completed in $elapsed seconds"
+        echo ""
+        results+=("$status")
+        durations+=("$elapsed")
+    done
+    echo "================================================================================"
+    echo "          📊 BENCHMARK SUMMARY"
+    echo "================================================================================"
+    printf "%-35s | %-15s | %-10s\n" "Benchmark File" "Time (seconds)" "Status"
+    echo "--------------------------------------------------------------------------------"
+    for i in "${!benches[@]}"; do
+        file="${benches[$i]}"
+        elapsed="${durations[$i]}"
+        status_code="${results[$i]}"
+        if [ "$status_code" -eq 0 ]; then
+            status="SUCCESS"
+        else
+            status="FAILED"
+        fi
+        printf "%-35s | %-15s | %-10s\n" "$file" "$elapsed" "$status"
+    done
+    echo "================================================================================"
+elif [ -n "$TEST_FILE" ]; then
     ./luajit test_runner.lua "$TEST_FILE" || true
 else
     ./luajit test_runner.lua || true
