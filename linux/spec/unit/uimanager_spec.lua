@@ -619,5 +619,41 @@ describe("UIManager spec", function()
             assert.is.same(1, base_calls)
             assert.is.same(1, overlay_calls)
         end)
+
+        it("should allow parent menu to receive events when child menu is non-modal", function()
+            local parent_calls = 0
+            local child_calls = 0
+
+            local base_view = Widget:new()
+
+            -- TouchMenu (parent)
+            local parent_menu = Widget:new({
+                onTap = function()
+                    parent_calls = parent_calls + 1
+                    return true
+                end
+            })
+
+            -- Menu (child dropdown)
+            local child_menu = Widget:new({
+                onTap = function()
+                    child_calls = child_calls + 1
+                    return false -- propagate to parent
+                end
+            })
+
+            UIManager:show(base_view)
+            UIManager:show(parent_menu)
+            UIManager:show(child_menu)
+
+            local Event = require("ui/event")
+            local tap_event = Event:new("Tap"):asUserInput()
+
+            UIManager:userInput(tap_event)
+
+            -- Under non-modal child menu, both child and parent receive the event
+            assert.is.same(1, child_calls)
+            assert.is.same(1, parent_calls)
+        end)
     end)
 end)
