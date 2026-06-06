@@ -868,18 +868,6 @@ function UIManager:userInput(event)
 
   local checked_widgets = {}
 
-  -- Protect the base view (index 1) if there is any non-toast overlay above it
-  local has_non_toast_overlay = false
-  for idx = #self._window_stack, 2, -1 do
-    if not self._window_stack[idx].widget.toast then
-      has_non_toast_overlay = true
-      break
-    end
-  end
-  if has_non_toast_overlay then
-    checked_widgets[self._window_stack[1].widget] = true
-  end
-
   -- Propagate sequentially down the stack
   local i = #self._window_stack
   while i > 0 do

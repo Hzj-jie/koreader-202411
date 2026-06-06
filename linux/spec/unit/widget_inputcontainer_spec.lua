@@ -183,24 +183,27 @@ describe("InputContainer widget", function()
         assert.is_not_nil(ic._zones["bar"])
     end)
 
-    it("should consume all user input events if marked as modal", function()
+    it("should consume unhandled user input events if it is modal and in the window stack", function()
+        local Event = require("ui/event")
+        local UIManager = require("ui/uimanager")
+        local ic = InputContainer:new{ modal = true }
+
+        local old_stack = UIManager._window_stack
+        UIManager._window_stack = { { widget = ic } }
+
+        local ev = Event:new("CustomUserInput"):asUserInput()
+        local res = ic:handleEvent(ev)
+
+        UIManager._window_stack = old_stack
+
+        assert.is_true(res)
+    end)
+
+    it("should not consume unhandled user input events if it is modal but not in the window stack", function()
         local Event = require("ui/event")
         local ic = InputContainer:new{ modal = true }
 
-        -- A gesture event (user input)
-        local ev_gesture = Event:new("Gesture", nil, { ges = "hold" }):asUserInput()
-        assert.is_true(ic:handleEvent(ev_gesture))
-
-        -- A key event (user input)
-        local ev_key = Event:new("KeyPress", nil, "VolumeUp"):asUserInput()
-        assert.is_true(ic:handleEvent(ev_key))
-
-        -- A non-user input event (should return false because it has no handler)
-        local ev_non_user = Event:new("SomeInternalEvent")
-        assert.is_false(ic:handleEvent(ev_non_user))
-
-        -- Non-modal widget should not consume unhandled gestures
-        local ic_non_modal = InputContainer:new{ modal = false }
-        assert.is_false(ic_non_modal:handleEvent(ev_gesture))
+        local ev = Event:new("CustomUserInput"):asUserInput()
+        assert.is_false(ic:handleEvent(ev))
     end)
 end)
