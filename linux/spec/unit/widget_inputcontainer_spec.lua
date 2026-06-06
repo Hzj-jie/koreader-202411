@@ -182,4 +182,49 @@ describe("InputContainer widget", function()
         assert.is_nil(ic._zones["foo"]) -- Verify memory cleanup!
         assert.is_not_nil(ic._zones["bar"])
     end)
+
+    it("should handle key press mapping", function()
+        local triggered_event = nil
+        local ic = InputContainer:new({
+            key_events = {
+                MyAction = {
+                    { "Ctrl", "A" },
+                    event = "CustomEventName",
+                    args = { foo = "bar" },
+                },
+            },
+            handleEvent = function(self, event)
+                triggered_event = event
+                return true
+            end,
+        })
+
+        -- Mock a key matching Ctrl+A
+        local mock_key = {
+            match = function(self, seq)
+                return seq[1] == "Ctrl" and seq[2] == "A"
+            end,
+        }
+
+        local res = ic:onKeyPress(mock_key)
+
+        assert.is_true(res)
+        assert.is_not_nil(triggered_event)
+        assert.is.same("onCustomEventName", triggered_event.handler)
+        assert.is.same("bar", triggered_event.args[1].foo)
+    end)
+
+    it("should respect stop_events_propagation on gesture match failure", function()
+        local ic_no_stop = InputContainer:new({})
+        local ic_with_stop = InputContainer:new({
+            stop_events_propagation = true,
+        })
+
+        local ev = {
+            ges = "tap",
+        }
+
+        assert.is_nil(ic_no_stop:onGesture(ev))
+        assert.is_true(ic_with_stop:onGesture(ev))
+    end)
 end)
