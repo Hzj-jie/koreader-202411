@@ -81,11 +81,7 @@ function EventListener:handleEvent(event)
     end
   end
 
-  local is_modal = self:isShownModal()
-  if not event:isUserInput() or is_modal then
-    return true
-  end
-  return false
+  return not event:isUserInput() or self:isShownModal()
 end
 
 function EventListener:isShownModal()
