@@ -166,4 +166,24 @@ describe("KeyboardLayoutDialog UI component", function()
             })
         end)
     end)
+
+    it("should throw error when lang_to_keyboard_layout is invalid (not a table)", function()
+        local mock_keyboard = {
+            lang_to_keyboard_layout = "invalid_string_type",
+            getKeyboardLayout = function()
+                return nil
+            end,
+        }
+        local mock_parent = {
+            keyboard = mock_keyboard,
+        }
+        local mock_keyboard_state = {}
+
+        assert.has.errors(function()
+            KeyboardLayoutDialog:new({
+                parent = mock_parent,
+                keyboard_state = mock_keyboard_state,
+            })
+        end)
+    end)
 end)
