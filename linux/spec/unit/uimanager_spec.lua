@@ -468,4 +468,107 @@ describe("UIManager spec", function()
         assert.is.same(1, #UIManager._window_stack)
         assert.is.same(widget_3, UIManager._window_stack[1].widget)
     end)
+
+    describe("integration of UIManager and EventListener", function()
+        before_each(function()
+            UIManager._window_stack = {}
+        end)
+
+        after_each(function()
+            UIManager._window_stack = {}
+        end)
+
+        it("should test event propagation with non-modal widgets", function()
+            local base_calls = 0
+            local overlay_calls = 0
+
+            local base_view = Widget:new({
+                onTap = function()
+                    base_calls = base_calls + 1
+                    return true
+                end
+            })
+            local overlay = Widget:new({
+                onTap = function()
+                    overlay_calls = overlay_calls + 1
+                    return false -- propagate
+                end
+            })
+
+            UIManager:show(base_view)
+            UIManager:show(overlay)
+
+            local Event = require("ui/event")
+            local tap_event = Event:new("Tap"):asUserInput()
+
+            UIManager:userInput(tap_event)
+
+            -- On master, base view doesn't have is_always_active, so it is skipped.
+            assert.is.same(0, base_calls)
+            assert.is.same(1, overlay_calls)
+        end)
+
+        it("should test event propagation with is_always_active base view", function()
+            local base_calls = 0
+            local overlay_calls = 0
+
+            local base_view = Widget:new({
+                is_always_active = true,
+                onTap = function()
+                    base_calls = base_calls + 1
+                    return true
+                end
+            })
+            local overlay = Widget:new({
+                onTap = function()
+                    overlay_calls = overlay_calls + 1
+                    return false -- propagate
+                end
+            })
+
+            UIManager:show(base_view)
+            UIManager:show(overlay)
+
+            local Event = require("ui/event")
+            local tap_event = Event:new("Tap"):asUserInput()
+
+            UIManager:userInput(tap_event)
+
+            -- On master, base view is always active, so it receives the event if overlay propagates it.
+            assert.is.same(1, base_calls)
+            assert.is.same(1, overlay_calls)
+        end)
+
+        it("should test modal widget has no effect on event consumption on master", function()
+            local base_calls = 0
+            local overlay_calls = 0
+
+            local base_view = Widget:new({
+                is_always_active = true,
+                onTap = function()
+                    base_calls = base_calls + 1
+                    return true
+                end
+            })
+            local overlay = Widget:new({
+                modal = true, -- modal = true on master has no event consumption effect by itself
+                onTap = function()
+                    overlay_calls = overlay_calls + 1
+                    return false -- propagate
+                end
+            })
+
+            UIManager:show(base_view)
+            UIManager:show(overlay)
+
+            local Event = require("ui/event")
+            local tap_event = Event:new("Tap"):asUserInput()
+
+            UIManager:userInput(tap_event)
+
+            -- On master, overlay returns false, so it propagates, and base receives it!
+            assert.is.same(1, base_calls)
+            assert.is.same(1, overlay_calls)
+        end)
+    end)
 end)
