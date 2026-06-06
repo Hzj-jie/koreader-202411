@@ -219,7 +219,17 @@ function InputContainer:onGesture(ev)
       end
     end
   end
-  return self.modal or false
+  local is_modal = false
+  if self.modal then
+    local UIManager = require("ui/uimanager")
+    for _, w in ipairs(UIManager._window_stack) do
+      if w.widget == self then
+        is_modal = true
+        break
+      end
+    end
+  end
+  return is_modal or false
 end
 
 -- Will be overloaded by the Gestures plugin, if enabled, for use in _onGestureFiltered

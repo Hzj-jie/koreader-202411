@@ -304,7 +304,6 @@ function UIManager:show(widget)
   if not _isWidget(widget) then
     return
   end
-
   assert(not self:isWindowWidget(widget))
 
   logger.dbg("show widget:", _widgetDebugStr(widget))

@@ -81,7 +81,17 @@ function EventListener:handleEvent(event)
     end
   end
 
-  if not event:isUserInput() or self.modal then
+  local is_modal = false
+  if self.modal then
+    local UIManager = require("ui/uimanager")
+    for _, w in ipairs(UIManager._window_stack) do
+      if w.widget == self then
+        is_modal = true
+        break
+      end
+    end
+  end
+  if not event:isUserInput() or is_modal then
     return true
   end
   return false
