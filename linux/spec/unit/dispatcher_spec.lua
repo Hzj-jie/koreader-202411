@@ -3,9 +3,6 @@ local UIManager
 local Event
 
 describe("dispatcher", function()
-    local original_user_input
-    local original_broadcast_event
-    local original_readerui
     local captured_inputs = {}
     local captured_broadcasts = {}
 
@@ -14,9 +11,6 @@ describe("dispatcher", function()
         UIManager = require("ui/uimanager")
         Event = require("ui/event")
         Dispatcher = require("dispatcher")
-        original_user_input = UIManager.userInput
-        original_broadcast_event = UIManager.broadcastEvent
-        original_readerui = package.loaded["apps/reader/readerui"]
 
         UIManager.userInput = function(_, event)
             if type(event) == "string" then
@@ -31,12 +25,6 @@ describe("dispatcher", function()
             end
             table.insert(captured_broadcasts, event)
         end
-    end)
-
-    teardown(function()
-        UIManager.userInput = original_user_input
-        UIManager.broadcastEvent = original_broadcast_event
-        package.loaded["apps/reader/readerui"] = original_readerui
     end)
 
     before_each(function()

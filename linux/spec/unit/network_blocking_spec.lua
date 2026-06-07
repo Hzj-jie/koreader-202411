@@ -4,17 +4,13 @@ describe("NetworkMgr non-blocking test", function()
     local Device
     local UIManager
     local ffiutil
-    local original_usleep
     local usleep_calls = 0
-    local original_show
-    local original_close
 
     setup(function()
         require("commonrequire")
         Device = require("device")
         UIManager = require("ui/uimanager")
         ffiutil = require("ffi/util")
-        original_usleep = ffiutil.usleep
         ffiutil.usleep = function()
             usleep_calls = usleep_calls + 1
         end
@@ -23,20 +19,11 @@ describe("NetworkMgr non-blocking test", function()
         Device.hasWifiManager = function() return true end
         Device.hasWifiToggle = function() return true end
 
-        original_show = UIManager.show
-        original_close = UIManager.close
         UIManager.show = function(self, widget)
             return widget
         end
         UIManager.close = function(self)
         end
-    end)
-
-    teardown(function()
-        ffiutil.usleep = original_usleep
-        UIManager.show = original_show
-        UIManager.close = original_close
-        package.loaded["ui/network/manager"] = nil
     end)
 
     it("should NOT loop/block when disconnected and waiting for wpa_supplicant", function()

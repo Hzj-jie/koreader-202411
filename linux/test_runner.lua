@@ -1,4 +1,5 @@
 local ffi = require("ffi")
+local lfs = require("libs/libkoreader-lfs")
 
 ffi.cdef[[
     int getpid(void);
@@ -69,18 +70,44 @@ if not test_file then
         ["spec/unit/named_settings_spec.lua"] = true,
     }
 
-    -- Find all spec files under base/spec/unit and spec/unit
-    local p = io.popen("find base/spec/unit spec/unit -name '*_spec.lua' 2>/dev/null | sort")
-    if not p then
-        io.stderr:write("[!] Error: Failed to run find command to discover spec files.\n")
-        original_os_exit(1, false)
+    -- If we are running in origin.linux, we must also exempt tests that fail
+    -- due to KO_MULTIUSER causing the device to be detected as Desktop instead of Emulator.
+    local target = lfs.symlinkattributes("test_runner.lua", "target")
+    if target and target:match("origin%.linux") then
+        env_exemptions["spec/unit/autosuspend_spec.lua"] = true
+        env_exemptions["spec/unit/device_spec.lua"] = true
+        env_exemptions["spec/unit/eink_optimization_spec.lua"] = true
+        env_exemptions["spec/unit/network_manager_spec.lua"] = true
+        env_exemptions["spec/unit/readerfooter_spec.lua"] = true
     end
 
+    -- Find all spec files under base/spec/unit and spec/unit
     local spec_files = {}
-    for line in p:lines() do
-        table.insert(spec_files, line)
+    local function find_specs(dir, specs)
+        local attributes = lfs.attributes(dir)
+        if not attributes then return specs end
+
+        if attributes.mode == "directory" then
+            for file in lfs.dir(dir) do
+                if file ~= "." and file ~= ".." then
+                    local path = dir .. "/" .. file
+                    local f_attr = lfs.attributes(path)
+                    if f_attr then
+                        if f_attr.mode == "directory" then
+                            find_specs(path, specs)
+                        elseif f_attr.mode == "file" and file:match("_spec%.lua$") then
+                            table.insert(specs, path)
+                        end
+                    end
+                end
+            end
+        end
+        return specs
     end
-    p:close()
+
+    find_specs("base/spec/unit", spec_files)
+    find_specs("spec/unit", spec_files)
+    table.sort(spec_files)
 
     if #spec_files == 0 then
         io.stderr:write("[!] Error: No spec files found.\n")
@@ -110,10 +137,10 @@ if not test_file then
     local function spawn_job(idx)
         local spec_path = spec_files[idx]
         local use_isolated_env = not env_exemptions[spec_path]
-        
+
         local cmd
         local worker_config_dir
-        
+
         if use_isolated_env then
             worker_config_dir = string.format("/tmp/koreader_worker_%d_%d", parent_pid, idx)
             os.execute("mkdir -p " .. worker_config_dir)
