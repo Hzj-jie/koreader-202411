@@ -1157,4 +1157,8 @@ elseif G_defaults:read("NETWORK_PROXY") then
   NetworkMgr:setHTTPProxy(G_defaults:read("NETWORK_PROXY"))
 end
 
+if util.isTesting() then
+  NetworkMgr.ConnectivityChecker = ConnectivityChecker
+end
+
 return NetworkMgr:init()
