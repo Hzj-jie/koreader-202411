@@ -129,6 +129,9 @@ if not test_file then
     local failed_tests = {}
     local total_tests = 0
     local passed_tests = 0
+    local total_cases = 0
+    local passed_cases = 0
+    local failed_cases = 0
     local next_spec_idx = 1
 
     -- Helper to spawn a job with isolated environment (or clean default env if exempted)
@@ -203,6 +206,36 @@ if not test_file then
             -- Print the clean output
             io.write(clean_output)
 
+            -- Parse and accumulate individual test case counts from Busted output
+            local file_total = tonumber(output:match("\n%[%=+%] (%d+) tests? from")) or 0
+            local file_passed = tonumber(output:match("\n%[%s+PASSED%s+%] (%d+) tests?%.\n")) or 0
+            local file_failed = tonumber(output:match("\n%[%s+FAILED%s+%] (%d+) tests?, listed below:\n")) or 0
+
+            if file_total == 0 then
+                if exit_code ~= 0 then
+                    file_total = 1
+                    file_failed = 1
+                end
+            else
+                if exit_code == 0 then
+                    file_passed = file_total
+                    file_failed = 0
+                else
+                    if file_failed == 0 then
+                        file_failed = file_total - file_passed
+                        if file_failed <= 0 then file_failed = 1 end
+                    end
+                    if file_passed == 0 then
+                        file_passed = file_total - file_failed
+                        if file_passed < 0 then file_passed = 0 end
+                    end
+                end
+            end
+
+            total_cases = total_cases + file_total
+            passed_cases = passed_cases + file_passed
+            failed_cases = failed_cases + file_failed
+
             if exit_code == 0 then
                 passed_tests = passed_tests + 1
             else
@@ -223,8 +256,12 @@ if not test_file then
     print("=========================================================================")
     print("[*] Test Suite Summary:")
     print("    Total test files: " .. total_tests)
-    print("    Passed:           " .. passed_tests)
-    print("    Failed:           " .. #failed_tests)
+    print("    Passed files:     " .. passed_tests .. "/" .. total_tests)
+    print("    Failed files:     " .. #failed_tests .. "/" .. total_tests)
+    print("    ---------------------------------------------------------------------")
+    print("    Total test cases: " .. total_cases)
+    print("    Passed cases:     " .. passed_cases .. "/" .. total_cases)
+    print("    Failed cases:     " .. failed_cases .. "/" .. total_cases)
     print("=========================================================================")
 
     if #failed_tests > 0 then
