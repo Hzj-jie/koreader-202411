@@ -1,15 +1,8 @@
 describe("Configurable", function()
     local Configurable
-    local original_G_reader_settings
-
     setup(function()
         require("commonrequire")
         Configurable = require("configurable")
-        original_G_reader_settings = G_reader_settings
-    end)
-
-    teardown(function()
-        G_reader_settings = original_G_reader_settings
     end)
 
     describe("new", function()

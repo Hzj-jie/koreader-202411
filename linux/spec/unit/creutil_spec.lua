@@ -2,17 +2,10 @@ local CreUtil
 local Device
 
 describe("creutil", function()
-    local original_getDPI
-
     setup(function()
         require("commonrequire")
         CreUtil = require("creutil")
         Device = require("device")
-        original_getDPI = Device.screen.getDPI
-    end)
-
-    teardown(function()
-        Device.screen.getDPI = original_getDPI
     end)
 
     describe("font_size", function()

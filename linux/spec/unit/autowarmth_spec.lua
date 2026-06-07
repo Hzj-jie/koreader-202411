@@ -2,8 +2,6 @@ describe("AutoWarmth plugin tests", function()
     local Device, SunTime, MockTime, class, AutoWarmth, UIManager
     local original_os_date = os.date
 
-    local original_package_path = package.path
-
     setup(function()
         require("commonrequire")
         package.unloadAll()
@@ -30,9 +28,7 @@ describe("AutoWarmth plugin tests", function()
 
     teardown(function()
         SunTime.getTimezoneOffset:revert()
-        os.date = original_os_date
         MockTime:uninstall()
-        package.path = original_package_path
         package.unloadAll()
         require("document/canvascontext"):init(require("device"))
     end)

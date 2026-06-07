@@ -1,6 +1,5 @@
 describe("KeepAlive plugin tests", function()
     local Device, KeepAlive, UIManager, PluginShare
-    local original_event_hook
 
     setup(function()
         require("commonrequire")

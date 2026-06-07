@@ -3,7 +3,6 @@ describe("Readerfooter module", function()
     local purgeDir, Screen
     local tapFooterMenu
 
-    local original_os_time = os.time
     local original_os_date = os.date
 
     local function is_am()
@@ -84,8 +83,6 @@ describe("Readerfooter module", function()
     end)
 
     teardown(function()
-        os.time = original_os_time
-        os.date = original_os_date
         -- Clean up global settings we played with
         G_reader_settings:delete("reader_footer_mode")
         G_reader_settings:delete("footer")
