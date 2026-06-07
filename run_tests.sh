@@ -10,15 +10,11 @@ export KO_WORKSPACE_DIR="$(pwd)"
 
 # Unset developer-specific emulator and font environment variables to guarantee a
 # standardized and deterministic test environment on all host workstations.
-unset EMULATE_READER_W
-unset EMULATE_READER_H
 unset EMULATE_READER_DPI
 unset EMULATE_READER_VIEWPORT
 unset EMULATE_READER_FORCE_PORTRAIT
-unset EMULATE_READER_FLASH
-unset EMULATE_BW_SCREEN
-unset EMULATE_BB_TYPE
 unset DISABLE_TOUCH
+unset EMULATE_BB_TYPE
 unset EXT_FONT_DIR
 
 # Parse command line arguments to extract the target platform directory and optional test file/directory
