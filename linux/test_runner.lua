@@ -127,6 +127,7 @@ if not test_file then
 
     local active_jobs = {}
     local failed_tests = {}
+    local failed_cases_details = {}
     local total_tests = 0
     local passed_tests = 0
     local total_cases = 0
@@ -240,6 +241,30 @@ if not test_file then
                 passed_tests = passed_tests + 1
             else
                 table.insert(failed_tests, job.spec_path)
+
+                -- Parse and collect individual failed test cases from Busted output
+                local file_failed_list = {}
+                local seen_cases = {}
+                for line in output:gmatch("[^\r\n]+") do
+                    local failed_case = line:match("^%[%s+FAILED%s+%] (.-%_spec%.lua%:%d+%:.+)$")
+                    if failed_case then
+                        -- Remove " (X.XX ms)" timing suffix if present to make duplicate lines identical
+                        failed_case = failed_case:gsub(" %(%d+%.%d+ ms%)$", "")
+                        if not seen_cases[failed_case] then
+                            seen_cases[failed_case] = true
+                            table.insert(file_failed_list, failed_case)
+                        end
+                    end
+                end
+
+                if #file_failed_list == 0 then
+                    -- Fallback if the file failed to execute at all (e.g. crash or syntax error)
+                    table.insert(file_failed_list, job.spec_path .. " (entire file execution failed)")
+                end
+
+                for _, case in ipairs(file_failed_list) do
+                    table.insert(failed_cases_details, case)
+                end
             end
             print("")
 
@@ -263,6 +288,14 @@ if not test_file then
     print("    Passed cases:     " .. passed_cases .. "/" .. total_cases)
     print("    Failed cases:     " .. failed_cases .. "/" .. total_cases)
     print("=========================================================================")
+
+    if #failed_cases_details > 0 then
+        print("[!] Failed test cases:")
+        for _, failed_case in ipairs(failed_cases_details) do
+            print("    - " .. failed_case)
+        end
+        print("")
+    end
 
     if #failed_tests > 0 then
         print("[!] Failed test files:")
