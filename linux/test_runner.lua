@@ -32,9 +32,8 @@ if not pcall(dofile, "test_helper.lua") then
     dofile("ffi/loadlib.lua")
 end
 
--- 3. Check if we are running a specific test file or the whole suite
-local test_file = arg[1]
 
+local test_file = arg[1]
 if test_file then
     -- Force DocSettings to ALWAYS use "dir" location (docsettings/ folder) during tests.
     -- This ensures book settings are written to the isolated /tmp/.../koreader/docsettings/ directory
@@ -141,8 +140,8 @@ if not test_file then
         local worker_config_dir
 
         if use_isolated_env then
-            worker_config_dir = string.format("/tmp/koreader_worker_%d_%d", parent_pid, idx)
-            os.execute("mkdir -p " .. worker_config_dir)
+            worker_config_dir = lfs.currentdir() .. "/worker_" .. idx
+            lfs.mkdir(worker_config_dir)
             -- We set KO_MULTIUSER=1 and XDG_CONFIG_HOME to direct all configuration/settings
             -- writes to this isolated directory, preventing parallel file access conflicts!
             -- We also set TESSDATA_PREFIX=data so Tesseract OCR can find the trained data in the isolated environment.
@@ -163,9 +162,7 @@ if not test_file then
         else
             io.stderr:write("[!] Error: Failed to spawn test: " .. spec_path .. "\n")
             table.insert(failed_tests, spec_path)
-            if worker_config_dir then
-                os.execute("rm -rf " .. worker_config_dir)
-            end
+
         end
     end
 
@@ -213,10 +210,7 @@ if not test_file then
             end
             print("")
 
-            -- Clean up the isolated worker directory immediately after completion (if used)
-            if job.worker_config_dir then
-                os.execute("rm -rf " .. job.worker_config_dir)
-            end
+
 
             -- Spawn the next job in line to keep the worker pool busy
             if next_spec_idx <= #spec_files then

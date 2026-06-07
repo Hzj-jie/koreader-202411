@@ -4,6 +4,19 @@
 
 set -eo pipefail
 
+# Export the absolute path to the workspace root so sandboxed workers can resolve
+# absolute paths to host resources (like linux/test_helper.lua).
+export KO_WORKSPACE_DIR="$(pwd)"
+
+# Unset developer-specific emulator and font environment variables to guarantee a
+# standardized and deterministic test environment on all host workstations.
+unset EMULATE_READER_DPI
+unset EMULATE_READER_VIEWPORT
+unset EMULATE_READER_FORCE_PORTRAIT
+unset DISABLE_TOUCH
+unset EMULATE_BB_TYPE
+unset EXT_FONT_DIR
+
 # Parse command line arguments to extract the target platform directory and optional test file/directory
 PLATFORM_DIR="linux"
 TEST_FILE=""
@@ -33,6 +46,9 @@ if [ ! -d "$PLATFORM_DIR" ]; then
     echo "[!] Error: Selected platform environment directory '$PLATFORM_DIR' does not exist."
     exit 1
 fi
+
+# Clean up host screenshots directory from previous runs to prevent stale images
+rm -rf "$PLATFORM_DIR/screenshots"
 
 # Verify that the specified test file exists if provided
 if [ -n "$TEST_FILE" ]; then
