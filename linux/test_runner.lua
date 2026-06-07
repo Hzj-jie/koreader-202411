@@ -31,7 +31,192 @@ if not pcall(dofile, "test_helper.lua") then
     dofile("ffi/loadlib.lua")
 end
 
--- 3. Execute Busted runner (loads options automatically from .busted config file)
+-- 3. Check if we are running a specific test file or the whole suite
+local test_file = arg[1]
+
+if test_file then
+    -- Force DocSettings to ALWAYS use "dir" location (docsettings/ folder) during tests.
+    -- This ensures book settings are written to the isolated /tmp/.../koreader/docsettings/ directory
+    -- instead of writing sidecars (.sdr/) next to the shared book files on the host filesystem,
+    -- completely preventing parallel test conflicts on shared books (like leaves.epub)!
+    -- NOTE: We exclude specs that specifically test named settings / metadata path generation logic
+    -- to prevent breaking their assertions.
+    local is_settings_test = test_file:match("docsettings_spec%.lua$") or test_file:match("named_settings_spec%.lua$")
+    if not is_settings_test then
+        local ok, named_settings = pcall(require, "named_settings")
+        if ok then
+            named_settings.document_metadata_folder = function()
+                return "dir"
+            end
+        end
+    end
+end
+
+if not test_file then
+    -- Orchestrator mode: run spec files in parallel worker pool of processes
+    print("=========================================================================")
+    print("[*] Test Runner: Orchestrating all tests in parallel processes...")
+    print("=========================================================================")
+
+    -- List of spec files that must be exempted from environment isolation (KO_MULTIUSER)
+    -- because they test path resolution, local file creation, or monkeypatch 
+    -- core settings logic (like docsettings/named_settings) that breaks isolation.
+    local env_exemptions = {
+        ["spec/unit/datastorage_spec.lua"] = true,
+        ["spec/unit/screenshoter_spec.lua"] = true,
+        ["spec/unit/readerhighlight_spec.lua"] = true,
+        ["spec/unit/docsettings_spec.lua"] = true,
+        ["spec/unit/named_settings_spec.lua"] = true,
+    }
+
+    -- Find all spec files under base/spec/unit and spec/unit
+    local p = io.popen("find base/spec/unit spec/unit -name '*_spec.lua' 2>/dev/null | sort")
+    if not p then
+        io.stderr:write("[!] Error: Failed to run find command to discover spec files.\n")
+        original_os_exit(1, false)
+    end
+
+    local spec_files = {}
+    for line in p:lines() do
+        table.insert(spec_files, line)
+    end
+    p:close()
+
+    if #spec_files == 0 then
+        io.stderr:write("[!] Error: No spec files found.\n")
+        original_os_exit(1, false)
+    end
+
+    -- Determine optimal parallelism (number of CPU cores, default to 4)
+    local max_jobs = 4
+    local nproc_p = io.popen("nproc 2>/dev/null")
+    if nproc_p then
+        local cores = tonumber(nproc_p:read("*l"))
+        nproc_p:close()
+        if cores and cores > 0 then
+            max_jobs = cores
+        end
+    end
+    print("[*] Running with parallelism limit: " .. max_jobs)
+    print("")
+
+    local active_jobs = {}
+    local failed_tests = {}
+    local total_tests = 0
+    local passed_tests = 0
+    local next_spec_idx = 1
+
+    -- Helper to spawn a job with isolated environment (or clean default env if exempted)
+    local function spawn_job(idx)
+        local spec_path = spec_files[idx]
+        local use_isolated_env = not env_exemptions[spec_path]
+        
+        local cmd
+        local worker_config_dir
+        
+        if use_isolated_env then
+            worker_config_dir = string.format("/tmp/koreader_worker_%d_%d", parent_pid, idx)
+            os.execute("mkdir -p " .. worker_config_dir)
+            -- We set KO_MULTIUSER=1 and XDG_CONFIG_HOME to direct all configuration/settings
+            -- writes to this isolated directory, preventing parallel file access conflicts!
+            cmd = string.format("KO_MULTIUSER=1 XDG_CONFIG_HOME=%q ./luajit test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", worker_config_dir, spec_path)
+        else
+            -- Run without environment manipulation for exempted tests
+            cmd = string.format("./luajit test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", spec_path)
+        end
+
+        local pipe = io.popen(cmd)
+        if pipe then
+            active_jobs[idx] = {
+                pipe = pipe,
+                spec_path = spec_path,
+                worker_config_dir = worker_config_dir, -- will be nil for exempted tests
+            }
+            total_tests = total_tests + 1
+        else
+            io.stderr:write("[!] Error: Failed to spawn test: " .. spec_path .. "\n")
+            table.insert(failed_tests, spec_path)
+            if worker_config_dir then
+                os.execute("rm -rf " .. worker_config_dir)
+            end
+        end
+    end
+
+    -- Initial spawn
+    while next_spec_idx <= #spec_files and next_spec_idx <= max_jobs do
+        spawn_job(next_spec_idx)
+        next_spec_idx = next_spec_idx + 1
+    end
+
+    -- Process the queue sequentially to keep printed logs clean and ordered
+    for i = 1, #spec_files do
+        local job = active_jobs[i]
+        if job then
+            print("=========================================================================")
+            print(string.format("[*] Running test (%d/%d): %s", i, #spec_files, job.spec_path))
+            print("=========================================================================")
+
+            -- Block until this specific job's output is fully read
+            local output = job.pipe:read("*a")
+            job.pipe:close()
+
+            -- Parse exit status from the end of the output
+            local exit_code = 0
+            local clean_output = output
+            local status_pattern = "\nEXIT_STATUS:(%d+)\n$"
+            if not output:match(status_pattern) then
+                status_pattern = "EXIT_STATUS:(%d+)$"
+            end
+            local status_str = output:match(status_pattern)
+            if status_str then
+                exit_code = tonumber(status_str)
+                clean_output = output:gsub("\n?EXIT_STATUS:%d+\n?$", "")
+            else
+                io.stderr:write("[!] Warning: Could not parse exit status for: " .. job.spec_path .. "\n")
+                exit_code = 1
+            end
+
+            -- Print the clean output
+            io.write(clean_output)
+
+            if exit_code == 0 then
+                passed_tests = passed_tests + 1
+            else
+                table.insert(failed_tests, job.spec_path)
+            end
+            print("")
+
+            -- Clean up the isolated worker directory immediately after completion (if used)
+            if job.worker_config_dir then
+                os.execute("rm -rf " .. job.worker_config_dir)
+            end
+
+            -- Spawn the next job in line to keep the worker pool busy
+            if next_spec_idx <= #spec_files then
+                spawn_job(next_spec_idx)
+                next_spec_idx = next_spec_idx + 1
+            end
+        end
+    end
+
+    print("=========================================================================")
+    print("[*] Test Suite Summary:")
+    print("    Total test files: " .. total_tests)
+    print("    Passed:           " .. passed_tests)
+    print("    Failed:           " .. #failed_tests)
+    print("=========================================================================")
+
+    if #failed_tests > 0 then
+        print("[!] Failed test files:")
+        for _, failed in ipairs(failed_tests) do
+            print("    - " .. failed)
+        end
+        original_os_exit(1, false)
+    end
+    original_os_exit(0, false)
+end
+
+-- 4. Execute Busted runner (loads options automatically from .busted config file)
 local ok, err = pcall(function()
     require("busted.runner")({ standalone = false })
 end)
@@ -41,9 +226,9 @@ if not ok then
     exit_code = 1
 end
 
--- 4. Clean up and finalize all unreachable FFI objects while C dynamic libraries are still loaded
+-- 5. Clean up and finalize all unreachable FFI objects while C dynamic libraries are still loaded
 collectgarbage("collect")
 collectgarbage("collect")
 
--- 5. Exit cleanly bypassing out-of-order VM teardown crashes
+-- 6. Exit cleanly bypassing out-of-order VM teardown crashes
 original_os_exit(exit_code, false)

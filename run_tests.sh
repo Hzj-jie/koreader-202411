@@ -50,5 +50,13 @@ export SDL_VIDEODRIVER=dummy
 if [ -n "$TEST_FILE" ]; then
     ./luajit test_runner.lua "$TEST_FILE" || true
 else
-    ./luajit test_runner.lua || true
+    exit_code=0
+    start_time=$(date +%s)
+    ./luajit test_runner.lua || exit_code=$?
+    end_time=$(date +%s)
+    elapsed=$((end_time - start_time))
+    echo "========================================================================="
+    echo "    Total time:       ${elapsed}s"
+    echo "========================================================================="
+    exit $exit_code
 fi
