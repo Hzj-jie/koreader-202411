@@ -65,7 +65,6 @@ if not test_file then
     local env_exemptions = {
         ["spec/unit/datastorage_spec.lua"] = true,
         ["spec/unit/screenshoter_spec.lua"] = true,
-        ["spec/unit/readerhighlight_spec.lua"] = true,
         ["spec/unit/docsettings_spec.lua"] = true,
         ["spec/unit/named_settings_spec.lua"] = true,
     }
@@ -146,7 +145,8 @@ if not test_file then
             os.execute("mkdir -p " .. worker_config_dir)
             -- We set KO_MULTIUSER=1 and XDG_CONFIG_HOME to direct all configuration/settings
             -- writes to this isolated directory, preventing parallel file access conflicts!
-            cmd = string.format("KO_MULTIUSER=1 XDG_CONFIG_HOME=%q ./luajit test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", worker_config_dir, spec_path)
+            -- We also set TESSDATA_PREFIX=data so Tesseract OCR can find the trained data in the isolated environment.
+            cmd = string.format("KO_MULTIUSER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", worker_config_dir, spec_path)
         else
             -- Run without environment manipulation for exempted tests
             cmd = string.format("./luajit test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", spec_path)
