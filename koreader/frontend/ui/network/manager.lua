@@ -41,39 +41,36 @@ ConnectivityChecker.executable = function()
   ConnectivityChecker:_executable()
 end
 
-ConnectivityChecker.callback = function(job)
-  ConnectivityChecker:_callback(job)
-end
-
 function ConnectivityChecker:_executable()
-  if not NetworkMgr:_isWifiConnected() then
+  -- It's a little bit wasteful that the empty job will be continuously running
+  -- when settings_id is set to 0.
+  if not self:running() then
     return
   end
-  logger.info(
-    "Wi-Fi successfully restored (after",
-    os.clock() - self.settings_id / 1000,
-    "seconds)!"
-  )
-  -- Avoid causing timeout due to query online state.
-  UIManager:nextTick(function()
-    NetworkMgr:_networkConnected()
-  end)
-  self:stop()
-end
-
-function ConnectivityChecker:_callback(_job)
-  -- Up to 60s.
-  if os.clock() - self.settings_id / 1000 < 60 then
-    return
-  end
-  -- Last iteration, shutdown connection.
-  NetworkMgr:_abortWifiConnection()
-
-  -- Handle the UI warning if it's from a beforeWifiAction...
-  if self.interactive then
-    UIManager:show(
-      InfoMessage:new({ text = gettext("Error connecting to the network") })
+  if NetworkMgr:_isWifiConnected() then
+    logger.info(
+      "Wi-Fi successfully restored (after",
+      os.clock() - self.settings_id / 1000,
+      "seconds)!"
     )
+    -- Avoid causing timeout due to query online state.
+    UIManager:nextTick(function()
+      NetworkMgr:_networkConnected()
+    end)
+  else
+    -- Up to 60s.
+    if os.clock() - self.settings_id / 1000 < 60 then
+      return
+    end
+    -- Last iteration, shutdown connection.
+    NetworkMgr:_abortWifiConnection()
+
+    -- Handle the UI warning if it's from a beforeWifiAction...
+    if self.interactive then
+      UIManager:show(
+        InfoMessage:new({ text = gettext("Error connecting to the network") })
+      )
+    end
   end
 
   self:stop()
