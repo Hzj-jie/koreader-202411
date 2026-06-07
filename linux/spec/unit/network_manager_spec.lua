@@ -77,6 +77,144 @@ describe("network_manager module", function()
         assert.is.same(release_ip_called, 0)
     end)
 
+    describe("ConnectivityChecker", function()
+        local NetworkMgr
+        local Checker
+        local original_isWifiConnected
+        local original_networkConnected
+        local original_abortWifiConnection
+        local original_show
+        local original_clock
+        local abort_called
+        local connected_called
+        local show_called
+        local shown_message
+        local current_time
+
+        setup(function()
+            -- Load the module
+            package.loaded["ui/network/manager"] = nil
+            NetworkMgr = require("ui/network/manager")
+            Checker = NetworkMgr.ConnectivityChecker
+
+            -- Save original methods
+            original_isWifiConnected = NetworkMgr._isWifiConnected
+            original_networkConnected = NetworkMgr._networkConnected
+            original_abortWifiConnection = NetworkMgr._abortWifiConnection
+            original_show = UIManager.show
+            original_clock = os.clock
+        end)
+
+        before_each(function()
+            abort_called = 0
+            connected_called = 0
+            show_called = 0
+            shown_message = nil
+            current_time = 100
+
+            -- Mock methods
+            NetworkMgr._isWifiConnected = function() return false end
+            NetworkMgr._networkConnected = function() connected_called = connected_called + 1 end
+            NetworkMgr._abortWifiConnection = function() abort_called = abort_called + 1 end
+            UIManager.show = function(self_ui, widget)
+                show_called = show_called + 1
+                shown_message = widget
+            end
+            os.clock = function() return current_time end
+
+            Checker:stop()
+        end)
+
+        after_each(function()
+            Checker:stop()
+        end)
+
+        teardown(function()
+            -- Restore original methods
+            NetworkMgr._isWifiConnected = original_isWifiConnected
+            NetworkMgr._networkConnected = original_networkConnected
+            NetworkMgr._abortWifiConnection = original_abortWifiConnection
+            UIManager.show = original_show
+            os.clock = original_clock
+        end)
+
+        it("should not be running initially", function()
+            assert.is_false(Checker:running())
+        end)
+
+        it("should start and stop correctly", function()
+            Checker:start()
+            assert.is_true(Checker:running())
+            assert.is_nil(Checker.interactive)
+
+            Checker:stop()
+            assert.is_false(Checker:running())
+        end)
+
+        it("should start with interactive flag", function()
+            Checker:start(true)
+            assert.is_true(Checker:running())
+            assert.is_true(Checker.interactive)
+        end)
+
+        it("should do nothing on execution if not running", function()
+            Checker:executable()
+            assert.is.same(connected_called, 0)
+            assert.is.same(abort_called, 0)
+            assert.is.same(show_called, 0)
+        end)
+
+        it("should restore network on execution if wifi is connected", function()
+            NetworkMgr._isWifiConnected = function() return true end
+            Checker:start()
+            Checker:executable()
+
+            -- nextTick is asynchronous, so we must run UIManager tasks
+            UIManager:_checkTasks()
+
+            assert.is.same(connected_called, 1)
+            assert.is_false(Checker:running())
+            assert.is.same(abort_called, 0)
+        end)
+
+        it("should do nothing on execution if not connected and within 60s", function()
+            Checker:start()
+            current_time = 110 -- 10 seconds elapsed
+
+            Checker:executable()
+
+            assert.is.same(connected_called, 0)
+            assert.is.same(abort_called, 0)
+            assert.is.same(show_called, 0)
+            assert.is_true(Checker:running())
+        end)
+
+        it("should abort connection on execution if not connected after 60s (non-interactive)", function()
+            Checker:start(false)
+            current_time = 161 -- 61 seconds elapsed
+
+            Checker:executable()
+
+            assert.is.same(connected_called, 0)
+            assert.is.same(abort_called, 1)
+            assert.is.same(show_called, 0)
+            assert.is_false(Checker:running())
+        end)
+
+        it("should abort connection and show warning on execution if not connected after 60s (interactive)", function()
+            Checker:start(true)
+            current_time = 161 -- 61 seconds elapsed
+
+            Checker:executable()
+
+            assert.is.same(connected_called, 0)
+            assert.is.same(abort_called, 1)
+            assert.is.same(show_called, 1)
+            assert.is_not_nil(shown_message)
+            assert.is_false(Checker:running())
+        end)
+    end)
+
     teardown(function()
         function Device:initNetworkManager() end
         function Device:hasWifiRestore() return false end
