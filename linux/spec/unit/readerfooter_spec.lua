@@ -3,12 +3,38 @@ describe("Readerfooter module", function()
     local purgeDir, Screen
     local tapFooterMenu
 
+    local original_os_time = os.time
+    local original_os_date = os.date
+
     local function is_am()
         -- Technically only an issue for 1 digit results from %-H, e.g., anything below 10:00 AM
         return tonumber(os.date("%H")) < 10
     end
 
     setup(function()
+        -- Mock os.time and os.date to return a fixed 09:00 AM time
+        -- to ensure 100% deterministic clock widths regardless of host time/timezone!
+        os.time = function()
+            return 1700000000
+        end
+        os.date = function(format, time)
+            local t = time or 1700000000
+            if format == "%H" then
+                return "09"
+            elseif format == "%p" then
+                return "AM"
+            elseif format:find("%%%-I") or format:find("%%_I") or format:find("%%I") then
+                local res = format:gsub("%%%-I", "9"):gsub("%%_I", " 9"):gsub("%%I", "09")
+                res = res:gsub("%%M", "00")
+                res = res:gsub("%%p", "AM")
+                return res
+            elseif format:find("%%%-H") or format:find("%%_H") or format:find("%%H") then
+                local res = format:gsub("%%%-H", "9"):gsub("%%_H", " 9"):gsub("%%H", "09")
+                res = res:gsub("%%M", "00")
+                return res
+            end
+            return original_os_date(format, t)
+        end
         require("commonrequire")
         package.unloadAll()
         local Device = require("device")
@@ -58,6 +84,8 @@ describe("Readerfooter module", function()
     end)
 
     teardown(function()
+        os.time = original_os_time
+        os.date = original_os_date
         -- Clean up global settings we played with
         G_reader_settings:delete("reader_footer_mode")
         G_reader_settings:delete("footer")
