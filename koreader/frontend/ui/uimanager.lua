@@ -415,6 +415,7 @@ function UIManager:_close(widget)
     logger.dbg("Widget is gone, disabling gesture handling again")
     self:setIgnoreTouchInput(true)
   end
+  widget:uimanagedCleanUp()
 end
 
 -- The three close functions functional wise are identical but log different

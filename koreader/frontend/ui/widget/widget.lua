@@ -128,14 +128,14 @@ function Widget:dirtyRegion()
 end
 
 function Widget:scheduleRepaint() -- final
-  if self:_isInWindowStack() then
+  if self:isInWindowStack() then
     -- Otherwise the widget hasn't been shown yet and will be paintTo later.
     require("ui/uimanager"):scheduleWidgetRepaint(self)
   end
 end
 
 function Widget:scheduleRefresh() -- final
-  if self:_isInWindowStack() then
+  if self:isInWindowStack() then
     -- Otherwise the widget hasn't been shown yet and will be paintTo later.
     require("ui/uimanager"):scheduleRefresh(
       self:refreshMode(),
@@ -146,7 +146,7 @@ end
 
 -- Use with caution, UIManager:setDirty is a deprecated function.
 function Widget:setDirty(...) -- final
-  if self:_isInWindowStack() then
+  if self:isInWindowStack() then
     require("ui/uimanager"):setDirty(self, ...)
   end
 end
@@ -156,7 +156,7 @@ end
 -- test to ensure it won't schedule a repaint on anything which isn't in the
 -- window stack yet, i.e. will be painted in random places and / or cover other
 -- elements.
-function Widget:_isInWindowStack() -- final
+function Widget:isInWindowStack() -- final
   return self:window() ~= nil
 end
 
@@ -256,6 +256,34 @@ function Widget:myRange(ges)
       return self:getSize()
     end,
   })
+end
+
+-- WARNING: Do not override, shadow, or call this method directly.
+-- This method is internally orchestrated by UIManager to recursively clean up
+-- and dereference active widgets and their children upon closing, preventing
+-- memory and event propagation leaks.
+function Widget:uimanagedCleanUp()
+  if self._uimanaged_cleaning_up then
+    return
+  end
+  self._uimanaged_cleaning_up = true
+
+  local UIManager = require("ui/uimanager")
+  local to_dispose = {}
+  for k, v in pairs(self) do
+    if type(k) ~= "number" and k ~= "parent" and k ~= "ui" and type(v) == "table" then
+      table.insert(to_dispose, v)
+    end
+  end
+
+  for _, v in ipairs(to_dispose) do
+    if v.isInWindowStack and v:isInWindowStack() and type(v.uimanagedCleanUp) == "function" then
+      UIManager:closeIfShown(v)
+      v:uimanagedCleanUp()
+    end
+  end
+
+  self._uimanaged_cleaning_up = nil
 end
 
 return Widget

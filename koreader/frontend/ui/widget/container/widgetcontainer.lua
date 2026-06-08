@@ -158,4 +158,24 @@ function WidgetContainer:free(full)
   end
 end
 
+-- WARNING: Do not override, shadow, or call this method directly.
+-- This method is internally orchestrated by UIManager to recursively clean up
+-- and dereference active widgets and their children upon closing, preventing
+-- memory and event propagation leaks.
+function WidgetContainer:uimanagedCleanUp()
+  if self._uimanaged_cleaning_up then
+    return
+  end
+  self._uimanaged_cleaning_up = true
+
+  for _, widget in ipairs(self) do
+    if type(widget.uimanagedCleanUp) == "function" then
+      widget:uimanagedCleanUp()
+    end
+  end
+
+  self._uimanaged_cleaning_up = nil
+  Widget.uimanagedCleanUp(self)
+end
+
 return WidgetContainer
