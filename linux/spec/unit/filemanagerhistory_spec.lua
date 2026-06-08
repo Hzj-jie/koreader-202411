@@ -92,6 +92,11 @@ describe("FileManagerHistory", function()
         end
       end
     end)
+    mock_uimanager.closeIfNotNil = spy.new(function(self, widget)
+      if widget then
+        self:close(widget)
+      end
+    end)
     mock_uimanager.runWith = spy.new(function(self, func, _msg)
       func()
     end)
@@ -784,6 +789,30 @@ describe("FileManagerHistory", function()
       assert.has_no_errors(function()
         fmh:onBookMetadataChanged()
       end)
+    end)
+  end)
+
+  describe("onClose", function()
+    it("closes histfile_dialog and hist_menu", function()
+      local ui_mock = { menu = mock_menu }
+      local fmh = FileManagerHistory:new({ ui = ui_mock })
+
+      local dummy_dialog = { name = "dummy_dialog" }
+      local dummy_menu = { name = "dummy_menu" }
+
+      mock_uimanager:show(dummy_dialog)
+      mock_uimanager:show(dummy_menu)
+
+      fmh.histfile_dialog = dummy_dialog
+      fmh.hist_menu = dummy_menu
+
+      fmh:onClose()
+
+      assert.is_nil(fmh.histfile_dialog)
+      assert.is_nil(fmh.hist_menu)
+
+      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, match.is_ref(dummy_dialog))
+      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, match.is_ref(dummy_menu))
     end)
   end)
 end)

@@ -224,6 +224,21 @@ describe("ReaderBookmark module", function()
 
             bookmark_mod.ui.annotation.annotations = orig_annotations
         end)
+
+        it("should close bookmark menu when onClose is called", function()
+            local Widget = require("ui/widget/widget")
+            local dummy_menu = Widget:new{ dimen = Geom:new{ w = 10, h = 10 } }
+            UIManager:show(dummy_menu)
+            readerui.bookmark.bookmark_menu = dummy_menu
+
+            assert.truthy(readerui.bookmark.bookmark_menu)
+            assert.truthy(UIManager:isWindowWidget(dummy_menu))
+
+            readerui.bookmark:onClose()
+
+            assert.falsy(readerui.bookmark.bookmark_menu)
+            assert.falsy(UIManager:isWindowWidget(dummy_menu))
+        end)
     end)
 
     describe("PDF document", function()

@@ -67,4 +67,38 @@ describe("Readerdictionary module", function()
         UIManager:run()
         Screen:shot("screenshots/reader_dictionary_japanese.png")
     end)
+
+    it("should close dict_window, dictionary_lookup_dialog, and download_window when onClose is called", function()
+        local Geom = require("ui/geometry")
+        local Widget = require("ui/widget/widget")
+        local dummy_dict_window = Widget:new{ dimen = Geom:new{ w = 10, h = 10 } }
+        local dummy_lookup_dialog = Widget:new{ dimen = Geom:new{ w = 10, h = 10 } }
+        local dummy_download_window = Widget:new{ dimen = Geom:new{ w = 10, h = 10 } }
+
+        UIManager:show(dummy_dict_window)
+        UIManager:show(dummy_lookup_dialog)
+        UIManager:show(dummy_download_window)
+
+        dictionary.dict_window = dummy_dict_window
+        dictionary.dictionary_lookup_dialog = dummy_lookup_dialog
+        dictionary.download_window = dummy_download_window
+
+        assert.truthy(dictionary.dict_window)
+        assert.truthy(dictionary.dictionary_lookup_dialog)
+        assert.truthy(dictionary.download_window)
+
+        assert.truthy(UIManager:isWindowWidget(dummy_dict_window))
+        assert.truthy(UIManager:isWindowWidget(dummy_lookup_dialog))
+        assert.truthy(UIManager:isWindowWidget(dummy_download_window))
+
+        dictionary:onClose()
+
+        assert.falsy(dictionary.dict_window)
+        assert.falsy(dictionary.dictionary_lookup_dialog)
+        assert.falsy(dictionary.download_window)
+
+        assert.falsy(UIManager:isWindowWidget(dummy_dict_window))
+        assert.falsy(UIManager:isWindowWidget(dummy_lookup_dialog))
+        assert.falsy(UIManager:isWindowWidget(dummy_download_window))
+    end)
 end)
