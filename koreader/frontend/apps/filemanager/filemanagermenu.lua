@@ -714,7 +714,6 @@ function FileManagerMenu:onShowMenu(tab_index)
   local menu_container = CenterContainer:new({
     ignore = "height",
     dimen = Screen:getSize(),
-    modal = true,
   })
 
   local main_menu
