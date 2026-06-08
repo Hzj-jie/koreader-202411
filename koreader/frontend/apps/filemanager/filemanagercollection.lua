@@ -703,4 +703,13 @@ function FileManagerCollection:genAddToCollectionButton(
   }
 end
 
+function FileManagerCollection:onClose()
+  UIManager:closeIfNotNil(self.coll_menu)
+  self.coll_menu = nil
+  UIManager:closeIfNotNil(self.collfile_dialog)
+  self.collfile_dialog = nil
+  UIManager:closeIfNotNil(self.coll_list)
+  self.coll_list = nil
+end
+
 return FileManagerCollection

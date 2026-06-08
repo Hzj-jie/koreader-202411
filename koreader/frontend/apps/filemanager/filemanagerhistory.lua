@@ -485,4 +485,11 @@ function FileManagerHistory:onBookMetadataChanged()
   end
 end
 
+function FileManagerHistory:onClose()
+  UIManager:closeIfNotNil(self.histfile_dialog)
+  self.histfile_dialog = nil
+  UIManager:closeIfNotNil(self.hist_menu)
+  self.hist_menu = nil
+end
+
 return FileManagerHistory

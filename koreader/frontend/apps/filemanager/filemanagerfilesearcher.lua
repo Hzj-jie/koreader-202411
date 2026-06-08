@@ -575,4 +575,9 @@ function FileSearcher:showSelectModeDialog()
   UIManager:show(select_dialog)
 end
 
+function FileSearcher:onClose()
+  UIManager:closeIfNotNil(self.search_menu)
+  self.search_menu = nil
+end
+
 return FileSearcher

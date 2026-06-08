@@ -902,4 +902,9 @@ function BookInfo.showBooksWithHashBasedMetadata()
   }))
 end
 
+function BookInfo:onClose()
+  UIManager:closeIfNotNil(self.kvp_widget)
+  self.kvp_widget = nil
+end
+
 return BookInfo

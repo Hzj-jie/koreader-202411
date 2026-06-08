@@ -255,4 +255,9 @@ function FileManagerShortcuts:onShowFolderShortcutsDialog(select_callback)
   UIManager:show(self.shortcuts_menu)
 end
 
+function FileManagerShortcuts:onClose()
+  UIManager:closeIfNotNil(self.shortcuts_menu)
+  self.shortcuts_menu = nil
+end
+
 return FileManagerShortcuts

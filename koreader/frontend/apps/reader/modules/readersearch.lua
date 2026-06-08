@@ -882,18 +882,12 @@ function ReaderSearch:showAllResultsMenuDialog()
 end
 
 function ReaderSearch:onClose()
-  if self.input_dialog then
-    UIManager:close(self.input_dialog)
-    self.input_dialog = nil
-  end
-  if self.search_dialog then
-    UIManager:close(self.search_dialog)
-    self.search_dialog = nil
-  end
-  if self.result_menu then
-    UIManager:close(self.result_menu)
-    self.result_menu = nil
-  end
+  UIManager:closeIfNotNil(self.input_dialog)
+  self.input_dialog = nil
+  UIManager:closeIfNotNil(self.search_dialog)
+  self.search_dialog = nil
+  UIManager:closeIfNotNil(self.result_menu)
+  self.result_menu = nil
 end
 
 return ReaderSearch
