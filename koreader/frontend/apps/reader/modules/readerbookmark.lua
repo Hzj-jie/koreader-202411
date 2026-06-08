@@ -1650,4 +1650,11 @@ function ReaderBookmark:doesBookmarkMatchTable(item)
   end
 end
 
+function ReaderBookmark:onClose()
+  if self.bookmark_menu then
+    UIManager:close(self.bookmark_menu)
+    self.bookmark_menu = nil
+  end
+end
+
 return ReaderBookmark

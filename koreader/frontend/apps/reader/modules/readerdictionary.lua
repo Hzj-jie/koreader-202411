@@ -1398,4 +1398,19 @@ The current default (★) is enabled.]])),
   }))
 end
 
+function ReaderDictionary:onClose()
+  if self.dict_window then
+    UIManager:close(self.dict_window)
+    self.dict_window = nil
+  end
+  if self.dictionary_lookup_dialog then
+    UIManager:close(self.dictionary_lookup_dialog)
+    self.dictionary_lookup_dialog = nil
+  end
+  if self.download_window then
+    UIManager:close(self.download_window)
+    self.download_window = nil
+  end
+end
+
 return ReaderDictionary
