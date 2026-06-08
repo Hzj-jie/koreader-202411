@@ -814,4 +814,8 @@ function FileManagerMenu:onShowKeyboardShortcuts()
   require("ui/elements/common_info_menu_table").keyboard_shortcuts.callback()
 end
 
+function FileManagerMenu:onClose()
+  self:_closeFileManagerMenu()
+end
+
 return FileManagerMenu
