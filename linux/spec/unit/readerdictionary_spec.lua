@@ -101,4 +101,21 @@ describe("Readerdictionary module", function()
         assert.falsy(UIManager:isWindowWidget(dummy_lookup_dialog))
         assert.falsy(UIManager:isWindowWidget(dummy_download_window))
     end)
+
+    it("should keep reader open when dict_window is closed", function()
+        UIManager:quit()
+        UIManager:show(readerui)
+        rolling:onGotoPage(100)
+        dictionary:onLookupWord("test")
+
+        assert.truthy(UIManager:isWindowWidget(readerui))
+        assert.truthy(UIManager:isWindowWidget(dictionary.dict_window))
+
+        UIManager:close(dictionary.dict_window)
+
+        assert.falsy(UIManager:isWindowWidget(dictionary.dict_window))
+        assert.truthy(UIManager:isWindowWidget(readerui))
+
+        UIManager:close(readerui)
+    end)
 end)

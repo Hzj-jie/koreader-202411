@@ -269,17 +269,20 @@ function Widget:uimanagedCleanUp()
   self._uimanaged_cleaning_up = true
 
   local UIManager = require("ui/uimanager")
-  local to_dispose = {}
-  for k, v in pairs(self) do
-    if type(k) ~= "number" and k ~= "parent" and k ~= "ui" and type(v) == "table" then
-      table.insert(to_dispose, v)
-    end
-  end
+  local my_stack_index = UIManager:getStackIndex(self)
 
-  for _, v in ipairs(to_dispose) do
-    if v.isInWindowStack and v:isInWindowStack() and type(v.uimanagedCleanUp) == "function" then
-      UIManager:closeIfShown(v)
-      v:uimanagedCleanUp()
+  for k, v in pairs(self) do
+    if type(v) == "table" and type(v.uimanagedCleanUp) == "function" then
+      local is_window = v.isInWindowStack and v:isInWindowStack()
+      if is_window then
+        local v_stack_index = UIManager:getStackIndex(v)
+        if my_stack_index and v_stack_index and v_stack_index > my_stack_index then
+          UIManager:closeIfShown(v)
+          v:uimanagedCleanUp()
+        end
+      else
+        v:uimanagedCleanUp()
+      end
     end
   end
 

@@ -769,6 +769,26 @@ function UIManager:getTopmostVisibleWidget()
   end
 end
 
+function UIManager:getStackIndex(widget)
+  if not _isWidget(widget) then
+    return nil
+  end
+  for i, w in ipairs(self._window_stack) do
+    if w.widget == widget then
+      return i
+    end
+  end
+  local window = widget.window and widget:window()
+  if window then
+    for i, w in ipairs(self._window_stack) do
+      if w == window then
+        return i
+      end
+    end
+  end
+  return nil
+end
+
 --- Same as `isSubwidgetShown`, but only check window-level widgets (e.g., what's directly registered in the window stack), don't recurse.
 function UIManager:isWindowWidget(widget)
   -- TODO: Should assert
