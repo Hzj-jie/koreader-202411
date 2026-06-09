@@ -232,5 +232,76 @@ describe("FileManager module", function()
 
         filemanager:onClose()
     end)
+
+    it("should switch tabs on swipe left & right on FileManagerMenu", function()
+        UIManager:quit()
+
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+
+        -- Close any initial loading info/notifications
+        while #UIManager._window_stack > 1 do
+            UIManager:close(UIManager._window_stack[#UIManager._window_stack].widget)
+        end
+
+        -- Force UIManager to layout and paint all widgets so dimensions are set correctly
+        UIManager:forceRepaint()
+
+        -- Simulate tapping at the top of the screen to open the TouchMenu
+        local Event = require("ui/event")
+        local Geom = require("ui/geometry")
+        local tap_event = Event:new("Gesture", {
+            ges = "tap",
+            pos = Geom:new({ x = Screen:getWidth() / 2, y = 10 }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+
+        UIManager:userInput(tap_event)
+
+        assert.is.same(2, #UIManager._window_stack)
+
+        local menu_container = UIManager._window_stack[2].widget
+        local touch_menu = menu_container[1]
+        assert.is_not_nil(touch_menu)
+
+        local initial_tab = touch_menu.cur_tab
+        assert.is_not_nil(initial_tab)
+        local page_num = touch_menu.page_num
+
+        -- Swipe left (west) page_num times to go to the next tab
+        for i = 1, page_num do
+            local center_x = touch_menu.dimen.x + touch_menu.dimen.w / 2
+            local center_y = touch_menu.dimen.y + touch_menu.dimen.h / 2
+            local swipe_left_event = Event:new("Gesture", {
+                ges = "swipe",
+                direction = "west",
+                pos = Geom:new({ x = center_x, y = center_y }),
+                time = require("ui/time").monotonic() + i * 1000,
+            }):asUserInput()
+            UIManager:userInput(swipe_left_event)
+        end
+
+        local next_tab = touch_menu.cur_tab
+
+        -- Swipe right (east) once to go back to the previous tab (since page reset to 1 on tab switch)
+        local center_x = touch_menu.dimen.x + touch_menu.dimen.w / 2
+        local center_y = touch_menu.dimen.y + touch_menu.dimen.h / 2
+        local swipe_right_event = Event:new("Gesture", {
+            ges = "swipe",
+            direction = "east",
+            pos = Geom:new({ x = center_x, y = center_y }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+        UIManager:userInput(swipe_right_event)
+
+        local final_tab = touch_menu.cur_tab
+
+        assert.is_not.same(initial_tab, next_tab)
+        assert.is.same(initial_tab, final_tab)
+
+        filemanager:onClose()
+    end)
 end)
 
