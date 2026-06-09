@@ -158,6 +158,8 @@ describe("ReaderMenu integration", function()
             UIManager:userInput(swipe_left_event)
         end
 
+        assert.is.same(3, #UIManager._window_stack)
+
         local next_tab = touch_menu.cur_tab
 
         -- Swipe right (east) once to go back to the previous tab (since page reset to 1 on tab switch)
@@ -171,10 +173,162 @@ describe("ReaderMenu integration", function()
         }):asUserInput()
         UIManager:userInput(swipe_right_event)
 
+        assert.is.same(3, #UIManager._window_stack)
+
         local final_tab = touch_menu.cur_tab
 
         assert.is_not.same(initial_tab, next_tab)
         assert.is.same(initial_tab, final_tab)
+
+        readerui:onExit()
+        readerui:onClose()
+    end)
+
+    it("should not spawn a new TouchMenu layer when swiping south on top-level TouchMenu", function()
+        local sample_pdf = "spec/front/unit/data/2col.pdf"
+        purgeDir(DocSettings:getSidecarDir(sample_pdf))
+        os.remove(DocSettings:getHistoryPath(sample_pdf))
+
+        local readerui = ReaderUI:new{
+            dimen = Screen:getSize(),
+            document = DocumentRegistry:openDocument(sample_pdf),
+        }
+
+        while #UIManager._window_stack > 1 do
+            UIManager:close(UIManager._window_stack[#UIManager._window_stack].widget)
+        end
+
+        local Event = require("ui/event")
+        local Geom = require("ui/geometry")
+        local tap_event = Event:new("Gesture", {
+            ges = "tap",
+            pos = Geom:new({ x = Screen:getWidth() / 2, y = 10 }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+
+        UIManager:userInput(tap_event)
+
+        assert.is.same(3, #UIManager._window_stack)
+        local menu_container = UIManager._window_stack[3].widget
+        local touch_menu = menu_container[1]
+        assert.is_not_nil(touch_menu)
+
+        local old_activate_menu = G_named_settings.activate_menu
+        G_named_settings.activate_menu = function() return "swipe" end
+        readerui.menu.activation_menu = "swipe" -- Update the cached value in the readerui menu module
+
+        local center_x = touch_menu.dimen.x + touch_menu.dimen.w / 2
+        local center_y = 50 -- Inside DTAP_ZONE_MENU (0 to 100) and inside TouchMenu (0 to 607)
+        local swipe_south_event = Event:new("Gesture", {
+            ges = "swipe",
+            direction = "south",
+            pos = Geom:new({ x = center_x, y = center_y }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+        UIManager:userInput(swipe_south_event)
+
+        -- Check that stack size did not grow (it should stay 3, or close the menu to <= 2)
+        assert.is_true(#UIManager._window_stack <= 3)
+
+        G_named_settings.activate_menu = old_activate_menu
+        readerui:onExit()
+        readerui:onClose()
+    end)
+
+    it("should close TouchMenu on swipe north", function()
+        local sample_pdf = "spec/front/unit/data/2col.pdf"
+        purgeDir(DocSettings:getSidecarDir(sample_pdf))
+        os.remove(DocSettings:getHistoryPath(sample_pdf))
+
+        local readerui = ReaderUI:new{
+            dimen = Screen:getSize(),
+            document = DocumentRegistry:openDocument(sample_pdf),
+        }
+
+        while #UIManager._window_stack > 1 do
+            UIManager:close(UIManager._window_stack[#UIManager._window_stack].widget)
+        end
+
+        local Event = require("ui/event")
+        local Geom = require("ui/geometry")
+        local tap_event = Event:new("Gesture", {
+            ges = "tap",
+            pos = Geom:new({ x = Screen:getWidth() / 2, y = 10 }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+
+        UIManager:userInput(tap_event)
+
+        assert.is.same(3, #UIManager._window_stack)
+        local menu_container = UIManager._window_stack[3].widget
+        local touch_menu = menu_container[1]
+        assert.is_not_nil(touch_menu)
+
+        -- Swipe north on TouchMenu
+        local center_x = touch_menu.dimen.x + touch_menu.dimen.w / 2
+        local center_y = touch_menu.dimen.y + touch_menu.dimen.h / 2
+        local swipe_north_event = Event:new("Gesture", {
+            ges = "swipe",
+            direction = "north",
+            pos = Geom:new({ x = center_x, y = center_y }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+        UIManager:userInput(swipe_north_event)
+
+        -- We assert 2, because bottom menu (ConfigDialog) is expected to stay open.
+        assert.is.same(2, #UIManager._window_stack)
+
+        readerui:onExit()
+        readerui:onClose()
+    end)
+
+    it("should close TouchMenu on tapping up button", function()
+        local sample_pdf = "spec/front/unit/data/2col.pdf"
+        purgeDir(DocSettings:getSidecarDir(sample_pdf))
+        os.remove(DocSettings:getHistoryPath(sample_pdf))
+
+        local readerui = ReaderUI:new{
+            dimen = Screen:getSize(),
+            document = DocumentRegistry:openDocument(sample_pdf),
+        }
+
+        while #UIManager._window_stack > 1 do
+            UIManager:close(UIManager._window_stack[#UIManager._window_stack].widget)
+        end
+
+        local Event = require("ui/event")
+        local Geom = require("ui/geometry")
+        local tap_event = Event:new("Gesture", {
+            ges = "tap",
+            pos = Geom:new({ x = Screen:getWidth() / 2, y = 10 }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+
+        UIManager:userInput(tap_event)
+
+        assert.is.same(3, #UIManager._window_stack)
+        local menu_container = UIManager._window_stack[3].widget
+        local touch_menu = menu_container[1]
+        assert.is_not_nil(touch_menu)
+
+        -- Force repaint to ensure positions are calculated
+        UIManager:forceRepaint()
+
+        -- Find up button
+        local up_button = touch_menu.footer[1][1]
+        assert.is_not_nil(up_button)
+
+        -- Simulate tap on up button
+        local pos = up_button.dimen
+        local tap_up_event = Event:new("Gesture", {
+            ges = "tap",
+            pos = Geom:new({ x = pos.x + pos.w / 2, y = pos.y + pos.h / 2 }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+        UIManager:userInput(tap_up_event)
+
+        -- Menu should be closed, but bottom menu (ConfigDialog) is expected to stay open
+        assert.is.same(2, #UIManager._window_stack)
 
         readerui:onExit()
         readerui:onClose()

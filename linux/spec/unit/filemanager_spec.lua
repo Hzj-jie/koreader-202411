@@ -283,6 +283,8 @@ describe("FileManager module", function()
             UIManager:userInput(swipe_left_event)
         end
 
+        assert.is.same(2, #UIManager._window_stack)
+
         local next_tab = touch_menu.cur_tab
 
         -- Swipe right (east) once to go back to the previous tab (since page reset to 1 on tab switch)
@@ -296,10 +298,103 @@ describe("FileManager module", function()
         }):asUserInput()
         UIManager:userInput(swipe_right_event)
 
+        assert.is.same(2, #UIManager._window_stack)
+
         local final_tab = touch_menu.cur_tab
 
         assert.is_not.same(initial_tab, next_tab)
         assert.is.same(initial_tab, final_tab)
+
+        filemanager:onClose()
+    end)
+
+    it("should close TouchMenu on swipe north", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+        }
+
+        while #UIManager._window_stack > 1 do
+            UIManager:close(UIManager._window_stack[#UIManager._window_stack].widget)
+        end
+        UIManager:forceRepaint()
+
+        -- Simulate tapping at the top of the screen to open the TouchMenu
+        local Event = require("ui/event")
+        local Geom = require("ui/geometry")
+        local tap_event = Event:new("Gesture", {
+            ges = "tap",
+            pos = Geom:new({ x = Screen:getWidth() / 2, y = 10 }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+
+        UIManager:userInput(tap_event)
+
+        assert.is.same(2, #UIManager._window_stack)
+        local menu_container = UIManager._window_stack[2].widget
+        local touch_menu = menu_container[1]
+        assert.is_not_nil(touch_menu)
+
+        -- Swipe north on TouchMenu
+        local center_x = touch_menu.dimen.x + touch_menu.dimen.w / 2
+        local center_y = touch_menu.dimen.y + touch_menu.dimen.h / 2
+        local swipe_north_event = Event:new("Gesture", {
+            ges = "swipe",
+            direction = "north",
+            pos = Geom:new({ x = center_x, y = center_y }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+        UIManager:userInput(swipe_north_event)
+
+        -- Menu should be closed, so stack size should be back to 1 (only FileManager)
+        assert.is.same(1, #UIManager._window_stack)
+
+        filemanager:onClose()
+    end)
+
+    it("should close TouchMenu on tapping up button", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+        }
+
+        while #UIManager._window_stack > 1 do
+            UIManager:close(UIManager._window_stack[#UIManager._window_stack].widget)
+        end
+        UIManager:forceRepaint()
+
+        -- Simulate tapping at the top of the screen to open the TouchMenu
+        local Event = require("ui/event")
+        local Geom = require("ui/geometry")
+        local tap_event = Event:new("Gesture", {
+            ges = "tap",
+            pos = Geom:new({ x = Screen:getWidth() / 2, y = 10 }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+
+        UIManager:userInput(tap_event)
+
+        assert.is.same(2, #UIManager._window_stack)
+        local menu_container = UIManager._window_stack[2].widget
+        local touch_menu = menu_container[1]
+        assert.is_not_nil(touch_menu)
+
+        -- Force repaint to ensure positions are calculated
+        UIManager:forceRepaint()
+
+        -- Find up button
+        local up_button = touch_menu.footer[1][1]
+        assert.is_not_nil(up_button)
+
+        -- Simulate tap on up button
+        local pos = up_button.dimen
+        local tap_up_event = Event:new("Gesture", {
+            ges = "tap",
+            pos = Geom:new({ x = pos.x + pos.w / 2, y = pos.y + pos.h / 2 }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+        UIManager:userInput(tap_up_event)
+
+        -- Menu should be closed
+        assert.is.same(1, #UIManager._window_stack)
 
         filemanager:onClose()
     end)
