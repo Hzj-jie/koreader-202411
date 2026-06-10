@@ -161,7 +161,7 @@ function FileManagerMenu:onOpenLastDoc()
     -- Mimic's FileManager's onShowingReader refresh optimizations
     self.ui.tearing_down = true
     self.ui.dithered = nil
-    self:_closeFileManagerMenu()
+    self:onClose()
   end
 
   local ReaderUI = require("apps/reader/readerui")
@@ -613,7 +613,7 @@ Tap a book in the search results to open it.]]
       icon = "plus",
       remember = false,
       callback = function()
-        self:_closeFileManagerMenu()
+        self:onClose()
         self.ui:tapPlus()
       end,
     }
@@ -698,7 +698,7 @@ end
 
 function FileManagerMenu:exitOrRestart(callback, _force)
   CommonMenu:exitOrRestart(function()
-    self:_closeFileManagerMenu()
+    self:onClose()
   end, self.ui, callback)
 end
 
@@ -734,7 +734,7 @@ function FileManagerMenu:onShowMenu(tab_index)
   end
 
   main_menu.close_callback = function()
-    self:_closeFileManagerMenu()
+    self:onClose()
   end
 
   menu_container[1] = main_menu
@@ -744,7 +744,7 @@ function FileManagerMenu:onShowMenu(tab_index)
   return true
 end
 
-function FileManagerMenu:_closeFileManagerMenu()
+function FileManagerMenu:onClose()
   if not self.menu_container then
     return true
   end
@@ -792,7 +792,7 @@ end
 function FileManagerMenu:onSetDimensions(_dimen)
   -- This widget doesn't support in-place layout updates, so, close & reopen
   if self.menu_container then
-    self:_closeFileManagerMenu()
+    self:onClose()
     self:onShowMenu()
   end
 

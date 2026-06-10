@@ -618,15 +618,52 @@ describe("ReaderMenu integration", function()
 
         -- Show menu once
         readerui.menu:_showMenu()
+        local first_menu = readerui.menu.menu_container
 
         -- Show menu twice (without closing first) should assert
         assert.has.errors(function()
             readerui.menu:_showMenu()
         end, "Multiple TouchMenu instances detected!")
 
+        if first_menu then
+            UIManager:close(first_menu)
+        end
+
         if readerui then
             readerui:onExit()
             readerui:onClose()
+        end
+    end)
+
+    it("should not leak FileManager menu when opening document", function()
+        local FileManager = require("apps/filemanager/filemanager")
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+
+        -- Open FileManager menu
+        filemanager.menu:onShowMenu()
+
+        -- Open a file (this should trigger showReader and close FileManager)
+        local sample_pdf = "spec/front/unit/data/2col.pdf"
+        filemanager:openFile(sample_pdf)
+
+        -- Now ReaderUI should be active.
+        local readerui = ReaderUI.instance
+        assert.is_not_nil(readerui)
+
+        -- Try to open ReaderMenu, should not assert
+        assert.has_no.errors(function()
+            readerui.menu:_showMenu()
+        end)
+
+        if readerui then
+            readerui:onExit()
+            readerui:onClose()
+        end
+        if FileManager.instance then
+            FileManager.instance:onClose()
         end
     end)
 end)
