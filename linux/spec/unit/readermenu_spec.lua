@@ -333,4 +333,71 @@ describe("ReaderMenu integration", function()
         readerui:onExit()
         readerui:onClose()
     end)
+
+    it("should cycle through multiple tabs on successive swipe west gestures", function()
+        local sample_pdf = "spec/front/unit/data/2col.pdf"
+        purgeDir(DocSettings:getSidecarDir(sample_pdf))
+        os.remove(DocSettings:getHistoryPath(sample_pdf))
+
+        local readerui = ReaderUI:new{
+            dimen = Screen:getSize(),
+            document = DocumentRegistry:openDocument(sample_pdf),
+        }
+
+        while #UIManager._window_stack > 1 do
+            UIManager:close(UIManager._window_stack[#UIManager._window_stack].widget)
+        end
+
+        local Event = require("ui/event")
+        local Geom = require("ui/geometry")
+        local tap_event = Event:new("Gesture", {
+            ges = "tap",
+            pos = Geom:new({ x = Screen:getWidth() / 2, y = 10 }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+
+        UIManager:userInput(tap_event)
+
+        assert.is.same(3, #UIManager._window_stack)
+        local menu_container = UIManager._window_stack[3].widget
+        local touch_menu = menu_container[1]
+        assert.is_not_nil(touch_menu)
+
+        local tabs_visited = {}
+        local initial_tab = touch_menu.cur_tab
+        tabs_visited[initial_tab] = true
+
+        local current_tab = initial_tab
+        -- We try to switch tab 3 times and expect to see 3 different tabs
+        for step = 1, 3 do
+            local limit = 10
+            local count = 0
+            local prev_tab = current_tab
+            while touch_menu.cur_tab == prev_tab and count < limit do
+                local center_x = touch_menu.dimen.x + touch_menu.dimen.w / 2
+                local center_y = touch_menu.dimen.y + touch_menu.dimen.h / 2
+                local swipe_left_event = Event:new("Gesture", {
+                    ges = "swipe",
+                    direction = "west",
+                    pos = Geom:new({ x = center_x, y = center_y }),
+                    time = require("ui/time").monotonic() + (step * 10 + count) * 1000,
+                }):asUserInput()
+                UIManager:userInput(swipe_left_event)
+                count = count + 1
+            end
+            current_tab = touch_menu.cur_tab
+            assert.is_not.same(prev_tab, current_tab)
+            assert.is.same(3, #UIManager._window_stack)
+            tabs_visited[current_tab] = true
+        end
+
+        local visited_count = 0
+        for _ in pairs(tabs_visited) do
+            visited_count = visited_count + 1
+        end
+        assert.is_true(visited_count > 1)
+
+        readerui:onExit()
+        readerui:onClose()
+    end)
 end)
