@@ -400,4 +400,47 @@ describe("ReaderMenu integration", function()
         readerui:onExit()
         readerui:onClose()
     end)
+
+    it("should not crash when reloading and swiping menu", function()
+        local Event = require("ui/event")
+        local Geom = require("ui/geometry")
+        local sample_pdf = "spec/front/unit/data/2col.pdf"
+        purgeDir(DocSettings:getSidecarDir(sample_pdf))
+        os.remove(DocSettings:getHistoryPath(sample_pdf))
+
+        local readerui = ReaderUI:new{
+            dimen = Screen:getSize(),
+            document = DocumentRegistry:openDocument(sample_pdf),
+        }
+
+        -- Open TouchMenu (tap top)
+        local tap_event = Event:new("Gesture", {
+            ges = "tap",
+            pos = Geom:new({ x = Screen:getWidth() / 2, y = 10 }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+        UIManager:userInput(tap_event)
+
+        assert.is.same(3, #UIManager._window_stack)
+
+        -- Reload document
+        readerui:onReload()
+        readerui = ReaderUI.instance
+
+        -- Swipe west
+        local swipe_event = Event:new("Gesture", {
+            ges = "swipe",
+            direction = "west",
+            distance = 100,
+            pos = Geom:new({ x = Screen:getWidth() / 2, y = Screen:getHeight() / 2 }),
+            time = require("ui/time").monotonic() + 1000,
+        }):asUserInput()
+
+        UIManager:userInput(swipe_event)
+
+        if readerui then
+            readerui:onExit()
+            readerui:onClose()
+        end
+    end)
 end)
