@@ -26,6 +26,7 @@ describe("MultiInputDialog widget", function()
             },
         })
 
+        dialog:broadcastEvent(Event:new("Show"))
         dialog:broadcastEvent(Event:new("Close"))
 
         -- 1 (measurement dummy) + 1 (discarded main dummy) + 3 (fields) = 5

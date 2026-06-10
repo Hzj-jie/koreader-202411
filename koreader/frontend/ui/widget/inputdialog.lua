@@ -120,6 +120,8 @@ local T = require("ffi/util").template
 local gettext = require("gettext")
 local util = require("util")
 
+local active_instances = 0
+
 local InputDialog = FocusManager:extend({
   -- TODO: Using is_always_active is wrong, it allows the buttons to receive the
   -- tap events even when they are not visible.
@@ -605,10 +607,14 @@ function InputDialog:isTextEdited()
 end
 
 function InputDialog:onShow()
+  active_instances = active_instances + 1
+  assert(active_instances <= 1, "Multiple InputDialog instances detected!")
   self:showKeyboard(self.ignore_first_hold_release)
 end
 
 function InputDialog:onClose()
+  active_instances = active_instances - 1
+  assert(active_instances >= 0, "InputDialog active instances count went negative!")
   self:onExit()
 end
 
