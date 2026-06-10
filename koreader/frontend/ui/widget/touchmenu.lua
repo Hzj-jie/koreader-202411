@@ -488,6 +488,10 @@ local TouchMenu = FocusManager:extend({
 })
 
 function TouchMenu:init()
+  assert(self.tab_item_table, "tab_item_table is mandatory")
+  if not self.width then
+    self.width = Screen:getWidth()
+  end
   -- We won't include self.bordersize in our width calculations, so that
   -- borders are pushed off-(screen-)width and so not visible.
   -- We'll then be similar to bottom menu ConfigDialog (where this

@@ -13,7 +13,7 @@ describe("FileManager module", function()
     end)
     after_each(function()
         if FileManager.instance then
-            FileManager.instance:onClose()
+            FileManager.instance:onExit()
         end
         UIManager:quit()
     end)
@@ -23,7 +23,7 @@ describe("FileManager module", function()
             dimen = Screen:getSize(),
             root_path = "spec/unit/data",
         }
-        UIManager:scheduleIn(1, function() filemanager:onClose() end)
+        UIManager:scheduleIn(1, function() filemanager:onExit() end)
         UIManager:run()
     end)
     it("should show error on non-existent file", function()
@@ -39,7 +39,7 @@ describe("FileManager module", function()
         assert.is_nil(lfs.attributes(tmp_fn))
         filemanager:showDeleteFileDialog(tmp_fn)
         UIManager.show = old_show
-        filemanager:onClose()
+        filemanager:onExit()
     end)
     it("should not delete not empty sidecar folder", function()
         local filemanager = FileManager:new{
@@ -71,7 +71,7 @@ describe("FileManager module", function()
         end
         filemanager:deleteFile(tmp_fn, true)
         UIManager.show = old_show
-        filemanager:onClose()
+        filemanager:onExit()
 
         -- make sure sdr folder exists
         assert.is_nil(lfs.attributes(tmp_fn))
@@ -111,7 +111,7 @@ describe("FileManager module", function()
         end
         filemanager:deleteFile(tmp_fn, true)
         UIManager.show = old_show
-        filemanager:onClose()
+        filemanager:onExit()
 
         assert.is_nil(lfs.attributes(tmp_fn))
         assert.is_nil(lfs.attributes(tmp_sidecar))
@@ -129,7 +129,7 @@ describe("FileManager module", function()
         -- This should not crash
         filemanager:pasteFileFromClipboard()
 
-        filemanager:onClose()
+        filemanager:onExit()
     end)
 
     it("should handle deleteSelectedFiles safely when selected_files is empty/nil", function()
@@ -139,7 +139,7 @@ describe("FileManager module", function()
         }
         filemanager.selected_files = nil
         filemanager:deleteSelectedFiles()
-        filemanager:onClose()
+        filemanager:onExit()
     end)
 
     it("should handle pasteSelectedFiles safely when selected_files is empty/nil", function()
@@ -149,7 +149,7 @@ describe("FileManager module", function()
         }
         filemanager.selected_files = nil
         filemanager:pasteSelectedFiles(true)
-        filemanager:onClose()
+        filemanager:onExit()
     end)
 
     it("should handle showSelectedFilesList safely when selected_files is empty/nil", function()
@@ -166,7 +166,7 @@ describe("FileManager module", function()
         end
         filemanager:showSelectedFilesList()
         UIManager.show = old_show
-        filemanager:onClose()
+        filemanager:onExit()
     end)
 
     it("getRandomFile should be random even when called quickly", function()
@@ -230,7 +230,7 @@ describe("FileManager module", function()
         UIManager.show = old_show
         ffiutil.purgeDir(temp_dir)
 
-        filemanager:onClose()
+        filemanager:onExit()
     end)
 
     it("should switch tabs on swipe left & right on FileManagerMenu", function()
@@ -305,7 +305,7 @@ describe("FileManager module", function()
         assert.is_not.same(initial_tab, next_tab)
         assert.is.same(initial_tab, final_tab)
 
-        filemanager:onClose()
+        filemanager:onExit()
     end)
 
     it("should close TouchMenu on swipe north", function()
@@ -348,7 +348,7 @@ describe("FileManager module", function()
         -- Menu should be closed, so stack size should be back to 1 (only FileManager)
         assert.is.same(1, #UIManager._window_stack)
 
-        filemanager:onClose()
+        filemanager:onExit()
     end)
 
     it("should close TouchMenu on tapping up button", function()
@@ -396,7 +396,7 @@ describe("FileManager module", function()
         -- Menu should be closed
         assert.is.same(1, #UIManager._window_stack)
 
-        filemanager:onClose()
+        filemanager:onExit()
     end)
 
     it("should cycle through multiple tabs on successive swipe west gestures", function()
@@ -459,7 +459,7 @@ describe("FileManager module", function()
         end
         assert.is_true(visited_count > 1)
 
-        filemanager:onClose()
+        filemanager:onExit()
     end)
 end)
 

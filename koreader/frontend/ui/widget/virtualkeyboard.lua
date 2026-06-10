@@ -848,6 +848,7 @@ local VirtualKeyboard = FocusManager:extend({
 })
 
 function VirtualKeyboard:init()
+  assert(self.inputbox, "inputbox is mandatory")
   if self.uwrap_func then
     self.uwrap_func()
     self.uwrap_func = nil
