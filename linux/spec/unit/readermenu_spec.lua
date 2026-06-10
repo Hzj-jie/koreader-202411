@@ -443,4 +443,94 @@ describe("ReaderMenu integration", function()
             readerui:onClose()
         end
     end)
+
+    it("should not leak menu when switching documents repeatedly", function()
+        local Event = require("ui/event")
+        local Geom = require("ui/geometry")
+        local CenterContainer = require("ui/widget/container/centercontainer")
+        local ReadHistory = require("readhistory")
+
+        -- Clear history
+        ReadHistory.hist = {}
+        ReadHistory:_flush()
+
+        local file1 = "spec/front/unit/data/2col.pdf"
+        local file2 = "spec/front/unit/data/paper.pdf"
+
+        purgeDir(DocSettings:getSidecarDir(file1))
+        os.remove(DocSettings:getHistoryPath(file1))
+        purgeDir(DocSettings:getSidecarDir(file2))
+        os.remove(DocSettings:getHistoryPath(file2))
+
+        -- 1. Open file1
+        local readerui = ReaderUI:new{
+            dimen = Screen:getSize(),
+            document = DocumentRegistry:openDocument(file1),
+        }
+
+        -- 2. Open file2 (file1 goes to history)
+        ReaderUI:showReader(file2)
+        readerui = ReaderUI.instance
+
+        -- 3. Open menu in file2 reader (tap top)
+        local tap_event = Event:new("Gesture", {
+            ges = "tap",
+            pos = Geom:new({ x = Screen:getWidth() / 2, y = 10 }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+        UIManager:userInput(tap_event)
+
+        -- Check stack: ReaderUI, ConfigDialog, menu_container
+        local center_containers = 0
+        for i = 1, #UIManager._window_stack do
+            if getmetatable(UIManager._window_stack[i].widget) == CenterContainer then
+                center_containers = center_containers + 1
+            end
+        end
+        assert.is_true(center_containers == 1)
+
+        -- 4. Go to previous file (file1)
+        readerui:onOpenLastDoc()
+        readerui = ReaderUI.instance
+
+        -- Check stack: should NOT have stale menu_container
+        center_containers = 0
+        for i = 1, #UIManager._window_stack do
+            if getmetatable(UIManager._window_stack[i].widget) == CenterContainer then
+                center_containers = center_containers + 1
+            end
+        end
+        assert.is_true(center_containers == 0)
+
+        -- 5. Open menu in file1 reader
+        tap_event.time = require("ui/time").monotonic() + 1000
+        UIManager:userInput(tap_event)
+
+        center_containers = 0
+        for i = 1, #UIManager._window_stack do
+            if getmetatable(UIManager._window_stack[i].widget) == CenterContainer then
+                center_containers = center_containers + 1
+            end
+        end
+        assert.is_true(center_containers == 1)
+
+        -- 6. Go to previous file (file2)
+        readerui:onOpenLastDoc()
+        readerui = ReaderUI.instance
+
+        -- Check stack: should NOT have stale menu
+        center_containers = 0
+        for i = 1, #UIManager._window_stack do
+            if getmetatable(UIManager._window_stack[i].widget) == CenterContainer then
+                center_containers = center_containers + 1
+            end
+        end
+        assert.is_true(center_containers == 0)
+
+        -- Cleanup
+        if readerui then
+            readerui:onExit()
+            readerui:onClose()
+        end
+    end)
 end)
