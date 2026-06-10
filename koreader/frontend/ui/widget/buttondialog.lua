@@ -59,6 +59,8 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local Screen = Device.screen
 local util = require("util")
 
+local active_instances = 0
+
 local ButtonDialog = FocusManager:extend({
   buttons = nil,
   width = nil,
@@ -277,6 +279,16 @@ function ButtonDialog:setTitle(title)
   self:free()
   self:init()
   UIManager:setDirty("all", "ui")
+end
+
+function ButtonDialog:onShow()
+  active_instances = active_instances + 1
+  assert(active_instances <= 1, "Multiple ButtonDialog instances detected!")
+end
+
+function ButtonDialog:onClose()
+  active_instances = active_instances - 1
+  assert(active_instances >= 0, "ButtonDialog active instances count went negative!")
 end
 
 function ButtonDialog:onExit()
