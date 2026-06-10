@@ -533,4 +533,53 @@ describe("ReaderMenu integration", function()
             readerui:onClose()
         end
     end)
+
+    it("should not leak menu when panning south on top while menu is open", function()
+        local Event = require("ui/event")
+        local sample_pdf = "spec/front/unit/data/2col.pdf"
+        purgeDir(DocSettings:getSidecarDir(sample_pdf))
+        os.remove(DocSettings:getHistoryPath(sample_pdf))
+
+        local readerui = ReaderUI:new{
+            dimen = Screen:getSize(),
+            document = DocumentRegistry:openDocument(sample_pdf),
+        }
+        local Geom = require("ui/geometry")
+        local CenterContainer = require("ui/widget/container/centercontainer")
+
+        -- Open menu (tap top)
+        local tap_event = Event:new("Gesture", {
+            ges = "tap",
+            pos = Geom:new({ x = Screen:getWidth() / 2, y = 10 }),
+            time = require("ui/time").monotonic(),
+        }):asUserInput()
+        UIManager:userInput(tap_event)
+
+        assert.is.same(3, #UIManager._window_stack)
+
+        -- Pan south (in trigger zone)
+        local pan_event = Event:new("Gesture", {
+            ges = "pan",
+            direction = "south",
+            pos = Geom:new({ x = Screen:getWidth() / 2, y = 10 }),
+            time = require("ui/time").monotonic() + 1000,
+        }):asUserInput()
+        UIManager:userInput(pan_event)
+
+        -- Check for duplicate menu_container
+        local center_containers = 0
+        for i = 1, #UIManager._window_stack do
+            local w = UIManager._window_stack[i].widget
+            local class = getmetatable(w)
+            if class == CenterContainer then
+                center_containers = center_containers + 1
+            end
+        end
+        assert.is_true(center_containers < 2)
+
+        if readerui then
+            readerui:onExit()
+            readerui:onClose()
+        end
+    end)
 end)
