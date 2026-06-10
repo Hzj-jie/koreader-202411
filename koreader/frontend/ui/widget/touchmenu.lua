@@ -2,6 +2,7 @@
 TouchMenu widget for hierarchical menus.
 ]]
 local BD = require("ui/bidi")
+local active_instances = 0
 local Blitbuffer = require("ffi/blitbuffer")
 local Button = require("ui/widget/button")
 local CenterContainer = require("ui/widget/container/centercontainer")
@@ -663,6 +664,11 @@ function TouchMenu:init()
   self.bar:switchToTab(self.last_index or 1)
 end
 
+function TouchMenu:onShow()
+  active_instances = active_instances + 1
+  assert(active_instances <= 1, "Multiple TouchMenu instances detected!")
+end
+
 function TouchMenu:onClose()
   -- NOTE: We don't pass a region in order to ensure a full-screen flash to avoid ghosting,
   --     but we only need to do that if we actually have a FM or RD below us.
@@ -675,6 +681,7 @@ function TouchMenu:onClose()
   then
     UIManager:setDirty(nil, "flashui")
   end
+  active_instances = active_instances - 1
 end
 
 function TouchMenu:_recalculatePageLayout()

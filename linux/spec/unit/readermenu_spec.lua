@@ -582,4 +582,51 @@ describe("ReaderMenu integration", function()
             readerui:onClose()
         end
     end)
+
+    it("should not trigger TouchMenu assertion under normal conditions", function()
+        local sample_pdf = "spec/front/unit/data/2col.pdf"
+        local readerui = ReaderUI:new{
+            dimen = Screen:getSize(),
+            document = DocumentRegistry:openDocument(sample_pdf),
+        }
+
+        -- Show menu once
+        assert.has_no.errors(function()
+            readerui.menu:_showMenu()
+        end)
+
+        -- Close it
+        readerui.menu:onCloseReaderMenu()
+
+        -- Show it again
+        assert.has_no.errors(function()
+            readerui.menu:_showMenu()
+        end)
+
+        if readerui then
+            readerui:onExit()
+            readerui:onClose()
+        end
+    end)
+
+    it("should trigger TouchMenu assertion when showing multiple instances", function()
+        local sample_pdf = "spec/front/unit/data/2col.pdf"
+        local readerui = ReaderUI:new{
+            dimen = Screen:getSize(),
+            document = DocumentRegistry:openDocument(sample_pdf),
+        }
+
+        -- Show menu once
+        readerui.menu:_showMenu()
+
+        -- Show menu twice (without closing first) should assert
+        assert.has.errors(function()
+            readerui.menu:_showMenu()
+        end, "Multiple TouchMenu instances detected!")
+
+        if readerui then
+            readerui:onExit()
+            readerui:onClose()
+        end
+    end)
 end)
