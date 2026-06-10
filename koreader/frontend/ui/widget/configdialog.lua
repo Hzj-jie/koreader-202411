@@ -29,6 +29,8 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local gettext = require("gettext")
 local serpent = require("ffi/serpent")
 local util = require("util")
+
+local active_instances = 0
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -1101,7 +1103,14 @@ function ConfigDialog:update()
   })
 end
 
+function ConfigDialog:onShow()
+  active_instances = active_instances + 1
+  assert(active_instances <= 1, "Multiple ConfigDialog instances detected!")
+end
+
 function ConfigDialog:onClose()
+  active_instances = active_instances - 1
+  assert(active_instances >= 0, "ConfigDialog active instances count went negative!")
   -- NOTE: As much as we would like to flash here, don't, because of adverse interactions with touchmenu that might lead to a double flash...
   UIManager:setDirty(nil, function()
     return "partial", self.dialog_frame.dimen
