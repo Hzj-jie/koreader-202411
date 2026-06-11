@@ -456,6 +456,9 @@ function InputDialog:init()
       MovableContainer:new({ -- (UIManager expects this as 'self.movable')
         self.dialog_frame,
       })
+    if self._moved_offset then
+      self.movable:setMovedOffset(self._moved_offset)
+    end
     frame = self.movable
   end
   local keyboard_height = self.keyboard_visible
@@ -504,6 +507,7 @@ function InputDialog:reinit()
     end
   end
   self:free()
+  self.dimen = nil
   -- Restore original text_height (or reset it if none to force recomputing it)
   self.text_height = self.orig_text_height or nil
 
@@ -711,6 +715,7 @@ function InputDialog:onKeyboardClosed()
 end
 
 InputDialog.onKeyboardHeightChanged = InputDialog.reinit
+InputDialog.onSetDimensions = InputDialog.reinit
 
 function InputDialog:onCloseDialog()
   local close_button = self.button_table:getButtonById("close")
@@ -727,6 +732,9 @@ function InputDialog:onExit()
   -- Remember current view & position in case of re-init
   self._top_line_num = self._input_widget.top_line_num
   self._charpos = self._input_widget.charpos
+  if self.movable then
+    self._moved_offset = self.movable:getMovedOffset()
+  end
   if self.view_pos_callback then
     -- This lets the caller store/process the current top line num and cursor position via this callback
     self.view_pos_callback(self._top_line_num, self._charpos)

@@ -138,4 +138,38 @@ describe("MultiInputDialog widget", function()
 
         UIManager:close(dialog)
     end)
+    it("should preserve moved offset across recreation", function()
+        local Screen = require("device").screen
+        local dialog = MultiInputDialog:new({
+            title = "Test Movable Multi",
+            fields = {
+                { text = "1" },
+            },
+            width = Screen:getWidth(),
+        })
+
+        UIManager:show(dialog)
+        UIManager:forceRepaint()
+
+        assert.truthy(dialog.movable)
+        local initial_offset = dialog.movable:getMovedOffset()
+        assert.is.same(0, initial_offset.x)
+        assert.is.same(0, initial_offset.y)
+
+        -- Move it
+        dialog.movable:_moveBy(50, 100)
+        local moved_offset = dialog.movable:getMovedOffset()
+        assert.is.same(50, moved_offset.x)
+        assert.is.same(100, moved_offset.y)
+
+        -- Recreate
+        dialog:onKeyboardHeightChanged()
+
+        -- Verify offset is preserved
+        local new_offset = dialog.movable:getMovedOffset()
+        assert.is.same(50, new_offset.x)
+        assert.is.same(100, new_offset.y)
+
+        UIManager:close(dialog)
+    end)
 end)
