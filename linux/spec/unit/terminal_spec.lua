@@ -108,4 +108,92 @@ describe("Terminal plugin button tap integration", function()
         UIManager:close(input_dialog)
         filemanager:onClose()
     end)
+
+    it("should handle CJK characters and wrap them correctly based on visual width", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+
+        local terminal = filemanager.terminal
+        assert.is_not_nil(terminal)
+
+        -- Close any initial loading info/notifications
+        while #UIManager._window_stack > 1 do
+            UIManager:close(UIManager._window_stack[#UIManager._window_stack].widget)
+        end
+
+        terminal.spawnShell = function(self)
+            self.is_shell_open = true
+            return true
+        end
+        terminal.receive = function(self) return "" end
+        terminal.transmit = function(self) end
+        terminal.refresh = function(self) end
+
+        -- Start terminal plugin
+        terminal:onTerminalStart(filemanager.menu)
+        UIManager:forceRepaint()
+
+        local input_dialog = UIManager._window_stack[2].widget
+        local term_widget = input_dialog._input_widget
+        assert.is_not_nil(term_widget)
+
+        -- Resize to 10x10 for predictable wrapping
+        term_widget:resize(10, 10)
+        term_widget:formatTerminal(true)
+
+        -- Write CJK text (8 visual cols) + "ab" (2 visual cols) = 10 visual cols
+        term_widget:interpretAnsiSeq("中文文件名ab")
+
+        -- Line 1 should have CJK + \n
+        -- "中文文件名" has 5 chars: 中, 文, 文, 件, 名.
+        -- Visual width: 10.
+        -- So it fits exactly.
+        -- "ab" (written in same call) should have wrapped to line 2.
+        local line1 = {}
+        for i = 1, 6 do
+            table.insert(line1, term_widget.charlist[i])
+        end
+        assert.is.same({"中", "文", "文", "件", "名", "\n"}, line1)
+
+        -- "a" and "b" should be on line 2
+        assert.is.same("a", term_widget.charlist[7])
+        assert.is.same("b", term_widget.charlist[8])
+
+        -- Write "c" (1 col), should append to line 2
+        term_widget:interpretAnsiSeq("c")
+
+        -- Line 2 should have "a", "b", "c"
+        assert.is.same("a", term_widget.charlist[7])
+        assert.is.same("b", term_widget.charlist[8])
+        assert.is.same("c", term_widget.charlist[9])
+
+        -- Cursor should be at index 10 (after "c" on line 2)
+        assert.is.same(10, term_widget.charpos)
+
+        -- Move UP:
+        -- Current visual col on line 2 (start at 7):
+        -- "a" (1), "b" (1), "c" (1) -> 3. (Cursor is after "c", so at visual col 3).
+        -- Target visual col is 3.
+        -- Line 1: {"中", "文", "文", "件", "名", "\n"} (start at 1).
+        -- "中" (cols 0-2), "文" (cols 2-4).
+        -- Target 3 is in middle of first "文", snaps to 4 (index 3, which is second "文").
+        -- So charpos should become 3.
+        term_widget:moveCursorUp()
+        assert.is.same(3, term_widget.charpos)
+
+        -- Move DOWN:
+        -- Current visual col on line 1 (start at 1):
+        -- "中" (2), first "文" (2) -> 4 (before second "文").
+        -- Target visual col is 4.
+        -- Line 2: {"a", "b", "c", " ", ...} (start at 7).
+        -- "a" (1), "b" (1), "c" (1), " " (1) -> 4.
+        -- So it should land on index 11 (after "c" and one space).
+        term_widget:moveCursorDown()
+        assert.is.same(11, term_widget.charpos)
+
+        UIManager:close(input_dialog)
+        filemanager:onClose()
+    end)
 end)
