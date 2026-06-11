@@ -12,7 +12,7 @@ Native binaries are isolated from the platform-independent Lua core and organize
 *   **Kindle Paperwhite 2**: `pw2/` (`pw2.tar.gz`)
 *   **Kindle Legacy**: `legacy/` (`legacy.tar.gz`)
 *   **Kobo Architecture**: `kobo/` (`kobo.tar.gz`)
-*   **Linux & WSL (Ubuntu 24.04+)**: `linux/` (`linux.tar.gz`)
+*   **Linux & WSL (Ubuntu 22.04+)**: `linux/` (`linux.tar.gz`)
 
 ### Installation
 Deploying this build closely mirrors the official KOReader setup workflow:
