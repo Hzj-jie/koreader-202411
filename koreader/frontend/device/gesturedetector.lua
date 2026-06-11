@@ -822,7 +822,18 @@ function Contact:panState(keep_contact)
   local gesture_detector = self.ges_dec
 
   logger.dbg("slot", slot, "in pan state...")
-  if tev.id == -1 then
+  local is_lift = (tev.id == -1)
+  if not is_lift then
+    local screen = gesture_detector.screen
+    if screen then
+      if tev.x <= 1 or tev.x >= screen:getWidth() - 2 or tev.y <= 1 or tev.y >= screen:getHeight() - 2 then
+        logger.dbg("Contact:panState: Swiped to edge, treating as lift")
+        is_lift = true
+      end
+    end
+  end
+
+  if is_lift then
     -- End of pan, emit swipe and swipe-like gestures if necessary
     if self:isSwipe() then
       if buddy_contact and self.down then

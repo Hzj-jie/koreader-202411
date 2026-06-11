@@ -1,11 +1,16 @@
 describe("gesturedetector module", function()
     local GestureDetector
     local mock_screen = {
-        scaleByDPI = function(self, v) return v end
+        scaleByDPI = function(self, v) return v end,
+        getWidth = function(self) return 600 end,
+        getHeight = function(self) return 800 end,
+        getTouchRotation = function(self) return 0 end,
+        DEVICE_ROTATED_UPRIGHT = 0,
     }
     local mock_input = {
         main_finger_slot = 0,
         clearTimeout = function() end,
+        setTimeout = function() end,
     }
 
     setup(function()
@@ -119,5 +124,47 @@ describe("gesturedetector module", function()
         assert.are.equal(gestures[1], "dummy_gesture")
         assert.is_table(contact.initial_tev)
         assert.are.equal(contact.initial_tev.x, 20)
+    end)
+
+    it("should treat swiping to the edge of screen as end of touch (lift)", function()
+        local gd = GestureDetector:new({
+            screen = mock_screen,
+            input = mock_input,
+            active_contacts = {},
+            contact_count = 0,
+        })
+
+        -- Use a single event table and mutate it, simulating Input.ev_slots
+        local ev = { slot = 0, timev = 1000, x = 100, y = 100, id = 1 }
+
+        -- 1. Initial touch down (starts tapState, returns touch)
+        local gestures = gd:feedEvent({ ev })
+        assert.are.equal(1, #gestures)
+        assert.are.equal("touch", gestures[1].ges)
+
+        -- 2. Move to trigger panState (diff is 100, PAN_THRESHOLD is 35)
+        ev.timev = 1010
+        ev.x = 200
+        gestures = gd:feedEvent({ ev })
+        assert.are.equal(1, #gestures)
+        assert.are.equal("pan", gestures[1].ges)
+
+        -- 3. Move near the edge (x = 597, width - 3) - should NOT trigger lift
+        ev.timev = 1020
+        ev.x = 597
+        gestures = gd:feedEvent({ ev })
+        assert.are.equal(1, #gestures)
+        assert.are.equal("pan", gestures[1].ges)
+
+        -- 4. Move to the edge threshold (x = 598, width - 2) - should trigger lift
+        ev.timev = 1030
+        ev.x = 598
+        gestures = gd:feedEvent({ ev })
+        assert.are.equal(1, #gestures)
+        assert.are.equal("swipe", gestures[1].ges)
+        assert.are.equal("east", gestures[1].direction)
+
+        -- Contact should have been dropped
+        assert.is_nil(gd:getContact(0))
     end)
 end)
