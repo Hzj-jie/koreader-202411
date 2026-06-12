@@ -459,9 +459,8 @@ function InputText:initTextBox(text, char_added)
     end
   end
 
-
-    if self.is_password_type and self.show_password_toggle then
-      self._check_button = self._check_button
+  if self.is_password_type and self.show_password_toggle then
+    self._check_button = self._check_button
       or CheckButton:new({
         text = gettext("Show password"),
         checked = self.text_type == "text",

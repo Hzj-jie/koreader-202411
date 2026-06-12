@@ -288,7 +288,10 @@ end
 
 function ButtonDialog:onClose()
   active_instances = active_instances - 1
-  assert(active_instances >= 0, "ButtonDialog active instances count went negative!")
+  assert(
+    active_instances >= 0,
+    "ButtonDialog active instances count went negative!"
+  )
 end
 
 function ButtonDialog:onExit()

@@ -242,7 +242,10 @@ end
 
 function ConfirmBox:onClose()
   active_instances = active_instances - 1
-  assert(active_instances >= 0, "ConfirmBox active instances count went negative!")
+  assert(
+    active_instances >= 0,
+    "ConfirmBox active instances count went negative!"
+  )
   UIManager:setDirty(nil, function()
     return "ui", self.movable.dimen
   end)

@@ -43,7 +43,11 @@ local function getVisualWidth(charlist, start_idx, end_idx)
   return width
 end
 
-local function getCharposAtVisualColumn(charlist, line_start_idx, target_visual_col)
+local function getCharposAtVisualColumn(
+  charlist,
+  line_start_idx,
+  target_visual_col
+)
   local cur_visual_col = 0
   local i = line_start_idx
   while charlist[i] and charlist[i] ~= "\n" do
@@ -621,7 +625,8 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
         pos = pos - 1
       end
       local current_line_start = pos + 1
-      local current_visual_col = getVisualWidth(self.charlist, current_line_start, self.charpos - 1)
+      local current_visual_col =
+        getVisualWidth(self.charlist, current_line_start, self.charpos - 1)
 
       if self.wrap then
         if current_visual_col + new_w > self.maxc then
@@ -642,7 +647,11 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       else
         -- not self.wrap
         if current_visual_col + new_w > self.maxc then
-          self.charpos = getCharposAtVisualColumn(self.charlist, current_line_start, self.maxc - new_w)
+          self.charpos = getCharposAtVisualColumn(
+            self.charlist,
+            current_line_start,
+            self.maxc - new_w
+          )
         end
       end
 
@@ -658,7 +667,11 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       if diff > 0 then
         local target_remove = diff
         local next_idx = idx + 1
-        while target_remove > 0 and self.charlist[next_idx] and self.charlist[next_idx] ~= "\n" do
+        while
+          target_remove > 0
+          and self.charlist[next_idx]
+          and self.charlist[next_idx] ~= "\n"
+        do
           local next_w = getCharWidth(self.charlist[next_idx])
           table.remove(self.charlist, next_idx)
           target_remove = target_remove - next_w
@@ -855,7 +868,8 @@ function TermInputText:moveCursorUp()
     pos = pos - 1
   end
   local current_line_start = pos + 1
-  local visual_column = getVisualWidth(self.charlist, current_line_start, self.charpos - 1)
+  local visual_column =
+    getVisualWidth(self.charlist, current_line_start, self.charpos - 1)
 
   pos = pos - 1 -- move before \n
   if pos < 1 then
@@ -866,7 +880,8 @@ function TermInputText:moveCursorUp()
   end
   local prev_line_start = pos + 1
 
-  self.charpos = getCharposAtVisualColumn(self.charlist, prev_line_start, visual_column)
+  self.charpos =
+    getCharposAtVisualColumn(self.charlist, prev_line_start, visual_column)
   self:moveCursorToCharPos(self.charpos)
 end
 
@@ -876,7 +891,8 @@ function TermInputText:moveCursorDown()
     pos = pos - 1
   end
   local current_line_start = pos + 1
-  local visual_column = getVisualWidth(self.charlist, current_line_start, self.charpos - 1)
+  local visual_column =
+    getVisualWidth(self.charlist, current_line_start, self.charpos - 1)
 
   -- Move to next line
   while self.charlist[self.charpos] and self.charlist[self.charpos] ~= "\n" do
@@ -888,7 +904,8 @@ function TermInputText:moveCursorDown()
   self.charpos = self.charpos + 1 -- move past \n
 
   local next_line_start = self.charpos
-  self.charpos = getCharposAtVisualColumn(self.charlist, next_line_start, visual_column)
+  self.charpos =
+    getCharposAtVisualColumn(self.charlist, next_line_start, visual_column)
   self:moveCursorToCharPos(self.charpos)
 end
 

@@ -826,7 +826,12 @@ function Contact:panState(keep_contact)
   if not is_lift then
     local screen = gesture_detector.screen
     if screen then
-      if tev.x <= 1 or tev.x >= screen:getWidth() - 2 or tev.y <= 1 or tev.y >= screen:getHeight() - 2 then
+      if
+        tev.x <= 1
+        or tev.x >= screen:getWidth() - 2
+        or tev.y <= 1
+        or tev.y >= screen:getHeight() - 2
+      then
         logger.dbg("Contact:panState: Swiped to edge, treating as lift")
         is_lift = true
       end

@@ -618,7 +618,10 @@ end
 
 function InputDialog:onClose()
   active_instances = active_instances - 1
-  assert(active_instances >= 0, "InputDialog active instances count went negative!")
+  assert(
+    active_instances >= 0,
+    "InputDialog active instances count went negative!"
+  )
   self:onExit()
 end
 
