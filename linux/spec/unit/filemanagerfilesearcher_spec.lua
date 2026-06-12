@@ -528,4 +528,93 @@ describe("filemanagerfilesearcher", function()
       assert.are.equal("Open", dialog.buttons[5][2].text)
     end)
   end)
+
+  describe("close behavior", function()
+    local searcher
+    local UIManager
+
+    before_each(function()
+      searcher = FileSearcher:new()
+      searcher.ui = mock_ui
+      FileSearcher.search_string = "book"
+      FileSearcher.search_results = {
+        { f = "book1.epub", path = "/books/book1.epub", is_file = true, idx = 1 }
+      }
+      UIManager = require("ui/uimanager")
+      mock_ui.file_chooser.refreshPath:clear()
+    end)
+
+    it("should NOT refresh path on close if not modified", function()
+      searcher:onShowSearchResults(false)
+      local menu = UIManager.getLastShownWidget()
+      assert.truthy(menu.close_callback)
+
+      menu.close_callback()
+
+      assert.spy(mock_ui.file_chooser.refreshPath).was.called(0)
+    end)
+
+    it("should refresh path on close if modified (deleted file)", function()
+      searcher:onShowSearchResults(false)
+      local menu = UIManager.getLastShownWidget()
+      assert.truthy(menu.close_callback)
+
+      local item = FileSearcher.search_results[1]
+      searcher:showFileDialog(item)
+      local dialog = UIManager.getLastShownWidget()
+
+      local delete_btn = dialog.buttons[4][1]
+      assert.are.equal("Delete", delete_btn.text)
+
+      package.loaded["apps/filemanager/filemanager"] = {
+        showDeleteFileDialog = function(self, file, callback)
+          callback()
+        end
+      }
+
+      delete_btn.callback()
+
+      assert.is_true(searcher.modified)
+
+      menu.close_callback()
+
+      assert.spy(mock_ui.file_chooser.refreshPath).was.called(1)
+
+      package.loaded["apps/filemanager/filemanager"] = nil
+    end)
+
+    it("should refresh path on 'Select in file browser' even if not modified", function()
+      searcher:onShowSearchResults(false)
+      searcher.search_menu.setTitleBarLeftIcon = spy.new(function() end)
+
+      -- Mock title_bar
+      mock_ui.title_bar = {
+        setRightIcon = spy.new(function() end)
+      }
+
+      searcher:setSelectMode()
+      assert.truthy(searcher.selected_files)
+
+      local item = FileSearcher.search_results[1]
+      local mock_menu_inst = {
+        _manager = searcher
+      }
+      searcher.onMenuHold(mock_menu_inst, item)
+      assert.truthy(searcher.selected_files[item.path])
+
+      searcher:setSelectMode()
+      local select_dialog = UIManager.getLastShownWidget()
+
+      local select_btn = select_dialog.buttons[2][2]
+      assert.are.equal("Select in file browser", select_btn.text)
+
+      select_btn.callback()
+
+      assert.spy(mock_ui.file_chooser.refreshPath).was.called(1)
+      assert.spy(mock_ui.title_bar.setRightIcon).was.called(1)
+
+      -- Cleanup mock
+      mock_ui.title_bar = nil
+    end)
+  end)
 end)

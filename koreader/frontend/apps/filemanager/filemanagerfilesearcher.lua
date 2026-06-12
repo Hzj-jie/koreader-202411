@@ -310,6 +310,8 @@ function FileSearcher:onShowSearchResults(not_cached)
     return
   end
 
+  self.modified = false
+
   self.search_menu = Menu:new({
     subtitle = T(gettext("Query: %1"), FileSearcher.search_string),
     is_borderless = true,
@@ -327,9 +329,10 @@ function FileSearcher:onShowSearchResults(not_cached)
   self.search_menu.close_callback = function()
     self.selected_files = nil
     UIManager:close(self.search_menu)
-    if self.ui.file_chooser then
+    if self.ui.file_chooser and self.modified then
       self.ui.file_chooser:refreshPath()
     end
+    self.modified = false
   end
   self:updateMenu(FileSearcher.search_results)
   UIManager:show(self.search_menu)
@@ -418,6 +421,7 @@ function FileSearcher:showFileDialog(item)
             table.remove(FileSearcher.search_results, item.idx)
             table.remove(self.search_menu.item_table, item.idx)
             self:updateMenu()
+            self.modified = true
           end
           local FileManager = require("apps/filemanager/filemanager")
           FileManager:showDeleteFileDialog(file, post_delete_callback)
@@ -554,12 +558,13 @@ function FileSearcher:showSelectModeDialog()
         callback = function()
           UIManager:close(select_dialog)
           local selected_files = self.selected_files
-          self.search_menu.close_callback()
           if self.ui.file_chooser then
             self.ui.selected_files = selected_files
             self.ui.title_bar:setRightIcon("check")
-            self.ui.file_chooser:refreshPath()
-          else -- called from Reader
+            self.modified = true
+          end
+          self.search_menu.close_callback()
+          if not self.ui.file_chooser then
             self.ui:onExit()
             self.ui:showFileManager(self.path .. "/", selected_files)
           end
