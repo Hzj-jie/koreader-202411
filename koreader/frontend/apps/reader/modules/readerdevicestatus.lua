@@ -11,8 +11,6 @@ local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
 local battery_status_dismissed = false
-local battery_confirm_box = nil
-local memory_confirm_box = nil
 
 local ReaderDeviceStatus = WidgetContainer:extend({})
 
@@ -40,11 +38,6 @@ function ReaderDeviceStatus:init()
 end
 
 function ReaderDeviceStatus:_checkBatteryStatus()
-  if battery_confirm_box then
-    UIManager:close(battery_confirm_box)
-    battery_confirm_box = nil
-  end
-
   local is_charging = powerd:isCharging()
   local battery_capacity = powerd:getCapacity()
   if Device:canSuspend() and not is_charging and battery_capacity <= 5 then
@@ -105,16 +98,17 @@ function ReaderDeviceStatus:_checkBatteryStatus()
         )
     end
   end
-  battery_confirm_box = ConfirmBox:new({
+  UIManager:show(ConfirmBox:new({
     text = text,
     ok_text = gettext("Dismiss"),
     dismissable = false,
     ok_callback = function()
       battery_status_dismissed = true
-      battery_confirm_box = nil
     end,
-  })
-  UIManager:show(battery_confirm_box)
+    cancel_text = gettext("Remind later"),
+    -- Auto-close before the next 5-minute check to avoid dialog stacking.
+    timeout = 295,
+  }))
 end
 
 function ReaderDeviceStatus:_checkMemoryStatus()
@@ -127,10 +121,6 @@ function ReaderDeviceStatus:_checkMemoryStatus()
   rss = math.floor(rss * (4096 / 1024 / 1024))
   if rss < self.memory_threshold then
     return
-  end
-  if memory_confirm_box then
-    UIManager:close(memory_confirm_box)
-    memory_confirm_box = nil
   end
   if Device:canRestart() then
     local top_wg = UIManager:getTopmostVisibleWidget() or {}
@@ -149,7 +139,7 @@ function ReaderDeviceStatus:_checkMemoryStatus()
         UIManager:broadcastEvent(Event:new("Restart"))
       end)
     else
-      memory_confirm_box = ConfirmBox:new({
+      UIManager:show(ConfirmBox:new({
         text = T(gettext("High memory usage: %1 MB\n\nRestart KOReader?"), rss),
         ok_text = gettext("Restart"),
         dismissable = false,
@@ -162,19 +152,21 @@ function ReaderDeviceStatus:_checkMemoryStatus()
             UIManager:broadcastEvent(Event:new("Restart"))
           end)
         end,
-      })
-      UIManager:show(memory_confirm_box)
+        -- Auto-close before the next 5-minute check to avoid dialog stacking.
+        timeout = 295,
+      }))
     end
   else
-    memory_confirm_box = ConfirmBox:new({
+    UIManager:show(ConfirmBox:new({
       text = T(gettext("High memory usage: %1 MB\n\nExit KOReader?"), rss),
       ok_text = gettext("Exit"),
       dismissable = false,
       ok_callback = function()
         UIManager:broadcastEvent("ExitKOReader")
       end,
-    })
-    UIManager:show(memory_confirm_box)
+      -- Auto-close before the next 5-minute check to avoid dialog stacking.
+      timeout = 295,
+    }))
   end
 end
 
