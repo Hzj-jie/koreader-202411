@@ -96,14 +96,7 @@ function ButtonDialog:init()
   end
   if self.dismissable then
     if Device:hasKeys() then
-      local back_group = util.tableDeepCopy(Device.input.group.Back)
-      if Device:hasFewKeys() then
-        table.insert(back_group, "Left")
-        self.key_events.Exit = { { back_group } }
-      else
-        table.insert(back_group, "Menu")
-        self.key_events.Exit = { { back_group } }
-      end
+      self.key_events.Exit = { { Device.input.group.Dismiss } }
     end
     if Device:isTouchDevice() then
       self.ges_events.TapClose = {
