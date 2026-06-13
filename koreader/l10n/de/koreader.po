@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 19:21-0700\n"
+"POT-Creation-Date: 2026-06-12 23:26-0700\n"
 "PO-Revision-Date: 2024-11-20 16:20+0000\n"
 "Last-Translator: zwim <martin.zwicknagl@kirchbichl.net>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -250,9 +250,9 @@ msgstr "Dateinamen eingeben"
 #: plugins/terminal.koplugin/aliases.lua:113
 #: plugins/terminal.koplugin/main.lua:705
 #: plugins/texteditor.koplugin/main.lua:394
-#: plugins/vocabbuilder.koplugin/main.lua:1265
-#: plugins/vocabbuilder.koplugin/main.lua:1685
-#: plugins/vocabbuilder.koplugin/main.lua:1999
+#: plugins/vocabbuilder.koplugin/main.lua:1267
+#: plugins/vocabbuilder.koplugin/main.lua:1687
+#: plugins/vocabbuilder.koplugin/main.lua:2001
 #: plugins/wallabag.koplugin/main.lua:1125
 #: plugins/wallabag.koplugin/main.lua:1155
 #: plugins/wallabag.koplugin/main.lua:1220
@@ -294,7 +294,7 @@ msgstr "Wählen"
 #: frontend/apps/cloudstorage/dropbox.lua:149
 #: frontend/apps/cloudstorage/ftp.lua:154
 #: frontend/apps/cloudstorage/webdav.lua:180
-#: plugins/vocabbuilder.koplugin/main.lua:1692
+#: plugins/vocabbuilder.koplugin/main.lua:1694
 #: plugins/wallabag.koplugin/main.lua:438
 #: plugins/wallabag.koplugin/main.lua:1227
 msgid "Info"
@@ -657,7 +657,7 @@ msgid "FTP folder"
 msgstr "FTP-Verzeichnis"
 
 #: frontend/apps/cloudstorage/ftp.lua:101
-#: plugins/vocabbuilder.koplugin/main.lua:1272
+#: plugins/vocabbuilder.koplugin/main.lua:1274
 msgid "Add"
 msgstr "Hinzufügen"
 
@@ -1409,7 +1409,7 @@ msgstr "Text eingeben, um im Verlauf zu suchen"
 #: plugins/opds.koplugin/opdsbrowser.lua:420
 #: plugins/opds.koplugin/opdsbrowser.lua:601
 #: plugins/vocabbuilder.koplugin/main.lua:310
-#: plugins/vocabbuilder.koplugin/main.lua:1704
+#: plugins/vocabbuilder.koplugin/main.lua:1706
 msgid "Search"
 msgstr "Suchen"
 
@@ -2673,7 +2673,7 @@ msgstr "Such-Einstellungen"
 
 #: frontend/apps/reader/modules/readerdictionary.lua:236
 #: frontend/apps/reader/modules/readerdictionary.lua:1012
-#: frontend/dispatcher.lua:101 plugins/vocabbuilder.koplugin/main.lua:2208
+#: frontend/dispatcher.lua:101 plugins/vocabbuilder.koplugin/main.lua:2210
 msgid "Dictionary lookup"
 msgstr "Im Wörterbuch nachschlagen"
 
@@ -3802,7 +3802,7 @@ msgstr "Rechts"
 #: frontend/ui/widget/keyvaluepage.lua:460 frontend/ui/widget/menu.lua:826
 #: frontend/ui/widget/sortwidget.lua:267
 #: plugins/statistics.koplugin/calendarview.lua:637
-#: plugins/vocabbuilder.koplugin/main.lua:1650
+#: plugins/vocabbuilder.koplugin/main.lua:1652
 msgid "Go to page"
 msgstr "Gehe zu Seite"
 
@@ -4359,7 +4359,7 @@ msgstr ""
 
 #. @translators This is the time unit for seconds.
 #: frontend/apps/reader/modules/readerhighlight.lua:892
-#: frontend/datetime.lua:214
+#: frontend/datetime.lua:216
 #: frontend/ui/data/keyboardlayouts/ja_keyboard.lua:217
 #: plugins/statistics.koplugin/main.lua:1334
 msgctxt "Time"
@@ -7644,7 +7644,7 @@ msgid "Sunday"
 msgstr "Sonntag"
 
 #: frontend/datetime.lua:106 frontend/datetime.lua:112
-#: frontend/datetime.lua:207
+#: frontend/datetime.lua:209
 msgctxt "Time"
 msgid "d"
 msgstr "d"
@@ -7653,96 +7653,96 @@ msgstr "d"
 msgid "%1m"
 msgstr "%1min"
 
-#: frontend/datetime.lua:150 frontend/datetime.lua:171
-#: plugins/vocabbuilder.koplugin/main.lua:1050
-#, lua-format
+#: frontend/datetime.lua:151 frontend/datetime.lua:173
+#: plugins/vocabbuilder.koplugin/main.lua:1051
+#, no-lua-format
 msgctxt "Time"
 msgid "%1s"
 msgstr "%1s"
 
-#: frontend/datetime.lua:158 frontend/datetime.lua:164
-#: plugins/vocabbuilder.koplugin/main.lua:1052
+#: frontend/datetime.lua:159 frontend/datetime.lua:165
+#: plugins/vocabbuilder.koplugin/main.lua:1053
 msgctxt "Time"
 msgid "%1m"
 msgstr "%1m"
 
-#: frontend/datetime.lua:174
+#: frontend/datetime.lua:176
 msgctxt "Time"
 msgid "%1m %2s"
 msgstr "%1m %2s"
 
-#: frontend/datetime.lua:193 frontend/datetime.lua:195
-#: frontend/datetime.lua:209
+#: frontend/datetime.lua:195 frontend/datetime.lua:197
+#: frontend/datetime.lua:211
 msgctxt "Time"
 msgid "h"
 msgstr "h"
 
-#: frontend/datetime.lua:194 frontend/datetime.lua:196
-#: frontend/datetime.lua:201 frontend/datetime.lua:212
-#: frontend/datetime.lua:213 frontend/datetime.lua:221
+#: frontend/datetime.lua:196 frontend/datetime.lua:198
+#: frontend/datetime.lua:203 frontend/datetime.lua:214
+#: frontend/datetime.lua:215 frontend/datetime.lua:223
 msgctxt "Time"
 msgid "m"
 msgstr "m"
 
 #. @translators This is the time in the morning using a 12-hour clock (%I is the hour, %M the minute).
-#: frontend/datetime.lua:276
+#: frontend/datetime.lua:278
 msgid "%I:%M AM"
 msgstr "%I:%M AM"
 
 #. @translators This is the time in the afternoon using a 12-hour clock (%I is the hour, %M the minute).
-#: frontend/datetime.lua:279
+#: frontend/datetime.lua:281
 msgid "%I:%M PM"
 msgstr "%I:%M PM"
 
 #. @translators This is the time using a 24-hour clock (%H is the hour, %M the minute).
-#: frontend/datetime.lua:283
+#: frontend/datetime.lua:285
 msgid "%H:%M"
 msgstr "%H:%M"
 
 #. @translators This is the time in the morning using a 12-hour clock (%_I is the hour, %M the minute).
-#: frontend/datetime.lua:292
+#: frontend/datetime.lua:294
 msgid "%_I:%M AM"
 msgstr "%_I:%M AM"
 
 #. @translators This is the time in the morning using a 12-hour clock (%-I is the hour, %M the minute).
-#: frontend/datetime.lua:295
+#: frontend/datetime.lua:297
 msgid "%-I:%M AM"
 msgstr "%-I:%M AM"
 
 #. @translators This is the time in the afternoon using a 12-hour clock (%_I is the hour, %M the minute).
-#: frontend/datetime.lua:300
+#: frontend/datetime.lua:302
 msgid "%_I:%M PM"
 msgstr "%_I:%M PM"
 
 #. @translators This is the time in the afternoon using a 12-hour clock (%-I is the hour, %M the minute).
-#: frontend/datetime.lua:303
+#: frontend/datetime.lua:305
 msgid "%-I:%M PM"
 msgstr "%-I:%M PM"
 
 #. @translators This is the time using a 24-hour clock (%_H is the hour, %M the minute).
-#: frontend/datetime.lua:309
+#: frontend/datetime.lua:311
 msgid "%_H:%M"
 msgstr "%_H:%M"
 
 #. @translators This is the time using a 24-hour clock (%-H is the hour, %M the minute).
-#: frontend/datetime.lua:312
+#: frontend/datetime.lua:314
 msgid "%-H:%M"
 msgstr "%-H:%M"
 
 #. @translators Use the following placeholders in the desired order: %1 name of day, %2 name of month, %3 day, %4 year
-#: frontend/datetime.lua:332
+#: frontend/datetime.lua:334
 msgctxt "Date string"
 msgid "%1 %2 %3 %4"
 msgstr "%1, %3. %2 %4"
 
 #. @translators This is the date (%Y is the year, %m the month, %d the day)
-#: frontend/datetime.lua:340
+#: frontend/datetime.lua:342
 msgctxt "Date string"
 msgid "%Y-%m-%d"
 msgstr "%d.%m.%Y"
 
 #. @translators Use the following placeholders in the desired order: %1 date, %2 time
-#: frontend/datetime.lua:361
+#: frontend/datetime.lua:363
 msgctxt "Date string"
 msgid "%1 %2"
 msgstr "%1 %2"
@@ -14967,7 +14967,7 @@ msgstr "Zum Layout wechseln"
 #: frontend/ui/widget/keyvaluepage.lua:449 frontend/ui/widget/menu.lua:881
 #: frontend/ui/widget/sortwidget.lua:256 plugins/opds.koplugin/opdspse.lua:212
 #: plugins/statistics.koplugin/calendarview.lua:626
-#: plugins/vocabbuilder.koplugin/main.lua:1639
+#: plugins/vocabbuilder.koplugin/main.lua:1641
 msgid "Enter page number"
 msgstr "Seitenzahl eingeben"
 
@@ -14976,12 +14976,12 @@ msgstr "Seitenzahl eingeben"
 #: frontend/ui/widget/touchmenu.lua:797
 #: plugins/coverbrowser.koplugin/listmenu.lua:384
 #: plugins/statistics.koplugin/calendarview.lua:885
-#: plugins/vocabbuilder.koplugin/main.lua:1828
+#: plugins/vocabbuilder.koplugin/main.lua:1830
 msgid "Page %1 of %2"
 msgstr "Seite %1 von %2"
 
 #: frontend/ui/widget/keyvaluepage.lua:781 frontend/ui/widget/menu.lua:1120
-#: plugins/vocabbuilder.koplugin/main.lua:1844
+#: plugins/vocabbuilder.koplugin/main.lua:1846
 msgid "No items"
 msgstr "Keine Elemente"
 
@@ -21062,14 +21062,14 @@ msgid "Undo study status"
 msgstr "Studienstatus rückgängig machen"
 
 #: plugins/vocabbuilder.koplugin/main.lua:864
-#: plugins/vocabbuilder.koplugin/main.lua:1360
-#: plugins/vocabbuilder.koplugin/main.lua:1470
+#: plugins/vocabbuilder.koplugin/main.lua:1362
+#: plugins/vocabbuilder.koplugin/main.lua:1472
 msgid "Forgot"
 msgstr "Vergessen"
 
 #: plugins/vocabbuilder.koplugin/main.lua:873
-#: plugins/vocabbuilder.koplugin/main.lua:1346
-#: plugins/vocabbuilder.koplugin/main.lua:1466
+#: plugins/vocabbuilder.koplugin/main.lua:1348
+#: plugins/vocabbuilder.koplugin/main.lua:1468
 msgid "Got it"
 msgstr "Ich hab's"
 
@@ -21077,61 +21077,61 @@ msgstr "Ich hab's"
 msgid "From"
 msgstr "Von"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1054
+#: plugins/vocabbuilder.koplugin/main.lua:1055
 msgctxt "Time"
 msgid "%1h"
 msgstr "%1"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1056
-#, lua-format
+#: plugins/vocabbuilder.koplugin/main.lua:1058
+#, no-lua-format
 msgctxt "Time"
 msgid "%1d"
 msgstr "%1d"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1058
+#: plugins/vocabbuilder.koplugin/main.lua:1060
 msgctxt "Time"
 msgid "%1 mo."
 msgstr "%1 mo."
 
-#: plugins/vocabbuilder.koplugin/main.lua:1061
+#: plugins/vocabbuilder.koplugin/main.lua:1063
 msgctxt "Time"
 msgid "%1 yr."
 msgstr "%1 a."
 
-#: plugins/vocabbuilder.koplugin/main.lua:1110
+#: plugins/vocabbuilder.koplugin/main.lua:1112
 msgid "Added on"
 msgstr "Ergänzt auf"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1113
+#: plugins/vocabbuilder.koplugin/main.lua:1115
 msgid "Review scheduled at"
 msgstr "Überprüfung geplant um"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1255
+#: plugins/vocabbuilder.koplugin/main.lua:1257
 msgid "Add virtual book"
 msgstr "Virtuelles Buch hinzufügen"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1260
+#: plugins/vocabbuilder.koplugin/main.lua:1262
 msgid "Enter book title:"
 msgstr "Buchtitel eingeben:"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1300
-#: plugins/vocabbuilder.koplugin/main.lua:2029
+#: plugins/vocabbuilder.koplugin/main.lua:1302
+#: plugins/vocabbuilder.koplugin/main.lua:2031
 msgid "Book title already in use."
 msgstr "Buchtitel wird bereits verwendet."
 
-#: plugins/vocabbuilder.koplugin/main.lua:1314
+#: plugins/vocabbuilder.koplugin/main.lua:1316
 msgid "Move \"%1\" to book:"
 msgstr "Verschieben Sie \"%1\" ins Buch:"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1679
+#: plugins/vocabbuilder.koplugin/main.lua:1681
 msgid "Search words"
 msgstr "Wörter suchen"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1681
+#: plugins/vocabbuilder.koplugin/main.lua:1683
 msgid "Search empty content to exit"
 msgstr "Leeren Inhalt suchen zum Beenden"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1695
+#: plugins/vocabbuilder.koplugin/main.lua:1697
 msgid ""
 "You can use two wildcards when searching: the percent sign (%) and the "
 "underscore (_).\n"
@@ -21149,45 +21149,45 @@ msgstr ""
 "Wenn kein Platzhalter verwendet wird, dann wird der gesuchte Text "
 "standardmäßig von zwei %-Zeichen umschlossen."
 
-#: plugins/vocabbuilder.koplugin/main.lua:1839
+#: plugins/vocabbuilder.koplugin/main.lua:1841
 msgid "Search in effect"
 msgstr "Suche läuft"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1842
+#: plugins/vocabbuilder.koplugin/main.lua:1844
 msgid "Filter in effect"
 msgstr "Filter wirksam"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1843
+#: plugins/vocabbuilder.koplugin/main.lua:1845
 msgid "No reviewable items"
 msgstr "Keine überprüfbaren Elemente"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1965
+#: plugins/vocabbuilder.koplugin/main.lua:1967
 msgid "Filter words from books"
 msgstr "Wörter aus Büchern filtern"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1994
+#: plugins/vocabbuilder.koplugin/main.lua:1996
 msgid "Change book title to:"
 msgstr "Ändere Buchtitel in:"
 
-#: plugins/vocabbuilder.koplugin/main.lua:2006
+#: plugins/vocabbuilder.koplugin/main.lua:2008
 msgid "Change title"
 msgstr "Titel ändern"
 
-#: plugins/vocabbuilder.koplugin/main.lua:2106
+#: plugins/vocabbuilder.koplugin/main.lua:2108
 msgid "Words reloaded"
 msgstr "Wörter neu geladen"
 
-#: plugins/vocabbuilder.koplugin/main.lua:2185
-#: plugins/vocabbuilder.koplugin/main.lua:2236
+#: plugins/vocabbuilder.koplugin/main.lua:2187
+#: plugins/vocabbuilder.koplugin/main.lua:2238
 #: plugins/vocabbuilder.koplugin/_meta.lua:4
 msgid "Vocabulary builder"
 msgstr "Vokabeltrainer"
 
-#: plugins/vocabbuilder.koplugin/main.lua:2203
+#: plugins/vocabbuilder.koplugin/main.lua:2205
 msgid "Add to vocabulary builder"
 msgstr "Zum Vokabeltrainer hinzufügen"
 
-#: plugins/vocabbuilder.koplugin/main.lua:2228
+#: plugins/vocabbuilder.koplugin/main.lua:2230
 msgid "Open vocabulary builder"
 msgstr "Vokabeltrainer öffnen"
 

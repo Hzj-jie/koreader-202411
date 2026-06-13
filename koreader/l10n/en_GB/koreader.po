@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 19:21-0700\n"
+"POT-Creation-Date: 2026-06-12 23:26-0700\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Chris Heywood <cheywood@users.noreply.hosted.weblate.org>\n"
 "Language-Team: English (United Kingdom) <https://hosted.weblate.org/projects/"
@@ -235,9 +235,9 @@ msgstr "Enter filename"
 #: plugins/terminal.koplugin/aliases.lua:113
 #: plugins/terminal.koplugin/main.lua:705
 #: plugins/texteditor.koplugin/main.lua:394
-#: plugins/vocabbuilder.koplugin/main.lua:1265
-#: plugins/vocabbuilder.koplugin/main.lua:1685
-#: plugins/vocabbuilder.koplugin/main.lua:1999
+#: plugins/vocabbuilder.koplugin/main.lua:1267
+#: plugins/vocabbuilder.koplugin/main.lua:1687
+#: plugins/vocabbuilder.koplugin/main.lua:2001
 #: plugins/wallabag.koplugin/main.lua:1125
 #: plugins/wallabag.koplugin/main.lua:1155
 #: plugins/wallabag.koplugin/main.lua:1220
@@ -279,7 +279,7 @@ msgstr "Choose"
 #: frontend/apps/cloudstorage/dropbox.lua:149
 #: frontend/apps/cloudstorage/ftp.lua:154
 #: frontend/apps/cloudstorage/webdav.lua:180
-#: plugins/vocabbuilder.koplugin/main.lua:1692
+#: plugins/vocabbuilder.koplugin/main.lua:1694
 #: plugins/wallabag.koplugin/main.lua:438
 #: plugins/wallabag.koplugin/main.lua:1227
 msgid "Info"
@@ -640,7 +640,7 @@ msgid "FTP folder"
 msgstr "FTP folder"
 
 #: frontend/apps/cloudstorage/ftp.lua:101
-#: plugins/vocabbuilder.koplugin/main.lua:1272
+#: plugins/vocabbuilder.koplugin/main.lua:1274
 msgid "Add"
 msgstr "Add"
 
@@ -1387,7 +1387,7 @@ msgstr "Enter text to search history for"
 #: plugins/opds.koplugin/opdsbrowser.lua:420
 #: plugins/opds.koplugin/opdsbrowser.lua:601
 #: plugins/vocabbuilder.koplugin/main.lua:310
-#: plugins/vocabbuilder.koplugin/main.lua:1704
+#: plugins/vocabbuilder.koplugin/main.lua:1706
 msgid "Search"
 msgstr "Search"
 
@@ -2502,11 +2502,13 @@ msgstr "Apply crop"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:46
 msgid ""
-""
 "Battery level drops below the critical zone.\n"
 "\n"
 "Suspending the device…"
-msgstr "Battery level drops below the critical zone.\n\nSuspending the device…"
+msgstr ""
+"Battery level drops below the critical zone.\n"
+"\n"
+"Suspending the device…"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:49
 #: frontend/apps/reader/modules/readerdevicestatus.lua:132
@@ -2535,10 +2537,11 @@ msgstr ""
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:94
 msgid ""
-""
 "When battery level drops below the critical zone, the device will be put "
 "into suspension automatically."
-msgstr "When battery level drops below the critical zone, the device will be put into suspension automatically."
+msgstr ""
+"When battery level drops below the critical zone, the device will be put "
+"into suspension automatically."
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:101
 msgid "Dismiss"
@@ -2644,7 +2647,7 @@ msgstr "Search settings"
 
 #: frontend/apps/reader/modules/readerdictionary.lua:236
 #: frontend/apps/reader/modules/readerdictionary.lua:1012
-#: frontend/dispatcher.lua:101 plugins/vocabbuilder.koplugin/main.lua:2208
+#: frontend/dispatcher.lua:101 plugins/vocabbuilder.koplugin/main.lua:2210
 msgid "Dictionary lookup"
 msgstr "Dictionary lookup"
 
@@ -3752,7 +3755,7 @@ msgstr "Right"
 #: frontend/ui/widget/keyvaluepage.lua:460 frontend/ui/widget/menu.lua:826
 #: frontend/ui/widget/sortwidget.lua:267
 #: plugins/statistics.koplugin/calendarview.lua:637
-#: plugins/vocabbuilder.koplugin/main.lua:1650
+#: plugins/vocabbuilder.koplugin/main.lua:1652
 msgid "Go to page"
 msgstr "Go to page"
 
@@ -4292,7 +4295,7 @@ msgstr ""
 
 #. @translators This is the time unit for seconds.
 #: frontend/apps/reader/modules/readerhighlight.lua:892
-#: frontend/datetime.lua:214
+#: frontend/datetime.lua:216
 #: frontend/ui/data/keyboardlayouts/ja_keyboard.lua:217
 #: plugins/statistics.koplugin/main.lua:1334
 msgctxt "Time"
@@ -7019,14 +7022,19 @@ msgstr "Wikipedia languages"
 
 #: frontend/apps/reader/modules/readerwikipedia.lua:191
 msgid ""
-""
 "Enter one or more Wikipedia language codes (the 2 or 3 letters "
 "before .wikipedia.org), in the order you wish to see them available, "
 "separated by a space. For example:\n"
 "  en fr zh\n"
 "\n"
 "Full list at https://en.wikipedia.org/wiki/List_of_Wikipedias"
-msgstr "Enter one or more Wikipedia language codes (the 2 or 3 letters before .wikipedia.org), in the order you wish to see them available, separated by a space. For example:\n  en fr zh\n\nFull list at https://en.wikipedia.org/wiki/List_of_Wikipedias"
+msgstr ""
+"Enter one or more Wikipedia language codes (the 2 or 3 letters "
+"before .wikipedia.org), in the order you wish to see them available, "
+"separated by a space. For example:\n"
+"  en fr zh\n"
+"\n"
+"Full list at https://en.wikipedia.org/wiki/List_of_Wikipedias"
 
 #: frontend/apps/reader/modules/readerwikipedia.lua:215
 msgid "Set Wikipedia 'Save as EPUB' folder"
@@ -7312,10 +7320,11 @@ msgstr "Unfortunately KOReader crashed."
 
 #: frontend/apps/reader/readerui.lua:775
 msgid ""
-""
 "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help "
 "developers to improve it."
-msgstr "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help developers to improve it."
+msgstr ""
+"Report a bug to https://github.com/Hzj-jie/koreader-202411 can help "
+"developers to improve it."
 
 #: frontend/apps/reader/readerui.lua:788 frontend/device/android/device.lua:225
 msgid "Opening file '%1'."
@@ -7494,7 +7503,7 @@ msgid "Sunday"
 msgstr "Sunday"
 
 #: frontend/datetime.lua:106 frontend/datetime.lua:112
-#: frontend/datetime.lua:207
+#: frontend/datetime.lua:209
 msgctxt "Time"
 msgid "d"
 msgstr "d"
@@ -7503,96 +7512,96 @@ msgstr "d"
 msgid "%1m"
 msgstr "%1m"
 
-#: frontend/datetime.lua:150 frontend/datetime.lua:171
-#: plugins/vocabbuilder.koplugin/main.lua:1050
-#, lua-format
+#: frontend/datetime.lua:151 frontend/datetime.lua:173
+#: plugins/vocabbuilder.koplugin/main.lua:1051
+#, no-lua-format
 msgctxt "Time"
 msgid "%1s"
 msgstr "%1s"
 
-#: frontend/datetime.lua:158 frontend/datetime.lua:164
-#: plugins/vocabbuilder.koplugin/main.lua:1052
+#: frontend/datetime.lua:159 frontend/datetime.lua:165
+#: plugins/vocabbuilder.koplugin/main.lua:1053
 msgctxt "Time"
 msgid "%1m"
 msgstr "%1m"
 
-#: frontend/datetime.lua:174
+#: frontend/datetime.lua:176
 msgctxt "Time"
 msgid "%1m %2s"
 msgstr "%1m %2s"
 
-#: frontend/datetime.lua:193 frontend/datetime.lua:195
-#: frontend/datetime.lua:209
+#: frontend/datetime.lua:195 frontend/datetime.lua:197
+#: frontend/datetime.lua:211
 msgctxt "Time"
 msgid "h"
 msgstr "h"
 
-#: frontend/datetime.lua:194 frontend/datetime.lua:196
-#: frontend/datetime.lua:201 frontend/datetime.lua:212
-#: frontend/datetime.lua:213 frontend/datetime.lua:221
+#: frontend/datetime.lua:196 frontend/datetime.lua:198
+#: frontend/datetime.lua:203 frontend/datetime.lua:214
+#: frontend/datetime.lua:215 frontend/datetime.lua:223
 msgctxt "Time"
 msgid "m"
 msgstr "m"
 
 #. @translators This is the time in the morning using a 12-hour clock (%I is the hour, %M the minute).
-#: frontend/datetime.lua:276
+#: frontend/datetime.lua:278
 msgid "%I:%M AM"
 msgstr "%I:%M AM"
 
 #. @translators This is the time in the afternoon using a 12-hour clock (%I is the hour, %M the minute).
-#: frontend/datetime.lua:279
+#: frontend/datetime.lua:281
 msgid "%I:%M PM"
 msgstr "%I:%M PM"
 
 #. @translators This is the time using a 24-hour clock (%H is the hour, %M the minute).
-#: frontend/datetime.lua:283
+#: frontend/datetime.lua:285
 msgid "%H:%M"
 msgstr "%H:%M"
 
 #. @translators This is the time in the morning using a 12-hour clock (%_I is the hour, %M the minute).
-#: frontend/datetime.lua:292
+#: frontend/datetime.lua:294
 msgid "%_I:%M AM"
 msgstr "%_I:%M AM"
 
 #. @translators This is the time in the morning using a 12-hour clock (%-I is the hour, %M the minute).
-#: frontend/datetime.lua:295
+#: frontend/datetime.lua:297
 msgid "%-I:%M AM"
 msgstr "%-I:%M AM"
 
 #. @translators This is the time in the afternoon using a 12-hour clock (%_I is the hour, %M the minute).
-#: frontend/datetime.lua:300
+#: frontend/datetime.lua:302
 msgid "%_I:%M PM"
 msgstr "%_I:%M PM"
 
 #. @translators This is the time in the afternoon using a 12-hour clock (%-I is the hour, %M the minute).
-#: frontend/datetime.lua:303
+#: frontend/datetime.lua:305
 msgid "%-I:%M PM"
 msgstr "%-I:%M PM"
 
 #. @translators This is the time using a 24-hour clock (%_H is the hour, %M the minute).
-#: frontend/datetime.lua:309
+#: frontend/datetime.lua:311
 msgid "%_H:%M"
 msgstr "%_H:%M"
 
 #. @translators This is the time using a 24-hour clock (%-H is the hour, %M the minute).
-#: frontend/datetime.lua:312
+#: frontend/datetime.lua:314
 msgid "%-H:%M"
 msgstr "%-H:%M"
 
 #. @translators Use the following placeholders in the desired order: %1 name of day, %2 name of month, %3 day, %4 year
-#: frontend/datetime.lua:332
+#: frontend/datetime.lua:334
 msgctxt "Date string"
 msgid "%1 %2 %3 %4"
 msgstr "%1 %2 %3 %4"
 
 #. @translators This is the date (%Y is the year, %m the month, %d the day)
-#: frontend/datetime.lua:340
+#: frontend/datetime.lua:342
 msgctxt "Date string"
 msgid "%Y-%m-%d"
 msgstr "%Y-%m-%d"
 
 #. @translators Use the following placeholders in the desired order: %1 date, %2 time
-#: frontend/datetime.lua:361
+#: frontend/datetime.lua:363
 msgctxt "Date string"
 msgid "%1 %2"
 msgstr "%1 %2"
@@ -11376,10 +11385,11 @@ msgstr ""
 
 #: frontend/ui/elements/common_info_menu_table.lua:192
 msgid ""
-""
 "Running version may not match source code version %1.\n"
 "Please consider restarting KOReader at the ealiest convenience."
-msgstr "Running version may not match source code version %1.\nPlease consider restarting KOReader at the ealiest convenience."
+msgstr ""
+"Running version may not match source code version %1.\n"
+"Please consider restarting KOReader at the ealiest convenience."
 
 #: frontend/ui/elements/common_settings_menu_table.lua:20
 msgid "Start %1 reader app"
@@ -11454,7 +11464,6 @@ msgstr "Disable out of order interactions"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:168
 msgid ""
-""
 "Disallow taps or keyboard presses being sent to the UI elements before they "
 "are showing up.\n"
 "E-ink screens are slow and take noticeable time to update the content. Users "
@@ -11465,7 +11474,17 @@ msgid ""
 "screen refreshing, and drops the unexpected ones.\n"
 "It's highly suggested keeping this configuration enabled unless you feel the "
 "UI interactions are less responsive."
-msgstr "Disallow taps or keyboard presses being sent to the UI elements before they are showing up.\nE-ink screens are slow and take noticeable time to update the content. Users may feel laggy, tap the screen or press the keyboard multiple times, and cause the following actions to interact with the unshown UI elements and trigger unexpected actions.\nThis feature decides if a user action is expected or caused by the delay of screen refreshing, and drops the unexpected ones.\nIt's highly suggested keeping this configuration enabled unless you feel the UI interactions are less responsive."
+msgstr ""
+"Disallow taps or keyboard presses being sent to the UI elements before they "
+"are showing up.\n"
+"E-ink screens are slow and take noticeable time to update the content. Users "
+"may feel laggy, tap the screen or press the keyboard multiple times, and "
+"cause the following actions to interact with the unshown UI elements and "
+"trigger unexpected actions.\n"
+"This feature decides if a user action is expected or caused by the delay of "
+"screen refreshing, and drops the unexpected ones.\n"
+"It's highly suggested keeping this configuration enabled unless you feel the "
+"UI interactions are less responsive."
 
 #: frontend/ui/elements/common_settings_menu_table.lua:187
 msgid "Fullscreen"
@@ -12255,7 +12274,6 @@ msgstr "About fully refreshing screens"
 
 #: frontend/ui/elements/refresh_menu_table.lua:13
 msgid ""
-""
 "Showing a new content on an E-ink screen usually does not fully clear the "
 "previous content and leaves some blur. It may be referred as E-ink shadow or "
 "ghosting.\n"
@@ -12266,7 +12284,17 @@ msgid ""
 "responsiveness.\n"
 "Usually you do not to adjust this configuration, the balanced setting should "
 "be good enough for most of the use cases."
-msgstr "Showing a new content on an E-ink screen usually does not fully clear the previous content and leaves some blur. It may be referred as E-ink shadow or ghosting.\nThe blur needs a full refresh to be cleared cleanly. But a full refresh can be slow and trigger a flicker.\nKOReader allows users deciding the frequence of the full refresh, i.e. more full refreshes for better display quality or less full refreshes for responsiveness.\nUsually you do not to adjust this configuration, the balanced setting should be good enough for most of the use cases."
+msgstr ""
+"Showing a new content on an E-ink screen usually does not fully clear the "
+"previous content and leaves some blur. It may be referred as E-ink shadow or "
+"ghosting.\n"
+"The blur needs a full refresh to be cleared cleanly. But a full refresh can "
+"be slow and trigger a flicker.\n"
+"KOReader allows users deciding the frequence of the full refresh, i.e. more "
+"full refreshes for better display quality or less full refreshes for "
+"responsiveness.\n"
+"Usually you do not to adjust this configuration, the balanced setting should "
+"be good enough for most of the use cases."
 
 #: frontend/ui/elements/refresh_menu_table.lua:19
 msgid "Never automatically fully refresh screen"
@@ -12274,10 +12302,11 @@ msgstr "Never automatically fully refresh screen"
 
 #: frontend/ui/elements/refresh_menu_table.lua:21
 msgid ""
-""
 "The full refresh will happen only when showing an image, moving to next "
 "chapter or opening another book."
-msgstr "The full refresh will happen only when showing an image, moving to next chapter or opening another book."
+msgstr ""
+"The full refresh will happen only when showing an image, moving to next "
+"chapter or opening another book."
 
 #: frontend/ui/elements/refresh_menu_table.lua:32
 msgid "Low full refresh rate for better responsiveness"
@@ -12363,12 +12392,15 @@ msgstr "Use lower refresh rate when appropriate"
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:19
 msgid ""
-""
 "E-ink may laggy when refreshing, avoid refreshing the screen for the "
 "intermedia states, e.g. when scrolling, can be beneficial to reduce the "
 "laggy or blur.\n"
 "A reloading of the book may be needed to take effect."
-msgstr "E-ink may laggy when refreshing, avoid refreshing the screen for the intermedia states, e.g. when scrolling, can be beneficial to reduce the laggy or blur.\nA reloading of the book may be needed to take effect."
+msgstr ""
+"E-ink may laggy when refreshing, avoid refreshing the screen for the "
+"intermedia states, e.g. when scrolling, can be beneficial to reduce the "
+"laggy or blur.\n"
+"A reloading of the book may be needed to take effect."
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:30
 msgid "Avoid mandatory black flashes in UI"
@@ -12376,12 +12408,15 @@ msgstr "Avoid mandatory black flashes in UI"
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:32
 msgid ""
-""
 "Fully rendering a black area can be slow and increase the blur on the E-ink, "
 "avoiding full refreshes of the black areas may improve the device "
 "responsiveness in exchange of potentially observing partially rendered black "
 "areas, especially on menus and buttons."
-msgstr "Fully rendering a black area can be slow and increase the blur on the E-ink, avoiding full refreshes of the black areas may improve the device responsiveness in exchange of potentially observing partially rendered black areas, especially on menus and buttons."
+msgstr ""
+"Fully rendering a black area can be slow and increase the blur on the E-ink, "
+"avoiding full refreshes of the black areas may improve the device "
+"responsiveness in exchange of potentially observing partially rendered black "
+"areas, especially on menus and buttons."
 
 #: frontend/ui/elements/screen_rotation_menu_table.lua:37
 msgid "Ignore accelerometer rotation events"
@@ -12885,10 +12920,11 @@ msgstr "Automatically connect to the known Wi-Fi"
 
 #: frontend/ui/network/manager.lua:903
 msgid ""
-""
 "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known "
 "network automatically after turning on Wi-Fi."
-msgstr "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known network automatically after turning on Wi-Fi."
+msgstr ""
+"Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known "
+"network automatically after turning on Wi-Fi."
 
 #: frontend/ui/network/manager.lua:969
 msgid "No available wifi networks found."
@@ -14669,7 +14705,7 @@ msgstr "Switch to layout"
 #: frontend/ui/widget/keyvaluepage.lua:449 frontend/ui/widget/menu.lua:881
 #: frontend/ui/widget/sortwidget.lua:256 plugins/opds.koplugin/opdspse.lua:212
 #: plugins/statistics.koplugin/calendarview.lua:626
-#: plugins/vocabbuilder.koplugin/main.lua:1639
+#: plugins/vocabbuilder.koplugin/main.lua:1641
 msgid "Enter page number"
 msgstr "Enter page number"
 
@@ -14678,12 +14714,12 @@ msgstr "Enter page number"
 #: frontend/ui/widget/touchmenu.lua:797
 #: plugins/coverbrowser.koplugin/listmenu.lua:384
 #: plugins/statistics.koplugin/calendarview.lua:885
-#: plugins/vocabbuilder.koplugin/main.lua:1828
+#: plugins/vocabbuilder.koplugin/main.lua:1830
 msgid "Page %1 of %2"
 msgstr "Page %1 of %2"
 
 #: frontend/ui/widget/keyvaluepage.lua:781 frontend/ui/widget/menu.lua:1120
-#: plugins/vocabbuilder.koplugin/main.lua:1844
+#: plugins/vocabbuilder.koplugin/main.lua:1846
 msgid "No items"
 msgstr "No items"
 
@@ -16067,10 +16103,11 @@ msgstr "Number format"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:271
 msgid ""
-""
 "Autoload\n"
 "init.calc"
-msgstr "Autoload\ninit.calc"
+msgstr ""
+"Autoload\n"
+"init.calc"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:287
 msgid "Significance ≈"
@@ -16139,12 +16176,15 @@ msgstr "∡ %s\tFormat: %s\t≈%d"
 
 #: plugins/calculator.koplugin/main.lua:148
 msgid ""
-""
 "Enter your calculations and press '⮠'\n"
 "'♺' Convert, '⎚' Clear, '⇧' Load,\n"
 "'⇩' Store, '☰' Settings, '✕' Close\n"
 "or type 'help()⮠'"
-msgstr "Enter your calculations and press '⮠'\n'♺' Convert, '⎚' Clear, '⇧' Load,\n'⇩' Store, '☰' Settings, '✕' Close\nor type 'help()⮠'"
+msgstr ""
+"Enter your calculations and press '⮠'\n"
+"'♺' Convert, '⎚' Clear, '⇧' Load,\n"
+"'⇩' Store, '☰' Settings, '✕' Close\n"
+"or type 'help()⮠'"
 
 #: plugins/calculator.koplugin/main.lua:193
 #: plugins/calculator.koplugin/main.lua:218
@@ -17565,9 +17605,9 @@ msgstr "History view has been updated, use main menu to access it."
 
 #: plugins/findhistory.koplugin/main.lua:68
 msgid ""
-""
 "Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr "Failed to backup current history view from %1 to %2, still want to proceed?"
+msgstr ""
+"Failed to backup current history view from %1 to %2, still want to proceed?"
 
 #: plugins/findhistory.koplugin/main.lua:73
 #: plugins/findhistory.koplugin/main.lua:88
@@ -17576,10 +17616,11 @@ msgstr "Proceed"
 
 #: plugins/findhistory.koplugin/main.lua:86
 msgid ""
-""
 "Found an existing history backup file; it will be overwritten. Still want to "
 "proceed?"
-msgstr "Found an existing history backup file; it will be overwritten. Still want to proceed?"
+msgstr ""
+"Found an existing history backup file; it will be overwritten. Still want to "
+"proceed?"
 
 #: plugins/findhistory.koplugin/main.lua:104
 msgid "Last history view has been restored, use main menu to access it."
@@ -17591,11 +17632,13 @@ msgstr "Failed to restore the last history view from %1."
 
 #: plugins/findhistory.koplugin/main.lua:121
 msgid ""
-""
 "This function searches and retrieves all the reading records in the home "
 "directory and build the history view.\n"
 "The last history view will be preserved and can be restored."
-msgstr "This function searches and retrieves all the reading records in the home directory and build the history view.\nThe last history view will be preserved and can be restored."
+msgstr ""
+"This function searches and retrieves all the reading records in the home "
+"directory and build the history view.\n"
+"The last history view will be preserved and can be restored."
 
 #: plugins/findhistory.koplugin/main.lua:123
 msgid "Retrieve"
@@ -17607,9 +17650,9 @@ msgstr "Retrieve reading history"
 
 #: plugins/findhistory.koplugin/_meta.lua:6
 msgid ""
-""
 "Searches reading records in the home folder and update the history view."
-msgstr "Searches reading records in the home folder and update the history view."
+msgstr ""
+"Searches reading records in the home folder and update the history view."
 
 #: plugins/gestures.koplugin/main.lua:43 plugins/gestures.koplugin/main.lua:47
 #: plugins/gestures.koplugin/main.lua:61 plugins/gestures.koplugin/main.lua:65
@@ -17975,10 +18018,11 @@ msgstr "Navigate to %1 from a browser to control KOReader."
 
 #: plugins/httpinspector.koplugin/main.lua:1453
 msgid ""
-""
 "After starting the HTTP server, navigate to %1 from a browser to control "
 "KOReader."
-msgstr "After starting the HTTP server, navigate to %1 from a browser to control KOReader."
+msgstr ""
+"After starting the HTTP server, navigate to %1 from a browser to control "
+"KOReader."
 
 #: plugins/httpinspector.koplugin/main.lua:1462
 msgid "Turn on the network connection to use the feature."
@@ -18014,11 +18058,13 @@ msgstr "Port number (default is 8080)"
 
 #: plugins/httpinspector.koplugin/_meta.lua:6
 msgid ""
-""
 "Allow remotely controlling KOReader via browsers, with advanced features of "
 "inspecting KOReader internal state. It poses security risks; only enable "
 "this on networks you can trust."
-msgstr "Allow remotely controlling KOReader via browsers, with advanced features of inspecting KOReader internal state. It poses security risks; only enable this on networks you can trust."
+msgstr ""
+"Allow remotely controlling KOReader via browsers, with advanced features of "
+"inspecting KOReader internal state. It poses security risks; only enable "
+"this on networks you can trust."
 
 #: plugins/japanese.koplugin/deinflector.lua:487
 msgid "Halfwidth to fullwidth kana"
@@ -18305,9 +18351,9 @@ msgstr "Automatically keep documents in sync"
 
 #: plugins/kosync.koplugin/main.lua:233
 msgid ""
-""
 "Enable the feature will automatically pull and push progress when necessary."
-msgstr "Enable the feature will automatically pull and push progress when necessary."
+msgstr ""
+"Enable the feature will automatically pull and push progress when necessary."
 
 #: plugins/kosync.koplugin/main.lua:237
 msgid ""
@@ -18359,10 +18405,11 @@ msgstr "Filename. Files with matching names will be kept in sync."
 
 #: plugins/kosync.koplugin/main.lua:406
 msgid ""
-""
 "The new server address %1 is invalid, revert back to %2.\n"
 "Error: %3"
-msgstr "The new server address %1 is invalid, revert back to %2.\nError: %3"
+msgstr ""
+"The new server address %1 is invalid, revert back to %2.\n"
+"Error: %3"
 
 #: plugins/kosync.koplugin/main.lua:460
 msgid "Cannot login: %1"
@@ -20685,14 +20732,14 @@ msgid "Undo study status"
 msgstr "Undo study status"
 
 #: plugins/vocabbuilder.koplugin/main.lua:864
-#: plugins/vocabbuilder.koplugin/main.lua:1360
-#: plugins/vocabbuilder.koplugin/main.lua:1470
+#: plugins/vocabbuilder.koplugin/main.lua:1362
+#: plugins/vocabbuilder.koplugin/main.lua:1472
 msgid "Forgot"
 msgstr "Forgot"
 
 #: plugins/vocabbuilder.koplugin/main.lua:873
-#: plugins/vocabbuilder.koplugin/main.lua:1346
-#: plugins/vocabbuilder.koplugin/main.lua:1466
+#: plugins/vocabbuilder.koplugin/main.lua:1348
+#: plugins/vocabbuilder.koplugin/main.lua:1468
 msgid "Got it"
 msgstr "Got it"
 
@@ -20700,61 +20747,61 @@ msgstr "Got it"
 msgid "From"
 msgstr "From"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1054
+#: plugins/vocabbuilder.koplugin/main.lua:1055
 msgctxt "Time"
 msgid "%1h"
 msgstr "%1h"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1056
-#, lua-format
+#: plugins/vocabbuilder.koplugin/main.lua:1058
+#, no-lua-format
 msgctxt "Time"
 msgid "%1d"
 msgstr "%1d"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1058
+#: plugins/vocabbuilder.koplugin/main.lua:1060
 msgctxt "Time"
 msgid "%1 mo."
 msgstr "%1 mo."
 
-#: plugins/vocabbuilder.koplugin/main.lua:1061
+#: plugins/vocabbuilder.koplugin/main.lua:1063
 msgctxt "Time"
 msgid "%1 yr."
 msgstr "%1 yr."
 
-#: plugins/vocabbuilder.koplugin/main.lua:1110
+#: plugins/vocabbuilder.koplugin/main.lua:1112
 msgid "Added on"
 msgstr "Added on"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1113
+#: plugins/vocabbuilder.koplugin/main.lua:1115
 msgid "Review scheduled at"
 msgstr "Review scheduled at"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1255
+#: plugins/vocabbuilder.koplugin/main.lua:1257
 msgid "Add virtual book"
 msgstr "Add virtual book"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1260
+#: plugins/vocabbuilder.koplugin/main.lua:1262
 msgid "Enter book title:"
 msgstr "Enter book title:"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1300
-#: plugins/vocabbuilder.koplugin/main.lua:2029
+#: plugins/vocabbuilder.koplugin/main.lua:1302
+#: plugins/vocabbuilder.koplugin/main.lua:2031
 msgid "Book title already in use."
 msgstr "Book title already in use."
 
-#: plugins/vocabbuilder.koplugin/main.lua:1314
+#: plugins/vocabbuilder.koplugin/main.lua:1316
 msgid "Move \"%1\" to book:"
 msgstr "Move \"%1\" to book:"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1679
+#: plugins/vocabbuilder.koplugin/main.lua:1681
 msgid "Search words"
 msgstr "Search words"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1681
+#: plugins/vocabbuilder.koplugin/main.lua:1683
 msgid "Search empty content to exit"
 msgstr "Search empty content to exit"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1695
+#: plugins/vocabbuilder.koplugin/main.lua:1697
 msgid ""
 "You can use two wildcards when searching: the percent sign (%) and the "
 "underscore (_).\n"
@@ -20772,45 +20819,45 @@ msgstr ""
 "If no wildcard is used, the searched text will be enclosed with two %'s by "
 "default."
 
-#: plugins/vocabbuilder.koplugin/main.lua:1839
+#: plugins/vocabbuilder.koplugin/main.lua:1841
 msgid "Search in effect"
 msgstr "Search in effect"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1842
+#: plugins/vocabbuilder.koplugin/main.lua:1844
 msgid "Filter in effect"
 msgstr "Filter in effect"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1843
+#: plugins/vocabbuilder.koplugin/main.lua:1845
 msgid "No reviewable items"
 msgstr "No reviewable items"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1965
+#: plugins/vocabbuilder.koplugin/main.lua:1967
 msgid "Filter words from books"
 msgstr "Filter words from books"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1994
+#: plugins/vocabbuilder.koplugin/main.lua:1996
 msgid "Change book title to:"
 msgstr "Change book title to:"
 
-#: plugins/vocabbuilder.koplugin/main.lua:2006
+#: plugins/vocabbuilder.koplugin/main.lua:2008
 msgid "Change title"
 msgstr "Change title"
 
-#: plugins/vocabbuilder.koplugin/main.lua:2106
+#: plugins/vocabbuilder.koplugin/main.lua:2108
 msgid "Words reloaded"
 msgstr "Words reloaded"
 
-#: plugins/vocabbuilder.koplugin/main.lua:2185
-#: plugins/vocabbuilder.koplugin/main.lua:2236
+#: plugins/vocabbuilder.koplugin/main.lua:2187
+#: plugins/vocabbuilder.koplugin/main.lua:2238
 #: plugins/vocabbuilder.koplugin/_meta.lua:4
 msgid "Vocabulary builder"
 msgstr "Vocabulary builder"
 
-#: plugins/vocabbuilder.koplugin/main.lua:2203
+#: plugins/vocabbuilder.koplugin/main.lua:2205
 msgid "Add to vocabulary builder"
 msgstr "Add to vocabulary builder"
 
-#: plugins/vocabbuilder.koplugin/main.lua:2228
+#: plugins/vocabbuilder.koplugin/main.lua:2230
 msgid "Open vocabulary builder"
 msgstr "Open vocabulary builder"
 
@@ -21211,10 +21258,11 @@ msgstr "Auth token"
 
 #: plugins/weather.koplugin/main.lua:145
 msgid ""
-""
 "An auth token can be obtained from WeatherAPI.com. Simply signup for an "
 "account and request a token."
-msgstr "An auth token can be obtained from WeatherAPI.com. Simply signup for an account and request a token."
+msgstr ""
+"An auth token can be obtained from WeatherAPI.com. Simply signup for an "
+"account and request a token."
 
 #: plugins/weather.koplugin/main.lua:172
 msgid "Temperature Scale (%1)"

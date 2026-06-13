@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 19:21-0700\n"
+"POT-Creation-Date: 2026-06-12 23:26-0700\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -125,7 +125,15 @@ msgid ""
 "\n"
 "Download folder:\n"
 "%3"
-msgstr "檔名:\n%1\n\n下載檔名：\n%2\n\n下載資料夾:\n%3"
+msgstr ""
+"檔名:\n"
+"%1\n"
+"\n"
+"下載檔名：\n"
+"%2\n"
+"\n"
+"下載資料夾:\n"
+"%3"
 
 #: frontend/apps/cloudstorage/cloudstorage.lua:276
 #: frontend/apps/filemanager/filemanagerutil.lua:407
@@ -233,9 +241,9 @@ msgstr "輸入檔名"
 #: plugins/terminal.koplugin/aliases.lua:113
 #: plugins/terminal.koplugin/main.lua:705
 #: plugins/texteditor.koplugin/main.lua:394
-#: plugins/vocabbuilder.koplugin/main.lua:1265
-#: plugins/vocabbuilder.koplugin/main.lua:1685
-#: plugins/vocabbuilder.koplugin/main.lua:1999
+#: plugins/vocabbuilder.koplugin/main.lua:1267
+#: plugins/vocabbuilder.koplugin/main.lua:1687
+#: plugins/vocabbuilder.koplugin/main.lua:2001
 #: plugins/wallabag.koplugin/main.lua:1125
 #: plugins/wallabag.koplugin/main.lua:1155
 #: plugins/wallabag.koplugin/main.lua:1220
@@ -277,7 +285,7 @@ msgstr "選擇"
 #: frontend/apps/cloudstorage/dropbox.lua:149
 #: frontend/apps/cloudstorage/ftp.lua:154
 #: frontend/apps/cloudstorage/webdav.lua:180
-#: plugins/vocabbuilder.koplugin/main.lua:1692
+#: plugins/vocabbuilder.koplugin/main.lua:1694
 #: plugins/wallabag.koplugin/main.lua:438
 #: plugins/wallabag.koplugin/main.lua:1227
 msgid "Info"
@@ -497,7 +505,9 @@ msgstr ""
 msgid ""
 "Could not create folder:\n"
 "%1"
-msgstr "無法建立資料夾：\n%1"
+msgstr ""
+"無法建立資料夾：\n"
+"%1"
 
 #: frontend/apps/cloudstorage/dropbox.lua:102
 msgid ""
@@ -574,7 +584,13 @@ msgid ""
 "Country: %4\n"
 "Space total: %5\n"
 "Space used: %6"
-msgstr "型別： %1\n名稱： %2\n郵箱： %3\n國家： %4\n總空間：%5\n已用空間：%6"
+msgstr ""
+"型別： %1\n"
+"名稱： %2\n"
+"郵箱： %3\n"
+"國家： %4\n"
+"總空間：%5\n"
+"已用空間：%6"
 
 #: frontend/apps/cloudstorage/ftp.lua:38
 msgid ""
@@ -619,7 +635,7 @@ msgid "FTP folder"
 msgstr "FTP 資料夾"
 
 #: frontend/apps/cloudstorage/ftp.lua:101
-#: plugins/vocabbuilder.koplugin/main.lua:1272
+#: plugins/vocabbuilder.koplugin/main.lua:1274
 msgid "Add"
 msgstr "加入"
 
@@ -1343,7 +1359,7 @@ msgstr "輸入需要搜尋的文字"
 #: plugins/opds.koplugin/opdsbrowser.lua:420
 #: plugins/opds.koplugin/opdsbrowser.lua:601
 #: plugins/vocabbuilder.koplugin/main.lua:310
-#: plugins/vocabbuilder.koplugin/main.lua:1704
+#: plugins/vocabbuilder.koplugin/main.lua:1706
 msgid "Search"
 msgstr "搜尋"
 
@@ -1489,13 +1505,17 @@ msgstr "找不到檔案"
 msgid ""
 "File already exists:\n"
 "%1"
-msgstr "檔案已存在：\n%1"
+msgstr ""
+"檔案已存在：\n"
+"%1"
 
 #: frontend/apps/filemanager/filemanager.lua:1004
 msgid ""
 "Folder already exists:\n"
 "%1"
-msgstr "資料夾已存在：\n%1"
+msgstr ""
+"資料夾已存在：\n"
+"%1"
 
 #: frontend/apps/filemanager/filemanager.lua:1027
 msgid "Move selected files to the current folder?"
@@ -2447,11 +2467,13 @@ msgstr "套用裁切"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:46
 msgid ""
-""
 "Battery level drops below the critical zone.\n"
 "\n"
 "Suspending the device…"
-msgstr "電池電量降至臨界區域以下。\n\n正在休眠裝置…"
+msgstr ""
+"電池電量降至臨界區域以下。\n"
+"\n"
+"正在休眠裝置…"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:49
 #: frontend/apps/reader/modules/readerdevicestatus.lua:132
@@ -2463,18 +2485,23 @@ msgid ""
 "High battery level: %1 %\n"
 "\n"
 "Dismiss battery level alert?"
-msgstr "電量過高：%1%\n\n忽略此警報？"
+msgstr ""
+"電量過高：%1%\n"
+"\n"
+"忽略此警報？"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:87
 msgid ""
 "Low battery level: %1 %\n"
 "\n"
 "Dismiss battery level alert?"
-msgstr "電量過低：%1%\n\n忽略此警報？"
+msgstr ""
+"電量過低：%1%\n"
+"\n"
+"忽略此警報？"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:94
 msgid ""
-""
 "When battery level drops below the critical zone, the device will be put "
 "into suspension automatically."
 msgstr "當電池電量降至臨界區域以下時，裝置將自動進入休眠。"
@@ -2583,7 +2610,7 @@ msgstr "搜尋設定"
 
 #: frontend/apps/reader/modules/readerdictionary.lua:236
 #: frontend/apps/reader/modules/readerdictionary.lua:1012
-#: frontend/dispatcher.lua:101 plugins/vocabbuilder.koplugin/main.lua:2208
+#: frontend/dispatcher.lua:101 plugins/vocabbuilder.koplugin/main.lua:2210
 msgid "Dictionary lookup"
 msgstr "字典查詢"
 
@@ -3070,7 +3097,11 @@ msgid ""
 "This may help with Greek words among Latin text (as Latin fonts often do not "
 "have all the Greek characters), but may make Chinese or Indic characters "
 "smaller when picked from fallback fonts."
-msgstr "調整每個後備字型的大小以使它們具有相同的 x-height，此時小寫字母看起來與預設字型的小寫字母大小相似。\n這可能有助於拉丁文本中的希臘單詞(因為拉丁字型通常沒有所有的希臘字元)，但從後備字型中選擇漢字或印度字元時，可能會使漢字或印度字元變小。"
+msgstr ""
+"調整每個後備字型的大小以使它們具有相同的 x-height，此時小寫字母看起來與預設字"
+"型的小寫字母大小相似。\n"
+"這可能有助於拉丁文本中的希臘單詞(因為拉丁字型通常沒有所有的希臘字元)，但從後"
+"備字型中選擇漢字或印度字元時，可能會使漢字或印度字元變小。"
 
 #: frontend/apps/reader/modules/readerfont.lua:847
 msgid "Monospace fonts scaling: %1 %"
@@ -3113,7 +3144,11 @@ msgid ""
 "%1\n"
 "\n"
 "Would you like to view it now?"
-msgstr "文件建立於:\n%1\n\n你想要現在閱讀嗎？"
+msgstr ""
+"文件建立於:\n"
+"%1\n"
+"\n"
+"你想要現在閱讀嗎？"
 
 #. @translators This is the footer letter prefix for battery % remaining.
 #: frontend/apps/reader/modules/readerfooter.lua:59
@@ -3455,7 +3490,10 @@ msgid ""
 "item will range from 'n−1' to 0 (last page).\n"
 "With this feature enabled, the current page is factored in, resulting in the "
 "count going from n to 1 instead."
-msgstr "預設情況下，KOReader 在計算剩餘頁數時不包括當前頁。例如，一本書或一章有 n 頁，“剩餘頁數 ”專案的範圍將是從 “n-1 ”到 0（最後一頁）。\n啟用此功能後，將包含當前頁面，因此計數範圍變為 n 到 1。"
+msgstr ""
+"預設情況下，KOReader 在計算剩餘頁數時不包括當前頁。例如，一本書或一章有 n "
+"頁，“剩餘頁數 ”專案的範圍將是從 “n-1 ”到 0（最後一頁）。\n"
+"啟用此功能後，將包含當前頁面，因此計數範圍變為 n 到 1。"
 
 #: frontend/apps/reader/modules/readerfooter.lua:1545
 msgid "Progress percentage format: %1"
@@ -3633,7 +3671,7 @@ msgstr "右"
 #: frontend/ui/widget/keyvaluepage.lua:460 frontend/ui/widget/menu.lua:826
 #: frontend/ui/widget/sortwidget.lua:267
 #: plugins/statistics.koplugin/calendarview.lua:637
-#: plugins/vocabbuilder.koplugin/main.lua:1650
+#: plugins/vocabbuilder.koplugin/main.lua:1652
 msgid "Go to page"
 msgstr "前往頁面"
 
@@ -4123,11 +4161,13 @@ msgstr "高亮時間非常久的長按間隔"
 msgid ""
 "If a long-press is not released in this interval, it is considered a very-"
 "long-press. On document text, single word selection will not be triggered."
-msgstr "如果在此間隔內未釋放長按，則該動作會被認為是時間很久的長按。 在文件文本上，不會觸發選中單個單詞。"
+msgstr ""
+"如果在此間隔內未釋放長按，則該動作會被認為是時間很久的長按。 在文件文本上，不"
+"會觸發選中單個單詞。"
 
 #. @translators This is the time unit for seconds.
 #: frontend/apps/reader/modules/readerhighlight.lua:892
-#: frontend/datetime.lua:214
+#: frontend/datetime.lua:216
 #: frontend/ui/data/keyboardlayouts/ja_keyboard.lua:217
 #: plugins/statistics.koplugin/main.lua:1334
 msgctxt "Time"
@@ -4258,7 +4298,17 @@ msgid ""
 "\n"
 "Copy the language data files (e.g., eng.traineddata for English and "
 "spa.traineddata for Spanish) into koreader/data/tessdata"
-msgstr "沒有 OCR 識別結果或語言資料。\n\nKOReader有一個內建的 OCR 引擎用於識別掃描的 PDF 和 DjVu 文件中的文字。為了在掃描的頁面中使用 OCR，您需要為您的文件語言安裝 Tesseract 訓練資料。\n\n您可以從https://tesseract-ocr.github.io/tessdoc/Data-Files下載 5.3.4 版本的語言資料檔案。\n\n複製語言資料檔案 （比如適用於英語的 eng.traineddata 和適用於西班牙語的 spa.traineddata）到koreader/data/tessdata 資料夾內"
+msgstr ""
+"沒有 OCR 識別結果或語言資料。\n"
+"\n"
+"KOReader有一個內建的 OCR 引擎用於識別掃描的 PDF 和 DjVu 文件中的文字。為了在"
+"掃描的頁面中使用 OCR，您需要為您的文件語言安裝 Tesseract 訓練資料。\n"
+"\n"
+"您可以從https://tesseract-ocr.github.io/tessdoc/Data-Files下載 5.3.4 版本的語"
+"言資料檔案。\n"
+"\n"
+"複製語言資料檔案 （比如適用於英語的 eng.traineddata 和適用於西班牙語的 "
+"spa.traineddata）到koreader/data/tessdata 資料夾內"
 
 #: frontend/apps/reader/modules/readerhighlight.lua:2325
 msgid "Default highlight action changed to '%1'."
@@ -5165,7 +5215,9 @@ msgstr "無法開啟下一個檔案，按最後閱讀時間排序不支援此功
 msgid ""
 "You've reached the end of the document.\n"
 "The current book is marked as finished."
-msgstr "你已經讀完了這份文件。\n文件將被標記為已讀。"
+msgstr ""
+"你已經讀完了這份文件。\n"
+"文件將被標記為已讀。"
 
 #: frontend/apps/reader/modules/readerstatus.lua:199
 msgid "This is the last file in the current folder. No next file to open."
@@ -5849,7 +5901,17 @@ msgid ""
 "  footer: %5 px\n"
 "\n"
 "Tap to dismiss."
-msgstr "邊距設定為：\n\n  左側： %1 \n  右側： %2 \n  頂部： %3 \n  底部:：%4 \n\n  頁尾： %5 px\n\n輕按以繼續。"
+msgstr ""
+"邊距設定為：\n"
+"\n"
+"  左側： %1 \n"
+"  右側： %2 \n"
+"  頂部： %3 \n"
+"  底部:：%4 \n"
+"\n"
+"  頁尾： %5 px\n"
+"\n"
+"輕按以繼續。"
 
 #: frontend/apps/reader/modules/readertypography.lua:26
 #: frontend/apps/reader/modules/readertypography.lua:298
@@ -6413,7 +6475,12 @@ msgid ""
 "is not alphabetically sorted.\n"
 "\n"
 "It will be disabled now."
-msgstr "使用者詞典\n%1\n未按照字母順序排列。\n\n它將被停用。"
+msgstr ""
+"使用者詞典\n"
+"%1\n"
+"未按照字母順序排列。\n"
+"\n"
+"它將被停用。"
 
 #: frontend/apps/reader/modules/readeruserhyph.lua:76
 msgid ""
@@ -6564,14 +6631,18 @@ msgstr "維基百科的語言"
 
 #: frontend/apps/reader/modules/readerwikipedia.lua:191
 msgid ""
-""
 "Enter one or more Wikipedia language codes (the 2 or 3 letters "
 "before .wikipedia.org), in the order you wish to see them available, "
 "separated by a space. For example:\n"
 "  en fr zh\n"
 "\n"
 "Full list at https://en.wikipedia.org/wiki/List_of_Wikipedias"
-msgstr "輸入一個或多個維基百科語言代碼（.wikipedia.org 之前的 2 或 3 個字母），按您希望看到的順序排列，用空格分隔。例如：\n  en fr zh\n\n完整列表請訪問 https://en.wikipedia.org/wiki/List_of_Wikipedias"
+msgstr ""
+"輸入一個或多個維基百科語言代碼（.wikipedia.org 之前的 2 或 3 個字母），按您希"
+"望看到的順序排列，用空格分隔。例如：\n"
+"  en fr zh\n"
+"\n"
+"完整列表請訪問 https://en.wikipedia.org/wiki/List_of_Wikipedias"
 
 #: frontend/apps/reader/modules/readerwikipedia.lua:215
 msgid "Set Wikipedia 'Save as EPUB' folder"
@@ -6583,7 +6654,11 @@ msgid ""
 "\n"
 "You can choose an existing folder, or use a default folder named "
 "\"Wikipedia\" in your reader's home folder."
-msgstr "維基百科文章可以儲存為 EPUB 電子書以便更舒適地閱讀。\n\n可以選擇一個已有資料夾，或者使用你的閱讀器主目錄下名為“Wikipedia”的預設資料夾。"
+msgstr ""
+"維基百科文章可以儲存為 EPUB 電子書以便更舒適地閱讀。\n"
+"\n"
+"可以選擇一個已有資料夾，或者使用你的閱讀器主目錄下名為“Wikipedia”的預設資料"
+"夾。"
 
 #: frontend/apps/reader/modules/readerwikipedia.lua:225
 msgid "Current Wikipedia 'Save as EPUB' folder:"
@@ -6852,10 +6927,11 @@ msgstr "很遺憾，KOReader 崩潰了。"
 
 #: frontend/apps/reader/readerui.lua:775
 msgid ""
-""
 "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help "
 "developers to improve it."
-msgstr "向 https://github.com/Hzj-jie/koreader-202411 報告錯誤可以協助開發人員進行改進。"
+msgstr ""
+"向 https://github.com/Hzj-jie/koreader-202411 報告錯誤可以協助開發人員進行改"
+"進。"
 
 #: frontend/apps/reader/readerui.lua:788 frontend/device/android/device.lua:225
 msgid "Opening file '%1'."
@@ -7034,7 +7110,7 @@ msgid "Sunday"
 msgstr "星期日"
 
 #: frontend/datetime.lua:106 frontend/datetime.lua:112
-#: frontend/datetime.lua:207
+#: frontend/datetime.lua:209
 msgctxt "Time"
 msgid "d"
 msgstr ""
@@ -7043,99 +7119,100 @@ msgstr ""
 msgid "%1m"
 msgstr "%1m"
 
-#: frontend/datetime.lua:150 frontend/datetime.lua:171
-#: plugins/vocabbuilder.koplugin/main.lua:1050
 # Note: commented out '#, lua-format' to avoid msgfmt validation errors
 # because the translation uses custom gettext positional variables
 # which are not standard Lua format specifiers.
 # #, lua-format
+#: frontend/datetime.lua:151 frontend/datetime.lua:173
+#: plugins/vocabbuilder.koplugin/main.lua:1051
+#, no-lua-format
 msgctxt "Time"
 msgid "%1s"
 msgstr "%1秒"
 
-#: frontend/datetime.lua:158 frontend/datetime.lua:164
-#: plugins/vocabbuilder.koplugin/main.lua:1052
+#: frontend/datetime.lua:159 frontend/datetime.lua:165
+#: plugins/vocabbuilder.koplugin/main.lua:1053
 msgctxt "Time"
 msgid "%1m"
 msgstr "%1分"
 
-#: frontend/datetime.lua:174
+#: frontend/datetime.lua:176
 msgctxt "Time"
 msgid "%1m %2s"
 msgstr ""
 
-#: frontend/datetime.lua:193 frontend/datetime.lua:195
-#: frontend/datetime.lua:209
+#: frontend/datetime.lua:195 frontend/datetime.lua:197
+#: frontend/datetime.lua:211
 msgctxt "Time"
 msgid "h"
 msgstr "小時"
 
-#: frontend/datetime.lua:194 frontend/datetime.lua:196
-#: frontend/datetime.lua:201 frontend/datetime.lua:212
-#: frontend/datetime.lua:213 frontend/datetime.lua:221
+#: frontend/datetime.lua:196 frontend/datetime.lua:198
+#: frontend/datetime.lua:203 frontend/datetime.lua:214
+#: frontend/datetime.lua:215 frontend/datetime.lua:223
 msgctxt "Time"
 msgid "m"
 msgstr "米"
 
 #. @translators This is the time in the morning using a 12-hour clock (%I is the hour, %M the minute).
-#: frontend/datetime.lua:276
+#: frontend/datetime.lua:278
 msgid "%I:%M AM"
 msgstr "%I:%M AM"
 
 #. @translators This is the time in the afternoon using a 12-hour clock (%I is the hour, %M the minute).
-#: frontend/datetime.lua:279
+#: frontend/datetime.lua:281
 msgid "%I:%M PM"
 msgstr "%I:%M PM"
 
 #. @translators This is the time using a 24-hour clock (%H is the hour, %M the minute).
-#: frontend/datetime.lua:283
+#: frontend/datetime.lua:285
 msgid "%H:%M"
 msgstr "%H:%M"
 
 #. @translators This is the time in the morning using a 12-hour clock (%_I is the hour, %M the minute).
-#: frontend/datetime.lua:292
+#: frontend/datetime.lua:294
 msgid "%_I:%M AM"
 msgstr "%_I:%M AM"
 
 #. @translators This is the time in the morning using a 12-hour clock (%-I is the hour, %M the minute).
-#: frontend/datetime.lua:295
+#: frontend/datetime.lua:297
 msgid "%-I:%M AM"
 msgstr "%-I:%M AM"
 
 #. @translators This is the time in the afternoon using a 12-hour clock (%_I is the hour, %M the minute).
-#: frontend/datetime.lua:300
+#: frontend/datetime.lua:302
 msgid "%_I:%M PM"
 msgstr "%_I:%M PM"
 
 #. @translators This is the time in the afternoon using a 12-hour clock (%-I is the hour, %M the minute).
-#: frontend/datetime.lua:303
+#: frontend/datetime.lua:305
 msgid "%-I:%M PM"
 msgstr "%-I:%M PM"
 
 #. @translators This is the time using a 24-hour clock (%_H is the hour, %M the minute).
-#: frontend/datetime.lua:309
+#: frontend/datetime.lua:311
 msgid "%_H:%M"
 msgstr "%_H:%M"
 
 #. @translators This is the time using a 24-hour clock (%-H is the hour, %M the minute).
-#: frontend/datetime.lua:312
+#: frontend/datetime.lua:314
 msgid "%-H:%M"
 msgstr "%-H:%M"
 
 #. @translators Use the following placeholders in the desired order: %1 name of day, %2 name of month, %3 day, %4 year
-#: frontend/datetime.lua:332
+#: frontend/datetime.lua:334
 msgctxt "Date string"
 msgid "%1 %2 %3 %4"
 msgstr "%1 %2 %3 %4"
 
 #. @translators This is the date (%Y is the year, %m the month, %d the day)
-#: frontend/datetime.lua:340
+#: frontend/datetime.lua:342
 msgctxt "Date string"
 msgid "%Y-%m-%d"
 msgstr "%Y-%m-%d"
 
 #. @translators Use the following placeholders in the desired order: %1 date, %2 time
-#: frontend/datetime.lua:361
+#: frontend/datetime.lua:363
 msgctxt "Date string"
 msgid "%1 %2"
 msgstr ""
@@ -7162,7 +7239,11 @@ msgid ""
 "\n"
 "OS: Android %2, api %3 on %4\n"
 "Build flavor: %5\n"
-msgstr "%1\n\n作業系統: Android %2, api %3 on %4\n構建型別: %5\n"
+msgstr ""
+"%1\n"
+"\n"
+"作業系統: Android %2, api %3 on %4\n"
+"構建型別: %5\n"
 
 #: frontend/device/android/device.lua:512
 msgid "Device type: %1"
@@ -10645,7 +10726,11 @@ msgid ""
 "  left: %1\n"
 "  right: %2\n"
 "Default margins: not set"
-msgstr "當前邊距：\n  左邊距：%1\n  右邊局：%2\n預設邊距：未設定"
+msgstr ""
+"當前邊距：\n"
+"  左邊距：%1\n"
+"  右邊局：%2\n"
+"預設邊距：未設定"
 
 #: frontend/ui/data/optionsutil.lua:267
 msgid ""
@@ -10655,7 +10740,13 @@ msgid ""
 "Default margins:\n"
 "  left: %3\n"
 "  right: %4"
-msgstr "當前邊距：\n  左邊距：%1\n  右邊距：%2\n預設邊距：\n  左邊距：%3\n  右邊距：%4"
+msgstr ""
+"當前邊距：\n"
+"  左邊距：%1\n"
+"  右邊距：%2\n"
+"預設邊距：\n"
+"  左邊距：%3\n"
+"  右邊距：%4"
 
 #: frontend/ui/elements/advanced_settings_menu_table.lua:5
 msgid "Advanced settings"
@@ -10764,10 +10855,11 @@ msgstr ""
 
 #: frontend/ui/elements/common_info_menu_table.lua:192
 msgid ""
-""
 "Running version may not match source code version %1.\n"
 "Please consider restarting KOReader at the ealiest convenience."
-msgstr "執行版本可能與原始碼版本 %1 不匹配。\n請考慮儘早重新啟動 KOReader。"
+msgstr ""
+"執行版本可能與原始碼版本 %1 不匹配。\n"
+"請考慮儘早重新啟動 KOReader。"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:20
 msgid "Start %1 reader app"
@@ -10838,7 +10930,6 @@ msgstr "禁用無序互動"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:168
 msgid ""
-""
 "Disallow taps or keyboard presses being sent to the UI elements before they "
 "are showing up.\n"
 "E-ink screens are slow and take noticeable time to update the content. Users "
@@ -10849,7 +10940,13 @@ msgid ""
 "screen refreshing, and drops the unexpected ones.\n"
 "It's highly suggested keeping this configuration enabled unless you feel the "
 "UI interactions are less responsive."
-msgstr "不允許在 UI 元素顯示之前向其發送點擊或鍵盤按鍵。\n電子墨水屏較慢，需要明顯的時間來更新內容。使用者可能會感到延遲，多次點擊屏幕或按鍵盤，從起後續操作與未顯示的 UI 元素互動並觸發意外操作。\n此功能判定使用者操作是預期的還是由於屏幕重新整理延遲引起的，並丟棄意外的操作。\n強烈建議保持此設定啟用，除非您覺得 UI 互動響應變慢。"
+msgstr ""
+"不允許在 UI 元素顯示之前向其發送點擊或鍵盤按鍵。\n"
+"電子墨水屏較慢，需要明顯的時間來更新內容。使用者可能會感到延遲，多次點擊屏幕"
+"或按鍵盤，從起後續操作與未顯示的 UI 元素互動並觸發意外操作。\n"
+"此功能判定使用者操作是預期的還是由於屏幕重新整理延遲引起的，並丟棄意外的操"
+"作。\n"
+"強烈建議保持此設定啟用，除非您覺得 UI 互動響應變慢。"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:187
 msgid "Fullscreen"
@@ -11582,7 +11679,6 @@ msgstr "關於全螢幕重新整理"
 
 #: frontend/ui/elements/refresh_menu_table.lua:13
 msgid ""
-""
 "Showing a new content on an E-ink screen usually does not fully clear the "
 "previous content and leaves some blur. It may be referred as E-ink shadow or "
 "ghosting.\n"
@@ -11593,7 +11689,13 @@ msgid ""
 "responsiveness.\n"
 "Usually you do not to adjust this configuration, the balanced setting should "
 "be good enough for most of the use cases."
-msgstr "在電子墨水屏上顯示新內容通常不會完全清除先前內容，並會留下一些模糊。這可能被稱為電子墨水屏殘影或鬼影。\n模糊需要全螢幕重新整理才能清除乾淨。但全螢幕重新整理可能較慢並觸發閃爍。\nKOReader 允許使用者決定全螢幕重新整理的頻率，即較多的全螢幕重新整理以獲得更好的顯示品質，或較少以提高響應速度。\n通常您不需要調整此設定，平衡的設定對大多數使用場景都足夠好。"
+msgstr ""
+"在電子墨水屏上顯示新內容通常不會完全清除先前內容，並會留下一些模糊。這可能被"
+"稱為電子墨水屏殘影或鬼影。\n"
+"模糊需要全螢幕重新整理才能清除乾淨。但全螢幕重新整理可能較慢並觸發閃爍。\n"
+"KOReader 允許使用者決定全螢幕重新整理的頻率，即較多的全螢幕重新整理以獲得更好"
+"的顯示品質，或較少以提高響應速度。\n"
+"通常您不需要調整此設定，平衡的設定對大多數使用場景都足夠好。"
 
 #: frontend/ui/elements/refresh_menu_table.lua:19
 msgid "Never automatically fully refresh screen"
@@ -11601,7 +11703,6 @@ msgstr "從不自動全螢幕重新整理"
 
 #: frontend/ui/elements/refresh_menu_table.lua:21
 msgid ""
-""
 "The full refresh will happen only when showing an image, moving to next "
 "chapter or opening another book."
 msgstr "全螢幕重新整理僅在顯示圖像、跳轉到下一章或開啟另一本書時發生。"
@@ -11688,12 +11789,14 @@ msgstr "在適當時使用較低的重新整理率"
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:19
 msgid ""
-""
 "E-ink may laggy when refreshing, avoid refreshing the screen for the "
 "intermedia states, e.g. when scrolling, can be beneficial to reduce the "
 "laggy or blur.\n"
 "A reloading of the book may be needed to take effect."
-msgstr "電子墨水屏重新整理時可能會有些微延遲，避免為中間狀態（例如捲動時）螢幕重新整理有助於減少延遲或模糊。\n可能需要重新載入書籍才能生效。"
+msgstr ""
+"電子墨水屏重新整理時可能會有些微延遲，避免為中間狀態（例如捲動時）螢幕重新整"
+"理有助於減少延遲或模糊。\n"
+"可能需要重新載入書籍才能生效。"
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:30
 msgid "Avoid mandatory black flashes in UI"
@@ -11701,12 +11804,14 @@ msgstr "避免在 UI 中用黑畫面去除殘影"
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:32
 msgid ""
-""
 "Fully rendering a black area can be slow and increase the blur on the E-ink, "
 "avoiding full refreshes of the black areas may improve the device "
 "responsiveness in exchange of potentially observing partially rendered black "
 "areas, especially on menus and buttons."
-msgstr "完全彩現黑色區域可能會很慢並增加電子墨水屏上的模糊，避免黑色區域的全螢幕重新整理可以提高裝置響應速度，但代價是可能會觀察到部分彩現的黑色區域，特別是在選單和按鈕上。"
+msgstr ""
+"完全彩現黑色區域可能會很慢並增加電子墨水屏上的模糊，避免黑色區域的全螢幕重新"
+"整理可以提高裝置響應速度，但代價是可能會觀察到部分彩現的黑色區域，特別是在選"
+"單和按鈕上。"
 
 #: frontend/ui/elements/screen_rotation_menu_table.lua:37
 msgid "Ignore accelerometer rotation events"
@@ -12165,7 +12270,9 @@ msgid ""
 "This will attempt to automatically and silently re-connect to Wi-Fi on "
 "startup or on resume if Wi-Fi used to be enabled the last time you used "
 "KOReader, and you did not explicitly disable it."
-msgstr "如果您上次使用 KOReader 時啟用了 Wi-Fi，並且沒有明確地停用它，那麼這個功能將嘗試在啟動或恢復時自動且無聲地重新連線 Wi-Fi。"
+msgstr ""
+"如果您上次使用 KOReader 時啟用了 Wi-Fi，並且沒有明確地停用它，那麼這個功能將"
+"嘗試在啟動或恢復時自動且無聲地重新連線 Wi-Fi。"
 
 #: frontend/ui/network/manager.lua:840
 msgid "Network info"
@@ -12189,10 +12296,10 @@ msgstr "自動連線到已知 Wi-Fi"
 
 #: frontend/ui/network/manager.lua:903
 msgid ""
-""
 "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known "
 "network automatically after turning on Wi-Fi."
-msgstr "開啟 Wi-Fi 後，KOReader 將自動連線到已知網路，而不是顯示 Wi-Fi SSID 列表。"
+msgstr ""
+"開啟 Wi-Fi 後，KOReader 將自動連線到已知網路，而不是顯示 Wi-Fi SSID 列表。"
 
 #: frontend/ui/network/manager.lua:969
 msgid "No available wifi networks found."
@@ -12716,7 +12823,17 @@ msgid ""
 "  %h time left in chapter\n"
 "  %H time left in document\n"
 "  %b battery level"
-msgstr "輸入需要顯示在屏保上的訊息。可以使用以下的轉義序列：\n  %T 標題\n  %A 作者\n  %S 叢書\n  %c 當前頁碼\n  %t 總頁碼\n  %p 已讀百分比\n  %h 章節剩餘時間\n  %H 文件剩餘時間\n  %b 電量"
+msgstr ""
+"輸入需要顯示在屏保上的訊息。可以使用以下的轉義序列：\n"
+"  %T 標題\n"
+"  %A 作者\n"
+"  %S 叢書\n"
+"  %c 當前頁碼\n"
+"  %t 總頁碼\n"
+"  %p 已讀百分比\n"
+"  %h 章節剩餘時間\n"
+"  %H 文件剩餘時間\n"
+"  %b 電量"
 
 #: frontend/ui/screensaver.lua:373
 msgid "Set message"
@@ -13567,7 +13684,7 @@ msgstr "切換到配置"
 #: frontend/ui/widget/keyvaluepage.lua:449 frontend/ui/widget/menu.lua:881
 #: frontend/ui/widget/sortwidget.lua:256 plugins/opds.koplugin/opdspse.lua:212
 #: plugins/statistics.koplugin/calendarview.lua:626
-#: plugins/vocabbuilder.koplugin/main.lua:1639
+#: plugins/vocabbuilder.koplugin/main.lua:1641
 msgid "Enter page number"
 msgstr "輸入頁碼"
 
@@ -13576,12 +13693,12 @@ msgstr "輸入頁碼"
 #: frontend/ui/widget/touchmenu.lua:797
 #: plugins/coverbrowser.koplugin/listmenu.lua:384
 #: plugins/statistics.koplugin/calendarview.lua:885
-#: plugins/vocabbuilder.koplugin/main.lua:1828
+#: plugins/vocabbuilder.koplugin/main.lua:1830
 msgid "Page %1 of %2"
 msgstr "第 %1 頁，共 %2 頁"
 
 #: frontend/ui/widget/keyvaluepage.lua:781 frontend/ui/widget/menu.lua:1120
-#: plugins/vocabbuilder.koplugin/main.lua:1844
+#: plugins/vocabbuilder.koplugin/main.lua:1846
 msgid "No items"
 msgstr "無項目"
 
@@ -14875,10 +14992,11 @@ msgstr "數字格式"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:271
 msgid ""
-""
 "Autoload\n"
 "init.calc"
-msgstr "自動載入\ninit.calc"
+msgstr ""
+"自動載入\n"
+"init.calc"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:287
 msgid "Significance ≈"
@@ -14947,12 +15065,15 @@ msgstr "∡ %s\t格式: %s\t≈%d"
 
 #: plugins/calculator.koplugin/main.lua:148
 msgid ""
-""
 "Enter your calculations and press '⮠'\n"
 "'♺' Convert, '⎚' Clear, '⇧' Load,\n"
 "'⇩' Store, '☰' Settings, '✕' Close\n"
 "or type 'help()⮠'"
-msgstr "輸入您的計算並按 “⮠”\n“♺” 轉換，“⎚” 清除，“⇧” 載入，\n“⇩” 儲存，“☰” 設定，“✕” 關閉\n或輸入 “help()⮠”"
+msgstr ""
+"輸入您的計算並按 “⮠”\n"
+"“♺” 轉換，“⎚” 清除，“⇧” 載入，\n"
+"“⇩” 儲存，“☰” 設定，“✕” 關閉\n"
+"或輸入 “help()⮠”"
 
 #: plugins/calculator.koplugin/main.lua:193
 #: plugins/calculator.koplugin/main.lua:218
@@ -15187,7 +15308,9 @@ msgstr "找不到 calibre 書櫃"
 msgid ""
 "Found %1 calibre libraries with %2 books:\n"
 "%3"
-msgstr "在%1 個Calibre庫內找到了%2 本書:\n%3"
+msgstr ""
+"在%1 個Calibre庫內找到了%2 本書:\n"
+"%3"
 
 #: plugins/calibre.koplugin/wireless.lua:147
 msgid "Invalid password"
@@ -16228,7 +16351,11 @@ msgid ""
 "\n"
 "Markdown formatting can be configured in:\n"
 "Export highlights > Choose formats and services > Markdown."
-msgstr "有關 Nextcloud 隨手記的設定說明，請參閱 %1\n\n可以在以下位置設定 Markdown 格式：\n匯出標註 > 選擇格式與服務 > Markdown。"
+msgstr ""
+"有關 Nextcloud 隨手記的設定說明，請參閱 %1\n"
+"\n"
+"可以在以下位置設定 Markdown 格式：\n"
+"匯出標註 > 選擇格式與服務 > Markdown。"
 
 #: plugins/exporter.koplugin/target/readwise.lua:60
 msgid "Readwise"
@@ -16320,7 +16447,6 @@ msgstr "歷史檢視已更新，請使用主選單存取。"
 
 #: plugins/findhistory.koplugin/main.lua:68
 msgid ""
-""
 "Failed to backup current history view from %1 to %2, still want to proceed?"
 msgstr "無法將目前歷史檢視備份從 %1 備份到 %2，仍要繼續嗎？"
 
@@ -16331,7 +16457,6 @@ msgstr "繼續"
 
 #: plugins/findhistory.koplugin/main.lua:86
 msgid ""
-""
 "Found an existing history backup file; it will be overwritten. Still want to "
 "proceed?"
 msgstr "發現已存在的歷史備份檔案，它將被覆蓋。仍要繼續嗎？"
@@ -16346,11 +16471,12 @@ msgstr "無法從 %1 還原最後的歷史檢視。"
 
 #: plugins/findhistory.koplugin/main.lua:121
 msgid ""
-""
 "This function searches and retrieves all the reading records in the home "
 "directory and build the history view.\n"
 "The last history view will be preserved and can be restored."
-msgstr "此功能搜尋並檢索主目錄中的所有閱讀記錄並構建歷史檢視。\n最後的歷史檢視將被保留並可以還原。"
+msgstr ""
+"此功能搜尋並檢索主目錄中的所有閱讀記錄並構建歷史檢視。\n"
+"最後的歷史檢視將被保留並可以還原。"
 
 #: plugins/findhistory.koplugin/main.lua:123
 msgid "Retrieve"
@@ -16362,7 +16488,6 @@ msgstr "檢索閱讀歷史"
 
 #: plugins/findhistory.koplugin/_meta.lua:6
 msgid ""
-""
 "Searches reading records in the home folder and update the history view."
 msgstr "搜尋主資料夾中的閱讀記錄並更新歷史檢視。"
 
@@ -16539,7 +16664,10 @@ msgid ""
 "\n"
 "The interval value is in milliseconds and can range from 0 (0 seconds) to "
 "2000 (2 seconds)."
-msgstr "第一次點按之後的這段時間內，任何其他相同動作都將被視為意外事件，並被忽略。\n\n間隔值以毫秒為單位，範圍從0(0秒)到2000(2秒)。"
+msgstr ""
+"第一次點按之後的這段時間內，任何其他相同動作都將被視為意外事件，並被忽略。\n"
+"\n"
+"間隔值以毫秒為單位，範圍從0(0秒)到2000(2秒)。"
 
 #: plugins/gestures.koplugin/main.lua:610
 #: plugins/gestures.koplugin/main.lua:614
@@ -16558,7 +16686,11 @@ msgid ""
 "\n"
 "The interval value is in milliseconds and can range from 100 (0.1 seconds) "
 "to 2000 (2 seconds)."
-msgstr "雙擊啟用時，這將設定等待第二次點選的時間。單個點選至少需要這麼長的時間才能被檢測到。\n\n間隔值以毫秒為單位，範圍從100(0.1秒)到2000(2秒)。"
+msgstr ""
+"雙擊啟用時，這將設定等待第二次點選的時間。單個點選至少需要這麼長的時間才能被"
+"檢測到。\n"
+"\n"
+"間隔值以毫秒為單位，範圍從100(0.1秒)到2000(2秒)。"
 
 #: plugins/gestures.koplugin/main.lua:673
 #: plugins/gestures.koplugin/main.lua:677
@@ -16572,7 +16704,10 @@ msgid ""
 "\n"
 "The duration value is in milliseconds and can range from 100 (0.1 seconds) "
 "to 2000 (2 seconds)."
-msgstr "這將設定任意兩指觸控/釋放的允許持續時間，使組合事件被認為是一個兩指點選。\n\n持續時間值以毫秒為單位，範圍從100(0.1秒)到2000(2秒)。"
+msgstr ""
+"這將設定任意兩指觸控/釋放的允許持續時間，使組合事件被認為是一個兩指點選。\n"
+"\n"
+"持續時間值以毫秒為單位，範圍從100(0.1秒)到2000(2秒)。"
 
 #: plugins/gestures.koplugin/main.lua:691
 msgid "Set duration"
@@ -16590,7 +16725,11 @@ msgid ""
 "\n"
 "The interval value is in milliseconds and can range from 100 (0.1 seconds) "
 "to 2000 (2 seconds)."
-msgstr "如果一個觸控沒有在這個間隔內釋放，它會被認為是長按。這會在文件文本上觸發選中單個單詞。\n\n間隔值以毫秒為單位，範圍從100(0.1秒)到2000(2秒)。"
+msgstr ""
+"如果一個觸控沒有在這個間隔內釋放，它會被認為是長按。這會在文件文本上觸發選中"
+"單個單詞。\n"
+"\n"
+"間隔值以毫秒為單位，範圍從100(0.1秒)到2000(2秒)。"
 
 #: plugins/gestures.koplugin/main.lua:734
 #: plugins/gestures.koplugin/main.lua:738
@@ -16604,7 +16743,11 @@ msgid ""
 "\n"
 "The interval value is in milliseconds and can range from 100 (0.1 seconds) "
 "to 2000 (2 seconds)."
-msgstr "設定從滑動開始到滑動結束之間的最大延遲。超過這個區間，該動作將被認為是拖拽。\n\n間隔值以毫秒為單位，範圍從 100 (0.1秒)到 2000 (2秒)。"
+msgstr ""
+"設定從滑動開始到滑動結束之間的最大延遲。超過這個區間，該動作將被認為是拖"
+"拽。\n"
+"\n"
+"間隔值以毫秒為單位，範圍從 100 (0.1秒)到 2000 (2秒)。"
 
 #: plugins/gestures.koplugin/main.lua:768
 msgid "Gesture manager"
@@ -16700,7 +16843,6 @@ msgstr "從瀏覽器導航到 %1 以控制 KOReader。"
 
 #: plugins/httpinspector.koplugin/main.lua:1453
 msgid ""
-""
 "After starting the HTTP server, navigate to %1 from a browser to control "
 "KOReader."
 msgstr "啟動 HTTP 伺服器後，從瀏覽器導航到 %1 以控制 KOReader。"
@@ -16739,11 +16881,12 @@ msgstr ""
 
 #: plugins/httpinspector.koplugin/_meta.lua:6
 msgid ""
-""
 "Allow remotely controlling KOReader via browsers, with advanced features of "
 "inspecting KOReader internal state. It poses security risks; only enable "
 "this on networks you can trust."
-msgstr "允許透過瀏覽器遠端控制 KOReader，並具有檢查 KOReader 內部狀態的高級功能。它存在安全風險；僅在您信任的網路 上啟用此功能。"
+msgstr ""
+"允許透過瀏覽器遠端控制 KOReader，並具有檢查 KOReader 內部狀態的高級功能。它存"
+"在安全風險；僅在您信任的網路 上啟用此功能。"
 
 #: plugins/japanese.koplugin/deinflector.lua:487
 msgid "Halfwidth to fullwidth kana"
@@ -16987,7 +17130,6 @@ msgstr ""
 
 #: plugins/kosync.koplugin/main.lua:233
 msgid ""
-""
 "Enable the feature will automatically pull and push progress when necessary."
 msgstr "啟用該功能將在必要時自動拉取和推送進度。"
 
@@ -17037,10 +17179,11 @@ msgstr "檔名。 同名檔案將同步進度。"
 
 #: plugins/kosync.koplugin/main.lua:406
 msgid ""
-""
 "The new server address %1 is invalid, revert back to %2.\n"
 "Error: %3"
-msgstr "新伺服器地址 %1 無效，還原為 %2。\n錯誤：%3"
+msgstr ""
+"新伺服器地址 %1 無效，還原為 %2。\n"
+"錯誤：%3"
 
 #: plugins/kosync.koplugin/main.lua:460
 msgid "Cannot login: %1"
@@ -17418,7 +17561,10 @@ msgid ""
 "Could not process some feeds.\n"
 "Unsupported format in: %1. Please\n"
 "review your feed configuration file."
-msgstr "無法處理某些源。\n下列項格式不受支援：%1。請\n檢查你的源配置檔案。"
+msgstr ""
+"無法處理某些源。\n"
+"下列項格式不受支援：%1。請\n"
+"檢查你的源配置檔案。"
 
 #: plugins/newsdownloader.koplugin/main.lua:341
 msgid "Go to download folder?"
@@ -17698,7 +17844,14 @@ msgid ""
 "%2\n"
 "\n"
 "Download file type:"
-msgstr "下載資料夾:\n%1\n\n下載檔名：\n%2\n\n下載檔案型別:"
+msgstr ""
+"下載資料夾:\n"
+"%1\n"
+"\n"
+"下載檔名：\n"
+"%2\n"
+"\n"
+"下載檔案型別:"
 
 #. @translators "Stream" here refers to being able to read documents from an OPDS server without downloading them completely, on a page by page basis.
 #: plugins/opds.koplugin/opdsbrowser.lua:643
@@ -17729,7 +17882,10 @@ msgid ""
 "Could not save file to:\n"
 "%1\n"
 "%2"
-msgstr "無法將檔案儲存到：\n%1\n%2"
+msgstr ""
+"無法將檔案儲存到：\n"
+"%1\n"
+"%2"
 
 #: plugins/opds.koplugin/opdsbrowser.lua:889
 msgid "Downloading may take several minutes…"
@@ -18507,7 +18663,9 @@ msgstr "重置"
 msgid ""
 "Do you want to reset statistics for this period for book:\n"
 "%1"
-msgstr "是否重置下列書籍這段時間內的統計數字：\n%1"
+msgstr ""
+"是否重置下列書籍這段時間內的統計數字：\n"
+"%1"
 
 #: plugins/statistics.koplugin/main.lua:2969
 msgctxt "Reset statistics for period for book"
@@ -18592,25 +18750,33 @@ msgstr "頁數"
 msgid ""
 "Total\n"
 "pages"
-msgstr "總\n頁數"
+msgstr ""
+"總\n"
+"頁數"
 
 #: plugins/statistics.koplugin/readerprogress.lua:440
 msgid ""
 "Total\n"
 "time"
-msgstr "總\n時長"
+msgstr ""
+"總\n"
+"時長"
 
 #: plugins/statistics.koplugin/readerprogress.lua:449
 msgid ""
 "Average\n"
 "pages/day"
-msgstr "日均\n頁數"
+msgstr ""
+"日均\n"
+"頁數"
 
 #: plugins/statistics.koplugin/readerprogress.lua:458
 msgid ""
 "Average\n"
 "time/day"
-msgstr "日均\n時長"
+msgstr ""
+"日均\n"
+"時長"
 
 #: plugins/systemstat.koplugin/main.lua:177
 msgid "KOReader started at"
@@ -19281,14 +19447,14 @@ msgid "Undo study status"
 msgstr "撤銷學習狀態"
 
 #: plugins/vocabbuilder.koplugin/main.lua:864
-#: plugins/vocabbuilder.koplugin/main.lua:1360
-#: plugins/vocabbuilder.koplugin/main.lua:1470
+#: plugins/vocabbuilder.koplugin/main.lua:1362
+#: plugins/vocabbuilder.koplugin/main.lua:1472
 msgid "Forgot"
 msgstr "忘記"
 
 #: plugins/vocabbuilder.koplugin/main.lua:873
-#: plugins/vocabbuilder.koplugin/main.lua:1346
-#: plugins/vocabbuilder.koplugin/main.lua:1466
+#: plugins/vocabbuilder.koplugin/main.lua:1348
+#: plugins/vocabbuilder.koplugin/main.lua:1468
 msgid "Got it"
 msgstr "知道了"
 
@@ -19296,64 +19462,65 @@ msgstr "知道了"
 msgid "From"
 msgstr ""
 
-#: plugins/vocabbuilder.koplugin/main.lua:1054
+#: plugins/vocabbuilder.koplugin/main.lua:1055
 msgctxt "Time"
 msgid "%1h"
 msgstr "%1時"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1056
 # Note: commented out '#, lua-format' to avoid msgfmt validation errors
 # because the translation uses custom gettext positional variables
 # which are not standard Lua format specifiers.
 # #, lua-format
+#: plugins/vocabbuilder.koplugin/main.lua:1058
+#, no-lua-format
 msgctxt "Time"
 msgid "%1d"
 msgstr "%1天"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1058
+#: plugins/vocabbuilder.koplugin/main.lua:1060
 msgctxt "Time"
 msgid "%1 mo."
 msgstr ""
 
-#: plugins/vocabbuilder.koplugin/main.lua:1061
+#: plugins/vocabbuilder.koplugin/main.lua:1063
 msgctxt "Time"
 msgid "%1 yr."
 msgstr ""
 
-#: plugins/vocabbuilder.koplugin/main.lua:1110
+#: plugins/vocabbuilder.koplugin/main.lua:1112
 msgid "Added on"
 msgstr "新增於"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1113
+#: plugins/vocabbuilder.koplugin/main.lua:1115
 msgid "Review scheduled at"
 msgstr "複習時間安排在"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1255
+#: plugins/vocabbuilder.koplugin/main.lua:1257
 msgid "Add virtual book"
 msgstr ""
 
-#: plugins/vocabbuilder.koplugin/main.lua:1260
+#: plugins/vocabbuilder.koplugin/main.lua:1262
 msgid "Enter book title:"
 msgstr "輸入書名："
 
-#: plugins/vocabbuilder.koplugin/main.lua:1300
-#: plugins/vocabbuilder.koplugin/main.lua:2029
+#: plugins/vocabbuilder.koplugin/main.lua:1302
+#: plugins/vocabbuilder.koplugin/main.lua:2031
 msgid "Book title already in use."
 msgstr "書名已在使用中。"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1314
+#: plugins/vocabbuilder.koplugin/main.lua:1316
 msgid "Move \"%1\" to book:"
 msgstr ""
 
-#: plugins/vocabbuilder.koplugin/main.lua:1679
+#: plugins/vocabbuilder.koplugin/main.lua:1681
 msgid "Search words"
 msgstr "搜尋單詞"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1681
+#: plugins/vocabbuilder.koplugin/main.lua:1683
 msgid "Search empty content to exit"
 msgstr ""
 
-#: plugins/vocabbuilder.koplugin/main.lua:1695
+#: plugins/vocabbuilder.koplugin/main.lua:1697
 msgid ""
 "You can use two wildcards when searching: the percent sign (%) and the "
 "underscore (_).\n"
@@ -19364,45 +19531,45 @@ msgid ""
 "default."
 msgstr ""
 
-#: plugins/vocabbuilder.koplugin/main.lua:1839
+#: plugins/vocabbuilder.koplugin/main.lua:1841
 msgid "Search in effect"
 msgstr "搜尋生效中"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1842
+#: plugins/vocabbuilder.koplugin/main.lua:1844
 msgid "Filter in effect"
 msgstr "過濾器生效中"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1843
+#: plugins/vocabbuilder.koplugin/main.lua:1845
 msgid "No reviewable items"
 msgstr "沒有可複習的專案"
 
-#: plugins/vocabbuilder.koplugin/main.lua:1965
+#: plugins/vocabbuilder.koplugin/main.lua:1967
 msgid "Filter words from books"
 msgstr ""
 
-#: plugins/vocabbuilder.koplugin/main.lua:1994
+#: plugins/vocabbuilder.koplugin/main.lua:1996
 msgid "Change book title to:"
 msgstr "更改書籍標題為："
 
-#: plugins/vocabbuilder.koplugin/main.lua:2006
+#: plugins/vocabbuilder.koplugin/main.lua:2008
 msgid "Change title"
 msgstr "更改標題"
 
-#: plugins/vocabbuilder.koplugin/main.lua:2106
+#: plugins/vocabbuilder.koplugin/main.lua:2108
 msgid "Words reloaded"
 msgstr ""
 
-#: plugins/vocabbuilder.koplugin/main.lua:2185
-#: plugins/vocabbuilder.koplugin/main.lua:2236
+#: plugins/vocabbuilder.koplugin/main.lua:2187
+#: plugins/vocabbuilder.koplugin/main.lua:2238
 #: plugins/vocabbuilder.koplugin/_meta.lua:4
 msgid "Vocabulary builder"
 msgstr ""
 
-#: plugins/vocabbuilder.koplugin/main.lua:2203
+#: plugins/vocabbuilder.koplugin/main.lua:2205
 msgid "Add to vocabulary builder"
 msgstr "新增至背單詞"
 
-#: plugins/vocabbuilder.koplugin/main.lua:2228
+#: plugins/vocabbuilder.koplugin/main.lua:2230
 msgid "Open vocabulary builder"
 msgstr "開啟背單詞"
 
@@ -19583,7 +19750,12 @@ msgid ""
 "More details: https://wallabag.org\n"
 "\n"
 "Downloads to folder: %1"
-msgstr "Wallabag 是一個開源的稍後再讀服務，此外掛能夠與 Wallabag 服務同步。\n\n訪問網站閱讀更多資訊：https://wallabag.org\n\n下載至資料夾: %1"
+msgstr ""
+"Wallabag 是一個開源的稍後再讀服務，此外掛能夠與 Wallabag 服務同步。\n"
+"\n"
+"訪問網站閱讀更多資訊：https://wallabag.org\n"
+"\n"
+"下載至資料夾: %1"
 
 #: plugins/wallabag.koplugin/main.lua:474
 msgid "Please configure the server settings and set a download folder."
@@ -19789,10 +19961,10 @@ msgstr "授權 Token"
 
 #: plugins/weather.koplugin/main.lua:145
 msgid ""
-""
 "An auth token can be obtained from WeatherAPI.com. Simply signup for an "
 "account and request a token."
-msgstr "可以從 WeatherAPI.com 獲取授權 Token。只需註冊一個帳戶並申請 Token 即可。"
+msgstr ""
+"可以從 WeatherAPI.com 獲取授權 Token。只需註冊一個帳戶並申請 Token 即可。"
 
 #: plugins/weather.koplugin/main.lua:172
 msgid "Temperature Scale (%1)"
