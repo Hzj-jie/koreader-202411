@@ -98,6 +98,9 @@ describe("CloudStorage", function()
       onExit = function(self)
         self.on_exit_called = true
       end,
+      showWidget = function(self, widget, ...)
+        mock_uimanager:show(widget, ...)
+      end,
     }
     package.loaded["ui/widget/menu"] = mock_menu
 

@@ -262,7 +262,7 @@ function ReaderDictionary:addToMainMenu(menu_items)
           end,
         })
       end
-      UIManager:show(KeyValuePage:new({
+      self:showWidget(KeyValuePage:new({
         title = gettext("Dictionary lookup history"),
         value_overflow_align = "right",
         kv_pairs = kv_pairs,
@@ -350,7 +350,7 @@ function ReaderDictionary:addToMainMenu(menu_items)
         end,
         keep_menu_open = true,
         callback = function(menu)
-          UIManager:show(ConfirmBox:new({
+          self:showWidget(ConfirmBox:new({
             text = gettext("Clean dictionary lookup history?"),
             ok_text = gettext("Clean"),
             ok_callback = function()
@@ -401,7 +401,7 @@ function ReaderDictionary:addToMainMenu(menu_items)
               end
             end,
           })
-          UIManager:show(items_font)
+          self:showWidget(items_font)
         end,
         keep_menu_open = true,
       },
@@ -651,7 +651,7 @@ function ReaderDictionary:showDictionariesMenu(changed_callback)
       changed_callback()
     end,
   })
-  UIManager:show(sort_widget)
+  self:showWidget(sort_widget)
 end
 
 local function dictDirsEmpty(dict_dirs)
@@ -793,7 +793,7 @@ function ReaderDictionary:onShowDictionaryLookup()
       },
     },
   })
-  UIManager:show(self.dictionary_lookup_dialog)
+  self:showWidget(self.dictionary_lookup_dialog)
   return true
 end
 
@@ -1088,7 +1088,7 @@ function ReaderDictionary:showLookupMsg(text)
     -- display of the info message to be cancelled. So no delay here, and force
     -- a repaint.
   })
-  UIManager:show(self.lookup_progress_msg)
+  self:showWidget(self.lookup_progress_msg)
   UIManager:forceRepaint()
 end
 
@@ -1097,7 +1097,7 @@ function ReaderDictionary:showDict(word, results, boxes, link)
   self.lookup_progress_msg = nil
 
   if results == nil or results[1] == nil then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = T(gettext("Cannot find results of %1"), word),
       timeout = 3,
     }))
@@ -1130,7 +1130,7 @@ function ReaderDictionary:showDict(word, results, boxes, link)
       self:onHtmlDictionaryLinkTapped(dictionary, html_link)
     end,
   })
-  UIManager:show(self.dict_window)
+  self:showWidget(self.dict_window)
 end
 
 function ReaderDictionary:showDownload(downloadable_dicts)
@@ -1163,7 +1163,7 @@ function ReaderDictionary:showDownload(downloadable_dicts)
     title = gettext("Tap dictionary name to download"),
     kv_pairs = kv_pairs,
   })
-  UIManager:show(self.download_window)
+  self:showWidget(self.download_window)
 end
 
 function ReaderDictionary:downloadDictionaryPrep(dict, _size)
@@ -1171,7 +1171,7 @@ function ReaderDictionary:downloadDictionaryPrep(dict, _size)
   local download_location = string.format("%s/%s", self.data_dir, filename)
 
   if lfs.attributes(download_location) then
-    UIManager:show(ConfirmBox:new({
+    self:showWidget(ConfirmBox:new({
       text = gettext("File already exists. Overwrite?"),
       ok_text = gettext("Overwrite"),
       ok_callback = function()
@@ -1207,7 +1207,7 @@ function ReaderDictionary:downloadDictionary(dict, download_location, continue)
     file_size = headers and headers["content-length"]
 
     if file_size then
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = T(
           gettext(
             "Dictionary filesize is %1 (%2 bytes). Continue with download?"
@@ -1224,7 +1224,7 @@ function ReaderDictionary:downloadDictionary(dict, download_location, continue)
       return
     else
       logger.dbg("ReaderDictionary: Request failed; response headers:", headers)
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = gettext("Failed to fetch dictionary. Are you online?"),
         --timeout = 3,
       }))
@@ -1232,7 +1232,7 @@ function ReaderDictionary:downloadDictionary(dict, download_location, continue)
     end
   else
     UIManager:nextTick(function()
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = gettext("Downloading…"),
         timeout = 3,
       }))
@@ -1256,7 +1256,7 @@ function ReaderDictionary:downloadDictionary(dict, download_location, continue)
   else
     logger.dbg("ReaderDictionary: Request failed:", status or code)
     logger.dbg("ReaderDictionary: Response headers:", headers)
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("Could not save file to:\n")
         .. BD.filepath(download_location),
       --timeout = 3,
@@ -1273,12 +1273,12 @@ function ReaderDictionary:downloadDictionary(dict, download_location, continue)
     if dict.ifo_lang then
       self:extendIfoWithLanguage(dict_path, dict.ifo_lang)
     end
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("Dictionary downloaded:\n") .. dict.name,
     }))
     return true
   end
-  UIManager:show(InfoMessage:new({
+  self:showWidget(InfoMessage:new({
     text = gettext("Dictionary failed to download:\n")
       .. string.format("%s\n%s", dict.name, error),
   }))
@@ -1347,7 +1347,7 @@ function ReaderDictionary:onTogglePreferredDict(dict)
   if not removed then -- insert it as first
     table.insert(self.preferred_dictionaries, 1, dict)
   end
-  UIManager:show(InfoMessage:new({
+  self:showWidget(InfoMessage:new({
     text = removed
         and T(
           gettext("%1 is no longer a preferred dictionary for this document."),
@@ -1365,7 +1365,7 @@ end
 
 function ReaderDictionary:toggleFuzzyDefault(menu)
   local disable_fuzzy_search = G_reader_settings:isTrue("disable_fuzzy_search")
-  UIManager:show(MultiConfirmBox:new({
+  self:showWidget(MultiConfirmBox:new({
     text = T(disable_fuzzy_search and gettext([[
 Would you like to enable or disable fuzzy search by default?
 

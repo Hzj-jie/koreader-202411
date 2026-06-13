@@ -150,7 +150,7 @@ function FileManagerMenu:onOpenLastDoc()
   local last_file = G_reader_settings:read("lastfile")
   if not last_file or lfs.attributes(last_file, "mode") ~= "file" then
     local InfoMessage = require("ui/widget/infomessage")
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("Cannot open last document"),
     }))
     return
@@ -240,7 +240,7 @@ function FileManagerMenu:setUpdateItemTable()
                   menu:updateItems()
                 end,
               })
-              UIManager:show(widget)
+              self:showWidget(widget)
             end,
           },
           {
@@ -273,7 +273,7 @@ function FileManagerMenu:setUpdateItemTable()
                   menu:updateItems()
                 end,
               })
-              UIManager:show(widget)
+              self:showWidget(widget)
             end,
           },
           {
@@ -347,7 +347,7 @@ function FileManagerMenu:setUpdateItemTable()
           {
             text = gettext("Clear history of deleted files"),
             callback = function()
-              UIManager:show(ConfirmBox:new({
+              self:showWidget(ConfirmBox:new({
                 text = gettext("Clear history of deleted files?"),
                 ok_text = gettext("Clear"),
                 ok_callback = function()
@@ -465,7 +465,7 @@ To:
               menu:updateItems()
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
     },
@@ -585,7 +585,7 @@ Tap a book in the search results to open it.]]
     end,
     hold_callback = function()
       local last_file = G_reader_settings:read("lastfile")
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = T(
           gettext("Would you like to open the last document: %1?"),
           BD.filepath(last_file)
@@ -711,6 +711,7 @@ function FileManagerMenu:onShowMenu(tab_index)
   end
 
   local menu_container = CenterContainer:new({
+    modal = true,
     ignore = "height",
     dimen = Screen:getSize(),
   })
@@ -739,7 +740,7 @@ function FileManagerMenu:onShowMenu(tab_index)
   menu_container[1] = main_menu
   -- maintain a reference to menu_container
   self.menu_container = menu_container
-  UIManager:show(menu_container)
+  self:showWidget(menu_container)
   return true
 end
 

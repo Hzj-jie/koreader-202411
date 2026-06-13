@@ -30,7 +30,7 @@ function ReaderStatus:onShowBookStatus(before_show_callback)
     before_show_callback()
   end
   status_page.dithered = true
-  UIManager:show(status_page, "full")
+  self:showWidget(status_page, "full")
   return true
 end
 
@@ -125,7 +125,7 @@ function ReaderStatus:onEndOfBook()
       title_align = "center",
       buttons = buttons,
     })
-    UIManager:show(button_dialog)
+    self:showWidget(button_dialog)
   elseif settings == "book_status" then
     self:onShowBookStatus()
   elseif settings == "next_file" then
@@ -133,12 +133,12 @@ function ReaderStatus:onEndOfBook()
       local info = InfoMessage:new({
         text = gettext("Searching next file…"),
       })
-      UIManager:show(info)
+      self:showWidget(info)
       UIManager:forceRepaint()
       UIManager:close(info)
       self:onOpenNextDocumentInFolder()
     else
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = gettext(
           "Could not open next file. Sort by date does not support this feature."
         ),
@@ -153,7 +153,7 @@ function ReaderStatus:onEndOfBook()
     end)
   elseif settings == "mark_read" then
     self:markBook(true)
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext(
         "You've reached the end of the document.\nThe current book is marked as finished."
       ),
@@ -194,7 +194,7 @@ function ReaderStatus:onOpenNextDocumentInFolder()
       self.ui:switchDocument(next_file)
     end)
   else
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext(
         "This is the last file in the current folder. No next file to open."
       ),

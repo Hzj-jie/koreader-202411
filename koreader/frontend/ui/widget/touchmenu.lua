@@ -206,7 +206,7 @@ function TouchMenuItem.showHelpText(item)
   else
     return false
   end
-  UIManager:show(InfoMessage:new({ text = help_text }))
+  self:showWidget(InfoMessage:new({ text = help_text }))
   return true
 end
 
@@ -584,7 +584,7 @@ function TouchMenu:init()
     face = self.fface,
     text_font_bold = false,
     callback = function()
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = datetime.secondsToDateTime(nil, nil, true),
       }))
     end,
@@ -1061,7 +1061,7 @@ function TouchMenu:onMenuHold(item, text_truncated) --> None
     return
   end
   if text_truncated then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = Menu.getMenuText(item),
       show_icon = false,
     }))
@@ -1301,14 +1301,14 @@ function TouchMenu:openMenu(path, with_animation)
             end,
             resend_event = true,
           })
-          UIManager:show(trap_widget)
+          self:showWidget(trap_widget)
           walkStep()
         end
       end
     end,
     resend_event = not with_animation, -- if not animation, don't eat the tap
   })
-  UIManager:show(trap_widget) -- catch taps during animation
+  self:showWidget(trap_widget) -- catch taps during animation
 
   -- Call it: it will reschedule itself if animation; if not, it will
   -- just execute itself without pause until done.
@@ -1352,7 +1352,7 @@ function TouchMenu:onShowMenuSearch()
             },
           },
         })
-        UIManager:show(confirm_box)
+        self:showWidget(confirm_box)
       end
 
       local result_items = {}
@@ -1399,9 +1399,9 @@ function TouchMenu:onShowMenuSearch()
         dimen = Screen:getSize(),
         results_menu,
       })
-      UIManager:show(self.results_menu_container)
+      self:showWidget(self.results_menu_container)
     else
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = T(gettext("No menus containing '%1' found."), search_string),
       }))
     end
@@ -1442,7 +1442,7 @@ function TouchMenu:onShowMenuSearch()
     },
   })
 
-  UIManager:show(search_dialog)
+  self:showWidget(search_dialog)
 end
 
 return TouchMenu

@@ -174,7 +174,7 @@ local function initTouchEvents()
               selection_end_pos
             )
             Device.input.setClipboardText(txt)
-            UIManager:show(Notification:new({
+            self:showWidget(Notification:new({
               text = gettext("Selection copied to clipboard."),
             }))
             self.selection_start_pos = nil
@@ -182,7 +182,7 @@ local function initTouchEvents()
             self:initTextBox()
           else -- select start
             self.selection_start_pos = self.charpos
-            UIManager:show(Notification:new({
+            self:showWidget(Notification:new({
               text = gettext(
                 "Set cursor to end of selection, then long-press in text box."
               ),
@@ -216,7 +216,7 @@ local function initTouchEvents()
                 callback = function()
                   UIManager:close(clipboard_dialog)
                   Device.input.setClipboardText(table.concat(self.charlist))
-                  UIManager:show(Notification:new({
+                  self:showWidget(Notification:new({
                     text = gettext("All text copied to clipboard."),
                   }))
                 end,
@@ -228,7 +228,7 @@ local function initTouchEvents()
                   local txt =
                     table.concat(self.charlist, "", self:getStringPos())
                   Device.input.setClipboardText(txt)
-                  UIManager:show(Notification:new({
+                  self:showWidget(Notification:new({
                     text = gettext("Line copied to clipboard."),
                   }))
                 end,
@@ -240,7 +240,7 @@ local function initTouchEvents()
                   local txt =
                     table.concat(self.charlist, "", self:getStringPos(true))
                   Device.input.setClipboardText(txt)
-                  UIManager:show(Notification:new({
+                  self:showWidget(Notification:new({
                     text = gettext("Word copied to clipboard."),
                   }))
                 end,
@@ -259,7 +259,7 @@ local function initTouchEvents()
                 text = gettext("Select"),
                 callback = function()
                   UIManager:close(clipboard_dialog)
-                  UIManager:show(Notification:new({
+                  self:showWidget(Notification:new({
                     text = gettext(
                       "Set cursor to start of selection, then long-press in text box."
                     ),
@@ -279,7 +279,7 @@ local function initTouchEvents()
             },
           },
         })
-        UIManager:show(clipboard_dialog)
+        self:showWidget(clipboard_dialog)
       end
       self._hold_handled = true
       return true
@@ -372,7 +372,7 @@ end
 
 function InputText:isTextEditable(show_warning)
   if show_warning and not self.is_text_editable then
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = gettext("Text may be binary content, and is not editable"),
     }))
   end

@@ -472,7 +472,7 @@ function ReaderTypeset:makeDefaultStyleSheet(css, name, description, menu)
   if description then
     text = text .. "\n\n" .. description
   end
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = text,
     ok_callback = function()
       if self.ui.document.is_fb2 then
@@ -605,7 +605,7 @@ function ReaderTypeset:onSetPageMargins(margins, when_applied_callback)
     -- Provided when hide_on_apply, and ConfigDialog temporarily hidden:
     -- show an InfoMessage with the unscaled & scaled values,
     -- and call when_applied_callback on dismiss
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = T(
         gettext([[
 Margins set to:

@@ -112,7 +112,9 @@ describe("filemanagerfilesearcher", function()
           return inst
         end
         return subclass
-      end
+      end,
+      showWidget = require("ui/widget/widget").showWidget,
+      uimanagedCleanUp = require("ui/widget/widget").uimanagedCleanUp,
     }
     package.loaded["ui/widget/container/inputcontainer"] = mock_input_container
 
@@ -526,6 +528,27 @@ describe("filemanagerfilesearcher", function()
       -- Row 5: Show Folder and Open
       assert.are.equal("Mock Show Folder Button", dialog.buttons[5][1].text)
       assert.are.equal("Open", dialog.buttons[5][2].text)
+    end)
+  end)
+
+  describe("uimanagedCleanUp", function()
+    it("closes search_menu automatically", function()
+      local fs = FileSearcher:new()
+      local dummy_menu = { name = "dummy_menu" }
+      local stub = require("luassert.stub")
+      local UIManager = require("ui/uimanager")
+
+      stub(UIManager, "closeIfShown")
+
+      fs:showWidget(dummy_menu)
+      fs.search_menu = dummy_menu
+
+      fs:uimanagedCleanUp()
+
+      assert.is_nil(fs.search_menu)
+      assert.stub(UIManager.closeIfShown).was_called_with(UIManager, dummy_menu)
+
+      UIManager.closeIfShown:revert()
     end)
   end)
 

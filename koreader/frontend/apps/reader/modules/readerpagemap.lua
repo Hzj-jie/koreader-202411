@@ -272,7 +272,7 @@ function ReaderPageMap:onShowPageList()
     pl_menu:updateItems()
   end
 
-  UIManager:show(self.pagelist_menu)
+  self:showWidget(self.pagelist_menu)
   return true
 end
 
@@ -345,7 +345,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
           local infomsg = InfoMessage:new({
             text = text,
           })
-          UIManager:show(infomsg)
+          self:showWidget(infomsg)
         end,
         keep_menu_open = true,
       },
@@ -374,7 +374,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
         hold_callback = function(menu)
           local use_page_labels =
             G_reader_settings:isTrue("pagemap_use_page_labels")
-          UIManager:show(MultiConfirmBox:new({
+          self:showWidget(MultiConfirmBox:new({
             text = use_page_labels
                 and gettext(
                   "The default (★) for newly opened books that have a reference page numbers map is to use these reference page numbers instead of the renderer page numbers.\n\nWould you like to change it?"
@@ -424,7 +424,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
         hold_callback = function(menu)
           local show_page_labels =
             G_reader_settings:nilOrTrue("pagemap_show_page_labels")
-          UIManager:show(MultiConfirmBox:new({
+          self:showWidget(MultiConfirmBox:new({
             text = show_page_labels
                 and gettext(
                   "The default (★) for newly opened books that have a reference page numbers map is to show reference page number labels in the margin.\n\nWould you like to change it?"
@@ -485,7 +485,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
               UIManager:setDirty(self.view.dialog, "partial")
             end,
           })
-          UIManager:show(spin_w)
+          self:showWidget(spin_w)
         end,
         keep_menu_open = true,
       },

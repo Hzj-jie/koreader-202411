@@ -139,7 +139,7 @@ function ReaderBack:onBack()
       -- On next "Back" only, proceed with the default behaviour (unless
       -- it's disabled, in which case we always show this notification)
       self.back_resist = true
-      UIManager:show(Notification:new({
+      self:showWidget(Notification:new({
         text = gettext("Location history is empty."),
       }))
       return true
@@ -177,7 +177,7 @@ function ReaderBack:onBack()
   elseif back_to_exit == "disable" then
     return true
   elseif back_to_exit == "prompt" then
-    UIManager:show(ConfirmBox:new({
+    self:showWidget(ConfirmBox:new({
       text = gettext("Exit KOReader?"),
       ok_text = gettext("Exit"),
       ok_callback = function()

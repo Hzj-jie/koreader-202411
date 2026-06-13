@@ -89,6 +89,8 @@ describe("BookInfo", function()
       end
       return obj
     end
+    mock_widget_container.showWidget = require("ui/widget/widget").showWidget
+    mock_widget_container.uimanagedCleanUp = require("ui/widget/widget").uimanagedCleanUp
     package.loaded["ui/widget/container/widgetcontainer"] = mock_widget_container
 
     clear_table(mock_bidi)
@@ -1293,6 +1295,26 @@ describe("BookInfo", function()
 
       assert.truthy(viewer_args.text:find("1. Title: Custom Title 1; Author: Author 1\nDocument: /books/book1.epub", 1, true))
       assert.truthy(viewer_args.text:find("2. Title: Orig Title 2; Author: Author 2\nDocument: N/A", 1, true))
+    end)
+  end)
+
+  describe("uimanagedCleanUp", function()
+    it("closes kvp_widget automatically", function()
+      local bi = BookInfo:new()
+      local dummy_widget = { name = "dummy_widget" }
+      local stub = require("luassert.stub")
+
+      stub(mock_uimanager, "closeIfShown")
+
+      bi:showWidget(dummy_widget)
+      bi.kvp_widget = dummy_widget
+
+      bi:uimanagedCleanUp()
+
+      assert.is_nil(bi.kvp_widget)
+      assert.stub(mock_uimanager.closeIfShown).was_called_with(mock_uimanager, dummy_widget)
+
+      mock_uimanager.closeIfShown:revert()
     end)
   end)
 end)

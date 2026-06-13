@@ -2291,7 +2291,7 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
             caption = image.caption,
             fullscreen = true,
           })
-          UIManager:show(imgviewer)
+          self:showWidget(imgviewer)
         end
         -- Wrap it with Trapper, as load_bb_func may be using some of its
         -- dismissable methods

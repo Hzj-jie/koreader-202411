@@ -111,7 +111,7 @@ function FileSearcher:onShowFileSearch(search_string)
     })
     search_dialog:addWidget(check_button_metadata)
   end
-  UIManager:show(search_dialog)
+  self:showWidget(search_dialog)
   return true
 end
 
@@ -126,7 +126,7 @@ function FileSearcher:doSearch()
     local Trapper = require("ui/trapper")
     local info =
       InfoMessage:new({ text = gettext("Searching… (tap to cancel)") })
-    UIManager:show(info)
+    self:showWidget(info)
     UIManager:forceRepaint()
     local completed, dirs, files, no_metadata_count = Trapper:dismissableRunInSubprocess(
       function()
@@ -271,7 +271,7 @@ function FileSearcher:showSearchResultsMessage(no_results)
   local text = no_results
     and T(gettext("No results for '%1'."), FileSearcher.search_string)
   if self.no_metadata_count == 0 then
-    UIManager:show(ConfirmBox:new({
+    self:showWidget(ConfirmBox:new({
       text = text,
       icon = "notice-info",
       ok_text = gettext("File search"),
@@ -291,7 +291,7 @@ function FileSearcher:showSearchResultsMessage(no_results)
       "Not all books metadata extracted yet.\nExtract metadata now?"
     )
     text = no_results and text .. "\n\n" .. txt or txt
-    UIManager:show(ConfirmBox:new({
+    self:showWidget(ConfirmBox:new({
       text = text,
       ok_text = gettext("Extract"),
       ok_callback = function()
@@ -335,7 +335,7 @@ function FileSearcher:onShowSearchResults(not_cached)
     self.modified = false
   end
   self:updateMenu(FileSearcher.search_results)
-  UIManager:show(self.search_menu)
+  self:showWidget(self.search_menu)
   if not_cached and self.no_metadata_count ~= 0 then
     self:showSearchResultsMessage()
   end
@@ -461,7 +461,7 @@ function FileSearcher:showFileDialog(item)
     title = title .. "\n",
     buttons = buttons,
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
 end
 
 function FileSearcher:onMenuSelect(item)
@@ -577,7 +577,7 @@ function FileSearcher:showSelectModeDialog()
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(select_dialog)
+  self:showWidget(select_dialog)
 end
 
 return FileSearcher

@@ -257,22 +257,25 @@ describe("UIManager spec", function()
       end
     )
     it(
-      "should place toasts above modals, and modals above standard widgets",
+      "should place always-on-top widgets above standard widgets, ordered by show time",
       function()
         UIManager._window_stack = {}
 
         local standard = Widget:new({ id = "standard" })
         local modal = Widget:new({ id = "modal", modal = true })
-        local toast = Widget:new({ id = "toast", toast = true })
+        local always_on_top = Widget:new({ id = "always_on_top" })
+        always_on_top.isAlwaysOnTop = function()
+          return true
+        end
 
         UIManager:show(standard)
-        UIManager:show(toast)
+        UIManager:show(always_on_top)
         UIManager:show(modal)
 
         assert.is.same(3, #UIManager._window_stack)
         assert.is.same("standard", UIManager._window_stack[1].widget.id)
-        assert.is.same("modal", UIManager._window_stack[2].widget.id)
-        assert.is.same("toast", UIManager._window_stack[3].widget.id)
+        assert.is.same("always_on_top", UIManager._window_stack[2].widget.id)
+        assert.is.same("modal", UIManager._window_stack[3].widget.id)
       end
     )
   end)
@@ -299,7 +302,6 @@ describe("UIManager spec", function()
     UIManager._window_stack = {
       {
         widget = {
-          is_always_active = true,
           handleEvent = function()
             call_signals[1] = true
             return true
@@ -308,7 +310,6 @@ describe("UIManager spec", function()
       },
       {
         widget = {
-          is_always_active = true,
           handleEvent = function()
             call_signals[2] = true
             return true
@@ -317,7 +318,6 @@ describe("UIManager spec", function()
       },
       {
         widget = {
-          is_always_active = true,
           handleEvent = function()
             call_signals[3] = true
             return true
@@ -339,7 +339,6 @@ describe("UIManager spec", function()
     UIManager._window_stack = {
       {
         widget = {
-          is_always_active = true,
           handleEvent = function()
             call_signals[1] = call_signals[1] + 1
           end,
@@ -347,7 +346,6 @@ describe("UIManager spec", function()
       },
       {
         widget = {
-          is_always_active = true,
           handleEvent = function()
             call_signals[2] = call_signals[2] + 1
           end,
@@ -355,7 +353,6 @@ describe("UIManager spec", function()
       },
       {
         widget = {
-          is_always_active = true,
           handleEvent = function()
             call_signals[3] = call_signals[3] + 1
             table.remove(UIManager._window_stack, 2)
@@ -375,7 +372,6 @@ describe("UIManager spec", function()
     UIManager._window_stack = {
       {
         widget = {
-          is_always_active = true,
           handleEvent = function()
             call_signals[1] = call_signals[1] + 1
           end,
@@ -383,7 +379,6 @@ describe("UIManager spec", function()
       },
       {
         widget = {
-          is_always_active = true,
           handleEvent = function()
             call_signals[2] = call_signals[2] + 1
           end,
@@ -391,7 +386,6 @@ describe("UIManager spec", function()
       },
       {
         widget = {
-          is_always_active = true,
           handleEvent = function()
             call_signals[3] = call_signals[3] + 1
             table.remove(UIManager._window_stack, 3)
@@ -404,6 +398,31 @@ describe("UIManager spec", function()
     assert.is.same(1, call_signals[1])
     assert.is.same(1, call_signals[2])
     assert.is.same(1, call_signals[3])
+  end)
+
+  it("should allow events to propagate through toast widgets", function()
+    local call_signals = { 0, 0 }
+    UIManager._window_stack = {
+      {
+        widget = {
+          handleEvent = function()
+            call_signals[1] = call_signals[1] + 1
+          end,
+        },
+      },
+      {
+        widget = {
+          toast = true,
+          handleEvent = function()
+            call_signals[2] = call_signals[2] + 1
+          end,
+        },
+      },
+    }
+
+    UIManager:userInput("foo")
+    assert.is.same(1, call_signals[1])
+    assert.is.same(1, call_signals[2])
   end)
 
   it("should handle stack change when broadcasting events", function()
@@ -544,77 +563,109 @@ describe("UIManager spec", function()
 
       UIManager:userInput(tap_event)
 
-      -- On master, base view doesn't have is_always_active, so it is skipped.
+      -- Under a consistent non-modal model, propagation reaches the base view
+      assert.is.same(1, base_calls)
+      assert.is.same(1, overlay_calls)
+    end)
+
+    it("should block event propagation if overlay is modal", function()
+      local base_calls = 0
+      local overlay_calls = 0
+
+      local base_view = Widget:new({
+        onTap = function()
+          base_calls = base_calls + 1
+          return true
+        end,
+      })
+      local overlay = Widget:new({
+        modal = true,
+        onTap = function()
+          overlay_calls = overlay_calls + 1
+          return false -- propagate
+        end,
+      })
+
+      UIManager:show(base_view)
+      UIManager:show(overlay)
+
+      local Event = require("ui/event")
+      local tap_event = Event:new("Tap"):asUserInput()
+
+      UIManager:userInput(tap_event)
+
+      -- Modal overlay consumes user inputs, so propagation stops
       assert.is.same(0, base_calls)
       assert.is.same(1, overlay_calls)
     end)
 
-    it(
-      "should test event propagation with is_always_active base view",
-      function()
-        local base_calls = 0
-        local overlay_calls = 0
+    it("should propagate events to base view if overlay is toast", function()
+      local base_calls = 0
+      local overlay_calls = 0
 
-        local base_view = Widget:new({
-          is_always_active = true,
+      local base_view = Widget:new({
+        onTap = function()
+          base_calls = base_calls + 1
+          return true
+        end,
+      })
+      local overlay = Widget:new({
+        toast = true,
+        onTap = function()
+          overlay_calls = overlay_calls + 1
+          return false -- propagate
+        end,
+      })
+
+      UIManager:show(base_view)
+      UIManager:show(overlay)
+
+      local Event = require("ui/event")
+      local tap_event = Event:new("Tap"):asUserInput()
+
+      UIManager:userInput(tap_event)
+
+      -- Toast overlay is non-blocking, so propagation reaches base view
+      assert.is.same(1, base_calls)
+      assert.is.same(1, overlay_calls)
+    end)
+
+    it(
+      "should allow parent menu to receive events when child menu is non-modal",
+      function()
+        local parent_calls = 0
+        local child_calls = 0
+
+        local base_view = Widget:new()
+
+        -- TouchMenu (parent)
+        local parent_menu = Widget:new({
           onTap = function()
-            base_calls = base_calls + 1
+            parent_calls = parent_calls + 1
             return true
           end,
         })
-        local overlay = Widget:new({
+
+        -- Menu (child dropdown)
+        local child_menu = Widget:new({
           onTap = function()
-            overlay_calls = overlay_calls + 1
-            return false -- propagate
+            child_calls = child_calls + 1
+            return false -- propagate to parent
           end,
         })
 
         UIManager:show(base_view)
-        UIManager:show(overlay)
+        UIManager:show(parent_menu)
+        UIManager:show(child_menu)
 
         local Event = require("ui/event")
         local tap_event = Event:new("Tap"):asUserInput()
 
         UIManager:userInput(tap_event)
 
-        -- On master, base view is always active, so it receives the event if overlay propagates it.
-        assert.is.same(1, base_calls)
-        assert.is.same(1, overlay_calls)
-      end
-    )
-
-    it(
-      "should test modal widget has no effect on event consumption on master",
-      function()
-        local base_calls = 0
-        local overlay_calls = 0
-
-        local base_view = Widget:new({
-          is_always_active = true,
-          onTap = function()
-            base_calls = base_calls + 1
-            return true
-          end,
-        })
-        local overlay = Widget:new({
-          modal = true, -- modal = true on master has no event consumption effect by itself
-          onTap = function()
-            overlay_calls = overlay_calls + 1
-            return false -- propagate
-          end,
-        })
-
-        UIManager:show(base_view)
-        UIManager:show(overlay)
-
-        local Event = require("ui/event")
-        local tap_event = Event:new("Tap"):asUserInput()
-
-        UIManager:userInput(tap_event)
-
-        -- On master, overlay returns false, so it propagates, and base receives it!
-        assert.is.same(1, base_calls)
-        assert.is.same(1, overlay_calls)
+        -- Under non-modal child menu, both child and parent receive the event
+        assert.is.same(1, child_calls)
+        assert.is.same(1, parent_calls)
       end
     )
   end)
@@ -664,8 +715,8 @@ describe("UIManager spec", function()
         UIManager:userInput(Event:new("Tap"):asUserInput())
 
         assert.is_true(top_received)
-        assert.is_false(middle_received) -- Skipped on master
-        assert.is_true(base_received) -- Base is called as fallback on master
+        assert.is_true(middle_received) -- Middle receives it and consumes it on refactor branch
+        assert.is_false(base_received) -- Base is protected and not called since middle consumed it
       end
     )
 

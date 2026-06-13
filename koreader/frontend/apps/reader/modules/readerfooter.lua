@@ -743,7 +743,7 @@ function ReaderFooter:set_custom_text(menu)
       },
     },
   })
-  UIManager:show(text_dialog)
+  self:showWidget(text_dialog)
 end
 
 -- Help text string, or function, to be shown, or executed, on a long press on menu item
@@ -1296,7 +1296,7 @@ function ReaderFooter:addToMainMenu(menu_items)
                   menu:updateItems()
                 end,
               })
-              UIManager:show(items)
+              self:showWidget(items)
             end,
             keep_menu_open = true,
           },
@@ -1343,7 +1343,7 @@ function ReaderFooter:addToMainMenu(menu_items)
               spin_widget:update()
             end,
           })
-          UIManager:show(spin_widget)
+          self:showWidget(spin_widget)
         end,
       },
       {
@@ -1379,7 +1379,7 @@ function ReaderFooter:addToMainMenu(menu_items)
               end
             end,
           })
-          UIManager:show(items)
+          self:showWidget(items)
         end,
         keep_menu_open = true,
         separator = true,
@@ -1499,7 +1499,7 @@ function ReaderFooter:addToMainMenu(menu_items)
               UIManager:setDirty(nil, "ui")
             end,
           })
-          UIManager:show(sort_item)
+          self:showWidget(sort_item)
         end,
       },
       getMinibarOption("all_at_once", self._updateFooterTextGenerator),
@@ -1600,7 +1600,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
                   end
                 end,
               })
-              UIManager:show(items_font)
+              self:showWidget(items_font)
             end,
             keep_menu_open = true,
           },
@@ -1702,7 +1702,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
               end
             end,
           })
-          UIManager:show(spin_widget)
+          self:showWidget(spin_widget)
         end,
         keep_menu_open = true,
       },
@@ -1731,7 +1731,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
               end
             end,
           })
-          UIManager:show(spin_widget)
+          self:showWidget(spin_widget)
         end,
         keep_menu_open = true,
       },
@@ -1787,7 +1787,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
           end,
           ok_always_enabled = true,
         })
-        UIManager:show(battery_threshold)
+        self:showWidget(battery_threshold)
       end,
       keep_menu_open = true,
       separator = true,
@@ -1987,7 +1987,7 @@ function ReaderFooter:genItemMaxWidthMenuItems(title_text, item_text, setting)
           menu:updateItems()
         end,
       })
-      UIManager:show(spin_widget)
+      self:showWidget(spin_widget)
     end,
     keep_menu_open = true,
   }

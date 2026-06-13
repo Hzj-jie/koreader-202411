@@ -159,7 +159,7 @@ function ReaderConfig:onShowConfigMenu()
     end,
   })
   UIManager:broadcastEvent(Event:new("DisableHinting"))
-  UIManager:show(self.config_dialog)
+  self:showWidget(self.config_dialog)
   -- show last used panel when opening config dialog
   self.config_dialog:showConfigPanel(self.last_panel_index)
   UIManager:broadcastEvent(Event:new("HandledAsSwipe")) -- cancel any pan scroll made

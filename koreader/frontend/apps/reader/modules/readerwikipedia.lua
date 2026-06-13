@@ -79,7 +79,7 @@ function ReaderWikipedia:lookupInput()
       },
     },
   })
-  UIManager:show(self.input_dialog)
+  self:showWidget(self.input_dialog)
 end
 
 function ReaderWikipedia:addToMainMenu(menu_items)
@@ -130,7 +130,7 @@ function ReaderWikipedia:addToMainMenu(menu_items)
           end,
         })
       end
-      UIManager:show(KeyValuePage:new({
+      self:showWidget(KeyValuePage:new({
         title = gettext("Wikipedia history"),
         value_overflow_align = "right",
         kv_pairs = kv_pairs,
@@ -161,7 +161,7 @@ function ReaderWikipedia:addToMainMenu(menu_items)
             local langs = wikilang_input:getInputText()
             for lang in langs:gmatch("%S+") do
               if not lang:match("^[%a-]+$") then
-                UIManager:show(InfoMessage:new({
+                self:showWidget(InfoMessage:new({
                   text = T(
                     gettext("%1 does not look like a valid Wikipedia language."),
                     lang
@@ -207,7 +207,7 @@ function ReaderWikipedia:addToMainMenu(menu_items)
               },
             },
           })
-          UIManager:show(wikilang_input)
+          self:showWidget(wikilang_input)
         end,
         separator = true,
       },
@@ -337,7 +337,7 @@ You can choose an existing folder, or use a default folder named "Wikipedia" in 
         end,
         keep_menu_open = true,
         callback = function(menu)
-          UIManager:show(ConfirmBox:new({
+          self:showWidget(ConfirmBox:new({
             text = gettext("Clean Wikipedia history?"),
             ok_text = gettext("Clean"),
             ok_callback = function()

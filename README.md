@@ -43,9 +43,19 @@ diff -rw koreader/ origin.stylua/
 ## 🚀 Active Customizations & Fixes
 Compared to the upstream baseline, this customized branch incorporates the following primary structural and logic modifications:
 
-### ✏️ Core & UI Enhancements
+### 🖼️ Improved Rendering Control
+Redesigned the rendering and screen refresh paths to optimize display updates, significantly reducing screen refreshes and eliminating unnecessary display flickering (especially on E-Ink devices) ([PR #428](https://github.com/Hzj-jie/koreader-202411/pull/428)).
+
+### 🖱️ Input & Gestures
+*   **Accurate Gesture Handling**: Hardened touch and swipe detection to ensure malformed inputs or complex multi-finger taps are processed safely.
+*   **Reliable Interface Navigation**: Refactored the window-level input loop to guarantee touch and key events are routed correctly down active layers. This prevents interface locking and resolves resource leaks (such as stuck virtual keyboards or persistent settings overlays) ([PR #178](https://github.com/Hzj-jie/koreader-202411/pull/178)).
+*   **Background Interaction Protection**: Configured settings pages, input dialogs, and brightness sliders to block touch inputs from leaking through to the background view. This prevents accidental page turns, menu triggers, or text highlighting in the book reader when interacting with open popups.
+
+### 🧱 Better UI Element Management
+Centralized and hardened the user interface lifecycle to fix unexpected persistent UI elements (such as menus, search panels, and dialogs remaining on screen after closing their parent views) and eliminate associated memory leaks. By automatically tearing down child widgets when their parents exit, the interface remains clean and responsive ([Commit 74d4700a](https://github.com/Hzj-jie/koreader-202411/commit/74d4700a)).
+
+### ✏️ Other Core & UI Enhancements
 Modifications address specific application behavior, layout improvements, and advanced rendering logic:
-*   **Improved Rendering Control ([PR #428](https://github.com/Hzj-jie/koreader-202411/pull/428))**: Redesigned the rendering and screen refresh paths to optimize display updates, significantly reducing screen refreshes and eliminating unnecessary display flickering (especially on E-Ink devices).
 *   **TouchMenu & InputBox Keyboard Shortcuts**: Introduced physical keyboard shortcuts for items in menus (with visual key-hint overlays) and optimized text input boxes so that system-wide keyboard shortcuts remain responsive even while typing ([Commit 50e806cf](https://github.com/Hzj-jie/koreader-202411/commit/50e806cf), [Commit 52d08951](https://github.com/Hzj-jie/koreader-202411/commit/52d08951) / [PR #428](https://github.com/Hzj-jie/koreader-202411/pull/428)).
 *   **Centralized Activity Tracking ([Commit d8592e1b](https://github.com/Hzj-jie/koreader-202411/commit/d8592e1b))**: Introduced a centralized user activity tracker to simplify and improve the reliability of idle-time detection used by automatic page turning, automatic suspension, and screen dimming features.
 *   **Consistent Page-Turn Tap Zones**: Updated dictionary popups, the page browser, and scrollable text/HTML views to respect the user's custom page-turn tap zones instead of forcing a hardcoded left/right split ([Commit d6e97f25](https://github.com/Hzj-jie/koreader-202411/commit/d6e97f25) / [Fix #139](https://github.com/Hzj-jie/koreader-202411/issues/139)). Additionally, simplified the tap zone configuration by removing the separate backward zone ratio setting, ensuring the entire screen is always utilized for either forward or backward page turns without leaving dead zones ([Commit 38fc7806](https://github.com/Hzj-jie/koreader-202411/commit/38fc7806) / [Fix #233](https://github.com/Hzj-jie/koreader-202411/issues/233), [#120](https://github.com/Hzj-jie/koreader-202411/issues/120)).
@@ -67,7 +77,6 @@ Refined network state monitoring and wifi manager to simplify logic and prevent 
 
 ### 🛡️ Stability & Hardening
 Improvements to event handling, resource management, and core systems to ensure a more robust and responsive experience:
-*   **Input & Gestures**: More accurate input and gesture detection, ensuring malformed inputs or complex multi-finger taps are processed safely. Also refactored the event dispatching architecture ([PR #178](https://github.com/Hzj-jie/koreader-202411/pull/178)) to guarantee reliable user input and system event propagation through the UI hierarchy, preventing resource leaks like stuck virtual keyboards.
 *   **Background Operations**: Refactored background operations ([Commit 2a6c63a9](https://github.com/Hzj-jie/koreader-202411/commit/2a6c63a9), [Commit c7fbdc64](https://github.com/Hzj-jie/koreader-202411/commit/c7fbdc64), [Commit d8592e1b](https://github.com/Hzj-jie/koreader-202411/commit/d8592e1b), [Commit d22a5a99](https://github.com/Hzj-jie/koreader-202411/commit/d22a5a99)) to use a unified task runner for automated jobs (such as automatic frontlight adjustments, clock updates, and network connectivity checks), separating background tasks from user interface elements to improve system responsiveness and reliability.
 *   **Settings & Storage**: Upgraded the settings framework to improve storage efficiency and data safety, optimizing disk write operations to prevent configuration data loss or file corruption during saves ([Commit 7a0cc257](https://github.com/Hzj-jie/koreader-202411/commit/7a0cc257), [Commit 452c9a04](https://github.com/Hzj-jie/koreader-202411/commit/452c9a04)).
 *   **Various crash preventions**: In components like image views, input dialogs, book map, Table of Contents navigation, synchronization, network listener, statistics plugin, date/time utility, reading history, and dictionary quick lookup.

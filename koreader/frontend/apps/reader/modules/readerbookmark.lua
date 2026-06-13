@@ -166,7 +166,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
               menu:updateItems()
             end,
           })
-          UIManager:show(spin_wodget)
+          self:showWidget(spin_wodget)
         end,
       },
       {
@@ -192,7 +192,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
               menu:updateItems()
             end,
           })
-          UIManager:show(items)
+          self:showWidget(items)
         end,
       },
       {
@@ -216,7 +216,7 @@ function ReaderBookmark:addToMainMenu(menu_items)
               menu:updateItems()
             end,
           })
-          UIManager:show(items_font)
+          self:showWidget(items_font)
         end,
       },
       {
@@ -878,7 +878,7 @@ function ReaderBookmark:onShowBookmark()
           text = gettext("Delete note"),
           enabled = actions_enabled,
           callback = function()
-            UIManager:show(ConfirmBox:new({
+            self:showWidget(ConfirmBox:new({
               text = gettext("Delete bookmark notes?"),
               ok_text = gettext("Delete"),
               ok_callback = function()
@@ -907,7 +907,7 @@ function ReaderBookmark:onShowBookmark()
           text = gettext("Remove"),
           enabled = actions_enabled and not bookmark.ui.highlight.select_mode,
           callback = function()
-            UIManager:show(ConfirmBox:new({
+            self:showWidget(ConfirmBox:new({
               text = gettext("Remove selected bookmarks?"),
               ok_text = gettext("Remove"),
               ok_callback = function()
@@ -1049,7 +1049,7 @@ function ReaderBookmark:onShowBookmark()
       title_align = "center",
       buttons = buttons,
     })
-    UIManager:show(bm_dialog)
+    self:showWidget(bm_dialog)
   end
 
   function bm_menu:onLeftButtonHold()
@@ -1072,7 +1072,7 @@ function ReaderBookmark:onShowBookmark()
     idx = curr_page_index_filtered
   end
   self:updateBookmarkList(nil, idx)
-  UIManager:show(self.bookmark_menu)
+  self:showWidget(self.bookmark_menu)
   return true
 end
 
@@ -1256,7 +1256,7 @@ function ReaderBookmark:showBookmarkDetails(item_or_index)
         text = gettext("Remove bookmark"),
         enabled = not_select_mode,
         callback = function()
-          UIManager:show(ConfirmBox:new({
+          self:showWidget(ConfirmBox:new({
             text = gettext("Remove this bookmark?"),
             ok_text = gettext("Remove"),
             ok_callback = function()
@@ -1335,7 +1335,7 @@ function ReaderBookmark:showBookmarkDetails(item_or_index)
     buttons_table = buttons_table,
     close_callback = close_callback,
   })
-  UIManager:show(textviewer)
+  self:showWidget(textviewer)
   return true
 end
 
@@ -1430,7 +1430,7 @@ function ReaderBookmark:setBookmarkNote(
       },
     },
   })
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
 end
 
 function ReaderBookmark:editHighlightedText(item_or_index, caller_callback)
@@ -1472,7 +1472,7 @@ function ReaderBookmark:editHighlightedText(item_or_index, caller_callback)
       },
     },
   })
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
 end
 
 function ReaderBookmark:setHighlightedText(item_or_index, text, caller_callback)
@@ -1603,7 +1603,7 @@ function ReaderBookmark:onSearchBookmark()
   })
   input_dialog:addWidget(check_button_bookmark)
 
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
   return true
 end
 

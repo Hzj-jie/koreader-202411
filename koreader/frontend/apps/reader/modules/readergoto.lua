@@ -84,7 +84,7 @@ x for an absolute page number
       },
     },
   })
-  UIManager:show(self.goto_dialog)
+  self:showWidget(self.goto_dialog)
 end
 
 function ReaderGoto:onShowSkimtoDialog()
@@ -95,7 +95,7 @@ function ReaderGoto:onShowSkimtoDialog()
       self:onShowGotoDialog()
     end,
   })
-  UIManager:show(self.skimto)
+  self:showWidget(self.skimto)
 end
 
 function ReaderGoto:close()

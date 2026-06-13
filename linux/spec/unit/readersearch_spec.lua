@@ -220,4 +220,47 @@ describe("Readersearch module", function()
             assert.are.equal(11, count)
         end)
     end)
+
+    describe("uimanagedCleanUp", function()
+        it("closes input_dialog, search_dialog, and result_menu automatically", function()
+            local ReaderSearch = require("apps/reader/modules/readersearch")
+            local mock_menu_inst = {
+                registerToMainMenu = spy.new(function() end)
+            }
+            local rs = ReaderSearch:new{ ui = { menu = mock_menu_inst } }
+            local UIManager = require("ui/uimanager")
+
+            local original_show = UIManager.show
+            local original_closeIfShown = UIManager.closeIfShown
+
+            local closeIfShown_calls = {}
+            UIManager.show = function() end
+            UIManager.closeIfShown = function(self, widget)
+                table.insert(closeIfShown_calls, widget)
+            end
+
+            local dummy_input = { name = "dummy_input" }
+            local dummy_search = { name = "dummy_search" }
+            local dummy_result = { name = "dummy_result" }
+
+            rs:showWidget(dummy_input)
+            rs:showWidget(dummy_search)
+            rs:showWidget(dummy_result)
+
+            rs.input_dialog = dummy_input
+            rs.search_dialog = dummy_search
+            rs.result_menu = dummy_result
+
+            rs:uimanagedCleanUp()
+
+            assert.is_nil(rs.input_dialog)
+            assert.is_nil(rs.search_dialog)
+            assert.is_nil(rs.result_menu)
+
+            assert.same({ dummy_input, dummy_search, dummy_result }, closeIfShown_calls)
+
+            UIManager.show = original_show
+            UIManager.closeIfShown = original_closeIfShown
+        end)
+    end)
 end)

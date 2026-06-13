@@ -360,7 +360,7 @@ function ReaderFont:makeDefault(face, is_monospace, menu)
       -- If the font is monospace, assume it wouldn't be a candidate
       -- to be set as a fallback font, and allow it to be set as the
       -- default monospace font.
-      UIManager:show(MultiConfirmBox:new({
+      self:showWidget(MultiConfirmBox:new({
         text = T(
           gettext(
             "Would you like %1 to be used as the default font (★), or the monospace font (🄼)?"
@@ -388,7 +388,7 @@ function ReaderFont:makeDefault(face, is_monospace, menu)
       }))
       return
     end
-    UIManager:show(MultiConfirmBox:new({
+    self:showWidget(MultiConfirmBox:new({
       text = T(
         gettext(
           "Would you like %1 to be used as the default font (★), or the fallback font (�)?\n\nCharacters not found in the active font are shown in the fallback font instead."
@@ -777,7 +777,7 @@ function ReaderFont:getFontSettingsTable()
       self.face_table.needs_refresh = true
     end,
     hold_callback = function()
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = gettext([[
 The font list menu can show fonts sorted by name or by most recently selected.
 New fonts discovered at KOReader startup will be shown first.
@@ -848,7 +848,7 @@ This may help with Greek words among Latin text (as Latin fonts often do not hav
     end,
     callback = function()
       local SpinWidget = require("ui/widget/spinwidget")
-      UIManager:show(SpinWidget:new({
+      self:showWidget(SpinWidget:new({
         value = G_reader_settings:read("cre_monospace_scaling") or 100,
         value_min = 30,
         value_step = 1,
@@ -878,7 +878,7 @@ This setting allows scaling all monospace fonts by this percentage so they can f
   table.insert(settings_table, {
     text = gettext("Generate font test document"),
     callback = function()
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = gettext(
           "Would you like to generate an HTML document showing a text sample rendered with each available font?"
         ),
@@ -1049,7 +1049,7 @@ a { color: black; }
   end
   f:write("</body></html>\n")
   f:close()
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = T(
       gettext("Document created as:\n%1\n\nWould you like to view it now?"),
       BD.filepath(font_test_final_path)

@@ -253,7 +253,7 @@ function BookInfo:show(doc_settings_or_file, book_props)
       end
     end,
   })
-  UIManager:show(self.kvp_widget)
+  self:showWidget(self.kvp_widget)
 end
 
 function BookInfo.getCustomProp(prop_key, filepath)
@@ -382,7 +382,7 @@ function BookInfo:onShowBookInfo()
 end
 
 function BookInfo:showBookProp(prop_key, prop_text)
-  UIManager:show(TextViewer:new({
+  self:showWidget(TextViewer:new({
     title = self.prop_text[prop_key],
     text = prop_text,
     text_type = prop_key == "description" and "book_info" or nil,
@@ -400,7 +400,7 @@ function BookInfo:onShowBookDescription(description, file)
   if description then
     self:showBookProp("description", util.htmlToPlainTextIfHtml(description))
   else
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("No book description available."),
     }))
   end
@@ -415,9 +415,9 @@ function BookInfo:onShowBookCover(file, force_orig)
       with_title_bar = false,
       fullscreen = true,
     })
-    UIManager:show(imgviewer)
+    self:showWidget(imgviewer)
   else
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("No cover image available."),
     }))
   end
@@ -490,7 +490,7 @@ function BookInfo:setCustomCover(file, book_props)
         end
       end,
     })
-    UIManager:show(path_chooser)
+    self:showWidget(path_chooser)
   end
 end
 
@@ -592,7 +592,7 @@ function BookInfo:showCustomEditDialog(file, book_props, prop_key)
       },
     },
   })
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
 end
 
 function BookInfo:showCustomDialog(file, book_props, prop_key)
@@ -658,7 +658,7 @@ function BookInfo:showCustomDialog(file, book_props, prop_key)
               end
             end,
           })
-          UIManager:show(confirm_box)
+          self:showWidget(confirm_box)
         end,
       },
       {
@@ -683,7 +683,7 @@ function BookInfo:showCustomDialog(file, book_props, prop_key)
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 function BookInfo:editSummary(doc_settings_or_file, book_props)
@@ -750,7 +750,7 @@ function BookInfo:editSummary(doc_settings_or_file, book_props)
     },
   })
   input_dialog.ignore_first_hold_release = true
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
 end
 
 function BookInfo:moveBookMetadata()
@@ -807,7 +807,7 @@ function BookInfo:moveBookMetadata()
     end
     return books_to_move
   end
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = gettext(
       "Scan books in current folder and subfolders for their metadata location?"
     ),
@@ -816,13 +816,13 @@ function BookInfo:moveBookMetadata()
       local books_to_move = scanPath()
       local books_to_move_nb = #books_to_move
       if books_to_move_nb == 0 then
-        UIManager:show(InfoMessage:new({
+        self:showWidget(InfoMessage:new({
           text = gettext(
             "No books with metadata not in your preferred location found."
           ),
         }))
       else
-        UIManager:show(ConfirmBox:new({
+        self:showWidget(ConfirmBox:new({
           text = T(
             N_(
               "1 book with metadata not in your preferred location found.",

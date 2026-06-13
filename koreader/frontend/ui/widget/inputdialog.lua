@@ -123,12 +123,7 @@ local util = require("util")
 local active_instances = 0
 
 local InputDialog = FocusManager:extend({
-  -- TODO: Using is_always_active is wrong, it allows the buttons to receive the
-  -- tap events even when they are not visible.
-  -- Currently the hacky solution is to use stop_events_propagation from the top
-  -- most widget to consume the events, which is also wrong since it blocks
-  -- widgets which really need to receive the events.
-  is_always_active = true,
+  modal = true,
   title = "",
   input = "",
   input_hint = "",
@@ -840,12 +835,12 @@ function InputDialog:_addSaveCloseButtons()
           if content then
             self:setInputText(content)
             self._buttons_edit_callback(false)
-            UIManager:show(Notification:new({
+            self:showWidget(Notification:new({
               text = msg or gettext("Text reset"),
             }))
           else -- nil content, assume failure and show msg
             if msg ~= false then -- false allows for no InfoMessage
-              UIManager:show(InfoMessage:new({
+              self:showWidget(InfoMessage:new({
                 text = msg or gettext("Resetting failed."),
               }))
             end
@@ -866,13 +861,13 @@ function InputDialog:_addSaveCloseButtons()
           local success, msg = self.save_callback(self:getInputText())
           if success == false then
             if msg ~= false then -- false allows for no InfoMessage
-              UIManager:show(InfoMessage:new({
+              self:showWidget(InfoMessage:new({
                 text = msg or gettext("Saving failed."),
               }))
             end
           else -- nil or true
             self._buttons_edit_callback(false)
-            UIManager:show(Notification:new({
+            self:showWidget(Notification:new({
               text = msg or gettext("Saved"),
             }))
           end
@@ -885,7 +880,7 @@ function InputDialog:_addSaveCloseButtons()
     id = "close",
     callback = function()
       if self._text_modified then
-        UIManager:show(MultiConfirmBox:new({
+        self:showWidget(MultiConfirmBox:new({
           text = self.close_unsaved_confirm_text
             or gettext("You have unsaved changes."),
           cancel_text = self.close_cancel_button_text or gettext("Cancel"),
@@ -895,7 +890,7 @@ function InputDialog:_addSaveCloseButtons()
               self.close_callback(false)
             end
             UIManager:close(self)
-            UIManager:show(Notification:new({
+            self:showWidget(Notification:new({
               text = self.close_discarded_notif_text
                 or gettext("Changes discarded"),
             }))
@@ -908,7 +903,7 @@ function InputDialog:_addSaveCloseButtons()
               local success, msg = self.save_callback(self:getInputText(), true)
               if success == false then
                 if msg ~= false then -- false allows for no InfoMessage
-                  UIManager:show(InfoMessage:new({
+                  self:showWidget(InfoMessage:new({
                     text = msg or gettext("Saving failed."),
                   }))
                 end
@@ -917,7 +912,7 @@ function InputDialog:_addSaveCloseButtons()
                   self.close_callback(true)
                 end
                 UIManager:close(self)
-                UIManager:show(Notification:new({
+                self:showWidget(Notification:new({
                   text = msg or gettext("Saved"),
                 }))
               end
@@ -1008,7 +1003,7 @@ function InputDialog:_addScrollButtons(nav_bar)
           })
           input_dialog:addWidget(self.check_button_case)
 
-          UIManager:show(input_dialog)
+          self:showWidget(input_dialog)
           input_dialog:showKeyboard()
         end,
       })
@@ -1062,7 +1057,7 @@ function InputDialog:_addScrollButtons(nav_bar)
               },
             },
           })
-          UIManager:show(input_dialog)
+          self:showWidget(input_dialog)
           input_dialog:showKeyboard()
         end,
       })
@@ -1168,7 +1163,7 @@ function InputDialog:findCallback(input_dialog, find_first)
   else
     msg = gettext("Not found.")
   end
-  UIManager:show(Notification:new({
+  self:showWidget(Notification:new({
     text = msg,
   }))
 end

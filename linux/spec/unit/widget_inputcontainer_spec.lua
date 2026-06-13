@@ -183,6 +183,30 @@ describe("InputContainer widget", function()
         assert.is_not_nil(ic._zones["bar"])
     end)
 
+it("should consume unhandled user input events if it is modal and in the window stack", function()
+        local Event = require("ui/event")
+        local UIManager = require("ui/uimanager")
+        local ic = InputContainer:new{ modal = true }
+
+        local old_stack = UIManager._window_stack
+        UIManager._window_stack = { { widget = ic } }
+
+        local ev = Event:new("CustomUserInput"):asUserInput()
+        local res = ic:handleEvent(ev)
+
+        UIManager._window_stack = old_stack
+
+        assert.is_true(res)
+    end)
+
+    it("should not consume unhandled user input events if it is modal but not in the window stack", function()
+        local Event = require("ui/event")
+        local ic = InputContainer:new{ modal = true }
+
+        local ev = Event:new("CustomUserInput"):asUserInput()
+        assert.is_false(ic:handleEvent(ev))
+    end)
+
     it("should handle key press mapping", function()
         local triggered_event = nil
         local ic = InputContainer:new({
@@ -214,17 +238,27 @@ describe("InputContainer widget", function()
         assert.is.same("bar", triggered_event.args[1].foo)
     end)
 
-    it("should respect stop_events_propagation on gesture match failure", function()
+    it("should respect event blocking on gesture match failure", function()
+        local UIManager = require("ui/uimanager")
         local ic_no_stop = InputContainer:new({})
         local ic_with_stop = InputContainer:new({
             stop_events_propagation = true,
+            modal = true,
         })
+
+        local old_stack = UIManager._window_stack
+        UIManager._window_stack = { { widget = ic_with_stop } }
 
         local ev = {
             ges = "tap",
         }
 
-        assert.is_nil(ic_no_stop:onGesture(ev))
-        assert.is_true(ic_with_stop:onGesture(ev))
+        local no_stop_res = ic_no_stop:onGesture(ev)
+        local with_stop_res = ic_with_stop:onGesture(ev)
+
+        UIManager._window_stack = old_stack
+
+        assert.is_falsy(no_stop_res)
+        assert.is_true(with_stop_res)
     end)
 end)

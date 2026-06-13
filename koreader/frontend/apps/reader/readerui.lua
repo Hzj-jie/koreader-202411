@@ -720,7 +720,7 @@ function ReaderUI:showReader(file, provider, seamless)
   local origin_file = file
   file = ffiUtil.realpath(file)
   if file == nil or lfs.attributes(file, "mode") ~= "file" then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = T(
         gettext("File '%1' does not exist."),
         BD.filepath(filemanagerutil.abbreviate(origin_file))
@@ -730,7 +730,7 @@ function ReaderUI:showReader(file, provider, seamless)
   end
 
   if not DocumentRegistry:hasProvider(file) and provider == nil then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = T(
         gettext("File '%1' is not supported."),
         BD.filepath(filemanagerutil.abbreviate(file))
@@ -748,7 +748,7 @@ function ReaderUI:showReader(file, provider, seamless)
   if provider.provider then
     self:_showReaderCoroutine(file, provider, seamless)
   else
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("No reader engine for this file or invalid file."),
     }))
     self:showFileManager(file)
@@ -768,7 +768,7 @@ function ReaderUI:_showReaderCoroutine(file, provider, seamless)
       io.stderr:write(debug.traceback(co, err, 1))
       -- Restore input if we crashed before ReaderUI has restored it
       Device:setIgnoreInput(false)
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = gettext("Unfortunately KOReader crashed.")
           .. "\n"
           .. gettext(
@@ -797,7 +797,7 @@ function ReaderUI:_doShowReader(file, provider)
   assert(ReaderUI.instance == nil)
   local document = DocumentRegistry:openDocument(file, provider)
   if not document then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("No reader engine for this file or invalid file."),
     }))
     self:showFileManager(file)
@@ -864,7 +864,7 @@ function ReaderUI:unlockDocumentWithPassword(document, try_again)
     },
     text_type = "password",
   })
-  UIManager:show(self.password_dialog)
+  self:showWidget(self.password_dialog)
 end
 
 function ReaderUI:onVerifyPassword(document)
@@ -977,7 +977,7 @@ function ReaderUI:dealWithLoadDocumentFailure()
     logger.warn(
       "crengine failed recognizing or parsing this file: unsupported or invalid document"
     )
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext(
         "Failed recognizing or parsing this file: unsupported or invalid document.\nKOReader will exit now."
       ),

@@ -41,7 +41,7 @@ function ReaderDeviceStatus:_checkBatteryStatus()
   local is_charging = powerd:isCharging()
   local battery_capacity = powerd:getCapacity()
   if Device:canSuspend() and not is_charging and battery_capacity <= 5 then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext(
         "Battery level drops below the critical zone.\n\nSuspending the device…"
       )
@@ -96,7 +96,7 @@ function ReaderDeviceStatus:_checkBatteryStatus()
         )
     end
   end
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = text,
     ok_text = gettext("Dismiss"),
     dismissable = false,
@@ -126,7 +126,7 @@ function ReaderDeviceStatus:_checkMemoryStatus()
       top_wg.name == "ReaderUI"
       and G_reader_settings:isTrue("device_status_memory_auto_restart")
     then
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = gettext("High memory usage!\n\nKOReader is restarting…")
           .. "\n\n"
           .. gettext("Waiting for 3 seconds to proceed."),
@@ -136,12 +136,12 @@ function ReaderDeviceStatus:_checkMemoryStatus()
         UIManager:broadcastEvent(Event:new("Restart"))
       end)
     else
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = T(gettext("High memory usage: %1 MB\n\nRestart KOReader?"), rss),
         ok_text = gettext("Restart"),
         dismissable = false,
         ok_callback = function()
-          UIManager:show(InfoMessage:new({
+          self:showWidget(InfoMessage:new({
             text = gettext("High memory usage!\n\nKOReader is restarting…"),
             icon = "notice-warning",
           }))
@@ -154,7 +154,7 @@ function ReaderDeviceStatus:_checkMemoryStatus()
       }))
     end
   else
-    UIManager:show(ConfirmBox:new({
+    self:showWidget(ConfirmBox:new({
       text = T(gettext("High memory usage: %1 MB\n\nExit KOReader?"), rss),
       ok_text = gettext("Exit"),
       dismissable = false,
@@ -252,7 +252,7 @@ High level threshold is checked when the device is charging.]]),
             battery_status_dismissed = false
           end,
         })
-        UIManager:show(thresholds_widget)
+        self:showWidget(thresholds_widget)
       end,
       separator = true,
     })
@@ -276,7 +276,7 @@ High level threshold is checked when the device is charging.]]),
       end,
       keep_menu_open = true,
       callback = function(menu)
-        UIManager:show(SpinWidget:new({
+        self:showWidget(SpinWidget:new({
           value = self.memory_threshold,
           value_min = 20,
           value_max = 500,

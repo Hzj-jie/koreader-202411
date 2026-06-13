@@ -285,7 +285,7 @@ function FileManagerHistory:onMenuHold(item)
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(self.histfile_dialog)
+  self:showWidget(self.histfile_dialog)
   return true
 end
 
@@ -335,7 +335,7 @@ function FileManagerHistory:onShowHist(search_info)
     self.hist_menu = nil
     G_reader_settings:save("history_filter", self.filter, "all")
   end
-  UIManager:show(self.hist_menu, "flashui")
+  self:showWidget(self.hist_menu, "flashui")
   return true
 end
 
@@ -411,7 +411,7 @@ function FileManagerHistory:showHistDialog()
               self:updateItemTable()
             end,
           })
-          UIManager:show(confirmbox)
+          self:showWidget(confirmbox)
         end,
       },
     })
@@ -421,7 +421,7 @@ function FileManagerHistory:showHistDialog()
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(hist_dialog)
+  self:showWidget(hist_dialog)
 end
 
 function FileManagerHistory:onSearchHistory()
@@ -471,7 +471,7 @@ function FileManagerHistory:onSearchHistory()
     end,
   })
   search_dialog:addWidget(check_button_case)
-  UIManager:show(search_dialog)
+  self:showWidget(search_dialog)
   return true
 end
 

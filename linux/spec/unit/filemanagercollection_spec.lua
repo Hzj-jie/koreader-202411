@@ -139,6 +139,9 @@ describe("filemanagercollection", function()
             s.subtitle = subtitle
           end),
           updateItems = spy.new(function() end),
+          showWidget = function(self, widget, ...)
+            require("ui/uimanager"):show(widget, ...)
+          end,
         }
         return obj
       end)
@@ -372,6 +375,9 @@ describe("filemanagercollection", function()
         _manager = manager,
         ui = mock_ui,
         collection_name = "favorites",
+        showWidget = function(self, widget, ...)
+          UIManager:show(widget, ...)
+        end,
       }
       manager.onMenuHold(mock_menu_inst, item)
 
@@ -549,6 +555,39 @@ describe("filemanagercollection", function()
       assert.spy(mock_read_collection.addCollection).was.called_with(match._, "New Coll")
       assert.are.equal(1, #manager.coll_list.item_table)
       assert.are.equal("New Coll", manager.coll_list.item_table[1].name)
+    end)
+  end)
+
+  describe("uimanagedCleanUp", function()
+    it("closes coll_menu, collfile_dialog, and coll_list automatically", function()
+      local fmc = FileManagerCollection:new{ ui = mock_ui }
+      local dummy_menu = { name = "dummy_menu" }
+      local dummy_dialog = { name = "dummy_dialog" }
+      local dummy_list = { name = "dummy_list" }
+      local stub = require("luassert.stub")
+      local UIManager = require("ui/uimanager")
+
+      stub(UIManager, "closeIfShown")
+
+      fmc:showWidget(dummy_menu)
+      fmc:showWidget(dummy_dialog)
+      fmc:showWidget(dummy_list)
+
+      fmc.coll_menu = dummy_menu
+      fmc.collfile_dialog = dummy_dialog
+      fmc.coll_list = dummy_list
+
+      fmc:uimanagedCleanUp()
+
+      assert.is_nil(fmc.coll_menu)
+      assert.is_nil(fmc.collfile_dialog)
+      assert.is_nil(fmc.coll_list)
+
+      assert.stub(UIManager.closeIfShown).was_called_with(UIManager, dummy_menu)
+      assert.stub(UIManager.closeIfShown).was_called_with(UIManager, dummy_dialog)
+      assert.stub(UIManager.closeIfShown).was_called_with(UIManager, dummy_list)
+
+      UIManager.closeIfShown:revert()
     end)
   end)
 end)

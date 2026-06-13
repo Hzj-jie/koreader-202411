@@ -100,7 +100,7 @@ function ReaderHighlight:init()
             util.cleanupSelectedText(this.selected_text.text)
           )
           this:onExit()
-          UIManager:show(Notification:new({
+          self:showWidget(Notification:new({
             text = gettext("Selection copied to clipboard."),
           }))
         end,
@@ -413,7 +413,7 @@ function ReaderHighlight:onReaderReady()
     self.ui.paging
     and G_reader_settings:isTrue("highlight_write_into_pdf_notify")
   then
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = T(
         gettext("Write highlights into PDF: %1"),
         self.highlight_write_into_pdf and gettext("on") or gettext("off")
@@ -563,7 +563,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
           menu:updateItems()
         end,
       })
-      UIManager:show(spin_widget)
+      self:showWidget(spin_widget)
     end,
   })
   table.insert(hl_sub_item_table, {
@@ -587,7 +587,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
           },
         })
       end
-      UIManager:show(RadioButtonWidget:new({
+      self:showWidget(RadioButtonWidget:new({
         title_text = gettext("Note marker"),
         width_factor = 0.5,
         keep_shown_on_apply = true,
@@ -612,7 +612,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
   table.insert(hl_sub_item_table, {
     text = gettext("Apply current style and color to all highlights"),
     callback = function()
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = gettext("Are you sure you want to update all highlights?"),
         icon = "texture-box",
         ok_callback = function()
@@ -626,7 +626,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
           end
           if count > 0 then
             UIManager:setDirty(self.dialog, "ui")
-            UIManager:show(Notification:new({
+            self:showWidget(Notification:new({
               text = T(
                 N_(
                   "Applied style and color to 1 highlight",
@@ -671,7 +671,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
             if self.document:_checkIfWritable() then
               self.highlight_write_into_pdf = true
               if G_named_settings.document_metadata_folder() == "hash" then
-                UIManager:show(InfoMessage:new({
+                self:showWidget(InfoMessage:new({
                   text = gettext(
                     "Warning: Book metadata location is set to hash-based storage. Writing highlights into a PDF modifies the file which may change the partial hash, resulting in its metadata (e.g., highlights and progress) being unlinked and lost."
                   ),
@@ -679,7 +679,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
                 }))
               end
             else
-              UIManager:show(InfoMessage:new({
+              self:showWidget(InfoMessage:new({
                 text = gettext(
                   [[
 Highlights in this document will be saved in the settings file, but they won't be written in the document itself because the file is in a read-only location.
@@ -730,7 +730,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
               and self.ui.annotation:getNumberOfHighlightsAndNotes() > 0
           end,
           callback = function()
-            UIManager:show(ConfirmBox:new({
+            self:showWidget(ConfirmBox:new({
               text = gettext(
                 "Are you sure you want to write all KOReader highlights into PDF file?"
               ),
@@ -747,7 +747,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
                     end
                   end
                 end
-                UIManager:show(Notification:new({
+                self:showWidget(Notification:new({
                   text = T(
                     N_(
                       "1 highlight written into PDF file",
@@ -768,7 +768,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
               and self.ui.annotation:getNumberOfHighlightsAndNotes() > 0
           end,
           callback = function()
-            UIManager:show(ConfirmBox:new({
+            self:showWidget(ConfirmBox:new({
               text = gettext(
                 "Are you sure you want to delete all KOReader highlights from PDF file?"
               ),
@@ -781,7 +781,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
                     self:writePdfAnnotation("delete", item)
                   end
                 end
-                UIManager:show(Notification:new({
+                self:showWidget(Notification:new({
                   text = T(
                     N_(
                       "1 highlight deleted from PDF file",
@@ -903,7 +903,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
             end
           end,
         })
-        UIManager:show(items)
+        self:showWidget(items)
       end,
     })
   end
@@ -966,7 +966,7 @@ Except when in two columns mode, where this is limited to showing only the previ
             end
           end,
         })
-        UIManager:show(spin_widget)
+        self:showWidget(spin_widget)
       end,
     })
     table.insert(menu_items.long_press.sub_item_table, {
@@ -1020,7 +1020,7 @@ Except when in two columns mode, where this is limited to showing only the previ
             end
           end,
         })
-        UIManager:show(spin_widget)
+        self:showWidget(spin_widget)
       end,
     })
 
@@ -1130,7 +1130,7 @@ function ReaderHighlight:onTapSelectModeIcon()
   if not self.select_mode then
     return
   end
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = gettext(
       "You are currently in SELECT mode.\nTo finish highlighting, long press where the highlight should end and press the HIGHLIGHT button.\nYou can also exit select mode by tapping on the start of the highlight."
     ),
@@ -1389,7 +1389,7 @@ function ReaderHighlight:showChooseHighlightDialog(highlights)
     dialog = ButtonDialog:new({
       buttons = buttons,
     })
-    UIManager:show(dialog)
+    self:showWidget(dialog)
   end
   return true
 end
@@ -1423,7 +1423,7 @@ function ReaderHighlight:showHighlightNoteOrDialog(index)
         },
       },
     })
-    UIManager:show(textviewer)
+    self:showWidget(textviewer)
   else
     self:onShowHighlightDialog(index)
   end
@@ -1548,7 +1548,7 @@ function ReaderHighlight:onShowHighlightDialog(index)
       return self:_getDialogAnchor(self.edit_highlight_dialog, item)
     end,
   })
-  UIManager:show(self.edit_highlight_dialog)
+  self:showWidget(self.edit_highlight_dialog)
   return true
 end
 
@@ -1607,7 +1607,7 @@ function ReaderHighlight:onShowHighlightMenu(index)
   })
   -- NOTE: Disable merging for this update,
   --     or the buggy Sage kernel may alpha-blend it into the page (with a bogus alpha value, to boot)...
-  UIManager:show(self.highlight_dialog, "[ui]")
+  self:showWidget(self.highlight_dialog, "[ui]")
 end
 dbg:guard(ReaderHighlight, "onShowHighlightMenu", function(self)
   assert(
@@ -1766,7 +1766,7 @@ function ReaderHighlight:onPanelZoom(arg, ges)
       fullscreen = true,
       rotated = rotate,
     })
-    UIManager:show(imgviewer)
+    self:showWidget(imgviewer)
     return true
   end
   return false
@@ -1807,7 +1807,7 @@ function ReaderHighlight:onHold(arg, ges)
       with_title_bar = false,
       fullscreen = true,
     })
-    UIManager:show(imgviewer)
+    self:showWidget(imgviewer)
     self:onStopHighlightIndicator()
     return true
   end
@@ -2122,7 +2122,7 @@ function ReaderHighlight:lookup(selected_text, selected_link)
         Event:new("LookupWord", text, false, word_boxes, self, selected_link)
       )
     else
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = info_message_ocr_text,
       }))
     end
@@ -2190,7 +2190,7 @@ function ReaderHighlight:translate(index)
     if text and text ~= "" then
       self:onTranslateText(text)
     else
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = info_message_ocr_text,
       }))
     end
@@ -2321,7 +2321,7 @@ function ReaderHighlight:onSetHighlightAction(action_num, no_notification)
   G_reader_settings:save("default_highlight_action", v[2])
   self.view.highlight.disabled = v[2] == "nothing"
   if not no_notification then -- fired with a gesture
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = T(gettext("Default highlight action changed to '%1'."), v[1]),
     }))
   end
@@ -2370,7 +2370,7 @@ function ReaderHighlight:onCycleHighlightStyle()
     next_style_num = 1
   end
   self.view.highlight.saved_drawer = highlight_style[next_style_num][2]
-  UIManager:show(Notification:new({
+  self:showWidget(Notification:new({
     text = T(
       gettext("Default highlight style changed to '%1'."),
       highlight_style[next_style_num][1]
@@ -2599,7 +2599,7 @@ function ReaderHighlight:showHighlightStyleDialog(caller_callback, item_drawer)
       },
     })
   end
-  UIManager:show(RadioButtonWidget:new({
+  self:showWidget(RadioButtonWidget:new({
     title_text = gettext("Highlight style"),
     width_factor = 0.5,
     keep_shown_on_apply = keep_shown_on_apply,
@@ -2636,7 +2636,7 @@ function ReaderHighlight:showHighlightColorDialog(caller_callback, item)
       },
     })
   end
-  UIManager:show(RadioButtonWidget:new({
+  self:showWidget(RadioButtonWidget:new({
     title_text = gettext("Highlight color"),
     width_factor = 0.5,
     keep_shown_on_apply = keep_shown_on_apply,

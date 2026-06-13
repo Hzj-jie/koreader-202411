@@ -1134,11 +1134,11 @@ function PageBrowserWidget:showMenu()
       return self.title_bar.left_button.image.dimen
     end,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 function PageBrowserWidget:showAbout()
-  UIManager:show(InfoMessage:new({
+  self:showWidget(InfoMessage:new({
     text = gettext([[
 Page browser shows thumbnails of pages.
 
@@ -1156,7 +1156,7 @@ Under the pages, these indicators may be shown:
 end
 
 function PageBrowserWidget:showGestures()
-  UIManager:show(InfoMessage:new({
+  self:showWidget(InfoMessage:new({
     text = gettext([[
 Swipe along the top or left screen edge to change the number of columns or rows of thumbnails.
 
@@ -1631,7 +1631,7 @@ function PageBrowserWidget:onHold(arg, ges)
     if page then
       local extra_symbols_pages = {}
       extra_symbols_pages[self.focus_page] = 0x25A2 -- white square with rounder corners
-      UIManager:show(BookMapWidget:new({
+      self:showWidget(BookMapWidget:new({
         launcher = self,
         ui = self.ui,
         focus_page = page,
@@ -1735,7 +1735,7 @@ function PageBrowserWidget:onThumbnailHold(page, ges)
       return ges.pos, true
     end,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 return PageBrowserWidget

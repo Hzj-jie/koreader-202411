@@ -160,7 +160,7 @@ function ReaderHandMade:addToMainMenu(menu_items)
             .. " "
             .. self.custom_toc_symbol,
           callback = function()
-            UIManager:show(InfoMessage:new({
+            self:showWidget(InfoMessage:new({
               text = gettext(
                 [[
 If the book has no table of contents or you would like to substitute it with your own, you can create a custom TOC. The original TOC (if available) will not be altered.
@@ -201,7 +201,7 @@ This custom table of contents is currently limited to a single level and can't h
             return #self.toc > 0
           end,
           callback = function(menu)
-            UIManager:show(ConfirmBox:new({
+            self:showWidget(ConfirmBox:new({
               text = gettext(
                 "Are you sure you want to clear your custom table of contents?"
               ),
@@ -220,7 +220,7 @@ This custom table of contents is currently limited to a single level and can't h
         {
           text = gettext("About custom hidden flows"),
           callback = function()
-            UIManager:show(InfoMessage:new({
+            self:showWidget(InfoMessage:new({
               text = gettext(
                 [[
 Custom hidden flows can be created to exclude sections of the book from your normal reading flow:
@@ -263,7 +263,7 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
             return #self.inactive_flow_points > 0
           end,
           callback = function(menu)
-            UIManager:show(ConfirmBox:new({
+            self:showWidget(ConfirmBox:new({
               text = gettext(
                 "Inactive marked pages are pages that you tagged as start hidden flow or restart regular flow, but that other marked pages made them have no effect.\nAre you sure you want to clear them?"
               ),
@@ -289,7 +289,7 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
             return #self.flow_points > 0
           end,
           callback = function(menu)
-            UIManager:show(ConfirmBox:new({
+            self:showWidget(ConfirmBox:new({
               text = gettext(
                 "Are you sure you want to clear all your custom hidden flows?"
               ),
@@ -562,7 +562,7 @@ function ReaderHandMade:addOrEditPageTocItem(
         or nil,
     },
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
   return true
 end
 

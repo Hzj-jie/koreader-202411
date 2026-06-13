@@ -59,6 +59,9 @@ describe("FileManagerHistory", function()
       end
       return obj
     end
+    local Widget = require("ui/widget/widget")
+    mock_widget_container.showWidget = Widget.showWidget
+    mock_widget_container.uimanagedCleanUp = Widget.uimanagedCleanUp
     package.loaded["ui/widget/container/widgetcontainer"] = mock_widget_container
 
     clear_table(mock_menu)
@@ -90,6 +93,11 @@ describe("FileManagerHistory", function()
           table.remove(shown_widgets, i)
           break
         end
+      end
+    end)
+    mock_uimanager.closeIfNotNil = spy.new(function(self, widget)
+      if widget then
+        self:close(widget)
       end
     end)
     mock_uimanager.runWith = spy.new(function(self, func, _msg)
@@ -423,6 +431,9 @@ describe("FileManagerHistory", function()
       local menu_context = {
         _manager = fmh,
         ui = ui_mock,
+        showWidget = function(self, widget, ...)
+          mock_uimanager:show(widget, ...)
+        end
       }
 
       local item = { file = "/path/to/book1.epub", text = "Book 1", dim = false, idx = 2 }
@@ -784,6 +795,38 @@ describe("FileManagerHistory", function()
       assert.has_no_errors(function()
         fmh:onBookMetadataChanged()
       end)
+    end)
+  end)
+
+  describe("uimanagedCleanUp", function()
+    before_each(function()
+      mock_uimanager.closeIfShown = spy.new(function(self, widget)
+        self:close(widget)
+      end)
+    end)
+    after_each(function()
+      mock_uimanager.closeIfShown = nil
+    end)
+    it("closes histfile_dialog and hist_menu automatically", function()
+      local ui_mock = { menu = mock_menu }
+      local fmh = FileManagerHistory:new({ ui = ui_mock })
+
+      local dummy_dialog = { name = "dummy_dialog" }
+      local dummy_menu = { name = "dummy_menu" }
+
+      fmh:showWidget(dummy_dialog)
+      fmh:showWidget(dummy_menu)
+
+      fmh.histfile_dialog = dummy_dialog
+      fmh.hist_menu = dummy_menu
+
+      fmh:uimanagedCleanUp()
+
+      assert.is_nil(fmh.histfile_dialog)
+      assert.is_nil(fmh.hist_menu)
+
+      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, match.is_ref(dummy_dialog))
+      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, match.is_ref(dummy_menu))
     end)
   end)
 end)

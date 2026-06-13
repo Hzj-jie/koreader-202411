@@ -219,7 +219,7 @@ function TweakInfoWidget:onTap(arg, ges)
     -- can be pasted into the book-specific tweak editor)
     -- (Add \n on both sides for easier pasting)
     Device.input.setClipboardText("\n" .. self.css_text .. "\n")
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = gettext("CSS text copied to clipboard"),
     }))
     return true
@@ -518,7 +518,7 @@ function ReaderStyleTweak:init()
       self:updateCssText(true) -- apply it immediately
     end,
     hold_callback = function()
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = gettext(
           [[
 Style tweaks allow changing small parts of book styles (including the publisher/embedded styles) to make visual adjustments or disable unwanted publisher layout choices.
@@ -587,7 +587,7 @@ You can enable individual tweaks on this book with a tap, or view more details a
           return title
         end,
         hold_callback = function(menu)
-          UIManager:show(TweakInfoWidget:new({
+          self:showWidget(TweakInfoWidget:new({
             tweak = item,
             is_global_default = self.global_tweaks[item.id],
             toggle_global_default_callback = function()
@@ -661,12 +661,12 @@ You can enable individual tweaks on this book with a tap, or view more details a
         -- Show the info text when either tap or hold
         keep_menu_open = true,
         callback = function()
-          UIManager:show(InfoMessage:new({
+          self:showWidget(InfoMessage:new({
             text = item.info_text,
           }))
         end,
         hold_callback = function()
-          UIManager:show(InfoMessage:new({
+          self:showWidget(InfoMessage:new({
             text = item.info_text,
           }))
         end,
@@ -832,7 +832,7 @@ function ReaderStyleTweak:onToggleStyleTweak(tweak_id, item, no_notification)
   end
   self:updateCssText(true) -- apply it immediately
   if not no_notification then
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = text,
     }))
   end
@@ -1242,7 +1242,7 @@ function ReaderStyleTweak:editBookTweak(menu)
                   callback = function()
                     if is_info_only then
                       -- No CSS bit to insert, show description also on tap
-                      UIManager:show(InfoMessage:new({ text = description }))
+                      self:showWidget(InfoMessage:new({ text = description }))
                       return
                     end
                     if not is_submenu then -- insert as-is on tap
@@ -1264,7 +1264,7 @@ function ReaderStyleTweak:editBookTweak(menu)
                             align = "left",
                             callback = function()
                               if sub_is_info_only then
-                                UIManager:show(
+                                self:showWidget(
                                   InfoMessage:new({ text = sub_description })
                                 )
                                 return
@@ -1275,7 +1275,7 @@ function ReaderStyleTweak:editBookTweak(menu)
                             end,
                             hold_callback = sub_description
                               and function()
-                                UIManager:show(
+                                self:showWidget(
                                   InfoMessage:new({ text = sub_description })
                                 )
                               end,
@@ -1303,12 +1303,12 @@ function ReaderStyleTweak:editBookTweak(menu)
                         buttons = sub_buttons,
                         anchor = anchor_func,
                       })
-                      UIManager:show(sub_suggestions_popup_widget)
+                      self:showWidget(sub_suggestions_popup_widget)
                     end
                   end,
                   hold_callback = description
                       and function()
-                        UIManager:show(InfoMessage:new({ text = description }))
+                        self:showWidget(InfoMessage:new({ text = description }))
                       end
                     or nil,
                 },
@@ -1328,7 +1328,7 @@ function ReaderStyleTweak:editBookTweak(menu)
                   true
               end,
             })
-            UIManager:show(suggestions_popup_widget)
+            self:showWidget(suggestions_popup_widget)
           end,
         },
       },
@@ -1433,7 +1433,7 @@ function ReaderStyleTweak:editBookTweak(menu)
       -- If close_status is false, text was modified but then discarded, and
       -- InputDialog will show our close_discarded_notif_text
       if not editor.save_callback_called and close_status ~= false then
-        UIManager:show(Notification:new({
+        self:showWidget(Notification:new({
           text = NOT_MODIFIED_MSG,
         }))
       end
@@ -1442,7 +1442,7 @@ function ReaderStyleTweak:editBookTweak(menu)
   })
   -- ignore first hold release, as we may be invoked from hold
   editor.ignore_first_hold_release = true
-  UIManager:show(editor)
+  self:showWidget(editor)
 end
 
 return ReaderStyleTweak

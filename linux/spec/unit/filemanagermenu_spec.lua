@@ -121,7 +121,10 @@ describe("filemanagermenu", function()
         return setmetatable(child, {
           __index = self,
         })
-      end
+      end,
+      showWidget = function(self, widget, ...)
+        require("ui/uimanager"):show(widget, ...)
+      end,
     }
 
     package.loaded["apps/common_menu"] = {

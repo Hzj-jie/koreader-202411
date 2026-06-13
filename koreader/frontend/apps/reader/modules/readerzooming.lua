@@ -462,7 +462,7 @@ function ReaderZooming:onDefineZoom(btn, when_applied_callback)
   if when_applied_callback then
     -- Provided when hide_on_apply, and ConfigDialog temporarily hidden:
     -- show an InfoMessage with the values, and call when_applied_callback on dismiss
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = T(
         gettext([[Zoom set to:
 
@@ -718,7 +718,7 @@ Manual zoom works best with page view.
 Please enable page view instead of continuous view (scroll mode).]])
     end
     if message then
-      UIManager:show(InfoMessage:new({ text = message, timeout = 5 }))
+      self:showWidget(InfoMessage:new({ text = message, timeout = 5 }))
     end
   end
 
@@ -762,7 +762,7 @@ end
 
 function ReaderZooming:_zoomFactorChange(title_text, direction, _precision)
   local zoom_factor, overlap = self:getNumberOf(direction)
-  UIManager:show(SpinWidget:new({
+  self:showWidget(SpinWidget:new({
     value = zoom_factor,
     value_min = 0.1,
     value_max = 10,
@@ -779,7 +779,7 @@ function ReaderZooming:_zoomFactorChange(title_text, direction, _precision)
 end
 
 function ReaderZooming:_zoomPanChange(text, setting)
-  UIManager:show(SpinWidget:new({
+  self:showWidget(SpinWidget:new({
     value = self[setting],
     value_min = 0,
     value_max = 90,

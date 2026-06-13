@@ -353,7 +353,7 @@ function VirtualKey:_showLayoutDialog()
     parent = self,
     keyboard_state = keyboard_state,
   })
-  UIManager:show(self.keyboard_layout_dialog)
+  self:showWidget(self.keyboard_layout_dialog)
 end
 
 function VirtualKey:genKeyboardLayoutKeyChars()
@@ -787,7 +787,6 @@ local VirtualKeyboard = FocusManager:extend({
   visible = nil,
   lock_visibility = false,
   covers_footer = true,
-  modal = true,
   disable_double_tap = true,
   inputbox = nil,
   KEYS = nil, -- table to store layouts
@@ -846,6 +845,10 @@ local VirtualKeyboard = FocusManager:extend({
     zh_CN = true,
   },
 })
+
+function VirtualKeyboard:isAlwaysOnTop()
+  return true
+end
 
 function VirtualKeyboard:init()
   assert(self.inputbox, "inputbox is mandatory")

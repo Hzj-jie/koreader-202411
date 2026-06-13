@@ -289,9 +289,9 @@ end
 Registers and shows a widget.
 
 Widgets are registered in a stack, from bottom to top in registration order,
-with a few tweaks to handle modals & toasts:
-toast widgets are stacked together on top,
-then modal widgets are stacked together, and finally come standard widgets.
+with a few tweaks to layer them correctly:
+always-on-top widgets (like modals, virtual keyboard, and notifications) are
+stacked together at the top of the stack, followed by standard widgets.
 
 If you think about how painting will be handled (also bottom to top), this makes perfect sense ;).
 
@@ -304,7 +304,6 @@ function UIManager:show(widget)
   if not _isWidget(widget) then
     return
   end
-
   assert(not self:isWindowWidget(widget))
 
   logger.dbg("show widget:", _widgetDebugStr(widget))
@@ -314,14 +313,11 @@ function UIManager:show(widget)
   -- put this window on top of the topmost non-modal window
   for i = #self._window_stack, 0, -1 do
     local top_window = self._window_stack[i]
-    -- toasts are stacked on top of other toasts,
-    -- then come modals, and then other widgets
-    if top_window and top_window.widget.toast then
-      if widget.toast then
-        table.insert(self._window_stack, i + 1, window)
-        break
-      end
-    elseif widget.modal or not top_window or not top_window.widget.modal then
+    if
+      widget:isAlwaysOnTop()
+      or not top_window
+      or not top_window.widget:isAlwaysOnTop()
+    then
       table.insert(self._window_stack, i + 1, window)
       break
     end
@@ -416,6 +412,7 @@ function UIManager:_close(widget)
     logger.dbg("Widget is gone, disabling gesture handling again")
     self:setIgnoreTouchInput(true)
   end
+  widget:uimanagedCleanUp()
 end
 
 -- The three close functions functional wise are identical but log different
@@ -866,53 +863,17 @@ function UIManager:userInput(event)
     event = Event:new(event)
   end
   event:asUserInput()
-  local top_widget
+
   local checked_widgets = {}
-  -- Toast widgets, which, by contract, must be at the top of the window stack, never stop event propagation.
-  for i = #self._window_stack, 1, -1 do
-    local widget = self._window_stack[i].widget
-    -- Whether it's a toast or not, we'll call handleEvent now,
-    -- so we'll want to skip it during the table walk later.
-    checked_widgets[widget] = true
-    if widget.toast then
-      -- We never stop event propagation on toasts, but we still want to send the event to them.
-      -- (In particular, because we want them to close on user input).
-      widget:handleEvent(event)
-    else
-      -- The first widget to consume events as designed is the topmost non-toast one
-      top_widget = widget
-      break
-    end
-  end
 
-  -- Extremely unlikely, but we can't exclude the possibility of *everything* being a toast ;).
-  -- In which case, the event has nowhere else to go, so, we're done.
-  if not top_widget then
-    return
-  end
-
-  if top_widget:handleEvent(event) then
-    return
-  end
-
-  -- If the event was not consumed (no handler returned true), active widgets (from top to bottom) can access it.
-  -- NOTE: _window_stack can shrink/grow when widgets are closed (CloseWidget & Close events) or opened.
-  --     Simply looping in reverse would only cover the list shrinking, and that only by a *single* element,
-  --     something we can't really guarantee, hence the more dogged iterator below,
-  --     which relies on a hash check of already processed widgets (LuaJIT actually hashes the table's GC reference),
-  --     rather than a simple loop counter, and will in fact iterate *at least* #items ^ 2 times.
-  --     Thankfully, that list should be very small, so the overhead should be minimal.
+  -- Propagate sequentially down the stack
   local i = #self._window_stack
   while i > 0 do
     local widget = self._window_stack[i].widget
     if not checked_widgets[widget] then
       checked_widgets[widget] = true
-      if widget.is_always_active then
-        -- Widget itself is flagged always active, let it handle the event
-        -- NOTE: is_always_active widgets are currently widgets that want to show a VirtualKeyboard or listen to Dispatcher events
-        if widget:handleEvent(event) then
-          return
-        end
+      if widget:handleEvent(event) then
+        return
       end
       -- As mentioned above, event handlers might have shown/closed widgets,
       -- so all bets are off on our old window tally being accurate, so let's take it from the top again ;).
