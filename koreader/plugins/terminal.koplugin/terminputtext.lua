@@ -615,6 +615,8 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       self.charpos = self.charpos + 1
     elseif chars_list[i] == "\b" then
       self.charpos = self.charpos - 1
+    elseif chars_list[i] == nil then
+      logger.warn("TermInputText: new_char is nil at index", i)
     else
       local new_char = chars_list[i]
       local new_w = getCharWidth(new_char)
