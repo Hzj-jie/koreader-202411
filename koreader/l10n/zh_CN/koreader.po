@@ -830,8 +830,9 @@ msgid "Size:"
 msgstr "大小："
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:90
+#, fuzzy
 msgid "Last open:"
-msgstr ""
+msgstr "上次打开："
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:92
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:97
@@ -903,16 +904,19 @@ msgid "Review:"
 msgstr "评论："
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:214
+#, fuzzy
 msgid "Number of bookmarks"
-msgstr ""
+msgstr "书签数量"
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:219
+#, fuzzy
 msgid "Number of settings:"
-msgstr ""
+msgstr "设置数量："
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:222
+#, fuzzy
 msgid "Setting file size:"
-msgstr ""
+msgstr "设置文件大小："
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:404
 msgid "No book description available."
@@ -1317,8 +1321,9 @@ msgid "New"
 msgstr "新增"
 
 #: frontend/apps/filemanager/filemanagerhistory.lua:41
+#, fuzzy
 msgid "Loading reading history…"
-msgstr ""
+msgstr "正在加载阅读历史…"
 
 #: frontend/apps/filemanager/filemanagerhistory.lua:98
 msgid "Filtered by collections (%1)"
@@ -2490,16 +2495,19 @@ msgid "Apply crop"
 msgstr "应用裁剪"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:46
+#, fuzzy
 msgid ""
+""
 "Battery level drops below the critical zone.\n"
 "\n"
 "Suspending the device…"
-msgstr ""
+msgstr "电池电量降至临界区域以下。\n\n正在休眠设备…"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:49
 #: frontend/apps/reader/modules/readerdevicestatus.lua:132
+#, fuzzy
 msgid "Waiting for 3 seconds to proceed."
-msgstr ""
+msgstr "等待3秒以继续。"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:81
 msgid ""
@@ -2522,18 +2530,21 @@ msgstr ""
 "忽略此警报？"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:94
+#, fuzzy
 msgid ""
+""
 "When battery level drops below the critical zone, the device will be put "
 "into suspension automatically."
-msgstr ""
+msgstr "当电池电量降至临界区域以下时，设备将自动进入休眠。"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:101
 msgid "Dismiss"
 msgstr "忽略"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:106
+#, fuzzy
 msgid "Remind later"
-msgstr ""
+msgstr "稍后提醒"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:130
 #: frontend/apps/reader/modules/readerdevicestatus.lua:145
@@ -2753,8 +2764,9 @@ msgstr ""
 "%1"
 
 #: frontend/apps/reader/modules/readerdictionary.lua:1101
+#, fuzzy
 msgid "Cannot find results of %1"
-msgstr ""
+msgstr "找不到 %1 的结果"
 
 #: frontend/apps/reader/modules/readerdictionary.lua:1156
 msgid "License"
@@ -3264,12 +3276,14 @@ msgid "%1 Off"
 msgstr "%1 关闭"
 
 #: frontend/apps/reader/modules/readerfooter.lua:423
+#, fuzzy
 msgid "%1 Online"
-msgstr ""
+msgstr "%1 在线"
 
 #: frontend/apps/reader/modules/readerfooter.lua:425
+#, fuzzy
 msgid "%1 Connected"
-msgstr ""
+msgstr "%1 已连接"
 
 #: frontend/apps/reader/modules/readerfooter.lua:427
 #: frontend/apps/reader/modules/readerfooter.lua:449
@@ -5863,8 +5877,9 @@ msgid "Table of contents"
 msgstr "目录"
 
 #: frontend/apps/reader/modules/readertoc.lua:1117
+#, fuzzy
 msgid "Navigation settings"
-msgstr ""
+msgstr "导航设置"
 
 #: frontend/apps/reader/modules/readertoc.lua:1122
 msgid "Alternative table of contents"
@@ -6863,14 +6878,16 @@ msgid "Wikipedia languages"
 msgstr "维基百科语言"
 
 #: frontend/apps/reader/modules/readerwikipedia.lua:191
+#, fuzzy
 msgid ""
+""
 "Enter one or more Wikipedia language codes (the 2 or 3 letters "
 "before .wikipedia.org), in the order you wish to see them available, "
 "separated by a space. For example:\n"
 "  en fr zh\n"
 "\n"
 "Full list at https://en.wikipedia.org/wiki/List_of_Wikipedias"
-msgstr ""
+msgstr "输入一个或多个维基百科语言代码（.wikipedia.org 之前的 2 或 3 个字母），按您希望看到的顺序排列，用空格分隔。例如：\n  en fr zh\n\n完整列表请访问 https://en.wikipedia.org/wiki/List_of_Wikipedias"
 
 #: frontend/apps/reader/modules/readerwikipedia.lua:215
 msgid "Set Wikipedia 'Save as EPUB' folder"
@@ -7150,14 +7167,17 @@ msgid "No reader engine for this file or invalid file."
 msgstr "无对应此文档的阅读器引擎，或者是一个无效文件。"
 
 #: frontend/apps/reader/readerui.lua:772
+#, fuzzy
 msgid "Unfortunately KOReader crashed."
-msgstr ""
+msgstr "很遗憾，KOReader 崩溃了。"
 
 #: frontend/apps/reader/readerui.lua:775
+#, fuzzy
 msgid ""
+""
 "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help "
 "developers to improve it."
-msgstr ""
+msgstr "向 https://github.com/Hzj-jie/koreader-202411 报告错误可以帮助开发人员进行改进。"
 
 #: frontend/apps/reader/readerui.lua:788 frontend/device/android/device.lua:225
 msgid "Opening file '%1'."
@@ -7176,8 +7196,9 @@ msgid "Book metadata saved."
 msgstr "书籍元数据已保存。"
 
 #: frontend/apps/reader/readerui.lua:954
+#, fuzzy
 msgid "Saving progress of file %1"
-msgstr ""
+msgstr "正在保存文件进度 %1"
 
 #: frontend/apps/reader/readerui.lua:982
 msgid ""
@@ -9391,8 +9412,9 @@ msgid ""
 msgstr "当书籍中只有一些小图像时有用，可能会裁剪掉部分图像。"
 
 #: frontend/ui/data/css_tweaks.lua:782
+#, fuzzy
 msgid "Almost full-width images"
-msgstr ""
+msgstr "几乎全宽图像"
 
 #: frontend/ui/data/css_tweaks.lua:796
 msgid "Vertically center-align images relative to text"
@@ -11018,12 +11040,14 @@ msgstr "帮助"
 
 #: frontend/ui/elements/common_info_menu_table.lua:27
 #: frontend/ui/elements/common_info_menu_table.lua:44
+#, fuzzy
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "键盘快捷键"
 
 #: frontend/ui/elements/common_info_menu_table.lua:53
+#, fuzzy
 msgid "Common log files"
-msgstr ""
+msgstr "常用日志文件"
 
 #: frontend/ui/elements/common_info_menu_table.lua:80
 msgid "Quickstart guide"
@@ -11110,10 +11134,12 @@ msgstr ""
 "http://koreader.rocks"
 
 #: frontend/ui/elements/common_info_menu_table.lua:192
+#, fuzzy
 msgid ""
+""
 "Running version may not match source code version %1.\n"
 "Please consider restarting KOReader at the ealiest convenience."
-msgstr ""
+msgstr "运行版本可能与源代码版本 %1 不匹配。\n请考虑尽早重新启动 KOReader。"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:20
 msgid "Start %1 reader app"
@@ -11182,11 +11208,14 @@ msgid "Ignore long-press on corners"
 msgstr "忽略边角长按"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:166
+#, fuzzy
 msgid "Disable out of order interactions"
-msgstr ""
+msgstr "禁用无序交互"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:168
+#, fuzzy
 msgid ""
+""
 "Disallow taps or keyboard presses being sent to the UI elements before they "
 "are showing up.\n"
 "E-ink screens are slow and take noticeable time to update the content. Users "
@@ -11197,7 +11226,7 @@ msgid ""
 "screen refreshing, and drops the unexpected ones.\n"
 "It's highly suggested keeping this configuration enabled unless you feel the "
 "UI interactions are less responsive."
-msgstr ""
+msgstr "不允许在 UI 元素显示之前向其发送点击或键盘按键。\n电子墨水屏较慢，需要明显的时间来更新内容。用户可能会感到延迟，多次点击屏幕或按键盘，从而导致后续操作与未显示的 UI 元素交互并触发意外操作。\n此功能判定用户操作是预期的还是由于屏幕刷新延迟引起的，并丢弃意外的操作。\n强烈建议保持此配置启用，除非您觉得 UI 交互响应变慢。"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:187
 msgid "Fullscreen"
@@ -11451,8 +11480,9 @@ msgstr ""
 "后导致数据完全丢失。"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:601
+#, fuzzy
 msgid "Periodically save reading progress"
-msgstr ""
+msgstr "定期保存阅读进度"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:613
 msgid "End of document action"
@@ -11795,44 +11825,54 @@ msgid "Dashed line"
 msgstr "虚线"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:7
+#, fuzzy
 msgid "Page press"
-msgstr ""
+msgstr "压感翻页"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:9
+#, fuzzy
 msgid "Configure the up and down buttons on both side of the kindle voyage"
-msgstr ""
+msgstr "配置 Kindle Voyage 两侧的上下按键"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:13
+#, fuzzy
 msgid "Try PagePress, inverted when pressed"
-msgstr ""
+msgstr "尝试 PagePress，按下时反色"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:26
+#, fuzzy
 msgid "Low pressure"
-msgstr ""
+msgstr "低压感"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:37
+#, fuzzy
 msgid "Medium pressure"
-msgstr ""
+msgstr "中压感"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:48
+#, fuzzy
 msgid "High pressure"
-msgstr ""
+msgstr "高压感"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:60
+#, fuzzy
 msgid "No feedback"
-msgstr ""
+msgstr "无反馈"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:71
+#, fuzzy
 msgid "Low feedback"
-msgstr ""
+msgstr "低反馈"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:82
+#, fuzzy
 msgid "Medium feedback"
-msgstr ""
+msgstr "中反馈"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:93
+#, fuzzy
 msgid "High feedback"
-msgstr ""
+msgstr "高反馈"
 
 #: frontend/ui/elements/page_turns.lua:9
 #, fuzzy
@@ -11869,12 +11909,14 @@ msgid "Percentage of screen height"
 msgstr "屏幕高度百分比"
 
 #: frontend/ui/elements/page_turns.lua:75
+#, fuzzy
 msgid "to move forward."
-msgstr ""
+msgstr "以向前移动。"
 
 #: frontend/ui/elements/page_turns.lua:77
+#, fuzzy
 msgid "Tapping the rest area will move backward."
-msgstr ""
+msgstr "点击其余区域将向后移动。"
 
 #: frontend/ui/elements/page_turns.lua:99
 msgid "Page turns"
@@ -11960,11 +12002,14 @@ msgstr ""
 "按键输入功能"
 
 #: frontend/ui/elements/refresh_menu_table.lua:8
+#, fuzzy
 msgid "About fully refreshing screens"
-msgstr ""
+msgstr "关于全屏刷新"
 
 #: frontend/ui/elements/refresh_menu_table.lua:13
+#, fuzzy
 msgid ""
+""
 "Showing a new content on an E-ink screen usually does not fully clear the "
 "previous content and leaves some blur. It may be referred as E-ink shadow or "
 "ghosting.\n"
@@ -11975,29 +12020,35 @@ msgid ""
 "responsiveness.\n"
 "Usually you do not to adjust this configuration, the balanced setting should "
 "be good enough for most of the use cases."
-msgstr ""
+msgstr "在电子墨水屏上显示新内容通常不会完全清除先前的内容，并会留下一些模糊。这可能被称为电子墨水屏残影或鬼影。\n模糊需要全屏刷新才能清除干净。但全屏刷新可能较慢并触发闪烁。\nKOReader 允许用户决定全屏刷新的频率，即较多的全屏刷新以获得更好的显示质量，或较少以提高响应速度。\n通常您不需要调整此配置，平衡的设置对大多数使用场景都足够好。"
 
 #: frontend/ui/elements/refresh_menu_table.lua:19
+#, fuzzy
 msgid "Never automatically fully refresh screen"
-msgstr ""
+msgstr "从不自动全屏刷新"
 
 #: frontend/ui/elements/refresh_menu_table.lua:21
+#, fuzzy
 msgid ""
+""
 "The full refresh will happen only when showing an image, moving to next "
 "chapter or opening another book."
-msgstr ""
+msgstr "全屏刷新仅在显示图像、跳转到下一章或打开另一本书时发生。"
 
 #: frontend/ui/elements/refresh_menu_table.lua:32
+#, fuzzy
 msgid "Low full refresh rate for better responsiveness"
-msgstr ""
+msgstr "低全屏刷新率以获得更好的响应速度"
 
 #: frontend/ui/elements/refresh_menu_table.lua:42
+#, fuzzy
 msgid "Balance between responsiveness and quality"
-msgstr ""
+msgstr "响应速度和质量之间的平衡"
 
 #: frontend/ui/elements/refresh_menu_table.lua:58
+#, fuzzy
 msgid "High full refresh rate for better display quality"
-msgstr ""
+msgstr "高全屏刷新率以获得更好的显示质量"
 
 #: frontend/ui/elements/screen_color_menu_table.lua:10
 msgid "Color rendering"
@@ -12024,8 +12075,9 @@ msgid "Set custom screen DPI"
 msgstr "设置自定义屏幕DPI"
 
 #: frontend/ui/elements/screen_dpi_menu_table.lua:63
+#, fuzzy
 msgid " (%1)"
-msgstr ""
+msgstr " (%1)"
 
 #: frontend/ui/elements/screen_dpi_menu_table.lua:79
 msgid "Screen DPI"
@@ -12063,28 +12115,33 @@ msgid "E-ink settings"
 msgstr "墨水屏设置"
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:17
+#, fuzzy
 msgid "Use lower refresh rate when appropriate"
-msgstr ""
+msgstr "在适当时使用较低的刷新率"
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:19
+#, fuzzy
 msgid ""
+""
 "E-ink may laggy when refreshing, avoid refreshing the screen for the "
 "intermedia states, e.g. when scrolling, can be beneficial to reduce the "
 "laggy or blur.\n"
 "A reloading of the book may be needed to take effect."
-msgstr ""
+msgstr "电子墨水屏刷新时可能会有延迟，避免为中间状态（例如滚动时）刷新屏幕有助于减少延迟或模糊。\n可能需要重新加载书籍才能生效。"
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:30
 msgid "Avoid mandatory black flashes in UI"
 msgstr "在UI处避免强制闪烁"
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:32
+#, fuzzy
 msgid ""
+""
 "Fully rendering a black area can be slow and increase the blur on the E-ink, "
 "avoiding full refreshes of the black areas may improve the device "
 "responsiveness in exchange of potentially observing partially rendered black "
 "areas, especially on menus and buttons."
-msgstr ""
+msgstr "完全渲染黑色区域可能会很慢并增加电子墨水屏上的模糊，避免黑色区域的全屏刷新可以提高设备响应速度，但代价是可能会观察到部分渲染的黑色区域，特别是在菜单和按钮上。"
 
 #: frontend/ui/elements/screen_rotation_menu_table.lua:37
 msgid "Ignore accelerometer rotation events"
@@ -12472,8 +12529,9 @@ msgid "Turning off Wi-Fi…"
 msgstr "正在关闭 Wi-Fi…"
 
 #: frontend/ui/network/manager.lua:598
+#, fuzzy
 msgid "Network connection is required to perform the action."
-msgstr ""
+msgstr "执行该操作需要网络连接。"
 
 #: frontend/ui/network/manager.lua:600
 msgid "Do you want to turn on Wi-Fi?"
@@ -12486,12 +12544,14 @@ msgid "Turn on"
 msgstr "打开"
 
 #: frontend/ui/network/manager.lua:657
+#, fuzzy
 msgid "Action will be performed after network being online"
-msgstr ""
+msgstr "网络在线后将执行该操作"
 
 #: frontend/ui/network/manager.lua:672
+#, fuzzy
 msgid "Action will be performed after network being connected"
-msgstr ""
+msgstr "网络连接后将执行该操作"
 
 #: frontend/ui/network/manager.lua:711
 msgid "Wi-Fi settings"
@@ -12566,18 +12626,22 @@ msgid "Action when Wi-Fi is off: %1"
 msgstr "Wi-Fi 关闭时的动作：%1"
 
 #: frontend/ui/network/manager.lua:901
+#, fuzzy
 msgid "Automatically connect to the known Wi-Fi"
-msgstr ""
+msgstr "自动连接到已知 Wi-Fi"
 
 #: frontend/ui/network/manager.lua:903
+#, fuzzy
 msgid ""
+""
 "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known "
 "network automatically after turning on Wi-Fi."
-msgstr ""
+msgstr "开启 Wi-Fi 后，KOReader 将自动连接 to 已知网络，而不是显示 Wi-Fi SSID 列表。"
 
 #: frontend/ui/network/manager.lua:969
+#, fuzzy
 msgid "No available wifi networks found."
-msgstr ""
+msgstr "未找到可用的 Wi-Fi 网络。"
 
 #: frontend/ui/network/manager.lua:978
 msgid "Scanning for networks…"
@@ -12604,20 +12668,24 @@ msgid "Wi-Fi off."
 msgstr "Wi-Fi 已关闭。"
 
 #: frontend/ui/network/networklistener.lua:218
+#, fuzzy
 msgid "Internet"
-msgstr ""
+msgstr "互联网"
 
 #: frontend/ui/network/networklistener.lua:220
+#, fuzzy
 msgid "online"
-msgstr ""
+msgstr "在线"
 
 #: frontend/ui/network/networklistener.lua:220
+#, fuzzy
 msgid "offline"
-msgstr ""
+msgstr "离线"
 
 #: frontend/ui/network/networklistener.lua:224
+#, fuzzy
 msgid "Retrieving network information…"
-msgstr ""
+msgstr "正在获取网络信息…"
 
 #: frontend/ui/network/networklistener.lua:227
 #: plugins/SSH.koplugin/main.lua:108
@@ -13728,8 +13796,9 @@ msgid "Restart now"
 msgstr "立即重启"
 
 #: frontend/ui/uimanager.lua:1776
+#, fuzzy
 msgid "Settings changed. Reload document to take effect?"
-msgstr ""
+msgstr "设置已更改。重新加载文档以生效？"
 
 #: frontend/ui/viewhtml.lua:21
 msgid "Switch to standard view"
@@ -14121,8 +14190,9 @@ msgid "Current folder not readable. Some content may not be shown."
 msgstr "当前文件夹不可读。有些内容可能不会被显示。"
 
 #: frontend/ui/widget/filechooser.lua:601
+#, fuzzy
 msgid "Loading contents in %1"
-msgstr ""
+msgstr "正在加载 %1 中的内容"
 
 #: frontend/ui/widget/frontlightwidget.lua:187
 #: frontend/ui/widget/frontlightwidget.lua:302
@@ -14376,8 +14446,9 @@ msgid "disconnect"
 msgstr "断开连接"
 
 #: frontend/ui/widget/networksetting.lua:173
+#, fuzzy
 msgid "connected"
-msgstr ""
+msgstr "已连接"
 
 #: frontend/ui/widget/networksetting.lua:195
 msgid "edit"
@@ -14836,8 +14907,9 @@ msgid "Automatic dimmer"
 msgstr "自动亮度"
 
 #: plugins/autodim.koplugin/main.lua:64
+#, fuzzy
 msgid "after %1"
-msgstr ""
+msgstr "%1 之后"
 
 #: plugins/autodim.koplugin/main.lua:80
 msgid "Automatic dimmer idle time"
@@ -14857,8 +14929,9 @@ msgid "This plugin allows dimming the frontlight after a period of inactivity."
 msgstr "此插件允许在一段时间不活动后调暗前光。"
 
 #: plugins/autodim.koplugin/_meta.lua:9
+#, fuzzy
 msgid "KOReader is in idle mode when the frontlight is dimmed."
-msgstr ""
+msgstr "当前光变暗时，KOReader 处于空闲模式。"
 
 #: plugins/autofrontlight.koplugin/main.lua:27
 #: plugins/autofrontlight.koplugin/_meta.lua:4
@@ -15593,8 +15666,9 @@ msgid "Battery statistics (now %1%)"
 msgstr "电量统计（目前 %1%）"
 
 #: plugins/batterystat.koplugin/main.lua:284
+#, fuzzy
 msgid "Dump at %1"
-msgstr ""
+msgstr "转储于 %1"
 
 #: plugins/batterystat.koplugin/main.lua:296
 msgid "Awake since last charge"
@@ -15656,34 +15730,42 @@ msgid "This plugin allows adding a book shortcut to a gesture."
 msgstr "此插件允许将书籍快捷方式添加到手势。"
 
 #: plugins/calculator.koplugin/calculatorconvertdialog.lua:208
+#, fuzzy
 msgid "Power"
-msgstr ""
+msgstr "功率"
 
 #: plugins/calculator.koplugin/calculatorconvertdialog.lua:275
+#, fuzzy
 msgid "♺ Convert"
-msgstr ""
+msgstr "♺ 转换"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:32
+#, fuzzy
 msgid "Calculator settings"
-msgstr ""
+msgstr "计算器设置"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:246
+#, fuzzy
 msgid "Angle ∡"
-msgstr ""
+msgstr "角度 ∡"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:259
+#, fuzzy
 msgid "Number format"
-msgstr ""
+msgstr "数字格式"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:271
+#, fuzzy
 msgid ""
+""
 "Autoload\n"
 "init.calc"
-msgstr ""
+msgstr "自动加载\ninit.calc"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:287
+#, fuzzy
 msgid "Significance ≈"
-msgstr ""
+msgstr "有效位数 ≈"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:374
 #: plugins/coverimage.koplugin/main.lua:487
@@ -15691,81 +15773,98 @@ msgid "Append filename"
 msgstr "附加文件名"
 
 #: plugins/calculator.koplugin/calculatorunitsdialog.lua:26
+#, fuzzy
 msgid "Units to convert"
-msgstr ""
+msgstr "要转换的单位"
 
 #: plugins/calculator.koplugin/calculatorunitsdialog.lua:175
+#, fuzzy
 msgid " from:"
-msgstr ""
+msgstr " 源自："
 
 #: plugins/calculator.koplugin/calculatorunitsdialog.lua:189
+#, fuzzy
 msgid " to:"
-msgstr ""
+msgstr " 转换至："
 
 #: plugins/calculator.koplugin/main.lua:43
+#, fuzzy
 msgid "Radiant"
-msgstr ""
+msgstr "弧度"
 
 #: plugins/calculator.koplugin/main.lua:44
+#, fuzzy
 msgid "Degree"
-msgstr ""
+msgstr "角度"
 
 #: plugins/calculator.koplugin/main.lua:45
+#, fuzzy
 msgid "Gon"
-msgstr ""
+msgstr "百分度"
 
 #: plugins/calculator.koplugin/main.lua:49
+#, fuzzy
 msgid "Scientific"
-msgstr ""
+msgstr "科学记数法"
 
 #: plugins/calculator.koplugin/main.lua:50
+#, fuzzy
 msgid "Engineer"
-msgstr ""
+msgstr "工程记数法"
 
 #: plugins/calculator.koplugin/main.lua:52
+#, fuzzy
 msgid "Programmer"
-msgstr ""
+msgstr "程序员"
 
 #: plugins/calculator.koplugin/main.lua:53
+#, fuzzy
 msgid "Native"
-msgstr ""
+msgstr "原生"
 
 #: plugins/calculator.koplugin/main.lua:75
+#, fuzzy
 msgid "Convert Unit"
-msgstr ""
+msgstr "转换单位"
 
 #: plugins/calculator.koplugin/main.lua:107
 #: plugins/calculator.koplugin/main.lua:119
 #: plugins/calculator.koplugin/main.lua:154
 #: plugins/calculator.koplugin/_meta.lua:4
+#, fuzzy
 msgid "Calculator"
-msgstr ""
+msgstr "计算器"
 
 #: plugins/calculator.koplugin/main.lua:140
-#, lua-format
+#, lua-format, fuzzy
 msgid "∡ %s\tFormat: %s\t≈%d"
-msgstr ""
+msgstr "∡ %s\t格式: %s\t≈%d"
 
 #: plugins/calculator.koplugin/main.lua:148
+#, fuzzy
 msgid ""
+""
 "Enter your calculations and press '⮠'\n"
 "'♺' Convert, '⎚' Clear, '⇧' Load,\n"
 "'⇩' Store, '☰' Settings, '✕' Close\n"
 "or type 'help()⮠'"
-msgstr ""
+msgstr "输入您的计算并按 “⮠”\n“♺” 转换，“⎚” 清除，“⇧” 加载，\n“⇩” 存储，“☰” 设置，“✕” 关闭\n或输入 “help()⮠”"
 
 #: plugins/calculator.koplugin/main.lua:193
 #: plugins/calculator.koplugin/main.lua:218
+#, fuzzy
 msgid "Use file %1"
-msgstr ""
+msgstr "使用文件 %1"
 
 #: plugins/calculator.koplugin/main.lua:596
+#, fuzzy
 msgid "Input error"
-msgstr ""
+msgstr "输入错误"
 
 #: plugins/calculator.koplugin/_meta.lua:5
+#, fuzzy
 msgid "Calculates simple and complex math fourmulas."
-msgstr ""
+msgstr "计算简单和复杂的数学公式。"
 
 #: plugins/calibre.koplugin/main.lua:75 plugins/calibre.koplugin/main.lua:169
 #: plugins/calibre.koplugin/search.lua:202
@@ -16076,12 +16175,14 @@ msgid "Clock"
 msgstr "时钟"
 
 #: plugins/clock.koplugin/main.lua:116
+#, fuzzy
 msgid "Show clock"
-msgstr ""
+msgstr "显示时钟"
 
 #: plugins/clock.koplugin/_meta.lua:5
+#, fuzzy
 msgid "A fullscreen analog clock."
-msgstr ""
+msgstr "全屏模拟时钟。"
 
 #: plugins/coverbrowser.koplugin/bookinfomanager.lua:130
 msgid "not readable by engine"
@@ -17019,16 +17120,19 @@ msgid "- Your note on page %1 | Added on %2"
 msgstr "- 您在 %1 页上的备注 |添加到 %2"
 
 #: plugins/exporter.koplugin/target/nextcloud.lua:73
+#, fuzzy
 msgid "Setup Nextcloud Notes plugin"
-msgstr ""
+msgstr "设置 Nextcloud Notes 插件"
 
 #: plugins/exporter.koplugin/target/nextcloud.lua:75
+#, fuzzy
 msgid "Nextcloud Notes"
-msgstr ""
+msgstr "Nextcloud 随手记"
 
 #: plugins/exporter.koplugin/target/nextcloud.lua:89
+#, fuzzy
 msgid "Nextcloud URL"
-msgstr ""
+msgstr "Nextcloud 网址"
 
 #: plugins/exporter.koplugin/target/nextcloud.lua:101
 #, fuzzy
@@ -17036,8 +17140,9 @@ msgid "App password"
 msgstr "FTP 密码"
 
 #: plugins/exporter.koplugin/target/nextcloud.lua:102
+#, fuzzy
 msgid "Security -> Devices & sessions"
-msgstr ""
+msgstr "安全 -> 设备与会话"
 
 #: plugins/exporter.koplugin/target/nextcloud.lua:144
 #, fuzzy
@@ -17141,56 +17246,71 @@ msgid "Manages USB OTG and configures keyboard."
 msgstr "管理 USB OTG 和配置键盘。"
 
 #: plugins/findhistory.koplugin/main.lua:47
+#, fuzzy
 msgid "Searching for reading records…"
-msgstr ""
+msgstr "正在搜索阅读记录…"
 
 #: plugins/findhistory.koplugin/main.lua:52
+#, fuzzy
 msgid "History view has been updated, use main menu to access it."
-msgstr ""
+msgstr "历史视图已更新，请使用主菜单访问。"
 
 #: plugins/findhistory.koplugin/main.lua:68
+#, fuzzy
 msgid ""
+""
 "Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
+msgstr "无法将当前历史视图备份从 %1 备份到 %2，仍要继续吗？"
 
 #: plugins/findhistory.koplugin/main.lua:73
 #: plugins/findhistory.koplugin/main.lua:88
+#, fuzzy
 msgid "Proceed"
-msgstr ""
+msgstr "继续"
 
 #: plugins/findhistory.koplugin/main.lua:86
+#, fuzzy
 msgid ""
+""
 "Found an existing history backup file; it will be overwritten. Still want to "
 "proceed?"
-msgstr ""
+msgstr "发现已存在的历史备份文件，它将被覆盖。仍要继续吗？"
 
 #: plugins/findhistory.koplugin/main.lua:104
+#, fuzzy
 msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
+msgstr "最后的历史视图已恢复，请使用主菜单访问。"
 
 #: plugins/findhistory.koplugin/main.lua:111
+#, fuzzy
 msgid "Failed to restore the last history view from %1."
-msgstr ""
+msgstr "无法从 %1 恢复最后的历史视图。"
 
 #: plugins/findhistory.koplugin/main.lua:121
+#, fuzzy
 msgid ""
+""
 "This function searches and retrieves all the reading records in the home "
 "directory and build the history view.\n"
 "The last history view will be preserved and can be restored."
-msgstr ""
+msgstr "此功能搜索并检索主目录中的所有阅读记录并构建历史视图。\n最后的历史视图将被保留并可以恢复。"
 
 #: plugins/findhistory.koplugin/main.lua:123
+#, fuzzy
 msgid "Retrieve"
-msgstr ""
+msgstr "检索"
 
 #: plugins/findhistory.koplugin/_meta.lua:4
+#, fuzzy
 msgid "Retrieve reading history"
-msgstr ""
+msgstr "检索阅读历史"
 
 #: plugins/findhistory.koplugin/_meta.lua:6
+#, fuzzy
 msgid ""
+""
 "Searches reading records in the home folder and update the history view."
-msgstr ""
+msgstr "搜索主文件夹中的阅读记录并更新历史视图。"
 
 #: plugins/gestures.koplugin/main.lua:43 plugins/gestures.koplugin/main.lua:47
 #: plugins/gestures.koplugin/main.lua:61 plugins/gestures.koplugin/main.lua:65
@@ -17536,22 +17656,27 @@ msgstr "这是一个调试用插件。"
 
 #: plugins/httpinspector.koplugin/main.lua:1440
 #: plugins/httpinspector.koplugin/_meta.lua:4
+#, fuzzy
 msgid "Remotely control KOReader"
-msgstr ""
+msgstr "远程控制 KOReader"
 
 #: plugins/httpinspector.koplugin/main.lua:1446
+#, fuzzy
 msgid "Navigate to %1 from a browser to control KOReader."
-msgstr ""
+msgstr "从浏览器导航到 %1 以控制 KOReader。"
 
 #: plugins/httpinspector.koplugin/main.lua:1453
+#, fuzzy
 msgid ""
+""
 "After starting the HTTP server, navigate to %1 from a browser to control "
 "KOReader."
-msgstr ""
+msgstr "启动 HTTP 服务器后，从浏览器导航到 %1 以控制 KOReader。"
 
 #: plugins/httpinspector.koplugin/main.lua:1462
+#, fuzzy
 msgid "Turn on the network connection to use the feature."
-msgstr ""
+msgstr "开启网络连接以使用该功能。"
 
 #: plugins/httpinspector.koplugin/main.lua:1470
 msgid "Stop HTTP server"
@@ -17582,11 +17707,13 @@ msgid "Port number (default is 8080)"
 msgstr "端口号（默认为 8000）"
 
 #: plugins/httpinspector.koplugin/_meta.lua:6
+#, fuzzy
 msgid ""
+""
 "Allow remotely controlling KOReader via browsers, with advanced features of "
 "inspecting KOReader internal state. It poses security risks; only enable "
 "this on networks you can trust."
-msgstr ""
+msgstr "允许通过浏览器远程控制 KOReader，并具有检查 KOReader 内部状态的高级功能。它存在安全风险；仅在您信任的网络上启用此功能。"
 
 #: plugins/japanese.koplugin/deinflector.lua:487
 msgid "Halfwidth to fullwidth kana"
@@ -17847,9 +17974,11 @@ msgid "Automatically keep documents in sync"
 msgstr "自动同步文档"
 
 #: plugins/kosync.koplugin/main.lua:233
+#, fuzzy
 msgid ""
+""
 "Enable the feature will automatically pull and push progress when necessary."
-msgstr ""
+msgstr "启用该功能将在必要时自动拉取和推送进度。"
 
 #: plugins/kosync.koplugin/main.lua:237
 msgid ""
@@ -17898,10 +18027,12 @@ msgid "Filename. Files with matching names will be kept in sync."
 msgstr "文件名。 同名文件将同步进度。"
 
 #: plugins/kosync.koplugin/main.lua:406
+#, fuzzy
 msgid ""
+""
 "The new server address %1 is invalid, revert back to %2.\n"
 "Error: %3"
-msgstr ""
+msgstr "新服务器地址 %1 无效，恢复为 %2。\n错误：%3"
 
 #: plugins/kosync.koplugin/main.lua:460
 msgid "Cannot login: %1"
@@ -17952,8 +18083,9 @@ msgid "Progress has been pushed."
 msgstr "进度已同步到服务器。"
 
 #: plugins/kosync.koplugin/main.lua:700
+#, fuzzy
 msgid "Pushing progress…"
-msgstr ""
+msgstr "正在推送进度…"
 
 #: plugins/kosync.koplugin/main.lua:753
 msgid "No progress found for this document."
@@ -17976,8 +18108,9 @@ msgid "Sync to previous location %1% from device '%2'?"
 msgstr "是否同步到设备“%2”上的先前位置 %1%？"
 
 #: plugins/kosync.koplugin/main.lua:856
+#, fuzzy
 msgid "Pulling progress…"
-msgstr ""
+msgstr "正在拉取进度…"
 
 #: plugins/kosync.koplugin/_meta.lua:6
 msgid ""
@@ -17993,9 +18126,10 @@ msgid "Shortcuts saved"
 msgstr "捷径已保存"
 
 #: plugins/legacy_terminal.koplugin/main.lua:137
+#, fuzzy
 msgid "Terminal shortcut"
 msgid_plural "Terminal shortcuts"
-msgstr[0] ""
+msgstr[0] "终端快捷方式"
 
 #: plugins/legacy_terminal.koplugin/main.lua:147
 msgid "to terminal…"
@@ -18011,8 +18145,9 @@ msgid "Edit name"
 msgstr "编辑名称"
 
 #: plugins/legacy_terminal.koplugin/main.lua:183
+#, fuzzy
 msgid "Edit commands"
-msgstr ""
+msgstr "编辑命令"
 
 #: plugins/legacy_terminal.koplugin/main.lua:235
 msgid "Shortcut copied"
@@ -18064,12 +18199,14 @@ msgstr "命令输出"
 
 #: plugins/legacy_terminal.koplugin/main.lua:536
 #: plugins/legacy_terminal.koplugin/_meta.lua:4
+#, fuzzy
 msgid "Legacy terminal emulator"
-msgstr ""
+msgstr "传统终端模拟器"
 
 #: plugins/legacy_terminal.koplugin/_meta.lua:5
+#, fuzzy
 msgid "KOReader's legacy terminal emulator"
-msgstr ""
+msgstr "KOReader 的传统终端模拟器"
 
 #: plugins/movetoarchive.koplugin/main.lua:17
 msgid "Move current book to archive"
@@ -18921,8 +19058,9 @@ msgid "SSH server"
 msgstr "SSH 服务器"
 
 #: plugins/SSH.koplugin/main.lua:204 plugins/SSH.koplugin/main.lua:205
+#, fuzzy
 msgid "Stop SSH server"
-msgstr ""
+msgstr "停止 SSH 服务器"
 
 #: plugins/SSH.koplugin/main.lua:215
 msgid "SSH port (%1)"
@@ -18930,8 +19068,9 @@ msgstr "SSH 端口 (%1)"
 
 #: plugins/SSH.koplugin/main.lua:221 plugins/SSH.koplugin/main.lua:232
 #: plugins/SSH.koplugin/main.lua:252
+#, fuzzy
 msgid "Stop SSH server to configure"
-msgstr ""
+msgstr "停止 SSH 服务器以配置"
 
 #: plugins/SSH.koplugin/main.lua:227
 msgid "SSH public key"
@@ -18950,8 +19089,9 @@ msgid "Login without password (DANGEROUS)"
 msgstr "不使用密码登录（危险）"
 
 #: plugins/SSH.koplugin/main.lua:259
+#, fuzzy
 msgid "Auto start SSH server"
-msgstr ""
+msgstr "自动启动 SSH 服务器"
 
 #: plugins/SSH.koplugin/main.lua:276
 msgid "Toggle SSH server"
@@ -19547,12 +19687,14 @@ msgid "Time in standby"
 msgstr "待机时间"
 
 #: plugins/systemstat.koplugin/main.lua:235
+#, fuzzy
 msgid "Start discharging at"
-msgstr ""
+msgstr "开始放电于"
 
 #: plugins/systemstat.koplugin/main.lua:240
+#, fuzzy
 msgid "Device model"
-msgstr ""
+msgstr "设备型号"
 
 #: plugins/systemstat.koplugin/main.lua:244
 msgid "Counters"
@@ -19572,32 +19714,38 @@ msgid "  Discharge cycles"
 msgstr "  放电循环"
 
 #: plugins/systemstat.koplugin/main.lua:252
+#, fuzzy
 msgid "Background jobs"
-msgstr ""
+msgstr "后台任务"
 
 #: plugins/systemstat.koplugin/main.lua:256
+#, fuzzy
 msgid "Pending network jobs"
-msgstr ""
+msgstr "挂起的网络任务"
 
 #: plugins/systemstat.koplugin/main.lua:262
+#, fuzzy
 msgid "Pending jobs after being connected"
-msgstr ""
+msgstr "连接后挂起的任务"
 
 #: plugins/systemstat.koplugin/main.lua:271
+#, fuzzy
 msgid "Pending jobs after being online"
-msgstr ""
+msgstr "在线后挂起的任务"
 
 #: plugins/systemstat.koplugin/main.lua:292
 msgid "System information"
 msgstr "系统信息"
 
 #: plugins/systemstat.koplugin/main.lua:294
+#, fuzzy
 msgid "  Number of processes"
-msgstr ""
+msgstr "  进程数"
 
 #: plugins/systemstat.koplugin/main.lua:322
+#, fuzzy
 msgid "Number of processors"
-msgstr ""
+msgstr "处理器数量"
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
 #: plugins/systemstat.koplugin/main.lua:325
@@ -19615,20 +19763,24 @@ msgid "  Processor usage %"
 msgstr "  处理器使用率 %"
 
 #: plugins/systemstat.koplugin/main.lua:341
+#, fuzzy
 msgid "5 minutes usage %"
-msgstr ""
+msgstr "5分钟使用率 %"
 
 #: plugins/systemstat.koplugin/main.lua:347
+#, fuzzy
 msgid "15 minutes usage %"
-msgstr ""
+msgstr "15分钟使用率 %"
 
 #: plugins/systemstat.koplugin/main.lua:352
+#, fuzzy
 msgid "Usage % during awake"
-msgstr ""
+msgstr "唤醒期间使用率 %"
 
 #: plugins/systemstat.koplugin/main.lua:359
+#, fuzzy
 msgid "Usage % since boot"
-msgstr ""
+msgstr "自启动以来的使用率 %"
 
 #: plugins/systemstat.koplugin/main.lua:369
 msgid "  Total memory (MB)"
@@ -19651,12 +19803,14 @@ msgid "  ID"
 msgstr "  ID"
 
 #: plugins/systemstat.koplugin/main.lua:409
+#, fuzzy
 msgid "Total ticks"
-msgstr ""
+msgstr "总滴答数"
 
 #: plugins/systemstat.koplugin/main.lua:422
+#, fuzzy
 msgid "Priority / nice"
-msgstr ""
+msgstr "优先级 / Nice"
 
 #: plugins/systemstat.koplugin/main.lua:429
 msgid "  Threads"
@@ -19683,16 +19837,19 @@ msgid "  Mount point"
 msgstr "  挂载点"
 
 #: plugins/systemstat.koplugin/main.lua:471
+#, fuzzy
 msgid "  Available"
-msgstr ""
+msgstr "  可用"
 
 #: plugins/systemstat.koplugin/main.lua:472
+#, fuzzy
 msgid "  Total"
-msgstr ""
+msgstr "  总计"
 
 #: plugins/systemstat.koplugin/main.lua:473
+#, fuzzy
 msgid "  Used percentage"
-msgstr ""
+msgstr "  使用百分比"
 
 #: plugins/systemstat.koplugin/main.lua:499
 #: plugins/systemstat.koplugin/main.lua:514
@@ -20690,86 +20847,107 @@ msgid "Synchronises articles with a Wallabag server."
 msgstr "与 Wallabag 服务器同步文章。"
 
 #: plugins/weather.koplugin/main.lua:78 plugins/weather.koplugin/_meta.lua:4
+#, fuzzy
 msgid "Weather"
-msgstr ""
+msgstr "天气"
 
 #: plugins/weather.koplugin/main.lua:97
+#, fuzzy
 msgid "Postal Code (%1)"
-msgstr ""
+msgstr "邮政编码 (%1)"
 
 #: plugins/weather.koplugin/main.lua:104
+#, fuzzy
 msgid "Postal Code"
-msgstr ""
+msgstr "邮政编码"
 
 #: plugins/weather.koplugin/main.lua:106
+#, fuzzy
 msgid "Format: "
-msgstr ""
+msgstr "格式: "
 
 #: plugins/weather.koplugin/main.lua:134
+#, fuzzy
 msgid "Auth Token (%1)"
-msgstr ""
+msgstr "授权 Token (%1)"
 
 #: plugins/weather.koplugin/main.lua:141
+#, fuzzy
 msgid "Auth token"
-msgstr ""
+msgstr "授权 Token"
 
 #: plugins/weather.koplugin/main.lua:145
+#, fuzzy
 msgid ""
+""
 "An auth token can be obtained from WeatherAPI.com. Simply signup for an "
 "account and request a token."
-msgstr ""
+msgstr "可以从 WeatherAPI.com 获取授权 Token。只需注册一个帐户并申请 Token 即可。"
 
 #: plugins/weather.koplugin/main.lua:172
+#, fuzzy
 msgid "Temperature Scale (%1)"
-msgstr ""
+msgstr "温度单位 (%1)"
 
 #: plugins/weather.koplugin/main.lua:176
+#, fuzzy
 msgid "Celsius"
-msgstr ""
+msgstr "摄氏度"
 
 #: plugins/weather.koplugin/main.lua:186
+#, fuzzy
 msgid "Fahrenheit"
-msgstr ""
+msgstr "华氏度"
 
 #: plugins/weather.koplugin/main.lua:199
+#, fuzzy
 msgid "Clock style (%1)"
-msgstr ""
+msgstr "时钟样式 (%1)"
 
 #: plugins/weather.koplugin/main.lua:203
+#, fuzzy
 msgid "12 hour clock"
-msgstr ""
+msgstr "12小时制"
 
 #: plugins/weather.koplugin/main.lua:213
+#, fuzzy
 msgid "24 hour clock"
-msgstr ""
+msgstr "24小时制"
 
 #: plugins/weather.koplugin/main.lua:227
+#, fuzzy
 msgid "View weather forecast"
-msgstr ""
+msgstr "查看天气预报"
 
 #: plugins/weather.koplugin/main.lua:242
+#, fuzzy
 msgid "Error: "
-msgstr ""
+msgstr "错误: "
 
 #: plugins/weather.koplugin/main.lua:269
+#, fuzzy
 msgid "Weekly forecast for %1"
-msgstr ""
+msgstr "%1 的周预报"
 
 #: plugins/weather.koplugin/main.lua:309 plugins/weather.koplugin/main.lua:334
+#, fuzzy
 msgid "Hourly forecast"
-msgstr ""
+msgstr "逐小时预报"
 
 #: plugins/weather.koplugin/main.lua:317
+#, fuzzy
 msgid "%1 forecast"
-msgstr ""
+msgstr "%1 天气预报"
 
 #: plugins/weather.koplugin/main.lua:368
+#, fuzzy
 msgid "Forecast for %1"
-msgstr ""
+msgstr "%1 的天气预报"
 
 #: plugins/weather.koplugin/_meta.lua:5
+#, fuzzy
 msgid "Get the weather forcast"
-msgstr ""
+msgstr "获取天气预报"
 
 #: tools/kobo_touch_probe.lua:56
 msgid "Tap the lower right corner"

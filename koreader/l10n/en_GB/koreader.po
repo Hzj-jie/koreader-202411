@@ -824,8 +824,9 @@ msgid "Size:"
 msgstr "Size:"
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:90
+#, fuzzy
 msgid "Last open:"
-msgstr ""
+msgstr "Last open:"
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:92
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:97
@@ -899,16 +900,19 @@ msgid "Review:"
 msgstr "Review:"
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:214
+#, fuzzy
 msgid "Number of bookmarks"
-msgstr ""
+msgstr "Number of bookmarks"
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:219
+#, fuzzy
 msgid "Number of settings:"
-msgstr ""
+msgstr "Number of settings:"
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:222
+#, fuzzy
 msgid "Setting file size:"
-msgstr ""
+msgstr "Setting file size:"
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:404
 msgid "No book description available."
@@ -1321,8 +1325,9 @@ msgid "New"
 msgstr "New"
 
 #: frontend/apps/filemanager/filemanagerhistory.lua:41
+#, fuzzy
 msgid "Loading reading history…"
-msgstr ""
+msgstr "Loading reading history…"
 
 #: frontend/apps/filemanager/filemanagerhistory.lua:98
 msgid "Filtered by collections (%1)"
@@ -1720,8 +1725,9 @@ msgid "Cannot open last document"
 msgstr "Cannot open last document"
 
 #: frontend/apps/filemanager/filemanagermenu.lua:176
+#, fuzzy
 msgid "File browser settings"
-msgstr ""
+msgstr "File browser settings"
 
 #: frontend/apps/filemanager/filemanagermenu.lua:179
 msgid "Show finished books"
@@ -2501,16 +2507,19 @@ msgid "Apply crop"
 msgstr "Apply crop"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:46
+#, fuzzy
 msgid ""
+""
 "Battery level drops below the critical zone.\n"
 "\n"
 "Suspending the device…"
-msgstr ""
+msgstr "Battery level drops below the critical zone.\n\nSuspending the device…"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:49
 #: frontend/apps/reader/modules/readerdevicestatus.lua:132
+#, fuzzy
 msgid "Waiting for 3 seconds to proceed."
-msgstr ""
+msgstr "Waiting for 3 seconds to proceed."
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:81
 msgid ""
@@ -2533,18 +2542,21 @@ msgstr ""
 "Dismiss battery level alert?"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:94
+#, fuzzy
 msgid ""
+""
 "When battery level drops below the critical zone, the device will be put "
 "into suspension automatically."
-msgstr ""
+msgstr "When battery level drops below the critical zone, the device will be put into suspension automatically."
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:101
 msgid "Dismiss"
 msgstr "Dismiss"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:106
+#, fuzzy
 msgid "Remind later"
-msgstr ""
+msgstr "Remind later"
 
 #: frontend/apps/reader/modules/readerdevicestatus.lua:130
 #: frontend/apps/reader/modules/readerdevicestatus.lua:145
@@ -2764,8 +2776,9 @@ msgstr ""
 "%1"
 
 #: frontend/apps/reader/modules/readerdictionary.lua:1101
+#, fuzzy
 msgid "Cannot find results of %1"
-msgstr ""
+msgstr "Cannot find results of %1"
 
 #: frontend/apps/reader/modules/readerdictionary.lua:1156
 msgid "License"
@@ -3295,12 +3308,14 @@ msgid "%1 Off"
 msgstr "%1 Off"
 
 #: frontend/apps/reader/modules/readerfooter.lua:423
+#, fuzzy
 msgid "%1 Online"
-msgstr ""
+msgstr "%1 Online"
 
 #: frontend/apps/reader/modules/readerfooter.lua:425
+#, fuzzy
 msgid "%1 Connected"
-msgstr ""
+msgstr "%1 Connected"
 
 #: frontend/apps/reader/modules/readerfooter.lua:427
 #: frontend/apps/reader/modules/readerfooter.lua:449
@@ -5986,8 +6001,9 @@ msgid "Table of contents"
 msgstr "Table of contents"
 
 #: frontend/apps/reader/modules/readertoc.lua:1117
+#, fuzzy
 msgid "Navigation settings"
-msgstr ""
+msgstr "Navigation settings"
 
 #: frontend/apps/reader/modules/readertoc.lua:1122
 msgid "Alternative table of contents"
@@ -7016,14 +7032,16 @@ msgid "Wikipedia languages"
 msgstr "Wikipedia languages"
 
 #: frontend/apps/reader/modules/readerwikipedia.lua:191
+#, fuzzy
 msgid ""
+""
 "Enter one or more Wikipedia language codes (the 2 or 3 letters "
 "before .wikipedia.org), in the order you wish to see them available, "
 "separated by a space. For example:\n"
 "  en fr zh\n"
 "\n"
 "Full list at https://en.wikipedia.org/wiki/List_of_Wikipedias"
-msgstr ""
+msgstr "Enter one or more Wikipedia language codes (the 2 or 3 letters before .wikipedia.org), in the order you wish to see them available, separated by a space. For example:\n  en fr zh\n\nFull list at https://en.wikipedia.org/wiki/List_of_Wikipedias"
 
 #: frontend/apps/reader/modules/readerwikipedia.lua:215
 msgid "Set Wikipedia 'Save as EPUB' folder"
@@ -7304,14 +7322,17 @@ msgid "No reader engine for this file or invalid file."
 msgstr "No reader engine for this file or invalid file."
 
 #: frontend/apps/reader/readerui.lua:772
+#, fuzzy
 msgid "Unfortunately KOReader crashed."
-msgstr ""
+msgstr "Unfortunately KOReader crashed."
 
 #: frontend/apps/reader/readerui.lua:775
+#, fuzzy
 msgid ""
+""
 "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help "
 "developers to improve it."
-msgstr ""
+msgstr "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help developers to improve it."
 
 #: frontend/apps/reader/readerui.lua:788 frontend/device/android/device.lua:225
 msgid "Opening file '%1'."
@@ -7330,8 +7351,9 @@ msgid "Book metadata saved."
 msgstr "Book metadata saved."
 
 #: frontend/apps/reader/readerui.lua:954
+#, fuzzy
 msgid "Saving progress of file %1"
-msgstr ""
+msgstr "Saving progress of file %1"
 
 #: frontend/apps/reader/readerui.lua:982
 msgid ""
@@ -9615,8 +9637,9 @@ msgstr ""
 "screen. May stretch images in some cases."
 
 #: frontend/ui/data/css_tweaks.lua:782
+#, fuzzy
 msgid "Almost full-width images"
-msgstr ""
+msgstr "Almost full-width images"
 
 #: frontend/ui/data/css_tweaks.lua:796
 msgid "Vertically center-align images relative to text"
@@ -11279,12 +11302,14 @@ msgstr "Help"
 
 #: frontend/ui/elements/common_info_menu_table.lua:27
 #: frontend/ui/elements/common_info_menu_table.lua:44
+#, fuzzy
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Keyboard shortcuts"
 
 #: frontend/ui/elements/common_info_menu_table.lua:53
+#, fuzzy
 msgid "Common log files"
-msgstr ""
+msgstr "Common log files"
 
 #: frontend/ui/elements/common_info_menu_table.lua:80
 msgid "Quickstart guide"
@@ -11371,10 +11396,12 @@ msgstr ""
 "http://koreader.rocks"
 
 #: frontend/ui/elements/common_info_menu_table.lua:192
+#, fuzzy
 msgid ""
+""
 "Running version may not match source code version %1.\n"
 "Please consider restarting KOReader at the ealiest convenience."
-msgstr ""
+msgstr "Running version may not match source code version %1.\nPlease consider restarting KOReader at the ealiest convenience."
 
 #: frontend/ui/elements/common_settings_menu_table.lua:20
 msgid "Start %1 reader app"
@@ -11444,11 +11471,14 @@ msgid "Ignore long-press on corners"
 msgstr "Ignore long-press on corners"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:166
+#, fuzzy
 msgid "Disable out of order interactions"
-msgstr ""
+msgstr "Disable out of order interactions"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:168
+#, fuzzy
 msgid ""
+""
 "Disallow taps or keyboard presses being sent to the UI elements before they "
 "are showing up.\n"
 "E-ink screens are slow and take noticeable time to update the content. Users "
@@ -11459,7 +11489,7 @@ msgid ""
 "screen refreshing, and drops the unexpected ones.\n"
 "It's highly suggested keeping this configuration enabled unless you feel the "
 "UI interactions are less responsive."
-msgstr ""
+msgstr "Disallow taps or keyboard presses being sent to the UI elements before they are showing up.\nE-ink screens are slow and take noticeable time to update the content. Users may feel laggy, tap the screen or press the keyboard multiple times, and cause the following actions to interact with the unshown UI elements and trigger unexpected actions.\nThis feature decides if a user action is expected or caused by the delay of screen refreshing, and drops the unexpected ones.\nIt's highly suggested keeping this configuration enabled unless you feel the UI interactions are less responsive."
 
 #: frontend/ui/elements/common_settings_menu_table.lua:187
 msgid "Fullscreen"
@@ -11732,8 +11762,9 @@ msgstr ""
 "hardware crash."
 
 #: frontend/ui/elements/common_settings_menu_table.lua:601
+#, fuzzy
 msgid "Periodically save reading progress"
-msgstr ""
+msgstr "Periodically save reading progress"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:613
 msgid "End of document action"
@@ -12080,44 +12111,54 @@ msgid "Dashed line"
 msgstr "Dashed line"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:7
+#, fuzzy
 msgid "Page press"
-msgstr ""
+msgstr "Page press"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:9
+#, fuzzy
 msgid "Configure the up and down buttons on both side of the kindle voyage"
-msgstr ""
+msgstr "Configure the up and down buttons on both side of the kindle voyage"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:13
+#, fuzzy
 msgid "Try PagePress, inverted when pressed"
-msgstr ""
+msgstr "Try PagePress, inverted when pressed"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:26
+#, fuzzy
 msgid "Low pressure"
-msgstr ""
+msgstr "Low pressure"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:37
+#, fuzzy
 msgid "Medium pressure"
-msgstr ""
+msgstr "Medium pressure"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:48
+#, fuzzy
 msgid "High pressure"
-msgstr ""
+msgstr "High pressure"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:60
+#, fuzzy
 msgid "No feedback"
-msgstr ""
+msgstr "No feedback"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:71
+#, fuzzy
 msgid "Low feedback"
-msgstr ""
+msgstr "Low feedback"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:82
+#, fuzzy
 msgid "Medium feedback"
-msgstr ""
+msgstr "Medium feedback"
 
 #: frontend/ui/elements/pagepress_settings_menu_table.lua:93
+#, fuzzy
 msgid "High feedback"
-msgstr ""
+msgstr "High feedback"
 
 #: frontend/ui/elements/page_turns.lua:9
 msgid "Left / right"
@@ -12152,12 +12193,14 @@ msgid "Percentage of screen height"
 msgstr "Percentage of screen height"
 
 #: frontend/ui/elements/page_turns.lua:75
+#, fuzzy
 msgid "to move forward."
-msgstr ""
+msgstr "to move forward."
 
 #: frontend/ui/elements/page_turns.lua:77
+#, fuzzy
 msgid "Tapping the rest area will move backward."
-msgstr ""
+msgstr "Tapping the rest area will move backward."
 
 #: frontend/ui/elements/page_turns.lua:99
 msgid "Page turns"
@@ -12244,11 +12287,14 @@ msgstr ""
 "Useful if you don't like the behaviour or if your device has faulty switches"
 
 #: frontend/ui/elements/refresh_menu_table.lua:8
+#, fuzzy
 msgid "About fully refreshing screens"
-msgstr ""
+msgstr "About fully refreshing screens"
 
 #: frontend/ui/elements/refresh_menu_table.lua:13
+#, fuzzy
 msgid ""
+""
 "Showing a new content on an E-ink screen usually does not fully clear the "
 "previous content and leaves some blur. It may be referred as E-ink shadow or "
 "ghosting.\n"
@@ -12259,29 +12305,35 @@ msgid ""
 "responsiveness.\n"
 "Usually you do not to adjust this configuration, the balanced setting should "
 "be good enough for most of the use cases."
-msgstr ""
+msgstr "Showing a new content on an E-ink screen usually does not fully clear the previous content and leaves some blur. It may be referred as E-ink shadow or ghosting.\nThe blur needs a full refresh to be cleared cleanly. But a full refresh can be slow and trigger a flicker.\nKOReader allows users deciding the frequence of the full refresh, i.e. more full refreshes for better display quality or less full refreshes for responsiveness.\nUsually you do not to adjust this configuration, the balanced setting should be good enough for most of the use cases."
 
 #: frontend/ui/elements/refresh_menu_table.lua:19
+#, fuzzy
 msgid "Never automatically fully refresh screen"
-msgstr ""
+msgstr "Never automatically fully refresh screen"
 
 #: frontend/ui/elements/refresh_menu_table.lua:21
+#, fuzzy
 msgid ""
+""
 "The full refresh will happen only when showing an image, moving to next "
 "chapter or opening another book."
-msgstr ""
+msgstr "The full refresh will happen only when showing an image, moving to next chapter or opening another book."
 
 #: frontend/ui/elements/refresh_menu_table.lua:32
+#, fuzzy
 msgid "Low full refresh rate for better responsiveness"
-msgstr ""
+msgstr "Low full refresh rate for better responsiveness"
 
 #: frontend/ui/elements/refresh_menu_table.lua:42
+#, fuzzy
 msgid "Balance between responsiveness and quality"
-msgstr ""
+msgstr "Balance between responsiveness and quality"
 
 #: frontend/ui/elements/refresh_menu_table.lua:58
+#, fuzzy
 msgid "High full refresh rate for better display quality"
-msgstr ""
+msgstr "High full refresh rate for better display quality"
 
 #: frontend/ui/elements/screen_color_menu_table.lua:10
 msgid "Color rendering"
@@ -12308,8 +12360,9 @@ msgid "Set custom screen DPI"
 msgstr "Set custom screen DPI"
 
 #: frontend/ui/elements/screen_dpi_menu_table.lua:63
+#, fuzzy
 msgid " (%1)"
-msgstr ""
+msgstr " (%1)"
 
 #: frontend/ui/elements/screen_dpi_menu_table.lua:79
 msgid "Screen DPI"
@@ -12350,28 +12403,33 @@ msgid "E-ink settings"
 msgstr "E-ink settings"
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:17
+#, fuzzy
 msgid "Use lower refresh rate when appropriate"
-msgstr ""
+msgstr "Use lower refresh rate when appropriate"
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:19
+#, fuzzy
 msgid ""
+""
 "E-ink may laggy when refreshing, avoid refreshing the screen for the "
 "intermedia states, e.g. when scrolling, can be beneficial to reduce the "
 "laggy or blur.\n"
 "A reloading of the book may be needed to take effect."
-msgstr ""
+msgstr "E-ink may laggy when refreshing, avoid refreshing the screen for the intermedia states, e.g. when scrolling, can be beneficial to reduce the laggy or blur.\nA reloading of the book may be needed to take effect."
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:30
 msgid "Avoid mandatory black flashes in UI"
 msgstr "Avoid mandatory black flashes in UI"
 
 #: frontend/ui/elements/screen_eink_opt_menu_table.lua:32
+#, fuzzy
 msgid ""
+""
 "Fully rendering a black area can be slow and increase the blur on the E-ink, "
 "avoiding full refreshes of the black areas may improve the device "
 "responsiveness in exchange of potentially observing partially rendered black "
 "areas, especially on menus and buttons."
-msgstr ""
+msgstr "Fully rendering a black area can be slow and increase the blur on the E-ink, avoiding full refreshes of the black areas may improve the device responsiveness in exchange of potentially observing partially rendered black areas, especially on menus and buttons."
 
 #: frontend/ui/elements/screen_rotation_menu_table.lua:37
 msgid "Ignore accelerometer rotation events"
@@ -12772,8 +12830,9 @@ msgid "Turning off Wi-Fi…"
 msgstr "Turning off Wi-Fi…"
 
 #: frontend/ui/network/manager.lua:598
+#, fuzzy
 msgid "Network connection is required to perform the action."
-msgstr ""
+msgstr "Network connection is required to perform the action."
 
 #: frontend/ui/network/manager.lua:600
 msgid "Do you want to turn on Wi-Fi?"
@@ -12786,12 +12845,14 @@ msgid "Turn on"
 msgstr "Turn on"
 
 #: frontend/ui/network/manager.lua:657
+#, fuzzy
 msgid "Action will be performed after network being online"
-msgstr ""
+msgstr "Action will be performed after network being online"
 
 #: frontend/ui/network/manager.lua:672
+#, fuzzy
 msgid "Action will be performed after network being connected"
-msgstr ""
+msgstr "Action will be performed after network being connected"
 
 #: frontend/ui/network/manager.lua:711
 msgid "Wi-Fi settings"
@@ -12870,18 +12931,22 @@ msgid "Action when Wi-Fi is off: %1"
 msgstr "Action when Wi-Fi is off: %1"
 
 #: frontend/ui/network/manager.lua:901
+#, fuzzy
 msgid "Automatically connect to the known Wi-Fi"
-msgstr ""
+msgstr "Automatically connect to the known Wi-Fi"
 
 #: frontend/ui/network/manager.lua:903
+#, fuzzy
 msgid ""
+""
 "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known "
 "network automatically after turning on Wi-Fi."
-msgstr ""
+msgstr "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known network automatically after turning on Wi-Fi."
 
 #: frontend/ui/network/manager.lua:969
+#, fuzzy
 msgid "No available wifi networks found."
-msgstr ""
+msgstr "No available wifi networks found."
 
 #: frontend/ui/network/manager.lua:978
 msgid "Scanning for networks…"
@@ -12908,20 +12973,24 @@ msgid "Wi-Fi off."
 msgstr "Wi-Fi off."
 
 #: frontend/ui/network/networklistener.lua:218
+#, fuzzy
 msgid "Internet"
-msgstr ""
+msgstr "Internet"
 
 #: frontend/ui/network/networklistener.lua:220
+#, fuzzy
 msgid "online"
-msgstr ""
+msgstr "online"
 
 #: frontend/ui/network/networklistener.lua:220
+#, fuzzy
 msgid "offline"
-msgstr ""
+msgstr "offline"
 
 #: frontend/ui/network/networklistener.lua:224
+#, fuzzy
 msgid "Retrieving network information…"
-msgstr ""
+msgstr "Retrieving network information…"
 
 #: frontend/ui/network/networklistener.lua:227
 #: plugins/SSH.koplugin/main.lua:108
@@ -14073,8 +14142,9 @@ msgid "Restart now"
 msgstr "Restart now"
 
 #: frontend/ui/uimanager.lua:1776
+#, fuzzy
 msgid "Settings changed. Reload document to take effect?"
-msgstr ""
+msgstr "Settings changed. Reload document to take effect?"
 
 #: frontend/ui/viewhtml.lua:21
 msgid "Switch to standard view"
@@ -14471,8 +14541,9 @@ msgid "Current folder not readable. Some content may not be shown."
 msgstr "Current folder not readable. Some content may not be shown."
 
 #: frontend/ui/widget/filechooser.lua:601
+#, fuzzy
 msgid "Loading contents in %1"
-msgstr ""
+msgstr "Loading contents in %1"
 
 #: frontend/ui/widget/frontlightwidget.lua:187
 #: frontend/ui/widget/frontlightwidget.lua:302
@@ -14726,8 +14797,9 @@ msgid "disconnect"
 msgstr "disconnect"
 
 #: frontend/ui/widget/networksetting.lua:173
+#, fuzzy
 msgid "connected"
-msgstr ""
+msgstr "connected"
 
 #: frontend/ui/widget/networksetting.lua:195
 msgid "edit"
@@ -15194,8 +15266,9 @@ msgid "Automatic dimmer"
 msgstr "Automatic dimmer"
 
 #: plugins/autodim.koplugin/main.lua:64
+#, fuzzy
 msgid "after %1"
-msgstr ""
+msgstr "after %1"
 
 #: plugins/autodim.koplugin/main.lua:80
 msgid "Automatic dimmer idle time"
@@ -15216,8 +15289,9 @@ msgstr ""
 "This plugin allows dimming the frontlight after a period of inactivity."
 
 #: plugins/autodim.koplugin/_meta.lua:9
+#, fuzzy
 msgid "KOReader is in idle mode when the frontlight is dimmed."
-msgstr ""
+msgstr "KOReader is in idle mode when the frontlight is dimmed."
 
 #: plugins/autofrontlight.koplugin/main.lua:27
 #: plugins/autofrontlight.koplugin/_meta.lua:4
@@ -15972,8 +16046,9 @@ msgid "Battery statistics (now %1%)"
 msgstr "Battery statistics (now %1%)"
 
 #: plugins/batterystat.koplugin/main.lua:284
+#, fuzzy
 msgid "Dump at %1"
-msgstr ""
+msgstr "Dump at %1"
 
 #: plugins/batterystat.koplugin/main.lua:296
 msgid "Awake since last charge"
@@ -16035,34 +16110,42 @@ msgid "This plugin allows adding a book shortcut to a gesture."
 msgstr "This plugin allows adding a book shortcut to a gesture."
 
 #: plugins/calculator.koplugin/calculatorconvertdialog.lua:208
+#, fuzzy
 msgid "Power"
-msgstr ""
+msgstr "Power"
 
 #: plugins/calculator.koplugin/calculatorconvertdialog.lua:275
+#, fuzzy
 msgid "♺ Convert"
-msgstr ""
+msgstr "♺ Convert"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:32
+#, fuzzy
 msgid "Calculator settings"
-msgstr ""
+msgstr "Calculator settings"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:246
+#, fuzzy
 msgid "Angle ∡"
-msgstr ""
+msgstr "Angle ∡"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:259
+#, fuzzy
 msgid "Number format"
-msgstr ""
+msgstr "Number format"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:271
+#, fuzzy
 msgid ""
+""
 "Autoload\n"
 "init.calc"
-msgstr ""
+msgstr "Autoload\ninit.calc"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:287
+#, fuzzy
 msgid "Significance ≈"
-msgstr ""
+msgstr "Significance ≈"
 
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:374
 #: plugins/coverimage.koplugin/main.lua:487
@@ -16070,81 +16153,98 @@ msgid "Append filename"
 msgstr "Append filename"
 
 #: plugins/calculator.koplugin/calculatorunitsdialog.lua:26
+#, fuzzy
 msgid "Units to convert"
-msgstr ""
+msgstr "Units to convert"
 
 #: plugins/calculator.koplugin/calculatorunitsdialog.lua:175
+#, fuzzy
 msgid " from:"
-msgstr ""
+msgstr " from:"
 
 #: plugins/calculator.koplugin/calculatorunitsdialog.lua:189
+#, fuzzy
 msgid " to:"
-msgstr ""
+msgstr " to:"
 
 #: plugins/calculator.koplugin/main.lua:43
+#, fuzzy
 msgid "Radiant"
-msgstr ""
+msgstr "Radiant"
 
 #: plugins/calculator.koplugin/main.lua:44
+#, fuzzy
 msgid "Degree"
-msgstr ""
+msgstr "Degree"
 
 #: plugins/calculator.koplugin/main.lua:45
+#, fuzzy
 msgid "Gon"
-msgstr ""
+msgstr "Gon"
 
 #: plugins/calculator.koplugin/main.lua:49
+#, fuzzy
 msgid "Scientific"
-msgstr ""
+msgstr "Scientific"
 
 #: plugins/calculator.koplugin/main.lua:50
+#, fuzzy
 msgid "Engineer"
-msgstr ""
+msgstr "Engineer"
 
 #: plugins/calculator.koplugin/main.lua:52
+#, fuzzy
 msgid "Programmer"
-msgstr ""
+msgstr "Programmer"
 
 #: plugins/calculator.koplugin/main.lua:53
+#, fuzzy
 msgid "Native"
-msgstr ""
+msgstr "Native"
 
 #: plugins/calculator.koplugin/main.lua:75
+#, fuzzy
 msgid "Convert Unit"
-msgstr ""
+msgstr "Convert Unit"
 
 #: plugins/calculator.koplugin/main.lua:107
 #: plugins/calculator.koplugin/main.lua:119
 #: plugins/calculator.koplugin/main.lua:154
 #: plugins/calculator.koplugin/_meta.lua:4
+#, fuzzy
 msgid "Calculator"
-msgstr ""
+msgstr "Calculator"
 
 #: plugins/calculator.koplugin/main.lua:140
-#, lua-format
+#, lua-format, fuzzy
 msgid "∡ %s\tFormat: %s\t≈%d"
-msgstr ""
+msgstr "∡ %s\tFormat: %s\t≈%d"
 
 #: plugins/calculator.koplugin/main.lua:148
+#, fuzzy
 msgid ""
+""
 "Enter your calculations and press '⮠'\n"
 "'♺' Convert, '⎚' Clear, '⇧' Load,\n"
 "'⇩' Store, '☰' Settings, '✕' Close\n"
 "or type 'help()⮠'"
-msgstr ""
+msgstr "Enter your calculations and press '⮠'\n'♺' Convert, '⎚' Clear, '⇧' Load,\n'⇩' Store, '☰' Settings, '✕' Close\nor type 'help()⮠'"
 
 #: plugins/calculator.koplugin/main.lua:193
 #: plugins/calculator.koplugin/main.lua:218
+#, fuzzy
 msgid "Use file %1"
-msgstr ""
+msgstr "Use file %1"
 
 #: plugins/calculator.koplugin/main.lua:596
+#, fuzzy
 msgid "Input error"
-msgstr ""
+msgstr "Input error"
 
 #: plugins/calculator.koplugin/_meta.lua:5
+#, fuzzy
 msgid "Calculates simple and complex math fourmulas."
-msgstr ""
+msgstr "Calculates simple and complex math fourmulas."
 
 #: plugins/calibre.koplugin/main.lua:75 plugins/calibre.koplugin/main.lua:169
 #: plugins/calibre.koplugin/search.lua:202
@@ -16455,16 +16555,19 @@ msgstr ""
 " %3"
 
 #: plugins/clock.koplugin/main.lua:61 plugins/clock.koplugin/_meta.lua:4
+#, fuzzy
 msgid "Clock"
-msgstr ""
+msgstr "Clock"
 
 #: plugins/clock.koplugin/main.lua:116
+#, fuzzy
 msgid "Show clock"
-msgstr ""
+msgstr "Show clock"
 
 #: plugins/clock.koplugin/_meta.lua:5
+#, fuzzy
 msgid "A fullscreen analog clock."
-msgstr ""
+msgstr "A fullscreen analog clock."
 
 #: plugins/coverbrowser.koplugin/bookinfomanager.lua:130
 msgid "not readable by engine"
@@ -17543,56 +17646,71 @@ msgid "Manages USB OTG and configures keyboard."
 msgstr "Manages USB OTG and configures keyboard."
 
 #: plugins/findhistory.koplugin/main.lua:47
+#, fuzzy
 msgid "Searching for reading records…"
-msgstr ""
+msgstr "Searching for reading records…"
 
 #: plugins/findhistory.koplugin/main.lua:52
+#, fuzzy
 msgid "History view has been updated, use main menu to access it."
-msgstr ""
+msgstr "History view has been updated, use main menu to access it."
 
 #: plugins/findhistory.koplugin/main.lua:68
+#, fuzzy
 msgid ""
+""
 "Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
+msgstr "Failed to backup current history view from %1 to %2, still want to proceed?"
 
 #: plugins/findhistory.koplugin/main.lua:73
 #: plugins/findhistory.koplugin/main.lua:88
+#, fuzzy
 msgid "Proceed"
-msgstr ""
+msgstr "Proceed"
 
 #: plugins/findhistory.koplugin/main.lua:86
+#, fuzzy
 msgid ""
+""
 "Found an existing history backup file; it will be overwritten. Still want to "
 "proceed?"
-msgstr ""
+msgstr "Found an existing history backup file; it will be overwritten. Still want to proceed?"
 
 #: plugins/findhistory.koplugin/main.lua:104
+#, fuzzy
 msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
+msgstr "Last history view has been restored, use main menu to access it."
 
 #: plugins/findhistory.koplugin/main.lua:111
+#, fuzzy
 msgid "Failed to restore the last history view from %1."
-msgstr ""
+msgstr "Failed to restore the last history view from %1."
 
 #: plugins/findhistory.koplugin/main.lua:121
+#, fuzzy
 msgid ""
+""
 "This function searches and retrieves all the reading records in the home "
 "directory and build the history view.\n"
 "The last history view will be preserved and can be restored."
-msgstr ""
+msgstr "This function searches and retrieves all the reading records in the home directory and build the history view.\nThe last history view will be preserved and can be restored."
 
 #: plugins/findhistory.koplugin/main.lua:123
+#, fuzzy
 msgid "Retrieve"
-msgstr ""
+msgstr "Retrieve"
 
 #: plugins/findhistory.koplugin/_meta.lua:4
+#, fuzzy
 msgid "Retrieve reading history"
-msgstr ""
+msgstr "Retrieve reading history"
 
 #: plugins/findhistory.koplugin/_meta.lua:6
+#, fuzzy
 msgid ""
+""
 "Searches reading records in the home folder and update the history view."
-msgstr ""
+msgstr "Searches reading records in the home folder and update the history view."
 
 #: plugins/gestures.koplugin/main.lua:43 plugins/gestures.koplugin/main.lua:47
 #: plugins/gestures.koplugin/main.lua:61 plugins/gestures.koplugin/main.lua:65
@@ -17949,22 +18067,27 @@ msgstr "This is a debugging plugin."
 
 #: plugins/httpinspector.koplugin/main.lua:1440
 #: plugins/httpinspector.koplugin/_meta.lua:4
+#, fuzzy
 msgid "Remotely control KOReader"
-msgstr ""
+msgstr "Remotely control KOReader"
 
 #: plugins/httpinspector.koplugin/main.lua:1446
+#, fuzzy
 msgid "Navigate to %1 from a browser to control KOReader."
-msgstr ""
+msgstr "Navigate to %1 from a browser to control KOReader."
 
 #: plugins/httpinspector.koplugin/main.lua:1453
+#, fuzzy
 msgid ""
+""
 "After starting the HTTP server, navigate to %1 from a browser to control "
 "KOReader."
-msgstr ""
+msgstr "After starting the HTTP server, navigate to %1 from a browser to control KOReader."
 
 #: plugins/httpinspector.koplugin/main.lua:1462
+#, fuzzy
 msgid "Turn on the network connection to use the feature."
-msgstr ""
+msgstr "Turn on the network connection to use the feature."
 
 #: plugins/httpinspector.koplugin/main.lua:1470
 msgid "Stop HTTP server"
@@ -17995,11 +18118,13 @@ msgid "Port number (default is 8080)"
 msgstr "Port number (default is 8080)"
 
 #: plugins/httpinspector.koplugin/_meta.lua:6
+#, fuzzy
 msgid ""
+""
 "Allow remotely controlling KOReader via browsers, with advanced features of "
 "inspecting KOReader internal state. It poses security risks; only enable "
 "this on networks you can trust."
-msgstr ""
+msgstr "Allow remotely controlling KOReader via browsers, with advanced features of inspecting KOReader internal state. It poses security risks; only enable this on networks you can trust."
 
 #: plugins/japanese.koplugin/deinflector.lua:487
 msgid "Halfwidth to fullwidth kana"
@@ -18285,9 +18410,11 @@ msgid "Automatically keep documents in sync"
 msgstr "Automatically keep documents in sync"
 
 #: plugins/kosync.koplugin/main.lua:233
+#, fuzzy
 msgid ""
+""
 "Enable the feature will automatically pull and push progress when necessary."
-msgstr ""
+msgstr "Enable the feature will automatically pull and push progress when necessary."
 
 #: plugins/kosync.koplugin/main.lua:237
 msgid ""
@@ -18338,10 +18465,12 @@ msgid "Filename. Files with matching names will be kept in sync."
 msgstr "Filename. Files with matching names will be kept in sync."
 
 #: plugins/kosync.koplugin/main.lua:406
+#, fuzzy
 msgid ""
+""
 "The new server address %1 is invalid, revert back to %2.\n"
 "Error: %3"
-msgstr ""
+msgstr "The new server address %1 is invalid, revert back to %2.\nError: %3"
 
 #: plugins/kosync.koplugin/main.lua:460
 msgid "Cannot login: %1"
@@ -18392,8 +18521,9 @@ msgid "Progress has been pushed."
 msgstr "Progress has been pushed."
 
 #: plugins/kosync.koplugin/main.lua:700
+#, fuzzy
 msgid "Pushing progress…"
-msgstr ""
+msgstr "Pushing progress…"
 
 #: plugins/kosync.koplugin/main.lua:753
 msgid "No progress found for this document."
@@ -18416,8 +18546,9 @@ msgid "Sync to previous location %1% from device '%2'?"
 msgstr "Sync to previous location %1% from device '%2'?"
 
 #: plugins/kosync.koplugin/main.lua:856
+#, fuzzy
 msgid "Pulling progress…"
-msgstr ""
+msgstr "Pulling progress…"
 
 #: plugins/kosync.koplugin/_meta.lua:6
 msgid ""
@@ -18426,56 +18557,68 @@ msgstr ""
 "Synchronises your reading progress to a server across your KOReader devices."
 
 #: plugins/legacy_terminal.koplugin/main.lua:46
+#, fuzzy
 msgid "Show terminal"
-msgstr ""
+msgstr "Show terminal"
 
 #: plugins/legacy_terminal.koplugin/main.lua:61
+#, fuzzy
 msgid "Shortcuts saved"
-msgstr ""
+msgstr "Shortcuts saved"
 
 #: plugins/legacy_terminal.koplugin/main.lua:137
+#, fuzzy
 msgid "Terminal shortcut"
 msgid_plural "Terminal shortcuts"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Terminal shortcut"
+msgstr[1] "Terminal shortcuts"
 
 #: plugins/legacy_terminal.koplugin/main.lua:147
+#, fuzzy
 msgid "to terminal…"
-msgstr ""
+msgstr "to terminal…"
 
 #: plugins/legacy_terminal.koplugin/main.lua:155
+#, fuzzy
 msgid "close…"
-msgstr ""
+msgstr "close…"
 
 #: plugins/legacy_terminal.koplugin/main.lua:171
 #: plugins/legacy_terminal.koplugin/main.lua:285
+#, fuzzy
 msgid "Edit name"
-msgstr ""
+msgstr "Edit name"
 
 #: plugins/legacy_terminal.koplugin/main.lua:183
+#, fuzzy
 msgid "Edit commands"
-msgstr ""
+msgstr "Edit commands"
 
 #: plugins/legacy_terminal.koplugin/main.lua:235
+#, fuzzy
 msgid "Shortcut copied"
-msgstr ""
+msgstr "Shortcut copied"
 
 #: plugins/legacy_terminal.koplugin/main.lua:245
+#, fuzzy
 msgid "Edit commands for \"%1\""
-msgstr ""
+msgstr "Edit commands for \"%1\""
 
 #: plugins/legacy_terminal.koplugin/main.lua:353
+#, fuzzy
 msgid "Enter a command and press \"Execute\""
-msgstr ""
+msgstr "Enter a command and press \"Execute\""
 
 #: plugins/legacy_terminal.koplugin/main.lua:371
 #: plugins/legacy_terminal.koplugin/main.lua:485
+#, fuzzy
 msgid "Shortcuts"
-msgstr ""
+msgstr "Shortcuts"
 
 #: plugins/legacy_terminal.koplugin/main.lua:393
+#, fuzzy
 msgid "Name"
-msgstr ""
+msgstr "Name"
 
 #: plugins/legacy_terminal.koplugin/main.lua:426
 #: plugins/profiles.koplugin/main.lua:132
@@ -18485,33 +18628,40 @@ msgid "Execute"
 msgstr "Execute"
 
 #: plugins/legacy_terminal.koplugin/main.lua:446
+#, fuzzy
 msgid "Executing…"
-msgstr ""
+msgstr "Executing…"
 
 #: plugins/legacy_terminal.koplugin/main.lua:455
+#, fuzzy
 msgid "Output was also written to"
-msgstr ""
+msgstr "Output was also written to"
 
 #: plugins/legacy_terminal.koplugin/main.lua:458
+#, fuzzy
 msgid "Execution canceled."
-msgstr ""
+msgstr "Execution cancelled."
 
 #: plugins/legacy_terminal.koplugin/main.lua:500
+#, fuzzy
 msgid "Terminal"
-msgstr ""
+msgstr "Terminal"
 
 #: plugins/legacy_terminal.koplugin/main.lua:512
+#, fuzzy
 msgid "Command output"
-msgstr ""
+msgstr "Command output"
 
 #: plugins/legacy_terminal.koplugin/main.lua:536
 #: plugins/legacy_terminal.koplugin/_meta.lua:4
+#, fuzzy
 msgid "Legacy terminal emulator"
-msgstr ""
+msgstr "Legacy terminal emulator"
 
 #: plugins/legacy_terminal.koplugin/_meta.lua:5
+#, fuzzy
 msgid "KOReader's legacy terminal emulator"
-msgstr ""
+msgstr "KOReader's legacy terminal emulator"
 
 #: plugins/movetoarchive.koplugin/main.lua:17
 msgid "Move current book to archive"
@@ -19368,8 +19518,9 @@ msgid "SSH server"
 msgstr "SSH server"
 
 #: plugins/SSH.koplugin/main.lua:204 plugins/SSH.koplugin/main.lua:205
+#, fuzzy
 msgid "Stop SSH server"
-msgstr ""
+msgstr "Stop SSH server"
 
 #: plugins/SSH.koplugin/main.lua:215
 msgid "SSH port (%1)"
@@ -19377,8 +19528,9 @@ msgstr "SSH port (%1)"
 
 #: plugins/SSH.koplugin/main.lua:221 plugins/SSH.koplugin/main.lua:232
 #: plugins/SSH.koplugin/main.lua:252
+#, fuzzy
 msgid "Stop SSH server to configure"
-msgstr ""
+msgstr "Stop SSH server to configure"
 
 #: plugins/SSH.koplugin/main.lua:227
 msgid "SSH public key"
@@ -19397,8 +19549,9 @@ msgid "Login without password (DANGEROUS)"
 msgstr "Login without password (DANGEROUS)"
 
 #: plugins/SSH.koplugin/main.lua:259
+#, fuzzy
 msgid "Auto start SSH server"
-msgstr ""
+msgstr "Auto start SSH server"
 
 #: plugins/SSH.koplugin/main.lua:276
 msgid "Toggle SSH server"
@@ -20011,12 +20164,14 @@ msgid "Time in standby"
 msgstr "Time in standby"
 
 #: plugins/systemstat.koplugin/main.lua:235
+#, fuzzy
 msgid "Start discharging at"
-msgstr ""
+msgstr "Start discharging at"
 
 #: plugins/systemstat.koplugin/main.lua:240
+#, fuzzy
 msgid "Device model"
-msgstr ""
+msgstr "Device model"
 
 #: plugins/systemstat.koplugin/main.lua:244
 msgid "Counters"
@@ -20036,32 +20191,38 @@ msgid "  Discharge cycles"
 msgstr "  Discharge cycles"
 
 #: plugins/systemstat.koplugin/main.lua:252
+#, fuzzy
 msgid "Background jobs"
-msgstr ""
+msgstr "Background jobs"
 
 #: plugins/systemstat.koplugin/main.lua:256
+#, fuzzy
 msgid "Pending network jobs"
-msgstr ""
+msgstr "Pending network jobs"
 
 #: plugins/systemstat.koplugin/main.lua:262
+#, fuzzy
 msgid "Pending jobs after being connected"
-msgstr ""
+msgstr "Pending jobs after being connected"
 
 #: plugins/systemstat.koplugin/main.lua:271
+#, fuzzy
 msgid "Pending jobs after being online"
-msgstr ""
+msgstr "Pending jobs after being online"
 
 #: plugins/systemstat.koplugin/main.lua:292
 msgid "System information"
 msgstr "System information"
 
 #: plugins/systemstat.koplugin/main.lua:294
+#, fuzzy
 msgid "  Number of processes"
-msgstr ""
+msgstr "  Number of processes"
 
 #: plugins/systemstat.koplugin/main.lua:322
+#, fuzzy
 msgid "Number of processors"
-msgstr ""
+msgstr "Number of processors"
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
 #: plugins/systemstat.koplugin/main.lua:325
@@ -20079,20 +20240,24 @@ msgid "  Processor usage %"
 msgstr "  Processor usage %"
 
 #: plugins/systemstat.koplugin/main.lua:341
+#, fuzzy
 msgid "5 minutes usage %"
-msgstr ""
+msgstr "5 minutes usage %"
 
 #: plugins/systemstat.koplugin/main.lua:347
+#, fuzzy
 msgid "15 minutes usage %"
-msgstr ""
+msgstr "15 minutes usage %"
 
 #: plugins/systemstat.koplugin/main.lua:352
+#, fuzzy
 msgid "Usage % during awake"
-msgstr ""
+msgstr "Usage % during awake"
 
 #: plugins/systemstat.koplugin/main.lua:359
+#, fuzzy
 msgid "Usage % since boot"
-msgstr ""
+msgstr "Usage % since boot"
 
 #: plugins/systemstat.koplugin/main.lua:369
 msgid "  Total memory (MB)"
@@ -20115,12 +20280,14 @@ msgid "  ID"
 msgstr "  ID"
 
 #: plugins/systemstat.koplugin/main.lua:409
+#, fuzzy
 msgid "Total ticks"
-msgstr ""
+msgstr "Total ticks"
 
 #: plugins/systemstat.koplugin/main.lua:422
+#, fuzzy
 msgid "Priority / nice"
-msgstr ""
+msgstr "Priority / nice"
 
 #: plugins/systemstat.koplugin/main.lua:429
 msgid "  Threads"
@@ -20147,16 +20314,19 @@ msgid "  Mount point"
 msgstr "  Mount point"
 
 #: plugins/systemstat.koplugin/main.lua:471
+#, fuzzy
 msgid "  Available"
-msgstr ""
+msgstr "  Available"
 
 #: plugins/systemstat.koplugin/main.lua:472
+#, fuzzy
 msgid "  Total"
-msgstr ""
+msgstr "  Total"
 
 #: plugins/systemstat.koplugin/main.lua:473
+#, fuzzy
 msgid "  Used percentage"
-msgstr ""
+msgstr "  Used percentage"
 
 #: plugins/systemstat.koplugin/main.lua:499
 #: plugins/systemstat.koplugin/main.lua:514
@@ -21165,86 +21335,107 @@ msgid "Synchronises articles with a Wallabag server."
 msgstr "Synchronises articles with a Wallabag server."
 
 #: plugins/weather.koplugin/main.lua:78 plugins/weather.koplugin/_meta.lua:4
+#, fuzzy
 msgid "Weather"
-msgstr ""
+msgstr "Weather"
 
 #: plugins/weather.koplugin/main.lua:97
+#, fuzzy
 msgid "Postal Code (%1)"
-msgstr ""
+msgstr "Postal Code (%1)"
 
 #: plugins/weather.koplugin/main.lua:104
+#, fuzzy
 msgid "Postal Code"
-msgstr ""
+msgstr "Postal Code"
 
 #: plugins/weather.koplugin/main.lua:106
+#, fuzzy
 msgid "Format: "
-msgstr ""
+msgstr "Format: "
 
 #: plugins/weather.koplugin/main.lua:134
+#, fuzzy
 msgid "Auth Token (%1)"
-msgstr ""
+msgstr "Auth Token (%1)"
 
 #: plugins/weather.koplugin/main.lua:141
+#, fuzzy
 msgid "Auth token"
-msgstr ""
+msgstr "Auth token"
 
 #: plugins/weather.koplugin/main.lua:145
+#, fuzzy
 msgid ""
+""
 "An auth token can be obtained from WeatherAPI.com. Simply signup for an "
 "account and request a token."
-msgstr ""
+msgstr "An auth token can be obtained from WeatherAPI.com. Simply signup for an account and request a token."
 
 #: plugins/weather.koplugin/main.lua:172
+#, fuzzy
 msgid "Temperature Scale (%1)"
-msgstr ""
+msgstr "Temperature Scale (%1)"
 
 #: plugins/weather.koplugin/main.lua:176
+#, fuzzy
 msgid "Celsius"
-msgstr ""
+msgstr "Celsius"
 
 #: plugins/weather.koplugin/main.lua:186
+#, fuzzy
 msgid "Fahrenheit"
-msgstr ""
+msgstr "Fahrenheit"
 
 #: plugins/weather.koplugin/main.lua:199
+#, fuzzy
 msgid "Clock style (%1)"
-msgstr ""
+msgstr "Clock style (%1)"
 
 #: plugins/weather.koplugin/main.lua:203
+#, fuzzy
 msgid "12 hour clock"
-msgstr ""
+msgstr "12 hour clock"
 
 #: plugins/weather.koplugin/main.lua:213
+#, fuzzy
 msgid "24 hour clock"
-msgstr ""
+msgstr "24 hour clock"
 
 #: plugins/weather.koplugin/main.lua:227
+#, fuzzy
 msgid "View weather forecast"
-msgstr ""
+msgstr "View weather forecast"
 
 #: plugins/weather.koplugin/main.lua:242
+#, fuzzy
 msgid "Error: "
-msgstr ""
+msgstr "Error: "
 
 #: plugins/weather.koplugin/main.lua:269
+#, fuzzy
 msgid "Weekly forecast for %1"
-msgstr ""
+msgstr "Weekly forecast for %1"
 
 #: plugins/weather.koplugin/main.lua:309 plugins/weather.koplugin/main.lua:334
+#, fuzzy
 msgid "Hourly forecast"
-msgstr ""
+msgstr "Hourly forecast"
 
 #: plugins/weather.koplugin/main.lua:317
+#, fuzzy
 msgid "%1 forecast"
-msgstr ""
+msgstr "%1 forecast"
 
 #: plugins/weather.koplugin/main.lua:368
+#, fuzzy
 msgid "Forecast for %1"
-msgstr ""
+msgstr "Forecast for %1"
 
 #: plugins/weather.koplugin/_meta.lua:5
+#, fuzzy
 msgid "Get the weather forcast"
-msgstr ""
+msgstr "Get the weather forcast"
 
 #: tools/kobo_touch_probe.lua:56
 msgid "Tap the lower right corner"
