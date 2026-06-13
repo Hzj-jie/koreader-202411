@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 23:26-0700\n"
+"POT-Creation-Date: 2026-06-12 23:27-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1385,7 +1385,7 @@ msgid ""
 msgstr ""
 
 #: frontend/apps/filemanager/filemanager.lua:652
-#: plugins/exporter.koplugin/main.lua:329 plugins/exporter.koplugin/_meta.lua:4
+#: plugins/exporter.koplugin/main.lua:281 plugins/exporter.koplugin/_meta.lua:4
 msgid "Export highlights"
 msgstr ""
 
@@ -15301,59 +15301,67 @@ msgstr ""
 msgid "Unknown Author"
 msgstr ""
 
-#: plugins/exporter.koplugin/main.lua:137
-#: plugins/exporter.koplugin/main.lua:332
+#: plugins/exporter.koplugin/main.lua:138
+#: plugins/exporter.koplugin/main.lua:355
 msgid "Export all notes in current book"
 msgstr ""
 
-#: plugins/exporter.koplugin/main.lua:143
-#: plugins/exporter.koplugin/main.lua:341
+#: plugins/exporter.koplugin/main.lua:144
+#: plugins/exporter.koplugin/main.lua:364
 msgid "Export all notes in all books in history"
 msgstr ""
 
-#: plugins/exporter.koplugin/main.lua:189
-#: plugins/exporter.koplugin/main.lua:211
-#: plugins/exporter.koplugin/main.lua:226
+#: plugins/exporter.koplugin/main.lua:190
+#: plugins/exporter.koplugin/main.lua:212
+#: plugins/exporter.koplugin/main.lua:227
 msgid "Exporting may take several seconds…"
 msgstr ""
 
-#: plugins/exporter.koplugin/main.lua:248
+#: plugins/exporter.koplugin/main.lua:249
 msgid "%1: Exported successfully."
 msgstr ""
 
-#: plugins/exporter.koplugin/main.lua:254
+#: plugins/exporter.koplugin/main.lua:255
 msgid "%1: Exported to %2."
 msgstr ""
 
-#: plugins/exporter.koplugin/main.lua:261
+#: plugins/exporter.koplugin/main.lua:262
 msgid "%1: Failed to export."
 msgstr ""
 
-#: plugins/exporter.koplugin/main.lua:284
+#: plugins/exporter.koplugin/main.lua:308
 msgid "Share as %1"
 msgstr ""
 
-#: plugins/exporter.koplugin/main.lua:351
-msgid "Choose formats and services"
-msgstr ""
-
-#: plugins/exporter.koplugin/main.lua:355
-msgid "Choose highlight styles"
-msgstr ""
-
-#: plugins/exporter.koplugin/main.lua:360
-msgid "Choose export folder"
-msgstr ""
-
-#: plugins/exporter.koplugin/main.lua:367
-msgid "Use book folder for single export"
-msgstr ""
-
-#: plugins/exporter.koplugin/main.lua:382
+#: plugins/exporter.koplugin/main.lua:380
 msgid "Share all notes in this book"
 msgstr ""
 
-#: plugins/exporter.koplugin/main.lua:395
+#: plugins/exporter.koplugin/main.lua:429
+msgid "More..."
+msgstr ""
+
+#: plugins/exporter.koplugin/main.lua:446
+msgid "Choose formats and services"
+msgstr ""
+
+#: plugins/exporter.koplugin/main.lua:450
+msgid "Choose highlight styles"
+msgstr ""
+
+#: plugins/exporter.koplugin/main.lua:455
+msgid "Choose export folder"
+msgstr ""
+
+#: plugins/exporter.koplugin/main.lua:462
+msgid "Use book folder for single export"
+msgstr ""
+
+#: plugins/exporter.koplugin/main.lua:471
+msgid "Show recent exports in menu"
+msgstr ""
+
+#: plugins/exporter.koplugin/main.lua:494
 msgid "Current export folder:"
 msgstr ""
 

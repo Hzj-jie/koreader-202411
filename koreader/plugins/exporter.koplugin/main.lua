@@ -26,7 +26,7 @@ The parser looks to bookmarks._.text field for edited notes. bookmarks._.notes i
 --]]
 --
 
-local DataStorage = require("datastorage")
+local BaseExporter = require("base")
 local Device = require("device")
 local Dispatcher = require("dispatcher")
 local InfoMessage = require("ui/widget/infomessage")
@@ -36,6 +36,7 @@ local ReaderHighlight = require("apps/reader/modules/readerhighlight")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
+local lfs = require("libs/libkoreader-lfs")
 local T = require("ffi/util").template
 local gettext = require("gettext")
 local logger = require("logger")
@@ -325,60 +326,34 @@ function Exporter:addToMainMenu(menu_items)
       end,
     }
   end
-  local menu = {
-    text = gettext("Export highlights"),
-    sub_item_table = {
-      {
-        text = gettext("Export all notes in current book"),
-        enabled_func = function()
-          return self:isReadyToExport()
-        end,
-        callback = function()
-          self:onExportCurrentNotes()
-        end,
-      },
-      {
-        text = gettext("Export all notes in all books in history"),
-        enabled_func = function()
-          return self:isReady()
-        end,
-        callback = function()
-          self:onExportAllNotes()
-        end,
-        separator = #share_submenu == 0,
-      },
-      {
-        text = gettext("Choose formats and services"),
-        sub_item_table = formats_submenu,
-      },
-      {
-        text = gettext("Choose highlight styles"),
-        sub_item_table = styles_submenu,
-        separator = true,
-      },
-      {
-        text = gettext("Choose export folder"),
-        keep_menu_open = true,
-        callback = function()
-          self:chooseFolder()
-        end,
-      },
-      {
-        text = gettext("Use book folder for single export"),
-        checked_func = function()
-          return settings.clipping_dir_book
-        end,
-        callback = function()
-          settings.clipping_dir_book = not settings.clipping_dir_book or nil
-        end,
-      },
+
+  local sub_item_table = {
+    {
+      text = gettext("Export all notes in current book"),
+      enabled_func = function()
+        return self:isReadyToExport()
+      end,
+      callback = function()
+        self:onExportCurrentNotes()
+      end,
+    },
+    {
+      text = gettext("Export all notes in all books in history"),
+      enabled_func = function()
+        return self:isReady()
+      end,
+      callback = function()
+        self:onExportAllNotes()
+      end,
+      separator = (#share_submenu == 0),
     },
   }
+
   if #share_submenu > 0 then
     table.sort(share_submenu, function(v1, v2)
       return v1.text < v2.text
     end)
-    table.insert(menu.sub_item_table, 3, {
+    table.insert(sub_item_table, {
       text = gettext("Share all notes in this book"),
       enabled_func = function()
         return self:isDocReady()
@@ -387,14 +362,115 @@ function Exporter:addToMainMenu(menu_items)
       separator = true,
     })
   end
-  menu_items.exporter = menu
+
+  -- List recent files
+  -- Note: BaseExporter.clipping_dir() is defined in base.lua because targets
+  -- need it, and base.lua cannot require("main") due to circular dependency.
+  local clipping_dir = BaseExporter.clipping_dir()
+  local files = {}
+  if lfs.attributes(clipping_dir, "mode") == "directory" then
+    for file in lfs.dir(clipping_dir) do
+      if file ~= "." and file ~= ".." then
+        local filepath = clipping_dir .. "/" .. file
+        if lfs.attributes(filepath, "mode") == "file" then
+          local mtime = lfs.attributes(filepath, "modification") or 0
+          table.insert(files, {
+            name = file,
+            path = filepath,
+            time = mtime,
+          })
+        end
+      end
+    end
+  end
+
+  if #files > 0 then
+    table.sort(files, function(a, b)
+      return a.time > b.time
+    end)
+
+    local limit = 5
+    for i = 1, math.min(#files, limit) do
+      local f = files[i]
+      table.insert(sub_item_table, {
+        text = f.name,
+        callback = function()
+          local TextViewer = require("ui/widget/textviewer")
+          TextViewer.openFile(f.path)
+        end,
+      })
+    end
+
+    if #files > limit then
+      table.insert(sub_item_table, {
+        text = gettext("More..."),
+        callback = function()
+          self:_gotoFolder(clipping_dir)
+        end,
+      })
+    end
+    -- Add separator to the last added item (either file or More)
+    sub_item_table[#sub_item_table].separator = true
+  end
+
+  -- Rest of settings menu
+  local rest_menu = {
+    {
+      text = gettext("Choose formats and services"),
+      sub_item_table = formats_submenu,
+    },
+    {
+      text = gettext("Choose highlight styles"),
+      sub_item_table = styles_submenu,
+      separator = true,
+    },
+    {
+      text = gettext("Choose export folder"),
+      keep_menu_open = true,
+      callback = function()
+        self:chooseFolder()
+      end,
+    },
+    {
+      text = gettext("Use book folder for single export"),
+      checked_func = function()
+        return settings.clipping_dir_book
+      end,
+      callback = function()
+        settings.clipping_dir_book = not settings.clipping_dir_book or nil
+      end,
+    },
+  }
+
+  for _, item in ipairs(rest_menu) do
+    table.insert(sub_item_table, item)
+  end
+
+  menu_items.exporter = {
+    text = gettext("Export highlights"),
+    sub_item_table = sub_item_table,
+  }
+end
+
+function Exporter:_gotoFolder(path)
+  if self.ui.file_chooser then
+    self.ui.file_chooser:changeToPath(path)
+  else
+    self.ui:onExit()
+    local FileManager = require("apps/filemanager/filemanager")
+    if FileManager.instance then
+      FileManager.instance:reinit(path)
+    else
+      FileManager:showFiles(path)
+    end
+  end
 end
 
 function Exporter:chooseFolder()
   local settings = G_reader_settings:readTableRef("exporter")
   local title_header = gettext("Current export folder:")
   local current_path = settings.clipping_dir
-  local default_path = DataStorage:getFullDataDir() .. "/clipboard"
+  local default_path = BaseExporter.clipping_dir()
   local caller_callback = function(path)
     settings.clipping_dir = path
   end

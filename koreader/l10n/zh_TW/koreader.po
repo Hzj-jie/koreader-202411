@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 23:26-0700\n"
+"POT-Creation-Date: 2026-06-12 23:27-0700\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -1446,7 +1446,7 @@ msgstr ""
 "如果您刪除一個檔案，它將永遠消失。"
 
 #: frontend/apps/filemanager/filemanager.lua:652
-#: plugins/exporter.koplugin/main.lua:329 plugins/exporter.koplugin/_meta.lua:4
+#: plugins/exporter.koplugin/main.lua:281 plugins/exporter.koplugin/_meta.lua:4
 msgid "Export highlights"
 msgstr "匯出標注"
 
@@ -16111,59 +16111,67 @@ msgstr "未知書籍"
 msgid "Unknown Author"
 msgstr "未知作者"
 
-#: plugins/exporter.koplugin/main.lua:137
-#: plugins/exporter.koplugin/main.lua:332
+#: plugins/exporter.koplugin/main.lua:138
+#: plugins/exporter.koplugin/main.lua:355
 msgid "Export all notes in current book"
 msgstr "匯出本書所有筆記"
 
-#: plugins/exporter.koplugin/main.lua:143
-#: plugins/exporter.koplugin/main.lua:341
+#: plugins/exporter.koplugin/main.lua:144
+#: plugins/exporter.koplugin/main.lua:364
 msgid "Export all notes in all books in history"
 msgstr "匯出歷史中所有書籍中的所有筆記"
 
-#: plugins/exporter.koplugin/main.lua:189
-#: plugins/exporter.koplugin/main.lua:211
-#: plugins/exporter.koplugin/main.lua:226
+#: plugins/exporter.koplugin/main.lua:190
+#: plugins/exporter.koplugin/main.lua:212
+#: plugins/exporter.koplugin/main.lua:227
 msgid "Exporting may take several seconds…"
 msgstr "會出可能會花上幾秒鐘……"
 
-#: plugins/exporter.koplugin/main.lua:248
+#: plugins/exporter.koplugin/main.lua:249
 msgid "%1: Exported successfully."
 msgstr "%1：成功匯出。"
 
-#: plugins/exporter.koplugin/main.lua:254
+#: plugins/exporter.koplugin/main.lua:255
 msgid "%1: Exported to %2."
 msgstr "%1：匯出至%2。"
 
-#: plugins/exporter.koplugin/main.lua:261
+#: plugins/exporter.koplugin/main.lua:262
 msgid "%1: Failed to export."
 msgstr "%1：匯出失敗。"
 
-#: plugins/exporter.koplugin/main.lua:284
+#: plugins/exporter.koplugin/main.lua:308
 msgid "Share as %1"
 msgstr "共享為 %1"
 
-#: plugins/exporter.koplugin/main.lua:351
-msgid "Choose formats and services"
-msgstr "選擇格式和服務"
-
-#: plugins/exporter.koplugin/main.lua:355
-msgid "Choose highlight styles"
-msgstr "選擇標註樣式"
-
-#: plugins/exporter.koplugin/main.lua:360
-msgid "Choose export folder"
-msgstr "選擇匯出資料夾"
-
-#: plugins/exporter.koplugin/main.lua:367
-msgid "Use book folder for single export"
-msgstr ""
-
-#: plugins/exporter.koplugin/main.lua:382
+#: plugins/exporter.koplugin/main.lua:380
 msgid "Share all notes in this book"
 msgstr "分享此書籍中的所有筆記"
 
-#: plugins/exporter.koplugin/main.lua:395
+#: plugins/exporter.koplugin/main.lua:429
+msgid "More..."
+msgstr "更多…"
+
+#: plugins/exporter.koplugin/main.lua:446
+msgid "Choose formats and services"
+msgstr "選擇格式和服務"
+
+#: plugins/exporter.koplugin/main.lua:450
+msgid "Choose highlight styles"
+msgstr "選擇標註樣式"
+
+#: plugins/exporter.koplugin/main.lua:455
+msgid "Choose export folder"
+msgstr "選擇匯出資料夾"
+
+#: plugins/exporter.koplugin/main.lua:462
+msgid "Use book folder for single export"
+msgstr ""
+
+#: plugins/exporter.koplugin/main.lua:471
+msgid "Show recent exports in menu"
+msgstr "在選單中顯示最近的匯出"
+
+#: plugins/exporter.koplugin/main.lua:494
 msgid "Current export folder:"
 msgstr "當前匯出資料夾："
 
