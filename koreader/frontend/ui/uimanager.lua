@@ -1711,8 +1711,7 @@ function UIManager:askForReboot(message_text)
   -- Give the other event handlers a chance to be executed.
   -- 'Reboot' event will be sent by the handler
   self:nextTick(function()
-    local ConfirmBox = require("ui/widget/confirmbox")
-    self:show(ConfirmBox:new({
+    self:show(require("ui/widget/confirmbox"):new({
       text = message_text
         or gettext("Are you sure you want to reboot the device?"),
       ok_text = gettext("Reboot"),
@@ -1730,8 +1729,7 @@ function UIManager:askForPowerOff(message_text)
   -- Give the other event handlers a chance to be executed.
   -- 'PowerOff' event will be sent by the handler
   self:nextTick(function()
-    local ConfirmBox = require("ui/widget/confirmbox")
-    self:show(ConfirmBox:new({
+    self:show(require("ui/widget/confirmbox"):new({
       text = message_text
         or gettext("Are you sure you want to power off the device?"),
       ok_text = gettext("Power off"),
@@ -1747,15 +1745,14 @@ function UIManager:askForRestart(message_text)
   -- 'Restart' event will be sent by the handler
   self:nextTick(function()
     if Device:canRestart() then
-      local ConfirmBox = require("ui/widget/confirmbox")
-      self:show(ConfirmBox:new({
+      self:show(require("ui/widget/confirmbox"):new({
         text = message_text
           or gettext("This will take effect on next restart."),
         ok_text = gettext("Restart now"),
         ok_callback = function()
           self:broadcastEvent(Event:new("Restart"))
         end,
-        cancel_text = gettext("Restart later"),
+        cancel_text = gettext("Later"),
       }))
     else
       self:show(require("ui/widget/infomessage"):new({
@@ -1763,6 +1760,25 @@ function UIManager:askForRestart(message_text)
           or gettext("This will take effect on next restart."),
       }))
     end
+  end)
+end
+
+function UIManager:askForRestartOrReload(message_text)
+  local ReaderUI = require("apps/reader/readerui")
+  if not ReaderUI.instance then
+    self:askForRestart(message_text)
+    return
+  end
+
+  self:nextTick(function()
+    self:show(require("ui/widget/confirmbox"):new({
+      text = message_text
+        or gettext("Settings changed. Reload document to take effect?"),
+      cancel_text = gettext("Later"),
+      ok_callback = function()
+        ReaderUI.instance:reloadDocument()
+      end,
+    }))
   end)
 end
 

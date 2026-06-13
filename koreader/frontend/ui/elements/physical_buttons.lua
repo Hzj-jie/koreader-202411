@@ -59,7 +59,7 @@ if Device:hasDPad() and Device:useDPadAsActionKeys() then
     end,
     callback = function()
       G_reader_settings:flipNilOrFalse("left_right_keys_turn_pages")
-      UIManager:askForRestart()
+      UIManager:askForRestartOrReload()
     end,
   })
 end
