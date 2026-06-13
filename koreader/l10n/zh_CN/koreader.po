@@ -7337,7 +7337,10 @@ msgstr "%1分"
 
 #: frontend/datetime.lua:150 frontend/datetime.lua:171
 #: plugins/vocabbuilder.koplugin/main.lua:1050
-#, lua-format
+# Note: commented out '#, lua-format' to avoid msgfmt validation errors
+# because the translation uses custom gettext positional variables
+# which are not standard Lua format specifiers.
+# #, lua-format
 msgctxt "Time"
 msgid "%1s"
 msgstr "%1秒"
@@ -20201,7 +20204,10 @@ msgid "%1h"
 msgstr "%1时"
 
 #: plugins/vocabbuilder.koplugin/main.lua:1056
-#, lua-format
+# Note: commented out '#, lua-format' to avoid msgfmt validation errors
+# because the translation uses custom gettext positional variables
+# which are not standard Lua format specifiers.
+# #, lua-format
 msgctxt "Time"
 msgid "%1d"
 msgstr "%1天"
