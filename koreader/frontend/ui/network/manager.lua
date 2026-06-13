@@ -595,7 +595,6 @@ function NetworkMgr:_beforeWifiAction()
     end
 
     UIManager:show(ConfirmBox:new({
-      -- Need localization.
       text = gettext("Network connection is required to perform the action.")
         .. "\n"
         .. gettext("Do you want to turn on Wi-Fi?"),
@@ -655,7 +654,6 @@ end
 function NetworkMgr:runWhenOnline(callback, key)
   if self:willRerunWhenOnline(callback, key) then
     Notification:notify(
-      -- Need localization
       gettext("Action will be performed after network being online")
     )
     self:_beforeWifiAction()
@@ -671,7 +669,6 @@ end
 function NetworkMgr:runWhenConnected(callback, key)
   if self:willRerunWhenConnected(callback, key) then
     Notification:notify(
-      -- Need localization
       gettext("Action will be performed after network being connected")
     )
     self:_beforeWifiAction()
@@ -901,9 +898,7 @@ end
 
 function NetworkMgr:getDismissScanMenuTable()
   return {
-    -- Need localization
     text = gettext("Automatically connect to the known Wi-Fi"),
-    -- Need localization
     help_text = gettext(
       "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known network automatically after turning on Wi-Fi."
     ),
@@ -971,7 +966,6 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
     if interactive then
       if err == nil or err == "" then
         -- Kindle won't return errors.
-        -- Need localization.
         err = gettext("No available wifi networks found.")
       end
       UIManager:show(InfoMessage:new({ text = err }))

@@ -337,7 +337,6 @@ You may also want to enable, in the top menu → Gear → Taps and gestures → 
       },
       -- {
       --   id = "body_writing_mode_vertical_rl",
-      --   -- Need localization
       --   title = gettext("Traditional Chinese vertial and RTL"),
       --   css = [[body { writing-mode: vertical-rl !important; }]],
       -- },
@@ -780,7 +779,6 @@ width: 100% !important;
       },
       {
         id = "almost_image_full_width",
-        -- Need localization
         title = gettext("Almost full-width images"),
         description = gettext(
           "Useful for books containing only images, when they are smaller than your screen. May stretch images in some cases."

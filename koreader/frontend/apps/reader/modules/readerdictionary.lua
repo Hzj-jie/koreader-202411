@@ -230,7 +230,6 @@ end
 function ReaderDictionary:addToMainMenu(menu_items)
   menu_items.search_settings =
     { -- submenu with Dict, Wiki, Translation settings
-      -- Need localization
       text = gettext("Search settings"),
     }
   menu_items.dictionary_lookup = {
@@ -1099,7 +1098,6 @@ function ReaderDictionary:showDict(word, results, boxes, link)
 
   if results == nil or results[1] == nil then
     UIManager:show(InfoMessage:new({
-      -- Need localization.
       text = T(gettext("Cannot find results of %1"), word),
       timeout = 3,
     }))

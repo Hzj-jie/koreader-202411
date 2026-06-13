@@ -1440,7 +1440,6 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
     text = gettext("Remotely control KOReader"),
     help_text_func = function()
       local text = HELP_TEXT .. "\n\n"
-      -- Need localization.
       if NetworkMgr:isOnline() and HttpInspector:isRunning() then
         text = text
           .. T(

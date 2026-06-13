@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 19:19-0700\n"
+"POT-Creation-Date: 2026-06-12 19:21-0700\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -46,12 +46,12 @@ msgstr ""
 "這會稍微破壞一些功能，並且會對性能造成負面影響。"
 
 #: reader.lua:223 frontend/apps/reader/modules/readertypography.lua:617
-#: frontend/ui/network/manager.lua:868
+#: frontend/ui/network/manager.lua:865
 msgid "Ignore"
 msgstr "忽略"
 
 #: reader.lua:227 frontend/apps/reader/modules/readerbookmark.lua:162
-#: frontend/apps/reader/modules/readerdictionary.lua:1384
+#: frontend/apps/reader/modules/readerdictionary.lua:1382
 #: frontend/apps/reader/modules/readerfooter.lua:1780
 #: frontend/apps/reader/modules/readerrolling.lua:570
 #: frontend/apps/reader/modules/readersearch.lua:182
@@ -60,9 +60,9 @@ msgstr "忽略"
 #: frontend/apps/reader/modules/readertypography.lua:848
 #: frontend/apps/reader/modules/readertypography.lua:899
 #: frontend/apps/reader/modules/readertypography.lua:994
-#: frontend/ui/elements/common_settings_menu_table.lua:289
+#: frontend/ui/elements/common_settings_menu_table.lua:287
 #: frontend/ui/plugin/switch_plugin.lua:70
-#: plugins/autodim.koplugin/main.lua:105
+#: plugins/autodim.koplugin/main.lua:104
 #: plugins/autosuspend.koplugin/main.lua:546
 #: plugins/autoturn.koplugin/main.lua:158
 #: plugins/autowarmth.koplugin/main.lua:833 plugins/kosync.koplugin/main.lua:88
@@ -157,11 +157,11 @@ msgstr "輸入檔名"
 #: frontend/apps/cloudstorage/dropbox.lua:141
 #: frontend/apps/cloudstorage/ftp.lua:146
 #: frontend/apps/cloudstorage/webdav.lua:172
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:583
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:737
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:576
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:730
 #: frontend/apps/filemanager/filemanagercollection.lua:582
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:67
-#: frontend/apps/filemanager/filemanagerhistory.lua:439
+#: frontend/apps/filemanager/filemanagerhistory.lua:435
 #: frontend/apps/filemanager/filemanager.lua:1115
 #: frontend/apps/filemanager/filemanager.lua:1266
 #: frontend/apps/filemanager/filemanager.lua:1630
@@ -171,7 +171,7 @@ msgstr "輸入檔名"
 #: frontend/apps/reader/modules/readerbookmark.lua:1454
 #: frontend/apps/reader/modules/readerbookmark.lua:1519
 #: frontend/apps/reader/modules/readercropping.lua:62
-#: frontend/apps/reader/modules/readerdictionary.lua:773
+#: frontend/apps/reader/modules/readerdictionary.lua:772
 #: frontend/apps/reader/modules/readerfooter.lua:701
 #: frontend/apps/reader/modules/readergoto.lua:71
 #: frontend/apps/reader/modules/readerhandmade.lua:517
@@ -180,8 +180,8 @@ msgstr "輸入檔名"
 #: frontend/apps/reader/modules/readeruserhyph.lua:329
 #: frontend/apps/reader/modules/readerwikipedia.lua:61
 #: frontend/apps/reader/modules/readerwikipedia.lua:196
-#: frontend/apps/reader/readerui.lua:845 frontend/device/android/device.lua:590
-#: frontend/ui/elements/common_settings_menu_table.lua:276
+#: frontend/apps/reader/readerui.lua:844 frontend/device/android/device.lua:590
+#: frontend/ui/elements/common_settings_menu_table.lua:274
 #: frontend/ui/elements/timeout_android.lua:65 frontend/ui/screensaver.lua:366
 #: frontend/ui/widget/bookstatuswidget.lua:586
 #: frontend/ui/widget/confirmbox.lua:50
@@ -214,8 +214,8 @@ msgstr "輸入檔名"
 #: plugins/exporter.koplugin/target/readwise.lua:76
 #: plugins/exporter.koplugin/target/xmnote.lua:41
 #: plugins/gestures.koplugin/main.lua:430
-#: plugins/httpinspector.koplugin/main.lua:1518
-#: plugins/kosync.koplugin/main.lua:448
+#: plugins/httpinspector.koplugin/main.lua:1517
+#: plugins/kosync.koplugin/main.lua:447
 #: plugins/legacy_terminal.koplugin/main.lua:255
 #: plugins/legacy_terminal.koplugin/main.lua:295
 #: plugins/legacy_terminal.koplugin/main.lua:364
@@ -257,7 +257,7 @@ msgid "Set filename"
 msgstr "檔名"
 
 #: frontend/apps/cloudstorage/cloudstorage.lua:338
-#: frontend/apps/reader/modules/readerdictionary.lua:1220
+#: frontend/apps/reader/modules/readerdictionary.lua:1218
 msgid "Download"
 msgstr "下載"
 
@@ -301,7 +301,7 @@ msgstr "編輯"
 #: frontend/apps/cloudstorage/cloudstorage.lua:456
 #: frontend/apps/filemanager/filemanagercollection.lua:189
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:416
-#: frontend/apps/filemanager/filemanagerhistory.lua:234
+#: frontend/apps/filemanager/filemanagerhistory.lua:230
 #: frontend/apps/filemanager/filemanager.lua:247
 #: frontend/apps/filemanager/filemanager.lua:627
 #: frontend/apps/filemanager/filemanager.lua:634
@@ -548,7 +548,7 @@ msgstr ""
 
 #: frontend/apps/cloudstorage/dropbox.lua:155
 #: frontend/apps/cloudstorage/webdav.lua:186
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:590
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:583
 #: frontend/apps/filemanager/filemanagercollection.lua:589
 #: frontend/apps/filemanager/filemanagershortcuts.lua:138
 #: frontend/apps/reader/modules/readerbookmark.lua:1394
@@ -823,34 +823,34 @@ msgstr "格式："
 msgid "Size:"
 msgstr "大小："
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:91
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:90
 msgid "Last open:"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:93
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:98
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:92
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:97
 #: plugins/calibre.koplugin/search.lua:151
 msgid "Unknown"
 msgstr "未知"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:96
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:95
 msgid "File date:"
 msgstr "檔案日期："
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:101
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:100
 #: frontend/apps/filemanager/filemanager.lua:912
 msgid "Folder:"
 msgstr "資料夾："
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:120
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:119
 msgid "Tap to display"
 msgstr "點擊顯示"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:141
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:181
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:210
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:878
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:880
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:140
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:180
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:209
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:871
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:873
 #: frontend/apps/filemanager/filemanager.lua:914
 #: frontend/apps/reader/modules/readerfooter.lua:2166
 #: frontend/apps/reader/modules/readertypography.lua:1192
@@ -870,89 +870,89 @@ msgstr "點擊顯示"
 msgid "N/A"
 msgstr "N/A"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:189
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:188
 msgid "number of lines and words not available"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:190
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:189
 #, fuzzy
 msgid "1 line"
 msgid_plural "%1 lines"
 msgstr[0] "下劃線"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:192
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:191
 #, fuzzy
 msgid "1 word"
 msgid_plural "%1 words"
 msgstr[0] "複製單字"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:193
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:192
 #, fuzzy
 msgid "Current page:"
 msgstr "目前頁數"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:204
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:203
 #, fuzzy
 msgid "Rating:"
 msgstr "評價：%1"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:209
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:208
 #, fuzzy
 msgid "Review:"
 msgstr "評論"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:216
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:214
 msgid "Number of bookmarks"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:222
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:219
 msgid "Number of settings:"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:228
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:222
 msgid "Setting file size:"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:411
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:404
 msgid "No book description available."
 msgstr "沒有書籍內容介紹。"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:428
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:421
 msgid "No cover image available."
 msgstr "沒有封面影像。"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:572
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:565
 #, fuzzy
 msgid "Edit book metadata:"
 msgstr "自動儲存書籍詮釋資料：%1"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:629
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:622
 #, fuzzy
 msgid "Copy original"
 msgstr "複製全部"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:637
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:630
 #, fuzzy
 msgid "View original"
 msgstr "檢視檔案"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:650
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:643
 #, fuzzy
 msgid "Reset custom"
 msgstr "自訂"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:656
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:649
 msgid ""
 "Reset custom cover?\n"
 "Image file will be deleted."
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:657
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:650
 #, fuzzy
 msgid "Reset custom book metadata field?"
 msgstr "自動儲存書籍詮釋資料：%1"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:658
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:651
 #: frontend/apps/filemanager/filemanagerutil.lua:194
 #: frontend/apps/filemanager/filemanagerutil.lua:212
 #: frontend/apps/reader/modules/readermenu.lua:211
@@ -963,58 +963,58 @@ msgstr "自動儲存書籍詮釋資料：%1"
 msgid "Reset"
 msgstr "重設"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:672
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:665
 #, fuzzy
 msgid "Set custom"
 msgstr "自訂"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:687
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:680
 #, fuzzy
 msgid "Book metadata:"
 msgstr "自動儲存書籍詮釋資料：%1"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:729
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:722
 #, fuzzy
 msgid "Edit book review"
 msgstr "選擇資料夾"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:744
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:737
 #: frontend/ui/widget/bookstatuswidget.lua:593
 msgid "Save review"
 msgstr "儲存評論"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:819
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:812
 msgid ""
 "Scan books in current folder and subfolders for their metadata location?"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:821
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:814
 #: plugins/calibre.koplugin/search.lua:561
 msgid "Scan"
 msgstr "掃描"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:828
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:821
 msgid "No books with metadata not in your preferred location found."
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:835
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:828
 msgid "1 book with metadata not in your preferred location found."
 msgid_plural "%1 books with metadata not in your preferred location found."
 msgstr[0] ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:842
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:835
 #, fuzzy
 msgid "Move book metadata to your preferred location?"
 msgstr "自動儲存書籍詮釋資料：%1"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:843
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:836
 #: frontend/apps/filemanager/filemanager.lua:606
 #: frontend/apps/filemanager/filemanager.lua:1028
 #: frontend/apps/filemanager/filemanager.lua:1348
 msgid "Move"
 msgstr "移動"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:860
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:853
 msgid ""
 "Hash-based metadata has been saved in %1 for the following documents. Hash-"
 "based storage may slow down file browser navigation in large directories. "
@@ -1024,13 +1024,13 @@ msgid ""
 "browser navigation."
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:882
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:875
 msgid ""
 "%1. Title: %2; Author: %3\n"
 "Document: %4"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:894
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:887
 msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
@@ -1175,7 +1175,7 @@ msgstr "覆蓋現存的 HTML 檔案嗎？"
 #: frontend/apps/filemanager/filemanagerconverter.lua:95
 #: frontend/apps/filemanager/filemanager.lua:1008
 #: frontend/apps/filemanager/filemanager.lua:1342
-#: frontend/apps/reader/modules/readerdictionary.lua:1178
+#: frontend/apps/reader/modules/readerdictionary.lua:1176
 #: plugins/opds.koplugin/opdsbrowser.lua:900
 msgid "Overwrite"
 msgstr "複寫"
@@ -1200,7 +1200,7 @@ msgid "Book folder"
 msgstr "選擇資料夾"
 
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:95
-#: frontend/apps/filemanager/filemanagerhistory.lua:470
+#: frontend/apps/filemanager/filemanagerhistory.lua:466
 #: frontend/apps/reader/modules/readerbookmark.lua:1563
 #: frontend/apps/reader/modules/readersearch.lua:352
 #: frontend/ui/widget/inputdialog.lua:1002
@@ -1230,7 +1230,7 @@ msgstr "「%1」沒有結果。"
 
 #. @translators Search for files by name.
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:277
-#: frontend/apps/filemanager/filemanagermenu.lua:546
+#: frontend/apps/filemanager/filemanagermenu.lua:545
 #: frontend/dispatcher.lua:496 frontend/ui/widget/menu.lua:847
 msgid "File search"
 msgstr "檔案搜尋"
@@ -1261,7 +1261,7 @@ msgid "Query: %1"
 msgstr "（查詢： %1）"
 
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:347
-#: frontend/apps/filemanager/filemanagerhistory.lua:100
+#: frontend/apps/filemanager/filemanagerhistory.lua:96
 #: frontend/apps/reader/modules/readersearch.lua:815
 #, fuzzy
 msgid "Search results (%1)"
@@ -1351,52 +1351,52 @@ msgctxt "Book status filter"
 msgid "New"
 msgstr "新增"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:44
+#: frontend/apps/filemanager/filemanagerhistory.lua:41
 msgid "Loading reading history…"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:102
+#: frontend/apps/filemanager/filemanagerhistory.lua:98
 #, fuzzy
 msgid "Filtered by collections (%1)"
 msgstr "編輯資訊來源清單"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:105
+#: frontend/apps/filemanager/filemanagerhistory.lua:101
 #, fuzzy
 msgid "Status: %1 (%2)"
 msgstr "%1 (%2)"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:242
+#: frontend/apps/filemanager/filemanagerhistory.lua:238
 msgid "Remove from history"
 msgstr "從閱讀歷史中移除"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:355
+#: frontend/apps/filemanager/filemanagerhistory.lua:351
 #: frontend/apps/reader/modules/readerbookmark.lua:940
 #: frontend/ui/data/creoptions.lua:35
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:379
+#: frontend/apps/filemanager/filemanagerhistory.lua:375
 #, fuzzy
 msgid "Filter by collections"
 msgstr "從收藏中移除"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:396
+#: frontend/apps/filemanager/filemanagerhistory.lua:392
 #, fuzzy
 msgid "Search in filename and book metadata"
 msgstr "在 calibre 詮釋資料中搜尋"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:407
-#: frontend/apps/filemanager/filemanagermenu.lua:349
+#: frontend/apps/filemanager/filemanagerhistory.lua:403
+#: frontend/apps/filemanager/filemanagermenu.lua:348
 msgid "Clear history of deleted files"
 msgstr "清除已刪除檔案的歷史"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:410
-#: frontend/apps/filemanager/filemanagermenu.lua:352
+#: frontend/apps/filemanager/filemanagerhistory.lua:406
+#: frontend/apps/filemanager/filemanagermenu.lua:351
 msgid "Clear history of deleted files?"
 msgstr "要清除已刪除檔案的歷史嗎？"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:411
-#: frontend/apps/filemanager/filemanagermenu.lua:353
+#: frontend/apps/filemanager/filemanagerhistory.lua:407
+#: frontend/apps/filemanager/filemanagermenu.lua:352
 #: frontend/apps/reader/modules/readerfont.lua:786
 #: frontend/apps/reader/modules/readerlink.lua:363
 #: frontend/apps/reader/modules/readerlink.lua:382
@@ -1405,17 +1405,17 @@ msgstr "要清除已刪除檔案的歷史嗎？"
 msgid "Clear"
 msgstr "清除"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:424
+#: frontend/apps/filemanager/filemanagerhistory.lua:420
 #, fuzzy
 msgid "Filter by book status"
 msgstr "過濾書籤"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:434
+#: frontend/apps/filemanager/filemanagerhistory.lua:430
 #, fuzzy
 msgid "Enter text to search history for"
 msgstr "輸入要尋找的文字"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:446
+#: frontend/apps/filemanager/filemanagerhistory.lua:442
 #: frontend/apps/reader/modules/readerbookmark.lua:1526
 #: frontend/apps/reader/modules/readerhighlight.lua:160
 #: frontend/ui/widget/dictquicklookup.lua:546
@@ -1481,7 +1481,7 @@ msgstr "離開 KOReader 嗎？"
 
 #: frontend/apps/filemanager/filemanager.lua:508
 #: frontend/apps/reader/modules/readerback.lua:182
-#: frontend/apps/reader/modules/readerdevicestatus.lua:162
+#: frontend/apps/reader/modules/readerdevicestatus.lua:159
 #: frontend/ui/elements/common_exit_menu_table.lua:9
 #: frontend/ui/elements/common_exit_menu_table.lua:16
 msgid "Exit"
@@ -1743,7 +1743,7 @@ msgstr "總是用 %1 來開啟「%2」嗎？"
 
 #: frontend/apps/filemanager/filemanager.lua:1648
 #: frontend/apps/filemanager/filemanager.lua:1662
-#: frontend/ui/elements/common_settings_menu_table.lua:288
+#: frontend/ui/elements/common_settings_menu_table.lua:286
 msgid "Always"
 msgstr "總是"
 
@@ -1764,33 +1764,33 @@ msgstr "傳統模式（只有檔名）"
 msgid "Cannot open last document"
 msgstr "無法開啟最後使用的文件"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:177
+#: frontend/apps/filemanager/filemanagermenu.lua:176
 msgid "File browser settings"
 msgstr "檔案瀏覽器設定"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:180
+#: frontend/apps/filemanager/filemanagermenu.lua:179
 #, fuzzy
 msgid "Show finished books"
 msgstr "尋找書籍"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:189
+#: frontend/apps/filemanager/filemanagermenu.lua:188
 msgid "Show hidden files"
 msgstr "顯示隱藏檔案"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:198
+#: frontend/apps/filemanager/filemanagermenu.lua:197
 msgid "Show unsupported files"
 msgstr "顯示不支援的檔案"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:208
+#: frontend/apps/filemanager/filemanagermenu.lua:207
 msgid "Classic mode settings"
 msgstr "經典模式設定"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:213
+#: frontend/apps/filemanager/filemanagermenu.lua:212
 #, fuzzy
 msgid "Items per page: %1"
 msgstr "每頁包含的項目個數"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:218
+#: frontend/apps/filemanager/filemanagermenu.lua:217
 msgid ""
 "This sets the number of items per page in:\n"
 "- File browser, history and favorites in 'classic' display mode\n"
@@ -1804,71 +1804,71 @@ msgstr ""
 "- 選擇檔案與資料夾時\n"
 "- Calibre 和 OPDS 瀏覽器/搜尋結果"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:228
+#: frontend/apps/filemanager/filemanagermenu.lua:227
 msgid "Items per page"
 msgstr "每頁包含的項目個數"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:249
+#: frontend/apps/filemanager/filemanagermenu.lua:248
 #: frontend/apps/reader/modules/readerfooter.lua:1572
 #, fuzzy
 msgid "Item font size: %1"
 msgstr "項目字型大小"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:258
+#: frontend/apps/filemanager/filemanagermenu.lua:257
 #: frontend/apps/reader/modules/readerfooter.lua:1578
 msgid "Item font size"
 msgstr "項目字型大小"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:281
+#: frontend/apps/filemanager/filemanagermenu.lua:280
 msgid "Shrink item font size to fit more text"
 msgstr "減少項目字型大小以顯示更多文字"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:294
+#: frontend/apps/filemanager/filemanagermenu.lua:293
 msgid "Show opened files in bold"
 msgstr "開啟過的檔案用粗體顯示"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:308
+#: frontend/apps/filemanager/filemanagermenu.lua:307
 msgid "Show new (not yet opened) files in bold"
 msgstr "新的（還未打開過的）檔案用粗體顯示"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:324
+#: frontend/apps/filemanager/filemanagermenu.lua:323
 msgid "History settings"
 msgstr "歷史記錄設定"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:327
+#: frontend/apps/filemanager/filemanagermenu.lua:326
 msgid "Shorten date/time"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagermenu.lua:337
+#: frontend/apps/filemanager/filemanagermenu.lua:336
 msgid "Freeze last read date of finished books"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagermenu.lua:361
+#: frontend/apps/filemanager/filemanagermenu.lua:360
 msgid "Auto-remove deleted or purged items from history"
 msgstr "自動從閱讀歷史記錄中移除不存在的項目"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:375
+#: frontend/apps/filemanager/filemanagermenu.lua:374
 msgid "Show filename in Open last/previous menu items"
 msgstr "在「打開最後 / 先前閱讀的文件」選項中顯示檔名"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:386
+#: frontend/apps/filemanager/filemanagermenu.lua:385
 msgid "Home folder settings"
 msgstr "家資料夾設定"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:389
+#: frontend/apps/filemanager/filemanagermenu.lua:388
 msgid "Set home folder"
 msgstr "設定家資料夾"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:392
+#: frontend/apps/filemanager/filemanagermenu.lua:391
 #, fuzzy
 msgid "Current home folder:"
 msgstr "目前資料夾"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:403
+#: frontend/apps/filemanager/filemanagermenu.lua:402
 msgid "Shorten home folder"
 msgstr "簡寫家資料夾"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:411
+#: frontend/apps/filemanager/filemanagermenu.lua:410
 msgid ""
 "\"Shorten home folder\" will display the home folder itself as \"Home\" "
 "instead of its full path.\n"
@@ -1889,16 +1889,16 @@ msgstr ""
 "縮短為：\n"
 "`Manga/Cells at Work`。"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:422
+#: frontend/apps/filemanager/filemanagermenu.lua:421
 msgid "Lock home folder"
 msgstr "鎖定家資料夾"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:442
+#: frontend/apps/filemanager/filemanagermenu.lua:441
 #, fuzzy
 msgid "Info lists items per page: %1"
 msgstr "每頁包含的資訊清單項目數"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:444
+#: frontend/apps/filemanager/filemanagermenu.lua:443
 msgid ""
 "This sets the number of items per page in:\n"
 "- Book information\n"
@@ -1912,38 +1912,38 @@ msgstr ""
 "- 閱讀統計詳細資料\n"
 "- 一些其他外掛"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:459
+#: frontend/apps/filemanager/filemanagermenu.lua:458
 msgid "Info lists items per page"
 msgstr "每頁包含的資訊清單項目數"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:481
+#: frontend/apps/filemanager/filemanagermenu.lua:480
 #: frontend/apps/reader/modules/readerbookmark.lua:269
 #: frontend/dispatcher.lua:454
 msgid "Reverse sorting"
 msgstr "反向排序"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:491
+#: frontend/apps/filemanager/filemanagermenu.lua:490
 #: frontend/dispatcher.lua:462
 msgid "Folders and files mixed"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagermenu.lua:510
+#: frontend/apps/filemanager/filemanagermenu.lua:509
 #: frontend/apps/reader/modules/readermenu.lua:294
 #, fuzzy
 msgid "Sleep screen"
 msgstr "保持螢幕開啟"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:528
+#: frontend/apps/filemanager/filemanagermenu.lua:527
 #, fuzzy
 msgid "Move book metadata"
 msgstr "自動儲存書籍詮釋資料：%1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:537
+#: frontend/apps/filemanager/filemanagermenu.lua:536
 #: frontend/apps/reader/modules/readermenu.lua:301
 msgid "Plugin management"
 msgstr "外掛管理"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:548
+#: frontend/apps/filemanager/filemanagermenu.lua:547
 msgid ""
 "Search a book by filename in the current or home folder and its subfolders.\n"
 "\n"
@@ -1963,30 +1963,30 @@ msgstr ""
 "\n"
 "在搜尋結果中點選書籍可開啟它。"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:562
+#: frontend/apps/filemanager/filemanagermenu.lua:561
 #: frontend/dispatcher.lua:502
 #, fuzzy
 msgid "Last file search results"
 msgstr "全文搜尋"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:575
+#: frontend/apps/filemanager/filemanagermenu.lua:574
 msgid "Open last document"
 msgstr "打開最近閱讀的文件"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:579
+#: frontend/apps/filemanager/filemanagermenu.lua:578
 msgid "Last: %1"
 msgstr "最近閱讀： %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:591
+#: frontend/apps/filemanager/filemanagermenu.lua:590
 msgid "Would you like to open the last document: %1?"
 msgstr "您想要開啟上次的文件 %1 嗎?"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:594
+#: frontend/apps/filemanager/filemanagermenu.lua:593
 #: frontend/apps/filemanager/filemanagersetdefaults.lua:172
 #: frontend/apps/filemanager/filemanagersetdefaults.lua:219
 #: frontend/apps/reader/modules/readermenu.lua:342
-#: frontend/apps/reader/readerui.lua:853 frontend/device/android/device.lua:589
-#: frontend/ui/elements/common_settings_menu_table.lua:275
+#: frontend/apps/reader/readerui.lua:852 frontend/device/android/device.lua:589
+#: frontend/ui/elements/common_settings_menu_table.lua:273
 #: frontend/ui/widget/confirmbox.lua:49
 #: frontend/ui/widget/container/inputcontainer.lua:333
 #: frontend/ui/widget/numberpickerwidget.lua:189
@@ -1994,43 +1994,43 @@ msgstr "您想要開啟上次的文件 %1 嗎?"
 #: plugins/calibre.koplugin/main.lua:392
 #: plugins/exporter.koplugin/target/joplin.lua:262
 #: plugins/exporter.koplugin/target/nextcloud.lua:116
-#: plugins/httpinspector.koplugin/main.lua:1525
+#: plugins/httpinspector.koplugin/main.lua:1524
 #: plugins/wallabag.koplugin/main.lua:1132
 msgid "OK"
 msgstr "確定"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:659
+#: frontend/apps/filemanager/filemanagermenu.lua:658
 #: frontend/apps/reader/modules/readerbookmark.lua:262
 msgid "Sort by: %1"
 msgstr "排序依據：%1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:667
-#: frontend/ui/elements/common_settings_menu_table.lua:356
+#: frontend/apps/filemanager/filemanagermenu.lua:666
+#: frontend/ui/elements/common_settings_menu_table.lua:354
 #: plugins/bookshortcuts.koplugin/main.lua:96
 msgid "file browser"
 msgstr "檔案瀏覽器"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:668
+#: frontend/apps/filemanager/filemanagermenu.lua:667
 msgid "history"
 msgstr "閱讀歷史記錄"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:669
+#: frontend/apps/filemanager/filemanagermenu.lua:668
 msgid "favorites"
 msgstr "最愛"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:670
+#: frontend/apps/filemanager/filemanagermenu.lua:669
 msgid "folder shortcuts"
 msgstr "快捷資料夾"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:671
+#: frontend/apps/filemanager/filemanagermenu.lua:670
 msgid "last file"
 msgstr "最後閱讀檔案"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:691
+#: frontend/apps/filemanager/filemanagermenu.lua:690
 msgid "Start with: %1"
 msgstr "啟動時開啟：%1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:730
+#: frontend/apps/filemanager/filemanagermenu.lua:729
 msgid "File manager menu"
 msgstr "檔案管理器選單"
 
@@ -2269,7 +2269,7 @@ msgstr "切換書籤"
 #: frontend/apps/reader/modules/readerrolling.lua:502
 #: frontend/apps/reader/modules/readersearch.lua:157
 #: frontend/apps/reader/modules/readertypography.lua:928
-#: plugins/autodim.koplugin/main.lua:63
+#: plugins/autodim.koplugin/main.lua:62
 msgid "disabled"
 msgstr "停用"
 
@@ -2579,7 +2579,7 @@ msgid "Battery percentage"
 msgstr "電池百分比"
 
 #: frontend/apps/reader/modules/readercoptlistener.lua:534
-#: frontend/apps/reader/modules/readerdictionary.lua:387
+#: frontend/apps/reader/modules/readerdictionary.lua:386
 #: frontend/ui/widget/textviewer.lua:662 plugins/terminal.koplugin/main.lua:633
 msgid "Font size: %1"
 msgstr "字型大小：%1"
@@ -2596,19 +2596,19 @@ msgstr "設定大小"
 msgid "Apply crop"
 msgstr "套用裁切"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:47
+#: frontend/apps/reader/modules/readerdevicestatus.lua:46
 msgid ""
 "Battery level drops below the critical zone.\n"
 "\n"
 "Suspending the device…"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:50
-#: frontend/apps/reader/modules/readerdevicestatus.lua:135
+#: frontend/apps/reader/modules/readerdevicestatus.lua:49
+#: frontend/apps/reader/modules/readerdevicestatus.lua:132
 msgid "Waiting for 3 seconds to proceed."
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:82
+#: frontend/apps/reader/modules/readerdevicestatus.lua:81
 #, fuzzy
 msgid ""
 "High battery level: %1 %\n"
@@ -2619,7 +2619,7 @@ msgstr ""
 "\n"
 "忽略電量警報？"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:88
+#: frontend/apps/reader/modules/readerdevicestatus.lua:87
 #, fuzzy
 msgid ""
 "Low battery level: %1 %\n"
@@ -2630,22 +2630,22 @@ msgstr ""
 "\n"
 "忽略電量警報？"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:96
+#: frontend/apps/reader/modules/readerdevicestatus.lua:94
 msgid ""
 "When battery level drops below the critical zone, the device will be put "
 "into suspension automatically."
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:103
+#: frontend/apps/reader/modules/readerdevicestatus.lua:101
 msgid "Dismiss"
 msgstr "關閉"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:108
+#: frontend/apps/reader/modules/readerdevicestatus.lua:106
 msgid "Remind later"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:132
-#: frontend/apps/reader/modules/readerdevicestatus.lua:148
+#: frontend/apps/reader/modules/readerdevicestatus.lua:130
+#: frontend/apps/reader/modules/readerdevicestatus.lua:145
 msgid ""
 "High memory usage!\n"
 "\n"
@@ -2655,7 +2655,7 @@ msgstr ""
 "\n"
 "正在重新啟動 KOReader…"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:143
+#: frontend/apps/reader/modules/readerdevicestatus.lua:140
 msgid ""
 "High memory usage: %1 MB\n"
 "\n"
@@ -2665,11 +2665,11 @@ msgstr ""
 "\n"
 "要重新啟動 KOReader 嗎？"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:144
+#: frontend/apps/reader/modules/readerdevicestatus.lua:141
 msgid "Restart"
 msgstr "重新啟動"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:161
+#: frontend/apps/reader/modules/readerdevicestatus.lua:158
 msgid ""
 "High memory usage: %1 MB\n"
 "\n"
@@ -2679,24 +2679,24 @@ msgstr ""
 "\n"
 "要退出 KOReader 嗎？"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:195
+#: frontend/apps/reader/modules/readerdevicestatus.lua:192
 msgid "Device status alerts"
 msgstr "裝置狀態警報"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:201
+#: frontend/apps/reader/modules/readerdevicestatus.lua:198
 msgid "Battery level"
 msgstr "電量"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:212
+#: frontend/apps/reader/modules/readerdevicestatus.lua:209
 #, fuzzy
 msgid "Thresholds: %1 % / %2 %"
 msgstr "閾值：%1% – %2%"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:225
+#: frontend/apps/reader/modules/readerdevicestatus.lua:222
 msgid "Battery level alert thresholds"
 msgstr "電量警報閾值"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:226
+#: frontend/apps/reader/modules/readerdevicestatus.lua:223
 msgid ""
 "Low level threshold is checked when the device is not charging.\n"
 "High level threshold is checked when the device is charging."
@@ -2704,128 +2704,128 @@ msgstr ""
 "裝置未充電時會檢查低電量閾值。\n"
 "裝置充電時會檢查高電量閾值。"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:229
+#: frontend/apps/reader/modules/readerdevicestatus.lua:226
 msgid "Low"
 msgstr "低"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:234
+#: frontend/apps/reader/modules/readerdevicestatus.lua:231
 msgid "High"
 msgstr "高"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:265
+#: frontend/apps/reader/modules/readerdevicestatus.lua:262
 msgid "High memory usage"
 msgstr "高記憶體用量"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:275
+#: frontend/apps/reader/modules/readerdevicestatus.lua:272
 msgid "Threshold: %1 MB"
 msgstr "閾值：%1 MB"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:286
+#: frontend/apps/reader/modules/readerdevicestatus.lua:283
 #: plugins/coverimage.koplugin/main.lua:671
 #, fuzzy
 msgctxt "Data storage size"
 msgid "MB"
 msgstr "M"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:289
+#: frontend/apps/reader/modules/readerdevicestatus.lua:286
 msgid "Memory alert threshold"
 msgstr "記憶體警報閾值"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:302
+#: frontend/apps/reader/modules/readerdevicestatus.lua:299
 msgid "Automatic restart"
 msgstr "自動重新啟動"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:234
+#: frontend/apps/reader/modules/readerdictionary.lua:233
 #: plugins/calibre.koplugin/main.lua:153
 msgid "Search settings"
 msgstr "搜尋設定"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:237
-#: frontend/apps/reader/modules/readerdictionary.lua:1013
+#: frontend/apps/reader/modules/readerdictionary.lua:236
+#: frontend/apps/reader/modules/readerdictionary.lua:1012
 #: frontend/dispatcher.lua:101 plugins/vocabbuilder.koplugin/main.lua:2208
 msgid "Dictionary lookup"
 msgstr "字典查詢"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:243
-#: frontend/apps/reader/modules/readerdictionary.lua:267
+#: frontend/apps/reader/modules/readerdictionary.lua:242
+#: frontend/apps/reader/modules/readerdictionary.lua:266
 msgid "Dictionary lookup history"
 msgstr "字典查詢歷史"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:274
+#: frontend/apps/reader/modules/readerdictionary.lua:273
 msgid "Dictionary settings"
 msgstr "字典設定"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:285
+#: frontend/apps/reader/modules/readerdictionary.lua:284
 msgid "Manage dictionaries: %1"
 msgstr "管理字典：%1"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:299
+#: frontend/apps/reader/modules/readerdictionary.lua:298
 msgid "Download dictionaries"
 msgstr "下載字典"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:306
+#: frontend/apps/reader/modules/readerdictionary.lua:305
 msgid "Enable fuzzy search"
 msgstr "啟用模糊搜尋"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:335
+#: frontend/apps/reader/modules/readerdictionary.lua:334
 msgid "Enable dictionary lookup history"
 msgstr "啟用字典搜尋歷史記錄"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:348
+#: frontend/apps/reader/modules/readerdictionary.lua:347
 msgid "Clean dictionary lookup history"
 msgstr "清除字典搜尋歷史"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:355
+#: frontend/apps/reader/modules/readerdictionary.lua:354
 msgid "Clean dictionary lookup history?"
 msgstr "要清除字典搜尋歷史嗎？"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:356
+#: frontend/apps/reader/modules/readerdictionary.lua:355
 #: frontend/apps/reader/modules/readerwikipedia.lua:342
 #: plugins/texteditor.koplugin/main.lua:233
 #: plugins/vocabbuilder.koplugin/main.lua:215
 msgid "Clean"
 msgstr "清理"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:367
+#: frontend/apps/reader/modules/readerdictionary.lua:366
 msgid "Large window"
 msgstr "放大視窗"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:376
+#: frontend/apps/reader/modules/readerdictionary.lua:375
 msgid "Justify text"
 msgstr "左右對齊"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:397
+#: frontend/apps/reader/modules/readerdictionary.lua:396
 msgid "Dictionary font size"
 msgstr "字典字型大小"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:435
+#: frontend/apps/reader/modules/readerdictionary.lua:434
 msgid "Use external dictionary"
 msgstr "使用外部字典"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:445
+#: frontend/apps/reader/modules/readerdictionary.lua:444
 msgid "none"
 msgstr "無"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:453
+#: frontend/apps/reader/modules/readerdictionary.lua:452
 msgid "Dictionary: %1"
 msgstr "字典：%1"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:632
+#: frontend/apps/reader/modules/readerdictionary.lua:631
 msgid "Manage installed dictionaries"
 msgstr "管理已經安裝的字典"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:767
+#: frontend/apps/reader/modules/readerdictionary.lua:766
 #: frontend/apps/reader/modules/readerwikipedia.lua:55
 #: frontend/ui/widget/dictquicklookup.lua:1334
 msgid "Enter a word or phrase to look up"
 msgstr "輸入要查詢的單字或片語"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:780
+#: frontend/apps/reader/modules/readerdictionary.lua:779
 #: frontend/ui/widget/dictquicklookup.lua:1371
 msgid "Search dictionary"
 msgstr "搜尋字典"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:956
+#: frontend/apps/reader/modules/readerdictionary.lua:955
 msgid ""
 "No dictionaries installed. Please search for \"Dictionary support\" in the "
 "KOReader Wiki to get more information about installing new dictionaries."
@@ -2833,21 +2833,21 @@ msgstr ""
 "未安裝字典。想要安裝新字典，請在 KOReader 維基中搜尋 「Dictionary support」相"
 "關訊息。"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:983
-#: frontend/apps/reader/modules/readerdictionary.lua:1051
+#: frontend/apps/reader/modules/readerdictionary.lua:982
+#: frontend/apps/reader/modules/readerdictionary.lua:1050
 msgid "Not available"
 msgstr "不可用"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:986
+#: frontend/apps/reader/modules/readerdictionary.lua:985
 msgid "Dictionary lookup interrupted."
 msgstr "字典查詢已中斷。"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:987
+#: frontend/apps/reader/modules/readerdictionary.lua:986
 #: frontend/apps/reader/modules/readerwikipedia.lua:484
 msgid "No results."
 msgstr "沒有結果。"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1054
+#: frontend/apps/reader/modules/readerdictionary.lua:1053
 msgid ""
 "There are no enabled dictionaries.\n"
 "Please check the 'Dictionary settings' menu."
@@ -2855,7 +2855,7 @@ msgstr ""
 "沒有啟用的字典。\n"
 "請檢查「字典設定」選單。"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1064
+#: frontend/apps/reader/modules/readerdictionary.lua:1063
 msgid ""
 "Searching dictionary for:\n"
 "%1"
@@ -2863,59 +2863,59 @@ msgstr ""
 "正在搜尋字典：\n"
 "%1"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1103
+#: frontend/apps/reader/modules/readerdictionary.lua:1101
 msgid "Cannot find results of %1"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1158
+#: frontend/apps/reader/modules/readerdictionary.lua:1156
 msgid "License"
 msgstr "授權"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1161
+#: frontend/apps/reader/modules/readerdictionary.lua:1159
 msgid "Entries"
 msgstr "登錄項"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1165
+#: frontend/apps/reader/modules/readerdictionary.lua:1163
 msgid "Tap dictionary name to download"
 msgstr "點選字典名稱以進行下載"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1177
+#: frontend/apps/reader/modules/readerdictionary.lua:1175
 msgid "File already exists. Overwrite?"
 msgstr "檔案已經存在。要覆寫嗎？"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1215
+#: frontend/apps/reader/modules/readerdictionary.lua:1213
 msgid "Dictionary filesize is %1 (%2 bytes). Continue with download?"
 msgstr "字典檔容量是 %1 (%2 bytes). 要繼續下載嗎？"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1230
+#: frontend/apps/reader/modules/readerdictionary.lua:1228
 msgid "Failed to fetch dictionary. Are you online?"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1238
+#: frontend/apps/reader/modules/readerdictionary.lua:1236
 msgid "Downloading…"
 msgstr "下載中…"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1262
+#: frontend/apps/reader/modules/readerdictionary.lua:1260
 msgid "Could not save file to:\n"
 msgstr "無法將檔案儲存至：\n"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1279
+#: frontend/apps/reader/modules/readerdictionary.lua:1277
 msgid "Dictionary downloaded:\n"
 msgstr "已下載的字典:\n"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1284
+#: frontend/apps/reader/modules/readerdictionary.lua:1282
 msgid "Dictionary failed to download:\n"
 msgstr "字典下載失敗:\n"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1355
+#: frontend/apps/reader/modules/readerdictionary.lua:1353
 msgid "%1 is no longer a preferred dictionary for this document."
 msgstr "%1 不再是此文件的偏好字典。"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1359
+#: frontend/apps/reader/modules/readerdictionary.lua:1357
 msgid "%1 is now the preferred dictionary for this document."
 msgstr "%1 已成為此文件的偏好字典。"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1371
+#: frontend/apps/reader/modules/readerdictionary.lua:1369
 msgid ""
 "Would you like to enable or disable fuzzy search by default?\n"
 "\n"
@@ -2934,7 +2934,7 @@ msgstr ""
 "\n"
 " 目前的預設值 (★) 是停用。"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1376
+#: frontend/apps/reader/modules/readerdictionary.lua:1374
 msgid ""
 "Would you like to enable or disable fuzzy search by default?\n"
 "\n"
@@ -2953,7 +2953,7 @@ msgstr ""
 "\n"
 " 目前的預設值 (★) 是啟用。"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1383
+#: frontend/apps/reader/modules/readerdictionary.lua:1381
 #: frontend/apps/reader/modules/readerrolling.lua:571
 #: frontend/apps/reader/modules/readertypography.lua:657
 #: frontend/apps/reader/modules/readertypography.lua:771
@@ -2963,7 +2963,7 @@ msgstr ""
 msgid "Disable (★)"
 msgstr "停用 (★)"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1391
+#: frontend/apps/reader/modules/readerdictionary.lua:1389
 #: frontend/apps/reader/modules/readerrolling.lua:578
 #: frontend/apps/reader/modules/readertypography.lua:663
 #: frontend/apps/reader/modules/readertypography.lua:778
@@ -2975,7 +2975,7 @@ msgstr "停用 (★)"
 msgid "Enable"
 msgstr "啟用"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1392
+#: frontend/apps/reader/modules/readerdictionary.lua:1390
 #: frontend/apps/reader/modules/readerrolling.lua:577
 #: frontend/apps/reader/modules/readertypography.lua:663
 #: frontend/apps/reader/modules/readertypography.lua:777
@@ -3857,7 +3857,7 @@ msgstr "左"
 
 #: frontend/apps/reader/modules/readerfooter.lua:1999
 #: frontend/apps/reader/modules/readerhighlight.lua:453
-#: frontend/ui/elements/common_settings_menu_table.lua:423
+#: frontend/ui/elements/common_settings_menu_table.lua:421
 msgid "Center"
 msgstr "置中"
 
@@ -4211,12 +4211,12 @@ msgid "Side mark"
 msgstr "設定邊距"
 
 #: frontend/apps/reader/modules/readerhighlight.lua:440
-#: frontend/ui/elements/common_settings_menu_table.lua:629
+#: frontend/ui/elements/common_settings_menu_table.lua:626
 msgid "Ask with popup dialog"
 msgstr "開啟對話視窗提問"
 
 #: frontend/apps/reader/modules/readerhighlight.lua:441
-#: frontend/ui/elements/common_settings_menu_table.lua:636
+#: frontend/ui/elements/common_settings_menu_table.lua:633
 msgid "Do nothing"
 msgstr "什麼都不做"
 
@@ -4232,14 +4232,14 @@ msgstr "全文搜尋"
 
 #: frontend/apps/reader/modules/readerhighlight.lua:452
 #: frontend/ui/data/creoptions.lua:250 frontend/ui/data/creoptions.lua:306
-#: frontend/ui/elements/common_settings_menu_table.lua:422
+#: frontend/ui/elements/common_settings_menu_table.lua:420
 #: frontend/ui/elements/screensaver_menu.lua:239
 msgid "Top"
 msgstr "上"
 
 #: frontend/apps/reader/modules/readerhighlight.lua:454
 #: frontend/ui/data/creoptions.lua:255 frontend/ui/data/creoptions.lua:311
-#: frontend/ui/elements/common_settings_menu_table.lua:424
+#: frontend/ui/elements/common_settings_menu_table.lua:422
 #: frontend/ui/elements/screensaver_menu.lua:246
 msgid "Bottom"
 msgstr "下"
@@ -4631,7 +4631,7 @@ msgid "Clear forward location history?"
 msgstr "要清除位置歷史記錄嗎？"
 
 #: frontend/apps/reader/modules/readerlink.lua:395
-#: frontend/ui/data/css_tweaks.lua:708
+#: frontend/ui/data/css_tweaks.lua:707
 msgid "Links"
 msgstr "連結"
 
@@ -5442,7 +5442,7 @@ msgstr "目前頁數 (%1)"
 
 #: frontend/apps/reader/modules/readerstatus.lua:18
 #: frontend/apps/reader/modules/readerstatus.lua:76 frontend/dispatcher.lua:757
-#: frontend/ui/elements/common_settings_menu_table.lua:643
+#: frontend/ui/elements/common_settings_menu_table.lua:640
 msgid "Book status"
 msgstr "書籍閱讀狀態"
 
@@ -5456,17 +5456,17 @@ msgid "Mark as finished"
 msgstr "標示為已閱讀"
 
 #: frontend/apps/reader/modules/readerstatus.lua:85
-#: frontend/ui/elements/common_settings_menu_table.lua:670
+#: frontend/ui/elements/common_settings_menu_table.lua:667
 msgid "Go to beginning"
 msgstr "前往開頭"
 
 #: frontend/apps/reader/modules/readerstatus.lua:92
-#: frontend/ui/elements/common_settings_menu_table.lua:657
+#: frontend/ui/elements/common_settings_menu_table.lua:654
 msgid "Open next file"
 msgstr "開啟下一個檔案"
 
 #: frontend/apps/reader/modules/readerstatus.lua:102
-#: frontend/ui/elements/common_settings_menu_table.lua:650
+#: frontend/ui/elements/common_settings_menu_table.lua:647
 #: plugins/texteditor.koplugin/main.lua:699
 msgid "Delete file"
 msgstr "刪除檔案"
@@ -5907,7 +5907,7 @@ msgid "Edit book-specific style tweak"
 msgstr "編輯書籍特定的樣式調整"
 
 #: frontend/apps/reader/modules/readerstyletweak.lua:1369
-#: plugins/findhistory.koplugin/main.lua:129
+#: plugins/findhistory.koplugin/main.lua:125
 msgid "Restore"
 msgstr "還原"
 
@@ -5950,15 +5950,15 @@ msgstr "頁面瀏覽器"
 msgid "Table of contents"
 msgstr "書籍目錄"
 
-#: frontend/apps/reader/modules/readertoc.lua:1118
+#: frontend/apps/reader/modules/readertoc.lua:1117
 msgid "Navigation settings"
 msgstr ""
 
-#: frontend/apps/reader/modules/readertoc.lua:1123
+#: frontend/apps/reader/modules/readertoc.lua:1122
 msgid "Alternative table of contents"
 msgstr "替代目錄"
 
-#: frontend/apps/reader/modules/readertoc.lua:1127
+#: frontend/apps/reader/modules/readertoc.lua:1126
 msgid ""
 "An alternative table of contents can be built from document headings <H1> to "
 "<H6>.\n"
@@ -5978,12 +5978,12 @@ msgstr ""
 "示，如此它們就可用來產生書籍目錄。\n"
 "請參閱「樣式表調整」 → 「雜項」 → 「替代性目錄提示」。"
 
-#: frontend/apps/reader/modules/readertoc.lua:1135
+#: frontend/apps/reader/modules/readertoc.lua:1134
 msgid ""
 "To use the alternative ToC, disable your custom table of contents first."
 msgstr ""
 
-#: frontend/apps/reader/modules/readertoc.lua:1150
+#: frontend/apps/reader/modules/readertoc.lua:1149
 msgid ""
 "The table of contents for this book is currently an alternative one built "
 "from the document headings.\n"
@@ -5993,23 +5993,23 @@ msgstr ""
 "目前的書籍目錄是由文件標題產生的替代品。\n"
 "您想要恢復到原本的目錄嗎？（這本書會被重新載入。）"
 
-#: frontend/apps/reader/modules/readertoc.lua:1167
+#: frontend/apps/reader/modules/readertoc.lua:1166
 msgid ""
 "Do you want to use an alternative table of contents built from the document "
 "headings?"
 msgstr "您想要使用由標題產生的替代性目錄嗎？"
 
-#: frontend/apps/reader/modules/readertoc.lua:1197
+#: frontend/apps/reader/modules/readertoc.lua:1196
 msgid "1 entry at ToC depth %2"
 msgid_plural "%1 entries at ToC depth %2"
 msgstr[0] "%1 個項目，位於目錄深度 %2"
 
-#: frontend/apps/reader/modules/readertoc.lua:1226
+#: frontend/apps/reader/modules/readertoc.lua:1225
 msgid "Progress bars: 1 tick"
 msgid_plural "Progress bars: %1 ticks"
 msgstr[0] "進度列：%1 個標記"
 
-#: frontend/apps/reader/modules/readertoc.lua:1231
+#: frontend/apps/reader/modules/readertoc.lua:1230
 msgid ""
 "The progress bars in the footer and the skim dialog can become cramped when "
 "the table of contents is complex. This allows you to restrict the number of "
@@ -6017,11 +6017,11 @@ msgid ""
 msgstr ""
 "當目錄複雜時，頁尾和快覽對話框中的進度列會較為狹窄。此選項能限制標記的數量。"
 
-#: frontend/apps/reader/modules/readertoc.lua:1253
+#: frontend/apps/reader/modules/readertoc.lua:1252
 msgid "Bind chapter navigation to ticks"
 msgstr "將章節導航繫結到刻度"
 
-#: frontend/apps/reader/modules/readertoc.lua:1255
+#: frontend/apps/reader/modules/readertoc.lua:1254
 msgid ""
 "Entries from ToC levels that are ignored in the progress bars will still be "
 "used for chapter navigation and 'page/time left until next chapter' in the "
@@ -6029,11 +6029,11 @@ msgid ""
 "Enabling this option will restrict chapter navigation to progress bar ticks."
 msgstr ""
 
-#: frontend/apps/reader/modules/readertoc.lua:1271
+#: frontend/apps/reader/modules/readertoc.lua:1270
 msgid "Chapter titles from ticks only"
 msgstr "僅來自刻度的章節標題"
 
-#: frontend/apps/reader/modules/readertoc.lua:1273
+#: frontend/apps/reader/modules/readertoc.lua:1272
 msgid ""
 "Entries from ToC levels that are ignored in the progress bars will still be "
 "used for displaying the title of the current chapter in the footer and in "
@@ -6042,22 +6042,22 @@ msgid ""
 "bar ticks."
 msgstr ""
 
-#: frontend/apps/reader/modules/readertoc.lua:1292
-#: frontend/apps/reader/modules/readertoc.lua:1303
+#: frontend/apps/reader/modules/readertoc.lua:1291
+#: frontend/apps/reader/modules/readertoc.lua:1302
 msgid "ToC entries per page"
 msgstr "每頁的目錄項目數"
 
-#: frontend/apps/reader/modules/readertoc.lua:1316
-#: frontend/apps/reader/modules/readertoc.lua:1330
+#: frontend/apps/reader/modules/readertoc.lua:1315
+#: frontend/apps/reader/modules/readertoc.lua:1329
 msgid "ToC entry font size"
 msgstr "目錄項目字型大小"
 
-#: frontend/apps/reader/modules/readertoc.lua:1339
+#: frontend/apps/reader/modules/readertoc.lua:1338
 #, fuzzy
 msgid "Show chapter length"
 msgstr "顯示章節標記"
 
-#: frontend/apps/reader/modules/readertoc.lua:1350
+#: frontend/apps/reader/modules/readertoc.lua:1349
 #, fuzzy
 msgid "Dot leaders"
 msgstr "選擇資料夾"
@@ -6980,7 +6980,7 @@ msgid "ask"
 msgstr ""
 
 #: frontend/apps/reader/modules/readerwikipedia.lua:257
-#: frontend/ui/elements/common_settings_menu_table.lua:288
+#: frontend/ui/elements/common_settings_menu_table.lua:286
 #: plugins/profiles.koplugin/main.lua:709
 msgid "always"
 msgstr "永遠"
@@ -7229,42 +7229,42 @@ msgstr "檔案 「%1」 不存在。"
 msgid "File '%1' is not supported."
 msgstr "不支援檔案「%1」。"
 
-#: frontend/apps/reader/readerui.lua:752 frontend/apps/reader/readerui.lua:802
+#: frontend/apps/reader/readerui.lua:752 frontend/apps/reader/readerui.lua:801
 msgid "No reader engine for this file or invalid file."
 msgstr "沒有能支援這個檔案的閱讀引擎，又或這是個損壞的檔案。"
 
-#: frontend/apps/reader/readerui.lua:773
+#: frontend/apps/reader/readerui.lua:772
 msgid "Unfortunately KOReader crashed."
 msgstr ""
 
-#: frontend/apps/reader/readerui.lua:776
+#: frontend/apps/reader/readerui.lua:775
 msgid ""
 "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help "
 "developers to improve it."
 msgstr ""
 
-#: frontend/apps/reader/readerui.lua:789 frontend/device/android/device.lua:225
+#: frontend/apps/reader/readerui.lua:788 frontend/device/android/device.lua:225
 msgid "Opening file '%1'."
 msgstr "正在開啟 「%1」 檔案。"
 
-#: frontend/apps/reader/readerui.lua:840
+#: frontend/apps/reader/readerui.lua:839
 msgid "Password is incorrect, try again?"
 msgstr "密碼不正確，再試一次？"
 
-#: frontend/apps/reader/readerui.lua:841
+#: frontend/apps/reader/readerui.lua:840
 msgid "Input document password"
 msgstr "請輸入文件密碼"
 
-#: frontend/apps/reader/readerui.lua:906
+#: frontend/apps/reader/readerui.lua:905
 #, fuzzy
 msgid "Book metadata saved."
 msgstr "自動儲存書籍詮釋資料：%1"
 
-#: frontend/apps/reader/readerui.lua:956
+#: frontend/apps/reader/readerui.lua:954
 msgid "Saving progress of file %1"
 msgstr ""
 
-#: frontend/apps/reader/readerui.lua:984
+#: frontend/apps/reader/readerui.lua:982
 msgid ""
 "Failed recognizing or parsing this file: unsupported or invalid document.\n"
 "KOReader will exit now."
@@ -7728,12 +7728,12 @@ msgid "MAC: %1"
 msgstr ""
 
 #: frontend/device/generic/device.lua:1007
-#: frontend/device/kindle/device.lua:308
+#: frontend/device/kindle/device.lua:307
 msgid "SSID: \"%1\""
 msgstr ""
 
 #: frontend/device/generic/device.lua:1010
-#: frontend/device/kindle/device.lua:306
+#: frontend/device/kindle/device.lua:305
 msgid "SSID: off/any"
 msgstr ""
 
@@ -7798,11 +7798,11 @@ msgstr ""
 "\n"
 "%1"
 
-#: frontend/device/kindle/device.lua:121
+#: frontend/device/kindle/device.lua:120
 msgid "Unable to communicate with the Wi-Fi backend"
 msgstr ""
 
-#: frontend/device/kindle/device.lua:168
+#: frontend/device/kindle/device.lua:167
 #, fuzzy
 msgid "Scanning for Wi-Fi networks timed out"
 msgstr "正在掃描網路…"
@@ -8285,7 +8285,7 @@ msgid "General"
 msgstr "一般"
 
 #: frontend/dispatcher.lua:1755
-#: frontend/ui/elements/common_settings_menu_table.lua:703
+#: frontend/ui/elements/common_settings_menu_table.lua:700
 #: plugins/httpinspector.koplugin/main.lua:1119
 msgid "Device"
 msgstr "裝置"
@@ -9161,46 +9161,46 @@ msgstr ""
 msgid "Document direction RTL"
 msgstr "文件方向從右到左"
 
-#: frontend/ui/data/css_tweaks.lua:347
+#: frontend/ui/data/css_tweaks.lua:346
 msgid "Right align most text"
 msgstr "把大多數文字靠右對齊"
 
-#: frontend/ui/data/css_tweaks.lua:349
+#: frontend/ui/data/css_tweaks.lua:348
 msgid "Enforce right alignment of text in common text elements."
 msgstr "在常見的文字元件中強制靠右對齊。"
 
-#: frontend/ui/data/css_tweaks.lua:358
+#: frontend/ui/data/css_tweaks.lua:357
 msgid "Right align all elements"
 msgstr "把所有元件靠右對齊"
 
-#: frontend/ui/data/css_tweaks.lua:360
+#: frontend/ui/data/css_tweaks.lua:359
 msgid "Enforce right alignment of text in all elements."
 msgstr "在所有元件中強制靠右對齊。"
 
-#: frontend/ui/data/css_tweaks.lua:369
+#: frontend/ui/data/css_tweaks.lua:368
 msgid "Document direction LTR"
 msgstr "文件方向從左到右"
 
-#: frontend/ui/data/css_tweaks.lua:375
+#: frontend/ui/data/css_tweaks.lua:374
 msgid "Hyphenation, ligatures, ruby"
 msgstr "斷字、合字、注音"
 
-#: frontend/ui/data/css_tweaks.lua:378
+#: frontend/ui/data/css_tweaks.lua:377
 msgid "Allow hyphenation on all text"
 msgstr "允許在所有文字上進行斷字"
 
-#: frontend/ui/data/css_tweaks.lua:380
+#: frontend/ui/data/css_tweaks.lua:379
 msgid ""
 "Allow hyphenation on all text (except headings), in case the publisher has "
 "disabled it."
 msgstr "在所有文字上允許斷字（除了標題），以防發布者停用它。"
 
-#: frontend/ui/data/css_tweaks.lua:389
+#: frontend/ui/data/css_tweaks.lua:388
 #, fuzzy
 msgid "Ignore publisher line-break restrictions"
 msgstr "忽略發布者的行高"
 
-#: frontend/ui/data/css_tweaks.lua:391
+#: frontend/ui/data/css_tweaks.lua:390
 msgid ""
 "A publisher might use non-breaking spaces and hyphens to avoid line breaking "
 "between some words, which is not always necessary and may have been added to "
@@ -9209,36 +9209,36 @@ msgid ""
 "breaking."
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:399
+#: frontend/ui/data/css_tweaks.lua:398
 msgid "Disable common ligatures"
 msgstr "停用標準合字"
 
-#: frontend/ui/data/css_tweaks.lua:401
+#: frontend/ui/data/css_tweaks.lua:400
 msgid ""
 "Disable common ligatures, which are enabled by default in 'best' kerning "
 "mode."
 msgstr "停用標準合字，它們預設在「最佳」字距微調模式下啟用。"
 
-#: frontend/ui/data/css_tweaks.lua:411
+#: frontend/ui/data/css_tweaks.lua:410
 msgid "Ruby"
 msgstr "注音"
 
-#: frontend/ui/data/css_tweaks.lua:413
+#: frontend/ui/data/css_tweaks.lua:412
 msgid "About ruby"
 msgstr "關於注音"
 
-#: frontend/ui/data/css_tweaks.lua:414
+#: frontend/ui/data/css_tweaks.lua:413
 msgid ""
 "Ruby characters are small glosses on writing in Asian languages (Hanzi, "
 "Kanji, Hanja, etc.) to show the pronunciation of the logographs.\n"
 "These tweaks can help make ruby easier to read or ignore."
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:421
+#: frontend/ui/data/css_tweaks.lua:420
 msgid "Sans-serif font for ruby"
 msgstr "注音使用無襯線字型"
 
-#: frontend/ui/data/css_tweaks.lua:423
+#: frontend/ui/data/css_tweaks.lua:422
 msgid ""
 "Use a sans serif font to display all ruby text for a more 'book-like' "
 "feeling.\n"
@@ -9247,19 +9247,19 @@ msgstr ""
 "使用無襯線字型來顯示所有的注音文字，這樣更有「讀書」的感覺。\n"
 "此選項會也強制注音文字使用常規粗細的字型，而不是選擇的粗體或細體。"
 
-#: frontend/ui/data/css_tweaks.lua:436
+#: frontend/ui/data/css_tweaks.lua:435
 msgid "Larger ruby text size"
 msgstr "增大注音文字大小"
 
-#: frontend/ui/data/css_tweaks.lua:437
+#: frontend/ui/data/css_tweaks.lua:436
 msgid "Increase ruby text size."
 msgstr "增加注音字型大小。"
 
-#: frontend/ui/data/css_tweaks.lua:443
+#: frontend/ui/data/css_tweaks.lua:442
 msgid "Larger spacing between ruby lines"
 msgstr "增加注音行之間的間距"
 
-#: frontend/ui/data/css_tweaks.lua:445
+#: frontend/ui/data/css_tweaks.lua:444
 msgid ""
 "Increase line spacing of most text, so that lines keep an even spacing "
 "whether or not they include ruby.\n"
@@ -9268,66 +9268,66 @@ msgstr ""
 "增加大多數文字的行間距，保證有注音的行間距與無注音的行間距相同。\n"
 "進一步的調整可以透過底部選單中的「行間距」來完成。"
 
-#: frontend/ui/data/css_tweaks.lua:454
+#: frontend/ui/data/css_tweaks.lua:453
 msgid "Render ruby content inline"
 msgstr "在行內顯示內容"
 
-#: frontend/ui/data/css_tweaks.lua:456
+#: frontend/ui/data/css_tweaks.lua:455
 msgid "Disable handling of <ruby> tags and render them inline."
 msgstr "停用對 <ruby> 標籤的處理並在行內顯示內容。"
 
-#: frontend/ui/data/css_tweaks.lua:464
+#: frontend/ui/data/css_tweaks.lua:463
 #, fuzzy
 msgid "Font size and families"
 msgstr "字型和行高"
 
-#: frontend/ui/data/css_tweaks.lua:467
+#: frontend/ui/data/css_tweaks.lua:466
 msgid "Ignore font related HTML presentational hints"
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:469
+#: frontend/ui/data/css_tweaks.lua:468
 msgid ""
 "Ignore HTML attributes that contribute to styles on the elements <body> "
 "(bgcolor, text…) and <font> (face, size, color…)."
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:476
+#: frontend/ui/data/css_tweaks.lua:475
 msgid "Ignore publisher font families"
 msgstr "忽略發布者的字型家族"
 
-#: frontend/ui/data/css_tweaks.lua:478
+#: frontend/ui/data/css_tweaks.lua:477
 msgid "Disable font-family specified in embedded styles."
 msgstr "停用內嵌樣式表中的字型家族 (font-family) 設定。"
 
-#: frontend/ui/data/css_tweaks.lua:486
+#: frontend/ui/data/css_tweaks.lua:485
 msgid "Ignore publisher font sizes"
 msgstr "忽略發布者的字型大小"
 
-#: frontend/ui/data/css_tweaks.lua:488
+#: frontend/ui/data/css_tweaks.lua:487
 msgid "Disable font-size specified in embedded styles."
 msgstr "停用內嵌樣式表中的字型大小 (font-size) 設定。"
 
-#: frontend/ui/data/css_tweaks.lua:496
+#: frontend/ui/data/css_tweaks.lua:495
 #, fuzzy
 msgid "Reset main text font size"
 msgstr "設定文字字型大小"
 
-#: frontend/ui/data/css_tweaks.lua:498
+#: frontend/ui/data/css_tweaks.lua:497
 msgid ""
 "Disable font-size set on the main text (keeping possibly larger headings "
 "untouched), so that KOReader's font size is used."
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:505
+#: frontend/ui/data/css_tweaks.lua:504
 #, fuzzy
 msgid "Line heights"
 msgstr "設定高度"
 
-#: frontend/ui/data/css_tweaks.lua:508
+#: frontend/ui/data/css_tweaks.lua:507
 msgid "Ignore publisher line heights"
 msgstr "忽略發布者的行高"
 
-#: frontend/ui/data/css_tweaks.lua:510
+#: frontend/ui/data/css_tweaks.lua:509
 msgid ""
 "Disable line-height specified in embedded styles, and may allow KOReader's "
 "line spacing settings to work on books where they would not."
@@ -9335,33 +9335,33 @@ msgstr ""
 "停用內嵌樣式表中的行高設定，這可能會讓 KOReader 的行高設定某些特定場合變得奇"
 "怪。"
 
-#: frontend/ui/data/css_tweaks.lua:516
+#: frontend/ui/data/css_tweaks.lua:515
 msgid "Enforce steady line heights"
 msgstr "強制穩定行高"
 
-#: frontend/ui/data/css_tweaks.lua:518
+#: frontend/ui/data/css_tweaks.lua:517
 msgid ""
 "Prevent inline content like sub- and superscript from changing their "
 "paragraph line height."
 msgstr "防止內嵌內容如上下標文字變更段落行高。"
 
-#: frontend/ui/data/css_tweaks.lua:526
+#: frontend/ui/data/css_tweaks.lua:525
 msgid "Smaller sub- and superscript"
 msgstr "更小的上下標"
 
-#: frontend/ui/data/css_tweaks.lua:528
+#: frontend/ui/data/css_tweaks.lua:527
 msgid "Prevent sub- and superscript from affecting line-height."
 msgstr "防止上下標文字影響行高。"
 
-#: frontend/ui/data/css_tweaks.lua:541
+#: frontend/ui/data/css_tweaks.lua:540
 msgid "Paragraphs"
 msgstr "段落"
 
-#: frontend/ui/data/css_tweaks.lua:544
+#: frontend/ui/data/css_tweaks.lua:543
 msgid "Generic web browser paragraph style"
 msgstr "一般網頁瀏覽器的段落格式"
 
-#: frontend/ui/data/css_tweaks.lua:546
+#: frontend/ui/data/css_tweaks.lua:545
 msgid ""
 "Display paragraphs as browsers do, in full-block style without indentation "
 "or justification, discarding KOReader's book paragraph style.\n"
@@ -9373,34 +9373,34 @@ msgstr ""
 "對於某些期待以此作為預設樣式的文件來說，這麼做也許是需要的，且只有在需要與此"
 "預設樣式做出劃分時才使用 CSS。"
 
-#: frontend/ui/data/css_tweaks.lua:562
+#: frontend/ui/data/css_tweaks.lua:561
 msgid "Tailor widths and text-indent for CJK"
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:564
+#: frontend/ui/data/css_tweaks.lua:563
 msgid ""
 "Adjust paragraph width and text-indent to be an integer multiple of the font "
 "size, so that lines of Chinese and Japanese characters don't need space "
 "added between glyphs for text justification."
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:571
+#: frontend/ui/data/css_tweaks.lua:570
 msgid "Paragraph first-line indentation"
 msgstr "段落第一行縮排"
 
-#: frontend/ui/data/css_tweaks.lua:574
+#: frontend/ui/data/css_tweaks.lua:573
 msgid "No indentation on first paragraph line"
 msgstr "不要在段落的第一行縮排"
 
-#: frontend/ui/data/css_tweaks.lua:575
+#: frontend/ui/data/css_tweaks.lua:574
 msgid "Do not indent the first line of paragraphs."
 msgstr "不要在段落的第一行縮排。"
 
-#: frontend/ui/data/css_tweaks.lua:581
+#: frontend/ui/data/css_tweaks.lua:580
 msgid "Indentation on first paragraph line"
 msgstr "在段落的第一行縮排"
 
-#: frontend/ui/data/css_tweaks.lua:583
+#: frontend/ui/data/css_tweaks.lua:582
 msgid ""
 "Indentation on the first line of a paragraph is the default, but it may be "
 "overridden by publisher styles. This will force KOReader's defaults on "
@@ -9409,11 +9409,11 @@ msgstr ""
 "預設狀況下段落的第一行會進行縮排，但此行為可能被發佈者提供的樣式表所修改。本"
 "選項將強制在常見的元素上套用 KOReader 的預設值。"
 
-#: frontend/ui/data/css_tweaks.lua:592
+#: frontend/ui/data/css_tweaks.lua:591
 msgid "No indentation on first paragraph"
 msgstr "不要在段落的第一行縮排"
 
-#: frontend/ui/data/css_tweaks.lua:594
+#: frontend/ui/data/css_tweaks.lua:593
 msgid ""
 "Do not indent the first line of the first paragraph of its container. This "
 "might be needed to correctly display drop caps, while still having "
@@ -9422,37 +9422,37 @@ msgstr ""
 "不縮排容器中第一段的第一行。這對於正確顯示首字放大，並且保持接下來的段落的縮"
 "排可能有需要。"
 
-#: frontend/ui/data/css_tweaks.lua:601
+#: frontend/ui/data/css_tweaks.lua:600
 msgid "No indentation on following paragraphs"
 msgstr "非首段不縮排"
 
-#: frontend/ui/data/css_tweaks.lua:603
+#: frontend/ui/data/css_tweaks.lua:602
 msgid ""
 "Do not indent the first line of following paragraphs, but leave the first "
 "paragraph of its container untouched."
 msgstr "不縮排接下來的段落的第一行，但是容器的第一段保持不變。"
 
-#: frontend/ui/data/css_tweaks.lua:610 frontend/ui/data/css_tweaks.lua:617
+#: frontend/ui/data/css_tweaks.lua:609 frontend/ui/data/css_tweaks.lua:616
 msgid "Spacing between paragraphs"
 msgstr "段落間留空"
 
-#: frontend/ui/data/css_tweaks.lua:618
+#: frontend/ui/data/css_tweaks.lua:617
 msgid "Add a line of whitespace between paragraphs."
 msgstr "在段落之間加入一行空白。"
 
-#: frontend/ui/data/css_tweaks.lua:625
+#: frontend/ui/data/css_tweaks.lua:624
 msgid "Spacing between paragraphs (half)"
 msgstr "段落間留空（一半）"
 
-#: frontend/ui/data/css_tweaks.lua:627
+#: frontend/ui/data/css_tweaks.lua:626
 msgid "Add half a line of whitespace between paragraphs."
 msgstr "在段落之間加入半行空白。"
 
-#: frontend/ui/data/css_tweaks.lua:635
+#: frontend/ui/data/css_tweaks.lua:634
 msgid "No spacing between paragraphs"
 msgstr "段落間不留空"
 
-#: frontend/ui/data/css_tweaks.lua:637
+#: frontend/ui/data/css_tweaks.lua:636
 msgid ""
 "No whitespace between paragraphs is the default, but it may be overridden by "
 "publisher styles. This will re-enable it for paragraphs and list items."
@@ -9460,31 +9460,31 @@ msgstr ""
 "預設狀況下段落之間不會留空。但此一設定可能會被發佈者提供的樣式表修改。本選項"
 "將在段落與清單列表中重新啟用此一特徵。"
 
-#: frontend/ui/data/css_tweaks.lua:645
+#: frontend/ui/data/css_tweaks.lua:644
 msgid "Tables, links, images"
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:647
+#: frontend/ui/data/css_tweaks.lua:646
 msgid "Tables"
 msgstr "表格"
 
-#: frontend/ui/data/css_tweaks.lua:650
+#: frontend/ui/data/css_tweaks.lua:649
 #, fuzzy
 msgid "Ignore tables related HTML presentational hints"
 msgstr "忽略加速度計自動旋轉事件"
 
-#: frontend/ui/data/css_tweaks.lua:652
+#: frontend/ui/data/css_tweaks.lua:651
 msgid ""
 "Ignore HTML attributes that contribute to styles on the <table> element and "
 "its sub-elements (ie. align, valign, frame, rules, border, cellpadding, "
 "cellspacing…)."
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:659
+#: frontend/ui/data/css_tweaks.lua:658
 msgid "Full-width tables"
 msgstr "全螢幕寬度表格"
 
-#: frontend/ui/data/css_tweaks.lua:661
+#: frontend/ui/data/css_tweaks.lua:660
 msgid ""
 "Make table expand to the full width of the page. (Tables with small content "
 "now use only the width needed to display that content. This restores the "
@@ -9493,77 +9493,77 @@ msgstr ""
 "表格伸展成全螢幕寬度。（表格內容較少者，僅佔用其所需寬度。此設定將回復之前的"
 "操作。）"
 
-#: frontend/ui/data/css_tweaks.lua:668
+#: frontend/ui/data/css_tweaks.lua:667
 msgid "Ignore publisher table and cell widths"
 msgstr "忽略發布者預設表格與儲存格之寬度設定"
 
-#: frontend/ui/data/css_tweaks.lua:670
+#: frontend/ui/data/css_tweaks.lua:669
 msgid ""
 "Ignore table and cells widths specified by the publisher, and let the engine "
 "decide the most appropriate widths."
 msgstr "忽略發布者指定之表格與儲存格寬度，由引擎自行決定最適合的寬度。"
 
-#: frontend/ui/data/css_tweaks.lua:676
+#: frontend/ui/data/css_tweaks.lua:675
 msgid "Center small tables"
 msgstr "小表格置中"
 
-#: frontend/ui/data/css_tweaks.lua:678
+#: frontend/ui/data/css_tweaks.lua:677
 msgid "Horizontally center tables that do not use the full page width."
 msgstr "水平置中不佔用全螢幕寬度的表格。"
 
-#: frontend/ui/data/css_tweaks.lua:686
+#: frontend/ui/data/css_tweaks.lua:685
 msgid "Ignore publisher vertical alignment in tables"
 msgstr "忽略發布者表格內容垂直置中的設定"
 
-#: frontend/ui/data/css_tweaks.lua:693
+#: frontend/ui/data/css_tweaks.lua:692
 msgid "Alternate background color of table rows"
 msgstr "替換表格行中的背景顏色"
 
-#: frontend/ui/data/css_tweaks.lua:701
+#: frontend/ui/data/css_tweaks.lua:700
 msgid "Show borders on all tables"
 msgstr "在所有表格中顯示邊線"
 
-#: frontend/ui/data/css_tweaks.lua:712
+#: frontend/ui/data/css_tweaks.lua:711
 msgid "Links always black"
 msgstr "連結總為黑色"
 
-#: frontend/ui/data/css_tweaks.lua:718
+#: frontend/ui/data/css_tweaks.lua:717
 msgid "Links always blue"
 msgstr "連結總為藍色"
 
-#: frontend/ui/data/css_tweaks.lua:725
+#: frontend/ui/data/css_tweaks.lua:724
 msgid "Links always bold"
 msgstr "連結總為粗體"
 
-#: frontend/ui/data/css_tweaks.lua:731
+#: frontend/ui/data/css_tweaks.lua:730
 msgid "Links never bold"
 msgstr "連結不為粗體"
 
-#: frontend/ui/data/css_tweaks.lua:738
+#: frontend/ui/data/css_tweaks.lua:737
 msgid "Links always italic"
 msgstr "連結總為斜體"
 
-#: frontend/ui/data/css_tweaks.lua:744
+#: frontend/ui/data/css_tweaks.lua:743
 msgid "Links never italic"
 msgstr "連結不為斜體"
 
-#: frontend/ui/data/css_tweaks.lua:751
+#: frontend/ui/data/css_tweaks.lua:750
 msgid "Links always underlined"
 msgstr "連結總是下劃線"
 
-#: frontend/ui/data/css_tweaks.lua:758
+#: frontend/ui/data/css_tweaks.lua:757
 msgid "Links never underlined"
 msgstr "連結從不下劃線"
 
-#: frontend/ui/data/css_tweaks.lua:763
+#: frontend/ui/data/css_tweaks.lua:762
 msgid "Images"
 msgstr "圖片"
 
-#: frontend/ui/data/css_tweaks.lua:766
+#: frontend/ui/data/css_tweaks.lua:765
 msgid "Full-width images"
 msgstr "全螢幕寬度圖片"
 
-#: frontend/ui/data/css_tweaks.lua:768 frontend/ui/data/css_tweaks.lua:786
+#: frontend/ui/data/css_tweaks.lua:767 frontend/ui/data/css_tweaks.lua:784
 msgid ""
 "Useful for books containing only images, when they are smaller than your "
 "screen. May stretch images in some cases."
@@ -9571,27 +9571,27 @@ msgstr ""
 "適用於只有圖片且這些圖片小於您螢幕的書籍。在某些狀況下可能導致圖片長寬比發生"
 "變化。"
 
-#: frontend/ui/data/css_tweaks.lua:784
+#: frontend/ui/data/css_tweaks.lua:782
 msgid "Almost full-width images"
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:798
+#: frontend/ui/data/css_tweaks.lua:796
 msgid "Vertically center-align images relative to text"
 msgstr "圖片垂直置中對齊文字"
 
-#: frontend/ui/data/css_tweaks.lua:804
+#: frontend/ui/data/css_tweaks.lua:802
 msgid "Miscellaneous"
 msgstr "雜項"
 
-#: frontend/ui/data/css_tweaks.lua:806
+#: frontend/ui/data/css_tweaks.lua:804
 msgid "Alternative ToC hints"
 msgstr "替代性目錄提示"
 
-#: frontend/ui/data/css_tweaks.lua:808
+#: frontend/ui/data/css_tweaks.lua:806
 msgid "About alternative ToC"
 msgstr "關於替代性目錄"
 
-#: frontend/ui/data/css_tweaks.lua:810
+#: frontend/ui/data/css_tweaks.lua:808
 msgid ""
 "An alternative table of contents can be built via a dedicated option in the "
 "\"Settings\" menu below the \"Table of contents\" menu entry.\n"
@@ -9623,39 +9623,39 @@ msgstr ""
 "在套用這些調整之後，需要在選單切換兩次來建立替代目錄：第一次是要恢復原本的目"
 "錄，第二次是重新建立替代目錄。"
 
-#: frontend/ui/data/css_tweaks.lua:824
+#: frontend/ui/data/css_tweaks.lua:822
 msgid "Ignore all <H1> to <H6>"
 msgstr "<H1> 到 <H6>全部忽略"
 
-#: frontend/ui/data/css_tweaks.lua:829
+#: frontend/ui/data/css_tweaks.lua:827
 msgid "Ignore <H1>"
 msgstr "忽略 <H1>"
 
-#: frontend/ui/data/css_tweaks.lua:834
+#: frontend/ui/data/css_tweaks.lua:832
 msgid "Ignore <H2>"
 msgstr "忽略 <H2>"
 
-#: frontend/ui/data/css_tweaks.lua:839
+#: frontend/ui/data/css_tweaks.lua:837
 msgid "Ignore <H3>"
 msgstr "忽略 <H3>"
 
-#: frontend/ui/data/css_tweaks.lua:844
+#: frontend/ui/data/css_tweaks.lua:842
 msgid "Ignore <H4>"
 msgstr "忽略 <H4>"
 
-#: frontend/ui/data/css_tweaks.lua:849
+#: frontend/ui/data/css_tweaks.lua:847
 msgid "Ignore <H5>"
 msgstr "忽略 <H5>"
 
-#: frontend/ui/data/css_tweaks.lua:854
+#: frontend/ui/data/css_tweaks.lua:852
 msgid "Ignore <H6>"
 msgstr "忽略 <H6>"
 
-#: frontend/ui/data/css_tweaks.lua:860
+#: frontend/ui/data/css_tweaks.lua:858
 msgid "Example of book specific ToC hints"
 msgstr "因書而異的目錄提示範例"
 
-#: frontend/ui/data/css_tweaks.lua:862
+#: frontend/ui/data/css_tweaks.lua:860
 msgid ""
 "If headings or document fragments do not result in a usable ToC, you can "
 "inspect the HTML and look for elements that contain chapter titles. Then you "
@@ -9667,23 +9667,23 @@ msgstr ""
 "素，然後將提示設為它們的類別名稱。\n"
 "這只是一個範例，您需要將它改寫為使用者樣式調整。"
 
-#: frontend/ui/data/css_tweaks.lua:876
+#: frontend/ui/data/css_tweaks.lua:874
 msgid "List items"
 msgstr "清單項目"
 
-#: frontend/ui/data/css_tweaks.lua:879
+#: frontend/ui/data/css_tweaks.lua:877
 msgid "Force bullets with unordered lists"
 msgstr "強制無序清單使用小圓點"
 
-#: frontend/ui/data/css_tweaks.lua:884
+#: frontend/ui/data/css_tweaks.lua:882
 msgid "Force decimal numbers with ordered lists"
 msgstr "強制有序清單使用數字"
 
-#: frontend/ui/data/css_tweaks.lua:890
+#: frontend/ui/data/css_tweaks.lua:888
 msgid "Disable before/after pseudo elements"
 msgstr "停用 before/after 偽元素"
 
-#: frontend/ui/data/css_tweaks.lua:892
+#: frontend/ui/data/css_tweaks.lua:890
 msgid ""
 "Disable generated text from ::before and ::after pseudo elements, usually "
 "used to add cosmetic text around some content."
@@ -9691,52 +9691,52 @@ msgstr ""
 "停用從 ::before 和 ::after 偽元素產生的文字，它們通常用於在某些內容周圍加入修"
 "飾文字。"
 
-#: frontend/ui/data/css_tweaks.lua:902
+#: frontend/ui/data/css_tweaks.lua:900
 msgid "Pure black and white"
 msgstr "純黑白"
 
-#: frontend/ui/data/css_tweaks.lua:904
+#: frontend/ui/data/css_tweaks.lua:902
 msgid "Enforce black text and borders, and remove backgrounds."
 msgstr "強制使用黑色文字和邊線，並移除背景。"
 
-#: frontend/ui/data/css_tweaks.lua:917
+#: frontend/ui/data/css_tweaks.lua:915
 msgid "In-page footnotes"
 msgstr "頁面內腳註"
 
-#: frontend/ui/data/css_tweaks.lua:919 frontend/ui/data/css_tweaks.lua:922
+#: frontend/ui/data/css_tweaks.lua:917 frontend/ui/data/css_tweaks.lua:920
 msgid "In-page FB2 footnotes"
 msgstr "頁面內 FB2 腳註"
 
-#: frontend/ui/data/css_tweaks.lua:924
+#: frontend/ui/data/css_tweaks.lua:922
 msgid ""
 "Show FB2 footnote text at the bottom of pages that contain links to them."
 msgstr "在頁面底部顯示包含連結的 FB2 腳註。"
 
-#: frontend/ui/data/css_tweaks.lua:950
+#: frontend/ui/data/css_tweaks.lua:948
 msgid "In-page FB2 endnotes"
 msgstr "頁面內 FB2 尾註"
 
-#: frontend/ui/data/css_tweaks.lua:952
+#: frontend/ui/data/css_tweaks.lua:950
 msgid ""
 "Show FB2 endnote text at the bottom of pages that contain links to them."
 msgstr "在頁面底部顯示包含連結的 FB2 尾註。"
 
-#: frontend/ui/data/css_tweaks.lua:975
+#: frontend/ui/data/css_tweaks.lua:973
 msgid "Keep regular font size"
 msgstr "保持正常字型大小"
 
-#: frontend/ui/data/css_tweaks.lua:977
+#: frontend/ui/data/css_tweaks.lua:975
 msgid ""
 "FB2 footnotes and endnotes get a smaller font size when displayed in-page. "
 "This allows them to be shown with the normal font size."
 msgstr ""
 "FB2 腳註和尾註在頁面內顯示時字型大小較小。這個選項讓它們以正常大小顯示。"
 
-#: frontend/ui/data/css_tweaks.lua:999
+#: frontend/ui/data/css_tweaks.lua:997
 msgid "In-page EPUB footnotes"
 msgstr "頁面內 EPUB 腳註"
 
-#: frontend/ui/data/css_tweaks.lua:1001 frontend/ui/data/css_tweaks.lua:1032
+#: frontend/ui/data/css_tweaks.lua:999 frontend/ui/data/css_tweaks.lua:1030
 msgid ""
 "Show EPUB footnote text at the bottom of pages that contain links to them.\n"
 "This only works with footnotes that have specific attributes set by the "
@@ -9745,27 +9745,27 @@ msgstr ""
 "在頁面底部顯示包含連結的 EPUB 腳註。\n"
 "這只能用於發布者設定了特殊屬性的腳註。"
 
-#: frontend/ui/data/css_tweaks.lua:1030
+#: frontend/ui/data/css_tweaks.lua:1028
 msgid "In-page EPUB footnotes (smaller)"
 msgstr "頁面內 EPUB 腳註（較小）"
 
-#: frontend/ui/data/css_tweaks.lua:1064
+#: frontend/ui/data/css_tweaks.lua:1062
 msgid "In-page Wikipedia footnotes"
 msgstr "頁面內維基百科腳註"
 
-#: frontend/ui/data/css_tweaks.lua:1066 frontend/ui/data/css_tweaks.lua:1089
+#: frontend/ui/data/css_tweaks.lua:1064 frontend/ui/data/css_tweaks.lua:1087
 msgid "Show footnotes at the bottom of pages in Wikipedia EPUBs."
 msgstr "在維基百科轉存為 EPUB 頁面的下方顯示註解。"
 
-#: frontend/ui/data/css_tweaks.lua:1087
+#: frontend/ui/data/css_tweaks.lua:1085
 msgid "In-page Wikipedia footnotes (smaller)"
 msgstr "頁面內維基百科腳註（較小）"
 
-#: frontend/ui/data/css_tweaks.lua:1115
+#: frontend/ui/data/css_tweaks.lua:1113
 msgid "In-page classic classname footnotes"
 msgstr "頁面內傳統類別名稱腳註"
 
-#: frontend/ui/data/css_tweaks.lua:1117 frontend/ui/data/css_tweaks.lua:1145
+#: frontend/ui/data/css_tweaks.lua:1115 frontend/ui/data/css_tweaks.lua:1143
 msgid ""
 "Show footnotes with classic classnames at the bottom of pages.\n"
 "This tweak can be duplicated as a user style tweak when books contain "
@@ -9774,58 +9774,58 @@ msgstr ""
 "在頁面底部顯示具有傳統類別名稱的腳註。\n"
 "若書籍包含以其他類別名稱包裝的腳註，您可以複製這個調整為使用者樣式調整。"
 
-#: frontend/ui/data/css_tweaks.lua:1143
+#: frontend/ui/data/css_tweaks.lua:1141
 msgid "In-page classic classname footnotes (smaller)"
 msgstr "頁面內傳統類別名稱腳註（較小）"
 
-#: frontend/ui/data/css_tweaks.lua:1176
+#: frontend/ui/data/css_tweaks.lua:1174
 #, fuzzy
 msgid "In-page footnote font size"
 msgstr "頁面內腳註"
 
-#: frontend/ui/data/css_tweaks.lua:1185
+#: frontend/ui/data/css_tweaks.lua:1183
 #, fuzzy
 msgid "Footnote font size: %1 %"
 msgstr "頁尾字型大小"
 
-#: frontend/ui/data/css_tweaks.lua:1201
+#: frontend/ui/data/css_tweaks.lua:1199
 #, fuzzy
 msgid "In-page footnote fix-up"
 msgstr "頁面內腳註"
 
-#: frontend/ui/data/css_tweaks.lua:1204
+#: frontend/ui/data/css_tweaks.lua:1202
 #, fuzzy
 msgid "No footnote indentation"
 msgstr "段落第一行縮排"
 
-#: frontend/ui/data/css_tweaks.lua:1215
+#: frontend/ui/data/css_tweaks.lua:1213
 #, fuzzy
 msgid "Justify footnote text"
 msgstr "把大部分文字左右對齊"
 
-#: frontend/ui/data/css_tweaks.lua:1226
+#: frontend/ui/data/css_tweaks.lua:1224
 #, fuzzy
 msgid "Remove block margins"
 msgstr "移除書籤"
 
-#: frontend/ui/data/css_tweaks.lua:1227
+#: frontend/ui/data/css_tweaks.lua:1225
 msgid "Remove block margin and padding inside inpage footnotes."
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:1240
+#: frontend/ui/data/css_tweaks.lua:1238
 msgid "Remove cosmetic spacing"
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:1241
+#: frontend/ui/data/css_tweaks.lua:1239
 msgid "Remove inline margin and padding inside inpage footnotes."
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:1254
+#: frontend/ui/data/css_tweaks.lua:1252
 #, fuzzy
 msgid "Inline all footnote content"
 msgstr "更即時的訊息請參考 %1"
 
-#: frontend/ui/data/css_tweaks.lua:1255
+#: frontend/ui/data/css_tweaks.lua:1253
 msgid ""
 "If the footnote number is on a single line and the footnote text on the next "
 "line, or if there are variable levels of indentation, this tweak can make "
@@ -9833,22 +9833,22 @@ msgid ""
 "This will break any complex footnote containing quotes or lists."
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:1276
+#: frontend/ui/data/css_tweaks.lua:1274
 msgid "Regularize text size on inline elements"
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:1278
+#: frontend/ui/data/css_tweaks.lua:1276
 msgid ""
 "If the footnote text uses variable or absolute font sizes, line height or "
 "vertical alignments, which would make it too irregular, you can reset all of "
 "them to get a leaner text (to the expense of losing superscripts)."
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:1294
+#: frontend/ui/data/css_tweaks.lua:1292
 msgid "Combine footnotes in a non-linear flow"
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:1296
+#: frontend/ui/data/css_tweaks.lua:1294
 msgid ""
 "This will mark each section of consecutive footnotes (at their original "
 "location in the book) as being non-linear.\n"
@@ -11054,12 +11054,12 @@ msgid "Writing Direction"
 msgstr "文字方向"
 
 #. @translators LTR is left to right, which is the regular European writing direction.
-#: frontend/ui/data/koptoptions.lua:686 frontend/ui/elements/page_turns.lua:159
+#: frontend/ui/data/koptoptions.lua:686 frontend/ui/elements/page_turns.lua:158
 msgid "LTR"
 msgstr "左到右"
 
 #. @translators RTL is right to left, which is the regular writing direction in languages like Hebrew, Arabic, Persian and Urdu.
-#: frontend/ui/data/koptoptions.lua:688 frontend/ui/elements/page_turns.lua:170
+#: frontend/ui/data/koptoptions.lua:688 frontend/ui/elements/page_turns.lua:169
 msgid "RTL"
 msgstr "右到左"
 
@@ -11403,11 +11403,11 @@ msgstr "輕觸與手勢"
 msgid "Ignore long-press on corners"
 msgstr "忽略長按角落"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:167
+#: frontend/ui/elements/common_settings_menu_table.lua:166
 msgid "Disable out of order interactions"
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:170
+#: frontend/ui/elements/common_settings_menu_table.lua:168
 msgid ""
 "Disallow taps or keyboard presses being sent to the UI elements before they "
 "are showing up.\n"
@@ -11421,27 +11421,27 @@ msgid ""
 "UI interactions are less responsive."
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:189
+#: frontend/ui/elements/common_settings_menu_table.lua:187
 msgid "Fullscreen"
 msgstr "全螢幕"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:220
+#: frontend/ui/elements/common_settings_menu_table.lua:218
 msgid "Force haptic feedback"
 msgstr "強制觸覺回饋"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:234
+#: frontend/ui/elements/common_settings_menu_table.lua:232
 msgid "Volume key page turning"
 msgstr "音量鍵翻頁"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:246
+#: frontend/ui/elements/common_settings_menu_table.lua:244
 msgid "Ignore back button completely"
 msgstr "完全忽略返回按鈕"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:260
+#: frontend/ui/elements/common_settings_menu_table.lua:258
 msgid "Battery optimizations"
 msgstr "電池最佳化"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:265
+#: frontend/ui/elements/common_settings_menu_table.lua:263
 msgid ""
 "Go to Android battery optimization settings?\n"
 "\n"
@@ -11455,111 +11455,111 @@ msgstr ""
 "\n"
 "除非您知道您在做什麼，否則請不要變更任何設定。"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:284
+#: frontend/ui/elements/common_settings_menu_table.lua:282
 msgid "Navigation"
 msgstr "導航"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:287
-#: frontend/ui/network/manager.lua:865 plugins/kosync.koplugin/main.lua:84
+#: frontend/ui/elements/common_settings_menu_table.lua:285
+#: frontend/ui/network/manager.lua:862 plugins/kosync.koplugin/main.lua:84
 #: plugins/kosync.koplugin/main.lua:285 plugins/kosync.koplugin/main.lua:322
 msgid "Prompt"
 msgstr "提示"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:287
-#: frontend/ui/network/manager.lua:865
+#: frontend/ui/elements/common_settings_menu_table.lua:285
+#: frontend/ui/network/manager.lua:862
 msgid "prompt"
 msgstr "提示"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:289
+#: frontend/ui/elements/common_settings_menu_table.lua:287
 #: plugins/autofrontlight.koplugin/main.lua:33
 msgid "disable"
 msgstr "停用"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:306
+#: frontend/ui/elements/common_settings_menu_table.lua:304
 msgid "Back to exit: %1"
 msgstr "按返回退出：%1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:319
-#: frontend/ui/elements/common_settings_menu_table.lua:354
+#: frontend/ui/elements/common_settings_menu_table.lua:317
+#: frontend/ui/elements/common_settings_menu_table.lua:352
 msgid "back to exit"
 msgstr "按返回退出"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:321
+#: frontend/ui/elements/common_settings_menu_table.lua:319
 msgid "parent folder"
 msgstr "父資料夾"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:323
+#: frontend/ui/elements/common_settings_menu_table.lua:321
 msgid "Back in file browser: %1"
 msgstr "在檔案瀏覽器中按返回鍵：%1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:330
-#: frontend/ui/elements/common_settings_menu_table.lua:369
+#: frontend/ui/elements/common_settings_menu_table.lua:328
+#: frontend/ui/elements/common_settings_menu_table.lua:367
 msgid "Back to exit (%1)"
 msgstr "按返回退出 (%1)"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:342
+#: frontend/ui/elements/common_settings_menu_table.lua:340
 msgid "Go to parent folder"
 msgstr "前往上層資料夾"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:358
+#: frontend/ui/elements/common_settings_menu_table.lua:356
 msgid "previous location"
 msgstr "之前的位置"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:360
+#: frontend/ui/elements/common_settings_menu_table.lua:358
 msgid "previous read page"
 msgstr "之前閱讀的頁面"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:362
+#: frontend/ui/elements/common_settings_menu_table.lua:360
 msgid "Back in reader: %1"
 msgstr "在閱讀器中按返回鍵：%1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:381
+#: frontend/ui/elements/common_settings_menu_table.lua:379
 msgid "Go to file browser"
 msgstr "前往檔案瀏覽器"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:386
+#: frontend/ui/elements/common_settings_menu_table.lua:384
 msgid "Go to previous location"
 msgstr "前往之前的位置"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:391
+#: frontend/ui/elements/common_settings_menu_table.lua:389
 msgid "Go to previous read page"
 msgstr "前往上一個閱讀頁面"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:400
+#: frontend/ui/elements/common_settings_menu_table.lua:398
 msgid "Backspace works as back button"
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:412
+#: frontend/ui/elements/common_settings_menu_table.lua:410
 msgid "Add opening page to location history"
 msgstr "將開啟頁面加到位置歷史記錄"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:430
+#: frontend/ui/elements/common_settings_menu_table.lua:428
 #, fuzzy
 msgid "Skim dialog position: %1"
 msgstr "標注不透明度：%1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:454
+#: frontend/ui/elements/common_settings_menu_table.lua:452
 msgid "Document"
 msgstr "文件"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:459
+#: frontend/ui/elements/common_settings_menu_table.lua:457
 #, fuzzy
 msgid "book folder"
 msgstr "選擇資料夾"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:466
+#: frontend/ui/elements/common_settings_menu_table.lua:464
 msgid ""
 "Book view settings, reading progress, highlights, bookmarks and notes "
 "(collectively known as metadata) are stored in a separate folder named <book-"
 "filename>.sdr (\".sdr\" meaning \"sidecar\")."
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:470
+#: frontend/ui/elements/common_settings_menu_table.lua:468
 msgid ""
 "You can decide between three locations/methods where these will be saved:"
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:473
+#: frontend/ui/elements/common_settings_menu_table.lua:471
 msgid ""
 " - alongside the book file itself (the long time default): sdr folders will "
 "be visible when you browse your library directories with another file "
@@ -11570,7 +11570,7 @@ msgid ""
 "them."
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:477
+#: frontend/ui/elements/common_settings_menu_table.lua:475
 msgid ""
 " - all in %1: sdr folders will only be visible and used by KOReader, and "
 "won't clutter your vision of your library directories with another file "
@@ -11580,7 +11580,7 @@ msgid ""
 "of any synchronization or backups of your library."
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:483
+#: frontend/ui/elements/common_settings_menu_table.lua:481
 msgid ""
 " - all inside %1 as hashes: sdr folders are identified not by filepath/"
 "filename but by partial MD5 hash, allowing you to rename, move, and copy "
@@ -11592,7 +11592,7 @@ msgid ""
 "documents across different devices and directories."
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:492
+#: frontend/ui/elements/common_settings_menu_table.lua:490
 msgid ""
 "%1 requires calculating partial file hashes of documents which may slow down "
 "file browser navigation. Any file modifications (such as embedding "
@@ -11602,32 +11602,32 @@ msgid ""
 "Highlights → Write highlights into PDF."
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:497
+#: frontend/ui/elements/common_settings_menu_table.lua:495
 msgid ""
 "Warning: You currently have documents with hash-based metadata. Until this "
 "metadata is moved by opening those documents, or deleted, file browser "
 "navigation may remain slower."
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:535
+#: frontend/ui/elements/common_settings_menu_table.lua:533
 #, fuzzy
 msgid "Book metadata location: %1"
 msgstr "自動儲存書籍詮釋資料：%1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:540
+#: frontend/ui/elements/common_settings_menu_table.lua:538
 #, fuzzy
 msgid "About book metadata location"
 msgstr "自動儲存書籍詮釋資料：%1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:552
+#: frontend/ui/elements/common_settings_menu_table.lua:550
 msgid "Show documents with hash-based metadata"
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:553
+#: frontend/ui/elements/common_settings_menu_table.lua:551
 msgid "No documents with hash-based metadata"
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:575
+#: frontend/ui/elements/common_settings_menu_table.lua:573
 msgid ""
 "This sets how often to rewrite to disk global settings and book metadata, "
 "including your current position and any highlights and bookmarks made, when "
@@ -11648,7 +11648,7 @@ msgstr ""
 "將這個設定為某個間隔可能會幫助避免在軟體當掉後失去新的設定和 sidecar 資料，但"
 "是降低間隔會造成更多 I/O 寫入，長期之下可能慢慢損耗儲存媒體。"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:595
+#: frontend/ui/elements/common_settings_menu_table.lua:593
 msgid ""
 "Please be warned that on this device, setting a low interval may exacerbate "
 "the potential for filesystem corruption and complete data loss after a "
@@ -11657,60 +11657,60 @@ msgstr ""
 "請注意，在這個裝置設定低的間隔可能會增加硬體當掉後，檔案系統損毀並造成所有資"
 "料遺失的可能。"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:604
+#: frontend/ui/elements/common_settings_menu_table.lua:601
 msgid "Periodically save reading progress"
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:616
+#: frontend/ui/elements/common_settings_menu_table.lua:613
 msgid "End of document action"
 msgstr "到達文件結尾的動作"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:619
+#: frontend/ui/elements/common_settings_menu_table.lua:616
 #, fuzzy
 msgid "Always mark as finished"
 msgstr "總是標示為已閱讀"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:677
+#: frontend/ui/elements/common_settings_menu_table.lua:674
 msgid "Return to file browser"
 msgstr "回到檔案瀏覽器"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:684
+#: frontend/ui/elements/common_settings_menu_table.lua:681
 #, fuzzy
 msgid "Mark book as finished"
 msgstr "標示為已閱讀"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:691
+#: frontend/ui/elements/common_settings_menu_table.lua:688
 msgid "Book status and return to file browser"
 msgstr "書籍閱讀狀態並回到檔案瀏覽器"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:707
+#: frontend/ui/elements/common_settings_menu_table.lua:704
 msgid "Keyboard"
 msgstr "鍵盤"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:716
+#: frontend/ui/elements/common_settings_menu_table.lua:713
 #, fuzzy
 msgid "Dimension units: %1"
 msgstr "版本：%1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:720
+#: frontend/ui/elements/common_settings_menu_table.lua:717
 #, fuzzy
 msgid "Also show values in pixels"
 msgstr "不要用粗體顯示檔案"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:733
+#: frontend/ui/elements/common_settings_menu_table.lua:730
 #, fuzzy
 msgid "Metric system"
 msgstr "設定掃描長度"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:740
+#: frontend/ui/elements/common_settings_menu_table.lua:737
 msgid "Imperial system"
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:746
+#: frontend/ui/elements/common_settings_menu_table.lua:743
 msgid "Pixels"
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:751
+#: frontend/ui/elements/common_settings_menu_table.lua:748
 msgid "Screenshot folder"
 msgstr "螢幕擷圖資料夾"
 
@@ -12001,43 +12001,43 @@ msgstr "下劃線"
 msgid "Dashed line"
 msgstr "線上閱讀"
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:8
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:7
 msgid "Page press"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:10
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:9
 msgid "Configure the up and down buttons on both side of the kindle voyage"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:14
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:13
 msgid "Try PagePress, inverted when pressed"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:27
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:26
 msgid "Low pressure"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:38
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:37
 msgid "Medium pressure"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:49
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:48
 msgid "High pressure"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:61
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:60
 msgid "No feedback"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:72
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:71
 msgid "Low feedback"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:83
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:82
 msgid "Medium feedback"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:94
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:93
 msgid "High feedback"
 msgstr ""
 
@@ -12079,35 +12079,35 @@ msgstr "螢幕寬度百分比"
 msgid "Percentage of screen height"
 msgstr "螢幕高度百分比"
 
-#: frontend/ui/elements/page_turns.lua:76
+#: frontend/ui/elements/page_turns.lua:75
 msgid "to move forward."
 msgstr ""
 
-#: frontend/ui/elements/page_turns.lua:78
+#: frontend/ui/elements/page_turns.lua:77
 msgid "Tapping the rest area will move backward."
 msgstr ""
 
-#: frontend/ui/elements/page_turns.lua:100
+#: frontend/ui/elements/page_turns.lua:99
 msgid "Page turns"
 msgstr "翻頁"
 
-#: frontend/ui/elements/page_turns.lua:103
+#: frontend/ui/elements/page_turns.lua:102
 msgid "With taps"
 msgstr "藉由點按"
 
-#: frontend/ui/elements/page_turns.lua:112
+#: frontend/ui/elements/page_turns.lua:111
 msgid "With swipes"
 msgstr "藉由滑動"
 
-#: frontend/ui/elements/page_turns.lua:124
+#: frontend/ui/elements/page_turns.lua:123
 msgid "Tap zones: %1"
 msgstr "點按區域：%1"
 
-#: frontend/ui/elements/page_turns.lua:134
+#: frontend/ui/elements/page_turns.lua:133
 msgid "Invert page turn taps and swipes"
 msgstr "對調翻頁點擊和滑動"
 
-#: frontend/ui/elements/page_turns.lua:153
+#: frontend/ui/elements/page_turns.lua:152
 msgid ""
 "The default (★) for newly opened books is right-to-left (RTL) page turning.\n"
 "\n"
@@ -12117,7 +12117,7 @@ msgstr ""
 "\n"
 "您要變更嗎？"
 
-#: frontend/ui/elements/page_turns.lua:156
+#: frontend/ui/elements/page_turns.lua:155
 msgid ""
 "The default (★) for newly opened books is left-to-right (LTR) page turning.\n"
 "\n"
@@ -12127,26 +12127,26 @@ msgstr ""
 "\n"
 "您要變更嗎？"
 
-#: frontend/ui/elements/page_turns.lua:160
+#: frontend/ui/elements/page_turns.lua:159
 msgid "LTR (★)"
 msgstr "左到右 (★)"
 
-#: frontend/ui/elements/page_turns.lua:169
+#: frontend/ui/elements/page_turns.lua:168
 msgid "RTL (★)"
 msgstr "右到左 (★)"
 
-#: frontend/ui/elements/page_turns.lua:182
+#: frontend/ui/elements/page_turns.lua:181
 msgid "Also invert document-related dialogs"
 msgstr ""
 
-#: frontend/ui/elements/page_turns.lua:193
+#: frontend/ui/elements/page_turns.lua:192
 msgid ""
 "When enabled the UI direction for the Table of Contents, Book Map, and Page "
 "Browser dialogs will follow the page turn direction instead of the default "
 "UI direction."
 msgstr ""
 
-#: frontend/ui/elements/page_turns.lua:199
+#: frontend/ui/elements/page_turns.lua:198
 #, fuzzy
 msgid "Page turn animations"
 msgstr "翻頁"
@@ -12174,7 +12174,7 @@ msgstr ""
 msgid "About fully refreshing screens"
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:14
+#: frontend/ui/elements/refresh_menu_table.lua:13
 msgid ""
 "Showing a new content on an E-ink screen usually does not fully clear the "
 "previous content and leaves some blur. It may be referred as E-ink shadow or "
@@ -12188,25 +12188,25 @@ msgid ""
 "be good enough for most of the use cases."
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:21
+#: frontend/ui/elements/refresh_menu_table.lua:19
 msgid "Never automatically fully refresh screen"
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:24
+#: frontend/ui/elements/refresh_menu_table.lua:21
 msgid ""
 "The full refresh will happen only when showing an image, moving to next "
 "chapter or opening another book."
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:36
+#: frontend/ui/elements/refresh_menu_table.lua:32
 msgid "Low full refresh rate for better responsiveness"
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:47
+#: frontend/ui/elements/refresh_menu_table.lua:42
 msgid "Balance between responsiveness and quality"
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:64
+#: frontend/ui/elements/refresh_menu_table.lua:58
 msgid "High full refresh rate for better display quality"
 msgstr ""
 
@@ -12274,11 +12274,11 @@ msgstr "自訂 DPI"
 msgid "E-ink settings"
 msgstr "電子紙設定"
 
-#: frontend/ui/elements/screen_eink_opt_menu_table.lua:18
+#: frontend/ui/elements/screen_eink_opt_menu_table.lua:17
 msgid "Use lower refresh rate when appropriate"
 msgstr ""
 
-#: frontend/ui/elements/screen_eink_opt_menu_table.lua:21
+#: frontend/ui/elements/screen_eink_opt_menu_table.lua:19
 msgid ""
 "E-ink may laggy when refreshing, avoid refreshing the screen for the "
 "intermedia states, e.g. when scrolling, can be beneficial to reduce the "
@@ -12286,11 +12286,11 @@ msgid ""
 "A reloading of the book may be needed to take effect."
 msgstr ""
 
-#: frontend/ui/elements/screen_eink_opt_menu_table.lua:32
+#: frontend/ui/elements/screen_eink_opt_menu_table.lua:30
 msgid "Avoid mandatory black flashes in UI"
 msgstr "避免在 UI 中用黑畫面去除殘影"
 
-#: frontend/ui/elements/screen_eink_opt_menu_table.lua:35
+#: frontend/ui/elements/screen_eink_opt_menu_table.lua:32
 msgid ""
 "Fully rendering a black area can be slow and increase the blur on the E-ink, "
 "avoiding full refreshes of the black areas may improve the device "
@@ -12713,41 +12713,41 @@ msgstr ""
 msgid "Turning off Wi-Fi…"
 msgstr "正在開啟 Wi-Fi…"
 
-#: frontend/ui/network/manager.lua:599
+#: frontend/ui/network/manager.lua:598
 msgid "Network connection is required to perform the action."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:601
+#: frontend/ui/network/manager.lua:600
 msgid "Do you want to turn on Wi-Fi?"
 msgstr "您想要開啟 Wi-Fi 連線嗎？"
 
-#: frontend/ui/network/manager.lua:602 frontend/ui/network/manager.lua:864
+#: frontend/ui/network/manager.lua:601 frontend/ui/network/manager.lua:861
 #: plugins/autowarmth.koplugin/main.lua:1241
 #: plugins/gestures.koplugin/main.lua:1324
 msgid "Turn on"
 msgstr "開啟"
 
-#: frontend/ui/network/manager.lua:659
+#: frontend/ui/network/manager.lua:657
 msgid "Action will be performed after network being online"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:675
+#: frontend/ui/network/manager.lua:672
 msgid "Action will be performed after network being connected"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:714
+#: frontend/ui/network/manager.lua:711
 msgid "Wi-Fi settings"
 msgstr "Wi-Fi 設定"
 
-#: frontend/ui/network/manager.lua:726
+#: frontend/ui/network/manager.lua:723
 msgid "Wi-Fi connection"
 msgstr "Wi-Fi 連線"
 
-#: frontend/ui/network/manager.lua:772
+#: frontend/ui/network/manager.lua:769
 msgid "HTTP proxy %1"
 msgstr "HTTP 代理伺服器 %1"
 
-#: frontend/ui/network/manager.lua:788
+#: frontend/ui/network/manager.lua:785
 msgid ""
 "Tip:\n"
 "Long press on this menu entry to configure HTTP proxy."
@@ -12755,21 +12755,21 @@ msgstr ""
 "提示：\n"
 "長按此選項可設定 HTTP 代理。"
 
-#: frontend/ui/network/manager.lua:794
+#: frontend/ui/network/manager.lua:791
 msgid "Enter proxy address"
 msgstr "輸入代理伺服器位址"
 
-#: frontend/ui/network/manager.lua:805
+#: frontend/ui/network/manager.lua:802
 msgid "Disable Wi-Fi connection when inactive"
 msgstr "閒置時停用 Wi-Fi 連線"
 
-#: frontend/ui/network/manager.lua:808
+#: frontend/ui/network/manager.lua:805
 msgid ""
 "This is unlikely to function properly on a stock Kindle, given how much "
 "network activity the framework generates."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:811
+#: frontend/ui/network/manager.lua:808
 msgid ""
 "This will automatically turn Wi-Fi off after a generous period of network "
 "inactivity, without disrupting workflows that require a network connection, "
@@ -12778,11 +12778,11 @@ msgstr ""
 "啟用後會在無網路活動一段時間後自動關閉 Wi-Fi 用於節省電量，不會中斷需要網路的"
 "工作。"
 
-#: frontend/ui/network/manager.lua:824
+#: frontend/ui/network/manager.lua:821
 msgid "Restore Wi-Fi connection on resume"
 msgstr "喚醒後自動恢復 Wi-Fi 連線"
 
-#: frontend/ui/network/manager.lua:827
+#: frontend/ui/network/manager.lua:824
 #, fuzzy
 msgid ""
 "This will attempt to automatically and silently re-connect to Wi-Fi on "
@@ -12792,47 +12792,47 @@ msgstr ""
 "此選項啟用後，如果上次使用 KOReader 時 Wi-Fi 是啟用的，KOReader 會在啟動或喚"
 "醒後自動重新連線到 Wi-Fi。"
 
-#: frontend/ui/network/manager.lua:843
+#: frontend/ui/network/manager.lua:840
 msgid "Network info"
 msgstr "網路訊息"
 
-#: frontend/ui/network/manager.lua:864
+#: frontend/ui/network/manager.lua:861
 msgid "turn on"
 msgstr "開啟"
 
-#: frontend/ui/network/manager.lua:868
+#: frontend/ui/network/manager.lua:865
 #, fuzzy
 msgid "ignore"
 msgstr "忽略"
 
-#: frontend/ui/network/manager.lua:886
+#: frontend/ui/network/manager.lua:883
 msgid "Action when Wi-Fi is off: %1"
 msgstr "當 Wi-Fi 關閉時的行動：%1"
 
-#: frontend/ui/network/manager.lua:905
+#: frontend/ui/network/manager.lua:901
 msgid "Automatically connect to the known Wi-Fi"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:908
+#: frontend/ui/network/manager.lua:903
 msgid ""
 "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known "
 "network automatically after turning on Wi-Fi."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:975
+#: frontend/ui/network/manager.lua:969
 msgid "No available wifi networks found."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:984
+#: frontend/ui/network/manager.lua:978
 msgid "Scanning for networks…"
 msgstr "正在掃描網路…"
 
-#: frontend/ui/network/manager.lua:1086
+#: frontend/ui/network/manager.lua:1080
 #, fuzzy
 msgid "Connecting to network %1…"
 msgstr "已經連線到網路 %1"
 
-#: frontend/ui/network/manager.lua:1087
+#: frontend/ui/network/manager.lua:1081
 msgid "Connected to network %1"
 msgstr "已經連線到網路 %1"
 
@@ -12848,23 +12848,23 @@ msgstr "已連線。"
 msgid "Wi-Fi off."
 msgstr "Wi-Fi 關閉。"
 
-#: frontend/ui/network/networklistener.lua:221
+#: frontend/ui/network/networklistener.lua:218
 msgid "Internet"
 msgstr ""
 
-#: frontend/ui/network/networklistener.lua:224
+#: frontend/ui/network/networklistener.lua:220
 msgid "online"
 msgstr ""
 
-#: frontend/ui/network/networklistener.lua:224
+#: frontend/ui/network/networklistener.lua:220
 msgid "offline"
 msgstr ""
 
-#: frontend/ui/network/networklistener.lua:231
+#: frontend/ui/network/networklistener.lua:224
 msgid "Retrieving network information…"
 msgstr ""
 
-#: frontend/ui/network/networklistener.lua:235
+#: frontend/ui/network/networklistener.lua:227
 #: plugins/SSH.koplugin/main.lua:108
 msgid "Could not retrieve network info."
 msgstr "無法取得網路訊息。"
@@ -14054,7 +14054,7 @@ msgstr "百分比 – 未開啟過的最後"
 msgid "Current folder not readable. Some content may not be shown."
 msgstr "無法讀取目前的資料夾。一些內容可能沒有顯示。"
 
-#: frontend/ui/widget/filechooser.lua:604
+#: frontend/ui/widget/filechooser.lua:601
 msgid "Loading contents in %1"
 msgstr ""
 
@@ -14791,20 +14791,20 @@ msgstr ""
 msgid "Automatic dimmer"
 msgstr "自動重新啟動"
 
-#: plugins/autodim.koplugin/main.lua:65
+#: plugins/autodim.koplugin/main.lua:64
 msgid "after %1"
 msgstr ""
 
-#: plugins/autodim.koplugin/main.lua:81
+#: plugins/autodim.koplugin/main.lua:80
 #, fuzzy
 msgid "Automatic dimmer idle time"
 msgstr "自動重新啟動"
 
-#: plugins/autodim.koplugin/main.lua:83
+#: plugins/autodim.koplugin/main.lua:82
 msgid "Start the dimmer after the designated period of inactivity."
 msgstr ""
 
-#: plugins/autodim.koplugin/main.lua:93
+#: plugins/autodim.koplugin/main.lua:92
 #, fuzzy
 msgctxt "Time"
 msgid "min"
@@ -14815,7 +14815,7 @@ msgstr "迷你"
 msgid "This plugin allows dimming the frontlight after a period of inactivity."
 msgstr "這個外掛可以自動設定前光暖度。"
 
-#: plugins/autodim.koplugin/_meta.lua:11
+#: plugins/autodim.koplugin/_meta.lua:9
 msgid "KOReader is in idle mode when the frontlight is dimmed."
 msgstr ""
 
@@ -17140,54 +17140,54 @@ msgstr "鍵盤"
 msgid "Manages USB OTG and configures keyboard."
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:50
+#: plugins/findhistory.koplugin/main.lua:47
 msgid "Searching for reading records…"
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:56
+#: plugins/findhistory.koplugin/main.lua:52
 msgid "History view has been updated, use main menu to access it."
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:72
+#: plugins/findhistory.koplugin/main.lua:68
 msgid ""
 "Failed to backup current history view from %1 to %2, still want to proceed?"
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:77
-#: plugins/findhistory.koplugin/main.lua:92
+#: plugins/findhistory.koplugin/main.lua:73
+#: plugins/findhistory.koplugin/main.lua:88
 msgid "Proceed"
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:90
+#: plugins/findhistory.koplugin/main.lua:86
 msgid ""
 "Found an existing history backup file; it will be overwritten. Still want to "
 "proceed?"
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:108
+#: plugins/findhistory.koplugin/main.lua:104
 msgid "Last history view has been restored, use main menu to access it."
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:115
+#: plugins/findhistory.koplugin/main.lua:111
 msgid "Failed to restore the last history view from %1."
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:125
+#: plugins/findhistory.koplugin/main.lua:121
 msgid ""
 "This function searches and retrieves all the reading records in the home "
 "directory and build the history view.\n"
 "The last history view will be preserved and can be restored."
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:127
+#: plugins/findhistory.koplugin/main.lua:123
 msgid "Retrieve"
 msgstr ""
 
-#: plugins/findhistory.koplugin/_meta.lua:5
+#: plugins/findhistory.koplugin/_meta.lua:4
 msgid "Retrieve reading history"
 msgstr ""
 
-#: plugins/findhistory.koplugin/_meta.lua:7
+#: plugins/findhistory.koplugin/_meta.lua:6
 msgid ""
 "Searches reading records in the home folder and update the history view."
 msgstr ""
@@ -17541,58 +17541,58 @@ msgid "This is a debugging plugin."
 msgstr "這是個除錯外掛。"
 
 #: plugins/httpinspector.koplugin/main.lua:1440
-#: plugins/httpinspector.koplugin/_meta.lua:5
+#: plugins/httpinspector.koplugin/_meta.lua:4
 msgid "Remotely control KOReader"
 msgstr ""
 
-#: plugins/httpinspector.koplugin/main.lua:1447
+#: plugins/httpinspector.koplugin/main.lua:1446
 msgid "Navigate to %1 from a browser to control KOReader."
 msgstr ""
 
-#: plugins/httpinspector.koplugin/main.lua:1454
+#: plugins/httpinspector.koplugin/main.lua:1453
 msgid ""
 "After starting the HTTP server, navigate to %1 from a browser to control "
 "KOReader."
 msgstr ""
 
-#: plugins/httpinspector.koplugin/main.lua:1463
+#: plugins/httpinspector.koplugin/main.lua:1462
 msgid "Turn on the network connection to use the feature."
 msgstr ""
 
-#: plugins/httpinspector.koplugin/main.lua:1471
+#: plugins/httpinspector.koplugin/main.lua:1470
 #, fuzzy
 msgid "Stop HTTP server"
 msgstr "SSH 伺服器"
 
-#: plugins/httpinspector.koplugin/main.lua:1473
+#: plugins/httpinspector.koplugin/main.lua:1472
 msgid "Listening on port %1"
 msgstr ""
 
-#: plugins/httpinspector.koplugin/main.lua:1475
+#: plugins/httpinspector.koplugin/main.lua:1474
 #, fuzzy
 msgid "Start HTTP server"
 msgstr "SSH 伺服器"
 
-#: plugins/httpinspector.koplugin/main.lua:1491
+#: plugins/httpinspector.koplugin/main.lua:1490
 #, fuzzy
 msgid "Auto start HTTP server"
 msgstr "無法啟動 SSH 伺服器。"
 
-#: plugins/httpinspector.koplugin/main.lua:1501
+#: plugins/httpinspector.koplugin/main.lua:1500
 #, fuzzy
 msgid "Port: %1"
 msgstr "字型：%1"
 
-#: plugins/httpinspector.koplugin/main.lua:1508
+#: plugins/httpinspector.koplugin/main.lua:1507
 #, fuzzy
 msgid "Set custom port"
 msgstr "自訂"
 
-#: plugins/httpinspector.koplugin/main.lua:1511
+#: plugins/httpinspector.koplugin/main.lua:1510
 msgid "Port number (default is 8080)"
 msgstr ""
 
-#: plugins/httpinspector.koplugin/_meta.lua:8
+#: plugins/httpinspector.koplugin/_meta.lua:6
 msgid ""
 "Allow remotely controlling KOReader via browsers, with advanced features of "
 "inspecting KOReader internal state. It poses security risks; only enable "
@@ -17828,11 +17828,11 @@ msgstr "自訂進度同步伺服器位址"
 msgid "Logout"
 msgstr "登出"
 
-#: plugins/kosync.koplugin/main.lua:211 plugins/kosync.koplugin/main.lua:473
+#: plugins/kosync.koplugin/main.lua:211 plugins/kosync.koplugin/main.lua:472
 msgid "Register"
 msgstr "註冊"
 
-#: plugins/kosync.koplugin/main.lua:211 plugins/kosync.koplugin/main.lua:455
+#: plugins/kosync.koplugin/main.lua:211 plugins/kosync.koplugin/main.lua:454
 msgid "Login"
 msgstr "登入"
 
@@ -17840,7 +17840,7 @@ msgstr "登入"
 msgid "Automatically keep documents in sync"
 msgstr ""
 
-#: plugins/kosync.koplugin/main.lua:235
+#: plugins/kosync.koplugin/main.lua:233
 msgid ""
 "Enable the feature will automatically pull and push progress when necessary."
 msgstr ""
@@ -17895,85 +17895,85 @@ msgstr "二進位。 只有相同的檔案才會同步進度。"
 msgid "Filename. Files with matching names will be kept in sync."
 msgstr "檔案名稱。 相同名稱的檔案會同步進度。"
 
-#: plugins/kosync.koplugin/main.lua:407
+#: plugins/kosync.koplugin/main.lua:406
 msgid ""
 "The new server address %1 is invalid, revert back to %2.\n"
 "Error: %3"
 msgstr ""
 
-#: plugins/kosync.koplugin/main.lua:461
+#: plugins/kosync.koplugin/main.lua:460
 msgid "Cannot login: %1"
 msgstr "無法登入：%1"
 
-#: plugins/kosync.koplugin/main.lua:468
+#: plugins/kosync.koplugin/main.lua:467
 msgid "Logging in. Please wait…"
 msgstr "登入中。請等待……"
 
-#: plugins/kosync.koplugin/main.lua:479
+#: plugins/kosync.koplugin/main.lua:478
 msgid "Cannot register: %1"
 msgstr "無法註冊：%1"
 
-#: plugins/kosync.koplugin/main.lua:488
+#: plugins/kosync.koplugin/main.lua:487
 msgid "Registering. Please wait…"
 msgstr "正在註冊中。請等待……"
 
-#: plugins/kosync.koplugin/main.lua:510
+#: plugins/kosync.koplugin/main.lua:509
 msgid "An error occurred while registering:"
 msgstr "註冊時發生錯誤："
 
-#: plugins/kosync.koplugin/main.lua:516
+#: plugins/kosync.koplugin/main.lua:515
 msgid "An unknown error occurred while registering."
 msgstr "註冊時發生不明錯誤。"
 
-#: plugins/kosync.koplugin/main.lua:526
+#: plugins/kosync.koplugin/main.lua:525
 msgid "Registered to KOReader server."
 msgstr "已註冊到 KOReader 伺服器。"
 
-#: plugins/kosync.koplugin/main.lua:530 plugins/kosync.koplugin/main.lua:564
+#: plugins/kosync.koplugin/main.lua:529 plugins/kosync.koplugin/main.lua:563
 msgid "Unknown server error"
 msgstr "未知伺服器錯誤"
 
-#: plugins/kosync.koplugin/main.lua:544
+#: plugins/kosync.koplugin/main.lua:543
 msgid "An error occurred while logging in:"
 msgstr "登入時發生錯誤："
 
-#: plugins/kosync.koplugin/main.lua:548
+#: plugins/kosync.koplugin/main.lua:547
 msgid "An unknown error occurred while logging in."
 msgstr "登入時發生不明錯誤。"
 
-#: plugins/kosync.koplugin/main.lua:560
+#: plugins/kosync.koplugin/main.lua:559
 msgid "Logged in to KOReader server."
 msgstr "已登入 KOReader 伺服器。"
 
-#: plugins/kosync.koplugin/main.lua:679
+#: plugins/kosync.koplugin/main.lua:678
 msgid "Progress has been pushed."
 msgstr "進度已被推送。"
 
-#: plugins/kosync.koplugin/main.lua:704
+#: plugins/kosync.koplugin/main.lua:700
 msgid "Pushing progress…"
 msgstr ""
 
-#: plugins/kosync.koplugin/main.lua:758
+#: plugins/kosync.koplugin/main.lua:753
 msgid "No progress found for this document."
 msgstr "沒找到目前這份文件的閱讀進度。"
 
-#: plugins/kosync.koplugin/main.lua:768
+#: plugins/kosync.koplugin/main.lua:763
 msgid "Latest progress is coming from this device."
 msgstr "最新的閱讀進度正從此裝置匯入。"
 
-#: plugins/kosync.koplugin/main.lua:788
+#: plugins/kosync.koplugin/main.lua:783
 msgid "The progress has already been synchronized."
 msgstr "閱讀進度已經同步了。"
 
-#: plugins/kosync.koplugin/main.lua:818
+#: plugins/kosync.koplugin/main.lua:813
 msgid "Sync to latest location %1% from device '%2'?"
 msgstr "要從裝置「%2」同步最新的位置 %1%嗎？"
 
-#: plugins/kosync.koplugin/main.lua:834
+#: plugins/kosync.koplugin/main.lua:829
 msgid "Sync to previous location %1% from device '%2'?"
 msgstr "要從裝置「%2」同步早先之前的位置 %1% 嗎？"
 
-#: plugins/kosync.koplugin/main.lua:864
+#: plugins/kosync.koplugin/main.lua:856
 msgid "Pulling progress…"
 msgstr ""
 
@@ -18062,11 +18062,11 @@ msgid "Command output"
 msgstr "指令輸出"
 
 #: plugins/legacy_terminal.koplugin/main.lua:536
-#: plugins/legacy_terminal.koplugin/_meta.lua:5
+#: plugins/legacy_terminal.koplugin/_meta.lua:4
 msgid "Legacy terminal emulator"
 msgstr ""
 
-#: plugins/legacy_terminal.koplugin/_meta.lua:7
+#: plugins/legacy_terminal.koplugin/_meta.lua:5
 msgid "KOReader's legacy terminal emulator"
 msgstr ""
 
@@ -18942,24 +18942,24 @@ msgstr "選擇 SSH 連接埠"
 msgid "SSH server"
 msgstr "SSH 伺服器"
 
-#: plugins/SSH.koplugin/main.lua:205 plugins/SSH.koplugin/main.lua:206
+#: plugins/SSH.koplugin/main.lua:204 plugins/SSH.koplugin/main.lua:205
 msgid "Stop SSH server"
 msgstr ""
 
-#: plugins/SSH.koplugin/main.lua:216
+#: plugins/SSH.koplugin/main.lua:215
 msgid "SSH port (%1)"
 msgstr "SSH 連接埠 (%1)"
 
-#: plugins/SSH.koplugin/main.lua:223 plugins/SSH.koplugin/main.lua:235
-#: plugins/SSH.koplugin/main.lua:256
+#: plugins/SSH.koplugin/main.lua:221 plugins/SSH.koplugin/main.lua:232
+#: plugins/SSH.koplugin/main.lua:252
 msgid "Stop SSH server to configure"
 msgstr ""
 
-#: plugins/SSH.koplugin/main.lua:229
+#: plugins/SSH.koplugin/main.lua:227
 msgid "SSH public key"
 msgstr "SSH 公鑰"
 
-#: plugins/SSH.koplugin/main.lua:240
+#: plugins/SSH.koplugin/main.lua:237
 msgid ""
 "Put your public SSH keys in\n"
 "%1"
@@ -18967,15 +18967,15 @@ msgstr ""
 "將您的 SSH 公鑰放置到\n"
 "%1"
 
-#: plugins/SSH.koplugin/main.lua:248
+#: plugins/SSH.koplugin/main.lua:245
 msgid "Login without password (DANGEROUS)"
 msgstr "無須密碼登入（危險）"
 
-#: plugins/SSH.koplugin/main.lua:264
+#: plugins/SSH.koplugin/main.lua:259
 msgid "Auto start SSH server"
 msgstr ""
 
-#: plugins/SSH.koplugin/main.lua:281
+#: plugins/SSH.koplugin/main.lua:276
 msgid "Toggle SSH server"
 msgstr "啟用/停用 SSH 伺服器"
 
@@ -19565,19 +19565,19 @@ msgid "Last resume time"
 msgstr "最近一次的喚醒時間"
 
 #: plugins/systemstat.koplugin/main.lua:202
-#: plugins/systemstat.koplugin/main.lua:305
+#: plugins/systemstat.koplugin/main.lua:298
 #, fuzzy
 msgid "Up time"
 msgstr "停止計時器"
 
 #: plugins/systemstat.koplugin/main.lua:208
-#: plugins/systemstat.koplugin/main.lua:312
+#: plugins/systemstat.koplugin/main.lua:305
 #, fuzzy
 msgid "Time spent awake"
 msgstr "今天的閱讀時間"
 
 #: plugins/systemstat.koplugin/main.lua:217
-#: plugins/systemstat.koplugin/main.lua:322
+#: plugins/systemstat.koplugin/main.lua:315
 #, fuzzy
 msgid "Time in suspend"
 msgstr "逾時，以秒為單位"
@@ -19587,157 +19587,157 @@ msgstr "逾時，以秒為單位"
 msgid "Time in standby"
 msgstr "逾時，以秒為單位"
 
-#: plugins/systemstat.koplugin/main.lua:236
+#: plugins/systemstat.koplugin/main.lua:235
 msgid "Start discharging at"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:242
+#: plugins/systemstat.koplugin/main.lua:240
 msgid "Device model"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:246
+#: plugins/systemstat.koplugin/main.lua:244
 msgid "Counters"
 msgstr "計數器"
 
 #. @translators The number of "sleeps", that is the number of times the device has entered standby. This could also be translated as a rendition of a phrase like "entered sleep".
-#: plugins/systemstat.koplugin/main.lua:249
+#: plugins/systemstat.koplugin/main.lua:247
 msgid "  Wake-ups"
 msgstr "  喚醒"
 
-#: plugins/systemstat.koplugin/main.lua:249
+#: plugins/systemstat.koplugin/main.lua:247
 msgid "  sleeps"
 msgstr "  休眠"
 
-#: plugins/systemstat.koplugin/main.lua:252
+#: plugins/systemstat.koplugin/main.lua:250
 msgid "  Discharge cycles"
 msgstr "  放電週期"
 
-#: plugins/systemstat.koplugin/main.lua:255
+#: plugins/systemstat.koplugin/main.lua:252
 msgid "Background jobs"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:260
+#: plugins/systemstat.koplugin/main.lua:256
 msgid "Pending network jobs"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:267
+#: plugins/systemstat.koplugin/main.lua:262
 msgid "Pending jobs after being connected"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:277
+#: plugins/systemstat.koplugin/main.lua:271
 msgid "Pending jobs after being online"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:298
+#: plugins/systemstat.koplugin/main.lua:292
 msgid "System information"
 msgstr "系統資訊"
 
-#: plugins/systemstat.koplugin/main.lua:301
+#: plugins/systemstat.koplugin/main.lua:294
 msgid "  Number of processes"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:330
+#: plugins/systemstat.koplugin/main.lua:322
 msgid "Number of processors"
 msgstr ""
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:333
+#: plugins/systemstat.koplugin/main.lua:325
 msgid "  Total ticks (million)"
 msgstr "  總處理器週期（百萬）"
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:338
+#: plugins/systemstat.koplugin/main.lua:330
 msgid "  Idle ticks (million)"
 msgstr "  閒置的處理器週期（百萬）"
 
-#: plugins/systemstat.koplugin/main.lua:343
-#: plugins/systemstat.koplugin/main.lua:426
+#: plugins/systemstat.koplugin/main.lua:335
+#: plugins/systemstat.koplugin/main.lua:413
 msgid "  Processor usage %"
 msgstr "  處理器用量百分比"
 
-#: plugins/systemstat.koplugin/main.lua:350
+#: plugins/systemstat.koplugin/main.lua:341
 msgid "5 minutes usage %"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:357
+#: plugins/systemstat.koplugin/main.lua:347
 msgid "15 minutes usage %"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:363
+#: plugins/systemstat.koplugin/main.lua:352
 msgid "Usage % during awake"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:371
+#: plugins/systemstat.koplugin/main.lua:359
 msgid "Usage % since boot"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:381
+#: plugins/systemstat.koplugin/main.lua:369
 msgid "  Total memory (MB)"
 msgstr "  總記憶體 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:385
+#: plugins/systemstat.koplugin/main.lua:373
 msgid "  Free memory (MB)"
 msgstr "  閒置記憶體 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:389
+#: plugins/systemstat.koplugin/main.lua:377
 msgid "  Available memory (MB)"
 msgstr "  可用記憶體 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:406
+#: plugins/systemstat.koplugin/main.lua:394
 msgid "Process"
 msgstr "程序"
 
-#: plugins/systemstat.koplugin/main.lua:408
+#: plugins/systemstat.koplugin/main.lua:396
 msgid "  ID"
 msgstr "  ID"
 
-#: plugins/systemstat.koplugin/main.lua:422
+#: plugins/systemstat.koplugin/main.lua:409
 msgid "Total ticks"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:436
+#: plugins/systemstat.koplugin/main.lua:422
 msgid "Priority / nice"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:443
+#: plugins/systemstat.koplugin/main.lua:429
 msgid "  Threads"
 msgstr "  執行緒"
 
-#: plugins/systemstat.koplugin/main.lua:452
+#: plugins/systemstat.koplugin/main.lua:438
 msgid "  Virtual memory (MB)"
 msgstr "  虛擬記憶體 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:462
+#: plugins/systemstat.koplugin/main.lua:448
 msgid "  RAM usage (MB)"
 msgstr "  記憶體使用 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:478
+#: plugins/systemstat.koplugin/main.lua:464
 msgid "Storage information"
 msgstr "儲存系統資訊"
 
-#: plugins/systemstat.koplugin/main.lua:482
+#: plugins/systemstat.koplugin/main.lua:468
 msgid "  Unexpected"
 msgstr "  未預期的"
 
-#: plugins/systemstat.koplugin/main.lua:484
+#: plugins/systemstat.koplugin/main.lua:470
 msgid "  Mount point"
 msgstr "  掛載點"
 
-#: plugins/systemstat.koplugin/main.lua:485
+#: plugins/systemstat.koplugin/main.lua:471
 msgid "  Available"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:486
+#: plugins/systemstat.koplugin/main.lua:472
 msgid "  Total"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:487
+#: plugins/systemstat.koplugin/main.lua:473
 msgid "  Used percentage"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:513
-#: plugins/systemstat.koplugin/main.lua:528
-#: plugins/systemstat.koplugin/main.lua:541
+#: plugins/systemstat.koplugin/main.lua:499
+#: plugins/systemstat.koplugin/main.lua:514
+#: plugins/systemstat.koplugin/main.lua:527
 #: plugins/systemstat.koplugin/_meta.lua:4
 msgid "System statistics"
 msgstr "系統統計訊息"

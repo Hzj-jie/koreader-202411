@@ -768,7 +768,6 @@ function ReaderUI:_showReaderCoroutine(file, provider, seamless)
       io.stderr:write(debug.traceback(co, err, 1))
       -- Restore input if we crashed before ReaderUI has restored it
       Device:setIgnoreInput(false)
-      -- Need localization.
       UIManager:show(InfoMessage:new({
         text = gettext("Unfortunately KOReader crashed.")
           .. "\n"
@@ -951,7 +950,6 @@ function ReaderUI:onExit(seamless)
   else
     UIManager:runWith(
       f,
-      -- Need localization.
       T(
         gettext("Saving progress of file %1"),
         BD.filepath(filemanagerutil.abbreviate(self.document.file))

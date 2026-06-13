@@ -36,13 +36,9 @@ function FileManagerHistory:addToMainMenu(menu_items)
   menu_items.history = {
     text = self.hist_menu_title,
     callback = function()
-      UIManager:runWith(
-        function()
-          self:onShowHist()
-        end,
-        -- Need localization
-        gettext("Loading reading history…")
-      )
+      UIManager:runWith(function()
+        self:onShowHist()
+      end, gettext("Loading reading history…"))
     end,
   }
 end

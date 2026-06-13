@@ -4,7 +4,6 @@ local gettext = require("gettext")
 local Input = Device.input
 
 local menu = {
-  -- Need localization
   text = gettext("Page press"),
   help_text = gettext(
     "Configure the up and down buttons on both side of the kindle voyage"

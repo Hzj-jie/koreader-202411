@@ -1114,7 +1114,6 @@ function ReaderToc:addToMainMenu(menu_items)
   }
   -- ToC (and other navigation) settings
   menu_items.navi_settings = {
-    -- Need localization
     text = gettext("Navigation settings"),
   }
   -- Alternative ToC (only available with CRE documents)

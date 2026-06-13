@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 19:19-0700\n"
+"POT-Creation-Date: 2026-06-12 19:21-0700\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: gallegonovato <fran-carro@hotmail.es>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/koreader/"
@@ -50,12 +50,12 @@ msgstr ""
 "rendimiento."
 
 #: reader.lua:223 frontend/apps/reader/modules/readertypography.lua:617
-#: frontend/ui/network/manager.lua:868
+#: frontend/ui/network/manager.lua:865
 msgid "Ignore"
 msgstr "Ignorar"
 
 #: reader.lua:227 frontend/apps/reader/modules/readerbookmark.lua:162
-#: frontend/apps/reader/modules/readerdictionary.lua:1384
+#: frontend/apps/reader/modules/readerdictionary.lua:1382
 #: frontend/apps/reader/modules/readerfooter.lua:1780
 #: frontend/apps/reader/modules/readerrolling.lua:570
 #: frontend/apps/reader/modules/readersearch.lua:182
@@ -64,9 +64,9 @@ msgstr "Ignorar"
 #: frontend/apps/reader/modules/readertypography.lua:848
 #: frontend/apps/reader/modules/readertypography.lua:899
 #: frontend/apps/reader/modules/readertypography.lua:994
-#: frontend/ui/elements/common_settings_menu_table.lua:289
+#: frontend/ui/elements/common_settings_menu_table.lua:287
 #: frontend/ui/plugin/switch_plugin.lua:70
-#: plugins/autodim.koplugin/main.lua:105
+#: plugins/autodim.koplugin/main.lua:104
 #: plugins/autosuspend.koplugin/main.lua:546
 #: plugins/autoturn.koplugin/main.lua:158
 #: plugins/autowarmth.koplugin/main.lua:833 plugins/kosync.koplugin/main.lua:88
@@ -164,11 +164,11 @@ msgstr "Introducir nombre de archivo"
 #: frontend/apps/cloudstorage/dropbox.lua:141
 #: frontend/apps/cloudstorage/ftp.lua:146
 #: frontend/apps/cloudstorage/webdav.lua:172
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:583
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:737
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:576
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:730
 #: frontend/apps/filemanager/filemanagercollection.lua:582
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:67
-#: frontend/apps/filemanager/filemanagerhistory.lua:439
+#: frontend/apps/filemanager/filemanagerhistory.lua:435
 #: frontend/apps/filemanager/filemanager.lua:1115
 #: frontend/apps/filemanager/filemanager.lua:1266
 #: frontend/apps/filemanager/filemanager.lua:1630
@@ -178,7 +178,7 @@ msgstr "Introducir nombre de archivo"
 #: frontend/apps/reader/modules/readerbookmark.lua:1454
 #: frontend/apps/reader/modules/readerbookmark.lua:1519
 #: frontend/apps/reader/modules/readercropping.lua:62
-#: frontend/apps/reader/modules/readerdictionary.lua:773
+#: frontend/apps/reader/modules/readerdictionary.lua:772
 #: frontend/apps/reader/modules/readerfooter.lua:701
 #: frontend/apps/reader/modules/readergoto.lua:71
 #: frontend/apps/reader/modules/readerhandmade.lua:517
@@ -187,8 +187,8 @@ msgstr "Introducir nombre de archivo"
 #: frontend/apps/reader/modules/readeruserhyph.lua:329
 #: frontend/apps/reader/modules/readerwikipedia.lua:61
 #: frontend/apps/reader/modules/readerwikipedia.lua:196
-#: frontend/apps/reader/readerui.lua:845 frontend/device/android/device.lua:590
-#: frontend/ui/elements/common_settings_menu_table.lua:276
+#: frontend/apps/reader/readerui.lua:844 frontend/device/android/device.lua:590
+#: frontend/ui/elements/common_settings_menu_table.lua:274
 #: frontend/ui/elements/timeout_android.lua:65 frontend/ui/screensaver.lua:366
 #: frontend/ui/widget/bookstatuswidget.lua:586
 #: frontend/ui/widget/confirmbox.lua:50
@@ -221,8 +221,8 @@ msgstr "Introducir nombre de archivo"
 #: plugins/exporter.koplugin/target/readwise.lua:76
 #: plugins/exporter.koplugin/target/xmnote.lua:41
 #: plugins/gestures.koplugin/main.lua:430
-#: plugins/httpinspector.koplugin/main.lua:1518
-#: plugins/kosync.koplugin/main.lua:448
+#: plugins/httpinspector.koplugin/main.lua:1517
+#: plugins/kosync.koplugin/main.lua:447
 #: plugins/legacy_terminal.koplugin/main.lua:255
 #: plugins/legacy_terminal.koplugin/main.lua:295
 #: plugins/legacy_terminal.koplugin/main.lua:364
@@ -263,7 +263,7 @@ msgid "Set filename"
 msgstr "Establecer nombre del archivo"
 
 #: frontend/apps/cloudstorage/cloudstorage.lua:338
-#: frontend/apps/reader/modules/readerdictionary.lua:1220
+#: frontend/apps/reader/modules/readerdictionary.lua:1218
 msgid "Download"
 msgstr "Descargar"
 
@@ -307,7 +307,7 @@ msgstr "Editar"
 #: frontend/apps/cloudstorage/cloudstorage.lua:456
 #: frontend/apps/filemanager/filemanagercollection.lua:189
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:416
-#: frontend/apps/filemanager/filemanagerhistory.lua:234
+#: frontend/apps/filemanager/filemanagerhistory.lua:230
 #: frontend/apps/filemanager/filemanager.lua:247
 #: frontend/apps/filemanager/filemanager.lua:627
 #: frontend/apps/filemanager/filemanager.lua:634
@@ -562,7 +562,7 @@ msgstr "Carpeta de Dropbox (/ para root)"
 
 #: frontend/apps/cloudstorage/dropbox.lua:155
 #: frontend/apps/cloudstorage/webdav.lua:186
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:590
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:583
 #: frontend/apps/filemanager/filemanagercollection.lua:589
 #: frontend/apps/filemanager/filemanagershortcuts.lua:138
 #: frontend/apps/reader/modules/readerbookmark.lua:1394
@@ -836,34 +836,34 @@ msgstr "Formato:"
 msgid "Size:"
 msgstr "Tamaño:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:91
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:90
 msgid "Last open:"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:93
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:98
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:92
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:97
 #: plugins/calibre.koplugin/search.lua:151
 msgid "Unknown"
 msgstr "Desconocido"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:96
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:95
 msgid "File date:"
 msgstr "Fecha del archivo:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:101
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:100
 #: frontend/apps/filemanager/filemanager.lua:912
 msgid "Folder:"
 msgstr "Carpeta:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:120
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:119
 msgid "Tap to display"
 msgstr "Pulsar para ver"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:141
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:181
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:210
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:878
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:880
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:140
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:180
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:209
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:871
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:873
 #: frontend/apps/filemanager/filemanager.lua:914
 #: frontend/apps/reader/modules/readerfooter.lua:2166
 #: frontend/apps/reader/modules/readertypography.lua:1192
@@ -883,71 +883,71 @@ msgstr "Pulsar para ver"
 msgid "N/A"
 msgstr "No aplicable"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:189
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:188
 msgid "number of lines and words not available"
 msgstr "El número de líneas y palabras no están disponibles"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:190
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:189
 msgid "1 line"
 msgid_plural "%1 lines"
 msgstr[0] "1 línea"
 msgstr[1] "%1 líneas"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:192
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:191
 msgid "1 word"
 msgid_plural "%1 words"
 msgstr[0] "1 palabra"
 msgstr[1] "%1 palabras"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:193
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:192
 msgid "Current page:"
 msgstr "Página actual:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:204
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:203
 msgid "Rating:"
 msgstr "Calificación:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:209
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:208
 msgid "Review:"
 msgstr "Reseña:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:216
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:214
 msgid "Number of bookmarks"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:222
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:219
 msgid "Number of settings:"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:228
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:222
 msgid "Setting file size:"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:411
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:404
 msgid "No book description available."
 msgstr "No hay disponible ninguna descripción del libro."
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:428
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:421
 msgid "No cover image available."
 msgstr "No hay disponible ninguna imagen de cubierta."
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:572
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:565
 msgid "Edit book metadata:"
 msgstr "Editar los metadatos del libro:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:629
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:622
 msgid "Copy original"
 msgstr "Copiar original"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:637
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:630
 msgid "View original"
 msgstr "Ver original"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:650
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:643
 msgid "Reset custom"
 msgstr "Restablecer datos personalizados"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:656
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:649
 msgid ""
 "Reset custom cover?\n"
 "Image file will be deleted."
@@ -955,11 +955,11 @@ msgstr ""
 "¿Quiere restablecer la cubierta personalizada?\n"
 "El archivo de imagen se eliminará."
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:657
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:650
 msgid "Reset custom book metadata field?"
 msgstr "¿Quiere restablecer el campo de metadatos personalizados del libro?"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:658
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:651
 #: frontend/apps/filemanager/filemanagerutil.lua:194
 #: frontend/apps/filemanager/filemanagerutil.lua:212
 #: frontend/apps/reader/modules/readermenu.lua:211
@@ -970,42 +970,42 @@ msgstr "¿Quiere restablecer el campo de metadatos personalizados del libro?"
 msgid "Reset"
 msgstr "Restablecer"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:672
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:665
 msgid "Set custom"
 msgstr "Configuración personalizada"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:687
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:680
 msgid "Book metadata:"
 msgstr "Metadatos del libro:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:729
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:722
 msgid "Edit book review"
 msgstr "Editar reseña del libro"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:744
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:737
 #: frontend/ui/widget/bookstatuswidget.lua:593
 msgid "Save review"
 msgstr "Guardar reseña"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:819
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:812
 msgid ""
 "Scan books in current folder and subfolders for their metadata location?"
 msgstr ""
 "¿Escanear los libros de la carpeta y subcarpetas actuales para localizar sus "
 "metadatos?"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:821
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:814
 #: plugins/calibre.koplugin/search.lua:561
 msgid "Scan"
 msgstr "Escanear"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:828
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:821
 msgid "No books with metadata not in your preferred location found."
 msgstr ""
 "No se han encontrado libros cuyos metadatos no estén en la ubicación "
 "preferida."
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:835
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:828
 msgid "1 book with metadata not in your preferred location found."
 msgid_plural "%1 books with metadata not in your preferred location found."
 msgstr[0] ""
@@ -1015,18 +1015,18 @@ msgstr[1] ""
 "Encontrados %1 libros cuyos metadatos no se encuentran en la ubicación "
 "preferida."
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:842
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:835
 msgid "Move book metadata to your preferred location?"
 msgstr "¿Mover los metadatos del libro a la ubicación preferida?"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:843
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:836
 #: frontend/apps/filemanager/filemanager.lua:606
 #: frontend/apps/filemanager/filemanager.lua:1028
 #: frontend/apps/filemanager/filemanager.lua:1348
 msgid "Move"
 msgstr "Mover"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:860
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:853
 msgid ""
 "Hash-based metadata has been saved in %1 for the following documents. Hash-"
 "based storage may slow down file browser navigation in large directories. "
@@ -1043,7 +1043,7 @@ msgstr ""
 "metadatos a la ubicación de almacenamiento preferida, o eliminar %1, lo que "
 "acelerará la navegación con el explorador de archivos."
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:882
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:875
 msgid ""
 "%1. Title: %2; Author: %3\n"
 "Document: %4"
@@ -1051,7 +1051,7 @@ msgstr ""
 "%1. Título: %2; Autor: %3\n"
 "Documento: %4"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:894
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:887
 msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 documento con metadatos basados en hash"
@@ -1181,7 +1181,7 @@ msgstr "¿Quiere sobrescribir el archivo HTML existente?"
 #: frontend/apps/filemanager/filemanagerconverter.lua:95
 #: frontend/apps/filemanager/filemanager.lua:1008
 #: frontend/apps/filemanager/filemanager.lua:1342
-#: frontend/apps/reader/modules/readerdictionary.lua:1178
+#: frontend/apps/reader/modules/readerdictionary.lua:1176
 #: plugins/opds.koplugin/opdsbrowser.lua:900
 msgid "Overwrite"
 msgstr "Sobrescribir"
@@ -1204,7 +1204,7 @@ msgid "Book folder"
 msgstr "Carpeta de libros"
 
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:95
-#: frontend/apps/filemanager/filemanagerhistory.lua:470
+#: frontend/apps/filemanager/filemanagerhistory.lua:466
 #: frontend/apps/reader/modules/readerbookmark.lua:1563
 #: frontend/apps/reader/modules/readersearch.lua:352
 #: frontend/ui/widget/inputdialog.lua:1002
@@ -1231,7 +1231,7 @@ msgstr "No hay resultados para «%1»."
 
 #. @translators Search for files by name.
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:277
-#: frontend/apps/filemanager/filemanagermenu.lua:546
+#: frontend/apps/filemanager/filemanagermenu.lua:545
 #: frontend/dispatcher.lua:496 frontend/ui/widget/menu.lua:847
 msgid "File search"
 msgstr "Búsqueda de archivos"
@@ -1262,7 +1262,7 @@ msgid "Query: %1"
 msgstr "Consulta: %1"
 
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:347
-#: frontend/apps/filemanager/filemanagerhistory.lua:100
+#: frontend/apps/filemanager/filemanagerhistory.lua:96
 #: frontend/apps/reader/modules/readersearch.lua:815
 msgid "Search results (%1)"
 msgstr "Resultado de búsqueda (%1)"
@@ -1341,48 +1341,48 @@ msgctxt "Book status filter"
 msgid "New"
 msgstr "Nuevos"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:44
+#: frontend/apps/filemanager/filemanagerhistory.lua:41
 msgid "Loading reading history…"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:102
+#: frontend/apps/filemanager/filemanagerhistory.lua:98
 msgid "Filtered by collections (%1)"
 msgstr "Filtrado por colecciones (%1)"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:105
+#: frontend/apps/filemanager/filemanagerhistory.lua:101
 msgid "Status: %1 (%2)"
 msgstr "Estado: %1 (%2)"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:242
+#: frontend/apps/filemanager/filemanagerhistory.lua:238
 msgid "Remove from history"
 msgstr "Borrar del Historial"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:355
+#: frontend/apps/filemanager/filemanagerhistory.lua:351
 #: frontend/apps/reader/modules/readerbookmark.lua:940
 #: frontend/ui/data/creoptions.lua:35
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:379
+#: frontend/apps/filemanager/filemanagerhistory.lua:375
 msgid "Filter by collections"
 msgstr "Filtrar por colecciones"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:396
+#: frontend/apps/filemanager/filemanagerhistory.lua:392
 msgid "Search in filename and book metadata"
 msgstr "Buscar en el nombre del archivo y en los metadatos del libro"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:407
-#: frontend/apps/filemanager/filemanagermenu.lua:349
+#: frontend/apps/filemanager/filemanagerhistory.lua:403
+#: frontend/apps/filemanager/filemanagermenu.lua:348
 msgid "Clear history of deleted files"
 msgstr "Borrar historial de archivos eliminados"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:410
-#: frontend/apps/filemanager/filemanagermenu.lua:352
+#: frontend/apps/filemanager/filemanagerhistory.lua:406
+#: frontend/apps/filemanager/filemanagermenu.lua:351
 msgid "Clear history of deleted files?"
 msgstr "¿Borrar el historial de archivos eliminados?"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:411
-#: frontend/apps/filemanager/filemanagermenu.lua:353
+#: frontend/apps/filemanager/filemanagerhistory.lua:407
+#: frontend/apps/filemanager/filemanagermenu.lua:352
 #: frontend/apps/reader/modules/readerfont.lua:786
 #: frontend/apps/reader/modules/readerlink.lua:363
 #: frontend/apps/reader/modules/readerlink.lua:382
@@ -1391,15 +1391,15 @@ msgstr "¿Borrar el historial de archivos eliminados?"
 msgid "Clear"
 msgstr "Borrar"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:424
+#: frontend/apps/filemanager/filemanagerhistory.lua:420
 msgid "Filter by book status"
 msgstr "Filtrar por estado del libro"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:434
+#: frontend/apps/filemanager/filemanagerhistory.lua:430
 msgid "Enter text to search history for"
 msgstr "Introducir el texto a buscar en el historial"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:446
+#: frontend/apps/filemanager/filemanagerhistory.lua:442
 #: frontend/apps/reader/modules/readerbookmark.lua:1526
 #: frontend/apps/reader/modules/readerhighlight.lua:160
 #: frontend/ui/widget/dictquicklookup.lua:546
@@ -1465,7 +1465,7 @@ msgstr "¿Salir de KOReader?"
 
 #: frontend/apps/filemanager/filemanager.lua:508
 #: frontend/apps/reader/modules/readerback.lua:182
-#: frontend/apps/reader/modules/readerdevicestatus.lua:162
+#: frontend/apps/reader/modules/readerdevicestatus.lua:159
 #: frontend/ui/elements/common_exit_menu_table.lua:9
 #: frontend/ui/elements/common_exit_menu_table.lua:16
 msgid "Exit"
@@ -1719,7 +1719,7 @@ msgstr "¿Quiere abrir siempre «%2» con %1?"
 
 #: frontend/apps/filemanager/filemanager.lua:1648
 #: frontend/apps/filemanager/filemanager.lua:1662
-#: frontend/ui/elements/common_settings_menu_table.lua:288
+#: frontend/ui/elements/common_settings_menu_table.lua:286
 msgid "Always"
 msgstr "Siempre"
 
@@ -1740,31 +1740,31 @@ msgstr "Clásico (solo nombre de archivo)"
 msgid "Cannot open last document"
 msgstr "No se puede abrir el último documento"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:177
+#: frontend/apps/filemanager/filemanagermenu.lua:176
 msgid "File browser settings"
 msgstr "Configurar Explorador de archivos"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:180
+#: frontend/apps/filemanager/filemanagermenu.lua:179
 msgid "Show finished books"
 msgstr "Mostrar los libros terminados"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:189
+#: frontend/apps/filemanager/filemanagermenu.lua:188
 msgid "Show hidden files"
 msgstr "Mostrar archivos ocultos"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:198
+#: frontend/apps/filemanager/filemanagermenu.lua:197
 msgid "Show unsupported files"
 msgstr "Mostrar archivos no admitidos"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:208
+#: frontend/apps/filemanager/filemanagermenu.lua:207
 msgid "Classic mode settings"
 msgstr "Configuración del modo clásico"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:213
+#: frontend/apps/filemanager/filemanagermenu.lua:212
 msgid "Items per page: %1"
 msgstr "Elementos por página: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:218
+#: frontend/apps/filemanager/filemanagermenu.lua:217
 msgid ""
 "This sets the number of items per page in:\n"
 "- File browser, history and favorites in 'classic' display mode\n"
@@ -1779,70 +1779,70 @@ msgstr ""
 "- Selección de archivos y carpetas\n"
 "- Navegadores/resultados de búsqueda de Calibre y OPDS"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:228
+#: frontend/apps/filemanager/filemanagermenu.lua:227
 msgid "Items per page"
 msgstr "Documentos por página"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:249
+#: frontend/apps/filemanager/filemanagermenu.lua:248
 #: frontend/apps/reader/modules/readerfooter.lua:1572
 msgid "Item font size: %1"
 msgstr "Tamaño de letra del elemento: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:258
+#: frontend/apps/filemanager/filemanagermenu.lua:257
 #: frontend/apps/reader/modules/readerfooter.lua:1578
 msgid "Item font size"
 msgstr "Tamaño de letra del elemento"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:281
+#: frontend/apps/filemanager/filemanagermenu.lua:280
 msgid "Shrink item font size to fit more text"
 msgstr "Reducir el tamaño de fuente del elemento para mostrar más texto"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:294
+#: frontend/apps/filemanager/filemanagermenu.lua:293
 msgid "Show opened files in bold"
 msgstr "Mostrar archivos abiertos en negrita"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:308
+#: frontend/apps/filemanager/filemanagermenu.lua:307
 msgid "Show new (not yet opened) files in bold"
 msgstr "Mostrar archivos nuevos (aún no abiertos) en negrita"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:324
+#: frontend/apps/filemanager/filemanagermenu.lua:323
 msgid "History settings"
 msgstr "Configuración del historial"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:327
+#: frontend/apps/filemanager/filemanagermenu.lua:326
 msgid "Shorten date/time"
 msgstr "Abreviar fecha/hora"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:337
+#: frontend/apps/filemanager/filemanagermenu.lua:336
 msgid "Freeze last read date of finished books"
 msgstr "Bloquear la fecha de última lectura de los libros terminados"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:361
+#: frontend/apps/filemanager/filemanagermenu.lua:360
 msgid "Auto-remove deleted or purged items from history"
 msgstr "Auto-eliminar ha borrado o purgado elementos del Historial"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:375
+#: frontend/apps/filemanager/filemanagermenu.lua:374
 msgid "Show filename in Open last/previous menu items"
 msgstr ""
 "Mostrar nombre de archivo en los elementos del menú Abrir último/anterior"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:386
+#: frontend/apps/filemanager/filemanagermenu.lua:385
 msgid "Home folder settings"
 msgstr "Configuración de la carpeta de inicio"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:389
+#: frontend/apps/filemanager/filemanagermenu.lua:388
 msgid "Set home folder"
 msgstr "Establecer carpeta de inicio"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:392
+#: frontend/apps/filemanager/filemanagermenu.lua:391
 msgid "Current home folder:"
 msgstr "Carpeta de inicio actual:"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:403
+#: frontend/apps/filemanager/filemanagermenu.lua:402
 msgid "Shorten home folder"
 msgstr "Acortar carpeta de inicio"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:411
+#: frontend/apps/filemanager/filemanagermenu.lua:410
 msgid ""
 "\"Shorten home folder\" will display the home folder itself as \"Home\" "
 "instead of its full path.\n"
@@ -1864,15 +1864,15 @@ msgstr ""
 "Se acortará a:\n"
 "`Manga/Cells at Work`."
 
-#: frontend/apps/filemanager/filemanagermenu.lua:422
+#: frontend/apps/filemanager/filemanagermenu.lua:421
 msgid "Lock home folder"
 msgstr "Bloquear carpeta de inicio"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:442
+#: frontend/apps/filemanager/filemanagermenu.lua:441
 msgid "Info lists items per page: %1"
 msgstr "Info enumera los elementos por página: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:444
+#: frontend/apps/filemanager/filemanagermenu.lua:443
 msgid ""
 "This sets the number of items per page in:\n"
 "- Book information\n"
@@ -1886,36 +1886,36 @@ msgstr ""
 "- Detalles de las estadísticas de lectura\n"
 "- Algunos otros complementos"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:459
+#: frontend/apps/filemanager/filemanagermenu.lua:458
 msgid "Info lists items per page"
 msgstr "Información sobre listas de elementos por página"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:481
+#: frontend/apps/filemanager/filemanagermenu.lua:480
 #: frontend/apps/reader/modules/readerbookmark.lua:269
 #: frontend/dispatcher.lua:454
 msgid "Reverse sorting"
 msgstr "Invertir orden"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:491
+#: frontend/apps/filemanager/filemanagermenu.lua:490
 #: frontend/dispatcher.lua:462
 msgid "Folders and files mixed"
 msgstr "Mezclar carpetas y archivos"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:510
+#: frontend/apps/filemanager/filemanagermenu.lua:509
 #: frontend/apps/reader/modules/readermenu.lua:294
 msgid "Sleep screen"
 msgstr "Pantalla de reposo"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:528
+#: frontend/apps/filemanager/filemanagermenu.lua:527
 msgid "Move book metadata"
 msgstr "Mover metadatos del libro"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:537
+#: frontend/apps/filemanager/filemanagermenu.lua:536
 #: frontend/apps/reader/modules/readermenu.lua:301
 msgid "Plugin management"
 msgstr "Gestión de complementos"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:548
+#: frontend/apps/filemanager/filemanagermenu.lua:547
 msgid ""
 "Search a book by filename in the current or home folder and its subfolders.\n"
 "\n"
@@ -1937,29 +1937,29 @@ msgstr ""
 "\n"
 "Es posible abrir un libro pulsando en los resultados de la búsqueda."
 
-#: frontend/apps/filemanager/filemanagermenu.lua:562
+#: frontend/apps/filemanager/filemanagermenu.lua:561
 #: frontend/dispatcher.lua:502
 msgid "Last file search results"
 msgstr "Últimos resultados de búsqueda de archivos"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:575
+#: frontend/apps/filemanager/filemanagermenu.lua:574
 msgid "Open last document"
 msgstr "Abrir el último documento"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:579
+#: frontend/apps/filemanager/filemanagermenu.lua:578
 msgid "Last: %1"
 msgstr "Último: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:591
+#: frontend/apps/filemanager/filemanagermenu.lua:590
 msgid "Would you like to open the last document: %1?"
 msgstr "¿Desea abrir el último documento: %1?"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:594
+#: frontend/apps/filemanager/filemanagermenu.lua:593
 #: frontend/apps/filemanager/filemanagersetdefaults.lua:172
 #: frontend/apps/filemanager/filemanagersetdefaults.lua:219
 #: frontend/apps/reader/modules/readermenu.lua:342
-#: frontend/apps/reader/readerui.lua:853 frontend/device/android/device.lua:589
-#: frontend/ui/elements/common_settings_menu_table.lua:275
+#: frontend/apps/reader/readerui.lua:852 frontend/device/android/device.lua:589
+#: frontend/ui/elements/common_settings_menu_table.lua:273
 #: frontend/ui/widget/confirmbox.lua:49
 #: frontend/ui/widget/container/inputcontainer.lua:333
 #: frontend/ui/widget/numberpickerwidget.lua:189
@@ -1967,43 +1967,43 @@ msgstr "¿Desea abrir el último documento: %1?"
 #: plugins/calibre.koplugin/main.lua:392
 #: plugins/exporter.koplugin/target/joplin.lua:262
 #: plugins/exporter.koplugin/target/nextcloud.lua:116
-#: plugins/httpinspector.koplugin/main.lua:1525
+#: plugins/httpinspector.koplugin/main.lua:1524
 #: plugins/wallabag.koplugin/main.lua:1132
 msgid "OK"
 msgstr "Aceptar"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:659
+#: frontend/apps/filemanager/filemanagermenu.lua:658
 #: frontend/apps/reader/modules/readerbookmark.lua:262
 msgid "Sort by: %1"
 msgstr "Ordenar por: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:667
-#: frontend/ui/elements/common_settings_menu_table.lua:356
+#: frontend/apps/filemanager/filemanagermenu.lua:666
+#: frontend/ui/elements/common_settings_menu_table.lua:354
 #: plugins/bookshortcuts.koplugin/main.lua:96
 msgid "file browser"
 msgstr "navegador de archivos"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:668
+#: frontend/apps/filemanager/filemanagermenu.lua:667
 msgid "history"
 msgstr "historial"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:669
+#: frontend/apps/filemanager/filemanagermenu.lua:668
 msgid "favorites"
 msgstr "favoritos"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:670
+#: frontend/apps/filemanager/filemanagermenu.lua:669
 msgid "folder shortcuts"
 msgstr "atajos a carpetas"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:671
+#: frontend/apps/filemanager/filemanagermenu.lua:670
 msgid "last file"
 msgstr "último archivo"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:691
+#: frontend/apps/filemanager/filemanagermenu.lua:690
 msgid "Start with: %1"
 msgstr "Iniciar con: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:730
+#: frontend/apps/filemanager/filemanagermenu.lua:729
 msgid "File manager menu"
 msgstr "Menú del explorador de archivos"
 
@@ -2231,7 +2231,7 @@ msgstr "Número máximo de líneas por marcador: %1"
 #: frontend/apps/reader/modules/readerrolling.lua:502
 #: frontend/apps/reader/modules/readersearch.lua:157
 #: frontend/apps/reader/modules/readertypography.lua:928
-#: plugins/autodim.koplugin/main.lua:63
+#: plugins/autodim.koplugin/main.lua:62
 msgid "disabled"
 msgstr "deshabilitada"
 
@@ -2516,7 +2516,7 @@ msgid "Battery percentage"
 msgstr "Porcentaje de batería"
 
 #: frontend/apps/reader/modules/readercoptlistener.lua:534
-#: frontend/apps/reader/modules/readerdictionary.lua:387
+#: frontend/apps/reader/modules/readerdictionary.lua:386
 #: frontend/ui/widget/textviewer.lua:662 plugins/terminal.koplugin/main.lua:633
 msgid "Font size: %1"
 msgstr "Tamaño de letra: %1"
@@ -2533,19 +2533,19 @@ msgstr "Configurar tamaño"
 msgid "Apply crop"
 msgstr "Aplicar recorte"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:47
+#: frontend/apps/reader/modules/readerdevicestatus.lua:46
 msgid ""
 "Battery level drops below the critical zone.\n"
 "\n"
 "Suspending the device…"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:50
-#: frontend/apps/reader/modules/readerdevicestatus.lua:135
+#: frontend/apps/reader/modules/readerdevicestatus.lua:49
+#: frontend/apps/reader/modules/readerdevicestatus.lua:132
 msgid "Waiting for 3 seconds to proceed."
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:82
+#: frontend/apps/reader/modules/readerdevicestatus.lua:81
 msgid ""
 "High battery level: %1 %\n"
 "\n"
@@ -2555,7 +2555,7 @@ msgstr ""
 "\n"
 "¿Desactivar la alerta de nivel de batería?"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:88
+#: frontend/apps/reader/modules/readerdevicestatus.lua:87
 msgid ""
 "Low battery level: %1 %\n"
 "\n"
@@ -2565,22 +2565,22 @@ msgstr ""
 "\n"
 "¿Desactivar la alerta de nivel de batería?"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:96
+#: frontend/apps/reader/modules/readerdevicestatus.lua:94
 msgid ""
 "When battery level drops below the critical zone, the device will be put "
 "into suspension automatically."
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:103
+#: frontend/apps/reader/modules/readerdevicestatus.lua:101
 msgid "Dismiss"
 msgstr "Descartar"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:108
+#: frontend/apps/reader/modules/readerdevicestatus.lua:106
 msgid "Remind later"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:132
-#: frontend/apps/reader/modules/readerdevicestatus.lua:148
+#: frontend/apps/reader/modules/readerdevicestatus.lua:130
+#: frontend/apps/reader/modules/readerdevicestatus.lua:145
 msgid ""
 "High memory usage!\n"
 "\n"
@@ -2590,7 +2590,7 @@ msgstr ""
 "\n"
 "KOReader se está reiniciando…"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:143
+#: frontend/apps/reader/modules/readerdevicestatus.lua:140
 msgid ""
 "High memory usage: %1 MB\n"
 "\n"
@@ -2600,11 +2600,11 @@ msgstr ""
 "\n"
 "¿Reiniciar KOReader?"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:144
+#: frontend/apps/reader/modules/readerdevicestatus.lua:141
 msgid "Restart"
 msgstr "Reiniciar"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:161
+#: frontend/apps/reader/modules/readerdevicestatus.lua:158
 msgid ""
 "High memory usage: %1 MB\n"
 "\n"
@@ -2614,23 +2614,23 @@ msgstr ""
 "\n"
 "¿Salir de KOReader?"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:195
+#: frontend/apps/reader/modules/readerdevicestatus.lua:192
 msgid "Device status alerts"
 msgstr "Alertas de estado del dispositivo"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:201
+#: frontend/apps/reader/modules/readerdevicestatus.lua:198
 msgid "Battery level"
 msgstr "Nivel de batería"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:212
+#: frontend/apps/reader/modules/readerdevicestatus.lua:209
 msgid "Thresholds: %1 % / %2 %"
 msgstr "Límites: %1 % / %2 %"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:225
+#: frontend/apps/reader/modules/readerdevicestatus.lua:222
 msgid "Battery level alert thresholds"
 msgstr "Límites de alerta de nivel de batería"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:226
+#: frontend/apps/reader/modules/readerdevicestatus.lua:223
 msgid ""
 "Low level threshold is checked when the device is not charging.\n"
 "High level threshold is checked when the device is charging."
@@ -2639,127 +2639,127 @@ msgstr ""
 "cargando.\n"
 "El límite de nivel alto se comprueba cuando el dispositivo se está cargando."
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:229
+#: frontend/apps/reader/modules/readerdevicestatus.lua:226
 msgid "Low"
 msgstr "Bajo"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:234
+#: frontend/apps/reader/modules/readerdevicestatus.lua:231
 msgid "High"
 msgstr "Alto"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:265
+#: frontend/apps/reader/modules/readerdevicestatus.lua:262
 msgid "High memory usage"
 msgstr "Uso elevado de memoria"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:275
+#: frontend/apps/reader/modules/readerdevicestatus.lua:272
 msgid "Threshold: %1 MB"
 msgstr "Límite: %1 MB"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:286
+#: frontend/apps/reader/modules/readerdevicestatus.lua:283
 #: plugins/coverimage.koplugin/main.lua:671
 msgctxt "Data storage size"
 msgid "MB"
 msgstr "MB"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:289
+#: frontend/apps/reader/modules/readerdevicestatus.lua:286
 msgid "Memory alert threshold"
 msgstr "Límite de la alerta de memoria"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:302
+#: frontend/apps/reader/modules/readerdevicestatus.lua:299
 msgid "Automatic restart"
 msgstr "Reinicio automático"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:234
+#: frontend/apps/reader/modules/readerdictionary.lua:233
 #: plugins/calibre.koplugin/main.lua:153
 msgid "Search settings"
 msgstr "Ajustes de búsqueda"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:237
-#: frontend/apps/reader/modules/readerdictionary.lua:1013
+#: frontend/apps/reader/modules/readerdictionary.lua:236
+#: frontend/apps/reader/modules/readerdictionary.lua:1012
 #: frontend/dispatcher.lua:101 plugins/vocabbuilder.koplugin/main.lua:2208
 msgid "Dictionary lookup"
 msgstr "Consulta en diccionario"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:243
-#: frontend/apps/reader/modules/readerdictionary.lua:267
+#: frontend/apps/reader/modules/readerdictionary.lua:242
+#: frontend/apps/reader/modules/readerdictionary.lua:266
 msgid "Dictionary lookup history"
 msgstr "Historial de búsqueda del diccionario"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:274
+#: frontend/apps/reader/modules/readerdictionary.lua:273
 msgid "Dictionary settings"
 msgstr "Configurar diccionarios"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:285
+#: frontend/apps/reader/modules/readerdictionary.lua:284
 msgid "Manage dictionaries: %1"
 msgstr "Administrar diccionarios: %1"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:299
+#: frontend/apps/reader/modules/readerdictionary.lua:298
 msgid "Download dictionaries"
 msgstr "Descargar diccionarios"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:306
+#: frontend/apps/reader/modules/readerdictionary.lua:305
 msgid "Enable fuzzy search"
 msgstr "Habilitar la búsqueda difusa"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:335
+#: frontend/apps/reader/modules/readerdictionary.lua:334
 msgid "Enable dictionary lookup history"
 msgstr "Activar historial de búsquedas en diccionario"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:348
+#: frontend/apps/reader/modules/readerdictionary.lua:347
 msgid "Clean dictionary lookup history"
 msgstr "Vaciar historial de búsquedas en diccionario"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:355
+#: frontend/apps/reader/modules/readerdictionary.lua:354
 msgid "Clean dictionary lookup history?"
 msgstr "¿Quiere vaciar el historial de búsquedas en diccionario?"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:356
+#: frontend/apps/reader/modules/readerdictionary.lua:355
 #: frontend/apps/reader/modules/readerwikipedia.lua:342
 #: plugins/texteditor.koplugin/main.lua:233
 #: plugins/vocabbuilder.koplugin/main.lua:215
 msgid "Clean"
 msgstr "Vaciar"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:367
+#: frontend/apps/reader/modules/readerdictionary.lua:366
 msgid "Large window"
 msgstr "Agrandar ventana"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:376
+#: frontend/apps/reader/modules/readerdictionary.lua:375
 msgid "Justify text"
 msgstr "Justificar texto"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:397
+#: frontend/apps/reader/modules/readerdictionary.lua:396
 msgid "Dictionary font size"
 msgstr "Tamaño de letra del diccionario"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:435
+#: frontend/apps/reader/modules/readerdictionary.lua:434
 msgid "Use external dictionary"
 msgstr "Usar diccionario externo"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:445
+#: frontend/apps/reader/modules/readerdictionary.lua:444
 msgid "none"
 msgstr "ninguno"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:453
+#: frontend/apps/reader/modules/readerdictionary.lua:452
 msgid "Dictionary: %1"
 msgstr "Diccionario: %1"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:632
+#: frontend/apps/reader/modules/readerdictionary.lua:631
 msgid "Manage installed dictionaries"
 msgstr "Gestionar diccionarios instalados"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:767
+#: frontend/apps/reader/modules/readerdictionary.lua:766
 #: frontend/apps/reader/modules/readerwikipedia.lua:55
 #: frontend/ui/widget/dictquicklookup.lua:1334
 msgid "Enter a word or phrase to look up"
 msgstr "Introducir palabra o frase a buscar"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:780
+#: frontend/apps/reader/modules/readerdictionary.lua:779
 #: frontend/ui/widget/dictquicklookup.lua:1371
 msgid "Search dictionary"
 msgstr "Buscar en diccionario"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:956
+#: frontend/apps/reader/modules/readerdictionary.lua:955
 msgid ""
 "No dictionaries installed. Please search for \"Dictionary support\" in the "
 "KOReader Wiki to get more information about installing new dictionaries."
@@ -2768,21 +2768,21 @@ msgstr ""
 "nuevos diccionarios se puede encontrar en la sección \"Dictionary support\" "
 "de las Wiki de KOReader."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:983
-#: frontend/apps/reader/modules/readerdictionary.lua:1051
+#: frontend/apps/reader/modules/readerdictionary.lua:982
+#: frontend/apps/reader/modules/readerdictionary.lua:1050
 msgid "Not available"
 msgstr "No disponible"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:986
+#: frontend/apps/reader/modules/readerdictionary.lua:985
 msgid "Dictionary lookup interrupted."
 msgstr "Búsqueda en diccionario cancelada."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:987
+#: frontend/apps/reader/modules/readerdictionary.lua:986
 #: frontend/apps/reader/modules/readerwikipedia.lua:484
 msgid "No results."
 msgstr "No hay resultados."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1054
+#: frontend/apps/reader/modules/readerdictionary.lua:1053
 msgid ""
 "There are no enabled dictionaries.\n"
 "Please check the 'Dictionary settings' menu."
@@ -2790,7 +2790,7 @@ msgstr ""
 "No hay diccionarios habilitados.\n"
 "Revisar el menú 'Configurar diccionarios'."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1064
+#: frontend/apps/reader/modules/readerdictionary.lua:1063
 msgid ""
 "Searching dictionary for:\n"
 "%1"
@@ -2798,60 +2798,60 @@ msgstr ""
 "Buscando en diccionario:\n"
 "%1"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1103
+#: frontend/apps/reader/modules/readerdictionary.lua:1101
 msgid "Cannot find results of %1"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1158
+#: frontend/apps/reader/modules/readerdictionary.lua:1156
 msgid "License"
 msgstr "Licencia"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1161
+#: frontend/apps/reader/modules/readerdictionary.lua:1159
 msgid "Entries"
 msgstr "Entradas"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1165
+#: frontend/apps/reader/modules/readerdictionary.lua:1163
 msgid "Tap dictionary name to download"
 msgstr "Pulsar en el nombre del diccionario a descargar"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1177
+#: frontend/apps/reader/modules/readerdictionary.lua:1175
 msgid "File already exists. Overwrite?"
 msgstr "El archivo ya existe. ¿Quiere sobrescribirlo?"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1215
+#: frontend/apps/reader/modules/readerdictionary.lua:1213
 msgid "Dictionary filesize is %1 (%2 bytes). Continue with download?"
 msgstr ""
 "El tamaño del diccionario es %1 (%2 bytes). ¿Continuar con la descarga?"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1230
+#: frontend/apps/reader/modules/readerdictionary.lua:1228
 msgid "Failed to fetch dictionary. Are you online?"
 msgstr "No se pudo recuperar el diccionario. Compruebe la conexión a Internet."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1238
+#: frontend/apps/reader/modules/readerdictionary.lua:1236
 msgid "Downloading…"
 msgstr "Descargando…"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1262
+#: frontend/apps/reader/modules/readerdictionary.lua:1260
 msgid "Could not save file to:\n"
 msgstr "No se puede guardar el archivo en:\n"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1279
+#: frontend/apps/reader/modules/readerdictionary.lua:1277
 msgid "Dictionary downloaded:\n"
 msgstr "Diccionario descargado:\n"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1284
+#: frontend/apps/reader/modules/readerdictionary.lua:1282
 msgid "Dictionary failed to download:\n"
 msgstr "Error al descargar diccionario:\n"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1355
+#: frontend/apps/reader/modules/readerdictionary.lua:1353
 msgid "%1 is no longer a preferred dictionary for this document."
 msgstr "%1 ya no es el diccionario preferente para este documento."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1359
+#: frontend/apps/reader/modules/readerdictionary.lua:1357
 msgid "%1 is now the preferred dictionary for this document."
 msgstr "%1 es ahora el diccionario preferente para este documento."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1371
+#: frontend/apps/reader/modules/readerdictionary.lua:1369
 msgid ""
 "Would you like to enable or disable fuzzy search by default?\n"
 "\n"
@@ -2872,7 +2872,7 @@ msgstr ""
 "\n"
 "El valor predeterminado por defecto (★) no está configurado."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1376
+#: frontend/apps/reader/modules/readerdictionary.lua:1374
 msgid ""
 "Would you like to enable or disable fuzzy search by default?\n"
 "\n"
@@ -2893,7 +2893,7 @@ msgstr ""
 "\n"
 "El valor predeterminado por defecto (★) está configurado."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1383
+#: frontend/apps/reader/modules/readerdictionary.lua:1381
 #: frontend/apps/reader/modules/readerrolling.lua:571
 #: frontend/apps/reader/modules/readertypography.lua:657
 #: frontend/apps/reader/modules/readertypography.lua:771
@@ -2903,7 +2903,7 @@ msgstr ""
 msgid "Disable (★)"
 msgstr "Desactivar (★)"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1391
+#: frontend/apps/reader/modules/readerdictionary.lua:1389
 #: frontend/apps/reader/modules/readerrolling.lua:578
 #: frontend/apps/reader/modules/readertypography.lua:663
 #: frontend/apps/reader/modules/readertypography.lua:778
@@ -2915,7 +2915,7 @@ msgstr "Desactivar (★)"
 msgid "Enable"
 msgstr "Activar"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1392
+#: frontend/apps/reader/modules/readerdictionary.lua:1390
 #: frontend/apps/reader/modules/readerrolling.lua:577
 #: frontend/apps/reader/modules/readertypography.lua:663
 #: frontend/apps/reader/modules/readertypography.lua:777
@@ -3787,7 +3787,7 @@ msgstr "Izquierda"
 
 #: frontend/apps/reader/modules/readerfooter.lua:1999
 #: frontend/apps/reader/modules/readerhighlight.lua:453
-#: frontend/ui/elements/common_settings_menu_table.lua:423
+#: frontend/ui/elements/common_settings_menu_table.lua:421
 msgid "Center"
 msgstr "Centrar"
 
@@ -4160,12 +4160,12 @@ msgid "Side mark"
 msgstr "Marca lateral"
 
 #: frontend/apps/reader/modules/readerhighlight.lua:440
-#: frontend/ui/elements/common_settings_menu_table.lua:629
+#: frontend/ui/elements/common_settings_menu_table.lua:626
 msgid "Ask with popup dialog"
 msgstr "Preguntar con diálogo emergente"
 
 #: frontend/apps/reader/modules/readerhighlight.lua:441
-#: frontend/ui/elements/common_settings_menu_table.lua:636
+#: frontend/ui/elements/common_settings_menu_table.lua:633
 msgid "Do nothing"
 msgstr "No hacer nada"
 
@@ -4181,14 +4181,14 @@ msgstr "Buscar el texto completo"
 
 #: frontend/apps/reader/modules/readerhighlight.lua:452
 #: frontend/ui/data/creoptions.lua:250 frontend/ui/data/creoptions.lua:306
-#: frontend/ui/elements/common_settings_menu_table.lua:422
+#: frontend/ui/elements/common_settings_menu_table.lua:420
 #: frontend/ui/elements/screensaver_menu.lua:239
 msgid "Top"
 msgstr "Arriba"
 
 #: frontend/apps/reader/modules/readerhighlight.lua:454
 #: frontend/ui/data/creoptions.lua:255 frontend/ui/data/creoptions.lua:311
-#: frontend/ui/elements/common_settings_menu_table.lua:424
+#: frontend/ui/elements/common_settings_menu_table.lua:422
 #: frontend/ui/elements/screensaver_menu.lua:246
 msgid "Bottom"
 msgstr "Abajo"
@@ -4581,7 +4581,7 @@ msgid "Clear forward location history?"
 msgstr "¿Borrar historial de posiciones?"
 
 #: frontend/apps/reader/modules/readerlink.lua:395
-#: frontend/ui/data/css_tweaks.lua:708
+#: frontend/ui/data/css_tweaks.lua:707
 msgid "Links"
 msgstr "Enlaces"
 
@@ -5476,7 +5476,7 @@ msgstr "Página actual: %1"
 
 #: frontend/apps/reader/modules/readerstatus.lua:18
 #: frontend/apps/reader/modules/readerstatus.lua:76 frontend/dispatcher.lua:757
-#: frontend/ui/elements/common_settings_menu_table.lua:643
+#: frontend/ui/elements/common_settings_menu_table.lua:640
 msgid "Book status"
 msgstr "Estado del libro"
 
@@ -5489,17 +5489,17 @@ msgid "Mark as finished"
 msgstr "Marcar como leído"
 
 #: frontend/apps/reader/modules/readerstatus.lua:85
-#: frontend/ui/elements/common_settings_menu_table.lua:670
+#: frontend/ui/elements/common_settings_menu_table.lua:667
 msgid "Go to beginning"
 msgstr "Ir al principio"
 
 #: frontend/apps/reader/modules/readerstatus.lua:92
-#: frontend/ui/elements/common_settings_menu_table.lua:657
+#: frontend/ui/elements/common_settings_menu_table.lua:654
 msgid "Open next file"
 msgstr "Abrir siguiente archivo"
 
 #: frontend/apps/reader/modules/readerstatus.lua:102
-#: frontend/ui/elements/common_settings_menu_table.lua:650
+#: frontend/ui/elements/common_settings_menu_table.lua:647
 #: plugins/texteditor.koplugin/main.lua:699
 msgid "Delete file"
 msgstr "Borrar archivo"
@@ -6064,7 +6064,7 @@ msgid "Edit book-specific style tweak"
 msgstr "Editar ajuste de estilo específico del libro"
 
 #: frontend/apps/reader/modules/readerstyletweak.lua:1369
-#: plugins/findhistory.koplugin/main.lua:129
+#: plugins/findhistory.koplugin/main.lua:125
 msgid "Restore"
 msgstr "Restablecer"
 
@@ -6106,15 +6106,15 @@ msgstr "Navegador de páginas"
 msgid "Table of contents"
 msgstr "Índice"
 
-#: frontend/apps/reader/modules/readertoc.lua:1118
+#: frontend/apps/reader/modules/readertoc.lua:1117
 msgid "Navigation settings"
 msgstr ""
 
-#: frontend/apps/reader/modules/readertoc.lua:1123
+#: frontend/apps/reader/modules/readertoc.lua:1122
 msgid "Alternative table of contents"
 msgstr "Índice alternativo"
 
-#: frontend/apps/reader/modules/readertoc.lua:1127
+#: frontend/apps/reader/modules/readertoc.lua:1126
 msgid ""
 "An alternative table of contents can be built from document headings <H1> to "
 "<H6>.\n"
@@ -6137,14 +6137,14 @@ msgstr ""
 "no sean encabezamientos sean utilizados como elementos del Índice .\n"
 "Consultar Ajustes de estilo → Otros → Referencias de Índice alternativo."
 
-#: frontend/apps/reader/modules/readertoc.lua:1135
+#: frontend/apps/reader/modules/readertoc.lua:1134
 msgid ""
 "To use the alternative ToC, disable your custom table of contents first."
 msgstr ""
 "Para utilizar el índice alternativo hay que desactivar antes el índice "
 "personalizado."
 
-#: frontend/apps/reader/modules/readertoc.lua:1150
+#: frontend/apps/reader/modules/readertoc.lua:1149
 msgid ""
 "The table of contents for this book is currently an alternative one built "
 "from the document headings.\n"
@@ -6155,7 +6155,7 @@ msgstr ""
 "del documento.\n"
 "¿Recuperar el índice original? (El libro volverá a cargarse)."
 
-#: frontend/apps/reader/modules/readertoc.lua:1167
+#: frontend/apps/reader/modules/readertoc.lua:1166
 msgid ""
 "Do you want to use an alternative table of contents built from the document "
 "headings?"
@@ -6163,19 +6163,19 @@ msgstr ""
 "¿Utilizar un índice alternativo elaborado a partir de los encabezamientos "
 "del documento?"
 
-#: frontend/apps/reader/modules/readertoc.lua:1197
+#: frontend/apps/reader/modules/readertoc.lua:1196
 msgid "1 entry at ToC depth %2"
 msgid_plural "%1 entries at ToC depth %2"
 msgstr[0] "1 entrada a profundidad del índice %2"
 msgstr[1] "%1 entradas a profundidad del índice %2"
 
-#: frontend/apps/reader/modules/readertoc.lua:1226
+#: frontend/apps/reader/modules/readertoc.lua:1225
 msgid "Progress bars: 1 tick"
 msgid_plural "Progress bars: %1 ticks"
 msgstr[0] "Barra de progreso: 1 marca"
 msgstr[1] "Barras de progreso: %1 marcas"
 
-#: frontend/apps/reader/modules/readertoc.lua:1231
+#: frontend/apps/reader/modules/readertoc.lua:1230
 msgid ""
 "The progress bars in the footer and the skim dialog can become cramped when "
 "the table of contents is complex. This allows you to restrict the number of "
@@ -6185,11 +6185,11 @@ msgstr ""
 "pueden comprimirse demasiado si el índice es complejo. Esta opción permite "
 "restringir el número de marcas de graduación."
 
-#: frontend/apps/reader/modules/readertoc.lua:1253
+#: frontend/apps/reader/modules/readertoc.lua:1252
 msgid "Bind chapter navigation to ticks"
 msgstr "Enlazar la navegación de capítulos a marcas"
 
-#: frontend/apps/reader/modules/readertoc.lua:1255
+#: frontend/apps/reader/modules/readertoc.lua:1254
 msgid ""
 "Entries from ToC levels that are ignored in the progress bars will still be "
 "used for chapter navigation and 'page/time left until next chapter' in the "
@@ -6202,11 +6202,11 @@ msgstr ""
 "Habilitar esta opción restringirá la navegación del capítulo a las marcas de "
 "la barra de progreso."
 
-#: frontend/apps/reader/modules/readertoc.lua:1271
+#: frontend/apps/reader/modules/readertoc.lua:1270
 msgid "Chapter titles from ticks only"
 msgstr "Títulos de capítulo solo de marcas"
 
-#: frontend/apps/reader/modules/readertoc.lua:1273
+#: frontend/apps/reader/modules/readertoc.lua:1272
 msgid ""
 "Entries from ToC levels that are ignored in the progress bars will still be "
 "used for displaying the title of the current chapter in the footer and in "
@@ -6220,21 +6220,21 @@ msgstr ""
 "Habilitar esta opción restringirá la visualización a los títulos de capítulo "
 "de las marcas de la barra de progreso."
 
-#: frontend/apps/reader/modules/readertoc.lua:1292
-#: frontend/apps/reader/modules/readertoc.lua:1303
+#: frontend/apps/reader/modules/readertoc.lua:1291
+#: frontend/apps/reader/modules/readertoc.lua:1302
 msgid "ToC entries per page"
 msgstr "Entradas del índice por página"
 
-#: frontend/apps/reader/modules/readertoc.lua:1316
-#: frontend/apps/reader/modules/readertoc.lua:1330
+#: frontend/apps/reader/modules/readertoc.lua:1315
+#: frontend/apps/reader/modules/readertoc.lua:1329
 msgid "ToC entry font size"
 msgstr "Tamaño de fuente de las entradas del índice"
 
-#: frontend/apps/reader/modules/readertoc.lua:1339
+#: frontend/apps/reader/modules/readertoc.lua:1338
 msgid "Show chapter length"
 msgstr "Mostrar la longitud del capítulo"
 
-#: frontend/apps/reader/modules/readertoc.lua:1350
+#: frontend/apps/reader/modules/readertoc.lua:1349
 msgid "Dot leaders"
 msgstr "Líderes por puntos"
 
@@ -7195,7 +7195,7 @@ msgid "ask"
 msgstr "preguntar"
 
 #: frontend/apps/reader/modules/readerwikipedia.lua:257
-#: frontend/ui/elements/common_settings_menu_table.lua:288
+#: frontend/ui/elements/common_settings_menu_table.lua:286
 #: plugins/profiles.koplugin/main.lua:709
 msgid "always"
 msgstr "siempre"
@@ -7440,41 +7440,41 @@ msgstr "El archivo «%1» no existe."
 msgid "File '%1' is not supported."
 msgstr "No se admite el archivo «%1»."
 
-#: frontend/apps/reader/readerui.lua:752 frontend/apps/reader/readerui.lua:802
+#: frontend/apps/reader/readerui.lua:752 frontend/apps/reader/readerui.lua:801
 msgid "No reader engine for this file or invalid file."
 msgstr "No hay ningún motor compatible con el archivo o este no es válido."
 
-#: frontend/apps/reader/readerui.lua:773
+#: frontend/apps/reader/readerui.lua:772
 msgid "Unfortunately KOReader crashed."
 msgstr ""
 
-#: frontend/apps/reader/readerui.lua:776
+#: frontend/apps/reader/readerui.lua:775
 msgid ""
 "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help "
 "developers to improve it."
 msgstr ""
 
-#: frontend/apps/reader/readerui.lua:789 frontend/device/android/device.lua:225
+#: frontend/apps/reader/readerui.lua:788 frontend/device/android/device.lua:225
 msgid "Opening file '%1'."
 msgstr "Abriendo el archivo '%1'."
 
-#: frontend/apps/reader/readerui.lua:840
+#: frontend/apps/reader/readerui.lua:839
 msgid "Password is incorrect, try again?"
 msgstr "La contraseña no es correcta. ¿Desea volver a intentarlo?"
 
-#: frontend/apps/reader/readerui.lua:841
+#: frontend/apps/reader/readerui.lua:840
 msgid "Input document password"
 msgstr "Introducir la contraseña del documento"
 
-#: frontend/apps/reader/readerui.lua:906
+#: frontend/apps/reader/readerui.lua:905
 msgid "Book metadata saved."
 msgstr "Metadatos del libro guardados."
 
-#: frontend/apps/reader/readerui.lua:956
+#: frontend/apps/reader/readerui.lua:954
 msgid "Saving progress of file %1"
 msgstr ""
 
-#: frontend/apps/reader/readerui.lua:984
+#: frontend/apps/reader/readerui.lua:982
 msgid ""
 "Failed recognizing or parsing this file: unsupported or invalid document.\n"
 "KOReader will exit now."
@@ -7915,12 +7915,12 @@ msgid "MAC: %1"
 msgstr "MAC: %1"
 
 #: frontend/device/generic/device.lua:1007
-#: frontend/device/kindle/device.lua:308
+#: frontend/device/kindle/device.lua:307
 msgid "SSID: \"%1\""
 msgstr "SSID: \"%1\""
 
 #: frontend/device/generic/device.lua:1010
-#: frontend/device/kindle/device.lua:306
+#: frontend/device/kindle/device.lua:305
 msgid "SSID: off/any"
 msgstr "SSID: desactivado/cualquiera"
 
@@ -7980,11 +7980,11 @@ msgstr ""
 "\n"
 "%1"
 
-#: frontend/device/kindle/device.lua:121
+#: frontend/device/kindle/device.lua:120
 msgid "Unable to communicate with the Wi-Fi backend"
 msgstr "No es posible la comunicación con el servicio Wi-Fi"
 
-#: frontend/device/kindle/device.lua:168
+#: frontend/device/kindle/device.lua:167
 msgid "Scanning for Wi-Fi networks timed out"
 msgstr "Se agotó el tiempo de búsqueda de redes WiFi"
 
@@ -8418,7 +8418,7 @@ msgid "General"
 msgstr "Generales"
 
 #: frontend/dispatcher.lua:1755
-#: frontend/ui/elements/common_settings_menu_table.lua:703
+#: frontend/ui/elements/common_settings_menu_table.lua:700
 #: plugins/httpinspector.koplugin/main.lua:1119
 msgid "Device"
 msgstr "Dispositivo"
@@ -9359,36 +9359,36 @@ msgstr ""
 msgid "Document direction RTL"
 msgstr "Dirección del documento RTL"
 
-#: frontend/ui/data/css_tweaks.lua:347
+#: frontend/ui/data/css_tweaks.lua:346
 msgid "Right align most text"
 msgstr "Alinear a la derecha la mayor parte del texto"
 
-#: frontend/ui/data/css_tweaks.lua:349
+#: frontend/ui/data/css_tweaks.lua:348
 msgid "Enforce right alignment of text in common text elements."
 msgstr ""
 "Forzar la alineación a la derecha del texto en elementos de texto comunes."
 
-#: frontend/ui/data/css_tweaks.lua:358
+#: frontend/ui/data/css_tweaks.lua:357
 msgid "Right align all elements"
 msgstr "Alinear a la derecha todos los elementos"
 
-#: frontend/ui/data/css_tweaks.lua:360
+#: frontend/ui/data/css_tweaks.lua:359
 msgid "Enforce right alignment of text in all elements."
 msgstr "Forzar la alineación a la derecha del texto en todos los elementos."
 
-#: frontend/ui/data/css_tweaks.lua:369
+#: frontend/ui/data/css_tweaks.lua:368
 msgid "Document direction LTR"
 msgstr "Dirección del documento LTR"
 
-#: frontend/ui/data/css_tweaks.lua:375
+#: frontend/ui/data/css_tweaks.lua:374
 msgid "Hyphenation, ligatures, ruby"
 msgstr "Silabación, ligaduras, caracteres ágata"
 
-#: frontend/ui/data/css_tweaks.lua:378
+#: frontend/ui/data/css_tweaks.lua:377
 msgid "Allow hyphenation on all text"
 msgstr "Permitir silabación en todo el texto"
 
-#: frontend/ui/data/css_tweaks.lua:380
+#: frontend/ui/data/css_tweaks.lua:379
 msgid ""
 "Allow hyphenation on all text (except headings), in case the publisher has "
 "disabled it."
@@ -9396,12 +9396,12 @@ msgstr ""
 "Permitir silabación en todo el texto (salvo en los títulos), en caso de que "
 "el editor lo haya desactivado."
 
-#: frontend/ui/data/css_tweaks.lua:389
+#: frontend/ui/data/css_tweaks.lua:388
 msgid "Ignore publisher line-break restrictions"
 msgstr ""
 "Ignorar las restricciones de salto de línea predeterminadas por el editor"
 
-#: frontend/ui/data/css_tweaks.lua:391
+#: frontend/ui/data/css_tweaks.lua:390
 msgid ""
 "A publisher might use non-breaking spaces and hyphens to avoid line breaking "
 "between some words, which is not always necessary and may have been added to "
@@ -9417,11 +9417,11 @@ msgstr ""
 "Si se ignoran estas opciones predeterminadas, únicamente se usarán las "
 "reglas tipográficas propias de KOReader para los saltos de línea."
 
-#: frontend/ui/data/css_tweaks.lua:399
+#: frontend/ui/data/css_tweaks.lua:398
 msgid "Disable common ligatures"
 msgstr "Deshabilitar ligaduras comunes"
 
-#: frontend/ui/data/css_tweaks.lua:401
+#: frontend/ui/data/css_tweaks.lua:400
 msgid ""
 "Disable common ligatures, which are enabled by default in 'best' kerning "
 "mode."
@@ -9429,15 +9429,15 @@ msgstr ""
 "Deshabilitar las ligaduras comunes, que están habilitadas por defecto en el "
 "modo de interletraje 'mejor'."
 
-#: frontend/ui/data/css_tweaks.lua:411
+#: frontend/ui/data/css_tweaks.lua:410
 msgid "Ruby"
 msgstr "Ruby"
 
-#: frontend/ui/data/css_tweaks.lua:413
+#: frontend/ui/data/css_tweaks.lua:412
 msgid "About ruby"
 msgstr "Acerca de ruby"
 
-#: frontend/ui/data/css_tweaks.lua:414
+#: frontend/ui/data/css_tweaks.lua:413
 msgid ""
 "Ruby characters are small glosses on writing in Asian languages (Hanzi, "
 "Kanji, Hanja, etc.) to show the pronunciation of the logographs.\n"
@@ -9449,11 +9449,11 @@ msgstr ""
 "Estos ajustes pueden ayudar a que los caracteres ruby sean más fáciles de "
 "leer o de ignorar."
 
-#: frontend/ui/data/css_tweaks.lua:421
+#: frontend/ui/data/css_tweaks.lua:420
 msgid "Sans-serif font for ruby"
 msgstr "Fuente sans-serif para ruby"
 
-#: frontend/ui/data/css_tweaks.lua:423
+#: frontend/ui/data/css_tweaks.lua:422
 msgid ""
 "Use a sans serif font to display all ruby text for a more 'book-like' "
 "feeling.\n"
@@ -9464,19 +9464,19 @@ msgstr ""
 "Forzar también el peso regular del texto cuando se usa con fuentes más "
 "ligeras o más en negrita."
 
-#: frontend/ui/data/css_tweaks.lua:436
+#: frontend/ui/data/css_tweaks.lua:435
 msgid "Larger ruby text size"
 msgstr "Mayor tamaño del texto en ruby"
 
-#: frontend/ui/data/css_tweaks.lua:437
+#: frontend/ui/data/css_tweaks.lua:436
 msgid "Increase ruby text size."
 msgstr "Aumentar el tamaño del texto ruby."
 
-#: frontend/ui/data/css_tweaks.lua:443
+#: frontend/ui/data/css_tweaks.lua:442
 msgid "Larger spacing between ruby lines"
 msgstr "Mayor espacio entre líneas ruby"
 
-#: frontend/ui/data/css_tweaks.lua:445
+#: frontend/ui/data/css_tweaks.lua:444
 msgid ""
 "Increase line spacing of most text, so that lines keep an even spacing "
 "whether or not they include ruby.\n"
@@ -9487,25 +9487,25 @@ msgstr ""
 "Se pueden hacer otros pequeños ajustes con 'Interlineado' en el menú "
 "inferior."
 
-#: frontend/ui/data/css_tweaks.lua:454
+#: frontend/ui/data/css_tweaks.lua:453
 msgid "Render ruby content inline"
 msgstr "Renderizar contenido ruby como elementos de línea"
 
-#: frontend/ui/data/css_tweaks.lua:456
+#: frontend/ui/data/css_tweaks.lua:455
 msgid "Disable handling of <ruby> tags and render them inline."
 msgstr ""
 "Deshabilitar el procesado de las etiquetas <ruby> y renderizarlas como "
 "elementos en línea."
 
-#: frontend/ui/data/css_tweaks.lua:464
+#: frontend/ui/data/css_tweaks.lua:463
 msgid "Font size and families"
 msgstr "Tamaño de fuente y familias"
 
-#: frontend/ui/data/css_tweaks.lua:467
+#: frontend/ui/data/css_tweaks.lua:466
 msgid "Ignore font related HTML presentational hints"
 msgstr "Ignorar sugerencias de presentación HTML relacionadas con las fuentes"
 
-#: frontend/ui/data/css_tweaks.lua:469
+#: frontend/ui/data/css_tweaks.lua:468
 msgid ""
 "Ignore HTML attributes that contribute to styles on the elements <body> "
 "(bgcolor, text…) and <font> (face, size, color…)."
@@ -9513,27 +9513,27 @@ msgstr ""
 "Ignorar los atributos HTML que contribuyen a los estilos de los elementos "
 "<body> (bgcolor, text...) y <font> (face, size, color...)."
 
-#: frontend/ui/data/css_tweaks.lua:476
+#: frontend/ui/data/css_tweaks.lua:475
 msgid "Ignore publisher font families"
 msgstr "Ignorar las familias de fuentes predefinidas"
 
-#: frontend/ui/data/css_tweaks.lua:478
+#: frontend/ui/data/css_tweaks.lua:477
 msgid "Disable font-family specified in embedded styles."
 msgstr "Desactivar la familia de fuentes especificada en estilo incrustado."
 
-#: frontend/ui/data/css_tweaks.lua:486
+#: frontend/ui/data/css_tweaks.lua:485
 msgid "Ignore publisher font sizes"
 msgstr "Ignorar tamaños de fuente predefinidos"
 
-#: frontend/ui/data/css_tweaks.lua:488
+#: frontend/ui/data/css_tweaks.lua:487
 msgid "Disable font-size specified in embedded styles."
 msgstr "Desactivar el tamaño de fuente especificado en estilo incrustado."
 
-#: frontend/ui/data/css_tweaks.lua:496
+#: frontend/ui/data/css_tweaks.lua:495
 msgid "Reset main text font size"
 msgstr "Restablecer el tamaño de fuente del texto principal"
 
-#: frontend/ui/data/css_tweaks.lua:498
+#: frontend/ui/data/css_tweaks.lua:497
 msgid ""
 "Disable font-size set on the main text (keeping possibly larger headings "
 "untouched), so that KOReader's font size is used."
@@ -9542,15 +9542,15 @@ msgstr ""
 "(manteniendo posiblemente intactos los encabezados más grandes), de modo que "
 "se utilice el tamaño de fuente de KOReader."
 
-#: frontend/ui/data/css_tweaks.lua:505
+#: frontend/ui/data/css_tweaks.lua:504
 msgid "Line heights"
 msgstr "Alturas de línea"
 
-#: frontend/ui/data/css_tweaks.lua:508
+#: frontend/ui/data/css_tweaks.lua:507
 msgid "Ignore publisher line heights"
 msgstr "Ignorar altura de línea predefinida"
 
-#: frontend/ui/data/css_tweaks.lua:510
+#: frontend/ui/data/css_tweaks.lua:509
 msgid ""
 "Disable line-height specified in embedded styles, and may allow KOReader's "
 "line spacing settings to work on books where they would not."
@@ -9559,11 +9559,11 @@ msgstr ""
 "que el ajuste de espaciado de línea de KOReader funcione en libros en que no "
 "funcionaba."
 
-#: frontend/ui/data/css_tweaks.lua:516
+#: frontend/ui/data/css_tweaks.lua:515
 msgid "Enforce steady line heights"
 msgstr "Forzar altura de línea estable"
 
-#: frontend/ui/data/css_tweaks.lua:518
+#: frontend/ui/data/css_tweaks.lua:517
 msgid ""
 "Prevent inline content like sub- and superscript from changing their "
 "paragraph line height."
@@ -9571,23 +9571,23 @@ msgstr ""
 "Evitar que elementos de línea como subíndices y superíndices afecten a la "
 "altura de línea."
 
-#: frontend/ui/data/css_tweaks.lua:526
+#: frontend/ui/data/css_tweaks.lua:525
 msgid "Smaller sub- and superscript"
 msgstr "Subíndices y superíndices más pequeños"
 
-#: frontend/ui/data/css_tweaks.lua:528
+#: frontend/ui/data/css_tweaks.lua:527
 msgid "Prevent sub- and superscript from affecting line-height."
 msgstr "Evitar que subíndices y superíndices afecten a la altura de línea."
 
-#: frontend/ui/data/css_tweaks.lua:541
+#: frontend/ui/data/css_tweaks.lua:540
 msgid "Paragraphs"
 msgstr "Párrafos"
 
-#: frontend/ui/data/css_tweaks.lua:544
+#: frontend/ui/data/css_tweaks.lua:543
 msgid "Generic web browser paragraph style"
 msgstr "Estilo de párrafo de navegador web genérico"
 
-#: frontend/ui/data/css_tweaks.lua:546
+#: frontend/ui/data/css_tweaks.lua:545
 msgid ""
 "Display paragraphs as browsers do, in full-block style without indentation "
 "or justification, discarding KOReader's book paragraph style.\n"
@@ -9601,11 +9601,11 @@ msgstr ""
 "sea el predeterminado, y sólo usen CSS cuando sea necesario desviarse del "
 "estilo predeterminado."
 
-#: frontend/ui/data/css_tweaks.lua:562
+#: frontend/ui/data/css_tweaks.lua:561
 msgid "Tailor widths and text-indent for CJK"
 msgstr "Adaptar anchura y sangrías de texto para CJK"
 
-#: frontend/ui/data/css_tweaks.lua:564
+#: frontend/ui/data/css_tweaks.lua:563
 msgid ""
 "Adjust paragraph width and text-indent to be an integer multiple of the font "
 "size, so that lines of Chinese and Japanese characters don't need space "
@@ -9616,23 +9616,23 @@ msgstr ""
 "caracteres chinos y japoneses no necesiten que se añada espacio entre los "
 "glifos para justificar el texto."
 
-#: frontend/ui/data/css_tweaks.lua:571
+#: frontend/ui/data/css_tweaks.lua:570
 msgid "Paragraph first-line indentation"
 msgstr "Sangría en la primera línea de párrafo"
 
-#: frontend/ui/data/css_tweaks.lua:574
+#: frontend/ui/data/css_tweaks.lua:573
 msgid "No indentation on first paragraph line"
 msgstr "No usar sangría en primer párrafo"
 
-#: frontend/ui/data/css_tweaks.lua:575
+#: frontend/ui/data/css_tweaks.lua:574
 msgid "Do not indent the first line of paragraphs."
 msgstr "No usar sangría en la primera línea de párrafo."
 
-#: frontend/ui/data/css_tweaks.lua:581
+#: frontend/ui/data/css_tweaks.lua:580
 msgid "Indentation on first paragraph line"
 msgstr "Usar sangría en la primera línea de párrafo"
 
-#: frontend/ui/data/css_tweaks.lua:583
+#: frontend/ui/data/css_tweaks.lua:582
 msgid ""
 "Indentation on the first line of a paragraph is the default, but it may be "
 "overridden by publisher styles. This will force KOReader's defaults on "
@@ -9642,11 +9642,11 @@ msgstr ""
 "puede ser anulada por los estilos incrustados, que modificarán los valores "
 "predeterminados de KOReader."
 
-#: frontend/ui/data/css_tweaks.lua:592
+#: frontend/ui/data/css_tweaks.lua:591
 msgid "No indentation on first paragraph"
 msgstr "No usar sangría en primer párrafo"
 
-#: frontend/ui/data/css_tweaks.lua:594
+#: frontend/ui/data/css_tweaks.lua:593
 msgid ""
 "Do not indent the first line of the first paragraph of its container. This "
 "might be needed to correctly display drop caps, while still having "
@@ -9656,11 +9656,11 @@ msgstr ""
 "podría ser necesario para mostrar correctamente las mayúsculas y minúsculas, "
 "mientras se conserva la sangría en los párrafos siguientes."
 
-#: frontend/ui/data/css_tweaks.lua:601
+#: frontend/ui/data/css_tweaks.lua:600
 msgid "No indentation on following paragraphs"
 msgstr "No usar sangría en los párrafos siguientes"
 
-#: frontend/ui/data/css_tweaks.lua:603
+#: frontend/ui/data/css_tweaks.lua:602
 msgid ""
 "Do not indent the first line of following paragraphs, but leave the first "
 "paragraph of its container untouched."
@@ -9668,27 +9668,27 @@ msgstr ""
 "No usar sangría en la primera línea de los párrafos siguientes, pero dejar "
 "el primer párrafo de su contenedor sin modificar."
 
-#: frontend/ui/data/css_tweaks.lua:610 frontend/ui/data/css_tweaks.lua:617
+#: frontend/ui/data/css_tweaks.lua:609 frontend/ui/data/css_tweaks.lua:616
 msgid "Spacing between paragraphs"
 msgstr "Espaciado entre párrafos"
 
-#: frontend/ui/data/css_tweaks.lua:618
+#: frontend/ui/data/css_tweaks.lua:617
 msgid "Add a line of whitespace between paragraphs."
 msgstr "Añadir una línea en blanco entre párrafos."
 
-#: frontend/ui/data/css_tweaks.lua:625
+#: frontend/ui/data/css_tweaks.lua:624
 msgid "Spacing between paragraphs (half)"
 msgstr "Espaciado entre párrafos (medio)"
 
-#: frontend/ui/data/css_tweaks.lua:627
+#: frontend/ui/data/css_tweaks.lua:626
 msgid "Add half a line of whitespace between paragraphs."
 msgstr "Añadir media línea en blanco entre párrafos."
 
-#: frontend/ui/data/css_tweaks.lua:635
+#: frontend/ui/data/css_tweaks.lua:634
 msgid "No spacing between paragraphs"
 msgstr "No dejar espacio en blanco entre párrafos"
 
-#: frontend/ui/data/css_tweaks.lua:637
+#: frontend/ui/data/css_tweaks.lua:636
 msgid ""
 "No whitespace between paragraphs is the default, but it may be overridden by "
 "publisher styles. This will re-enable it for paragraphs and list items."
@@ -9697,19 +9697,19 @@ msgstr ""
 "puede ser anulada por los estilos incrustados. Esta opción lo habilitará de "
 "nuevo para los párrafos y los elementos de una lista."
 
-#: frontend/ui/data/css_tweaks.lua:645
+#: frontend/ui/data/css_tweaks.lua:644
 msgid "Tables, links, images"
 msgstr "Tablas, enlaces, imágenes"
 
-#: frontend/ui/data/css_tweaks.lua:647
+#: frontend/ui/data/css_tweaks.lua:646
 msgid "Tables"
 msgstr "Tablas"
 
-#: frontend/ui/data/css_tweaks.lua:650
+#: frontend/ui/data/css_tweaks.lua:649
 msgid "Ignore tables related HTML presentational hints"
 msgstr "Ignorar sugerencias de presentación HTML relacionadas con las tablas"
 
-#: frontend/ui/data/css_tweaks.lua:652
+#: frontend/ui/data/css_tweaks.lua:651
 msgid ""
 "Ignore HTML attributes that contribute to styles on the <table> element and "
 "its sub-elements (ie. align, valign, frame, rules, border, cellpadding, "
@@ -9719,11 +9719,11 @@ msgstr ""
 "<table> y sus subelementos (es decir, alinear, valign, marco, reglas, borde, "
 "relleno de celda, espacio entre celdas…)."
 
-#: frontend/ui/data/css_tweaks.lua:659
+#: frontend/ui/data/css_tweaks.lua:658
 msgid "Full-width tables"
 msgstr "Tablas a máxima anchura"
 
-#: frontend/ui/data/css_tweaks.lua:661
+#: frontend/ui/data/css_tweaks.lua:660
 msgid ""
 "Make table expand to the full width of the page. (Tables with small content "
 "now use only the width needed to display that content. This restores the "
@@ -9733,11 +9733,11 @@ msgstr ""
 "con poco contenido sólo usarán el ancho necesario para mostrar ese "
 "contenido. Esto restablece el comportamiento previo)."
 
-#: frontend/ui/data/css_tweaks.lua:668
+#: frontend/ui/data/css_tweaks.lua:667
 msgid "Ignore publisher table and cell widths"
 msgstr "Ignorar la anchura de tabla y de celda predefinidas en el documento"
 
-#: frontend/ui/data/css_tweaks.lua:670
+#: frontend/ui/data/css_tweaks.lua:669
 msgid ""
 "Ignore table and cells widths specified by the publisher, and let the engine "
 "decide the most appropriate widths."
@@ -9745,70 +9745,70 @@ msgstr ""
 "Ignorar la anchura de tabla y de celda predefinidos en el documento, y "
 "permitir que el sistema decida la anchura apropiada."
 
-#: frontend/ui/data/css_tweaks.lua:676
+#: frontend/ui/data/css_tweaks.lua:675
 msgid "Center small tables"
 msgstr "Centrar tablas pequeñas"
 
-#: frontend/ui/data/css_tweaks.lua:678
+#: frontend/ui/data/css_tweaks.lua:677
 msgid "Horizontally center tables that do not use the full page width."
 msgstr ""
 "Centrar horizontalmente las tablas que no utilizan toda la anchura de la "
 "página."
 
-#: frontend/ui/data/css_tweaks.lua:686
+#: frontend/ui/data/css_tweaks.lua:685
 msgid "Ignore publisher vertical alignment in tables"
 msgstr ""
 "Ignorar la alineación vertical predefinida en el documento para las tablas"
 
-#: frontend/ui/data/css_tweaks.lua:693
+#: frontend/ui/data/css_tweaks.lua:692
 msgid "Alternate background color of table rows"
 msgstr "Alternar el color de fondo de las filas de las tablas"
 
-#: frontend/ui/data/css_tweaks.lua:701
+#: frontend/ui/data/css_tweaks.lua:700
 msgid "Show borders on all tables"
 msgstr "Mostrar bordes en todas las tablas"
 
-#: frontend/ui/data/css_tweaks.lua:712
+#: frontend/ui/data/css_tweaks.lua:711
 msgid "Links always black"
 msgstr "Enlaces siempre negros"
 
-#: frontend/ui/data/css_tweaks.lua:718
+#: frontend/ui/data/css_tweaks.lua:717
 msgid "Links always blue"
 msgstr "Enlaces siempre azules"
 
-#: frontend/ui/data/css_tweaks.lua:725
+#: frontend/ui/data/css_tweaks.lua:724
 msgid "Links always bold"
 msgstr "Enlaces siempre en negrita"
 
-#: frontend/ui/data/css_tweaks.lua:731
+#: frontend/ui/data/css_tweaks.lua:730
 msgid "Links never bold"
 msgstr "Enlaces nunca en negrita"
 
-#: frontend/ui/data/css_tweaks.lua:738
+#: frontend/ui/data/css_tweaks.lua:737
 msgid "Links always italic"
 msgstr "Enlaces siempre en cursiva"
 
-#: frontend/ui/data/css_tweaks.lua:744
+#: frontend/ui/data/css_tweaks.lua:743
 msgid "Links never italic"
 msgstr "Enlaces nunca en cursiva"
 
-#: frontend/ui/data/css_tweaks.lua:751
+#: frontend/ui/data/css_tweaks.lua:750
 msgid "Links always underlined"
 msgstr "Enlaces siempre subrayados"
 
-#: frontend/ui/data/css_tweaks.lua:758
+#: frontend/ui/data/css_tweaks.lua:757
 msgid "Links never underlined"
 msgstr "Enlaces nunca subrayados"
 
-#: frontend/ui/data/css_tweaks.lua:763
+#: frontend/ui/data/css_tweaks.lua:762
 msgid "Images"
 msgstr "Imágenes"
 
-#: frontend/ui/data/css_tweaks.lua:766
+#: frontend/ui/data/css_tweaks.lua:765
 msgid "Full-width images"
 msgstr "Imágenes a máxima anchura"
 
-#: frontend/ui/data/css_tweaks.lua:768 frontend/ui/data/css_tweaks.lua:786
+#: frontend/ui/data/css_tweaks.lua:767 frontend/ui/data/css_tweaks.lua:784
 msgid ""
 "Useful for books containing only images, when they are smaller than your "
 "screen. May stretch images in some cases."
@@ -9816,27 +9816,27 @@ msgstr ""
 "Útil para libros que sólo contienen imágenes que son de menor tamaño que la "
 "pantalla. Permite expandir las imágenes en algunos casos."
 
-#: frontend/ui/data/css_tweaks.lua:784
+#: frontend/ui/data/css_tweaks.lua:782
 msgid "Almost full-width images"
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:798
+#: frontend/ui/data/css_tweaks.lua:796
 msgid "Vertically center-align images relative to text"
 msgstr "Alinear verticalmente las imágenes en relación al texto"
 
-#: frontend/ui/data/css_tweaks.lua:804
+#: frontend/ui/data/css_tweaks.lua:802
 msgid "Miscellaneous"
 msgstr "Otros"
 
-#: frontend/ui/data/css_tweaks.lua:806
+#: frontend/ui/data/css_tweaks.lua:804
 msgid "Alternative ToC hints"
 msgstr "Referencias del índice alternativo"
 
-#: frontend/ui/data/css_tweaks.lua:808
+#: frontend/ui/data/css_tweaks.lua:806
 msgid "About alternative ToC"
 msgstr "Acerca del índice alternativo"
 
-#: frontend/ui/data/css_tweaks.lua:810
+#: frontend/ui/data/css_tweaks.lua:808
 msgid ""
 "An alternative table of contents can be built via a dedicated option in the "
 "\"Settings\" menu below the \"Table of contents\" menu entry.\n"
@@ -9875,39 +9875,39 @@ msgstr ""
 "reconstruido pulsando dos veces en el menú: una vez para restaurar el índice "
 "original, y otra para construir el índice alternativo."
 
-#: frontend/ui/data/css_tweaks.lua:824
+#: frontend/ui/data/css_tweaks.lua:822
 msgid "Ignore all <H1> to <H6>"
 msgstr "Ignorar todos <H1> a <H6>"
 
-#: frontend/ui/data/css_tweaks.lua:829
+#: frontend/ui/data/css_tweaks.lua:827
 msgid "Ignore <H1>"
 msgstr "Ignorar <H1>"
 
-#: frontend/ui/data/css_tweaks.lua:834
+#: frontend/ui/data/css_tweaks.lua:832
 msgid "Ignore <H2>"
 msgstr "Ignorar <H2>"
 
-#: frontend/ui/data/css_tweaks.lua:839
+#: frontend/ui/data/css_tweaks.lua:837
 msgid "Ignore <H3>"
 msgstr "Ignorar <H3>"
 
-#: frontend/ui/data/css_tweaks.lua:844
+#: frontend/ui/data/css_tweaks.lua:842
 msgid "Ignore <H4>"
 msgstr "Ignorar <H4>"
 
-#: frontend/ui/data/css_tweaks.lua:849
+#: frontend/ui/data/css_tweaks.lua:847
 msgid "Ignore <H5>"
 msgstr "Ignorar <H5>"
 
-#: frontend/ui/data/css_tweaks.lua:854
+#: frontend/ui/data/css_tweaks.lua:852
 msgid "Ignore <H6>"
 msgstr "Ignorar <H6>"
 
-#: frontend/ui/data/css_tweaks.lua:860
+#: frontend/ui/data/css_tweaks.lua:858
 msgid "Example of book specific ToC hints"
 msgstr "Ejemplo de elementos del índice alternativo específicos para un libro"
 
-#: frontend/ui/data/css_tweaks.lua:862
+#: frontend/ui/data/css_tweaks.lua:860
 msgid ""
 "If headings or document fragments do not result in a usable ToC, you can "
 "inspect the HTML and look for elements that contain chapter titles. Then you "
@@ -9922,23 +9922,23 @@ msgstr ""
 "Esto es sólo un ejemplo que tendrá que ser aplicado mediante un ajuste de "
 "estilo de usuario."
 
-#: frontend/ui/data/css_tweaks.lua:876
+#: frontend/ui/data/css_tweaks.lua:874
 msgid "List items"
 msgstr "Elementos de lista"
 
-#: frontend/ui/data/css_tweaks.lua:879
+#: frontend/ui/data/css_tweaks.lua:877
 msgid "Force bullets with unordered lists"
 msgstr "Forzar viñetas en listas desordenadas"
 
-#: frontend/ui/data/css_tweaks.lua:884
+#: frontend/ui/data/css_tweaks.lua:882
 msgid "Force decimal numbers with ordered lists"
 msgstr "Forzar números decimales en listas ordenadas"
 
-#: frontend/ui/data/css_tweaks.lua:890
+#: frontend/ui/data/css_tweaks.lua:888
 msgid "Disable before/after pseudo elements"
 msgstr "Deshabilitar pseudo elementos antes/después"
 
-#: frontend/ui/data/css_tweaks.lua:892
+#: frontend/ui/data/css_tweaks.lua:890
 msgid ""
 "Disable generated text from ::before and ::after pseudo elements, usually "
 "used to add cosmetic text around some content."
@@ -9947,45 +9947,45 @@ msgstr ""
 "elementos, que generalmente se usan para añadir texto cosmético alrededor de "
 "algunos contenidos."
 
-#: frontend/ui/data/css_tweaks.lua:902
+#: frontend/ui/data/css_tweaks.lua:900
 msgid "Pure black and white"
 msgstr "Blanco y negro puros"
 
-#: frontend/ui/data/css_tweaks.lua:904
+#: frontend/ui/data/css_tweaks.lua:902
 msgid "Enforce black text and borders, and remove backgrounds."
 msgstr "Forzar texto y bordes negros y eliminar fondos."
 
-#: frontend/ui/data/css_tweaks.lua:917
+#: frontend/ui/data/css_tweaks.lua:915
 msgid "In-page footnotes"
 msgstr "Ver en la página las notas a pie de página"
 
-#: frontend/ui/data/css_tweaks.lua:919 frontend/ui/data/css_tweaks.lua:922
+#: frontend/ui/data/css_tweaks.lua:917 frontend/ui/data/css_tweaks.lua:920
 msgid "In-page FB2 footnotes"
 msgstr "Ver en la página las notas a pie de página de los FB2"
 
-#: frontend/ui/data/css_tweaks.lua:924
+#: frontend/ui/data/css_tweaks.lua:922
 msgid ""
 "Show FB2 footnote text at the bottom of pages that contain links to them."
 msgstr ""
 "Mostrar notas a pie de página de los FB2 en la parte inferior de las páginas "
 "que contienen enlaces a ellas."
 
-#: frontend/ui/data/css_tweaks.lua:950
+#: frontend/ui/data/css_tweaks.lua:948
 msgid "In-page FB2 endnotes"
 msgstr "Ver en la página las notas finales del FB2"
 
-#: frontend/ui/data/css_tweaks.lua:952
+#: frontend/ui/data/css_tweaks.lua:950
 msgid ""
 "Show FB2 endnote text at the bottom of pages that contain links to them."
 msgstr ""
 "Mostrar notas finales de los FB2 en la parte inferior de las páginas que "
 "contienen enlaces a ellas."
 
-#: frontend/ui/data/css_tweaks.lua:975
+#: frontend/ui/data/css_tweaks.lua:973
 msgid "Keep regular font size"
 msgstr "Mantener tamaño de fuente normal"
 
-#: frontend/ui/data/css_tweaks.lua:977
+#: frontend/ui/data/css_tweaks.lua:975
 msgid ""
 "FB2 footnotes and endnotes get a smaller font size when displayed in-page. "
 "This allows them to be shown with the normal font size."
@@ -9994,11 +9994,11 @@ msgstr ""
 "letra más pequeño cuando se muestran en la página. De esta forma, se "
 "visualizan con el tamaño de fuente normal."
 
-#: frontend/ui/data/css_tweaks.lua:999
+#: frontend/ui/data/css_tweaks.lua:997
 msgid "In-page EPUB footnotes"
 msgstr "Ver en la página las notas a pie de página del EPUB"
 
-#: frontend/ui/data/css_tweaks.lua:1001 frontend/ui/data/css_tweaks.lua:1032
+#: frontend/ui/data/css_tweaks.lua:999 frontend/ui/data/css_tweaks.lua:1030
 msgid ""
 "Show EPUB footnote text at the bottom of pages that contain links to them.\n"
 "This only works with footnotes that have specific attributes set by the "
@@ -10009,30 +10009,30 @@ msgstr ""
 "Esto sólo funciona con las notas a pie de página que tienen atributos "
 "específicos establecidos por el editor."
 
-#: frontend/ui/data/css_tweaks.lua:1030
+#: frontend/ui/data/css_tweaks.lua:1028
 msgid "In-page EPUB footnotes (smaller)"
 msgstr "Ver en la página las notas a pie de página del EPUB (menor tamaño)"
 
-#: frontend/ui/data/css_tweaks.lua:1064
+#: frontend/ui/data/css_tweaks.lua:1062
 msgid "In-page Wikipedia footnotes"
 msgstr "Ver en la página las notas a pie de página de Wikipedia"
 
-#: frontend/ui/data/css_tweaks.lua:1066 frontend/ui/data/css_tweaks.lua:1089
+#: frontend/ui/data/css_tweaks.lua:1064 frontend/ui/data/css_tweaks.lua:1087
 msgid "Show footnotes at the bottom of pages in Wikipedia EPUBs."
 msgstr ""
 "Mostrar notas a pie de página en la parte inferior de las páginas de los "
 "EPUBs de Wikipedia."
 
-#: frontend/ui/data/css_tweaks.lua:1087
+#: frontend/ui/data/css_tweaks.lua:1085
 msgid "In-page Wikipedia footnotes (smaller)"
 msgstr "Ver en la página las notas a pie de página de Wikipedia (menor tamaño)"
 
-#: frontend/ui/data/css_tweaks.lua:1115
+#: frontend/ui/data/css_tweaks.lua:1113
 msgid "In-page classic classname footnotes"
 msgstr ""
 "Ver en la página las notas a pie de página con nombres de clase clásicos"
 
-#: frontend/ui/data/css_tweaks.lua:1117 frontend/ui/data/css_tweaks.lua:1145
+#: frontend/ui/data/css_tweaks.lua:1115 frontend/ui/data/css_tweaks.lua:1143
 msgid ""
 "Show footnotes with classic classnames at the bottom of pages.\n"
 "This tweak can be duplicated as a user style tweak when books contain "
@@ -10044,58 +10044,58 @@ msgstr ""
 "los libros contienen notas a pie de página mezcladas con otros nombres de "
 "clase."
 
-#: frontend/ui/data/css_tweaks.lua:1143
+#: frontend/ui/data/css_tweaks.lua:1141
 msgid "In-page classic classname footnotes (smaller)"
 msgstr ""
 "Ver en la página las notas a pie de página con nombres de clase clásicos "
 "(menor tamaño)"
 
-#: frontend/ui/data/css_tweaks.lua:1176
+#: frontend/ui/data/css_tweaks.lua:1174
 msgid "In-page footnote font size"
 msgstr "Tamaño de la fuente de las notas a pie de página"
 
-#: frontend/ui/data/css_tweaks.lua:1185
+#: frontend/ui/data/css_tweaks.lua:1183
 msgid "Footnote font size: %1 %"
 msgstr "Tamaño de fuente de las notas a pie de página: %1 %"
 
-#: frontend/ui/data/css_tweaks.lua:1201
+#: frontend/ui/data/css_tweaks.lua:1199
 msgid "In-page footnote fix-up"
 msgstr "Corrección de notas al pie de página"
 
-#: frontend/ui/data/css_tweaks.lua:1204
+#: frontend/ui/data/css_tweaks.lua:1202
 msgid "No footnote indentation"
 msgstr "Sin sangrías de pie de página"
 
-#: frontend/ui/data/css_tweaks.lua:1215
+#: frontend/ui/data/css_tweaks.lua:1213
 msgid "Justify footnote text"
 msgstr "Justificar texto de notas a pie de página"
 
-#: frontend/ui/data/css_tweaks.lua:1226
+#: frontend/ui/data/css_tweaks.lua:1224
 msgid "Remove block margins"
 msgstr "Eliminar márgenes de bloque"
 
-#: frontend/ui/data/css_tweaks.lua:1227
+#: frontend/ui/data/css_tweaks.lua:1225
 msgid "Remove block margin and padding inside inpage footnotes."
 msgstr ""
 "Eliminar márgenes del bloque y relleno en el interior de las notas a pie de "
 "página."
 
-#: frontend/ui/data/css_tweaks.lua:1240
+#: frontend/ui/data/css_tweaks.lua:1238
 msgid "Remove cosmetic spacing"
 msgstr "Eliminar espaciado cosmético"
 
-#: frontend/ui/data/css_tweaks.lua:1241
+#: frontend/ui/data/css_tweaks.lua:1239
 msgid "Remove inline margin and padding inside inpage footnotes."
 msgstr ""
 "Eliminar el margen y el relleno de inicio y final en línea en las notas a "
 "pie de página."
 
-#: frontend/ui/data/css_tweaks.lua:1254
+#: frontend/ui/data/css_tweaks.lua:1252
 msgid "Inline all footnote content"
 msgstr ""
 "Mostrar en un solo párrafo todo el contenido de las notas a pie de página"
 
-#: frontend/ui/data/css_tweaks.lua:1255
+#: frontend/ui/data/css_tweaks.lua:1253
 msgid ""
 "If the footnote number is on a single line and the footnote text on the next "
 "line, or if there are variable levels of indentation, this tweak can make "
@@ -10109,12 +10109,12 @@ msgstr ""
 "Con este ajuste no se mostrarán correctamente las notas a pie de página "
 "complejas que contengan comillas o listas."
 
-#: frontend/ui/data/css_tweaks.lua:1276
+#: frontend/ui/data/css_tweaks.lua:1274
 msgid "Regularize text size on inline elements"
 msgstr ""
 "Regularizar el tamaño de fuente de los elementos que forman una misma línea"
 
-#: frontend/ui/data/css_tweaks.lua:1278
+#: frontend/ui/data/css_tweaks.lua:1276
 msgid ""
 "If the footnote text uses variable or absolute font sizes, line height or "
 "vertical alignments, which would make it too irregular, you can reset all of "
@@ -10125,11 +10125,11 @@ msgstr ""
 "demasiado irregular, puede reajustarlos todos para obtener un texto más "
 "esbelto (a costa de perder los superíndices)."
 
-#: frontend/ui/data/css_tweaks.lua:1294
+#: frontend/ui/data/css_tweaks.lua:1292
 msgid "Combine footnotes in a non-linear flow"
 msgstr "Combinar notas a pie de página en un flujo no lineal"
 
-#: frontend/ui/data/css_tweaks.lua:1296
+#: frontend/ui/data/css_tweaks.lua:1294
 msgid ""
 "This will mark each section of consecutive footnotes (at their original "
 "location in the book) as being non-linear.\n"
@@ -11342,12 +11342,12 @@ msgid "Writing Direction"
 msgstr "Dirección del texto"
 
 #. @translators LTR is left to right, which is the regular European writing direction.
-#: frontend/ui/data/koptoptions.lua:686 frontend/ui/elements/page_turns.lua:159
+#: frontend/ui/data/koptoptions.lua:686 frontend/ui/elements/page_turns.lua:158
 msgid "LTR"
 msgstr "LTR"
 
 #. @translators RTL is right to left, which is the regular writing direction in languages like Hebrew, Arabic, Persian and Urdu.
-#: frontend/ui/data/koptoptions.lua:688 frontend/ui/elements/page_turns.lua:170
+#: frontend/ui/data/koptoptions.lua:688 frontend/ui/elements/page_turns.lua:169
 msgid "RTL"
 msgstr "RTL"
 
@@ -11694,11 +11694,11 @@ msgstr "Pulsaciones y gestos"
 msgid "Ignore long-press on corners"
 msgstr "Ignorar pulsación larga en las esquinas"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:167
+#: frontend/ui/elements/common_settings_menu_table.lua:166
 msgid "Disable out of order interactions"
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:170
+#: frontend/ui/elements/common_settings_menu_table.lua:168
 msgid ""
 "Disallow taps or keyboard presses being sent to the UI elements before they "
 "are showing up.\n"
@@ -11712,27 +11712,27 @@ msgid ""
 "UI interactions are less responsive."
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:189
+#: frontend/ui/elements/common_settings_menu_table.lua:187
 msgid "Fullscreen"
 msgstr "Pantalla completa"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:220
+#: frontend/ui/elements/common_settings_menu_table.lua:218
 msgid "Force haptic feedback"
 msgstr "Forzar vibración al pulsar"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:234
+#: frontend/ui/elements/common_settings_menu_table.lua:232
 msgid "Volume key page turning"
 msgstr "Pasar página con botones de volumen"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:246
+#: frontend/ui/elements/common_settings_menu_table.lua:244
 msgid "Ignore back button completely"
 msgstr "Ignorar completamente el botón de retroceso"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:260
+#: frontend/ui/elements/common_settings_menu_table.lua:258
 msgid "Battery optimizations"
 msgstr "Optimización de batería"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:265
+#: frontend/ui/elements/common_settings_menu_table.lua:263
 msgid ""
 "Go to Android battery optimization settings?\n"
 "\n"
@@ -11747,97 +11747,97 @@ msgstr ""
 "No modificar ninguna configuración si no se tienen los conocimientos "
 "apropiados."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:284
+#: frontend/ui/elements/common_settings_menu_table.lua:282
 msgid "Navigation"
 msgstr "Navegación"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:287
-#: frontend/ui/network/manager.lua:865 plugins/kosync.koplugin/main.lua:84
+#: frontend/ui/elements/common_settings_menu_table.lua:285
+#: frontend/ui/network/manager.lua:862 plugins/kosync.koplugin/main.lua:84
 #: plugins/kosync.koplugin/main.lua:285 plugins/kosync.koplugin/main.lua:322
 msgid "Prompt"
 msgstr "Preguntar"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:287
-#: frontend/ui/network/manager.lua:865
+#: frontend/ui/elements/common_settings_menu_table.lua:285
+#: frontend/ui/network/manager.lua:862
 msgid "prompt"
 msgstr "Preguntar"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:289
+#: frontend/ui/elements/common_settings_menu_table.lua:287
 #: plugins/autofrontlight.koplugin/main.lua:33
 msgid "disable"
 msgstr "desactivar"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:306
+#: frontend/ui/elements/common_settings_menu_table.lua:304
 msgid "Back to exit: %1"
 msgstr "Retroceder para salir: %1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:319
-#: frontend/ui/elements/common_settings_menu_table.lua:354
+#: frontend/ui/elements/common_settings_menu_table.lua:317
+#: frontend/ui/elements/common_settings_menu_table.lua:352
 msgid "back to exit"
 msgstr "retroceder para salir"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:321
+#: frontend/ui/elements/common_settings_menu_table.lua:319
 msgid "parent folder"
 msgstr "carpeta principal"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:323
+#: frontend/ui/elements/common_settings_menu_table.lua:321
 msgid "Back in file browser: %1"
 msgstr "Volver al explorador de archivos: %1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:330
-#: frontend/ui/elements/common_settings_menu_table.lua:369
+#: frontend/ui/elements/common_settings_menu_table.lua:328
+#: frontend/ui/elements/common_settings_menu_table.lua:367
 msgid "Back to exit (%1)"
 msgstr "Retroceder para salir (%1)"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:342
+#: frontend/ui/elements/common_settings_menu_table.lua:340
 msgid "Go to parent folder"
 msgstr "Ir a carpeta superior"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:358
+#: frontend/ui/elements/common_settings_menu_table.lua:356
 msgid "previous location"
 msgstr "ubicación anterior"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:360
+#: frontend/ui/elements/common_settings_menu_table.lua:358
 msgid "previous read page"
 msgstr "página que se estaba leyendo"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:362
+#: frontend/ui/elements/common_settings_menu_table.lua:360
 msgid "Back in reader: %1"
 msgstr "Volver al lector: %1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:381
+#: frontend/ui/elements/common_settings_menu_table.lua:379
 msgid "Go to file browser"
 msgstr "Ir al explorador de archivos"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:386
+#: frontend/ui/elements/common_settings_menu_table.lua:384
 msgid "Go to previous location"
 msgstr "Volver a la posición anterior"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:391
+#: frontend/ui/elements/common_settings_menu_table.lua:389
 msgid "Go to previous read page"
 msgstr "Volver a la página que se estaba leyendo"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:400
+#: frontend/ui/elements/common_settings_menu_table.lua:398
 msgid "Backspace works as back button"
 msgstr "La tecla de retroceso actúa como botón de retroceso"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:412
+#: frontend/ui/elements/common_settings_menu_table.lua:410
 msgid "Add opening page to location history"
 msgstr "Agregar la página de apertura al historial de ubicaciones"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:430
+#: frontend/ui/elements/common_settings_menu_table.lua:428
 msgid "Skim dialog position: %1"
 msgstr "Posición del cuadro de diálogo: %1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:454
+#: frontend/ui/elements/common_settings_menu_table.lua:452
 msgid "Document"
 msgstr "Documento"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:459
+#: frontend/ui/elements/common_settings_menu_table.lua:457
 msgid "book folder"
 msgstr "carpeta del libro"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:466
+#: frontend/ui/elements/common_settings_menu_table.lua:464
 msgid ""
 "Book view settings, reading progress, highlights, bookmarks and notes "
 "(collectively known as metadata) are stored in a separate folder named <book-"
@@ -11848,13 +11848,13 @@ msgstr ""
 "metadatos) se guardan en una carpeta separada llamada <nombre-del-libro>.sdr "
 "(\".sdr\" significa \"sidecar\")."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:470
+#: frontend/ui/elements/common_settings_menu_table.lua:468
 msgid ""
 "You can decide between three locations/methods where these will be saved:"
 msgstr ""
 "Para guardar estos metadatos, se puede elegir entre tres ubicaciones/métodos:"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:473
+#: frontend/ui/elements/common_settings_menu_table.lua:471
 msgid ""
 " - alongside the book file itself (the long time default): sdr folders will "
 "be visible when you browse your library directories with another file "
@@ -11873,7 +11873,7 @@ msgstr ""
 "directorios padre. Además, si se realizan sincronizaciones de directorios o "
 "copias de seguridad, la configuración formará parte de ellas."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:477
+#: frontend/ui/elements/common_settings_menu_table.lua:475
 msgid ""
 " - all in %1: sdr folders will only be visible and used by KOReader, and "
 "won't clutter your vision of your library directories with another file "
@@ -11890,7 +11890,7 @@ msgstr ""
 "anterior de estos libros. Estos ajustes no formarán parte de ninguna "
 "sincronización o copia de seguridad de la biblioteca."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:483
+#: frontend/ui/elements/common_settings_menu_table.lua:481
 msgid ""
 " - all inside %1 as hashes: sdr folders are identified not by filepath/"
 "filename but by partial MD5 hash, allowing you to rename, move, and copy "
@@ -11912,7 +11912,7 @@ msgstr ""
 "de archivos. Esta opción puede ser adecuada para usuarios con varias copias "
 "de documentos en diferentes dispositivos y directorios."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:492
+#: frontend/ui/elements/common_settings_menu_table.lua:490
 msgid ""
 "%1 requires calculating partial file hashes of documents which may slow down "
 "file browser navigation. Any file modifications (such as embedding "
@@ -11929,7 +11929,7 @@ msgstr ""
 "incrustación de anotaciones en PDF se puede configurar en el menú "
 "Composición → Resaltados → Escribir resaltados en PDF."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:497
+#: frontend/ui/elements/common_settings_menu_table.lua:495
 msgid ""
 "Warning: You currently have documents with hash-based metadata. Until this "
 "metadata is moved by opening those documents, or deleted, file browser "
@@ -11939,23 +11939,23 @@ msgstr ""
 "que estos metadatos se muevan al abrir esos documentos, o se eliminen, la "
 "navegación por el explorador de archivos puede seguir siendo lenta."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:535
+#: frontend/ui/elements/common_settings_menu_table.lua:533
 msgid "Book metadata location: %1"
 msgstr "Ubicación de los metadatos del libro: %1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:540
+#: frontend/ui/elements/common_settings_menu_table.lua:538
 msgid "About book metadata location"
 msgstr "Acerca de la ubicación de los metadatos del libro"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:552
+#: frontend/ui/elements/common_settings_menu_table.lua:550
 msgid "Show documents with hash-based metadata"
 msgstr "Mostrar documentos con metadatos basados en hash"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:553
+#: frontend/ui/elements/common_settings_menu_table.lua:551
 msgid "No documents with hash-based metadata"
 msgstr "No hay documentos con metadatos basados en hash"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:575
+#: frontend/ui/elements/common_settings_menu_table.lua:573
 msgid ""
 "This sets how often to rewrite to disk global settings and book metadata, "
 "including your current position and any highlights and bookmarks made, when "
@@ -11982,7 +11982,7 @@ msgstr ""
 "S , lo que, a largo plazo, puede deteriorar, poco a poco, el medio de "
 "almacenamiento."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:595
+#: frontend/ui/elements/common_settings_menu_table.lua:593
 msgid ""
 "Please be warned that on this device, setting a low interval may exacerbate "
 "the potential for filesystem corruption and complete data loss after a "
@@ -11992,55 +11992,55 @@ msgstr ""
 "intervalo bajo puede aumentar las probabilidades de que se dañe el sistema "
 "de archivos y se pierdan todos los datos tras un fallo de hardware."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:604
+#: frontend/ui/elements/common_settings_menu_table.lua:601
 msgid "Periodically save reading progress"
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:616
+#: frontend/ui/elements/common_settings_menu_table.lua:613
 msgid "End of document action"
 msgstr "Finalizar acciones en documento"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:619
+#: frontend/ui/elements/common_settings_menu_table.lua:616
 msgid "Always mark as finished"
 msgstr "Marcar siempre como leído"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:677
+#: frontend/ui/elements/common_settings_menu_table.lua:674
 msgid "Return to file browser"
 msgstr "Volver al explorador de archivos"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:684
+#: frontend/ui/elements/common_settings_menu_table.lua:681
 msgid "Mark book as finished"
 msgstr "Marcar como leído"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:691
+#: frontend/ui/elements/common_settings_menu_table.lua:688
 msgid "Book status and return to file browser"
 msgstr "Estado del libro y volver al explorador de archivos"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:707
+#: frontend/ui/elements/common_settings_menu_table.lua:704
 msgid "Keyboard"
 msgstr "Teclado"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:716
+#: frontend/ui/elements/common_settings_menu_table.lua:713
 msgid "Dimension units: %1"
 msgstr "Unidades de dimensión: %1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:720
+#: frontend/ui/elements/common_settings_menu_table.lua:717
 msgid "Also show values in pixels"
 msgstr "Mostrar también los valores en píxeles"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:733
+#: frontend/ui/elements/common_settings_menu_table.lua:730
 msgid "Metric system"
 msgstr "Sistema métrico"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:740
+#: frontend/ui/elements/common_settings_menu_table.lua:737
 msgid "Imperial system"
 msgstr "Sistema imperial"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:746
+#: frontend/ui/elements/common_settings_menu_table.lua:743
 msgid "Pixels"
 msgstr "Píxeles"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:751
+#: frontend/ui/elements/common_settings_menu_table.lua:748
 msgid "Screenshot folder"
 msgstr "Carpeta de capturas de pantalla"
 
@@ -12346,43 +12346,43 @@ msgstr "Línea continua"
 msgid "Dashed line"
 msgstr "Línea discontinua"
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:8
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:7
 msgid "Page press"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:10
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:9
 msgid "Configure the up and down buttons on both side of the kindle voyage"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:14
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:13
 msgid "Try PagePress, inverted when pressed"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:27
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:26
 msgid "Low pressure"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:38
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:37
 msgid "Medium pressure"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:49
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:48
 msgid "High pressure"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:61
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:60
 msgid "No feedback"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:72
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:71
 msgid "Low feedback"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:83
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:82
 msgid "Medium feedback"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:94
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:93
 msgid "High feedback"
 msgstr ""
 
@@ -12418,35 +12418,35 @@ msgstr "Porcentaje de la anchura de pantalla"
 msgid "Percentage of screen height"
 msgstr "Porcentaje de la altura de pantalla"
 
-#: frontend/ui/elements/page_turns.lua:76
+#: frontend/ui/elements/page_turns.lua:75
 msgid "to move forward."
 msgstr ""
 
-#: frontend/ui/elements/page_turns.lua:78
+#: frontend/ui/elements/page_turns.lua:77
 msgid "Tapping the rest area will move backward."
 msgstr ""
 
-#: frontend/ui/elements/page_turns.lua:100
+#: frontend/ui/elements/page_turns.lua:99
 msgid "Page turns"
 msgstr "Cambio de página"
 
-#: frontend/ui/elements/page_turns.lua:103
+#: frontend/ui/elements/page_turns.lua:102
 msgid "With taps"
 msgstr "Con pulsaciones"
 
-#: frontend/ui/elements/page_turns.lua:112
+#: frontend/ui/elements/page_turns.lua:111
 msgid "With swipes"
 msgstr "Con deslizamientos"
 
-#: frontend/ui/elements/page_turns.lua:124
+#: frontend/ui/elements/page_turns.lua:123
 msgid "Tap zones: %1"
 msgstr "Zonas de pulsación: %1"
 
-#: frontend/ui/elements/page_turns.lua:134
+#: frontend/ui/elements/page_turns.lua:133
 msgid "Invert page turn taps and swipes"
 msgstr "Invertir las pulsaciones y gestos de cambio de página"
 
-#: frontend/ui/elements/page_turns.lua:153
+#: frontend/ui/elements/page_turns.lua:152
 msgid ""
 "The default (★) for newly opened books is right-to-left (RTL) page turning.\n"
 "\n"
@@ -12457,7 +12457,7 @@ msgstr ""
 "\n"
 "¿Le gustaría cambiarlo?"
 
-#: frontend/ui/elements/page_turns.lua:156
+#: frontend/ui/elements/page_turns.lua:155
 msgid ""
 "The default (★) for newly opened books is left-to-right (LTR) page turning.\n"
 "\n"
@@ -12468,19 +12468,19 @@ msgstr ""
 "\n"
 "¿Le gustaría cambiarlo?"
 
-#: frontend/ui/elements/page_turns.lua:160
+#: frontend/ui/elements/page_turns.lua:159
 msgid "LTR (★)"
 msgstr "LTR (★)"
 
-#: frontend/ui/elements/page_turns.lua:169
+#: frontend/ui/elements/page_turns.lua:168
 msgid "RTL (★)"
 msgstr "RTL (★)"
 
-#: frontend/ui/elements/page_turns.lua:182
+#: frontend/ui/elements/page_turns.lua:181
 msgid "Also invert document-related dialogs"
 msgstr "Invertir también los diálogos relacionados con documentos"
 
-#: frontend/ui/elements/page_turns.lua:193
+#: frontend/ui/elements/page_turns.lua:192
 msgid ""
 "When enabled the UI direction for the Table of Contents, Book Map, and Page "
 "Browser dialogs will follow the page turn direction instead of the default "
@@ -12491,7 +12491,7 @@ msgstr ""
 "dirección de cambio de página en lugar de la dirección por defecto de la "
 "interfaz de usuario."
 
-#: frontend/ui/elements/page_turns.lua:199
+#: frontend/ui/elements/page_turns.lua:198
 msgid "Page turn animations"
 msgstr "Animaciones de cambio de página"
 
@@ -12518,7 +12518,7 @@ msgstr ""
 msgid "About fully refreshing screens"
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:14
+#: frontend/ui/elements/refresh_menu_table.lua:13
 msgid ""
 "Showing a new content on an E-ink screen usually does not fully clear the "
 "previous content and leaves some blur. It may be referred as E-ink shadow or "
@@ -12532,25 +12532,25 @@ msgid ""
 "be good enough for most of the use cases."
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:21
+#: frontend/ui/elements/refresh_menu_table.lua:19
 msgid "Never automatically fully refresh screen"
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:24
+#: frontend/ui/elements/refresh_menu_table.lua:21
 msgid ""
 "The full refresh will happen only when showing an image, moving to next "
 "chapter or opening another book."
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:36
+#: frontend/ui/elements/refresh_menu_table.lua:32
 msgid "Low full refresh rate for better responsiveness"
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:47
+#: frontend/ui/elements/refresh_menu_table.lua:42
 msgid "Balance between responsiveness and quality"
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:64
+#: frontend/ui/elements/refresh_menu_table.lua:58
 msgid "High full refresh rate for better display quality"
 msgstr ""
 
@@ -12622,11 +12622,11 @@ msgstr "Personalizar resolución"
 msgid "E-ink settings"
 msgstr "Configurar tinta electrónica"
 
-#: frontend/ui/elements/screen_eink_opt_menu_table.lua:18
+#: frontend/ui/elements/screen_eink_opt_menu_table.lua:17
 msgid "Use lower refresh rate when appropriate"
 msgstr ""
 
-#: frontend/ui/elements/screen_eink_opt_menu_table.lua:21
+#: frontend/ui/elements/screen_eink_opt_menu_table.lua:19
 msgid ""
 "E-ink may laggy when refreshing, avoid refreshing the screen for the "
 "intermedia states, e.g. when scrolling, can be beneficial to reduce the "
@@ -12634,11 +12634,11 @@ msgid ""
 "A reloading of the book may be needed to take effect."
 msgstr ""
 
-#: frontend/ui/elements/screen_eink_opt_menu_table.lua:32
+#: frontend/ui/elements/screen_eink_opt_menu_table.lua:30
 msgid "Avoid mandatory black flashes in UI"
 msgstr "Evitar los destellos negros en la interfaz de usuario"
 
-#: frontend/ui/elements/screen_eink_opt_menu_table.lua:35
+#: frontend/ui/elements/screen_eink_opt_menu_table.lua:32
 msgid ""
 "Fully rendering a black area can be slow and increase the blur on the E-ink, "
 "avoiding full refreshes of the black areas may improve the device "
@@ -13048,41 +13048,41 @@ msgstr "Un intento de conexión anterior sigue en curso, ¡éste será ignorado!
 msgid "Turning off Wi-Fi…"
 msgstr "Desactivando wifi…"
 
-#: frontend/ui/network/manager.lua:599
+#: frontend/ui/network/manager.lua:598
 msgid "Network connection is required to perform the action."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:601
+#: frontend/ui/network/manager.lua:600
 msgid "Do you want to turn on Wi-Fi?"
 msgstr "¿Activar wifi?"
 
-#: frontend/ui/network/manager.lua:602 frontend/ui/network/manager.lua:864
+#: frontend/ui/network/manager.lua:601 frontend/ui/network/manager.lua:861
 #: plugins/autowarmth.koplugin/main.lua:1241
 #: plugins/gestures.koplugin/main.lua:1324
 msgid "Turn on"
 msgstr "Activar"
 
-#: frontend/ui/network/manager.lua:659
+#: frontend/ui/network/manager.lua:657
 msgid "Action will be performed after network being online"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:675
+#: frontend/ui/network/manager.lua:672
 msgid "Action will be performed after network being connected"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:714
+#: frontend/ui/network/manager.lua:711
 msgid "Wi-Fi settings"
 msgstr "Ajustes de wifi"
 
-#: frontend/ui/network/manager.lua:726
+#: frontend/ui/network/manager.lua:723
 msgid "Wi-Fi connection"
 msgstr "Conexión wifi"
 
-#: frontend/ui/network/manager.lua:772
+#: frontend/ui/network/manager.lua:769
 msgid "HTTP proxy %1"
 msgstr "Proxy HTTP %1"
 
-#: frontend/ui/network/manager.lua:788
+#: frontend/ui/network/manager.lua:785
 msgid ""
 "Tip:\n"
 "Long press on this menu entry to configure HTTP proxy."
@@ -13090,15 +13090,15 @@ msgstr ""
 "Consejo:\n"
 "Mantener pulsada esta entrada del menú para configurar proxy HTTP."
 
-#: frontend/ui/network/manager.lua:794
+#: frontend/ui/network/manager.lua:791
 msgid "Enter proxy address"
 msgstr "Introducir dirección proxy"
 
-#: frontend/ui/network/manager.lua:805
+#: frontend/ui/network/manager.lua:802
 msgid "Disable Wi-Fi connection when inactive"
 msgstr "Desactivar la conexión wifi en períodos de inactividad"
 
-#: frontend/ui/network/manager.lua:808
+#: frontend/ui/network/manager.lua:805
 msgid ""
 "This is unlikely to function properly on a stock Kindle, given how much "
 "network activity the framework generates."
@@ -13106,7 +13106,7 @@ msgstr ""
 "Es poco probable que funcione correctamente en un Kindle de serie, a causa "
 "de la considerable actividad de red que genera el sistema."
 
-#: frontend/ui/network/manager.lua:811
+#: frontend/ui/network/manager.lua:808
 msgid ""
 "This will automatically turn Wi-Fi off after a generous period of network "
 "inactivity, without disrupting workflows that require a network connection, "
@@ -13117,11 +13117,11 @@ msgstr ""
 "una conexión de red, por lo que es posible seguir leyendo sin preocuparse "
 "por el consumo de batería."
 
-#: frontend/ui/network/manager.lua:824
+#: frontend/ui/network/manager.lua:821
 msgid "Restore Wi-Fi connection on resume"
 msgstr "Reconectar a red wifi al salir de la suspensión"
 
-#: frontend/ui/network/manager.lua:827
+#: frontend/ui/network/manager.lua:824
 msgid ""
 "This will attempt to automatically and silently re-connect to Wi-Fi on "
 "startup or on resume if Wi-Fi used to be enabled the last time you used "
@@ -13132,45 +13132,45 @@ msgstr ""
 "red wifi estaba habilitada la última vez que se usó KOReader, a no ser que "
 "se desactive explícitamente."
 
-#: frontend/ui/network/manager.lua:843
+#: frontend/ui/network/manager.lua:840
 msgid "Network info"
 msgstr "Información de red"
 
-#: frontend/ui/network/manager.lua:864
+#: frontend/ui/network/manager.lua:861
 msgid "turn on"
 msgstr "encender"
 
-#: frontend/ui/network/manager.lua:868
+#: frontend/ui/network/manager.lua:865
 msgid "ignore"
 msgstr "ignorar"
 
-#: frontend/ui/network/manager.lua:886
+#: frontend/ui/network/manager.lua:883
 msgid "Action when Wi-Fi is off: %1"
 msgstr "Acción cuando la red wifi está desactivada: %1"
 
-#: frontend/ui/network/manager.lua:905
+#: frontend/ui/network/manager.lua:901
 msgid "Automatically connect to the known Wi-Fi"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:908
+#: frontend/ui/network/manager.lua:903
 msgid ""
 "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known "
 "network automatically after turning on Wi-Fi."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:975
+#: frontend/ui/network/manager.lua:969
 msgid "No available wifi networks found."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:984
+#: frontend/ui/network/manager.lua:978
 msgid "Scanning for networks…"
 msgstr "Buscando redes…"
 
-#: frontend/ui/network/manager.lua:1086
+#: frontend/ui/network/manager.lua:1080
 msgid "Connecting to network %1…"
 msgstr "Conectando a la red %1…"
 
-#: frontend/ui/network/manager.lua:1087
+#: frontend/ui/network/manager.lua:1081
 msgid "Connected to network %1"
 msgstr "Conectado a la red %1"
 
@@ -13186,23 +13186,23 @@ msgstr "Ya conectado."
 msgid "Wi-Fi off."
 msgstr "Wifi apagado."
 
-#: frontend/ui/network/networklistener.lua:221
+#: frontend/ui/network/networklistener.lua:218
 msgid "Internet"
 msgstr ""
 
-#: frontend/ui/network/networklistener.lua:224
+#: frontend/ui/network/networklistener.lua:220
 msgid "online"
 msgstr ""
 
-#: frontend/ui/network/networklistener.lua:224
+#: frontend/ui/network/networklistener.lua:220
 msgid "offline"
 msgstr ""
 
-#: frontend/ui/network/networklistener.lua:231
+#: frontend/ui/network/networklistener.lua:224
 msgid "Retrieving network information…"
 msgstr ""
 
-#: frontend/ui/network/networklistener.lua:235
+#: frontend/ui/network/networklistener.lua:227
 #: plugins/SSH.koplugin/main.lua:108
 msgid "Could not retrieve network info."
 msgstr "No se puede obtener la información de red."
@@ -14791,7 +14791,7 @@ msgstr ""
 "La carpeta actual no se puede leer. Es posible que parte del contenido no se "
 "muestre."
 
-#: frontend/ui/widget/filechooser.lua:604
+#: frontend/ui/widget/filechooser.lua:601
 msgid "Loading contents in %1"
 msgstr ""
 
@@ -15528,19 +15528,19 @@ msgstr "Permite explorar el contenido de los archivadores ZIP."
 msgid "Automatic dimmer"
 msgstr "Atenuador de luminosidad automático"
 
-#: plugins/autodim.koplugin/main.lua:65
+#: plugins/autodim.koplugin/main.lua:64
 msgid "after %1"
 msgstr ""
 
-#: plugins/autodim.koplugin/main.lua:81
+#: plugins/autodim.koplugin/main.lua:80
 msgid "Automatic dimmer idle time"
 msgstr "Tiempo de inactividad del atenuador automático"
 
-#: plugins/autodim.koplugin/main.lua:83
+#: plugins/autodim.koplugin/main.lua:82
 msgid "Start the dimmer after the designated period of inactivity."
 msgstr "Iniciar el atenuador después del período de inactividad especificado."
 
-#: plugins/autodim.koplugin/main.lua:93
+#: plugins/autodim.koplugin/main.lua:92
 msgctxt "Time"
 msgid "min"
 msgstr "min"
@@ -15551,7 +15551,7 @@ msgstr ""
 "Este complemento permite atenuar la iluminación tras un periodo de "
 "inactividad."
 
-#: plugins/autodim.koplugin/_meta.lua:11
+#: plugins/autodim.koplugin/_meta.lua:9
 msgid "KOReader is in idle mode when the frontlight is dimmed."
 msgstr ""
 
@@ -17911,54 +17911,54 @@ msgstr "Teclado externo"
 msgid "Manages USB OTG and configures keyboard."
 msgstr "Gestiona el USB OTG y configura el teclado."
 
-#: plugins/findhistory.koplugin/main.lua:50
+#: plugins/findhistory.koplugin/main.lua:47
 msgid "Searching for reading records…"
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:56
+#: plugins/findhistory.koplugin/main.lua:52
 msgid "History view has been updated, use main menu to access it."
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:72
+#: plugins/findhistory.koplugin/main.lua:68
 msgid ""
 "Failed to backup current history view from %1 to %2, still want to proceed?"
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:77
-#: plugins/findhistory.koplugin/main.lua:92
+#: plugins/findhistory.koplugin/main.lua:73
+#: plugins/findhistory.koplugin/main.lua:88
 msgid "Proceed"
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:90
+#: plugins/findhistory.koplugin/main.lua:86
 msgid ""
 "Found an existing history backup file; it will be overwritten. Still want to "
 "proceed?"
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:108
+#: plugins/findhistory.koplugin/main.lua:104
 msgid "Last history view has been restored, use main menu to access it."
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:115
+#: plugins/findhistory.koplugin/main.lua:111
 msgid "Failed to restore the last history view from %1."
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:125
+#: plugins/findhistory.koplugin/main.lua:121
 msgid ""
 "This function searches and retrieves all the reading records in the home "
 "directory and build the history view.\n"
 "The last history view will be preserved and can be restored."
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:127
+#: plugins/findhistory.koplugin/main.lua:123
 msgid "Retrieve"
 msgstr ""
 
-#: plugins/findhistory.koplugin/_meta.lua:5
+#: plugins/findhistory.koplugin/_meta.lua:4
 msgid "Retrieve reading history"
 msgstr ""
 
-#: plugins/findhistory.koplugin/_meta.lua:7
+#: plugins/findhistory.koplugin/_meta.lua:6
 msgid ""
 "Searches reading records in the home folder and update the history view."
 msgstr ""
@@ -18324,53 +18324,53 @@ msgid "This is a debugging plugin."
 msgstr "Este es un complemento de depuración."
 
 #: plugins/httpinspector.koplugin/main.lua:1440
-#: plugins/httpinspector.koplugin/_meta.lua:5
+#: plugins/httpinspector.koplugin/_meta.lua:4
 msgid "Remotely control KOReader"
 msgstr ""
 
-#: plugins/httpinspector.koplugin/main.lua:1447
+#: plugins/httpinspector.koplugin/main.lua:1446
 msgid "Navigate to %1 from a browser to control KOReader."
 msgstr ""
 
-#: plugins/httpinspector.koplugin/main.lua:1454
+#: plugins/httpinspector.koplugin/main.lua:1453
 msgid ""
 "After starting the HTTP server, navigate to %1 from a browser to control "
 "KOReader."
 msgstr ""
 
-#: plugins/httpinspector.koplugin/main.lua:1463
+#: plugins/httpinspector.koplugin/main.lua:1462
 msgid "Turn on the network connection to use the feature."
 msgstr ""
 
-#: plugins/httpinspector.koplugin/main.lua:1471
+#: plugins/httpinspector.koplugin/main.lua:1470
 msgid "Stop HTTP server"
 msgstr "Detener el servidor HTTP"
 
-#: plugins/httpinspector.koplugin/main.lua:1473
+#: plugins/httpinspector.koplugin/main.lua:1472
 msgid "Listening on port %1"
 msgstr "Escuchando en el puerto %1"
 
-#: plugins/httpinspector.koplugin/main.lua:1475
+#: plugins/httpinspector.koplugin/main.lua:1474
 msgid "Start HTTP server"
 msgstr "Iniciar el servidor HTTP"
 
-#: plugins/httpinspector.koplugin/main.lua:1491
+#: plugins/httpinspector.koplugin/main.lua:1490
 msgid "Auto start HTTP server"
 msgstr "Inicio automático del servidor HTTP"
 
-#: plugins/httpinspector.koplugin/main.lua:1501
+#: plugins/httpinspector.koplugin/main.lua:1500
 msgid "Port: %1"
 msgstr "Puerto: %1"
 
-#: plugins/httpinspector.koplugin/main.lua:1508
+#: plugins/httpinspector.koplugin/main.lua:1507
 msgid "Set custom port"
 msgstr "Establecer puerto personalizado"
 
-#: plugins/httpinspector.koplugin/main.lua:1511
+#: plugins/httpinspector.koplugin/main.lua:1510
 msgid "Port number (default is 8080)"
 msgstr "Número de puerto (por valor predeterminado es 8080)"
 
-#: plugins/httpinspector.koplugin/_meta.lua:8
+#: plugins/httpinspector.koplugin/_meta.lua:6
 msgid ""
 "Allow remotely controlling KOReader via browsers, with advanced features of "
 "inspecting KOReader internal state. It poses security risks; only enable "
@@ -18656,11 +18656,11 @@ msgstr "Dirección del servidor de sincronización personalizado"
 msgid "Logout"
 msgstr "Cerrar sesión"
 
-#: plugins/kosync.koplugin/main.lua:211 plugins/kosync.koplugin/main.lua:473
+#: plugins/kosync.koplugin/main.lua:211 plugins/kosync.koplugin/main.lua:472
 msgid "Register"
 msgstr "Registrar"
 
-#: plugins/kosync.koplugin/main.lua:211 plugins/kosync.koplugin/main.lua:455
+#: plugins/kosync.koplugin/main.lua:211 plugins/kosync.koplugin/main.lua:454
 msgid "Login"
 msgstr "Iniciar sesión"
 
@@ -18668,7 +18668,7 @@ msgstr "Iniciar sesión"
 msgid "Automatically keep documents in sync"
 msgstr "Mantener los documentos sincronizados automáticamente"
 
-#: plugins/kosync.koplugin/main.lua:235
+#: plugins/kosync.koplugin/main.lua:233
 msgid ""
 "Enable the feature will automatically pull and push progress when necessary."
 msgstr ""
@@ -18725,85 +18725,85 @@ msgstr ""
 "Nombre de archivo. Sólo si los archivos tienen el mismo nombre se producirá "
 "la sincronización."
 
-#: plugins/kosync.koplugin/main.lua:407
+#: plugins/kosync.koplugin/main.lua:406
 msgid ""
 "The new server address %1 is invalid, revert back to %2.\n"
 "Error: %3"
 msgstr ""
 
-#: plugins/kosync.koplugin/main.lua:461
+#: plugins/kosync.koplugin/main.lua:460
 msgid "Cannot login: %1"
 msgstr "No se puede iniciar sesión: %1"
 
-#: plugins/kosync.koplugin/main.lua:468
+#: plugins/kosync.koplugin/main.lua:467
 msgid "Logging in. Please wait…"
 msgstr "Iniciando sesión, por favor espere…"
 
-#: plugins/kosync.koplugin/main.lua:479
+#: plugins/kosync.koplugin/main.lua:478
 msgid "Cannot register: %1"
 msgstr "No se puede registrar: %1"
 
-#: plugins/kosync.koplugin/main.lua:488
+#: plugins/kosync.koplugin/main.lua:487
 msgid "Registering. Please wait…"
 msgstr "Registrando. Espere, por favor…"
 
-#: plugins/kosync.koplugin/main.lua:510
+#: plugins/kosync.koplugin/main.lua:509
 msgid "An error occurred while registering:"
 msgstr "Ha ocurrido un error al registrarse:"
 
-#: plugins/kosync.koplugin/main.lua:516
+#: plugins/kosync.koplugin/main.lua:515
 msgid "An unknown error occurred while registering."
 msgstr "Ha ocurrido un error desconocido al registrarse."
 
-#: plugins/kosync.koplugin/main.lua:526
+#: plugins/kosync.koplugin/main.lua:525
 msgid "Registered to KOReader server."
 msgstr "El registro en el servidor de Koreader ha sido realizado."
 
-#: plugins/kosync.koplugin/main.lua:530 plugins/kosync.koplugin/main.lua:564
+#: plugins/kosync.koplugin/main.lua:529 plugins/kosync.koplugin/main.lua:563
 msgid "Unknown server error"
 msgstr "Error desconocido en el servidor"
 
-#: plugins/kosync.koplugin/main.lua:544
+#: plugins/kosync.koplugin/main.lua:543
 msgid "An error occurred while logging in:"
 msgstr "Ha ocurrido un error al iniciar sesión:"
 
-#: plugins/kosync.koplugin/main.lua:548
+#: plugins/kosync.koplugin/main.lua:547
 msgid "An unknown error occurred while logging in."
 msgstr "Ha ocurrido un error desconocido al iniciar sesión."
 
-#: plugins/kosync.koplugin/main.lua:560
+#: plugins/kosync.koplugin/main.lua:559
 msgid "Logged in to KOReader server."
 msgstr "Sesión iniciada en el servidor de Koreader."
 
-#: plugins/kosync.koplugin/main.lua:679
+#: plugins/kosync.koplugin/main.lua:678
 msgid "Progress has been pushed."
 msgstr "La posición de lectura ha sido sincronizada."
 
-#: plugins/kosync.koplugin/main.lua:704
+#: plugins/kosync.koplugin/main.lua:700
 msgid "Pushing progress…"
 msgstr ""
 
-#: plugins/kosync.koplugin/main.lua:758
+#: plugins/kosync.koplugin/main.lua:753
 msgid "No progress found for this document."
 msgstr "No se ha encontrado la posición de lectura de este documento."
 
-#: plugins/kosync.koplugin/main.lua:768
+#: plugins/kosync.koplugin/main.lua:763
 msgid "Latest progress is coming from this device."
 msgstr "Actualizando posición de lectura."
 
-#: plugins/kosync.koplugin/main.lua:788
+#: plugins/kosync.koplugin/main.lua:783
 msgid "The progress has already been synchronized."
 msgstr "La posición de lectura ha sido sincronizada."
 
-#: plugins/kosync.koplugin/main.lua:818
+#: plugins/kosync.koplugin/main.lua:813
 msgid "Sync to latest location %1% from device '%2'?"
 msgstr "¿Sincronizar desde la última posición %1% del dispositivo '%2'?"
 
-#: plugins/kosync.koplugin/main.lua:834
+#: plugins/kosync.koplugin/main.lua:829
 msgid "Sync to previous location %1% from device '%2'?"
 msgstr "¿Sincronizar desde una posición previa %1% del dispositivo '%2'?"
 
-#: plugins/kosync.koplugin/main.lua:864
+#: plugins/kosync.koplugin/main.lua:856
 msgid "Pulling progress…"
 msgstr ""
 
@@ -18894,11 +18894,11 @@ msgid "Command output"
 msgstr "Salida del comando"
 
 #: plugins/legacy_terminal.koplugin/main.lua:536
-#: plugins/legacy_terminal.koplugin/_meta.lua:5
+#: plugins/legacy_terminal.koplugin/_meta.lua:4
 msgid "Legacy terminal emulator"
 msgstr ""
 
-#: plugins/legacy_terminal.koplugin/_meta.lua:7
+#: plugins/legacy_terminal.koplugin/_meta.lua:5
 msgid "KOReader's legacy terminal emulator"
 msgstr ""
 
@@ -19775,24 +19775,24 @@ msgstr "Elegir el puerto SSH"
 msgid "SSH server"
 msgstr "Servidor SSH"
 
-#: plugins/SSH.koplugin/main.lua:205 plugins/SSH.koplugin/main.lua:206
+#: plugins/SSH.koplugin/main.lua:204 plugins/SSH.koplugin/main.lua:205
 msgid "Stop SSH server"
 msgstr ""
 
-#: plugins/SSH.koplugin/main.lua:216
+#: plugins/SSH.koplugin/main.lua:215
 msgid "SSH port (%1)"
 msgstr "Puerto SSH (%1)"
 
-#: plugins/SSH.koplugin/main.lua:223 plugins/SSH.koplugin/main.lua:235
-#: plugins/SSH.koplugin/main.lua:256
+#: plugins/SSH.koplugin/main.lua:221 plugins/SSH.koplugin/main.lua:232
+#: plugins/SSH.koplugin/main.lua:252
 msgid "Stop SSH server to configure"
 msgstr ""
 
-#: plugins/SSH.koplugin/main.lua:229
+#: plugins/SSH.koplugin/main.lua:227
 msgid "SSH public key"
 msgstr "Clave pública SSH"
 
-#: plugins/SSH.koplugin/main.lua:240
+#: plugins/SSH.koplugin/main.lua:237
 msgid ""
 "Put your public SSH keys in\n"
 "%1"
@@ -19800,15 +19800,15 @@ msgstr ""
 "Introducir claves SSH públicas en\n"
 "%1"
 
-#: plugins/SSH.koplugin/main.lua:248
+#: plugins/SSH.koplugin/main.lua:245
 msgid "Login without password (DANGEROUS)"
 msgstr "Conectar sin contraseña (PELIGROSO)"
 
-#: plugins/SSH.koplugin/main.lua:264
+#: plugins/SSH.koplugin/main.lua:259
 msgid "Auto start SSH server"
 msgstr ""
 
-#: plugins/SSH.koplugin/main.lua:281
+#: plugins/SSH.koplugin/main.lua:276
 msgid "Toggle SSH server"
 msgstr "Conmutar servidor SSH"
 
@@ -20413,17 +20413,17 @@ msgid "Last resume time"
 msgstr "Hora de la última reanudación"
 
 #: plugins/systemstat.koplugin/main.lua:202
-#: plugins/systemstat.koplugin/main.lua:305
+#: plugins/systemstat.koplugin/main.lua:298
 msgid "Up time"
 msgstr "Tiempo de actividad"
 
 #: plugins/systemstat.koplugin/main.lua:208
-#: plugins/systemstat.koplugin/main.lua:312
+#: plugins/systemstat.koplugin/main.lua:305
 msgid "Time spent awake"
 msgstr "Tiempo de actividad"
 
 #: plugins/systemstat.koplugin/main.lua:217
-#: plugins/systemstat.koplugin/main.lua:322
+#: plugins/systemstat.koplugin/main.lua:315
 msgid "Time in suspend"
 msgstr "Tiempo en suspensión"
 
@@ -20431,157 +20431,157 @@ msgstr "Tiempo en suspensión"
 msgid "Time in standby"
 msgstr "Tiempo en espera"
 
-#: plugins/systemstat.koplugin/main.lua:236
+#: plugins/systemstat.koplugin/main.lua:235
 msgid "Start discharging at"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:242
+#: plugins/systemstat.koplugin/main.lua:240
 msgid "Device model"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:246
+#: plugins/systemstat.koplugin/main.lua:244
 msgid "Counters"
 msgstr "Contadores"
 
 #. @translators The number of "sleeps", that is the number of times the device has entered standby. This could also be translated as a rendition of a phrase like "entered sleep".
-#: plugins/systemstat.koplugin/main.lua:249
+#: plugins/systemstat.koplugin/main.lua:247
 msgid "  Wake-ups"
 msgstr "  Número de veces que se ha activado"
 
-#: plugins/systemstat.koplugin/main.lua:249
+#: plugins/systemstat.koplugin/main.lua:247
 msgid "  sleeps"
 msgstr "  Número de veces en suspensión"
 
-#: plugins/systemstat.koplugin/main.lua:252
+#: plugins/systemstat.koplugin/main.lua:250
 msgid "  Discharge cycles"
 msgstr "  Ciclos de descarga"
 
-#: plugins/systemstat.koplugin/main.lua:255
+#: plugins/systemstat.koplugin/main.lua:252
 msgid "Background jobs"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:260
+#: plugins/systemstat.koplugin/main.lua:256
 msgid "Pending network jobs"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:267
+#: plugins/systemstat.koplugin/main.lua:262
 msgid "Pending jobs after being connected"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:277
+#: plugins/systemstat.koplugin/main.lua:271
 msgid "Pending jobs after being online"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:298
+#: plugins/systemstat.koplugin/main.lua:292
 msgid "System information"
 msgstr "Información del sistema"
 
-#: plugins/systemstat.koplugin/main.lua:301
+#: plugins/systemstat.koplugin/main.lua:294
 msgid "  Number of processes"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:330
+#: plugins/systemstat.koplugin/main.lua:322
 msgid "Number of processors"
 msgstr ""
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:333
+#: plugins/systemstat.koplugin/main.lua:325
 msgid "  Total ticks (million)"
 msgstr "  Pulsaciones totales (millones)"
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:338
+#: plugins/systemstat.koplugin/main.lua:330
 msgid "  Idle ticks (million)"
 msgstr "  Pulsaciones en suspensión (millones)"
 
-#: plugins/systemstat.koplugin/main.lua:343
-#: plugins/systemstat.koplugin/main.lua:426
+#: plugins/systemstat.koplugin/main.lua:335
+#: plugins/systemstat.koplugin/main.lua:413
 msgid "  Processor usage %"
 msgstr "  Uso del procesador %"
 
-#: plugins/systemstat.koplugin/main.lua:350
+#: plugins/systemstat.koplugin/main.lua:341
 msgid "5 minutes usage %"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:357
+#: plugins/systemstat.koplugin/main.lua:347
 msgid "15 minutes usage %"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:363
+#: plugins/systemstat.koplugin/main.lua:352
 msgid "Usage % during awake"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:371
+#: plugins/systemstat.koplugin/main.lua:359
 msgid "Usage % since boot"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:381
+#: plugins/systemstat.koplugin/main.lua:369
 msgid "  Total memory (MB)"
 msgstr "  Memoria total (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:385
+#: plugins/systemstat.koplugin/main.lua:373
 msgid "  Free memory (MB)"
 msgstr "  Memoria libre (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:389
+#: plugins/systemstat.koplugin/main.lua:377
 msgid "  Available memory (MB)"
 msgstr "  Memoria disponible (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:406
+#: plugins/systemstat.koplugin/main.lua:394
 msgid "Process"
 msgstr "Proceso"
 
-#: plugins/systemstat.koplugin/main.lua:408
+#: plugins/systemstat.koplugin/main.lua:396
 msgid "  ID"
 msgstr "  ID"
 
-#: plugins/systemstat.koplugin/main.lua:422
+#: plugins/systemstat.koplugin/main.lua:409
 msgid "Total ticks"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:436
+#: plugins/systemstat.koplugin/main.lua:422
 msgid "Priority / nice"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:443
+#: plugins/systemstat.koplugin/main.lua:429
 msgid "  Threads"
 msgstr "  Hilos"
 
-#: plugins/systemstat.koplugin/main.lua:452
+#: plugins/systemstat.koplugin/main.lua:438
 msgid "  Virtual memory (MB)"
 msgstr "  Memoria virtual (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:462
+#: plugins/systemstat.koplugin/main.lua:448
 msgid "  RAM usage (MB)"
 msgstr "  Uso de RAM (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:478
+#: plugins/systemstat.koplugin/main.lua:464
 msgid "Storage information"
 msgstr "Información de almacenamiento"
 
-#: plugins/systemstat.koplugin/main.lua:482
+#: plugins/systemstat.koplugin/main.lua:468
 msgid "  Unexpected"
 msgstr "  Inesperado"
 
-#: plugins/systemstat.koplugin/main.lua:484
+#: plugins/systemstat.koplugin/main.lua:470
 msgid "  Mount point"
 msgstr "  Punto de montaje"
 
-#: plugins/systemstat.koplugin/main.lua:485
+#: plugins/systemstat.koplugin/main.lua:471
 msgid "  Available"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:486
+#: plugins/systemstat.koplugin/main.lua:472
 msgid "  Total"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:487
+#: plugins/systemstat.koplugin/main.lua:473
 msgid "  Used percentage"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:513
-#: plugins/systemstat.koplugin/main.lua:528
-#: plugins/systemstat.koplugin/main.lua:541
+#: plugins/systemstat.koplugin/main.lua:499
+#: plugins/systemstat.koplugin/main.lua:514
+#: plugins/systemstat.koplugin/main.lua:527
 #: plugins/systemstat.koplugin/_meta.lua:4
 msgid "System statistics"
 msgstr "Estadísticas del sistema"

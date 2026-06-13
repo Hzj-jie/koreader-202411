@@ -87,7 +87,6 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   table.insert(kv_pairs, { gettext("Format:"), filetype:upper() })
   table.insert(kv_pairs, { gettext("Size:"), sizeStr(attr) })
   table.insert(kv_pairs, {
-    -- Need localization
     gettext("Last open:"),
     attr ~= nil and os.date("%Y-%m-%d %H:%M:%S", attr.access)
       or gettext("Unknown"),
@@ -212,23 +211,17 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   })
   if has_sidecar then
     table.insert(kv_pairs, {
-      -- Need localization
       gettext("Number of bookmarks"),
       #doc_settings_or_file:readTableRef("annotations"),
     })
     table.insert(
       kv_pairs,
-      -- Need localization
       { gettext("Number of settings:"), doc_settings_or_file:settingCount() }
     )
-    table.insert(
-      kv_pairs,
-      -- Need localization
-      {
-        gettext("Setting file size:"),
-        sizeStr(doc_settings_or_file:fileAttribute()),
-      }
-    )
+    table.insert(kv_pairs, {
+      gettext("Setting file size:"),
+      sizeStr(doc_settings_or_file:fileAttribute()),
+    })
   end
 
   return kv_pairs, file, values_lang

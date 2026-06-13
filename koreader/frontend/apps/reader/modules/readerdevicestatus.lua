@@ -42,7 +42,6 @@ function ReaderDeviceStatus:_checkBatteryStatus()
   local battery_capacity = powerd:getCapacity()
   if Device:canSuspend() and not is_charging and battery_capacity <= 5 then
     UIManager:show(InfoMessage:new({
-      -- Need localization
       text = gettext(
         "Battery level drops below the critical zone.\n\nSuspending the device…"
       )
@@ -91,7 +90,6 @@ function ReaderDeviceStatus:_checkBatteryStatus()
     if Device:canSuspend() then
       text = text
         .. "\n\n"
-        -- Need localization
         .. gettext(
           "When battery level drops below the critical zone, "
             .. "the device will be put into suspension automatically."
@@ -131,7 +129,6 @@ function ReaderDeviceStatus:_checkMemoryStatus()
       UIManager:show(InfoMessage:new({
         text = gettext("High memory usage!\n\nKOReader is restarting…")
           .. "\n\n"
-          -- Need localization
           .. gettext("Waiting for 3 seconds to proceed."),
         icon = "notice-warning",
       }))

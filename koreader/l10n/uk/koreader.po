@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 19:19-0700\n"
+"POT-Creation-Date: 2026-06-12 19:21-0700\n"
 "PO-Revision-Date: 2024-11-19 16:36+0000\n"
 "Last-Translator: Vitalii <stopchan@gmail.com>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/koreader/"
@@ -47,12 +47,12 @@ msgstr ""
 "Це може трохи пошкодити деякі функції та негативно вплине на швидкодію."
 
 #: reader.lua:223 frontend/apps/reader/modules/readertypography.lua:617
-#: frontend/ui/network/manager.lua:868
+#: frontend/ui/network/manager.lua:865
 msgid "Ignore"
 msgstr "Ігнорувати"
 
 #: reader.lua:227 frontend/apps/reader/modules/readerbookmark.lua:162
-#: frontend/apps/reader/modules/readerdictionary.lua:1384
+#: frontend/apps/reader/modules/readerdictionary.lua:1382
 #: frontend/apps/reader/modules/readerfooter.lua:1780
 #: frontend/apps/reader/modules/readerrolling.lua:570
 #: frontend/apps/reader/modules/readersearch.lua:182
@@ -61,9 +61,9 @@ msgstr "Ігнорувати"
 #: frontend/apps/reader/modules/readertypography.lua:848
 #: frontend/apps/reader/modules/readertypography.lua:899
 #: frontend/apps/reader/modules/readertypography.lua:994
-#: frontend/ui/elements/common_settings_menu_table.lua:289
+#: frontend/ui/elements/common_settings_menu_table.lua:287
 #: frontend/ui/plugin/switch_plugin.lua:70
-#: plugins/autodim.koplugin/main.lua:105
+#: plugins/autodim.koplugin/main.lua:104
 #: plugins/autosuspend.koplugin/main.lua:546
 #: plugins/autoturn.koplugin/main.lua:158
 #: plugins/autowarmth.koplugin/main.lua:833 plugins/kosync.koplugin/main.lua:88
@@ -161,11 +161,11 @@ msgstr "Введіть назву файлу"
 #: frontend/apps/cloudstorage/dropbox.lua:141
 #: frontend/apps/cloudstorage/ftp.lua:146
 #: frontend/apps/cloudstorage/webdav.lua:172
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:583
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:737
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:576
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:730
 #: frontend/apps/filemanager/filemanagercollection.lua:582
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:67
-#: frontend/apps/filemanager/filemanagerhistory.lua:439
+#: frontend/apps/filemanager/filemanagerhistory.lua:435
 #: frontend/apps/filemanager/filemanager.lua:1115
 #: frontend/apps/filemanager/filemanager.lua:1266
 #: frontend/apps/filemanager/filemanager.lua:1630
@@ -175,7 +175,7 @@ msgstr "Введіть назву файлу"
 #: frontend/apps/reader/modules/readerbookmark.lua:1454
 #: frontend/apps/reader/modules/readerbookmark.lua:1519
 #: frontend/apps/reader/modules/readercropping.lua:62
-#: frontend/apps/reader/modules/readerdictionary.lua:773
+#: frontend/apps/reader/modules/readerdictionary.lua:772
 #: frontend/apps/reader/modules/readerfooter.lua:701
 #: frontend/apps/reader/modules/readergoto.lua:71
 #: frontend/apps/reader/modules/readerhandmade.lua:517
@@ -184,8 +184,8 @@ msgstr "Введіть назву файлу"
 #: frontend/apps/reader/modules/readeruserhyph.lua:329
 #: frontend/apps/reader/modules/readerwikipedia.lua:61
 #: frontend/apps/reader/modules/readerwikipedia.lua:196
-#: frontend/apps/reader/readerui.lua:845 frontend/device/android/device.lua:590
-#: frontend/ui/elements/common_settings_menu_table.lua:276
+#: frontend/apps/reader/readerui.lua:844 frontend/device/android/device.lua:590
+#: frontend/ui/elements/common_settings_menu_table.lua:274
 #: frontend/ui/elements/timeout_android.lua:65 frontend/ui/screensaver.lua:366
 #: frontend/ui/widget/bookstatuswidget.lua:586
 #: frontend/ui/widget/confirmbox.lua:50
@@ -218,8 +218,8 @@ msgstr "Введіть назву файлу"
 #: plugins/exporter.koplugin/target/readwise.lua:76
 #: plugins/exporter.koplugin/target/xmnote.lua:41
 #: plugins/gestures.koplugin/main.lua:430
-#: plugins/httpinspector.koplugin/main.lua:1518
-#: plugins/kosync.koplugin/main.lua:448
+#: plugins/httpinspector.koplugin/main.lua:1517
+#: plugins/kosync.koplugin/main.lua:447
 #: plugins/legacy_terminal.koplugin/main.lua:255
 #: plugins/legacy_terminal.koplugin/main.lua:295
 #: plugins/legacy_terminal.koplugin/main.lua:364
@@ -260,7 +260,7 @@ msgid "Set filename"
 msgstr "Вказати назву файлу"
 
 #: frontend/apps/cloudstorage/cloudstorage.lua:338
-#: frontend/apps/reader/modules/readerdictionary.lua:1220
+#: frontend/apps/reader/modules/readerdictionary.lua:1218
 msgid "Download"
 msgstr "Завантажити"
 
@@ -304,7 +304,7 @@ msgstr "Редагувати"
 #: frontend/apps/cloudstorage/cloudstorage.lua:456
 #: frontend/apps/filemanager/filemanagercollection.lua:189
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:416
-#: frontend/apps/filemanager/filemanagerhistory.lua:234
+#: frontend/apps/filemanager/filemanagerhistory.lua:230
 #: frontend/apps/filemanager/filemanager.lua:247
 #: frontend/apps/filemanager/filemanager.lua:627
 #: frontend/apps/filemanager/filemanager.lua:634
@@ -561,7 +561,7 @@ msgstr "Тека Dropbox (/ для кореневої)"
 
 #: frontend/apps/cloudstorage/dropbox.lua:155
 #: frontend/apps/cloudstorage/webdav.lua:186
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:590
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:583
 #: frontend/apps/filemanager/filemanagercollection.lua:589
 #: frontend/apps/filemanager/filemanagershortcuts.lua:138
 #: frontend/apps/reader/modules/readerbookmark.lua:1394
@@ -835,34 +835,34 @@ msgstr "Формат:"
 msgid "Size:"
 msgstr "Розмір:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:91
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:90
 msgid "Last open:"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:93
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:98
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:92
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:97
 #: plugins/calibre.koplugin/search.lua:151
 msgid "Unknown"
 msgstr "Невідомий"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:96
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:95
 msgid "File date:"
 msgstr "Дата файлу:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:101
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:100
 #: frontend/apps/filemanager/filemanager.lua:912
 msgid "Folder:"
 msgstr "Тека:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:120
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:119
 msgid "Tap to display"
 msgstr "Натисніть, щоб показати"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:141
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:181
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:210
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:878
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:880
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:140
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:180
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:209
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:871
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:873
 #: frontend/apps/filemanager/filemanager.lua:914
 #: frontend/apps/reader/modules/readerfooter.lua:2166
 #: frontend/apps/reader/modules/readertypography.lua:1192
@@ -882,11 +882,11 @@ msgstr "Натисніть, щоб показати"
 msgid "N/A"
 msgstr "Недоступний"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:189
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:188
 msgid "number of lines and words not available"
 msgstr "кількість рядків і слів недоступні"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:190
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:189
 msgid "1 line"
 msgid_plural "%1 lines"
 msgstr[0] "1 рядок"
@@ -894,7 +894,7 @@ msgstr[1] "%1 рядки"
 msgstr[2] "%1 рядків"
 msgstr[3] "%1 рядків"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:192
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:191
 msgid "1 word"
 msgid_plural "%1 words"
 msgstr[0] "1 слово"
@@ -902,55 +902,55 @@ msgstr[1] "%1 слова"
 msgstr[2] "%1 слів"
 msgstr[3] "%1 слів"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:193
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:192
 msgid "Current page:"
 msgstr "Поточна сторінка:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:204
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:203
 msgid "Rating:"
 msgstr "Рейтинг:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:209
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:208
 msgid "Review:"
 msgstr "Огляд:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:216
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:214
 msgid "Number of bookmarks"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:222
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:219
 msgid "Number of settings:"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:228
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:222
 msgid "Setting file size:"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:411
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:404
 msgid "No book description available."
 msgstr "Немає опису книги."
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:428
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:421
 msgid "No cover image available."
 msgstr "Зображення обкладинки відсутнє."
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:572
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:565
 msgid "Edit book metadata:"
 msgstr "Змінити метадані книги:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:629
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:622
 msgid "Copy original"
 msgstr "Копіювати оригінал"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:637
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:630
 msgid "View original"
 msgstr "Переглянути оригінал"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:650
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:643
 msgid "Reset custom"
 msgstr "Скинути власну"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:656
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:649
 msgid ""
 "Reset custom cover?\n"
 "Image file will be deleted."
@@ -958,11 +958,11 @@ msgstr ""
 "Скинути власну обкладинку?\n"
 "Файл зображення буде видалено."
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:657
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:650
 msgid "Reset custom book metadata field?"
 msgstr "Скинути власне поле метаданих книги?"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:658
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:651
 #: frontend/apps/filemanager/filemanagerutil.lua:194
 #: frontend/apps/filemanager/filemanagerutil.lua:212
 #: frontend/apps/reader/modules/readermenu.lua:211
@@ -973,38 +973,38 @@ msgstr "Скинути власне поле метаданих книги?"
 msgid "Reset"
 msgstr "Скинути"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:672
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:665
 msgid "Set custom"
 msgstr "Вказати власну"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:687
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:680
 msgid "Book metadata:"
 msgstr "Метадані книги:"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:729
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:722
 msgid "Edit book review"
 msgstr "Змінити огляд книги"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:744
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:737
 #: frontend/ui/widget/bookstatuswidget.lua:593
 msgid "Save review"
 msgstr "Зберегти відгук"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:819
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:812
 msgid ""
 "Scan books in current folder and subfolders for their metadata location?"
 msgstr "Сканувати книги в поточній теці та підтеках для пошуку метаданих?"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:821
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:814
 #: plugins/calibre.koplugin/search.lua:561
 msgid "Scan"
 msgstr "Сканувати"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:828
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:821
 msgid "No books with metadata not in your preferred location found."
 msgstr "Книг з метаданими не у вибраному вами розташуванні не знайдено."
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:835
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:828
 msgid "1 book with metadata not in your preferred location found."
 msgid_plural "%1 books with metadata not in your preferred location found."
 msgstr[0] ""
@@ -1016,18 +1016,18 @@ msgstr[2] ""
 msgstr[3] ""
 "%1 знайдено книги з метаданими, яких немає у вибраному вами розташуванні."
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:842
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:835
 msgid "Move book metadata to your preferred location?"
 msgstr "Перемістити метадані книги у потрібне місце?"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:843
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:836
 #: frontend/apps/filemanager/filemanager.lua:606
 #: frontend/apps/filemanager/filemanager.lua:1028
 #: frontend/apps/filemanager/filemanager.lua:1348
 msgid "Move"
 msgstr "Перемістити"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:860
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:853
 msgid ""
 "Hash-based metadata has been saved in %1 for the following documents. Hash-"
 "based storage may slow down file browser navigation in large directories. "
@@ -1043,7 +1043,7 @@ msgstr ""
 "автоматичного перенесення їхніх метаданих до бажаного місця зберігання, або "
 "видалити %1, що пришвидшить навігацію у файловому оглядачі."
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:882
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:875
 msgid ""
 "%1. Title: %2; Author: %3\n"
 "Document: %4"
@@ -1051,7 +1051,7 @@ msgstr ""
 "%1. Назва: %2; Автор: %3\n"
 "Документ: %4"
 
-#: frontend/apps/filemanager/filemanagerbookinfo.lua:894
+#: frontend/apps/filemanager/filemanagerbookinfo.lua:887
 msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 документ з метаданими на основі хешу"
@@ -1183,7 +1183,7 @@ msgstr "Перезаписати наявний файл HTML?"
 #: frontend/apps/filemanager/filemanagerconverter.lua:95
 #: frontend/apps/filemanager/filemanager.lua:1008
 #: frontend/apps/filemanager/filemanager.lua:1342
-#: frontend/apps/reader/modules/readerdictionary.lua:1178
+#: frontend/apps/reader/modules/readerdictionary.lua:1176
 #: plugins/opds.koplugin/opdsbrowser.lua:900
 msgid "Overwrite"
 msgstr "Перезаписати"
@@ -1206,7 +1206,7 @@ msgid "Book folder"
 msgstr "Тека з книгами"
 
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:95
-#: frontend/apps/filemanager/filemanagerhistory.lua:470
+#: frontend/apps/filemanager/filemanagerhistory.lua:466
 #: frontend/apps/reader/modules/readerbookmark.lua:1563
 #: frontend/apps/reader/modules/readersearch.lua:352
 #: frontend/ui/widget/inputdialog.lua:1002
@@ -1233,7 +1233,7 @@ msgstr "Немає збігів для «%1»."
 
 #. @translators Search for files by name.
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:277
-#: frontend/apps/filemanager/filemanagermenu.lua:546
+#: frontend/apps/filemanager/filemanagermenu.lua:545
 #: frontend/dispatcher.lua:496 frontend/ui/widget/menu.lua:847
 msgid "File search"
 msgstr "Пошук файлів"
@@ -1266,7 +1266,7 @@ msgid "Query: %1"
 msgstr "Запит : %1"
 
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:347
-#: frontend/apps/filemanager/filemanagerhistory.lua:100
+#: frontend/apps/filemanager/filemanagerhistory.lua:96
 #: frontend/apps/reader/modules/readersearch.lua:815
 msgid "Search results (%1)"
 msgstr "Результати пошуку (%1)"
@@ -1347,48 +1347,48 @@ msgctxt "Book status filter"
 msgid "New"
 msgstr "Нові"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:44
+#: frontend/apps/filemanager/filemanagerhistory.lua:41
 msgid "Loading reading history…"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:102
+#: frontend/apps/filemanager/filemanagerhistory.lua:98
 msgid "Filtered by collections (%1)"
 msgstr "Відфільтровано за збірками (%1)"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:105
+#: frontend/apps/filemanager/filemanagerhistory.lua:101
 msgid "Status: %1 (%2)"
 msgstr "Стан: %1 (%2)"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:242
+#: frontend/apps/filemanager/filemanagerhistory.lua:238
 msgid "Remove from history"
 msgstr "Вилучити з історії"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:355
+#: frontend/apps/filemanager/filemanagerhistory.lua:351
 #: frontend/apps/reader/modules/readerbookmark.lua:940
 #: frontend/ui/data/creoptions.lua:35
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:379
+#: frontend/apps/filemanager/filemanagerhistory.lua:375
 msgid "Filter by collections"
 msgstr "Фільтрувати за збірками"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:396
+#: frontend/apps/filemanager/filemanagerhistory.lua:392
 msgid "Search in filename and book metadata"
 msgstr "Пошук у назвах файлів і метаданих книг"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:407
-#: frontend/apps/filemanager/filemanagermenu.lua:349
+#: frontend/apps/filemanager/filemanagerhistory.lua:403
+#: frontend/apps/filemanager/filemanagermenu.lua:348
 msgid "Clear history of deleted files"
 msgstr "Очистити історію видалених файлів"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:410
-#: frontend/apps/filemanager/filemanagermenu.lua:352
+#: frontend/apps/filemanager/filemanagerhistory.lua:406
+#: frontend/apps/filemanager/filemanagermenu.lua:351
 msgid "Clear history of deleted files?"
 msgstr "Очистити історію видалених файлів?"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:411
-#: frontend/apps/filemanager/filemanagermenu.lua:353
+#: frontend/apps/filemanager/filemanagerhistory.lua:407
+#: frontend/apps/filemanager/filemanagermenu.lua:352
 #: frontend/apps/reader/modules/readerfont.lua:786
 #: frontend/apps/reader/modules/readerlink.lua:363
 #: frontend/apps/reader/modules/readerlink.lua:382
@@ -1397,15 +1397,15 @@ msgstr "Очистити історію видалених файлів?"
 msgid "Clear"
 msgstr "Очистити"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:424
+#: frontend/apps/filemanager/filemanagerhistory.lua:420
 msgid "Filter by book status"
 msgstr "Фільтрувати за станом книги"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:434
+#: frontend/apps/filemanager/filemanagerhistory.lua:430
 msgid "Enter text to search history for"
 msgstr "Введіть текст, щоб шукати в історії для"
 
-#: frontend/apps/filemanager/filemanagerhistory.lua:446
+#: frontend/apps/filemanager/filemanagerhistory.lua:442
 #: frontend/apps/reader/modules/readerbookmark.lua:1526
 #: frontend/apps/reader/modules/readerhighlight.lua:160
 #: frontend/ui/widget/dictquicklookup.lua:546
@@ -1471,7 +1471,7 @@ msgstr "Вийти з KOReader?"
 
 #: frontend/apps/filemanager/filemanager.lua:508
 #: frontend/apps/reader/modules/readerback.lua:182
-#: frontend/apps/reader/modules/readerdevicestatus.lua:162
+#: frontend/apps/reader/modules/readerdevicestatus.lua:159
 #: frontend/ui/elements/common_exit_menu_table.lua:9
 #: frontend/ui/elements/common_exit_menu_table.lua:16
 msgid "Exit"
@@ -1731,7 +1731,7 @@ msgstr "Завжди відкривати '%2' в %1?"
 
 #: frontend/apps/filemanager/filemanager.lua:1648
 #: frontend/apps/filemanager/filemanager.lua:1662
-#: frontend/ui/elements/common_settings_menu_table.lua:288
+#: frontend/ui/elements/common_settings_menu_table.lua:286
 msgid "Always"
 msgstr "Завжди"
 
@@ -1752,31 +1752,31 @@ msgstr "Класичний (тільки назва файлу)"
 msgid "Cannot open last document"
 msgstr "Не вдалося відкрити останній документ"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:177
+#: frontend/apps/filemanager/filemanagermenu.lua:176
 msgid "File browser settings"
 msgstr "Налаштування браузера файлів"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:180
+#: frontend/apps/filemanager/filemanagermenu.lua:179
 msgid "Show finished books"
 msgstr "Показати прочитані книги"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:189
+#: frontend/apps/filemanager/filemanagermenu.lua:188
 msgid "Show hidden files"
 msgstr "Показати приховані файли"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:198
+#: frontend/apps/filemanager/filemanagermenu.lua:197
 msgid "Show unsupported files"
 msgstr "Показувати непідтримувані файли"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:208
+#: frontend/apps/filemanager/filemanagermenu.lua:207
 msgid "Classic mode settings"
 msgstr "Налаштування класичного режиму"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:213
+#: frontend/apps/filemanager/filemanagermenu.lua:212
 msgid "Items per page: %1"
 msgstr "Елементів на сторінці: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:218
+#: frontend/apps/filemanager/filemanagermenu.lua:217
 msgid ""
 "This sets the number of items per page in:\n"
 "- File browser, history and favorites in 'classic' display mode\n"
@@ -1790,69 +1790,69 @@ msgstr ""
 "- виборі файлів та каталогів\n"
 "- оглядачах/результатах пошуку Calibre та OPDS"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:228
+#: frontend/apps/filemanager/filemanagermenu.lua:227
 msgid "Items per page"
 msgstr "Елементів на сторінці"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:249
+#: frontend/apps/filemanager/filemanagermenu.lua:248
 #: frontend/apps/reader/modules/readerfooter.lua:1572
 msgid "Item font size: %1"
 msgstr "Розмір шрифту елемента: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:258
+#: frontend/apps/filemanager/filemanagermenu.lua:257
 #: frontend/apps/reader/modules/readerfooter.lua:1578
 msgid "Item font size"
 msgstr "Розмір шрифту елемента"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:281
+#: frontend/apps/filemanager/filemanagermenu.lua:280
 msgid "Shrink item font size to fit more text"
 msgstr "Зменшення розміру шрифту елемента, щоб бачити більше тексту"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:294
+#: frontend/apps/filemanager/filemanagermenu.lua:293
 msgid "Show opened files in bold"
 msgstr "Виділяти відкриті файли жирним шрифтом"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:308
+#: frontend/apps/filemanager/filemanagermenu.lua:307
 msgid "Show new (not yet opened) files in bold"
 msgstr "Виділяти нові (ще не відкриті) файли жирним шрифтом"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:324
+#: frontend/apps/filemanager/filemanagermenu.lua:323
 msgid "History settings"
 msgstr "Налаштування історії"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:327
+#: frontend/apps/filemanager/filemanagermenu.lua:326
 msgid "Shorten date/time"
 msgstr "Скоротити дату/час"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:337
+#: frontend/apps/filemanager/filemanagermenu.lua:336
 msgid "Freeze last read date of finished books"
 msgstr "Заморожувати дату останнього читання прочитаних книг"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:361
+#: frontend/apps/filemanager/filemanagermenu.lua:360
 msgid "Auto-remove deleted or purged items from history"
 msgstr "Автовилучення видалених або очищених елементів з історії"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:375
+#: frontend/apps/filemanager/filemanagermenu.lua:374
 msgid "Show filename in Open last/previous menu items"
 msgstr "Показувати назву файлу в пунктах меню «Відкрити останній/попередній»"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:386
+#: frontend/apps/filemanager/filemanagermenu.lua:385
 msgid "Home folder settings"
 msgstr "Налаштування домашньої теки"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:389
+#: frontend/apps/filemanager/filemanagermenu.lua:388
 msgid "Set home folder"
 msgstr "Вказати домашню теку"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:392
+#: frontend/apps/filemanager/filemanagermenu.lua:391
 msgid "Current home folder:"
 msgstr "Поточна домашня тека:"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:403
+#: frontend/apps/filemanager/filemanagermenu.lua:402
 msgid "Shorten home folder"
 msgstr "Скоротити домашню теку"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:411
+#: frontend/apps/filemanager/filemanagermenu.lua:410
 msgid ""
 "\"Shorten home folder\" will display the home folder itself as \"Home\" "
 "instead of its full path.\n"
@@ -1874,15 +1874,15 @@ msgstr ""
 "До:\n"
 "`Сучасні/Жадан`."
 
-#: frontend/apps/filemanager/filemanagermenu.lua:422
+#: frontend/apps/filemanager/filemanagermenu.lua:421
 msgid "Lock home folder"
 msgstr "Заблокувати домашню теку"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:442
+#: frontend/apps/filemanager/filemanagermenu.lua:441
 msgid "Info lists items per page: %1"
 msgstr "Елементів на сторінці інформаційних списків: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:444
+#: frontend/apps/filemanager/filemanagermenu.lua:443
 msgid ""
 "This sets the number of items per page in:\n"
 "- Book information\n"
@@ -1896,36 +1896,36 @@ msgstr ""
 "- Читанні подробиць статистики\n"
 "- Кількох інших модулях"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:459
+#: frontend/apps/filemanager/filemanagermenu.lua:458
 msgid "Info lists items per page"
 msgstr "Елементів на сторінці"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:481
+#: frontend/apps/filemanager/filemanagermenu.lua:480
 #: frontend/apps/reader/modules/readerbookmark.lua:269
 #: frontend/dispatcher.lua:454
 msgid "Reverse sorting"
 msgstr "Зворотне сортування"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:491
+#: frontend/apps/filemanager/filemanagermenu.lua:490
 #: frontend/dispatcher.lua:462
 msgid "Folders and files mixed"
 msgstr "Теки й файли перемішані"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:510
+#: frontend/apps/filemanager/filemanagermenu.lua:509
 #: frontend/apps/reader/modules/readermenu.lua:294
 msgid "Sleep screen"
 msgstr "Заставка в режимі сну"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:528
+#: frontend/apps/filemanager/filemanagermenu.lua:527
 msgid "Move book metadata"
 msgstr "Перемістити метадані книги"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:537
+#: frontend/apps/filemanager/filemanagermenu.lua:536
 #: frontend/apps/reader/modules/readermenu.lua:301
 msgid "Plugin management"
 msgstr "Керування модулями"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:548
+#: frontend/apps/filemanager/filemanagermenu.lua:547
 msgid ""
 "Search a book by filename in the current or home folder and its subfolders.\n"
 "\n"
@@ -1945,29 +1945,29 @@ msgstr ""
 "\n"
 "Торкніться книги в результатах пошуку, щоб відкрити її."
 
-#: frontend/apps/filemanager/filemanagermenu.lua:562
+#: frontend/apps/filemanager/filemanagermenu.lua:561
 #: frontend/dispatcher.lua:502
 msgid "Last file search results"
 msgstr "Результати останнього пошуку файлів"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:575
+#: frontend/apps/filemanager/filemanagermenu.lua:574
 msgid "Open last document"
 msgstr "Відкрити останній документ"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:579
+#: frontend/apps/filemanager/filemanagermenu.lua:578
 msgid "Last: %1"
 msgstr "Останній: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:591
+#: frontend/apps/filemanager/filemanagermenu.lua:590
 msgid "Would you like to open the last document: %1?"
 msgstr "Бажаєте відкрити останній документ: %1?"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:594
+#: frontend/apps/filemanager/filemanagermenu.lua:593
 #: frontend/apps/filemanager/filemanagersetdefaults.lua:172
 #: frontend/apps/filemanager/filemanagersetdefaults.lua:219
 #: frontend/apps/reader/modules/readermenu.lua:342
-#: frontend/apps/reader/readerui.lua:853 frontend/device/android/device.lua:589
-#: frontend/ui/elements/common_settings_menu_table.lua:275
+#: frontend/apps/reader/readerui.lua:852 frontend/device/android/device.lua:589
+#: frontend/ui/elements/common_settings_menu_table.lua:273
 #: frontend/ui/widget/confirmbox.lua:49
 #: frontend/ui/widget/container/inputcontainer.lua:333
 #: frontend/ui/widget/numberpickerwidget.lua:189
@@ -1975,43 +1975,43 @@ msgstr "Бажаєте відкрити останній документ: %1?"
 #: plugins/calibre.koplugin/main.lua:392
 #: plugins/exporter.koplugin/target/joplin.lua:262
 #: plugins/exporter.koplugin/target/nextcloud.lua:116
-#: plugins/httpinspector.koplugin/main.lua:1525
+#: plugins/httpinspector.koplugin/main.lua:1524
 #: plugins/wallabag.koplugin/main.lua:1132
 msgid "OK"
 msgstr "Гаразд"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:659
+#: frontend/apps/filemanager/filemanagermenu.lua:658
 #: frontend/apps/reader/modules/readerbookmark.lua:262
 msgid "Sort by: %1"
 msgstr "Сортувати за: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:667
-#: frontend/ui/elements/common_settings_menu_table.lua:356
+#: frontend/apps/filemanager/filemanagermenu.lua:666
+#: frontend/ui/elements/common_settings_menu_table.lua:354
 #: plugins/bookshortcuts.koplugin/main.lua:96
 msgid "file browser"
 msgstr "оглядач файлів"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:668
+#: frontend/apps/filemanager/filemanagermenu.lua:667
 msgid "history"
 msgstr "історія"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:669
+#: frontend/apps/filemanager/filemanagermenu.lua:668
 msgid "favorites"
 msgstr "обране"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:670
+#: frontend/apps/filemanager/filemanagermenu.lua:669
 msgid "folder shortcuts"
 msgstr "ярлики тек"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:671
+#: frontend/apps/filemanager/filemanagermenu.lua:670
 msgid "last file"
 msgstr "останній файл"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:691
+#: frontend/apps/filemanager/filemanagermenu.lua:690
 msgid "Start with: %1"
 msgstr "Починати тут: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:730
+#: frontend/apps/filemanager/filemanagermenu.lua:729
 msgid "File manager menu"
 msgstr "Меню диспетчера файлів"
 
@@ -2236,7 +2236,7 @@ msgstr "Максимум рядків у закладці: %1"
 #: frontend/apps/reader/modules/readerrolling.lua:502
 #: frontend/apps/reader/modules/readersearch.lua:157
 #: frontend/apps/reader/modules/readertypography.lua:928
-#: plugins/autodim.koplugin/main.lua:63
+#: plugins/autodim.koplugin/main.lua:62
 msgid "disabled"
 msgstr "вимкнено"
 
@@ -2521,7 +2521,7 @@ msgid "Battery percentage"
 msgstr "Заряд акумулятора"
 
 #: frontend/apps/reader/modules/readercoptlistener.lua:534
-#: frontend/apps/reader/modules/readerdictionary.lua:387
+#: frontend/apps/reader/modules/readerdictionary.lua:386
 #: frontend/ui/widget/textviewer.lua:662 plugins/terminal.koplugin/main.lua:633
 msgid "Font size: %1"
 msgstr "Розмір шрифту: %1"
@@ -2538,19 +2538,19 @@ msgstr "Вказати розмір"
 msgid "Apply crop"
 msgstr "Застосувати обтинання"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:47
+#: frontend/apps/reader/modules/readerdevicestatus.lua:46
 msgid ""
 "Battery level drops below the critical zone.\n"
 "\n"
 "Suspending the device…"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:50
-#: frontend/apps/reader/modules/readerdevicestatus.lua:135
+#: frontend/apps/reader/modules/readerdevicestatus.lua:49
+#: frontend/apps/reader/modules/readerdevicestatus.lua:132
 msgid "Waiting for 3 seconds to proceed."
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:82
+#: frontend/apps/reader/modules/readerdevicestatus.lua:81
 msgid ""
 "High battery level: %1 %\n"
 "\n"
@@ -2560,7 +2560,7 @@ msgstr ""
 "\n"
 "Відхилити попередження про рівень заряду акумулятора?"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:88
+#: frontend/apps/reader/modules/readerdevicestatus.lua:87
 msgid ""
 "Low battery level: %1 %\n"
 "\n"
@@ -2570,22 +2570,22 @@ msgstr ""
 "\n"
 "Відхилити попередження про рівень заряду акумулятора?"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:96
+#: frontend/apps/reader/modules/readerdevicestatus.lua:94
 msgid ""
 "When battery level drops below the critical zone, the device will be put "
 "into suspension automatically."
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:103
+#: frontend/apps/reader/modules/readerdevicestatus.lua:101
 msgid "Dismiss"
 msgstr "Відхилити"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:108
+#: frontend/apps/reader/modules/readerdevicestatus.lua:106
 msgid "Remind later"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:132
-#: frontend/apps/reader/modules/readerdevicestatus.lua:148
+#: frontend/apps/reader/modules/readerdevicestatus.lua:130
+#: frontend/apps/reader/modules/readerdevicestatus.lua:145
 msgid ""
 "High memory usage!\n"
 "\n"
@@ -2595,7 +2595,7 @@ msgstr ""
 "\n"
 "KOReader перезапущено…"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:143
+#: frontend/apps/reader/modules/readerdevicestatus.lua:140
 msgid ""
 "High memory usage: %1 MB\n"
 "\n"
@@ -2605,11 +2605,11 @@ msgstr ""
 "\n"
 "Перезапустити KOReader?"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:144
+#: frontend/apps/reader/modules/readerdevicestatus.lua:141
 msgid "Restart"
 msgstr "Перезапустити"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:161
+#: frontend/apps/reader/modules/readerdevicestatus.lua:158
 msgid ""
 "High memory usage: %1 MB\n"
 "\n"
@@ -2619,23 +2619,23 @@ msgstr ""
 "\n"
 "Вийти з KOReader?"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:195
+#: frontend/apps/reader/modules/readerdevicestatus.lua:192
 msgid "Device status alerts"
 msgstr "Сповіщення про стан пристрою"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:201
+#: frontend/apps/reader/modules/readerdevicestatus.lua:198
 msgid "Battery level"
 msgstr "Рівень заряду акумулятора"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:212
+#: frontend/apps/reader/modules/readerdevicestatus.lua:209
 msgid "Thresholds: %1 % / %2 %"
 msgstr "Граничне значення: %1 % / %2 %"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:225
+#: frontend/apps/reader/modules/readerdevicestatus.lua:222
 msgid "Battery level alert thresholds"
 msgstr "Поріг сповіщення про розряд акумулятора"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:226
+#: frontend/apps/reader/modules/readerdevicestatus.lua:223
 msgid ""
 "Low level threshold is checked when the device is not charging.\n"
 "High level threshold is checked when the device is charging."
@@ -2643,127 +2643,127 @@ msgstr ""
 "Поріг низького рівня перевіряється, коли пристрій не заряджається.\n"
 "Поріг високого рівня перевіряється під час заряджання пристрою."
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:229
+#: frontend/apps/reader/modules/readerdevicestatus.lua:226
 msgid "Low"
 msgstr "Низький"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:234
+#: frontend/apps/reader/modules/readerdevicestatus.lua:231
 msgid "High"
 msgstr "Високий"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:265
+#: frontend/apps/reader/modules/readerdevicestatus.lua:262
 msgid "High memory usage"
 msgstr "Надмірне споживання пам'яті"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:275
+#: frontend/apps/reader/modules/readerdevicestatus.lua:272
 msgid "Threshold: %1 MB"
 msgstr "Граничне значення %1 МБ"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:286
+#: frontend/apps/reader/modules/readerdevicestatus.lua:283
 #: plugins/coverimage.koplugin/main.lua:671
 msgctxt "Data storage size"
 msgid "MB"
 msgstr "Мб"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:289
+#: frontend/apps/reader/modules/readerdevicestatus.lua:286
 msgid "Memory alert threshold"
 msgstr "Поріг сповіщення про брак пам'яті"
 
-#: frontend/apps/reader/modules/readerdevicestatus.lua:302
+#: frontend/apps/reader/modules/readerdevicestatus.lua:299
 msgid "Automatic restart"
 msgstr "Автоперезапуск"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:234
+#: frontend/apps/reader/modules/readerdictionary.lua:233
 #: plugins/calibre.koplugin/main.lua:153
 msgid "Search settings"
 msgstr "Параметри пошуку"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:237
-#: frontend/apps/reader/modules/readerdictionary.lua:1013
+#: frontend/apps/reader/modules/readerdictionary.lua:236
+#: frontend/apps/reader/modules/readerdictionary.lua:1012
 #: frontend/dispatcher.lua:101 plugins/vocabbuilder.koplugin/main.lua:2208
 msgid "Dictionary lookup"
 msgstr "Пошук у словнику"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:243
-#: frontend/apps/reader/modules/readerdictionary.lua:267
+#: frontend/apps/reader/modules/readerdictionary.lua:242
+#: frontend/apps/reader/modules/readerdictionary.lua:266
 msgid "Dictionary lookup history"
 msgstr "Історія пошуку в словнику"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:274
+#: frontend/apps/reader/modules/readerdictionary.lua:273
 msgid "Dictionary settings"
 msgstr "Налаштування словника"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:285
+#: frontend/apps/reader/modules/readerdictionary.lua:284
 msgid "Manage dictionaries: %1"
 msgstr "Керувати словниками: %1"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:299
+#: frontend/apps/reader/modules/readerdictionary.lua:298
 msgid "Download dictionaries"
 msgstr "Завантажити словники"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:306
+#: frontend/apps/reader/modules/readerdictionary.lua:305
 msgid "Enable fuzzy search"
 msgstr "Увімкнути неточний пошук"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:335
+#: frontend/apps/reader/modules/readerdictionary.lua:334
 msgid "Enable dictionary lookup history"
 msgstr "Увімкнути історію пошуку в словнику"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:348
+#: frontend/apps/reader/modules/readerdictionary.lua:347
 msgid "Clean dictionary lookup history"
 msgstr "Очистити історію пошуку в словнику"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:355
+#: frontend/apps/reader/modules/readerdictionary.lua:354
 msgid "Clean dictionary lookup history?"
 msgstr "Очистити історію пошуку в словнику?"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:356
+#: frontend/apps/reader/modules/readerdictionary.lua:355
 #: frontend/apps/reader/modules/readerwikipedia.lua:342
 #: plugins/texteditor.koplugin/main.lua:233
 #: plugins/vocabbuilder.koplugin/main.lua:215
 msgid "Clean"
 msgstr "Очистити"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:367
+#: frontend/apps/reader/modules/readerdictionary.lua:366
 msgid "Large window"
 msgstr "Велике вікно"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:376
+#: frontend/apps/reader/modules/readerdictionary.lua:375
 msgid "Justify text"
 msgstr "Вирівнювати текст"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:397
+#: frontend/apps/reader/modules/readerdictionary.lua:396
 msgid "Dictionary font size"
 msgstr "Розмір шрифту словника"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:435
+#: frontend/apps/reader/modules/readerdictionary.lua:434
 msgid "Use external dictionary"
 msgstr "Використовувати зовнішній словник"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:445
+#: frontend/apps/reader/modules/readerdictionary.lua:444
 msgid "none"
 msgstr "немає"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:453
+#: frontend/apps/reader/modules/readerdictionary.lua:452
 msgid "Dictionary: %1"
 msgstr "Словник: %1"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:632
+#: frontend/apps/reader/modules/readerdictionary.lua:631
 msgid "Manage installed dictionaries"
 msgstr "Керувати встановленими словниками"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:767
+#: frontend/apps/reader/modules/readerdictionary.lua:766
 #: frontend/apps/reader/modules/readerwikipedia.lua:55
 #: frontend/ui/widget/dictquicklookup.lua:1334
 msgid "Enter a word or phrase to look up"
 msgstr "Введіть слово або фразу для пошуку"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:780
+#: frontend/apps/reader/modules/readerdictionary.lua:779
 #: frontend/ui/widget/dictquicklookup.lua:1371
 msgid "Search dictionary"
 msgstr "Знайти в словнику"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:956
+#: frontend/apps/reader/modules/readerdictionary.lua:955
 msgid ""
 "No dictionaries installed. Please search for \"Dictionary support\" in the "
 "KOReader Wiki to get more information about installing new dictionaries."
@@ -2771,21 +2771,21 @@ msgstr ""
 "Словники не встановлено. Дізнатися про встановлення нових словників можна в "
 "розділі «Dictionary support» у KOReader Wiki."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:983
-#: frontend/apps/reader/modules/readerdictionary.lua:1051
+#: frontend/apps/reader/modules/readerdictionary.lua:982
+#: frontend/apps/reader/modules/readerdictionary.lua:1050
 msgid "Not available"
 msgstr "Недоступно"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:986
+#: frontend/apps/reader/modules/readerdictionary.lua:985
 msgid "Dictionary lookup interrupted."
 msgstr "Пошук у словнику перервано."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:987
+#: frontend/apps/reader/modules/readerdictionary.lua:986
 #: frontend/apps/reader/modules/readerwikipedia.lua:484
 msgid "No results."
 msgstr "Нічого не знайдено."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1054
+#: frontend/apps/reader/modules/readerdictionary.lua:1053
 msgid ""
 "There are no enabled dictionaries.\n"
 "Please check the 'Dictionary settings' menu."
@@ -2793,7 +2793,7 @@ msgstr ""
 "Немає увімкнених словників.\n"
 "Перевірте меню «Налаштування словника», будь ласка."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1064
+#: frontend/apps/reader/modules/readerdictionary.lua:1063
 msgid ""
 "Searching dictionary for:\n"
 "%1"
@@ -2801,59 +2801,59 @@ msgstr ""
 "Шукаємо в словнику:\n"
 "%1"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1103
+#: frontend/apps/reader/modules/readerdictionary.lua:1101
 msgid "Cannot find results of %1"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1158
+#: frontend/apps/reader/modules/readerdictionary.lua:1156
 msgid "License"
 msgstr "Ліцензія"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1161
+#: frontend/apps/reader/modules/readerdictionary.lua:1159
 msgid "Entries"
 msgstr "Записи"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1165
+#: frontend/apps/reader/modules/readerdictionary.lua:1163
 msgid "Tap dictionary name to download"
 msgstr "Натисніть на назву словника, щоб завантажити"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1177
+#: frontend/apps/reader/modules/readerdictionary.lua:1175
 msgid "File already exists. Overwrite?"
 msgstr "Файл вже існує, Перезаписати?"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1215
+#: frontend/apps/reader/modules/readerdictionary.lua:1213
 msgid "Dictionary filesize is %1 (%2 bytes). Continue with download?"
 msgstr "Розмір файлу словника %1 (%2 байт). Продовжити завантаження?"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1230
+#: frontend/apps/reader/modules/readerdictionary.lua:1228
 msgid "Failed to fetch dictionary. Are you online?"
 msgstr "Не вдалося отримати словник. Ви онлайн?"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1238
+#: frontend/apps/reader/modules/readerdictionary.lua:1236
 msgid "Downloading…"
 msgstr "Завантаження…"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1262
+#: frontend/apps/reader/modules/readerdictionary.lua:1260
 msgid "Could not save file to:\n"
 msgstr "Не вдалося зберегти до:\n"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1279
+#: frontend/apps/reader/modules/readerdictionary.lua:1277
 msgid "Dictionary downloaded:\n"
 msgstr "Словник завантажено:\n"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1284
+#: frontend/apps/reader/modules/readerdictionary.lua:1282
 msgid "Dictionary failed to download:\n"
 msgstr "Не вдалось завантажити словник:\n"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1355
+#: frontend/apps/reader/modules/readerdictionary.lua:1353
 msgid "%1 is no longer a preferred dictionary for this document."
 msgstr "%1 більше не є бажаним словником для цього документа."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1359
+#: frontend/apps/reader/modules/readerdictionary.lua:1357
 msgid "%1 is now the preferred dictionary for this document."
 msgstr "%1 тепер є бажаним словником для цього документа."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1371
+#: frontend/apps/reader/modules/readerdictionary.lua:1369
 msgid ""
 "Would you like to enable or disable fuzzy search by default?\n"
 "\n"
@@ -2873,7 +2873,7 @@ msgstr ""
 "\n"
 "Поточне типове значення (★) вимкнено."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1376
+#: frontend/apps/reader/modules/readerdictionary.lua:1374
 msgid ""
 "Would you like to enable or disable fuzzy search by default?\n"
 "\n"
@@ -2893,7 +2893,7 @@ msgstr ""
 "\n"
 "Поточне типове значення (★) увімкнено."
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1383
+#: frontend/apps/reader/modules/readerdictionary.lua:1381
 #: frontend/apps/reader/modules/readerrolling.lua:571
 #: frontend/apps/reader/modules/readertypography.lua:657
 #: frontend/apps/reader/modules/readertypography.lua:771
@@ -2903,7 +2903,7 @@ msgstr ""
 msgid "Disable (★)"
 msgstr "Вимкнути (★)"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1391
+#: frontend/apps/reader/modules/readerdictionary.lua:1389
 #: frontend/apps/reader/modules/readerrolling.lua:578
 #: frontend/apps/reader/modules/readertypography.lua:663
 #: frontend/apps/reader/modules/readertypography.lua:778
@@ -2915,7 +2915,7 @@ msgstr "Вимкнути (★)"
 msgid "Enable"
 msgstr "Увімкнути"
 
-#: frontend/apps/reader/modules/readerdictionary.lua:1392
+#: frontend/apps/reader/modules/readerdictionary.lua:1390
 #: frontend/apps/reader/modules/readerrolling.lua:577
 #: frontend/apps/reader/modules/readertypography.lua:663
 #: frontend/apps/reader/modules/readertypography.lua:777
@@ -3779,7 +3779,7 @@ msgstr "Ліворуч"
 
 #: frontend/apps/reader/modules/readerfooter.lua:1999
 #: frontend/apps/reader/modules/readerhighlight.lua:453
-#: frontend/ui/elements/common_settings_menu_table.lua:423
+#: frontend/ui/elements/common_settings_menu_table.lua:421
 msgid "Center"
 msgstr "Центр"
 
@@ -4150,12 +4150,12 @@ msgid "Side mark"
 msgstr "Бічна позначка"
 
 #: frontend/apps/reader/modules/readerhighlight.lua:440
-#: frontend/ui/elements/common_settings_menu_table.lua:629
+#: frontend/ui/elements/common_settings_menu_table.lua:626
 msgid "Ask with popup dialog"
 msgstr "Запитати в діалоговому вікні"
 
 #: frontend/apps/reader/modules/readerhighlight.lua:441
-#: frontend/ui/elements/common_settings_menu_table.lua:636
+#: frontend/ui/elements/common_settings_menu_table.lua:633
 msgid "Do nothing"
 msgstr "Нічого не робити"
 
@@ -4171,14 +4171,14 @@ msgstr "Пошук по всьому тексту"
 
 #: frontend/apps/reader/modules/readerhighlight.lua:452
 #: frontend/ui/data/creoptions.lua:250 frontend/ui/data/creoptions.lua:306
-#: frontend/ui/elements/common_settings_menu_table.lua:422
+#: frontend/ui/elements/common_settings_menu_table.lua:420
 #: frontend/ui/elements/screensaver_menu.lua:239
 msgid "Top"
 msgstr "Верх"
 
 #: frontend/apps/reader/modules/readerhighlight.lua:454
 #: frontend/ui/data/creoptions.lua:255 frontend/ui/data/creoptions.lua:311
-#: frontend/ui/elements/common_settings_menu_table.lua:424
+#: frontend/ui/elements/common_settings_menu_table.lua:422
 #: frontend/ui/elements/screensaver_menu.lua:246
 msgid "Bottom"
 msgstr "Низ"
@@ -4570,7 +4570,7 @@ msgid "Clear forward location history?"
 msgstr "Очистити історію переходів уперед?"
 
 #: frontend/apps/reader/modules/readerlink.lua:395
-#: frontend/ui/data/css_tweaks.lua:708
+#: frontend/ui/data/css_tweaks.lua:707
 msgid "Links"
 msgstr "Посилання"
 
@@ -5442,7 +5442,7 @@ msgstr "Поточна сторінка: %1"
 
 #: frontend/apps/reader/modules/readerstatus.lua:18
 #: frontend/apps/reader/modules/readerstatus.lua:76 frontend/dispatcher.lua:757
-#: frontend/ui/elements/common_settings_menu_table.lua:643
+#: frontend/ui/elements/common_settings_menu_table.lua:640
 msgid "Book status"
 msgstr "Стан книги"
 
@@ -5455,17 +5455,17 @@ msgid "Mark as finished"
 msgstr "Позначити прочитаною"
 
 #: frontend/apps/reader/modules/readerstatus.lua:85
-#: frontend/ui/elements/common_settings_menu_table.lua:670
+#: frontend/ui/elements/common_settings_menu_table.lua:667
 msgid "Go to beginning"
 msgstr "Перейти до початку"
 
 #: frontend/apps/reader/modules/readerstatus.lua:92
-#: frontend/ui/elements/common_settings_menu_table.lua:657
+#: frontend/ui/elements/common_settings_menu_table.lua:654
 msgid "Open next file"
 msgstr "Відкрити наступний файл"
 
 #: frontend/apps/reader/modules/readerstatus.lua:102
-#: frontend/ui/elements/common_settings_menu_table.lua:650
+#: frontend/ui/elements/common_settings_menu_table.lua:647
 #: plugins/texteditor.koplugin/main.lua:699
 msgid "Delete file"
 msgstr "Видалити файл"
@@ -6022,7 +6022,7 @@ msgid "Edit book-specific style tweak"
 msgstr "Підлаштувати стиль окремої книги"
 
 #: frontend/apps/reader/modules/readerstyletweak.lua:1369
-#: plugins/findhistory.koplugin/main.lua:129
+#: plugins/findhistory.koplugin/main.lua:125
 msgid "Restore"
 msgstr "Відновити"
 
@@ -6064,15 +6064,15 @@ msgstr "Оглядач сторінок"
 msgid "Table of contents"
 msgstr "Зміст"
 
-#: frontend/apps/reader/modules/readertoc.lua:1118
+#: frontend/apps/reader/modules/readertoc.lua:1117
 msgid "Navigation settings"
 msgstr ""
 
-#: frontend/apps/reader/modules/readertoc.lua:1123
+#: frontend/apps/reader/modules/readertoc.lua:1122
 msgid "Alternative table of contents"
 msgstr "Альтернативний зміст"
 
-#: frontend/apps/reader/modules/readertoc.lua:1127
+#: frontend/apps/reader/modules/readertoc.lua:1126
 msgid ""
 "An alternative table of contents can be built from document headings <H1> to "
 "<H6>.\n"
@@ -6095,14 +6095,14 @@ msgstr ""
 "можна використовувати як елементи змісту.\n"
 "Див. Підлаштування стилів → Різне → Підказки альтернативного змісту."
 
-#: frontend/apps/reader/modules/readertoc.lua:1135
+#: frontend/apps/reader/modules/readertoc.lua:1134
 msgid ""
 "To use the alternative ToC, disable your custom table of contents first."
 msgstr ""
 "Щоб використовувати альтернативний зміст, спочатку вимкніть свій власний "
 "зміст."
 
-#: frontend/apps/reader/modules/readertoc.lua:1150
+#: frontend/apps/reader/modules/readertoc.lua:1149
 msgid ""
 "The table of contents for this book is currently an alternative one built "
 "from the document headings.\n"
@@ -6112,14 +6112,14 @@ msgstr ""
 "Зміст цієї книги є альтернативним, створеним з заголовків документів.\n"
 "Повернути початковий зміст? (Книгу буде перезавантажено.)"
 
-#: frontend/apps/reader/modules/readertoc.lua:1167
+#: frontend/apps/reader/modules/readertoc.lua:1166
 msgid ""
 "Do you want to use an alternative table of contents built from the document "
 "headings?"
 msgstr ""
 "Хочете використовувати альтернативний зміст складений з заголовків документа?"
 
-#: frontend/apps/reader/modules/readertoc.lua:1197
+#: frontend/apps/reader/modules/readertoc.lua:1196
 msgid "1 entry at ToC depth %2"
 msgid_plural "%1 entries at ToC depth %2"
 msgstr[0] "1 запис на глибині змісту %2"
@@ -6127,7 +6127,7 @@ msgstr[1] "%1 записи на глибині змісту %2"
 msgstr[2] "%1 записів на глибині змісту %2"
 msgstr[3] "%1 запис на глибині змісту %2"
 
-#: frontend/apps/reader/modules/readertoc.lua:1226
+#: frontend/apps/reader/modules/readertoc.lua:1225
 msgid "Progress bars: 1 tick"
 msgid_plural "Progress bars: %1 ticks"
 msgstr[0] "Смуги поступу: 1 поділка"
@@ -6135,7 +6135,7 @@ msgstr[1] "Смуги поступу: %1 поділки"
 msgstr[2] "Смуги поступу: %1 поділок"
 msgstr[3] "Смуги поступу: %1 поділок"
 
-#: frontend/apps/reader/modules/readertoc.lua:1231
+#: frontend/apps/reader/modules/readertoc.lua:1230
 msgid ""
 "The progress bars in the footer and the skim dialog can become cramped when "
 "the table of contents is complex. This allows you to restrict the number of "
@@ -6144,11 +6144,11 @@ msgstr ""
 "Покажчик виконання в нижньому колонтитулі та діалоговому вікні можуть "
 "стискатися, коли зміст складний. Це дозволяє обмежити кількість позначок."
 
-#: frontend/apps/reader/modules/readertoc.lua:1253
+#: frontend/apps/reader/modules/readertoc.lua:1252
 msgid "Bind chapter navigation to ticks"
 msgstr "Прив'язати навігацію розділом до позначок"
 
-#: frontend/apps/reader/modules/readertoc.lua:1255
+#: frontend/apps/reader/modules/readertoc.lua:1254
 msgid ""
 "Entries from ToC levels that are ignored in the progress bars will still be "
 "used for chapter navigation and 'page/time left until next chapter' in the "
@@ -6161,11 +6161,11 @@ msgstr ""
 "Увімкнення цього параметра обмежить перехід розділами до міток панелі "
 "поступу."
 
-#: frontend/apps/reader/modules/readertoc.lua:1271
+#: frontend/apps/reader/modules/readertoc.lua:1270
 msgid "Chapter titles from ticks only"
 msgstr "Назви розділів лише з міток"
 
-#: frontend/apps/reader/modules/readertoc.lua:1273
+#: frontend/apps/reader/modules/readertoc.lua:1272
 msgid ""
 "Entries from ToC levels that are ignored in the progress bars will still be "
 "used for displaying the title of the current chapter in the footer and in "
@@ -6179,21 +6179,21 @@ msgstr ""
 "Увімкнення цього параметра обмежить показ заголовків розділів поділками на "
 "панелі поступу."
 
-#: frontend/apps/reader/modules/readertoc.lua:1292
-#: frontend/apps/reader/modules/readertoc.lua:1303
+#: frontend/apps/reader/modules/readertoc.lua:1291
+#: frontend/apps/reader/modules/readertoc.lua:1302
 msgid "ToC entries per page"
 msgstr "Елементів змісту на сторінку"
 
-#: frontend/apps/reader/modules/readertoc.lua:1316
-#: frontend/apps/reader/modules/readertoc.lua:1330
+#: frontend/apps/reader/modules/readertoc.lua:1315
+#: frontend/apps/reader/modules/readertoc.lua:1329
 msgid "ToC entry font size"
 msgstr "Розмір шрифту змісту"
 
-#: frontend/apps/reader/modules/readertoc.lua:1339
+#: frontend/apps/reader/modules/readertoc.lua:1338
 msgid "Show chapter length"
 msgstr "Показати довжину розділу"
 
-#: frontend/apps/reader/modules/readertoc.lua:1350
+#: frontend/apps/reader/modules/readertoc.lua:1349
 msgid "Dot leaders"
 msgstr "Крапкування"
 
@@ -7144,7 +7144,7 @@ msgid "ask"
 msgstr "запитувати"
 
 #: frontend/apps/reader/modules/readerwikipedia.lua:257
-#: frontend/ui/elements/common_settings_menu_table.lua:288
+#: frontend/ui/elements/common_settings_menu_table.lua:286
 #: plugins/profiles.koplugin/main.lua:709
 msgid "always"
 msgstr "завжди"
@@ -7391,41 +7391,41 @@ msgstr "Файл '%1' не існує."
 msgid "File '%1' is not supported."
 msgstr "Файл «%1» не підтримується."
 
-#: frontend/apps/reader/readerui.lua:752 frontend/apps/reader/readerui.lua:802
+#: frontend/apps/reader/readerui.lua:752 frontend/apps/reader/readerui.lua:801
 msgid "No reader engine for this file or invalid file."
 msgstr "Немає засобу читання для цього файлу або файл пошкоджений."
 
-#: frontend/apps/reader/readerui.lua:773
+#: frontend/apps/reader/readerui.lua:772
 msgid "Unfortunately KOReader crashed."
 msgstr ""
 
-#: frontend/apps/reader/readerui.lua:776
+#: frontend/apps/reader/readerui.lua:775
 msgid ""
 "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help "
 "developers to improve it."
 msgstr ""
 
-#: frontend/apps/reader/readerui.lua:789 frontend/device/android/device.lua:225
+#: frontend/apps/reader/readerui.lua:788 frontend/device/android/device.lua:225
 msgid "Opening file '%1'."
 msgstr "Відкриття файлу '%1'."
 
-#: frontend/apps/reader/readerui.lua:840
+#: frontend/apps/reader/readerui.lua:839
 msgid "Password is incorrect, try again?"
 msgstr "Ви ввели невірний пароль, спробуєте ще?"
 
-#: frontend/apps/reader/readerui.lua:841
+#: frontend/apps/reader/readerui.lua:840
 msgid "Input document password"
 msgstr "Введіть пароль на документ"
 
-#: frontend/apps/reader/readerui.lua:906
+#: frontend/apps/reader/readerui.lua:905
 msgid "Book metadata saved."
 msgstr "Метадані книги збережено."
 
-#: frontend/apps/reader/readerui.lua:956
+#: frontend/apps/reader/readerui.lua:954
 msgid "Saving progress of file %1"
 msgstr ""
 
-#: frontend/apps/reader/readerui.lua:984
+#: frontend/apps/reader/readerui.lua:982
 msgid ""
 "Failed recognizing or parsing this file: unsupported or invalid document.\n"
 "KOReader will exit now."
@@ -7864,12 +7864,12 @@ msgid "MAC: %1"
 msgstr "MAC: %1"
 
 #: frontend/device/generic/device.lua:1007
-#: frontend/device/kindle/device.lua:308
+#: frontend/device/kindle/device.lua:307
 msgid "SSID: \"%1\""
 msgstr "SSID: \"%1\""
 
 #: frontend/device/generic/device.lua:1010
-#: frontend/device/kindle/device.lua:306
+#: frontend/device/kindle/device.lua:305
 msgid "SSID: off/any"
 msgstr "SSID: вимн/будь-який"
 
@@ -7929,11 +7929,11 @@ msgstr ""
 "\n"
 "%1"
 
-#: frontend/device/kindle/device.lua:121
+#: frontend/device/kindle/device.lua:120
 msgid "Unable to communicate with the Wi-Fi backend"
 msgstr "Неможливо встановити з'єднання через Wi-Fi"
 
-#: frontend/device/kindle/device.lua:168
+#: frontend/device/kindle/device.lua:167
 msgid "Scanning for Wi-Fi networks timed out"
 msgstr "Час сканування мереж Wi-Fi минув"
 
@@ -8369,7 +8369,7 @@ msgid "General"
 msgstr "Загальне"
 
 #: frontend/dispatcher.lua:1755
-#: frontend/ui/elements/common_settings_menu_table.lua:703
+#: frontend/ui/elements/common_settings_menu_table.lua:700
 #: plugins/httpinspector.koplugin/main.lua:1119
 msgid "Device"
 msgstr "Пристрій"
@@ -9279,36 +9279,36 @@ msgstr ""
 msgid "Document direction RTL"
 msgstr "Документ з напрямком письма справа на ліво"
 
-#: frontend/ui/data/css_tweaks.lua:347
+#: frontend/ui/data/css_tweaks.lua:346
 msgid "Right align most text"
 msgstr "Вирівнювання більшості тексту за правим краєм"
 
-#: frontend/ui/data/css_tweaks.lua:349
+#: frontend/ui/data/css_tweaks.lua:348
 msgid "Enforce right alignment of text in common text elements."
 msgstr ""
 "Забезпечити правильне вирівнювання тексту в загальних елементах тексту."
 
-#: frontend/ui/data/css_tweaks.lua:358
+#: frontend/ui/data/css_tweaks.lua:357
 msgid "Right align all elements"
 msgstr "Вирівнювання всіх елементів за правим краєм"
 
-#: frontend/ui/data/css_tweaks.lua:360
+#: frontend/ui/data/css_tweaks.lua:359
 msgid "Enforce right alignment of text in all elements."
 msgstr "Забезпечити вирівнювання тексту за правим краєм в усіх елементах."
 
-#: frontend/ui/data/css_tweaks.lua:369
+#: frontend/ui/data/css_tweaks.lua:368
 msgid "Document direction LTR"
 msgstr "Напрямок письма в документі справа на ліво"
 
-#: frontend/ui/data/css_tweaks.lua:375
+#: frontend/ui/data/css_tweaks.lua:374
 msgid "Hyphenation, ligatures, ruby"
 msgstr "Перенесення, лігатури, ruby"
 
-#: frontend/ui/data/css_tweaks.lua:378
+#: frontend/ui/data/css_tweaks.lua:377
 msgid "Allow hyphenation on all text"
 msgstr "Дозволити перенесення для всього тексту"
 
-#: frontend/ui/data/css_tweaks.lua:380
+#: frontend/ui/data/css_tweaks.lua:379
 msgid ""
 "Allow hyphenation on all text (except headings), in case the publisher has "
 "disabled it."
@@ -9316,11 +9316,11 @@ msgstr ""
 "Дозволити перенесення для всього тексту (крім заголовків), якщо видавець "
 "вимкнув його."
 
-#: frontend/ui/data/css_tweaks.lua:389
+#: frontend/ui/data/css_tweaks.lua:388
 msgid "Ignore publisher line-break restrictions"
 msgstr "Нехтувати обмеженням розриву рядків видавця"
 
-#: frontend/ui/data/css_tweaks.lua:391
+#: frontend/ui/data/css_tweaks.lua:390
 msgid ""
 "A publisher might use non-breaking spaces and hyphens to avoid line breaking "
 "between some words, which is not always necessary and may have been added to "
@@ -9335,11 +9335,11 @@ msgstr ""
 "Нехтування ними буде використовувати лише власні правила типографіки "
 "KOReader для перенесення рядків."
 
-#: frontend/ui/data/css_tweaks.lua:399
+#: frontend/ui/data/css_tweaks.lua:398
 msgid "Disable common ligatures"
 msgstr "Вимкнути загальні лігатури"
 
-#: frontend/ui/data/css_tweaks.lua:401
+#: frontend/ui/data/css_tweaks.lua:400
 msgid ""
 "Disable common ligatures, which are enabled by default in 'best' kerning "
 "mode."
@@ -9347,15 +9347,15 @@ msgstr ""
 "Вимкнути загальні лігатури, які типово увімкнені в режимі «кращого» кернінгу "
 "(міжзнакового інтервалу)."
 
-#: frontend/ui/data/css_tweaks.lua:411
+#: frontend/ui/data/css_tweaks.lua:410
 msgid "Ruby"
 msgstr "Рубі"
 
-#: frontend/ui/data/css_tweaks.lua:413
+#: frontend/ui/data/css_tweaks.lua:412
 msgid "About ruby"
 msgstr "Про рубі"
 
-#: frontend/ui/data/css_tweaks.lua:414
+#: frontend/ui/data/css_tweaks.lua:413
 msgid ""
 "Ruby characters are small glosses on writing in Asian languages (Hanzi, "
 "Kanji, Hanja, etc.) to show the pronunciation of the logographs.\n"
@@ -9365,11 +9365,11 @@ msgstr ""
 "Кандзі, Ханджа тощо), щоб показати вимову логографів.\n"
 "Ці підлаштування можуть допомогти легше читати або нехтувати рубі."
 
-#: frontend/ui/data/css_tweaks.lua:421
+#: frontend/ui/data/css_tweaks.lua:420
 msgid "Sans-serif font for ruby"
 msgstr "Шрифт без засічок для ruby"
 
-#: frontend/ui/data/css_tweaks.lua:423
+#: frontend/ui/data/css_tweaks.lua:422
 msgid ""
 "Use a sans serif font to display all ruby text for a more 'book-like' "
 "feeling.\n"
@@ -9380,19 +9380,19 @@ msgstr ""
 "Також примусово встановлює регулярну товщину тексту під час використання з "
 "тоншими або жирнішими шрифтами."
 
-#: frontend/ui/data/css_tweaks.lua:436
+#: frontend/ui/data/css_tweaks.lua:435
 msgid "Larger ruby text size"
 msgstr "Більший розмір тексту рубі"
 
-#: frontend/ui/data/css_tweaks.lua:437
+#: frontend/ui/data/css_tweaks.lua:436
 msgid "Increase ruby text size."
 msgstr "Збільшити розмір тексту."
 
-#: frontend/ui/data/css_tweaks.lua:443
+#: frontend/ui/data/css_tweaks.lua:442
 msgid "Larger spacing between ruby lines"
 msgstr "Збільшити відстані між рядками рубі"
 
-#: frontend/ui/data/css_tweaks.lua:445
+#: frontend/ui/data/css_tweaks.lua:444
 msgid ""
 "Increase line spacing of most text, so that lines keep an even spacing "
 "whether or not they include ruby.\n"
@@ -9403,23 +9403,23 @@ msgstr ""
 "Подальші невеликі коригування можна зробити за допомогою «Міжрядкового "
 "інтервалу» в нижньому меню."
 
-#: frontend/ui/data/css_tweaks.lua:454
+#: frontend/ui/data/css_tweaks.lua:453
 msgid "Render ruby content inline"
 msgstr "Візуалізувати вбудованим вміст рубі"
 
-#: frontend/ui/data/css_tweaks.lua:456
+#: frontend/ui/data/css_tweaks.lua:455
 msgid "Disable handling of <ruby> tags and render them inline."
 msgstr "Вимкнути обробку тегів <ruby> та візуалізувати їх як вбудовані."
 
-#: frontend/ui/data/css_tweaks.lua:464
+#: frontend/ui/data/css_tweaks.lua:463
 msgid "Font size and families"
 msgstr "Розмір і сімейство шрифту"
 
-#: frontend/ui/data/css_tweaks.lua:467
+#: frontend/ui/data/css_tweaks.lua:466
 msgid "Ignore font related HTML presentational hints"
 msgstr "Ігнорувати підказки HTML-презентації, пов'язані зі шрифтами"
 
-#: frontend/ui/data/css_tweaks.lua:469
+#: frontend/ui/data/css_tweaks.lua:468
 msgid ""
 "Ignore HTML attributes that contribute to styles on the elements <body> "
 "(bgcolor, text…) and <font> (face, size, color…)."
@@ -9427,27 +9427,27 @@ msgstr ""
 "Ігнорувати атрибути HTML, які впливають на стилі елементів <body> (bgcolor, "
 "text…) та <font> (face, size, color…)."
 
-#: frontend/ui/data/css_tweaks.lua:476
+#: frontend/ui/data/css_tweaks.lua:475
 msgid "Ignore publisher font families"
 msgstr "Ігнорувати сімейства шрифтів видавця"
 
-#: frontend/ui/data/css_tweaks.lua:478
+#: frontend/ui/data/css_tweaks.lua:477
 msgid "Disable font-family specified in embedded styles."
 msgstr "Вимикання сімейства шрифту, зазначеного у вбудованих стилях."
 
-#: frontend/ui/data/css_tweaks.lua:486
+#: frontend/ui/data/css_tweaks.lua:485
 msgid "Ignore publisher font sizes"
 msgstr "Ігнорувати розміри шрифтів видавця"
 
-#: frontend/ui/data/css_tweaks.lua:488
+#: frontend/ui/data/css_tweaks.lua:487
 msgid "Disable font-size specified in embedded styles."
 msgstr "Вимкнути розмір шрифту, зазначений у вбудованих стилях."
 
-#: frontend/ui/data/css_tweaks.lua:496
+#: frontend/ui/data/css_tweaks.lua:495
 msgid "Reset main text font size"
 msgstr "Скинути розмір шрифту основного тексту"
 
-#: frontend/ui/data/css_tweaks.lua:498
+#: frontend/ui/data/css_tweaks.lua:497
 msgid ""
 "Disable font-size set on the main text (keeping possibly larger headings "
 "untouched), so that KOReader's font size is used."
@@ -9455,15 +9455,15 @@ msgstr ""
 "Вимкнути набір розміру шрифту в основному тексті (зберігаючи, можливо, "
 "більші заголовки недоторканими), щоб був використаний розмір шрифту KOReader."
 
-#: frontend/ui/data/css_tweaks.lua:505
+#: frontend/ui/data/css_tweaks.lua:504
 msgid "Line heights"
 msgstr "Висота рядків"
 
-#: frontend/ui/data/css_tweaks.lua:508
+#: frontend/ui/data/css_tweaks.lua:507
 msgid "Ignore publisher line heights"
 msgstr "Ігнорувати висоту лінії видавця"
 
-#: frontend/ui/data/css_tweaks.lua:510
+#: frontend/ui/data/css_tweaks.lua:509
 msgid ""
 "Disable line-height specified in embedded styles, and may allow KOReader's "
 "line spacing settings to work on books where they would not."
@@ -9472,11 +9472,11 @@ msgstr ""
 "працювати налаштуванням міжрядкового інтервалу KOReader в книгах, де їх "
 "немає."
 
-#: frontend/ui/data/css_tweaks.lua:516
+#: frontend/ui/data/css_tweaks.lua:515
 msgid "Enforce steady line heights"
 msgstr "Дотримуватись сталої висоти ліній"
 
-#: frontend/ui/data/css_tweaks.lua:518
+#: frontend/ui/data/css_tweaks.lua:517
 msgid ""
 "Prevent inline content like sub- and superscript from changing their "
 "paragraph line height."
@@ -9484,23 +9484,23 @@ msgstr ""
 "Не допускати, щоб вбудований уміст, як-от під- і надрядковий текст, не "
 "змінював висоту рядка абзацу."
 
-#: frontend/ui/data/css_tweaks.lua:526
+#: frontend/ui/data/css_tweaks.lua:525
 msgid "Smaller sub- and superscript"
 msgstr "Менший підрядковий та надрядковий текст"
 
-#: frontend/ui/data/css_tweaks.lua:528
+#: frontend/ui/data/css_tweaks.lua:527
 msgid "Prevent sub- and superscript from affecting line-height."
 msgstr "Запобігати впливу під- і надрядкових символів на висоту рядка."
 
-#: frontend/ui/data/css_tweaks.lua:541
+#: frontend/ui/data/css_tweaks.lua:540
 msgid "Paragraphs"
 msgstr "Абзаци"
 
-#: frontend/ui/data/css_tweaks.lua:544
+#: frontend/ui/data/css_tweaks.lua:543
 msgid "Generic web browser paragraph style"
 msgstr "Загальний стиль абзацу переглядача"
 
-#: frontend/ui/data/css_tweaks.lua:546
+#: frontend/ui/data/css_tweaks.lua:545
 msgid ""
 "Display paragraphs as browsers do, in full-block style without indentation "
 "or justification, discarding KOReader's book paragraph style.\n"
@@ -9513,11 +9513,11 @@ msgstr ""
 "типово, і використовувати CSS тільки тоді, коли необхідно відхилитися від "
 "цього типового значення."
 
-#: frontend/ui/data/css_tweaks.lua:562
+#: frontend/ui/data/css_tweaks.lua:561
 msgid "Tailor widths and text-indent for CJK"
 msgstr "Адаптувати ширину та відступ тексту для CJK"
 
-#: frontend/ui/data/css_tweaks.lua:564
+#: frontend/ui/data/css_tweaks.lua:563
 msgid ""
 "Adjust paragraph width and text-indent to be an integer multiple of the font "
 "size, so that lines of Chinese and Japanese characters don't need space "
@@ -9527,23 +9527,23 @@ msgstr ""
 "кратним розміру шрифту, щоб рядки китайських та японських символів не "
 "потребували пробілу між гліфами для вирівнювання тексту."
 
-#: frontend/ui/data/css_tweaks.lua:571
+#: frontend/ui/data/css_tweaks.lua:570
 msgid "Paragraph first-line indentation"
 msgstr "Відступ першого рядка абзацу"
 
-#: frontend/ui/data/css_tweaks.lua:574
+#: frontend/ui/data/css_tweaks.lua:573
 msgid "No indentation on first paragraph line"
 msgstr "Немає відступу в першому рядку абзацу"
 
-#: frontend/ui/data/css_tweaks.lua:575
+#: frontend/ui/data/css_tweaks.lua:574
 msgid "Do not indent the first line of paragraphs."
 msgstr "Без відступу першого рядка абзаців."
 
-#: frontend/ui/data/css_tweaks.lua:581
+#: frontend/ui/data/css_tweaks.lua:580
 msgid "Indentation on first paragraph line"
 msgstr "Відступ в першому рядку абзацу"
 
-#: frontend/ui/data/css_tweaks.lua:583
+#: frontend/ui/data/css_tweaks.lua:582
 msgid ""
 "Indentation on the first line of a paragraph is the default, but it may be "
 "overridden by publisher styles. This will force KOReader's defaults on "
@@ -9553,11 +9553,11 @@ msgstr ""
 "змінений стилями видавця. Це призведе до втрати KOReader типового значення "
 "для загальних елементів."
 
-#: frontend/ui/data/css_tweaks.lua:592
+#: frontend/ui/data/css_tweaks.lua:591
 msgid "No indentation on first paragraph"
 msgstr "Без відступу в першому абзаці"
 
-#: frontend/ui/data/css_tweaks.lua:594
+#: frontend/ui/data/css_tweaks.lua:593
 msgid ""
 "Do not indent the first line of the first paragraph of its container. This "
 "might be needed to correctly display drop caps, while still having "
@@ -9567,11 +9567,11 @@ msgstr ""
 "бути необхідно для правильного відображення заголовних букв, при цьому в "
 "наступних пунктах як і раніше є відступ."
 
-#: frontend/ui/data/css_tweaks.lua:601
+#: frontend/ui/data/css_tweaks.lua:600
 msgid "No indentation on following paragraphs"
 msgstr "Без відступу в наступних абзацах"
 
-#: frontend/ui/data/css_tweaks.lua:603
+#: frontend/ui/data/css_tweaks.lua:602
 msgid ""
 "Do not indent the first line of following paragraphs, but leave the first "
 "paragraph of its container untouched."
@@ -9579,27 +9579,27 @@ msgstr ""
 "Не робити відступ у першому рядку наступних абзаців, але залишити перший "
 "абзац контейнера без змін."
 
-#: frontend/ui/data/css_tweaks.lua:610 frontend/ui/data/css_tweaks.lua:617
+#: frontend/ui/data/css_tweaks.lua:609 frontend/ui/data/css_tweaks.lua:616
 msgid "Spacing between paragraphs"
 msgstr "Відстань між абзацами"
 
-#: frontend/ui/data/css_tweaks.lua:618
+#: frontend/ui/data/css_tweaks.lua:617
 msgid "Add a line of whitespace between paragraphs."
 msgstr "Додавати рядок пробілів між абзацами."
 
-#: frontend/ui/data/css_tweaks.lua:625
+#: frontend/ui/data/css_tweaks.lua:624
 msgid "Spacing between paragraphs (half)"
 msgstr "Відстань між абзацами (пів абзаца)"
 
-#: frontend/ui/data/css_tweaks.lua:627
+#: frontend/ui/data/css_tweaks.lua:626
 msgid "Add half a line of whitespace between paragraphs."
 msgstr "Додавати пів рядка пробілів між абзацами."
 
-#: frontend/ui/data/css_tweaks.lua:635
+#: frontend/ui/data/css_tweaks.lua:634
 msgid "No spacing between paragraphs"
 msgstr "Немає відстані між абзацами"
 
-#: frontend/ui/data/css_tweaks.lua:637
+#: frontend/ui/data/css_tweaks.lua:636
 msgid ""
 "No whitespace between paragraphs is the default, but it may be overridden by "
 "publisher styles. This will re-enable it for paragraphs and list items."
@@ -9607,19 +9607,19 @@ msgstr ""
 "Інтервал між абзацами не є стандартним і може бути перевизначений стилями "
 "видавця. Це дозволить повторно увімкнути його для абзаців і елементів списку."
 
-#: frontend/ui/data/css_tweaks.lua:645
+#: frontend/ui/data/css_tweaks.lua:644
 msgid "Tables, links, images"
 msgstr "Таблиці, посилання, зображення"
 
-#: frontend/ui/data/css_tweaks.lua:647
+#: frontend/ui/data/css_tweaks.lua:646
 msgid "Tables"
 msgstr "Таблиці"
 
-#: frontend/ui/data/css_tweaks.lua:650
+#: frontend/ui/data/css_tweaks.lua:649
 msgid "Ignore tables related HTML presentational hints"
 msgstr "Ігнорувати підказки HTML-презентації, пов'язані з таблицями"
 
-#: frontend/ui/data/css_tweaks.lua:652
+#: frontend/ui/data/css_tweaks.lua:651
 msgid ""
 "Ignore HTML attributes that contribute to styles on the <table> element and "
 "its sub-elements (ie. align, valign, frame, rules, border, cellpadding, "
@@ -9629,11 +9629,11 @@ msgstr ""
 "піделементів (align, valign, frame, rules, border, cellpadding, "
 "cellspacing…)."
 
-#: frontend/ui/data/css_tweaks.lua:659
+#: frontend/ui/data/css_tweaks.lua:658
 msgid "Full-width tables"
 msgstr "Таблиці на повну ширину"
 
-#: frontend/ui/data/css_tweaks.lua:661
+#: frontend/ui/data/css_tweaks.lua:660
 msgid ""
 "Make table expand to the full width of the page. (Tables with small content "
 "now use only the width needed to display that content. This restores the "
@@ -9643,11 +9643,11 @@ msgstr ""
 "вмістом тепер використовують лише ширину, необхідну для показу цього вмісту. "
 "Це відновлює попередню поведінку.)"
 
-#: frontend/ui/data/css_tweaks.lua:668
+#: frontend/ui/data/css_tweaks.lua:667
 msgid "Ignore publisher table and cell widths"
 msgstr "Ігнорувати ширину таблиць та комірок видавця"
 
-#: frontend/ui/data/css_tweaks.lua:670
+#: frontend/ui/data/css_tweaks.lua:669
 msgid ""
 "Ignore table and cells widths specified by the publisher, and let the engine "
 "decide the most appropriate widths."
@@ -9655,69 +9655,69 @@ msgstr ""
 "Нехтувати шириною таблиць і комірок вказаних видавцем та дозволити рушію "
 "визначати найвідповіднішу ширину."
 
-#: frontend/ui/data/css_tweaks.lua:676
+#: frontend/ui/data/css_tweaks.lua:675
 msgid "Center small tables"
 msgstr "Вирівнювати по цетру малі таблиці"
 
-#: frontend/ui/data/css_tweaks.lua:678
+#: frontend/ui/data/css_tweaks.lua:677
 msgid "Horizontally center tables that do not use the full page width."
 msgstr ""
 "Горизонтально центрувати таблиці, що не використовують повної ширини "
 "сторінки."
 
-#: frontend/ui/data/css_tweaks.lua:686
+#: frontend/ui/data/css_tweaks.lua:685
 msgid "Ignore publisher vertical alignment in tables"
 msgstr "Ігнорувати вертикальне розміщення в таблицях видавця"
 
-#: frontend/ui/data/css_tweaks.lua:693
+#: frontend/ui/data/css_tweaks.lua:692
 msgid "Alternate background color of table rows"
 msgstr "Альтернативний колір тла рядків таблиці"
 
-#: frontend/ui/data/css_tweaks.lua:701
+#: frontend/ui/data/css_tweaks.lua:700
 msgid "Show borders on all tables"
 msgstr "Показувати межі для всіх таблиць"
 
-#: frontend/ui/data/css_tweaks.lua:712
+#: frontend/ui/data/css_tweaks.lua:711
 msgid "Links always black"
 msgstr "Посилання завжди чорні"
 
-#: frontend/ui/data/css_tweaks.lua:718
+#: frontend/ui/data/css_tweaks.lua:717
 msgid "Links always blue"
 msgstr "Посилання завжди сині"
 
-#: frontend/ui/data/css_tweaks.lua:725
+#: frontend/ui/data/css_tweaks.lua:724
 msgid "Links always bold"
 msgstr "Посилання завжди грубі"
 
-#: frontend/ui/data/css_tweaks.lua:731
+#: frontend/ui/data/css_tweaks.lua:730
 msgid "Links never bold"
 msgstr "Посилання ніколи не грубі"
 
-#: frontend/ui/data/css_tweaks.lua:738
+#: frontend/ui/data/css_tweaks.lua:737
 msgid "Links always italic"
 msgstr "Посилання завжди курсивом"
 
-#: frontend/ui/data/css_tweaks.lua:744
+#: frontend/ui/data/css_tweaks.lua:743
 msgid "Links never italic"
 msgstr "Посилання ніколи не курсивом"
 
-#: frontend/ui/data/css_tweaks.lua:751
+#: frontend/ui/data/css_tweaks.lua:750
 msgid "Links always underlined"
 msgstr "Посилання завжди підкреслені"
 
-#: frontend/ui/data/css_tweaks.lua:758
+#: frontend/ui/data/css_tweaks.lua:757
 msgid "Links never underlined"
 msgstr "Посилання ніколи не підкреслені"
 
-#: frontend/ui/data/css_tweaks.lua:763
+#: frontend/ui/data/css_tweaks.lua:762
 msgid "Images"
 msgstr "Зображення"
 
-#: frontend/ui/data/css_tweaks.lua:766
+#: frontend/ui/data/css_tweaks.lua:765
 msgid "Full-width images"
 msgstr "Зображення на повну ширину"
 
-#: frontend/ui/data/css_tweaks.lua:768 frontend/ui/data/css_tweaks.lua:786
+#: frontend/ui/data/css_tweaks.lua:767 frontend/ui/data/css_tweaks.lua:784
 msgid ""
 "Useful for books containing only images, when they are smaller than your "
 "screen. May stretch images in some cases."
@@ -9725,27 +9725,27 @@ msgstr ""
 "Корисно для книг, що містять лише зображення, якщо вони менші, ніж ваш "
 "екран. У деяких випадках може розтягувати зображення."
 
-#: frontend/ui/data/css_tweaks.lua:784
+#: frontend/ui/data/css_tweaks.lua:782
 msgid "Almost full-width images"
 msgstr ""
 
-#: frontend/ui/data/css_tweaks.lua:798
+#: frontend/ui/data/css_tweaks.lua:796
 msgid "Vertically center-align images relative to text"
 msgstr "Вертикально центрувати зображення відносно тексту"
 
-#: frontend/ui/data/css_tweaks.lua:804
+#: frontend/ui/data/css_tweaks.lua:802
 msgid "Miscellaneous"
 msgstr "Різне"
 
-#: frontend/ui/data/css_tweaks.lua:806
+#: frontend/ui/data/css_tweaks.lua:804
 msgid "Alternative ToC hints"
 msgstr "Підказки альтернативного змісту"
 
-#: frontend/ui/data/css_tweaks.lua:808
+#: frontend/ui/data/css_tweaks.lua:806
 msgid "About alternative ToC"
 msgstr "Про альтернативний зміст"
 
-#: frontend/ui/data/css_tweaks.lua:810
+#: frontend/ui/data/css_tweaks.lua:808
 msgid ""
 "An alternative table of contents can be built via a dedicated option in the "
 "\"Settings\" menu below the \"Table of contents\" menu entry.\n"
@@ -9782,39 +9782,39 @@ msgstr ""
 "перебудувати, створивши його двічі у своєму меню: один раз, щоб відновити "
 "оригінальний зміст, і один раз, щоб побудувати альтернативний зміст знову."
 
-#: frontend/ui/data/css_tweaks.lua:824
+#: frontend/ui/data/css_tweaks.lua:822
 msgid "Ignore all <H1> to <H6>"
 msgstr "Ігнорувати всі <H1> до <H6>"
 
-#: frontend/ui/data/css_tweaks.lua:829
+#: frontend/ui/data/css_tweaks.lua:827
 msgid "Ignore <H1>"
 msgstr "Ігнорувати <H1>"
 
-#: frontend/ui/data/css_tweaks.lua:834
+#: frontend/ui/data/css_tweaks.lua:832
 msgid "Ignore <H2>"
 msgstr "Ігнорувати <H2>"
 
-#: frontend/ui/data/css_tweaks.lua:839
+#: frontend/ui/data/css_tweaks.lua:837
 msgid "Ignore <H3>"
 msgstr "Ігнорувати <H3>"
 
-#: frontend/ui/data/css_tweaks.lua:844
+#: frontend/ui/data/css_tweaks.lua:842
 msgid "Ignore <H4>"
 msgstr "Ігнорувати <H4>"
 
-#: frontend/ui/data/css_tweaks.lua:849
+#: frontend/ui/data/css_tweaks.lua:847
 msgid "Ignore <H5>"
 msgstr "Ігнорувати <H5>"
 
-#: frontend/ui/data/css_tweaks.lua:854
+#: frontend/ui/data/css_tweaks.lua:852
 msgid "Ignore <H6>"
 msgstr "Ігнорувати <H6>"
 
-#: frontend/ui/data/css_tweaks.lua:860
+#: frontend/ui/data/css_tweaks.lua:858
 msgid "Example of book specific ToC hints"
 msgstr "Приклад підказок змісту для окремих книг"
 
-#: frontend/ui/data/css_tweaks.lua:862
+#: frontend/ui/data/css_tweaks.lua:860
 msgid ""
 "If headings or document fragments do not result in a usable ToC, you can "
 "inspect the HTML and look for elements that contain chapter titles. Then you "
@@ -9828,23 +9828,23 @@ msgstr ""
 "Це всього лише приклад, який потрібно буде пристосувати до підлаштування "
 "власного стилю."
 
-#: frontend/ui/data/css_tweaks.lua:876
+#: frontend/ui/data/css_tweaks.lua:874
 msgid "List items"
 msgstr "Список елементів"
 
-#: frontend/ui/data/css_tweaks.lua:879
+#: frontend/ui/data/css_tweaks.lua:877
 msgid "Force bullets with unordered lists"
 msgstr "Примусово застосовувати позначки для невпорядкованих списків"
 
-#: frontend/ui/data/css_tweaks.lua:884
+#: frontend/ui/data/css_tweaks.lua:882
 msgid "Force decimal numbers with ordered lists"
 msgstr "Примусово застосовувати десяткові числа для впорядкованих списків"
 
-#: frontend/ui/data/css_tweaks.lua:890
+#: frontend/ui/data/css_tweaks.lua:888
 msgid "Disable before/after pseudo elements"
 msgstr "Вимкнення псевдоелементів before/after"
 
-#: frontend/ui/data/css_tweaks.lua:892
+#: frontend/ui/data/css_tweaks.lua:890
 msgid ""
 "Disable generated text from ::before and ::after pseudo elements, usually "
 "used to add cosmetic text around some content."
@@ -9852,43 +9852,43 @@ msgstr ""
 "Вимкнути згенерований текст із псевдоелементів ::before та ::after, зазвичай "
 "використовується для додавання косметичного тексту навколо певного вмісту."
 
-#: frontend/ui/data/css_tweaks.lua:902
+#: frontend/ui/data/css_tweaks.lua:900
 msgid "Pure black and white"
 msgstr "Чисті чорний та білий"
 
-#: frontend/ui/data/css_tweaks.lua:904
+#: frontend/ui/data/css_tweaks.lua:902
 msgid "Enforce black text and borders, and remove backgrounds."
 msgstr "Примусове увімкнення чорного тексту та меж та видалення тла."
 
-#: frontend/ui/data/css_tweaks.lua:917
+#: frontend/ui/data/css_tweaks.lua:915
 msgid "In-page footnotes"
 msgstr "Внутрішні виноски"
 
-#: frontend/ui/data/css_tweaks.lua:919 frontend/ui/data/css_tweaks.lua:922
+#: frontend/ui/data/css_tweaks.lua:917 frontend/ui/data/css_tweaks.lua:920
 msgid "In-page FB2 footnotes"
 msgstr "Виноски з FB2 на сторінці"
 
-#: frontend/ui/data/css_tweaks.lua:924
+#: frontend/ui/data/css_tweaks.lua:922
 msgid ""
 "Show FB2 footnote text at the bottom of pages that contain links to them."
 msgstr "Показувати виноски FB2 внизу сторінок, які містять посилання на них."
 
-#: frontend/ui/data/css_tweaks.lua:950
+#: frontend/ui/data/css_tweaks.lua:948
 msgid "In-page FB2 endnotes"
 msgstr "Коментарі з FB2 на сторінці"
 
-#: frontend/ui/data/css_tweaks.lua:952
+#: frontend/ui/data/css_tweaks.lua:950
 msgid ""
 "Show FB2 endnote text at the bottom of pages that contain links to them."
 msgstr ""
 "Показувати кінцеві коментарі з FB2 внизу сторінок, які містять посилання на "
 "них."
 
-#: frontend/ui/data/css_tweaks.lua:975
+#: frontend/ui/data/css_tweaks.lua:973
 msgid "Keep regular font size"
 msgstr "Дотримуватись звичайного розміру шрифту"
 
-#: frontend/ui/data/css_tweaks.lua:977
+#: frontend/ui/data/css_tweaks.lua:975
 msgid ""
 "FB2 footnotes and endnotes get a smaller font size when displayed in-page. "
 "This allows them to be shown with the normal font size."
@@ -9897,11 +9897,11 @@ msgstr ""
 "відображення на сторінці. Це дозволяє показувати їх із нормальним розміром "
 "шрифту."
 
-#: frontend/ui/data/css_tweaks.lua:999
+#: frontend/ui/data/css_tweaks.lua:997
 msgid "In-page EPUB footnotes"
 msgstr "Внутрішні виноски EPUB"
 
-#: frontend/ui/data/css_tweaks.lua:1001 frontend/ui/data/css_tweaks.lua:1032
+#: frontend/ui/data/css_tweaks.lua:999 frontend/ui/data/css_tweaks.lua:1030
 msgid ""
 "Show EPUB footnote text at the bottom of pages that contain links to them.\n"
 "This only works with footnotes that have specific attributes set by the "
@@ -9910,27 +9910,27 @@ msgstr ""
 "Показувати текст виноски EPUB внизу сторінок, які містять посилання на них.\n"
 "Це працює тільки з виносками, які мають певні атрибути, встановлені видавцем."
 
-#: frontend/ui/data/css_tweaks.lua:1030
+#: frontend/ui/data/css_tweaks.lua:1028
 msgid "In-page EPUB footnotes (smaller)"
 msgstr "Внутрішні виноски EPUB (менші)"
 
-#: frontend/ui/data/css_tweaks.lua:1064
+#: frontend/ui/data/css_tweaks.lua:1062
 msgid "In-page Wikipedia footnotes"
 msgstr "Внутрішні виноски Вікіпедії"
 
-#: frontend/ui/data/css_tweaks.lua:1066 frontend/ui/data/css_tweaks.lua:1089
+#: frontend/ui/data/css_tweaks.lua:1064 frontend/ui/data/css_tweaks.lua:1087
 msgid "Show footnotes at the bottom of pages in Wikipedia EPUBs."
 msgstr "Показувати виноски внизу сторінки у файлах EPUB з Вікіпедії."
 
-#: frontend/ui/data/css_tweaks.lua:1087
+#: frontend/ui/data/css_tweaks.lua:1085
 msgid "In-page Wikipedia footnotes (smaller)"
 msgstr "Внутрішні виноски Вікіпедії (менші)"
 
-#: frontend/ui/data/css_tweaks.lua:1115
+#: frontend/ui/data/css_tweaks.lua:1113
 msgid "In-page classic classname footnotes"
 msgstr "Класичні виноски у назві класу на сторінці"
 
-#: frontend/ui/data/css_tweaks.lua:1117 frontend/ui/data/css_tweaks.lua:1145
+#: frontend/ui/data/css_tweaks.lua:1115 frontend/ui/data/css_tweaks.lua:1143
 msgid ""
 "Show footnotes with classic classnames at the bottom of pages.\n"
 "This tweak can be duplicated as a user style tweak when books contain "
@@ -9940,51 +9940,51 @@ msgstr ""
 "Це підлаштування можна продублювати як підлаштування власного стилю, коли "
 "книги містять виноски з іншими назвами класів."
 
-#: frontend/ui/data/css_tweaks.lua:1143
+#: frontend/ui/data/css_tweaks.lua:1141
 msgid "In-page classic classname footnotes (smaller)"
 msgstr "Класичні виноски в назві класу на сторінці (менше)"
 
-#: frontend/ui/data/css_tweaks.lua:1176
+#: frontend/ui/data/css_tweaks.lua:1174
 msgid "In-page footnote font size"
 msgstr "Розмір шрифту виноски на сторінці"
 
-#: frontend/ui/data/css_tweaks.lua:1185
+#: frontend/ui/data/css_tweaks.lua:1183
 msgid "Footnote font size: %1 %"
 msgstr "Розмір шрифту виноски: %1 %"
 
-#: frontend/ui/data/css_tweaks.lua:1201
+#: frontend/ui/data/css_tweaks.lua:1199
 msgid "In-page footnote fix-up"
 msgstr "Виправлення виносок на сторінці"
 
-#: frontend/ui/data/css_tweaks.lua:1204
+#: frontend/ui/data/css_tweaks.lua:1202
 msgid "No footnote indentation"
 msgstr "Без відступу виноски"
 
-#: frontend/ui/data/css_tweaks.lua:1215
+#: frontend/ui/data/css_tweaks.lua:1213
 msgid "Justify footnote text"
 msgstr "Вирівнювання тексту виноски за шириною"
 
-#: frontend/ui/data/css_tweaks.lua:1226
+#: frontend/ui/data/css_tweaks.lua:1224
 msgid "Remove block margins"
 msgstr "Вилучити поля блоку"
 
-#: frontend/ui/data/css_tweaks.lua:1227
+#: frontend/ui/data/css_tweaks.lua:1225
 msgid "Remove block margin and padding inside inpage footnotes."
 msgstr "Вилучити поля блоку та відступи всередині виносок на сторінці."
 
-#: frontend/ui/data/css_tweaks.lua:1240
+#: frontend/ui/data/css_tweaks.lua:1238
 msgid "Remove cosmetic spacing"
 msgstr "Вилучити косметичний проміжок"
 
-#: frontend/ui/data/css_tweaks.lua:1241
+#: frontend/ui/data/css_tweaks.lua:1239
 msgid "Remove inline margin and padding inside inpage footnotes."
 msgstr "Вилучити вбудовані поля та відступи всередині виносок на сторінці."
 
-#: frontend/ui/data/css_tweaks.lua:1254
+#: frontend/ui/data/css_tweaks.lua:1252
 msgid "Inline all footnote content"
 msgstr "Вбудувати весь вміст виноски"
 
-#: frontend/ui/data/css_tweaks.lua:1255
+#: frontend/ui/data/css_tweaks.lua:1253
 msgid ""
 "If the footnote number is on a single line and the footnote text on the next "
 "line, or if there are variable levels of indentation, this tweak can make "
@@ -9996,11 +9996,11 @@ msgstr ""
 "вміст виноски на один абзац.\n"
 "Це пошкодить будь-яку складну виноску, що містить цитати або списки."
 
-#: frontend/ui/data/css_tweaks.lua:1276
+#: frontend/ui/data/css_tweaks.lua:1274
 msgid "Regularize text size on inline elements"
 msgstr "Унормовувати розмір тексту у вбудованих елементах"
 
-#: frontend/ui/data/css_tweaks.lua:1278
+#: frontend/ui/data/css_tweaks.lua:1276
 msgid ""
 "If the footnote text uses variable or absolute font sizes, line height or "
 "vertical alignments, which would make it too irregular, you can reset all of "
@@ -10011,11 +10011,11 @@ msgstr ""
 "невпорядкованим, тоді можна скинути їх усі, щоб отримати акуратніший текст "
 "(через втрату надрядкових символів)."
 
-#: frontend/ui/data/css_tweaks.lua:1294
+#: frontend/ui/data/css_tweaks.lua:1292
 msgid "Combine footnotes in a non-linear flow"
 msgstr "Об'єднання виносок у нелінійний потік"
 
-#: frontend/ui/data/css_tweaks.lua:1296
+#: frontend/ui/data/css_tweaks.lua:1294
 msgid ""
 "This will mark each section of consecutive footnotes (at their original "
 "location in the book) as being non-linear.\n"
@@ -11225,12 +11225,12 @@ msgid "Writing Direction"
 msgstr "Напрямок письма"
 
 #. @translators LTR is left to right, which is the regular European writing direction.
-#: frontend/ui/data/koptoptions.lua:686 frontend/ui/elements/page_turns.lua:159
+#: frontend/ui/data/koptoptions.lua:686 frontend/ui/elements/page_turns.lua:158
 msgid "LTR"
 msgstr "Зліва направо"
 
 #. @translators RTL is right to left, which is the regular writing direction in languages like Hebrew, Arabic, Persian and Urdu.
-#: frontend/ui/data/koptoptions.lua:688 frontend/ui/elements/page_turns.lua:170
+#: frontend/ui/data/koptoptions.lua:688 frontend/ui/elements/page_turns.lua:169
 msgid "RTL"
 msgstr "Справа наліво"
 
@@ -11576,11 +11576,11 @@ msgstr "Дотики та жести"
 msgid "Ignore long-press on corners"
 msgstr "Нехтувати затисканням в кутах"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:167
+#: frontend/ui/elements/common_settings_menu_table.lua:166
 msgid "Disable out of order interactions"
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:170
+#: frontend/ui/elements/common_settings_menu_table.lua:168
 msgid ""
 "Disallow taps or keyboard presses being sent to the UI elements before they "
 "are showing up.\n"
@@ -11594,27 +11594,27 @@ msgid ""
 "UI interactions are less responsive."
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:189
+#: frontend/ui/elements/common_settings_menu_table.lua:187
 msgid "Fullscreen"
 msgstr "Повний екран"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:220
+#: frontend/ui/elements/common_settings_menu_table.lua:218
 msgid "Force haptic feedback"
 msgstr "Примусово реагувати на торкання"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:234
+#: frontend/ui/elements/common_settings_menu_table.lua:232
 msgid "Volume key page turning"
 msgstr "Перегортання сторінок клавішею гучності"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:246
+#: frontend/ui/elements/common_settings_menu_table.lua:244
 msgid "Ignore back button completely"
 msgstr "Нехтувати натисканнями кнопки повернення"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:260
+#: frontend/ui/elements/common_settings_menu_table.lua:258
 msgid "Battery optimizations"
 msgstr "Оптимізація акумулятора"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:265
+#: frontend/ui/elements/common_settings_menu_table.lua:263
 msgid ""
 "Go to Android battery optimization settings?\n"
 "\n"
@@ -11628,97 +11628,97 @@ msgstr ""
 "\n"
 "Будь ласка, не міняйте жодних налаштувань, якщо ви не знаєте, що робите."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:284
+#: frontend/ui/elements/common_settings_menu_table.lua:282
 msgid "Navigation"
 msgstr "Навігація"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:287
-#: frontend/ui/network/manager.lua:865 plugins/kosync.koplugin/main.lua:84
+#: frontend/ui/elements/common_settings_menu_table.lua:285
+#: frontend/ui/network/manager.lua:862 plugins/kosync.koplugin/main.lua:84
 #: plugins/kosync.koplugin/main.lua:285 plugins/kosync.koplugin/main.lua:322
 msgid "Prompt"
 msgstr "Запитувати"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:287
-#: frontend/ui/network/manager.lua:865
+#: frontend/ui/elements/common_settings_menu_table.lua:285
+#: frontend/ui/network/manager.lua:862
 msgid "prompt"
 msgstr "запитувати"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:289
+#: frontend/ui/elements/common_settings_menu_table.lua:287
 #: plugins/autofrontlight.koplugin/main.lua:33
 msgid "disable"
 msgstr "вимкнути"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:306
+#: frontend/ui/elements/common_settings_menu_table.lua:304
 msgid "Back to exit: %1"
 msgstr "Повернутися до виходу: %1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:319
-#: frontend/ui/elements/common_settings_menu_table.lua:354
+#: frontend/ui/elements/common_settings_menu_table.lua:317
+#: frontend/ui/elements/common_settings_menu_table.lua:352
 msgid "back to exit"
 msgstr "повернутися до виходу"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:321
+#: frontend/ui/elements/common_settings_menu_table.lua:319
 msgid "parent folder"
 msgstr "батьківська тека"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:323
+#: frontend/ui/elements/common_settings_menu_table.lua:321
 msgid "Back in file browser: %1"
 msgstr "Назад до оглядача файлів: %1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:330
-#: frontend/ui/elements/common_settings_menu_table.lua:369
+#: frontend/ui/elements/common_settings_menu_table.lua:328
+#: frontend/ui/elements/common_settings_menu_table.lua:367
 msgid "Back to exit (%1)"
 msgstr "Вихід кнопкою повернення (%1)"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:342
+#: frontend/ui/elements/common_settings_menu_table.lua:340
 msgid "Go to parent folder"
 msgstr "Перейти до батьківської теки"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:358
+#: frontend/ui/elements/common_settings_menu_table.lua:356
 msgid "previous location"
 msgstr "попереднє розташування"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:360
+#: frontend/ui/elements/common_settings_menu_table.lua:358
 msgid "previous read page"
 msgstr "попередня прочитана сторінка"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:362
+#: frontend/ui/elements/common_settings_menu_table.lua:360
 msgid "Back in reader: %1"
 msgstr "Повернутися до читання: %1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:381
+#: frontend/ui/elements/common_settings_menu_table.lua:379
 msgid "Go to file browser"
 msgstr "Перейти до оглядача файлів"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:386
+#: frontend/ui/elements/common_settings_menu_table.lua:384
 msgid "Go to previous location"
 msgstr "Перейти до попереднього розташування"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:391
+#: frontend/ui/elements/common_settings_menu_table.lua:389
 msgid "Go to previous read page"
 msgstr "Перейти до попередньої сторінки читання"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:400
+#: frontend/ui/elements/common_settings_menu_table.lua:398
 msgid "Backspace works as back button"
 msgstr "Backspace працює як кнопка «Назад»"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:412
+#: frontend/ui/elements/common_settings_menu_table.lua:410
 msgid "Add opening page to location history"
 msgstr "Додати початкову сторінку в історію розташувань"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:430
+#: frontend/ui/elements/common_settings_menu_table.lua:428
 msgid "Skim dialog position: %1"
 msgstr "Позиція вікна швидкого проглядання: %1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:454
+#: frontend/ui/elements/common_settings_menu_table.lua:452
 msgid "Document"
 msgstr "Документ"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:459
+#: frontend/ui/elements/common_settings_menu_table.lua:457
 msgid "book folder"
 msgstr "тека з книгами"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:466
+#: frontend/ui/elements/common_settings_menu_table.lua:464
 msgid ""
 "Book view settings, reading progress, highlights, bookmarks and notes "
 "(collectively known as metadata) are stored in a separate folder named <book-"
@@ -11728,13 +11728,13 @@ msgstr ""
 "нотатки (загалом відомі метадані) розташовано в окремій теці з назвою <назва-"
 "книги>.sdr (\".sdr\" означає \"додатковий файл\", або \"sidecar\")."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:470
+#: frontend/ui/elements/common_settings_menu_table.lua:468
 msgid ""
 "You can decide between three locations/methods where these will be saved:"
 msgstr ""
 "Ви можете вибрати одне з трьох розташувань/способів їхнього збереження:"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:473
+#: frontend/ui/elements/common_settings_menu_table.lua:471
 msgid ""
 " - alongside the book file itself (the long time default): sdr folders will "
 "be visible when you browse your library directories with another file "
@@ -11752,7 +11752,7 @@ msgstr ""
 "якщо ви виконуєте синхронізацію каталогів або резервне копіювання, ваші "
 "налаштування будуть частиною цих файлів."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:477
+#: frontend/ui/elements/common_settings_menu_table.lua:475
 msgid ""
 " - all in %1: sdr folders will only be visible and used by KOReader, and "
 "won't clutter your vision of your library directories with another file "
@@ -11769,7 +11769,7 @@ msgstr ""
 "налаштування не буде збережено під час синхронізації або створення резервних "
 "копій вашої бібліотеки."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:483
+#: frontend/ui/elements/common_settings_menu_table.lua:481
 msgid ""
 " - all inside %1 as hashes: sdr folders are identified not by filepath/"
 "filename but by partial MD5 hash, allowing you to rename, move, and copy "
@@ -11790,7 +11790,7 @@ msgstr ""
 "оглядачі. Цей параметр може бути зручним для користувачів, які зберігають "
 "кілька копій документів на різних пристроях та у різних каталогах."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:492
+#: frontend/ui/elements/common_settings_menu_table.lua:490
 msgid ""
 "%1 requires calculating partial file hashes of documents which may slow down "
 "file browser navigation. Any file modifications (such as embedding "
@@ -11806,7 +11806,7 @@ msgstr ""
 "читання. Вбудовування анотацій до PDF-файлів можна встановити в меню "
 "«Налаштування тексту → Виділення → Записати виділене в PDF»."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:497
+#: frontend/ui/elements/common_settings_menu_table.lua:495
 msgid ""
 "Warning: You currently have documents with hash-based metadata. Until this "
 "metadata is moved by opening those documents, or deleted, file browser "
@@ -11816,23 +11816,23 @@ msgstr ""
 "метадані не буде змінено під час відкриття цих документів або видалено, "
 "навігація файловим оглядачем може бути сповільненою."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:535
+#: frontend/ui/elements/common_settings_menu_table.lua:533
 msgid "Book metadata location: %1"
 msgstr "Розташування метаданих книги: %1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:540
+#: frontend/ui/elements/common_settings_menu_table.lua:538
 msgid "About book metadata location"
 msgstr "Про розташування метаданих книг"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:552
+#: frontend/ui/elements/common_settings_menu_table.lua:550
 msgid "Show documents with hash-based metadata"
 msgstr "Показати документи з метаданими на основі хешу"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:553
+#: frontend/ui/elements/common_settings_menu_table.lua:551
 msgid "No documents with hash-based metadata"
 msgstr "Немає документів з метаданими на основі хешу"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:575
+#: frontend/ui/elements/common_settings_menu_table.lua:573
 msgid ""
 "This sets how often to rewrite to disk global settings and book metadata, "
 "including your current position and any highlights and bookmarks made, when "
@@ -11858,7 +11858,7 @@ msgstr ""
 "після зменшення інтервалу і може повільно зношувати носій в довгостроковій "
 "перспективі."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:595
+#: frontend/ui/elements/common_settings_menu_table.lua:593
 msgid ""
 "Please be warned that on this device, setting a low interval may exacerbate "
 "the potential for filesystem corruption and complete data loss after a "
@@ -11868,55 +11868,55 @@ msgstr ""
 "посилити ймовірність пошкодження файлової системи й повної втрати даних "
 "після апаратного збою."
 
-#: frontend/ui/elements/common_settings_menu_table.lua:604
+#: frontend/ui/elements/common_settings_menu_table.lua:601
 msgid "Periodically save reading progress"
 msgstr ""
 
-#: frontend/ui/elements/common_settings_menu_table.lua:616
+#: frontend/ui/elements/common_settings_menu_table.lua:613
 msgid "End of document action"
 msgstr "Дія в кінці документа"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:619
+#: frontend/ui/elements/common_settings_menu_table.lua:616
 msgid "Always mark as finished"
 msgstr "Завжди позначати прочитаним"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:677
+#: frontend/ui/elements/common_settings_menu_table.lua:674
 msgid "Return to file browser"
 msgstr "Повернутись до оглядача файлів"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:684
+#: frontend/ui/elements/common_settings_menu_table.lua:681
 msgid "Mark book as finished"
 msgstr "Позначити книгу прочитаною"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:691
+#: frontend/ui/elements/common_settings_menu_table.lua:688
 msgid "Book status and return to file browser"
 msgstr "Стан книги та повернення до оглядача файлів"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:707
+#: frontend/ui/elements/common_settings_menu_table.lua:704
 msgid "Keyboard"
 msgstr "Клавіатура"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:716
+#: frontend/ui/elements/common_settings_menu_table.lua:713
 msgid "Dimension units: %1"
 msgstr "Одиниці виміру: %1"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:720
+#: frontend/ui/elements/common_settings_menu_table.lua:717
 msgid "Also show values in pixels"
 msgstr "Також показувати значення в пікселях"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:733
+#: frontend/ui/elements/common_settings_menu_table.lua:730
 msgid "Metric system"
 msgstr "Метрична система"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:740
+#: frontend/ui/elements/common_settings_menu_table.lua:737
 msgid "Imperial system"
 msgstr "Імперська система"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:746
+#: frontend/ui/elements/common_settings_menu_table.lua:743
 msgid "Pixels"
 msgstr "Пікселі"
 
-#: frontend/ui/elements/common_settings_menu_table.lua:751
+#: frontend/ui/elements/common_settings_menu_table.lua:748
 msgid "Screenshot folder"
 msgstr "Тека знімків екрана"
 
@@ -12218,43 +12218,43 @@ msgstr "Суцільна лінія"
 msgid "Dashed line"
 msgstr "Пунктирна лінія"
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:8
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:7
 msgid "Page press"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:10
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:9
 msgid "Configure the up and down buttons on both side of the kindle voyage"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:14
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:13
 msgid "Try PagePress, inverted when pressed"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:27
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:26
 msgid "Low pressure"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:38
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:37
 msgid "Medium pressure"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:49
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:48
 msgid "High pressure"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:61
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:60
 msgid "No feedback"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:72
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:71
 msgid "Low feedback"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:83
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:82
 msgid "Medium feedback"
 msgstr ""
 
-#: frontend/ui/elements/pagepress_settings_menu_table.lua:94
+#: frontend/ui/elements/pagepress_settings_menu_table.lua:93
 msgid "High feedback"
 msgstr ""
 
@@ -12290,35 +12290,35 @@ msgstr "Відсоток ширини екрана"
 msgid "Percentage of screen height"
 msgstr "Відсоток висоти екрана"
 
-#: frontend/ui/elements/page_turns.lua:76
+#: frontend/ui/elements/page_turns.lua:75
 msgid "to move forward."
 msgstr ""
 
-#: frontend/ui/elements/page_turns.lua:78
+#: frontend/ui/elements/page_turns.lua:77
 msgid "Tapping the rest area will move backward."
 msgstr ""
 
-#: frontend/ui/elements/page_turns.lua:100
+#: frontend/ui/elements/page_turns.lua:99
 msgid "Page turns"
 msgstr "Гортання сторінок"
 
-#: frontend/ui/elements/page_turns.lua:103
+#: frontend/ui/elements/page_turns.lua:102
 msgid "With taps"
 msgstr "Дотиками"
 
-#: frontend/ui/elements/page_turns.lua:112
+#: frontend/ui/elements/page_turns.lua:111
 msgid "With swipes"
 msgstr "Посуванням"
 
-#: frontend/ui/elements/page_turns.lua:124
+#: frontend/ui/elements/page_turns.lua:123
 msgid "Tap zones: %1"
 msgstr "Ділянки дотику: %1"
 
-#: frontend/ui/elements/page_turns.lua:134
+#: frontend/ui/elements/page_turns.lua:133
 msgid "Invert page turn taps and swipes"
 msgstr "Інвертувати гортання торканням і посуванням"
 
-#: frontend/ui/elements/page_turns.lua:153
+#: frontend/ui/elements/page_turns.lua:152
 msgid ""
 "The default (★) for newly opened books is right-to-left (RTL) page turning.\n"
 "\n"
@@ -12329,7 +12329,7 @@ msgstr ""
 "\n"
 "Змінити це?"
 
-#: frontend/ui/elements/page_turns.lua:156
+#: frontend/ui/elements/page_turns.lua:155
 msgid ""
 "The default (★) for newly opened books is left-to-right (LTR) page turning.\n"
 "\n"
@@ -12340,19 +12340,19 @@ msgstr ""
 "\n"
 "Змінити це?"
 
-#: frontend/ui/elements/page_turns.lua:160
+#: frontend/ui/elements/page_turns.lua:159
 msgid "LTR (★)"
 msgstr "ЛНП (★)"
 
-#: frontend/ui/elements/page_turns.lua:169
+#: frontend/ui/elements/page_turns.lua:168
 msgid "RTL (★)"
 msgstr "ПНЛ (★)"
 
-#: frontend/ui/elements/page_turns.lua:182
+#: frontend/ui/elements/page_turns.lua:181
 msgid "Also invert document-related dialogs"
 msgstr "...та діалоги, пов’язані з документами"
 
-#: frontend/ui/elements/page_turns.lua:193
+#: frontend/ui/elements/page_turns.lua:192
 msgid ""
 "When enabled the UI direction for the Table of Contents, Book Map, and Page "
 "Browser dialogs will follow the page turn direction instead of the default "
@@ -12362,7 +12362,7 @@ msgstr ""
 "«Зміст», «Мапа книги» та «Оглядач сторінок» відповідатиме напряму повороту "
 "сторінки замість усталеного напряму інтерфейсу користувача."
 
-#: frontend/ui/elements/page_turns.lua:199
+#: frontend/ui/elements/page_turns.lua:198
 msgid "Page turn animations"
 msgstr "Анімація гортання сторінок"
 
@@ -12389,7 +12389,7 @@ msgstr ""
 msgid "About fully refreshing screens"
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:14
+#: frontend/ui/elements/refresh_menu_table.lua:13
 msgid ""
 "Showing a new content on an E-ink screen usually does not fully clear the "
 "previous content and leaves some blur. It may be referred as E-ink shadow or "
@@ -12403,25 +12403,25 @@ msgid ""
 "be good enough for most of the use cases."
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:21
+#: frontend/ui/elements/refresh_menu_table.lua:19
 msgid "Never automatically fully refresh screen"
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:24
+#: frontend/ui/elements/refresh_menu_table.lua:21
 msgid ""
 "The full refresh will happen only when showing an image, moving to next "
 "chapter or opening another book."
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:36
+#: frontend/ui/elements/refresh_menu_table.lua:32
 msgid "Low full refresh rate for better responsiveness"
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:47
+#: frontend/ui/elements/refresh_menu_table.lua:42
 msgid "Balance between responsiveness and quality"
 msgstr ""
 
-#: frontend/ui/elements/refresh_menu_table.lua:64
+#: frontend/ui/elements/refresh_menu_table.lua:58
 msgid "High full refresh rate for better display quality"
 msgstr ""
 
@@ -12493,11 +12493,11 @@ msgstr "Своє значення DPI"
 msgid "E-ink settings"
 msgstr "Налаштування е-чорнил"
 
-#: frontend/ui/elements/screen_eink_opt_menu_table.lua:18
+#: frontend/ui/elements/screen_eink_opt_menu_table.lua:17
 msgid "Use lower refresh rate when appropriate"
 msgstr ""
 
-#: frontend/ui/elements/screen_eink_opt_menu_table.lua:21
+#: frontend/ui/elements/screen_eink_opt_menu_table.lua:19
 msgid ""
 "E-ink may laggy when refreshing, avoid refreshing the screen for the "
 "intermedia states, e.g. when scrolling, can be beneficial to reduce the "
@@ -12505,11 +12505,11 @@ msgid ""
 "A reloading of the book may be needed to take effect."
 msgstr ""
 
-#: frontend/ui/elements/screen_eink_opt_menu_table.lua:32
+#: frontend/ui/elements/screen_eink_opt_menu_table.lua:30
 msgid "Avoid mandatory black flashes in UI"
 msgstr "Уникати обов'язкових чорних спалахів екрану"
 
-#: frontend/ui/elements/screen_eink_opt_menu_table.lua:35
+#: frontend/ui/elements/screen_eink_opt_menu_table.lua:32
 msgid ""
 "Fully rendering a black area can be slow and increase the blur on the E-ink, "
 "avoiding full refreshes of the black areas may improve the device "
@@ -12925,41 +12925,41 @@ msgstr "Досі триває попередня спроба з'єднання,
 msgid "Turning off Wi-Fi…"
 msgstr "Вимкнення Wi-Fi…"
 
-#: frontend/ui/network/manager.lua:599
+#: frontend/ui/network/manager.lua:598
 msgid "Network connection is required to perform the action."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:601
+#: frontend/ui/network/manager.lua:600
 msgid "Do you want to turn on Wi-Fi?"
 msgstr "Ви впевнені, що хочете увімкнути Wi-Fi?"
 
-#: frontend/ui/network/manager.lua:602 frontend/ui/network/manager.lua:864
+#: frontend/ui/network/manager.lua:601 frontend/ui/network/manager.lua:861
 #: plugins/autowarmth.koplugin/main.lua:1241
 #: plugins/gestures.koplugin/main.lua:1324
 msgid "Turn on"
 msgstr "Увімкнути"
 
-#: frontend/ui/network/manager.lua:659
+#: frontend/ui/network/manager.lua:657
 msgid "Action will be performed after network being online"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:675
+#: frontend/ui/network/manager.lua:672
 msgid "Action will be performed after network being connected"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:714
+#: frontend/ui/network/manager.lua:711
 msgid "Wi-Fi settings"
 msgstr "Параметри Wi-Fi"
 
-#: frontend/ui/network/manager.lua:726
+#: frontend/ui/network/manager.lua:723
 msgid "Wi-Fi connection"
 msgstr "З'єднання Wi-Fi"
 
-#: frontend/ui/network/manager.lua:772
+#: frontend/ui/network/manager.lua:769
 msgid "HTTP proxy %1"
 msgstr "HTTP проксі %1"
 
-#: frontend/ui/network/manager.lua:788
+#: frontend/ui/network/manager.lua:785
 msgid ""
 "Tip:\n"
 "Long press on this menu entry to configure HTTP proxy."
@@ -12967,15 +12967,15 @@ msgstr ""
 "Підказка:\n"
 "Затисніть пункт меню для налаштування HTTP проксі."
 
-#: frontend/ui/network/manager.lua:794
+#: frontend/ui/network/manager.lua:791
 msgid "Enter proxy address"
 msgstr "Введіть адресу проксі"
 
-#: frontend/ui/network/manager.lua:805
+#: frontend/ui/network/manager.lua:802
 msgid "Disable Wi-Fi connection when inactive"
 msgstr "Вимикати з’єднання Wi-Fi, коли неактивне"
 
-#: frontend/ui/network/manager.lua:808
+#: frontend/ui/network/manager.lua:805
 msgid ""
 "This is unlikely to function properly on a stock Kindle, given how much "
 "network activity the framework generates."
@@ -12983,7 +12983,7 @@ msgstr ""
 "Це навряд чи працюватиме належним чином на стандартному Kindle, враховуючи, "
 "скільки мережевої активності створює фреймворк."
 
-#: frontend/ui/network/manager.lua:811
+#: frontend/ui/network/manager.lua:808
 msgid ""
 "This will automatically turn Wi-Fi off after a generous period of network "
 "inactivity, without disrupting workflows that require a network connection, "
@@ -12993,11 +12993,11 @@ msgstr ""
 "порушуючи робочих процесів, які вимагають з'єднання з мережею, тому ви "
 "можете просто продовжувати читати, не турбуючись про розряд акумулятора."
 
-#: frontend/ui/network/manager.lua:824
+#: frontend/ui/network/manager.lua:821
 msgid "Restore Wi-Fi connection on resume"
 msgstr "Відновлення з'єднання Wi-Fi після відновлення роботи"
 
-#: frontend/ui/network/manager.lua:827
+#: frontend/ui/network/manager.lua:824
 msgid ""
 "This will attempt to automatically and silently re-connect to Wi-Fi on "
 "startup or on resume if Wi-Fi used to be enabled the last time you used "
@@ -13007,45 +13007,45 @@ msgstr ""
 "час запуску або відновлення роботи, якщо Wi-Fi було увімкнено під час "
 "останнього користування KOReader, і ви не вимкнули його явно."
 
-#: frontend/ui/network/manager.lua:843
+#: frontend/ui/network/manager.lua:840
 msgid "Network info"
 msgstr "Мережеві відомості"
 
-#: frontend/ui/network/manager.lua:864
+#: frontend/ui/network/manager.lua:861
 msgid "turn on"
 msgstr "увімкнути"
 
-#: frontend/ui/network/manager.lua:868
+#: frontend/ui/network/manager.lua:865
 msgid "ignore"
 msgstr "ігнорувати"
 
-#: frontend/ui/network/manager.lua:886
+#: frontend/ui/network/manager.lua:883
 msgid "Action when Wi-Fi is off: %1"
 msgstr "Дія, коли Wi-Fi вимкнено: %1"
 
-#: frontend/ui/network/manager.lua:905
+#: frontend/ui/network/manager.lua:901
 msgid "Automatically connect to the known Wi-Fi"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:908
+#: frontend/ui/network/manager.lua:903
 msgid ""
 "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known "
 "network automatically after turning on Wi-Fi."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:975
+#: frontend/ui/network/manager.lua:969
 msgid "No available wifi networks found."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:984
+#: frontend/ui/network/manager.lua:978
 msgid "Scanning for networks…"
 msgstr "Пошук мереж…"
 
-#: frontend/ui/network/manager.lua:1086
+#: frontend/ui/network/manager.lua:1080
 msgid "Connecting to network %1…"
 msgstr "Під'єднання до мережі %1…"
 
-#: frontend/ui/network/manager.lua:1087
+#: frontend/ui/network/manager.lua:1081
 msgid "Connected to network %1"
 msgstr "Під'єднано до мережі %1"
 
@@ -13061,23 +13061,23 @@ msgstr "Вже під'єднано."
 msgid "Wi-Fi off."
 msgstr "WI-FI вимкнено."
 
-#: frontend/ui/network/networklistener.lua:221
+#: frontend/ui/network/networklistener.lua:218
 msgid "Internet"
 msgstr ""
 
-#: frontend/ui/network/networklistener.lua:224
+#: frontend/ui/network/networklistener.lua:220
 msgid "online"
 msgstr ""
 
-#: frontend/ui/network/networklistener.lua:224
+#: frontend/ui/network/networklistener.lua:220
 msgid "offline"
 msgstr ""
 
-#: frontend/ui/network/networklistener.lua:231
+#: frontend/ui/network/networklistener.lua:224
 msgid "Retrieving network information…"
 msgstr ""
 
-#: frontend/ui/network/networklistener.lua:235
+#: frontend/ui/network/networklistener.lua:227
 #: plugins/SSH.koplugin/main.lua:108
 msgid "Could not retrieve network info."
 msgstr "Не можу отримати відомості про мережу."
@@ -14640,7 +14640,7 @@ msgstr "відсотком – невідкриті – прочитані в к
 msgid "Current folder not readable. Some content may not be shown."
 msgstr "Поточну теку неможливо прочитати. Деякий вміст може не показуватися."
 
-#: frontend/ui/widget/filechooser.lua:604
+#: frontend/ui/widget/filechooser.lua:601
 msgid "Loading contents in %1"
 msgstr ""
 
@@ -15368,19 +15368,19 @@ msgstr "Уможливлює перегляд вмісту zip-архівів."
 msgid "Automatic dimmer"
 msgstr "Автоматичне притемнення"
 
-#: plugins/autodim.koplugin/main.lua:65
+#: plugins/autodim.koplugin/main.lua:64
 msgid "after %1"
 msgstr ""
 
-#: plugins/autodim.koplugin/main.lua:81
+#: plugins/autodim.koplugin/main.lua:80
 msgid "Automatic dimmer idle time"
 msgstr "Автоматичний час простою до притемнення"
 
-#: plugins/autodim.koplugin/main.lua:83
+#: plugins/autodim.koplugin/main.lua:82
 msgid "Start the dimmer after the designated period of inactivity."
 msgstr "Розпочинати притемнення після визначеного періоду бездіяльності."
 
-#: plugins/autodim.koplugin/main.lua:93
+#: plugins/autodim.koplugin/main.lua:92
 msgctxt "Time"
 msgid "min"
 msgstr "хв"
@@ -15391,7 +15391,7 @@ msgstr ""
 "Цей модуль дає змогу притемнювати освітлення екрана після періоду "
 "бездіяльності."
 
-#: plugins/autodim.koplugin/_meta.lua:11
+#: plugins/autodim.koplugin/_meta.lua:9
 msgid "KOReader is in idle mode when the frontlight is dimmed."
 msgstr ""
 
@@ -17729,54 +17729,54 @@ msgstr "Зовнішня клавіатура"
 msgid "Manages USB OTG and configures keyboard."
 msgstr "Керує USB OTG і налаштовує клавіатуру."
 
-#: plugins/findhistory.koplugin/main.lua:50
+#: plugins/findhistory.koplugin/main.lua:47
 msgid "Searching for reading records…"
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:56
+#: plugins/findhistory.koplugin/main.lua:52
 msgid "History view has been updated, use main menu to access it."
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:72
+#: plugins/findhistory.koplugin/main.lua:68
 msgid ""
 "Failed to backup current history view from %1 to %2, still want to proceed?"
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:77
-#: plugins/findhistory.koplugin/main.lua:92
+#: plugins/findhistory.koplugin/main.lua:73
+#: plugins/findhistory.koplugin/main.lua:88
 msgid "Proceed"
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:90
+#: plugins/findhistory.koplugin/main.lua:86
 msgid ""
 "Found an existing history backup file; it will be overwritten. Still want to "
 "proceed?"
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:108
+#: plugins/findhistory.koplugin/main.lua:104
 msgid "Last history view has been restored, use main menu to access it."
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:115
+#: plugins/findhistory.koplugin/main.lua:111
 msgid "Failed to restore the last history view from %1."
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:125
+#: plugins/findhistory.koplugin/main.lua:121
 msgid ""
 "This function searches and retrieves all the reading records in the home "
 "directory and build the history view.\n"
 "The last history view will be preserved and can be restored."
 msgstr ""
 
-#: plugins/findhistory.koplugin/main.lua:127
+#: plugins/findhistory.koplugin/main.lua:123
 msgid "Retrieve"
 msgstr ""
 
-#: plugins/findhistory.koplugin/_meta.lua:5
+#: plugins/findhistory.koplugin/_meta.lua:4
 msgid "Retrieve reading history"
 msgstr ""
 
-#: plugins/findhistory.koplugin/_meta.lua:7
+#: plugins/findhistory.koplugin/_meta.lua:6
 msgid ""
 "Searches reading records in the home folder and update the history view."
 msgstr ""
@@ -18136,53 +18136,53 @@ msgid "This is a debugging plugin."
 msgstr "Це модуль налагодження."
 
 #: plugins/httpinspector.koplugin/main.lua:1440
-#: plugins/httpinspector.koplugin/_meta.lua:5
+#: plugins/httpinspector.koplugin/_meta.lua:4
 msgid "Remotely control KOReader"
 msgstr ""
 
-#: plugins/httpinspector.koplugin/main.lua:1447
+#: plugins/httpinspector.koplugin/main.lua:1446
 msgid "Navigate to %1 from a browser to control KOReader."
 msgstr ""
 
-#: plugins/httpinspector.koplugin/main.lua:1454
+#: plugins/httpinspector.koplugin/main.lua:1453
 msgid ""
 "After starting the HTTP server, navigate to %1 from a browser to control "
 "KOReader."
 msgstr ""
 
-#: plugins/httpinspector.koplugin/main.lua:1463
+#: plugins/httpinspector.koplugin/main.lua:1462
 msgid "Turn on the network connection to use the feature."
 msgstr ""
 
-#: plugins/httpinspector.koplugin/main.lua:1471
+#: plugins/httpinspector.koplugin/main.lua:1470
 msgid "Stop HTTP server"
 msgstr "Зупинити HTTP-сервер"
 
-#: plugins/httpinspector.koplugin/main.lua:1473
+#: plugins/httpinspector.koplugin/main.lua:1472
 msgid "Listening on port %1"
 msgstr "Прослуховування порту %1"
 
-#: plugins/httpinspector.koplugin/main.lua:1475
+#: plugins/httpinspector.koplugin/main.lua:1474
 msgid "Start HTTP server"
 msgstr "Запустити HTTP-сервер"
 
-#: plugins/httpinspector.koplugin/main.lua:1491
+#: plugins/httpinspector.koplugin/main.lua:1490
 msgid "Auto start HTTP server"
 msgstr "Автозапуск HTTP-сервера"
 
-#: plugins/httpinspector.koplugin/main.lua:1501
+#: plugins/httpinspector.koplugin/main.lua:1500
 msgid "Port: %1"
 msgstr "Порт: %1"
 
-#: plugins/httpinspector.koplugin/main.lua:1508
+#: plugins/httpinspector.koplugin/main.lua:1507
 msgid "Set custom port"
 msgstr "Налаштувати власний порт"
 
-#: plugins/httpinspector.koplugin/main.lua:1511
+#: plugins/httpinspector.koplugin/main.lua:1510
 msgid "Port number (default is 8080)"
 msgstr "Номер порту (типово 8080)"
 
-#: plugins/httpinspector.koplugin/_meta.lua:8
+#: plugins/httpinspector.koplugin/_meta.lua:6
 msgid ""
 "Allow remotely controlling KOReader via browsers, with advanced features of "
 "inspecting KOReader internal state. It poses security risks; only enable "
@@ -18473,11 +18473,11 @@ msgstr "Адреса власного сервера синхронізації 
 msgid "Logout"
 msgstr "Вийти"
 
-#: plugins/kosync.koplugin/main.lua:211 plugins/kosync.koplugin/main.lua:473
+#: plugins/kosync.koplugin/main.lua:211 plugins/kosync.koplugin/main.lua:472
 msgid "Register"
 msgstr "Зареєструватись"
 
-#: plugins/kosync.koplugin/main.lua:211 plugins/kosync.koplugin/main.lua:455
+#: plugins/kosync.koplugin/main.lua:211 plugins/kosync.koplugin/main.lua:454
 msgid "Login"
 msgstr "Увійти"
 
@@ -18485,7 +18485,7 @@ msgstr "Увійти"
 msgid "Automatically keep documents in sync"
 msgstr "Автоматично синхронізувати документи"
 
-#: plugins/kosync.koplugin/main.lua:235
+#: plugins/kosync.koplugin/main.lua:233
 msgid ""
 "Enable the feature will automatically pull and push progress when necessary."
 msgstr ""
@@ -18538,85 +18538,85 @@ msgstr "Двійкові. Лише ідентичні файли буде син
 msgid "Filename. Files with matching names will be kept in sync."
 msgstr "Назва файлу. Файли з такою ж назвою синхронізуватимуться."
 
-#: plugins/kosync.koplugin/main.lua:407
+#: plugins/kosync.koplugin/main.lua:406
 msgid ""
 "The new server address %1 is invalid, revert back to %2.\n"
 "Error: %3"
 msgstr ""
 
-#: plugins/kosync.koplugin/main.lua:461
+#: plugins/kosync.koplugin/main.lua:460
 msgid "Cannot login: %1"
 msgstr "Не вдається увійти: %1"
 
-#: plugins/kosync.koplugin/main.lua:468
+#: plugins/kosync.koplugin/main.lua:467
 msgid "Logging in. Please wait…"
 msgstr "Триває вхід. Просимо зачекати…"
 
-#: plugins/kosync.koplugin/main.lua:479
+#: plugins/kosync.koplugin/main.lua:478
 msgid "Cannot register: %1"
 msgstr "Не вдається зареєструвати: %1"
 
-#: plugins/kosync.koplugin/main.lua:488
+#: plugins/kosync.koplugin/main.lua:487
 msgid "Registering. Please wait…"
 msgstr "Реєстрація. Просимо зачекати…"
 
-#: plugins/kosync.koplugin/main.lua:510
+#: plugins/kosync.koplugin/main.lua:509
 msgid "An error occurred while registering:"
 msgstr "Стався збій при реєстрації:"
 
-#: plugins/kosync.koplugin/main.lua:516
+#: plugins/kosync.koplugin/main.lua:515
 msgid "An unknown error occurred while registering."
 msgstr "Стався невідомий збій при реєстрації."
 
-#: plugins/kosync.koplugin/main.lua:526
+#: plugins/kosync.koplugin/main.lua:525
 msgid "Registered to KOReader server."
 msgstr "Зареєструвались на сервері KOReader'а."
 
-#: plugins/kosync.koplugin/main.lua:530 plugins/kosync.koplugin/main.lua:564
+#: plugins/kosync.koplugin/main.lua:529 plugins/kosync.koplugin/main.lua:563
 msgid "Unknown server error"
 msgstr "Невідома помилка сервера"
 
-#: plugins/kosync.koplugin/main.lua:544
+#: plugins/kosync.koplugin/main.lua:543
 msgid "An error occurred while logging in:"
 msgstr "Стався збій при вході:"
 
-#: plugins/kosync.koplugin/main.lua:548
+#: plugins/kosync.koplugin/main.lua:547
 msgid "An unknown error occurred while logging in."
 msgstr "Стався невідомий збій при вході."
 
-#: plugins/kosync.koplugin/main.lua:560
+#: plugins/kosync.koplugin/main.lua:559
 msgid "Logged in to KOReader server."
 msgstr "Ввійшли на сервер KOReader'а."
 
-#: plugins/kosync.koplugin/main.lua:679
+#: plugins/kosync.koplugin/main.lua:678
 msgid "Progress has been pushed."
 msgstr "Поступ надіслано на сервер."
 
-#: plugins/kosync.koplugin/main.lua:704
+#: plugins/kosync.koplugin/main.lua:700
 msgid "Pushing progress…"
 msgstr ""
 
-#: plugins/kosync.koplugin/main.lua:758
+#: plugins/kosync.koplugin/main.lua:753
 msgid "No progress found for this document."
 msgstr "Не знайдено даних про поступ читання цього документу."
 
-#: plugins/kosync.koplugin/main.lua:768
+#: plugins/kosync.koplugin/main.lua:763
 msgid "Latest progress is coming from this device."
 msgstr "Останні зміни були внесені з цього пристрою."
 
-#: plugins/kosync.koplugin/main.lua:788
+#: plugins/kosync.koplugin/main.lua:783
 msgid "The progress has already been synchronized."
 msgstr "Поступ вже синхронізований."
 
-#: plugins/kosync.koplugin/main.lua:818
+#: plugins/kosync.koplugin/main.lua:813
 msgid "Sync to latest location %1% from device '%2'?"
 msgstr "Синхронізувати в останню позицію %1% з пристрою '%2'?"
 
-#: plugins/kosync.koplugin/main.lua:834
+#: plugins/kosync.koplugin/main.lua:829
 msgid "Sync to previous location %1% from device '%2'?"
 msgstr "Синхронізувати в попередню позицію %1% з пристрою '%2'?"
 
-#: plugins/kosync.koplugin/main.lua:864
+#: plugins/kosync.koplugin/main.lua:856
 msgid "Pulling progress…"
 msgstr ""
 
@@ -18709,11 +18709,11 @@ msgid "Command output"
 msgstr "Вивід команди"
 
 #: plugins/legacy_terminal.koplugin/main.lua:536
-#: plugins/legacy_terminal.koplugin/_meta.lua:5
+#: plugins/legacy_terminal.koplugin/_meta.lua:4
 msgid "Legacy terminal emulator"
 msgstr ""
 
-#: plugins/legacy_terminal.koplugin/_meta.lua:7
+#: plugins/legacy_terminal.koplugin/_meta.lua:5
 msgid "KOReader's legacy terminal emulator"
 msgstr ""
 
@@ -19573,24 +19573,24 @@ msgstr "Вибрати порт SSH"
 msgid "SSH server"
 msgstr "Сервер SSH"
 
-#: plugins/SSH.koplugin/main.lua:205 plugins/SSH.koplugin/main.lua:206
+#: plugins/SSH.koplugin/main.lua:204 plugins/SSH.koplugin/main.lua:205
 msgid "Stop SSH server"
 msgstr ""
 
-#: plugins/SSH.koplugin/main.lua:216
+#: plugins/SSH.koplugin/main.lua:215
 msgid "SSH port (%1)"
 msgstr "Порт SSH: (%1)"
 
-#: plugins/SSH.koplugin/main.lua:223 plugins/SSH.koplugin/main.lua:235
-#: plugins/SSH.koplugin/main.lua:256
+#: plugins/SSH.koplugin/main.lua:221 plugins/SSH.koplugin/main.lua:232
+#: plugins/SSH.koplugin/main.lua:252
 msgid "Stop SSH server to configure"
 msgstr ""
 
-#: plugins/SSH.koplugin/main.lua:229
+#: plugins/SSH.koplugin/main.lua:227
 msgid "SSH public key"
 msgstr "Публічний ключ SSH"
 
-#: plugins/SSH.koplugin/main.lua:240
+#: plugins/SSH.koplugin/main.lua:237
 msgid ""
 "Put your public SSH keys in\n"
 "%1"
@@ -19598,15 +19598,15 @@ msgstr ""
 "Вставте свої відкриті ключі SSH\n"
 "%1"
 
-#: plugins/SSH.koplugin/main.lua:248
+#: plugins/SSH.koplugin/main.lua:245
 msgid "Login without password (DANGEROUS)"
 msgstr "Вхід без пароля (НЕБЕЗПЕЧНО)"
 
-#: plugins/SSH.koplugin/main.lua:264
+#: plugins/SSH.koplugin/main.lua:259
 msgid "Auto start SSH server"
 msgstr ""
 
-#: plugins/SSH.koplugin/main.lua:281
+#: plugins/SSH.koplugin/main.lua:276
 msgid "Toggle SSH server"
 msgstr "Перемкнути сервер SSH"
 
@@ -20223,17 +20223,17 @@ msgid "Last resume time"
 msgstr "Час останнього відновлення"
 
 #: plugins/systemstat.koplugin/main.lua:202
-#: plugins/systemstat.koplugin/main.lua:305
+#: plugins/systemstat.koplugin/main.lua:298
 msgid "Up time"
 msgstr "Час роботи"
 
 #: plugins/systemstat.koplugin/main.lua:208
-#: plugins/systemstat.koplugin/main.lua:312
+#: plugins/systemstat.koplugin/main.lua:305
 msgid "Time spent awake"
 msgstr "Час активності"
 
 #: plugins/systemstat.koplugin/main.lua:217
-#: plugins/systemstat.koplugin/main.lua:322
+#: plugins/systemstat.koplugin/main.lua:315
 msgid "Time in suspend"
 msgstr "Час призупинення"
 
@@ -20241,157 +20241,157 @@ msgstr "Час призупинення"
 msgid "Time in standby"
 msgstr "Час у режимі очікування"
 
-#: plugins/systemstat.koplugin/main.lua:236
+#: plugins/systemstat.koplugin/main.lua:235
 msgid "Start discharging at"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:242
+#: plugins/systemstat.koplugin/main.lua:240
 msgid "Device model"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:246
+#: plugins/systemstat.koplugin/main.lua:244
 msgid "Counters"
 msgstr "Лічильники"
 
 #. @translators The number of "sleeps", that is the number of times the device has entered standby. This could also be translated as a rendition of a phrase like "entered sleep".
-#: plugins/systemstat.koplugin/main.lua:249
+#: plugins/systemstat.koplugin/main.lua:247
 msgid "  Wake-ups"
 msgstr "  прокидань"
 
-#: plugins/systemstat.koplugin/main.lua:249
+#: plugins/systemstat.koplugin/main.lua:247
 msgid "  sleeps"
 msgstr "  засинань"
 
-#: plugins/systemstat.koplugin/main.lua:252
+#: plugins/systemstat.koplugin/main.lua:250
 msgid "  Discharge cycles"
 msgstr "  циклів розрядки"
 
-#: plugins/systemstat.koplugin/main.lua:255
+#: plugins/systemstat.koplugin/main.lua:252
 msgid "Background jobs"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:260
+#: plugins/systemstat.koplugin/main.lua:256
 msgid "Pending network jobs"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:267
+#: plugins/systemstat.koplugin/main.lua:262
 msgid "Pending jobs after being connected"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:277
+#: plugins/systemstat.koplugin/main.lua:271
 msgid "Pending jobs after being online"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:298
+#: plugins/systemstat.koplugin/main.lua:292
 msgid "System information"
 msgstr "Відомості про систему"
 
-#: plugins/systemstat.koplugin/main.lua:301
+#: plugins/systemstat.koplugin/main.lua:294
 msgid "  Number of processes"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:330
+#: plugins/systemstat.koplugin/main.lua:322
 msgid "Number of processors"
 msgstr ""
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:333
+#: plugins/systemstat.koplugin/main.lua:325
 msgid "  Total ticks (million)"
 msgstr "  Всього імпульсів процесора (млн.)"
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:338
+#: plugins/systemstat.koplugin/main.lua:330
 msgid "  Idle ticks (million)"
 msgstr "  Простій імпульсів процесора (млн.)"
 
-#: plugins/systemstat.koplugin/main.lua:343
-#: plugins/systemstat.koplugin/main.lua:426
+#: plugins/systemstat.koplugin/main.lua:335
+#: plugins/systemstat.koplugin/main.lua:413
 msgid "  Processor usage %"
 msgstr "  Використання процесора %"
 
-#: plugins/systemstat.koplugin/main.lua:350
+#: plugins/systemstat.koplugin/main.lua:341
 msgid "5 minutes usage %"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:357
+#: plugins/systemstat.koplugin/main.lua:347
 msgid "15 minutes usage %"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:363
+#: plugins/systemstat.koplugin/main.lua:352
 msgid "Usage % during awake"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:371
+#: plugins/systemstat.koplugin/main.lua:359
 msgid "Usage % since boot"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:381
+#: plugins/systemstat.koplugin/main.lua:369
 msgid "  Total memory (MB)"
 msgstr "  Загалом пам'яті (МБ)"
 
-#: plugins/systemstat.koplugin/main.lua:385
+#: plugins/systemstat.koplugin/main.lua:373
 msgid "  Free memory (MB)"
 msgstr "  Вільно пам'яті (МБ)"
 
-#: plugins/systemstat.koplugin/main.lua:389
+#: plugins/systemstat.koplugin/main.lua:377
 msgid "  Available memory (MB)"
 msgstr "  Доступно пам'яті (МБ)"
 
-#: plugins/systemstat.koplugin/main.lua:406
+#: plugins/systemstat.koplugin/main.lua:394
 msgid "Process"
 msgstr "Обробити"
 
-#: plugins/systemstat.koplugin/main.lua:408
+#: plugins/systemstat.koplugin/main.lua:396
 msgid "  ID"
 msgstr "  ID"
 
-#: plugins/systemstat.koplugin/main.lua:422
+#: plugins/systemstat.koplugin/main.lua:409
 msgid "Total ticks"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:436
+#: plugins/systemstat.koplugin/main.lua:422
 msgid "Priority / nice"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:443
+#: plugins/systemstat.koplugin/main.lua:429
 msgid "  Threads"
 msgstr "  Потоки"
 
-#: plugins/systemstat.koplugin/main.lua:452
+#: plugins/systemstat.koplugin/main.lua:438
 msgid "  Virtual memory (MB)"
 msgstr "  Віртуальна пам'ять (МБ)"
 
-#: plugins/systemstat.koplugin/main.lua:462
+#: plugins/systemstat.koplugin/main.lua:448
 msgid "  RAM usage (MB)"
 msgstr "  Використання пам'яті (МБ)"
 
-#: plugins/systemstat.koplugin/main.lua:478
+#: plugins/systemstat.koplugin/main.lua:464
 msgid "Storage information"
 msgstr "Відомості про обсяг пам'яті"
 
-#: plugins/systemstat.koplugin/main.lua:482
+#: plugins/systemstat.koplugin/main.lua:468
 msgid "  Unexpected"
 msgstr "  Несподівано"
 
-#: plugins/systemstat.koplugin/main.lua:484
+#: plugins/systemstat.koplugin/main.lua:470
 msgid "  Mount point"
 msgstr "  Точка монтування"
 
-#: plugins/systemstat.koplugin/main.lua:485
+#: plugins/systemstat.koplugin/main.lua:471
 msgid "  Available"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:486
+#: plugins/systemstat.koplugin/main.lua:472
 msgid "  Total"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:487
+#: plugins/systemstat.koplugin/main.lua:473
 msgid "  Used percentage"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:513
-#: plugins/systemstat.koplugin/main.lua:528
-#: plugins/systemstat.koplugin/main.lua:541
+#: plugins/systemstat.koplugin/main.lua:499
+#: plugins/systemstat.koplugin/main.lua:514
+#: plugins/systemstat.koplugin/main.lua:527
 #: plugins/systemstat.koplugin/_meta.lua:4
 msgid "System statistics"
 msgstr "Статистика системи"
