@@ -280,6 +280,13 @@ function SystemStat:appendCounters()
       end
     end,
   })
+  local BookInfoManager = package.loaded["bookinfomanager"]
+  if BookInfoManager then
+    self:put({
+      "  " .. gettext("Indexed files"),
+      BookInfoManager:getBookCount(),
+    })
+  end
 end
 
 function SystemStat:awakeSec()
