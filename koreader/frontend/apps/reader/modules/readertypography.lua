@@ -432,7 +432,7 @@ When the book's language tag is not among our presets, no specific features will
   table.insert(self.menu_table, {
     text = gettext("About typography rules"),
     callback = function()
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = info_text,
       }))
     end,
@@ -495,7 +495,7 @@ When the book's language tag is not among our presets, no specific features will
       -- Text might be too long for InfoMessage
       local status_text = table.concat(lang_infos, "\n")
       local TextViewer = require("ui/widget/textviewer")
-      UIManager:show(TextViewer:new({
+      self:showWidget(TextViewer:new({
         title = gettext(
           "Language tags (and hyphenation dictionaries) used since start up"
         ),
@@ -537,7 +537,7 @@ When the book's language tag is not among our presets, no specific features will
       callback = function()
         -- We use an InfoMessage because the text might be too long for a Notification.
         -- Use a small timeout (but long enough to read) as this might be bothering.
-        UIManager:show(InfoMessage:new({
+        self:showWidget(InfoMessage:new({
           text = T(
             gettext("Changed language for typography rules to %1."),
             BD.wrap(lang_name)
@@ -550,7 +550,7 @@ When the book's language tag is not among our presets, no specific features will
         UIManager:broadcastEvent(Event:new("UpdatePos"))
       end,
       hold_callback = function(menu)
-        UIManager:show(MultiConfirmBox:new({
+        self:showWidget(MultiConfirmBox:new({
           -- No real need for a way to remove default one, we can just
           -- toggle between setting a default OR a fallback (if a default
           -- one is set, no fallback will ever be used - if a fallback one
@@ -605,7 +605,7 @@ When the book's language tag is not among our presets, no specific features will
     hold_callback = function()
       local text_lang_embedded_langs =
         G_reader_settings:nilOrTrue("text_lang_embedded_langs")
-      UIManager:show(MultiConfirmBox:new({
+      self:showWidget(MultiConfirmBox:new({
         text = text_lang_embedded_langs
             and gettext(
               "Would you like to respect or ignore embedded lang tags by default?\n\nRespecting them will use relevant typographic rules to render their content, while ignoring them will always use the main language typography rules.\n\nThe current default (★) is to respect them."
@@ -645,7 +645,7 @@ When the book's language tag is not among our presets, no specific features will
     end,
     hold_callback = function()
       local hyphenation = G_reader_settings:nilOrTrue("hyphenation")
-      UIManager:show(MultiConfirmBox:new({
+      self:showWidget(MultiConfirmBox:new({
         text = hyphenation
             and gettext(
               "Would you like to enable or disable hyphenation by default?\n\nThe current default (★) is enabled."
@@ -742,7 +742,7 @@ These settings will apply to all books with any hyphenation dictionary.
           UIManager:broadcastEvent(Event:new("UpdatePos"))
         end,
       })
-      UIManager:show(hyph_limits_widget)
+      self:showWidget(hyph_limits_widget)
     end,
     enabled_func = function()
       return self.hyphenation
@@ -758,7 +758,7 @@ These settings will apply to all books with any hyphenation dictionary.
     hold_callback = function()
       local hyph_trust_soft_hyphens =
         G_reader_settings:isTrue("hyph_trust_soft_hyphens")
-      UIManager:show(MultiConfirmBox:new({
+      self:showWidget(MultiConfirmBox:new({
         text = hyph_trust_soft_hyphens
             and gettext(
               "Would you like to enable or disable trusting soft hyphens by default?\n\nThe current default (★) is enabled."
@@ -836,7 +836,7 @@ These settings will apply to all books with any hyphenation dictionary.
     hold_callback = function()
       local hyph_force_algorithmic =
         G_reader_settings:isTrue("hyph_force_algorithmic")
-      UIManager:show(MultiConfirmBox:new({
+      self:showWidget(MultiConfirmBox:new({
         text = hyph_force_algorithmic
             and gettext(
               "Would you like to enable or disable algorithmic hyphenation by default?\n\nThe current default (★) is enabled."
@@ -887,7 +887,7 @@ These settings will apply to all books with any hyphenation dictionary.
     hold_callback = function()
       local hyph_soft_hyphens_only =
         G_reader_settings:isTrue("hyph_soft_hyphens_only")
-      UIManager:show(MultiConfirmBox:new({
+      self:showWidget(MultiConfirmBox:new({
         text = hyph_soft_hyphens_only
             and gettext(
               "Would you like to enable or disable hyphenation with soft hyphens only by default?\n\nThe current default (★) is enabled."
@@ -982,7 +982,7 @@ end
 
 function ReaderTypography:makeDefaultFloatingPunctuation()
   local floating_punctuation = G_reader_settings:isTrue("floating_punctuation")
-  UIManager:show(MultiConfirmBox:new({
+  self:showWidget(MultiConfirmBox:new({
     text = floating_punctuation
         and gettext(
           "Would you like to enable or disable hanging punctuation by default?\n\nThe current default (★) is enabled."
@@ -1192,7 +1192,7 @@ function ReaderTypography:onPreRenderDocument(_config)
       self.book_lang_tag or gettext("N/A")
     ),
     callback = function()
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = T(
           gettext("Changed language for typography rules to book language: %1."),
           BD.wrap(self.book_lang_tag)

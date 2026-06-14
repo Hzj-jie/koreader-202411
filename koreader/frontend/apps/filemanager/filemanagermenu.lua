@@ -150,7 +150,7 @@ function FileManagerMenu:onOpenLastDoc()
   local last_file = G_reader_settings:read("lastfile")
   if not last_file or lfs.attributes(last_file, "mode") ~= "file" then
     local InfoMessage = require("ui/widget/infomessage")
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("Cannot open last document"),
     }))
     return
@@ -161,7 +161,7 @@ function FileManagerMenu:onOpenLastDoc()
     -- Mimic's FileManager's onShowingReader refresh optimizations
     self.ui.tearing_down = true
     self.ui.dithered = nil
-    self:_closeFileManagerMenu()
+    self:onClose()
   end
 
   local ReaderUI = require("apps/reader/readerui")
@@ -173,7 +173,6 @@ function FileManagerMenu:setUpdateItemTable()
 
   -- setting tab
   self.menu_items.filebrowser_settings = {
-    -- Need localization
     text = gettext("File browser settings"),
     sub_item_table = {
       {
@@ -241,7 +240,7 @@ function FileManagerMenu:setUpdateItemTable()
                   menu:updateItems()
                 end,
               })
-              UIManager:show(widget)
+              self:showWidget(widget)
             end,
           },
           {
@@ -274,7 +273,7 @@ function FileManagerMenu:setUpdateItemTable()
                   menu:updateItems()
                 end,
               })
-              UIManager:show(widget)
+              self:showWidget(widget)
             end,
           },
           {
@@ -348,7 +347,7 @@ function FileManagerMenu:setUpdateItemTable()
           {
             text = gettext("Clear history of deleted files"),
             callback = function()
-              UIManager:show(ConfirmBox:new({
+              self:showWidget(ConfirmBox:new({
                 text = gettext("Clear history of deleted files?"),
                 ok_text = gettext("Clear"),
                 ok_callback = function()
@@ -466,7 +465,7 @@ To:
               menu:updateItems()
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
     },
@@ -586,7 +585,7 @@ Tap a book in the search results to open it.]]
     end,
     hold_callback = function()
       local last_file = G_reader_settings:read("lastfile")
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = T(
           gettext("Would you like to open the last document: %1?"),
           BD.filepath(last_file)
@@ -613,7 +612,7 @@ Tap a book in the search results to open it.]]
       icon = "plus",
       remember = false,
       callback = function()
-        self:_closeFileManagerMenu()
+        self:onClose()
         self.ui:tapPlus()
       end,
     }
@@ -698,7 +697,7 @@ end
 
 function FileManagerMenu:exitOrRestart(callback, _force)
   CommonMenu:exitOrRestart(function()
-    self:_closeFileManagerMenu()
+    self:onClose()
   end, self.ui, callback)
 end
 
@@ -712,6 +711,7 @@ function FileManagerMenu:onShowMenu(tab_index)
   end
 
   local menu_container = CenterContainer:new({
+    modal = true,
     ignore = "height",
     dimen = Screen:getSize(),
   })
@@ -734,17 +734,17 @@ function FileManagerMenu:onShowMenu(tab_index)
   end
 
   main_menu.close_callback = function()
-    self:_closeFileManagerMenu()
+    self:onClose()
   end
 
   menu_container[1] = main_menu
   -- maintain a reference to menu_container
   self.menu_container = menu_container
-  UIManager:show(menu_container)
+  self:showWidget(menu_container)
   return true
 end
 
-function FileManagerMenu:_closeFileManagerMenu()
+function FileManagerMenu:onClose()
   if not self.menu_container then
     return true
   end
@@ -792,7 +792,7 @@ end
 function FileManagerMenu:onSetDimensions(_dimen)
   -- This widget doesn't support in-place layout updates, so, close & reopen
   if self.menu_container then
-    self:_closeFileManagerMenu()
+    self:onClose()
     self:onShowMenu()
   end
 

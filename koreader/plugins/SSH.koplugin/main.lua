@@ -201,7 +201,6 @@ function SSH:addToMainMenu(menu_items)
     sub_item_table = {
       {
         text_func = function()
-          -- Need localization
           return self:isRunning() and gettext("Stop SSH server")
             or gettext("Stop SSH server")
         end,
@@ -219,7 +218,6 @@ function SSH:addToMainMenu(menu_items)
         enabled_func = function()
           return not self:isRunning()
         end,
-        -- Need localization
         help_text = gettext("Stop SSH server to configure"),
         callback = function(menu)
           self:show_port_dialog(menu)
@@ -231,7 +229,6 @@ function SSH:addToMainMenu(menu_items)
         enabled_func = function()
           return not self:isRunning()
         end,
-        -- Need localization
         help_text = gettext("Stop SSH server to configure"),
         callback = function()
           local info = InfoMessage:new({
@@ -252,7 +249,6 @@ function SSH:addToMainMenu(menu_items)
         enabled_func = function()
           return not self:isRunning()
         end,
-        -- Need localization
         help_text = gettext("Stop SSH server to configure"),
         callback = function()
           self.allow_no_password = not self.allow_no_password
@@ -260,7 +256,6 @@ function SSH:addToMainMenu(menu_items)
         end,
       },
       {
-        -- Need localization
         text = gettext("Auto start SSH server"),
         checked_func = function()
           return G_reader_settings:isTrue("SSH_autostart")

@@ -193,7 +193,7 @@ Default value: %1 ms]]),
               end
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
     },

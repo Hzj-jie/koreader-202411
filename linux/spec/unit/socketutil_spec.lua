@@ -1,11 +1,6 @@
 local socketutil
 
 describe("socketutil", function()
-    local original_version
-    local original_http
-    local original_https
-    local original_socket
-
     local mock_version
     local mock_http
     local mock_https
@@ -15,12 +10,6 @@ describe("socketutil", function()
     local settimeout_calls
 
     setup(function()
-        -- 1. Backup real modules
-        original_version = package.loaded["version"]
-        original_http = package.loaded["socket.http"]
-        original_https = package.loaded["ssl.https"]
-        original_socket = package.loaded["socket"]
-
         -- 2. Define mocks
         mock_version = {
             getShortVersion = function() return "v2026.05" end
@@ -56,15 +45,6 @@ describe("socketutil", function()
         -- 3. Load socketutil fresh
         package.loaded["socketutil"] = nil
         socketutil = require("socketutil")
-    end)
-
-    teardown(function()
-        -- 4. Restore real modules
-        package.loaded["version"] = original_version
-        package.loaded["socket.http"] = original_http
-        package.loaded["ssl.https"] = original_https
-        package.loaded["socket"] = original_socket
-        package.loaded["socketutil"] = nil
     end)
 
     before_each(function()

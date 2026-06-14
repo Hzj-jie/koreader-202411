@@ -1,5 +1,5 @@
 describe("VirtualKeyboard component", function()
-    local Device, VirtualKeyboard, Event
+    local Device, VirtualKeyboard, Event, UIManager
 
     setup(function()
         require("commonrequire")
@@ -10,9 +10,11 @@ describe("VirtualKeyboard component", function()
         Device = require("device")
         VirtualKeyboard = require("ui/widget/virtualkeyboard")
         Event = require("ui/event")
+        UIManager = require("ui/uimanager")
     end)
 
     before_each(function()
+        UIManager._window_stack = {}
         _G.G_reader_settings = {
             read = function(self, key)
                 return nil
@@ -30,6 +32,10 @@ describe("VirtualKeyboard component", function()
                 return { "en" }
             end,
         }
+    end)
+
+    after_each(function()
+        UIManager._window_stack = {}
     end)
 
     it("should instantiate and forward character inputs to target inputbox", function()
@@ -98,5 +104,54 @@ describe("VirtualKeyboard component", function()
         key_a:onTapSelect(true) -- skip flash for unit testing ease
 
         assert.is.same({ "a" }, added_chars)
+    end)
+
+    it("should not trigger assertion under normal conditions", function()
+        local mock_inputbox = {
+            addChars = function() end,
+            delChar = function() end,
+            scheduleRepaint = function() end,
+        }
+        local vk = VirtualKeyboard:new({
+            inputbox = mock_inputbox,
+            width = 600,
+            height = 300,
+        })
+
+        assert.has_no.errors(function()
+            vk:setVisibility(true)
+        end)
+
+        assert.has_no.errors(function()
+            vk:setVisibility(false)
+        end)
+    end)
+
+    it("should trigger assertion when showing multiple instances", function()
+        local mock_inputbox = {
+            addChars = function() end,
+            delChar = function() end,
+            scheduleRepaint = function() end,
+        }
+        local vk1 = VirtualKeyboard:new({
+            inputbox = mock_inputbox,
+            width = 600,
+            height = 300,
+        })
+        local vk2 = VirtualKeyboard:new({
+            inputbox = mock_inputbox,
+            width = 600,
+            height = 300,
+        })
+
+        vk1:setVisibility(true)
+
+        assert.has.errors(function()
+            vk2:setVisibility(true)
+        end, "Multiple VirtualKeyboard instances detected!")
+
+        -- Cleanup
+        vk1:setVisibility(false)
+        UIManager:close(vk2)
     end)
 end)

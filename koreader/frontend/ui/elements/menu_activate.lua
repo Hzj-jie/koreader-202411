@@ -15,7 +15,7 @@ return {
         else
           G_named_settings.set.activate_menu("swipe_tap")
         end
-        UIManager:askForRestart()
+        UIManager:askForRestartOrReload()
       end,
     },
     {
@@ -29,7 +29,7 @@ return {
         else
           G_named_settings.set.activate_menu("swipe_tap")
         end
-        UIManager:askForRestart()
+        UIManager:askForRestartOrReload()
       end,
       separator = true,
     },

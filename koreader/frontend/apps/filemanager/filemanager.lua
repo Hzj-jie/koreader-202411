@@ -372,7 +372,7 @@ function FileManager:setupLayout()
       title_align = "center",
       buttons = buttons,
     })
-    UIManager:show(self.file_dialog)
+    self:showWidget(self.file_dialog)
     return true
   end
 
@@ -503,7 +503,7 @@ function FileChooser:onBack()
   elseif back_to_exit == "disable" then
     return true
   elseif back_to_exit == "prompt" then
-    UIManager:show(ConfirmBox:new({
+    self:showWidget(ConfirmBox:new({
       text = gettext("Exit KOReader?"),
       ok_text = gettext("Exit"),
       ok_callback = function()
@@ -627,7 +627,7 @@ function FileManager:tapPlus()
           text = gettext("Delete"),
           enabled = actions_enabled,
           callback = function()
-            UIManager:show(ConfirmBox:new({
+            self:showWidget(ConfirmBox:new({
               text = gettext(
                 "Delete selected files?\nIf you delete a file, it is permanently lost."
               ),
@@ -792,7 +792,7 @@ function FileManager:tapPlus()
     buttons = buttons,
     select_mode = self.selected_files and true or nil, -- for coverbrowser
   })
-  UIManager:show(self.file_dialog)
+  self:showWidget(self.file_dialog)
 end
 
 function FileManager:reinit(path, focused_file)
@@ -883,7 +883,7 @@ end
 
 function FileManager:setHome(path)
   path = path or self.file_chooser.path
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = T(gettext("Set '%1' as HOME folder?"), BD.dirpath(path)),
     ok_text = gettext("Set as HOME"),
     ok_callback = function()
@@ -916,7 +916,7 @@ function FileManager:openRandomFile(dir)
         info = info .. "\n" .. v[1] .. v[2]
       end
     end
-    UIManager:show(MultiConfirmBox:new({
+    self:showWidget(MultiConfirmBox:new({
       text = T(
         gettext("Do you want to open %1?"),
         BD.filename(ffiUtil.basename(random_file))
@@ -933,7 +933,7 @@ function FileManager:openRandomFile(dir)
       end,
     }))
   else
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("File not found"),
     }))
   end
@@ -989,7 +989,7 @@ function FileManager:pasteFileFromClipboard(file)
     else
       local text = self.cutfile and "Failed to move:\n%1\nto:\n%2"
         or "Failed to copy:\n%1\nto:\n%2"
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = T(gettext(text), BD.filepath(orig_name), BD.dirpath(dest_path)),
         icon = "notice-warning",
       }))
@@ -1003,7 +1003,7 @@ function FileManager:pasteFileFromClipboard(file)
         and T(gettext("File already exists:\n%1"), BD.filename(orig_name))
       or T(gettext("Folder already exists:\n%1"), BD.directory(orig_name))
     if can_overwrite then
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = text,
         ok_text = gettext("Overwrite"),
         ok_callback = function()
@@ -1011,7 +1011,7 @@ function FileManager:pasteFileFromClipboard(file)
         end,
       }))
     else
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = text,
         icon = "notice-warning",
       }))
@@ -1045,7 +1045,7 @@ function FileManager:showCopyMoveSelectedFilesDialog(close_callback)
     parent = confirmbox,
   })
   confirmbox:addWidget(check_button_overwrite)
-  UIManager:show(confirmbox)
+  self:showWidget(confirmbox)
 end
 
 function FileManager:pasteSelectedFiles(overwrite)
@@ -1096,7 +1096,7 @@ function FileManager:pasteSelectedFiles(overwrite)
         N_("1 file was not copied", "%1 files were not copied", skipped_nb),
         skipped_nb
       )
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = text,
       icon = "notice-warning",
     }))
@@ -1136,7 +1136,7 @@ function FileManager:createFolder()
                 self.file_chooser:refreshPath()
               end
             else
-              UIManager:show(InfoMessage:new({
+              self:showWidget(InfoMessage:new({
                 text = T(
                   gettext("Failed to create folder:\n%1"),
                   BD.directory(new_folder_name)
@@ -1155,7 +1155,7 @@ function FileManager:createFolder()
     parent = input_dialog,
   })
   input_dialog:addWidget(check_button_enter_folder)
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
 end
 
 function FileManager:showDeleteFileDialog(
@@ -1165,7 +1165,7 @@ function FileManager:showDeleteFileDialog(
 )
   local file = ffiUtil.realpath(filepath)
   if file == nil then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = T(gettext("File not found:\n%1"), BD.filepath(filepath)),
       icon = "notice-warning",
     }))
@@ -1183,7 +1183,7 @@ function FileManager:showDeleteFileDialog(
       .. "\n\n"
       .. gettext("Book settings, highlights and notes will be deleted.")
   end
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = text,
     ok_text = gettext("Delete"),
     ok_callback = function()
@@ -1214,7 +1214,7 @@ function FileManager:deleteFile(file, is_file)
       return true
     end
   end
-  UIManager:show(InfoMessage:new({
+  self:showWidget(InfoMessage:new({
     text = T(gettext("Failed to delete:\n%1"), BD.filepath(file)),
     icon = "notice-warning",
   }))
@@ -1243,7 +1243,7 @@ function FileManager:deleteSelectedFiles()
     end
   end
   if skipped_nb > 0 then -- keep select mode on
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = T(
         N_("Failed to delete 1 file.", "Failed to delete %1 files.", skipped_nb),
         skipped_nb
@@ -1282,7 +1282,7 @@ function FileManager:showRenameFileDialog(file, is_file)
       },
     },
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
 end
 
 function FileManager:renameFile(file, basename, is_file)
@@ -1303,7 +1303,7 @@ function FileManager:renameFile(file, basename, is_file)
       end
       self:onRefresh()
     else
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = T(
           gettext("Failed to rename:\n%1\nto:\n%2"),
           BD.filepath(file),
@@ -1329,7 +1329,7 @@ function FileManager:renameFile(file, basename, is_file)
           BD.filename(basename)
         )
       end
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = text,
         icon = "notice-warning",
       }))
@@ -1347,7 +1347,7 @@ function FileManager:renameFile(file, basename, is_file)
         )
         ok_text = gettext("Move")
       end
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = text,
         ok_text = ok_text,
         ok_callback = function()
@@ -1470,7 +1470,7 @@ function FileManager:onShowFolderMenu()
       return self.title_bar.left_button.image.dimen
     end,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 function FileManager:showSelectedFilesList()
@@ -1514,7 +1514,7 @@ function FileManager:showSelectedFilesList()
       UIManager:close(menu)
     end,
   })
-  UIManager:show(menu)
+  self:showWidget(menu)
 end
 
 function FileManager:showOpenWithDialog(file)
@@ -1616,7 +1616,7 @@ function FileManager:showOpenWithDialog(file)
             end
           end
           table.sort(t)
-          UIManager:show(InfoMessage:new({
+          self:showWidget(InfoMessage:new({
             text = table.concat(t, "\n"),
             monospace_font = true,
           }))
@@ -1639,7 +1639,7 @@ function FileManager:showOpenWithDialog(file)
       callback = function()
         local provider = dialog.radio_button_table.checked_button.provider
         if dialog._check_file_button.checked then -- set this file associated provider
-          UIManager:show(ConfirmBox:new({
+          self:showWidget(ConfirmBox:new({
             text = T(
               gettext("Always open '%2' with %1?"),
               provider.provider_name,
@@ -1653,7 +1653,7 @@ function FileManager:showOpenWithDialog(file)
             end,
           }))
         elseif dialog._check_global_button.checked then -- set file type associated provider
-          UIManager:show(ConfirmBox:new({
+          self:showWidget(ConfirmBox:new({
             text = T(
               gettext("Always open %2 files with %1?"),
               provider.provider_name,
@@ -1680,7 +1680,7 @@ function FileManager:showOpenWithDialog(file)
     radio_buttons = radio_buttons,
     buttons = buttons,
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
 end
 
 function FileManager:openFile(

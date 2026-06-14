@@ -166,7 +166,7 @@ function ReaderLink:init()
       text = gettext("Show QR code"),
       callback = function()
         UIManager:close(this.external_link_dialog)
-        UIManager:show(QRMessage:new({
+        self:showWidget(QRMessage:new({
           text = link_url,
           width = Device.screen:getWidth(),
           height = Device.screen:getHeight(),
@@ -358,7 +358,7 @@ function ReaderLink:addToMainMenu(menu_items)
       self:onGoBackLink()
     end,
     hold_callback = function(menu)
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = gettext("Clear location history?"),
         ok_text = gettext("Clear"),
         ok_callback = function()
@@ -377,7 +377,7 @@ function ReaderLink:addToMainMenu(menu_items)
       self:onGoForwardLink()
     end,
     hold_callback = function(menu)
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = gettext("Clear forward location history?"),
         ok_text = gettext("Clear"),
         ok_callback = function()
@@ -605,7 +605,7 @@ The footnote popup font can adjust to the font size you've set for the document,
               extra_callback = function()
                 UIManager:close(spin_widget)
                 spin_widget = get_font_size_widget(false)
-                UIManager:show(spin_widget)
+                self:showWidget(spin_widget)
               end,
             })
           else
@@ -635,7 +635,7 @@ The recommended value is -2.]]),
               extra_callback = function()
                 UIManager:close(spin_widget)
                 spin_widget = get_font_size_widget(true)
-                UIManager:show(spin_widget)
+                self:showWidget(spin_widget)
               end,
             })
           end
@@ -644,7 +644,7 @@ The recommended value is -2.]]),
         local show_absolute_font_size_widget =
           G_reader_settings:has("footnote_popup_absolute_font_size")
         spin_widget = get_font_size_widget(show_absolute_font_size_widget)
-        UIManager:show(spin_widget)
+        self:showWidget(spin_widget)
       end,
       help_text = gettext(
         [[
@@ -747,7 +747,7 @@ function ReaderLink:showLinkBox(link, allow_footnote_popup)
       self.document:nativeToPageRectTransform(link.pos.page, link.lbox)
     )
     if sbox then
-      UIManager:show(LinkBox:new({
+      self:showWidget(LinkBox:new({
         box = sbox,
         timeout = G_defaults:read("FOLLOW_LINK_TIMEOUT"),
         callback = function()
@@ -993,7 +993,7 @@ function ReaderLink:onGotoLink(
       if anchor then
         display_filename = display_filename .. anchor
       end
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = T(
           gettext("Would you like to read this local document?\n\n%1\n"),
           BD.filepath(display_filename)
@@ -1005,7 +1005,7 @@ function ReaderLink:onGotoLink(
         end,
       }))
     else
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = T(
           gettext("Link to unsupported local file:\n%1"),
           BD.url(link_url)
@@ -1016,7 +1016,7 @@ function ReaderLink:onGotoLink(
   end
 
   -- Not supported
-  UIManager:show(InfoMessage:new({
+  self:showWidget(InfoMessage:new({
     text = T(gettext("Invalid or external link:\n%1"), BD.url(link_url)),
     -- no timeout to allow user to type that link in his web browser
   }))
@@ -1030,7 +1030,7 @@ function ReaderLink:onGoToExternalLink(link_url)
     title = title,
     buttons = buttons,
   })
-  UIManager:show(self.external_link_dialog)
+  self:showWidget(self.external_link_dialog)
   return true
 end
 
@@ -1671,7 +1671,7 @@ function ReaderLink:showAsFootnotePopup(link, neglect_current_location)
     end,
     dialog = self.dialog,
   })
-  UIManager:show(popup)
+  self:showWidget(popup)
   return true
 end
 

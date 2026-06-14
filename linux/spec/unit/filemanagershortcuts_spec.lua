@@ -44,6 +44,8 @@ describe("FileManagerShortcuts", function()
         end
         return obj
       end,
+      showWidget = require("ui/widget/widget").showWidget,
+      uimanagedCleanUp = require("ui/widget/widget").uimanagedCleanUp,
     }
     package.loaded["ui/widget/container/widgetcontainer"] = mock_widget_container
 
@@ -426,6 +428,26 @@ describe("FileManagerShortcuts", function()
       end
       assert.truthy(info_message)
       assert.are.equal("Shortcut already exists.", info_message.text)
+    end)
+  end)
+
+  describe("uimanagedCleanUp", function()
+    it("closes shortcuts_menu automatically", function()
+      local fms = FileManagerShortcuts:new()
+      local dummy_menu = { name = "dummy_menu" }
+      local stub = require("luassert.stub")
+
+      stub(mock_uimanager, "closeIfShown")
+
+      fms:showWidget(dummy_menu)
+      fms.shortcuts_menu = dummy_menu
+
+      fms:uimanagedCleanUp()
+
+      assert.is_nil(fms.shortcuts_menu)
+      assert.stub(mock_uimanager.closeIfShown).was_called_with(mock_uimanager, dummy_menu)
+
+      mock_uimanager.closeIfShown:revert()
     end)
   end)
 end)

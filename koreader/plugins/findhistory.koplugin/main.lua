@@ -24,31 +24,27 @@ local function getFilePathFromMetadata(file)
 end
 
 local function doBuildHistory()
-  UIManager:runWith(
-    function()
-      local file = io.popen(
-        "find '"
-          .. G_named_settings.home_dir()
-          .. "' "
-          .. "-name 'metadata.*.lua' -exec stat -c '%N %Y' {} \\;"
-      )
-      local records = {}
-      for line in file:lines() do
-        local f, t = line:match("(.+) (%d+)")
-        table.insert(records, {
-          time = tonumber(t),
-          file = getFilePathFromMetadata(f),
-        })
-      end
-      file:close()
+  UIManager:runWith(function()
+    local file = io.popen(
+      "find '"
+        .. G_named_settings.home_dir()
+        .. "' "
+        .. "-name 'metadata.*.lua' -exec stat -c '%N %Y' {} \\;"
+    )
+    local records = {}
+    for line in file:lines() do
+      local f, t = line:match("(.+) (%d+)")
+      table.insert(records, {
+        time = tonumber(t),
+        file = getFilePathFromMetadata(f),
+      })
+    end
+    file:close()
 
-      ReadHistory.hist = records
-      ReadHistory:_flush()
-      ReadHistory:reload()
-    end,
-    -- Need localization.
-    gettext("Searching for reading records…")
-  )
+    ReadHistory.hist = records
+    ReadHistory:_flush()
+    ReadHistory:reload()
+  end, gettext("Searching for reading records…"))
 
   --- TODO(hzj-jie): Consider to open the history view directly.
   UIManager:show(InfoMessage:new({

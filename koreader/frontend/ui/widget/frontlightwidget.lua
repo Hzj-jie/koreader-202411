@@ -29,8 +29,7 @@ local FrontLightWidget = FocusManager:extend({
   name = "FrontLightWidget",
   width = nil,
   height = nil,
-  -- This should stay active during natural light configuration
-  is_always_active = true,
+  modal = true,
   rate = G_named_settings.low_pan_rate_or_full(3), -- Widget update rate.
   last_time = 0, -- Tracks last update time to prevent update spamming.
 })
@@ -322,7 +321,7 @@ function FrontLightWidget:layout()
         text = gettext("Configure"),
         width = self.button_width,
         callback = function()
-          UIManager:show(NaturalLight:new({ fl_widget = self }))
+          self:showWidget(NaturalLight:new({ fl_widget = self }))
         end,
       })
       nl_spacer_width =

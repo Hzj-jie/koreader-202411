@@ -159,3 +159,31 @@ describe("UIManager unschedule benchmark", function()
         UIManager:unschedule(noop)
     end
 end)
+
+describe("UIManager event propagation benchmark", function()
+    local Widget = require("ui/widget/widget")
+    local WidgetContainer = require("ui/widget/container/widgetcontainer")
+    local Event = require("ui/event")
+
+    local root = WidgetContainer:new{}
+    local current = root
+    for i = 1, 15 do
+        local next_container = WidgetContainer:new{}
+        table.insert(current, next_container)
+        current = next_container
+    end
+
+    local leaf = Widget:new{}
+    table.insert(current, leaf)
+    leaf.onTap = function()
+        return true
+    end
+
+    local event = Event:new("Tap", { x = 10, y = 10 })
+    event:asUserInput()
+
+    for i = 1, NB_TESTS * 5 do
+        root:handleEvent(event)
+    end
+end)
+

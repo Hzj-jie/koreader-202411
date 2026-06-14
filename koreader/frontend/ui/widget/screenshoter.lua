@@ -82,7 +82,7 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
             with_title_bar = false,
             buttons_visible = true,
           })
-          UIManager:show(image_viewer)
+          self:showWidget(image_viewer)
         end,
       },
       {
@@ -115,7 +115,7 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
       end
     end,
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
   -- trigger full refresh
   UIManager:scheduleRefresh("full")
   return true

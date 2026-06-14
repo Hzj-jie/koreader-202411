@@ -147,6 +147,7 @@ function datetime.secondsToHClock(
       end
     else
       if hmsFormat then
+        -- xgettext: no-lua-format
         return T(C_("Time", "%1s"), "0")
       else
         return "0" .. SECONDS_SYMBOL
@@ -168,6 +169,7 @@ function datetime.secondsToHClock(
     else
       if hmsFormat then
         if compact then
+          -- xgettext: no-lua-format
           return T(C_("Time", "%1s"), string.format("%d", seconds))
         else
           return T(

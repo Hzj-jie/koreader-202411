@@ -67,4 +67,55 @@ describe("Readerdictionary module", function()
         UIManager:run()
         Screen:shot("screenshots/reader_dictionary_japanese.png")
     end)
+
+    it("should close dict_window, dictionary_lookup_dialog, and download_window when uimanagedCleanUp is called", function()
+        local Geom = require("ui/geometry")
+        local Widget = require("ui/widget/widget")
+        local dummy_dict_window = Widget:new{ dimen = Geom:new{ w = 10, h = 10 } }
+        local dummy_lookup_dialog = Widget:new{ dimen = Geom:new{ w = 10, h = 10 } }
+        local dummy_download_window = Widget:new{ dimen = Geom:new{ w = 10, h = 10 } }
+
+        dictionary:showWidget(dummy_dict_window)
+        dictionary:showWidget(dummy_lookup_dialog)
+        dictionary:showWidget(dummy_download_window)
+
+        dictionary.dict_window = dummy_dict_window
+        dictionary.dictionary_lookup_dialog = dummy_lookup_dialog
+        dictionary.download_window = dummy_download_window
+
+        assert.truthy(dictionary.dict_window)
+        assert.truthy(dictionary.dictionary_lookup_dialog)
+        assert.truthy(dictionary.download_window)
+
+        assert.truthy(UIManager:isWindowWidget(dummy_dict_window))
+        assert.truthy(UIManager:isWindowWidget(dummy_lookup_dialog))
+        assert.truthy(UIManager:isWindowWidget(dummy_download_window))
+
+        dictionary:uimanagedCleanUp()
+
+        assert.falsy(dictionary.dict_window)
+        assert.falsy(dictionary.dictionary_lookup_dialog)
+        assert.falsy(dictionary.download_window)
+
+        assert.falsy(UIManager:isWindowWidget(dummy_dict_window))
+        assert.falsy(UIManager:isWindowWidget(dummy_lookup_dialog))
+        assert.falsy(UIManager:isWindowWidget(dummy_download_window))
+    end)
+
+    it("should keep reader open when dict_window is closed", function()
+        UIManager:quit()
+        UIManager:show(readerui)
+        rolling:onGotoPage(100)
+        dictionary:onLookupWord("test")
+
+        assert.truthy(UIManager:isWindowWidget(readerui))
+        assert.truthy(UIManager:isWindowWidget(dictionary.dict_window))
+
+        UIManager:close(dictionary.dict_window)
+
+        assert.falsy(UIManager:isWindowWidget(dictionary.dict_window))
+        assert.truthy(UIManager:isWindowWidget(readerui))
+
+        UIManager:close(readerui)
+    end)
 end)

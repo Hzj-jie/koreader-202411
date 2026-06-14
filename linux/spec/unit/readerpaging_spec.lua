@@ -43,6 +43,10 @@ describe("Readerpaging module", function()
                     called = true
                 end
                 paging:onGotoViewRel(1)
+                local dialog = UIManager._window_stack[#UIManager._window_stack].widget
+                if dialog.name == "end_document" then
+                    UIManager:close(dialog)
+                end
                 UIManager:close(readerui)
                 -- We haven't torn it down yet
                 ReaderUI.instance = readerui
@@ -80,12 +84,16 @@ describe("Readerpaging module", function()
                 paging.page_positions = {}
                 readerui:handleEvent(Event:new("SetScrollMode", true))
                 paging:onGotoPage(readerui.document:getPageCount())
-                readerui.zooming:setZoomMode("pageheight")
+                readerui.zooming:setZoomMode("pageheight", true)
                 readerui.onEndOfBook = function()
                     called = true
                 end
                 paging:onGotoViewRel(1)
                 paging:onGotoViewRel(1)
+                local dialog = UIManager._window_stack[#UIManager._window_stack].widget
+                if dialog.name == "end_document" then
+                    UIManager:close(dialog)
+                end
                 UIManager:close(readerui)
                 -- We haven't torn it down yet
                 ReaderUI.instance = readerui

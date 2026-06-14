@@ -36,6 +36,8 @@ describe("ReaderScreenshot module", function()
         UIManager:run()
         readerui.screenshot:onScreenshot(name)
         assert.truthy(lfs.attributes(name, "mode"))
+        local dialog = UIManager._window_stack[#UIManager._window_stack].widget
+        UIManager:close(dialog)
         UIManager:quit()
     end)
 
@@ -52,6 +54,8 @@ describe("ReaderScreenshot module", function()
         UIManager:run()
         readerui.screenshot:onScreenshot(name)
         assert.truthy(lfs.attributes(name, "mode"))
+        local dialog = UIManager._window_stack[#UIManager._window_stack].widget
+        UIManager:close(dialog)
         UIManager:quit()
     end)
 end)

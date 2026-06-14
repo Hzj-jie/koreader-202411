@@ -66,7 +66,7 @@ local band = bit.band
 local function obtainIP()
   --- @todo check for DHCP result
   local info = InfoMessage:new({ text = gettext("Obtaining IP address…") })
-  UIManager:show(info)
+  self:showWidget(info)
   UIManager:forceRepaint()
   NetworkMgr:obtainIP()
   UIManager:close(info)
@@ -258,7 +258,7 @@ function NetworkItem:connect()
   end
 
   self:refresh()
-  UIManager:show(InfoMessage:new({ text = text, timeout = 3 }))
+  self:showWidget(InfoMessage:new({ text = text, timeout = 3 }))
 end
 
 function NetworkItem:disconnect(will_reconnect)
@@ -276,7 +276,7 @@ function NetworkItem:disconnect(will_reconnect)
       NetworkMgr:releaseIP()
     else
       local info = InfoMessage:new({ text = gettext("Disconnecting…") })
-      UIManager:show(info)
+      self:showWidget(info)
       UIManager:forceRepaint()
 
       NetworkMgr:disconnectNetwork(self.info)
@@ -300,7 +300,7 @@ function NetworkItem:saveAndConnectToNetwork(password_input)
     (new_passwd == nil or #new_passwd == 0)
     and string.find(self.info.flags, "WPA")
   then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("Password cannot be empty."),
     }))
   else
@@ -353,7 +353,7 @@ function NetworkItem:onEditNetwork()
       },
     },
   })
-  UIManager:show(password_input)
+  self:showWidget(password_input)
   return true
 end
 
@@ -384,7 +384,7 @@ function NetworkItem:onAddNetwork()
       },
     },
   })
-  UIManager:show(password_input)
+  self:showWidget(password_input)
   return true
 end
 
@@ -392,7 +392,7 @@ function NetworkItem:onTapSelect(arg, ges_ev)
   -- Open AP dont have specific flag so we can’t include them alongside WPA
   -- so we exclude WEP instead (more encryption to exclude? not really future proof)
   if string.find(self.info.flags, "WEP") then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("Networks with WEP encryption are not supported."),
     }))
     return

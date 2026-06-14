@@ -32,6 +32,10 @@ pushd "$SANDBOX_DIR" > /dev/null
 
 cleanup() {
     echo "[*] Purging sandbox environment folder at $SANDBOX_ROOT..."
+    if [ -d "$SANDBOX_DIR/screenshots" ]; then
+        mkdir -p "$PLATFORM_PATH/screenshots"
+        cp -r "$SANDBOX_DIR/screenshots"/* "$PLATFORM_PATH/screenshots/" 2>/dev/null || true
+    fi
     popd > /dev/null 2>&1
     rm -rf "$SANDBOX_ROOT"
 }

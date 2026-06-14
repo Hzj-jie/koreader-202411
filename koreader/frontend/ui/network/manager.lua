@@ -41,39 +41,36 @@ ConnectivityChecker.executable = function()
   ConnectivityChecker:_executable()
 end
 
-ConnectivityChecker.callback = function(job)
-  ConnectivityChecker:_callback(job)
-end
-
 function ConnectivityChecker:_executable()
-  if not NetworkMgr:_isWifiConnected() then
+  -- It's a little bit wasteful that the empty job will be continuously running
+  -- when settings_id is set to 0.
+  if not self:running() then
     return
   end
-  logger.info(
-    "Wi-Fi successfully restored (after",
-    os.clock() - self.settings_id / 1000,
-    "seconds)!"
-  )
-  -- Avoid causing timeout due to query online state.
-  UIManager:nextTick(function()
-    NetworkMgr:_networkConnected()
-  end)
-  self:stop()
-end
-
-function ConnectivityChecker:_callback(_job)
-  -- Up to 60s.
-  if os.clock() - self.settings_id / 1000 < 60 then
-    return
-  end
-  -- Last iteration, shutdown connection.
-  NetworkMgr:_abortWifiConnection()
-
-  -- Handle the UI warning if it's from a beforeWifiAction...
-  if self.interactive then
-    UIManager:show(
-      InfoMessage:new({ text = gettext("Error connecting to the network") })
+  if NetworkMgr:_isWifiConnected() then
+    logger.info(
+      "Wi-Fi successfully restored (after",
+      os.clock() - self.settings_id / 1000,
+      "seconds)!"
     )
+    -- Avoid causing timeout due to query online state.
+    UIManager:nextTick(function()
+      NetworkMgr:_networkConnected()
+    end)
+  else
+    -- Up to 60s.
+    if os.clock() - self.settings_id / 1000 < 60 then
+      return
+    end
+    -- Last iteration, shutdown connection.
+    NetworkMgr:_abortWifiConnection()
+
+    -- Handle the UI warning if it's from a beforeWifiAction...
+    if self.interactive then
+      UIManager:show(
+        InfoMessage:new({ text = gettext("Error connecting to the network") })
+      )
+    end
   end
 
   self:stop()
@@ -598,7 +595,6 @@ function NetworkMgr:_beforeWifiAction()
     end
 
     UIManager:show(ConfirmBox:new({
-      -- Need localization.
       text = gettext("Network connection is required to perform the action.")
         .. "\n"
         .. gettext("Do you want to turn on Wi-Fi?"),
@@ -658,7 +654,6 @@ end
 function NetworkMgr:runWhenOnline(callback, key)
   if self:willRerunWhenOnline(callback, key) then
     Notification:notify(
-      -- Need localization
       gettext("Action will be performed after network being online")
     )
     self:_beforeWifiAction()
@@ -674,7 +669,6 @@ end
 function NetworkMgr:runWhenConnected(callback, key)
   if self:willRerunWhenConnected(callback, key) then
     Notification:notify(
-      -- Need localization
       gettext("Action will be performed after network being connected")
     )
     self:_beforeWifiAction()
@@ -904,9 +898,7 @@ end
 
 function NetworkMgr:getDismissScanMenuTable()
   return {
-    -- Need localization
     text = gettext("Automatically connect to the known Wi-Fi"),
-    -- Need localization
     help_text = gettext(
       "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known network automatically after turning on Wi-Fi."
     ),
@@ -974,7 +966,6 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
     if interactive then
       if err == nil or err == "" then
         -- Kindle won't return errors.
-        -- Need localization.
         err = gettext("No available wifi networks found.")
       end
       UIManager:show(InfoMessage:new({ text = err }))
@@ -1158,6 +1149,10 @@ then
   NetworkMgr:setHTTPProxy(G_reader_settings:read("http_proxy"))
 elseif G_defaults:read("NETWORK_PROXY") then
   NetworkMgr:setHTTPProxy(G_defaults:read("NETWORK_PROXY"))
+end
+
+if util.isTesting() then
+  NetworkMgr.ConnectivityChecker = ConnectivityChecker
 end
 
 return NetworkMgr:init()

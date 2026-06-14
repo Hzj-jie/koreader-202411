@@ -101,7 +101,7 @@ end
 
 function ReaderThumbnail:onShowBookMap(overview_mode)
   local BookMapWidget = require("ui/widget/bookmapwidget")
-  UIManager:show(BookMapWidget:new({
+  self:showWidget(BookMapWidget:new({
     ui = self.ui,
     overview_mode = overview_mode,
   }))
@@ -110,7 +110,7 @@ end
 
 function ReaderThumbnail:onShowPageBrowser()
   local PageBrowserWidget = require("ui/widget/pagebrowserwidget")
-  UIManager:show(PageBrowserWidget:new({
+  self:showWidget(PageBrowserWidget:new({
     ui = self.ui,
   }))
   return true

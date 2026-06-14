@@ -58,7 +58,6 @@ function AutoDim:addToMainMenu(menu_items)
     text_func = function()
       return gettext("Automatic dimmer")
         .. ": "
-        -- Need localization.
         .. (
           self.autodim_starttime_m <= 0 and gettext("disabled")
           or T(

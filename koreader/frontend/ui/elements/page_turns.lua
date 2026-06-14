@@ -72,7 +72,6 @@ table.insert(page_turns_tap_zones_sub_items, {
         or gettext("Percentage of screen height")
       )
         .. " "
-        -- Need localization
         .. gettext("to move forward.")
         .. "\n"
         .. gettext("Tapping the rest area will move backward."),

@@ -532,7 +532,7 @@ function TextViewer:findDialog()
   input_dialog:addWidget(check_button_case)
   input_dialog.ignore_first_hold_release = true
 
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
 end
 
 function TextViewer:findCallback(input_dialog)
@@ -580,7 +580,7 @@ function TextViewer:findCallback(input_dialog)
     self._find_next = false
     self._old_virtual_line_num = 1
   end
-  UIManager:show(Notification:new({
+  self:showWidget(Notification:new({
     text = msg,
   }))
   if self._find_next_button ~= self._find_next then
@@ -612,7 +612,7 @@ function TextViewer:handleTextSelection(
   end
   if Device:hasClipboard() then
     Device.input.setClipboardText(text)
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = start_idx == end_idx and gettext("Word copied to clipboard.")
         or gettext("Selection copied to clipboard."),
     }))
@@ -677,7 +677,7 @@ function TextViewer:onShowMenu()
               self:reinit()
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
     },
@@ -715,7 +715,7 @@ function TextViewer:onShowMenu()
       return self.titlebar.left_button.image.dimen
     end,
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
 end
 
 -- Register DocumentRegistry auxiliary provider.
@@ -741,7 +741,7 @@ function TextViewer.openFile(file)
     end
     local file_content = file_handle:read("*all")
     file_handle:close()
-    UIManager:show(TextViewer:new({
+    self:showWidget(TextViewer:new({
       title = file_path,
       title_multilines = true,
       text = file_content,
@@ -752,7 +752,7 @@ function TextViewer.openFile(file)
   if attr then
     if attr.size > 400000 then
       local ConfirmBox = require("ui/widget/confirmbox")
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = T(
           gettext(
             "This file is %2:\n\n%1\n\nAre you sure you want to open it?\n\nOpening big files may take some time."

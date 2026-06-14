@@ -59,6 +59,9 @@ describe("SyncService", function()
           class[k] = v
         end
         class.init = function(self) end
+        class.showWidget = function(self, widget, ...)
+          require("ui/uimanager"):show(widget, ...)
+        end
         return class
       end,
     }

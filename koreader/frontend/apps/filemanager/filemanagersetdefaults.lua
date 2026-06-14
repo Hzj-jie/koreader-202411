@@ -127,7 +127,7 @@ function SetDefaultsWidget:init()
           input_type = value_type,
           width = self.dialog_width,
         })
-        UIManager:show(set_dialog)
+        self:showWidget(set_dialog)
       end
 
       table.insert(self.menu_entries, {
@@ -187,7 +187,7 @@ function SetDefaultsWidget:init()
           },
           width = self.dialog_width,
         })
-        UIManager:show(set_dialog)
+        self:showWidget(set_dialog)
       end
 
       table.insert(self.menu_entries, {
@@ -239,7 +239,7 @@ function SetDefaultsWidget:init()
           input_type = value_type,
           width = self.dialog_width,
         })
-        UIManager:show(set_dialog)
+        self:showWidget(set_dialog)
       end
 
       table.insert(self.menu_entries, {
@@ -313,7 +313,7 @@ function SetDefaultsWidget:saveSettings()
 
   -- And flush to disk
   G_defaults:flush()
-  UIManager:show(InfoMessage:new({
+  self:showWidget(InfoMessage:new({
     text = gettext("Default settings saved."),
   }))
 end
@@ -324,7 +324,7 @@ function SetDefaultsWidget:saveBeforeExit(_callback)
     save_text = gettext("Save and restart")
   end
   if self.settings_changed then
-    UIManager:show(ConfirmBox:new({
+    self:showWidget(ConfirmBox:new({
       dismissable = false,
       text = gettext(
         "KOReader needs to be restarted to apply the new default settings."

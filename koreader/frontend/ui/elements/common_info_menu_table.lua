@@ -24,7 +24,7 @@ common_info.help = {
 }
 if Device:hasKeyboard() then
   common_info.keyboard_shortcuts = {
-    text = gettext("Keyboard shortcuts"), -- no localization
+    text = gettext("Keyboard shortcuts"),
     callback = function()
       local kv_pairs = {}
       for k, v in UIManager:keyEvents() do
@@ -41,7 +41,7 @@ if Device:hasKeyboard() then
         })
       end
       UIManager:show(KeyValuePage:new({
-        title = gettext("Keyboard shortcuts"), -- no localization
+        title = gettext("Keyboard shortcuts"),
         kv_pairs = kv_pairs,
       }))
     end,
@@ -194,7 +194,7 @@ common_info.about = {
               ),
               Version:getUncachedCurrentRevision()
             )
-        ), -- Need localization
+        ),
       icon = "koreader",
     }))
   end,

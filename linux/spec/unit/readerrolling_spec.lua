@@ -4,6 +4,12 @@ describe("Readerrolling module", function()
 
     setup(function()
         require("commonrequire")
+        local plugins_disabled = G_reader_settings:readTableRef("plugins_disabled") or {}
+        plugins_disabled.statistics = true
+        G_reader_settings:save("plugins_disabled", plugins_disabled)
+        local PluginLoader = require("pluginloader")
+        PluginLoader.enabled_plugins = nil
+        PluginLoader.disabled_plugins = nil
         UIManager = require("ui/uimanager")
         stub(UIManager, "getNthTopWidget")
         UIManager.getNthTopWidget.returns({})
@@ -18,6 +24,12 @@ describe("Readerrolling module", function()
             document = DocumentRegistry:openDocument(sample_epub),
         }
         rolling = readerui.rolling
+        for i = #UIManager._window_stack, 1, -1 do
+            local w = UIManager._window_stack[i].widget
+            if w ~= readerui then
+                UIManager:close(w)
+            end
+        end
     end)
 
     describe("test in portrait screen mode", function()
@@ -61,6 +73,12 @@ describe("Readerrolling module", function()
         end)
 
         it("should emit EndOfBook event at the end of sample epub", function()
+            for i = #UIManager._window_stack, 1, -1 do
+                local w = UIManager._window_stack[i].widget
+                if w.toast then
+                    UIManager:close(w)
+                end
+            end
             local called = false
             readerui.onEndOfBook = function()
                 called = true
@@ -74,10 +92,15 @@ describe("Readerrolling module", function()
             -- check end of the book
             rolling:onGotoPage(readerui.document:getPageCount())
             assert.is.falsy(called)
+
             rolling:onGotoViewRel(1)
             assert.is.truthy(called)
             rolling:onGotoViewRel(1)
             assert.is.truthy(called)
+            local dialog = UIManager._window_stack[#UIManager._window_stack].widget
+            if dialog.name == "end_document" then
+                UIManager:close(dialog)
+            end
             readerui.onEndOfBook = nil
         end)
 
@@ -110,6 +133,10 @@ describe("Readerrolling module", function()
             assert.is.falsy(called)
             txt_rolling:onGotoViewRel(1)
             assert.is.truthy(called)
+            local dialog = UIManager._window_stack[#UIManager._window_stack].widget
+            if dialog.name == "end_document" then
+                UIManager:close(dialog)
+            end
             readerui.onEndOfBook = nil
             txt_readerui:onExit()
             txt_readerui:onClose()
@@ -154,14 +181,25 @@ describe("Readerrolling module", function()
             end
         end)
         it("should emit EndOfBook event at the end", function()
+            for i = #UIManager._window_stack, 1, -1 do
+                local w = UIManager._window_stack[i].widget
+                if w.toast then
+                    UIManager:close(w)
+                end
+            end
             rolling:onGotoPage(readerui.document:getPageCount())
             local called = false
             readerui.onEndOfBook = function()
                 called = true
             end
+
             rolling:onGotoViewRel(1)
             rolling:onGotoViewRel(1)
             assert.is.truthy(called)
+            local dialog = UIManager._window_stack[#UIManager._window_stack].widget
+            if dialog.name == "end_document" then
+                UIManager:close(dialog)
+            end
             readerui.onEndOfBook = nil
         end)
     end)

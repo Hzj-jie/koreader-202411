@@ -2,6 +2,7 @@
 TouchMenu widget for hierarchical menus.
 ]]
 local BD = require("ui/bidi")
+local active_instances = 0
 local Blitbuffer = require("ffi/blitbuffer")
 local Button = require("ui/widget/button")
 local CenterContainer = require("ui/widget/container/centercontainer")
@@ -205,7 +206,7 @@ function TouchMenuItem.showHelpText(item)
   else
     return false
   end
-  UIManager:show(InfoMessage:new({ text = help_text }))
+  self:showWidget(InfoMessage:new({ text = help_text }))
   return true
 end
 
@@ -487,6 +488,10 @@ local TouchMenu = FocusManager:extend({
 })
 
 function TouchMenu:init()
+  assert(self.tab_item_table, "tab_item_table is mandatory")
+  if not self.width then
+    self.width = Screen:getWidth()
+  end
   -- We won't include self.bordersize in our width calculations, so that
   -- borders are pushed off-(screen-)width and so not visible.
   -- We'll then be similar to bottom menu ConfigDialog (where this
@@ -579,7 +584,7 @@ function TouchMenu:init()
     face = self.fface,
     text_font_bold = false,
     callback = function()
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = datetime.secondsToDateTime(nil, nil, true),
       }))
     end,
@@ -663,6 +668,11 @@ function TouchMenu:init()
   self.bar:switchToTab(self.last_index or 1)
 end
 
+function TouchMenu:onShow()
+  active_instances = active_instances + 1
+  assert(active_instances <= 1, "Multiple TouchMenu instances detected!")
+end
+
 function TouchMenu:onClose()
   -- NOTE: We don't pass a region in order to ensure a full-screen flash to avoid ghosting,
   --     but we only need to do that if we actually have a FM or RD below us.
@@ -675,6 +685,7 @@ function TouchMenu:onClose()
   then
     UIManager:setDirty(nil, "flashui")
   end
+  active_instances = active_instances - 1
 end
 
 function TouchMenu:_recalculatePageLayout()
@@ -1050,7 +1061,7 @@ function TouchMenu:onMenuHold(item, text_truncated) --> None
     return
   end
   if text_truncated then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = Menu.getMenuText(item),
       show_icon = false,
     }))
@@ -1290,14 +1301,14 @@ function TouchMenu:openMenu(path, with_animation)
             end,
             resend_event = true,
           })
-          UIManager:show(trap_widget)
+          self:showWidget(trap_widget)
           walkStep()
         end
       end
     end,
     resend_event = not with_animation, -- if not animation, don't eat the tap
   })
-  UIManager:show(trap_widget) -- catch taps during animation
+  self:showWidget(trap_widget) -- catch taps during animation
 
   -- Call it: it will reschedule itself if animation; if not, it will
   -- just execute itself without pause until done.
@@ -1341,7 +1352,7 @@ function TouchMenu:onShowMenuSearch()
             },
           },
         })
-        UIManager:show(confirm_box)
+        self:showWidget(confirm_box)
       end
 
       local result_items = {}
@@ -1388,9 +1399,9 @@ function TouchMenu:onShowMenuSearch()
         dimen = Screen:getSize(),
         results_menu,
       })
-      UIManager:show(self.results_menu_container)
+      self:showWidget(self.results_menu_container)
     else
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = T(gettext("No menus containing '%1' found."), search_string),
       }))
     end
@@ -1431,7 +1442,7 @@ function TouchMenu:onShowMenuSearch()
     },
   })
 
-  UIManager:show(search_dialog)
+  self:showWidget(search_dialog)
 end
 
 return TouchMenu

@@ -84,7 +84,7 @@ function FileManagerShortcuts:onMenuHold(item)
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
   return true
 end
 
@@ -161,7 +161,7 @@ function FileManagerShortcuts:editShortcut(folder, post_callback)
       },
     },
   })
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
 end
 
 function FileManagerShortcuts:addShortcut()
@@ -173,7 +173,7 @@ function FileManagerShortcuts:addShortcut()
       or self.ui:getLastDirFile(),
     onConfirm = function(path)
       if self:hasFolderShortcut(path) then
-        UIManager:show(InfoMessage:new({
+        self:showWidget(InfoMessage:new({
           text = gettext("Shortcut already exists."),
         }))
       else
@@ -181,7 +181,7 @@ function FileManagerShortcuts:addShortcut()
       end
     end,
   })
-  UIManager:show(path_chooser)
+  self:showWidget(path_chooser)
 end
 
 function FileManagerShortcuts:genShowFolderShortcutsButton(pre_callback)
@@ -252,7 +252,7 @@ function FileManagerShortcuts:onShowFolderShortcutsDialog(select_callback)
     self.shortcuts_menu = nil
   end
   self:updateItemTable()
-  UIManager:show(self.shortcuts_menu)
+  self:showWidget(self.shortcuts_menu)
 end
 
 return FileManagerShortcuts

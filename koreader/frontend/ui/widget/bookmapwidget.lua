@@ -1530,7 +1530,7 @@ function BookMapWidget:onShowBookMapMenu()
       return self.title_bar.left_button.image.dimen
     end,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 function BookMapWidget:showAbout()
@@ -1560,7 +1560,7 @@ When in overview mode, the book map is always displayed in grid mode to fit on o
 When you first open a book, the book map will begin in grid mode, displaying all chapter levels on one screen for a comprehensive overview of the book's content.]]
       )
   end
-  UIManager:show(InfoMessage:new({ text = text }))
+  self:showWidget(InfoMessage:new({ text = text }))
 end
 
 function BookMapWidget:showGestures()
@@ -1593,7 +1593,7 @@ Long-press on ≡ to switch between current and initial views.
 
 Any multiswipe will close the book map.]])
   end
-  UIManager:show(InfoMessage:new({ text = text }))
+  self:showWidget(InfoMessage:new({ text = text }))
 end
 
 function BookMapWidget:onExit(close_all_parents)
@@ -2017,7 +2017,7 @@ function BookMapWidget:onTap(arg, ges)
       return true
     end
     local PageBrowserWidget = require("ui/widget/pagebrowserwidget")
-    UIManager:show(PageBrowserWidget:new({
+    self:showWidget(PageBrowserWidget:new({
       launcher = self,
       ui = self.ui,
       focus_page = page,

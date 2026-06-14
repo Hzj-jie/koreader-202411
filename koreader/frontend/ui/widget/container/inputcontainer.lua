@@ -219,9 +219,7 @@ function InputContainer:onGesture(ev)
       end
     end
   end
-  if self.stop_events_propagation then
-    return true
-  end
+  return self:isShownModal()
 end
 
 -- Will be overloaded by the Gestures plugin, if enabled, for use in _onGestureFiltered
@@ -345,7 +343,7 @@ function InputContainer:onInput(input, ignore_first_hold_release)
       },
     },
   })
-  UIManager:show(self.input_dialog)
+  self:showWidget(self.input_dialog)
   self.input_dialog:showKeyboard(ignore_first_hold_release)
 end
 

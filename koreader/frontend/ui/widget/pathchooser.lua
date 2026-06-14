@@ -157,7 +157,7 @@ function PathChooser:onMenuHold(item)
       },
     },
   })
-  UIManager:show(self.button_dialog)
+  self:showWidget(self.button_dialog)
 end
 
 function PathChooser:showPlusMenu()
@@ -191,7 +191,7 @@ function PathChooser:showPlusMenu()
       },
     },
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 return PathChooser

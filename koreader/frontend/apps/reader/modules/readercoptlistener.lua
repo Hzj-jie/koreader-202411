@@ -560,7 +560,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
               UIManager:broadcastEvent(Event:new("UpdatePos"))
             end,
           })
-          UIManager:show(size_spinner)
+          self:showWidget(size_spinner)
         end,
       },
     },

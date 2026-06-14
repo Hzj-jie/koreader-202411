@@ -113,6 +113,7 @@ local Input = {
     PgFwd = { "RPgFwd", "LPgFwd" },
     PgBack = { "RPgBack", "LPgBack" },
     Back = { "Back" },
+    Dismiss = {}, -- Lazily initialized in Input:init() after Device details are available.
     Alphabet = {
       "A",
       "B",
@@ -492,6 +493,27 @@ function Input:init()
 
   if G_reader_settings:isTrue("backspace_as_back") then
     table.insert(self.group.Back, "Backspace")
+  end
+
+  if self.device:hasFewKeys() then
+    assert(self.device:hasKeys(), "A device with few keys must have keys")
+  end
+
+  if self.device:hasKeys() then
+    for _, key in ipairs(self.group.Back or {}) do
+      table.insert(self.group.Dismiss, key)
+    end
+    if self.device:hasFewKeys() then
+      table.insert(self.group.Dismiss, "Left")
+    else
+      table.insert(self.group.Dismiss, "Menu")
+      for _, key in ipairs(self.group.PgFwd or {}) do
+        table.insert(self.group.Dismiss, key)
+      end
+      for _, key in ipairs(self.group.PgBack or {}) do
+        table.insert(self.group.Dismiss, key)
+      end
+    end
   end
 end
 

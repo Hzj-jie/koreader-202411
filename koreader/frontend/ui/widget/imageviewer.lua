@@ -927,7 +927,7 @@ function ImageViewer:register(registry)
 end
 
 function ImageViewer.openFile(file)
-  UIManager:show(ImageViewer:new({
+  self:showWidget(ImageViewer:new({
     file = file,
     fullscreen = true,
     with_title_bar = false,

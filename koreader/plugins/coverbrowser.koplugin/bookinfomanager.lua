@@ -223,6 +223,7 @@ function BookInfoManager:openDbConnection()
   end
   self.db_conn = SQ3.open(self.db_location)
   self.db_conn:set_busy_timeout(5000) -- 5 seconds
+  self.db_conn:exec("PRAGMA cache_size = -512;")
 
   -- Prepare our most often used SQL statements
   self.set_stmt = self.db_conn:prepare(BOOKINFO_INSERT_SQL)
@@ -243,6 +244,19 @@ function BookInfoManager:deleteDb()
   self.db_created = false
 end
 
+function BookInfoManager:getBookCount()
+  if lfs.attributes(self.db_location, "mode") ~= "file" then
+    return 0
+  end
+  self:openDbConnection()
+  local count = 0
+  if self.db_conn then
+    count = tonumber(self.db_conn:rowexec("SELECT count(*) FROM bookinfo;")) or 0
+  end
+  return count
+end
+
+
 function BookInfoManager:compactDb()
   -- Reduce db size (note: "when VACUUMing a database, as much as twice the
   -- size of the original database file is required in free disk space")
@@ -256,7 +270,6 @@ function BookInfoManager:compactDb()
   -- self.db_conn:exec("VACUUM")
   -- Catch possible "memory or disk is full" error
   local ok, errmsg = pcall(self.db_conn.exec, self.db_conn, "VACUUM;") -- this may take some time
-  self:closeDbConnection()
   if not ok then
     return T(gettext("Failed compacting database: %1"), errmsg)
   end

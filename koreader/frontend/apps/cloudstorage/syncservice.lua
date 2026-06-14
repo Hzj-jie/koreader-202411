@@ -81,7 +81,7 @@ function SyncService:generateItemTable()
         onExit(this)
         self:switchItemTable(nil, self:generateItemTable())
       end
-      UIManager:show(cloud_storage)
+      self:showWidget(cloud_storage)
     end,
   })
   return item_table

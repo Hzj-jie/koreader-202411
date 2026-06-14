@@ -204,7 +204,7 @@ function ReaderMenu:setUpdateItemTable()
     text = gettext("Reset document settings to default"),
     keep_menu_open = true,
     callback = function()
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = gettext(
           "Reset current document settings to their default values?\n\nReading position, highlights and bookmarks will be kept.\nThe document will be reloaded."
         ),
@@ -226,13 +226,13 @@ function ReaderMenu:setUpdateItemTable()
     text = gettext("Save document settings as default"),
     keep_menu_open = true,
     callback = function()
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = gettext("Save current document settings as default values?"),
         ok_text = gettext("Save"),
         ok_callback = function()
           self:closeMenu()
           self:saveDocumentSettingsAsDefault()
-          UIManager:show(require("ui/widget/notification"):new({
+          self:showWidget(require("ui/widget/notification"):new({
             text = gettext("Default settings updated"),
           }))
         end,
@@ -334,7 +334,7 @@ function ReaderMenu:setUpdateItemTable()
     end,
     hold_callback = function()
       local previous_file = self:getPreviousFile()
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = T(
           gettext("Would you like to open the previous document: %1?"),
           BD.filepath(previous_file)
@@ -392,6 +392,7 @@ function ReaderMenu:_showMenu(tab_index)
   end
 
   local menu_container = CenterContainer:new({
+    modal = true,
     ignore = "height",
     dimen = Screen:getSize(),
   })
@@ -420,7 +421,7 @@ function ReaderMenu:_showMenu(tab_index)
   menu_container[1] = main_menu
   -- maintain a reference to menu_container
   self.menu_container = menu_container
-  UIManager:show(menu_container)
+  self:showWidget(menu_container)
   return true
 end
 

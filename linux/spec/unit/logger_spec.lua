@@ -19,12 +19,6 @@ describe("logger", function()
             return original_date(format)
         end
     end)
-
-    teardown(function()
-        os.date = original_date
-        io.write = original_io_write
-    end)
-
     -- Helper to capture io.write output
     local function capture_log(fn)
         local captured = nil

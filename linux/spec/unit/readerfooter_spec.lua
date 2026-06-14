@@ -1,14 +1,55 @@
 describe("Readerfooter module", function()
     local DocumentRegistry, ReaderUI, ReaderFooter, DocSettings, UIManager
-    local purgeDir, Screen
+    local purgeDir, Screen, copyFile
     local tapFooterMenu
+
+    local original_os_date = os.date
 
     local function is_am()
         -- Technically only an issue for 1 digit results from %-H, e.g., anything below 10:00 AM
         return tonumber(os.date("%H")) < 10
     end
 
+    local function get_isolated_file(original_path, test_id)
+        local docsettings_dir = DocSettings.getSidecarStorage("dir")
+        require("util").makePath(docsettings_dir)
+        local ext = original_path:match("%.([^.]+)$")
+        local name = original_path:match("([^/]+)%.[^.]+$")
+        local isolated_path = docsettings_dir .. "/" .. name .. "_" .. test_id .. "." .. ext
+        copyFile(original_path, isolated_path)
+        return isolated_path
+    end
+
+    local function cleanup_isolated_file(isolated_path)
+        purgeDir(DocSettings:getSidecarDir(isolated_path))
+        os.remove(DocSettings:getHistoryPath(isolated_path))
+        os.remove(isolated_path)
+    end
+
     setup(function()
+        -- Mock os.time and os.date to return a fixed 09:00 AM time
+        -- to ensure 100% deterministic clock widths regardless of host time/timezone!
+        os.time = function()
+            return 1700000000
+        end
+        os.date = function(format, time)
+            local t = time or 1700000000
+            if format == "%H" then
+                return "09"
+            elseif format == "%p" then
+                return "AM"
+            elseif format:find("%%%-I") or format:find("%%_I") or format:find("%%I") then
+                local res = format:gsub("%%%-I", "9"):gsub("%%_I", " 9"):gsub("%%I", "09")
+                res = res:gsub("%%M", "00")
+                res = res:gsub("%%p", "AM")
+                return res
+            elseif format:find("%%%-H") or format:find("%%_H") or format:find("%%H") then
+                local res = format:gsub("%%%-H", "9"):gsub("%%_H", " 9"):gsub("%%H", "09")
+                res = res:gsub("%%M", "00")
+                return res
+            end
+            return original_os_date(format, t)
+        end
         require("commonrequire")
         package.unloadAll()
         local Device = require("device")
@@ -21,6 +62,7 @@ describe("Readerfooter module", function()
         ReaderUI = require("apps/reader/readerui")
         ReaderFooter = require("apps/reader/modules/readerfooter")
         UIManager = require("ui/uimanager")
+        copyFile = require("ffi/util").copyFile
         purgeDir = require("ffi/util").purgeDir
         Screen = require("device").screen
 
@@ -83,7 +125,16 @@ describe("Readerfooter module", function()
 
     after_each(function()
         if ReaderUI and ReaderUI.instance then
-            ReaderUI.instance:onClose()
+            local doc_path = ReaderUI.instance.document and ReaderUI.instance.document.file
+            if ReaderUI.instance.document then
+                ReaderUI.instance:onExit()
+            else
+                ReaderUI.instance:onClose()
+            end
+            if doc_path then
+                DocSettings:open(doc_path):purge()
+                os.remove(DocSettings:getHistoryPath(doc_path))
+            end
         end
     end)
 
@@ -130,63 +181,66 @@ describe("Readerfooter module", function()
         G_reader_settings:save("reader_footer_mode", 1)
         -- default settings
 
-        local sample_pdf = "spec/front/unit/data/2col.pdf"
-        purgeDir(DocSettings:getSidecarDir(sample_pdf))
-        os.remove(DocSettings:getHistoryPath(sample_pdf))
-        local cfg = DocSettings:open(sample_pdf)
+        local isolated_pdf = get_isolated_file("spec/front/unit/data/2col.pdf", "test3")
+
+        local cfg = DocSettings:open(isolated_pdf)
         cfg:save("kopt_full_screen", 0)
         cfg:flush()
 
         local readerui = ReaderUI:new{
             dimen = Screen:getSize(),
-            document = DocumentRegistry:openDocument(sample_pdf),
+            document = DocumentRegistry:openDocument(isolated_pdf),
         }
         assert.is.same(false, readerui.view.footer_visible)
         G_reader_settings:delete("reader_footer_mode")
         readerui:onExit()
         readerui:onClose()
+
+        cleanup_isolated_file(isolated_pdf)
     end)
 
     it("should setup footer as visible in mini progress bar mode", function()
         G_reader_settings:save("reader_footer_mode", 1)
         -- default settings
 
-        local sample_pdf = "spec/front/unit/data/2col.pdf"
-        purgeDir(DocSettings:getSidecarDir(sample_pdf))
-        os.remove(DocSettings:getHistoryPath(sample_pdf))
-        local cfg = DocSettings:open(sample_pdf)
+        local isolated_pdf = get_isolated_file("spec/front/unit/data/2col.pdf", "test4")
+
+        local cfg = DocSettings:open(isolated_pdf)
         cfg:delete("kopt_full_screen")
         cfg:flush()
 
         local readerui = ReaderUI:new{
             dimen = Screen:getSize(),
-            document = DocumentRegistry:openDocument(sample_pdf),
+            document = DocumentRegistry:openDocument(isolated_pdf),
         }
         assert.is.same(true, readerui.view.footer_visible)
         G_reader_settings:delete("reader_footer_mode")
         readerui:onExit()
         readerui:onClose()
+
+        cleanup_isolated_file(isolated_pdf)
     end)
 
     it("should setup footer as invisible", function()
         G_reader_settings:save("reader_footer_mode", 1)
         -- default settings
 
-        local sample_epub = "spec/front/unit/data/juliet.epub"
-        purgeDir(DocSettings:getSidecarDir(sample_epub))
-        os.remove(DocSettings:getHistoryPath(sample_epub))
-        local cfg = DocSettings:open(sample_epub)
+        local isolated_epub = get_isolated_file("spec/front/unit/data/juliet.epub", "test5")
+
+        local cfg = DocSettings:open(isolated_epub)
         cfg:save("copt_status_line", 1)
         cfg:flush()
 
         local readerui = ReaderUI:new{
             dimen = Screen:getSize(),
-            document = DocumentRegistry:openDocument(sample_epub),
+            document = DocumentRegistry:openDocument(isolated_epub),
         }
         assert.is.same(true, readerui.view.footer_visible)
         G_reader_settings:delete("reader_footer_mode")
         readerui:onExit()
         readerui:onClose()
+
+        cleanup_isolated_file(isolated_epub)
     end)
 
     it("should setup footer for epub without error", function()

@@ -232,7 +232,7 @@ function NumberPickerWidget:init()
                     input_value < self.value_min
                     or input_value > self.value_max
                   then
-                    UIManager:show(InfoMessage:new({
+                    self:showWidget(InfoMessage:new({
                       text = T(
                         gettext(
                           "ATTENTION:\nPrefixing the input with ':' disables sanity checks!\nThis value should be in the range of %1 - %2.\nUndefined behavior may occur."
@@ -257,7 +257,7 @@ function NumberPickerWidget:init()
                   self:update()
                   UIManager:close(input_dialog)
                 elseif input_value and input_value < self.value_min then
-                  UIManager:show(InfoMessage:new({
+                  self:showWidget(InfoMessage:new({
                     text = T(
                       gettext("This value should be %1 or more."),
                       self.value_min
@@ -265,7 +265,7 @@ function NumberPickerWidget:init()
                     timeout = 2,
                   }))
                 elseif input_value and input_value > self.value_max then
-                  UIManager:show(InfoMessage:new({
+                  self:showWidget(InfoMessage:new({
                     text = T(
                       gettext("This value should be %1 or less."),
                       self.value_max
@@ -273,7 +273,7 @@ function NumberPickerWidget:init()
                     timeout = 2,
                   }))
                 else
-                  UIManager:show(InfoMessage:new({
+                  self:showWidget(InfoMessage:new({
                     text = gettext(
                       "Invalid value. Please enter a valid value."
                     ),
@@ -285,7 +285,7 @@ function NumberPickerWidget:init()
           },
         },
       })
-      UIManager:show(input_dialog)
+      self:showWidget(input_dialog)
     end
   end
 

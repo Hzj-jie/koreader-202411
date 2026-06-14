@@ -147,7 +147,7 @@ function ReaderSearch:addToMainMenu(menu_items)
               menu:updateItems()
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
       {
@@ -187,7 +187,7 @@ function ReaderSearch:addToMainMenu(menu_items)
               menu:updateItems()
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
       {
@@ -217,7 +217,7 @@ function ReaderSearch:addToMainMenu(menu_items)
               menu:updateItems()
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
     },
@@ -283,7 +283,7 @@ function ReaderSearch:searchCallback(reverse, text)
     else
       error_message = gettext("Invalid regular expression.")
     end
-    UIManager:show(InfoMessage:new({ text = error_message }))
+    self:showWidget(InfoMessage:new({ text = error_message }))
   else
     UIManager:closeIfNotNil(self.input_dialog)
     if reverse then
@@ -359,7 +359,7 @@ function ReaderSearch:onShowFulltextSearchInput(search_string)
     checked = self.use_regex,
     parent = self.input_dialog,
     hold_callback = function()
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = help_text,
         width = Screen:getWidth() * 0.9,
       }))
@@ -369,7 +369,7 @@ function ReaderSearch:onShowFulltextSearchInput(search_string)
     self.input_dialog:addWidget(self.check_button_regex)
   end
 
-  UIManager:show(self.input_dialog)
+  self:showWidget(self.input_dialog)
   return true
 end
 
@@ -506,7 +506,7 @@ function ReaderSearch:onShowSearchDialog(
         else
           notification_text = gettext("No results on following pages")
         end
-        UIManager:show(Notification:new({
+        self:showWidget(Notification:new({
           text = notification_text,
         }))
       end
@@ -532,7 +532,7 @@ function ReaderSearch:onShowSearchDialog(
         self.wait_button.movable:setMovedOffset(
           self.search_dialog.movable:getMovedOffset()
         )
-        UIManager:show(self.wait_button)
+        self:showWidget(self.wait_button)
         UIManager:tickAfterNext(function()
           do_search(func, pattern, param)()
           UIManager:close(self.wait_button)
@@ -582,17 +582,17 @@ function ReaderSearch:onShowSearchDialog(
   if regex and isSlowRegex(text) then
     self.wait_button.alpha = nil
     -- initial position: center of the screen
-    UIManager:show(self.wait_button)
+    self:showWidget(self.wait_button)
     UIManager:tickAfterNext(function()
       do_search(self.searchFromCurrent, text, direction)()
       UIManager:close(self.wait_button)
-      UIManager:show(self.search_dialog)
+      self:showWidget(self.search_dialog)
       --- @todo regional
       UIManager:setDirty(self.dialog, "partial")
     end)
   else
     do_search(self.searchFromCurrent, text, direction)()
-    UIManager:show(self.search_dialog)
+    self:showWidget(self.search_dialog)
     --- @todo regional
     UIManager:setDirty(self.dialog, "partial")
   end
@@ -635,12 +635,12 @@ function ReaderSearch:showErrorNotification(words_found, regex, max_hits)
     else
       error_message = gettext("Unspecified error")
     end
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = error_message,
       timeout = false,
     }))
   elseif words_found and words_found >= max_hits then
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = gettext("Too many hits"),
       timeout = 4,
     }))
@@ -686,7 +686,7 @@ function ReaderSearch:findAllText(search_text)
     local Trapper = require("ui/trapper")
     local info =
       InfoMessage:new({ text = gettext("Searching… (tap to cancel)") })
-    UIManager:show(info)
+    self:showWidget(info)
     UIManager:forceRepaint()
     local completed, res = Trapper:dismissableRunInSubprocess(function()
       return self.ui.document:findAllText(
@@ -708,7 +708,7 @@ function ReaderSearch:findAllText(search_text)
   if self.findall_results then
     self:onShowFindAllResults(not_cached)
   else
-    UIManager:show(
+    self:showWidget(
       InfoMessage:new({ text = gettext("No results in the document") })
     )
   end
@@ -796,7 +796,7 @@ function ReaderSearch:onShowFindAllResults(not_cached)
           indent = indent .. " "
         end
       end
-      UIManager:show(InfoMessage:new({ text = text .. indent .. last }))
+      self:showWidget(InfoMessage:new({ text = text .. indent .. last }))
       return true
     end,
     close_callback = function()
@@ -806,7 +806,7 @@ function ReaderSearch:onShowFindAllResults(not_cached)
     end,
   })
   self:updateAllResultsMenu(nil, self.findall_results_item_index)
-  UIManager:show(self.result_menu)
+  self:showWidget(self.result_menu)
   self:showErrorNotification(#self.findall_results)
 end
 
@@ -878,7 +878,7 @@ function ReaderSearch:showAllResultsMenuDialog()
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 return ReaderSearch

@@ -11,9 +11,12 @@ local Device = require("device")
 local gettext = require("gettext")
 local util = require("util")
 
-local BaseExporter = {
-  clipping_dir = DataStorage:getFullDataDir() .. "/clipboard",
-}
+local BaseExporter = {}
+
+function BaseExporter.clipping_dir()
+  return G_reader_settings:readTableRef("exporter").clipping_dir
+    or (DataStorage:getFullDataDir() .. "/clipboard")
+end
 
 function BaseExporter:new(o)
   o = o or {}
@@ -93,8 +96,8 @@ function BaseExporter:getFilePath(t)
   if self.is_remote then
     return
   end
+  local clipping_dir = BaseExporter.clipping_dir()
   local plugin_settings = G_reader_settings:readTableRef("exporter")
-  local clipping_dir = plugin_settings.clipping_dir or self.clipping_dir
   local title
   if #t == 1 then
     title = t[1].output_filename

@@ -11,8 +11,6 @@ local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
 local battery_status_dismissed = false
-local battery_confirm_box = nil
-local memory_confirm_box = nil
 
 local ReaderDeviceStatus = WidgetContainer:extend({})
 
@@ -40,16 +38,10 @@ function ReaderDeviceStatus:init()
 end
 
 function ReaderDeviceStatus:_checkBatteryStatus()
-  if battery_confirm_box then
-    UIManager:close(battery_confirm_box)
-    battery_confirm_box = nil
-  end
-
   local is_charging = powerd:isCharging()
   local battery_capacity = powerd:getCapacity()
   if Device:canSuspend() and not is_charging and battery_capacity <= 5 then
-    UIManager:show(InfoMessage:new({
-      -- Need localization
+    self:showWidget(InfoMessage:new({
       text = gettext(
         "Battery level drops below the critical zone.\n\nSuspending the device…"
       )
@@ -98,23 +90,23 @@ function ReaderDeviceStatus:_checkBatteryStatus()
     if Device:canSuspend() then
       text = text
         .. "\n\n"
-        -- Need localization
         .. gettext(
           "When battery level drops below the critical zone, "
             .. "the device will be put into suspension automatically."
         )
     end
   end
-  battery_confirm_box = ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = text,
     ok_text = gettext("Dismiss"),
     dismissable = false,
     ok_callback = function()
       battery_status_dismissed = true
-      battery_confirm_box = nil
     end,
-  })
-  UIManager:show(battery_confirm_box)
+    cancel_text = gettext("Remind later"),
+    -- Auto-close before the next 5-minute check to avoid dialog stacking.
+    timeout = 295,
+  }))
 end
 
 function ReaderDeviceStatus:_checkMemoryStatus()
@@ -128,20 +120,15 @@ function ReaderDeviceStatus:_checkMemoryStatus()
   if rss < self.memory_threshold then
     return
   end
-  if memory_confirm_box then
-    UIManager:close(memory_confirm_box)
-    memory_confirm_box = nil
-  end
   if Device:canRestart() then
     local top_wg = UIManager:getTopmostVisibleWidget() or {}
     if
       top_wg.name == "ReaderUI"
       and G_reader_settings:isTrue("device_status_memory_auto_restart")
     then
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = gettext("High memory usage!\n\nKOReader is restarting…")
           .. "\n\n"
-          -- Need localization
           .. gettext("Waiting for 3 seconds to proceed."),
         icon = "notice-warning",
       }))
@@ -149,12 +136,12 @@ function ReaderDeviceStatus:_checkMemoryStatus()
         UIManager:broadcastEvent(Event:new("Restart"))
       end)
     else
-      memory_confirm_box = ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = T(gettext("High memory usage: %1 MB\n\nRestart KOReader?"), rss),
         ok_text = gettext("Restart"),
         dismissable = false,
         ok_callback = function()
-          UIManager:show(InfoMessage:new({
+          self:showWidget(InfoMessage:new({
             text = gettext("High memory usage!\n\nKOReader is restarting…"),
             icon = "notice-warning",
           }))
@@ -162,19 +149,21 @@ function ReaderDeviceStatus:_checkMemoryStatus()
             UIManager:broadcastEvent(Event:new("Restart"))
           end)
         end,
-      })
-      UIManager:show(memory_confirm_box)
+        -- Auto-close before the next 5-minute check to avoid dialog stacking.
+        timeout = 295,
+      }))
     end
   else
-    memory_confirm_box = ConfirmBox:new({
+    self:showWidget(ConfirmBox:new({
       text = T(gettext("High memory usage: %1 MB\n\nExit KOReader?"), rss),
       ok_text = gettext("Exit"),
       dismissable = false,
       ok_callback = function()
         UIManager:broadcastEvent("ExitKOReader")
       end,
-    })
-    UIManager:show(memory_confirm_box)
+      -- Auto-close before the next 5-minute check to avoid dialog stacking.
+      timeout = 295,
+    }))
   end
 end
 
@@ -263,7 +252,7 @@ High level threshold is checked when the device is charging.]]),
             battery_status_dismissed = false
           end,
         })
-        UIManager:show(thresholds_widget)
+        self:showWidget(thresholds_widget)
       end,
       separator = true,
     })
@@ -287,7 +276,7 @@ High level threshold is checked when the device is charging.]]),
       end,
       keep_menu_open = true,
       callback = function(menu)
-        UIManager:show(SpinWidget:new({
+        self:showWidget(SpinWidget:new({
           value = self.memory_threshold,
           value_min = 20,
           value_max = 500,

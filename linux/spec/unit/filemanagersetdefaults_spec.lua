@@ -76,7 +76,10 @@ describe("filemanagersetdefaults", function()
           return inst
         end
         return subclass
-      end
+      end,
+      showWidget = function(self, widget, ...)
+        require("ui/uimanager"):show(widget, ...)
+      end,
     }
     package.loaded["ui/widget/container/centercontainer"] = mock_center_container
 

@@ -128,14 +128,14 @@ function Widget:dirtyRegion()
 end
 
 function Widget:scheduleRepaint() -- final
-  if self:_isInWindowStack() then
+  if self:isInWindowStack() then
     -- Otherwise the widget hasn't been shown yet and will be paintTo later.
     require("ui/uimanager"):scheduleWidgetRepaint(self)
   end
 end
 
 function Widget:scheduleRefresh() -- final
-  if self:_isInWindowStack() then
+  if self:isInWindowStack() then
     -- Otherwise the widget hasn't been shown yet and will be paintTo later.
     require("ui/uimanager"):scheduleRefresh(
       self:refreshMode(),
@@ -146,7 +146,7 @@ end
 
 -- Use with caution, UIManager:setDirty is a deprecated function.
 function Widget:setDirty(...) -- final
-  if self:_isInWindowStack() then
+  if self:isInWindowStack() then
     require("ui/uimanager"):setDirty(self, ...)
   end
 end
@@ -156,8 +156,14 @@ end
 -- test to ensure it won't schedule a repaint on anything which isn't in the
 -- window stack yet, i.e. will be painted in random places and / or cover other
 -- elements.
-function Widget:_isInWindowStack() -- final
+function Widget:isInWindowStack() -- final
   return self:window() ~= nil
+end
+
+function Widget:showWidget(widget, ...)
+  self._shown_widgets = self._shown_widgets or {}
+  table.insert(self._shown_widgets, widget)
+  require("ui/uimanager"):show(widget, ...)
 end
 
 -- Get the show(widget) of current widget, using this function should be careful
@@ -256,6 +262,43 @@ function Widget:myRange(ges)
       return self:getSize()
     end,
   })
+end
+
+-- WARNING: Do not override, shadow, or call this method directly.
+-- This method is internally orchestrated by UIManager to recursively clean up
+-- and dereference active widgets and their children upon closing, preventing
+-- memory and event propagation leaks.
+function Widget:uimanagedCleanUp() -- final
+  if not self._shown_widgets then
+    return
+  end
+
+  local UIManager = require("ui/uimanager")
+  local shown = {}
+  for _, w in ipairs(self._shown_widgets) do
+    UIManager:closeIfShown(w)
+    shown[w] = true
+  end
+  self._shown_widgets = nil
+
+  -- Dereference the closed child widgets from the parent to prevent memory leaks
+  -- and stale-reference bugs (especially important when the parent widget is
+  -- reused, such as in unit tests).
+  --
+  -- Note on layout children (e.g., self[1]):
+  -- If a developer calls showWidget(self[1]) on a layout child, it gets promoted
+  -- to a top-level window in the UIManager stack. When the parent is closed,
+  -- we MUST close this child window in the first loop to prevent it from leaking
+  -- on the screen.
+  -- However, in this second loop, we MUST skip nilling the array portion
+  -- (type(k) ~= "number") so that the layout child remains in the parent's
+  -- array. Nilling it would create "holes" and corrupt the layout structure,
+  -- causing guaranteed crashes if the parent widget is ever reused.
+  for k, v in pairs(self) do
+    if type(k) ~= "number" and shown[v] then
+      self[k] = nil
+    end
+  end
 end
 
 return Widget

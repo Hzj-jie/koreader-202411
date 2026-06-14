@@ -97,7 +97,7 @@ end
 
 -- Display a notification popup
 function Notification:notify(arg)
-  UIManager:show(Notification:new({
+  self:showWidget(Notification:new({
     text = arg,
   }))
 end
@@ -155,37 +155,26 @@ function Notification:onShow()
   return true
 end
 
+-- Notifications should always reside on the topmost visual layer (above standard widgets).
+function Notification:isAlwaysOnTop()
+  return true
+end
+
+-- Intercept user input events for toast notifications to dismiss them early
+-- without consuming the event, allowing the interaction to reach background widgets.
+function Notification:handleEvent(event)
+  if self.toast and event:isUserInput() then
+    UIManager:close(self)
+    return false
+  end
+  return InputContainer.handleEvent(self, event)
+end
+
 function Notification:onTapClose()
-  if self.toast then
-    return
-  end -- should not happen
   UIManager:close(self)
   return true
 end
 Notification.onAnyKeyPressed = Notification.onTapClose
-
--- Toasts should go bye-bye on user input, without stopping the event's propagation.
-function Notification:onKeyPress(key)
-  if self.toast then
-    UIManager:close(self)
-    return false
-  end
-  return InputContainer.onKeyPress(self, key)
-end
-function Notification:onKeyRepeat(key)
-  if self.toast then
-    UIManager:close(self)
-    return false
-  end
-  return InputContainer.onKeyRepeat(self, key)
-end
-function Notification:onGesture(ev)
-  if self.toast then
-    UIManager:close(self)
-    return false
-  end
-  return InputContainer.onGesture(self, ev)
-end
 
 -- Since toasts do *not* prevent event propagation, if we let this go through to InputContainer, shit happens...
 function Notification:onIgnoreTouchInput(_toggle)

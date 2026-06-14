@@ -395,7 +395,7 @@ function DictQuickLookup:init()
               .. ".epub"
             filename = util.getSafeFilename(filename, dir):gsub("_", " ")
             local epub_path = dir .. "/" .. filename
-            UIManager:show(ConfirmBox:new({
+            self:showWidget(ConfirmBox:new({
               text = T(gettext("Save as %1?"), BD.filename(filename)),
               ok_callback = function()
                 UIManager:scheduleIn(0.1, function()
@@ -406,7 +406,7 @@ function DictQuickLookup:init()
                     lang,
                     function(success)
                       if success then
-                        UIManager:show(ConfirmBox:new({
+                        self:showWidget(ConfirmBox:new({
                           text = T(
                             gettext(
                               "Article saved to:\n%1\n\nWould you like to read the downloaded article now?"
@@ -439,7 +439,7 @@ function DictQuickLookup:init()
                           end,
                         }))
                       else
-                        UIManager:show(InfoMessage:new({
+                        self:showWidget(InfoMessage:new({
                           text = gettext(
                             "Saving Wikipedia article failed or interrupted."
                           ),
@@ -1382,7 +1382,7 @@ function DictQuickLookup:onLookupInputWord(hint)
       },
     },
   })
-  UIManager:show(self.input_dialog)
+  self:showWidget(self.input_dialog)
 end
 
 function DictQuickLookup:lookupWikipedia(get_fullpage, word, is_sane, lang)
@@ -1480,7 +1480,7 @@ function DictQuickLookup:onShowResultsMenu()
   })
   button_dialog:setScrolledOffset(self.menu_scrolled_offsets["main"])
   self.menu_opened[button_dialog] = true
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
   return true
 end
 
@@ -1598,7 +1598,7 @@ function DictQuickLookup:showResultsAltMenu()
         self.menu_scrolled_offsets["alt_sub" .. dictnum]
       )
       self.menu_opened[button_dialog2] = true
-      UIManager:show(button_dialog2)
+      self:showWidget(button_dialog2)
     end
     table.insert(row, {
       text = text,
@@ -1627,7 +1627,7 @@ function DictQuickLookup:showResultsAltMenu()
   })
   button_dialog:setScrolledOffset(self.menu_scrolled_offsets["alt"])
   self.menu_opened[button_dialog] = true
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 function DictQuickLookup:showWikiResultsMenu()
@@ -1677,7 +1677,7 @@ function DictQuickLookup:showWikiResultsMenu()
   })
   button_dialog:setScrolledOffset(self.menu_scrolled_offsets["wiki"])
   self.menu_opened[button_dialog] = true
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 return DictQuickLookup
