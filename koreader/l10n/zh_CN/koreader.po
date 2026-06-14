@@ -22,7 +22,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 23:27-0700\n"
+"POT-Creation-Date: 2026-06-13 14:22-0700\n"
 "PO-Revision-Date: 2024-11-13 14:06+0000\n"
 "Last-Translator: cyanjiang <cyanjiang@163.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
@@ -193,12 +193,12 @@ msgstr "输入文件名"
 #: frontend/ui/elements/timeout_android.lua:65 frontend/ui/screensaver.lua:366
 #: frontend/ui/widget/bookstatuswidget.lua:586
 #: frontend/ui/widget/confirmbox.lua:50
-#: frontend/ui/widget/container/inputcontainer.lua:326
+#: frontend/ui/widget/container/inputcontainer.lua:324
 #: frontend/ui/widget/dictquicklookup.lua:1364
-#: frontend/ui/widget/inputdialog.lua:891
-#: frontend/ui/widget/inputdialog.lua:977
-#: frontend/ui/widget/inputdialog.lua:1037
-#: frontend/ui/widget/keyboardlayoutdialog.lua:75
+#: frontend/ui/widget/inputdialog.lua:886
+#: frontend/ui/widget/inputdialog.lua:972
+#: frontend/ui/widget/inputdialog.lua:1032
+#: frontend/ui/widget/keyboardlayoutdialog.lua:73
 #: frontend/ui/widget/menu.lua:819 frontend/ui/widget/multiconfirmbox.lua:49
 #: frontend/ui/widget/networksetting.lua:329
 #: frontend/ui/widget/networksetting.lua:371
@@ -211,7 +211,7 @@ msgstr "输入文件名"
 #: plugins/calibre.koplugin/main.lua:385
 #: plugins/calibre.koplugin/search.lua:247
 #: plugins/calibre.koplugin/wireless.lua:453
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:877
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:890
 #: plugins/coverimage.koplugin/main.lua:492
 #: plugins/exporter.koplugin/target/flomo.lua:75
 #: plugins/exporter.koplugin/target/joplin.lua:256
@@ -395,7 +395,7 @@ msgstr "选择本地文件夹"
 #: frontend/ui/widget/dictquicklookup.lua:564
 #: frontend/ui/widget/doublespinwidget.lua:42
 #: frontend/ui/widget/imageviewer.lua:214
-#: frontend/ui/widget/inputdialog.lua:884
+#: frontend/ui/widget/inputdialog.lua:879
 #: frontend/ui/widget/radiobuttonwidget.lua:56
 #: frontend/ui/widget/spinwidget.lua:36 frontend/ui/widget/textviewer.lua:276
 #: plugins/keepalive.koplugin/main.lua:29
@@ -569,8 +569,8 @@ msgstr "Dropbox 文件夹 (/ for root)"
 #: frontend/apps/reader/modules/readerstyletweak.lua:1169
 #: frontend/apps/reader/modules/readeruserhyph.lua:343
 #: frontend/apps/reader/modules/readerwikipedia.lua:203
-#: frontend/ui/widget/inputdialog.lua:858
-#: frontend/ui/widget/inputdialog.lua:903
+#: frontend/ui/widget/inputdialog.lua:853
+#: frontend/ui/widget/inputdialog.lua:898
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:385
 #: plugins/coverimage.koplugin/main.lua:499
 #: plugins/gestures.koplugin/main.lua:437
@@ -954,7 +954,7 @@ msgstr "要重置自定义的书籍元数据吗？"
 #: frontend/apps/filemanager/filemanagerutil.lua:194
 #: frontend/apps/filemanager/filemanagerutil.lua:212
 #: frontend/apps/reader/modules/readermenu.lua:211
-#: frontend/ui/widget/inputdialog.lua:832
+#: frontend/ui/widget/inputdialog.lua:827
 #: plugins/statistics.koplugin/main.lua:3178
 #: plugins/statistics.koplugin/main.lua:3220
 #: plugins/vocabbuilder.koplugin/main.lua:200
@@ -1184,8 +1184,7 @@ msgstr "书籍文件夹"
 #: frontend/apps/filemanager/filemanagerhistory.lua:466
 #: frontend/apps/reader/modules/readerbookmark.lua:1563
 #: frontend/apps/reader/modules/readersearch.lua:352
-#: frontend/ui/widget/inputdialog.lua:1002
-#: frontend/ui/widget/textviewer.lua:525
+#: frontend/ui/widget/inputdialog.lua:997 frontend/ui/widget/textviewer.lua:525
 msgid "Case sensitive"
 msgstr "区分大小写"
 
@@ -1470,7 +1469,7 @@ msgstr ""
 "被删除的文件将永久丢失。"
 
 #: frontend/apps/filemanager/filemanager.lua:652
-#: plugins/exporter.koplugin/main.lua:281 plugins/exporter.koplugin/_meta.lua:4
+#: plugins/exporter.koplugin/main.lua:450 plugins/exporter.koplugin/_meta.lua:4
 msgid "Export highlights"
 msgstr "导出标注"
 
@@ -1928,7 +1927,7 @@ msgstr "你想要打开上一个文档 %1 吗？"
 #: frontend/apps/reader/readerui.lua:852 frontend/device/android/device.lua:589
 #: frontend/ui/elements/common_settings_menu_table.lua:273
 #: frontend/ui/widget/confirmbox.lua:49
-#: frontend/ui/widget/container/inputcontainer.lua:333
+#: frontend/ui/widget/container/inputcontainer.lua:331
 #: frontend/ui/widget/numberpickerwidget.lua:189
 #: plugins/autowarmth.koplugin/main.lua:936
 #: plugins/calibre.koplugin/main.lua:392
@@ -1970,7 +1969,7 @@ msgstr "最近阅读"
 msgid "Start with: %1"
 msgstr "从 %1 开始"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:729
+#: frontend/apps/filemanager/filemanagermenu.lua:730
 msgid "File manager menu"
 msgstr "文件管理器菜单"
 
@@ -4741,7 +4740,7 @@ msgstr "上一个：%1"
 msgid "Would you like to open the previous document: %1?"
 msgstr "你想要打开前一个文档 %1 吗？"
 
-#: frontend/apps/reader/modules/readermenu.lua:410
+#: frontend/apps/reader/modules/readermenu.lua:411
 msgid "Document menu"
 msgstr "文档菜单"
 
@@ -5231,7 +5230,7 @@ msgid "Invalid regular expression."
 msgstr "无效的正则表达式。"
 
 #: frontend/apps/reader/modules/readersearch.lua:313
-#: frontend/ui/widget/inputdialog.lua:971 frontend/ui/widget/textviewer.lua:495
+#: frontend/ui/widget/inputdialog.lua:966 frontend/ui/widget/textviewer.lua:495
 msgid "Enter text to search for"
 msgstr "输入需要搜索的文字"
 
@@ -7500,12 +7499,12 @@ msgid "Light settings"
 msgstr "背光设置"
 
 #: frontend/device/android/device.lua:587
-#: frontend/ui/widget/frontlightwidget.lua:153
+#: frontend/ui/widget/frontlightwidget.lua:152
 msgid "Brightness"
 msgstr "亮度"
 
 #: frontend/device/android/device.lua:588
-#: frontend/ui/widget/frontlightwidget.lua:268
+#: frontend/ui/widget/frontlightwidget.lua:267
 msgid "Warmth"
 msgstr "色温"
 
@@ -7601,8 +7600,8 @@ msgstr "翻页键不再反转。"
 msgid "Page-turn buttons inverted."
 msgstr "翻页键已反转。"
 
-#: frontend/device/generic/device.lua:462 frontend/ui/uimanager.lua:1755
-#: frontend/ui/uimanager.lua:1777
+#: frontend/device/generic/device.lua:462 frontend/ui/uimanager.lua:1716
+#: frontend/ui/uimanager.lua:1738
 msgid "Later"
 msgstr "稍后"
 
@@ -7738,7 +7737,7 @@ msgstr "重启设备"
 
 #: frontend/dispatcher.lua:171
 #: frontend/ui/elements/common_exit_menu_table.lua:51
-#: frontend/ui/uimanager.lua:1735
+#: frontend/ui/uimanager.lua:1696
 msgid "Power off"
 msgstr "关机"
 
@@ -10569,14 +10568,14 @@ msgid "Set how the page should be resized to fit the screen."
 msgstr "设置如何调整页面大小以适合屏幕。"
 
 #: frontend/ui/data/koptoptions.lua:243
-#: plugins/coverbrowser.koplugin/main.lua:206
-#: plugins/coverbrowser.koplugin/main.lua:261
+#: plugins/coverbrowser.koplugin/main.lua:205
+#: plugins/coverbrowser.koplugin/main.lua:260
 msgid "Rows"
 msgstr "列"
 
 #: frontend/ui/data/koptoptions.lua:243
-#: plugins/coverbrowser.koplugin/main.lua:200
-#: plugins/coverbrowser.koplugin/main.lua:255
+#: plugins/coverbrowser.koplugin/main.lua:199
+#: plugins/coverbrowser.koplugin/main.lua:254
 msgid "Columns"
 msgstr "分栏数"
 
@@ -11123,7 +11122,7 @@ msgid "Start %1 reader app"
 msgstr "启动 %1 阅读软件"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:30
-#: frontend/ui/widget/frontlightwidget.lua:377
+#: frontend/ui/widget/frontlightwidget.lua:376
 msgid "Frontlight"
 msgstr "前光设置"
 
@@ -11688,7 +11687,7 @@ msgid "Share storage via USB?"
 msgstr "要启动 USB 存储设备功能吗？"
 
 #: frontend/ui/elements/mass_storage.lua:80
-#: plugins/exporter.koplugin/base.lua:161
+#: plugins/exporter.koplugin/base.lua:164
 msgid "Share"
 msgstr "启动"
 
@@ -13704,14 +13703,14 @@ msgstr "已暂停"
 
 #: frontend/ui/trapper.lua:162 frontend/ui/wikipedia.lua:1706
 #: plugins/calibre.koplugin/wireless.lua:230
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:878
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:891
 #: plugins/newsdownloader.koplugin/epubdownloadbackend.lua:721
 #: plugins/newsdownloader.koplugin/main.lua:329
 msgid "Continue"
 msgstr "继续"
 
 #: frontend/ui/trapper.lua:164
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:917
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:930
 msgid "Abort"
 msgstr "退出"
 
@@ -13723,28 +13722,28 @@ msgstr "已关机"
 msgid "Rebooting…"
 msgstr "正在重启……"
 
-#: frontend/ui/uimanager.lua:1716
+#: frontend/ui/uimanager.lua:1677
 msgid "Are you sure you want to reboot the device?"
 msgstr "确定重启设备吗？"
 
-#: frontend/ui/uimanager.lua:1717
+#: frontend/ui/uimanager.lua:1678
 msgid "Reboot"
 msgstr "重启"
 
-#: frontend/ui/uimanager.lua:1734
+#: frontend/ui/uimanager.lua:1695
 msgid "Are you sure you want to power off the device?"
 msgstr "确定关闭设备吗？"
 
-#: frontend/ui/uimanager.lua:1750 frontend/ui/uimanager.lua:1760
+#: frontend/ui/uimanager.lua:1711 frontend/ui/uimanager.lua:1721
 #: plugins/calibre.koplugin/main.lua:227
 msgid "This will take effect on next restart."
 msgstr "软件重启后生效。"
 
-#: frontend/ui/uimanager.lua:1751
+#: frontend/ui/uimanager.lua:1712
 msgid "Restart now"
 msgstr "立即重启"
 
-#: frontend/ui/uimanager.lua:1776
+#: frontend/ui/uimanager.lua:1737
 msgid "Settings changed. Reload document to take effect?"
 msgstr "设置已更改。重新加载文档以生效？"
 
@@ -14038,11 +14037,11 @@ msgstr ""
 msgid "no text"
 msgstr "无文本"
 
-#: frontend/ui/widget/container/inputcontainer.lua:301
+#: frontend/ui/widget/container/inputcontainer.lua:299
 msgid "Disabled touch input"
 msgstr "禁用触摸输入"
 
-#: frontend/ui/widget/container/inputcontainer.lua:305
+#: frontend/ui/widget/container/inputcontainer.lua:303
 msgid "Restored touch input"
 msgstr "恢复触摸输入"
 
@@ -14140,25 +14139,25 @@ msgstr "当前文件夹不可读。有些内容可能不会被显示。"
 msgid "Loading contents in %1"
 msgstr "正在加载 %1 中的内容"
 
-#: frontend/ui/widget/frontlightwidget.lua:187
-#: frontend/ui/widget/frontlightwidget.lua:302
+#: frontend/ui/widget/frontlightwidget.lua:186
+#: frontend/ui/widget/frontlightwidget.lua:301
 #: plugins/statistics.koplugin/main.lua:1318
 msgctxt "Extrema"
 msgid "Min"
 msgstr "最小"
 
-#: frontend/ui/widget/frontlightwidget.lua:195
-#: frontend/ui/widget/frontlightwidget.lua:310
+#: frontend/ui/widget/frontlightwidget.lua:194
+#: frontend/ui/widget/frontlightwidget.lua:309
 #: plugins/statistics.koplugin/main.lua:1325
 msgctxt "Extrema"
 msgid "Max"
 msgstr "最大值"
 
-#: frontend/ui/widget/frontlightwidget.lua:203
+#: frontend/ui/widget/frontlightwidget.lua:202
 msgid "Toggle"
 msgstr "开关"
 
-#: frontend/ui/widget/frontlightwidget.lua:322
+#: frontend/ui/widget/frontlightwidget.lua:321
 msgid "Configure"
 msgstr "配置"
 
@@ -14190,76 +14189,76 @@ msgstr "旋转"
 msgid "Image viewer"
 msgstr "图片查看器"
 
-#: frontend/ui/widget/inputdialog.lua:413
+#: frontend/ui/widget/inputdialog.lua:408
 msgid "Read only"
 msgstr "只读"
 
-#: frontend/ui/widget/inputdialog.lua:415
+#: frontend/ui/widget/inputdialog.lua:410
 msgid "Not editable"
 msgstr "不可编辑"
 
-#: frontend/ui/widget/inputdialog.lua:844
+#: frontend/ui/widget/inputdialog.lua:839
 msgid "Text reset"
 msgstr "重置文本"
 
-#: frontend/ui/widget/inputdialog.lua:849
+#: frontend/ui/widget/inputdialog.lua:844
 msgid "Resetting failed."
 msgstr "重置失败。"
 
-#: frontend/ui/widget/inputdialog.lua:870
-#: frontend/ui/widget/inputdialog.lua:912
+#: frontend/ui/widget/inputdialog.lua:865
+#: frontend/ui/widget/inputdialog.lua:907
 msgid "Saving failed."
 msgstr "保存失败。"
 
-#: frontend/ui/widget/inputdialog.lua:876
-#: frontend/ui/widget/inputdialog.lua:921
+#: frontend/ui/widget/inputdialog.lua:871
+#: frontend/ui/widget/inputdialog.lua:916
 msgid "Saved"
 msgstr "已保存"
 
-#: frontend/ui/widget/inputdialog.lua:890
+#: frontend/ui/widget/inputdialog.lua:885
 msgid "You have unsaved changes."
 msgstr "含有未保存的变更。"
 
-#: frontend/ui/widget/inputdialog.lua:892
+#: frontend/ui/widget/inputdialog.lua:887
 msgid "Discard"
 msgstr "忽略"
 
-#: frontend/ui/widget/inputdialog.lua:900
+#: frontend/ui/widget/inputdialog.lua:895
 msgid "Changes discarded"
 msgstr "更改已取消"
 
-#: frontend/ui/widget/inputdialog.lua:966 frontend/ui/widget/textviewer.lua:238
+#: frontend/ui/widget/inputdialog.lua:961 frontend/ui/widget/textviewer.lua:238
 #: frontend/ui/widget/textviewer.lua:589
 msgid "Find"
 msgstr "查找"
 
-#: frontend/ui/widget/inputdialog.lua:985 frontend/ui/widget/textviewer.lua:507
+#: frontend/ui/widget/inputdialog.lua:980 frontend/ui/widget/textviewer.lua:507
 msgid "Find first"
 msgstr "查找第一个"
 
-#: frontend/ui/widget/inputdialog.lua:991 frontend/ui/widget/textviewer.lua:514
+#: frontend/ui/widget/inputdialog.lua:986 frontend/ui/widget/textviewer.lua:514
 #: frontend/ui/widget/textviewer.lua:588
 msgid "Find next"
 msgstr "查找下一个"
 
-#: frontend/ui/widget/inputdialog.lua:1025
+#: frontend/ui/widget/inputdialog.lua:1020
 msgid "Enter line number"
 msgstr "输入行号"
 
 #. @translators %1 is the current line number, %2 is the last line number
-#: frontend/ui/widget/inputdialog.lua:1028
+#: frontend/ui/widget/inputdialog.lua:1023
 msgid "%1 (1 - %2)"
 msgstr "%1 (1 - %2)"
 
-#: frontend/ui/widget/inputdialog.lua:1045
+#: frontend/ui/widget/inputdialog.lua:1040
 msgid "Go to line"
 msgstr "转到行"
 
-#: frontend/ui/widget/inputdialog.lua:1167
+#: frontend/ui/widget/inputdialog.lua:1162
 msgid "Found in line %1."
 msgstr "在第 %1 行找到。"
 
-#: frontend/ui/widget/inputdialog.lua:1169
+#: frontend/ui/widget/inputdialog.lua:1164
 #: frontend/ui/widget/textviewer.lua:579
 msgid "Not found."
 msgstr "未找到。"
@@ -14313,11 +14312,11 @@ msgstr "此文本可能为二进制格式，无法被编辑"
 msgid "Show password"
 msgstr "显示密码"
 
-#: frontend/ui/widget/keyboardlayoutdialog.lua:41
+#: frontend/ui/widget/keyboardlayoutdialog.lua:39
 msgid "Keyboard layout"
 msgstr "键盘布局"
 
-#: frontend/ui/widget/keyboardlayoutdialog.lua:82
+#: frontend/ui/widget/keyboardlayoutdialog.lua:80
 msgid "Switch to layout"
 msgstr "切换到布局"
 
@@ -16116,23 +16115,23 @@ msgstr "太多的中断或崩溃"
 msgid "Book info cache database updated."
 msgstr "书籍信息缓存数据库已更新。"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:261
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:274
 msgid "Failed compacting database: %1"
 msgstr "压缩数据库失败：%1"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:265
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:278
 msgid "Cache database size reduced from %1 to %2."
 msgstr "缓存数据库大小已从 %1 减小到 %2 。"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:662
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:675
 msgid "Cache is empty. Nothing to prune."
 msgstr "缓存为空，没有需要删除的缓存。"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:680
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:693
 msgid "Removed %1 / %2 entries from cache."
 msgstr "已删除 %1 / %2 来自缓存的条目。"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:868
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:881
 msgid ""
 "This will extract metadata and cover images from books in the current "
 "directory.\n"
@@ -16154,34 +16153,34 @@ msgstr ""
 "\n"
 "提取过程需要花费一些时间并消耗部分电量，建议在此过程中接入电源。"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:885
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:898
 msgid "Also extract book information from books in subdirectories?"
 msgstr "是否也需要提取子目录中的书籍信息？"
 
 #. @translators Extract book information only for books in this directory.
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:888
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:901
 msgid "Here only"
 msgstr "仅此处"
 
 #. @translators Extract book information for books in this directory as well as in subdirectories.
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:890
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:903
 msgid "Here and under"
 msgstr "此处以及下文"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:895
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:908
 msgid ""
 "Do you want to refresh metadata and covers that have already been extracted?"
 msgstr "是否想要刷新已解压的书籍封面与元数据信息？"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:898
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:911
 msgid "Don't refresh"
 msgstr "不要刷新"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:899
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:912
 msgid "Refresh"
 msgstr "刷新"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:903
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:916
 msgid ""
 "If you have removed many books, or have renamed some directories, it is good "
 "to remove them from the cache database.\n"
@@ -16193,42 +16192,42 @@ msgstr ""
 "\n"
 "是否清理缓存中已删除的书籍？"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:907
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:920
 msgid "Don't prune"
 msgstr "不要清理"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:908
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:921
 msgid "Prune"
 msgstr "清理"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:915
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:928
 msgid "Do you want to abort extraction?"
 msgstr "是否放弃提取？"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:916
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:929
 msgid "Don't abort"
 msgstr "不放弃"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:929
-#: plugins/coverbrowser.koplugin/main.lua:512
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:942
+#: plugins/coverbrowser.koplugin/main.lua:511
 msgid "Pruning cache of removed books…"
 msgstr "正在删除已删除书籍的缓存…"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:953
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:966
 msgid "Looking for books to index…"
 msgstr "正在搜索并索引书籍…"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:967
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:980
 msgid "No books were found."
 msgstr "没有发现书籍。"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:979
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1041
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:992
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1054
 msgid "Found 1 book to index."
 msgid_plural "Found %1 books to index."
 msgstr[0] "找到 %1 本待索引书籍。"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:992
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1005
 msgid ""
 "Found %1 books.\n"
 "Looking for those not already present in the cache database…"
@@ -16236,11 +16235,11 @@ msgstr ""
 "发现 %1 本书籍。\n"
 "正在查找未包含在缓存数据库中的书籍…"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1030
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1043
 msgid "No books were found that need to be indexed."
 msgstr "没有找到需要索引的书籍。"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1070
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1083
 msgid ""
 "Indexing %1 / %2…\n"
 "\n"
@@ -16250,11 +16249,11 @@ msgstr ""
 "\n"
 "%3"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1119
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1132
 msgid "Processed %1 / %2 books."
 msgstr "处理了 %2 本书籍中的 %1 本。"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1123
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1136
 msgid "One extracted successfully."
 msgid_plural "%1 extracted successfully."
 msgstr[0] "%1 已成功提取。"
@@ -16359,119 +16358,119 @@ msgstr "无封面图像的元数据详细列表"
 msgid "Detailed list with cover images and filenames"
 msgstr "封面图像和文件名的详细列表"
 
-#: plugins/coverbrowser.koplugin/main.lua:144
+#: plugins/coverbrowser.koplugin/main.lua:143
 msgid "Use this mode everywhere"
 msgstr "在所有地方使用此模式"
 
-#: plugins/coverbrowser.koplugin/main.lua:156
+#: plugins/coverbrowser.koplugin/main.lua:155
 msgid "History display mode"
 msgstr "历史显示模式"
 
-#: plugins/coverbrowser.koplugin/main.lua:163
+#: plugins/coverbrowser.koplugin/main.lua:162
 msgid "Collections display mode"
 msgstr "收藏显示模式"
 
-#: plugins/coverbrowser.koplugin/main.lua:170
+#: plugins/coverbrowser.koplugin/main.lua:169
 msgid "Display mode"
 msgstr "显示模式"
 
-#: plugins/coverbrowser.koplugin/main.lua:181
+#: plugins/coverbrowser.koplugin/main.lua:180
 msgid "Mosaic and detailed list settings"
 msgstr "封面图片和详细的列表设置"
 
-#: plugins/coverbrowser.koplugin/main.lua:187
+#: plugins/coverbrowser.koplugin/main.lua:186
 msgid "Items per page in portrait mosaic mode: %1 × %2"
 msgstr "在竖排模式下的每页封面数量: %1 × %2"
 
-#: plugins/coverbrowser.koplugin/main.lua:198
+#: plugins/coverbrowser.koplugin/main.lua:197
 msgid "Portrait mosaic mode"
 msgstr "纵向平铺模式"
 
-#: plugins/coverbrowser.koplugin/main.lua:243
+#: plugins/coverbrowser.koplugin/main.lua:242
 msgid "Items per page in landscape mosaic mode: %1 × %2"
 msgstr "在横排模式下的每页封面数量: %1 × %2"
 
-#: plugins/coverbrowser.koplugin/main.lua:253
+#: plugins/coverbrowser.koplugin/main.lua:252
 msgid "Landscape mosaic mode"
 msgstr "竖排模式"
 
-#: plugins/coverbrowser.koplugin/main.lua:302
+#: plugins/coverbrowser.koplugin/main.lua:301
 msgid "Items per page in portrait list mode: %1"
 msgstr "在竖排模式下的每页列表数量: %1"
 
-#: plugins/coverbrowser.koplugin/main.lua:310
+#: plugins/coverbrowser.koplugin/main.lua:309
 msgid "Portrait list mode"
 msgstr "纵向列表模式"
 
-#: plugins/coverbrowser.koplugin/main.lua:339
+#: plugins/coverbrowser.koplugin/main.lua:338
 msgid "Progress"
 msgstr "进度"
 
-#: plugins/coverbrowser.koplugin/main.lua:342
+#: plugins/coverbrowser.koplugin/main.lua:341
 msgid "Show progress in mosaic mode"
 msgstr "平铺模式显示进度"
 
-#: plugins/coverbrowser.koplugin/main.lua:353
+#: plugins/coverbrowser.koplugin/main.lua:352
 msgid "Show progress in detailed list mode"
 msgstr "在列表模式下显示进度"
 
-#: plugins/coverbrowser.koplugin/main.lua:363
+#: plugins/coverbrowser.koplugin/main.lua:362
 msgid "Show number of pages read instead of progress %"
 msgstr "使用页数替代百分比显示进度"
 
-#: plugins/coverbrowser.koplugin/main.lua:376
+#: plugins/coverbrowser.koplugin/main.lua:375
 msgid "Show number of pages left to read"
 msgstr "显示剩余页面数目"
 
-#: plugins/coverbrowser.koplugin/main.lua:391
+#: plugins/coverbrowser.koplugin/main.lua:390
 msgid "Display hints"
 msgstr "显示书籍提示"
 
-#: plugins/coverbrowser.koplugin/main.lua:394
+#: plugins/coverbrowser.koplugin/main.lua:393
 msgid "Show hint for books with description"
 msgstr "显示书籍说明提示"
 
-#: plugins/coverbrowser.koplugin/main.lua:404
+#: plugins/coverbrowser.koplugin/main.lua:403
 msgid "Show hint for book status in history"
 msgstr "为历史记录中的书籍状态显示提示"
 
-#: plugins/coverbrowser.koplugin/main.lua:414
+#: plugins/coverbrowser.koplugin/main.lua:413
 msgid "Show hint for book status in collections"
 msgstr "显示收藏中图书状态的提示"
 
-#: plugins/coverbrowser.koplugin/main.lua:426
+#: plugins/coverbrowser.koplugin/main.lua:425
 msgid "Series"
 msgstr "丛书"
 
-#: plugins/coverbrowser.koplugin/main.lua:429
+#: plugins/coverbrowser.koplugin/main.lua:428
 msgid "Append series metadata to authors"
 msgstr "将丛书元数据附加到作者"
 
-#: plugins/coverbrowser.koplugin/main.lua:444
+#: plugins/coverbrowser.koplugin/main.lua:443
 msgid "Append series metadata to title"
 msgstr "将丛书元数据附加到书名"
 
-#: plugins/coverbrowser.koplugin/main.lua:459
+#: plugins/coverbrowser.koplugin/main.lua:458
 msgid "Show series metadata in separate line"
 msgstr "另起一行显示丛书数据"
 
-#: plugins/coverbrowser.koplugin/main.lua:476
+#: plugins/coverbrowser.koplugin/main.lua:475
 msgid "Show file properties"
 msgstr "显示文件属性"
 
-#: plugins/coverbrowser.koplugin/main.lua:487
+#: plugins/coverbrowser.koplugin/main.lua:486
 msgid "Book info cache management"
 msgstr "书籍信息缓存管理"
 
-#: plugins/coverbrowser.koplugin/main.lua:492
+#: plugins/coverbrowser.koplugin/main.lua:491
 msgid "Current cache size: "
 msgstr "目前缓存大小: "
 
-#: plugins/coverbrowser.koplugin/main.lua:498
+#: plugins/coverbrowser.koplugin/main.lua:497
 msgid "Prune cache of removed books"
 msgstr "删除已删除书籍的缓存"
 
-#: plugins/coverbrowser.koplugin/main.lua:506
+#: plugins/coverbrowser.koplugin/main.lua:505
 msgid ""
 "Are you sure that you want to prune cache of removed books?\n"
 "(This may take a while.)"
@@ -16479,15 +16478,15 @@ msgstr ""
 "确认同时删除本书的缓存吗？\n"
 "(删除需要时间)"
 
-#: plugins/coverbrowser.koplugin/main.lua:508
+#: plugins/coverbrowser.koplugin/main.lua:507
 msgid "Prune cache"
 msgstr "删除缓存"
 
-#: plugins/coverbrowser.koplugin/main.lua:525
+#: plugins/coverbrowser.koplugin/main.lua:524
 msgid "Compact cache database"
 msgstr "压缩缓存数据库"
 
-#: plugins/coverbrowser.koplugin/main.lua:532
+#: plugins/coverbrowser.koplugin/main.lua:531
 msgid ""
 "Are you sure that you want to compact cache database?\n"
 "(This may take a while.)"
@@ -16495,19 +16494,19 @@ msgstr ""
 "确定要压缩缓存数据库吗？\n"
 "(这要等一会)"
 
-#: plugins/coverbrowser.koplugin/main.lua:534
+#: plugins/coverbrowser.koplugin/main.lua:533
 msgid "Compact database"
 msgstr "压缩数据库"
 
-#: plugins/coverbrowser.koplugin/main.lua:538
+#: plugins/coverbrowser.koplugin/main.lua:537
 msgid "Compacting cache database…"
 msgstr "正在压缩数据库…"
 
-#: plugins/coverbrowser.koplugin/main.lua:551
+#: plugins/coverbrowser.koplugin/main.lua:550
 msgid "Delete cache database"
 msgstr "删除缓存数据库"
 
-#: plugins/coverbrowser.koplugin/main.lua:558
+#: plugins/coverbrowser.koplugin/main.lua:557
 msgid ""
 "Are you sure that you want to delete cover and metadata cache?\n"
 "(This will also reset your display mode settings.)"
@@ -16515,7 +16514,7 @@ msgstr ""
 "确定要删除封面和元数据缓存吗？\n"
 "(这同时会重置显示模式设定)"
 
-#: plugins/coverbrowser.koplugin/main.lua:560
+#: plugins/coverbrowser.koplugin/main.lua:559
 msgid "Purge"
 msgstr "删除"
 
@@ -16826,12 +16825,12 @@ msgid "Unknown Author"
 msgstr "未知作者"
 
 #: plugins/exporter.koplugin/main.lua:138
-#: plugins/exporter.koplugin/main.lua:355
+#: plugins/exporter.koplugin/main.lua:332
 msgid "Export all notes in current book"
 msgstr "导出本书所有笔记"
 
 #: plugins/exporter.koplugin/main.lua:144
-#: plugins/exporter.koplugin/main.lua:364
+#: plugins/exporter.koplugin/main.lua:341
 msgid "Export all notes in all books in history"
 msgstr "导出历史中所有书籍中的所有笔记"
 
@@ -16853,39 +16852,35 @@ msgstr "%1：导出至%2。"
 msgid "%1: Failed to export."
 msgstr "%1：导出失败。"
 
-#: plugins/exporter.koplugin/main.lua:308
+#: plugins/exporter.koplugin/main.lua:285
 msgid "Share as %1"
 msgstr "共享为 %1"
 
-#: plugins/exporter.koplugin/main.lua:380
+#: plugins/exporter.koplugin/main.lua:357
 msgid "Share all notes in this book"
 msgstr "分享此书籍中的所有笔记"
 
-#: plugins/exporter.koplugin/main.lua:429
+#: plugins/exporter.koplugin/main.lua:406
 msgid "More..."
 msgstr "更多…"
 
-#: plugins/exporter.koplugin/main.lua:446
+#: plugins/exporter.koplugin/main.lua:419
 msgid "Choose formats and services"
 msgstr "选择格式和服务"
 
-#: plugins/exporter.koplugin/main.lua:450
+#: plugins/exporter.koplugin/main.lua:423
 msgid "Choose highlight styles"
 msgstr "选择标注样式"
 
-#: plugins/exporter.koplugin/main.lua:455
+#: plugins/exporter.koplugin/main.lua:428
 msgid "Choose export folder"
 msgstr "选择导出文件夹"
 
-#: plugins/exporter.koplugin/main.lua:462
+#: plugins/exporter.koplugin/main.lua:435
 msgid "Use book folder for single export"
 msgstr "使用图书文件夹进行单次导出"
 
 #: plugins/exporter.koplugin/main.lua:471
-msgid "Show recent exports in menu"
-msgstr "在菜单中显示最近的导出"
-
-#: plugins/exporter.koplugin/main.lua:494
 msgid "Current export folder:"
 msgstr "当前导出文件夹："
 
@@ -19554,17 +19549,17 @@ msgid "Last resume time"
 msgstr "上次恢复时间"
 
 #: plugins/systemstat.koplugin/main.lua:202
-#: plugins/systemstat.koplugin/main.lua:298
+#: plugins/systemstat.koplugin/main.lua:305
 msgid "Up time"
 msgstr "运行时间"
 
 #: plugins/systemstat.koplugin/main.lua:208
-#: plugins/systemstat.koplugin/main.lua:305
+#: plugins/systemstat.koplugin/main.lua:312
 msgid "Time spent awake"
 msgstr "亮屏时长"
 
 #: plugins/systemstat.koplugin/main.lua:217
-#: plugins/systemstat.koplugin/main.lua:315
+#: plugins/systemstat.koplugin/main.lua:322
 msgid "Time in suspend"
 msgstr "休眠时间"
 
@@ -19613,116 +19608,120 @@ msgstr "连接后挂起的任务"
 msgid "Pending jobs after being online"
 msgstr "在线后挂起的任务"
 
-#: plugins/systemstat.koplugin/main.lua:292
+#: plugins/systemstat.koplugin/main.lua:286
+msgid "Indexed files"
+msgstr "已索引文件"
+
+#: plugins/systemstat.koplugin/main.lua:299
 msgid "System information"
 msgstr "系统信息"
 
-#: plugins/systemstat.koplugin/main.lua:294
+#: plugins/systemstat.koplugin/main.lua:301
 msgid "  Number of processes"
 msgstr "  进程数"
 
-#: plugins/systemstat.koplugin/main.lua:322
+#: plugins/systemstat.koplugin/main.lua:329
 msgid "Number of processors"
 msgstr "处理器数量"
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:325
+#: plugins/systemstat.koplugin/main.lua:332
 msgid "  Total ticks (million)"
 msgstr "  总时钟周期（百万）"
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:330
+#: plugins/systemstat.koplugin/main.lua:337
 msgid "  Idle ticks (million)"
 msgstr "  闲置时钟周期（百万）"
 
-#: plugins/systemstat.koplugin/main.lua:335
-#: plugins/systemstat.koplugin/main.lua:413
+#: plugins/systemstat.koplugin/main.lua:342
+#: plugins/systemstat.koplugin/main.lua:420
 msgid "  Processor usage %"
 msgstr "  处理器使用率 %"
 
-#: plugins/systemstat.koplugin/main.lua:341
+#: plugins/systemstat.koplugin/main.lua:348
 msgid "5 minutes usage %"
 msgstr "5分钟使用率 %"
 
-#: plugins/systemstat.koplugin/main.lua:347
+#: plugins/systemstat.koplugin/main.lua:354
 msgid "15 minutes usage %"
 msgstr "15分钟使用率 %"
 
-#: plugins/systemstat.koplugin/main.lua:352
+#: plugins/systemstat.koplugin/main.lua:359
 msgid "Usage % during awake"
 msgstr "唤醒期间使用率 %"
 
-#: plugins/systemstat.koplugin/main.lua:359
+#: plugins/systemstat.koplugin/main.lua:366
 msgid "Usage % since boot"
 msgstr "自启动以来的使用率 %"
 
-#: plugins/systemstat.koplugin/main.lua:369
+#: plugins/systemstat.koplugin/main.lua:376
 msgid "  Total memory (MB)"
 msgstr "  总内存 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:373
+#: plugins/systemstat.koplugin/main.lua:380
 msgid "  Free memory (MB)"
 msgstr "  剩余内存 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:377
+#: plugins/systemstat.koplugin/main.lua:384
 msgid "  Available memory (MB)"
 msgstr "  可用内存 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:394
+#: plugins/systemstat.koplugin/main.lua:401
 msgid "Process"
 msgstr "进程"
 
-#: plugins/systemstat.koplugin/main.lua:396
+#: plugins/systemstat.koplugin/main.lua:403
 msgid "  ID"
 msgstr "  ID"
 
-#: plugins/systemstat.koplugin/main.lua:409
+#: plugins/systemstat.koplugin/main.lua:416
 msgid "Total ticks"
 msgstr "总滴答数"
 
-#: plugins/systemstat.koplugin/main.lua:422
+#: plugins/systemstat.koplugin/main.lua:429
 msgid "Priority / nice"
 msgstr "优先级 / Nice"
 
-#: plugins/systemstat.koplugin/main.lua:429
+#: plugins/systemstat.koplugin/main.lua:436
 msgid "  Threads"
 msgstr "  线程"
 
-#: plugins/systemstat.koplugin/main.lua:438
+#: plugins/systemstat.koplugin/main.lua:445
 msgid "  Virtual memory (MB)"
 msgstr "  虚拟内存(MB)"
 
-#: plugins/systemstat.koplugin/main.lua:448
+#: plugins/systemstat.koplugin/main.lua:455
 msgid "  RAM usage (MB)"
 msgstr "  已用内存 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:464
+#: plugins/systemstat.koplugin/main.lua:471
 msgid "Storage information"
 msgstr "存储信息"
 
-#: plugins/systemstat.koplugin/main.lua:468
+#: plugins/systemstat.koplugin/main.lua:475
 msgid "  Unexpected"
 msgstr "  意外的"
 
-#: plugins/systemstat.koplugin/main.lua:470
+#: plugins/systemstat.koplugin/main.lua:477
 msgid "  Mount point"
 msgstr "  挂载点"
 
-#: plugins/systemstat.koplugin/main.lua:471
+#: plugins/systemstat.koplugin/main.lua:478
 msgid "  Available"
 msgstr "  可用"
 
-#: plugins/systemstat.koplugin/main.lua:472
+#: plugins/systemstat.koplugin/main.lua:479
 msgid "  Total"
 msgstr "  总计"
 
-#: plugins/systemstat.koplugin/main.lua:473
+#: plugins/systemstat.koplugin/main.lua:480
 msgid "  Used percentage"
 msgstr "  使用百分比"
 
-#: plugins/systemstat.koplugin/main.lua:499
-#: plugins/systemstat.koplugin/main.lua:514
-#: plugins/systemstat.koplugin/main.lua:527
+#: plugins/systemstat.koplugin/main.lua:506
+#: plugins/systemstat.koplugin/main.lua:521
+#: plugins/systemstat.koplugin/main.lua:534
 #: plugins/systemstat.koplugin/_meta.lua:4
 msgid "System statistics"
 msgstr "系统统计"
@@ -20901,6 +20900,9 @@ msgstr "Wallabag"
 #: tools/update-metadata.lua:80
 msgid "annotations"
 msgstr "注释"
+
+#~ msgid "Show recent exports in menu"
+#~ msgstr "在菜单中显示最近的导出"
 
 #, fuzzy
 #~ msgid "About alt status bar"
